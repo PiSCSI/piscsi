@@ -1,0 +1,42 @@
+RaSCSI用 Ethernetドライバ
+RASETHER version 1.20
+
+Based on
+    Neptune-X board driver for  Human-68k(ESP-X)   version 0.03
+    Programed 1996-7 by Shi-MAD.
+    Special thanks to  Niggle, FIRST, yamapu ...
+
+● このプログラムは
+
+  Shi-MAD さんの作られた Ethernet 用 ISA バスブリッジ "Neptune-X" 用デバ
+  イスドライバ ether_ne.sys を改造した ether_ne.sys ver0.03 +M01 +1 +L12を
+  参考にして開発したRaSCSI用のイーサーネット通信ドライバです。
+
+● 使い方
+
+  基本的にはオリジナルのドライバと同じようにデバイスドライバとしてCONFIG.SYS
+  で組み込んで下さい。
+
+　例）
+	DEVICE = \SYS\RASETHER.SYS
+
+　以下のオプションが指定可能です。
+  -tx [xは数字]  : 使用するtrapを指定します。xは０から６が指定可能です。
+                   ただし、指定したtrapが使用中である場合は、trap #0から
+                   空いている所を自動探索し、見つかった空きtrapを利用し
+                   ます。
+  -n             : APIにtrapを使用しません。
+
+  RASETHERで拡張したオプションは以下のとおりです。
+  -px [xは数字]  : パケット受信のポーリング間隔を指定します1がデフォルトです。
+                   1の場合は約16ms毎にポーリングします。2,3･･･8まで指定が可能
+                  です。数字が一つ増えるごとに16ms間隔が大きくなります。
+
+  -ix [xは数字]  : ポーリングに使用する割り込みのタイプを指定します。
+                   デフォルトは0でMFPのGPIP割り込み(V-DISP)を利用します。
+                   1を指定するとTimer-A割り込みを使用します。
+
+
+● このドライバについて
+  オリジナルのether_ne.sys及び改造版のether_ne.sys ver0.03 +M01 +1 +L12の
+  利用規定に従います。
