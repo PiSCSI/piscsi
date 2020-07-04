@@ -3,7 +3,7 @@
 //	X68000 EMULATOR "XM6"
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
-//	Copyright (C) 2014-2018 GIMONS
+//	Copyright (C) 2014-2020 GIMONS
 //
 //	[ SCSI共通 ]
 //
@@ -111,14 +111,15 @@ public:
 										// データシグナル取得
 	virtual void FASTCALL SetDAT(BYTE dat) = 0;
 										// データシグナル設定
+	virtual BOOL FASTCALL GetDP() = 0;
+										// パリティシグナル取得
 
+	virtual int FASTCALL CommandHandShake(BYTE *buf) = 0;
+										// コマンド受信ハンドシェイク
 	virtual int FASTCALL ReceiveHandShake(BYTE *buf, int count) = 0;
 										// データ受信ハンドシェイク
 	virtual int FASTCALL SendHandShake(BYTE *buf, int count) = 0;
 										// データ送信ハンドシェイク
-
-	virtual void FASTCALL SleepNsec(DWORD nsec) = 0;
-										// ナノ秒単位のスリープ
 
 private:
 	static const phase_t phase_table[8];

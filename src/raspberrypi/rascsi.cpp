@@ -4,40 +4,50 @@
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2018 GIMONS
+//	Copyright (C) 2016-2020 GIMONS
 //	[ メイン ]
 //
 //---------------------------------------------------------------------------
 
 #include "os.h"
 #include "xm6.h"
-#include "fileio.h"
 #include "filepath.h"
+#include "fileio.h"
 #include "disk.h"
 #include "gpiobus.h"
+
+//---------------------------------------------------------------------------
+//
+//	定数宣言
+//
+//---------------------------------------------------------------------------
+#define CtrlMax	8					// 最大SCSIコントローラ数
+#define UnitNum	2					// コントローラ辺りのユニット数
+#ifdef BAREMETAL
+#define FPRT(fp, ...) printf( __VA_ARGS__ )
+#else
+#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
+#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
 //	変数宣言
 //
 //---------------------------------------------------------------------------
-enum {
-	CtrlMax = 8,					// 最大SCSIコントローラ数
-};
-
+static volatile BOOL running;		// 実行中フラグ
+static volatile BOOL active;		// 処理中フラグ
 SASIDEV *ctrl[CtrlMax];				// コントローラ
-Disk *disk[CtrlMax];				// ディスク
-Filepath image[CtrlMax];			// イメージファイルパス
-GPIOBUS bus;						// バス
-BUS::phase_t phase;					// フェーズ
-int actid;							// アクティブなコントローラID
-volatile BOOL bRun;					// 実行中フラグ
-
-BOOL bServer;						// サーバーモードフラグ
-int monfd;							// モニター用ソケットFD
+Disk *disk[CtrlMax * UnitNum];		// ディスク
+GPIOBUS *bus;						// GPIOバス
+#ifdef BAREMETAL
+FATFS fatfs;						// FatFS
+#else
+int monsocket;						// モニター用ソケット
 pthread_t monthread;				// モニタースレッド
 static void *MonThread(void *param);
+#endif	// BAREMETAL
 
+#ifndef BAREMETAL
 //---------------------------------------------------------------------------
 //
 //	シグナル処理
@@ -46,43 +56,50 @@ static void *MonThread(void *param);
 void KillHandler(int sig)
 {
 	// 停止指示
-	bRun = FALSE;
+	running = FALSE;
 }
+#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
 //	バナー出力
 //
 //---------------------------------------------------------------------------
-BOOL Banner(int argc, char* argv[])
+void Banner(int argc, char* argv[])
 {
-	printf("SCSI Target Emulator RaSCSI(*^..^*) ");
-	printf("version %01d.%01d%01d\n",
+	FPRT(stdout,"SCSI Target Emulator RaSCSI(*^..^*) ");
+	FPRT(stdout,"version %01d.%01d%01d(%s, %s)\n",
 		(int)((VERSION >> 8) & 0xf),
 		(int)((VERSION >> 4) & 0xf),
-		(int)((VERSION     ) & 0xf));
-	printf("Powered by XM6 TypeG Technology / ");
-	printf("Copyright (C) 2016-2018 GIMONS\n");
-	printf("Connect type : %s\n", CONNECT_DESC);
+		(int)((VERSION     ) & 0xf),
+		__DATE__,
+		__TIME__);
+	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
+	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
+	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
 
 	if (argc > 1 && strcmp(argv[1], "-h") == 0) {
-		printf("\n");
-		printf("Usage: %s [-ID{0|1|2|3|4|5|6|7} FILE] ...\n\n", argv[0]);
-		printf(" IDn is SCSI identification number.\n");
-		printf(" FILE is disk image file.\n\n");
-		printf(" Detected images type based on file extension.\n");
-		printf("  hdf : SASI HD image(XM6 SASI HD image)\n");
-		printf("  hds : SCSI HD image(XM6 SCSI HD image)\n");
-		printf("  hdn : SCSI HD image(NEC GENUINE)\n");
-		printf("  hdi : SCSI HD image(Anex86 HD image)\n");
-		printf("  nhd : SCSI HD image(T98Next HD image)\n");
-		printf("  hda : SCSI HD image(APPLE GENUINE)\n");
-		printf("  mos : SCSI MO image(XM6 SCSI MO image)\n");
-		printf("  iso : SCSI CD image(ISO 9660 image)\n");
-		return FALSE;
-	}
+		FPRT(stdout,"\n");
+		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
+		FPRT(stdout," n is SCSI identification number(0-7).\n");
+		FPRT(stdout," FILE is disk image file.\n\n");
+		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
+		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
+		FPRT(stdout," FILE is disk image file.\n\n");
+		FPRT(stdout," Image type is detected based on file extension.\n");
+		FPRT(stdout,"  hdf : SASI HD image(XM6 SASI HD image)\n");
+		FPRT(stdout,"  hds : SCSI HD image(XM6 SCSI HD image)\n");
+		FPRT(stdout,"  hdn : SCSI HD image(NEC GENUINE)\n");
+		FPRT(stdout,"  hdi : SCSI HD image(Anex86 HD image)\n");
+		FPRT(stdout,"  nhd : SCSI HD image(T98Next HD image)\n");
+		FPRT(stdout,"  hda : SCSI HD image(APPLE GENUINE)\n");
+		FPRT(stdout,"  mos : SCSI MO image(XM6 SCSI MO image)\n");
+		FPRT(stdout,"  iso : SCSI CD image(ISO 9660 image)\n");
 
-	return TRUE;
+#ifndef BAREMETAL
+		exit(0);
+#endif	// BAREMETAL
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -93,24 +110,34 @@ BOOL Banner(int argc, char* argv[])
 BOOL Init()
 {
 	int i;
+
+#ifndef BAREMETAL
 	struct sockaddr_in server;
+	int yes;
 
 	// モニター用ソケット生成
-	monfd = socket(PF_INET, SOCK_STREAM, 0);
+	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
 	server.sin_port   = htons(6868);
-	server.sin_addr.s_addr = htonl(INADDR_ANY); 
-	if (bind(monfd, (struct sockaddr *)&server,
-		sizeof(struct sockaddr_in)) < 0) {
-		if (errno != EADDRINUSE) {
-			return FALSE;
-		}
-		bServer = FALSE;
-		return TRUE;
-	} else {
-		bServer = TRUE;
+	server.sin_addr.s_addr = htonl(INADDR_ANY);
+
+	// アドレスの再利用を許可する
+	yes = 1;
+	if (setsockopt(
+		monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0){
+		return FALSE;
 	}
+
+	// バインド
+	if (bind(monsocket, (struct sockaddr *)&server,
+		sizeof(struct sockaddr_in)) < 0) {
+		FPRT(stderr, "Error : Already running?\n");
+		return FALSE;
+	}
+
+	// モニタースレッド生成
+	pthread_create(&monthread, NULL, MonThread, NULL);
 
 	// 割り込みハンドラ設定
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
@@ -122,11 +149,18 @@ BOOL Init()
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
 		return FALSE;
 	}
+#endif // BAREMETAL
 
+	// GPIOBUS生成
+	bus = new GPIOBUS();
+	
 	// GPIO初期化
-	if (!bus.Init()) {
+	if (!bus->Init()) {
 		return FALSE;
 	}
+
+	// バスリセット
+	bus->Reset();
 
 	// コントローラ初期化
 	for (i = 0; i < CtrlMax; i++) {
@@ -138,13 +172,9 @@ BOOL Init()
 		disk[i] = NULL;
 	}
 
-	// イメージパス初期化
-	for (i = 0; i < CtrlMax; i++) {
-		image[i].Clear();
-	}
-
-	// アクティブID初期化
-	actid = -1;
+	// その他
+	running = FALSE;
+	active = FALSE;
 
 	return TRUE;
 }
@@ -159,7 +189,7 @@ void Cleanup()
 	int i;
 
 	// ディスク削除
-	for (i = 0; i < CtrlMax; i++) {
+	for (i = 0; i < CtrlMax * UnitNum; i++) {
 		if (disk[i]) {
 			delete disk[i];
 			disk[i] = NULL;
@@ -175,12 +205,17 @@ void Cleanup()
 	}
 
 	// バスをクリーンアップ
-	bus.Cleanup();
+	bus->Cleanup();
+	
+	// GPIOBUS破棄
+	delete bus;
 
+#ifndef BAREMETAL
 	// モニター用ソケットクローズ
-	if (monfd >= 0) {
-		close(monfd);
+	if (monsocket >= 0) {
+		close(monsocket);
 	}
+#endif // BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -192,9 +227,6 @@ void Reset()
 {
 	int i;
 
-	// アクティブID初期化
-	actid = -1;
-
 	// コントローラリセット
 	for (i = 0; i < CtrlMax; i++) {
 		if (ctrl[i]) {
@@ -203,7 +235,7 @@ void Reset()
 	}
 
 	// バス信号線をリセット
-	bus.Reset();
+	bus->Reset();
 }
 
 //---------------------------------------------------------------------------
@@ -214,59 +246,183 @@ void Reset()
 void ListDevice(FILE *fp)
 {
 	int i;
+	int id;
+	int un;
+	Disk *pUnit;
 	Filepath filepath;
 	BOOL find;
 	char type[5];
 
 	find = FALSE;
 	type[4] = 0;
-	for (i = 0; i < 8; i++) {
-		if (disk[i] == NULL) {
+	for (i = 0; i < CtrlMax * UnitNum; i++) {
+		// IDとユニット
+		id = i / UnitNum;
+		un = i % UnitNum;
+		pUnit = disk[i];
+
+		// ユニットが存在しないまたはヌルディスクならスキップ
+		if (pUnit == NULL || pUnit->IsNULL()) {
 			continue;
 		}
 
 		// ヘッダー出力
 		if (!find) {
-			fprintf(fp, "\n");
-			fprintf(fp, "---+------+---------------------------------------\n");
-			fprintf(fp, "ID | TYPE | DEVICE STATUS\n");
-			fprintf(fp, "---+------+---------------------------------------\n");
+			FPRT(fp, "\n");
+			FPRT(fp, "+----+----+------+-------------------------------------\n");
+			FPRT(fp, "| ID | UN | TYPE | DEVICE STATUS\n");
+			FPRT(fp, "+----+----+------+-------------------------------------\n");
 			find = TRUE;
 		}
 
-		// ID,タイプ出力
-		type[0] = (char)(disk[i]->GetID() >> 24);
-		type[1] = (char)(disk[i]->GetID() >> 16);
-		type[2] = (char)(disk[i]->GetID() >> 8);
-		type[3] = (char)(disk[i]->GetID());
-		fprintf(fp, " %d | %s | ", i, type);
+		// ID,UNIT,タイプ出力
+		type[0] = (char)(pUnit->GetID() >> 24);
+		type[1] = (char)(pUnit->GetID() >> 16);
+		type[2] = (char)(pUnit->GetID() >> 8);
+		type[3] = (char)(pUnit->GetID());
+		FPRT(fp, "|  %d |  %d | %s | ", id, un, type);
 
 		// マウント状態出力
-		if (disk[i]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
-			fprintf(fp, "%s", "RaSCSI BRIDGE");
+		if (pUnit->GetID() == MAKEID('S', 'C', 'B', 'R')) {
+			FPRT(fp, "%s", "HOST BRIDGE");
 		} else {
-			disk[i]->GetPath(filepath);
-			fprintf(fp, "%s",
-				(disk[i]->IsRemovable() && !disk[i]->IsReady()) ?
+			pUnit->GetPath(filepath);
+			FPRT(fp, "%s",
+				(pUnit->IsRemovable() && !pUnit->IsReady()) ?
 				"NO MEDIA" : filepath.GetPath());
 		}
 
 		// ライトプロテクト状態出力
-		if (disk[i]->IsRemovable() && disk[i]->IsReady() && disk[i]->IsWriteP()) {
-			fprintf(fp, "(WRITEPROTECT)");
+		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
+			FPRT(fp, "(WRITEPROTECT)");
 		}
 
 		// 次の行へ
-		fprintf(fp, "\n");
+		FPRT(fp, "\n");
 	}
 
 	// コントローラが無い場合
 	if (!find) {
-		fprintf(fp, "No device is installed.\n");
+		FPRT(fp, "No device is installed.\n");
 		return;
 	}
 	
-	fprintf(fp, "---+------+---------------------------------------\n");
+	FPRT(fp, "+----+----+------+-------------------------------------\n");
+}
+
+//---------------------------------------------------------------------------
+//
+//	コントローラマッピング
+//
+//---------------------------------------------------------------------------
+void MapControler(FILE *fp, Disk **map)
+{
+	int i;
+	int j;
+	int unitno;
+	int sasi_num;
+	int scsi_num;
+
+	// 変更されたユニットの置き換え
+	for (i = 0; i < CtrlMax; i++) {
+		for (j = 0; j < UnitNum; j++) {
+			unitno = i * UnitNum + j;
+			if (disk[unitno] != map[unitno]) {
+				// 元のユニットが存在する
+				if (disk[unitno]) {
+					// コントローラから切り離す
+					if (ctrl[i]) {
+						ctrl[i]->SetUnit(j, NULL);
+					}
+
+					// ユニットを解放
+					delete disk[unitno];
+				}
+
+				// 新しいユニットの設定
+				disk[unitno] = map[unitno];
+			}
+		}
+	}
+
+	// 全コントローラを再構成
+	for (i = 0; i < CtrlMax; i++) {
+		// ユニット構成を調べる
+		sasi_num = 0;
+		scsi_num = 0;
+		for (j = 0; j < UnitNum; j++) {
+			unitno = i * UnitNum + j;
+			// ユニットの種類で分岐
+			if (disk[unitno]) {
+				if (disk[unitno]->IsSASI()) {
+					// SASIドライブ数加算
+					sasi_num++;
+				} else {
+					// SCSIドライブ数加算
+					scsi_num++;
+				}
+			}
+
+			// ユニットを取り外す
+			if (ctrl[i]) {
+				ctrl[i]->SetUnit(j, NULL);
+			}
+		}
+
+		// 接続ユニットなし
+		if (sasi_num == 0 && scsi_num == 0) {
+			if (ctrl[i]) {
+				delete ctrl[i];
+				ctrl[i] = NULL;
+				continue;
+			}
+		}
+
+		// SASI,SCSI混在
+		if (sasi_num > 0 && scsi_num > 0) {
+			FPRT(fp, "Error : SASI and SCSI can't be mixed\n");
+			continue;
+		}
+
+		if (sasi_num > 0) {
+			// SASIのユニットのみ
+
+			// コントローラのタイプが違うなら解放
+			if (ctrl[i] && !ctrl[i]->IsSASI()) {
+				delete ctrl[i];
+				ctrl[i] = NULL;
+			}
+
+			// SASIコントローラ生成
+			if (!ctrl[i]) {
+				ctrl[i] = new SASIDEV();
+				ctrl[i]->Connect(i, bus);
+			}
+		} else {
+			// SCSIのユニットのみ
+
+			// コントローラのタイプが違うなら解放
+			if (ctrl[i] && !ctrl[i]->IsSCSI()) {
+				delete ctrl[i];
+				ctrl[i] = NULL;
+			}
+
+			// SCSIコントローラ生成
+			if (!ctrl[i]) {
+				ctrl[i] = new SCSIDEV();
+				ctrl[i]->Connect(i, bus);
+			}
+		}
+
+		// 全ユニット接続
+		for (j = 0; j < UnitNum; j++) {
+			unitno = i * UnitNum + j;
+			if (disk[unitno]) {
+				// ユニット接続
+				ctrl[i]->SetUnit(j, disk[unitno]);
+			}
+		}
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -274,34 +430,34 @@ void ListDevice(FILE *fp)
 //	コマンド処理
 //
 //---------------------------------------------------------------------------
-BOOL ProcessCmd(FILE *fp, int id, int cmd, int type, char *file)
+BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 {
+	Disk *map[CtrlMax * UnitNum];
 	int len;
 	char *ext;
 	Filepath filepath;
+	Disk *pUnit;
+
+	// ユニット一覧を複写
+	memcpy(map, disk, sizeof(disk));
 
 	// IDチェック
-	if (id < 0 || id > 7) {
-		fprintf(fp, "Error : Invalid ID\n");
+	if (id < 0 || id >= CtrlMax) {
+		FPRT(fp, "Error : Invalid ID\n");
+		return FALSE;
+	}
+
+	// ユニットチェック
+	if (un < 0 || un >= UnitNum) {
+		FPRT(fp, "Error : Invalid unit number\n");
 		return FALSE;
 	}
 
 	// 接続コマンド
 	if (cmd == 0) {					// ATTACH
-		// コントローラを解放
-		if (ctrl[id]) {
-			ctrl[id]->SetUnit(0, NULL);
-			delete ctrl[id];
-			ctrl[id] = NULL;
-		}
-
-		// ディスクを解放
-		if (disk[id]) {
-			delete disk[id];
-			disk[id] = NULL;
-		}
-
 		// SASIとSCSIを見分ける
+		ext = NULL;
+		pUnit = NULL;
 		if (type == 0) {
 			// パスチェック
 			if (!file) {
@@ -329,37 +485,33 @@ BOOL ProcessCmd(FILE *fp, int id, int cmd, int type, char *file)
 		// タイプ別のインスタンスを生成
 		switch (type) {
 			case 0:		// HDF
-				disk[id] = new SASIHD();
+				pUnit = new SASIHD();
 				break;
 			case 1:		// HDS/HDN/HDI/NHD/HDA
+				if (ext == NULL) {
+					break;
+				}
 				if (xstrcasecmp(ext, "hdn") == 0 ||
 					xstrcasecmp(ext, "hdi") == 0 || xstrcasecmp(ext, "nhd") == 0) {
-					disk[id] = new SCSIHD_NEC();
+					pUnit = new SCSIHD_NEC();
 				} else if (xstrcasecmp(ext, "hda") == 0) {
-					disk[id] = new SCSIHD_APPLE();
+					pUnit = new SCSIHD_APPLE();
 				} else {
-					disk[id] = new SCSIHD();
+					pUnit = new SCSIHD();
 				}
 				break;
 			case 2:		// MO
-				disk[id] = new SCSIMO();
+				pUnit = new SCSIMO();
 				break;
 			case 3:		// CD
-				disk[id] = new SCSICD();
+				pUnit = new SCSICD();
 				break;
 			case 4:		// BRIDGE
-				disk[id] = new SCSIBR();
+				pUnit = new SCSIBR();
 				break;
 			default:
-				fprintf(fp,	"Error : Invalid device type\n");
+				FPRT(fp,	"Error : Invalid device type\n");
 				return FALSE;
-		}
-
-		// タイプに合わせてコントローラを作る
-		if (type == 0) {
-			ctrl[id] = new SASIDEV();
-		} else {
-			ctrl[id] = new SCSIDEV();
 		}
 
 		// ドライブはファイルの確認を行う
@@ -368,57 +520,57 @@ BOOL ProcessCmd(FILE *fp, int id, int cmd, int type, char *file)
 			filepath.SetPath(file);
 
 			// オープン
-			if (!disk[id]->Open(filepath)) {
-				fprintf(fp, "Error : File open error [%s]\n", file);
-				delete disk[id];
-				disk[id] = NULL;
-				delete ctrl[id];
-				ctrl[id] = NULL;
+			if (!pUnit->Open(filepath)) {
+				FPRT(fp, "Error : File open error [%s]\n", file);
+				delete pUnit;
 				return FALSE;
 			}
 		}
 
 		// ライトスルーに設定
-		disk[id]->SetCacheWB(FALSE);
+		pUnit->SetCacheWB(FALSE);
 
-		// 新たなディスクを接続
-		ctrl[id]->Connect(id, &bus);
-		ctrl[id]->SetUnit(0, disk[id]);
+		// 新しいユニットで置き換え
+		map[id * UnitNum + un] = pUnit;
+
+		// コントローラマッピング
+		MapControler(fp, map);
 		return TRUE;
 	}
 
 	// 有効なコマンドか
 	if (cmd > 4) {
-		fprintf(fp, "Error : Invalid command\n");
+		FPRT(fp, "Error : Invalid command\n");
 		return FALSE;
 	}
 
 	// コントローラが存在するか
 	if (ctrl[id] == NULL) {
-		fprintf(fp, "Error : No such device\n");
+		FPRT(fp, "Error : No such device\n");
 		return FALSE;
 	}
 
-	// ディスクが存在するか
-	if (disk[id] == NULL) {
-		fprintf(fp, "Error : No such device\n");
+	// ユニットが存在するか
+	pUnit = disk[id * UnitNum + un];
+	if (pUnit == NULL) {
+		FPRT(fp, "Error : No such device\n");
 		return FALSE;
 	}
 
 	// 切断コマンド
 	if (cmd == 1) {					// DETACH
-		ctrl[id]->SetUnit(0, NULL);
-		delete disk[id];
-		disk[id] = NULL;
-		delete ctrl[id];
-		ctrl[id] = NULL;
+		// 既存のユニットを解放
+		map[id * UnitNum + un] = NULL;
+
+		// コントローラマッピング
+		MapControler(fp, map);
 		return TRUE;
 	}
 
 	// MOかCDの場合だけ有効
-	if (disk[id]->GetID() != MAKEID('S', 'C', 'M', 'O') &&
-		disk[id]->GetID() != MAKEID('S', 'C', 'C', 'D')) {
-		fprintf(fp, "Error : Operation denied(Deveice isn't MO or CD)\n");
+	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
+		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
+		FPRT(fp, "Error : Operation denied(Deveice isn't removable)\n");
 		return FALSE;
 	}
 
@@ -428,22 +580,22 @@ BOOL ProcessCmd(FILE *fp, int id, int cmd, int type, char *file)
 			filepath.SetPath(file);
 
 			// オープン
-			if (!disk[id]->Open(filepath)) {
-				fprintf(fp, "Error : File open error [%s]\n", file);
+			if (pUnit->Open(filepath)) {
+				FPRT(fp, "Error : File open error [%s]\n", file);
 				return FALSE;
 			}
 			break;
 
 		case 3:						// EJECT
-			disk[id]->Eject(TRUE);
+			pUnit->Eject(TRUE);
 			break;
 
 		case 4:						// PROTECT
-			if (disk[id]->GetID() != MAKEID('S', 'C', 'M', 'O')) {
-				fprintf(fp, "Error : Operation denied(Deveice isn't MO)\n");
+			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
+				FPRT(fp, "Error : Operation denied(Deveice isn't MO)\n");
 				return FALSE;
 			}
-			disk[id]->WriteP(!disk[id]->IsWriteP());
+			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
 		default:
 			ASSERT(FALSE);
@@ -460,48 +612,148 @@ BOOL ProcessCmd(FILE *fp, int id, int cmd, int type, char *file)
 //---------------------------------------------------------------------------
 BOOL ParseArgument(int argc, char* argv[])
 {
+#ifdef BAREMETAL
+	FRESULT fr;
+	FIL fp;
+	char line[512];
+#else
 	int i;
+#endif	// BAREMETAL
 	int id;
+	int un;
 	int type;
 	char *argID;
 	char *argPath;
 	int len;
 	char *ext;
 
+#ifdef BAREMETAL
+	// SDカードマウント
+	fr = f_mount(&fatfs, "", 1);
+	if (fr != FR_OK) {
+		FPRT(stderr, "Error : SD card mount failed.\n");
+		return FALSE;
+	}
+
+	// 設定ファイルがなければ処理を中断
+	fr = f_open(&fp, "rascsi.ini", FA_READ);
+	if (fr != FR_OK) {
+		return FALSE;
+	}
+#else
 	// IDとパス指定がなければ処理を中断
 	if (argc < 3) {
 		return TRUE;
 	}
-
-	// 引数の解読開始
 	i = 1;
 	argc--;
+#endif	// BAREMETAL
 
-	// IDとパスを取得
-	while (argc >= 2) {
+	// 解読開始
+
+	while (TRUE) {
+#ifdef BAREMETAL
+		// 1行取得
+		memset(line, 0x00, sizeof(line));
+		if (f_gets(line, sizeof(line) -1, &fp) == NULL) {
+			break;
+		}
+
+		// CR/LF削除
+		len = strlen(line);
+		while (len > 0) {
+			if (line[len - 1] != '\r' && line[len - 1] != '\n') {
+				break;
+			}
+			line[len - 1] = '\0';
+			len--;
+		}
+#else
+		if (argc < 2) {
+			break;
+		}
+
 		argc -= 2;
+#endif	// BAREMETAL
+
+		// IDとパスを取得
+#ifdef BAREMETAL
+		argID = &line[0];
+		argPath = &line[4];
+		line[3] = '\0';
+
+		// 事前チェック
+		if (argID[0] == '\0' || argPath[0] == '\0') {
+			continue;
+		}
+#else
 		argID = argv[i++];
 		argPath = argv[i++];
 
-		// -ID or -idの形式をチェック
-		if (strlen(argID) != 4 || xstrncasecmp(argID, "-id", 3) != 0) {
-			fprintf(stderr,
-				"Error : Invalid argument(-IDn) [%s]\n", argID);
-			return FALSE;
+		// 事前チェック
+		if (argID[0] != '-') {
+			FPRT(stderr,
+				"Error : Invalid argument(-IDn or -HDn) [%s]\n", argID);
+			goto parse_error;
 		}
+		argID++;
+#endif	// BAREMETAL
 
-		// ID番号をチェック(0-7)
-		if (argID[3] < '0' || argID[3] > '7') {
-			fprintf(stderr,
-				"Error : Invalid argument(-IDn n=0-7) [%c]\n", argID[3]);
-			return FALSE;
+		if (strlen(argID) == 3 && xstrncasecmp(argID, "id", 2) == 0) {
+			// ID or idの形式
+
+			// ID番号をチェック(0-7)
+			if (argID[2] < '0' || argID[2] > '7') {
+				FPRT(stderr,
+					"Error : Invalid argument(IDn n=0-7) [%c]\n", argID[2]);
+				goto parse_error;
+			}
+
+			// ID,ユニット確定
+			id = argID[2] - '0';
+			un = 0;
+		} else if (xstrncasecmp(argID, "hd", 2) == 0) {
+			// HD or hdの形式
+
+			if (strlen(argID) == 3) {
+				// HD番号をチェック(0-9)
+				if (argID[2] < '0' || argID[2] > '9') {
+					FPRT(stderr,
+						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
+					goto parse_error;
+				}
+
+				// ID,ユニット確定
+				id = (argID[2] - '0') / UnitNum;
+				un = (argID[2] - '0') % UnitNum;
+			} else if (strlen(argID) == 4) {
+				// HD番号をチェック(10-15)
+				if (argID[2] != '1' || argID[3] < '0' || argID[3] > '5') {
+					FPRT(stderr,
+						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
+					goto parse_error;
+				}
+
+				// ID,ユニット確定
+				id = ((argID[3] - '0') + 10) / UnitNum;
+				un = ((argID[3] - '0') + 10) % UnitNum;
+#ifdef BAREMETAL
+				argPath++;
+#endif	// BAREMETAL
+			} else {
+				FPRT(stderr,
+					"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
+				goto parse_error;
+			}
+		} else {
+			FPRT(stderr,
+				"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
+			goto parse_error;
 		}
-
-		// ID確定
-		id = argID[3] - '0';
 
 		// すでにアクティブなデバイスがあるならスキップ
-		if (disk[id]) {
+		if (disk[id * UnitNum + un] &&
+			!disk[id * UnitNum + un]->IsNULL()) {
 			continue;
 		}
 
@@ -515,17 +767,17 @@ BOOL ParseArgument(int argc, char* argv[])
 			// パスの長さをチェック
 			len = strlen(argPath);
 			if (len < 5) {
-				fprintf(stderr,
+				FPRT(stderr,
 					"Error : Invalid argument(File path is short) [%s]\n",
 					argPath);
-				return FALSE;
+				goto parse_error;
 			}
 
 			// 拡張子を持っているか？
 			if (argPath[len - 4] != '.') {
-				fprintf(stderr,
+				FPRT(stderr,
 					"Error : Invalid argument(No extension) [%s]\n", argPath);
-				return FALSE;
+				goto parse_error;
 			}
 
 			// タイプを決める
@@ -545,22 +797,60 @@ BOOL ParseArgument(int argc, char* argv[])
 				type = 3;
 			} else {
 				// タイプが判別できない
-				fprintf(stderr,
+				FPRT(stderr,
 					"Error : Invalid argument(file type) [%s]\n", ext);
-				return FALSE;
+				goto parse_error;
 			}
 		}
 
 		// コマンド実行
-		if (!ProcessCmd(stderr, id, 0, type, argPath)) {
-			return FALSE;
+		if (!ProcessCmd(stderr, id, un, 0, type, argPath)) {
+			goto parse_error;
 		}
 	}
+
+#ifdef BAREMETAL
+	// 設定ファイルクローズ
+	f_close(&fp);
+#endif	// BAREMETAL
 
 	// デバイスリスト表示
 	ListDevice(stdout);
 
 	return TRUE;
+
+parse_error:
+
+#ifdef BAREMETAL
+	// 設定ファイルクローズ
+	f_close(&fp);
+#endif	// BAREMETAL
+
+	return FALSE;
+}
+
+#ifndef BAREMETAL
+//---------------------------------------------------------------------------
+//
+//	スレッドを特定のCPUに固定する
+//
+//---------------------------------------------------------------------------
+void FixCpu(int cpu)
+{
+	cpu_set_t cpuset;
+	int cpus;
+
+	// CPU数取得
+	CPU_ZERO(&cpuset);
+	sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
+	cpus = CPU_COUNT(&cpuset);
+
+	// アフィニティ設定
+	if (cpu < cpus) {
+		CPU_ZERO(&cpuset);
+		CPU_SET(cpu, &cpuset);
+		sched_setaffinity(0, sizeof(cpu_set_t), &cpuset);
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -570,58 +860,106 @@ BOOL ParseArgument(int argc, char* argv[])
 //---------------------------------------------------------------------------
 static void *MonThread(void *param)
 {
+	struct sched_param schedparam;
 	struct sockaddr_in client;
 	socklen_t len; 
 	int fd;
 	FILE *fp;
-	BYTE buf[BUFSIZ];
+	char buf[BUFSIZ];
+	char *p;
+	int i;
+	char *argv[5];
 	int id;
+	int un;
 	int cmd;
 	int type;
 	char *file;
-	BOOL list;
+
+	// スケジューラ設定
+	schedparam.sched_priority = 0;
+	sched_setscheduler(0, SCHED_IDLE, &schedparam);
+
+	// CPUを固定
+	FixCpu(2);
+
+	// 実行開始待ち
+	while (!running) {
+		usleep(1);
+	}
 
 	// 監視準備
-	listen(monfd, 1);
+	listen(monsocket, 1);
 
 	while (1) {
 		// 接続待ち
 		memset(&client, 0, sizeof(client)); 
 		len = sizeof(client); 
-		fd = accept(monfd, (struct sockaddr*)&client, &len);
+		fd = accept(monsocket, (struct sockaddr*)&client, &len);
 		if (fd < 0) {
 			break;
 		}
 
 		// コマンド取得
 		fp = fdopen(fd, "r+");
-		fgets((char *)buf, BUFSIZ, fp);
-		buf[strlen((const char*)buf) - 1] = 0;
+		p = fgets(buf, BUFSIZ, fp);
 
-		// デバイスリスト表示なのか制御コマンドかを判断
-		if (strncasecmp((char*)buf, "list", 4) == 0) {
-			list = TRUE;
-		} else {
-			list = FALSE;
-			id = (int)(buf[0] - '0');
-			cmd = (int)(buf[2] - '0');
-			type = (int)(buf[4] - '0');
-			file = (char*)&buf[6];
+		// コマンド取得に失敗
+		if (!p) {
+			goto next;
 		}
 
-		// バスフリーのタイミングまで待つ
-		while (phase != BUS::busfree) {
+		// 改行文字を削除
+		p[strlen(p) - 1] = 0;
+
+		// デバイスリスト表示
+		if (xstrncasecmp(p, "list", 4) == 0) {
+			ListDevice(fp);
+			goto next;
+		}
+
+		// パラメータの分離
+		argv[0] = p;
+		for (i = 1; i < 5; i++) {
+			// パラメータ値をスキップ
+			while (*p && (*p != ' ')) {
+				p++;
+			}
+
+			// スペースをNULLに置換
+			while (*p && (*p == ' ')) {
+				*p++ = 0;
+			}
+
+			// パラメータを見失った
+			if (!*p) {
+				break;
+			}
+
+			// パラメータとして認識
+			argv[i] = p;
+		}
+
+		// 全パラメータの取得失敗
+		if (i < 5) {
+			goto next;
+		}
+
+		// ID,ユニット,コマンド,タイプ,ファイル
+		id = atoi(argv[0]);
+		un = atoi(argv[1]);
+		cmd = atoi(argv[2]);
+		type = atoi(argv[3]);
+		file = argv[4];
+
+		// アイドルになるまで待つ
+		while (active) {
 			usleep(500 * 1000);
 		}
 
-		if (list) {
-			// リスト表示
-			ListDevice(fp);
-		} else {
-			// コマンド実行
-			ProcessCmd(fp, id, cmd, type, file);
-		}
+		// コマンド実行
+		ProcessCmd(fp, id, un, cmd, type, file);
 
+next:
 		// 接続解放
 		fclose(fp);
 		close(fd);
@@ -629,80 +967,125 @@ static void *MonThread(void *param)
 
 	return NULL;
 }
+#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
 //	主処理
 //
 //---------------------------------------------------------------------------
+#ifdef BAREMETAL
+extern "C"
+int startrascsi(void)
+{
+	int argc = 0;
+	char** argv = NULL;
+#else
 int main(int argc, char* argv[])
 {
+#endif	// BAREMETAL
 	int i;
-	DWORD dwBusBak;
-	DWORD dwBusIn;
+	int ret;
+	int actid;
+	DWORD now;
+	BUS::phase_t phase;
+	BYTE data;
+#ifndef BAREMETAL
 	struct sched_param schparam;
+#endif	// BAREMETAL
 
 	// バナー出力
-	if (!Banner(argc, argv)) {
-		exit(0);
-	}
+	Banner(argc, argv);
 
 	// 初期化
+	ret = 0;
 	if (!Init()) {
-		fprintf(stderr, "Error : Initializing\n");
-
-		// 恐らくrootでは無い？
-		exit(EPERM);
+		ret = EPERM;
+		goto init_exit;
 	}
-
-	// 既に起動している？
-	if (!bServer) {
-		fprintf(stderr, "Error : Already running RaSCSI\n");
-		exit(0);
-	}
-
-	// 構築
-	if (!ParseArgument(argc, argv)) {
-		// クリーンアップ
-		Cleanup();
-
-		// 引数エラーで終了
-		exit(EINVAL);
-	}
-
-	// モニタースレッド生成
-	bRun = TRUE;
-	pthread_create(&monthread, NULL, MonThread, NULL);
 
 	// リセット
 	Reset();
 
-	// メインループ準備
-	phase = BUS::busfree;
-	dwBusBak = bus.Aquire();
+#ifdef BAREMETAL
+	// BUSYアサート(ホスト側を待たせるため)
+	bus->SetBSY(TRUE);
+#endif
+
+	// 引数処理
+	if (!ParseArgument(argc, argv)) {
+		ret = EINVAL;
+		goto err_exit;
+	}
+
+#ifdef BAREMETAL
+	// BUSYネゲート(ホスト側を待たせるため)
+	bus->SetBSY(FALSE);
+#endif
+
+#ifndef BAREMETAL
+	// CPUを固定
+	FixCpu(3);
+
+#ifdef USE_SEL_EVENT_ENABLE
+	// スケジューリングポリシー設定(最優先)
+	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
+	sched_setscheduler(0, SCHED_FIFO, &schparam);
+#endif	// USE_SEL_EVENT_ENABLE
+#endif	// BAREMETAL
+
+	// 実行開始
+	running = TRUE;
 
 	// メインループ
-	while(bRun) {
-		// バスの入力信号変化検出
-		dwBusIn = bus.Aquire();
+	while (running) {
+		// ワーク初期化
+		actid = -1;
+		phase = BUS::busfree;
 
-		// 入力信号変化検出
-		if ((dwBusIn & GPIO_INEDGE) == (dwBusBak & GPIO_INEDGE)) {
-			usleep(0);
+#ifdef USE_SEL_EVENT_ENABLE
+		// SEL信号ポーリング
+		if (bus->PollSelectEvent() < 0) {
+			// 割り込みで停止
+			if (errno == EINTR) {
+				break;
+			}
 			continue;
 		}
 
-		// バスの入力信号を保存
-		dwBusBak = dwBusIn;
+		// バスの状態取得
+		bus->Aquire();
+#else
+		bus->Aquire();
+		if (!bus->GetSEL()) {
+#if !defined(BAREMETAL)
+			usleep(0);
+#endif	// !BAREMETAL
+			continue;
+		}
+#endif	// USE_SEL_EVENT_ENABLE
 
-		// そもそもセレクション信号が無ければ無視
-		if (!bus.GetSEL() || bus.GetBSY()) {
+		// イニシエータがID設定中にアサートしている
+		// 可能性があるのでBSYが解除されるまで待つ(最大3秒)
+		if (bus->GetBSY()) {
+			now = SysTimer::GetTimerLow();
+			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
+				bus->Aquire();
+				if (!bus->GetBSY()) {
+					break;
+				}
+			}
+		}
+
+		// ビジー、または他のデバイスが応答したので止める
+		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}
 
 		// 全コントローラに通知
+		data = bus->GetDAT();
 		for (i = 0; i < CtrlMax; i++) {
-			if (!ctrl[i]) {
+			if (!ctrl[i] || (data & (1 << i)) == 0) {
 				continue;
 			}
 
@@ -723,13 +1106,16 @@ int main(int argc, char* argv[])
 		}
 
 		// ターゲット走行開始
+		active = TRUE;
 
+#if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
 		// スケジューリングポリシー設定(最優先)
 		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
+#endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
 
 		// バスフリーになるまでループ
-		while (bRun) {
+		while (running) {
 			// ターゲット駆動
 			phase = ctrl[actid]->Process();
 
@@ -739,20 +1125,24 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		// バスフリーでセッション終了
-		actid = -1;
-		phase = BUS::busfree;
-		bus.Reset();
-		dwBusBak = bus.Aquire();
-
+#if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
 		// スケジューリングポリシー設定(ノーマル)
 		schparam.sched_priority = 0;
 		sched_setscheduler(0, SCHED_OTHER, &schparam);
+#endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
+
+		// ターゲット走行終了
+		active = FALSE;
 	}
 
+err_exit:
 	// クリーンアップ
 	Cleanup();
 
-	// 終了
-	exit(0);
+init_exit:
+#if !defined(BAREMETAL)
+	exit(ret);
+#else
+	return ret;
+#endif	// BAREMETAL
 }

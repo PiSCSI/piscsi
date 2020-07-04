@@ -1,158 +1,116 @@
 ------------------------------------------------------------------------------
 
- SCSI Target Emulator RaSCSI (*^..^*)
- version 1.33 for Raspberry Pi
+ SCSI Target Emulator RaSCSI for Raspberry Pi
 
  Powered by XM6 TypeG Technology.
- Copyright (C) 2016-2018 GIMONS
+ Copyright (C) 2016-2020 GIMONS
 
 ------------------------------------------------------------------------------
 
- •ÏŠ·Šî”Â‚Ì•K—v«‚É‚Â‚¢‚Ä
-  SCSI‚ÍTTLƒŒƒxƒ‹‚Å5V‚ð220ƒ¶‚Æ330ƒ¶‚Å•ªˆ³iƒpƒbƒVƒuƒ^[ƒ~ƒl[ƒ^‚Ìê‡j‚·‚é
-  ‚±‚Æ‚ÅŠeM†ü‚É3VŽã‚Ì“dˆ³‚ª‚©‚©‚Á‚½ó‘Ô‚ª’èíó‘ÔiM†“I‚É‚ÍƒlƒQ[ƒg)‚É
-  ‚È‚Á‚Ä‚¢‚Ü‚·B
+â–¡å¤‰æ›åŸºæ¿ã®å¿…è¦æ€§ã«ã¤ã„ã¦
+  SCSIã¯TTLãƒ¬ãƒ™ãƒ«ã§5Vã‚’220Î©ã¨330Î©ã§åˆ†åœ§ï¼ˆãƒ‘ãƒƒã‚·ãƒ–ã‚¿ãƒ¼ãƒŸãƒãƒ¼ã‚¿ã®å ´åˆï¼‰ã™ã‚‹
+  ã“ã¨ã§å„ä¿¡å·ç·šã«3Vå¼±ã®é›»åœ§ãŒã‹ã‹ã£ãŸçŠ¶æ…‹ãŒå®šå¸¸çŠ¶æ…‹ï¼ˆä¿¡å·çš„ã«ã¯ãƒã‚²ãƒ¼ãƒˆ)ã«
+  ãªã£ã¦ã„ã¾ã™ã€‚
   
-  ƒCƒjƒVƒG[ƒ^‘¤‚à‚µ‚­‚Íƒ^[ƒQƒbƒg‘¤‚ªM†‚ðƒAƒT[ƒg‚·‚éi0Vj‚É‚µ‚æ‚¤‚Æ
-  ‚·‚é‚Æ—¼’[‚Ìƒ^[ƒ~ƒl[ƒ^‚©‚ç‡‚í‚¹‚Ä5000€220~2=45mA‚Ì“d—¬‚ª—¬‚ê‚é‚±‚Æ‚É
-  ‚È‚è‚Ü‚·iX68000‚ÌSCSIƒRƒ“ƒgƒ[ƒ‰‚Å‚ ‚éMB89352‚Ìƒf[ƒ^ƒV[ƒg‚ðŒ©‚ê‚ÎƒVƒ“ƒN
-  “d—¬‚Æ‚µ‚ÄIol48mA‚Æ‚È‚Á‚Ä‚¢‚Ü‚·jB
+  ã‚¤ãƒ‹ã‚·ã‚¨ãƒ¼ã‚¿å´ã‚‚ã—ãã¯ã‚¿ãƒ¼ã‚²ãƒƒãƒˆå´ãŒä¿¡å·ã‚’ã‚¢ã‚µãƒ¼ãƒˆã™ã‚‹ï¼ˆï¼0Vï¼‰ã«ã—ã‚ˆã†ã¨
+  ã™ã‚‹ã¨ä¸¡ç«¯ã®ã‚¿ãƒ¼ãƒŸãƒãƒ¼ã‚¿ã‹ã‚‰åˆã‚ã›ã¦5000Ã·220Ã—2=45mAã®é›»æµãŒæµã‚Œã‚‹ã“ã¨ã«
+  ãªã‚Šã¾ã™ï¼ˆX68000ã®SCSIã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ©ã§ã‚ã‚‹MB89352ã®ãƒ‡ãƒ¼ã‚¿ã‚·ãƒ¼ãƒˆã‚’è¦‹ã‚Œã°ã‚·ãƒ³ã‚¯
+  é›»æµã¨ã—ã¦Iol48mAã¨ãªã£ã¦ã„ã¾ã™ï¼‰ã€‚
   
-  RPI‚ÌGPIO‚Í‚±‚Ì‚æ‚¤‚È‘å‚«‚ÈƒVƒ“ƒN“d—¬‚Í‹zŽû‚Å‚«‚Ü‚¹‚ñB“d‹C“I‚ÉˆÀ‘S‚ÈÚ‘±
-  ‚ðs‚¤‚½‚ß‚É‚Í”Ä—pƒƒWƒbƒNIC“™‚Å•ÏŠ·Šî”Â‚ðì‚é•K—v‚ª‚ ‚è‚Ü‚·B”Ä—pƒƒWƒbƒN
-  IC‚Å48mA‚à‚ÌƒVƒ“ƒN“d—¬‚É‘Ï‚¦‚é‚Ì‚Í74LS06‚Æ‚©07‚Æ‚¢‚Á‚½ƒI[ƒvƒ“ƒRƒŒƒNƒ^‚Å
-  ƒnƒCƒpƒ[ƒ^ƒCƒv‚Ì‚à‚Ì‚ðŽg—p‚µ‚Ü‚·B
+  RPIã®GPIOã¯ã“ã®ã‚ˆã†ãªå¤§ããªã‚·ãƒ³ã‚¯é›»æµã¯å¸åŽã§ãã¾ã›ã‚“ã€‚é›»æ°—çš„ã«å®‰å…¨ãªæŽ¥ç¶š
+  ã‚’è¡Œã†ãŸã‚ã«ã¯æ±Žç”¨ãƒ­ã‚¸ãƒƒã‚¯ICç­‰ã§å¤‰æ›åŸºæ¿ã‚’ä½œã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚æ±Žç”¨ãƒ­ã‚¸ãƒƒã‚¯
+  ICã§48mAã‚‚ã®ã‚·ãƒ³ã‚¯é›»æµã«è€ãˆã‚‹ã®ã¯74LS06ã¨ã‹07ã¨ã„ã£ãŸã‚ªãƒ¼ãƒ—ãƒ³ã‚³ãƒ¬ã‚¯ã‚¿ã§
+  ãƒã‚¤ãƒ‘ãƒ¯ãƒ¼ã‚¿ã‚¤ãƒ—ã®ã‚‚ã®ã‚’ä½¿ç”¨ã—ã¾ã™ã€‚
   
-  ìŽÒ‚Í74HC541~3,74HC126~1,74HC04~1‚ÅŠî–{“I‚ÈSCSI‚Ì•ûŒü§Œä‚ðs‚¢X‚É
-  74LS07~3‚ðŽg‚Á‚ÄƒoƒX‚ðƒhƒ‰ƒCƒu‚·‚é‰ñ˜H‚ð‘g‚ñ‚Å‚Ý‚½‚Æ‚±‚ë–â‘è‚È‚­“®ì‚·‚é
-  ‚±‚Æ‚ðŠm”F‚µ‚Ü‚µ‚½B
+  ä½œè€…ã¯74HC541Ã—3,74HC126Ã—1,74HC04Ã—1ã§åŸºæœ¬çš„ãªSCSIã®æ–¹å‘åˆ¶å¾¡ã‚’è¡Œã„æ›´ã«
+  74LS07Ã—3ã‚’ä½¿ã£ã¦ãƒã‚¹ã‚’ãƒ‰ãƒ©ã‚¤ãƒ–ã™ã‚‹å›žè·¯ã‚’çµ„ã‚“ã§ã¿ãŸã¨ã“ã‚å•é¡Œãªãå‹•ä½œã™ã‚‹
+  ã“ã¨ã‚’ç¢ºèªã—ã¾ã—ãŸã€‚
   
-  ‘¼‚É‚à74LS641‚Ì”h¶”Å‚Å‚ ‚é74LS641-1‚ðŽg—p‚·‚é‚Æ‰ñ˜H‚ÍƒVƒ“ƒvƒ‹‚É\¬‚Å‚«‚é
-  ‚Å‚µ‚å‚¤Bƒm[ƒ}ƒ‹•i‚Æˆá‚Á‚ÄƒVƒ“ƒN“d—¬‚ª48mA‘Î‰ž‚È‚Ì‚Å74LS07‚ðŽg—p‚·‚é•K—v
-  ‚Í‚ ‚è‚Ü‚¹‚ñB‚µ‚©‚µ“üŽè«‚Í‚»‚ê‚Ù‚Ç—Ç‚­‚ ‚è‚Ü‚¹‚ñB
+  ä»–ã«ã‚‚74LS641ã®æ´¾ç”Ÿç‰ˆã§ã‚ã‚‹74LS641-1ã‚’ä½¿ç”¨ã™ã‚‹ã¨å›žè·¯ã¯ã‚·ãƒ³ãƒ—ãƒ«ã«æ§‹æˆã§ãã‚‹
+  ã§ã—ã‚‡ã†ã€‚ãƒŽãƒ¼ãƒžãƒ«å“ã¨é•ã£ã¦ã‚·ãƒ³ã‚¯é›»æµãŒ48mAå¯¾å¿œãªã®ã§74LS07ã‚’ä½¿ç”¨ã™ã‚‹å¿…è¦
+  ã¯ã‚ã‚Šã¾ã›ã‚“ã€‚ã—ã‹ã—å…¥æ‰‹æ€§ã¯ãã‚Œã»ã©è‰¯ãã‚ã‚Šã¾ã›ã‚“ã€‚
 
- •ÏŠ·Šî”Â‚Ì‰ñ˜H}ˆÄ
-  “¯‚¶ƒtƒHƒ‹ƒ_‚É‰ñ˜H}ˆÄ‚ð“ü‚ê‚Ä‚¢‚Ü‚·B
+â–¡å¤‰æ›åŸºæ¿ã®å›žè·¯å›³æ¡ˆ
+  åŒã˜ãƒ•ã‚©ãƒ«ãƒ€ã«å›žè·¯å›³æ¡ˆã‚’å…¥ã‚Œã¦ã„ã¾ã™ã€‚
 
-  Etarget.png
-    SCSI‚Ìƒ^[ƒQƒbƒgƒ‚[ƒh‚ðŽg—p‚·‚é‚½‚ß‚Ì•ÏŠ·Šî”Â‰ñ˜H}‚Å‚·BŠî–{‹@”\‚Å‚ ‚é
-    HDD‚âMO‚ÌƒGƒ~ƒ…ƒŒ[ƒVƒ‡ƒ“‚ðs‚¤‚Ì‚Å‚ ‚ê‚Î‚±‚Ì‰ñ˜H}‘Š“–‚Ì•¨‚ðì‚ê‚Î—Ç‚¢
-    ‚Å‚µ‚å‚¤BŽg—p‚·‚éGPIOƒsƒ“‚àÅ‚à­‚È‚¢\¬‚É‚È‚è‚Ü‚·B
+  ãƒ»target.png
+    SCSIã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ¢ãƒ¼ãƒ‰ã‚’ä½¿ç”¨ã™ã‚‹ãŸã‚ã®å¤‰æ›åŸºæ¿å›žè·¯å›³ã§ã™ã€‚åŸºæœ¬æ©Ÿèƒ½ã§ã‚ã‚‹
+    HDDã‚„MOã®ã‚¨ãƒŸãƒ¥ãƒ¬ãƒ¼ã‚·ãƒ§ãƒ³ã‚’è¡Œã†ã®ã§ã‚ã‚Œã°ã“ã®å›žè·¯å›³ç›¸å½“ã®ç‰©ã‚’ä½œã‚Œã°è‰¯ã„
+    ã§ã—ã‚‡ã†ã€‚ä½¿ç”¨ã™ã‚‹GPIOãƒ”ãƒ³ã‚‚æœ€ã‚‚å°‘ãªã„æ§‹æˆã«ãªã‚Šã¾ã™ã€‚
 
-    ƒsƒ“ƒAƒTƒCƒ“‚ð•ÏX‚µ‚È‚¯‚ê‚ÎRaSCSI‚ÌstandardƒfƒBƒŒƒNƒgƒŠ‚ÉŠÜ‚Ü‚ê‚é
-    ƒoƒCƒiƒŠ‚ðŽg—p‚·‚é‚±‚Æ‚ª‰Â”\‚Å‚·B
+    ãƒ”ãƒ³ã‚¢ã‚µã‚¤ãƒ³ã‚’å¤‰æ›´ã—ãªã‘ã‚Œã°RaSCSIã®standardãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã«å«ã¾ã‚Œã‚‹
+    ãƒã‚¤ãƒŠãƒªã‚’ä½¿ç”¨ã™ã‚‹ã“ã¨ãŒå¯èƒ½ã§ã™ã€‚
 
-  Einitiator.png
-    SCSI‚Ìƒ^[ƒQƒbƒgƒ‚[ƒh‚É‰Á‚¦ƒCƒjƒVƒG[ƒ^ƒ‚[ƒh‚ðŽg—p‚·‚é‚½‚ß‚Ì•ÏŠ·Šî”Â
-    ‰ñ˜H}‚Å‚·BŠî–{‹@”\‚É‰Á‚¦‚ÄRPI‚ªƒCƒjƒVƒG[ƒ^‚Æ‚È‚Á‚Ä•¨—HDD‚ÉƒRƒ}ƒ“ƒh
-    ‚ð”­s‚·‚é‚±‚Æ‚ª‰Â”\‚É‚È‚è‚Ü‚·Bƒ‚[ƒh‚Ì§Œä‚É’Ç‰Á‚Åˆê‚ÂGPIOƒsƒ“‚ðÁ”ï
-    ‚µ‚Ü‚·B‚±‚ÌƒCƒjƒVƒG[ƒ^ƒ‚[ƒh‚ðŽg—p‚µ‚½ƒTƒ“ƒvƒ‹ƒvƒƒOƒ‰ƒ€‚Æ‚µ‚Ärasdump
-    ‚ð—pˆÓ‚µ‚Ü‚µ‚½BŽÀHDD‚âMO‚©‚çƒCƒ[ƒWƒtƒ@ƒCƒ‹‚Éƒ_ƒ“ƒv‚·‚é‚±‚Æ‚ª‚Å‚«‚Ü‚·B
-    ƒIƒvƒVƒ‡ƒ“‚ÅƒŠƒXƒgƒA‹@”\‚àŽg—p‚Å‚«‚Ü‚·B
+  ãƒ»fullspec.png
+    SCSIã®ã‚¿ãƒ¼ã‚²ãƒƒãƒˆãƒ¢ãƒ¼ãƒ‰ã€ã‚¤ãƒ‹ã‚·ã‚¨ãƒ¼ã‚¿ãƒ¢ãƒ¼ãƒ‰ã‚’åˆ©ç”¨ã§ãã‚‹å¤‰æ›åŸºæ¿å›žè·¯å›³ã§ã™ã€‚
+    å…¨ã¦ã®74LS641-1ã®æ–¹å‘åˆ¶å¾¡ã‚’RaSCSIã‹ã‚‰è¡Œã„ã¾ã™ã®ã§GPIOãƒ”ãƒ³ã‚’ä¸‰ã¤ä½™åˆ†ã«ä½¿ç”¨
+    ã—ã¦ã—ã¾ã„ã¾ã™ã€‚
 
-    ƒsƒ“ƒAƒTƒCƒ“‚ÌƒJƒXƒ^ƒ}ƒCƒY‚ÅPIN_IND‚É•W€‚Å‚Í7‚ðÝ’è‚µ‚ÄƒRƒ“ƒpƒCƒ‹‚·‚é
-    •K—v‚ª‚ ‚è‚Ü‚·Bƒsƒ“ƒAƒTƒCƒ“‚ÌƒJƒXƒ^ƒ}ƒCƒY‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+    ãƒ”ãƒ³ã‚¢ã‚µã‚¤ãƒ³ã®ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚ºã§ã€PIN_TAD,PIN_IND,PIN_DTDã«ãã‚Œãžã‚Œæ¨™æº–
+    ã§ã¯6,7,8ã‚’è¨­å®šã—ã¦ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«ã™ã‚‹å¿…è¦ãŒã‚ã‚Šã¾ã™ã€‚ãƒ”ãƒ³ã‚¢ã‚µã‚¤ãƒ³ã®
+    ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚ºã‚’å‚ç…§ã—ã¦ãã ã•ã„ã€‚
 
-  Efullspec.png
-    SCSI‚Ìƒ^[ƒQƒbƒgƒ‚[ƒhAƒCƒjƒVƒG[ƒ^ƒ‚[ƒh‚É‰Á‚¦‚ÄSCSI‚Ì’ÊM‚ðƒ‚ƒjƒ^[
-    ‚·‚é‚±‚Æ‚ª‚Å‚«‚é•ÏŠ·Šî”Â‰ñ˜H}‚Å‚·BSCSIƒvƒƒgƒRƒƒ‹‚ð‰ðÍ‚·‚é“™‚Ì“ÁŽê
-    —vŒ‚ª‚ ‚éê‡‚Í‚±‚Ì‰ñ˜H‚ªÅ“K‚Å‚·B‘S‚Ä‚Ì74LS641-1‚Ì•ûŒü§Œä‚ðRaSCSI
-    ‚©‚çs‚¢‚Ü‚·‚Ì‚ÅGPIOƒsƒ“‚ðŽO‚Â—]•ª‚ÉŽg—p‚µ‚Ä‚µ‚Ü‚¢‚Ü‚·BSCSI‚ÌŠJ”­‚É
-    ‹»–¡‚ª‚ ‚ê‚Î‚±‚Ì‰ñ˜H‚ð‘g‚ñ‚Å‚Ý‚Ä‚Í‚Ç‚¤‚Å‚µ‚å‚¤‚©B“Á’¥‚Æ‚µ‚ÄGPIOƒsƒ“
-    ‚ð—]•ª‚ÉŽg—p‚·‚é‘ã‚í‚è‚Éã‚ÌƒCƒjƒVƒG[ƒ^ƒ‚[ƒh‚ªŽg—p‚Å‚«‚éŠî”Â‚Æ”äŠr
-    ‚µ‚Ä74LS86‚ª•K—v‚É‚È‚ç‚È‚¢‚½‚ßŠî”Â‚ªƒVƒ“ƒvƒ‹‚É‚È‚é‚Æ‚¢‚¤‰¶Œb‚ª‚ ‚è‚Ü‚·B
+â–¡æ—¢å­˜ã®ã‚‚ã®ã‚’æ‰‹ã«å…¥ã‚Œã‚‹æ–¹æ³•
+  æœ€è¿‘ã§ã¯ä¸»ã«Twitterç•Œéšˆã‚’é€šã˜ã¦RaSCSIç”¨ã®å¤‰æ›åŸºæ¿ã‚’ä½œæˆã—ã¦ã„ãŸã ã„ã¦
+  ã„ã‚‹æ–¹ã€…ãŒã„ã‚‰ã£ã—ã‚ƒã„ã¾ã™ã€‚ç›´ãã«è¦‹ã¤ã‹ã‚‹ã¨æ€ã„ã¾ã™ã®ã§ã“ã“ã§ã®ç´¹ä»‹
+  ã¯çœç•¥ã—ã¾ã™ã€‚æ™‚æœŸã¯æœªå®šã§ã™ãŒå…¬å¼ç‰ˆã®æœ‰å„Ÿé ’å¸ƒã‚’è¨ˆç”»ã—ã¦ã„ã¾ã™ã€‚
 
-    ƒsƒ“ƒAƒTƒCƒ“‚ÌƒJƒXƒ^ƒ}ƒCƒY‚ÅAPIN_TAD,PIN_IND,PIN_DTD‚É‚»‚ê‚¼‚ê•W€
-    ‚Å‚Í6,7,8‚ðÝ’è‚µ‚ÄƒRƒ“ƒpƒCƒ‹‚·‚é•K—v‚ª‚ ‚è‚Ü‚·Bƒsƒ“ƒAƒTƒCƒ“‚Ì
-    ƒJƒXƒ^ƒ}ƒCƒY‚ðŽQÆ‚µ‚Ä‚­‚¾‚³‚¢B
+â–¡ãƒ”ãƒ³ã‚¢ã‚µã‚¤ãƒ³ã®ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚º
+  GPIOã®ä¿¡å·åˆ¶å¾¡è«–ç†ã‚„ãƒ”ãƒ³ã‚¢ã‚µã‚¤ãƒ³ã¯gpiobus.hã«å®šç¾©ãŒã‚ã‚Šã¾ã™ã€‚
 
- Šù‘¶‚Ì‚à‚Ì‚ðŽè‚É“ü‚ê‚é•û–@
-  Å‹ß‚Å‚ÍŽå‚ÉTwitterŠEŒG‚ð’Ê‚¶‚ÄRaSCSI—p‚Ì•ÏŠ·Šî”Â‚ðì¬‚µ‚Ä‚¢‚½‚¾‚¢‚Ä
-  ‚¢‚é•ûX‚ª‚¢‚ç‚Á‚µ‚á‚¢‚Ü‚·B
-  
-  ‚Ü‚½H—tŒ´‚ÅˆÏ‘õ”Ì”„‚³‚ê‚Ä‚Ü‚·B
+  ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚ºä¾‹ã¨ã—ã¦gpiobus.hã«ä¸‹è¨˜ã®äºŒã¤ã®å¤‰æ›åŸºæ¿ç”¨å®šç¾©ä¾‹ã‚’ç”¨æ„ã—ã¾ã—ãŸã€‚
+  é…å¸ƒç‰©ã®ä¸­ã«ã¯ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«æ¸ˆã¿ãƒã‚¤ãƒŠãƒªã‚‚å«ã¾ã‚Œã¦ã„ã¾ã™ã€‚
 
-    ‰Æ“d‚ÌKENCHAN “¯lƒn[ƒhiƒLƒbƒgj‚Ìƒy[ƒW“™‚Å‚·B
-    http://www.kadenken.com/shopbrand/ct76/"
+  ãƒ»ã‚ã„ã¼ã‚€ç‰ˆ
+  ãƒ»GAMERniumç‰ˆ
 
-  Œ»Ý‚Ì‚Æ‚±‚ëŽs”Ì‚³‚ê‚Ä‚¢‚é‚à‚Ì‚Æ‚µ‚Ä
-
-  EBEL‚³‚ñŠJ”­‚Ì‚ ‚¢‚Ú‚Þ”Å
-  Etomcat‚³‚ñŠJ”­‚ÌGAMERnium”Å
-
-  ‚ª‚ ‚è‚Ü‚·B
-
- ƒsƒ“ƒAƒTƒCƒ“‚ÌƒJƒXƒ^ƒ}ƒCƒY
-  GPIO‚ÌM†§Œä˜_—‚âƒsƒ“ƒAƒTƒCƒ“‚Ígpiobus.h‚Ærascsidrv.c‚É’è‹`‚ª‚ ‚è‚Ü‚·B
-  ’è‹`‚ª•ª‚©‚ê‚Ä‚¢‚é‚Ì‚Írascsidrv.c‚¾‚¯GPL‚È‚Ì‚ÅŠ¸‚¦‚Ä•ª—£‚µ‚Ä‚¢‚Ü‚·B
-  ŒäŽ@‚µ‰º‚³‚¢B
-
-  ƒJƒXƒ^ƒ}ƒCƒY—á‚Æ‚µ‚Ägpiobus.h‚Ærascsidrv.c‚É‰º‹L‚Ì“ñ‚Â‚Ì•ÏŠ·Šî”Â—p’è‹`—á‚ð
-  —pˆÓ‚µ‚Ü‚µ‚½B”z•z•¨‚Ì’†‚É‚ÍƒRƒ“ƒpƒCƒ‹Ï‚ÝƒoƒCƒiƒŠ‚àŠÜ‚Ü‚ê‚Ä‚¢‚Ü‚·B
-
-  EBEL‚³‚ñŠJ”­‚Ì‚ ‚¢‚Ú‚Þ”Å
-  Etomcat‚³‚ñŠJ”­‚ÌGAMERnium”Å
-
- ƒJƒXƒ^ƒ}ƒCƒY•û–@
-  ERaSCSI‹N“®Žž‚ÌƒƒbƒZ[ƒW‚Å‚·B
+â–¡ã‚«ã‚¹ã‚¿ãƒžã‚¤ã‚ºæ–¹æ³•
+  ãƒ»RaSCSIèµ·å‹•æ™‚ã®ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ã§ã™ã€‚
     CONNECT_DESC
 
-  EM†§Œäƒ‚[ƒh‚ð‘I‘ð‚µ‚Ü‚·B
+  ãƒ»ä¿¡å·åˆ¶å¾¡ãƒ¢ãƒ¼ãƒ‰ã‚’é¸æŠžã—ã¾ã™ã€‚
     SIGNAL_CONTROL_MODE
 
-  0:SCSI˜_—Žd—l
-    ’¼Œ‹‚Ü‚½‚ÍHP‚ÉŒöŠJ‚µ‚½74LS641-1“™‚ðŽg—p‚·‚é•ÏŠ·Šî”Â
-    ƒA[ƒT[ƒg:0V
-    ƒlƒQ[ƒg  :ƒI[ƒvƒ“ƒRƒŒƒNƒ^o—Í(ƒoƒX‚©‚çØ‚è—£‚·)
+  0:SCSIè«–ç†ä»•æ§˜
+    ç›´çµã¾ãŸã¯HPã«å…¬é–‹ã—ãŸ74LS641-1ç­‰ã‚’ä½¿ç”¨ã™ã‚‹å¤‰æ›åŸºæ¿
+    ã‚¢ãƒ¼ã‚µãƒ¼ãƒˆ:0V
+    ãƒã‚²ãƒ¼ãƒˆ  :ã‚ªãƒ¼ãƒ—ãƒ³ã‚³ãƒ¬ã‚¯ã‚¿å‡ºåŠ›(ãƒã‚¹ã‹ã‚‰åˆ‡ã‚Šé›¢ã™)
 
-  1:•‰˜_—Žd—l(•‰˜_—->SCSI˜_—‚Ö‚Ì•ÏŠ·Šî”Â‚ðŽg—p‚·‚éê‡)
-    Œ»Žž“_‚Å‚±‚ÌŽd—l‚É‚æ‚é•ÏŠ·Šî”Â‚Í‘¶Ý‚µ‚Ü‚¹‚ñ
-    ƒA[ƒT[ƒg:0V   -> (CONVERT) -> 0V
-    ƒlƒQ[ƒg  :3.3V -> (CONVERT) -> ƒI[ƒvƒ“ƒRƒŒƒNƒ^o—Í
+  1:è² è«–ç†ä»•æ§˜(è² è«–ç†->SCSIè«–ç†ã¸ã®å¤‰æ›åŸºæ¿ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆ)
+    ç¾æ™‚ç‚¹ã§ã“ã®ä»•æ§˜ã«ã‚ˆã‚‹å¤‰æ›åŸºæ¿ã¯å­˜åœ¨ã—ã¾ã›ã‚“
+    ã‚¢ãƒ¼ã‚µãƒ¼ãƒˆ:0V   -> (CONVERT) -> 0V
+    ãƒã‚²ãƒ¼ãƒˆ  :3.3V -> (CONVERT) -> ã‚ªãƒ¼ãƒ—ãƒ³ã‚³ãƒ¬ã‚¯ã‚¿å‡ºåŠ›
 
-  2:³˜_—Žd—l(³˜_—->SCSI˜_—‚Ö‚Ì•ÏŠ·Šî”Â‚ðŽg—p‚·‚éê‡)
-    RaSCSI Adapter Rev.C @132sync“™
+  2:æ­£è«–ç†ä»•æ§˜(æ­£è«–ç†->SCSIè«–ç†ã¸ã®å¤‰æ›åŸºæ¿ã‚’ä½¿ç”¨ã™ã‚‹å ´åˆ)
+    RaSCSI Adapter Rev.C @132syncç­‰
 
-    ƒA[ƒT[ƒg:3.3V -> (CONVERT) -> 0V
-    ƒlƒQ[ƒg  :0V   -> (CONVERT) -> ƒI[ƒvƒ“ƒRƒŒƒNƒ^o—Í
+    ã‚¢ãƒ¼ã‚µãƒ¼ãƒˆ:3.3V -> (CONVERT) -> 0V
+    ãƒã‚²ãƒ¼ãƒˆ  :0V   -> (CONVERT) -> ã‚ªãƒ¼ãƒ—ãƒ³ã‚³ãƒ¬ã‚¯ã‚¿å‡ºåŠ›
 
-  E§ŒäM†ƒsƒ“ƒAƒTƒCƒ“
-    PIN_ACT:SCSIƒRƒ}ƒ“ƒh‚ðˆ—’†‚Ìó‘Ô‚ðŽ¦‚·M†‚Ìƒsƒ“”Ô†B
-    PIN_ENB:‹N“®‚©‚çI—¹‚ÌŠÔ‚Ì—LŒøM†‚ðŽ¦‚·M†‚Ìƒsƒ“”Ô†B
-    PIN_TAD:ƒ^[ƒQƒbƒgM†(BSY,IO,CD,MSG,REG)‚Ì“üo—Í•ûŒü‚ðŽ¦‚·M†‚Ìƒsƒ“”Ô†B
-    PIN_IND:ƒCƒjƒV[ƒG[ƒ^M†(SEL,ATN,RST,ACK)‚Ì“üo—Í•ûŒü‚ðŽ¦‚·M†‚Ìƒsƒ“”Ô†B
-    PIN_DTD:ƒf[ƒ^M†(DT0...DT7,DP)‚Ì“üo—Í•ûŒü‚ðŽ¦‚·M†‚Ìƒsƒ“”Ô†B
+  ãƒ»åˆ¶å¾¡ä¿¡å·ãƒ”ãƒ³ã‚¢ã‚µã‚¤ãƒ³
+    PIN_ACT:SCSIã‚³ãƒžãƒ³ãƒ‰ã‚’å‡¦ç†ä¸­ã®çŠ¶æ…‹ã‚’ç¤ºã™ä¿¡å·ã®ãƒ”ãƒ³ç•ªå·ã€‚
+    PIN_ENB:èµ·å‹•ã‹ã‚‰çµ‚äº†ã®é–“ã®æœ‰åŠ¹ä¿¡å·ã‚’ç¤ºã™ä¿¡å·ã®ãƒ”ãƒ³ç•ªå·ã€‚
+    PIN_TAD:ã‚¿ãƒ¼ã‚²ãƒƒãƒˆä¿¡å·(BSY,IO,CD,MSG,REG)ã®å…¥å‡ºåŠ›æ–¹å‘ã‚’ç¤ºã™ä¿¡å·ã®ãƒ”ãƒ³ç•ªå·ã€‚
+    PIN_IND:ã‚¤ãƒ‹ã‚·ãƒ¼ã‚¨ãƒ¼ã‚¿ä¿¡å·(SEL,ATN,RST,ACK)ã®å…¥å‡ºåŠ›æ–¹å‘ã‚’ç¤ºã™ä¿¡å·ã®ãƒ”ãƒ³ç•ªå·ã€‚
+    PIN_DTD:ãƒ‡ãƒ¼ã‚¿ä¿¡å·(DT0...DT7,DP)ã®å…¥å‡ºåŠ›æ–¹å‘ã‚’ç¤ºã™ä¿¡å·ã®ãƒ”ãƒ³ç•ªå·ã€‚
 
-  E§ŒäM†o—Í˜_—
-    0V:FALSE  3.3V:TRUE‚ÅŽw’è‚µ‚Ü‚·B
+  ãƒ»åˆ¶å¾¡ä¿¡å·å‡ºåŠ›è«–ç†
+    0V:FALSE  3.3V:TRUEã§æŒ‡å®šã—ã¾ã™ã€‚
 
-    ACT_ON:PIN_ACTM†‚Ì˜_—‚Å‚·B
-    ENB_ON:PIN_ENBM†‚Ì˜_—‚Å‚·B
-    TAD_IN:PIN_TAD“ü—Í•ûŒüŽž‚Ì˜_—‚Å‚·B
-    IND_IN:PIN_ENB“ü—Í•ûŒüŽž‚Ì˜_—‚Å‚·B
-    DTD_IN:PIN_ENB“ü—Í•ûŒüŽž‚Ì˜_—‚Å‚·B
+    ACT_ON:PIN_ACTä¿¡å·ã®è«–ç†ã§ã™ã€‚
+    ENB_ON:PIN_ENBä¿¡å·ã®è«–ç†ã§ã™ã€‚
+    TAD_IN:PIN_TADå…¥åŠ›æ–¹å‘æ™‚ã®è«–ç†ã§ã™ã€‚
+    IND_IN:PIN_ENBå…¥åŠ›æ–¹å‘æ™‚ã®è«–ç†ã§ã™ã€‚
+    DTD_IN:PIN_ENBå…¥åŠ›æ–¹å‘æ™‚ã®è«–ç†ã§ã™ã€‚
 
-  ESCSIM†ƒsƒ“ƒAƒTƒCƒ“
-    PIN_DT0`PIN_SEL:‚»‚ê‚¼‚êSCSIM†‚Ìƒsƒ“”Ô†‚Å‚·B
+  ãƒ»SCSIä¿¡å·ãƒ”ãƒ³ã‚¢ã‚µã‚¤ãƒ³
+    PIN_DT0ï½žPIN_SEL:ãã‚Œãžã‚ŒSCSIä¿¡å·ã®ãƒ”ãƒ³ç•ªå·ã§ã™ã€‚
 
- ƒRƒ“ƒpƒCƒ‹•û–@
+â–¡ã‚³ãƒ³ãƒ‘ã‚¤ãƒ«æ–¹æ³•
 
-  EŽÀsƒtƒ@ƒCƒ‹(rascsi,rasctl)
-    gpiobus.h‚ðC³
+  ãƒ»å®Ÿè¡Œãƒ•ã‚¡ã‚¤ãƒ«(rascsi,rasctl)
+    gpiobus.hã‚’ä¿®æ­£
     make clean
     make
 
-  EƒJ[ƒlƒ‹ƒhƒ‰ƒCƒo(rascsidrv.ko)
-    ‡@OSÅV‰»(•K—v‚ ‚ê‚Î)
-      sudo apt-get update
-      sudo apt-get upgrade
-      sudo reboot
-
-    ‡AƒJ[ƒlƒ‹ƒwƒbƒ_[Žæ“¾(•K—v‚ ‚ê‚Î)
-      sudo apt-get install raspberrypi-kernel-headers
-
-    ‡BƒRƒ“ƒpƒCƒ‹
-      cd kernelmodule
-      rascsidrv.c‚ÌC³
-      make
 [EOF]

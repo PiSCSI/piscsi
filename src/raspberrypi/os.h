@@ -4,7 +4,7 @@
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2018 GIMONS
+//	Copyright (C) 2016-2020 GIMONS
 //
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
 //
@@ -48,18 +48,29 @@
 #include <stdarg.h>
 #include <string.h>
 #include <sched.h>
-#include <poll.h>
 #include <pthread.h>
-#include <dirent.h>
 #include <iconv.h>
 #include <libgen.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/time.h>
+
+#ifndef BAREMETAL
+#include <poll.h>
+#include <dirent.h>
 #include <sys/mman.h>
 #include <sys/ioctl.h>
-#include <sys/time.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 #include <netinet/in.h>
+#include <linux/gpio.h>
+#else
+#include <machine/endian.h>
+#define	htonl(_x)	__htonl(_x)
+#define	htons(_x)	__htons(_x)
+#define	ntohl(_x)	__ntohl(_x)
+#define	ntohs(_x)	__ntohs(_x)
+#endif	// BAREMETAL
 
 #if defined(__linux__)
 #include <linux/if.h>
@@ -71,8 +82,6 @@
 #include <net/if_dl.h>
 #include <net/if_tap.h>
 #include <ifaddrs.h>
-#else
-#error unsupported platform
 #endif
 
 //---------------------------------------------------------------------------

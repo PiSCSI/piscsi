@@ -4,7 +4,7 @@
 *  for Raspberry Pi
 *
 *  Powered by XM6 TypeG Technorogy.
-*  Copyright (C) 2016-2017 GIMONS
+*  Copyright (C) 2016-2019 GIMONS
 *	[ ホストファイルシステム ブリッジドライバ ]
 *
 * Based on
@@ -165,7 +165,7 @@ MESSAGE_DRIVENAME3:
 MESSAGE_TITLE:
 	DC.B	$0D,$0A
 MESSAGE_TITLE2:
-	DC.B	'RaSCSI FileSystem Driver version 1.21',$0D,$0A,0
+	DC.B	'RaSCSI FileSystem Driver version 1.42',$0D,$0A,0
 
 *ありがとう！
 CREDIT:

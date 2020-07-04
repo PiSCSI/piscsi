@@ -4,7 +4,7 @@
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2018 GIMONS
+//	Copyright (C) 2016-2020 GIMONS
 //	[ GPIO-SCSIバス ]
 //
 //---------------------------------------------------------------------------
@@ -19,7 +19,7 @@
 //	接続方法定義の選択
 //
 //---------------------------------------------------------------------------
-#define CONNECT_TYPE_STANDARD		// 標準(SCSI論理,標準ピンアサイン)
+//#define CONNECT_TYPE_STANDARD		// 標準(SCSI論理,標準ピンアサイン)
 //#define CONNECT_TYPE_FULLSPEC		// フルスペック(SCSI論理,標準ピンアサイン)
 //#define CONNECT_TYPE_AIBOM		// AIBOM版(正論理,固有ピンアサイン)
 //#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com版(標準論理,固有ピンアサイン)
@@ -281,8 +281,12 @@
 //	定数宣言(GPIO)
 //
 //---------------------------------------------------------------------------
-#define GPIO_OFFSET		0x200000
-#define PADS_OFFSET		0x100000
+#define SYST_OFFSET		0x00003000
+#define IRPT_OFFSET		0x0000B200
+#define ARMT_OFFSET		0x0000B400
+#define PADS_OFFSET		0x00100000
+#define GPIO_OFFSET		0x00200000
+#define QA7_OFFSET		0x01000000
 #define GPIO_INPUT		0
 #define GPIO_OUTPUT		1
 #define GPIO_PULLNONE	0
@@ -304,7 +308,40 @@
 #define GPIO_AFEN_0		34
 #define GPIO_PUD		37
 #define GPIO_CLK_0		38
+#define GPIO_GPPINMUXSD	52
+#define GPIO_PUPPDN0	57
+#define GPIO_PUPPDN1	58
+#define GPIO_PUPPDN3	59
+#define GPIO_PUPPDN4	60
 #define PAD_0_27		11
+#define SYST_CS			0
+#define SYST_CLO		1
+#define SYST_CHI		2
+#define SYST_C0			3
+#define SYST_C1			4
+#define SYST_C2			5
+#define SYST_C3			6
+#define ARMT_LOAD		0
+#define ARMT_VALUE		1
+#define ARMT_CTRL		2
+#define ARMT_CLRIRQ		3
+#define ARMT_RAWIRQ		4
+#define ARMT_MSKIRQ		5
+#define ARMT_RELOAD		6
+#define ARMT_PREDIV		7
+#define ARMT_FREERUN	8
+#define IRPT_PND_IRQ_B	0
+#define IRPT_PND_IRQ_1	1
+#define IRPT_PND_IRQ_2	2
+#define IRPT_FIQ_CNTL	3
+#define IRPT_ENB_IRQ_1	4
+#define IRPT_ENB_IRQ_2	5
+#define IRPT_ENB_IRQ_B	6
+#define IRPT_DIS_IRQ_1	7
+#define IRPT_DIS_IRQ_2	8
+#define IRPT_DIS_IRQ_B	9
+#define QA7_CORE0_TINTC	16
+#define GPIO_IRQ		(32 + 20)	// GPIO3
 
 #define GPIO_INEDGE ((1 << PIN_BSY) | \
 					 (1 << PIN_SEL) | \
@@ -315,6 +352,39 @@
 #define GPIO_MCI	((1 << PIN_MSG) | \
 					 (1 << PIN_CD) | \
 					 (1 << PIN_IO))
+
+//---------------------------------------------------------------------------
+//
+//	定数宣言(GIC)
+//
+//---------------------------------------------------------------------------
+#define ARM_GICD_BASE		0xFF841000
+#define ARM_GICC_BASE		0xFF842000
+#define ARM_GIC_END			0xFF847FFF
+#define GICD_CTLR			0x000
+#define GICD_IGROUPR0		0x020
+#define GICD_ISENABLER0		0x040
+#define GICD_ICENABLER0		0x060
+#define GICD_ISPENDR0		0x080
+#define GICD_ICPENDR0		0x0A0
+#define GICD_ISACTIVER0		0x0C0
+#define GICD_ICACTIVER0		0x0E0
+#define GICD_IPRIORITYR0	0x100
+#define GICD_ITARGETSR0		0x200
+#define GICD_ICFGR0			0x300
+#define GICD_SGIR			0x3C0
+#define GICC_CTLR			0x000
+#define GICC_PMR			0x001
+#define GICC_IAR			0x003
+#define GICC_EOIR			0x004
+
+//---------------------------------------------------------------------------
+//
+//	定数宣言(GIC IRQ)
+//
+//---------------------------------------------------------------------------
+#define GIC_IRQLOCAL0		(16 + 14)
+#define GIC_GPIO_IRQ		(32 + 116)	// GPIO3
 
 //---------------------------------------------------------------------------
 //
@@ -339,14 +409,10 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言(ドライバ)
+//	定数宣言(バス制御タイミング)
 //
 //---------------------------------------------------------------------------
-#define DEVICE_NAME 	"rascsidrv"
-#define DRIVER_PATH		"/dev/" DEVICE_NAME
-#define IOCTL_INIT		0x100
-#define IOCTL_MODE		0x101
-#define IOCTL_PADS		0x102
+#define GPIO_DATA_SETTLING 100			// データバスが安定する時間(ns)
 
 //---------------------------------------------------------------------------
 //
@@ -370,6 +436,9 @@ public:
 
 	DWORD FASTCALL Aquire();
 										// 信号取り込み
+
+	void FASTCALL SetENB(BOOL ast);
+										// ENBシグナル設定
 
 	BOOL FASTCALL GetBSY();
 										// BSYシグナル取得
@@ -420,24 +489,25 @@ public:
 										// データシグナル取得
 	void FASTCALL SetDAT(BYTE dat);
 										// データシグナル設定
+	BOOL FASTCALL GetDP();
+										// パリティシグナル取得
+	int FASTCALL CommandHandShake(BYTE *buf);
+										// コマンド受信ハンドシェイク
 	int FASTCALL ReceiveHandShake(BYTE *buf, int count);
 										// データ受信ハンドシェイク
 	int FASTCALL SendHandShake(BYTE *buf, int count);
 										// データ送信ハンドシェイク
 
-	// タイマ関係
-	void FASTCALL SleepNsec(DWORD nsec);
-										// ナノ秒単位のスリープ
+#ifdef USE_SEL_EVENT_ENABLE
+	// SEL信号割り込み関係
+	int FASTCALL PollSelectEvent();
+										// SEL信号イベントポーリング
+	void FASTCALL ClearSelectEvent();
+										// SEL信号イベントクリア
+#endif	// USE_SEL_EVENT_ENABLE
 
 private:
-	void FASTCALL DrvConfig(DWORD drive);
-										// GPIOドライブ能力設定
-	void FASTCALL PinConfig(int pin, int mode);
-										// GPIOピン機能設定(入出力設定)
-	void FASTCALL PullConfig(int pin, int mode);
-										// GPIOピン機能設定(プルアップ/ダウン)
-	void FASTCALL PinSetSignal(int pin, BOOL ast);
-										// GPIOピン出力信号設定
+	// SCSI入出力信号制御
 	void FASTCALL MakeTable();
 										// ワークテーブル作成
 	void FASTCALL SetControl(int pin, BOOL ast);
@@ -448,8 +518,31 @@ private:
 										// SCSI入力信号値取得
 	void FASTCALL SetSignal(int pin, BOOL ast);
 										// SCSI出力信号値設定
+	BOOL FASTCALL WaitSignal(int pin, BOOL ast);
+										// 信号変化待ち
+	// 割り込み制御
+	void FASTCALL DisableIRQ();
+										// IRQ禁止
+	void FASTCALL EnableIRQ();
+										// IRQ有効
+
+	//  GPIOピン機能設定
+	void FASTCALL PinConfig(int pin, int mode);
+										// GPIOピン機能設定(入出力設定)
+	void FASTCALL PullConfig(int pin, int mode);
+										// GPIOピン機能設定(プルアップ/ダウン)
+	void FASTCALL PinSetSignal(int pin, BOOL ast);
+										// GPIOピン出力信号設定
+	void FASTCALL DrvConfig(DWORD drive);
+										// GPIOドライブ能力設定
+
 
 	mode_e actmode;						// 動作モード
+
+	DWORD baseaddr;						// ベースアドレス
+
+	int rpitype;
+										// ラズパイ種別
 
 	volatile DWORD *gpio;				// GPIOレジスタ
 
@@ -457,9 +550,33 @@ private:
 
 	volatile DWORD *level;				// GPIO入力レベル
 
+	volatile DWORD *irpctl;				// 割り込み制御レジスタ
+
+#ifndef BAREMETAL
+	volatile DWORD irptenb;				// 割り込み有効状態
+
+	volatile DWORD *qa7regs;			// QA7レジスタ
+
+	volatile int tintcore;				// 割り込み制御対象CPU
+
+	volatile DWORD tintctl;				// 割り込みコントロール
+
+	volatile DWORD giccpmr;				// GICC 優先度設定
+#endif	// BAREMETAL
+
+	volatile DWORD *gicd;				// GIC 割り込み分配器レジスタ
+
+	volatile DWORD *gicc;				// GIC CPUインターフェースレジスタ
+
 	DWORD gpfsel[4];					// GPFSEL0-4バックアップ
 
 	DWORD signals;						// バス全信号
+
+#if defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
+	struct gpioevent_request selevreq;	// SEL信号イベント要求
+
+	int epfd;							// epollファイルディスクプリタ
+#endif	// USE_SEL_EVENT_ENABLE && !BAREMETAL
 
 #if SIGNAL_CONTROL_MODE == 0
 	DWORD tblDatMsk[3][256];			// データマスク用テーブル
@@ -471,9 +588,35 @@ private:
 	DWORD tblDatSet[256];				// データ設定用テーブル
 #endif
 
-	int drvfd;							// カーネルドライバファイルディスクプリタ
-
 	static const int SignalTable[19];	// シグナルテーブル
+};
+
+//===========================================================================
+//
+//	システムタイマ
+//
+//===========================================================================
+class SysTimer
+{
+public:
+	static void FASTCALL Init(DWORD *syst, DWORD *armt);
+										// 初期化
+	static DWORD FASTCALL GetTimerLow();
+										// システムタイマ(LO)取得
+	static DWORD FASTCALL GetTimerHigh();
+										// システムタイマ(HI)取得
+	static void FASTCALL SleepNsec(DWORD nsec);
+										// ナノ秒単位のスリープ
+	static void FASTCALL SleepUsec(DWORD usec);
+										// μ秒単位のスリープ
+
+private:
+	static volatile DWORD *systaddr;
+										// システムタイマアドレス
+	static volatile DWORD *armtaddr;
+										// ARMタイマアドレス
+	static volatile DWORD corefreq;
+										// コア周波数
 };
 
 #endif	// gpiobus_h

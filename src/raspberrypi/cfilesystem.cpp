@@ -4,9 +4,10 @@
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2018 GIMONS
+//	Copyright (C) 2016-2020 GIMONS
 //
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
+//	Imported sava's bugfix patch(in RASDRV DOS edition).
 //
 //	[ ホストファイルシステム ]
 //
@@ -18,6 +19,36 @@
 #include "filepath.h"
 #include "cfilesystem.h"
 
+#ifdef BAREMETAL
+//---------------------------------------------------------------------------
+//
+// FatFs用タイムスタンプ
+//
+//---------------------------------------------------------------------------
+#define FF_NORTC_HOUR 6
+#define FF_NORTC_MINUTE 8
+#define FF_NORTC_SECOND 0
+
+static DWORD fattime = (
+	(DWORD)(FF_NORTC_YEAR - 1980) << 25 |
+	(DWORD)FF_NORTC_MON << 21 |
+	(DWORD)FF_NORTC_MDAY << 16 |
+	(DWORD)(FF_NORTC_HOUR << 11) |
+	(DWORD)(FF_NORTC_MINUTE << 5) |
+	(DWORD)(FF_NORTC_SECOND)
+);
+
+DWORD get_fattime(void)
+{
+	return fattime;
+}
+
+void set_fattime(DWORD n)
+{
+	fattime = n;
+}
+#endif	// BAREMETAL
+
 //---------------------------------------------------------------------------
 //
 // 漢字コード変換
@@ -25,6 +56,7 @@
 //---------------------------------------------------------------------------
 #define IC_BUF_SIZE 1024
 static char convert_buf[IC_BUF_SIZE];
+#ifndef BAREMETAL
 #ifndef __NetBSD__
 // POSIX.1準拠iconv(3)を使用
 #define CONVERT(src, dest, inbuf, outbuf, outsize) \
@@ -61,6 +93,18 @@ static void convert(char const *src, char const *dest,
 	iconv_close(cd);
 	*outbuf = '\0';
 }
+#else
+// Newlibの中にiconvが含まれてなかったので無変換
+// ベアメタルのFatFS上はSJISでもOKだと思うよ
+#define CONVERT(src, dest, inbuf, outbuf, outsize) \
+	convert(src, dest, (char *)inbuf, outbuf, outsize)
+static void convert(char const *src, char const *dest,
+	char *inbuf, char *outbuf, size_t outsize)
+{
+	strcpy(outbuf, inbuf);
+	strcpy(convert_buf, inbuf);
+}
+#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
@@ -363,6 +407,56 @@ void CHostDrv::SetEnable(BOOL bEnable)
 
 //---------------------------------------------------------------------------
 //
+/// メディア交換チェック
+//
+//---------------------------------------------------------------------------
+BOOL CHostDrv::CheckMedia()
+{
+	ASSERT(this);
+
+	// 状態更新
+	Update();
+	if (m_bEnable == FALSE)
+		CleanCache();
+
+	return m_bEnable;
+}
+
+//---------------------------------------------------------------------------
+//
+/// メディア状態更新
+//
+//---------------------------------------------------------------------------
+void CHostDrv::Update()
+{
+	ASSERT(this);
+
+	// メディア挿入とみなす
+	BOOL bEnable = TRUE;
+
+	// メディア状態反映
+	SetEnable(bEnable);
+}
+
+//---------------------------------------------------------------------------
+//
+/// イジェクト
+//
+//---------------------------------------------------------------------------
+void CHostDrv::Eject()
+{
+	ASSERT(this);
+
+	// メディア排出
+	CleanCache();
+	SetEnable(FALSE);
+
+	// 状態更新
+	Update();
+}
+
+//---------------------------------------------------------------------------
+//
 /// ボリュームラベルの取得
 //
 //---------------------------------------------------------------------------
@@ -374,7 +468,12 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 
 	// ボリュームラベルの取得
 #ifdef RASCSI
-	strcpy(m_szVolumeCache, m_szBase);
+	strcpy(m_szVolumeCache, "RASDRV ");
+	if (m_szBase[0]) {
+		strcat(m_szVolumeCache, m_szBase);
+	} else {
+		strcat(m_szVolumeCache, "/");
+	}
 #else
 	m_szVolumeCache[0] = _T('\0');
 #endif
@@ -578,15 +677,17 @@ CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
 
 	// キャッシュ検索
 	CHostPath* pPath = FindCache(pFiles->GetHumanPath());
-	if (pPath == NULL)
+	if (pPath == NULL) {
 		return NULL;	// エラー: キャッシュなし
+	}
 
 	// リング先頭へ移動
 	pPath->Insert(&m_cRing);
 
 	// キャッシュ更新チェック
-	if (pPath->isRefresh())
+	if (pPath->isRefresh()) {
 		return NULL;	// エラー: キャッシュ更新が必要
+	}
 
 	// ホスト側のパス名を保存
 	pFiles->SetResult(pPath->GetHost());
@@ -676,6 +777,9 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 
 		// キャッシュ更新チェック
 		if (pPath->isRefresh()) {
+			// 更新
+			Update();
+
 			// 状態更新
 			pPath->Refresh();
 		}
@@ -1320,6 +1424,13 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 					if ('A' <= d && d <= 'Z')
 						d += 'a' - 'A';	// 小文字化
 				}
+				// バックスラッシュをスラッシュに統一して比較する
+				if (c == '\\') {
+					c = '/';
+				}
+				if (d == '\\') {
+					d = '/';
+				}
 			} else {		// cだけが1バイト目
 				if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// 厳密には 0x81～0x9F 0xE0～0xEF
 					bSkip0 = TRUE;
@@ -1537,6 +1648,151 @@ BOOL CHostPath::isRefresh()
 	return m_bRefresh;
 }
 
+#ifdef BAREMETAL
+//---------------------------------------------------------------------------
+//
+/// scandirエミュレーション
+//
+//---------------------------------------------------------------------------
+struct dirent {
+	char d_name[_MAX_FNAME];
+};
+
+int scandir(const char *dirname,
+dirent ***ret_namelist,
+	int(*select)(const dirent *),
+	int(*compar)(const dirent **, const dirent **))
+{
+	FRESULT fr;
+	DIR dir;
+	FILINFO fno;
+	char dirpath[256];
+	int len;
+	dirent went;
+	int used;
+	int allocated;
+	dirent **namelist = NULL;
+	int i;
+	dirent *ent;
+
+	// NULLチェック
+	strcpy(dirpath, dirname);
+	if (dirpath[0] == '\0') {
+		return -1;
+	}
+
+	// '/'はOKだがそれ以外で最後が'/'だとディレクトリと認識されない)
+	if (dirpath[0] != '/' || dirpath[1] != '\0') {
+		len = strlen(dirpath);
+		if (dirpath[len - 1] == '/') {
+			dirpath[len - 1] = '\0';
+		}
+	}
+
+	// ディレクトリオープン
+	fr = f_opendir(&dir, dirpath);
+	if (fr != FR_OK) {
+		return -1;
+	}
+
+	// リストを初期値で確保(とりあえず32)
+	used = 0;
+	allocated = 32;
+	namelist = (dirent **)malloc(allocated * sizeof(dirent *));
+	if (!namelist) {
+		goto error;
+	}
+
+	// 配下のファイルまたはディレクトリを処理
+	i = 0;
+	while (TRUE) {
+		if (i == 0) {
+			// "."をFILINFOに見せかけて追加
+			strcpy(fno.fname, ".");
+			i++;
+		} else if (i == 1) {
+			// ".."をFILINFOに見せかけて追加
+			strcpy(fno.fname, "..");
+			i++;
+		} else if (f_readdir(&dir, &fno) != FR_OK) {
+			break;
+		}
+
+		// このケースがあるか不明
+		if (fno.fname[0] == 0) {
+			break;
+		}
+
+		// direntに見せかける
+		strcpy(went.d_name, fno.fname);
+
+		// 対象外のフィルタ処理
+		if (select != NULL && !select(&went)) {
+			continue;
+		}
+
+		// ファイル名の長さに調整したdirentの領域を確保
+		len = offsetof(dirent, d_name) + strlen(fno.fname) + 1;
+		if ((ent = (dirent *)malloc(len)) == NULL) {
+			goto error;
+		}
+
+		// ワーク用direntから返却用にコピー
+		memcpy(ent, &went, len);
+
+		// 使用量が越えそうならリストを再確保
+		if (used >= allocated) {
+			allocated *= 2;
+			namelist = (dirent **)realloc(namelist, allocated * sizeof(dirent *));
+			if (!namelist) {
+				goto error;
+			}
+		}
+
+		// リストに追加
+		namelist[used++] = ent;
+	}
+
+	// ディレクトリクローズ
+	f_closedir(&dir);
+
+	// ソート処理
+	if (compar) {
+		qsort(
+			namelist, used, sizeof(dirent *),
+			(int(*)(const void *, const void *)) compar);
+	}
+
+	// リストとエントリ数を返却
+	*ret_namelist = namelist;
+	return used;
+
+error:
+	// ディレクトリクローズ
+	f_closedir(&dir);
+
+	// 途中まで確保したバッファをクローズ
+	if (namelist) {
+		while (used > 0) {
+			free(namelist[used - 1]);
+			used--;
+		}
+		free(namelist);
+	}
+	return -1;
+}
+#endif	// BAREMETAL
+
+//---------------------------------------------------------------------------
+//
+/// ASCIIソート関数
+//
+//---------------------------------------------------------------------------
+int AsciiSort(const dirent **a, const dirent **b)
+{
+	return strcmp((*a)->d_name, (*b)->d_name);
+}
+
 //---------------------------------------------------------------------------
 //
 /// ファイル再構成
@@ -1566,18 +1822,29 @@ void CHostPath::Refresh()
 	// ファイル名登録
 	/// @todo ファイル重複処理をホスト側APIを経由せずに全て自前で処理する。
 	BOOL bUpdate = FALSE;
-	DIR* pd = NULL;
-	for (DWORD i = 0; i < XM6_HOST_DIRENTRY_FILE_MAX; i++) {
+	struct dirent **pd = NULL;
+	int nument = 0;
+	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
+	for (int i = 0; i < maxent; i++) {
 		TCHAR szFilename[FILEPATH_MAX];
 		if (pd == NULL) {
-			pd = opendir(S2U(szPath));
-			if (pd == NULL)
+			nument = scandir(S2U(szPath), &pd, NULL, AsciiSort);
+			if (nument == -1) {
+				pd = NULL;
 				break;
+			}
+			maxent = nument;
 		}
+
+		// 最上位ディレクトリならカレントとパレントを対象外とする
+		struct dirent* pe = pd[i];
+		if (m_szHuman[0] == '/' && m_szHuman[1] == 0) {
+			if (strcmp(pe->d_name, ".") == 0 || strcmp(pe->d_name, "..") == 0) {
+				continue;
+			}
+		}
+
 		// ファイル名を獲得
-		struct dirent* pe = readdir(pd);
-		if (pe == NULL)
-			break;
 		strcpy(szFilename, U2S(pe->d_name));
 
 		// ファイル名領域確保
@@ -1617,8 +1884,12 @@ void CHostPath::Refresh()
 						// 一致するものがなければ、実ファイルが存在するか確認
 						strcpy(szPath, m_szHost);
 						strcat(szPath, (const char*)pFilename->GetHuman());	/// @warning Unicode時要修正 → 済
+#ifndef BAREMETAL
 						struct stat sb;
 						if (stat(S2U(szPath), &sb))
+#else
+						if (f_stat(S2U(szPath), NULL) != FR_OK)
+#endif	// BAREMETAL					
 							break;	// 利用可能パターンを発見
 					}
 				}
@@ -1634,6 +1905,7 @@ void CHostPath::Refresh()
 		strcpy(szPath, m_szHost);
 		strcat(szPath, U2S(pe->d_name));
 
+#ifndef BAREMETAL
 		struct stat sb;
 		if (stat(S2U(szPath), &sb))
 			continue;
@@ -1660,6 +1932,27 @@ void CHostPath::Refresh()
 		}
 		pFilename->SetEntryDate(nHumanDate);
 		pFilename->SetEntryTime(nHumanTime);
+#else
+		FILINFO fno;
+		if (f_stat(S2U(szPath), &fno) != FR_OK)
+			continue;
+
+		// 属性
+		BYTE nHumanAttribute = Human68k::AT_ARCHIVE;
+		if (fno.fattrib & AM_DIR)
+			nHumanAttribute = Human68k::AT_DIRECTORY;
+		if (fno.fattrib & AM_RDO)
+			nHumanAttribute |= Human68k::AT_READONLY;
+		pFilename->SetEntryAttribute(nHumanAttribute);
+
+		// サイズ
+		DWORD nHumanSize = (DWORD)fno.fsize;
+		pFilename->SetEntrySize(nHumanSize);
+
+		// 日付時刻
+		pFilename->SetEntryDate(fno.fdate);
+		pFilename->SetEntryTime(fno.ftime);
+#endif	// BAREMETAL					
 
 		// クラスタ番号設定
 		pFilename->SetEntryCluster(0);
@@ -1679,7 +1972,13 @@ void CHostPath::Refresh()
 		pRing->r.InsertTail(&m_cRing);
 	}
 
-	closedir(pd);
+	// ディレクトリエントリを解放
+	if (pd) {
+		for (int i = 0; i < nument; i++) {
+			free(pd[i]);
+		}
+		free(pd);
+	}
 
 	// 残存するキャッシュ内容を削除
 	ring_t* p;
@@ -1701,6 +2000,7 @@ void CHostPath::Refresh()
 //---------------------------------------------------------------------------
 void CHostPath::Backup()
 {
+#ifndef BAREMETAL
 	ASSERT(this);
 	ASSERT(m_szHost);
 	ASSERT(strlen(m_szHost) < FILEPATH_MAX);
@@ -1718,6 +2018,29 @@ void CHostPath::Backup()
 		if (stat(S2U(szPath), &sb) == 0)
 			m_tBackup = sb.st_mtime;
 	}
+#else
+	FILINFO fno;
+
+	ASSERT(this);
+	ASSERT(m_szHost);
+	ASSERT(strlen(m_szHost) < FILEPATH_MAX);
+
+	TCHAR szPath[FILEPATH_MAX];
+	strcpy(szPath, m_szHost);
+	size_t len = strlen(szPath);
+
+	m_tBackupD = 0;
+	m_tBackupT = 0;
+	if (len > 1) {	// ルートディレクトリの場合は何もしない
+		len--;
+		ASSERT(szPath[len] == _T('/'));
+		szPath[len] = _T('\0');
+		if (f_stat(S2U(szPath), &fno) == FR_OK) {
+			m_tBackupD = fno.fdate;
+			m_tBackupT = fno.ftime;
+		}
+	}
+#endif	// BAREMETAL					
 }
 
 //---------------------------------------------------------------------------
@@ -1727,6 +2050,7 @@ void CHostPath::Backup()
 //---------------------------------------------------------------------------
 void CHostPath::Restore() const
 {
+#ifndef BAREMETAL
 	ASSERT(this);
 	ASSERT(m_szHost);
 	ASSERT(strlen(m_szHost) < FILEPATH_MAX);
@@ -1746,6 +2070,28 @@ void CHostPath::Restore() const
 		ut.modtime = m_tBackup;
 		utime(szPath, &ut);
 	}
+#else
+	FILINFO fno;
+
+	ASSERT(this);
+	ASSERT(m_szHost);
+	ASSERT(strlen(m_szHost) < FILEPATH_MAX);
+
+	TCHAR szPath[FILEPATH_MAX];
+	strcpy(szPath, m_szHost);
+	size_t len = strlen(szPath);
+
+	if (m_tBackupD) {
+		ASSERT(len);
+		len--;
+		ASSERT(szPath[len] == _T('/'));
+		szPath[len] = _T('\0');
+
+		fno.fdate = m_tBackupD;
+		fno.ftime = m_tBackupT;
+		f_utime(szPath, &fno);
+	}
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2005,6 +2351,34 @@ DWORD CHostEntry::GetStatus(DWORD nUnit) const
 	ASSERT(m_pDrv[nUnit]);
 
 	return m_pDrv[nUnit]->GetStatus();
+}
+
+//---------------------------------------------------------------------------
+//
+/// メディア交換チェック
+//
+//---------------------------------------------------------------------------
+BOOL CHostEntry::CheckMedia(DWORD nUnit)
+{
+	ASSERT(this);
+	ASSERT(nUnit < DriveMax);
+	ASSERT(m_pDrv[nUnit]);
+
+	return m_pDrv[nUnit]->CheckMedia();
+}
+
+//---------------------------------------------------------------------------
+//
+/// イジェクト
+//
+//---------------------------------------------------------------------------
+void CHostEntry::Eject(DWORD nUnit)
+{
+	ASSERT(this);
+	ASSERT(nUnit < DriveMax);
+	ASSERT(m_pDrv[nUnit]);
+
+	m_pDrv[nUnit]->Eject();
 }
 
 //---------------------------------------------------------------------------
@@ -2376,7 +2750,11 @@ void CHostFcb::Init()
 	ASSERT(this);
 
 	m_bUpdate = FALSE;
+#ifndef BAREMETAL
 	m_pFile = NULL;
+#else
+	memset(&m_File, 0x00, sizeof(FIL));
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -2388,6 +2766,7 @@ BOOL CHostFcb::SetMode(DWORD nHumanMode)
 {
 	ASSERT(this);
 
+#ifndef BAREMETAL
 	switch (nHumanMode & Human68k::OP_MASK) {
 		case Human68k::OP_READ:
 			m_pszMode = "rb";
@@ -2401,6 +2780,21 @@ BOOL CHostFcb::SetMode(DWORD nHumanMode)
 		default:
 			return FALSE;
 	}
+#else
+	switch (nHumanMode & Human68k::OP_MASK) {
+		case Human68k::OP_READ:
+			m_Mode = FA_READ;
+			break;
+		case Human68k::OP_WRITE:
+			m_Mode = FA_WRITE;
+			break;
+		case Human68k::OP_FULL:
+			m_Mode = FA_WRITE | FA_READ;
+			break;
+		default:
+			return FALSE;
+	}
+#endif	// BAREMETAL
 
 	m_bFlag = (nHumanMode & Human68k::OP_SPECIAL) != 0;
 
@@ -2442,8 +2836,9 @@ void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 /// エラーの時はFALSEを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Create(DWORD nHumanAttribute, BOOL bForce)
+BOOL CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
 {
+#ifndef BAREMETAL
 	ASSERT(this);
 	ASSERT((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
 	ASSERT(strlen(m_szFilename) > 0);
@@ -2460,6 +2855,29 @@ BOOL CHostFcb::Create(DWORD nHumanAttribute, BOOL bForce)
 	m_pFile = fopen(S2U(m_szFilename), "w+b");	/// @warning 理想動作は属性ごと上書き
 
 	return m_pFile != NULL;
+#else
+	FRESULT fr;
+
+	ASSERT(this);
+	ASSERT((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
+	ASSERT(strlen(m_szFilename) > 0);
+
+	// 重複チェック
+	if (bForce == FALSE) {
+		if (f_stat(S2U(m_szFilename), NULL) == FR_OK)
+			return FALSE;
+	}
+
+	// RPIのベアメタルではRTCが無いのでHuman側の時刻を反映させる
+	DWORD nHumanTime = ((DWORD)pFcb->date) << 16 | ((DWORD)pFcb->time);
+	set_fattime(nHumanTime);
+
+	// ファイル作成
+	fr = f_open(&m_File, S2U(m_szFilename), FA_CREATE_ALWAYS | FA_WRITE | FA_READ);
+	/// @warning 理想動作は属性ごと上書き
+
+	return fr == FR_OK;
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2471,8 +2889,9 @@ BOOL CHostFcb::Create(DWORD nHumanAttribute, BOOL bForce)
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Open()
 {
+#ifndef BAREMETAL
 	struct stat st;
-
+	
 	ASSERT(this);
 	ASSERT(strlen(m_szFilename) > 0);
 
@@ -2488,6 +2907,27 @@ BOOL CHostFcb::Open()
 		m_pFile = fopen(S2U(m_szFilename), m_pszMode);
 
 	return m_pFile != NULL || m_bFlag;
+#else
+	FRESULT fr;
+	FILINFO fno;
+
+	ASSERT(this);
+	ASSERT(strlen(m_szFilename) > 0);
+
+	// ディレクトリなら失敗
+	if (f_stat(S2U(m_szFilename), &fno) == FR_OK) {
+		if (fno.fattrib & AM_DIR) {
+			return FALSE || m_bFlag;
+		}
+	}
+
+	// ファイルオープン
+	fr = FR_DISK_ERR;
+	if (m_File.obj.fs == NULL)
+		fr = f_open(&m_File, S2U(m_szFilename), m_Mode);
+
+	return fr == FR_OK || m_bFlag;
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2500,12 +2940,19 @@ BOOL CHostFcb::Open()
 BOOL CHostFcb::Rewind(DWORD nOffset)
 {
 	ASSERT(this);
+#ifndef BAREMETAL
 	ASSERT(m_pFile);
 
 	if (fseek(m_pFile, nOffset, SEEK_SET))
 		return FALSE;
 
 	return ftell(m_pFile) != -1L;
+#else
+	if (f_lseek(&m_File, nOffset))
+		return FALSE;
+
+	return f_tell(&m_File) != (DWORD)-1L;
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2518,6 +2965,7 @@ BOOL CHostFcb::Rewind(DWORD nOffset)
 //---------------------------------------------------------------------------
 DWORD CHostFcb::Read(BYTE* pBuffer, DWORD nSize)
 {
+#ifndef BAREMETAL
 	ASSERT(this);
 	ASSERT(pBuffer);
 	ASSERT(m_pFile);
@@ -2527,6 +2975,19 @@ DWORD CHostFcb::Read(BYTE* pBuffer, DWORD nSize)
 		nResult = (size_t)-1;
 
 	return (DWORD)nResult;
+#else
+	FRESULT fr;
+	UINT nResult;
+
+	ASSERT(this);
+	ASSERT(pBuffer);
+
+	fr = f_read(&m_File, pBuffer, nSize, &nResult);
+	if (fr != FR_OK)
+		nResult = (UINT)-1;
+
+	return (DWORD)nResult;
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2539,6 +3000,7 @@ DWORD CHostFcb::Read(BYTE* pBuffer, DWORD nSize)
 //---------------------------------------------------------------------------
 DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 {
+#ifndef BAREMETAL
 	ASSERT(this);
 	ASSERT(pBuffer);
 	ASSERT(m_pFile);
@@ -2548,6 +3010,19 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 		nResult = (size_t)-1;
 
 	return (DWORD)nResult;
+#else
+	FRESULT fr;
+	UINT nResult;
+
+	ASSERT(this);
+	ASSERT(pBuffer);
+
+	fr = f_write(&m_File, pBuffer, nSize, &nResult);
+	if (fr != FR_OK)
+		nResult = (UINT)-1;
+
+	return (DWORD)nResult;
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2560,9 +3035,13 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 BOOL CHostFcb::Truncate()
 {
 	ASSERT(this);
+#ifndef BAREMETAL
 	ASSERT(m_pFile);
 
 	return ftruncate(fileno(m_pFile), ftell(m_pFile)) == 0;
+#else
+	return f_truncate(&m_File) == FR_OK;
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2574,6 +3053,7 @@ BOOL CHostFcb::Truncate()
 //---------------------------------------------------------------------------
 DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 {
+#ifndef BAREMETAL
 	ASSERT(this);
 	ASSERT(nHumanSeek == Human68k::SK_BEGIN ||
 		nHumanSeek == Human68k::SK_CURRENT || nHumanSeek == Human68k::SK_END);
@@ -2596,6 +3076,30 @@ DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 		return (DWORD)-1;
 
 	return (DWORD)ftell(m_pFile);
+#else
+	FRESULT fr;
+
+	ASSERT(this);
+	ASSERT(nHumanSeek == Human68k::SK_BEGIN ||
+		nHumanSeek == Human68k::SK_CURRENT || nHumanSeek == Human68k::SK_END);
+
+	switch (nHumanSeek) {
+		case Human68k::SK_BEGIN:
+			fr = f_lseek(&m_File, nOffset);
+			break;
+		case Human68k::SK_CURRENT:
+			fr = f_lseek(&m_File, f_tell(&m_File) + nOffset);
+			break;
+			// case SK_END:
+		default:
+			fr = f_lseek(&m_File, f_size(&m_File) + nOffset);
+			break;
+	}
+	if (fr != FR_OK)
+		return (DWORD)-1;
+
+	return (DWORD)f_tell(&m_File);
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2607,6 +3111,7 @@ DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 //---------------------------------------------------------------------------
 BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 {
+#ifndef BAREMETAL
 	ASSERT(this);
 	ASSERT(m_pFile || m_bFlag);
 
@@ -2614,7 +3119,7 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 	t.tm_year = (nHumanTime >> 25) + 80;
 	t.tm_mon = ((nHumanTime >> 21) - 1) & 15;
 	t.tm_mday = (nHumanTime >> 16) & 31;
-	t.tm_hour = (nHumanTime >> 11) & 15;
+	t.tm_hour = (nHumanTime >> 11) & 31;
 	t.tm_min = (nHumanTime >> 5) & 63;
 	t.tm_sec = (nHumanTime & 31) << 1;
 	time_t ti = mktime(&t);
@@ -2629,6 +3134,20 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 	fflush(m_pFile);
 
 	return utime(S2U(m_szFilename), &ut) == 0 || m_bFlag;
+#else
+	FILINFO fno;
+
+	ASSERT(this);
+	ASSERT(m_bFlag);
+
+	// クローズ時に更新時刻が上書きされるのを防止するため
+	// タイムスタンプの更新前にフラッシュして同期させる
+	f_sync(&m_File);
+
+	fno.fdate = (WORD)(nHumanTime >> 16);
+	fno.ftime = (WORD)nHumanTime;
+	return f_utime(S2U(m_szFilename), &fno) == FR_OK || m_bFlag;
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2646,10 +3165,14 @@ BOOL CHostFcb::Close()
 
 	// ファイルクローズ
 	// Close→Free(内部で再度Close)という流れもあるので必ず初期化すること。
+#ifndef BAREMETAL
 	if (m_pFile) {
 		fclose(m_pFile);
 		m_pFile = NULL;
 	}
+#else
+	f_close(&m_File);
+#endif	// BAREMETAL
 
 	return bResult;
 }
@@ -2813,6 +3336,9 @@ CFileSys::CFileSys()
 	m_nOptionDefault = 0;
 	m_nOption = 0;
 	ASSERT(g_nOption == 0);
+
+	// 登録したドライブ数は0
+	m_nUnits = 0;
 }
 
 //---------------------------------------------------------------------------
@@ -2974,7 +3500,11 @@ int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 	f.AddFilename();
 
 	// ディレクトリ作成
+#ifndef BAREMETAL
 	if (mkdir(S2U(f.GetPath()), 0777))
+#else
+	if (f_mkdir(S2U(f.GetPath())) != FR_OK)
+#endif	// BAREMETAL
 		return FS_INVALIDPATH;
 
 	// キャッシュ更新
@@ -3025,7 +3555,11 @@ int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 	m_cEntry.DeleteCache(nUnit, szHuman);
 
 	// ディレクトリ削除
+#ifndef BAREMETAL
 	if (rmdir(S2U(f.GetPath())))
+#else
+	if (f_rmdir(S2U(f.GetPath())) != FR_OK)
+#endif	// BAREMETAL
 		return FS_CANTDELETE;
 
 	// キャッシュ更新
@@ -3082,7 +3616,11 @@ int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Hum
 	char szTo[FILENAME_MAX];
 	SJIS2UTF8(f.GetPath(), szFrom, FILENAME_MAX);
 	SJIS2UTF8(fNew.GetPath(), szTo, FILENAME_MAX);
+#ifndef BAREMETAL
 	if (rename(szFrom, szTo)) {
+#else
+	if (f_rename(szFrom, szTo) != FR_OK) {
+#endif	// BAREMETAL
 		return FS_FILENOTFND;
 	}
 
@@ -3125,7 +3663,11 @@ int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
 		return FS_FILENOTFND;
 
 	// ファイル削除
+#ifndef BAREMETAL
 	if (unlink(S2U(f.GetPath())))
+#else
+	if (f_unlink(S2U(f.GetPath())) != FR_OK)
+#endif	// BAREMETAL
 		return FS_CANTDELETE;
 
 	// キャッシュ更新
@@ -3177,6 +3719,7 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 	DWORD nAttribute = (nHumanAttribute & Human68k::AT_READONLY) |
 		(f.GetAttribute() & ~Human68k::AT_READONLY);
 	if (f.GetAttribute() != nAttribute) {
+#ifndef BAREMETAL
 		struct stat sb;
 		if (stat(S2U(f.GetPath()), &sb))
 			return FS_FILENOTFND;
@@ -3189,6 +3732,17 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 		// 属性設定
 		if (chmod(S2U(f.GetPath()), m))
 			return FS_FILENOTFND;
+#else
+		if (f_stat(S2U(f.GetPath()), NULL) != FR_OK)
+			return FS_FILENOTFND;
+		BYTE m = 0;
+		if (nAttribute & Human68k::AT_READONLY)
+			m = AM_RDO;
+
+		// 属性設定
+		if (f_chmod(S2U(f.GetPath()), m, AM_RDO))
+			return FS_FILENOTFND;
+#endif	// BAREMETAL
 	}
 
 	// キャッシュ更新
@@ -3398,7 +3952,7 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 	}
 
 	// ファイル作成
-	if (pHostFcb->Create(nHumanAttribute, bForce) == FALSE) {
+	if (pHostFcb->Create(pFcb, nHumanAttribute, bForce) == FALSE) {
 		m_cFcb.Free(pHostFcb);
 		return FS_FILEEXIST;
 	}
@@ -4056,7 +4610,13 @@ int CFileSys::CheckMedia(DWORD nUnit)
 		return FS_INVALIDFUNC;	// レジューム後に無効なドライブでmint操作時に白帯を出さないよう改良
 
 	// メディア交換チェック
-	m_cEntry.CleanCache(nUnit);
+	BOOL bResult = m_cEntry.CheckMedia(nUnit);
+
+	// メディア未挿入ならエラーとする
+	if (bResult == FALSE) {
+		return FS_INVALIDFUNC;
+	}
+
 	return 0;
 }
 

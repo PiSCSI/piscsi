@@ -4,7 +4,7 @@
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2018 GIMONS
+//	Copyright (C) 2016-2020 GIMONS
 //	[ HDDダンプユーティリティ(イニシーエタモード) ]
 //
 //---------------------------------------------------------------------------
@@ -207,29 +207,15 @@ BOOL ParseArgument(int argc, char* argv[])
 //---------------------------------------------------------------------------
 BOOL WaitPhase(BUS::phase_t phase)
 {
-	int count;
+	DWORD now;
 
-	// REQを待つ(6秒)
-	count = 30000;
-	do {
-		usleep(200);
+	// タイムアウト(3000ms)
+	now = SysTimer::GetTimerLow();
+	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Aquire();
-		if (bus.GetREQ()) {
-			break;
+		if (bus.GetREQ() && bus.GetPhase() == phase) {
+			return TRUE;
 		}
-	} while (count--);
-
-	// フェーズが一致すればOK
-	bus.Aquire();
-	if (bus.GetPhase() == phase) {
-		return TRUE;
-	}
-
-	// フェーズが一致すればOK(リトライ)
-	usleep(1000 * 1000);
-	bus.Aquire();
-	if (bus.GetPhase() == phase) {
-		return TRUE;
 	}
 
 	return FALSE;
@@ -242,6 +228,7 @@ BOOL WaitPhase(BUS::phase_t phase)
 //---------------------------------------------------------------------------
 void BusFree()
 {
+	// バスリセット
 	bus.Reset();
 }
 
@@ -312,8 +299,6 @@ BOOL Command(BYTE *buf, int length)
 //---------------------------------------------------------------------------
 int DataIn(BYTE *buf, int length)
 {
-	int count;
-
 	// フェーズ待ち
 	if (!WaitPhase(BUS::datain)) {
 		return -1;
@@ -330,8 +315,6 @@ int DataIn(BYTE *buf, int length)
 //---------------------------------------------------------------------------
 int DataOut(BYTE *buf, int length)
 {
-	int count;
-
 	// フェーズ待ち
 	if (!WaitPhase(BUS::dataout)) {
 		return -1;
@@ -444,6 +427,7 @@ int RequestSense(int id, BYTE *buf)
 
 	// 結果コード初期化
 	result = 0;
+	count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -461,7 +445,7 @@ int RequestSense(int id, BYTE *buf)
 	}
 
 	// DATAIN
-	memset(buf, 0x00, sizeof(buf));
+	memset(buf, 0x00, 256);
 	count = DataIn(buf, 256);
 	if (count <= 0) {
 		result = -3;
@@ -504,6 +488,7 @@ int ModeSense(int id, BYTE *buf)
 
 	// 結果コード初期化
 	result = 0;
+	count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -522,7 +507,7 @@ int ModeSense(int id, BYTE *buf)
 	}
 
 	// DATAIN
-	memset(buf, 0x00, sizeof(buf));
+	memset(buf, 0x00, 256);
 	count = DataIn(buf, 256);
 	if (count <= 0) {
 		result = -3;
@@ -565,6 +550,7 @@ int Inquiry(int id, BYTE *buf)
 
 	// 結果コード初期化
 	result = 0;
+	count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -582,8 +568,8 @@ int Inquiry(int id, BYTE *buf)
 	}
 
 	// DATAIN
-	memset(buf, 0x00, sizeof(buf));
-	count = DataIn(buf, 255);
+	memset(buf, 0x00, 256);
+	count = DataIn(buf, 256);
 	if (count <= 0) {
 		result = -3;
 		goto exit;
@@ -625,6 +611,7 @@ int ReadCapacity(int id, BYTE *buf)
 
 	// 結果コード初期化
 	result = 0;
+	count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -641,7 +628,7 @@ int ReadCapacity(int id, BYTE *buf)
 	}
 
 	// DATAIN
-	memset(buf, 0x00, sizeof(buf));
+	memset(buf, 0x00, 8);
 	count = DataIn(buf, 8);
 	if (count <= 0) {
 		result = -3;
@@ -684,6 +671,7 @@ int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 
 	// 結果コード初期化
 	result = 0;
+	count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -748,6 +736,7 @@ int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 
 	// 結果コード初期化
 	result = 0;
+	count = 0;
 
 	// SELECTION
 	if (!Selection(id)) {
@@ -815,7 +804,6 @@ int main(int argc, char* argv[])
 	DWORD duni;
 	DWORD dsiz;
 	DWORD dnum;
-	DWORD rest;
 	Fileio fio;
 	Fileio::OpenMode omode;
 	off64_t size;
@@ -918,18 +906,21 @@ int main(int argc, char* argv[])
 		(buffer[0] << 24) | (buffer[1] << 16) |
 		(buffer[2] << 8) | buffer[3];
 	bnum++;
-	printf("Number of blocks        : %d Blocks\n", bnum);
-	printf("Block length            : %d Bytes\n", bsiz);
+	printf("Number of blocks        : %d Blocks\n", (int)bnum);
+	printf("Block length            : %d Bytes\n", (int)bsiz);
 	printf("Unit Capacity           : %d MBytes %d Bytes\n",
-		bsiz * bnum / 1024 / 1024,
-		bsiz * bnum);
+		(int)(bsiz * bnum / 1024 / 1024),
+		(int)(bsiz * bnum));
 
 	// リストアファイルサイズの取得
 	if (restore) {
 		size = fio.GetFileSize();
 		printf("Restore file size       : %d bytes", (int)size);
-		if (size != (off64_t)(bsiz * bnum)) {
-			printf("(WARNING : File size isn't equal to disk size)");
+		if (size > (off64_t)(bsiz * bnum)) {
+			printf("(WARNING : File size is larger than disk size)");
+		} else if (size < (off64_t)(bsiz * bnum)) {
+			printf("(ERROR   : File size is smaller than disk size)\n");
+			goto cleanup_exit;
 		}
 		printf("\n");
 	}
@@ -947,12 +938,15 @@ int main(int argc, char* argv[])
 		printf("Dump progress           : ");
 	}
 
-	for (i = 0; i < dnum; i++) {
+	for (i = 0; i < (int)dnum; i++) {
 		if (i > 0) {
 			printf("\033[21D");
 			printf("\033[0K");
 		}
-		printf("%3d\%(%7d/%7d)", (i + 1) * 100 / dnum, i * duni, bnum);
+		printf("%3d%%(%7d/%7d)",
+			(int)((i + 1) * 100 / dnum),
+			(int)(i * duni),
+			(int)bnum);
 		fflush(stdout);
 
 		if (restore) {
@@ -974,13 +968,18 @@ int main(int argc, char* argv[])
 		goto cleanup_exit;
 	}
 
+	if (dnum > 0) {
+		printf("\033[21D");
+		printf("\033[0K");
+	}
+
 	// 容量上の端数処理
 	dnum = bnum % duni;
 	dsiz = dnum * bsiz;
 	if (dnum > 0) {
 		if (restore) {
 			if (fio.Read(buffer, dsiz)) {
-				Write10(targetid, i * duni, duni, dsiz, buffer);
+				Write10(targetid, i * duni, dnum, dsiz, buffer);
 			}
 		} else {
 			if (Read10(targetid, i * duni, dnum, dsiz, buffer) >= 0) {
@@ -990,9 +989,7 @@ int main(int argc, char* argv[])
 	}
 
 	// 完了メッセージ
-	printf("\033[21D");
-	printf("\033[0K");
-	printf("%3d\%(%7d/%7d)\n", 100, bnum, bnum);
+	printf("%3d%%(%7d/%7d)\n", 100, (int)bnum, (int)bnum);
 
 cleanup_exit:
 	// ファイルクローズ

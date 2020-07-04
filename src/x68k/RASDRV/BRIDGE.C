@@ -852,6 +852,28 @@ int FS_GetCapacity(capacity_t* cap)
 //---------------------------------------------------------------------------
 int FS_CtrlDrive(ctrldrive_t* pCtrlDrive)
 {
+#if 1
+	// 負荷が高いのでここで暫定処理
+	switch (pCtrlDrive->status) {
+		case 0:		// 状態検査
+		case 9:		// 状態検査2
+			pCtrlDrive->status = 0x42;
+			return pCtrlDrive->status;
+		case 1:		// イジェクト
+		case 2:		// イジェクト禁止1 (未実装)
+		case 3:		// イジェクト許可1 (未実装)
+		case 4:		// メディア未挿入時にLED点滅 (未実装)
+		case 5:		// メディア未挿入時にLED消灯 (未実装)
+		case 6:		// イジェクト禁止2 (未実装)
+		case 7:		// イジェクト許可2 (未実装)
+			return 0;
+
+		case 8:		// イジェクト検査
+			return 1;
+	}
+
+	return -1;
+#else
 	BYTE buf[256];
 	DWORD *dp;
 	int i;
@@ -865,6 +887,7 @@ int FS_CtrlDrive(ctrldrive_t* pCtrlDrive)
 	i += sizeof(ctrldrive_t);
 	
 	return SCSI_CalCmd(buf, i, (BYTE*)pCtrlDrive, sizeof(ctrldrive_t));
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -962,6 +985,10 @@ int FS_Ioctrl(DWORD nFunction, ioctrl_t* pIoctrl)
 //---------------------------------------------------------------------------
 int FS_Flush()
 {
+#if 1
+	// 未サポート
+	return 0;
+#else
 	BYTE buf[256];
 	DWORD *dp;
 	
@@ -969,6 +996,7 @@ int FS_Flush()
 	*dp = unit;
 
 	return SCSI_SendCmd(buf, 4);
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -978,6 +1006,10 @@ int FS_Flush()
 //---------------------------------------------------------------------------
 int FS_CheckMedia()
 {
+#if 1
+	// 負荷が高いので暫定処理
+	return 0;
+#else
 	BYTE buf[256];
 	DWORD *dp;
 	
@@ -985,6 +1017,7 @@ int FS_CheckMedia()
 	*dp = unit;
 
 	return SCSI_SendCmd(buf, 4);
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -994,6 +1027,10 @@ int FS_CheckMedia()
 //---------------------------------------------------------------------------
 int FS_Lock()
 {
+#if 1
+	// 未サポート
+	return 0;
+#else
 	BYTE buf[256];
 	DWORD *dp;
 	
@@ -1001,6 +1038,7 @@ int FS_Lock()
 	*dp = unit;
 
 	return SCSI_SendCmd(buf, 4);
+#endif
 }
 
 //===========================================================================
@@ -2277,24 +2315,10 @@ DWORD Flush(void)
 //---------------------------------------------------------------------------
 DWORD CheckMedia(void)
 {
-#if 1
-	static DWORD last = 0;
-	DWORD now;
-#endif
 	int nResult;
 
 	ASSERT(this);
 	ASSERT(fs);
-
-#if 1
-	// 連続で呼び出されるの回避する
-	now = TIMEGET();
-	if ((now - last) < 3) {
-		return 0;
-	} else {
-		last = now;
-	}
-#endif
 
 	// ファイルシステム呼び出し
 	nResult = FS_CheckMedia();
@@ -2366,17 +2390,9 @@ DWORD ExecuteCommand()
 		case 0x53: return DiskRead();	// $53 - セクタ読み込み
 		case 0x54: return DiskWrite();	// $54 - セクタ書き込み
 		case 0x55: return Ioctrl();		// $55 - IOCTRL
-#if 0
 		case 0x56: return Flush();		// $56 - フラッシュ
-#else
-		case 0x56: return 0;			// $56 - フラッシュ
-#endif
 		case 0x57: return CheckMedia();	// $57 - メディア交換チェック
-#if 0
 		case 0x58: return Lock();		// $58 - 排他制御
-#else
-		case 0x58: return 0;			// $58 - 排他制御
-#endif
 	}
 
 	return FS_FATAL_INVALIDCOMMAND;

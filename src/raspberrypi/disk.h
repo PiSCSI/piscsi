@@ -3,7 +3,7 @@
 //	X68000 EMULATOR "XM6"
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
-//	Copyright (C) 2014-2018 GIMONS
+//	Copyright (C) 2014-2020 GIMONS
 //
 //	XM6i
 //	Copyright (C) 2010-2015 isaki@NetBSD.org
@@ -319,6 +319,8 @@ public:
 										// サポートしていないコマンド
 
 	// その他
+	BOOL IsCacheWB() { return cache_wb; }
+										// キャッシュモード取得
 	void SetCacheWB(BOOL enable) { cache_wb = enable; }
 										// キャッシュモード設定
 
@@ -703,7 +705,9 @@ private:
 //	SCSI ホストブリッジ
 //
 //===========================================================================
+#if defined(RASCSI) && !defined(BAREMETAL)
 class CTapDriver;
+#endif	// RASCSI && !BAREMETAL
 class CFileSys;
 class SCSIBR : public Disk
 {
@@ -725,6 +729,7 @@ public:
 										// SEND MESSAGE10コマンド
 
 private:
+#if defined(RASCSI) && !defined(BAREMETAL)
 	int FASTCALL GetMacAddr(BYTE *buf);
 										// MACアドレス取得
 	void FASTCALL SetMacAddr(BYTE *buf);
@@ -748,7 +753,7 @@ private:
 										// 受信パケットバッファ
 	BOOL packet_enable;
 										// 受信パケット有効
-
+#endif	// RASCSI && !BAREMETAL
 
 	int FASTCALL ReadFsResult(BYTE *buf);
 										// ファイルシステム読み込み(結果コード)
@@ -840,14 +845,13 @@ public:
 		UnitMax = 8
 	};
 
-	// フェーズタイミング(調整用)
+#ifdef RASCSI
+	// タイミング調整用
 	enum {
-		Time_phase_bsy				= 800,
-		Time_phase_before			= 6000,		// min 4000ns
-		Time_phase_before_data		= 60000,	// min 40000ns
-		Time_phase_after			= 6000,		// min 4000ns
-		Time_phase_after_status		= 12000,	// min 9000ns
+		min_exec_time_sasi	= 100,			// SASI BOOT/FORMAT 30:NG 35:OK
+		min_exec_time_scsi	= 50
 	};
+#endif	// RASCSI
 
 	// 内部データ定義
 	typedef struct {
@@ -860,6 +864,11 @@ public:
 		DWORD cmd[10];					// コマンドデータ
 		DWORD status;					// ステータスデータ
 		DWORD message;					// メッセージデータ
+
+#ifdef RASCSI
+		// 実行
+		DWORD execstart;				// 実行開始時間
+#endif	// RASCSI
 
 		// 転送
 		BYTE *buffer;					// 転送バッファ
@@ -919,6 +928,8 @@ public:
 										// 内部情報アドレス取得
 	virtual BOOL FASTCALL IsSASI() const {return TRUE;}
 										// SASIチェック
+	virtual BOOL FASTCALL IsSCSI() const {return FALSE;}
+										// SCSIチェック
 	Disk* FASTCALL GetBusyUnit();
 										// ビジー状態のユニットを取得
 
@@ -970,12 +981,24 @@ protected:
 	// データ転送
 	virtual void FASTCALL Send();
 										// データ送信
+#ifndef RASCSI
+	virtual void FASTCALL SendNext();
+										// データ送信継続
+#endif	// RASCSI
 	virtual void FASTCALL Receive();
 										// データ受信
+#ifndef RASCSI
+	virtual void FASTCALL ReceiveNext();
+										// データ受信継続
+#endif	// RASCSI
 	BOOL FASTCALL XferIn(BYTE* buf);
 										// データ転送IN
 	BOOL FASTCALL XferOut(BOOL cont);
 										// データ転送OUT
+
+	// 特殊
+	void FASTCALL FlushUnit();
+										// 論理ユニットフラッシュ
 
 	// ログ
 	void FASTCALL Log(Log::loglevel level, const char *format, ...);
@@ -1010,7 +1033,7 @@ public:
 		// ATNメッセージ
 		BOOL atnmsg;
 		int msc;
-		BOOL msb[256];
+		BYTE msb[256];
 	} scsi_t;
 
 public:
@@ -1035,6 +1058,8 @@ public:
 	// その他
 	BOOL FASTCALL IsSASI() const {return FALSE;}
 										// SASIチェック
+	BOOL FASTCALL IsSCSI() const {return TRUE;}
+										// SCSIチェック
 
 private:
 	// フェーズ
@@ -1096,8 +1121,16 @@ private:
 	// データ転送
 	void FASTCALL Send();
 										// データ送信
+#ifndef RASCSI
+	void FASTCALL SendNext();
+										// データ送信継続
+#endif	// RASCSI
 	void FASTCALL Receive();
 										// データ受信
+#ifndef RASCSI
+	void FASTCALL ReceiveNext();
+										// データ受信継続
+#endif	// RASCSI
 	BOOL FASTCALL XferMsg(DWORD msg);
 										// データ転送MSG
 

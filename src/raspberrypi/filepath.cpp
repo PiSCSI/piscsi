@@ -3,7 +3,7 @@
 //	X68000 EMULATOR "XM6"
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
-//	Copyright (C) 2012-2018 GIMONS
+//	Copyright (C) 2012-2020 GIMONS
 //	[ ファイルパス(サブセット) ]
 //
 //---------------------------------------------------------------------------
@@ -86,6 +86,80 @@ void FASTCALL Filepath::SetPath(LPCSTR path)
 	Split();
 }
 
+#ifdef BAREMETAL
+//---------------------------------------------------------------------------
+//
+//	互換関数(dirname) 結果は直ぐにコピーせよ
+//
+//---------------------------------------------------------------------------
+static char dirtmp[2];
+char* dirname(char *path)
+{
+	char *p;
+	if( path == NULL || *path == '\0' ) {
+		dirtmp[0] = '.';
+		dirtmp[1] = '\0';
+		return dirtmp;
+	}
+		
+	p = path + strlen(path) - 1;
+	while( *p == '/' ) {
+		if( p == path )
+			return path;
+		*p-- = '\0';
+	}
+	
+	while( p >= path && *p != '/' ) {
+		p--;
+	}
+
+	if (p < path) {
+		dirtmp[0] = '.';
+		dirtmp[1] = '\0';
+		return dirtmp;
+	}
+
+	if (p == path) {
+		dirtmp[0] = '/';
+		dirtmp[1] = '\0';
+		return dirtmp;
+	}
+
+	*p = 0;
+	return path;
+}
+
+//---------------------------------------------------------------------------
+//
+//	互換関数(basename) 結果は直ぐにコピーせよ
+//
+//---------------------------------------------------------------------------
+static char basetmp[2];
+char* basename(char *path)
+{
+	char *p;
+	if( path == NULL || *path == '\0' ) {
+		basetmp[0] = '/';
+		basetmp[1] = '\0';
+		return basetmp;
+	}
+	
+	p = path + strlen(path) - 1;
+	while( *p == '/' ) {
+		if( p == path ) {
+			return path;
+		}
+		*p-- = '\0';
+	}
+	
+	while( p >= path && *p != '/' ) {
+		p--;
+	}
+	
+	return p + 1;
+}
+#endif	// BAREMETAL
+
 //---------------------------------------------------------------------------
 //
 //	パス分離
@@ -121,7 +195,6 @@ void FASTCALL Filepath::Split()
 
 	if (pExtName) {
 		strcpy(m_szExt, pExtName);
-		*pExtName = 0;
 	}
 
 	if (pBaseName) {

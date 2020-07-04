@@ -1,5 +1,5 @@
 RaSCSI ファイルシステムドライバ
-RASDRV version 1.21
+RASDRV version 1.42
 
 ■概要
 

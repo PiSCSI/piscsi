@@ -4,7 +4,7 @@
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2018 GIMONS
+//	Copyright (C) 2016-2020 GIMONS
 //	[ 制御コマンド送信 ]
 //
 //---------------------------------------------------------------------------
@@ -65,6 +65,7 @@ int main(int argc, char* argv[])
 {
 	int opt;
 	int id;
+	int un;
 	int cmd;
 	int type;
 	char *file;
@@ -74,6 +75,7 @@ int main(int argc, char* argv[])
 	char buf[BUFSIZ];
 
 	id = -1;
+	un = 0;
 	cmd = -1;
 	type = -1;
 	file = NULL;
@@ -83,10 +85,11 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		fprintf(stderr, "SCSI Target Emulator RaSCSI Controller\n");
 		fprintf(stderr,
-			"Usage: %s -i ID [-c CMD] [-t TYPE] [-f FILE]\n",
+			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]\n",
 			argv[0]);
 		fprintf(stderr, " where  ID := {0|1|2|3|4|5|6|7}\n");
-		fprintf(stderr, "        CMD := {attach|detatch|insert|eject|protect}\n");
+		fprintf(stderr, "        UNIT := {0|1} default setting is 0.\n");
+		fprintf(stderr, "        CMD := {attach|detach|insert|eject|protect}\n");
 		fprintf(stderr, "        TYPE := {hd|mo|cd|bridge}\n");
 		fprintf(stderr, "        FILE := image file path\n");
 		fprintf(stderr, " CMD is 'attach' or 'insert' and FILE parameter is required.\n");
@@ -97,10 +100,14 @@ int main(int argc, char* argv[])
 
 	// 引数解析
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:c:t:f:l")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:l")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
+				break;
+
+			case 'u':
+				un = optarg[0] - '0';
 				break;
 
 			case 'c':
@@ -174,6 +181,12 @@ int main(int argc, char* argv[])
 		exit(EINVAL);
 	}
 
+	// ユニットチェック
+	if (un < 0 || un > 1) {
+		fprintf(stderr, "Error : Invalid UNIT\n");
+		exit(EINVAL);
+	}
+
 	// コマンドチェック
 	if (cmd < 0) {
 		cmd = 0;	// デフォルトはATTATCHとする
@@ -231,7 +244,7 @@ int main(int argc, char* argv[])
 	}
 
 	// 送信コマンド生成
-	sprintf(buf, "%d %d %d %s\n", id, cmd, type, file ? file : "-");
+	sprintf(buf, "%d %d %d %d %s\n", id, un, cmd, type, file ? file : "-");
 	if (!SendCommand(buf)) {
 		exit(ENOTCONN);
 	}

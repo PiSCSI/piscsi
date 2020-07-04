@@ -4,7 +4,7 @@
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2018 GIMONS
+//	Copyright (C) 2016-2020 GIMONS
 //
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
 //

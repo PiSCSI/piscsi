@@ -4,13 +4,18 @@
 //	for Raspberry Pi
 //
 //	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2018 GIMONS
+//	Copyright (C) 2016-2020 GIMONS
 //	[ ホストファイルシステム ]
 //
 //---------------------------------------------------------------------------
 
 #ifndef cfilesystem_h
 #define cfilesystem_h
+
+#ifdef BAREMETAL
+#include "ffconf.h"
+#include "ff.h"
+#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
@@ -631,7 +636,12 @@ private:
 										///< 文字列比較 (ワイルドカード対応)
 
 	CRing m_cRing;						///< CHostFilename連結用
+#ifndef BAREMETAL
 	time_t m_tBackup;					///< 時刻復元用
+#else
+	WORD m_tBackupD;					///< 時刻復元用
+	WORD m_tBackupT;					///< 時刻復元用
+#endif	// BAREMETAL
 	BOOL m_bRefresh;					///< 更新フラグ
 	DWORD m_nId;						///< 識別ID (値が変化した場合は更新を意味する)
 	BYTE m_szHuman[HUMAN68K_PATH_MAX];	///< 該当エントリのHuman68k内部名
@@ -795,7 +805,7 @@ public:
 	const BYTE*  GetHumanPath() const { ASSERT(this); return m_szHumanPath; }
 										///< Human68kパス名を取得
 
-	BOOL  Create(DWORD nHumanAttribute, BOOL bForce);
+	BOOL  Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);
 										///< ファイル作成
 	BOOL  Open();
 										///< ファイルオープン
@@ -817,8 +827,13 @@ public:
 private:
 	DWORD m_nKey;						///< Human68kのFCBバッファアドレス (0なら未使用)
 	BOOL m_bUpdate;						///< 更新フラグ
+#ifndef BAREMETAL
 	FILE* m_pFile;						///< ホスト側のファイルオブジェクト
 	const char* m_pszMode;				///< ホスト側のファイルオープンモード
+#else
+	FIL m_File;							///< ホスト側のファイルオブジェクト
+	BYTE m_Mode;						///< ホスト側のファイルオープンモード
+#endif	// BAREMETAL
 	bool m_bFlag;						///< ホスト側のファイルオープンフラグ
 	BYTE m_szHumanPath[HUMAN68K_PATH_MAX];
 										///< Human68kのパス名
@@ -889,6 +904,12 @@ public:
 										///< ドライブ状態の取得
 	void  SetEnable(BOOL bEnable);
 										///< メディア状態設定
+	BOOL CheckMedia();
+										///< メディア交換チェック
+	void Update();
+										///< メディア状態更新
+	void Eject();
+										///< イジェクト
 	void  GetVolume(TCHAR* szLabel);
 										///< ボリュームラベルの取得
 	BOOL  GetVolumeCache(TCHAR* szLabel) const;
@@ -987,6 +1008,10 @@ public:
 										///< メディアバイトの取得
 	DWORD  GetStatus(DWORD nUnit) const;
 										///< ドライブ状態の取得
+	BOOL CheckMedia(DWORD nUnit);
+										///< メディア交換チェック
+	void Eject(DWORD nUnit);
+										///< イジェクト
 	void  GetVolume(DWORD nUnit, TCHAR* szLabel);
 										///< ボリュームラベルの取得
 	BOOL  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;
