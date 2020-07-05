@@ -6,7 +6,7 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //
-//	[ 共通定義 ]
+//	[ Common Definition ]
 //
 //---------------------------------------------------------------------------
 
@@ -29,30 +29,30 @@
 
 //---------------------------------------------------------------------------
 //
-//	IDマクロ
+//	ID Macro
 //
 //---------------------------------------------------------------------------
 #define MAKEID(a, b, c, d)	((DWORD)((a<<24) | (b<<16) | (c<<8) | d))
 
 //---------------------------------------------------------------------------
 //
-//	各種動作設定
+//	Various Operation Settings
 //
 //---------------------------------------------------------------------------
-#define USE_SEL_EVENT_ENABLE			// SEL信号をイベントでチェックする
-#define REMOVE_FIXED_SASIHD_SIZE		// SASIHDのサイズ制限を解除する
-#define USE_MZ1F23_1024_SUPPORT			// MZ-1F23(SASI 20M/セクタサイズ1024)
+#define USE_SEL_EVENT_ENABLE			// Check SEL signal by event
+#define REMOVE_FIXED_SASIHD_SIZE		// remove the size limitation of SASIHD
+#define USE_MZ1F23_1024_SUPPORT			// MZ-1F23 (SASI 20M/sector size 1024)
 
 //---------------------------------------------------------------------------
 //
-//	クラス宣言
+//	Class Declaration
 //
 //---------------------------------------------------------------------------
 class Fileio;
-										// ファイル入出力
+										// File I/O
 class Disk;
-										// SASI/SCSIディスク
+										// SASI/SCSI Disk
 class Filepath;
-										// ファイルパス
+										// File Path
 
 #endif	// xm6_h

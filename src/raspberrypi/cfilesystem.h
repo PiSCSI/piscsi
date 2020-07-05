@@ -5,8 +5,10 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ ホストファイルシステム ]
+//	[ Host File System for the X68000 ]
 //
+//  Note: This functionality is specific to the X68000 operating system.
+//        It is highly unlikely that this will work for other platforms.
 //---------------------------------------------------------------------------
 
 #ifndef cfilesystem_h

@@ -5,7 +5,7 @@
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
 //
-//	[ SCSI共通 ]
+//	[ SCSI Common Functionality ]
 //
 //---------------------------------------------------------------------------
 
@@ -14,20 +14,20 @@
 
 //===========================================================================
 //
-//	SASI/SCSI バス
+//	SASI/SCSI Bus
 //
 //===========================================================================
 class BUS
 {
 public:
-	// 動作モード定義
+	// Operation modes definition
 	enum mode_e {
 		TARGET = 0,
 		INITIATOR = 1,
 		MONITOR = 2,
 	};
 
-	//	フェーズ定義
+	//	Phase definition
 	enum phase_t {
 		busfree,						// バスフリーフェーズ
 		arbitration,					// アービトレーションフェーズ
@@ -43,6 +43,7 @@ public:
 		reserved						// 未使用/リザーブ
 	};
 
+    // Basic Functions
 	// 基本ファンクション
 	virtual BOOL FASTCALL Init(mode_e mode) = 0;
 										// 初期化

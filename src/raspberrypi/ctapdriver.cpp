@@ -8,7 +8,7 @@
 //
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
 //
-//	[ TAPドライバ ]
+//	[ TAP Driver ]
 //
 //---------------------------------------------------------------------------
 

@@ -9,7 +9,12 @@
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
 //	Imported sava's bugfix patch(in RASDRV DOS edition).
 //
-//	[ ホストファイルシステム ]
+//  [ Host File System for the X68000 ]
+//
+//  Note: This functionality is specific to the X68000
+//   operating system.
+//   It is highly unlikely that this will work for other
+//   platforms.
 //
 //---------------------------------------------------------------------------
 
