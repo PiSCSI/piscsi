@@ -2366,7 +2366,7 @@ void FASTCALL SASIHD::Reset()
 	disk.lock = FALSE;
 	disk.attn = FALSE;
 
-	// リセットなし、コードをクリア
+	// Resetなし、コードをクリア
 	disk.reset = FALSE;
 	disk.code = 0x00;
 }
@@ -2436,7 +2436,7 @@ BOOL FASTCALL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 		case 0x2793000:
 			break;
 
-		// その他(サポートしない)
+		// Other(サポートしない)
 		default:
 			return FALSE;
 	}
@@ -6281,7 +6281,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	// Get bus information
 	ctrl.bus->Aquire();
 
-	// リセット
+	// Reset
 	if (ctrl.bus->GetRST()) {
 #if defined(DISK_LOG)
 		Log(Log::Normal, "RESET信号受信");
@@ -6332,7 +6332,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 			MsgIn();
 			break;
 
-		// その他
+		// Other
 		default:
 			ASSERT(FALSE);
 			break;

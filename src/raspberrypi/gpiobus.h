@@ -5,7 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ GPIO-SCSIバス ]
+//	[ GPIO-SCSI bus ]
 //
 //---------------------------------------------------------------------------
 
@@ -16,121 +16,121 @@
 
 //---------------------------------------------------------------------------
 //
-//	接続方法定義の選択
+//	Connection method definitions
 //
 //---------------------------------------------------------------------------
-//#define CONNECT_TYPE_STANDARD		// 標準(SCSI論理,標準ピンアサイン)
-//#define CONNECT_TYPE_FULLSPEC		// フルスペック(SCSI論理,標準ピンアサイン)
-//#define CONNECT_TYPE_AIBOM		// AIBOM版(正論理,固有ピンアサイン)
-//#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com版(標準論理,固有ピンアサイン)
+//#define CONNECT_TYPE_STANDARD		// Standard (SCSI logic, standard pin assignment)
+//#define CONNECT_TYPE_FULLSPEC		// Full spec (SCSI logic, standard pin assignment)
+//#define CONNECT_TYPE_AIBOM		// AIBOM version (positive logic, unique pin assignment)
+//#define CONNECT_TYPE_GAMERNIUM	// GAMERnium.com version (standard logic, unique pin assignment)
 
 //---------------------------------------------------------------------------
 //
-//	信号制御論理及びピンアサインカスタマイズ
-//
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-//
-//	SIGNAL_CONTROL_MODE:信号制御モード選択
-//	 Version1.22から信号制御の論理をカスタマイズできます。
-//
-//	 0:SCSI論理仕様
-//	  直結またはHPに公開した74LS641-1等を使用する変換基板
-//	  アーサート:0V
-//	  ネゲート  :オープンコレクタ出力(バスから切り離す)
-//
-//	 1:負論理仕様(負論理->SCSI論理への変換基板を使用する場合)
-//	  現時点でこの仕様による変換基板は存在しません
-//	  アーサート:0V   -> (CONVERT) -> 0V
-//	  ネゲート  :3.3V -> (CONVERT) -> オープンコレクタ出力
-//
-//	 2:正論理仕様(正論理->SCSI論理への変換基板を使用する場合)
-//	  RaSCSI Adapter Rev.C @132sync等
-//
-//	  アーサート:3.3V -> (CONVERT) -> 0V
-//	  ネゲート  :0V   -> (CONVERT) -> オープンコレクタ出力
+//	Signal control logic and pin assignment customization
 //
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 //
-//	制御信号ピンアサイン設定
-//	 制御信号に対するGPIOピンのマッピングテーブルです。
+//	SIGNAL_CONTROL_MODE: Signal control mode selection
+//	 You can customize the signal control logic from Version 1.22
 //
-//	 制御信号
+//	 0:SCSI logical specification
+//	    Conversion board using 74LS641-1 etc. directly connected or published on HP
+//	  True  : 0V
+//	  False : Open collector output (disconnect from bus)
+//
+//	 1:Negative logic specification (when using conversion board for negative logic -> SCSI logic)
+//	    There is no conversion board with this specification at this time
+//	  True  : 0V   -> (CONVERT) -> 0V
+//	  False : 3.3V -> (CONVERT) -> Open collector output
+//
+//	 2:Positive logic specification (when using the conversion board for positive logic -> SCSI logic)
+//	    RaSCSI Adapter Rev.C @132sync etc.
+//
+//	  True  : 3.3V -> (CONVERT) -> 0V
+//	  False : 0V   -> (CONVERT) -> Open collector output
+//
+//---------------------------------------------------------------------------
+
+//---------------------------------------------------------------------------
+//
+//	Control signal pin assignment setting
+//	 GPIO pin mapping table for control signals.
+//
+//	 Control signal:
 //	  PIN_ACT
-//	    SCSIコマンドを処理中の状態を示す信号のピン番号。
+//	    Signal that indicates the status of processing SCSI command.
 //	  PIN_ENB
-//	    起動から終了の間の有効信号を示す信号のピン番号。
+//	    Signal that indicates the valid signal from start to finish.
 //	  PIN_TAD
-//	    ターゲット信号(BSY,IO,CD,MSG,REG)の入出力方向を示す信号のピン番号。
+//	    Signal that indicates the input/output direction of the target signal (BSY,IO,CD,MSG,REG).
 //	  PIN_IND
-//	    イニシーエータ信号(SEL,ATN,RST,ACK)の入出力方向を示す信号のピン番号。
+//	    Signal that indicates the input/output direction of the initiator signal (SEL, ATN, RST, ACK).
 //	  PIN_DTD
-//	    データ信号(DT0...DT7,DP)の入出力方向を示す信号のピン番号。
+//	    Signal that indicates the input/output direction of the data lines (DT0...DT7,DP).
 //
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 //
-//	制御信号出力論理
-//	  0V:FALSE  3.3V:TRUEで指定します。
+//	Control signal output logic
+//	  0V:FALSE  3.3V:TRUE
 //
 //	  ACT_ON
-//	    PIN_ACT信号の論理です。
+//	    PIN_ACT signal
 //	  ENB_ON
-//	    PIN_ENB信号の論理です。
+//	    PIN_ENB signal
 //	  TAD_IN
-//	    PIN_TAD入力方向時の論理です。
+//	    PIN_TAD This is the logic when inputting.
 //	  IND_IN
-//	    PIN_ENB入力方向時の論理です。
+//	    PIN_ENB This is the logic when inputting.
 //    DTD_IN
-//	    PIN_ENB入力方向時の論理です。
+//	    PIN_ENB This is the logic when inputting.
 //
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 //
-//	SCSI信号ピンアサイン設定
-//	  SCSIの信号に対するGPIOピンのマッピングテーブルです。
+//	SCSI signal pin assignment setting
+//	  GPIO pin mapping table for SCSI signals.
 //	  PIN_DT0～PIN_SEL
 //
 //---------------------------------------------------------------------------
 
 #ifdef CONNECT_TYPE_STANDARD
 //
-// RaSCSI 標準(SCSI論理,標準ピンアサイン)
+// RaSCSI standard (SCSI logic, standard pin assignment)
 //
-#define CONNECT_DESC "STANDARD"				// 起動時メッセージ
+#define CONNECT_DESC "STANDARD"				// Startup message
 
-// 信号制御モード選択
-#define SIGNAL_CONTROL_MODE 0				// SCSI論理仕様
+// Select signal control mode
+#define SIGNAL_CONTROL_MODE 0				// SCSI logical specification
 
-// 制御信号ピンアサイン(-1の場合は制御無し)
+// Control signal pin assignment (-1 means no control)
 #define	PIN_ACT		4						// ACTIVE
 #define	PIN_ENB		5						// ENABLE
 #define PIN_IND		-1						// INITIATOR CTRL DIRECTION
 #define PIN_TAD		-1						// TARGET CTRL DIRECTION
 #define PIN_DTD		-1						// DATA DIRECTION
 
-// 制御信号出力論理
+// Control signal output logic
 #define ACT_ON		TRUE					// ACTIVE SIGNAL ON
 #define ENB_ON		TRUE					// ENABLE SIGNAL ON
 #define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
 #define TAD_IN		FALSE					// TARGET SIGNAL INPUT
 #define DTD_IN		TRUE					// DATA SIGNAL INPUT
 
-// SCSI信号ピンアサイン
-#define	PIN_DT0		10						// データ0
-#define	PIN_DT1		11						// データ1
-#define	PIN_DT2		12						// データ2
-#define	PIN_DT3		13						// データ3
-#define	PIN_DT4		14						// データ4
-#define	PIN_DT5		15						// データ5
-#define	PIN_DT6		16						// データ6
-#define	PIN_DT7		17						// データ7
-#define	PIN_DP		18						// パリティ
+// SCSI signal pin assignment
+#define	PIN_DT0		10						// Data 0
+#define	PIN_DT1		11						// Data 1
+#define	PIN_DT2		12						// Data 2
+#define	PIN_DT3		13						// Data 3
+#define	PIN_DT4		14						// Data 4
+#define	PIN_DT5		15						// Data 5
+#define	PIN_DT6		16						// Data 6
+#define	PIN_DT7		17						// Data 7
+#define	PIN_DP		18						// Data parity
 #define	PIN_ATN		19						// ATN
 #define	PIN_RST		20						// RST
 #define	PIN_ACK		21						// ACK
@@ -144,37 +144,37 @@
 
 #ifdef CONNECT_TYPE_FULLSPEC
 //
-// RaSCSI 標準(SCSI論理,標準ピンアサイン)
+// RaSCSI standard (SCSI logic, standard pin assignment)
 //
-#define CONNECT_DESC "FULLSPEC"				// 起動時メッセージ
+#define CONNECT_DESC "FULLSPEC"				// Startup message
 
-// 信号制御モード選択
-#define SIGNAL_CONTROL_MODE 0				// SCSI論理仕様
+// Select signal control mode
+#define SIGNAL_CONTROL_MODE 0				// SCSI logical specification
 
-// 制御信号ピンアサイン(-1の場合は制御無し)
+// Control signal pin assignment (-1 means no control)
 #define	PIN_ACT		4						// ACTIVE
 #define	PIN_ENB		5						// ENABLE
 #define PIN_IND		6						// INITIATOR CTRL DIRECTION
 #define PIN_TAD		7						// TARGET CTRL DIRECTION
 #define PIN_DTD		8						// DATA DIRECTION
 
-// 制御信号出力論理
+// Control signal output logic
 #define ACT_ON		TRUE					// ACTIVE SIGNAL ON
 #define ENB_ON		TRUE					// ENABLE SIGNAL ON
 #define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
 #define TAD_IN		FALSE					// TARGET SIGNAL INPUT
 #define DTD_IN		TRUE					// DATA SIGNAL INPUT
 
-// SCSI信号ピンアサイン
-#define	PIN_DT0		10						// データ0
-#define	PIN_DT1		11						// データ1
-#define	PIN_DT2		12						// データ2
-#define	PIN_DT3		13						// データ3
-#define	PIN_DT4		14						// データ4
-#define	PIN_DT5		15						// データ5
-#define	PIN_DT6		16						// データ6
-#define	PIN_DT7		17						// データ7
-#define	PIN_DP		18						// パリティ
+// SCSI signal pin assignment
+#define	PIN_DT0		10						// Data 0
+#define	PIN_DT1		11						// Data 1
+#define	PIN_DT2		12						// Data 2
+#define	PIN_DT3		13						// Data 3
+#define	PIN_DT4		14						// Data 4
+#define	PIN_DT5		15						// Data 5
+#define	PIN_DT6		16						// Data 6
+#define	PIN_DT7		17						// Data 7
+#define	PIN_DP		18						// Data parity
 #define	PIN_ATN		19						// ATN
 #define	PIN_RST		20						// RST
 #define	PIN_ACK		21						// ACK
@@ -188,38 +188,38 @@
 
 #ifdef CONNECT_TYPE_AIBOM
 //
-// RaSCSI Adapter あいぼむ版
+// RaSCSI Adapter Aibomu version
 //
 
-#define CONNECT_DESC "AIBOM PRODUCTS version"		// 起動時メッセージ
+#define CONNECT_DESC "AIBOM PRODUCTS version"		// Startup message
 
-// 信号制御モード選択
-#define SIGNAL_CONTROL_MODE 2				// SCSI正論理仕様
+// Select signal control mode
+#define SIGNAL_CONTROL_MODE 2				// SCSI positive logic specification
 
-// 制御信号出力論理
+// Control signal output logic
 #define ACT_ON		TRUE					// ACTIVE SIGNAL ON
 #define ENB_ON		TRUE					// ENABLE SIGNAL ON
 #define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
 #define TAD_IN		FALSE					// TARGET SIGNAL INPUT
 #define DTD_IN		FALSE					// DATA SIGNAL INPUT
 
-// 制御信号ピンアサイン(-1の場合は制御無し)
+// Control signal pin assignment (-1 means no control)
 #define	PIN_ACT		4						// ACTIVE
 #define	PIN_ENB		17						// ENABLE
 #define PIN_IND		27						// INITIATOR CTRL DIRECTION
 #define PIN_TAD		-1						// TARGET CTRL DIRECTION
 #define PIN_DTD		18						// DATA DIRECTION
 
-// SCSI信号ピンアサイン
-#define	PIN_DT0		6						// データ0
-#define	PIN_DT1		12						// データ1
-#define	PIN_DT2		13						// データ2
-#define	PIN_DT3		16						// データ3
-#define	PIN_DT4		19						// データ4
-#define	PIN_DT5		20						// データ5
-#define	PIN_DT6		26						// データ6
-#define	PIN_DT7		21						// データ7
-#define	PIN_DP		5						// パリティ
+// SCSI signal pin assignment
+#define	PIN_DT0		6						// Data 0
+#define	PIN_DT1		12						// Data 1
+#define	PIN_DT2		13						// Data 2
+#define	PIN_DT3		16						// Data 3
+#define	PIN_DT4		19						// Data 4
+#define	PIN_DT5		20						// Data 5
+#define	PIN_DT6		26						// Data 6
+#define	PIN_DT7		21						// Data 7
+#define	PIN_DP		5						// Data parity
 #define	PIN_ATN		22						// ATN
 #define	PIN_RST		25						// RST
 #define	PIN_ACK		10						// ACK
@@ -236,35 +236,35 @@
 // RaSCSI Adapter GAMERnium.com版
 //
 
-#define CONNECT_DESC "GAMERnium.com version"// 起動時メッセージ
+#define CONNECT_DESC "GAMERnium.com version"// Startup message
 
-// 信号制御モード選択
-#define SIGNAL_CONTROL_MODE 0				// SCSI論理仕様
+// Select signal control mode
+#define SIGNAL_CONTROL_MODE 0				// SCSI logical specification
 
-// 制御信号出力論理
+// Control signal output logic
 #define ACT_ON		TRUE					// ACTIVE SIGNAL ON
 #define ENB_ON		TRUE					// ENABLE SIGNAL ON
 #define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
 #define TAD_IN		FALSE					// TARGET SIGNAL INPUT
 #define DTD_IN		TRUE					// DATA SIGNAL INPUT
 
-// 制御信号ピンアサイン(-1の場合は制御無し)
+// Control signal pin assignment (-1 means no control)
 #define	PIN_ACT		14						// ACTIVE
 #define	PIN_ENB		6						// ENABLE
 #define PIN_IND		7						// INITIATOR CTRL DIRECTION
 #define PIN_TAD		8						// TARGET CTRL DIRECTION
 #define PIN_DTD		5						// DATA DIRECTION
 
-// SCSI信号ピンアサイン
-#define	PIN_DT0		21						// データ0
-#define	PIN_DT1		26						// データ1
-#define	PIN_DT2		20						// データ2
-#define	PIN_DT3		19						// データ3
-#define	PIN_DT4		16						// データ4
-#define	PIN_DT5		13						// データ5
-#define	PIN_DT6		12						// データ6
-#define	PIN_DT7		11						// データ7
-#define	PIN_DP		25						// パリティ
+// SCSI signal pin assignment
+#define	PIN_DT0		21						// Data 0
+#define	PIN_DT1		26						// Data 1
+#define	PIN_DT2		20						// Data 2
+#define	PIN_DT3		19						// Data 3
+#define	PIN_DT4		16						// Data 4
+#define	PIN_DT5		13						// Data 5
+#define	PIN_DT6		12						// Data 6
+#define	PIN_DT7		11						// Data 7
+#define	PIN_DP		25						// Data parity
 #define	PIN_ATN		10						// ATN
 #define	PIN_RST		22						// RST
 #define	PIN_ACK		24						// ACK
@@ -278,7 +278,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言(GPIO)
+//	Constant declarations(GPIO)
 //
 //---------------------------------------------------------------------------
 #define SYST_OFFSET		0x00003000
@@ -355,7 +355,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言(GIC)
+//	Constant declarations(GIC)
 //
 //---------------------------------------------------------------------------
 #define ARM_GICD_BASE		0xFF841000
@@ -380,7 +380,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言(GIC IRQ)
+//	Constant declarations(GIC IRQ)
 //
 //---------------------------------------------------------------------------
 #define GIC_IRQLOCAL0		(16 + 14)
@@ -388,7 +388,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言(制御信号)
+//	Constant declarations (Control signals)
 //
 //---------------------------------------------------------------------------
 #define ACT_OFF	!ACT_ON
@@ -399,7 +399,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言(SCSI)
+//	Constant declarations(SCSI)
 //
 //---------------------------------------------------------------------------
 #define IN		GPIO_INPUT
@@ -409,214 +409,214 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言(バス制御タイミング)
+//	Constant declarations (bus control timing)
 //
 //---------------------------------------------------------------------------
-#define GPIO_DATA_SETTLING 100			// データバスが安定する時間(ns)
+#define GPIO_DATA_SETTLING 100			// Data bus stabilization time (ns)
 
 //---------------------------------------------------------------------------
 //
-//	クラス定義
+//	Class definition
 //
 //---------------------------------------------------------------------------
 class GPIOBUS : public BUS
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	GPIOBUS();
-										// コンストラクタ
+										// Constructor
 	virtual ~GPIOBUS();
-										// デストラクタ
+										// Destructor
 	BOOL FASTCALL Init(mode_e mode = TARGET);
-										// 初期化
+										// Initialization
 	void FASTCALL Reset();
-										// リセット
+										// Reset
 	void FASTCALL Cleanup();
-										// クリーンアップ
+										// Cleanup
 
 	DWORD FASTCALL Aquire();
-										// 信号取り込み
+										// Signal acquisition
 
 	void FASTCALL SetENB(BOOL ast);
-										// ENBシグナル設定
+										// Set ENB signal
 
 	BOOL FASTCALL GetBSY();
-										// BSYシグナル取得
+										// Get BSY signal
 	void FASTCALL SetBSY(BOOL ast);
-										// BSYシグナル設定
+										// Set BSY signal
 
 	BOOL FASTCALL GetSEL();
-										// SELシグナル取得
+										// Get SEL signal
 	void FASTCALL SetSEL(BOOL ast);
-										// SELシグナル設定
+										// Set SEL signal
 
 	BOOL FASTCALL GetATN();
-										// ATNシグナル取得
+										// Get ATN signal
 	void FASTCALL SetATN(BOOL ast);
-										// ATNシグナル設定
+										// Set ATN signal
 
 	BOOL FASTCALL GetACK();
-										// ACKシグナル取得
+										// Get ACK signal
 	void FASTCALL SetACK(BOOL ast);
-										// ACKシグナル設定
+										// Set ACK signal
 
 	BOOL FASTCALL GetRST();
-										// RSTシグナル取得
+										// Get RST signal
 	void FASTCALL SetRST(BOOL ast);
-										// RSTシグナル設定
+										// Set RST signal
 
 	BOOL FASTCALL GetMSG();
-										// MSGシグナル取得
+										// Get MSG signal
 	void FASTCALL SetMSG(BOOL ast);
-										// MSGシグナル設定
+										// Set MSG signal
 
 	BOOL FASTCALL GetCD();
-										// CDシグナル取得
+										// Get CD signal
 	void FASTCALL SetCD(BOOL ast);
-										// CDシグナル設定
+										// Set CD signal
 
 	BOOL FASTCALL GetIO();
-										// IOシグナル取得
+										// Get IO signal
 	void FASTCALL SetIO(BOOL ast);
-										// IOシグナル設定
+										// Set IO signal
 
 	BOOL FASTCALL GetREQ();
-										// REQシグナル取得
+										// Get REQ signal
 	void FASTCALL SetREQ(BOOL ast);
-										// REQシグナル設定
+										// Set REQ signal
 
 	BYTE FASTCALL GetDAT();
-										// データシグナル取得
+										// Get DAT signal
 	void FASTCALL SetDAT(BYTE dat);
-										// データシグナル設定
+										// Set DAT signal
 	BOOL FASTCALL GetDP();
-										// パリティシグナル取得
+										// Get Data parity signal
 	int FASTCALL CommandHandShake(BYTE *buf);
-										// コマンド受信ハンドシェイク
+										// Command receive handshake
 	int FASTCALL ReceiveHandShake(BYTE *buf, int count);
-										// データ受信ハンドシェイク
+										// Data receive handshake
 	int FASTCALL SendHandShake(BYTE *buf, int count);
-										// データ送信ハンドシェイク
+										// Data transmission handshake
 
 #ifdef USE_SEL_EVENT_ENABLE
-	// SEL信号割り込み関係
+	// SEL signal interrupt
 	int FASTCALL PollSelectEvent();
-										// SEL信号イベントポーリング
+										// SEL signal event polling
 	void FASTCALL ClearSelectEvent();
-										// SEL信号イベントクリア
+										// Clear SEL signal event
 #endif	// USE_SEL_EVENT_ENABLE
 
 private:
-	// SCSI入出力信号制御
+	// SCSI I/O signal control
 	void FASTCALL MakeTable();
-										// ワークテーブル作成
+										// Create work data
 	void FASTCALL SetControl(int pin, BOOL ast);
-										// 制御信号設定
+										// Set Control Signal
 	void FASTCALL SetMode(int pin, int mode);
-										// SCSI入出力モード設定
+										// Set SCSI I/O mode
 	BOOL FASTCALL GetSignal(int pin);
-										// SCSI入力信号値取得
+										// Get SCSI input signal value
 	void FASTCALL SetSignal(int pin, BOOL ast);
-										// SCSI出力信号値設定
+										// Set SCSI output signal value
 	BOOL FASTCALL WaitSignal(int pin, BOOL ast);
-										// 信号変化待ち
-	// 割り込み制御
+										// Wait for a signal to change
+	// Interrupt control
 	void FASTCALL DisableIRQ();
-										// IRQ禁止
+										// IRQ Disabled
 	void FASTCALL EnableIRQ();
-										// IRQ有効
+										// IRQ Enabled
 
-	//  GPIOピン機能設定
+	//  GPIO pin functionality settings
 	void FASTCALL PinConfig(int pin, int mode);
-										// GPIOピン機能設定(入出力設定)
+										// GPIO pin direction setting
 	void FASTCALL PullConfig(int pin, int mode);
-										// GPIOピン機能設定(プルアップ/ダウン)
+										// GPIO pin pull up/down resistor setting
 	void FASTCALL PinSetSignal(int pin, BOOL ast);
-										// GPIOピン出力信号設定
+										// Set GPIO output signal
 	void FASTCALL DrvConfig(DWORD drive);
-										// GPIOドライブ能力設定
+										// Set GPIO drive strength
 
 
-	mode_e actmode;						// 動作モード
+	mode_e actmode;						// Operation mode
 
-	DWORD baseaddr;						// ベースアドレス
+	DWORD baseaddr;						// Base address
 
 	int rpitype;
-										// ラズパイ種別
+										// Type of Raspberry Pi
 
-	volatile DWORD *gpio;				// GPIOレジスタ
+	volatile DWORD *gpio;				// GPIO register
 
-	volatile DWORD *pads;				// PADSレジスタ
+	volatile DWORD *pads;				// PADS register
 
-	volatile DWORD *level;				// GPIO入力レベル
+	volatile DWORD *level;				// GPIO input level
 
-	volatile DWORD *irpctl;				// 割り込み制御レジスタ
+	volatile DWORD *irpctl;				// Interrupt control register
 
 #ifndef BAREMETAL
-	volatile DWORD irptenb;				// 割り込み有効状態
+	volatile DWORD irptenb;				// Interrupt enabled state
 
-	volatile DWORD *qa7regs;			// QA7レジスタ
+	volatile DWORD *qa7regs;			// QA7 register
 
-	volatile int tintcore;				// 割り込み制御対象CPU
+	volatile int tintcore;				// Interupt control target CPU.
 
-	volatile DWORD tintctl;				// 割り込みコントロール
+	volatile DWORD tintctl;				// Interupt control
 
-	volatile DWORD giccpmr;				// GICC 優先度設定
+	volatile DWORD giccpmr;				// GICC priority setting
 #endif	// BAREMETAL
 
-	volatile DWORD *gicd;				// GIC 割り込み分配器レジスタ
+	volatile DWORD *gicd;				// GIC Interrupt distributor register
 
-	volatile DWORD *gicc;				// GIC CPUインターフェースレジスタ
+	volatile DWORD *gicc;				// GIC CPU interface register
 
-	DWORD gpfsel[4];					// GPFSEL0-4バックアップ
+	DWORD gpfsel[4];					// GPFSEL0-4 backup values
 
-	DWORD signals;						// バス全信号
+	DWORD signals;						// All bus signals
 
 #if defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
-	struct gpioevent_request selevreq;	// SEL信号イベント要求
+	struct gpioevent_request selevreq;	// SEL signal event request
 
-	int epfd;							// epollファイルディスクプリタ
+	int epfd;							// epoll file descriptor
 #endif	// USE_SEL_EVENT_ENABLE && !BAREMETAL
 
 #if SIGNAL_CONTROL_MODE == 0
-	DWORD tblDatMsk[3][256];			// データマスク用テーブル
+	DWORD tblDatMsk[3][256];			// Data mask table
 
-	DWORD tblDatSet[3][256];			// データ設定用テーブル
+	DWORD tblDatSet[3][256];			// Data setting table
 #else
-	DWORD tblDatMsk[256];				// データマスク用テーブル
+	DWORD tblDatMsk[256];				// Data mask table
 
-	DWORD tblDatSet[256];				// データ設定用テーブル
+	DWORD tblDatSet[256];				// Table setting table
 #endif
 
-	static const int SignalTable[19];	// シグナルテーブル
+	static const int SignalTable[19];	// signal table
 };
 
 //===========================================================================
 //
-//	システムタイマ
+//	System timer
 //
 //===========================================================================
 class SysTimer
 {
 public:
 	static void FASTCALL Init(DWORD *syst, DWORD *armt);
-										// 初期化
+										// Initialization
 	static DWORD FASTCALL GetTimerLow();
-										// システムタイマ(LO)取得
+										// Get system timer low byte
 	static DWORD FASTCALL GetTimerHigh();
-										// システムタイマ(HI)取得
+										// Get system timer high byte
 	static void FASTCALL SleepNsec(DWORD nsec);
-										// ナノ秒単位のスリープ
+										// Sleep for N nanoseconds
 	static void FASTCALL SleepUsec(DWORD usec);
-										// μ秒単位のスリープ
+										// Sleep for N microseconds
 
 private:
 	static volatile DWORD *systaddr;
-										// システムタイマアドレス
+										// System timer address
 	static volatile DWORD *armtaddr;
-										// ARMタイマアドレス
+										// ARM timer address
 	static volatile DWORD corefreq;
-										// コア周波数
+										// Core frequency
 };
 
 #endif	// gpiobus_h

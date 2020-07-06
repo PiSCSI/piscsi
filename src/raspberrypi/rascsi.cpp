@@ -5,7 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ メイン ]
+//	[ RaSCSI main ]
 //
 //---------------------------------------------------------------------------
 
@@ -18,11 +18,11 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言
+//  Constant declarations
 //
 //---------------------------------------------------------------------------
-#define CtrlMax	8					// 最大SCSIコントローラ数
-#define UnitNum	2					// コントローラ辺りのユニット数
+#define CtrlMax	8					// Maximum number of SCSI controllers
+#define UnitNum	2					// Number of units around controller
 #ifdef BAREMETAL
 #define FPRT(fp, ...) printf( __VA_ARGS__ )
 #else
@@ -31,38 +31,38 @@
 
 //---------------------------------------------------------------------------
 //
-//	変数宣言
+//	Variable declarations
 //
 //---------------------------------------------------------------------------
-static volatile BOOL running;		// 実行中フラグ
-static volatile BOOL active;		// 処理中フラグ
-SASIDEV *ctrl[CtrlMax];				// コントローラ
-Disk *disk[CtrlMax * UnitNum];		// ディスク
-GPIOBUS *bus;						// GPIOバス
+static volatile BOOL running;		// Running flag
+static volatile BOOL active;		// Processing flag
+SASIDEV *ctrl[CtrlMax];				// Controller
+Disk *disk[CtrlMax * UnitNum];		// Disk
+GPIOBUS *bus;						// GPIO Bus
 #ifdef BAREMETAL
 FATFS fatfs;						// FatFS
 #else
-int monsocket;						// モニター用ソケット
-pthread_t monthread;				// モニタースレッド
+int monsocket;						// Monitor Socket
+pthread_t monthread;				// Monitor Thread
 static void *MonThread(void *param);
 #endif	// BAREMETAL
 
 #ifndef BAREMETAL
 //---------------------------------------------------------------------------
 //
-//	シグナル処理
+//	Signal Processing
 //
 //---------------------------------------------------------------------------
 void KillHandler(int sig)
 {
-	// 停止指示
+	// Stop instruction
 	running = FALSE;
 }
 #endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
-//	バナー出力
+//	Banner Output
 //
 //---------------------------------------------------------------------------
 void Banner(int argc, char* argv[])
@@ -104,7 +104,7 @@ void Banner(int argc, char* argv[])
 
 //---------------------------------------------------------------------------
 //
-//	初期化
+//	Initialization
 //
 //---------------------------------------------------------------------------
 BOOL Init()
@@ -115,31 +115,31 @@ BOOL Init()
 	struct sockaddr_in server;
 	int yes;
 
-	// モニター用ソケット生成
+	// Create socket for monitor
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
 	server.sin_port   = htons(6868);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
-	// アドレスの再利用を許可する
+	// allow address reuse
 	yes = 1;
 	if (setsockopt(
 		monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0){
 		return FALSE;
 	}
 
-	// バインド
+	// Bind
 	if (bind(monsocket, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
 		FPRT(stderr, "Error : Already running?\n");
 		return FALSE;
 	}
 
-	// モニタースレッド生成
+	// Create Monitor Thread
 	pthread_create(&monthread, NULL, MonThread, NULL);
 
-	// 割り込みハンドラ設定
+	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
 		return FALSE;
 	}
@@ -151,28 +151,28 @@ BOOL Init()
 	}
 #endif // BAREMETAL
 
-	// GPIOBUS生成
+	// GPIOBUS creation
 	bus = new GPIOBUS();
 	
-	// GPIO初期化
+	// GPIO Initialization
 	if (!bus->Init()) {
 		return FALSE;
 	}
 
-	// バスリセット
+	// Bus Reset
 	bus->Reset();
 
-	// コントローラ初期化
+	// Controller initialization
 	for (i = 0; i < CtrlMax; i++) {
 		ctrl[i] = NULL;
 	}
 
-	// ディスク初期化
+	// Disk Initialization
 	for (i = 0; i < CtrlMax; i++) {
 		disk[i] = NULL;
 	}
 
-	// その他
+	// Other
 	running = FALSE;
 	active = FALSE;
 
@@ -181,14 +181,14 @@ BOOL Init()
 
 //---------------------------------------------------------------------------
 //
-//	クリーンアップ
+//	Cleanup
 //
 //---------------------------------------------------------------------------
 void Cleanup()
 {
 	int i;
 
-	// ディスク削除
+	// Delete the disks
 	for (i = 0; i < CtrlMax * UnitNum; i++) {
 		if (disk[i]) {
 			delete disk[i];
@@ -196,7 +196,7 @@ void Cleanup()
 		}
 	}
 
-	// コントローラ削除
+	// Delete the Controllers
 	for (i = 0; i < CtrlMax; i++) {
 		if (ctrl[i]) {
 			delete ctrl[i];
@@ -204,14 +204,14 @@ void Cleanup()
 		}
 	}
 
-	// バスをクリーンアップ
+	// Cleanup the Bus
 	bus->Cleanup();
 	
-	// GPIOBUS破棄
+	// Discard the GPIOBUS object
 	delete bus;
 
 #ifndef BAREMETAL
-	// モニター用ソケットクローズ
+	// Close the monitor socket
 	if (monsocket >= 0) {
 		close(monsocket);
 	}
@@ -220,27 +220,27 @@ void Cleanup()
 
 //---------------------------------------------------------------------------
 //
-//	リセット
+//	Reset
 //
 //---------------------------------------------------------------------------
 void Reset()
 {
 	int i;
 
-	// コントローラリセット
+	// Reset all of the controllers
 	for (i = 0; i < CtrlMax; i++) {
 		if (ctrl[i]) {
 			ctrl[i]->Reset();
 		}
 	}
 
-	// バス信号線をリセット
+	// Reset the bus
 	bus->Reset();
 }
 
 //---------------------------------------------------------------------------
 //
-//	デバイス一覧表示
+//	List Devices
 //
 //---------------------------------------------------------------------------
 void ListDevice(FILE *fp)
@@ -256,18 +256,18 @@ void ListDevice(FILE *fp)
 	find = FALSE;
 	type[4] = 0;
 	for (i = 0; i < CtrlMax * UnitNum; i++) {
-		// IDとユニット
+		// Initialize ID and unit number
 		id = i / UnitNum;
 		un = i % UnitNum;
 		pUnit = disk[i];
 
-		// ユニットが存在しないまたはヌルディスクならスキップ
+		// skip if unit does not exist or null disk
 		if (pUnit == NULL || pUnit->IsNULL()) {
 			continue;
 		}
 
-		// ヘッダー出力
-		if (!find) {
+		// Output the header
+        if (!find) {
 			FPRT(fp, "\n");
 			FPRT(fp, "+----+----+------+-------------------------------------\n");
 			FPRT(fp, "| ID | UN | TYPE | DEVICE STATUS\n");
@@ -275,14 +275,14 @@ void ListDevice(FILE *fp)
 			find = TRUE;
 		}
 
-		// ID,UNIT,タイプ出力
+		// ID,UNIT,Type,Device Status
 		type[0] = (char)(pUnit->GetID() >> 24);
 		type[1] = (char)(pUnit->GetID() >> 16);
 		type[2] = (char)(pUnit->GetID() >> 8);
 		type[3] = (char)(pUnit->GetID());
 		FPRT(fp, "|  %d |  %d | %s | ", id, un, type);
 
-		// マウント状態出力
+		// mount status output
 		if (pUnit->GetID() == MAKEID('S', 'C', 'B', 'R')) {
 			FPRT(fp, "%s", "HOST BRIDGE");
 		} else {
@@ -292,16 +292,16 @@ void ListDevice(FILE *fp)
 				"NO MEDIA" : filepath.GetPath());
 		}
 
-		// ライトプロテクト状態出力
+		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
 			FPRT(fp, "(WRITEPROTECT)");
 		}
 
-		// 次の行へ
+		// Goto the next line
 		FPRT(fp, "\n");
 	}
 
-	// コントローラが無い場合
+	// If there is no controller, find will be null
 	if (!find) {
 		FPRT(fp, "No device is installed.\n");
 		return;
@@ -312,7 +312,7 @@ void ListDevice(FILE *fp)
 
 //---------------------------------------------------------------------------
 //
-//	コントローラマッピング
+//	Controller Mapping
 //
 //---------------------------------------------------------------------------
 void MapControler(FILE *fp, Disk **map)
@@ -323,53 +323,53 @@ void MapControler(FILE *fp, Disk **map)
 	int sasi_num;
 	int scsi_num;
 
-	// 変更されたユニットの置き換え
+	// Replace the changed unit
 	for (i = 0; i < CtrlMax; i++) {
 		for (j = 0; j < UnitNum; j++) {
 			unitno = i * UnitNum + j;
 			if (disk[unitno] != map[unitno]) {
-				// 元のユニットが存在する
+				// Check if the original unit exists
 				if (disk[unitno]) {
-					// コントローラから切り離す
+					// Disconnect it from the controller
 					if (ctrl[i]) {
 						ctrl[i]->SetUnit(j, NULL);
 					}
 
-					// ユニットを解放
+					// Free the Unit
 					delete disk[unitno];
 				}
 
-				// 新しいユニットの設定
+				// Setup a new unit
 				disk[unitno] = map[unitno];
 			}
 		}
 	}
 
-	// 全コントローラを再構成
+	// Reconfigure all of the controllers
 	for (i = 0; i < CtrlMax; i++) {
-		// ユニット構成を調べる
+		// Examine the unit configuration
 		sasi_num = 0;
 		scsi_num = 0;
 		for (j = 0; j < UnitNum; j++) {
 			unitno = i * UnitNum + j;
-			// ユニットの種類で分岐
+			// branch by unit type
 			if (disk[unitno]) {
 				if (disk[unitno]->IsSASI()) {
-					// SASIドライブ数加算
+					// Drive is SASI, so increment SASI count
 					sasi_num++;
 				} else {
-					// SCSIドライブ数加算
+					// Drive is SCSI, so increment SCSI count
 					scsi_num++;
 				}
 			}
 
-			// ユニットを取り外す
+			// Remove the unit
 			if (ctrl[i]) {
 				ctrl[i]->SetUnit(j, NULL);
 			}
 		}
 
-		// 接続ユニットなし
+		// If there are no units connected
 		if (sasi_num == 0 && scsi_num == 0) {
 			if (ctrl[i]) {
 				delete ctrl[i];
@@ -378,47 +378,47 @@ void MapControler(FILE *fp, Disk **map)
 			}
 		}
 
-		// SASI,SCSI混在
+		// Mixture of SCSI and SASI
 		if (sasi_num > 0 && scsi_num > 0) {
 			FPRT(fp, "Error : SASI and SCSI can't be mixed\n");
 			continue;
 		}
 
 		if (sasi_num > 0) {
-			// SASIのユニットのみ
+			// Only SASI Unit(s)
 
-			// コントローラのタイプが違うなら解放
+			// Release the controller if it is not SASI
 			if (ctrl[i] && !ctrl[i]->IsSASI()) {
 				delete ctrl[i];
 				ctrl[i] = NULL;
 			}
 
-			// SASIコントローラ生成
+			// Create a new SASI controller
 			if (!ctrl[i]) {
 				ctrl[i] = new SASIDEV();
 				ctrl[i]->Connect(i, bus);
 			}
 		} else {
-			// SCSIのユニットのみ
+			// Only SCSI Unit(s)
 
-			// コントローラのタイプが違うなら解放
+			// Release the controller if it is not SCSI
 			if (ctrl[i] && !ctrl[i]->IsSCSI()) {
 				delete ctrl[i];
 				ctrl[i] = NULL;
 			}
 
-			// SCSIコントローラ生成
+			// Create a new SCSI controller
 			if (!ctrl[i]) {
 				ctrl[i] = new SCSIDEV();
 				ctrl[i]->Connect(i, bus);
 			}
 		}
 
-		// 全ユニット接続
+		// connect all units
 		for (j = 0; j < UnitNum; j++) {
 			unitno = i * UnitNum + j;
 			if (disk[unitno]) {
-				// ユニット接続
+				// Add the unit connection
 				ctrl[i]->SetUnit(j, disk[unitno]);
 			}
 		}
@@ -427,7 +427,7 @@ void MapControler(FILE *fp, Disk **map)
 
 //---------------------------------------------------------------------------
 //
-//	コマンド処理
+//	Command Processing
 //
 //---------------------------------------------------------------------------
 BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
@@ -438,51 +438,51 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	Filepath filepath;
 	Disk *pUnit;
 
-	// ユニット一覧を複写
+	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
 
-	// IDチェック
+	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
 		FPRT(fp, "Error : Invalid ID\n");
 		return FALSE;
 	}
 
-	// ユニットチェック
+	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
 		FPRT(fp, "Error : Invalid unit number\n");
 		return FALSE;
 	}
 
-	// 接続コマンド
+	// Connect Command
 	if (cmd == 0) {					// ATTACH
-		// SASIとSCSIを見分ける
+		// Distinguish between SASI and SCSI
 		ext = NULL;
 		pUnit = NULL;
 		if (type == 0) {
-			// パスチェック
+			// Passed the check
 			if (!file) {
 				return FALSE;
 			}
 
-			// 最低5文字
+			// Check that command is at least 5 characters long
 			len = strlen(file);
 			if (len < 5) {
 				return FALSE;
 			}
 
-			// 拡張子チェック
+			// Check the extension
 			if (file[len - 4] != '.') {
 				return FALSE;
 			}
 
-			// 拡張子がSASIタイプで無ければSCSIに差し替え
+			// If the extension is not SASI type, replace with SCSI
 			ext = &file[len - 3];
 			if (xstrcasecmp(ext, "hdf") != 0) {
 				type = 1;
 			}
 		}
 
-		// タイプ別のインスタンスを生成
+		// Create a new drive, based upon type
 		switch (type) {
 			case 0:		// HDF
 				pUnit = new SASIHD();
@@ -514,12 +514,12 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 				return FALSE;
 		}
 
-		// ドライブはファイルの確認を行う
+		// drive checks files
 		if (type <= 1 || (type <= 3 && xstrcasecmp(file, "-") != 0)) {
-			// パスを設定
+			// Set the Path
 			filepath.SetPath(file);
 
-			// オープン
+			// Open the file path
 			if (!pUnit->Open(filepath)) {
 				FPRT(fp, "Error : File open error [%s]\n", file);
 				delete pUnit;
@@ -527,47 +527,47 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			}
 		}
 
-		// ライトスルーに設定
+		// Set the cache to write-through
 		pUnit->SetCacheWB(FALSE);
 
-		// 新しいユニットで置き換え
+		// Replace with the newly created unit
 		map[id * UnitNum + un] = pUnit;
 
-		// コントローラマッピング
+		// Re-map the controller
 		MapControler(fp, map);
 		return TRUE;
 	}
 
-	// 有効なコマンドか
+	// Is this a valid command?
 	if (cmd > 4) {
 		FPRT(fp, "Error : Invalid command\n");
 		return FALSE;
 	}
 
-	// コントローラが存在するか
+	// Does the controller exist?
 	if (ctrl[id] == NULL) {
 		FPRT(fp, "Error : No such device\n");
 		return FALSE;
 	}
 
-	// ユニットが存在するか
+	// Does the unit exist?
 	pUnit = disk[id * UnitNum + un];
 	if (pUnit == NULL) {
 		FPRT(fp, "Error : No such device\n");
 		return FALSE;
 	}
 
-	// 切断コマンド
+	// Disconnect Command
 	if (cmd == 1) {					// DETACH
-		// 既存のユニットを解放
+		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
 
-		// コントローラマッピング
+		// Re-map the controller
 		MapControler(fp, map);
 		return TRUE;
 	}
 
-	// MOかCDの場合だけ有効
+	// Valid only for MO or CD
 	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
 		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
 		FPRT(fp, "Error : Operation denied(Deveice isn't removable)\n");
@@ -576,10 +576,10 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 	switch (cmd) {
 		case 2:						// INSERT
-			// パスを設定
+			// Set the file path
 			filepath.SetPath(file);
 
-			// オープン
+			// Open the file
 			if (pUnit->Open(filepath)) {
 				FPRT(fp, "Error : File open error [%s]\n", file);
 				return FALSE;
@@ -607,7 +607,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 //---------------------------------------------------------------------------
 //
-//	引数処理
+//	Argument Parsing
 //
 //---------------------------------------------------------------------------
 BOOL ParseArgument(int argc, char* argv[])
@@ -628,20 +628,20 @@ BOOL ParseArgument(int argc, char* argv[])
 	char *ext;
 
 #ifdef BAREMETAL
-	// SDカードマウント
+	// Mount the SD card
 	fr = f_mount(&fatfs, "", 1);
 	if (fr != FR_OK) {
 		FPRT(stderr, "Error : SD card mount failed.\n");
 		return FALSE;
 	}
 
-	// 設定ファイルがなければ処理を中断
+	// If there is no setting file, the processing is interrupted
 	fr = f_open(&fp, "rascsi.ini", FA_READ);
 	if (fr != FR_OK) {
 		return FALSE;
 	}
 #else
-	// IDとパス指定がなければ処理を中断
+	// If the ID and path are not specified, the processing is interrupted
 	if (argc < 3) {
 		return TRUE;
 	}
@@ -649,17 +649,17 @@ BOOL ParseArgument(int argc, char* argv[])
 	argc--;
 #endif	// BAREMETAL
 
-	// 解読開始
+	// Start Decoding
 
 	while (TRUE) {
 #ifdef BAREMETAL
-		// 1行取得
+		// Get one Line
 		memset(line, 0x00, sizeof(line));
 		if (f_gets(line, sizeof(line) -1, &fp) == NULL) {
 			break;
 		}
 
-		// CR/LF削除
+		// Delete the CR/LF
 		len = strlen(line);
 		while (len > 0) {
 			if (line[len - 1] != '\r' && line[len - 1] != '\n') {
@@ -676,13 +676,13 @@ BOOL ParseArgument(int argc, char* argv[])
 		argc -= 2;
 #endif	// BAREMETAL
 
-		// IDとパスを取得
+		// Get the ID and Path
 #ifdef BAREMETAL
 		argID = &line[0];
 		argPath = &line[4];
 		line[3] = '\0';
 
-		// 事前チェック
+		// Check if the line is an empty string
 		if (argID[0] == '\0' || argPath[0] == '\0') {
 			continue;
 		}
@@ -690,7 +690,7 @@ BOOL ParseArgument(int argc, char* argv[])
 		argID = argv[i++];
 		argPath = argv[i++];
 
-		// 事前チェック
+		// Check if the argument is invalid
 		if (argID[0] != '-') {
 			FPRT(stderr,
 				"Error : Invalid argument(-IDn or -HDn) [%s]\n", argID);
@@ -700,41 +700,41 @@ BOOL ParseArgument(int argc, char* argv[])
 #endif	// BAREMETAL
 
 		if (strlen(argID) == 3 && xstrncasecmp(argID, "id", 2) == 0) {
-			// ID or idの形式
+			// ID or ID Format
 
-			// ID番号をチェック(0-7)
+			// Check that the ID number is valid (0-7)
 			if (argID[2] < '0' || argID[2] > '7') {
 				FPRT(stderr,
 					"Error : Invalid argument(IDn n=0-7) [%c]\n", argID[2]);
 				goto parse_error;
 			}
 
-			// ID,ユニット確定
-			id = argID[2] - '0';
+			// The ID unit is good
+            id = argID[2] - '0';
 			un = 0;
 		} else if (xstrncasecmp(argID, "hd", 2) == 0) {
-			// HD or hdの形式
+			// HD or HD format
 
 			if (strlen(argID) == 3) {
-				// HD番号をチェック(0-9)
+				// Check that the HD number is valid (0-9)
 				if (argID[2] < '0' || argID[2] > '9') {
 					FPRT(stderr,
 						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
 					goto parse_error;
 				}
 
-				// ID,ユニット確定
+				// ID was confirmed
 				id = (argID[2] - '0') / UnitNum;
 				un = (argID[2] - '0') % UnitNum;
 			} else if (strlen(argID) == 4) {
-				// HD番号をチェック(10-15)
+				// Check that the HD number is valid (10-15)
 				if (argID[2] != '1' || argID[3] < '0' || argID[3] > '5') {
 					FPRT(stderr,
 						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
 					goto parse_error;
 				}
 
-				// ID,ユニット確定
+				// The ID unit is good - create the id and unit number
 				id = ((argID[3] - '0') + 10) / UnitNum;
 				un = ((argID[3] - '0') + 10) % UnitNum;
 #ifdef BAREMETAL
@@ -751,20 +751,20 @@ BOOL ParseArgument(int argc, char* argv[])
 			goto parse_error;
 		}
 
-		// すでにアクティブなデバイスがあるならスキップ
+		// Skip if there is already an active device
 		if (disk[id * UnitNum + un] &&
 			!disk[id * UnitNum + un]->IsNULL()) {
 			continue;
 		}
 
-		// デバイスタイプを初期化
+		// Initialize device type
 		type = -1;
 
-		// イーサネットとホストブリッジのチェック
+		// Check ethernet and host bridge
 		if (xstrcasecmp(argPath, "bridge") == 0) {
 			type = 4;
 		} else {
-			// パスの長さをチェック
+			// Check the path length
 			len = strlen(argPath);
 			if (len < 5) {
 				FPRT(stderr,
@@ -773,14 +773,14 @@ BOOL ParseArgument(int argc, char* argv[])
 				goto parse_error;
 			}
 
-			// 拡張子を持っているか？
+			// Does the file have an extension?
 			if (argPath[len - 4] != '.') {
 				FPRT(stderr,
 					"Error : Invalid argument(No extension) [%s]\n", argPath);
 				goto parse_error;
 			}
 
-			// タイプを決める
+			// Figure out what the type is
 			ext = &argPath[len - 3];
 			if (xstrcasecmp(ext, "hdf") == 0 ||
 				xstrcasecmp(ext, "hds") == 0 ||
@@ -796,25 +796,25 @@ BOOL ParseArgument(int argc, char* argv[])
 				// CD
 				type = 3;
 			} else {
-				// タイプが判別できない
+				// Cannot determine the file type
 				FPRT(stderr,
 					"Error : Invalid argument(file type) [%s]\n", ext);
 				goto parse_error;
 			}
 		}
 
-		// コマンド実行
+		// Execute the command
 		if (!ProcessCmd(stderr, id, un, 0, type, argPath)) {
 			goto parse_error;
 		}
 	}
 
 #ifdef BAREMETAL
-	// 設定ファイルクローズ
+	// Close the configuration file
 	f_close(&fp);
 #endif	// BAREMETAL
 
-	// デバイスリスト表示
+	// Display the device list
 	ListDevice(stdout);
 
 	return TRUE;
@@ -822,7 +822,7 @@ BOOL ParseArgument(int argc, char* argv[])
 parse_error:
 
 #ifdef BAREMETAL
-	// 設定ファイルクローズ
+	// Close the configuration file
 	f_close(&fp);
 #endif	// BAREMETAL
 
@@ -832,7 +832,7 @@ parse_error:
 #ifndef BAREMETAL
 //---------------------------------------------------------------------------
 //
-//	スレッドを特定のCPUに固定する
+//	Pin the thread to a specific CPU
 //
 //---------------------------------------------------------------------------
 void FixCpu(int cpu)
@@ -840,12 +840,12 @@ void FixCpu(int cpu)
 	cpu_set_t cpuset;
 	int cpus;
 
-	// CPU数取得
+	// Get the number of CPUs
 	CPU_ZERO(&cpuset);
 	sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
 	cpus = CPU_COUNT(&cpuset);
 
-	// アフィニティ設定
+	// Set the thread affinity
 	if (cpu < cpus) {
 		CPU_ZERO(&cpuset);
 		CPU_SET(cpu, &cpuset);
@@ -855,7 +855,7 @@ void FixCpu(int cpu)
 
 //---------------------------------------------------------------------------
 //
-//	モニタースレッド
+//	Monitor Thread
 //
 //---------------------------------------------------------------------------
 static void *MonThread(void *param)
@@ -875,23 +875,23 @@ static void *MonThread(void *param)
 	int type;
 	char *file;
 
-	// スケジューラ設定
+	// Scheduler Settings
 	schedparam.sched_priority = 0;
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
 
-	// CPUを固定
+	// Set the affinity to a specific processor core
 	FixCpu(2);
 
-	// 実行開始待ち
+	// Wait for the execution to start
 	while (!running) {
 		usleep(1);
 	}
 
-	// 監視準備
+	// Setup the monitor socket to receive commands
 	listen(monsocket, 1);
 
 	while (1) {
-		// 接続待ち
+		// Wait for connection
 		memset(&client, 0, sizeof(client)); 
 		len = sizeof(client); 
 		fd = accept(monsocket, (struct sockaddr*)&client, &len);
@@ -899,68 +899,68 @@ static void *MonThread(void *param)
 			break;
 		}
 
-		// コマンド取得
+		// Fetch the command
 		fp = fdopen(fd, "r+");
 		p = fgets(buf, BUFSIZ, fp);
 
-		// コマンド取得に失敗
+		// Failed to get the command
 		if (!p) {
 			goto next;
 		}
 
-		// 改行文字を削除
+		// Remove the newline character
 		p[strlen(p) - 1] = 0;
 
-		// デバイスリスト表示
+		// List all of the devices
 		if (xstrncasecmp(p, "list", 4) == 0) {
 			ListDevice(fp);
 			goto next;
 		}
 
-		// パラメータの分離
+		// Parameter separation
 		argv[0] = p;
 		for (i = 1; i < 5; i++) {
-			// パラメータ値をスキップ
+			// Skip parameter values
 			while (*p && (*p != ' ')) {
 				p++;
 			}
 
-			// スペースをNULLに置換
+			// Replace spaces with null characters
 			while (*p && (*p == ' ')) {
 				*p++ = 0;
 			}
 
-			// パラメータを見失った
+			// The parameters were lost
 			if (!*p) {
 				break;
 			}
 
-			// パラメータとして認識
+			// Recognized as a parameter
 			argv[i] = p;
 		}
 
-		// 全パラメータの取得失敗
+		// Failed to get all parameters
 		if (i < 5) {
 			goto next;
 		}
 
-		// ID,ユニット,コマンド,タイプ,ファイル
+		// ID, unit, command, type, file
 		id = atoi(argv[0]);
 		un = atoi(argv[1]);
 		cmd = atoi(argv[2]);
 		type = atoi(argv[3]);
 		file = argv[4];
 
-		// アイドルになるまで待つ
+		// Wait until we becom idle
 		while (active) {
 			usleep(500 * 1000);
 		}
 
-		// コマンド実行
+		// Execute the command
 		ProcessCmd(fp, id, un, cmd, type, file);
 
 next:
-		// 接続解放
+		// Release the connection
 		fclose(fp);
 		close(fd);
 	}
@@ -971,7 +971,7 @@ next:
 
 //---------------------------------------------------------------------------
 //
-//	主処理
+//	Main processing
 //
 //---------------------------------------------------------------------------
 #ifdef BAREMETAL
@@ -994,66 +994,66 @@ int main(int argc, char* argv[])
 	struct sched_param schparam;
 #endif	// BAREMETAL
 
-	// バナー出力
+	// Output the Banner
 	Banner(argc, argv);
 
-	// 初期化
+	// Initialize
 	ret = 0;
 	if (!Init()) {
 		ret = EPERM;
 		goto init_exit;
 	}
 
-	// リセット
+	// Reset
 	Reset();
 
 #ifdef BAREMETAL
-	// BUSYアサート(ホスト側を待たせるため)
+	// BUSY assert (to hold the host side)
 	bus->SetBSY(TRUE);
 #endif
 
-	// 引数処理
+	// Argument parsing
 	if (!ParseArgument(argc, argv)) {
 		ret = EINVAL;
 		goto err_exit;
 	}
 
 #ifdef BAREMETAL
-	// BUSYネゲート(ホスト側を待たせるため)
+	// Release the busy signal
 	bus->SetBSY(FALSE);
 #endif
 
 #ifndef BAREMETAL
-	// CPUを固定
+    // Set the affinity to a specific processor core
 	FixCpu(3);
 
 #ifdef USE_SEL_EVENT_ENABLE
-	// スケジューリングポリシー設定(最優先)
+	// Scheduling policy setting (highest priority)
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 #endif	// USE_SEL_EVENT_ENABLE
 #endif	// BAREMETAL
 
-	// 実行開始
+	// Start execution
 	running = TRUE;
 
-	// メインループ
+	// Main Loop
 	while (running) {
-		// ワーク初期化
+		// Work initialization
 		actid = -1;
 		phase = BUS::busfree;
 
 #ifdef USE_SEL_EVENT_ENABLE
-		// SEL信号ポーリング
+		// SEL signal polling
 		if (bus->PollSelectEvent() < 0) {
-			// 割り込みで停止
+			// Stop on interrupt
 			if (errno == EINTR) {
 				break;
 			}
 			continue;
 		}
 
-		// バスの状態取得
+		// Get the bus
 		bus->Aquire();
 #else
 		bus->Aquire();
@@ -1065,8 +1065,8 @@ int main(int argc, char* argv[])
 		}
 #endif	// USE_SEL_EVENT_ENABLE
 
-		// イニシエータがID設定中にアサートしている
-		// 可能性があるのでBSYが解除されるまで待つ(最大3秒)
+        // Wait until BSY is released as there is a possibility for the
+        // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus->GetBSY()) {
 			now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
@@ -1077,66 +1077,66 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		// ビジー、または他のデバイスが応答したので止める
+		// Stop because it the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}
 
-		// 全コントローラに通知
+		// Notify all controllers
 		data = bus->GetDAT();
 		for (i = 0; i < CtrlMax; i++) {
 			if (!ctrl[i] || (data & (1 << i)) == 0) {
 				continue;
 			}
 
-			// セレクションフェーズに移行したターゲットを探す
+			// Find the target that has moved to the selection phase
 			if (ctrl[i]->Process() == BUS::selection) {
-				// ターゲットのIDを取得
+				// Get the target ID
 				actid = i;
 
-				// セレクションフェーズ
+				// Bus Selection phase
 				phase = BUS::selection;
 				break;
 			}
 		}
 
-		// セレクションフェーズが開始されていなければバスの監視へ戻る
+		// Return to bus monitoring if the selection phase has not started
 		if (phase != BUS::selection) {
 			continue;
 		}
 
-		// ターゲット走行開始
+		// Start target device
 		active = TRUE;
 
 #if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
-		// スケジューリングポリシー設定(最優先)
+		// Scheduling policy setting (highest priority)
 		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
 #endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
 
-		// バスフリーになるまでループ
+		// Loop until the bus is free
 		while (running) {
-			// ターゲット駆動
+			// Target drive
 			phase = ctrl[actid]->Process();
 
-			// バスフリーになったら終了
+			// End when the bus is free
 			if (phase == BUS::busfree) {
 				break;
 			}
 		}
 
 #if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
-		// スケジューリングポリシー設定(ノーマル)
+		// Set the scheduling priority back to normal
 		schparam.sched_priority = 0;
 		sched_setscheduler(0, SCHED_OTHER, &schparam);
 #endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
 
-		// ターゲット走行終了
+		// End the target travel
 		active = FALSE;
 	}
 
 err_exit:
-	// クリーンアップ
+	// Cleanup
 	Cleanup();
 
 init_exit:
