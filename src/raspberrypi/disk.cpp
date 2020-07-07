@@ -4534,6 +4534,7 @@ void FASTCALL SCSICD::GetBuf(
 	ASSERT(this);
 }
 
+
 //===========================================================================
 //
 //	SCSI Host Bridge
@@ -6294,6 +6295,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	// Get bus information
 	ctrl.bus->Aquire();
 
+	// For the monitor tool, we shouldn't need to reset. We're just logging information
 	// Reset
 	if (ctrl.bus->GetRST()) {
 #if defined(DISK_LOG)
@@ -6373,7 +6375,7 @@ void FASTCALL SASIDEV::BusFree()
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
 
-		// 信号線
+		 Set Signal lines
 		ctrl.bus->SetREQ(FALSE);
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
@@ -6666,8 +6668,8 @@ void FASTCALL SASIDEV::Status()
 
 #ifndef RASCSI
 		// Request status
-		ctrl.bus->SetDAT(ctrl.buffer[0]);
-		ctrl.bus->SetREQ(TRUE);
+//		ctrl.bus->SetDAT(ctrl.buffer[0]);
+//		ctrl.bus->SetREQ(TRUE);
 
 #if defined(DISK_LOG)
 		Log(Log::Normal, "Status Phase $%02X", ctrl.status);
@@ -8026,6 +8028,7 @@ void FASTCALL SCSIDEV::Reset()
 BUS::phase_t FASTCALL SCSIDEV::Process()
 {
 	ASSERT(this);
+	printf("SCSIDEV::Process() %d\n", ctrl.id);
 
 	// Do nothing if not connected
 	if (ctrl.id < 0 || ctrl.bus == NULL) {

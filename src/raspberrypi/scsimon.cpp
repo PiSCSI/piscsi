@@ -155,12 +155,13 @@ BOOL Init()
 	bus = new GPIOBUS();
 
 	// GPIO Initialization
-	if (!bus->Init()) {
+	if (!bus->Init(BUS::MONITOR)) {
 		return FALSE;
 	}
 
 	// Bus Reset
 	bus->Reset();
+    bus->SetIO(FALSE);
 
 	// Controller initialization
 	for (i = 0; i < CtrlMax; i++) {
@@ -322,6 +323,7 @@ void MapControler(FILE *fp, Disk **map)
 	int unitno;
 	int sasi_num;
 	int scsi_num;
+	BOOL is_monitor;
 
 	// Replace the changed unit
 	for (i = 0; i < CtrlMax; i++) {
@@ -409,7 +411,26 @@ void MapControler(FILE *fp, Disk **map)
 
 			// Create a new SCSI controller
 			if (!ctrl[i]) {
-				ctrl[i] = new SCSIDEV();
+                // Check to see if we need a standard SCSI controller
+                // or if we are creating a "monitor" controller
+                is_monitor = FALSE;
+                for (j = 0; j < UnitNum; j++)
+                {
+                	unitno = i * UnitNum + j;
+                	if( disk[unitno] && disk[unitno]->IsMonitor())
+                	{
+                        is_monitor = TRUE;
+                        break;
+                	}
+                }
+                if(is_monitor == TRUE)
+                {
+                    ctrl[i] = new SCSIMONDEV();
+                }
+                else
+                {
+                    ctrl[i] = new SCSIDEV();
+				}
 				ctrl[i]->Connect(i, bus);
 			}
 		}
@@ -509,6 +530,9 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			case 4:		// BRIDGE
 				pUnit = new SCSIBR();
 				break;
+            case 5:     // Logger/Monitor device
+                pUnit = new MONITORHD();
+                break;
 			default:
 				FPRT(fp,	"Error : Invalid device type\n");
 				return FALSE;
@@ -763,6 +787,8 @@ BOOL ParseArgument(int argc, char* argv[])
 		// Check ethernet and host bridge
 		if (xstrcasecmp(argPath, "bridge") == 0) {
 			type = 4;
+        } else if (xstrcasecmp(argPath, "monitor") == 0){
+            type = 5;
 		} else {
 			// Check the path length
 			len = strlen(argPath);

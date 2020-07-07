@@ -229,6 +229,8 @@ public:
 										// NULL check
 	BOOL FASTCALL IsSASI() const;
 										// SASI Check
+    virtual BOOL FASTCALL IsMonitor() const     {return FALSE;}
+                        // Check if this is a monitor device
 
 	// Media Operations
 	virtual BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
@@ -933,6 +935,8 @@ public:
 										// SASI Check
 	virtual BOOL FASTCALL IsSCSI() const {return FALSE;}
 										// SCSI check
+    virtual BOOL FASTCALL IsMonitor() const {return FALSE;}
+										// Check to see if this is a monitor device
 	Disk* FASTCALL GetBusyUnit();
 										// Get the busy unit
 
@@ -1140,5 +1144,7 @@ private:
 	scsi_t scsi;
 										// Internal data
 };
+
+
 
 #endif	// disk_h
