@@ -6375,7 +6375,7 @@ void FASTCALL SASIDEV::BusFree()
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
 
-		 Set Signal lines
+		// Set Signal lines
 		ctrl.bus->SetREQ(FALSE);
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
