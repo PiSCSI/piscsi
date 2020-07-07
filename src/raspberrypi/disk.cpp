@@ -4535,247 +4535,6 @@ void FASTCALL SCSICD::GetBuf(
 }
 
 
-
-//===========================================================================
-//
-//	SCSI Monitor Device
-//   This will monitor all of the traffic to this SCSI ID and dump it to
-//   STDOUT
-//
-//===========================================================================
-
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
-MONITORHD::MONITORHD() : Disk()
-{
-	// SCSI Monitor
-	disk.id = MAKEID('S', 'M', 'O', 'N');
-}
-
-//---------------------------------------------------------------------------
-//
-//	Reset
-//
-//---------------------------------------------------------------------------
-void FASTCALL MONITORHD::Reset()
-{
-//	// Unlock and release attention
-//	disk.lock = FALSE;
-//	disk.attn = FALSE;
-//
-//	// No reset, clear code
-//	disk.reset = FALSE;
-//	disk.code = 0x00;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
-BOOL FASTCALL MONITORHD::Open(const Filepath& path, BOOL /*attn*/)
-{
-//	Fileio fio;
-//	off64_t size;
-//
-//	ASSERT(this);
-//	ASSERT(!disk.ready);
-//
-//	// read open required
-//	if (!fio.Open(path, Fileio::ReadOnly)) {
-//		return FALSE;
-//	}
-//
-//	// Get file size
-//	size = fio.GetFileSize();
-//	fio.Close();
-//
-//	// Must be 512 bytes
-//	if (size & 0x1ff) {
-//		return FALSE;
-//	}
-//
-//	// 10MB or more
-//	if (size < 0x9f5400) {
-//		return FALSE;
-//	}
-//    // 2TB according to xm6i
-//    // There is a similar one in wxw/wxw_cfg.cpp
-//	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-//		return FALSE;
-//	}
-//
-//	// sector size and number of blocks
-//	disk.size = 9;
-//	disk.blocks = (DWORD)(size >> 9);
-//
-//	// Call base class
-//	return Disk::Open(path);
-}
-
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-int FASTCALL MONITORHD::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
-{
-////////	char vendor[32];
-////////	char product[32];
-////////	char rev[32];
-        int size = 0;
-////////
-////////	ASSERT(this);
-////////	ASSERT(cdb);
-////////	ASSERT(buf);
-////////	ASSERT(cdb[0] == 0x12);
-////////
-////////	// EVPD check
-////////	if (cdb[1] & 0x01) {
-////////		disk.code = DISK_INVALIDCDB;
-////////		return 0;
-////////	}
-////////
-////////	// Ready check (Error if no image file)
-////////	if (!disk.ready) {
-////////		disk.code = DISK_NOTREADY;
-////////		return 0;
-////////	}
-////////
-////////	// Basic data
-////////	// buf[0] ... Direct Access Device
-////////	// buf[2] ... SCSI-2 compliant command system
-////////	// buf[3] ... SCSI-2 compliant Inquiry response
-////////	// buf[4] ... Inquiry additional data
-////////	memset(buf, 0, 8);
-////////
-////////	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-////////	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
-////////		buf[0] = 0x7f;
-////////	}
-////////
-////////	buf[2] = 0x02;
-////////	buf[3] = 0x02;
-////////	buf[4] = 122 + 3;	// Value close to real HDD
-////////
-////////	// Fill with blanks
-////////	memset(&buf[8], 0x20, buf[4] - 3);
-////////
-////////	// Determine vendor name/product name
-////////	sprintf(vendor, BENDER_SIGNATURE);
-////////	size = disk.blocks >> 11;
-////////	if (size < 300)
-////////		sprintf(product, "PRODRIVE LPS%dS", size);
-////////	else if (size < 600)
-////////		sprintf(product, "MAVERICK%dS", size);
-////////	else if (size < 800)
-////////		sprintf(product, "LIGHTNING%dS", size);
-////////	else if (size < 1000)
-////////		sprintf(product, "TRAILBRAZER%dS", size);
-////////	else if (size < 2000)
-////////		sprintf(product, "FIREBALL%dS", size);
-////////	else
-////////		sprintf(product, "FBSE%d.%dS", size / 1000, (size % 1000) / 100);
-////////
-////////	// Vendor name
-////////	memcpy(&buf[8], vendor, strlen(vendor));
-////////
-////////	// Product name
-////////	memcpy(&buf[16], product, strlen(product));
-////////
-////////	// Revision
-////////	sprintf(rev, "0%01d%01d%01d",
-////////			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-////////	memcpy(&buf[32], rev, 4);
-////////
-////////	// Size of data that can be returned
-////////	size = (buf[4] + 5);
-////////
-////////	// Limit if the other buffer is small
-////////	if (size > (int)cdb[4]) {
-////////		size = (int)cdb[4];
-////////	}
-////////
-////////	//  Success
-////////	disk.code = DISK_NOERROR;
-	return size;
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT
-//	*Not affected by disk.code
-//
-//---------------------------------------------------------------------------
-BOOL FASTCALL MONITORHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
-{
-//	int page;
-//	int size;
-//
-//	ASSERT(this);
-//	ASSERT(buf);
-//	ASSERT(length >= 0);
-//
-//	// PF
-//	if (cdb[1] & 0x10) {
-//		// Mode Parameter header
-//		if (length >= 12) {
-//			// Check the block length bytes
-//			size = 1 << disk.size;
-//			if (buf[9] != (BYTE)(size >> 16) ||
-//				buf[10] != (BYTE)(size >> 8) ||
-//				buf[11] != (BYTE)size) {
-//				// currently does not allow changing sector length
-//				disk.code = DISK_INVALIDPRM;
-//				return FALSE;
-//			}
-//			buf += 12;
-//			length -= 12;
-//		}
-//
-//		// Parsing the page
-//		while (length > 0) {
-//			// Get page
-//			page = buf[0];
-//
-//			switch (page) {
-//				// format device
-//				case 0x03:
-//					// check the number of bytes in the physical sector
-//					size = 1 << disk.size;
-//					if (buf[0xc] != (BYTE)(size >> 8) ||
-//						buf[0xd] != (BYTE)size) {
-//						// currently does not allow changing sector length
-//						disk.code = DISK_INVALIDPRM;
-//						return FALSE;
-//					}
-//					break;
-//
-//				// Other page
-//				default:
-//					break;
-//			}
-//
-//			// Advance to the next page
-//			size = buf[1] + 2;
-//			length -= size;
-//			buf += size;
-//		}
-//	}
-//
-//	// Do not generate an error for the time being (MINIX)
-//	disk.code = DISK_NOERROR;
-
-	return TRUE;
-}
-
-
-
-
 //===========================================================================
 //
 //	SCSI Host Bridge
@@ -6537,19 +6296,19 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	ctrl.bus->Aquire();
 
 	// For the monitor tool, we shouldn't need to reset. We're just logging information
-////////	// Reset
-////////	if (ctrl.bus->GetRST()) {
-////////#if defined(DISK_LOG)
-////////		Log(Log::Normal, "RESET signal received");
-////////#endif	// DISK_LOG
-////////
-////////		// Reset the controller
-////////		Reset();
-////////
-////////		// Reset the bus
-////////		ctrl.bus->Reset();
-////////		return ctrl.phase;
-////////	}
+	// Reset
+	if (ctrl.bus->GetRST()) {
+#if defined(DISK_LOG)
+		Log(Log::Normal, "RESET signal received");
+#endif	// DISK_LOG
+
+		// Reset the controller
+		Reset();
+
+		// Reset the bus
+		ctrl.bus->Reset();
+		return ctrl.phase;
+	}
 
 	// Phase processing
 	switch (ctrl.phase) {
@@ -6616,12 +6375,12 @@ void FASTCALL SASIDEV::BusFree()
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
 
-//		// Set Signal lines
-//		ctrl.bus->SetREQ(FALSE);
-//		ctrl.bus->SetMSG(FALSE);
-//		ctrl.bus->SetCD(FALSE);
-//		ctrl.bus->SetIO(FALSE);
-//		ctrl.bus->SetBSY(FALSE);
+		 Set Signal lines
+		ctrl.bus->SetREQ(FALSE);
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(FALSE);
+		ctrl.bus->SetIO(FALSE);
+		ctrl.bus->SetBSY(FALSE);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -6702,10 +6461,10 @@ void FASTCALL SASIDEV::Command()
 		// Phase Setting
 		ctrl.phase = BUS::command;
 
-//		// Signal line operated by the target
-//		ctrl.bus->SetMSG(FALSE);
-//		ctrl.bus->SetCD(TRUE);
-//		ctrl.bus->SetIO(FALSE);
+		// Signal line operated by the target
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(TRUE);
+		ctrl.bus->SetIO(FALSE);
 
 		// Data transfer is 6 bytes x 1 block
 		ctrl.offset = 0;
@@ -6896,10 +6655,10 @@ void FASTCALL SASIDEV::Status()
 		// Phase Setting
 		ctrl.phase = BUS::status;
 
-////////		// Signal line operated by the target
-////////		ctrl.bus->SetMSG(FALSE);
-////////		ctrl.bus->SetCD(TRUE);
-////////		ctrl.bus->SetIO(TRUE);
+		// Signal line operated by the target
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(TRUE);
+		ctrl.bus->SetIO(TRUE);
 
 		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
@@ -6957,10 +6716,10 @@ void FASTCALL SASIDEV::MsgIn()
 		// Phase Setting
 		ctrl.phase = BUS::msgin;
 
-//////////		// Signal line operated by the target
-//////////		ctrl.bus->SetMSG(TRUE);
-//////////		ctrl.bus->SetCD(TRUE);
-//////////		ctrl.bus->SetIO(TRUE);
+		// Signal line operated by the target
+		ctrl.bus->SetMSG(TRUE);
+		ctrl.bus->SetCD(TRUE);
+		ctrl.bus->SetIO(TRUE);
 
 		// length, blocks are already set
 		ASSERT(ctrl.length > 0);
@@ -7041,10 +6800,10 @@ void FASTCALL SASIDEV::DataIn()
 		// Phase Setting
 		ctrl.phase = BUS::datain;
 
-////////		// Signal line operated by the target
-////////		ctrl.bus->SetMSG(FALSE);
-////////		ctrl.bus->SetCD(FALSE);
-////////		ctrl.bus->SetIO(TRUE);
+		// Signal line operated by the target
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(FALSE);
+		ctrl.bus->SetIO(TRUE);
 
 		// length, blocks are already set
 		ASSERT(ctrl.length > 0);
@@ -7123,10 +6882,10 @@ void FASTCALL SASIDEV::DataOut()
 		// Phase Setting
 		ctrl.phase = BUS::dataout;
 
-////////		// Signal line operated by the target
-////////		ctrl.bus->SetMSG(FALSE);
-////////		ctrl.bus->SetCD(FALSE);
-////////		ctrl.bus->SetIO(FALSE);
+		// Signal line operated by the target
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(FALSE);
+		ctrl.bus->SetIO(FALSE);
 
 		// length, blocks are already calculated
 		ASSERT(ctrl.length > 0);
@@ -8369,12 +8128,12 @@ void FASTCALL SCSIDEV::BusFree()
 		// Phase setting
 		ctrl.phase = BUS::busfree;
 
-////////		// Signal line
-////////		ctrl.bus->SetREQ(FALSE);
-////////		ctrl.bus->SetMSG(FALSE);
-////////		ctrl.bus->SetCD(FALSE);
-////////		ctrl.bus->SetIO(FALSE);
-////////		ctrl.bus->SetBSY(FALSE);
+		// Signal line
+		ctrl.bus->SetREQ(FALSE);
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(FALSE);
+		ctrl.bus->SetIO(FALSE);
+		ctrl.bus->SetBSY(FALSE);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -8643,10 +8402,10 @@ void FASTCALL SCSIDEV::MsgOut()
 		// Phase Setting
 		ctrl.phase = BUS::msgout;
 
-////////		// Signal line operated by the target
-////////		ctrl.bus->SetMSG(TRUE);
-////////		ctrl.bus->SetCD(TRUE);
-////////		ctrl.bus->SetIO(FALSE);
+		// Signal line operated by the target
+		ctrl.bus->SetMSG(TRUE);
+		ctrl.bus->SetCD(TRUE);
+		ctrl.bus->SetIO(FALSE);
 
 		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;

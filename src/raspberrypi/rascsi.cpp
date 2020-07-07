@@ -155,7 +155,7 @@ BOOL Init()
 	bus = new GPIOBUS();
 
 	// GPIO Initialization
-	if (!bus->Init(BUS::TARGET)) {
+	if (!bus->Init()) {
 		return FALSE;
 	}
 
