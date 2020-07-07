@@ -1,7 +1,10 @@
 CC       = gcc
-CFLAGS   = -DNDEBUG -O3 -Wall
+CFLAGS   = -DDISK_LOG -O0 -g -Wall
 CXX      = g++
-CXXFLAGS = -DNDEBUG -O3 -Wall
+CXXFLAGS = -DDISK_LOG -O0 -g -Wall
+
+# If its not specified, build for STANDARD configuration
+CONNECT_TYPE ?= STANDARD
 
 ifdef CONNECT_TYPE
 CFLAGS   += -DCONNECT_TYPE_$(CONNECT_TYPE)
@@ -12,6 +15,7 @@ RASCSI = rascsi
 RASCTL = rasctl
 RASDUMP = rasdump
 SASIDUMP = sasidump
+
 
 BIN_ALL = $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP)
 
@@ -67,3 +71,6 @@ $(SASIDUMP): $(OBJ_SASIDUMP)
 
 clean:
 	rm -f $(OBJ_ALL) $(BIN_ALL)
+
+run:
+	sudo ./$(RASCSI) -ID1 /home/pi/HARDDISK.HDA -ID6 /home/pi/marathon.iso

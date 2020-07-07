@@ -920,6 +920,9 @@ public:
 	// Other
 	BUS::phase_t FASTCALL GetPhase() {return ctrl.phase;}
 										// Get the phase
+
+	void FASTCALL GetPhaseStr(char *str);
+
 	int FASTCALL GetID() {return ctrl.id;}
 										// Get the ID
 	void FASTCALL GetCTRL(ctrl_t *buffer);
