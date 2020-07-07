@@ -153,9 +153,9 @@ BOOL Init()
 
 	// GPIOBUS creation
 	bus = new GPIOBUS();
-	
+
 	// GPIO Initialization
-	if (!bus->Init()) {
+	if (!bus->Init(BUS::TARGET)) {
 		return FALSE;
 	}
 
@@ -206,7 +206,7 @@ void Cleanup()
 
 	// Cleanup the Bus
 	bus->Cleanup();
-	
+
 	// Discard the GPIOBUS object
 	delete bus;
 
@@ -306,7 +306,7 @@ void ListDevice(FILE *fp)
 		FPRT(fp, "No device is installed.\n");
 		return;
 	}
-	
+
 	FPRT(fp, "+----+----+------+-------------------------------------\n");
 }
 
@@ -862,7 +862,7 @@ static void *MonThread(void *param)
 {
 	struct sched_param schedparam;
 	struct sockaddr_in client;
-	socklen_t len; 
+	socklen_t len;
 	int fd;
 	FILE *fp;
 	char buf[BUFSIZ];
@@ -892,8 +892,8 @@ static void *MonThread(void *param)
 
 	while (1) {
 		// Wait for connection
-		memset(&client, 0, sizeof(client)); 
-		len = sizeof(client); 
+		memset(&client, 0, sizeof(client));
+		len = sizeof(client);
 		fd = accept(monsocket, (struct sockaddr*)&client, &len);
 		if (fd < 0) {
 			break;

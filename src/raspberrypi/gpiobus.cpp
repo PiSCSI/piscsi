@@ -65,7 +65,7 @@ DWORD bcm_host_get_peripheral_address(void)
 	char buf[1024];
 	size_t len = sizeof(buf);
 	DWORD address;
-	
+
 	if (sysctlbyname("hw.model", buf, &len, NULL, 0) ||
 	    strstr(buf, "ARM1176JZ-S") != buf) {
 		// Failed to get CPU model || Not BCM2835
@@ -88,7 +88,7 @@ extern uint32_t RPi_IO_Base_Addr;
 // Core frequency
 extern uint32_t RPi_Core_Freq;
 
-#ifdef USE_SEL_EVENT_ENABLE 
+#ifdef USE_SEL_EVENT_ENABLE
 //---------------------------------------------------------------------------
 //
 //	Interrupt control function
@@ -169,6 +169,7 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	// Open /dev/mem
 	fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (fd == -1) {
+        printf("Error: Unable to open /dev/mem. Are you running as root?\n");
 		return FALSE;
 	}
 
@@ -274,6 +275,7 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	PinConfig(PIN_DTD, GPIO_OUTPUT);
 
 	// Set the ENABLE signal
+	// This is used to show that the application is running
 	PinSetSignal(PIN_ENB, ENB_OFF);
 	PinConfig(PIN_ENB, GPIO_OUTPUT);
 
@@ -373,6 +375,7 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	MakeTable();
 
 	// Finally, enable ENABLE
+	// Show the user that this app is running
 	SetControl(PIN_ENB, ENB_ON);
 
 	return TRUE;
@@ -518,7 +521,7 @@ DWORD FASTCALL GPIOBUS::Aquire()
 	// Invert if negative logic (internal processing is unified to positive logic)
 	signals = ~signals;
 #endif	// SIGNAL_CONTROL_MODE
-	
+
 	return signals;
 }
 
@@ -549,9 +552,15 @@ BOOL FASTCALL GPIOBUS::GetBSY()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetBSY(BOOL ast)
 {
-	// Set BSY signal
-	SetSignal(PIN_BSY, ast);
-
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET BSY IN MONITOR MODE");
+    }
+    else
+    {
+        // Set BSY signal
+        SetSignal(PIN_BSY, ast);
+    }
 	if (actmode == TARGET) {
 		if (ast) {
 			// Turn on ACTIVE signal
@@ -603,8 +612,14 @@ void FASTCALL GPIOBUS::SetSEL(BOOL ast)
 		SetControl(PIN_ACT, ACT_ON);
 	}
 
-	// Set SEL signal
-	SetSignal(PIN_SEL, ast);
+	if (actmode != MONITOR)
+	{
+        // Set SEL signal
+        SetSignal(PIN_SEL, ast);
+	}
+	else{
+        printf("WARNING!!! SOMEONE TRIED TO SET SEL IN MONITOR MODE");
+}
 }
 
 //---------------------------------------------------------------------------
@@ -624,7 +639,14 @@ BOOL FASTCALL GPIOBUS::GetATN()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetATN(BOOL ast)
 {
-	SetSignal(PIN_ATN, ast);
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET ATN IN MONITOR MODE");
+    }
+    else
+    {
+        SetSignal(PIN_ATN, ast);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -644,7 +666,14 @@ BOOL FASTCALL GPIOBUS::GetACK()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetACK(BOOL ast)
 {
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET ACK IN MONITOR MODE");
+    }
+    else
+    {
 	SetSignal(PIN_ACK, ast);
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -664,7 +693,14 @@ BOOL FASTCALL GPIOBUS::GetRST()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetRST(BOOL ast)
 {
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET RST IN MONITOR MODE");
+    }
+    else
+    {
 	SetSignal(PIN_RST, ast);
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -684,7 +720,13 @@ BOOL FASTCALL GPIOBUS::GetMSG()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetMSG(BOOL ast)
 {
-	SetSignal(PIN_MSG, ast);
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET MSG IN MONITOR MODE");
+    }
+    else{
+        SetSignal(PIN_MSG, ast);
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -704,7 +746,14 @@ BOOL FASTCALL GPIOBUS::GetCD()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetCD(BOOL ast)
 {
-	SetSignal(PIN_CD, ast);
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET CD IN MONITOR MODE");
+    }
+    else
+    {
+        SetSignal(PIN_CD, ast);
+    }
 }
 
 //---------------------------------------------------------------------------
@@ -754,6 +803,21 @@ BOOL FASTCALL GPIOBUS::GetIO()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetIO(BOOL ast)
 {
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET IO IN MONITOR MODE");
+        			SetControl(PIN_DTD, DTD_IN);
+			SetMode(PIN_DT0, IN);
+			SetMode(PIN_DT1, IN);
+			SetMode(PIN_DT2, IN);
+			SetMode(PIN_DT3, IN);
+			SetMode(PIN_DT4, IN);
+			SetMode(PIN_DT5, IN);
+			SetMode(PIN_DT6, IN);
+			SetMode(PIN_DT7, IN);
+			SetMode(PIN_DP, IN);
+    }
+
 	SetSignal(PIN_IO, ast);
 
 	if (actmode == TARGET) {
@@ -802,6 +866,12 @@ BOOL FASTCALL GPIOBUS::GetREQ()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetREQ(BOOL ast)
 {
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET REQ IN MONITOR MODE");
+        return;
+    }
+
 	SetSignal(PIN_REQ, ast);
 }
 
@@ -835,6 +905,14 @@ BYTE FASTCALL GPIOBUS::GetDAT()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetDAT(BYTE dat)
 {
+
+
+    if(actmode == MONITOR)
+    {
+        printf("WARNING!!! SOMEONE TRIED TO SET Data IN MONITOR MODE");
+        return;
+    }
+
 	// Write to port
 #if SIGNAL_CONTROL_MODE == 0
 	DWORD fsel;
@@ -1152,7 +1230,7 @@ int FASTCALL GPIOBUS::SendHandShake(BYTE *buf, int count)
 			}
 
 			// Already waiting for REQ assertion
-            
+
 			// Assert the ACK signal
 			SetSignal(PIN_ACK, ON);
 
@@ -1396,7 +1474,7 @@ void FASTCALL GPIOBUS::SetMode(int pin, int mode)
 	gpio[index] = data;
 	gpfsel[index] = data;
 }
-	
+
 //---------------------------------------------------------------------------
 //
 //	Get input signal value
@@ -1406,7 +1484,7 @@ BOOL FASTCALL GPIOBUS::GetSignal(int pin)
 {
 	return  (signals >> pin) & 1;
 }
-	
+
 //---------------------------------------------------------------------------
 //
 //	Set output signal value
