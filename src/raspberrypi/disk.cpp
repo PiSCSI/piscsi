@@ -1346,20 +1346,20 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 
 	// Get changeable flag
 	if ((cdb[2] & 0xc0) == 0x40) {
-        printf("MODESENSE: Change = TRUE\n");
+        //** printf("MODESENSE: Change = TRUE\n");
 		change = TRUE;
 	} else {
-        printf("MODESENSE: Change = FALSE\n");
+        //** printf("MODESENSE: Change = FALSE\n");
 		change = FALSE;
 	}
 
 	// Get page code (0x00 is valid from the beginning)
 	page = cdb[2] & 0x3f;
 	if (page == 0x00) {
-        printf("MODESENSE: Page code: OK %02X\n", cdb[2]);
+        //** printf("MODESENSE: Page code: OK %02X\n", cdb[2]);
 		valid = TRUE;
 	} else {
-        printf("MODESENSE: Invalid page code received %02X\n", cdb[2]);
+        //** printf("MODESENSE: Invalid page code received %02X\n", cdb[2]);
 		valid = FALSE;
 	}
 
@@ -1373,7 +1373,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 
 	// DEVICE SPECIFIC PARAMETER
 	if (disk.writep) {
-        printf("MODESENSE: Write protect\n");
+        //** printf("MODESENSE: Write protect\n");
 		buf[2] = 0x80;
 	}
 
@@ -1384,7 +1384,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 
 		// Only if ready
 		if (disk.ready) {
-            printf("MODESENSE: Disk is ready\n");
+            //** printf("MODESENSE: Disk is ready\n");
 			// Block descriptor (number of blocks)
 			buf[5] = (BYTE)(disk.blocks >> 16);
 			buf[6] = (BYTE)(disk.blocks >> 8);
@@ -1461,12 +1461,12 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 
 	// Unsupported page
 	if (!valid) {
-	printf("MODESENSE: Something was invalid...\n");
+	//** printf("MODESENSE: Something was invalid...\n");
 		disk.code = DISK_INVALIDCDB;
 		return 0;
 	}
 
-	printf("MODESENSE: mode sense length is %d\n",length);
+	//** printf("MODESENSE: mode sense length is %d\n",length);
 
 	// MODE SENSE success
 	disk.code = DISK_NOERROR;
@@ -6474,12 +6474,12 @@ void FASTCALL SASIDEV::Command()
 #ifdef RASCSI
 		// Command reception handshake (10 bytes are automatically received at the first command)
 		count = ctrl.bus->CommandHandShake(ctrl.buffer);
-		printf("Command received: " );
-		for(int i=0; i< count; i++)
-		{
-		   printf("%02X ", ctrl.buffer[i]);
-		}
-		printf("\n");
+		//** printf("Command received: " );
+		//** for(int i=0; i< count; i++)
+		//** {
+		//**    printf("%02X ", ctrl.buffer[i]);
+		//** }
+		//** printf("\n");
 
 		// If no byte can be received move to the status phase
 		if (count == 0) {
@@ -7436,7 +7436,7 @@ void FASTCALL SASIDEV::Send()
 		if (ctrl.blocks != 0) {
 			// Set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			printf("xfer in: %d \n",result);
+			//** printf("xfer in: %d \n",result);
 
 #ifndef RASCSI
 			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
@@ -7713,12 +7713,12 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 			ctrl.length = ctrl.unit[lun]->Read(buf, ctrl.next);
 			ctrl.next++;
 
-			printf("XferIn read data from disk: ");
-			for (int i=0; i<ctrl.length; i++)
-			{
-                printf("%02X ", ctrl.buffer[i]);
-			}
-			printf("\n");
+			//** printf("XferIn read data from disk: ");
+			//** for (int i=0; i<ctrl.length; i++)
+			//** {
+                //** printf("%02X ", ctrl.buffer[i]);
+			//** }
+			//** printf("\n");
 
 			// If there is an error, go to the status phase
 			if (ctrl.length <= 0) {
@@ -7860,6 +7860,7 @@ void FASTCALL SASIDEV::FlushUnit()
 			}
 			break;
 		default:
+            printf("Received an invalid flush command %02X!!!!!\n",ctrl.cmd[0]);
 			ASSERT(FALSE);
 			break;
 	}
@@ -8028,7 +8029,7 @@ void FASTCALL SCSIDEV::Reset()
 BUS::phase_t FASTCALL SCSIDEV::Process()
 {
 	ASSERT(this);
-	printf("SCSIDEV::Process() %d\n", ctrl.id);
+	//** printf("SCSIDEV::Process() %d\n", ctrl.id);
 
 	// Do nothing if not connected
 	if (ctrl.id < 0 || ctrl.bus == NULL) {
@@ -8589,12 +8590,12 @@ void FASTCALL SCSIDEV::CmdModeSense()
 	Log(Log::Normal, "MODE SENSE Command ");
 #endif	// DISK_LOG
 
-    printf("Received a Mode Sense command. Contents....");
-    for(int i=0; i<10; i++)
-    {
-        printf("%08X ", ctrl.cmd[i]);
-    }
-    printf("\n");
+    //** printf("Received a Mode Sense command. Contents....");
+    //** for(int i=0; i<10; i++)
+    //** {
+    //**     printf("%08X ", ctrl.cmd[i]);
+    //** }
+    //** printf("\n");
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;

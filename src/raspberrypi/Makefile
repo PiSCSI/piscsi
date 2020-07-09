@@ -63,17 +63,6 @@ SRC_SASIDUMP = \
 	filepath.cpp \
 	fileio.cpp
 
-SRC_SCSIMON = \
-	scsimon.cpp \
-	scsi.cpp \
-	disk.cpp \
-	gpiobus.cpp \
-	ctapdriver.cpp \
-	cfilesystem.cpp \
-	filepath.cpp \
-	fileio.cpp \
-	scsimondev.cpp
-
 OBJ_RASCSI := $(SRC_RASCSI:%.cpp=%.o)
 OBJ_RASCTL := $(SRC_RASCTL:%.cpp=%.o)
 OBJ_RASDUMP := $(SRC_RASDUMP:%.cpp=%.o)
