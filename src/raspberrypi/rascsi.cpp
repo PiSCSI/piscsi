@@ -78,7 +78,8 @@ void Banner(int argc, char* argv[])
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
 	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
 
-	if (argc > 1 && strcmp(argv[1], "-h") == 0) {
+	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
+		(argc > 1 && strcmp(argv[1], "--help") == 0)){
 		FPRT(stdout,"\n");
 		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is SCSI identification number(0-7).\n");

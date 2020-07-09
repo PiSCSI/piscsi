@@ -1,0 +1,12 @@
+*.o
+*.bak
+*.HDA
+*.save
+*.cbp
+*.layout
+*.log
+rascsi
+scsimon
+rasctl
+sasidump
+rasdump

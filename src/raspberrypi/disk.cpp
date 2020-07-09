@@ -46,6 +46,8 @@
 
 #ifdef RASCSI
 #define BENDER_SIGNATURE "RaSCSI"
+// The following line was to mimic Apple's CDROM ID
+// #define BENDER_SIGNATURE "SONY    "
 #else
 #define BENDER_SIGNATURE "XM6"
 #endif
@@ -4126,7 +4128,7 @@ int FASTCALL SCSICD::Inquiry(
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 36 - 5;	// 必須
+	buf[4] = 36 - 5;	// Required
 
 	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);
@@ -4141,6 +4143,28 @@ int FASTCALL SCSICD::Inquiry(
 	sprintf(rev, "0%01d%01d%01d",
 				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
 	memcpy(&buf[32], rev, 4);
+//
+// The following code worked with the modified Apple CD-ROM drivers. Need to
+// test with the original code to see if it works as well....
+//	buf[4] = 42;	// Required
+//
+//	// Fill with blanks
+//	memset(&buf[8], 0x20, buf[4] - 3);
+//
+//	// Vendor name
+//	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
+//
+//	// Product name
+//	memcpy(&buf[16], "CD-ROM CDU-8003A", 16);
+//
+//	// Revision (XM6 version number)
+////	sprintf(rev, "1.9a",
+//	////			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
+//	memcpy(&buf[32], "1.9a", 4);
+//
+//	//strcpy(&buf[35],"A1.9a");
+//	buf[36]=0x20;
+//	memcpy(&buf[37],"1999/01/01",10);
 
 	// Size of data that can be returned
 	size = (buf[4] + 5);
@@ -6021,11 +6045,11 @@ SASIDEV::SASIDEV(Device *dev)
 	int i;
 
 #ifndef RASCSI
-	// ホストデバイスを記憶
+	// Remember host device
 	host = dev;
 #endif	// RASCSI
 
-	// ワーク初期化
+	// Work initialization
 	ctrl.phase = BUS::busfree;
 	ctrl.id = -1;
 	ctrl.bus = NULL;
@@ -6043,7 +6067,7 @@ SASIDEV::SASIDEV(Device *dev)
 	ctrl.offset = 0;
 	ctrl.length = 0;
 
-	// 論理ユニット初期化
+	// Logical unit initialization
 	for (i = 0; i < UnitMax; i++) {
 		ctrl.unit[i] = NULL;
 	}
@@ -6056,7 +6080,7 @@ SASIDEV::SASIDEV(Device *dev)
 //---------------------------------------------------------------------------
 SASIDEV::~SASIDEV()
 {
-	// バッファを開放
+	// Free the buffer
 	if (ctrl.buffer) {
 		free(ctrl.buffer);
 		ctrl.buffer = NULL;
@@ -6065,7 +6089,7 @@ SASIDEV::~SASIDEV()
 
 //---------------------------------------------------------------------------
 //
-//	デバイスリセット
+//	Device reset
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Reset()
@@ -6074,7 +6098,7 @@ void FASTCALL SASIDEV::Reset()
 
 	ASSERT(this);
 
-	// ワーク初期化
+	// Work initialization
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.phase = BUS::busfree;
 	ctrl.status = 0x00;
@@ -6088,7 +6112,7 @@ void FASTCALL SASIDEV::Reset()
 	ctrl.offset = 0;
 	ctrl.length = 0;
 
-	// ユニット初期化
+	// Unit initialization
 	for (i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
 			ctrl.unit[i]->Reset();
@@ -6099,7 +6123,7 @@ void FASTCALL SASIDEV::Reset()
 #ifndef RASCSI
 //---------------------------------------------------------------------------
 //
-//	セーブ
+//	Save
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::Save(Fileio *fio, int /*ver*/)
@@ -6109,13 +6133,13 @@ BOOL FASTCALL SASIDEV::Save(Fileio *fio, int /*ver*/)
 	ASSERT(this);
 	ASSERT(fio);
 
-	// サイズをセーブ
+	// Save size
 	sz = 2120;
 	if (!fio->Write(&sz, sizeof(sz))) {
 		return FALSE;
 	}
 
-	// 実体をセーブ
+	// Save entity
 	PROP_EXPORT(fio, ctrl.phase);
 	PROP_EXPORT(fio, ctrl.id);
 	PROP_EXPORT(fio, ctrl.cmd);
@@ -6134,7 +6158,7 @@ BOOL FASTCALL SASIDEV::Save(Fileio *fio, int /*ver*/)
 
 //---------------------------------------------------------------------------
 //
-//	ロード
+//	Load
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::Load(Fileio *fio, int ver)
@@ -6144,12 +6168,12 @@ BOOL FASTCALL SASIDEV::Load(Fileio *fio, int ver)
 	ASSERT(this);
 	ASSERT(fio);
 
-	// version3.11より前はセーブしていない
+	// Not saved before version 3.11
 	if (ver <= 0x0311) {
 		return TRUE;
 	}
 
-	// サイズをロード、照合
+	// Load size and check if the size matches
 	if (!fio->Read(&sz, sizeof(sz))) {
 		return FALSE;
 	}
@@ -6157,7 +6181,7 @@ BOOL FASTCALL SASIDEV::Load(Fileio *fio, int ver)
 		return FALSE;
 	}
 
-	// 実体をロード
+	// Load the entity
 	PROP_IMPORT(fio, ctrl.phase);
 	PROP_IMPORT(fio, ctrl.id);
 	PROP_IMPORT(fio, ctrl.cmd);
@@ -6177,7 +6201,7 @@ BOOL FASTCALL SASIDEV::Load(Fileio *fio, int ver)
 
 //---------------------------------------------------------------------------
 //
-//	コントローラ接続
+//	Connect the controller
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Connect(int id, BUS *bus)
@@ -6190,7 +6214,7 @@ void FASTCALL SASIDEV::Connect(int id, BUS *bus)
 
 //---------------------------------------------------------------------------
 //
-//	論理ユニット取得
+//	Get the logical unit
 //
 //---------------------------------------------------------------------------
 Disk* FASTCALL SASIDEV::GetUnit(int no)
@@ -6203,7 +6227,7 @@ Disk* FASTCALL SASIDEV::GetUnit(int no)
 
 //---------------------------------------------------------------------------
 //
-//	論理ユニット設定
+//	Set the logical unit
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::SetUnit(int no, Disk *dev)
@@ -6216,7 +6240,7 @@ void FASTCALL SASIDEV::SetUnit(int no, Disk *dev)
 
 //---------------------------------------------------------------------------
 //
-//	有効な論理ユニットを持っているか返す
+//	Check to see if this has a valid logical unit
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::HasUnit()
@@ -6236,7 +6260,7 @@ BOOL FASTCALL SASIDEV::HasUnit()
 
 //---------------------------------------------------------------------------
 //
-//	内部データ取得
+//	Get internal data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::GetCTRL(ctrl_t *buffer)
@@ -6244,13 +6268,13 @@ void FASTCALL SASIDEV::GetCTRL(ctrl_t *buffer)
 	ASSERT(this);
 	ASSERT(buffer);
 
-	// 内部ワークをコピー
+	// reference the internal structure
 	*buffer = ctrl;
 }
 
 //---------------------------------------------------------------------------
 //
-//	ビジー状態のユニットを取得
+//	Get a busy unit
 //
 //---------------------------------------------------------------------------
 Disk* FASTCALL SASIDEV::GetBusyUnit()
@@ -6266,14 +6290,14 @@ Disk* FASTCALL SASIDEV::GetBusyUnit()
 
 //---------------------------------------------------------------------------
 //
-//	実行
+//	Run
 //
 //---------------------------------------------------------------------------
 BUS::phase_t FASTCALL SASIDEV::Process()
 {
 	ASSERT(this);
 
-	// 未接続なら何もしない
+	// Do nothing if not connected
 	if (ctrl.id < 0 || ctrl.bus == NULL) {
 		return ctrl.phase;
 	}
@@ -6281,10 +6305,11 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	// Get bus information
 	ctrl.bus->Aquire();
 
+	// For the monitor tool, we shouldn't need to reset. We're just logging information
 	// Reset
 	if (ctrl.bus->GetRST()) {
 #if defined(DISK_LOG)
-		Log(Log::Normal, "RESET信号受信");
+		Log(Log::Normal, "RESET signal received");
 #endif	// DISK_LOG
 
 		// Reset the controller
@@ -6295,39 +6320,39 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 		return ctrl.phase;
 	}
 
-	// フェーズ処理
+	// Phase processing
 	switch (ctrl.phase) {
-		// バスフリー
+		// Bus free
 		case BUS::busfree:
 			BusFree();
 			break;
 
-		// セレクション
+		// Selection
 		case BUS::selection:
 			Selection();
 			break;
 
-		// データアウト(MCI=000)
+		// Data out (MCI=000)
 		case BUS::dataout:
 			DataOut();
 			break;
 
-		// データイン(MCI=001)
+		// Data in (MCI=001)
 		case BUS::datain:
 			DataIn();
 			break;
 
-		// コマンド(MCI=010)
+		// Command (MCI=010)
 		case BUS::command:
 			Command();
 			break;
 
-		// ステータス(MCI=011)
+		// Status (MCI=011)
 		case BUS::status:
 			Status();
 			break;
 
-		// メッセージイン(MCI=111)
+		// Msg in (MCI=111)
 		case BUS::msgin:
 			MsgIn();
 			break;
@@ -6360,20 +6385,20 @@ void FASTCALL SASIDEV::BusFree()
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
 
-		// 信号線
+		// Set Signal lines
 		ctrl.bus->SetREQ(FALSE);
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
 		ctrl.bus->SetBSY(FALSE);
 
-		// ステータスとメッセージを初期化
+		// Initialize status and message
 		ctrl.status = 0x00;
 		ctrl.message = 0x00;
 		return;
 	}
 
-	// セレクションフェーズに移行
+	// Move to selection phase
 	if (ctrl.bus->GetSEL() && !ctrl.bus->GetBSY()) {
 		Selection();
 	}
@@ -6381,7 +6406,7 @@ void FASTCALL SASIDEV::BusFree()
 
 //---------------------------------------------------------------------------
 //
-//	セレクションフェーズ
+//	Selection phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Selection()
@@ -6392,31 +6417,31 @@ void FASTCALL SASIDEV::Selection()
 
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
-		// IDが一致していなければ無効
+		// Invalid if IDs do not match
 		id = 1 << ctrl.id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
 			return;
 		}
 
-		// 有効なユニットが無ければ終了
+		// Return if there is no unit
 		if (!HasUnit()) {
 			return;
 		}
 
 #if defined(DISK_LOG)
 		Log(Log::Normal,
-			"セレクションフェーズ ID=%d (デバイスあり)", ctrl.id);
+			"Selection Phase ID=%d (with device)", ctrl.id);
 #endif	// DISK_LOG
 
 		// Phase change
 		ctrl.phase = BUS::selection;
 
-		// BSYを上げて応答
+		// Raiase BSY and respond
 		ctrl.bus->SetBSY(TRUE);
 		return;
 	}
 
-	// セレクション完了でコマンドフェーズ移行
+	// Command phase shifts when selection is completed
 	if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {
 		Command();
 	}
@@ -6424,7 +6449,7 @@ void FASTCALL SASIDEV::Selection()
 
 //---------------------------------------------------------------------------
 //
-//	コマンドフェーズ
+//	Command phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Command()
@@ -6440,7 +6465,7 @@ void FASTCALL SASIDEV::Command()
 	if (ctrl.phase != BUS::command) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "コマンドフェーズ");
+		Log(Log::Normal, "Command Phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6451,45 +6476,45 @@ void FASTCALL SASIDEV::Command()
 		ctrl.bus->SetCD(TRUE);
 		ctrl.bus->SetIO(FALSE);
 
-		// データ転送は6バイトx1ブロック
+		// Data transfer is 6 bytes x 1 block
 		ctrl.offset = 0;
 		ctrl.length = 6;
 		ctrl.blocks = 1;
 
 #ifdef RASCSI
-		// コマンド受信ハンドシェイク(最初のコマンドで自動で10バイト受信する)
+		// Command reception handshake (10 bytes are automatically received at the first command)
 		count = ctrl.bus->CommandHandShake(ctrl.buffer);
 	
-		// 1バイトも受信できなければステータスフェーズへ移行
+		// If no byte can be received move to the status phase
 		if (count == 0) {
 			Error();
 			return;
 		}
-	
-		// 10バイトCDBのチェック
+
+		// Check 10-byte CDB
 		if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
 			ctrl.length = 10;
 		}
-	
-		// 全て受信できなければステータスフェーズへ移行
+
+		// If not able to receive all, move to the status phase
 		if (count != (int)ctrl.length) {
 			Error();
 			return;
 		}
-	
+
 		// Command data transfer
 		for (i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
 		}
-	
-		// レングスとブロックをクリア
+
+		// Clear length and block
 		ctrl.length = 0;
 		ctrl.blocks = 0;
-	
+
 		// Execution Phase
 		Execute();
 #else
-		// コマンドを要求
+		// Request the command
 		ctrl.bus->SetREQ(TRUE);
 		return;
 #endif	// RASCSI
@@ -6520,13 +6545,13 @@ void FASTCALL SASIDEV::Execute()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "Execution Phase コマンド$%02X", ctrl.cmd[0]);
+	Log(Log::Normal, "Execution Phase Command %02X", ctrl.cmd[0]);
 #endif	// DISK_LOG
 
 	// Phase Setting
 	ctrl.phase = BUS::execute;
 
-	// データ転送のための初期化
+	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
 #ifdef RASCSI
@@ -6591,8 +6616,8 @@ void FASTCALL SASIDEV::Execute()
 			return;
 	}
 
-	// それ以外は対応していない
-	Log(Log::Warning, "未対応コマンド $%02X", ctrl.cmd[0]);
+	// Unsupported command
+	Log(Log::Warning, "Unsupported command $%02X", ctrl.cmd[0]);
 	CmdInvalid();
 }
 
@@ -6614,7 +6639,7 @@ void FASTCALL SASIDEV::Status()
 	if (ctrl.phase != BUS::status) {
 
 #ifdef RASCSI
-		// 最小実行時間
+		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
 			time = SysTimer::GetTimerLow() - ctrl.execstart;
@@ -6628,7 +6653,7 @@ void FASTCALL SASIDEV::Status()
 #endif	// RASCSI
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "ステータスフェーズ");
+		Log(Log::Normal, "Status phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6646,29 +6671,29 @@ void FASTCALL SASIDEV::Status()
 		ctrl.buffer[0] = (BYTE)ctrl.status;
 
 #ifndef RASCSI
-		// ステータスを要求
+		// Request status
 		ctrl.bus->SetDAT(ctrl.buffer[0]);
 		ctrl.bus->SetREQ(TRUE);
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "ステータスフェーズ $%02X", ctrl.status);
+		Log(Log::Normal, "Status Phase $%02X", ctrl.status);
 #endif	// DISK_LOG
 #endif	// RASCSI
 		return;
 	}
 
 #ifdef RASCSI
-	// 送信
+	// Send
 	Send();
 #else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
-		// イニシエータが受信した
+		// Initiator received
 		if (ctrl.bus->GetACK()) {
 			SendNext();
 		}
 	} else {
-		// イニシエータが次を要求
+		// Initiator requests next
 		if (!ctrl.bus->GetACK()) {
 			Send();
 		}
@@ -6700,7 +6725,7 @@ void FASTCALL SASIDEV::MsgIn()
 		ctrl.bus->SetCD(TRUE);
 		ctrl.bus->SetIO(TRUE);
 
-		// length, blocksは設定済み
+		// length, blocks are already set
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
@@ -6718,17 +6743,17 @@ void FASTCALL SASIDEV::MsgIn()
 	}
 
 #ifdef RASCSI
-	// 送信
+	//Send
 	Send();
 #else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
-		// イニシエータが受信した
+		// Initator received
 		if (ctrl.bus->GetACK()) {
 			SendNext();
 		}
 	} else {
-		// イニシエータが次を要求
+		// Initiator requests next
 		if (!ctrl.bus->GetACK()) {
 			Send();
 		}
@@ -6755,7 +6780,7 @@ void FASTCALL SASIDEV::DataIn()
 	if (ctrl.phase != BUS::datain) {
 
 #ifdef RASCSI
-		// 最小実行時間
+		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
 			time = SysTimer::GetTimerLow() - ctrl.execstart;
@@ -6766,7 +6791,7 @@ void FASTCALL SASIDEV::DataIn()
 		}
 #endif	// RASCSI
 
-		// レングス0なら、ステータスフェーズへ
+		// If the length is 0, go to the status phase
 		if (ctrl.length == 0) {
 			Status();
 			return;
@@ -6784,33 +6809,33 @@ void FASTCALL SASIDEV::DataIn()
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(TRUE);
 
-		// length, blocksは設定済み
+		// length, blocks are already set
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
 #ifndef RASCSI
-		// データを設定
+		// Assert the DAT signal
 		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
 
-		// データを要求
+		// Request data
 		ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
 		return;
 	}
 
 #ifdef RASCSI
-	// 送信
+	// Send
 	Send();
 #else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
-		// イニシエータが受信した
+		// Initator received
 		if (ctrl.bus->GetACK()) {
 			SendNext();
 		}
 	} else {
-		// イニシエータが次を要求
+		// Initiator requests next
 		if (!ctrl.bus->GetACK()) {
 			Send();
 		}
@@ -6820,7 +6845,7 @@ void FASTCALL SASIDEV::DataIn()
 
 //---------------------------------------------------------------------------
 //
-//	データアウトフェーズ
+//	Data out phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::DataOut()
@@ -6837,7 +6862,7 @@ void FASTCALL SASIDEV::DataOut()
 	if (ctrl.phase != BUS::dataout) {
 
 #ifdef RASCSI
-		// 最小実行時間
+		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
 			time = SysTimer::GetTimerLow() - ctrl.execstart;
@@ -6848,14 +6873,14 @@ void FASTCALL SASIDEV::DataOut()
 		}
 #endif	// RASCSI
 
-		// レングス0なら、ステータスフェーズへ
+		// If the length is 0, go to the status phase
 		if (ctrl.length == 0) {
 			Status();
 			return;
 		}
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "データアウトフェーズ");
+		Log(Log::Normal, "Data out phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6866,20 +6891,20 @@ void FASTCALL SASIDEV::DataOut()
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
 
-		// length, blocksは設定済み
+		// length, blocks are already calculated
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
 #ifndef	RASCSI
-		// データを要求
+		// Request data
 		ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
 		return;
 	}
 
 #ifdef	RASCSI
-	// 受信
+	// Receive
 	Receive();
 #else
 	// Requesting
@@ -6899,7 +6924,7 @@ void FASTCALL SASIDEV::DataOut()
 
 //---------------------------------------------------------------------------
 //
-//	共通エラー
+//	Error
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Error()
@@ -6921,14 +6946,14 @@ void FASTCALL SASIDEV::Error()
 		return;
 	}
 
-	// ステータスフェーズ、メッセージインフェーズはバスフリー
+	// Bus free for status phase and message in phase
 	if (ctrl.phase == BUS::status || ctrl.phase == BUS::msgin) {
 		BusFree();
 		return;
 	}
 
 #if defined(DISK_LOG)
-	Log(Log::Warning, "エラー(ステータスフェーズへ)");
+	Log(Log::Warning, "Error occured (going to status phase)");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7038,10 +7063,10 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ASSERT(ctrl.length > 0);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "センスキー $%02X", ctrl.buffer[2]);
+	Log(Log::Normal, "Sense key $%02X", ctrl.buffer[2]);
 #endif	// DISK_LOG
 
-	// リードフェーズ
+	// Read phase
 	DataIn();
 }
 
@@ -7147,7 +7172,7 @@ void FASTCALL SASIDEV::CmdRead6()
 
 #if defined(DISK_LOG)
 	Log(Log::Normal,
-		"READ(6)コマンド レコード=%06X ブロック=%d", record, ctrl.blocks);
+		"READ(6) command record=%06X blocks=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
 	// Command processing on drive
@@ -7161,7 +7186,7 @@ void FASTCALL SASIDEV::CmdRead6()
 	// Set next block
 	ctrl.next = record + 1;
 
-	// リードフェーズ
+	// Read phase
 	DataIn();
 }
 
@@ -7197,7 +7222,7 @@ void FASTCALL SASIDEV::CmdWrite6()
 
 #if defined(DISK_LOG)
 	Log(Log::Normal,
-		"WRITE(6)コマンド レコード=%06X ブロック=%d", record, ctrl.blocks);
+		"WRITE(6) command record=%06X blocks=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
 	// Command processing on drive
@@ -7211,7 +7236,7 @@ void FASTCALL SASIDEV::CmdWrite6()
 	// Set next block
 	ctrl.next = record + 1;
 
-	// ライトフェーズ
+	// Write phase
 	DataOut();
 }
 
@@ -7281,10 +7306,10 @@ void FASTCALL SASIDEV::CmdAssign()
 		return;
 	}
 
-	// 4バイトのデータをリクエスト
+	// Request 4 bytes of data
 	ctrl.length = 4;
 
-	// ライトフェーズ
+	// Write phase
 	DataOut();
 }
 
@@ -7319,16 +7344,16 @@ void FASTCALL SASIDEV::CmdSpecify()
 		return;
 	}
 
-	// 10バイトのデータをリクエスト
+	// Request 10 bytes of data
 	ctrl.length = 10;
 
-	// ライトフェーズ
+	// Write phase
 	DataOut();
 }
 
 //---------------------------------------------------------------------------
 //
-//	サポートしていないコマンド
+//	Unsupported command
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdInvalid()
@@ -7338,7 +7363,7 @@ void FASTCALL SASIDEV::CmdInvalid()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "サポートしていない Command ");
+	Log(Log::Normal, "Command not supported");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7360,7 +7385,7 @@ void FASTCALL SASIDEV::CmdInvalid()
 
 //---------------------------------------------------------------------------
 //
-//	データ送信
+//	Data transmission
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Send()
@@ -7375,12 +7400,12 @@ void FASTCALL SASIDEV::Send()
 	ASSERT(ctrl.bus->GetIO());
 
 #ifdef RASCSI
-	// レングス!=0なら送信
+	// Check that the length isn't 0
 	if (ctrl.length != 0) {
 		len = ctrl.bus->SendHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length);
 
-		// 全て送信できなければステータスフェーズへ移行
+		// If you can not send it all, move on to the status phase
 		if (len != (int)ctrl.length) {
 			Error();
 			return;
@@ -7397,7 +7422,8 @@ void FASTCALL SASIDEV::Send()
 	ctrl.offset++;
 	ctrl.length--;
 
-	// ACKアサート直後にSendNextでデータ設定済みならリクエストを上げる
+	// Immediately after ACK is asserted, if the data
+	// has been set by SendNext, raise the request
 	if (ctrl.length != 0) {
 		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
@@ -7405,28 +7431,30 @@ void FASTCALL SASIDEV::Send()
 	}
 #endif	// RASCSI
 
-	// ブロック減算、リザルト初期化
+	// Remove block and initialize the result
 	ctrl.blocks--;
 	result = TRUE;
 
-	// データ引き取り後の処理(リード/データインのみ)
+	// Process after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
 		if (ctrl.blocks != 0) {
-			// 次のバッファを設定(offset, lengthをセットすること)
+			// Set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
+			//** printf("xfer in: %d \n",result);
+
 #ifndef RASCSI
 			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
 #endif	// RASCSI
 		}
 	}
 
-	// リザルトFALSEなら、ステータスフェーズへ移行
+	// If result FALSE, move to the status phase
 	if (!result) {
 		Error();
 		return;
 	}
 
-	// ブロック!=0なら送信継続
+	// Continue sending if block != 0
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
@@ -7437,7 +7465,7 @@ void FASTCALL SASIDEV::Send()
 		return;
 	}
 
-	// 次フェーズに移動
+	// Move to the next phase
 	switch (ctrl.phase) {
 		// Message in phase
 		case BUS::msgin:
@@ -7451,7 +7479,7 @@ void FASTCALL SASIDEV::Send()
 			Status();
 			break;
 
-		// ステータスフェーズ
+		// Status phase
 		case BUS::status:
 			// Message in phase
 			ctrl.length = 1;
@@ -7470,7 +7498,7 @@ void FASTCALL SASIDEV::Send()
 #ifndef	RASCSI
 //---------------------------------------------------------------------------
 //
-//	データ送信継続
+//	Continue sending data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::SendNext()
@@ -7484,7 +7512,7 @@ void FASTCALL SASIDEV::SendNext()
 	// Signal line operated by the target
 	ctrl.bus->SetREQ(FALSE);
 
-	// バッファにデータがあれば先に設定する
+	// If there is data in the buffer, set it first.
 	if (ctrl.length > 1) {
 		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset + 1]);
 	}
@@ -7494,7 +7522,7 @@ void FASTCALL SASIDEV::SendNext()
 #ifndef RASCSI
 //---------------------------------------------------------------------------
 //
-//	データ受信
+//	Receive data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Receive()
@@ -7518,13 +7546,13 @@ void FASTCALL SASIDEV::Receive()
 		case BUS::command:
 			ctrl.cmd[ctrl.offset] = data;
 #if defined(DISK_LOG)
-			Log(Log::Normal, "コマンドフェーズ $%02X", data);
+			Log(Log::Normal, "Command phase $%02X", data);
 #endif	// DISK_LOG
 
 			// Set the length again with the first data (offset 0)
 			if (ctrl.offset == 0) {
 				if (ctrl.cmd[0] >= 0x20 && ctrl.cmd[0] <= 0x7D) {
-					// 10バイトCDB
+					// 10 byte CDB
 					ctrl.length = 10;
 				}
 			}
@@ -7546,14 +7574,14 @@ void FASTCALL SASIDEV::Receive()
 #ifdef RASCSI
 //---------------------------------------------------------------------------
 //
-//	データ受信
+//	Receive data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Receive()
 #else
 //---------------------------------------------------------------------------
 //
-//	データ受信継続
+//	Continue receiving data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::ReceiveNext()
@@ -7571,13 +7599,13 @@ void FASTCALL SASIDEV::ReceiveNext()
 	ASSERT(!ctrl.bus->GetIO());
 
 #ifdef RASCSI
-	// レングス!=0なら受信
+	// Length != 0 if received
 	if (ctrl.length != 0) {
-		// 受信
+		// Receive
 		len = ctrl.bus->ReceiveHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length);
 
-		// 全て受信できなければステータスフェーズへ移行
+		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
 			Error();
 			return;
@@ -7594,7 +7622,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 	ctrl.offset++;
 	ctrl.length--;
 
-	// レングス!=0なら、再びreqをセット
+	// If length != 0, set req again
 	if (ctrl.length != 0) {
 		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
@@ -7602,11 +7630,11 @@ void FASTCALL SASIDEV::ReceiveNext()
 	}
 #endif	// RASCSI
 
-	// ブロック減算、リザルト初期化
+	// Remove the control block and initialize the result
 	ctrl.blocks--;
 	result = TRUE;
 
-	// データアウトフェーズの処理
+	// Process the data out phase
 	if (ctrl.phase == BUS::dataout) {
 		if (ctrl.blocks == 0) {
 			// End with this buffer
@@ -7617,13 +7645,13 @@ void FASTCALL SASIDEV::ReceiveNext()
 		}
 	}
 
-	// リザルトFALSEなら、ステータスフェーズへ移行
+	// If result is false, move to the status phase
 	if (!result) {
 		Error();
 		return;
 	}
 
-	// ブロック!=0なら受信継続
+	// Continue to receive is block != 0
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
@@ -7634,7 +7662,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 		return;
 	}
 
-	// 次フェーズに移動
+	// Move to the next phase
 	switch (ctrl.phase) {
 #ifndef RASCSI
 		// Command phase
@@ -7646,7 +7674,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 
 		// Data out phase
 		case BUS::dataout:
-			// フラッシュ
+			// Flush
 			FlushUnit();
 
 			// status phase
@@ -7662,8 +7690,8 @@ void FASTCALL SASIDEV::ReceiveNext()
 
 //---------------------------------------------------------------------------
 //
-//	データ転送IN
-//	※offset, lengthを再設定すること
+//	Data transfer IN
+//	*Reset offset and length
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
@@ -7679,23 +7707,23 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 		return FALSE;
 	}
 
-	// READ系コマンドに限る
+	// Limited to read commands
 	switch (ctrl.cmd[0]) {
 		// READ(6)
 		case 0x08:
 		// READ(10)
 		case 0x28:
-			// ディスクから読み取りを行う
+			// Read from disk
 			ctrl.length = ctrl.unit[lun]->Read(buf, ctrl.next);
 			ctrl.next++;
-
-			// エラーなら、ステータスフェーズへ
+	
+			// If there is an error, go to the status phase
 			if (ctrl.length <= 0) {
-				// データイン中止
+				// Cancel data-in
 				return FALSE;
 			}
 
-			// 正常なら、ワーク設定
+			// If things are normal, work setting
 			ctrl.offset = 0;
 			break;
 
@@ -7705,14 +7733,14 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 			return FALSE;
 	}
 
-	// バッファ設定に成功した
+	// Succeeded in setting the buffer
 	return TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	データ転送OUT
-//	※cont=TRUEの場合、offset, lengthを再設定すること
+//	Data transfer OUT
+//	*If cont=true, reset the offset and length
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
@@ -7729,7 +7757,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 		return FALSE;
 	}
 
-	// MODE SELECTまたは、WRITE系
+	// MODE SELECT or WRITE system
 	switch (ctrl.cmd[0]) {
 		// MODE SELECT
 		case 0x15:
@@ -7737,7 +7765,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 		case 0x55:
 			if (!ctrl.unit[lun]->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
-				// MODE SELECTに失敗
+				// MODE SELECT failed
 				return FALSE;
 			}
 			break;
@@ -7746,45 +7774,45 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 		case 0x0a:
 		// WRITE(10)
 		case 0x2a:
-			// ホストブリッジはSEND MESSAGE10に差し替える
+			// Replace the host bridge with SEND MESSAGE 10
 			if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
 				bridge = (SCSIBR*)ctrl.unit[lun];
 				if (!bridge->SendMessage10(ctrl.cmd, ctrl.buffer)) {
-					// 書き込み失敗
+					// write failed
 					return FALSE;
 				}
 
-				// 正常なら、ワーク設定
+				// If normal, work setting
 				ctrl.offset = 0;
 				break;
 			}
 
 		// WRITE AND VERIFY
 		case 0x2e:
-			// 書き込みを行う
+			// Write
 			if (!ctrl.unit[lun]->Write(ctrl.buffer, ctrl.next - 1)) {
-				// 書き込み失敗
+				// Write failed
 				return FALSE;
 			}
 
-			// 次のブロックが必要ないならここまで
+			// If you do not need the next block, end here
 			ctrl.next++;
 			if (!cont) {
 				break;
 			}
 
-			// 次のブロックをチェック
+			// Check the next block
 			ctrl.length = ctrl.unit[lun]->WriteCheck(ctrl.next - 1);
 			if (ctrl.length <= 0) {
-				// 書き込みできない
+				// Cannot write
 				return FALSE;
 			}
 
-			// 正常なら、ワーク設定
+			// If normal, work setting
 			ctrl.offset = 0;
 			break;
 
-		// SPECIFY(SASIのみ)
+		// SPECIFY(SASI only)
 		case 0xc2:
 			break;
 
@@ -7793,13 +7821,13 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 			break;
 	}
 
-	// バッファ保存に成功した
+	// Buffer saved successfully
 	return TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	論理ユニットフラッシュ
+//	Logical unit flush
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::FlushUnit()
@@ -7815,7 +7843,7 @@ void FASTCALL SASIDEV::FlushUnit()
 		return;
 	}
 
-	// WRITE系のみ
+	// WRITE system only
 	switch (ctrl.cmd[0]) {
 		// WRITE(6)
 		case 0x0a:
@@ -7823,28 +7851,88 @@ void FASTCALL SASIDEV::FlushUnit()
 		case 0x2a:
 		// WRITE AND VERIFY
 		case 0x2e:
-			// フラッシュ
+			// Flush
 			if (!ctrl.unit[lun]->IsCacheWB()) {
 				ctrl.unit[lun]->Flush();
 			}
 			break;
 		default:
+			printf("Received an invalid flush command %08X!!!!!\n",ctrl.cmd[0]);
 			ASSERT(FALSE);
 			break;
 	}
 }
 
+#ifdef DISK_LOG
 //---------------------------------------------------------------------------
 //
-//	ログ出力
+//	Get the current phase as a string
 //
+//---------------------------------------------------------------------------
+void SASIDEV::GetPhaseStr(char *str)
+{
+    switch(this->GetPhase())
+    {
+        case BUS::busfree:
+        strcpy(str,"busfree    ");
+        break;
+        case BUS::arbitration:
+        strcpy(str,"arbitration");
+        break;
+        case BUS::selection:
+        strcpy(str,"selection  ");
+        break;
+        case BUS::reselection:
+        strcpy(str,"reselection");
+        break;
+        case BUS::command:
+        strcpy(str,"command    ");
+        break;
+        case BUS::execute:
+        strcpy(str,"execute    ");
+        break;
+        case BUS::datain:
+        strcpy(str,"datain     ");
+        break;
+        case BUS::dataout:
+        strcpy(str,"dataout    ");
+        break;
+        case BUS::status:
+        strcpy(str,"status     ");
+        break;
+        case BUS::msgin:
+        strcpy(str,"msgin      ");
+        break;
+        case BUS::msgout:
+        strcpy(str,"msgout     ");
+        break;
+        case BUS::reserved:
+        strcpy(str,"reserved   ");
+        break;
+    }
+}
+#endif
+
+//---------------------------------------------------------------------------
+//
+//	Log output
+//
+// TODO: This function needs some cleanup. Its very kludgey
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 {
 #if !defined(BAREMETAL)
 	char buffer[0x200];
+	char buffer2[0x250];
+	char buffer3[0x250];
+	char phase_str[20];
 	va_list args;
 	va_start(args, format);
+
+	if(this->GetID() != 6)
+	{
+        return;
+	}
 
 #ifdef RASCSI
 #ifndef DISK_LOG
@@ -7854,19 +7942,41 @@ void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 #endif	// DISK_LOG
 #endif	// RASCSI
 
-	// フォーマット
+#ifdef DISK_LOG
+	// format
 	vsprintf(buffer, format, args);
 
-	// 可変長引数終了
+	// end variable length argument
 	va_end(args);
 
-	// ログ出力
+	// Add the date/timestamp
+	// current date/time based on current system
+   time_t now = time(0);
+   // convert now to string form
+   char* dt = ctime(&now);
+
+
+   strcpy(buffer2, "[");
+   strcat(buffer2, dt);
+   // Get rid of the carriage return
+   buffer2[strlen(buffer2)-1] = '\0';
+   strcat(buffer2, "] ");
+
+   // Get the phase
+   this->GetPhaseStr(phase_str);
+   sprintf(buffer3, "[%d][%s] ", this->GetID(), phase_str);
+   strcat(buffer2,buffer3);
+   strcat(buffer2, buffer);
+
+
+	// Log output
 #ifdef RASCSI
-	printf("%s\n", buffer);
+	printf("%s\n", buffer2);
 #else
 	host->GetVM()->GetLog()->Format(level, host, buffer);
 #endif	// RASCSI
 #endif	// BAREMETAL
+#endif	// DISK_LOG
 }
 
 //===========================================================================
@@ -8259,10 +8369,11 @@ void FASTCALL SCSIDEV::Execute()
 		case 0xc2:
 			CmdInvalid();
 			return;
+
 	}
 
 	// No other support
-	Log(Log::Normal, "未対応コマンド $%02X", ctrl.cmd[0]);
+	Log(Log::Normal, "Unsupported command received: $%02X", ctrl.cmd[0]);
 	CmdInvalid();
 }
 

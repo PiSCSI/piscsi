@@ -920,6 +920,11 @@ public:
 	// Other
 	BUS::phase_t FASTCALL GetPhase() {return ctrl.phase;}
 										// Get the phase
+#ifdef DISK_LOG
+	// Function to get the current phase as a String.
+	void FASTCALL GetPhaseStr(char *str);
+#endif
+
 	int FASTCALL GetID() {return ctrl.id;}
 										// Get the ID
 	void FASTCALL GetCTRL(ctrl_t *buffer);
@@ -1137,5 +1142,7 @@ private:
 	scsi_t scsi;
 										// Internal data
 };
+
+
 
 #endif	// disk_h
