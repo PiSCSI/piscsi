@@ -45,7 +45,9 @@
 //#define DISK_LOG
 
 #ifdef RASCSI
-#define BENDER_SIGNATURE "SONY    "
+#define BENDER_SIGNATURE "RaSCSI"
+// The following line was to mimic Apple's CDROM ID
+// #define BENDER_SIGNATURE "SONY    "
 #else
 #define BENDER_SIGNATURE "XM6"
 #endif
@@ -1346,20 +1348,16 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 
 	// Get changeable flag
 	if ((cdb[2] & 0xc0) == 0x40) {
-        //** printf("MODESENSE: Change = TRUE\n");
 		change = TRUE;
 	} else {
-        //** printf("MODESENSE: Change = FALSE\n");
 		change = FALSE;
 	}
 
 	// Get page code (0x00 is valid from the beginning)
 	page = cdb[2] & 0x3f;
 	if (page == 0x00) {
-        //** printf("MODESENSE: Page code: OK %02X\n", cdb[2]);
 		valid = TRUE;
 	} else {
-        //** printf("MODESENSE: Invalid page code received %02X\n", cdb[2]);
 		valid = FALSE;
 	}
 
@@ -1373,7 +1371,6 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 
 	// DEVICE SPECIFIC PARAMETER
 	if (disk.writep) {
-        //** printf("MODESENSE: Write protect\n");
 		buf[2] = 0x80;
 	}
 
@@ -1384,7 +1381,6 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 
 		// Only if ready
 		if (disk.ready) {
-            //** printf("MODESENSE: Disk is ready\n");
 			// Block descriptor (number of blocks)
 			buf[5] = (BYTE)(disk.blocks >> 16);
 			buf[6] = (BYTE)(disk.blocks >> 8);
@@ -1461,12 +1457,9 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 
 	// Unsupported page
 	if (!valid) {
-	//** printf("MODESENSE: Something was invalid...\n");
 		disk.code = DISK_INVALIDCDB;
 		return 0;
 	}
-
-	//** printf("MODESENSE: mode sense length is %d\n",length);
 
 	// MODE SENSE success
 	disk.code = DISK_NOERROR;
@@ -2829,7 +2822,7 @@ BOOL FASTCALL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 		cylinders = (int)(size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
-	} else if (xstrcasecmp(ext, _T(".HDI")) == 0) { // Anex86 HD image?
+	} else if (xstrcasecmp(ext, _T(".HDI")) == 0) { // Anex86 HD image? 
 		imgoffset = getDwordLE(&hdr[4 + 4]);
 		imgsize = getDwordLE(&hdr[4 + 4 + 4]);
 		sectorsize = getDwordLE(&hdr[4 + 4 + 4 + 4]);
@@ -2953,7 +2946,7 @@ int FASTCALL SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 		// 1ゾーンのトラック数を設定(PC-9801-55はこの値を見ているようだ)
 		buf[0x2] = (BYTE)(heads >> 8);
 		buf[0x3] = (BYTE)heads;
-
+		
 		// 1トラックのセクタ数を設定
 		buf[0xa] = (BYTE)(sectors >> 8);
 		buf[0xb] = (BYTE)sectors;
@@ -2996,7 +2989,7 @@ int FASTCALL SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 		buf[0x2] = (BYTE)(cylinders >> 16);
 		buf[0x3] = (BYTE)(cylinders >> 8);
 		buf[0x4] = (BYTE)cylinders;
-
+		
 		// ヘッド数を設定
 		buf[0x5] = (BYTE)heads;
 	}
@@ -3410,29 +3403,29 @@ int FASTCALL SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 		mode page code 20h - Vendor Unique Format Page
 		format mode XXh type 0
 		information: http://h20628.www2.hp.com/km-ext/kmcsdirect/emr_na-lpg28560-1.pdf
-
+		
 		offset  description
 		  02h   format mode
 		  03h   type of format (0)
 		04~07h  size of user band (total sectors?)
 		08~09h  size of spare band (spare sectors?)
 		0A~0Bh  number of bands
-
+		
 		actual value of each 3.5inches optical medium (grabbed by Fujitsu M2513EL)
-
+		
 		                     128M     230M    540M    640M
 		---------------------------------------------------
 		size of user band   3CBFAh   6CF75h  FE45Ch  4BC50h
 		size of spare band   0400h    0401h   08CAh   08C4h
 		number of bands      0001h    000Ah   0012h   000Bh
-
+		
 		further information: http://r2089.blog36.fc2.com/blog-entry-177.html
 	*/
 
 	if (disk.ready) {
 		unsigned spare = 0;
 		unsigned bands = 0;
-
+		
 		if (disk.size == 9) switch (disk.blocks) {
 			// 128MB
 			case 248826:
@@ -4135,7 +4128,7 @@ int FASTCALL SCSICD::Inquiry(
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 42;	// Required
+	buf[4] = 36 - 5;	// Required
 
 	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);
@@ -4144,16 +4137,34 @@ int FASTCALL SCSICD::Inquiry(
 	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
 
 	// Product name
-	memcpy(&buf[16], "CD-ROM CDU-8003A", 16);
+	memcpy(&buf[16], "CD-ROM CDU-55S", 14);
 
 	// Revision (XM6 version number)
-//	sprintf(rev, "1.9a",
-	//			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-	memcpy(&buf[32], "1.9a", 4);
-
-	//strcpy(&buf[35],"A1.9a");
-	buf[36]=0x20;
-	memcpy(&buf[37],"1999/01/01",10);
+	sprintf(rev, "0%01d%01d%01d",
+				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
+	memcpy(&buf[32], rev, 4);
+//
+// The following code worked with the modified Apple CD-ROM drivers. Need to
+// test with the original code to see if it works as well....
+//	buf[4] = 42;	// Required
+//
+//	// Fill with blanks
+//	memset(&buf[8], 0x20, buf[4] - 3);
+//
+//	// Vendor name
+//	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
+//
+//	// Product name
+//	memcpy(&buf[16], "CD-ROM CDU-8003A", 16);
+//
+//	// Revision (XM6 version number)
+////	sprintf(rev, "1.9a",
+//	////			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
+//	memcpy(&buf[32], "1.9a", 4);
+//
+//	//strcpy(&buf[35],"A1.9a");
+//	buf[36]=0x20;
+//	memcpy(&buf[37],"1999/01/01",10);
 
 	// Size of data that can be returned
 	size = (buf[4] + 5);
@@ -4533,7 +4544,6 @@ void FASTCALL SCSICD::GetBuf(
 {
 	ASSERT(this);
 }
-
 
 //===========================================================================
 //
@@ -5003,7 +5013,7 @@ void FASTCALL SCSIBR::FS_CheckDir(BYTE *buf)
 
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-
+	
 	fsresult = fs->CheckDir(nUnit, pNamests);
 }
 
@@ -5027,10 +5037,10 @@ void FASTCALL SCSIBR::FS_MakeDir(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-
+	
 	fsresult = fs->MakeDir(nUnit, pNamests);
 }
 
@@ -5054,10 +5064,10 @@ void FASTCALL SCSIBR::FS_RemoveDir(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-
+	
 	fsresult = fs->RemoveDir(nUnit, pNamests);
 }
 
@@ -5082,13 +5092,13 @@ void FASTCALL SCSIBR::FS_Rename(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	pNamestsNew = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-
+	
 	fsresult = fs->Rename(nUnit, pNamests, pNamestsNew);
 }
 
@@ -5112,10 +5122,10 @@ void FASTCALL SCSIBR::FS_Delete(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-
+	
 	fsresult = fs->Delete(nUnit, pNamests);
 }
 
@@ -5140,14 +5150,14 @@ void FASTCALL SCSIBR::FS_Attribute(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	dp = (DWORD*)&buf[i];
 	nHumanAttribute = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	fsresult = fs->Attribute(nUnit, pNamests, nHumanAttribute);
 }
 
@@ -5177,7 +5187,7 @@ void FASTCALL SCSIBR::FS_Files(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
@@ -5284,7 +5294,7 @@ void FASTCALL SCSIBR::FS_Create(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
@@ -5346,7 +5356,7 @@ void FASTCALL SCSIBR::FS_Open(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
@@ -5399,7 +5409,7 @@ void FASTCALL SCSIBR::FS_Close(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
@@ -5448,7 +5458,7 @@ void FASTCALL SCSIBR::FS_Read(BYTE *buf)
 
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
-
+	
 	dp = (DWORD*)&buf[i];
 	nSize = ntohl(*dp);
 	i += sizeof(DWORD);
@@ -5497,7 +5507,7 @@ void FASTCALL SCSIBR::FS_Write(BYTE *buf)
 	dp = (DWORD*)buf;
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
@@ -5549,7 +5559,7 @@ void FASTCALL SCSIBR::FS_Seek(BYTE *buf)
 	dp = (DWORD*)buf;
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
@@ -5608,7 +5618,7 @@ void FASTCALL SCSIBR::FS_TimeStamp(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
@@ -5689,10 +5699,10 @@ void FASTCALL SCSIBR::FS_CtrlDrive(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	pCtrlDrive = (Human68k::ctrldrive_t*)&buf[i];
 	i += sizeof(Human68k::ctrldrive_t);
-
+	
 	fsresult = fs->CtrlDrive(nUnit, pCtrlDrive);
 
 	memcpy(fsout, pCtrlDrive, sizeof(Human68k::ctrldrive_t));
@@ -5719,7 +5729,7 @@ void FASTCALL SCSIBR::FS_GetDPB(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	fsresult = fs->GetDPB(nUnit, &dpb);
 
 	dpb.sector_size = htons(dpb.sector_size);
@@ -5762,7 +5772,7 @@ void FASTCALL SCSIBR::FS_DiskRead(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nSize = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	fsresult = fs->DiskRead(nUnit, fsout, nSector, nSize);
 	fsoutlen = 0x200;
 }
@@ -5786,7 +5796,7 @@ void FASTCALL SCSIBR::FS_DiskWrite(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	fsresult = fs->DiskWrite(nUnit);
 }
 
@@ -5863,7 +5873,7 @@ void FASTCALL SCSIBR::FS_Flush(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	fsresult = fs->Flush(nUnit);
 }
 
@@ -5886,7 +5896,7 @@ void FASTCALL SCSIBR::FS_CheckMedia(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	fsresult = fs->CheckMedia(nUnit);
 }
 
@@ -5909,7 +5919,7 @@ void FASTCALL SCSIBR::FS_Lock(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-
+	
 	fsresult = fs->Lock(nUnit);
 }
 
@@ -6474,13 +6484,7 @@ void FASTCALL SASIDEV::Command()
 #ifdef RASCSI
 		// Command reception handshake (10 bytes are automatically received at the first command)
 		count = ctrl.bus->CommandHandShake(ctrl.buffer);
-		//** printf("Command received: " );
-		//** for(int i=0; i< count; i++)
-		//** {
-		//**    printf("%02X ", ctrl.buffer[i]);
-		//** }
-		//** printf("\n");
-
+	
 		// If no byte can be received move to the status phase
 		if (count == 0) {
 			Error();
@@ -6668,8 +6672,8 @@ void FASTCALL SASIDEV::Status()
 
 #ifndef RASCSI
 		// Request status
-//		ctrl.bus->SetDAT(ctrl.buffer[0]);
-//		ctrl.bus->SetREQ(TRUE);
+		ctrl.bus->SetDAT(ctrl.buffer[0]);
+		ctrl.bus->SetREQ(TRUE);
 
 #if defined(DISK_LOG)
 		Log(Log::Normal, "Status Phase $%02X", ctrl.status);
@@ -7302,7 +7306,7 @@ void FASTCALL SASIDEV::CmdAssign()
 		return;
 	}
 
-	// 4Request 4 bytes of data
+	// Request 4 bytes of data
 	ctrl.length = 4;
 
 	// Write phase
@@ -7712,14 +7716,7 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 			// Read from disk
 			ctrl.length = ctrl.unit[lun]->Read(buf, ctrl.next);
 			ctrl.next++;
-
-			//** printf("XferIn read data from disk: ");
-			//** for (int i=0; i<ctrl.length; i++)
-			//** {
-                //** printf("%02X ", ctrl.buffer[i]);
-			//** }
-			//** printf("\n");
-
+	
 			// If there is an error, go to the status phase
 			if (ctrl.length <= 0) {
 				// Cancel data-in
@@ -7860,12 +7857,13 @@ void FASTCALL SASIDEV::FlushUnit()
 			}
 			break;
 		default:
-            printf("Received an invalid flush command %02X!!!!!\n",ctrl.cmd[0]);
+			printf("Received an invalid flush command %08X!!!!!\n",ctrl.cmd[0]);
 			ASSERT(FALSE);
 			break;
 	}
 }
 
+#ifdef DISK_LOG
 //---------------------------------------------------------------------------
 //
 //	Get the current phase as a string
@@ -7913,11 +7911,13 @@ void SASIDEV::GetPhaseStr(char *str)
         break;
     }
 }
+#endif
 
 //---------------------------------------------------------------------------
 //
 //	Log output
 //
+// TODO: This function needs some cleanup. Its very kludgey
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 {
@@ -7942,6 +7942,7 @@ void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 #endif	// DISK_LOG
 #endif	// RASCSI
 
+#ifdef DISK_LOG
 	// format
 	vsprintf(buffer, format, args);
 
@@ -7975,6 +7976,7 @@ void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 	host->GetVM()->GetLog()->Format(level, host, buffer);
 #endif	// RASCSI
 #endif	// BAREMETAL
+#endif	// DISK_LOG
 }
 
 //===========================================================================
@@ -8029,7 +8031,6 @@ void FASTCALL SCSIDEV::Reset()
 BUS::phase_t FASTCALL SCSIDEV::Process()
 {
 	ASSERT(this);
-	//** printf("SCSIDEV::Process() %d\n", ctrl.id);
 
 	// Do nothing if not connected
 	if (ctrl.id < 0 || ctrl.bus == NULL) {
@@ -8589,13 +8590,6 @@ void FASTCALL SCSIDEV::CmdModeSense()
 #if defined(DISK_LOG)
 	Log(Log::Normal, "MODE SENSE Command ");
 #endif	// DISK_LOG
-
-    //** printf("Received a Mode Sense command. Contents....");
-    //** for(int i=0; i<10; i++)
-    //** {
-    //**     printf("%08X ", ctrl.cmd[i]);
-    //** }
-    //** printf("\n");
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;

@@ -229,8 +229,6 @@ public:
 										// NULL check
 	BOOL FASTCALL IsSASI() const;
 										// SASI Check
-    virtual BOOL FASTCALL IsMonitor() const     {return FALSE;}
-                        // Check if this is a monitor device
 
 	// Media Operations
 	virtual BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
@@ -922,8 +920,10 @@ public:
 	// Other
 	BUS::phase_t FASTCALL GetPhase() {return ctrl.phase;}
 										// Get the phase
-
+#ifdef DISK_LOG
+	// Function to get the current phase as a String.
 	void FASTCALL GetPhaseStr(char *str);
+#endif
 
 	int FASTCALL GetID() {return ctrl.id;}
 										// Get the ID
@@ -935,8 +935,6 @@ public:
 										// SASI Check
 	virtual BOOL FASTCALL IsSCSI() const {return FALSE;}
 										// SCSI check
-    virtual BOOL FASTCALL IsMonitor() const {return FALSE;}
-										// Check to see if this is a monitor device
 	Disk* FASTCALL GetBusyUnit();
 										// Get the busy unit
 

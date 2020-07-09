@@ -79,7 +79,7 @@ void Banner(int argc, char* argv[])
 	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
-	    (argc > 1 && strcmp(argv[1], "--help") == 0)){
+		(argc > 1 && strcmp(argv[1], "--help") == 0)){
 		FPRT(stdout,"\n");
 		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is SCSI identification number(0-7).\n");
@@ -154,7 +154,7 @@ BOOL Init()
 
 	// GPIOBUS creation
 	bus = new GPIOBUS();
-
+	
 	// GPIO Initialization
 	if (!bus->Init()) {
 		return FALSE;
@@ -207,7 +207,7 @@ void Cleanup()
 
 	// Cleanup the Bus
 	bus->Cleanup();
-
+	
 	// Discard the GPIOBUS object
 	delete bus;
 
@@ -307,7 +307,7 @@ void ListDevice(FILE *fp)
 		FPRT(fp, "No device is installed.\n");
 		return;
 	}
-
+	
 	FPRT(fp, "+----+----+------+-------------------------------------\n");
 }
 
@@ -863,7 +863,7 @@ static void *MonThread(void *param)
 {
 	struct sched_param schedparam;
 	struct sockaddr_in client;
-	socklen_t len;
+	socklen_t len; 
 	int fd;
 	FILE *fp;
 	char buf[BUFSIZ];
@@ -893,8 +893,8 @@ static void *MonThread(void *param)
 
 	while (1) {
 		// Wait for connection
-		memset(&client, 0, sizeof(client));
-		len = sizeof(client);
+		memset(&client, 0, sizeof(client)); 
+		len = sizeof(client); 
 		fd = accept(monsocket, (struct sockaddr*)&client, &len);
 		if (fd < 0) {
 			break;
