@@ -1,3 +1,7 @@
+!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
+!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating
+
+
 rascsi(1)                                      General Commands Manual                                     rascsi(1)
 
 NAME

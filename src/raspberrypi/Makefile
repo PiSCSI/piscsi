@@ -119,7 +119,9 @@ $(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
 	sudo cp $< $@
 
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
-	man -l $< | col -bx > $@
+	@echo "!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!" > $@
+	@echo "!!   ------ The native file is $(notdir $<). Re-run 'make docs' after updating\n\n" >> $@
+	man -l $< | col -bx >> $@
 
 .PHONY: Debug
 Debug: scsimon
