@@ -5,7 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ 制御コマンド送信 ]
+//	[ Send Control Command ]
 //
 //---------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	コマンド送信
+//	Send Command
 //
 //---------------------------------------------------------------------------
 BOOL SendCommand(char *buf)
@@ -22,26 +22,26 @@ BOOL SendCommand(char *buf)
 	struct sockaddr_in server;
 	FILE *fp;
 
-	// コマンド用ソケット生成
+	// Create a socket to send the command
 	fd = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
 	server.sin_port   = htons(6868);
 	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK); 
 
-	// 接続
+	// Connect
 	if (connect(fd, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
 		fprintf(stderr, "Error : Can't connect to rascsi process\n");
 		return FALSE;
 	}
 
-	// 送信
+	// Send the command
 	fp = fdopen(fd, "r+");
 	setvbuf(fp, NULL, _IONBF, 0);
 	fprintf(fp, buf);
 
-	// メッセージ受信
+	// Receive the message
 	while (1) {
 		if (fgets((char *)buf, BUFSIZ, fp) == NULL) {
 			break;
@@ -49,7 +49,7 @@ BOOL SendCommand(char *buf)
 		printf("%s", buf);
 	}
 
-	// ソケットを閉じる
+	// Close the socket when we're done
 	fclose(fp);
 	close(fd);
 
@@ -58,7 +58,7 @@ BOOL SendCommand(char *buf)
 
 //---------------------------------------------------------------------------
 //
-//	主処理
+//	Main processing
 //
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
 	file = NULL;
 	list = FALSE;
 
-	// ヘルプの表示
+	// Display help
 	if (argc < 2) {
 		fprintf(stderr, "SCSI Target Emulator RaSCSI Controller\n");
 		fprintf(stderr,
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 
-	// 引数解析
+	// Parse the arguments
 	opterr = 0;
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:l")) != -1) {
 		switch (opt) {
@@ -168,34 +168,34 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// リスト表示のみ
+	// List display only
 	if (id < 0 && cmd < 0 && type < 0 && file == NULL && list) {
 		sprintf(buf, "list\n");
 		SendCommand(buf);
 		exit(0);
 	}
 
-	// IDチェック
+	// Check the ID number
 	if (id < 0 || id > 7) {
 		fprintf(stderr, "Error : Invalid ID\n");
 		exit(EINVAL);
 	}
 
-	// ユニットチェック
+	// Check the unit number
 	if (un < 0 || un > 1) {
 		fprintf(stderr, "Error : Invalid UNIT\n");
 		exit(EINVAL);
 	}
 
-	// コマンドチェック
+	// Command check
 	if (cmd < 0) {
-		cmd = 0;	// デフォルトはATTATCHとする
+		cmd = 0;	// Default command is ATTATCH
 	}
 
-	// タイプチェック
+	// Type Check
 	if (cmd == 0 && type < 0) {
 
-		// 拡張子からタイプ判別を試みる
+		// Try to determine the file type from the extension
 		len = file ? strlen(file) : 0;
 		if (len > 4 && file[len - 4] == '.') {
 			ext = &file[len - 3];
@@ -222,7 +222,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// ファイルチェック(コマンドはATTACHでタイプはHD)
+	// File check (command is ATTACH and type is HD)
 	if (cmd == 0 && type >= 0 && type <= 1) {
 		if (!file) {
 			fprintf(stderr, "Error : Invalid file path\n");
@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// ファイルチェック(コマンドはINSERT)
+	// File check (command is INSERT)
 	if (cmd == 2) {
 		if (!file) {
 			fprintf(stderr, "Error : Invalid file path\n");
@@ -238,23 +238,23 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// 必要でないtypeは0としておく
+	// Set unnecessary type to 0
 	if (type < 0) {
 		type = 0;
 	}
 
-	// 送信コマンド生成
+	// Generate the command and send it
 	sprintf(buf, "%d %d %d %d %s\n", id, un, cmd, type, file ? file : "-");
 	if (!SendCommand(buf)) {
 		exit(ENOTCONN);
 	}
 
-	// リスト表示
+	// Display the list
 	if (list) {
 		sprintf(buf, "list\n");
 		SendCommand(buf);
 	}
 
-	// 終了
+	// All done!
 	exit(0);
 }

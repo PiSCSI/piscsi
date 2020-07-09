@@ -9,8 +9,9 @@
 //	Copyright (C) 2010-2015 isaki@NetBSD.org
 //
 //  Imported sava's Anex86/T98Next image and MO format support patch.
+//  Comments translated to english by akuker.
 //
-//	[ ディスク ]
+//	[ Disk ]
 //
 //---------------------------------------------------------------------------
 
@@ -22,12 +23,12 @@
 
 //---------------------------------------------------------------------------
 //
-//	エラー定義(REQUEST SENSEで返されるセンスコード)
+//	Error definition (sense code returned by REQUEST SENSE)
 //
-//	MSB		予約(0x00)
-//			センスキー
-//			拡張センスコード(ASC)
-//	LSB		拡張センスコードクォリファイア(ASCQ)
+//	MSB		Reserved (0x00)
+//			Sense Key
+//			Additional Sense Code (ASC)
+//	LSB		Additional Sense Code Qualifier(ASCQ)
 //
 //---------------------------------------------------------------------------
 #define DISK_NOERROR		0x00000000	// NO ADDITIONAL SENSE INFO.
@@ -60,549 +61,549 @@
 
 //===========================================================================
 //
-//	ディスクトラック
+//	Disk Track
 //
 //===========================================================================
 class DiskTrack
 {
 public:
-	// 内部データ定義
+	// Internal data definition
 	typedef struct {
-		int track;						// トラックナンバー
-		int size;						// セクタサイズ(8 or 9)
-		int sectors;					// セクタ数(<=0x100)
-		DWORD length;					// データバッファ長
-		BYTE *buffer;					// データバッファ
-		BOOL init;						// ロード済みか
-		BOOL changed;					// 変更済みフラグ
-		DWORD maplen;					// 変更済みマップ長
-		BOOL *changemap;				// 変更済みマップ
-		BOOL raw;						// RAWモード
-		off64_t imgoffset;				// 実データまでのオフセット
+		int track;						// Track Number
+		int size;						// Sector Size(8 or 9)
+		int sectors;					// Number of sectors(<=0x100)
+		DWORD length;					// Data buffer length
+		BYTE *buffer;					// Data buffer
+		BOOL init;						// Is it initilized?
+		BOOL changed;					// Changed flag
+		DWORD maplen;					// Changed map length
+		BOOL *changemap;				// Changed map
+		BOOL raw;						// RAW mode flag
+		off64_t imgoffset;				// Offset to actual data
 	} disktrk_t;
 
 public:
-	// 基本ファンクション
+	// Basic Functions
 	DiskTrack();
-										// コンストラクタ
+										// Constructor
 	virtual ~DiskTrack();
-										// デストラクタ
+										// Destructor
 	void FASTCALL Init(int track, int size, int sectors, BOOL raw = FALSE,
 														 off64_t imgoff = 0);
-										// 初期化
+										// Initialization
 	BOOL FASTCALL Load(const Filepath& path);
-										// ロード
+										// Load
 	BOOL FASTCALL Save(const Filepath& path);
-										// セーブ
+										// Save
 
-	// リード・ライト
+	// Read / Write
 	BOOL FASTCALL Read(BYTE *buf, int sec) const;
-										// セクタリード
+										// Sector Read
 	BOOL FASTCALL Write(const BYTE *buf, int sec);
-										// セクタライト
+										// Sector Write
 
-	// その他
+	// Other
 	int FASTCALL GetTrack() const		{ return dt.track; }
-										// トラック取得
+										// Get track
 	BOOL FASTCALL IsChanged() const		{ return dt.changed; }
-										// 変更フラグチェック
+										// Changed flag check
 
 private:
-	// 内部データ
+	// Internal data
 	disktrk_t dt;
-										// 内部データ
+										// Internal data
 };
 
 //===========================================================================
 //
-//	ディスクキャッシュ
+//	Disk Cache
 //
 //===========================================================================
 class DiskCache
 {
 public:
-	// 内部データ定義
+	// Internal data definition
 	typedef struct {
-		DiskTrack *disktrk;				// 割り当てトラック
-		DWORD serial;					// 最終シリアル
+		DiskTrack *disktrk;				// Disk Track
+		DWORD serial;					// Serial
 	} cache_t;
 
-	// キャッシュ数
+	// Number of caches
 	enum {
-		CacheMax = 16					// キャッシュするトラック数
+		CacheMax = 16					// Number of tracks to cache
 	};
 
 public:
-	// 基本ファンクション
+	// Basic Functions
 	DiskCache(const Filepath& path, int size, int blocks,
 														off64_t imgoff = 0);
-										// コンストラクタ
+										// Constructor
 	virtual ~DiskCache();
-										// デストラクタ
+										// Destructor
 	void FASTCALL SetRawMode(BOOL raw);
-										// CD-ROM rawモード設定
+										// CD-ROM raw mode setting
 
-	// アクセス
+	// Access
 	BOOL FASTCALL Save();
-										// 全セーブ＆解放
+										// Save and release all
 	BOOL FASTCALL Read(BYTE *buf, int block);
-										// セクタリード
+										// Sector Read
 	BOOL FASTCALL Write(const BYTE *buf, int block);
-										// セクタライト
+										// Sector Write
 	BOOL FASTCALL GetCache(int index, int& track, DWORD& serial) const;
-										// キャッシュ情報取得
+										// Get cache information
 
 private:
-	// 内部管理
+	// Internal Management
 	void FASTCALL Clear();
-										// トラックをすべてクリア
+										// Clear all tracks
 	DiskTrack* FASTCALL Assign(int track);
-										// トラックのロード
+										// Load track
 	BOOL FASTCALL Load(int index, int track, DiskTrack *disktrk = NULL);
-										// トラックのロード
+										// Load track
 	void FASTCALL Update();
-										// シリアル番号更新
+										// Update serial number
 
-	// 内部データ
+	// Internal data
 	cache_t cache[CacheMax];
-										// キャッシュ管理
+										// Cache management
 	DWORD serial;
-										// 最終アクセスシリアルナンバ
+										// Last serial number
 	Filepath sec_path;
-										// パス
+										// Path
 	int sec_size;
-										// セクタサイズ(8 or 9 or 11)
+										// Sector size (8 or 9 or 11)
 	int sec_blocks;
-										// セクタブロック数
+										// Blocks per sector
 	BOOL cd_raw;
-										// CD-ROM RAWモード
+										// CD-ROM RAW mode
 	off64_t imgoffset;
-										// 実データまでのオフセット
+										// Offset to actual data
 };
 
 //===========================================================================
 //
-//	ディスク
+//	Disk
 //
 //===========================================================================
 class Disk
 {
 public:
-	// 内部ワーク
+	// Internal data structure
 	typedef struct {
-		DWORD id;						// メディアID
-		BOOL ready;						// 有効なディスク
-		BOOL writep;					// 書き込み禁止
-		BOOL readonly;					// 読み込み専用
-		BOOL removable;					// 取り外し
-		BOOL lock;						// ロック
-		BOOL attn;						// アテンション
-		BOOL reset;						// リセット
-		int size;						// セクタサイズ
-		DWORD blocks;					// 総セクタ数
+		DWORD id;						// Media ID
+		BOOL ready;						// Valid Disk
+		BOOL writep;					// Write protected
+		BOOL readonly;					// Read only
+		BOOL removable;					// Removable
+		BOOL lock;						// Locked
+		BOOL attn;						// Attention
+		BOOL reset;						// Reset
+		int size;						// Sector Size
+		DWORD blocks;					// Total number of sectors
 		DWORD lun;						// LUN
-		DWORD code;						// ステータスコード
-		DiskCache *dcache;				// ディスクキャッシュ
-		off64_t imgoffset;				// 実データまでのオフセット
+		DWORD code;						// Status code
+		DiskCache *dcache;				// Disk cache
+		off64_t imgoffset;				// Offset to actual data
 	} disk_t;
 
 public:
-	// 基本ファンクション
+	// Basic Functions
 	Disk();
-										// コンストラクタ
+										// Constructor
 	virtual ~Disk();
-										// デストラクタ
+										// Destructor
 	virtual void FASTCALL Reset();
-										// デバイスリセット
+										// Device Reset
 #ifndef RASCSI
 	virtual BOOL FASTCALL Save(Fileio *fio, int ver);
-										// セーブ
+										// Save
 	virtual BOOL FASTCALL Load(Fileio *fio, int ver);
-										// ロード
+										// Load
 #endif	// RASCSI
 
 	// ID
 	DWORD FASTCALL GetID() const		{ return disk.id; }
-										// メディアID取得
+										// Get media ID
 	BOOL FASTCALL IsNULL() const;
-										// NULLチェック
+										// NULL check
 	BOOL FASTCALL IsSASI() const;
-										// SASIチェック
+										// SASI Check
 
-	// メディア操作
+	// Media Operations
 	virtual BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
-										// オープン
+										// Open
 	void FASTCALL GetPath(Filepath& path) const;
-										// パス取得
+										// Get the path
 	void FASTCALL Eject(BOOL force);
-										// イジェクト
+										// Eject
 	BOOL FASTCALL IsReady() const		{ return disk.ready; }
-										// Readyチェック
+										// Ready check
 	void FASTCALL WriteP(BOOL flag);
-										// 書き込み禁止
+										// Set Write Protect flag
 	BOOL FASTCALL IsWriteP() const		{ return disk.writep; }
-										// 書き込み禁止チェック
+										// Get write protect flag
 	BOOL FASTCALL IsReadOnly() const	{ return disk.readonly; }
-										// Read Onlyチェック
+										// Get read only flag
 	BOOL FASTCALL IsRemovable() const	{ return disk.removable; }
-										// リムーバブルチェック
+										// Get is removable flag
 	BOOL FASTCALL IsLocked() const		{ return disk.lock; }
-										// ロックチェック
+										// Get locked status
 	BOOL FASTCALL IsAttn() const		{ return disk.attn; }
-										// 交換チェック
+										// Get attention flag
 	BOOL FASTCALL Flush();
-										// キャッシュフラッシュ
+										// Flush the cache
 	void FASTCALL GetDisk(disk_t *buffer) const;
-										// 内部ワーク取得
+										// Get the internal data struct
 
-	// プロパティ
+	// Properties
 	void FASTCALL SetLUN(DWORD lun)		{ disk.lun = lun; }
-										// LUNセット
+										// LUN set
 	DWORD FASTCALL GetLUN()				{ return disk.lun; }
-										// LUN取得
-	// コマンド
+										// LUN get
+	// commands
 	virtual int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
-										// INQUIRYコマンド
+										// INQUIRY command
 	virtual int FASTCALL RequestSense(const DWORD *cdb, BYTE *buf);
-										// REQUEST SENSEコマンド
+										// REQUEST SENSE command
 	int FASTCALL SelectCheck(const DWORD *cdb);
-										// SELECTチェック
+										// SELECT check
 	int FASTCALL SelectCheck10(const DWORD *cdb);
-										// SELECT(10)チェック
+										// SELECT(10) check
 	virtual BOOL FASTCALL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
-										// MODE SELECTコマンド
+										// MODE SELECT command
 	virtual int FASTCALL ModeSense(const DWORD *cdb, BYTE *buf);
-										// MODE SENSEコマンド
+										// MODE SENSE command
 	virtual int FASTCALL ModeSense10(const DWORD *cdb, BYTE *buf);
-										// MODE SENSE(10)コマンド
+										// MODE SENSE(10) command
 	int FASTCALL ReadDefectData10(const DWORD *cdb, BYTE *buf);
-										// READ DEFECT DATA(10)コマンド
+										// READ DEFECT DATA(10) command
 	virtual BOOL FASTCALL TestUnitReady(const DWORD *cdb);
-										// TEST UNIT READYコマンド
+										// TEST UNIT READY command
 	BOOL FASTCALL Rezero(const DWORD *cdb);
-										// REZEROコマンド
+										// REZERO command
 	BOOL FASTCALL Format(const DWORD *cdb);
-										// FORMAT UNITコマンド
+										// FORMAT UNIT command
 	BOOL FASTCALL Reassign(const DWORD *cdb);
-										// REASSIGN UNITコマンド
+										// REASSIGN UNIT command
 	virtual int FASTCALL Read(BYTE *buf, DWORD block);
-										// READコマンド
+										// READ command
 	int FASTCALL WriteCheck(DWORD block);
-										// WRITEチェック
+										// WRITE check
 	BOOL FASTCALL Write(const BYTE *buf, DWORD block);
-										// WRITEコマンド
+										// WRITE command
 	BOOL FASTCALL Seek(const DWORD *cdb);
-										// SEEKコマンド
+										// SEEK command
 	BOOL FASTCALL Assign(const DWORD *cdb);
-										// ASSIGNコマンド
+										// ASSIGN command
 	BOOL FASTCALL Specify(const DWORD *cdb);
-										// SPECIFYコマンド
+										// SPECIFY command
 	BOOL FASTCALL StartStop(const DWORD *cdb);
-										// START STOP UNITコマンド
+										// START STOP UNIT command
 	BOOL FASTCALL SendDiag(const DWORD *cdb);
-										// SEND DIAGNOSTICコマンド
+										// SEND DIAGNOSTIC command
 	BOOL FASTCALL Removal(const DWORD *cdb);
-										// PREVENT/ALLOW MEDIUM REMOVALコマンド
+										// PREVENT/ALLOW MEDIUM REMOVAL command
 	int FASTCALL ReadCapacity(const DWORD *cdb, BYTE *buf);
-										// READ CAPACITYコマンド
+										// READ CAPACITY command
 	BOOL FASTCALL Verify(const DWORD *cdb);
-										// VERIFYコマンド
+										// VERIFY command
 	virtual int FASTCALL ReadToc(const DWORD *cdb, BYTE *buf);
-										// READ TOCコマンド
+										// READ TOC command
 	virtual BOOL FASTCALL PlayAudio(const DWORD *cdb);
-										// PLAY AUDIOコマンド
+										// PLAY AUDIO command
 	virtual BOOL FASTCALL PlayAudioMSF(const DWORD *cdb);
-										// PLAY AUDIO MSFコマンド
+										// PLAY AUDIO MSF command
 	virtual BOOL FASTCALL PlayAudioTrack(const DWORD *cdb);
-										// PLAY AUDIO TRACKコマンド
+										// PLAY AUDIO TRACK command
 	void FASTCALL InvalidCmd()			{ disk.code = DISK_INVALIDCMD; }
-										// サポートしていないコマンド
+										// Unsupported command
 
-	// その他
+	// Other
 	BOOL IsCacheWB() { return cache_wb; }
-										// キャッシュモード取得
+										// Get cache writeback mode
 	void SetCacheWB(BOOL enable) { cache_wb = enable; }
-										// キャッシュモード設定
+										// Set cache writeback mode
 
 protected:
-	// サブ処理
+	// Internal processing
 	virtual int FASTCALL AddError(BOOL change, BYTE *buf);
-										// エラーページ追加
+										// Add error
 	virtual int FASTCALL AddFormat(BOOL change, BYTE *buf);
-										// フォーマットページ追加
+										// Add format
 	virtual int FASTCALL AddDrive(BOOL change, BYTE *buf);
-										// ドライブページ追加
+										// Add drive
 	int FASTCALL AddOpt(BOOL change, BYTE *buf);
-										// オプティカルページ追加
+										// Add optical
 	int FASTCALL AddCache(BOOL change, BYTE *buf);
-										// キャッシュページ追加
+										// Add cache
 	int FASTCALL AddCDROM(BOOL change, BYTE *buf);
-										// CD-ROMページ追加
+										// Add CD-ROM
 	int FASTCALL AddCDDA(BOOL change, BYTE *buf);
-										// CD-DAページ追加
+										// Add CD_DA
 	virtual int FASTCALL AddVendor(int page, BOOL change, BYTE *buf);
-										// ベンダ特殊ページ追加
+										// Add vendor special info
 	BOOL FASTCALL CheckReady();
-										// レディチェック
+										// Check if ready
 
-	// 内部データ
+	// Internal data
 	disk_t disk;
-										// ディスク内部データ
+										// Internal disk data
 	Filepath diskpath;
-										// パス(GetPath用)
+										// File path (for GetPath)
 	BOOL cache_wb;
-										// キャッシュモード
+										// Cache mode
 };
 
 //===========================================================================
 //
-//	SASI ハードディスク
+//	SASI Hard Disk
 //
 //===========================================================================
 class SASIHD : public Disk
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	SASIHD();
-										// コンストラクタ
+										// Constructor
 	void FASTCALL Reset();
-										// リセット
+										// Reset
 	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
-										// オープン
-	// コマンド
+										// Open
+	// commands
 	int FASTCALL RequestSense(const DWORD *cdb, BYTE *buf);
-										// REQUEST SENSEコマンド
+										// REQUEST SENSE command
 };
 
 //===========================================================================
 //
-//	SCSI ハードディスク
+//	SCSI Hard Disk
 //
 //===========================================================================
 class SCSIHD : public Disk
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	SCSIHD();
-										// コンストラクタ
+										// Constructor
 	void FASTCALL Reset();
-										// リセット
+										// Reset
 	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
-										// オープン
+										// Open
 
-	// コマンド
+	// commands
 	int FASTCALL Inquiry(
 		const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
-										// INQUIRYコマンド
+										// INQUIRY command
 	BOOL FASTCALL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
-										// MODE SELECT(6)コマンド
+										// MODE SELECT(6) command
 };
 
 //===========================================================================
 //
-//	SCSI ハードディスク(PC-9801-55 NEC純正/Anex86/T98Next)
+//	SCSI hard disk (PC-9801-55 NEC genuine /Anex86/T98Next)
 //
 //===========================================================================
 class SCSIHD_NEC : public SCSIHD
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	SCSIHD_NEC();
-										// コンストラクタ
+										// Constructor
 
 	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
-										// オープン
+										// Open
 
-	// コマンド
+	// commands
 	int FASTCALL Inquiry(
 		const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
-										// INQUIRYコマンド
+										// INQUIRY command
 
-	// サブ処理
+	// Internal processing
 	int FASTCALL AddError(BOOL change, BYTE *buf);
-										// エラーページ追加
+										// Add error
 	int FASTCALL AddFormat(BOOL change, BYTE *buf);
-										// フォーマットページ追加
+										// Add format
 	int FASTCALL AddDrive(BOOL change, BYTE *buf);
-										// ドライブページ追加
+										// Add drive
 
 private:
 	int cylinders;
-										// シリンダ数
+										// Number of cylinders
 	int heads;
-										// ヘッド数
+										// Number of heads
 	int sectors;
-										// セクタ数
+										// Number of sectors
 	int sectorsize;
-										// セクタサイズ
+										// Sector size
 	off64_t imgoffset;
-										// イメージオフセット
+										// Image offset
 	off64_t imgsize;
-										// イメージサイズ
+										// Image size
 };
 
 //===========================================================================
 //
-//	SCSI ハードディスク(Macintosh Apple純正)
+//	SCSI Hard Disk(Genuine Apple Macintosh)
 //
 //===========================================================================
 class SCSIHD_APPLE : public SCSIHD
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	SCSIHD_APPLE();
-										// コンストラクタ
-	// コマンド
+										// Constructor
+	// commands
 	int FASTCALL Inquiry(
 		const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
-										// INQUIRYコマンド
+										// INQUIRY command
 
-	// サブ処理
+	// Internal processing
 	int FASTCALL AddVendor(int page, BOOL change, BYTE *buf);
-										// ベンダ特殊ページ追加
+										// Add vendor special page
 };
 
 //===========================================================================
 //
-//	SCSI 光磁気ディスク
+//	SCSI magneto-optical disk
 //
 //===========================================================================
 class SCSIMO : public Disk
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	SCSIMO();
-										// コンストラクタ
+										// Constructor
 	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
-										// オープン
+										// Open
 #ifndef RASCSI
 	BOOL FASTCALL Load(Fileio *fio, int ver);
-										// ロード
+										// Load
 #endif	// RASCSI
 
-	// コマンド
+	// commands
 	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
-										// INQUIRYコマンド
+										// INQUIRY command
 	BOOL FASTCALL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
-										// MODE SELECT(6)コマンド
+										// MODE SELECT(6) command
 
-	// サブ処理
+	// Internal processing
 	int FASTCALL AddVendor(int page, BOOL change, BYTE *buf);
-										// ベンダ特殊ページ追加
+										// Add vendor special page
 };
 
 //---------------------------------------------------------------------------
 //
-//	クラス先行定義
+//	Class precedence definition
 //
 //---------------------------------------------------------------------------
 class SCSICD;
 
 //===========================================================================
 //
-//	CD-ROM トラック
+//	CD-ROM Track
 //
 //===========================================================================
 class CDTrack
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	CDTrack(SCSICD *scsicd);
-										// コンストラクタ
+										// Constructor
 	virtual ~CDTrack();
-										// デストラクタ
+										// Destructor
 	BOOL FASTCALL Init(int track, DWORD first, DWORD last);
-										// 初期化
+										// Initialization
 
-	// プロパティ
+	// Properties
 	void FASTCALL SetPath(BOOL cdda, const Filepath& path);
-										// パス設定
+										// Set the path
 	void FASTCALL GetPath(Filepath& path) const;
-										// パス取得
+										// Get the path
 	void FASTCALL AddIndex(int index, DWORD lba);
-										// インデックス追加
+										// Add index
 	DWORD FASTCALL GetFirst() const;
-										// 開始LBA取得
+										// Get the start LBA
 	DWORD FASTCALL GetLast() const;
-										// 終端LBA取得
+										// Get the last LBA
 	DWORD FASTCALL GetBlocks() const;
-										// ブロック数取得
+										// Get the number of blocks
 	int FASTCALL GetTrackNo() const;
-										// トラック番号取得
+										// Get the track number
 	BOOL FASTCALL IsValid(DWORD lba) const;
-										// 有効なLBAか
+										// Is this a valid LBA?
 	BOOL FASTCALL IsAudio() const;
-										// オーディオトラックか
+										// Is this an audio track?
 
 private:
 	SCSICD *cdrom;
-										// 親デバイス
+										// Parent device
 	BOOL valid;
-										// 有効なトラック
+										// Valid track
 	int track_no;
-										// トラック番号
+										// Track number
 	DWORD first_lba;
-										// 開始LBA
+										// First LBA
 	DWORD last_lba;
-										// 終了LBA
+										// Last LBA
 	BOOL audio;
-										// オーディオトラックフラグ
+										// Audio track flag
 	BOOL raw;
-										// RAWデータフラグ
+										// RAW data flag
 	Filepath imgpath;
-										// イメージファイルパス
+										// Image file path
 };
 
 //===========================================================================
 //
-//	CD-DA バッファ
+//	CD-DA Buffer
 //
 //===========================================================================
 class CDDABuf
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	CDDABuf();
-										// コンストラクタ
+										// Constructor
 	virtual ~CDDABuf();
-										// デストラクタ
+										// Destructor
 #if 0
 	BOOL Init();
-										// 初期化
+										// Initialization
 	BOOL FASTCALL Load(const Filepath& path);
-										// ロード
+										// Load
 	BOOL FASTCALL Save(const Filepath& path);
-										// セーブ
+										// Save
 
 	// API
 	void FASTCALL Clear();
-										// バッファクリア
+										// Clear the buffer
 	BOOL FASTCALL Open(Filepath& path);
-										// ファイル指定
+										// File specification
 	BOOL FASTCALL GetBuf(DWORD *buffer, int frames);
-										// バッファ取得
+										// Get the buffer
 	BOOL FASTCALL IsValid();
-										// 有効チェック
+										// Check if Valid
 	BOOL FASTCALL ReadReq();
-										// 読み込み要求
+										// Read Request
 	BOOL FASTCALL IsEnd() const;
-										// 終了チェック
+										// Finish check
 
 private:
 	Filepath wavepath;
-										// Waveパス
+										// Wave path
 	BOOL valid;
-										// オープン結果
+										// Open result (is it valid?)
 	DWORD *buf;
-										// データバッファ
+										// Data buffer
 	DWORD read;
-										// Readポインタ
+										// Read pointer
 	DWORD write;
-										// Writeポインタ
+										// Write pointer
 	DWORD num;
-										// データ有効数
+										// Valid number of data
 	DWORD rest;
-										// ファイル残りサイズ
+										// Remaining file size
 #endif
 };
 
@@ -614,95 +615,95 @@ private:
 class SCSICD : public Disk
 {
 public:
-	// トラック数
+	// Number of tracks
 	enum {
-		TrackMax = 96					// トラック最大数
+		TrackMax = 96					// Maximum number of tracks
 	};
 
 public:
-	// 基本ファンクション
+	// Basic Functions
 	SCSICD();
-										// コンストラクタ
+										// Constructor
 	virtual ~SCSICD();
-										// デストラクタ
+										// Destructor
 	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
-										// オープン
+										// Open
 #ifndef	RASCSI
 	BOOL FASTCALL Load(Fileio *fio, int ver);
-										// ロード
+										// Load
 #endif	// RASCSI
 
-	// コマンド
+	// commands
 	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
-										// INQUIRYコマンド
+										// INQUIRY command
 	int FASTCALL Read(BYTE *buf, DWORD block);
-										// READコマンド
+										// READ command
 	int FASTCALL ReadToc(const DWORD *cdb, BYTE *buf);
-										// READ TOCコマンド
+										// READ TOC command
 	BOOL FASTCALL PlayAudio(const DWORD *cdb);
-										// PLAY AUDIOコマンド
+										// PLAY AUDIO command
 	BOOL FASTCALL PlayAudioMSF(const DWORD *cdb);
-										// PLAY AUDIO MSFコマンド
+										// PLAY AUDIO MSF command
 	BOOL FASTCALL PlayAudioTrack(const DWORD *cdb);
-										// PLAY AUDIO TRACKコマンド
+										// PLAY AUDIO TRACK command
 
 	// CD-DA
 	BOOL FASTCALL NextFrame();
-										// フレーム通知
+										// Frame notification
 	void FASTCALL GetBuf(DWORD *buffer, int samples, DWORD rate);
-										// CD-DAバッファ取得
+										// Get CD-DA buffer
 
 	// LBA-MSF変換
 	void FASTCALL LBAtoMSF(DWORD lba, BYTE *msf) const;
-										// LBA→MSF変換
+										// LBA→MSF conversion
 	DWORD FASTCALL MSFtoLBA(const BYTE *msf) const;
-										// MSF→LBA変換
+										// MSF→LBA conversion
 
 private:
-	// オープン
+	// Open
 	BOOL FASTCALL OpenCue(const Filepath& path);
-										// オープン(CUE)
+										// Open(CUE)
 	BOOL FASTCALL OpenIso(const Filepath& path);
-										// オープン(ISO)
+										// Open(ISO)
 	BOOL FASTCALL OpenPhysical(const Filepath& path);
-										// オープン(Physical)
+										// Open(Physical)
 	BOOL rawfile;
-										// RAWフラグ
+										// RAW flag
 
-	// トラック管理
+	// Track management
 	void FASTCALL ClearTrack();
-										// トラッククリア
+										// Clear the track
 	int FASTCALL SearchTrack(DWORD lba) const;
-										// トラック検索
+										// Track search
 	CDTrack* track[TrackMax];
-										// トラックオブジェクト
+										// Track opbject references
 	int tracks;
-										// トラックオブジェクト有効数
+										// Effective number of track objects
 	int dataindex;
-										// 現在のデータトラック
+										// Current data track
 	int audioindex;
-										// 現在のオーディオトラック
+										// Current audio track
 
 	int frame;
-										// フレーム番号
+										// Frame number
 
 #if 0
 	CDDABuf da_buf;
-										// CD-DAバッファ
+										// CD-DA buffer
 	int da_num;
-										// CD-DAトラック数
+										// Number of CD-DA tracks
 	int da_cur;
-										// CD-DAカレントトラック
+										// CD-DA current track
 	int da_next;
-										// CD-DAネクストトラック
+										// CD-DA next track
 	BOOL da_req;
-										// CD-DAデータ要求
+										// CD-DA data request
 #endif
 };
 
 //===========================================================================
 //
-//	SCSI ホストブリッジ
+//	SCSI Host Bridge
 //
 //===========================================================================
 #if defined(RASCSI) && !defined(BAREMETAL)
@@ -712,430 +713,429 @@ class CFileSys;
 class SCSIBR : public Disk
 {
 public:
-	// 基本ファンクション
+	// Basic Functions
 	SCSIBR();
-										// コンストラクタ
+										// Constructor
 	virtual ~SCSIBR();
-										// デストラクタ
+										// Destructor
 
-	// コマンド
+	// commands
 	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
-										// INQUIRYコマンド
+										// INQUIRY command
 	BOOL FASTCALL TestUnitReady(const DWORD *cdb);
-										// TEST UNIT READYコマンド
+										// TEST UNIT READY command
 	int FASTCALL GetMessage10(const DWORD *cdb, BYTE *buf);
-										// GET MESSAGE10コマンド
+										// GET MESSAGE10 command
 	BOOL FASTCALL SendMessage10(const DWORD *cdb, BYTE *buf);
-										// SEND MESSAGE10コマンド
+										// SEND MESSAGE10 command
 
 private:
 #if defined(RASCSI) && !defined(BAREMETAL)
 	int FASTCALL GetMacAddr(BYTE *buf);
-										// MACアドレス取得
+										// Get MAC address
 	void FASTCALL SetMacAddr(BYTE *buf);
-										// MACアドレス設定
+										// Set MAC address
 	void FASTCALL ReceivePacket();
-										// パケット受信
+										// Receive a packet
 	void FASTCALL GetPacketBuf(BYTE *buf);
-										// パケット取得
+										// Get a packet
 	void FASTCALL SendPacket(BYTE *buf, int len);
-										// パケット送信
+										// Send a packet
 
 	CTapDriver *tap;
-										// TAPドライバ
+										// TAP driver
 	BOOL m_bTapEnable;
-										// TAP有効フラグ
+										// TAP valid flag
 	BYTE mac_addr[6];
-										// MACアドレス
+										// MAC Addres
 	int packet_len;
-										// 受信パケットサイズ
+										// Receive packet size
 	BYTE packet_buf[0x1000];
-										// 受信パケットバッファ
+										// Receive packet buffer
 	BOOL packet_enable;
-										// 受信パケット有効
+										// Received packet valid
 #endif	// RASCSI && !BAREMETAL
 
 	int FASTCALL ReadFsResult(BYTE *buf);
-										// ファイルシステム読み込み(結果コード)
+										// Read filesystem (result code)
 	int FASTCALL ReadFsOut(BYTE *buf);
-										// ファイルシステム読み込み(返却データ)
+										// Read filesystem (return data)
 	int FASTCALL ReadFsOpt(BYTE *buf);
-										// ファイルシステム読み込み(オプションデータ)
+										// Read file system (optional data)
 	void FASTCALL WriteFs(int func, BYTE *buf);
-										// ファイルシステム書き込み(実行)
+										// File system write (execute)
 	void FASTCALL WriteFsOpt(BYTE *buf, int len);
-										// ファイルシステム書き込み(オプションデータ)
-
-	// コマンドハンドラ
+										// File system write (optional data)
+	// Command handlers
 	void FASTCALL FS_InitDevice(BYTE *buf);
-										// $40 - デバイス起動
+										// $40 - boot
 	void FASTCALL FS_CheckDir(BYTE *buf);
-										// $41 - ディレクトリチェック
+										// $41 - directory check
 	void FASTCALL FS_MakeDir(BYTE *buf);
-										// $42 - ディレクトリ作成
+										// $42 - create directory
 	void FASTCALL FS_RemoveDir(BYTE *buf);
-										// $43 - ディレクトリ削除
+										// $43 - delete directory
 	void FASTCALL FS_Rename(BYTE *buf);
-										// $44 - ファイル名変更
+										// $44 - change filename
 	void FASTCALL FS_Delete(BYTE *buf);
-										// $45 - ファイル削除
+										// $45 - delete file
 	void FASTCALL FS_Attribute(BYTE *buf);
-										// $46 - ファイル属性取得/設定
+										// $46 - get/set file attributes
 	void FASTCALL FS_Files(BYTE *buf);
-										// $47 - ファイル検索
+										// $47 - file search
 	void FASTCALL FS_NFiles(BYTE *buf);
-										// $48 - ファイル次検索
+										// $48 - find next file
 	void FASTCALL FS_Create(BYTE *buf);
-										// $49 - ファイル作成
+										// $49 - create file
 	void FASTCALL FS_Open(BYTE *buf);
-										// $4A - ファイルオープン
+										// $4A - open file
 	void FASTCALL FS_Close(BYTE *buf);
-										// $4B - ファイルクローズ
+										// $4B - close file
 	void FASTCALL FS_Read(BYTE *buf);
-										// $4C - ファイル読み込み
+										// $4C - read file
 	void FASTCALL FS_Write(BYTE *buf);
-										// $4D - ファイル書き込み
+										// $4D - write file
 	void FASTCALL FS_Seek(BYTE *buf);
-										// $4E - ファイルシーク
+										// $4E - seek file
 	void FASTCALL FS_TimeStamp(BYTE *buf);
-										// $4F - ファイル時刻取得/設定
+										// $4F - get/set file time
 	void FASTCALL FS_GetCapacity(BYTE *buf);
-										// $50 - 容量取得
+										// $50 - get capacity
 	void FASTCALL FS_CtrlDrive(BYTE *buf);
-										// $51 - ドライブ状態検査/制御
+										// $51 - drive status check/control
 	void FASTCALL FS_GetDPB(BYTE *buf);
-										// $52 - DPB取得
+										// $52 - get DPB
 	void FASTCALL FS_DiskRead(BYTE *buf);
-										// $53 - セクタ読み込み
+										// $53 - read sector
 	void FASTCALL FS_DiskWrite(BYTE *buf);
-										// $54 - セクタ書き込み
+										// $54 - write sector
 	void FASTCALL FS_Ioctrl(BYTE *buf);
 										// $55 - IOCTRL
 	void FASTCALL FS_Flush(BYTE *buf);
-										// $56 - フラッシュ
+										// $56 - flush cache
 	void FASTCALL FS_CheckMedia(BYTE *buf);
-										// $57 - メディア交換チェック
+										// $57 - check media
 	void FASTCALL FS_Lock(BYTE *buf);
-										// $58 - 排他制御
+										// $58 - get exclusive control
 
 	CFileSys *fs;
-										// ファイルシステムアクセッサー
+										// File system accessor
 	DWORD fsresult;
-										// ファイルシステムアクセス結果コード
+										// File system access result code
 	BYTE fsout[0x800];
-										// ファイルシステムアクセス結果バッファ
+										// File system access result buffer
 	DWORD fsoutlen;
-										// ファイルシステムアクセス結果バッファサイズ
+										// File system access result buffer size
 	BYTE fsopt[0x1000000];
-										// ファイルシステムアクセスバッファ
+										// File system access buffer
 	DWORD fsoptlen;
-										// ファイルシステムアクセスバッファサイズ
+										// File system access buffer size
 };
 
 //===========================================================================
 //
-//	SASI コントローラ
+//	SASI Controller
 //
 //===========================================================================
 class SASIDEV
 {
 public:
-	// 論理ユニット最大数
+	// Maximum number of logical units
 	enum {
 		UnitMax = 8
 	};
 
 #ifdef RASCSI
-	// タイミング調整用
+	// For timing adjustments
 	enum {
 		min_exec_time_sasi	= 100,			// SASI BOOT/FORMAT 30:NG 35:OK
 		min_exec_time_scsi	= 50
 	};
 #endif	// RASCSI
 
-	// 内部データ定義
+	// Internal data definition
 	typedef struct {
 		// 全般
-		BUS::phase_t phase;				// 遷移フェーズ
-		int id;							// コントローラID(0-7)
-		BUS *bus;						// バス
+		BUS::phase_t phase;				// Transition phase
+		int id;							// Controller ID (0-7)
+		BUS *bus;						// Bus
 
-		// コマンド
-		DWORD cmd[10];					// コマンドデータ
-		DWORD status;					// ステータスデータ
-		DWORD message;					// メッセージデータ
+		// commands
+		DWORD cmd[10];					// Command data
+		DWORD status;					// Status data
+		DWORD message;					// Message data
 
 #ifdef RASCSI
-		// 実行
-		DWORD execstart;				// 実行開始時間
+		// Run
+		DWORD execstart;				// Execution start time
 #endif	// RASCSI
 
-		// 転送
-		BYTE *buffer;					// 転送バッファ
-		int bufsize;					// 転送バッファサイズ
-		DWORD blocks;					// 転送ブロック数
-		DWORD next;						// 次のレコード
-		DWORD offset;					// 転送オフセット
-		DWORD length;					// 転送残り長さ
+		// Transfer
+		BYTE *buffer;					// Transfer data buffer
+		int bufsize;					// Transfer data buffer size
+		DWORD blocks;					// Number of transfer block
+		DWORD next;						// Next record
+		DWORD offset;					// Transfer offset
+		DWORD length;					// Transfer remaining length
 
-		// 論理ユニット
+		// Logical unit
 		Disk *unit[UnitMax];
-										// 論理ユニット
+										// Logical Unit
 	} ctrl_t;
 
 public:
-	// 基本ファンクション
+	// Basic Functions
 #ifdef RASCSI
 	SASIDEV();
 #else
 	SASIDEV(Device *dev);
 #endif //RASCSI
 
-										// コンストラクタ
+										// Constructor
 	virtual ~SASIDEV();
-										// デストラクタ
+										// Destructor
 	virtual void FASTCALL Reset();
-										// デバイスリセット
+										// Device Reset
 #ifndef RASCSI
 	virtual BOOL FASTCALL Save(Fileio *fio, int ver);
-										// セーブ
+										// Save
 	virtual BOOL FASTCALL Load(Fileio *fio, int ver);
-										// ロード
+										// Load
 #endif //RASCSI
 
-	// 外部API
+	// External API
 	virtual BUS::phase_t FASTCALL Process();
-										// 実行
+										// Run
 
-	// 接続
+	// Connect
 	void FASTCALL Connect(int id, BUS *sbus);
-										// コントローラ接続
+										// Controller connection
 	Disk* FASTCALL GetUnit(int no);
-										// 論理ユニット取得
+										// Get logical unit
 	void FASTCALL SetUnit(int no, Disk *dev);
-										// 論理ユニット設定
+										// Logical unit setting
 	BOOL FASTCALL HasUnit();
-										// 有効な論理ユニットを持っているか返す
+										// Has a valid logical unit
 
-	// その他
+	// Other
 	BUS::phase_t FASTCALL GetPhase() {return ctrl.phase;}
-										// フェーズ取得
+										// Get the phase
 	int FASTCALL GetID() {return ctrl.id;}
-										// ID取得
+										// Get the ID
 	void FASTCALL GetCTRL(ctrl_t *buffer);
-										// 内部情報取得
+										// Get the internal information
 	ctrl_t* FASTCALL GetWorkAddr() { return &ctrl; }
-										// 内部情報アドレス取得
+										// Get the internal information address
 	virtual BOOL FASTCALL IsSASI() const {return TRUE;}
-										// SASIチェック
+										// SASI Check
 	virtual BOOL FASTCALL IsSCSI() const {return FALSE;}
-										// SCSIチェック
+										// SCSI check
 	Disk* FASTCALL GetBusyUnit();
-										// ビジー状態のユニットを取得
+										// Get the busy unit
 
 protected:
-	// フェーズ処理
+	// Phase processing
 	virtual void FASTCALL BusFree();
-										// バスフリーフェーズ
+										// Bus free phase
 	virtual void FASTCALL Selection();
-										// セレクションフェーズ
+										// Selection phase
 	virtual void FASTCALL Command();
-										// コマンドフェーズ
+										// Command phase
 	virtual void FASTCALL Execute();
-										// 実行フェーズ
+										// Execution phase
 	void FASTCALL Status();
-										// ステータスフェーズ
+										// Status phase
 	void FASTCALL MsgIn();
-										// メッセージインフェーズ
+										// Message in phase
 	void FASTCALL DataIn();
-										// データインフェーズ
+										// Data in phase
 	void FASTCALL DataOut();
-										// データアウトフェーズ
+										// Data out phase
 	virtual void FASTCALL Error();
-										// 共通エラー処理
+										// Common error handling
 
-	// コマンド
+	// commands
 	void FASTCALL CmdTestUnitReady();
-										// TEST UNIT READYコマンド
+										// TEST UNIT READY command
 	void FASTCALL CmdRezero();
-										// REZERO UNITコマンド
+										// REZERO UNIT command
 	void FASTCALL CmdRequestSense();
-										// REQUEST SENSEコマンド
+										// REQUEST SENSE command
 	void FASTCALL CmdFormat();
-										// FORMATコマンド
+										// FORMAT command
 	void FASTCALL CmdReassign();
-										// REASSIGN BLOCKSコマンド
+										// REASSIGN BLOCKS command
 	void FASTCALL CmdRead6();
-										// READ(6)コマンド
+										// READ(6) command
 	void FASTCALL CmdWrite6();
-										// WRITE(6)コマンド
+										// WRITE(6) command
 	void FASTCALL CmdSeek6();
-										// SEEK(6)コマンド
+										// SEEK(6) command
 	void FASTCALL CmdAssign();
-										// ASSIGNコマンド
+										// ASSIGN command
 	void FASTCALL CmdSpecify();
-										// SPECIFYコマンド
+										// SPECIFY command
 	void FASTCALL CmdInvalid();
-										// サポートしていないコマンド
+										// Unsupported command
 
 	// データ転送
 	virtual void FASTCALL Send();
-										// データ送信
+										// Send data
 #ifndef RASCSI
 	virtual void FASTCALL SendNext();
-										// データ送信継続
+										// Continue sending data
 #endif	// RASCSI
 	virtual void FASTCALL Receive();
-										// データ受信
+										// Receive data
 #ifndef RASCSI
 	virtual void FASTCALL ReceiveNext();
-										// データ受信継続
+										// Continue receiving data
 #endif	// RASCSI
 	BOOL FASTCALL XferIn(BYTE* buf);
-										// データ転送IN
+										// Data transfer IN
 	BOOL FASTCALL XferOut(BOOL cont);
-										// データ転送OUT
+										// Data transfer OUT
 
-	// 特殊
+	// Special operations
 	void FASTCALL FlushUnit();
-										// 論理ユニットフラッシュ
+										// Flush the logical unit
 
-	// ログ
+	// Log
 	void FASTCALL Log(Log::loglevel level, const char *format, ...);
-										// ログ出力
+										// Log output
 
 protected:
 #ifndef RASCSI
 	Device *host;
-										// ホストデバイス
+										// Host device
 #endif // RASCSI
 
 	ctrl_t ctrl;
-										// 内部データ
+										// Internal data
 };
 
 //===========================================================================
 //
-//	SCSI デバイス(SASI デバイスを継承)
+//	SCSI Device (Interits SASI device)
 //
 //===========================================================================
 class SCSIDEV : public SASIDEV
 {
 public:
-	// 内部データ定義
+	// Internal data definition
 	typedef struct {
-		// 同期転送
-		BOOL syncenable;				// 同期転送可能
-		int syncperiod;					// 同期転送ピリオド
-		int syncoffset;					// 同期転送オフセット
-		int syncack;					// 同期転送ACK数
+		// Synchronous transfer
+		BOOL syncenable;				// Synchronous transfer possible
+		int syncperiod;					// Synchronous transfer period
+		int syncoffset;					// Synchronous transfer offset
+		int syncack;					// Number of synchronous transfer ACKs
 
-		// ATNメッセージ
+		// ATN message
 		BOOL atnmsg;
 		int msc;
 		BYTE msb[256];
 	} scsi_t;
 
 public:
-	// 基本ファンクション
+	// Basic Functions
 #ifdef RASCSI
 	SCSIDEV();
 #else
 	SCSIDEV(Device *dev);
 #endif // RASCSI
-										// コンストラクタ
+										// Constructor
 
 	void FASTCALL Reset();
-										// デバイスリセット
+										// Device Reset
 
 	// 外部API
 	BUS::phase_t FASTCALL Process();
-										// 実行
+										// Run
 
 	void FASTCALL SyncTransfer(BOOL enable) { scsi.syncenable = enable; }
-										// 同期転送可能設定
+										// Synchronouse transfer enable setting
 
-	// その他
+	// Other
 	BOOL FASTCALL IsSASI() const {return FALSE;}
-										// SASIチェック
+										// SASI Check
 	BOOL FASTCALL IsSCSI() const {return TRUE;}
-										// SCSIチェック
+										// SCSI check
 
 private:
-	// フェーズ
+	// Phase
 	void FASTCALL BusFree();
-										// バスフリーフェーズ
+										// Bus free phase
 	void FASTCALL Selection();
-										// セレクションフェーズ
+										// Selection phase
 	void FASTCALL Execute();
-										// 実行フェーズ
+										// Execution phase
 	void FASTCALL MsgOut();
-										// メッセージアウトフェーズ
+										// Message out phase
 	void FASTCALL Error();
-										// 共通エラー処理
+										// Common erorr handling
 
-	// コマンド
+	// commands
 	void FASTCALL CmdInquiry();
-										// INQUIRYコマンド
+										// INQUIRY command
 	void FASTCALL CmdModeSelect();
-										// MODE SELECTコマンド
+										// MODE SELECT command
 	void FASTCALL CmdModeSense();
-										// MODE SENSEコマンド
+										// MODE SENSE command
 	void FASTCALL CmdStartStop();
-										// START STOP UNITコマンド
+										// START STOP UNIT command
 	void FASTCALL CmdSendDiag();
-										// SEND DIAGNOSTICコマンド
+										// SEND DIAGNOSTIC command
 	void FASTCALL CmdRemoval();
-										// PREVENT/ALLOW MEDIUM REMOVALコマンド
+										// PREVENT/ALLOW MEDIUM REMOVAL command
 	void FASTCALL CmdReadCapacity();
-										// READ CAPACITYコマンド
+										// READ CAPACITY command
 	void FASTCALL CmdRead10();
-										// READ(10)コマンド
+										// READ(10) command
 	void FASTCALL CmdWrite10();
-										// WRITE(10)コマンド
+										// WRITE(10) command
 	void FASTCALL CmdSeek10();
-										// SEEK(10)コマンド
+										// SEEK(10) command
 	void FASTCALL CmdVerify();
-										// VERIFYコマンド
+										// VERIFY command
 	void FASTCALL CmdSynchronizeCache();
-										// SYNCHRONIZE CACHE コマンド
+										// SYNCHRONIZE CACHE  command
 	void FASTCALL CmdReadDefectData10();
-										// READ DEFECT DATA(10) コマンド
+										// READ DEFECT DATA(10)  command
 	void FASTCALL CmdReadToc();
-										// READ TOCコマンド
+										// READ TOC command
 	void FASTCALL CmdPlayAudio10();
-										// PLAY AUDIO(10)コマンド
+										// PLAY AUDIO(10) command
 	void FASTCALL CmdPlayAudioMSF();
-										// PLAY AUDIO MSFコマンド
+										// PLAY AUDIO MSF command
 	void FASTCALL CmdPlayAudioTrack();
-										// PLAY AUDIO TRACK INDEXコマンド
+										// PLAY AUDIO TRACK INDEX command
 	void FASTCALL CmdModeSelect10();
-										// MODE SELECT(10)コマンド
+										// MODE SELECT(10) command
 	void FASTCALL CmdModeSense10();
-										// MODE SENSE(10)コマンド
+										// MODE SENSE(10) command
 	void FASTCALL CmdGetMessage10();
-										// GET MESSAGE(10)コマンド
+										// GET MESSAGE(10) command
 	void FASTCALL CmdSendMessage10();
-										// SEND MESSAGE(10)コマンド
+										// SEND MESSAGE(10) command
 
 	// データ転送
 	void FASTCALL Send();
-										// データ送信
+										// Send data
 #ifndef RASCSI
 	void FASTCALL SendNext();
-										// データ送信継続
+										// Continue sending data
 #endif	// RASCSI
 	void FASTCALL Receive();
-										// データ受信
+										// Receive data
 #ifndef RASCSI
 	void FASTCALL ReceiveNext();
-										// データ受信継続
+										// Continue receiving data
 #endif	// RASCSI
 	BOOL FASTCALL XferMsg(DWORD msg);
-										// データ転送MSG
+										// Data transfer message
 
 	scsi_t scsi;
-										// 内部データ
+										// Internal data
 };
 
 #endif	// disk_h

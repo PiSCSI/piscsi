@@ -11,8 +11,9 @@
 //
 //	Imported sava's Anex86/T98Next image and MO format support patch.
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
+//  Comments translated to english by akuker.
 //
-//	[ ディスク ]
+//	[ Disk ]
 //
 //---------------------------------------------------------------------------
 
@@ -38,7 +39,7 @@
 
 //===========================================================================
 //
-//	ディスク
+//	Disk
 //
 //===========================================================================
 //#define DISK_LOG
@@ -51,18 +52,18 @@
 
 //===========================================================================
 //
-//	ディスクトラック
+//	Disk Track
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 DiskTrack::DiskTrack()
 {
-	// 内部情報の初期化
+	// Initialization of internal information
 	dt.track = 0;
 	dt.size = 0;
 	dt.sectors = 0;
@@ -78,12 +79,12 @@ DiskTrack::DiskTrack()
 
 //---------------------------------------------------------------------------
 //
-//	デストラクタ
+//	Destructor
 //
 //---------------------------------------------------------------------------
 DiskTrack::~DiskTrack()
 {
-	// メモリ解放は行うが、自動セーブはしない
+	// Release memory, but do not save automatically
 	if (dt.buffer) {
 		free(dt.buffer);
 		dt.buffer = NULL;
@@ -96,7 +97,7 @@ DiskTrack::~DiskTrack()
 
 //---------------------------------------------------------------------------
 //
-//	初期化
+//	Initialization
 //
 //---------------------------------------------------------------------------
 void FASTCALL DiskTrack::Init(
@@ -107,25 +108,25 @@ void FASTCALL DiskTrack::Init(
 	ASSERT((sectors > 0) && (sectors <= 0x100));
 	ASSERT(imgoff >= 0);
 
-	// パラメータを設定
+	// Set Parameters
 	dt.track = track;
 	dt.size = size;
 	dt.sectors = sectors;
 	dt.raw = raw;
 
-	// 初期化されていない(ロードする必要あり)
+	// Not initialized (needs to be loaded)
 	dt.init = FALSE;
 
-	// 変更されていない
+	// Not Changed
 	dt.changed = FALSE;
 
-	// 実データまでのオフセット
+	// Offset to actual data
 	dt.imgoffset = imgoff;
 }
 
 //---------------------------------------------------------------------------
 //
-//	ロード
+//	Load
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskTrack::Load(const Filepath& path)
@@ -137,14 +138,15 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 
 	ASSERT(this);
 
-	// 既にロードされていれば不要
+	// Not needed if already loaded
 	if (dt.init) {
 		ASSERT(dt.buffer);
 		ASSERT(dt.changemap);
 		return TRUE;
 	}
 
-	// オフセットを計算(これ以前のトラックは256セクタ保持とみなす)
+	// Calculate offset (previous tracks are considered to
+    // hold 256 sectors)
 	offset = ((off64_t)dt.track << 8);
 	if (dt.raw) {
 		ASSERT(dt.size == 11);
@@ -154,13 +156,13 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 		offset <<= dt.size;
 	}
 
-	// 実イメージまでのオフセットを追加
+	// Add offset to real image
 	offset += dt.imgoffset;
 
-	// レングスを計算(このトラックのデータサイズ)
+	// Calculate length (data size of this track)
 	length = dt.sectors << dt.size;
 
-	// バッファのメモリを確保
+	// Allocate buffer memory
 	ASSERT((dt.size >= 8) && (dt.size <= 11));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 
@@ -177,7 +179,7 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 		return FALSE;
 	}
 
-	// バッファ長が異なるなら再確保
+	// Reallocate if the buffer length is different
 	if (dt.length != (DWORD)length) {
 		free(dt.buffer);
 #if defined(RASCSI) && !defined(BAREMETAL)
@@ -188,7 +190,7 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 		dt.length = length;
 	}
 
-	// 変更マップのメモリを確保
+	// Reserve change map memory
 	if (dt.changemap == NULL) {
 		dt.changemap = (BOOL *)malloc(dt.sectors * sizeof(BOOL));
 		dt.maplen = dt.sectors;
@@ -198,17 +200,17 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 		return FALSE;
 	}
 
-	// バッファ長が異なるなら再確保
+	// Reallocate if the buffer length is different
 	if (dt.maplen != (DWORD)dt.sectors) {
 		free(dt.changemap);
 		dt.changemap = (BOOL *)malloc(dt.sectors * sizeof(BOOL));
 		dt.maplen = dt.sectors;
 	}
 
-	// 変更マップクリア
+	// Clear changemap
 	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 
-	// ファイルから読み込む
+	// Read from File
 #if defined(RASCSI) && !defined(BAREMETAL)
 	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
 #else
@@ -217,25 +219,25 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 		return FALSE;
 	}
 	if (dt.raw) {
-		// 分割読み
+		// Split Reading
 		for (i = 0; i < dt.sectors; i++) {
-			// シーク
+			// Seek
 			if (!fio.Seek(offset)) {
 				fio.Close();
 				return FALSE;
 			}
 
-			// 読み込み
+			// Read
 			if (!fio.Read(&dt.buffer[i << dt.size], 1 << dt.size)) {
 				fio.Close();
 				return FALSE;
 			}
 
-			// 次のオフセット
+			// Next offset
 			offset += 0x930;
 		}
 	} else {
-		// 連続読み
+		// Continuous reading
 		if (!fio.Seek(offset)) {
 			fio.Close();
 			return FALSE;
@@ -247,7 +249,7 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	}
 	fio.Close();
 
-	// フラグを立て、正常終了
+	// Set a flag and end normally
 	dt.init = TRUE;
 	dt.changed = FALSE;
 	return TRUE;
@@ -255,7 +257,7 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 
 //---------------------------------------------------------------------------
 //
-//	セーブ
+//	Save
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskTrack::Save(const Filepath& path)
@@ -269,82 +271,82 @@ BOOL FASTCALL DiskTrack::Save(const Filepath& path)
 
 	ASSERT(this);
 
-	// 初期化されていなければ不要
+	// Not needed if not initialized
 	if (!dt.init) {
 		return TRUE;
 	}
 
-	// 変更されていなければ不要
+	// Not needed unless changed
 	if (!dt.changed) {
 		return TRUE;
 	}
 
-	// 書き込む必要がある
+	// Need to write
 	ASSERT(dt.buffer);
 	ASSERT(dt.changemap);
 	ASSERT((dt.size >= 8) && (dt.size <= 11));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 
-	// RAWモードでは書き込みはありえない
+	// Writing in RAW mode is not allowed
 	ASSERT(!dt.raw);
 
-	// オフセットを計算(これ以前のトラックは256セクタ保持とみなす)
+	// Calculate offset (previous tracks are considered to hold 256
 	offset = ((off64_t)dt.track << 8);
 	offset <<= dt.size;
 
-	// 実イメージまでのオフセットを追加
+	// Add offset to real image
 	offset += dt.imgoffset;
 
-	// セクタあたりのレングスを計算
+	// Calculate length per sector
 	length = 1 << dt.size;
 
-	// ファイルオープン
+	// Open file
 	if (!fio.Open(path, Fileio::ReadWrite)) {
 		return FALSE;
 	}
 
-	// 部分書き込みループ
+	// Partial write loop
 	for (i = 0; i < dt.sectors;) {
-		// 変更されていれば
+		// If changed
 		if (dt.changemap[i]) {
-			// 書き込みサイズ初期化
+			// Initialize write size
 			total = 0;
 
-			// シーク
+			// Seek
 			if (!fio.Seek(offset + ((off64_t)i << dt.size))) {
 				fio.Close();
 				return FALSE;
 			}
 
-			// 連続するセクタ長
+			// Consectutive sector length
 			for (j = i; j < dt.sectors; j++) {
-				// 途切れたら終了
+				// end when interrupted
 				if (!dt.changemap[j]) {
 					break;
 				}
 
-				// 1セクタ分加算
+				// Add one sector
 				total += length;
 			}
 
-			// 書き込み
+			// Write
 			if (!fio.Write(&dt.buffer[i << dt.size], total)) {
 				fio.Close();
 				return FALSE;
 			}
 
-			// 未変更のセクタへ
+			// To unmodified sector
 			i = j;
 		} else {
-			// 次のセクタ
+			// Next Sector
 			i++;
 		}
 	}
 
-	// クローズ
+	// Close
 	fio.Close();
 
-	// 変更フラグを落とし、終了
+	// Drop the change flag and exit
 	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 	dt.changed = FALSE;
 	return TRUE;
@@ -352,7 +354,7 @@ BOOL FASTCALL DiskTrack::Save(const Filepath& path)
 
 //---------------------------------------------------------------------------
 //
-//	リードセクタ
+//	Read Sector
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskTrack::Read(BYTE *buf, int sec) const
@@ -361,29 +363,29 @@ BOOL FASTCALL DiskTrack::Read(BYTE *buf, int sec) const
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
 
-	// 初期化されていなければエラー
+	// Error if not initialized
 	if (!dt.init) {
 		return FALSE;
 	}
 
-	// セクタが有効数を超えていればエラー
+	// // Error if the number of sectors exceeds the valid number
 	if (sec >= dt.sectors) {
 		return FALSE;
 	}
 
-	// コピー
+	// Copy
 	ASSERT(dt.buffer);
 	ASSERT((dt.size >= 8) && (dt.size <= 11));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 	memcpy(buf, &dt.buffer[(off64_t)sec << dt.size], (off64_t)1 << dt.size);
 
-	// 成功
+	// Success
 	return TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	ライトセクタ
+//	Write Sector
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskTrack::Write(const BYTE *buf, int sec)
@@ -396,21 +398,21 @@ BOOL FASTCALL DiskTrack::Write(const BYTE *buf, int sec)
 	ASSERT((sec >= 0) & (sec < 0x100));
 	ASSERT(!dt.raw);
 
-	// 初期化されていなければエラー
+	// Error if not initialized
 	if (!dt.init) {
 		return FALSE;
 	}
 
-	// セクタが有効数を超えていればエラー
+	// // Error if the number of sectors exceeds the valid number
 	if (sec >= dt.sectors) {
 		return FALSE;
 	}
 
-	// オフセット、レングスを計算
+	// Calculate offset and length
 	offset = sec << dt.size;
 	length = 1 << dt.size;
 
-	// 比較
+	// Compare
 	ASSERT(dt.buffer);
 	ASSERT((dt.size >= 8) && (dt.size <= 11));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
@@ -419,24 +421,24 @@ BOOL FASTCALL DiskTrack::Write(const BYTE *buf, int sec)
 		return TRUE;
 	}
 
-	// コピー、変更あり
+	// Copy, change
 	memcpy(&dt.buffer[offset], buf, length);
 	dt.changemap[sec] = TRUE;
 	dt.changed = TRUE;
 
-	// 成功
+	// Success
 	return TRUE;
 }
 
 //===========================================================================
 //
-//	ディスクキャッシュ
+//	Disk Cache
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 DiskCache::DiskCache(
@@ -448,13 +450,13 @@ DiskCache::DiskCache(
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
 
-	// キャッシュワーク
+	// Cache work
 	for (i = 0; i < CacheMax; i++) {
 		cache[i].disktrk = NULL;
 		cache[i].serial = 0;
 	}
 
-	// その他
+	// Other
 	serial = 0;
 	sec_path = path;
 	sec_size = size;
@@ -465,18 +467,18 @@ DiskCache::DiskCache(
 
 //---------------------------------------------------------------------------
 //
-//	デストラクタ
+//	Destructor
 //
 //---------------------------------------------------------------------------
 DiskCache::~DiskCache()
 {
-	// トラックをクリア
+	// Clear the track
 	Clear();
 }
 
 //---------------------------------------------------------------------------
 //
-//	RAWモード設定
+//	RAW Mode Setting
 //
 //---------------------------------------------------------------------------
 void FASTCALL DiskCache::SetRawMode(BOOL raw)
@@ -484,13 +486,13 @@ void FASTCALL DiskCache::SetRawMode(BOOL raw)
 	ASSERT(this);
 	ASSERT(sec_size == 11);
 
-	// 設定
+	// Configuration
 	cd_raw = raw;
 }
 
 //---------------------------------------------------------------------------
 //
-//	セーブ
+//	Save
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskCache::Save()
@@ -499,11 +501,11 @@ BOOL FASTCALL DiskCache::Save()
 
 	ASSERT(this);
 
-	// トラックを保存
+	// Save track
 	for (i = 0; i < CacheMax; i++) {
-		// 有効なトラックか
+		// Is it a valid track?
 		if (cache[i].disktrk) {
-			// 保存
+			// Save
 			if (!cache[i].disktrk->Save(sec_path)) {
 				return FALSE;
 			}
@@ -515,7 +517,7 @@ BOOL FASTCALL DiskCache::Save()
 
 //---------------------------------------------------------------------------
 //
-//	ディスクキャッシュ情報取得
+//	Get disk cache information
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskCache::GetCache(int index, int& track, DWORD& aserial) const
@@ -523,12 +525,12 @@ BOOL FASTCALL DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 	ASSERT(this);
 	ASSERT((index >= 0) && (index < CacheMax));
 
-	// 未使用ならFALSE
+	// FALSE if unused
 	if (!cache[index].disktrk) {
 		return FALSE;
 	}
 
-	// トラックとシリアルを設定
+	// Set track and serial
 	track = cache[index].disktrk->GetTrack();
 	aserial = cache[index].serial;
 
@@ -537,7 +539,7 @@ BOOL FASTCALL DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 
 //---------------------------------------------------------------------------
 //
-//	クリア
+//	Clear
 //
 //---------------------------------------------------------------------------
 void FASTCALL DiskCache::Clear()
@@ -546,7 +548,7 @@ void FASTCALL DiskCache::Clear()
 
 	ASSERT(this);
 
-	// キャッシュワークを解放
+	// Free the cache
 	for (i = 0; i < CacheMax; i++) {
 		if (cache[i].disktrk) {
 			delete cache[i].disktrk;
@@ -557,7 +559,7 @@ void FASTCALL DiskCache::Clear()
 
 //---------------------------------------------------------------------------
 //
-//	セクタリード
+//	Sector Read
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskCache::Read(BYTE *buf, int block)
@@ -568,25 +570,25 @@ BOOL FASTCALL DiskCache::Read(BYTE *buf, int block)
 	ASSERT(this);
 	ASSERT(sec_size != 0);
 
-	// 先に更新
+	// Update first
 	Update();
 
-	// トラックを算出(256セクタ/トラックに固定)
+	// Calculate track (fixed to 256 sectors/track)
 	track = block >> 8;
 
-	// そのトラックデータを得る
+	// Get the track data
 	disktrk = Assign(track);
 	if (!disktrk) {
 		return FALSE;
 	}
 
-	// トラックに任せる
+	// Read the track data to the cache
 	return disktrk->Read(buf, (BYTE)block);
 }
 
 //---------------------------------------------------------------------------
 //
-//	セクタライト
+//	Sector write
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskCache::Write(const BYTE *buf, int block)
@@ -597,25 +599,25 @@ BOOL FASTCALL DiskCache::Write(const BYTE *buf, int block)
 	ASSERT(this);
 	ASSERT(sec_size != 0);
 
-	// 先に更新
+	// Update first
 	Update();
 
-	// トラックを算出(256セクタ/トラックに固定)
+	// Calculate track (fixed to 256 sectors/track)
 	track = block >> 8;
 
-	// そのトラックデータを得る
+	// Get that track data
 	disktrk = Assign(track);
 	if (!disktrk) {
 		return FALSE;
 	}
 
-	// トラックに任せる
+	// Write the data to the cache
 	return disktrk->Write(buf, (BYTE)block);
 }
 
 //---------------------------------------------------------------------------
 //
-//	トラックの割り当て
+//	Track Assignment
 //
 //---------------------------------------------------------------------------
 DiskTrack* FASTCALL DiskCache::Assign(int track)
@@ -629,72 +631,72 @@ DiskTrack* FASTCALL DiskCache::Assign(int track)
 	ASSERT(sec_size != 0);
 	ASSERT(track >= 0);
 
-	// まず、既に割り当てされていないか調べる
+	// First, check if it is already assigned
 	for (i = 0; i < CacheMax; i++) {
 		if (cache[i].disktrk) {
 			if (cache[i].disktrk->GetTrack() == track) {
-				// トラックが一致
+				// Track match
 				cache[i].serial = serial;
 				return cache[i].disktrk;
 			}
 		}
 	}
 
-	// 次に、空いているものがないか調べる
+	// Next, check for empty
 	for (i = 0; i < CacheMax; i++) {
 		if (!cache[i].disktrk) {
-			// ロードを試みる
+			// Try loading
 			if (Load(i, track)) {
-				// ロード成功
+				// Success loading
 				cache[i].serial = serial;
 				return cache[i].disktrk;
 			}
 
-			// ロード失敗
+			// Load failed
 			return NULL;
 		}
 	}
 
-	// 最後に、シリアル番号の一番若いものを探し、削除する
+	// Finally, find the youngest serial number and delete it
 
-	// インデックス0を候補cとする
+	// Set index 0 as candidate c
 	s = cache[0].serial;
 	c = 0;
 
-	// 候補とシリアルを比較し、より小さいものへ更新する
+	// Compare candidate with serial and update to smaller one
 	for (i = 0; i < CacheMax; i++) {
 		ASSERT(cache[i].disktrk);
 
-		// 既に存在するシリアルと比較、更新
+		// Compare and update the existing serial
 		if (cache[i].serial < s) {
 			s = cache[i].serial;
 			c = i;
 		}
 	}
 
-	// このトラックを保存
+	// Save this track
 	if (!cache[c].disktrk->Save(sec_path)) {
 		return NULL;
 	}
 
-	// このトラックを削除
+	// Delete this track
 	disktrk = cache[c].disktrk;
 	cache[c].disktrk = NULL;
 
-	// ロード
+	// Load
 	if (Load(c, track, disktrk)) {
-		// ロード成功
+		// Successful loading
 		cache[c].serial = serial;
 		return cache[c].disktrk;
 	}
 
-	// ロード失敗
+	// Load failed
 	return NULL;
 }
 
 //---------------------------------------------------------------------------
 //
-//	トラックのロード
+//	Load cache
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL DiskCache::Load(int index, int track, DiskTrack *disktrk)
@@ -706,29 +708,29 @@ BOOL FASTCALL DiskCache::Load(int index, int track, DiskTrack *disktrk)
 	ASSERT(track >= 0);
 	ASSERT(!cache[index].disktrk);
 
-	// このトラックのセクタ数を取得
+	// Get the number of sectors on this track
 	sectors = sec_blocks - (track << 8);
 	ASSERT(sectors > 0);
 	if (sectors > 0x100) {
 		sectors = 0x100;
 	}
 
-	// ディスクトラックを作成
+	// Create a disk track
 	if (disktrk == NULL) {
 		disktrk = new DiskTrack();
 	}
 
-	// ディスクトラックを初期化
+	// Initialize disk track
 	disktrk->Init(track, sec_size, sectors, cd_raw, imgoffset);
 
-	// ロードを試みる
+	// Try loading
 	if (!disktrk->Load(sec_path)) {
 		// 失敗
 		delete disktrk;
 		return FALSE;
 	}
 
-	// 割り当て成功、ワークを設定
+	// Allocation successful, work set
 	cache[index].disktrk = disktrk;
 
 	return TRUE;
@@ -736,7 +738,7 @@ BOOL FASTCALL DiskCache::Load(int index, int track, DiskTrack *disktrk)
 
 //---------------------------------------------------------------------------
 //
-//	シリアル番号の更新
+//	Update serial number
 //
 //---------------------------------------------------------------------------
 void FASTCALL DiskCache::Update()
@@ -745,13 +747,13 @@ void FASTCALL DiskCache::Update()
 
 	ASSERT(this);
 
-	// 更新して、0以外は何もしない
+	// Update and do nothing except 0
 	serial++;
 	if (serial != 0) {
 		return;
 	}
 
-	// 全キャッシュのシリアルをクリア(32bitループしている)
+	// Clear serial of all caches (loop in 32bit)
 	for (i = 0; i < CacheMax; i++) {
 		cache[i].serial = 0;
 	}
@@ -760,18 +762,18 @@ void FASTCALL DiskCache::Update()
 
 //===========================================================================
 //
-//	ディスク
+//	Disk
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 Disk::Disk()
 {
-	// ワーク初期化
+	// Work initialization
 	disk.id = MAKEID('N', 'U', 'L', 'L');
 	disk.ready = FALSE;
 	disk.writep = FALSE;
@@ -787,26 +789,26 @@ Disk::Disk()
 	disk.dcache = NULL;
 	disk.imgoffset = 0;
 
-	// その他
+	// Other
 	cache_wb = TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	デストラクタ
+//	Destructor
 //
 //---------------------------------------------------------------------------
 Disk::~Disk()
 {
-	// ディスクキャッシュの保存
+	// Save disk cache
 	if (disk.ready) {
-		// レディの場合のみ
+		// Only if ready...
 		if (disk.dcache) {
 			disk.dcache->Save();
 		}
 	}
 
-	// ディスクキャッシュの削除
+	// Clear disk cache
 	if (disk.dcache) {
 		delete disk.dcache;
 		disk.dcache = NULL;
@@ -815,14 +817,14 @@ Disk::~Disk()
 
 //---------------------------------------------------------------------------
 //
-//	リセット
+//	Reset
 //
 //---------------------------------------------------------------------------
 void FASTCALL Disk::Reset()
 {
 	ASSERT(this);
 
-	// ロックなし、アテンションなし、リセットあり
+	// no lock, no attention, reset
 	disk.lock = FALSE;
 	disk.attn = FALSE;
 	disk.reset = TRUE;
@@ -831,7 +833,7 @@ void FASTCALL Disk::Reset()
 #ifndef RASCSI
 //---------------------------------------------------------------------------
 //
-//	セーブ
+//	Save
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::Save(Fileio *fio, int ver)
@@ -842,13 +844,13 @@ BOOL FASTCALL Disk::Save(Fileio *fio, int ver)
 	ASSERT(this);
 	ASSERT(fio);
 
-	// サイズをセーブ
+	// Save size
 	sz = 52;
 	if (!fio->Write(&sz, sizeof(sz))) {
 		return FALSE;
 	}
 
-	// 実体をセーブ
+	// Save entity
 	PROP_EXPORT(fio, disk.id);
 	PROP_EXPORT(fio, disk.ready);
 	PROP_EXPORT(fio, disk.writep);
@@ -863,7 +865,7 @@ BOOL FASTCALL Disk::Save(Fileio *fio, int ver)
 	PROP_EXPORT(fio, disk.code);
 	PROP_EXPORT(fio, padding);
 
-	// パスをセーブ
+	// Save the path
 	if (!diskpath.Save(fio, ver)) {
 		return FALSE;
 	}
@@ -873,7 +875,7 @@ BOOL FASTCALL Disk::Save(Fileio *fio, int ver)
 
 //---------------------------------------------------------------------------
 //
-//	ロード
+//	Load
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::Load(Fileio *fio, int ver)
@@ -886,19 +888,19 @@ BOOL FASTCALL Disk::Load(Fileio *fio, int ver)
 	ASSERT(this);
 	ASSERT(fio);
 
-	// version2.03より前は、ディスクはセーブしていない
+	// Prior to version 2.03, the disk was not saved
 	if (ver <= 0x0202) {
 		return TRUE;
 	}
 
-	// 現在のディスクキャッシュを削除
+	// Delete the current disk cache
 	if (disk.dcache) {
 		disk.dcache->Save();
 		delete disk.dcache;
 		disk.dcache = NULL;
 	}
 
-	// サイズをロード、照合
+	// Load size
 	if (!fio->Read(&sz, sizeof(sz))) {
 		return FALSE;
 	}
@@ -906,7 +908,7 @@ BOOL FASTCALL Disk::Load(Fileio *fio, int ver)
 		return FALSE;
 	}
 
-	// バッファへロード
+	// Load into buffer
 	PROP_IMPORT(fio, buf.id);
 	PROP_IMPORT(fio, buf.ready);
 	PROP_IMPORT(fio, buf.writep);
@@ -921,23 +923,23 @@ BOOL FASTCALL Disk::Load(Fileio *fio, int ver)
 	PROP_IMPORT(fio, buf.code);
 	PROP_IMPORT(fio, padding);
 
-	// パスをロード
+	// Load path
 	if (!path.Load(fio, ver)) {
 		return FALSE;
 	}
 
-	// IDが一致した場合のみ、移動
+	// Move only if IDs match
 	if (disk.id == buf.id) {
-		// NULLなら何もしない
+		// Do nothing if null
 		if (IsNULL()) {
 			return TRUE;
 		}
 
-		// セーブした時と同じ種類のデバイス
+		// Same type of device as when saving
 		disk.ready = FALSE;
 		if (Open(path)) {
-			// Open内でディスクキャッシュは作成されている
-			// プロパティのみ移動
+            // Disk cache is created in Open
+            // move only properties
 			if (!disk.readonly) {
 				disk.writep = buf.writep;
 			}
@@ -947,12 +949,12 @@ BOOL FASTCALL Disk::Load(Fileio *fio, int ver)
 			disk.lun = buf.lun;
 			disk.code = buf.code;
 
-			// 正常にロードできた
+			// Loaded successfully
 			return TRUE;
 		}
 	}
 
-	// ディスクキャッシュ再作成
+	// Disk cache rebuild
 	if (!IsReady()) {
 		disk.dcache = NULL;
 	} else {
@@ -965,7 +967,7 @@ BOOL FASTCALL Disk::Load(Fileio *fio, int ver)
 
 //---------------------------------------------------------------------------
 //
-//	NULLチェック
+//	NULL Check
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::IsNULL() const
@@ -980,7 +982,7 @@ BOOL FASTCALL Disk::IsNULL() const
 
 //---------------------------------------------------------------------------
 //
-//	SASIチェック
+//	SASI Check
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::IsSASI() const
@@ -995,8 +997,8 @@ BOOL FASTCALL Disk::IsSASI() const
 
 //---------------------------------------------------------------------------
 //
-//	オープン
-//	※派生クラスで、オープン成功後の後処理として呼び出すこと
+//	Open
+//  * Call as a post-process after successful opening in a derived class
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::Open(const Filepath& path, BOOL /*attn*/)
@@ -1007,68 +1009,68 @@ BOOL FASTCALL Disk::Open(const Filepath& path, BOOL /*attn*/)
 	ASSERT((disk.size >= 8) && (disk.size <= 11));
 	ASSERT(disk.blocks > 0);
 
-	// レディ
+	// Ready
 	disk.ready = TRUE;
 
-	// キャッシュ初期化
+	// Cache initialization
 	ASSERT(!disk.dcache);
 	disk.dcache =
 		new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
 
-	// 読み書きオープン可能か
+	// Can read/write open
 	if (fio.Open(path, Fileio::ReadWrite)) {
-		// 書き込み許可、リードオンリーでない
+		// Write permission, not read only
 		disk.writep = FALSE;
 		disk.readonly = FALSE;
 		fio.Close();
 	} else {
-		// 書き込み禁止、リードオンリー
+		// Write protected, read only
 		disk.writep = TRUE;
 		disk.readonly = TRUE;
 	}
 
-	// ロックされていない
+	// Not locked
 	disk.lock = FALSE;
 
-	// パス保存
+	// Save path
 	diskpath = path;
 
-	// 成功
+	// Success
 	return TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	イジェクト
+//	Eject
 //
 //---------------------------------------------------------------------------
 void FASTCALL Disk::Eject(BOOL force)
 {
 	ASSERT(this);
 
-	// リムーバブルでなければイジェクトできない
+	// Can only be ejected if it is removable
 	if (!disk.removable) {
 		return;
 	}
 
-	// レディでなければイジェクト必要ない
+	// If you're not ready, you don't need to eject
 	if (!disk.ready) {
 		return;
 	}
 
-	// 強制フラグがない場合、ロックされていないことが必要
+	// Must be unlocked if there is no force flag
 	if (!force) {
 		if (disk.lock) {
 			return;
 		}
 	}
 
-	// ディスクキャッシュを削除
+	// Remove disk cache
 	disk.dcache->Save();
 	delete disk.dcache;
 	disk.dcache = NULL;
 
-	// ノットレディ、アテンションなし
+	// Not ready, no attention
 	disk.ready = FALSE;
 	disk.writep = FALSE;
 	disk.readonly = FALSE;
@@ -1077,31 +1079,31 @@ void FASTCALL Disk::Eject(BOOL force)
 
 //---------------------------------------------------------------------------
 //
-//	書き込み禁止
+//	Write Protected
 //
 //---------------------------------------------------------------------------
 void FASTCALL Disk::WriteP(BOOL writep)
 {
 	ASSERT(this);
 
-	// レディであること
+	// be ready
 	if (!disk.ready) {
 		return;
 	}
 
-	// Read Onlyの場合は、プロテクト状態のみ
+	// Read Only, protect only
 	if (disk.readonly) {
 		ASSERT(disk.writep);
 		return;
 	}
 
-	// フラグ設定
+	// Write protect flag setting
 	disk.writep = writep;
 }
 
 //---------------------------------------------------------------------------
 //
-//	内部ワーク取得
+//	Get Disk
 //
 //---------------------------------------------------------------------------
 void FASTCALL Disk::GetDisk(disk_t *buffer) const
@@ -1109,13 +1111,13 @@ void FASTCALL Disk::GetDisk(disk_t *buffer) const
 	ASSERT(this);
 	ASSERT(buffer);
 
-	// 内部ワークをコピー
+	// Assign internal buffer
 	*buffer = disk;
 }
 
 //---------------------------------------------------------------------------
 //
-//	パス取得
+//	Get Path
 //
 //---------------------------------------------------------------------------
 void FASTCALL Disk::GetPath(Filepath& path) const
@@ -1125,52 +1127,52 @@ void FASTCALL Disk::GetPath(Filepath& path) const
 
 //---------------------------------------------------------------------------
 //
-//	フラッシュ
+//	Flush
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::Flush()
 {
 	ASSERT(this);
 
-	// キャッシュがなければ何もしない
+	// Do nothing if there's nothing cached
 	if (!disk.dcache) {
 		return TRUE;
 	}
 
-	// キャッシュを保存
+	// Save cache
 	return disk.dcache->Save();
 }
 
 //---------------------------------------------------------------------------
 //
-//	レディチェック
+//	Check Ready
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::CheckReady()
 {
 	ASSERT(this);
 
-	// リセットなら、ステータスを返す
+	// Not ready if reset
 	if (disk.reset) {
 		disk.code = DISK_DEVRESET;
 		disk.reset = FALSE;
 		return FALSE;
 	}
 
-	// アテンションなら、ステータスを返す
+	// Not ready if it needs attention
 	if (disk.attn) {
 		disk.code = DISK_ATTENTION;
 		disk.attn = FALSE;
 		return FALSE;
 	}
 
-	// ノットレディなら、ステータスを返す
+	// Return status if not ready
 	if (!disk.ready) {
 		disk.code = DISK_NOTREADY;
 		return FALSE;
 	}
 
-	// エラーなしに初期化
+	// Initialization with no error
 	disk.code = DISK_NOERROR;
 	return TRUE;
 }
@@ -1178,7 +1180,7 @@ BOOL FASTCALL Disk::CheckReady()
 //---------------------------------------------------------------------------
 //
 //	INQUIRY
-//	※常時成功する必要がある
+//	*You need to be successful at all times
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::Inquiry(
@@ -1186,7 +1188,7 @@ int FASTCALL Disk::Inquiry(
 {
 	ASSERT(this);
 
-	// デフォルトはINQUIRY失敗
+	// default is INQUIRY failure
 	disk.code = DISK_INVALIDCMD;
 	return 0;
 }
@@ -1194,7 +1196,7 @@ int FASTCALL Disk::Inquiry(
 //---------------------------------------------------------------------------
 //
 //	REQUEST SENSE
-//	※SASIは別処理
+//	*SASI is a separate process
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::RequestSense(const DWORD *cdb, BYTE *buf)
@@ -1205,33 +1207,34 @@ int FASTCALL Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 	ASSERT(cdb);
 	ASSERT(buf);
 
-	// エラーがない場合に限り、ノットレディをチェック
+	// Return not ready only if there are no errors
 	if (disk.code == DISK_NOERROR) {
 		if (!disk.ready) {
 			disk.code = DISK_NOTREADY;
 		}
 	}
 
-	// サイズ決定(アロケーションレングスに従う)
+	// Size determination (according to allocation length)
 	size = (int)cdb[4];
 	ASSERT((size >= 0) && (size < 0x100));
 
-	// SCSI-1では、サイズ0のときに4バイト転送する(SCSI-2ではこの仕様は削除)
+	// For SCSI-1, transfer 4 bytes when the size is 0
+    // (Deleted this specification for SCSI-2)
 	if (size == 0) {
 		size = 4;
 	}
 
-	// バッファをクリア
+	// Clear the buffer
 	memset(buf, 0, size);
 
-	// 拡張センスデータを含めた、18バイトを設定
+	// Set 18 bytes including extended sense data
 	buf[0] = 0x70;
 	buf[2] = (BYTE)(disk.code >> 16);
 	buf[7] = 10;
 	buf[12] = (BYTE)(disk.code >> 8);
 	buf[13] = (BYTE)disk.code;
 
-	// コードをクリア
+	// Clear the code
 	disk.code = 0x00;
 
 	return size;
@@ -1239,8 +1242,8 @@ int FASTCALL Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	MODE SELECTチェック
-//	※disk.codeの影響を受けない
+//	MODE SELECT check
+//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::SelectCheck(const DWORD *cdb)
@@ -1250,16 +1253,16 @@ int FASTCALL Disk::SelectCheck(const DWORD *cdb)
 	ASSERT(this);
 	ASSERT(cdb);
 
-	// SCSIHDでなくセーブパラメータが設定されていればエラー
+	// Error if save parameters are set instead of SCSIHD
 	if (disk.id != MAKEID('S', 'C', 'H', 'D')) {
-		// セーブパラメータが設定されていればエラー
+		// Error if save parameters are set
 		if (cdb[1] & 0x01) {
 			disk.code = DISK_INVALIDCDB;
 			return 0;
 		}
 	}
 
-	// パラメータレングスで指定されたデータを受け取る
+	// Receive the data specified by the parameter length
 	length = (int)cdb[4];
 	return length;
 }
@@ -1267,8 +1270,8 @@ int FASTCALL Disk::SelectCheck(const DWORD *cdb)
 
 //---------------------------------------------------------------------------
 //
-//	MODE SELECT(10)チェック
-//	※disk.codeの影響を受けない
+//	MODE SELECT(10) check
+//	* Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::SelectCheck10(const DWORD *cdb)
@@ -1278,7 +1281,7 @@ int FASTCALL Disk::SelectCheck10(const DWORD *cdb)
 	ASSERT(this);
 	ASSERT(cdb);
 
-	// SCSIHDでなくセーブパラメータが設定されていればエラー
+	// Error if save parameters are set instead of SCSIHD
 	if (disk.id != MAKEID('S', 'C', 'H', 'D')) {
 		if (cdb[1] & 0x01) {
 			disk.code = DISK_INVALIDCDB;
@@ -1286,7 +1289,7 @@ int FASTCALL Disk::SelectCheck10(const DWORD *cdb)
 		}
 	}
 
-	// パラメータレングスで指定されたデータを受け取る
+	// Receive the data specified by the parameter length
 	length = cdb[7];
 	length <<= 8;
 	length |= cdb[8];
@@ -1300,7 +1303,7 @@ int FASTCALL Disk::SelectCheck10(const DWORD *cdb)
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	※disk.codeの影響を受けない
+//	* Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::ModeSelect(
@@ -1310,7 +1313,7 @@ BOOL FASTCALL Disk::ModeSelect(
 	ASSERT(buf);
 	ASSERT(length >= 0);
 
-	// 設定できない
+	// cannot be set
 	disk.code = DISK_INVALIDPRM;
 
 	return FALSE;
@@ -1319,7 +1322,7 @@ BOOL FASTCALL Disk::ModeSelect(
 //---------------------------------------------------------------------------
 //
 //	MODE SENSE
-//	※disk.codeの影響を受けない
+//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
@@ -1336,19 +1339,19 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x1a);
 
-	// レングス取得、バッファクリア
+	// Get length, clear buffer
 	length = (int)cdb[4];
 	ASSERT((length >= 0) && (length < 0x100));
 	memset(buf, 0, length);
 
-	// 変更可能フラグ取得
+	// Get changeable flag
 	if ((cdb[2] & 0xc0) == 0x40) {
 		change = TRUE;
 	} else {
 		change = FALSE;
 	}
 
-	// ページコード取得(0x00は最初からvalid)
+	// Get page code (0x00 is valid from the beginning)
 	page = cdb[2] & 0x3f;
 	if (page == 0x00) {
 		valid = TRUE;
@@ -1356,7 +1359,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 		valid = FALSE;
 	}
 
-	// 基本情報
+	// Basic information
 	size = 4;
 
 	// MEDIUM TYPE
@@ -1369,48 +1372,48 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 		buf[2] = 0x80;
 	}
 
-	// DBDが0なら、ブロックディスクリプタを追加
+	// add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
-		// モードパラメータヘッダ
+		// Mode parameter header
 		buf[3] = 0x08;
 
-		// レディの場合に限り
+		// Only if ready
 		if (disk.ready) {
-			// ブロックディスクリプタ(ブロック数)
+			// Block descriptor (number of blocks)
 			buf[5] = (BYTE)(disk.blocks >> 16);
 			buf[6] = (BYTE)(disk.blocks >> 8);
 			buf[7] = (BYTE)disk.blocks;
 
-			// ブロックディスクリプタ(ブロックレングス)
+			// Block descriptor (block length)
 			size = 1 << disk.size;
 			buf[9] = (BYTE)(size >> 16);
 			buf[10] = (BYTE)(size >> 8);
 			buf[11] = (BYTE)size;
 		}
 
-		// サイズ再設定
+		// size
 		size = 12;
 	}
 
-	// ページコード1(read-write error recovery)
+	// Page code 1(read-write error recovery)
 	if ((page == 0x01) || (page == 0x3f)) {
 		size += AddError(change, &buf[size]);
 		valid = TRUE;
 	}
 
-	// ページコード3(format device)
+	// Page code 3(format device)
 	if ((page == 0x03) || (page == 0x3f)) {
 		size += AddFormat(change, &buf[size]);
 		valid = TRUE;
 	}
 
-	// ページコード4(drive parameter)
+	// Page code 4(drive parameter)
 	if ((page == 0x04) || (page == 0x3f)) {
 		size += AddDrive(change, &buf[size]);
 		valid = TRUE;
 	}
 
-	// ページコード6(optical)
+	// Page code 6(optical)
 	if (disk.id == MAKEID('S', 'C', 'M', 'O')) {
 		if ((page == 0x06) || (page == 0x3f)) {
 			size += AddOpt(change, &buf[size]);
@@ -1418,13 +1421,13 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// ページコード8(caching)
+	// Page code 8(caching)
 	if ((page == 0x08) || (page == 0x3f)) {
 		size += AddCache(change, &buf[size]);
 		valid = TRUE;
 	}
 
-	// ページコード13(CD-ROM)
+	// Page code 13(CD-ROM)
 	if (disk.id == MAKEID('S', 'C', 'C', 'D')) {
 		if ((page == 0x0d) || (page == 0x3f)) {
 			size += AddCDROM(change, &buf[size]);
@@ -1432,7 +1435,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// ページコード14(CD-DA)
+	// Page code 14(CD-DA)
 	if (disk.id == MAKEID('S', 'C', 'C', 'D')) {
 		if ((page == 0x0e) || (page == 0x3f)) {
 			size += AddCDDA(change, &buf[size]);
@@ -1440,23 +1443,23 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// ページ(ベンダ特殊)
+	// Page (vendor special)
 	ret = AddVendor(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
 		valid = TRUE;
 	}
 
-	// モードデータレングスを最終設定
+	// final setting of mode data length
 	buf[0] = (BYTE)(size - 1);
 
-	// サポートしていないページか
+	// Unsupported page
 	if (!valid) {
 		disk.code = DISK_INVALIDCDB;
 		return 0;
 	}
 
-	// MODE SENSE成功
+	// MODE SENSE success
 	disk.code = DISK_NOERROR;
 	return length;
 }
@@ -1464,7 +1467,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	MODE SENSE(10)
-//	※disk.codeの影響を受けない
+//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
@@ -1481,7 +1484,7 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x5a);
 
-	// レングス取得、バッファクリア
+	// Get length, clear buffer
 	length = cdb[7];
 	length <<= 8;
 	length |= cdb[8];
@@ -1491,14 +1494,14 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	ASSERT((length >= 0) && (length < 0x800));
 	memset(buf, 0, length);
 
-	// 変更可能フラグ取得
+	// Get changeable flag
 	if ((cdb[2] & 0xc0) == 0x40) {
 		change = TRUE;
 	} else {
 		change = FALSE;
 	}
 
-	// ページコード取得(0x00は最初からvalid)
+	// Get page code (0x00 is valid from the beginning)
 	page = cdb[2] & 0x3f;
 	if (page == 0x00) {
 		valid = TRUE;
@@ -1506,54 +1509,54 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		valid = FALSE;
 	}
 
-	// 基本情報
+	// Basic Information
 	size = 4;
 	if (disk.writep) {
 		buf[2] = 0x80;
 	}
 
-	// DBDが0なら、ブロックディスクリプタを追加
+	// add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
-		// モードパラメータヘッダ
+		// Mode parameter header
 		buf[3] = 0x08;
 
-		// レディの場合に限り
+		// Only if ready
 		if (disk.ready) {
-			// ブロックディスクリプタ(ブロック数)
+			// Block descriptor (number of blocks)
 			buf[5] = (BYTE)(disk.blocks >> 16);
 			buf[6] = (BYTE)(disk.blocks >> 8);
 			buf[7] = (BYTE)disk.blocks;
 
-			// ブロックディスクリプタ(ブロックレングス)
+			// Block descriptor (block length)
 			size = 1 << disk.size;
 			buf[9] = (BYTE)(size >> 16);
 			buf[10] = (BYTE)(size >> 8);
 			buf[11] = (BYTE)size;
 		}
 
-		// サイズ再設定
+		// Size
 		size = 12;
 	}
 
-	// ページコード1(read-write error recovery)
+	// Page code 1(read-write error recovery)
 	if ((page == 0x01) || (page == 0x3f)) {
 		size += AddError(change, &buf[size]);
 		valid = TRUE;
 	}
 
-	// ページコード3(format device)
+	// Page code 3(format device)
 	if ((page == 0x03) || (page == 0x3f)) {
 		size += AddFormat(change, &buf[size]);
 		valid = TRUE;
 	}
 
-	// ページコード4(drive parameter)
+	// Page code 4(drive parameter)
 	if ((page == 0x04) || (page == 0x3f)) {
 		size += AddDrive(change, &buf[size]);
 		valid = TRUE;
 	}
 
-	// ページコード6(optical)
+	// ペPage code 6(optical)
 	if (disk.id == MAKEID('S', 'C', 'M', 'O')) {
 		if ((page == 0x06) || (page == 0x3f)) {
 			size += AddOpt(change, &buf[size]);
@@ -1561,13 +1564,13 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// ページコード8(caching)
+	// Page code 8(caching)
 	if ((page == 0x08) || (page == 0x3f)) {
 		size += AddCache(change, &buf[size]);
 		valid = TRUE;
 	}
 
-	// ページコード13(CD-ROM)
+	// Page code 13(CD-ROM)
 	if (disk.id == MAKEID('S', 'C', 'C', 'D')) {
 		if ((page == 0x0d) || (page == 0x3f)) {
 			size += AddCDROM(change, &buf[size]);
@@ -1575,7 +1578,7 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// ページコード14(CD-DA)
+	// Page code 14(CD-DA)
 	if (disk.id == MAKEID('S', 'C', 'C', 'D')) {
 		if ((page == 0x0e) || (page == 0x3f)) {
 			size += AddCDDA(change, &buf[size]);
@@ -1583,30 +1586,30 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// ページ(ベンダ特殊)
+	// Page (vendor special)
 	ret = AddVendor(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
 		valid = TRUE;
 	}
 
-	// モードデータレングスを最終設定
+	// final setting of mode data length
 	buf[0] = (BYTE)(size - 1);
 
-	// サポートしていないページか
+	// Unsupported page
 	if (!valid) {
 		disk.code = DISK_INVALIDCDB;
 		return 0;
 	}
 
-	// MODE SENSE成功
+	// MODE SENSE success
 	disk.code = DISK_NOERROR;
 	return length;
 }
 
 //---------------------------------------------------------------------------
 //
-//	エラーページ追加
+//	Add error page
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::AddError(BOOL change, BYTE *buf)
@@ -1614,22 +1617,22 @@ int FASTCALL Disk::AddError(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x0a;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 12;
 	}
 
-	// リトライカウントは0、リミットタイムは装置内部のデフォルト値を使用
+	// Retry count is 0, limit time uses internal default value
 	return 12;
 }
 
 //---------------------------------------------------------------------------
 //
-//	フォーマットページ追加
+//	Add format page
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::AddFormat(BOOL change, BYTE *buf)
@@ -1639,11 +1642,12 @@ int FASTCALL Disk::AddFormat(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x80 | 0x03;
 	buf[1] = 0x16;
 
-	// 物理セクタのバイト数は変更可能に見せる(実際には変更できないが)
+	// Show the number of bytes in the physical sector as changeable \
+    // (though it cannot be changed in practice)
 	if (change) {
 		buf[0xc] = 0xff;
 		buf[0xd] = 0xff;
@@ -1651,20 +1655,20 @@ int FASTCALL Disk::AddFormat(BOOL change, BYTE *buf)
 	}
 
 	if (disk.ready) {
-		// 1ゾーンのトラック数を8に設定(TODO)
+		// Set the number of tracks in one zone to 8 (TODO)
 		buf[0x3] = 0x08;
 
-		// セクタ/トラックを25に設定(TODO)
+		// Set sector/track to 25 (TODO)
 		buf[0xa] = 0x00;
 		buf[0xb] = 0x19;
 
-		// 物理セクタのバイト数を設定
+		// Set the number of bytes in the physical sector
 		size = 1 << disk.size;
 		buf[0xc] = (BYTE)(size >> 8);
 		buf[0xd] = (BYTE)size;
 	}
 
-	// リムーバブル属性を設定
+	// Set removable attribute
 	if (disk.removable) {
 		buf[20] = 0x20;
 	}
@@ -1674,7 +1678,7 @@ int FASTCALL Disk::AddFormat(BOOL change, BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	ドライブページ追加
+//	Add drive page
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::AddDrive(BOOL change, BYTE *buf)
@@ -1684,17 +1688,18 @@ int FASTCALL Disk::AddDrive(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x04;
 	buf[1] = 0x16;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 24;
 	}
 
 	if (disk.ready) {
-		// シリンダ数を設定(総ブロック数を25セクタ/トラックと8ヘッドで除算)
+		// Set the number of cylinders (total number of blocks
+        // divided by 25 sectors/track and 8 heads)
 		cylinder = disk.blocks;
 		cylinder >>= 3;
 		cylinder /= 25;
@@ -1702,7 +1707,7 @@ int FASTCALL Disk::AddDrive(BOOL change, BYTE *buf)
 		buf[0x3] = (BYTE)(cylinder >> 8);
 		buf[0x4] = (BYTE)cylinder;
 
-		// ヘッドを8で固定
+		// Fix the head at 8
 		buf[0x5] = 0x8;
 	}
 
@@ -1711,7 +1716,7 @@ int FASTCALL Disk::AddDrive(BOOL change, BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	オプティカルページ追加
+//	Add option
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::AddOpt(BOOL change, BYTE *buf)
@@ -1719,22 +1724,22 @@ int FASTCALL Disk::AddOpt(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x06;
 	buf[1] = 0x02;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 4;
 	}
 
-	// 更新ブロックのレポートは行わない
+	// Do not report update blocks
 	return 4;
 }
 
 //---------------------------------------------------------------------------
 //
-//	キャッシュページ追加
+//	Add Cache Page
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::AddCache(BOOL change, BYTE *buf)
@@ -1742,22 +1747,22 @@ int FASTCALL Disk::AddCache(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x08;
 	buf[1] = 0x0a;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 12;
 	}
 
-	// 読み込みキャッシュのみ有効、プリフェッチは行わない
+	// Only read cache is valid, no prefetch
 	return 12;
 }
 
 //---------------------------------------------------------------------------
 //
-//	CD-ROMページ追加
+//	Add CDROM Page
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::AddCDROM(BOOL change, BYTE *buf)
@@ -1765,19 +1770,19 @@ int FASTCALL Disk::AddCDROM(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x0d;
 	buf[1] = 0x06;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 8;
 	}
 
-	// インアクティブタイマは2sec
+	// 2 seconds for inactive timer
 	buf[3] = 0x05;
 
-	// MSF倍数はそれぞれ60, 75
+	// MSF multiples are 60 and 75 respectively
 	buf[5] = 60;
 	buf[7] = 75;
 
@@ -1794,22 +1799,23 @@ int FASTCALL Disk::AddCDDA(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x0e;
 	buf[1] = 0x0e;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 16;
 	}
 
-	// オーディオは操作完了を待ち、 複数トラックにまたがるPLAYを許可する
+	// Audio waits for operation completion and allows
+    // PLAY across multiple tracks
 	return 16;
 }
 
 //---------------------------------------------------------------------------
 //
-//	Vendor特殊ページ追加
+//	Add special vendor page
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::AddVendor(int /*page*/, BOOL /*change*/, BYTE *buf)
@@ -1823,7 +1829,7 @@ int FASTCALL Disk::AddVendor(int /*page*/, BOOL /*change*/, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	READ DEFECT DATA(10)
-//	※disk.codeの影響を受けない
+//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
@@ -1835,7 +1841,7 @@ int FASTCALL Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x37);
 
-	// レングス取得、バッファクリア
+	// Get length, clear buffer
 	length = cdb[7];
 	length <<= 8;
 	length |= cdb[8];
@@ -1859,14 +1865,14 @@ int FASTCALL Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 	buf[10] = 0xff;
 	buf[11] = 0xff;
 
-	// リスト無し
+	// no list
 	disk.code = DISK_NODEFECT;
 	return 4;
 }
 
 //---------------------------------------------------------------------------
 //
-//	コマンド
+//	Command
 //
 //---------------------------------------------------------------------------
 
@@ -1879,12 +1885,12 @@ BOOL FASTCALL Disk::TestUnitReady(const DWORD* /*cdb*/)
 {
 	ASSERT(this);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return FALSE;
 	}
 
-	// TEST UNIT READY成功
+	// TEST UNIT READY Success
 	return TRUE;
 }
 
@@ -1897,37 +1903,37 @@ BOOL FASTCALL Disk::Rezero(const DWORD* /*cdb*/)
 {
 	ASSERT(this);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return FALSE;
 	}
 
-	// REZERO成功
+	// REZERO Success
 	return TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
 //	FORMAT UNIT
-//	※SASIはオペコード$06、SCSIはオペコード$04
+//	*Opcode $06 for SASI, Opcode $04 for SCSI
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::Format(const DWORD *cdb)
 {
 	ASSERT(this);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return FALSE;
 	}
 
-	// FMTDATA=1はサポートしない(但しDEFECT LISTが無いならOK)
+	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
 	if ((cdb[1] & 0x10) != 0 && cdb[4] != 0) {
 		disk.code = DISK_INVALIDCDB;
 		return FALSE;
 	}
 
-	// FORMAT成功
+	// FORMAT Success
 	return TRUE;
 }
 
@@ -1940,12 +1946,12 @@ BOOL FASTCALL Disk::Reassign(const DWORD* /*cdb*/)
 {
 	ASSERT(this);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return FALSE;
 	}
 
-	// REASSIGN BLOCKS成功
+	// REASSIGN BLOCKS Success
 	return TRUE;
 }
 
@@ -1959,53 +1965,53 @@ int FASTCALL Disk::Read(BYTE *buf, DWORD block)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return 0;
 	}
 
-	// トータルブロック数を超えていればエラー
+	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
 		disk.code = DISK_INVALIDLBA;
 		return 0;
 	}
 
-	// キャッシュに任せる
+	// leave it to the cache
 	if (!disk.dcache->Read(buf, block)) {
 		disk.code = DISK_READFAULT;
 		return 0;
 	}
 
-	// 成功
+	//  Success
 	return (1 << disk.size);
 }
 
 //---------------------------------------------------------------------------
 //
-//	WRITEチェック
+//	WRITE check
 //
 //---------------------------------------------------------------------------
 int FASTCALL Disk::WriteCheck(DWORD block)
 {
 	ASSERT(this);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return 0;
 	}
 
-	// トータルブロック数を超えていればエラー
+	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
 		return 0;
 	}
 
-	// 書き込み禁止ならエラー
+	// Error if write protected
 	if (disk.writep) {
 		disk.code = DISK_WRITEPROTECT;
 		return 0;
 	}
 
-	// 成功
+	//  Success
 	return (1 << disk.size);
 }
 
@@ -2019,31 +2025,31 @@ BOOL FASTCALL Disk::Write(const BYTE *buf, DWORD block)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// レディでなければエラー
+	// Error if not ready
 	if (!disk.ready) {
 		disk.code = DISK_NOTREADY;
 		return FALSE;
 	}
 
-	// トータルブロック数を超えていればエラー
+	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
 		disk.code = DISK_INVALIDLBA;
 		return FALSE;
 	}
 
-	// 書き込み禁止ならエラー
+	// Error if write protected
 	if (disk.writep) {
 		disk.code = DISK_WRITEPROTECT;
 		return FALSE;
 	}
 
-	// キャッシュに任せる
+	// Leave it to the cache
 	if (!disk.dcache->Write(buf, block)) {
 		disk.code = DISK_WRITEFAULT;
 		return FALSE;
 	}
 
-	// 成功
+	//  Success
 	disk.code = DISK_NOERROR;
 	return TRUE;
 }
@@ -2051,19 +2057,19 @@ BOOL FASTCALL Disk::Write(const BYTE *buf, DWORD block)
 //---------------------------------------------------------------------------
 //
 //	SEEK
-//	※LBAのチェックは行わない(SASI IOCS)
+//	*Does not check LBA (SASI IOCS)
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::Seek(const DWORD* /*cdb*/)
 {
 	ASSERT(this);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return FALSE;
 	}
 
-	// SEEK成功
+	// SEEK Success
 	return TRUE;
 }
 
@@ -2076,12 +2082,12 @@ BOOL FASTCALL Disk::Assign(const DWORD* /*cdb*/)
 {
 	ASSERT(this);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return FALSE;
 	}
 
-	// 成功
+	//  Success
 	return TRUE;
 }
 
@@ -2094,12 +2100,12 @@ BOOL FASTCALL Disk::Specify(const DWORD* /*cdb*/)
 {
 	ASSERT(this);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return FALSE;
 	}
 
-	// 成功
+	//  Success
 	return TRUE;
 }
 
@@ -2114,15 +2120,15 @@ BOOL FASTCALL Disk::StartStop(const DWORD *cdb)
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1b);
 
-	// イジェクトビットを見て、必要ならイジェクト
+	// Look at the eject bit and eject if necessary
 	if (cdb[4] & 0x02) {
 		if (disk.lock) {
-			// ロックされているので、イジェクトできない
+			// Cannot be ejected because it is locked
 			disk.code = DISK_PREVENT;
 			return FALSE;
 		}
 
-		// イジェクト
+		// Eject
 		Eject(FALSE);
 	}
 
@@ -2142,19 +2148,19 @@ BOOL FASTCALL Disk::SendDiag(const DWORD *cdb)
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1d);
 
-	// PFビットはサポートしない
+	// Do not support PF bit
 	if (cdb[1] & 0x10) {
 		disk.code = DISK_INVALIDCDB;
 		return FALSE;
 	}
 
-	// パラメータリストはサポートしない
+	// Do not support parameter list
 	if ((cdb[3] != 0) || (cdb[4] != 0)) {
 		disk.code = DISK_INVALIDCDB;
 		return FALSE;
 	}
 
-	// 常に成功
+	// Always successful
 	disk.code = DISK_NOERROR;
 	return TRUE;
 }
@@ -2170,19 +2176,19 @@ BOOL FASTCALL Disk::Removal(const DWORD *cdb)
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1e);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return FALSE;
 	}
 
-	// ロックフラグを設定
+	// Set Lock flag
 	if (cdb[4] & 0x01) {
 		disk.lock = TRUE;
 	} else {
 		disk.lock = FALSE;
 	}
 
-	// REMOVAL成功
+	// REMOVAL Success
 	return TRUE;
 }
 
@@ -2199,15 +2205,15 @@ int FASTCALL Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// バッファクリア
+	// Buffer clear
 	memset(buf, 0, 8);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return 0;
 	}
 
-	// 論理ブロックアドレスの終端(disk.blocks - 1)を作成
+	// Create end of logical block address (disk.blocks-1)
 	ASSERT(disk.blocks > 0);
 	blocks = disk.blocks - 1;
 	buf[0] = (BYTE)(blocks >> 24);
@@ -2215,14 +2221,14 @@ int FASTCALL Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 	buf[2] = (BYTE)(blocks >> 8);
 	buf[3] = (BYTE)blocks;
 
-	// ブロックレングス(1 << disk.size)を作成
+	// Create block length (1 << disk.size)
 	length = 1 << disk.size;
 	buf[4] = (BYTE)(length >> 24);
 	buf[5] = (BYTE)(length >> 16);
 	buf[6] = (BYTE)(length >> 8);
 	buf[7] = (BYTE)length;
 
-	// 返送サイズを返す
+	// return the size
 	return 8;
 }
 
@@ -2240,7 +2246,7 @@ BOOL FASTCALL Disk::Verify(const DWORD *cdb)
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x2f);
 
-	// パラメータ取得
+	// Get parameters
 	record = cdb[2];
 	record <<= 8;
 	record |= cdb[3];
@@ -2252,18 +2258,18 @@ BOOL FASTCALL Disk::Verify(const DWORD *cdb)
 	blocks <<= 8;
 	blocks |= cdb[8];
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return 0;
 	}
 
-	// パラメータチェック
+	// Parameter check
 	if (disk.blocks < (record + blocks)) {
 		disk.code = DISK_INVALIDLBA;
 		return FALSE;
 	}
 
-	// 成功
+	//  Success
 	return TRUE;
 }
 
@@ -2279,7 +2285,7 @@ int FASTCALL Disk::ReadToc(const DWORD *cdb, BYTE *buf)
 	ASSERT(cdb[0] == 0x43);
 	ASSERT(buf);
 
-	// このコマンドはサポートしない
+	// This command is not supported
 	disk.code = DISK_INVALIDCMD;
 	return FALSE;
 }
@@ -2295,7 +2301,7 @@ BOOL FASTCALL Disk::PlayAudio(const DWORD *cdb)
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x45);
 
-	// このコマンドはサポートしない
+	// This command is not supported
 	disk.code = DISK_INVALIDCMD;
 	return FALSE;
 }
@@ -2311,7 +2317,7 @@ BOOL FASTCALL Disk::PlayAudioMSF(const DWORD *cdb)
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x47);
 
-	// このコマンドはサポートしない
+	// This command is not supported
 	disk.code = DISK_INVALIDCMD;
 	return FALSE;
 }
@@ -2327,20 +2333,20 @@ BOOL FASTCALL Disk::PlayAudioTrack(const DWORD *cdb)
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x48);
 
-	// このコマンドはサポートしない
+	// This command is not supported
 	disk.code = DISK_INVALIDCMD;
 	return FALSE;
 }
 
 //===========================================================================
 //
-//	SASI ハードディスク
+//	SASI Hard Disk
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 SASIHD::SASIHD() : Disk()
@@ -2360,7 +2366,7 @@ void FASTCALL SASIHD::Reset()
 	disk.lock = FALSE;
 	disk.attn = FALSE;
 
-	// リセットなし、コードをクリア
+	// Resetなし、コードをクリア
 	disk.reset = FALSE;
 	disk.code = 0x00;
 }
@@ -2378,12 +2384,12 @@ BOOL FASTCALL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 	ASSERT(this);
 	ASSERT(!disk.ready);
 
-	// 読み込みオープンが必要
+	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
-	// ファイルサイズの取得
+	// Get file size
 	size = fio.GetFileSize();
 	fio.Close();
 
@@ -2395,7 +2401,7 @@ BOOL FASTCALL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 		disk.size = 10;
 		disk.blocks = (DWORD)(size >> 10);
 
-		// 基本クラス
+		// Call the base class
 		return Disk::Open(path);
 	}
 #endif	// USE_MZ1F23_1024_SUPPORT
@@ -2430,7 +2436,7 @@ BOOL FASTCALL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 		case 0x2793000:
 			break;
 
-		// その他(サポートしない)
+		// Other(サポートしない)
 		default:
 			return FALSE;
 	}
@@ -2440,7 +2446,7 @@ BOOL FASTCALL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 	disk.size = 8;
 	disk.blocks = (DWORD)(size >> 8);
 
-	// 基本クラス
+	// Call the base class
 	return Disk::Open(path);
 }
 
@@ -2485,34 +2491,34 @@ int FASTCALL SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 SCSIHD::SCSIHD() : Disk()
 {
-	// SCSI ハードディスク
+	// SCSI Hard Disk
 	disk.id = MAKEID('S', 'C', 'H', 'D');
 }
 
 //---------------------------------------------------------------------------
 //
-//	リセット
+//	Reset
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIHD::Reset()
 {
-	// ロック状態解除、アテンション解除
+	// Unlock and release attention
 	disk.lock = FALSE;
 	disk.attn = FALSE;
 
-	// リセットなし、コードをクリア
+	// No reset, clear code
 	disk.reset = FALSE;
 	disk.code = 0x00;
 }
 
 //---------------------------------------------------------------------------
 //
-//	オープン
+//	Open
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
@@ -2523,35 +2529,35 @@ BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 	ASSERT(this);
 	ASSERT(!disk.ready);
 
-	// 読み込みオープンが必要
+	// read open required
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
-	// ファイルサイズの取得
+	// Get file size
 	size = fio.GetFileSize();
 	fio.Close();
 
-	// 512バイト単位であること
+	// Must be 512 bytes
 	if (size & 0x1ff) {
 		return FALSE;
 	}
 
-	// 10MB以上
+	// 10MB or more
 	if (size < 0x9f5400) {
 		return FALSE;
 	}
-	// xm6iに準じて2TB
-	// よく似たものが wxw/wxw_cfg.cpp にもある
+    // 2TB according to xm6i
+    // There is a similar one in wxw/wxw_cfg.cpp
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
 		return FALSE;
 	}
 
-	// セクタサイズとブロック数
+	// sector size and number of blocks
 	disk.size = 9;
 	disk.blocks = (DWORD)(size >> 9);
 
-	// 基本クラス
+	// Call base class
 	return Disk::Open(path);
 }
 
@@ -2573,38 +2579,38 @@ int FASTCALL SCSIHD::Inquiry(
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
 
-	// EVPDチェック
+	// EVPD check
 	if (cdb[1] & 0x01) {
 		disk.code = DISK_INVALIDCDB;
 		return 0;
 	}
 
-	// レディチェック(イメージファイルがない場合、エラーとする)
+	// Ready check (Error if no image file)
 	if (!disk.ready) {
 		disk.code = DISK_NOTREADY;
 		return 0;
 	}
 
-	// 基本データ
+	// Basic data
 	// buf[0] ... Direct Access Device
-	// buf[2] ... SCSI-2準拠のコマンド体系
-	// buf[3] ... SCSI-2準拠のInquiryレスポンス
-	// buf[4] ... Inquiry追加データ
+	// buf[2] ... SCSI-2 compliant command system
+	// buf[3] ... SCSI-2 compliant Inquiry response
+	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
 
-	// SCSI-2 本の p.104 4.4.3 不当なロジカルユニットの処理
+	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
 	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
 		buf[0] = 0x7f;
 	}
 
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 122 + 3;	// 実HDDに近い値
+	buf[4] = 122 + 3;	// Value close to real HDD
 
-	// 空白で埋める
+	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);
 
-	// ベンダ名/製品名を決定
+	// Determine vendor name/product name
 	sprintf(vendor, BENDER_SIGNATURE);
 	size = disk.blocks >> 11;
 	if (size < 300)
@@ -2620,26 +2626,26 @@ int FASTCALL SCSIHD::Inquiry(
 	else
 		sprintf(product, "FBSE%d.%dS", size / 1000, (size % 1000) / 100);
 
-	// ベンダ名
+	// Vendor name
 	memcpy(&buf[8], vendor, strlen(vendor));
 
-	// 製品名
+	// Product name
 	memcpy(&buf[16], product, strlen(product));
 
-	// リビジョン
+	// Revision
 	sprintf(rev, "0%01d%01d%01d",
 			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
 	memcpy(&buf[32], rev, 4);
 
-	// 返却できるデータのサイズ
+	// Size of data that can be returned
 	size = (buf[4] + 5);
 
-	// 相手のバッファが少なければ制限する
+	// Limit if the other buffer is small
 	if (size > (int)cdb[4]) {
 		size = (int)cdb[4];
 	}
 
-	// 成功
+	//  Success
 	disk.code = DISK_NOERROR;
 	return size;
 }
@@ -2647,7 +2653,7 @@ int FASTCALL SCSIHD::Inquiry(
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	※disk.codeの影響を受けない
+//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
@@ -2663,12 +2669,12 @@ BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	if (cdb[1] & 0x10) {
 		// Mode Parameter header
 		if (length >= 12) {
-			// ブロックレングスのバイト数をチェック
+			// Check the block length bytes
 			size = 1 << disk.size;
 			if (buf[9] != (BYTE)(size >> 16) ||
 				buf[10] != (BYTE)(size >> 8) ||
 				buf[11] != (BYTE)size) {
-				// 今のところセクタ長の変更は許さない
+				// currently does not allow changing sector length
 				disk.code = DISK_INVALIDPRM;
 				return FALSE;
 			}
@@ -2676,37 +2682,37 @@ BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			length -= 12;
 		}
 
-		// ページの解析
+		// Parsing the page
 		while (length > 0) {
-			// ページの取得
+			// Get page
 			page = buf[0];
 
 			switch (page) {
 				// format device
 				case 0x03:
-					// 物理セクタのバイト数をチェック
+					// check the number of bytes in the physical sector
 					size = 1 << disk.size;
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
-						// 今のところセクタ長の変更は許さない
+						// currently does not allow changing sector length
 						disk.code = DISK_INVALIDPRM;
 						return FALSE;
 					}
 					break;
 
-				// その他ページ
+				// Other page
 				default:
 					break;
 			}
 
-			// 次のページへ
+			// Advance to the next page
 			size = buf[1] + 2;
 			length -= size;
 			buf += size;
 		}
 	}
 
-	// とりあえずエラーは発生させない(MINIX)
+	// Do not generate an error for the time being (MINIX)
 	disk.code = DISK_NOERROR;
 
 	return TRUE;
@@ -2714,13 +2720,13 @@ BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 
 //===========================================================================
 //
-//	SCSI ハードディスク(PC-9801-55 NEC純正/Anex86/T98Next)
+//	SCSI hard disk (PC-9801-55 NEC genuine /Anex86/T98Next)
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 SCSIHD_NEC::SCSIHD_NEC() : SCSIHD()
@@ -2770,12 +2776,12 @@ BOOL FASTCALL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	ASSERT(this);
 	ASSERT(!disk.ready);
 
-	// 読み込みオープンが必要
+	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
-	// ファイルサイズの取得
+	// Get file size
 	size = fio.GetFileSize();
 
 	// ヘッダー読み込み
@@ -2854,7 +2860,7 @@ BOOL FASTCALL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	disk.blocks = (DWORD)(imgsize >> disk.size);
 	disk.imgoffset = imgoffset;
 
-	// 基本クラス
+	// Call the base class
 	return Disk::Open(path);
 }
 
@@ -2880,7 +2886,7 @@ int FASTCALL SCSIHD_NEC::Inquiry(
 	buf[2] = 0x01;
 	buf[3] = 0x01;
 
-	// ベンダー名差し替え
+	// Replace Vendor name
 	buf[8] = 'N';
 	buf[9] = 'E';
 	buf[10] = 'C';
@@ -2898,11 +2904,11 @@ int FASTCALL SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x06;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 8;
 	}
@@ -2923,7 +2929,7 @@ int FASTCALL SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x80 | 0x03;
 	buf[1] = 0x16;
 
@@ -2967,11 +2973,11 @@ int FASTCALL SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x04;
 	buf[1] = 0x12;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 20;
 	}
@@ -2991,13 +2997,13 @@ int FASTCALL SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 
 //===========================================================================
 //
-//	SCSI ハードディスク(Macintosh Apple純正)
+//	SCSI hard disk (Macintosh Apple genuine)
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 SCSIHD_APPLE::SCSIHD_APPLE() : SCSIHD()
@@ -3016,19 +3022,19 @@ int FASTCALL SCSIHD_APPLE::Inquiry(
 	char vendor[32];
 	char product[32];
 
-	// 基底クラス
+	// Call the base class
 	size = SCSIHD::Inquiry(cdb, buf, major, minor);
 
-	// 基底クラスでエラーなら終了
+	// End if there is an error in the base class
 	if (size == 0) {
 		return 0;
 	}
 
-	// ベンダ名
+	// Vendor name
 	sprintf(vendor, " SEAGATE");
 	memcpy(&buf[8], vendor, strlen(vendor));
 
-	// 製品名
+	// Product name
 	sprintf(product, "          ST225N");
 	memcpy(&buf[16], product, strlen(product));
 
@@ -3037,7 +3043,7 @@ int FASTCALL SCSIHD_APPLE::Inquiry(
 
 //---------------------------------------------------------------------------
 //
-//	Vendor特殊ページ追加
+//	Add Vendor special page
 //
 //---------------------------------------------------------------------------
 int FASTCALL SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
@@ -3045,16 +3051,16 @@ int FASTCALL SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// ページコード48
+	// Page code 48
 	if ((page != 0x30) && (page != 0x3f)) {
 		return 0;
 	}
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x30;
 	buf[1] = 0x1c;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 30;
 	}
@@ -3067,27 +3073,27 @@ int FASTCALL SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
 
 //===========================================================================
 //
-//	SCSI 光磁気ディスク
+//	SCSI magneto-optical disk
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 SCSIMO::SCSIMO() : Disk()
 {
-	// SCSI 光磁気ディスク
+	// SCSI magneto-optical disk
 	disk.id = MAKEID('S', 'C', 'M', 'O');
 
-	// リムーバブル
+	// Set as removable
 	disk.removable = TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	オープン
+//	Open
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIMO::Open(const Filepath& path, BOOL attn)
@@ -3098,12 +3104,12 @@ BOOL FASTCALL SCSIMO::Open(const Filepath& path, BOOL attn)
 	ASSERT(this);
 	ASSERT(!disk.ready);
 
-	// 読み込みオープンが必要
+	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
-	// ファイルサイズの取得
+	// Get file size
 	size = fio.GetFileSize();
 	fio.Close();
 
@@ -3132,15 +3138,15 @@ BOOL FASTCALL SCSIMO::Open(const Filepath& path, BOOL attn)
 			disk.blocks = 310352;
 			break;
 
-		// その他(エラー)
+		// Other (this is an error)
 		default:
 			return FALSE;
 	}
 
-	// 基本クラス
+	// Call the base class
 	Disk::Open(path);
 
-	// レディならアテンション
+	// Attention if ready
 	if (disk.ready && attn) {
 		disk.attn = TRUE;
 	}
@@ -3151,7 +3157,7 @@ BOOL FASTCALL SCSIMO::Open(const Filepath& path, BOOL attn)
 #ifndef RASCSI
 //---------------------------------------------------------------------------
 //
-//	ロード
+//	Load
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIMO::Load(Fileio *fio, int ver)
@@ -3165,12 +3171,12 @@ BOOL FASTCALL SCSIMO::Load(Fileio *fio, int ver)
 	ASSERT(fio);
 	ASSERT(ver >= 0x0200);
 
-	// version2.03より前は、ディスクはセーブしていない
+	// Prior to version 2.03, the disk was not saved
 	if (ver <= 0x0202) {
 		return TRUE;
 	}
 
-	// サイズをロード、照合
+	// load size, match
 	if (!fio->Read(&sz, sizeof(sz))) {
 		return FALSE;
 	}
@@ -3178,7 +3184,7 @@ BOOL FASTCALL SCSIMO::Load(Fileio *fio, int ver)
 		return FALSE;
 	}
 
-	// バッファへロード
+	// load into buffer
 	PROP_IMPORT(fio, buf.id);
 	PROP_IMPORT(fio, buf.ready);
 	PROP_IMPORT(fio, buf.writep);
@@ -3193,27 +3199,27 @@ BOOL FASTCALL SCSIMO::Load(Fileio *fio, int ver)
 	PROP_IMPORT(fio, buf.code);
 	PROP_IMPORT(fio, padding);
 
-	// パスをロード
+	// Load path
 	if (!path.Load(fio, ver)) {
 		return FALSE;
 	}
 
-	// 必ずイジェクト
+	// Always eject
 	Eject(TRUE);
 
-	// IDが一致した場合のみ、移動
+	// Move only if IDs match
 	if (disk.id != buf.id) {
-		// セーブ時にMOでなかった。イジェクト状態を維持
+		// Not MO at the time of save. Maintain eject status
 		return TRUE;
 	}
 
-	// 再オープンを試みる
+	// Re-try opening
 	if (!Open(path, FALSE)) {
-		// 再オープンできない。イジェクト状態を維持
+		// Cannot reopen. Maintain eject status
 		return TRUE;
 	}
 
-	// Open内でディスクキャッシュは作成されている。プロパティのみ移動
+	// Disk cache is created in Open. Move property only
 	if (!disk.readonly) {
 		disk.writep = buf.writep;
 	}
@@ -3223,7 +3229,7 @@ BOOL FASTCALL SCSIMO::Load(Fileio *fio, int ver)
 	disk.lun = buf.lun;
 	disk.code = buf.code;
 
-	// 正常にロードできた
+	// loaded successfully
 	return TRUE;
 }
 #endif	// RASCSI
@@ -3244,7 +3250,7 @@ int FASTCALL SCSIMO::Inquiry(
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
 
-	// EVPDチェック
+	// EVPD check
 	if (cdb[1] & 0x01) {
 		disk.code = DISK_INVALIDCDB;
 		return FALSE;
@@ -3252,14 +3258,14 @@ int FASTCALL SCSIMO::Inquiry(
 
 	// 基本データ
 	// buf[0] ... Optical Memory Device
-	// buf[1] ... リムーバブル
-	// buf[2] ... SCSI-2準拠のコマンド体系
-	// buf[3] ... SCSI-2準拠のInquiryレスポンス
-	// buf[4] ... Inquiry追加データ
+	// buf[1] ... Removable
+	// buf[2] ... SCSI-2 compliant command system
+	// buf[3] ... SCSI-2 compliant Inquiry response
+	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
 	buf[0] = 0x07;
 
-	// SCSI-2 本の p.104 4.4.3 不当なロジカルユニットの処理
+	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
 	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
 		buf[0] = 0x7f;
 	}
@@ -3267,31 +3273,31 @@ int FASTCALL SCSIMO::Inquiry(
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 36 - 5;	// 必須
+	buf[4] = 36 - 5;	// required
 
-	// 空白で埋める
+	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);
 
-	// ベンダ
+	// Vendor name
 	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
 
-	// 製品名
+	// Product name
 	memcpy(&buf[16], "M2513A", 6);
 
-	// リビジョン(XM6のバージョンNo)
+	// Revision (XM6 version number)
 	sprintf(rev, "0%01d%01d%01d",
 				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
 	memcpy(&buf[32], rev, 4);
 
-	// 返却できるデータのサイズ
+	// Size return data
 	size = (buf[4] + 5);
 
-	// 相手のバッファが少なければ制限する
+	// Limit the size if the buffer is too small
 	if (size > (int)cdb[4]) {
 		size = (int)cdb[4];
 	}
 
-	// 成功
+	//  Success
 	disk.code = DISK_NOERROR;
 	return size;
 }
@@ -3299,7 +3305,7 @@ int FASTCALL SCSIMO::Inquiry(
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	※disk.codeの影響を受けない
+//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
@@ -3315,11 +3321,11 @@ BOOL FASTCALL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	if (cdb[1] & 0x10) {
 		// Mode Parameter header
 		if (length >= 12) {
-			// ブロックレングスのバイト数をチェック
+			// Check the block length (in bytes)
 			size = 1 << disk.size;
 			if (buf[9] != (BYTE)(size >> 16) ||
 				buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
-				// 今のところセクタ長の変更は許さない
+				// Currently does not allow changing sector length
 				disk.code = DISK_INVALIDPRM;
 				return FALSE;
 			}
@@ -3327,19 +3333,19 @@ BOOL FASTCALL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			length -= 12;
 		}
 
-		// ページの解析
+		// Parsing the page
 		while (length > 0) {
-			// ページの取得
+			// Get the page
 			page = buf[0];
 
 			switch (page) {
 				// format device
 				case 0x03:
-					// 物理セクタのバイト数をチェック
+					// Check the number of bytes in the physical sector
 					size = 1 << disk.size;
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
-						// 今のところセクタ長の変更は許さない
+						// Currently does not allow changing sector length
 						disk.code = DISK_INVALIDPRM;
 						return FALSE;
 					}
@@ -3349,19 +3355,19 @@ BOOL FASTCALL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					// just ignore, for now
 					break;
 
-				// その他ページ
+				// Other page
 				default:
 					break;
 			}
 
-			// 次のページへ
+			// Advance to the next page
 			size = buf[1] + 2;
 			length -= size;
 			buf += size;
 		}
 	}
 
-	// とりあえずエラーは発生させない(MINIX)
+	// Do not generate an error for the time being (MINIX)
 	disk.code = DISK_NOERROR;
 
 	return TRUE;
@@ -3377,16 +3383,16 @@ int FASTCALL SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// ページコード20h
+	// Page code 20h
 	if ((page != 0x20) && (page != 0x3f)) {
 		return 0;
 	}
 
-	// コード・レングスを設定
+	// Set the message length
 	buf[0] = 0x20;
 	buf[1] = 0x0a;
 
-	// 変更可能領域はない
+	// No changeable area
 	if (change) {
 		return 12;
 	}
@@ -3469,26 +3475,26 @@ int FASTCALL SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 
 //===========================================================================
 //
-//	CDトラック
+//	CD Track
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 CDTrack::CDTrack(SCSICD *scsicd)
 {
 	ASSERT(scsicd);
 
-	// 親となるCD-ROMデバイスを設定
+	// Set parent CD-ROM device
 	cdrom = scsicd;
 
-	// トラック無効
+	// Track defaults to disabled
 	valid = FALSE;
 
-	// その他のデータを初期化
+	// Initialize other data
 	track_no = -1;
 	first_lba = 0;
 	last_lba = 0;
@@ -3498,7 +3504,7 @@ CDTrack::CDTrack(SCSICD *scsicd)
 
 //---------------------------------------------------------------------------
 //
-//	デストラクタ
+//	Destructor
 //
 //---------------------------------------------------------------------------
 CDTrack::~CDTrack()
@@ -3507,7 +3513,7 @@ CDTrack::~CDTrack()
 
 //---------------------------------------------------------------------------
 //
-//	初期化
+//	Init
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL CDTrack::Init(int track, DWORD first, DWORD last)
@@ -3517,11 +3523,11 @@ BOOL FASTCALL CDTrack::Init(int track, DWORD first, DWORD last)
 	ASSERT(track >= 1);
 	ASSERT(first < last);
 
-	// トラック番号を設定、有効化
+	// Set and enable track number
 	track_no = track;
 	valid = TRUE;
 
-	// LBAを記憶
+	// Remember LBA
 	first_lba = first;
 	last_lba = last;
 
@@ -3530,7 +3536,7 @@ BOOL FASTCALL CDTrack::Init(int track, DWORD first, DWORD last)
 
 //---------------------------------------------------------------------------
 //
-//	パス設定
+//	Set Path
 //
 //---------------------------------------------------------------------------
 void FASTCALL CDTrack::SetPath(BOOL cdda, const Filepath& path)
@@ -3538,16 +3544,16 @@ void FASTCALL CDTrack::SetPath(BOOL cdda, const Filepath& path)
 	ASSERT(this);
 	ASSERT(valid);
 
-	// CD-DAか、データか
+	// CD-DA or data
 	audio = cdda;
 
-	// パス記憶
+	// Remember the path
 	imgpath = path;
 }
 
 //---------------------------------------------------------------------------
 //
-//	パス取得
+//	Get Path
 //
 //---------------------------------------------------------------------------
 void FASTCALL CDTrack::GetPath(Filepath& path) const
@@ -3555,13 +3561,13 @@ void FASTCALL CDTrack::GetPath(Filepath& path) const
 	ASSERT(this);
 	ASSERT(valid);
 
-	// パスを返す
+	// Return the path (by reference)
 	path = imgpath;
 }
 
 //---------------------------------------------------------------------------
 //
-//	インデックス追加
+//	Add Index
 //
 //---------------------------------------------------------------------------
 void FASTCALL CDTrack::AddIndex(int index, DWORD lba)
@@ -3572,13 +3578,13 @@ void FASTCALL CDTrack::AddIndex(int index, DWORD lba)
 	ASSERT(first_lba <= lba);
 	ASSERT(lba <= last_lba);
 
-	// 現在はインデックスはサポートしない
+	// Currently does not support indexes
 	ASSERT(FALSE);
 }
 
 //---------------------------------------------------------------------------
 //
-//	開始LBA取得
+//	Gets the start of LBA
 //
 //---------------------------------------------------------------------------
 DWORD FASTCALL CDTrack::GetFirst() const
@@ -3592,7 +3598,7 @@ DWORD FASTCALL CDTrack::GetFirst() const
 
 //---------------------------------------------------------------------------
 //
-//	終端LBA取得
+//	Get the end of LBA
 //
 //---------------------------------------------------------------------------
 DWORD FASTCALL CDTrack::GetLast() const
@@ -3606,7 +3612,7 @@ DWORD FASTCALL CDTrack::GetLast() const
 
 //---------------------------------------------------------------------------
 //
-//	ブロック数取得
+//	Get the number of blocks
 //
 //---------------------------------------------------------------------------
 DWORD FASTCALL CDTrack::GetBlocks() const
@@ -3615,13 +3621,13 @@ DWORD FASTCALL CDTrack::GetBlocks() const
 	ASSERT(valid);
 	ASSERT(first_lba < last_lba);
 
-	// 開始LBAと最終LBAから算出
+	// Calculate from start LBA and end LBA
 	return (DWORD)(last_lba - first_lba + 1);
 }
 
 //---------------------------------------------------------------------------
 //
-//	トラック番号取得
+//	Get track number
 //
 //---------------------------------------------------------------------------
 int FASTCALL CDTrack::GetTrackNo() const
@@ -3635,35 +3641,35 @@ int FASTCALL CDTrack::GetTrackNo() const
 
 //---------------------------------------------------------------------------
 //
-//	有効なブロックか
+//	Is valid block
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL CDTrack::IsValid(DWORD lba) const
 {
 	ASSERT(this);
 
-	// トラック自体が無効なら、FALSE
+	// FALSE if the track itself is invalid
 	if (!valid) {
 		return FALSE;
 	}
 
-	// firstより前なら、FALSE
+	// If the block is BEFORE the first block
 	if (lba < first_lba) {
 		return FALSE;
 	}
 
-	// lastより後なら、FALSE
+	// If the block is AFTER the last block
 	if (last_lba < lba) {
 		return FALSE;
 	}
 
-	// このトラック
+	// This track is valid
 	return TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	オーディオトラックか
+//	Is audio track
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL CDTrack::IsAudio() const
@@ -3676,13 +3682,13 @@ BOOL FASTCALL CDTrack::IsAudio() const
 
 //===========================================================================
 //
-//	CD-DAバッファ
+//	CD-DA Buffer
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 CDDABuf::CDDABuf()
@@ -3691,7 +3697,7 @@ CDDABuf::CDDABuf()
 
 //---------------------------------------------------------------------------
 //
-//	デストラクタ
+//	Destructor
 //
 //---------------------------------------------------------------------------
 CDDABuf::~CDDABuf()
@@ -3706,7 +3712,7 @@ CDDABuf::~CDDABuf()
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 SCSICD::SCSICD() : Disk()
@@ -3716,17 +3722,17 @@ SCSICD::SCSICD() : Disk()
 	// SCSI CD-ROM
 	disk.id = MAKEID('S', 'C', 'C', 'D');
 
-	// リムーバブル、書込み禁止
+	// removable, write protected
 	disk.removable = TRUE;
 	disk.writep = TRUE;
 
-	// RAW形式でない
+	// NOT in raw format
 	rawfile = FALSE;
 
-	// フレーム初期化
+	// Frame initialization
 	frame = 0;
 
-	// トラック初期化
+	// Track initialization
 	for (i = 0; i < TrackMax; i++) {
 		track[i] = NULL;
 	}
@@ -3737,19 +3743,19 @@ SCSICD::SCSICD() : Disk()
 
 //---------------------------------------------------------------------------
 //
-//	デストラクタ
+//	Destructor
 //
 //---------------------------------------------------------------------------
 SCSICD::~SCSICD()
 {
-	// トラッククリア
+	// Clear track
 	ClearTrack();
 }
 
 #ifndef RASCSI
 //---------------------------------------------------------------------------
 //
-//	ロード
+//	Load
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSICD::Load(Fileio *fio, int ver)
@@ -3763,12 +3769,12 @@ BOOL FASTCALL SCSICD::Load(Fileio *fio, int ver)
 	ASSERT(fio);
 	ASSERT(ver >= 0x0200);
 
-	// version2.03より前は、ディスクはセーブしていない
+	// Prior to version 2.03, the disk was not saved
 	if (ver <= 0x0202) {
 		return TRUE;
 	}
 
-	// サイズをロード、照合
+	// load size, match
 	if (!fio->Read(&sz, sizeof(sz))) {
 		return FALSE;
 	}
@@ -3776,7 +3782,7 @@ BOOL FASTCALL SCSICD::Load(Fileio *fio, int ver)
 		return FALSE;
 	}
 
-	// バッファへロード
+	// load into buffer
 	PROP_IMPORT(fio, buf.id);
 	PROP_IMPORT(fio, buf.ready);
 	PROP_IMPORT(fio, buf.writep);
@@ -3791,27 +3797,27 @@ BOOL FASTCALL SCSICD::Load(Fileio *fio, int ver)
 	PROP_IMPORT(fio, buf.code);
 	PROP_IMPORT(fio, padding);
 
-	// パスをロード
+	// Load path
 	if (!path.Load(fio, ver)) {
 		return FALSE;
 	}
 
-	// 必ずイジェクト
+	// Always eject
 	Eject(TRUE);
 
-	// IDが一致した場合のみ、移動
+	// move only if IDs match
 	if (disk.id != buf.id) {
-		// セーブ時にCD-ROMでなかった。イジェクト状態を維持
+		// It was not a CD-ROM when saving. Maintain eject status
 		return TRUE;
 	}
 
-	// 再オープンを試みる
+	// Try to reopen
 	if (!Open(path, FALSE)) {
-		// 再オープンできない。イジェクト状態を維持
+		// Cannot reopen. Maintain eject status
 		return TRUE;
 	}
 
-	// Open内でディスクキャッシュは作成されている。プロパティのみ移動
+	// Disk cache is created in Open. Move property only
 	if (!disk.readonly) {
 		disk.writep = buf.writep;
 	}
@@ -3821,22 +3827,22 @@ BOOL FASTCALL SCSICD::Load(Fileio *fio, int ver)
 	disk.lun = buf.lun;
 	disk.code = buf.code;
 
-	// 再度、ディスクキャッシュを破棄
+	// Discard the disk cache again
 	if (disk.dcache) {
 		delete disk.dcache;
 		disk.dcache = NULL;
 	}
 	disk.dcache = NULL;
 
-	// 暫定
+	// Tentative
 	disk.blocks = track[0]->GetBlocks();
 	if (disk.blocks > 0) {
-		// ディスクキャッシュを作り直す
+		// Recreate the disk cache
 		track[0]->GetPath(path);
 		disk.dcache = new DiskCache(path, disk.size, disk.blocks);
 		disk.dcache->SetRawMode(rawfile);
 
-		// データインデックスを再設定
+		// Reset data index
 		dataindex = 0;
 	}
 
@@ -3846,7 +3852,7 @@ BOOL FASTCALL SCSICD::Load(Fileio *fio, int ver)
 
 //---------------------------------------------------------------------------
 //
-//	オープン
+//	Open
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSICD::Open(const Filepath& path, BOOL attn)
@@ -3858,67 +3864,67 @@ BOOL FASTCALL SCSICD::Open(const Filepath& path, BOOL attn)
 	ASSERT(this);
 	ASSERT(!disk.ready);
 
-	// 初期化、トラッククリア
+	// Initialization, track clear
 	disk.blocks = 0;
 	rawfile = FALSE;
 	ClearTrack();
 
-	// 読み込みオープンが必要
+	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
-	// 物理CDアクセスならクローズして委譲する
+	// Close and transfer for physical CD access
 	if (path.GetPath()[0] == _T('\\')) {
-		// クローズ
+		// Close
 		fio.Close();
 
-		// 物理CDオープン
+		// Open physical CD
 		if (!OpenPhysical(path)) {
 			return FALSE;
 		}
 	} else {
-		// サイズ取得
-		size = fio.GetFileSize();
+		// Get file size
+        size = fio.GetFileSize();
 		if (size <= 4) {
 			fio.Close();
 			return FALSE;
 		}
 
-		// CUEシートか、ISOファイルかの判定を行う
+		// Judge whether it is a CUE sheet or an ISO file
 		fio.Read(file, 4);
 		file[4] = '\0';
 		fio.Close();
 
-		// FILEで始まっていれば、CUEシートとみなす
+		// If it starts with FILE, consider it as a CUE sheet
 		if (xstrncasecmp(file, _T("FILE"), 4) == 0) {
-			// CUEとしてオープン
+			// Open as CUE
 			if (!OpenCue(path)) {
 				return FALSE;
 			}
 		} else {
-			// ISOとしてオープン
+			// Open as ISO
 			if (!OpenIso(path)) {
 				return FALSE;
 			}
 		}
 	}
 
-	// オープン成功
+	// Successful opening
 	ASSERT(disk.blocks > 0);
 	disk.size = 11;
 
-	// 基本クラス
+	// Call the base class
 	Disk::Open(path);
 
-	// RAWフラグを設定
+	// Set RAW flag
 	ASSERT(disk.dcache);
 	disk.dcache->SetRawMode(rawfile);
 
-	// ROMメディアなので、書き込みはできない
+	// Since it is a ROM media, writing is not possible
 	disk.writep = TRUE;
 
-	// レディならアテンション
+	// Attention if ready
 	if (disk.ready && attn) {
 		disk.attn = TRUE;
 	}
@@ -3928,14 +3934,14 @@ BOOL FASTCALL SCSICD::Open(const Filepath& path, BOOL attn)
 
 //---------------------------------------------------------------------------
 //
-//	オープン(CUE)
+//	Open (CUE)
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSICD::OpenCue(const Filepath& /*path*/)
 {
 	ASSERT(this);
 
-	// 常に失敗
+	// Always fail
 	return FALSE;
 }
 
@@ -3953,50 +3959,50 @@ BOOL FASTCALL SCSICD::OpenIso(const Filepath& path)
 
 	ASSERT(this);
 
-	// 読み込みオープンが必要
+	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
-	// サイズ取得
+	// Get file size
 	size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
 		return FALSE;
 	}
 
-	// 最初の12バイトを読み取って、クローズ
+	// Read the first 12 bytes and close
 	if (!fio.Read(header, sizeof(header))) {
 		fio.Close();
 		return FALSE;
 	}
 
-	// RAW形式かチェック
+	// Check if it is RAW format
 	memset(sync, 0xff, sizeof(sync));
 	sync[0] = 0x00;
 	sync[11] = 0x00;
 	rawfile = FALSE;
 	if (memcmp(header, sync, sizeof(sync)) == 0) {
-		// 00,FFx10,00なので、RAW形式と推定される
+		// 00,FFx10,00, so it is presumed to be RAW format
 		if (!fio.Read(header, 4)) {
 			fio.Close();
 			return FALSE;
 		}
 
-		// MODE1/2048またはMODE1/2352のみサポート
+		// Supports MODE1/2048 or MODE1/2352 only
 		if (header[3] != 0x01) {
-			// モードが違う
+			// Different mode
 			fio.Close();
 			return FALSE;
 		}
 
-		// RAWファイルに設定
+		// Set to RAW file
 		rawfile = TRUE;
 	}
 	fio.Close();
 
 	if (rawfile) {
-		// サイズが2536の倍数で、700MB以下であること
+		// Size must be a multiple of 2536 and less than 700MB
 		if (size % 0x930) {
 			return FALSE;
 		}
@@ -4004,10 +4010,10 @@ BOOL FASTCALL SCSICD::OpenIso(const Filepath& path)
 			return FALSE;
 		}
 
-		// ブロック数を設定
+		// Set the number of blocks
 		disk.blocks = (DWORD)(size / 0x930);
 	} else {
-		// サイズが2048の倍数で、700MB以下であること
+		// Size must be a multiple of 2048 and less than 700MB
 		if (size & 0x7ff) {
 			return FALSE;
 		}
@@ -4015,11 +4021,11 @@ BOOL FASTCALL SCSICD::OpenIso(const Filepath& path)
 			return FALSE;
 		}
 
-		// ブロック数を設定
+		// Set the number of blocks
 		disk.blocks = (DWORD)(size >> 11);
 	}
 
-	// データトラック1つのみ作成
+	// Create only one data track
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
 	track[0]->Init(1, 0, disk.blocks - 1);
@@ -4027,13 +4033,13 @@ BOOL FASTCALL SCSICD::OpenIso(const Filepath& path)
 	tracks = 1;
 	dataindex = 0;
 
-	// オープン成功
+	// Successful opening
 	return TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	オープン(Physical)
+//	Open (Physical)
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSICD::OpenPhysical(const Filepath& path)
@@ -4043,22 +4049,22 @@ BOOL FASTCALL SCSICD::OpenPhysical(const Filepath& path)
 
 	ASSERT(this);
 
-	// 読み込みオープンが必要
+	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
-	// サイズ取得
+	// Get size
 	size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
 		return FALSE;
 	}
 
-	// クローズ
+	// Close
 	fio.Close();
 
-	// サイズが2048の倍数で、700MB以下であること
+	// Size must be a multiple of 2048 and less than 700MB
 	if (size & 0x7ff) {
 		return FALSE;
 	}
@@ -4066,10 +4072,10 @@ BOOL FASTCALL SCSICD::OpenPhysical(const Filepath& path)
 		return FALSE;
 	}
 
-	// ブロック数を設定
+	// Set the number of blocks
 	disk.blocks = (DWORD)(size >> 11);
 
-	// データトラック1つのみ作成
+	// Create only one data track
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
 	track[0]->Init(1, 0, disk.blocks - 1);
@@ -4077,7 +4083,7 @@ BOOL FASTCALL SCSICD::OpenPhysical(const Filepath& path)
 	tracks = 1;
 	dataindex = 0;
 
-	// オープン成功
+	// Successful opening
 	return TRUE;
 }
 
@@ -4097,22 +4103,22 @@ int FASTCALL SCSICD::Inquiry(
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
 
-	// EVPDチェック
+	// EVPD check
 	if (cdb[1] & 0x01) {
 		disk.code = DISK_INVALIDCDB;
 		return FALSE;
 	}
 
-	// 基本データ
+	// Basic data
 	// buf[0] ... CD-ROM Device
-	// buf[1] ... リムーバブル
-	// buf[2] ... SCSI-2準拠のコマンド体系
-	// buf[3] ... SCSI-2準拠のInquiryレスポンス
-	// buf[4] ... Inquiry追加データ
+	// buf[1] ... Removable
+	// buf[2] ... SCSI-2 compliant command system
+	// buf[3] ... SCSI-2 compliant Inquiry response
+	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
 	buf[0] = 0x05;
 
-	// SCSI-2 本の p.104 4.4.3 不当なロジカルユニットの処理
+	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
 	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
 		buf[0] = 0x7f;
 	}
@@ -4122,29 +4128,29 @@ int FASTCALL SCSICD::Inquiry(
 	buf[3] = 0x02;
 	buf[4] = 36 - 5;	// 必須
 
-	// 空白で埋める
+	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);
 
-	// ベンダ
+	// Vendor name
 	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
 
-	// 製品名
+	// Product name
 	memcpy(&buf[16], "CD-ROM CDU-55S", 14);
 
-	// リビジョン(XM6のバージョンNo)
+	// Revision (XM6 version number)
 	sprintf(rev, "0%01d%01d%01d",
 				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
 	memcpy(&buf[32], rev, 4);
 
-	// 返却できるデータのサイズ
+	// Size of data that can be returned
 	size = (buf[4] + 5);
 
-	// 相手のバッファが少なければ制限する
+	// Limit if the other buffer is small
 	if (size > (int)cdb[4]) {
 		size = (int)cdb[4];
 	}
 
-	// 成功
+	//  Success
 	disk.code = DISK_NOERROR;
 	return size;
 }
@@ -4162,41 +4168,41 @@ int FASTCALL SCSICD::Read(BYTE *buf, DWORD block)
 	ASSERT(this);
 	ASSERT(buf);
 
-	// 状態チェック
+	// Status check
 	if (!CheckReady()) {
 		return 0;
 	}
 
-	// トラック検索
+	// Search for the track
 	index = SearchTrack(block);
 
-	// 無効なら、範囲外
+	// if invalid, out of range
 	if (index < 0) {
 		disk.code = DISK_INVALIDLBA;
 		return 0;
 	}
 	ASSERT(track[index]);
 
-	// 現在のデータトラックと異なっていれば
+	// If different from the current data track
 	if (dataindex != index) {
-		// 現在のディスクキャッシュを削除(Saveの必要はない)
+		// Delete current disk cache (no need to save)
 		delete disk.dcache;
 		disk.dcache = NULL;
 
-		// ブロック数を再設定
+		// Reset the number of blocks
 		disk.blocks = track[index]->GetBlocks();
 		ASSERT(disk.blocks > 0);
 
-		// ディスクキャッシュを作り直す
+		// Recreate the disk cache
 		track[index]->GetPath(path);
 		disk.dcache = new DiskCache(path, disk.size, disk.blocks);
 		disk.dcache->SetRawMode(rawfile);
 
-		// データインデックスを再設定
+		// Reset data index
 		dataindex = index;
 	}
 
-	// 基本クラス
+	// Base class
 	ASSERT(dataindex >= 0);
 	return Disk::Read(buf, block);
 }
@@ -4221,41 +4227,41 @@ int FASTCALL SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	ASSERT(cdb[0] == 0x43);
 	ASSERT(buf);
 
-	// レディチェック
+	// Check if ready
 	if (!CheckReady()) {
 		return 0;
 	}
 
-	// レディであるなら、トラックが最低1つ以上存在する
+	// If ready, there is at least one track
 	ASSERT(tracks > 0);
 	ASSERT(track[0]);
 
-	// アロケーションレングス取得、バッファクリア
+	// Get allocation length, clear buffer
 	length = cdb[7] << 8;
 	length |= cdb[8];
 	memset(buf, 0, length);
 
-	// MSFフラグ取得
+	// Get MSF Flag
 	if (cdb[1] & 0x02) {
 		msf = TRUE;
 	} else {
 		msf = FALSE;
 	}
 
-	// 最終トラック番号を取得、チェック
+	// Get and check the last track number
 	last = track[tracks - 1]->GetTrackNo();
 	if ((int)cdb[6] > last) {
-		// ただしAAは除外
+		// Except for AA
 		if (cdb[6] != 0xaa) {
 			disk.code = DISK_INVALIDCDB;
 			return 0;
 		}
 	}
 
-	// 開始インデックスをチェック
+	// Check start index
 	index = 0;
 	if (cdb[6] != 0x00) {
-		// トラック番号が一致するまで、トラックを進める
+		// Advance the track until the track numbers match
 		while (track[index]) {
 			if ((int)cdb[6] == track[index]->GetTrackNo()) {
 				break;
@@ -4263,10 +4269,10 @@ int FASTCALL SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 			index++;
 		}
 
-		// 見つからなければAAか、内部エラー
+		// AA if not found or internal error
 		if (!track[index]) {
 			if (cdb[6] == 0xaa) {
-				// AAなので、最終LBA+1を返す
+				// Returns the final LBA+1 because it is AA
 				buf[0] = 0x00;
 				buf[1] = 0x0a;
 				buf[2] = (BYTE)track[0]->GetTrackNo();
@@ -4282,38 +4288,38 @@ int FASTCALL SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 				return length;
 			}
 
-			// それ以外はエラー
+			// Otherwise, error
 			disk.code = DISK_INVALIDCDB;
 			return 0;
 		}
 	}
 
-	// 今回返すトラックディスクリプタの個数(ループ数)
+	// Number of track descriptors returned this time (number of loops)
 	loop = last - track[index]->GetTrackNo() + 1;
 	ASSERT(loop >= 1);
 
-	// ヘッダ作成
+	// Create header
 	buf[0] = (BYTE)(((loop << 3) + 2) >> 8);
 	buf[1] = (BYTE)((loop << 3) + 2);
 	buf[2] = (BYTE)track[0]->GetTrackNo();
 	buf[3] = (BYTE)last;
 	buf += 4;
 
-	// ループ
+	// Loop....
 	for (i = 0; i < loop; i++) {
-		// ADRとControl
+		// ADR and Control
 		if (track[index]->IsAudio()) {
-			// オーディオトラック
+			// audio track
 			buf[1] = 0x10;
 		} else {
-			// データトラック
+			// data track
 			buf[1] = 0x14;
 		}
 
-		// トラック番号
+		// track number
 		buf[2] = (BYTE)track[index]->GetTrackNo();
 
-		// トラックアドレス
+		// track address
 		if (msf) {
 			LBAtoMSF(track[index]->GetFirst(), &buf[4]);
 		} else {
@@ -4321,12 +4327,12 @@ int FASTCALL SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 			buf[7] = (BYTE)(track[index]->GetFirst());
 		}
 
-		// バッファとインデックスを進める
+		// Advance buffer pointer and index
 		buf += 8;
 		index++;
 	}
 
-	// アロケーションレングスだけ必ず返す
+	// Always return only the allocation length
 	return length;
 }
 
@@ -4371,7 +4377,7 @@ BOOL FASTCALL SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
 
 //---------------------------------------------------------------------------
 //
-//	LBA→MSF変換
+//	LBA→MSF Conversion
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
@@ -4382,20 +4388,20 @@ void FASTCALL SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 
 	ASSERT(this);
 
-	// 75、75*60でそれぞれ余りを出す
+	// 75 and 75*60 get the remainder
 	m = lba / (75 * 60);
 	s = lba % (75 * 60);
 	f = s % 75;
 	s /= 75;
 
-	// 基点はM=0,S=2,F=0
+	// The base point is M=0, S=2, F=0
 	s += 2;
 	if (s >= 60) {
 		s -= 60;
 		m++;
 	}
 
-	// 格納
+	// Store
 	ASSERT(m < 0x100);
 	ASSERT(s < 60);
 	ASSERT(f < 75);
@@ -4407,7 +4413,7 @@ void FASTCALL SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 
 //---------------------------------------------------------------------------
 //
-//	MSF→LBA変換
+//	MSF→LBA Conversion
 //
 //---------------------------------------------------------------------------
 DWORD FASTCALL SCSICD::MSFtoLBA(const BYTE *msf) const
@@ -4418,14 +4424,14 @@ DWORD FASTCALL SCSICD::MSFtoLBA(const BYTE *msf) const
 	ASSERT(msf[2] < 60);
 	ASSERT(msf[3] < 75);
 
-	// 1, 75, 75*60の倍数で合算
+	// 1, 75, add up in multiples of 75*60
 	lba = msf[1];
 	lba *= 60;
 	lba += msf[2];
 	lba *= 75;
 	lba += msf[3];
 
-	// 基点はM=0,S=2,F=0なので、150を引く
+	// Since the base point is M=0, S=2, F=0, subtract 150
 	lba -= 150;
 
 	return lba;
@@ -4433,7 +4439,7 @@ DWORD FASTCALL SCSICD::MSFtoLBA(const BYTE *msf) const
 
 //---------------------------------------------------------------------------
 //
-//	トラッククリア
+//	Clear Track
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSICD::ClearTrack()
@@ -4442,7 +4448,7 @@ void FASTCALL SCSICD::ClearTrack()
 
 	ASSERT(this);
 
-	// トラックオブジェクトを削除
+	// delete the track object
 	for (i = 0; i < TrackMax; i++) {
 		if (track[i]) {
 			delete track[i];
@@ -4450,18 +4456,18 @@ void FASTCALL SCSICD::ClearTrack()
 		}
 	}
 
-	// トラック数0
+	// Number of tracks is 0
 	tracks = 0;
 
-	// データ、オーディオとも設定なし
+	// No settings for data and audio
 	dataindex = -1;
 	audioindex = -1;
 }
 
 //---------------------------------------------------------------------------
 //
-//	トラック検索
-//	※見つからなければ-1を返す
+//	Track Search
+//	* Returns -1 if not found
 //
 //---------------------------------------------------------------------------
 int FASTCALL SCSICD::SearchTrack(DWORD lba) const
@@ -4470,22 +4476,22 @@ int FASTCALL SCSICD::SearchTrack(DWORD lba) const
 
 	ASSERT(this);
 
-	// トラックループ
+	// Track loop
 	for (i = 0; i < tracks; i++) {
-		// トラックに聞く
+		// Listen to the track
 		ASSERT(track[i]);
 		if (track[i]->IsValid(lba)) {
 			return i;
 		}
 	}
 
-	// 見つからなかった
+	// Track wasn't found
 	return -1;
 }
 
 //---------------------------------------------------------------------------
 //
-//	フレーム通知
+//	Next Frame
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSICD::NextFrame()
@@ -4493,10 +4499,10 @@ BOOL FASTCALL SCSICD::NextFrame()
 	ASSERT(this);
 	ASSERT((frame >= 0) && (frame < 75));
 
-	// フレームを0～74の範囲で設定
+	// set the frame in the range 0-74
 	frame = (frame + 1) % 75;
 
-	// 1周したらFALSE
+	// FALSE after one lap
 	if (frame != 0) {
 		return TRUE;
 	} else {
@@ -4506,7 +4512,7 @@ BOOL FASTCALL SCSICD::NextFrame()
 
 //---------------------------------------------------------------------------
 //
-//	CD-DAバッファ取得
+//	Get CD-DA buffer
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSICD::GetBuf(
@@ -4517,57 +4523,57 @@ void FASTCALL SCSICD::GetBuf(
 
 //===========================================================================
 //
-//	SCSI ホストブリッジ
+//	SCSI Host Bridge
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk()
 {
-	// ホストブリッジ
+	// Host Bridge
 	disk.id = MAKEID('S', 'C', 'B', 'R');
 
 #if defined(RASCSI) && !defined(BAREMETAL)
-	// TAPドライバ生成
+	// TAP Driver Generation
 	tap = new CTapDriver();
 	m_bTapEnable = tap->Init();
 
-	// MACアドレスを生成
+	// Generate MAC Address
 	memset(mac_addr, 0x00, 6);
 	if (m_bTapEnable) {
 		tap->GetMacAddr(mac_addr);
 		mac_addr[5]++;
 	}
 
-	// パケット受信フラグオフ
+	// Packet reception flag OFF
 	packet_enable = FALSE;
 #endif	// RASCSI && !BAREMETAL
 
-	// ホストファイルシステム生成
+	// Create host file system
 	fs = new CFileSys();
 	fs->Reset();
 }
 
 //---------------------------------------------------------------------------
 //
-//	デストラクタ
+//	Destructor
 //
 //---------------------------------------------------------------------------
 SCSIBR::~SCSIBR()
 {
 #if defined(RASCSI) && !defined(BAREMETAL)
-	// TAPドライバ解放
+	// TAP driver release
 	if (tap) {
 		tap->Cleanup();
 		delete tap;
 	}
 #endif	// RASCSI && !BAREMETAL
 
-	// ホストファイルシステム解放
+	// Release host file system
 	if (fs) {
 		fs->Reset();
 		delete fs;
@@ -4590,65 +4596,65 @@ int FASTCALL SCSIBR::Inquiry(
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
 
-	// EVPDチェック
+	// EVPD check
 	if (cdb[1] & 0x01) {
 		disk.code = DISK_INVALIDCDB;
 		return FALSE;
 	}
 
-	// 基本データ
+	// Basic data
 	// buf[0] ... Communication Device
-	// buf[2] ... SCSI-2準拠のコマンド体系
-	// buf[3] ... SCSI-2準拠のInquiryレスポンス
-	// buf[4] ... Inquiry追加データ
+	// buf[2] ... SCSI-2 compliant command system
+	// buf[3] ... SCSI-2 compliant Inquiry response
+	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
 	buf[0] = 0x09;
 
-	// SCSI-2 本の p.104 4.4.3 不当なロジカルユニットの処理
+	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
 	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
 		buf[0] = 0x7f;
 	}
 
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 36 - 5 + 8;	// 必須 + 8バイト拡張
+	buf[4] = 36 - 5 + 8;	// required + 8 byte extension
 
-	// 空白で埋める
+	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);
 
-	// ベンダ
+	// Vendor name
 	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
 
-	// 製品名
+	// Product name
 	memcpy(&buf[16], "RASCSI BRIDGE", 13);
 
-	// リビジョン(XM6のバージョンNo)
+	// Revision (XM6 version number)
 	sprintf(rev, "0%01d%01d%01d",
 				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
 	memcpy(&buf[32], rev, 4);
 
-	// オプション機能有効フラグ
+	// Optional function valid flag
 	buf[36] = '0';
 
 #if defined(RASCSI) && !defined(BAREMETAL)
-	// TAP有効
+	// TAP Enable
 	if (m_bTapEnable) {
 		buf[37] = '1';
 	}
 #endif	// RASCSI && !BAREMETAL
 
-	// CFileSys有効
+	// CFileSys Enable
 	buf[38] = '1';
 
-	// 返却できるデータのサイズ
+	// Size of data that can be returned
 	size = (buf[4] + 5);
 
-	// 相手のバッファが少なければ制限する
+	// Limit if the other buffer is small
 	if (size > (int)cdb[4]) {
 		size = (int)cdb[4];
 	}
 
-	// 成功
+	//  Success
 	disk.code = DISK_NOERROR;
 	return size;
 }
@@ -4662,7 +4668,7 @@ BOOL FASTCALL SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 {
 	ASSERT(this);
 
-	// TEST UNIT READY成功
+	// TEST UNIT READY Success
 	disk.code = DISK_NOERROR;
 	return TRUE;
 }
@@ -4684,52 +4690,52 @@ int FASTCALL SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 
 	ASSERT(this);
 
-	// タイプ
+	// Type
 	type = cdb[2];
 
 #if defined(RASCSI) && !defined(BAREMETAL)
-	// 機能番号
+	// Function number
 	func = cdb[3];
 #endif	// RASCSI && !BAREMETAL
 
-	// フェーズ
+	// Phase
 	phase = cdb[9];
 
 	switch (type) {
 #if defined(RASCSI) && !defined(BAREMETAL)
-		case 1:		// イーサネット
-			// TAP無効なら処理しない
+		case 1:		// Ethernet
+			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
 				return 0;
 			}
 
 			switch (func) {
-				case 0:		// MACアドレス取得
+				case 0:		// Get MAC address
 					return GetMacAddr(buf);
 
-				case 1:		// 受信パケット取得(サイズ/バッファ別)
+				case 1:		// Received packet acquisition (size/buffer)
 					if (phase == 0) {
-						// パケットサイズ取得
+						// Get packet size
 						ReceivePacket();
 						buf[0] = (BYTE)(packet_len >> 8);
 						buf[1] = (BYTE)packet_len;
 						return 2;
 					} else {
-						// パケットデータ取得
+						// Get package data
 						GetPacketBuf(buf);
 						return packet_len;
 					}
 
-				case 2:		// 受信パケット取得(サイズ＋バッファ同時)
+				case 2:		// Received packet acquisition (size + buffer simultaneously)
 					ReceivePacket();
 					buf[0] = (BYTE)(packet_len >> 8);
 					buf[1] = (BYTE)packet_len;
 					GetPacketBuf(&buf[2]);
 					return packet_len + 2;
 
-				case 3:		// 複数パケット同時取得(サイズ＋バッファ同時)
-					// パケット数の上限は現状10個に決め打ち
-					// これ以上増やしてもあまり速くならない?
+				case 3:		// Simultaneous acquisition of multiple packets (size + buffer simultaneously)
+					// Currently the maximum number of packets is 10
+					// Isn't it too fast if I increase more?
 					total_len = 0;
 					for (i = 0; i < 10; i++) {
 						ReceivePacket();
@@ -4747,21 +4753,21 @@ int FASTCALL SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 			break;
 #endif	// RASCSI && !BAREMETAL
 
-		case 2:		// ホストドライブ
+		case 2:		// Host Drive
 			switch (phase) {
-				case 0:		// 結果コード取得
+				case 0:		// Get result code
 					return ReadFsResult(buf);
 
-				case 1:		// 返却データ取得
+				case 1:		// Return data acquisition
 					return ReadFsOut(buf);
 
-				case 2:		// 返却追加データ取得
+				case 2:		// Return additional data acquisition
 					return ReadFsOpt(buf);
 			}
 			break;
 	}
 
-	// エラー
+	// Error
 	ASSERT(FALSE);
 	return 0;
 }
@@ -4782,16 +4788,16 @@ BOOL FASTCALL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 	ASSERT(cdb);
 	ASSERT(buf);
 
-	// タイプ
+	// Type
 	type = cdb[2];
 
-	// 機能番号
+	// Function number
 	func = cdb[3];
 
-	// フェーズ
+	// Phase
 	phase = cdb[9];
 
-	// ライト数を取得
+	// Get the number of lights
 	len = cdb[6];
 	len <<= 8;
 	len |= cdb[7];
@@ -4800,38 +4806,38 @@ BOOL FASTCALL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 
 	switch (type) {
 #if defined(RASCSI) && !defined(BAREMETAL)
-		case 1:		// イーサネット
-			// TAP無効なら処理しない
+		case 1:		// Ethernet
+			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
 				return FALSE;
 			}
 
 			switch (func) {
-				case 0:		// MACアドレス設定
+				case 0:		// MAC address setting
 					SetMacAddr(buf);
 					return TRUE;
 
-				case 1:		// パケット送信
+				case 1:		// Send packet
 					SendPacket(buf, len);
 					return TRUE;
 			}
 			break;
 #endif	// RASCSI && !BAREMETAL
 
-		case 2:		// ホストドライブ
+		case 2:		// Host drive
 			switch (phase) {
-				case 0:		// コマンド発行
+				case 0:		// issue command
 					WriteFs(func, buf);
 					return TRUE;
 
-				case 1:		// 追加データ書き込み
+				case 1:		// additional data writing
 					WriteFsOpt(buf, len);
 					return TRUE;
 			}
 			break;
 	}
 
-	// エラー
+	// Error
 	ASSERT(FALSE);
 	return FALSE;
 }
@@ -4839,7 +4845,7 @@ BOOL FASTCALL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 #if defined(RASCSI) && !defined(BAREMETAL)
 //---------------------------------------------------------------------------
 //
-//	MACアドレス取得
+//	Get MAC Address
 //
 //---------------------------------------------------------------------------
 int FASTCALL SCSIBR::GetMacAddr(BYTE *mac)
@@ -4853,7 +4859,7 @@ int FASTCALL SCSIBR::GetMacAddr(BYTE *mac)
 
 //---------------------------------------------------------------------------
 //
-//	MACアドレス設定
+//	Set MAC Address
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::SetMacAddr(BYTE *mac)
@@ -4866,7 +4872,7 @@ void FASTCALL SCSIBR::SetMacAddr(BYTE *mac)
 
 //---------------------------------------------------------------------------
 //
-//	パケット受信
+//	Receive Packet
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::ReceivePacket()
@@ -4876,15 +4882,15 @@ void FASTCALL SCSIBR::ReceivePacket()
 	ASSERT(this);
 	ASSERT(tap);
 
-	// 前のパケットが受信されていない
+	// previous packet has not been received
 	if (packet_enable) {
 		return;
 	}
 
-	// パケット受信
+	// Receive packet
 	packet_len = tap->Rx(packet_buf);
 
-	// 受信パケットか検査
+	// Check if received packet
 	if (memcmp(packet_buf, mac_addr, 6) != 0) {
 		if (memcmp(packet_buf, bcast_addr, 6) != 0) {
 			packet_len = 0;
@@ -4892,13 +4898,13 @@ void FASTCALL SCSIBR::ReceivePacket()
 		}
 	}
 
-	// バッファサイズを越えたら捨てる
+	// Discard if it exceeds the buffer size
 	if (packet_len > 2048) {
 		packet_len = 0;
 		return;
 	}
 
-	// 受信バッファに格納
+	// Store in receive buffer
 	if (packet_len > 0) {
 		packet_enable = TRUE;
 	}
@@ -4906,7 +4912,7 @@ void FASTCALL SCSIBR::ReceivePacket()
 
 //---------------------------------------------------------------------------
 //
-//	パケット取得
+//	Get Packet
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::GetPacketBuf(BYTE *buf)
@@ -4917,22 +4923,22 @@ void FASTCALL SCSIBR::GetPacketBuf(BYTE *buf)
 	ASSERT(tap);
 	ASSERT(buf);
 
-	// サイズ制限
+	// Size limit
 	len = packet_len;
 	if (len > 2048) {
 		len = 2048;
 	}
 
-	// コピー
+	// Copy
 	memcpy(buf, packet_buf, len);
 
-	// 受信済み
+	// Received
 	packet_enable = FALSE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	パケット送信
+//	Send Packet
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::SendPacket(BYTE *buf, int len)
@@ -4947,7 +4953,7 @@ void FASTCALL SCSIBR::SendPacket(BYTE *buf, int len)
 
 //---------------------------------------------------------------------------
 //
-//  $40 - デバイス起動
+//  $40 - Device Boot
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_InitDevice(BYTE *buf)
@@ -4962,7 +4968,7 @@ void FASTCALL SCSIBR::FS_InitDevice(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $41 - ディレクトリチェック
+//  $41 - Directory Check
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_CheckDir(BYTE *buf)
@@ -4989,7 +4995,7 @@ void FASTCALL SCSIBR::FS_CheckDir(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $42 - ディレクトリ作成
+//  $42 - Create Directory
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_MakeDir(BYTE *buf)
@@ -5016,7 +5022,7 @@ void FASTCALL SCSIBR::FS_MakeDir(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $43 - ディレクトリ削除
+//  $43 - Remove Directory
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_RemoveDir(BYTE *buf)
@@ -5043,7 +5049,7 @@ void FASTCALL SCSIBR::FS_RemoveDir(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $44 - ファイル名変更
+//  $44 - Rename
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Rename(BYTE *buf)
@@ -5074,7 +5080,7 @@ void FASTCALL SCSIBR::FS_Rename(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $45 - ファイル削除
+//  $45 - Delete File
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Delete(BYTE *buf)
@@ -5101,7 +5107,7 @@ void FASTCALL SCSIBR::FS_Delete(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $46 - ファイル属性取得/設定
+//  $46 - Get / Set file attributes
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Attribute(BYTE *buf)
@@ -5133,7 +5139,7 @@ void FASTCALL SCSIBR::FS_Attribute(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $47 - ファイル検索
+//  $47 - File Search
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Files(BYTE *buf)
@@ -5187,7 +5193,7 @@ void FASTCALL SCSIBR::FS_Files(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $48 - ファイル次検索
+//  $48 - File next search
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_NFiles(BYTE *buf)
@@ -5237,7 +5243,7 @@ void FASTCALL SCSIBR::FS_NFiles(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $49 - ファイル作成
+//  $49 - File Creation
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Create(BYTE *buf)
@@ -5302,7 +5308,7 @@ void FASTCALL SCSIBR::FS_Create(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $4A - ファイルオープン
+//  $4A - Open File
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Open(BYTE *buf)
@@ -5356,7 +5362,7 @@ void FASTCALL SCSIBR::FS_Open(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $4B - ファイルクローズ
+//  $4B - Close File
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Close(BYTE *buf)
@@ -5406,7 +5412,7 @@ void FASTCALL SCSIBR::FS_Close(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $4C - ファイル読み込み
+//  $4C - Read File
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Read(BYTE *buf)
@@ -5458,7 +5464,7 @@ void FASTCALL SCSIBR::FS_Read(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $4D - ファイル書き込み
+//  $4D - Write file
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Write(BYTE *buf)
@@ -5508,7 +5514,7 @@ void FASTCALL SCSIBR::FS_Write(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $4E - ファイルシーク
+//  $4E - Seek file
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Seek(BYTE *buf)
@@ -5564,7 +5570,7 @@ void FASTCALL SCSIBR::FS_Seek(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $4F - ファイル時刻取得/設定
+//  $4F - File Timestamp Get / Set
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_TimeStamp(BYTE *buf)
@@ -5619,7 +5625,7 @@ void FASTCALL SCSIBR::FS_TimeStamp(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $50 - 容量取得
+//  $50 - Get Capacity
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_GetCapacity(BYTE *buf)
@@ -5651,7 +5657,7 @@ void FASTCALL SCSIBR::FS_GetCapacity(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $51 - ドライブ状態検査/制御
+//  $51 - Drive status inspection/control
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_CtrlDrive(BYTE *buf)
@@ -5681,7 +5687,7 @@ void FASTCALL SCSIBR::FS_CtrlDrive(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $52 - DPB取得
+//  $52 - Get DPB
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_GetDPB(BYTE *buf)
@@ -5715,7 +5721,7 @@ void FASTCALL SCSIBR::FS_GetDPB(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $53 - セクタ読み込み
+//  $53 - Read Sector
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_DiskRead(BYTE *buf)
@@ -5749,7 +5755,7 @@ void FASTCALL SCSIBR::FS_DiskRead(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $54 - セクタ書き込み
+//  $54 - Write Sector
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_DiskWrite(BYTE *buf)
@@ -5826,7 +5832,7 @@ void FASTCALL SCSIBR::FS_Ioctrl(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $56 - フラッシュ
+//  $56 - Flush
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Flush(BYTE *buf)
@@ -5849,7 +5855,7 @@ void FASTCALL SCSIBR::FS_Flush(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $57 - メディア交換チェック
+//  $57 - Check Media
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_CheckMedia(BYTE *buf)
@@ -5872,7 +5878,7 @@ void FASTCALL SCSIBR::FS_CheckMedia(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//  $58 - 排他制御
+//  $58 - Lock
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::FS_Lock(BYTE *buf)
@@ -5895,7 +5901,7 @@ void FASTCALL SCSIBR::FS_Lock(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	ファイルシステム読み込み(結果コード)
+//	Read Filesystem (result code)
 //
 //---------------------------------------------------------------------------
 int FASTCALL SCSIBR::ReadFsResult(BYTE *buf)
@@ -5912,7 +5918,7 @@ int FASTCALL SCSIBR::ReadFsResult(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	ファイルシステム読み込み(返却データ)
+//	Read Filesystem (return data)
 //
 //---------------------------------------------------------------------------
 int FASTCALL SCSIBR::ReadFsOut(BYTE *buf)
@@ -5926,7 +5932,7 @@ int FASTCALL SCSIBR::ReadFsOut(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	ファイルシステム読み込み(返却オプションデータ)
+//	Read file system (return option data)
 //
 //---------------------------------------------------------------------------
 int FASTCALL SCSIBR::ReadFsOpt(BYTE *buf)
@@ -5940,7 +5946,7 @@ int FASTCALL SCSIBR::ReadFsOpt(BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	ファイルシステム書き込み
+//	Write Filesystem
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::WriteFs(int func, BYTE *buf)
@@ -5955,37 +5961,37 @@ void FASTCALL SCSIBR::WriteFs(int func, BYTE *buf)
 	// コマンド分岐
 	func &= 0x1f;
 	switch (func) {
-		case 0x00: return FS_InitDevice(buf);	// $40 - デバイス起動
-		case 0x01: return FS_CheckDir(buf);		// $41 - ディレクトリチェック
-		case 0x02: return FS_MakeDir(buf);		// $42 - ディレクトリ作成
-		case 0x03: return FS_RemoveDir(buf);	// $43 - ディレクトリ削除
-		case 0x04: return FS_Rename(buf);		// $44 - ファイル名変更
-		case 0x05: return FS_Delete(buf);		// $45 - ファイル削除
-		case 0x06: return FS_Attribute(buf);	// $46 - ファイル属性取得/設定
-		case 0x07: return FS_Files(buf);		// $47 - ファイル検索
-		case 0x08: return FS_NFiles(buf);		// $48 - ファイル次検索
-		case 0x09: return FS_Create(buf);		// $49 - ファイル作成
-		case 0x0A: return FS_Open(buf);			// $4A - ファイルオープン
-		case 0x0B: return FS_Close(buf);		// $4B - ファイルクローズ
-		case 0x0C: return FS_Read(buf);			// $4C - ファイル読み込み
-		case 0x0D: return FS_Write(buf);		// $4D - ファイル書き込み
-		case 0x0E: return FS_Seek(buf);			// $4E - ファイルシーク
-		case 0x0F: return FS_TimeStamp(buf);	// $4F - ファイル更新時刻の取得/設定
-		case 0x10: return FS_GetCapacity(buf);	// $50 - 容量取得
-		case 0x11: return FS_CtrlDrive(buf);	// $51 - ドライブ制御/状態検査
-		case 0x12: return FS_GetDPB(buf);		// $52 - DPB取得
-		case 0x13: return FS_DiskRead(buf);		// $53 - セクタ読み込み
-		case 0x14: return FS_DiskWrite(buf);	// $54 - セクタ書き込み
+		case 0x00: return FS_InitDevice(buf);	// $40 - start device
+		case 0x01: return FS_CheckDir(buf);		// $41 - directory check
+		case 0x02: return FS_MakeDir(buf);		// $42 - create directory
+		case 0x03: return FS_RemoveDir(buf);	// $43 - remove directory
+		case 0x04: return FS_Rename(buf);		// $44 - change file name
+		case 0x05: return FS_Delete(buf);		// $45 - delete file
+		case 0x06: return FS_Attribute(buf);	// $46 - Get/set file attribute
+		case 0x07: return FS_Files(buf);		// $47 - file search
+		case 0x08: return FS_NFiles(buf);		// $48 - next file search
+		case 0x09: return FS_Create(buf);		// $49 - create file
+		case 0x0A: return FS_Open(buf);			// $4A - File open
+		case 0x0B: return FS_Close(buf);		// $4B - File close
+		case 0x0C: return FS_Read(buf);			// $4C - read file
+		case 0x0D: return FS_Write(buf);		// $4D - write file
+		case 0x0E: return FS_Seek(buf);			// $4E - File seek
+		case 0x0F: return FS_TimeStamp(buf);	// $4F - Get/set file modification time
+		case 0x10: return FS_GetCapacity(buf);	// $50 - get capacity
+		case 0x11: return FS_CtrlDrive(buf);	// $51 - Drive control/state check
+		case 0x12: return FS_GetDPB(buf);		// $52 - Get DPB
+		case 0x13: return FS_DiskRead(buf);		// $53 - read sector
+		case 0x14: return FS_DiskWrite(buf);	// $54 - write sector
 		case 0x15: return FS_Ioctrl(buf);		// $55 - IOCTRL
-		case 0x16: return FS_Flush(buf);		// $56 - フラッシュ
-		case 0x17: return FS_CheckMedia(buf);	// $57 - メディア交換チェック
-		case 0x18: return FS_Lock(buf);			// $58 - 排他制御
+		case 0x16: return FS_Flush(buf);		// $56 - flush
+		case 0x17: return FS_CheckMedia(buf);	// $57 - check media exchange
+		case 0x18: return FS_Lock(buf);			// $58 - exclusive control
 	}
 }
 
 //---------------------------------------------------------------------------
 //
-//	ファイルシステム書き込み(入力オプションデータ)
+//	File system write (input option data)
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIBR::WriteFsOpt(BYTE *buf, int num)
@@ -5997,13 +6003,13 @@ void FASTCALL SCSIBR::WriteFsOpt(BYTE *buf, int num)
 
 //===========================================================================
 //
-//	SASI デバイス
+//	SASI Device
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 #ifdef RASCSI
@@ -6045,7 +6051,7 @@ SASIDEV::SASIDEV(Device *dev)
 
 //---------------------------------------------------------------------------
 //
-//	デストラクタ
+//	Destructor
 //
 //---------------------------------------------------------------------------
 SASIDEV::~SASIDEV()
@@ -6253,7 +6259,7 @@ Disk* FASTCALL SASIDEV::GetBusyUnit()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	return ctrl.unit[lun];
 }
@@ -6272,19 +6278,19 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 		return ctrl.phase;
 	}
 
-	// バス情報の取り込み
+	// Get bus information
 	ctrl.bus->Aquire();
 
-	// リセット
+	// Reset
 	if (ctrl.bus->GetRST()) {
 #if defined(DISK_LOG)
 		Log(Log::Normal, "RESET信号受信");
 #endif	// DISK_LOG
 
-		// コントローラをリセット
+		// Reset the controller
 		Reset();
 
-		// バスもリセット
+		// Reset the bus
 		ctrl.bus->Reset();
 		return ctrl.phase;
 	}
@@ -6326,7 +6332,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 			MsgIn();
 			break;
 
-		// その他
+		// Other
 		default:
 			ASSERT(FALSE);
 			break;
@@ -6337,21 +6343,21 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 
 //---------------------------------------------------------------------------
 //
-//	バスフリーフェーズ
+//	Bus free phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::BusFree()
 {
 	ASSERT(this);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::busfree) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "バスフリーフェーズ");
+		Log(Log::Normal, "Bus free phase");
 #endif	// DISK_LOG
 
-		// フェーズ設定
+		// Phase Setting
 		ctrl.phase = BUS::busfree;
 
 		// 信号線
@@ -6384,7 +6390,7 @@ void FASTCALL SASIDEV::Selection()
 
 	ASSERT(this);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::selection) {
 		// IDが一致していなければ無効
 		id = 1 << ctrl.id;
@@ -6402,7 +6408,7 @@ void FASTCALL SASIDEV::Selection()
 			"セレクションフェーズ ID=%d (デバイスあり)", ctrl.id);
 #endif	// DISK_LOG
 
-		// フェーズチェンジ
+		// Phase change
 		ctrl.phase = BUS::selection;
 
 		// BSYを上げて応答
@@ -6430,17 +6436,17 @@ void FASTCALL SASIDEV::Command()
 
 	ASSERT(this);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::command) {
 
 #if defined(DISK_LOG)
 		Log(Log::Normal, "コマンドフェーズ");
 #endif	// DISK_LOG
 
-		// フェーズ設定
+		// Phase Setting
 		ctrl.phase = BUS::command;
 
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(TRUE);
 		ctrl.bus->SetIO(FALSE);
@@ -6471,7 +6477,7 @@ void FASTCALL SASIDEV::Command()
 			return;
 		}
 	
-		// コマンドデータ転送
+		// Command data transfer
 		for (i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
 		}
@@ -6480,7 +6486,7 @@ void FASTCALL SASIDEV::Command()
 		ctrl.length = 0;
 		ctrl.blocks = 0;
 	
-		// 実行フェーズ
+		// Execution Phase
 		Execute();
 #else
 		// コマンドを要求
@@ -6489,14 +6495,14 @@ void FASTCALL SASIDEV::Command()
 #endif	// RASCSI
 	}
 #ifndef RASCSI
-	// リクエスト中
+	// Requesting
 	if (ctrl.bus->GetREQ()) {
-		// イニシエータが送信した
+		// Sent by the initiator
 		if (ctrl.bus->GetACK()) {
 			Receive();
 		}
 	} else {
-		// イニシエータに次を要求
+		// Request the initator to
 		if (!ctrl.bus->GetACK()) {
 			ReceiveNext();
 		}
@@ -6506,7 +6512,7 @@ void FASTCALL SASIDEV::Command()
 
 //---------------------------------------------------------------------------
 //
-//	実行フェーズ
+//	Execution Phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Execute()
@@ -6514,10 +6520,10 @@ void FASTCALL SASIDEV::Execute()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "実行フェーズ コマンド$%02X", ctrl.cmd[0]);
+	Log(Log::Normal, "Execution Phase コマンド$%02X", ctrl.cmd[0]);
 #endif	// DISK_LOG
 
-	// フェーズ設定
+	// Phase Setting
 	ctrl.phase = BUS::execute;
 
 	// データ転送のための初期化
@@ -6527,7 +6533,7 @@ void FASTCALL SASIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 #endif	// RASCSI
 
-	// コマンド別処理
+	// Process by command
 	switch (ctrl.cmd[0]) {
 		// TEST UNIT READY
 		case 0x00:
@@ -6592,7 +6598,7 @@ void FASTCALL SASIDEV::Execute()
 
 //---------------------------------------------------------------------------
 //
-//	ステータスフェーズ
+//	Status phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Status()
@@ -6604,7 +6610,7 @@ void FASTCALL SASIDEV::Status()
 
 	ASSERT(this);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::status) {
 
 #ifdef RASCSI
@@ -6625,15 +6631,15 @@ void FASTCALL SASIDEV::Status()
 		Log(Log::Normal, "ステータスフェーズ");
 #endif	// DISK_LOG
 
-		// フェーズ設定
+		// Phase Setting
 		ctrl.phase = BUS::status;
 
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(TRUE);
 		ctrl.bus->SetIO(TRUE);
 
-		// データ転送は1バイトx1ブロック
+		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
 		ctrl.length = 1;
 		ctrl.blocks = 1;
@@ -6655,7 +6661,7 @@ void FASTCALL SASIDEV::Status()
 	// 送信
 	Send();
 #else
-	// リクエスト中
+	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// イニシエータが受信した
 		if (ctrl.bus->GetACK()) {
@@ -6672,24 +6678,24 @@ void FASTCALL SASIDEV::Status()
 
 //---------------------------------------------------------------------------
 //
-//	メッセージインフェーズ
+//	Message in phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::MsgIn()
 {
 	ASSERT(this);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::msgin) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "メッセージインフェーズ");
+		Log(Log::Normal, "Message in phase");
 #endif	// DISK_LOG
 
-		// フェーズ設定
+		// Phase Setting
 		ctrl.phase = BUS::msgin;
 
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetMSG(TRUE);
 		ctrl.bus->SetCD(TRUE);
 		ctrl.bus->SetIO(TRUE);
@@ -6700,12 +6706,12 @@ void FASTCALL SASIDEV::MsgIn()
 		ctrl.offset = 0;
 
 #ifndef RASCSI
-		// メッセージを要求
+		// Request message
 		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
 		ctrl.bus->SetREQ(TRUE);
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "メッセージインフェーズ $%02X", ctrl.buffer[ctrl.offset]);
+		Log(Log::Normal, "Message in phase $%02X", ctrl.buffer[ctrl.offset]);
 #endif	// DISK_LOG
 #endif	// RASCSI
 		return;
@@ -6715,7 +6721,7 @@ void FASTCALL SASIDEV::MsgIn()
 	// 送信
 	Send();
 #else
-	// リクエスト中
+	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// イニシエータが受信した
 		if (ctrl.bus->GetACK()) {
@@ -6732,7 +6738,7 @@ void FASTCALL SASIDEV::MsgIn()
 
 //---------------------------------------------------------------------------
 //
-//	データインフェーズ
+//	Data-in Phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::DataIn()
@@ -6745,7 +6751,7 @@ void FASTCALL SASIDEV::DataIn()
 	ASSERT(this);
 	ASSERT(ctrl.length >= 0);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::datain) {
 
 #ifdef RASCSI
@@ -6767,13 +6773,13 @@ void FASTCALL SASIDEV::DataIn()
 		}
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "データインフェーズ");
+		Log(Log::Normal, "Data-in Phase");
 #endif	// DISK_LOG
 
-		// フェーズ設定
+		// Phase Setting
 		ctrl.phase = BUS::datain;
 
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(TRUE);
@@ -6797,7 +6803,7 @@ void FASTCALL SASIDEV::DataIn()
 	// 送信
 	Send();
 #else
-	// リクエスト中
+	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// イニシエータが受信した
 		if (ctrl.bus->GetACK()) {
@@ -6827,7 +6833,7 @@ void FASTCALL SASIDEV::DataOut()
 	ASSERT(this);
 	ASSERT(ctrl.length >= 0);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::dataout) {
 
 #ifdef RASCSI
@@ -6852,10 +6858,10 @@ void FASTCALL SASIDEV::DataOut()
 		Log(Log::Normal, "データアウトフェーズ");
 #endif	// DISK_LOG
 
-		// フェーズ設定
+		// Phase Setting
 		ctrl.phase = BUS::dataout;
 
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
@@ -6876,14 +6882,14 @@ void FASTCALL SASIDEV::DataOut()
 	// 受信
 	Receive();
 #else
-	// リクエスト中
+	// Requesting
 	if (ctrl.bus->GetREQ()) {
-		// イニシエータが送信した
+		// Sent by the initiator
 		if (ctrl.bus->GetACK()) {
 			Receive();
 		}
 	} else {
-		// イニシエータに次を要求
+		// Request the initator to
 		if (!ctrl.bus->GetACK()) {
 			ReceiveNext();
 		}
@@ -6902,15 +6908,15 @@ void FASTCALL SASIDEV::Error()
 
 	ASSERT(this);
 
-	// バス情報の取り込み
+	// Get bus information
 	ctrl.bus->Aquire();
 
-	// リセットチェック
+	// Reset check
 	if (ctrl.bus->GetRST()) {
-		// コントローラをリセット
+		// Reset the controller
 		Reset();
 
-		// バスもリセット
+		// Reset the bus
 		ctrl.bus->Reset();
 		return;
 	}
@@ -6925,13 +6931,13 @@ void FASTCALL SASIDEV::Error()
 	Log(Log::Warning, "エラー(ステータスフェーズへ)");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 
-	// ステータスとメッセージを設定(CHECK CONDITION)
+	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -6948,25 +6954,25 @@ void FASTCALL SASIDEV::CmdTestUnitReady()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "TEST UNIT READYコマンド");
+	Log(Log::Normal, "TEST UNIT READY Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -6983,25 +6989,25 @@ void FASTCALL SASIDEV::CmdRezero()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "REZERO UNITコマンド");
+	Log(Log::Normal, "REZERO UNIT Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->Rezero(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -7017,17 +7023,17 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "REQUEST SENSEコマンド");
+	Log(Log::Normal, "REQUEST SENSE Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
 
@@ -7052,25 +7058,25 @@ void FASTCALL SASIDEV::CmdFormat()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "FORMAT UNITコマンド");
+	Log(Log::Normal, "FORMAT UNIT Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->Format(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -7087,25 +7093,25 @@ void FASTCALL SASIDEV::CmdReassign()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "REASSIGN BLOCKSコマンド");
+	Log(Log::Normal, "REASSIGN BLOCKS Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->Reassign(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -7121,14 +7127,14 @@ void FASTCALL SASIDEV::CmdRead6()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// レコード番号とブロック数を取得
+	// Get record number and block number
 	record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
 	record |= ctrl.cmd[2];
@@ -7144,15 +7150,15 @@ void FASTCALL SASIDEV::CmdRead6()
 		"READ(6)コマンド レコード=%06X ブロック=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->Read(ctrl.buffer, record);
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// 次のブロックを設定
+	// Set next block
 	ctrl.next = record + 1;
 
 	// リードフェーズ
@@ -7171,14 +7177,14 @@ void FASTCALL SASIDEV::CmdWrite6()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// レコード番号とブロック数を取得
+	// Get record number and block number
 	record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
 	record |= ctrl.cmd[2];
@@ -7194,15 +7200,15 @@ void FASTCALL SASIDEV::CmdWrite6()
 		"WRITE(6)コマンド レコード=%06X ブロック=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// 次のブロックを設定
+	// Set next block
 	ctrl.next = record + 1;
 
 	// ライトフェーズ
@@ -7222,25 +7228,25 @@ void FASTCALL SASIDEV::CmdSeek6()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "SEEK(6)コマンド");
+	Log(Log::Normal, "SEEK(6) Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->Seek(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -7257,20 +7263,20 @@ void FASTCALL SASIDEV::CmdAssign()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "ASSIGNコマンド");
+	Log(Log::Normal, "ASSIGN Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->Assign(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
@@ -7295,20 +7301,20 @@ void FASTCALL SASIDEV::CmdSpecify()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "SPECIFYコマンド");
+	Log(Log::Normal, "SPECIFY Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->Assign(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
@@ -7332,23 +7338,23 @@ void FASTCALL SASIDEV::CmdInvalid()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "サポートしていないコマンド");
+	Log(Log::Normal, "サポートしていない Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (ctrl.unit[lun]) {
-		// ドライブでコマンド処理
+		// Command processing on drive
 		ctrl.unit[lun]->InvalidCmd();
 	}
 
-	// 失敗(エラー)
+	// Failure (Error)
 	Error();
 }
 
 //===========================================================================
 //
-//	データ転送
+//	Data transfer
 //
 //===========================================================================
 
@@ -7380,20 +7386,20 @@ void FASTCALL SASIDEV::Send()
 			return;
 		}
 
-		// オフセットとレングス
+		// Offset and Length
 		ctrl.offset += ctrl.length;
 		ctrl.length = 0;
 		return;
 	}
 #else
-	// オフセットとレングス
+	// Offset and Length
 	ASSERT(ctrl.length >= 1);
 	ctrl.offset++;
 	ctrl.length--;
 
 	// ACKアサート直後にSendNextでデータ設定済みならリクエストを上げる
 	if (ctrl.length != 0) {
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 		return;
 	}
@@ -7425,7 +7431,7 @@ void FASTCALL SASIDEV::Send()
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 #ifndef RASCSI
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
 		return;
@@ -7433,28 +7439,28 @@ void FASTCALL SASIDEV::Send()
 
 	// 次フェーズに移動
 	switch (ctrl.phase) {
-		// メッセージインフェーズ
+		// Message in phase
 		case BUS::msgin:
-			// バスフリーフェーズ
+			// Bus free phase
 			BusFree();
 			break;
 
-		// データインフェーズ
+		// Data-in Phase
 		case BUS::datain:
-			// ステータスフェーズ
+			// status phase
 			Status();
 			break;
 
 		// ステータスフェーズ
 		case BUS::status:
-			// メッセージインフェーズ
+			// Message in phase
 			ctrl.length = 1;
 			ctrl.blocks = 1;
 			ctrl.buffer[0] = (BYTE)ctrl.message;
 			MsgIn();
 			break;
 
-		// その他(ありえない)
+		// Other (impossible)
 		default:
 			ASSERT(FALSE);
 			break;
@@ -7471,11 +7477,11 @@ void FASTCALL SASIDEV::SendNext()
 {
 	ASSERT(this);
 
-	// REQが上がっている
+	// Req is up
 	ASSERT(ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-	// ターゲットが操作する信号線
+	// Signal line operated by the target
 	ctrl.bus->SetREQ(FALSE);
 
 	// バッファにデータがあれば先に設定する
@@ -7497,25 +7503,25 @@ void FASTCALL SASIDEV::Receive()
 
 	ASSERT(this);
 
-	// REQが上がっている
+	// Req is up
 	ASSERT(ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
-	// データ取得
+	// Get data
 	data = (DWORD)ctrl.bus->GetDAT();
 
-	// ターゲットが操作する信号線
+	// Signal line operated by the target
 	ctrl.bus->SetREQ(FALSE);
 
 	switch (ctrl.phase) {
-		// コマンドフェーズ
+		// Command phase
 		case BUS::command:
 			ctrl.cmd[ctrl.offset] = data;
 #if defined(DISK_LOG)
 			Log(Log::Normal, "コマンドフェーズ $%02X", data);
 #endif	// DISK_LOG
 
-			// 最初のデータ(オフセット0)によりレングスを再設定
+			// Set the length again with the first data (offset 0)
 			if (ctrl.offset == 0) {
 				if (ctrl.cmd[0] >= 0x20 && ctrl.cmd[0] <= 0x7D) {
 					// 10バイトCDB
@@ -7524,12 +7530,12 @@ void FASTCALL SASIDEV::Receive()
 			}
 			break;
 
-		// データアウトフェーズ
+		// Data out phase
 		case BUS::dataout:
 			ctrl.buffer[ctrl.offset] = (BYTE)data;
 			break;
 
-		// その他(ありえない)
+		// Other (impossible)
 		default:
 			ASSERT(FALSE);
 			break;
@@ -7560,7 +7566,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 
 	ASSERT(this);
 
-	// REQが下がっていること
+	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
@@ -7577,20 +7583,20 @@ void FASTCALL SASIDEV::ReceiveNext()
 			return;
 		}
 
-		// オフセットとレングス
+		// Offset and Length
 		ctrl.offset += ctrl.length;
 		ctrl.length = 0;
 		return;
 	}
 #else
-	// オフセットとレングス
+	// Offset and Length
 	ASSERT(ctrl.length >= 1);
 	ctrl.offset++;
 	ctrl.length--;
 
 	// レングス!=0なら、再びreqをセット
 	if (ctrl.length != 0) {
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 		return;
 	}
@@ -7603,10 +7609,10 @@ void FASTCALL SASIDEV::ReceiveNext()
 	// データアウトフェーズの処理
 	if (ctrl.phase == BUS::dataout) {
 		if (ctrl.blocks == 0) {
-			// このバッファで終了
+			// End with this buffer
 			result = XferOut(FALSE);
 		} else {
-			// 次のバッファに続く(offset, lengthをセットすること)
+			// Continue to next buffer (set offset, length)
 			result = XferOut(TRUE);
 		}
 	}
@@ -7622,7 +7628,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 #ifndef RASCSI
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
 		return;
@@ -7631,23 +7637,23 @@ void FASTCALL SASIDEV::ReceiveNext()
 	// 次フェーズに移動
 	switch (ctrl.phase) {
 #ifndef RASCSI
-		// コマンドフェーズ
+		// Command phase
 		case BUS::command:
-			// 実行フェーズ
+			// Execution Phase
 			Execute();
 			break;
 #endif	// RASCSI
 
-		// データアウトフェーズ
+		// Data out phase
 		case BUS::dataout:
 			// フラッシュ
 			FlushUnit();
 
-			// ステータスフェーズ
+			// status phase
 			Status();
 			break;
 
-		// その他(ありえない)
+		// Other (impossible)
 		default:
 			ASSERT(FALSE);
 			break;
@@ -7667,7 +7673,7 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::datain);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		return FALSE;
@@ -7693,7 +7699,7 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 			ctrl.offset = 0;
 			break;
 
-		// その他(ありえない)
+		// Other (impossible)
 		default:
 			ASSERT(FALSE);
 			return FALSE;
@@ -7717,7 +7723,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::dataout);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		return FALSE;
@@ -7803,7 +7809,7 @@ void FASTCALL SASIDEV::FlushUnit()
 	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::dataout);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		return;
@@ -7865,13 +7871,13 @@ void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 
 //===========================================================================
 //
-//	SCSI デバイス
+//	SCSI Device
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 #ifdef RASCSI
@@ -7880,7 +7886,7 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 #endif
 {
-	// 同期転送ワーク初期化
+	// Synchronous transfer work initialization
 	scsi.syncenable = FALSE;
 	scsi.syncperiod = 50;
 	scsi.syncoffset = 0;
@@ -7891,96 +7897,96 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 
 //---------------------------------------------------------------------------
 //
-//	デバイスリセット
+//	Device reset
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Reset()
 {
 	ASSERT(this);
 
-	// ワーク初期化
+	// Work initialization
 	scsi.atnmsg = FALSE;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	// 基底クラス
+	// Base class
 	SASIDEV::Reset();
 }
 
 //---------------------------------------------------------------------------
 //
-//	実行
+//	Process
 //
 //---------------------------------------------------------------------------
 BUS::phase_t FASTCALL SCSIDEV::Process()
 {
 	ASSERT(this);
 
-	// 未接続なら何もしない
+	// Do nothing if not connected
 	if (ctrl.id < 0 || ctrl.bus == NULL) {
 		return ctrl.phase;
 	}
 
-	// バス情報の取り込み
+	// Get bus information
 	ctrl.bus->Aquire();
 
-	// リセット
+	// Reset
 	if (ctrl.bus->GetRST()) {
 #if defined(DISK_LOG)
 		Log(Log::Normal, "RESET信号受信");
 #endif	// DISK_LOG
 
-		// コントローラをリセット
+		// Reset the controller
 		Reset();
 
-		// バスもリセット
+		// Reset the bus
 		ctrl.bus->Reset();
 		return ctrl.phase;
 	}
 
-	// フェーズ処理
+	// Phase processing
 	switch (ctrl.phase) {
-		// バスフリー
+		// Bus free phase
 		case BUS::busfree:
 			BusFree();
 			break;
 
-		// セレクションフェーズ
+		// Selection phase
 		case BUS::selection:
 			Selection();
 			break;
 
-		// データアウト(MCI=000)
+		// Data out (MCI=000)
 		case BUS::dataout:
 			DataOut();
 			break;
 
-		// データイン(MCI=001)
+		// Data in (MCI=001)
 		case BUS::datain:
 			DataIn();
 			break;
 
-		// コマンド(MCI=010)
+		// Command (MCI=010)
 		case BUS::command:
 			Command();
 			break;
 
-		// ステータス(MCI=011)
+		// Status (MCI=011)
 		case BUS::status:
 			Status();
 			break;
 
-		// メッセージアウト(MCI=110)
+		// Message out (MCI=110)
 		case BUS::msgout:
 			MsgOut();
 			break;
 
-		// メッセージイン(MCI=111)
+		// Message in (MCI=111)
 		case BUS::msgin:
 			MsgIn();
 			break;
 
-		// その他
+		// Other
 		default:
 			ASSERT(FALSE);
 			break;
@@ -7991,46 +7997,46 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 
 //---------------------------------------------------------------------------
 //
-//	フェーズ
+//	Phaes
 //
 //---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 //
-//	バスフリーフェーズ
+//	Bus free phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::BusFree()
 {
 	ASSERT(this);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::busfree) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "バスフリーフェーズ");
+		Log(Log::Normal, "Bus free phase");
 #endif	// DISK_LOG
 
-		// フェーズ設定
+		// Phase setting
 		ctrl.phase = BUS::busfree;
 
-		// 信号線
+		// Signal line
 		ctrl.bus->SetREQ(FALSE);
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
 		ctrl.bus->SetBSY(FALSE);
 
-		// ステータスとメッセージを初期化
+		// Initialize status and message
 		ctrl.status = 0x00;
 		ctrl.message = 0x00;
 
-		// ATNメッセージ受信スタータス初期化
+		// Initialize ATN message reception status
 		scsi.atnmsg = FALSE;
 		return;
 	}
 
-	// セレクションフェーズに移行
+	// Move to selection phase
 	if (ctrl.bus->GetSEL() && !ctrl.bus->GetBSY()) {
 		Selection();
 	}
@@ -8038,7 +8044,7 @@ void FASTCALL SCSIDEV::BusFree()
 
 //---------------------------------------------------------------------------
 //
-//	セレクションフェーズ
+//	Selection Phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Selection()
@@ -8047,35 +8053,35 @@ void FASTCALL SCSIDEV::Selection()
 
 	ASSERT(this);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::selection) {
-		// IDが一致していなければ無効
+		// invalid if IDs do not match
 		id = 1 << ctrl.id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
 			return;
 		}
 
-		// 有効なユニットが無ければ終了
+		// End if there is no valid unit
 		if (!HasUnit()) {
 			return;
 		}
 
 #if defined(DISK_LOG)
 		Log(Log::Normal,
-			"セレクションフェーズ ID=%d (デバイスあり)", ctrl.id);
+			"Selection Phase ID=%d (with device)", ctrl.id);
 #endif	// DISK_LOG
 
-		// フェーズ設定
+		// Phase setting
 		ctrl.phase = BUS::selection;
 
-		// BSYを上げて応答
+		// Raise BSY and respond
 		ctrl.bus->SetBSY(TRUE);
 		return;
 	}
 
-	// セレクション完了
+	// Selection completed
 	if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {
-		// ATN=1ならメッセージアウトフェーズ、そうでなければコマンドフェーズ
+		// Message out phase if ATN=1, otherwise command phase
 		if (ctrl.bus->GetATN()) {
 			MsgOut();
 		} else {
@@ -8086,7 +8092,7 @@ void FASTCALL SCSIDEV::Selection()
 
 //---------------------------------------------------------------------------
 //
-//	実行フェーズ
+//	Execution Phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Execute()
@@ -8094,20 +8100,20 @@ void FASTCALL SCSIDEV::Execute()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "実行フェーズ コマンド$%02X", ctrl.cmd[0]);
+	Log(Log::Normal, "Execution phase command $%02X", ctrl.cmd[0]);
 #endif	// DISK_LOG
 
-	// フェーズ設定
+	// Phase Setting
 	ctrl.phase = BUS::execute;
 
-	// データ転送のための初期化
+	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
 #ifdef RASCSI
 	ctrl.execstart = SysTimer::GetTimerLow();
 #endif	// RASCSI
 
-	// コマンド別処理
+	// Process by command
 	switch (ctrl.cmd[0]) {
 		// TEST UNIT READY
 		case 0x00:
@@ -8249,73 +8255,73 @@ void FASTCALL SCSIDEV::Execute()
 			CmdModeSense10();
 			return;
 
-		// SPECIFY(SASIのみ/SxSI利用時の警告抑制)
+		// SPECIFY (SASI only/Suppress warning when using SxSI)
 		case 0xc2:
 			CmdInvalid();
 			return;
 	}
 
-	// それ以外は対応していない
+	// No other support
 	Log(Log::Normal, "未対応コマンド $%02X", ctrl.cmd[0]);
 	CmdInvalid();
 }
 
 //---------------------------------------------------------------------------
 //
-//	メッセージアウトフェーズ
+//	Message out phase
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::MsgOut()
 {
 	ASSERT(this);
 
-	// フェーズチェンジ
+	// Phase change
 	if (ctrl.phase != BUS::msgout) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "メッセージアウトフェーズ");
+		Log(Log::Normal, "Message Out Phase");
 #endif	// DISK_LOG
 
-		// セレクション後のメッセージアウトフェーズは
-		// IDENTIFYメッセージの処理
+		// Message out phase after selection
+        // process the IDENTIFY message
 		if (ctrl.phase == BUS::selection) {
 			scsi.atnmsg = TRUE;
 			scsi.msc = 0;
 			memset(scsi.msb, 0x00, sizeof(scsi.msb));
 		}
 
-		// フェーズ設定
+		// Phase Setting
 		ctrl.phase = BUS::msgout;
 
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetMSG(TRUE);
 		ctrl.bus->SetCD(TRUE);
 		ctrl.bus->SetIO(FALSE);
 
-		// データ転送は1バイトx1ブロック
+		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
 		ctrl.length = 1;
 		ctrl.blocks = 1;
 
 #ifndef RASCSI
-		// メッセージを要求
+		// Request message
 		ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
 		return;
 	}
 
 #ifdef RASCSI
-	// 受信
+	// Receive
 	Receive();
 #else
-	// リクエスト中
+	// Requesting
 	if (ctrl.bus->GetREQ()) {
-		// イニシエータが送信した
+		// Sent by the initiator
 		if (ctrl.bus->GetACK()) {
 			Receive();
 		}
 	} else {
-		// イニシエータに次を要求
+		// Request the initator to
 		if (!ctrl.bus->GetACK()) {
 			ReceiveNext();
 		}
@@ -8325,47 +8331,47 @@ void FASTCALL SCSIDEV::MsgOut()
 
 //---------------------------------------------------------------------------
 //
-//	共通エラー処理
+//	Common Error Handling
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Error()
 {
 	ASSERT(this);
 
-	// バス情報の取り込み
+	// Get bus information
 	ctrl.bus->Aquire();
 
-	// リセットチェック
+	// Reset check
 	if (ctrl.bus->GetRST()) {
-		// コントローラをリセット
+		// Reset the controller
 		Reset();
 
-		// バスもリセット
+		// Reset the bus
 		ctrl.bus->Reset();
 		return;
 	}
 
-	// ステータスフェーズ、メッセージインフェーズはバスフリー
+	// Bus free for status phase and message in phase
 	if (ctrl.phase == BUS::status || ctrl.phase == BUS::msgin) {
 		BusFree();
 		return;
 	}
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "エラー(ステータスフェーズへ)");
+	Log(Log::Normal, "Error (to status phase)");
 #endif	// DISK_LOG
 
-	// ステータスとメッセージを設定(CHECK CONDITION)
+	// Set status and message(CHECK CONDITION)
 	ctrl.status = 0x02;
 	ctrl.message = 0x00;
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
 //---------------------------------------------------------------------------
 //
-//	コマンド
+//	Command
 //
 //---------------------------------------------------------------------------
 
@@ -8384,10 +8390,10 @@ void FASTCALL SCSIDEV::CmdInquiry()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "INQUIRYコマンド");
+	Log(Log::Normal, "INQUIRY Command");
 #endif	// DISK_LOG
 
-	// 有効なユニットを探す
+	// Find a valid unit
 	disk = NULL;
 	for (lun = 0; lun < UnitMax; lun++) {
 		if (ctrl.unit[lun]) {
@@ -8396,7 +8402,7 @@ void FASTCALL SCSIDEV::CmdInquiry()
 		}
 	}
 
-	// ディスク側で処理(本来はコントローラで処理される)
+	// Processed on the disk side (it is originally processed by the controller)
 	if (disk) {
 #ifdef RASCSI
 		major = (DWORD)(RASCSI >> 8);
@@ -8411,17 +8417,17 @@ void FASTCALL SCSIDEV::CmdInquiry()
 	}
 
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// failure (error)
 		Error();
 		return;
 	}
 
-	// 同期転送サポート情報の追加
+	// Add synchronous transfer support information
 	if (scsi.syncenable) {
 		ctrl.buffer[7] |= (1 << 4);
 	}
 
-	// データインフェーズ
+	// Data-in Phase
 	DataIn();
 }
 
@@ -8437,25 +8443,25 @@ void FASTCALL SCSIDEV::CmdModeSelect()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "MODE SELECTコマンド");
+	Log(Log::Normal, "MODE SELECT Command");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->SelectCheck(ctrl.cmd);
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// データアウトフェーズ
+	// Data out phase
 	DataOut();
 }
 
@@ -8471,29 +8477,29 @@ void FASTCALL SCSIDEV::CmdModeSense()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "MODE SENSEコマンド");
+	Log(Log::Normal, "MODE SENSE Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ModeSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length >= 0);
 	if (ctrl.length == 0) {
 		Log(Log::Warning,
-			"サポートしていないMODE SENSEページ $%02X", ctrl.cmd[2]);
+			"Not supported MODE SENSE page $%02X", ctrl.cmd[2]);
 
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// データインフェーズ
+	// Data-in Phase
 	DataIn();
 }
 
@@ -8510,25 +8516,25 @@ void FASTCALL SCSIDEV::CmdStartStop()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "START STOP UNITコマンド");
+	Log(Log::Normal, "START STOP UNIT Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->StartStop(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -8545,25 +8551,25 @@ void FASTCALL SCSIDEV::CmdSendDiag()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "SEND DIAGNOSTICコマンド");
+	Log(Log::Normal, "SEND DIAGNOSTIC Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -8580,25 +8586,25 @@ void FASTCALL SCSIDEV::CmdRemoval()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "PREVENT/ALLOW MEDIUM REMOVALコマンド");
+	Log(Log::Normal, "PREVENT/ALLOW MEDIUM REMOVAL Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->Removal(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -8615,17 +8621,17 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "READ CAPACITYコマンド");
+	Log(Log::Normal, "READ CAPACITY Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
 	ASSERT(length >= 0);
 	if (length <= 0) {
@@ -8633,10 +8639,10 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 		return;
 	}
 
-	// レングス設定
+	// Length setting
 	ctrl.length = length;
 
-	// データインフェーズ
+	// Data-in Phase
 	DataIn();
 }
 
@@ -8652,20 +8658,20 @@ void FASTCALL SCSIDEV::CmdRead10()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ホストブリッジならメッセージ受信
+	// Receive message if host bridge
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
 		CmdGetMessage10();
 		return;
 	}
 
-	// レコード番号とブロック数を取得
+	// Get record number and block number
 	record = ctrl.cmd[2];
 	record <<= 8;
 	record |= ctrl.cmd[3];
@@ -8678,27 +8684,27 @@ void FASTCALL SCSIDEV::CmdRead10()
 	ctrl.blocks |= ctrl.cmd[8];
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "READ(10)コマンド レコード=%08X ブロック=%d", record, ctrl.blocks);
+	Log(Log::Normal, "READ(10) command record=%08X block=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
-	// ブロック数0は処理しない
+	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
 		Status();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->Read(ctrl.buffer, record);
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// 次のブロックを設定
+	// Set next block
 	ctrl.next = record + 1;
 
-	// データインフェーズ
+	// Data-in Phase
 	DataIn();
 }
 
@@ -8714,20 +8720,20 @@ void FASTCALL SCSIDEV::CmdWrite10()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ホストブリッジならメッセージ受信
+	// Receive message with host bridge
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
 		CmdSendMessage10();
 		return;
 	}
 
-	// レコード番号とブロック数を取得
+	// Get record number and block number
 	record = ctrl.cmd[2];
 	record <<= 8;
 	record |= ctrl.cmd[3];
@@ -8741,27 +8747,27 @@ void FASTCALL SCSIDEV::CmdWrite10()
 
 #if defined(DISK_LOG)
 	Log(Log::Normal,
-		"WRTIE(10)コマンド レコード=%08X ブロック=%d", record, ctrl.blocks);
+		"WRTIE(10) command record=%08X blocks=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
-	// ブロック数0は処理しない
+	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
 		Status();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// 次のブロックを設定
+	// Set next block
 	ctrl.next = record + 1;
 
-	// データアウトフェーズ
+	// Data out phase
 	DataOut();
 }
 
@@ -8778,25 +8784,25 @@ void FASTCALL SCSIDEV::CmdSeek10()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "SEEK(10)コマンド");
+	Log(Log::Normal, "SEEK(10) Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->Seek(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -8813,14 +8819,14 @@ void FASTCALL SCSIDEV::CmdVerify()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// レコード番号とブロック数を取得
+	// Get record number and block number
 	record = ctrl.cmd[2];
 	record <<= 8;
 	record |= ctrl.cmd[3];
@@ -8834,42 +8840,42 @@ void FASTCALL SCSIDEV::CmdVerify()
 
 #if defined(DISK_LOG)
 	Log(Log::Normal,
-		"VERIFYコマンド レコード=%08X ブロック=%d", record, ctrl.blocks);
+		"VERIFY command record=%08X blocks=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
-	// ブロック数0は処理しない
+	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
 		Status();
 		return;
 	}
 
-	// BytChk=0なら
+	// if BytChk=0
 	if ((ctrl.cmd[1] & 0x02) == 0) {
-		// ドライブでコマンド処理
+		// Command processing on drive
 		status = ctrl.unit[lun]->Seek(ctrl.cmd);
 		if (!status) {
-			// 失敗(エラー)
+			// Failure (Error)
 			Error();
 			return;
 		}
 
-		// ステータスフェーズ
+		// status phase
 		Status();
 		return;
 	}
 
-	// テスト読み込み
+	// Test loading
 	ctrl.length = ctrl.unit[lun]->Read(ctrl.buffer, record);
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// 次のブロックを設定
+	// Set next block
 	ctrl.next = record + 1;
 
-	// データアウトフェーズ
+	// Data out phase
 	DataOut();
 }
 
@@ -8884,16 +8890,16 @@ void FASTCALL SCSIDEV::CmdSynchronizeCache()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// 成功したことにする(未実装)
+	// Make it do something (not implemented)...
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -8909,17 +8915,17 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "READ DEFECT DATA(10)コマンド");
+	Log(Log::Normal, "READ DEFECT DATA(10) Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ReadDefectData10(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length >= 0);
 
@@ -8928,7 +8934,7 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 		return;
 	}
 
-	// データインフェーズ
+	// Data-in Phase
 	DataIn();
 }
 
@@ -8943,22 +8949,22 @@ void FASTCALL SCSIDEV::CmdReadToc()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ReadToc(ctrl.cmd, ctrl.buffer);
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// データインフェーズ
+	// Data-in Phase
 	DataIn();
 }
 
@@ -8974,22 +8980,22 @@ void FASTCALL SCSIDEV::CmdPlayAudio10()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -9005,22 +9011,22 @@ void FASTCALL SCSIDEV::CmdPlayAudioMSF()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -9036,22 +9042,22 @@ void FASTCALL SCSIDEV::CmdPlayAudioTrack()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
 	if (!status) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// ステータスフェーズ
+	// status phase
 	Status();
 }
 
@@ -9067,25 +9073,25 @@ void FASTCALL SCSIDEV::CmdModeSelect10()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "MODE SELECT10コマンド");
+	Log(Log::Normal, "MODE SELECT10 Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->SelectCheck10(ctrl.cmd);
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// データアウトフェーズ
+	// Data out phase
 	DataOut();
 }
 
@@ -9101,29 +9107,29 @@ void FASTCALL SCSIDEV::CmdModeSense10()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "MODE SENSE(10)コマンド");
+	Log(Log::Normal, "MODE SENSE(10) Command ");
 #endif	// DISK_LOG
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ドライブでコマンド処理
+	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ModeSense10(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length >= 0);
 	if (ctrl.length == 0) {
 		Log(Log::Warning,
-			"サポートしていないMODE SENSE(10)ページ $%02X", ctrl.cmd[2]);
+			"Not supported MODE SENSE(10) page $%02X", ctrl.cmd[2]);
 
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// データインフェーズ
+	// Data-in Phase
 	DataIn();
 }
 
@@ -9139,41 +9145,41 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ホストブリッジでないならエラー
+	// Error if not a host bridge
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
 		Error();
 		return;
 	}
 
-	// バッファの再確保(ブロック毎の転送ではないため)
+	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl.bufsize < 0x1000000) {
 		free(ctrl.buffer);
 		ctrl.bufsize = 0x1000000;
 		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	}
 
-	// ドライブで処理する
+	// Process with drive
 	bridge = (SCSIBR*)ctrl.unit[lun];
 	ctrl.length = bridge->GetMessage10(ctrl.cmd, ctrl.buffer);
 
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// 次のブロックを設定
+	// Set next block
 	ctrl.blocks = 1;
 	ctrl.next = 1;
 
-	// リードフェーズ
+	// Data in phase
 	DataIn();
 }
 
@@ -9188,27 +9194,27 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 
 	ASSERT(this);
 
-	// 論理ユニット
+	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		Error();
 		return;
 	}
 
-	// ホストブリッジでないならエラー
+	// Error if not a host bridge
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
 		Error();
 		return;
 	}
 
-	// バッファの再確保(ブロック毎の転送ではないため)
+	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl.bufsize < 0x1000000) {
 		free(ctrl.buffer);
 		ctrl.bufsize = 0x1000000;
 		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	}
 
-	// 転送量を設定
+	// Set transfer amount
 	ctrl.length = ctrl.cmd[6];
 	ctrl.length <<= 8;
 	ctrl.length |= ctrl.cmd[7];
@@ -9216,28 +9222,28 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 	ctrl.length |= ctrl.cmd[8];
 
 	if (ctrl.length <= 0) {
-		// 失敗(エラー)
+		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// 次のブロックを設定
+	// Set next block
 	ctrl.blocks = 1;
 	ctrl.next = 1;
 
-	// ライトフェーズ
+	// Light phase
 	DataOut();
 }
 
 //===========================================================================
 //
-//	データ転送
+//	Data Transfer
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//	データ送信
+//	Send data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Send()
@@ -9252,44 +9258,45 @@ void FASTCALL SCSIDEV::Send()
 	ASSERT(ctrl.bus->GetIO());
 
 #ifdef RASCSI
-	// レングス!=0なら送信
+	//if Length! = 0, send
 	if (ctrl.length != 0) {
 		len = ctrl.bus->SendHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length);
 
-		// 全て送信できなければステータスフェーズへ移行
+		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
 			Error();
 			return;
 		}
 
-		// オフセットとレングス
+		// offset and length
 		ctrl.offset += ctrl.length;
 		ctrl.length = 0;
 		return;
 	}
 #else
-	// オフセットとレングス
+	// offset and length
 	ASSERT(ctrl.length >= 1);
 	ctrl.offset++;
 	ctrl.length--;
 
-	// ACKアサート直後にSendNextでデータ設定済みならリクエストを上げる
+	// Immediately after ACK is asserted, if the data has been
+    // set by SendNext, raise the request
 	if (ctrl.length != 0) {
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 		return;
 	}
 #endif	// RASCSI
 
-	// ブロック減算、リザルト初期化
+	// Block subtraction, result initialization
 	ctrl.blocks--;
 	result = TRUE;
 
-	// データ引き取り後の処理(リード/データインのみ)
+	// Processing after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
 		if (ctrl.blocks != 0) {
-			// 次のバッファを設定(offset, lengthをセットすること)
+			// // set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
 #ifndef RASCSI
 			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
@@ -9297,56 +9304,56 @@ void FASTCALL SCSIDEV::Send()
 		}
 	}
 
-	// リザルトFALSEなら、ステータスフェーズへ移行
+	// If result FALSE, move to status phase
 	if (!result) {
 		Error();
 		return;
 	}
 
-	// ブロック!=0なら送信継続
+	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 #ifndef RASCSI
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
 		return;
 	}
 
-	// 次フェーズに移動
+	// Move to next phase
 	switch (ctrl.phase) {
-		// メッセージインフェーズ
+		// Message in phase
 		case BUS::msgin:
-			// IDENTIFYメッセージの拡張メッセージに対する応答送信完了
+			// Completed sending response to extended message of IDENTIFY message
 			if (scsi.atnmsg) {
-				// フラグオフ
+				// flag off
 				scsi.atnmsg = FALSE;
 
-				// コマンドフェーズ
+				// command phase
 				Command();
 			} else {
-				// バスフリーフェーズ
+				// Bus free phase
 				BusFree();
 			}
 			break;
 
-		// データインフェーズ
+		// Data-in Phase
 		case BUS::datain:
-			// ステータスフェーズ
+			// status phase
 			Status();
 			break;
 
-		// ステータスフェーズ
+		// status phase
 		case BUS::status:
-			// メッセージインフェーズ
+			// Message in phase
 			ctrl.length = 1;
 			ctrl.blocks = 1;
 			ctrl.buffer[0] = (BYTE)ctrl.message;
 			MsgIn();
 			break;
 
-		// その他(ありえない)
+		// Other (impossible)
 		default:
 			ASSERT(FALSE);
 			break;
@@ -9356,21 +9363,21 @@ void FASTCALL SCSIDEV::Send()
 #ifndef RASCSI
 //---------------------------------------------------------------------------
 //
-//	データ送信継続
+//	Continue data transmission.....
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::SendNext()
 {
 	ASSERT(this);
 
-	// REQが上がっている
+	// REQ is up
 	ASSERT(ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-	// ターゲットが操作する信号線
+	// Signal line operated by the target
 	ctrl.bus->SetREQ(FALSE);
 
-	// バッファにデータがあれば先に設定する
+	// If there is data in the buffer, set it first
 	if (ctrl.length > 1) {
 		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset + 1]);
 	}
@@ -9380,7 +9387,7 @@ void FASTCALL SCSIDEV::SendNext()
 #ifndef RASCSI
 //---------------------------------------------------------------------------
 //
-//	データ受信
+//	Receive data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Receive()
@@ -9389,25 +9396,25 @@ void FASTCALL SCSIDEV::Receive()
 
 	ASSERT(this);
 
-	// REQが上がっている
+	// Req is up
 	ASSERT(ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
-	// データ取得
+	// Get data
 	data = (DWORD)ctrl.bus->GetDAT();
 
-	// ターゲットが操作する信号線
+	// Signal line operated by the target
 	ctrl.bus->SetREQ(FALSE);
 
 	switch (ctrl.phase) {
-		// コマンドフェーズ
+		// Command phase
 		case BUS::command:
 			ctrl.cmd[ctrl.offset] = data;
 #if defined(DISK_LOG)
-			Log(Log::Normal, "コマンドフェーズ $%02X", data);
+			Log(Log::Normal, "Command phase $%02X", data);
 #endif	// DISK_LOG
 
-			// 最初のデータ(オフセット0)によりレングスを再設定
+			// Set the length again with the first data (offset 0)
 			if (ctrl.offset == 0) {
 				if (ctrl.cmd[0] >= 0x20) {
 					// 10バイトCDB
@@ -9416,20 +9423,20 @@ void FASTCALL SCSIDEV::Receive()
 			}
 			break;
 
-		// メッセージアウトフェーズ
+		// Message out phase
 		case BUS::msgout:
 			ctrl.message = data;
 #if defined(DISK_LOG)
-			Log(Log::Normal, "メッセージアウトフェーズ $%02X", data);
+			Log(Log::Normal, "Message out phase $%02X", data);
 #endif	// DISK_LOG
 			break;
 
-		// データアウトフェーズ
+		// Data out phase
 		case BUS::dataout:
 			ctrl.buffer[ctrl.offset] = (BYTE)data;
 			break;
 
-		// その他(ありえない)
+		// Other (impossible)
 		default:
 			ASSERT(FALSE);
 			break;
@@ -9440,14 +9447,14 @@ void FASTCALL SCSIDEV::Receive()
 #ifdef RASCSI
 //---------------------------------------------------------------------------
 //
-//	データ受信
+//  Receive Data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Receive()
 #else
 //---------------------------------------------------------------------------
 //
-//	データ受信継続
+//	Continue receiving data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::ReceiveNext()
@@ -9462,70 +9469,70 @@ void FASTCALL SCSIDEV::ReceiveNext()
 
 	ASSERT(this);
 
-	// REQが下がっていること
+	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
 #ifdef RASCSI
-	// レングス!=0なら受信
+	// Length != 0 if received
 	if (ctrl.length != 0) {
-		// 受信
+		// Receive
 		len = ctrl.bus->ReceiveHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length);
 
-		// 全て受信できなければステータスフェーズへ移行
+		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
 			Error();
 			return;
 		}
 
-		// オフセットとレングス
+		// Offset and Length
 		ctrl.offset += ctrl.length;
 		ctrl.length = 0;;
 		return;
 	}
 #else
-	// オフセットとレングス
+	// Offset and Length
 	ASSERT(ctrl.length >= 1);
 	ctrl.offset++;
 	ctrl.length--;
 
-	// レングス!=0なら、再びreqをセット
+	// If length!=0, set req again
 	if (ctrl.length != 0) {
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 		return;
 	}
 #endif	// RASCSI
 
-	// ブロック減算、リザルト初期化
+	// Block subtraction, result initialization
 	ctrl.blocks--;
 	result = TRUE;
 
-	// データ受理後の処理(フェーズ別)
+	// Processing after receiving data (by phase)
 	switch (ctrl.phase) {
 
-		// データアウトフェーズ
+		// Data out phase
 		case BUS::dataout:
 			if (ctrl.blocks == 0) {
-				// このバッファで終了
+				// End with this buffer
 				result = XferOut(FALSE);
 			} else {
-				// 次のバッファに続く(offset, lengthをセットすること)
+				// Continue to next buffer (set offset, length)
 				result = XferOut(TRUE);
 			}
 			break;
 
-		// メッセージアウトフェーズ
+		// Message out phase
 		case BUS::msgout:
 			ctrl.message = ctrl.buffer[0];
 			if (!XferMsg(ctrl.message)) {
-				// メッセージアウトに失敗したら、即座にバスフリー
+				// Immediately free the bus if message output fails
 				BusFree();
 				return;
 			}
 
-			// メッセージインに備え、メッセージデータをクリアしておく
+			// Clear message data in preparation for message-in
 			ctrl.message = 0x00;
 			break;
 
@@ -9533,73 +9540,73 @@ void FASTCALL SCSIDEV::ReceiveNext()
 			break;
 	}
 
-	// リザルトFALSEなら、ステータスフェーズへ移行
+	// If result FALSE, move to status phase
 	if (!result) {
 		Error();
 		return;
 	}
 
-	// ブロック!=0なら受信継続
+	// Continue to receive if block !=0
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 #ifndef RASCSI
-		// ターゲットが操作する信号線
+		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
 		return;
 	}
 
-	// 次フェーズに移動
+	// Move to next phase
 	switch (ctrl.phase) {
-		// コマンドフェーズ
+		// Command phase
 		case BUS::command:
 #ifdef RASCSI
-			// コマンドデータ転送
+			// Command data transfer
 			len = 6;
 			if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
-				// 10バイトCDB
+				// 10 byte CDB
 				len = 10;
 			}
 			for (i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
 #if defined(DISK_LOG)
-				Log(Log::Normal, "コマンド $%02X", ctrl.cmd[i]);
+				Log(Log::Normal, "Command $%02X", ctrl.cmd[i]);
 #endif	// DISK_LOG
 			}
 #endif	// RASCSI
 
-			// 実行フェーズ
+			// Execution Phase
 			Execute();
 			break;
 
-		// メッセージアウトフェーズ
+		// Message out phase
 		case BUS::msgout:
-			// ATNがアサートし続ける限りメッセージアウトフェーズを継続
+			// Continue message out phase as long as ATN keeps asserting
 			if (ctrl.bus->GetATN()) {
-				// データ転送は1バイトx1ブロック
+				// Data transfer is 1 byte x 1 block
 				ctrl.offset = 0;
 				ctrl.length = 1;
 				ctrl.blocks = 1;
 #ifndef RASCSI
-				// メッセージを要求
+				// Request message
 				ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
 				return;
 			}
 
-			// ATNで送信されたメッセージの解析
+			// Parsing messages sent by ATN
 			if (scsi.atnmsg) {
 				i = 0;
 				while (i < scsi.msc) {
-					// メッセージの種類
+					// Message type
 					data = scsi.msb[i];
 
 					// ABORT
 					if (data == 0x06) {
 #if defined(DISK_LOG)
 						Log(Log::Normal,
-							"メッセージコード ABORT $%02X", data);
+							"Message code ABORT $%02X", data);
 #endif	// DISK_LOG
 						BusFree();
 						return;
@@ -9609,7 +9616,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 					if (data == 0x0C) {
 #if defined(DISK_LOG)
 						Log(Log::Normal,
-							"メッセージコード BUS DEVICE RESET $%02X", data);
+							"Message code BUS DEVICE RESET $%02X", data);
 #endif	// DISK_LOG
 						scsi.syncoffset = 0;
 						BusFree();
@@ -9620,18 +9627,18 @@ void FASTCALL SCSIDEV::ReceiveNext()
 					if (data >= 0x80) {
 #if defined(DISK_LOG)
 						Log(Log::Normal,
-							"メッセージコード IDENTIFY $%02X", data);
+							"Message code IDENTIFY $%02X", data);
 #endif	// DISK_LOG
 					}
 
-					// 拡張メッセージ
+					// Extended Message
 					if (data == 0x01) {
 #if defined(DISK_LOG)
 						Log(Log::Normal,
-							"メッセージコード EXTENDED MESSAGE $%02X", data);
+							"Message code EXTENDED MESSAGE $%02X", data);
 #endif	// DISK_LOG
 
-						// 同期転送が可能な時だけチェック
+						// Check only when synchronous transfer is possible
 						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
 							ctrl.length = 1;
 							ctrl.blocks = 1;
@@ -9640,19 +9647,19 @@ void FASTCALL SCSIDEV::ReceiveNext()
 							return;
 						}
 
-						// Transfer period factor(50 x 4 = 200nsに制限)
+						// Transfer period factor (limited to 50 x 4 = 200ns)
 						scsi.syncperiod = scsi.msb[i + 3];
 						if (scsi.syncperiod > 50) {
 							scsi.syncoffset = 50;
 						}
 
-						// REQ/ACK offset(16に制限)
+						// REQ/ACK offset(limited to 16)
 						scsi.syncoffset = scsi.msb[i + 4];
 						if (scsi.syncoffset > 16) {
 							scsi.syncoffset = 16;
 						}
 
-						// STDR応答メッセージ生成
+						// STDR response message generation
 						ctrl.length = 5;
 						ctrl.blocks = 1;
 						ctrl.buffer[0] = 0x01;
@@ -9664,28 +9671,28 @@ void FASTCALL SCSIDEV::ReceiveNext()
 						return;
 					}
 
-					// 次へ
+					// next
 					i++;
 				}
 			}
 
-			// ATNメッセージ受信スタータス初期化
+			// Initialize ATN message reception status
 			scsi.atnmsg = FALSE;
 
-			// コマンドフェーズ
+			// Command phase
 			Command();
 			break;
 
-		// データアウトフェーズ
+		// Data out phase
 		case BUS::dataout:
-			// フラッシュ
+			// Flush unit
 			FlushUnit();
 
-			// ステータスフェーズ
+			// status phase
 			Status();
 			break;
 
-		// その他(ありえない)
+		// Other (impossible)
 		default:
 			ASSERT(FALSE);
 			break;
@@ -9694,7 +9701,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 
 //---------------------------------------------------------------------------
 //
-//	データ転送MSG
+//	Transfer MSG
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
@@ -9702,7 +9709,7 @@ BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
 	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::msgout);
 
-	// メッセージアウトデータの保存
+	// Save message out data
 	if (scsi.atnmsg) {
 		scsi.msb[scsi.msc] = (BYTE)msg;
 		scsi.msc++;

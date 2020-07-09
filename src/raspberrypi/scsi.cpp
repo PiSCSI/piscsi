@@ -5,7 +5,7 @@
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
 //
-//	[ SCSI共通 ]
+//	[ SCSI Common Functionality ]
 //
 //---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	フェーズ取得
+//	Phase Acquisition
 //
 //---------------------------------------------------------------------------
 BUS::phase_t FASTCALL BUS::GetPhase()
@@ -24,17 +24,17 @@ BUS::phase_t FASTCALL BUS::GetPhase()
 
 	ASSERT(this);
 
-	// セレクションフェーズ
+	// Selection Phase
 	if (GetSEL()) {
 		return selection;
 	}
 
-	// バスフリーフェーズ
+	// Bus busy phase
 	if (!GetBSY()) {
 		return busfree;
 	}
 
-	// バスの信号線からターゲットのフェーズを取得
+	// Get target phase from bus signal line
 	mci = GetMSG() ? 0x04 : 0x00;
 	mci |= GetCD() ? 0x02 : 0x00;
 	mci |= GetIO() ? 0x01 : 0x00;
@@ -43,7 +43,7 @@ BUS::phase_t FASTCALL BUS::GetPhase()
 
 //---------------------------------------------------------------------------
 //
-//	フェーズテーブル
+//	Phase Table
 //
 //---------------------------------------------------------------------------
 const BUS::phase_t BUS::phase_table[8] = {
