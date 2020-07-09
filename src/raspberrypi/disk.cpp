@@ -2660,7 +2660,7 @@ int FASTCALL SCSIHD::Inquiry(
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int page;
+	BYTE page;
 	int size;
 
 	ASSERT(this);
@@ -2702,8 +2702,23 @@ BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					}
 					break;
 
+                // CD-ROM Parameters
+                // According to the SONY CDU-541 manual, Page code 8 is supposed
+                // to set the Logical Block Adress Format, as well as the
+                // inactivity timer multiplier
+                case 0x08:
+                    // Debug code for Issue #2:
+                    //     https://github.com/akuker/RASCSI/issues/2
+                    printf("\[Unhandled page code\] Received mode page code 8 with total length %d\n     ", length);
+                    for (int i = 0; i<length; i++)
+                    {
+                        printf("%02X ", buf[i]);
+                    }
+                    printf("\n");
+                    break;
 				// Other page
 				default:
+                    printf("Unknown Mode Select page code received: %02X\n",page);
 					break;
 			}
 
@@ -2822,7 +2837,7 @@ BOOL FASTCALL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 		cylinders = (int)(size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
-	} else if (xstrcasecmp(ext, _T(".HDI")) == 0) { // Anex86 HD image? 
+	} else if (xstrcasecmp(ext, _T(".HDI")) == 0) { // Anex86 HD image?
 		imgoffset = getDwordLE(&hdr[4 + 4]);
 		imgsize = getDwordLE(&hdr[4 + 4 + 4]);
 		sectorsize = getDwordLE(&hdr[4 + 4 + 4 + 4]);
@@ -2946,7 +2961,7 @@ int FASTCALL SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 		// 1ゾーンのトラック数を設定(PC-9801-55はこの値を見ているようだ)
 		buf[0x2] = (BYTE)(heads >> 8);
 		buf[0x3] = (BYTE)heads;
-		
+
 		// 1トラックのセクタ数を設定
 		buf[0xa] = (BYTE)(sectors >> 8);
 		buf[0xb] = (BYTE)sectors;
@@ -2989,7 +3004,7 @@ int FASTCALL SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 		buf[0x2] = (BYTE)(cylinders >> 16);
 		buf[0x3] = (BYTE)(cylinders >> 8);
 		buf[0x4] = (BYTE)cylinders;
-		
+
 		// ヘッド数を設定
 		buf[0x5] = (BYTE)heads;
 	}
@@ -3403,29 +3418,29 @@ int FASTCALL SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 		mode page code 20h - Vendor Unique Format Page
 		format mode XXh type 0
 		information: http://h20628.www2.hp.com/km-ext/kmcsdirect/emr_na-lpg28560-1.pdf
-		
+
 		offset  description
 		  02h   format mode
 		  03h   type of format (0)
 		04~07h  size of user band (total sectors?)
 		08~09h  size of spare band (spare sectors?)
 		0A~0Bh  number of bands
-		
+
 		actual value of each 3.5inches optical medium (grabbed by Fujitsu M2513EL)
-		
+
 		                     128M     230M    540M    640M
 		---------------------------------------------------
 		size of user band   3CBFAh   6CF75h  FE45Ch  4BC50h
 		size of spare band   0400h    0401h   08CAh   08C4h
 		number of bands      0001h    000Ah   0012h   000Bh
-		
+
 		further information: http://r2089.blog36.fc2.com/blog-entry-177.html
 	*/
 
 	if (disk.ready) {
 		unsigned spare = 0;
 		unsigned bands = 0;
-		
+
 		if (disk.size == 9) switch (disk.blocks) {
 			// 128MB
 			case 248826:
@@ -5013,7 +5028,7 @@ void FASTCALL SCSIBR::FS_CheckDir(BYTE *buf)
 
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-	
+
 	fsresult = fs->CheckDir(nUnit, pNamests);
 }
 
@@ -5037,10 +5052,10 @@ void FASTCALL SCSIBR::FS_MakeDir(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-	
+
 	fsresult = fs->MakeDir(nUnit, pNamests);
 }
 
@@ -5064,10 +5079,10 @@ void FASTCALL SCSIBR::FS_RemoveDir(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-	
+
 	fsresult = fs->RemoveDir(nUnit, pNamests);
 }
 
@@ -5092,13 +5107,13 @@ void FASTCALL SCSIBR::FS_Rename(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	pNamestsNew = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-	
+
 	fsresult = fs->Rename(nUnit, pNamests, pNamestsNew);
 }
 
@@ -5122,10 +5137,10 @@ void FASTCALL SCSIBR::FS_Delete(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
-	
+
 	fsresult = fs->Delete(nUnit, pNamests);
 }
 
@@ -5150,14 +5165,14 @@ void FASTCALL SCSIBR::FS_Attribute(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
 	dp = (DWORD*)&buf[i];
 	nHumanAttribute = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	fsresult = fs->Attribute(nUnit, pNamests, nHumanAttribute);
 }
 
@@ -5187,7 +5202,7 @@ void FASTCALL SCSIBR::FS_Files(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
@@ -5294,7 +5309,7 @@ void FASTCALL SCSIBR::FS_Create(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
@@ -5356,7 +5371,7 @@ void FASTCALL SCSIBR::FS_Open(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pNamests = (Human68k::namests_t*)&buf[i];
 	i += sizeof(Human68k::namests_t);
 
@@ -5409,7 +5424,7 @@ void FASTCALL SCSIBR::FS_Close(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
@@ -5458,7 +5473,7 @@ void FASTCALL SCSIBR::FS_Read(BYTE *buf)
 
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
-	
+
 	dp = (DWORD*)&buf[i];
 	nSize = ntohl(*dp);
 	i += sizeof(DWORD);
@@ -5507,7 +5522,7 @@ void FASTCALL SCSIBR::FS_Write(BYTE *buf)
 	dp = (DWORD*)buf;
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
@@ -5559,7 +5574,7 @@ void FASTCALL SCSIBR::FS_Seek(BYTE *buf)
 	dp = (DWORD*)buf;
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
@@ -5618,7 +5633,7 @@ void FASTCALL SCSIBR::FS_TimeStamp(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nKey = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pFcb = (Human68k::fcb_t*)&buf[i];
 	i += sizeof(Human68k::fcb_t);
 
@@ -5699,10 +5714,10 @@ void FASTCALL SCSIBR::FS_CtrlDrive(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	pCtrlDrive = (Human68k::ctrldrive_t*)&buf[i];
 	i += sizeof(Human68k::ctrldrive_t);
-	
+
 	fsresult = fs->CtrlDrive(nUnit, pCtrlDrive);
 
 	memcpy(fsout, pCtrlDrive, sizeof(Human68k::ctrldrive_t));
@@ -5729,7 +5744,7 @@ void FASTCALL SCSIBR::FS_GetDPB(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	fsresult = fs->GetDPB(nUnit, &dpb);
 
 	dpb.sector_size = htons(dpb.sector_size);
@@ -5772,7 +5787,7 @@ void FASTCALL SCSIBR::FS_DiskRead(BYTE *buf)
 	dp = (DWORD*)&buf[i];
 	nSize = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	fsresult = fs->DiskRead(nUnit, fsout, nSector, nSize);
 	fsoutlen = 0x200;
 }
@@ -5796,7 +5811,7 @@ void FASTCALL SCSIBR::FS_DiskWrite(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	fsresult = fs->DiskWrite(nUnit);
 }
 
@@ -5873,7 +5888,7 @@ void FASTCALL SCSIBR::FS_Flush(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	fsresult = fs->Flush(nUnit);
 }
 
@@ -5896,7 +5911,7 @@ void FASTCALL SCSIBR::FS_CheckMedia(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	fsresult = fs->CheckMedia(nUnit);
 }
 
@@ -5919,7 +5934,7 @@ void FASTCALL SCSIBR::FS_Lock(BYTE *buf)
 	dp = (DWORD*)buf;
 	nUnit = ntohl(*dp);
 	i += sizeof(DWORD);
-	
+
 	fsresult = fs->Lock(nUnit);
 }
 
@@ -6484,7 +6499,7 @@ void FASTCALL SASIDEV::Command()
 #ifdef RASCSI
 		// Command reception handshake (10 bytes are automatically received at the first command)
 		count = ctrl.bus->CommandHandShake(ctrl.buffer);
-	
+
 		// If no byte can be received move to the status phase
 		if (count == 0) {
 			Error();
@@ -7716,7 +7731,7 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 			// Read from disk
 			ctrl.length = ctrl.unit[lun]->Read(buf, ctrl.next);
 			ctrl.next++;
-	
+
 			// If there is an error, go to the status phase
 			if (ctrl.length <= 0) {
 				// Cancel data-in
@@ -7856,6 +7871,30 @@ void FASTCALL SASIDEV::FlushUnit()
 				ctrl.unit[lun]->Flush();
 			}
 			break;
+        // Mode Select (6)
+        case 0x15:
+        // MODE SELECT(10)
+		case 0x55:
+            // Debug code related to Issue #2 on github, where we get an unhandled Model select when
+            // the mac is rebooted
+            // https://github.com/akuker/RASCSI/issues/2
+            Log(Log::Warning, "Received \'Mode Select\' \[%02X\]\n");
+            Log(Log::Warning, "   Operation Code: \[%02X\]\n", ctrl.cmd[0]);
+            Log(Log::Warning, "   Logical Unit %01X, PF %01X, SP %01X \[%02X\]\n", ctrl.cmd[1] >> 5, 1 & (ctrl.cmd[1] >> 4), ctrl.cmd[1] & 1, ctrl.cmd[1]);
+            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[2]);
+            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[3]);
+            Log(Log::Warning, "   Parameter List Len %02X\n", ctrl.cmd[4]);
+            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[5]);
+            Log(Log::Warning, "   Ctrl Len: %08X\n",ctrl.length);
+
+			if (!ctrl.unit[lun]->ModeSelect(
+				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+				// MODE SELECT failed
+				Log(Log::Warning, "Error occured while processing Mode Select command %02X\n", ctrl.cmd[0]);
+				return;
+			}
+            break;
+
 		default:
 			printf("Received an invalid flush command %08X!!!!!\n",ctrl.cmd[0]);
 			ASSERT(FALSE);
