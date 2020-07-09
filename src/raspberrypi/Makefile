@@ -5,9 +5,11 @@ CXX      = g++
 
 # Debug CFLAGS
 #CFLAGS   = -DDISK_LOG -O0 -g -Wall
-#CFLAGS   = -DDISK_LOG -O0 -g -Wall
+#CXXFLAGS   = -DDISK_LOG -O0 -g -Wall
+#CFLAGS   = -O0 -g -Wall
+#CXXFLAGS   = -O0 -g -Wall
 # Release CFLAGS
-CXXFLAGS = -O3 -Wall
+CFLAGS = -O3 -Wall
 CXXFLAGS = -O3 -Wall
 
 
@@ -113,4 +115,4 @@ $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
 	man -l $< | col -bx >> $@
 
 .PHONY: Debug
-Debug: scsimon
+Debug: all
