@@ -101,14 +101,14 @@ char* dirname(char *path)
 		dirtmp[1] = '\0';
 		return dirtmp;
 	}
-		
+
 	p = path + strlen(path) - 1;
 	while( *p == '/' ) {
 		if( p == path )
 			return path;
 		*p-- = '\0';
 	}
-	
+
 	while( p >= path && *p != '/' ) {
 		p--;
 	}
@@ -143,7 +143,7 @@ char* basename(char *path)
 		basetmp[1] = '\0';
 		return basetmp;
 	}
-	
+
 	p = path + strlen(path) - 1;
 	while( *p == '/' ) {
 		if( p == path ) {
@@ -151,11 +151,11 @@ char* basename(char *path)
 		}
 		*p-- = '\0';
 	}
-	
+
 	while( p >= path && *p != '/' ) {
 		p--;
 	}
-	
+
 	return p + 1;
 }
 #endif	// BAREMETAL
@@ -219,9 +219,9 @@ void FASTCALL Filepath::Make()
 	m_szPath[0] = _T('\0');
 
 	// 合成
-	strcat(m_szPath, m_szDir);
-	strcat(m_szPath, m_szFile);
-	strcat(m_szPath, m_szExt);
+	strncat(m_szPath, m_szDir, ARRAY_SIZE(m_szPath) - strlen(m_szPath));
+	strncat(m_szPath, m_szFile, ARRAY_SIZE(m_szPath) - strlen(m_szPath));
+	strncat(m_szPath, m_szExt, ARRAY_SIZE(m_szPath) - strlen(m_szPath));
 }
 
 //---------------------------------------------------------------------------

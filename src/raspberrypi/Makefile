@@ -3,16 +3,18 @@
 CC       = gcc
 CXX      = g++
 
-# Debug CFLAGS
-#CFLAGS   = -DDISK_LOG -O0 -g -Wall
-#CXXFLAGS   = -DDISK_LOG -O0 -g -Wall
-#CFLAGS   = -O0 -g -Wall
-#CXXFLAGS   = -O0 -g -Wall
-# Release CFLAGS
-CFLAGS = -O3 -Wall
-CXXFLAGS = -O3 -Wall
-
-
+DEBUG ?= 0
+ifeq ($(DEBUG), 1)
+	# Debug CFLAGS
+	CFLAGS   = -DDISK_LOG -O0 -g -Wall -DDEBUG
+	CXXFLAGS   = -DDISK_LOG -O0 -g -Wall -DDEBUG
+	BUILD_TYPE = Debug
+else
+	# Release CFLAGS
+	CFLAGS ?= -O3 -Wall -Werror
+	CXXFLAGS ?= -O3 -Wall -Werror
+	BUILD_TYPE = Release
+endif
 
 # If its not specified, build for STANDARD configuration
 CONNECT_TYPE ?= STANDARD
@@ -76,10 +78,14 @@ OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt
 
-ALL: $(BIN_ALL) docs
+
+.DEFAULT_GOAL := all
+.PHONY: all ALL docs
 all: $(BIN_ALL) docs
+ALL: all
+
+docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt
 
 $(RASCSI): $(OBJ_RASCSI)
 	$(CXX) -o $@ $(OBJ_RASCSI) -lpthread

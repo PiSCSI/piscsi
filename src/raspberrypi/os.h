@@ -114,6 +114,8 @@
 #endif	// NDEBUG
 #endif	// ASSERT_DIAG
 
+#define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
+
 //---------------------------------------------------------------------------
 //
 //	基本型定義

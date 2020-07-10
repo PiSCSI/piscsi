@@ -1648,7 +1648,7 @@ int FASTCALL Disk::AddFormat(BOOL change, BYTE *buf)
 	buf[0] = 0x80 | 0x03;
 	buf[1] = 0x16;
 
-	// Show the number of bytes in the physical sector as changeable \
+	// Show the number of bytes in the physical sector as changeable
     // (though it cannot be changed in practice)
 	if (change) {
 		buf[0xc] = 0xff;
@@ -2709,7 +2709,7 @@ BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
                 case 0x08:
                     // Debug code for Issue #2:
                     //     https://github.com/akuker/RASCSI/issues/2
-                    printf("\[Unhandled page code\] Received mode page code 8 with total length %d\n     ", length);
+                    printf("[Unhandled page code] Received mode page code 8 with total length %d\n     ", length);
                     for (int i = 0; i<length; i++)
                     {
                         printf("%02X ", buf[i]);
@@ -7878,9 +7878,9 @@ void FASTCALL SASIDEV::FlushUnit()
             // Debug code related to Issue #2 on github, where we get an unhandled Model select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
-            Log(Log::Warning, "Received \'Mode Select\' \[%02X\]\n");
-            Log(Log::Warning, "   Operation Code: \[%02X\]\n", ctrl.cmd[0]);
-            Log(Log::Warning, "   Logical Unit %01X, PF %01X, SP %01X \[%02X\]\n", ctrl.cmd[1] >> 5, 1 & (ctrl.cmd[1] >> 4), ctrl.cmd[1] & 1, ctrl.cmd[1]);
+            Log(Log::Warning, "Received \'Mode Select\'\n");
+            Log(Log::Warning, "   Operation Code: [%02X]\n", ctrl.cmd[0]);
+            Log(Log::Warning, "   Logical Unit %01X, PF %01X, SP %01X [%02X]\n", ctrl.cmd[1] >> 5, 1 & (ctrl.cmd[1] >> 4), ctrl.cmd[1] & 1, ctrl.cmd[1]);
             Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[2]);
             Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[3]);
             Log(Log::Warning, "   Parameter List Len %02X\n", ctrl.cmd[4]);
@@ -7890,13 +7890,13 @@ void FASTCALL SASIDEV::FlushUnit()
 			if (!ctrl.unit[lun]->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
-				Log(Log::Warning, "Error occured while processing Mode Select command %02X\n", ctrl.cmd[0]);
+				Log(Log::Warning, "Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
 				return;
 			}
             break;
 
 		default:
-			printf("Received an invalid flush command %08X!!!!!\n",ctrl.cmd[0]);
+			Log(Log::Warning, "Received an invalid flush command %02X!!!!!\n",ctrl.cmd[0]);
 			ASSERT(FALSE);
 			break;
 	}
@@ -7961,10 +7961,12 @@ void SASIDEV::GetPhaseStr(char *str)
 void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 {
 #if !defined(BAREMETAL)
+#ifdef DISK_LOG
 	char buffer[0x200];
 	char buffer2[0x250];
 	char buffer3[0x250];
 	char phase_str[20];
+#endif
 	va_list args;
 	va_start(args, format);
 

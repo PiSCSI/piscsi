@@ -1894,7 +1894,7 @@ void CHostPath::Refresh()
 						if (stat(S2U(szPath), &sb))
 #else
 						if (f_stat(S2U(szPath), NULL) != FR_OK)
-#endif	// BAREMETAL					
+#endif	// BAREMETAL
 							break;	// 利用可能パターンを発見
 					}
 				}
@@ -1957,7 +1957,7 @@ void CHostPath::Refresh()
 		// 日付時刻
 		pFilename->SetEntryDate(fno.fdate);
 		pFilename->SetEntryTime(fno.ftime);
-#endif	// BAREMETAL					
+#endif	// BAREMETAL
 
 		// クラスタ番号設定
 		pFilename->SetEntryCluster(0);
@@ -2045,7 +2045,7 @@ void CHostPath::Backup()
 			m_tBackupT = fno.ftime;
 		}
 	}
-#endif	// BAREMETAL					
+#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -2613,9 +2613,8 @@ void CHostFiles::AddFilename()
 {
 	ASSERT(this);
 	ASSERT(strlen(m_szHostResult) + strlen((const char*)m_szHumanFilename) < FILEPATH_MAX);
-
 	/// @warning Unicode未対応。いずれUnicodeの世界に飮まれた時はここで変換を行なう → 済
-	strcat(m_szHostResult, (const char*)m_szHumanFilename);
+	strncat(m_szHostResult, (const char*)m_szHumanFilename, ARRAY_SIZE(m_szHumanFilename));
 }
 
 //===========================================================================
@@ -2896,7 +2895,7 @@ BOOL CHostFcb::Open()
 {
 #ifndef BAREMETAL
 	struct stat st;
-	
+
 	ASSERT(this);
 	ASSERT(strlen(m_szFilename) > 0);
 
