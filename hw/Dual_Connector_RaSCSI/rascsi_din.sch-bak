@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:rascsi_din-cache
 EELAYER 30 0
 EELAYER END
 $Descr USLetter 11000 8500
@@ -168,7 +167,7 @@ Wire Wire Line
 Wire Wire Line
 	5300 5500 5200 5500
 $Comp
-L rascsi_din-rescue:SN74LS641-1C-rascsi_din-eagle-import U3
+L rascsi_din-eagle-import:SN74LS641-1C U3
 U 1 1 6BED38E3
 P 6900 3500
 F 0 "U3" H 6900 3500 50  0000 C CNN
@@ -179,7 +178,7 @@ F 3 "" H 6900 3500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:SN74LS641-1C-rascsi_din-eagle-import U1
+L rascsi_din-eagle-import:SN74LS641-1C U1
 U 1 1 00AF44B9
 P 4700 3500
 F 0 "U1" H 4700 3500 50  0000 C CNN
@@ -190,7 +189,7 @@ F 3 "" H 4700 3500 50  0001 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:SN74LS641-1C-rascsi_din-eagle-import U2
+L rascsi_din-eagle-import:SN74LS641-1C U2
 U 1 1 CBCCB400
 P 4700 5100
 F 0 "U2" H 4700 5100 50  0000 C CNN
@@ -201,7 +200,7 @@ F 3 "" H 4700 5100 50  0001 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:LOGO-rascsi_din-eagle-import U$1
+L rascsi_din-eagle-import:LOGO U$1
 U 1 1 87B7DF34
 P 10000 6150
 F 0 "U$1" H 10000 6150 50  0001 C CNN
@@ -494,7 +493,7 @@ C-C_D
 Text GLabel 7400 3700 2    50   BiDi ~ 0
 C-I_O
 $Comp
-L rascsi_din-rescue:SN74LS641-1C-rascsi_din-eagle-import U4
+L rascsi_din-eagle-import:SN74LS641-1C U4
 U 1 1 DBC1E9B6
 P 6900 5100
 F 0 "U4" H 6900 5100 50  0000 C CNN
@@ -704,7 +703,7 @@ F 3 "" H 9200 800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:1N4004-rascsi_din-eagle-import D1
+L rascsi_din-eagle-import:1N4004 D1
 U 1 1 60874AD6
 P 9500 850
 F 0 "D1" H 9450 950 59  0000 L BNN
@@ -715,7 +714,7 @@ F 3 "" H 9500 850 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:R-US_0204_7-rascsi_din-eagle-import FUSE1A1
+L rascsi_din-eagle-import:R-US_0204_7 FUSE1A1
 U 1 1 60874FC5
 P 9450 1250
 F 0 "FUSE1A1" H 9250 1350 59  0000 L BNN
@@ -1340,7 +1339,7 @@ F 3 "" H 3300 7600 50  0001 C CNN
 $EndComp
 Connection ~ 3300 7600
 $Comp
-L rascsi_din-rescue:DLS3XS6AK44X-Library_Loader_Parts J2
+L Library_Loader_Parts:DLS3XS6AK44X J2
 U 1 1 5F429403
 P 9200 4650
 F 0 "J2" H 11044 4696 50  0000 L CNN
@@ -1549,7 +1548,7 @@ F 3 "~" H 9650 5500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:LOGO-rascsi_din-eagle-import L1
+L rascsi_din-eagle-import:LOGO L1
 U 1 1 5EFCC51E
 P 8550 5950
 F 0 "L1" H 8700 5950 50  0000 L CNN
@@ -1560,7 +1559,7 @@ F 3 "" H 8550 5950 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:LOGO-rascsi_din-eagle-import L2
+L rascsi_din-eagle-import:LOGO L2
 U 1 1 5EFCD6CA
 P 8550 6150
 F 0 "L2" H 8700 6150 50  0000 L CNN
@@ -1571,7 +1570,7 @@ F 3 "" H 8550 6150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:LOGO-rascsi_din-eagle-import L3
+L rascsi_din-eagle-import:LOGO L3
 U 1 1 5EFCD8D2
 P 9050 5950
 F 0 "L3" H 9200 5950 50  0000 L CNN
@@ -1582,7 +1581,7 @@ F 3 "" H 9050 5950 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:LOGO-rascsi_din-eagle-import L4
+L rascsi_din-eagle-import:LOGO L4
 U 1 1 5EFCDBC9
 P 9050 6150
 F 0 "L4" H 9200 6200 50  0000 L CNN
@@ -1593,7 +1592,7 @@ F 3 "" H 9050 6150 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L rascsi_din-rescue:LOGO-rascsi_din-eagle-import L6
+L rascsi_din-eagle-import:LOGO L6
 U 1 1 5EFCDFAD
 P 9550 6200
 F 0 "L6" H 9750 6200 50  0000 L CNN
@@ -1792,7 +1791,7 @@ Wire Wire Line
 Wire Wire Line
 	6050 1050 6050 1450
 $Comp
-L rascsi_din-rescue:LOGO-rascsi_din-eagle-import L7
+L rascsi_din-eagle-import:LOGO L7
 U 1 1 5F2D2B3B
 P 9050 6300
 F 0 "L7" H 8900 6300 50  0000 R CNN
@@ -1803,7 +1802,7 @@ F 3 "" H 9050 6300 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L rascsi_din-rescue:LOGO-rascsi_din-eagle-import L5
+L rascsi_din-eagle-import:LOGO L5
 U 1 1 5EFCDD94
 P 9550 5950
 F 0 "L5" H 9350 5950 50  0000 R CNN

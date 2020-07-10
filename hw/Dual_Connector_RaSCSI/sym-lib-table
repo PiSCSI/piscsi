@@ -1,0 +1,3 @@
+(sym_lib_table
+  (lib (name rascsi_din-rescue)(type Legacy)(uri ${KIPRJMOD}/rascsi_din-rescue.lib)(options "")(descr ""))
+)

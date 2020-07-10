@@ -250,9 +250,6 @@ F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
  SolderJumper*Bridged*
- Jumper*
- TestPoint*2Pads*
- TestPoint*Bridge*
 $ENDFPLIST
 DRAW
 A 0 -10 57 450 1350 0 1 0 N 40 30 -40 30
@@ -276,9 +273,9 @@ $FPLIST
  LED_THT:*
 $ENDFPLIST
 DRAW
-P 2 0 1 10 -30 -40 -30 40 N
+P 2 0 1 0 -30 -40 -30 40 N
 P 2 0 1 0 40 0 -30 0 N
-P 4 0 1 10 30 -40 -30 0 30 40 30 -40 N
+P 4 0 1 0 30 -40 -30 0 30 40 30 -40 N
 P 5 0 1 0 0 30 -20 50 -10 50 -20 50 -20 40 N
 P 5 0 1 0 20 50 0 70 10 70 0 70 0 60 N
 X K 1 -100 0 70 R 50 50 1 1 P
@@ -315,15 +312,7 @@ S 70 60 130 -100 0 1 10 N
 S 170 60 230 -100 0 1 10 N
 S 270 60 330 -100 0 1 10 N
 S 370 60 430 -100 0 1 10 N
-P 2 0 1 0 -400 -100 -400 -150 N
-P 2 0 1 0 -300 -100 -300 -150 N
-P 2 0 1 0 -200 -100 -200 -150 N
-P 2 0 1 0 -100 -100 -100 -150 N
-P 2 0 1 0 0 -100 0 -150 N
-P 2 0 1 0 100 -100 100 -150 N
-P 2 0 1 0 200 -100 200 -150 N
-P 2 0 1 0 300 -100 300 -150 N
-P 2 0 1 0 400 -100 400 -150 N
+P 2 0 1 0 -400 100 -400 60 N
 P 4 0 1 0 -400 60 -400 90 -300 90 -300 60 N
 P 4 0 1 0 -300 60 -300 90 -200 90 -200 60 N
 P 4 0 1 0 -200 60 -200 90 -100 90 -100 60 N
@@ -333,15 +322,15 @@ P 4 0 1 0 100 60 100 90 200 90 200 60 N
 P 4 0 1 0 200 60 200 90 300 90 300 60 N
 P 4 0 1 0 300 60 300 90 400 90 400 60 N
 X common 1 -400 200 100 D 50 50 1 1 P
-X R9 10 400 -200 50 U 50 50 1 1 P
-X R1 2 -400 -200 50 U 50 50 1 1 P
-X R2 3 -300 -200 50 U 50 50 1 1 P
-X R3 4 -200 -200 50 U 50 50 1 1 P
-X R4 5 -100 -200 50 U 50 50 1 1 P
-X R5 6 0 -200 50 U 50 50 1 1 P
-X R6 7 100 -200 50 U 50 50 1 1 P
-X R7 8 200 -200 50 U 50 50 1 1 P
-X R8 9 300 -200 50 U 50 50 1 1 P
+X R9 10 400 -200 100 U 50 50 1 1 P
+X R1 2 -400 -200 100 U 50 50 1 1 P
+X R2 3 -300 -200 100 U 50 50 1 1 P
+X R3 4 -200 -200 100 U 50 50 1 1 P
+X R4 5 -100 -200 100 U 50 50 1 1 P
+X R5 6 0 -200 100 U 50 50 1 1 P
+X R6 7 100 -200 100 U 50 50 1 1 P
+X R7 8 200 -200 100 U 50 50 1 1 P
+X R8 9 300 -200 100 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
@@ -359,51 +348,6 @@ DRAW
 S -30 70 30 -70 0 1 8 N
 X ~ 1 0 100 30 D 50 50 1 1 P
 X ~ 2 0 -100 30 U 50 50 1 1 P
-ENDDRAW
-ENDDEF
-#
-# Library_Loader_Parts_DLS3XS6AK44X
-#
-DEF Library_Loader_Parts_DLS3XS6AK44X J 0 30 Y Y 1 F N
-F0 "J" 1650 500 50 H V L CNN
-F1 "Library_Loader_Parts_DLS3XS6AK44X" 1650 400 50 H V L CNN
-F2 "DLS3XS6AK44X" 1650 300 50 H I L CNN
-F3 "https://componentsearchengine.com/Datasheets/1/DLS3XS6AK44X.pdf" 1650 200 50 H I L CNN
-F4 "D-Sub Standard Connectors 25P F R/A .370 4-40 C/W HEX" 1650 100 50 H I L CNN "Description"
-F5 "12.5" 1650 0 50 H I L CNN "Height"
-F6 "706-DLS3XS6AK44X" 1650 -100 50 H I L CNN "Mouser Part Number"
-F7 "https://www.mouser.com/Search/Refine.aspx?Keyword=706-DLS3XS6AK44X" 1650 -200 50 H I L CNN "Mouser Price/Stock"
-F8 "CONEC" 1650 -300 50 H I L CNN "Manufacturer_Name"
-F9 "DLS3XS6AK44X" 1650 -400 50 H I L CNN "Manufacturer_Part_Number"
-DRAW
-P 5 0 1 6 200 300 1600 300 1600 -300 200 -300 200 300 N
-X 1 1 1500 500 200 D 50 50 0 0 P
-X 10 10 600 500 200 D 50 50 0 0 P
-X 11 11 500 500 200 D 50 50 0 0 P
-X 12 12 400 500 200 D 50 50 0 0 P
-X 13 13 300 500 200 D 50 50 0 0 P
-X 14 14 1400 -500 200 U 50 50 0 0 P
-X 15 15 1300 -500 200 U 50 50 0 0 P
-X 16 16 1200 -500 200 U 50 50 0 0 P
-X 17 17 1100 -500 200 U 50 50 0 0 P
-X 18 18 1000 -500 200 U 50 50 0 0 P
-X 19 19 900 -500 200 U 50 50 0 0 P
-X 2 2 1400 500 200 D 50 50 0 0 P
-X 20 20 800 -500 200 U 50 50 0 0 P
-X 21 21 700 -500 200 U 50 50 0 0 P
-X 22 22 600 -500 200 U 50 50 0 0 P
-X 23 23 500 -500 200 U 50 50 0 0 P
-X 24 24 400 -500 200 U 50 50 0 0 P
-X 25 25 300 -500 200 U 50 50 0 0 P
-X 3 3 1300 500 200 D 50 50 0 0 P
-X 4 4 1200 500 200 D 50 50 0 0 P
-X 5 5 1100 500 200 D 50 50 0 0 P
-X 6 6 1000 500 200 D 50 50 0 0 P
-X 7 7 900 500 200 D 50 50 0 0 P
-X 8 8 800 500 200 D 50 50 0 0 P
-X 9 9 700 500 200 D 50 50 0 0 P
-X MH1 MH1 1800 0 200 L 50 50 0 0 P
-X MH2 MH2 0 0 200 R 50 50 0 0 P
 ENDDRAW
 ENDDEF
 #
@@ -467,11 +411,11 @@ X GND 1 0 0 0 D 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# rascsi_din-eagle-import_1N4004
+# rascsi_din-rescue_1N4004-rascsi_din-eagle-import
 #
-DEF rascsi_din-eagle-import_1N4004 D 0 40 Y Y 1 L N
+DEF rascsi_din-rescue_1N4004-rascsi_din-eagle-import D 0 40 Y Y 1 L N
 F0 "D" 100 19 59 H V L BNN
-F1 "rascsi_din-eagle-import_1N4004" 100 -91 59 H V L BNN
+F1 "rascsi_din-rescue_1N4004-rascsi_din-eagle-import" 100 -91 59 H V L BNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -487,11 +431,56 @@ X C C 100 0 100 L 0 0 1 0 P
 ENDDRAW
 ENDDEF
 #
-# rascsi_din-eagle-import_LOGO
+# rascsi_din-rescue_DLS3XS6AK44X-Library_Loader_Parts
 #
-DEF rascsi_din-eagle-import_LOGO ~ 0 40 Y Y 1 L N
+DEF rascsi_din-rescue_DLS3XS6AK44X-Library_Loader_Parts J 0 30 Y Y 1 F N
+F0 "J" 1650 500 50 H V L CNN
+F1 "rascsi_din-rescue_DLS3XS6AK44X-Library_Loader_Parts" 1650 400 50 H V L CNN
+F2 "DLS3XS6AK44X" 1650 300 50 H I L CNN
+F3 "https://componentsearchengine.com/Datasheets/1/DLS3XS6AK44X.pdf" 1650 200 50 H I L CNN
+F4 "D-Sub Standard Connectors 25P F R/A .370 4-40 C/W HEX" 1650 100 50 H I L CNN "Description"
+F5 "12.5" 1650 0 50 H I L CNN "Height"
+F6 "706-DLS3XS6AK44X" 1650 -100 50 H I L CNN "Mouser Part Number"
+F7 "https://www.mouser.com/Search/Refine.aspx?Keyword=706-DLS3XS6AK44X" 1650 -200 50 H I L CNN "Mouser Price/Stock"
+F8 "CONEC" 1650 -300 50 H I L CNN "Manufacturer_Name"
+F9 "DLS3XS6AK44X" 1650 -400 50 H I L CNN "Manufacturer_Part_Number"
+DRAW
+P 5 0 1 6 200 300 1600 300 1600 -300 200 -300 200 300 N
+X 1 1 1500 500 200 D 50 50 0 0 P
+X 10 10 600 500 200 D 50 50 0 0 P
+X 11 11 500 500 200 D 50 50 0 0 P
+X 12 12 400 500 200 D 50 50 0 0 P
+X 13 13 300 500 200 D 50 50 0 0 P
+X 14 14 1400 -500 200 U 50 50 0 0 P
+X 15 15 1300 -500 200 U 50 50 0 0 P
+X 16 16 1200 -500 200 U 50 50 0 0 P
+X 17 17 1100 -500 200 U 50 50 0 0 P
+X 18 18 1000 -500 200 U 50 50 0 0 P
+X 19 19 900 -500 200 U 50 50 0 0 P
+X 2 2 1400 500 200 D 50 50 0 0 P
+X 20 20 800 -500 200 U 50 50 0 0 P
+X 21 21 700 -500 200 U 50 50 0 0 P
+X 22 22 600 -500 200 U 50 50 0 0 P
+X 23 23 500 -500 200 U 50 50 0 0 P
+X 24 24 400 -500 200 U 50 50 0 0 P
+X 25 25 300 -500 200 U 50 50 0 0 P
+X 3 3 1300 500 200 D 50 50 0 0 P
+X 4 4 1200 500 200 D 50 50 0 0 P
+X 5 5 1100 500 200 D 50 50 0 0 P
+X 6 6 1000 500 200 D 50 50 0 0 P
+X 7 7 900 500 200 D 50 50 0 0 P
+X 8 8 800 500 200 D 50 50 0 0 P
+X 9 9 700 500 200 D 50 50 0 0 P
+X MH1 MH1 1800 0 200 L 50 50 0 0 P
+X MH2 MH2 0 0 200 R 50 50 0 0 P
+ENDDRAW
+ENDDEF
+#
+# rascsi_din-rescue_LOGO-rascsi_din-eagle-import
+#
+DEF rascsi_din-rescue_LOGO-rascsi_din-eagle-import ~ 0 40 Y Y 1 L N
 F0 "" 0 0 50 H I C CNN
-F1 "rascsi_din-eagle-import_LOGO" 0 0 50 H I C CNN
+F1 "rascsi_din-rescue_LOGO-rascsi_din-eagle-import" 0 0 50 H I C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -499,11 +488,11 @@ S -100 -50 100 50 1 0 0 F
 ENDDRAW
 ENDDEF
 #
-# rascsi_din-eagle-import_R-US_0204_7
+# rascsi_din-rescue_R-US_0204_7-rascsi_din-eagle-import
 #
-DEF rascsi_din-eagle-import_R-US_0204_7 R 0 40 Y Y 1 L N
+DEF rascsi_din-rescue_R-US_0204_7-rascsi_din-eagle-import R 0 40 Y Y 1 L N
 F0 "R" -150 59 59 H V L BNN
-F1 "rascsi_din-eagle-import_R-US_0204_7" -150 -130 59 H V L BNN
+F1 "rascsi_din-rescue_R-US_0204_7-rascsi_din-eagle-import" -150 -130 59 H V L BNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -521,11 +510,11 @@ X 2 2 200 0 100 L 0 0 1 0 P
 ENDDRAW
 ENDDEF
 #
-# rascsi_din-eagle-import_SN74LS641-1C
+# rascsi_din-rescue_SN74LS641-1C-rascsi_din-eagle-import
 #
-DEF rascsi_din-eagle-import_SN74LS641-1C U 0 40 Y Y 1 L N
+DEF rascsi_din-rescue_SN74LS641-1C-rascsi_din-eagle-import U 0 40 Y Y 1 L N
 F0 "U" 0 0 50 H I C CNN
-F1 "rascsi_din-eagle-import_SN74LS641-1C" 0 0 50 H I C CNN
+F1 "rascsi_din-rescue_SN74LS641-1C-rascsi_din-eagle-import" 0 0 50 H I C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
