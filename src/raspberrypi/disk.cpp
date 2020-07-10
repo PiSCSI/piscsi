@@ -36,6 +36,7 @@
 #include "mfc_com.h"
 #include "mfc_host.h"
 #endif	// RASCSI
+#include "spdlog/spdlog.h"
 
 //===========================================================================
 //
@@ -6324,7 +6325,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	// Reset
 	if (ctrl.bus->GetRST()) {
 #if defined(DISK_LOG)
-		Log(Log::Normal, "RESET signal received");
+		spdlog::info( "RESET signal received");
 #endif	// DISK_LOG
 
 		// Reset the controller
@@ -6394,7 +6395,7 @@ void FASTCALL SASIDEV::BusFree()
 	if (ctrl.phase != BUS::busfree) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Bus free phase");
+		spdlog::info( "Bus free phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6444,7 +6445,7 @@ void FASTCALL SASIDEV::Selection()
 		}
 
 #if defined(DISK_LOG)
-		Log(Log::Normal,
+		spdlog::info(
 			"Selection Phase ID=%d (with device)", ctrl.id);
 #endif	// DISK_LOG
 
@@ -6480,7 +6481,7 @@ void FASTCALL SASIDEV::Command()
 	if (ctrl.phase != BUS::command) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Command Phase");
+		spdlog::info( "Command Phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6560,7 +6561,7 @@ void FASTCALL SASIDEV::Execute()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "Execution Phase Command %02X", ctrl.cmd[0]);
+	spdlog::info( "Execution Phase Command %02X", ctrl.cmd[0]);
 #endif	// DISK_LOG
 
 	// Phase Setting
@@ -6632,7 +6633,7 @@ void FASTCALL SASIDEV::Execute()
 	}
 
 	// Unsupported command
-	Log(Log::Warning, "Unsupported command $%02X", ctrl.cmd[0]);
+	spdlog::warn("Unsupported command $%02X", ctrl.cmd[0]);
 	CmdInvalid();
 }
 
@@ -6668,7 +6669,7 @@ void FASTCALL SASIDEV::Status()
 #endif	// RASCSI
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Status phase");
+		spdlog::info( "Status phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6691,7 +6692,7 @@ void FASTCALL SASIDEV::Status()
 		ctrl.bus->SetREQ(TRUE);
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Status Phase $%02X", ctrl.status);
+		spdlog::info( "Status Phase $%02X", ctrl.status);
 #endif	// DISK_LOG
 #endif	// RASCSI
 		return;
@@ -6729,7 +6730,7 @@ void FASTCALL SASIDEV::MsgIn()
 	if (ctrl.phase != BUS::msgin) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Message in phase");
+		spdlog::info( "Message in phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6751,7 +6752,7 @@ void FASTCALL SASIDEV::MsgIn()
 		ctrl.bus->SetREQ(TRUE);
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Message in phase $%02X", ctrl.buffer[ctrl.offset]);
+		spdlog::info( "Message in phase $%02X", ctrl.buffer[ctrl.offset]);
 #endif	// DISK_LOG
 #endif	// RASCSI
 		return;
@@ -6813,7 +6814,7 @@ void FASTCALL SASIDEV::DataIn()
 		}
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Data-in Phase");
+		spdlog::info( "Data-in Phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6895,7 +6896,7 @@ void FASTCALL SASIDEV::DataOut()
 		}
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Data out phase");
+		spdlog::info( "Data out phase");
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -6968,7 +6969,7 @@ void FASTCALL SASIDEV::Error()
 	}
 
 #if defined(DISK_LOG)
-	Log(Log::Warning, "Error occured (going to status phase)");
+	spdlog::warn("Error occured (going to status phase)");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -6994,7 +6995,7 @@ void FASTCALL SASIDEV::CmdTestUnitReady()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "TEST UNIT READY Command ");
+	spdlog::info( "TEST UNIT READY Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7029,7 +7030,7 @@ void FASTCALL SASIDEV::CmdRezero()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "REZERO UNIT Command ");
+	spdlog::info( "REZERO UNIT Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7063,7 +7064,7 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "REQUEST SENSE Command ");
+	spdlog::info( "REQUEST SENSE Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7078,7 +7079,7 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ASSERT(ctrl.length > 0);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "Sense key $%02X", ctrl.buffer[2]);
+	spdlog::info( "Sense key $%02X", ctrl.buffer[2]);
 #endif	// DISK_LOG
 
 	// Read phase
@@ -7098,7 +7099,7 @@ void FASTCALL SASIDEV::CmdFormat()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "FORMAT UNIT Command ");
+	spdlog::info( "FORMAT UNIT Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7133,7 +7134,7 @@ void FASTCALL SASIDEV::CmdReassign()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "REASSIGN BLOCKS Command ");
+	spdlog::info( "REASSIGN BLOCKS Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7186,7 +7187,7 @@ void FASTCALL SASIDEV::CmdRead6()
 	}
 
 #if defined(DISK_LOG)
-	Log(Log::Normal,
+	spdlog::info(
 		"READ(6) command record=%06X blocks=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
@@ -7236,7 +7237,7 @@ void FASTCALL SASIDEV::CmdWrite6()
 	}
 
 #if defined(DISK_LOG)
-	Log(Log::Normal,
+	spdlog::info(
 		"WRITE(6) command record=%06X blocks=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
@@ -7268,7 +7269,7 @@ void FASTCALL SASIDEV::CmdSeek6()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "SEEK(6) Command ");
+	spdlog::info( "SEEK(6) Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7303,7 +7304,7 @@ void FASTCALL SASIDEV::CmdAssign()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "ASSIGN Command ");
+	spdlog::info( "ASSIGN Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7341,7 +7342,7 @@ void FASTCALL SASIDEV::CmdSpecify()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "SPECIFY Command ");
+	spdlog::info( "SPECIFY Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7378,7 +7379,7 @@ void FASTCALL SASIDEV::CmdInvalid()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "Command not supported");
+	spdlog::info( "Command not supported");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -7561,7 +7562,7 @@ void FASTCALL SASIDEV::Receive()
 		case BUS::command:
 			ctrl.cmd[ctrl.offset] = data;
 #if defined(DISK_LOG)
-			Log(Log::Normal, "Command phase $%02X", data);
+			spdlog::info( "Command phase $%02X", data);
 #endif	// DISK_LOG
 
 			// Set the length again with the first data (offset 0)
@@ -7878,25 +7879,25 @@ void FASTCALL SASIDEV::FlushUnit()
             // Debug code related to Issue #2 on github, where we get an unhandled Model select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
-            Log(Log::Warning, "Received \'Mode Select\'\n");
-            Log(Log::Warning, "   Operation Code: [%02X]\n", ctrl.cmd[0]);
-            Log(Log::Warning, "   Logical Unit %01X, PF %01X, SP %01X [%02X]\n", ctrl.cmd[1] >> 5, 1 & (ctrl.cmd[1] >> 4), ctrl.cmd[1] & 1, ctrl.cmd[1]);
-            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[2]);
-            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[3]);
-            Log(Log::Warning, "   Parameter List Len %02X\n", ctrl.cmd[4]);
-            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[5]);
-            Log(Log::Warning, "   Ctrl Len: %08X\n",ctrl.length);
+            spdlog::warn("Received \'Mode Select\'\n");
+            spdlog::warn("   Operation Code: [%02X]\n", ctrl.cmd[0]);
+            spdlog::warn("   Logical Unit %01X, PF %01X, SP %01X [%02X]\n", ctrl.cmd[1] >> 5, 1 & (ctrl.cmd[1] >> 4), ctrl.cmd[1] & 1, ctrl.cmd[1]);
+            spdlog::warn("   Reserved: %02X\n", ctrl.cmd[2]);
+            spdlog::warn("   Reserved: %02X\n", ctrl.cmd[3]);
+            spdlog::warn("   Parameter List Len %02X\n", ctrl.cmd[4]);
+            spdlog::warn("   Reserved: %02X\n", ctrl.cmd[5]);
+            spdlog::warn("   Ctrl Len: %08X\n",ctrl.length);
 
 			if (!ctrl.unit[lun]->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
-				Log(Log::Warning, "Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
+				spdlog::warn("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
 				return;
 			}
             break;
 
 		default:
-			Log(Log::Warning, "Received an invalid flush command %02X!!!!!\n",ctrl.cmd[0]);
+			spdlog::warn("Received an invalid flush command %02X!!!!!\n",ctrl.cmd[0]);
 			ASSERT(FALSE);
 			break;
 	}
@@ -7951,74 +7952,6 @@ void SASIDEV::GetPhaseStr(char *str)
     }
 }
 #endif
-
-//---------------------------------------------------------------------------
-//
-//	Log output
-//
-// TODO: This function needs some cleanup. Its very kludgey
-//---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
-{
-#if !defined(BAREMETAL)
-#ifdef DISK_LOG
-	char buffer[0x200];
-	char buffer2[0x250];
-	char buffer3[0x250];
-	char phase_str[20];
-#endif
-	va_list args;
-	va_start(args, format);
-
-	if(this->GetID() != 6)
-	{
-        return;
-	}
-
-#ifdef RASCSI
-#ifndef DISK_LOG
-	if (level == Log::Warning) {
-		return;
-	}
-#endif	// DISK_LOG
-#endif	// RASCSI
-
-#ifdef DISK_LOG
-	// format
-	vsprintf(buffer, format, args);
-
-	// end variable length argument
-	va_end(args);
-
-	// Add the date/timestamp
-	// current date/time based on current system
-   time_t now = time(0);
-   // convert now to string form
-   char* dt = ctime(&now);
-
-
-   strcpy(buffer2, "[");
-   strcat(buffer2, dt);
-   // Get rid of the carriage return
-   buffer2[strlen(buffer2)-1] = '\0';
-   strcat(buffer2, "] ");
-
-   // Get the phase
-   this->GetPhaseStr(phase_str);
-   sprintf(buffer3, "[%d][%s] ", this->GetID(), phase_str);
-   strcat(buffer2,buffer3);
-   strcat(buffer2, buffer);
-
-
-	// Log output
-#ifdef RASCSI
-	printf("%s\n", buffer2);
-#else
-	host->GetVM()->GetLog()->Format(level, host, buffer);
-#endif	// RASCSI
-#endif	// BAREMETAL
-#endif	// DISK_LOG
-}
 
 //===========================================================================
 //
@@ -8084,7 +8017,7 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 	// Reset
 	if (ctrl.bus->GetRST()) {
 #if defined(DISK_LOG)
-		Log(Log::Normal, "RESET信号受信");
+		spdlog::info( "RESET信号受信");
 #endif	// DISK_LOG
 
 		// Reset the controller
@@ -8165,7 +8098,7 @@ void FASTCALL SCSIDEV::BusFree()
 	if (ctrl.phase != BUS::busfree) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Bus free phase");
+		spdlog::info( "Bus free phase");
 #endif	// DISK_LOG
 
 		// Phase setting
@@ -8218,7 +8151,7 @@ void FASTCALL SCSIDEV::Selection()
 		}
 
 #if defined(DISK_LOG)
-		Log(Log::Normal,
+		spdlog::info(
 			"Selection Phase ID=%d (with device)", ctrl.id);
 #endif	// DISK_LOG
 
@@ -8251,7 +8184,7 @@ void FASTCALL SCSIDEV::Execute()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "Execution phase command $%02X", ctrl.cmd[0]);
+	spdlog::info( "Execution phase command $%02X", ctrl.cmd[0]);
 #endif	// DISK_LOG
 
 	// Phase Setting
@@ -8414,7 +8347,7 @@ void FASTCALL SCSIDEV::Execute()
 	}
 
 	// No other support
-	Log(Log::Normal, "Unsupported command received: $%02X", ctrl.cmd[0]);
+	spdlog::info( "Unsupported command received: $%02X", ctrl.cmd[0]);
 	CmdInvalid();
 }
 
@@ -8431,7 +8364,7 @@ void FASTCALL SCSIDEV::MsgOut()
 	if (ctrl.phase != BUS::msgout) {
 
 #if defined(DISK_LOG)
-		Log(Log::Normal, "Message Out Phase");
+		spdlog::info( "Message Out Phase");
 #endif	// DISK_LOG
 
 		// Message out phase after selection
@@ -8510,7 +8443,7 @@ void FASTCALL SCSIDEV::Error()
 	}
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "Error (to status phase)");
+	spdlog::info( "Error (to status phase)");
 #endif	// DISK_LOG
 
 	// Set status and message(CHECK CONDITION)
@@ -8542,7 +8475,7 @@ void FASTCALL SCSIDEV::CmdInquiry()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "INQUIRY Command");
+	spdlog::info( "INQUIRY Command");
 #endif	// DISK_LOG
 
 	// Find a valid unit
@@ -8595,7 +8528,7 @@ void FASTCALL SCSIDEV::CmdModeSelect()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "MODE SELECT Command");
+	spdlog::info( "MODE SELECT Command");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -8629,7 +8562,7 @@ void FASTCALL SCSIDEV::CmdModeSense()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "MODE SENSE Command ");
+	spdlog::info( "MODE SENSE Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -8643,7 +8576,7 @@ void FASTCALL SCSIDEV::CmdModeSense()
 	ctrl.length = ctrl.unit[lun]->ModeSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length >= 0);
 	if (ctrl.length == 0) {
-		Log(Log::Warning,
+		spdlog::warn(
 			"Not supported MODE SENSE page $%02X", ctrl.cmd[2]);
 
 		// Failure (Error)
@@ -8668,7 +8601,7 @@ void FASTCALL SCSIDEV::CmdStartStop()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "START STOP UNIT Command ");
+	spdlog::info( "START STOP UNIT Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -8703,7 +8636,7 @@ void FASTCALL SCSIDEV::CmdSendDiag()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "SEND DIAGNOSTIC Command ");
+	spdlog::info( "SEND DIAGNOSTIC Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -8738,7 +8671,7 @@ void FASTCALL SCSIDEV::CmdRemoval()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "PREVENT/ALLOW MEDIUM REMOVAL Command ");
+	spdlog::info( "PREVENT/ALLOW MEDIUM REMOVAL Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -8773,7 +8706,7 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "READ CAPACITY Command ");
+	spdlog::info( "READ CAPACITY Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -8836,7 +8769,7 @@ void FASTCALL SCSIDEV::CmdRead10()
 	ctrl.blocks |= ctrl.cmd[8];
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "READ(10) command record=%08X block=%d", record, ctrl.blocks);
+	spdlog::info( "READ(10) command record=%08X block=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
 	// Do not process 0 blocks
@@ -8898,7 +8831,7 @@ void FASTCALL SCSIDEV::CmdWrite10()
 	ctrl.blocks |= ctrl.cmd[8];
 
 #if defined(DISK_LOG)
-	Log(Log::Normal,
+	spdlog::info(
 		"WRTIE(10) command record=%08X blocks=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
@@ -8936,7 +8869,7 @@ void FASTCALL SCSIDEV::CmdSeek10()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "SEEK(10) Command ");
+	spdlog::info( "SEEK(10) Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -8991,7 +8924,7 @@ void FASTCALL SCSIDEV::CmdVerify()
 	ctrl.blocks |= ctrl.cmd[8];
 
 #if defined(DISK_LOG)
-	Log(Log::Normal,
+	spdlog::info(
 		"VERIFY command record=%08X blocks=%d", record, ctrl.blocks);
 #endif	// DISK_LOG
 
@@ -9067,7 +9000,7 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "READ DEFECT DATA(10) Command ");
+	spdlog::info( "READ DEFECT DATA(10) Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -9225,7 +9158,7 @@ void FASTCALL SCSIDEV::CmdModeSelect10()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "MODE SELECT10 Command ");
+	spdlog::info( "MODE SELECT10 Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -9259,7 +9192,7 @@ void FASTCALL SCSIDEV::CmdModeSense10()
 	ASSERT(this);
 
 #if defined(DISK_LOG)
-	Log(Log::Normal, "MODE SENSE(10) Command ");
+	spdlog::info( "MODE SENSE(10) Command ");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -9273,7 +9206,7 @@ void FASTCALL SCSIDEV::CmdModeSense10()
 	ctrl.length = ctrl.unit[lun]->ModeSense10(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length >= 0);
 	if (ctrl.length == 0) {
-		Log(Log::Warning,
+		spdlog::warn(
 			"Not supported MODE SENSE(10) page $%02X", ctrl.cmd[2]);
 
 		// Failure (Error)
@@ -9563,7 +9496,7 @@ void FASTCALL SCSIDEV::Receive()
 		case BUS::command:
 			ctrl.cmd[ctrl.offset] = data;
 #if defined(DISK_LOG)
-			Log(Log::Normal, "Command phase $%02X", data);
+			spdlog::info( "Command phase $%02X", data);
 #endif	// DISK_LOG
 
 			// Set the length again with the first data (offset 0)
@@ -9579,7 +9512,7 @@ void FASTCALL SCSIDEV::Receive()
 		case BUS::msgout:
 			ctrl.message = data;
 #if defined(DISK_LOG)
-			Log(Log::Normal, "Message out phase $%02X", data);
+			spdlog::info( "Message out phase $%02X", data);
 #endif	// DISK_LOG
 			break;
 
@@ -9723,7 +9656,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 			for (i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
 #if defined(DISK_LOG)
-				Log(Log::Normal, "Command $%02X", ctrl.cmd[i]);
+				spdlog::info( "Command $%02X", ctrl.cmd[i]);
 #endif	// DISK_LOG
 			}
 #endif	// RASCSI
@@ -9757,7 +9690,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 					// ABORT
 					if (data == 0x06) {
 #if defined(DISK_LOG)
-						Log(Log::Normal,
+						spdlog::info(
 							"Message code ABORT $%02X", data);
 #endif	// DISK_LOG
 						BusFree();
@@ -9767,7 +9700,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 					// BUS DEVICE RESET
 					if (data == 0x0C) {
 #if defined(DISK_LOG)
-						Log(Log::Normal,
+						spdlog::info(
 							"Message code BUS DEVICE RESET $%02X", data);
 #endif	// DISK_LOG
 						scsi.syncoffset = 0;
@@ -9778,7 +9711,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 					// IDENTIFY
 					if (data >= 0x80) {
 #if defined(DISK_LOG)
-						Log(Log::Normal,
+						spdlog::info(
 							"Message code IDENTIFY $%02X", data);
 #endif	// DISK_LOG
 					}
@@ -9786,7 +9719,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 					// Extended Message
 					if (data == 0x01) {
 #if defined(DISK_LOG)
-						Log(Log::Normal,
+						spdlog::info(
 							"Message code EXTENDED MESSAGE $%02X", data);
 #endif	// DISK_LOG
 

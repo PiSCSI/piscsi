@@ -1004,11 +1004,6 @@ protected:
 	// Special operations
 	void FASTCALL FlushUnit();
 										// Flush the logical unit
-
-	// Log
-	void FASTCALL Log(Log::loglevel level, const char *format, ...);
-										// Log output
-
 protected:
 #ifndef RASCSI
 	Device *host;
