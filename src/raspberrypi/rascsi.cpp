@@ -16,6 +16,8 @@
 #include "disk.h"
 #include "gpiobus.h"
 #include "spdlog/spdlog.h"
+//#include <sys/timespec_util.h>
+#include <sys/time.h>
 
 //---------------------------------------------------------------------------
 //
@@ -47,6 +49,23 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 static void *MonThread(void *param);
 #endif	// BAREMETAL
+typedef struct data_capture{
+    DWORD data;
+    timeval timestamp;
+} data_capture_t;
+
+
+#define MAX_BUFF_SIZE 1000000
+
+data_capture data_buffer[MAX_BUFF_SIZE];
+int data_idx = 0;
+
+
+
+#define SECONDS_1 (1000 * 1000)
+#define SECONDS_3 (3 * 1000 * 1000)
+#define WAIT_FOR_EQUAL(x,y,timeout) { DWORD now = SysTimer::GetTimerLow(); while ((SysTimer::GetTimerLow() - now) < timeout) { bus->Aquire();if (x == y) {break;}}}
+
 
 #ifndef BAREMETAL
 //---------------------------------------------------------------------------
@@ -181,6 +200,149 @@ BOOL Init()
 	return TRUE;
 }
 
+#define	PIN_ACT		4						// ACTIVE
+#define	PIN_ENB		5						// ENABLE
+#define PIN_IND		-1						// INITIATOR CTRL DIRECTION
+#define PIN_TAD		-1						// TARGET CTRL DIRECTION
+#define PIN_DTD		-1						// DATA DIRECTION
+
+// Control signal output logic
+#define ACT_ON		TRUE					// ACTIVE SIGNAL ON
+#define ENB_ON		TRUE					// ENABLE SIGNAL ON
+#define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
+#define TAD_IN		FALSE					// TARGET SIGNAL INPUT
+#define DTD_IN		TRUE					// DATA SIGNAL INPUT
+
+// SCSI signal pin assignment
+#define	PIN_DT0		10						// Data 0
+#define	PIN_DT1		11						// Data 1
+#define	PIN_DT2		12						// Data 2
+#define	PIN_DT3		13						// Data 3
+#define	PIN_DT4		14						// Data 4
+#define	PIN_DT5		15						// Data 5
+#define	PIN_DT6		16						// Data 6
+#define	PIN_DT7		17						// Data 7
+#define	PIN_DP		18						// Data parity
+#define	PIN_ATN		19						// ATN
+#define	PIN_RST		20						// RST
+#define	PIN_ACK		21						// ACK
+#define	PIN_REQ		22						// REQ
+#define	PIN_MSG		23						// MSG
+#define	PIN_CD		24						// CD
+#define	PIN_IO		25						// IO
+#define	PIN_BSY		26						// BSY
+#define	PIN_SEL		27						// SEL
+
+
+BOOL get_pin_value(DWORD data, int pin)
+{
+	return  (data >> pin) & 1;
+}
+
+BYTE get_data_field(DWORD data)
+{
+	DWORD data_out;
+	data_out =
+		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
+		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
+		((data >> (PIN_DT2 - 2)) & (1 << 2)) |
+		((data >> (PIN_DT3 - 3)) & (1 << 3)) |
+		((data >> (PIN_DT4 - 4)) & (1 << 4)) |
+		((data >> (PIN_DT5 - 5)) & (1 << 5)) |
+		((data >> (PIN_DT6 - 6)) & (1 << 6)) |
+		((data >> (PIN_DT7 - 7)) & (1 << 7));
+
+	return (BYTE)data_out;
+}
+
+
+int pin_nums[] = {PIN_BSY,PIN_SEL,PIN_CD,PIN_IO,PIN_MSG,PIN_REQ,PIN_ACK,PIN_ATN,PIN_RST,PIN_DT0};
+
+char* pin_names[] = {"BSY","SEL","CD","IO","MSG","REQ","ACK","ATN","RST","DAT"};
+
+
+void dump_data()
+{
+    char outstr[1024];
+    int i = 0;
+    timeval time_diff;
+    FILE *fp;
+    timeval start_time = data_buffer[0].timestamp;
+    fp = fopen("log.txt","w");
+
+
+    fprintf(fp, "idx\traw\ttimestamp\tBSY\tSEL\tC/D\tI/O\tMSG\tREQ\tACK\tATN\tRST\tData..\n");
+
+    while(i < data_idx)
+    {
+        timersub(&(data_buffer[i].timestamp), &start_time, &time_diff);
+        //timediff = difftime(data_buffer[i].timestamp, start_time);
+        fprintf(fp, "%d\t%08lX\t%d:%d\t",data_idx, data_buffer[i].data, time_diff.tv_sec, time_diff.tv_usec);
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_BSY));
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_SEL));
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_CD));
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_IO));
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_MSG));
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_REQ));
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_ACK));
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_ATN));
+        fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_RST));
+        fprintf(fp, "%02X\t", get_data_field(data_buffer[i].data));
+        fprintf(fp, "\n");
+        i++;
+    }
+    fclose(fp);
+
+
+    i=0;
+    printf("Creating timing_drawer.txt\n");
+    fp = fopen("timing_drawer.txt","w");
+    while(i < data_idx)
+    {
+        timersub(&(data_buffer[i].timestamp), &start_time, &time_diff);
+        //timediff = difftime(data_buffer[i].timestamp, start_time);
+        fprintf(fp, "TIME=%d:%d;", time_diff.tv_sec, time_diff.tv_usec);
+        fprintf(fp, "BSY=%d;", get_pin_value(data_buffer[i].data, PIN_BSY));
+        fprintf(fp, "SEL=%d;", get_pin_value(data_buffer[i].data, PIN_SEL));
+        fprintf(fp, "CD=%d;", get_pin_value(data_buffer[i].data, PIN_CD));
+        fprintf(fp, "IO=%d;", get_pin_value(data_buffer[i].data, PIN_IO));
+        fprintf(fp, "MSG=%d;", get_pin_value(data_buffer[i].data, PIN_MSG));
+        fprintf(fp, "REQ=%d;", get_pin_value(data_buffer[i].data, PIN_REQ));
+        fprintf(fp, "ACK=%d;", get_pin_value(data_buffer[i].data, PIN_ACK));
+        fprintf(fp, "ATN=%d;", get_pin_value(data_buffer[i].data, PIN_ATN));
+        fprintf(fp, "RST=%d;", get_pin_value(data_buffer[i].data, PIN_RST));
+        fprintf(fp, "DATA=%02X.", get_data_field(data_buffer[i].data));
+        fprintf(fp, "\n");
+        i++;
+    }
+    fclose(fp);
+
+
+
+//
+//    fp = fopen("log2.txt","w");
+//
+//    for(int pin=0; pin < ARRAY_SIZE(pin_names); pin++)
+//    {
+//        i=0;
+//        while(i < data_idx)
+//        {
+//            char this_point = ((get_pin_value(data_buffer[i].data), pin_nums[pin]) == TRUE) ? "-", "_";
+//            fprintf(fp, this_point)
+//        }
+//
+//
+//
+//
+//    }
+
+
+
+
+}
+
+
+
 //---------------------------------------------------------------------------
 //
 //	Cleanup
@@ -189,6 +351,14 @@ BOOL Init()
 void Cleanup()
 {
 	int i;
+
+    printf("In cleanup....\n");
+
+
+
+    dump_data();
+
+
 
 	// Delete the disks
 	for (i = 0; i < CtrlMax * UnitNum; i++) {
@@ -971,6 +1141,8 @@ next:
 }
 #endif	// BAREMETAL
 
+
+
 //---------------------------------------------------------------------------
 //
 //	Main processing
@@ -986,20 +1158,23 @@ int startrascsi(void)
 int main(int argc, char* argv[])
 {
 #endif	// BAREMETAL
-	int i;
+    DWORD prev_sample = 0xFFFFFFFF;
+    DWORD this_sample = 0;
+	//int i;
 	int ret;
-	int actid;
-	DWORD now;
-	BUS::phase_t phase;
-	BYTE data;
+//	int actid;
+	//DWORD now;
+	//BUS::phase_t phase;
+//	BYTE data;
 #ifndef BAREMETAL
 	struct sched_param schparam;
 #endif	// BAREMETAL
 
     spdlog::set_level(spdlog::level::trace);
-    spdlog::trace("Entering the function with %d arguments", argc);
+    spdlog::trace("Entering the function with {0:x}{1:X} arguments", argc,20);
 	// Output the Banner
 	Banner(argc, argv);
+    memset(data_buffer,0,sizeof(data_buffer));
 
 	// Initialize
 	ret = 0;
@@ -1040,103 +1215,235 @@ int main(int argc, char* argv[])
 
 	// Start execution
 	running = TRUE;
+	bus->SetAct(FALSE);
 
+
+
+    spdlog::trace("Going into running mode {}", 1);
 	// Main Loop
 	while (running) {
 		// Work initialization
-		actid = -1;
-		phase = BUS::busfree;
+		this_sample = bus->Aquire();
 
-#ifdef USE_SEL_EVENT_ENABLE
-		// SEL signal polling
-		if (bus->PollSelectEvent() < 0) {
-			// Stop on interrupt
-			if (errno == EINTR) {
-				break;
-			}
-			continue;
+		if(this_sample != prev_sample)
+		{
+            //printf("%d Sample %08lX\n", data_idx, this_sample);
+            data_buffer[data_idx].data = this_sample;
+            (void)gettimeofday(&(data_buffer[data_idx].timestamp), NULL);
+            data_idx = (data_idx + 1) % MAX_BUFF_SIZE;
+            prev_sample = this_sample;
 		}
 
-		// Get the bus
-		bus->Aquire();
-#else
-		bus->Aquire();
-		if (!bus->GetSEL()) {
-#if !defined(BAREMETAL)
-			usleep(0);
-#endif	// !BAREMETAL
-			continue;
-		}
-#endif	// USE_SEL_EVENT_ENABLE
 
-        // Wait until BSY is released as there is a possibility for the
-        // initiator to assert it while setting the ID (for up to 3 seconds)
-		if (bus->GetBSY()) {
-			now = SysTimer::GetTimerLow();
-			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
-				bus->Aquire();
-				if (!bus->GetBSY()) {
-					break;
-				}
-			}
-		}
 
-		// Stop because it the bus is busy or another device responded
-		if (bus->GetBSY() || !bus->GetSEL()) {
-			continue;
-		}
 
-		// Notify all controllers
-		data = bus->GetDAT();
-		for (i = 0; i < CtrlMax; i++) {
-			if (!ctrl[i] || (data & (1 << i)) == 0) {
-				continue;
-			}
 
-			// Find the target that has moved to the selection phase
-			if (ctrl[i]->Process() == BUS::selection) {
-				// Get the target ID
-				actid = i;
 
-				// Bus Selection phase
-				phase = BUS::selection;
-				break;
-			}
-		}
 
-		// Return to bus monitoring if the selection phase has not started
-		if (phase != BUS::selection) {
-			continue;
-		}
 
-		// Start target device
-		active = TRUE;
 
-#if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
-		// Scheduling policy setting (highest priority)
-		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
-		sched_setscheduler(0, SCHED_FIFO, &schparam);
-#endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
 
-		// Loop until the bus is free
-		while (running) {
-			// Target drive
-			phase = ctrl[actid]->Process();
 
-			// End when the bus is free
-			if (phase == BUS::busfree) {
-				break;
-			}
-		}
 
-#if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
-		// Set the scheduling priority back to normal
-		schparam.sched_priority = 0;
-		sched_setscheduler(0, SCHED_OTHER, &schparam);
-#endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
 
-		// End the target travel
-		active = FALSE;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		continue;
+////////
+////////		// Target sending data
+////////		if(!bus->GetIO() && bus->GetREQ() && bus->GetACK())
+////////		{
+////////            BYTE data = bus->GetDAT();
+////////            printf("+%02X ",data);
+////////
+////////
+////////
+////////            DWORD now = SysTimer::GetTimerLow();
+////////            while ((SysTimer::GetTimerLow() - now) < SECONDS_1/100)
+////////            {
+////////                bus->Aquire();
+////////                if (bus->GetACK() == FALSE) {
+////////                    break;
+////////                }
+////////            }
+////////
+////////            if(bus->GetACK() != FALSE)
+////////            {
+////////                spdlog::warn("got an invalid req/ack sequence for target sending data");
+////////            }
+////////		}
+////////
+////////
+////////
+////////		if(bus->GetIO() && bus->GetREQ() && !bus->GetACK())
+////////		{
+////////            BYTE data = bus->GetDAT();
+////////            printf("-%02X ",data);
+////////
+////////
+////////            DWORD now = SysTimer::GetTimerLow();
+////////            while ((SysTimer::GetTimerLow() - now) < SECONDS_1/100)
+////////            {
+////////                bus->Aquire();
+////////                if (bus->GetREQ() == FALSE) {
+////////                    break;
+////////                }
+////////            }
+////////
+////////            if(bus->GetREQ() != TRUE)
+////////            {
+////////                spdlog::warn("REQ didn't de-assert when I wanted it to.");
+////////            }
+////////
+////////
+////////		}
+////////
+////////        continue;
+////////
+////////        // Wait until BSY is released as there is a possibility for the
+////////        // initiator to assert it while setting the ID (for up to 3 seconds)
+////////		if (bus->GetSEL() ) {
+////////            BYTE data = bus->GetDAT();
+////////            printf("SEL is asserted. Data: %02X, BSY: %d, SEL %d\n", data, bus->GetBSY(), bus->GetSEL());
+////////			now = SysTimer::GetTimerLow();
+////////			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
+////////				bus->Aquire();
+////////				if (!bus->GetSEL()) {
+////////                    printf("SEL is clear. Data: %02X, BSY: %d, SEL %d\n", data, bus->GetBSY(), bus->GetSEL());
+////////					break;
+////////				}
+////////			}
+////////		}
+////////		else{
+////////
+////////            continue;
+////////		}
+//////////		spdlog::trace("Busy: {}",bus->GetBSY());
+////////
+////////
+////////		// For monitor mode, we just want to make sure the initiator
+////////		// released the BSY signal within 3 seconds. If it hasn't
+////////		// the initiator is misbehaving
+//////////        if (bus->GetBSY()) {
+//////////            spdlog::warn("The initiator (%d) did not release the BSY signal after 3 seconds", bus->GetDAT());
+//////////			continue;
+//////////		}
+////////
+//////////////////////
+//////////////////////		// Stop because it the bus is busy or another device responded
+//////////////////////		if (bus->GetBSY() || !bus->GetSEL()) {
+//////////////////////			continue;
+//////////////////////		}
+//
+//		// Notify all controllers
+//		data = bus->GetDAT();
+////		spdlog::trace("Data is {x}",data);
+//		for (i = 0; i < CtrlMax; i++) {
+//			if (!ctrl[i] || (data & (1 << i)) == 0) {
+//				continue;
+//			}
+////            spdlog::trace("Found an active controller! Let's do some selection {}", i);
+//			// Find the target that has moved to the selection phase
+//			if (ctrl[i]->Process() == BUS::selection) {
+//				// Get the target ID
+//				actid = i;
+//
+//				// Bus Selection phase
+//				phase = BUS::selection;
+//				break;
+//			}
+//		}
+//
+//		// Return to bus monitoring if the selection phase has not started
+//		if (phase != BUS::selection) {
+//			continue;
+//		}
+//
+//		// Start target device
+//		active = TRUE;
+//        spdlog::trace("Found a target device {} ID:{}",actid, ctrl[actid]->GetID());
+//
+//#if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
+//		// Scheduling policy setting (highest priority)
+//		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
+//		sched_setscheduler(0, SCHED_FIFO, &schparam);
+//#endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
+//
+//		// Loop until the bus is free
+//		while (running) {
+//			// Target drive
+//			phase = ctrl[actid]->Process();
+//
+//			// End when the bus is free
+//			if (phase == BUS::busfree) {
+//				break;
+//			}
+//		}
+//
+//#if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
+//		// Set the scheduling priority back to normal
+//		schparam.sched_priority = 0;
+//		sched_setscheduler(0, SCHED_OTHER, &schparam);
+//#endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
+//
+//		// End the target travel
+//		active = FALSE;
 	}
 
 err_exit:

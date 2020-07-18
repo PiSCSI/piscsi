@@ -480,6 +480,8 @@ public:
 	void FASTCALL SetIO(BOOL ast);
 										// Set IO signal
 
+                                        void FASTCALL SetAct(BOOL ast) { PinSetSignal(PIN_ACT, ast);}
+
 	BOOL FASTCALL GetREQ();
 										// Get REQ signal
 	void FASTCALL SetREQ(BOOL ast);

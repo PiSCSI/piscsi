@@ -43,7 +43,14 @@
 //	Disk
 //
 //===========================================================================
-//#define DISK_LOG
+#ifndef DISK_LOG
+#define DISK_LOG
+#endif // DISK_LOG
+#ifndef RASCSI
+#define RASCSI
+#endif // RASCSI
+
+
 
 #ifdef RASCSI
 #define BENDER_SIGNATURE "RaSCSI"
@@ -6324,9 +6331,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	// For the monitor tool, we shouldn't need to reset. We're just logging information
 	// Reset
 	if (ctrl.bus->GetRST()) {
-#if defined(DISK_LOG)
 		spdlog::info( "RESET signal received");
-#endif	// DISK_LOG
 
 		// Reset the controller
 		Reset();
@@ -6394,19 +6399,17 @@ void FASTCALL SASIDEV::BusFree()
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
 
-#if defined(DISK_LOG)
 		spdlog::info( "Bus free phase");
-#endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
 
-		// Set Signal lines
-		ctrl.bus->SetREQ(FALSE);
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+//////////////		// Set Signal lines
+//////////////		ctrl.bus->SetREQ(FALSE);
+//////////////		ctrl.bus->SetMSG(FALSE);
+//////////////		ctrl.bus->SetCD(FALSE);
+//////////////		ctrl.bus->SetIO(FALSE);
+//////////////		ctrl.bus->SetBSY(FALSE);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -6444,16 +6447,16 @@ void FASTCALL SASIDEV::Selection()
 			return;
 		}
 
-#if defined(DISK_LOG)
-		spdlog::info(
-			"Selection Phase ID=%d (with device)", ctrl.id);
-#endif	// DISK_LOG
+        // Wait for this monitor target to assert the selection
+        // before moving on to the selection phase.
+        if(ctrl.bus->GetBSY())
+        {
+            // Phase change
+            ctrl.phase = BUS::selection;
+            spdlog::trace(
+                "[ID %d] Selection Phase (with device)", ctrl.id);
+        }
 
-		// Phase change
-		ctrl.phase = BUS::selection;
-
-		// Raiase BSY and respond
-		ctrl.bus->SetBSY(TRUE);
 		return;
 	}
 
@@ -6481,16 +6484,24 @@ void FASTCALL SASIDEV::Command()
 	if (ctrl.phase != BUS::command) {
 
 #if defined(DISK_LOG)
-		spdlog::info( "Command Phase");
+		spdlog::trace( "[ID %d] Moving to command Phase", ctrl.id);
 #endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::command;
 
-		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(FALSE);
+//////////		// Signal line operated by the target
+//////////		ctrl.bus->SetMSG(FALSE);
+//////////		ctrl.bus->SetCD(TRUE);
+//////////		ctrl.bus->SetIO(FALSE);
+
+        // Wait until target sets the following condition:
+        //   MSG = FALSE
+        //   CD = TRUE
+        //   IO = FALSE
+        if (ctrl.bus->GetMSG() || !ctrl.bus->GetCD() || ctrl.bus->GetIO()) {
+            return;
+        }
 
 		// Data transfer is 6 bytes x 1 block
 		ctrl.offset = 0;
@@ -7903,7 +7914,7 @@ void FASTCALL SASIDEV::FlushUnit()
 	}
 }
 
-#ifdef DISK_LOG
+#if 0
 //---------------------------------------------------------------------------
 //
 //	Get the current phase as a string
@@ -8016,9 +8027,7 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 
 	// Reset
 	if (ctrl.bus->GetRST()) {
-#if defined(DISK_LOG)
-		spdlog::info( "RESET信号受信");
-#endif	// DISK_LOG
+		spdlog::info( "RESET phase");
 
 		// Reset the controller
 		Reset();
@@ -8028,6 +8037,7 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 		return ctrl.phase;
 	}
 
+//    spdlog::trace("ID {} in phase {}",ctrl.id,ctrl.phase);
 	// Phase processing
 	switch (ctrl.phase) {
 		// Bus free phase
@@ -8104,12 +8114,13 @@ void FASTCALL SCSIDEV::BusFree()
 		// Phase setting
 		ctrl.phase = BUS::busfree;
 
-		// Signal line
-		ctrl.bus->SetREQ(FALSE);
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+//////////		// Signal line
+// We shouldn't be setting ANYTHING
+//////////		ctrl.bus->SetREQ(FALSE);
+//////////		ctrl.bus->SetMSG(FALSE);
+//////////		ctrl.bus->SetCD(FALSE);
+//////////		ctrl.bus->SetIO(FALSE);
+//////////		ctrl.bus->SetBSY(FALSE);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -8142,24 +8153,30 @@ void FASTCALL SCSIDEV::Selection()
 		// invalid if IDs do not match
 		id = 1 << ctrl.id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
+            spdlog::trace("[ID {}] ID doesn't match {}",ctrl.id,id);
 			return;
 		}
 
 		// End if there is no valid unit
 		if (!HasUnit()) {
+            spdlog::trace("[ID {}] No unit attached",ctrl.id);
 			return;
 		}
 
-#if defined(DISK_LOG)
-		spdlog::info(
-			"Selection Phase ID=%d (with device)", ctrl.id);
-#endif	// DISK_LOG
+        ctrl.phase = BUS::selection;
 
-		// Phase setting
-		ctrl.phase = BUS::selection;
+		// Wait for this monitor target to assert the selection
+        // before moving on to the selection phase.
+        if(ctrl.bus->GetBSY())
+        {
+            // Phase change
+            spdlog::trace(
+                "[ID {} Selection Phase (with device)", ctrl.id);
+        }
+        else{
+        spdlog::trace("[ID {}] Selection phase", ctrl.id);
+        }
 
-		// Raise BSY and respond
-		ctrl.bus->SetBSY(TRUE);
 		return;
 	}
 
