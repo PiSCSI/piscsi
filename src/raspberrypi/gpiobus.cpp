@@ -460,7 +460,6 @@ void FASTCALL GPIOBUS::Reset()
 		SetMode(PIN_SEL, IN);
 		SetMode(PIN_ATN, IN);
 		SetMode(PIN_ACK, IN);
-		printf("ACK is set to IN\n");
 		SetMode(PIN_RST, IN);
 
 		// Set data bus signals to input
@@ -489,7 +488,6 @@ void FASTCALL GPIOBUS::Reset()
 		SetControl(PIN_IND, IND_OUT);
 		SetMode(PIN_SEL, OUT);
 		SetMode(PIN_ATN, OUT);
-		printf("ACK is set to OUT\n");
 		SetMode(PIN_ACK, OUT);
 		SetMode(PIN_RST, OUT);
 
@@ -510,8 +508,6 @@ void FASTCALL GPIOBUS::Reset()
 	signals = 0;
 }
 
-static DWORD high_bits = 0x0;
-static DWORD low_bits = 0xFFFFFFFF;
 //---------------------------------------------------------------------------
 //
 //	Bus signal acquisition
@@ -520,17 +516,6 @@ static DWORD low_bits = 0xFFFFFFFF;
 DWORD FASTCALL GPIOBUS::Aquire()
 {
 	signals = *level;
-
-	DWORD prev_high = high_bits;
-	DWORD prev_low = low_bits;
-
-	high_bits |= signals;
-	low_bits &= signals;
-
-	if ((high_bits != prev_high) || (low_bits != prev_low))
-	{
-        printf("   %08lX    %08lX\n",high_bits, low_bits);
-	}
 
 #if SIGNAL_CONTROL_MODE < 2
 	// Invert if negative logic (internal processing is unified to positive logic)
@@ -567,36 +552,40 @@ BOOL FASTCALL GPIOBUS::GetBSY()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetBSY(BOOL ast)
 {
-//	// Set BSY signal
-//	SetSignal(PIN_BSY, ast);
-//
-//	if (actmode == TARGET) {
-//		if (ast) {
-//			// Turn on ACTIVE signal
-//			SetControl(PIN_ACT, ACT_ON);
-//
-//			// Set Target signal to output
-//			SetControl(PIN_TAD, TAD_OUT);
-//
-//			SetMode(PIN_BSY, OUT);
-//			SetMode(PIN_MSG, OUT);
-//			SetMode(PIN_CD, OUT);
-//			SetMode(PIN_REQ, OUT);
-//			SetMode(PIN_IO, OUT);
-//		} else {
-//			// Turn off the ACTIVE signal
-//			SetControl(PIN_ACT, ACT_OFF);
-//
-//			// Set the target signal to input
-//			SetControl(PIN_TAD, TAD_IN);
-//
-//			SetMode(PIN_BSY, IN);
-//			SetMode(PIN_MSG, IN);
-//			SetMode(PIN_CD, IN);
-//			SetMode(PIN_REQ, IN);
-//			SetMode(PIN_IO, IN);
-//		}
-//	}
+    if(actmode == MONITOR){
+        return;
+    }
+
+	// Set BSY signal
+	SetSignal(PIN_BSY, ast);
+
+	if (actmode == TARGET) {
+		if (ast) {
+			// Turn on ACTIVE signal
+			SetControl(PIN_ACT, ACT_ON);
+
+			// Set Target signal to output
+			SetControl(PIN_TAD, TAD_OUT);
+
+			SetMode(PIN_BSY, OUT);
+			SetMode(PIN_MSG, OUT);
+			SetMode(PIN_CD, OUT);
+			SetMode(PIN_REQ, OUT);
+			SetMode(PIN_IO, OUT);
+		} else {
+			// Turn off the ACTIVE signal
+			SetControl(PIN_ACT, ACT_OFF);
+
+			// Set the target signal to input
+			SetControl(PIN_TAD, TAD_IN);
+
+			SetMode(PIN_BSY, IN);
+			SetMode(PIN_MSG, IN);
+			SetMode(PIN_CD, IN);
+			SetMode(PIN_REQ, IN);
+			SetMode(PIN_IO, IN);
+		}
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -616,13 +605,17 @@ BOOL FASTCALL GPIOBUS::GetSEL()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetSEL(BOOL ast)
 {
-//	if (actmode == INITIATOR && ast) {
-//		// Turn on ACTIVE signal
-//		SetControl(PIN_ACT, ACT_ON);
-//	}
-//
-//	// Set SEL signal
-//	SetSignal(PIN_SEL, ast);
+    if(actmode == MONITOR){
+        return;
+    }
+
+	if (actmode == INITIATOR && ast) {
+		// Turn on ACTIVE signal
+		SetControl(PIN_ACT, ACT_ON);
+	}
+
+	// Set SEL signal
+	SetSignal(PIN_SEL, ast);
 }
 
 //---------------------------------------------------------------------------
@@ -642,7 +635,11 @@ BOOL FASTCALL GPIOBUS::GetATN()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetATN(BOOL ast)
 {
-//	SetSignal(PIN_ATN, ast);
+    if(actmode == MONITOR){
+        return;
+    }
+
+	SetSignal(PIN_ATN, ast);
 }
 
 //---------------------------------------------------------------------------
@@ -662,7 +659,31 @@ BOOL FASTCALL GPIOBUS::GetACK()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetACK(BOOL ast)
 {
-	//SetSignal(PIN_ACK, ast);
+    if(actmode == MONITOR){
+        return;
+    }
+
+	SetSignal(PIN_ACK, ast);
+}
+
+//---------------------------------------------------------------------------
+//
+//	Get ACK signal
+//
+//---------------------------------------------------------------------------
+BOOL FASTCALL GPIOBUS::GetACT()
+{
+	return GetSignal(PIN_ACT);
+}
+
+//---------------------------------------------------------------------------
+//
+//	Set ACK signal
+//
+//---------------------------------------------------------------------------
+void FASTCALL GPIOBUS::SetACT(BOOL ast)
+{
+	SetSignal(PIN_ACT, ast);
 }
 
 //---------------------------------------------------------------------------
@@ -682,7 +703,11 @@ BOOL FASTCALL GPIOBUS::GetRST()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetRST(BOOL ast)
 {
-	//SetSignal(PIN_RST, ast);
+    if(actmode == MONITOR){
+        return;
+    }
+
+	SetSignal(PIN_RST, ast);
 }
 
 //---------------------------------------------------------------------------
@@ -702,7 +727,11 @@ BOOL FASTCALL GPIOBUS::GetMSG()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetMSG(BOOL ast)
 {
-	//SetSignal(PIN_MSG, ast);
+    if(actmode == MONITOR){
+        return;
+    }
+
+	SetSignal(PIN_MSG, ast);
 }
 
 //---------------------------------------------------------------------------
@@ -722,7 +751,11 @@ BOOL FASTCALL GPIOBUS::GetCD()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetCD(BOOL ast)
 {
-	//SetSignal(PIN_CD, ast);
+    if(actmode == MONITOR){
+        return;
+    }
+
+	SetSignal(PIN_CD, ast);
 }
 
 //---------------------------------------------------------------------------
@@ -772,6 +805,10 @@ BOOL FASTCALL GPIOBUS::GetIO()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetIO(BOOL ast)
 {
+    if(actmode == MONITOR){
+        return;
+    }
+
 	SetSignal(PIN_IO, ast);
 
 	if (actmode == TARGET) {
@@ -820,7 +857,11 @@ BOOL FASTCALL GPIOBUS::GetREQ()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetREQ(BOOL ast)
 {
-//	SetSignal(PIN_REQ, ast);
+    if(actmode == MONITOR){
+        return;
+    }
+
+	SetSignal(PIN_REQ, ast);
 }
 
 //---------------------------------------------------------------------------
@@ -853,37 +894,41 @@ BYTE FASTCALL GPIOBUS::GetDAT()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::SetDAT(BYTE dat)
 {
+    if(actmode == MONITOR){
+        return;
+    }
+
 	// Write to port
-//#if SIGNAL_CONTROL_MODE == 0
-//	DWORD fsel;
-//
-//	fsel = gpfsel[0];
-//	fsel &= tblDatMsk[0][dat];
-//	fsel |= tblDatSet[0][dat];
-//	if (fsel != gpfsel[0]) {
-//		gpfsel[0] = fsel;
-//		gpio[GPIO_FSEL_0] = fsel;
-//	}
-//
-//	fsel = gpfsel[1];
-//	fsel &= tblDatMsk[1][dat];
-//	fsel |= tblDatSet[1][dat];
-//	if (fsel != gpfsel[1]) {
-//		gpfsel[1] = fsel;
-//		gpio[GPIO_FSEL_1] = fsel;
-//	}
-//
-//	fsel = gpfsel[2];
-//	fsel &= tblDatMsk[2][dat];
-//	fsel |= tblDatSet[2][dat];
-//	if (fsel != gpfsel[2]) {
-//		gpfsel[2] = fsel;
-//		gpio[GPIO_FSEL_2] = fsel;
-//	}
-//#else
-//	gpio[GPIO_CLR_0] = tblDatMsk[dat];
-//	gpio[GPIO_SET_0] = tblDatSet[dat];
-//#endif	// SIGNAL_CONTROL_MODE
+#if SIGNAL_CONTROL_MODE == 0
+	DWORD fsel;
+
+	fsel = gpfsel[0];
+	fsel &= tblDatMsk[0][dat];
+	fsel |= tblDatSet[0][dat];
+	if (fsel != gpfsel[0]) {
+		gpfsel[0] = fsel;
+		gpio[GPIO_FSEL_0] = fsel;
+	}
+
+	fsel = gpfsel[1];
+	fsel &= tblDatMsk[1][dat];
+	fsel |= tblDatSet[1][dat];
+	if (fsel != gpfsel[1]) {
+		gpfsel[1] = fsel;
+		gpio[GPIO_FSEL_1] = fsel;
+	}
+
+	fsel = gpfsel[2];
+	fsel &= tblDatMsk[2][dat];
+	fsel |= tblDatSet[2][dat];
+	if (fsel != gpfsel[2]) {
+		gpfsel[2] = fsel;
+		gpio[GPIO_FSEL_2] = fsel;
+	}
+#else
+	gpio[GPIO_CLR_0] = tblDatMsk[dat];
+	gpio[GPIO_SET_0] = tblDatSet[dat];
+#endif	// SIGNAL_CONTROL_MODE
 }
 
 //---------------------------------------------------------------------------

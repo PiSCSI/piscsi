@@ -258,12 +258,11 @@ BYTE get_data_field(DWORD data)
 
 int pin_nums[] = {PIN_BSY,PIN_SEL,PIN_CD,PIN_IO,PIN_MSG,PIN_REQ,PIN_ACK,PIN_ATN,PIN_RST,PIN_DT0};
 
-char* pin_names[] = {"BSY","SEL","CD","IO","MSG","REQ","ACK","ATN","RST","DAT"};
+std::string pin_names[] = {"BSY","SEL","CD","IO","MSG","REQ","ACK","ATN","RST","DAT"};
 
 
 void dump_data()
 {
-    char outstr[1024];
     int i = 0;
     timeval time_diff;
     FILE *fp;
@@ -277,7 +276,7 @@ void dump_data()
     {
         timersub(&(data_buffer[i].timestamp), &start_time, &time_diff);
         //timediff = difftime(data_buffer[i].timestamp, start_time);
-        fprintf(fp, "%d\t%08lX\t%d:%d\t",data_idx, data_buffer[i].data, time_diff.tv_sec, time_diff.tv_usec);
+        fprintf(fp, "%d\t%08lX\t%ld:%ld\t",data_idx, data_buffer[i].data, time_diff.tv_sec, time_diff.tv_usec);
         fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_BSY));
         fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_SEL));
         fprintf(fp, "%d\t", get_pin_value(data_buffer[i].data, PIN_CD));
@@ -301,7 +300,7 @@ void dump_data()
     {
         timersub(&(data_buffer[i].timestamp), &start_time, &time_diff);
         //timediff = difftime(data_buffer[i].timestamp, start_time);
-        fprintf(fp, "TIME=%d:%d;", time_diff.tv_sec, time_diff.tv_usec);
+        fprintf(fp, "TIME=%ld:%ld;", time_diff.tv_sec, time_diff.tv_usec);
         fprintf(fp, "BSY=%d;", get_pin_value(data_buffer[i].data, PIN_BSY));
         fprintf(fp, "SEL=%d;", get_pin_value(data_buffer[i].data, PIN_SEL));
         fprintf(fp, "CD=%d;", get_pin_value(data_buffer[i].data, PIN_CD));
@@ -1141,6 +1140,8 @@ next:
 }
 #endif	// BAREMETAL
 
+static DWORD high_bits = 0x0;
+static DWORD low_bits = 0xFFFFFFFF;
 
 
 //---------------------------------------------------------------------------
@@ -1158,6 +1159,8 @@ int startrascsi(void)
 int main(int argc, char* argv[])
 {
 #endif	// BAREMETAL
+    DWORD prev_high = high_bits;
+    DWORD prev_low = low_bits;
     DWORD prev_sample = 0xFFFFFFFF;
     DWORD this_sample = 0;
 	//int i;
@@ -1215,9 +1218,7 @@ int main(int argc, char* argv[])
 
 	// Start execution
 	running = TRUE;
-	bus->SetAct(FALSE);
-
-
+	bus->SetACT(FALSE);
 
     spdlog::trace("Going into running mode {}", 1);
 	// Main Loop
@@ -1227,6 +1228,19 @@ int main(int argc, char* argv[])
 
 		if(this_sample != prev_sample)
 		{
+
+            // This is intended to be a debug check to see if every pin is set
+            // high and low at some point.
+            high_bits |= this_sample;
+            low_bits &= this_sample;
+
+            if ((high_bits != prev_high) || (low_bits != prev_low))
+            {
+                printf("   %08lX    %08lX\n",high_bits, low_bits);
+            }
+            prev_high = high_bits;
+            prev_low = low_bits;
+
             //printf("%d Sample %08lX\n", data_idx, this_sample);
             data_buffer[data_idx].data = this_sample;
             (void)gettimeofday(&(data_buffer[data_idx].timestamp), NULL);
