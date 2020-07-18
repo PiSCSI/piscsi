@@ -5,6 +5,7 @@ import sys
 outfile = open('data.json', 'w')
 infile = open('timing_drawer.txt','r')
 
+print("{signal: [", file=outfile)
 firstline = infile.readline()
 
 num_columns = len(firstline.split(";"))
@@ -29,7 +30,7 @@ while (field_num < num_columns):
             elif (z == '00'):
                 out = '0'
             else:
-                out = '1'
+                out = '2'
             print(out, file=outfile, end='')
             prev_val = z
         print("', data: [", file=outfile, end='')
@@ -52,11 +53,11 @@ while (field_num < num_columns):
                 prev_val = z
             print(z, file=outfile, end='')
 
-    print("'},", file=outfile)
+        print("'},", file=outfile)
 
     field_num = field_num + 1
 
-
+print("]}", file=outfile) 
 
 
 outfile.close()
