@@ -140,6 +140,26 @@
 #define	PIN_IO		25						// IO
 #define	PIN_BSY		26						// BSY
 #define	PIN_SEL		27						// SEL
+
+#define ALL_SCSI_PINS \
+    ((1<<PIN_DT0)|\
+    (1<<PIN_DT1)|\
+    (1<<PIN_DT2)|\
+    (1<<PIN_DT3)|\
+    (1<<PIN_DT4)|\
+    (1<<PIN_DT5)|\
+    (1<<PIN_DT6)|\
+    (1<<PIN_DT7)|\
+    (1<<PIN_DP)|\
+    (1<<PIN_ATN)|\
+    (1<<PIN_RST)|\
+    (1<<PIN_ACK)|\
+    (1<<PIN_REQ)|\
+    (1<<PIN_MSG)|\
+    (1<<PIN_CD)|\
+    (1<<PIN_IO)|\
+    (1<<PIN_BSY)|\
+    (1<<PIN_SEL))
 #endif
 
 #ifdef CONNECT_TYPE_FULLSPEC

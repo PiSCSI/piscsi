@@ -1221,10 +1221,11 @@ int main(int argc, char* argv[])
 	bus->SetACT(FALSE);
 
     spdlog::trace("Going into running mode {}", 1);
+    printf("ALL_SCSI_PINS %08X\n",ALL_SCSI_PINS);
 	// Main Loop
 	while (running) {
 		// Work initialization
-		this_sample = bus->Aquire();
+		this_sample = (bus->Aquire() & ALL_SCSI_PINS);
 
 		if(this_sample != prev_sample)
 		{
