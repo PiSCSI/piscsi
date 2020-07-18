@@ -6404,12 +6404,12 @@ void FASTCALL SASIDEV::BusFree()
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
 
-//////////////		// Set Signal lines
-//////////////		ctrl.bus->SetREQ(FALSE);
-//////////////		ctrl.bus->SetMSG(FALSE);
-//////////////		ctrl.bus->SetCD(FALSE);
-//////////////		ctrl.bus->SetIO(FALSE);
-//////////////		ctrl.bus->SetBSY(FALSE);
+		// Set Signal lines
+		ctrl.bus->SetREQ(FALSE);
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(FALSE);
+		ctrl.bus->SetIO(FALSE);
+		ctrl.bus->SetBSY(FALSE);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -6490,10 +6490,10 @@ void FASTCALL SASIDEV::Command()
 		// Phase Setting
 		ctrl.phase = BUS::command;
 
-//////////		// Signal line operated by the target
-//////////		ctrl.bus->SetMSG(FALSE);
-//////////		ctrl.bus->SetCD(TRUE);
-//////////		ctrl.bus->SetIO(FALSE);
+		// Signal line operated by the target
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(TRUE);
+		ctrl.bus->SetIO(FALSE);
 
         // Wait until target sets the following condition:
         //   MSG = FALSE
@@ -8114,13 +8114,12 @@ void FASTCALL SCSIDEV::BusFree()
 		// Phase setting
 		ctrl.phase = BUS::busfree;
 
-//////////		// Signal line
-// We shouldn't be setting ANYTHING
-//////////		ctrl.bus->SetREQ(FALSE);
-//////////		ctrl.bus->SetMSG(FALSE);
-//////////		ctrl.bus->SetCD(FALSE);
-//////////		ctrl.bus->SetIO(FALSE);
-//////////		ctrl.bus->SetBSY(FALSE);
+		// Signal line
+		ctrl.bus->SetREQ(FALSE);
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(FALSE);
+		ctrl.bus->SetIO(FALSE);
+		ctrl.bus->SetBSY(FALSE);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
