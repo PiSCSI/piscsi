@@ -43,7 +43,6 @@
 //	Disk
 //
 //===========================================================================
-//#define DISK_LOG
 
 #ifdef RASCSI
 #define BENDER_SIGNATURE "RaSCSI"
@@ -6324,9 +6323,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	// For the monitor tool, we shouldn't need to reset. We're just logging information
 	// Reset
 	if (ctrl.bus->GetRST()) {
-#if defined(DISK_LOG)
 		spdlog::info( "RESET signal received");
-#endif	// DISK_LOG
 
 		// Reset the controller
 		Reset();
@@ -6394,9 +6391,7 @@ void FASTCALL SASIDEV::BusFree()
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
 
-#if defined(DISK_LOG)
 		spdlog::info( "Bus free phase");
-#endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
@@ -6444,16 +6439,14 @@ void FASTCALL SASIDEV::Selection()
 			return;
 		}
 
-#if defined(DISK_LOG)
-		spdlog::info(
+		spdlog::trace(
 			"Selection Phase ID=%d (with device)", ctrl.id);
-#endif	// DISK_LOG
 
 		// Phase change
 		ctrl.phase = BUS::selection;
 
-		// Raiase BSY and respond
-		ctrl.bus->SetBSY(TRUE);
+		// Raise BSY and respond
+	        ctrl.bus->SetBSY(TRUE);
 		return;
 	}
 
@@ -6481,7 +6474,7 @@ void FASTCALL SASIDEV::Command()
 	if (ctrl.phase != BUS::command) {
 
 #if defined(DISK_LOG)
-		spdlog::info( "Command Phase");
+		spdlog::trace( "[ID %d] Moving to command Phase", ctrl.id);
 #endif	// DISK_LOG
 
 		// Phase Setting
@@ -7903,7 +7896,7 @@ void FASTCALL SASIDEV::FlushUnit()
 	}
 }
 
-#ifdef DISK_LOG
+#if 0
 //---------------------------------------------------------------------------
 //
 //	Get the current phase as a string
@@ -8016,9 +8009,7 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 
 	// Reset
 	if (ctrl.bus->GetRST()) {
-#if defined(DISK_LOG)
-		spdlog::info( "RESET信号受信");
-#endif	// DISK_LOG
+		spdlog::info( "RESET phase");
 
 		// Reset the controller
 		Reset();
@@ -8142,18 +8133,17 @@ void FASTCALL SCSIDEV::Selection()
 		// invalid if IDs do not match
 		id = 1 << ctrl.id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
+			spdlog::trace("[ID {}] ID doesn't match {}",ctrl.id,id);
 			return;
 		}
 
 		// End if there is no valid unit
 		if (!HasUnit()) {
+			spdlog::trace("[ID {}] No unit attached",ctrl.id);
 			return;
 		}
-
-#if defined(DISK_LOG)
-		spdlog::info(
-			"Selection Phase ID=%d (with device)", ctrl.id);
-#endif	// DISK_LOG
+		
+		spdlog::trace("Selection Phase ID={} (with device)", ctrl.id);
 
 		// Phase setting
 		ctrl.phase = BUS::selection;

@@ -28,7 +28,7 @@ RASCSI = rascsi
 RASCTL = rasctl
 RASDUMP = rasdump
 SASIDUMP = sasidump
-SCSIMON = scsimon
+SCSISHARK = scsishark
 
 USR_LOCAL_BIN = /usr/local/bin
 MAN_PAGE_DIR  = /usr/share/man/man1
@@ -37,11 +37,21 @@ DOC_DIR = ../../doc
 #BIN_ALL = $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
 # Temporarily remove the RASDUMP and RASDUMP tools, since they're not needed
 # for my specific use case. If you need them - add them back in!
-BIN_ALL = $(RASCSI) $(RASCTL)
+BIN_ALL = $(RASCSI) $(RASCTL) $(SCSISHARK)
 
 
 SRC_RASCSI = \
 	rascsi.cpp \
+	scsi.cpp \
+	disk.cpp \
+	gpiobus.cpp \
+	ctapdriver.cpp \
+	cfilesystem.cpp \
+	filepath.cpp \
+	fileio.cpp
+
+SRC_SCSISHARK = \
+	scsishark.cpp \
 	scsi.cpp \
 	disk.cpp \
 	gpiobus.cpp \
@@ -71,9 +81,9 @@ OBJ_RASCSI := $(SRC_RASCSI:%.cpp=%.o)
 OBJ_RASCTL := $(SRC_RASCTL:%.cpp=%.o)
 OBJ_RASDUMP := $(SRC_RASDUMP:%.cpp=%.o)
 OBJ_SASIDUMP := $(SRC_SASIDUMP:%.cpp=%.o)
-OBJ_SCSIMON  := $(SRC_SCSIMON:%.cpp=%.o)
+OBJ_SCSISHARK  := $(SRC_SCSISHARK:%.cpp=%.o)
 #OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP) $(OBJ_SCSIMON)
-OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP)
+OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP) $(OBJ_SCSISHARK)
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -88,19 +98,19 @@ ALL: all
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt
 
 $(RASCSI): $(OBJ_RASCSI)
-	$(CXX) -o $@ $(OBJ_RASCSI) -lpthread
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread
 
 $(RASCTL): $(OBJ_RASCTL)
-	$(CXX) -o $@ $(OBJ_RASCTL)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL)
 
 $(RASDUMP): $(OBJ_RASDUMP)
-	$(CXX) -o $@ $(OBJ_RASDUMP)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
 
 $(SASIDUMP): $(OBJ_SASIDUMP)
-	$(CXX) -o $@ $(OBJ_SASIDUMP)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SASIDUMP)
 
-$(SCSIMON): $(OBJ_SCSIMON)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
+$(SCSISHARK): $(OBJ_SCSISHARK)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSISHARK) -lpthread
 
 clean:
 	rm -f $(OBJ_ALL) $(BIN_ALL)
@@ -122,3 +132,5 @@ $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
 
 .PHONY: Debug
 Debug: all
+.PHONY: Debug-scsishark
+Debug-scsishark: $(SCSISHARK)

@@ -12,6 +12,13 @@
 #if !defined(log_h)
 #define log_h
 
+
+#define LOGINFO(...)  \
+ do{char buf[256]; snprintf(buf, 256,__VA_ARGS__);  spdlog::info(buf);}while(0)
+#define LOGTRACE(...)  \
+ do{char buf[256]; snprintf(buf, 256,__VA_ARGS__);  spdlog::trace(buf);}while(0)
+
+
 //===========================================================================
 //
 //	ログ
