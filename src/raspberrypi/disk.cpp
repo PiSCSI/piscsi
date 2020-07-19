@@ -43,14 +43,6 @@
 //	Disk
 //
 //===========================================================================
-#ifndef DISK_LOG
-#define DISK_LOG
-#endif // DISK_LOG
-#ifndef RASCSI
-#define RASCSI
-#endif // RASCSI
-
-
 
 #ifdef RASCSI
 #define BENDER_SIGNATURE "RaSCSI"
@@ -6447,16 +6439,14 @@ void FASTCALL SASIDEV::Selection()
 			return;
 		}
 
-        // Wait for this monitor target to assert the selection
-        // before moving on to the selection phase.
-        if(ctrl.bus->GetBSY())
-        {
-            // Phase change
-            ctrl.phase = BUS::selection;
-            spdlog::trace(
-                "[ID %d] Selection Phase (with device)", ctrl.id);
-        }
+        spdlog::trace(
+            "Selection Phase ID=%d (with device)", ctrl.id);
 
+        // Phase change
+        ctrl.phase = BUS::selection;
+
+        // Raise BSY and respond
+        ctrl.bus->SetBSY(TRUE);
 		return;
 	}
 
@@ -6494,14 +6484,6 @@ void FASTCALL SASIDEV::Command()
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(TRUE);
 		ctrl.bus->SetIO(FALSE);
-
-        // Wait until target sets the following condition:
-        //   MSG = FALSE
-        //   CD = TRUE
-        //   IO = FALSE
-        if (ctrl.bus->GetMSG() || !ctrl.bus->GetCD() || ctrl.bus->GetIO()) {
-            return;
-        }
 
 		// Data transfer is 6 bytes x 1 block
 		ctrl.offset = 0;
@@ -8037,7 +8019,6 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 		return ctrl.phase;
 	}
 
-//    spdlog::trace("ID {} in phase {}",ctrl.id,ctrl.phase);
 	// Phase processing
 	switch (ctrl.phase) {
 		// Bus free phase
@@ -8162,20 +8143,14 @@ void FASTCALL SCSIDEV::Selection()
 			return;
 		}
 
+        spdlog::trace(
+            "Selection Phase ID={} (with device)", ctrl.id);
+
+        // Phase setting
         ctrl.phase = BUS::selection;
 
-		// Wait for this monitor target to assert the selection
-        // before moving on to the selection phase.
-        if(ctrl.bus->GetBSY())
-        {
-            // Phase change
-            spdlog::trace(
-                "[ID {} Selection Phase (with device)", ctrl.id);
-        }
-        else{
-        spdlog::trace("[ID {}] Selection phase", ctrl.id);
-        }
-
+        // Raise BSY and respond
+        ctrl.bus->SetBSY(TRUE);
 		return;
 	}
 
