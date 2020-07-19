@@ -132,3 +132,5 @@ $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
 
 .PHONY: Debug
 Debug: all
+.PHONY: Debug-scsishark
+Debug-scsishark: $(SCSISHARK)
