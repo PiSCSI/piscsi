@@ -8151,8 +8151,8 @@ void FASTCALL SCSIDEV::Selection()
 
         // Raise BSY and respond
         ctrl.bus->SetBSY(TRUE);
-		return;
-	}
+        return;
+    }
 
 	// Selection completed
 	if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {
