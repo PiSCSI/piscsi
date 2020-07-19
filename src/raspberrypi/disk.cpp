@@ -6439,14 +6439,14 @@ void FASTCALL SASIDEV::Selection()
 			return;
 		}
 
-        spdlog::trace(
-            "Selection Phase ID=%d (with device)", ctrl.id);
+		spdlog::trace(
+			"Selection Phase ID=%d (with device)", ctrl.id);
 
-        // Phase change
-        ctrl.phase = BUS::selection;
+		// Phase change
+		ctrl.phase = BUS::selection;
 
-        // Raise BSY and respond
-        ctrl.bus->SetBSY(TRUE);
+		// Raise BSY and respond
+	        ctrl.bus->SetBSY(TRUE);
 		return;
 	}
 
@@ -8133,26 +8133,25 @@ void FASTCALL SCSIDEV::Selection()
 		// invalid if IDs do not match
 		id = 1 << ctrl.id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
-            spdlog::trace("[ID {}] ID doesn't match {}",ctrl.id,id);
+			spdlog::trace("[ID {}] ID doesn't match {}",ctrl.id,id);
 			return;
 		}
 
 		// End if there is no valid unit
 		if (!HasUnit()) {
-            spdlog::trace("[ID {}] No unit attached",ctrl.id);
+			spdlog::trace("[ID {}] No unit attached",ctrl.id);
 			return;
 		}
+		
+		spdlog::trace("Selection Phase ID={} (with device)", ctrl.id);
 
-        spdlog::trace(
-            "Selection Phase ID={} (with device)", ctrl.id);
+		// Phase setting
+		ctrl.phase = BUS::selection;
 
-        // Phase setting
-        ctrl.phase = BUS::selection;
-
-        // Raise BSY and respond
-        ctrl.bus->SetBSY(TRUE);
-        return;
-    }
+		// Raise BSY and respond
+		ctrl.bus->SetBSY(TRUE);
+		return;
+	}
 
 	// Selection completed
 	if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {

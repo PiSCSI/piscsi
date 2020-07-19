@@ -998,7 +998,6 @@ int main(int argc, char* argv[])
 
     spdlog::set_level(spdlog::level::trace);
     spdlog::trace("Entering the function with %d arguments", argc);
-
 	// Output the Banner
 	Banner(argc, argv);
 
