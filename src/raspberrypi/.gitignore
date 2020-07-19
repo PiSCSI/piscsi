@@ -6,7 +6,9 @@
 *.layout
 *.log
 rascsi
-scsimon
+scsishark
 rasctl
 sasidump
 rasdump
+log.*
+
