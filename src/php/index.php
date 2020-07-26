@@ -9,41 +9,41 @@ header( 'Cache-Control: post-check=0, pre-check=0', FALSE );
 // HTTP/1.0
 header( 'Pragma: no-cache' );
 
-define("IMAGE_PATH", "/home/pi/rasimg/");
+define("IMAGE_PATH", "/home/pi/");
 define("PROCESS_PATH", "/usr/local/bin/");
 define("PROCESS_NAME1", "rasctl");
 define("PROCESS_NAME2", "rascsi");
 
-// 初期設定
+// Initial Settings
 $hdType = array("HDS", "HDN", "HDI", "NHD", "HDA");
 $moType = array("MOS");
 $cdType = array("ISO");
 $path = IMAGE_PATH;
 
-// パラメタチェック
+// parameter check
 if(isset($_GET['shutdown'])){
-    // 電源断
+    // Power Down
     exec("sudo shutdown now");
 } else if(isset($_GET['reboot'])){
-    // 再起動
+    // Reboot
     exec("sudo shutdown -r now");
 } else if(isset($_GET['start'])){
-    // 起動
+    // Startup
     $command = "sudo ".PROCESS_PATH.PROCESS_NAME2." 2>/dev/null";
     exec($command . " > /dev/null &");
     // 1.0s 
     sleep(1);
-    // 情報表示
+    // Information Display
     infoOut();
 } else if(isset($_GET['stop'])){
-    // 終了
+    // End
     $command = "sudo pkill ".PROCESS_NAME2;
     $output = array();
     $ret = null;
     exec($command, $output, $ret);
     // 0.5s 
     usleep(500000);
-    // 情報表示
+    // Information Display
     infoOut();
 } else if(isset($_GET['param'])){
     $param = $_GET['param'];
@@ -54,60 +54,60 @@ if(isset($_GET['shutdown'])){
         $output = array();
         $ret = null;
         exec($command, $output, $ret);
-        // 情報表示
+        // File mount
         infoOut();
     } else if($param[0] === 'mountm') {
-        // ファイル接続
+        // File Connection
         $path = $param[2];
         $command = PROCESS_PATH.PROCESS_NAME1.' -i '.$param[1].' -c attach -t mo -f '.$param[2].$param[3];
         $output = array();
         $ret = null;
         exec($command, $output, $ret);
-        // 情報表示
+        // Information Display
         infoOut();
     } else if($param[0] === 'mountc') {
-        // ファイル接続
+        // File connection
         $path = $param[2];
         $command = PROCESS_PATH.PROCESS_NAME1.' -i '.$param[1].' -c attach -t cd -f '.$param[2].$param[3];
         $output = array();
         $ret = null;
         exec($command, $output, $ret);
-        // 情報表示
+        // Information Display
         infoOut();
     } else if($param[0] === 'umount') {
-        // ファイル切断
+        // File disconnect
         $command = PROCESS_PATH.PROCESS_NAME1.' -i '.$param[1].' -c detatch -t hd';
         $output = array();
         $ret = null;
         exec($command, $output, $ret);
-        // 情報表示
+        // Information Display
         infoOut();
     } else if($param[0] === 'insertm') {
-        // ファイル挿入
+        // Insert file
         $command = PROCESS_PATH.PROCESS_NAME1.' -i '.$param[1].' -c insert -t mo -f '.$param[2].$param[3];
         $output = array();
         $ret = null;
         exec($command, $output, $ret);
-        // 情報表示
+        // Information Display
         infoOut();
     } else if($param[0] === 'insertc') {
-        // ファイル挿入
+        // Insert file
         $command = PROCESS_PATH.PROCESS_NAME1.' -i '.$param[1].' -c insert -t cd -f '.$param[2].$param[3];
         $output = array();
         $ret = null;
         exec($command, $output, $ret);
-        // 情報表示
+        // Information Display
         infoOut();
     } else if($param[0] === 'eject') {
-        // ファイル排出
+        // Eject file
         $command = PROCESS_PATH.PROCESS_NAME1.' -i '.$param[1].' -c eject';
         $output = array();
         $ret = null;
         exec($command, $output, $ret);
-        // 情報表示
+        // Information Display
         infoOut();
     } else if($param[0] === 'dir') {
-        // ディレクトリ表示
+        // Directory display
         $pos = strrpos($param[1], "..");
         if($pos !== false) {
             $pos1 = strrpos($param[1], "/", -5);
@@ -115,7 +115,7 @@ if(isset($_GET['shutdown'])){
         } else {
             $path = $param[1];
         }
-        // データ表示
+        // Data display
         dataOut($path, $hdType, $moType, $cdType);
     }
 } else {
@@ -154,37 +154,37 @@ if(isset($_GET['shutdown'])){
     echo '  }';
     echo '};';
     echo '</script></head><body>';
-    // 情報表示
+    // Information Display
     infoOut();
 
-    // SCSI操作
-    echo '<p><div>Scsi取り外し/排出</div>';
+    // SCSI Operation
+    echo '<p><div>Scsi Remove/Eject</div>';
     scsiOut($path);
 
-    // データ表示
-    echo '<p><div>Image操作</div>';
+    // Data display
+    echo '<p><div>Image Operations</div>';
     dataOut($path, $hdType, $moType, $cdType);
 
-    // 起動/停止
-//    echo '<p><div>RASCSI 起動/停止</div>';
+    // Start / Stop
+//    echo '<p><div>RASCSI Start/Stop</div>';
 //    rascsiStartStop();
 
-    // 再起動/電源断
-    echo '<p><div>Raspberry Pi 再起動/電源断</div>';
+    // Reboot / Power down
+    echo '<p><div>Raspberry Pi Reboot / Power down</div>';
     raspiRebootShut();
 
 }
 
-// 情報表示
+// Information Display
 function infoOut() {
     echo '<div id="info">';
-    // プロセス確認
-    echo '<p><div>プロセス状況:';
+    // Process confirmation
+    echo '<p><div>Process status:';
     $result = exec("ps -aef | grep ".PROCESS_NAME2." | grep -v grep", $output);
     if(empty($output)) {
-        echo '停止中</div>';
+        echo 'Stopping</div>';
     } else {
-        echo '起動中</div>';
+        echo 'Starting</div>';
         $command = PROCESS_PATH.PROCESS_NAME1.' -l';
         $output = array();
         $ret = null;
@@ -196,14 +196,14 @@ function infoOut() {
     echo '</div>';
 }
 
-// SCSI操作
+// SCSI Operation
 function scsiOut() {
-    echo '<input type="radio" name="mode" onclick="chMode()" value="mu" checked>接続/切断';
-    echo '<input type="radio" name="mode" onclick="chMode()" value="ie">挿入/排出';
+    echo '<input type="radio" name="mode" onclick="chMode()" value="mu" checked>Connect/Disconnect';
+    echo '<input type="radio" name="mode" onclick="chMode()" value="ie">Insert/Eject';
 
     echo '<table border="0">';
     echo '<tr>';
-    // SCSI?排出/切断
+    // SCSI Eject / Disconnect
     echo '<td>';
     echo '<select id="ejectSelect">';
     echo   '<option value="0">SCSI0</option>';
@@ -215,9 +215,9 @@ function scsiOut() {
     echo '</select>';
     echo '</td>';
 
-    // SCSI?切断
+    // SCSI Disconnect
     echo '<td>';
-    echo '<input type="button" class="mu" value="切断" onclick="';
+    echo '<input type="button" class="mu" value="Disconnect" onclick="';
     echo 'var req = new XMLHttpRequest();';
     echo 'req.onreadystatechange = function(){';
     echo '  if(req.readyState == 4){';
@@ -230,9 +230,9 @@ function scsiOut() {
     echo 'req.send(null);"/>';
     echo '</td>';
 
-    // SCSI?排出
+    // SCSI Eject
     echo '<td>';
-    echo '<input type="button" class="ie" value="排出" onclick="';
+    echo '<input type="button" class="ie" value="Eject" onclick="';
     echo 'var req = new XMLHttpRequest();';
     echo 'req.onreadystatechange = function(){';
     echo '  if(req.readyState == 4){';
@@ -249,13 +249,13 @@ function scsiOut() {
     echo '</table>';
 }
 
-// データ表示
+// Data display
 function dataOut($path, $hdType, $moType, $cdType) {
     $array_dir = array();
     $array_file1 = array();
     $array_file2 = array();
     $array_file3 = array();
-    // フォルダチェック
+    // Folder Check
     if($dir = opendir($path)) {
         while(($file = readdir($dir)) !== FALSE) {
             $file_path = $path.$file;
@@ -264,22 +264,25 @@ function dataOut($path, $hdType, $moType, $cdType) {
                    ($file === '..')) {
                     continue;
                 }
-                //ディレクトリを表示
+                //Show directory
                 if($file !== '.') {
                     $array_dir[] = $file;
                 }
             } else {
-                //ファイルを表示
+                //Show files
                 $path_data = pathinfo($file);
-                $ext = strtoupper($path_data['extension']);
-                if(in_array($ext, $hdType)) {
-                    $array_file1[] = $file;
-                }
-                if(in_array($ext, $moType)) {
-                    $array_file2[] = $file;
-                }
-                if(in_array($ext, $cdType)) {
-                    $array_file3[] = $file;
+                if(array_key_exists('extension',$path_data))
+                {
+                    $ext = strtoupper($path_data['extension']);
+                    if(in_array($ext, $hdType)) {
+                        $array_file1[] = $file;
+                    }
+                    if(in_array($ext, $moType)) {
+                        $array_file2[] = $file;
+                    }
+                    if(in_array($ext, $cdType)) {
+                        $array_file3[] = $file;
+                    }
                 }
             }
         }
@@ -292,10 +295,10 @@ function dataOut($path, $hdType, $moType, $cdType) {
 
         echo '<table id="table" border="0">';
         foreach ($array_dir as $file) {
-            //ディレクトリを表示
+            //Show directory
             echo '<tr>';
             echo '<td>';
-            echo '<input type="button" value="変更" onclick="';
+            echo '<input type="button" value="Change" onclick="';
             echo 'var req = new XMLHttpRequest();';
             echo 'req.onreadystatechange = function(){';
             echo '  if(req.readyState == 4){';
@@ -331,7 +334,7 @@ function dataOut($path, $hdType, $moType, $cdType) {
             echo '</td>';
 
             echo '<td>';
-            echo '<input type="button" class="mu" value="接続" onclick="';
+            echo '<input type="button" class="mu" value="Connect" onclick="';
             echo 'var req = new XMLHttpRequest();';
             echo 'req.onreadystatechange = function(){';
             echo '  if(req.readyState == 4){';
@@ -365,7 +368,7 @@ function dataOut($path, $hdType, $moType, $cdType) {
             echo '</td>';
 
             echo '<td>';
-            echo '<input type="button" class="mu" value="接続" onclick="';
+            echo '<input type="button" class="mu" value="Connect" onclick="';
             echo 'var req = new XMLHttpRequest();';
             echo 'req.onreadystatechange = function(){';
             echo '  if(req.readyState == 4){';
@@ -379,7 +382,7 @@ function dataOut($path, $hdType, $moType, $cdType) {
             echo '</td>';
 
             echo '<td>';
-            echo '<input type="button" class="ie" value="挿入" onclick="';
+            echo '<input type="button" class="ie" value="Insert" onclick="';
             echo 'var req = new XMLHttpRequest();';
             echo 'req.onreadystatechange = function(){';
             echo '  if(req.readyState == 4){';
@@ -413,7 +416,7 @@ function dataOut($path, $hdType, $moType, $cdType) {
             echo '</td>';
 
             echo '<td>';
-            echo '<input type="button" class="mu" value="接続" onclick="';
+            echo '<input type="button" class="mu" value="Connect" onclick="';
             echo 'var req = new XMLHttpRequest();';
             echo 'req.onreadystatechange = function(){';
             echo '  if(req.readyState == 4){';
@@ -427,7 +430,7 @@ function dataOut($path, $hdType, $moType, $cdType) {
             echo '</td>';
 
             echo '<td>';
-            echo '<input type="button" class="ie" value="挿入" onclick="';
+            echo '<input type="button" class="ie" value="Insert" onclick="';
             echo 'var req = new XMLHttpRequest();';
             echo 'req.onreadystatechange = function(){';
             echo '  if(req.readyState == 4){';
@@ -449,9 +452,9 @@ function dataOut($path, $hdType, $moType, $cdType) {
     }
 }
 
-// 起動/停止
+// Start / Stop
 function rascsiStartStop() {
-    // 起動
+    // Startup
     echo '<input type="button" value="起動" onclick="';
     echo 'var req = new XMLHttpRequest();';
     echo 'req.onreadystatechange = function(){';
@@ -463,7 +466,7 @@ function rascsiStartStop() {
     echo '};';
     echo 'req.open(\'GET\',\'index.php?start=0\',true);';
     echo 'req.send(null);"/>';
-    // 停止
+    // Stop
     echo '<input type="button" value="停止" onclick="';
     echo 'var req = new XMLHttpRequest();';
     echo 'req.onreadystatechange = function(){';
@@ -477,10 +480,10 @@ function rascsiStartStop() {
     echo 'req.send(null);"/>';
 }
 
-// 再起動/電源断
+// Reboot / Power down
 function raspiRebootShut() {
-    // 再起動
-    echo '<input type="button" value="再起動" onclick="';
+    // Reboot
+    echo '<input type="button" value="Reboot" onclick="';
     echo 'var req = new XMLHttpRequest();';
     echo 'req.onreadystatechange = function(){';
     echo '  if(req.readyState == 4){';
@@ -491,8 +494,8 @@ function raspiRebootShut() {
     echo '};';
     echo 'req.open(\'GET\',\'index.php?reboot=0\',true);';
     echo 'req.send(null);"/>';
-    // 電源断
-    echo '<input type="button" value="電源断" onclick="';
+    // Power Down
+    echo '<input type="button" value="Power off" onclick="';
     echo 'var req = new XMLHttpRequest();';
     echo 'req.onreadystatechange = function(){';
     echo '  if(req.readyState == 4){';
