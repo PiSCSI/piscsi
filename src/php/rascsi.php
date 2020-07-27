@@ -42,10 +42,10 @@
         <tr style="background-color: black;">
           <td style="background-color: black;"><a href=http://github.com/akuker/RASCSI><h1>RaSCSI - 68kmla Edition</h1></a></td>
 	  <td style="background-color: black;">
-<form action="/rascsi.php">
-    <input type="submit" value="Refresh"/>
-</form>
-</td>
+		<form action="/rascsi.php">
+		    <input type="submit" value="Refresh"/>
+		</form>
+	  </td>
 	</tr>
     </table>
 

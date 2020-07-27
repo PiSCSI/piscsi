@@ -7,6 +7,18 @@
 
 <!DOCTYPE html>
 <html>
+
+<script type="text/javascript">
+    window.onload = setupRefresh;
+ 
+    function setupRefresh() {
+      setTimeout("refreshPage();", 30000); // milliseconds
+    }
+    function refreshPage() {
+       window.location = location.href;
+    }
+</script>
+
 <?php 
 
 // Blatently copied from stack overflow:
@@ -21,13 +33,11 @@
 	    $text='Stopped';
     }
 
-    echo '<body style="background-color: green;">';
+    echo '<body style="background-color: '.$color.';">';
     echo '<table width="100%" height=100% style="position: absolute; top: 0; bottom: 0; left: 0; right: 0; background-color:'.$color.'">';
-    echo '<tr style:"height: 50%">';
-    echo '<td style="color: white; background-color: '.$color.'; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">'.$text.'</td>';
+    echo '<tr style:"height: 100%">';
+    echo '<td style="color: white; background-color: '.$color.'; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">'.$text.' '.date("h:i:sa").'</td>';
     echo '</tr>';
-    echo '<tr style:"height: 50%">';
-    echo '<td style="color: white; background-color: '.$color.'; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">'.date("h:i:sa").'</td></tr>';
     echo '</table>';
 ?>
    </body>
