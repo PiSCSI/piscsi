@@ -9,6 +9,41 @@
 <html>
     <head>
 
+<script>
+function compute(f) {
+	if (confirm("Are you sure?"))
+		alert("Yes");
+	else
+		alert("No");
+}
+
+function eject_image(id,file){
+	if(confirm("Not implemented yet.... would eject " + file + " from " + id))
+		window.location = 'eject.php';
+}
+function insert_image(id,file){
+	if(confirm("Not implemented yet.... would insert " + file + " into " + id))
+		alert("OK");
+}
+function add_device(id){
+	if(confirm("Not implemented yet.... would add device id: " + id))
+		alert("OK");
+}
+function remove_device(id){
+	if(confirm("Not implemented yet.... would remove device id: " + id))
+		alert("OK");
+}
+
+
+
+
+
+function delete_file(f){
+	if(confirm("Are you sure you want to delete "+f+"?"))
+		alert("OK");
+}
+
+</script>
         <style>h1{
             color:white;
             font-size:20px;
@@ -97,18 +132,17 @@ function current_rascsi_config() {
 		}
 		if(strpos($current_line, '| ID | UN') === 0){
 			continue;
-			echo 'Dont stop til you get enough';
 		}
 		$segments = explode("|", $current_line);
 
 		echo '         <tr>';
 		echo '             <form>';
-		echo '                 <td>'.$segments[1].'</td>';
-		echo '                 <td>'.$segments[3].'</td>';
-		echo '                 <td>'.$segments[4].'</td>';
+		echo '                 <td>'.trim($segments[1]).'</td>';
+		echo '                 <td>'.trim($segments[3]).'</td>';
+		echo '                 <td>'.trim($segments[4]).'</td>';
 		echo '                 <td>';
-		echo '                     <input type="button" value="Eject"/>';
-		echo '                     <input type="button" value="Disconnect">';
+		echo '                     <input type="button" value="Eject" onClick="eject_image(\''.trim($segments[1]).'\',\''.trim($segments[4]).'\')"/>';
+		echo '                     <input type="button" value="Disconnect" onClick="remove_device('.trim($segments[1]).')"/>';
 		echo '                 </td>';
 		echo '             </form>';
 		echo '         </tr>';
@@ -199,7 +233,7 @@ function file_category_from_file_name($value){
 	      </select>
 	   </td>
                <td style="border: none">
-                    <INPUT type="submit" value="Add">
+                    <INPUT type="submit" value="Add" onClick="add_device(1)"/>
                 </td>
 	</tr>
     </table>
@@ -209,6 +243,11 @@ function file_category_from_file_name($value){
 
 
     <br>
+
+<form>
+<input type=button value="asdf" onClick="compute(this.form)"><br>
+</form>
+
     <h2>Image File Management</h2>
     <table border="black">
         <tr>
@@ -245,7 +284,7 @@ function file_category_from_file_name($value){
         echo '        <td>'.file_category_from_file_name($file_name).'</td>';
         echo '       <td>'.mod_date_from_ls($this_file).'</td>';
         echo '       <td>';
-            echo '            <input type="button" value="Delete"/>';
+            echo '            <input type="button" value="Delete" onClick="delete_file(\''.$file_name.'\')" data-arg1="'.$file_name.'"/>';
             echo '            <input type="button" value="Copy to RAM Disk" disabled/>';
             echo '        </td>';
             echo '    </form>';
