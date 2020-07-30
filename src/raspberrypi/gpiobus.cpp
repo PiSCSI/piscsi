@@ -169,6 +169,7 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	// Open /dev/mem
 	fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (fd == -1) {
+        printf("Error: Unable to open /dev/mem. Are you running as root?\n");
 		return FALSE;
 	}
 
@@ -274,6 +275,7 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	PinConfig(PIN_DTD, GPIO_OUTPUT);
 
 	// Set the ENABLE signal
+	// This is used to show that the application is running
 	PinSetSignal(PIN_ENB, ENB_OFF);
 	PinConfig(PIN_ENB, GPIO_OUTPUT);
 
@@ -373,6 +375,7 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	MakeTable();
 
 	// Finally, enable ENABLE
+	// Show the user that this app is running
 	SetControl(PIN_ENB, ENB_ON);
 
 	return TRUE;

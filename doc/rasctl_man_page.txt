@@ -1,0 +1,73 @@
+!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
+!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating
+
+
+rascsi(1)                                      General Commands Manual                                     rascsi(1)
+
+NAME
+       rasctl - Sends management commands to the rascsi process
+
+SYNOPSIS
+       rasctl -l | -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]
+
+DESCRIPTION
+       rasctl Sends commands to the rascsi process to make configuration adjustments at runtime or to check the sta‐
+       tus of the devices.
+
+       Either the -i or -l option should be specified at one time. Not both.
+
+       You do NOT need root privileges to use rasctl.
+
+       Note: The command and type arguments are case insensitive. Only the first  letter  of  the  command/type  are
+       evaluated by the tool.
+
+OPTIONS
+       -l     List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
+
+       -i ID  ID is the SCSI ID that you want to control. (0-7)
+
+       -u UNIT
+              Unit  number  (0  or 1). This will default to 0. This option is only used when there are multiple SCSI
+              devices on a shared SCSI controller. (This is not common)
+
+       -c CMD Command is the operation being requested. options are:
+                 attach: attach disk
+                 detach: detach disk
+                 insert: insert media (Magneto-Optical and CD only)
+                 eject:  eject media  (Magneto-Optical and CD only)
+                 protect: Write protect the media (Magneto-Optical only)
+
+              When the command is omited, rasctl will default to the 'attach' command
+
+       -t TYPE
+              Specifies the type of disk. If this disagrees with the file extension of the specified image, the TYPE
+              argument is ignored. Available drive types are:
+                 hd: Hard disk (SCSI or SASI)
+                 mo: Magneto-Optical disk)
+                 cd: CD-ROM
+                 bridge: Bridge device (This is only applicable to the Sharp X68000)
+
+       -f FILE
+              Path to the disk image file. See the rascsi(1) man page for allowable file types.
+
+EXAMPLES
+       Show a listing of all of the SCSI devices and their current status
+          rasctl -l
+
+       Example output:
+          +----+----+------+-------------------------------------
+          | ID | UN | TYPE | DEVICE STATUS
+          +----+----+------+-------------------------------------
+          |  0 |  1 | SCHD | /home/pi/harddisk.hda
+          +----+----+------+-------------------------------------
+
+       Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with the contents of the file system image
+       "HDIIMAGE0.HDS".
+          rasctl -i 0 -f HDIIMAGE0.HDS
+
+SEE ALSO
+       rascsi(1)
+
+       Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>
+
+                                                                                                           rascsi(1)
