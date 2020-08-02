@@ -13,9 +13,9 @@
 	html_generate_header();
 
         if(isset($_GET['id'])){
-	   // If we're passed an ID, then we should eject that
+	   // If we're passed an ID, then we should disconnect that
            // device.
-	   $cmd = "rasctl -i ".$_GET['id']." -c eject";
+	   $cmd = "rasctl -i ".$_GET['id']." -c detach";
 	   $result = exec($cmd);
 	   echo '<br>';
 	   echo 'Ran command: <pre>'.$cmd.'</pre>';

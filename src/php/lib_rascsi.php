@@ -7,6 +7,7 @@
 
 <?php
 
+$FILE_PATH='/home/pi/images';
 
 function html_generate_header(){
 	echo '    <table width="100%" >';
@@ -15,14 +16,12 @@ function html_generate_header(){
 	echo '          <td style="background-color: black;">';
 	echo '                <form action="/rascsi.php">';
 	echo '                    <input type="submit" value="Refresh"/>';
+	echo '                    <p style="color:white">'.time().'</p>';
 	echo '                </form>';
 	echo '          </td>';
 	echo '        </tr>';
 	echo '    </table>';
-	echo 'Debug timestamp: ';
-	$t=time();
-	echo($t . "<br>");
-	echo(exec('whoami'));
+	//echo(exec('whoami'));
 }
 
 function html_generate_scsi_id_select_list(){
@@ -34,13 +33,41 @@ function html_generate_scsi_id_select_list(){
 }
 
 function html_generate_scsi_type_select_list(){
-	echo '<select>';
+	echo '<select name=type>';
 	$options = array("Hard Disk", "CD-ROM", "Zip Drive", "Ethernet Tap", "Filesystem Bridge");
 	foreach($options as $type){
 		echo '<option value="'.$type.'">'.$type.'</option>';
 	}
 	echo '</select>';
 }
+
+function html_generate_warning($message){
+	echo '    <table width="100%" >';
+	echo '        <tr style="background-color: red;">';
+	echo '          <td style="background-color: red;">';
+	echo '              <font size=+4>'.$message.'</font>';
+	echo '         </td>';
+	echo '        </tr>';
+	echo '    </table>';
+}
+
+function html_generate_success_message(){
+	echo '    <table width="100%" >';
+	echo '        <tr style="background-color: green;">';
+	echo '          <td style="background-color: green;">';
+	echo '              <font size=+2>Success!</font>';
+	echo '         </td>';
+	echo '        </tr>';
+	echo '    </table>';
+}
+
+function html_generate_ok_to_go_home(){
+	echo '   <form action="/rascsi.php">';
+	echo '       <input type="submit" value="OK"/>';
+	echo '   </form>';
+}
+
+
 function current_rascsi_config() {
 	$raw_output = shell_exec("/usr/local/bin/rasctl -l");
 	$rasctl_lines = explode(PHP_EOL, $raw_output);
@@ -98,7 +125,7 @@ function current_rascsi_config() {
                         echo '                 <td style="text-align:center">-</td>';
                         echo '                 <td>-</td>';
                         echo '                 <td>';
-                        echo '                     <input type="button" value="Connect New Device" onClick="attach_device('.$id.')"/>';
+                        echo '                     <input type="button" value="Connect New Device" onClick="add_device('.$id.')"/>';
                         echo '                 </td>';
 
                 }
@@ -109,7 +136,7 @@ function current_rascsi_config() {
 }
 function get_all_files()
 {
-	$raw_ls_output = shell_exec('ls --time-style="+\"%Y-%m-%d %H:%M:%S\"" -alh --quoting-style=c /home/pi/images/');
+	$raw_ls_output = shell_exec('ls --time-style="+\"%Y-%m-%d %H:%M:%S\"" -alh --quoting-style=c '.$GLOBALS['FILE_PATH']);
 	return $raw_ls_output;
 }
 
@@ -141,4 +168,25 @@ function file_category_from_file_name($value){
 	}
 	return "Unknown type: " . $value;
 }
+
+
+
+function type_string_to_rasctl_type($typestr){
+	if(strcasecmp($typestr,"Hard Disk") == 0){
+		return "hd";
+	}
+	if(strcasecmp($typestr,"CD-ROM") == 0){
+		return "cd";
+	}
+	if(strcasecmp($typestr,"Zip Drive") == 0){
+	}
+	if(strcasecmp($typestr,"Filesystem bridge") == 0){
+		return "bridge";
+	}
+	return "";
+}
+
+
+
+
 ?>

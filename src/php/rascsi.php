@@ -18,20 +18,23 @@ function compute(f) {
 }
 
 function eject_image(id,file){
-	if(confirm("Not implemented yet.... would eject " + file + " from " + id))
-		window.location = 'eject.php';
+        var url = "eject.php?id=" + encodeURIComponent(id) + "&file=" + encodeURIComponent(file);
+        window.location.href = url;
 }
 function insert_image(id,file){
 	if(confirm("Not implemented yet.... would insert " + file + " into " + id))
 		alert("OK");
 }
 function add_device(id){
-	if(confirm("Not implemented yet.... would add device id: " + id))
-		alert("OK");
+	var url = "add_device.php?id=" + encodeURIComponent(id);
+	window.location.href = url;
 }
 function remove_device(id){
-	if(confirm("Not implemented yet.... would remove device id: " + id))
-		alert("OK");
+	confirm_message = "Are you sure you want to disconnect ID " + id + "? This may cause unexpected behavior on the host computer if it is still running";
+	if(confirm(confirm_message)){
+		var url = "disconnect.php?id=" + encodeURIComponent(id);
+		window.location.href=url;
+	}
 }
 
 function delete_file(f){
@@ -69,61 +72,6 @@ function delete_file(f){
 ?>
 
 <br>
-<h2>Add New Device</h2>
-<form action=rascsi.php>
-    <table style="border: none">
-        <tr style="border: none">
-            <td style="border: none">SCSI ID:</td>
-            <td style="border: none">
-<?php
-	html_generate_scsi_id_select_list();
-?>
-            </td>
-            <td style="border: none">Device:</td>
-            <td style="border: none">
-<?php
-	html_generate_scsi_type_select_list();
-?>
-            </td>
-            <td style="border: none">File:</td>
-            <td style="border: none">
-		<select>
-<?php
-	$all_files = get_all_files();
-	foreach(explode(PHP_EOL, $all_files) as $this_file){
-		if(strpos($this_file, 'total') === 0){
-			continue;
-		}
-		$file_name = file_name_from_ls($this_file);
-		if(strlen($file_name) === 0){
-			continue;
-		}
-		// Ignore files that start with a .
-		if(strpos($file_name, '.') === 0){
-			continue;
-		}
-		
-		echo '<option value="'.$file_name.'">'.$file_name.'</option>';
-	}
-?>
-	      </select>
-	   </td>
-               <td style="border: none">
-                    <INPUT type="submit" value="Add" onClick="add_device(1)"/>
-                </td>
-	</tr>
-    </table>
-
-
-
-
-
-    <br>
-
-<form>
-<input type=button value="asdf" onClick="compute(this.form)"><br>
-</form>
-
     <h2>Image File Management</h2>
     <table border="black">
         <tr>
