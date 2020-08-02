@@ -34,10 +34,6 @@ function remove_device(id){
 		alert("OK");
 }
 
-
-
-
-
 function delete_file(f){
 	if(confirm("Are you sure you want to delete "+f+"?"))
 		alert("OK");
@@ -120,33 +116,56 @@ function current_rascsi_config() {
 	echo '             <td><b>Image File</b></td>';
 	echo '              <td><b>Actions</b></td>';
 	echo '          </tr>';
-	
-	foreach ($rasctl_lines as $current_line)
-	{
-		if(strlen($current_line) === 0){
-			continue;
-		}
-		if(strpos($current_line, '+----') === 0){
-			continue;
 
-		}
-		if(strpos($current_line, '| ID | UN') === 0){
-			continue;
-		}
-		$segments = explode("|", $current_line);
+        $scsi_ids = array();
 
-		echo '         <tr>';
-		echo '             <form>';
-		echo '                 <td>'.trim($segments[1]).'</td>';
-		echo '                 <td>'.trim($segments[3]).'</td>';
-		echo '                 <td>'.trim($segments[4]).'</td>';
-		echo '                 <td>';
-		echo '                     <input type="button" value="Eject" onClick="eject_image(\''.trim($segments[1]).'\',\''.trim($segments[4]).'\')"/>';
-		echo '                     <input type="button" value="Disconnect" onClick="remove_device('.trim($segments[1]).')"/>';
-		echo '                 </td>';
-		echo '             </form>';
-		echo '         </tr>';
+        foreach ($rasctl_lines as $current_line)
+        {
+                if(strlen($current_line) === 0){
+                        continue;
+                }
+                if(strpos($current_line, '+----') === 0){
+                        continue;
 
+                }
+                if(strpos($current_line, '| ID | UN') === 0){
+                        continue;
+                }
+                $segments = explode("|", $current_line);
+
+                $id_config = array();
+                $id_config['id'] = trim($segments[1]);
+                $id_config['type'] = trim($segments[3]);
+                $id_config['file'] = trim($segments[4]);
+
+                $scsi_ids[$id_config['id']] = $id_config;
+        }
+
+
+        foreach (range(0,7) as $id){
+                echo '         <tr>';
+                echo '             <form>';
+              echo '                 <td style="text-align:center">'.$id.'</td>';
+                if(isset($scsi_ids[$id]))
+                {
+                        echo '                 <td style="text-align:center">'.$scsi_ids[$id]['type'].'</td>';
+                        echo '                 <td>'.$scsi_ids[$id]['file'].'</td>';
+                        echo '                 <td>';
+                        echo '                     <input type="button" value="Eject" onClick="eject_image(\''.$id.'\',\''.$scsi_ids[$id]['file'].'\')"/>';
+                        echo '                     <input type="button" value="Disconnect" onClick="remove_device('.$id.')"/>';
+                        echo '                 </td>';
+                }
+                else
+                {
+                        echo '                 <td style="text-align:center">-</td>';
+                        echo '                 <td>-</td>';
+                        echo '                 <td>';
+                        echo '                     <input type="button" value="Connect New Device" onClick="attach_device('.$id.')"/>';
+                        echo '                 </td>';
+
+                }
+                echo '             </form>';
+                echo '         </tr>';
 	}
 	echo '</table>';
 }
