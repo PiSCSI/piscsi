@@ -1498,16 +1498,16 @@ L SamacSys_Parts:SN74LS245DW IC1
 U 1 1 5F2BE68A
 P 5200 3100
 F 0 "IC1" H 5700 3365 50  0000 C CNN
-F 1 "SN74LS245DW" H 5700 3274 50  0000 C CNN
+F 1 "SN74LS641-1DW" H 5700 3274 50  0000 C CNN
 F 2 "SOIC127P1030X265-20N" H 6050 3200 50  0001 L CNN
-F 3 "http://www.ti.com/lit/gpn/sn74ls245" H 6050 3100 50  0001 L CNN
+F 3 "https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW" H 6050 3100 50  0001 L CNN
 F 4 "Octal bus transceivers" H 6050 3000 50  0001 L CNN "Description"
 F 5 "2.65" H 6050 2900 50  0001 L CNN "Height"
-F 6 "595-SN74LS245DW" H 6050 2800 50  0001 L CNN "Mouser Part Number"
-F 7 "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/SN74LS245DW?qs=ZA235jQDfbpxKQZqDHbgmw%3D%3D" H 6050 2700 50  0001 L CNN "Mouser Price/Stock"
+F 6 "" H 6050 2800 50  0001 L CNN "Mouser Part Number"
+F 7 "" H 6050 2700 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Texas Instruments" H 6050 2600 50  0001 L CNN "Manufacturer_Name"
-F 9 "SN74LS245DW" H 6050 2500 50  0001 L CNN "Manufacturer_Part_Number"
-F 10 "C129580" H 5200 3100 50  0001 C CNN "LCSC"
+F 9 "SN74LS641-1DW" H 6050 2500 50  0001 L CNN "Manufacturer_Part_Number"
+F 10 "" H 5200 3100 50  0001 C CNN "LCSC"
 	1    5200 3100
 	-1   0    0    -1  
 $EndComp
@@ -1516,16 +1516,16 @@ L SamacSys_Parts:SN74LS245DW IC2
 U 1 1 5F2C1889
 P 5200 4700
 F 0 "IC2" H 5700 4965 50  0000 C CNN
-F 1 "SN74LS245DW" H 5700 4874 50  0000 C CNN
+F 1 "SN74LS641-1DW" H 5700 4874 50  0000 C CNN
 F 2 "SOIC127P1030X265-20N" H 6050 4800 50  0001 L CNN
-F 3 "http://www.ti.com/lit/gpn/sn74ls245" H 6050 4700 50  0001 L CNN
+F 3 "https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW" H 6050 4700 50  0001 L CNN
 F 4 "Octal bus transceivers" H 6050 4600 50  0001 L CNN "Description"
 F 5 "2.65" H 6050 4500 50  0001 L CNN "Height"
-F 6 "595-SN74LS245DW" H 6050 4400 50  0001 L CNN "Mouser Part Number"
-F 7 "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/SN74LS245DW?qs=ZA235jQDfbpxKQZqDHbgmw%3D%3D" H 6050 4300 50  0001 L CNN "Mouser Price/Stock"
+F 6 "" H 6050 4400 50  0001 L CNN "Mouser Part Number"
+F 7 "" H 6050 4300 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Texas Instruments" H 6050 4200 50  0001 L CNN "Manufacturer_Name"
-F 9 "SN74LS245DW" H 6050 4100 50  0001 L CNN "Manufacturer_Part_Number"
-F 10 "C129580" H 5200 4700 50  0001 C CNN "LCSC"
+F 9 "SN74LS641-1DW" H 6050 4100 50  0001 L CNN "Manufacturer_Part_Number"
+F 10 "" H 5200 4700 50  0001 C CNN "LCSC"
 	1    5200 4700
 	-1   0    0    -1  
 $EndComp
@@ -1534,16 +1534,16 @@ L SamacSys_Parts:SN74LS245DW IC3
 U 1 1 5F2C26E6
 P 6350 3100
 F 0 "IC3" H 6850 3365 50  0000 C CNN
-F 1 "SN74LS245DW" H 6850 3274 50  0000 C CNN
+F 1 "SN74LS641-1DW" H 6850 3274 50  0000 C CNN
 F 2 "SOIC127P1030X265-20N" H 7200 3200 50  0001 L CNN
-F 3 "http://www.ti.com/lit/gpn/sn74ls245" H 7200 3100 50  0001 L CNN
+F 3 "https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW" H 7200 3100 50  0001 L CNN
 F 4 "Octal bus transceivers" H 7200 3000 50  0001 L CNN "Description"
 F 5 "2.65" H 7200 2900 50  0001 L CNN "Height"
-F 6 "595-SN74LS245DW" H 7200 2800 50  0001 L CNN "Mouser Part Number"
-F 7 "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/SN74LS245DW?qs=ZA235jQDfbpxKQZqDHbgmw%3D%3D" H 7200 2700 50  0001 L CNN "Mouser Price/Stock"
+F 6 "" H 7200 2800 50  0001 L CNN "Mouser Part Number"
+F 7 "" H 7200 2700 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Texas Instruments" H 7200 2600 50  0001 L CNN "Manufacturer_Name"
-F 9 "SN74LS245DW" H 7200 2500 50  0001 L CNN "Manufacturer_Part_Number"
-F 10 "C129580" H 6350 3100 50  0001 C CNN "LCSC"
+F 9 "SN74LS641-1DW" H 7200 2500 50  0001 L CNN "Manufacturer_Part_Number"
+F 10 "" H 6350 3100 50  0001 C CNN "LCSC"
 	1    6350 3100
 	1    0    0    -1  
 $EndComp
@@ -1552,16 +1552,16 @@ L SamacSys_Parts:SN74LS245DW IC4
 U 1 1 5F2C314F
 P 6350 4700
 F 0 "IC4" H 6850 4965 50  0000 C CNN
-F 1 "SN74LS245DW" H 6850 4874 50  0000 C CNN
+F 1 "SN74LS641-1DW" H 6850 4874 50  0000 C CNN
 F 2 "SOIC127P1030X265-20N" H 7200 4800 50  0001 L CNN
-F 3 "http://www.ti.com/lit/gpn/sn74ls245" H 7200 4700 50  0001 L CNN
+F 3 "https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW" H 7200 4700 50  0001 L CNN
 F 4 "Octal bus transceivers" H 7200 4600 50  0001 L CNN "Description"
 F 5 "2.65" H 7200 4500 50  0001 L CNN "Height"
-F 6 "595-SN74LS245DW" H 7200 4400 50  0001 L CNN "Mouser Part Number"
-F 7 "https://www.mouser.co.uk/ProductDetail/Texas-Instruments/SN74LS245DW?qs=ZA235jQDfbpxKQZqDHbgmw%3D%3D" H 7200 4300 50  0001 L CNN "Mouser Price/Stock"
+F 6 "" H 7200 4400 50  0001 L CNN "Mouser Part Number"
+F 7 "" H 7200 4300 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Texas Instruments" H 7200 4200 50  0001 L CNN "Manufacturer_Name"
-F 9 "SN74LS245DW" H 7200 4100 50  0001 L CNN "Manufacturer_Part_Number"
-F 10 "C129580" H 6350 4700 50  0001 C CNN "LCSC"
+F 9 "SN74LS641-1DW" H 7200 4100 50  0001 L CNN "Manufacturer_Part_Number"
+F 10 "" H 6350 4700 50  0001 C CNN "LCSC"
 	1    6350 4700
 	1    0    0    -1  
 $EndComp
@@ -2829,7 +2829,7 @@ RaSCSI - 68kmla Edition
 Text Notes 9900 7890 0    79   ~ 16
 2.1a
 Text Notes 7450 7870 0    59   ~ 12
-02-Aug-2020
+03-Aug-2020
 Wire Wire Line
 	2850 6050 2950 6050
 Wire Wire Line
