@@ -337,7 +337,7 @@ F 2 "Diode_SMD:D_SOD-123" H 4300 1950 50  0001 C CNN
 F 3 "" H 4300 1950 50  0001 C CNN
 F 4 "C162734" H 4300 1950 50  0001 C CNN "LCSC"
 	1    4300 1950
-	-1   0    0    1   
+	1    0    0    -1  
 $EndComp
 $Comp
 L Device:Fuse_Small FUSE1
@@ -802,9 +802,9 @@ Change direction based upon PI-DTD
 Text Notes 3750 5850 1    50   ~ 0
 Change direction based upon PI-DTD
 Text Notes 7900 5600 1    50   ~ 0
-DIR = GND\nB is input, A is output
+Change direction based \nupon the IND signal
 Text Notes 7950 4200 1    50   ~ 0
-DIR = +5v\nA is input, B is output
+Change direction based \nupon the TAD signal
 Wire Notes Line
 	8300 4850 10200 4850
 Wire Notes Line
@@ -1165,34 +1165,34 @@ Mounting Holes
 $Comp
 L power:+5V #PWR012
 U 1 1 5F0B94FB
-P 2950 6250
-F 0 "#PWR012" H 2950 6100 50  0001 C CNN
-F 1 "+5V" V 2950 6450 50  0000 C CNN
-F 2 "" H 2950 6250 50  0001 C CNN
-F 3 "" H 2950 6250 50  0001 C CNN
-	1    2950 6250
+P 2850 6250
+F 0 "#PWR012" H 2850 6100 50  0001 C CNN
+F 1 "+5V" V 2850 6450 50  0000 C CNN
+F 2 "" H 2850 6250 50  0001 C CNN
+F 3 "" H 2850 6250 50  0001 C CNN
+	1    2850 6250
 	0    -1   -1   0   
 $EndComp
 $Comp
 L power:GND #PWR011
 U 1 1 5F0B9E0E
-P 2950 6150
-F 0 "#PWR011" H 2950 5900 50  0001 C CNN
-F 1 "GND" V 2950 5950 50  0000 C CNN
-F 2 "" H 2950 6150 50  0001 C CNN
-F 3 "" H 2950 6150 50  0001 C CNN
-	1    2950 6150
+P 2850 6150
+F 0 "#PWR011" H 2850 5900 50  0001 C CNN
+F 1 "GND" V 2850 5950 50  0000 C CNN
+F 2 "" H 2850 6150 50  0001 C CNN
+F 3 "" H 2850 6150 50  0001 C CNN
+	1    2850 6150
 	0    1    1    0   
 $EndComp
 $Comp
 L power:+3V3 #PWR010
 U 1 1 5F0BA39A
-P 2950 6050
-F 0 "#PWR010" H 2950 5900 50  0001 C CNN
-F 1 "+3V3" V 2950 6250 50  0000 C CNN
-F 2 "" H 2950 6050 50  0001 C CNN
-F 3 "" H 2950 6050 50  0001 C CNN
-	1    2950 6050
+P 2850 6050
+F 0 "#PWR010" H 2850 5900 50  0001 C CNN
+F 1 "+3V3" V 2850 6250 50  0000 C CNN
+F 2 "" H 2850 6050 50  0001 C CNN
+F 3 "" H 2850 6050 50  0001 C CNN
+	1    2850 6050
 	0    -1   -1   0   
 $EndComp
 Text GLabel 2750 3850 2    50   BiDi ~ 0
@@ -2829,5 +2829,11 @@ RaSCSI - 68kmla Edition
 Text Notes 9900 7890 0    79   ~ 16
 2.1
 Text Notes 7450 7870 0    59   ~ 12
-01-Aug-2020
+02-Aug-2020
+Wire Wire Line
+	2850 6050 2950 6050
+Wire Wire Line
+	2950 6150 2850 6150
+Wire Wire Line
+	2850 6250 2950 6250
 $EndSCHEMATC
