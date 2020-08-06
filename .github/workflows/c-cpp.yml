@@ -13,12 +13,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: change dir
-      run: cd ./src/raspberrypi
 #    - name: configure
 #      run: ./configure
     - name: make
       run: make all
+      working-directory: ./src/raspberrypi
 #    - name: make check
 #      run: make check
 #    - name: make distcheck
