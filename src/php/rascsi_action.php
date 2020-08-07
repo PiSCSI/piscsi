@@ -167,9 +167,11 @@ function action_stop_rascsi_service(){
 function action_reboot_raspberry_pi(){
 	// Check to see if the user has confirmed
 	if(isset($_POST['confirmed'])){
-		echo('<br>exec(sleep 2 && sudo reboot)');
-		// The unit should reboot at this point. Doesn't matter what we do now...
-      html_generate_ok_to_go_home();
+      $command = "sleep 2 && sudo reboot 2>&1";
+      exec($command, $retArray, $result);
+      // The unit should reboot at this point. Doesn't matter what we do now...
+      check_result($result, $command,$retArray);
+		html_generate_ok_to_go_home();
 	}
 	else{
 		check_are_you_sure("Are you sure you want to reboot the Raspberry Pi?");
@@ -179,8 +181,10 @@ function action_reboot_raspberry_pi(){
 function action_shutdown_raspberry_pi(){
 	// Check to see if the user has confirmed
 	if(isset($_POST['confirmed'])){
-		echo('<br>exec(sleep 2 && sudo shutdown -h now)');
-		// The unit should reboot at this point. Doesn't matter what we do now...
+      $command = "sleep 2 && sudo shutdown -h now 2>&1";
+      exec($command, $retArray, $result);
+      // The unit should shutdown at this point. Doesn't matter what we do now...
+      check_result($result, $command,$retArray);
 		html_generate_ok_to_go_home();
 	}
 	else{
