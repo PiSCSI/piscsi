@@ -8,7 +8,8 @@
 <html>
 
 <head>
-    <link rel="stylesheet" href="rascsi_styles.css">
+   <title>RaSCSI Main Control Page</title>
+   <link rel="stylesheet" href="rascsi_styles.css">
  </head>
 
 <body>
@@ -71,14 +72,14 @@
     <br>
     <br>
     <h2>Upload New Image File</h2>
-    <form>
+    <form action="rascsi_upload.php" method="post" enctype="multipart/form-data">
         <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
-                    <input type="file" id="filename" name="fname"><br><br>
+                    <input type="file" id="filename" name="file_name"><br><br>
                 </td>
                 <td style="border: none; vertical-align:top;">
-                    <input type="submit" value="Upload">
+                    <input type="submit" value="Upload" name="submit">
                 </td>
             </tr>
         </table>

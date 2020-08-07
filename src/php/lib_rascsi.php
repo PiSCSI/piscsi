@@ -6,7 +6,11 @@
 
 <?php
 
+$DEBUG_ENABLE=0;
 $FILE_PATH='/home/pi/images';
+// Limit the maximum upload file size to 1GB
+$MAX_UPLOAD_FILE_SIZE=1000000000;
+$ALLOWED_FILE_TYPES=array('iso','hda');
 
 function html_generate_header(){
 	echo '    <table width="100%" >'. PHP_EOL;
@@ -14,14 +18,36 @@ function html_generate_header(){
 	echo '          <td style="background-color: black;"><a href=http://github.com/akuker/RASCSI><h1>RaSCSI - 68kmla Edition</h1></a></td>'. PHP_EOL;
 	echo '          <td style="background-color: black;">'. PHP_EOL;
 	echo '                <form action="rascsi.php">'. PHP_EOL;
-	echo '                    <input type="submit" value="Go Home"/>'. PHP_EOL;
-	echo '                    <p style="color:white">'.time().'</p>'. PHP_EOL;
+   echo '                    <input type="submit" value="Go Home"/>'. PHP_EOL;
+   if($GLOBALS['DEBUG_ENABLE']){
+      echo '                    <p style="color:#595959">Debug Timestamp: '.time().'</p>'. PHP_EOL;
+   }
 	echo '                </form>'. PHP_EOL;
 	echo '          </td>'. PHP_EOL;
 	echo '        </tr>'. PHP_EOL;
 	echo '    </table>'. PHP_EOL;
 	//echo(exec('whoami'));
 }
+
+function html_generate_image_file_select_list(){
+   $all_files = get_all_files();
+   foreach(explode(PHP_EOL, $all_files) as $this_file){
+         if(strpos($this_file, 'total') === 0){
+               continue;
+         }
+         $file_name = file_name_from_ls($this_file);
+         if(strlen($file_name) === 0){
+               continue;
+         }
+         // Ignore files that start with a .
+         if(strpos($file_name, '.') === 0){
+               continue;
+         }
+
+         echo '<option value="'.$file_name.'">'.$file_name.'</option>'.PHP_EOL;
+   }
+}
+
 
 function html_generate_scsi_id_select_list(){
 	echo '<select>'. PHP_EOL;
@@ -44,19 +70,26 @@ function html_generate_warning($message){
 	echo '    <table width="100%" >'. PHP_EOL;
 	echo '        <tr style="background-color: red;">'. PHP_EOL;
 	echo '          <td style="background-color: red;">'. PHP_EOL;
-	echo '              <font size=+4>'.$message.'</font>'. PHP_EOL;
+	echo '              <font size=+2>'.$message.'</font>'. PHP_EOL;
 	echo '         </td>'. PHP_EOL;
 	echo '        </tr>'. PHP_EOL;
 	echo '    </table>'. PHP_EOL;
 }
 
-function html_generate_success_message(){
+function html_generate_success_message($message){
 	echo '    <table width="100%" >'. PHP_EOL;
 	echo '        <tr style="background-color: green;">'. PHP_EOL;
 	echo '          <td style="background-color: green;">'. PHP_EOL;
-	echo '              <font size=+2>Success!</font>'. PHP_EOL;
+   echo '              <font size=+2>Success</font>'. PHP_EOL;
 	echo '         </td>'. PHP_EOL;
-	echo '        </tr>'. PHP_EOL;
+   echo '        </tr>'. PHP_EOL;
+   if(strlen($message) > 0){
+      echo '        <tr style="background-color: green;">'. PHP_EOL;
+      echo '          <td style="background-color: green;">'. PHP_EOL;
+      echo '              '.$message.PHP_EOL;
+      echo '         </td>'. PHP_EOL;
+      echo '        </tr>'. PHP_EOL;
+   }
 	echo '    </table>'. PHP_EOL;
 }
 
@@ -77,8 +110,9 @@ function current_rascsi_config() {
 	echo '          <tr>'. PHP_EOL;
 	echo '              <td><b>SCSI ID</b></td>'. PHP_EOL;
 	echo ' 	             <td><b>Type</b></td>'. PHP_EOL;
-	echo '             <td><b>Image File</b></td>'. PHP_EOL;
-	echo '              <td><b>Actions</b></td>'. PHP_EOL;
+	echo '             <td><b>File</b></td>'. PHP_EOL;
+	echo '              <td><b>File Ops</b></td>'. PHP_EOL;
+	echo '              <td><b>Device Ops</b></td>'. PHP_EOL;
 	echo '          </tr>'. PHP_EOL;
 
         $scsi_ids = array();
@@ -107,35 +141,58 @@ function current_rascsi_config() {
 
 
         foreach (range(0,7) as $id){
-                echo '         <tr>'. PHP_EOL;
-              echo '                 <td style="text-align:center">'.$id.'</td>'. PHP_EOL;
-                if(isset($scsi_ids[$id]))
-                {
-                        echo '                 <td style="text-align:center">'.$scsi_ids[$id]['type'].'</td>'. PHP_EOL;
-                        echo '                 <td>'.$scsi_ids[$id]['file'].'</td>'. PHP_EOL;
-                        echo '                 <td>'. PHP_EOL;
-						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
-						echo '                 <input type="hidden" name="command" value="eject_disk" />'. PHP_EOL;
-						echo '                 <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
-						echo '                 <input type="hidden" name="file" value="'.$scsi_ids[$id]['file'].'" />'. PHP_EOL;
-						echo '                 <input type="submit" name="eject_disk" value="Eject" />'. PHP_EOL;
-						echo '                 </form>'. PHP_EOL;
-						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
-						echo '                 <input type="hidden" name="command" value="remove_device" />'. PHP_EOL;
-						echo '                 <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
-						echo '                 <input type="submit" name="remove_device" value="Disconnect" />'. PHP_EOL;
-						echo '                 </form>'. PHP_EOL;
-                        echo '                 </td>'. PHP_EOL;
+               echo '         <tr>'. PHP_EOL;
+               echo '                 <td style="text-align:center">'.$id.'</td>'. PHP_EOL;
+               if(isset($scsi_ids[$id]))
+               {
+                  echo '    <td style="text-align:center">'.$scsi_ids[$id]['type'].'</td>'. PHP_EOL;
+                  if(strtolower($scsi_ids[$id]['file']) == "no media"){
+                     echo '   <td>'.PHP_EOL;
+                     echo '      <form action="rascsi_action.php" method="post">'. PHP_EOL;
+                     echo '         <select name="file_name">'.PHP_EOL;
+                     echo '            <option value="None">None</option>'.PHP_EOL;
+                     html_generate_image_file_select_list();
+                     echo '         </select>'.PHP_EOL;
+                     echo '         <input type="hidden" name="command" value="insert_disk" />'. PHP_EOL;
+                     echo '         <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
+                     echo '         <input type="hidden" name="file" value="'.$scsi_ids[$id]['file'].'" />'. PHP_EOL;
+                     echo '   </td><td>'.PHP_EOL;
+                     echo '         <input type="submit" name="insert_disk" value="Insert" />'. PHP_EOL;
+                     echo '      </form>'. PHP_EOL;
+                     echo '   </td>'.PHP_EOL;
+                  }
+                  else{
+                     // rascsi inserts "WRITEPROTECT" for the read-only drives. We want to display that differently.
+                     echo '   <form action="rascsi_action.php" method="post">'. PHP_EOL;
+                     echo '      <td>'.str_replace('(WRITEPROTECT)', '', $scsi_ids[$id]['file']). PHP_EOL;
+                     echo '   </td><td>'.PHP_EOL;
+                     if(strtolower($scsi_ids[$id]['type']) == 'sccd'){
+                        echo '          <input type="hidden" name="command" value="eject_disk" />'. PHP_EOL;
+                        echo '          <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
+                        echo '          <input type="hidden" name="file" value="'.$scsi_ids[$id]['file'].'" />'. PHP_EOL;
+                        echo '          <input type="submit" name="eject_disk" value="Eject" />'. PHP_EOL;
+                     }
+                     echo '   </td>'.PHP_EOL;
+                     echo '      </form>'. PHP_EOL;
+                  }
+                  echo '    <td>'. PHP_EOL;
+                  echo '       <form action="rascsi_action.php" method="post">'. PHP_EOL;
+                  echo '          <input type="hidden" name="command" value="remove_device" />'. PHP_EOL;
+                  echo '          <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
+                  echo '          <input type="submit" name="remove_device" value="Disconnect" />'. PHP_EOL;
+						echo '      </form>'. PHP_EOL;
+                  echo '   </td>'. PHP_EOL;
                 }
                 else
                 {
-                        echo '                 <td style="text-align:center">-</td>'. PHP_EOL;
-                        echo '                 <td>-</td>'. PHP_EOL;
-                        echo '                 <td>'. PHP_EOL;
+                  echo '                 <td style="text-align:center">-</td>'. PHP_EOL;
+                  echo '                 <td>-</td>'. PHP_EOL;
+                  echo '                 <td></td>'. PHP_EOL;
+                  echo '                 <td>'. PHP_EOL;
 						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
 						echo '                 <input type="hidden" name="command" value="connect_new_device" />'. PHP_EOL;
 						echo '                 <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
-						echo '                 <input type="submit" name="connect_new_device" value="Connect New Device" />'. PHP_EOL;
+						echo '                 <input type="submit" name="connect_new_device" value="Connect New" />'. PHP_EOL;
 						echo '                 </form>'. PHP_EOL;
                         echo '                 </td>'. PHP_EOL;
 
