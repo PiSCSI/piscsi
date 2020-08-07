@@ -3,12 +3,13 @@
 <!--  Distributed under the BSD-3 Clause License -->
 <!DOCTYPE html>
 <html>
-    <head>
-  <link rel="stylesheet" href="rascsi_styles.css">
+
+<head>
+    <link rel="stylesheet" href="rascsi_styles.css">
 </head>
 
 <body>
-<?php
+    <?php
 	include 'lib_rascsi.php';
 	html_generate_header();
 
@@ -71,7 +72,7 @@
 //  } else if(isset($_GET['shutdown_raspberry_pi'])){
 // 	// Shut down the Raspberry Pi
 // 	echo "<h1>For now, shutdown is disabled....</h1>";
-// 		echo 'exec("sudo /sbin/shutdown -s -t 0");';
+// 		echo 'exec("sudo /sbin/shutdown -s -t 0");'.PHP_EOL;
 //  }
 
 
@@ -103,9 +104,9 @@
 	//    // Go do the actual action
 	//    if(strlen($type) > 0){
 	//    	$result = exec($cmd);
-	//    	echo '<br>';
-	//    	echo 'Ran command: <pre>'.$cmd.'</pre>';
-	//    	echo '<br>';
+	//    	echo '<br>'.PHP_EOL;
+	//    	echo 'Ran command: <pre>'.$cmd.'</pre>'.PHP_EOL;
+	//    	echo '<br>'.PHP_EOL;
 	//    }
 	//    // Check to see if the command succeeded
     //        if(strlen($result) > 0){
@@ -114,7 +115,7 @@
 	//    else {
 	// 	html_generate_success_message();
 	//    }
-	//    echo '<br>';
+	//    echo '<br>'.PHP_EOL;
 	//    html_generate_ok_to_go_home();
 	// }
 	// else {
@@ -126,7 +127,7 @@ function action_eject_disk(){}
 function action_remove_device(){
 	// Check to see if the user has confirmed 
 	if(isset($_POST['confirmed'])){
-		$command = 'rasctl -i '.$_POST['id'].' -c disconnect 2>&1';
+		$command = 'rasctl -i '.$_POST['id'].' -c disconnect 2>&1'.PHP_EOL;
 		echo '<br><br> Go execute...... '.$command.PHP_EOL;
 		// exec($command, $retArray, $result);
 		// check_result($result, $command,$retArray);
@@ -169,7 +170,7 @@ function action_stop_rascsi_service(){
 function action_reboot_raspberry_pi(){
 	// Check to see if the user has confirmed 
 	if(isset($_POST['confirmed'])){
-		echo('<br>exec(sudo reboot)');
+		echo('<br>exec(sleep 2 && sudo reboot)');
 		// The unit should reboot at this point. Doesn't matter what we do now...
 	}
 	else{
@@ -180,7 +181,7 @@ function action_reboot_raspberry_pi(){
 function action_shutdown_raspberry_pi(){
 	// Check to see if the user has confirmed 
 	if(isset($_POST['confirmed'])){
-		echo('<br>exec(sudo shutdown -h now)');
+		echo('<br>exec(sleep 2 && sudo shutdown -h now)');
 		// The unit should reboot at this point. Doesn't matter what we do now...
 		html_generate_ok_to_go_home();
 	}
@@ -210,7 +211,7 @@ function check_result($result,$command,$output){
 }
 
 function check_are_you_sure($prompt){
-	echo '<br><h2>'.$prompt.'</h2>';
+	echo '<br><h2>'.$prompt.'</h2>'.PHP_EOL;
 	echo '      <table style="border: none">'.PHP_EOL;
 	echo '      <tr style="border: none">'.PHP_EOL;
 	echo '      	<td style="border: none; vertical-align:top;">'.PHP_EOL;
@@ -231,24 +232,26 @@ function check_are_you_sure($prompt){
 	echo '</table>'.PHP_EOL;
 }
 
-function action_connect_new_device($id){
-	echo '<h2>Add New Device</h2>';
-	echo '<form action=add_device.php method="post">';
- 	echo '   <table style="border: none">';
- 	echo '       <tr style="border: none">';
- 	echo '           <td style="border: none">SCSI ID:</td>';
-	echo '           <td style="border: none">';
-	echo '           <input type="hidden" name=id value="'.$id.'"/>';
+function action_connect_new_device(){
+	$id = $_POST['id'];
+	echo '<h2>Add New Device</h2>'.PHP_EOL;
+	echo '<form action=rascsi_action.php method="post">'.PHP_EOL;
+	echo '   <input type="hidden" name="command" value="'.$_POST['command'].'"/>'.PHP_EOL;
+ 	echo '   <table style="border: none">'.PHP_EOL;
+ 	echo '       <tr style="border: none">'.PHP_EOL;
+ 	echo '           <td style="border: none">SCSI ID:</td>'.PHP_EOL;
+	echo '           <td style="border: none">'.PHP_EOL;
+	echo '           <input type="hidden" name=id value="'.$id.'"/>'.PHP_EOL;
 	echo $id;
- 	echo '           </td>';
- 	echo '           <td style="border: none">Device:</td>';
-	echo '           <td style="border: none">';
-        html_generate_scsi_type_select_list();
-  	echo '           </td>';
-  	echo '           <td style="border: none">File:</td>';
-  	echo '           <td style="border: none">';
-	echo '               <select name="file">';
-	echo '                  <option value="None">None</option>';
+ 	echo '           </td>'.PHP_EOL;
+ 	echo '           <td style="border: none">Device:</td>'.PHP_EOL;
+	echo '           <td style="border: none">'.PHP_EOL;
+	html_generate_scsi_type_select_list();
+  	echo '           </td>'.PHP_EOL;
+  	echo '           <td style="border: none">File:</td>'.PHP_EOL;
+  	echo '           <td style="border: none">'.PHP_EOL;
+	echo '               <select name="file">'.PHP_EOL;
+	echo '                  <option value="None">None</option>'.PHP_EOL;
         $all_files = get_all_files();
         foreach(explode(PHP_EOL, $all_files) as $this_file){
                 if(strpos($this_file, 'total') === 0){
@@ -263,17 +266,18 @@ function action_connect_new_device($id){
                         continue;
                 }
                 
-                echo '<option value="'.$file_name.'">'.$file_name.'</option>';
+                echo '<option value="'.$file_name.'">'.$file_name.'</option>'.PHP_EOL;
         }
-  	echo '             </select>';
-  	echo '          </td>';
-  	echo '          <td style="border: none">';
-  	echo '               <INPUT type="submit" value="Add"/>';
-  	echo '          </td>';
-  	echo '       </tr>';
-  	echo '   </table>';
+  	echo '             </select>'.PHP_EOL;
+  	echo '          </td>'.PHP_EOL;
+	echo '          <td style="border: none">'.PHP_EOL;
+  	echo '               <INPUT type="submit" value="Add"/>'.PHP_EOL;
+  	echo '          </td>'.PHP_EOL;
+  	echo '       </tr>'.PHP_EOL;
+  	echo '   </table>'.PHP_EOL;
 }
 ?>
 
-  </body>
+</body>
+
 </html>
