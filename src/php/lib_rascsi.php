@@ -6,7 +6,7 @@
 
 <?php
 
-$FILE_PATH='/home/pi/images'. PHP_EOL;
+$FILE_PATH='/home/pi/images';
 
 function html_generate_header(){
 	echo '    <table width="100%" >'. PHP_EOL;
@@ -14,7 +14,7 @@ function html_generate_header(){
 	echo '          <td style="background-color: black;"><a href=http://github.com/akuker/RASCSI><h1>RaSCSI - 68kmla Edition</h1></a></td>'. PHP_EOL;
 	echo '          <td style="background-color: black;">'. PHP_EOL;
 	echo '                <form action="rascsi.php">'. PHP_EOL;
-	echo '                    <input type="submit" value="Refresh"/>'. PHP_EOL;
+	echo '                    <input type="submit" value="Go Home"/>'. PHP_EOL;
 	echo '                    <p style="color:white">'.time().'</p>'. PHP_EOL;
 	echo '                </form>'. PHP_EOL;
 	echo '          </td>'. PHP_EOL;

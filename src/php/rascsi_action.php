@@ -13,15 +13,20 @@
 	include 'lib_rascsi.php';
 	html_generate_header();
 
-	echo "Post values......................".PHP_EOL;
-	echo '<br>'.PHP_EOL;
+	echo '<br>';
+	echo '<table>'.PHP_EOL;
+	echo '  <tr><td><p style="color:gray">Debug stuff</p></td></tr>'.PHP_EOL;
+	echo '  <tr><td>';
+	
+	echo '<p style="color:gray">Post values......................'.PHP_EOL;
+	echo '<br> '.PHP_EOL;
 	var_dump($_POST);
-	echo '<br>'.PHP_EOL;
-
+	echo '<br><br>Running command.... '.$_POST['command'].PHP_EOL;
+	echo '<br></p>'.PHP_EOL;
+	echo '</td></tr></table>';
 
 	if(isset($_POST['command']))
 	{
-		echo 'Running command.... '.$_POST['command'].'<br><br>'.PHP_EOL;
 		switch(strtolower($_POST['command'])){
 			case "eject_disk":
 				action_eject_disk();
@@ -139,15 +144,54 @@ function action_remove_device(){
 }
 // function action_connect_new_device(){}
 function action_insert_disk(){}
-function action_create_new_image(){}
+function action_create_new_image(){
+	// If we already know the size & filename, we can go create the image...
+	if(isset($_POST['size']) && isset($_POST['file_name'])){
+		$command = 'dd if=/dev/zero of='.$GLOBALS['FILE_PATH'].'/'.$_POST['file_name'].' bs=1M count='.$_POST['size'];
+		exec($command, $retArray, $result);
+		echo '<br><br>'.$command.'<br><br>';
+		check_result($result, $command, $retArray);
+		html_generate_ok_to_go_home();		
+	}
+	else{
+		echo '<h2>Create a new empty file</h2>'.PHP_EOL;
+		echo '<form action=rascsi_action.php method="post">'.PHP_EOL;
+		echo '   <input type="hidden" name="command" value="'.$_POST['command'].'"/>'.PHP_EOL;
+		echo '   <table style="border: none">'.PHP_EOL;
+		echo '       <tr style="border: none">'.PHP_EOL;
+		echo '           <td style="border: none">File Name:</td>'.PHP_EOL;
+		echo '           <td style="border: none">'.PHP_EOL;
+		echo '              <input type="text" name=file_name value="'.get_new_filename().'"/>'.PHP_EOL;
+		echo '           </td>'.PHP_EOL;
+		echo '           <td style="border: none">  Size:</td>'.PHP_EOL;
+		echo '           <td style="border: none">'.PHP_EOL;
+		echo '              <input type="number" name=size value="10""/>'.PHP_EOL;
+		echo '           </td>'.PHP_EOL;
+		echo '           <td style="border: none">MB</td>'.PHP_EOL;
+		echo '           <td style="border: none">'.PHP_EOL;
+		echo '              <input type="submit" name="create" value="Create New" />'.PHP_EOL;
+		echo '           </td>'.PHP_EOL;
+		echo '      </tr>'.PHP_EOL;
+		echo '   </table>'.PHP_EOL;
+		echo '</form>'.PHP_EOL;
+		echo '<br><i>Note: Creating a large file may take a long time!</i>'.PHP_EOL;
+		echo '<br><br>'.PHP_EOL;
+		echo '<form action="rascsi.php" method="post">'.PHP_EOL;
+		echo '   <input type="submit" name="cancel" value="Cancel" />'.PHP_EOL;
+		echo '</form>'.PHP_EOL;
+	}
+}
+
 function action_delete_file(){
 	// Check to see if the user has confirmed 
 	if(isset($_POST['confirmed'])){
-		echo '<br>exec(rm '.$_POST['file'].')'.PHP_EOL;
+		$command = 'rm '.$GLOBALS['FILE_PATH'].'/'.$_POST['file_name'];
+		exec($command, $retArray, $result);
+		check_result($result, $command, $retArray);
 		html_generate_ok_to_go_home();
 	}
 	else{
-		check_are_you_sure('Are you sure you want to PERMANENTLY delete '.$_POST['file'].'?');
+		check_are_you_sure('Are you sure you want to PERMANENTLY delete '.$_POST['file_name'].'?');
 	}
 }
 
@@ -197,17 +241,19 @@ function action_unknown_command(){
 
 function check_result($result,$command,$output){
 	if(!$result){
-		echo '<br><h2>Command succeeded!<h2>'.PHP_EOL;
+		echo '<br><h2>Command succeeded!</h2>'.PHP_EOL;
 	}
 	else{
 		echo '<br><h2>Command failed!</h2>'.PHP_EOL;
 	}
-	echo '<br><code>'.$command.'</code>'.PHP_EOL;
-	echo '<br>Output:<code>'.PHP_EOL;
-	foreach($output as $line){
-		echo '<br> Error message: '.$line.PHP_EOL;
+	echo '<br><code>'.$command.'</code><br>'.PHP_EOL;
+	if(count($output) > 0){
+		echo '<br>Output:<code>'.PHP_EOL;
+		foreach($output as $line){
+			echo '<br> Error message: '.$line.PHP_EOL;
+		}
+		echo '</code>'.PHP_EOL;
 	}
-	echo '</code>'.PHP_EOL;
 }
 
 function check_are_you_sure($prompt){
@@ -225,7 +271,7 @@ function check_are_you_sure($prompt){
 		echo '<input type="hidden" name="'.$key.'" value="'.$value.'"/>'.PHP_EOL;
 	}
 	echo '      		<input type="hidden" name="confirmed" value="yes" />'.PHP_EOL;
-	echo '      		<input type="submit" name="do_it" value="Do it!" />'.PHP_EOL;
+	echo '      		<input type="submit" name="do_it" value="Yes" />'.PHP_EOL;
 	echo '      	</form>'.PHP_EOL;
 	echo '      </td>'.PHP_EOL;
 	echo '   </tr>'.PHP_EOL;
@@ -276,6 +322,17 @@ function action_connect_new_device(){
   	echo '       </tr>'.PHP_EOL;
   	echo '   </table>'.PHP_EOL;
 }
+
+function get_new_filename(){
+	// Try to find a new file name that doesn't exist.
+	$i=1;
+	while(file_exists($GLOBALS['FILE_PATH'].'/'.'new_file'.$i.'.hda'))
+	{
+		$i = $i+1;
+	}
+	return 'new_file'.$i.'.hda';
+}
+
 ?>
 
 </body>
