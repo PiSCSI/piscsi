@@ -9,44 +9,7 @@
 
 <head>
     <link rel="stylesheet" href="rascsi_styles.css">
-    <script>
-    function compute(f) {
-        if (confirm("Are you sure?"))
-            alert("Yes");
-        else
-            alert("No");
-    }
-
-    function eject_image(id, file) {
-        var url = "eject.php?id=" + encodeURIComponent(id) + "&file=" + encodeURIComponent(file);
-        window.location.href = url;
-    }
-
-    function insert_image(id, file) {
-        if (confirm("Not implemented yet.... would insert " + file + " into " + id))
-            alert("OK");
-    }
-
-    function add_device(id) {
-        var url = "add_device.php?id=" + encodeURIComponent(id);
-        window.location.href = url;
-    }
-
-    function remove_device(id) {
-        confirm_message = "Are you sure you want to disconnect ID " + id +
-            "? This may cause unexpected behavior on the host computer if it is still running";
-        if (confirm(confirm_message)) {
-            var url = "disconnect.php?id=" + encodeURIComponent(id);
-            window.location.href = url;
-        }
-    }
-
-    function delete_file(f) {
-        if (confirm("Are you sure you want to delete " + f + "?"))
-            alert("OK");
-    }
-    </script>
-</head>
+ </head>
 
 <body>
 
@@ -86,19 +49,20 @@
 		}
 
 
-		echo '<tr>';
-        echo '    <form>';
-        echo '        <td>SD Card</td>';
-        echo '        <td>'.$file_name.'</td>';
-        echo '        <td>'.file_size_from_ls($this_file).'</td>';
-        echo '        <td>'.file_category_from_file_name($file_name).'</td>';
-        echo '       <td>'.mod_date_from_ls($this_file).'</td>';
-        echo '       <td>';
-        echo '            <input type="button" value="Delete" onClick="delete_file(\''.$file_name.'\')" data-arg1="'.$file_name.'"/>';
-        echo '            <input type="button" value="Copy to RAM Disk" disabled/>';
-        echo '        </td>';
-        echo '    </form>';
-        echo '</tr>';
+		echo '<tr>'.PHP_EOL;
+        echo '    <td>SD Card</td>'.PHP_EOL;
+        echo '    <td>'.$file_name.'</td>'.PHP_EOL;
+        echo '    <td>'.file_size_from_ls($this_file).'</td>'.PHP_EOL;
+        echo '    <td>'.file_category_from_file_name($file_name).'</td>'.PHP_EOL;
+        echo '    <td>'.mod_date_from_ls($this_file).'</td>'.PHP_EOL;
+        echo '    <td>'.PHP_EOL;
+        echo '       <form action="rascsi_action.php" method="post">'.PHP_EOL;
+        echo '            <input type="hidden" name="command" value="delete_file"/>'.PHP_EOL;
+        echo '            <input type="hidden" name="file_name" value="'.$file_name.'"/>'.PHP_EOL;
+        echo '            <input type="submit" value="Delete">'.PHP_EOL;
+        echo '       </form>'.PHP_EOL;
+        echo '    </td>'.PHP_EOL;
+        echo '</tr>'.PHP_EOL;
 	}
 ?>
     </table>

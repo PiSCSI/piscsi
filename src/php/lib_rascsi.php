@@ -6,15 +6,15 @@
 
 <?php
 
-$FILE_PATH='/home/pi/images'. PHP_EOL;
+$FILE_PATH='/home/pi/images';
 
 function html_generate_header(){
 	echo '    <table width="100%" >'. PHP_EOL;
 	echo '        <tr style="background-color: black;">'. PHP_EOL;
 	echo '          <td style="background-color: black;"><a href=http://github.com/akuker/RASCSI><h1>RaSCSI - 68kmla Edition</h1></a></td>'. PHP_EOL;
 	echo '          <td style="background-color: black;">'. PHP_EOL;
-	echo '                <form action="/rascsi.php">'. PHP_EOL;
-	echo '                    <input type="submit" value="Refresh"/>'. PHP_EOL;
+	echo '                <form action="rascsi.php">'. PHP_EOL;
+	echo '                    <input type="submit" value="Go Home"/>'. PHP_EOL;
 	echo '                    <p style="color:white">'.time().'</p>'. PHP_EOL;
 	echo '                </form>'. PHP_EOL;
 	echo '          </td>'. PHP_EOL;
@@ -61,7 +61,7 @@ function html_generate_success_message(){
 }
 
 function html_generate_ok_to_go_home(){
-	echo '   <form action="/rascsi.php">'. PHP_EOL;
+	echo '   <form action="rascsi.php">'. PHP_EOL;
 	echo '       <input type="submit" value="OK"/>'. PHP_EOL;
 	echo '   </form>'. PHP_EOL;
 }
@@ -115,10 +115,10 @@ function current_rascsi_config() {
                         echo '                 <td>'.$scsi_ids[$id]['file'].'</td>'. PHP_EOL;
                         echo '                 <td>'. PHP_EOL;
 						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
-						echo '                 <input type="hidden" name="command" value="eject" />'. PHP_EOL;
+						echo '                 <input type="hidden" name="command" value="eject_disk" />'. PHP_EOL;
 						echo '                 <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
 						echo '                 <input type="hidden" name="file" value="'.$scsi_ids[$id]['file'].'" />'. PHP_EOL;
-						echo '                 <input type="submit" name="eject" value="Eject" />'. PHP_EOL;
+						echo '                 <input type="submit" name="eject_disk" value="Eject" />'. PHP_EOL;
 						echo '                 </form>'. PHP_EOL;
 						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
 						echo '                 <input type="hidden" name="command" value="remove_device" />'. PHP_EOL;
@@ -133,9 +133,9 @@ function current_rascsi_config() {
                         echo '                 <td>-</td>'. PHP_EOL;
                         echo '                 <td>'. PHP_EOL;
 						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
-						echo '                 <input type="hidden" name="command" value="connect_new" />'. PHP_EOL;
+						echo '                 <input type="hidden" name="command" value="connect_new_device" />'. PHP_EOL;
 						echo '                 <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
-						echo '                 <input type="submit" name="connect_new" value="Connect New Device" />'. PHP_EOL;
+						echo '                 <input type="submit" name="connect_new_device" value="Connect New Device" />'. PHP_EOL;
 						echo '                 </form>'. PHP_EOL;
                         echo '                 </td>'. PHP_EOL;
 
