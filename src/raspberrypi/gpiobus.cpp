@@ -144,6 +144,10 @@ GPIOBUS::~GPIOBUS()
 //---------------------------------------------------------------------------
 BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 {
+#if defined(__x86_64__) || defined(__X86__)
+	// When we're running on x86, there is no hardware to talk to, so just return.
+	return true;
+#else
 	void *map;
 	int i;
 	int j;
@@ -379,6 +383,8 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	SetControl(PIN_ENB, ENB_ON);
 
 	return TRUE;
+#endif // ifdef __x86_64__ || __X86__
+
 }
 
 //---------------------------------------------------------------------------
@@ -388,6 +394,9 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::Cleanup()
 {
+#if defined(__x86_64__) || defined(__X86__)
+	return;
+#else
 	int i;
 	int pin;
 
@@ -419,6 +428,7 @@ void FASTCALL GPIOBUS::Cleanup()
 
 	// Set drive strength back to 8mA
 	DrvConfig(3);
+#endif // ifdef __x86_64__ || __X86__
 }
 
 //---------------------------------------------------------------------------
@@ -428,6 +438,9 @@ void FASTCALL GPIOBUS::Cleanup()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::Reset()
 {
+#if defined(__x86_64__) || defined(__X86__)
+	return;
+#else
 	int i;
 	int j;
 
@@ -506,6 +519,7 @@ void FASTCALL GPIOBUS::Reset()
 
 	// Initialize all signals
 	signals = 0;
+#endif // ifdef __x86_64__ || __X86__
 }
 
 //---------------------------------------------------------------------------
@@ -515,6 +529,9 @@ void FASTCALL GPIOBUS::Reset()
 //---------------------------------------------------------------------------
 DWORD FASTCALL GPIOBUS::Aquire()
 {
+#if defined(__x86_64__) || defined(__X86__)
+	return 0;
+#else
 	signals = *level;
 
 #if SIGNAL_CONTROL_MODE < 2
@@ -523,6 +540,7 @@ DWORD FASTCALL GPIOBUS::Aquire()
 #endif	// SIGNAL_CONTROL_MODE
 	
 	return signals;
+#endif // ifdef __x86_64__ || __X86__
 }
 
 //---------------------------------------------------------------------------
