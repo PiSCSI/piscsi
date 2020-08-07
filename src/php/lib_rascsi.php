@@ -1,4 +1,3 @@
-
 <!--  PHP source code for controlling the RaSCSI - 68kmla edition with a web interface. -->
 <!--  Copyright (c) 2020 akuker -->
 <!--  Distributed under the BSD-3 Clause License -->
@@ -7,64 +6,64 @@
 
 <?php
 
-$FILE_PATH='/home/pi/images';
+$FILE_PATH='/home/pi/images'. PHP_EOL;
 
 function html_generate_header(){
-	echo '    <table width="100%" >';
-	echo '        <tr style="background-color: black;">';
-	echo '          <td style="background-color: black;"><a href=http://github.com/akuker/RASCSI><h1>RaSCSI - 68kmla Edition</h1></a></td>';
-	echo '          <td style="background-color: black;">';
-	echo '                <form action="/rascsi.php">';
-	echo '                    <input type="submit" value="Refresh"/>';
-	echo '                    <p style="color:white">'.time().'</p>';
-	echo '                </form>';
-	echo '          </td>';
-	echo '        </tr>';
-	echo '    </table>';
+	echo '    <table width="100%" >'. PHP_EOL;
+	echo '        <tr style="background-color: black;">'. PHP_EOL;
+	echo '          <td style="background-color: black;"><a href=http://github.com/akuker/RASCSI><h1>RaSCSI - 68kmla Edition</h1></a></td>'. PHP_EOL;
+	echo '          <td style="background-color: black;">'. PHP_EOL;
+	echo '                <form action="/rascsi.php">'. PHP_EOL;
+	echo '                    <input type="submit" value="Refresh"/>'. PHP_EOL;
+	echo '                    <p style="color:white">'.time().'</p>'. PHP_EOL;
+	echo '                </form>'. PHP_EOL;
+	echo '          </td>'. PHP_EOL;
+	echo '        </tr>'. PHP_EOL;
+	echo '    </table>'. PHP_EOL;
 	//echo(exec('whoami'));
 }
 
 function html_generate_scsi_id_select_list(){
-	echo '<select>';
+	echo '<select>'. PHP_EOL;
 	foreach(range(0,7) as $id){
-		echo '<option value="'.$id.'">'.$id.'</option>';
+		echo '<option value="'.$id.'">'.$id.'</option>'. PHP_EOL;
 	}
-	echo '</select>';
+	echo '</select>'. PHP_EOL;
 }
 
 function html_generate_scsi_type_select_list(){
-	echo '<select name=type>';
+	echo '<select name=type>'. PHP_EOL;
 	$options = array("Hard Disk", "CD-ROM", "Zip Drive", "Ethernet Tap", "Filesystem Bridge");
 	foreach($options as $type){
-		echo '<option value="'.$type.'">'.$type.'</option>';
+		echo '<option value="'.$type.'">'.$type.'</option>'. PHP_EOL;
 	}
-	echo '</select>';
+	echo '</select>'. PHP_EOL;
 }
 
 function html_generate_warning($message){
-	echo '    <table width="100%" >';
-	echo '        <tr style="background-color: red;">';
-	echo '          <td style="background-color: red;">';
-	echo '              <font size=+4>'.$message.'</font>';
-	echo '         </td>';
-	echo '        </tr>';
-	echo '    </table>';
+	echo '    <table width="100%" >'. PHP_EOL;
+	echo '        <tr style="background-color: red;">'. PHP_EOL;
+	echo '          <td style="background-color: red;">'. PHP_EOL;
+	echo '              <font size=+4>'.$message.'</font>'. PHP_EOL;
+	echo '         </td>'. PHP_EOL;
+	echo '        </tr>'. PHP_EOL;
+	echo '    </table>'. PHP_EOL;
 }
 
 function html_generate_success_message(){
-	echo '    <table width="100%" >';
-	echo '        <tr style="background-color: green;">';
-	echo '          <td style="background-color: green;">';
-	echo '              <font size=+2>Success!</font>';
-	echo '         </td>';
-	echo '        </tr>';
-	echo '    </table>';
+	echo '    <table width="100%" >'. PHP_EOL;
+	echo '        <tr style="background-color: green;">'. PHP_EOL;
+	echo '          <td style="background-color: green;">'. PHP_EOL;
+	echo '              <font size=+2>Success!</font>'. PHP_EOL;
+	echo '         </td>'. PHP_EOL;
+	echo '        </tr>'. PHP_EOL;
+	echo '    </table>'. PHP_EOL;
 }
 
 function html_generate_ok_to_go_home(){
-	echo '   <form action="/rascsi.php">';
-	echo '       <input type="submit" value="OK"/>';
-	echo '   </form>';
+	echo '   <form action="/rascsi.php">'. PHP_EOL;
+	echo '       <input type="submit" value="OK"/>'. PHP_EOL;
+	echo '   </form>'. PHP_EOL;
 }
 
 
@@ -72,15 +71,15 @@ function current_rascsi_config() {
 	$raw_output = shell_exec("/usr/local/bin/rasctl -l");
 	$rasctl_lines = explode(PHP_EOL, $raw_output);
 
-	echo '      <br>';
-	echo '      <h2>Current RaSCSI Configuration</h2>';
-	echo '      <table border="black">';
-	echo '          <tr>';
-	echo '              <td><b>SCSI ID</b></td>';
-	echo ' 	             <td><b>Type</b></td>';
-	echo '             <td><b>Image File</b></td>';
-	echo '              <td><b>Actions</b></td>';
-	echo '          </tr>';
+	echo '      <br>'. PHP_EOL;
+	echo '      <h2>Current RaSCSI Configuration</h2>'. PHP_EOL;
+	echo '      <table border="black">'. PHP_EOL;
+	echo '          <tr>'. PHP_EOL;
+	echo '              <td><b>SCSI ID</b></td>'. PHP_EOL;
+	echo ' 	             <td><b>Type</b></td>'. PHP_EOL;
+	echo '             <td><b>Image File</b></td>'. PHP_EOL;
+	echo '              <td><b>Actions</b></td>'. PHP_EOL;
+	echo '          </tr>'. PHP_EOL;
 
         $scsi_ids = array();
 
@@ -108,31 +107,43 @@ function current_rascsi_config() {
 
 
         foreach (range(0,7) as $id){
-                echo '         <tr>';
-                echo '             <form>';
-              echo '                 <td style="text-align:center">'.$id.'</td>';
+                echo '         <tr>'. PHP_EOL;
+              echo '                 <td style="text-align:center">'.$id.'</td>'. PHP_EOL;
                 if(isset($scsi_ids[$id]))
                 {
-                        echo '                 <td style="text-align:center">'.$scsi_ids[$id]['type'].'</td>';
-                        echo '                 <td>'.$scsi_ids[$id]['file'].'</td>';
-                        echo '                 <td>';
-                        echo '                     <input type="button" value="Eject" onClick="eject_image(\''.$id.'\',\''.$scsi_ids[$id]['file'].'\')"/>';
-                        echo '                     <input type="button" value="Disconnect" onClick="remove_device('.$id.')"/>';
-                        echo '                 </td>';
+                        echo '                 <td style="text-align:center">'.$scsi_ids[$id]['type'].'</td>'. PHP_EOL;
+                        echo '                 <td>'.$scsi_ids[$id]['file'].'</td>'. PHP_EOL;
+                        echo '                 <td>'. PHP_EOL;
+						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
+						echo '                 <input type="hidden" name="command" value="eject" />'. PHP_EOL;
+						echo '                 <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
+						echo '                 <input type="hidden" name="file" value="'.$scsi_ids[$id]['file'].'" />'. PHP_EOL;
+						echo '                 <input type="submit" name="eject" value="Eject" />'. PHP_EOL;
+						echo '                 </form>'. PHP_EOL;
+						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
+						echo '                 <input type="hidden" name="command" value="remove_device" />'. PHP_EOL;
+						echo '                 <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
+						echo '                 <input type="submit" name="remove_device" value="Disconnect" />'. PHP_EOL;
+						echo '                 </form>'. PHP_EOL;
+                        echo '                 </td>'. PHP_EOL;
                 }
                 else
                 {
-                        echo '                 <td style="text-align:center">-</td>';
-                        echo '                 <td>-</td>';
-                        echo '                 <td>';
-                        echo '                     <input type="button" value="Connect New Device" onClick="add_device('.$id.')"/>';
-                        echo '                 </td>';
+                        echo '                 <td style="text-align:center">-</td>'. PHP_EOL;
+                        echo '                 <td>-</td>'. PHP_EOL;
+                        echo '                 <td>'. PHP_EOL;
+						echo '                 <form action="rascsi_action.php" method="post">'. PHP_EOL;
+						echo '                 <input type="hidden" name="command" value="connect_new" />'. PHP_EOL;
+						echo '                 <input type="hidden" name="id" value="'.$id.'" />'. PHP_EOL;
+						echo '                 <input type="submit" name="connect_new" value="Connect New Device" />'. PHP_EOL;
+						echo '                 </form>'. PHP_EOL;
+                        echo '                 </td>'. PHP_EOL;
 
                 }
-                echo '             </form>';
-                echo '         </tr>';
+                echo '             </form>'. PHP_EOL;
+                echo '         </tr>'. PHP_EOL;
 	}
-	echo '</table>';
+	echo '</table>'. PHP_EOL;
 }
 function get_all_files()
 {
