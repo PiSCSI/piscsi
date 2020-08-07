@@ -23,17 +23,14 @@ jobs:
 #    - name: make distcheck
 #      run: make distcheck
 
-  buildroot-image:
-    runs-on: ubuntu-latest
-    steps:
-      - name: git-fetch buildroot
-        run: git clone git://git.busybox.net/buildroot
-#      - uses: actions/checkout@v2
-#        with: 
-#          repository: 'git://git.busybox.net/buildroot'
-      - name: make defconfig
-        run: make raspberrypi4_defconfig
-        working-directory: ./buildroot
-      - name: make
-        run: make all
-        working-directory: ./buildroot
+#  buildroot-image:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: git-fetch buildroot
+#        run: git clone git://git.busybox.net/buildroot
+#      - name: make defconfig
+#        run: make raspberrypi4_defconfig
+#        working-directory: ./buildroot
+#      - name: make
+#        run: make all
+#        working-directory: ./buildroot
