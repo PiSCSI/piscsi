@@ -7,7 +7,7 @@ GIMONS' version of the RaSCSI is fantastic, but has some limitations. For me, th
 
 This project is a <b><i>fork</i></b> of GIMONS' RaSCSI project. As he releases updates, feel free to pull them into this fork. However, since the source code was translated to English, there are A LOT of differences if you try to compare them. This was forked from version 1.47 of GIMONS' project.
 
-Comparison
+# Comparison
 <table>
   <tr>
     <td> </td>
@@ -37,6 +37,9 @@ Comparison
   
 # What is 68kmla?
 68kmla is the <a href=https://wiki.68kmla.org/68kMLA:About>"Mac Liberation Army"</a>. Its a group of vintage Mac (and Apple) enthusiasts who talk about nerdy stuff on the forum. This development started as part of a <a href=https://68kmla.org/forums/index.php?app=forums&module=forums&controller=topic&id=30399>forum thread</a>. Stop by the forum and say Hi! (Seriously! We'd love to hear from you - what your rig is, etc)
+
+# Want more info?
+Read the <a href=https://github.com/akuker/RASCSI/wiki>wiki</a>!
 
 # Other random info
 A translated PDF of GIMON's website is avialable here:
