@@ -5,7 +5,7 @@ The original RaSCSI project was done by GIMONS in Japanese for the Sharp X68000 
 
 GIMONS' version of the RaSCSI is fantastic, but has some limitations. For me, the primary issue was that all of his code and documentation is in Japanese. Since I don't speak or read Japanese, that limits the amount I can contribute to the project.
 
-This project is a <b><i>fork</i></b> of GIMONS' RaSCSI project. As he releases updates, feel free to pull them into this fork. However, since the source code was translated to English, there are A LOT of differences if you try to compare them. This was forked from version 1.47 of GIMONS' project.
+This project is a ***fork*** of GIMONS' RaSCSI project. As he releases updates, feel free to pull them into this fork. However, since the source code was translated to English, there are A LOT of differences if you try to compare them. This was forked from version 1.47 of GIMONS' project.
 
 # Comparison
 <table>
@@ -13,33 +13,73 @@ This project is a <b><i>fork</i></b> of GIMONS' RaSCSI project. As he releases u
     <td> </td>
     <td><h2>GIMONS RaSCSI</h2></td>
     <td><h2>RaSCSI - 68kmla edition</h2></td>
+    <td><h2>SCSI2SD</h2></td>
   </tr>
   <tr>
     <td> </td>
     <td><a href=http://retropc.net/gimons/rascsi/>Homepage</a></td>
     <td><a href=https://github.com/akuker/RASCSI/wiki>Wiki</a><br>
       <a href=https://github.com/akuker/RASCSI>Github</a></td>
+    <td><a href="http://www.codesrc.com/mediawiki/index.php/SCSI2SD">Wiki</a></td>
   </tr>
   <tr>
     <td>Code & Documentation</td>
     <td>Japanese</td>
     <td>English</td>
+    <td>English</td>
   </tr>
   <tr>
-    <td>Primary hardware<br>target</td>
+    <td>Primary<br>target host</td>
     <td><a href=https://en.wikipedia.org/wiki/X68000>Sharp X68000</a></td>
     <td><a href=https://en.wikipedia.org/wiki/Timeline_of_Macintosh_models>1980's and 1990's<br>SCSI Macintosh PCs</a></td>
+    <td>General SCSI</td>
+  </tr> 
+  <tr>
+    <td>HD device</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>CD device</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>Floppy device</td>
+    <td>&#x274C;</td>
+    <td>&#x274C;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>Zip device</td>
+    <td>&#x274C;</td>
+    <td>&#x274C;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>MO device</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>Net device</td>
+    <td>&#x2705;</td>
+    <td>&#x274C;</td>
+    <td>&#x274C;</td>
   </tr>
 </table>
 
-# Who is XRayRobert?
-<a href=https://github.com/XReyRobert>XReyRobert</a> was the first one to check in the RaSCSI source code into <a href=https://github.com/XReyRobert/RASCSI>Github</a>. It appears that he isn't actively working on RaSCSI. Even though this repo shows as a fork from XReyRobert, this one is based on a newer version of RaSCSI and has a TON of updates. 
-  
+# Who is XReyRobert?
+[XReyRobert](https://github.com/XReyRobert) was the first one to check in the RaSCSI source code into [Github](https://github.com/XReyRobert/RASCSI). It appears that he isn't actively working on RaSCSI. Even though this repo shows as a fork from XReyRobert, this one is based on a newer version of RaSCSI and has a TON of updates.
+
 # What is 68kmla?
-68kmla is the <a href=https://wiki.68kmla.org/68kMLA:About>"Mac Liberation Army"</a>. Its a group of vintage Mac (and Apple) enthusiasts who talk about nerdy stuff on the forum. This development started as part of a <a href=https://68kmla.org/forums/index.php?app=forums&module=forums&controller=topic&id=30399>forum thread</a>. Stop by the forum and say Hi! (Seriously! We'd love to hear from you - what your rig is, etc)
+68kmla is the [“Mac Liberation Army”](https://wiki.68kmla.org/68kMLA:About). Its a group of vintage Mac (and Apple) enthusiasts who talk about nerdy stuff on the forum. This development started as part of a [forum thread](https://68kmla.org/forums/index.php?app=forums&module=forums&controller=topic&id=30399). Stop by the forum and say Hi! (Seriously! We'd love to hear from you - what your rig is, etc)
 
 # Want more info?
-Read the <a href=https://github.com/akuker/RASCSI/wiki>wiki</a>!
+Read the [wiki](https://github.com/akuker/RASCSI/wiki)!
 
 # Other random info
 A translated PDF of GIMON's website is avialable here:
