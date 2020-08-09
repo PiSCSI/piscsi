@@ -611,15 +611,12 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 //	Argument Parsing
 //
 //---------------------------------------------------------------------------
-BOOL ParseArgument(int argc, char* argv[])
-{
 #ifdef BAREMETAL
+BOOL ParseConfig(int argc, char* argv[])
+{
 	FRESULT fr;
 	FIL fp;
 	char line[512];
-#else
-	int i;
-#endif	// BAREMETAL
 	int id;
 	int un;
 	int type;
@@ -628,7 +625,6 @@ BOOL ParseArgument(int argc, char* argv[])
 	int len;
 	char *ext;
 
-#ifdef BAREMETAL
 	// Mount the SD card
 	fr = f_mount(&fatfs, "", 1);
 	if (fr != FR_OK) {
@@ -641,19 +637,10 @@ BOOL ParseArgument(int argc, char* argv[])
 	if (fr != FR_OK) {
 		return FALSE;
 	}
-#else
-	// If the ID and path are not specified, the processing is interrupted
-	if (argc < 3) {
-		return TRUE;
-	}
-	i = 1;
-	argc--;
-#endif	// BAREMETAL
 
 	// Start Decoding
 
 	while (TRUE) {
-#ifdef BAREMETAL
 		// Get one Line
 		memset(line, 0x00, sizeof(line));
 		if (f_gets(line, sizeof(line) -1, &fp) == NULL) {
@@ -669,16 +656,8 @@ BOOL ParseArgument(int argc, char* argv[])
 			line[len - 1] = '\0';
 			len--;
 		}
-#else
-		if (argc < 2) {
-			break;
-		}
-
-		argc -= 2;
-#endif	// BAREMETAL
 
 		// Get the ID and Path
-#ifdef BAREMETAL
 		argID = &line[0];
 		argPath = &line[4];
 		line[3] = '\0';
@@ -687,18 +666,6 @@ BOOL ParseArgument(int argc, char* argv[])
 		if (argID[0] == '\0' || argPath[0] == '\0') {
 			continue;
 		}
-#else
-		argID = argv[i++];
-		argPath = argv[i++];
-
-		// Check if the argument is invalid
-		if (argID[0] != '-') {
-			FPRT(stderr,
-				"Error : Invalid argument(-IDn or -HDn) [%s]\n", argID);
-			goto parse_error;
-		}
-		argID++;
-#endif	// BAREMETAL
 
 		if (strlen(argID) == 3 && xstrncasecmp(argID, "id", 2) == 0) {
 			// ID or ID Format
@@ -738,9 +705,7 @@ BOOL ParseArgument(int argc, char* argv[])
 				// The ID unit is good - create the id and unit number
 				id = ((argID[3] - '0') + 10) / UnitNum;
 				un = ((argID[3] - '0') + 10) % UnitNum;
-#ifdef BAREMETAL
 				argPath++;
-#endif	// BAREMETAL
 			} else {
 				FPRT(stderr,
 					"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
@@ -810,10 +775,8 @@ BOOL ParseArgument(int argc, char* argv[])
 		}
 	}
 
-#ifdef BAREMETAL
 	// Close the configuration file
 	f_close(&fp);
-#endif	// BAREMETAL
 
 	// Display the device list
 	ListDevice(stdout);
@@ -822,13 +785,166 @@ BOOL ParseArgument(int argc, char* argv[])
 
 parse_error:
 
-#ifdef BAREMETAL
 	// Close the configuration file
 	f_close(&fp);
-#endif	// BAREMETAL
 
 	return FALSE;
 }
+#else
+BOOL ParseArgument(int argc, char* argv[])
+{
+	int i;
+	int id;
+	int un;
+	int type;
+	char *argID;
+	char *argPath;
+	int len;
+	char *ext;
+
+	// If the ID and path are not specified, the processing is interrupted
+	if (argc < 3) {
+		return TRUE;
+	}
+	i = 1;
+	argc--;
+
+	// Start Decoding
+
+	while (TRUE) {
+		if (argc < 2) {
+			break;
+		}
+
+		argc -= 2;
+
+		// Get the ID and Path
+		argID = argv[i++];
+		argPath = argv[i++];
+
+		// Check if the argument is invalid
+		if (argID[0] != '-') {
+			FPRT(stderr,
+				"Error : Invalid argument(-IDn or -HDn) [%s]\n", argID);
+			goto parse_error;
+		}
+		argID++;
+
+		if (strlen(argID) == 3 && xstrncasecmp(argID, "id", 2) == 0) {
+			// ID or ID Format
+
+			// Check that the ID number is valid (0-7)
+			if (argID[2] < '0' || argID[2] > '7') {
+				FPRT(stderr,
+					"Error : Invalid argument(IDn n=0-7) [%c]\n", argID[2]);
+				goto parse_error;
+			}
+
+			// The ID unit is good
+            id = argID[2] - '0';
+			un = 0;
+		} else if (xstrncasecmp(argID, "hd", 2) == 0) {
+			// HD or HD format
+
+			if (strlen(argID) == 3) {
+				// Check that the HD number is valid (0-9)
+				if (argID[2] < '0' || argID[2] > '9') {
+					FPRT(stderr,
+						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
+					goto parse_error;
+				}
+
+				// ID was confirmed
+				id = (argID[2] - '0') / UnitNum;
+				un = (argID[2] - '0') % UnitNum;
+			} else if (strlen(argID) == 4) {
+				// Check that the HD number is valid (10-15)
+				if (argID[2] != '1' || argID[3] < '0' || argID[3] > '5') {
+					FPRT(stderr,
+						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
+					goto parse_error;
+				}
+
+				// The ID unit is good - create the id and unit number
+				id = ((argID[3] - '0') + 10) / UnitNum;
+				un = ((argID[3] - '0') + 10) % UnitNum;
+			} else {
+				FPRT(stderr,
+					"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
+				goto parse_error;
+			}
+		} else {
+			FPRT(stderr,
+				"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
+			goto parse_error;
+		}
+
+		// Skip if there is already an active device
+		if (disk[id * UnitNum + un] &&
+			!disk[id * UnitNum + un]->IsNULL()) {
+			continue;
+		}
+
+		// Initialize device type
+		type = -1;
+
+		// Check ethernet and host bridge
+		if (xstrcasecmp(argPath, "bridge") == 0) {
+			type = 4;
+		} else {
+			// Check the path length
+			len = strlen(argPath);
+			if (len < 5) {
+				FPRT(stderr,
+					"Error : Invalid argument(File path is short) [%s]\n",
+					argPath);
+				goto parse_error;
+			}
+
+			// Does the file have an extension?
+			if (argPath[len - 4] != '.') {
+				FPRT(stderr,
+					"Error : Invalid argument(No extension) [%s]\n", argPath);
+				goto parse_error;
+			}
+
+			// Figure out what the type is
+			ext = &argPath[len - 3];
+			if (xstrcasecmp(ext, "hdf") == 0 ||
+				xstrcasecmp(ext, "hds") == 0 ||
+				xstrcasecmp(ext, "hdn") == 0 ||
+				xstrcasecmp(ext, "hdi") == 0 || xstrcasecmp(ext, "nhd") == 0 ||
+				xstrcasecmp(ext, "hda") == 0) {
+				// HD(SASI/SCSI)
+				type = 0;
+			} else if (strcasecmp(ext, "mos") == 0) {
+				// MO
+				type = 2;
+			} else if (strcasecmp(ext, "iso") == 0) {
+				// CD
+				type = 3;
+			} else {
+				// Cannot determine the file type
+				FPRT(stderr,
+					"Error : Invalid argument(file type) [%s]\n", ext);
+				goto parse_error;
+			}
+		}
+
+		// Execute the command
+		if (!ProcessCmd(stderr, id, un, 0, type, argPath)) {
+			goto parse_error;
+		}
+	}
+
+	// Display the device list
+	ListDevice(stdout);
+	return TRUE;
+
+parse_error:
+	return FALSE;
+}
+#endif  // BAREMETAL
 
 #ifndef BAREMETAL
 //---------------------------------------------------------------------------
@@ -1011,13 +1127,19 @@ int main(int argc, char* argv[])
 #ifdef BAREMETAL
 	// BUSY assert (to hold the host side)
 	bus->SetBSY(TRUE);
-#endif
 
+	// Argument parsing
+	if (!ParseConfig(argc, argv)) {
+		ret = EINVAL;
+		goto err_exit;
+	}
+#else
 	// Argument parsing
 	if (!ParseArgument(argc, argv)) {
 		ret = EINVAL;
 		goto err_exit;
 	}
+#endif
 
 #ifdef BAREMETAL
 	// Release the busy signal
