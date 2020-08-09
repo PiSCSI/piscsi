@@ -13,22 +13,62 @@ This project is a ***fork*** of GIMONS' RaSCSI project. As he releases updates, 
     <td> </td>
     <td><h2>GIMONS RaSCSI</h2></td>
     <td><h2>RaSCSI - 68kmla edition</h2></td>
+    <td><h2>SCSI2SD</h2></td>
   </tr>
   <tr>
     <td> </td>
     <td><a href=http://retropc.net/gimons/rascsi/>Homepage</a></td>
     <td><a href=https://github.com/akuker/RASCSI/wiki>Wiki</a><br>
       <a href=https://github.com/akuker/RASCSI>Github</a></td>
+    <td><a href="http://www.codesrc.com/mediawiki/index.php/SCSI2SD">Wiki</a></td>
   </tr>
   <tr>
     <td>Code & Documentation</td>
     <td>Japanese</td>
     <td>English</td>
+    <td>English</td>
   </tr>
   <tr>
-    <td>Primary hardware<br>target</td>
+    <td>Primary<br>target host</td>
     <td><a href=https://en.wikipedia.org/wiki/X68000>Sharp X68000</a></td>
     <td><a href=https://en.wikipedia.org/wiki/Timeline_of_Macintosh_models>1980's and 1990's<br>SCSI Macintosh PCs</a></td>
+    <td>General SCSI</td>
+  </tr> 
+  <tr>
+    <td>HD device</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>CD device</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>Floppy device</td>
+    <td>&#x274C;</td>
+    <td>&#x274C;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>Zip device</td>
+    <td>&#x274C;</td>
+    <td>&#x274C;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>MO device</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+    <td>&#x2705;</td>
+  </tr>
+  <tr>
+    <td>Net device</td>
+    <td>&#x2705;</td>
+    <td>&#x274C;</td>
+    <td>&#x274C;</td>
   </tr>
 </table>
 
