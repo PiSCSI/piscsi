@@ -606,6 +606,13 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	return TRUE;
 }
 
+bool has_suffix(const char* string, const char* suffix) {
+	int string_len = strlen(string);
+	int suffix_len = strlen(suffix);
+	return (string_len >= suffix_len)
+		&& (xstrcasecmp(string + (string_len - suffix_len), suffix) == 0);
+}
+
 //---------------------------------------------------------------------------
 //
 //	Argument Parsing
@@ -791,158 +798,94 @@ parse_error:
 	return FALSE;
 }
 #else
-BOOL ParseArgument(int argc, char* argv[])
+bool ParseArgument(int argc, char* argv[])
 {
-	int i;
-	int id;
-	int un;
-	int type;
-	char *argID;
-	char *argPath;
-	int len;
-	char *ext;
+	int id = -1;
+	bool is_sasi = false;
+	int max_id = 7;
 
-	// If the ID and path are not specified, the processing is interrupted
-	if (argc < 3) {
-		return TRUE;
-	}
-	i = 1;
-	argc--;
+	int opt;
+	while ((opt = getopt(argc, argv, "-IiHhD:d:")) != -1) {
+		switch (opt) {
+			case 'I':
+			case 'i':
+				is_sasi = false;
+				max_id = 7;
+				id = -1;
+				continue;
 
-	// Start Decoding
+			case 'H':
+			case 'h':
+				is_sasi = true;
+				max_id = 15;
+				id = -1;
+				continue;
 
-	while (TRUE) {
-		if (argc < 2) {
-			break;
-		}
-
-		argc -= 2;
-
-		// Get the ID and Path
-		argID = argv[i++];
-		argPath = argv[i++];
-
-		// Check if the argument is invalid
-		if (argID[0] != '-') {
-			FPRT(stderr,
-				"Error : Invalid argument(-IDn or -HDn) [%s]\n", argID);
-			goto parse_error;
-		}
-		argID++;
-
-		if (strlen(argID) == 3 && xstrncasecmp(argID, "id", 2) == 0) {
-			// ID or ID Format
-
-			// Check that the ID number is valid (0-7)
-			if (argID[2] < '0' || argID[2] > '7') {
-				FPRT(stderr,
-					"Error : Invalid argument(IDn n=0-7) [%c]\n", argID[2]);
-				goto parse_error;
+			case 'D':
+			case 'd': {
+				char* end;
+				id = strtol(optarg, &end, 10);
+				if (*end || (id < 0) || (max_id < id)) {
+					fprintf(stderr, "%s: invalid %s (0-%d)\n",
+							optarg, is_sasi ? "HD" : "ID", max_id);
+					return false;
+				}
+				continue;
 			}
 
-			// The ID unit is good
-            id = argID[2] - '0';
-			un = 0;
-		} else if (xstrncasecmp(argID, "hd", 2) == 0) {
-			// HD or HD format
+			default:
+				return false;
 
-			if (strlen(argID) == 3) {
-				// Check that the HD number is valid (0-9)
-				if (argID[2] < '0' || argID[2] > '9') {
-					FPRT(stderr,
-						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
-					goto parse_error;
-				}
-
-				// ID was confirmed
-				id = (argID[2] - '0') / UnitNum;
-				un = (argID[2] - '0') % UnitNum;
-			} else if (strlen(argID) == 4) {
-				// Check that the HD number is valid (10-15)
-				if (argID[2] != '1' || argID[3] < '0' || argID[3] > '5') {
-					FPRT(stderr,
-						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
-					goto parse_error;
-				}
-
-				// The ID unit is good - create the id and unit number
-				id = ((argID[3] - '0') + 10) / UnitNum;
-				un = ((argID[3] - '0') + 10) % UnitNum;
-			} else {
-				FPRT(stderr,
-					"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
-				goto parse_error;
-			}
-		} else {
-			FPRT(stderr,
-				"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
-			goto parse_error;
+			case 1:
+				break;
 		}
 
-		// Skip if there is already an active device
-		if (disk[id * UnitNum + un] &&
-			!disk[id * UnitNum + un]->IsNULL()) {
-			continue;
+		if (id < 0) {
+			fprintf(stderr, "%s: ID not specified\n", optarg);
+			return false;
+		} else if (disk[id] && !disk[id]->IsNULL()) {
+			fprintf(stderr, "%d: duplicate ID\n", id);
+			return false;
 		}
 
-		// Initialize device type
-		type = -1;
-
-		// Check ethernet and host bridge
-		if (xstrcasecmp(argPath, "bridge") == 0) {
+		char* path = optarg;
+		int type = -1;
+		if (has_suffix(path, ".hdf")
+			|| has_suffix(path, ".hds")
+			|| has_suffix(path, ".hdn")
+			|| has_suffix(path, ".hdi")
+			|| has_suffix(path, ".hda")
+			|| has_suffix(path, ".nhd")) {
+			type = 0;
+		} else if (has_suffix(path, ".mos")) {
+			type = 2;
+		} else if (has_suffix(path, ".iso")) {
+			type = 3;
+		} else if (xstrcasecmp(path, "bridge") == 0) {
 			type = 4;
 		} else {
-			// Check the path length
-			len = strlen(argPath);
-			if (len < 5) {
-				FPRT(stderr,
-					"Error : Invalid argument(File path is short) [%s]\n",
-					argPath);
-				goto parse_error;
-			}
+			// Cannot determine the file type
+			fprintf(stderr,
+					"%s: unknown file extension\n", path);
+			return false;
+		}
 
-			// Does the file have an extension?
-			if (argPath[len - 4] != '.') {
-				FPRT(stderr,
-					"Error : Invalid argument(No extension) [%s]\n", argPath);
-				goto parse_error;
-			}
-
-			// Figure out what the type is
-			ext = &argPath[len - 3];
-			if (xstrcasecmp(ext, "hdf") == 0 ||
-				xstrcasecmp(ext, "hds") == 0 ||
-				xstrcasecmp(ext, "hdn") == 0 ||
-				xstrcasecmp(ext, "hdi") == 0 || xstrcasecmp(ext, "nhd") == 0 ||
-				xstrcasecmp(ext, "hda") == 0) {
-				// HD(SASI/SCSI)
-				type = 0;
-			} else if (strcasecmp(ext, "mos") == 0) {
-				// MO
-				type = 2;
-			} else if (strcasecmp(ext, "iso") == 0) {
-				// CD
-				type = 3;
-			} else {
-				// Cannot determine the file type
-				FPRT(stderr,
-					"Error : Invalid argument(file type) [%s]\n", ext);
-				goto parse_error;
-			}
+		int un = 0;
+		if (is_sasi) {
+			un = id % UnitNum;
+			id /= UnitNum;
 		}
 
 		// Execute the command
-		if (!ProcessCmd(stderr, id, un, 0, type, argPath)) {
-			goto parse_error;
+		if (!ProcessCmd(stderr, id, un, 0, type, path)) {
+			return false;
 		}
+		id = -1;
 	}
 
 	// Display the device list
 	ListDevice(stdout);
-	return TRUE;
-
-parse_error:
-	return FALSE;
+	return true;
 }
 #endif  // BAREMETAL
 
