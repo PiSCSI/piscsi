@@ -14,7 +14,17 @@
 #include "filepath.h"
 #include "fileio.h"
 #include "disk.h"
+#include "sasihd.h"
+#include "scsihd.h"
+#include "scsihd_apple.h"
+#include "scsihd_nec.h"
+#include "scsicd.h"
+#include "scsimo.h"
+#include "scsi_host_bridge.h"
+#include "scsidev_ctrl.h"
+#include "sasidev_ctrl.h"
 #include "gpiobus.h"
+
 
 //---------------------------------------------------------------------------
 //
