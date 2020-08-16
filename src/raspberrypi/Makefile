@@ -15,8 +15,8 @@ else
 	CXXFLAGS += -O3 -Wall -Werror
 	BUILD_TYPE = Release
 endif
-CFLAGS += -Idisks -Icontrollers -I.
-CXXFLAGS += -Idisks -Icontrollers -I. -std=c++14
+CFLAGS += -Idevices -Icontrollers -I.
+CXXFLAGS += -Idevices -Icontrollers -I. -std=c++14
 
 # If its not specified, build for STANDARD configuration
 CONNECT_TYPE ?= STANDARD
@@ -56,7 +56,7 @@ SRC_RASCSI = \
 #	rascsi_mgr.cpp
 #	command_thread.cpp
 SRC_RASCSI += $(notdir $(shell find ./controllers -name '*.cpp'))
-SRC_RASCSI += $(notdir $(shell find ./disks -name '*.cpp'))
+SRC_RASCSI += $(notdir $(shell find ./devices -name '*.cpp'))
 
 SRC_RASCTL = \
 	rasctl.cpp
@@ -76,8 +76,8 @@ SRC_SASIDUMP = \
 	filepath.cpp \
 	fileio.cpp
 
-vpath %.h ./ ./controllers ./disks
-vpath %.cpp ./ ./controllers ./disks
+vpath %.h ./ ./controllers ./devices
+vpath %.cpp ./ ./controllers ./devices
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
