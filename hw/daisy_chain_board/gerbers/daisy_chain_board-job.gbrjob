@@ -7,20 +7,20 @@
       "Application": "Pcbnew",
       "Version":     "(5.1.4)-1"
     },
-    "CreationDate":  "2020-08-19T12:06:51-05:00"
+    "CreationDate":  "2020-08-19T12:02:30-05:00"
   },
   "GeneralSpecs":
   {
     "ProjectId":
     {
-      "Name": "rascsi_2p2",
-      "GUID": "72617363-7369-45f3-9270-322e6b696361",
+      "Name": "daisy_chain_board",
+      "GUID": "64616973-795f-4636-9861-696e5f626f61",
       "Revision": "rev?"
     },
     "Size":
     {
       "X": 65.050,
-      "Y": 56.046
+      "Y": 21.248
     },
     "LayerNumber": 2,
     "BoardThickness":  1.600
@@ -40,37 +40,37 @@
   "FilesAttributes":
   [
     {
-      "Path":  "rascsi_2p2-Top.gbr",
+      "Path":  "daisy_chain_board-Top.gbr",
       "FileFunction":  "Copper,L1,Top",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "rascsi_2p2-Bottom.gbr",
+      "Path":  "daisy_chain_board-Bottom.gbr",
       "FileFunction":  "Copper,L2,Bot",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "rascsi_2p2-F_SilkS.gbr",
+      "Path":  "daisy_chain_board-F_SilkS.gbr",
       "FileFunction":  "Legend,Top",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "rascsi_2p2-B_SilkS.gbr",
+      "Path":  "daisy_chain_board-B_SilkS.gbr",
       "FileFunction":  "Legend,Bot",
       "FilePolarity":  "Positive"
     },
     {
-      "Path":  "rascsi_2p2-F_Mask.gbr",
+      "Path":  "daisy_chain_board-F_Mask.gbr",
       "FileFunction":  "SolderMask,Top",
       "FilePolarity":  "Negative"
     },
     {
-      "Path":  "rascsi_2p2-B_Mask.gbr",
+      "Path":  "daisy_chain_board-B_Mask.gbr",
       "FileFunction":  "SolderMask,Bot",
       "FilePolarity":  "Negative"
     },
     {
-      "Path":  "rascsi_2p2-Edge_Cuts.gbr",
+      "Path":  "daisy_chain_board-Edge_Cuts.gbr",
       "FileFunction":  "Profile",
       "FilePolarity":  "Positive"
     }
