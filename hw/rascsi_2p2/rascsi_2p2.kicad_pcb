@@ -11,14 +11,14 @@
 
   (page A4)
   (layers
-    (0 Top signal)
+    (0 Top signal hide)
     (31 Bottom signal hide)
     (32 B.Adhes user hide)
-    (33 F.Adhes user)
+    (33 F.Adhes user hide)
     (34 B.Paste user hide)
     (35 F.Paste user hide)
     (36 B.SilkS user)
-    (37 F.SilkS user)
+    (37 F.SilkS user hide)
     (38 B.Mask user hide)
     (39 F.Mask user hide)
     (40 Dwgs.User user hide)
@@ -34,7 +34,7 @@
   )
 
   (setup
-    (last_trace_width 0.15)
+    (last_trace_width 0.25)
     (user_trace_width 0.15)
     (user_trace_width 0.2)
     (user_trace_width 0.25)
@@ -93,7 +93,7 @@
       (mirror false)
       (drillshape 0)
       (scaleselection 1)
-      (outputdirectory "footprint"))
+      (outputdirectory "gerbers"))
   )
 
   (net 0 "")
@@ -5915,7 +5915,7 @@
   (gr_text "Special thanks to GIMONS and \nall of the contributors!" (at 206.756 60.706) (layer B.SilkS)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
-  (gr_text "Only use the DB-25 OR 50-pin ribbon connector.\nDO NOT USE BOTH (Unless you REALLY know what you're doing)" (at 205.105 75.692) (layer B.SilkS)
+  (gr_text "Only use the DB-25 OR 50-pin ribbon connector.\nDO NOT USE BOTH \n(Unless you REALLY know what you're doing)" (at 205.105 75.692) (layer B.SilkS)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
   (gr_line (start 202.1605 74.498) (end 202.1605 74.244) (layer F.SilkS) (width 0.12))
@@ -7507,7 +7507,7 @@
   (segment (start 180.116999 66.785037) (end 180.927001 67.595039) (width 0.2) (layer Bottom) (net 60))
   (segment (start 194.363117 57.345591) (end 182.913871 57.345591) (width 0.2) (layer Bottom) (net 60))
 
-  (zone (net 1) (net_name GND) (layer Bottom) (tstamp 5F3E06D1) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer Bottom) (tstamp 5F3E1F04) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
@@ -8530,7 +8530,7 @@
       )
     )
   )
-  (zone (net 1) (net_name GND) (layer Top) (tstamp 5F3E06CE) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer Top) (tstamp 5F3E1F01) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))

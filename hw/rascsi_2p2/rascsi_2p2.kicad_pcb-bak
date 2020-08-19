@@ -2,7 +2,7 @@
 
   (general
     (thickness 1.6)
-    (drawings 164)
+    (drawings 165)
     (tracks 1358)
     (zones 0)
     (modules 93)
@@ -12,9 +12,9 @@
   (page A4)
   (layers
     (0 Top signal hide)
-    (31 Bottom signal)
+    (31 Bottom signal hide)
     (32 B.Adhes user hide)
-    (33 F.Adhes user)
+    (33 F.Adhes user hide)
     (34 B.Paste user hide)
     (35 F.Paste user hide)
     (36 B.SilkS user)
@@ -34,7 +34,7 @@
   )
 
   (setup
-    (last_trace_width 0.15)
+    (last_trace_width 0.25)
     (user_trace_width 0.15)
     (user_trace_width 0.2)
     (user_trace_width 0.25)
@@ -5688,6 +5688,9 @@
     )
   )
 
+  (gr_text https://github.com/akuker/RASCSI (at 214.884 77.978) (layer F.SilkS) (tstamp 5F3E1567)
+    (effects (font (size 1 1) (thickness 0.15)))
+  )
   (gr_text "68kmla Version 2.2" (at 224.282 96.52) (layer Bottom) (tstamp 5F3E06E1)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
@@ -5881,7 +5884,7 @@
   (gr_text https://github.com/akuker/RASCSI (at 206.756 52.705) (layer B.SilkS) (tstamp 5F275932)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
-  (gr_text https://github.com/akuker/RASCSI (at 214.884 76.327) (layer F.SilkS)
+  (gr_text "FULLSPEC Board Version" (at 210.82 76.073) (layer F.SilkS)
     (effects (font (size 1 1) (thickness 0.15)))
   )
   (gr_line (start 201.6525 74.879) (end 201.6525 69.799) (layer F.SilkS) (width 0.12) (tstamp 5F275453))
@@ -5909,10 +5912,10 @@
   (gr_text "FULLSPEC Board Version - Works as Initiator or Target" (at 206.9592 56.2864) (layer B.SilkS)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
-  (gr_text "Special thanks to GIMONS and Francis Cap!" (at 206.0956 58.166) (layer B.SilkS)
+  (gr_text "Special thanks to GIMONS and \nall of the contributors!" (at 206.756 60.706) (layer B.SilkS)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
-  (gr_text "Only use the DB-25 OR 50-pin ribbon connector.\nDO NOT USE BOTH (Unless you REALLY know what you're doing)" (at 205.105 75.692) (layer B.SilkS)
+  (gr_text "Only use the DB-25 OR 50-pin ribbon connector.\nDO NOT USE BOTH \n(Unless you REALLY know what you're doing)" (at 205.105 75.692) (layer B.SilkS)
     (effects (font (size 1 1) (thickness 0.15)) (justify mirror))
   )
   (gr_line (start 202.1605 74.498) (end 202.1605 74.244) (layer F.SilkS) (width 0.12))
