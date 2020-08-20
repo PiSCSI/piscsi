@@ -2,7 +2,7 @@
 <export version="D">
   <design>
     <source>C:\Users\theto\Downloads\RASCSI-Rascsi_2p2\hw\rascsi_2p2\rascsi_2p2.sch</source>
-    <date>8/19/2020 8:39:51 PM</date>
+    <date>8/19/2020 9:05:28 PM</date>
     <tool>Eeschema (5.1.4)-1</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -956,6 +956,9 @@
       <value>USB_B_Micro</value>
       <footprint>SamacSys_Parts:U254051N4BH806</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C319170</field>
+      </fields>
       <libsource lib="SamacSys_Parts" part="U254-051N-4BH806" description="USB Connectors SMD RoHS"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F3EF01D</tstamp>

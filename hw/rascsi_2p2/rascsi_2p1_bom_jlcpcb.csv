@@ -16,7 +16,7 @@ Comment,Designator,Footprint,LCSC
 "Conn_02x03_Odd_Even","J5","Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical",""
 "L717SDB25PA4CH4F","J6","L717SDB25PA4CH4F",""
 "Conn_01x02_Male","J7","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical",""
-"USB_B_Micro","J8","SamacSys_Parts:U254051N4BH806",""
+"USB_B_Micro","J8","SamacSys_Parts:U254051N4BH806","C319170"
 "2k","R1,R2,R4","Resistor_SMD:R_0402_1005Metric","C4109"
 "10k","R5,R6,R7,R8,R9,R10,R11,R12,R13,R14,R15,R16,R17,R18,R19,R20,R21,R22","Resistor_SMD:R_0402_1005Metric","C25744"
 "5k","R3","Resistor_SMD:R_0402_1005Metric","C25905"
