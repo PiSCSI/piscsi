@@ -7267,7 +7267,7 @@
   (segment (start 203.386499 51.367499) (end 203.386499 58.775465) (width 0.15) (layer Bottom) (net 59))
   (segment (start 183.934386 58.676333) (end 183.934386 59.029886) (width 0.15) (layer Top) (net 59))
 
-  (zone (net 1) (net_name GND) (layer Bottom) (tstamp 5F3E1F04) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer Bottom) (tstamp 5F3EA25B) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
@@ -8204,7 +8204,7 @@
       )
     )
   )
-  (zone (net 1) (net_name GND) (layer Top) (tstamp 5F3E1F01) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer Top) (tstamp 5F3EA258) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
