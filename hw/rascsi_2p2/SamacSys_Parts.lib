@@ -146,4 +146,56 @@ X NO_2 4 1200 0 200 L 50 50 0 0 P
 ENDDRAW
 ENDDEF
 #
+#SamacSys ECAD Model 47346-0001
+#/233052/291242/2.47/5/4/Connector
+DEF 47346-0001 J 0 30 Y Y 1 F N
+F0 "J" 550 900 50 H V L CNN
+F1 "47346-0001" 550 800 50 H V L CNN
+F2 "47346-0001" 550 700 50 H I L CNN
+F3 "http://www.molex.com/pdm_docs/sd/473460001_sd.pdf" 550 600 50 H I L CNN
+F4 "Micro USB B Receptacle Bottom Mount Assy Molex Right Angle SMT Type B Version 2.0 Micro USB Connector Socket, 30 V ac, 1A 47352 MICRO-USB" 550 500 50 H I L CNN "Description"
+F5 "" 550 400 50 H I L CNN "Height"
+F6 "538-47346-0001" 550 300 50 H I L CNN "Mouser Part Number"
+F7 "https://www.mouser.co.uk/ProductDetail/Molex/47346-0001?qs=c2CV6XM0DweJBWaSeyWeCw%3D%3D" 550 200 50 H I L CNN "Mouser Price/Stock"
+F8 "Molex" 550 100 50 H I L CNN "Manufacturer_Name"
+F9 "47346-0001" 550 0 50 H I L CNN "Manufacturer_Part_Number"
+DRAW
+X VBUS 1 400 0 200 U 50 50 0 0 P
+X D- 2 300 0 200 U 50 50 0 0 P
+X D+ 3 200 0 200 U 50 50 0 0 P
+X ID 4 100 0 200 U 50 50 0 0 P
+X GND 5 0 0 200 U 50 50 0 0 P
+P 5 0 1 6 -100 700 500 700 500 200 -100 200 -100 700 N
+ENDDRAW
+ENDDEF
+#
+#SamacSys ECAD Model U254-051N-4BH806
+#/2414338/304666/2.47/9/4/Connector
+DEF U254-051N-4BH806 J 0 30 Y Y 1 F N
+F0 "J" 750 300 50 H V L CNN
+F1 "U254-051N-4BH806" 750 200 50 H V L CNN
+F2 "U254051N4BH806" 750 100 50 H I L CNN
+F3 "https://datasheet.lcsc.com/szlcsc/XKB-U254-051N-4BH806_C319170.pdf" 750 0 50 H I L CNN
+F4 "USB Connectors SMD RoHS" 750 -100 50 H I L CNN "Description"
+F5 "3" 750 -200 50 H I L CNN "Height"
+F6 "XKB Enterprise" 750 -300 50 H I L CNN "Manufacturer_Name"
+F7 "U254-051N-4BH806" 750 -400 50 H I L CNN "Manufacturer_Part_Number"
+F8 "U254-051N-4BH806" 750 -500 50 H I L CNN "Arrow Part Number"
+F9 "" 750 -600 50 H I L CNN "Arrow Price/Stock"
+F10 "" 750 -700 50 H I L CNN "Mouser Part Number"
+F11 "" 750 -800 50 H I L CNN "Mouser Price/Stock"
+DRAW
+X 1 1 0 0 200 R 50 50 0 0 P
+X 2 2 0 -100 200 R 50 50 0 0 P
+X 3 3 0 -200 200 R 50 50 0 0 P
+X 4 4 0 -300 200 R 50 50 0 0 P
+X 5 5 0 -400 200 R 50 50 0 0 P
+X MH1 MH1 900 0 200 L 50 50 0 0 P
+X MH2 MH2 900 -100 200 L 50 50 0 0 P
+X MH3 MH3 900 -200 200 L 50 50 0 0 P
+X MH4 MH4 900 -300 200 L 50 50 0 0 P
+P 5 0 1 6 200 100 700 100 700 -500 200 -500 200 100 N
+ENDDRAW
+ENDDEF
+#
 #End Library

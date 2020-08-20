@@ -20,4 +20,16 @@ D DIP Switches / SIP Switches HALF PITCH 2 POS
 F https://www.ckswitches.com/media/1328/tda.pdf
 $ENDCMP
 #
+$CMP 47346-0001
+D Micro USB B Receptacle Bottom Mount Assy Molex Right Angle SMT Type B Version 2.0 Micro USB Connector Socket, 30 V ac, 1A 47352 MICRO-USB
+K
+F http://www.molex.com/pdm_docs/sd/473460001_sd.pdf
+$ENDCMP
+#
+$CMP U254-051N-4BH806
+D USB Connectors SMD RoHS
+K
+F https://datasheet.lcsc.com/szlcsc/XKB-U254-051N-4BH806_C319170.pdf
+$ENDCMP
+#
 #End Doc Library
