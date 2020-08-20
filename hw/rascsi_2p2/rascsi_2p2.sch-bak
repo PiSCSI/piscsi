@@ -319,40 +319,28 @@ C-I_O
 $Comp
 L power:+5V #PWR021
 U 1 1 60874435
-P 4000 1350
-F 0 "#PWR021" H 4000 1200 50  0001 C CNN
-F 1 "+5V" H 4000 1500 50  0000 C CNN
-F 2 "" H 4000 1350 50  0001 C CNN
-F 3 "" H 4000 1350 50  0001 C CNN
-	1    4000 1350
+P 4000 1500
+F 0 "#PWR021" H 4000 1350 50  0001 C CNN
+F 1 "+5V" H 4000 1650 50  0000 C CNN
+F 2 "" H 4000 1500 50  0001 C CNN
+F 3 "" H 4000 1500 50  0001 C CNN
+	1    4000 1500
 	0    1    1    0   
-$EndComp
-$Comp
-L Device:D_Small D5
-U 1 1 60874AD6
-P 3850 1350
-F 0 "D5" H 3800 1450 59  0000 L BNN
-F 1 "1N4004" H 3650 1200 59  0000 L BNN
-F 2 "Diode_SMD:D_SOD-123" H 3850 1350 50  0001 C CNN
-F 3 "" H 3850 1350 50  0001 C CNN
-F 4 "C162734" H 3850 1350 50  0001 C CNN "LCSC"
-	1    3850 1350
-	1    0    0    -1  
 $EndComp
 $Comp
 L Device:Fuse_Small FUSE1
 U 1 1 60874FC5
-P 3550 1350
-F 0 "FUSE1" H 3450 1150 59  0000 L BNN
-F 1 "1A" H 3500 1250 59  0000 L BNN
-F 2 "Fuse:Fuse_1206_3216Metric" H 3550 1350 50  0001 C CNN
-F 3 "" H 3550 1350 50  0001 C CNN
-F 4 "C182974" H 3550 1350 50  0001 C CNN "LCSC"
-	1    3550 1350
+P 3550 1500
+F 0 "FUSE1" H 3450 1300 59  0000 L BNN
+F 1 "1A" H 3500 1400 59  0000 L BNN
+F 2 "Fuse:Fuse_1206_3216Metric" H 3550 1500 50  0001 C CNN
+F 3 "" H 3550 1500 50  0001 C CNN
+F 4 "C182974" H 3550 1500 50  0001 C CNN "LCSC"
+	1    3550 1500
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	4000 1350 3950 1350
+	4000 1500 3950 1500
 Text GLabel 6300 2250 2    50   BiDi ~ 0
 PI-D0
 Text GLabel 6300 2150 2    50   BiDi ~ 0
@@ -783,7 +771,7 @@ Wire Notes Line
 	8100 6400 8100 2650
 Wire Notes Line
 	8100 2650 3500 2650
-Text Notes 3000 1650 0    50   ~ 0
+Text Notes 3000 1750 0    50   ~ 0
 Terminating Resistor Power
 Text Notes 3550 6350 0    50   ~ 0
 SCSI Bus Transceivers
@@ -2591,7 +2579,7 @@ Wire Wire Line
 	7200 2150 7600 2150
 Wire Wire Line
 	8950 2150 8500 2150
-Text GLabel 3350 1350 0    50   BiDi ~ 0
+Text GLabel 3350 1500 0    50   BiDi ~ 0
 TERMPOW
 $Comp
 L Device:R_Small R3
@@ -2693,9 +2681,9 @@ Connection ~ 5800 2250
 Wire Wire Line
 	5750 2050 5800 2050
 Wire Wire Line
-	3750 1350 3650 1350
+	3750 1500 3650 1500
 Wire Wire Line
-	3450 1350 3350 1350
+	3450 1500 3350 1500
 $Comp
 L SamacSys_Parts:Logo X8
 U 1 1 5FB668EF
@@ -2745,13 +2733,13 @@ Text GLabel 2750 3550 2    50   BiDi ~ 0
 PI_GPIO0
 Text GLabel 2750 3650 2    50   BiDi ~ 0
 PI_GPIO1
-Text GLabel 3400 1950 0    50   BiDi ~ 0
-PI_GPIO0
 Text GLabel 3400 2050 0    50   BiDi ~ 0
+PI_GPIO0
+Text GLabel 3400 2150 0    50   BiDi ~ 0
 PI_GPIO1
 Text GLabel 2750 4750 2    50   BiDi ~ 0
 PI_GPIO9
-Text GLabel 3400 2150 0    50   BiDi ~ 0
+Text GLabel 3400 2250 0    50   BiDi ~ 0
 PI_GPIO9
 Connection ~ 1200 1700
 Wire Wire Line
@@ -2766,44 +2754,44 @@ Wire Wire Line
 $Comp
 L Connector_Generic:Conn_02x03_Odd_Even J5
 U 1 1 5F604F7F
-P 3700 2050
-F 0 "J5" H 3750 2367 50  0000 C CNN
-F 1 "Conn_02x03_Odd_Even" H 3750 2276 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 3700 2050 50  0001 C CNN
-F 3 "~" H 3700 2050 50  0001 C CNN
-	1    3700 2050
+P 3700 2150
+F 0 "J5" H 3750 2467 50  0000 C CNN
+F 1 "Conn_02x03_Odd_Even" H 3750 2376 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 3700 2150 50  0001 C CNN
+F 3 "~" H 3700 2150 50  0001 C CNN
+	1    3700 2150
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	3400 1950 3500 1950
 Wire Wire Line
 	3400 2050 3500 2050
 Wire Wire Line
 	3400 2150 3500 2150
+Wire Wire Line
+	3400 2250 3500 2250
 $Comp
 L power:GND #PWR022
 U 1 1 5F648FEB
-P 4150 2150
-F 0 "#PWR022" H 4150 1900 50  0001 C CNN
-F 1 "GND" H 4000 2100 50  0000 C CNN
-F 2 "" H 4150 2150 50  0001 C CNN
-F 3 "" H 4150 2150 50  0001 C CNN
-	1    4150 2150
+P 4150 2250
+F 0 "#PWR022" H 4150 2000 50  0001 C CNN
+F 1 "GND" H 4000 2200 50  0000 C CNN
+F 2 "" H 4150 2250 50  0001 C CNN
+F 3 "" H 4150 2250 50  0001 C CNN
+	1    4150 2250
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	4150 2150 4150 2050
+	4150 2250 4150 2150
 Wire Wire Line
-	4150 1950 4000 1950
-Wire Wire Line
-	4000 2050 4150 2050
-Connection ~ 4150 2050
-Wire Wire Line
-	4150 2050 4150 1950
+	4150 2050 4000 2050
 Wire Wire Line
 	4000 2150 4150 2150
 Connection ~ 4150 2150
-Text Notes 3100 2350 0    50   ~ 0
+Wire Wire Line
+	4150 2150 4150 2050
+Wire Wire Line
+	4000 2250 4150 2250
+Connection ~ 4150 2250
+Text Notes 3100 2400 0    50   ~ 0
 Aux LED Connectors
 $Comp
 L Connector:Conn_01x02_Male J7
@@ -2906,4 +2894,18 @@ Wire Wire Line
 	4350 1900 4350 1950
 Wire Wire Line
 	5250 1800 5250 1950
+$Comp
+L Device:D_Small D5
+U 1 1 60874AD6
+P 3850 1500
+F 0 "D5" H 3800 1550 59  0000 L BNN
+F 1 "SM4007PL" H 3700 1650 59  0000 L BNN
+F 2 "Diode_SMD:D_SOD-123F" H 3850 1500 50  0001 C CNN
+F 3 "" H 3850 1500 50  0001 C CNN
+F 4 "C64898" H 3850 1500 50  0001 C CNN "LCSC"
+	1    3850 1500
+	1    0    0    -1  
+$EndComp
+Text Notes 2950 1300 0    39   ~ 0
+NOTE: This diode was originally a 1N4004, \nhowever JLCPCB has a higher rated diode \nfor a lower price
 $EndSCHEMATC
