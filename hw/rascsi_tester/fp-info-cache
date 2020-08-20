@@ -1,0 +1,498 @@
+111146949148536
+LED_SMD
+LED-APA102-2020
+http://www.led-color.com/upload/201604/APA102-2020%20SMD%20LED.pdf
+LED RGB SPI
+0
+8
+6
+LED_SMD
+LED-L1T2_LUMILEDS
+http://www.lumileds.com/uploads/438/DS133-pdf
+LUMILEDS LUXEON TX L1T2 LED
+0
+3
+3
+LED_SMD
+LED_1W_3W_R8
+https://www.gme.cz/data/attachments/dsh.518-234.1.pdf
+LED 1W 3W 5W
+0
+3
+3
+LED_SMD
+LED_0201_0603Metric
+LED SMD 0201 (0603 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: https://www.vishay.com/docs/20052/crcw0201e3.pdf), generated with kicad-footprint-generator
+LED
+0
+4
+2
+LED_SMD
+LED_0402_1005Metric
+LED SMD 0402 (1005 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED
+0
+2
+2
+LED_SMD
+LED_0603_1608Metric
+LED SMD 0603 (1608 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_0603_1608Metric_Castellated
+LED SMD 0603 (1608 Metric), castellated end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_0603_1608Metric_Pad1.05x0.95mm_HandSolder
+LED SMD 0603 (1608 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_0805_2012Metric
+LED SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: https://docs.google.com/spreadsheets/d/1BsfQQcO9C6DZCsRaXUlFlo91Tg2WpOkGARC1WS5S8t0/edit?usp=sharing), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_0805_2012Metric_Castellated
+LED SMD 0805 (2012 Metric), castellated end terminal, IPC_7351 nominal, (Body size source: https://docs.google.com/spreadsheets/d/1BsfQQcO9C6DZCsRaXUlFlo91Tg2WpOkGARC1WS5S8t0/edit?usp=sharing), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_0805_2012Metric_Pad1.15x1.40mm_HandSolder
+LED SMD 0805 (2012 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: https://docs.google.com/spreadsheets/d/1BsfQQcO9C6DZCsRaXUlFlo91Tg2WpOkGARC1WS5S8t0/edit?usp=sharing), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_01005_0402Metric
+LED SMD 01005 (0402 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.vishay.com/docs/20056/crcw01005e3.pdf), generated with kicad-footprint-generator
+LED
+0
+4
+2
+LED_SMD
+LED_1206_3216Metric
+LED SMD 1206 (3216 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_1206_3216Metric_Castellated
+LED SMD 1206 (3216 Metric), castellated end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_1206_3216Metric_Pad1.42x1.75mm_HandSolder
+LED SMD 1206 (3216 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_1206_3216Metric_ReverseMount_Hole1.8x2.4mm
+LED SMD 1206 (3216 Metric), reverse mount, square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+diode reverse
+0
+2
+2
+LED_SMD
+LED_1210_3225Metric
+LED SMD 1210 (3225 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_1210_3225Metric_Castellated
+LED SMD 1210 (3225 Metric), castellated end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_1210_3225Metric_Pad1.42x2.65mm_HandSolder
+LED SMD 1210 (3225 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_1806_4516Metric
+LED SMD 1806 (4516 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: https://www.modelithics.com/models/Vendor/MuRata/BLM41P.pdf), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_1806_4516Metric_Castellated
+LED SMD 1806 (4516 Metric), castellated end terminal, IPC_7351 nominal, (Body size source: https://www.modelithics.com/models/Vendor/MuRata/BLM41P.pdf), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_1806_4516Metric_Pad1.57x1.80mm_HandSolder
+LED SMD 1806 (4516 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: https://www.modelithics.com/models/Vendor/MuRata/BLM41P.pdf), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_1812_4532Metric
+LED SMD 1812 (4532 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: https://www.nikhef.nl/pub/departments/mt/projects/detectorR_D/dtddice/ERJ2G.pdf), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_1812_4532Metric_Castellated
+LED SMD 1812 (4532 Metric), castellated end terminal, IPC_7351 nominal, (Body size source: https://www.nikhef.nl/pub/departments/mt/projects/detectorR_D/dtddice/ERJ2G.pdf), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_1812_4532Metric_Pad1.30x3.40mm_HandSolder
+LED SMD 1812 (4532 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: https://www.nikhef.nl/pub/departments/mt/projects/detectorR_D/dtddice/ERJ2G.pdf), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_2010_5025Metric
+LED SMD 2010 (5025 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_2010_5025Metric_Castellated
+LED SMD 2010 (5025 Metric), castellated end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_2010_5025Metric_Pad1.52x2.65mm_HandSolder
+LED SMD 2010 (5025 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_2512_6332Metric
+LED SMD 2512 (6332 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_2512_6332Metric_Castellated
+LED SMD 2512 (6332 Metric), castellated end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_2512_6332Metric_Pad1.52x3.35mm_HandSolder
+LED SMD 2512 (6332 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size source: http://www.tortai-tech.com/upload/download/2011102023233369053.pdf), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_2816_7142Metric
+LED SMD 2816 (7142 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size from: https://www.vishay.com/docs/30100/wsl.pdf), generated with kicad-footprint-generator
+diode
+0
+2
+2
+LED_SMD
+LED_2816_7142Metric_Castellated
+LED SMD 2816 (7142 Metric), castellated end terminal, IPC_7351 nominal, (Body size from: https://www.vishay.com/docs/30100/wsl.pdf), generated with kicad-footprint-generator
+LED castellated
+0
+2
+2
+LED_SMD
+LED_2816_7142Metric_Pad3.20x4.45mm_HandSolder
+LED SMD 2816 (7142 Metric), square (rectangular) end terminal, IPC_7351 nominal, (Body size from: https://www.vishay.com/docs/30100/wsl.pdf), generated with kicad-footprint-generator
+LED handsolder
+0
+2
+2
+LED_SMD
+LED_Avago_PLCC4_3.2x2.8mm_CW
+https://docs.broadcom.com/docs/AV02-4186EN
+LED Avago PLCC-4 ASMB-MTB0-0A3A2
+0
+4
+4
+LED_SMD
+LED_Avago_PLCC6_3x2.8mm
+https://docs.broadcom.com/docs/AV02-3793EN
+LED Avago PLCC-6 ASMT-YTB7-0AA02
+0
+6
+6
+LED_SMD
+LED_Cree-PLCC4_2x2mm_CW
+2.0mm x 2.0mm PLCC4 LED, http://www.cree.com/~/media/Files/Cree/LED-Components-and-Modules/HB/Data-Sheets/CLMVBFKA.pdf
+LED Cree PLCC-4
+0
+4
+4
+LED_SMD
+LED_Cree-PLCC4_3.2x2.8mm_CCW
+3.2mm x 2.8mm PLCC4 LED, http://www.cree.com/led-components/media/documents/CLV1AFKB(874).pdf
+LED Cree PLCC-4
+0
+4
+4
+LED_SMD
+LED_Cree-PLCC4_5x5mm_CW
+5.0mm x 5.0mm PLCC4 LED
+LED Cree PLCC-4
+0
+4
+4
+LED_SMD
+LED_Cree-PLCC6_4.7x1.5mm
+4.7mm x 1.5mm PLCC6 LED, http://www.cree.com/led-components/media/documents/1381-QLS6AFKW.pdf
+LED Cree PLCC-6
+0
+6
+6
+LED_SMD
+LED_Cree-XB
+http://www.cree.com/~/media/Files/Cree/LED-Components-and-Modules/XLamp/Data-and-Binning/XLampXBD.pdf
+LED Cree XB
+0
+5
+3
+LED_SMD
+LED_Cree-XH
+http://www.cree.com/~/media/Files/Cree/LED-Components-and-Modules/XLamp/Data-and-Binning/ds-XHB.pdf
+LED Cree XH
+0
+8
+2
+LED_SMD
+LED_Cree-XHP35
+http://www.cree.com/~/media/Files/Cree/LED-Components-and-Modules/XLamp/Data-and-Binning/ds--XHP35.pdf
+LED Cree XHP35
+0
+6
+3
+LED_SMD
+LED_Cree-XHP50_6V
+Cree XHP50, 6V footprint, http://www.cree.com/~/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/ds%20XHP50.pdf
+LED Cree XHP50
+0
+17
+3
+LED_SMD
+LED_Cree-XHP50_12V
+Cree XHP50, 12V footprint, http://www.cree.com/~/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/ds%20XHP50.pdf
+LED XHP50 Cree
+0
+15
+3
+LED_SMD
+LED_Cree-XHP70_6V
+Cree XHP70 LED, 6V version, http://www.cree.com/~/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/ds%20XHP70.pdf
+LED Cree XHP70
+0
+17
+3
+LED_SMD
+LED_Cree-XHP70_12V
+Cree XHP70 LED, 12V version, http://www.cree.com/~/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/ds%20XHP70.pdf
+LED Cree XHP70
+0
+15
+3
+LED_SMD
+LED_Cree-XP
+LED Cree-XP http://www.cree.com/~/media/Files/Cree/LED-Components-and-Modules/XLamp/Data-and-Binning/XLampXPE2.pdf
+LED Cree XP
+0
+6
+3
+LED_SMD
+LED_Cree-XP-G
+LED Cree-XP-G http://www.cree.com/~/media/Files/Cree/LED%20Components%20and%20Modules/XLamp/Data%20and%20Binning/XLampXPG.pdf
+LED Cree XP-G
+0
+6
+3
+LED_SMD
+LED_Cree-XQ
+LED Cree-XQ http://www.cree.com/~/media/Files/Cree/LED-Components-and-Modules/XLamp/Data-and-Binning/ds-XQB.pdf
+LED Cree XQ
+0
+2
+2
+LED_SMD
+LED_Cree-XQ_HandSoldering
+LED Cree-XQ handsoldering pads http://www.cree.com/~/media/Files/Cree/LED-Components-and-Modules/XLamp/Data-and-Binning/ds-XQB.pdf
+LED Cree XQ
+0
+2
+2
+LED_SMD
+LED_Inolux_IN-PI554FCH_PLCC4_5.0x5.0mm_P3.2mm
+http://www.inolux-corp.com/datasheet/SMDLED/Addressable%20LED/IN-PI554FCH.pdf
+RGB LED NeoPixel addressable
+0
+4
+4
+LED_SMD
+LED_Kingbright_AAA3528ESGCT
+Kingbright, dual LED, 3.5 x 2.8 mm Surface Mount LED Lamp (http://www.kingbrightusa.com/images/catalog/SPEC/AAA3528ESGCT.pdf)
+dual led smd
+0
+4
+4
+LED_SMD
+LED_Kingbright_APFA3010_3x1.5mm_Horizontal
+LED RGB, APFA3010, http://www.kingbrightusa.com/images/catalog/SPEC/APFA3010LSEEZGKQBKC.pdf
+LED RGB APFA3010 KINGBRIGHT 3x1.5mm
+0
+4
+4
+LED_SMD
+LED_LiteOn_LTST-S326
+http://optoelectronics.liteon.com/upload/download/DS22-2000-287/LTST-S326KGJRKT.PDF
+LED SMD right angle  CCA
+0
+3
+3
+LED_SMD
+LED_PLCC-2
+LED PLCC-2 SMD package
+LED PLCC-2 SMD
+0
+2
+2
+LED_SMD
+LED_PLCC_2835
+https://www.luckylight.cn/media/component/data-sheet/R2835BC-B2M-M10.pdf
+LED
+0
+2
+2
+LED_SMD
+LED_PLCC_2835_Handsoldering
+https://www.luckylight.cn/media/component/data-sheet/R2835BC-B2M-M10.pdf
+LED
+0
+2
+2
+LED_SMD
+LED_RGB_1210
+RGB LED 3.2x2.7mm http://www.avagotech.com/docs/AV02-0610EN
+LED 3227
+0
+4
+4
+LED_SMD
+LED_RGB_5050-6
+http://cdn.sparkfun.com/datasheets/Components/LED/5060BRG4.pdf
+RGB LED 5050-6
+0
+6
+6
+LED_SMD
+LED_RGB_Cree-PLCC-6_6x5mm_P2.1mm
+http://www.farnell.com/datasheets/2003905.pdf
+LED RGB PLCC-6 CLP6C-FBK
+0
+6
+6
+LED_SMD
+LED_RGB_Getian_GT-P6PRGB4303
+https://www.gme.sk/img/cache/doc/518/177/vykonova-led-getian-gt-p6prgb4303-datasheet-1.pdf
+LED RGB 
+0
+7
+7
+LED_SMD
+LED_RGB_PLCC-6
+RGB LED PLCC-6
+RGB LED PLCC-6
+0
+6
+6
+LED_SMD
+LED_ROHM_SMLVN6
+https://www.rohm.com/datasheet/SMLVN6RGB1U
+LED ROHM SMLVN6
+0
+6
+6
+LED_SMD
+LED_SK6805_PLCC4_2.4x2.7mm_P1.3mm
+https://cdn-shop.adafruit.com/product-files/3484/3484_Datasheet.pdf
+LED RGB NeoPixel Nano
+0
+4
+4
+LED_SMD
+LED_SK6812MINI_PLCC4_3.5x3.5mm_P1.75mm
+https://cdn-shop.adafruit.com/product-files/2686/SK6812MINI_REV.01-1-2.pdf
+LED RGB NeoPixel Mini
+0
+4
+4
+LED_SMD
+LED_SK6812_PLCC4_5.0x5.0mm_P3.2mm
+https://cdn-shop.adafruit.com/product-files/1138/SK6812+LED+datasheet+.pdf
+LED RGB NeoPixel
+0
+4
+4
+LED_SMD
+LED_WS2812B_PLCC4_5.0x5.0mm_P3.2mm
+https://cdn-shop.adafruit.com/datasheets/WS2812B.pdf
+LED RGB NeoPixel
+0
+4
+4
+LED_SMD
+LED_WS2812_PLCC6_5.0x5.0mm_P1.6mm
+https://cdn-shop.adafruit.com/datasheets/WS2812.pdf
+LED RGB NeoPixel
+0
+6
+6
+LED_SMD
+LED_miniPLCC_2315
+https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DAV02-2205EN_DS_ASMT-TxBM_2014-05-09.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430858274704&ssbinary=true
+LED
+0
+2
+2
+LED_SMD
+LED_miniPLCC_2315_Handsoldering
+https://docs.broadcom.com/cs/Satellite?blobcol=urldata&blobheader=application%2Fpdf&blobheadername1=Content-Disposition&blobheadername2=Content-Type&blobheadername3=MDT-Type&blobheadervalue1=attachment%3Bfilename%3DAV02-2205EN_DS_ASMT-TxBM_2014-05-09.pdf&blobheadervalue2=application%2Fx-download&blobheadervalue3=abinary%253B%2Bcharset%253DUTF-8&blobkey=id&blobnocache=true&blobtable=MungoBlobs&blobwhere=1430858274704&ssbinary=true
+LED
+0
+2
+2
