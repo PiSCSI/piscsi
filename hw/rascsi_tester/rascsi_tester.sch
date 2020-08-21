@@ -435,17 +435,6 @@ F 3 "" H 8650 4000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L SamacSys_Parts:Logo X6
-U 1 1 5EFCDFAD
-P 8650 4200
-F 0 "X6" H 8500 4300 50  0000 L CNN
-F 1 "Mac Trashcan" H 8700 4300 50  0000 L CNN
-F 2 "SamacSys_Parts:mac_trashcan" H 8650 4200 50  0001 C CNN
-F 3 "" H 8650 4200 50  0001 C CNN
-	1    8650 4200
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR07
 U 1 1 5EFE78A6
 P 8100 3100

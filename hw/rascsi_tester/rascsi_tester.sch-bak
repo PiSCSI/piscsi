@@ -358,28 +358,6 @@ F 3 "~" H 8100 3000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H3
-U 1 1 5EF89564
-P 8900 3000
-F 0 "H3" H 9000 3049 50  0000 L CNN
-F 1 "Hole3" H 9000 2958 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 8900 3000 50  0001 C CNN
-F 3 "~" H 8900 3000 50  0001 C CNN
-	1    8900 3000
-	1    0    0    -1  
-$EndComp
-$Comp
-L Mechanical:MountingHole_Pad H4
-U 1 1 5EF896FC
-P 8900 3450
-F 0 "H4" H 9000 3499 50  0000 L CNN
-F 1 "Hole5" H 9000 3408 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 8900 3450 50  0001 C CNN
-F 3 "~" H 8900 3450 50  0001 C CNN
-	1    8900 3450
-	1    0    0    -1  
-$EndComp
-$Comp
 L Mechanical:MountingHole_Pad H2
 U 1 1 5EF89881
 P 8500 3000
@@ -457,17 +435,6 @@ F 3 "" H 8650 4000 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L SamacSys_Parts:Logo X6
-U 1 1 5EFCDFAD
-P 8650 4200
-F 0 "X6" H 8500 4300 50  0000 L CNN
-F 1 "Mac Trashcan" H 8700 4300 50  0000 L CNN
-F 2 "SamacSys_Parts:mac_trashcan" H 8650 4200 50  0001 C CNN
-F 3 "" H 8650 4200 50  0001 C CNN
-	1    8650 4200
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #PWR07
 U 1 1 5EFE78A6
 P 8100 3100
@@ -476,28 +443,6 @@ F 1 "GND" H 8105 2927 50  0000 C CNN
 F 2 "" H 8100 3100 50  0001 C CNN
 F 3 "" H 8100 3100 50  0001 C CNN
 	1    8100 3100
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR013
-U 1 1 5EFE8543
-P 8900 3100
-F 0 "#PWR013" H 8900 2850 50  0001 C CNN
-F 1 "GND" H 8905 2927 50  0000 C CNN
-F 2 "" H 8900 3100 50  0001 C CNN
-F 3 "" H 8900 3100 50  0001 C CNN
-	1    8900 3100
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR014
-U 1 1 5EFE8860
-P 8900 3550
-F 0 "#PWR014" H 8900 3300 50  0001 C CNN
-F 1 "GND" H 8905 3377 50  0000 C CNN
-F 2 "" H 8900 3550 50  0001 C CNN
-F 3 "" H 8900 3550 50  0001 C CNN
-	1    8900 3550
 	1    0    0    -1  
 $EndComp
 $Comp
