@@ -1,0 +1,35 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP L717SDB25PA4CH4F
+D D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD
+F https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf
+$ENDCMP
+#
+$CMP NE555DR
+D Single Precision Timer
+F http://www.ti.com/lit/ds/symlink/ne555.pdf
+$ENDCMP
+#
+$CMP SN74LS245DW
+D Octal bus transceivers
+F http://www.ti.com/lit/gpn/sn74ls245
+$ENDCMP
+#
+$CMP TDA02H0SB1R
+D DIP Switches / SIP Switches HALF PITCH 2 POS
+F https://www.ckswitches.com/media/1328/tda.pdf
+$ENDCMP
+#
+$CMP 47346-0001
+D Micro USB B Receptacle Bottom Mount Assy Molex Right Angle SMT Type B Version 2.0 Micro USB Connector Socket, 30 V ac, 1A 47352 MICRO-USB
+K
+F http://www.molex.com/pdm_docs/sd/473460001_sd.pdf
+$ENDCMP
+#
+$CMP U254-051N-4BH806
+D USB Connectors SMD RoHS
+K
+F https://datasheet.lcsc.com/szlcsc/XKB-U254-051N-4BH806_C319170.pdf
+$ENDCMP
+#
+#End Doc Library
