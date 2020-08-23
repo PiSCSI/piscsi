@@ -2,7 +2,7 @@
 <export version="D">
   <design>
     <source>C:\Users\theto\Downloads\RASCSI-Rascsi_2p2\hw\rascsi_2p2\rascsi_2p2.sch</source>
-    <date>8/19/2020 9:05:28 PM</date>
+    <date>8/22/2020 7:54:12 PM</date>
     <tool>Eeschema (5.1.4)-1</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -23,6 +23,9 @@
       <value>Conn_02x25_Odd_Even</value>
       <footprint>Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C30006</field>
+      </fields>
       <libsource lib="Connector_Generic" part="Conn_02x25_Odd_Even" description="Generic connector, double row, 02x25, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5EF63F70</tstamp>
@@ -96,6 +99,9 @@
       <value>Raspberry_Pi_2_3</value>
       <footprint>Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical</footprint>
       <datasheet>https://www.raspberrypi.org/documentation/hardware/raspberrypi/schematics/rpi_SCH_3bplus_1p0_reduced.pdf</datasheet>
+      <fields>
+        <field name="LCSC">C50982</field>
+      </fields>
       <libsource lib="Connector" part="Raspberry_Pi_2_3" description="expansion header for Raspberry Pi 2 &amp; 3"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>60B58FCD</tstamp>
@@ -188,6 +194,9 @@
       <value>I2C Pinout</value>
       <footprint>Connector_PinSocket_2.54mm:PinSocket_1x05_P2.54mm_Vertical</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C2337</field>
+      </fields>
       <libsource lib="Connector" part="Conn_01x05_Male" description="Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F0B528E</tstamp>
@@ -207,12 +216,13 @@
       <tstamp>5EFCDD94</tstamp>
     </comp>
     <comp ref="S1">
-      <value>TDA02H0SB1R</value>
+      <value>Switch x2</value>
       <footprint>rascsi_din:SOIC127P812X230-4N</footprint>
       <datasheet>https://www.ckswitches.com/media/1328/tda.pdf</datasheet>
       <fields>
         <field name="Description">DIP Switches / SIP Switches HALF PITCH 2 POS</field>
         <field name="Height">2.3</field>
+        <field name="LCSC">C40735</field>
         <field name="Manufacturer_Name">C &amp; K COMPONENTS</field>
         <field name="Manufacturer_Part_Number">TDA02H0SB1R</field>
         <field name="Mouser Part Number">611-TDA02H0SB1R</field>
@@ -909,17 +919,21 @@
       <value>Conn_01x02_Male</value>
       <footprint>Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Horizontal</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C2337</field>
+      </fields>
       <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F9E980B</tstamp>
     </comp>
     <comp ref="J6">
-      <value>L717SDB25PA4CH4F</value>
+      <value>CONNFLY DB-25</value>
       <footprint>L717SDB25PA4CH4F</footprint>
       <datasheet>https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf</datasheet>
       <fields>
         <field name="Description">D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD</field>
         <field name="Height">12.55</field>
+        <field name="LCSC">C77838</field>
         <field name="Manufacturer_Name">Amphenol</field>
         <field name="Manufacturer_Part_Number">L717SDB25PA4CH4F</field>
         <field name="Mouser Part Number">523-L717SDB25PA4CH4F</field>
@@ -940,6 +954,9 @@
       <value>Conn_02x03_Odd_Even</value>
       <footprint>Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C3409</field>
+      </fields>
       <libsource lib="Connector_Generic" part="Conn_02x03_Odd_Even" description="Generic connector, double row, 02x03, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F604F7F</tstamp>
@@ -948,6 +965,9 @@
       <value>Conn_01x02_Male</value>
       <footprint>Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical</footprint>
       <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C2337</field>
+      </fields>
       <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F729663</tstamp>

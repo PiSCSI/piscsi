@@ -24,6 +24,7 @@ F 0 "J3" H 2150 5925 50  0000 C CNN
 F 1 "Conn_02x25_Odd_Even" H 2150 6016 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical" H 2100 7350 50  0001 C CNN
 F 3 "~" H 2100 7350 50  0001 C CNN
+F 4 "C30006" H 2100 7350 50  0001 C CNN "LCSC"
 	1    2100 7350
 	0    -1   -1   0   
 $EndComp
@@ -625,6 +626,7 @@ F 0 "J1" H 1950 5931 50  0000 C CNN
 F 1 "Raspberry_Pi_2_3" H 1950 5840 50  0000 C CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H 1950 4450 50  0001 C CNN
 F 3 "https://www.raspberrypi.org/documentation/hardware/raspberrypi/schematics/rpi_SCH_3bplus_1p0_reduced.pdf" H 1950 4450 50  0001 C CNN
+F 4 "C50982" H 1950 4450 50  0001 C CNN "LCSC"
 	1    1950 4450
 	1    0    0    -1  
 $EndComp
@@ -1189,6 +1191,7 @@ F 0 "J4" H 3122 5982 50  0000 R CNN
 F 1 "I2C Pinout" H 3550 6350 50  0000 R CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x05_P2.54mm_Vertical" H 3150 6050 50  0001 C CNN
 F 3 "~" H 3150 6050 50  0001 C CNN
+F 4 "C2337" H 3150 6050 50  0001 C CNN "LCSC"
 	1    3150 6050
 	-1   0    0    1   
 $EndComp
@@ -1246,7 +1249,7 @@ L SamacSys_Parts:TDA02H0SB1R S1
 U 1 1 5F38ECD6
 P 3400 850
 F 0 "S1" H 3650 1000 50  0000 C CNN
-F 1 "TDA02H0SB1R" H 4250 1000 50  0000 C CNN
+F 1 "Switch x2" H 4250 1000 50  0000 C CNN
 F 2 "rascsi_din:SOIC127P812X230-4N" H 4450 950 50  0001 L CNN
 F 3 "https://www.ckswitches.com/media/1328/tda.pdf" H 4450 850 50  0001 L CNN
 F 4 "DIP Switches / SIP Switches HALF PITCH 2 POS" H 4450 750 50  0001 L CNN "Description"
@@ -1255,6 +1258,7 @@ F 6 "611-TDA02H0SB1R" H 4450 550 50  0001 L CNN "Mouser Part Number"
 F 7 "https://www.mouser.co.uk/ProductDetail/CK/TDA02H0SB1R?qs=%2FNF5U5UGuWn3xddlBViRrw%3D%3D" H 4450 450 50  0001 L CNN "Mouser Price/Stock"
 F 8 "C & K COMPONENTS" H 4450 350 50  0001 L CNN "Manufacturer_Name"
 F 9 "TDA02H0SB1R" H 4450 250 50  0001 L CNN "Manufacturer_Part_Number"
+F 10 "C40735" H 3400 850 50  0001 C CNN "LCSC"
 	1    3400 850 
 	1    0    0    -1  
 $EndComp
@@ -2625,6 +2629,7 @@ F 0 "J2" H 2200 2200 50  0000 C CNN
 F 1 "Conn_01x02_Male" H 2158 2140 50  0001 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Horizontal" H 2050 2050 50  0001 C CNN
 F 3 "~" H 2050 2050 50  0001 C CNN
+F 4 "C2337" H 2050 2050 50  0001 C CNN "LCSC"
 	1    2050 2050
 	1    0    0    -1  
 $EndComp
@@ -2646,7 +2651,7 @@ L SamacSys_Parts:L717SDB25PA4CH4F J6
 U 1 1 5FA017A4
 P 9200 2850
 F 0 "J6" V 9019 2850 50  0000 C CNN
-F 1 "L717SDB25PA4CH4F" V 9110 2850 50  0000 C CNN
+F 1 "CONNFLY DB-25" V 9110 2850 50  0000 C CNN
 F 2 "L717SDB25PA4CH4F" H 10850 3150 50  0001 L CNN
 F 3 "https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf" H 10850 3050 50  0001 L CNN
 F 4 "D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD" H 10850 2950 50  0001 L CNN "Description"
@@ -2655,6 +2660,7 @@ F 6 "523-L717SDB25PA4CH4F" H 10850 2750 50  0001 L CNN "Mouser Part Number"
 F 7 "https://www.mouser.com/Search/Refine.aspx?Keyword=523-L717SDB25PA4CH4F" H 10850 2650 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Amphenol" H 10850 2550 50  0001 L CNN "Manufacturer_Name"
 F 9 "L717SDB25PA4CH4F" H 10850 2450 50  0001 L CNN "Manufacturer_Part_Number"
+F 10 "C77838" V 9200 2850 50  0001 C CNN "LCSC"
 	1    9200 2850
 	0    -1   1    0   
 $EndComp
@@ -2759,6 +2765,7 @@ F 0 "J5" H 3750 2467 50  0000 C CNN
 F 1 "Conn_02x03_Odd_Even" H 3750 2376 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 3700 2150 50  0001 C CNN
 F 3 "~" H 3700 2150 50  0001 C CNN
+F 4 "C3409" H 3700 2150 50  0001 C CNN "LCSC"
 	1    3700 2150
 	1    0    0    -1  
 $EndComp
@@ -2801,6 +2808,7 @@ F 0 "J7" H 900 3100 50  0000 C CNN
 F 1 "Conn_01x02_Male" H 858 3040 50  0001 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 750 2950 50  0001 C CNN
 F 3 "~" H 750 2950 50  0001 C CNN
+F 4 "C2337" H 750 2950 50  0001 C CNN "LCSC"
 	1    750  2950
 	1    0    0    -1  
 $EndComp
@@ -2836,6 +2844,7 @@ F 0 "J8" H 4800 1750 50  0000 C CNN
 F 1 "USB_B_Micro" H 4800 1650 50  0000 C CNN
 F 2 "SamacSys_Parts:U254051N4BH806" H 4500 1450 50  0001 C CNN
 F 3 "~" H 4500 1450 50  0001 C CNN
+F 4 "C319170" H 4350 1500 50  0001 C CNN "LCSC"
 	1    4350 1500
 	1    0    0    -1  
 $EndComp

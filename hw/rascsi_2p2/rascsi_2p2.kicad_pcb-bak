@@ -1,8 +1,8 @@
-(kicad_pcb (version 20171130) (host pcbnew "(5.1.6)-1")
+(kicad_pcb (version 20171130) (host pcbnew "(5.1.4)-1")
 
   (general
     (thickness 1.6)
-    (drawings 221)
+    (drawings 222)
     (tracks 1400)
     (zones 0)
     (modules 91)
@@ -11,14 +11,14 @@
 
   (page A4)
   (layers
-    (0 Top signal hide)
-    (31 Bottom signal hide)
+    (0 Top signal)
+    (31 Bottom signal)
     (32 B.Adhes user hide)
     (33 F.Adhes user hide)
     (34 B.Paste user hide)
     (35 F.Paste user hide)
     (36 B.SilkS user)
-    (37 F.SilkS user hide)
+    (37 F.SilkS user)
     (38 B.Mask user hide)
     (39 F.Mask user hide)
     (40 Dwgs.User user hide)
@@ -5260,6 +5260,9 @@
     )
   )
 
+  (gr_text JLCJLCJLCJLC (at 206.248 95.1865) (layer F.SilkS)
+    (effects (font (size 1.5 1.5) (thickness 0.3)))
+  )
   (gr_text I/O (at 218.059 85.731381 270) (layer B.SilkS) (tstamp 5F3E792D)
     (effects (font (size 1 0.8) (thickness 0.15)) (justify mirror))
   )

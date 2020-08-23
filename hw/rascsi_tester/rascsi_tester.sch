@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:rascsi_tester-cache
 EELAYER 30 0
 EELAYER END
 $Descr USLetter 11000 8500
@@ -21,6 +22,7 @@ F 0 "J2" H 2300 1425 50  0000 C CNN
 F 1 "Conn_02x25_Odd_Even" H 2300 1516 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical" H 2250 2850 50  0001 C CNN
 F 3 "~" H 2250 2850 50  0001 C CNN
+F 4 "C40024" H 2250 2850 50  0001 C CNN "LCSC"
 	1    2250 2850
 	0    -1   -1   0   
 $EndComp
@@ -513,7 +515,7 @@ L SamacSys_Parts:L717SDB25PA4CH4F J4
 U 1 1 5FA017A4
 P 8750 800
 F 0 "J4" V 8569 800 50  0000 C CNN
-F 1 "L717SDB25PA4CH4F" V 8660 800 50  0000 C CNN
+F 1 "CONFLY DB25 Male" V 8660 800 50  0000 C CNN
 F 2 "L717SDB25PA4CH4F" H 10400 1100 50  0001 L CNN
 F 3 "https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf" H 10400 1000 50  0001 L CNN
 F 4 "D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD" H 10400 900 50  0001 L CNN "Description"
@@ -522,6 +524,7 @@ F 6 "523-L717SDB25PA4CH4F" H 10400 700 50  0001 L CNN "Mouser Part Number"
 F 7 "https://www.mouser.com/Search/Refine.aspx?Keyword=523-L717SDB25PA4CH4F" H 10400 600 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Amphenol" H 10400 500 50  0001 L CNN "Manufacturer_Name"
 F 9 "L717SDB25PA4CH4F" H 10400 400 50  0001 L CNN "Manufacturer_Part_Number"
+F 10 "C75751" V 8750 800 50  0001 C CNN "LCSC"
 	1    8750 800 
 	0    -1   1    0   
 $EndComp
