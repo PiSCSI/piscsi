@@ -1,5 +1,6 @@
 ![C/C++ CI](https://github.com/akuker/RASCSI/workflows/C/C++%20CI/badge.svg)
 
+(Note: Coverity not currently set up properly)
 <a href="https://scan.coverity.com/projects/akuker-rascsi">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/21656/badge.svg"/>
