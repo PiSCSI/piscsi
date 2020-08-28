@@ -15,9 +15,20 @@ jobs:
     - name: Install cross compile toolchain
       run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
     - uses: actions/checkout@v2
-    - name: make
-      run: make all DEBUG=1
+
+    - name: make standard
+      run: make all DEBUG=1 CONNECT_TYPE=STANDARD
       working-directory: ./src/raspberrypi
+ 
+    - name: make fullspec
+      run: make all DEBUG=1 CONNECT_TYPE=FULLSPEC
+      working-directory: ./src/raspberrypi
+
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: executable-binaries
+        path: ./src/raspberrypi/bin
 
 #  buildroot-image:
 #    runs-on: ubuntu-latest
