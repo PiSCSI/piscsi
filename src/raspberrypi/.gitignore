@@ -10,3 +10,5 @@ scsimon
 rasctl
 sasidump
 rasdump
+obj
+bin
