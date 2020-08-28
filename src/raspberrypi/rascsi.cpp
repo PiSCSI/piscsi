@@ -13,8 +13,18 @@
 #include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
-#include "disk.h"
+#include "devices/disk.h"
+#include "devices/sasihd.h"
+#include "devices/scsihd.h"
+#include "devices/scsihd_apple.h"
+#include "devices/scsihd_nec.h"
+#include "devices/scsicd.h"
+#include "devices/scsimo.h"
+#include "devices/scsi_host_bridge.h"
+#include "controllers/scsidev_ctrl.h"
+#include "controllers/sasidev_ctrl.h"
 #include "gpiobus.h"
+
 
 //---------------------------------------------------------------------------
 //
