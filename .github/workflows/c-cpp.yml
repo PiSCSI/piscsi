@@ -12,16 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install cross compile toolchain
+      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
     - uses: actions/checkout@v2
-#    - name: configure
-#      run: ./configure
     - name: make
       run: make all DEBUG=1
       working-directory: ./src/raspberrypi
-#    - name: make check
-#      run: make check
-#    - name: make distcheck
-#      run: make distcheck
 
 #  buildroot-image:
 #    runs-on: ubuntu-latest

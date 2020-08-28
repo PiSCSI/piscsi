@@ -1,7 +1,10 @@
 .DEFAULT_GOAL: all
 
-CC       = gcc
-CXX      = g++
+ARCH ?= arm
+CROSS_COMPILE ?= arm-linux-gnueabihf-
+
+CC  = $(CROSS_COMPILE)gcc
+CXX = $(CROSS_COMPILE)g++
 
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
