@@ -28,7 +28,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: arm-binaries
-        path: ./src/raspberrypi/bin/rascsi.tar.gz
+        path: ./src/raspberrypi/rascsi.tar.gz
 
 #  buildroot-image:
 #    runs-on: ubuntu-latest
