@@ -20,7 +20,10 @@ jobs:
       run: make all DEBUG=1 CONNECT_TYPE=FULLSPEC
       working-directory: ./src/raspberrypi
 
-    - name: tar binary outpus
+    # We need to tar the binary outputs to retain the executable
+    # file permission. Currently, actions/upload-artifact only
+    # supports .ZIP files.
+    - name: tar binary outputs
       run: tar -czvf rascsi.tar.gz ./bin
       working-directory: ./src/raspberrypi
 
