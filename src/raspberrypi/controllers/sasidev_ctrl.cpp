@@ -13,10 +13,10 @@
 //  [ SASI device controller ]
 //
 //---------------------------------------------------------------------------
-#include "sasidev_ctrl.h"
+#include "controllers/sasidev_ctrl.h"
 #include "filepath.h"
 #include "gpiobus.h"
-#include "scsi_host_bridge.h"
+#include "devices/scsi_host_bridge.h"
 
 //===========================================================================
 //
