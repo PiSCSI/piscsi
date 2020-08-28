@@ -20,11 +20,15 @@ jobs:
       run: make all DEBUG=1 CONNECT_TYPE=FULLSPEC
       working-directory: ./src/raspberrypi
 
-    - name: Archive production artifacts
+    - name: tar binary outpus
+      run: tar -czvf rascsi.tar.gz ./bin
+      working-directory: ./src/raspberrypi
+
+    - name: upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: executable-binaries
-        path: ./src/raspberrypi/bin
+        name: arm-binaries
+        path: ./src/raspberrypi/bin/rascsi.tar.gz
 
 #  buildroot-image:
 #    runs-on: ubuntu-latest
