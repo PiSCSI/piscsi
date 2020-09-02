@@ -136,8 +136,8 @@ run:
 	sudo ./$(RASCSI) -ID1 /home/pi/HARDDISK2.hda -ID6 /home/pi/marathon.iso
 
 install: $(MAN_PAGE_DIR)/rascsi.1 $(MAN_PAGE_DIR)/rasctl.1
-	sudo cp $(RASCTL) $(USR_LOCAL_BIN)
-	sudo cp $(RASCSI) $(USR_LOCAL_BIN)
+	sudo cp $(BINDIR)/$(RASCTL) $(USR_LOCAL_BIN)
+	sudo cp $(BINDIR)/$(RASCSI) $(USR_LOCAL_BIN)
 
 $(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
 	sudo cp $< $@
