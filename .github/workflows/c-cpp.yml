@@ -23,6 +23,7 @@ jobs:
     # We need to tar the binary outputs to retain the executable
     # file permission. Currently, actions/upload-artifact only
     # supports .ZIP files.
+    # This is workaround for https://github.com/actions/upload-artifact/issues/38
     - name: tar binary outputs
       run: tar -czvf rascsi.tar.gz ./bin
       working-directory: ./src/raspberrypi
