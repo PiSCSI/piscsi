@@ -4,9 +4,7 @@ Library         SSHLibrary
 Library         String
 
 *** Variables ***
-${Rascsi_Host}      192.168.68.154
-${Rascsi_Username}  pi
-${Rascsi_Password}  raspberry
+#${Rascsi_Password}  raspberry
 
 *** Keywords ***
 The ${service_name} Service Should be Running

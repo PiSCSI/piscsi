@@ -4,7 +4,7 @@ Library         SSHLibrary
 Resource        linux_services.resource
 
 *** Variables ***
-${Rascsi_Host}      192.168.68.154
+${Rascsi_Host}      rascsi.local
 ${Rascsi_Username}  pi
 ${Rascsi_Password}  raspberry
 ${Scsi_type_cdrom}  5
