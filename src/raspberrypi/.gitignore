@@ -1,4 +1,3 @@
-*.o
 *.bak
 *.HDA
 *.save
@@ -10,3 +9,5 @@ scsimon
 rasctl
 sasidump
 rasdump
+obj
+bin

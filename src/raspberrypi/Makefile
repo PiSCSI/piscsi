@@ -18,8 +18,8 @@ else
 	CXXFLAGS += -O3 -Wall -Werror
 	BUILD_TYPE = Release
 endif
-CFLAGS += -iquote .
-CXXFLAGS += -std=c++14 -iquote .
+CFLAGS += -iquote . -MD -MP 
+CXXFLAGS += -std=c++14 -iquote . -MD -MP 
 
 # If its not specified, build for STANDARD configuration
 CONNECT_TYPE ?= STANDARD
@@ -39,8 +39,8 @@ USR_LOCAL_BIN = /usr/local/bin
 MAN_PAGE_DIR  = /usr/share/man/man1
 DOC_DIR = ../../doc
 
-OBJDIR := ./obj
-BINDIR := ./bin
+OBJDIR := ./obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
+BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 
 #BIN_ALL = $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
 # Temporarily remove the RASDUMP and RASDUMP tools, since they're not needed
@@ -58,8 +58,8 @@ SRC_RASCSI = \
 #	rasctl_command.cpp
 #	rascsi_mgr.cpp
 #	command_thread.cpp
-SRC_RASCSI += $(notdir $(shell find ./controllers -name '*.cpp'))
-SRC_RASCSI += $(notdir $(shell find ./devices -name '*.cpp'))
+SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
+SRC_RASCSI += $(shell find ./devices -name '*.cpp')
 
 SRC_RASCTL = \
 	rasctl.cpp
@@ -85,25 +85,26 @@ vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
 
-OBJ_RASCSI := $(SRC_RASCSI:%.cpp=$(OBJDIR)/%.o)
-OBJ_RASCTL := $(SRC_RASCTL:%.cpp=$(OBJDIR)/%.o)
-OBJ_RASDUMP := $(SRC_RASDUMP:%.cpp=$(OBJDIR)/%.o)
-OBJ_SASIDUMP := $(SRC_SASIDUMP:%.cpp=$(OBJDIR)/%.o)
-OBJ_SCSIMON  := $(SRC_SCSIMON:%.cpp=$(OBJDIR)/%.o)
+OBJ_RASCSI := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI:%.cpp=%.o)))
+OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
+OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
+OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
+OBJ_SCSIMON  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 #OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP) $(OBJ_SCSIMON)
 OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP)
 
+
+# The following will include all of the auto-generated dependency files (*.d)
+# if they exist. This will trigger a rebuild of a source file if a header changes
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL))
+-include $(ALL_DEPS)
+
 $(OBJDIR) $(BINDIR):
+	echo Creating directory $@
 	mkdir -p $@
 
-$(OBJDIR)/%.o: %.cpp $(OBJDIR)
+$(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# $(OBJDIR)/%.o: %.c
-# 	$(CXX) $(CXXFLAGS) -c $< -o $@
-
-# %.o: %.cpp
-# 	$(CXX) $(CXXFLAGS) -c $(OBJDIR)/$< -o $@
 
 .DEFAULT_GOAL := all
 .PHONY: all ALL docs
@@ -112,12 +113,10 @@ ALL: all
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt
 
-$(BINDIR)/$(RASCSI): $(OBJ_RASCSI) $(BINDIR)
-	@echo -- Linking $(RASCSI)
+$(BINDIR)/$(RASCSI): $(OBJ_RASCSI) | $(BINDIR)
 	$(CXX) -o $@ $(OBJ_RASCSI) -lpthread
 
 $(BINDIR)/$(RASCTL): $(OBJ_RASCTL) $(BINDIR)
-	@echo -- Linking $(RASCTL)
 	$(CXX) -o $@ $(OBJ_RASCTL)
 
 $(RASDUMP): $(OBJ_RASDUMP) $(BINDIR)

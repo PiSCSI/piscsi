@@ -1,10 +1,6 @@
 name: C/C++ CI
 
-on:
-  push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+on: [push, pull_request]
 
 jobs:
   build:
@@ -15,9 +11,28 @@ jobs:
     - name: Install cross compile toolchain
       run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
     - uses: actions/checkout@v2
-    - name: make
-      run: make all DEBUG=1
+
+    - name: make standard
+      run: make all DEBUG=1 CONNECT_TYPE=STANDARD
       working-directory: ./src/raspberrypi
+ 
+    - name: make fullspec
+      run: make all DEBUG=1 CONNECT_TYPE=FULLSPEC
+      working-directory: ./src/raspberrypi
+
+    # We need to tar the binary outputs to retain the executable
+    # file permission. Currently, actions/upload-artifact only
+    # supports .ZIP files.
+    # This is workaround for https://github.com/actions/upload-artifact/issues/38
+    - name: tar binary outputs
+      run: tar -czvf rascsi.tar.gz ./bin
+      working-directory: ./src/raspberrypi
+
+    - name: upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: arm-binaries
+        path: ./src/raspberrypi/rascsi.tar.gz
 
 #  buildroot-image:
 #    runs-on: ubuntu-latest
