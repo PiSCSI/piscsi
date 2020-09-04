@@ -35,9 +35,13 @@ RASDUMP = rasdump
 SASIDUMP = sasidump
 SCSIMON = scsimon
 
+SYSTEMD_CONF = /etc/systemd/system/rascsi.service
+RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
+
 USR_LOCAL_BIN = /usr/local/bin
 MAN_PAGE_DIR  = /usr/share/man/man1
 DOC_DIR = ../../doc
+OS_FILES = ./os_integration
 
 OBJDIR := ./obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
@@ -134,17 +138,32 @@ clean:
 run:
 	sudo ./$(RASCSI) -ID1 /home/pi/HARDDISK2.hda -ID6 /home/pi/marathon.iso
 
-install: $(MAN_PAGE_DIR)/rascsi.1 $(MAN_PAGE_DIR)/rasctl.1
-	sudo cp $(BINDIR)/$(RASCTL) $(USR_LOCAL_BIN)
-	sudo cp $(BINDIR)/$(RASCSI) $(USR_LOCAL_BIN)
+install: $(MAN_PAGE_DIR)/rascsi.1 $(MAN_PAGE_DIR)/rasctl.1 $(BINDIR)/$(RASCTL) $(BINDIR)/$(RASCSI) $(SYSTEMD_CONF) $(RSYSLOG_CONF)
+	@echo "Done installing!"
+
+$(USR_LOCAL_BIN)% : $(BINDIR)/%
+	cp $< $@
 
 $(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
-	sudo cp $< $@
+	cp $< $@
 
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
 	@echo "!!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!" > $@
 	@echo "!!   ------ The native file is $(notdir $<). Re-run 'make docs' after updating\n\n" >> $@
 	man -l $< | col -bx >> $@
+
+$(SYSTEMD_CONF) : $(OS_FILES)/$(notdir $(SYSTEMD_CONF))
+	cp $< $@
+	systemctl enable rascsi.service
+	systemctl daemon-reload
+	systemctl start rascsi.service
+
+$(RSYSLOG_CONF) : $(OS_FILES)/$(notdir $(RSYSLOG_CONF))
+	cp $< $@
+	touch /var/log/rascsi.log
+	chown root:adm /var/log/rascsi.log
+	systemctl restart rsyslog
+
 
 .PHONY: Debug
 Debug: all
