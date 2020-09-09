@@ -26,7 +26,7 @@ Delete drive image ${file_name}
 
 Delete all RaSCSI drive images
     [Documentation]  Delete all of the temporary drive images that were created on the RaSCSI host
-    Remove File  /home/pi/images/*
+    Remove File  /home/pi/images/tmp_*
 
 Drive image ${drive_image_file} is attached as SCSI ID ${scsi_id}
     [Documentation]  Attaches an existing drive image to the RaSCSI
@@ -68,3 +68,44 @@ Rasctl reports SCSI ID ${scsi_id} of type ${type:CD|MO|HD}
     ${rasctl_output}=  Execute Command  rasctl -l
     log  ${rasctl_output}
     Should Contain  ${rasctl_output}  |${SPACE*2}${scsi_id}${SPACE}|${SPACE*2}0${SPACE}|${SPACE}SC${type}${SPACE}|
+
+# Create a ${iso_size} megabyte ISO named ${image_name} with random data
+#     [Documentation]  Creates a file on the RaSCSI with random data (from /dev/urandom),
+#     ...              then creates an ISO image with that data
+#     Execute Command  mkdir /tmp/new_iso
+#     Execute Command  dd if=/dev/urandom of=/tmp/new_iso/data.dat bs=1M count=${iso_size}
+#     Execute Command  genisoimage -o /home/pi/images/${image_name} /tmp/new_iso/
+
+Insert Removable Media ${image} into SCSI ID ${scsi_id}
+    Execute Command  rasctl -c insert -i ${scsi_id} -f /home/pi/images/${image}
+    ${result}=  Execute Command  rasctl -l
+    Log  ${result}
+
+Removable media ${image} is inserted into SCSI ID ${scsi_id:/d+}
+    [Documentation]  Inserts the sepecified image name into the removable media drive
+    Execute Command  rasctl -c insert -i ${scsi_id} -f /home/pi/images/${image}
+
+# Insert removable media ${image_name} into SCSI ID ${scsi_id:/d+}
+#     [Documentation]  Inserts the sepecified image name into the removable media drive
+#     Execute Command  rasctl -c insert -i ${scsi_id} -f /home/pi/images/${image_name}
+
+Eject removable media from SCSI ID ${scsi_id:/d+}
+    [Documentation]  Inserts the sepecified image name into the removable media drive
+    Execute Command  rasctl -c eject -i ${scsi_id}
+
+Checksum of Random Data File from RaSCSI
+    [Documentation]  Calcualte the SHA signature of the random data that was generated
+    ...              on the RaSCSI host
+    ${sha_output}=  Execute Command  sha512sum /tmp/new_iso/data.dat | cut -f 1
+    Log  Checksum of the file was ${sha_output}
+    [Return]  ${sha_output}
+
+Get checksum of RaSCSI Image ${image_name}
+    [Documentation]  Calculate the checksum of the disk image on the RaSCSI host
+    ${checksum}=  Execute Command  md5sum /home/pi/images/${image_name} | cut -f 1 --delimiter=" "
+    [Return]  ${checksum}
+
+Get Size of RaSCSI Image ${image_name} in bytes
+    [Documentation]  Return the size of the specified disk image in bytes
+    ${size_output}=  Execute Command  du -b /home/pi/images/${image_name} | cut -f 1
+    [Return]  ${size_output}

@@ -38,8 +38,8 @@ ISO-9660 formated ISO is mounted correct size is reported
     Then SCSI ID 5 has been mounted at ubuntu
     And the size of SCSI ID 5 is equal to the size of ubuntu-12.04.5-server-amd64.iso
     And the filesystem type of SCSI ID 5 is iso9660
-    #And the checksum of file pics/debian.jpg matches the original file in ubuntu-12.04.5-server-amd64.iso
-    #And the checksum of file install/vmlinux matches the original file in ubuntu-12.04.5-server-amd64.iso
+    And the file pics/debian.jpg matches the original in ubuntu-12.04.5-server-amd64.iso
+    And the file install/vmlinux matches the original in ubuntu-12.04.5-server-amd64.iso
 
 CD-ROM Read Speed is as fast as expected
     [Documentation]  Check that the read speed  from the emulated CD-ROM is within
