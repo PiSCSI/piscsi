@@ -10,6 +10,7 @@ Suite Setup        Run Keywords  Open Connection to Rascsi and Log In
 ...                AND           The RaSCSI Service Should be Running
 ...                AND           Detach all RaSCSI SCSI Devices
 Suite Teardown     Run Keywords  Detach all RaSCSI SCSI Devices
+...                AND           Delete all SCSI devices from Linux
 ...                AND           Close All Connections
 
 Test Teardown      Run Keywords  Detach all RaSCSI SCSI Devices
@@ -20,9 +21,9 @@ Test Teardown      Run Keywords  Detach all RaSCSI SCSI Devices
 Apple Hard Drive reports the correct device information
     [Documentation]  Create an empty Apple hard drive and verify that the SCSI
     ...              information is reported correctly to the Linux host
-    [Setup]  Run Keyword and Ignore Error  Delete drive image apple_drive.hda
-    Given Create Blank Rascsi Drive Image of Size 10 megabytes named apple_drive.hda
-    When Drive image apple_drive.hda is attached as SCSI ID 0
+    [Setup]  Run Keyword and Ignore Error  Delete drive image tmp_apple_drive.hda
+    Given Create Blank Rascsi Drive Image of Size 10 megabytes named tmp_apple_drive.hda
+    When Drive image tmp_apple_drive.hda is attached as SCSI ID 0
     Then Rasctl reports SCSI ID 0 of type HD
     And SCSI ID 0 is detected by Linux
     And SCSI ID 0 reports vendor ${SPACE}SEAGATE
@@ -33,9 +34,9 @@ Apple Hard Drive reports the correct device information
 XM6 Hard Drive reports the correct device information
     [Documentation]  Create an empty XM6 hard drive and verify that the SCSI
     ...              information is reported correctly to the Linux host
-    [Setup]  Run Keyword and Ignore Error  Delete drive image xm6_scsi_drive.hds
-    Given Create Blank Rascsi Drive Image of Size 10 megabytes named xm6_scsi_drive.hds
-    When Drive image xm6_scsi_drive.hds is attached as SCSI ID 1
+    [Setup]  Run Keyword and Ignore Error  Delete drive image tmp_xm6_scsi_drive.hds
+    Given Create Blank Rascsi Drive Image of Size 10 megabytes named tmp_xm6_scsi_drive.hds
+    When Drive image tmp_xm6_scsi_drive.hds is attached as SCSI ID 1
     Then Rasctl reports SCSI ID 1 of type HD
     And SCSI ID 1 is detected by Linux
     And SCSI ID 1 reports vendor RaSCSI${SPACE*2}
@@ -46,9 +47,9 @@ XM6 Hard Drive reports the correct device information
 NEC Hard Drive reports the correct device information
     [Documentation]  Create an empty NEC hard drive and verify that the SCSI
     ...              information is reported correctly to the Linux host
-    [Setup]  Run Keyword and Ignore Error  Delete drive image nec_hard_drive.hdn
-    Given Create Blank Rascsi Drive Image of Size 10 megabytes named nec_hard_drive.hdn
-    When Drive image nec_hard_drive.hdn is attached as SCSI ID 2
+    [Setup]  Run Keyword and Ignore Error  Delete drive image tmp_nec_hard_drive.hdn
+    Given Create Blank Rascsi Drive Image of Size 10 megabytes named tmp_nec_hard_drive.hdn
+    When Drive image tmp_nec_hard_drive.hdn is attached as SCSI ID 2
     Then Rasctl reports SCSI ID 2 of type HD
     And SCSI ID 2 is detected by Linux
     And SCSI ID 2 reports vendor NECCSI${SPACE*2}
@@ -59,9 +60,9 @@ NEC Hard Drive reports the correct device information
 Anex86 Hard Drive reports the correct device information
     [Documentation]  Create an empty Anex86 hard drive and verify that the SCSI
     ...              information is reported correctly to the Linux host
-    [Setup]  Run Keyword and Ignore Error  Delete drive image anex86_hard_drive.hdi
-    Given Create Blank Rascsi Drive Image of Size 10 megabytes named anex86_hard_drive.hdi
-    When Drive image anex86_hard_drive.hdi is attached as SCSI ID 3
+    [Setup]  Run Keyword and Ignore Error  Delete drive image tmp_anex86_hard_drive.hdi
+    Given Create Blank Rascsi Drive Image of Size 10 megabytes named tmp_anex86_hard_drive.hdi
+    When Drive image tmp_anex86_hard_drive.hdi is attached as SCSI ID 3
     Then Rasctl reports SCSI ID 3 of type HD
     And SCSI ID 3 is detected by Linux
     And SCSI ID 3 reports vendor RaSCSI${SPACE*2}

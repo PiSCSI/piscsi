@@ -10,6 +10,7 @@ Suite Setup        Run Keywords  Open Connection to Rascsi and Log In
 ...                AND           The RaSCSI Service Should be Running
 ...                AND           Detach all RaSCSI SCSI Devices
 Suite Teardown     Run Keywords  Detach all RaSCSI SCSI Devices
+...                AND           Delete all SCSI devices from Linux
 ...                AND           Close All Connections
 
 Test Teardown      Run Keywords  Detach all RaSCSI SCSI Devices
@@ -38,35 +39,27 @@ ISO-9660 formated ISO is mounted correct size is reported
     Then SCSI ID 5 has been mounted at ubuntu
     And the size of SCSI ID 5 is equal to the size of ubuntu-12.04.5-server-amd64.iso
     And the filesystem type of SCSI ID 5 is iso9660
-    And the file pics/debian.jpg matches the original in ubuntu-12.04.5-server-amd64.iso
-    And the file install/vmlinux matches the original in ubuntu-12.04.5-server-amd64.iso
+    And the file pics/debian.jpg in the ubuntu directory matches the original in ISO ubuntu-12.04.5-server-amd64.iso
+    And the file install/vmlinuz in the ubuntu directory matches the original in ISO ubuntu-12.04.5-server-amd64.iso
 
 CD-ROM Read Speed is as fast as expected
     [Documentation]  Check that the read speed  from the emulated CD-ROM is within
     ...              the expected range. This should detect if a change cause the
     ...              drive to slow down significantly
     Given CD-ROM Drive is attached as SCSI ID 2
-    When removable media macos_8p1.iso is inserted into SCSI ID 2
-    Then Reading 1 megabytes of data is read at greater than 10 MB/s
-    And Reading 10 megabytes of data is read at greater than 10 MB/s
-    And Reading 100 megabytes of data is read at greater than 10 MB/s
+    When insert Removable Media ubuntu-12.04.5-server-amd64.iso into SCSI ID 2
+    Then the measured read speed for 1 megabytes of data from SCSI ID 2 is greater than 750 KB/s
+    Then the measured read speed for 10 megabytes of data from SCSI ID 2 is greater than 950 KB/s
+    And the measured read speed for 100 megabytes of data from SCSI ID 2 is greater than 950 KB/s
 
-A large random blob of data is read correctly from the CD drive
-    [Documentation]  Create a large blob of random data on the RaSCSI, mount it as 
-    ...              a CD image and check that it can be read correctly.
-    [Teardown]  Unmount SCSI ID 1
-    Given CD-ROM Drive is attached as SCSI ID 1
-    And create a 200 megabyte ISO named random.iso with random data
-    When insert removable media random.iso into SCSI ID 1
-    And SCSI ID 1 is mounted
-    Then the random data file on the CD-ROM matches the RaSCSI Host
 
 Create an ISO from a RaSCSI CD-ROM device and verify it matches
     [Documentation]  On the RaSCSI, we'll mount an ISO, then on the host system, we
     ...              will generate a new ISO from the emulated CD-ROM and make sure
     ...              that it matches the original
-    Given CD-ROM Drive is attached as SCSI ID 2
-    When Insert removable media macos_8p1.iso into SCSI ID 2
-    And create an image named dup_macos_8p1.iso from SCSI ID 2
-    Then local file dup_macos_8p1.iso matches RaSCSI file macos_8p1.iso
+    [Teardown]  Remove temporary file dup_simtower.iso
+    Given CD-ROM Drive is attached as SCSI ID 0
+    When Insert removable media simtower.iso into SCSI ID 0
+    And create an image named dup_simtower.iso from SCSI ID 0
+    Then local file dup_simtower.iso matches RaSCSI file simtower.iso
 

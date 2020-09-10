@@ -109,3 +109,16 @@ Get Size of RaSCSI Image ${image_name} in bytes
     [Documentation]  Return the size of the specified disk image in bytes
     ${size_output}=  Execute Command  du -b /home/pi/images/${image_name} | cut -f 1
     [Return]  ${size_output}
+
+
+Get checksum of ${filename} from ISO ${image_name} on the RaSCSI Host
+    [Documentation]  Extracts the specified file from the ISO, calculates the checksum
+    ...              then returns that value
+    ${temp_dirname}=  Generate Random String  10  [LETTERS]
+    Execute Command  mkdir /tmp/${temp_dirname}  sudo=True  sudo_password=${Rascsi_Password}
+    Execute Command  mount /home/pi/images/${image_name} /tmp/${temp_dirname}  sudo=True  sudo_password=${Rascsi_Password}
+    ${checksum}=  Execute Command  md5sum /tmp/${temp_dirname}/${filename} | cut -f 1 --delimiter=" "
+    Execute Command  umount /tmp/${temp_dirname}  sudo=True  sudo_password=${Rascsi_Password}
+    Execute Command  rm -rf /tmp/${temp_dirname}  sudo=True  sudo_password=${Rascsi_Password}
+    [Return]  ${checksum}
+

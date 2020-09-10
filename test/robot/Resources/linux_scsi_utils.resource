@@ -1,6 +1,7 @@
 
 *** Settings ***
 Library         String
+Library         Collections
 
 *** Variables ***
 ${drive_mount_path}  /mnt/temp_drive/
@@ -108,7 +109,11 @@ Get size of SCSI ID ${scsi_id} device in bytes
 Get checksum of SCSI ID ${scsi_id} device
     [Documentation]  Calculate the checksum of the disk image on the RaSCSI host
     ${device_id}=  Get device id for SCSI ID ${scsi_id}
-    ${checksum}=  Run  md5sum ${device_id} | cut -f 1 --delimiter=" "
+    ${checksum}=  Run Keyword  Get checksum of file ${device_id}
+    [Return]  ${checksum}
+
+Get checksum of file ${full_file_path}
+    ${checksum}=  Run  md5sum ${full_file_path} | cut -f 1 --delimiter=" "
     [Return]  ${checksum}
 
 Get filesystem type of SCSI ID ${scsi_id}
@@ -155,13 +160,45 @@ Unmount SCSI ID ${scsi_id}
     ${device}=  Get device id for SCSI ID ${scsi_id}
     Run  sudo umount ${device}
 
-
-The file ${filename} matches the original in ${drive_image}
-    And the file install/vmlinux matches the original in ubuntu-12.04.5-server-amd64.iso
-
-
+The file ${filename} in the ${directory} directory matches the original in ISO ${drive_image}
+    [Documentation]  Check that the file ready by the host through the RaSCSI interface and make sure
+    ...              that the checksum matches the original file extracted from the ISO
+    ${host_file_checksum}=  Get checksum of file /mnt/${directory}/${filename}
+    ${rascsi_file_checksum}=  Get checksum of ${filename} from ISO ${drive_image} on the RaSCSI Host
+    Should be Equal  ${host_file_checksum}  ${rascsi_file_checksum}  ${filename} did not match between the host and the RaSCSI
+    
 
 The filesystem type of SCSI ID ${scsi_id} is ${fs_type}
     [Documentation]  Fetches the filesystem type of the specified SCSI ID and checks that it matches
     ${actual_fs_type}=  Get filesystem type of SCSI ID ${scsi_id}
     Should be Equal  ${fs_type}  ${actual_fs_type}  Incorrect file system type detected
+
+The measured read speed for ${data_size} megabytes of data from SCSI ID ${scsi_id} is greater than ${expected_speed} KB/s
+    [Documentation]  Read the specified amount of data from the SCSI drive and make sure that it is 
+    ...              greater than the specified threshold
+    [Teardown]  Remove temporary file ${temp_filename}
+    ${device_id}=  Get device id for SCSI ID ${scsi_id}
+    ${temp_filename}=  Generate Random String  10  [LETTERS]
+    ${dd_time}=  Run  sudo dd if=${device_id} of=/tmp/${temp_filename} bs=1M count=${data_size} 2>&1 | awk '/copied/ {print $8}'
+    ${copy_time}=  Convert to Number  ${dd_time}
+    ${speed}=  Evaluate  (${data_size}*1024)/${copy_time}
+    Log  Measured copy speed was ${speed} KB/s
+    Should be true  ${speed}>=${expected_speed}  Measured speed was not greater than minimum
+    # Run  sudo rm /tmp/${temp_filename}
+
+Create an image named ${iso_name} from SCSI ID ${scsi_id}
+    [Documentation]  Will create a disk image from the specified SCSI device
+    ${device_id}=  Get device id for SCSI ID ${scsi_id}
+    ${dd_output}=  Run  sudo dd if=${device_id} of=/tmp/${iso_name} bs=1M 2>&1  
+    File Should Not be Empty  /tmp/${iso_name}
+
+Local file ${local_file_name} matches RaSCSI file ${rascsi_file_name}
+    [Documentation]  Calculates the checksum of the local file and the remote file
+    ...              then ensures that they match
+    ${local_file_checksum}=  Get checksum of file /tmp/${local_file_name}
+    ${remote_file_checksum}=  Get checksum of RaSCSI Image ${rascsi_file_name}
+    Should be Equal  ${local_file_checksum}  ${remote_file_checksum}  Files did not match
+    
+Remove temporary file ${file_name}
+    [Documentation]  Deletes the specified file from the temp directory
+    Run  sudo rm /tmp/${file_name}
