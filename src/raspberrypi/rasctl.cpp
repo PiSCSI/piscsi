@@ -39,7 +39,7 @@ BOOL SendCommand(char *buf)
 	// Send the command
 	fp = fdopen(fd, "r+");
 	setvbuf(fp, NULL, _IONBF, 0);
-	fprintf(fp, buf);
+	fputs(buf, fp);
 
 	// Receive the message
 	while (1) {

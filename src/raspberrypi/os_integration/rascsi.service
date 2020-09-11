@@ -1,0 +1,19 @@
+[Unit]
+Description=RaSCSI service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/local/bin/rascsi
+# Example: If you want to automatically attach a hard disk at startup, change
+# the ExecStart line to:
+# ExecStart=/usr/local/bin/rascsi -ID1 /home/pi/images/harddisk.hda
+ExecStop=/usr/local/bin/rasctl -stop
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=RASCSI
+
+[Install]
+WantedBy=multi-user.target
+

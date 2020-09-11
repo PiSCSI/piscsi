@@ -1,4 +1,3 @@
-*.o
 *.bak
 *.HDA
 *.save
@@ -6,9 +5,10 @@
 *.layout
 *.log
 rascsi
-scsishark
+scsimon
 rasctl
 sasidump
 rasdump
-log.*
+obj
+bin
 

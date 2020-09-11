@@ -11,6 +11,8 @@
 #if !defined(fileio_h)
 #define fileio_h
 
+#include "filepath.h"
+
 #ifdef BAREMETAL
 #include "ff.h"
 #endif	// BAREMETAL
