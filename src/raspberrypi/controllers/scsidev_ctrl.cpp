@@ -13,6 +13,7 @@
 //  [ SCSI device controller ]
 //
 //---------------------------------------------------------------------------
+#include "log.h"
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
@@ -564,6 +565,7 @@ void FASTCALL SCSIDEV::CmdInquiry()
 #else
 		host->GetVM()->GetVersion(major, minor);
 #endif	// RASCSI
+	LOGINFO("Buffer size is %d",ctrl.bufsize);
 		ctrl.length =
 			ctrl.unit[lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
 	} else {

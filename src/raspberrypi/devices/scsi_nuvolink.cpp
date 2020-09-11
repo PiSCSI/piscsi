@@ -106,6 +106,11 @@ int FASTCALL SCSINuvolink::Inquiry(
 	extended_size = (WORD)cdb[4] + (((WORD)cdb[3])<<8);
 	LOGINFO("Inquiry Size was %d", extended_size);
 
+	for(int i=0; i< 5; i++)
+	{
+		LOGINFO("CDB Byte %d: %02X",i,cdb[i]);
+	}
+
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		disk.code = DISK_INVALIDCDB;
