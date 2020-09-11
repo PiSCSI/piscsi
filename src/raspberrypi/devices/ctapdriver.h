@@ -21,33 +21,33 @@
 
 //===========================================================================
 //
-//	Tapドライバ
+//	Linux Tap Driver
 //
 //===========================================================================
 class CTapDriver
 {
 public:
-	// 基本ファンクション
+	// Basic Functionality
 	CTapDriver();
-										// コンストラクタ
+										// Constructor
 	BOOL FASTCALL Init();
-										// 初期化
+										// Initilization
 	void FASTCALL Cleanup();
-										// クリーンアップ
+										// Cleanup
 	void FASTCALL GetMacAddr(BYTE *mac);
-										// MACアドレス取得
+										// Get Mac Address
 	int FASTCALL Rx(BYTE *buf);
-										// 受信
+										// Receive
 	int FASTCALL Tx(BYTE *buf, int len);
-										// 送信
+										// Send
 
 private:
 	BYTE m_MacAddr[6];
-										// MACアドレス
+										// MAC Address
 	BOOL m_bTxValid;
-										// 送信有効フラグ
+										// Send Valid Flag
 	int m_hTAP;
-										// ディスクプリタ
+										// File handle
 };
 
 #endif	// ctapdriver_h
