@@ -303,6 +303,11 @@ void FASTCALL SCSIDEV::Execute()
 			CmdSeek6();
 			return;
 
+		// Unknown Nuvolink command
+		case 0x0C:
+			CmdNuvolink0C();
+			return;
+
 		// INQUIRY
 		case 0x12:
 			CmdInquiry();
@@ -1115,6 +1120,38 @@ void FASTCALL SCSIDEV::CmdReadToc()
 
 	// Data-in Phase
 	DataIn();
+}
+
+//---------------------------------------------------------------------------
+//
+//	Unknown Vendor-specific command (probably cmmd_mdsens - Medium Sense)
+//
+//---------------------------------------------------------------------------
+void FASTCALL SCSIDEV::CmdNuvolink0C(){
+	DWORD lun;
+	BOOL status;
+
+	ASSERT(this);
+
+	LOGTRACE("Received Medium Sense command for Nuvolink");
+	
+	// Logical Unit
+	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		Error();
+		return;
+	}
+
+	// // Command processing on drive
+	// status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
+	// if (!status) {
+	// 	// Failure (Error)
+	// 	Error();
+	// 	return;
+	// }
+
+	// status phase
+	Status();
 }
 
 //---------------------------------------------------------------------------

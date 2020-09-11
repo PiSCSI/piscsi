@@ -21,6 +21,7 @@
 #include "devices/scsicd.h"
 #include "devices/scsimo.h"
 #include "devices/scsi_host_bridge.h"
+#include "devices/scsi_nuvolink.h"
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
 #include "gpiobus.h"
@@ -519,7 +520,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 				pUnit = new SCSICD();
 				break;
 			case 4:		// BRIDGE
-				pUnit = new SCSIBR();
+				pUnit = new SCSINuvolink();
 				break;
 			default:
 				FPRT(fp,	"Error : Invalid device type\n");
@@ -908,6 +909,7 @@ bool ParseArgument(int argc, char* argv[])
 //---------------------------------------------------------------------------
 void FixCpu(int cpu)
 {
+	LOGCRITICAL("asdf");
 	cpu_set_t cpuset;
 	int cpus;
 
@@ -1065,8 +1067,18 @@ int main(int argc, char* argv[])
 	struct sched_param schparam;
 #endif	// BAREMETAL
 
+
     spdlog::set_level(spdlog::level::trace);
-    spdlog::trace("Entering the function with %d arguments", argc);
+LOGTRACE("LOGTRACE")
+LOGDEBUG("LOGDEBUG");
+LOGINFO("LOGINFO");
+LOGWARN("LOGWARN");
+LOGERROR("LOGERROR");
+LOGCRITICAL("LOGCRITICAL");
+
+
+
+    LOGTRACE("Entering the function with %d arguments", argc);
 	// Output the Banner
 	Banner(argc, argv);
 

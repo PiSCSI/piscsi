@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
+#include "log.h"
 
 //---------------------------------------------------------------------------
 //
@@ -83,6 +84,7 @@ int main(int argc, char* argv[])
 
 	// Display help
 	if (argc < 2) {
+		LOGTRACE("Display help");
 		fprintf(stderr, "SCSI Target Emulator RaSCSI Controller\n");
 		fprintf(stderr,
 			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]\n",

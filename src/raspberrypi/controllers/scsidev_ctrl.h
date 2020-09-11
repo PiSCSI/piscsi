@@ -119,6 +119,8 @@ private:
 										// GET MESSAGE(10) command
 	void FASTCALL CmdSendMessage10();
 										// SEND MESSAGE(10) command
+	void FASTCALL CmdNuvolink0C();
+										// SEND MESSAGE(10) command
 
 	// データ転送
 	void FASTCALL Send();
