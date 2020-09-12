@@ -314,7 +314,7 @@ void ListDevice(FILE *fp)
 
 	// If there is no controller, find will be null
 	if (!find) {
-		FPRT(fp, "No device is installed.\n");
+		FPRT(fp, "No images currently attached.\n");
 		return;
 	}
 
