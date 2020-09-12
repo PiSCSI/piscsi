@@ -298,6 +298,8 @@ void ListDevice(FILE *fp)
 		// mount status output
 		if (pUnit->GetID() == MAKEID('S', 'C', 'B', 'R')) {
 			FPRT(fp, "%s", "HOST BRIDGE");
+		} else if (pUnit->GetID() == MAKEID('S', 'C', 'N', 'L')) {
+			FPRT(fp, "%s", "NuvoLink SC");
 		} else {
 			pUnit->GetPath(filepath);
 			FPRT(fp, "%s",

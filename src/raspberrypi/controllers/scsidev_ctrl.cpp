@@ -17,6 +17,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
+#include "devices/scsi_nuvolink.h"
 
 //===========================================================================
 //
@@ -263,44 +264,44 @@ void FASTCALL SCSIDEV::Execute()
 #endif	// RASCSI
 
 	// Process by command
-	switch (ctrl.cmd[0]) {
+	switch ((scsi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
-		case 0x00:
+		case eCmdTestUnitReady:
 			CmdTestUnitReady();
 			return;
 
 		// REZERO
-		case 0x01:
+		case eCmdRezero:
 			CmdRezero();
 			return;
 
 		// REQUEST SENSE
-		case 0x03:
+		case eCmdRequestSense:
 			CmdRequestSense();
 			return;
 
 		// FORMAT UNIT
-		case 0x04:
+		case eCmdFormat:
 			CmdFormat();
 			return;
 
 		// REASSIGN BLOCKS
-		case 0x07:
+		case eCmdReassign:
 			CmdReassign();
 			return;
 
 		// READ(6)
-		case 0x08:
+		case eCmdRead6:
 			CmdRead6();
 			return;
 
 		// WRITE(6)
-		case 0x0a:
+		case eCmdWrite6:
 			CmdWrite6();
 			return;
 
 		// SEEK(6)
-		case 0x0b:
+		case eCmdSeek6:
 			CmdSeek6();
 			return;
 
@@ -310,115 +311,114 @@ void FASTCALL SCSIDEV::Execute()
 			return;
 
 		// INQUIRY
-		case 0x12:
+		case eCmdInquiry:
 			CmdInquiry();
 			return;
 
 		// MODE SELECT
-		case 0x15:
+		case eCmdModeSelect:
 			CmdModeSelect();
 			return;
 
 		// MDOE SENSE
-		case 0x1a:
+		case eCmdModeSense:
 			CmdModeSense();
 			return;
 
 		// START STOP UNIT
-		case 0x1b:
+		case eCmdStartStop:
 			CmdStartStop();
 			return;
 
 		// SEND DIAGNOSTIC
-		case 0x1d:
+		case eCmdSendDiag:
 			CmdSendDiag();
 			return;
 
 		// PREVENT/ALLOW MEDIUM REMOVAL
-		case 0x1e:
+		case eCmdRemoval:
 			CmdRemoval();
 			return;
 
 		// READ CAPACITY
-		case 0x25:
+		case eCmdReadCapacity:
 			CmdReadCapacity();
 			return;
 
 		// READ(10)
-		case 0x28:
+		case eCmdRead10:
 			CmdRead10();
 			return;
 
 		// WRITE(10)
-		case 0x2a:
+		case eCmdWrite10:
+		// WRITE and VERIFY(10)
+		case eCmdWriteAndVerify10:
 			CmdWrite10();
 			return;
 
 		// SEEK(10)
-		case 0x2b:
+		case eCmdSeek10:
 			CmdSeek10();
 			return;
 
-		// WRITE and VERIFY
-		case 0x2e:
-			CmdWrite10();
-			return;
-
 		// VERIFY
-		case 0x2f:
+		case eCmdVerify:
 			CmdVerify();
 			return;
 
 		// SYNCHRONIZE CACHE
-		case 0x35:
+		case eCmdSynchronizeCache:
 			CmdSynchronizeCache();
 			return;
 
 		// READ DEFECT DATA(10)
-		case 0x37:
+		case eCmdReadDefectData10:
 			CmdReadDefectData10();
 			return;
 
 		// READ TOC
-		case 0x43:
+		case eCmdReadToc:
 			CmdReadToc();
 			return;
 
 		// PLAY AUDIO(10)
-		case 0x45:
+		case eCmdPlayAudio10:
 			CmdPlayAudio10();
 			return;
 
 		// PLAY AUDIO MSF
-		case 0x47:
+		case eCmdPlayAudioMSF:
 			CmdPlayAudioMSF();
 			return;
 
 		// PLAY AUDIO TRACK
-		case 0x48:
+		case eCmdPlayAudioTrack:
 			CmdPlayAudioTrack();
 			return;
 
 		// MODE SELECT(10)
-		case 0x55:
+		case eCmdModeSelect10:
 			CmdModeSelect10();
 			return;
 
 		// MDOE SENSE(10)
-		case 0x5a:
+		case eCmdModeSense10:
 			CmdModeSense10();
 			return;
 
 		// SPECIFY (SASI only/Suppress warning when using SxSI)
-		case 0xc2:
+		case eCmdInvalid:
 			CmdInvalid();
 			return;
 
+		default:
+			// No other support
+			Log(Log::Normal, "Unsupported command received: $%02X", ctrl.cmd[0]);
+			CmdInvalid();
 	}
+	return;
 
-	// No other support
-	Log(Log::Normal, "Unsupported command received: $%02X", ctrl.cmd[0]);
-	CmdInvalid();
 }
 
 //---------------------------------------------------------------------------
@@ -1390,7 +1390,9 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 	}
 
 	// Error if not a host bridge
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
+	if ((ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) &&
+	    (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'N', 'L'))) {
+		LOGERROR("Received CmdSendMessage10 for a non-bridge device");
 		Error();
 		return;
 	}

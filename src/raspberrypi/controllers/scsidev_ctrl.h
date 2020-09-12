@@ -38,6 +38,44 @@ public:
 		BYTE msb[256];
 	} scsi_t;
 
+	enum scsi_command : BYTE {
+			eCmdTestUnitReady = 0x00,
+			eCmdRezero =  0x01,
+			eCmdResetStatistics = 0x02, // Nuvolink specific command
+			eCmdRequestSense = 0x03,
+			eCmdFormat = 0x04,
+			eCmdSendPacket = 0x05, 	    // Nuvolink specific command
+			eCmdChangeMacAddr = 0x06,   // Nuvolink specific command
+			eCmdReassign = 0x07,
+			eCmdRead6 = 0x08,
+			eCmdSetMcastReg = 0x09,     // Nuvolink specific command
+			eCmdWrite6 = 0x0A,
+			eCmdSeek6 = 0x0B,
+			eCmdMediaSense = 0x0C,      // Nuvolink specific command
+			eCmdInquiry = 0x12,
+			eCmdModeSelect = 0x15,
+			eCmdModeSense = 0x1A,
+			eCmdStartStop = 0x1B,
+			eCmdRcvDiag = 0x1C,
+			eCmdSendDiag = 0x1D,
+			eCmdRemoval = 0x1E,
+			eCmdReadCapacity = 0x25,
+			eCmdRead10 = 0x28,
+			eCmdWrite10 = 0x2A,
+			eCmdSeek10 = 0x2B,
+			eCmdWriteAndVerify10 = 0x2E,
+			eCmdVerify = 0x2F,
+			eCmdSynchronizeCache = 0x35,
+			eCmdReadDefectData10 = 0x37,
+			eCmdReadToc = 0x43,
+			eCmdPlayAudio10 = 0x45,
+			eCmdPlayAudioMSF = 0x47,
+			eCmdPlayAudioTrack = 0x48,
+			eCmdModeSelect10 = 0x55,
+			eCmdModeSense10 = 0x5A,
+			eCmdInvalid = 0xC2,		// (SASI only/Suppress warning when using SxSI)
+	};
+
 public:
 	// Basic Functions
 #ifdef RASCSI
