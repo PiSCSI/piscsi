@@ -39,7 +39,7 @@ CXXFLAGS += -std=c++14 -iquote . -MD -MP
 ##              * THIS IS TYPICALLY THE ONLY COMPILE OPTION YOU 
 ##              * NEED TO SPECIFY
 # If its not specified, build for STANDARD configuration
-CONNECT_TYPE ?= STANDARD
+CONNECT_TYPE ?= FULLSPEC
 
 ifdef CONNECT_TYPE
 CFLAGS   += -DCONNECT_TYPE_$(CONNECT_TYPE)
