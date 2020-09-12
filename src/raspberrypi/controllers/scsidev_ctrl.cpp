@@ -275,6 +275,11 @@ void FASTCALL SCSIDEV::Execute()
 			CmdRezero();
 			return;
 
+//		// Nuvolink reset statistics
+//		case eCmdResetStatistics:
+//			CmdResetStatistics();
+//			return;
+
 		// REQUEST SENSE
 		case eCmdRequestSense:
 			CmdRequestSense();
@@ -283,6 +288,16 @@ void FASTCALL SCSIDEV::Execute()
 		// FORMAT UNIT
 		case eCmdFormat:
 			CmdFormat();
+			return;
+
+		// Nuvolink Send Packet command
+		case eCmdSendPacket:
+			CmdSendPacket();
+			return;
+
+		// Nuvolink Change MAC address command
+		case eCmdChangeMacAddr:
+			CmdChangeMacAddr();
 			return;
 
 		// REASSIGN BLOCKS
@@ -295,6 +310,10 @@ void FASTCALL SCSIDEV::Execute()
 			CmdRead6();
 			return;
 
+		case eCmdSetMcastReg:
+			CmdSetMcastReg();
+			return;
+
 		// WRITE(6)
 		case eCmdWrite6:
 			CmdWrite6();
@@ -305,9 +324,9 @@ void FASTCALL SCSIDEV::Execute()
 			CmdSeek6();
 			return;
 
-		// Unknown Nuvolink command
-		case 0x0C:
-			CmdNuvolink0C();
+		// Nuvolink Media Sense Command
+		case eCmdMediaSense:
+			CmdMediaSense();
 			return;
 
 		// INQUIRY
@@ -1129,32 +1148,35 @@ void FASTCALL SCSIDEV::CmdReadToc()
 //	Unknown Vendor-specific command (probably cmmd_mdsens - Medium Sense)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdNuvolink0C(){
-	DWORD lun;
-	BOOL status;
+void FASTCALL SCSIDEV::CmdMediaSense(){
+	ASSERT(this);
+
+	Status();
+}
+
+void FASTCALL SCSIDEV::CmdSendPacket(){
 
 	ASSERT(this);
 
-	LOGTRACE("Received Medium Sense command for Nuvolink");
-	
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// // Command processing on drive
-	// status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
-	// if (!status) {
-	// 	// Failure (Error)
-	// 	Error();
-	// 	return;
-	// }
-
-	// status phase
 	Status();
 }
+void FASTCALL SCSIDEV::CmdChangeMacAddr(){
+
+	ASSERT(this);
+
+	Status();
+}
+
+void SCSIDEV::FASTCALL CmdSetMcastReg(){
+	DWORD lun;
+
+	ASSERT(this);
+
+	Status();
+}
+
+
+
 
 //---------------------------------------------------------------------------
 //

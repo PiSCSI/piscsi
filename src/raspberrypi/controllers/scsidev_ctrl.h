@@ -157,8 +157,16 @@ private:
 										// GET MESSAGE(10) command
 	void FASTCALL CmdSendMessage10();
 										// SEND MESSAGE(10) command
-	void FASTCALL CmdNuvolink0C();
-										// SEND MESSAGE(10) command
+	void FASTCALL CmdMediaSense();
+										// Nuvolink-specific command
+	void FASTCALL CmdResetStatistics();
+										// Nuvolink-specific command
+	void FASTCALL CmdSendPacket();
+										// Nuvolink-specific command
+	void FASTCALL CmdChangeMacAddr();
+										// Nuvolink-specific command
+	void FASTCALL CmdSetMcastReg();
+										// Nuvolink-specific command
 
 	// データ転送
 	void FASTCALL Send();
