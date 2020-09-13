@@ -50,6 +50,11 @@ SCSINuvolink::SCSINuvolink() : Disk()
 	// TAP Driver Generation
 	tap = new CTapDriver();
 	m_bTapEnable = tap->Init();
+	if(!m_bTapEnable){
+		LOGERROR("Unable to open the TAP interface");
+	}else {
+		LOGINFO("Tap interface created")
+	}
 
 	// Generate MAC Address
 	memset(mac_addr, 0x00, 6);
@@ -61,6 +66,8 @@ SCSINuvolink::SCSINuvolink() : Disk()
 	// Packet reception flag OFF
 	packet_enable = FALSE;
 #endif	// RASCSI && !BAREMETAL
+	LOGTRACE("SCSINuvolink Constructor End");
+
 }
 
 //---------------------------------------------------------------------------
@@ -88,8 +95,8 @@ SCSINuvolink::~SCSINuvolink()
 int FASTCALL SCSINuvolink::Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	char rev[32];
-	int size;
+	// char rev[32];
+	// int size;
 	WORD extended_size=0;
 	DWORD junk_data=0;
 	WORD junk_data_word=0;
@@ -144,8 +151,8 @@ int FASTCALL SCSINuvolink::Inquiry(
 	buf[2] = 0x02;
 	/* SCSI 2 response type */
 	buf[3] = 0x02;
-	/* No additional length */
-	buf[4] = 0;
+	/* Length will be 92 (96 - 4 byte header)*/
+	buf[4] = 92;
 
 	// Vendor name
 	memcpy(&buf[8], m_vendor_name, strlen( m_vendor_name));

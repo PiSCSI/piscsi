@@ -275,10 +275,10 @@ void FASTCALL SCSIDEV::Execute()
 			CmdRezero();
 			return;
 
-//		// Nuvolink reset statistics
-//		case eCmdResetStatistics:
-//			CmdResetStatistics();
-//			return;
+		// Nuvolink reset statistics
+		case eCmdResetStatistics:
+			CmdResetStatistics();
+			return;
 
 		// REQUEST SENSE
 		case eCmdRequestSense:
@@ -1150,19 +1150,33 @@ void FASTCALL SCSIDEV::CmdReadToc()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdMediaSense(){
 	ASSERT(this);
+	LOGTRACE("<%d> Received CmdMediaSense command for Nuvolink (%s)", this->GetID(), __PRETTY_FUNCTION__);
 
+	Status();
+}
+
+
+void FASTCALL SCSIDEV::CmdResetStatistics(){
+	DWORD lun;
+
+	ASSERT(this);
+
+	LOGTRACE("<%d> Received CmdResetStatistics command for Nuvolink (%s)", this->GetID(), __PRETTY_FUNCTION__);
+	
 	Status();
 }
 
 void FASTCALL SCSIDEV::CmdSendPacket(){
 
 	ASSERT(this);
+	LOGTRACE("<%d> Received CmdSendPacket command for Nuvolink (%s)", this->GetID(), __PRETTY_FUNCTION__);
 
 	Status();
 }
 void FASTCALL SCSIDEV::CmdChangeMacAddr(){
 
 	ASSERT(this);
+	LOGTRACE("<%d> Received CmdChangeMacAddr command for Nuvolink", this->GetID());
 
 	Status();
 }
@@ -1171,6 +1185,7 @@ void SCSIDEV::FASTCALL CmdSetMcastReg(){
 	DWORD lun;
 
 	ASSERT(this);
+	LOGTRACE("<%d> Received CmdSetMcastReg command for Nuvolink", this->GetID());
 
 	Status();
 }
@@ -1363,7 +1378,9 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 	}
 
 	// Error if not a host bridge
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
+	if ((ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) &&
+	    (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'N', 'L'))){
+		LOGWARN("Received a GetMessage10 command for a non-bridge unit");
 		Error();
 		return;
 	}
