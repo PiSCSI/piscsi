@@ -6,7 +6,9 @@
 #
 alias rascsisrc='cd ~/RASCSI/src/raspberrypi'
 
-alias rascsirebuild='cd ~/RASCSI/src/raspberrypi && sudo systemctl stop rascsi && make clean && make all DEBUG=1 -j && sudo make install && sudo systemctl start rascsi'
+alias rascsirebuild='cd ~/RASCSI/src/raspberrypi && sudo systemctl stop rascsi && make all DEBUG=1 -j && sudo make install && sudo systemctl start rascsi'
+alias rascsiaddnuvo='rasctl -c attach -t bridge -i '
+alias rascisdelnuvo='rascsi -c detach -i '
 
 alias rascsirestart='sudo systemctl restart rascsi.service'
 alias rascsistop='sudo systemctl stop rascsi.service'
