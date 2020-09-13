@@ -62,6 +62,12 @@ SCSINuvolink::SCSINuvolink() : Disk()
 		tap->GetMacAddr(mac_addr);
 		mac_addr[5]++;
 	}
+	mac_addr[0]=0x01;
+	mac_addr[1]=0x02;
+	mac_addr[2]=0x03;
+	mac_addr[3]=0x04;
+	mac_addr[4]=0x05;
+	mac_addr[5]=0x06;
 
 	// Packet reception flag OFF
 	packet_enable = FALSE;
@@ -97,9 +103,18 @@ int FASTCALL SCSINuvolink::Inquiry(
 {
 	// char rev[32];
 	// int size;
-	WORD extended_size=0;
 	DWORD junk_data=0;
 	WORD junk_data_word=0;
+	BYTE temp;
+	BYTE temp2;
+	WORD response_size=96;
+	// if(cdb[2] == 0x02){
+	// 	/* If we got a "page code" of 2, the driver is looking for
+	// 	 * all of the details. */
+	// 	LOGINFO("Sending response of 292 bytes");
+	// 	response_size=292;
+	// }
+	const WORD header_size=4;
 
 	ASSERT(this);
 	ASSERT(cdb);
@@ -107,34 +122,24 @@ int FASTCALL SCSINuvolink::Inquiry(
 	ASSERT(cdb[0] == 0x12);
 
 	LOGTRACE("SCSINuvolink::Inquiry");
-	LOGINFO("Inquiry with major %ld, minor %ld",major, minor);
+	LOGDEBUG("Inquiry with major %ld, minor %ld",major, minor);
 
-	// The INQUIRY command from the Nuvolink can be 16 bits long
-	extended_size = (WORD)cdb[4] + (((WORD)cdb[3])<<8);
-	LOGINFO("Inquiry Size was %d", extended_size);
 
 	for(int i=0; i< 5; i++)
 	{
-		LOGINFO("CDB Byte %d: %02X",i,cdb[i]);
+		temp = cdb[i];
+		LOGDEBUG("CDB Byte %d: %02X",i,(int)temp);
 	}
 
 	// EVPD check
 	if (cdb[1] & 0x01) {
+		LOGERROR("Invalid CDB = DISK_INVALIDCDB");
 		disk.code = DISK_INVALIDCDB;
 		return FALSE;
 	}
 
-	/* The protocol documentaiton says that the size should never be
-	 * greater than 292 */
-	if(extended_size > 292)
-	{
-		LOGWARN("Extended size was greater than 292. Limiting to 292 instead of %d", extended_size);
-		extended_size = 292;
-	}
-
 	// Clear the buffer
-	memset(buf, 0, extended_size);
-
+	memset(buf, 0, response_size);
 
 	// Basic data
 	// buf[0] ... Communication Device
@@ -150,9 +155,9 @@ int FASTCALL SCSINuvolink::Inquiry(
 	/* SCSI 2 device */
 	buf[2] = 0x02;
 	/* SCSI 2 response type */
-	buf[3] = 0x02;
-	/* Length will be 92 (96 - 4 byte header)*/
-	buf[4] = 92;
+	buf[3] = (response_size >> 8) | 0x02;
+	/* No additional length */
+	buf[4] = response_size;
 
 	// Vendor name
 	memcpy(&buf[8], m_vendor_name, strlen( m_vendor_name));
@@ -167,11 +172,9 @@ int FASTCALL SCSINuvolink::Inquiry(
 	memcpy(&buf[36], mac_addr, sizeof(mac_addr));
 
 	// Build-in Hardware MAC address
-	memcpy(&buf[36], mac_addr, sizeof(mac_addr));
+	memcpy(&buf[56], mac_addr, sizeof(mac_addr));
 
-	// If this is an extended inquiry, add some additional details
-	if(extended_size >= 292)
-	{
+	// if(response_size > 96){
 		// Header for SCSI statistics
 		buf[96] = 0x04; // Decimal 1234
 		buf[97] = 0xD2;
@@ -191,7 +194,7 @@ int FASTCALL SCSINuvolink::Inquiry(
 		// Transmitted Packet Count
 		junk_data=200;
 		memcpy(&buf[250], &junk_data, sizeof(junk_data));
-	
+
 		// Transmitted Request Count
 		junk_data=300;
 		memcpy(&buf[254], &junk_data, sizeof(junk_data));
@@ -203,11 +206,48 @@ int FASTCALL SCSINuvolink::Inquiry(
 		// Header for network errors
 		buf[260]=0x11; // Decimal 4567
 		buf[261]=0xD7;
-	}
 
+		LOGINFO("Adding garbage data");
+		// unexp_rst
+		buf[262]=0x01;
+		buf[263]=0x02;
+		//transmit_errors
+		buf[264]=0x03;
+		buf[265]=0x04;
+		// re_int
+		buf[266]=0x05;
+		buf[267]=0x06;
+		// te_int
+		buf[268]=0x07;
+		buf[269]=0x08;
+		// ow_int
+		buf[270]=0x09;
+		buf[271]=0x0A;
+		buf[272]=0x0B;
+		buf[273]=0x0C;
+		buf[274]=0x0D;
+		buf[275]=0x0E;
+	// }
+
+	// for (int i=0; i<response_size; i++){
+	// 	if((i % 8) == 0){
+	// 		printf("\n 0x%08X", i);
+	// 	}
+	// 	printf(" %02X", (int)buf[i]);
+	// }
+	// printf("\n");
+
+	LOGINFO("Done....");
+	LOGINFO("Done....");
+	LOGINFO("Done....");
+	LOGINFO("Done....");
+	LOGINFO("Done....");
+	LOGINFO("Done....");
+	LOGINFO("Done....");
 	//  Success
 	disk.code = DISK_NOERROR;
-	return extended_size;
+	// return response_size;
+	return 292;
 }
 
 //---------------------------------------------------------------------------
