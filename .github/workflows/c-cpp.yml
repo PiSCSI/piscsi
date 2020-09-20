@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - name: Install cross compile toolchain
-      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
+      run: sudo apt-get install gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev
     - uses: actions/checkout@v2
 
     - name: make standard
