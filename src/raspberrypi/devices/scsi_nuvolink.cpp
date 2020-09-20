@@ -101,34 +101,25 @@ SCSINuvolink::~SCSINuvolink()
 int FASTCALL SCSINuvolink::Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	// char rev[32];
-	// int size;
-	DWORD junk_data=0;
-	WORD junk_data_word=0;
-	BYTE temp;
-	BYTE temp2;
-	WORD response_size=96;
-	// if(cdb[2] == 0x02){
-	// 	/* If we got a "page code" of 2, the driver is looking for
-	// 	 * all of the details. */
-	// 	LOGINFO("Sending response of 292 bytes");
-	// 	response_size=292;
-	// }
-	const WORD header_size=4;
+	DWORD response_size;
+	DWORD temp_data_dword;
+	WORD  temp_data_word;
 
 	ASSERT(this);
 	ASSERT(cdb);
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
 
-	LOGTRACE("SCSINuvolink::Inquiry");
-	LOGDEBUG("Inquiry with major %ld, minor %ld",major, minor);
+	LOGTRACE("%s Inquiry with major %ld, minor %ld",__PRETTY_FUNCTION__, major, minor);
 
+	// The LSB of cdb[3] is used as an extension to the size
+	// field in cdb[4]
+	response_size = (((DWORD)cdb[3] & 0x1) << 8) + cdb[4];
+	LOGWARN("size is %d (%08X)",response_size, response_size);
 
 	for(int i=0; i< 5; i++)
 	{
-		temp = cdb[i];
-		LOGDEBUG("CDB Byte %d: %02X",i,(int)temp);
+		LOGDEBUG("CDB Byte %d: %02X",i, (int)cdb[i]);
 	}
 
 	// EVPD check
@@ -174,7 +165,9 @@ int FASTCALL SCSINuvolink::Inquiry(
 	// Build-in Hardware MAC address
 	memcpy(&buf[56], mac_addr, sizeof(mac_addr));
 
-	// if(response_size > 96){
+	// For now, all of the statistics are just garbage data to
+	// make sure that the inquiry response is formatted correctly
+	if(response_size > 96){
 		// Header for SCSI statistics
 		buf[96] = 0x04; // Decimal 1234
 		buf[97] = 0xD2;
@@ -188,26 +181,25 @@ int FASTCALL SCSINuvolink::Inquiry(
 		buf[245]=0x80;
 
 		// Received Packet Count
-		junk_data=100;
-		memcpy(&buf[246], &junk_data, sizeof(junk_data));
+		temp_data_dword=100;
+		memcpy(&buf[246], &temp_data_dword, sizeof(temp_data_dword));
 
 		// Transmitted Packet Count
-		junk_data=200;
-		memcpy(&buf[250], &junk_data, sizeof(junk_data));
+		temp_data_dword=200;
+		memcpy(&buf[250], &temp_data_dword, sizeof(temp_data_dword));
 
 		// Transmitted Request Count
-		junk_data=300;
-		memcpy(&buf[254], &junk_data, sizeof(junk_data));
+		temp_data_dword=300;
+		memcpy(&buf[254], &temp_data_dword, sizeof(temp_data_dword));
 		
 		// Reset Count
-		junk_data_word=50;
-		memcpy(&buf[258], &junk_data_word, sizeof(junk_data_word));
+		temp_data_word=50;
+		memcpy(&buf[258], &temp_data_word, sizeof(temp_data_word));
 
 		// Header for network errors
 		buf[260]=0x11; // Decimal 4567
 		buf[261]=0xD7;
 
-		LOGINFO("Adding garbage data");
 		// unexp_rst
 		buf[262]=0x01;
 		buf[263]=0x02;
@@ -227,27 +219,11 @@ int FASTCALL SCSINuvolink::Inquiry(
 		buf[273]=0x0C;
 		buf[274]=0x0D;
 		buf[275]=0x0E;
-	// }
+	 }
 
-	// for (int i=0; i<response_size; i++){
-	// 	if((i % 8) == 0){
-	// 		printf("\n 0x%08X", i);
-	// 	}
-	// 	printf(" %02X", (int)buf[i]);
-	// }
-	// printf("\n");
-
-	LOGINFO("Done....");
-	LOGINFO("Done....");
-	LOGINFO("Done....");
-	LOGINFO("Done....");
-	LOGINFO("Done....");
-	LOGINFO("Done....");
-	LOGINFO("Done....");
 	//  Success
 	disk.code = DISK_NOERROR;
-	// return response_size;
-	return 292;
+	return response_size;
 }
 
 //---------------------------------------------------------------------------
