@@ -458,7 +458,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		FPRT(fp, "Error : Invalid ID\n");
+		FPRT(fp, "%s Error : Invalid ID %d\n", __PRETTY_FUNCTION__, id);
 		return FALSE;
 	}
 

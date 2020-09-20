@@ -17,6 +17,8 @@
 #include "filepath.h"
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
+#include "devices/scsi_nuvolink.h"
+#include "controllers/scsidev_ctrl.h"
 
 //===========================================================================
 //
@@ -301,9 +303,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	// For the monitor tool, we shouldn't need to reset. We're just logging information
 	// Reset
 	if (ctrl.bus->GetRST()) {
-#if defined(DISK_LOG)
-		Log(Log::Normal, "RESET signal received");
-#endif	// DISK_LOG
+		LOGINFO("RESET signal received");
 
 		// Reset the controller
 		Reset();
@@ -371,9 +371,7 @@ void FASTCALL SASIDEV::BusFree()
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Bus free phase");
-#endif	// DISK_LOG
+		LOGINFO("Bus free phase");
 
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
@@ -552,65 +550,69 @@ void FASTCALL SASIDEV::Execute()
 #endif	// RASCSI
 
 	// Process by command
-	switch (ctrl.cmd[0]) {
+	switch ((SCSIDEV::scsi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
-		case 0x00:
+		case SCSIDEV::eCmdTestUnitReady:
 			CmdTestUnitReady();
 			return;
 
 		// REZERO UNIT
-		case 0x01:
+		case SCSIDEV::eCmdRezero:
 			CmdRezero();
 			return;
 
 		// REQUEST SENSE
-		case 0x03:
+		case SCSIDEV::eCmdRequestSense:
 			CmdRequestSense();
 			return;
 
 		// FORMAT UNIT
-		case 0x04:
-			CmdFormat();
-			return;
-
-		// FORMAT UNIT
+		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
+		// leaving it here for now....
+		case SCSIDEV::eCmdFormat:
 		case 0x06:
 			CmdFormat();
 			return;
 
 		// REASSIGN BLOCKS
-		case 0x07:
+		case SCSIDEV::eCmdReassign:
 			CmdReassign();
 			return;
 
 		// READ(6)
-		case 0x08:
+		case SCSIDEV::eCmdRead6:
 			CmdRead6();
 			return;
 
 		// WRITE(6)
-		case 0x0a:
+		case SCSIDEV::eCmdWrite6:
 			CmdWrite6();
 			return;
 
 		// SEEK(6)
-		case 0x0b:
+		case SCSIDEV::eCmdSeek6:
 			CmdSeek6();
 			return;
 
 		// ASSIGN(SASIのみ)
-		case 0x0e:
+		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
+		// leaving it here for now....
+		case SCSIDEV::eCmdSasiCmdAssign:
 			CmdAssign();
 			return;
 
 		// SPECIFY(SASIのみ)
-		case 0xc2:
+		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
+		// leaving it here for now....
+		case SCSIDEV::eCmdInvalid:
 			CmdSpecify();
 			return;
+		default:
+			break;
 	}
 
 	// Unsupported command
-	Log(Log::Warning, "Unsupported command $%02X", ctrl.cmd[0]);
+	LOGWARN("%s Unsupported command $%02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
 	CmdInvalid();
 }
 
@@ -872,9 +874,7 @@ void FASTCALL SASIDEV::DataOut()
 			return;
 		}
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Data out phase");
-#endif	// DISK_LOG
+		LOGTRACE("%s Data out phase", __PRETTY_FUNCTION__);
 
 		// Phase Setting
 		ctrl.phase = BUS::dataout;
@@ -893,11 +893,13 @@ void FASTCALL SASIDEV::DataOut()
 		// Request data
 		ctrl.bus->SetREQ(TRUE);
 #endif	// RASCSI
+		LOGTRACE("%s returning.....",__PRETTY_FUNCTION__);
 		return;
 	}
 
 #ifdef	RASCSI
 	// Receive
+	LOGTRACE("%s transitioning to Receive()",__PRETTY_FUNCTION__);
 	Receive();
 #else
 	// Requesting
@@ -946,7 +948,7 @@ void FASTCALL SASIDEV::Error()
 	}
 
 #if defined(DISK_LOG)
-	Log(Log::Warning, "Error occured (going to status phase)");
+	LOGWARN("Error occured (going to status phase)");
 #endif	// DISK_LOG
 
 	// Logical Unit
@@ -1667,6 +1669,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 
 		// Data out phase
 		case BUS::dataout:
+			LOGTRACE("%s transitioning to FlushUnit()",__PRETTY_FUNCTION__);
 			// Flush
 			FlushUnit();
 
@@ -1740,6 +1743,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 {
 	DWORD lun;
 	SCSIBR *bridge;
+	SCSINuvolink *nuvolink;
 
 	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::dataout);
@@ -1750,12 +1754,48 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 		return FALSE;
 	}
 
-	// MODE SELECT or WRITE system
-	switch (ctrl.cmd[0]) {
-		// MODE SELECT
-		case 0x15:
-		// MODE SELECT(10)
-		case 0x55:
+	switch ((SCSIDEV::scsi_command) ctrl.cmd[0]) {
+		case SCSIDEV::eCmdChangeMacAddr:
+		case SCSIDEV::eCmdSetMcastReg:
+			LOGTRACE("%s received multicast/mac address %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
+			// Replace the nuvolink with SEND MESSAGE 6
+			if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'N', 'L')) {
+				nuvolink = (SCSINuvolink*)ctrl.unit[lun];
+				if (!nuvolink->SendMessage6(ctrl.cmd, ctrl.buffer)) {
+					// write failed
+					return FALSE;
+				}
+
+				// If normal, work setting
+				ctrl.offset = 0;
+				break;
+			}
+			else {
+				LOGERROR("%s Received an unexpected command that was not for nuvolink %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
+				break;
+			}
+		case SCSIDEV::eCmdSendPacket:
+			LOGTRACE("%s Send packet %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
+			// Replace the nuvolink with SEND MESSAGE 6
+			if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'N', 'L')) {
+				nuvolink = (SCSINuvolink*)ctrl.unit[lun];
+				if (!nuvolink->SendMessage6(ctrl.cmd, ctrl.buffer)) {
+					// write failed
+					return FALSE;
+				}
+
+				// If normal, work setting
+				ctrl.offset = 0;
+				break;
+			}
+			else {
+				LOGERROR("%s Received an unexpected command that was not for nuvolink %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
+				break;
+			}
+
+
+		case SCSIDEV::eCmdModeSelect:
+		case SCSIDEV::eCmdModeSelect10:
 			if (!ctrl.unit[lun]->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
@@ -1763,10 +1803,8 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 			}
 			break;
 
-		// WRITE(6)
-		case 0x0a:
-		// WRITE(10)
-		case 0x2a:
+		case SCSIDEV::eCmdWrite6:
+		case SCSIDEV::eCmdWrite10:
 			// Replace the host bridge with SEND MESSAGE 10
 			if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
 				bridge = (SCSIBR*)ctrl.unit[lun];
@@ -1780,8 +1818,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 				break;
 			}
 
-		// WRITE AND VERIFY
-		case 0x2e:
+		case SCSIDEV::eCmdWriteAndVerify10:
 			// Write
 			if (!ctrl.unit[lun]->Write(ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
@@ -1806,10 +1843,11 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 			break;
 
 		// SPECIFY(SASI only)
-		case 0xc2:
+		case SCSIDEV::eCmdInvalid:
 			break;
 
 		default:
+			LOGWARN("Received an unexpected command (%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
 			ASSERT(FALSE);
 			break;
 	}
@@ -1826,6 +1864,8 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 void FASTCALL SASIDEV::FlushUnit()
 {
 	DWORD lun;
+	DWORD len;
+	SCSINuvolink *nuvolink;
 
 	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::dataout);
@@ -1837,45 +1877,108 @@ void FASTCALL SASIDEV::FlushUnit()
 	}
 
 	// WRITE system only
-	switch (ctrl.cmd[0]) {
-		// WRITE(6)
-		case 0x0a:
-		// WRITE(10)
-		case 0x2a:
-		// WRITE AND VERIFY
-		case 0x2e:
+	switch ((SCSIDEV::scsi_command)ctrl.cmd[0]) {
+		case SCSIDEV::eCmdSetMcastReg:
+			LOGTRACE("%s received a eCmdSetMcastReg with size %d", __PRETTY_FUNCTION__, (WORD)ctrl.length);
+			// Get the number of bytes
+			len = ctrl.cmd [4];
+
+			LOGDEBUG("Mcast message len: %d (%08X)", (WORD)len, (WORD)len);
+			LOGDEBUG("Mcast contents: %02X %02X %02X %02X %02X %02X", \
+				(WORD)ctrl.buffer[0],\
+				(WORD)ctrl.buffer[1],\
+				(WORD)ctrl.buffer[2],\
+				(WORD)ctrl.buffer[3],\
+				(WORD)ctrl.buffer[4],\
+				(WORD)ctrl.buffer[5]);
+			break;
+		case SCSIDEV::eCmdChangeMacAddr:
+			LOGTRACE("%s received a eCmdChangeMacAddr with size %d", __PRETTY_FUNCTION__, (WORD)ctrl.length);
+	
+			// Get the number of bytes
+			len = ctrl.cmd [4];
+
+			LOGDEBUG("Mcast message len: %d (%08X)", (WORD)len, (WORD)len);
+			LOGDEBUG("Mcast contents: %02X %02X %02X %02X %02X %02X", \
+				(WORD)ctrl.buffer[0],\
+				(WORD)ctrl.buffer[1],\
+				(WORD)ctrl.buffer[2],\
+				(WORD)ctrl.buffer[3],\
+				(WORD)ctrl.buffer[4],\
+				(WORD)ctrl.buffer[5]);
+
+	
+			break;
+		case SCSIDEV::eCmdSendPacket:
+			LOGTRACE("%s received a eCmdSendPacket with size %d", __PRETTY_FUNCTION__, (WORD)ctrl.length);
+
+			// Get the number of bytes
+			len = ctrl.cmd [3];
+			len <<= 8;
+			len += ctrl.cmd [4];
+
+			LOGDEBUG("Packet len: %d (%08X)", (WORD)len, (WORD)len)
+			if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'N', 'L')) {
+				nuvolink = (SCSINuvolink*)ctrl.unit[lun];
+				LOGERROR("buffer addr %016lX", (DWORD)ctrl.buffer);
+				if (!nuvolink->SendPacket(ctrl.buffer,len)) {
+					// write failed
+					return;
+				}
+
+				// If normal, work setting
+				ctrl.offset = 0;
+				break;
+			}
+			else {
+				LOGERROR("%s Received an unexpected command that was not for nuvolink %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
+				break;
+			}
+
+
+
+
+
+
+
+			break;
+		case SCSIDEV::eCmdWrite6:
+		case SCSIDEV::eCmdWrite10:
+		case SCSIDEV::eCmdWriteAndVerify10:
 			// Flush
 			if (!ctrl.unit[lun]->IsCacheWB()) {
 				ctrl.unit[lun]->Flush();
 			}
 			break;
-        // Mode Select (6)
-        case 0x15:
-        // MODE SELECT(10)
-		case 0x55:
+		case SCSIDEV::eCmdModeSelect:
+		case SCSIDEV::eCmdModeSelect10:
             // Debug code related to Issue #2 on github, where we get an unhandled Model select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
-            Log(Log::Warning, "Received \'Mode Select\'\n");
-            Log(Log::Warning, "   Operation Code: [%02X]\n", ctrl.cmd[0]);
-            Log(Log::Warning, "   Logical Unit %01X, PF %01X, SP %01X [%02X]\n", ctrl.cmd[1] >> 5, 1 & (ctrl.cmd[1] >> 4), ctrl.cmd[1] & 1, ctrl.cmd[1]);
-            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[2]);
-            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[3]);
-            Log(Log::Warning, "   Parameter List Len %02X\n", ctrl.cmd[4]);
-            Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[5]);
-            Log(Log::Warning, "   Ctrl Len: %08X\n",ctrl.length);
+            LOGWARN("Received \'Mode Select\'\n");
+            LOGWARN("   Operation Code: [%02X]\n", (WORD)ctrl.cmd[0]);
+            LOGWARN("   Logical Unit %01X, PF %01X, SP %01X [%02X]\n",\
+			   (WORD)ctrl.cmd[1] >> 5, 1 & ((WORD)ctrl.cmd[1] >> 4), \
+			   (WORD)ctrl.cmd[1] & 1, (WORD)ctrl.cmd[1]);
+            LOGWARN("   Reserved: %02X\n", (WORD)ctrl.cmd[2]);
+            LOGWARN("   Reserved: %02X\n", (WORD)ctrl.cmd[3]);
+            LOGWARN("   Parameter List Len %02X\n", (WORD)ctrl.cmd[4]);
+            LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
+            LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
 			if (!ctrl.unit[lun]->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
-				Log(Log::Warning, "Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
+				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
 				return;
 			}
             break;
 
 		default:
-			Log(Log::Warning, "Received an invalid flush command %02X!!!!!\n",ctrl.cmd[0]);
-			ASSERT(FALSE);
+			LOGWARN("Received an unexpected flush command %02X!!!!!\n",(WORD)ctrl.cmd[0]);
+			// The following statement makes debugging a huge pain. You can un-comment it
+			// if you're not trying to add new devices....
+			// ASSERT(FALSE);
 			break;
 	}
 }

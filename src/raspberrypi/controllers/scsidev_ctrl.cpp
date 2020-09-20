@@ -908,6 +908,13 @@ void FASTCALL SCSIDEV::CmdWrite10()
 		return;
 	}
 
+//	// Receive message with Nuvolink
+//	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'N', 'L')) {
+//		CmdSendMessage10();
+//		return;
+//	}
+// TODO: .... I don't think this is needed (akuker)
+
 	// Get record number and block number
 	record = ctrl.cmd[2];
 	record <<= 8;
@@ -1157,7 +1164,7 @@ void FASTCALL SCSIDEV::CmdMediaSense(){
 
 
 void FASTCALL SCSIDEV::CmdResetStatistics(){
-	DWORD lun;
+	// DWORD lun;
 
 	ASSERT(this);
 
@@ -1168,25 +1175,84 @@ void FASTCALL SCSIDEV::CmdResetStatistics(){
 
 void FASTCALL SCSIDEV::CmdSendPacket(){
 
+	DWORD lun;
 	ASSERT(this);
 	LOGTRACE("<%d> Received CmdSendPacket command for Nuvolink (%s)", this->GetID(), __PRETTY_FUNCTION__);
+
+	// Logical Unit
+	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		LOGERROR("%s Invalid logical unit specified: %d", __PRETTY_FUNCTION__, (WORD)lun);
+		Error();
+		return;
+	}
+
+	// Send Packet with Nuvolink
+	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'N', 'L')) {
+		LOGTRACE("%s Moving to CmdSendMessage6()", __PRETTY_FUNCTION__);
+		CmdSendMessage6();
+		return;
+	}
+	else
+	{
+		LOGERROR("Received a CmdSendPacket command for a non-nuvolink device");
+	}
+
+
 
 	Status();
 }
 void FASTCALL SCSIDEV::CmdChangeMacAddr(){
+	DWORD lun;
 
 	ASSERT(this);
 	LOGTRACE("<%d> Received CmdChangeMacAddr command for Nuvolink", this->GetID());
 
+	// Logical Unit
+	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		LOGERROR("%s Invalid logical unit specified: %d", __PRETTY_FUNCTION__, (WORD)lun);
+		Error();
+		return;
+	}
+
+	// Receive message with Nuvolink
+	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'N', 'L')) {
+		LOGTRACE("%s Moving to CmdSendMessage6()", __PRETTY_FUNCTION__);
+		CmdSendMessage6();
+		return;
+	}
+	else
+	{
+		LOGERROR("Received a CmdChangeMacAddr command for a non-nuvolink device");
+	}
 	Status();
 }
 
-void SCSIDEV::FASTCALL CmdSetMcastReg(){
+void FASTCALL SCSIDEV::CmdSetMcastReg(){
 	DWORD lun;
 
 	ASSERT(this);
-	LOGTRACE("<%d> Received CmdSetMcastReg command for Nuvolink", this->GetID());
 
+	// Logical Unit
+	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		LOGERROR("%s Invalid logical unit specified: %d", __PRETTY_FUNCTION__, (WORD)lun);
+		Error();
+		return;
+	}
+
+	LOGTRACE("<%d> Received CmdSetMcastReg command for Nuvolink", this->GetID());
+	// Receive message with Nuvolink
+	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'N', 'L')) {
+		LOGTRACE("%s Moving to CmdSendMessage10()", __PRETTY_FUNCTION__);
+		CmdSendMessage6();
+		return;
+	}
+	else
+	{
+		LOGERROR("Received a CmdSetMcastReg command for a non-nuvolink device");
+	}
 	Status();
 }
 
@@ -1414,6 +1480,8 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 //
 //	SEND MESSAGE(10)
 //
+//  This Send Message command is used by the X68000 host driver
+//
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSendMessage10()
 {
@@ -1429,8 +1497,7 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 	}
 
 	// Error if not a host bridge
-	if ((ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) &&
-	    (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'N', 'L'))) {
+	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
 		LOGERROR("Received CmdSendMessage10 for a non-bridge device");
 		Error();
 		return;
@@ -1463,6 +1530,75 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 	// Light phase
 	DataOut();
 }
+
+
+//---------------------------------------------------------------------------
+//
+//	SEND MESSAGE(6)
+//
+//  This Send Message command is used by the Nuvolink
+//
+//---------------------------------------------------------------------------
+void FASTCALL SCSIDEV::CmdSendMessage6()
+{
+	DWORD lun;
+
+	ASSERT(this);
+
+	// Logical Unit
+	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		Error();
+		return;
+	}
+
+	// Error if not a host bridge
+	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'N', 'L')) {
+		LOGERROR("Received CmdSendMessage6 for a non-nuvolink device");
+		Error();
+		return;
+	}
+
+	// Reallocate buffer (because it is not transfer for each block)
+	if (ctrl.bufsize < 0x1000000) {
+		LOGTRACE("%s Re-allocating ctrl buffer", __PRETTY_FUNCTION__);
+		free(ctrl.buffer);
+		ctrl.bufsize = 0x1000000;
+		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
+	}
+
+	// Set transfer amount
+	ctrl.length = ctrl.cmd[3];
+	ctrl.length <<= 8;
+	ctrl.length += ctrl.cmd[4];
+
+	for(int i=0; i< 8; i++)
+	{
+		LOGDEBUG("ctrl.cmd Byte %d: %02X",i, (int)ctrl.cmd[i]);
+	}
+
+	LOGTRACE("%s transfer %d bytes",__PRETTY_FUNCTION__, (unsigned int)ctrl.length);
+
+	if (ctrl.length <= 0) {
+		// Failure (Error)
+		Error();
+		return;
+	}
+
+	// Set next block
+	ctrl.blocks = 1;
+	ctrl.next = 1;
+
+	LOGTRACE("%s transitioning to DataOut()",__PRETTY_FUNCTION__);
+	// Light phase
+	DataOut();
+}
+
+
+
+
+
+
 
 //===========================================================================
 //

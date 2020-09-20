@@ -48,10 +48,13 @@ public:
 										// INQUIRY command
 	BOOL FASTCALL TestUnitReady(const DWORD *cdb);
 										// TEST UNIT READY command
-	int FASTCALL GetMessage10(const DWORD *cdb, BYTE *buf);
+	int FASTCALL GetMessage6(const DWORD *cdb, BYTE *buf);
 										// GET MESSAGE10 command
-	BOOL FASTCALL SendMessage10(const DWORD *cdb, BYTE *buf);
+	BOOL FASTCALL SendMessage6(const DWORD *cdb, BYTE *buf);
 										// SEND MESSAGE10 command
+	BOOL SendPacket(BYTE *buf, int len);
+										// Send a packet
+
 
 private:
 	enum nuvolink_command_enum : BYTE {
@@ -82,8 +85,8 @@ private:
 										// Receive a packet
 	void FASTCALL GetPacketBuf(BYTE *buf);
 										// Get a packet
-	void FASTCALL SendPacket(BYTE *buf, int len);
-										// Send a packet
+	void FASTCALL SetMulticastRegisters(BYTE *buf, int len);
+										// Change the multicast registers										
 
 	CTapDriver *tap;
 										// TAP driver

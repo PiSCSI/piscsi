@@ -179,13 +179,13 @@ int main(int argc, char* argv[])
 
 	// Check the ID number
 	if (id < 0 || id > 7) {
-		fprintf(stderr, "Error : Invalid ID\n");
+		fprintf(stderr, "%s Error : Invalid ID %d \n", __PRETTY_FUNCTION__, id);
 		exit(EINVAL);
 	}
 
 	// Check the unit number
 	if (un < 0 || un > 1) {
-		fprintf(stderr, "Error : Invalid UNIT\n");
+		fprintf(stderr, "%s Error : Invalid UNIT %d \n", __PRETTY_FUNCTION__, un);
 		exit(EINVAL);
 	}
 

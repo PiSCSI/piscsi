@@ -74,6 +74,7 @@ public:
 			eCmdModeSelect10 = 0x55,
 			eCmdModeSense10 = 0x5A,
 			eCmdInvalid = 0xC2,		// (SASI only/Suppress warning when using SxSI)
+			eCmdSasiCmdAssign = 0x0e, // This isn't used by SCSI, and can probably be removed.
 	};
 
 public:
@@ -157,6 +158,8 @@ private:
 										// GET MESSAGE(10) command
 	void FASTCALL CmdSendMessage10();
 										// SEND MESSAGE(10) command
+	void FASTCALL CmdSendMessage6();
+										// SEND MESSAGE(6) command
 	void FASTCALL CmdMediaSense();
 										// Nuvolink-specific command
 	void FASTCALL CmdResetStatistics();
