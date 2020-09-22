@@ -1,9 +1,10 @@
 EESchema Schematic File Version 4
+LIBS:rascsi_2p3-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
-Sheet 3 3
+Sheet 2 2
 Title ""
 Date ""
 Rev ""
@@ -114,7 +115,14 @@ P 3850 2950
 F 0 "TP1" V 3804 3138 50  0000 L CNN
 F 1 "TestPoint" V 3895 3138 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 4050 2950 50  0001 C CNN
-F 3 "~" H 4050 2950 50  0001 C CNN
+F 3 "N/A - Test pad" H 4050 2950 50  0001 C CNN
+F 4 "N/A" H 3850 2950 50  0001 C CNN "Height"
+F 5 "N/A" H 3850 2950 50  0001 C CNN "LCSC"
+F 6 "N/A" H 3850 2950 50  0001 C CNN "Manufacturer_Name"
+F 7 "N/A" H 3850 2950 50  0001 C CNN "Manufacturer_Part_Number"
+F 8 "N/A" H 3850 2950 50  0001 C CNN "Mouser Part Number"
+F 9 "N/A" H 3850 2950 50  0001 C CNN "Mouser Price/Stock"
+F 10 "N/A - Test pad" H 3850 2950 50  0001 C CNN "Description"
 	1    3850 2950
 	0    1    1    0   
 $EndComp
@@ -125,7 +133,14 @@ P 3850 3050
 F 0 "TP2" V 3804 3238 50  0000 L CNN
 F 1 "TestPoint" V 3895 3238 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 4050 3050 50  0001 C CNN
-F 3 "~" H 4050 3050 50  0001 C CNN
+F 3 "N/A - Test pad" H 4050 3050 50  0001 C CNN
+F 4 "N/A" H 3850 3050 50  0001 C CNN "Height"
+F 5 "N/A" H 3850 3050 50  0001 C CNN "LCSC"
+F 6 "N/A" H 3850 3050 50  0001 C CNN "Manufacturer_Name"
+F 7 "N/A" H 3850 3050 50  0001 C CNN "Manufacturer_Part_Number"
+F 8 "N/A" H 3850 3050 50  0001 C CNN "Mouser Part Number"
+F 9 "N/A" H 3850 3050 50  0001 C CNN "Mouser Price/Stock"
+F 10 "N/A - Test pad" H 3850 3050 50  0001 C CNN "Description"
 	1    3850 3050
 	0    1    1    0   
 $EndComp
@@ -136,7 +151,14 @@ P 3850 3150
 F 0 "TP3" V 3804 3338 50  0000 L CNN
 F 1 "TestPoint" V 3895 3338 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 4050 3150 50  0001 C CNN
-F 3 "~" H 4050 3150 50  0001 C CNN
+F 3 "N/A - Test pad" H 4050 3150 50  0001 C CNN
+F 4 "N/A" H 3850 3150 50  0001 C CNN "Height"
+F 5 "N/A" H 3850 3150 50  0001 C CNN "LCSC"
+F 6 "N/A" H 3850 3150 50  0001 C CNN "Manufacturer_Name"
+F 7 "N/A" H 3850 3150 50  0001 C CNN "Manufacturer_Part_Number"
+F 8 "N/A" H 3850 3150 50  0001 C CNN "Mouser Part Number"
+F 9 "N/A" H 3850 3150 50  0001 C CNN "Mouser Price/Stock"
+F 10 "N/A - Test pad" H 3850 3150 50  0001 C CNN "Description"
 	1    3850 3150
 	0    1    1    0   
 $EndComp
