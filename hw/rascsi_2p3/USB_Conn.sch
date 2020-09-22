@@ -23,8 +23,11 @@ AR Path="/5FEC586E/5FEC9A88" Ref="J8"  Part="1"
 F 0 "J8" H 3350 2300 50  0000 C CNN
 F 1 "USB_B_Micro" H 3350 2200 50  0000 C CNN
 F 2 "SamacSys_Parts:U254051N4BH806" H 3050 2000 50  0001 C CNN
-F 3 "~" H 3050 2000 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/2002271812_XKB-Connectivity-U254-051N-4BH806_C319170.pdf" H 3050 2000 50  0001 C CNN
 F 4 "C319170" H 2900 2050 50  0001 C CNN "LCSC"
+F 5 "USB - Micro B Female USB 2 5 SMD USB Connectors" H 2900 2050 50  0001 C CNN "Description"
+F 6 "XKB Connectivity" H 2900 2050 50  0001 C CNN "Manufacturer_Name"
+F 7 "U254-051N-4BH806" H 2900 2050 50  0001 C CNN "Manufacturer_Part_Number"
 	1    2900 2050
 	1    0    0    -1  
 $EndComp
@@ -116,12 +119,12 @@ F 0 "TP1" V 3804 3138 50  0000 L CNN
 F 1 "TestPoint" V 3895 3138 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 4050 2950 50  0001 C CNN
 F 3 "N/A - Test pad" H 4050 2950 50  0001 C CNN
-F 4 "N/A" H 3850 2950 50  0001 C CNN "Height"
+F 4 "" H 3850 2950 50  0001 C CNN "Height"
 F 5 "N/A" H 3850 2950 50  0001 C CNN "LCSC"
 F 6 "N/A" H 3850 2950 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 3850 2950 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 3850 2950 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 3850 2950 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 3850 2950 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 3850 2950 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Test pad" H 3850 2950 50  0001 C CNN "Description"
 	1    3850 2950
 	0    1    1    0   
@@ -134,12 +137,12 @@ F 0 "TP2" V 3804 3238 50  0000 L CNN
 F 1 "TestPoint" V 3895 3238 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 4050 3050 50  0001 C CNN
 F 3 "N/A - Test pad" H 4050 3050 50  0001 C CNN
-F 4 "N/A" H 3850 3050 50  0001 C CNN "Height"
+F 4 "" H 3850 3050 50  0001 C CNN "Height"
 F 5 "N/A" H 3850 3050 50  0001 C CNN "LCSC"
 F 6 "N/A" H 3850 3050 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 3850 3050 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 3850 3050 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 3850 3050 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 3850 3050 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 3850 3050 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Test pad" H 3850 3050 50  0001 C CNN "Description"
 	1    3850 3050
 	0    1    1    0   
@@ -152,12 +155,12 @@ F 0 "TP3" V 3804 3338 50  0000 L CNN
 F 1 "TestPoint" V 3895 3338 50  0000 L CNN
 F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 4050 3150 50  0001 C CNN
 F 3 "N/A - Test pad" H 4050 3150 50  0001 C CNN
-F 4 "N/A" H 3850 3150 50  0001 C CNN "Height"
+F 4 "" H 3850 3150 50  0001 C CNN "Height"
 F 5 "N/A" H 3850 3150 50  0001 C CNN "LCSC"
 F 6 "N/A" H 3850 3150 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 3850 3150 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 3850 3150 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 3850 3150 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 3850 3150 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 3850 3150 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Test pad" H 3850 3150 50  0001 C CNN "Description"
 	1    3850 3150
 	0    1    1    0   

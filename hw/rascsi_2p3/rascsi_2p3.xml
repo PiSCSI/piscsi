@@ -2,7 +2,7 @@
 <export version="D">
   <design>
     <source>C:\Users\theto\Downloads\RASCSI-master\hw\rascsi_2p3\rascsi_2p3.sch</source>
-    <date>9/15/2020 5:58:23 PM</date>
+    <date>9/22/2020 8:59:04 AM</date>
     <tool>Eeschema (5.1.4)-1</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
@@ -37,12 +37,10 @@
       <footprint>Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical</footprint>
       <datasheet>https://datasheet.lcsc.com/szlcsc/1810221914_BOOMELE-Boom-Precision-Elec-C30006_C30006.pdf</datasheet>
       <fields>
-        <field name="Description">2.54mm 2x25 pin Box Header</field>
+        <field name="Description">Header 50 0.100"(2.54mm) 2 2.54MM IDC Connectors RoHS</field>
         <field name="LCSC">C30006</field>
-        <field name="Manufacturer_Name">TE Connectivity</field>
-        <field name="Manufacturer_Part_Number">3-1761603-5</field>
-        <field name="Mouser Part Number">571-3-1761603-5</field>
-        <field name="Mouser Price/Stock">https://www.mouser.com/ProductDetail/TE-Connectivity/3-1761603-5?qs=u8P8Yo77B6VkDYjpX2pgvg%3D%3D</field>
+        <field name="Manufacturer_Name">BOOMELE(Boom Precision Elec)</field>
+        <field name="Manufacturer_Part_Number">C30006</field>
       </fields>
       <libsource lib="Connector_Generic" part="Conn_02x25_Odd_Even" description="Generic connector, double row, 02x25, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
@@ -51,8 +49,12 @@
     <comp ref="FUSE1">
       <value>1A</value>
       <footprint>Fuse:Fuse_1206_3216Metric</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1808301742_Shenzhen-lanson-Elec-12B1100B_C182974.pdf</datasheet>
       <fields>
+        <field name="Description">SMD Fuse Fast Blow 1A 50A 0.0062 SMD1206 Surface Mount Fuses</field>
         <field name="LCSC">C182974</field>
+        <field name="Manufacturer_Name">Shenzhen lanson Elec</field>
+        <field name="Manufacturer_Part_Number">12B1100B</field>
       </fields>
       <libsource lib="Device" part="Fuse_Small" description="Fuse, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -60,10 +62,13 @@
     </comp>
     <comp ref="R1">
       <value>2k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF6802TCE_C36871.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf</datasheet>
       <fields>
+        <field name="Description">2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C4109</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2001TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -72,10 +77,12 @@
     <comp ref="D1">
       <value>Green</value>
       <footprint>LED_SMD:LED_0805_2012Metric</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf</datasheet>
       <fields>
-        <field name="Description">Generic 0805 Green LED</field>
+        <field name="Description">0805 Light Emitting Diodes (LED) RoHS</field>
         <field name="LCSC">C2297</field>
+        <field name="Manufacturer_Name">Hubei KENTO Elec</field>
+        <field name="Manufacturer_Part_Number">C2297</field>
       </fields>
       <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -84,10 +91,12 @@
     <comp ref="D2">
       <value>Green</value>
       <footprint>LED_SMD:LED_0805_2012Metric</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf</datasheet>
       <fields>
-        <field name="Description">Generic 0805 Green LED</field>
+        <field name="Description">0805 Light Emitting Diodes (LED) RoHS</field>
         <field name="LCSC">C2297</field>
+        <field name="Manufacturer_Name">Hubei KENTO Elec</field>
+        <field name="Manufacturer_Part_Number">C2297</field>
       </fields>
       <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -96,10 +105,12 @@
     <comp ref="D3">
       <value>Green</value>
       <footprint>LED_SMD:LED_0805_2012Metric</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf</datasheet>
       <fields>
-        <field name="Description">Generic 0805 Green LED</field>
+        <field name="Description">0805 Light Emitting Diodes (LED) RoHS</field>
         <field name="LCSC">C2297</field>
+        <field name="Manufacturer_Name">Hubei KENTO Elec</field>
+        <field name="Manufacturer_Part_Number">C2297</field>
       </fields>
       <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -108,10 +119,12 @@
     <comp ref="D4">
       <value>Green</value>
       <footprint>LED_SMD:LED_0805_2012Metric</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf</datasheet>
       <fields>
-        <field name="Description">Generic 0805 Green LED</field>
+        <field name="Description">0805 Light Emitting Diodes (LED) RoHS</field>
         <field name="LCSC">C2297</field>
+        <field name="Manufacturer_Name">Hubei KENTO Elec</field>
+        <field name="Manufacturer_Part_Number">C2297</field>
       </fields>
       <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -120,9 +133,12 @@
     <comp ref="J1">
       <value>Raspberry_Pi_2_3</value>
       <footprint>Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical</footprint>
-      <datasheet>Generic 2x20 2.54mm female pin socket</datasheet>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811111512_BOOMELE-Boom-Precision-Elec-C50982_C50982.pdf</datasheet>
       <fields>
+        <field name="Description">Female Header 40 2 right-angle，180degrees 2.54mm 2.54mm Pin Header &amp; Female Header RoHS</field>
         <field name="LCSC">C50982</field>
+        <field name="Manufacturer_Name">BOOMELE(Boom Precision Elec)</field>
+        <field name="Manufacturer_Part_Number">C50982</field>
       </fields>
       <libsource lib="Connector" part="Raspberry_Pi_2_3" description="expansion header for Raspberry Pi 2 &amp; 3"/>
       <sheetpath names="/" tstamps="/"/>
@@ -131,15 +147,12 @@
     <comp ref="H1">
       <value>Hole1</value>
       <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
-      <datasheet>N/A - Mounting Hole</datasheet>
+      <datasheet>DNP</datasheet>
       <fields>
-        <field name="Description">N/A - Mounting Hole</field>
-        <field name="Height">N/A</field>
-        <field name="LCSC">N/A</field>
-        <field name="Manufacturer_Name">N/A</field>
-        <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
       </fields>
       <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
       <sheetpath names="/" tstamps="/"/>
@@ -148,15 +161,12 @@
     <comp ref="H3">
       <value>Hole3</value>
       <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
-      <datasheet>N/A - Mounting Hole</datasheet>
+      <datasheet>DNP</datasheet>
       <fields>
-        <field name="Description">N/A - Mounting Hole</field>
-        <field name="Height">N/A</field>
-        <field name="LCSC">N/A</field>
-        <field name="Manufacturer_Name">N/A</field>
-        <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
       </fields>
       <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
       <sheetpath names="/" tstamps="/"/>
@@ -165,15 +175,12 @@
     <comp ref="H4">
       <value>Hole5</value>
       <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
-      <datasheet>N/A - Mounting Hole</datasheet>
+      <datasheet>DNP</datasheet>
       <fields>
-        <field name="Description">N/A - Mounting Hole</field>
-        <field name="Height">N/A</field>
-        <field name="LCSC">N/A</field>
-        <field name="Manufacturer_Name">N/A</field>
-        <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
       </fields>
       <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
       <sheetpath names="/" tstamps="/"/>
@@ -182,15 +189,12 @@
     <comp ref="H2">
       <value>Hole2</value>
       <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
-      <datasheet>N/A - Mounting Hole</datasheet>
+      <datasheet>DNP</datasheet>
       <fields>
-        <field name="Description">N/A - Mounting Hole</field>
-        <field name="Height">N/A</field>
-        <field name="LCSC">N/A</field>
-        <field name="Manufacturer_Name">N/A</field>
-        <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
       </fields>
       <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
       <sheetpath names="/" tstamps="/"/>
@@ -199,15 +203,12 @@
     <comp ref="H5">
       <value>Hole4</value>
       <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
-      <datasheet>N/A - Mounting Hole</datasheet>
+      <datasheet>DNP</datasheet>
       <fields>
-        <field name="Description">N/A - Mounting Hole</field>
-        <field name="Height">N/A</field>
-        <field name="LCSC">N/A</field>
-        <field name="Manufacturer_Name">N/A</field>
-        <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
       </fields>
       <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
       <sheetpath names="/" tstamps="/"/>
@@ -216,15 +217,12 @@
     <comp ref="H6">
       <value>Hole6</value>
       <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
-      <datasheet>N/A - Mounting Hole</datasheet>
+      <datasheet>DNP</datasheet>
       <fields>
-        <field name="Description">N/A - Mounting Hole</field>
-        <field name="Height">N/A</field>
-        <field name="LCSC">N/A</field>
-        <field name="Manufacturer_Name">N/A</field>
-        <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
       </fields>
       <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
       <sheetpath names="/" tstamps="/"/>
@@ -236,12 +234,9 @@
       <datasheet>N/A - Silkscreen</datasheet>
       <fields>
         <field name="Description">N/A - Silkscreen</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="Logo" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -253,12 +248,9 @@
       <datasheet>N/A - Silkscreen</datasheet>
       <fields>
         <field name="Description">N/A - Silkscreen</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="Logo" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -270,12 +262,9 @@
       <datasheet>N/A - Silkscreen</datasheet>
       <fields>
         <field name="Description">N/A - Silkscreen</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="Logo" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -287,12 +276,9 @@
       <datasheet>N/A - Silkscreen</datasheet>
       <fields>
         <field name="Description">N/A - Silkscreen</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="Logo" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -304,12 +290,9 @@
       <datasheet>N/A - Silkscreen</datasheet>
       <fields>
         <field name="Description">N/A - Silkscreen</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="Logo" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -318,14 +301,12 @@
     <comp ref="J4">
       <value>I2C Pinout</value>
       <footprint>Connector_PinSocket_2.54mm:PinSocket_1x05_P2.54mm_Vertical</footprint>
-      <datasheet>Generic 1x5 2.5mm pin socket</datasheet>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811092140_BOOMELE-Boom-Precision-Elec-C50950_C50950.pdf</datasheet>
       <fields>
-        <field name="Description">Generic 1x5 2.5mm pin socket</field>
-        <field name="LCSC">C2337</field>
-        <field name="Manufacturer_Name">Harwin</field>
-        <field name="Manufacturer_Part_Number">M20-7820546</field>
-        <field name="Mouser Part Number">855-M20-7820546</field>
-        <field name="Mouser Price/Stock">https://www.mouser.com/ProductDetail/Harwin/M20-7820546?qs=vF78I%252BjhbY9HKICpLl9EpQ%3D%3D</field>
+        <field name="Description">Female Header 5 1 right-angle，180degrees 2.54mm 2.54mm Pin Header &amp; Female Header RoHS</field>
+        <field name="LCSC">C50950</field>
+        <field name="Manufacturer_Name">BOOMELE(Boom Precision Elec) C50950</field>
+        <field name="Manufacturer_Part_Number">C50950</field>
       </fields>
       <libsource lib="Connector" part="Conn_01x05_Male" description="Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
@@ -337,12 +318,9 @@
       <datasheet>N/A - Silkscreen</datasheet>
       <fields>
         <field name="Description">N/A - Silkscreen</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="Logo" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -354,12 +332,9 @@
       <datasheet>N/A - Silkscreen</datasheet>
       <fields>
         <field name="Description">N/A - Silkscreen</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="Logo" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -368,15 +343,12 @@
     <comp ref="S1">
       <value>Switch x2</value>
       <footprint>rascsi_din:SOIC127P812X230-4N</footprint>
-      <datasheet>https://www.ckswitches.com/media/1328/tda.pdf</datasheet>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1810191714_Dongguan-Guangzhu-Industrial-DSHP02TSGET_C40735.pdf</datasheet>
       <fields>
-        <field name="Description">DIP Switches / SIP Switches HALF PITCH 2 POS</field>
-        <field name="Height">2.3</field>
+        <field name="Description">SPST 2 1.27mm, Half Slide (Standard) Black SMD DIP Switches</field>
         <field name="LCSC">C40735</field>
         <field name="Manufacturer_Name">C &amp; K COMPONENTS</field>
-        <field name="Manufacturer_Part_Number">TDA02H0SB1R</field>
-        <field name="Mouser Part Number">611-TDA02H0SB1R</field>
-        <field name="Mouser Price/Stock">https://www.mouser.co.uk/ProductDetail/CK/TDA02H0SB1R?qs=%2FNF5U5UGuWn3xddlBViRrw%3D%3D</field>
+        <field name="Manufacturer_Part_Number">DSHP02TSGET</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="TDA02H0SB1R" description="DIP Switches / SIP Switches HALF PITCH 2 POS"/>
       <sheetpath names="/" tstamps="/"/>
@@ -384,10 +356,13 @@
     </comp>
     <comp ref="R31">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -395,11 +370,11 @@
     </comp>
     <comp ref="IC1">
       <value>SN74LS641-1DW</value>
-      <footprint>SOIC127P1030X265-20N</footprint>
+      <footprint>SamacSys_Parts:SOIC127P1030X265-20N</footprint>
       <datasheet>https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW</datasheet>
       <fields>
         <field name="Description">Octal bus transceivers</field>
-        <field name="Height">2.65</field>
+        <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">Texas Instruments</field>
         <field name="Manufacturer_Part_Number">SN74LS641-1DW</field>
       </fields>
@@ -409,11 +384,11 @@
     </comp>
     <comp ref="IC2">
       <value>SN74LS641-1DW</value>
-      <footprint>SOIC127P1030X265-20N</footprint>
+      <footprint>SamacSys_Parts:SOIC127P1030X265-20N</footprint>
       <datasheet>https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW</datasheet>
       <fields>
         <field name="Description">Octal bus transceivers</field>
-        <field name="Height">2.65</field>
+        <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">Texas Instruments</field>
         <field name="Manufacturer_Part_Number">SN74LS641-1DW</field>
       </fields>
@@ -423,11 +398,11 @@
     </comp>
     <comp ref="IC3">
       <value>SN74LS641-1DW</value>
-      <footprint>SOIC127P1030X265-20N</footprint>
+      <footprint>SamacSys_Parts:SOIC127P1030X265-20N</footprint>
       <datasheet>https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW</datasheet>
       <fields>
         <field name="Description">Octal bus transceivers</field>
-        <field name="Height">2.65</field>
+        <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">Texas Instruments</field>
         <field name="Manufacturer_Part_Number">SN74LS641-1DW</field>
       </fields>
@@ -437,11 +412,11 @@
     </comp>
     <comp ref="IC4">
       <value>SN74LS641-1DW</value>
-      <footprint>SOIC127P1030X265-20N</footprint>
+      <footprint>SamacSys_Parts:SOIC127P1030X265-20N</footprint>
       <datasheet>https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW</datasheet>
       <fields>
         <field name="Description">Octal bus transceivers</field>
-        <field name="Height">2.65</field>
+        <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">Texas Instruments</field>
         <field name="Manufacturer_Part_Number">SN74LS641-1DW</field>
       </fields>
@@ -451,10 +426,13 @@
     </comp>
     <comp ref="R13">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -462,10 +440,13 @@
     </comp>
     <comp ref="R12">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -473,10 +454,13 @@
     </comp>
     <comp ref="R11">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -484,10 +468,13 @@
     </comp>
     <comp ref="R10">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -495,10 +482,13 @@
     </comp>
     <comp ref="R9">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -506,10 +496,13 @@
     </comp>
     <comp ref="R8">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -517,10 +510,13 @@
     </comp>
     <comp ref="R7">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -528,10 +524,13 @@
     </comp>
     <comp ref="R6">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -539,10 +538,13 @@
     </comp>
     <comp ref="R5">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -550,10 +552,13 @@
     </comp>
     <comp ref="R22">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -561,10 +566,13 @@
     </comp>
     <comp ref="R14">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -572,10 +580,13 @@
     </comp>
     <comp ref="R15">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -583,10 +594,13 @@
     </comp>
     <comp ref="R16">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -594,10 +608,13 @@
     </comp>
     <comp ref="R17">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -605,10 +622,13 @@
     </comp>
     <comp ref="R18">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -616,10 +636,13 @@
     </comp>
     <comp ref="R19">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -627,10 +650,13 @@
     </comp>
     <comp ref="R20">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -638,10 +664,13 @@
     </comp>
     <comp ref="R21">
       <value>10k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
       <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -649,10 +678,13 @@
     </comp>
     <comp ref="R30">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -660,10 +692,13 @@
     </comp>
     <comp ref="R29">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -671,10 +706,13 @@
     </comp>
     <comp ref="R28">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -682,10 +720,13 @@
     </comp>
     <comp ref="R27">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -693,10 +734,13 @@
     </comp>
     <comp ref="R26">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -704,10 +748,13 @@
     </comp>
     <comp ref="R25">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -715,10 +762,13 @@
     </comp>
     <comp ref="R24">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -726,10 +776,13 @@
     </comp>
     <comp ref="R23">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -737,10 +790,13 @@
     </comp>
     <comp ref="R40">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -748,10 +804,13 @@
     </comp>
     <comp ref="R39">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -759,10 +818,13 @@
     </comp>
     <comp ref="R38">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -770,10 +832,13 @@
     </comp>
     <comp ref="R37">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -781,10 +846,13 @@
     </comp>
     <comp ref="R36">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -792,10 +860,13 @@
     </comp>
     <comp ref="R35">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -803,10 +874,13 @@
     </comp>
     <comp ref="R34">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -814,10 +888,13 @@
     </comp>
     <comp ref="R33">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -825,10 +902,13 @@
     </comp>
     <comp ref="R32">
       <value>220</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
       <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -836,10 +916,13 @@
     </comp>
     <comp ref="R41">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -847,10 +930,13 @@
     </comp>
     <comp ref="R42">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -858,10 +944,13 @@
     </comp>
     <comp ref="R43">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -869,10 +958,13 @@
     </comp>
     <comp ref="R44">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -880,10 +972,13 @@
     </comp>
     <comp ref="R45">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -891,10 +986,13 @@
     </comp>
     <comp ref="R46">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -902,10 +1000,13 @@
     </comp>
     <comp ref="R47">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -913,10 +1014,13 @@
     </comp>
     <comp ref="R48">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -924,10 +1028,13 @@
     </comp>
     <comp ref="R49">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -935,10 +1042,13 @@
     </comp>
     <comp ref="R50">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -946,10 +1056,13 @@
     </comp>
     <comp ref="R51">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -957,10 +1070,13 @@
     </comp>
     <comp ref="R52">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -968,10 +1084,13 @@
     </comp>
     <comp ref="R53">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -979,10 +1098,13 @@
     </comp>
     <comp ref="R54">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -990,10 +1112,13 @@
     </comp>
     <comp ref="R55">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1001,10 +1126,13 @@
     </comp>
     <comp ref="R56">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1012,10 +1140,13 @@
     </comp>
     <comp ref="R57">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1023,21 +1154,27 @@
     </comp>
     <comp ref="R58">
       <value>330</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
       <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamp>5F7B612E</tstamp>
     </comp>
     <comp ref="R3">
-      <value>5k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1470TCE_C64531.pdf</datasheet>
+      <value>5.1k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1810301112_UNI-ROYAL-Uniroyal-Elec-0402WGF5101TCE_C25905.pdf</datasheet>
       <fields>
+        <field name="Description">5.1kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C25905</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF5101TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1045,10 +1182,13 @@
     </comp>
     <comp ref="R2">
       <value>2k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF6802TCE_C36871.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf</datasheet>
       <fields>
+        <field name="Description">2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C4109</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2001TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1056,10 +1196,13 @@
     </comp>
     <comp ref="R4">
       <value>2k</value>
-      <footprint>Resistor_SMD:R_0402_1005Metric</footprint>
-      <datasheet>https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF6802TCE_C36871.pdf</datasheet>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf</datasheet>
       <fields>
+        <field name="Description">2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
         <field name="LCSC">C4109</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2001TCE</field>
       </fields>
       <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1071,12 +1214,9 @@
       <datasheet>DNP</datasheet>
       <fields>
         <field name="Description">DNP</field>
-        <field name="Height">DNP</field>
         <field name="LCSC">DNP</field>
         <field name="Manufacturer_Name">DNP</field>
         <field name="Manufacturer_Part_Number">DNP</field>
-        <field name="Mouser Part Number">DNP</field>
-        <field name="Mouser Price/Stock">DNP</field>
       </fields>
       <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1084,16 +1224,13 @@
     </comp>
     <comp ref="J6">
       <value>CONNFLY DB-25</value>
-      <footprint>L717SDB25PA4CH4F</footprint>
-      <datasheet>https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf</datasheet>
+      <footprint>SamacSys_Parts:L717SDB25PA4CH4F</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811081022_CONNFLY-Elec-DS1037-25FNAKT74-0CC_C77838.pdf</datasheet>
       <fields>
-        <field name="Description">D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD</field>
-        <field name="Height">12.55</field>
+        <field name="Description">D-Sub Receptacle,Female Socket 25 2 1.5A(Contact) Through Hole D-Sub Connectors RoHS</field>
         <field name="LCSC">C77838</field>
-        <field name="Manufacturer_Name">Amphenol</field>
-        <field name="Manufacturer_Part_Number">L717SDB25PA4CH4F</field>
-        <field name="Mouser Part Number">523-L717SDB25PA4CH4F</field>
-        <field name="Mouser Price/Stock">https://www.mouser.com/Search/Refine.aspx?Keyword=523-L717SDB25PA4CH4F</field>
+        <field name="Manufacturer_Name">CONNFLY Elec</field>
+        <field name="Manufacturer_Part_Number">DS1037-25FNAKT74-0CC</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="L717SDB25PA4CH4F" description="D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1105,12 +1242,9 @@
       <datasheet>N/A - Silkscreen</datasheet>
       <fields>
         <field name="Description">N/A - Silkscreen</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="Logo" description=""/>
       <sheetpath names="/" tstamps="/"/>
@@ -1122,12 +1256,9 @@
       <datasheet>DNP</datasheet>
       <fields>
         <field name="Description">DNP</field>
-        <field name="Height">DNP</field>
         <field name="LCSC">DNP</field>
         <field name="Manufacturer_Name">DNP</field>
         <field name="Manufacturer_Part_Number">DNP</field>
-        <field name="Mouser Part Number">DNP</field>
-        <field name="Mouser Price/Stock">DNP</field>
       </fields>
       <libsource lib="Connector_Generic" part="Conn_02x03_Odd_Even" description="Generic connector, double row, 02x03, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1139,12 +1270,9 @@
       <datasheet>DNP</datasheet>
       <fields>
         <field name="Description">DNP</field>
-        <field name="Height">DNP</field>
         <field name="LCSC">DNP</field>
         <field name="Manufacturer_Name">DNP</field>
         <field name="Manufacturer_Part_Number">DNP</field>
-        <field name="Mouser Part Number">DNP</field>
-        <field name="Mouser Price/Stock">DNP</field>
       </fields>
       <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1153,8 +1281,12 @@
     <comp ref="D5">
       <value>SM4007PL</value>
       <footprint>Diode_SMD:D_SOD-123F</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301215_MDD-Microdiode-Electronics-SM4007PL_C64898.pdf</datasheet>
       <fields>
+        <field name="Description">1kV 1A 1.1V @ 1A SOD-123FL Diodes - General Purpose RoHS</field>
         <field name="LCSC">C64898</field>
+        <field name="Manufacturer_Name">	MDD(Microdiode Electronics)</field>
+        <field name="Manufacturer_Part_Number">SM4007PL</field>
       </fields>
       <libsource lib="Device" part="D_Small" description="Diode, small symbol"/>
       <sheetpath names="/" tstamps="/"/>
@@ -1163,9 +1295,12 @@
     <comp ref="J8">
       <value>USB_B_Micro</value>
       <footprint>SamacSys_Parts:U254051N4BH806</footprint>
-      <datasheet>~</datasheet>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/2002271812_XKB-Connectivity-U254-051N-4BH806_C319170.pdf</datasheet>
       <fields>
+        <field name="Description">USB - Micro B Female USB 2 5 SMD USB Connectors</field>
         <field name="LCSC">C319170</field>
+        <field name="Manufacturer_Name">XKB Connectivity</field>
+        <field name="Manufacturer_Part_Number">U254-051N-4BH806</field>
       </fields>
       <libsource lib="SamacSys_Parts" part="U254-051N-4BH806" description="USB Connectors SMD RoHS"/>
       <sheetpath names="/USB_Conn/" tstamps="/5FEC586E/"/>
@@ -1177,12 +1312,9 @@
       <datasheet>N/A - Test pad</datasheet>
       <fields>
         <field name="Description">N/A - Test pad</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/USB_Conn/" tstamps="/5FEC586E/"/>
@@ -1194,12 +1326,9 @@
       <datasheet>N/A - Test pad</datasheet>
       <fields>
         <field name="Description">N/A - Test pad</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/USB_Conn/" tstamps="/5FEC586E/"/>
@@ -1211,12 +1340,9 @@
       <datasheet>N/A - Test pad</datasheet>
       <fields>
         <field name="Description">N/A - Test pad</field>
-        <field name="Height">N/A</field>
         <field name="LCSC">N/A</field>
         <field name="Manufacturer_Name">N/A</field>
         <field name="Manufacturer_Part_Number">N/A</field>
-        <field name="Mouser Part Number">N/A</field>
-        <field name="Mouser Price/Stock">N/A</field>
       </fields>
       <libsource lib="Connector" part="TestPoint" description="test point"/>
       <sheetpath names="/USB_Conn/" tstamps="/5FEC586E/"/>

@@ -25,11 +25,11 @@ F 1 "Conn_02x25_Odd_Even" H 2150 6016 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical" H 2100 7350 50  0001 C CNN
 F 3 "https://datasheet.lcsc.com/szlcsc/1810221914_BOOMELE-Boom-Precision-Elec-C30006_C30006.pdf" H 2100 7350 50  0001 C CNN
 F 4 "C30006" H 2100 7350 50  0001 C CNN "LCSC"
-F 5 "2.54mm 2x25 pin Box Header" H 2100 7350 50  0001 C CNN "Description"
-F 6 "TE Connectivity" H 2100 7350 50  0001 C CNN "Manufacturer_Name"
-F 7 "3-1761603-5" H 2100 7350 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "571-3-1761603-5" H 2100 7350 50  0001 C CNN "Mouser Part Number"
-F 9 "https://www.mouser.com/ProductDetail/TE-Connectivity/3-1761603-5?qs=u8P8Yo77B6VkDYjpX2pgvg%3D%3D" H 2100 7350 50  0001 C CNN "Mouser Price/Stock"
+F 5 "Header 50 0.100\"(2.54mm) 2 2.54MM IDC Connectors RoHS" H 2100 7350 50  0001 C CNN "Description"
+F 6 "BOOMELE(Boom Precision Elec)" H 2100 7350 50  0001 C CNN "Manufacturer_Name"
+F 7 "C30006" H 2100 7350 50  0001 C CNN "Manufacturer_Part_Number"
+F 8 "" H 2100 7350 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 2100 7350 50  0001 C CNN "Mouser Price/Stock"
 	1    2100 7350
 	0    -1   -1   0   
 $EndComp
@@ -340,8 +340,11 @@ P 3550 1500
 F 0 "FUSE1" H 3450 1300 59  0000 L BNN
 F 1 "1A" H 3500 1400 59  0000 L BNN
 F 2 "Fuse:Fuse_1206_3216Metric" H 3550 1500 50  0001 C CNN
-F 3 "" H 3550 1500 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1808301742_Shenzhen-lanson-Elec-12B1100B_C182974.pdf" H 3550 1500 50  0001 C CNN
 F 4 "C182974" H 3550 1500 50  0001 C CNN "LCSC"
+F 5 "SMD Fuse Fast Blow 1A 50A 0.0062 SMD1206 Surface Mount Fuses" H 3550 1500 50  0001 C CNN "Description"
+F 6 "Shenzhen lanson Elec" H 3550 1500 50  0001 C CNN "Manufacturer_Name"
+F 7 "12B1100B" H 3550 1500 50  0001 C CNN "Manufacturer_Part_Number"
 	1    3550 1500
 	-1   0    0    1   
 $EndComp
@@ -521,8 +524,11 @@ P 750 1200
 F 0 "R1" H 809 1246 50  0000 L CNN
 F 1 "2k" H 809 1155 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 750 1200 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF6802TCE_C36871.pdf" H 750 1200 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf" H 750 1200 50  0001 C CNN
 F 4 "C4109" H 750 1200 50  0001 C CNN "LCSC"
+F 5 "2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 750 1200 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 750 1200 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2001TCE" H 750 1200 50  0001 C CNN "Manufacturer_Part_Number"
 	1    750  1200
 	1    0    0    -1  
 $EndComp
@@ -533,9 +539,11 @@ P 750 1550
 F 0 "D1" V 796 1480 50  0000 R CNN
 F 1 "Green" V 705 1480 50  0000 R CNN
 F 2 "LED_SMD:LED_0805_2012Metric" V 750 1550 50  0001 C CNN
-F 3 "~" V 750 1550 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf" V 750 1550 50  0001 C CNN
 F 4 "C2297" V 750 1550 50  0001 C CNN "LCSC"
-F 5 "Generic 0805 Green LED" H 750 1550 50  0001 C CNN "Description"
+F 5 "0805 Light Emitting Diodes (LED) RoHS" H 750 1550 50  0001 C CNN "Description"
+F 6 "Hubei KENTO Elec" H 750 1550 50  0001 C CNN "Manufacturer_Name"
+F 7 "C2297" H 750 1550 50  0001 C CNN "Manufacturer_Part_Number"
 	1    750  1550
 	0    -1   -1   0   
 $EndComp
@@ -546,9 +554,11 @@ P 1450 1400
 F 0 "D2" V 1496 1330 50  0000 R CNN
 F 1 "Green" V 1405 1330 50  0000 R CNN
 F 2 "LED_SMD:LED_0805_2012Metric" V 1450 1400 50  0001 C CNN
-F 3 "~" V 1450 1400 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf" V 1450 1400 50  0001 C CNN
 F 4 "C2297" V 1450 1400 50  0001 C CNN "LCSC"
-F 5 "Generic 0805 Green LED" H 1450 1400 50  0001 C CNN "Description"
+F 5 "0805 Light Emitting Diodes (LED) RoHS" H 1450 1400 50  0001 C CNN "Description"
+F 6 "Hubei KENTO Elec" H 1450 1400 50  0001 C CNN "Manufacturer_Name"
+F 7 "C2297" H 1450 1400 50  0001 C CNN "Manufacturer_Part_Number"
 	1    1450 1400
 	0    -1   -1   0   
 $EndComp
@@ -559,9 +569,11 @@ P 1800 1400
 F 0 "D3" V 1846 1330 50  0000 R CNN
 F 1 "Green" V 1755 1330 50  0000 R CNN
 F 2 "LED_SMD:LED_0805_2012Metric" V 1800 1400 50  0001 C CNN
-F 3 "~" V 1800 1400 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf" V 1800 1400 50  0001 C CNN
 F 4 "C2297" V 1800 1400 50  0001 C CNN "LCSC"
-F 5 "Generic 0805 Green LED" H 1800 1400 50  0001 C CNN "Description"
+F 5 "0805 Light Emitting Diodes (LED) RoHS" H 1800 1400 50  0001 C CNN "Description"
+F 6 "Hubei KENTO Elec" H 1800 1400 50  0001 C CNN "Manufacturer_Name"
+F 7 "C2297" H 1800 1400 50  0001 C CNN "Manufacturer_Part_Number"
 	1    1800 1400
 	0    -1   -1   0   
 $EndComp
@@ -572,9 +584,11 @@ P 2150 1400
 F 0 "D4" V 2196 1330 50  0000 R CNN
 F 1 "Green" V 2105 1330 50  0000 R CNN
 F 2 "LED_SMD:LED_0805_2012Metric" V 2150 1400 50  0001 C CNN
-F 3 "~" V 2150 1400 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf" V 2150 1400 50  0001 C CNN
 F 4 "C2297" V 2150 1400 50  0001 C CNN "LCSC"
-F 5 "Generic 0805 Green LED" H 2150 1400 50  0001 C CNN "Description"
+F 5 "0805 Light Emitting Diodes (LED) RoHS" H 2150 1400 50  0001 C CNN "Description"
+F 6 "Hubei KENTO Elec" H 2150 1400 50  0001 C CNN "Manufacturer_Name"
+F 7 "C2297" H 2150 1400 50  0001 C CNN "Manufacturer_Part_Number"
 	1    2150 1400
 	0    -1   -1   0   
 $EndComp
@@ -632,8 +646,11 @@ P 1950 4450
 F 0 "J1" H 1950 5931 50  0000 C CNN
 F 1 "Raspberry_Pi_2_3" H 1950 5840 50  0000 C CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical" H 1950 4450 50  0001 C CNN
-F 3 "Generic 2x20 2.54mm female pin socket" H 1950 4450 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811111512_BOOMELE-Boom-Precision-Elec-C50982_C50982.pdf" H 1950 4450 50  0001 C CNN
 F 4 "C50982" H 1950 4450 50  0001 C CNN "LCSC"
+F 5 "Female Header 40 2 right-angle，180degrees 2.54mm 2.54mm Pin Header & Female Header RoHS" H 1950 4450 50  0001 C CNN "Description"
+F 6 "BOOMELE(Boom Precision Elec)" H 1950 4450 50  0001 C CNN "Manufacturer_Name"
+F 7 "C50982" H 1950 4450 50  0001 C CNN "Manufacturer_Part_Number"
 	1    1950 4450
 	1    0    0    -1  
 $EndComp
@@ -957,14 +974,14 @@ P 8600 5000
 F 0 "H1" H 8700 5049 50  0000 L CNN
 F 1 "Hole1" H 8700 4958 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 8600 5000 50  0001 C CNN
-F 3 "N/A - Mounting Hole" H 8600 5000 50  0001 C CNN
-F 4 "N/A - Mounting Hole" H 8600 5000 50  0001 C CNN "Description"
-F 5 "N/A" H 8600 5000 50  0001 C CNN "Height"
-F 6 "N/A" H 8600 5000 50  0001 C CNN "LCSC"
-F 7 "N/A" H 8600 5000 50  0001 C CNN "Manufacturer_Name"
-F 8 "N/A" H 8600 5000 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "N/A" H 8600 5000 50  0001 C CNN "Mouser Part Number"
-F 10 "N/A" H 8600 5000 50  0001 C CNN "Mouser Price/Stock"
+F 3 "DNP" H 8600 5000 50  0001 C CNN
+F 4 "DNP" H 8600 5000 50  0001 C CNN "Description"
+F 5 "" H 8600 5000 50  0001 C CNN "Height"
+F 6 "DNP" H 8600 5000 50  0001 C CNN "LCSC"
+F 7 "DNP" H 8600 5000 50  0001 C CNN "Manufacturer_Name"
+F 8 "DNP" H 8600 5000 50  0001 C CNN "Manufacturer_Part_Number"
+F 9 "" H 8600 5000 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 8600 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    8600 5000
 	1    0    0    -1  
 $EndComp
@@ -975,14 +992,14 @@ P 9400 5000
 F 0 "H3" H 9500 5049 50  0000 L CNN
 F 1 "Hole3" H 9500 4958 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9400 5000 50  0001 C CNN
-F 3 "N/A - Mounting Hole" H 9400 5000 50  0001 C CNN
-F 4 "N/A - Mounting Hole" H 9400 5000 50  0001 C CNN "Description"
-F 5 "N/A" H 9400 5000 50  0001 C CNN "Height"
-F 6 "N/A" H 9400 5000 50  0001 C CNN "LCSC"
-F 7 "N/A" H 9400 5000 50  0001 C CNN "Manufacturer_Name"
-F 8 "N/A" H 9400 5000 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "N/A" H 9400 5000 50  0001 C CNN "Mouser Part Number"
-F 10 "N/A" H 9400 5000 50  0001 C CNN "Mouser Price/Stock"
+F 3 "DNP" H 9400 5000 50  0001 C CNN
+F 4 "DNP" H 9400 5000 50  0001 C CNN "Description"
+F 5 "" H 9400 5000 50  0001 C CNN "Height"
+F 6 "DNP" H 9400 5000 50  0001 C CNN "LCSC"
+F 7 "DNP" H 9400 5000 50  0001 C CNN "Manufacturer_Name"
+F 8 "DNP" H 9400 5000 50  0001 C CNN "Manufacturer_Part_Number"
+F 9 "" H 9400 5000 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 9400 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    9400 5000
 	1    0    0    -1  
 $EndComp
@@ -993,14 +1010,14 @@ P 9400 5500
 F 0 "H4" H 9500 5549 50  0000 L CNN
 F 1 "Hole5" H 9500 5458 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9400 5500 50  0001 C CNN
-F 3 "N/A - Mounting Hole" H 9400 5500 50  0001 C CNN
-F 4 "N/A - Mounting Hole" H 9400 5500 50  0001 C CNN "Description"
-F 5 "N/A" H 9400 5500 50  0001 C CNN "Height"
-F 6 "N/A" H 9400 5500 50  0001 C CNN "LCSC"
-F 7 "N/A" H 9400 5500 50  0001 C CNN "Manufacturer_Name"
-F 8 "N/A" H 9400 5500 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "N/A" H 9400 5500 50  0001 C CNN "Mouser Part Number"
-F 10 "N/A" H 9400 5500 50  0001 C CNN "Mouser Price/Stock"
+F 3 "DNP" H 9400 5500 50  0001 C CNN
+F 4 "DNP" H 9400 5500 50  0001 C CNN "Description"
+F 5 "" H 9400 5500 50  0001 C CNN "Height"
+F 6 "DNP" H 9400 5500 50  0001 C CNN "LCSC"
+F 7 "DNP" H 9400 5500 50  0001 C CNN "Manufacturer_Name"
+F 8 "DNP" H 9400 5500 50  0001 C CNN "Manufacturer_Part_Number"
+F 9 "" H 9400 5500 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 9400 5500 50  0001 C CNN "Mouser Price/Stock"
 	1    9400 5500
 	1    0    0    -1  
 $EndComp
@@ -1011,14 +1028,14 @@ P 9000 5000
 F 0 "H2" H 9100 5049 50  0000 L CNN
 F 1 "Hole2" H 9100 4958 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9000 5000 50  0001 C CNN
-F 3 "N/A - Mounting Hole" H 9000 5000 50  0001 C CNN
-F 4 "N/A - Mounting Hole" H 9000 5000 50  0001 C CNN "Description"
-F 5 "N/A" H 9000 5000 50  0001 C CNN "Height"
-F 6 "N/A" H 9000 5000 50  0001 C CNN "LCSC"
-F 7 "N/A" H 9000 5000 50  0001 C CNN "Manufacturer_Name"
-F 8 "N/A" H 9000 5000 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "N/A" H 9000 5000 50  0001 C CNN "Mouser Part Number"
-F 10 "N/A" H 9000 5000 50  0001 C CNN "Mouser Price/Stock"
+F 3 "DNP" H 9000 5000 50  0001 C CNN
+F 4 "DNP" H 9000 5000 50  0001 C CNN "Description"
+F 5 "" H 9000 5000 50  0001 C CNN "Height"
+F 6 "DNP" H 9000 5000 50  0001 C CNN "LCSC"
+F 7 "DNP" H 9000 5000 50  0001 C CNN "Manufacturer_Name"
+F 8 "DNP" H 9000 5000 50  0001 C CNN "Manufacturer_Part_Number"
+F 9 "" H 9000 5000 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 9000 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    9000 5000
 	1    0    0    -1  
 $EndComp
@@ -1029,14 +1046,14 @@ P 9800 5000
 F 0 "H5" H 9900 5049 50  0000 L CNN
 F 1 "Hole4" H 9900 4958 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9800 5000 50  0001 C CNN
-F 3 "N/A - Mounting Hole" H 9800 5000 50  0001 C CNN
-F 4 "N/A - Mounting Hole" H 9800 5000 50  0001 C CNN "Description"
-F 5 "N/A" H 9800 5000 50  0001 C CNN "Height"
-F 6 "N/A" H 9800 5000 50  0001 C CNN "LCSC"
-F 7 "N/A" H 9800 5000 50  0001 C CNN "Manufacturer_Name"
-F 8 "N/A" H 9800 5000 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "N/A" H 9800 5000 50  0001 C CNN "Mouser Part Number"
-F 10 "N/A" H 9800 5000 50  0001 C CNN "Mouser Price/Stock"
+F 3 "DNP" H 9800 5000 50  0001 C CNN
+F 4 "DNP" H 9800 5000 50  0001 C CNN "Description"
+F 5 "" H 9800 5000 50  0001 C CNN "Height"
+F 6 "DNP" H 9800 5000 50  0001 C CNN "LCSC"
+F 7 "DNP" H 9800 5000 50  0001 C CNN "Manufacturer_Name"
+F 8 "DNP" H 9800 5000 50  0001 C CNN "Manufacturer_Part_Number"
+F 9 "" H 9800 5000 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 9800 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    9800 5000
 	1    0    0    -1  
 $EndComp
@@ -1047,14 +1064,14 @@ P 9800 5500
 F 0 "H6" H 9900 5549 50  0000 L CNN
 F 1 "Hole6" H 9900 5458 50  0000 L CNN
 F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9800 5500 50  0001 C CNN
-F 3 "N/A - Mounting Hole" H 9800 5500 50  0001 C CNN
-F 4 "N/A - Mounting Hole" H 9800 5500 50  0001 C CNN "Description"
-F 5 "N/A" H 9800 5500 50  0001 C CNN "Height"
-F 6 "N/A" H 9800 5500 50  0001 C CNN "LCSC"
-F 7 "N/A" H 9800 5500 50  0001 C CNN "Manufacturer_Name"
-F 8 "N/A" H 9800 5500 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "N/A" H 9800 5500 50  0001 C CNN "Mouser Part Number"
-F 10 "N/A" H 9800 5500 50  0001 C CNN "Mouser Price/Stock"
+F 3 "DNP" H 9800 5500 50  0001 C CNN
+F 4 "DNP" H 9800 5500 50  0001 C CNN "Description"
+F 5 "" H 9800 5500 50  0001 C CNN "Height"
+F 6 "DNP" H 9800 5500 50  0001 C CNN "LCSC"
+F 7 "DNP" H 9800 5500 50  0001 C CNN "Manufacturer_Name"
+F 8 "DNP" H 9800 5500 50  0001 C CNN "Manufacturer_Part_Number"
+F 9 "" H 9800 5500 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 9800 5500 50  0001 C CNN "Mouser Price/Stock"
 	1    9800 5500
 	1    0    0    -1  
 $EndComp
@@ -1066,12 +1083,12 @@ F 0 "X1" H 8400 5600 50  0000 L CNN
 F 1 "Mac" H 8600 5600 50  0000 L CNN
 F 2 "SamacSys_Parts:mac_happy_small" H 8550 5500 50  0001 C CNN
 F 3 "N/A - Silkscreen" H 8550 5500 50  0001 C CNN
-F 4 "N/A" H 8550 5500 50  0001 C CNN "Height"
+F 4 "" H 8550 5500 50  0001 C CNN "Height"
 F 5 "N/A" H 8550 5500 50  0001 C CNN "LCSC"
 F 6 "N/A" H 8550 5500 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 8550 5500 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 8550 5500 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 8550 5500 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 8550 5500 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 8550 5500 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8550 5500 50  0001 C CNN "Description"
 	1    8550 5500
 	1    0    0    -1  
@@ -1084,12 +1101,12 @@ F 0 "X2" H 8750 5800 50  0000 L CNN
 F 1 "Dogcow" H 8950 5800 50  0000 L CNN
 F 2 "SamacSys_Parts:dogcow" H 8900 5700 50  0001 C CNN
 F 3 "N/A - Silkscreen" H 8900 5700 50  0001 C CNN
-F 4 "N/A" H 8900 5700 50  0001 C CNN "Height"
+F 4 "" H 8900 5700 50  0001 C CNN "Height"
 F 5 "N/A" H 8900 5700 50  0001 C CNN "LCSC"
 F 6 "N/A" H 8900 5700 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 8900 5700 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 8900 5700 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 8900 5700 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 8900 5700 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 8900 5700 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8900 5700 50  0001 C CNN "Description"
 	1    8900 5700
 	1    0    0    -1  
@@ -1102,12 +1119,12 @@ F 0 "X3" H 8400 5700 50  0000 L CNN
 F 1 "Mac" H 8600 5700 50  0000 L CNN
 F 2 "SamacSys_Parts:mac_happy_small" H 8550 5600 50  0001 C CNN
 F 3 "N/A - Silkscreen" H 8550 5600 50  0001 C CNN
-F 4 "N/A" H 8550 5600 50  0001 C CNN "Height"
+F 4 "" H 8550 5600 50  0001 C CNN "Height"
 F 5 "N/A" H 8550 5600 50  0001 C CNN "LCSC"
 F 6 "N/A" H 8550 5600 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 8550 5600 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 8550 5600 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 8550 5600 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 8550 5600 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 8550 5600 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8550 5600 50  0001 C CNN "Description"
 	1    8550 5600
 	1    0    0    -1  
@@ -1120,12 +1137,12 @@ F 0 "X5" H 8750 5600 50  0000 L CNN
 F 1 "Dogcow" H 8950 5600 50  0000 L CNN
 F 2 "SamacSys_Parts:dogcow" H 8900 5500 50  0001 C CNN
 F 3 "N/A - Silkscreen" H 8900 5500 50  0001 C CNN
-F 4 "N/A" H 8900 5500 50  0001 C CNN "Height"
+F 4 "" H 8900 5500 50  0001 C CNN "Height"
 F 5 "N/A" H 8900 5500 50  0001 C CNN "LCSC"
 F 6 "N/A" H 8900 5500 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 8900 5500 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 8900 5500 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 8900 5500 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 8900 5500 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 8900 5500 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8900 5500 50  0001 C CNN "Description"
 	1    8900 5500
 	1    0    0    -1  
@@ -1138,12 +1155,12 @@ F 0 "X6" H 8750 5700 50  0000 L CNN
 F 1 "Dogcow" H 8950 5700 50  0000 L CNN
 F 2 "SamacSys_Parts:dogcow" H 8900 5600 50  0001 C CNN
 F 3 "N/A - Silkscreen" H 8900 5600 50  0001 C CNN
-F 4 "N/A" H 8900 5600 50  0001 C CNN "Height"
+F 4 "" H 8900 5600 50  0001 C CNN "Height"
 F 5 "N/A" H 8900 5600 50  0001 C CNN "LCSC"
 F 6 "N/A" H 8900 5600 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 8900 5600 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 8900 5600 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 8900 5600 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 8900 5600 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 8900 5600 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8900 5600 50  0001 C CNN "Description"
 	1    8900 5600
 	1    0    0    -1  
@@ -1268,13 +1285,13 @@ P 3150 6050
 F 0 "J4" H 3122 5982 50  0000 R CNN
 F 1 "I2C Pinout" H 3550 6350 50  0000 R CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x05_P2.54mm_Vertical" H 3150 6050 50  0001 C CNN
-F 3 "Generic 1x5 2.5mm pin socket" H 3150 6050 50  0001 C CNN
-F 4 "C2337" H 3150 6050 50  0001 C CNN "LCSC"
-F 5 "Generic 1x5 2.5mm pin socket" H 3150 6050 50  0001 C CNN "Description"
-F 6 "Harwin" H 3150 6050 50  0001 C CNN "Manufacturer_Name"
-F 7 "M20-7820546" H 3150 6050 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "855-M20-7820546" H 3150 6050 50  0001 C CNN "Mouser Part Number"
-F 9 "https://www.mouser.com/ProductDetail/Harwin/M20-7820546?qs=vF78I%252BjhbY9HKICpLl9EpQ%3D%3D" H 3150 6050 50  0001 C CNN "Mouser Price/Stock"
+F 3 "https://datasheet.lcsc.com/szlcsc/1811092140_BOOMELE-Boom-Precision-Elec-C50950_C50950.pdf" H 3150 6050 50  0001 C CNN
+F 4 "C50950" H 3150 6050 50  0001 C CNN "LCSC"
+F 5 "Female Header 5 1 right-angle，180degrees 2.54mm 2.54mm Pin Header & Female Header RoHS" H 3150 6050 50  0001 C CNN "Description"
+F 6 "BOOMELE(Boom Precision Elec) C50950" H 3150 6050 50  0001 C CNN "Manufacturer_Name"
+F 7 "C50950" H 3150 6050 50  0001 C CNN "Manufacturer_Part_Number"
+F 8 "" H 3150 6050 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 3150 6050 50  0001 C CNN "Mouser Price/Stock"
 	1    3150 6050
 	-1   0    0    1   
 $EndComp
@@ -1290,12 +1307,12 @@ F 0 "X7" H 8700 5700 50  0000 R CNN
 F 1 "Pi" H 8500 5700 50  0000 R CNN
 F 2 "SamacSys_Parts:pi_logo" H 8550 5650 50  0001 C CNN
 F 3 "N/A - Silkscreen" H 8550 5650 50  0001 C CNN
-F 4 "N/A" H 8550 5650 50  0001 C CNN "Height"
+F 4 "" H 8550 5650 50  0001 C CNN "Height"
 F 5 "N/A" H 8550 5650 50  0001 C CNN "LCSC"
 F 6 "N/A" H 8550 5650 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 8550 5650 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 8550 5650 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 8550 5650 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 8550 5650 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 8550 5650 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8550 5650 50  0001 C CNN "Description"
 	1    8550 5650
 	-1   0    0    1   
@@ -1308,12 +1325,12 @@ F 0 "X4" H 9050 5700 50  0000 R CNN
 F 1 "Dogcow" H 8850 5700 50  0000 R CNN
 F 2 "SamacSys_Parts:dogcow" H 8900 5650 50  0001 C CNN
 F 3 "N/A - Silkscreen" H 8900 5650 50  0001 C CNN
-F 4 "N/A" H 8900 5650 50  0001 C CNN "Height"
+F 4 "" H 8900 5650 50  0001 C CNN "Height"
 F 5 "N/A" H 8900 5650 50  0001 C CNN "LCSC"
 F 6 "N/A" H 8900 5650 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 8900 5650 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 8900 5650 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 8900 5650 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 8900 5650 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 8900 5650 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8900 5650 50  0001 C CNN "Description"
 	1    8900 5650
 	-1   0    0    1   
@@ -1348,13 +1365,13 @@ P 3400 850
 F 0 "S1" H 3650 1000 50  0000 C CNN
 F 1 "Switch x2" H 4250 1000 50  0000 C CNN
 F 2 "rascsi_din:SOIC127P812X230-4N" H 4450 950 50  0001 L CNN
-F 3 "https://www.ckswitches.com/media/1328/tda.pdf" H 4450 850 50  0001 L CNN
-F 4 "DIP Switches / SIP Switches HALF PITCH 2 POS" H 4450 750 50  0001 L CNN "Description"
-F 5 "2.3" H 4450 650 50  0001 L CNN "Height"
-F 6 "611-TDA02H0SB1R" H 4450 550 50  0001 L CNN "Mouser Part Number"
-F 7 "https://www.mouser.co.uk/ProductDetail/CK/TDA02H0SB1R?qs=%2FNF5U5UGuWn3xddlBViRrw%3D%3D" H 4450 450 50  0001 L CNN "Mouser Price/Stock"
+F 3 "https://datasheet.lcsc.com/szlcsc/1810191714_Dongguan-Guangzhu-Industrial-DSHP02TSGET_C40735.pdf" H 4450 850 50  0001 L CNN
+F 4 "SPST 2 1.27mm, Half Slide (Standard) Black SMD DIP Switches" H 4450 750 50  0001 L CNN "Description"
+F 5 "" H 4450 650 50  0001 L CNN "Height"
+F 6 "" H 4450 550 50  0001 L CNN "Mouser Part Number"
+F 7 "" H 4450 450 50  0001 L CNN "Mouser Price/Stock"
 F 8 "C & K COMPONENTS" H 4450 350 50  0001 L CNN "Manufacturer_Name"
-F 9 "TDA02H0SB1R" H 4450 250 50  0001 L CNN "Manufacturer_Part_Number"
+F 9 "DSHP02TSGET" H 4450 250 50  0001 L CNN "Manufacturer_Part_Number"
 F 10 "C40735" H 3400 850 50  0001 C CNN "LCSC"
 	1    3400 850 
 	1    0    0    -1  
@@ -1494,8 +1511,11 @@ P 7900 1450
 F 0 "R31" V 7850 1550 50  0000 L CNN
 F 1 "220" V 7850 1200 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1450 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1450 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1450 50  0001 C CNN
 F 4 "C25091" V 7900 1450 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1450 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1450 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1450 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1450
 	0    -1   -1   0   
 $EndComp
@@ -1508,12 +1528,12 @@ F 1 "SN74LS641-1DW" H 5700 3274 50  0000 C CNN
 F 2 "SamacSys_Parts:SOIC127P1030X265-20N" H 6050 3200 50  0001 L CNN
 F 3 "https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW" H 6050 3100 50  0001 L CNN
 F 4 "Octal bus transceivers" H 6050 3000 50  0001 L CNN "Description"
-F 5 "2.65" H 6050 2900 50  0001 L CNN "Height"
+F 5 "" H 6050 2900 50  0001 L CNN "Height"
 F 6 "" H 6050 2800 50  0001 L CNN "Mouser Part Number"
 F 7 "" H 6050 2700 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Texas Instruments" H 6050 2600 50  0001 L CNN "Manufacturer_Name"
 F 9 "SN74LS641-1DW" H 6050 2500 50  0001 L CNN "Manufacturer_Part_Number"
-F 10 "" H 5200 3100 50  0001 C CNN "LCSC"
+F 10 "N/A" H 5200 3100 50  0001 C CNN "LCSC"
 	1    5200 3100
 	-1   0    0    -1  
 $EndComp
@@ -1526,12 +1546,12 @@ F 1 "SN74LS641-1DW" H 5700 4874 50  0000 C CNN
 F 2 "SamacSys_Parts:SOIC127P1030X265-20N" H 6050 4800 50  0001 L CNN
 F 3 "https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW" H 6050 4700 50  0001 L CNN
 F 4 "Octal bus transceivers" H 6050 4600 50  0001 L CNN "Description"
-F 5 "2.65" H 6050 4500 50  0001 L CNN "Height"
+F 5 "" H 6050 4500 50  0001 L CNN "Height"
 F 6 "" H 6050 4400 50  0001 L CNN "Mouser Part Number"
 F 7 "" H 6050 4300 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Texas Instruments" H 6050 4200 50  0001 L CNN "Manufacturer_Name"
 F 9 "SN74LS641-1DW" H 6050 4100 50  0001 L CNN "Manufacturer_Part_Number"
-F 10 "" H 5200 4700 50  0001 C CNN "LCSC"
+F 10 "N/A" H 5200 4700 50  0001 C CNN "LCSC"
 	1    5200 4700
 	-1   0    0    -1  
 $EndComp
@@ -1544,12 +1564,12 @@ F 1 "SN74LS641-1DW" H 6850 3274 50  0000 C CNN
 F 2 "SamacSys_Parts:SOIC127P1030X265-20N" H 7200 3200 50  0001 L CNN
 F 3 "https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW" H 7200 3100 50  0001 L CNN
 F 4 "Octal bus transceivers" H 7200 3000 50  0001 L CNN "Description"
-F 5 "2.65" H 7200 2900 50  0001 L CNN "Height"
+F 5 "" H 7200 2900 50  0001 L CNN "Height"
 F 6 "" H 7200 2800 50  0001 L CNN "Mouser Part Number"
 F 7 "" H 7200 2700 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Texas Instruments" H 7200 2600 50  0001 L CNN "Manufacturer_Name"
 F 9 "SN74LS641-1DW" H 7200 2500 50  0001 L CNN "Manufacturer_Part_Number"
-F 10 "" H 6350 3100 50  0001 C CNN "LCSC"
+F 10 "N/A" H 6350 3100 50  0001 C CNN "LCSC"
 	1    6350 3100
 	1    0    0    -1  
 $EndComp
@@ -1562,12 +1582,12 @@ F 1 "SN74LS641-1DW" H 6850 4874 50  0000 C CNN
 F 2 "SamacSys_Parts:SOIC127P1030X265-20N" H 7200 4800 50  0001 L CNN
 F 3 "https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW" H 7200 4700 50  0001 L CNN
 F 4 "Octal bus transceivers" H 7200 4600 50  0001 L CNN "Description"
-F 5 "2.65" H 7200 4500 50  0001 L CNN "Height"
+F 5 "" H 7200 4500 50  0001 L CNN "Height"
 F 6 "" H 7200 4400 50  0001 L CNN "Mouser Part Number"
 F 7 "" H 7200 4300 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Texas Instruments" H 7200 4200 50  0001 L CNN "Manufacturer_Name"
 F 9 "SN74LS641-1DW" H 7200 4100 50  0001 L CNN "Manufacturer_Part_Number"
-F 10 "" H 6350 4700 50  0001 C CNN "LCSC"
+F 10 "N/A" H 6350 4700 50  0001 C CNN "LCSC"
 	1    6350 4700
 	1    0    0    -1  
 $EndComp
@@ -1627,8 +1647,11 @@ P 6050 1450
 F 0 "R13" V 6000 1550 50  0000 L CNN
 F 1 "10k" V 6000 1250 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1450 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1450 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1450 50  0001 C CNN
 F 4 "C25744" H 6050 1450 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1450 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1450 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1450 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1450
 	0    -1   -1   0   
 $EndComp
@@ -1641,8 +1664,11 @@ P 6050 1350
 F 0 "R12" V 6000 1450 50  0000 L CNN
 F 1 "10k" V 6000 1150 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1350 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1350 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1350 50  0001 C CNN
 F 4 "C25744" H 6050 1350 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1350 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1350 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1350 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1350
 	0    -1   -1   0   
 $EndComp
@@ -1657,8 +1683,11 @@ P 6050 1250
 F 0 "R11" V 6000 1350 50  0000 L CNN
 F 1 "10k" V 6000 1050 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1250 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1250 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1250 50  0001 C CNN
 F 4 "C25744" H 6050 1250 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1250 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1250 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1250 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1250
 	0    -1   -1   0   
 $EndComp
@@ -1675,8 +1704,11 @@ P 6050 1150
 F 0 "R10" V 6000 1250 50  0000 L CNN
 F 1 "10k" V 6000 950 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1150 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1150 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1150 50  0001 C CNN
 F 4 "C25744" H 6050 1150 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1150 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1150 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1150 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1150
 	0    -1   -1   0   
 $EndComp
@@ -1693,8 +1725,11 @@ P 6050 1050
 F 0 "R9" V 6000 1150 50  0000 L CNN
 F 1 "10k" V 6000 850 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1050 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1050 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1050 50  0001 C CNN
 F 4 "C25744" H 6050 1050 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1050 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1050 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1050 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1050
 	0    -1   -1   0   
 $EndComp
@@ -1711,8 +1746,11 @@ P 6050 950
 F 0 "R8" V 6000 1050 50  0000 L CNN
 F 1 "10k" V 6000 750 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 950 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 950 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 950 50  0001 C CNN
 F 4 "C25744" H 6050 950 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 950 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 950 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 950 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 950 
 	0    -1   -1   0   
 $EndComp
@@ -1729,8 +1767,11 @@ P 6050 850
 F 0 "R7" V 6000 950 50  0000 L CNN
 F 1 "10k" V 6000 650 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 850 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 850 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 850 50  0001 C CNN
 F 4 "C25744" H 6050 850 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 850 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 850 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 850 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 850 
 	0    -1   -1   0   
 $EndComp
@@ -1747,8 +1788,11 @@ P 6050 750
 F 0 "R6" V 6000 850 50  0000 L CNN
 F 1 "10k" V 6000 550 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 750 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 750 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 750 50  0001 C CNN
 F 4 "C25744" H 6050 750 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 750 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 750 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 750 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 750 
 	0    -1   -1   0   
 $EndComp
@@ -1765,8 +1809,11 @@ P 6050 650
 F 0 "R5" V 6000 750 50  0000 L CNN
 F 1 "10k" V 6000 450 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 650 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 650 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 650 50  0001 C CNN
 F 4 "C25744" H 6050 650 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 650 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 650 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 650 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 650 
 	0    -1   -1   0   
 $EndComp
@@ -1783,8 +1830,11 @@ P 6050 2350
 F 0 "R22" V 6100 2450 50  0000 L CNN
 F 1 "10k" V 6100 2150 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 2350 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 2350 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 2350 50  0001 C CNN
 F 4 "C25744" H 6050 2350 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 2350 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 2350 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 2350 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 2350
 	0    -1   1    0   
 $EndComp
@@ -1801,8 +1851,11 @@ P 6050 1550
 F 0 "R14" V 6100 1650 50  0000 L CNN
 F 1 "10k" V 6100 1350 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1550 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1550 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1550 50  0001 C CNN
 F 4 "C25744" H 6050 1550 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1550 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1550 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1550 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1550
 	0    -1   1    0   
 $EndComp
@@ -1819,8 +1872,11 @@ P 6050 1650
 F 0 "R15" V 6100 1750 50  0000 L CNN
 F 1 "10k" V 6100 1450 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1650 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1650 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1650 50  0001 C CNN
 F 4 "C25744" H 6050 1650 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1650 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1650 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1650 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1650
 	0    -1   1    0   
 $EndComp
@@ -1837,8 +1893,11 @@ P 6050 1750
 F 0 "R16" V 6100 1850 50  0000 L CNN
 F 1 "10k" V 6100 1550 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1750 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1750 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1750 50  0001 C CNN
 F 4 "C25744" H 6050 1750 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1750 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1750 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1750 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1750
 	0    -1   1    0   
 $EndComp
@@ -1855,8 +1914,11 @@ P 6050 1850
 F 0 "R17" V 6100 1950 50  0000 L CNN
 F 1 "10k" V 6100 1650 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1850 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1850 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1850 50  0001 C CNN
 F 4 "C25744" H 6050 1850 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1850 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1850 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1850 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1850
 	0    -1   1    0   
 $EndComp
@@ -1873,8 +1935,11 @@ P 6050 1950
 F 0 "R18" V 6100 2050 50  0000 L CNN
 F 1 "10k" V 6100 1750 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 1950 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1950 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 1950 50  0001 C CNN
 F 4 "C25744" H 6050 1950 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 1950 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 1950 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 1950 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 1950
 	0    -1   1    0   
 $EndComp
@@ -1891,8 +1956,11 @@ P 6050 2050
 F 0 "R19" V 6100 2150 50  0000 L CNN
 F 1 "10k" V 6100 1850 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 2050 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 2050 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 2050 50  0001 C CNN
 F 4 "C25744" H 6050 2050 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 2050 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 2050 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 2050 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 2050
 	0    -1   1    0   
 $EndComp
@@ -1909,8 +1977,11 @@ P 6050 2150
 F 0 "R20" V 6100 2250 50  0000 L CNN
 F 1 "10k" V 6100 1950 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 2150 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 2150 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 2150 50  0001 C CNN
 F 4 "C25744" H 6050 2150 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 2150 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 2150 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 2150 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 2150
 	0    -1   1    0   
 $EndComp
@@ -1927,8 +1998,11 @@ P 6050 2250
 F 0 "R21" V 6100 2350 50  0000 L CNN
 F 1 "10k" V 6100 2050 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 6050 2250 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 2250 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf" H 6050 2250 50  0001 C CNN
 F 4 "C25744" H 6050 2250 50  0001 C CNN "LCSC"
+F 5 "10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 6050 2250 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 6050 2250 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF1002TCE" H 6050 2250 50  0001 C CNN "Manufacturer_Part_Number"
 	1    6050 2250
 	0    -1   1    0   
 $EndComp
@@ -2015,8 +2089,11 @@ P 7900 1350
 F 0 "R30" V 7850 1450 50  0000 L CNN
 F 1 "220" V 7850 1100 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1350 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1350 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1350 50  0001 C CNN
 F 4 "C25091" V 7900 1350 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1350 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1350 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1350 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1350
 	0    -1   -1   0   
 $EndComp
@@ -2027,8 +2104,11 @@ P 7900 1250
 F 0 "R29" V 7850 1350 50  0000 L CNN
 F 1 "220" V 7850 1000 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1250 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1250 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1250 50  0001 C CNN
 F 4 "C25091" V 7900 1250 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1250 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1250 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1250 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1250
 	0    -1   -1   0   
 $EndComp
@@ -2039,8 +2119,11 @@ P 7900 1150
 F 0 "R28" V 7850 1250 50  0000 L CNN
 F 1 "220" V 7850 900 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1150 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1150 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1150 50  0001 C CNN
 F 4 "C25091" V 7900 1150 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1150 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1150 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1150 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1150
 	0    -1   -1   0   
 $EndComp
@@ -2051,8 +2134,11 @@ P 7900 1050
 F 0 "R27" V 7850 1150 50  0000 L CNN
 F 1 "220" V 7850 800 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1050 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1050 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1050 50  0001 C CNN
 F 4 "C25091" V 7900 1050 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1050 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1050 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1050 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1050
 	0    -1   -1   0   
 $EndComp
@@ -2063,8 +2149,11 @@ P 7900 950
 F 0 "R26" V 7850 1050 50  0000 L CNN
 F 1 "220" V 7850 700 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 950 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 950 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 950 50  0001 C CNN
 F 4 "C25091" V 7900 950 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 950 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 950 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 950 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 950 
 	0    -1   -1   0   
 $EndComp
@@ -2075,8 +2164,11 @@ P 7900 850
 F 0 "R25" V 7850 950 50  0000 L CNN
 F 1 "220" V 7850 600 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 850 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 850 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 850 50  0001 C CNN
 F 4 "C25091" V 7900 850 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 850 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 850 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 850 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 850 
 	0    -1   -1   0   
 $EndComp
@@ -2087,8 +2179,11 @@ P 7900 750
 F 0 "R24" V 7850 850 50  0000 L CNN
 F 1 "220" V 7850 500 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 750 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 750 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 750 50  0001 C CNN
 F 4 "C25091" V 7900 750 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 750 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 750 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 750 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 750 
 	0    -1   -1   0   
 $EndComp
@@ -2099,8 +2194,11 @@ P 7900 650
 F 0 "R23" V 7850 750 50  0000 L CNN
 F 1 "220" V 7850 400 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 650 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 650 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 650 50  0001 C CNN
 F 4 "C25091" V 7900 650 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 650 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 650 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 650 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 650 
 	0    -1   -1   0   
 $EndComp
@@ -2111,8 +2209,11 @@ P 7900 2350
 F 0 "R40" V 7850 2450 50  0000 L CNN
 F 1 "220" V 7850 2100 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 2350 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 2350 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 2350 50  0001 C CNN
 F 4 "C25091" V 7900 2350 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 2350 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 2350 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 2350 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 2350
 	0    -1   -1   0   
 $EndComp
@@ -2123,8 +2224,11 @@ P 7900 2250
 F 0 "R39" V 7850 2350 50  0000 L CNN
 F 1 "220" V 7850 2000 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 2250 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 2250 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 2250 50  0001 C CNN
 F 4 "C25091" V 7900 2250 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 2250 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 2250 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 2250 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 2250
 	0    -1   -1   0   
 $EndComp
@@ -2135,8 +2239,11 @@ P 7900 2150
 F 0 "R38" V 7850 2250 50  0000 L CNN
 F 1 "220" V 7850 1900 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 2150 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 2150 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 2150 50  0001 C CNN
 F 4 "C25091" V 7900 2150 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 2150 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 2150 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 2150 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 2150
 	0    -1   -1   0   
 $EndComp
@@ -2147,8 +2254,11 @@ P 7900 2050
 F 0 "R37" V 7850 2150 50  0000 L CNN
 F 1 "220" V 7850 1800 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 2050 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 2050 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 2050 50  0001 C CNN
 F 4 "C25091" V 7900 2050 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 2050 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 2050 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 2050 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 2050
 	0    -1   -1   0   
 $EndComp
@@ -2159,8 +2269,11 @@ P 7900 1950
 F 0 "R36" V 7850 2050 50  0000 L CNN
 F 1 "220" V 7850 1700 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1950 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1950 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1950 50  0001 C CNN
 F 4 "C25091" V 7900 1950 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1950 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1950 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1950 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1950
 	0    -1   -1   0   
 $EndComp
@@ -2171,8 +2284,11 @@ P 7900 1850
 F 0 "R35" V 7850 1950 50  0000 L CNN
 F 1 "220" V 7850 1600 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1850 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1850 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1850 50  0001 C CNN
 F 4 "C25091" V 7900 1850 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1850 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1850 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1850 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1850
 	0    -1   -1   0   
 $EndComp
@@ -2183,8 +2299,11 @@ P 7900 1750
 F 0 "R34" V 7850 1850 50  0000 L CNN
 F 1 "220" V 7850 1500 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1750 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1750 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1750 50  0001 C CNN
 F 4 "C25091" V 7900 1750 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1750 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1750 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1750 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1750
 	0    -1   -1   0   
 $EndComp
@@ -2195,8 +2314,11 @@ P 7900 1650
 F 0 "R33" V 7850 1750 50  0000 L CNN
 F 1 "220" V 7850 1400 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1650 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1650 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1650 50  0001 C CNN
 F 4 "C25091" V 7900 1650 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1650 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1650 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1650 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1650
 	0    -1   -1   0   
 $EndComp
@@ -2207,8 +2329,11 @@ P 7900 1550
 F 0 "R32" V 7850 1650 50  0000 L CNN
 F 1 "220" V 7850 1300 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 7900 1550 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1550 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf" H 7900 1550 50  0001 C CNN
 F 4 "C25091" V 7900 1550 50  0001 C CNN "LCSC"
+F 5 "220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 7900 1550 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 7900 1550 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2200TCE" H 7900 1550 50  0001 C CNN "Manufacturer_Part_Number"
 	1    7900 1550
 	0    -1   -1   0   
 $EndComp
@@ -2293,8 +2418,11 @@ P 9250 650
 F 0 "R41" V 9200 750 50  0000 L CNN
 F 1 "330" V 9200 400 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 650 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 650 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 650 50  0001 C CNN
 F 4 "C25104" V 9250 650 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 650 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 650 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 650 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 650 
 	0    -1   -1   0   
 $EndComp
@@ -2305,8 +2433,11 @@ P 9250 750
 F 0 "R42" V 9200 850 50  0000 L CNN
 F 1 "330" V 9200 500 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 750 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 750 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 750 50  0001 C CNN
 F 4 "C25104" V 9250 750 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 750 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 750 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 750 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 750 
 	0    -1   -1   0   
 $EndComp
@@ -2317,8 +2448,11 @@ P 9250 850
 F 0 "R43" V 9200 950 50  0000 L CNN
 F 1 "330" V 9200 600 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 850 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 850 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 850 50  0001 C CNN
 F 4 "C25104" V 9250 850 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 850 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 850 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 850 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 850 
 	0    -1   -1   0   
 $EndComp
@@ -2329,8 +2463,11 @@ P 9250 950
 F 0 "R44" V 9200 1050 50  0000 L CNN
 F 1 "330" V 9200 700 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 950 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 950 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 950 50  0001 C CNN
 F 4 "C25104" V 9250 950 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 950 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 950 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 950 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 950 
 	0    -1   -1   0   
 $EndComp
@@ -2341,8 +2478,11 @@ P 9250 1050
 F 0 "R45" V 9200 1150 50  0000 L CNN
 F 1 "330" V 9200 800 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1050 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1050 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1050 50  0001 C CNN
 F 4 "C25104" V 9250 1050 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1050 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1050 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1050 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1050
 	0    -1   -1   0   
 $EndComp
@@ -2353,8 +2493,11 @@ P 9250 1150
 F 0 "R46" V 9200 1250 50  0000 L CNN
 F 1 "330" V 9200 900 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1150 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1150 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1150 50  0001 C CNN
 F 4 "C25104" V 9250 1150 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1150 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1150 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1150 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1150
 	0    -1   -1   0   
 $EndComp
@@ -2365,8 +2508,11 @@ P 9250 1250
 F 0 "R47" V 9200 1350 50  0000 L CNN
 F 1 "330" V 9200 1000 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1250 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1250 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1250 50  0001 C CNN
 F 4 "C25104" V 9250 1250 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1250 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1250 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1250 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1250
 	0    -1   -1   0   
 $EndComp
@@ -2377,8 +2523,11 @@ P 9250 1350
 F 0 "R48" V 9200 1450 50  0000 L CNN
 F 1 "330" V 9200 1100 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1350 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1350 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1350 50  0001 C CNN
 F 4 "C25104" V 9250 1350 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1350 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1350 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1350 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1350
 	0    -1   -1   0   
 $EndComp
@@ -2389,8 +2538,11 @@ P 9250 1450
 F 0 "R49" V 9200 1550 50  0000 L CNN
 F 1 "330" V 9200 1200 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1450 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1450 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1450 50  0001 C CNN
 F 4 "C25104" V 9250 1450 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1450 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1450 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1450 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1450
 	0    -1   -1   0   
 $EndComp
@@ -2401,8 +2553,11 @@ P 9250 1550
 F 0 "R50" V 9200 1650 50  0000 L CNN
 F 1 "330" V 9200 1300 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1550 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1550 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1550 50  0001 C CNN
 F 4 "C25104" V 9250 1550 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1550 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1550 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1550 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1550
 	0    -1   -1   0   
 $EndComp
@@ -2413,8 +2568,11 @@ P 9250 1650
 F 0 "R51" V 9200 1750 50  0000 L CNN
 F 1 "330" V 9200 1400 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1650 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1650 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1650 50  0001 C CNN
 F 4 "C25104" V 9250 1650 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1650 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1650 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1650 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1650
 	0    -1   -1   0   
 $EndComp
@@ -2425,8 +2583,11 @@ P 9250 1750
 F 0 "R52" V 9200 1850 50  0000 L CNN
 F 1 "330" V 9200 1500 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1750 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1750 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1750 50  0001 C CNN
 F 4 "C25104" V 9250 1750 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1750 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1750 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1750 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1750
 	0    -1   -1   0   
 $EndComp
@@ -2437,8 +2598,11 @@ P 9250 1850
 F 0 "R53" V 9200 1950 50  0000 L CNN
 F 1 "330" V 9200 1600 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1850 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1850 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1850 50  0001 C CNN
 F 4 "C25104" V 9250 1850 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1850 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1850 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1850 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1850
 	0    -1   -1   0   
 $EndComp
@@ -2449,8 +2613,11 @@ P 9250 1950
 F 0 "R54" V 9200 2050 50  0000 L CNN
 F 1 "330" V 9200 1700 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 1950 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1950 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 1950 50  0001 C CNN
 F 4 "C25104" V 9250 1950 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 1950 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 1950 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 1950 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 1950
 	0    -1   -1   0   
 $EndComp
@@ -2461,8 +2628,11 @@ P 9250 2050
 F 0 "R55" V 9200 2150 50  0000 L CNN
 F 1 "330" V 9200 1800 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 2050 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 2050 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 2050 50  0001 C CNN
 F 4 "C25104" V 9250 2050 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 2050 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 2050 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 2050 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 2050
 	0    -1   -1   0   
 $EndComp
@@ -2473,8 +2643,11 @@ P 9250 2150
 F 0 "R56" V 9200 2250 50  0000 L CNN
 F 1 "330" V 9200 1900 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 2150 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 2150 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 2150 50  0001 C CNN
 F 4 "C25104" V 9250 2150 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 2150 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 2150 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 2150 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 2150
 	0    -1   -1   0   
 $EndComp
@@ -2485,8 +2658,11 @@ P 9250 2250
 F 0 "R57" V 9200 2350 50  0000 L CNN
 F 1 "330" V 9200 2000 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 2250 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 2250 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 2250 50  0001 C CNN
 F 4 "C25104" V 9250 2250 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 2250 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 2250 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 2250 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 2250
 	0    -1   -1   0   
 $EndComp
@@ -2497,8 +2673,11 @@ P 9250 2350
 F 0 "R58" V 9200 2450 50  0000 L CNN
 F 1 "330" V 9200 2100 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 9250 2350 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 2350 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf" H 9250 2350 50  0001 C CNN
 F 4 "C25104" V 9250 2350 50  0001 C CNN "LCSC"
+F 5 "330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 9250 2350 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 9250 2350 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF3300TCE" H 9250 2350 50  0001 C CNN "Manufacturer_Part_Number"
 	1    9250 2350
 	0    -1   -1   0   
 $EndComp
@@ -2687,10 +2866,13 @@ L Device:R_Small R3
 U 1 1 5F9E7EC2
 P 1800 1200
 F 0 "R3" H 1859 1246 50  0000 L CNN
-F 1 "5k" H 1859 1155 50  0000 L CNN
+F 1 "5.1k" H 1859 1155 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 1800 1200 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF1470TCE_C64531.pdf" H 1800 1200 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1810301112_UNI-ROYAL-Uniroyal-Elec-0402WGF5101TCE_C25905.pdf" H 1800 1200 50  0001 C CNN
 F 4 "C25905" H 1800 1200 50  0001 C CNN "LCSC"
+F 5 "5.1kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 1800 1200 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 1800 1200 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF5101TCE" H 1800 1200 50  0001 C CNN "Manufacturer_Part_Number"
 	1    1800 1200
 	1    0    0    -1  
 $EndComp
@@ -2701,8 +2883,11 @@ P 1450 1200
 F 0 "R2" H 1509 1246 50  0000 L CNN
 F 1 "2k" H 1509 1155 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 1450 1200 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF6802TCE_C36871.pdf" H 1450 1200 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf" H 1450 1200 50  0001 C CNN
 F 4 "C4109" H 1450 1200 50  0001 C CNN "LCSC"
+F 5 "2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 1450 1200 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 1450 1200 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2001TCE" H 1450 1200 50  0001 C CNN "Manufacturer_Part_Number"
 	1    1450 1200
 	1    0    0    -1  
 $EndComp
@@ -2713,8 +2898,11 @@ P 2150 1200
 F 0 "R4" H 2209 1246 50  0000 L CNN
 F 1 "2k" H 2209 1155 50  0000 L CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical" H 2150 1200 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/Uniroyal-Elec-0402WGF6802TCE_C36871.pdf" H 2150 1200 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf" H 2150 1200 50  0001 C CNN
 F 4 "C4109" H 2150 1200 50  0001 C CNN "LCSC"
+F 5 "2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor" H 2150 1200 50  0001 C CNN "Description"
+F 6 "UNI-ROYAL(Uniroyal Elec)" H 2150 1200 50  0001 C CNN "Manufacturer_Name"
+F 7 "0402WGF2001TCE" H 2150 1200 50  0001 C CNN "Manufacturer_Part_Number"
 	1    2150 1200
 	1    0    0    -1  
 $EndComp
@@ -2728,11 +2916,11 @@ F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Horizontal" H 1850 2000 5
 F 3 "DNP" H 1850 2000 50  0001 C CNN
 F 4 "DNP" H 1850 2000 50  0001 C CNN "LCSC"
 F 5 "DNP" H 1850 2000 50  0001 C CNN "Description"
-F 6 "DNP" H 1850 2000 50  0001 C CNN "Height"
+F 6 "" H 1850 2000 50  0001 C CNN "Height"
 F 7 "DNP" H 1850 2000 50  0001 C CNN "Manufacturer_Name"
 F 8 "DNP" H 1850 2000 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "DNP" H 1850 2000 50  0001 C CNN "Mouser Part Number"
-F 10 "DNP" H 1850 2000 50  0001 C CNN "Mouser Price/Stock"
+F 9 "" H 1850 2000 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 1850 2000 50  0001 C CNN "Mouser Price/Stock"
 	1    1850 2000
 	1    0    0    -1  
 $EndComp
@@ -2754,13 +2942,13 @@ P 9200 2850
 F 0 "J6" V 9019 2850 50  0000 C CNN
 F 1 "CONNFLY DB-25" V 9110 2850 50  0000 C CNN
 F 2 "SamacSys_Parts:L717SDB25PA4CH4F" H 10850 3150 50  0001 L CNN
-F 3 "https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf" H 10850 3050 50  0001 L CNN
-F 4 "D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD" H 10850 2950 50  0001 L CNN "Description"
-F 5 "12.55" H 10850 2850 50  0001 L CNN "Height"
-F 6 "523-L717SDB25PA4CH4F" H 10850 2750 50  0001 L CNN "Mouser Part Number"
-F 7 "https://www.mouser.com/Search/Refine.aspx?Keyword=523-L717SDB25PA4CH4F" H 10850 2650 50  0001 L CNN "Mouser Price/Stock"
-F 8 "Amphenol" H 10850 2550 50  0001 L CNN "Manufacturer_Name"
-F 9 "L717SDB25PA4CH4F" H 10850 2450 50  0001 L CNN "Manufacturer_Part_Number"
+F 3 "https://datasheet.lcsc.com/szlcsc/1811081022_CONNFLY-Elec-DS1037-25FNAKT74-0CC_C77838.pdf" H 10850 3050 50  0001 L CNN
+F 4 "D-Sub Receptacle,Female Socket 25 2 1.5A(Contact) Through Hole D-Sub Connectors RoHS" H 10850 2950 50  0001 L CNN "Description"
+F 5 "" H 10850 2850 50  0001 L CNN "Height"
+F 6 "" H 10850 2750 50  0001 L CNN "Mouser Part Number"
+F 7 "" H 10850 2650 50  0001 L CNN "Mouser Price/Stock"
+F 8 "CONNFLY Elec" H 10850 2550 50  0001 L CNN "Manufacturer_Name"
+F 9 "DS1037-25FNAKT74-0CC" H 10850 2450 50  0001 L CNN "Manufacturer_Part_Number"
 F 10 "C77838" V 9200 2850 50  0001 C CNN "LCSC"
 	1    9200 2850
 	0    -1   1    0   
@@ -2799,12 +2987,12 @@ F 0 "X8" H 8700 5600 50  0000 R CNN
 F 1 "Pi" H 8500 5600 50  0000 R CNN
 F 2 "SamacSys_Parts:scsi_logo" H 8550 5550 50  0001 C CNN
 F 3 "N/A - Silkscreen" H 8550 5550 50  0001 C CNN
-F 4 "N/A" H 8550 5550 50  0001 C CNN "Height"
+F 4 "" H 8550 5550 50  0001 C CNN "Height"
 F 5 "N/A" H 8550 5550 50  0001 C CNN "LCSC"
 F 6 "N/A" H 8550 5550 50  0001 C CNN "Manufacturer_Name"
 F 7 "N/A" H 8550 5550 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "N/A" H 8550 5550 50  0001 C CNN "Mouser Part Number"
-F 9 "N/A" H 8550 5550 50  0001 C CNN "Mouser Price/Stock"
+F 8 "" H 8550 5550 50  0001 C CNN "Mouser Part Number"
+F 9 "" H 8550 5550 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8550 5550 50  0001 C CNN "Description"
 	1    8550 5550
 	-1   0    0    1   
@@ -2863,11 +3051,11 @@ F 2 "Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical" H 3700 2150 50 
 F 3 "DNP" H 3700 2150 50  0001 C CNN
 F 4 "DNP" H 3700 2150 50  0001 C CNN "LCSC"
 F 5 "DNP" H 3700 2150 50  0001 C CNN "Description"
-F 6 "DNP" H 3700 2150 50  0001 C CNN "Height"
+F 6 "" H 3700 2150 50  0001 C CNN "Height"
 F 7 "DNP" H 3700 2150 50  0001 C CNN "Manufacturer_Name"
 F 8 "DNP" H 3700 2150 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "DNP" H 3700 2150 50  0001 C CNN "Mouser Part Number"
-F 10 "DNP" H 3700 2150 50  0001 C CNN "Mouser Price/Stock"
+F 9 "" H 3700 2150 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 3700 2150 50  0001 C CNN "Mouser Price/Stock"
 	1    3700 2150
 	1    0    0    -1  
 $EndComp
@@ -2912,11 +3100,11 @@ F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 750 2950 50  
 F 3 "DNP" H 750 2950 50  0001 C CNN
 F 4 "DNP" H 750 2950 50  0001 C CNN "LCSC"
 F 5 "DNP" H 750 2950 50  0001 C CNN "Description"
-F 6 "DNP" H 750 2950 50  0001 C CNN "Height"
+F 6 "" H 750 2950 50  0001 C CNN "Height"
 F 7 "DNP" H 750 2950 50  0001 C CNN "Manufacturer_Name"
 F 8 "DNP" H 750 2950 50  0001 C CNN "Manufacturer_Part_Number"
-F 9 "DNP" H 750 2950 50  0001 C CNN "Mouser Part Number"
-F 10 "DNP" H 750 2950 50  0001 C CNN "Mouser Price/Stock"
+F 9 "" H 750 2950 50  0001 C CNN "Mouser Part Number"
+F 10 "" H 750 2950 50  0001 C CNN "Mouser Price/Stock"
 	1    750  2950
 	1    0    0    -1  
 $EndComp
@@ -2955,8 +3143,11 @@ P 3850 1500
 F 0 "D5" H 3800 1550 59  0000 L BNN
 F 1 "SM4007PL" H 3700 1650 59  0000 L BNN
 F 2 "Diode_SMD:D_SOD-123F" H 3850 1500 50  0001 C CNN
-F 3 "" H 3850 1500 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301215_MDD-Microdiode-Electronics-SM4007PL_C64898.pdf" H 3850 1500 50  0001 C CNN
 F 4 "C64898" H 3850 1500 50  0001 C CNN "LCSC"
+F 5 "1kV 1A 1.1V @ 1A SOD-123FL Diodes - General Purpose RoHS" H 3850 1500 50  0001 C CNN "Description"
+F 6 "	MDD(Microdiode Electronics)" H 3850 1500 50  0001 C CNN "Manufacturer_Name"
+F 7 "SM4007PL" H 3850 1500 50  0001 C CNN "Manufacturer_Part_Number"
 	1    3850 1500
 	1    0    0    -1  
 $EndComp
@@ -2996,4 +3187,6 @@ Wire Notes Line
 	10200 5850 10200 2650
 Wire Notes Line
 	8300 5850 8300 2650
+Wire Notes Line
+	10200 2450 10200 550 
 $EndSCHEMATC
