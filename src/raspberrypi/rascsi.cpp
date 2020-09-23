@@ -1136,6 +1136,31 @@ LOGCRITICAL("LOGCRITICAL");
 		actid = -1;
 		phase = BUS::busfree;
 
+		// If any of the controllers are an Ethernet
+		// device, check to see if there is new data
+		// received.
+		for (int x = 0; x < CtrlMax; x++) {
+			if (!ctrl[x]){
+				continue;
+			}
+
+			for (int y = 0; y < UnitNum; y++) {
+				int unitno = x * UnitNum + y;
+				// branch by unit type
+				if (disk[unitno]) {
+					if (disk[unitno]->GetID() == MAKEID('S','C','N','L')) {
+						// Receive the data....
+						int packet_len = ((SCSINuvolink*)disk[unitno])->ReceivePacket();
+						if(packet_len > 0){
+							((SCSIDEV*)ctrl[x])->TransferPacketToHost(packet_len);
+						}
+
+					}
+				}
+			}
+
+		}
+
 #ifdef USE_SEL_EVENT_ENABLE
 		// SEL signal polling
 		if (bus->PollSelectEvent() < 0) {

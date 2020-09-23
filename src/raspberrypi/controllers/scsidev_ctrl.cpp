@@ -147,7 +147,7 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 
 //---------------------------------------------------------------------------
 //
-//	Phaes
+//	Phases
 //
 //---------------------------------------------------------------------------
 
@@ -2082,4 +2082,33 @@ BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
 	}
 
 	return TRUE;
+}
+
+//---------------------------------------------------------------------------
+//
+//	Transfer IP packet to the host via SCSI
+//
+//---------------------------------------------------------------------------
+BOOL FASTCALL SCSIDEV::TransferPacketToHost(int packet_len){
+
+	// Aquire the bus
+
+	// Reselection
+
+	// Message OUT (expect a "NO OPERATION")
+	//    IF we get a DISCONNECT message, abort sending the message
+	//        Transition to MESSAGE IN and send a DISCONNECT
+	//        then go to BUS FREE
+
+	// DATA IN
+	//   ... send the packet
+
+	// MESSAGE OUT (expect a "NO OPERATION")
+
+	// If more packets, go back to DATA IN
+
+	// Else
+	// MESSAGE IN (sends DISCONNECT)
+
+	// BUS FREE
 }

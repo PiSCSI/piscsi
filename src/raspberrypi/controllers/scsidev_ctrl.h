@@ -102,6 +102,8 @@ public:
 	BOOL FASTCALL IsSCSI() const {return TRUE;}
 										// SCSI check
 
+	BOOL FASTCALL TransferPacketToHost(int packet_len);
+
 private:
 	// Phase
 	void FASTCALL BusFree();

@@ -460,21 +460,26 @@ void FASTCALL SCSINuvolink::SetMacAddr(BYTE *mac)
 //	Receive Packet
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSINuvolink::ReceivePacket()
+int FASTCALL SCSINuvolink::ReceivePacket()
 {
 	static const BYTE bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 
 	ASSERT(this);
 	ASSERT(tap);
-	LOGTRACE("SCSINuvolink::ReceivePacket");
+	//LOGTRACE("SCSINuvolink::ReceivePacket");
 
-	// previous packet has not been received
-	if (packet_enable) {
-		return;
-	}
+	// // previous packet has not been received
+	// if (packet_enable) {
+	// 	LOGDEBUG("packet not enabled");
+	// 	return;
+	// }
 
 	// Receive packet
 	packet_len = tap->Rx(packet_buf);
+
+	if(packet_len){
+		LOGINFO("Received a packet of size %d",packet_len);
+	}
 
 	// Check if received packet
 	if (memcmp(packet_buf, mac_addr, 6) != 0) {
@@ -486,15 +491,22 @@ void FASTCALL SCSINuvolink::ReceivePacket()
 
 	// Discard if it exceeds the buffer size
 	if (packet_len > 2048) {
+		LOGDEBUG("Packet size was too big. Dropping it");
 		packet_len = 0;
 		return;
 	}
 
-	// Store in receive buffer
-	if (packet_len > 0) {
-		packet_enable = TRUE;
-	}
+	// TransferPacket(packet_len, packet_buff);
+	return packet_len;
+
+	// // Store in receive buffer
+	// if (packet_len > 0) {
+	// 	packet_enable = TRUE;
+	// }
 }
+
+
+
 
 //---------------------------------------------------------------------------
 //

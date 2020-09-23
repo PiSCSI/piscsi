@@ -44,16 +44,18 @@ public:
 										// Destructor
 
 	// commands
-	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
+	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor);
 										// INQUIRY command
 	BOOL FASTCALL TestUnitReady(const DWORD *cdb);
 										// TEST UNIT READY command
-	int FASTCALL GetMessage6(const DWORD *cdb, BYTE *buf);
+	int FASTCALL GetMessage6(const DWORD *cdb, BYTE *buffer);
 										// GET MESSAGE10 command
-	BOOL FASTCALL SendMessage6(const DWORD *cdb, BYTE *buf);
+	BOOL FASTCALL SendMessage6(const DWORD *cdb, BYTE *buffer);
 										// SEND MESSAGE10 command
-	BOOL SendPacket(BYTE *buf, int len);
+	BOOL SendPacket(BYTE *buffer, int len);
 										// Send a packet
+	int FASTCALL ReceivePacket();
+										// Receive a packet
 
 
 private:
@@ -77,17 +79,16 @@ private:
 	static const char* m_revision;
 
 #if defined(RASCSI) && !defined(BAREMETAL)
-	int FASTCALL GetMacAddr(BYTE *buf);
+	int FASTCALL GetMacAddr(BYTE *buffer);
 										// Get MAC address
-	void FASTCALL SetMacAddr(BYTE *buf);
+	void FASTCALL SetMacAddr(BYTE *buffer);
 										// Set MAC address
-	void FASTCALL ReceivePacket();
-										// Receive a packet
-	void FASTCALL GetPacketBuf(BYTE *buf);
+	void FASTCALL GetPacketBuf(BYTE *buffer);
 										// Get a packet
-	void FASTCALL SetMulticastRegisters(BYTE *buf, int len);
-										// Change the multicast registers										
-
+	void FASTCALL SetMulticastRegisters(BYTE *buffer, int len);
+										// Change the multicast registers
+	void FASTCALL TransferPacketToHost(BYTE *buffer, int len);
+										// Transfer the received packet to the host
 	CTapDriver *tap;
 										// TAP driver
 	BOOL m_bTapEnable;
