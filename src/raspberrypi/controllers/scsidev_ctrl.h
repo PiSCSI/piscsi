@@ -108,8 +108,12 @@ private:
 	// Phase
 	void FASTCALL BusFree();
 										// Bus free phase
+	void FASTCALL Arbitration();
+										// Arbitration phase
 	void FASTCALL Selection();
 										// Selection phase
+	void FASTCALL Reselection();
+										// Reselection phase
 	void FASTCALL Execute();
 										// Execution phase
 	void FASTCALL MsgOut();

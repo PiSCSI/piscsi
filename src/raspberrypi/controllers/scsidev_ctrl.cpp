@@ -80,11 +80,9 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 	// Get bus information
 	ctrl.bus->Aquire();
 
-	// Reset
+	// Check to see if the reset signal was asserted
 	if (ctrl.bus->GetRST()) {
-#if defined(DISK_LOG)
-		Log(Log::Normal, "RESET信号受信");
-#endif	// DISK_LOG
+		LOGWARN("RESET signal received!");
 
 		// Reset the controller
 		Reset();
@@ -194,6 +192,53 @@ void FASTCALL SCSIDEV::BusFree()
 
 //---------------------------------------------------------------------------
 //
+//	Arbitration Phase
+//
+//---------------------------------------------------------------------------
+void FASTCALL SCSIDEV::Arbitration()
+{
+
+	// TODO: See https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-06.html
+	// DWORD id;
+
+	ASSERT(this);
+
+	// // Phase change
+	// if (ctrl.phase != BUS::reselection) {
+	// 	// invalid if IDs do not match
+	// 	id = 1 << ctrl.id;
+	// 	if ((ctrl.bus->GetDAT() & id) == 0) {
+	// 		return;
+	// 	}
+
+	// 	// End if there is no valid unit
+	// 	if (!HasUnit()) {
+	// 		return;
+	// 	}
+
+	// 	LOGDEBUG("Reselection phase ID=%d (with device)", ctrl.id);
+
+	// 	// Phase setting
+	// 	ctrl.phase = BUS::selection;
+
+	// 	// Raise BSY and respond
+	// 	ctrl.bus->SetBSY(TRUE);
+	// 	return;
+	// }
+
+	// // Reselection completed
+	// if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {
+	// 	// Message out phase if ATN=1, otherwise command phase
+	// 	if (ctrl.bus->GetATN()) {
+	// 		MsgOut();
+	// 	} else {
+	// 		Command();
+	// 	}
+	// }
+}
+
+//---------------------------------------------------------------------------
+//
 //	Selection Phase
 //
 //---------------------------------------------------------------------------
@@ -239,6 +284,53 @@ void FASTCALL SCSIDEV::Selection()
 		}
 	}
 }
+
+//---------------------------------------------------------------------------
+//
+//	Reselection Phase
+//
+//---------------------------------------------------------------------------
+void FASTCALL SCSIDEV::Reselection()
+{
+	// DWORD id;
+
+	ASSERT(this);
+
+	// // Phase change
+	// if (ctrl.phase != BUS::reselection) {
+	// 	// invalid if IDs do not match
+	// 	id = 1 << ctrl.id;
+	// 	if ((ctrl.bus->GetDAT() & id) == 0) {
+	// 		return;
+	// 	}
+
+	// 	// End if there is no valid unit
+	// 	if (!HasUnit()) {
+	// 		return;
+	// 	}
+
+	// 	LOGDEBUG("Reselection phase ID=%d (with device)", ctrl.id);
+
+	// 	// Phase setting
+	// 	ctrl.phase = BUS::selection;
+
+	// 	// Raise BSY and respond
+	// 	ctrl.bus->SetBSY(TRUE);
+	// 	return;
+	// }
+
+	// // Reselection completed
+	// if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {
+	// 	// Message out phase if ATN=1, otherwise command phase
+	// 	if (ctrl.bus->GetATN()) {
+	// 		MsgOut();
+	// 	} else {
+	// 		Command();
+	// 	}
+	// }
+}
+
+
 
 //---------------------------------------------------------------------------
 //
@@ -2090,25 +2182,56 @@ BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIDEV::TransferPacketToHost(int packet_len){
+	//*****************************
+	// BUS FREE PHASE
+	//*****************************
+	// We should already be in bus free phase when we enter this function
 
+	//*****************************
+	// ARBITRATION PHASE
+	//*****************************
 	// Aquire the bus
+	// ctrl.bus->Aquire();
+	// ctrl.bus->SetIO();
 
+// 		if (bus->GetBUSY()) {
+// #if !defined(BAREMETAL)
+// 			usleep(0);
+// #endif	// !BAREMETAL
+// 			continue;
+// 		}
+// #endif	// USE_SEL_EVENT_ENABLE
+	//*****************************
 	// Reselection
+	//*****************************
 
+	//*****************************
 	// Message OUT (expect a "NO OPERATION")
 	//    IF we get a DISCONNECT message, abort sending the message
 	//        Transition to MESSAGE IN and send a DISCONNECT
 	//        then go to BUS FREE
+	//*****************************
 
+	//*****************************
 	// DATA IN
 	//   ... send the packet
+	//*****************************
 
+	//*****************************
 	// MESSAGE OUT (expect a "NO OPERATION")
+	//*****************************
 
+	//*****************************
 	// If more packets, go back to DATA IN
+	//*****************************
 
+	//*****************************
 	// Else
 	// MESSAGE IN (sends DISCONNECT)
+	//*****************************
 
+	//*****************************
 	// BUS FREE
+	//*****************************
+	BusFree();
 }

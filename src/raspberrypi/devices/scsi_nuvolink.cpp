@@ -485,7 +485,7 @@ int FASTCALL SCSINuvolink::ReceivePacket()
 	if (memcmp(packet_buf, mac_addr, 6) != 0) {
 		if (memcmp(packet_buf, bcast_addr, 6) != 0) {
 			packet_len = 0;
-			return;
+			return -1;
 		}
 	}
 
@@ -493,7 +493,7 @@ int FASTCALL SCSINuvolink::ReceivePacket()
 	if (packet_len > 2048) {
 		LOGDEBUG("Packet size was too big. Dropping it");
 		packet_len = 0;
-		return;
+		return -1;
 	}
 
 	// TransferPacket(packet_len, packet_buff);
