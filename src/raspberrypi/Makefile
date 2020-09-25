@@ -67,7 +67,7 @@ BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 #BIN_ALL = $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
 # Temporarily remove the RASDUMP and RASDUMP tools, since they're not needed
 # for my specific use case. If you need them - add them back in!
-BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL)
+BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL) $(BINDIR)/$(RASDUMP)
 
 
 SRC_RASCSI = \
@@ -154,6 +154,9 @@ $(BINDIR)/$(RASCSI): $(OBJ_RASCSI) | $(BINDIR)
 
 $(BINDIR)/$(RASCTL): $(OBJ_RASCTL) $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL)
+
+$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
 
 $(RASDUMP): $(OBJ_RASDUMP) $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
