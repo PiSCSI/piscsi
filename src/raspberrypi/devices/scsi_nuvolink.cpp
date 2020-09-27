@@ -46,7 +46,7 @@ SCSINuvolink::SCSINuvolink() : Disk()
 	// Nuvolink
 	disk.id = MAKEID('S', 'C', 'N', 'L');
 
-#if defined(RASCSI) && defined(__linux__) && !defined(BAREMETAL)
+#if defined(__linux__) && !defined(BAREMETAL)
 	// TAP Driver Generation
 	tap = new CTapDriver();
 	m_bTapEnable = tap->Init();
@@ -77,7 +77,7 @@ SCSINuvolink::SCSINuvolink() : Disk()
 SCSINuvolink::~SCSINuvolink()
 {
 	LOGTRACE("SCSINuvolink Destructor");
-#if defined(RASCSI) && !defined(BAREMETAL)
+#if !defined(BAREMETAL)
 	// TAP driver release
 	if (tap) {
 		tap->Cleanup();
@@ -420,7 +420,7 @@ void FASTCALL SCSINuvolink::SetMulticastRegisters(BYTE *buffer, int len){
 }
 
 
-#if defined(RASCSI) && !defined(BAREMETAL)
+#if !defined(BAREMETAL)
 //---------------------------------------------------------------------------
 //
 //	Get MAC Address
@@ -479,14 +479,47 @@ int FASTCALL SCSINuvolink::ReceivePacket()
 
 	if(packet_len){
 		LOGINFO("Received a packet of size %d",packet_len);
+
+		for(int i=0; i< 48; i+=8)
+		{
+			LOGTRACE("%s %02X: %02X %02X %02X %02X %02X %02X %02X %02X", \
+				__PRETTY_FUNCTION__,i,
+				(int)packet_buf[i+0],
+				(int)packet_buf[i+1],
+				(int)packet_buf[i+2],
+				(int)packet_buf[i+3],
+				(int)packet_buf[i+4],
+				(int)packet_buf[i+5],
+				(int)packet_buf[i+6],
+				(int)packet_buf[i+7]);
+		}
+	}else{
+		return -1;
 	}
 
-	// Check if received packet
+	// This is a very basic filter to prevent unnecessary packets from
+	// being sent to the SCSI initiator. 
+
+	// Check if received packet destination MAC address matches the
+	// Nuvolink MAC
 	if (memcmp(packet_buf, mac_addr, 6) != 0) {
+		// If it doesn't match, check to see if this is a broadcast message
 		if (memcmp(packet_buf, bcast_addr, 6) != 0) {
+			LOGINFO("%s Received a packet that's not for me: %02X %02X %02X %02X %02X %02X", \
+				__PRETTY_FUNCTION__,
+				(int)packet_buf[0],
+				(int)packet_buf[1],
+				(int)packet_buf[2],
+				(int)packet_buf[3],
+				(int)packet_buf[4],
+				(int)packet_buf[5]);
 			packet_len = 0;
 			return -1;
+		}else{
+			packet_is_bcast_or_mcast = TRUE;
 		}
+	}else{
+		packet_is_bcast_or_mcast = FALSE;
 	}
 
 	// Discard if it exceeds the buffer size
@@ -496,13 +529,7 @@ int FASTCALL SCSINuvolink::ReceivePacket()
 		return -1;
 	}
 
-	// TransferPacket(packet_len, packet_buff);
 	return packet_len;
-
-	// // Store in receive buffer
-	// if (packet_len > 0) {
-	// 	packet_enable = TRUE;
-	// }
 }
 
 

@@ -434,6 +434,30 @@
 //
 //---------------------------------------------------------------------------
 #define GPIO_DATA_SETTLING 100			// Data bus stabilization time (ns)
+// SCSI Bus timings taken from:
+//     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
+#define SCSI_DELAY_ARBITRATION_DELAY_NS          2400
+#define SCSI_DELAY_ASSERTION_PERIOD_NS             90 
+#define SCSI_DELAY_BUS_CLEAR_DELAY_NS             800 
+#define SCSI_DELAY_BUS_FREE_DELAY_NS              800 
+#define SCSI_DELAY_BUS_SET_DELAY_NS              1800 
+#define SCSI_DELAY_BUS_SETTLE_DELAY_NS            400 
+#define SCSI_DELAY_CABLE_SKEW_DELAY_NS             10 
+#define SCSI_DELAY_DATA_RELEASE_DELAY_NS          400 
+#define SCSI_DELAY_DESKEW_DELAY_NS                 45 
+#define SCSI_DELAY_DISCONNECTION_DELAY_US         200 
+#define SCSI_DELAY_HOLD_TIME_NS                    45 
+#define SCSI_DELAY_NEGATION_PERIOD_NS              90 
+#define SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S   10         // (recommended)
+#define SCSI_DELAY_RESET_TO_SELECTION_TIME_US     (250*1000) // (recommended)
+#define SCSI_DELAY_RESET_HOLD_TIME_US              25 
+#define SCSI_DELAY_SELECTION_ABORT_TIME_US        200 
+#define SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS    (250*1000) // (recommended)
+#define SCSI_DELAY_FAST_ASSERTION_PERIOD_NS        30
+#define SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS         5
+#define SCSI_DELAY_FAST_DESKEW_DELAY_NS            20
+#define SCSI_DELAY_FAST_HOLD_TIME_NS               10
+#define SCSI_DELAY_FAST_NEGATION_PERIOD_NS         30
 
 //---------------------------------------------------------------------------
 //
@@ -523,6 +547,15 @@ public:
 										// Data receive handshake
 	int FASTCALL SendHandShake(BYTE *buf, int count);
 										// Data transmission handshake
+	BOOL FASTCALL WaitSignalTimeoutUs(int pin, BOOL ast, DWORD timeout);
+										// Wait for a specified number of 
+										// microseconds for a signal to change
+	void FASTCALL SetControl(int pin, BOOL ast);
+										// Set Control Signal
+	BOOL FASTCALL GetSignal(int pin);
+										// Get SCSI input signal value
+	void FASTCALL SetSignal(int pin, BOOL ast);
+										// Set SCSI output signal value
 
 #ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
@@ -536,16 +569,10 @@ private:
 	// SCSI I/O signal control
 	void FASTCALL MakeTable();
 										// Create work data
-	void FASTCALL SetControl(int pin, BOOL ast);
-										// Set Control Signal
 	void FASTCALL SetMode(int pin, int mode);
 										// Set SCSI I/O mode
-	BOOL FASTCALL GetSignal(int pin);
-										// Get SCSI input signal value
-	void FASTCALL SetSignal(int pin, BOOL ast);
-										// Set SCSI output signal value
 	BOOL FASTCALL WaitSignal(int pin, BOOL ast);
-										// Wait for a signal to change
+										// Wait up to 3s for a signal to change
 	// Interrupt control
 	void FASTCALL DisableIRQ();
 										// IRQ Disabled

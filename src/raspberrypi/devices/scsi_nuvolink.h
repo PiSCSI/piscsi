@@ -56,7 +56,14 @@ public:
 										// Send a packet
 	int FASTCALL ReceivePacket();
 										// Receive a packet
-
+	int packet_len;
+										// Receive packet size
+	BYTE packet_buf[0x1000];
+										// Receive packet buffer
+	BOOL packet_is_bcast_or_mcast;
+										// Flag intidcating if the last packet is multicast/broadcast
+										// TRUE if multicast or broadcast
+										// FALSE if unicast
 
 private:
 	enum nuvolink_command_enum : BYTE {
@@ -95,10 +102,6 @@ private:
 										// TAP valid flag
 	BYTE mac_addr[6];
 										// MAC Addres
-	int packet_len;
-										// Receive packet size
-	BYTE packet_buf[0x1000];
-										// Receive packet buffer
 	BOOL packet_enable;
 										// Received packet valid
 #endif	// RASCSI && !BAREMETAL

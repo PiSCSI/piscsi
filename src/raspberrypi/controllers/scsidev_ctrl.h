@@ -16,6 +16,16 @@
 #pragma once
 #include "controllers/sasidev_ctrl.h"
 
+
+//===========================================================================
+//
+//	Nuvolink Register constants
+//      Bit 0: set when packet received intact, thus always set.
+//      Bit 5: set when the packet was a multicast/broadcast packet.
+//===========================================================================
+#define NUVOLINK_RSR_REG_PACKET_INTACT (1 << 0)
+#define NUVOLINK_RSR_REG_MCAST_OR_BCAST (1 << 5)
+
 //===========================================================================
 //
 //	SCSI Device (Interits SASI device)
@@ -37,6 +47,33 @@ public:
 		int msc;
 		BYTE msb[256];
 	} scsi_t;
+
+
+	enum scsi_message_code : BYTE {
+		eMsgCodeAbort                              = 0x06,                           
+		eMsgCodeAbortTag                           = 0x0D,
+		eMsgCodeBusDeviceReset                   = 0x0C,
+		eMsgCodeClearQueue             = 0x0E,
+		eMsgCodeCommandComplete                   = 0x00,
+		eMsgCodeDisconnect                         = 0x04,
+		eMsgCodeIdentify                           = 0x80,
+		eMsgCodeIgnoreWideResidue    = 0x23, // (Two Bytes)
+		eMsgCodeInitiateRecovery                  = 0x0F,
+		eMsgCodeInitiatorDetectedError           = 0x05,
+		eMsgCodeLinkedCommandComplete            = 0x0A,
+		eMsgCodeLinkedCommandCompleteWithFlag = 0x0B,
+		eMsgCodeMessageParityError               = 0x09,
+		eMsgCodeMessageReject                     = 0x07,
+		eMsgCodeNoOperation                       = 0x08,
+		eMsgCodeHeadOfQueueTag                = 0x21,
+		eMsgCodeOrderedQueueTag                = 0x22,
+		eMsgCodeSimpleQueueTag                 = 0x20,
+		eMsgCodeReleaseRecovery                   = 0x10,
+		eMsgCodeRestorePointers                   = 0x03,
+		eMsgCodeSaveDataPointer                  = 0x02,
+		eMsgCodeTerminateIOProcess              = 0x11,
+	};
+
 
 	enum scsi_command : BYTE {
 			eCmdTestUnitReady = 0x00,
@@ -79,11 +116,7 @@ public:
 
 public:
 	// Basic Functions
-#ifdef RASCSI
 	SCSIDEV();
-#else
-	SCSIDEV(Device *dev);
-#endif // RASCSI
 										// Constructor
 
 	void FASTCALL Reset();
@@ -195,5 +228,9 @@ private:
 
 	scsi_t scsi;
 										// Internal data
+
+	// Sequence number for the Nuvolink. This really belongs somewhere else,
+	// but it goes here for now.
+	BYTE m_sequence_number = 0;
 };
 

@@ -707,10 +707,7 @@ void FASTCALL SASIDEV::MsgIn()
 
 	// Phase change
 	if (ctrl.phase != BUS::msgin) {
-
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Message in phase");
-#endif	// DISK_LOG
+		LOGTRACE("%s Starting Message in phase", __PRETTY_FUNCTION__);
 
 		// Phase Setting
 		ctrl.phase = BUS::msgin;
@@ -724,36 +721,12 @@ void FASTCALL SASIDEV::MsgIn()
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
-
-#ifndef RASCSI
-		// Request message
-		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
-		ctrl.bus->SetREQ(TRUE);
-
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Message in phase $%02X", ctrl.buffer[ctrl.offset]);
-#endif	// DISK_LOG
-#endif	// RASCSI
 		return;
 	}
 
-#ifdef RASCSI
 	//Send
+	LOGTRACE("%s Transitioning to Send()", __PRETTY_FUNCTION__);
 	Send();
-#else
-	// Requesting
-	if (ctrl.bus->GetREQ()) {
-		// Initator received
-		if (ctrl.bus->GetACK()) {
-			SendNext();
-		}
-	} else {
-		// Initiator requests next
-		if (!ctrl.bus->GetACK()) {
-			Send();
-		}
-	}
-#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -792,10 +765,7 @@ void FASTCALL SASIDEV::DataIn()
 			return;
 		}
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Data-in Phase");
-#endif	// DISK_LOG
-
+		LOGTRACE("%s Going into Data-in Phase", __PRETTY_FUNCTION__);
 		// Phase Setting
 		ctrl.phase = BUS::datain;
 
@@ -809,33 +779,12 @@ void FASTCALL SASIDEV::DataIn()
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
-#ifndef RASCSI
-		// Assert the DAT signal
-		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
-
-		// Request data
-		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
 		return;
 	}
 
-#ifdef RASCSI
 	// Send
+	LOGTRACE("%s Going to Send()",__PRETTY_FUNCTION__);
 	Send();
-#else
-	// Requesting
-	if (ctrl.bus->GetREQ()) {
-		// Initator received
-		if (ctrl.bus->GetACK()) {
-			SendNext();
-		}
-	} else {
-		// Initiator requests next
-		if (!ctrl.bus->GetACK()) {
-			Send();
-		}
-	}
-#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -1394,7 +1343,6 @@ void FASTCALL SASIDEV::Send()
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-#ifdef RASCSI
 	// Check that the length isn't 0
 	if (ctrl.length != 0) {
 		len = ctrl.bus->SendHandShake(
@@ -1411,20 +1359,6 @@ void FASTCALL SASIDEV::Send()
 		ctrl.length = 0;
 		return;
 	}
-#else
-	// Offset and Length
-	ASSERT(ctrl.length >= 1);
-	ctrl.offset++;
-	ctrl.length--;
-
-	// Immediately after ACK is asserted, if the data
-	// has been set by SendNext, raise the request
-	if (ctrl.length != 0) {
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-		return;
-	}
-#endif	// RASCSI
 
 	// Remove block and initialize the result
 	ctrl.blocks--;
@@ -1435,7 +1369,7 @@ void FASTCALL SASIDEV::Send()
 		if (ctrl.blocks != 0) {
 			// Set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			//** printf("xfer in: %d \n",result);
+			LOGTRACE("%s xfer in: %d",__PRETTY_FUNCTION__, result);
 
 #ifndef RASCSI
 			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);

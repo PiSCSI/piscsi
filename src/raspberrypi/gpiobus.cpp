@@ -632,6 +632,29 @@ void FASTCALL GPIOBUS::SetSEL(BOOL ast)
 		SetControl(PIN_ACT, ACT_ON);
 	}
 
+
+	// If we're trying to SET the SEL signal, we need to
+	// reverse directions on IC4
+	if (actmode == TARGET) {
+		if (ast) {
+			// Set Target signal to output
+			SetControl(PIN_IND, IND_OUT);
+
+			SetMode(PIN_SEL, OUT);
+			SetMode(PIN_RST, OUT);
+			SetMode(PIN_ACK, OUT);
+			SetMode(PIN_ATN, OUT);
+		} else {
+			// Set the target signal to input
+			SetControl(PIN_IND, IND_IN);
+
+			SetMode(PIN_SEL, IN);
+			SetMode(PIN_RST, IN);
+			SetMode(PIN_ACK, IN);
+			SetMode(PIN_ATN, IN);
+		}
+	}
+
 	// Set SEL signal
 	SetSignal(PIN_SEL, ast);
 }
@@ -1532,14 +1555,24 @@ void FASTCALL GPIOBUS::SetSignal(int pin, BOOL ast)
 //---------------------------------------------------------------------------
 BOOL FASTCALL GPIOBUS::WaitSignal(int pin, BOOL ast)
 {
-	DWORD now;
 	DWORD timeout;
+
+	// Calculate default timeout (3000ms)
+	timeout = 3000 * 1000;
+	return WaitSignalTimeoutUs(pin, ast, timeout);
+}
+
+//---------------------------------------------------------------------------
+//
+//	Wait for signal change
+//
+//---------------------------------------------------------------------------
+BOOL FASTCALL GPIOBUS::WaitSignalTimeoutUs(int pin, BOOL ast, DWORD timeout)
+{
+	DWORD now;
 
 	// Get current time
 	now = SysTimer::GetTimerLow();
-
-	// Calculate timeout (3000ms)
-	timeout = 3000 * 1000;
 
 	// end immediately if the signal has changed
 	do {

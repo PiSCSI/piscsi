@@ -197,44 +197,56 @@ void FASTCALL SCSIDEV::BusFree()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Arbitration()
 {
-
 	// TODO: See https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-06.html
-	// DWORD id;
+	DWORD id;
+	DWORD data_lines;
 
 	ASSERT(this);
 
-	// // Phase change
-	// if (ctrl.phase != BUS::reselection) {
-	// 	// invalid if IDs do not match
-	// 	id = 1 << ctrl.id;
-	// 	if ((ctrl.bus->GetDAT() & id) == 0) {
-	// 		return;
-	// 	}
+	// We need to switch the tranceivers to be inputs....
+	ctrl.bus->SetBSY(FALSE); // Make sure that we're not asserting the BSY signal
+	ctrl.bus->SetSEL(FALSE); // Make sure that we're not asserting the SEL signal
 
-	// 	// End if there is no valid unit
-	// 	if (!HasUnit()) {
-	// 		return;
-	// 	}
+	// If we arent' in the bus-free phase, we can't progress....
+	// just return.
+	ctrl.bus->Aquire();
+	if(ctrl.bus->GetBSY() || ctrl.bus->GetSEL())
+	{
+		LOGWARN("Unable to start arbitration. BSY:%d SEL:%d",(int)ctrl.bus->GetBSY(), (int)ctrl.bus->GetSEL());
+	}
+	
+	// Phase change
+	if (ctrl.phase != BUS::arbitration) {
 
-	// 	LOGDEBUG("Reselection phase ID=%d (with device)", ctrl.id);
+		ctrl.phase = BUS::arbitration;
 
-	// 	// Phase setting
-	// 	ctrl.phase = BUS::selection;
+		// Assert both the BSY signal and our own SCSI ID
+		id = 1 << ctrl.id;
+		ctrl.bus->SetDAT(id);
+		ctrl.bus->SetBSY(TRUE);
 
-	// 	// Raise BSY and respond
-	// 	ctrl.bus->SetBSY(TRUE);
-	// 	return;
-	// }
+		// Wait for an ARBITRATION DELAY
+		SysTimer::SleepNsec(SCSI_DELAY_ARBITRATION_DELAY_NS);
+	
+		// Check if a higher SCSI ID is asserted. If so, we lost arbitration
+		ctrl.bus->Aquire();
+		data_lines = ctrl.bus->GetDAT();
+		LOGDEBUG("After Arbitration, data lines are %04X", (int)data_lines);
+		data_lines >>= (ctrl.id + 1);
+		if(data_lines != 0)
+		{
+			LOGINFO("We LOST arbitration for ID %d", ctrl.id);
+			BusFree();
+			return;
+		}
 
-	// // Reselection completed
-	// if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {
-	// 	// Message out phase if ATN=1, otherwise command phase
-	// 	if (ctrl.bus->GetATN()) {
-	// 		MsgOut();
-	// 	} else {
-	// 		Command();
-	// 	}
-	// }
+		// If we won the arbitration, assert the SEL signal
+		ctrl.bus->SetSEL(TRUE);
+		
+		// Wait for BUS CLEAR delay + BUS SETTLE delay before changing any signals
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_CLEAR_DELAY_NS + SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+	}
+	return;
 }
 
 //---------------------------------------------------------------------------
@@ -292,42 +304,66 @@ void FASTCALL SCSIDEV::Selection()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Reselection()
 {
-	// DWORD id;
+	DWORD id;
 
 	ASSERT(this);
 
-	// // Phase change
-	// if (ctrl.phase != BUS::reselection) {
-	// 	// invalid if IDs do not match
-	// 	id = 1 << ctrl.id;
-	// 	if ((ctrl.bus->GetDAT() & id) == 0) {
-	// 		return;
-	// 	}
+	// Phase change
+	if (ctrl.phase != BUS::reselection) {
+		ctrl.phase = BUS::reselection;
 
-	// 	// End if there is no valid unit
-	// 	if (!HasUnit()) {
-	// 		return;
-	// 	}
+		// Assert the IO signal
+		ctrl.bus->SetIO(TRUE);
 
-	// 	LOGDEBUG("Reselection phase ID=%d (with device)", ctrl.id);
+		// Set the data bus to my SCSI ID or-ed with the Initiator's SCSI ID
+		// Assume this is 7, since that is what all Macintoshes use
+		id = (1 << ctrl.id) | (1 << 7);
+		LOGDEBUG("Reslection DAT set to %02X",(int)id);
+		ctrl.bus->SetDAT((BYTE)id);
 
-	// 	// Phase setting
-	// 	ctrl.phase = BUS::selection;
+		// Wait at least two deskew delays
+		SysTimer::SleepNsec(SCSI_DELAY_DESKEW_DELAY_NS);
+		// Release the BSY signal
+		////////////////ctrl.bus->SetBSY(FALSE);
+		// We can't use the SetBSY() funciton, because that also reverses the direction of IC3
+		ctrl.bus->SetSignal(PIN_BSY, FALSE);
 
-	// 	// Raise BSY and respond
-	// 	ctrl.bus->SetBSY(TRUE);
-	// 	return;
-	// }
+		// Initiater waits for (SEL && IO && ~BSY) with its DAT flag set
+		// to accept a reselect
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
-	// // Reselection completed
-	// if (!ctrl.bus->GetSEL() && ctrl.bus->GetBSY()) {
-	// 	// Message out phase if ATN=1, otherwise command phase
-	// 	if (ctrl.bus->GetATN()) {
-	// 		MsgOut();
-	// 	} else {
-	// 		Command();
-	// 	}
-	// }
+		// Normally, we should wait to ensure that the target asserts BSY, but we
+		// can't read the BSY signal while the IO line is being asserted. So, we just
+		// have to assume it worked
+
+		// if(ctrl.bus->WaitSignalTimeoutUs(PIN_BSY, TRUE, SCSI_DELAY_SELECTION_ABORT_TIME_US*3))
+		// {
+			LOGDEBUG("Initiator correctly asserted BSY");
+			// After the Initiator asserts BSY, we need to take it over and also assert it
+			////////////////////ctrl.bus->SetBSY(TRUE);
+			ctrl.bus->SetSignal(PIN_BSY, TRUE);
+			SysTimer::SleepNsec(SCSI_DELAY_DESKEW_DELAY_NS * 2);
+
+			// Release the SEL signal
+			ctrl.bus->SetSEL(FALSE);
+
+			// Transition to the Msg Out phase
+			MsgOut();
+		// }
+		// else
+		// {
+		// 	ctrl.phase = BUS::busfree;
+		// 	BusFree();
+		// 	// Timeout waiting for Intiaitor to reselect
+		// 	LOGERROR("Initiator did not assert PIN_BSY within the specified timeout. Aborting the Reselection");
+		// 	// Reset the controller
+		// 	Reset();
+
+		// 	// Reset the bus
+		// 	ctrl.bus->Reset();
+		// 	return;
+		// }
+	}
 }
 
 
@@ -540,13 +576,12 @@ void FASTCALL SCSIDEV::Execute()
 void FASTCALL SCSIDEV::MsgOut()
 {
 	ASSERT(this);
+	LOGTRACE("%s ID: %d",__PRETTY_FUNCTION__, this->GetID());
 
 	// Phase change
 	if (ctrl.phase != BUS::msgout) {
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Message Out Phase");
-#endif	// DISK_LOG
+		LOGTRACE("Message Out Phase");
 
 		// Message out phase after selection
         // process the IDENTIFY message
@@ -576,23 +611,8 @@ void FASTCALL SCSIDEV::MsgOut()
 		return;
 	}
 
-#ifdef RASCSI
 	// Receive
 	Receive();
-#else
-	// Requesting
-	if (ctrl.bus->GetREQ()) {
-		// Sent by the initiator
-		if (ctrl.bus->GetACK()) {
-			Receive();
-		}
-	} else {
-		// Request the initator to
-		if (!ctrl.bus->GetACK()) {
-			ReceiveNext();
-		}
-	}
-#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -1841,132 +1861,52 @@ void FASTCALL SCSIDEV::SendNext()
 }
 #endif	// RASCSI
 
-#ifndef RASCSI
-//---------------------------------------------------------------------------
-//
-//	Receive data
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Receive()
-{
-	DWORD data;
-
-	ASSERT(this);
-
-	// Req is up
-	ASSERT(ctrl.bus->GetREQ());
-	ASSERT(!ctrl.bus->GetIO());
-
-	// Get data
-	data = (DWORD)ctrl.bus->GetDAT();
-
-	// Signal line operated by the target
-	ctrl.bus->SetREQ(FALSE);
-
-	switch (ctrl.phase) {
-		// Command phase
-		case BUS::command:
-			ctrl.cmd[ctrl.offset] = data;
-#if defined(DISK_LOG)
-			Log(Log::Normal, "Command phase $%02X", data);
-#endif	// DISK_LOG
-
-			// Set the length again with the first data (offset 0)
-			if (ctrl.offset == 0) {
-				if (ctrl.cmd[0] >= 0x20) {
-					// 10バイトCDB
-					ctrl.length = 10;
-				}
-			}
-			break;
-
-		// Message out phase
-		case BUS::msgout:
-			ctrl.message = data;
-#if defined(DISK_LOG)
-			Log(Log::Normal, "Message out phase $%02X", data);
-#endif	// DISK_LOG
-			break;
-
-		// Data out phase
-		case BUS::dataout:
-			ctrl.buffer[ctrl.offset] = (BYTE)data;
-			break;
-
-		// Other (impossible)
-		default:
-			ASSERT(FALSE);
-			break;
-	}
-}
-#endif	// RASCSI
-
-#ifdef RASCSI
 //---------------------------------------------------------------------------
 //
 //  Receive Data
 //
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Receive()
-#else
-//---------------------------------------------------------------------------
-//
-//	Continue receiving data
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::ReceiveNext()
-#endif	// RASCSI
 {
-#ifdef RASCSI
 	int len;
-#endif	// RASCSI
 	BOOL result;
 	int i;
 	BYTE data;
 
 	ASSERT(this);
 
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
+
 	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
-#ifdef RASCSI
 	// Length != 0 if received
 	if (ctrl.length != 0) {
+		LOGTRACE("%s length was != 0", __PRETTY_FUNCTION__);
 		// Receive
 		len = ctrl.bus->ReceiveHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
+			LOGERROR("%s Not able to receive all data. Going to error",__PRETTY_FUNCTION__);
 			Error();
 			return;
 		}
 
 		// Offset and Length
 		ctrl.offset += ctrl.length;
-		ctrl.length = 0;;
+		ctrl.length = 0;
 		return;
 	}
-#else
-	// Offset and Length
-	ASSERT(ctrl.length >= 1);
-	ctrl.offset++;
-	ctrl.length--;
-
-	// If length!=0, set req again
-	if (ctrl.length != 0) {
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-		return;
-	}
-#endif	// RASCSI
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
 	result = TRUE;
 
 	// Processing after receiving data (by phase)
+	LOGTRACE("ctrl.phase: %d",(int)ctrl.phase);
 	switch (ctrl.phase) {
 
 		// Data out phase
@@ -2007,10 +1947,6 @@ void FASTCALL SCSIDEV::ReceiveNext()
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-#ifndef RASCSI
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
 		return;
 	}
 
@@ -2018,7 +1954,6 @@ void FASTCALL SCSIDEV::ReceiveNext()
 	switch (ctrl.phase) {
 		// Command phase
 		case BUS::command:
-#ifdef RASCSI
 			// Command data transfer
 			len = 6;
 			if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
@@ -2027,11 +1962,8 @@ void FASTCALL SCSIDEV::ReceiveNext()
 			}
 			for (i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
-#if defined(DISK_LOG)
-				Log(Log::Normal, "Command $%02X", ctrl.cmd[i]);
-#endif	// DISK_LOG
+				LOGTRACE("%s Command $%02X",__PRETTY_FUNCTION__, (int)ctrl.cmd[i]);
 			}
-#endif	// RASCSI
 
 			// Execution Phase
 			Execute();
@@ -2045,10 +1977,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 				ctrl.offset = 0;
 				ctrl.length = 1;
 				ctrl.blocks = 1;
-#ifndef RASCSI
-				// Request message
-				ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+
 				return;
 			}
 
@@ -2061,20 +1990,14 @@ void FASTCALL SCSIDEV::ReceiveNext()
 
 					// ABORT
 					if (data == 0x06) {
-#if defined(DISK_LOG)
-						Log(Log::Normal,
-							"Message code ABORT $%02X", data);
-#endif	// DISK_LOG
+						LOGTRACE("Message code ABORT $%02X", (int)data);
 						BusFree();
 						return;
 					}
 
 					// BUS DEVICE RESET
 					if (data == 0x0C) {
-#if defined(DISK_LOG)
-						Log(Log::Normal,
-							"Message code BUS DEVICE RESET $%02X", data);
-#endif	// DISK_LOG
+						LOGTRACE("Message code BUS DEVICE RESET $%02X", (int)data);
 						scsi.syncoffset = 0;
 						BusFree();
 						return;
@@ -2082,18 +2005,12 @@ void FASTCALL SCSIDEV::ReceiveNext()
 
 					// IDENTIFY
 					if (data >= 0x80) {
-#if defined(DISK_LOG)
-						Log(Log::Normal,
-							"Message code IDENTIFY $%02X", data);
-#endif	// DISK_LOG
+						LOGTRACE("Message code IDENTIFY $%02X", (int)data);
 					}
 
 					// Extended Message
 					if (data == 0x01) {
-#if defined(DISK_LOG)
-						Log(Log::Normal,
-							"Message code EXTENDED MESSAGE $%02X", data);
-#endif	// DISK_LOG
+						LOGTRACE("Message code EXTENDED MESSAGE $%02X", (int)data);
 
 						// Check only when synchronous transfer is possible
 						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
@@ -2182,28 +2099,26 @@ BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIDEV::TransferPacketToHost(int packet_len){
+
+	SCSINuvolink *nuvolink;
+
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	//*****************************
 	// BUS FREE PHASE
 	//*****************************
 	// We should already be in bus free phase when we enter this function
+	BusFree();
 
 	//*****************************
 	// ARBITRATION PHASE
 	//*****************************
-	// Aquire the bus
-	// ctrl.bus->Aquire();
-	// ctrl.bus->SetIO();
+	Arbitration();
 
-// 		if (bus->GetBUSY()) {
-// #if !defined(BAREMETAL)
-// 			usleep(0);
-// #endif	// !BAREMETAL
-// 			continue;
-// 		}
-// #endif	// USE_SEL_EVENT_ENABLE
+
 	//*****************************
 	// Reselection
 	//*****************************
+	Reselection();
 
 	//*****************************
 	// Message OUT (expect a "NO OPERATION")
@@ -2211,15 +2126,34 @@ BOOL FASTCALL SCSIDEV::TransferPacketToHost(int packet_len){
 	//        Transition to MESSAGE IN and send a DISCONNECT
 	//        then go to BUS FREE
 	//*****************************
+	MsgOut();
 
+	LOGTRACE("%s Done with MsgOut", __PRETTY_FUNCTION__);
 	//*****************************
 	// DATA IN
 	//   ... send the packet
 	//*****************************
+	// The Nuvolink should always be unit 0. Unit 1 is only applicable
+	// to SASI devices
+	if(ctrl.unit[0]->GetID() == MAKEID('S','C','N','L')){
+		ctrl.length = packet_len;
+		ctrl.buffer[0] = NUVOLINK_RSR_REG_PACKET_INTACT;
+		ctrl.buffer[1] = m_sequence_number++;
+		ctrl.buffer[2] = (packet_len & 0xFF);
+		ctrl.buffer[3] = (packet_len >> 8) & 0xFF;
+		nuvolink = (SCSINuvolink*)ctrl.unit[0];
+		memcpy(&(ctrl.buffer[4]), nuvolink->packet_buf, packet_len);
+	}else{
+		ctrl.buffer[2] = 0;
+		ctrl.buffer[3] = 0;
+	}
+
+	DataIn();
 
 	//*****************************
 	// MESSAGE OUT (expect a "NO OPERATION")
 	//*****************************
+	MsgOut();
 
 	//*****************************
 	// If more packets, go back to DATA IN
@@ -2229,9 +2163,16 @@ BOOL FASTCALL SCSIDEV::TransferPacketToHost(int packet_len){
 	// Else
 	// MESSAGE IN (sends DISCONNECT)
 	//*****************************
+	ctrl.blocks = 1;
+	ctrl.length = sizeof(scsi_message_code);
+	ctrl.buffer[0] = eMsgCodeDisconnect;
+	ctrl.message = (DWORD)eMsgCodeDisconnect; // (This is probably redundant and unnecessary?)
+	MsgIn();
 
 	//*****************************
 	// BUS FREE
 	//*****************************
 	BusFree();
+
+	return TRUE;
 }

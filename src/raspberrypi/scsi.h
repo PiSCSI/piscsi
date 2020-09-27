@@ -54,6 +54,11 @@ public:
 	phase_t FASTCALL GetPhase();
 										// フェーズ取得
 
+	virtual BOOL FASTCALL WaitSignalTimeoutUs(int pin, BOOL ast, DWORD timeout) = 0;
+										// Wait for a specified number of 
+										// microseconds for a signal to change
+
+
 	static phase_t FASTCALL GetPhase(DWORD mci)
 	{
 		return phase_table[mci];
@@ -121,6 +126,12 @@ public:
 										// データ受信ハンドシェイク
 	virtual int FASTCALL SendHandShake(BYTE *buf, int count) = 0;
 										// データ送信ハンドシェイク
+
+
+	virtual BOOL FASTCALL GetSignal(int pin) = 0;
+										// Get SCSI input signal value
+	virtual void FASTCALL SetSignal(int pin, BOOL ast) = 0;
+										// Set SCSI output signal value
 
 private:
 	static const phase_t phase_table[8];
