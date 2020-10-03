@@ -109,6 +109,9 @@ int FASTCALL SCSINuvolink::Inquiry(
 	// field in cdb[4]
 	response_size = (((DWORD)cdb[3] & 0x1) << 8) + cdb[4];
 	LOGWARN("size is %d (%08X)",(int)response_size, (WORD)response_size);
+	if((response_size != 96) && (response_size != 292)){
+		response_size = 96;
+	}
 
 	for(int i=0; i< 5; i++)
 	{
