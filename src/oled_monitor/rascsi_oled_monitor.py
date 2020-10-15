@@ -152,7 +152,7 @@ while True:
 		else:
 			output = "No images mounted!"
 		draw.text((x, y_pos), output, font=font, fill=255)
-        y_pos = y_pos + 8
+        	y_pos = y_pos + 8
     # If there is still room on the screen, we'll display the time. If there's not room it will just be clipped
     draw.text((x, y_pos), datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), font=font, fill=255)
 
