@@ -148,7 +148,7 @@ while True:
         if (len(line) == 0) or line.startswith("+---") or line.startswith("| ID | UN"):
 				continue
 		else:
-				if line.startswith("|  0"):
+				if line.startswith("|  "):
 					fields = line.split('|')
         				output = str.strip(fields[1]) + " " + str.strip(fields[3]) + " " + os.path.basename(str.strip(fields[4]))
 				else:
