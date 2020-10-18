@@ -58,10 +58,21 @@ SCSINuvolink::SCSINuvolink() : Disk()
 
 	// Generate MAC Address
 	memset(mac_addr, 0x00, 6);
-	if (m_bTapEnable) {
-		tap->GetMacAddr(mac_addr);
-		mac_addr[5]++;
-	}
+
+	// if (m_bTapEnable) {
+	// 	tap->GetMacAddr(mac_addr);
+	// 	mac_addr[5]++;
+	// }
+	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
+	// TODO: Remove this hard-coded address
+	mac_addr[0]=0xD6;
+	mac_addr[1]=0x90;
+	mac_addr[2]=0x8C;
+	mac_addr[3]=0x7A;
+	mac_addr[4]=0x17;
+	mac_addr[5]=0x6E;
+
+
 	// Packet reception flag OFF
 	packet_enable = FALSE;
 #endif	// RASCSI && !BAREMETAL
@@ -230,7 +241,7 @@ int FASTCALL SCSINuvolink::Inquiry(
 BOOL FASTCALL SCSINuvolink::TestUnitReady(const DWORD* /*cdb*/)
 {
 	ASSERT(this);
-	LOGTRACE("SCSINuvolink::TestUnitReady");
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// TEST UNIT READY Success
 	disk.code = DISK_NOERROR;
@@ -239,7 +250,7 @@ BOOL FASTCALL SCSINuvolink::TestUnitReady(const DWORD* /*cdb*/)
 
 //---------------------------------------------------------------------------
 //
-//	GET MESSAGE(10)
+//	GET MESSAGE(6)
 //
 //---------------------------------------------------------------------------
 int FASTCALL SCSINuvolink::GetMessage6(const DWORD *cdb, BYTE *buffer)
@@ -253,7 +264,7 @@ int FASTCALL SCSINuvolink::GetMessage6(const DWORD *cdb, BYTE *buffer)
 #endif	// RASCSI && !BAREMETAL
 
 	ASSERT(this);
-	LOGTRACE("SCSINuvolink::GetMessage");
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// Type
 	type = cdb[2];
@@ -266,72 +277,54 @@ int FASTCALL SCSINuvolink::GetMessage6(const DWORD *cdb, BYTE *buffer)
 	// Phase
 	phase = cdb[9];
 
-	switch (type) {
 #if defined(RASCSI) && !defined(BAREMETAL)
-		case 1:		// Ethernet
-			// Do not process if TAP is invalid
-			if (!m_bTapEnable) {
-				return 0;
-			}
-
-			switch (func) {
-				case 0:		// Get MAC address
-					return GetMacAddr(buffer);
-
-				case 1:		// Received packet acquisition (size/buffer)
-					if (phase == 0) {
-						// Get packet size
-						ReceivePacket();
-						buffer[0] = (BYTE)(packet_len >> 8);
-						buffer[1] = (BYTE)packet_len;
-						return 2;
-					} else {
-						// Get package data
-						GetPacketBuf(buffer);
-						return packet_len;
-					}
-
-				case 2:		// Received packet acquisition (size + buffer simultaneously)
-					ReceivePacket();
-					buffer[0] = (BYTE)(packet_len >> 8);
-					buffer[1] = (BYTE)packet_len;
-					GetPacketBuf(&buffer[2]);
-					return packet_len + 2;
-
-				case 3:		// Simultaneous acquisition of multiple packets (size + buffer simultaneously)
-					// Currently the maximum number of packets is 10
-					// Isn't it too fast if I increase more?
-					total_len = 0;
-					for (i = 0; i < 10; i++) {
-						ReceivePacket();
-						*buffer++ = (BYTE)(packet_len >> 8);
-						*buffer++ = (BYTE)packet_len;
-						total_len += 2;
-						if (packet_len == 0)
-							break;
-						GetPacketBuf(buffer);
-						buffer += packet_len;
-						total_len += packet_len;
-					}
-					return total_len;
-			}
-			break;
-#endif	// RASCSI && !BAREMETAL
-
-		case 2:		// Host Drive
-			// switch (phase) {
-			// 	case 0:		// Get result code
-			// 		return ReadFsResult(buffer);
-
-			// 	case 1:		// Return data acquisition
-			// 		return ReadFsOut(buffer);
-
-			// 	case 2:		// Return additional data acquisition
-			// 		return ReadFsOpt(buffer);
-			// }
-			break;
+	// Do not process if TAP is invalid
+	if (!m_bTapEnable) {
+		return 0;
 	}
 
+	switch (func) {
+		case 0:		// Get MAC address
+			return GetMacAddr(buffer);
+
+		case 1:		// Received packet acquisition (size/buffer)
+			if (phase == 0) {
+				// Get packet size
+				ReceivePacket();
+				buffer[0] = (BYTE)(packet_len >> 8);
+				buffer[1] = (BYTE)packet_len;
+				return 2;
+			} else {
+				// Get package data
+				GetPacketBuf(buffer);
+				return packet_len;
+			}
+
+		case 2:		// Received packet acquisition (size + buffer simultaneously)
+			ReceivePacket();
+			buffer[0] = (BYTE)(packet_len >> 8);
+			buffer[1] = (BYTE)packet_len;
+			GetPacketBuf(&buffer[2]);
+			return packet_len + 2;
+
+		case 3:		// Simultaneous acquisition of multiple packets (size + buffer simultaneously)
+			// Currently the maximum number of packets is 10
+			// Isn't it too fast if I increase more?
+			total_len = 0;
+			for (i = 0; i < 10; i++) {
+				ReceivePacket();
+				*buffer++ = (BYTE)(packet_len >> 8);
+				*buffer++ = (BYTE)packet_len;
+				total_len += 2;
+				if (packet_len == 0)
+					break;
+				GetPacketBuf(buffer);
+				buffer += packet_len;
+				total_len += packet_len;
+			}
+			return total_len;
+	}
+#endif
 	// Error
 	ASSERT(FALSE);
 	return 0;
@@ -483,19 +476,7 @@ int FASTCALL SCSINuvolink::ReceivePacket()
 	if(packet_len){
 		LOGINFO("Received a packet of size %d",packet_len);
 
-		for(int i=0; i< 48; i+=8)
-		{
-			LOGTRACE("%s %02X: %02X %02X %02X %02X %02X %02X %02X %02X", \
-				__PRETTY_FUNCTION__,i,
-				(int)packet_buf[i+0],
-				(int)packet_buf[i+1],
-				(int)packet_buf[i+2],
-				(int)packet_buf[i+3],
-				(int)packet_buf[i+4],
-				(int)packet_buf[i+5],
-				(int)packet_buf[i+6],
-				(int)packet_buf[i+7]);
-		}
+
 	}else{
 		return -1;
 	}
@@ -523,6 +504,20 @@ int FASTCALL SCSINuvolink::ReceivePacket()
 		}
 	}else{
 		packet_is_bcast_or_mcast = FALSE;
+	}
+
+	for(int i=0; i< 48; i+=8)
+	{
+		LOGTRACE("%02X: %02X %02X %02X %02X %02X %02X %02X %02X", \
+			i,
+			(int)packet_buf[i+0],
+			(int)packet_buf[i+1],
+			(int)packet_buf[i+2],
+			(int)packet_buf[i+3],
+			(int)packet_buf[i+4],
+			(int)packet_buf[i+5],
+			(int)packet_buf[i+6],
+			(int)packet_buf[i+7]);
 	}
 
 	// Discard if it exceeds the buffer size
