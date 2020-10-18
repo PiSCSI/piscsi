@@ -35,4 +35,21 @@
 #define LOGERROR(...)     SPDLOGWRAPPER(spdlog::level::err, __VA_ARGS__)
 #define LOGCRITICAL(...)  SPDLOGWRAPPER(spdlog::level::critical, __VA_ARGS__)
 
+
+//===========================================================================
+//
+//	ログ
+//
+//===========================================================================
+class Log
+{
+public:
+	enum loglevel {
+		Detail,							// 詳細レベル
+		Normal,							// 通常レベル
+		Warning,						// 警告レベル
+		Debug							// デバッグレベル
+	};
+};
+
 #endif	// log_h

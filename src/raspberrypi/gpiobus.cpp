@@ -652,6 +652,26 @@ void FASTCALL GPIOBUS::SetACK(BOOL ast)
 
 //---------------------------------------------------------------------------
 //
+//	Get ACK signal
+//
+//---------------------------------------------------------------------------
+BOOL FASTCALL GPIOBUS::GetACT()
+{
+	return GetSignal(PIN_ACT);
+}
+
+//---------------------------------------------------------------------------
+//
+//	Set ACK signal
+//
+//---------------------------------------------------------------------------
+void FASTCALL GPIOBUS::SetACT(BOOL ast)
+{
+	SetSignal(PIN_ACT, ast);
+}
+
+//---------------------------------------------------------------------------
+//
 //	Get RST signal
 //
 //---------------------------------------------------------------------------
@@ -1215,7 +1235,7 @@ int FASTCALL GPIOBUS::PollSelectEvent()
 		return -1;
 	}
 
-	read(selevreq.fd, &gpev, sizeof(gpev));
+	(void)read(selevreq.fd, &gpev, sizeof(gpev));
 #endif	// BAREMETAL
 
 	return 0;

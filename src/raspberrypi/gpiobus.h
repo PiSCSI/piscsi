@@ -500,6 +500,11 @@ public:
 	void FASTCALL SetACK(BOOL ast);
 										// Set ACK signal
 
+	BOOL FASTCALL GetACT();
+										// Get ACT signal
+	void FASTCALL SetACT(BOOL ast);
+										// Set ACT signal
+
 	BOOL FASTCALL GetRST();
 										// Get RST signal
 	void FASTCALL SetRST(BOOL ast);
