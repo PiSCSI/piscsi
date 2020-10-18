@@ -5,9 +5,9 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//  Copyright akuker
+//  Copyright (C) akuker
 //
-//	Imported NetBSD support and some optimisation patch by Rin Okuyama.
+//	Imported NetBSD support and some optimisation patches by Rin Okuyama.
 //
 //	[ TAP Driver ]
 //
@@ -16,6 +16,7 @@
 #include "os.h"
 #include "xm6.h"
 #include "ctapdriver.h"
+#include "log.h"
 
 //---------------------------------------------------------------------------
 //
@@ -24,6 +25,7 @@
 //---------------------------------------------------------------------------
 CTapDriver::CTapDriver()
 {
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
 	// Initialization
 	m_hTAP = -1;
 	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
@@ -37,6 +39,8 @@ CTapDriver::CTapDriver()
 #ifdef __linux__
 BOOL FASTCALL CTapDriver::Init()
 {
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
+
 	char dev[IFNAMSIZ] = "ras0";
 	struct ifreq ifr;
 	int ret;
@@ -45,7 +49,7 @@ BOOL FASTCALL CTapDriver::Init()
 
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
-		printf("Error: can't open tun\n");
+		LOGERROR("Error: can't open tun. Errno: %d %s", errno, strerror(errno));
 		return FALSE;
 	}
 
@@ -54,21 +58,41 @@ BOOL FASTCALL CTapDriver::Init()
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	strncpy(ifr.ifr_name, dev, IFNAMSIZ);
 	if ((ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr)) < 0) {
-		printf("Error: can't ioctl TUNSETIFF\n");
+		LOGERROR("Error: can't ioctl TUNSETIFF. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		return FALSE;
 	}
 
+	// This doesn't work!!!!
+	// if ((ret = ioctl(m_hTAP, SIOCGIFFLAGS, (void *)&ifr)) < 0) {
+	// 	printf("Error: can't ioctl SIOCGIFFLAGS %s\n", strerror(errno));
+	// 	close(m_hTAP);
+	// 	return FALSE;
+	// }
+
+	// ifr.ifr_flags |= IFF_UP;
+	// if ((ret = ioctl(m_hTAP, SIOCSIFFLAGS, (void *)&ifr)) < 0) {
+	// 	printf("Error: can't ioctl SIOCSIFFLAGS %s\n", strerror(errno));
+	// 	close(m_hTAP);
+	// 	return FALSE;
+	// }
+	// The following is a temporarly way to force the tap interface up
+	LOGDEBUG("ip link set ras0 up");
+	system("ip link set ras0 up");
+	LOGDEBUG("ifconfig ras0 192.168.0.1");
+	system("ifconfig ras0 192.168.0.1");
+
 	// Get MAC address
 	ifr.ifr_addr.sa_family = AF_INET;
 	if ((ret = ioctl(m_hTAP, SIOCGIFHWADDR, &ifr)) < 0) {
-		printf("Error: can't ioctl SIOCGIFHWADDR\n");
+		LOGERROR("Error: can't ioctl SIOCGIFHWADDR. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		return FALSE;
 	}
 
 	// Save MAC address
 	memcpy(m_MacAddr, ifr.ifr_hwaddr.sa_data, sizeof(m_MacAddr));
+	LOGINFO("Tap device %s created", ifr.ifr_name);
 	return TRUE;
 }
 #endif // __linux__
@@ -83,20 +107,20 @@ BOOL FASTCALL CTapDriver::Init()
 
 	// TAP Device Initialization
 	if ((m_hTAP = open("/dev/tap", O_RDWR)) < 0) {
-		printf("Error: can't open tap\n");
+		LOGERROR("Error: can't open tap. Errno: %d %s", errno, strerror(errno));
 		return FALSE;
 	}
 
 	// Get device name
 	if (ioctl(m_hTAP, TAPGIFNAME, (void *)&ifr) < 0) {
-		printf("Error: can't ioctl TAPGIFNAME\n");
+		LOGERROR("Error: can't ioctl TAPGIFNAME. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		return FALSE;
 	}
 
 	// Get MAC address
 	if (getifaddrs(&ifa) == -1) {
-		printf("Error: can't getifaddrs\n");
+		LOGERROR("Error: can't getifaddrs. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		return FALSE;
 	}
@@ -105,7 +129,7 @@ BOOL FASTCALL CTapDriver::Init()
 			a->ifa_addr->sa_family == AF_LINK)
 			break;
 	if (a == NULL) {
-		printf("Error: can't get MAC address\n");
+		LOGERROR("Error: can't get MAC addressErrno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		return FALSE;
 	}
@@ -115,7 +139,7 @@ BOOL FASTCALL CTapDriver::Init()
 		sizeof(m_MacAddr));
 	freeifaddrs(ifa);
 
-	printf("Tap device : %s\n", ifr.ifr_name);
+	LOGINFO("Tap device : %s\n", ifr.ifr_name);
 
 	return TRUE;
 }
@@ -130,7 +154,7 @@ void FASTCALL CTapDriver::Cleanup()
 {
 	ASSERT(this);
 
-	// TAPデバイス解放
+	// Release TAP defice
 	if (m_hTAP != -1) {
 		close(m_hTAP);
 		m_hTAP = -1;
