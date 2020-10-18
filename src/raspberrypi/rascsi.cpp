@@ -24,7 +24,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
 #include "gpiobus.h"
-
+#include "spdlog/spdlog.h"
 
 //---------------------------------------------------------------------------
 //
@@ -1064,6 +1064,8 @@ int main(int argc, char* argv[])
 	struct sched_param schparam;
 #endif	// BAREMETAL
 
+    spdlog::set_level(spdlog::level::trace);
+    LOGTRACE("Entering the function %s with %d arguments", __PRETTY_FUNCTION__, argc);
 	// Output the Banner
 	Banner(argc, argv);
 

@@ -38,8 +38,8 @@ CXXFLAGS += -std=c++14 -iquote . -MD -MP
 ##              STANDARD or FULLSPEC. The default is STANDARD
 ##              * THIS IS TYPICALLY THE ONLY COMPILE OPTION YOU 
 ##              * NEED TO SPECIFY
-# If its not specified, build for STANDARD configuration
-CONNECT_TYPE ?= STANDARD
+# If its not specified, build for FULLSPEC configuration
+CONNECT_TYPE ?= FULLSPEC
 
 ifdef CONNECT_TYPE
 CFLAGS   += -DCONNECT_TYPE_$(CONNECT_TYPE)
@@ -67,8 +67,7 @@ BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 #BIN_ALL = $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
 # Temporarily remove the RASDUMP and RASDUMP tools, since they're not needed
 # for my specific use case. If you need them - add them back in!
-BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL)
-
+BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL) $(BINDIR)/$(SCSIMON)
 
 SRC_RASCSI = \
 	rascsi.cpp \
@@ -82,6 +81,16 @@ SRC_RASCSI = \
 #	command_thread.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
+
+SRC_SCSIMON = \
+	scsimon.cpp \
+	scsi.cpp \
+	gpiobus.cpp \
+	filepath.cpp \
+	fileio.cpp
+SRC_SCSIMON += $(shell find ./controllers -name '*.cpp')
+SRC_SCSIMON += $(shell find ./devices -name '*.cpp')
+
 
 SRC_RASCTL = \
 	rasctl.cpp
@@ -113,12 +122,12 @@ OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 #OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP) $(OBJ_SCSIMON)
-OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP)
+OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP) $(OBJ_SCSIMON)
 
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -137,21 +146,21 @@ $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 all: $(BIN_ALL) docs
 ALL: all
 
-docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt
+docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
 $(BINDIR)/$(RASCSI): $(OBJ_RASCSI) | $(BINDIR)
-	$(CXX) -o $@ $(OBJ_RASCSI) -lpthread
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread
 
-$(BINDIR)/$(RASCTL): $(OBJ_RASCTL) $(BINDIR)
-	$(CXX) -o $@ $(OBJ_RASCTL)
+$(BINDIR)/$(RASCTL): $(OBJ_RASCTL) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL)
 
-$(RASDUMP): $(OBJ_RASDUMP) $(BINDIR)
-	$(CXX) -o $@ $(OBJ_RASDUMP)
+$(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
 
-$(SASIDUMP): $(OBJ_SASIDUMP) $(BINDIR)
-	$(CXX) -o $@ $(OBJ_SASIDUMP)
+$(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SASIDUMP)
 
-$(SCSIMON): $(OBJ_SCSIMON) $(BINDIR)
+$(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
 ##   clean    : Remove all of the object files, intermediate 
@@ -180,7 +189,7 @@ run:
 ##              *   sudo systemctl enable rascsi
 ##              *   sudo systemctl start rascsi
 .PHONY: install
-install: $(MAN_PAGE_DIR)/rascsi.1 $(MAN_PAGE_DIR)/rasctl.1 $(USR_LOCAL_BIN)/$(RASCTL) $(USR_LOCAL_BIN)/$(RASCSI) $(SYSTEMD_CONF) $(RSYSLOG_CONF) $(RSYSLOG_LOG)
+install: $(MAN_PAGE_DIR)/rascsi.1 $(MAN_PAGE_DIR)/rasctl.1 $(MAN_PAGE_DIR)/scsimon.1 $(USR_LOCAL_BIN)/$(RASCTL) $(USR_LOCAL_BIN)/$(RASCSI) $(USR_LOCAL_BIN)/$(SCSIMON) $(SYSTEMD_CONF) $(RSYSLOG_CONF) $(RSYSLOG_LOG)
 	@echo "-- Done installing!"
 
 $(USR_LOCAL_BIN)% : $(BINDIR)/%

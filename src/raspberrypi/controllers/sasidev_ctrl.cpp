@@ -296,7 +296,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	}
 
 	// Get bus information
-	ctrl.bus->Aquire();
+	((GPIOBUS*)ctrl.bus)->Aquire();
 
 	// For the monitor tool, we shouldn't need to reset. We're just logging information
 	// Reset
@@ -927,7 +927,7 @@ void FASTCALL SASIDEV::Error()
 	ASSERT(this);
 
 	// Get bus information
-	ctrl.bus->Aquire();
+	((GPIOBUS*)ctrl.bus)->Aquire();
 
 	// Reset check
 	if (ctrl.bus->GetRST()) {
