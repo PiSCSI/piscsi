@@ -76,7 +76,7 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 	}
 
 	// Get bus information
-	ctrl.bus->Aquire();
+	((GPIOBUS*)ctrl.bus)->Aquire();
 
 	// Reset
 	if (ctrl.bus->GetRST()) {
@@ -488,7 +488,7 @@ void FASTCALL SCSIDEV::Error()
 	ASSERT(this);
 
 	// Get bus information
-	ctrl.bus->Aquire();
+	((GPIOBUS*)ctrl.bus)->Aquire();
 
 	// Reset check
 	if (ctrl.bus->GetRST()) {
