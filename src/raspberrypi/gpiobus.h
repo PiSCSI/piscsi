@@ -14,6 +14,8 @@
 
 #include "scsi.h"
 
+class Mci_Lookup;
+
 //---------------------------------------------------------------------------
 //
 //	Connection method definitions
@@ -565,7 +567,9 @@ public:
 										// Clear SEL signal event
 #endif	// USE_SEL_EVENT_ENABLE
 
-private:
+	void FASTCALL SetPhase(BUS::phase_t new_phase);
+								// Sets the current phase of the target	
+// private:
 	// SCSI I/O signal control
 	void FASTCALL MakeTable();
 										// Create work data
@@ -642,6 +646,8 @@ private:
 #endif
 
 	static const int SignalTable[19];	// signal table
+
+	Mci_Lookup* m_msg_cd_io_table[11];
 };
 
 //===========================================================================
@@ -671,5 +677,24 @@ private:
 	static volatile DWORD corefreq;
 										// Core frequency
 };
+
+class Mci_Lookup
+{
+	public:
+		BOOL inline get_msg_pin() {return (m_value && msg_pin_flag);};
+		BOOL inline get_cd_pin() {return (m_value && cd_pin_flag);}
+		BOOL inline get_io_pin() {return (m_value && io_pin_flag);};
+		BOOL inline get_direction_pin() {return (m_value && dir_pin_flag);};
+		Mci_Lookup(BYTE msg_state, BYTE cd_state, BYTE io_state, BYTE dir_state);
+
+
+	private:
+		BYTE m_value;
+		const static BYTE msg_pin_flag = 1;
+		const static BYTE cd_pin_flag = 2;
+		const static BYTE io_pin_flag = 4;
+		const static BYTE dir_pin_flag = 8;
+};
+
 
 #endif	// gpiobus_h

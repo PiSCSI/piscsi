@@ -28,13 +28,13 @@ public:
 	};
 
 	//	Phase definition
-	enum phase_t {
+	enum phase_t : BYTE {
 		busfree,						// バスフリーフェーズ
 		arbitration,					// アービトレーションフェーズ
 		selection,						// セレクションフェーズ
 		reselection,					// リセレクションフェーズ
 		command,						// コマンドフェーズ
-		execute,						// 実行フェーズ
+		execute,						// 実行フェーズ  Execute is an extension of the command phase
 		datain,							// データイン
 		dataout,						// データアウト
 		status,							// ステータスフェーズ
@@ -132,6 +132,10 @@ public:
 										// Get SCSI input signal value
 	virtual void FASTCALL SetSignal(int pin, BOOL ast) = 0;
 										// Set SCSI output signal value
+	virtual void FASTCALL SetPhase(BUS::phase_t new_phase) = 0;
+								// Sets the current phase of the bus	
+protected:
+	phase_t m_current_phase = phase_t::reserved;
 
 private:
 	static const phase_t phase_table[8];

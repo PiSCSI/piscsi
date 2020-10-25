@@ -126,6 +126,19 @@ GPIOBUS::GPIOBUS()
 #if defined(USE_SEL_EVENT_ENABLE) && defined(BAREMETAL)
 	self = this;
 #endif	// USE_SEL_EVENT_ENABLE && BAREMETAL
+    //                                                    Msg  CD  IO  Dir
+	m_msg_cd_io_table[BUS::busfree]     = new Mci_Lookup( 0,   0,  0,  TAD_IN);
+	m_msg_cd_io_table[BUS::arbitration] = new Mci_Lookup( 0,   0,  0,  TAD_OUT); // Need to assert BSY signal
+	m_msg_cd_io_table[BUS::selection]   = new Mci_Lookup( 0,   0,  0,  TAD_OUT); // Need to assert BSY signal
+	m_msg_cd_io_table[BUS::reselection] = new Mci_Lookup( 0,   0,  1,  TAD_OUT); // Need to assert BSY signal
+	m_msg_cd_io_table[BUS::dataout]     = new Mci_Lookup( 0,   0,  0,  TAD_OUT);
+	m_msg_cd_io_table[BUS::datain]      = new Mci_Lookup( 0,   0,  1,  TAD_OUT);
+	m_msg_cd_io_table[BUS::command]     = new Mci_Lookup( 0,   1,  0,  TAD_OUT);
+	m_msg_cd_io_table[BUS::execute]     = new Mci_Lookup( 0,   1,  0,  TAD_OUT); // Execute is an extension of command
+	m_msg_cd_io_table[BUS::status]      = new Mci_Lookup( 0,   1,  1,  TAD_OUT);
+	m_msg_cd_io_table[BUS::msgout]      = new Mci_Lookup( 1,   1,  0,  TAD_OUT);
+	m_msg_cd_io_table[BUS::msgin]       = new Mci_Lookup( 1,   1,  1,  TAD_OUT);
+	m_msg_cd_io_table[BUS::reserved]    = new Mci_Lookup( 0,   0,  0,  TAD_IN);
 }
 
 //---------------------------------------------------------------------------
@@ -1853,6 +1866,63 @@ void FASTCALL SysTimer::SleepNsec(DWORD nsec)
 
 //---------------------------------------------------------------------------
 //
+//	Set the phase and update the direction of the "IC3" Transceiver
+//
+
+// The following table taken from:
+//         https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-06.html
+//    +=============-===============-==================================-============+
+//    |    Signal   |  Phase name   |       Direction of transfer      |  Comment   |
+//    |-------------|               |                                  |            |
+//    | MSG|C/D|I/O |               |                                  |            |
+//    |----+---+----+---------------+----------------------------------+------------|
+//    |  0 | 0 | 0  |  DATA OUT     |       Initiator to target     \  |  Data      |
+//    |  0 | 0 | 1  |  DATA IN      |       Initiator from target   /  |  phase     |
+//    |  0 | 1 | 0  |  COMMAND      |       Initiator to target        |            |
+//    |  0 | 1 | 1  |  STATUS       |       Initiator from target      |            |
+//    |  1 | 0 | 0  |  *            |                                  |            |
+//    |  1 | 0 | 1  |  *            |                                  |            |
+//    |  1 | 1 | 0  |  MESSAGE OUT  |       Initiator to target     \  |  Message   |
+//    |  1 | 1 | 1  |  MESSAGE IN   |       Initiator from target   /  |  phase     |
+//    |-----------------------------------------------------------------------------|
+//    | Key:  0 = False,  1 = True,  * = Reserved for future standardization        |
+//    +=============================================================================+ 
+//
+//---------------------------------------------------------------------------
+void FASTCALL GPIOBUS::SetPhase(BUS::phase_t phase)
+{
+	Mci_Lookup *current_mci;
+
+	// If the phase didn't change, don't do anything
+	if (phase == m_current_phase){
+		return;
+	}
+
+	current_mci = m_msg_cd_io_table[phase];
+
+	// Set Target signal to output
+	SetControl(PIN_TAD, current_mci->get_direction_pin());
+	if(current_mci->get_direction_pin() == TAD_OUT){
+			SetMode(PIN_BSY, OUT);
+			SetMode(PIN_MSG, OUT);
+			SetMode(PIN_CD, OUT);
+			SetMode(PIN_REQ, OUT);
+			SetMode(PIN_IO, OUT);
+	} else {
+			SetMode(PIN_BSY, IN);
+			SetMode(PIN_MSG, IN);
+			SetMode(PIN_CD, IN);
+			SetMode(PIN_REQ, IN);
+			SetMode(PIN_IO, IN);
+	}
+
+	SetSignal(PIN_MSG, current_mci->get_msg_pin());
+	SetSignal(PIN_CD, current_mci->get_cd_pin());
+	SetSignal(PIN_IO, current_mci->get_io_pin());
+}
+
+//---------------------------------------------------------------------------
+//
 //	Sleep in microseconds
 //
 //---------------------------------------------------------------------------
@@ -1868,3 +1938,12 @@ void FASTCALL SysTimer::SleepUsec(DWORD usec)
 	now = GetTimerLow();
 	while ((GetTimerLow() - now) < usec);
 }
+
+FASTCALL Mci_Lookup::Mci_Lookup(BYTE msg_state, BYTE cd_state, BYTE io_state, BYTE dir_state)
+{
+	m_value = (msg_state) ? msg_pin_flag : 0;
+	m_value |= (cd_state) ? cd_pin_flag : 0;
+	m_value |= (io_state) ? io_pin_flag : 0;
+	m_value |= (dir_state) ? dir_pin_flag : 0;
+}
+
