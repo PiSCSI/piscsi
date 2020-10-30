@@ -2,33 +2,20 @@
 
  SCSI Target Emulator RaSCSI for Raspberry Pi
 
- Powered by XM6 TypeG Technology.
  Copyright (C) 2016-2020 GIMONS
-
+ translated using google translate by akuker
+ modified by mmmattera
 -------------------------------------------------- ----------------------------
 
-□ Necessity of conversion board
-  SCSI divides 5V at 220Ω and 330Ω at TTL level (in the case of passive terminator)
-  As a result, the state where a voltage of less than 3 V is applied to each signal line becomes a steady state (signal-wise negate)
-  It has become.
+□ Requirements for board
+  SCSI uses 5V while the RaSCSI uses 3.3V. The voltages are converted using 220Ω and 330Ω voltage dividers and a 74LS641 line diver
+  to convert between the two levels.
   
-  Initiator side or target side tries to assert signal (=0V)
-  Then, a total current of 5000÷220×2=45mA flows from both terminators.
-  If you look at the data sheet of MB89352 which is the SCSI controller of X68000,
-  The current is Iol48mA).
+  Initiator and/or target side asserts a signal by bringing a line low.
+  Total current on the line is of 5000÷220×2=45mA
   
-  The RPI GPIO cannot absorb such a large sink current. Electrically secure connection
-  To do this, it is necessary to make a conversion board with a general-purpose logic IC. General logic
-  It is an open collector such as 74LS06 or 07 that can withstand a sink current of 48 mA with IC.
-  Use the high power type.
-  
-  The author does basic SCSI direction control with 74HC541×3,74HC126×1,74HC04×1
-  I tried to build a circuit to drive the bus using 74LS07 × 3 and it works without problems
-  I confirmed that.
-  
-  If you use 74LS641-1 which is a derivative of 74LS641, you can configure the circuit simply.
-  Would be Unlike normal products, the sink current is compatible with 48 mA, so it is necessary to use 74LS07
-  there is no. But availability is not so good.
+  The RPI GPIO cannot absorb such a large sink current. to electrically protect this connection
+  it is necessary to use a 74LS641 logic IC.creating a simple drive circuit.
 
 □ Circuit board of conversion board
   The circuit design is put in the same folder.
