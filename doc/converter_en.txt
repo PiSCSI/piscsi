@@ -8,48 +8,28 @@
 -------------------------------------------------- ----------------------------
 
 □ Requirements for board
-  SCSI uses 5V while the RaSCSI uses 3.3V. The voltages are converted using 220Ω and 330Ω voltage dividers and a 74LS641 line diver
-  to convert between the two levels.
+  SCSI uses 5V while the RaSCSI uses 3.3V. The voltages are converted using 220Ω and 
+  330Ω voltage dividers and a 74LS641 an open collector, octal bus transceiver used to convert 
+  between voltage levels and to prevent an overcurrent situation. These chips allow two-way 
+  asynchonous communication.
   
-  Initiator and/or target side asserts a signal by bringing a line low.
-  Total current on the line is of 5000÷220×2=45mA
-  
-  The RPI GPIO cannot absorb such a large sink current. to electrically protect this connection
-  it is necessary to use a 74LS641 logic IC.creating a simple drive circuit.
-
-□ Circuit board of conversion board
-  The circuit design is put in the same folder.
+  (SCSI) Initiator and/or target side asserts a signal by bringing a line low. RaSCSI has
+  options to alter this behavior.
+   
+□ Circuit board and Hardware info is contained in the hw folder
 
   ・Target.png
-    Conversion board circuit diagram for using SCSI target mode. It is a basic function
+    is the original circuit diagram for using SCSI target mode. It is a basic function
     If you want to emulate HDD or MO, you can make something equivalent to this circuit diagram.
-    Would be It also uses the fewest GPIO pins.
-
-    If you do not change the pin assignment, it will be included in the standard directory of RaSCSI
-    It is possible to use the binary.
+    It uses the fewest GPIO pins.
 
   ・Fullspec.png
-    It is a conversion board circuit diagram that can use SCSI target mode and initiator mode.
-    All 74LS641-1 direction control is performed from RaSCSI, so use 3 extra GPIO pins
-    I will do it.
+    Is a circuit diagram that can use SCSI target mode and initiator mode.
+    All 74LS641-1 direction control is performed from RaSCSI, so it uses 3 extra GPIO pins.
+    New pin assignments are to PIN_TAD, PIN_IND, PIN_DTD.
 
-    Customize pin assignments to PIN_TAD, PIN_IND, PIN_DTD respectively
-    Now you need to set 6,7,8 and compile. Pin assigned
-    See Customization.
-
-□ How to get existing ones
-  Recently, you have created a conversion board for RaSCSI mainly through the Twitter area.
-  There are people who are. Introducing here
-  Is omitted. The timing is undecided, but we plan to distribute the official version for a fee.
-
-□ Customize pin assignment
-  The signal control logic and pin assignment of GPIO are defined in gpiobus.h.
-
-  As a customization example, the following two conversion board definition examples are prepared in gpiobus.h.
-  Compiled binaries are also included in the distribution.
-
-  ・Aibomu version
-  ・GAMERnium version
+□ Custom pin assignments
+  The signal control logic and pin assignment of GPIO are defined in src/raspberrypi/gpiobus.h
 
 □ How to customize
   -This is a message when starting up RaSCSI.
@@ -65,14 +45,14 @@
 
   1: Negative logic specification (when using the conversion board for negative logic -> SCSI logic)
     There are no conversion boards with this specification at this time
-    Arthurt: 0V -> (CONVERT) -> 0V
-    Negative: 3.3V -> (CONVERT) -> Open collector output
+    logical 1: 0V -> is converted to 0V
+    logical 0: 3.3V -> is converted to Open collector output
 
   2: Positive logic specification (when using the conversion board for positive logic -> SCSI logic)
     RaSCSI Adapter Rev.C @132sync etc.
 
-    Arthurt: 3.3V -> (CONVERT) -> 0V
-    Negative: 0V -> (CONVERT) -> Open collector output
+    logical 1: 3.3V -> is converted to 0V
+    logical 0: 0 V -> is converted to Open collector output
 
   ・Control signal pin assignment
     PIN_ACT: The pin number of the signal that indicates the status that the SCSI command is being processed.
@@ -96,8 +76,9 @@
 □ How to compile
 
   ・Executable files (rascsi, rasctl)
-    Fix gpiobus.h
+    Alter gpiobus.h to match your board
     make clean
-    make
+    make all CONNECT_TYPE=[STANDARD|FULLSPEC]   %connect_type depends on development environment omit brackets
+    sudo make install CONNECT_TYPE=[STANDARD|FULLSPEC]
 
 [EOF]
