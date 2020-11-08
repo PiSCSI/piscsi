@@ -3,51 +3,45 @@
  SCSI Target Emulator RaSCSI (*^..^*)
  for Raspberry Pi
 
- Powered by XM6 TypeG Technology.
  Copyright (C) 2016-2020 GIMONS
-
+ translated using google translate by akuker
+ modified by mmmattera
 -------------------------------------------------- ----------------------------
 □ What is RaSCSI
-  RaSCSI is a SCSI device (hard disk, MO, CD-ROM) that operates on the Raspberry Pi.
-  It is a virtual emulator. Use with SHARP X68000 that adopts SCSI
-  It was developed for that purpose. Raspberry Pi with RaSCSI installed on the X68000 SCSI
-  Simply connect it to the connector and it will be recognized as a physical SCSI device.
-
-  In addition to the X68000, it may be possible to use it with a retro PC such as FM TOWNS or PC 98 that adopted SCSI.
-  May. The author has confirmed that it works with FM TOWNS and PC9821Ce.
+  RaSCSI is a SCSI device (hard disk, MO, CD-ROM, ethernet) that operates on the Raspberry Pi.
+  It emulates these devices using a Raspberry Pi. Originally developed for the SHARP X68000 gaming system.
+  Simply connect it to a SCSI port and it will be recognized as a physical SCSI device.
+  The RaSCSI also works with FM TOWNS and PC9821Ce and Apple Mac SCSI machines.
   
-  RaSCSI is a software that emulates SCSI devices plus Raspberry Pi
   Refers to the general term for the mechanism that converts a GPIO connector into a SCSI connector.
 
-□ Operating environment
-  (1) Raspberry Pi
-    Raspberry Pi Zero
-    Raspberry Pi Zero W
-    Raspberry Pi Zero WH
-    Raspberry Pi 2 Model B
-    Raspberry Pi 3 Model B (recommended)
-    Raspberry Pi 3 Model A+
-    Raspberry Pi 3 Model B+
-    Raspberry Pi 4 Model B
+□ Compatible RaSCSI boards with GPIO frequency test results
+    Raspberry Pi A                         1.301 khz
+    Raspberry Pi Zero                      1.702 khz
+    Raspberry Pi Zero W                    1.752 khz
+    Raspberry Pi Zero WH                   ?.??? khz
+    Raspberry Pi 2 Model B                 8.307 khz
+    Raspberry Pi 3 Model B (recommended)  13.51  khz
+    Raspberry Pi 3 Model A+               16.02  khz
+    Raspberry Pi 3 Model B+               16.11  khz
+    Raspberry Pi 4 Model B                50.84  khz
 
-    Performance may be a little unstable with Zero/Zero W/Zero WH.
+    Performance may be a little unstable with slower models.
 
-    3 Model A+/3 Model B+/4 Model B has high performance, but CPU clock is affected by heat.
-    It may fluctuate, so it will be necessary to take measures.
+    Model 3 and 4 boards are high performance but are affected by heat,
+    so it may be necessary to add heat sinks, fans or take other measures.
 
-  (2) OS
-    Developed and tested by RASPBIAN BUSTER.
-    RaSCSI uses GPIO to control SCSI signals, so latency is as low as possible.
-    Must be used in the state of. Therefore, it is recommended to use it in CUI mode.
-    To do.
+  (2) Raspbian OS
+    RaSCSI uses GPIO to control SCSI signals therefore a character user interface
+    or web server is recommended to keep latency as low as possible. As opposed to
+    a GUI that uses greater resources of the board.
 
 □ Connection method with SCSI connector
-  Since the situation has become complicated, we provide information on the RaSCSI home page.
-  Please refer to the official website at the end of this document.
+  There are a multitude of ways to connect this board so information is contained
+  in the WIKI.
 
 □ Handout
-  The executable file, the document, and the source code are stored in the distributed archive.
-  It is divided and included in the directory.
+  The original source tree structure follows. See the WIKI for additional information.
 
   bin/ ･･･ Executable file
     raspberrypi/ ･･･ RPI program
@@ -70,22 +64,6 @@
     raspberrypi/ ･･･ Set of program source for RPI
     x68k/ ･･･ Set of programs for X68000
 
-
-  The program used in RPI is rascsi.tar.gz, so transfer it to RPI and decompress it.
-  Please. It is recommended to unzip on RPI to maintain permissions etc.
-
-  rascsi.tar.gz contains standard, fullspec, aibom and gamernium directories.
-  I am.
-
-  Executable file in the standard directory when using a direct connection cable or direct connection board
-  Please use.
-
-  Similarly, in the case of the conversion board described as the full spec version, in the fullspec directory
-  I will use one (I think that it works even if it is directly connected).
-
-  For the aibom and gamernium directories, use the conversion boards of "Aibomu version" and "GAMERnium version".
-  It is when using.
-
   The driver for X68000 includes the following two in RASDRIVER.XDF or RASDRIVER.HDS
   It is
     RASDRV.SYS ･･･ Host drive driver
@@ -93,16 +71,16 @@
 
 □ How to use RASCI main unit (rascsi)
 
-  When ID is specified
+  ID is specified by:
    rascsi [-IDn FILE] ...
-    n:0 ~ 7
+    where n is from 0 - 7
 
   When specifying HD (compatible with HD specification of X68000 SASI machine)
    rascsi [-HDn FILE] ...
-    n: 0 ~ 15
+    n: 0 - 15
 
-  Since root authority is required, it is necessary to start with sudo etc.
-  If you add -h to the option, a simple HELP will be displayed
+  Root privledges are required to run the rascsi server.
+  The -h option displays the help info.
 
   Usage: rascsi [-IDn FILE] ...
 
@@ -124,10 +102,10 @@
     mos: SCSI MO image(XM6 SCSI MO image)
     iso: SCSI CD image (ISO 9660 image)
 
-  In the argument, one SCSI (SASI) device can be specified by a pair of -IDn or -HDn and FILE.
-  -The number after the ID is the SCSI (SASI) ID. You can specify 0-7 as the ID, but usually the retro PC body
-  I think you are using ID7 etc. as the initiator. In that case, specify 0-6
-  It will be.
+  A SCSI (SASI) device can be specified by using -IDn or -HDn and FILENAME.
+  -The number after the ID is the SCSI (SASI) ID. You can specify 0-7 as the ID, 
+  but usually the PC controller uses ID7 as the initiator. In that case, you must 
+  specify a value from 0-6 to prevent a collision.
 
   FILE is the file path of the virtual disk image. The image file name has an extension
   Is required. The type of HD, MO, CD is determined by the extension.
@@ -136,17 +114,15 @@
     sudo rascsi -ID0 HDIMAGE0.HDS -ID1 HDIMAGE1.HDS
 
   When you finish, press CTRL+C to stop.
-  If it is started in the background, is the kill command an INT signal to the relevant process?
-  It ends by sending a HUP signal.
+  If it is started in the background, use the kill -HUP or kill -9 to the relevant process
 
-  After starting, rascsi opens a socket (6868 port) and receives external management commands.
-  It is ready to be attached. Therefore, rascsi has already started as another process.
-  If so, the boot will abort with an error message.
+  After starting, rascsi server opens a socket (6868 port) and waits for management commands.
 
 □ How to use the management tool (rasctl)
-  We provide a management tool called rasctl from version 1.10. This is the rascsi process
-  Disk is running in the background (waiting for connection on port 6868)
-  It is possible to issue operation commands. The command line is as follows.
+  The management tool is called rasctl. It communicates with the rascsi process.
+  It spawns a server that runs in the background and waits for connections on port 6868.
+  
+  Use rasctl to issue operation commands as follows:
 
     rasctl -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]
 
@@ -158,7 +134,7 @@
              insert: insert media (MO or CD only)
              eject: Eject media (MO or CD only)
              protect: Write protect the media (MO only)
-      TYPE: Disc type
+      TYPE: Disc type one of,
              hd: Hard disk (SASI/SCSI)
              mo: MO (magneto-optical disk)
              cd: CDROM (CDROM drive)
@@ -166,26 +142,23 @@
       FILE: Path of disk image file
 
   ID is required. UNIT defaults to 0 (default is 0 for SCSI).
-  CMD is interpreted as attach when omitted. TYPE is the extension of FILE when the command is attach
-  It will automatically judge from. FILE has a different extension if TYPE is explicitly specified.
-  does not matter. Basic interpretation of CMD and TYPE is case insensitive. Only the first letter
-  Judging.
+  CMD defaults to "attach" when omitted. By default TYPE is taken from the file extension
+  if present, otherwise it must be specified.
+  CMD and TYPE are case insensitive. Only the first letter of CMD is used.
 
   Command example
     rasctl -i 0 -f HDIMAGE0.HDS
 
   Is 0, the SCSI ID is 0. CMD is attach by default and TYPE is determined from the extension HDS
-  Therefore, it is supposed to be hd and it is equivalent to the option specification when starting rascsi.
+  as "hd".
 
   If only -l option is specified to check the current status, the device list is displayed.
-  Will be done. The command line is as follows.
 
     rasctl -l
 
-  You do not need root privileges to start rasctl itself.
+  You do not need root privileges to start rasctl.
 
 □ How to use Disk Dump Tool (rasdump)
-  Sample program for direct connection or direct connection board, or full-spec board.
 
   As the name suggests, it dumps (optionally restores) the image of SCSI HDD or MO.
   Specify your own ID as BID. If omitted, 7 is used.
@@ -195,9 +168,6 @@
      BID: RaSCSI's own SCSI ID
      FILE: dump file name
      -r: Restore mode
-
-  Since it is a sample, only the minimum necessary processing is implemented, so do not modify it
-  Please use.
 
 □ How to use SASI dedicated disk dump tool (sasidump)
   A dump tool created for SASI based on rasdump.
@@ -211,7 +181,7 @@
      FILE: dump file name
      -r: Restore mode
 
-□ When compiling the executable file from the source
+□ Compiling the executable file from the source
    Standard edition
      make CONNECT_TYPE=STANDARD
 
@@ -230,12 +200,11 @@
     The file size can be any size within the range of 10MB to 4095MB (in 512-byte units)
 
     If the extension is "HDN", a genuine hard disk for NEC genuine 55 board (PC-9801-55)
-    Perform emulation. For information returned by INQUIRY and MODE SENSE size
-    There is a difference.
+    Perform emulation. There is a difference in information returned by INQUIRY and MODE SENSE size.
 
     If the extension is "HDI" or "NHD", the PC98 emulator is Annex86 or T98Next.
     It is intended to use a SCSI hard disk image. Some information as in HDN
-    Is converted for NEC.
+    is converted for NEC.
 
     If the extension is "HDA", APPLE genuine hard disk emulation is performed.
     There is a difference in the information returned by INQUIRY and MODE SENSE.
@@ -264,10 +233,9 @@
      Both files are supported.
 
 □ Disk image creation
-  RaSCSI itself is a derivative of the XM6 TypeG, an X68000 emulator. Therefore the disc
-  It is assumed that the image is created from the "Tools" menu of XM6 TypeG.
-  Of course, you can also create an empty image file with dd etc. according to the specifications explained above.
-  Is possible.
+  RaSCSI is a derivative of the XM6 TypeG, an X68000 emulator. 
+  It is assumed that the disk image is created from the "Tools" menu of XM6 TypeG.
+  Of course, you can also create an empty image file with dd according to the specifications explained above.
 
   Example) When creating a 100 MB HDS image (empty file)
 
@@ -281,55 +249,48 @@
   The X68000 series should be fine.
 
   For other retro PCs, FM TOWNS series, Apple Macintosh, MSX (using MEGA-SCSI)
-  There is an operation report in. There are many reports that the PC98 series worked, but
-  Some SCSI boards do not even work at all.
+  There are many reports that the PC98 series worked, but some SCSI boards do not work at all.
 
 □ How to use
-　If you are using an X68000 emulator such as XM6, HDD that is built by the emulator
-  You can connect to the actual X68000 machine by transferring the image to the Raspberry Pi by FTP etc.
-  The reverse is also true, and the HDD image that stores the files that exist on the actual machine is FTPed to the PC, etc.
-  You can use it in the emulator by transferring with.
+　If you are using an X68000 emulator such as XM6, the HDD is built by the emulator.
+  You can transfer files to the X68000 machine by copying an image to the Raspberry Pi sd card using ftp.
+  The reverse is also true in that files can be placed on the sd card by the host machine and ftp'd from
+  the sd card to another machine.
 
 □ License
   RaSCSI is software distributed as is "AS IS".
   
-  That is, we do not take any responsibility for any damages that the user receives. Soft again
+  That is, we do not take any responsibility for any damages that the user receives.
   We are not responsible for fixing any defects or defects in the software.
 
   There is a risk that the Raspberry Pi and retro PC will break down by using RaSCSI.
-  Please challenge at your own risk.
+  Please use at your own risk.
 
-  As with XM6 TypeG, we are not allowed to distribute it on other than my HP due to the nature of experimental results disclosure.
-
-  As it inherits the license terms of XM6, introduction in magazines/books requires prior permission.
-  In the first place, I think only a limited number of people will respond to SCSI in 2019.
+  This software appears to derive from something called an XM6 TypeG. someone somewhere
+  might care if we start to get rich from this software. This is about to go through a
+  complete rewrite so...
 
 □About distribution of conversion boards
   If you want to distribute the conversion board for a fee, it is not necessary to obtain permission from the author as long as you follow the conditions below.
-  There is none. It is important to provide enough information to the user who purchased the board.
-  Please understand.
+  There are none. The author just wants you to be a good netizen and provide enough information to make this project useful to the users.
+  It is important to provide sufficient information to the user who purchases the board.
 
-  1.Distribution price
+  1.Distribution price - don't get rich from other's work
     Board production cost + parts cost + transportation cost + (general social convention) fee.
 
   2. Schematic
     Please provide the buyer with the schematic. Simultaneously with board distribution or separately from homepage
-    There are no restrictions on the means of downloading.
+    There are no restrictions on the means of downloading. See WIKI for schematics.
 
   3. Operation verification
-    Operation verification of the X68000 actual machine environment is mandatory. If you can not get the real machine X68000
-    You may ask the user to cooperate with the verification. Operation verification is other than startup confirmation
-    Please write and load test. Verification results are published together with the environment in which they were used
-    please do it.
-
-□ About conversion board (official version)
-  It has been distributed on BOOTH since March 2019 (it is irregular because the number is limited).
+    Please verify operation verification on target machines.
 
 □ Public homepage
   http://retropc.net/gimons/rascsi/
+  https://github.com/akuker/RASCSI/
+  https://discord.com/channels/749261651978748014/749261651978748018
 
 □ Contact information
-  twitter https://twitter.com/kugimoto0715
-  e-mail gimons.developer.works@gmail.com
+  see discord above
 
 [EOF]
