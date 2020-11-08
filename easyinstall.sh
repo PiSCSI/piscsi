@@ -4,8 +4,26 @@
 # Author @sonique6784
 # Copyright (c) 2020, sonique6784
 
+function showRaSCSILogo(){
+logo="""
+    .~~.   .~~.\n
+  '. \ ' ' / .'\n
+   .╔═══════╗.\n
+  : ║|¯¯¯¯¯|║ :\n
+ ~ (║|_____|║) ~\n
+( : ║ .  __ ║ : )\n
+ ~ .╚╦═════╦╝. ~\n
+  (  ¯¯¯¯¯¯¯  ) RaSCSI Assistant\n
+   '~ .~~~. ~'\n
+       '~'\n
+"""
+echo -e $logo
+}
 
 VIRTUAL_DRIVER_PATH=/home/pi/images
+HFS_FORMAT=/usr/bin/hformat
+HFDISK_BIN=/usr/bin/hfdisk
+LIDO_DRIVER=~/RASCSI/lido-driver.img
 
 
 function initialChecks() {
@@ -17,6 +35,7 @@ function initialChecks() {
 
     if [ ! -d ~/RASCSI ]; then
         echo "You must checkout RASCSI repo into /user/pi/RASCSI"
+        echo "$ git clone git@github.com:akuker/RASCSI.git"
         exit 2
     fi
 }
@@ -109,7 +128,7 @@ function showRaScsiStatus() {
 }
 
 function createDrive600MB() {
-    createDrive 600
+    createDrive 600 "HD600"
 }
 
 function createDriveCustom() {
@@ -117,92 +136,159 @@ function createDriveCustom() {
     until [ $driveSize -ge "10" ] && [ $driveSize -le "4000" ]; do
         echo "What drive size would you like (in MB) (10-4000)"
         read driveSize
+
+        echo "How would you like to name that drive?"
+        read driveName
     done
 
-    createDrive $driveSize
+    createDrive $driveSize "$driveName"
+}
+
+function formatDrive() {
+    diskPath="$1"
+    volumeName="$2"
+
+    if [ ! -x $HFS_FORMAT ]; then
+        # Install hfsutils to have hformat to format HFS
+        sudo apt-get install hfsutils
+    fi
+
+    if [ ! -x $HFDISK_BIN ]; then
+        # Clone, compile and install 'hfdisk', partition tool
+        git clone git://www.codesrc.com/git/hfdisk.git
+        cd hfdisk
+        make
+        
+        sudo cp hfdisk /usr/bin/hfdisk
+    fi
+
+    # Inject hfdisk commands to create Drive with correct partitions
+    (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath" 
+    partitionOk=$?
+
+    if [ $partitionOk -eq 0 ]; then
+        if [ ! -f $LIDO_DRIVER ];then
+            echo "Lido driver couldn't be found. Make sure RASCSI is up-to-date with git pull"
+            return 1
+        fi
+
+        # Burn Lido driver to the disk
+        dd if=$LIDO_DRIVER of="$diskPath" seek=64 count=32 bs=512 conv=notrunc
+
+        driverInstalled=$?
+        if [ $driverInstalled -eq 0 ]; then
+            # Format the partition with HFS file system
+            $HFS_FORMAT -l "${volumeName}" "$diskPath" 1
+            hfsFormattedOk=$?
+            if [ $hfsFormattedOk -eq 0 ]; then
+                echo "Disk created with success."
+            else
+                echo "Unable to format HFS partition."
+                return 4
+            fi
+        else
+            echo "Unable to install Lido Driver."
+            return 3
+        fi
+    else
+        echo "Unable to create the partition."
+        return 2
+    fi
 }
 
 function createDrive() {
+    if [ $# -ne 2 ]; then
+        echo "To create a Drive, volume size and volume name must be provided"
+        echo "$ createDrive 600 \"RaSCSI Drive\""
+        echo "Drive wasn't created."
+        return
+    fi
+
     driveSize=$1
+    driveName=$2
     mkdir -p $VIRTUAL_DRIVER_PATH
     drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hda"
-    echo $drivePath
+    
     if [ ! -f $drivePath ]; then
         echo "Creating a ${driveSize}MB Drive"
         dd if=/dev/zero of=$drivePath bs=1M count=$driveSize
+
+        echo "Formatting drive with HFS"
+        formatDrive "$drivePath" "$driveName"
+
     else
         echo "Error: drive already exists"
     fi
 }
 
+function showMenu() {
+    echo ""
+    echo "Choose among the following options:"
+    echo "INSTALL"
+    echo "  0) install RaSCSI Service + web interface + 600MB Drive (recommended)"
+    echo "  1) install RaSCSI Service (initial)"
+    echo "  2) install RaSCSI Web interface"
+    echo "UPDATE"
+    echo "  3) update RaSCSI Service + web interface (recommended)"
+    echo "  4) update RaSCSI Service"
+    echo "  5) update RaSCSI Web interface"
+    echo "CREATE EMPTY DRIVE"
+    echo "  6) 600MB drive (recommended)"
+    echo "  7) custom drive size (up to 4000MB)"
 
+
+    choice=-1
+
+    until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
+        echo "Enter your choice (0-7) or CTRL-C to exit"
+        read choice
+    done
+
+
+    case $choice in
+        0)
+            echo "Installing RaSCSI Service + Web interface"
+            installRaScsi
+            installRaScsiWebInterface
+            createDrive600MB
+            showRaScsiStatus
+        ;;
+        1)
+            echo "Installing RaSCSI Service"
+            installRaScsi
+            showRaScsiStatus
+        ;;
+        2)
+            echo "Installing RaSCSI Web interface"
+            installRaScsiWebInterface
+        ;;
+        3)
+            echo "Updating RaSCSI Service + Web interface"
+            updateRaScsi
+            updateRaScsiWebInterface
+            showRaScsiStatus
+        ;;
+        4)
+            echo "Updating RaSCSI Service"
+            updateRaScsi
+            showRaScsiStatus
+        ;;
+        5)
+            echo "Updating RaSCSI Web interface"
+            updateRaScsiWebInterface
+        ;;
+        6)
+            echo "Creating a 600MB drive"
+            createDrive600MB
+        ;;
+        7)
+            echo "Creating a custom drive"
+            createDriveCustom
+        ;;
+    esac
+}
+
+
+showRaSCSILogo
 initialChecks
-
-
-echo "Welcome to Easy Install for RaSCSI"
-echo ""
-echo "Choose among the following options:"
-echo "INSTALL"
-echo "  0) install RaSCSI Service + web interface + 600MB Drive (recommended)"
-echo "  1) install RaSCSI Service (initial)"
-echo "  2) install RaSCSI Web interface"
-echo "UPDATE"
-echo "  3) update RaSCSI Service + web interface (recommended)"
-echo "  4) update RaSCSI Service"
-echo "  5) update RaSCSI Web interface"
-echo "CREATE EMPTY DRIVE"
-echo "  6) 600MB drive (recommended)"
-echo "  7) custom drive size (up to 4000MB)"
-
-
-choice=-1
-
-until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-    echo "Enter your choice (0-7) or CTRL-C to exit"
-    read choice
-done
-
-
-case $choice in
-    0)
-        echo "Installing RaSCSI Service + Web interface"
-        installRaScsi
-        installRaScsiWebInterface
-        createDrive600MB
-        showRaScsiStatus
-    ;;
-    1)
-        echo "Installing RaSCSI Service"
-        installRaScsi
-        showRaScsiStatus
-    ;;
-    2)
-        echo "Installing RaSCSI Web interface"
-        installRaScsiWebInterface
-    ;;
-    3)
-        echo "Updating RaSCSI Service + Web interface"
-        updateRaScsi
-        updateRaScsiWebInterface
-        showRaScsiStatus
-    ;;
-    4)
-        echo "Updating RaSCSI Service"
-        updateRaScsi
-        showRaScsiStatus
-    ;;
-    5)
-        echo "Updating RaSCSI Web interface"
-        updateRaScsiWebInterface
-    ;;
-    6)
-        echo "Creating a 600MB drive"
-        createDrive600MB
-    ;;
-    7)
-        echo "Creating a custom drive"
-        createDriveCustom
-    ;;
-esac
-
-
+showMenu
