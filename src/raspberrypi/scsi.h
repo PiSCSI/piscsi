@@ -65,8 +65,14 @@ public:
 	}
 										// フェーズ取得
 
-	virtual DWORD FASTCALL Aquire() = 0;
-										// 信号取り込み
+	static const char* FASTCALL GetPhaseStrRaw(phase_t current_phase);
+										// Get the string phase name, based upon the raw data
+
+	// Extract as specific pin field from a raw data capture
+	static inline DWORD GetPinRaw(DWORD raw_data, DWORD pin_num)
+	{
+		return ((raw_data >> pin_num) & 1);
+	}
 
 	virtual BOOL FASTCALL GetBSY() = 0;
 										// BSYシグナル取得
@@ -140,6 +146,8 @@ protected:
 private:
 	static const phase_t phase_table[8];
 										// フェーズテーブル
+
+	static const char* phase_str_table[];
 };
 
 #endif	// scsi_h

@@ -106,7 +106,7 @@ function current_rascsi_config() {
 
 	echo '      <br>'. PHP_EOL;
 	echo '      <h2>Current RaSCSI Configuration</h2>'. PHP_EOL;
-	echo '      <table border="black">'. PHP_EOL;
+	echo '      <table border="black" cellpadding="3">'. PHP_EOL;
 	echo '          <tr>'. PHP_EOL;
 	echo '              <td><b>SCSI ID</b></td>'. PHP_EOL;
 	echo ' 	             <td><b>Type</b></td>'. PHP_EOL;
@@ -228,7 +228,7 @@ function file_size_from_ls($value){
 	return $file_props[4];
 }
 function file_category_from_file_name($value){
-	if(strpos($value,".iso") > 0){
+	if(strpos($value,".iso") || strpos($value,".cdr") > 0){
 		return "CD-ROM Image";
 	}
 	if(strpos($value,".hda") > 0){

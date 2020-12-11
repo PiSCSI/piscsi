@@ -43,16 +43,56 @@ BUS::phase_t FASTCALL BUS::GetPhase()
 
 //---------------------------------------------------------------------------
 //
+//	Determine Phase String phase enum
+//
+//---------------------------------------------------------------------------
+const char* FASTCALL BUS::GetPhaseStrRaw(phase_t current_phase){
+	if(current_phase <= phase_t::reserved){
+		return phase_str_table[current_phase];
+	}
+	else
+	{
+		return "INVALID";
+	}
+}
+
+//---------------------------------------------------------------------------
+//
 //	Phase Table
+//    Reference Table 8: https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-06.html
+//  This determines the phase based upon the Msg, C/D and I/O signals.
 //
 //---------------------------------------------------------------------------
 const BUS::phase_t BUS::phase_table[8] = {
-	dataout,
-	datain,
-	command,
-	status,
-	reserved,
-	reserved,
-	msgout,
-	msgin
+	//        	   | MSG|C/D|I/O | 
+	dataout,	// |  0 | 0 | 0  | 
+	datain,		// |  0 | 0 | 1  | 
+	command,	// |  0 | 1 | 0  | 
+	status,		// |  0 | 1 | 1  | 
+	reserved,	// |  1 | 0 | 0  | 
+	reserved,	// |  1 | 0 | 1  | 
+	msgout,		// |  1 | 1 | 0  | 
+	msgin		// |  1 | 1 | 1  | 
+};
+
+
+//---------------------------------------------------------------------------
+//
+//	Phase Table
+//      This MUST be kept in sync with the phase_t enum type!
+//
+//---------------------------------------------------------------------------
+const char* BUS::phase_str_table[] = {
+	"busfree",		
+	"arbitration",	
+	"selection",		
+	"reselection",	
+	"command",		
+	"execute",		
+	"datain",		
+	"dataout",		
+	"status",		
+	"msgin",			
+	"msgout",		
+	"reserved"		
 };
