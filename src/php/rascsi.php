@@ -23,7 +23,7 @@
 
     <br>
     <h2>Image File Management</h2>
-    <table border="black">
+    <table border="black" cellpadding="3">
         <tr>
             <td><b>Location</b></td>
             <td><b>Filename</b></td>

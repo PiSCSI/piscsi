@@ -146,11 +146,15 @@ while True:
     for line in rascsi_list.split('\n'):
         # Skip empty strings, divider lines and the header line...
         if (len(line) == 0) or line.startswith("+---") or line.startswith("| ID | UN"):
-            continue 
-        fields = line.split('|')
-        output = str.strip(fields[1]) + " " + str.strip(fields[3]) + " " + os.path.basename(str.strip(fields[4]))
-        draw.text((x, y_pos), output, font=font, fill=255)
-        y_pos = y_pos + 8
+				continue
+		else:
+				if line.startswith("|  "):
+					fields = line.split('|')
+        				output = str.strip(fields[1]) + " " + str.strip(fields[3]) + " " + os.path.basename(str.strip(fields[4]))
+				else:
+					output = "No image mounted!"
+				draw.text((x, y_pos), output, font=font, fill=255)
+        			y_pos = y_pos + 8
     # If there is still room on the screen, we'll display the time. If there's not room it will just be clipped
     draw.text((x, y_pos), datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), font=font, fill=255)
 

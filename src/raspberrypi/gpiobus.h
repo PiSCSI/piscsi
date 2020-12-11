@@ -479,8 +479,28 @@ public:
 	void FASTCALL Cleanup();
 										// Cleanup
 
-	DWORD FASTCALL Aquire();
-										// Signal acquisition
+	//---------------------------------------------------------------------------
+	//
+	//	Bus signal acquisition
+	//
+	//---------------------------------------------------------------------------
+	inline DWORD Aquire()
+	{
+	#if defined(__x86_64__) || defined(__X86__)
+		// Only used for development/debugging purposes. Isn't really applicable
+		// to any real-world RaSCSI application
+		return 0;
+	#else
+		signals = *level;
+
+	#if SIGNAL_CONTROL_MODE < 2
+		// Invert if negative logic (internal processing is unified to positive logic)
+		signals = ~signals;
+	#endif	// SIGNAL_CONTROL_MODE
+
+		return signals;
+	#endif // ifdef __x86_64__ || __X86__
+	}
 
 	void FASTCALL SetENB(BOOL ast);
 										// Set ENB signal
@@ -556,6 +576,9 @@ public:
 										// Get SCSI input signal value
 	void FASTCALL SetSignal(int pin, BOOL ast);
 										// Set SCSI output signal value
+
+	static BUS::phase_t FASTCALL GetPhaseRaw(DWORD raw_data);
+									// Get the phase based on raw data
 
 #ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt

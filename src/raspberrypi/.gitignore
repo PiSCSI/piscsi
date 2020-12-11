@@ -4,6 +4,7 @@
 *.cbp
 *.layout
 *.log
+*.vcd
 rascsi
 scsimon
 rasctl
