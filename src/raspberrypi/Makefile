@@ -33,13 +33,13 @@ endif
 CFLAGS += -iquote . -MD -MP 
 CXXFLAGS += -std=c++14 -iquote . -MD -MP 
 
-##   CONNECT_TYPE=STANDARD : Specify the type of RaSCSI board type
+##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
 ##              that you are using. The typical options are 
-##              STANDARD or FULLSPEC. The default is STANDARD
+##              STANDARD or FULLSPEC. The default is FULLSPEC
 ##              * THIS IS TYPICALLY THE ONLY COMPILE OPTION YOU 
 ##              * NEED TO SPECIFY
 # If its not specified, build for FULLSPEC configuration
-CONNECT_TYPE ?= STANDARD
+CONNECT_TYPE ?= FULLSPEC
 
 ifdef CONNECT_TYPE
 CFLAGS   += -DCONNECT_TYPE_$(CONNECT_TYPE)
