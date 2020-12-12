@@ -209,7 +209,7 @@ void FASTCALL SCSIDEV::Arbitration()
 
 	// If we arent' in the bus-free phase, we can't progress....
 	// just return.
-	ctrl.bus->Aquire();
+	((GPIOBUS*)ctrl.bus)->Aquire();
 	if(ctrl.bus->GetBSY() || ctrl.bus->GetSEL())
 	{
 		LOGWARN("Unable to start arbitration. BSY:%d SEL:%d",(int)ctrl.bus->GetBSY(), (int)ctrl.bus->GetSEL());
@@ -229,7 +229,7 @@ void FASTCALL SCSIDEV::Arbitration()
 		SysTimer::SleepNsec(SCSI_DELAY_ARBITRATION_DELAY_NS);
 	
 		// Check if a higher SCSI ID is asserted. If so, we lost arbitration
-		ctrl.bus->Aquire();
+		((GPIOBUS*)ctrl.bus)->Aquire();
 		data_lines = ctrl.bus->GetDAT();
 		LOGDEBUG("After Arbitration, data lines are %04X", (int)data_lines);
 		data_lines >>= (ctrl.id + 1);
