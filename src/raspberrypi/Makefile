@@ -50,6 +50,7 @@ RASCSI = rascsi
 RASCTL = rasctl
 RASDUMP = rasdump
 SASIDUMP = sasidump
+SCSIMON = scsimon
 SCSISHARK = scsishark
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
