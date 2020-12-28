@@ -105,7 +105,7 @@ post_max_size = 1200M
 function updateRaScsi() {
     sudo systemctl stop rascsi
 
-	cd ~/RASCSI
+	cd ~/RASCSI/src/raspberrypi 
 	
 	make clean
 	make all CONNECT_TYPE=FULLSPEC
