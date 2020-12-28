@@ -18,19 +18,19 @@
 
 //---------------------------------------------------------------------------
 //
-//	コンストラクタ
+//	Constructor
 //
 //---------------------------------------------------------------------------
 CTapDriver::CTapDriver()
 {
-	// 初期化
+	// Initialization
 	m_hTAP = -1;
 	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
 }
 
 //---------------------------------------------------------------------------
 //
-//	初期化
+//	Initialization
 //
 //---------------------------------------------------------------------------
 #ifdef __linux__
@@ -42,7 +42,7 @@ BOOL FASTCALL CTapDriver::Init()
 
 	ASSERT(this);
 
-	// TAPデバイス初期化
+	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
 		printf("Error: can't open tun\n");
 		return FALSE;
@@ -58,7 +58,7 @@ BOOL FASTCALL CTapDriver::Init()
 		return FALSE;
 	}
 
-	// MACアドレス取得
+	// Get MAC address
 	ifr.ifr_addr.sa_family = AF_INET;
 	if ((ret = ioctl(m_hTAP, SIOCGIFHWADDR, &ifr)) < 0) {
 		printf("Error: can't ioctl SIOCGIFHWADDR\n");
@@ -66,7 +66,7 @@ BOOL FASTCALL CTapDriver::Init()
 		return FALSE;
 	}
 
-	// MACアドレス保存
+	// Save MAC address
 	memcpy(m_MacAddr, ifr.ifr_hwaddr.sa_data, sizeof(m_MacAddr));
 	return TRUE;
 }
@@ -80,20 +80,20 @@ BOOL FASTCALL CTapDriver::Init()
 	
 	ASSERT(this);
 
-	// TAPデバイス初期化
+	// TAP Device Initialization
 	if ((m_hTAP = open("/dev/tap", O_RDWR)) < 0) {
 		printf("Error: can't open tap\n");
 		return FALSE;
 	}
 
-	// デバイス名取得
+	// Get device name
 	if (ioctl(m_hTAP, TAPGIFNAME, (void *)&ifr) < 0) {
 		printf("Error: can't ioctl TAPGIFNAME\n");
 		close(m_hTAP);
 		return FALSE;
 	}
 
-	// MACアドレス取得
+	// Get MAC address
 	if (getifaddrs(&ifa) == -1) {
 		printf("Error: can't getifaddrs\n");
 		close(m_hTAP);
@@ -109,7 +109,7 @@ BOOL FASTCALL CTapDriver::Init()
 		return FALSE;
 	}
 
-	// MACアドレス保存
+	// Save MAC address
 	memcpy(m_MacAddr, LLADDR((struct sockaddr_dl *)a->ifa_addr),
 		sizeof(m_MacAddr));
 	freeifaddrs(ifa);
@@ -122,7 +122,7 @@ BOOL FASTCALL CTapDriver::Init()
 
 //---------------------------------------------------------------------------
 //
-//	クリーンアップ
+//	Cleanup
 //
 //---------------------------------------------------------------------------
 void FASTCALL CTapDriver::Cleanup()
@@ -138,7 +138,7 @@ void FASTCALL CTapDriver::Cleanup()
 
 //---------------------------------------------------------------------------
 //
-//	MACアドレス取得
+//	MGet MAC Address
 //
 //---------------------------------------------------------------------------
 void FASTCALL CTapDriver::GetMacAddr(BYTE *mac)
@@ -151,7 +151,7 @@ void FASTCALL CTapDriver::GetMacAddr(BYTE *mac)
 
 //---------------------------------------------------------------------------
 //
-//	受信
+//	Receive
 //
 //---------------------------------------------------------------------------
 int FASTCALL CTapDriver::Rx(BYTE *buf)
@@ -162,7 +162,7 @@ int FASTCALL CTapDriver::Rx(BYTE *buf)
 	ASSERT(this);
 	ASSERT(m_hTAP != -1);
 
-	// 受信可能なデータがあるか調べる
+	// Check if there is data that can be received
 	fds.fd = m_hTAP;
 	fds.events = POLLIN | POLLERR;
 	fds.revents = 0;
@@ -171,32 +171,32 @@ int FASTCALL CTapDriver::Rx(BYTE *buf)
 		return 0;
 	}
 
-	// 受信
+	// Receive
 	dwReceived = read(m_hTAP, buf, ETH_FRAME_LEN);
 	if (dwReceived == (DWORD)-1) {
 		return 0;
 	}
 
-	// 受信が有効であれば
+	// If reception is enabled
 	if (dwReceived > 0) {
-		// FCSを除く最小フレームサイズ(60バイト)にパディング
+		// Pad to the maximum frame size (60 bytes) excluding FCS
 		if (dwReceived < 60) {
 			memset(buf + dwReceived, 0, 60 - dwReceived);
 			dwReceived = 60;
 		}
 
-		// ダミーのFCSを付加する
+		// Add a dummy FCS
 		memset(buf + dwReceived, 0, 4);
 		dwReceived += 4;
 	}
 
-	// バイト数を返却
+	// Return the number of bytes
 	return dwReceived;
 }
 
 //---------------------------------------------------------------------------
 //
-//	送信
+//	Send
 //
 //---------------------------------------------------------------------------
 int FASTCALL CTapDriver::Tx(BYTE *buf, int len)
@@ -204,6 +204,6 @@ int FASTCALL CTapDriver::Tx(BYTE *buf, int len)
 	ASSERT(this);
 	ASSERT(m_hTAP != -1);
 
-	// 送信開始
+	// Start sending
 	return write(m_hTAP, buf, len);
 }
