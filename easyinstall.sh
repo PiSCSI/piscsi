@@ -34,7 +34,7 @@ function initialChecks() {
     fi
 
     if [ ! -d ~/RASCSI ]; then
-        echo "You must checkout RASCSI repo into /user/pi/RASCSI"
+        echo "You must checkout RASCSI repo into /home/pi/RASCSI"
         echo "$ git clone git@github.com:akuker/RASCSI.git"
         exit 2
     fi
@@ -46,9 +46,9 @@ function initialChecks() {
 function installRaScsi() {
     sudo apt-get update && sudo apt-get install --yes git libspdlog-dev
 
-	cd ~/RASCSI/src/raspberrypi 
-	make all CONNECT_TYPE=FULLSPEC 
-	sudo make install CONNECT_TYPE=FULLSPEC
+    cd ~/RASCSI/src/raspberrypi
+    make all CONNECT_TYPE=FULLSPEC
+    sudo make install CONNECT_TYPE=FULLSPEC
 
     sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
 
@@ -61,35 +61,27 @@ www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
 www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 " >> /etc/sudoers'
     fi
-	
-	sudo systemctl restart rsyslog
-	sudo systemctl enable rascsi # optional - start rascsi at boot
-	sudo systemctl start rascsi
-	
+
+    sudo systemctl restart rsyslog
+    sudo systemctl enable rascsi # optional - start rascsi at boot
+    sudo systemctl start rascsi
 }
 
-# install everything required to run an HTTP server (Apache+PHP)
-# configure PHP
-# install 
+function stopOldWebInterface() {
+    APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
+    if [ $APACHE_STATUS -ne 4 ] ; then
+        echo "Stopping old Apache2 RaSCSI Web..."
+        sudo systemctl disable apache2
+        sudo systemctl stop apache2
+    fi
+}
+
+# install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
-	
-	sudo apt install apache2 php libapache2-mod-php -y
-	
-    sudo cp ~/RASCSI/src/php/* /var/www/html
+    stopOldWebInterface
+    sudo apt install genisoimage python3 python3-venv nginx -y
 
-
-    PHP_CONFIG_FILE=/etc/php/7.3/apache2/php.ini
-
-    #Comment out any current configuration
-    sudo sed -i.bak 's/^post_max_size/#post_max_size/g' $PHP_CONFIG_FILE
-    sudo sed -i.bak 's/^upload_max_filesize/#upload_max_filesize/g' $PHP_CONFIG_FILE
-
-    sudo bash -c 'PHP_CONFIG_FILE=/etc/php/7.3/apache2/php.ini && echo "
-# RaSCSI high upload limits
-upload_max_filesize = 1200M
-post_max_size = 1200M
-
-" >> $PHP_CONFIG_FILE'
+    sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
 
     mkdir -p $VIRTUAL_DRIVER_PATH
     chmod -R 775 $VIRTUAL_DRIVER_PATH
@@ -97,30 +89,37 @@ post_max_size = 1200M
     sudo usermod -a -G pi www-data
     groups www-data
 
-    sudo /etc/init.d/apache2 restart
+    sudo systemctl reload nginx
+
+    sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable rascsi-web
+    sudo systemctl start rascsi-web
 }
 
-
+function updateRaScsiGit() {
+    cd ~/RASCSI
+    git pull
+}
 
 function updateRaScsi() {
+    updateRaScsiGit
     sudo systemctl stop rascsi
 
-	cd ~/RASCSI/src/raspberrypi 
-	
-	make clean
-	make all CONNECT_TYPE=FULLSPEC
-	sudo make install CONNECT_TYPE=FULLSPEC
-	sudo systemctl start rascsi
+    cd ~/RASCSI/src/raspberrypi
+
+    make clean
+    make all CONNECT_TYPE=FULLSPEC
+    sudo make install CONNECT_TYPE=FULLSPEC
+    sudo systemctl start rascsi
 }
 
 function updateRaScsiWebInterface() {
-    sudo /etc/init.d/apache2 stop
-    cd ~/RASCSI
-    git fetch --all
-	cd ~/RASCSI/src/raspberrypi 
-    sudo cp ~/RASCSI/src/php/* /var/www/html
-
-    sudo /etc/init.d/apache2 start
+    stopOldWebInterface
+    updateRaScsiGit
+    sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
+    sudo systemctl restart rascsi-web
+    sudo systemctl restart nginx
 }
 
 function showRaScsiStatus() {
