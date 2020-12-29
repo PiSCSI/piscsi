@@ -37,12 +37,12 @@
             <td>{{device.file}}</td>
             <td>
                 {% if device.type == "SCCD" and device.file != "NO MEDIA" %}
-                <form action="/scsi/eject" method="post">
+                <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Eject" />
                 </form>
                 {% else %}
-                <form action="/scsi/detach" method="post">
+                <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Detach" />
                 </form>
@@ -86,7 +86,7 @@
                     </select>
                     <input type="submit" value="Attach" />
                 </form>
-                <form action="/files/delete" method="post">
+                <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
                     <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
                     <input type="submit" value="Delete" />
                 </form>
@@ -188,18 +188,18 @@
     <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
-                <form action="/pi/reboot" method="post">
+                <form action="/pi/reboot" method="post" onsubmit="return confirm('Reboot Pi?')">
                     <input type="submit" value="Reboot Raspberry Pi" />
                 </form>
             </td>
             <td style="border: none; vertical-align:top;">
-                <form action="/pi/shutdown" method="post">
+                <form action="/pi/shutdown" method="post" onsubmit="return confirm('Shutdown Pi?')">
                     <input type="submit" value="Shut Down Raspberry Pi" />
                 </form>
             </td>
 
             <td style="border: none; vertical-align:top;">
-                <form action="/rascsi/restart" method="post">
+                <form action="/rascsi/restart" method="post" onsubmit="return confirm('Restart RaSCSI?')">
                     <input type="submit" value="Restart RaSCSI Service" />
                 </form>
             </td>
