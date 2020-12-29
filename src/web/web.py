@@ -150,8 +150,9 @@ def upload_file():
 def create_file():
     file_name = request.form.get('file_name')
     size = request.form.get('size')
+    type = request.form.get('type')
 
-    process = create_new_image(file_name, size)
+    process = create_new_image(file_name, type, size)
     if process.returncode == 0:
         flash("Drive created")
         return redirect(url_for('index'))

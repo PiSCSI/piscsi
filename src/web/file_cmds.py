@@ -11,11 +11,11 @@ valid_file_types = ['*.hda', '*.iso', '*.cdr']
 valid_file_types = r'|'.join([fnmatch.translate(x) for x in valid_file_types])
 
 
-def create_new_image(file_name, size):
+def create_new_image(file_name, size, type):
     if file_name == "":
-        file_name = "new_file." + str(int(time.time())) + ".hda"
-    if not file_name.endswith(".hda"):
-        file_name = file_name + ".hda"
+        file_name = "new_image." + str(int(time.time())) + "." + type
+    else:
+        file_name = file_name + "." + type
 
     return subprocess.run(["dd", "if=/dev/zero", "of=" + base_dir + file_name, "bs=1M", "count=" + size],
                           capture_output=True)
