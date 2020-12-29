@@ -104,7 +104,23 @@
 
     <hr/>
 
-    <h2>Download File</h2>
+    <h2>Upload File</h2>
+    <p>Uploads file to <tt>{{base_dir}}</tt>. Max file size is set to {{max_file_size / 1024 /1024 }}MB</p>
+    <table style="border: none">
+            <tr style="border: none">
+                <td style="border: none; vertical-align:top;">
+                <form action="/files/upload" method="post" enctype="multipart/form-data">
+                    <label for="file">File:</label>
+                    <input type="file" name="file"/>
+                    <input type="submit" value="Upload" />
+                </form>
+            </td>
+        </tr>
+    </table>
+
+    <hr/>
+
+    <h2>Download File from Web</h2>
     <p>Given a URL, download that file to the <tt>{{base_dir}}</tt></p>
     <table style="border: none">
             <tr style="border: none">
@@ -120,7 +136,7 @@
 
     <hr/>
 
-    <h2>Download and create HFS CD</h2>
+    <h2>Download File from web and create HFS CD</h2>
     <p>Given a URL this will download a file, create a HFS iso, and mount it on the device id given.</p>
     <table style="border: none">
             <tr style="border: none">
@@ -141,23 +157,7 @@
     </table>
 
     <hr/>
-
-    <h2>Upload File</h2>
-    <p>Uploads file to <tt>{{base_dir}}</tt>. Max file size is set to {{max_file_size / 1024 /1024 }}MB</p>
-    <table style="border: none">
-            <tr style="border: none">
-                <td style="border: none; vertical-align:top;">
-                <form action="/files/upload" method="post" enctype="multipart/form-data">
-                    <label for="file">File:</label>
-                    <input type="file" name="file"/>
-                    <input type="submit" value="Upload" />
-                </form>
-            </td>
-        </tr>
-    </table>
-
-    <hr/>
-    <h2>Create Image File</h2>
+    <h2>Create Empty Disk Image File</h2>
     <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
@@ -195,6 +195,12 @@
             <td style="border: none; vertical-align:top;">
                 <form action="/pi/shutdown" method="post">
                     <input type="submit" value="Shut Down Raspberry Pi" />
+                </form>
+            </td>
+
+            <td style="border: none; vertical-align:top;">
+                <form action="/rascsi/restart" method="post">
+                    <input type="submit" value="Restart RaSCSI Service" />
                 </form>
             </td>
         </tr>

@@ -4,7 +4,7 @@ from flask import Flask, render_template, request, flash, url_for, redirect, sen
 from werkzeug.utils import secure_filename
 
 from file_cmds import create_new_image, download_file_to_iso, delete_image, unzip_file, download_image
-from pi_cmds import shutdown_pi, reboot_pi, running_version
+from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
 from ractl_cmds import attach_image, list_devices, is_active, list_files, detach_by_id, eject_by_id
 
 app = Flask(__name__)
@@ -101,6 +101,13 @@ def eject():
 def restart():
     reboot_pi()
     flash("Restarting...")
+    return redirect(url_for('index'))
+
+
+@app.route('/rascsi/restart', methods=['POST'])
+def rascsi_restart():
+    rascsi_service("restart")
+    flash("Restarting RaSCSI Service...")
     return redirect(url_for('index'))
 
 
