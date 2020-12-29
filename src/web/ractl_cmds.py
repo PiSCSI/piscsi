@@ -6,6 +6,8 @@ import re
 base_dir = "/home/pi/images"  # Default
 valid_file_types = ['*.hda', '*.iso', '*.cdr', '*.zip']
 valid_file_types = r'|'.join([fnmatch.translate(x) for x in valid_file_types])
+# List of SCSI ID's you'd like to exclude - eg if you are on a Mac, the System is usually 7
+EXCLUDE_SCSI_IDS = [7]
 
 
 def is_active():
@@ -24,6 +26,20 @@ def list_files():
              '{:,.0f}'.format(os.path.getsize(os.path.join(path, file)) / float(1 << 20)) + " MB")
             for file in files])
     return files_list
+
+
+def get_valid_scsi_ids(devices):
+    invalid_list = EXCLUDE_SCSI_IDS.copy()
+    for device in devices:
+        if device['file'] != "NO MEDIA" and device['file'] != "-":
+            invalid_list.append(int(device['id']))
+
+    valid_list = list(range(8))
+    for id in invalid_list:
+        valid_list.remove(id)
+    valid_list.reverse()
+
+    return valid_list
 
 
 def get_type(scsi_id):

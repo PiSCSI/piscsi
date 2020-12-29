@@ -5,12 +5,10 @@ from werkzeug.utils import secure_filename
 
 from file_cmds import create_new_image, download_file_to_iso, delete_image, unzip_file, download_image
 from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
-from ractl_cmds import attach_image, list_devices, is_active, list_files, detach_by_id, eject_by_id
+from ractl_cmds import attach_image, list_devices, is_active, list_files, detach_by_id, eject_by_id, get_valid_scsi_ids
 
 app = Flask(__name__)
 MAX_FILE_SIZE = 1024 * 1024 * 1024 * 2 # 2gb
-# List of SCSI ID's you'd like to exclude - eg if you are on a Mac, the System is usually 7
-EXCLUDE_SCSI_IDS = [7]
 base_dir = "/home/pi/images/"  # Default
 
 
@@ -206,8 +204,6 @@ if __name__ == "__main__":
     app.config['UPLOAD_FOLDER'] = base_dir
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.config['MAX_CONTENT_LENGTH'] = MAX_FILE_SIZE
-     # A list of SCSI ID's you'd like to exclude
-    app.config['EXCLUDE_SCSI_IDS'] = EXCLUDE_SCSI_IDS
 
     from waitress import serve
     serve(app, host="0.0.0.0", port=8080)
