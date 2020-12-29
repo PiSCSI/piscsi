@@ -26,8 +26,15 @@ def list_files():
     return files_list
 
 
+def get_type(scsi_id):
+    return list_devices()[int(scsi_id)]["type"]
+
+
 def attach_image(scsi_id, image, type):
-    return subprocess.run(["rasctl", "-c", "attach", "-t", type, "-i", scsi_id, "-f", image], capture_output=True)
+    if type == "cd" and get_type(scsi_id) == "SCCD":
+        return insert(scsi_id, image)
+    else:
+        return subprocess.run(["rasctl", "-c", "attach", "-t", type, "-i", scsi_id, "-f", image], capture_output=True)
 
 
 def detach_by_id(scsi_id):
@@ -42,8 +49,8 @@ def eject_by_id(scsi_id):
     return subprocess.run(["rasctl", "-i", scsi_id, "-c", "eject"])
 
 
-def insert(scsi_id, file_name):
-    return subprocess.run(["rasctl", "-i", scsi_id, "-c", "insert", "-f", base_dir + file_name], capture_output=True)
+def insert(scsi_id, image):
+    return subprocess.run(["rasctl", "-i", scsi_id, "-c", "insert", "-f", image], capture_output=True)
 
 
 def rascsi_service(action):
