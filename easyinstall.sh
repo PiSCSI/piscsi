@@ -82,6 +82,7 @@ function installRaScsiWebInterface() {
     sudo apt install genisoimage python3 python3-venv nginx -y
 
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
+    sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
 
     mkdir -p $VIRTUAL_DRIVER_PATH
     chmod -R 775 $VIRTUAL_DRIVER_PATH
@@ -118,6 +119,7 @@ function updateRaScsiWebInterface() {
     stopOldWebInterface
     updateRaScsiGit
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
+    sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
     sudo systemctl restart rascsi-web
     sudo systemctl restart nginx
 }
