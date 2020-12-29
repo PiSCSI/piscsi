@@ -26,8 +26,8 @@ ifeq ($(DEBUG), 1)
 	BUILD_TYPE = Debug
 else
 	# Release CFLAGS
-	CFLAGS += -O3 -Wall -Werror
-	CXXFLAGS += -O3 -Wall -Werror
+	CFLAGS += -O3 -Wall -Werror -DNDEBUG
+	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
 CFLAGS += -iquote . -MD -MP 
