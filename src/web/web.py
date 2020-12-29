@@ -25,19 +25,20 @@ def index():
                            max_file_size=MAX_FILE_SIZE,
                            version=running_version())
 
+@app.route('/logs')
+def logs():
+    import subprocess
+    lines = request.args.get('lines') or "100"
+    process = subprocess.run(["journalctl", "-n", lines], capture_output=True)
 
-def get_valid_scsi_ids(devices):
-    invalid_list = EXCLUDE_SCSI_IDS.copy()
-    for device in devices:
-        if device['file'] != "NO MEDIA" and device['file'] != "-":
-            invalid_list.append(int(device['id']))
-
-    valid_list = list(range(8))
-    for id in invalid_list:
-        valid_list.remove(id)
-    valid_list.reverse()
-
-    return valid_list
+    if process.returncode == 0:
+        headers = { 'content-type':'text/plain' }
+        return process.stdout.decode("utf-8"), 200, headers
+    else:
+        flash(u'Failed to get logs')
+        flash(process.stdout.decode("utf-8"), 'stdout')
+        flash(process.stderr.decode("utf-8"), 'stderr')
+        return redirect(url_for('index'))
 
 
 @app.route('/scsi/attach', methods=['POST'])
@@ -60,8 +61,6 @@ def attach():
         return redirect(url_for('index'))
     else:
         flash(u'Failed to attach '+ file_name + " to scsi id " + scsi_id + "!", 'error')
-        print(process.stdout.decode("utf-8"))
-        print(process.stderr.decode("utf-8"))
         flash(process.stdout.decode("utf-8"), 'stdout')
         flash(process.stderr.decode("utf-8"), 'stderr')
         return redirect(url_for('index'))
