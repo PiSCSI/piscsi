@@ -31,13 +31,14 @@ def index():
 def get_valid_scsi_ids(devices):
     invalid_list = EXCLUDE_SCSI_IDS.copy()
     for device in devices:
-        if device['file'] != "NO MEDIA":
+        if device['file'] != "NO MEDIA" and device['file'] != "-":
             invalid_list.append(int(device['id']))
 
     valid_list = list(range(8))
     for id in invalid_list:
         valid_list.remove(id)
     valid_list.reverse()
+
     return valid_list
 
 

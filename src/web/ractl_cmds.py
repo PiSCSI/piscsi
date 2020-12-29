@@ -53,6 +53,8 @@ def rascsi_service(action):
 
 def list_devices():
     device_list = []
+    for id in range(8):
+        device_list.append({"id": str(id), "un": "-", "type": "-", "file": "-"})
     output = subprocess.run(["rasctl", "-l"], capture_output=True).stdout.decode("utf-8")
     for line in output.splitlines():
         # Valid line to process, continue
@@ -64,9 +66,10 @@ def list_devices():
             device = {}
             segments = line.split("|")
             if len(segments) > 4:
-                device['id'] = segments[1].strip()
-                device['un'] = segments[2].strip()
-                device['type'] = segments[3].strip()
-                device['file'] = segments[4].strip()
-                device_list.append(device)
+                idx = int(segments[1].strip())
+                device_list[idx]["id"] = str(idx)
+                device_list[idx]['un'] = segments[2].strip()
+                device_list[idx]['type'] = segments[3].strip()
+                device_list[idx]['file'] = segments[4].strip()
+
     return device_list

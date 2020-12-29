@@ -31,6 +31,7 @@
         </tr>
         {% for device in devices %}
         <tr>
+            {% if device.id != "7" %}
             <td style="text-align:center">{{device.id}}</td>
             <td style="text-align:center">{{device.type}}</td>
             <td>{{device.file}}</td>
@@ -47,6 +48,12 @@
                 </form>
                 {% endif %}
             </td>
+            {% else %}
+            <td style="text-align:center">{{device.id}}</td>
+            <td style="text-align:center">-</td>
+            <td>Host Machine</td>
+            <td>-</td>
+            {% endif %}
         </tr>
         {% endfor %}
         </tbody>
