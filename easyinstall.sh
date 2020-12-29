@@ -69,7 +69,7 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 
 function stopOldWebInterface() {
     APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
-    if [ $APACHE_STATUS -ne 4 ] ; then
+    if [ $APACHE_STATUS -eq 0 ] ; then
         echo "Stopping old Apache2 RaSCSI Web..."
         sudo systemctl disable apache2
         sudo systemctl stop apache2
