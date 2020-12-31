@@ -3,7 +3,7 @@ import os
 import subprocess
 import re
 
-base_dir = "/home/pi/images"  # Default
+from settings import *
 valid_file_types = ['*.hda', '*.iso', '*.cdr', '*.zip']
 valid_file_types = r'|'.join([fnmatch.translate(x) for x in valid_file_types])
 # List of SCSI ID's you'd like to exclude - eg if you are on a Mac, the System is usually 7

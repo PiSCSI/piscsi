@@ -3,10 +3,8 @@ import os
 import subprocess
 import time
 
-from create_disk import make_cd
 from ractl_cmds import attach_image
-
-base_dir = "/home/pi/images/"  # Default
+from settings import *
 valid_file_types = ['*.hda', '*.iso', '*.cdr']
 valid_file_types = r'|'.join([fnmatch.translate(x) for x in valid_file_types])
 

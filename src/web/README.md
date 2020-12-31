@@ -1,24 +1,12 @@
 # RaSCSI Web
 
-## Setup
+## Mocking for local development
 
-```bash
-sudo apt install genisoimage python3 python3-venv nginx -y
-git clone https://github.com/erichelgeson/RaSCSI-web.git
-cd RaSCSI-web
-./start.sh
+Set a few env vars to point to the mock scripts and base dir
+
+```
+BASE_DIR=/tmp/images/
+PATH=$PATH:`pwd`/mock/bin/
 ```
 
-## As a startup service
-
-```bash
-## Configure NGINX
-sudo cp service-infra/nginx-default.conf /etc/nginx/sites-available/default
-sudo systemctl reload nginx
-
-## Configure rascsi-web service
-sudo cp rascsi-web.service /etc/systemd/system/rascsi-web.service
-sudo systemctl daemon-reload
-sudo systemctl enable rascsi-web
-sudo systemctl start rascsi-web
-```
+Edit response to commands in `mock/bin/*`

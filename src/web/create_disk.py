@@ -1,6 +1,6 @@
 from machfs import Volume, Folder, File
 
-base_dir = "/home/pi/images/"  # Default
+from settings import *
 
 
 # Build a cd and attempt to fix resource forks if known

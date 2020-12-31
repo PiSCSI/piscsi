@@ -6,11 +6,9 @@ from werkzeug.utils import secure_filename
 from file_cmds import create_new_image, download_file_to_iso, delete_image, unzip_file, download_image
 from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
 from ractl_cmds import attach_image, list_devices, is_active, list_files, detach_by_id, eject_by_id, get_valid_scsi_ids
+from settings import *
 
 app = Flask(__name__)
-MAX_FILE_SIZE = 1024 * 1024 * 1024 * 2 # 2gb
-base_dir = "/home/pi/images/"  # Default
-
 
 @app.route('/')
 def index():
