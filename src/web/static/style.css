@@ -21,8 +21,24 @@ a {
   text-decoration: none;
 }
 
+form {
+  display: inline;
+}
+
 table, tr, td {
   border: 1px solid black;
   border-collapse:collapse;
   margin: none;
+}
+
+.error {
+  color: white;
+  font-size:20px;
+  background-color:red;
+}
+
+.message {
+  color: white;
+  font-size:20px;
+  background-color:green;
 }
