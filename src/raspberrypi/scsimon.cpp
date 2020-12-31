@@ -59,7 +59,7 @@ typedef struct data_capture{
 } data_capture_t;
 
 data_capture data_buffer[MAX_BUFF_SIZE];
-int data_idx = 0;
+DWORD data_idx = 0;
 
 double ns_per_loop;
 
@@ -107,7 +107,7 @@ void Banner(int argc, char* argv[])
     else
     {
         LOGINFO(" ");
-        LOGINFO("Starting to collecting data. Press CTRL-C to stop.")
+        LOGINFO("Now collecting data.... Press CTRL-C to stop.")
         LOGINFO(" ");
     }
 }
@@ -214,7 +214,7 @@ void create_value_change_dump()
 {
     time_t rawtime;
     struct tm * timeinfo;
-    int i = 0;
+    DWORD i = 0;
     char timestamp[256];
     FILE *fp;
     LOGINFO("Creating Value Change Dump file (%s)", log_file_name);
@@ -422,7 +422,12 @@ int main(int argc, char* argv[])
         loop_count++;
         if(loop_count > LLONG_MAX -1)
         {
-            printf("Maximum amount of time has elapsed. SCSIMON is terminating");
+            LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.");
+            running=false;
+        }
+        if(data_idx >= (MAX_BUFF_SIZE-2))
+        {
+            LOGINFO("Internal data buffer is full. SCSIMON is terminating.");
             running=false;
         }
 
@@ -441,24 +446,33 @@ int main(int argc, char* argv[])
             prev_high = high_bits;
             prev_low = low_bits;
             if((data_idx % 1000) == 0){
-                LOGDEBUG("Collected %d samples...", data_idx);
+                LOGDEBUG("Collected %lu samples...", data_idx);
             }
 #endif
             data_buffer[data_idx].data = this_sample;
             data_buffer[data_idx].timestamp = loop_count;
-            data_idx = (data_idx + 1) % MAX_BUFF_SIZE;
+            data_idx++;
             prev_sample = this_sample;
 		}
 
 		continue;
 	}
+
+    // Collect one last sample, otherwise it looks like the end of the data was cut off
+    if(data_idx < MAX_BUFF_SIZE)
+    {
+        data_buffer[data_idx].data = this_sample;
+        data_buffer[data_idx].timestamp = loop_count;
+        data_idx++;
+    }
+
     (void)gettimeofday(&stop_time, NULL);
 
     timersub(&stop_time, &start_time, &time_diff);
 
     elapsed_us = ((time_diff.tv_sec*1000000) + time_diff.tv_usec);
     LOGINFO("Elapsed time: %llu microseconds (%lf seconds)",elapsed_us, ((double)elapsed_us)/1000000);
-    LOGINFO("Collected %llu changes", loop_count);
+    LOGINFO("Collected %lu changes", data_idx);
 
     // Note: ns_per_loop is a global variable that is used by Cleanup() to printout the timestamps.    
     ns_per_loop = (elapsed_us * 1000) / (double)loop_count;
