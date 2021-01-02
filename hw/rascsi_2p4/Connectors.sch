@@ -434,7 +434,7 @@ U 1 1 5FF34865
 P 1900 6150
 F 0 "J10" H 1872 6032 50  0000 R CNN
 F 1 "Conn_01x04_Male" H 1872 6123 50  0000 R CNN
-F 2 "Connector_PinHeader_1.00mm:PinHeader_1x04_P1.00mm_Vertical" H 1900 6150 50  0001 C CNN
+F 2 "Connector_PinHeader_2.00mm:PinHeader_1x04_P2.00mm_Vertical" H 1900 6150 50  0001 C CNN
 F 3 "~" H 1900 6150 50  0001 C CNN
 	1    1900 6150
 	-1   0    0    1   
