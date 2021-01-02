@@ -289,7 +289,7 @@ Text GLabel 4000 3100 1    39   Input ~ 0
 PB_SCSIID_1
 Text GLabel 4000 3600 3    39   Input ~ 0
 PB_SCSIID_2
-Text GLabel 3900 3600 3    39   Input ~ 0
+Text GLabel 3900 3100 1    39   Input ~ 0
 PB_SCSIID_4
 NoConn ~ 3800 3100
 NoConn ~ 3800 3600
@@ -388,4 +388,55 @@ Wire Notes Line
 	1400 2650 1400 4200
 Text Notes 1450 2650 0    39   ~ 0
 http://ps-2.retropc.se/ppc850tp/scsi-laptop-drive_dprs_spw.pdf
+Text GLabel 3900 3600 3    39   Input ~ 0
+PB_LED_Pin
+NoConn ~ 4100 3100
+NoConn ~ 4100 3600
+Text GLabel 1550 6050 0    39   Input ~ 0
+PB_SCSIID_1
+Text GLabel 1550 6250 0    39   Input ~ 0
+PB_SCSIID_4
+Text GLabel 1550 6150 0    39   Input ~ 0
+PB_SCSIID_2
+Text GLabel 1550 5950 0    39   Input ~ 0
+PB_LED_Pin
+$Comp
+L Jumper:SolderJumper_2_Bridged JP1
+U 1 1 5FF168EB
+P 1800 5750
+F 0 "JP1" H 1800 5955 50  0000 C CNN
+F 1 "SolderJumper_2_Bridged" H 1800 5864 50  0000 C CNN
+F 2 "Jumper:SolderJumper-2_P1.3mm_Bridged_Pad1.0x1.5mm" H 1800 5750 50  0001 C CNN
+F 3 "~" H 1800 5750 50  0001 C CNN
+	1    1800 5750
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1550 6250 1700 6250
+Wire Wire Line
+	1550 6150 1700 6150
+Wire Wire Line
+	1550 6050 1700 6050
+Wire Wire Line
+	1550 5950 1600 5950
+Wire Wire Line
+	1650 5750 1600 5750
+Wire Wire Line
+	1600 5750 1600 5950
+Connection ~ 1600 5950
+Wire Wire Line
+	1600 5950 1700 5950
+Text GLabel 1950 5750 2    39   Input ~ 0
+EXT-ACT-LED
+$Comp
+L Connector:Conn_01x04_Male J10
+U 1 1 5FF34865
+P 1900 6150
+F 0 "J10" H 1872 6032 50  0000 R CNN
+F 1 "Conn_01x04_Male" H 1872 6123 50  0000 R CNN
+F 2 "Connector_PinHeader_1.00mm:PinHeader_1x04_P1.00mm_Vertical" H 1900 6150 50  0001 C CNN
+F 3 "~" H 1900 6150 50  0001 C CNN
+	1    1900 6150
+	-1   0    0    1   
+$EndComp
 $EndSCHEMATC
