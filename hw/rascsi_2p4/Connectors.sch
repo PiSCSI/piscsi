@@ -225,11 +225,11 @@ P 3000 3300
 F 0 "J9" H 3050 1875 50  0000 C CNN
 F 1 "Conn_02x25_Odd_Even" H 3050 1966 50  0000 C CNN
 F 2 "Connector_PinHeader_2.00mm:PinHeader_2x25_P2.00mm_Horizontal" H 3000 3300 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/1810221914_BOOMELE-Boom-Precision-Elec-C30006_C30006.pdf" H 3000 3300 50  0001 C CNN
-F 4 "C30006" H 3000 3300 50  0001 C CNN "LCSC"
-F 5 "Header 50 0.100\"(2.54mm) 2 2.54MM IDC Connectors RoHS" H 3000 3300 50  0001 C CNN "Description"
+F 3 "https://datasheet.lcsc.com/szlcsc/1811151534_BOOMELE-Boom-Precision-Elec-C3407_C3407.pdf" H 3000 3300 50  0001 C CNN
+F 4 "C3407" H 3000 3300 50  0001 C CNN "LCSC"
+F 5 "CUT DOWN TO 50 PIN - Pin Header 80 2 right-angle，90degrees 2.00mm Through Hole Pin Header" H 3000 3300 50  0001 C CNN "Description"
 F 6 "BOOMELE(Boom Precision Elec)" H 3000 3300 50  0001 C CNN "Manufacturer_Name"
-F 7 "C30006" H 3000 3300 50  0001 C CNN "Manufacturer_Part_Number"
+F 7 "C3407" H 3000 3300 50  0001 C CNN "Manufacturer_Part_Number"
 F 8 "" H 3000 3300 50  0001 C CNN "Mouser Part Number"
 F 9 "" H 3000 3300 50  0001 C CNN "Mouser Price/Stock"
 	1    3000 3300
@@ -439,4 +439,6 @@ F 3 "~" H 1900 6150 50  0001 C CNN
 	1    1900 6150
 	-1   0    0    1   
 $EndComp
+Text Notes 2900 4150 0    79   ~ 16
+Remove pins 9, 10 and 27
 $EndSCHEMATC
