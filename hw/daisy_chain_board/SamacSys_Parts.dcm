@@ -20,4 +20,10 @@ D DIP Switches / SIP Switches HALF PITCH 2 POS
 F https://www.ckswitches.com/media/1328/tda.pdf
 $ENDCMP
 #
+$CMP 5748901-1
+D TE Connectivity AMPLIMITE HD-20 Series 25 Way Right Angle Through Hole Mount PCB D-sub Connector, Socket
+K
+F http://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=5748901&DocType=Customer+Drawing&DocLang=English
+$ENDCMP
+#
 #End Doc Library
