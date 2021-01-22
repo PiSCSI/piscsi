@@ -32,4 +32,10 @@ K
 F https://datasheet.lcsc.com/szlcsc/XKB-U254-051N-4BH806_C319170.pdf
 $ENDCMP
 #
+$CMP 5748901-1
+D TE Connectivity AMPLIMITE HD-20 Series 25 Way Right Angle Through Hole Mount PCB D-sub Connector, Socket
+K
+F http://www.te.com/commerce/DocumentDelivery/DDEController?Action=srchrtrv&DocNm=5748901&DocType=Customer+Drawing&DocLang=English
+$ENDCMP
+#
 #End Doc Library
