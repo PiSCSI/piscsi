@@ -16,6 +16,7 @@
 #include "devices/disk.h"
 #include "log.h"
 #include "gpiobus.h"
+#include "rascsi_version.h"
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
 
@@ -55,11 +56,18 @@ static volatile BOOL active;		// Processing flag
 GPIOBUS *bus;						// GPIO Bus
 typedef struct data_capture{
     DWORD data;
-    timeval timestamp;
+    QWORD timestamp;
 } data_capture_t;
 
 data_capture data_buffer[MAX_BUFF_SIZE];
-int data_idx = 0;
+DWORD data_idx = 0;
+
+double ns_per_loop;
+
+// We don't really need to support 256 character file names - this causes
+// all kinds of compiler warnings when the log filename can be up to 256
+// characters. _MAX_FNAME/2 is just an arbitrary value.
+char log_file_name[_MAX_FNAME/2] = "log.vcd";
 
 //---------------------------------------------------------------------------
 //
@@ -80,27 +88,25 @@ void KillHandler(int sig)
 void Banner(int argc, char* argv[])
 {
 	LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ");
-	LOGINFO("version %01d.%01d%01d(%s, %s)",
-		(int)((VERSION >> 8) & 0xf),
-		(int)((VERSION >> 4) & 0xf),
-		(int)((VERSION     ) & 0xf),
+	LOGINFO("version %s (%s, %s)\n",
+		rascsi_get_version_string(),
 		__DATE__,
 		__TIME__);
 	LOGINFO("Powered by XM6 TypeG Technology ");
 	LOGINFO("Copyright (C) 2016-2020 GIMONS");
 	LOGINFO("Copyright (C) 2020 akuker");
 	LOGINFO("Connect type : %s", CONNECT_DESC);
-	LOGINFO("   log.vcd - Value Change Dump file that can be opened with GTKWave");
+	LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", log_file_name);
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
-		LOGINFO("Usage: %s ...", argv[0]);
+		LOGINFO("Usage: %s [log filename]...", argv[0]);
 		exit(0);
 	}
     else
     {
         LOGINFO(" ");
-        LOGINFO("Current running & collecting data. Press CTRL-C to stop.")
+        LOGINFO("Now collecting data.... Press CTRL-C to stop.")
         LOGINFO(" ");
     }
 }
@@ -151,14 +157,14 @@ BYTE get_data_field(DWORD data)
 {
 	DWORD data_out;
 	data_out =
-		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
-		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
-		((data >> (PIN_DT2 - 2)) & (1 << 2)) |
-		((data >> (PIN_DT3 - 3)) & (1 << 3)) |
-		((data >> (PIN_DT4 - 4)) & (1 << 4)) |
-		((data >> (PIN_DT5 - 5)) & (1 << 5)) |
-		((data >> (PIN_DT6 - 6)) & (1 << 6)) |
-		((data >> (PIN_DT7 - 7)) & (1 << 7));
+		((data >> (PIN_DT0 - 0)) & (1 << 7)) |
+		((data >> (PIN_DT1 - 1)) & (1 << 6)) |
+		((data >> (PIN_DT2 - 2)) & (1 << 5)) |
+		((data >> (PIN_DT3 - 3)) & (1 << 4)) |
+		((data >> (PIN_DT4 - 4)) & (1 << 3)) |
+		((data >> (PIN_DT5 - 5)) & (1 << 2)) |
+		((data >> (PIN_DT6 - 6)) & (1 << 1)) |
+		((data >> (PIN_DT7 - 7)) & (1 << 0));
 
 	return (BYTE)data_out;
 }
@@ -190,14 +196,14 @@ void vcd_output_if_changed_byte(FILE *fp, DWORD data, int pin, char symbol)
     {
         prev_value[pin] = new_value;
         fprintf(fp, "b%d%d%d%d%d%d%d%d %c\n",
-        get_pin_value(data,PIN_DT0),
-        get_pin_value(data,PIN_DT1),
-        get_pin_value(data,PIN_DT2),
-        get_pin_value(data,PIN_DT3),
-        get_pin_value(data,PIN_DT4),
-        get_pin_value(data,PIN_DT5),
+        get_pin_value(data,PIN_DT7),
         get_pin_value(data,PIN_DT6),
-        get_pin_value(data,PIN_DT7), symbol);
+        get_pin_value(data,PIN_DT5),
+        get_pin_value(data,PIN_DT4),
+        get_pin_value(data,PIN_DT3),
+        get_pin_value(data,PIN_DT2),
+        get_pin_value(data,PIN_DT1),
+        get_pin_value(data,PIN_DT0), symbol);
     }
 }
 
@@ -207,13 +213,11 @@ void create_value_change_dump()
 {
     time_t rawtime;
     struct tm * timeinfo;
-    int i = 0;
-    timeval time_diff;
+    DWORD i = 0;
     char timestamp[256];
     FILE *fp;
-    timeval start_time = data_buffer[0].timestamp;
-    LOGINFO("Creating Value Change Dump file (log.vcd)\n");
-    fp = fopen("log.vcd","w");
+    LOGINFO("Creating Value Change Dump file (%s)", log_file_name);
+    fp = fopen(log_file_name,"w");
 
     // Get the current time
     time (&rawtime);
@@ -227,9 +231,9 @@ void create_value_change_dump()
     fprintf(fp, "   VCD generator tool version info text.\n");
     fprintf(fp, "$end\n");
     fprintf(fp, "$comment\n");
-    fprintf(fp, "   Any comment text.\n");
+    fprintf(fp, "   Tool build date:%s\n", __TIMESTAMP__);
     fprintf(fp, "$end\n");
-    fprintf(fp, "$timescale 1 us $end\n");
+    fprintf(fp, "$timescale 1 ns $end\n");
     fprintf(fp, "$scope module logic $end\n");
     fprintf(fp, "$var wire 1 %c BSY $end\n", SYMBOL_PIN_BSY);
     fprintf(fp, "$var wire 1 %c SEL $end\n", SYMBOL_PIN_SEL);
@@ -261,8 +265,7 @@ void create_value_change_dump()
 
     while(i < data_idx)
     {
-        timersub(&(data_buffer[i].timestamp), &start_time, &time_diff);
-        fprintf(fp, "#%ld\n",((time_diff.tv_sec*1000000) + time_diff.tv_usec));
+        fprintf(fp, "#%llu\n",(QWORD)(data_buffer[i].timestamp*ns_per_loop));
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_SEL, SYMBOL_PIN_SEL);
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_CD,  SYMBOL_PIN_CD);
@@ -289,7 +292,7 @@ void create_value_change_dump()
 void Cleanup()
 {
 
-    LOGINFO("Stoping data collection....\n");
+    LOGINFO("Stopping data collection....");
     create_value_change_dump();
 
 	// Cleanup the Bus
@@ -354,8 +357,34 @@ int main(int argc, char* argv[])
     DWORD this_sample = 0;
 	int ret;
     struct sched_param schparam;
+    timeval start_time, stop_time;
+    QWORD loop_count = 0;
+    timeval time_diff;
+    QWORD elapsed_us;
+    int str_len;
 
+    // If there is an argument specified and it is NOT -h or --help
+    if((argc > 1) && (strcmp(argv[1], "-h")) && (strcmp(argv[1], "--help"))){
+        str_len = strlen(argv[1]);
+        if ((str_len >= 1) && (str_len < _MAX_FNAME))
+        {
+            strncpy(log_file_name, argv[1], sizeof(log_file_name));
+            // Append .vcd if its not already there
+            if((str_len < 4) || strcasecmp(log_file_name + (str_len - 4), ".vcd")) {
+                strcat(log_file_name, ".vcd");
+            }
+        }
+        else
+        {
+            printf("Invalid log name specified. Using log.vcd");
+        }
+    }
+
+#ifdef DEBUG
     spdlog::set_level(spdlog::level::trace);
+#else
+    spdlog::set_level(spdlog::level::info);
+#endif
     spdlog::set_pattern("%^[%l]%$ %v");
 	// Output the Banner
 	Banner(argc, argv);
@@ -382,11 +411,24 @@ int main(int argc, char* argv[])
 	running = TRUE;
 	bus->SetACT(FALSE);
 
+    (void)gettimeofday(&start_time, NULL);
+
     LOGDEBUG("ALL_SCSI_PINS %08X\n",ALL_SCSI_PINS);
 	// Main Loop
 	while (running) {
 		// Work initialization
 		this_sample = (bus->Aquire() & ALL_SCSI_PINS);
+        loop_count++;
+        if(loop_count > LLONG_MAX -1)
+        {
+            LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.");
+            running=false;
+        }
+        if(data_idx >= (MAX_BUFF_SIZE-2))
+        {
+            LOGINFO("Internal data buffer is full. SCSIMON is terminating.");
+            running=false;
+        }
 
 		if(this_sample != prev_sample)
 		{
@@ -402,15 +444,38 @@ int main(int argc, char* argv[])
             }
             prev_high = high_bits;
             prev_low = low_bits;
+            if((data_idx % 1000) == 0){
+                LOGDEBUG("Collected %lu samples...", data_idx);
+            }
 #endif
             data_buffer[data_idx].data = this_sample;
-            (void)gettimeofday(&(data_buffer[data_idx].timestamp), NULL);
-            data_idx = (data_idx + 1) % MAX_BUFF_SIZE;
+            data_buffer[data_idx].timestamp = loop_count;
+            data_idx++;
             prev_sample = this_sample;
 		}
 
 		continue;
 	}
+
+    // Collect one last sample, otherwise it looks like the end of the data was cut off
+    if(data_idx < MAX_BUFF_SIZE)
+    {
+        data_buffer[data_idx].data = this_sample;
+        data_buffer[data_idx].timestamp = loop_count;
+        data_idx++;
+    }
+
+    (void)gettimeofday(&stop_time, NULL);
+
+    timersub(&stop_time, &start_time, &time_diff);
+
+    elapsed_us = ((time_diff.tv_sec*1000000) + time_diff.tv_usec);
+    LOGINFO("Elapsed time: %llu microseconds (%lf seconds)",elapsed_us, ((double)elapsed_us)/1000000);
+    LOGINFO("Collected %lu changes", data_idx);
+
+    // Note: ns_per_loop is a global variable that is used by Cleanup() to printout the timestamps.    
+    ns_per_loop = (elapsed_us * 1000) / (double)loop_count;
+    LOGINFO("Read the SCSI bus %llu times with an average of %lu ns for each read", loop_count, (DWORD)ns_per_loop);
 
 	// Cleanup
 	Cleanup();

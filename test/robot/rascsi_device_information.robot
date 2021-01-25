@@ -27,7 +27,7 @@ Apple Hard Drive reports the correct device information
     Then Rasctl reports SCSI ID 0 of type HD
     And SCSI ID 0 is detected by Linux
     And SCSI ID 0 reports vendor ${SPACE}SEAGATE
-    And SCSI ID 0 reports revision 0147
+    And SCSI ID 0 reports revision 0200
     And SCSI ID 0 reports model ${SPACE*10}ST225N
     And SCSI ID 0 reports type ${Scsi_device_type_hard_drive}
 
@@ -40,7 +40,7 @@ XM6 Hard Drive reports the correct device information
     Then Rasctl reports SCSI ID 1 of type HD
     And SCSI ID 1 is detected by Linux
     And SCSI ID 1 reports vendor RaSCSI${SPACE*2}
-    And SCSI ID 1 reports revision 0147
+    And SCSI ID 1 reports revision 0200
     And SCSI ID 1 reports model PRODRIVE LPS10S${SPACE}
     And SCSI ID 1 reports type ${Scsi_device_type_hard_drive}
 
@@ -53,7 +53,7 @@ NEC Hard Drive reports the correct device information
     Then Rasctl reports SCSI ID 2 of type HD
     And SCSI ID 2 is detected by Linux
     And SCSI ID 2 reports vendor NECCSI${SPACE*2}
-    And SCSI ID 2 reports revision 0147
+    And SCSI ID 2 reports revision 0200
     And SCSI ID 2 reports model PRODRIVE LPS10S${SPACE}
     And SCSI ID 2 reports type ${Scsi_device_type_hard_drive}
 
@@ -66,7 +66,7 @@ Anex86 Hard Drive reports the correct device information
     Then Rasctl reports SCSI ID 3 of type HD
     And SCSI ID 3 is detected by Linux
     And SCSI ID 3 reports vendor RaSCSI${SPACE*2}
-    And SCSI ID 3 reports revision 0147
+    And SCSI ID 3 reports revision 0200
     And SCSI ID 3 reports model CD-ROM CDU-55S${SPACE*2}
     And SCSI ID 3 reports type ${Scsi_device_type_hard_drive}
 
@@ -77,7 +77,7 @@ CD-ROM drive reports the correct device information
     Then Rasctl reports SCSI ID 4 of type CD
     And SCSI ID 4 is detected by Linux
     And SCSI ID 4 reports vendor RaSCSI${SPACE*2}
-    And SCSI ID 4 reports revision 0147
+    And SCSI ID 4 reports revision 0200
     And SCSI ID 4 reports model CD-ROM CDU-55S${SPACE*2}
     And SCSI ID 4 reports type ${Scsi_device_type_cd_rom}
 
@@ -89,6 +89,6 @@ Magneto Optical drive reports the correct device information
     Then Rasctl reports SCSI ID 5 of type MO
     And SCSI ID 5 is detected by Linux
     And SCSI ID 5 reports vendor RaSCSI${SPACE*2}
-    And SCSI ID 5 reports revision 0147
+    And SCSI ID 5 reports revision 0200
     And SCSI ID 5 reports model M2513A${SPACE*10}
     And SCSI ID 5 reports type ${Scsi_device_type_optical_memory}

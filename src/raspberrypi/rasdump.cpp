@@ -14,6 +14,7 @@
 #include "fileio.h"
 #include "filepath.h"
 #include "gpiobus.h"
+#include "rascsi_version.h"
 
 //---------------------------------------------------------------------------
 //
@@ -62,10 +63,10 @@ void KillHandler(int sig)
 BOOL Banner(int argc, char* argv[])
 {
 	printf("RaSCSI hard disk dump utility ");
-	printf("version %01d.%01d%01d\n",
-		(int)((VERSION >> 8) & 0xf),
-		(int)((VERSION >> 4) & 0xf),
-		(int)((VERSION     ) & 0xf));
+	printf("version %s (%s, %s)\n",
+		rascsi_get_version_string(),
+		__DATE__,
+		__TIME__);
 
 	if (argc < 2 || strcmp(argv[1], "-h") == 0) {
 		printf("Usage: %s -i ID [-b BID] -f FILE [-r]\n", argv[0]);
