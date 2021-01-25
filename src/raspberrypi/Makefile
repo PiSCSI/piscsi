@@ -75,6 +75,7 @@ SRC_RASCSI = \
 	gpiobus.cpp \
 	filepath.cpp \
 	fileio.cpp\
+	rascsi_version.cpp
 #	os.cpp
 #	rasctl_command.cpp
 #	rascsi_mgr.cpp
@@ -87,13 +88,15 @@ SRC_SCSIMON = \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp
+	fileio.cpp\
+	rascsi_version.cpp
 SRC_SCSIMON += $(shell find ./controllers -name '*.cpp')
 SRC_SCSIMON += $(shell find ./devices -name '*.cpp')
 
 
 SRC_RASCTL = \
-	rasctl.cpp
+	rasctl.cpp\
+	rascsi_version.cpp
 #	rasctl_command.cpp
 
 SRC_RASDUMP = \
@@ -101,14 +104,16 @@ SRC_RASDUMP = \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp
+	fileio.cpp\
+	rascsi_version.cpp
 
 SRC_SASIDUMP = \
 	sasidump.cpp \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp
+	fileio.cpp\
+	rascsi_version.cpp
 
 vpath %.h ./ ./controllers ./devices
 vpath %.cpp ./ ./controllers ./devices

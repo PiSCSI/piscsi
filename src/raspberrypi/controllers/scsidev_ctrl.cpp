@@ -16,6 +16,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
+#include "rascsi_version.h"
 
 //===========================================================================
 //
@@ -553,12 +554,8 @@ void FASTCALL SCSIDEV::CmdInquiry()
 
 	// Processed on the disk side (it is originally processed by the controller)
 	if (disk) {
-#ifdef RASCSI
-		major = (DWORD)(RASCSI >> 8);
-		minor = (DWORD)(RASCSI & 0xff);
-#else
-		host->GetVM()->GetVersion(major, minor);
-#endif	// RASCSI
+		major = (DWORD)rascsi_major_version;
+		minor = (DWORD)rascsi_minor_version;
 		ctrl.length =
 			ctrl.unit[lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
 	} else {

@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
+#include "rascsi_version.h"
 
 //---------------------------------------------------------------------------
 //
@@ -84,6 +85,10 @@ int main(int argc, char* argv[])
 	// Display help
 	if (argc < 2) {
 		fprintf(stderr, "SCSI Target Emulator RaSCSI Controller\n");
+		fprintf(stderr, "version %s (%s, %s)\n",
+			rascsi_get_version_string(),
+			__DATE__,
+			__TIME__);
 		fprintf(stderr,
 			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]\n",
 			argv[0]);

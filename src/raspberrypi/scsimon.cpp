@@ -16,6 +16,7 @@
 #include "devices/disk.h"
 #include "log.h"
 #include "gpiobus.h"
+#include "rascsi_version.h"
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
 
@@ -80,10 +81,8 @@ void KillHandler(int sig)
 void Banner(int argc, char* argv[])
 {
 	LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ");
-	LOGINFO("version %01d.%01d%01d(%s, %s)",
-		(int)((VERSION >> 8) & 0xf),
-		(int)((VERSION >> 4) & 0xf),
-		(int)((VERSION     ) & 0xf),
+	LOGINFO("version %s (%s, %s)\n",
+		rascsi_get_version_string(),
 		__DATE__,
 		__TIME__);
 	LOGINFO("Powered by XM6 TypeG Technology ");
