@@ -21,10 +21,12 @@
 #include "devices/scsicd.h"
 #include "devices/scsimo.h"
 #include "devices/scsi_host_bridge.h"
+#include "devices/scsi_daynaport.h"
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
 #include "gpiobus.h"
 #include "rascsi_version.h"
+#include "rasctl.h"
 #include "spdlog/spdlog.h"
 
 //---------------------------------------------------------------------------
@@ -95,7 +97,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout," FILE is disk image file.\n\n");
 		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file.\n\n");
+		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
 		FPRT(stdout,"  hdf : SASI HD image(XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image(XM6 SCSI HD image)\n");
@@ -468,7 +470,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		// Distinguish between SASI and SCSI
 		ext = NULL;
 		pUnit = NULL;
-		if (type == 0) {
+		if (type == rasctl_dev_sasi_hd) {
 			// Passed the check
 			if (!file) {
 				return FALSE;
@@ -488,16 +490,16 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			// If the extension is not SASI type, replace with SCSI
 			ext = &file[len - 3];
 			if (xstrcasecmp(ext, "hdf") != 0) {
-				type = 1;
+				type = rasctl_dev_scsi_hd;
 			}
 		}
 
 		// Create a new drive, based upon type
 		switch (type) {
-			case 0:		// HDF
+			case rasctl_dev_sasi_hd:		// HDF
 				pUnit = new SASIHD();
 				break;
-			case 1:		// HDS/HDN/HDI/NHD/HDA
+			case rasctl_dev_scsi_hd:		// HDS/HDN/HDI/NHD/HDA
 				if (ext == NULL) {
 					break;
 				}
@@ -510,14 +512,20 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 					pUnit = new SCSIHD();
 				}
 				break;
-			case 2:		// MO
+			case rasctl_dev_mo:		// MO
 				pUnit = new SCSIMO();
 				break;
-			case 3:		// CD
+			case rasctl_dev_cd:		// CD
 				pUnit = new SCSICD();
 				break;
-			case 4:		// BRIDGE
+			case rasctl_dev_br:		// BRIDGE
 				pUnit = new SCSIBR();
+				break;
+			// case rasctl_dev_nuvolink: // Nuvolink
+			// 	pUnit = new SCSINuvolink();
+			// 	break;
+			case rasctl_dev_daynaport: // DaynaPort SCSI Link
+				pUnit = new SCSIDaynaPort();
 				break;
 			default:
 				FPRT(fp,	"Error : Invalid device type\n");

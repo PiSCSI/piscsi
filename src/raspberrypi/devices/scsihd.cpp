@@ -100,7 +100,7 @@ BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIHD::Inquiry(
+int FASTCALL SCSIHD:: Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	char vendor[32];
