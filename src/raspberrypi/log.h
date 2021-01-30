@@ -19,7 +19,7 @@
 #define SPDLOGWRAPPER(loglevel, ...)			\
 do							\
 {							\
-	char logbuf[256];				\
+	char logbuf[_MAX_FNAME*2];				\
 	snprintf(logbuf, sizeof(logbuf), __VA_ARGS__);	\
 	spdlog::log(loglevel, logbuf);			\
 } while (0);

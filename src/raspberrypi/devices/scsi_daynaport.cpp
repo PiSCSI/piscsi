@@ -387,7 +387,7 @@ BOOL FASTCALL SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD bloc
 //---------------------------------------------------------------------------
 int FASTCALL SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 {
-		DWORD response_size;
+	DWORD response_size;
 	DWORD allocation_length;
 
 	// DWORD frame_alignment_errors;
@@ -429,7 +429,7 @@ int FASTCALL SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 
 	for(int i=0; i< 6; i++)
 	{
-		LOGINFO("%s CDB byte %d: %02X",__PRETTY_FUNCTION__, i, (unsigned int)cdb[i]);
+		LOGTRACE("%s CDB byte %d: %02X",__PRETTY_FUNCTION__, i, (unsigned int)cdb[i]);
 	}
 
 	response_size = 18;
@@ -440,11 +440,6 @@ int FASTCALL SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 
 	LOGTRACE("%s response size is %d", __PRETTY_FUNCTION__, (int)response_size);
 
-	// // SendMessage6 is 18 bytes
-	// for(int i=0; i< 18; i++)
-	// {
-	// 	LOGDEBUG("%s Byte %d: %02X",__PRETTY_FUNCTION__, i, (int)buffer[i]);
-	// }
 	if(response_size > allocation_length)
 	{
 		response_size = allocation_length;
