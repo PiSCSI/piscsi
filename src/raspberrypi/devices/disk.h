@@ -365,4 +365,9 @@ protected:
 										// File path (for GetPath)
 	BOOL cache_wb;
 										// Cache mode
+
+	char m_vendor_id[9];    // 8 characters + null
+	char m_product_id[17];  // 16 characters + null
+	char m_revision_lvl[5]; // 4 characters + null
+	char m_serial_num[9];   // 8 characters + null
 };

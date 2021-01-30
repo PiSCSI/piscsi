@@ -267,6 +267,12 @@ SCSICD::SCSICD() : Disk()
 	// SCSI CD-ROM
 	disk.id = MAKEID('S', 'C', 'C', 'D');
 
+	// This emulates the device information of an AppleCD 600e
+	strncpy(m_vendor_id,    "MATSHITA",         sizeof(m_vendor_id));
+	strncpy(m_product_id,   "CD-ROM CR-8005  ",   sizeof(m_product_id));
+	strncpy(m_revision_lvl, "1.0k",             sizeof(m_revision_lvl));
+	strncpy(m_serial_num,   "1999/1/1",         sizeof(m_serial_num));
+
 	// removable, write protected
 	disk.removable = TRUE;
 	disk.writep = TRUE;
@@ -640,8 +646,9 @@ BOOL FASTCALL SCSICD::OpenPhysical(const Filepath& path)
 int FASTCALL SCSICD::Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	char rev[32];
 	int size;
+	scsi_cmd_inquiry_t *cmd = (scsi_cmd_inquiry_t*)cdb;
+	scsi_resp_inquiry_t *response = (scsi_resp_inquiry_t*)buf;
 
 	ASSERT(this);
 	ASSERT(cdb);
@@ -654,38 +661,65 @@ int FASTCALL SCSICD::Inquiry(
 		return FALSE;
 	}
 
+	// Clear out any garbage in the buffer
+	memset(buf, 0, 8);
+
+	LOGINFO("SCSICD inquiry length = %08X", (unsigned int)cmd->allocation_length);
+
+	LOGINFO("SCSICD inqury: %02X %02X %02X %02X %02X %02X %02X %02X",
+		(unsigned int)cdb[0],
+		(unsigned int)cdb[1],
+		(unsigned int)cdb[2],
+		(unsigned int)cdb[3],
+		(unsigned int)cdb[4],
+		(unsigned int)cdb[5],
+		(unsigned int)cdb[6],
+		(unsigned int)cdb[7])
+
 	// Basic data
 	// buf[0] ... CD-ROM Device
 	// buf[1] ... Removable
 	// buf[2] ... SCSI-2 compliant command system
 	// buf[3] ... SCSI-2 compliant Inquiry response
 	// buf[4] ... Inquiry additional data
-	memset(buf, 0, 8);
 	buf[0] = 0x05;
+
+	response->device_type = e_scsi_type_cd_dvd;
+	response->removable = scsi_inquiry_removable;
+	response->version = 0x02;
+	response->response_data_format = 0x02;
+	response->flags1 = 0x00;
+	response->flags2 = 0x00;
+	response->flags3 = 0x18;
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
 	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
 		buf[0] = 0x7f;
 	}
 
-	buf[1] = 0x80;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
+	memcpy(response->vendor_id,  m_vendor_id,    sizeof(scsi_resp_inquiry_t::vendor_id));
+	memcpy(response->product_id, m_product_id,   sizeof(scsi_resp_inquiry_t::product_id));
+	memcpy(response->revision,   m_revision_lvl, sizeof(scsi_resp_inquiry_t::revision));
+	memcpy(response->serial_num, m_serial_num,   sizeof(scsi_resp_inquiry_t::serial_num));
+
+	// buf[1] = 0x80;
+	// buf[2] = 0x02;
+	// buf[3] = 0x02;
 	buf[4] = 36 - 5;	// Required
 
-	// Fill with blanks
-	memset(&buf[8], 0x20, buf[4] - 3);
+	// // Fill with blanks
+	// memset(&buf[8], 0x20, buf[4] - 3);
 
-	// Vendor name
-	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
+	// // Vendor name
+	// memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
 
-	// Product name
-	memcpy(&buf[16], "CD-ROM CDU-55S", 14);
+	// // Product name
+	// memcpy(&buf[16], "CD-ROM CDU-55S", 14);
 
-	// Revision (XM6 version number)
-	sprintf(rev, "0%01d%01d%01d",
-				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-	memcpy(&buf[32], rev, 4);
+	// // Revision (XM6 version number)
+	// sprintf(rev, "0%01d%01d%01d",
+	// 			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
+	// memcpy(&buf[32], rev, 4);
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to
 // test with the original code to see if it works as well....
@@ -713,13 +747,50 @@ int FASTCALL SCSICD::Inquiry(
 	size = (buf[4] + 5);
 
 	// Limit if the other buffer is small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
+	if ((cmd->allocation_length > 0) && (size > cmd->allocation_length)){
+		LOGINFO("Reducing size of buffer from %d to %d", (int)size, (int)cmd->allocation_length);
+		size = cmd->allocation_length;
 	}
 
 	//  Success
 	disk.code = DISK_NOERROR;
 	return size;
+}
+
+
+
+//---------------------------------------------------------------------------
+//
+//	Add Vendor special page
+//
+//---------------------------------------------------------------------------
+int FASTCALL SCSICD::AddVendor(int page, BOOL change, BYTE *buf)
+{
+	ASSERT(this);
+	ASSERT(buf);
+
+	LOGINFO("%s Running special AddVendor for CD-ROM, page %d", __PRETTY_FUNCTION__, page);
+	// Page code 48
+	if ((page != 0x30) && (page != 0x3f)) {
+		LOGWARN("%s received unknown mode sense command %d", __PRETTY_FUNCTION__, page);
+		return 0;
+	}
+    //   #                                                                '0'          A     P    #      L     E    ' '   'C'   'O'   'M'   'P'   'U'   'E'    'R'   ','   ' '   'I'   'N'   'P'   'C'  ' '   ' '   ' '  'C'                    
+	// 0x23, 0x00, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08, 0x00, 0x30, 0x16, 0x41, 0x50, 0x23, 0x4C, 0x45, 0x20, 0x43, 0x4F, 0x4D, 0x50, 0x55, 0x45, 0x52, 0x2C, 0x20, 0x49, 0x4E, 0x50, 0x43, 0x20, 0x20, 0x20, 0x43
+
+	// Set the message length
+	buf[0] = 0x30;
+	buf[1] = 0x1c;
+
+	// No changeable area
+	if (change) {
+		return 30;
+	}
+
+	// APPLE COMPUTER, INC.
+	memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
+
+	return 30;
 }
 
 //---------------------------------------------------------------------------

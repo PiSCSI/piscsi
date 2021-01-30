@@ -80,13 +80,14 @@ void KillHandler(int sig)
 //---------------------------------------------------------------------------
 void Banner(int argc, char* argv[])
 {
-	FPRT(stdout,"SCSI Target Emulator RaSCSI(*^..^*) ");
+	FPRT(stdout,"SCSI Target Emulator RaSCSI(*^..^*)\n");
 	FPRT(stdout,"version %s (%s, %s)\n",
 		rascsi_get_version_string(),
 		__DATE__,
 		__TIME__);
-	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
+	FPRT(stdout,"Powered by XM6 TypeG Technology \n");
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
+	FPRT(stdout,"Copyright (C) 2020-2021 akuker\n");
 	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
@@ -284,7 +285,7 @@ void ListDevice(FILE *fp)
         if (!find) {
 			FPRT(fp, "\n");
 			FPRT(fp, "+----+----+------+-------------------------------------\n");
-			LOGINFO( "+----+----+------+-------------------------------------");
+			LOGINFO( "+----+----+------+-------------------------------------ras");
 			FPRT(fp, "| ID | UN | TYPE | DEVICE STATUS\n");
 			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS\n");
 			FPRT(fp, "+----+----+------+-------------------------------------\n");

@@ -152,6 +152,27 @@ typedef struct __attribute__((packed)) {
 	BYTE control;
 } scsi_cdb_6_byte_t;
 
+enum scsi_peripheral_device_type_t : BYTE {
+	e_scsi_type_magnetic_disk  = 0x00,
+	e_scsi_type_magnetic_tape  = 0x01,
+	e_scsi_type_printer        = 0x02,
+	e_scsi_type_processor      = 0x03,
+	e_scsi_type_write_once     = 0x04,
+	e_scsi_type_cd_dvd         = 0x05,
+	e_scsi_type_scanner        = 0x06,
+	e_scsi_type_optical_mem    = 0x07,
+	e_scsi_type_medium_changer = 0x08,
+	e_scsi_type_communications = 0x09,
+	e_scsi_type_storage_array  = 0x0C,
+	e_scsi_type_encl_service   = 0x0D,
+	e_scsi_type_direct_acc_dev = 0x0E,
+	e_scsi_type_optical_card   = 0x0F,
+	e_scsi_type_obj_bsd_strg   = 0x11,
+	e_scsi_type_automtn_intfce = 0x12,
+	e_scsi_type_logical_unit   = 0x1E,
+	e_scsi_type_unknown        = 0x1F,
+};
+
 
 typedef struct __attribute__((packed)) {
 	BYTE operation_code;
@@ -222,5 +243,35 @@ typedef struct __attribute__((packed)) {
 	BYTE control;
 } scsi_cmd_request_sense_t;
 
+typedef struct __attribute__((packed)) {
+	BYTE device_type;
+	BYTE removable;
+	BYTE version;
+	BYTE response_data_format;
+	BYTE additional_len;
+	BYTE flags1;
+	BYTE flags2;
+	BYTE flags3;
+	char vendor_id[8];
+	char product_id[16];
+	char revision[4];
+	char serial_num[8];
+	char vendor_unique[12];
+	BYTE reserved_56;
+	BYTE reserved_57;
+	WORD vendor_desc_1;
+	WORD vendor_desc_2;
+	WORD vendor_desc_3;
+	WORD vendor_desc_4;
+	WORD vendor_desc_5;
+	WORD vendor_desc_6;
+	WORD vendor_desc_7;
+	WORD vendor_desc_8;
+	BYTE reserved_74[22];
+	BYTE copyright[256];
+} scsi_resp_inquiry_t;
+
+const BYTE scsi_inquiry_removable = 0x80;
+const BYTE scsi_inquiry_not_removable = 0x00;
 
 #endif	// scsi_h
