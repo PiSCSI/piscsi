@@ -17,6 +17,10 @@
 //    - SLINKCMD: http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/SLINKCMD.TXT
 //    - Tiny SCSI : https://hackaday.io/project/18974-tiny-scsi-emulator
 //
+//  Additional documentation and clarification is available at the 
+//  following link:
+//    - https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link
+//
 //  This does NOT include the file system functionality that is present
 //  in the Sharp X68000 host bridge.
 //
@@ -56,7 +60,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk()
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
 	}else {
-		LOGINFO("Tap interface created")
+		LOGDEBUG("Tap interface created")
 	}
 
 	LOGTRACE("%s this->reset()", __PRETTY_FUNCTION__);
