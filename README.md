@@ -1,3 +1,6 @@
+# THIS BRANCH HAS BEEN ABANDONED!!! The DaynaPort SCSI/Link device was added instead of the nuvolink.
+
+
 ![C/C++ CI](https://github.com/akuker/RASCSI/workflows/C/C++%20CI/badge.svg) [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/akuker/RASCSI/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/akuker/RASCSI/?branch=master)
 <a href="https://scan.coverity.com/projects/akuker-rascsi">
   <img alt="Coverity Scan Build Status"
