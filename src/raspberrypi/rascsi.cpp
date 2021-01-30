@@ -264,10 +264,12 @@ void ListDevice(FILE *fp)
 	Filepath filepath;
 	BOOL find;
 	char type[5];
+	char dev_status[_MAX_FNAME+26];
 
 	find = FALSE;
 	type[4] = 0;
 	for (i = 0; i < CtrlMax * UnitNum; i++) {
+		strncpy(dev_status,"",sizeof(dev_status));
 		// Initialize ID and unit number
 		id = i / UnitNum;
 		un = i % UnitNum;
@@ -282,7 +284,9 @@ void ListDevice(FILE *fp)
         if (!find) {
 			FPRT(fp, "\n");
 			FPRT(fp, "+----+----+------+-------------------------------------\n");
+			LOGINFO( "+----+----+------+-------------------------------------");
 			FPRT(fp, "| ID | UN | TYPE | DEVICE STATUS\n");
+			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS\n");
 			FPRT(fp, "+----+----+------+-------------------------------------\n");
 			find = TRUE;
 		}
@@ -292,27 +296,26 @@ void ListDevice(FILE *fp)
 		type[1] = (char)(pUnit->GetID() >> 16);
 		type[2] = (char)(pUnit->GetID() >> 8);
 		type[3] = (char)(pUnit->GetID());
-		FPRT(fp, "|  %d |  %d | %s | ", id, un, type);
 
 		// mount status output
 		if (pUnit->GetID() == MAKEID('S', 'C', 'B', 'R')) {
-			FPRT(fp, "%s", "HOST BRIDGE");
+			strncpy(dev_status,"X68000 HOST BRIDGE",sizeof(dev_status));
 		} else if (pUnit->GetID() == MAKEID('S', 'C', 'D', 'P')) {
-			FPRT(fp, "%s", "DaynaPort SCSI/Link");
+			strncpy(dev_status,"DaynaPort SCSI/Link",sizeof(dev_status));
 		} else {
 			pUnit->GetPath(filepath);
-			FPRT(fp, "%s",
+			snprintf(dev_status, sizeof(dev_status), "%s", 
 				(pUnit->IsRemovable() && !pUnit->IsReady()) ?
 				"NO MEDIA" : filepath.GetPath());
 		}
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
-			FPRT(fp, "(WRITEPROTECT)");
+			strcat(dev_status, "(WRITEPROTECT)");
 		}
+		FPRT(fp, "|  %d |  %d | %s | %s\n", id, un, type, dev_status);
+		LOGINFO( "|  %d |  %d | %s | %s", id, un, type, dev_status);
 
-		// Goto the next line
-		FPRT(fp, "\n");
 	}
 
 	// If there is no controller, find will be null
@@ -322,6 +325,7 @@ void ListDevice(FILE *fp)
 	}
 
 	FPRT(fp, "+----+----+------+-------------------------------------\n");
+	LOGINFO( "+----+----+------+-------------------------------------");
 }
 
 //---------------------------------------------------------------------------
@@ -451,6 +455,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	char *ext;
 	Filepath filepath;
 	Disk *pUnit;
+	char type_str[5];
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -532,6 +537,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 				break;
 			default:
 				FPRT(fp,	"Error : Invalid device type\n");
+				LOGWARN("rasctl sent a command for an invalid drive type: %d", type);
 				return FALSE;
 		}
 
@@ -543,6 +549,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			// Open the file path
 			if (!pUnit->Open(filepath)) {
 				FPRT(fp, "Error : File open error [%s]\n", file);
+				LOGWARN("rasctl tried to open an invalid file %s", file);
 				delete pUnit;
 				return FALSE;
 			}
@@ -556,18 +563,26 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 		// Re-map the controller
 		MapControler(fp, map);
+		type_str[0] = (char)(pUnit->GetID() >> 24);
+		type_str[1] = (char)(pUnit->GetID() >> 16);
+		type_str[2] = (char)(pUnit->GetID() >> 8);
+		type_str[3] = (char)(pUnit->GetID());
+		type_str[4] = '\0';
+		LOGINFO("rasctl added new %s device. ID: %d UN: %d", type_str, id, un);
 		return TRUE;
 	}
 
 	// Is this a valid command?
 	if (cmd > 4) {
 		FPRT(fp, "Error : Invalid command\n");
+		LOGINFO("rasctl sent an invalid command: %d",cmd);
 		return FALSE;
 	}
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
 		FPRT(fp, "Error : No such device\n");
+		LOGWARN("rasctl sent a command for invalid controller %d", id);
 		return FALSE;
 	}
 
@@ -575,11 +590,24 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	pUnit = disk[id * UnitNum + un];
 	if (pUnit == NULL) {
 		FPRT(fp, "Error : No such device\n");
+		LOGWARN("rasctl sent a command for invalid unit ID %d UN %d", id, un);
 		return FALSE;
 	}
+	type_str[0] = (char)(map[id * UnitNum + un]->GetID() >> 24);
+	type_str[1] = (char)(map[id * UnitNum + un]->GetID() >> 16);
+	type_str[2] = (char)(map[id * UnitNum + un]->GetID() >> 8);
+	type_str[3] = (char)(map[id * UnitNum + un]->GetID());
+	type_str[4] = '\0';
+
 
 	// Disconnect Command
 	if (cmd == 1) {					// DETACH
+		type_str[0] = (char)(map[id * UnitNum + un]->GetID() >> 24);
+		type_str[1] = (char)(map[id * UnitNum + un]->GetID() >> 16);
+		type_str[2] = (char)(map[id * UnitNum + un]->GetID() >> 8);
+		type_str[3] = (char)(map[id * UnitNum + un]->GetID());
+		type_str[4] = '\0';
+		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", type_str, id, un);
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
 
@@ -591,7 +619,8 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	// Valid only for MO or CD
 	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
 		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
-		FPRT(fp, "Error : Operation denied(Deveice isn't removable)\n");
+		FPRT(fp, "Error : Operation denied (Device type %s isn't removable)\n", type_str);
+		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, type_str);
 		return FALSE;
 	}
 
@@ -599,6 +628,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		case 2:						// INSERT
 			// Set the file path
 			filepath.SetPath(file);
+			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file, type_str, id, un);
 
 			// Open the file
 			if (!pUnit->Open(filepath)) {
@@ -608,17 +638,21 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			break;
 
 		case 3:						// EJECT
+			LOGINFO("rasctl commands eject %s ID: %d UN: %d", type_str, id, un);
 			pUnit->Eject(TRUE);
 			break;
 
 		case 4:						// PROTECT
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
 				FPRT(fp, "Error : Operation denied(Deveice isn't MO)\n");
+				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
 				return FALSE;
 			}
+			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), type_str, id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
 		default:
+			LOGWARN("Received unknown command from rasctl: %d", cmd);
 			ASSERT(FALSE);
 			return FALSE;
 	}
