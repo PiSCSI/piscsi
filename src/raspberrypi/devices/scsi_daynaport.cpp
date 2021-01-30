@@ -60,7 +60,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk()
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
 	}else {
-		LOGDEBUG("Tap interface created")
+		LOGDEBUG("Tap interface created");
 	}
 
 	LOGTRACE("%s this->reset()", __PRETTY_FUNCTION__);
