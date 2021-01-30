@@ -174,7 +174,7 @@ void FASTCALL CTapDriver::Cleanup()
 BOOL FASTCALL CTapDriver::Enable(){
 	int result;
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
-	result = system("ip link set ras0 up");
+	result = run_system_cmd("ip link set ras0 up");
 	return (result == EXIT_SUCCESS);
 }
 
@@ -186,7 +186,7 @@ BOOL FASTCALL CTapDriver::Enable(){
 BOOL FASTCALL CTapDriver::Disable(){
 	int result;
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
-	result = system("ip link set ras0 down");
+	result = run_system_cmd("ip link set ras0 down");
 	return (result == EXIT_SUCCESS);
 }
 
