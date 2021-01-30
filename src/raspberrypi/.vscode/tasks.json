@@ -5,7 +5,7 @@
         "type": "shell",
         "label": "g++ build active file",
         "command": "make",
-        "args": ["all", "DEBUG=1"],
+        "args": ["all", "DEBUG=1", "-j4"],
         "options": {
           "cwd": "${workspaceFolder}/"
         },

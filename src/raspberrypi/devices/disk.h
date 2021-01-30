@@ -328,13 +328,13 @@ public:
 										// PLAY AUDIO MSF command
 	virtual BOOL FASTCALL PlayAudioTrack(const DWORD *cdb);
 										// PLAY AUDIO TRACK command
-	void FASTCALL InvalidCmd()			{ disk.code = DISK_INVALIDCMD; }
+	void FASTCALL InvalidCmd();
 										// Unsupported command
 
 	// Other
-	BOOL IsCacheWB() { return cache_wb; }
+	BOOL FASTCALL IsCacheWB();
 										// Get cache writeback mode
-	void SetCacheWB(BOOL enable) { cache_wb = enable; }
+	void FASTCALL SetCacheWB(BOOL enable);
 										// Set cache writeback mode
 
 protected:

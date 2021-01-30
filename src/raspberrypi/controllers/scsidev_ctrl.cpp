@@ -559,7 +559,7 @@ void FASTCALL SCSIDEV::CmdInquiry()
 	if (disk) {
 		major = (DWORD)(RASCSI >> 8);
 		minor = (DWORD)(RASCSI & 0xff);
-		LOGINFO("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
+		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
 		ctrl.length =
 			ctrl.unit[lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
 	} else {

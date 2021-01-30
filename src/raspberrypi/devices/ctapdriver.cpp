@@ -48,35 +48,44 @@ BOOL FASTCALL CTapDriver::Init()
 
 	ASSERT(this);
 
+	LOGTRACE("Opening Tap device");
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
 		LOGERROR("Error: can't open tun. Errno: %d %s", errno, strerror(errno));
 		return FALSE;
 	}
+	LOGTRACE("Opened tap device %d",m_hTAP);
 
+	
 	// IFF_NO_PI for no extra packet information
 	memset(&ifr, 0, sizeof(ifr));
 	ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
 	strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+	LOGTRACE("Going to open %s", ifr.ifr_name);
 	if ((ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr)) < 0) {
 		LOGERROR("Error: can't ioctl TUNSETIFF. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		return FALSE;
 	}
+	LOGTRACE("return code from ioctl was %d", ret);
 
-	// Force the tap interface up
 	LOGDEBUG("ip link set ras0 up");
-	system("ip link set ras0 up");
+	ret = run_system_cmd("ip link set ras0 up");
+	LOGTRACE("return code from ip link set ras0 up was %d", ret);
+ 
 	LOGDEBUG("brctl addif rascsi_bridge ras0");
-	system("brctl addif rascsi_bridge ras0");
-
+	ret = run_system_cmd("brctl addif rascsi_bridge ras0");
+	LOGTRACE("return code from brctl addif rascsi_bridge ras0 was %d", ret);
+	
 	// Get MAC address
+	LOGTRACE("Getting the MAC address");
 	ifr.ifr_addr.sa_family = AF_INET;
 	if ((ret = ioctl(m_hTAP, SIOCGIFHWADDR, &ifr)) < 0) {
 		LOGERROR("Error: can't ioctl SIOCGIFHWADDR. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		return FALSE;
 	}
+	LOGTRACE("got the mac");
 
 	// Save MAC address
 	memcpy(m_MacAddr, ifr.ifr_hwaddr.sa_data, sizeof(m_MacAddr));
@@ -141,20 +150,20 @@ BOOL FASTCALL CTapDriver::Init()
 void FASTCALL CTapDriver::Cleanup()
 {
 	ASSERT(this);
-
+	int result;
 
 	LOGDEBUG("brctl delif rascsi_bridge ras0");
-	system("brctl delif rascsi_bridge ras0");
+	result = run_system_cmd("brctl delif rascsi_bridge ras0");
+	if(result != EXIT_SUCCESS){
+		LOGWARN("Warning: The brctl delif command failed.");
+		LOGWARN("You may need to manually remove the ras0 tap device from the bridge");
+	}
 
-
-	// Release TAP device
+	// Release TAP defice
 	if (m_hTAP != -1) {
 		close(m_hTAP);
 		m_hTAP = -1;
 	}
-
-
-
 }
 
 //---------------------------------------------------------------------------

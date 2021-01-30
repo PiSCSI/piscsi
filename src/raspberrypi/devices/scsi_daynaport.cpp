@@ -38,10 +38,6 @@ const char* SCSIDaynaPort::m_firmware_version = "01.00.00";
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
-#ifndef NDEBUG
-static DWORD file_counter = 0;
-#endif
-
 //---------------------------------------------------------------------------
 //
 //	Constructor
@@ -63,11 +59,13 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk()
 		LOGINFO("Tap interface created")
 	}
 
+	LOGTRACE("%s this->reset()", __PRETTY_FUNCTION__);
 	this->Reset();
 	disk.ready = true;
 	disk.reset = false;
 
 	// Generate MAC Address
+	LOGTRACE("%s memset(m_mac_addr, 0x00, 6);", __PRETTY_FUNCTION__);
 	memset(m_mac_addr, 0x00, 6);
 
 	// if (m_bTapEnable) {
@@ -76,6 +74,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk()
 	// }
 	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
 	// TODO: Remove this hard-coded address
+	LOGTRACE("%s m_mac_addr[0]=0x00;", __PRETTY_FUNCTION__);
 	m_mac_addr[0]=0x00;
 	m_mac_addr[1]=0x80;
 	m_mac_addr[2]=0x19;
@@ -298,8 +297,6 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 			} else {
 				buf[5] = 0;
 			}
-
-			LOGTRACE("%s Packet of size %d received [Counter: %d]", __PRETTY_FUNCTION__, (int)rx_packet_size, (int)file_counter);
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver

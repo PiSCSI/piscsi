@@ -297,6 +297,8 @@ void ListDevice(FILE *fp)
 		// mount status output
 		if (pUnit->GetID() == MAKEID('S', 'C', 'B', 'R')) {
 			FPRT(fp, "%s", "HOST BRIDGE");
+		} else if (pUnit->GetID() == MAKEID('S', 'C', 'D', 'P')) {
+			FPRT(fp, "%s", "DaynaPort SCSI/Link");
 		} else {
 			pUnit->GetPath(filepath);
 			FPRT(fp, "%s",
@@ -526,6 +528,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			// 	break;
 			case rasctl_dev_daynaport: // DaynaPort SCSI Link
 				pUnit = new SCSIDaynaPort();
+				LOGTRACE("Done creating SCSIDayanPort");
 				break;
 			default:
 				FPRT(fp,	"Error : Invalid device type\n");
@@ -533,7 +536,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		}
 
 		// drive checks files
-		if (type <= 1 || (type <= 3 && xstrcasecmp(file, "-") != 0)) {
+		if (type <= rasctl_dev_scsi_hd || (type <= rasctl_dev_cd && xstrcasecmp(file, "-") != 0)) {
 			// Set the Path
 			filepath.SetPath(file);
 

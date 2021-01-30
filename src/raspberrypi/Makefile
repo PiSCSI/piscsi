@@ -75,6 +75,7 @@ SRC_RASCSI = \
 	gpiobus.cpp \
 	filepath.cpp \
 	fileio.cpp\
+	os.cpp\
 	rascsi_version.cpp
 #	os.cpp
 #	rasctl_command.cpp
