@@ -233,7 +233,7 @@ public:
 #endif	// RASCSI
 
 	// ID
-	DWORD FASTCALL GetID() const		{ return disk.id; }
+	DWORD FASTCALL GetID() const;
 										// Get media ID
 	BOOL FASTCALL IsNULL() const;
 										// NULL check
@@ -298,11 +298,11 @@ public:
 										// FORMAT UNIT command
 	BOOL FASTCALL Reassign(const DWORD *cdb);
 										// REASSIGN UNIT command
-	virtual int FASTCALL Read(BYTE *buf, DWORD block);
+	virtual int FASTCALL Read(const DWORD *cdb, BYTE *buf, DWORD block);
 										// READ command
-	int FASTCALL WriteCheck(DWORD block);
+	virtual int FASTCALL WriteCheck(DWORD block);
 										// WRITE check
-	BOOL FASTCALL Write(const BYTE *buf, DWORD block);
+	virtual BOOL FASTCALL Write(const DWORD *cdb, const BYTE *buf, DWORD block);
 										// WRITE command
 	BOOL FASTCALL Seek(const DWORD *cdb);
 										// SEEK command
@@ -328,13 +328,13 @@ public:
 										// PLAY AUDIO MSF command
 	virtual BOOL FASTCALL PlayAudioTrack(const DWORD *cdb);
 										// PLAY AUDIO TRACK command
-	void FASTCALL InvalidCmd()			{ disk.code = DISK_INVALIDCMD; }
+	void FASTCALL InvalidCmd();
 										// Unsupported command
 
 	// Other
-	BOOL IsCacheWB() { return cache_wb; }
+	BOOL FASTCALL IsCacheWB();
 										// Get cache writeback mode
-	void SetCacheWB(BOOL enable) { cache_wb = enable; }
+	void FASTCALL SetCacheWB(BOOL enable);
 										// Set cache writeback mode
 
 protected:

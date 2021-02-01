@@ -122,7 +122,7 @@ private:
 										// Wave path
 	BOOL valid;
 										// Open result (is it valid?)
-	DWORD *buf;
+	DWORD *m_buf;
 										// Data buffer
 	DWORD read;
 										// Read pointer
@@ -164,7 +164,7 @@ public:
 	// commands
 	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);
 										// INQUIRY command
-	int FASTCALL Read(BYTE *buf, DWORD block);
+	int FASTCALL Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
 										// READ command
 	int FASTCALL ReadToc(const DWORD *cdb, BYTE *buf);
 										// READ TOC command
