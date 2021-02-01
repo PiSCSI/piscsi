@@ -1,5 +1,3 @@
-import os
-
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file
 from werkzeug.utils import secure_filename
 
@@ -19,6 +17,11 @@ from ractl_cmds import (
     detach_by_id,
     eject_by_id,
     get_valid_scsi_ids,
+    attach_daynaport,
+    is_bridge_setup,
+    daynaport_setup_bridge,
+    list_config_files,
+    detach_all,
 )
 from settings import *
 
@@ -31,14 +34,47 @@ def index():
     scsi_ids = get_valid_scsi_ids(devices)
     return render_template(
         "index.html",
+        bridge_configured=is_bridge_setup("eth0"),
         devices=devices,
         active=is_active(),
         files=list_files(),
+        config_files=list_config_files(),
         base_dir=base_dir,
         scsi_ids=scsi_ids,
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
     )
+
+
+@app.route("/config/save", methods=["POST"])
+def config_save():
+    file_name = request.form.get("name") or "default"
+    file_name = f"{base_dir}{file_name}.csv"
+    import csv
+
+    with open(file_name, "w") as csv_file:
+        writer = csv.writer(csv_file)
+        for device in list_devices():
+            if device["type"] is not "-":
+                writer.writerow(device.values())
+    flash(f"Saved config to  {file_name}!")
+    return redirect(url_for("index"))
+
+
+@app.route("/config/load", methods=["POST"])
+def config_load():
+    file_name = request.form.get("name") or "default.csv"
+    file_name = f"{base_dir}{file_name}"
+    detach_all()
+    import csv
+
+    with open(file_name) as csv_file:
+        config_reader = csv.reader(csv_file)
+        for row in config_reader:
+            image_name = row[3].replace("(WRITEPROTECT)", "")
+            attach_image(row[0], image_name, row[2])
+    flash(f"Loaded config from  {file_name}!")
+    return redirect(url_for("index"))
 
 
 @app.route("/logs")
@@ -52,7 +88,36 @@ def logs():
         headers = {"content-type": "text/plain"}
         return process.stdout.decode("utf-8"), 200, headers
     else:
-        flash(u"Failed to get logs")
+        flash("Failed to get logs")
+        flash(process.stdout.decode("utf-8"), "stdout")
+        flash(process.stderr.decode("utf-8"), "stderr")
+        return redirect(url_for("index"))
+
+
+@app.route("/daynaport/attach", methods=["POST"])
+def daynaport_attach():
+    scsi_id = request.form.get("scsi_id")
+    process = attach_daynaport(scsi_id)
+    if process.returncode == 0:
+        flash(f"Attached DaynaPORT to SCSI id {scsi_id}!")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to attach DaynaPORT to SCSI id {scsi_id}!", "error")
+        flash(process.stdout.decode("utf-8"), "stdout")
+        flash(process.stderr.decode("utf-8"), "stderr")
+        return redirect(url_for("index"))
+
+
+@app.route("/daynaport/setup", methods=["POST"])
+def daynaport_setup():
+    # Future use for wifi
+    interface = request.form.get("interface") or "eth0"
+    process = daynaport_setup_bridge(interface)
+    if process.returncode == 0:
+        flash(f"Configured DaynaPORT bridge on {interface}!")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to configure DaynaPORT bridge on {interface}!", "error")
         flash(process.stdout.decode("utf-8"), "stdout")
         flash(process.stderr.decode("utf-8"), "stderr")
         return redirect(url_for("index"))
@@ -69,20 +134,25 @@ def attach():
     elif file_name.lower().endswith(".hda"):
         image_type = "hd"
     else:
-        flash(u"Unknown file type. Valid files are .iso, .hda, .cdr", "error")
+        flash("Unknown file type. Valid files are .iso, .hda, .cdr", "error")
         return redirect(url_for("index"))
 
     process = attach_image(scsi_id, file_name, image_type)
     if process.returncode == 0:
-        flash("Attached " + file_name + " to scsi id " + scsi_id + "!")
+        flash(f"Attached {file_name} to SCSI id {scsi_id}!")
         return redirect(url_for("index"))
     else:
-        flash(
-            u"Failed to attach " + file_name + " to scsi id " + scsi_id + "!", "error"
-        )
+        flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
         flash(process.stdout.decode("utf-8"), "stdout")
         flash(process.stderr.decode("utf-8"), "stderr")
         return redirect(url_for("index"))
+
+
+@app.route("/scsi/detach_all", methods=["POST"])
+def detach_all_devices():
+    detach_all()
+    flash("Detached all SCSI devices!")
+    return redirect(url_for("index"))
 
 
 @app.route("/scsi/detach", methods=["POST"])
@@ -90,10 +160,10 @@ def detach():
     scsi_id = request.form.get("scsi_id")
     process = detach_by_id(scsi_id)
     if process.returncode == 0:
-        flash("Detached scsi id " + scsi_id + "!")
+        flash("Detached SCSI id " + scsi_id + "!")
         return redirect(url_for("index"))
     else:
-        flash(u"Failed to detach scsi id " + scsi_id + "!", "error")
+        flash("Failed to detach SCSI id " + scsi_id + "!", "error")
         flash(process.stdout, "stdout")
         flash(process.stderr, "stderr")
         return redirect(url_for("index"))
@@ -107,7 +177,7 @@ def eject():
         flash("Ejected scsi id " + scsi_id + "!")
         return redirect(url_for("index"))
     else:
-        flash(u"Failed to eject scsi id " + scsi_id + "!", "error")
+        flash("Failed to eject SCSI id " + scsi_id + "!", "error")
         flash(process.stdout, "stdout")
         flash(process.stderr, "stderr")
         return redirect(url_for("index"))
@@ -143,7 +213,7 @@ def download_file():
         flash("File Downloaded")
         return redirect(url_for("index"))
     else:
-        flash(u"Failed to download file", "error")
+        flash("Failed to download file", "error")
         flash(process.stdout, "stdout")
         flash(process.stderr, "stderr")
         return redirect(url_for("index"))
@@ -181,7 +251,7 @@ def create_file():
         flash("Drive created")
         return redirect(url_for("index"))
     else:
-        flash(u"Failed to create file", "error")
+        flash("Failed to create file", "error")
         flash(process.stdout, "stdout")
         flash(process.stderr, "stderr")
         return redirect(url_for("index"))
@@ -200,7 +270,7 @@ def delete():
         flash("File " + image + " deleted")
         return redirect(url_for("index"))
     else:
-        flash(u"Failed to Delete " + image, "error")
+        flash("Failed to Delete " + image, "error")
         return redirect(url_for("index"))
 
 
@@ -212,7 +282,7 @@ def unzip():
         flash("Unzipped file " + image)
         return redirect(url_for("index"))
     else:
-        flash(u"Failed to unzip " + image, "error")
+        flash("Failed to unzip " + image, "error")
         return redirect(url_for("index"))
 
 

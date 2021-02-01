@@ -37,6 +37,15 @@ def list_files():
     return files_list
 
 
+def list_config_files():
+    files_list = []
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.endswith(".csv"):
+                files_list.append(file)
+    return files_list
+
+
 def get_valid_scsi_ids(devices):
     invalid_list = EXCLUDE_SCSI_IDS.copy()
     for device in devices:
@@ -55,18 +64,27 @@ def get_type(scsi_id):
     return list_devices()[int(scsi_id)]["type"]
 
 
-def attach_image(scsi_id, image, type):
-    if type == "cd" and get_type(scsi_id) == "SCCD":
+def attach_image(scsi_id, image, device_type):
+    if device_type == "SCCD" and get_type(scsi_id) == "SCCD":
         return insert(scsi_id, image)
+    elif device_type == "SCDP":
+        attach_daynaport(scsi_id)
     else:
+        if device_type == "SCCD":
+            device_type = "cd"
         return subprocess.run(
-            ["rasctl", "-c", "attach", "-t", type, "-i", scsi_id, "-f", image],
+            ["rasctl", "-c", "attach", "-t", device_type, "-i", scsi_id, "-f", image],
             capture_output=True,
         )
 
 
 def detach_by_id(scsi_id):
     return subprocess.run(["rasctl", "-c" "detach", "-i", scsi_id], capture_output=True)
+
+
+def detach_all():
+    for scsi_id in range(0, 7):
+        subprocess.run(["rasctl", "-c" "detach", "-i", str(scsi_id)])
 
 
 def disconnect_by_id(scsi_id):
@@ -82,6 +100,28 @@ def eject_by_id(scsi_id):
 def insert(scsi_id, image):
     return subprocess.run(
         ["rasctl", "-i", scsi_id, "-c", "insert", "-f", image], capture_output=True
+    )
+
+
+def attach_daynaport(scsi_id):
+    return subprocess.run(
+        ["rasctl", "-i", scsi_id, "-c", "attach", "-t", "daynaport"],
+        capture_output=True,
+    )
+
+
+def is_bridge_setup(interface):
+    process = subprocess.run(["brctl", "show"], capture_output=True)
+    output = process.stdout.decode("utf-8")
+    if "rascsi_bridge" in output and interface in output:
+        return True
+    return False
+
+
+def daynaport_setup_bridge(interface):
+    return subprocess.run(
+        [f"{base_dir}../RASCSI/src/raspberrypi/setup_bridge.sh", interface],
+        capture_output=True,
     )
 
 

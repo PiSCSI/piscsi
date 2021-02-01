@@ -64,7 +64,7 @@ def download_file_to_iso(scsi_id, url):
     )
     if iso_proc.returncode != 0:
         return iso_proc
-    return attach_image(scsi_id, iso_filename, "cd")
+    return attach_image(scsi_id, iso_filename, "SCCD")
 
 
 def download_image(url):
