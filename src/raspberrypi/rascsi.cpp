@@ -21,15 +21,11 @@
 #include "devices/scsicd.h"
 #include "devices/scsimo.h"
 #include "devices/scsi_host_bridge.h"
-#include "devices/scsi_daynaport.h"
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
 #include "gpiobus.h"
 #include "rascsi_version.h"
-#include "rasctl.h"
 #include "spdlog/spdlog.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include <spdlog/async.h>
 
 //---------------------------------------------------------------------------
 //
@@ -99,7 +95,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout," FILE is disk image file.\n\n");
 		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n\n");
+		FPRT(stdout," FILE is disk image file.\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
 		FPRT(stdout,"  hdf : SASI HD image(XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image(XM6 SCSI HD image)\n");
@@ -266,12 +262,10 @@ void ListDevice(FILE *fp)
 	Filepath filepath;
 	BOOL find;
 	char type[5];
-	char dev_status[_MAX_FNAME+26];
 
 	find = FALSE;
 	type[4] = 0;
 	for (i = 0; i < CtrlMax * UnitNum; i++) {
-		strncpy(dev_status,"",sizeof(dev_status));
 		// Initialize ID and unit number
 		id = i / UnitNum;
 		un = i % UnitNum;
@@ -286,9 +280,7 @@ void ListDevice(FILE *fp)
         if (!find) {
 			FPRT(fp, "\n");
 			FPRT(fp, "+----+----+------+-------------------------------------\n");
-			LOGINFO( "+----+----+------+-------------------------------------");
 			FPRT(fp, "| ID | UN | TYPE | DEVICE STATUS\n");
-			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS\n");
 			FPRT(fp, "+----+----+------+-------------------------------------\n");
 			find = TRUE;
 		}
@@ -298,26 +290,25 @@ void ListDevice(FILE *fp)
 		type[1] = (char)(pUnit->GetID() >> 16);
 		type[2] = (char)(pUnit->GetID() >> 8);
 		type[3] = (char)(pUnit->GetID());
+		FPRT(fp, "|  %d |  %d | %s | ", id, un, type);
 
 		// mount status output
 		if (pUnit->GetID() == MAKEID('S', 'C', 'B', 'R')) {
-			strncpy(dev_status,"X68000 HOST BRIDGE",sizeof(dev_status));
-		} else if (pUnit->GetID() == MAKEID('S', 'C', 'D', 'P')) {
-			strncpy(dev_status,"DaynaPort SCSI/Link",sizeof(dev_status));
+			FPRT(fp, "%s", "HOST BRIDGE");
 		} else {
 			pUnit->GetPath(filepath);
-			snprintf(dev_status, sizeof(dev_status), "%s", 
+			FPRT(fp, "%s",
 				(pUnit->IsRemovable() && !pUnit->IsReady()) ?
 				"NO MEDIA" : filepath.GetPath());
 		}
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
-			strcat(dev_status, "(WRITEPROTECT)");
+			FPRT(fp, "(WRITEPROTECT)");
 		}
-		FPRT(fp, "|  %d |  %d | %s | %s\n", id, un, type, dev_status);
-		LOGINFO( "|  %d |  %d | %s | %s", id, un, type, dev_status);
 
+		// Goto the next line
+		FPRT(fp, "\n");
 	}
 
 	// If there is no controller, find will be null
@@ -327,7 +318,6 @@ void ListDevice(FILE *fp)
 	}
 
 	FPRT(fp, "+----+----+------+-------------------------------------\n");
-	LOGINFO( "+----+----+------+-------------------------------------");
 }
 
 //---------------------------------------------------------------------------
@@ -457,7 +447,6 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	char *ext;
 	Filepath filepath;
 	Disk *pUnit;
-	char type_str[5];
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -479,7 +468,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		// Distinguish between SASI and SCSI
 		ext = NULL;
 		pUnit = NULL;
-		if (type == rasctl_dev_sasi_hd) {
+		if (type == 0) {
 			// Passed the check
 			if (!file) {
 				return FALSE;
@@ -499,16 +488,16 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			// If the extension is not SASI type, replace with SCSI
 			ext = &file[len - 3];
 			if (xstrcasecmp(ext, "hdf") != 0) {
-				type = rasctl_dev_scsi_hd;
+				type = 1;
 			}
 		}
 
 		// Create a new drive, based upon type
 		switch (type) {
-			case rasctl_dev_sasi_hd:		// HDF
+			case 0:		// HDF
 				pUnit = new SASIHD();
 				break;
-			case rasctl_dev_scsi_hd:		// HDS/HDN/HDI/NHD/HDA
+			case 1:		// HDS/HDN/HDI/NHD/HDA
 				if (ext == NULL) {
 					break;
 				}
@@ -521,37 +510,28 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 					pUnit = new SCSIHD();
 				}
 				break;
-			case rasctl_dev_mo:		// MO
+			case 2:		// MO
 				pUnit = new SCSIMO();
 				break;
-			case rasctl_dev_cd:		// CD
+			case 3:		// CD
 				pUnit = new SCSICD();
 				break;
-			case rasctl_dev_br:		// BRIDGE
+			case 4:		// BRIDGE
 				pUnit = new SCSIBR();
-				break;
-			// case rasctl_dev_nuvolink: // Nuvolink
-			// 	pUnit = new SCSINuvolink();
-			// 	break;
-			case rasctl_dev_daynaport: // DaynaPort SCSI Link
-				pUnit = new SCSIDaynaPort();
-				LOGTRACE("Done creating SCSIDayanPort");
 				break;
 			default:
 				FPRT(fp,	"Error : Invalid device type\n");
-				LOGWARN("rasctl sent a command for an invalid drive type: %d", type);
 				return FALSE;
 		}
 
 		// drive checks files
-		if (type <= rasctl_dev_scsi_hd || (type <= rasctl_dev_cd && xstrcasecmp(file, "-") != 0)) {
+		if (type <= 1 || (type <= 3 && xstrcasecmp(file, "-") != 0)) {
 			// Set the Path
 			filepath.SetPath(file);
 
 			// Open the file path
 			if (!pUnit->Open(filepath)) {
 				FPRT(fp, "Error : File open error [%s]\n", file);
-				LOGWARN("rasctl tried to open an invalid file %s", file);
 				delete pUnit;
 				return FALSE;
 			}
@@ -565,26 +545,18 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 		// Re-map the controller
 		MapControler(fp, map);
-		type_str[0] = (char)(pUnit->GetID() >> 24);
-		type_str[1] = (char)(pUnit->GetID() >> 16);
-		type_str[2] = (char)(pUnit->GetID() >> 8);
-		type_str[3] = (char)(pUnit->GetID());
-		type_str[4] = '\0';
-		LOGINFO("rasctl added new %s device. ID: %d UN: %d", type_str, id, un);
 		return TRUE;
 	}
 
 	// Is this a valid command?
 	if (cmd > 4) {
 		FPRT(fp, "Error : Invalid command\n");
-		LOGINFO("rasctl sent an invalid command: %d",cmd);
 		return FALSE;
 	}
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
 		FPRT(fp, "Error : No such device\n");
-		LOGWARN("rasctl sent a command for invalid controller %d", id);
 		return FALSE;
 	}
 
@@ -592,24 +564,11 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	pUnit = disk[id * UnitNum + un];
 	if (pUnit == NULL) {
 		FPRT(fp, "Error : No such device\n");
-		LOGWARN("rasctl sent a command for invalid unit ID %d UN %d", id, un);
 		return FALSE;
 	}
-	type_str[0] = (char)(map[id * UnitNum + un]->GetID() >> 24);
-	type_str[1] = (char)(map[id * UnitNum + un]->GetID() >> 16);
-	type_str[2] = (char)(map[id * UnitNum + un]->GetID() >> 8);
-	type_str[3] = (char)(map[id * UnitNum + un]->GetID());
-	type_str[4] = '\0';
-
 
 	// Disconnect Command
 	if (cmd == 1) {					// DETACH
-		type_str[0] = (char)(map[id * UnitNum + un]->GetID() >> 24);
-		type_str[1] = (char)(map[id * UnitNum + un]->GetID() >> 16);
-		type_str[2] = (char)(map[id * UnitNum + un]->GetID() >> 8);
-		type_str[3] = (char)(map[id * UnitNum + un]->GetID());
-		type_str[4] = '\0';
-		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", type_str, id, un);
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
 
@@ -621,8 +580,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	// Valid only for MO or CD
 	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
 		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
-		FPRT(fp, "Error : Operation denied (Device type %s isn't removable)\n", type_str);
-		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, type_str);
+		FPRT(fp, "Error : Operation denied(Deveice isn't removable)\n");
 		return FALSE;
 	}
 
@@ -630,7 +588,6 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		case 2:						// INSERT
 			// Set the file path
 			filepath.SetPath(file);
-			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file, type_str, id, un);
 
 			// Open the file
 			if (!pUnit->Open(filepath)) {
@@ -640,21 +597,17 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			break;
 
 		case 3:						// EJECT
-			LOGINFO("rasctl commands eject %s ID: %d UN: %d", type_str, id, un);
 			pUnit->Eject(TRUE);
 			break;
 
 		case 4:						// PROTECT
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
 				FPRT(fp, "Error : Operation denied(Deveice isn't MO)\n");
-				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
 				return FALSE;
 			}
-			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), type_str, id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
 		default:
-			LOGWARN("Received unknown command from rasctl: %d", cmd);
 			ASSERT(FALSE);
 			return FALSE;
 	}
@@ -1111,9 +1064,6 @@ int main(int argc, char* argv[])
 #endif	// BAREMETAL
 
     spdlog::set_level(spdlog::level::trace);
-	// Create a thread-safe stdout logger to process the log messages
-	auto logger = spdlog::stdout_color_mt("rascsi stdout logger");
-
     LOGTRACE("Entering the function %s with %d arguments", __PRETTY_FUNCTION__, argc);
 	// Output the Banner
 	Banner(argc, argv);

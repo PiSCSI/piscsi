@@ -46,9 +46,9 @@ public:
 
 	// Internal data definition
 	typedef struct {
-		// General
+		// 全般
 		BUS::phase_t phase;				// Transition phase
-		int m_scsi_id;							// Controller ID (0-7)
+		int id;							// Controller ID (0-7)
 		BUS *bus;						// Bus
 
 		// commands
@@ -116,7 +116,7 @@ public:
 	void FASTCALL GetPhaseStr(char *str);
 #endif
 
-	int FASTCALL GetSCSIID() {return ctrl.m_scsi_id;}
+	int FASTCALL GetID() {return ctrl.id;}
 										// Get the ID
 	void FASTCALL GetCTRL(ctrl_t *buffer);
 										// Get the internal information
@@ -161,9 +161,9 @@ protected:
 										// FORMAT command
 	void FASTCALL CmdReassign();
 										// REASSIGN BLOCKS command
-	virtual void FASTCALL CmdRead6();
+	void FASTCALL CmdRead6();
 										// READ(6) command
-	virtual void FASTCALL CmdWrite6();
+	void FASTCALL CmdWrite6();
 										// WRITE(6) command
 	void FASTCALL CmdSeek6();
 										// SEEK(6) command
@@ -173,8 +173,6 @@ protected:
 										// SPECIFY command
 	void FASTCALL CmdInvalid();
 										// Unsupported command
-	void FASTCALL DaynaPortWrite();
-										// DaynaPort specific 'write' operation
 
 	// データ転送
 	virtual void FASTCALL Send();
@@ -197,6 +195,10 @@ protected:
 	// Special operations
 	void FASTCALL FlushUnit();
 										// Flush the logical unit
+
+	// Log
+	void FASTCALL Log(Log::loglevel level, const char *format, ...);
+										// Log output
 
 protected:
 #ifndef RASCSI
