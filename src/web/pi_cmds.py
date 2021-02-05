@@ -3,7 +3,10 @@ import subprocess
 
 def rascsi_service(action):
     # start/stop/restart
-    return subprocess.run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode == 0
+    return (
+        subprocess.run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode
+        == 0
+    )
 
 
 def reboot_pi():
@@ -15,6 +18,14 @@ def shutdown_pi():
 
 
 def running_version():
-    ra_web_version = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True).stdout.decode("utf-8").strip()
-    pi_version = subprocess.run(["uname", "-a"], capture_output=True).stdout.decode("utf-8").strip()
+    ra_web_version = (
+        subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True)
+        .stdout.decode("utf-8")
+        .strip()
+    )
+    pi_version = (
+        subprocess.run(["uname", "-a"], capture_output=True)
+        .stdout.decode("utf-8")
+        .strip()
+    )
     return ra_web_version + " " + pi_version
