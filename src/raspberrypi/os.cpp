@@ -12,6 +12,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
+#include "log.h"
 #include <sys/wait.h>
 
 
@@ -32,4 +33,31 @@ int run_system_cmd(const char* command)
 	}
 	waitpid(pid, &status, 0);
 	return status;
+}
+
+
+//---------------------------------------------------------------------------
+//
+//	Run system command and save the output to a string
+//
+//---------------------------------------------------------------------------
+int run_system_cmd_with_output(const char* command, char* output_str, size_t max_size)
+{
+	FILE *fp;
+	char str_buff[1024];
+
+	fp = popen(command,"r");
+	if(fp == NULL)
+	{
+		LOGWARN("%s Unable to run command %s", __PRETTY_FUNCTION__, command);
+		return EXIT_FAILURE;
+	}
+
+	while((fgets(str_buff, sizeof(str_buff), fp) != NULL) && (strlen(output_str) < max_size))
+	{
+		strncat(output_str, str_buff, max_size);
+	}
+
+	pclose(fp);
+	return EXIT_SUCCESS;
 }

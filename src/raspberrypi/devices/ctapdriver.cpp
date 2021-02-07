@@ -19,6 +19,8 @@
 #include "ctapdriver.h"
 #include "log.h"
 
+const char rascsi_bridge_string[] = "rascsi_bridge";
+
 //---------------------------------------------------------------------------
 //
 //	Constructor
@@ -43,6 +45,7 @@ BOOL FASTCALL CTapDriver::Init()
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	char dev[IFNAMSIZ] = "ras0";
+	char cmd_output[256] = "";
 	struct ifreq ifr;
 	int ret;
 
@@ -68,6 +71,29 @@ BOOL FASTCALL CTapDriver::Init()
 		return FALSE;
 	}
 	LOGTRACE("return code from ioctl was %d", ret);
+
+	LOGTRACE("Going to see if the bridge is created");
+
+	ret = run_system_cmd_with_output("brctl show | grep rascsi_bridge", cmd_output, sizeof(cmd_output));
+	if(ret != EXIT_SUCCESS){
+		LOGTRACE("Unable to run brctl show command");
+	}
+	LOGTRACE("%s brctl show returned %s", __PRETTY_FUNCTION__, cmd_output);
+
+	// Check if the bridge is already created
+	if(strncmp(rascsi_bridge_string, cmd_output, strlen(rascsi_bridge_string)) != 0){
+		LOGINFO("Creating the rascsi_bridge...");
+		LOGDEBUG("brctl addbr rascsi_bridge");
+		ret = run_system_cmd("brctl addbr rascsi_bridge");
+		LOGDEBUG("brctl addif rascsi_bridge eth0");
+		ret = run_system_cmd("brctl addif rascsi_bridge eth0");
+		LOGDEBUG("ip link set dev rascsi_bridge up");
+		ret = run_system_cmd("ip link set dev rascsi_bridge up");
+	}
+	else
+	{
+		LOGINFO("Note: rascsi_bridge already created");
+	}
 
 	LOGDEBUG("ip link set ras0 up");
 	ret = run_system_cmd("ip link set ras0 up");

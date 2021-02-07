@@ -158,4 +158,8 @@ typedef const char *LPCSTR;
 // Run system command and wait for it to finish
 extern int run_system_cmd(const char* command);
 
+// Run system command and wait for it to finish and keep the output
+extern int run_system_cmd_with_output(const char* command, char* output_str, size_t max_size);
+
+
 #endif	// os_h

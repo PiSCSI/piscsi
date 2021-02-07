@@ -925,13 +925,15 @@ bool ParseArgument(int argc, char* argv[])
 			|| has_suffix(path, ".hdi")
 			|| has_suffix(path, ".hda")
 			|| has_suffix(path, ".nhd")) {
-			type = 0;
+			type = rasctl_dev_sasi_hd;
 		} else if (has_suffix(path, ".mos")) {
-			type = 2;
+			type = rasctl_dev_mo;
 		} else if (has_suffix(path, ".iso")) {
-			type = 3;
+			type = rasctl_dev_cd;
 		} else if (xstrcasecmp(path, "bridge") == 0) {
-			type = 4;
+			type = rasctl_dev_br;
+		} else if (xstrcasecmp(path, "daynaport") == 0) {
+			type = rasctl_dev_daynaport;
 		} else {
 			// Cannot determine the file type
 			fprintf(stderr,
