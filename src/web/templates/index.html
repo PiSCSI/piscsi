@@ -17,10 +17,26 @@
         </tr>
         </tbody>
     </table>
-    {% endblock %}
+{% endblock %}
 
     {% block content %}
     <h2>Current RaSCSI Configuration</h2>
+    <form action="/config/load" method="post">
+        <select name="name" >
+            {% for config in config_files %}
+                <option value="{{config}}">{{config.replace(".csv", '')}}</option>
+            {% endfor %}
+        </select>
+        <input type="submit" value="Load" />
+    </form>
+    <form action="/config/save" method="post">
+        <input name="name" placeholder="default">
+        <input type="submit" value="Save" />
+    </form>
+    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('Detach all SCSI Devices?')">
+        <input type="submit" value="Detach All" />
+    </form>
+
     <table cellpadding="3" border="black">
         <tbody>
         <tr>
@@ -103,7 +119,35 @@
     </table>
 
     <hr/>
+    <h2>Attach Ethernet Adapter</h2>
+    <p>Emulates a SCSI DaynaPORT Ethernet Adapter. Host drivers required.</p>
+    <table style="border: none">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+                <form action="/daynaport/attach" method="post">
+                    <select name="scsi_id">
+                        {% for id in scsi_ids %}
+                        <option value="{{id}}">{{id}}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="submit" value="Attach" />
+                </form>
+            </td>
+        </tr>
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+                {% if bridge_configured %}
+                <small>Bridge is currently configured!</small>
+                {% else %}
+                <form action="/daynaport/setup" method="post">
+                    <input type="submit" value="Create Bridge" />
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
 
+    <hr/>
     <h2>Upload File</h2>
     <p>Uploads file to <tt>{{base_dir}}</tt>. Max file size is set to {{max_file_size / 1024 /1024 }}MB</p>
     <table style="border: none">
@@ -183,7 +227,6 @@
     </table>
 
     <hr/>
-
     <h2>Raspberry Pi Operations</h2>
     <table style="border: none">
             <tr style="border: none">

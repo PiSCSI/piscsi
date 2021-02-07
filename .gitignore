@@ -1,1 +1,6 @@
 venv
+*.pyc
+core
+.idea/
+.DS_Store
+*.swp

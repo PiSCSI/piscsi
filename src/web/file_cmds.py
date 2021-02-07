@@ -5,8 +5,9 @@ import time
 
 from ractl_cmds import attach_image
 from settings import *
-valid_file_types = ['*.hda', '*.iso', '*.cdr']
-valid_file_types = r'|'.join([fnmatch.translate(x) for x in valid_file_types])
+
+valid_file_types = ["*.hda", "*.iso", "*.cdr"]
+valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_types])
 
 
 def create_new_image(file_name, type, size):
@@ -15,8 +16,10 @@ def create_new_image(file_name, type, size):
     else:
         file_name = file_name + "." + type
 
-    return subprocess.run(["dd", "if=/dev/zero", "of=" + base_dir + file_name, "bs=1M", "count=" + size],
-                          capture_output=True)
+    return subprocess.run(
+        ["dd", "if=/dev/zero", "of=" + base_dir + file_name, "bs=1M", "count=" + size],
+        capture_output=True,
+    )
 
 
 def delete_image(file_name):
@@ -30,18 +33,24 @@ def delete_image(file_name):
 
 def unzip_file(file_name):
     import zipfile
-    with zipfile.ZipFile(base_dir + file_name, 'r') as zip_ref:
+
+    with zipfile.ZipFile(base_dir + file_name, "r") as zip_ref:
         zip_ref.extractall(base_dir)
         return True
 
+
 def rascsi_service(action):
     # start/stop/restart
-    return subprocess.run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode == 0
+    return (
+        subprocess.run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode
+        == 0
+    )
 
 
 def download_file_to_iso(scsi_id, url):
     import urllib.request
-    file_name = url.split('/')[-1]
+
+    file_name = url.split("/")[-1]
     tmp_ts = int(time.time())
     tmp_dir = "/tmp/" + str(tmp_ts) + "/"
     os.mkdir(tmp_dir)
@@ -50,15 +59,18 @@ def download_file_to_iso(scsi_id, url):
 
     urllib.request.urlretrieve(url, tmp_full_path)
     # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
-    iso_proc = subprocess.run(["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True)
+    iso_proc = subprocess.run(
+        ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
+    )
     if iso_proc.returncode != 0:
         return iso_proc
-    return attach_image(scsi_id, iso_filename, "cd")
+    return attach_image(scsi_id, iso_filename, "SCCD")
 
 
 def download_image(url):
     import urllib.request
-    file_name = url.split('/')[-1]
+
+    file_name = url.split("/")[-1]
     full_path = base_dir + file_name
 
     urllib.request.urlretrieve(url, full_path)
