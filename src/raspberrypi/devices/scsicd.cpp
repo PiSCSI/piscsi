@@ -727,7 +727,7 @@ int FASTCALL SCSICD::Inquiry(
 //	READ
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
+int FASTCALL SCSICD::Read(BYTE *buf, DWORD block)
 {
 	int index;
 	Filepath path;
@@ -771,7 +771,7 @@ int FASTCALL SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 	// Base class
 	ASSERT(dataindex >= 0);
-	return Disk::Read(cdb, buf, block);
+	return Disk::Read(buf, block);
 }
 
 //---------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ HDD dump utility (initiator mode) ]
+//	[ HDDダンプユーティリティ(イニシーエタモード) ]
 //
 //---------------------------------------------------------------------------
 
@@ -18,46 +18,46 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant Declaration
+//	定数宣言
 //
 //---------------------------------------------------------------------------
-#define BUFSIZE 1024 * 64			// Buffer size of about 64KB
+#define BUFSIZE 1024 * 64			// 64KBぐらいかなぁ
 
 //---------------------------------------------------------------------------
 //
-//	Variable Declaration
+//	変数宣言
 //
 //---------------------------------------------------------------------------
-GPIOBUS bus;						// Bus
-int targetid;						// Target ID
-int boardid;						// Board ID (own ID)
-Filepath hdsfile;					// HDS file
-BOOL restore;						// Restore flag
-BYTE buffer[BUFSIZE];					// Work Buffer
-int result;						// Result Code
+GPIOBUS bus;						// バス
+int targetid;						// ターゲットデバイスID
+int boardid;						// ボードID(自身のID)
+Filepath hdsfile;					// HDSファイル
+BOOL restore;						// リストアフラグ
+BYTE buffer[BUFSIZE];				// ワークバッファ
+int result;							// 結果コード
 
 //---------------------------------------------------------------------------
 //
-//	Cleanup() Function declaration
+//	関数宣言
 //
 //---------------------------------------------------------------------------
 void Cleanup();
 
 //---------------------------------------------------------------------------
 //
-//	Signal processing
+//	シグナル処理
 //
 //---------------------------------------------------------------------------
 void KillHandler(int sig)
 {
-	// Stop running
+	// 停止指示
 	Cleanup();
 	exit(0);
 }
 
 //---------------------------------------------------------------------------
 //
-//	Banner Output
+//	バナー出力
 //
 //---------------------------------------------------------------------------
 BOOL Banner(int argc, char* argv[])
@@ -82,12 +82,12 @@ BOOL Banner(int argc, char* argv[])
 
 //---------------------------------------------------------------------------
 //
-//	Initialization
+//	初期化
 //
 //---------------------------------------------------------------------------
 BOOL Init()
 {
-	// Interrupt handler setting
+	// 割り込みハンドラ設定
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
 		return FALSE;
 	}
@@ -98,12 +98,12 @@ BOOL Init()
 		return FALSE;
 	}
 
-	// GPIO Initialization
+	// GPIO初期化
 	if (!bus.Init(BUS::INITIATOR)) {
 		return FALSE;
 	}
 
-	// Work Intitialization
+	// ワーク初期化
 	targetid = -1;
 	boardid = 7;
 	restore = FALSE;
@@ -113,29 +113,29 @@ BOOL Init()
 
 //---------------------------------------------------------------------------
 //
-//	Cleanup
+//	クリーンアップ
 //
 //---------------------------------------------------------------------------
 void Cleanup()
 {
-	// Cleanup the bus
+	// バスをクリーンアップ
 	bus.Cleanup();
 }
 
 //---------------------------------------------------------------------------
 //
-//	Reset
+//	リセット
 //
 //---------------------------------------------------------------------------
 void Reset()
 {
-	// Reset the bus signal line
+	// バス信号線をリセット
 	bus.Reset();
 }
 
 //---------------------------------------------------------------------------
 //
-//	Argument processing
+//	引数処理
 //
 //---------------------------------------------------------------------------
 BOOL ParseArgument(int argc, char* argv[])
@@ -143,10 +143,10 @@ BOOL ParseArgument(int argc, char* argv[])
 	int opt;
 	char *file;
 
-	// Initialization
+	// 初期化
 	file = NULL;
 
-	// Argument Parsing
+	// 引数解析
 	opterr = 0;
 	while ((opt = getopt(argc, argv, "i:b:f:r")) != -1) {
 		switch (opt) {
@@ -168,28 +168,28 @@ BOOL ParseArgument(int argc, char* argv[])
 		}
 	}
 
-	// TARGET ID check
+	// TARGET IDチェック
 	if (targetid < 0 || targetid > 7) {
 		fprintf(stderr,
 			"Error : Invalid target id range\n");
 		return FALSE;
 	}
 
-	// BOARD ID check
+	// BOARD IDチェック
 	if (boardid < 0 || boardid > 7) {
 		fprintf(stderr,
 			"Error : Invalid board id range\n");
 		return FALSE;
 	}
 
-	// Target and Board ID duplication check
+	// TARGETとBOARDのID重複チェック
 	if (targetid == boardid) {
 		fprintf(stderr,
 			"Error : Invalid target or board id\n");
 		return FALSE;
 	}
 
-	// File Check
+	// ファイルチェック
 	if (!file) {
 		fprintf(stderr,
 			"Error : Invalid file path\n");
@@ -203,14 +203,14 @@ BOOL ParseArgument(int argc, char* argv[])
 
 //---------------------------------------------------------------------------
 //
-//	Wait Phase
+//	フェーズ待ち
 //
 //---------------------------------------------------------------------------
 BOOL WaitPhase(BUS::phase_t phase)
 {
 	DWORD now;
 
-	// Timeout (3000ms)
+	// タイムアウト(3000ms)
 	now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Aquire();
@@ -224,18 +224,18 @@ BOOL WaitPhase(BUS::phase_t phase)
 
 //---------------------------------------------------------------------------
 //
-//	Bus Free Phase
+//	バスフリーフェーズ実行
 //
 //---------------------------------------------------------------------------
 void BusFree()
 {
-	// Bus Reset
+	// バスリセット
 	bus.Reset();
 }
 
 //---------------------------------------------------------------------------
 //
-//	Selection Phase
+//	セレクションフェーズ実行
 //
 //---------------------------------------------------------------------------
 BOOL Selection(int id)
@@ -243,14 +243,14 @@ BOOL Selection(int id)
 	BYTE data;
 	int count;
 
-	// ID setting and SEL assert
+	// ID設定とSELアサート
 	data = 0;
 	data |= (1 << boardid);
 	data |= (1 << id);
 	bus.SetDAT(data);
 	bus.SetSEL(TRUE);
 
-	// wait for busy
+	// BSYを待つ
 	count = 10000;
 	do {
 		usleep(20);
@@ -260,128 +260,127 @@ BOOL Selection(int id)
 		}
 	} while (count--);
 
-	// SEL negate
+	// SELネゲート
 	bus.SetSEL(FALSE);
 
-	// Success if the target is busy
+	// ターゲットがビジー状態なら成功
 	return bus.GetBSY();
 }
 
 //---------------------------------------------------------------------------
 //
-//	Command Phase
+//	コマンドフェーズ実行
 //
 //---------------------------------------------------------------------------
 BOOL Command(BYTE *buf, int length)
 {
 	int count;
 
-	// Waiting for Phase
+	// フェーズ待ち
 	if (!WaitPhase(BUS::command)) {
 		return FALSE;
 	}
 
-	// Send Command
+	// コマンド送信
 	count = bus.SendHandShake(buf, length);
 
-	// Success if the transmission result is the same as the number 
-	// of requests
+	// 送信結果が依頼数と同じなら成功
 	if (count == length) {
 		return TRUE;
 	}
 
-	// Return error
+	// 送信エラー
 	return FALSE;
 }
 
 //---------------------------------------------------------------------------
 //
-//	Data in phase
+//	データインフェーズ実行
 //
 //---------------------------------------------------------------------------
 int DataIn(BYTE *buf, int length)
 {
-	// Wait for phase
+	// フェーズ待ち
 	if (!WaitPhase(BUS::datain)) {
 		return -1;
 	}
 
-	// Data reception
+	// データ受信
 	return bus.ReceiveHandShake(buf, length);
 }
 
 //---------------------------------------------------------------------------
 //
-//	Data out phase
+//	データアウトフェーズ実行
 //
 //---------------------------------------------------------------------------
 int DataOut(BYTE *buf, int length)
 {
-	// Wait for phase
+	// フェーズ待ち
 	if (!WaitPhase(BUS::dataout)) {
 		return -1;
 	}
 
-	// Data transmission
+	// データ受信
 	return bus.SendHandShake(buf, length);
 }
 
 //---------------------------------------------------------------------------
 //
-//	Status Phase
+//	ステータスフェーズ実行
 //
 //---------------------------------------------------------------------------
 int Status()
 {
 	BYTE buf[256];
 
-	// Wait for phase
+	// フェーズ待ち
 	if (!WaitPhase(BUS::status)) {
 		return -2;
 	}
 
-	// Data reception
+	// データ受信
 	if (bus.ReceiveHandShake(buf, 1) == 1) {
 		return (int)buf[0];
 	}
 
-	// Return error
+	// 受信エラー
 	return -1;
 }
 
 //---------------------------------------------------------------------------
 //
-//	Message in phase
+//	メッセージインフェーズ実行
 //
 //---------------------------------------------------------------------------
 int MessageIn()
 {
 	BYTE buf[256];
 
-	// Wait for phase
+	// フェーズ待ち
 	if (!WaitPhase(BUS::msgin)) {
 		return -2;
 	}
 
-	// Data reception
+	// データ受信
 	if (bus.ReceiveHandShake(buf, 1) == 1) {
 		return (int)buf[0];
 	}
 
-	// Return error
+	// 受信エラー
 	return -1;
 }
 
 //---------------------------------------------------------------------------
 //
-//	TEST UNIT READY
+//	TEST UNIT READY実行
 //
 //---------------------------------------------------------------------------
 int TestUnitReady(int id)
 {
 	BYTE cmd[256];
 
-	// Result code initialization
+	// 結果コード初期化
 	result = 0;
 
 	// SELECTION
@@ -411,7 +410,7 @@ int TestUnitReady(int id)
 	}
 
 exit:
-	// Bus free
+	// バスフリー
 	BusFree();
 
 	return result;
@@ -419,7 +418,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	REQUEST SENSE
+//	REQUEST SENSE実行
 //
 //---------------------------------------------------------------------------
 int RequestSense(int id, BYTE *buf)
@@ -427,7 +426,7 @@ int RequestSense(int id, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// Result code initialization
+	// 結果コード初期化
 	result = 0;
 	count = 0;
 
@@ -467,10 +466,10 @@ int RequestSense(int id, BYTE *buf)
 	}
 
 exit:
-	// Bus Free
+	// バスフリー
 	BusFree();
 
-	// Returns the number of transfers if successful
+	// 成功であれば転送数を返す
 	if (result == 0) {
 		return count;
 	}
@@ -480,7 +479,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	MODE SENSE
+//	MODE SENSE実行
 //
 //---------------------------------------------------------------------------
 int ModeSense(int id, BYTE *buf)
@@ -488,7 +487,7 @@ int ModeSense(int id, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// Result code initialization
+	// 結果コード初期化
 	result = 0;
 	count = 0;
 
@@ -529,10 +528,10 @@ int ModeSense(int id, BYTE *buf)
 	}
 
 exit:
-	// Bus free
+	// バスフリー
 	BusFree();
 
-	// Returns the number of transfers if successful
+	// 成功であれば転送数を返す
 	if (result == 0) {
 		return count;
 	}
@@ -542,7 +541,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	INQUIRY
+//	INQUIRY実行
 //
 //---------------------------------------------------------------------------
 int Inquiry(int id, BYTE *buf)
@@ -550,7 +549,7 @@ int Inquiry(int id, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// Result code initialization
+	// 結果コード初期化
 	result = 0;
 	count = 0;
 
@@ -590,10 +589,10 @@ int Inquiry(int id, BYTE *buf)
 	}
 
 exit:
-	// Bus free
+	// バスフリー
 	BusFree();
 
-	// Returns the number of transfers if successful
+	// 成功であれば転送数を返す
 	if (result == 0) {
 		return count;
 	}
@@ -603,7 +602,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	READ CAPACITY
+//	READ CAPACITY実行
 //
 //---------------------------------------------------------------------------
 int ReadCapacity(int id, BYTE *buf)
@@ -611,7 +610,7 @@ int ReadCapacity(int id, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// Result code initialization
+	// 結果コード初期化
 	result = 0;
 	count = 0;
 
@@ -650,10 +649,10 @@ int ReadCapacity(int id, BYTE *buf)
 	}
 
 exit:
-	// Bus free
+	// バスフリー
 	BusFree();
 
-	// Returns the number of transfers if successful
+	// 成功であれば転送数を返す
 	if (result == 0) {
 		return count;
 	}
@@ -663,7 +662,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	READ10
+//	READ10実行
 //
 //---------------------------------------------------------------------------
 int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
@@ -671,7 +670,7 @@ int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// Result code initialization
+	// 結果コード初期化
 	result = 0;
 	count = 0;
 
@@ -715,10 +714,10 @@ int Read10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	}
 
 exit:
-	// Bus free
+	// バスフリー
 	BusFree();
 
-	// Returns the number of transfers if successful
+	// 成功であれば転送数を返す
 	if (result == 0) {
 		return count;
 	}
@@ -728,7 +727,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	WRITE10
+//	WRITE10実行
 //
 //---------------------------------------------------------------------------
 int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
@@ -736,7 +735,7 @@ int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// Result code initialization
+	// 結果コード初期化
 	result = 0;
 	count = 0;
 
@@ -780,10 +779,10 @@ int Write10(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	}
 
 exit:
-	// Bus free
+	// バスフリー
 	BusFree();
 
-	// Returns the number of transfers if successful
+	// 成功であれば転送数を返す
 	if (result == 0) {
 		return count;
 	}
@@ -793,7 +792,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	Main process
+//	主処理
 //
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
@@ -810,32 +809,32 @@ int main(int argc, char* argv[])
 	Fileio::OpenMode omode;
 	off64_t size;
 
-	// Banner output
+	// バナー出力
 	if (!Banner(argc, argv)) {
 		exit(0);
 	}
 
-	// Initialization
+	// 初期化
 	if (!Init()) {
-		fprintf(stderr, "Error : Initializing. Are you root?\n");
+		fprintf(stderr, "Error : Initializing\n");
 
-		// Probably not root
+		// 恐らくrootでは無い？
 		exit(EPERM);
 	}
 
-	// Prase Argument
+	// 構築
 	if (!ParseArgument(argc, argv)) {
-		// Cleanup
+		// クリーンアップ
 		Cleanup();
 
-		// Exit with invalid argument error
+		// 引数エラーで終了
 		exit(EINVAL);
 	}
 
-	// Reset the SCSI bus
+	// リセット
 	Reset();
 
-	// File Open
+	// ファイルオープン
 	if (restore) {
 		omode = Fileio::ReadOnly;
 	} else {
@@ -844,20 +843,20 @@ int main(int argc, char* argv[])
 	if (!fio.Open(hdsfile.GetPath(), omode)) {
 		fprintf(stderr, "Error : Can't open hds file\n");
 
-		// Cleanup
+		// クリーンアップ
 		Cleanup();
 		exit(EPERM);
 	}
 
-	// Bus free
+	// バスフリー
 	BusFree();
 
-	// Assert reset signal
+	// RESETシグナル発行
 	bus.SetRST(TRUE);
 	usleep(1000);
 	bus.SetRST(FALSE);
 
-	// Start dump
+	// ダンプ開始
 	printf("TARGET ID               : %d\n", targetid);
 	printf("BORAD ID                : %d\n", boardid);
 
@@ -882,7 +881,7 @@ int main(int argc, char* argv[])
 		goto cleanup_exit;
 	}
 
-	// Display INQUIRY information
+	// INQUIRYの情報を表示
 	memset(str, 0x00, sizeof(str));
 	memcpy(str, &buffer[8], 8);
 	printf("Vendor                  : %s\n", str);
@@ -893,14 +892,14 @@ int main(int argc, char* argv[])
 	memcpy(str, &buffer[32], 4);
 	printf("Revison                 : %s\n", str);
 
-	// Get drive capacity
+	// 容量取得
 	count = ReadCapacity(targetid, buffer);
 	if (count < 0) {
 		fprintf(stderr, "READ CAPACITY ERROR %d\n", count);
 		goto cleanup_exit;
 	}
 
-	// Display block size and number of blocks
+	// ブロックサイズとブロック数の表示
 	bsiz =
 		(buffer[4] << 24) | (buffer[5] << 16) |
 		(buffer[6] << 8) | buffer[7];
@@ -914,7 +913,7 @@ int main(int argc, char* argv[])
 		(int)(bsiz * bnum / 1024 / 1024),
 		(int)(bsiz * bnum));
 
-	// Get the restore file size
+	// リストアファイルサイズの取得
 	if (restore) {
 		size = fio.GetFileSize();
 		printf("Restore file size       : %d bytes", (int)size);
@@ -927,7 +926,7 @@ int main(int argc, char* argv[])
 		printf("\n");
 	}
 
-	// Dump by buffer size
+	// バッファサイズ毎にダンプする
 	duni = BUFSIZE;
 	duni /= bsiz;
 	dsiz = BUFSIZE;
@@ -975,7 +974,7 @@ int main(int argc, char* argv[])
 		printf("\033[0K");
 	}
 
-	// Rounding on capacity
+	// 容量上の端数処理
 	dnum = bnum % duni;
 	dsiz = dnum * bsiz;
 	if (dnum > 0) {
@@ -990,16 +989,16 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// Completion Message
+	// 完了メッセージ
 	printf("%3d%%(%7d/%7d)\n", 100, (int)bnum, (int)bnum);
 
 cleanup_exit:
-	// File close
+	// ファイルクローズ
 	fio.Close();
 
-	// Cleanup
+	// クリーンアップ
 	Cleanup();
 
-	// end
+	// 終了
 	exit(0);
 }
