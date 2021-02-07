@@ -5,10 +5,11 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
+//  Copyright (C) 2020 akuker
 //
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
 //
-//	[ OS固有 ]
+//	[ OS related definitions ]
 //
 //---------------------------------------------------------------------------
 
@@ -86,7 +87,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	基本マクロ
+//	Basic Macros
 //
 //---------------------------------------------------------------------------
 #undef FASTCALL
@@ -118,7 +119,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	基本型定義
+//	Basic Type Definitions
 //
 //---------------------------------------------------------------------------
 typedef unsigned char BYTE;
@@ -153,5 +154,8 @@ typedef const char *LPCSTR;
 
 #define xstrcasecmp strcasecmp
 #define xstrncasecmp strncasecmp
+
+// Run system command and wait for it to finish
+extern int run_system_cmd(const char* command);
 
 #endif	// os_h

@@ -100,7 +100,7 @@ BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIHD::Inquiry(
+int FASTCALL SCSIHD:: Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	char vendor[32];
@@ -241,7 +241,7 @@ BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
                 case 0x08:
                     // Debug code for Issue #2:
                     //     https://github.com/akuker/RASCSI/issues/2
-                    printf("[Unhandled page code] Received mode page code 8 with total length %d\n     ", length);
+                    LOGWARN("[Unhandled page code] Received mode page code 8 with total length %d\n     ", length);
                     for (int i = 0; i<length; i++)
                     {
                         printf("%02X ", buf[i]);
