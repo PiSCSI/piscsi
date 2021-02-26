@@ -192,7 +192,7 @@ private:
 	//   2 bytes - payload size
 	//   4 bytes - status flags
 	//   1 byte  - magic pad bit, that I don't know why it works.....
-	const DWORD m_read_header_size = 2 + 4 + 1;
+	const DWORD m_read_header_size = 2 + 4;
 
 #endif	// RASCSI && !BAREMETAL
 
