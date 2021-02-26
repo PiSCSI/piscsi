@@ -288,6 +288,7 @@ int FASTCALL CTapDriver::Rx(BYTE *buf)
 	// Receive
 	dwReceived = read(m_hTAP, buf, ETH_FRAME_LEN);
 	if (dwReceived == (DWORD)-1) {
+		LOGWARN("%s Error occured while receiving an packet", __PRETTY_FUNCTION__);
 		return 0;
 	}
 
