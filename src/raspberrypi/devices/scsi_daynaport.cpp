@@ -238,23 +238,25 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		// being sent to the SCSI initiator. 
 		send_message_to_host = FALSE;
 
-		// Check if received packet destination MAC address matches the
-		// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
-		// of the data.
-		if (memcmp(response->data, m_mac_addr, 6) == 0) {
-			send_message_to_host = TRUE;
-		}
+	// The following doesn't seem to work with unicast messages. Temporarily removing the filtering
+	// functionality.
+	///////	// Check if received packet destination MAC address matches the
+	///////	// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
+	///////	// of the data.
+	///////	if (memcmp(response->data, m_mac_addr, 6) == 0) {
+	///////		send_message_to_host = TRUE;
+	///////	}
 
-		// Check to see if this is a broadcast message
-		if (memcmp(response->data, m_bcast_addr, 6) == 0) {
-			send_message_to_host = TRUE;
-		}
+	///////	// Check to see if this is a broadcast message
+	///////	if (memcmp(response->data, m_bcast_addr, 6) == 0) {
+	///////		send_message_to_host = TRUE;
+	///////	}
 
-		// Check to see if this is an AppleTalk Message
-		if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
-
-			send_message_to_host = TRUE;
-		}
+	///////	// Check to see if this is an AppleTalk Message
+	///////	if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
+	///////		send_message_to_host = TRUE;
+	///////	}
+		send_message_to_host = TRUE;
 
 		// TODO: We should check to see if this message is in the multicast 
 		// configuration from SCSI command 0x0D
