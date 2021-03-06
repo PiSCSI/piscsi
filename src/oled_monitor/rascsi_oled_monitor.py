@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 #
 # RaSCSI Updates:
 #   Updates to output rascsi status to an OLED display
