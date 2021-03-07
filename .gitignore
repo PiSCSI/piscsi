@@ -4,3 +4,6 @@ core
 .idea/
 .DS_Store
 *.swp
+__pycache__
+src/web/current
+src/oled_monitor/current
