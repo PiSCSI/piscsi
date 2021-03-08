@@ -5,12 +5,12 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  Copyright (C) akuker
+//	Copyright (C) akuker
 //
-//  Licensed under the BSD 3-Clause License. 
-//  See LICENSE file in the project root folder.
+//	Licensed under the BSD 3-Clause License. 
+//	See LICENSE file in the project root folder.
 //
-//  [ SCSI Host Bridge for the Sharp X68000 ]
+//	[ SCSI Host Bridge for the Sharp X68000 ]
 //
 //  Note: This requires a special driver on the host system and will only
 //        work with the Sharp X68000 operating system.
@@ -37,7 +37,7 @@ SCSIBR::SCSIBR() : Disk()
 	// Host Bridge
 	disk.id = MAKEID('S', 'C', 'B', 'R');
 
-#if defined(RASCSI) && defined(__linux__) && !defined(BAREMETAL)
+	#if defined(RASCSI) && defined(__linux__) && !defined(BAREMETAL)
 	// TAP Driver Generation
 	tap = new CTapDriver();
 	m_bTapEnable = tap->Init();
@@ -51,7 +51,7 @@ SCSIBR::SCSIBR() : Disk()
 
 	// Packet reception flag OFF
 	packet_enable = FALSE;
-#endif	// RASCSI && !BAREMETAL
+	#endif	// RASCSI && !BAREMETAL
 
 	// Create host file system
 	fs = new CFileSys();
@@ -65,13 +65,13 @@ SCSIBR::SCSIBR() : Disk()
 //---------------------------------------------------------------------------
 SCSIBR::~SCSIBR()
 {
-#if defined(RASCSI) && !defined(BAREMETAL)
+	#if defined(RASCSI) && !defined(BAREMETAL)
 	// TAP driver release
 	if (tap) {
 		tap->Cleanup();
 		delete tap;
 	}
-#endif	// RASCSI && !BAREMETAL
+	#endif	// RASCSI && !BAREMETAL
 
 	// Release host file system
 	if (fs) {
@@ -136,12 +136,12 @@ int FASTCALL SCSIBR::Inquiry(
 	// Optional function valid flag
 	buf[36] = '0';
 
-#if defined(RASCSI) && !defined(BAREMETAL)
+	#if defined(RASCSI) && !defined(BAREMETAL)
 	// TAP Enable
 	if (m_bTapEnable) {
 		buf[37] = '1';
 	}
-#endif	// RASCSI && !BAREMETAL
+	#endif	// RASCSI && !BAREMETAL
 
 	// CFileSys Enable
 	buf[38] = '1';
@@ -182,27 +182,27 @@ int FASTCALL SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 {
 	int type;
 	int phase;
-#if defined(RASCSI) && !defined(BAREMETAL)
+	#if defined(RASCSI) && !defined(BAREMETAL)
 	int func;
 	int total_len;
 	int i;
-#endif	// RASCSI && !BAREMETAL
+	#endif	// RASCSI && !BAREMETAL
 
 	ASSERT(this);
 
 	// Type
 	type = cdb[2];
 
-#if defined(RASCSI) && !defined(BAREMETAL)
+	#if defined(RASCSI) && !defined(BAREMETAL)
 	// Function number
 	func = cdb[3];
-#endif	// RASCSI && !BAREMETAL
+	#endif	// RASCSI && !BAREMETAL
 
 	// Phase
 	phase = cdb[9];
 
 	switch (type) {
-#if defined(RASCSI) && !defined(BAREMETAL)
+		#if defined(RASCSI) && !defined(BAREMETAL)
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
@@ -251,7 +251,7 @@ int FASTCALL SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 					return total_len;
 			}
 			break;
-#endif	// RASCSI && !BAREMETAL
+			#endif	// RASCSI && !BAREMETAL
 
 		case 2:		// Host Drive
 			switch (phase) {
@@ -305,7 +305,7 @@ BOOL FASTCALL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 	len |= cdb[8];
 
 	switch (type) {
-#if defined(RASCSI) && !defined(BAREMETAL)
+	#if defined(RASCSI) && !defined(BAREMETAL)
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
@@ -322,7 +322,7 @@ BOOL FASTCALL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 					return TRUE;
 			}
 			break;
-#endif	// RASCSI && !BAREMETAL
+			#endif	// RASCSI && !BAREMETAL
 
 		case 2:		// Host drive
 			switch (phase) {
@@ -1462,30 +1462,30 @@ void FASTCALL SCSIBR::WriteFs(int func, BYTE *buf)
 	func &= 0x1f;
 	switch (func) {
 		case 0x00: return FS_InitDevice(buf);	// $40 - start device
-		case 0x01: return FS_CheckDir(buf);		// $41 - directory check
-		case 0x02: return FS_MakeDir(buf);		// $42 - create directory
+		case 0x01: return FS_CheckDir(buf);	// $41 - directory check
+		case 0x02: return FS_MakeDir(buf);	// $42 - create directory
 		case 0x03: return FS_RemoveDir(buf);	// $43 - remove directory
-		case 0x04: return FS_Rename(buf);		// $44 - change file name
-		case 0x05: return FS_Delete(buf);		// $45 - delete file
+		case 0x04: return FS_Rename(buf);	// $44 - change file name
+		case 0x05: return FS_Delete(buf);	// $45 - delete file
 		case 0x06: return FS_Attribute(buf);	// $46 - Get/set file attribute
-		case 0x07: return FS_Files(buf);		// $47 - file search
-		case 0x08: return FS_NFiles(buf);		// $48 - next file search
-		case 0x09: return FS_Create(buf);		// $49 - create file
-		case 0x0A: return FS_Open(buf);			// $4A - File open
-		case 0x0B: return FS_Close(buf);		// $4B - File close
-		case 0x0C: return FS_Read(buf);			// $4C - read file
-		case 0x0D: return FS_Write(buf);		// $4D - write file
-		case 0x0E: return FS_Seek(buf);			// $4E - File seek
+		case 0x07: return FS_Files(buf);	// $47 - file search
+		case 0x08: return FS_NFiles(buf);	// $48 - next file search
+		case 0x09: return FS_Create(buf);	// $49 - create file
+		case 0x0A: return FS_Open(buf);		// $4A - File open
+		case 0x0B: return FS_Close(buf);	// $4B - File close
+		case 0x0C: return FS_Read(buf);		// $4C - read file
+		case 0x0D: return FS_Write(buf);	// $4D - write file
+		case 0x0E: return FS_Seek(buf);		// $4E - File seek
 		case 0x0F: return FS_TimeStamp(buf);	// $4F - Get/set file modification time
 		case 0x10: return FS_GetCapacity(buf);	// $50 - get capacity
 		case 0x11: return FS_CtrlDrive(buf);	// $51 - Drive control/state check
-		case 0x12: return FS_GetDPB(buf);		// $52 - Get DPB
-		case 0x13: return FS_DiskRead(buf);		// $53 - read sector
+		case 0x12: return FS_GetDPB(buf);	// $52 - Get DPB
+		case 0x13: return FS_DiskRead(buf);	// $53 - read sector
 		case 0x14: return FS_DiskWrite(buf);	// $54 - write sector
-		case 0x15: return FS_Ioctrl(buf);		// $55 - IOCTRL
-		case 0x16: return FS_Flush(buf);		// $56 - flush
+		case 0x15: return FS_Ioctrl(buf);	// $55 - IOCTRL
+		case 0x16: return FS_Flush(buf);	// $56 - flush
 		case 0x17: return FS_CheckMedia(buf);	// $57 - check media exchange
-		case 0x18: return FS_Lock(buf);			// $58 - exclusive control
+		case 0x18: return FS_Lock(buf);		// $58 - exclusive control
 	}
 }
 

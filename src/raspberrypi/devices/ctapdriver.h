@@ -28,26 +28,17 @@ class CTapDriver
 {
 public:
 	// Basic Functionality
-	CTapDriver();
-										// Constructor
-	BOOL FASTCALL Init();
-										// Initilization
-	void FASTCALL Cleanup();
-										// Cleanup
-	void FASTCALL GetMacAddr(BYTE *mac);
-										// Get Mac Address
-	int FASTCALL Rx(BYTE *buf);
-										// Receive
-	int FASTCALL Tx(BYTE *buf, int len);
-										// Send
+	CTapDriver();								// Constructor
+	BOOL FASTCALL Init();							// Initilization
+	void FASTCALL Cleanup();						// Cleanup
+	void FASTCALL GetMacAddr(BYTE *mac);					// Get Mac Address
+	int FASTCALL Rx(BYTE *buf);						// Receive
+	int FASTCALL Tx(BYTE *buf, int len);					// Send
 
 private:
-	BYTE m_MacAddr[6];
-										// MAC Address
-	BOOL m_bTxValid;
-										// Send Valid Flag
-	int m_hTAP;
-										// File handle
+	BYTE m_MacAddr[6];							// MAC Address
+	BOOL m_bTxValid;							// Send Valid Flag
+	int m_hTAP;								// File handle
 };
 
 #endif	// ctapdriver_h
