@@ -24,7 +24,7 @@ VIRTUAL_DRIVER_PATH=/home/pi/images
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=~/RASCSI/lido-driver.img
-
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 function initialChecks() {
     currentUser=$(whoami)
@@ -103,10 +103,11 @@ function installRaScsiWebInterface() {
 }
 
 function updateRaScsiGit() {
+    echo "Updating checked out branch $GIT_BRANCH"
     cd ~/RASCSI
-    git fetch
+    git fetch origin
     git stash
-    git rebase origin/master
+    git rebase origin/$GIT_BRANCH
     git stash apply
 }
 
