@@ -645,7 +645,7 @@ private:
 	DWORD signals;						// All bus signals
 
 #if defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
-	struct gpioevent_request selevreq;	// SEL signal event request
+	struct gpioevent_request selevreq = {};	// SEL signal event request
 
 	int epfd;							// epoll file descriptor
 #endif	// USE_SEL_EVENT_ENABLE && !BAREMETAL

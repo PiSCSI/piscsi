@@ -54,7 +54,7 @@ SASIDEV::SASIDEV(Device *dev)
 #ifdef RASCSI
 	ctrl.execstart = 0;
 #endif	// RASCSI
-	ctrl.bufsize = ETH_FRAME_LEN + 16 + ETH_FCS_LEN;
+	ctrl.bufsize = std::max(0x800, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
 	ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	memset(ctrl.buffer, 0x00, ctrl.bufsize);
 	ctrl.blocks = 0;
