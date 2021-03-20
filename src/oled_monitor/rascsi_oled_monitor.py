@@ -81,10 +81,10 @@ disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST)
 # on a Raspberry Pi with the 128x32 display you might use:
 # disp = Adafruit_SSD1306.SSD1306_128_32(rst=RST, dc=DC, sclk=18, din=25, cs=22)
 
-print "Running with the following display:"
-print disp
-print
-print "Will update the OLED display every " + str(delay_time_ms) + "ms (approximately)"
+print("Running with the following display:")
+print(disp)
+print()
+print(f"Will update the OLED display every {delay_time_ms}ms (approximately)")
 
 
 # Initialize library.
@@ -128,7 +128,7 @@ while True:
     draw.rectangle((0,0,width,height), outline=0, fill=0)
     
     cmd = "rasctl -l"
-    rascsi_list = subprocess.check_output(cmd, shell=True)
+    rascsi_list = subprocess.check_output(cmd, shell=True).decode()
 
     y_pos = top
     # Draw all of the meaningful data to the 'image'
@@ -146,15 +146,15 @@ while True:
     for line in rascsi_list.split('\n'):
         # Skip empty strings, divider lines and the header line...
         if (len(line) == 0) or line.startswith("+---") or line.startswith("| ID | UN"):
-				continue
-		else:
-				if line.startswith("|  "):
-					fields = line.split('|')
-        				output = str.strip(fields[1]) + " " + str.strip(fields[3]) + " " + os.path.basename(str.strip(fields[4]))
-				else:
-					output = "No image mounted!"
-				draw.text((x, y_pos), output, font=font, fill=255)
-        			y_pos = y_pos + 8
+            continue
+        else:
+            if line.startswith("|  "):
+                fields = line.split('|')
+                output = str.strip(fields[1]) + " " + str.strip(fields[3]) + " " + os.path.basename(str.strip(fields[4]))
+            else:
+                output = "No image mounted!"
+            draw.text((x, y_pos), output, font=font, fill=255)
+            y_pos = y_pos + 8
     # If there is still room on the screen, we'll display the time. If there's not room it will just be clipped
     draw.text((x, y_pos), datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), font=font, fill=255)
 
