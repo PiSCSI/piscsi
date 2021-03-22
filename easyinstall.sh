@@ -227,62 +227,69 @@ function showMenu() {
     echo "Choose among the following options:"
     echo "INSTALL"
     echo "  0) install RaSCSI Service + web interface + 600MB Drive (recommended)"
-    echo "  1) install RaSCSI Service (initial)"
-    echo "  2) install RaSCSI Web interface"
+    echo "  1) install RaSCSI Service + web interface"
+    echo "  2) install RaSCSI Service (initial)"
+    echo "  3) install RaSCSI Web interface"
     echo "UPDATE"
-    echo "  3) update RaSCSI Service + web interface (recommended)"
-    echo "  4) update RaSCSI Service"
-    echo "  5) update RaSCSI Web interface"
+    echo "  4) update RaSCSI Service + web interface (recommended)"
+    echo "  5) update RaSCSI Service"
+    echo "  6) update RaSCSI Web interface"
     echo "CREATE EMPTY DRIVE"
-    echo "  6) 600MB drive (recommended)"
-    echo "  7) custom drive size (up to 4000MB)"
+    echo "  7) 600MB drive (recommended)"
+    echo "  8) custom drive size (up to 4000MB)"
 
 
     choice=-1
 
-    until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-        echo "Enter your choice (0-7) or CTRL-C to exit"
+    until [ $choice -ge "0" ] && [ $choice -le "8" ]; do
+        echo "Enter your choice (0-8) or CTRL-C to exit"
         read choice
     done
 
 
     case $choice in
         0)
-            echo "Installing RaSCSI Service + Web interface"
+            echo "Installing RaSCSI Service + Web interface + 600MB Drive"
             installRaScsi
             installRaScsiWebInterface
             createDrive600MB
             showRaScsiStatus
         ;;
         1)
+            echo "Installing RaSCSI Service + Web interface"
+            installRaScsi
+            installRaScsiWebInterface
+            showRaScsiStatus
+        ;;
+        2)
             echo "Installing RaSCSI Service"
             installRaScsi
             showRaScsiStatus
         ;;
-        2)
+        3)
             echo "Installing RaSCSI Web interface"
             installRaScsiWebInterface
         ;;
-        3)
+        4)
             echo "Updating RaSCSI Service + Web interface"
             updateRaScsi
             updateRaScsiWebInterface
             showRaScsiStatus
         ;;
-        4)
+        5)
             echo "Updating RaSCSI Service"
             updateRaScsi
             showRaScsiStatus
         ;;
-        5)
+        6)
             echo "Updating RaSCSI Web interface"
             updateRaScsiWebInterface
         ;;
-        6)
+        7)
             echo "Creating a 600MB drive"
             createDrive600MB
         ;;
-        7)
+        8)
             echo "Creating a custom drive"
             createDriveCustom
         ;;
