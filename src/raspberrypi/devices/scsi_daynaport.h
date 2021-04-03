@@ -46,6 +46,8 @@ public:
 										// Constructor
 	virtual ~SCSIDaynaPort();
 										// Destructor
+	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
+										// Capture packets
 
 	// commands
 	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor);

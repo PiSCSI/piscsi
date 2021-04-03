@@ -37,6 +37,8 @@ CTapDriver::CTapDriver()
 	// Initialization
 	m_hTAP = -1;
 	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
+	m_pcap = NULL;
+	m_pcap_dumper = NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -248,6 +250,22 @@ BOOL FASTCALL CTapDriver::Init()
 }
 #endif // __NetBSD__
 
+BOOL FASTCALL CTapDriver::OpenDump(const Filepath& path) {
+	if (m_pcap == NULL) {
+		m_pcap = pcap_open_dead(DLT_EN10MB, 65535);
+	}
+	if (m_pcap_dumper != NULL) {
+		pcap_dump_close(m_pcap_dumper);
+	}
+	m_pcap_dumper = pcap_dump_open(m_pcap, path.GetPath());
+	if (m_pcap_dumper == NULL) {
+		LOGERROR("Error: can't open pcap file: %s", pcap_geterr(m_pcap));
+		return FALSE;
+	}
+	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath())
+	return TRUE;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Cleanup
@@ -273,6 +291,14 @@ void FASTCALL CTapDriver::Cleanup()
 	if (m_hTAP != -1) {
 		close(m_hTAP);
 		m_hTAP = -1;
+	}
+
+	if (m_pcap_dumper != NULL) {
+		pcap_dump_close(m_pcap_dumper);
+		m_pcap_dumper = NULL;
+	}
+	if (m_pcap != NULL) {
+		pcap_close(m_pcap);
 	}
 }
 
@@ -400,6 +426,16 @@ int FASTCALL CTapDriver::Rx(BYTE *buf)
 		dwReceived += 4;
 	}
 
+	if (m_pcap_dumper != NULL) {
+		struct pcap_pkthdr h = {
+			.caplen = dwReceived,
+			.len = dwReceived,
+		};
+		gettimeofday(&h.ts, NULL);
+		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
+		LOGTRACE("%s Dumped %d byte packet (first byte: %02x last byte: %02x)", __PRETTY_FUNCTION__, (unsigned int)dwReceived, buf[0], buf[dwReceived-1]);
+	}
+
 	// Return the number of bytes
 	return dwReceived;
 }
@@ -413,6 +449,16 @@ int FASTCALL CTapDriver::Tx(const BYTE *buf, int len)
 {
 	ASSERT(this);
 	ASSERT(m_hTAP != -1);
+
+	if (m_pcap_dumper != NULL) {
+		struct pcap_pkthdr h = {
+			.caplen = (bpf_u_int32)len,
+			.len = (bpf_u_int32)len,
+		};
+		gettimeofday(&h.ts, NULL);
+		pcap_dump((u_char*)m_pcap_dumper, &h, buf);
+		LOGTRACE("%s Dumped %d byte packet (first byte: %02x last byte: %02x)", __PRETTY_FUNCTION__, (unsigned int)h.len, buf[0], buf[h.len-1]);
+	}
 
 	// Start sending
 	return write(m_hTAP, buf, len);

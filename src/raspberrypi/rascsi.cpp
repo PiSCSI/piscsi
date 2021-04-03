@@ -557,7 +557,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		}
 
 		// drive checks files
-		if (type <= rasctl_dev_scsi_hd || (type <= rasctl_dev_cd && xstrcasecmp(file, "-") != 0)) {
+		if (type <= rasctl_dev_scsi_hd || ((type <= rasctl_dev_cd || type == rasctl_dev_daynaport) && xstrcasecmp(file, "-") != 0)) {
 			// Set the Path
 			filepath.SetPath(file);
 
