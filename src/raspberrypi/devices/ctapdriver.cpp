@@ -13,13 +13,18 @@
 //
 //---------------------------------------------------------------------------
 
+#include <unistd.h>
+#ifdef __linux__
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <linux/sockios.h>
+#endif
 #include <zlib.h> // For crc32()
 #include "os.h"
 #include "xm6.h"
 #include "ctapdriver.h"
 #include "log.h"
 
-const char rascsi_bridge_string[] = "rascsi_bridge";
 
 //---------------------------------------------------------------------------
 //
@@ -40,12 +45,48 @@ CTapDriver::CTapDriver()
 //
 //---------------------------------------------------------------------------
 #ifdef __linux__
+
+static BOOL br_setif(int br_socket_fd, const char* bridgename, const char* ifname, BOOL add) {
+	struct ifreq ifr;
+	ifr.ifr_ifindex = if_nametoindex(ifname);
+	if (ifr.ifr_ifindex == 0) {
+		LOGERROR("Error: can't if_nametoindex. Errno: %d %s", errno, strerror(errno));
+		return FALSE;
+	}
+	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ);
+	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
+		LOGERROR("Error: can't ioctl %s. Errno: %d %s", add ? "SIOCBRADDIF" : "SIOCBRDELIF", errno, strerror(errno));
+		return FALSE;
+	}
+	return TRUE;
+}
+
+static BOOL ip_link(int fd, const char* ifname, BOOL up) {
+	struct ifreq ifr;
+	int err;
+	strncpy(ifr.ifr_name, ifname, IFNAMSIZ);
+	err = ioctl(fd, SIOCGIFFLAGS, &ifr);
+	if (err) {
+		LOGERROR("Error: can't ioctl SIOCGIFFLAGS. Errno: %d %s", errno, strerror(errno));
+		return FALSE;
+	}
+	ifr.ifr_flags &= ~IFF_UP;
+	if (up) {
+		ifr.ifr_flags |= IFF_UP;
+	}
+	err = ioctl(fd, SIOCSIFFLAGS, &ifr);
+	if (err) {
+		LOGERROR("Error: can't ioctl SIOCSIFFLAGS. Errno: %d %s", errno, strerror(errno));
+		return FALSE;
+	}
+	return TRUE;
+}
+
 BOOL FASTCALL CTapDriver::Init()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	char dev[IFNAMSIZ] = "ras0";
-	char cmd_output[256] = "";
 	struct ifreq ifr;
 	int ret;
 
@@ -72,23 +113,48 @@ BOOL FASTCALL CTapDriver::Init()
 	}
 	LOGTRACE("return code from ioctl was %d", ret);
 
+	int ip_fd;
+	if ((ip_fd = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
+		LOGERROR("Error: can't open ip socket. Errno: %d %s", errno, strerror(errno));
+		close(m_hTAP);
+		return FALSE;
+	}
+
+	int br_socket_fd = -1;
+	if ((br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
+		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
+		close(m_hTAP);
+		close(ip_fd);
+		return FALSE;
+	}
+
 	LOGTRACE("Going to see if the bridge is created");
 
-	ret = run_system_cmd_with_output("brctl show | grep rascsi_bridge", cmd_output, sizeof(cmd_output));
-	if(ret != EXIT_SUCCESS){
-		LOGTRACE("Unable to run brctl show command");
-	}
-	LOGTRACE("%s brctl show returned %s", __PRETTY_FUNCTION__, cmd_output);
-
 	// Check if the bridge is already created
-	if(strncmp(rascsi_bridge_string, cmd_output, strlen(rascsi_bridge_string)) != 0){
+	if (access("/sys/class/net/rascsi_bridge", F_OK) != 0) {
 		LOGINFO("Creating the rascsi_bridge...");
 		LOGDEBUG("brctl addbr rascsi_bridge");
-		ret = run_system_cmd("brctl addbr rascsi_bridge");
+		if ((ret = ioctl(br_socket_fd, SIOCBRADDBR, "rascsi_bridge")) < 0) {
+			LOGERROR("Error: can't ioctl SIOCBRADDBR. Errno: %d %s", errno, strerror(errno));
+			close(m_hTAP);
+			close(ip_fd);
+			close(br_socket_fd);
+			return FALSE;
+		}
 		LOGDEBUG("brctl addif rascsi_bridge eth0");
-		ret = run_system_cmd("brctl addif rascsi_bridge eth0");
+		if (!br_setif(br_socket_fd, "rascsi_bridge", "eth0", TRUE)) {
+			close(m_hTAP);
+			close(ip_fd);
+			close(br_socket_fd);
+			return FALSE;
+		}
 		LOGDEBUG("ip link set dev rascsi_bridge up");
-		ret = run_system_cmd("ip link set dev rascsi_bridge up");
+		if (!ip_link(ip_fd, "rascsi_bridge", TRUE)) {
+			close(m_hTAP);
+			close(ip_fd);
+			close(br_socket_fd);
+			return FALSE;
+		}
 	}
 	else
 	{
@@ -96,19 +162,29 @@ BOOL FASTCALL CTapDriver::Init()
 	}
 
 	LOGDEBUG("ip link set ras0 up");
-	ret = run_system_cmd("ip link set ras0 up");
-	LOGTRACE("return code from ip link set ras0 up was %d", ret);
- 
+	if (!ip_link(ip_fd, "ras0", TRUE)) {
+		close(m_hTAP);
+		close(ip_fd);
+		close(br_socket_fd);
+		return FALSE;
+	}
+
 	LOGDEBUG("brctl addif rascsi_bridge ras0");
-	ret = run_system_cmd("brctl addif rascsi_bridge ras0");
-	LOGTRACE("return code from brctl addif rascsi_bridge ras0 was %d", ret);
-	
+	if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", TRUE)) {
+		close(m_hTAP);
+		close(ip_fd);
+		close(br_socket_fd);
+		return FALSE;
+	}
+
 	// Get MAC address
 	LOGTRACE("Getting the MAC address");
 	ifr.ifr_addr.sa_family = AF_INET;
 	if ((ret = ioctl(m_hTAP, SIOCGIFHWADDR, &ifr)) < 0) {
 		LOGERROR("Error: can't ioctl SIOCGIFHWADDR. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
+		close(ip_fd);
+		close(br_socket_fd);
 		return FALSE;
 	}
 	LOGTRACE("got the mac");
@@ -116,6 +192,10 @@ BOOL FASTCALL CTapDriver::Init()
 	// Save MAC address
 	memcpy(m_MacAddr, ifr.ifr_hwaddr.sa_data, sizeof(m_MacAddr));
 	LOGINFO("Tap device %s created", ifr.ifr_name);
+
+	close(ip_fd);
+	close(br_socket_fd);
+
 	return TRUE;
 }
 #endif // __linux__
@@ -176,13 +256,17 @@ BOOL FASTCALL CTapDriver::Init()
 void FASTCALL CTapDriver::Cleanup()
 {
 	ASSERT(this);
-	int result;
 
-	LOGDEBUG("brctl delif rascsi_bridge ras0");
-	result = run_system_cmd("brctl delif rascsi_bridge ras0");
-	if(result != EXIT_SUCCESS){
-		LOGWARN("Warning: The brctl delif command failed.");
-		LOGWARN("You may need to manually remove the ras0 tap device from the bridge");
+	int br_socket_fd = -1;
+	if ((br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
+		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
+	} else {
+		LOGDEBUG("brctl delif rascsi_bridge ras0");
+		if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", FALSE)) {
+			LOGWARN("Warning: Removing ras0 from the bridge failed.");
+			LOGWARN("You may need to manually remove the ras0 tap device from the bridge");
+		}
+		close(br_socket_fd);
 	}
 
 	// Release TAP defice
@@ -198,10 +282,11 @@ void FASTCALL CTapDriver::Cleanup()
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL CTapDriver::Enable(){
-	int result;
+	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
-	result = run_system_cmd("ip link set ras0 up");
-	return (result == EXIT_SUCCESS);
+	BOOL result = ip_link(fd, "ras0", TRUE);
+	close(fd);
+	return result;
 }
 
 //---------------------------------------------------------------------------
@@ -210,10 +295,11 @@ BOOL FASTCALL CTapDriver::Enable(){
 //
 //---------------------------------------------------------------------------
 BOOL FASTCALL CTapDriver::Disable(){
-	int result;
+	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
-	result = run_system_cmd("ip link set ras0 down");
-	return (result == EXIT_SUCCESS);
+	BOOL result = ip_link(fd, "ras0", FALSE);
+	close(fd);
+	return result;
 }
 
 //---------------------------------------------------------------------------
