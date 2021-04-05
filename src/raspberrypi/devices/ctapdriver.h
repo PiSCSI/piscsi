@@ -16,6 +16,9 @@
 #if !defined(ctapdriver_h)
 #define ctapdriver_h
 
+#include <pcap/pcap.h>
+#include "filepath.h"
+
 #ifndef ETH_FRAME_LEN
 #define ETH_FRAME_LEN 1514
 #endif
@@ -32,7 +35,9 @@ public:
 	CTapDriver();
 										// Constructor
 	BOOL FASTCALL Init();
-										// Initilization
+										// Initialization
+	BOOL FASTCALL OpenDump(const Filepath& path);
+										// Capture packets
 	void FASTCALL Cleanup();
 										// Cleanup
 	void FASTCALL GetMacAddr(BYTE *mac);
@@ -58,6 +63,9 @@ private:
 	int m_hTAP;
 										// File handle
 	BYTE m_garbage_buffer[ETH_FRAME_LEN];
+
+	pcap_t *m_pcap;
+	pcap_dumper_t *m_pcap_dumper;
 };
 
 #endif	// ctapdriver_h

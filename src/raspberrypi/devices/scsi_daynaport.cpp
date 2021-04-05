@@ -106,6 +106,12 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
+BOOL FASTCALL SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
+{
+	LOGTRACE("SCSIDaynaPort Open");
+	return m_tap->OpenDump(path);
+}
+
 //---------------------------------------------------------------------------
 //
 //	INQUIRY
