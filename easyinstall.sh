@@ -41,14 +41,13 @@ function initialChecks() {
 }
 
 function installPackages() {
-    sudo apt-get update && sudo apt install git libspdlog-dev genisoimage python3 python3-venv nginx libpcap-dev -y
+    sudo apt-get update && sudo apt install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev -y
 }
 
 # install all dependency packages for RaSCSI Service
 # compile and install RaSCSI Service
 function installRaScsi() {
     installPackages
-    sudo apt-get update && sudo apt-get install --yes git libspdlog-dev
 
     cd ~/RASCSI/src/raspberrypi
     make all CONNECT_TYPE=FULLSPEC
