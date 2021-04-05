@@ -564,7 +564,7 @@ public:
 										// Command receive handshake
 	int FASTCALL ReceiveHandShake(BYTE *buf, int count);
 										// Data receive handshake
-	int FASTCALL SendHandShake(BYTE *buf, int count);
+	int FASTCALL SendHandShake(BYTE *buf, int count, int delay_after_bytes);
 										// Data transmission handshake
 
 	static BUS::phase_t FASTCALL GetPhaseRaw(DWORD raw_data);

@@ -1566,8 +1566,19 @@ void FASTCALL SCSIDEV::Send()
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
 		LOGTRACE("%s sending handhake with offset %lu, length %lu", __PRETTY_FUNCTION__, ctrl.offset, ctrl.length);
-		len = ctrl.bus->SendHandShake(
-			&ctrl.buffer[ctrl.offset], ctrl.length);
+
+		// The Daynaport needs to have a delay after the size/flags field
+		// of the read response. In the MacOS driver, it looks like the
+		// driver is doing two "READ" system calls.
+		if (ctrl.unit[0]->GetID() == MAKEID('S', 'C', 'D', 'P')) {
+			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
+				&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
+		}
+		else
+		{
+			len = ctrl.bus->SendHandShake(
+				&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
+		}
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {

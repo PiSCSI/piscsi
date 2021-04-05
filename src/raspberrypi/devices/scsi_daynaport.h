@@ -78,6 +78,11 @@ public:
 	static const BYTE CMD_SCSILINK_SETMODE      = 0x80;
 	static const BYTE CMD_SCSILINK_SETMAC       = 0x40;
 
+	// The READ response has a header which consists of:
+	//   2 bytes - payload size
+	//   4 bytes - status flags
+	static const DWORD DAYNAPORT_READ_HEADER_SZ = 2 + 4;
+
 private:
 	typedef struct __attribute__((packed)) {
 		BYTE operation_code;
@@ -190,12 +195,6 @@ private:
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
 	
-	// The READ response has a header which consists of:
-	//   2 bytes - payload size
-	//   4 bytes - status flags
-	//   1 byte  - magic pad bit, that I don't know why it works.....
-	const DWORD m_read_header_size = 2 + 4;
-
 #endif	// RASCSI && !BAREMETAL
 
 };

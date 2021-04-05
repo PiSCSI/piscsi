@@ -228,14 +228,14 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		// The first 2 bytes are reserved for the length of the packet
 		// The next 4 bytes are reserved for a flag field
 		//rx_packet_size = m_tap->Rx(response->data);
-		rx_packet_size = m_tap->Rx(&buf[m_read_header_size]);
+		rx_packet_size = m_tap->Rx(&buf[DAYNAPORT_READ_HEADER_SZ]);
 
 		// If we didn't receive anything, return size of 0
 		if(rx_packet_size <= 0){
 			LOGTRACE("%s No packet received", __PRETTY_FUNCTION__);
 			response->length = 0;
 			response->flags = e_no_more_data;
-			return m_read_header_size;
+			return DAYNAPORT_READ_HEADER_SZ;
 		}
 
 		LOGTRACE("%s Packet Sz %d (%08X) read: %d", __PRETTY_FUNCTION__, (unsigned int) rx_packet_size, (unsigned int) rx_packet_size, read_count);
@@ -283,7 +283,7 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 			{
 				response->length = 0;
 				response->flags = e_no_more_data;
-				return m_read_header_size;
+				return DAYNAPORT_READ_HEADER_SZ;
 			}
 		}
 		else
@@ -312,7 +312,7 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver
-			return rx_packet_size + m_read_header_size;
+			return rx_packet_size + DAYNAPORT_READ_HEADER_SZ;
 		}
 		// If we got to this point, there are still messages in the queue, so 
 		// we should loop back and get the next one.
@@ -320,7 +320,7 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 	response->length = 0;
 	response->flags = e_no_more_data;
-	return m_read_header_size;
+	return DAYNAPORT_READ_HEADER_SZ;
 }
 
 //---------------------------------------------------------------------------

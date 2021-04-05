@@ -1385,7 +1385,7 @@ void FASTCALL SASIDEV::Send()
 	// Check that the length isn't 0
 	if (ctrl.length != 0) {
 		len = ctrl.bus->SendHandShake(
-			&ctrl.buffer[ctrl.offset], ctrl.length);
+			&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
 
 		// If you can not send it all, move on to the status phase
 		if (len != (int)ctrl.length) {

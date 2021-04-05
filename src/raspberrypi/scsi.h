@@ -125,7 +125,7 @@ public:
 										// コマンド受信ハンドシェイク
 	virtual int FASTCALL ReceiveHandShake(BYTE *buf, int count) = 0;
 										// データ受信ハンドシェイク
-	virtual int FASTCALL SendHandShake(BYTE *buf, int count) = 0;
+	virtual int FASTCALL SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
 										// データ送信ハンドシェイク
 
 
@@ -133,6 +133,8 @@ public:
 										// Get SCSI input signal value
 	virtual void FASTCALL SetSignal(int pin, BOOL ast) = 0;
 										// Set SCSI output signal value
+	static const int SEND_NO_DELAY = -1;
+										// Passed into SendHandShake when we don't want to delay
 protected:
 	phase_t m_current_phase = phase_t::reserved;
 
