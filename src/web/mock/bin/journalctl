@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# Mock responses to rascsi-web
+case $1 in
+  -n)
+    echo "logs $*"
+    ;;
+
+  **)
+    echo "default"
+    ;;
+esac

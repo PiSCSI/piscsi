@@ -22,6 +22,7 @@ F 0 "J7" H 3600 675 50  0000 C CNN
 F 1 "Conn_02x25_Odd_Even" H 3600 766 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical" H 3550 2100 50  0001 C CNN
 F 3 "~" H 3550 2100 50  0001 C CNN
+F 4 "C40024" H 3550 2100 50  0001 C CNN "LCSC"
 	1    3550 2100
 	0    -1   -1   0   
 $EndComp
@@ -449,7 +450,7 @@ L SamacSys_Parts:L717SDB25PA4CH4F J8
 U 1 1 5FA017A4
 P 2900 2900
 F 0 "J8" V 2719 2900 50  0000 C CNN
-F 1 "L717SDB25PA4CH4F" V 2810 2900 50  0000 C CNN
+F 1 "CONFLY DB25" V 2810 2900 50  0000 C CNN
 F 2 "L717SDB25PA4CH4F" H 4550 3200 50  0001 L CNN
 F 3 "https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf" H 4550 3100 50  0001 L CNN
 F 4 "D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD" H 4550 3000 50  0001 L CNN "Description"
@@ -458,6 +459,7 @@ F 6 "523-L717SDB25PA4CH4F" H 4550 2800 50  0001 L CNN "Mouser Part Number"
 F 7 "https://www.mouser.com/Search/Refine.aspx?Keyword=523-L717SDB25PA4CH4F" H 4550 2700 50  0001 L CNN "Mouser Price/Stock"
 F 8 "Amphenol" H 4550 2600 50  0001 L CNN "Manufacturer_Name"
 F 9 "L717SDB25PA4CH4F" H 4550 2500 50  0001 L CNN "Manufacturer_Part_Number"
+F 10 "C77838" V 2900 2900 50  0001 C CNN "LCSC"
 	1    2900 2900
 	0    -1   1    0   
 $EndComp

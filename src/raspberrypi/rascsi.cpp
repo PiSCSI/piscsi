@@ -24,6 +24,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
 #include "gpiobus.h"
+#include "rascsi_version.h"
 #include "spdlog/spdlog.h"
 
 //---------------------------------------------------------------------------
@@ -78,10 +79,8 @@ void KillHandler(int sig)
 void Banner(int argc, char* argv[])
 {
 	FPRT(stdout,"SCSI Target Emulator RaSCSI(*^..^*) ");
-	FPRT(stdout,"version %01d.%01d%01d(%s, %s)\n",
-		(int)((VERSION >> 8) & 0xf),
-		(int)((VERSION >> 4) & 0xf),
-		(int)((VERSION     ) & 0xf),
+	FPRT(stdout,"version %s (%s, %s)\n",
+		rascsi_get_version_string(),
 		__DATE__,
 		__TIME__);
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
