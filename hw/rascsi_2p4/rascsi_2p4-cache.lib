@@ -450,6 +450,28 @@ X 1 1 0 -100 100 U 50 50 1 1 I
 ENDDRAW
 ENDDEF
 #
+# SamacSys_Parts_171826-4
+#
+DEF SamacSys_Parts_171826-4 J 0 30 Y Y 1 F N
+F0 "J" 650 300 50 H V L CNN
+F1 "SamacSys_Parts_171826-4" 650 200 50 H V L CNN
+F2 "SHDRRA4W69P0X250_1X4_1000X1350X670P" 650 100 50 H I L CNN
+F3 "https://componentsearchengine.com/Datasheets/2/171826-4.pdf" 650 0 50 H I L CNN
+F4 "Headers & Wire Housings 4P HDR R/A" 650 -100 50 H I L CNN "Description"
+F5 "6.7" 650 -200 50 H I L CNN "Height"
+F6 "571-1718264" 650 -300 50 H I L CNN "Mouser Part Number"
+F7 "https://www.mouser.co.uk/ProductDetail/TE-Connectivity/171826-4/?qs=4hg9R9g9MDt3qYFe2l2pbA%3D%3D" 650 -400 50 H I L CNN "Mouser Price/Stock"
+F8 "TE Connectivity" 650 -500 50 H I L CNN "Manufacturer_Name"
+F9 "171826-4" 650 -600 50 H I L CNN "Manufacturer_Part_Number"
+DRAW
+P 5 0 1 6 200 100 600 100 600 -400 200 -400 200 100 N
+X 1 1 0 0 200 R 50 50 0 0 P
+X 2 2 0 -100 200 R 50 50 0 0 P
+X 3 3 0 -200 200 R 50 50 0 0 P
+X 4 4 0 -300 200 R 50 50 0 0 P
+ENDDRAW
+ENDDEF
+#
 # SamacSys_Parts_L717SDB25PA4CH4F
 #
 DEF SamacSys_Parts_L717SDB25PA4CH4F J 0 30 Y Y 1 F N

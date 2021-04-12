@@ -12,6 +12,7 @@ Comment,Designator,Footprint,LCSC
 "Raspberry_Pi_2_3","J1","Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical","C50982"
 "Conn_01x04_Male","J10","Connector_PinHeader_2.00mm:PinHeader_1x04_P2.00mm_Vertical",""
 "DNP","J2","Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Horizontal","DNP"
+"171826-4","J20","SHDRRA4W69P0X250_1X4_1000X1350X670P",""
 "Conn_02x25_Odd_Even","J3","Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical","C30006"
 "I2C Pinout","J4","Connector_PinSocket_2.54mm:PinSocket_1x05_P2.54mm_Vertical","C50950"
 "DNP","J5","Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical","DNP"

@@ -441,4 +441,47 @@ F 3 "~" H 1900 6150 50  0001 C CNN
 $EndComp
 Text Notes 2900 4150 0    79   ~ 16
 Remove pins 9, 10 and 27
+$Comp
+L SamacSys_Parts:171826-4 J20
+U 1 1 607408EC
+P 6200 1450
+F 0 "J20" H 6828 1346 50  0000 L CNN
+F 1 "171826-4" H 6828 1255 50  0000 L CNN
+F 2 "SHDRRA4W69P0X250_1X4_1000X1350X670P" H 6850 1550 50  0001 L CNN
+F 3 "https://componentsearchengine.com/Datasheets/2/171826-4.pdf" H 6850 1450 50  0001 L CNN
+F 4 "Headers & Wire Housings 4P HDR R/A" H 6850 1350 50  0001 L CNN "Description"
+F 5 "6.7" H 6850 1250 50  0001 L CNN "Height"
+F 6 "571-1718264" H 6850 1150 50  0001 L CNN "Mouser Part Number"
+F 7 "https://www.mouser.co.uk/ProductDetail/TE-Connectivity/171826-4/?qs=4hg9R9g9MDt3qYFe2l2pbA%3D%3D" H 6850 1050 50  0001 L CNN "Mouser Price/Stock"
+F 8 "TE Connectivity" H 6850 950 50  0001 L CNN "Manufacturer_Name"
+F 9 "171826-4" H 6850 850 50  0001 L CNN "Manufacturer_Part_Number"
+	1    6200 1450
+	1    0    0    -1  
+$EndComp
+Wire Notes Line
+	4950 950  7800 950 
+Wire Notes Line
+	7800 950  7800 2250
+Wire Notes Line
+	7800 2250 4950 2250
+Wire Notes Line
+	4950 2250 4950 950 
+Text Notes 4950 2250 0    39   ~ 0
+"Floppy" style "berg" power connector
+Text GLabel 6200 1550 0    50   BiDi ~ 0
+GND
+$Comp
+L power:+5V #PWR053
+U 1 1 607432AF
+P 6200 1450
+F 0 "#PWR053" H 6200 1300 50  0001 C CNN
+F 1 "+5V" V 6200 1650 50  0000 C CNN
+F 2 "" H 6200 1450 50  0001 C CNN
+F 3 "" H 6200 1450 50  0001 C CNN
+	1    6200 1450
+	0    -1   -1   0   
+$EndComp
+Text GLabel 6200 1650 0    50   BiDi ~ 0
+GND
+NoConn ~ 6200 1750
 $EndSCHEMATC
