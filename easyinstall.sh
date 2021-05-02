@@ -24,11 +24,11 @@ VIRTUAL_DRIVER_PATH=/home/pi/images
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=~/RASCSI/lido-driver.img
-
+GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 function initialChecks() {
     currentUser=$(whoami)
-    if [ "pi" != $currentUser ]; then
+    if [ "pi" != "$currentUser" ]; then
         echo "You must use 'pi' user (current: $currentUser)"
         exit 1
     fi
@@ -40,10 +40,14 @@ function initialChecks() {
     fi
 }
 
+function installPackages() {
+    sudo apt-get update && sudo apt install git libspdlog-dev genisoimage python3 python3-venv nginx bridge-utils -y
+}
 
 # install all dependency packages for RaSCSI Service
 # compile and install RaSCSI Service
 function installRaScsi() {
+    installPackages
     sudo apt-get update && sudo apt-get install --yes git libspdlog-dev
 
     cd ~/RASCSI/src/raspberrypi
@@ -69,7 +73,7 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 
 function stopOldWebInterface() {
     APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
-    if [ $APACHE_STATUS -eq 0 ] ; then
+    if [ "$APACHE_STATUS" -eq 0 ] ; then
         echo "Stopping old Apache2 RaSCSI Web..."
         sudo systemctl disable apache2
         sudo systemctl stop apache2
@@ -79,7 +83,7 @@ function stopOldWebInterface() {
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
     stopOldWebInterface
-    sudo apt install genisoimage python3 python3-venv nginx -y
+    installPackages
 
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
     sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
@@ -99,12 +103,17 @@ function installRaScsiWebInterface() {
 }
 
 function updateRaScsiGit() {
+    echo "Updating checked out branch $GIT_BRANCH"
     cd ~/RASCSI
-    git pull
+    git fetch origin
+    git stash
+    git rebase origin/$GIT_BRANCH
+    git stash apply
 }
 
 function updateRaScsi() {
     updateRaScsiGit
+    installPackages
     sudo systemctl stop rascsi
 
     cd ~/RASCSI/src/raspberrypi
@@ -241,8 +250,8 @@ function showMenu() {
     choice=-1
 
     until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-        echo "Enter your choice (0-7) or CTRL-C to exit"
-        read choice
+        echo -n "Enter your choice (0-7) or CTRL-C to exit: "
+        read -r choice
     done
 
 

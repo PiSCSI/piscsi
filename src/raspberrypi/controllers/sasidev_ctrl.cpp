@@ -5,12 +5,12 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  Copyright (C) akuker
+//	Copyright (C) akuker
 //
-//  Licensed under the BSD 3-Clause License. 
-//  See LICENSE file in the project root folder.
+//	Licensed under the BSD 3-Clause License. 
+//	 See LICENSE file in the project root folder.
 //
-//  [ SASI device controller ]
+//	[ SASI device controller ]
 //
 //---------------------------------------------------------------------------
 #include "controllers/sasidev_ctrl.h"
@@ -37,10 +37,10 @@ SASIDEV::SASIDEV(Device *dev)
 {
 	int i;
 
-#ifndef RASCSI
+	#ifndef RASCSI
 	// Remember host device
 	host = dev;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Work initialization
 	ctrl.phase = BUS::busfree;
@@ -49,9 +49,9 @@ SASIDEV::SASIDEV(Device *dev)
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
-#ifdef RASCSI
+	#ifdef RASCSI
 	ctrl.execstart = 0;
-#endif	// RASCSI
+	#endif	// RASCSI
 	ctrl.bufsize = 0x800;
 	ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	memset(ctrl.buffer, 0x00, ctrl.bufsize);
@@ -96,9 +96,9 @@ void FASTCALL SASIDEV::Reset()
 	ctrl.phase = BUS::busfree;
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
-#ifdef RASCSI
+	#ifdef RASCSI
 	ctrl.execstart = 0;
-#endif	// RASCSI
+	#endif	// RASCSI
 	memset(ctrl.buffer, 0x00, ctrl.bufsize);
 	ctrl.blocks = 0;
 	ctrl.next = 0;
@@ -301,9 +301,9 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 	// For the monitor tool, we shouldn't need to reset. We're just logging information
 	// Reset
 	if (ctrl.bus->GetRST()) {
-#if defined(DISK_LOG)
-		Log(Log::Normal, "RESET signal received");
-#endif	// DISK_LOG
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - RESET signal received");
+		#endif	// DISK_LOG
 
 		// Reset the controller
 		Reset();
@@ -371,9 +371,9 @@ void FASTCALL SASIDEV::BusFree()
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Bus free phase");
-#endif	// DISK_LOG
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - Bus free phase");
+		#endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
@@ -421,10 +421,9 @@ void FASTCALL SASIDEV::Selection()
 			return;
 		}
 
-#if defined(DISK_LOG)
-		Log(Log::Normal,
-			"Selection Phase ID=%d (with device)", ctrl.id);
-#endif	// DISK_LOG
+		#if defined(DISK_LOG)
+		Log(Log::Normal,"SASI - Selection Phase ID=%d (with device)", ctrl.id);
+		#endif	// DISK_LOG
 
 		// Phase change
 		ctrl.phase = BUS::selection;
@@ -447,19 +446,19 @@ void FASTCALL SASIDEV::Selection()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Command()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	int count;
 	int i;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	ASSERT(this);
 
 	// Phase change
 	if (ctrl.phase != BUS::command) {
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Command Phase");
-#endif	// DISK_LOG
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - Command Phase");
+		#endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::command;
@@ -474,7 +473,7 @@ void FASTCALL SASIDEV::Command()
 		ctrl.length = 6;
 		ctrl.blocks = 1;
 
-#ifdef RASCSI
+		#ifdef RASCSI
 		// Command reception handshake (10 bytes are automatically received at the first command)
 		count = ctrl.bus->CommandHandShake(ctrl.buffer);
 
@@ -506,13 +505,13 @@ void FASTCALL SASIDEV::Command()
 
 		// Execution Phase
 		Execute();
-#else
+		#else
 		// Request the command
 		ctrl.bus->SetREQ(TRUE);
 		return;
-#endif	// RASCSI
+		#endif	// RASCSI
 	}
-#ifndef RASCSI
+	#ifndef RASCSI
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// Sent by the initiator
@@ -525,7 +524,7 @@ void FASTCALL SASIDEV::Command()
 			ReceiveNext();
 		}
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -537,9 +536,9 @@ void FASTCALL SASIDEV::Execute()
 {
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "Execution Phase Command %02X", ctrl.cmd[0]);
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - Execution Phase Command %02X", ctrl.cmd[0]);
+	#endif	// DISK_LOG
 
 	// Phase Setting
 	ctrl.phase = BUS::execute;
@@ -547,9 +546,9 @@ void FASTCALL SASIDEV::Execute()
 	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
-#ifdef RASCSI
+	#ifdef RASCSI
 	ctrl.execstart = SysTimer::GetTimerLow();
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Process by command
 	switch (ctrl.cmd[0]) {
@@ -603,14 +602,25 @@ void FASTCALL SASIDEV::Execute()
 			CmdAssign();
 			return;
 
+		// RESERVE UNIT(16)
+		case 0x16:
+			CmdReserveUnit();
+			return;
+		
+		// RELEASE UNIT(17)
+		case 0x17:
+			CmdReleaseUnit();
+			return;
+
 		// SPECIFY(SASIのみ)
 		case 0xc2:
 			CmdSpecify();
 			return;
+
 	}
 
 	// Unsupported command
-	Log(Log::Warning, "Unsupported command $%02X", ctrl.cmd[0]);
+	Log(Log::Warning, "SASI - Unsupported command $%02X", ctrl.cmd[0]);
 	CmdInvalid();
 }
 
@@ -621,17 +631,17 @@ void FASTCALL SASIDEV::Execute()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Status()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	DWORD min_exec_time;
 	DWORD time;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	ASSERT(this);
 
 	// Phase change
 	if (ctrl.phase != BUS::status) {
 
-#ifdef RASCSI
+	#ifdef RASCSI
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
@@ -643,11 +653,11 @@ void FASTCALL SASIDEV::Status()
 		} else {
 			SysTimer::SleepUsec(5);
 		}
-#endif	// RASCSI
+		#endif	// RASCSI
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Status phase");
-#endif	// DISK_LOG
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - Status phase");
+		#endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::status;
@@ -663,22 +673,22 @@ void FASTCALL SASIDEV::Status()
 		ctrl.blocks = 1;
 		ctrl.buffer[0] = (BYTE)ctrl.status;
 
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Request status
 		ctrl.bus->SetDAT(ctrl.buffer[0]);
 		ctrl.bus->SetREQ(TRUE);
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Status Phase $%02X", ctrl.status);
-#endif	// DISK_LOG
-#endif	// RASCSI
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - Status Phase $%02X", ctrl.status);
+		#endif	// DISK_LOG
+		#endif	// RASCSI
 		return;
 	}
 
-#ifdef RASCSI
+	#ifdef RASCSI
 	// Send
 	Send();
-#else
+	#else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// Initiator received
@@ -691,7 +701,7 @@ void FASTCALL SASIDEV::Status()
 			Send();
 		}
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -706,9 +716,9 @@ void FASTCALL SASIDEV::MsgIn()
 	// Phase change
 	if (ctrl.phase != BUS::msgin) {
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Message in phase");
-#endif	// DISK_LOG
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - Message in phase");
+		#endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::msgin;
@@ -723,22 +733,22 @@ void FASTCALL SASIDEV::MsgIn()
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Request message
 		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
 		ctrl.bus->SetREQ(TRUE);
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Message in phase $%02X", ctrl.buffer[ctrl.offset]);
-#endif	// DISK_LOG
-#endif	// RASCSI
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - Message in phase $%02X", ctrl.buffer[ctrl.offset]);
+		#endif	// DISK_LOG
+		#endif	// RASCSI
 		return;
 	}
 
-#ifdef RASCSI
+	#ifdef RASCSI
 	//Send
 	Send();
-#else
+	#else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// Initator received
@@ -751,7 +761,7 @@ void FASTCALL SASIDEV::MsgIn()
 			Send();
 		}
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -761,10 +771,10 @@ void FASTCALL SASIDEV::MsgIn()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::DataIn()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	DWORD min_exec_time;
 	DWORD time;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	ASSERT(this);
 	ASSERT(ctrl.length >= 0);
@@ -772,7 +782,7 @@ void FASTCALL SASIDEV::DataIn()
 	// Phase change
 	if (ctrl.phase != BUS::datain) {
 
-#ifdef RASCSI
+		#ifdef RASCSI
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
@@ -782,7 +792,7 @@ void FASTCALL SASIDEV::DataIn()
 			}
 			ctrl.execstart = 0;
 		}
-#endif	// RASCSI
+		#endif	// RASCSI
 
 		// If the length is 0, go to the status phase
 		if (ctrl.length == 0) {
@@ -790,9 +800,9 @@ void FASTCALL SASIDEV::DataIn()
 			return;
 		}
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Data-in Phase");
-#endif	// DISK_LOG
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - Data-in Phase");
+		#endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::datain;
@@ -807,20 +817,20 @@ void FASTCALL SASIDEV::DataIn()
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Assert the DAT signal
 		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
 
 		// Request data
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
-#ifdef RASCSI
+	#ifdef RASCSI
 	// Send
 	Send();
-#else
+	#else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// Initator received
@@ -833,7 +843,7 @@ void FASTCALL SASIDEV::DataIn()
 			Send();
 		}
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -843,10 +853,10 @@ void FASTCALL SASIDEV::DataIn()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::DataOut()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	DWORD min_exec_time;
 	DWORD time;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	ASSERT(this);
 	ASSERT(ctrl.length >= 0);
@@ -854,7 +864,7 @@ void FASTCALL SASIDEV::DataOut()
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
 
-#ifdef RASCSI
+		#ifdef RASCSI
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
@@ -864,7 +874,7 @@ void FASTCALL SASIDEV::DataOut()
 			}
 			ctrl.execstart = 0;
 		}
-#endif	// RASCSI
+		#endif	// RASCSI
 
 		// If the length is 0, go to the status phase
 		if (ctrl.length == 0) {
@@ -872,9 +882,9 @@ void FASTCALL SASIDEV::DataOut()
 			return;
 		}
 
-#if defined(DISK_LOG)
-		Log(Log::Normal, "Data out phase");
-#endif	// DISK_LOG
+		#if defined(DISK_LOG)
+		Log(Log::Normal, "SASI - Data out phase");
+		#endif	// DISK_LOG
 
 		// Phase Setting
 		ctrl.phase = BUS::dataout;
@@ -889,17 +899,17 @@ void FASTCALL SASIDEV::DataOut()
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
-#ifndef	RASCSI
+		#ifndef	RASCSI
 		// Request data
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
-#ifdef	RASCSI
+	#ifdef	RASCSI
 	// Receive
 	Receive();
-#else
+	#else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// Sent by the initiator
@@ -912,7 +922,7 @@ void FASTCALL SASIDEV::DataOut()
 			ReceiveNext();
 		}
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -945,9 +955,9 @@ void FASTCALL SASIDEV::Error()
 		return;
 	}
 
-#if defined(DISK_LOG)
-	Log(Log::Warning, "Error occured (going to status phase)");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Warning, "SASI - Error occured (going to status phase)");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -971,9 +981,9 @@ void FASTCALL SASIDEV::CmdTestUnitReady()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "TEST UNIT READY Command ");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - TEST UNIT READY Command ");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1006,9 +1016,9 @@ void FASTCALL SASIDEV::CmdRezero()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "REZERO UNIT Command ");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - REZERO UNIT Command ");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1040,9 +1050,9 @@ void FASTCALL SASIDEV::CmdRequestSense()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "REQUEST SENSE Command ");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - REQUEST SENSE Command ");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1055,9 +1065,9 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "Sense key $%02X", ctrl.buffer[2]);
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - Sense key $%02X", ctrl.buffer[2]);
+	#endif	// DISK_LOG
 
 	// Read phase
 	DataIn();
@@ -1075,9 +1085,9 @@ void FASTCALL SASIDEV::CmdFormat()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "FORMAT UNIT Command ");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - FORMAT UNIT Command ");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1110,9 +1120,9 @@ void FASTCALL SASIDEV::CmdReassign()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "REASSIGN BLOCKS Command ");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - REASSIGN BLOCKS Command ");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1131,6 +1141,42 @@ void FASTCALL SASIDEV::CmdReassign()
 
 	// status phase
 	Status();
+}
+
+// The following commands RESERVE UNIT and RELEASE UNIT are not properly implemented. 
+// These commands are used in multi-initator environments which this project is not targeted at.
+// For now, we simply reply with an OK. -phrax 2021-03-06
+
+//---------------------------------------------------------------------------
+//
+//	RESERVE UNIT(16)
+//
+//---------------------------------------------------------------------------
+void FASTCALL SASIDEV::CmdReserveUnit()
+{
+	ASSERT(this);
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - RESERVE UNIT Command");
+	#endif	// DISK_LOG
+
+	// status phase
+        Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RELEASE UNIT(17)
+//
+//---------------------------------------------------------------------------
+void FASTCALL SASIDEV::CmdReleaseUnit()
+{
+	ASSERT(this);
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - RELEASE UNIT Command");
+	#endif	// DISK_LOG
+
+	// status phase
+        Status();
 }
 
 //---------------------------------------------------------------------------
@@ -1163,10 +1209,9 @@ void FASTCALL SASIDEV::CmdRead6()
 		ctrl.blocks = 0x100;
 	}
 
-#if defined(DISK_LOG)
-	Log(Log::Normal,
-		"READ(6) command record=%06X blocks=%d", record, ctrl.blocks);
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal,"SASI - READ(6) command record=%06X blocks=%d", record, ctrl.blocks);
+	#endif	// DISK_LOG
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->Read(ctrl.buffer, record);
@@ -1213,10 +1258,9 @@ void FASTCALL SASIDEV::CmdWrite6()
 		ctrl.blocks = 0x100;
 	}
 
-#if defined(DISK_LOG)
-	Log(Log::Normal,
-		"WRITE(6) command record=%06X blocks=%d", record, ctrl.blocks);
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal,"SASI - WRITE(6) command record=%06X blocks=%d", record, ctrl.blocks);
+	#endif	// DISK_LOG
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
@@ -1245,9 +1289,9 @@ void FASTCALL SASIDEV::CmdSeek6()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "SEEK(6) Command ");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - SEEK(6) Command ");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1280,9 +1324,9 @@ void FASTCALL SASIDEV::CmdAssign()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "ASSIGN Command ");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - ASSIGN Command ");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1318,9 +1362,9 @@ void FASTCALL SASIDEV::CmdSpecify()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "SPECIFY Command ");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - SPECIFY Command ");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1355,9 +1399,9 @@ void FASTCALL SASIDEV::CmdInvalid()
 
 	ASSERT(this);
 
-#if defined(DISK_LOG)
-	Log(Log::Normal, "Command not supported");
-#endif	// DISK_LOG
+	#if defined(DISK_LOG)
+	Log(Log::Normal, "SASI - Command not supported");
+	#endif	// DISK_LOG
 
 	// Logical Unit
 	lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1383,16 +1427,16 @@ void FASTCALL SASIDEV::CmdInvalid()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Send()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	int len;
-#endif	// RASCSI
+	#endif	// RASCSI
 	BOOL result;
 
 	ASSERT(this);
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-#ifdef RASCSI
+	#ifdef RASCSI
 	// Check that the length isn't 0
 	if (ctrl.length != 0) {
 		len = ctrl.bus->SendHandShake(
@@ -1409,7 +1453,7 @@ void FASTCALL SASIDEV::Send()
 		ctrl.length = 0;
 		return;
 	}
-#else
+	#else
 	// Offset and Length
 	ASSERT(ctrl.length >= 1);
 	ctrl.offset++;
@@ -1422,7 +1466,7 @@ void FASTCALL SASIDEV::Send()
 		ctrl.bus->SetREQ(TRUE);
 		return;
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Remove block and initialize the result
 	ctrl.blocks--;
@@ -1435,9 +1479,9 @@ void FASTCALL SASIDEV::Send()
 			result = XferIn(ctrl.buffer);
 			//** printf("xfer in: %d \n",result);
 
-#ifndef RASCSI
+			#ifndef RASCSI
 			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
-#endif	// RASCSI
+			#endif	// RASCSI
 		}
 	}
 
@@ -1451,10 +1495,10 @@ void FASTCALL SASIDEV::Send()
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
@@ -1538,9 +1582,9 @@ void FASTCALL SASIDEV::Receive()
 		// Command phase
 		case BUS::command:
 			ctrl.cmd[ctrl.offset] = data;
-#if defined(DISK_LOG)
-			Log(Log::Normal, "Command phase $%02X", data);
-#endif	// DISK_LOG
+			#if defined(DISK_LOG)
+			Log(Log::Normal, "SASI - Command phase $%02X", data);
+			#endif	// DISK_LOG
 
 			// Set the length again with the first data (offset 0)
 			if (ctrl.offset == 0) {
@@ -1580,9 +1624,9 @@ void FASTCALL SASIDEV::Receive()
 void FASTCALL SASIDEV::ReceiveNext()
 #endif	// RASCSI
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	int len;
-#endif	// RASCSI
+	#endif	// RASCSI
 	BOOL result;
 
 	ASSERT(this);
@@ -1591,7 +1635,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
-#ifdef RASCSI
+	#ifdef RASCSI
 	// Length != 0 if received
 	if (ctrl.length != 0) {
 		// Receive
@@ -1609,7 +1653,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 		ctrl.length = 0;
 		return;
 	}
-#else
+	#else
 	// Offset and Length
 	ASSERT(ctrl.length >= 1);
 	ctrl.offset++;
@@ -1621,7 +1665,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 		ctrl.bus->SetREQ(TRUE);
 		return;
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Remove the control block and initialize the result
 	ctrl.blocks--;
@@ -1648,22 +1692,22 @@ void FASTCALL SASIDEV::ReceiveNext()
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
 	// Move to the next phase
 	switch (ctrl.phase) {
-#ifndef RASCSI
+	#ifndef RASCSI
 		// Command phase
 		case BUS::command:
 			// Execution Phase
 			Execute();
 			break;
-#endif	// RASCSI
+			#endif	// RASCSI
 
 		// Data out phase
 		case BUS::dataout:
@@ -1856,7 +1900,7 @@ void FASTCALL SASIDEV::FlushUnit()
             // Debug code related to Issue #2 on github, where we get an unhandled Model select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
-            Log(Log::Warning, "Received \'Mode Select\'\n");
+            Log(Log::Warning, "SASI - Received \'Mode Select\'\n");
             Log(Log::Warning, "   Operation Code: [%02X]\n", ctrl.cmd[0]);
             Log(Log::Warning, "   Logical Unit %01X, PF %01X, SP %01X [%02X]\n", ctrl.cmd[1] >> 5, 1 & (ctrl.cmd[1] >> 4), ctrl.cmd[1] & 1, ctrl.cmd[1]);
             Log(Log::Warning, "   Reserved: %02X\n", ctrl.cmd[2]);
@@ -1868,13 +1912,13 @@ void FASTCALL SASIDEV::FlushUnit()
 			if (!ctrl.unit[lun]->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
-				Log(Log::Warning, "Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
+				Log(Log::Warning, "SASI - Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
 				return;
 			}
             break;
 
 		default:
-			Log(Log::Warning, "Received an invalid flush command %02X!!!!!\n",ctrl.cmd[0]);
+			Log(Log::Warning, "SASI - Received an invalid flush command %02X!!!!!\n",ctrl.cmd[0]);
 			ASSERT(FALSE);
 			break;
 	}
@@ -1938,13 +1982,13 @@ void SASIDEV::GetPhaseStr(char *str)
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 {
-#if !defined(BAREMETAL)
-#ifdef DISK_LOG
+	#if !defined(BAREMETAL)
+	#ifdef DISK_LOG
 	char buffer[0x200];
 	char buffer2[0x250];
 	char buffer3[0x250];
 	char phase_str[20];
-#endif
+	#endif
 	va_list args;
 	va_start(args, format);
 
@@ -1953,15 +1997,15 @@ void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
         return;
 	}
 
-#ifdef RASCSI
-#ifndef DISK_LOG
+	#ifdef RASCSI
+	#ifndef DISK_LOG
 	if (level == Log::Warning) {
 		return;
 	}
-#endif	// DISK_LOG
-#endif	// RASCSI
+	#endif	// DISK_LOG
+	#endif	// RASCSI
 
-#ifdef DISK_LOG
+	#ifdef DISK_LOG
 	// format
 	vsprintf(buffer, format, args);
 
@@ -1970,30 +2014,28 @@ void FASTCALL SASIDEV::Log(Log::loglevel level, const char *format, ...)
 
 	// Add the date/timestamp
 	// current date/time based on current system
-   time_t now = time(0);
-   // convert now to string form
-   char* dt = ctime(&now);
+	time_t now = time(0);
+	// convert now to string form
+	char* dt = ctime(&now);
 
+	strcpy(buffer2, "[");
+	strcat(buffer2, dt);
+	// Get rid of the carriage return
+	buffer2[strlen(buffer2)-1] = '\0';
+	strcat(buffer2, "] ");
 
-   strcpy(buffer2, "[");
-   strcat(buffer2, dt);
-   // Get rid of the carriage return
-   buffer2[strlen(buffer2)-1] = '\0';
-   strcat(buffer2, "] ");
+	// Get the phase
+	this->GetPhaseStr(phase_str);
+	sprintf(buffer3, "[%d][%s] ", this->GetID(), phase_str);
+	strcat(buffer2,buffer3);
+	strcat(buffer2, buffer);
 
-   // Get the phase
-   this->GetPhaseStr(phase_str);
-   sprintf(buffer3, "[%d][%s] ", this->GetID(), phase_str);
-   strcat(buffer2,buffer3);
-   strcat(buffer2, buffer);
-
-
-	// Log output
-#ifdef RASCSI
+   	// Log output
+	#ifdef RASCSI
 	printf("%s\n", buffer2);
-#else
+	#else
 	host->GetVM()->GetLog()->Format(level, host, buffer);
-#endif	// RASCSI
-#endif	// BAREMETAL
-#endif	// DISK_LOG
+	#endif	// RASCSI
+	#endif	// BAREMETAL
+	#endif	// DISK_LOG
 }
