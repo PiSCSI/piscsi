@@ -16,6 +16,9 @@
 #if !defined(ctapdriver_h)
 #define ctapdriver_h
 
+#include <pcap/pcap.h>
+#include "filepath.h"
+
 #ifndef ETH_FRAME_LEN
 #define ETH_FRAME_LEN 1514
 #endif
@@ -29,35 +32,29 @@ class CTapDriver
 {
 public:
 	// Basic Functionality
-	CTapDriver();
-										// Constructor
-	BOOL FASTCALL Init();
-										// Initilization
-	void FASTCALL Cleanup();
-										// Cleanup
-	void FASTCALL GetMacAddr(BYTE *mac);
-										// Get Mac Address
-	int FASTCALL Rx(BYTE *buf);
-										// Receive
-	int FASTCALL Tx(const BYTE *buf, int len);
-										// Send
-	BOOL FASTCALL PendingPackets();
-										// Check if there are IP packets available
-	BOOL FASTCALL Enable();
-										// Enable the ras0 interface
-	BOOL FASTCALL Disable();
-										// Disable the ras0 interface
-	BOOL FASTCALL Flush();
-										// Purge all of the packets that are waiting to be processed
+	CTapDriver();								// Constructor
+	BOOL FASTCALL Init();							// Initilization
+	BOOL FASTCALL OpenDump(const Filepath& path);
+										// Capture packets
+	void FASTCALL Cleanup();						// Cleanup
+	void FASTCALL GetMacAddr(BYTE *mac);					// Get Mac Address
+	int FASTCALL Rx(BYTE *buf);						// Receive
+	int FASTCALL Tx(const BYTE *buf, int len);					// Send
+	BOOL FASTCALL PendingPackets();						// Check if there are IP packets available
+	BOOL FASTCALL Enable();						// Enable the ras0 interface
+	BOOL FASTCALL Disable();				// Disable the ras0 interface
+	BOOL FASTCALL Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
-	BYTE m_MacAddr[6];
-										// MAC Address
-	BOOL m_bTxValid;
-										// Send Valid Flag
-	int m_hTAP;
-										// File handle
+	BYTE m_MacAddr[6];							// MAC Address
+	BOOL m_bTxValid;							// Send Valid Flag
+	int m_hTAP;								// File handle
+
 	BYTE m_garbage_buffer[ETH_FRAME_LEN];
+
+	pcap_t *m_pcap;
+	pcap_dumper_t *m_pcap_dumper;
+
 };
 
 #endif	// ctapdriver_h

@@ -5,12 +5,12 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  Copyright (C) akuker
+//	Copyright (C) akuker
 //
-//  Licensed under the BSD 3-Clause License. 
-//  See LICENSE file in the project root folder.
+//	Licensed under the BSD 3-Clause License. 
+//	 See LICENSE file in the project root folder.
 //
-//  [ SASI device controller ]
+//	[ SASI device controller ]
 //
 //---------------------------------------------------------------------------
 #include "controllers/sasidev_ctrl.h"
@@ -39,10 +39,10 @@ SASIDEV::SASIDEV(Device *dev)
 {
 	int i;
 
-#ifndef RASCSI
+	#ifndef RASCSI
 	// Remember host device
 	host = dev;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Work initialization
 	ctrl.phase = BUS::busfree;
@@ -51,10 +51,10 @@ SASIDEV::SASIDEV(Device *dev)
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
-#ifdef RASCSI
+	#ifdef RASCSI
 	ctrl.execstart = 0;
 #endif	// RASCSI
-	ctrl.bufsize = ETH_FRAME_LEN + 16 + ETH_FCS_LEN;
+	ctrl.bufsize = std::max(0x800, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
 	ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	memset(ctrl.buffer, 0x00, ctrl.bufsize);
 	ctrl.blocks = 0;
@@ -98,9 +98,9 @@ void FASTCALL SASIDEV::Reset()
 	ctrl.phase = BUS::busfree;
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
-#ifdef RASCSI
+	#ifdef RASCSI
 	ctrl.execstart = 0;
-#endif	// RASCSI
+	#endif	// RASCSI
 	memset(ctrl.buffer, 0x00, ctrl.bufsize);
 	ctrl.blocks = 0;
 	ctrl.next = 0;
@@ -442,10 +442,10 @@ void FASTCALL SASIDEV::Selection()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Command()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	int count;
 	int i;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	ASSERT(this);
 
@@ -467,7 +467,7 @@ void FASTCALL SASIDEV::Command()
 		ctrl.length = 6;
 		ctrl.blocks = 1;
 
-#ifdef RASCSI
+		#ifdef RASCSI
 		// Command reception handshake (10 bytes are automatically received at the first command)
 		count = ctrl.bus->CommandHandShake(ctrl.buffer);
 
@@ -499,13 +499,13 @@ void FASTCALL SASIDEV::Command()
 
 		// Execution Phase
 		Execute();
-#else
+		#else
 		// Request the command
 		ctrl.bus->SetREQ(TRUE);
 		return;
-#endif	// RASCSI
+		#endif	// RASCSI
 	}
-#ifndef RASCSI
+	#ifndef RASCSI
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// Sent by the initiator
@@ -518,7 +518,7 @@ void FASTCALL SASIDEV::Command()
 			ReceiveNext();
 		}
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -538,9 +538,9 @@ void FASTCALL SASIDEV::Execute()
 	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
-#ifdef RASCSI
+	#ifdef RASCSI
 	ctrl.execstart = SysTimer::GetTimerLow();
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Process by command
 	switch ((SCSIDEV::scsi_command)ctrl.cmd[0]) {
@@ -593,6 +593,16 @@ void FASTCALL SASIDEV::Execute()
 			CmdAssign();
 			return;
 
+		// RESERVE UNIT(16)
+		case 0x16:
+			CmdReserveUnit();
+			return;
+		
+		// RELEASE UNIT(17)
+		case 0x17:
+			CmdReleaseUnit();
+			return;
+
 		// SPECIFY(SASIのみ)
 		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
@@ -615,17 +625,17 @@ void FASTCALL SASIDEV::Execute()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Status()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	DWORD min_exec_time;
 	DWORD time;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	ASSERT(this);
 
 	// Phase change
 	if (ctrl.phase != BUS::status) {
 
-#ifdef RASCSI
+	#ifdef RASCSI
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
@@ -637,7 +647,7 @@ void FASTCALL SASIDEV::Status()
 		} else {
 			SysTimer::SleepUsec(5);
 		}
-#endif	// RASCSI
+		#endif	// RASCSI
 
 		LOGTRACE("%s Status phase", __PRETTY_FUNCTION__);
 
@@ -655,7 +665,7 @@ void FASTCALL SASIDEV::Status()
 		ctrl.blocks = 1;
 		ctrl.buffer[0] = (BYTE)ctrl.status;
 
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Request status
 		ctrl.bus->SetDAT(ctrl.buffer[0]);
 		ctrl.bus->SetREQ(TRUE);
@@ -665,10 +675,10 @@ void FASTCALL SASIDEV::Status()
 		return;
 	}
 
-#ifdef RASCSI
+	#ifdef RASCSI
 	// Send
 	Send();
-#else
+	#else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// Initiator received
@@ -681,7 +691,7 @@ void FASTCALL SASIDEV::Status()
 			Send();
 		}
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -724,10 +734,10 @@ void FASTCALL SASIDEV::MsgIn()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::DataIn()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	DWORD min_exec_time;
 	DWORD time;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	ASSERT(this);
 	ASSERT(ctrl.length >= 0);
@@ -735,7 +745,7 @@ void FASTCALL SASIDEV::DataIn()
 	// Phase change
 	if (ctrl.phase != BUS::datain) {
 
-#ifdef RASCSI
+		#ifdef RASCSI
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
@@ -745,7 +755,7 @@ void FASTCALL SASIDEV::DataIn()
 			}
 			ctrl.execstart = 0;
 		}
-#endif	// RASCSI
+		#endif	// RASCSI
 
 		// If the length is 0, go to the status phase
 		if (ctrl.length == 0) {
@@ -781,10 +791,10 @@ void FASTCALL SASIDEV::DataIn()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::DataOut()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	DWORD min_exec_time;
 	DWORD time;
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	ASSERT(this);
 	ASSERT(ctrl.length >= 0);
@@ -792,7 +802,7 @@ void FASTCALL SASIDEV::DataOut()
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
 
-#ifdef RASCSI
+		#ifdef RASCSI
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
 			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
@@ -802,7 +812,7 @@ void FASTCALL SASIDEV::DataOut()
 			}
 			ctrl.execstart = 0;
 		}
-#endif	// RASCSI
+		#endif	// RASCSI
 
 		// If the length is 0, go to the status phase
 		if (ctrl.length == 0) {
@@ -825,17 +835,17 @@ void FASTCALL SASIDEV::DataOut()
 		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
-#ifndef	RASCSI
+		#ifndef	RASCSI
 		// Request data
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
-#ifdef	RASCSI
+	#ifdef	RASCSI
 	// Receive
 	Receive();
-#else
+	#else
 	// Requesting
 	if (ctrl.bus->GetREQ()) {
 		// Sent by the initiator
@@ -848,7 +858,7 @@ void FASTCALL SASIDEV::DataOut()
 			ReceiveNext();
 		}
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -1052,6 +1062,44 @@ void FASTCALL SASIDEV::CmdReassign()
 		Error();
 		return;
 	}
+
+	// status phase
+	Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RESERVE UNIT(16)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void FASTCALL SASIDEV::CmdReserveUnit()
+{
+	ASSERT(this);
+	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RELEASE UNIT(17)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void FASTCALL SASIDEV::CmdReleaseUnit()
+{
+	ASSERT(this);
+	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
 
 	// status phase
 	Status();
@@ -1373,9 +1421,9 @@ void FASTCALL SASIDEV::CmdInvalid()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Send()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	int len;
-#endif	// RASCSI
+	#endif	// RASCSI
 	BOOL result;
 
 	ASSERT(this);
@@ -1385,7 +1433,7 @@ void FASTCALL SASIDEV::Send()
 	// Check that the length isn't 0
 	if (ctrl.length != 0) {
 		len = ctrl.bus->SendHandShake(
-			&ctrl.buffer[ctrl.offset], ctrl.length);
+			&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
 
 		// If you can not send it all, move on to the status phase
 		if (len != (int)ctrl.length) {
@@ -1416,7 +1464,7 @@ void FASTCALL SASIDEV::Send()
 			LOGTRACE("%s processing after data collection", __PRETTY_FUNCTION__);
 #ifndef RASCSI
 			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
-#endif	// RASCSI
+			#endif	// RASCSI
 		}
 	}
 
@@ -1431,10 +1479,10 @@ void FASTCALL SASIDEV::Send()
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
@@ -1558,9 +1606,9 @@ void FASTCALL SASIDEV::Receive()
 void FASTCALL SASIDEV::ReceiveNext()
 #endif	// RASCSI
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	int len;
-#endif	// RASCSI
+	#endif	// RASCSI
 	BOOL result;
 
 	ASSERT(this);
@@ -1569,7 +1617,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
-#ifdef RASCSI
+	#ifdef RASCSI
 	// Length != 0 if received
 	if (ctrl.length != 0) {
 		// Receive
@@ -1604,7 +1652,7 @@ void FASTCALL SASIDEV::ReceiveNext()
 		ctrl.bus->SetREQ(TRUE);
 		return;
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Remove the control block and initialize the result
 	ctrl.blocks--;
@@ -1631,22 +1679,22 @@ void FASTCALL SASIDEV::ReceiveNext()
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
 	// Move to the next phase
 	switch (ctrl.phase) {
-#ifndef RASCSI
+	#ifndef RASCSI
 		// Command phase
 		case BUS::command:
 			// Execution Phase
 			Execute();
 			break;
-#endif	// RASCSI
+			#endif	// RASCSI
 
 		// Data out phase
 		case BUS::dataout:

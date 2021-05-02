@@ -28,6 +28,8 @@
 #include "rascsi_version.h"
 #include "rasctl.h"
 #include "spdlog/spdlog.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include <spdlog/async.h>
 
 //---------------------------------------------------------------------------
 //
@@ -57,6 +59,7 @@ FATFS fatfs;						// FatFS
 #else
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
+pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
 #endif	// BAREMETAL
 
@@ -126,7 +129,13 @@ BOOL Init()
 
 #ifndef BAREMETAL
 	struct sockaddr_in server;
-	int yes;
+	int yes, result;
+
+	result = pthread_mutex_init(&ctrl_mutex,NULL);
+	if(result != EXIT_SUCCESS){
+		LOGERROR("Unable to create a mutex. Err code: %d",result);
+		return FALSE;
+	}
 
 	// Create socket for monitor
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
@@ -228,6 +237,8 @@ void Cleanup()
 	if (monsocket >= 0) {
 		close(monsocket);
 	}
+
+	pthread_mutex_destroy(&ctrl_mutex);
 #endif // BAREMETAL
 }
 
@@ -342,6 +353,9 @@ void MapControler(FILE *fp, Disk **map)
 	int sasi_num;
 	int scsi_num;
 
+	// Take ownership of the ctrl data structure
+	pthread_mutex_lock(&ctrl_mutex);
+
 	// Replace the changed unit
 	for (i = 0; i < CtrlMax; i++) {
 		for (j = 0; j < UnitNum; j++) {
@@ -442,6 +456,7 @@ void MapControler(FILE *fp, Disk **map)
 			}
 		}
 	}
+	pthread_mutex_unlock(&ctrl_mutex);
 }
 
 //---------------------------------------------------------------------------
@@ -543,7 +558,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		}
 
 		// drive checks files
-		if (type <= rasctl_dev_scsi_hd || (type <= rasctl_dev_cd && xstrcasecmp(file, "-") != 0)) {
+		if (type <= rasctl_dev_scsi_hd || ((type <= rasctl_dev_cd || type == rasctl_dev_daynaport) && xstrcasecmp(file, "-") != 0)) {
 			// Set the Path
 			filepath.SetPath(file);
 
@@ -911,13 +926,15 @@ bool ParseArgument(int argc, char* argv[])
 			|| has_suffix(path, ".hdi")
 			|| has_suffix(path, ".hda")
 			|| has_suffix(path, ".nhd")) {
-			type = 0;
+			type = rasctl_dev_sasi_hd;
 		} else if (has_suffix(path, ".mos")) {
-			type = 2;
+			type = rasctl_dev_mo;
 		} else if (has_suffix(path, ".iso")) {
-			type = 3;
+			type = rasctl_dev_cd;
 		} else if (xstrcasecmp(path, "bridge") == 0) {
-			type = 4;
+			type = rasctl_dev_br;
+		} else if (xstrcasecmp(path, "daynaport") == 0) {
+			type = rasctl_dev_daynaport;
 		} else {
 			// Cannot determine the file type
 			fprintf(stderr,
@@ -1110,6 +1127,9 @@ int main(int argc, char* argv[])
 #endif	// BAREMETAL
 
     spdlog::set_level(spdlog::level::trace);
+	// Create a thread-safe stdout logger to process the log messages
+	auto logger = spdlog::stdout_color_mt("rascsi stdout logger");
+
     LOGTRACE("Entering the function %s with %d arguments", __PRETTY_FUNCTION__, argc);
 	// Output the Banner
 	Banner(argc, argv);
@@ -1205,6 +1225,8 @@ int main(int argc, char* argv[])
 			continue;
 		}
 
+		pthread_mutex_lock(&ctrl_mutex);
+
 		// Notify all controllers
 		data = bus->GetDAT();
 		for (i = 0; i < CtrlMax; i++) {
@@ -1225,6 +1247,7 @@ int main(int argc, char* argv[])
 
 		// Return to bus monitoring if the selection phase has not started
 		if (phase != BUS::selection) {
+			pthread_mutex_unlock(&ctrl_mutex);
 			continue;
 		}
 
@@ -1247,6 +1270,8 @@ int main(int argc, char* argv[])
 				break;
 			}
 		}
+		pthread_mutex_unlock(&ctrl_mutex);
+
 
 #if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
 		// Set the scheduling priority back to normal

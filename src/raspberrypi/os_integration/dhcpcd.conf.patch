@@ -1,0 +1,7 @@
+--- dhcpcd_orig.conf	2021-02-26 17:32:14.065284400 -0600
++++ dhcpcd.conf	2021-02-26 17:32:30.925039567 -0600
+@@ -58,3 +58,4 @@
+ #interface eth0
+ #fallback static_eth0
+ #
++denyinterfaces eth0

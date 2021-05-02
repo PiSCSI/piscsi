@@ -155,7 +155,4 @@ typedef const char *LPCSTR;
 #define xstrcasecmp strcasecmp
 #define xstrncasecmp strncasecmp
 
-// Run system command and wait for it to finish
-extern int run_system_cmd(const char* command);
-
 #endif	// os_h

@@ -106,6 +106,12 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
+BOOL FASTCALL SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
+{
+	LOGTRACE("SCSIDaynaPort Open");
+	return m_tap->OpenDump(path);
+}
+
 //---------------------------------------------------------------------------
 //
 //	INQUIRY
@@ -222,14 +228,14 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		// The first 2 bytes are reserved for the length of the packet
 		// The next 4 bytes are reserved for a flag field
 		//rx_packet_size = m_tap->Rx(response->data);
-		rx_packet_size = m_tap->Rx(&buf[m_read_header_size]);
+		rx_packet_size = m_tap->Rx(&buf[DAYNAPORT_READ_HEADER_SZ]);
 
 		// If we didn't receive anything, return size of 0
 		if(rx_packet_size <= 0){
 			LOGTRACE("%s No packet received", __PRETTY_FUNCTION__);
 			response->length = 0;
 			response->flags = e_no_more_data;
-			return m_read_header_size;
+			return DAYNAPORT_READ_HEADER_SZ;
 		}
 
 		LOGTRACE("%s Packet Sz %d (%08X) read: %d", __PRETTY_FUNCTION__, (unsigned int) rx_packet_size, (unsigned int) rx_packet_size, read_count);
@@ -238,23 +244,25 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		// being sent to the SCSI initiator. 
 		send_message_to_host = FALSE;
 
-		// Check if received packet destination MAC address matches the
-		// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
-		// of the data.
-		if (memcmp(response->data, m_mac_addr, 6) == 0) {
-			send_message_to_host = TRUE;
-		}
+	// The following doesn't seem to work with unicast messages. Temporarily removing the filtering
+	// functionality.
+	///////	// Check if received packet destination MAC address matches the
+	///////	// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
+	///////	// of the data.
+	///////	if (memcmp(response->data, m_mac_addr, 6) == 0) {
+	///////		send_message_to_host = TRUE;
+	///////	}
 
-		// Check to see if this is a broadcast message
-		if (memcmp(response->data, m_bcast_addr, 6) == 0) {
-			send_message_to_host = TRUE;
-		}
+	///////	// Check to see if this is a broadcast message
+	///////	if (memcmp(response->data, m_bcast_addr, 6) == 0) {
+	///////		send_message_to_host = TRUE;
+	///////	}
 
-		// Check to see if this is an AppleTalk Message
-		if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
-
-			send_message_to_host = TRUE;
-		}
+	///////	// Check to see if this is an AppleTalk Message
+	///////	if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
+	///////		send_message_to_host = TRUE;
+	///////	}
+		send_message_to_host = TRUE;
 
 		// TODO: We should check to see if this message is in the multicast 
 		// configuration from SCSI command 0x0D
@@ -275,7 +283,7 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 			{
 				response->length = 0;
 				response->flags = e_no_more_data;
-				return m_read_header_size;
+				return DAYNAPORT_READ_HEADER_SZ;
 			}
 		}
 		else
@@ -304,7 +312,7 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver
-			return rx_packet_size + m_read_header_size;
+			return rx_packet_size + DAYNAPORT_READ_HEADER_SZ;
 		}
 		// If we got to this point, there are still messages in the queue, so 
 		// we should loop back and get the next one.
@@ -312,7 +320,7 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 	response->length = 0;
 	response->flags = e_no_more_data;
-	return m_read_header_size;
+	return DAYNAPORT_READ_HEADER_SZ;
 }
 
 //---------------------------------------------------------------------------

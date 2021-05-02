@@ -5,12 +5,12 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  Copyright (C) akuker
+//  	Copyright (C) akuker
 //
-//  Licensed under the BSD 3-Clause License. 
-//  See LICENSE file in the project root folder.
+//  	Licensed under the BSD 3-Clause License. 
+//  	See LICENSE file in the project root folder.
 //
-//  [ SCSI device controller ]
+//  	[ SCSI device controller ]
 //
 //---------------------------------------------------------------------------
 #include "log.h"
@@ -250,9 +250,9 @@ void FASTCALL SCSIDEV::Execute()
 	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
-#ifdef RASCSI
+	#ifdef RASCSI
 	ctrl.execstart = SysTimer::GetTimerLow();
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Process by command
 	switch ((scsi_command)ctrl.cmd[0]) {
@@ -331,6 +331,30 @@ void FASTCALL SCSIDEV::Execute()
 		case eCmdModeSelect:
 			LOGDEBUG("++++ CMD ++++ %s Received eCmdModeSelect", __PRETTY_FUNCTION__);
 			CmdModeSelect();
+			return;
+
+		// RESERVE(6) 
+		case eCmdReserve6:
+			LOGDEBUG("++++ CMD ++++ %s Received eCmdReserve6", __PRETTY_FUNCTION__);
+			CmdReserve6();
+			return;
+		
+		// RESERVE(10)
+		case eCmdReserve10:
+			LOGDEBUG("++++ CMD ++++ %s Received eCmdReserve10", __PRETTY_FUNCTION__);
+			CmdReserve10();
+			return;
+
+		// RELEASE(6)
+		case eCmdRelease6:
+			LOGDEBUG("++++ CMD ++++ %s Received eCmdRelease6", __PRETTY_FUNCTION__);
+			CmdRelease6();
+			return;
+		
+		// RELEASE(10)
+		case eCmdRelease10:
+			LOGDEBUG("++++ CMD ++++ %s Received eCmdRelease10", __PRETTY_FUNCTION__);
+			CmdRelease10();
 			return;
 
 		// MODE SENSE
@@ -454,8 +478,7 @@ void FASTCALL SCSIDEV::MsgOut()
 
 		LOGTRACE("Message Out Phase");
 
-		// Message out phase after selection
-        // process the IDENTIFY message
+	        // process the IDENTIFY message
 		if (ctrl.phase == BUS::selection) {
 			scsi.atnmsg = TRUE;
 			scsi.msc = 0;
@@ -475,10 +498,10 @@ void FASTCALL SCSIDEV::MsgOut()
 		ctrl.length = 1;
 		ctrl.blocks = 1;
 
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Request message
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
@@ -611,6 +634,83 @@ void FASTCALL SCSIDEV::CmdModeSelect()
 
 	// Data out phase
 	DataOut();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RESERVE(6)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void FASTCALL SCSIDEV::CmdReserve6()
+{
+	ASSERT(this);
+	
+	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RESERVE(10)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void FASTCALL SCSIDEV::CmdReserve10()
+{
+	ASSERT(this);
+	LOGTRACE( "%s Reserve(10) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RELEASE(6)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void FASTCALL SCSIDEV::CmdRelease6()
+{
+	ASSERT(this);
+	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RELEASE(10)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void FASTCALL SCSIDEV::CmdRelease10()
+{
+	ASSERT(this);
+	LOGTRACE( "%s Release(10) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	Status();
 }
 
 //---------------------------------------------------------------------------
@@ -1038,7 +1138,6 @@ void FASTCALL SCSIDEV::CmdSynchronizeCache()
 void FASTCALL SCSIDEV::CmdReadDefectData10()
 {
 	DWORD lun;
-
 	ASSERT(this);
 
 	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
@@ -1071,7 +1170,6 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 void FASTCALL SCSIDEV::CmdReadToc()
 {
 	DWORD lun;
-
 	ASSERT(this);
 
 	// Logical Unit
@@ -1553,21 +1651,32 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Send()
 {
-#ifdef RASCSI
+	#ifdef RASCSI
 	int len;
-#endif	// RASCSI
+	#endif	// RASCSI
 	BOOL result;
 
 	ASSERT(this);
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-#ifdef RASCSI
+	#ifdef RASCSI
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
 		LOGTRACE("%s sending handhake with offset %lu, length %lu", __PRETTY_FUNCTION__, ctrl.offset, ctrl.length);
-		len = ctrl.bus->SendHandShake(
-			&ctrl.buffer[ctrl.offset], ctrl.length);
+
+		// The Daynaport needs to have a delay after the size/flags field
+		// of the read response. In the MacOS driver, it looks like the
+		// driver is doing two "READ" system calls.
+		if (ctrl.unit[0]->GetID() == MAKEID('S', 'C', 'D', 'P')) {
+			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
+				&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
+		}
+		else
+		{
+			len = ctrl.bus->SendHandShake(
+				&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
+		}
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -1580,20 +1689,20 @@ void FASTCALL SCSIDEV::Send()
 		ctrl.length = 0;
 		return;
 	}
-#else
+	#else
 	// offset and length
 	ASSERT(ctrl.length >= 1);
 	ctrl.offset++;
 	ctrl.length--;
 
 	// Immediately after ACK is asserted, if the data has been
-    // set by SendNext, raise the request
-	if (ctrl.length != 0) {
+	// set by SendNext, raise the request
+    	if (ctrl.length != 0) {
 		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
 		return;
 	}
-#endif	// RASCSI
+	#endif	// RASCSI
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
@@ -1602,12 +1711,12 @@ void FASTCALL SCSIDEV::Send()
 	// Processing after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
 		if (ctrl.blocks != 0) {
-			// // set next buffer (set offset, length)
+			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
 			LOGTRACE("%s processing after data collection. Blocks: %lu", __PRETTY_FUNCTION__, ctrl.blocks);
 #ifndef RASCSI
 			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
-#endif	// RASCSI
+			#endif	// RASCSI
 		}
 	}
 
@@ -1622,10 +1731,10 @@ void FASTCALL SCSIDEV::Send()
 		LOGTRACE("%s Continuing to send. blocks = %lu", __PRETTY_FUNCTION__, ctrl.blocks);
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-#ifndef RASCSI
+		#ifndef RASCSI
 		// Signal line operated by the target
 		ctrl.bus->SetREQ(TRUE);
-#endif	// RASCSI
+		#endif	// RASCSI
 		return;
 	}
 
@@ -1809,7 +1918,6 @@ void FASTCALL SCSIDEV::Receive()
 				ctrl.offset = 0;
 				ctrl.length = 1;
 				ctrl.blocks = 1;
-
 				return;
 			}
 
