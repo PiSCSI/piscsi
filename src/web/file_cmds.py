@@ -17,7 +17,7 @@ def create_new_image(file_name, type, size):
         file_name = file_name + "." + type
 
     return subprocess.run(
-        ["dd", "if=/dev/zero", "of=" + base_dir + file_name, "bs=1M", "count=" + size],
+        ["truncate", "--size", f"{size}m", f"{base_dir}{file_name}"],
         capture_output=True,
     )
 
