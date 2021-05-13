@@ -134,7 +134,7 @@ function updateRaScsiWebInterface() {
 }
 
 function showRaScsiStatus() {
-    sudo systemctl status rascsi
+    sudo systemctl status rascsi | tee
 }
 
 function createDrive600MB() {
