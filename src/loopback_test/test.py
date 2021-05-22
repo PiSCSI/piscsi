@@ -1,4 +1,33 @@
 #!/usr/bin/env python3
+# BSD 3-Clause License
+#
+# Copyright (c) 2021, akuker
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# 3. Neither the name of the copyright holder nor the names of its
+#    contributors may be used to endorse or promote products derived from
+#    this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import RPi.GPIO as gpio
 import time
@@ -7,6 +36,8 @@ pin_settle_delay = 0.01
 
 err_count = 0
 
+# Define constants for each of the SCSI signals, based upon their
+# raspberry pi pin number (since we're using BOARD mode of RPi.GPIO)
 scsi_d0_gpio = 19
 scsi_d1_gpio = 23
 scsi_d2_gpio = 32
@@ -26,11 +57,14 @@ scsi_io_gpio = 22
 scsi_bsy_gpio = 37
 scsi_sel_gpio = 13
 
+# Pin numbers of the direction controllers of the RaSCSI board
 rascsi_ind_gpio = 31
 rascsi_tad_gpio = 26
 rascsi_dtd_gpio = 24
 rascsi_none = -1
 
+# Matrix showing all of the SCSI signals, along what signal they're looped back to.
+# dir_ctrl indicates which direction control pin is associated with that output
 gpio_map = [
     { 'gpio_num': scsi_d0_gpio,  'attached_to': scsi_ack_gpio, 'dir_ctrl': rascsi_dtd_gpio},
     { 'gpio_num': scsi_d1_gpio,  'attached_to': scsi_sel_gpio, 'dir_ctrl': rascsi_dtd_gpio},
@@ -52,6 +86,7 @@ gpio_map = [
     { 'gpio_num': scsi_sel_gpio, 'attached_to': scsi_d1_gpio, 'dir_ctrl': rascsi_ind_gpio},
 ]
 
+# List of all of the SCSI signals that is also a dictionary to their human readable name
 scsi_signals = {
     scsi_d0_gpio: 'D0',
     scsi_d1_gpio: 'D1',
@@ -73,34 +108,39 @@ scsi_signals = {
     scsi_sel_gpio: 'SEL'
 }
 
-# DB7 -> REQ
-# DB6 -> MSG
-# DB5 -> I/O
-# DB3 -> RST
-# DB0 -> ACK
-# DB4 -> CD
-# DB2 -> ATN
-
+# Debug function that just dumps the status of all of the scsi signals to the console
 def print_all():
     for cur_gpio in gpio_map:
         print(cur_gpio['name']+"="+str(gpio.input(cur_gpio['gpio_num'])) + "  ", end='', flush=True)
     print("")
 
+# Set transceivers IC1 and IC2 to OUTPUT
 def set_dtd_out():
     gpio.output(rascsi_dtd_gpio,gpio.LOW)
+
+# Set transceivers IC1 and IC2 to INPUT
 def set_dtd_in():
     gpio.output(rascsi_dtd_gpio,gpio.HIGH)
 
+# Set transceiver IC4 to OUTPUT
 def set_ind_out():
     gpio.output(rascsi_ind_gpio,gpio.HIGH)
+
+# Set transceiver IC4 to INPUT
 def set_ind_in():
     gpio.output(rascsi_ind_gpio,gpio.LOW)
 
+# Set transceiver IC3 to OUTPUT
 def set_tad_out():
     gpio.output(rascsi_tad_gpio,gpio.HIGH)
+
+# Set transceiver IC3 to INPUT
 def set_tad_in():
     gpio.output(rascsi_tad_gpio,gpio.LOW)
 
+# Set the specified transciever to an OUTPUT. All of the other transceivers
+# will be set to inputs. If a non-existent direction gpio is specified, this
+# will set all of the transceivers to inputs.
 def set_output_channel(out_gpio):
     if(out_gpio == rascsi_tad_gpio):
         set_tad_out()
@@ -116,6 +156,8 @@ def set_output_channel(out_gpio):
         set_ind_in()
 
 
+# Main test procedure. This will execute for each of the SCSI pins to make sure its connected
+# properly.
 def test_gpio_pin(gpio_rec):
     global err_count
 
@@ -187,6 +229,8 @@ def test_gpio_pin(gpio_rec):
                 err_count = err_count+1
 
 
+# Initialize the GPIO library, set all of the gpios associated with SCSI signals to outputs and set
+# all of the direction control gpios to outputs
 def setup():
     gpio.setmode(gpio.BOARD)
     gpio.setwarnings(False)
@@ -199,18 +243,19 @@ def setup():
     gpio.setup(rascsi_dtd_gpio, gpio.OUT)
 
 
-# Press the green button in the gutter to run the script.
+# Main functions for running the actual test.
 if __name__ == '__main__':
-
+    # setup the GPIOs
     setup()
-
+    # Test each SCSI signal in the gpio_map
     for cur_gpio in gpio_map:
         test_gpio_pin(cur_gpio)
 
-    print("Total errors: " + str(err_count))
-    gpio.cleanup()
-
+    # Print the test results
     if(err_count == 0):
         print("-------- Test PASSED --------")
     else:
         print("!!!!!!!! Test FAILED !!!!!!!!")
+    print("Total errors: " + str(err_count))
+
+    gpio.cleanup()
