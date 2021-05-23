@@ -78,6 +78,12 @@ public:
 	static const BYTE CMD_SCSILINK_SETMODE      = 0x80;
 	static const BYTE CMD_SCSILINK_SETMAC       = 0x40;
 
+	// When we're reading the Linux tap device, most of the messages will not be for us, so we
+	// need to filter through those. However, we don't want to keep re-reading the packets
+	// indefinitely. So, we'll pick a large-ish number that will cause the emulated DaynaPort
+	// to respond with "no data" after MAX_READ_RETRIES tries.
+	static const int MAX_READ_RETRIES               = 50;
+
 	// The READ response has a header which consists of:
 	//   2 bytes - payload size
 	//   4 bytes - status flags

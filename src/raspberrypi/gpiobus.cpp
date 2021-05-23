@@ -1164,6 +1164,7 @@ int FASTCALL GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
+				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes);
 				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
 			}
 

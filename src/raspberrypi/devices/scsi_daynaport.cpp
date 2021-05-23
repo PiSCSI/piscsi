@@ -221,7 +221,7 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 	// Some of the packets we receive will not be for us. So, we'll keep pulling messages
 	// until the buffer is empty, or we've read X times. (X is just a made up number)
-	while(read_count < 50)
+	while(read_count < MAX_READ_RETRIES)
 	{
 		read_count++;
 
