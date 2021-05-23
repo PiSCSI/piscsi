@@ -35,6 +35,10 @@ public:
 		UnitMax = 8					// Maximum number of logical units		
 	};
 
+	const int UNKNOWN_SCSI_ID = -1;
+	const int DEFAULT_BUFFER_SIZE = 0x800;
+	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
+
 	#ifdef RASCSI
 	// For timing adjustments
 	enum {			

@@ -17,12 +17,11 @@
 #include "spdlog/sinks/sink.h"
 
 #define SPDLOGWRAPPER(loglevel, ...)			\
-do							\
 {							\
 	char logbuf[_MAX_FNAME*2];				\
 	snprintf(logbuf, sizeof(logbuf), __VA_ARGS__);	\
 	spdlog::log(loglevel, logbuf);			\
-} while (0);
+};
 
 #ifdef NDEBUG
 // If we're doing a non-debug build, we want to skip the overhead of

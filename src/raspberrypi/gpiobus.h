@@ -458,6 +458,11 @@
 #define SCSI_DELAY_FAST_HOLD_TIME_NS               10
 #define SCSI_DELAY_FAST_NEGATION_PERIOD_NS         30
 
+// The DaynaPort SCSI Link do a short delay in the middle of transfering
+// a packet. This is the number of uS that will be delayed between the
+// header and the actual data.
+#define SCSI_DELAY_SEND_DATA_DAYNAPORT_US          100
+
 //---------------------------------------------------------------------------
 //
 //	Class definition

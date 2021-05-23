@@ -46,15 +46,15 @@ SASIDEV::SASIDEV(Device *dev)
 
 	// Work initialization
 	ctrl.phase = BUS::busfree;
-	ctrl.m_scsi_id = -1;
+	ctrl.m_scsi_id = UNKNOWN_SCSI_ID;
 	ctrl.bus = NULL;
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.status = 0x00;
 	ctrl.message = 0x00;
-	#ifdef RASCSI
 	ctrl.execstart = 0;
-#endif	// RASCSI
-	ctrl.bufsize = std::max(0x800, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
+	// The initial buffer size will default to either the default buffer size OR 
+	// the size of an Ethernet message, whichever is larger.
+	ctrl.bufsize = std::max(DEFAULT_BUFFER_SIZE, ETH_FRAME_LEN + 16 + ETH_FCS_LEN);
 	ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	memset(ctrl.buffer, 0x00, ctrl.bufsize);
 	ctrl.blocks = 0;
@@ -1161,7 +1161,6 @@ void FASTCALL SASIDEV::CmdRead6()
 	DataIn();
 }
 
-
 //---------------------------------------------------------------------------
 //
 //  This Send Message command is used by the DaynaPort SCSI/Link
@@ -1189,9 +1188,9 @@ void FASTCALL SASIDEV::DaynaPortWrite()
 	}
 
 	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl.bufsize < 0x1000000) {
+	if (ctrl.bufsize < DAYNAPORT_BUFFER_SIZE) {
 		free(ctrl.buffer);
-		ctrl.bufsize = 0x1000000;
+		ctrl.bufsize = DAYNAPORT_BUFFER_SIZE;
 		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	}
 
