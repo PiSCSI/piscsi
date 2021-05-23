@@ -55,7 +55,7 @@ def config_save():
     with open(file_name, "w") as csv_file:
         writer = csv.writer(csv_file)
         for device in list_devices():
-            if device["type"] is not "-":
+            if device["type"] != "-":
                 writer.writerow(device.values())
     flash(f"Saved config to  {file_name}!")
     return redirect(url_for("index"))

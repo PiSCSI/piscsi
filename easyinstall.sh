@@ -134,7 +134,7 @@ function updateRaScsiWebInterface() {
 }
 
 function showRaScsiStatus() {
-    sudo systemctl status rascsi
+    sudo systemctl status rascsi | tee
 }
 
 function createDrive600MB() {
@@ -221,7 +221,7 @@ function createDrive() {
     
     if [ ! -f $drivePath ]; then
         echo "Creating a ${driveSize}MB Drive"
-        dd if=/dev/zero of=$drivePath bs=1M count=$driveSize
+        truncate --size ${driveSize}m $drivePath
 
         echo "Formatting drive with HFS"
         formatDrive "$drivePath" "$driveName"
