@@ -357,6 +357,7 @@ BOOL FASTCALL DiskTrack::Read(BYTE *buf, int sec) const
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
 
+	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec);
 	// Error if not initialized
 	if (!dt.init) {
 		return FALSE;
@@ -976,6 +977,47 @@ BOOL FASTCALL Disk::IsNULL() const
 
 //---------------------------------------------------------------------------
 //
+//	Retrieve the disk's ID
+//
+//---------------------------------------------------------------------------
+DWORD FASTCALL Disk::GetID() const
+{ 
+	return disk.id; 
+}
+
+
+//---------------------------------------------------------------------------
+//
+//	Get cache writeback mode
+//
+//---------------------------------------------------------------------------
+BOOL FASTCALL Disk::IsCacheWB() 
+{ 
+	return cache_wb; 
+}
+ 
+//---------------------------------------------------------------------------
+//
+//	Set cache writeback mode
+//
+//---------------------------------------------------------------------------
+void FASTCALL Disk::SetCacheWB(BOOL enable) 
+{ 
+	cache_wb = enable; 
+}
+
+//---------------------------------------------------------------------------
+//
+//	Set unsupported command
+//
+//---------------------------------------------------------------------------
+void FASTCALL Disk::InvalidCmd()
+{ 
+	disk.code = DISK_INVALIDCMD; 
+}
+
+//---------------------------------------------------------------------------
+//
 //	SASI Check
 //
 //---------------------------------------------------------------------------
@@ -1162,6 +1204,7 @@ BOOL FASTCALL Disk::CheckReady()
 	if (disk.reset) {
 		disk.code = DISK_DEVRESET;
 		disk.reset = FALSE;
+		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
@@ -1169,17 +1212,21 @@ BOOL FASTCALL Disk::CheckReady()
 	if (disk.attn) {
 		disk.code = DISK_ATTENTION;
 		disk.attn = FALSE;
+		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
 	// Return status if not ready
 	if (!disk.ready) {
 		disk.code = DISK_NOTREADY;
+		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
 	// Initialization with no error
 	disk.code = DISK_NOERROR;
+	LOGTRACE("%s Disk is ready!", __PRETTY_FUNCTION__);
+
 	return TRUE;
 }
 
@@ -1222,6 +1269,7 @@ int FASTCALL Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 
 	// Size determination (according to allocation length)
 	size = (int)cdb[4];
+	LOGTRACE("%s size of data = %d", __PRETTY_FUNCTION__, size);
 	ASSERT((size >= 0) && (size < 0x100));
 
 	// For SCSI-1, transfer 4 bytes when the size is 0
@@ -1966,7 +2014,7 @@ BOOL FASTCALL Disk::Reassign(const DWORD* /*cdb*/)
 //	READ
 //
 //---------------------------------------------------------------------------
-int FASTCALL Disk::Read(BYTE *buf, DWORD block)
+int FASTCALL Disk::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	ASSERT(this);
 	ASSERT(buf);
@@ -2026,11 +2074,12 @@ int FASTCALL Disk::WriteCheck(DWORD block)
 //	WRITE
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL Disk::Write(const BYTE *buf, DWORD block)
+BOOL FASTCALL Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(this);
 	ASSERT(buf);
 
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	// Error if not ready
 	if (!disk.ready) {
 		disk.code = DISK_NOTREADY;

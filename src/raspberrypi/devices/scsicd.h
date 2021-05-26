@@ -121,7 +121,7 @@ public:
 
 	// commands
 	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	int FASTCALL Read(BYTE *buf, DWORD block);				// READ command
+	int FASTCALL Read(const DWORD *cdb, BYTE *buf, DWORD block) override;		// READ command
 	int FASTCALL ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 	BOOL FASTCALL PlayAudio(const DWORD *cdb);				// PLAY AUDIO command
 	BOOL FASTCALL PlayAudioMSF(const DWORD *cdb);				// PLAY AUDIO MSF command

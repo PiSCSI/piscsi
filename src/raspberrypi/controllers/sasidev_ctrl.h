@@ -35,6 +35,10 @@ public:
 		UnitMax = 8					// Maximum number of logical units		
 	};
 
+	const int UNKNOWN_SCSI_ID = -1;
+	const int DEFAULT_BUFFER_SIZE = 0x800;
+	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
+
 	#ifdef RASCSI
 	// For timing adjustments
 	enum {			
@@ -45,10 +49,10 @@ public:
 
 	// Internal data definition
 	typedef struct {
-		// 全般
+		// General
 		BUS::phase_t phase;				// Transition phase
-		int id;						// Controller ID (0-7)
-		BUS *bus;					// Bus
+		int m_scsi_id;							// Controller ID (0-7)
+		BUS *bus;						// Bus
 
 		// commands
 		DWORD cmd[10];					// Command data
@@ -106,7 +110,7 @@ public:
 	void FASTCALL GetPhaseStr(char *str);			
 	#endif
 
-	int FASTCALL GetID() {return ctrl.id;}					// Get the ID
+	int FASTCALL GetSCSIID() {return ctrl.m_scsi_id;}					// Get the ID
 	void FASTCALL GetCTRL(ctrl_t *buffer);					// Get the internal information
 	ctrl_t* FASTCALL GetWorkAddr() { return &ctrl; }			// Get the internal information address
 	virtual BOOL FASTCALL IsSASI() const {return TRUE;}			// SASI Check
@@ -139,7 +143,7 @@ protected:
 	void FASTCALL CmdAssign();						// ASSIGN command
 	void FASTCALL CmdSpecify();						// SPECIFY command
 	void FASTCALL CmdInvalid();						// Unsupported command
-
+	void FASTCALL DaynaPortWrite();					// DaynaPort specific 'write' operation
 	// データ転送
 	virtual void FASTCALL Send();						// Send data
 
@@ -158,9 +162,6 @@ protected:
 
 	// Special operations
 	void FASTCALL FlushUnit();						// Flush the logical unit
-
-	// Log
-	void FASTCALL Log(Log::loglevel level, const char *format, ...);	// Log output
 
 protected:
 	#ifndef RASCSI

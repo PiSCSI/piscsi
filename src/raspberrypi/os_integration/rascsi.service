@@ -9,7 +9,7 @@ ExecStart=/usr/local/bin/rascsi
 # Example: If you want to automatically attach a hard disk at startup, change
 # the ExecStart line to:
 # ExecStart=/usr/local/bin/rascsi -ID1 /home/pi/images/harddisk.hda
-ExecStop=/usr/local/bin/rasctl -stop
+# This functionality isn't implmented yet: ExecStop=/usr/local/bin/rasctl -stop
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=RASCSI

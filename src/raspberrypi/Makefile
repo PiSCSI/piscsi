@@ -33,9 +33,9 @@ endif
 CFLAGS += -iquote . -MD -MP 
 CXXFLAGS += -std=c++14 -iquote . -MD -MP 
 
-##   CONNECT_TYPE=STANDARD : Specify the type of RaSCSI board type
+##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
 ##              that you are using. The typical options are 
-##              STANDARD or FULLSPEC. The default is STANDARD
+##              STANDARD or FULLSPEC. The default is FULLSPEC
 ##              * THIS IS TYPICALLY THE ONLY COMPILE OPTION YOU 
 ##              * NEED TO SPECIFY
 # If its not specified, build for FULLSPEC configuration
@@ -88,11 +88,8 @@ SRC_SCSIMON = \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp\
+	fileio.cpp \
 	rascsi_version.cpp
-SRC_SCSIMON += $(shell find ./controllers -name '*.cpp')
-SRC_SCSIMON += $(shell find ./devices -name '*.cpp')
-
 
 SRC_RASCTL = \
 	rasctl.cpp\
@@ -154,7 +151,7 @@ ALL: all
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
 $(BINDIR)/$(RASCSI): $(OBJ_RASCSI) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap
 
 $(BINDIR)/$(RASCTL): $(OBJ_RASCTL) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL)
