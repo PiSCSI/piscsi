@@ -208,6 +208,8 @@ BOOL Init()
 void Cleanup()
 {
 	int i;
+	
+	FPRT(stdout,"Calling Cleanup.\n");
 
 	// Delete the disks
 	for (i = 0; i < CtrlMax * UnitNum; i++) {
@@ -1042,8 +1044,17 @@ static void *MonThread(void *param)
 		// Remove the newline character
 		p[strlen(p) - 1] = 0;
 
+
+		// Shut down the daemon
+		if (xstrncasecmp(p, "shutdown", 4) == 0) {
+		        FPRT(stdout,"Received call to shut down daemon.\n");
+		        Cleanup();
+		        exit(0);
+	        }
+
 		// List all of the devices
 		if (xstrncasecmp(p, "list", 4) == 0) {
+			FPRT(stdout,"Received call to list devices.\n");
 			ListDevice(fp);
 			goto next;
 		}

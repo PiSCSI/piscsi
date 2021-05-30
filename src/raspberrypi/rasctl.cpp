@@ -72,6 +72,7 @@ int main(int argc, char* argv[])
 	int type;
 	char *file;
 	BOOL list;
+	BOOL shutdown;
 	int len;
 	char *ext;
 	char buf[BUFSIZ];
@@ -82,6 +83,7 @@ int main(int argc, char* argv[])
 	type = -1;
 	file = NULL;
 	list = FALSE;
+	shutdown = FALSE;
 
 	// Display help
 	if (argc < 2) {
@@ -91,14 +93,16 @@ int main(int argc, char* argv[])
 			__DATE__,
 			__TIME__);
 		fprintf(stderr,
-			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]\n",
+			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-s]\n",
 			argv[0]);
 		fprintf(stderr, " where  ID := {0|1|2|3|4|5|6|7}\n");
 		fprintf(stderr, "        UNIT := {0|1} default setting is 0.\n");
 		fprintf(stderr, "        CMD := {attach|detach|insert|eject|protect}\n");
 		fprintf(stderr, "        TYPE := {hd|mo|cd|bridge|daynaport}\n");
 		fprintf(stderr, "        FILE := image file path\n");
-		fprintf(stderr, " CMD is 'attach' or 'insert' and FILE parameter is required.\n");
+		fprintf(stderr, " if CMD is 'attach' or 'insert', FILE parameter is required.\n");
+		fprintf(stderr, "        -s if running, this will stop the rascsi daemon.\n");
+		fprintf(stderr, "        if using systemd, shutdown rascsi with 'sudo systemctl stop rascsi.service'\n");
 		fprintf(stderr, "Usage: %s -l\n", argv[0]);
 		fprintf(stderr, "       Print device list.\n");
 		exit(0);
@@ -106,7 +110,7 @@ int main(int argc, char* argv[])
 
 	// Parse the arguments
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:l")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:l:s")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -181,7 +185,18 @@ int main(int argc, char* argv[])
 			case 'l':
 				list = TRUE;
 				break;
+			case 's':
+				shutdown = TRUE;
+				break;
 		}
+	}
+
+	// Shutdown the daemon
+	if (shutdown) {
+		fprintf(stderr, "Attempting to shut down daemon\n");
+		sprintf(buf, "shutdown\n");
+		SendCommand(buf);
+		exit(0);
 	}
 
 	// List display only
