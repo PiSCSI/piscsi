@@ -1121,7 +1121,7 @@ int main(int argc, char* argv[])
 	DWORD now;
 	BUS::phase_t phase;
 	BYTE data;
-	// added setvbuf to overtime stdout buffering, so logs are written immediately and not when the process exits.
+	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, NULL, _IONBF, 0);
 #ifndef BAREMETAL
 	struct sched_param schparam;
