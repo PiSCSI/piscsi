@@ -12,6 +12,26 @@
 #include "os.h"
 #include "rascsi_version.h"
 #include "rasctl.h"
+#include <string>
+
+using std::string;
+
+//---------------------------------------------------------------------------
+//
+//    Get extension from filename
+//
+//---------------------------------------------------------------------------
+string getFileExt(const string& s)
+{
+      size_t i = s.rfind('.', s.length());
+      if (i != string::npos) {
+              return(s.substr(i+1, s.length() - i));
+      }
+      return("");
+}
+
+
+
 
 //---------------------------------------------------------------------------
 //
@@ -73,7 +93,8 @@ int main(int argc, char* argv[])
 	char *file;
 	BOOL list;
 	int len;
-	char *ext;
+//	char *ext;
+	string fileext;
 	char buf[BUFSIZ];
 
 	id = -1;
@@ -82,6 +103,7 @@ int main(int argc, char* argv[])
 	type = -1;
 	file = NULL;
 	list = FALSE;
+	fileext = "";
 
 	// Display help
 	if (argc < 2) {
@@ -213,23 +235,32 @@ int main(int argc, char* argv[])
 
 		// Try to determine the file type from the extension
 		len = file ? strlen(file) : 0;
-		if (len > 4 && file[len - 4] == '.') {
-			ext = &file[len - 3];
-			if (xstrcasecmp(ext, "hdf") == 0 ||
-				xstrcasecmp(ext, "hds") == 0 ||
-				xstrcasecmp(ext, "hdn") == 0 ||
-				xstrcasecmp(ext, "hdi") == 0 ||
-				xstrcasecmp(ext, "nhd") == 0 ||
-				xstrcasecmp(ext, "hda") == 0) {
-				// HD(SASI/SCSI)
-				type = 0;
-			} else if (xstrcasecmp(ext, "mos") == 0) {
-				// MO
-				type = 2;
-			} else if (xstrcasecmp(ext, "iso") == 0) {
-				// CD
-				type = 3;
-			}
+
+		// if -f argument is empty, exit with an error.
+		if (len == 0) {
+			fprintf(stderr, "Error: must include filename when using -f\n");
+			exit(0);
+	        }
+
+	        fileext = getFileExt(file);
+
+		if (xstrcasecmp(fileext.c_str(), "hdf") == 0 ||
+			xstrcasecmp(fileext.c_str(), "hds") == 0 ||
+			xstrcasecmp(fileext.c_str(), "hdn") == 0 ||
+			xstrcasecmp(fileext.c_str(), "hdi") == 0 ||
+			xstrcasecmp(fileext.c_str(), "nhd") == 0 ||
+			xstrcasecmp(fileext.c_str(), "hda") == 0) {
+			// HD(SASI/SCSI)
+			type = 0;
+		}
+		else if (xstrcasecmp(fileext.c_str(), "mos") == 0) {
+			// MO
+			type = 2;
+		}
+		else if (xstrcasecmp(fileext.c_str(), "iso") == 0 ||
+			xstrcasecmp(fileext.c_str(), "toast") == 0) {
+			// CD
+			type = 3;
 		}
 
 		if (type < 0) {
