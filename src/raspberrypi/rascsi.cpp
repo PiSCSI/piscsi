@@ -110,6 +110,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout,"  hda : SCSI HD image(APPLE GENUINE)\n");
 		FPRT(stdout,"  mos : SCSI MO image(XM6 SCSI MO image)\n");
 		FPRT(stdout,"  iso : SCSI CD image(ISO 9660 image)\n");
+		FPRT(stdout,"  toast : SCSI CD image(Roxio Toast image)\n");
 
 #ifndef BAREMETAL
 		exit(0);
@@ -504,11 +505,6 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 				return FALSE;
 			}
 
-			// Check the extension
-			if (file[len - 4] != '.') {
-				return FALSE;
-			}
-
 			// If the extension is not SASI type, replace with SCSI
 			ext = &file[len - 3];
 			if (xstrcasecmp(ext, "hdf") != 0) {
@@ -815,32 +811,24 @@ BOOL ParseConfig(int argc, char* argv[])
 				goto parse_error;
 			}
 
-			// Does the file have an extension?
-			if (argPath[len - 4] != '.') {
-				FPRT(stderr,
-					"Error : Invalid argument(No extension) [%s]\n", argPath);
-				goto parse_error;
-			}
-
-			// Figure out what the type is
-			ext = &argPath[len - 3];
-			if (xstrcasecmp(ext, "hdf") == 0 ||
-				xstrcasecmp(ext, "hds") == 0 ||
-				xstrcasecmp(ext, "hdn") == 0 ||
-				xstrcasecmp(ext, "hdi") == 0 || xstrcasecmp(ext, "nhd") == 0 ||
-				xstrcasecmp(ext, "hda") == 0) {
+			if (has_suffix(path, ".hdf")
+				|| has_suffix(path, ".hds")
+				|| has_suffix(path, ".hdn")
+				|| has_suffix(path, ".hdi")
+				|| has_suffix(path, ".nhd")
+				|| has_suffix(path, ".hda")) {
 				// HD(SASI/SCSI)
 				type = 0;
-			} else if (strcasecmp(ext, "mos") == 0) {
+			} else if (has_suffix(path, ".mos")) {
 				// MO
 				type = 2;
-			} else if (strcasecmp(ext, "iso") == 0) {
+			} else if (has_suffix(path, ".iso")
+				|| has_suffix(path, ".toast")) {
 				// CD
 				type = 3;
 			} else {
 				// Cannot determine the file type
-				FPRT(stderr,
-					"Error : Invalid argument(file type) [%s]\n", ext);
+				FPRT(stderr,"Error : Invalid argument(file type) [%s]\n", ext);
 				goto parse_error;
 			}
 		}
@@ -875,6 +863,7 @@ bool ParseArgument(int argc, char* argv[])
 
 	int opt;
 	while ((opt = getopt(argc, argv, "-IiHhD:d:")) != -1) {
+
 		switch (opt) {
 			case 'I':
 			case 'i':
@@ -928,7 +917,8 @@ bool ParseArgument(int argc, char* argv[])
 			type = rasctl_dev_sasi_hd;
 		} else if (has_suffix(path, ".mos")) {
 			type = rasctl_dev_mo;
-		} else if (has_suffix(path, ".iso")) {
+		} else if (has_suffix(path, ".iso")
+			|| has_suffix(path, ".toast")) {
 			type = rasctl_dev_cd;
 		} else if (xstrcasecmp(path, "bridge") == 0) {
 			type = rasctl_dev_br;
