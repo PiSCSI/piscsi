@@ -11,7 +11,7 @@
 //
 //	Imported sava's Anex86/T98Next image and MO format support patch.
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
-//  Comments translated to english by akuker.
+//  	Comments translated to english by akuker.
 //
 //	[ Disk ]
 //
@@ -161,11 +161,11 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 
 	if (dt.buffer == NULL) {
-#if defined(RASCSI) && !defined(BAREMETAL)
+		#if defined(RASCSI) && !defined(BAREMETAL)
 		posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512);
-#else
+		#else
 		dt.buffer = (BYTE *)malloc(length * sizeof(BYTE));
-#endif	// RASCSI && !BAREMETAL
+		#endif	// RASCSI && !BAREMETAL
 		dt.length = length;
 	}
 
@@ -176,11 +176,11 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	// Reallocate if the buffer length is different
 	if (dt.length != (DWORD)length) {
 		free(dt.buffer);
-#if defined(RASCSI) && !defined(BAREMETAL)
+		#if defined(RASCSI) && !defined(BAREMETAL)
 		posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512);
-#else
+		#else
 		dt.buffer = (BYTE *)malloc(length * sizeof(BYTE));
-#endif	// RASCSI && !BAREMETAL
+		#endif	// RASCSI && !BAREMETAL
 		dt.length = length;
 	}
 
@@ -205,11 +205,11 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 
 	// Read from File
-#if defined(RASCSI) && !defined(BAREMETAL)
+	#if defined(RASCSI) && !defined(BAREMETAL)
 	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
-#else
+	#else
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-#endif	// RASCSI && !BAREMETAL
+	#endif	// RASCSI && !BAREMETAL
 		return FALSE;
 	}
 	if (dt.raw) {
@@ -357,6 +357,7 @@ BOOL FASTCALL DiskTrack::Read(BYTE *buf, int sec) const
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
 
+	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec);
 	// Error if not initialized
 	if (!dt.init) {
 		return FALSE;
@@ -976,6 +977,47 @@ BOOL FASTCALL Disk::IsNULL() const
 
 //---------------------------------------------------------------------------
 //
+//	Retrieve the disk's ID
+//
+//---------------------------------------------------------------------------
+DWORD FASTCALL Disk::GetID() const
+{ 
+	return disk.id; 
+}
+
+
+//---------------------------------------------------------------------------
+//
+//	Get cache writeback mode
+//
+//---------------------------------------------------------------------------
+BOOL FASTCALL Disk::IsCacheWB() 
+{ 
+	return cache_wb; 
+}
+ 
+//---------------------------------------------------------------------------
+//
+//	Set cache writeback mode
+//
+//---------------------------------------------------------------------------
+void FASTCALL Disk::SetCacheWB(BOOL enable) 
+{ 
+	cache_wb = enable; 
+}
+
+//---------------------------------------------------------------------------
+//
+//	Set unsupported command
+//
+//---------------------------------------------------------------------------
+void FASTCALL Disk::InvalidCmd()
+{ 
+	disk.code = DISK_INVALIDCMD; 
+}
+
+//---------------------------------------------------------------------------
+//
 //	SASI Check
 //
 //---------------------------------------------------------------------------
@@ -1162,6 +1204,7 @@ BOOL FASTCALL Disk::CheckReady()
 	if (disk.reset) {
 		disk.code = DISK_DEVRESET;
 		disk.reset = FALSE;
+		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
@@ -1169,17 +1212,21 @@ BOOL FASTCALL Disk::CheckReady()
 	if (disk.attn) {
 		disk.code = DISK_ATTENTION;
 		disk.attn = FALSE;
+		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
 	// Return status if not ready
 	if (!disk.ready) {
 		disk.code = DISK_NOTREADY;
+		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
 	// Initialization with no error
 	disk.code = DISK_NOERROR;
+	LOGTRACE("%s Disk is ready!", __PRETTY_FUNCTION__);
+
 	return TRUE;
 }
 
@@ -1222,6 +1269,7 @@ int FASTCALL Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 
 	// Size determination (according to allocation length)
 	size = (int)cdb[4];
+	LOGTRACE("%s size of data = %d", __PRETTY_FUNCTION__, size);
 	ASSERT((size >= 0) && (size < 0x100));
 
 	// For SCSI-1, transfer 4 bytes when the size is 0
@@ -1653,7 +1701,7 @@ int FASTCALL Disk::AddFormat(BOOL change, BYTE *buf)
 	buf[1] = 0x16;
 
 	// Show the number of bytes in the physical sector as changeable
-    // (though it cannot be changed in practice)
+	// (though it cannot be changed in practice)
 	if (change) {
 		buf[0xc] = 0xff;
 		buf[0xd] = 0xff;
@@ -1815,7 +1863,7 @@ int FASTCALL Disk::AddCDDA(BOOL change, BYTE *buf)
 	}
 
 	// Audio waits for operation completion and allows
-    // PLAY across multiple tracks
+	// PLAY across multiple tracks
 	return 16;
 }
 
@@ -1966,7 +2014,7 @@ BOOL FASTCALL Disk::Reassign(const DWORD* /*cdb*/)
 //	READ
 //
 //---------------------------------------------------------------------------
-int FASTCALL Disk::Read(BYTE *buf, DWORD block)
+int FASTCALL Disk::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	ASSERT(this);
 	ASSERT(buf);
@@ -2026,11 +2074,12 @@ int FASTCALL Disk::WriteCheck(DWORD block)
 //	WRITE
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL Disk::Write(const BYTE *buf, DWORD block)
+BOOL FASTCALL Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(this);
 	ASSERT(buf);
 
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	// Error if not ready
 	if (!disk.ready) {
 		disk.code = DISK_NOTREADY;

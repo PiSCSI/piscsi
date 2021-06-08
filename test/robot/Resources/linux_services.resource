@@ -15,7 +15,7 @@ The ${service_name} Service Should be Running
 The ${service_name} Service Should be Stopped
     ${lc_service_name}=  Convert To Lower Case  ${service_name}
     ${output}=  Execute Command  systemctl status ${lc_service_name}
-    Should Contain  ${output}  Active: failed  ignore_case=True
+    Should Contain Any  ${output}  Active: failed  Active: inactive  ignore_case=True
 
 The ${service_name} Service is Stopped
     ${lc_service_name}=  Convert To Lower Case  ${service_name}

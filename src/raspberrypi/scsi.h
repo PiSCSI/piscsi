@@ -28,13 +28,13 @@ public:
 	};
 
 	//	Phase definition
-	enum phase_t {
+	enum phase_t : BYTE {
 		busfree,						// バスフリーフェーズ
 		arbitration,					// アービトレーションフェーズ
 		selection,						// セレクションフェーズ
 		reselection,					// リセレクションフェーズ
 		command,						// コマンドフェーズ
-		execute,						// 実行フェーズ
+		execute,						// 実行フェーズ  Execute is an extension of the command phase
 		datain,							// データイン
 		dataout,						// データアウト
 		status,							// ステータスフェーズ
@@ -125,8 +125,18 @@ public:
 										// コマンド受信ハンドシェイク
 	virtual int FASTCALL ReceiveHandShake(BYTE *buf, int count) = 0;
 										// データ受信ハンドシェイク
-	virtual int FASTCALL SendHandShake(BYTE *buf, int count) = 0;
+	virtual int FASTCALL SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
 										// データ送信ハンドシェイク
+
+
+	virtual BOOL FASTCALL GetSignal(int pin) = 0;
+										// Get SCSI input signal value
+	virtual void FASTCALL SetSignal(int pin, BOOL ast) = 0;
+										// Set SCSI output signal value
+	static const int SEND_NO_DELAY = -1;
+										// Passed into SendHandShake when we don't want to delay
+protected:
+	phase_t m_current_phase = phase_t::reserved;
 
 private:
 	static const phase_t phase_table[8];
@@ -134,5 +144,85 @@ private:
 
 	static const char* phase_str_table[];
 };
+
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE misc_cdb_information;
+    BYTE page_code;
+	WORD length;
+	BYTE control;
+} scsi_cdb_6_byte_t;
+
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE service_action;
+    DWORD logical_block_address;
+	BYTE misc_cdb_information;
+	WORD length;
+	BYTE control;
+} scsi_cdb_10_byte_t;
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE service_action;
+    DWORD logical_block_address;
+	DWORD length;
+	BYTE misc_cdb_information;
+	BYTE control;
+} scsi_cdb_12_byte_t;
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE service_action;
+    DWORD logical_block_address;
+	DWORD length;
+	BYTE misc_cdb_information;
+	BYTE control;
+} scsi_cdb_16_byte_t;
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE reserved;
+	BYTE page_code;
+	WORD allocation_length;
+	BYTE control;
+} scsi_cmd_inquiry_t;
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE lba_msb_bits_4_0;
+	WORD logical_block_address;
+	BYTE transfer_length;
+	BYTE control;
+} scsi_cmd_read_6_t;
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE flags;
+	DWORD logical_block_address;
+	BYTE group_number;
+	WORD transfer_length;
+	BYTE control;
+} scsi_cmd_read_10_t;
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE flags;
+	DWORD logical_block_address;
+	DWORD transfer_length;
+	BYTE group_number;
+	BYTE control;
+} scsi_cmd_read_12_t;
+
+typedef struct __attribute__((packed)) {
+	BYTE operation_code;
+	BYTE descriptor_format;
+	WORD reserved;
+	BYTE allocation_length;
+	BYTE control;
+} scsi_cmd_request_sense_t;
+
 
 #endif	// scsi_h

@@ -5,12 +5,12 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  Copyright (C) akuker
+//	Copyright (C) akuker
 //
-//  Licensed under the BSD 3-Clause License. 
-//  See LICENSE file in the project root folder.
+//	Licensed under the BSD 3-Clause License. 
+//	See LICENSE file in the project root folder.
 //
-//  [ SCSI Hard Disk for Apple Macintosh ]
+//	[ SCSI Hard Disk for Apple Macintosh ]
 //
 //---------------------------------------------------------------------------
 
@@ -727,7 +727,7 @@ int FASTCALL SCSICD::Inquiry(
 //	READ
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSICD::Read(BYTE *buf, DWORD block)
+int FASTCALL SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	int index;
 	Filepath path;
@@ -771,7 +771,7 @@ int FASTCALL SCSICD::Read(BYTE *buf, DWORD block)
 
 	// Base class
 	ASSERT(dataindex >= 0);
-	return Disk::Read(buf, block);
+	return Disk::Read(cdb, buf, block);
 }
 
 //---------------------------------------------------------------------------

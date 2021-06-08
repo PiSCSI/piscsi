@@ -11,6 +11,7 @@
 
 #include "os.h"
 #include "rascsi_version.h"
+#include "rasctl.h"
 
 //---------------------------------------------------------------------------
 //
@@ -95,7 +96,7 @@ int main(int argc, char* argv[])
 		fprintf(stderr, " where  ID := {0|1|2|3|4|5|6|7}\n");
 		fprintf(stderr, "        UNIT := {0|1} default setting is 0.\n");
 		fprintf(stderr, "        CMD := {attach|detach|insert|eject|protect}\n");
-		fprintf(stderr, "        TYPE := {hd|mo|cd|bridge}\n");
+		fprintf(stderr, "        TYPE := {hd|mo|cd|bridge|daynaport}\n");
 		fprintf(stderr, "        FILE := image file path\n");
 		fprintf(stderr, " CMD is 'attach' or 'insert' and FILE parameter is required.\n");
 		fprintf(stderr, "Usage: %s -l\n", argv[0]);
@@ -146,19 +147,29 @@ int main(int argc, char* argv[])
 					case 'S':
 					case 'h':				// HD(SCSI)
 					case 'H':
-						type = 0;
+						// rascsi will figure out if this should be SASI or
+						// SCSI later in the process....
+						type = rasctl_dev_sasi_hd;
 						break;
 					case 'm':				// MO
 					case 'M':
-						type = 2;
+						type = rasctl_dev_mo;
 						break;
 					case 'c':				// CD
 					case 'C':
-						type = 3;
+						type = rasctl_dev_cd;
 						break;
 					case 'b':				// BRIDGE
 					case 'B':
-						type = 4;
+						type = rasctl_dev_br;
+						break;
+					// case 'n':				// Nuvolink
+					// case 'N':
+					// 	type = rasctl_dev_nuvolink;
+					// 	break;
+					case 'd':				// DaynaPort
+					case 'D':
+						type = rasctl_dev_daynaport;
 						break;
 				}
 				break;
@@ -182,13 +193,13 @@ int main(int argc, char* argv[])
 
 	// Check the ID number
 	if (id < 0 || id > 7) {
-		fprintf(stderr, "Error : Invalid ID\n");
+		fprintf(stderr, "%s Error : Invalid ID %d \n", __PRETTY_FUNCTION__, id);
 		exit(EINVAL);
 	}
 
 	// Check the unit number
 	if (un < 0 || un > 1) {
-		fprintf(stderr, "Error : Invalid UNIT\n");
+		fprintf(stderr, "%s Error : Invalid UNIT %d \n", __PRETTY_FUNCTION__, un);
 		exit(EINVAL);
 	}
 

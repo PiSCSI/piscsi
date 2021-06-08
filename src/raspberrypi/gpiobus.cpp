@@ -1109,7 +1109,7 @@ int FASTCALL GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 //	Data transmission handshake
 //
 //---------------------------------------------------------------------------
-int FASTCALL GPIOBUS::SendHandShake(BYTE *buf, int count)
+int FASTCALL GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 {
 	int i;
 	BOOL ret;
@@ -1120,6 +1120,11 @@ int FASTCALL GPIOBUS::SendHandShake(BYTE *buf, int count)
 
 	if (actmode == TARGET) {
 		for (i = 0; i < count; i++) {
+			if(i==delay_after_bytes){
+				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes);
+				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+			}
+
 			// Set the DATA signals
 			SetDAT(*buf);
 
@@ -1158,6 +1163,11 @@ int FASTCALL GPIOBUS::SendHandShake(BYTE *buf, int count)
 		phase = Aquire() & GPIO_MCI;
 
 		for (i = 0; i < count; i++) {
+			if(i==delay_after_bytes){
+				LOGTRACE("%s DELAYING for %dus after %d bytes", __PRETTY_FUNCTION__, SCSI_DELAY_SEND_DATA_DAYNAPORT_US, (int)delay_after_bytes);
+				SysTimer::SleepUsec(SCSI_DELAY_SEND_DATA_DAYNAPORT_US);
+			}
+
 			// Set the DATA signals
 			SetDAT(*buf);
 

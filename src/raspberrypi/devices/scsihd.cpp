@@ -5,12 +5,12 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2014-2020 GIMONS
-//  Copyright (C) akuker
+//	Copyright (C) akuker
 //
-//  Licensed under the BSD 3-Clause License. 
-//  See LICENSE file in the project root folder.
+//	Licensed under the BSD 3-Clause License. 
+//	See LICENSE file in the project root folder.
 //
-//  [ SCSI hard disk ]
+//	[ SCSI hard disk ]
 //
 //---------------------------------------------------------------------------
 #include "scsihd.h"
@@ -100,7 +100,7 @@ BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIHD::Inquiry(
+int FASTCALL SCSIHD:: Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	char vendor[32];
@@ -241,7 +241,7 @@ BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
                 case 0x08:
                     // Debug code for Issue #2:
                     //     https://github.com/akuker/RASCSI/issues/2
-                    printf("[Unhandled page code] Received mode page code 8 with total length %d\n     ", length);
+                    LOGWARN("[Unhandled page code] Received mode page code 8 with total length %d\n     ", length);
                     for (int i = 0; i<length; i++)
                     {
                         printf("%02X ", buf[i]);

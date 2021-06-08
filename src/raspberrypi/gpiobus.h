@@ -433,6 +433,35 @@
 //
 //---------------------------------------------------------------------------
 #define GPIO_DATA_SETTLING 100			// Data bus stabilization time (ns)
+// SCSI Bus timings taken from:
+//     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
+#define SCSI_DELAY_ARBITRATION_DELAY_NS          2400
+#define SCSI_DELAY_ASSERTION_PERIOD_NS             90 
+#define SCSI_DELAY_BUS_CLEAR_DELAY_NS             800 
+#define SCSI_DELAY_BUS_FREE_DELAY_NS              800 
+#define SCSI_DELAY_BUS_SET_DELAY_NS              1800 
+#define SCSI_DELAY_BUS_SETTLE_DELAY_NS            400 
+#define SCSI_DELAY_CABLE_SKEW_DELAY_NS             10 
+#define SCSI_DELAY_DATA_RELEASE_DELAY_NS          400 
+#define SCSI_DELAY_DESKEW_DELAY_NS                 45 
+#define SCSI_DELAY_DISCONNECTION_DELAY_US         200 
+#define SCSI_DELAY_HOLD_TIME_NS                    45 
+#define SCSI_DELAY_NEGATION_PERIOD_NS              90 
+#define SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S   10         // (recommended)
+#define SCSI_DELAY_RESET_TO_SELECTION_TIME_US     (250*1000) // (recommended)
+#define SCSI_DELAY_RESET_HOLD_TIME_US              25 
+#define SCSI_DELAY_SELECTION_ABORT_TIME_US        200 
+#define SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS    (250*1000) // (recommended)
+#define SCSI_DELAY_FAST_ASSERTION_PERIOD_NS        30
+#define SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS         5
+#define SCSI_DELAY_FAST_DESKEW_DELAY_NS            20
+#define SCSI_DELAY_FAST_HOLD_TIME_NS               10
+#define SCSI_DELAY_FAST_NEGATION_PERIOD_NS         30
+
+// The DaynaPort SCSI Link do a short delay in the middle of transfering
+// a packet. This is the number of uS that will be delayed between the
+// header and the actual data.
+#define SCSI_DELAY_SEND_DATA_DAYNAPORT_US          100
 
 //---------------------------------------------------------------------------
 //
@@ -540,11 +569,11 @@ public:
 										// Command receive handshake
 	int FASTCALL ReceiveHandShake(BYTE *buf, int count);
 										// Data receive handshake
-	int FASTCALL SendHandShake(BYTE *buf, int count);
+	int FASTCALL SendHandShake(BYTE *buf, int count, int delay_after_bytes);
 										// Data transmission handshake
 
 	static BUS::phase_t FASTCALL GetPhaseRaw(DWORD raw_data);
-									// Get the phase based on raw data
+										// Get the phase based on raw data
 
 #ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
@@ -621,7 +650,7 @@ private:
 	DWORD signals;						// All bus signals
 
 #if defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
-	struct gpioevent_request selevreq;	// SEL signal event request
+	struct gpioevent_request selevreq = {};	// SEL signal event request
 
 	int epfd;							// epoll file descriptor
 #endif	// USE_SEL_EVENT_ENABLE && !BAREMETAL
