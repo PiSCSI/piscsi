@@ -90,7 +90,7 @@ SRC_SCSIMON = \
 	filepath.cpp \
 	fileio.cpp \
 	rascsi_version.cpp
- 
+
 SRC_RASCTL = \
 	rasctl.cpp\
 	rascsi_version.cpp
