@@ -580,8 +580,9 @@ void FASTCALL SCSIDEV::CmdInquiry()
 
 	// Processed on the disk side (it is originally processed by the controller)
 	if (disk) {
-		major = (DWORD)rascsi_major_version;
-		minor = (DWORD)rascsi_minor_version;
+		major = (DWORD)(RASCSI >> 8);
+		minor = (DWORD)(RASCSI & 0xff);
+		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
 		ctrl.length =
 			ctrl.unit[lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
 	} else {
