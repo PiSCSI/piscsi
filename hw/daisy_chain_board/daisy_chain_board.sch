@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:daisy_chain_board-cache
 EELAYER 30 0
 EELAYER END
 $Descr USLetter 11000 8500
@@ -20,7 +19,7 @@ U 1 1 5EF63F70
 P 3550 2100
 F 0 "J7" H 3600 675 50  0000 C CNN
 F 1 "Conn_02x25_Odd_Even" H 3600 766 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical" H 3550 2100 50  0001 C CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_2x25_P2.54mm_Vertical" H 3550 2100 50  0001 C CNN
 F 3 "~" H 3550 2100 50  0001 C CNN
 F 4 "C40024" H 3550 2100 50  0001 C CNN "LCSC"
 	1    3550 2100
@@ -446,12 +445,12 @@ F 3 "" H 2800 6050 50  0001 C CNN
 	-1   0    0    1   
 $EndComp
 $Comp
-L SamacSys_Parts:L717SDB25PA4CH4F J8
+L SamacSys_Parts:5748901-1 J8
 U 1 1 5FA017A4
 P 2900 2900
 F 0 "J8" V 2719 2900 50  0000 C CNN
 F 1 "CONFLY DB25" V 2810 2900 50  0000 C CNN
-F 2 "L717SDB25PA4CH4F" H 4550 3200 50  0001 L CNN
+F 2 "SamacSys_Parts:57489011" H 4550 3200 50  0001 L CNN
 F 3 "https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf" H 4550 3100 50  0001 L CNN
 F 4 "D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD" H 4550 3000 50  0001 L CNN "Description"
 F 5 "12.55" H 4550 2900 50  0001 L CNN "Height"
@@ -461,7 +460,7 @@ F 8 "Amphenol" H 4550 2600 50  0001 L CNN "Manufacturer_Name"
 F 9 "L717SDB25PA4CH4F" H 4550 2500 50  0001 L CNN "Manufacturer_Part_Number"
 F 10 "C77838" V 2900 2900 50  0001 C CNN "LCSC"
 	1    2900 2900
-	0    -1   1    0   
+	0    1    1    0   
 $EndComp
 Text Notes 6750 7760 0    87   ~ 17
 RaSCSI Daisy Chain Board
