@@ -17,7 +17,7 @@ Either the -i or -l option should be specified at one time. Not both.
 
 You do NOT need root privileges to use rasctl.
 
-Note: The command and type arguments are case insensitive. Only the first letter of the command/type are evaluated by the tool.
+Note: The command and type arguments are case insensitive. Only the first letter of the command/type is evaluated by the tool.
 
 .SH OPTIONS
 .TP
@@ -38,7 +38,7 @@ Command is the operation being requested. options are:
    eject:  eject media  (Magneto-Optical and CD only)
    protect: Write protect the media (Magneto-Optical only)
 .IP
-When the command is omited, rasctl will default to the 'attach' command
+When the command is omitted, rasctl will default to the 'attach' command.
 .TP 
 .BR \-t\fI " " \fITYPE
 Specifies the type of disk. If this disagrees with the file extension of the specified image, the TYPE argument is ignored. Available drive types are:
@@ -51,7 +51,7 @@ Specifies the type of disk. If this disagrees with the file extension of the spe
 Path to the disk image file. See the rascsi(1) man page for allowable file types.
 
 .SH EXAMPLES
-Show a listing of all of the SCSI devices and their current status
+Show a listing of all of the SCSI devices and their current status.
    rasctl -l
 
 
