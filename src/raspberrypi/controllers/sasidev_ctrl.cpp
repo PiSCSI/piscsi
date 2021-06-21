@@ -19,6 +19,7 @@
 #include "devices/scsi_host_bridge.h"
 #include "controllers/scsidev_ctrl.h"
 #include "devices/scsi_daynaport.h"
+#include "exceptions.h"
 
 //===========================================================================
 //
@@ -498,7 +499,12 @@ void FASTCALL SASIDEV::Command()
 		ctrl.blocks = 0;
 
 		// Execution Phase
-		Execute();
+                try {
+                        Execute();
+                }
+                catch (const lunexception& e) {
+                        Error();
+                }
 		#else
 		// Request the command
 		ctrl.bus->SetREQ(TRUE);
@@ -912,19 +918,13 @@ void FASTCALL SASIDEV::Error()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdTestUnitReady()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
@@ -945,19 +945,13 @@ void FASTCALL SASIDEV::CmdTestUnitReady()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdRezero()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Rezero(ctrl.cmd);
@@ -978,18 +972,11 @@ void FASTCALL SASIDEV::CmdRezero()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdRequestSense()
 {
-	DWORD lun;
-
 	ASSERT(this);
 
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
@@ -1008,19 +995,13 @@ void FASTCALL SASIDEV::CmdRequestSense()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdFormat()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Format(ctrl.cmd);
@@ -1041,19 +1022,13 @@ void FASTCALL SASIDEV::CmdFormat()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdReassign()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Reassign(ctrl.cmd);
@@ -1112,17 +1087,11 @@ void FASTCALL SASIDEV::CmdReleaseUnit()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdRead6()
 {
-	DWORD lun;
 	DWORD record;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Get record number and block number
 	record = ctrl.cmd[1] & 0x1f;
@@ -1168,17 +1137,11 @@ void FASTCALL SASIDEV::CmdRead6()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::DaynaPortWrite()
 {
-	DWORD lun;
 	DWORD data_format;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Error if not a host bridge
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')) {
@@ -1232,17 +1195,11 @@ void FASTCALL SASIDEV::DaynaPortWrite()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdWrite6()
 {
-	DWORD lun;
 	DWORD record;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Special receive function for the DaynaPort
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'D', 'P')){
@@ -1286,19 +1243,13 @@ void FASTCALL SASIDEV::CmdWrite6()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdSeek6()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Seek(ctrl.cmd);
@@ -1319,19 +1270,13 @@ void FASTCALL SASIDEV::CmdSeek6()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdAssign()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Assign(ctrl.cmd);
@@ -1355,19 +1300,13 @@ void FASTCALL SASIDEV::CmdAssign()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdSpecify()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Assign(ctrl.cmd);
@@ -1391,17 +1330,8 @@ void FASTCALL SASIDEV::CmdSpecify()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdInvalid()
 {
-	DWORD lun;
-
 	ASSERT(this);
 	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (ctrl.unit[lun]) {
-		// Command processing on drive
-		ctrl.unit[lun]->InvalidCmd();
-	}
 
 	// Failure (Error)
 	Error();
@@ -1979,3 +1909,18 @@ void SASIDEV::GetPhaseStr(char *str)
     }
 }
 #endif
+
+//---------------------------------------------------------------------------
+//
+//	Validate LUN
+//
+//---------------------------------------------------------------------------
+DWORD FASTCALL SASIDEV::ValidateLun()
+{
+        DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+        if (!ctrl.unit[lun]) {
+                throw lunexception();
+        }
+
+        return lun;
+}

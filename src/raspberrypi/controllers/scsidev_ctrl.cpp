@@ -18,6 +18,7 @@
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
+#include "exceptions.h"
 
 //===========================================================================
 //
@@ -611,18 +612,11 @@ void FASTCALL SCSIDEV::CmdInquiry()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdModeSelect()
 {
-	DWORD lun;
-
 	ASSERT(this);
 
 	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->SelectCheck(ctrl.cmd);
@@ -720,18 +714,11 @@ void FASTCALL SCSIDEV::CmdRelease10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdModeSense()
 {
-	DWORD lun;
-
 	ASSERT(this);
 
 	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ModeSense(ctrl.cmd, ctrl.buffer);
@@ -755,19 +742,13 @@ void FASTCALL SCSIDEV::CmdModeSense()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdStartStop()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE( "%s START STOP UNIT Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->StartStop(ctrl.cmd);
@@ -788,19 +769,13 @@ void FASTCALL SCSIDEV::CmdStartStop()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSendDiag()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
@@ -821,19 +796,13 @@ void FASTCALL SCSIDEV::CmdSendDiag()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdRemoval()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Removal(ctrl.cmd);
@@ -854,19 +823,13 @@ void FASTCALL SCSIDEV::CmdRemoval()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdReadCapacity()
 {
-	DWORD lun;
 	int length;
 
 	ASSERT(this);
 
 	LOGTRACE( "%s READ CAPACITY Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
@@ -890,17 +853,11 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdRead10()
 {
-	DWORD lun;
 	DWORD record;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Receive message if host bridge
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
@@ -950,17 +907,11 @@ void FASTCALL SCSIDEV::CmdRead10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdWrite10()
 {
-	DWORD lun;
 	DWORD record;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Receive message with host bridge
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
@@ -1010,19 +961,13 @@ void FASTCALL SCSIDEV::CmdWrite10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSeek10()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
 	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Seek(ctrl.cmd);
@@ -1043,18 +988,12 @@ void FASTCALL SCSIDEV::CmdSeek10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdVerify()
 {
-	DWORD lun;
 	BOOL status;
 	DWORD record;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Get record number and block number
 	record = ctrl.cmd[2];
@@ -1113,16 +1052,9 @@ void FASTCALL SCSIDEV::CmdVerify()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSynchronizeCache()
 {
-	DWORD lun;
-
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        ValidateLun();
 
 	// Make it do something (not implemented)...
 
@@ -1137,17 +1069,11 @@ void FASTCALL SCSIDEV::CmdSynchronizeCache()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdReadDefectData10()
 {
-	DWORD lun;
 	ASSERT(this);
 
 	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ReadDefectData10(ctrl.cmd, ctrl.buffer);
@@ -1169,15 +1095,9 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdReadToc()
 {
-	DWORD lun;
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ReadToc(ctrl.cmd, ctrl.buffer);
@@ -1198,17 +1118,11 @@ void FASTCALL SCSIDEV::CmdReadToc()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdPlayAudio10()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
@@ -1229,17 +1143,11 @@ void FASTCALL SCSIDEV::CmdPlayAudio10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdPlayAudioMSF()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
@@ -1260,17 +1168,11 @@ void FASTCALL SCSIDEV::CmdPlayAudioMSF()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdPlayAudioTrack()
 {
-	DWORD lun;
 	BOOL status;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
@@ -1291,18 +1193,11 @@ void FASTCALL SCSIDEV::CmdPlayAudioTrack()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdModeSelect10()
 {
-	DWORD lun;
-
 	ASSERT(this);
 
 	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->SelectCheck10(ctrl.cmd);
@@ -1323,18 +1218,11 @@ void FASTCALL SCSIDEV::CmdModeSelect10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdModeSense10()
 {
-	DWORD lun;
-
 	ASSERT(this);
 
 	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ModeSense10(ctrl.cmd, ctrl.buffer);
@@ -1358,17 +1246,11 @@ void FASTCALL SCSIDEV::CmdModeSense10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdGetMessage10()
 {
-	DWORD lun;
 	SCSIBR *bridge;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Error if not a host bridge
 	if ((ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) &&
@@ -1412,16 +1294,9 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSendMessage10()
 {
-	DWORD lun;
-
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Error if not a host bridge
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
@@ -1465,17 +1340,11 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdRetrieveStats()
 {
-	DWORD lun;
 	SCSIDaynaPort *dayna_port;
 
 	ASSERT(this);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
@@ -1509,20 +1378,13 @@ void FASTCALL SCSIDEV::CmdRetrieveStats()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSetIfaceMode()
 {
-	DWORD lun;
-	// BOOL status;
 	SCSIDaynaPort *dayna_port;
 
 	ASSERT(this);
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
@@ -1560,18 +1422,11 @@ void FASTCALL SCSIDEV::CmdSetIfaceMode()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSetMcastAddr()
 {
-	DWORD lun;
-
 	ASSERT(this);
 
 	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
 		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
@@ -1601,7 +1456,6 @@ void FASTCALL SCSIDEV::CmdSetMcastAddr()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdEnableInterface()
 {
-	DWORD lun=0;
 	BOOL status;
 	SCSIDaynaPort *dayna_port;
 
@@ -1609,12 +1463,7 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
+        DWORD lun = ValidateLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
@@ -1907,7 +1756,12 @@ void FASTCALL SCSIDEV::Receive()
 			}
 
 			// Execution Phase
-			Execute();
+                        try {
+                                Execute();
+                        }
+                        catch (const lunexception& e) {
+                                Error();
+                        }
 			break;
 
 		// Message out phase
