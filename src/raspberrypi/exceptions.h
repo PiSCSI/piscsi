@@ -1,3 +1,15 @@
-using namespace std;
+class lunexception : public std::exception {
+private:
+        DWORD lun;
 
-class lunexception : public exception { };
+public:
+        lunexception(DWORD lun) {
+                this->lun = lun;
+        }
+
+        ~lunexception() { }
+
+        DWORD getlun() {
+            return lun;
+        }
+};

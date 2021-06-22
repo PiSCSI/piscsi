@@ -502,7 +502,8 @@ void FASTCALL SASIDEV::Command()
                 try {
                         Execute();
                 }
-                catch (const lunexception& e) {
+                catch (lunexception& e) {
+                        LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
                         Error();
                 }
 		#else
@@ -924,7 +925,7 @@ void FASTCALL SASIDEV::CmdTestUnitReady()
 
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
@@ -951,7 +952,7 @@ void FASTCALL SASIDEV::CmdRezero()
 
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Rezero(ctrl.cmd);
@@ -976,7 +977,7 @@ void FASTCALL SASIDEV::CmdRequestSense()
 
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
@@ -1001,7 +1002,7 @@ void FASTCALL SASIDEV::CmdFormat()
 
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Format(ctrl.cmd);
@@ -1028,7 +1029,7 @@ void FASTCALL SASIDEV::CmdReassign()
 
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Reassign(ctrl.cmd);
@@ -1091,7 +1092,7 @@ void FASTCALL SASIDEV::CmdRead6()
 
 	ASSERT(this);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Get record number and block number
 	record = ctrl.cmd[1] & 0x1f;
@@ -1141,7 +1142,7 @@ void FASTCALL SASIDEV::DaynaPortWrite()
 
 	ASSERT(this);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Error if not a host bridge
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')) {
@@ -1199,7 +1200,7 @@ void FASTCALL SASIDEV::CmdWrite6()
 
 	ASSERT(this);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Special receive function for the DaynaPort
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'D', 'P')){
@@ -1249,7 +1250,7 @@ void FASTCALL SASIDEV::CmdSeek6()
 
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Seek(ctrl.cmd);
@@ -1276,7 +1277,7 @@ void FASTCALL SASIDEV::CmdAssign()
 
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Assign(ctrl.cmd);
@@ -1306,7 +1307,7 @@ void FASTCALL SASIDEV::CmdSpecify()
 
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = ValidateLun();
+        DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Assign(ctrl.cmd);
@@ -1915,11 +1916,11 @@ void SASIDEV::GetPhaseStr(char *str)
 //	Validate LUN
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL SASIDEV::ValidateLun()
+DWORD FASTCALL SASIDEV::GetLun()
 {
         DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
         if (!ctrl.unit[lun]) {
-                throw lunexception();
+                throw lunexception(lun);
         }
 
         return lun;
