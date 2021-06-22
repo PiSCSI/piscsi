@@ -1245,7 +1245,7 @@ int FASTCALL GPIOBUS::PollSelectEvent()
 		return -1;
 	}
 
-	(void)read(selevreq.fd, &gpev, sizeof(gpev));
+	(void)!read(selevreq.fd, &gpev, sizeof(gpev));
 #endif	// BAREMETAL
 
 	return 0;

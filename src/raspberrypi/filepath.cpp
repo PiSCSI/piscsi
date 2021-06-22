@@ -208,24 +208,6 @@ void FASTCALL Filepath::Split()
 
 //---------------------------------------------------------------------------
 //
-//	パス合成
-//
-//---------------------------------------------------------------------------
-void FASTCALL Filepath::Make()
-{
-	ASSERT(this);
-
-	// パス初期化
-	m_szPath[0] = _T('\0');
-
-	// 合成
-	strncat(m_szPath, m_szDir, ARRAY_SIZE(m_szPath) - strlen(m_szPath));
-	strncat(m_szPath, m_szFile, ARRAY_SIZE(m_szPath) - strlen(m_szPath));
-	strncat(m_szPath, m_szExt, ARRAY_SIZE(m_szPath) - strlen(m_szPath));
-}
-
-//---------------------------------------------------------------------------
-//
 //	クリアされているか
 //
 //---------------------------------------------------------------------------
