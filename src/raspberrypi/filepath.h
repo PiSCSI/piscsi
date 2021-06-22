@@ -59,8 +59,6 @@ public:
 private:
 	void FASTCALL Split();
 										// パス分割
-	void FASTCALL Make();
-										// パス合成
 	void FASTCALL SetCurDir();
 										// カレントディレクトリ設定
 	TCHAR m_szPath[_MAX_PATH];
