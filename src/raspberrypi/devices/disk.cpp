@@ -162,7 +162,9 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 
 	if (dt.buffer == NULL) {
 		#if defined(RASCSI) && !defined(BAREMETAL)
-		posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512);
+                if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
+                        LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);
+                }
 		#else
 		dt.buffer = (BYTE *)malloc(length * sizeof(BYTE));
 		#endif	// RASCSI && !BAREMETAL
@@ -177,7 +179,9 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	if (dt.length != (DWORD)length) {
 		free(dt.buffer);
 		#if defined(RASCSI) && !defined(BAREMETAL)
-		posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512);
+		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
+                  LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);  
+                }
 		#else
 		dt.buffer = (BYTE *)malloc(length * sizeof(BYTE));
 		#endif	// RASCSI && !BAREMETAL

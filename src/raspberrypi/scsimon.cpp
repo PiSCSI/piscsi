@@ -19,6 +19,7 @@
 #include "rascsi_version.h"
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
+#include <climits>
 
 //---------------------------------------------------------------------------
 //

@@ -1242,10 +1242,14 @@ int FASTCALL GPIOBUS::PollSelectEvent()
 	struct gpioevent_data gpev;
 
 	if (epoll_wait(epfd, &epev, 1, -1) <= 0) {
+                LOGWARN("%s epoll_wait failed", __PRETTY_FUNCTION__);
 		return -1;
 	}
 
-	(void)read(selevreq.fd, &gpev, sizeof(gpev));
+	if (read(selevreq.fd, &gpev, sizeof(gpev)) < 0) {
+            LOGWARN("%s read failed", __PRETTY_FUNCTION__);
+            return -1;
+        }
 #endif	// BAREMETAL
 
 	return 0;
