@@ -82,7 +82,7 @@ void FASTCALL Filepath::SetPath(LPCSTR path)
 	// Copy pathname
 	strcpy(m_szPath, (LPTSTR)path);
 
-	// Solit
+	// Split
 	Split();
 }
 
