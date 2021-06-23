@@ -1517,7 +1517,7 @@ void FASTCALL SCSIDEV::Send()
 		// The Daynaport needs to have a delay after the size/flags field
 		// of the read response. In the MacOS driver, it looks like the
 		// driver is doing two "READ" system calls.
-		if (ctrl.unit[0]->GetID() == MAKEID('S', 'C', 'D', 'P')) {
+		if (ctrl.unit[0] && ctrl.unit[0]->GetID() == MAKEID('S', 'C', 'D', 'P')) {
 			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
 				&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
 		}
