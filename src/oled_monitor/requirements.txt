@@ -4,7 +4,7 @@ adafruit-circuitpython-framebuf==1.4.6
 adafruit-circuitpython-ssd1306==2.11.1
 Adafruit-PlatformDetect==3.2.0
 Adafruit-PureIO==1.1.8
-Pillow==8.1.2
+Pillow==8.2.0
 pkg-resources==0.0.0
 pyftdi==0.52.9
 pyserial==3.5
