@@ -208,8 +208,8 @@ void FASTCALL Filepath::Split()
 
 //---------------------------------------------------------------------------
 //
-//	ファイル名＋拡張子取得
-//	※返されるポインタは一時的なもの。すぐコピーすること
+//	File name + extension acquisition
+//	The returned pointer is temporary. Copy immediately.
 //
 //---------------------------------------------------------------------------
 LPCTSTR FASTCALL Filepath::GetFileExt() const
