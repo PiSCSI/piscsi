@@ -163,6 +163,8 @@ protected:
 	// Special operations
 	void FASTCALL FlushUnit();						// Flush the logical unit
 
+        DWORD FASTCALL GetLun();                                           // Get the validated LUN
+
 protected:
 	#ifndef RASCSI
 	Device *host;								// Host device
