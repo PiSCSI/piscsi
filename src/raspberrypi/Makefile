@@ -30,8 +30,12 @@ else
 	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
-CFLAGS += -iquote . -MD -MP 
-CXXFLAGS += -std=c++14 -iquote . -MD -MP 
+CFLAGS += -iquote . -MD -MP
+CXXFLAGS += -std=c++14 -iquote . -MD -MP
+
+## EXTRA_FLAGS : Can be used to pass special purpose flags
+CFLAGS += $(EXTRA_FLAGS)
+CXXFLAGS += $(EXTRA_FLAGS)
 
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
 ##              that you are using. The typical options are 
