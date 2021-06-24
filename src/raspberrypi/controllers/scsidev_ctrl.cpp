@@ -295,7 +295,7 @@ void FASTCALL SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 	#endif	// RASCSI
 
-        LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, scsi_command_strings[ctrl.cmd[0]], ctrl.cmd[0]);
+        LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, scsi_command_strings[(unsigned int)ctrl.cmd[0]], (unsigned int)ctrl.cmd[0]);
 
 	// Process by command
 	switch ((scsi_command)ctrl.cmd[0]) {
