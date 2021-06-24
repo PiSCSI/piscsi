@@ -15,6 +15,7 @@
 //---------------------------------------------------------------------------
 #pragma once
 #include "controllers/sasidev_ctrl.h"
+#include <map>
 
 //===========================================================================
 //
@@ -64,7 +65,6 @@ public:
 		eMsgCodeTerminateIOProcess              = 0x11,
 	};
 
-
 	enum scsi_command : BYTE {
 			eCmdTestUnitReady = 0x00,
 			eCmdRezero =  0x01,
@@ -106,6 +106,8 @@ public:
 			eCmdInvalid = 0xC2,		// (SASI only/Suppress warning when using SxSI)
 			eCmdSasiCmdAssign = 0x0e, // This isn't used by SCSI, and can probably be removed.
 	};
+
+        std::map<scsi_command, const char*> scsi_command_strings;
 
 public:
 	// Basic Functions

@@ -44,6 +44,46 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 	scsi.atnmsg = FALSE;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
+
+        scsi_command_strings[eCmdTestUnitReady] = "CmdTestUnitReady";
+        scsi_command_strings[eCmdRezero] = "CmdRezero";
+        scsi_command_strings[eCmdRequestSense] = "CmdRequestSense";
+        scsi_command_strings[eCmdFormat] = "CmdFormat";
+        scsi_command_strings[eCmdReassign] = "CmdReassign";
+        scsi_command_strings[eCmdRead6] = "CmdRead6";
+        scsi_command_strings[eCmdRetrieveStats] = "CmdRetrieveStats";
+        scsi_command_strings[eCmdWrite6] = "CmdWrite6";
+        scsi_command_strings[eCmdSeek6] = "CmdSeek6";
+        scsi_command_strings[eCmdSetIfaceMode] = "CmdSetIfaceMode";
+        scsi_command_strings[eCmdSetMcastAddr] = "CmdSetMcastAddr";
+        scsi_command_strings[eCmdEnableInterface] = "CmdEnableInterface";
+        scsi_command_strings[eCmdInquiry] = "CmdInquiry";
+        scsi_command_strings[eCmdModeSelect] = "CmdInquiry";
+        scsi_command_strings[eCmdReserve6] = "CmdReserve6";
+        scsi_command_strings[eCmdRelease6] = "CmdRelease6";
+        scsi_command_strings[eCmdModeSense] = "CmdModeSense";
+        scsi_command_strings[eCmdStartStop] = "CmdStartStop";
+        scsi_command_strings[eCmdRcvDiag] = "CmdRcvDiag";
+        scsi_command_strings[eCmdSendDiag] = "CmdSendDiag";
+        scsi_command_strings[eCmdRemoval] = "CmdRemoval";
+        scsi_command_strings[eCmdReadCapacity] = "CmdReadCapacity";
+        scsi_command_strings[eCmdRead10] = "CmdRead10";
+        scsi_command_strings[eCmdWrite10] = "CmdWrite10";
+        scsi_command_strings[eCmdSeek10] = "CmdSeek10";
+        scsi_command_strings[eCmdWriteAndVerify10] = "CmdWriteAndVerify10";
+        scsi_command_strings[eCmdVerify] = "CmdVerify";
+        scsi_command_strings[eCmdSynchronizeCache] = "CmdSynchronizeCache";
+        scsi_command_strings[eCmdReadDefectData10] = "CmdReadDefectData10";
+        scsi_command_strings[eCmdReadToc] = "CmdReadToc";
+        scsi_command_strings[eCmdPlayAudio10] = "CmdPlayAudio10";
+        scsi_command_strings[eCmdPlayAudioMSF] = "CmdPlayAudioMSF";
+        scsi_command_strings[eCmdPlayAudioTrack] = "CmdPlayAudioTrack";
+        scsi_command_strings[eCmdModeSelect10] = "CmdModeSelect10";
+        scsi_command_strings[eCmdReserve10] = "CmdReserve10";
+        scsi_command_strings[eCmdRelease10] = "CmdRelease10";
+        scsi_command_strings[eCmdModeSense10] = "CmdModeSense10";
+        scsi_command_strings[eCmdInvalid] = "CmdInvalid";
+        scsi_command_strings[eCmdSasiCmdAssign] = "CmdInvalid";
 }
 
 //---------------------------------------------------------------------------
@@ -255,197 +295,148 @@ void FASTCALL SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 	#endif	// RASCSI
 
+        LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, scsi_command_strings[ctrl.cmd[0]], ctrl.cmd[0]);
+
 	// Process by command
 	switch ((scsi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
 		case eCmdTestUnitReady:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdTestUnitReady", __PRETTY_FUNCTION__);
 			CmdTestUnitReady();
 			return;
 
-		// REZERO
 		case eCmdRezero:
 			CmdRezero();
 			return;
 
-		// REQUEST SENSE
 		case eCmdRequestSense:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRequestSense", __PRETTY_FUNCTION__);
 			CmdRequestSense();
 			return;
 
-		// FORMAT UNIT
 		case eCmdFormat:
 			CmdFormat();
 			return;
 
-		// REASSIGN BLOCKS
 		case eCmdReassign:
 			CmdReassign();
 			return;
 
-		// READ(6)
 		case eCmdRead6:
-			LOGTRACE("++++ CMD ++++ %s Received eCmdRead6", __PRETTY_FUNCTION__);
 			CmdRead6();
 			return;
 
 		case eCmdRetrieveStats:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRetrieveStats", __PRETTY_FUNCTION__);
 			CmdRetrieveStats();
 			return;
 
 		case eCmdSetIfaceMode:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdSetIfaceMode", __PRETTY_FUNCTION__);
 			CmdSetIfaceMode();
 			return;
 
 		case eCmdSetMcastAddr:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdSetMcastAddr", __PRETTY_FUNCTION__);
 			CmdSetMcastAddr();
 			return;
 
 		case eCmdEnableInterface:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdEnableInterface", __PRETTY_FUNCTION__);
 			CmdEnableInterface();
 			return;
 
-		// WRITE(6)
 		case eCmdWrite6:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdWrite6", __PRETTY_FUNCTION__);
 			CmdWrite6();
 			return;
 
-		// SEEK(6)
 		case eCmdSeek6:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdSeek6", __PRETTY_FUNCTION__);
 			CmdSeek6();
 			return;
 
-		// INQUIRY
 		case eCmdInquiry:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdInquiry", __PRETTY_FUNCTION__);
 			CmdInquiry();
 			return;
 
-		// MODE SELECT
 		case eCmdModeSelect:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdModeSelect", __PRETTY_FUNCTION__);
 			CmdModeSelect();
 			return;
 
-		// RESERVE(6) 
 		case eCmdReserve6:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdReserve6", __PRETTY_FUNCTION__);
 			CmdReserve6();
 			return;
 		
-		// RESERVE(10)
 		case eCmdReserve10:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdReserve10", __PRETTY_FUNCTION__);
 			CmdReserve10();
 			return;
 
-		// RELEASE(6)
 		case eCmdRelease6:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRelease6", __PRETTY_FUNCTION__);
 			CmdRelease6();
 			return;
 		
-		// RELEASE(10)
 		case eCmdRelease10:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRelease10", __PRETTY_FUNCTION__);
 			CmdRelease10();
 			return;
 
-		// MODE SENSE
 		case eCmdModeSense:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdModeSense", __PRETTY_FUNCTION__);
 			CmdModeSense();
 			return;
 
-		// START STOP UNIT
 		case eCmdStartStop:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdStartStop", __PRETTY_FUNCTION__);
 			CmdStartStop();
 			return;
 
-		// SEND DIAGNOSTIC
 		case eCmdSendDiag:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdSendDiag", __PRETTY_FUNCTION__);
 			CmdSendDiag();
 			return;
 
-		// PREVENT/ALLOW MEDIUM REMOVAL
 		case eCmdRemoval:
 			CmdRemoval();
 			return;
 
-		// READ CAPACITY
 		case eCmdReadCapacity:
 			CmdReadCapacity();
 			return;
 
-		// READ(10)
 		case eCmdRead10:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRead10", __PRETTY_FUNCTION__);
 			CmdRead10();
 			return;
 
-		// WRITE(10)
-		// WRITE and VERIFY(10)
 		case eCmdWrite10:
 		case eCmdWriteAndVerify10:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdWrite10", __PRETTY_FUNCTION__);
 			CmdWrite10();
 			return;
 
-		// SEEK(10)
 		case eCmdSeek10:
 			CmdSeek10();
 			return;
 
-		// VERIFY
 		case eCmdVerify:
 			CmdVerify();
 			return;
 
-		// SYNCHRONIZE CACHE
 		case eCmdSynchronizeCache:
 			CmdSynchronizeCache();
 			return;
 
-		// READ DEFECT DATA(10)
 		case eCmdReadDefectData10:
 			CmdReadDefectData10();
 			return;
 
-		// READ TOC
 		case eCmdReadToc:
 			CmdReadToc();
 			return;
 
-		// PLAY AUDIO(10)
 		case eCmdPlayAudio10:
 			CmdPlayAudio10();
 			return;
 
-		// PLAY AUDIO MSF
 		case eCmdPlayAudioMSF:
 			CmdPlayAudioMSF();
 			return;
 
-		// PLAY AUDIO TRACK
 		case eCmdPlayAudioTrack:
 			CmdPlayAudioTrack();
 			return;
 
-		// MODE SELECT(10)
 		case eCmdModeSelect10:
 			CmdModeSelect10();
 			return;
 
-		// MDOE SENSE(10)
 		case eCmdModeSense10:
 			CmdModeSense10();
 			return;
@@ -460,8 +451,6 @@ void FASTCALL SCSIDEV::Execute()
 			LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
 			CmdInvalid();
 	}
-	return;
-
 }
 
 //---------------------------------------------------------------------------
