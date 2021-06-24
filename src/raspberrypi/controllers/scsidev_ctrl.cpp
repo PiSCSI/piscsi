@@ -300,18 +300,17 @@ void FASTCALL SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 	#endif	// RASCSI
 
-        if (scsi_command_strings.count(ctrl.cmd[0])) {
+        // If the command is valid it must be contained in the command map
+        if (!scsi_command_strings.count(ctrl.cmd[0])) {
                 LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
                 CmdInvalid();
                 return;
         }
 
-        scsi_command command = static_cast<scsi_command>(ctrl.cmd[0]);
-
         LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, scsi_command_strings[(unsigned int)ctrl.cmd[0]], (unsigned int)ctrl.cmd[0]);
 
 	// Process by command
-	switch (command) {
+	switch (static_cast<scsi_command>(ctrl.cmd[0])) {
 		// TEST UNIT READY
 		case eCmdTestUnitReady:
 			CmdTestUnitReady();
@@ -460,6 +459,9 @@ void FASTCALL SCSIDEV::Execute()
 			return;
 
 		default:
+                        // The enum value has already been checked before the switch
+                        ASSERT(FALSE);
+
 			// No other support
 			LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
 			CmdInvalid();
