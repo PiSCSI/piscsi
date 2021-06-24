@@ -107,7 +107,7 @@ public:
 			eCmdSasiCmdAssign = 0x0e, // This isn't used by SCSI, and can probably be removed.
 	};
 
-        std::map<scsi_command, const char*> scsi_command_strings;
+        std::map<BYTE, const char*> scsi_command_strings;
 
 public:
 	// Basic Functions
@@ -126,6 +126,8 @@ public:
 	BOOL FASTCALL IsSCSI() const {return TRUE;}				// SCSI check
 
 private:
+        void FASTCALL SetupCommand(scsi_command, const char*);
+
 	// Phase
 	void FASTCALL BusFree();						// Bus free phase
 	void FASTCALL Selection();						// Selection phase
