@@ -18,7 +18,6 @@
 #include "os.h"
 #include "scsi.h"
 #include "fileio.h"
-#include "devices/disk.h"
 #include "log.h"
 #include "xm6.h"
 
