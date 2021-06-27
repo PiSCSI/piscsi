@@ -1742,7 +1742,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 
 			// Special case Write function for DaynaPort
 			if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'D', 'P')) {
-				LOGTRACE("%s Doing special case write for DayanPort", __PRETTY_FUNCTION__);
+				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
 				if (!(SCSIDaynaPort*)ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return FALSE;
