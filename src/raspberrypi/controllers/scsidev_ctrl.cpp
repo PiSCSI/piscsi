@@ -32,9 +32,9 @@
 //
 //---------------------------------------------------------------------------
 #ifdef RASCSI
-SCSIDEV::SCSIDEV()
+SCSIDEV::SCSIDEV() : SASIDEV()
 #else
-SCSIDEV::SCSIDEV(Device *dev)
+SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 #endif
 {
 	// Synchronous transfer work initialization
