@@ -58,7 +58,7 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 	SetupCommand(eCmdSetMcastAddr, "CmdSetMcastAddr");
 	SetupCommand(eCmdEnableInterface, "CmdEnableInterface");
 	SetupCommand(eCmdInquiry, "CmdInquiry");
-	SetupCommand(eCmdModeSelect, "CmdInquiry");
+	SetupCommand(eCmdModeSelect, "CmdModeSelect");
 	SetupCommand(eCmdReserve6, "CmdReserve6");
 	SetupCommand(eCmdRelease6, "CmdRelease6");
 	SetupCommand(eCmdModeSense, "CmdModeSense");
@@ -83,7 +83,7 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 	SetupCommand(eCmdRelease10, "CmdRelease10");
 	SetupCommand(eCmdModeSense10, "CmdModeSense10");
 	SetupCommand(eCmdInvalid, "CmdInvalid");
-	SetupCommand(eCmdSasiCmdAssign, "CmdInvalid");
+	SetupCommand(eCmdSasiCmdAssign, "CmdSasiCmdAssign");
 }
 
 void FASTCALL SCSIDEV::SetupCommand(scsi_command command, const char* name)
