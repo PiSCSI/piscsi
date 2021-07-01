@@ -45,50 +45,58 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	SetupCommand(eCmdTestUnitReady, "CmdTestUnitReady");
-	SetupCommand(eCmdRezero, "CmdRezero");
-	SetupCommand(eCmdRequestSense, "CmdRequestSense");
-	SetupCommand(eCmdFormat, "CmdFormat");
-	SetupCommand(eCmdReassign, "CmdReassign");
-	SetupCommand(eCmdRead6, "CmdRead6");
-	SetupCommand(eCmdRetrieveStats, "CmdRetrieveStats");
-	SetupCommand(eCmdWrite6, "CmdWrite6");
-	SetupCommand(eCmdSeek6, "CmdSeek6");
-	SetupCommand(eCmdSetIfaceMode, "CmdSetIfaceMode");
-	SetupCommand(eCmdSetMcastAddr, "CmdSetMcastAddr");
-	SetupCommand(eCmdEnableInterface, "CmdEnableInterface");
-	SetupCommand(eCmdInquiry, "CmdInquiry");
-	SetupCommand(eCmdModeSelect, "CmdModeSelect");
-	SetupCommand(eCmdReserve6, "CmdReserve6");
-	SetupCommand(eCmdRelease6, "CmdRelease6");
-	SetupCommand(eCmdModeSense, "CmdModeSense");
-	SetupCommand(eCmdStartStop, "CmdStartStop");
-	SetupCommand(eCmdRcvDiag, "CmdRcvDiag");
-	SetupCommand(eCmdSendDiag, "CmdSendDiag");
-	SetupCommand(eCmdRemoval, "CmdRemoval");
-	SetupCommand(eCmdReadCapacity, "CmdReadCapacity");
-	SetupCommand(eCmdRead10, "CmdRead10");
-	SetupCommand(eCmdWrite10, "CmdWrite10");
-	SetupCommand(eCmdSeek10, "CmdSeek10");
-	SetupCommand(eCmdWriteAndVerify10, "CmdWriteAndVerify10");
-	SetupCommand(eCmdVerify, "CmdVerify");
-	SetupCommand(eCmdSynchronizeCache, "CmdSynchronizeCache");
-	SetupCommand(eCmdReadDefectData10, "CmdReadDefectData10");
-	SetupCommand(eCmdReadToc, "CmdReadToc");
-	SetupCommand(eCmdPlayAudio10, "CmdPlayAudio10");
-	SetupCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF");
-	SetupCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack");
-	SetupCommand(eCmdModeSelect10, "CmdModeSelect10");
-	SetupCommand(eCmdReserve10, "CmdReserve10");
-	SetupCommand(eCmdRelease10, "CmdRelease10");
-	SetupCommand(eCmdModeSense10, "CmdModeSense10");
-	SetupCommand(eCmdInvalid, "CmdInvalid");
-	SetupCommand(eCmdSasiCmdAssign, "CmdSasiCmdAssign");
+	SetupCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
+	SetupCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
+	SetupCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
+	SetupCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
+	SetupCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
+	SetupCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
+	SetupCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
+	SetupCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
+	SetupCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
+	SetupCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
+	SetupCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
+	SetupCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
+	SetupCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
+	SetupCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
+	SetupCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
+	SetupCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
+	SetupCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
+	SetupCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
+	SetupCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
+	SetupCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
+	SetupCommand(eCmdReadCapacity, "CmdReadCapacity", &SCSIDEV::CmdReadCapacity);
+	SetupCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
+	SetupCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
+	SetupCommand(eCmdWriteAndVerify10, "CmdWriteAndVerify10", &SCSIDEV::CmdWrite10);
+	SetupCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
+	SetupCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
+	SetupCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
+	SetupCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
+	SetupCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
+	SetupCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
+	SetupCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
+	SetupCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
+	SetupCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
+	SetupCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
+	SetupCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
+	SetupCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+	SetupCommand(eCmdInvalid, "CmdInvalid", &SCSIDEV::CmdInvalid);
 }
 
-void FASTCALL SCSIDEV::SetupCommand(scsi_command command, const char* name)
+SCSIDEV::~SCSIDEV()
 {
-	scsi_command_strings[static_cast<BYTE>(command)] = name;
+	for (auto const& call : scsi_command_calls) {
+		free(call.second);
+	}
+}
+
+void FASTCALL SCSIDEV::SetupCommand(scsi_command command, const char* name, void FASTCALL (SCSIDEV::*call)(void))
+{
+	command_t* c = new command_t();
+	c->scsi_command_string = name;
+	c->scsi_command_call = call;
+	scsi_command_calls[static_cast<BYTE>(command)] = c;
 }
 
 //---------------------------------------------------------------------------
@@ -301,171 +309,18 @@ void FASTCALL SCSIDEV::Execute()
 	#endif	// RASCSI
 
 	// If the command is valid it must be contained in the command map
-	if (!scsi_command_strings.count(ctrl.cmd[0])) {
+	if (!scsi_command_calls.count(ctrl.cmd[0])) {
 		LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
 		CmdInvalid();
 		return;
 	}
 
-	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, scsi_command_strings[(unsigned int)ctrl.cmd[0]], (unsigned int)ctrl.cmd[0]);
+	SCSIDEV::command_t* call = scsi_command_calls[(unsigned int)ctrl.cmd[0]];
+
+	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, call->scsi_command_string, (unsigned int)ctrl.cmd[0]);
 
 	// Process by command
-	switch (static_cast<scsi_command>(ctrl.cmd[0])) {
-		// TEST UNIT READY
-		case eCmdTestUnitReady:
-			CmdTestUnitReady();
-			return;
-
-		case eCmdRezero:
-			CmdRezero();
-			return;
-
-		case eCmdRequestSense:
-			CmdRequestSense();
-			return;
-
-		case eCmdFormat:
-			CmdFormat();
-			return;
-
-		case eCmdReassign:
-			CmdReassign();
-			return;
-
-		case eCmdRead6:
-			CmdRead6();
-			return;
-
-		case eCmdRetrieveStats:
-			CmdRetrieveStats();
-			return;
-
-		case eCmdSetIfaceMode:
-			CmdSetIfaceMode();
-			return;
-
-		case eCmdSetMcastAddr:
-			CmdSetMcastAddr();
-			return;
-
-		case eCmdEnableInterface:
-			CmdEnableInterface();
-			return;
-
-		case eCmdWrite6:
-			CmdWrite6();
-			return;
-
-		case eCmdSeek6:
-			CmdSeek6();
-			return;
-
-		case eCmdInquiry:
-			CmdInquiry();
-			return;
-
-		case eCmdModeSelect:
-			CmdModeSelect();
-			return;
-
-		case eCmdReserve6:
-			CmdReserve6();
-			return;
-		
-		case eCmdReserve10:
-			CmdReserve10();
-			return;
-
-		case eCmdRelease6:
-			CmdRelease6();
-			return;
-		
-		case eCmdRelease10:
-			CmdRelease10();
-			return;
-
-		case eCmdModeSense:
-			CmdModeSense();
-			return;
-
-		case eCmdStartStop:
-			CmdStartStop();
-			return;
-
-		case eCmdSendDiag:
-			CmdSendDiag();
-			return;
-
-		case eCmdRemoval:
-			CmdRemoval();
-			return;
-
-		case eCmdReadCapacity:
-			CmdReadCapacity();
-			return;
-
-		case eCmdRead10:
-			CmdRead10();
-			return;
-
-		case eCmdWrite10:
-		case eCmdWriteAndVerify10:
-			CmdWrite10();
-			return;
-
-		case eCmdSeek10:
-			CmdSeek10();
-			return;
-
-		case eCmdVerify:
-			CmdVerify();
-			return;
-
-		case eCmdSynchronizeCache:
-			CmdSynchronizeCache();
-			return;
-
-		case eCmdReadDefectData10:
-			CmdReadDefectData10();
-			return;
-
-		case eCmdReadToc:
-			CmdReadToc();
-			return;
-
-		case eCmdPlayAudio10:
-			CmdPlayAudio10();
-			return;
-
-		case eCmdPlayAudioMSF:
-			CmdPlayAudioMSF();
-			return;
-
-		case eCmdPlayAudioTrack:
-			CmdPlayAudioTrack();
-			return;
-
-		case eCmdModeSelect10:
-			CmdModeSelect10();
-			return;
-
-		case eCmdModeSense10:
-			CmdModeSense10();
-			return;
-
-		// SPECIFY (SASI only/Suppress warning when using SxSI)
-		case eCmdInvalid:
-			CmdInvalid();
-			return;
-
-		default:
-			// The enum value has already been checked before the switch
-			ASSERT(FALSE);
-
-			// No other support
-			LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
-			CmdInvalid();
-	}
+	(this->*call->scsi_command_call)();
 }
 
 //---------------------------------------------------------------------------

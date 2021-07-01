@@ -74,7 +74,6 @@ protected:
 			eCmdRelease6 = 0x17,
 			eCmdModeSense = 0x1A,
 			eCmdStartStop = 0x1B,
-			eCmdRcvDiag = 0x1C,
 			eCmdSendDiag = 0x1D,
 			eCmdRemoval = 0x1E,
 			eCmdReadCapacity = 0x25,

@@ -39,12 +39,16 @@ public:
 		BYTE msb[256];
 	} scsi_t;
 
-        std::map<BYTE, const char*> scsi_command_strings;
+	typedef struct {
+		void FASTCALL (SCSIDEV::*scsi_command_call)(void);
+		const char* scsi_command_string;
+	} command_t;
+	std::map<BYTE, command_t*> scsi_command_calls;
 
 public:
 	// Basic Functions
 	SCSIDEV();
-										// Constructor
+	~SCSIDEV();
 
 	void FASTCALL Reset();							// Device Reset
 
@@ -58,7 +62,7 @@ public:
 	BOOL FASTCALL IsSCSI() const {return TRUE;}				// SCSI check
 
 private:
-        void FASTCALL SetupCommand(scsi_command, const char*);
+	void FASTCALL SetupCommand(scsi_command, const char*, void FASTCALL (SCSIDEV::*)(void));
 
 	// Phase
 	void FASTCALL BusFree();						// Bus free phase
