@@ -91,9 +91,9 @@ SCSIDEV::~SCSIDEV()
 	}
 }
 
-void FASTCALL SCSIDEV::SetupCommand(scsi_command command, const char* name, void FASTCALL (SCSIDEV::*call)(void))
+void FASTCALL SCSIDEV::SetupCommand(scsi_command command, const char* name, void FASTCALL (SCSIDEV::*execute)(void))
 {
-	scsi_commands[static_cast<BYTE>(command)] = new command_t(name, call);
+	scsi_commands[static_cast<BYTE>(command)] = new command_t(name, execute);
 }
 
 //---------------------------------------------------------------------------
