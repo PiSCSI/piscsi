@@ -475,7 +475,7 @@ void FASTCALL SCSIDEV::CmdModeSelect()
 
 	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->SelectCheck(ctrl.cmd);
@@ -577,7 +577,7 @@ void FASTCALL SCSIDEV::CmdModeSense()
 
 	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ModeSense(ctrl.cmd, ctrl.buffer);
@@ -607,7 +607,7 @@ void FASTCALL SCSIDEV::CmdStartStop()
 
 	LOGTRACE( "%s START STOP UNIT Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->StartStop(ctrl.cmd);
@@ -634,7 +634,7 @@ void FASTCALL SCSIDEV::CmdSendDiag()
 
 	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
@@ -661,7 +661,7 @@ void FASTCALL SCSIDEV::CmdRemoval()
 
 	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Removal(ctrl.cmd);
@@ -688,7 +688,7 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 
 	LOGTRACE( "%s READ CAPACITY Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
@@ -716,7 +716,7 @@ void FASTCALL SCSIDEV::CmdRead10()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Receive message if host bridge
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
@@ -770,7 +770,7 @@ void FASTCALL SCSIDEV::CmdWrite10()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Receive message with host bridge
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
@@ -826,7 +826,7 @@ void FASTCALL SCSIDEV::CmdSeek10()
 
 	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Seek(ctrl.cmd);
@@ -852,7 +852,7 @@ void FASTCALL SCSIDEV::CmdVerify()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Get record number and block number
 	record = ctrl.cmd[2];
@@ -913,7 +913,7 @@ void FASTCALL SCSIDEV::CmdSynchronizeCache()
 {
 	ASSERT(this);
 
-        GetLun();
+	GetLun();
 
 	// Make it do something (not implemented)...
 
@@ -932,7 +932,7 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 
 	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ReadDefectData10(ctrl.cmd, ctrl.buffer);
@@ -956,7 +956,7 @@ void FASTCALL SCSIDEV::CmdReadToc()
 {
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ReadToc(ctrl.cmd, ctrl.buffer);
@@ -981,7 +981,7 @@ void FASTCALL SCSIDEV::CmdPlayAudio10()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
@@ -1006,7 +1006,7 @@ void FASTCALL SCSIDEV::CmdPlayAudioMSF()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
@@ -1031,7 +1031,7 @@ void FASTCALL SCSIDEV::CmdPlayAudioTrack()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
@@ -1056,7 +1056,7 @@ void FASTCALL SCSIDEV::CmdModeSelect10()
 
 	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->SelectCheck10(ctrl.cmd);
@@ -1081,7 +1081,7 @@ void FASTCALL SCSIDEV::CmdModeSense10()
 
 	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ModeSense10(ctrl.cmd, ctrl.buffer);
@@ -1109,7 +1109,7 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a host bridge
 	if ((ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) &&
@@ -1155,7 +1155,7 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 {
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a host bridge
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
@@ -1203,7 +1203,7 @@ void FASTCALL SCSIDEV::CmdRetrieveStats()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
@@ -1243,7 +1243,7 @@ void FASTCALL SCSIDEV::CmdSetIfaceMode()
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
@@ -1285,7 +1285,7 @@ void FASTCALL SCSIDEV::CmdSetMcastAddr()
 
 	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
 		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
@@ -1322,7 +1322,7 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){

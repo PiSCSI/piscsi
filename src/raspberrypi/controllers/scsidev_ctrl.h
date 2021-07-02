@@ -39,10 +39,12 @@ public:
 		BYTE msb[256];
 	} scsi_t;
 
+	// SCSI command names and implementations
 	typedef struct {
 		void FASTCALL (SCSIDEV::*scsi_command_call)(void);
 		const char* scsi_command_string;
 	} command_t;
+
 	std::map<BYTE, command_t*> scsi_command_calls;
 
 public:
