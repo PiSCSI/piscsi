@@ -94,8 +94,8 @@ SCSIDEV::~SCSIDEV()
 void FASTCALL SCSIDEV::SetupCommand(scsi_command command, const char* name, void FASTCALL (SCSIDEV::*call)(void))
 {
 	command_t* c = new command_t();
-	c->scsi_command_string = name;
-	c->scsi_command_call = call;
+	c->name = name;
+	c->call = call;
 	scsi_command_calls[static_cast<BYTE>(command)] = c;
 }
 
@@ -317,10 +317,10 @@ void FASTCALL SCSIDEV::Execute()
 
 	SCSIDEV::command_t* call = scsi_command_calls[(unsigned int)ctrl.cmd[0]];
 
-	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, call->scsi_command_string, (unsigned int)ctrl.cmd[0]);
+	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, call->name, (unsigned int)ctrl.cmd[0]);
 
 	// Process by command
-	(this->*call->scsi_command_call)();
+	(this->*call->call)();
 }
 
 //---------------------------------------------------------------------------
