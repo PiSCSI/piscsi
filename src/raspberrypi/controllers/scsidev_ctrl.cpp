@@ -86,17 +86,14 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 
 SCSIDEV::~SCSIDEV()
 {
-	for (auto const& call : scsi_command_calls) {
+	for (auto const& call : scsi_commands) {
 		free(call.second);
 	}
 }
 
 void FASTCALL SCSIDEV::SetupCommand(scsi_command command, const char* name, void FASTCALL (SCSIDEV::*call)(void))
 {
-	command_t* c = new command_t();
-	c->name = name;
-	c->call = call;
-	scsi_command_calls[static_cast<BYTE>(command)] = c;
+	scsi_commands[static_cast<BYTE>(command)] = new command_t(name, call);
 }
 
 //---------------------------------------------------------------------------
@@ -309,18 +306,18 @@ void FASTCALL SCSIDEV::Execute()
 	#endif	// RASCSI
 
 	// If the command is valid it must be contained in the command map
-	if (!scsi_command_calls.count(ctrl.cmd[0])) {
+	if (!scsi_commands.count(ctrl.cmd[0])) {
 		LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
 		CmdInvalid();
 		return;
 	}
 
-	SCSIDEV::command_t* call = scsi_command_calls[(unsigned int)ctrl.cmd[0]];
+	command_t* command = scsi_commands[(unsigned int)ctrl.cmd[0]];
 
-	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, call->name, (unsigned int)ctrl.cmd[0]);
+	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl.cmd[0]);
 
 	// Process by command
-	(this->*call->call)();
+	(this->*command->execute)();
 }
 
 //---------------------------------------------------------------------------
