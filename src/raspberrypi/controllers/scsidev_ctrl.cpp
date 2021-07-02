@@ -86,8 +86,8 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 
 SCSIDEV::~SCSIDEV()
 {
-	for (auto const& call : scsi_commands) {
-		free(call.second);
+	for (auto const& command : scsi_commands) {
+		free(command.second);
 	}
 }
 
