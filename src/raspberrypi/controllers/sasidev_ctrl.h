@@ -55,6 +55,7 @@ protected:
 		eMsgCodeTerminateIOProcess              = 0x11,
 	};
 
+private:
 	enum scsi_command : BYTE {
 			eCmdTestUnitReady = 0x00,
 			eCmdRezero =  0x01,

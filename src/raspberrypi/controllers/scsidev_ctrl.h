@@ -47,6 +47,7 @@ public:
 		_command_t(const char* _name, void FASTCALL (SCSIDEV::*_execute)(void)) : name(_name), execute(_execute) { };
 	} command_t;
 
+	// Mapping of SCSI opcodes to command implementations
 	std::map<BYTE, command_t*> scsi_commands;
 
 public:
@@ -66,7 +67,7 @@ public:
 	BOOL FASTCALL IsSCSI() const {return TRUE;}				// SCSI check
 
 private:
-	void FASTCALL SetupCommand(scsi_command, const char*, void FASTCALL (SCSIDEV::*)(void));
+	void FASTCALL SetupCommand(BYTE, const char*, void FASTCALL (SCSIDEV::*)(void));
 
 	// Phase
 	void FASTCALL BusFree();						// Bus free phase
