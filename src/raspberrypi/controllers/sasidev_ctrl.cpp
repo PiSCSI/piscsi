@@ -655,8 +655,6 @@ void FASTCALL SASIDEV::Status()
 		}
 		#endif	// RASCSI
 
-		LOGTRACE("%s Status phase", __PRETTY_FUNCTION__);
-
 		// Phase Setting
 		ctrl.phase = BUS::status;
 
@@ -675,9 +673,10 @@ void FASTCALL SASIDEV::Status()
 		// Request status
 		ctrl.bus->SetDAT(ctrl.buffer[0]);
 		ctrl.bus->SetREQ(TRUE);
+#endif	// RASCSI
 
 		LOGTRACE( "%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status);
-#endif	// RASCSI
+
 		return;
 	}
 
