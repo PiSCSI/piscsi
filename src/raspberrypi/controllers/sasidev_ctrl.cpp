@@ -981,7 +981,7 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ASSERT(ctrl.length > 0);
 
 
-	LOGTRACE("%s Sense key $%02X",__PRETTY_FUNCTION__, (WORD)ctrl.buffer[2]);
+	LOGTRACE("%s Sense key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (WORD)ctrl.buffer[2], (WORD)ctrl.buffer[12]);
 
 	// Read phase
 	DataIn();
