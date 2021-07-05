@@ -986,7 +986,16 @@ void FASTCALL SASIDEV::CmdRequestSense()
 
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+    DWORD lun;
+    try {
+     	lun = GetLun();
+    }
+    catch(const lunexception& e) {
+        LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+        // LOGICAL UNIT NOT SUPPORTED
+        Error(0x05, 0x25);
+    	return;
+    }
 
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
@@ -1641,7 +1650,7 @@ void FASTCALL SASIDEV::ReceiveNext()
             try {
                 Execute();
             }
-            catch (lunexception& e) {
+            catch (const lunexception& e) {
                 LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
                 // LOGICAL UNIT NOT SUPPORTED
                 Error(0x05, 0x25);

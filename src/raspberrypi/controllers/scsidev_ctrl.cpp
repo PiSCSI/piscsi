@@ -1630,7 +1630,7 @@ void FASTCALL SCSIDEV::Receive()
                         try {
                         	Execute();
                         }
-                        catch (lunexception& e) {
+                        catch (const lunexception& e) {
                             LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
                             // LOGICAL UNIT NOT SUPPORTED
                             Error(0x05, 0x25);
