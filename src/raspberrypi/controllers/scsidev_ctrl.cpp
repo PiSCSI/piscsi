@@ -380,7 +380,7 @@ void FASTCALL SCSIDEV::MsgOut()
 //	Common Error Handling
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Error()
+void FASTCALL SCSIDEV::Error(int sense_key, int asc)
 {
 	ASSERT(this);
 
@@ -404,6 +404,10 @@ void FASTCALL SCSIDEV::Error()
 	}
 
 	LOGTRACE( "%s Error (to status phase)", __PRETTY_FUNCTION__);
+
+	// Remember Sense Key and ASC for a subsequent REQUEST SENSE
+	ctrl.sense_key = sense_key;
+	ctrl.asc = asc;
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = 0x02;

@@ -74,7 +74,7 @@ private:
 	void FASTCALL Selection();						// Selection phase
 	void FASTCALL Execute();						// Execution phase
 	void FASTCALL MsgOut();							// Message out phase
-	void FASTCALL Error();							// Common erorr handling
+	void FASTCALL Error(int sense_key = 0, int asc = 0);	// Common erorr handling
 
 	// commands
 	void FASTCALL CmdInquiry();						// INQUIRY command
