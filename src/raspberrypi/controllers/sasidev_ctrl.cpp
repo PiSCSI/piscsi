@@ -908,6 +908,10 @@ void FASTCALL SASIDEV::Error(int sense_key, int asc)
 	ctrl.sense_key = sense_key;
 	ctrl.asc = asc;
 
+	if (!ctrl.sense_key) {
+		LOGWARN("No Sense Key for subsequent REQUEST SENSE");
+	}
+
 	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 
