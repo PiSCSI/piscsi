@@ -30,6 +30,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
+#include <iostream>
 
 //---------------------------------------------------------------------------
 //
@@ -548,7 +549,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			// 	break;
 			case rasctl_dev_daynaport: // DaynaPort SCSI Link
 				pUnit = new SCSIDaynaPort();
-				LOGTRACE("Done creating SCSIDayanPort");
+				LOGTRACE("Done creating SCSIDaynaPort");
 				break;
 			default:
 				FPRT(fp,	"Error : Invalid device type\n");
@@ -872,9 +873,10 @@ bool ParseArgument(int argc, char* argv[])
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
+	const char* log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhD:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhL:l:D:d:")) != -1) {
 		switch (opt) {
 			case 'I':
 			case 'i':
@@ -888,6 +890,11 @@ bool ParseArgument(int argc, char* argv[])
 				is_sasi = true;
 				max_id = 15;
 				id = -1;
+				continue;
+
+			case 'L':
+			case 'l':
+				log_level = optarg;
 				continue;
 
 			case 'D':
@@ -952,6 +959,32 @@ bool ParseArgument(int argc, char* argv[])
 			return false;
 		}
 		id = -1;
+	}
+
+	// Evaluate log level
+	if (!strcasecmp(log_level, "trace")) {
+		spdlog::set_level(spdlog::level::trace);
+	}
+	else if (!strcasecmp(log_level, "debug")) {
+		spdlog::set_level(spdlog::level::debug);
+	}
+	else if (!strcasecmp(log_level, "info")) {
+		spdlog::set_level(spdlog::level::info);
+	}
+	else if (!strcasecmp(log_level, "warn")) {
+		spdlog::set_level(spdlog::level::warn);
+	}
+	else if (!strcasecmp(log_level, "err")) {
+		spdlog::set_level(spdlog::level::err);
+	}
+	else if (!strcasecmp(log_level, "critical")) {
+		spdlog::set_level(spdlog::level::critical);
+	}
+	else if (!strcasecmp(log_level, "off")) {
+		spdlog::set_level(spdlog::level::off);
+	}
+	else {
+		std::cerr << "Unknown log level '" << log_level << "', using 'trace'" << std::endl;
 	}
 
 	// Display the device list
@@ -1127,11 +1160,10 @@ int main(int argc, char* argv[])
 	struct sched_param schparam;
 #endif	// BAREMETAL
 
-    spdlog::set_level(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = spdlog::stdout_color_mt("rascsi stdout logger");
 
-    LOGTRACE("Entering the function %s with %d arguments", __PRETTY_FUNCTION__, argc);
 	// Output the Banner
 	Banner(argc, argv);
 
