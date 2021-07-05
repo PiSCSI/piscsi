@@ -548,6 +548,12 @@ void FASTCALL SASIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 	#endif	// RASCSI
 
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.sense_key = 0;
+		ctrl.asc = 0;
+	}
+
 	// Process by command
 	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
@@ -871,10 +877,8 @@ void FASTCALL SASIDEV::DataOut()
 //	Error
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Error()
+void FASTCALL SASIDEV::Error(int sense_key, int asc)
 {
-	DWORD lun;
-
 	ASSERT(this);
 
 	// Get bus information
@@ -900,8 +904,12 @@ void FASTCALL SASIDEV::Error()
 	LOGWARN("Error occured (going to status phase)");
 #endif	// DISK_LOG
 
+	// Remember Sense Key and ASC for a subsequent REQUEST SENSE
+	ctrl.sense_key = sense_key;
+	ctrl.asc = asc;
+
 	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;
@@ -981,7 +989,13 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ASSERT(ctrl.length > 0);
 
 
-	LOGTRACE("%s Sense key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (WORD)ctrl.buffer[2], (WORD)ctrl.buffer[12]);
+    // REQUEST SENSE returns error information remembered from the previous (failed) command
+    ctrl.buffer[2] = ctrl.sense_key;
+    ctrl.buffer[12] = ctrl.asc;
+    ctrl.sense_key = 0;
+    ctrl.asc = 0;
+
+    LOGTRACE("%s Sense key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (WORD)ctrl.buffer[2], (WORD)ctrl.buffer[12]);
 
 	// Read phase
 	DataIn();
@@ -1333,7 +1347,7 @@ void FASTCALL SASIDEV::CmdInvalid()
 	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
 
 	// Failure (Error)
-	Error();
+	Error(0x05, 0x20);
 }
 
 //===========================================================================
@@ -1620,7 +1634,13 @@ void FASTCALL SASIDEV::ReceiveNext()
 		// Command phase
 		case BUS::command:
 			// Execution Phase
-			Execute();
+            try {
+                    Execute();
+            }
+            catch (lunexception& e) {
+                    LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+                    Error();
+            }
 			break;
 			#endif	// RASCSI
 

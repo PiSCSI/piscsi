@@ -319,6 +319,12 @@ void FASTCALL SCSIDEV::Execute()
 
 	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl.cmd[0]);
 
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if ((unsigned int)ctrl.cmd[0] != 0x03) {
+		ctrl.sense_key = 0;
+		ctrl.asc = 0;
+	}
+
 	// Process by command
 	(this->*command->execute)();
 }

@@ -135,12 +135,16 @@ public:
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
 		DWORD blocks;					// Number of transfer block
-		DWORD next;					// Next record
+		DWORD next;						// Next record
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
 
 		// Logical unit
-		Disk *unit[UnitMax];				// Logical Unit
+		Disk *unit[UnitMax];
+
+		// Sense Key and Additional Sense Code (ASC) of the previous command
+		int sense_key;
+		int asc;
 	} ctrl_t;
 
 public:
@@ -194,7 +198,7 @@ protected:
 	void FASTCALL MsgIn();							// Message in phase
 	void FASTCALL DataIn();							// Data in phase
 	void FASTCALL DataOut();						// Data out phase
-	virtual void FASTCALL Error();						// Common error handling
+	virtual void FASTCALL Error(int sense_key = 0, int asc = 0);	// Common error handling
 
 	// commands
 	void FASTCALL CmdTestUnitReady();					// TEST UNIT READY command
