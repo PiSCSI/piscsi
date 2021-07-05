@@ -106,8 +106,6 @@ void FASTCALL SCSIDEV::SetupCommand(BYTE opcode, const char* name, void FASTCALL
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Reset()
 {
-	ASSERT(this);
-
 	// Work initialization
 	scsi.atnmsg = FALSE;
 	scsi.msc = 0;
@@ -124,8 +122,6 @@ void FASTCALL SCSIDEV::Reset()
 //---------------------------------------------------------------------------
 BUS::phase_t FASTCALL SCSIDEV::Process()
 {
-	ASSERT(this);
-
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
 		return ctrl.phase;
@@ -210,8 +206,6 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::BusFree()
 {
-	ASSERT(this);
-
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
 
@@ -249,14 +243,10 @@ void FASTCALL SCSIDEV::BusFree()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Selection()
 {
-	DWORD id;
-
-	ASSERT(this);
-
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
 		// invalid if IDs do not match
-		id = 1 << ctrl.m_scsi_id;
+		DWORD id = 1 << ctrl.m_scsi_id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
 			return;
 		}
@@ -294,8 +284,6 @@ void FASTCALL SCSIDEV::Selection()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Execute()
 {
-	ASSERT(this);
-
 	LOGTRACE( "%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	// Phase Setting
@@ -330,7 +318,6 @@ void FASTCALL SCSIDEV::Execute()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::MsgOut()
 {
-	ASSERT(this);
 	LOGTRACE("%s ID: %d",__PRETTY_FUNCTION__, this->GetSCSIID());
 
 	// Phase change
@@ -376,8 +363,6 @@ void FASTCALL SCSIDEV::MsgOut()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Error()
 {
-	ASSERT(this);
-
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
 
@@ -420,17 +405,11 @@ void FASTCALL SCSIDEV::Error()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdInquiry()
 {
-	Disk *disk;
-	int lun;
-	DWORD major;
-	DWORD minor;
-
-	ASSERT(this);
-
 	LOGTRACE("%s INQUIRY Command", __PRETTY_FUNCTION__);
 
 	// Find a valid unit
-	disk = NULL;
+	Disk *disk = NULL;
+	int lun;
 	for (lun = 0; lun < UnitMax; lun++) {
 		if (ctrl.unit[lun]) {
 			disk = ctrl.unit[lun];
@@ -440,8 +419,8 @@ void FASTCALL SCSIDEV::CmdInquiry()
 
 	// Processed on the disk side (it is originally processed by the controller)
 	if (disk) {
-		major = (DWORD)(RASCSI >> 8);
-		minor = (DWORD)(RASCSI & 0xff);
+		DWORD major = (DWORD)(RASCSI >> 8);
+		DWORD minor = (DWORD)(RASCSI & 0xff);
 		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
 		ctrl.length =
 			ctrl.unit[lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
@@ -471,8 +450,6 @@ void FASTCALL SCSIDEV::CmdInquiry()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdModeSelect()
 {
-	ASSERT(this);
-
 	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
@@ -501,8 +478,6 @@ void FASTCALL SCSIDEV::CmdModeSelect()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdReserve6()
 {
-	ASSERT(this);
-	
 	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
 
 	// status phase
@@ -521,7 +496,6 @@ void FASTCALL SCSIDEV::CmdReserve6()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdReserve10()
 {
-	ASSERT(this);
 	LOGTRACE( "%s Reserve(10) Command", __PRETTY_FUNCTION__);
 
 	// status phase
@@ -540,7 +514,6 @@ void FASTCALL SCSIDEV::CmdReserve10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdRelease6()
 {
-	ASSERT(this);
 	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
 
 	// status phase
@@ -559,7 +532,6 @@ void FASTCALL SCSIDEV::CmdRelease6()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdRelease10()
 {
-	ASSERT(this);
 	LOGTRACE( "%s Release(10) Command", __PRETTY_FUNCTION__);
 
 	// status phase
@@ -573,8 +545,6 @@ void FASTCALL SCSIDEV::CmdRelease10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdModeSense()
 {
-	ASSERT(this);
-
 	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
@@ -601,16 +571,12 @@ void FASTCALL SCSIDEV::CmdModeSense()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdStartStop()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE( "%s START STOP UNIT Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->StartStop(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->StartStop(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -628,16 +594,12 @@ void FASTCALL SCSIDEV::CmdStartStop()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSendDiag()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -655,16 +617,12 @@ void FASTCALL SCSIDEV::CmdSendDiag()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdRemoval()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->Removal(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Removal(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -682,16 +640,12 @@ void FASTCALL SCSIDEV::CmdRemoval()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdReadCapacity()
 {
-	int length;
-
-	ASSERT(this);
-
 	LOGTRACE( "%s READ CAPACITY Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
+	int length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
 	ASSERT(length >= 0);
 	if (length <= 0) {
 		Error();
@@ -712,10 +666,6 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdRead10()
 {
-	DWORD record;
-
-	ASSERT(this);
-
 	DWORD lun = GetLun();
 
 	// Receive message if host bridge
@@ -725,7 +675,7 @@ void FASTCALL SCSIDEV::CmdRead10()
 	}
 
 	// Get record number and block number
-	record = ctrl.cmd[2];
+	DWORD record = ctrl.cmd[2];
 	record <<= 8;
 	record |= ctrl.cmd[3];
 	record <<= 8;
@@ -766,10 +716,6 @@ void FASTCALL SCSIDEV::CmdRead10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdWrite10()
 {
-	DWORD record;
-
-	ASSERT(this);
-
 	DWORD lun = GetLun();
 
 	// Receive message with host bridge
@@ -779,7 +725,7 @@ void FASTCALL SCSIDEV::CmdWrite10()
 	}
 
 	// Get record number and block number
-	record = ctrl.cmd[2];
+	DWORD record = ctrl.cmd[2];
 	record <<= 8;
 	record |= ctrl.cmd[3];
 	record <<= 8;
@@ -820,16 +766,12 @@ void FASTCALL SCSIDEV::CmdWrite10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSeek10()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->Seek(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Seek(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -848,14 +790,11 @@ void FASTCALL SCSIDEV::CmdSeek10()
 void FASTCALL SCSIDEV::CmdVerify()
 {
 	BOOL status;
-	DWORD record;
-
-	ASSERT(this);
 
 	DWORD lun = GetLun();
 
 	// Get record number and block number
-	record = ctrl.cmd[2];
+	DWORD record = ctrl.cmd[2];
 	record <<= 8;
 	record |= ctrl.cmd[3];
 	record <<= 8;
@@ -911,8 +850,6 @@ void FASTCALL SCSIDEV::CmdVerify()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSynchronizeCache()
 {
-	ASSERT(this);
-
 	GetLun();
 
 	// Make it do something (not implemented)...
@@ -928,8 +865,6 @@ void FASTCALL SCSIDEV::CmdSynchronizeCache()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdReadDefectData10()
 {
-	ASSERT(this);
-
 	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
@@ -954,8 +889,6 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdReadToc()
 {
-	ASSERT(this);
-
 	DWORD lun = GetLun();
 
 	// Command processing on drive
@@ -977,14 +910,10 @@ void FASTCALL SCSIDEV::CmdReadToc()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdPlayAudio10()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1002,14 +931,10 @@ void FASTCALL SCSIDEV::CmdPlayAudio10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdPlayAudioMSF()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1027,14 +952,10 @@ void FASTCALL SCSIDEV::CmdPlayAudioMSF()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdPlayAudioTrack()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1052,8 +973,6 @@ void FASTCALL SCSIDEV::CmdPlayAudioTrack()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdModeSelect10()
 {
-	ASSERT(this);
-
 	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
@@ -1077,8 +996,6 @@ void FASTCALL SCSIDEV::CmdModeSelect10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdModeSense10()
 {
-	ASSERT(this);
-
 	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
@@ -1106,8 +1023,6 @@ void FASTCALL SCSIDEV::CmdModeSense10()
 void FASTCALL SCSIDEV::CmdGetMessage10()
 {
 	SCSIBR *bridge;
-
-	ASSERT(this);
 
 	DWORD lun = GetLun();
 
@@ -1153,8 +1068,6 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSendMessage10()
 {
-	ASSERT(this);
-
 	DWORD lun = GetLun();
 
 	// Error if not a host bridge
@@ -1199,10 +1112,6 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdRetrieveStats()
 {
-	SCSIDaynaPort *dayna_port;
-
-	ASSERT(this);
-
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
@@ -1213,7 +1122,7 @@ void FASTCALL SCSIDEV::CmdRetrieveStats()
 	}
 
 	// Process with drive
-	dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
+	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
 	ctrl.length = dayna_port->RetrieveStats(ctrl.cmd, ctrl.buffer);
 
 	if (ctrl.length <= 0) {
@@ -1237,10 +1146,6 @@ void FASTCALL SCSIDEV::CmdRetrieveStats()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSetIfaceMode()
 {
-	SCSIDaynaPort *dayna_port;
-
-	ASSERT(this);
-
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
@@ -1252,7 +1157,7 @@ void FASTCALL SCSIDEV::CmdSetIfaceMode()
 		return;
 	}
 
-	dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
+	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
 
 	// Check whether this command is telling us to "Set Interface Mode" 
 	// or "Set MAC Address"
@@ -1281,8 +1186,6 @@ void FASTCALL SCSIDEV::CmdSetIfaceMode()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdSetMcastAddr()
 {
-	ASSERT(this);
-
 	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
@@ -1315,11 +1218,6 @@ void FASTCALL SCSIDEV::CmdSetMcastAddr()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::CmdEnableInterface()
 {
-	BOOL status;
-	SCSIDaynaPort *dayna_port;
-
-	ASSERT(this);
-
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
@@ -1331,10 +1229,10 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 		return;
 	}
 
-	dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
+	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
 
 	// Command processing on drive
-	status = dayna_port->EnableInterface(ctrl.cmd);
+	BOOL status = dayna_port->EnableInterface(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1364,7 +1262,6 @@ void FASTCALL SCSIDEV::Send()
 	#endif	// RASCSI
 	BOOL result;
 
-	ASSERT(this);
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
@@ -1494,8 +1391,6 @@ void FASTCALL SCSIDEV::Send()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::SendNext()
 {
-	ASSERT(this);
-
 	// REQ is up
 	ASSERT(ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
@@ -1518,11 +1413,8 @@ void FASTCALL SCSIDEV::SendNext()
 void FASTCALL SCSIDEV::Receive()
 {
 	int len;
-	BOOL result;
 	int i;
 	BYTE data;
-
-	ASSERT(this);
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
@@ -1552,7 +1444,7 @@ void FASTCALL SCSIDEV::Receive()
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	result = TRUE;
+	BOOL result = TRUE;
 
 	// Processing after receiving data (by phase)
 	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
@@ -1734,7 +1626,6 @@ void FASTCALL SCSIDEV::Receive()
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
 {
-	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::msgout);
 
 	// Save message out data
