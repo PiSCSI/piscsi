@@ -2272,8 +2272,12 @@ int FASTCALL Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 		return 0;
 	}
 
+	if (disk.blocks <= 0) {
+		// Capacity not available, medium not present
+		return -1;
+	}
+
 	// Create end of logical block address (disk.blocks-1)
-	ASSERT(disk.blocks > 0);
 	blocks = disk.blocks - 1;
 	buf[0] = (BYTE)(blocks >> 24);
 	buf[1] = (BYTE)(blocks >> 16);

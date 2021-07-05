@@ -704,9 +704,9 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 
 	// Command processing on drive
 	length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
-	ASSERT(length >= 0);
 	if (length <= 0) {
-		Error();
+		// MEDIUM NOT PRESENT
+		Error(0x05, 0x3a);
 		return;
 	}
 
