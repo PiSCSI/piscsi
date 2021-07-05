@@ -34,6 +34,11 @@
 //---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk()
 {
+	fsoptlen = 0;
+	fsoutlen = 0;
+	fsresult = 0;
+	packet_len = 0;
+
 	// Host Bridge
 	disk.id = MAKEID('S', 'C', 'B', 'R');
 
