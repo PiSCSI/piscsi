@@ -408,6 +408,8 @@ void FASTCALL SCSIDEV::CmdInquiry()
 	LOGTRACE("%s INQUIRY Command", __PRETTY_FUNCTION__);
 
 	// Find a valid unit
+	// TODO The code below is most likely wrong. It results in the same INQUIRY data being
+	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
 	Disk *disk = NULL;
 	int lun;
 	for (lun = 0; lun < UnitMax; lun++) {
