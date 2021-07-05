@@ -93,8 +93,6 @@ BOOL FASTCALL CTapDriver::Init()
 	struct ifreq ifr;
 	int ret;
 
-	ASSERT(this);
-
 	LOGTRACE("Opening Tap device");
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
@@ -209,8 +207,6 @@ BOOL FASTCALL CTapDriver::Init()
 	struct ifreq ifr;
 	struct ifaddrs *ifa, *a;
 	
-	ASSERT(this);
-
 	// TAP Device Initialization
 	if ((m_hTAP = open("/dev/tap", O_RDWR)) < 0) {
 		LOGERROR("Error: can't open tap. Errno: %d %s", errno, strerror(errno));
@@ -274,8 +270,6 @@ BOOL FASTCALL CTapDriver::OpenDump(const Filepath& path) {
 //---------------------------------------------------------------------------
 void FASTCALL CTapDriver::Cleanup()
 {
-	ASSERT(this);
-
 	int br_socket_fd = -1;
 	if ((br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
 		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
@@ -349,7 +343,6 @@ BOOL FASTCALL CTapDriver::Flush(){
 //---------------------------------------------------------------------------
 void FASTCALL CTapDriver::GetMacAddr(BYTE *mac)
 {
-	ASSERT(this);
 	ASSERT(mac);
 
 	memcpy(mac, m_MacAddr, sizeof(m_MacAddr));
@@ -364,7 +357,6 @@ BOOL FASTCALL CTapDriver::PendingPackets()
 {
 	struct pollfd fds;
 
-	ASSERT(this);
 	ASSERT(m_hTAP != -1);
 
 	// Check if there is data that can be received
@@ -387,10 +379,6 @@ BOOL FASTCALL CTapDriver::PendingPackets()
 //---------------------------------------------------------------------------
 int FASTCALL CTapDriver::Rx(BYTE *buf)
 {
-	DWORD dwReceived;
-	DWORD crc;
-
-	ASSERT(this);
 	ASSERT(m_hTAP != -1);
 
 	// Check if there is data that can be received
@@ -399,7 +387,7 @@ int FASTCALL CTapDriver::Rx(BYTE *buf)
 	}
 
 	// Receive
-	dwReceived = read(m_hTAP, buf, ETH_FRAME_LEN);
+	DWORD dwReceived = read(m_hTAP, buf, ETH_FRAME_LEN);
 	if (dwReceived == (DWORD)-1) {
 		LOGWARN("%s Error occured while receiving an packet", __PRETTY_FUNCTION__);
 		return 0;
@@ -412,7 +400,7 @@ int FASTCALL CTapDriver::Rx(BYTE *buf)
 		// need it.
 
 		// Initialize the CRC
-		crc = crc32(0L, Z_NULL, 0);
+		DWORD crc = crc32(0L, Z_NULL, 0);
 		// Calculate the CRC
 		crc = crc32(crc, buf, dwReceived);
 
@@ -448,7 +436,6 @@ int FASTCALL CTapDriver::Rx(BYTE *buf)
 //---------------------------------------------------------------------------
 int FASTCALL CTapDriver::Tx(const BYTE *buf, int len)
 {
-	ASSERT(this);
 	ASSERT(m_hTAP != -1);
 
 	if (m_pcap_dumper != NULL) {

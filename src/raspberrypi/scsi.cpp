@@ -20,10 +20,6 @@
 //---------------------------------------------------------------------------
 BUS::phase_t FASTCALL BUS::GetPhase()
 {
-	DWORD mci;
-
-	ASSERT(this);
-
 	// Selection Phase
 	if (GetSEL()) {
 		return selection;
@@ -35,7 +31,7 @@ BUS::phase_t FASTCALL BUS::GetPhase()
 	}
 
 	// Get target phase from bus signal line
-	mci = GetMSG() ? 0x04 : 0x00;
+	DWORD mci = GetMSG() ? 0x04 : 0x00;
 	mci |= GetCD() ? 0x02 : 0x00;
 	mci |= GetIO() ? 0x01 : 0x00;
 	return GetPhase(mci);
