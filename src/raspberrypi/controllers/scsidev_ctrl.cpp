@@ -44,6 +44,59 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 	scsi.atnmsg = FALSE;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
+
+	SetupCommand(0x00, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
+	SetupCommand(0x01, "CmdRezero", &SCSIDEV::CmdRezero);
+	SetupCommand(0x03, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
+	SetupCommand(0x04, "CmdFormat", &SCSIDEV::CmdFormat);
+	SetupCommand(0x07, "CmdReassign", &SCSIDEV::CmdReassign);
+	SetupCommand(0x08, "CmdRead6", &SCSIDEV::CmdRead6);
+	SetupCommand(0x0a, "CmdWrite6", &SCSIDEV::CmdWrite6);
+	SetupCommand(0x0b, "CmdSeek6", &SCSIDEV::CmdSeek6);
+	SetupCommand(0x12, "CmdInquiry", &SCSIDEV::CmdInquiry);
+	SetupCommand(0x15, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
+	SetupCommand(0x16, "CmdReserve6", &SCSIDEV::CmdReserve6);
+	SetupCommand(0x17, "CmdRelease6", &SCSIDEV::CmdRelease6);
+	SetupCommand(0x1a, "CmdModeSense", &SCSIDEV::CmdModeSense);
+	SetupCommand(0x1b, "CmdStartStop", &SCSIDEV::CmdStartStop);
+	SetupCommand(0x1d, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
+	SetupCommand(0x1e, "CmdRemoval", &SCSIDEV::CmdRemoval);
+	SetupCommand(0x25, "CmdReadCapacity", &SCSIDEV::CmdReadCapacity);
+	SetupCommand(0x28, "CmdRead10", &SCSIDEV::CmdRead10);
+	SetupCommand(0x2a, "CmdWrite10", &SCSIDEV::CmdWrite10);
+	SetupCommand(0x2e, "CmdWriteAndVerify10", &SCSIDEV::CmdWrite10);
+	SetupCommand(0x2b, "CmdSeek10", &SCSIDEV::CmdSeek10);
+	SetupCommand(0x2f, "CmdVerify", &SCSIDEV::CmdVerify);
+	SetupCommand(0x35, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
+	SetupCommand(0x37, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
+	SetupCommand(0x55, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
+	SetupCommand(0x56, "CmdReserve10", &SCSIDEV::CmdReserve10);
+	SetupCommand(0x57, "CmdRelease10", &SCSIDEV::CmdRelease10);
+	SetupCommand(0x5a, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+
+	// MMC specific. TODO Move to separate class
+	SetupCommand(0x43, "CmdReadToc", &SCSIDEV::CmdReadToc);
+	SetupCommand(0x45, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
+	SetupCommand(0x47, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
+	SetupCommand(0x48, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
+
+	// DaynaPort specific. TODO Move to separate class
+	SetupCommand(0x09, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
+	SetupCommand(0x0c, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
+	SetupCommand(0x0d, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
+	SetupCommand(0x0e, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
+}
+
+SCSIDEV::~SCSIDEV()
+{
+	for (auto const& command : scsi_commands) {
+		free(command.second);
+	}
+}
+
+void FASTCALL SCSIDEV::SetupCommand(BYTE opcode, const char* name, void FASTCALL (SCSIDEV::*execute)(void))
+{
+	scsi_commands[opcode] = new command_t(name, execute);
 }
 
 //---------------------------------------------------------------------------
@@ -255,213 +308,19 @@ void FASTCALL SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 	#endif	// RASCSI
 
-	// Process by command
-	switch ((scsi_command)ctrl.cmd[0]) {
-		// TEST UNIT READY
-		case eCmdTestUnitReady:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdTestUnitReady", __PRETTY_FUNCTION__);
-			CmdTestUnitReady();
-			return;
-
-		// REZERO
-		case eCmdRezero:
-			CmdRezero();
-			return;
-
-		// REQUEST SENSE
-		case eCmdRequestSense:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRequestSense", __PRETTY_FUNCTION__);
-			CmdRequestSense();
-			return;
-
-		// FORMAT UNIT
-		case eCmdFormat:
-			CmdFormat();
-			return;
-
-		// REASSIGN BLOCKS
-		case eCmdReassign:
-			CmdReassign();
-			return;
-
-		// READ(6)
-		case eCmdRead6:
-			LOGTRACE("++++ CMD ++++ %s Received eCmdRead6", __PRETTY_FUNCTION__);
-			CmdRead6();
-			return;
-
-		case eCmdRetrieveStats:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRetrieveStats", __PRETTY_FUNCTION__);
-			CmdRetrieveStats();
-			return;
-
-		case eCmdSetIfaceMode:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdSetIfaceMode", __PRETTY_FUNCTION__);
-			CmdSetIfaceMode();
-			return;
-
-		case eCmdSetMcastAddr:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdSetMcastAddr", __PRETTY_FUNCTION__);
-			CmdSetMcastAddr();
-			return;
-
-		case eCmdEnableInterface:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdEnableInterface", __PRETTY_FUNCTION__);
-			CmdEnableInterface();
-			return;
-
-		// WRITE(6)
-		case eCmdWrite6:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdWrite6", __PRETTY_FUNCTION__);
-			CmdWrite6();
-			return;
-
-		// SEEK(6)
-		case eCmdSeek6:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdSeek6", __PRETTY_FUNCTION__);
-			CmdSeek6();
-			return;
-
-		// INQUIRY
-		case eCmdInquiry:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdInquiry", __PRETTY_FUNCTION__);
-			CmdInquiry();
-			return;
-
-		// MODE SELECT
-		case eCmdModeSelect:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdModeSelect", __PRETTY_FUNCTION__);
-			CmdModeSelect();
-			return;
-
-		// RESERVE(6) 
-		case eCmdReserve6:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdReserve6", __PRETTY_FUNCTION__);
-			CmdReserve6();
-			return;
-		
-		// RESERVE(10)
-		case eCmdReserve10:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdReserve10", __PRETTY_FUNCTION__);
-			CmdReserve10();
-			return;
-
-		// RELEASE(6)
-		case eCmdRelease6:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRelease6", __PRETTY_FUNCTION__);
-			CmdRelease6();
-			return;
-		
-		// RELEASE(10)
-		case eCmdRelease10:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRelease10", __PRETTY_FUNCTION__);
-			CmdRelease10();
-			return;
-
-		// MODE SENSE
-		case eCmdModeSense:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdModeSense", __PRETTY_FUNCTION__);
-			CmdModeSense();
-			return;
-
-		// START STOP UNIT
-		case eCmdStartStop:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdStartStop", __PRETTY_FUNCTION__);
-			CmdStartStop();
-			return;
-
-		// SEND DIAGNOSTIC
-		case eCmdSendDiag:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdSendDiag", __PRETTY_FUNCTION__);
-			CmdSendDiag();
-			return;
-
-		// PREVENT/ALLOW MEDIUM REMOVAL
-		case eCmdRemoval:
-			CmdRemoval();
-			return;
-
-		// READ CAPACITY
-		case eCmdReadCapacity:
-			CmdReadCapacity();
-			return;
-
-		// READ(10)
-		case eCmdRead10:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdRead10", __PRETTY_FUNCTION__);
-			CmdRead10();
-			return;
-
-		// WRITE(10)
-		// WRITE and VERIFY(10)
-		case eCmdWrite10:
-		case eCmdWriteAndVerify10:
-			LOGDEBUG("++++ CMD ++++ %s Received eCmdWrite10", __PRETTY_FUNCTION__);
-			CmdWrite10();
-			return;
-
-		// SEEK(10)
-		case eCmdSeek10:
-			CmdSeek10();
-			return;
-
-		// VERIFY
-		case eCmdVerify:
-			CmdVerify();
-			return;
-
-		// SYNCHRONIZE CACHE
-		case eCmdSynchronizeCache:
-			CmdSynchronizeCache();
-			return;
-
-		// READ DEFECT DATA(10)
-		case eCmdReadDefectData10:
-			CmdReadDefectData10();
-			return;
-
-		// READ TOC
-		case eCmdReadToc:
-			CmdReadToc();
-			return;
-
-		// PLAY AUDIO(10)
-		case eCmdPlayAudio10:
-			CmdPlayAudio10();
-			return;
-
-		// PLAY AUDIO MSF
-		case eCmdPlayAudioMSF:
-			CmdPlayAudioMSF();
-			return;
-
-		// PLAY AUDIO TRACK
-		case eCmdPlayAudioTrack:
-			CmdPlayAudioTrack();
-			return;
-
-		// MODE SELECT(10)
-		case eCmdModeSelect10:
-			CmdModeSelect10();
-			return;
-
-		// MDOE SENSE(10)
-		case eCmdModeSense10:
-			CmdModeSense10();
-			return;
-
-		// SPECIFY (SASI only/Suppress warning when using SxSI)
-		case eCmdInvalid:
-			CmdInvalid();
-			return;
-
-		default:
-			// No other support
-			LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
-			CmdInvalid();
+	// If the command is valid it must be contained in the command map
+	if (!scsi_commands.count(ctrl.cmd[0])) {
+		LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
+		CmdInvalid();
+		return;
 	}
-	return;
 
+	command_t* command = scsi_commands[ctrl.cmd[0]];
+
+	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl.cmd[0]);
+
+	// Process by command
+	(this->*command->execute)();
 }
 
 //---------------------------------------------------------------------------
@@ -616,7 +475,7 @@ void FASTCALL SCSIDEV::CmdModeSelect()
 
 	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->SelectCheck(ctrl.cmd);
@@ -718,7 +577,7 @@ void FASTCALL SCSIDEV::CmdModeSense()
 
 	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ModeSense(ctrl.cmd, ctrl.buffer);
@@ -748,7 +607,7 @@ void FASTCALL SCSIDEV::CmdStartStop()
 
 	LOGTRACE( "%s START STOP UNIT Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->StartStop(ctrl.cmd);
@@ -775,7 +634,7 @@ void FASTCALL SCSIDEV::CmdSendDiag()
 
 	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
@@ -802,7 +661,7 @@ void FASTCALL SCSIDEV::CmdRemoval()
 
 	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Removal(ctrl.cmd);
@@ -829,7 +688,7 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 
 	LOGTRACE( "%s READ CAPACITY Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
@@ -857,7 +716,7 @@ void FASTCALL SCSIDEV::CmdRead10()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Receive message if host bridge
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
@@ -911,7 +770,7 @@ void FASTCALL SCSIDEV::CmdWrite10()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Receive message with host bridge
 	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
@@ -967,7 +826,7 @@ void FASTCALL SCSIDEV::CmdSeek10()
 
 	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->Seek(ctrl.cmd);
@@ -993,7 +852,7 @@ void FASTCALL SCSIDEV::CmdVerify()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Get record number and block number
 	record = ctrl.cmd[2];
@@ -1054,7 +913,7 @@ void FASTCALL SCSIDEV::CmdSynchronizeCache()
 {
 	ASSERT(this);
 
-        GetLun();
+	GetLun();
 
 	// Make it do something (not implemented)...
 
@@ -1073,7 +932,7 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 
 	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ReadDefectData10(ctrl.cmd, ctrl.buffer);
@@ -1097,7 +956,7 @@ void FASTCALL SCSIDEV::CmdReadToc()
 {
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ReadToc(ctrl.cmd, ctrl.buffer);
@@ -1122,7 +981,7 @@ void FASTCALL SCSIDEV::CmdPlayAudio10()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
@@ -1147,7 +1006,7 @@ void FASTCALL SCSIDEV::CmdPlayAudioMSF()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
@@ -1172,7 +1031,7 @@ void FASTCALL SCSIDEV::CmdPlayAudioTrack()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
@@ -1197,7 +1056,7 @@ void FASTCALL SCSIDEV::CmdModeSelect10()
 
 	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->SelectCheck10(ctrl.cmd);
@@ -1222,7 +1081,7 @@ void FASTCALL SCSIDEV::CmdModeSense10()
 
 	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->ModeSense10(ctrl.cmd, ctrl.buffer);
@@ -1250,7 +1109,7 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a host bridge
 	if ((ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) &&
@@ -1296,7 +1155,7 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 {
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a host bridge
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
@@ -1344,7 +1203,7 @@ void FASTCALL SCSIDEV::CmdRetrieveStats()
 
 	ASSERT(this);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
@@ -1384,7 +1243,7 @@ void FASTCALL SCSIDEV::CmdSetIfaceMode()
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
@@ -1426,7 +1285,7 @@ void FASTCALL SCSIDEV::CmdSetMcastAddr()
 
 	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
 		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
@@ -1463,7 +1322,7 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
 	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){

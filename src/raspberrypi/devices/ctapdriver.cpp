@@ -35,6 +35,7 @@ CTapDriver::CTapDriver()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 	// Initialization
+	m_bTxValid = FALSE;
 	m_hTAP = -1;
 	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
 	m_pcap = NULL;

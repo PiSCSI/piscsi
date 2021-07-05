@@ -17,7 +17,6 @@
 #include "filepath.h"
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
-#include "controllers/scsidev_ctrl.h"
 #include "devices/scsi_daynaport.h"
 #include "exceptions.h"
 
@@ -550,53 +549,53 @@ void FASTCALL SASIDEV::Execute()
 	#endif	// RASCSI
 
 	// Process by command
-	switch ((SCSIDEV::scsi_command)ctrl.cmd[0]) {
+	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
-		case SCSIDEV::eCmdTestUnitReady:
+		case SASIDEV::eCmdTestUnitReady:
 			CmdTestUnitReady();
 			return;
 
 		// REZERO UNIT
-		case SCSIDEV::eCmdRezero:
+		case SASIDEV::eCmdRezero:
 			CmdRezero();
 			return;
 
 		// REQUEST SENSE
-		case SCSIDEV::eCmdRequestSense:
+		case SASIDEV::eCmdRequestSense:
 			CmdRequestSense();
 			return;
 
 		// FORMAT UNIT
 		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
-		case SCSIDEV::eCmdFormat:
+		case SASIDEV::eCmdFormat:
 			CmdFormat();
 			return;
 
 		// REASSIGN BLOCKS
-		case SCSIDEV::eCmdReassign:
+		case SASIDEV::eCmdReassign:
 			CmdReassign();
 			return;
 
 		// READ(6)
-		case SCSIDEV::eCmdRead6:
+		case SASIDEV::eCmdRead6:
 			CmdRead6();
 			return;
 
 		// WRITE(6)
-		case SCSIDEV::eCmdWrite6:
+		case SASIDEV::eCmdWrite6:
 			CmdWrite6();
 			return;
 
 		// SEEK(6)
-		case SCSIDEV::eCmdSeek6:
+		case SASIDEV::eCmdSeek6:
 			CmdSeek6();
 			return;
 
 		// ASSIGN(SASIのみ)
 		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
-		case SCSIDEV::eCmdSasiCmdAssign:
+		case SASIDEV::eCmdSasiCmdAssign:
 			CmdAssign();
 			return;
 
@@ -613,7 +612,7 @@ void FASTCALL SASIDEV::Execute()
 		// SPECIFY(SASIのみ)
 		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
-		case SCSIDEV::eCmdInvalid:
+		case SASIDEV::eCmdInvalid:
 			CmdSpecify();
 			return;
 		default:
@@ -656,8 +655,6 @@ void FASTCALL SASIDEV::Status()
 		}
 		#endif	// RASCSI
 
-		LOGTRACE("%s Status phase", __PRETTY_FUNCTION__);
-
 		// Phase Setting
 		ctrl.phase = BUS::status;
 
@@ -676,9 +673,10 @@ void FASTCALL SASIDEV::Status()
 		// Request status
 		ctrl.bus->SetDAT(ctrl.buffer[0]);
 		ctrl.bus->SetREQ(TRUE);
+#endif	// RASCSI
 
 		LOGTRACE( "%s Status Phase $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.status);
-#endif	// RASCSI
+
 		return;
 	}
 
@@ -983,7 +981,7 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ASSERT(ctrl.length > 0);
 
 
-	LOGTRACE("%s Sense key $%02X",__PRETTY_FUNCTION__, (WORD)ctrl.buffer[2]);
+	LOGTRACE("%s Sense key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (WORD)ctrl.buffer[2], (WORD)ctrl.buffer[12]);
 
 	// Read phase
 	DataIn();
@@ -1713,9 +1711,9 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 		return FALSE;
 	}
 
-	switch ((SCSIDEV::scsi_command) ctrl.cmd[0]) {
-		case SCSIDEV::eCmdModeSelect:
-		case SCSIDEV::eCmdModeSelect10:
+	switch ((SASIDEV::scsi_command) ctrl.cmd[0]) {
+		case SASIDEV::eCmdModeSelect:
+		case SASIDEV::eCmdModeSelect10:
 			if (!ctrl.unit[lun]->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
@@ -1723,9 +1721,9 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 			}
 			break;
 
-		case SCSIDEV::eCmdWrite6:
-		case SCSIDEV::eCmdWrite10:
-		case SCSIDEV::eCmdWriteAndVerify10:
+		case SASIDEV::eCmdWrite6:
+		case SASIDEV::eCmdWrite10:
+		case SASIDEV::eCmdWriteAndVerify10:
 			// If we're a host bridge, use the host bridge's SendMessage10 
 			// function
 			if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
@@ -1779,10 +1777,10 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 			break;
 
 		// SPECIFY(SASI only)
-		case SCSIDEV::eCmdInvalid:
+		case SASIDEV::eCmdInvalid:
 			break;
 
-		case SCSIDEV::eCmdSetMcastAddr:
+		case SASIDEV::eCmdSetMcastAddr:
 			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__);
 			break;
 		default:
@@ -1814,17 +1812,17 @@ void FASTCALL SASIDEV::FlushUnit()
 	}
 
 	// WRITE system only
-	switch ((SCSIDEV::scsi_command)ctrl.cmd[0]) {
-		case SCSIDEV::eCmdWrite6:
-		case SCSIDEV::eCmdWrite10:
-		case SCSIDEV::eCmdWriteAndVerify10:
+	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
+		case SASIDEV::eCmdWrite6:
+		case SASIDEV::eCmdWrite10:
+		case SASIDEV::eCmdWriteAndVerify10:
 			// Flush
 			if (!ctrl.unit[lun]->IsCacheWB()) {
 				ctrl.unit[lun]->Flush();
 			}
 			break;
-		case SCSIDEV::eCmdModeSelect:
-		case SCSIDEV::eCmdModeSelect10:
+		case SASIDEV::eCmdModeSelect:
+		case SASIDEV::eCmdModeSelect10:
             // Debug code related to Issue #2 on github, where we get an unhandled Model select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
@@ -1846,10 +1844,10 @@ void FASTCALL SASIDEV::FlushUnit()
 				return;
 			}
             break;
-		case SCSIDEV::eCmdSetIfaceMode:
+		case SASIDEV::eCmdSetIfaceMode:
 			LOGWARN("%s Trying to flush a command set interface mode. This should be a daynaport?", __PRETTY_FUNCTION__);
 			break;
-		case SCSIDEV::eCmdSetMcastAddr:
+		case SASIDEV::eCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...
 			break;
 		default:
