@@ -1552,6 +1552,7 @@ const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, DWORD nHumanAt
 			continue;
 		// ファイル名チェック
 		if (Compare(pFirst, pLast, pBufFirst, pBufLast) == 0)
+			// FIXME Address of local variable is returned
 			return &p->f;
 	}
 
@@ -1638,6 +1639,7 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 				memcpy(&pFind->entry, pNext->f.GetEntry(), sizeof(pFind->entry));
 			else
 				memset(&pFind->entry, 0, sizeof(pFind->entry));
+			// FIXME Address of local variable is returned
 			return &p->f;
 		}
 	}
@@ -2700,6 +2702,7 @@ CHostFiles* CHostFilesManager::Alloc(DWORD nKey)
 	// キーを設定
 	p->f.SetKey(nKey);
 
+	// FIXME Address of local variable is returned
 	return &p->f;
 }
 
@@ -2719,6 +2722,7 @@ CHostFiles* CHostFilesManager::Search(DWORD nKey)
 		if (p->f.isSameKey(nKey)) {
 			// リング先頭へ移動
 			p->r.Insert(&m_cRing);
+			// FIXME Address of local variable is returned
 			return &p->f;
 		}
 	}
@@ -3270,6 +3274,7 @@ CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 	// キーを設定
 	p->f.SetKey(nKey);
 
+	// FIXME Address of local variable is returned
 	return &p->f;
 }
 
@@ -3289,6 +3294,7 @@ CHostFcb* CHostFcbManager::Search(DWORD nKey)
 		if (p->f.isSameKey(nKey)) {
 			// リング先頭へ移動
 			p->r.Insert(&m_cRing);
+			// FIXME Address of local variable is returned
 			return &p->f;
 		}
 		p = (ring_t*)p->r.Next();
