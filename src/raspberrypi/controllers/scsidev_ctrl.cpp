@@ -403,15 +403,17 @@ void FASTCALL SCSIDEV::Error(int sense_key, int asc)
 		return;
 	}
 
-	LOGTRACE( "%s Error (to status phase)", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
-	// Remember Sense Key and ASC for a subsequent REQUEST SENSE
+	// Set Sense Key and ASC for a subsequent REQUEST SENSE
 	ctrl.sense_key = sense_key;
 	ctrl.asc = asc;
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = 0x02;
 	ctrl.message = 0x00;
+
+	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
 
 	// status phase
 	Status();
@@ -1626,11 +1628,12 @@ void FASTCALL SCSIDEV::Receive()
 
 			// Execution Phase
                         try {
-                                Execute();
+                        	Execute();
                         }
                         catch (lunexception& e) {
-                                LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-                                Error();
+                            LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+                            // LOGICAL UNIT NOT SUPPORTED
+                            Error(0x05, 0x25);
                         }
 			break;
 

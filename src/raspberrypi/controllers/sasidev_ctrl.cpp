@@ -499,11 +499,12 @@ void FASTCALL SASIDEV::Command()
 
 		// Execution Phase
                 try {
-                        Execute();
+                    Execute();
                 }
                 catch (lunexception& e) {
-                        LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-                        Error();
+                	LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+                	// LOGICAL UNIT NOT SUPPORTED
+                    Error(0x05, 0x25);
                 }
 		#else
 		// Request the command
@@ -900,23 +901,21 @@ void FASTCALL SASIDEV::Error(int sense_key, int asc)
 		return;
 	}
 
-#if defined(DISK_LOG)
-	LOGWARN("Error occured (going to status phase)");
-#endif	// DISK_LOG
+	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
-	// Remember Sense Key and ASC for a subsequent REQUEST SENSE
+	// Set Sense Key and ASC for a subsequent REQUEST SENSE
 	ctrl.sense_key = sense_key;
 	ctrl.asc = asc;
-
-	if (!ctrl.sense_key) {
-		LOGWARN("No Sense Key for subsequent REQUEST SENSE");
-	}
 
 	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;
+
+#if defined(DISK_LOG)
+	LOGWARN("Error occured (going to status phase)");
+#endif	// DISK_LOG
 
 	// status phase
 	Status();
@@ -992,14 +991,15 @@ void FASTCALL SASIDEV::CmdRequestSense()
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
 
+    LOGTRACE("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl.sense_key, ctrl.asc);
 
-    // REQUEST SENSE returns error information remembered from the previous (failed) command
+    // REQUEST SENSE returns the sense data set by the previous (failed) command
     ctrl.buffer[2] = ctrl.sense_key;
     ctrl.buffer[12] = ctrl.asc;
+
+    // The sense data are only valid once
     ctrl.sense_key = 0;
     ctrl.asc = 0;
-
-    LOGTRACE("%s Sense key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (WORD)ctrl.buffer[2], (WORD)ctrl.buffer[12]);
 
 	// Read phase
 	DataIn();
@@ -1350,7 +1350,7 @@ void FASTCALL SASIDEV::CmdInvalid()
 	ASSERT(this);
 	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
 
-	// Failure (Error)
+	// INVALID COMMAND
 	Error(0x05, 0x20);
 }
 
@@ -1639,11 +1639,12 @@ void FASTCALL SASIDEV::ReceiveNext()
 		case BUS::command:
 			// Execution Phase
             try {
-                    Execute();
+                Execute();
             }
             catch (lunexception& e) {
-                    LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-                    Error();
+                LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+                // LOGICAL UNIT NOT SUPPORTED
+                Error(0x05, 0x25);
             }
 			break;
 			#endif	// RASCSI
