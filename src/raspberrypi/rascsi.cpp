@@ -679,7 +679,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 bool has_suffix(const char* string, const char* suffix) {
 	int string_len = strlen(string);
 	int suffix_len = strlen(suffix);
-	return (string_len >= suffix_len)
+	return (string_len > suffix_len)
 		&& (xstrcasecmp(string + (string_len - suffix_len), suffix) == 0);
 }
 
@@ -942,9 +942,9 @@ bool ParseArgument(int argc, char* argv[])
 		} else if (xstrcasecmp(path, "daynaport") == 0) {
 			type = rasctl_dev_daynaport;
 		} else {
-			// Cannot determine the file type
+			// Cannot determine the file type or the basename is missing
 			fprintf(stderr,
-					"%s: unknown file extension\n", path);
+					"%s: unknown file extension or basename is missing\n", path);
 			return false;
 		}
 
