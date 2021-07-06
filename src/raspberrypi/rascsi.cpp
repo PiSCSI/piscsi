@@ -30,7 +30,10 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
+#include <string>
 #include <iostream>
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -559,8 +562,12 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 		// drive checks files
 		if (type <= rasctl_dev_scsi_hd || ((type <= rasctl_dev_cd || type == rasctl_dev_daynaport) && xstrcasecmp(file, "-") != 0)) {
+			// Strip the image file extension from device file names, so that device files can be used as drive images
+			string f = file;
+			string effective_file = f.find("/dev/") ? f : f.substr(0, f.length() - 4);
+
 			// Set the Path
-			filepath.SetPath(file);
+			filepath.SetPath(effective_file.c_str());
 
 			// Open the file path
 			if (!pUnit->Open(filepath)) {
@@ -873,7 +880,7 @@ bool ParseArgument(int argc, char* argv[])
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
-	const char* log_level = "trace";
+	string log_level = "trace";
 
 	int opt;
 	while ((opt = getopt(argc, argv, "-IiHhL:l:D:d:")) != -1) {
@@ -962,29 +969,29 @@ bool ParseArgument(int argc, char* argv[])
 	}
 
 	// Evaluate log level
-	if (!strcasecmp(log_level, "trace")) {
+	if (log_level == "trace") {
 		spdlog::set_level(spdlog::level::trace);
 	}
-	else if (!strcasecmp(log_level, "debug")) {
+	else if (log_level == "debug") {
 		spdlog::set_level(spdlog::level::debug);
 	}
-	else if (!strcasecmp(log_level, "info")) {
+	else if (log_level == "info") {
 		spdlog::set_level(spdlog::level::info);
 	}
-	else if (!strcasecmp(log_level, "warn")) {
+	else if (log_level == "warn") {
 		spdlog::set_level(spdlog::level::warn);
 	}
-	else if (!strcasecmp(log_level, "err")) {
+	else if (log_level == "err") {
 		spdlog::set_level(spdlog::level::err);
 	}
-	else if (!strcasecmp(log_level, "critical")) {
+	else if (log_level == "critical") {
 		spdlog::set_level(spdlog::level::critical);
 	}
-	else if (!strcasecmp(log_level, "off")) {
+	else if (log_level == "off") {
 		spdlog::set_level(spdlog::level::off);
 	}
 	else {
-		std::cerr << "Unknown log level '" << log_level << "', using 'trace'" << std::endl;
+		cerr << "Invalid log level '" << log_level << "', falling back to 'trace'" << endl;
 	}
 
 	// Display the device list
