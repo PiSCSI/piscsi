@@ -136,8 +136,16 @@ int FASTCALL SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major,
 
 	LOGTRACE("%s Inquiry with major %ld, minor %ld. Allocation length: %d",__PRETTY_FUNCTION__, major, minor, (int)allocation_length);
 
-	if(cdb[1] & 0x3) {
-		LOGWARN("Tiny SCSI Emulator says this is an invalid request");
+	// Work-around in order to report an error for LUNs > 0
+	DWORD lun = (cdb[1] >> 5) & 0x07;
+	if (lun) {
+		disk.code = DISK_INVALIDLUN;
+		return -1;
+	}
+
+	if(cdb[1] & 0x1) {
+		LOGERROR("EVPD bit is not supported");
+		return -1;
 	}
 
 	if (allocation_length > 4){
