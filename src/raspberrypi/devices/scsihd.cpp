@@ -57,19 +57,16 @@ void FASTCALL SCSIHD::Reset()
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 {
-	Fileio fio;
-	off64_t size;
-
-	ASSERT(this);
 	ASSERT(!disk.ready);
 
 	// read open required
+	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
 	// Get file size
-	size = fio.GetFileSize();
+	off64_t size = fio.GetFileSize();
 	fio.Close();
 
 	// Must be 512 bytes
@@ -106,9 +103,7 @@ int FASTCALL SCSIHD:: Inquiry(
 	char vendor[32];
 	char product[32];
 	char rev[32];
-	int size;
 
-	ASSERT(this);
 	ASSERT(cdb);
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
@@ -146,7 +141,7 @@ int FASTCALL SCSIHD:: Inquiry(
 
 	// Determine vendor name/product name
 	sprintf(vendor, BENDER_SIGNATURE);
-	size = disk.blocks >> 11;
+	int size = disk.blocks >> 11;
 	if (size < 300)
 		sprintf(product, "PRODRIVE LPS%dS", size);
 	else if (size < 600)
@@ -195,7 +190,6 @@ BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	BYTE page;
 	int size;
 
-	ASSERT(this);
 	ASSERT(buf);
 	ASSERT(length >= 0);
 

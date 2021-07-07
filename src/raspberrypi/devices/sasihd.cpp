@@ -58,19 +58,16 @@ void FASTCALL SASIHD::Reset()
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 {
-	Fileio fio;
-	off64_t size;
-
-	ASSERT(this);
 	ASSERT(!disk.ready);
 
 	// Open as read-only
+	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
 	// Get file size
-	size = fio.GetFileSize();
+	off64_t size = fio.GetFileSize();
 	fio.Close();
 
 	#if defined(USE_MZ1F23_1024_SUPPORT)
@@ -137,14 +134,11 @@ BOOL FASTCALL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 //---------------------------------------------------------------------------
 int FASTCALL SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)
 {
-	int size;
-
-	ASSERT(this);
 	ASSERT(cdb);
 	ASSERT(buf);
 
 	// サイズ決定
-	size = (int)cdb[4];
+	int size = (int)cdb[4];
 	ASSERT((size >= 0) && (size < 0x100));
 
 	// サイズ0のときに4バイト転送する(Shugart Associates System Interface仕様)

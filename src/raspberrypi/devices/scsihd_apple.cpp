@@ -39,12 +39,11 @@ SCSIHD_APPLE::SCSIHD_APPLE() : SCSIHD()
 int FASTCALL SCSIHD_APPLE::Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	int size;
 	char vendor[32];
 	char product[32];
 
 	// Call the base class
-	size = SCSIHD::Inquiry(cdb, buf, major, minor);
+	int size = SCSIHD::Inquiry(cdb, buf, major, minor);
 
 	// End if there is an error in the base class
 	if (size == 0) {
@@ -69,7 +68,6 @@ int FASTCALL SCSIHD_APPLE::Inquiry(
 //---------------------------------------------------------------------------
 int FASTCALL SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
 {
-	ASSERT(this);
 	ASSERT(buf);
 
 	// Page code 48
