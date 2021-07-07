@@ -30,6 +30,10 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
+#include <string>
+#include <iostream>
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -548,7 +552,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			// 	break;
 			case rasctl_dev_daynaport: // DaynaPort SCSI Link
 				pUnit = new SCSIDaynaPort();
-				LOGTRACE("Done creating SCSIDayanPort");
+				LOGTRACE("Done creating SCSIDaynaPort");
 				break;
 			default:
 				FPRT(fp,	"Error : Invalid device type\n");
@@ -558,8 +562,12 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 		// drive checks files
 		if (type <= rasctl_dev_scsi_hd || ((type <= rasctl_dev_cd || type == rasctl_dev_daynaport) && xstrcasecmp(file, "-") != 0)) {
+			// Strip the image file extension from device file names, so that device files can be used as drive images
+			string f = file;
+			string effective_file = f.find("/dev/") ? f : f.substr(0, f.length() - 4);
+
 			// Set the Path
-			filepath.SetPath(file);
+			filepath.SetPath(effective_file.c_str());
 
 			// Open the file path
 			if (!pUnit->Open(filepath)) {
@@ -678,7 +686,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 bool has_suffix(const char* string, const char* suffix) {
 	int string_len = strlen(string);
 	int suffix_len = strlen(suffix);
-	return (string_len >= suffix_len)
+	return (string_len > suffix_len)
 		&& (xstrcasecmp(string + (string_len - suffix_len), suffix) == 0);
 }
 
@@ -872,9 +880,10 @@ bool ParseArgument(int argc, char* argv[])
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
+	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhD:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhL:l:D:d:")) != -1) {
 		switch (opt) {
 			case 'I':
 			case 'i':
@@ -888,6 +897,11 @@ bool ParseArgument(int argc, char* argv[])
 				is_sasi = true;
 				max_id = 15;
 				id = -1;
+				continue;
+
+			case 'L':
+			case 'l':
+				log_level = optarg;
 				continue;
 
 			case 'D':
@@ -935,9 +949,9 @@ bool ParseArgument(int argc, char* argv[])
 		} else if (xstrcasecmp(path, "daynaport") == 0) {
 			type = rasctl_dev_daynaport;
 		} else {
-			// Cannot determine the file type
+			// Cannot determine the file type or the basename is missing
 			fprintf(stderr,
-					"%s: unknown file extension\n", path);
+					"%s: unknown file extension or basename is missing\n", path);
 			return false;
 		}
 
@@ -952,6 +966,32 @@ bool ParseArgument(int argc, char* argv[])
 			return false;
 		}
 		id = -1;
+	}
+
+	// Evaluate log level
+	if (log_level == "trace") {
+		spdlog::set_level(spdlog::level::trace);
+	}
+	else if (log_level == "debug") {
+		spdlog::set_level(spdlog::level::debug);
+	}
+	else if (log_level == "info") {
+		spdlog::set_level(spdlog::level::info);
+	}
+	else if (log_level == "warn") {
+		spdlog::set_level(spdlog::level::warn);
+	}
+	else if (log_level == "err") {
+		spdlog::set_level(spdlog::level::err);
+	}
+	else if (log_level == "critical") {
+		spdlog::set_level(spdlog::level::critical);
+	}
+	else if (log_level == "off") {
+		spdlog::set_level(spdlog::level::off);
+	}
+	else {
+		cerr << "Invalid log level '" << log_level << "', falling back to 'trace'" << endl;
 	}
 
 	// Display the device list
@@ -1127,11 +1167,10 @@ int main(int argc, char* argv[])
 	struct sched_param schparam;
 #endif	// BAREMETAL
 
-    spdlog::set_level(spdlog::level::trace);
+	spdlog::set_level(spdlog::level::trace);
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = spdlog::stdout_color_mt("rascsi stdout logger");
 
-    LOGTRACE("Entering the function %s with %d arguments", __PRETTY_FUNCTION__, argc);
 	// Output the Banner
 	Banner(argc, argv);
 
