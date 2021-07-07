@@ -433,7 +433,7 @@ void FASTCALL SCSIDEV::Error(int sense_key, int asc)
 void FASTCALL SCSIDEV::CmdInquiry()
 {
 	Disk *disk;
-	int lun;
+	int valid_lun;
 	DWORD major;
 	DWORD minor;
 
@@ -443,9 +443,9 @@ void FASTCALL SCSIDEV::CmdInquiry()
 
 	// Find a valid unit
 	disk = NULL;
-	for (lun = 0; lun < UnitMax; lun++) {
-		if (ctrl.unit[lun]) {
-			disk = ctrl.unit[lun];
+	for (valid_lun = 0; valid_lun < UnitMax; valid_lun++) {
+		if (ctrl.unit[valid_lun]) {
+			disk = ctrl.unit[valid_lun];
 			break;
 		}
 	}
@@ -456,7 +456,7 @@ void FASTCALL SCSIDEV::CmdInquiry()
 		minor = (DWORD)(RASCSI & 0xff);
 		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
 		ctrl.length =
-			ctrl.unit[lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
+			ctrl.unit[valid_lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
 	} else {
 		ctrl.length = 0;
 	}
@@ -470,6 +470,12 @@ void FASTCALL SCSIDEV::CmdInquiry()
 	// Add synchronous transfer support information
 	if (scsi.syncenable) {
 		ctrl.buffer[7] |= (1 << 4);
+	}
+
+	// Report if the device does not support the requested LUN
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		ctrl.buffer[0] |= 0x7f;
 	}
 
 	// Data-in Phase

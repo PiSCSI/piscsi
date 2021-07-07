@@ -1286,7 +1286,10 @@ int FASTCALL Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, size);
 
 	// Set 18 bytes including extended sense data
+
+	// Current error
 	buf[0] = 0x70;
+
 	buf[2] = (BYTE)(disk.code >> 16);
 	buf[7] = 10;
 	buf[12] = (BYTE)(disk.code >> 8);

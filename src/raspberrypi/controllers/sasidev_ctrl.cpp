@@ -991,10 +991,18 @@ void FASTCALL SASIDEV::CmdRequestSense()
      	lun = GetLun();
     }
     catch(const lunexception& e) {
-        LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+        LOGINFO("%s Non-existing LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+
+        // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
+        // Non-existing LUNs do *not* result in CHECK CONDITION.
+        // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+
+        // LUN 0 can be assumed to be present (required to call RequestSense() below)
+        lun = 0;
+
         // LOGICAL UNIT NOT SUPPORTED
-        Error(0x05, 0x25);
-    	return;
+    	ctrl.sense_key = 0x05;
+    	ctrl.asc = 0x25;
     }
 
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
