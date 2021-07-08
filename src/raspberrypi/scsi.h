@@ -43,7 +43,10 @@ public:
 		reserved						// 未使用/リザーブ
 	};
 
-    // Basic Functions
+	BUS() { };
+	virtual ~BUS() { };
+
+	// Basic Functions
 	// 基本ファンクション
 	virtual BOOL FASTCALL Init(mode_e mode) = 0;
 										// 初期化
