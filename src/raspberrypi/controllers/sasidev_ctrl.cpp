@@ -878,7 +878,7 @@ void FASTCALL SASIDEV::DataOut()
 //	Error
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Error(int sense_key, int asc)
+void FASTCALL SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 {
 	ASSERT(this);
 
