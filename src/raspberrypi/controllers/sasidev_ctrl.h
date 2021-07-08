@@ -198,7 +198,8 @@ protected:
 	void FASTCALL MsgIn();							// Message in phase
 	void FASTCALL DataIn();							// Data in phase
 	void FASTCALL DataOut();						// Data out phase
-	virtual void FASTCALL Error(ERROR_CODES::sense_key sense_key = 0, ERROR_CODES::asc asc = 0);	// Common error handling
+	virtual void FASTCALL Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
 
 	// commands
 	void FASTCALL CmdTestUnitReady();					// TEST UNIT READY command
