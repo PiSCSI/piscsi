@@ -159,7 +159,7 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	// Allocate buffer memory
 	ASSERT((dt.size >= 8) && (dt.size <= 11));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
-<=
+
 	if (dt.buffer == NULL) {
 		#if defined(RASCSI) && !defined(BAREMETAL)
                 if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {

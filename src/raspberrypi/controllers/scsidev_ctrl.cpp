@@ -711,8 +711,7 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 	// Command processing on drive
 	length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
 	if (length <= 0) {
-		// MEDIUM NOT PRESENT
-		Error(0x05, 0x3a);
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
 	}
 
@@ -1637,9 +1636,9 @@ void FASTCALL SCSIDEV::Receive()
                         	Execute();
                         }
                         catch (const lunexception& e) {
-                            LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-                            // LOGICAL UNIT NOT SUPPORTED
-                            Error(0x05, 0x25);
+                            LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+
+                            Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
                         }
 			break;
 

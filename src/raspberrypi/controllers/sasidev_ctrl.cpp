@@ -502,9 +502,9 @@ void FASTCALL SASIDEV::Command()
                     Execute();
                 }
                 catch (lunexception& e) {
-                	LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-                	// LOGICAL UNIT NOT SUPPORTED
-                    Error(0x05, 0x25);
+                	LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+
+                	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
                 }
 		#else
 		// Request the command
@@ -1000,9 +1000,8 @@ void FASTCALL SASIDEV::CmdRequestSense()
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
         lun = 0;
 
-        // LOGICAL UNIT NOT SUPPORTED
-    	ctrl.sense_key = 0x05;
-    	ctrl.asc = 0x25;
+    	ctrl.sense_key = ERROR_CODES::sense_key::ILLEGAL_REQUEST;
+    	ctrl.asc = ERROR_CODES::asc::INVALID_LUN;
     }
 
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
@@ -1367,8 +1366,7 @@ void FASTCALL SASIDEV::CmdInvalid()
 	ASSERT(this);
 	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
 
-	// INVALID COMMAND
-	Error(0x05, 0x20);
+	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 //===========================================================================
@@ -1661,7 +1659,7 @@ void FASTCALL SASIDEV::ReceiveNext()
             catch (const lunexception& e) {
                 LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
                 // LOGICAL UNIT NOT SUPPORTED
-                Error(0x05, 0x25);
+                Error(SENSE_KEY_ILLEGAL_REQUEST, ASC_INVALID_LUN);
             }
 			break;
 			#endif	// RASCSI
