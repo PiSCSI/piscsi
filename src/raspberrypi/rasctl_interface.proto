@@ -1,0 +1,7 @@
+syntax = "proto2";
+
+package rasctl_interface;
+
+message CommandResult {
+    optional string result = 1;
+}
