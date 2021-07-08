@@ -537,7 +537,7 @@ void FASTCALL SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
 
 	for(size_t i=0; i<sizeof(6); i++)
 	{
-		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, i,(WORD)cdb[i]);
+		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, (unsigned int)i,(WORD)cdb[i]);
 	}	
 }
 
