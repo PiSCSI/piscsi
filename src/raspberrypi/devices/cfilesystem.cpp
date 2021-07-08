@@ -896,6 +896,9 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 //---------------------------------------------------------------------------
 CHostFilename::CHostFilename()
 {
+	m_bCorrect = FALSE;
+	m_pszHumanExt = FALSE;
+	m_pszHumanLast = FALSE;
 }
 
 //---------------------------------------------------------------------------
@@ -1294,6 +1297,8 @@ DWORD CHostPath::g_nId;				///< 識別ID生成用カウンタ
 CHostPath::CHostPath()
 {
 	m_bRefresh = TRUE;
+	m_nId = 0;
+	m_tBackup = FALSE;
 
 #ifdef _DEBUG
 	// 必ず値が更新されるので初期化不要 (デバッグ時の初期動作確認用)
@@ -3326,6 +3331,8 @@ DWORD CFileSys::g_nOption;		///< ファイル名変換フラグ
 //---------------------------------------------------------------------------
 CFileSys::CFileSys()
 {
+	m_nHostSectorCount = 0;
+
 	// コンフィグデータ初期化
 	m_nDrives = 0;
 

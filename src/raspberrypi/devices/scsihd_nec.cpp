@@ -72,7 +72,6 @@ BOOL FASTCALL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	BYTE hdr[512];
 	LPCTSTR ext;
 
-	ASSERT(this);
 	ASSERT(!disk.ready);
 
 	// Open as read-only
@@ -200,7 +199,6 @@ int FASTCALL SCSIHD_NEC::Inquiry(
 //---------------------------------------------------------------------------
 int FASTCALL SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
 {
-	ASSERT(this);
 	ASSERT(buf);
 
 	// Set the message length
@@ -223,9 +221,6 @@ int FASTCALL SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
 //---------------------------------------------------------------------------
 int FASTCALL SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 {
-	int size;
-
-	ASSERT(this);
 	ASSERT(buf);
 
 	// Set the message length
@@ -249,7 +244,7 @@ int FASTCALL SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 		buf[0xb] = (BYTE)sectors;
 
 		// 物理セクタのバイト数を設定
-		size = 1 << disk.size;
+		int size = 1 << disk.size;
 		buf[0xc] = (BYTE)(size >> 8);
 		buf[0xd] = (BYTE)size;
 	}
@@ -269,7 +264,6 @@ int FASTCALL SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 //---------------------------------------------------------------------------
 int FASTCALL SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 {
-	ASSERT(this);
 	ASSERT(buf);
 
 	// Set the message length

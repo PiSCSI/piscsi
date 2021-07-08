@@ -89,10 +89,6 @@ SASIDEV::~SASIDEV()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Reset()
 {
-	int i;
-
-	ASSERT(this);
-
 	// Work initialization
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.phase = BUS::busfree;
@@ -108,7 +104,7 @@ void FASTCALL SASIDEV::Reset()
 	ctrl.length = 0;
 
 	// Unit initialization
-	for (i = 0; i < UnitMax; i++) {
+	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
 			ctrl.unit[i]->Reset();
 		}
@@ -123,13 +119,10 @@ void FASTCALL SASIDEV::Reset()
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::Save(Fileio *fio, int /*ver*/)
 {
-	DWORD sz;
-
-	ASSERT(this);
 	ASSERT(fio);
 
 	// Save size
-	sz = 2120;
+	DWORD sz = 2120;
 	if (!fio->Write(&sz, sizeof(sz))) {
 		return FALSE;
 	}
@@ -158,9 +151,6 @@ BOOL FASTCALL SASIDEV::Save(Fileio *fio, int /*ver*/)
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::Load(Fileio *fio, int ver)
 {
-	DWORD sz;
-
-	ASSERT(this);
 	ASSERT(fio);
 
 	// Not saved before version 3.11
@@ -169,6 +159,7 @@ BOOL FASTCALL SASIDEV::Load(Fileio *fio, int ver)
 	}
 
 	// Load size and check if the size matches
+	DWORD sz;
 	if (!fio->Read(&sz, sizeof(sz))) {
 		return FALSE;
 	}
@@ -201,8 +192,6 @@ BOOL FASTCALL SASIDEV::Load(Fileio *fio, int ver)
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Connect(int id, BUS *bus)
 {
-	ASSERT(this);
-
 	ctrl.m_scsi_id = id;
 	ctrl.bus = bus;
 }
@@ -214,7 +203,6 @@ void FASTCALL SASIDEV::Connect(int id, BUS *bus)
 //---------------------------------------------------------------------------
 Disk* FASTCALL SASIDEV::GetUnit(int no)
 {
-	ASSERT(this);
 	ASSERT(no < UnitMax);
 
 	return ctrl.unit[no];
@@ -227,7 +215,6 @@ Disk* FASTCALL SASIDEV::GetUnit(int no)
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::SetUnit(int no, Disk *dev)
 {
-	ASSERT(this);
 	ASSERT(no < UnitMax);
 
 	ctrl.unit[no] = dev;
@@ -240,11 +227,7 @@ void FASTCALL SASIDEV::SetUnit(int no, Disk *dev)
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::HasUnit()
 {
-	int i;
-
-	ASSERT(this);
-
-	for (i = 0; i < UnitMax; i++) {
+	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
 			return TRUE;
 		}
@@ -260,7 +243,6 @@ BOOL FASTCALL SASIDEV::HasUnit()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::GetCTRL(ctrl_t *buffer)
 {
-	ASSERT(this);
 	ASSERT(buffer);
 
 	// reference the internal structure
@@ -274,12 +256,8 @@ void FASTCALL SASIDEV::GetCTRL(ctrl_t *buffer)
 //---------------------------------------------------------------------------
 Disk* FASTCALL SASIDEV::GetBusyUnit()
 {
-	DWORD lun;
-
-	ASSERT(this);
-
 	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 	return ctrl.unit[lun];
 }
 
@@ -290,8 +268,6 @@ Disk* FASTCALL SASIDEV::GetBusyUnit()
 //---------------------------------------------------------------------------
 BUS::phase_t FASTCALL SASIDEV::Process()
 {
-	ASSERT(this);
-
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
 		return ctrl.phase;
@@ -366,11 +342,8 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::BusFree()
 {
-	ASSERT(this);
-
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
-
 		LOGINFO("Bus free phase");
 
 		// Phase Setting
@@ -402,14 +375,10 @@ void FASTCALL SASIDEV::BusFree()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Selection()
 {
-	DWORD id;
-
-	ASSERT(this);
-
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
 		// Invalid if IDs do not match
-		id = 1 << ctrl.m_scsi_id;
+		DWORD id = 1 << ctrl.m_scsi_id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
 			return;
 		}
@@ -446,8 +415,6 @@ void FASTCALL SASIDEV::Command()
 	int count;
 	int i;
 	#endif	// RASCSI
-
-	ASSERT(this);
 
 	// Phase change
 	if (ctrl.phase != BUS::command) {
@@ -535,8 +502,6 @@ void FASTCALL SASIDEV::Command()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Execute()
 {
-	ASSERT(this);
-
 	LOGTRACE("%s Execution Phase Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
 
 	// Phase Setting
@@ -643,8 +608,6 @@ void FASTCALL SASIDEV::Status()
 	DWORD time;
 	#endif	// RASCSI
 
-	ASSERT(this);
-
 	// Phase change
 	if (ctrl.phase != BUS::status) {
 
@@ -713,8 +676,6 @@ void FASTCALL SASIDEV::Status()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::MsgIn()
 {
-	ASSERT(this);
-
 	// Phase change
 	if (ctrl.phase != BUS::msgin) {
 		LOGTRACE("%s Starting Message in phase", __PRETTY_FUNCTION__);
@@ -751,7 +712,6 @@ void FASTCALL SASIDEV::DataIn()
 	DWORD time;
 	#endif	// RASCSI
 
-	ASSERT(this);
 	ASSERT(ctrl.length >= 0);
 
 	// Phase change
@@ -808,7 +768,6 @@ void FASTCALL SASIDEV::DataOut()
 	DWORD time;
 	#endif	// RASCSI
 
-	ASSERT(this);
 	ASSERT(ctrl.length >= 0);
 
 	// Phase change
@@ -880,8 +839,6 @@ void FASTCALL SASIDEV::DataOut()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 {
-	ASSERT(this);
-
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
 
@@ -928,16 +885,12 @@ void FASTCALL SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc 
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdTestUnitReady()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -955,16 +908,12 @@ void FASTCALL SASIDEV::CmdTestUnitReady()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdRezero()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->Rezero(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Rezero(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -982,8 +931,6 @@ void FASTCALL SASIDEV::CmdRezero()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdRequestSense()
 {
-	ASSERT(this);
-
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
     DWORD lun;
@@ -1028,16 +975,12 @@ void FASTCALL SASIDEV::CmdRequestSense()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdFormat()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->Format(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Format(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1055,16 +998,12 @@ void FASTCALL SASIDEV::CmdFormat()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdReassign()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->Reassign(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Reassign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1087,7 +1026,6 @@ void FASTCALL SASIDEV::CmdReassign()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdReserveUnit()
 {
-	ASSERT(this);
 	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
 
 	// status phase
@@ -1106,7 +1044,6 @@ void FASTCALL SASIDEV::CmdReserveUnit()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdReleaseUnit()
 {
-	ASSERT(this);
 	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
 
 	// status phase
@@ -1120,14 +1057,10 @@ void FASTCALL SASIDEV::CmdReleaseUnit()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdRead6()
 {
-	DWORD record;
-
-	ASSERT(this);
-
         DWORD lun = GetLun();
 
 	// Get record number and block number
-	record = ctrl.cmd[1] & 0x1f;
+	DWORD record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
 	record |= ctrl.cmd[2];
 	record <<= 8;
@@ -1170,10 +1103,6 @@ void FASTCALL SASIDEV::CmdRead6()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::DaynaPortWrite()
 {
-	DWORD data_format;
-
-	ASSERT(this);
-
         DWORD lun = GetLun();
 
 	// Error if not a host bridge
@@ -1190,9 +1119,7 @@ void FASTCALL SASIDEV::DaynaPortWrite()
 		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
 	}
 
-
-	data_format = ctrl.cmd[5];
-
+	DWORD data_format = ctrl.cmd[5];
 
 	if(data_format == 0x00){
 		ctrl.length = (WORD)ctrl.cmd[4] + ((WORD)ctrl.cmd[3] << 8);
@@ -1228,10 +1155,6 @@ void FASTCALL SASIDEV::DaynaPortWrite()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdWrite6()
 {
-	DWORD record;
-
-	ASSERT(this);
-
         DWORD lun = GetLun();
 
 	// Special receive function for the DaynaPort
@@ -1241,7 +1164,7 @@ void FASTCALL SASIDEV::CmdWrite6()
 	}
 
 	// Get record number and block number
-	record = ctrl.cmd[1] & 0x1f;
+	DWORD record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
 	record |= ctrl.cmd[2];
 	record <<= 8;
@@ -1276,16 +1199,12 @@ void FASTCALL SASIDEV::CmdWrite6()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdSeek6()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->Seek(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Seek(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1303,16 +1222,12 @@ void FASTCALL SASIDEV::CmdSeek6()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdAssign()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->Assign(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1333,16 +1248,12 @@ void FASTCALL SASIDEV::CmdAssign()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdSpecify()
 {
-	BOOL status;
-
-	ASSERT(this);
-
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	status = ctrl.unit[lun]->Assign(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1363,7 +1274,6 @@ void FASTCALL SASIDEV::CmdSpecify()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdInvalid()
 {
-	ASSERT(this);
 	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
 
 	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
@@ -1387,7 +1297,6 @@ void FASTCALL SASIDEV::Send()
 	#endif	// RASCSI
 	BOOL result;
 
-	ASSERT(this);
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
@@ -1485,8 +1394,6 @@ void FASTCALL SASIDEV::Send()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::SendNext()
 {
-	ASSERT(this);
-
 	// Req is up
 	ASSERT(ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
@@ -1509,16 +1416,12 @@ void FASTCALL SASIDEV::SendNext()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::Receive()
 {
-	DWORD data;
-
-	ASSERT(this);
-
 	// Req is up
 	ASSERT(ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
 	// Get data
-	data = (DWORD)ctrl.bus->GetDAT();
+	DWORD data = (DWORD)ctrl.bus->GetDAT();
 
 	// Signal line operated by the target
 	ctrl.bus->SetREQ(FALSE);
@@ -1571,8 +1474,6 @@ void FASTCALL SASIDEV::ReceiveNext()
 	int len;
 	#endif	// RASCSI
 	BOOL result;
-
-	ASSERT(this);
 
 	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
@@ -1689,14 +1590,11 @@ void FASTCALL SASIDEV::ReceiveNext()
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 {
-	DWORD lun;
-
-	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::datain);
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		return FALSE;
 	}
@@ -1739,14 +1637,12 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 //---------------------------------------------------------------------------
 BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 {
-	DWORD lun;
 	SCSIBR *bridge;
 
-	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		return FALSE;
 	}
@@ -1840,13 +1736,10 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::FlushUnit()
 {
-	DWORD lun;
-
-	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
 		return;
 	}

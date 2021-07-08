@@ -45,19 +45,16 @@ SCSIMO::SCSIMO() : Disk()
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIMO::Open(const Filepath& path, BOOL attn)
 {
-	Fileio fio;
-	off64_t size;
-
-	ASSERT(this);
 	ASSERT(!disk.ready);
 
 	// Open as read-only
+	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		return FALSE;
 	}
 
 	// Get file size
-	size = fio.GetFileSize();
+	off64_t size = fio.GetFileSize();
 	fio.Close();
 
 	switch (size) {
@@ -114,7 +111,6 @@ BOOL FASTCALL SCSIMO::Load(Fileio *fio, int ver)
 	DWORD padding;
 	Filepath path;
 
-	ASSERT(this);
 	ASSERT(fio);
 	ASSERT(ver >= 0x0200);
 
@@ -192,7 +188,6 @@ int FASTCALL SCSIMO::Inquiry(
 	int size;
 	char rev[32];
 
-	ASSERT(this);
 	ASSERT(cdb);
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
@@ -260,7 +255,6 @@ BOOL FASTCALL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	int page;
 	int size;
 
-	ASSERT(this);
 	ASSERT(buf);
 	ASSERT(length >= 0);
 
@@ -327,7 +321,6 @@ BOOL FASTCALL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //---------------------------------------------------------------------------
 int FASTCALL SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 {
-	ASSERT(this);
 	ASSERT(buf);
 
 	// Page code 20h
