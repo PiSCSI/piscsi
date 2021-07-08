@@ -1647,7 +1647,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 				break;
 			}
 
-			LOGTRACE("%s eCmdWriteAndVerify10 Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd, (int)ctrl.next);
+			LOGTRACE("%s eCmdWriteAndVerify10 Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
 			if (!ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
 				return FALSE;
