@@ -27,6 +27,7 @@
 #include "gpiobus.h"
 #include "rascsi_version.h"
 #include "rasctl.h"
+#include "rasctl_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
@@ -475,6 +476,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	Filepath filepath;
 	Disk *pUnit;
 	char type_str[5];
+	rasctl_interface::CommandResult command_result;
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -482,12 +484,14 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
 		FPRT(fp, "Error : Invalid ID\n");
+		command_result.set_result("Error : Invalid ID\n");
 		return FALSE;
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
 		FPRT(fp, "Error : Invalid unit number\n");
+		command_result.set_result("Error : Invalid unit number\n");
 		return FALSE;
 	}
 
@@ -555,7 +559,8 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 				LOGTRACE("Done creating SCSIDaynaPort");
 				break;
 			default:
-				FPRT(fp,	"Error : Invalid device type\n");
+				FPRT(fp, "Error : Invalid device type\n");
+				command_result.set_result("Error : Invalid device type\n");
 				LOGWARN("rasctl sent a command for an invalid drive type: %d", type);
 				return FALSE;
 		}
