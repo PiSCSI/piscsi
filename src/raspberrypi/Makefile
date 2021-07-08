@@ -31,7 +31,7 @@ else
 	BUILD_TYPE = Release
 endif
 CFLAGS += -iquote . -MD -MP
-CXXFLAGS += -std=c++14 -iquote . -MD -MP
+CXXFLAGS += -std=c++20 -iquote . -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CFLAGS += $(EXTRA_FLAGS)
