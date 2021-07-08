@@ -59,7 +59,6 @@ Filepath& Filepath::operator=(const Filepath& path)
 //---------------------------------------------------------------------------
 void FASTCALL Filepath::Clear()
 {
-	ASSERT(this);
 
 	// Clear the path and each part
 	m_szPath[0] = _T('\0');
@@ -75,7 +74,6 @@ void FASTCALL Filepath::Clear()
 //---------------------------------------------------------------------------
 void FASTCALL Filepath::SetPath(LPCSTR path)
 {
-	ASSERT(this);
 	ASSERT(path);
 	ASSERT(strlen(path) < _MAX_PATH);
 
@@ -173,7 +171,6 @@ void FASTCALL Filepath::Split()
 	LPTSTR pBaseName;
 	LPTSTR pExtName;
 
-	ASSERT(this);
 
 	// パーツを初期化
 	m_szDir[0] = _T('\0');
@@ -214,7 +211,6 @@ void FASTCALL Filepath::Split()
 //---------------------------------------------------------------------------
 LPCTSTR FASTCALL Filepath::GetFileExt() const
 {
-	ASSERT(this);
 
 	// 固定バッファへ合成
 	strcpy(FileExt, m_szExt);
@@ -230,7 +226,6 @@ LPCTSTR FASTCALL Filepath::GetFileExt() const
 //---------------------------------------------------------------------------
 BOOL FASTCALL Filepath::Save(Fileio *fio, int /*ver*/)
 {
-	ASSERT(this);
 	ASSERT(fio);
 
 	return TRUE;
@@ -243,7 +238,6 @@ BOOL FASTCALL Filepath::Save(Fileio *fio, int /*ver*/)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Filepath::Load(Fileio *fio, int /*ver*/)
 {
-	ASSERT(this);
 	ASSERT(fio);
 
 	return TRUE;

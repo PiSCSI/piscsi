@@ -380,8 +380,7 @@ public:
 
 	void  Insert(CRing* pRoot)
 	{
-		ASSERT(this);
-		// 該当オブジェクトを切り離し
+			// 該当オブジェクトを切り離し
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
@@ -398,8 +397,7 @@ public:
 
 	void  InsertTail(CRing* pRoot)
 	{
-		ASSERT(this);
-		// 該当オブジェクトを切り離し
+			// 該当オブジェクトを切り離し
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
@@ -416,8 +414,7 @@ public:
 
 	void  InsertRing(CRing* pRoot)
 	{
-		ASSERT(this);
-		if (next == prev) return;
+			if (next == prev) return;
 
 		// リング先頭へ挿入
 		ASSERT(pRoot);
@@ -434,8 +431,7 @@ public:
 
 	void  Remove()
 	{
-		ASSERT(this);
-		// 該当オブジェクトを切り離し
+			// 該当オブジェクトを切り離し
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
