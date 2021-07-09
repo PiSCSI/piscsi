@@ -565,12 +565,12 @@ void FASTCALL SASIDEV::Execute()
 			return;
 
 		// RESERVE UNIT(16)
-		case 0x16:
+		case SASIDEV::eCmdReserve6:
 			CmdReserveUnit();
 			return;
 		
 		// RELEASE UNIT(17)
-		case 0x17:
+		case eCmdRelease6:
 			CmdReleaseUnit();
 			return;
 
@@ -1560,9 +1560,9 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 	// Limited to read commands
 	switch (ctrl.cmd[0]) {
 		// READ(6)
-		case 0x08:
+		case eCmdRead6:
 		// READ(10)
-		case 0x28:
+		case eCmdRead10:
 			// Read from disk
 			ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, buf, ctrl.next);
 			ctrl.next++;
