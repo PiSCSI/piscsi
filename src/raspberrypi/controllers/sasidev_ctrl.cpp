@@ -572,12 +572,12 @@ void FASTCALL SASIDEV::Execute()
 			return;
 
 		// RESERVE UNIT(16)
-		case 0x16:
+		case SASIDEV::eCmdReserve6:
 			CmdReserveUnit();
 			return;
 		
 		// RELEASE UNIT(17)
-		case 0x17:
+		case eCmdRelease6:
 			CmdReleaseUnit();
 			return;
 
@@ -1602,9 +1602,9 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 	// Limited to read commands
 	switch (ctrl.cmd[0]) {
 		// READ(6)
-		case 0x08:
+		case eCmdRead6:
 		// READ(10)
-		case 0x28:
+		case eCmdRead10:
 			// Read from disk
 			ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, buf, ctrl.next);
 			ctrl.next++;
@@ -1689,7 +1689,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 				break;
 			}
 
-			LOGTRACE("%s eCmdWriteAndVerify10 Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd, (int)ctrl.next);
+			LOGTRACE("%s eCmdWriteAndVerify10 Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
 			if (!ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
 				return FALSE;

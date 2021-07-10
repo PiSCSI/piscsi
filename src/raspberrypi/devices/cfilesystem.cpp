@@ -167,7 +167,6 @@ static char* U2S(const char *utf8)
 //---------------------------------------------------------------------------
 void Human68k::namests_t::GetCopyPath(BYTE* szPath) const
 {
-	ASSERT(this);
 	ASSERT(szPath);
 
 	BYTE* p = szPath;
@@ -194,7 +193,6 @@ void Human68k::namests_t::GetCopyPath(BYTE* szPath) const
 //---------------------------------------------------------------------------
 void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 {
-	ASSERT(this);
 	ASSERT(szFilename);
 
 	size_t i;
@@ -310,7 +308,6 @@ CHostDrv::~CHostDrv()
 //---------------------------------------------------------------------------
 void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 {
-	ASSERT(this);
 	ASSERT(szBase);
 	ASSERT(strlen(szBase) < FILEPATH_MAX);
 	ASSERT(m_bWriteProtect == FALSE);
@@ -363,7 +360,6 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 //---------------------------------------------------------------------------
 BOOL CHostDrv::isMediaOffline()
 {
-	ASSERT(this);
 
 	// オフライン状態チェック
 	return m_bEnable == FALSE;
@@ -376,7 +372,6 @@ BOOL CHostDrv::isMediaOffline()
 //---------------------------------------------------------------------------
 BYTE CHostDrv::GetMediaByte() const
 {
-	ASSERT(this);
 
 	return Human68k::MEDIA_REMOTE;
 }
@@ -388,7 +383,6 @@ BYTE CHostDrv::GetMediaByte() const
 //---------------------------------------------------------------------------
 DWORD CHostDrv::GetStatus() const
 {
-	ASSERT(this);
 
 	return 0x40 | (m_bEnable ? (m_bWriteProtect ? 0x08 : 0) | 0x02 : 0);
 }
@@ -400,7 +394,6 @@ DWORD CHostDrv::GetStatus() const
 //---------------------------------------------------------------------------
 void CHostDrv::SetEnable(BOOL bEnable)
 {
-	ASSERT(this);
 
 	m_bEnable = bEnable;
 
@@ -419,7 +412,6 @@ void CHostDrv::SetEnable(BOOL bEnable)
 //---------------------------------------------------------------------------
 BOOL CHostDrv::CheckMedia()
 {
-	ASSERT(this);
 
 	// 状態更新
 	Update();
@@ -436,7 +428,6 @@ BOOL CHostDrv::CheckMedia()
 //---------------------------------------------------------------------------
 void CHostDrv::Update()
 {
-	ASSERT(this);
 
 	// メディア挿入とみなす
 	BOOL bEnable = TRUE;
@@ -452,7 +443,6 @@ void CHostDrv::Update()
 //---------------------------------------------------------------------------
 void CHostDrv::Eject()
 {
-	ASSERT(this);
 
 	// メディア排出
 	CleanCache();
@@ -469,7 +459,6 @@ void CHostDrv::Eject()
 //---------------------------------------------------------------------------
 void CHostDrv::GetVolume(TCHAR* szLabel)
 {
-	ASSERT(this);
 	ASSERT(szLabel);
 	ASSERT(m_bEnable);
 
@@ -502,7 +491,6 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 //---------------------------------------------------------------------------
 BOOL CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 {
-	ASSERT(this);
 	ASSERT(szLabel);
 
 	// 内容を転送
@@ -518,7 +506,6 @@ BOOL CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 //---------------------------------------------------------------------------
 DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 {
-	ASSERT(this);
 	ASSERT(pCapacity);
 	ASSERT(m_bEnable);
 
@@ -558,7 +545,6 @@ DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 //---------------------------------------------------------------------------
 BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 {
-	ASSERT(this);
 	ASSERT(pCapacity);
 
 	// 内容を転送
@@ -574,7 +560,6 @@ BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache()
 {
-	ASSERT(this);
 
 	Lock();
 	for (CHostPath* p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
@@ -591,7 +576,6 @@ void CHostDrv::CleanCache()
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache(const BYTE* szHumanPath)
 {
-	ASSERT(this);
 	ASSERT(szHumanPath);
 
 	Lock();
@@ -610,7 +594,6 @@ void CHostDrv::CleanCache(const BYTE* szHumanPath)
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCacheChild(const BYTE* szHumanPath)
 {
-	ASSERT(this);
 	ASSERT(szHumanPath);
 
 	Lock();
@@ -630,7 +613,6 @@ void CHostDrv::CleanCacheChild(const BYTE* szHumanPath)
 //---------------------------------------------------------------------------
 void CHostDrv::DeleteCache(const BYTE* szHumanPath)
 {
-	ASSERT(this);
 	ASSERT(szHumanPath);
 
 	Lock();
@@ -654,7 +636,6 @@ void CHostDrv::DeleteCache(const BYTE* szHumanPath)
 //---------------------------------------------------------------------------
 CHostPath* CHostDrv::FindCache(const BYTE* szHuman)
 {
-	ASSERT(this);
 	ASSERT(szHuman);
 
 	// 所持している全てのファイル名の中から完全一致するものを検索
@@ -678,7 +659,6 @@ CHostPath* CHostDrv::FindCache(const BYTE* szHuman)
 //---------------------------------------------------------------------------
 CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
 {
-	ASSERT(this);
 	ASSERT(pFiles);
 	ASSERT(strlen((const char*)pFiles->GetHumanPath()) < HUMAN68K_PATH_MAX);
 
@@ -724,7 +704,6 @@ CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
 //---------------------------------------------------------------------------
 CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 {
-	ASSERT(this);
 	ASSERT(pFiles);
 	ASSERT(strlen((const char*)pFiles->GetHumanPath()) < HUMAN68K_PATH_MAX);
 
@@ -838,7 +817,6 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 //---------------------------------------------------------------------------
 BOOL CHostDrv::Find(CHostFiles* pFiles)
 {
-	ASSERT(this);
 	ASSERT(pFiles);
 
 	// 排他制御開始
@@ -908,7 +886,6 @@ CHostFilename::CHostFilename()
 //---------------------------------------------------------------------------
 void CHostFilename::SetHost(const TCHAR* szHost)
 {
-	ASSERT(this);
 	ASSERT(szHost);
 	ASSERT(strlen(szHost) < FILEPATH_MAX);
 
@@ -950,7 +927,6 @@ void CHostFilename::ConvertHuman(int nCount)
 {
 	char szHost[FILEPATH_MAX];
 
-	ASSERT(this);
 
 	// 特殊ディレクトリ名の場合は変換しない
 	if (m_szHost[0] == _T('.') &&
@@ -1177,7 +1153,6 @@ void CHostFilename::ConvertHuman(int nCount)
 //---------------------------------------------------------------------------
 void CHostFilename::CopyHuman(const BYTE* szHuman)
 {
-	ASSERT(this);
 	ASSERT(szHuman);
 	ASSERT(strlen((const char*)szHuman) < 23);
 
@@ -1196,7 +1171,6 @@ void CHostFilename::CopyHuman(const BYTE* szHuman)
 //---------------------------------------------------------------------------
 void CHostFilename::SetEntryName()
 {
-	ASSERT(this);
 
 	// ファイル名設定
 	BYTE* p = m_szHuman;
@@ -1232,7 +1206,6 @@ void CHostFilename::SetEntryName()
 //---------------------------------------------------------------------------
 BOOL CHostFilename::isReduce() const
 {
-	ASSERT(this);
 
 	return strcmp((LPTSTR)m_szHost, (const char*)m_szHuman) != 0;	/// @warning Unicode時要修正 → 済
 }
@@ -1244,7 +1217,6 @@ BOOL CHostFilename::isReduce() const
 //---------------------------------------------------------------------------
 BOOL CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
 {
-	ASSERT(this);
 
 	BYTE nAttribute = m_dirHuman.attr;
 	if ((nAttribute & (Human68k::AT_ARCHIVE | Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0)
@@ -1358,7 +1330,6 @@ void CHostPath::Free(ring_t* pRing)	// static
 //---------------------------------------------------------------------------
 void CHostPath::Clean()
 {
-	ASSERT(this);
 
 	Release();
 
@@ -1376,7 +1347,6 @@ void CHostPath::Clean()
 //---------------------------------------------------------------------------
 void CHostPath::SetHuman(const BYTE* szHuman)
 {
-	ASSERT(this);
 	ASSERT(szHuman);
 	ASSERT(strlen((const char*)szHuman) < HUMAN68K_PATH_MAX);
 
@@ -1390,7 +1360,6 @@ void CHostPath::SetHuman(const BYTE* szHuman)
 //---------------------------------------------------------------------------
 void CHostPath::SetHost(const TCHAR* szHost)
 {
-	ASSERT(this);
 	ASSERT(szHost);
 	ASSERT(strlen(szHost) < FILEPATH_MAX);
 
@@ -1481,7 +1450,6 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 //---------------------------------------------------------------------------
 BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
 {
-	ASSERT(this);
 	ASSERT(szHuman);
 
 	// 文字数計算
@@ -1503,7 +1471,6 @@ BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
 //---------------------------------------------------------------------------
 BOOL CHostPath::isSameChild(const BYTE* szHuman) const
 {
-	ASSERT(this);
 	ASSERT(szHuman);
 
 	// 文字数計算
@@ -1529,7 +1496,6 @@ BOOL CHostPath::isSameChild(const BYTE* szHuman) const
 //---------------------------------------------------------------------------
 const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, DWORD nHumanAttribute) const
 {
-	ASSERT(this);
 	ASSERT(szHuman);
 
 	// 文字数計算
@@ -1569,7 +1535,6 @@ const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, DWORD nHumanAt
 //---------------------------------------------------------------------------
 const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const
 {
-	ASSERT(this);
 	ASSERT(szHuman);
 	ASSERT(pFind);
 
@@ -1655,7 +1620,6 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 //---------------------------------------------------------------------------
 BOOL CHostPath::isRefresh()
 {
-	ASSERT(this);
 
 	return m_bRefresh;
 }
@@ -1815,7 +1779,6 @@ int AsciiSort(const dirent **a, const dirent **b)
 //---------------------------------------------------------------------------
 void CHostPath::Refresh()
 {
-	ASSERT(this);
 	ASSERT(strlen(m_szHost) + 22 < FILEPATH_MAX);
 
 	// タイムスタンプ保存
@@ -2013,7 +1976,6 @@ void CHostPath::Refresh()
 void CHostPath::Backup()
 {
 #ifndef BAREMETAL
-	ASSERT(this);
 	ASSERT(m_szHost);
 	ASSERT(strlen(m_szHost) < FILEPATH_MAX);
 
@@ -2033,7 +1995,6 @@ void CHostPath::Backup()
 #else
 	FILINFO fno;
 
-	ASSERT(this);
 	ASSERT(m_szHost);
 	ASSERT(strlen(m_szHost) < FILEPATH_MAX);
 
@@ -2063,7 +2024,6 @@ void CHostPath::Backup()
 void CHostPath::Restore() const
 {
 #ifndef BAREMETAL
-	ASSERT(this);
 	ASSERT(m_szHost);
 	ASSERT(strlen(m_szHost) < FILEPATH_MAX);
 
@@ -2085,7 +2045,6 @@ void CHostPath::Restore() const
 #else
 	FILINFO fno;
 
-	ASSERT(this);
 	ASSERT(m_szHost);
 	ASSERT(strlen(m_szHost) < FILEPATH_MAX);
 
@@ -2113,7 +2072,6 @@ void CHostPath::Restore() const
 //---------------------------------------------------------------------------
 void CHostPath::Release()
 {
-	ASSERT(this);
 
 	m_bRefresh = TRUE;
 }
@@ -2162,7 +2120,6 @@ CHostEntry::~CHostEntry()
 //---------------------------------------------------------------------------
 void CHostEntry::Init()
 {
-	ASSERT(this);
 
 #ifdef _DEBUG
 	// オブジェクト確認
@@ -2179,7 +2136,6 @@ void CHostEntry::Init()
 //---------------------------------------------------------------------------
 void CHostEntry::Clean()
 {
-	ASSERT(this);
 
 	// オブジェクト削除
 	for (size_t n = 0; n < DriveMax; n++) {
@@ -2195,7 +2151,6 @@ void CHostEntry::Clean()
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache()
 {
-	ASSERT(this);
 
 	for (size_t i = 0; i < DriveMax; i++) {
 		if (m_pDrv[i])
@@ -2212,7 +2167,6 @@ void CHostEntry::CleanCache()
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache(DWORD nUnit)
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2226,7 +2180,6 @@ void CHostEntry::CleanCache(DWORD nUnit)
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache(DWORD nUnit, const BYTE* szHumanPath)
 {
-	ASSERT(this);
 	ASSERT(szHumanPath);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2241,7 +2194,6 @@ void CHostEntry::CleanCache(DWORD nUnit, const BYTE* szHumanPath)
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath)
 {
-	ASSERT(this);
 	ASSERT(szHumanPath);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2256,7 +2208,6 @@ void CHostEntry::CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath)
 //---------------------------------------------------------------------------
 void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath)
 {
-	ASSERT(this);
 	ASSERT(szHumanPath);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2271,7 +2222,6 @@ void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath)
 //---------------------------------------------------------------------------
 BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles)
 {
-	ASSERT(this);
 	ASSERT(pFiles);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2288,7 +2238,6 @@ void CHostEntry::ShellNotify(DWORD, const TCHAR*) {}
 //---------------------------------------------------------------------------
 void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit] == NULL);
 
@@ -2302,7 +2251,6 @@ void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2316,7 +2264,6 @@ BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isEnable(DWORD nUnit) const
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2330,7 +2277,6 @@ BOOL CHostEntry::isEnable(DWORD nUnit) const
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isMediaOffline(DWORD nUnit)
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2344,7 +2290,6 @@ BOOL CHostEntry::isMediaOffline(DWORD nUnit)
 //---------------------------------------------------------------------------
 BYTE CHostEntry::GetMediaByte(DWORD nUnit) const
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2358,7 +2303,6 @@ BYTE CHostEntry::GetMediaByte(DWORD nUnit) const
 //---------------------------------------------------------------------------
 DWORD CHostEntry::GetStatus(DWORD nUnit) const
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2372,7 +2316,6 @@ DWORD CHostEntry::GetStatus(DWORD nUnit) const
 //---------------------------------------------------------------------------
 BOOL CHostEntry::CheckMedia(DWORD nUnit)
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2386,7 +2329,6 @@ BOOL CHostEntry::CheckMedia(DWORD nUnit)
 //---------------------------------------------------------------------------
 void CHostEntry::Eject(DWORD nUnit)
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2400,7 +2342,6 @@ void CHostEntry::Eject(DWORD nUnit)
 //---------------------------------------------------------------------------
 void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel)
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2414,7 +2355,6 @@ void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel)
 //---------------------------------------------------------------------------
 BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2428,7 +2368,6 @@ BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 //---------------------------------------------------------------------------
 DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2442,7 +2381,6 @@ DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
 //---------------------------------------------------------------------------
 BOOL CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 {
-	ASSERT(this);
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
 
@@ -2517,7 +2455,6 @@ const BYTE* CHostDrv::SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer)	
 //---------------------------------------------------------------------------
 void CHostFiles::Init()
 {
-	ASSERT(this);
 }
 
 //---------------------------------------------------------------------------
@@ -2527,7 +2464,6 @@ void CHostFiles::Init()
 //---------------------------------------------------------------------------
 void CHostFiles::SetPath(const Human68k::namests_t* pNamests)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 
 	pNamests->GetCopyPath(m_szHumanPath);
@@ -2544,7 +2480,6 @@ void CHostFiles::SetPath(const Human68k::namests_t* pNamests)
 //---------------------------------------------------------------------------
 BOOL CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
 {
-	ASSERT(this);
 	ASSERT(pEntry);
 
 	return pEntry->Find(nUnit, this);
@@ -2557,7 +2492,6 @@ BOOL CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
 //---------------------------------------------------------------------------
 const CHostFilename* CHostFiles::Find(CHostPath* pPath)
 {
-	ASSERT(this);
 	ASSERT(pPath);
 
 	if (m_nHumanWildcard)
@@ -2573,7 +2507,6 @@ const CHostFilename* CHostFiles::Find(CHostPath* pPath)
 //---------------------------------------------------------------------------
 void CHostFiles::SetEntry(const CHostFilename* pFilename)
 {
-	ASSERT(this);
 	ASSERT(pFilename);
 
 	// Human68kディレクトリエントリ保存
@@ -2590,7 +2523,6 @@ void CHostFiles::SetEntry(const CHostFilename* pFilename)
 //---------------------------------------------------------------------------
 void CHostFiles::SetResult(const TCHAR* szPath)
 {
-	ASSERT(this);
 	ASSERT(szPath);
 	ASSERT(strlen(szPath) < FILEPATH_MAX);
 
@@ -2604,7 +2536,6 @@ void CHostFiles::SetResult(const TCHAR* szPath)
 //---------------------------------------------------------------------------
 void CHostFiles::AddResult(const TCHAR* szPath)
 {
-	ASSERT(this);
 	ASSERT(szPath);
 	ASSERT(strlen(m_szHostResult) + strlen(szPath) < FILEPATH_MAX);
 
@@ -2618,7 +2549,6 @@ void CHostFiles::AddResult(const TCHAR* szPath)
 //---------------------------------------------------------------------------
 void CHostFiles::AddFilename()
 {
-	ASSERT(this);
 	ASSERT(strlen(m_szHostResult) + strlen((const char*)m_szHumanFilename) < FILEPATH_MAX);
 	/// @warning Unicode未対応。いずれUnicodeの世界に飮まれた時はここで変換を行なう → 済
 	strncat(m_szHostResult, (const char*)m_szHumanFilename, ARRAY_SIZE(m_szHumanFilename));
@@ -2651,7 +2581,6 @@ CHostFilesManager::~CHostFilesManager()
 //---------------------------------------------------------------------------
 void CHostFilesManager::Init()
 {
-	ASSERT(this);
 
 	// 実体が存在しないことを確認 (念のため)
 	ASSERT(m_cRing.Next() == &m_cRing);
@@ -2672,7 +2601,6 @@ void CHostFilesManager::Init()
 //---------------------------------------------------------------------------
 void CHostFilesManager::Clean()
 {
-	ASSERT(this);
 
 	// メモリ解放
 	CRing* p;
@@ -2688,7 +2616,6 @@ void CHostFilesManager::Clean()
 //---------------------------------------------------------------------------
 CHostFiles* CHostFilesManager::Alloc(DWORD nKey)
 {
-	ASSERT(this);
 	ASSERT(nKey);
 
 	// 末尾から選択
@@ -2710,7 +2637,6 @@ CHostFiles* CHostFilesManager::Alloc(DWORD nKey)
 //---------------------------------------------------------------------------
 CHostFiles* CHostFilesManager::Search(DWORD nKey)
 {
-	ASSERT(this);
 	// ASSERT(nKey);	// DPB破損により検索キーが0になることもある
 
 	// 該当するオブジェクトを検索
@@ -2733,7 +2659,6 @@ CHostFiles* CHostFilesManager::Search(DWORD nKey)
 //---------------------------------------------------------------------------
 void CHostFilesManager::Free(CHostFiles* pFiles)
 {
-	ASSERT(this);
 	ASSERT(pFiles);
 
 	// 解放
@@ -2758,7 +2683,6 @@ void CHostFilesManager::Free(CHostFiles* pFiles)
 //---------------------------------------------------------------------------
 void CHostFcb::Init()
 {
-	ASSERT(this);
 
 	m_bUpdate = FALSE;
 #ifndef BAREMETAL
@@ -2775,7 +2699,6 @@ void CHostFcb::Init()
 //---------------------------------------------------------------------------
 BOOL CHostFcb::SetMode(DWORD nHumanMode)
 {
-	ASSERT(this);
 
 #ifndef BAREMETAL
 	switch (nHumanMode & Human68k::OP_MASK) {
@@ -2819,7 +2742,6 @@ BOOL CHostFcb::SetMode(DWORD nHumanMode)
 //---------------------------------------------------------------------------
 void CHostFcb::SetFilename(const TCHAR* szFilename)
 {
-	ASSERT(this);
 	ASSERT(szFilename);
 	ASSERT(strlen(szFilename) < FILEPATH_MAX);
 
@@ -2833,7 +2755,6 @@ void CHostFcb::SetFilename(const TCHAR* szFilename)
 //---------------------------------------------------------------------------
 void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 {
-	ASSERT(this);
 	ASSERT(szHumanPath);
 	ASSERT(strlen((const char*)szHumanPath) < HUMAN68K_PATH_MAX);
 
@@ -2850,7 +2771,6 @@ void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 BOOL CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
 {
 #ifndef BAREMETAL
-	ASSERT(this);
 	ASSERT((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
 	ASSERT(strlen(m_szFilename) > 0);
 	ASSERT(m_pFile == NULL);
@@ -2869,7 +2789,6 @@ BOOL CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
 #else
 	FRESULT fr;
 
-	ASSERT(this);
 	ASSERT((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
 	ASSERT(strlen(m_szFilename) > 0);
 
@@ -2903,7 +2822,6 @@ BOOL CHostFcb::Open()
 #ifndef BAREMETAL
 	struct stat st;
 
-	ASSERT(this);
 	ASSERT(strlen(m_szFilename) > 0);
 
 	// ディレクトリなら失敗
@@ -2922,7 +2840,6 @@ BOOL CHostFcb::Open()
 	FRESULT fr;
 	FILINFO fno;
 
-	ASSERT(this);
 	ASSERT(strlen(m_szFilename) > 0);
 
 	// ディレクトリなら失敗
@@ -2950,7 +2867,6 @@ BOOL CHostFcb::Open()
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Rewind(DWORD nOffset)
 {
-	ASSERT(this);
 #ifndef BAREMETAL
 	ASSERT(m_pFile);
 
@@ -2977,7 +2893,6 @@ BOOL CHostFcb::Rewind(DWORD nOffset)
 DWORD CHostFcb::Read(BYTE* pBuffer, DWORD nSize)
 {
 #ifndef BAREMETAL
-	ASSERT(this);
 	ASSERT(pBuffer);
 	ASSERT(m_pFile);
 
@@ -2990,7 +2905,6 @@ DWORD CHostFcb::Read(BYTE* pBuffer, DWORD nSize)
 	FRESULT fr;
 	UINT nResult;
 
-	ASSERT(this);
 	ASSERT(pBuffer);
 
 	fr = f_read(&m_File, pBuffer, nSize, &nResult);
@@ -3012,7 +2926,6 @@ DWORD CHostFcb::Read(BYTE* pBuffer, DWORD nSize)
 DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 {
 #ifndef BAREMETAL
-	ASSERT(this);
 	ASSERT(pBuffer);
 	ASSERT(m_pFile);
 
@@ -3025,7 +2938,6 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 	FRESULT fr;
 	UINT nResult;
 
-	ASSERT(this);
 	ASSERT(pBuffer);
 
 	fr = f_write(&m_File, pBuffer, nSize, &nResult);
@@ -3045,7 +2957,6 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Truncate()
 {
-	ASSERT(this);
 #ifndef BAREMETAL
 	ASSERT(m_pFile);
 
@@ -3065,7 +2976,6 @@ BOOL CHostFcb::Truncate()
 DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 {
 #ifndef BAREMETAL
-	ASSERT(this);
 	ASSERT(nHumanSeek == Human68k::SK_BEGIN ||
 		nHumanSeek == Human68k::SK_CURRENT || nHumanSeek == Human68k::SK_END);
 	ASSERT(m_pFile);
@@ -3090,7 +3000,6 @@ DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 #else
 	FRESULT fr;
 
-	ASSERT(this);
 	ASSERT(nHumanSeek == Human68k::SK_BEGIN ||
 		nHumanSeek == Human68k::SK_CURRENT || nHumanSeek == Human68k::SK_END);
 
@@ -3123,7 +3032,6 @@ DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 {
 #ifndef BAREMETAL
-	ASSERT(this);
 	ASSERT(m_pFile || m_bFlag);
 
 	struct tm t = { 0 };
@@ -3148,7 +3056,6 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 #else
 	FILINFO fno;
 
-	ASSERT(this);
 	ASSERT(m_bFlag);
 
 	// クローズ時に更新時刻が上書きされるのを防止するため
@@ -3170,7 +3077,6 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Close()
 {
-	ASSERT(this);
 
 	BOOL bResult = TRUE;
 
@@ -3215,7 +3121,6 @@ CHostFcbManager::~CHostFcbManager()
 //---------------------------------------------------------------------------
 void CHostFcbManager::Init()
 {
-	ASSERT(this);
 
 	// 実体が存在しないことを確認 (念のため)
 	ASSERT(m_cRing.Next() == &m_cRing);
@@ -3236,7 +3141,6 @@ void CHostFcbManager::Init()
 //---------------------------------------------------------------------------
 void CHostFcbManager::Clean()
 {
-	ASSERT(this);
 
 	// メモリ解放
 	CRing* p;
@@ -3252,7 +3156,6 @@ void CHostFcbManager::Clean()
 //---------------------------------------------------------------------------
 CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 {
-	ASSERT(this);
 	ASSERT(nKey);
 
 	// 末尾から選択
@@ -3280,7 +3183,6 @@ CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 //---------------------------------------------------------------------------
 CHostFcb* CHostFcbManager::Search(DWORD nKey)
 {
-	ASSERT(this);
 	ASSERT(nKey);
 
 	// 該当するオブジェクトを検索
@@ -3304,7 +3206,6 @@ CHostFcb* CHostFcbManager::Search(DWORD nKey)
 //---------------------------------------------------------------------------
 void CHostFcbManager::Free(CHostFcb* pFcb)
 {
-	ASSERT(this);
 	ASSERT(pFcb);
 
 	// 解放
@@ -3361,7 +3262,6 @@ CFileSys::CFileSys()
 //---------------------------------------------------------------------------
 void CFileSys::Reset()
 {
-	ASSERT(this);
 
 	// 仮想セクタ領域初期化
 	m_nHostSectorCount = 0;
@@ -3391,7 +3291,6 @@ void CFileSys::Reset()
 //---------------------------------------------------------------------------
 void CFileSys::Init()
 {
-	ASSERT(this);
 
 	// ファイル検索領域 初期化 (デバイス起動・ロード時)
 	m_cFiles.Init();
@@ -3440,7 +3339,6 @@ void CFileSys::Init()
 //---------------------------------------------------------------------------
 DWORD CFileSys::InitDevice(const Human68k::argument_t* pArgument)
 {
-	ASSERT(this);
 
 	// オプション初期化
 	InitOption(pArgument);
@@ -3458,7 +3356,6 @@ DWORD CFileSys::InitDevice(const Human68k::argument_t* pArgument)
 //---------------------------------------------------------------------------
 int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 
 	// ユニットチェック
@@ -3486,7 +3383,6 @@ int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 //---------------------------------------------------------------------------
 int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 
 	// ユニットチェック
@@ -3533,7 +3429,6 @@ int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 //---------------------------------------------------------------------------
 int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 
 	// ユニットチェック
@@ -3588,7 +3483,6 @@ int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 //---------------------------------------------------------------------------
 int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 
 	// ユニットチェック
@@ -3651,7 +3545,6 @@ int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Hum
 //---------------------------------------------------------------------------
 int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 
 	// ユニットチェック
@@ -3696,7 +3589,6 @@ int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
 //---------------------------------------------------------------------------
 int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 
 	// ユニットチェック
@@ -3775,7 +3667,6 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 //---------------------------------------------------------------------------
 int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::files_t* pFiles)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 	ASSERT(nKey);
 	ASSERT(pFiles);
@@ -3869,7 +3760,6 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 //---------------------------------------------------------------------------
 int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 {
-	ASSERT(this);
 	ASSERT(nKey);
 	ASSERT(pFiles);
 
@@ -3914,7 +3804,6 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 //---------------------------------------------------------------------------
 int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 	ASSERT(nKey);
 	ASSERT(pFcb);
@@ -3983,7 +3872,6 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 //---------------------------------------------------------------------------
 int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb)
 {
-	ASSERT(this);
 	ASSERT(pNamests);
 	ASSERT(nKey);
 	ASSERT(pFcb);
@@ -4053,7 +3941,6 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 //---------------------------------------------------------------------------
 int CFileSys::Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* /* pFcb */)
 {
-	ASSERT(this);
 	ASSERT(nKey);
 
 	// ユニットチェック
@@ -4092,7 +3979,6 @@ int CFileSys::Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* /* pFcb */)
 //---------------------------------------------------------------------------
 int CFileSys::Read(DWORD nKey, Human68k::fcb_t* pFcb, BYTE* pBuffer, DWORD nSize)
 {
-	ASSERT(this);
 	ASSERT(nKey);
 	ASSERT(pFcb);
 	// ASSERT(pBuffer);			// 必要時のみ判定
@@ -4133,7 +4019,6 @@ int CFileSys::Read(DWORD nKey, Human68k::fcb_t* pFcb, BYTE* pBuffer, DWORD nSize
 //---------------------------------------------------------------------------
 int CFileSys::Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, DWORD nSize)
 {
-	ASSERT(this);
 	ASSERT(nKey);
 	ASSERT(pFcb);
 	// ASSERT(pBuffer);			// 必要時のみ判定
@@ -4192,7 +4077,6 @@ int CFileSys::Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, DWOR
 //---------------------------------------------------------------------------
 int CFileSys::Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset)
 {
-	ASSERT(this);
 	ASSERT(pFcb);
 
 	// 既に同じキーを持つ領域がなければエラーとする
@@ -4228,7 +4112,6 @@ int CFileSys::Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset)
 //---------------------------------------------------------------------------
 DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD nHumanTime)
 {
-	ASSERT(this);
 	ASSERT(nKey);
 	ASSERT(pFcb);
 
@@ -4277,7 +4160,6 @@ DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD 
 //---------------------------------------------------------------------------
 int CFileSys::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
 {
-	ASSERT(this);
 	ASSERT(pCapacity);
 
 	// ユニットチェック
@@ -4302,7 +4184,6 @@ int CFileSys::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
 //---------------------------------------------------------------------------
 int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive)
 {
-	ASSERT(this);
 	ASSERT(pCtrlDrive);
 
 	// ユニットチェック
@@ -4343,7 +4224,6 @@ int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive)
 //---------------------------------------------------------------------------
 int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb)
 {
-	ASSERT(this);
 	ASSERT(pDpb);
 
 	// ユニットチェック
@@ -4424,7 +4304,6 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb)
 //---------------------------------------------------------------------------
 int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 {
-	ASSERT(this);
 	ASSERT(pBuffer);
 
 	// ユニットチェック
@@ -4507,7 +4386,6 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 //---------------------------------------------------------------------------
 int CFileSys::DiskWrite(DWORD nUnit)
 {
-	ASSERT(this);
 
 	// ユニットチェック
 	if (nUnit >= DriveMax)
@@ -4535,7 +4413,6 @@ int CFileSys::DiskWrite(DWORD nUnit)
 //---------------------------------------------------------------------------
 int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 {
-	ASSERT(this);
 	ASSERT(pIoctrl);
 
 	// ユニットチェック
@@ -4595,7 +4472,6 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 //---------------------------------------------------------------------------
 int CFileSys::Flush(DWORD nUnit)
 {
-	ASSERT(this);
 
 	// ユニットチェック
 	if (nUnit >= DriveMax)
@@ -4614,7 +4490,6 @@ int CFileSys::Flush(DWORD nUnit)
 //---------------------------------------------------------------------------
 int CFileSys::CheckMedia(DWORD nUnit)
 {
-	ASSERT(this);
 
 	// ユニットチェック
 	if (nUnit >= DriveMax)
@@ -4640,7 +4515,6 @@ int CFileSys::CheckMedia(DWORD nUnit)
 //---------------------------------------------------------------------------
 int CFileSys::Lock(DWORD nUnit)
 {
-	ASSERT(this);
 
 	// ユニットチェック
 	if (nUnit >= DriveMax)
@@ -4664,7 +4538,6 @@ int CFileSys::Lock(DWORD nUnit)
 //---------------------------------------------------------------------------
 void CFileSys::SetOption(DWORD nOption)
 {
-	ASSERT(this);
 
 	// オプション設定変更でキャッシュクリア
 	if (m_nOption ^ nOption)
@@ -4681,7 +4554,6 @@ void CFileSys::SetOption(DWORD nOption)
 //---------------------------------------------------------------------------
 void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 {
-	ASSERT(this);
 	ASSERT(pArgument);
 
 	// ドライブ数を初期化
@@ -4766,7 +4638,6 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 //---------------------------------------------------------------------------
 BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles)
 {
-	ASSERT(this);
 	ASSERT(pFiles);
 
 	// ボリュームラベル取得

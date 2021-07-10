@@ -51,7 +51,6 @@ Fileio::~Fileio()
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::Load(const Filepath& path, void *buffer, int size)
 {
-	ASSERT(this);
 	ASSERT(buffer);
 	ASSERT(size > 0);
 	ASSERT(handle < 0);
@@ -80,7 +79,6 @@ BOOL FASTCALL Fileio::Load(const Filepath& path, void *buffer, int size)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::Save(const Filepath& path, void *buffer, int size)
 {
-	ASSERT(this);
 	ASSERT(buffer);
 	ASSERT(size > 0);
 	ASSERT(handle < 0);
@@ -111,7 +109,6 @@ BOOL FASTCALL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 {
 	mode_t omode;
 
-	ASSERT(this);
 	ASSERT(fname);
 	ASSERT(handle < 0);
 
@@ -172,7 +169,6 @@ BOOL FASTCALL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::Open(LPCTSTR fname, OpenMode mode)
 {
-	ASSERT(this);
 
 	return Open(fname, mode, FALSE);
 }
@@ -184,7 +180,6 @@ BOOL FASTCALL Fileio::Open(LPCTSTR fname, OpenMode mode)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::Open(const Filepath& path, OpenMode mode)
 {
-	ASSERT(this);
 
 	return Open(path.GetPath(), mode);
 }
@@ -196,7 +191,6 @@ BOOL FASTCALL Fileio::Open(const Filepath& path, OpenMode mode)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::OpenDIO(LPCTSTR fname, OpenMode mode)
 {
-	ASSERT(this);
 
 	// O_DIRECT付きでオープン
 	if (!Open(fname, mode, TRUE)) {
@@ -214,7 +208,6 @@ BOOL FASTCALL Fileio::OpenDIO(LPCTSTR fname, OpenMode mode)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::OpenDIO(const Filepath& path, OpenMode mode)
 {
-	ASSERT(this);
 
 	return OpenDIO(path.GetPath(), mode);
 }
@@ -228,7 +221,6 @@ BOOL FASTCALL Fileio::Read(void *buffer, int size)
 {
 	int count;
 
-	ASSERT(this);
 	ASSERT(buffer);
 	ASSERT(size > 0);
 	ASSERT(handle >= 0);
@@ -251,7 +243,6 @@ BOOL FASTCALL Fileio::Write(const void *buffer, int size)
 {
 	int count;
 
-	ASSERT(this);
 	ASSERT(buffer);
 	ASSERT(size > 0);
 	ASSERT(handle >= 0);
@@ -272,7 +263,6 @@ BOOL FASTCALL Fileio::Write(const void *buffer, int size)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::Seek(off64_t offset, BOOL relative)
 {
-	ASSERT(this);
 	ASSERT(handle >= 0);
 	ASSERT(offset >= 0);
 
@@ -298,7 +288,6 @@ off64_t FASTCALL Fileio::GetFileSize()
 	off64_t cur;
 	off64_t end;
 
-	ASSERT(this);
 	ASSERT(handle >= 0);
 
 	// ファイル位置を64bitで取得
@@ -322,7 +311,6 @@ off64_t FASTCALL Fileio::GetFilePos() const
 {
 	off64_t pos;
 
-	ASSERT(this);
 	ASSERT(handle >= 0);
 
 	// ファイル位置を64bitで取得
@@ -338,7 +326,6 @@ off64_t FASTCALL Fileio::GetFilePos() const
 //---------------------------------------------------------------------------
 void FASTCALL Fileio::Close()
 {
-	ASSERT(this);
 
 	if (handle != -1) {
 		close(handle);
@@ -377,7 +364,6 @@ Fileio::~Fileio()
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::Load(const Filepath& path, void *buffer, int size)
 {
-	ASSERT(this);
 	ASSERT(buffer);
 	ASSERT(size > 0);
 	ASSERT(!handle.obj.fs);
@@ -406,7 +392,6 @@ BOOL FASTCALL Fileio::Load(const Filepath& path, void *buffer, int size)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::Save(const Filepath& path, void *buffer, int size)
 {
-	ASSERT(this);
 	ASSERT(buffer);
 	ASSERT(size > 0);
 	ASSERT(!handle.obj.fs);
@@ -437,7 +422,6 @@ BOOL FASTCALL Fileio::Open(LPCTSTR fname, OpenMode mode)
 {
 	FRESULT fr;
 	Filepath fpath;
-	ASSERT(this);
 	ASSERT(fname);
 	ASSERT(!handle.obj.fs);
 
@@ -491,7 +475,6 @@ BOOL FASTCALL Fileio::Open(LPCTSTR fname, OpenMode mode)
 //---------------------------------------------------------------------------
 BOOL FASTCALL Fileio::Open(const Filepath& path, OpenMode mode)
 {
-	ASSERT(this);
 	ASSERT(!handle.obj.fs);
 
 	return Open(path.GetPath(), mode);
@@ -507,7 +490,6 @@ BOOL FASTCALL Fileio::Read(void *buffer, int size)
 	FRESULT fr;
 	UINT count;
 
-	ASSERT(this);
 	ASSERT(buffer);
 	ASSERT(size > 0);
 	ASSERT(handle.obj.fs);
@@ -531,7 +513,6 @@ BOOL FASTCALL Fileio::Write(const void *buffer, int size)
 	FRESULT fr;
 	UINT count;
 
-	ASSERT(this);
 	ASSERT(buffer);
 	ASSERT(size > 0);
 	ASSERT(handle.obj.fs);
@@ -554,7 +535,6 @@ BOOL FASTCALL Fileio::Seek(off64_t offset, BOOL relative)
 {
 	FRESULT fr;
 
-	ASSERT(this);
 	ASSERT(offset >= 0);
 	ASSERT(handle.obj.fs);
 
@@ -582,7 +562,6 @@ BOOL FASTCALL Fileio::Seek(off64_t offset, BOOL relative)
 //---------------------------------------------------------------------------
 off64_t FASTCALL Fileio::GetFileSize()
 {
-	ASSERT(this);
 	ASSERT(handle.obj.fs);
 
 	return f_size(&handle);
@@ -595,7 +574,6 @@ off64_t FASTCALL Fileio::GetFileSize()
 //---------------------------------------------------------------------------
 off64_t FASTCALL Fileio::GetFilePos() const
 {
-	ASSERT(this);
 	ASSERT(handle.obj.fs);
 
 	return f_tell(&handle);
@@ -608,7 +586,6 @@ off64_t FASTCALL Fileio::GetFilePos() const
 //---------------------------------------------------------------------------
 void FASTCALL Fileio::Close()
 {
-	ASSERT(this);
 
 	if (handle.obj.fs) {
 		f_close(&handle);

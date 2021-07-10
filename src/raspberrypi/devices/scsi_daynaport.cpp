@@ -124,7 +124,6 @@ int FASTCALL SCSIDaynaPort::Inquiry(
 	// scsi_cdb_6_byte_t command;
 	// memcpy(&command,cdb,sizeof(command));
 
-	ASSERT(this);
 	ASSERT(cdb);
 	ASSERT(buffer);
 	ASSERT(cdb[0] == 0x12);
@@ -200,7 +199,6 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 	scsi_cmd_read_6_t *command = (scsi_cmd_read_6_t*)cdb;
 	int read_count = 0;
 
-	ASSERT(this);
 	ASSERT(buf);
 
 	LOGTRACE("%s reading DaynaPort block %lu", __PRETTY_FUNCTION__, block);
@@ -408,7 +406,6 @@ int FASTCALL SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 
 	LOGTRACE("%s RetrieveStats ", __PRETTY_FUNCTION__);
 
-	ASSERT(this);
 	ASSERT(cdb);
 	ASSERT(buffer);
 
@@ -522,7 +519,6 @@ BOOL FASTCALL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 //---------------------------------------------------------------------------
 BOOL FASTCALL SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 {
-	ASSERT(this);
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// TEST UNIT READY Success
@@ -541,7 +537,7 @@ void FASTCALL SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
 
 	for(size_t i=0; i<sizeof(6); i++)
 	{
-		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, i,(WORD)cdb[i]);
+		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, (unsigned int)i,(WORD)cdb[i]);
 	}	
 }
 

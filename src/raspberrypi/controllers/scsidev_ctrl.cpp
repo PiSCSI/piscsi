@@ -45,46 +45,46 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	SetupCommand(0x00, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
-	SetupCommand(0x01, "CmdRezero", &SCSIDEV::CmdRezero);
-	SetupCommand(0x03, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
-	SetupCommand(0x04, "CmdFormat", &SCSIDEV::CmdFormat);
-	SetupCommand(0x07, "CmdReassign", &SCSIDEV::CmdReassign);
-	SetupCommand(0x08, "CmdRead6", &SCSIDEV::CmdRead6);
-	SetupCommand(0x0a, "CmdWrite6", &SCSIDEV::CmdWrite6);
-	SetupCommand(0x0b, "CmdSeek6", &SCSIDEV::CmdSeek6);
-	SetupCommand(0x12, "CmdInquiry", &SCSIDEV::CmdInquiry);
-	SetupCommand(0x15, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
-	SetupCommand(0x16, "CmdReserve6", &SCSIDEV::CmdReserve6);
-	SetupCommand(0x17, "CmdRelease6", &SCSIDEV::CmdRelease6);
-	SetupCommand(0x1a, "CmdModeSense", &SCSIDEV::CmdModeSense);
-	SetupCommand(0x1b, "CmdStartStop", &SCSIDEV::CmdStartStop);
-	SetupCommand(0x1d, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
-	SetupCommand(0x1e, "CmdRemoval", &SCSIDEV::CmdRemoval);
-	SetupCommand(0x25, "CmdReadCapacity", &SCSIDEV::CmdReadCapacity);
-	SetupCommand(0x28, "CmdRead10", &SCSIDEV::CmdRead10);
-	SetupCommand(0x2a, "CmdWrite10", &SCSIDEV::CmdWrite10);
-	SetupCommand(0x2e, "CmdWriteAndVerify10", &SCSIDEV::CmdWrite10);
-	SetupCommand(0x2b, "CmdSeek10", &SCSIDEV::CmdSeek10);
-	SetupCommand(0x2f, "CmdVerify", &SCSIDEV::CmdVerify);
-	SetupCommand(0x35, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
-	SetupCommand(0x37, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
-	SetupCommand(0x55, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
-	SetupCommand(0x56, "CmdReserve10", &SCSIDEV::CmdReserve10);
-	SetupCommand(0x57, "CmdRelease10", &SCSIDEV::CmdRelease10);
-	SetupCommand(0x5a, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+	SetupCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
+	SetupCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
+	SetupCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
+	SetupCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
+	SetupCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
+	SetupCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
+	SetupCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
+	SetupCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
+	SetupCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
+	SetupCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
+	SetupCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
+	SetupCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
+	SetupCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
+	SetupCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
+	SetupCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
+	SetupCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
+	SetupCommand(eCmdReadCapacity, "CmdReadCapacity", &SCSIDEV::CmdReadCapacity);
+	SetupCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
+	SetupCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
+	SetupCommand(eCmdWriteAndVerify10, "CmdWriteAndVerify10", &SCSIDEV::CmdWrite10);
+	SetupCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
+	SetupCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
+	SetupCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
+	SetupCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
+	SetupCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
+	SetupCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
+	SetupCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
+	SetupCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
 
 	// MMC specific. TODO Move to separate class
-	SetupCommand(0x43, "CmdReadToc", &SCSIDEV::CmdReadToc);
-	SetupCommand(0x45, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
-	SetupCommand(0x47, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
-	SetupCommand(0x48, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
+	SetupCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
+	SetupCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
+	SetupCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
+	SetupCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
 
 	// DaynaPort specific. TODO Move to separate class
-	SetupCommand(0x09, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
-	SetupCommand(0x0c, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
-	SetupCommand(0x0d, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
-	SetupCommand(0x0e, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
+	SetupCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
+	SetupCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
+	SetupCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
+	SetupCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
 }
 
 SCSIDEV::~SCSIDEV()
@@ -94,7 +94,7 @@ SCSIDEV::~SCSIDEV()
 	}
 }
 
-void FASTCALL SCSIDEV::SetupCommand(BYTE opcode, const char* name, void FASTCALL (SCSIDEV::*execute)(void))
+void FASTCALL SCSIDEV::SetupCommand(scsi_command opcode, const char* name, void FASTCALL (SCSIDEV::*execute)(void))
 {
 	scsi_commands[opcode] = new command_t(name, execute);
 }
@@ -297,13 +297,13 @@ void FASTCALL SCSIDEV::Execute()
 	#endif	// RASCSI
 
 	// If the command is valid it must be contained in the command map
-	if (!scsi_commands.count(ctrl.cmd[0])) {
+	if (!scsi_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
 		LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
 		CmdInvalid();
 		return;
 	}
 
-	command_t* command = scsi_commands[ctrl.cmd[0]];
+	command_t* command = scsi_commands[static_cast<scsi_command>(ctrl.cmd[0])];
 
 	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl.cmd[0]);
 

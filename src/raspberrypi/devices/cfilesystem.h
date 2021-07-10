@@ -373,15 +373,14 @@ public:
 	// 基本ファンクション
 	CRing() { Init(); }							///< デフォルトコンストラクタ
 	~CRing() { Remove(); }							///< デストラクタ final
-	void  Init() { ASSERT(this); next = prev = this; }			///< 初期化
+	void  Init() { next = prev = this; }			///< 初期化
 
-	CRing*  Next() const { ASSERT(this); return next; }			///< 次の要素を取得
-	CRing*  Prev() const { ASSERT(this); return prev; }			///< 前の要素を取得
+	CRing*  Next() const { return next; }			///< 次の要素を取得
+	CRing*  Prev() const { return prev; }			///< 前の要素を取得
 
 	void  Insert(CRing* pRoot)
 	{
-		ASSERT(this);
-		// 該当オブジェクトを切り離し
+			// 該当オブジェクトを切り離し
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
@@ -398,8 +397,7 @@ public:
 
 	void  InsertTail(CRing* pRoot)
 	{
-		ASSERT(this);
-		// 該当オブジェクトを切り離し
+			// 該当オブジェクトを切り離し
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
@@ -416,8 +414,7 @@ public:
 
 	void  InsertRing(CRing* pRoot)
 	{
-		ASSERT(this);
-		if (next == prev) return;
+			if (next == prev) return;
 
 		// リング先頭へ挿入
 		ASSERT(pRoot);
@@ -434,8 +431,7 @@ public:
 
 	void  Remove()
 	{
-		ASSERT(this);
-		// 該当オブジェクトを切り離し
+			// 該当オブジェクトを切り離し
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
@@ -462,31 +458,31 @@ public:
 	static size_t  Offset() { return offsetof(CHostFilename, m_szHost); }	///< オフセット位置取得
 
 	void  SetHost(const TCHAR* szHost);					///< ホスト側の名称を設定
-	const TCHAR*  GetHost() const { ASSERT(this); return m_szHost; }	///< ホスト側の名称を取得
+	const TCHAR*  GetHost() const { return m_szHost; }	///< ホスト側の名称を取得
 	void  ConvertHuman(int nCount = -1);					///< Human68k側の名称を変換
 	void  CopyHuman(const BYTE* szHuman);					///< Human68k側の名称を複製
 	BOOL  isReduce() const;							///< Human68k側の名称が加工されたか調査
-	BOOL  isCorrect() const { ASSERT(this); return m_bCorrect; }		///< Human68k側のファイル名規則に合致しているか調査
-	const BYTE*  GetHuman() const { ASSERT(this); return m_szHuman; }	///< Human68kファイル名を取得
+	BOOL  isCorrect() const { return m_bCorrect; }		///< Human68k側のファイル名規則に合致しているか調査
+	const BYTE*  GetHuman() const { return m_szHuman; }	///< Human68kファイル名を取得
 	const BYTE*  GetHumanLast() const 
-	{ ASSERT(this); return m_pszHumanLast; }				///< Human68kファイル名を取得
-	const BYTE*  GetHumanExt() const { ASSERT(this); return m_pszHumanExt; }///< Human68kファイル名を取得
+	{ return m_pszHumanLast; }				///< Human68kファイル名を取得
+	const BYTE*  GetHumanExt() const { return m_pszHumanExt; }///< Human68kファイル名を取得
 	void  SetEntryName();							///< Human68kディレクトリエントリを設定
 	void  SetEntryAttribute(BYTE nHumanAttribute)
-	{ ASSERT(this); m_dirHuman.attr = nHumanAttribute; }			///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.attr = nHumanAttribute; }			///< Human68kディレクトリエントリを設定
 	void  SetEntrySize(DWORD nHumanSize)
-	{ ASSERT(this); m_dirHuman.size = nHumanSize; }				///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.size = nHumanSize; }				///< Human68kディレクトリエントリを設定
 	void  SetEntryDate(WORD nHumanDate)
-	{ ASSERT(this); m_dirHuman.date = nHumanDate; }				///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.date = nHumanDate; }				///< Human68kディレクトリエントリを設定
 	void  SetEntryTime(WORD nHumanTime)
-	{ ASSERT(this); m_dirHuman.time = nHumanTime; }				///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.time = nHumanTime; }				///< Human68kディレクトリエントリを設定
 	void  SetEntryCluster(WORD nHumanCluster)
-	{ ASSERT(this); m_dirHuman.cluster = nHumanCluster; }			///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.cluster = nHumanCluster; }			///< Human68kディレクトリエントリを設定
 	const Human68k::dirent_t*  GetEntry() const 
-	{ ASSERT(this); return &m_dirHuman; }					///< Human68kディレクトリエントリを取得
+	{ return &m_dirHuman; }					///< Human68kディレクトリエントリを取得
 	BOOL  CheckAttribute(DWORD nHumanAttribute) const;			///< Human68kディレクトリエントリの属性判定
 	BOOL  isSameEntry(const Human68k::dirent_t* pdirHuman) const
-	{ ASSERT(this); ASSERT(pdirHuman); return memcmp(&m_dirHuman, pdirHuman, sizeof(m_dirHuman)) == 0; }
+	{ ASSERT(pdirHuman); return memcmp(&m_dirHuman, pdirHuman, sizeof(m_dirHuman)) == 0; }
 										///< Human68kディレクトリエントリの一致判定
 
 	// パス名操作
@@ -555,7 +551,7 @@ public:
 	void  SetHost(const TCHAR* szHost);					///< ホスト側の名称を直接指定する
 	BOOL  isSameHuman(const BYTE* szHuman) const;				///< Human68k側の名称を比較する
 	BOOL  isSameChild(const BYTE* szHuman) const;				///< Human68k側の名称を比較する
-	const TCHAR*  GetHost() const { ASSERT(this); return m_szHost; }	///< ホスト側の名称の獲得
+	const TCHAR*  GetHost() const { return m_szHost; }	///< ホスト側の名称の獲得
 	const CHostFilename*  FindFilename(const BYTE* szHuman, DWORD nHumanAttribute = Human68k::AT_ALL) const;
 										///< ファイル名を検索
 	const CHostFilename*  FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const;
@@ -617,8 +613,8 @@ public:
 	CHostFiles() { SetKey(0); Init(); }						///< デフォルトコンストラクタ
 	void  Init();									///< 初期化
 
-	void  SetKey(DWORD nKey) { ASSERT(this); m_nKey = nKey; }			///< 検索キー設定
-	BOOL  isSameKey(DWORD nKey) const { ASSERT(this); return m_nKey == nKey; }	///< 検索キー比較
+	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< 検索キー設定
+	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
 	void  SetPath(const Human68k::namests_t* pNamests);				///< パス名・ファイル名を内部で生成
 	BOOL  isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< ルートディレクトリ判定
 	void  SetPathWildcard() { m_nHumanWildcard = 1; }				///< ワイルドカードによるファイル検索を有効化
@@ -633,17 +629,17 @@ public:
 	void  AddResult(const TCHAR* szPath);						///< ホスト側の名称にファイル名を追加
 	void  AddFilename();								///< ホスト側の名称にHuman68kの新規ファイル名を追加
 
-	const TCHAR*  GetPath() const { ASSERT(this); return m_szHostResult; }		///< ホスト側の名称を取得
+	const TCHAR*  GetPath() const { return m_szHostResult; }		///< ホスト側の名称を取得
 
-	const Human68k::dirent_t*  GetEntry() const { ASSERT(this); return &m_dirHuman; }///< Human68kディレクトリエントリを取得
+	const Human68k::dirent_t*  GetEntry() const { return &m_dirHuman; }///< Human68kディレクトリエントリを取得
 
-	DWORD  GetAttribute() const { ASSERT(this); return m_dirHuman.attr; }		///< Human68k属性を取得
-	WORD  GetDate() const { ASSERT(this); return m_dirHuman.date; }			///< Human68k日付を取得
-	WORD  GetTime() const { ASSERT(this); return m_dirHuman.time; }			///< Human68k時刻を取得
-	DWORD  GetSize() const { ASSERT(this); return m_dirHuman.size; }		///< Human68kファイルサイズを取得
-	const BYTE*  GetHumanFilename() const { ASSERT(this); return m_szHumanFilename; }///< Human68kファイル名を取得
-	const BYTE*  GetHumanResult() const { ASSERT(this); return m_szHumanResult; }	///< Human68kファイル名検索結果を取得
-	const BYTE*  GetHumanPath() const { ASSERT(this); return m_szHumanPath; }	///< Human68kパス名を取得
+	DWORD  GetAttribute() const { return m_dirHuman.attr; }		///< Human68k属性を取得
+	WORD  GetDate() const { return m_dirHuman.date; }			///< Human68k日付を取得
+	WORD  GetTime() const { return m_dirHuman.time; }			///< Human68k時刻を取得
+	DWORD  GetSize() const { return m_dirHuman.size; }		///< Human68kファイルサイズを取得
+	const BYTE*  GetHumanFilename() const { return m_szHumanFilename; }///< Human68kファイル名を取得
+	const BYTE*  GetHumanResult() const { return m_szHumanResult; }	///< Human68kファイル名検索結果を取得
+	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Human68kパス名を取得
 
 private:
 	DWORD m_nKey;						///< Human68kのFILESバッファアドレス 0なら未使用
@@ -697,14 +693,14 @@ public:
 	~CHostFcb() { Close(); }							///< デストラクタ final
 	void  Init();									///< 初期化
 
-	void  SetKey(DWORD nKey) { ASSERT(this); m_nKey = nKey; }			///< 検索キー設定
-	BOOL  isSameKey(DWORD nKey) const { ASSERT(this); return m_nKey == nKey; }	///< 検索キー比較
-	void  SetUpdate() { ASSERT(this); m_bUpdate = TRUE; }				///< 更新
-	BOOL  isUpdate() const { ASSERT(this); return m_bUpdate; }			///< 更新状態取得
+	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< 検索キー設定
+	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
+	void  SetUpdate() { m_bUpdate = TRUE; }				///< 更新
+	BOOL  isUpdate() const { return m_bUpdate; }			///< 更新状態取得
 	BOOL  SetMode(DWORD nHumanMode);						///< ファイルオープンモードを設定
 	void  SetFilename(const TCHAR* szFilename);					///< ファイル名を設定
 	void  SetHumanPath(const BYTE* szHumanPath);					///< Human68kパス名を設定
-	const BYTE*  GetHumanPath() const { ASSERT(this); return m_szHumanPath; }	///< Human68kパス名を取得
+	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Human68kパス名を取得
 
 	BOOL  Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);	///< ファイル作成
 	BOOL  Open();									///< ファイルオープン
@@ -775,8 +771,8 @@ public:
 	~CHostDrv();								///< デストラクタ final
 	void  Init(const TCHAR* szBase, DWORD nFlag);				///< 初期化 (デバイス起動とロード)
 
-	BOOL  isWriteProtect() const { ASSERT(this); return m_bWriteProtect; }	///< 書き込み禁止か？
-	BOOL  isEnable() const { ASSERT(this); return m_bEnable; }		///< アクセス可能か？
+	BOOL  isWriteProtect() const { return m_bWriteProtect; }	///< 書き込み禁止か？
+	BOOL  isEnable() const { return m_bEnable; }		///< アクセス可能か？
 	BOOL  isMediaOffline();							///< メディアチェック
 	BYTE  GetMediaByte() const;						///< メディアバイトの取得
 	DWORD  GetStatus() const;						///< ドライブ状態の取得
@@ -950,11 +946,11 @@ public:
 	int Lock(DWORD nUnit);							///< $58 - 排他制御
 
 	void SetOption(DWORD nOption);						///< オプション設定
-	DWORD GetOption() const { ASSERT(this); return m_nOption; }		///< オプション取得
-	DWORD GetDefault() const { ASSERT(this); return m_nOptionDefault; }	///< デフォルトオプション取得
+	DWORD GetOption() const { return m_nOption; }		///< オプション取得
+	DWORD GetDefault() const { return m_nOptionDefault; }	///< デフォルトオプション取得
 	static DWORD GetFileOption() { return g_nOption; }			///< ファイル名変換オプション取得
 	void ShellNotify(DWORD nEvent, const TCHAR* szPath)
-	{ ASSERT(this); m_cEntry.ShellNotify(nEvent, szPath); }			///< ホスト側ファイルシステム状態変化通知
+	{ m_cEntry.ShellNotify(nEvent, szPath); }			///< ホスト側ファイルシステム状態変化通知
 
 	/// 定数
 	enum {
