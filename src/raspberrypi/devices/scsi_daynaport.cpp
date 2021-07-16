@@ -117,10 +117,8 @@ BOOL FASTCALL SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIDaynaPort::Inquiry(
-	const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor)
+int FASTCALL SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor)
 {
-	DWORD allocation_length;
 	// scsi_cdb_6_byte_t command;
 	// memcpy(&command,cdb,sizeof(command));
 
@@ -129,7 +127,7 @@ int FASTCALL SCSIDaynaPort::Inquiry(
 	ASSERT(cdb[0] == 0x12);
 
 	//allocation_length = command->length;
-	allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	DWORD allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 	// if(allocation_length != command.length){
 	// 	LOGDEBUG("%s CDB: %02X %02X %02X %02X %02X %02X", __PRETTY_FUNCTION__, (unsigned int)cdb[0], (unsigned int)cdb[1], (unsigned int)cdb[2], (unsigned int)cdb[3], (unsigned int)cdb[4], (unsigned int)cdb[5] );
 	// 	LOGWARN(":::::::::: Expected allocation length %04X but found %04X", (unsigned int)allocation_length, (unsigned int)command.length);
@@ -138,20 +136,25 @@ int FASTCALL SCSIDaynaPort::Inquiry(
 
 	LOGTRACE("%s Inquiry with major %ld, minor %ld. Allocation length: %d",__PRETTY_FUNCTION__, major, minor, (int)allocation_length);
 
-	if(cdb[1] & 0x3) {
-		LOGWARN("Tiny SCSI Emulator says this is an invalid request");
+	// Work-around in order to report an error for LUNs > 0
+	DWORD lun = (cdb[1] >> 5) & 0x07;
+	if (lun) {
+		disk.code = DISK_INVALIDLUN;
+		return -1;
 	}
 
-	if(allocation_length > 4){
-		// Copy the pre-canned response
-		memcpy(buffer, m_target_ethernet_inquiry_response, allocation_length);
-		// Set the size
-		//buffer[4] = (BYTE)((allocation_length - 7) & 0xFF);
-		// The inquiry response format only allows for a 1 byte 'additional size' field
-		if(allocation_length > 0xFF){
-			LOGWARN("%s The inquiry format only allows for a maximum of %d (0xFF + 4) bytes",\
-				__PRETTY_FUNCTION__, (int)0xFF + 4)
+	if(cdb[1] & 0x1) {
+		LOGERROR("EVPD bit is not supported");
+		return -1;
+	}
+
+	if (allocation_length > 4){
+		if (allocation_length > sizeof(m_daynaport_inquiry_response)) {
+			allocation_length = sizeof(m_daynaport_inquiry_response);
 		}
+
+		// Copy the pre-canned response
+		memcpy(buffer, m_daynaport_inquiry_response, allocation_length);
 	}
 
 	LOGTRACE("response size is %d", (int)allocation_length);

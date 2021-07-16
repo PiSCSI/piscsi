@@ -14,6 +14,28 @@
 
 //===========================================================================
 //
+//	Sense Keys and Additional Sense Codes
+//  (See https://www.t10.org/lists/1spc-lst.htm)
+//
+//===========================================================================
+class ERROR_CODES
+{
+public:
+	enum sense_key : int {
+		NO_SENSE = 0x00,
+		ILLEGAL_REQUEST = 0x05
+	};
+
+	enum asc : int {
+		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
+		INVALID_COMMAND_OPERATION_CODE = 0x20,
+		INVALID_LUN = 0x25,
+		MEDIUM_NOT_PRESENT = 0x3a
+	};
+};
+
+//===========================================================================
+//
 //	SASI/SCSI Bus
 //
 //===========================================================================

@@ -23,7 +23,7 @@ public:
 
         ~lunexception() { }
 
-        DWORD getlun() {
+        DWORD getlun() const {
             return lun;
         }
 };

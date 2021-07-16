@@ -1216,7 +1216,10 @@ int FASTCALL Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, size);
 
 	// Set 18 bytes including extended sense data
+
+	// Current error
 	buf[0] = 0x70;
+
 	buf[2] = (BYTE)(disk.code >> 16);
 	buf[7] = 10;
 	buf[12] = (BYTE)(disk.code >> 8);
@@ -2152,8 +2155,13 @@ int FASTCALL Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 		return 0;
 	}
 
+	if (disk.blocks <= 0) {
+		LOGWARN("%s Capacity not available, medium may not be present", __PRETTY_FUNCTION__);
+
+		return -1;
+	}
+
 	// Create end of logical block address (disk.blocks-1)
-	ASSERT(disk.blocks > 0);
 	blocks = disk.blocks - 1;
 	buf[0] = (BYTE)(blocks >> 24);
 	buf[1] = (BYTE)(blocks >> 16);

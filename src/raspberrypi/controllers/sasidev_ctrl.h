@@ -55,8 +55,8 @@ protected:
 		eMsgCodeTerminateIOProcess              = 0x11,
 	};
 
-private:
-	enum scsi_command : BYTE {
+protected:
+	enum scsi_command : int {
 			eCmdTestUnitReady = 0x00,
 			eCmdRezero =  0x01,
 			eCmdRequestSense = 0x03,
@@ -135,12 +135,16 @@ public:
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
 		DWORD blocks;					// Number of transfer block
-		DWORD next;					// Next record
+		DWORD next;						// Next record
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
 
 		// Logical unit
-		Disk *unit[UnitMax];				// Logical Unit
+		Disk *unit[UnitMax];
+
+		// Sense Key and Additional Sense Code (ASC) of the previous command
+		int sense_key;
+		int asc;
 	} ctrl_t;
 
 public:
@@ -194,7 +198,8 @@ protected:
 	void FASTCALL MsgIn();							// Message in phase
 	void FASTCALL DataIn();							// Data in phase
 	void FASTCALL DataOut();						// Data out phase
-	virtual void FASTCALL Error();						// Common error handling
+	virtual void FASTCALL Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
 
 	// commands
 	void FASTCALL CmdTestUnitReady();					// TEST UNIT READY command
