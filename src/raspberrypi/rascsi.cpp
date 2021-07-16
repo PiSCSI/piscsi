@@ -475,10 +475,11 @@ bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
 	command_result.set_msg(msg);
 	command_result.set_status(status);
 
-	// Serialize the result in binary format
+	// Serialize the result in binary format: Length followed by the actual data
 	string data;
 	command_result.SerializeToString(&data);
-	fprintf(fp, "%d", (unsigned int)data.length());
+	int len = data.length();
+	fwrite(&len, sizeof(len), 1, fp);
 	void* buf = malloc(data.length());
 	memcpy(buf, (void*)data.data(), data.length());
 	fwrite(buf, data.length(), 1, fp);

@@ -14,6 +14,8 @@
 #include "rasctl.h"
 #include "rasctl_interface.pb.h"
 
+using namespace std;
+
 //---------------------------------------------------------------------------
 //
 //	Send Command
@@ -46,18 +48,22 @@ BOOL SendCommand(char *buf)
 
 	// Receive the message
 	while (true) {
-		size_t len = fread(buf, sizeof(unsigned int), 1, fp);
-		if (len != sizeof(unsigned int)) {
+		int len;
+		size_t res = fread(&len, sizeof(int), 1, fp);
+		if (res != 1) {
 			break;
 		}
-		if (fread(buf, len, 1, fp) != len) {
+		res = fread(buf, len, 1, fp);
+		if (res != 1) {
 			break;
 		}
 
+		string msg(buf, len);
 		rasctl_interface::CommandResult command_result;
-		command_result.ParseFromString(buf);
+		command_result.ParseFromString(msg);
 
-		std::cout << command_result.msg();
+		cout << "Command terminated with status " << (command_result.status() ? "true" : "false") << ":" << endl;
+		cout << command_result.msg();
 
 		if (command_result.status()) {
 			fclose(fp);
