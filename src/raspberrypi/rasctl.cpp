@@ -95,14 +95,12 @@ bool SendCommand(const Command& command)
 int main(int argc, char* argv[])
 {
 	int opt;
-	int len;
-	char *ext;
 
 	int id = -1;
 	int un = 0;
-	Opcode cmd = Opcode::NONE;
-	DeviceType type = DeviceType::UNDEFINED;
-	char *file = NULL;
+	Opcode cmd = NONE;
+	DeviceType type = UNDEFINED;
+	string file;
 	bool list = false;
 
 	// Display help
@@ -142,23 +140,23 @@ int main(int argc, char* argv[])
 				switch (optarg[0]) {
 					case 'a':
 					case 'A':
-						cmd = Opcode::ATTACH;
+						cmd = ATTACH;
 						break;
 					case 'd':
 					case 'D':
-						cmd = Opcode::DETACH;
+						cmd = DETACH;
 						break;
 					case 'i':
 					case 'I':
-						cmd = Opcode::INSERT;
+						cmd = INSERT;
 						break;
 					case 'e':
 					case 'E':
-						cmd = Opcode::EJECT;
+						cmd = EJECT;
 						break;
 					case 'p':
 					case 'P':
-						cmd = Opcode::PROTECT;
+						cmd = PROTECT;
 						break;
 				}
 				break;
@@ -167,23 +165,23 @@ int main(int argc, char* argv[])
 				switch (optarg[0]) {
 					case 's':
 					case 'S':
-						type = DeviceType::SASI_HD;
+						type = SASI_HD;
 						break;
 					case 'h':
 					case 'H':
-						type = DeviceType::SCSI_HD;
+						type = SCSI_HD;
 						break;
 					case 'm':
 					case 'M':
-						type = DeviceType::MO;
+						type = MO;
 						break;
 					case 'c':
 					case 'C':
-						type = DeviceType::CD;
+						type = CD;
 						break;
 					case 'b':
 					case 'B':
-						type = DeviceType::BR;
+						type = BR;
 						break;
 					// case 'n':
 					// case 'N':
@@ -191,7 +189,7 @@ int main(int argc, char* argv[])
 					// 	break;
 					case 'd':
 					case 'D':
-						type = DeviceType::DAYNAPORT;
+						type = DAYNAPORT;
 						break;
 				}
 				break;
@@ -209,7 +207,7 @@ int main(int argc, char* argv[])
 	Command command;
 
 	// List display only
-	if (id < 0 && cmd == Opcode::NONE && type == DeviceType::UNDEFINED && file == NULL && list) {
+	if (id < 0 && cmd == NONE && type == UNDEFINED && file.empty() && list) {
 		command.set_cmd(Opcode::LIST);
 		SendCommand(command);
 		exit(0);
@@ -228,38 +226,33 @@ int main(int argc, char* argv[])
 	}
 
 	// Type Check
-	if (cmd == Opcode::ATTACH && !command.has_type()) {
+	if (cmd == ATTACH && !command.has_type()) {
 		// Try to determine the file type from the extension
-		len = file ? strlen(file) : 0;
+		int len = file.length();
 		if (len > 4 && file[len - 4] == '.') {
-			ext = &file[len - 3];
-			if (!strcasecmp(ext, "hdf") ||
-				strcasecmp(ext, "hds") ||
-				strcasecmp(ext, "hdn") ||
-				strcasecmp(ext, "hdi") ||
-				strcasecmp(ext, "nhd") ||
-				strcasecmp(ext, "hda")) {
+			string ext = file.substr(len - 3);
+			if (ext == "hdf" || ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
 				type = SASI_HD;
-			} else if (!strcasecmp(ext, "mos")) {
-				type = DeviceType::MO;
-			} else if (!strcasecmp(ext, "iso")) {
-				type = DeviceType::CD;
+			} else if (ext == "mos") {
+				type = MO;
+			} else if (ext == "iso") {
+				type = CD;
 			}
 		}
 	}
 
 
 	// File check (command is ATTACH and type is HD)
-	if (cmd == Opcode::ATTACH && (type == DeviceType::SASI_HD || type == DeviceType::SCSI_HD)) {
-		if (!file) {
+	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD)) {
+		if (file.empty()) {
 			fprintf(stderr, "Error : Invalid file path\n");
 			exit(EINVAL);
 		}
 	}
 
 	// File check (command is INSERT)
-	if (cmd == Opcode::INSERT) {
-		if (!file) {
+	if (cmd == INSERT) {
+		if (file.empty()) {
 			fprintf(stderr, "Error : Invalid file path\n");
 			exit(EINVAL);
 		}
@@ -270,7 +263,7 @@ int main(int argc, char* argv[])
 	command.set_un(un);
 	command.set_cmd(cmd);
 	command.set_type(type);
-	if (file) {
+	if (!file.empty()) {
 		command.set_file(file);
 	}
 	if (!SendCommand(command)) {

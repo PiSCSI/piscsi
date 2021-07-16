@@ -525,7 +525,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	}
 
 	// Connect Command
-	if (cmd == Opcode::ATTACH) {
+	if (cmd == ATTACH) {
 		string ext;
 
 		// Distinguish between SASI and SCSI
@@ -630,7 +630,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	}
 
 	// Disconnect Command
-	if (cmd == Opcode::DETACH) {
+	if (cmd == DETACH) {
 		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
 
 		// Free the existing unit
@@ -816,7 +816,7 @@ BOOL ParseConfig(int argc, char* argv[])
 
 		// Check ethernet and host bridge
 		if (xstrcasecmp(argPath, "bridge") == 0) {
-			type = DeviceType::BR;
+			type = BR;
 		} else {
 			// Check the path length
 			len = strlen(argPath);
@@ -841,11 +841,11 @@ BOOL ParseConfig(int argc, char* argv[])
 				!strcasecmp(ext, "hdn") ||
 				!strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd") ||
 				!strcasecmp(ext, "hda")) {
-				type = DeviceType::SASI_HD;
+				type = SASI_HD;
 			} else if (!strcasecmp(ext, "mos")) {
-				type = DeviceType::MO;
+				type = MO;
 			} else if (!strcasecmp(ext, "iso")) {
-				type = DeviceType::CD;
+				type = CD;
 			}
 		}
 
@@ -933,22 +933,22 @@ bool ParseArgument(int argc, char* argv[])
 		}
 
 		char* path = optarg;
-		DeviceType type = DeviceType::SASI_HD;
+		DeviceType type = SASI_HD;
 		if (has_suffix(path, ".hdf")
 			|| has_suffix(path, ".hds")
 			|| has_suffix(path, ".hdn")
 			|| has_suffix(path, ".hdi")
 			|| has_suffix(path, ".hda")
 			|| has_suffix(path, ".nhd")) {
-			type = DeviceType::SASI_HD;
+			type = SASI_HD;
 		} else if (has_suffix(path, ".mos")) {
-			type = DeviceType::MO;
+			type = MO;
 		} else if (has_suffix(path, ".iso")) {
-			type = DeviceType::CD;
+			type = CD;
 		} else if (!strcasecmp(path, "bridge")) {
-			type = DeviceType::BR;
+			type = BR;
 		} else if (!strcasecmp(path, "daynaport")) {
-			type = DeviceType::DAYNAPORT;
+			type = DAYNAPORT;
 		}
 
 		int un = 0;
