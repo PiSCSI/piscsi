@@ -4,10 +4,10 @@ package rasctl_interface;
 
 message Command {
     int32 cmd = 1;
-    optional int32 id = 2;
-    optional int32 un = 3;
-    optional int32 type = 4;
-    optional string file = 5;
+    int32 id = 2;
+    int32 un = 3;
+    int32 type = 4;
+    string file = 5;
 }
 
 message Result {
