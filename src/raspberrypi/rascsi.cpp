@@ -508,7 +508,7 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 	int un = command.un();
 	Opcode cmd = command.cmd();
 	DeviceType type = command.type();
-	const char *file = command.has_file() ? command.file().c_str() : "-";
+	const char *file = command.has_file() ? command.file().c_str() : NULL;
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -561,28 +561,27 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 				if (ext == NULL) {
 					break;
 				}
-				if (!strcasecmp(ext, "hdn") ||
-					!strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd")) {
+				if (!strcasecmp(ext, "hdn") || !strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd")) {
 					pUnit = new SCSIHD_NEC();
-				} else if (xstrcasecmp(ext, "hda") == 0) {
+				} else if (!strcasecmp(ext, "hda")) {
 					pUnit = new SCSIHD_APPLE();
 				} else {
 					pUnit = new SCSIHD();
 				}
 				break;
-			case DeviceType::MO:		// MO
+			case DeviceType::MO:
 				pUnit = new SCSIMO();
 				break;
-			case DeviceType::CD:		// CD
+			case DeviceType::CD:
 				pUnit = new SCSICD();
 				break;
-			case DeviceType::BR:		// BRIDGE
+			case DeviceType::BR:
 				pUnit = new SCSIBR();
 				break;
-			// case DeviceType::NUVOLINK: // Nuvolink
+			// case DeviceType::NUVOLINK:
 			// 	pUnit = new SCSINuvolink();
 			// 	break;
-			case DeviceType::DAYNAPORT: // DaynaPort SCSI Link
+			case DeviceType::DAYNAPORT:
 				pUnit = new SCSIDaynaPort();
 				LOGTRACE("Done creating SCSIDaynaPort");
 				break;
@@ -593,7 +592,7 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 		}
 
 		// drive checks files
-		if (type != DeviceType::BR && type != DeviceType::DAYNAPORT && strcasecmp(file, "-")) {
+		if (type != DeviceType::BR && type != DeviceType::DAYNAPORT && command.has_file()) {
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string f = file;
 			string effective_file = f.find("/dev/") ? f : f.substr(0, f.length() - 4);
@@ -708,10 +707,9 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
 		default:
-			LOGWARN("Received unknown command from rasctl: %d", cmd);
-
 			ostringstream msg;
 			msg << "Received unknown command from rasctl: " << cmd << endl;
+			LOGWARN(msg.str().c_str());
 			return ReturnStatus(fp, false, msg.str().c_str());
 	}
 
