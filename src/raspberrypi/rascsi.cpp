@@ -506,7 +506,10 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	DeviceType type = command.type();
 	string file = command.has_file() ? command.file().c_str() : "";
 
-	cout << "Processing: cmd=" << cmd << ", id=" << id << ", un=" << un << ", type=" << type << ", file=" << file << endl;
+	ostringstream s;
+	s << "Processing: cmd=" << Opcode_Name(cmd) << ", id=" << id << ", un=" << un
+			<< ", type=" << DeviceType_Name(type) << ", file=" << file << endl;
+	LOGINFO(s.str().c_str());
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -526,13 +529,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		string ext;
 
 		// Distinguish between SASI and SCSI
-		pUnit = NULL;
 		if (type == DeviceType::SASI_HD) {
-			// Passed the check
-			if (file.empty()) {
-				return ReturnStatus(fp, false);
-			}
-
 			// Check the extension
 			int len = file.length();
 			if (len < 5 || file[len - 4] != '.') {
@@ -541,20 +538,18 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 			// If the extension is not SASI type, replace with SCSI
 			ext = file.substr(len - 3);
-			if (ext == "hdf") {
+			if (ext != "hdf") {
 				type = DeviceType::SCSI_HD;
 			}
 		}
 
 		// Create a new drive, based upon type
+		pUnit = NULL;
 		switch (type) {
 			case DeviceType::SASI_HD:		// HDF
 				pUnit = new SASIHD();
 				break;
 			case DeviceType::SCSI_HD:		// HDS/HDN/HDI/NHD/HDA
-				if(ext.empty()) {
-					break;
-				}
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					pUnit = new SCSIHD_NEC();
 				} else if (ext == "hda") {
