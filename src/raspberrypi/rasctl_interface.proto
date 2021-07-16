@@ -12,6 +12,7 @@ enum Opcode {
 }
 
 enum DeviceType {
+    UNDEFINED = -1;
     SASI_HD = 0;
     SCSI_HD = 1;
     MO = 2;
