@@ -1057,8 +1057,8 @@ static void *MonThread(void *param)
 		while (true) {
 			// Wait for connection
 			struct sockaddr_in client;
-			memset(&client, 0, sizeof(client));
 			socklen_t socklen = sizeof(client);
+			memset(&client, 0, socklen);
 			fd = accept(monsocket, (struct sockaddr*)&client, &socklen);
 			if (fd < 0) {
 				throw ioexception();
@@ -1092,7 +1092,6 @@ static void *MonThread(void *param)
 			// List all of the devices
 			if (command.cmd() == LIST) {
 				ListDevice(fp);
-				break;
 			}
 			else {
 				// Wait until we become idle
@@ -1102,13 +1101,17 @@ static void *MonThread(void *param)
 
 				ProcessCmd(fp, command);
 			}
+
+			fclose(fp);
+			fp = NULL;
+			close(fd);
+			fd = -1;
 		}
 	}
 	catch(const ioexception& e) {
 		// Fall through
 	}
 
-	// Release the connection
 	if (fp) {
 		fclose(fp);
 	}
