@@ -101,7 +101,6 @@ int main(int argc, char* argv[])
 	Opcode cmd = LIST;
 	DeviceType type = UNDEFINED;
 	string file;
-	bool list = false;
 
 	// Display help
 	if (argc < 2) {
