@@ -745,7 +745,7 @@ BOOL ParseConfig(int argc, char* argv[])
 	char line[512];
 	int id;
 	int un;
-	int type;
+	DeviceType type;
 	char *argID;
 	char *argPath;
 	int len;
@@ -849,12 +849,9 @@ BOOL ParseConfig(int argc, char* argv[])
 			continue;
 		}
 
-		// Initialize device type
-		type = -1;
-
 		// Check ethernet and host bridge
 		if (xstrcasecmp(argPath, "bridge") == 0) {
-			type = 4;
+			type = DeviceType::BR;
 		} else {
 			// Check the path length
 			len = strlen(argPath);
@@ -874,24 +871,16 @@ BOOL ParseConfig(int argc, char* argv[])
 
 			// Figure out what the type is
 			ext = &argPath[len - 3];
-			if (xstrcasecmp(ext, "hdf") == 0 ||
-				xstrcasecmp(ext, "hds") == 0 ||
-				xstrcasecmp(ext, "hdn") == 0 ||
-				xstrcasecmp(ext, "hdi") == 0 || xstrcasecmp(ext, "nhd") == 0 ||
-				xstrcasecmp(ext, "hda") == 0) {
-				// HD(SASI/SCSI)
-				type = 0;
-			} else if (strcasecmp(ext, "mos") == 0) {
-				// MO
-				type = 2;
-			} else if (strcasecmp(ext, "iso") == 0) {
-				// CD
-				type = 3;
-			} else {
-				// Cannot determine the file type
-				FPRT(stderr,
-					"Error : Invalid argument(file type) [%s]\n", ext);
-				goto parse_error;
+			if (!strcasecmp(ext, "hdf") ||
+				!strcasecmp(ext, "hds") ||
+				!strcasecmp(ext, "hdn") ||
+				!strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd") ||
+				!strcasecmp(ext, "hda")) {
+				type = DeviceType::SASI_HD;
+			} else if (!strcasecmp(ext, "mos")) {
+				type = DeviceType::MO;
+			} else if (!strcasecmp(ext, "iso")) {
+				type = DeviceType::CD;
 			}
 		}
 
@@ -957,8 +946,7 @@ bool ParseArgument(int argc, char* argv[])
 				char* end;
 				id = strtol(optarg, &end, 10);
 				if (*end || (id < 0) || (max_id < id)) {
-					fprintf(stderr, "%s: invalid %s (0-%d)\n",
-							optarg, is_sasi ? "HD" : "ID", max_id);
+					cerr << optarg << ": invalid " << (is_sasi ? "HD" : "ID") << "(0-" << max_id << ")" << endl;
 					return false;
 				}
 				continue;
@@ -972,10 +960,10 @@ bool ParseArgument(int argc, char* argv[])
 		}
 
 		if (id < 0) {
-			fprintf(stderr, "%s: ID not specified\n", optarg);
+			cerr << optarg << "s: ID not specified" << endl;
 			return false;
 		} else if (disk[id] && !disk[id]->IsNULL()) {
-			fprintf(stderr, "%d: duplicate ID\n", id);
+			cerr << id << ": duplicate ID" << endl;
 			return false;
 		}
 
@@ -992,9 +980,9 @@ bool ParseArgument(int argc, char* argv[])
 			type = DeviceType::MO;
 		} else if (has_suffix(path, ".iso")) {
 			type = DeviceType::CD;
-		} else if (xstrcasecmp(path, "bridge") == 0) {
+		} else if (!strcasecmp(path, "bridge")) {
 			type = DeviceType::BR;
-		} else if (xstrcasecmp(path, "daynaport") == 0) {
+		} else if (!strcasecmp(path, "daynaport")) {
 			type = DeviceType::DAYNAPORT;
 		}
 

@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 	int id = -1;
 	int un = 0;
 	Opcode cmd = Opcode::ATTACH;
-	DeviceType type = DeviceType::SCSI_HD;
+	DeviceType type;
 	char *file = NULL;
 	bool list = false;
 
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
 	Command command;
 
 	// List display only
-	if (id < 0 && cmd < 0 && type < 0 && file == NULL && list) {
+	if (id < 0 && cmd < 0 && !command.has_type() && file == NULL && list) {
 		command.set_cmd(Opcode::LIST);
 		SendCommand(command);
 		exit(0);
@@ -229,21 +229,21 @@ int main(int argc, char* argv[])
 	}
 
 	// Type Check
-	if (cmd == Opcode::ATTACH && type < 0) {
+	if (cmd == Opcode::ATTACH && !command.has_type()) {
 		// Try to determine the file type from the extension
 		len = file ? strlen(file) : 0;
 		if (len > 4 && file[len - 4] == '.') {
 			ext = &file[len - 3];
-			if (!strcasecmp(ext, "hdf") == 0 ||
-				xstrcasecmp(ext, "hds") == 0 ||
-				xstrcasecmp(ext, "hdn") == 0 ||
-				xstrcasecmp(ext, "hdi") == 0 ||
-				xstrcasecmp(ext, "nhd") == 0 ||
-				xstrcasecmp(ext, "hda") == 0) {
+			if (!strcasecmp(ext, "hdf") ||
+				strcasecmp(ext, "hds") ||
+				strcasecmp(ext, "hdn") ||
+				strcasecmp(ext, "hdi") ||
+				strcasecmp(ext, "nhd") ||
+				strcasecmp(ext, "hda")) {
 				type = SASI_HD;
-			} else if (xstrcasecmp(ext, "mos") == 0) {
+			} else if (!strcasecmp(ext, "mos")) {
 				type = DeviceType::MO;
-			} else if (xstrcasecmp(ext, "iso") == 0) {
+			} else if (!strcasecmp(ext, "iso")) {
 				type = DeviceType::CD;
 			}
 		}
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
 
 
 	// File check (command is ATTACH and type is HD)
-	if (cmd == 0 && type >= 0 && type <= 1) {
+	if (cmd == Opcode::ATTACH && (type == DeviceType::SASI_HD || type == DeviceType::SCSI_HD)) {
 		if (!file) {
 			fprintf(stderr, "Error : Invalid file path\n");
 			exit(EINVAL);
@@ -259,7 +259,7 @@ int main(int argc, char* argv[])
 	}
 
 	// File check (command is INSERT)
-	if (cmd == 2) {
+	if (cmd == Opcode::INSERT) {
 		if (!file) {
 			fprintf(stderr, "Error : Invalid file path\n");
 			exit(EINVAL);
