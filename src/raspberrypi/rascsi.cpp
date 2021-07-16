@@ -1097,11 +1097,9 @@ static void *MonThread(void *param)
         command.ParseFromString(cmd);
 
         // List all of the devices
-        if (command.cmd() == -1) {
+        if (command.cmd() == Opcode::LIST) {
         	ListDevice(fp);
-
-        	fclose(fp);
-    		close(fd);
+        	goto next;
         }
 
 		// Wait until we become idle
@@ -1111,6 +1109,7 @@ static void *MonThread(void *param)
 
 		ProcessCmd(fp, command);
 
+next:
 		// Release the connection
 		fclose(fp);
 		close(fd);
