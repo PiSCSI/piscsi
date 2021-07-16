@@ -475,9 +475,13 @@ bool ReturnStatus(FILE *fp, bool status, const char* msg = "") {
 	command_result.set_msg(msg);
 	command_result.set_status(status);
 
+	// Serialize the result in binary format
 	string data;
 	command_result.SerializeToString(&data);
-	FPRT(fp, data.c_str());
+	void* buf = malloc(data.length());
+	memcpy(buf, (void *)data.data(), data.length());
+	fwrite(buf, data.length(), 1, fp);
+	free(buf);
 #endif
 
 	return status;
