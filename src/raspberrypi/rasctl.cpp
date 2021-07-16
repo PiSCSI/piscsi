@@ -241,21 +241,16 @@ int main(int argc, char* argv[])
 		}
 	}
 
-
-	// File check (command is ATTACH and type is HD)
-	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD)) {
-		if (file.empty()) {
-			fprintf(stderr, "Error : Invalid file path\n");
-			exit(EINVAL);
-		}
+	// File check (command is ATTACH and type is HD, CD or MO)
+	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD || type == MO || type == CD) && file.empty()) {
+		fprintf(stderr, "Error : Invalid file path\n");
+		exit(EINVAL);
 	}
 
 	// File check (command is INSERT)
-	if (cmd == INSERT) {
-		if (file.empty()) {
-			fprintf(stderr, "Error : Invalid file path\n");
-			exit(EINVAL);
-		}
+	if (cmd == INSERT && file.empty()) {
+		fprintf(stderr, "Error : Invalid file path\n");
+		exit(EINVAL);
 	}
 
 	// Generate the command and send it
