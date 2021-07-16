@@ -96,21 +96,15 @@ bool SendCommand(const Command& command)
 int main(int argc, char* argv[])
 {
 	int opt;
-	int id;
-	int un;
-	int cmd;
-	int type;
-	char *file;
-	BOOL list;
 	int len;
 	char *ext;
 
-	id = -1;
-	un = 0;
-	cmd = -1;
-	type = -1;
-	file = NULL;
-	list = FALSE;
+	int id = -1;
+	int un = 0;
+	Opcode cmd = Opcode::ATTACH;
+	DeviceType type = DeviceType::SCSI_HD;
+	char *file = NULL;
+	bool list = false;
 
 	// Display help
 	if (argc < 2) {
@@ -147,58 +141,58 @@ int main(int argc, char* argv[])
 
 			case 'c':
 				switch (optarg[0]) {
-					case 'a':				// ATTACH
+					case 'a':
 					case 'A':
-						cmd = 0;
+						cmd = Opcode::ATTACH;
 						break;
-					case 'd':				// DETACH
+					case 'd':
 					case 'D':
-						cmd = 1;
+						cmd = Opcode::DETACH;
 						break;
-					case 'i':				// INSERT
+					case 'i':
 					case 'I':
-						cmd = 2;
+						cmd = Opcode::INSERT;
 						break;
-					case 'e':				// EJECT
+					case 'e':
 					case 'E':
-						cmd = 3;
+						cmd = Opcode::EJECT;
 						break;
-					case 'p':				// PROTECT
+					case 'p':
 					case 'P':
-						cmd = 4;
+						cmd = Opcode::PROTECT;
 						break;
 				}
 				break;
 
 			case 't':
 				switch (optarg[0]) {
-					case 's':				// HD(SASI)
+					case 's':
 					case 'S':
-					case 'h':				// HD(SCSI)
+						type = DeviceType::SASI_HD;
+						break;
+					case 'h':
 					case 'H':
-						// rascsi will figure out if this should be SASI or
-						// SCSI later in the process....
-						type = rasctl_dev_sasi_hd;
+						type = DeviceType::SCSI_HD;
 						break;
-					case 'm':				// MO
+					case 'm':
 					case 'M':
-						type = rasctl_dev_mo;
+						type = DeviceType::MO;
 						break;
-					case 'c':				// CD
+					case 'c':
 					case 'C':
-						type = rasctl_dev_cd;
+						type = DeviceType::CD;
 						break;
-					case 'b':				// BRIDGE
+					case 'b':
 					case 'B':
-						type = rasctl_dev_br;
+						type = DeviceType::BR;
 						break;
-					// case 'n':				// Nuvolink
+					// case 'n':
 					// case 'N':
-					// 	type = rasctl_dev_nuvolink;
+					// 	type = DeviceType::NUVOLINK;
 					// 	break;
-					case 'd':				// DaynaPort
+					case 'd':
 					case 'D':
-						type = rasctl_dev_daynaport;
+						type = DeviceType::DAYNAPORT;
 						break;
 				}
 				break;
@@ -217,7 +211,7 @@ int main(int argc, char* argv[])
 
 	// List display only
 	if (id < 0 && cmd < 0 && type < 0 && file == NULL && list) {
-		command.set_cmd(-1);
+		command.set_cmd(Opcode::LIST);
 		SendCommand(command);
 		exit(0);
 	}
@@ -234,40 +228,27 @@ int main(int argc, char* argv[])
 		exit(EINVAL);
 	}
 
-	// Command check
-	if (cmd < 0) {
-		cmd = 0;	// Default command is ATTATCH
-	}
-
 	// Type Check
-	if (cmd == 0 && type < 0) {
-
+	if (cmd == Opcode::ATTACH && type < 0) {
 		// Try to determine the file type from the extension
 		len = file ? strlen(file) : 0;
 		if (len > 4 && file[len - 4] == '.') {
 			ext = &file[len - 3];
-			if (xstrcasecmp(ext, "hdf") == 0 ||
+			if (!strcasecmp(ext, "hdf") == 0 ||
 				xstrcasecmp(ext, "hds") == 0 ||
 				xstrcasecmp(ext, "hdn") == 0 ||
 				xstrcasecmp(ext, "hdi") == 0 ||
 				xstrcasecmp(ext, "nhd") == 0 ||
 				xstrcasecmp(ext, "hda") == 0) {
-				// HD(SASI/SCSI)
-				type = 0;
+				type = SASI_HD;
 			} else if (xstrcasecmp(ext, "mos") == 0) {
-				// MO
-				type = 2;
+				type = DeviceType::MO;
 			} else if (xstrcasecmp(ext, "iso") == 0) {
-				// CD
-				type = 3;
+				type = DeviceType::CD;
 			}
 		}
-
-		if (type < 0) {
-			fprintf(stderr, "Error : Invalid type\n");
-			exit(EINVAL);
-		}
 	}
+
 
 	// File check (command is ATTACH and type is HD)
 	if (cmd == 0 && type >= 0 && type <= 1) {
@@ -285,11 +266,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// Set unnecessary type to 0
-	if (type < 0) {
-		type = 0;
-	}
-
 	// Generate the command and send it
 	command.set_id(id);
 	command.set_un(un);
@@ -304,7 +280,7 @@ int main(int argc, char* argv[])
 
 	// Display the list
 	if (list) {
-		command.set_cmd(-1);
+		command.set_cmd(Opcode::LIST);
 		SendCommand(command);
 	}
 

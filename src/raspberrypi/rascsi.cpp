@@ -980,27 +980,22 @@ bool ParseArgument(int argc, char* argv[])
 		}
 
 		char* path = optarg;
-		int type = -1;
+		DeviceType type = DeviceType::SASI_HD;
 		if (has_suffix(path, ".hdf")
 			|| has_suffix(path, ".hds")
 			|| has_suffix(path, ".hdn")
 			|| has_suffix(path, ".hdi")
 			|| has_suffix(path, ".hda")
 			|| has_suffix(path, ".nhd")) {
-			type = rasctl_dev_sasi_hd;
+			type = DeviceType::SASI_HD;
 		} else if (has_suffix(path, ".mos")) {
-			type = rasctl_dev_mo;
+			type = DeviceType::MO;
 		} else if (has_suffix(path, ".iso")) {
-			type = rasctl_dev_cd;
+			type = DeviceType::CD;
 		} else if (xstrcasecmp(path, "bridge") == 0) {
-			type = rasctl_dev_br;
+			type = DeviceType::BR;
 		} else if (xstrcasecmp(path, "daynaport") == 0) {
-			type = rasctl_dev_daynaport;
-		} else {
-			// Cannot determine the file type or the basename is missing
-			fprintf(stderr,
-					"%s: unknown file extension or basename is missing\n", path);
-			return false;
+			type = DeviceType::DAYNAPORT;
 		}
 
 		int un = 0;
@@ -1013,7 +1008,7 @@ bool ParseArgument(int argc, char* argv[])
 		Command command;
 		command.set_id(id);
 		command.set_un(un);
-		command.set_cmd(0);
+		command.set_cmd(Opcode::ATTACH);
 		command.set_type(type);
 		command.set_file(path);
 		if (!ProcessCmd(stderr, command)) {
