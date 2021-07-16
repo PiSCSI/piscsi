@@ -466,11 +466,12 @@ void FASTCALL SASIDEV::Command()
 
 		// Execution Phase
                 try {
-                        Execute();
+                    Execute();
                 }
                 catch (lunexception& e) {
-                        LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-                        Error();
+                	LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+
+                	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
                 }
 		#else
 		// Request the command
@@ -512,6 +513,12 @@ void FASTCALL SASIDEV::Execute()
 	#ifdef RASCSI
 	ctrl.execstart = SysTimer::GetTimerLow();
 	#endif	// RASCSI
+
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.sense_key = 0;
+		ctrl.asc = 0;
+	}
 
 	// Process by command
 	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
@@ -830,7 +837,7 @@ void FASTCALL SASIDEV::DataOut()
 //	Error
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Error()
+void FASTCALL SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 {
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
@@ -851,15 +858,21 @@ void FASTCALL SASIDEV::Error()
 		return;
 	}
 
-#if defined(DISK_LOG)
-	LOGWARN("Error occured (going to status phase)");
-#endif	// DISK_LOG
+	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
+
+	// Set Sense Key and ASC for a subsequent REQUEST SENSE
+	ctrl.sense_key = sense_key;
+	ctrl.asc = asc;
 
 	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;
+
+#if defined(DISK_LOG)
+	LOGWARN("Error occured (going to status phase)");
+#endif	// DISK_LOG
 
 	// status phase
 	Status();
@@ -920,13 +933,36 @@ void FASTCALL SASIDEV::CmdRequestSense()
 {
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+    DWORD lun;
+    try {
+     	lun = GetLun();
+    }
+    catch(const lunexception& e) {
+        LOGINFO("%s Non-existing LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+
+        // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
+        // Non-existing LUNs do *not* result in CHECK CONDITION.
+        // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+
+        // LUN 0 can be assumed to be present (required to call RequestSense() below)
+        lun = 0;
+
+    	ctrl.sense_key = ERROR_CODES::sense_key::ILLEGAL_REQUEST;
+    	ctrl.asc = ERROR_CODES::asc::INVALID_LUN;
+    }
 
 	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
 
+    LOGTRACE("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl.sense_key, ctrl.asc);
 
-	LOGTRACE("%s Sense key $%02X, ASC $%02X",__PRETTY_FUNCTION__, (WORD)ctrl.buffer[2], (WORD)ctrl.buffer[12]);
+    // REQUEST SENSE returns the sense data set by the previous (failed) command
+    ctrl.buffer[2] = ctrl.sense_key;
+    ctrl.buffer[12] = ctrl.asc;
+
+    // The sense data are only valid once
+    ctrl.sense_key = 0;
+    ctrl.asc = 0;
 
 	// Read phase
 	DataIn();
@@ -1240,8 +1276,7 @@ void FASTCALL SASIDEV::CmdInvalid()
 {
 	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
 
-	// Failure (Error)
-	Error();
+	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 //===========================================================================
@@ -1519,7 +1554,14 @@ void FASTCALL SASIDEV::ReceiveNext()
 		// Command phase
 		case BUS::command:
 			// Execution Phase
-			Execute();
+            try {
+                Execute();
+            }
+            catch (const lunexception& e) {
+                LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+                // LOGICAL UNIT NOT SUPPORTED
+                Error(SENSE_KEY_ILLEGAL_REQUEST, ASC_INVALID_LUN);
+            }
 			break;
 			#endif	// RASCSI
 

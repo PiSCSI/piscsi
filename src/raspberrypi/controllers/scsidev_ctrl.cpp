@@ -307,6 +307,12 @@ void FASTCALL SCSIDEV::Execute()
 
 	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl.cmd[0]);
 
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if ((unsigned int)ctrl.cmd[0] != 0x03) {
+		ctrl.sense_key = 0;
+		ctrl.asc = 0;
+	}
+
 	// Process by command
 	(this->*command->execute)();
 }
@@ -361,7 +367,7 @@ void FASTCALL SCSIDEV::MsgOut()
 //	Common Error Handling
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Error()
+void FASTCALL SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 {
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
@@ -382,11 +388,17 @@ void FASTCALL SCSIDEV::Error()
 		return;
 	}
 
-	LOGTRACE( "%s Error (to status phase)", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
+
+	// Set Sense Key and ASC for a subsequent REQUEST SENSE
+	ctrl.sense_key = sense_key;
+	ctrl.asc = asc;
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = 0x02;
 	ctrl.message = 0x00;
+
+	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
 
 	// status phase
 	Status();
@@ -411,10 +423,10 @@ void FASTCALL SCSIDEV::CmdInquiry()
 	// TODO The code below is most likely wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
 	Disk *disk = NULL;
-	int lun;
-	for (lun = 0; lun < UnitMax; lun++) {
-		if (ctrl.unit[lun]) {
-			disk = ctrl.unit[lun];
+	int valid_lun;
+	for (valid_lun = 0; valid_lun < UnitMax; valid_lun++) {
+		if (ctrl.unit[valid_lun]) {
+			disk = ctrl.unit[valid_lun];
 			break;
 		}
 	}
@@ -425,7 +437,7 @@ void FASTCALL SCSIDEV::CmdInquiry()
 		DWORD minor = (DWORD)(RASCSI & 0xff);
 		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
 		ctrl.length =
-			ctrl.unit[lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
+			ctrl.unit[valid_lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
 	} else {
 		ctrl.length = 0;
 	}
@@ -439,6 +451,12 @@ void FASTCALL SCSIDEV::CmdInquiry()
 	// Add synchronous transfer support information
 	if (scsi.syncenable) {
 		ctrl.buffer[7] |= (1 << 4);
+	}
+
+	// Report if the device does not support the requested LUN
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		ctrl.buffer[0] |= 0x7f;
 	}
 
 	// Data-in Phase
@@ -650,7 +668,7 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 	int length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
 	ASSERT(length >= 0);
 	if (length <= 0) {
-		Error();
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
 	}
 
@@ -1510,11 +1528,12 @@ void FASTCALL SCSIDEV::Receive()
 
 			// Execution Phase
                         try {
-                                Execute();
+                        	Execute();
                         }
-                        catch (lunexception& e) {
-                                LOGINFO("%s unsupported LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-                                Error();
+                        catch (const lunexception& e) {
+                            LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+
+                            Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
                         }
 			break;
 
