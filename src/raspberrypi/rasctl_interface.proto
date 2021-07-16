@@ -3,5 +3,6 @@ syntax = "proto2";
 package rasctl_interface;
 
 message CommandResult {
-    required string result = 1;
+    required bool status = 1 [default = true];
+    optional string msg = 2;
 }

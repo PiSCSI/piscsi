@@ -73,6 +73,9 @@ BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 # for my specific use case. If you need them - add them back in!
 BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL) $(BINDIR)/$(SCSIMON)
 
+SRC_PROTOC = \
+	rasctl_interface.proto
+
 SRC_PROTOBUF = \
 	rasctl_interface.pb.cpp
 
@@ -148,10 +151,10 @@ $(OBJDIR) $(BINDIR):
 $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(SRC_PROTOBUF):
+$(SRC_PROTOBUF): $(SRC_PROTOC)
 	echo "-- Generating protobuf-based source files"
-	protoc --cpp_out=. rasctl_interface.proto
-	mv rasctl_interface.pb.cc rasctl_interface.pb.cpp
+	protoc --cpp_out=. $(SRC_PROTOC)
+	mv rasctl_interface.pb.cc $@
 
 ## Build Targets:
 ##   all      : Rebuild all of the executable files and re-generate 

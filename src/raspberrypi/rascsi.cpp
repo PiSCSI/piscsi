@@ -32,6 +32,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
 #include <string>
+#include <sstream>
 #include <iostream>
 
 using namespace std;
@@ -483,15 +484,15 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		FPRT(fp, "Error : Invalid ID\n");
-		command_result.set_result("Error : Invalid ID\n");
+		command_result.set_msg("Error : Invalid ID\n");
+		command_result.set_status(false);
 		return FALSE;
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
-		FPRT(fp, "Error : Invalid unit number\n");
-		command_result.set_result("Error : Invalid unit number\n");
+		command_result.set_msg("Error : Invalid unit number\n");
+		command_result.set_status(false);
 		return FALSE;
 	}
 
@@ -559,9 +560,10 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 				LOGTRACE("Done creating SCSIDaynaPort");
 				break;
 			default:
-				FPRT(fp, "Error : Invalid device type\n");
-				command_result.set_result("Error : Invalid device type\n");
-				LOGWARN("rasctl sent a command for an invalid drive type: %d", type);
+				ostringstream msg;
+				msg << "rasctl sent a command for an invalid drive type: " << type << endl;
+				command_result.set_msg(msg.str().c_str());
+				command_result.set_status(false);
 				return FALSE;
 		}
 
@@ -576,7 +578,10 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 			// Open the file path
 			if (!pUnit->Open(filepath)) {
-				FPRT(fp, "Error : File open error [%s]\n", file);
+				ostringstream msg;
+				msg << "Error : File open error [" << file << "]" << endl;
+				command_result.set_msg(msg.str().c_str());
+				command_result.set_status(false);
 				LOGWARN("rasctl tried to open an invalid file %s", file);
 				delete pUnit;
 				return FALSE;
@@ -602,14 +607,16 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 	// Is this a valid command?
 	if (cmd > 4) {
-		FPRT(fp, "Error : Invalid command\n");
+		command_result.set_msg("Error : Invalid command\n");
+		command_result.set_status(false);
 		LOGINFO("rasctl sent an invalid command: %d",cmd);
 		return FALSE;
 	}
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
-		FPRT(fp, "Error : No such device\n");
+		command_result.set_msg("Error : No such device\n");
+		command_result.set_status(false);
 		LOGWARN("rasctl sent a command for invalid controller %d", id);
 		return FALSE;
 	}
@@ -617,7 +624,8 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	// Does the unit exist?
 	pUnit = disk[id * UnitNum + un];
 	if (pUnit == NULL) {
-		FPRT(fp, "Error : No such device\n");
+		command_result.set_msg("Error : No such device\n");
+		command_result.set_status(false);
 		LOGWARN("rasctl sent a command for invalid unit ID %d UN %d", id, un);
 		return FALSE;
 	}
@@ -647,7 +655,10 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	// Valid only for MO or CD
 	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
 		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
-		FPRT(fp, "Error : Operation denied (Device type %s isn't removable)\n", type_str);
+		ostringstream msg;
+		msg << "Error : Operation denied (Device type " << type_str << " isn't removable)" << endl;
+		command_result.set_msg(msg.str().c_str());
+		command_result.set_status(false);
 		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, type_str);
 		return FALSE;
 	}
@@ -660,7 +671,10 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 			// Open the file
 			if (!pUnit->Open(filepath)) {
-				FPRT(fp, "Error : File open error [%s]\n", file);
+				ostringstream msg;
+				msg << "Error : File open error [" << file << "]" << endl;
+				command_result.set_msg(msg.str().c_str());
+				command_result.set_status(false);
 				return FALSE;
 			}
 			break;
@@ -672,7 +686,8 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 		case 4:						// PROTECT
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
-				FPRT(fp, "Error : Operation denied(Deveice isn't MO)\n");
+				command_result.set_msg("Error : Operation denied(Deveice isn't MO)\n");
+				command_result.set_status(false);
 				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
 				return FALSE;
 			}
