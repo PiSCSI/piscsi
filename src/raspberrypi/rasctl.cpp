@@ -207,8 +207,8 @@ int main(int argc, char* argv[])
 	// List display only
 	if (id < 0 && cmd < 0 && type < 0 && file == NULL && list) {
 		sprintf(buf, "list\n");
-		SendCommand(buf);
-		exit(0);
+		bool status = SendCommand(buf);
+		exit(status ? 0 : -1);
 	}
 
 	// Check the ID number
