@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
 	int id = -1;
 	int un = 0;
-	Opcode cmd = Opcode::ATTACH;
+	Opcode cmd = Opcode::NONE;
 	DeviceType type = DeviceType::UNDEFINED;
 	char *file = NULL;
 	bool list = false;
@@ -210,7 +210,7 @@ int main(int argc, char* argv[])
 	Command command;
 
 	// List display only
-	if (id < 0 && cmd < 0 && type == DeviceType::UNDEFINED && file == NULL && list) {
+	if (id < 0 && cmd == Opcode::NONE && type == DeviceType::UNDEFINED && file == NULL && list) {
 		command.set_cmd(Opcode::LIST);
 		SendCommand(command);
 		exit(0);
