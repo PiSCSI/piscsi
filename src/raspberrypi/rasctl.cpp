@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
 	}
 
 	// Type Check
-	if (cmd == ATTACH && !command.has_type()) {
+	if (cmd == ATTACH && type == UNDEFINED) {
 		// Try to determine the file type from the extension
 		int len = file.length();
 		if (len > 4 && file[len - 4] == '.') {
