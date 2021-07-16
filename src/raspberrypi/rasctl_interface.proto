@@ -3,10 +3,10 @@ syntax = "proto3";
 package rasctl_interface;
 
 message Command {
-    int32 id = 1;
-    int32 un = 2;
-    int32 cmd = 3;
-    int32 type = 4;
+    int32 cmd = 1;
+    optional int32 id = 2;
+    optional int32 un = 3;
+    optional int32 type = 4;
     optional string file = 5;
 }
 

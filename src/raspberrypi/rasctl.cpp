@@ -15,70 +15,14 @@
 #include "rasctl_interface.pb.h"
 
 using namespace std;
+using namespace rasctl_interface;
 
 //---------------------------------------------------------------------------
 //
 //	Send Command
 //
 //---------------------------------------------------------------------------
-BOOL SendCommandList(char *buf)
-{
-	int fd;
-	struct sockaddr_in server;
-	FILE *fp;
-
-	// Create a socket to send the command
-	fd = socket(PF_INET, SOCK_STREAM, 0);
-	memset(&server, 0, sizeof(server));
-	server.sin_family = PF_INET;
-	server.sin_port   = htons(6868);
-	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK); 
-
-	// Connect
-	if (connect(fd, (struct sockaddr *)&server,
-		sizeof(struct sockaddr_in)) < 0) {
-		fprintf(stderr, "Error : Can't connect to rascsi process\n");
-		return false;
-	}
-
-	// Send the command
-	fp = fdopen(fd, "r+");
-	setvbuf(fp, NULL, _IONBF, 0);
-	fputs(buf, fp);
-
-	bool status = true;
-
-	// Receive the message
-	while (status) {
-		int len;
-		size_t res = fread(&len, sizeof(int), 1, fp);
-		if (res != 1) {
-			break;
-		}
-		res = fread(buf, len, 1, fp);
-		if (res != 1) {
-			break;
-		}
-
-		string msg(buf, len);
-		rasctl_interface::Result result;
-		result.ParseFromString(msg);
-
-		if (!result.status()) {
-			cout << result.msg();
-
-			status = false;
-		}
-	}
-
-	// Close the socket when we're done
-	fclose(fp);
-	close(fd);
-
-	return status;
-}
-
-bool SendCommand(const rasctl_interface::Command& command)
+bool SendCommand(const Command& command)
 {
 	// Create a socket to send the command
 	struct sockaddr_in server;
@@ -127,7 +71,7 @@ bool SendCommand(const rasctl_interface::Command& command)
 
 		string msg(buf, len);
 		free(buf);
-		rasctl_interface::Result result;
+		Result result;
 		result.ParseFromString(msg);
 
 		if (!result.status()) {
@@ -270,10 +214,12 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	Command command;
+
 	// List display only
 	if (id < 0 && cmd < 0 && type < 0 && file == NULL && list) {
-		sprintf(buf, "list\n");
-		SendCommandList(buf);
+		command.set_cmd(-1);
+		SendCommand(command);
 		exit(0);
 	}
 
@@ -346,7 +292,6 @@ int main(int argc, char* argv[])
 	}
 
 	// Generate the command and send it
-	rasctl_interface::Command command;
 	command.set_id(id);
 	command.set_un(un);
 	command.set_cmd(cmd);
@@ -360,8 +305,8 @@ int main(int argc, char* argv[])
 
 	// Display the list
 	if (list) {
-		sprintf(buf, "list\n");
-		SendCommandList(buf);
+		command.set_cmd(-1);
+		SendCommand(command);
 	}
 
 	// All done!

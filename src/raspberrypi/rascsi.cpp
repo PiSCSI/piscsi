@@ -36,6 +36,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace rasctl_interface;
 
 //---------------------------------------------------------------------------
 //
@@ -470,7 +471,7 @@ bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
 		FPRT(fp, msg);
 	}
 #else
-	rasctl_interface::Result result;
+	Result result;
 
 	result.set_msg(msg);
 	result.set_status(status);
@@ -494,14 +495,20 @@ bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
 //	Command Processing
 //
 //---------------------------------------------------------------------------
-BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
+BOOL ProcessCmd(FILE *fp, const Command &command)
 {
 	Disk *map[CtrlMax * UnitNum];
 	int len;
-	char *ext;
+	const char *ext;
 	Filepath filepath;
 	Disk *pUnit;
 	char type_str[5];
+
+	int id = command.id();
+	int un = command.un();
+	int cmd = command.cmd();
+	int type = command.type();
+	const char *file = command.has_file() ? command.file().c_str() : NULL;
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -889,7 +896,13 @@ BOOL ParseConfig(int argc, char* argv[])
 		}
 
 		// Execute the command
-		if (!ProcessCmd(stderr, id, un, 0, type, argPath)) {
+		Command command;
+		command.set_id(id);
+		command.set_un(un);
+		command.set_cmd(0);
+		command.set_type(type);
+		command.set_file(argPath);
+		if (!ProcessCmd(stderr, command)) {
 			goto parse_error;
 		}
 	}
@@ -997,7 +1010,13 @@ bool ParseArgument(int argc, char* argv[])
 		}
 
 		// Execute the command
-		if (!ProcessCmd(stderr, id, un, 0, type, path)) {
+		Command command;
+		command.set_id(id);
+		command.set_un(un);
+		command.set_cmd(0);
+		command.set_type(type);
+		command.set_file(path);
+		if (!ProcessCmd(stderr, command)) {
 			return false;
 		}
 		id = -1;
@@ -1071,15 +1090,6 @@ static void *MonThread(void *param)
 	socklen_t len;
 	int fd;
 	FILE *fp;
-	char buf[BUFSIZ];
-	char *p;
-	int i;
-	char *argv[5];
-	int id;
-	int un;
-	int cmd;
-	int type;
-	char *file;
 
 	// Scheduler Settings
 	schedparam.sched_priority = 0;
@@ -1096,7 +1106,7 @@ static void *MonThread(void *param)
 	// Setup the monitor socket to receive commands
 	listen(monsocket, 1);
 
-	while (1) {
+	while (true) {
 		// Wait for connection
 		memset(&client, 0, sizeof(client));
 		len = sizeof(client);
@@ -1107,65 +1117,47 @@ static void *MonThread(void *param)
 
 		// Fetch the command
 		fp = fdopen(fd, "r+");
-		p = fgets(buf, BUFSIZ, fp);
 
-		// Failed to get the command
-		if (!p) {
-			goto next;
-		}
+		int len;
+        size_t res = fread(&len, sizeof(int), 1, fp);
+        if (res != 1) {
+    		fclose(fp);
+    		close(fd);
 
-		// Remove the newline character
-		p[strlen(p) - 1] = 0;
+    		return NULL;
+        }
 
-		// List all of the devices
-		if (xstrncasecmp(p, "list", 4) == 0) {
-			ListDevice(fp);
-			goto next;
-		}
+        char *buf = (char *)malloc(len);
+        res = fread(buf, len, 1, fp);
+        if (res != 1) {
+        	free(buf);
 
-		// Parameter separation
-		argv[0] = p;
-		for (i = 1; i < 5; i++) {
-			// Skip parameter values
-			while (*p && (*p != ' ')) {
-				p++;
-			}
+    		fclose(fp);
+    		close(fd);
 
-			// Replace spaces with null characters
-			while (*p && (*p == ' ')) {
-				*p++ = 0;
-			}
+    		return NULL;
+        }
 
-			// The parameters were lost
-			if (!*p) {
-				break;
-			}
+        string cmd(buf, len);
+        free(buf);
+    	Command command;
+        command.ParseFromString(cmd);
 
-			// Recognized as a parameter
-			argv[i] = p;
-		}
+        // List all of the devices
+        if (command.cmd() == -1) {
+        	ListDevice(fp);
 
-		// Failed to get all parameters
-		if (i < 5) {
-			goto next;
-		}
+        	fclose(fp);
+    		close(fd);
+        }
 
-		// ID, unit, command, type, file
-		id = atoi(argv[0]);
-		un = atoi(argv[1]);
-		cmd = atoi(argv[2]);
-		type = atoi(argv[3]);
-		file = argv[4];
-
-		// Wait until we becom idle
+		// Wait until we become idle
 		while (active) {
 			usleep(500 * 1000);
 		}
 
-		// Execute the command
-		ProcessCmd(fp, id, un, cmd, type, file);
+		ProcessCmd(fp, command);
 
-next:
 		// Release the connection
 		fclose(fp);
 		close(fd);
