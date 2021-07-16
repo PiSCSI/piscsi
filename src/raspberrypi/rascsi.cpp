@@ -464,7 +464,7 @@ void MapControler(FILE *fp, Disk **map)
 	pthread_mutex_unlock(&ctrl_mutex);
 }
 
-bool ReturnStatus(FILE *fp, bool status, const char* msg = "") {
+bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
 #ifdef BAREMETAL
 	if (strlen(msg)) {
 		FPRT(fp, msg);
@@ -478,7 +478,7 @@ bool ReturnStatus(FILE *fp, bool status, const char* msg = "") {
 	// Serialize the result in binary format
 	string data;
 	command_result.SerializeToString(&data);
-	fprintf(fp, "%ld", data.length());
+	fprintf(fp, "%d", (unsigned int)data.length());
 	void* buf = malloc(data.length());
 	memcpy(buf, (void*)data.data(), data.length());
 	fwrite(buf, data.length(), 1, fp);
@@ -523,18 +523,18 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		if (type == rasctl_dev_sasi_hd) {
 			// Passed the check
 			if (!file) {
-				return FALSE;
+				return ReturnStatus(fp, false);
 			}
 
 			// Check that command is at least 5 characters long
 			len = strlen(file);
 			if (len < 5) {
-				return FALSE;
+				return ReturnStatus(fp, false);
 			}
 
 			// Check the extension
 			if (file[len - 4] != '.') {
-				return FALSE;
+				return ReturnStatus(fp, false);
 			}
 
 			// If the extension is not SASI type, replace with SCSI
@@ -619,7 +619,8 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 		type_str[3] = (char)(pUnit->GetID());
 		type_str[4] = '\0';
 		LOGINFO("rasctl added new %s device. ID: %d UN: %d", type_str, id, un);
-		return TRUE;
+
+		return ReturnStatus(fp, true);
 	}
 
 	// Is this a valid command?
@@ -663,7 +664,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 		// Re-map the controller
 		MapControler(fp, map);
-		return TRUE;
+		return ReturnStatus(fp, true);
 	}
 
 	// Valid only for MO or CD
