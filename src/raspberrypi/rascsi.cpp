@@ -464,11 +464,21 @@ void MapControler(FILE *fp, Disk **map)
 	pthread_mutex_unlock(&ctrl_mutex);
 }
 
-bool ReturnStatus(bool status, const char* msg = "") {
+bool ReturnStatus(FILE *fp, bool status, const char* msg = "") {
+#ifdef BAREMETAL
+	if(strlen(msg)) {
+		FPRT(stderr, msg);
+	}
+#else
 	rasctl_interface::CommandResult command_result;
 
 	command_result.set_msg(msg);
 	command_result.set_status(status);
+
+	string data;
+	command_result.SerializeToString(&data);
+	FPRT(fp, data.c_str());
+#endif
 
 	return status;
 }
@@ -492,12 +502,12 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		return ReturnStatus(false, "Error : Invalid ID\n");
+		return ReturnStatus(fp, false, "Error : Invalid ID\n");
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
-		return ReturnStatus(false, "Error : Invalid unit number\n");
+		return ReturnStatus(fp, false, "Error : Invalid unit number\n");
 	}
 
 	// Connect Command
@@ -566,7 +576,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			default:
 				ostringstream msg;
 				msg << "rasctl sent a command for an invalid drive type: " << type << endl;
-				return ReturnStatus(false, msg.str().c_str());
+				return ReturnStatus(fp, false, msg.str().c_str());
 		}
 
 		// drive checks files
@@ -586,7 +596,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 				ostringstream msg;
 				msg << "Error : File open error [" << file << "]" << endl;
-				return ReturnStatus(false, msg.str().c_str());
+				return ReturnStatus(fp, false, msg.str().c_str());
 			}
 		}
 
@@ -611,14 +621,14 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	if (cmd > 4) {
 		LOGINFO("rasctl sent an invalid command: %d",cmd);
 
-		return ReturnStatus(false, "Error : Invalid command\n");
+		return ReturnStatus(fp, false, "Error : Invalid command\n");
 	}
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
 		LOGWARN("rasctl sent a command for invalid controller %d", id);
 
-		return ReturnStatus(false, "Error : No such device\n");
+		return ReturnStatus(fp, false, "Error : No such device\n");
 	}
 
 	// Does the unit exist?
@@ -626,7 +636,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 	if (pUnit == NULL) {
 		LOGWARN("rasctl sent a command for invalid unit ID %d UN %d", id, un);
 
-		return ReturnStatus(false, "Error : No such device\n");
+		return ReturnStatus(fp, false, "Error : No such device\n");
 	}
 	type_str[0] = (char)(map[id * UnitNum + un]->GetID() >> 24);
 	type_str[1] = (char)(map[id * UnitNum + un]->GetID() >> 16);
@@ -658,7 +668,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 		ostringstream msg;
 		msg << "Error : Operation denied (Device type " << type_str << " isn't removable)" << endl;
-		return ReturnStatus(false, msg.str().c_str());
+		return ReturnStatus(fp, false, msg.str().c_str());
 	}
 
 	switch (cmd) {
@@ -672,7 +682,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 				ostringstream msg;
 				msg << "Error : File open error [" << file << "]" << endl;
 
-				return ReturnStatus(false, msg.str().c_str());
+				return ReturnStatus(fp, false, msg.str().c_str());
 			}
 			break;
 
@@ -685,7 +695,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
 				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
 
-				return ReturnStatus(false, "Error : Operation denied (Device isn't MO)\n");
+				return ReturnStatus(fp, false, "Error : Operation denied (Device isn't MO)\n");
 			}
 			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), type_str, id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
@@ -695,10 +705,10 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 			ostringstream msg;
 			msg << "Received unknown command from rasctl: " << cmd << endl;
-			return ReturnStatus(false, msg.str().c_str());
+			return ReturnStatus(fp, false, msg.str().c_str());
 	}
 
-	return ReturnStatus(true);
+	return ReturnStatus(fp, true);
 }
 
 bool has_suffix(const char* string, const char* suffix) {
