@@ -1,16 +1,16 @@
-syntax = "proto3";
+syntax = "proto2";
 
 package rasctl_interface;
 
 message Command {
-    int32 cmd = 1;
-    int32 id = 2;
-    int32 un = 3;
-    int32 type = 4;
-    string file = 5;
+    required int32 cmd = 1;
+    optional int32 id = 2;
+    optional int32 un = 3;
+    optional int32 type = 4;
+    optional string file = 5;
 }
 
 message Result {
-    bool status = 1;
-    string msg = 2;
+    required bool status = 1;
+    optional string msg = 2;
 }

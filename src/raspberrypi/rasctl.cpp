@@ -104,7 +104,6 @@ int main(int argc, char* argv[])
 	BOOL list;
 	int len;
 	char *ext;
-	char buf[BUFSIZ];
 
 	id = -1;
 	un = 0;
