@@ -18,7 +18,7 @@ private:
 
 public:
         lunexception(DWORD lun) {
-                this->lun = lun;
+        	this->lun = lun;
         }
 
         ~lunexception() { }
@@ -26,6 +26,9 @@ public:
         DWORD getlun() const {
             return lun;
         }
+};
+
+class ioexception : public std::exception {
 };
 
 #endif

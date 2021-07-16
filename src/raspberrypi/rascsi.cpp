@@ -25,6 +25,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
 #include "gpiobus.h"
+#include "exceptions.h"
 #include "rascsi_version.h"
 #include "rasctl_interface.pb.h"
 #include "spdlog/spdlog.h"
@@ -1033,13 +1034,11 @@ void FixCpu(int cpu)
 //---------------------------------------------------------------------------
 static void *MonThread(void *param)
 {
-	struct sched_param schedparam;
-	struct sockaddr_in client;
-	socklen_t len;
 	int fd;
 	FILE *fp;
 
 	// Scheduler Settings
+	struct sched_param schedparam;
 	schedparam.sched_priority = 0;
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
 
@@ -1051,62 +1050,69 @@ static void *MonThread(void *param)
 		usleep(1);
 	}
 
-	// Setup the monitor socket to receive commands
+	// Set up the monitor socket to receive commands
 	listen(monsocket, 1);
 
-	while (true) {
-		// Wait for connection
-		memset(&client, 0, sizeof(client));
-		len = sizeof(client);
-		fd = accept(monsocket, (struct sockaddr*)&client, &len);
-		if (fd < 0) {
-			break;
+	try {
+		while (true) {
+			// Wait for connection
+			struct sockaddr_in client;
+			memset(&client, 0, sizeof(client));
+			socklen_t socklen = sizeof(client);
+			fd = accept(monsocket, (struct sockaddr*)&client, &socklen);
+			if (fd < 0) {
+				throw ioexception();
+			}
+
+			// Fetch the command
+			fp = fdopen(fd, "r+");
+			if (!fp) {
+				throw ioexception();
+			}
+
+			int len;
+			size_t res = fread(&len, sizeof(int), 1, fp);
+			if (res != 1) {
+				throw ioexception();
+			}
+
+			char *buf = (char *)malloc(len);
+			res = fread(buf, len, 1, fp);
+			if (res != 1) {
+				free(buf);
+
+				throw ioexception();
+			}
+
+			string cmd(buf, len);
+			free(buf);
+			Command command;
+			command.ParseFromString(cmd);
+
+			// List all of the devices
+			if (command.cmd() == LIST) {
+				ListDevice(fp);
+				break;
+			}
+			else {
+				// Wait until we become idle
+				while (active) {
+					usleep(500 * 1000);
+				}
+
+				ProcessCmd(fp, command);
+			}
 		}
+	}
+	catch(const ioexception& e) {
+		// Fall through
+	}
 
-		// Fetch the command
-		fp = fdopen(fd, "r+");
-
-		int len;
-        size_t res = fread(&len, sizeof(int), 1, fp);
-        if (res != 1) {
-    		fclose(fp);
-    		close(fd);
-
-    		return NULL;
-        }
-
-        char *buf = (char *)malloc(len);
-        res = fread(buf, len, 1, fp);
-        if (res != 1) {
-        	free(buf);
-
-    		fclose(fp);
-    		close(fd);
-
-    		return NULL;
-        }
-
-        string cmd(buf, len);
-        free(buf);
-    	Command command;
-        command.ParseFromString(cmd);
-
-        // List all of the devices
-        if (command.cmd() == LIST) {
-        	ListDevice(fp);
-        	goto next;
-        }
-
-		// Wait until we become idle
-		while (active) {
-			usleep(500 * 1000);
-		}
-
-		ProcessCmd(fp, command);
-
-next:
-		// Release the connection
+	// Release the connection
+	if (fp) {
 		fclose(fp);
+	}
+	if (fd >= 0) {
 		close(fd);
 	}
 
