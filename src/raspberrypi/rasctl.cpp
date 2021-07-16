@@ -12,6 +12,7 @@
 #include "os.h"
 #include "rascsi_version.h"
 #include "rasctl.h"
+#include "rasctl_interface.pb.h"
 
 //---------------------------------------------------------------------------
 //
@@ -48,7 +49,18 @@ BOOL SendCommand(char *buf)
 		if (fgets((char *)buf, BUFSIZ, fp) == NULL) {
 			break;
 		}
-		printf("%s", buf);
+
+		rasctl_interface::CommandResult command_result;
+		command_result.ParseFromString(buf);
+
+		std::cout << command_result.msg();
+
+		if (command_result.status()) {
+			fclose(fp);
+			close(fd);
+
+			return false;
+		}
 	}
 
 	// Close the socket when we're done

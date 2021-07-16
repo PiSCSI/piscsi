@@ -466,7 +466,7 @@ void MapControler(FILE *fp, Disk **map)
 
 bool ReturnStatus(FILE *fp, bool status, const char* msg = "") {
 #ifdef BAREMETAL
-	if(strlen(msg)) {
+	if (strlen(msg)) {
 		FPRT(fp, msg);
 	}
 #else
