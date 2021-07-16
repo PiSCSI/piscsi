@@ -467,7 +467,7 @@ void MapControler(FILE *fp, Disk **map)
 bool ReturnStatus(FILE *fp, bool status, const char* msg = "") {
 #ifdef BAREMETAL
 	if(strlen(msg)) {
-		FPRT(stderr, msg);
+		FPRT(fp, msg);
 	}
 #else
 	rasctl_interface::CommandResult command_result;
