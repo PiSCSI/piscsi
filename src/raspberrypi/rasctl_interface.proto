@@ -3,7 +3,6 @@ syntax = "proto2";
 package rasctl_interface;
 
 enum Opcode {
-    NONE = 0;
     LIST = 1;
     ATTACH = 2;
     DETACH = 3;
@@ -14,13 +13,13 @@ enum Opcode {
 
 enum DeviceType {
     UNDEFINED = -1;
-    SASI_HD = 0;
-    SCSI_HD = 1;
-    MO = 2;
-    CD = 3;
-    BR = 4;
-    NUVOLINK = 5;
-    DAYNAPORT = 6;
+    SASI_HD = 1;
+    SCSI_HD = 2;
+    MO = 3;
+    CD = 4;
+    BR = 5;
+    NUVOLINK = 6;
+    DAYNAPORT = 7;
 }
 
 message Command {

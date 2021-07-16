@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 
 	int id = -1;
 	int un = 0;
-	Opcode cmd = NONE;
+	Opcode cmd = LIST;
 	DeviceType type = UNDEFINED;
 	string file;
 	bool list = false;
@@ -199,7 +199,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'l':
-				list = TRUE;
+				cmd = LIST;
 				break;
 		}
 	}
@@ -207,7 +207,7 @@ int main(int argc, char* argv[])
 	Command command;
 
 	// List display only
-	if (id < 0 && cmd == NONE && type == UNDEFINED && file.empty() && list) {
+	if (cmd == LIST || (id < 0 && type == UNDEFINED && file.empty())) {
 		command.set_cmd(LIST);
 		SendCommand(command);
 		exit(0);
@@ -263,12 +263,6 @@ int main(int argc, char* argv[])
 	}
 	if (!SendCommand(command)) {
 		exit(ENOTCONN);
-	}
-
-	// Display the list
-	if (list) {
-		command.set_cmd(LIST);
-		SendCommand(command);
 	}
 
 	// All done!
