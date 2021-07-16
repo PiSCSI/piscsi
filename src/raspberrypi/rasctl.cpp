@@ -61,11 +61,11 @@ BOOL SendCommand(char *buf)
 		}
 
 		string msg(buf, len);
-		rasctl_interface::CommandResult command_result;
-		command_result.ParseFromString(msg);
+		rasctl_interface::Result result;
+		result.ParseFromString(msg);
 
-		if (!command_result.status()) {
-			cout << command_result.msg();
+		if (!result.status()) {
+			cout << result.msg();
 
 			status = false;
 		}

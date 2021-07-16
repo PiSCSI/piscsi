@@ -1,8 +1,11 @@
-syntax = "proto2";
+syntax = "proto3";
 
 package rasctl_interface;
 
-message CommandResult {
-    required bool status = 1;
-    required string msg = 2;
+message Command {
+}
+
+message Result {
+    bool status = 1;
+    string msg = 2;
 }

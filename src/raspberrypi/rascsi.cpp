@@ -470,14 +470,14 @@ bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
 		FPRT(fp, msg);
 	}
 #else
-	rasctl_interface::CommandResult command_result;
+	rasctl_interface::Result result;
 
-	command_result.set_msg(msg);
-	command_result.set_status(status);
+	result.set_msg(msg);
+	result.set_status(status);
 
 	// Serialize the result in binary format: Length followed by the actual data
 	string data;
-	command_result.SerializeToString(&data);
+	result.SerializeToString(&data);
 	int len = data.length();
 	fwrite(&len, sizeof(len), 1, fp);
 	void* buf = malloc(data.length());
