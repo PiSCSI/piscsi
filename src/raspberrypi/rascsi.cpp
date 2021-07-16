@@ -506,9 +506,9 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 
 	int id = command.id();
 	int un = command.un();
-	int cmd = command.cmd();
-	int type = command.type();
-	const char *file = command.has_file() ? command.file().c_str() : NULL;
+	Opcode cmd = command.cmd();
+	DeviceType type = command.type();
+	const char *file = command.has_file() ? command.file().c_str() : "-";
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -524,11 +524,11 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 	}
 
 	// Connect Command
-	if (cmd == 0) {					// ATTACH
+	if (cmd == Opcode::ATTACH) {
 		// Distinguish between SASI and SCSI
 		ext = NULL;
 		pUnit = NULL;
-		if (type == rasctl_dev_sasi_hd) {
+		if (type == DeviceType::SASI_HD) {
 			// Passed the check
 			if (!file) {
 				return ReturnStatus(fp, false);
@@ -547,22 +547,22 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 
 			// If the extension is not SASI type, replace with SCSI
 			ext = &file[len - 3];
-			if (xstrcasecmp(ext, "hdf") != 0) {
-				type = rasctl_dev_scsi_hd;
+			if (strcasecmp(ext, "hdf")) {
+				type = DeviceType::SCSI_HD;
 			}
 		}
 
 		// Create a new drive, based upon type
 		switch (type) {
-			case rasctl_dev_sasi_hd:		// HDF
+			case DeviceType::SASI_HD:		// HDF
 				pUnit = new SASIHD();
 				break;
-			case rasctl_dev_scsi_hd:		// HDS/HDN/HDI/NHD/HDA
+			case DeviceType::SCSI_HD:		// HDS/HDN/HDI/NHD/HDA
 				if (ext == NULL) {
 					break;
 				}
-				if (xstrcasecmp(ext, "hdn") == 0 ||
-					xstrcasecmp(ext, "hdi") == 0 || xstrcasecmp(ext, "nhd") == 0) {
+				if (!strcasecmp(ext, "hdn") ||
+					!strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd")) {
 					pUnit = new SCSIHD_NEC();
 				} else if (xstrcasecmp(ext, "hda") == 0) {
 					pUnit = new SCSIHD_APPLE();
@@ -570,19 +570,19 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 					pUnit = new SCSIHD();
 				}
 				break;
-			case rasctl_dev_mo:		// MO
+			case DeviceType::MO:		// MO
 				pUnit = new SCSIMO();
 				break;
-			case rasctl_dev_cd:		// CD
+			case DeviceType::CD:		// CD
 				pUnit = new SCSICD();
 				break;
-			case rasctl_dev_br:		// BRIDGE
+			case DeviceType::BR:		// BRIDGE
 				pUnit = new SCSIBR();
 				break;
-			// case rasctl_dev_nuvolink: // Nuvolink
+			// case DeviceType::NUVOLINK: // Nuvolink
 			// 	pUnit = new SCSINuvolink();
 			// 	break;
-			case rasctl_dev_daynaport: // DaynaPort SCSI Link
+			case DeviceType::DAYNAPORT: // DaynaPort SCSI Link
 				pUnit = new SCSIDaynaPort();
 				LOGTRACE("Done creating SCSIDaynaPort");
 				break;
@@ -593,7 +593,7 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 		}
 
 		// drive checks files
-		if (type <= rasctl_dev_scsi_hd || ((type <= rasctl_dev_cd || type == rasctl_dev_daynaport) && xstrcasecmp(file, "-") != 0)) {
+		if (type != DeviceType::BR && type != DeviceType::DAYNAPORT && strcasecmp(file, "-")) {
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string f = file;
 			string effective_file = f.find("/dev/") ? f : f.substr(0, f.length() - 4);
@@ -631,13 +631,6 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 		return ReturnStatus(fp, true);
 	}
 
-	// Is this a valid command?
-	if (cmd > 4) {
-		LOGINFO("rasctl sent an invalid command: %d",cmd);
-
-		return ReturnStatus(fp, false, "Error : Invalid command\n");
-	}
-
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
 		LOGWARN("rasctl sent a command for invalid controller %d", id);
@@ -660,7 +653,7 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 
 
 	// Disconnect Command
-	if (cmd == 1) {					// DETACH
+	if (cmd == Opcode::DETACH) {
 		type_str[0] = (char)(map[id * UnitNum + un]->GetID() >> 24);
 		type_str[1] = (char)(map[id * UnitNum + un]->GetID() >> 16);
 		type_str[2] = (char)(map[id * UnitNum + un]->GetID() >> 8);
@@ -686,7 +679,7 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 	}
 
 	switch (cmd) {
-		case 2:						// INSERT
+		case Opcode::INSERT:
 			// Set the file path
 			filepath.SetPath(file);
 			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file, type_str, id, un);
@@ -700,12 +693,12 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 			}
 			break;
 
-		case 3:						// EJECT
+		case Opcode::EJECT:
 			LOGINFO("rasctl commands eject %s ID: %d UN: %d", type_str, id, un);
 			pUnit->Eject(TRUE);
 			break;
 
-		case 4:						// PROTECT
+		case Opcode::PROTECT:
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
 				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
 

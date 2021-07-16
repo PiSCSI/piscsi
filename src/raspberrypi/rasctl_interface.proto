@@ -25,7 +25,7 @@ message Command {
     required Opcode cmd = 1;
     optional int32 id = 2;
     optional int32 un = 3;
-    optional int32 type = 4;
+    optional DeviceType type = 4;
     optional string file = 5;
 }
 
