@@ -38,7 +38,7 @@ BOOL SendCommand(char *buf)
 	if (connect(fd, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
 		fprintf(stderr, "Error : Can't connect to rascsi process\n");
-		return FALSE;
+		return false;
 	}
 
 	// Send the command
@@ -46,8 +46,10 @@ BOOL SendCommand(char *buf)
 	setvbuf(fp, NULL, _IONBF, 0);
 	fputs(buf, fp);
 
+	bool status = true;
+
 	// Receive the message
-	while (true) {
+	while (status) {
 		int len;
 		size_t res = fread(&len, sizeof(int), 1, fp);
 		if (res != 1) {
@@ -62,14 +64,10 @@ BOOL SendCommand(char *buf)
 		rasctl_interface::CommandResult command_result;
 		command_result.ParseFromString(msg);
 
-		cout << "Command terminated with status " << (command_result.status() ? "true" : "false") << ":" << endl;
-		cout << command_result.msg();
+		if (!command_result.status()) {
+			cout << command_result.msg();
 
-		if (command_result.status()) {
-			fclose(fp);
-			close(fd);
-
-			return false;
+			status = false;
 		}
 	}
 
@@ -77,7 +75,7 @@ BOOL SendCommand(char *buf)
 	fclose(fp);
 	close(fd);
 
-	return TRUE;
+	return status;
 }
 
 //---------------------------------------------------------------------------
