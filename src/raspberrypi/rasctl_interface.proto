@@ -11,7 +11,7 @@ enum Opcode {
     PROTECT = 6;
 }
 
-enum DeviceType{
+enum DeviceType {
     SASI_HD = 0;
     SCSI_HD = 1;
     MO = 2;
