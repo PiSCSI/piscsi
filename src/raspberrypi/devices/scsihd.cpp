@@ -74,10 +74,6 @@ BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 		return FALSE;
 	}
 
-	// 10MB or more
-	if (size < 0x9f5400) {
-		return FALSE;
-	}
     // 2TB according to xm6i
     // There is a similar one in wxw/wxw_cfg.cpp
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
