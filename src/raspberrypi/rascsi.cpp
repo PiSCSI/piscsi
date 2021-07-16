@@ -495,11 +495,9 @@ bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
 //	Command Processing
 //
 //---------------------------------------------------------------------------
-BOOL ProcessCmd(FILE *fp, const Command &command)
+bool ProcessCmd(FILE *fp, const Command &command)
 {
 	Disk *map[CtrlMax * UnitNum];
-	int len;
-	const char *ext;
 	Filepath filepath;
 	Disk *pUnit;
 	char type_str[5];
@@ -508,7 +506,9 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 	int un = command.un();
 	Opcode cmd = command.cmd();
 	DeviceType type = command.type();
-	const char *file = command.has_file() ? command.file().c_str() : NULL;
+	string file = command.has_file() ? command.file().c_str() : "";
+
+	cout << "Processing: cmd=" << cmd << ", id=" << id << ", un=" << un << ", type=" << type << ", file=" << file << endl;
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -525,29 +525,25 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 
 	// Connect Command
 	if (cmd == Opcode::ATTACH) {
+		string ext;
+
 		// Distinguish between SASI and SCSI
-		ext = NULL;
 		pUnit = NULL;
 		if (type == DeviceType::SASI_HD) {
 			// Passed the check
-			if (!file) {
-				return ReturnStatus(fp, false);
-			}
-
-			// Check that command is at least 5 characters long
-			len = strlen(file);
-			if (len < 5) {
+			if (file.empty()) {
 				return ReturnStatus(fp, false);
 			}
 
 			// Check the extension
-			if (file[len - 4] != '.') {
+			int len = file.length();
+			if (len < 5 || file[len - 4] != '.') {
 				return ReturnStatus(fp, false);
 			}
 
 			// If the extension is not SASI type, replace with SCSI
-			ext = &file[len - 3];
-			if (strcasecmp(ext, "hdf")) {
+			ext = file.substr(len - 3);
+			if (ext == "hdf") {
 				type = DeviceType::SCSI_HD;
 			}
 		}
@@ -558,12 +554,12 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 				pUnit = new SASIHD();
 				break;
 			case DeviceType::SCSI_HD:		// HDS/HDN/HDI/NHD/HDA
-				if (ext == NULL) {
+				if(ext.empty()) {
 					break;
 				}
-				if (!strcasecmp(ext, "hdn") || !strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd")) {
+				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					pUnit = new SCSIHD_NEC();
-				} else if (!strcasecmp(ext, "hda")) {
+				} else if (ext == "hda") {
 					pUnit = new SCSIHD_APPLE();
 				} else {
 					pUnit = new SCSIHD();
@@ -583,7 +579,6 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 			// 	break;
 			case DeviceType::DAYNAPORT:
 				pUnit = new SCSIDaynaPort();
-				LOGTRACE("Done creating SCSIDaynaPort");
 				break;
 			default:
 				ostringstream msg;
@@ -604,7 +599,7 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 			if (!pUnit->Open(filepath)) {
 				delete pUnit;
 
-				LOGWARN("rasctl tried to open an invalid file %s", file);
+				LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
 
 				ostringstream msg;
 				msg << "Error : File open error [" << file << "]" << endl;
@@ -680,8 +675,8 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 	switch (cmd) {
 		case Opcode::INSERT:
 			// Set the file path
-			filepath.SetPath(file);
-			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file, type_str, id, un);
+			filepath.SetPath(file.c_str());
+			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file.c_str(), type_str, id, un);
 
 			// Open the file
 			if (!pUnit->Open(filepath)) {
