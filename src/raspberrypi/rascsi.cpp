@@ -478,8 +478,9 @@ bool ReturnStatus(FILE *fp, bool status, const char* msg = "") {
 	// Serialize the result in binary format
 	string data;
 	command_result.SerializeToString(&data);
+	fprintf(fp, "%ld", data.length());
 	void* buf = malloc(data.length());
-	memcpy(buf, (void *)data.data(), data.length());
+	memcpy(buf, (void*)data.data(), data.length());
 	fwrite(buf, data.length(), 1, fp);
 	free(buf);
 #endif

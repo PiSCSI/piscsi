@@ -45,8 +45,12 @@ BOOL SendCommand(char *buf)
 	fputs(buf, fp);
 
 	// Receive the message
-	while (1) {
-		if (fgets((char *)buf, BUFSIZ, fp) == NULL) {
+	while (true) {
+		size_t len = fread(buf, sizeof(unsigned int), 1, fp);
+		if (len != sizeof(unsigned int)) {
+			break;
+		}
+		if (fread(buf, len, 1, fp) != len) {
 			break;
 		}
 
