@@ -351,7 +351,7 @@ void ListDevice(FILE *fp)
 //	Controller Mapping
 //
 //---------------------------------------------------------------------------
-void MapControler(FILE *fp, Disk **map)
+void MapController(FILE *fp, Disk **map)
 {
 	int i;
 	int j;
@@ -620,7 +620,7 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 		map[id * UnitNum + un] = pUnit;
 
 		// Re-map the controller
-		MapControler(fp, map);
+		MapController(fp, map);
 		type_str[0] = (char)(pUnit->GetID() >> 24);
 		type_str[1] = (char)(pUnit->GetID() >> 16);
 		type_str[2] = (char)(pUnit->GetID() >> 8);
@@ -671,7 +671,7 @@ BOOL ProcessCmd(FILE *fp, const Command &command)
 		map[id * UnitNum + un] = NULL;
 
 		// Re-map the controller
-		MapControler(fp, map);
+		MapController(fp, map);
 		return ReturnStatus(fp, true);
 	}
 
