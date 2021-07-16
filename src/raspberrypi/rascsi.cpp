@@ -26,7 +26,6 @@
 #include "controllers/sasidev_ctrl.h"
 #include "gpiobus.h"
 #include "rascsi_version.h"
-#include "rasctl.h"
 #include "rasctl_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -500,7 +499,6 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	Disk *map[CtrlMax * UnitNum];
 	Filepath filepath;
 	Disk *pUnit;
-	char type_str[5];
 
 	int id = command.id();
 	int un = command.un();
@@ -615,12 +613,8 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 		// Re-map the controller
 		MapController(fp, map);
-		type_str[0] = (char)(pUnit->GetID() >> 24);
-		type_str[1] = (char)(pUnit->GetID() >> 16);
-		type_str[2] = (char)(pUnit->GetID() >> 8);
-		type_str[3] = (char)(pUnit->GetID());
-		type_str[4] = '\0';
-		LOGINFO("rasctl added new %s device. ID: %d UN: %d", type_str, id, un);
+
+		LOGINFO("rasctl added new %s device. ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
 
 		return ReturnStatus(fp, true);
 	}
@@ -639,21 +633,11 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 		return ReturnStatus(fp, false, "Error : No such device\n");
 	}
-	type_str[0] = (char)(map[id * UnitNum + un]->GetID() >> 24);
-	type_str[1] = (char)(map[id * UnitNum + un]->GetID() >> 16);
-	type_str[2] = (char)(map[id * UnitNum + un]->GetID() >> 8);
-	type_str[3] = (char)(map[id * UnitNum + un]->GetID());
-	type_str[4] = '\0';
-
 
 	// Disconnect Command
 	if (cmd == Opcode::DETACH) {
-		type_str[0] = (char)(map[id * UnitNum + un]->GetID() >> 24);
-		type_str[1] = (char)(map[id * UnitNum + un]->GetID() >> 16);
-		type_str[2] = (char)(map[id * UnitNum + un]->GetID() >> 8);
-		type_str[3] = (char)(map[id * UnitNum + un]->GetID());
-		type_str[4] = '\0';
-		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", type_str, id, un);
+		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
+
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
 
@@ -665,10 +649,10 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	// Valid only for MO or CD
 	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
 		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
-		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, type_str);
+		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, DeviceType_Name(type).c_str());
 
 		ostringstream msg;
-		msg << "Error : Operation denied (Device type " << type_str << " isn't removable)" << endl;
+		msg << "Error : Operation denied (Device type " << DeviceType_Name(type).c_str() << " isn't removable)" << endl;
 		return ReturnStatus(fp, false, msg.str().c_str());
 	}
 
@@ -676,7 +660,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		case Opcode::INSERT:
 			// Set the file path
 			filepath.SetPath(file.c_str());
-			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file.c_str(), type_str, id, un);
+			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file.c_str(), DeviceType_Name(type).c_str(), id, un);
 
 			// Open the file
 			if (!pUnit->Open(filepath)) {
@@ -688,17 +672,17 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			break;
 
 		case Opcode::EJECT:
-			LOGINFO("rasctl commands eject %s ID: %d UN: %d", type_str, id, un);
+			LOGINFO("rasctl commands eject %s ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
 			pUnit->Eject(TRUE);
 			break;
 
 		case Opcode::PROTECT:
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
-				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
+				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
 
 				return ReturnStatus(fp, false, "Error : Operation denied (Device isn't MO)\n");
 			}
-			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), type_str, id, un);
+			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), DeviceType_Name(type).c_str(), id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
 		default:

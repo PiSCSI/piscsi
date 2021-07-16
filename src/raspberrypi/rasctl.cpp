@@ -11,7 +11,6 @@
 
 #include "os.h"
 #include "rascsi_version.h"
-#include "rasctl.h"
 #include "rasctl_interface.pb.h"
 
 using namespace std;
