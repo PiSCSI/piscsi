@@ -185,7 +185,7 @@ int main(int argc, char* argv[])
 						break;
 					// case 'n':
 					// case 'N':
-					// 	type = DeviceType::NUVOLINK;
+					// 	type = NUVOLINK;
 					// 	break;
 					case 'd':
 					case 'D':
@@ -208,7 +208,7 @@ int main(int argc, char* argv[])
 
 	// List display only
 	if (id < 0 && cmd == NONE && type == UNDEFINED && file.empty() && list) {
-		command.set_cmd(Opcode::LIST);
+		command.set_cmd(LIST);
 		SendCommand(command);
 		exit(0);
 	}
@@ -272,7 +272,7 @@ int main(int argc, char* argv[])
 
 	// Display the list
 	if (list) {
-		command.set_cmd(Opcode::LIST);
+		command.set_cmd(LIST);
 		SendCommand(command);
 	}
 

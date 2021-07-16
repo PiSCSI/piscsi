@@ -529,7 +529,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		string ext;
 
 		// Distinguish between SASI and SCSI
-		if (type == DeviceType::SASI_HD) {
+		if (type == SASI_HD) {
 			// Check the extension
 			int len = file.length();
 			if (len < 5 || file[len - 4] != '.') {
@@ -539,17 +539,17 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			// If the extension is not SASI type, replace with SCSI
 			ext = file.substr(len - 3);
 			if (ext != "hdf") {
-				type = DeviceType::SCSI_HD;
+				type = SCSI_HD;
 			}
 		}
 
 		// Create a new drive, based upon type
 		pUnit = NULL;
 		switch (type) {
-			case DeviceType::SASI_HD:		// HDF
+			case SASI_HD:		// HDF
 				pUnit = new SASIHD();
 				break;
-			case DeviceType::SCSI_HD:		// HDS/HDN/HDI/NHD/HDA
+			case SCSI_HD:		// HDS/HDN/HDI/NHD/HDA
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					pUnit = new SCSIHD_NEC();
 				} else if (ext == "hda") {
@@ -558,19 +558,19 @@ bool ProcessCmd(FILE *fp, const Command &command)
 					pUnit = new SCSIHD();
 				}
 				break;
-			case DeviceType::MO:
+			case MO:
 				pUnit = new SCSIMO();
 				break;
-			case DeviceType::CD:
+			case CD:
 				pUnit = new SCSICD();
 				break;
-			case DeviceType::BR:
+			case BR:
 				pUnit = new SCSIBR();
 				break;
 			// case DeviceType::NUVOLINK:
 			// 	pUnit = new SCSINuvolink();
 			// 	break;
-			case DeviceType::DAYNAPORT:
+			case DAYNAPORT:
 				pUnit = new SCSIDaynaPort();
 				break;
 			default:
@@ -580,7 +580,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		}
 
 		// drive checks files
-		if (type != DeviceType::BR && type != DeviceType::DAYNAPORT && command.has_file()) {
+		if (type != BR && type != DAYNAPORT && command.has_file()) {
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string f = file;
 			string effective_file = f.find("/dev/") ? f : f.substr(0, f.length() - 4);
@@ -652,7 +652,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	}
 
 	switch (cmd) {
-		case Opcode::INSERT:
+		case INSERT:
 			// Set the file path
 			filepath.SetPath(file.c_str());
 			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file.c_str(), DeviceType_Name(type).c_str(), id, un);
@@ -666,12 +666,12 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			}
 			break;
 
-		case Opcode::EJECT:
+		case EJECT:
 			LOGINFO("rasctl commands eject %s ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
 			pUnit->Eject(TRUE);
 			break;
 
-		case Opcode::PROTECT:
+		case PROTECT:
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
 				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
 
@@ -961,7 +961,7 @@ bool ParseArgument(int argc, char* argv[])
 		Command command;
 		command.set_id(id);
 		command.set_un(un);
-		command.set_cmd(Opcode::ATTACH);
+		command.set_cmd(ATTACH);
 		command.set_type(type);
 		command.set_file(path);
 		if (!ProcessCmd(stderr, command)) {
@@ -1092,7 +1092,7 @@ static void *MonThread(void *param)
         command.ParseFromString(cmd);
 
         // List all of the devices
-        if (command.cmd() == Opcode::LIST) {
+        if (command.cmd() == LIST) {
         	ListDevice(fp);
         	goto next;
         }
