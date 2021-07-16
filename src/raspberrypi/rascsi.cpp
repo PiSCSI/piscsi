@@ -686,7 +686,7 @@ BOOL ProcessCmd(FILE *fp, int id, int un, int cmd, int type, char *file)
 
 		case 4:						// PROTECT
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
-				command_result.set_msg("Error : Operation denied(Device isn't MO)\n");
+				command_result.set_msg("Error : Operation denied (Device isn't MO)\n");
 				command_result.set_status(false);
 				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
 				return FALSE;
