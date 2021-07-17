@@ -3,17 +3,17 @@ syntax = "proto2";
 package rasctl_interface;
 
 enum Operation {
-    LOG_LEVEL = 1;
-    LIST = 2;
-    ATTACH = 3;
-    DETACH = 4;
-    INSERT = 5;
-    EJECT = 6;
-    PROTECT = 7;
+    LIST = 0;
+    ATTACH = 1;
+    DETACH = 2;
+    INSERT = 3;
+    EJECT = 4;
+    PROTECT = 5;
+    LOG_LEVEL = 6;
 }
 
 enum DeviceType {
-    UNDEFINED = -1;
+    UNDEFINED = 0;
     SASI_HD = 1;
     SCSI_HD = 2;
     MO = 3;
@@ -32,6 +32,6 @@ message Command {
 }
 
 message Result {
-    required bool status = 1;
+    optional bool status = 1;
     optional string msg = 2;
 }

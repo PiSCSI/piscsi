@@ -513,7 +513,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	int un = command.un();
 	Operation cmd = command.cmd();
 	DeviceType type = command.type();
-	string params = command.has_params() ? command.params().c_str() : "";
+	string params = command.params().c_str();
 
 	ostringstream s;
 	s << "Processing: cmd=" << Operation_Name(cmd) << ", id=" << id << ", un=" << un
@@ -589,7 +589,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		}
 
 		// drive checks files
-		if (type != BR && type != DAYNAPORT && command.has_params()) {
+		if (type != BR && type != DAYNAPORT && !command.params().empty()) {
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string file = params.find("/dev/") ? params : params.substr(0, params.length() - 4);
 
@@ -652,7 +652,8 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	// Valid only for MO or CD
 	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
 		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
-		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, DeviceType_Name(type).c_str());
+		LOGWARN("rasctl sent an Insert/Eject/Protect command (%s) for incompatible type %s",
+				Operation_Name(cmd).c_str(), DeviceType_Name(type).c_str());
 
 		ostringstream msg;
 		msg << "Error : Operation denied (Device type " << DeviceType_Name(type).c_str() << " isn't removable)";
@@ -661,11 +662,9 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 	switch (cmd) {
 		case INSERT:
-			// Set the file path
 			filepath.SetPath(params.c_str());
 			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), DeviceType_Name(type).c_str(), id, un);
 
-			// Open the file
 			if (!pUnit->Open(filepath)) {
 				ostringstream msg;
 				msg << "Error : File open error [" << params << "]";
@@ -688,9 +687,10 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), DeviceType_Name(type).c_str(), id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
+
 		default:
 			ostringstream msg;
-			msg << "Received unknown command from rasctl: " << cmd;
+			msg << "Received unknown command from rasctl: " << Operation_Name(cmd);
 			LOGWARN("%s", msg.str().c_str());
 			return ReturnStatus(fp, false, msg.str());
 	}
@@ -931,12 +931,8 @@ bool ParseArgument(int argc, char* argv[])
 
 		string path = optarg;
 		DeviceType type = SASI_HD;
-		if (has_suffix(path, ".hdf")
-			|| has_suffix(path, ".hds")
-			|| has_suffix(path, ".hdn")
-			|| has_suffix(path, ".hdi")
-			|| has_suffix(path, ".hda")
-			|| has_suffix(path, ".nhd")) {
+		if (has_suffix(path, ".hdf") || has_suffix(path, ".hds") || has_suffix(path, ".hdn")
+			|| has_suffix(path, ".hdi") || has_suffix(path, ".hda") || has_suffix(path, ".nhd")) {
 			type = SASI_HD;
 		} else if (has_suffix(path, ".mos")) {
 			type = MO;
@@ -946,6 +942,9 @@ bool ParseArgument(int argc, char* argv[])
 			type = BR;
 		} else if (path == "daynaport") {
 			type = DAYNAPORT;
+		} else {
+			cerr << path << ": unknown file extension or basename is missing" << endl;
+		    return false;
 		}
 
 		int un = 0;
@@ -1096,7 +1095,6 @@ int main(int argc, char* argv[])
 {
 #endif	// BAREMETAL
 	int i;
-	int ret;
 	int actid;
 	DWORD now;
 	BUS::phase_t phase;
@@ -1115,7 +1113,7 @@ int main(int argc, char* argv[])
 	Banner(argc, argv);
 
 	// Initialize
-	ret = 0;
+	int ret = 0;
 	if (!Init()) {
 		ret = EPERM;
 		goto init_exit;
