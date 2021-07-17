@@ -900,7 +900,7 @@ bool ParseArgument(int argc, char* argv[])
 		}
 
 		if (id < 0) {
-			cerr << optarg << "s: ID not specified" << endl;
+			cerr << optarg << ": ID not specified" << endl;
 			return false;
 		} else if (disk[id] && !disk[id]->IsNULL()) {
 			cerr << id << ": duplicate ID" << endl;
