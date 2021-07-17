@@ -451,14 +451,15 @@ void MapController(FILE *fp, Disk **map)
 	pthread_mutex_unlock(&ctrl_mutex);
 }
 
-bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
+bool ReturnStatus(FILE *fp, bool status = true, const string msg = "") {
 #ifdef BAREMETAL
-	if (strlen(msg)) {
-		FPRT(fp, msg);
+	if (msg.length()) {
+		FPRT(fp, msg.c_str());
+		FPRT(fp, "\n");
 	}
 #else
 	Result result;
-	result.set_msg(msg);
+	result.set_msg(msg + "\n");
 	result.set_status(status);
 
 	string data;
@@ -496,12 +497,12 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		return ReturnStatus(fp, false, "Error : Invalid ID\n");
+		return ReturnStatus(fp, false, "Error : Invalid ID");
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
-		return ReturnStatus(fp, false, "Error : Invalid unit number\n");
+		return ReturnStatus(fp, false, "Error : Invalid unit number");
 	}
 
 	// Connect Command
@@ -555,7 +556,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 				break;
 			default:
 				ostringstream msg;
-				msg << "rasctl sent a command for an invalid drive type: " << type << endl;
+				msg << "rasctl sent a command for an invalid drive type: " << type;
 				return ReturnStatus(fp, false, msg.str().c_str());
 		}
 
@@ -575,7 +576,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 				LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
 
 				ostringstream msg;
-				msg << "Error : File open error [" << file << "]" << endl;
+				msg << "Error : File open error [" << file << "]";
 				return ReturnStatus(fp, false, msg.str().c_str());
 			}
 		}
@@ -598,7 +599,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	if (ctrl[id] == NULL) {
 		LOGWARN("rasctl sent a command for invalid controller %d", id);
 
-		return ReturnStatus(fp, false, "Error : No such device\n");
+		return ReturnStatus(fp, false, "Error : No such device");
 	}
 
 	// Does the unit exist?
@@ -606,7 +607,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	if (pUnit == NULL) {
 		LOGWARN("rasctl sent a command for invalid unit ID %d UN %d", id, un);
 
-		return ReturnStatus(fp, false, "Error : No such device\n");
+		return ReturnStatus(fp, false, "Error : No such device");
 	}
 
 	// Disconnect Command
@@ -627,7 +628,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, DeviceType_Name(type).c_str());
 
 		ostringstream msg;
-		msg << "Error : Operation denied (Device type " << DeviceType_Name(type).c_str() << " isn't removable)" << endl;
+		msg << "Error : Operation denied (Device type " << DeviceType_Name(type).c_str() << " isn't removable)";
 		return ReturnStatus(fp, false, msg.str().c_str());
 	}
 
@@ -640,7 +641,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			// Open the file
 			if (!pUnit->Open(filepath)) {
 				ostringstream msg;
-				msg << "Error : File open error [" << file << "]" << endl;
+				msg << "Error : File open error [" << file << "]";
 
 				return ReturnStatus(fp, false, msg.str().c_str());
 			}
@@ -655,14 +656,14 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
 				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
 
-				return ReturnStatus(fp, false, "Error : Operation denied (Device isn't MO)\n");
+				return ReturnStatus(fp, false, "Error : Operation denied (Device isn't MO)");
 			}
 			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), DeviceType_Name(type).c_str(), id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
 		default:
 			ostringstream msg;
-			msg << "Received unknown command from rasctl: " << cmd << endl;
+			msg << "Received unknown command from rasctl: " << cmd;
 			LOGWARN(msg.str().c_str());
 			return ReturnStatus(fp, false, msg.str().c_str());
 	}
