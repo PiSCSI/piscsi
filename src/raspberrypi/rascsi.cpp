@@ -908,7 +908,7 @@ bool ParseArgument(int argc, char* argv[])
 				char* end;
 				id = strtol(optarg, &end, 10);
 				if (*end || id < 0 || max_id < id) {
-					cerr << optarg << ": invalid " << (is_sasi ? "HD" : "ID") << "(0-" << max_id << ")" << endl;
+					cerr << optarg << ": invalid " << (is_sasi ? "HD" : "ID") << " (0-" << max_id << ")" << endl;
 					return false;
 				}
 				continue;
