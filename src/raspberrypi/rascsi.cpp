@@ -37,6 +37,7 @@
 #include <iostream>
 
 using namespace std;
+using namespace spdlog;
 using namespace rasctl_interface;
 
 //---------------------------------------------------------------------------
@@ -132,8 +133,6 @@ void Banner(int argc, char* argv[])
 //---------------------------------------------------------------------------
 BOOL Init()
 {
-	int i;
-
 #ifndef BAREMETAL
 	struct sockaddr_in server;
 	int yes, result;
@@ -192,12 +191,12 @@ BOOL Init()
 	bus->Reset();
 
 	// Controller initialization
-	for (i = 0; i < CtrlMax; i++) {
+	for (int i = 0; i < CtrlMax; i++) {
 		ctrl[i] = NULL;
 	}
 
 	// Disk Initialization
-	for (i = 0; i < CtrlMax; i++) {
+	for (int i = 0; i < CtrlMax; i++) {
 		disk[i] = NULL;
 	}
 
@@ -215,10 +214,8 @@ BOOL Init()
 //---------------------------------------------------------------------------
 void Cleanup()
 {
-	int i;
-
 	// Delete the disks
-	for (i = 0; i < CtrlMax * UnitNum; i++) {
+	for (int i = 0; i < CtrlMax * UnitNum; i++) {
 		if (disk[i]) {
 			delete disk[i];
 			disk[i] = NULL;
@@ -226,7 +223,7 @@ void Cleanup()
 	}
 
 	// Delete the Controllers
-	for (i = 0; i < CtrlMax; i++) {
+	for (int i = 0; i < CtrlMax; i++) {
 		if (ctrl[i]) {
 			delete ctrl[i];
 			ctrl[i] = NULL;
@@ -256,10 +253,8 @@ void Cleanup()
 //---------------------------------------------------------------------------
 void Reset()
 {
-	int i;
-
 	// Reset all of the controllers
-	for (i = 0; i < CtrlMax; i++) {
+	for (int i = 0; i < CtrlMax; i++) {
 		if (ctrl[i]) {
 			ctrl[i]->Reset();
 		}
@@ -687,7 +682,6 @@ bool has_suffix(const string& filename, const string& suffix) {
 #ifdef BAREMETAL
 BOOL ParseConfig(int argc, char* argv[])
 {
-	FRESULT fr;
 	FIL fp;
 	char line[512];
 	int id;
@@ -699,7 +693,7 @@ BOOL ParseConfig(int argc, char* argv[])
 	char *ext;
 
 	// Mount the SD card
-	fr = f_mount(&fatfs, "", 1);
+	FRESULT fr = f_mount(&fatfs, "", 1);
 	if (fr != FR_OK) {
 		FPRT(stderr, "Error : SD card mount failed.\n");
 		return FALSE;
@@ -885,7 +879,7 @@ bool ParseArgument(int argc, char* argv[])
 			case 'd': {
 				char* end;
 				id = strtol(optarg, &end, 10);
-				if (*end || (id < 0) || (max_id < id)) {
+				if (*end || id < 0 || max_id < id) {
 					cerr << optarg << ": invalid " << (is_sasi ? "HD" : "ID") << "(0-" << max_id << ")" << endl;
 					return false;
 				}
@@ -947,25 +941,25 @@ bool ParseArgument(int argc, char* argv[])
 
 	// Evaluate log level
 	if (log_level == "trace") {
-		spdlog::set_level(spdlog::level::trace);
+		set_level(level::trace);
 	}
 	else if (log_level == "debug") {
-		spdlog::set_level(spdlog::level::debug);
+		set_level(level::debug);
 	}
 	else if (log_level == "info") {
-		spdlog::set_level(spdlog::level::info);
+		set_level(level::info);
 	}
 	else if (log_level == "warn") {
-		spdlog::set_level(spdlog::level::warn);
+		set_level(level::warn);
 	}
 	else if (log_level == "err") {
-		spdlog::set_level(spdlog::level::err);
+		set_level(level::err);
 	}
 	else if (log_level == "critical") {
-		spdlog::set_level(spdlog::level::critical);
+		set_level(level::critical);
 	}
 	else if (log_level == "off") {
-		spdlog::set_level(spdlog::level::off);
+		set_level(level::off);
 	}
 	else {
 		cerr << "Invalid log level '" << log_level << "', falling back to 'trace'" << endl;
@@ -985,13 +979,11 @@ bool ParseArgument(int argc, char* argv[])
 //---------------------------------------------------------------------------
 void FixCpu(int cpu)
 {
-	cpu_set_t cpuset;
-	int cpus;
-
 	// Get the number of CPUs
+	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
-	cpus = CPU_COUNT(&cpuset);
+	int cpus = CPU_COUNT(&cpuset);
 
 	// Set the thread affinity
 	if (cpu < cpus) {
@@ -1108,9 +1100,9 @@ int main(int argc, char* argv[])
 	struct sched_param schparam;
 #endif	// BAREMETAL
 
-	spdlog::set_level(spdlog::level::trace);
+	set_level(level::trace);
 	// Create a thread-safe stdout logger to process the log messages
-	auto logger = spdlog::stdout_color_mt("rascsi stdout logger");
+	auto logger = stdout_color_mt("rascsi stdout logger");
 
 	// Output the Banner
 	Banner(argc, argv);
