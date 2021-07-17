@@ -12,9 +12,10 @@
 #if !defined(rasutil_h)
 #define rasutil_h
 
-#include <stdio.h>
+#include <cstdio>
 #include <string>
 
-void SerializeProtobufData(FILE* fp, const std::string& data);
+void SerializeProtobufData(FILE *fp, const std::string& data);
+std::string DeserializeProtobufData(FILE *fp);
 
 #endif

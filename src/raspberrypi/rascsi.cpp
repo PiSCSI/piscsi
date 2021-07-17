@@ -1054,24 +1054,8 @@ static void *MonThread(void *param)
 				throw ioexception();
 			}
 
-			int len;
-			size_t res = fread(&len, sizeof(int), 1, fp);
-			if (res != 1) {
-				throw ioexception();
-			}
-
-			char *buf = (char *)malloc(len);
-			res = fread(buf, len, 1, fp);
-			if (res != 1) {
-				free(buf);
-
-				throw ioexception();
-			}
-
-			string cmd(buf, len);
-			free(buf);
 			Command command;
-			command.ParseFromString(cmd);
+			command.ParseFromString(DeserializeProtobufData(fp));
 
 			// List all of the devices
 			if (command.cmd() == LIST) {

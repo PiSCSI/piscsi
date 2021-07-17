@@ -12,18 +12,20 @@
 #if !defined(exceptions_h)
 #define exceptions_h
 
+#include <exception>
+
 class lunexception : public std::exception {
 private:
-        DWORD lun;
+        int lun;
 
 public:
-        lunexception(DWORD lun) {
+        lunexception(int lun) {
         	this->lun = lun;
         }
 
         ~lunexception() { }
 
-        DWORD getlun() const {
+        int getlun() const {
             return lun;
         }
 };

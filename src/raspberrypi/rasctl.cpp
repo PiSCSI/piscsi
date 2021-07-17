@@ -11,6 +11,7 @@
 
 #include "os.h"
 #include "rascsi_version.h"
+#include "exceptions.h"
 #include "rasutil.h"
 #include "rasctl_interface.pb.h"
 
@@ -32,9 +33,8 @@ bool SendCommand(const Command& command)
 	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
 	int fd = socket(PF_INET, SOCK_STREAM, 0);
 
-	if (connect(fd, (struct sockaddr *)&server,
-		sizeof(struct sockaddr_in)) < 0) {
-		fprintf(stderr, "Error : Can't connect to rascsi process\n");
+	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
+		cerr << "Error : Can't connect to rascsi process" << endl;
 		return false;
 	}
 
@@ -46,36 +46,24 @@ bool SendCommand(const Command& command)
     command.SerializeToString(&data);
     SerializeProtobufData(fp, data);
 
-    bool status = true;
-
 	// Receive the message
-	while (status) {
-		int len;
-		size_t res = fread(&len, sizeof(int), 1, fp);
-		if (res != 1) {
-			break;
-		}
+    bool status = true;
+    try {
+    	while (status) {
+    		Result result;
+    		result.ParseFromString(DeserializeProtobufData(fp));
 
-		char *buf = (char *)malloc(len);
-		res = fread(buf, len, 1, fp);
-		if (res != 1) {
-			free(buf);
-			break;
-		}
+    		if (!result.status()) {
+    			cout << result.msg();
 
-		string msg(buf, len);
-		free(buf);
-		Result result;
-		result.ParseFromString(msg);
+    			status = false;
+    		}
+    	}
+    }
+    catch(const ioexception& e) {
+    	// Fall through
+    }
 
-		if (!result.status()) {
-			cout << result.msg();
-
-			status = false;
-		}
-	}
-
-	// Close the socket when we're done
 	fclose(fp);
 	close(fd);
 
