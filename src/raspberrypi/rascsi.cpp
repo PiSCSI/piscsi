@@ -513,7 +513,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	int un = command.un();
 	Operation cmd = command.cmd();
 	DeviceType type = command.type();
-	string file = command.has_file() ? command.file().c_str() : "";
+	string file = command.has_params() ? command.params().c_str() : "";
 
 	ostringstream s;
 	s << "Processing: cmd=" << Operation_Name(cmd) << ", id=" << id << ", un=" << un
@@ -589,7 +589,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		}
 
 		// drive checks files
-		if (type != BR && type != DAYNAPORT && command.has_file()) {
+		if (type != BR && type != DAYNAPORT && command.has_params()) {
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string f = file;
 			string effective_file = f.find("/dev/") ? f : f.substr(0, f.length() - 4);
@@ -961,7 +961,7 @@ bool ParseArgument(int argc, char* argv[])
 		command.set_un(un);
 		command.set_cmd(ATTACH);
 		command.set_type(type);
-		command.set_file(path);
+		command.set_params(path);
 		if (!ProcessCmd(stderr, command)) {
 			return false;
 		}
@@ -1049,7 +1049,7 @@ static void *MonThread(void *param)
 				ListDevice(fp);
 			}
 			else if (command.cmd() == LOG_LEVEL) {
-				SetLogLevel(command.file());
+				SetLogLevel(command.params());
 			}
 			else {
 				// Wait until we become idle

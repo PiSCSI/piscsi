@@ -28,7 +28,7 @@ message Command {
     optional int32 id = 2;
     optional int32 un = 3;
     optional DeviceType type = 4;
-    optional string file = 5;
+    optional string params = 5;
 }
 
 message Result {

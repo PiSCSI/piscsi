@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 	int un = 0;
 	Operation cmd = LIST;
 	DeviceType type = UNDEFINED;
-	string file;
+	string params;
 	opterr = 0;
 
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:s:l")) != -1) {
@@ -171,7 +171,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				file = optarg;
+				params = optarg;
 				break;
 
 			case 'l':
@@ -180,7 +180,7 @@ int main(int argc, char* argv[])
 
 			case 's':
 				cmd = LOG_LEVEL;
-				file = optarg;
+				params = optarg;
 				break;
 		}
 	}
@@ -188,15 +188,15 @@ int main(int argc, char* argv[])
 	Command command;
 
 	// List display only
-	if (cmd == LIST || (id < 0 && type == UNDEFINED && file.empty())) {
+	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
 		command.set_cmd(LIST);
 		SendCommand(command);
 		exit(0);
 	}
 
-	if (cmd == LOG_LEVEL && !file.empty()) {
+	if (cmd == LOG_LEVEL && !params.empty()) {
 		command.set_cmd(LOG_LEVEL);
-		command.set_file(file);
+		command.set_params(params);
 		SendCommand(command);
 		exit(0);
 	}
@@ -216,9 +216,9 @@ int main(int argc, char* argv[])
 	// Type Check
 	if (cmd == ATTACH && type == UNDEFINED) {
 		// Try to determine the file type from the extension
-		int len = file.length();
-		if (len > 4 && file[len - 4] == '.') {
-			string ext = file.substr(len - 3);
+		int len = params.length();
+		if (len > 4 && params[len - 4] == '.') {
+			string ext = params.substr(len - 3);
 			if (ext == "hdf" || ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
 				type = SASI_HD;
 			} else if (ext == "mos") {
@@ -230,13 +230,13 @@ int main(int argc, char* argv[])
 	}
 
 	// File check (command is ATTACH and type is HD, CD or MO)
-	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD || type == MO || type == CD) && file.empty()) {
+	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD || type == MO || type == CD) && params.empty()) {
 		cerr << "Error : Invalid file path" << endl;
 		exit(EINVAL);
 	}
 
 	// File check (command is INSERT)
-	if (cmd == INSERT && file.empty()) {
+	if (cmd == INSERT && params.empty()) {
 		cerr << "Error : Invalid file path" << endl;
 		exit(EINVAL);
 	}
@@ -246,8 +246,8 @@ int main(int argc, char* argv[])
 	command.set_un(un);
 	command.set_cmd(cmd);
 	command.set_type(type);
-	if (!file.empty()) {
-		command.set_file(file);
+	if (!params.empty()) {
+		command.set_params(params);
 	}
 	if (!SendCommand(command)) {
 		exit(ENOTCONN);
