@@ -2,7 +2,7 @@ syntax = "proto2";
 
 package rasctl_interface;
 
-enum Opcode {
+enum Operation {
     LIST = 1;
     ATTACH = 2;
     DETACH = 3;
@@ -23,7 +23,7 @@ enum DeviceType {
 }
 
 message Command {
-    required Opcode cmd = 1;
+    required Operation cmd = 1;
     optional int32 id = 2;
     optional int32 un = 3;
     optional DeviceType type = 4;

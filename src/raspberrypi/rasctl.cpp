@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 	int opt;
 	int id = -1;
 	int un = 0;
-	Opcode cmd = LIST;
+	Operation cmd = LIST;
 	DeviceType type = UNDEFINED;
 	string file;
 	opterr = 0;

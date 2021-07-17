@@ -487,12 +487,12 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 	int id = command.id();
 	int un = command.un();
-	Opcode cmd = command.cmd();
+	Operation cmd = command.cmd();
 	DeviceType type = command.type();
 	string file = command.has_file() ? command.file().c_str() : "";
 
 	ostringstream s;
-	s << "Processing: cmd=" << Opcode_Name(cmd) << ", id=" << id << ", un=" << un
+	s << "Processing: cmd=" << Operation_Name(cmd) << ", id=" << id << ", un=" << un
 			<< ", type=" << DeviceType_Name(type) << ", file=" << file << endl;
 	LOGINFO(s.str().c_str());
 
