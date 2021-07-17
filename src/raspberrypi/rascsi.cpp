@@ -871,27 +871,23 @@ bool ParseArgument(int argc, char* argv[])
 
 	int opt;
 	while ((opt = getopt(argc, argv, "-IiHhL:l:D:d:")) != -1) {
-		switch (opt) {
-			case 'I':
+		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
 				max_id = 7;
 				id = -1;
 				continue;
 
-			case 'H':
 			case 'h':
 				is_sasi = true;
 				max_id = 15;
 				id = -1;
 				continue;
 
-			case 'L':
 			case 'l':
 				log_level = optarg;
 				continue;
 
-			case 'D':
 			case 'd': {
 				char* end;
 				id = strtol(optarg, &end, 10);

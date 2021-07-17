@@ -114,58 +114,56 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				switch (optarg[0]) {
+				switch (tolower(optarg[0])) {
 					case 'a':
-					case 'A':
 						cmd = ATTACH;
 						break;
+
 					case 'd':
-					case 'D':
 						cmd = DETACH;
 						break;
+
 					case 'i':
-					case 'I':
 						cmd = INSERT;
 						break;
+
 					case 'e':
-					case 'E':
 						cmd = EJECT;
 						break;
+
 					case 'p':
-					case 'P':
 						cmd = PROTECT;
 						break;
 				}
 				break;
 
 			case 't':
-				switch (optarg[0]) {
+				switch (tolower(optarg[0])) {
 					case 's':
-					case 'S':
 						type = SASI_HD;
 						break;
+
 					case 'h':
-					case 'H':
 						type = SCSI_HD;
 						break;
+
 					case 'm':
-					case 'M':
 						type = MO;
 						break;
+
 					case 'c':
-					case 'C':
 						type = CD;
 						break;
+
 					case 'b':
-					case 'B':
 						type = BR;
 						break;
+
 					// case 'n':
-					// case 'N':
 					// 	type = NUVOLINK;
 					// 	break;
+
 					case 'd':
-					case 'D':
 						type = DAYNAPORT;
 						break;
 				}
@@ -220,7 +218,7 @@ int main(int argc, char* argv[])
 
 	// File check (command is ATTACH and type is HD, CD or MO)
 	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD || type == MO || type == CD) && file.empty()) {
-		fprintf(stderr, "Error : Invalid file path\n");
+		cerr << "Error : Invalid file path" << endl;
 		exit(EINVAL);
 	}
 
