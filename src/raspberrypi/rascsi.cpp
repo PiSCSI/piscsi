@@ -513,11 +513,11 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	int un = command.un();
 	Operation cmd = command.cmd();
 	DeviceType type = command.type();
-	string file = command.has_params() ? command.params().c_str() : "";
+	string params = command.has_params() ? command.params().c_str() : "";
 
 	ostringstream s;
 	s << "Processing: cmd=" << Operation_Name(cmd) << ", id=" << id << ", un=" << un
-			<< ", type=" << DeviceType_Name(type) << ", file=" << file << endl;
+			<< ", type=" << DeviceType_Name(type) << ", params=" << params << endl;
 	LOGINFO(s.str().c_str());
 
 	// Copy the Unit List
@@ -540,13 +540,13 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		// Distinguish between SASI and SCSI
 		if (type == SASI_HD) {
 			// Check the extension
-			int len = file.length();
-			if (len < 5 || file[len - 4] != '.') {
+			int len = params.length();
+			if (len < 5 || params[len - 4] != '.') {
 				return ReturnStatus(fp, false);
 			}
 
 			// If the extension is not SASI type, replace with SCSI
-			ext = file.substr(len - 3);
+			ext = params.substr(len - 3);
 			if (ext != "hdf") {
 				type = SCSI_HD;
 			}
@@ -591,11 +591,10 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		// drive checks files
 		if (type != BR && type != DAYNAPORT && command.has_params()) {
 			// Strip the image file extension from device file names, so that device files can be used as drive images
-			string f = file;
-			string effective_file = f.find("/dev/") ? f : f.substr(0, f.length() - 4);
+			string file = params.find("/dev/") ? params : params.substr(0, params.length() - 4);
 
 			// Set the Path
-			filepath.SetPath(effective_file.c_str());
+			filepath.SetPath(file.c_str());
 
 			// Open the file path
 			if (!pUnit->Open(filepath)) {
@@ -663,13 +662,13 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	switch (cmd) {
 		case INSERT:
 			// Set the file path
-			filepath.SetPath(file.c_str());
-			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", file.c_str(), DeviceType_Name(type).c_str(), id, un);
+			filepath.SetPath(params.c_str());
+			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), DeviceType_Name(type).c_str(), id, un);
 
 			// Open the file
 			if (!pUnit->Open(filepath)) {
 				ostringstream msg;
-				msg << "Error : File open error [" << file << "]";
+				msg << "Error : File open error [" << params << "]";
 
 				return ReturnStatus(fp, false, msg.str().c_str());
 			}
