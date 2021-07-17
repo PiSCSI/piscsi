@@ -493,7 +493,7 @@ void SetLogLevel(const string& log_level) {
 		set_level(level::off);
 	}
 	else {
-		cerr << "Invalid log level '" << log_level << "', falling back to 'trace'" << endl;
+		LOGWARN("Invalid log level '%s', falling back to 'trace'", log_level.c_str());
 		set_level(level::trace);
 	}
 }

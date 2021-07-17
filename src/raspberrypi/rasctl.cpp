@@ -187,16 +187,16 @@ int main(int argc, char* argv[])
 
 	Command command;
 
-	// List display only
-	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
-		command.set_cmd(LIST);
+	if (cmd == LOG_LEVEL) {
+		command.set_cmd(LOG_LEVEL);
+		command.set_params(params);
 		SendCommand(command);
 		exit(0);
 	}
 
-	if (cmd == LOG_LEVEL && !params.empty()) {
-		command.set_cmd(LOG_LEVEL);
-		command.set_params(params);
+	// List display only
+	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
+		command.set_cmd(LIST);
 		SendCommand(command);
 		exit(0);
 	}
