@@ -470,6 +470,34 @@ bool ReturnStatus(FILE *fp, bool status = true, const string msg = "") {
 	return status;
 }
 
+void SetLogLevel(const string& log_level) {
+	if (log_level == "trace") {
+		set_level(level::trace);
+	}
+	else if (log_level == "debug") {
+		set_level(level::debug);
+	}
+	else if (log_level == "info") {
+		set_level(level::info);
+	}
+	else if (log_level == "warn") {
+		set_level(level::warn);
+	}
+	else if (log_level == "err") {
+		set_level(level::err);
+	}
+	else if (log_level == "critical") {
+		set_level(level::critical);
+	}
+	else if (log_level == "off") {
+		set_level(level::off);
+	}
+	else {
+		cerr << "Invalid log level '" << log_level << "', falling back to 'trace'" << endl;
+		set_level(level::trace);
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command Processing
@@ -940,31 +968,7 @@ bool ParseArgument(int argc, char* argv[])
 		id = -1;
 	}
 
-	// Evaluate log level
-	if (log_level == "trace") {
-		set_level(level::trace);
-	}
-	else if (log_level == "debug") {
-		set_level(level::debug);
-	}
-	else if (log_level == "info") {
-		set_level(level::info);
-	}
-	else if (log_level == "warn") {
-		set_level(level::warn);
-	}
-	else if (log_level == "err") {
-		set_level(level::err);
-	}
-	else if (log_level == "critical") {
-		set_level(level::critical);
-	}
-	else if (log_level == "off") {
-		set_level(level::off);
-	}
-	else {
-		cerr << "Invalid log level '" << log_level << "', falling back to 'trace'" << endl;
-	}
+	SetLogLevel(log_level);
 
 	// Display the device list
 	ListDevice(stdout);
@@ -1043,6 +1047,9 @@ static void *MonThread(void *param)
 			// List all of the devices
 			if (command.cmd() == LIST) {
 				ListDevice(fp);
+			}
+			else if (command.cmd() == LOG_LEVEL) {
+				SetLogLevel(command.file());
 			}
 			else {
 				// Wait until we become idle

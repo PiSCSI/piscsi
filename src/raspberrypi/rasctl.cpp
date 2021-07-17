@@ -81,13 +81,14 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-s LOG_LEVEL]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
-		cerr << " CMD is 'attach' or 'insert' and FILE parameter is required." << endl;
+		cerr << "        LOG_LEVEL := log level" << endl;
+		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
 		cerr << "       Print device list." << endl;
 
@@ -103,7 +104,7 @@ int main(int argc, char* argv[])
 	string file;
 	opterr = 0;
 
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:l")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:s:l")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -176,6 +177,11 @@ int main(int argc, char* argv[])
 			case 'l':
 				cmd = LIST;
 				break;
+
+			case 's':
+				cmd = LOG_LEVEL;
+				file = optarg;
+				break;
 		}
 	}
 
@@ -184,6 +190,13 @@ int main(int argc, char* argv[])
 	// List display only
 	if (cmd == LIST || (id < 0 && type == UNDEFINED && file.empty())) {
 		command.set_cmd(LIST);
+		SendCommand(command);
+		exit(0);
+	}
+
+	if (cmd == LOG_LEVEL && !file.empty()) {
+		command.set_cmd(LOG_LEVEL);
+		command.set_file(file);
 		SendCommand(command);
 		exit(0);
 	}

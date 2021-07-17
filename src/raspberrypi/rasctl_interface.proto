@@ -3,12 +3,13 @@ syntax = "proto2";
 package rasctl_interface;
 
 enum Operation {
-    LIST = 1;
-    ATTACH = 2;
-    DETACH = 3;
-    INSERT = 4;
-    EJECT = 5;
-    PROTECT = 6;
+    LOG_LEVEL = 1;
+    LIST = 2;
+    ATTACH = 3;
+    DETACH = 4;
+    INSERT = 5;
+    EJECT = 6;
+    PROTECT = 7;
 }
 
 enum DeviceType {
