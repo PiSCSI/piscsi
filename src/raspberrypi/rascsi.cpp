@@ -585,7 +585,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			default:
 				ostringstream msg;
 				msg << "rasctl sent a command for an invalid drive type: " << type;
-				return ReturnStatus(fp, false, msg.str().c_str());
+				return ReturnStatus(fp, false, msg.str());
 		}
 
 		// drive checks files
@@ -604,7 +604,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 				ostringstream msg;
 				msg << "Error : File open error [" << file << "]";
-				return ReturnStatus(fp, false, msg.str().c_str());
+				return ReturnStatus(fp, false, msg.str());
 			}
 		}
 
@@ -656,7 +656,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 		ostringstream msg;
 		msg << "Error : Operation denied (Device type " << DeviceType_Name(type).c_str() << " isn't removable)";
-		return ReturnStatus(fp, false, msg.str().c_str());
+		return ReturnStatus(fp, false, msg.str());
 	}
 
 	switch (cmd) {
@@ -670,7 +670,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 				ostringstream msg;
 				msg << "Error : File open error [" << params << "]";
 
-				return ReturnStatus(fp, false, msg.str().c_str());
+				return ReturnStatus(fp, false, msg.str());
 			}
 			break;
 
@@ -692,7 +692,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			ostringstream msg;
 			msg << "Received unknown command from rasctl: " << cmd;
 			LOGWARN("%s", msg.str().c_str());
-			return ReturnStatus(fp, false, msg.str().c_str());
+			return ReturnStatus(fp, false, msg.str());
 	}
 
 	return ReturnStatus(fp, true);
