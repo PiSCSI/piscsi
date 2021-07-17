@@ -552,7 +552,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			case BR:
 				pUnit = new SCSIBR();
 				break;
-			// case DeviceType::NUVOLINK:
+			// case NUVOLINK:
 			// 	pUnit = new SCSINuvolink();
 			// 	break;
 			case DAYNAPORT:
@@ -675,11 +675,8 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	return ReturnStatus(fp, true);
 }
 
-bool has_suffix(const char* string, const char* suffix) {
-	int string_len = strlen(string);
-	int suffix_len = strlen(suffix);
-	return (string_len > suffix_len)
-		&& (xstrcasecmp(string + (string_len - suffix_len), suffix) == 0);
+bool has_suffix(const string& filename, const string& suffix) {
+    return filename.size() >= suffix.size() && !filename.compare(filename.size() - suffix.size(), suffix.size(), suffix);
 }
 
 //---------------------------------------------------------------------------
@@ -800,7 +797,7 @@ BOOL ParseConfig(int argc, char* argv[])
 		}
 
 		// Check ethernet and host bridge
-		if (xstrcasecmp(argPath, "bridge") == 0) {
+		if (!strcasecmp(argPath, "bridge")) {
 			type = BR;
 		} else {
 			// Check the path length
@@ -821,11 +818,8 @@ BOOL ParseConfig(int argc, char* argv[])
 
 			// Figure out what the type is
 			ext = &argPath[len - 3];
-			if (!strcasecmp(ext, "hdf") ||
-				!strcasecmp(ext, "hds") ||
-				!strcasecmp(ext, "hdn") ||
-				!strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd") ||
-				!strcasecmp(ext, "hda")) {
+			if (!strcasecmp(ext, "hdf") || !strcasecmp(ext, "hds") || !strcasecmp(ext, "hdn") ||
+				!strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd") || !strcasecmp(ext, "hda")) {
 				type = SASI_HD;
 			} else if (!strcasecmp(ext, "mos")) {
 				type = MO;
@@ -913,7 +907,7 @@ bool ParseArgument(int argc, char* argv[])
 			return false;
 		}
 
-		char* path = optarg;
+		string path = optarg;
 		DeviceType type = SASI_HD;
 		if (has_suffix(path, ".hdf")
 			|| has_suffix(path, ".hds")
@@ -926,9 +920,9 @@ bool ParseArgument(int argc, char* argv[])
 			type = MO;
 		} else if (has_suffix(path, ".iso")) {
 			type = CD;
-		} else if (!strcasecmp(path, "bridge")) {
+		} else if (path == "bridge") {
 			type = BR;
-		} else if (!strcasecmp(path, "daynaport")) {
+		} else if (path == "daynaport") {
 			type = DAYNAPORT;
 		}
 
