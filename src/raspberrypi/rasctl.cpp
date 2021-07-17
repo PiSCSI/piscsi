@@ -77,37 +77,32 @@ bool SendCommand(const Command& command)
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-	int opt;
+	// Display help
+	if (argc < 2) {
+		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
+		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]" << endl;
+		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
+		cerr << "        UNIT := {0|1} default setting is 0." << endl;
+		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
+		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
+		cerr << "        FILE := image file path" << endl;
+		cerr << " CMD is 'attach' or 'insert' and FILE parameter is required." << endl;
+		cerr << "Usage: " << argv[0] << " -l" << endl;
+		cerr << "       Print device list." << endl;
 
+		exit(0);
+	}
+
+	// Parse the arguments
+	int opt;
 	int id = -1;
 	int un = 0;
 	Opcode cmd = LIST;
 	DeviceType type = UNDEFINED;
 	string file;
-
-	// Display help
-	if (argc < 2) {
-		fprintf(stderr, "SCSI Target Emulator RaSCSI Controller\n");
-		fprintf(stderr, "version %s (%s, %s)\n",
-			rascsi_get_version_string(),
-			__DATE__,
-			__TIME__);
-		fprintf(stderr,
-			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]\n",
-			argv[0]);
-		fprintf(stderr, " where  ID := {0|1|2|3|4|5|6|7}\n");
-		fprintf(stderr, "        UNIT := {0|1} default setting is 0.\n");
-		fprintf(stderr, "        CMD := {attach|detach|insert|eject|protect}\n");
-		fprintf(stderr, "        TYPE := {hd|mo|cd|bridge|daynaport}\n");
-		fprintf(stderr, "        FILE := image file path\n");
-		fprintf(stderr, " CMD is 'attach' or 'insert' and FILE parameter is required.\n");
-		fprintf(stderr, "Usage: %s -l\n", argv[0]);
-		fprintf(stderr, "       Print device list.\n");
-		exit(0);
-	}
-
-	// Parse the arguments
 	opterr = 0;
+
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:l")) != -1) {
 		switch (opt) {
 			case 'i':
@@ -197,13 +192,13 @@ int main(int argc, char* argv[])
 
 	// Check the ID number
 	if (id < 0 || id > 7) {
-		fprintf(stderr, "%s Error : Invalid ID %d \n", __PRETTY_FUNCTION__, id);
+		cerr << __PRETTY_FUNCTION__ << " Error : Invalid ID " << id << endl;
 		exit(EINVAL);
 	}
 
 	// Check the unit number
 	if (un < 0 || un > 1) {
-		fprintf(stderr, "%s Error : Invalid UNIT %d \n", __PRETTY_FUNCTION__, un);
+		cerr << __PRETTY_FUNCTION__ << " Error : Invalid UNIT " << un << endl;
 		exit(EINVAL);
 	}
 
@@ -231,7 +226,7 @@ int main(int argc, char* argv[])
 
 	// File check (command is INSERT)
 	if (cmd == INSERT && file.empty()) {
-		fprintf(stderr, "Error : Invalid file path\n");
+		cerr << "Error : Invalid file path" << endl;
 		exit(EINVAL);
 	}
 
