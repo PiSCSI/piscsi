@@ -518,7 +518,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	ostringstream s;
 	s << "Processing: cmd=" << Operation_Name(cmd) << ", id=" << id << ", un=" << un
 			<< ", type=" << DeviceType_Name(type) << ", params=" << params << endl;
-	LOGINFO(s.str().c_str());
+	LOGINFO("%s", s.str().c_str());
 
 	// Copy the Unit List
 	memcpy(map, disk, sizeof(disk));
@@ -691,7 +691,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		default:
 			ostringstream msg;
 			msg << "Received unknown command from rasctl: " << cmd;
-			LOGWARN(msg.str().c_str());
+			LOGWARN("%s", msg.str().c_str());
 			return ReturnStatus(fp, false, msg.str().c_str());
 	}
 
