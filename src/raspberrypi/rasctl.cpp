@@ -51,7 +51,7 @@ bool SendCommand(const Command& command)
     try {
     	while (status) {
     		Result result;
-    		result.ParseFromString(DeserializeProtobufData(fp));
+    		result.ParseFromString(DeserializeProtobufData(fd));
 
     		if (!result.status()) {
     			cout << result.msg();

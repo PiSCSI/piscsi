@@ -34,11 +34,19 @@ void SerializeProtobufData(FILE *fp, const string& data)
     free(buf);
 }
 
-string DeserializeProtobufData(FILE *fp)
+string DeserializeProtobufData(int fd)
 {
+	FILE *fp = fdopen(fd, "r+");
+	if (!fp) {
+		throw ioexception();
+	}
+	setvbuf(fp, NULL, _IONBF, 0);
+
 	int len;
 	size_t res = fread(&len, sizeof(int), 1, fp);
 	if (res != 1) {
+		fclose(fp);
+
 		throw ioexception();
 	}
 
@@ -47,11 +55,15 @@ string DeserializeProtobufData(FILE *fp)
 	if (res != 1) {
 		free(buf);
 
+		fclose(fp);
+
 		throw ioexception();
 	}
 
 	string data((const char *)buf, len);
 	free(buf);
+
+	fclose(fp);
 
 	return data;
 }

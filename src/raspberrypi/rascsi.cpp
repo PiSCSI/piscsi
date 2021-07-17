@@ -1019,9 +1019,9 @@ void FixCpu(int cpu)
 static void *MonThread(void *param)
 {
 	int fd;
-	FILE *fp;
+    FILE *fp;
 
-	// Scheduler Settings
+    // Scheduler Settings
 	struct sched_param schedparam;
 	schedparam.sched_priority = 0;
 	sched_setscheduler(0, SCHED_IDLE, &schedparam);
@@ -1055,7 +1055,7 @@ static void *MonThread(void *param)
 			}
 
 			Command command;
-			command.ParseFromString(DeserializeProtobufData(fp));
+			command.ParseFromString(DeserializeProtobufData(fd));
 
 			// List all of the devices
 			if (command.cmd() == LIST) {
@@ -1070,8 +1070,8 @@ static void *MonThread(void *param)
 				ProcessCmd(fp, command);
 			}
 
-			fclose(fp);
-			fp = NULL;
+            fclose(fp);
+            fp = NULL;
 			close(fd);
 			fd = -1;
 		}
@@ -1080,10 +1080,10 @@ static void *MonThread(void *param)
 		// Fall through
 	}
 
-	if (fp) {
-		fclose(fp);
-	}
-	if (fd >= 0) {
+    if (fp) {
+    	fclose(fp);
+    }
+    if (fd >= 0) {
 		close(fd);
 	}
 

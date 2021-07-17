@@ -16,6 +16,6 @@
 #include <string>
 
 void SerializeProtobufData(FILE *fp, const std::string& data);
-std::string DeserializeProtobufData(FILE *fp);
+std::string DeserializeProtobufData(int fd);
 
 #endif
