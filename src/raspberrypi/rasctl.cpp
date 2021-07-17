@@ -11,6 +11,7 @@
 
 #include "os.h"
 #include "rascsi_version.h"
+#include "rasutil.h"
 #include "rasctl_interface.pb.h"
 
 using namespace std;
@@ -41,15 +42,9 @@ bool SendCommand(const Command& command)
 	FILE *fp = fdopen(fd, "r+");
 	setvbuf(fp, NULL, _IONBF, 0);
 
-	// Serialize the command in binary format: Length followed by the actual data
 	string data;
     command.SerializeToString(&data);
-    int len = data.length();
-    fwrite(&len, sizeof(len), 1, fp);
-    char* buf = (char *)malloc(data.length());
-    memcpy(buf, data.data(), data.length());
-    fwrite(buf, data.length(), 1, fp);
-    free(buf);
+    SerializeProtobufData(fp, data);
 
     bool status = true;
 
@@ -61,7 +56,7 @@ bool SendCommand(const Command& command)
 			break;
 		}
 
-		buf = (char *)malloc(len);
+		char *buf = (char *)malloc(len);
 		res = fread(buf, len, 1, fp);
 		if (res != 1) {
 			free(buf);

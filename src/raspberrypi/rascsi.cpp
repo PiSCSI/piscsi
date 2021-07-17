@@ -27,6 +27,7 @@
 #include "gpiobus.h"
 #include "exceptions.h"
 #include "rascsi_version.h"
+#include "rasutil.h"
 #include "rasctl_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -465,15 +466,9 @@ bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
 	result.set_msg(msg);
 	result.set_status(status);
 
-	// Serialize the result in binary format: Length followed by the actual data
 	string data;
 	result.SerializeToString(&data);
-	int len = data.length();
-	fwrite(&len, sizeof(len), 1, fp);
-	void* buf = malloc(data.length());
-	memcpy(buf, (void*)data.data(), data.length());
-	fwrite(buf, data.length(), 1, fp);
-	free(buf);
+	SerializeProtobufData(fp, data);
 #endif
 
 	return status;

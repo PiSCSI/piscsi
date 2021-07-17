@@ -85,7 +85,8 @@ SRC_RASCSI = \
 	gpiobus.cpp \
 	filepath.cpp \
 	fileio.cpp\
-	rascsi_version.cpp
+	rascsi_version.cpp \
+	rasutil.cpp
 #	os.cpp
 #	rasctl_command.cpp
 #	rascsi_mgr.cpp
@@ -104,7 +105,8 @@ SRC_SCSIMON = \
 
 SRC_RASCTL = \
 	rasctl.cpp\
-	rascsi_version.cpp
+	rascsi_version.cpp \
+	rasutil.cpp
 #	rasctl_command.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 
