@@ -275,23 +275,19 @@ void Reset()
 //---------------------------------------------------------------------------
 void ListDevice(FILE *fp)
 {
-	int i;
-	int id;
-	int un;
-	Disk *pUnit;
 	Filepath filepath;
-	BOOL find;
 	char type[5];
 	char dev_status[_MAX_FNAME+26];
 
-	find = FALSE;
+	bool find = false;
 	type[4] = 0;
-	for (i = 0; i < CtrlMax * UnitNum; i++) {
+
+	for (int i = 0; i < CtrlMax * UnitNum; i++) {
 		strncpy(dev_status,"",sizeof(dev_status));
 		// Initialize ID and unit number
-		id = i / UnitNum;
-		un = i % UnitNum;
-		pUnit = disk[i];
+		int id = i / UnitNum;
+		int un = i % UnitNum;
+		Disk *pUnit = disk[i];
 
 		// skip if unit does not exist or null disk
 		if (pUnit == NULL || pUnit->IsNULL()) {
@@ -329,7 +325,7 @@ void ListDevice(FILE *fp)
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
-			strcat(dev_status, "(WRITEPROTECT)");
+			strcat(dev_status, " (WRITEPROTECT)");
 		}
 		FPRT(fp, "|  %d |  %d | %s | %s\n", id, un, type, dev_status);
 		LOGINFO( "|  %d |  %d | %s | %s", id, un, type, dev_status);
@@ -353,19 +349,13 @@ void ListDevice(FILE *fp)
 //---------------------------------------------------------------------------
 void MapController(FILE *fp, Disk **map)
 {
-	int i;
-	int j;
-	int unitno;
-	int sasi_num;
-	int scsi_num;
-
 	// Take ownership of the ctrl data structure
 	pthread_mutex_lock(&ctrl_mutex);
 
 	// Replace the changed unit
-	for (i = 0; i < CtrlMax; i++) {
-		for (j = 0; j < UnitNum; j++) {
-			unitno = i * UnitNum + j;
+	for (int i = 0; i < CtrlMax; i++) {
+		for (int j = 0; j < UnitNum; j++) {
+			int unitno = i * UnitNum + j;
 			if (disk[unitno] != map[unitno]) {
 				// Check if the original unit exists
 				if (disk[unitno]) {
@@ -385,12 +375,12 @@ void MapController(FILE *fp, Disk **map)
 	}
 
 	// Reconfigure all of the controllers
-	for (i = 0; i < CtrlMax; i++) {
+	for (int i = 0; i < CtrlMax; i++) {
 		// Examine the unit configuration
-		sasi_num = 0;
-		scsi_num = 0;
-		for (j = 0; j < UnitNum; j++) {
-			unitno = i * UnitNum + j;
+		int sasi_num = 0;
+		int scsi_num = 0;
+		for (int j = 0; j < UnitNum; j++) {
+			int unitno = i * UnitNum + j;
 			// branch by unit type
 			if (disk[unitno]) {
 				if (disk[unitno]->IsSASI()) {
@@ -454,8 +444,8 @@ void MapController(FILE *fp, Disk **map)
 		}
 
 		// connect all units
-		for (j = 0; j < UnitNum; j++) {
-			unitno = i * UnitNum + j;
+		for (int j = 0; j < UnitNum; j++) {
+			int unitno = i * UnitNum + j;
 			if (disk[unitno]) {
 				// Add the unit connection
 				ctrl[i]->SetUnit(j, disk[unitno]);
@@ -472,7 +462,6 @@ bool ReturnStatus(FILE *fp, bool status = true, const char* msg = "") {
 	}
 #else
 	Result result;
-
 	result.set_msg(msg);
 	result.set_status(status);
 
