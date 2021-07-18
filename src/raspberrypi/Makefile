@@ -73,19 +73,27 @@ BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 # for my specific use case. If you need them - add them back in!
 BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL) $(BINDIR)/$(SCSIMON)
 
+SRC_PROTOC = \
+	rasctl_interface.proto
+
+SRC_PROTOBUF = \
+	rasctl_interface.pb.cpp
+
 SRC_RASCSI = \
 	rascsi.cpp \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
 	fileio.cpp\
-	rascsi_version.cpp
+	rascsi_version.cpp \
+	rasutil.cpp
 #	os.cpp
 #	rasctl_command.cpp
 #	rascsi_mgr.cpp
 #	command_thread.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
+SRC_RASCSI += $(SRC_PROTOBUF)
 
 SRC_SCSIMON = \
 	scsimon.cpp \
@@ -97,8 +105,10 @@ SRC_SCSIMON = \
 
 SRC_RASCTL = \
 	rasctl.cpp\
-	rascsi_version.cpp
+	rascsi_version.cpp \
+	rasutil.cpp
 #	rasctl_command.cpp
+SRC_RASCTL += $(SRC_PROTOBUF)
 
 SRC_RASDUMP = \
 	rasdump.cpp \
@@ -126,9 +136,9 @@ OBJ_RASCSI := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI:%.cpp=%.o)))
 OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
-OBJ_SCSIMON  := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
-#OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP) $(OBJ_SCSIMON)
-OBJ_ALL := $(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_RASDUMP) $(OBJ_SASIDUMP) $(OBJ_SCSIMON)
+OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
+
+GEN_PROTOBUF := $(SRC_PROTOBUF) rasctl_interface.pb.h
 
 
 # The following will include all of the auto-generated dependency files (*.d)
@@ -143,6 +153,11 @@ $(OBJDIR) $(BINDIR):
 $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+$(SRC_PROTOBUF): $(SRC_PROTOC)
+	echo "-- Generating protobuf-based source files"
+	protoc --cpp_out=. $(SRC_PROTOC)
+	mv rasctl_interface.pb.cc $@
+
 ## Build Targets:
 ##   all      : Rebuild all of the executable files and re-generate 
 ##              the text versions of the manpages
@@ -155,10 +170,10 @@ ALL: all
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
 $(BINDIR)/$(RASCSI): $(OBJ_RASCSI) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap -lprotobuf-lite
 
 $(BINDIR)/$(RASCTL): $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lprotobuf-lite
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
@@ -173,7 +188,7 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 ##              compiler files and executable files 
 .PHONY: clean
 clean:
-	rm -rf $(OBJDIR) $(BINDIR)
+	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF)
 
 ##   run      : Launches RaSCSI using some pre-defined drive 
 ##              images. Useful for debugging when you're building 

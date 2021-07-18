@@ -179,9 +179,9 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	}
 
 	// Map peripheral region memory
-	map = mmap(NULL, 0x1000100,
-		PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
+	map = mmap(NULL, 0x1000100, PROT_READ | PROT_WRITE, MAP_SHARED, fd, baseaddr);
 	if (map == MAP_FAILED) {
+        LOGERROR("Error: Unable to map memory");
 		close(fd);
 		return FALSE;
 	}
