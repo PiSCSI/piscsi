@@ -230,7 +230,7 @@ int main(int argc, char* argv[])
 	}
 
 	// File check (command is ATTACH and type is HD, CD or MO)
-	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD || type == MO || type == CD) && params.empty()) {
+	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD) && params.empty()) {
 		cerr << "Error : Invalid file path" << endl;
 		exit(EINVAL);
 	}

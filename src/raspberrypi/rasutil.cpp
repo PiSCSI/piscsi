@@ -24,9 +24,11 @@ using namespace std;
 
 void SerializeProtobufData(FILE *fp, const string& data)
 {
-    int len = data.length();
-    fwrite(&len, sizeof(len), 1, fp);
+	// Write the size of the protobuf data as a header
+    int size = data.length();
+    fwrite(&size, sizeof(size), 1, fp);
 
+    // Write the actual protobuf data
     void *buf = malloc(data.length());
     memcpy(buf, data.data(), data.length());
     fwrite(buf, data.length(), 1, fp);
@@ -42,16 +44,18 @@ string DeserializeProtobufData(int fd)
 	}
 	setvbuf(fp, NULL, _IONBF, 0);
 
-	int len;
-	size_t res = fread(&len, sizeof(int), 1, fp);
+	// First read the header with the size of the protobuf data
+	int size;
+	size_t res = fread(&size, sizeof(int), 1, fp);
 	if (res != 1) {
 		fclose(fp);
 
 		throw ioexception();
 	}
 
-	void *buf = malloc(len);
-	res = fread(buf, len, 1, fp);
+	// Read the actual protobuf data
+	void *buf = malloc(size);
+	res = fread(buf, size, 1, fp);
 	if (res != 1) {
 		free(buf);
 
@@ -60,7 +64,8 @@ string DeserializeProtobufData(int fd)
 		throw ioexception();
 	}
 
-	string data((const char *)buf, len);
+	// Read protobuf data into a string, to be converted into a protobuf data structure by the caller
+	string data((const char *)buf, size);
 	free(buf);
 
 	fclose(fp);
