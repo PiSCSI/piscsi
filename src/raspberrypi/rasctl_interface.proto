@@ -1,4 +1,4 @@
-syntax = "proto2";
+syntax = "proto3";
 
 package rasctl_interface;
 
@@ -24,14 +24,14 @@ enum DeviceType {
 }
 
 message Command {
-    required Operation cmd = 1;
-    optional int32 id = 2;
-    optional int32 un = 3;
-    optional DeviceType type = 4;
-    optional string params = 5;
+    Operation cmd = 1;
+    int32 id = 2;
+    int32 un = 3;
+    DeviceType type = 4;
+    string params = 5;
 }
 
 message Result {
-    optional bool status = 1;
-    optional string msg = 2;
+    bool status = 1;
+    string msg = 2;
 }
