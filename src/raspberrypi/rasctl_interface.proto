@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+option optimize_for = LITE_RUNTIME;
+
 package rasctl_interface;
 
 enum Operation {
