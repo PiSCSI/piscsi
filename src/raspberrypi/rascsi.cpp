@@ -269,11 +269,11 @@ void Reset()
 //	List Devices
 //
 //---------------------------------------------------------------------------
-void ListDevice(FILE *fp)
-{
+string ListDevice() {
 	Filepath filepath;
 	char type[5];
 	char dev_status[_MAX_FNAME+26];
+	ostringstream s;
 
 	bool find = false;
 	type[4] = 0;
@@ -292,12 +292,13 @@ void ListDevice(FILE *fp)
 
 		// Output the header
         if (!find) {
-			FPRT(fp, "\n");
-			FPRT(fp, "+----+----+------+-------------------------------------\n");
+        	s << endl
+        		<< "+----+----+------+-------------------------------------" << endl
+        		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
+				<< "+----+----+------+-------------------------------------" << endl;
 			LOGINFO( "+----+----+------+-------------------------------------");
-			FPRT(fp, "| ID | UN | TYPE | DEVICE STATUS\n");
-			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS\n");
-			FPRT(fp, "+----+----+------+-------------------------------------\n");
+			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS");
+			LOGINFO( "+----+----+------+-------------------------------------\n");
 			find = TRUE;
 		}
 
@@ -314,7 +315,7 @@ void ListDevice(FILE *fp)
 			strncpy(dev_status,"DaynaPort SCSI/Link",sizeof(dev_status));
 		} else {
 			pUnit->GetPath(filepath);
-			snprintf(dev_status, sizeof(dev_status), "%s", 
+			snprintf(dev_status, sizeof(dev_status), "%s",
 				(pUnit->IsRemovable() && !pUnit->IsReady()) ?
 				"NO MEDIA" : filepath.GetPath());
 		}
@@ -323,19 +324,20 @@ void ListDevice(FILE *fp)
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
 			strcat(dev_status, " (WRITEPROTECT)");
 		}
-		FPRT(fp, "|  %d |  %d | %s | %s\n", id, un, type, dev_status);
+		s << "|  " << id << " |  " << un << " | " << type << " | " << dev_status << endl;
 		LOGINFO( "|  %d |  %d | %s | %s", id, un, type, dev_status);
 
 	}
 
 	// If there is no controller, find will be null
 	if (!find) {
-		FPRT(fp, "No images currently attached.\n");
-		return;
+		return "No images currently attached.\n";
 	}
 
-	FPRT(fp, "+----+----+------+-------------------------------------\n");
+	s << "+----+----+------+-------------------------------------" << endl;
 	LOGINFO( "+----+----+------+-------------------------------------");
+
+	return s.str();
 }
 
 //---------------------------------------------------------------------------
@@ -866,7 +868,7 @@ BOOL ParseConfig(int argc, char* argv[])
 	f_close(&fp);
 
 	// Display the device list
-	ListDevice(stdout);
+	fprintf(stdout, "%s", ListDevice().c_str());
 
 	return TRUE;
 
@@ -969,7 +971,7 @@ bool ParseArgument(int argc, char* argv[])
 	SetLogLevel(log_level);
 
 	// Display the device list
-	ListDevice(stdout);
+	fprintf(stdout, "%s", ListDevice().c_str());
 	return true;
 }
 #endif  // BAREMETAL
@@ -1044,7 +1046,13 @@ static void *MonThread(void *param)
 
 			// List all of the devices
 			if (command.cmd() == LIST) {
-				ListDevice(fp);
+				Result result;
+				result.set_msg(ListDevice() + "\n");
+				result.set_status(true);
+
+				string data;
+				result.SerializeToString(&data);
+				SerializeProtobufData(fp, data);
 			}
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());
