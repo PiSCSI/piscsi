@@ -9,6 +9,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include <netdb.h>
 #include "os.h"
 #include "rascsi_version.h"
 #include "rasctl.h"
@@ -20,14 +21,13 @@
 //---------------------------------------------------------------------------
 BOOL SendCommand(char *buf)
 {
-	int fd;
-	struct sockaddr_in server;
-	FILE *fp;
-
 	// Create a socket to send the command
-	fd = socket(PF_INET, SOCK_STREAM, 0);
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
+	struct sockaddr_in server;
 	memset(&server, 0, sizeof(server));
-	server.sin_family = PF_INET;
+	server.sin_family = AF_INET;
+	struct hostent *host = gethostbyname("localhost");
+    memcpy((char *)&server.sin_addr.s_addr, (char *)host->h_addr,  host->h_length);
 	server.sin_port   = htons(6868);
 	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK); 
 
@@ -39,7 +39,7 @@ BOOL SendCommand(char *buf)
 	}
 
 	// Send the command
-	fp = fdopen(fd, "r+");
+	FILE *fp = fdopen(fd, "r+");
 	setvbuf(fp, NULL, _IONBF, 0);
 	fputs(buf, fp);
 

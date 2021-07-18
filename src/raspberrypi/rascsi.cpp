@@ -141,9 +141,9 @@ BOOL Init()
 	}
 
 	// Create socket for monitor
-	monsocket = socket(PF_INET, SOCK_STREAM, 0);
+	monsocket = socket(AF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
-	server.sin_family = PF_INET;
+	server.sin_family = AF_INET;
 	server.sin_port   = htons(6868);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
