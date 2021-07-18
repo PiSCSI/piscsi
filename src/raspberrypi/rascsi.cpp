@@ -139,7 +139,7 @@ BOOL Init()
 
 	result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if(result != EXIT_SUCCESS){
-		LOGERROR("Unable to create a mutex. Err code: %d",result);
+		LOGERROR("Unable to create a mutex. Err code: %d", result);
 		return FALSE;
 	}
 
@@ -1037,13 +1037,13 @@ static void *MonThread(void *param)
 			memset(&client, 0, socklen);
 			fd = accept(monsocket, (struct sockaddr*)&client, &socklen);
 			if (fd < 0) {
-				throw ioexception();
+				throw ioexception("accept() failed");
 			}
 
 			// Fetch the command
 			fp = fdopen(fd, "r+");
 			if (!fp) {
-				throw ioexception();
+				throw ioexception("fdopen() failed");
 			}
 
 			Command command;
@@ -1078,6 +1078,8 @@ static void *MonThread(void *param)
 		}
 	}
 	catch(const ioexception& e) {
+		LOGERROR("%s", e.getmsg());
+
 		// Fall through
 	}
 

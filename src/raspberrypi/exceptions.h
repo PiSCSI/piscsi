@@ -19,9 +19,7 @@ private:
         int lun;
 
 public:
-        lunexception(int lun) {
-        	this->lun = lun;
-        }
+        lunexception(int _lun) : lun(_lun) { }
 
         ~lunexception() { }
 
@@ -31,6 +29,17 @@ public:
 };
 
 class ioexception : public std::exception {
+private:
+	const char *msg;
+
+public:
+	ioexception(const char *_msg) : msg(_msg) { }
+
+	~ioexception() { }
+
+	const char *getmsg() const {
+		return msg;
+	}
 };
 
 #endif

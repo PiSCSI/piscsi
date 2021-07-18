@@ -48,18 +48,18 @@ bool SendCommand(const Command& command)
 	// Receive the message
     bool status = true;
     try {
-    	while (status) {
-    		Result result;
-    		result.ParseFromString(DeserializeProtobufData(fd));
+    	Result result;
+    	result.ParseFromString(DeserializeProtobufData(fd));
 
-    		status = result.status();
+    	status = result.status();
 
-    		if (!result.msg().empty()) {
-    			cout << result.msg();
-    		}
+    	if (!result.msg().empty()) {
+    		cout << result.msg();
     	}
     }
     catch(const ioexception& e) {
+    	cerr << "Error : " << e.getmsg() << endl;
+
     	// Fall through
     }
 

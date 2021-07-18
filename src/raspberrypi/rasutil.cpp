@@ -44,7 +44,8 @@ string DeserializeProtobufData(int fd)
 	size_t size;
 	size_t res = read(fd, &size, sizeof(int));
 	if (res != sizeof(int)) {
-		throw ioexception();
+		// No more data
+		return "";
 	}
 
 	// Read the actual protobuf data
@@ -53,7 +54,7 @@ string DeserializeProtobufData(int fd)
 	if (res != size) {
 		free(buf);
 
-		throw ioexception();
+		throw ioexception("Missing protobuf data");
 	}
 
 	// Read protobuf data into a string, to be converted into a protobuf data structure by the caller
