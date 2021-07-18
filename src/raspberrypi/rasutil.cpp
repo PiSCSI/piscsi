@@ -32,6 +32,7 @@ void SerializeProtobufData(FILE *fp, const string& data)
     void *buf = malloc(size);
     memcpy(buf, data.data(), size);
     fwrite(buf, size, 1, fp);
+    fflush(fp);
 
     free(buf);
 }
@@ -42,7 +43,6 @@ string DeserializeProtobufData(int fd)
 	if (!fp) {
 		throw ioexception();
 	}
-	setvbuf(fp, NULL, _IONBF, 0);
 
 	// First read the header with the size of the protobuf data
 	int size;

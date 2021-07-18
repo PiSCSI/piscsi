@@ -40,7 +40,6 @@ bool SendCommand(const Command& command)
 
 	// Send the command
 	FILE *fp = fdopen(fd, "r+");
-	setvbuf(fp, NULL, _IONBF, 0);
 
 	string data;
     command.SerializeToString(&data);
