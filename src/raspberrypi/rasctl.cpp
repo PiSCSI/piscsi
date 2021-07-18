@@ -26,15 +26,15 @@ BOOL SendCommand(const char *hostname, char *buf)
 	struct sockaddr_in server;
 	memset(&server, 0, sizeof(server));
 	server.sin_family = AF_INET;
+	server.sin_port = htons(6868);
+	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
 	struct hostent *host = gethostbyname(hostname);
 	if(!host) {
-		fprintf(stderr, "Error : Can't resolve hostname %s\n", hostname);
+		fprintf(stderr, "Error : Can't resolve hostname '%s'\n", hostname);
 		return false;
-
 	}
     memcpy((char *)&server.sin_addr.s_addr, (char *)host->h_addr,  host->h_length);
-	server.sin_port = htons(6868);
-	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK); 
 
 	// Connect
 	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
@@ -75,7 +75,7 @@ int main(int argc, char* argv[])
 	int cmd;
 	int type;
 	char *file;
-	const char *host = "localhost";
+	const char *hostname = "localhost";
 	BOOL list;
 	int len;
 	char *ext;
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 			__DATE__,
 			__TIME__);
 		fprintf(stderr,
-			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]\n",
+			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME]\n",
 			argv[0]);
 		fprintf(stderr, " where  ID := {0|1|2|3|4|5|6|7}\n");
 		fprintf(stderr, "        UNIT := {0|1} default setting is 0.\n");
@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 
 	// Parse the arguments
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:n:l")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:l")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -187,8 +187,8 @@ int main(int argc, char* argv[])
 				list = TRUE;
 				break;
 
-			case 'n':
-				host = optarg;
+			case 'h':
+				hostname = optarg;
 				break;
 		}
 	}
@@ -196,7 +196,7 @@ int main(int argc, char* argv[])
 	// List display only
 	if (id < 0 && cmd < 0 && type < 0 && file == NULL && list) {
 		sprintf(buf, "list\n");
-		SendCommand(host, buf);
+		SendCommand(hostname, buf);
 		exit(0);
 	}
 
@@ -270,14 +270,14 @@ int main(int argc, char* argv[])
 
 	// Generate the command and send it
 	sprintf(buf, "%d %d %d %d %s\n", id, un, cmd, type, file ? file : "-");
-	if (!SendCommand(host, buf)) {
+	if (!SendCommand(hostname, buf)) {
 		exit(ENOTCONN);
 	}
 
 	// Display the list
 	if (list) {
 		sprintf(buf, "list\n");
-		SendCommand(host, buf);
+		SendCommand(hostname, buf);
 	}
 
 	// All done!
