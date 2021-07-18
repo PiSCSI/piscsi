@@ -514,16 +514,16 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	Disk *map[CtrlMax * UnitNum];
 	Filepath filepath;
 	Disk *pUnit;
+    char type_str[5];
 
-	int id = command.id();
+    int id = command.id();
 	int un = command.un();
 	Operation cmd = command.cmd();
 	DeviceType type = command.type();
 	string params = command.params().c_str();
 
 	ostringstream s;
-	s << "Processing: cmd=" << Operation_Name(cmd) << ", id=" << id << ", un=" << un
-			<< ", type=" << DeviceType_Name(type) << ", params=" << params << endl;
+	s << "Processing: cmd=" << cmd << ", id=" << id << ", un=" << un << ", type=" << type << ", params=" << params << endl;
 	LOGINFO("%s", s.str().c_str());
 
 	// Copy the Unit List
@@ -623,7 +623,13 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-			LOGINFO("rasctl added new %s device. ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
+			type_str[0] = (char)(pUnit->GetID() >> 24);
+	        type_str[1] = (char)(pUnit->GetID() >> 16);
+	        type_str[2] = (char)(pUnit->GetID() >> 8);
+	        type_str[3] = (char)(pUnit->GetID());
+	        type_str[4] = '\0';
+
+	        LOGINFO("rasctl added new %s device. ID: %d UN: %d", type_str, id, un);
 		}
 
 		return ReturnStatus(fp, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
@@ -644,9 +650,15 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		return ReturnStatus(fp, false, "Error : No such device");
 	}
 
+	type_str[0] = (char)(pUnit->GetID() >> 24);
+    type_str[1] = (char)(pUnit->GetID() >> 16);
+    type_str[2] = (char)(pUnit->GetID() >> 8);
+    type_str[3] = (char)(pUnit->GetID());
+    type_str[4] = '\0';
+
 	// Disconnect Command
 	if (cmd == DETACH) {
-		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
+		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", type_str, id, un);
 
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
@@ -659,18 +671,17 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	// Valid only for MO or CD
 	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
 		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
-		LOGWARN("rasctl sent an Insert/Eject/Protect command (%s) for incompatible type %s",
-				Operation_Name(cmd).c_str(), DeviceType_Name(type).c_str());
+		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, type_str);
 
 		ostringstream msg;
-		msg << "Error : Operation denied (Device type " << DeviceType_Name(type).c_str() << " isn't removable)";
+		msg << "Error : Operation denied (Device type " << type_str << " isn't removable)";
 		return ReturnStatus(fp, false, msg.str());
 	}
 
 	switch (cmd) {
 		case INSERT:
 			filepath.SetPath(params.c_str());
-			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), DeviceType_Name(type).c_str(), id, un);
+			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), type_str, id, un);
 
 			if (!pUnit->Open(filepath)) {
 				ostringstream msg;
@@ -681,23 +692,23 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			break;
 
 		case EJECT:
-			LOGINFO("rasctl commands eject %s ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
+			LOGINFO("rasctl commands eject %s ID: %d UN: %d", type_str, id, un);
 			pUnit->Eject(TRUE);
 			break;
 
 		case PROTECT:
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
-				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
+				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
 
 				return ReturnStatus(fp, false, "Error : Operation denied (Device isn't MO)");
 			}
-			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), DeviceType_Name(type).c_str(), id, un);
+			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), type_str, id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
 
 		default:
 			ostringstream msg;
-			msg << "Received unknown command from rasctl: " << Operation_Name(cmd);
+			msg << "Received unknown command from rasctl: " << cmd;
 			LOGWARN("%s", msg.str().c_str());
 			return ReturnStatus(fp, false, msg.str());
 	}
