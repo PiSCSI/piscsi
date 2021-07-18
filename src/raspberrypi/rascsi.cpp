@@ -345,8 +345,10 @@ string ListDevice() {
 //	Controller Mapping
 //
 //---------------------------------------------------------------------------
-void MapController(FILE *fp, Disk **map)
+bool MapController(Disk **map)
 {
+	bool status = true;
+
 	// Take ownership of the ctrl data structure
 	pthread_mutex_lock(&ctrl_mutex);
 
@@ -407,7 +409,7 @@ void MapController(FILE *fp, Disk **map)
 
 		// Mixture of SCSI and SASI
 		if (sasi_num > 0 && scsi_num > 0) {
-			FPRT(fp, "Error : SASI and SCSI can't be mixed\n");
+			status = false;
 			continue;
 		}
 
@@ -451,6 +453,8 @@ void MapController(FILE *fp, Disk **map)
 		}
 	}
 	pthread_mutex_unlock(&ctrl_mutex);
+
+	return status;
 }
 
 bool ReturnStatus(FILE *fp, bool status = true, const string msg = "") {
@@ -617,11 +621,12 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		map[id * UnitNum + un] = pUnit;
 
 		// Re-map the controller
-		MapController(fp, map);
+		bool status = MapController(map);
+		if (status) {
+			LOGINFO("rasctl added new %s device. ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
+		}
 
-		LOGINFO("rasctl added new %s device. ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
-
-		return ReturnStatus(fp, true);
+		return ReturnStatus(fp, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
 	// Does the controller exist?
@@ -647,8 +652,8 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		map[id * UnitNum + un] = NULL;
 
 		// Re-map the controller
-		MapController(fp, map);
-		return ReturnStatus(fp, true);
+		bool status = MapController(map);
+		return ReturnStatus(fp, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
 	// Valid only for MO or CD
