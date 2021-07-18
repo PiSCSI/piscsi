@@ -11,6 +11,7 @@
 
 #include <cstring>
 #include <cstdlib>
+#include <unistd.h>
 #include "exceptions.h"
 #include "rasutil.h"
 
@@ -25,41 +26,32 @@ using namespace std;
 void SerializeProtobufData(FILE *fp, const string& data)
 {
 	// Write the size of the protobuf data as a header
-    int size = data.length();
+    size_t size = data.length();
     fwrite(&size, sizeof(size), 1, fp);
 
     // Write the actual protobuf data
-    void *buf = malloc(data.length());
-    memcpy(buf, data.data(), data.length());
-    fwrite(buf, data.length(), 1, fp);
+    void *buf = malloc(size);
+    memcpy(buf, data.data(), size);
+    fwrite(buf, size, 1, fp);
+    fflush(fp);
 
     free(buf);
 }
 
 string DeserializeProtobufData(int fd)
 {
-	FILE *fp = fdopen(fd, "r+");
-	if (!fp) {
-		throw ioexception();
-	}
-	setvbuf(fp, NULL, _IONBF, 0);
-
 	// First read the header with the size of the protobuf data
-	int size;
-	size_t res = fread(&size, sizeof(int), 1, fp);
-	if (res != 1) {
-		fclose(fp);
-
+	size_t size;
+	size_t res = read(fd, &size, sizeof(int));
+	if (res != sizeof(int)) {
 		throw ioexception();
 	}
 
 	// Read the actual protobuf data
 	void *buf = malloc(size);
-	res = fread(buf, size, 1, fp);
-	if (res != 1) {
+	res = read(fd, buf, size);
+	if (res != size) {
 		free(buf);
-
-		fclose(fp);
 
 		throw ioexception();
 	}
@@ -67,8 +59,6 @@ string DeserializeProtobufData(int fd)
 	// Read protobuf data into a string, to be converted into a protobuf data structure by the caller
 	string data((const char *)buf, size);
 	free(buf);
-
-	fclose(fp);
 
 	return data;
 }

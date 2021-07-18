@@ -269,13 +269,12 @@ void Reset()
 //	List Devices
 //
 //---------------------------------------------------------------------------
-void ListDevice(FILE *fp)
-{
-	Filepath filepath;
+string ListDevice() {
 	char type[5];
 	char dev_status[_MAX_FNAME+26];
+	ostringstream s;
 
-	bool find = false;
+	bool has_header = false;
 	type[4] = 0;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
@@ -291,14 +290,15 @@ void ListDevice(FILE *fp)
 		}
 
 		// Output the header
-        if (!find) {
-			FPRT(fp, "\n");
-			FPRT(fp, "+----+----+------+-------------------------------------\n");
+        if (!has_header) {
+        	s << endl
+        		<< "+----+----+------+-------------------------------------" << endl
+        		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
+				<< "+----+----+------+-------------------------------------" << endl;
 			LOGINFO( "+----+----+------+-------------------------------------");
-			FPRT(fp, "| ID | UN | TYPE | DEVICE STATUS\n");
-			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS\n");
-			FPRT(fp, "+----+----+------+-------------------------------------\n");
-			find = TRUE;
+			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS");
+			LOGINFO( "+----+----+------+-------------------------------------\n");
+			has_header = true;
 		}
 
 		// ID,UNIT,Type,Device Status
@@ -313,8 +313,9 @@ void ListDevice(FILE *fp)
 		} else if (pUnit->GetID() == MAKEID('S', 'C', 'D', 'P')) {
 			strncpy(dev_status,"DaynaPort SCSI/Link",sizeof(dev_status));
 		} else {
+			Filepath filepath;
 			pUnit->GetPath(filepath);
-			snprintf(dev_status, sizeof(dev_status), "%s", 
+			snprintf(dev_status, sizeof(dev_status), "%s",
 				(pUnit->IsRemovable() && !pUnit->IsReady()) ?
 				"NO MEDIA" : filepath.GetPath());
 		}
@@ -323,19 +324,20 @@ void ListDevice(FILE *fp)
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
 			strcat(dev_status, " (WRITEPROTECT)");
 		}
-		FPRT(fp, "|  %d |  %d | %s | %s\n", id, un, type, dev_status);
+		s << "|  " << id << " |  " << un << " | " << type << " | " << dev_status << endl;
 		LOGINFO( "|  %d |  %d | %s | %s", id, un, type, dev_status);
 
 	}
 
 	// If there is no controller, find will be null
-	if (!find) {
-		FPRT(fp, "No images currently attached.\n");
-		return;
+	if (!has_header) {
+		return "No images currently attached.\n";
 	}
 
-	FPRT(fp, "+----+----+------+-------------------------------------\n");
+	s << "+----+----+------+-------------------------------------" << endl;
 	LOGINFO( "+----+----+------+-------------------------------------");
+
+	return s.str();
 }
 
 //---------------------------------------------------------------------------
@@ -343,8 +345,10 @@ void ListDevice(FILE *fp)
 //	Controller Mapping
 //
 //---------------------------------------------------------------------------
-void MapController(FILE *fp, Disk **map)
+bool MapController(Disk **map)
 {
+	bool status = true;
+
 	// Take ownership of the ctrl data structure
 	pthread_mutex_lock(&ctrl_mutex);
 
@@ -405,7 +409,7 @@ void MapController(FILE *fp, Disk **map)
 
 		// Mixture of SCSI and SASI
 		if (sasi_num > 0 && scsi_num > 0) {
-			FPRT(fp, "Error : SASI and SCSI can't be mixed\n");
+			status = false;
 			continue;
 		}
 
@@ -449,6 +453,8 @@ void MapController(FILE *fp, Disk **map)
 		}
 	}
 	pthread_mutex_unlock(&ctrl_mutex);
+
+	return status;
 }
 
 bool ReturnStatus(FILE *fp, bool status = true, const string msg = "") {
@@ -615,11 +621,12 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		map[id * UnitNum + un] = pUnit;
 
 		// Re-map the controller
-		MapController(fp, map);
+		bool status = MapController(map);
+		if (status) {
+			LOGINFO("rasctl added new %s device. ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
+		}
 
-		LOGINFO("rasctl added new %s device. ID: %d UN: %d", DeviceType_Name(type).c_str(), id, un);
-
-		return ReturnStatus(fp, true);
+		return ReturnStatus(fp, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
 	// Does the controller exist?
@@ -645,8 +652,8 @@ bool ProcessCmd(FILE *fp, const Command &command)
 		map[id * UnitNum + un] = NULL;
 
 		// Re-map the controller
-		MapController(fp, map);
-		return ReturnStatus(fp, true);
+		bool status = MapController(map);
+		return ReturnStatus(fp, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
 	// Valid only for MO or CD
@@ -866,7 +873,7 @@ BOOL ParseConfig(int argc, char* argv[])
 	f_close(&fp);
 
 	// Display the device list
-	ListDevice(stdout);
+	fprintf(stdout, "%s", ListDevice().c_str());
 
 	return TRUE;
 
@@ -969,7 +976,7 @@ bool ParseArgument(int argc, char* argv[])
 	SetLogLevel(log_level);
 
 	// Display the device list
-	ListDevice(stdout);
+	fprintf(stdout, "%s", ListDevice().c_str());
 	return true;
 }
 #endif  // BAREMETAL
@@ -1044,7 +1051,13 @@ static void *MonThread(void *param)
 
 			// List all of the devices
 			if (command.cmd() == LIST) {
-				ListDevice(fp);
+				Result result;
+				result.set_msg(ListDevice() + "\n");
+				result.set_status(true);
+
+				string data;
+				result.SerializeToString(&data);
+				SerializeProtobufData(fp, data);
 			}
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());
