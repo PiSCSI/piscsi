@@ -270,12 +270,11 @@ void Reset()
 //
 //---------------------------------------------------------------------------
 string ListDevice() {
-	Filepath filepath;
 	char type[5];
 	char dev_status[_MAX_FNAME+26];
 	ostringstream s;
 
-	bool find = false;
+	bool has_header = false;
 	type[4] = 0;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
@@ -291,7 +290,7 @@ string ListDevice() {
 		}
 
 		// Output the header
-        if (!find) {
+        if (!has_header) {
         	s << endl
         		<< "+----+----+------+-------------------------------------" << endl
         		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
@@ -299,7 +298,7 @@ string ListDevice() {
 			LOGINFO( "+----+----+------+-------------------------------------");
 			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS");
 			LOGINFO( "+----+----+------+-------------------------------------\n");
-			find = TRUE;
+			has_header = true;
 		}
 
 		// ID,UNIT,Type,Device Status
@@ -314,6 +313,7 @@ string ListDevice() {
 		} else if (pUnit->GetID() == MAKEID('S', 'C', 'D', 'P')) {
 			strncpy(dev_status,"DaynaPort SCSI/Link",sizeof(dev_status));
 		} else {
+			Filepath filepath;
 			pUnit->GetPath(filepath);
 			snprintf(dev_status, sizeof(dev_status), "%s",
 				(pUnit->IsRemovable() && !pUnit->IsReady()) ?
@@ -330,7 +330,7 @@ string ListDevice() {
 	}
 
 	// If there is no controller, find will be null
-	if (!find) {
+	if (!has_header) {
 		return "No images currently attached.\n";
 	}
 
