@@ -25,13 +25,13 @@ using namespace std;
 void SerializeProtobufData(FILE *fp, const string& data)
 {
 	// Write the size of the protobuf data as a header
-    int size = data.length();
+    size_t size = data.length();
     fwrite(&size, sizeof(size), 1, fp);
 
     // Write the actual protobuf data
-    void *buf = malloc(data.length());
-    memcpy(buf, data.data(), data.length());
-    fwrite(buf, data.length(), 1, fp);
+    void *buf = malloc(size);
+    memcpy(buf, data.data(), size);
+    fwrite(buf, size, 1, fp);
 
     free(buf);
 }
