@@ -52,10 +52,10 @@ bool SendCommand(const Command& command)
     		Result result;
     		result.ParseFromString(DeserializeProtobufData(fd));
 
-    		if (!result.status()) {
-    			cout << result.msg();
+    		status = result.status();
 
-    			status = false;
+    		if (!result.msg().empty()) {
+    			cout << result.msg();
     		}
     	}
     }
