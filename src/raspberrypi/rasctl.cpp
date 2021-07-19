@@ -9,6 +9,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include <netdb.h>
 #include "os.h"
 #include "rascsi_version.h"
 #include "exceptions.h"
@@ -23,32 +24,38 @@ using namespace rasctl_interface;
 //	Send Command
 //
 //---------------------------------------------------------------------------
-bool SendCommand(const Command& command)
+BOOL SendCommand(const char *hostname, const Command& command)
 {
 	// Create a socket to send the command
+	int fd = socket(AF_INET, SOCK_STREAM, 0);
 	struct sockaddr_in server;
 	memset(&server, 0, sizeof(server));
-	server.sin_family = PF_INET;
-	server.sin_port   = htons(6868);
+	server.sin_family = AF_INET;
+	server.sin_port = htons(6868);
 	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	int fd = socket(PF_INET, SOCK_STREAM, 0);
 
+	struct hostent *host = gethostbyname(hostname);
+	if(!host) {
+		fprintf(stderr, "Error : Can't resolve hostname '%s'\n", hostname);
+		return false;
+	}
+    memcpy((char *)&server.sin_addr.s_addr, (char *)host->h_addr,  host->h_length);
+
+	// Connect
 	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-		cerr << "Error : Can't connect to rascsi process" << endl;
+		fprintf(stderr, "Error : Can't connect to rascsi process on host '%s'\n", hostname);
 		return false;
 	}
 
-	// Send the command
-	FILE *fp = fdopen(fd, "r+");
-
 	string data;
     command.SerializeToString(&data);
-    SerializeProtobufData(fp, data);
 
 	// Receive the message
     bool status = true;
     try {
-    	Result result;
+        SerializeProtobufData(fd, data);
+
+        Result result;
     	result.ParseFromString(DeserializeProtobufData(fd));
 
     	status = result.status();
@@ -63,8 +70,7 @@ bool SendCommand(const Command& command)
     	// Fall through
     }
 
-	fclose(fp);
-	close(fd);
+    close(fd);
 
 	return status;
 }
@@ -76,17 +82,20 @@ bool SendCommand(const Command& command)
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
 	// Display help
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-s LOG_LEVEL]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-s LOG_LEVEL]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
-		cerr << "        LOG_LEVEL := log level" << endl;
+		cerr << "        HOSTNAME := rascsi host to connect to, default is 'localhost'" << endl;
+		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
 		cerr << "       Print device list." << endl;
@@ -100,10 +109,10 @@ int main(int argc, char* argv[])
 	int un = 0;
 	Operation cmd = LIST;
 	DeviceType type = UNDEFINED;
+	const char *hostname = "localhost";
 	string params;
 	opterr = 0;
-
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:s:l")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:s:l")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -177,6 +186,10 @@ int main(int argc, char* argv[])
 				cmd = LIST;
 				break;
 
+			case 'h':
+				hostname = optarg;
+				break;
+
 			case 's':
 				cmd = LOG_LEVEL;
 				params = optarg;
@@ -189,14 +202,14 @@ int main(int argc, char* argv[])
 	if (cmd == LOG_LEVEL) {
 		command.set_cmd(LOG_LEVEL);
 		command.set_params(params);
-		SendCommand(command);
+		SendCommand(hostname, command);
 		exit(0);
 	}
 
 	// List display only
 	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
 		command.set_cmd(LIST);
-		SendCommand(command);
+		SendCommand(hostname, command);
 		exit(0);
 	}
 
@@ -248,7 +261,7 @@ int main(int argc, char* argv[])
 	if (!params.empty()) {
 		command.set_params(params);
 	}
-	if (!SendCommand(command)) {
+	if (!SendCommand(hostname, command)) {
 		exit(ENOTCONN);
 	}
 
