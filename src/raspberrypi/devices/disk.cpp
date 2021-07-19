@@ -23,9 +23,7 @@
 #include "fileio.h"
 #ifdef RASCSI
 #include "gpiobus.h"
-#ifndef BAREMETAL
 #include "ctapdriver.h"
-#endif	// BAREMETAL
 #include "cfilesystem.h"
 #include "disk.h"
 #else
@@ -157,13 +155,13 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 
 	if (dt.buffer == NULL) {
-		#if defined(RASCSI) && !defined(BAREMETAL)
+		#ifdef RASCSI
                 if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
                         LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);
                 }
 		#else
 		dt.buffer = (BYTE *)malloc(length * sizeof(BYTE));
-		#endif	// RASCSI && !BAREMETAL
+		#endif	// RASCSI
 		dt.length = length;
 	}
 
@@ -174,13 +172,13 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	// Reallocate if the buffer length is different
 	if (dt.length != (DWORD)length) {
 		free(dt.buffer);
-		#if defined(RASCSI) && !defined(BAREMETAL)
+		#ifdef RASCSI
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
                   LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);  
                 }
 		#else
 		dt.buffer = (BYTE *)malloc(length * sizeof(BYTE));
-		#endif	// RASCSI && !BAREMETAL
+		#endif	// RASCSI
 		dt.length = length;
 	}
 
@@ -205,11 +203,11 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 
 	// Read from File
-	#if defined(RASCSI) && !defined(BAREMETAL)
+	#ifdef RASCSI
 	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
 	#else
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-	#endif	// RASCSI && !BAREMETAL
+	#endif	// RASCSI
 		return FALSE;
 	}
 	if (dt.raw) {

@@ -174,7 +174,7 @@ private:
 	};
 
 
-#if defined(RASCSI) && !defined(BAREMETAL)
+#ifdef RASCSI
 
 	CTapDriver *m_tap;
 										// TAP driver
@@ -185,6 +185,6 @@ private:
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
 	
-#endif	// RASCSI && !BAREMETAL
+#endif	// RASCSI
 
 };
