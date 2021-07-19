@@ -104,12 +104,14 @@ void Banner(int argc, char* argv[])
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
 		FPRT(stdout,"\n");
-		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
+		FPRT(stdout,"Usage: %s [-IDn FILE] [-s LOG_LEVEL] ...\n\n", argv[0]);
 		FPRT(stdout," n is SCSI identification number(0-7).\n");
-		FPRT(stdout," FILE is disk image file.\n\n");
-		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
+		FPRT(stdout," FILE is disk image file.\n");
+		FPRT(stdout," LOG_LEVEL is {trace|debug|info|warn|err|critical|off}, default is 'trace'\n\n");
+		FPRT(stdout,"Usage: %s [-HDn FILE] [-s LOG_LEVEL] ...\n\n", argv[0]);
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n\n");
+		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n");
+		FPRT(stdout," LOG_LEVEL is {trace|debug|info|warn|err|critical|off}, default is 'trace'\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
 		FPRT(stdout,"  hdf : SASI HD image(XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image(XM6 SCSI HD image)\n");
@@ -911,7 +913,7 @@ bool ParseArgument(int argc, char* argv[])
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhL:l:D:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhL:s:D:d:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -925,7 +927,7 @@ bool ParseArgument(int argc, char* argv[])
 				id = -1;
 				continue;
 
-			case 'l':
+			case 's':
 				log_level = optarg;
 				continue;
 

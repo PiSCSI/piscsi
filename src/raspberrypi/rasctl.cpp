@@ -94,8 +94,8 @@ int main(int argc, char* argv[])
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
-		cerr << "        HOSTNAME := rascsi host to connect to, default is localhost" << endl;
-		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}" << endl;
+		cerr << "        HOSTNAME := rascsi host to connect to, default is 'localhost'" << endl;
+		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
 		cerr << "       Print device list." << endl;
