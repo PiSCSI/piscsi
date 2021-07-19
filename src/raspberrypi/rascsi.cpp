@@ -513,7 +513,7 @@ void SetLogLevel(const string& log_level) {
 
 //---------------------------------------------------------------------------
 //
-//	Command Processing
+//	Command Processing. If fd is -1 error messages are displayed on the console.
 //
 //---------------------------------------------------------------------------
 bool ProcessCmd(int fd, const Command &command)
