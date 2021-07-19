@@ -472,7 +472,6 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	}
 	else {
 		Result result;
-		result.set_msg(msg + "\n");
 		result.set_status(status);
 
 		string data;
