@@ -24,8 +24,7 @@ using namespace rasctl_interface;
 //	Send Command
 //
 //---------------------------------------------------------------------------
-<<<<<<< HEAD
-BOOL SendCommand(const char *hostname, char *buf)
+BOOL SendCommand(const char *hostname, const Command& command)
 {
 	// Create a socket to send the command
 	int fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -45,34 +44,15 @@ BOOL SendCommand(const char *hostname, char *buf)
 	// Connect
 	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
 		fprintf(stderr, "Error : Can't connect to rascsi process\n");
-=======
-bool SendCommand(const Command& command)
-{
-	// Create a socket to send the command
-	struct sockaddr_in server;
-	memset(&server, 0, sizeof(server));
-	server.sin_family = PF_INET;
-	server.sin_port   = htons(6868);
-	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-	int fd = socket(PF_INET, SOCK_STREAM, 0);
-
-	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-		cerr << "Error : Can't connect to rascsi process" << endl;
->>>>>>> upstream/develop
 		return false;
 	}
 
 	// Send the command
 	FILE *fp = fdopen(fd, "r+");
-<<<<<<< HEAD
-	setvbuf(fp, NULL, _IONBF, 0);
-	fputs(buf, fp);
-=======
 
 	string data;
     command.SerializeToString(&data);
     SerializeProtobufData(fp, data);
->>>>>>> upstream/develop
 
 	// Receive the message
     bool status = true;
@@ -92,14 +72,10 @@ bool SendCommand(const Command& command)
     	// Fall through
     }
 
-	fclose(fp);
-	close(fd);
+    fclose(fp);
+    close(fd);
 
-<<<<<<< HEAD
-	return true;
-=======
 	return status;
->>>>>>> upstream/develop
 }
 
 //---------------------------------------------------------------------------
@@ -109,45 +85,6 @@ bool SendCommand(const Command& command)
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-<<<<<<< HEAD
-	int opt;
-	int id;
-	int un;
-	int cmd;
-	int type;
-	char *file;
-	const char *hostname = "localhost";
-	BOOL list;
-	int len;
-	char *ext;
-	char buf[BUFSIZ];
-
-	id = -1;
-	un = 0;
-	cmd = -1;
-	type = -1;
-	file = NULL;
-	list = FALSE;
-
-	// Display help
-	if (argc < 2) {
-		fprintf(stderr, "SCSI Target Emulator RaSCSI Controller\n");
-		fprintf(stderr, "version %s (%s, %s)\n",
-			rascsi_get_version_string(),
-			__DATE__,
-			__TIME__);
-		fprintf(stderr,
-			"Usage: %s -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME]\n",
-			argv[0]);
-		fprintf(stderr, " where  ID := {0|1|2|3|4|5|6|7}\n");
-		fprintf(stderr, "        UNIT := {0|1} default setting is 0.\n");
-		fprintf(stderr, "        CMD := {attach|detach|insert|eject|protect}\n");
-		fprintf(stderr, "        TYPE := {hd|mo|cd|bridge|daynaport}\n");
-		fprintf(stderr, "        FILE := image file path\n");
-		fprintf(stderr, " CMD is 'attach' or 'insert' and FILE parameter is required.\n");
-		fprintf(stderr, "Usage: %s -l\n", argv[0]);
-		fprintf(stderr, "       Print device list.\n");
-=======
 	// Display help
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
@@ -163,7 +100,6 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -l" << endl;
 		cerr << "       Print device list." << endl;
 
->>>>>>> upstream/develop
 		exit(0);
 	}
 
@@ -173,14 +109,10 @@ int main(int argc, char* argv[])
 	int un = 0;
 	Operation cmd = LIST;
 	DeviceType type = UNDEFINED;
+	const char *hostname = "127.0.0.1";
 	string params;
 	opterr = 0;
-<<<<<<< HEAD
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:l")) != -1) {
-=======
-
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:s:l")) != -1) {
->>>>>>> upstream/develop
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:s:l")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -254,13 +186,13 @@ int main(int argc, char* argv[])
 				cmd = LIST;
 				break;
 
+			case 'h':
+				hostname = optarg;
+				break;
+
 			case 's':
 				cmd = LOG_LEVEL;
 				params = optarg;
-				break;
-
-			case 'h':
-				hostname = optarg;
 				break;
 		}
 	}
@@ -270,20 +202,14 @@ int main(int argc, char* argv[])
 	if (cmd == LOG_LEVEL) {
 		command.set_cmd(LOG_LEVEL);
 		command.set_params(params);
-		SendCommand(command);
+		SendCommand(hostname, command);
 		exit(0);
 	}
 
 	// List display only
-<<<<<<< HEAD
-	if (id < 0 && cmd < 0 && type < 0 && file == NULL && list) {
-		sprintf(buf, "list\n");
-		SendCommand(hostname, buf);
-=======
 	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
 		command.set_cmd(LIST);
-		SendCommand(command);
->>>>>>> upstream/develop
+		SendCommand(hostname, command);
 		exit(0);
 	}
 
@@ -328,17 +254,6 @@ int main(int argc, char* argv[])
 	}
 
 	// Generate the command and send it
-<<<<<<< HEAD
-	sprintf(buf, "%d %d %d %d %s\n", id, un, cmd, type, file ? file : "-");
-	if (!SendCommand(hostname, buf)) {
-		exit(ENOTCONN);
-	}
-
-	// Display the list
-	if (list) {
-		sprintf(buf, "list\n");
-		SendCommand(hostname, buf);
-=======
 	command.set_id(id);
 	command.set_un(un);
 	command.set_cmd(cmd);
@@ -346,9 +261,8 @@ int main(int argc, char* argv[])
 	if (!params.empty()) {
 		command.set_params(params);
 	}
-	if (!SendCommand(command)) {
+	if (!SendCommand(hostname, command)) {
 		exit(ENOTCONN);
->>>>>>> upstream/develop
 	}
 
 	// All done!
