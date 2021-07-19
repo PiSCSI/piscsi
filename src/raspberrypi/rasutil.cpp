@@ -46,7 +46,7 @@ string DeserializeProtobufData(int fd)
 {
 	// First read the header with the size of the protobuf data
 	int32_t size;
-	if (read(fd, &size, sizeof(int)) != sizeof(int)) {
+	if (read(fd, &size, sizeof(size)) != sizeof(size)) {
 		// No more data
 		return "";
 	}
