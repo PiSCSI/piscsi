@@ -17,7 +17,6 @@
 #include "gpiobus.h"
 #include "log.h"
 
-#ifndef BAREMETAL
 #ifdef __linux__
 //---------------------------------------------------------------------------
 //
@@ -80,42 +79,6 @@ DWORD bcm_host_get_peripheral_address(void)
 	return address;
 }
 #endif	// __NetBSD__
-#endif	// BAREMETAL
-
-#ifdef BAREMETAL
-// IO base address
-extern uint32_t RPi_IO_Base_Addr;
-
-// Core frequency
-extern uint32_t RPi_Core_Freq;
-
-#ifdef USE_SEL_EVENT_ENABLE
-//---------------------------------------------------------------------------
-//
-//	Interrupt control function
-//
-//---------------------------------------------------------------------------
-extern "C" {
-extern uintptr_t setIrqFuncAddress (void(*ARMaddress)(void));
-extern void EnableInterrupts (void);
-extern void DisableInterrupts (void);
-extern void WaitForInterrupts (void);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Interrupt handler
-//
-//---------------------------------------------------------------------------
-static GPIOBUS *self;
-extern "C"
-void IrqHandler()
-{
-	// Clear interrupt
-	self->ClearSelectEvent();
-}
-#endif	// USE_SEL_EVENT_ENABLE
-#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
@@ -124,9 +87,6 @@ void IrqHandler()
 //---------------------------------------------------------------------------
 GPIOBUS::GPIOBUS()
 {
-#if defined(USE_SEL_EVENT_ENABLE) && defined(BAREMETAL)
-	self = this;
-#endif	// USE_SEL_EVENT_ENABLE && BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -153,21 +113,14 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	int i;
 	int j;
 	int pullmode;
-#ifndef BAREMETAL
 	int fd;
 #ifdef USE_SEL_EVENT_ENABLE
 	struct epoll_event ev;
 #endif	// USE_SEL_EVENT_ENABLE
-#endif	// BAREMETAL
 
 	// Save operation mode
 	actmode = mode;
 
-#ifdef BAREMETAL
-	// Get the base address
-	baseaddr = RPi_IO_Base_Addr;
-	map = (void*)baseaddr;
-#else
 	// Get the base address
 	baseaddr = (DWORD)bcm_host_get_peripheral_address();
 
@@ -185,7 +138,7 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 		close(fd);
 		return FALSE;
 	}
-#endif
+
 	// Determine the type of raspberry pi from the base address
 	if (baseaddr == 0xfe000000) {
 		rpitype = 4;
@@ -213,24 +166,10 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 	irpctl = (DWORD *)map;
 	irpctl += IRPT_OFFSET / sizeof(DWORD);
 
-#ifndef BAREMETAL
 	// Quad-A7 control
 	qa7regs = (DWORD *)map;
 	qa7regs += QA7_OFFSET / sizeof(DWORD);
-#endif	// BAREMETAL
 
-#ifdef BAREMETAL
-	// Map GIC memory
-	if (rpitype == 4) {
-		map = (void*)ARM_GICD_BASE;
-		gicd = (DWORD *)map;
-		map = (void*)ARM_GICC_BASE;
-		gicc = (DWORD *)map;
-	} else {
-		gicd = NULL;
-		gicc = NULL;
-	}
-#else
 	// Map GIC memory
 	if (rpitype == 4) {
 		map = mmap(NULL, 8192,
@@ -247,7 +186,6 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 		gicc = NULL;
 	}
 	close(fd);
-#endif	// BAREMETAL
 
 	// Set Drive Strength to 16mA
 	DrvConfig(7);
@@ -292,7 +230,6 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 
 	// Initialize SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
-#ifndef BAREMETAL
 	// GPIO chip open
 	fd = open("/dev/gpiochip0", 0);
 	if (fd == -1) {
@@ -375,7 +312,6 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 		// Enable interrupts
 		irpctl[IRPT_ENB_IRQ_2] = (1 << (GPIO_IRQ % 32));
 	}
-#endif	// BAREMETAL
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Create work table
@@ -405,9 +341,7 @@ void FASTCALL GPIOBUS::Cleanup()
 
 	// Release SEL signal interrupt
 #ifdef USE_SEL_EVENT_ENABLE
-#ifndef BAREMETAL
 	close(selevreq.fd);
-#endif	// BAREMETAL
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Set control signals
@@ -1227,17 +1161,6 @@ int FASTCALL GPIOBUS::PollSelectEvent()
 {
 	// clear errno
 	errno = 0;
-
-#ifdef BAREMETAL
-	// Enable interrupts
-	EnableInterrupts();
-
-	// Wait for interrupts
-	WaitForInterrupts();
-
-	// Disable interrupts
-	DisableInterrupts();
-#else
 	struct epoll_event epev;
 	struct gpioevent_data gpev;
 
@@ -1250,7 +1173,6 @@ int FASTCALL GPIOBUS::PollSelectEvent()
             LOGWARN("%s read failed", __PRETTY_FUNCTION__);
             return -1;
         }
-#endif	// BAREMETAL
 
 	return 0;
 }
@@ -1262,21 +1184,6 @@ int FASTCALL GPIOBUS::PollSelectEvent()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::ClearSelectEvent()
 {
-#ifdef BAREMETAL
-	DWORD irq;
-
-	// Clear event
-	gpio[GPIO_EDS_0] = 1 << PIN_SEL;
-
-	// Response to GIC
-	if (rpitype == 4) {
-		// IRQ number
-		irq = gicc[GICC_IAR] & 0x3FF;
-
-		// Interrupt response
-		gicc[GICC_EOIR] = irq;
-	}
-#endif	// BAREMETAL
 }
 #endif	// USE_SEL_EVENT_ENABLE
 
@@ -1522,7 +1429,6 @@ BOOL FASTCALL GPIOBUS::WaitSignal(int pin, BOOL ast)
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::DisableIRQ()
 {
-#ifndef BAREMETAL
 	if (rpitype == 4) {
 		// RPI4 is disabled by GICC
 		giccpmr = gicc[GICC_PMR];
@@ -1537,7 +1443,6 @@ void FASTCALL GPIOBUS::DisableIRQ()
 		irptenb = irpctl[IRPT_ENB_IRQ_1];
 		irpctl[IRPT_DIS_IRQ_1] = irptenb & 0xf;
 	}
-#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -1547,7 +1452,6 @@ void FASTCALL GPIOBUS::DisableIRQ()
 //---------------------------------------------------------------------------
 void FASTCALL GPIOBUS::EnableIRQ()
 {
-#ifndef BAREMETAL
 	if (rpitype == 4) {
 		// RPI4 enables interrupts via the GICC
 		gicc[GICC_PMR] = giccpmr;
@@ -1558,7 +1462,6 @@ void FASTCALL GPIOBUS::EnableIRQ()
 		// Restart the system timer interrupt with the interrupt controller
 		irpctl[IRPT_ENB_IRQ_1] = irptenb & 0xf;
 	}
-#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -1722,7 +1625,6 @@ volatile DWORD SysTimer::corefreq;
 //---------------------------------------------------------------------------
 void FASTCALL SysTimer::Init(DWORD *syst, DWORD *armt)
 {
-#ifndef BAREMETAL
 	// RPI Mailbox property interface
 	// Get max clock rate
 	//  Tag: 0x00030004
@@ -1736,7 +1638,6 @@ void FASTCALL SysTimer::Init(DWORD *syst, DWORD *armt)
 	//  0x000000004: CORE
 	DWORD maxclock[32] = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
 	int fd;
-#endif	// BAREMETAL
 
 	// Save the base address
 	systaddr = syst;
@@ -1746,9 +1647,6 @@ void FASTCALL SysTimer::Init(DWORD *syst, DWORD *armt)
 	armtaddr[ARMT_CTRL] = 0x00000282;
 
 	// Get the core frequency
-#ifdef BAREMETAL
-	corefreq = RPi_Core_Freq / 1000000;
-#else
 	corefreq = 0;
 	fd = open("/dev/vcio", O_RDONLY);
 	if (fd >= 0) {
@@ -1756,7 +1654,6 @@ void FASTCALL SysTimer::Init(DWORD *syst, DWORD *armt)
 		corefreq = maxclock[6] / 1000000;
 	}
 	close(fd);
-#endif	// BAREMETAL
 }
 
 //---------------------------------------------------------------------------

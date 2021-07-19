@@ -13,10 +13,6 @@
 
 #include "filepath.h"
 
-#ifdef BAREMETAL
-#include "ff.h"
-#endif	// BAREMETAL
-
 //===========================================================================
 //
 //	マクロ(Load,Save用)
@@ -61,12 +57,10 @@ public:
 										// オープン
 	BOOL FASTCALL Open(const Filepath& path, OpenMode mode);
 										// オープン
-#ifndef BAREMETAL
 	BOOL FASTCALL OpenDIO(LPCTSTR fname, OpenMode mode);
 										// オープン
 	BOOL FASTCALL OpenDIO(const Filepath& path, OpenMode mode);
 										// オープン
-#endif	// BAREMETAL
 	BOOL FASTCALL Seek(off64_t offset, BOOL relative = FALSE);
 										// シーク
 	BOOL FASTCALL Read(void *buffer, int size);
@@ -79,22 +73,14 @@ public:
 										// ファイル位置取得
 	void FASTCALL Close();
 										// クローズ
-#ifndef BAREMETAL
 	BOOL FASTCALL IsValid() const		{ return (BOOL)(handle != -1); }
-#else
-	BOOL FASTCALL IsValid() const		{ return (BOOL)(handle.obj.fs != 0); }
-#endif	// BAREMETAL
 										// 有効チェック
 
 private:
-#ifndef BAREMETAL
 	BOOL FASTCALL Open(LPCTSTR fname, OpenMode mode, BOOL directIO);
 										// オープン
 
 	int handle;							// ファイルハンドル
-#else
-	FIL handle;							// ファイルハンドル
-#endif	// BAREMETAL
 };
 
 #endif	// fileio_h
