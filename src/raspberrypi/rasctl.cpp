@@ -12,13 +12,19 @@
 #include <netdb.h>
 #include "os.h"
 #include "rascsi_version.h"
-#include "rasctl.h"
+#include "exceptions.h"
+#include "rasutil.h"
+#include "rasctl_interface.pb.h"
+
+using namespace std;
+using namespace rasctl_interface;
 
 //---------------------------------------------------------------------------
 //
 //	Send Command
 //
 //---------------------------------------------------------------------------
+<<<<<<< HEAD
 BOOL SendCommand(const char *hostname, char *buf)
 {
 	// Create a socket to send the command
@@ -39,27 +45,61 @@ BOOL SendCommand(const char *hostname, char *buf)
 	// Connect
 	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
 		fprintf(stderr, "Error : Can't connect to rascsi process\n");
+=======
+bool SendCommand(const Command& command)
+{
+	// Create a socket to send the command
+	struct sockaddr_in server;
+	memset(&server, 0, sizeof(server));
+	server.sin_family = PF_INET;
+	server.sin_port   = htons(6868);
+	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	int fd = socket(PF_INET, SOCK_STREAM, 0);
+
+	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
+		cerr << "Error : Can't connect to rascsi process" << endl;
+>>>>>>> upstream/develop
 		return false;
 	}
 
 	// Send the command
 	FILE *fp = fdopen(fd, "r+");
+<<<<<<< HEAD
 	setvbuf(fp, NULL, _IONBF, 0);
 	fputs(buf, fp);
+=======
+
+	string data;
+    command.SerializeToString(&data);
+    SerializeProtobufData(fp, data);
+>>>>>>> upstream/develop
 
 	// Receive the message
-	while (1) {
-		if (fgets((char *)buf, BUFSIZ, fp) == NULL) {
-			break;
-		}
-		printf("%s", buf);
-	}
+    bool status = true;
+    try {
+    	Result result;
+    	result.ParseFromString(DeserializeProtobufData(fd));
 
-	// Close the socket when we're done
+    	status = result.status();
+
+    	if (!result.msg().empty()) {
+    		cout << result.msg();
+    	}
+    }
+    catch(const ioexception& e) {
+    	cerr << "Error : " << e.getmsg() << endl;
+
+    	// Fall through
+    }
+
 	fclose(fp);
 	close(fd);
 
+<<<<<<< HEAD
 	return true;
+=======
+	return status;
+>>>>>>> upstream/develop
 }
 
 //---------------------------------------------------------------------------
@@ -69,6 +109,7 @@ BOOL SendCommand(const char *hostname, char *buf)
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+<<<<<<< HEAD
 	int opt;
 	int id;
 	int un;
@@ -106,12 +147,40 @@ int main(int argc, char* argv[])
 		fprintf(stderr, " CMD is 'attach' or 'insert' and FILE parameter is required.\n");
 		fprintf(stderr, "Usage: %s -l\n", argv[0]);
 		fprintf(stderr, "       Print device list.\n");
+=======
+	// Display help
+	if (argc < 2) {
+		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
+		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-s LOG_LEVEL]" << endl;
+		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
+		cerr << "        UNIT := {0|1} default setting is 0." << endl;
+		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
+		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
+		cerr << "        FILE := image file path" << endl;
+		cerr << "        LOG_LEVEL := log level" << endl;
+		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
+		cerr << "Usage: " << argv[0] << " -l" << endl;
+		cerr << "       Print device list." << endl;
+
+>>>>>>> upstream/develop
 		exit(0);
 	}
 
 	// Parse the arguments
+	int opt;
+	int id = -1;
+	int un = 0;
+	Operation cmd = LIST;
+	DeviceType type = UNDEFINED;
+	string params;
 	opterr = 0;
+<<<<<<< HEAD
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:l")) != -1) {
+=======
+
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:s:l")) != -1) {
+>>>>>>> upstream/develop
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -122,69 +191,72 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				switch (optarg[0]) {
-					case 'a':				// ATTACH
-					case 'A':
-						cmd = 0;
+				switch (tolower(optarg[0])) {
+					case 'a':
+						cmd = ATTACH;
 						break;
-					case 'd':				// DETACH
-					case 'D':
-						cmd = 1;
+
+					case 'd':
+						cmd = DETACH;
 						break;
-					case 'i':				// INSERT
-					case 'I':
-						cmd = 2;
+
+					case 'i':
+						cmd = INSERT;
 						break;
-					case 'e':				// EJECT
-					case 'E':
-						cmd = 3;
+
+					case 'e':
+						cmd = EJECT;
 						break;
-					case 'p':				// PROTECT
-					case 'P':
-						cmd = 4;
+
+					case 'p':
+						cmd = PROTECT;
 						break;
 				}
 				break;
 
 			case 't':
-				switch (optarg[0]) {
-					case 's':				// HD(SASI)
-					case 'S':
-					case 'h':				// HD(SCSI)
-					case 'H':
-						// rascsi will figure out if this should be SASI or
-						// SCSI later in the process....
-						type = rasctl_dev_sasi_hd;
+				switch (tolower(optarg[0])) {
+					case 's':
+						type = SASI_HD;
 						break;
-					case 'm':				// MO
-					case 'M':
-						type = rasctl_dev_mo;
+
+					case 'h':
+						type = SCSI_HD;
 						break;
-					case 'c':				// CD
-					case 'C':
-						type = rasctl_dev_cd;
+
+					case 'm':
+						type = MO;
 						break;
-					case 'b':				// BRIDGE
-					case 'B':
-						type = rasctl_dev_br;
+
+					case 'c':
+						type = CD;
 						break;
-					// case 'n':				// Nuvolink
-					// case 'N':
-					// 	type = rasctl_dev_nuvolink;
+
+					case 'b':
+						type = BR;
+						break;
+
+					// case 'n':
+					// 	type = NUVOLINK;
 					// 	break;
-					case 'd':				// DaynaPort
-					case 'D':
-						type = rasctl_dev_daynaport;
+
+					case 'd':
+						type = DAYNAPORT;
 						break;
 				}
 				break;
 
 			case 'f':
-				file = optarg;
+				params = optarg;
 				break;
 
 			case 'l':
-				list = TRUE;
+				cmd = LIST;
+				break;
+
+			case 's':
+				cmd = LOG_LEVEL;
+				params = optarg;
 				break;
 
 			case 'h':
@@ -193,82 +265,70 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	Command command;
+
+	if (cmd == LOG_LEVEL) {
+		command.set_cmd(LOG_LEVEL);
+		command.set_params(params);
+		SendCommand(command);
+		exit(0);
+	}
+
 	// List display only
+<<<<<<< HEAD
 	if (id < 0 && cmd < 0 && type < 0 && file == NULL && list) {
 		sprintf(buf, "list\n");
 		SendCommand(hostname, buf);
+=======
+	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
+		command.set_cmd(LIST);
+		SendCommand(command);
+>>>>>>> upstream/develop
 		exit(0);
 	}
 
 	// Check the ID number
 	if (id < 0 || id > 7) {
-		fprintf(stderr, "%s Error : Invalid ID %d \n", __PRETTY_FUNCTION__, id);
+		cerr << __PRETTY_FUNCTION__ << " Error : Invalid ID " << id << endl;
 		exit(EINVAL);
 	}
 
 	// Check the unit number
 	if (un < 0 || un > 1) {
-		fprintf(stderr, "%s Error : Invalid UNIT %d \n", __PRETTY_FUNCTION__, un);
+		cerr << __PRETTY_FUNCTION__ << " Error : Invalid UNIT " << un << endl;
 		exit(EINVAL);
 	}
 
-	// Command check
-	if (cmd < 0) {
-		cmd = 0;	// Default command is ATTATCH
-	}
-
 	// Type Check
-	if (cmd == 0 && type < 0) {
-
+	if (cmd == ATTACH && type == UNDEFINED) {
 		// Try to determine the file type from the extension
-		len = file ? strlen(file) : 0;
-		if (len > 4 && file[len - 4] == '.') {
-			ext = &file[len - 3];
-			if (xstrcasecmp(ext, "hdf") == 0 ||
-				xstrcasecmp(ext, "hds") == 0 ||
-				xstrcasecmp(ext, "hdn") == 0 ||
-				xstrcasecmp(ext, "hdi") == 0 ||
-				xstrcasecmp(ext, "nhd") == 0 ||
-				xstrcasecmp(ext, "hda") == 0) {
-				// HD(SASI/SCSI)
-				type = 0;
-			} else if (xstrcasecmp(ext, "mos") == 0) {
-				// MO
-				type = 2;
-			} else if (xstrcasecmp(ext, "iso") == 0) {
-				// CD
-				type = 3;
+		int len = params.length();
+		if (len > 4 && params[len - 4] == '.') {
+			string ext = params.substr(len - 3);
+			if (ext == "hdf" || ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
+				type = SASI_HD;
+			} else if (ext == "mos") {
+				type = MO;
+			} else if (ext == "iso") {
+				type = CD;
 			}
 		}
-
-		if (type < 0) {
-			fprintf(stderr, "Error : Invalid type\n");
-			exit(EINVAL);
-		}
 	}
 
-	// File check (command is ATTACH and type is HD)
-	if (cmd == 0 && type >= 0 && type <= 1) {
-		if (!file) {
-			fprintf(stderr, "Error : Invalid file path\n");
-			exit(EINVAL);
-		}
+	// File check (command is ATTACH and type is HD, for CD and MO the medium (=file) may be inserted later)
+	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD) && params.empty()) {
+		cerr << "Error : Invalid file path" << endl;
+		exit(EINVAL);
 	}
 
 	// File check (command is INSERT)
-	if (cmd == 2) {
-		if (!file) {
-			fprintf(stderr, "Error : Invalid file path\n");
-			exit(EINVAL);
-		}
-	}
-
-	// Set unnecessary type to 0
-	if (type < 0) {
-		type = 0;
+	if (cmd == INSERT && params.empty()) {
+		cerr << "Error : Invalid file path" << endl;
+		exit(EINVAL);
 	}
 
 	// Generate the command and send it
+<<<<<<< HEAD
 	sprintf(buf, "%d %d %d %d %s\n", id, un, cmd, type, file ? file : "-");
 	if (!SendCommand(hostname, buf)) {
 		exit(ENOTCONN);
@@ -278,6 +338,17 @@ int main(int argc, char* argv[])
 	if (list) {
 		sprintf(buf, "list\n");
 		SendCommand(hostname, buf);
+=======
+	command.set_id(id);
+	command.set_un(un);
+	command.set_cmd(cmd);
+	command.set_type(type);
+	if (!params.empty()) {
+		command.set_params(params);
+	}
+	if (!SendCommand(command)) {
+		exit(ENOTCONN);
+>>>>>>> upstream/develop
 	}
 
 	// All done!
