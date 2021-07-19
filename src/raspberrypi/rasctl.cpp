@@ -89,13 +89,14 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-s LOG_LEVEL]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-s LOG_LEVEL]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
-		cerr << "        LOG_LEVEL := log level" << endl;
+		cerr << "        HOSTNAME := rascsi host to connect to" << endl;
+		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
 		cerr << "       Print device list." << endl;
@@ -109,7 +110,7 @@ int main(int argc, char* argv[])
 	int un = 0;
 	Operation cmd = LIST;
 	DeviceType type = UNDEFINED;
-	const char *hostname = "127.0.0.1";
+	const char *hostname = "localhost";
 	string params;
 	opterr = 0;
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:s:l")) != -1) {
