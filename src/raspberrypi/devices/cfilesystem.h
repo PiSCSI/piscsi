@@ -139,7 +139,7 @@ namespace Human68k {
 		BYTE path[65];			///< パス(サブディレクトリ+/)
 		BYTE name[8];			///< ファイル名 (PADDING 0x20)
 		BYTE ext[3];			///< 拡張子 (PADDING 0x20)
-		BYTE add[11];			///< ファイル名追加 (PADDING 0x00)
+		BYTE add[10];			///< ファイル名追加 (PADDING 0x00)
 
 		// 文字列取得
 		void FASTCALL GetCopyPath(BYTE* szPath) const;
