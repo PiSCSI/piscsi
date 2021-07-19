@@ -25,7 +25,7 @@ using namespace std;
 void SerializeProtobufData(int fd, const string& data)
 {
 	// Write the size of the protobuf data as a header
-    ssize_t size = data.length();
+    int32_t size = data.length();
     if (write(fd, &size, sizeof(size)) != sizeof(size)) {
     	throw ioexception("Cannot write protobuf header");
     }
@@ -45,7 +45,7 @@ void SerializeProtobufData(int fd, const string& data)
 string DeserializeProtobufData(int fd)
 {
 	// First read the header with the size of the protobuf data
-	size_t size;
+	int32_t size;
 	if (read(fd, &size, sizeof(int)) != sizeof(int)) {
 		// No more data
 		return "";

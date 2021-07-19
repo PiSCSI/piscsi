@@ -82,6 +82,8 @@ BOOL SendCommand(const char *hostname, const Command& command)
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
 	// Display help
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;

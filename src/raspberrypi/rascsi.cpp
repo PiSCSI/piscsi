@@ -1116,6 +1116,8 @@ int startrascsi(void)
 int main(int argc, char* argv[])
 {
 #endif	// BAREMETAL
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
 	int i;
 	int actid;
 	DWORD now;
