@@ -43,7 +43,7 @@ BOOL SendCommand(const char *hostname, const Command& command)
 
 	// Connect
 	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-		fprintf(stderr, "Error : Can't connect to rascsi process\n");
+		fprintf(stderr, "Error : Can't connect to rascsi process on host '%s'\n", hostname);
 		return false;
 	}
 
