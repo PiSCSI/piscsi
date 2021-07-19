@@ -53,7 +53,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk()
 	// DaynaPort
 	disk.id = MAKEID('S', 'C', 'D', 'P');
 	
-#if defined(RASCSI) && defined(__linux__)
+#ifdef linux
 	// TAP Driver Generation
 	m_tap = new CTapDriver();
 	m_bTapEnable = m_tap->Init();
@@ -86,7 +86,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk()
 	m_mac_addr[4]=0x98;
 	m_mac_addr[5]=0xE3;
 
-#endif	// RASCSI
+#endif	// linux
 	LOGTRACE("SCSIDaynaPort Constructor End");
 
 }
