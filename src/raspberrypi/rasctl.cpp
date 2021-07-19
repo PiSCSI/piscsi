@@ -47,16 +47,13 @@ BOOL SendCommand(const char *hostname, const Command& command)
 		return false;
 	}
 
-	// Send the command
-	FILE *fp = fdopen(fd, "r+");
-
 	string data;
     command.SerializeToString(&data);
 
 	// Receive the message
     bool status = true;
     try {
-        SerializeProtobufData(fp, data);
+        SerializeProtobufData(fd, data);
 
         Result result;
     	result.ParseFromString(DeserializeProtobufData(fd));
@@ -73,7 +70,6 @@ BOOL SendCommand(const char *hostname, const Command& command)
     	// Fall through
     }
 
-    fclose(fp);
     close(fd);
 
 	return status;
