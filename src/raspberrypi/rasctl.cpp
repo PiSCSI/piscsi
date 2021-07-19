@@ -52,12 +52,13 @@ BOOL SendCommand(const char *hostname, const Command& command)
 
 	string data;
     command.SerializeToString(&data);
-    SerializeProtobufData(fp, data);
 
 	// Receive the message
     bool status = true;
     try {
-    	Result result;
+        SerializeProtobufData(fp, data);
+
+        Result result;
     	result.ParseFromString(DeserializeProtobufData(fd));
 
     	status = result.status();

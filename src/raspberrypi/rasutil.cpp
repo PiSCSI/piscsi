@@ -32,7 +32,12 @@ void SerializeProtobufData(FILE *fp, const string& data)
     // Write the actual protobuf data
     void *buf = malloc(size);
     memcpy(buf, data.data(), size);
-    fwrite(buf, size, 1, fp);
+    if (fwrite(buf, size, 1, fp) != 1) {
+    	free(buf);
+
+    	throw ioexception("Cannot write protobuf data");
+    }
+
     fflush(fp);
 
     free(buf);
