@@ -74,10 +74,10 @@ BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL) $(BINDIR)/$(SCSIMON)
 
 SRC_PROTOC = \
-	rasctl_interface.proto
+	rascsi_interface.proto
 
 SRC_PROTOBUF = \
-	rasctl_interface.pb.cpp
+	rascsi_interface.pb.cpp
 
 SRC_RASCSI = \
 	rascsi.cpp \
@@ -138,7 +138,7 @@ OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
 
-GEN_PROTOBUF := $(SRC_PROTOBUF) rasctl_interface.pb.h
+GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
 
 # The following will include all of the auto-generated dependency files (*.d)
@@ -156,7 +156,7 @@ $(OBJDIR)/%.o: %.cpp | $(OBJDIR)
 $(SRC_PROTOBUF): $(SRC_PROTOC)
 	echo "-- Generating protobuf-based source files"
 	protoc --cpp_out=. $(SRC_PROTOC)
-	mv rasctl_interface.pb.cc $@
+	mv rascsi_interface.pb.cc $@
 
 ## Build Targets:
 ##   all      : Rebuild all of the executable files and re-generate 

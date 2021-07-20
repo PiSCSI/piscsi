@@ -38,7 +38,7 @@
 
 using namespace std;
 using namespace spdlog;
-using namespace rasctl_interface;
+using namespace rascsi_interface;
 
 //---------------------------------------------------------------------------
 //
@@ -94,12 +94,14 @@ void Banner(int argc, char* argv[])
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
 		FPRT(stdout,"\n");
-		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
+		FPRT(stdout,"Usage: %s [-IDn FILE] [-s LOG_LEVEL] ...\n\n", argv[0]);
 		FPRT(stdout," n is SCSI identification number(0-7).\n");
-		FPRT(stdout," FILE is disk image file.\n\n");
-		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
+		FPRT(stdout," FILE is disk image file.\n");
+		FPRT(stdout," LOG_LEVEL is {trace|debug|info|warn|err|critical|off}, default is 'trace'\n\n");
+		FPRT(stdout,"Usage: %s [-HDn FILE] [-s LOG_LEVEL] ...\n\n", argv[0]);
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n\n");
+		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n");
+		FPRT(stdout," LOG_LEVEL is {trace|debug|info|warn|err|critical|off}, default is 'trace'\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
 		FPRT(stdout,"  hdf : SASI HD image(XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image(XM6 SCSI HD image)\n");
@@ -131,9 +133,9 @@ BOOL Init()
 	}
 
 	// Create socket for monitor
-	monsocket = socket(PF_INET, SOCK_STREAM, 0);
+	monsocket = socket(AF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
-	server.sin_family = PF_INET;
+	server.sin_family = AF_INET;
 	server.sin_port   = htons(6868);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
@@ -253,73 +255,83 @@ void Reset()
 //	List Devices
 //
 //---------------------------------------------------------------------------
-string ListDevice() {
-	char type[5];
-	char dev_status[_MAX_FNAME+26];
-	ostringstream s;
-
-	bool has_header = false;
-	type[4] = 0;
+Devices GetDevices() {
+	Devices devices;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
-		strncpy(dev_status,"",sizeof(dev_status));
-		// Initialize ID and unit number
-		int id = i / UnitNum;
-		int un = i % UnitNum;
-		Disk *pUnit = disk[i];
-
 		// skip if unit does not exist or null disk
-		if (pUnit == NULL || pUnit->IsNULL()) {
+		Disk *pUnit = disk[i];
+		if (!pUnit || pUnit->IsNULL()) {
 			continue;
 		}
 
-		// Output the header
-        if (!has_header) {
-        	s << endl
-        		<< "+----+----+------+-------------------------------------" << endl
-        		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
-				<< "+----+----+------+-------------------------------------" << endl;
-			LOGINFO( "+----+----+------+-------------------------------------");
-			LOGINFO( "| ID | UN | TYPE | DEVICE STATUS");
-			LOGINFO( "+----+----+------+-------------------------------------\n");
-			has_header = true;
-		}
+		Device *device = devices.add_devices();
+
+		// Initialize ID and unit number
+		device->set_id(i / UnitNum);
+		device->set_un(i % UnitNum);
 
 		// ID,UNIT,Type,Device Status
+		char type[5];
 		type[0] = (char)(pUnit->GetID() >> 24);
 		type[1] = (char)(pUnit->GetID() >> 16);
 		type[2] = (char)(pUnit->GetID() >> 8);
 		type[3] = (char)(pUnit->GetID());
+		type[4] = 0;
+		device->set_type(type);
 
 		// mount status output
 		if (pUnit->GetID() == MAKEID('S', 'C', 'B', 'R')) {
-			strncpy(dev_status,"X68000 HOST BRIDGE",sizeof(dev_status));
+			device->set_file("X68000 HOST BRIDGE");
 		} else if (pUnit->GetID() == MAKEID('S', 'C', 'D', 'P')) {
-			strncpy(dev_status,"DaynaPort SCSI/Link",sizeof(dev_status));
+			device->set_file("DaynaPort SCSI/Link");
 		} else {
 			Filepath filepath;
 			pUnit->GetPath(filepath);
-			snprintf(dev_status, sizeof(dev_status), "%s",
-				(pUnit->IsRemovable() && !pUnit->IsReady()) ?
-				"NO MEDIA" : filepath.GetPath());
+			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "NO MEDIA" : filepath.GetPath());
 		}
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
-			strcat(dev_status, " (WRITEPROTECT)");
+			device->set_read_only(true);
 		}
-		s << "|  " << id << " |  " << un << " | " << type << " | " << dev_status << endl;
-		LOGINFO( "|  %d |  %d | %s | %s", id, un, type, dev_status);
-
 	}
 
-	// If there is no controller, find will be null
-	if (!has_header) {
+	return devices;
+}
+
+string ListDevices() {
+	ostringstream s;
+
+	Devices devices = GetDevices();
+
+	if (devices.devices_size()) {
+    	s << endl
+    		<< "+----+----+------+-------------------------------------" << endl
+    		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
+			<< "+----+----+------+-------------------------------------" << endl;
+
+    	LOGINFO( "+----+----+------+-------------------------------------");
+    	LOGINFO( "| ID | UN | TYPE | DEVICE STATUS");
+    	LOGINFO( "+----+----+------+-------------------------------------\n");
+	}
+	else {
 		return "No images currently attached.\n";
 	}
 
+	for (int i = 0; i < devices.devices_size() ; i++) {
+		Device device = devices.devices(i);
+
+		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
+				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
+
+ 		LOGINFO( "|  %d |  %d | %s | %s", device.id(), device.un(), device.type().c_str(),
+ 				device.read_only() ? "(WRITEPROTECT)" : "");
+	}
+
 	s << "+----+----+------+-------------------------------------" << endl;
-	LOGINFO( "+----+----+------+-------------------------------------");
+
+    LOGINFO( "+----+----+------+-------------------------------------");
 
 	return s.str();
 }
@@ -451,7 +463,7 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	else {
 		Result result;
 		result.set_status(status);
-		resut.set_msg(msg + "\n");
+		result.set_msg(msg + "\n");
 
 		string data;
 		result.SerializeToString(&data);
@@ -491,7 +503,7 @@ void SetLogLevel(const string& log_level) {
 
 //---------------------------------------------------------------------------
 //
-//	Command Processing
+//	Command Processing. If fd is -1 error messages are displayed on the console.
 //
 //---------------------------------------------------------------------------
 bool ProcessCmd(int fd, const Command &command)
@@ -574,9 +586,9 @@ bool ProcessCmd(int fd, const Command &command)
 				pUnit = new SCSIDaynaPort();
 				break;
 			default:
-				ostringstream msg;
-				msg << "rasctl sent a command for an invalid drive type: " << type;
-				return ReturnStatus(fd, false, msg.str());
+				ostringstream error;
+				error << "rasctl sent a command for an invalid drive type: " << type;
+				return ReturnStatus(fd, false, error.str());
 		}
 
 		// drive checks files
@@ -593,9 +605,9 @@ bool ProcessCmd(int fd, const Command &command)
 
 				LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
 
-				ostringstream msg;
-				msg << "Error : File open error [" << file << "]";
-				return ReturnStatus(fd, false, msg.str());
+				ostringstream error;
+				error << "File open error [" << file << "]";
+				return ReturnStatus(fd, false, error.str());
 			}
 		}
 
@@ -658,9 +670,9 @@ bool ProcessCmd(int fd, const Command &command)
 		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
 		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, type_str);
 
-		ostringstream msg;
-		msg << "Error : Operation denied (Device type " << type_str << " isn't removable)";
-		return ReturnStatus(fd, false, msg.str());
+		ostringstream error;
+		error << "Operation denied (Device type " << type_str << " isn't removable)";
+		return ReturnStatus(fd, false, error.str());
 	}
 
 	switch (cmd) {
@@ -669,10 +681,10 @@ bool ProcessCmd(int fd, const Command &command)
 			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), type_str, id, un);
 
 			if (!pUnit->Open(filepath)) {
-				ostringstream msg;
-				msg << "Error : File open error [" << params << "]";
+				ostringstream error;
+				error << "File open error [" << params << "]";
 
-				return ReturnStatus(fd, false, msg.str());
+				return ReturnStatus(fd, false, error.str());
 			}
 			break;
 
@@ -692,10 +704,10 @@ bool ProcessCmd(int fd, const Command &command)
 			break;
 
 		default:
-			ostringstream msg;
-			msg << "Received unknown command from rasctl: " << cmd;
-			LOGWARN("%s", msg.str().c_str());
-			return ReturnStatus(fd, false, msg.str());
+			ostringstream error;
+			error << "Received unknown command from rasctl: " << cmd;
+			LOGWARN("%s", error.str().c_str());
+			return ReturnStatus(fd, false, error.str());
 	}
 
 	return ReturnStatus(fd, true);
@@ -718,7 +730,7 @@ bool ParseArgument(int argc, char* argv[])
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhL:l:D:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhL:s:D:d:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -732,7 +744,7 @@ bool ParseArgument(int argc, char* argv[])
 				id = -1;
 				continue;
 
-			case 'l':
+			case 's':
 				log_level = optarg;
 				continue;
 
@@ -801,7 +813,8 @@ bool ParseArgument(int argc, char* argv[])
 	SetLogLevel(log_level);
 
 	// Display the device list
-	fprintf(stdout, "%s", ListDevice().c_str());
+	cout << ListDevices() << endl;
+
 	return true;
 }
 
@@ -868,12 +881,10 @@ static void *MonThread(void *param)
 
 			// List all of the devices
 			if (command.cmd() == LIST) {
-				Result result;
-				result.set_msg(ListDevice() + "\n");
-				result.set_status(true);
+				Devices devices = GetDevices();
 
 				string data;
-				result.SerializeToString(&data);
+				devices.SerializeToString(&data);
 				SerializeProtobufData(fd, data);
 			}
 			else if (command.cmd() == LOG_LEVEL) {
@@ -912,6 +923,8 @@ static void *MonThread(void *param)
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
 	int i;
 	int actid;
 	DWORD now;
