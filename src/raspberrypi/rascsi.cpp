@@ -731,7 +731,7 @@ bool ParseArgument(int argc, char* argv[])
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhL:l:D:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -745,7 +745,7 @@ bool ParseArgument(int argc, char* argv[])
 				id = -1;
 				continue;
 
-			case 'l':
+			case 'g':
 				log_level = optarg;
 				continue;
 
