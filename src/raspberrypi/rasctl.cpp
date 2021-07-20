@@ -45,8 +45,8 @@ int SendCommand(const char *hostname, const Command& command)
 
 	// Connect
 	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-		fprintf(stderr, "Error : Can't connect to rascsi process on host '%s'\n", hostname);
-		return false;
+		cerr << "Error: Can't connect to rascsi process on host '" << hostname << "'" << endl;
+		return -1;
 	}
 
 	string data;
@@ -251,6 +251,10 @@ int main(int argc, char* argv[])
 		command.set_cmd(LOG_LEVEL);
 		command.set_params(params);
 		int fd = SendCommand(hostname, command);
+		if (fd < 0) {
+			exit(ENOTCONN);
+		}
+
 		ReceiveResult(fd);
 		exit(0);
 	}
@@ -259,6 +263,9 @@ int main(int argc, char* argv[])
 	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
 		command.set_cmd(LIST);
 		int fd = SendCommand(hostname, command);
+		if (fd < 0) {
+			exit(ENOTCONN);
+		}
 
 		Devices devices;
 		try {
