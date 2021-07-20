@@ -16,7 +16,7 @@ enum DeviceType {
     DAYNAPORT = 7;
 }
 
-// rascsi remote perations
+// rascsi remote operations
 enum Operation {
     LIST = 0;
     ATTACH = 1;
