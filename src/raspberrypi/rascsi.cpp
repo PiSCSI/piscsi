@@ -441,14 +441,14 @@ bool MapController(Disk **map)
 	return status;
 }
 
-bool ReturnStatus(FILE *fp, bool status = true, const string msg = "") {
+bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	Result result;
 	result.set_msg(msg);
 	result.set_status(status);
 
 	string data;
 	result.SerializeToString(&data);
-	SerializeProtobufData(fp, data);
+	SerializeProtobufData(fd, data);
 
 	return status;
 }
@@ -486,7 +486,7 @@ void SetLogLevel(const string& log_level) {
 //	Command Processing
 //
 //---------------------------------------------------------------------------
-bool ProcessCmd(FILE *fp, const Command &command)
+bool ProcessCmd(int fd, const Command &command)
 {
 	Disk *map[CtrlMax * UnitNum];
 	Filepath filepath;
@@ -508,12 +508,12 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		return ReturnStatus(fp, false, "Error : Invalid ID");
+		return ReturnStatus(fd, false, "Error : Invalid ID");
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
-		return ReturnStatus(fp, false, "Error : Invalid unit number");
+		return ReturnStatus(fd, false, "Error : Invalid unit number");
 	}
 
 	// Connect Command
@@ -525,7 +525,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			// Check the extension
 			int len = params.length();
 			if (len < 5 || params[len - 4] != '.') {
-				return ReturnStatus(fp, false);
+				return ReturnStatus(fd, false);
 			}
 
 			// If the extension is not SASI type, replace with SCSI
@@ -568,7 +568,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			default:
 				ostringstream msg;
 				msg << "rasctl sent a command for an invalid drive type: " << type;
-				return ReturnStatus(fp, false, msg.str());
+				return ReturnStatus(fd, false, msg.str());
 		}
 
 		// drive checks files
@@ -587,7 +587,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 				ostringstream msg;
 				msg << "Error : File open error [" << file << "]";
-				return ReturnStatus(fp, false, msg.str());
+				return ReturnStatus(fd, false, msg.str());
 			}
 		}
 
@@ -609,14 +609,14 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	        LOGINFO("rasctl added new %s device. ID: %d UN: %d", type_str, id, un);
 		}
 
-		return ReturnStatus(fp, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
+		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
 		LOGWARN("rasctl sent a command for invalid controller %d", id);
 
-		return ReturnStatus(fp, false, "Error : No such device");
+		return ReturnStatus(fd, false, "Error : No such device");
 	}
 
 	// Does the unit exist?
@@ -624,7 +624,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 	if (pUnit == NULL) {
 		LOGWARN("rasctl sent a command for invalid unit ID %d UN %d", id, un);
 
-		return ReturnStatus(fp, false, "Error : No such device");
+		return ReturnStatus(fd, false, "Error : No such device");
 	}
 
 	type_str[0] = (char)(pUnit->GetID() >> 24);
@@ -642,7 +642,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 		// Re-map the controller
 		bool status = MapController(map);
-		return ReturnStatus(fp, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
+		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
 	// Valid only for MO or CD
@@ -652,7 +652,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 
 		ostringstream msg;
 		msg << "Error : Operation denied (Device type " << type_str << " isn't removable)";
-		return ReturnStatus(fp, false, msg.str());
+		return ReturnStatus(fd, false, msg.str());
 	}
 
 	switch (cmd) {
@@ -664,7 +664,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 				ostringstream msg;
 				msg << "Error : File open error [" << params << "]";
 
-				return ReturnStatus(fp, false, msg.str());
+				return ReturnStatus(fd, false, msg.str());
 			}
 			break;
 
@@ -677,7 +677,7 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
 				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
 
-				return ReturnStatus(fp, false, "Error : Operation denied (Device isn't MO)");
+				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
 			}
 			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), type_str, id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
@@ -687,10 +687,10 @@ bool ProcessCmd(FILE *fp, const Command &command)
 			ostringstream msg;
 			msg << "Received unknown command from rasctl: " << cmd;
 			LOGWARN("%s", msg.str().c_str());
-			return ReturnStatus(fp, false, msg.str());
+			return ReturnStatus(fd, false, msg.str());
 	}
 
-	return ReturnStatus(fp, true);
+	return ReturnStatus(fd, true);
 }
 
 bool has_suffix(const string& filename, const string& suffix) {
@@ -784,7 +784,7 @@ bool ParseArgument(int argc, char* argv[])
 		command.set_cmd(ATTACH);
 		command.set_type(type);
 		command.set_params(path);
-		if (!ProcessCmd(stderr, command)) {
+		if (!ProcessCmd(-1, command)) {
 			return false;
 		}
 		id = -1;
@@ -826,7 +826,6 @@ void FixCpu(int cpu)
 static void *MonThread(void *param)
 {
 	int fd;
-    FILE *fp;
 
     // Scheduler Settings
 	struct sched_param schedparam;
@@ -856,11 +855,6 @@ static void *MonThread(void *param)
 			}
 
 			// Fetch the command
-			fp = fdopen(fd, "r+");
-			if (!fp) {
-				throw ioexception("fdopen() failed");
-			}
-
 			Command command;
 			command.ParseFromString(DeserializeProtobufData(fd));
 
@@ -872,7 +866,7 @@ static void *MonThread(void *param)
 
 				string data;
 				result.SerializeToString(&data);
-				SerializeProtobufData(fp, data);
+				SerializeProtobufData(fd, data);
 			}
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());
@@ -883,11 +877,9 @@ static void *MonThread(void *param)
 					usleep(500 * 1000);
 				}
 
-				ProcessCmd(fp, command);
+				ProcessCmd(fd, command);
 			}
 
-            fclose(fp);
-            fp = NULL;
 			close(fd);
 			fd = -1;
 		}
@@ -898,9 +890,6 @@ static void *MonThread(void *param)
 		// Fall through
 	}
 
-    if (fp) {
-    	fclose(fp);
-    }
     if (fd >= 0) {
 		close(fd);
 	}
