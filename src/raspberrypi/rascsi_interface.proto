@@ -18,13 +18,14 @@ enum DeviceType {
 
 // rascsi remote operations
 enum Operation {
-    LIST = 0;
-    ATTACH = 1;
-    DETACH = 2;
-    INSERT = 3;
-    EJECT = 4;
-    PROTECT = 5;
-    LOG_LEVEL = 6;
+    NONE = 0;
+    LIST = 1;
+    ATTACH = 2;
+    DETACH = 3;
+    INSERT = 4;
+    EJECT = 5;
+    PROTECT = 6;
+    LOG_LEVEL = 7;
 }
 
 // Commands rascsi can execute
