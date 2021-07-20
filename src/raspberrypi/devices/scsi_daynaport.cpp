@@ -53,7 +53,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk()
 	// DaynaPort
 	disk.id = MAKEID('S', 'C', 'D', 'P');
 	
-#ifdef linux
+#ifdef __linux__
 	// TAP Driver Generation
 	m_tap = new CTapDriver();
 	m_bTapEnable = m_tap->Init();
