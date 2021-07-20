@@ -250,7 +250,7 @@ void Reset()
 
 //---------------------------------------------------------------------------
 //
-//	List Devices
+//	Get the list of attached devices
 //
 //---------------------------------------------------------------------------
 Devices GetDevices() {
@@ -298,10 +298,13 @@ Devices GetDevices() {
 	return devices;
 }
 
-string ListDevices() {
+//---------------------------------------------------------------------------
+//
+//	List and log devices
+//
+//---------------------------------------------------------------------------
+string ListDevices(Devices devices) {
 	ostringstream s;
-
-	Devices devices = GetDevices();
 
 	if (devices.devices_size()) {
     	s << endl
@@ -323,8 +326,8 @@ string ListDevices() {
 		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
 				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
 
- 		LOGINFO( "|  %d |  %d | %s | %s", device.id(), device.un(), device.type().c_str(),
- 				device.read_only() ? "(WRITEPROTECT)" : "");
+ 		LOGINFO( "|  %d |  %d | %s | %s%s", device.id(), device.un(), device.type().c_str(),
+ 				device.file().c_str(), device.read_only() ? " (WRITEPROTECT)" : "");
 	}
 
 	s << "+----+----+------+-------------------------------------" << endl;
@@ -811,7 +814,8 @@ bool ParseArgument(int argc, char* argv[])
 	SetLogLevel(log_level);
 
 	// Display the device list
-	cout << ListDevices() << endl;
+	Devices devices = GetDevices();
+	cout << ListDevices(devices) << endl;
 
 	return true;
 }
@@ -880,6 +884,7 @@ static void *MonThread(void *param)
 			// List all of the devices
 			if (command.cmd() == LIST) {
 				Devices devices = GetDevices();
+				ListDevices(devices);
 
 				string data;
 				devices.SerializeToString(&data);
