@@ -629,7 +629,6 @@ private:
 
 	volatile DWORD *irpctl;				// Interrupt control register
 
-#ifndef BAREMETAL
 	volatile DWORD irptenb;				// Interrupt enabled state
 
 	volatile DWORD *qa7regs;			// QA7 register
@@ -639,7 +638,6 @@ private:
 	volatile DWORD tintctl;				// Interupt control
 
 	volatile DWORD giccpmr;				// GICC priority setting
-#endif	// BAREMETAL
 
 	volatile DWORD *gicd;				// GIC Interrupt distributor register
 
@@ -649,11 +647,11 @@ private:
 
 	DWORD signals;						// All bus signals
 
-#if defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
+#ifdef USE_SEL_EVENT_ENABLE
 	struct gpioevent_request selevreq = {};	// SEL signal event request
 
 	int epfd;							// epoll file descriptor
-#endif	// USE_SEL_EVENT_ENABLE && !BAREMETAL
+#endif	// USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
 	DWORD tblDatMsk[3][256];			// Data mask table

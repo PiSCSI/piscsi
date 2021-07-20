@@ -14,11 +14,6 @@
 #ifndef cfilesystem_h
 #define cfilesystem_h
 
-#ifdef BAREMETAL
-#include "ffconf.h"
-#include "ff.h"
-#endif	// BAREMETAL
-
 //---------------------------------------------------------------------------
 //
 //	ステータスコード定義
@@ -572,12 +567,7 @@ private:
 										///< 文字列比較 (ワイルドカード対応)
 
 	CRing m_cRing;								///< CHostFilename連結用
-	#ifndef BAREMETAL
 	time_t m_tBackup;							///< 時刻復元用
-	#else
-	WORD m_tBackupD;							///< 時刻復元用
-	WORD m_tBackupT;							///< 時刻復元用
-	#endif	// BAREMETAL
 	BOOL m_bRefresh;							///< 更新フラグ
 	DWORD m_nId;								///< 識別ID (値が変化した場合は更新を意味する)
 	BYTE m_szHuman[HUMAN68K_PATH_MAX];					///< 該当エントリのHuman68k内部名
@@ -715,13 +705,8 @@ public:
 private:
 	DWORD m_nKey;									///< Human68kのFCBバッファアドレス (0なら未使用)
 	BOOL m_bUpdate;									///< 更新フラグ
-	#ifndef BAREMETAL
 	FILE* m_pFile;									///< ホスト側のファイルオブジェクト
 	const char* m_pszMode;								///< ホスト側のファイルオープンモード
-	#else
-	FIL m_File;									///< ホスト側のファイルオブジェクト
-	BYTE m_Mode;									///< ホスト側のファイルオープンモード
-	#endif	// BAREMETAL
 	bool m_bFlag;									///< ホスト側のファイルオープンフラグ
 	BYTE m_szHumanPath[HUMAN68K_PATH_MAX];
 											///< Human68kのパス名

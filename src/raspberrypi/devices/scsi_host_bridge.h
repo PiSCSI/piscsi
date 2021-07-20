@@ -26,9 +26,7 @@
 //	SCSI Host Bridge
 //
 //===========================================================================
-#if defined(RASCSI) && !defined(BAREMETAL)
 class CTapDriver;
-#endif	// RASCSI && !BAREMETAL
 class CFileSys;
 class SCSIBR : public Disk
 {
@@ -44,7 +42,6 @@ public:
 	BOOL FASTCALL SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
 
 private:
-	#if defined(RASCSI) && !defined(BAREMETAL)
 	int FASTCALL GetMacAddr(BYTE *buf);					// Get MAC address
 	void FASTCALL SetMacAddr(BYTE *buf);					// Set MAC address
 	void FASTCALL ReceivePacket();						// Receive a packet
@@ -57,7 +54,6 @@ private:
 	int packet_len;								// Receive packet size
 	BYTE packet_buf[0x1000];						// Receive packet buffer
 	BOOL packet_enable;							// Received packet valid
-	#endif	// RASCSI && !BAREMETAL
 
 	int FASTCALL ReadFsResult(BYTE *buf);					// Read filesystem (result code)
 	int FASTCALL ReadFsOut(BYTE *buf);					// Read filesystem (return data)

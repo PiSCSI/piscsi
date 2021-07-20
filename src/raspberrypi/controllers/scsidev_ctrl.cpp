@@ -31,11 +31,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-#ifdef RASCSI
 SCSIDEV::SCSIDEV() : SASIDEV()
-#else
-SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
-#endif
 {
 	// Synchronous transfer work initialization
 	scsi.syncenable = FALSE;
@@ -292,9 +288,7 @@ void FASTCALL SCSIDEV::Execute()
 	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
-	#ifdef RASCSI
 	ctrl.execstart = SysTimer::GetTimerLow();
-	#endif	// RASCSI
 
 	// If the command is valid it must be contained in the command map
 	if (!scsi_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
@@ -351,10 +345,6 @@ void FASTCALL SCSIDEV::MsgOut()
 		ctrl.length = 1;
 		ctrl.blocks = 1;
 
-		#ifndef RASCSI
-		// Request message
-		ctrl.bus->SetREQ(TRUE);
-		#endif	// RASCSI
 		return;
 	}
 
@@ -1277,15 +1267,12 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 //---------------------------------------------------------------------------
 void FASTCALL SCSIDEV::Send()
 {
-	#ifdef RASCSI
 	int len;
-	#endif	// RASCSI
 	BOOL result;
 
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-	#ifdef RASCSI
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
 		LOGTRACE("%s sending handhake with offset %lu, length %lu", __PRETTY_FUNCTION__, ctrl.offset, ctrl.length);
@@ -1314,20 +1301,6 @@ void FASTCALL SCSIDEV::Send()
 		ctrl.length = 0;
 		return;
 	}
-	#else
-	// offset and length
-	ASSERT(ctrl.length >= 1);
-	ctrl.offset++;
-	ctrl.length--;
-
-	// Immediately after ACK is asserted, if the data has been
-	// set by SendNext, raise the request
-    	if (ctrl.length != 0) {
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-		return;
-	}
-	#endif	// RASCSI
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
@@ -1339,9 +1312,6 @@ void FASTCALL SCSIDEV::Send()
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
 			LOGTRACE("%s processing after data collection. Blocks: %lu", __PRETTY_FUNCTION__, ctrl.blocks);
-#ifndef RASCSI
-			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
-			#endif	// RASCSI
 		}
 	}
 
@@ -1356,10 +1326,6 @@ void FASTCALL SCSIDEV::Send()
 		LOGTRACE("%s Continuing to send. blocks = %lu", __PRETTY_FUNCTION__, ctrl.blocks);
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-		#ifndef RASCSI
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-		#endif	// RASCSI
 		return;
 	}
 
@@ -1402,28 +1368,6 @@ void FASTCALL SCSIDEV::Send()
 			break;
 	}
 }
-
-#ifndef RASCSI
-//---------------------------------------------------------------------------
-//
-//	Continue data transmission.....
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::SendNext()
-{
-	// REQ is up
-	ASSERT(ctrl.bus->GetREQ());
-	ASSERT(ctrl.bus->GetIO());
-
-	// Signal line operated by the target
-	ctrl.bus->SetREQ(FALSE);
-
-	// If there is data in the buffer, set it first
-	if (ctrl.length > 1) {
-		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset + 1]);
-	}
-}
-#endif	// RASCSI
 
 //---------------------------------------------------------------------------
 //

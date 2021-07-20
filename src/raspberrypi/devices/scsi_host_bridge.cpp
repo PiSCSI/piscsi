@@ -42,7 +42,7 @@ SCSIBR::SCSIBR() : Disk()
 	// Host Bridge
 	disk.id = MAKEID('S', 'C', 'B', 'R');
 
-	#if defined(RASCSI) && defined(__linux__) && !defined(BAREMETAL)
+	#ifdef __linux__
 	// TAP Driver Generation
 	tap = new CTapDriver();
 	m_bTapEnable = tap->Init();
@@ -56,7 +56,7 @@ SCSIBR::SCSIBR() : Disk()
 
 	// Packet reception flag OFF
 	packet_enable = FALSE;
-	#endif	// RASCSI && !BAREMETAL
+	#endif
 
 	// Create host file system
 	fs = new CFileSys();
@@ -70,13 +70,11 @@ SCSIBR::SCSIBR() : Disk()
 //---------------------------------------------------------------------------
 SCSIBR::~SCSIBR()
 {
-	#if defined(RASCSI) && !defined(BAREMETAL)
 	// TAP driver release
 	if (tap) {
 		tap->Cleanup();
 		delete tap;
 	}
-	#endif	// RASCSI && !BAREMETAL
 
 	// Release host file system
 	if (fs) {
@@ -139,12 +137,10 @@ int FASTCALL SCSIBR::Inquiry(
 	// Optional function valid flag
 	buf[36] = '0';
 
-	#if defined(RASCSI) && !defined(BAREMETAL)
 	// TAP Enable
 	if (m_bTapEnable) {
 		buf[37] = '1';
 	}
-	#endif	// RASCSI && !BAREMETAL
 
 	// CFileSys Enable
 	buf[38] = '1';
@@ -181,25 +177,20 @@ BOOL FASTCALL SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 //---------------------------------------------------------------------------
 int FASTCALL SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 {
-	#if defined(RASCSI) && !defined(BAREMETAL)
 	int func;
 	int total_len;
 	int i;
-	#endif	// RASCSI && !BAREMETAL
 
 	// Type
 	int type = cdb[2];
 
-	#if defined(RASCSI) && !defined(BAREMETAL)
 	// Function number
 	func = cdb[3];
-	#endif	// RASCSI && !BAREMETAL
 
 	// Phase
 	int phase = cdb[9];
 
 	switch (type) {
-		#if defined(RASCSI) && !defined(BAREMETAL)
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
@@ -248,7 +239,6 @@ int FASTCALL SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 					return total_len;
 			}
 			break;
-			#endif	// RASCSI && !BAREMETAL
 
 		case 2:		// Host Drive
 			switch (phase) {
@@ -296,7 +286,6 @@ BOOL FASTCALL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 	len |= cdb[8];
 
 	switch (type) {
-	#if defined(RASCSI) && !defined(BAREMETAL)
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
@@ -313,7 +302,6 @@ BOOL FASTCALL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 					return TRUE;
 			}
 			break;
-			#endif	// RASCSI && !BAREMETAL
 
 		case 2:		// Host drive
 			switch (phase) {
@@ -333,7 +321,6 @@ BOOL FASTCALL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 	return FALSE;
 }
 
-#if defined(RASCSI) && !defined(BAREMETAL)
 //---------------------------------------------------------------------------
 //
 //	Get MAC Address
@@ -433,7 +420,6 @@ void FASTCALL SCSIBR::SendPacket(BYTE *buf, int len)
 
 	tap->Tx(buf, len);
 }
-#endif	// RASCSI && !BAREMETAL
 
 //---------------------------------------------------------------------------
 //

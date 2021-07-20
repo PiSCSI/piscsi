@@ -47,11 +47,7 @@ using namespace rasctl_interface;
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
 #define UnitNum	2					// Number of units around controller
-#ifdef BAREMETAL
-#define FPRT(fp, ...) printf( __VA_ARGS__ )
-#else
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
-#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
@@ -63,16 +59,11 @@ static volatile BOOL active;		// Processing flag
 SASIDEV *ctrl[CtrlMax];				// Controller
 Disk *disk[CtrlMax * UnitNum];		// Disk
 GPIOBUS *bus;						// GPIO Bus
-#ifdef BAREMETAL
-FATFS fatfs;						// FatFS
-#else
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-#endif	// BAREMETAL
 
-#ifndef BAREMETAL
 //---------------------------------------------------------------------------
 //
 //	Signal Processing
@@ -83,7 +74,6 @@ void KillHandler(int sig)
 	// Stop instruction
 	running = FALSE;
 }
-#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
@@ -104,14 +94,12 @@ void Banner(int argc, char* argv[])
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
 		(argc > 1 && strcmp(argv[1], "--help") == 0)){
 		FPRT(stdout,"\n");
-		FPRT(stdout,"Usage: %s [-IDn FILE] [-s LOG_LEVEL] ...\n\n", argv[0]);
+		FPRT(stdout,"Usage: %s [-IDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is SCSI identification number(0-7).\n");
-		FPRT(stdout," FILE is disk image file.\n");
-		FPRT(stdout," LOG_LEVEL is {trace|debug|info|warn|err|critical|off}, default is 'trace'\n\n");
-		FPRT(stdout,"Usage: %s [-HDn FILE] [-s LOG_LEVEL] ...\n\n", argv[0]);
+		FPRT(stdout," FILE is disk image file.\n\n");
+		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n");
-		FPRT(stdout," LOG_LEVEL is {trace|debug|info|warn|err|critical|off}, default is 'trace'\n\n");
+		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
 		FPRT(stdout,"  hdf : SASI HD image(XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image(XM6 SCSI HD image)\n");
@@ -122,9 +110,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout,"  mos : SCSI MO image(XM6 SCSI MO image)\n");
 		FPRT(stdout,"  iso : SCSI CD image(ISO 9660 image)\n");
 
-#ifndef BAREMETAL
 		exit(0);
-#endif	// BAREMETAL
 	}
 }
 
@@ -135,7 +121,6 @@ void Banner(int argc, char* argv[])
 //---------------------------------------------------------------------------
 BOOL Init()
 {
-#ifndef BAREMETAL
 	struct sockaddr_in server;
 	int yes, result;
 
@@ -146,9 +131,9 @@ BOOL Init()
 	}
 
 	// Create socket for monitor
-	monsocket = socket(AF_INET, SOCK_STREAM, 0);
+	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
-	server.sin_family = AF_INET;
+	server.sin_family = PF_INET;
 	server.sin_port   = htons(6868);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
@@ -179,7 +164,6 @@ BOOL Init()
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
 		return FALSE;
 	}
-#endif // BAREMETAL
 
 	// GPIOBUS creation
 	bus = new GPIOBUS();
@@ -238,14 +222,12 @@ void Cleanup()
 	// Discard the GPIOBUS object
 	delete bus;
 
-#ifndef BAREMETAL
 	// Close the monitor socket
 	if (monsocket >= 0) {
 		close(monsocket);
 	}
 
 	pthread_mutex_destroy(&ctrl_mutex);
-#endif // BAREMETAL
 }
 
 //---------------------------------------------------------------------------
@@ -460,12 +442,6 @@ bool MapController(Disk **map)
 }
 
 bool ReturnStatus(int fd, bool status = true, const string msg = "") {
-#ifdef BAREMETAL
-	if (msg.length()) {
-		FPRT(stderr, msg.c_str());
-		FPRT(stderr, "\n");
-	}
-#else
 	if (fd == -1) {
 		if (msg.length()) {
 			FPRT(stderr, msg.c_str());
@@ -475,12 +451,12 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	else {
 		Result result;
 		result.set_status(status);
+		result.set_msg(msg + "\n");
 
 		string data;
 		result.SerializeToString(&data);
 		SerializeProtobufData(fd, data);
 	}
-#endif
 
 	return status;
 }
@@ -515,7 +491,7 @@ void SetLogLevel(const string& log_level) {
 
 //---------------------------------------------------------------------------
 //
-//	Command Processing. If fd is -1 error messages are displayed on the console.
+//	Command Processing
 //
 //---------------------------------------------------------------------------
 bool ProcessCmd(int fd, const Command &command)
@@ -734,177 +710,6 @@ bool has_suffix(const string& filename, const string& suffix) {
 //	Argument Parsing
 //
 //---------------------------------------------------------------------------
-#ifdef BAREMETAL
-BOOL ParseConfig(int argc, char* argv[])
-{
-	FIL fp;
-	char line[512];
-	int id;
-	int un;
-	DeviceType type;
-	char *argID;
-	char *argPath;
-	int len;
-	char *ext;
-
-	// Mount the SD card
-	FRESULT fr = f_mount(&fatfs, "", 1);
-	if (fr != FR_OK) {
-		FPRT(stderr, "Error : SD card mount failed.\n");
-		return FALSE;
-	}
-
-	// If there is no setting file, the processing is interrupted
-	fr = f_open(&fp, "rascsi.ini", FA_READ);
-	if (fr != FR_OK) {
-		return FALSE;
-	}
-
-	// Start Decoding
-
-	while (TRUE) {
-		// Get one Line
-		memset(line, 0x00, sizeof(line));
-		if (f_gets(line, sizeof(line) -1, &fp) == NULL) {
-			break;
-		}
-
-		// Delete the CR/LF
-		len = strlen(line);
-		while (len > 0) {
-			if (line[len - 1] != '\r' && line[len - 1] != '\n') {
-				break;
-			}
-			line[len - 1] = '\0';
-			len--;
-		}
-
-		// Get the ID and Path
-		argID = &line[0];
-		argPath = &line[4];
-		line[3] = '\0';
-
-		// Check if the line is an empty string
-		if (argID[0] == '\0' || argPath[0] == '\0') {
-			continue;
-		}
-
-		if (strlen(argID) == 3 && xstrncasecmp(argID, "id", 2) == 0) {
-			// ID or ID Format
-
-			// Check that the ID number is valid (0-7)
-			if (argID[2] < '0' || argID[2] > '7') {
-				FPRT(stderr,
-					"Error : Invalid argument(IDn n=0-7) [%c]\n", argID[2]);
-				goto parse_error;
-			}
-
-			// The ID unit is good
-            id = argID[2] - '0';
-			un = 0;
-		} else if (xstrncasecmp(argID, "hd", 2) == 0) {
-			// HD or HD format
-
-			if (strlen(argID) == 3) {
-				// Check that the HD number is valid (0-9)
-				if (argID[2] < '0' || argID[2] > '9') {
-					FPRT(stderr,
-						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
-					goto parse_error;
-				}
-
-				// ID was confirmed
-				id = (argID[2] - '0') / UnitNum;
-				un = (argID[2] - '0') % UnitNum;
-			} else if (strlen(argID) == 4) {
-				// Check that the HD number is valid (10-15)
-				if (argID[2] != '1' || argID[3] < '0' || argID[3] > '5') {
-					FPRT(stderr,
-						"Error : Invalid argument(HDn n=0-15) [%c]\n", argID[2]);
-					goto parse_error;
-				}
-
-				// The ID unit is good - create the id and unit number
-				id = ((argID[3] - '0') + 10) / UnitNum;
-				un = ((argID[3] - '0') + 10) % UnitNum;
-				argPath++;
-			} else {
-				FPRT(stderr,
-					"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
-				goto parse_error;
-			}
-		} else {
-			FPRT(stderr,
-				"Error : Invalid argument(IDn or HDn) [%s]\n", argID);
-			goto parse_error;
-		}
-
-		// Skip if there is already an active device
-		if (disk[id * UnitNum + un] &&
-			!disk[id * UnitNum + un]->IsNULL()) {
-			continue;
-		}
-
-		// Check ethernet and host bridge
-		if (!strcasecmp(argPath, "bridge")) {
-			type = BR;
-		} else {
-			// Check the path length
-			len = strlen(argPath);
-			if (len < 5) {
-				FPRT(stderr,
-					"Error : Invalid argument(File path is short) [%s]\n",
-					argPath);
-				goto parse_error;
-			}
-
-			// Does the file have an extension?
-			if (argPath[len - 4] != '.') {
-				FPRT(stderr,
-					"Error : Invalid argument(No extension) [%s]\n", argPath);
-				goto parse_error;
-			}
-
-			// Figure out what the type is
-			ext = &argPath[len - 3];
-			if (!strcasecmp(ext, "hdf") || !strcasecmp(ext, "hds") || !strcasecmp(ext, "hdn") ||
-				!strcasecmp(ext, "hdi") || !strcasecmp(ext, "nhd") || !strcasecmp(ext, "hda")) {
-				type = SASI_HD;
-			} else if (!strcasecmp(ext, "mos")) {
-				type = MO;
-			} else if (!strcasecmp(ext, "iso")) {
-				type = CD;
-			}
-		}
-
-		// Execute the command
-		Command command;
-		command.set_id(id);
-		command.set_un(un);
-		command.set_cmd(0);
-		command.set_type(type);
-		command.set_file(argPath);
-		if (!ProcessCmd(-1, command)) {
-			goto parse_error;
-		}
-	}
-
-	// Close the configuration file
-	f_close(&fp);
-
-	// Display the device list
-	fprintf(stdout, "%s", ListDevice().c_str());
-
-	return TRUE;
-
-parse_error:
-
-	// Close the configuration file
-	f_close(&fp);
-
-	return FALSE;
-}
-#else
 bool ParseArgument(int argc, char* argv[])
 {
 	int id = -1;
@@ -913,7 +718,7 @@ bool ParseArgument(int argc, char* argv[])
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhL:s:D:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhL:l:D:d:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -927,7 +732,7 @@ bool ParseArgument(int argc, char* argv[])
 				id = -1;
 				continue;
 
-			case 's':
+			case 'l':
 				log_level = optarg;
 				continue;
 
@@ -999,9 +804,7 @@ bool ParseArgument(int argc, char* argv[])
 	fprintf(stdout, "%s", ListDevice().c_str());
 	return true;
 }
-#endif  // BAREMETAL
 
-#ifndef BAREMETAL
 //---------------------------------------------------------------------------
 //
 //	Pin the thread to a specific CPU
@@ -1101,25 +904,14 @@ static void *MonThread(void *param)
 
 	return NULL;
 }
-#endif	// BAREMETAL
 
 //---------------------------------------------------------------------------
 //
 //	Main processing
 //
 //---------------------------------------------------------------------------
-#ifdef BAREMETAL
-extern "C"
-int startrascsi(void)
-{
-	int argc = 0;
-	char** argv = NULL;
-#else
 int main(int argc, char* argv[])
 {
-#endif	// BAREMETAL
-	GOOGLE_PROTOBUF_VERIFY_VERSION;
-
 	int i;
 	int actid;
 	DWORD now;
@@ -1127,9 +919,7 @@ int main(int argc, char* argv[])
 	BYTE data;
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, NULL, _IONBF, 0);
-#ifndef BAREMETAL
 	struct sched_param schparam;
-#endif	// BAREMETAL
 
 	set_level(level::trace);
 	// Create a thread-safe stdout logger to process the log messages
@@ -1148,29 +938,12 @@ int main(int argc, char* argv[])
 	// Reset
 	Reset();
 
-#ifdef BAREMETAL
-	// BUSY assert (to hold the host side)
-	bus->SetBSY(TRUE);
-
-	// Argument parsing
-	if (!ParseConfig(argc, argv)) {
-		ret = EINVAL;
-		goto err_exit;
-	}
-#else
 	// Argument parsing
 	if (!ParseArgument(argc, argv)) {
 		ret = EINVAL;
 		goto err_exit;
 	}
-#endif
 
-#ifdef BAREMETAL
-	// Release the busy signal
-	bus->SetBSY(FALSE);
-#endif
-
-#ifndef BAREMETAL
     // Set the affinity to a specific processor core
 	FixCpu(3);
 
@@ -1179,7 +952,6 @@ int main(int argc, char* argv[])
 	schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 #endif	// USE_SEL_EVENT_ENABLE
-#endif	// BAREMETAL
 
 	// Start execution
 	running = TRUE;
@@ -1205,9 +977,7 @@ int main(int argc, char* argv[])
 #else
 		bus->Aquire();
 		if (!bus->GetSEL()) {
-#if !defined(BAREMETAL)
 			usleep(0);
-#endif	// !BAREMETAL
 			continue;
 		}
 #endif	// USE_SEL_EVENT_ENABLE
@@ -1258,11 +1028,11 @@ int main(int argc, char* argv[])
 		// Start target device
 		active = TRUE;
 
-#if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
+#ifndef USE_SEL_EVENT_ENABLE
 		// Scheduling policy setting (highest priority)
 		schparam.sched_priority = sched_get_priority_max(SCHED_FIFO);
 		sched_setscheduler(0, SCHED_FIFO, &schparam);
-#endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
+#endif	// USE_SEL_EVENT_ENABLE
 
 		// Loop until the bus is free
 		while (running) {
@@ -1277,11 +1047,11 @@ int main(int argc, char* argv[])
 		pthread_mutex_unlock(&ctrl_mutex);
 
 
-#if !defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
+#ifndef USE_SEL_EVENT_ENABLE
 		// Set the scheduling priority back to normal
 		schparam.sched_priority = 0;
 		sched_setscheduler(0, SCHED_OTHER, &schparam);
-#endif	// !USE_SEL_EVENT_ENABLE && !BAREMETAL
+#endif	// USE_SEL_EVENT_ENABLE
 
 		// End the target travel
 		active = FALSE;
@@ -1292,9 +1062,5 @@ err_exit:
 	Cleanup();
 
 init_exit:
-#if !defined(BAREMETAL)
-	exit(ret);
-#else
 	return ret;
-#endif	// BAREMETAL
 }

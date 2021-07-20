@@ -106,13 +106,11 @@ public:
 	const int DEFAULT_BUFFER_SIZE = 0x800;
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
-	#ifdef RASCSI
 	// For timing adjustments
 	enum {			
 		min_exec_time_sasi	= 100,			// SASI BOOT/FORMAT 30:NG 35:OK
 		min_exec_time_scsi	= 50
 	};
-	#endif	// RASCSI
 
 	// Internal data definition
 	typedef struct {
@@ -126,10 +124,8 @@ public:
 		DWORD status;					// Status data
 		DWORD message;					// Message data
 
-		#ifdef RASCSI
 		// Run
 		DWORD execstart;				// Execution start time
-		#endif	// RASCSI
 
 		// Transfer
 		BYTE *buffer;					// Transfer data buffer
@@ -149,20 +145,9 @@ public:
 
 public:
 	// Basic Functions
-	#ifdef RASCSI
 	SASIDEV();
-	#else
-
-	SASIDEV(Device *dev);							// Constructor
-
-	#endif //RASCSI
 	virtual ~SASIDEV();							// Destructor
 	virtual void FASTCALL Reset();						// Device Reset
-
-	#ifndef RASCSI
-	virtual BOOL FASTCALL Save(Fileio *fio, int ver);			// Save
-	virtual BOOL FASTCALL Load(Fileio *fio, int ver);			// Load
-	#endif //RASCSI
 
 	// External API
 	virtual BUS::phase_t FASTCALL Process();				// Run
@@ -219,15 +204,7 @@ protected:
 	// データ転送
 	virtual void FASTCALL Send();						// Send data
 
-	#ifndef RASCSI
-	virtual void FASTCALL SendNext();					// Continue sending data
-	#endif	// RASCSI
-
 	virtual void FASTCALL Receive();					// Receive data
-
-	#ifndef RASCSI
-	virtual void FASTCALL ReceiveNext();					// Continue receiving data
-	#endif	// RASCSI
 
 	BOOL FASTCALL XferIn(BYTE* buf);					// Data transfer IN
 	BOOL FASTCALL XferOut(BOOL cont);					// Data transfer OUT
@@ -238,8 +215,5 @@ protected:
         DWORD FASTCALL GetLun();                                           // Get the validated LUN
 
 protected:
-	#ifndef RASCSI
-	Device *host;								// Host device
-	#endif // RASCSI
 	ctrl_t ctrl;								// Internal data
 };

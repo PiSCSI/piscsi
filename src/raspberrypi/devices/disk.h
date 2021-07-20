@@ -60,14 +60,7 @@
 #define DISK_AUDIOCOMPLETE	0x00??0013	// AUDIO PLAY SUCCESSFULLY COMPLETED
 #endif
 
-
-#ifdef RASCSI
 #define BENDER_SIGNATURE 	"RaSCSI"
-// The following line was to mimic Apple's CDROM ID
-// #define BENDER_SIGNATURE "SONY    "
-#else
-#define BENDER_SIGNATURE 	"XM6"
-#endif
 
 //===========================================================================
 //
@@ -192,10 +185,6 @@ public:
 	Disk();									// Constructor
 	virtual ~Disk();							// Destructor
 	virtual void FASTCALL Reset();						// Device Reset
-	#ifndef RASCSI
-	virtual BOOL FASTCALL Save(Fileio *fio, int ver);			// Save
-	virtual BOOL FASTCALL Load(Fileio *fio, int ver);			// Load
-	#endif	// RASCSI
 
 	// ID
 	DWORD FASTCALL GetID() const;						// Get media ID

@@ -21,21 +21,10 @@
 #include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
-#ifdef RASCSI
 #include "gpiobus.h"
-#ifndef BAREMETAL
 #include "ctapdriver.h"
-#endif	// BAREMETAL
 #include "cfilesystem.h"
 #include "disk.h"
-#else
-#include "vm.h"
-#include "disk.h"
-#include "windrv.h"
-#include "ctapdriver.h"
-#include "mfc_com.h"
-#include "mfc_host.h"
-#endif	// RASCSI
 
 //===========================================================================
 //
@@ -157,13 +146,9 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 
 	if (dt.buffer == NULL) {
-		#if defined(RASCSI) && !defined(BAREMETAL)
                 if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
                         LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);
                 }
-		#else
-		dt.buffer = (BYTE *)malloc(length * sizeof(BYTE));
-		#endif	// RASCSI && !BAREMETAL
 		dt.length = length;
 	}
 
@@ -174,13 +159,9 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	// Reallocate if the buffer length is different
 	if (dt.length != (DWORD)length) {
 		free(dt.buffer);
-		#if defined(RASCSI) && !defined(BAREMETAL)
 		if (posix_memalign((void **)&dt.buffer, 512, ((length + 511) / 512) * 512)) {
                   LOGWARN("%s posix_memalign failed", __PRETTY_FUNCTION__);  
                 }
-		#else
-		dt.buffer = (BYTE *)malloc(length * sizeof(BYTE));
-		#endif	// RASCSI && !BAREMETAL
 		dt.length = length;
 	}
 
@@ -205,11 +186,7 @@ BOOL FASTCALL DiskTrack::Load(const Filepath& path)
 	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 
 	// Read from File
-	#if defined(RASCSI) && !defined(BAREMETAL)
 	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
-	#else
-	if (!fio.Open(path, Fileio::ReadOnly)) {
-	#endif	// RASCSI && !BAREMETAL
 		return FALSE;
 	}
 	if (dt.raw) {
@@ -782,138 +759,6 @@ void FASTCALL Disk::Reset()
 	disk.attn = FALSE;
 	disk.reset = TRUE;
 }
-
-#ifndef RASCSI
-//---------------------------------------------------------------------------
-//
-//	Save
-//
-//---------------------------------------------------------------------------
-BOOL FASTCALL Disk::Save(Fileio *fio, int ver)
-{
-	DWORD padding;
-
-	ASSERT(fio);
-
-	// Save size
-	DWORD sz = 52;
-	if (!fio->Write(&sz, sizeof(sz))) {
-		return FALSE;
-	}
-
-	// Save entity
-	PROP_EXPORT(fio, disk.id);
-	PROP_EXPORT(fio, disk.ready);
-	PROP_EXPORT(fio, disk.writep);
-	PROP_EXPORT(fio, disk.readonly);
-	PROP_EXPORT(fio, disk.removable);
-	PROP_EXPORT(fio, disk.lock);
-	PROP_EXPORT(fio, disk.attn);
-	PROP_EXPORT(fio, disk.reset);
-	PROP_EXPORT(fio, disk.size);
-	PROP_EXPORT(fio, disk.blocks);
-	PROP_EXPORT(fio, disk.lun);
-	PROP_EXPORT(fio, disk.code);
-	PROP_EXPORT(fio, padding);
-
-	// Save the path
-	if (!diskpath.Save(fio, ver)) {
-		return FALSE;
-	}
-
-	return TRUE;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Load
-//
-//---------------------------------------------------------------------------
-BOOL FASTCALL Disk::Load(Fileio *fio, int ver)
-{
-	DWORD sz;
-	disk_t buf;
-	DWORD padding;
-	Filepath path;
-
-	ASSERT(fio);
-
-	// Prior to version 2.03, the disk was not saved
-	if (ver <= 0x0202) {
-		return TRUE;
-	}
-
-	// Delete the current disk cache
-	if (disk.dcache) {
-		disk.dcache->Save();
-		delete disk.dcache;
-		disk.dcache = NULL;
-	}
-
-	// Load size
-	if (!fio->Read(&sz, sizeof(sz))) {
-		return FALSE;
-	}
-	if (sz != 52) {
-		return FALSE;
-	}
-
-	// Load into buffer
-	PROP_IMPORT(fio, buf.id);
-	PROP_IMPORT(fio, buf.ready);
-	PROP_IMPORT(fio, buf.writep);
-	PROP_IMPORT(fio, buf.readonly);
-	PROP_IMPORT(fio, buf.removable);
-	PROP_IMPORT(fio, buf.lock);
-	PROP_IMPORT(fio, buf.attn);
-	PROP_IMPORT(fio, buf.reset);
-	PROP_IMPORT(fio, buf.size);
-	PROP_IMPORT(fio, buf.blocks);
-	PROP_IMPORT(fio, buf.lun);
-	PROP_IMPORT(fio, buf.code);
-	PROP_IMPORT(fio, padding);
-
-	// Load path
-	if (!path.Load(fio, ver)) {
-		return FALSE;
-	}
-
-	// Move only if IDs match
-	if (disk.id == buf.id) {
-		// Do nothing if null
-		if (IsNULL()) {
-			return TRUE;
-		}
-
-		// Same type of device as when saving
-		disk.ready = FALSE;
-		if (Open(path)) {
-            // Disk cache is created in Open
-            // move only properties
-			if (!disk.readonly) {
-				disk.writep = buf.writep;
-			}
-			disk.lock = buf.lock;
-			disk.attn = buf.attn;
-			disk.reset = buf.reset;
-			disk.lun = buf.lun;
-			disk.code = buf.code;
-
-			// Loaded successfully
-			return TRUE;
-		}
-	}
-
-	// Disk cache rebuild
-	if (!IsReady()) {
-		disk.dcache = NULL;
-	} else {
-		disk.dcache = new DiskCache(diskpath, disk.size, disk.blocks);
-	}
-
-	return TRUE;
-}
-#endif	// RASCSI
 
 //---------------------------------------------------------------------------
 //

@@ -56,7 +56,6 @@
 #include <sys/stat.h>
 #include <sys/time.h>
 
-#ifndef BAREMETAL
 #include <poll.h>
 #include <dirent.h>
 #include <sys/mman.h>
@@ -65,13 +64,6 @@
 #include <sys/epoll.h>
 #include <netinet/in.h>
 #include <linux/gpio.h>
-#else
-#include <machine/endian.h>
-#define	htonl(_x)	__htonl(_x)
-#define	htons(_x)	__htons(_x)
-#define	ntohl(_x)	__ntohl(_x)
-#define	ntohs(_x)	__ntohs(_x)
-#endif	// BAREMETAL
 
 #if defined(__linux__)
 #include <linux/if.h>

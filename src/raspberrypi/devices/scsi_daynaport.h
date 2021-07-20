@@ -173,9 +173,6 @@ private:
 		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 	};
 
-
-#if defined(RASCSI) && !defined(BAREMETAL)
-
 	CTapDriver *m_tap;
 										// TAP driver
 	BOOL m_bTapEnable;
@@ -184,7 +181,4 @@ private:
 										// MAC Address
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
-	
-#endif	// RASCSI && !BAREMETAL
-
 };
