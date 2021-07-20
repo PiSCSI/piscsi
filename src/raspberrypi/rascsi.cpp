@@ -451,6 +451,7 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	else {
 		Result result;
 		result.set_status(status);
+		resut.set_msg(msg + "\n");
 
 		string data;
 		result.SerializeToString(&data);
