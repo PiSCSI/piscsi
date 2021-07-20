@@ -109,13 +109,7 @@ private:
 	void FASTCALL CmdEnableInterface(); 				// DaynaPort specific command
 	// データ転送
 	void FASTCALL Send();							// Send data
-	#ifndef RASCSI
-	void FASTCALL SendNext();						// Continue sending data
-	#endif	// RASCSI
 	void FASTCALL Receive();						// Receive data
-	#ifndef RASCSI
-	void FASTCALL ReceiveNext();						// Continue receiving data
-	#endif	// RASCSI
 	BOOL FASTCALL XferMsg(DWORD msg);					// Data transfer message
 
 	scsi_t scsi;								// Internal data

@@ -420,16 +420,12 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 	ASSERT(m_bEnable);
 
 	// ボリュームラベルの取得
-#ifdef RASCSI
 	strcpy(m_szVolumeCache, "RASDRV ");
 	if (m_szBase[0]) {
 		strcat(m_szVolumeCache, m_szBase);
 	} else {
 		strcat(m_szVolumeCache, "/");
 	}
-#else
-	m_szVolumeCache[0] = _T('\0');
-#endif
 
 	// キャッシュ更新
 	m_bVolumeCache = TRUE;

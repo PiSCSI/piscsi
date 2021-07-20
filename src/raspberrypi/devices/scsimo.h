@@ -30,9 +30,6 @@ public:
 	// Basic Functions
 	SCSIMO();									// Constructor
 	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);			// Open
-	#ifndef RASCSI
-	BOOL FASTCALL Load(Fileio *fio, int ver);					// Load
-	#endif	// RASCSI
 
 	// commands
 	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
