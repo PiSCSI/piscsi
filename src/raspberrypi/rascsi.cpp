@@ -442,13 +442,20 @@ bool MapController(Disk **map)
 }
 
 bool ReturnStatus(int fd, bool status = true, const string msg = "") {
-	Result result;
-	result.set_msg(msg);
-	result.set_status(status);
+	if (fd == -1) {
+		if (msg.length()) {
+			FPRT(stderr, msg.c_str());
+			FPRT(stderr, "\n");
+		}
+	}
+	else {
+		Result result;
+		result.set_status(status);
 
-	string data;
-	result.SerializeToString(&data);
-	SerializeProtobufData(fd, data);
+		string data;
+		result.SerializeToString(&data);
+		SerializeProtobufData(fd, data);
+	}
 
 	return status;
 }
