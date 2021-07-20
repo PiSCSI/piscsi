@@ -14,7 +14,7 @@
 #include "rascsi_version.h"
 #include "exceptions.h"
 #include "rasutil.h"
-#include "rasctl_interface.pb.h"
+#include "rascsi_interface.pb.h"
 #include <sstream>
 #include <iostream>
 

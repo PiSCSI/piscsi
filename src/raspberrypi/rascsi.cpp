@@ -28,7 +28,7 @@
 #include "exceptions.h"
 #include "rascsi_version.h"
 #include "rasutil.h"
-#include "rasctl_interface.pb.h"
+#include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
