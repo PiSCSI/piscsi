@@ -52,7 +52,7 @@ int SendCommand(const string& hostname, const Command& command)
     		throw ioexception("Can't connect to rascsi process on host '" + hostname + "'");
     	}
 
-        SerializeProtobufData(fd, command);
+        SerializeMessage(fd, command);
     }
     catch(const ioexception& e) {
     	cerr << "Error: " << e.getmsg() << endl;
@@ -76,7 +76,7 @@ bool ReceiveResult(int fd) {
     bool status = true;
     try {
         Result result;
-    	result.ParseFromString(DeserializeProtobufData(fd));
+    	DeserializeMessage(fd, result);
 
     	status = result.status();
     	if (status) {
@@ -147,7 +147,7 @@ void CommandList(const string& hostname)
 
 	Devices devices;
 	try {
-		devices.ParseFromString(DeserializeProtobufData(fd));
+		DeserializeMessage(fd, devices);
 	}
 	catch(const ioexception& e) {
 		cerr << "Error: " << e.getmsg() << endl;

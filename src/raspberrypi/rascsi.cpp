@@ -465,7 +465,7 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 		Result result;
 		result.set_status(status);
 		result.set_msg(msg + "\n");
-		SerializeProtobufData(fd, result);
+		SerializeMessage(fd, result);
 	}
 
 	return status;
@@ -876,13 +876,13 @@ static void *MonThread(void *param)
 
 			// Fetch the command
 			Command command;
-			command.ParseFromString(DeserializeProtobufData(fd));
+			DeserializeMessage(fd, command);
 
 			// List all of the devices
 			if (command.cmd() == LIST) {
 				Devices devices = GetDevices();
 				ListDevices(devices);
-				SerializeProtobufData(fd, devices);
+				SerializeMessage(fd, devices);
 			}
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());

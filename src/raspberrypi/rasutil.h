@@ -12,10 +12,9 @@
 #if !defined(rasutil_h)
 #define rasutil_h
 
-#include <string>
 #include "google/protobuf/message_lite.h"
 
-void SerializeProtobufData(int fd, const google::protobuf::MessageLite& message);
-std::string DeserializeProtobufData(int fd);
+void SerializeMessage(int fd, const google::protobuf::MessageLite& message);
+void DeserializeMessage(int fd, google::protobuf::MessageLite& message);
 
 #endif
