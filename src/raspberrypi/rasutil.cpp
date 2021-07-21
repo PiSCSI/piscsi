@@ -49,7 +49,7 @@ void DeserializeMessage(int fd, google::protobuf::MessageLite& message)
 {
 	// First read the header with the size of the protobuf data
 	int32_t size;
-	if (!read(fd, &size, sizeof(size)) != sizeof(size)) {
+	if (read(fd, &size, sizeof(size)) == sizeof(size)) {
 		// Read the actual protobuf data
 		void *buf = malloc(size);
 		if (read(fd, buf, size) != (ssize_t)size) {
