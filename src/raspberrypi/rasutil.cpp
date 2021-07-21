@@ -22,12 +22,15 @@ using namespace std;
 //
 //---------------------------------------------------------------------------
 
-void SerializeProtobufData(int fd, const string& data)
+void SerializeProtobufData(int fd, const google::protobuf::MessageLite& message)
 {
+	string data;
+	message.SerializeToString(&data);
+
 	// Write the size of the protobuf data as a header
     int32_t size = data.length();
     if (write(fd, &size, sizeof(size)) != sizeof(size)) {
-    	throw ioexception("Cannot write protobuf header");
+    	throw ioexception("Can't write protobuf header");
     }
 
     // Write the actual protobuf data
@@ -36,7 +39,7 @@ void SerializeProtobufData(int fd, const string& data)
     if (write(fd, buf, size) != size) {
     	free(buf);
 
-    	throw ioexception("Cannot write protobuf data");
+    	throw ioexception("Can't write protobuf data");
     }
 
     free(buf);

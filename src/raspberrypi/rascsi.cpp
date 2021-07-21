@@ -465,10 +465,7 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 		Result result;
 		result.set_status(status);
 		result.set_msg(msg + "\n");
-
-		string data;
-		result.SerializeToString(&data);
-		SerializeProtobufData(fd, data);
+		SerializeProtobufData(fd, result);
 	}
 
 	return status;
@@ -885,10 +882,7 @@ static void *MonThread(void *param)
 			if (command.cmd() == LIST) {
 				Devices devices = GetDevices();
 				ListDevices(devices);
-
-				string data;
-				devices.SerializeToString(&data);
-				SerializeProtobufData(fd, data);
+				SerializeProtobufData(fd, devices);
 			}
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());
@@ -907,7 +901,7 @@ static void *MonThread(void *param)
 		}
 	}
 	catch(const ioexception& e) {
-		LOGERROR("%s", e.getmsg());
+		LOGERROR("%s", e.getmsg().c_str());
 
 		// Fall through
 	}
