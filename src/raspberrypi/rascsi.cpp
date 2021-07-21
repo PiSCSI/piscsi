@@ -303,7 +303,7 @@ Devices GetDevices() {
 //	List and log devices
 //
 //---------------------------------------------------------------------------
-string ListDevices(Devices devices) {
+string ListDevices(const Devices& devices) {
 	ostringstream s;
 
 	if (devices.devices_size()) {
