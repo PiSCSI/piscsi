@@ -253,8 +253,8 @@ void Reset()
 //	Get the list of attached devices
 //
 //---------------------------------------------------------------------------
-Devices GetDevices() {
-	Devices devices;
+PbDevices GetDevices() {
+	PbDevices devices;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
 		// skip if unit does not exist or null disk
@@ -263,7 +263,7 @@ Devices GetDevices() {
 			continue;
 		}
 
-		Device *device = devices.add_devices();
+		PbDevice *device = devices.add_devices();
 
 		// Initialize ID and unit number
 		device->set_id(i / UnitNum);
@@ -303,7 +303,7 @@ Devices GetDevices() {
 //	List and log devices
 //
 //---------------------------------------------------------------------------
-string ListDevices(const Devices& devices) {
+string ListDevices(const PbDevices& devices) {
 	ostringstream s;
 
 	if (devices.devices_size()) {
@@ -321,7 +321,7 @@ string ListDevices(const Devices& devices) {
 	}
 
 	for (int i = 0; i < devices.devices_size() ; i++) {
-		Device device = devices.devices(i);
+		PbDevice device = devices.devices(i);
 
 		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
 				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
@@ -462,7 +462,7 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 		}
 	}
 	else {
-		Result result;
+		PbResult result;
 		result.set_status(status);
 		result.set_msg(msg + "\n");
 		SerializeMessage(fd, result);
@@ -504,7 +504,7 @@ void SetLogLevel(const string& log_level) {
 //	Command Processing
 //
 //---------------------------------------------------------------------------
-bool ProcessCmd(int fd, const Command &command)
+bool ProcessCmd(int fd, const PbCommand &command)
 {
 	Disk *map[CtrlMax * UnitNum];
 	Filepath filepath;
@@ -513,8 +513,8 @@ bool ProcessCmd(int fd, const Command &command)
 
     int id = command.id();
 	int un = command.un();
-	Operation cmd = command.cmd();
-	DeviceType type = command.type();
+	PbOperation cmd = command.cmd();
+	PbDeviceType type = command.type();
 	string params = command.params().c_str();
 
 	ostringstream s;
@@ -772,7 +772,7 @@ bool ParseArgument(int argc, char* argv[])
 		}
 
 		string path = optarg;
-		DeviceType type = SASI_HD;
+		PbDeviceType type = SASI_HD;
 		if (has_suffix(path, ".hdf") || has_suffix(path, ".hds") || has_suffix(path, ".hdn")
 			|| has_suffix(path, ".hdi") || has_suffix(path, ".hda") || has_suffix(path, ".nhd")) {
 			type = SASI_HD;
@@ -796,7 +796,7 @@ bool ParseArgument(int argc, char* argv[])
 		}
 
 		// Execute the command
-		Command command;
+		PbCommand command;
 		command.set_id(id);
 		command.set_un(un);
 		command.set_cmd(ATTACH);
@@ -811,7 +811,7 @@ bool ParseArgument(int argc, char* argv[])
 	SetLogLevel(log_level);
 
 	// Display the device list
-	Devices devices = GetDevices();
+	PbDevices devices = GetDevices();
 	cout << ListDevices(devices) << endl;
 
 	return true;
@@ -875,12 +875,12 @@ static void *MonThread(void *param)
 			}
 
 			// Fetch the command
-			Command command;
+			PbCommand command;
 			DeserializeMessage(fd, command);
 
 			// List all of the devices
 			if (command.cmd() == LIST) {
-				Devices devices = GetDevices();
+				PbDevices devices = GetDevices();
 				ListDevices(devices);
 				SerializeMessage(fd, devices);
 			}

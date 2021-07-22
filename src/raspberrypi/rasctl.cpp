@@ -26,7 +26,7 @@ using namespace rascsi_interface;
 //	Send Command
 //
 //---------------------------------------------------------------------------
-int SendCommand(const string& hostname, const Command& command)
+int SendCommand(const string& hostname, const PbCommand& command)
 {
 	int fd;
 
@@ -74,8 +74,9 @@ int SendCommand(const string& hostname, const Command& command)
 //---------------------------------------------------------------------------
 bool ReceiveResult(int fd) {
     bool status = true;
+
     try {
-        Result result;
+        PbResult result;
     	DeserializeMessage(fd, result);
 
     	status = result.status();
@@ -99,7 +100,7 @@ bool ReceiveResult(int fd) {
     return status;
 }
 
-string ListDevices(const Devices& devices) {
+string ListDevices(const PbDevices& devices) {
 	ostringstream s;
 
 	if (devices.devices_size()) {
@@ -113,7 +114,7 @@ string ListDevices(const Devices& devices) {
 	}
 
 	for (int i = 0; i < devices.devices_size() ; i++) {
-		Device device = devices.devices(i);
+		PbDevice device = devices.devices(i);
 
 		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
 				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
@@ -137,7 +138,7 @@ void Deserialize(google::protobuf::MessageLite& message) {
 
 void CommandList(const string& hostname)
 {
-	Command command;
+	PbCommand command;
 	command.set_cmd(LIST);
 
 	int fd = SendCommand(hostname.c_str(), command);
@@ -145,7 +146,7 @@ void CommandList(const string& hostname)
 		exit(ENOTCONN);
 	}
 
-	Devices devices;
+	PbDevices devices;
 	try {
 		DeserializeMessage(fd, devices);
 	}
@@ -164,7 +165,7 @@ void CommandList(const string& hostname)
 
 void CommandLogLevel(const string& hostname, const string& log_level)
 {
-	Command command;
+	PbCommand command;
 	command.set_cmd(LOG_LEVEL);
 	command.set_params(log_level);
 
@@ -210,8 +211,8 @@ int main(int argc, char* argv[])
 	int opt;
 	int id = -1;
 	int un = 0;
-	Operation cmd = LIST;
-	DeviceType type = UNDEFINED;
+	PbOperation cmd = LIST;
+	PbDeviceType type = UNDEFINED;
 	const char *hostname = "localhost";
 	string params;
 	opterr = 0;
@@ -300,7 +301,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	Command command;
+	PbCommand command;
 
 	if (cmd == LOG_LEVEL) {
 		CommandLogLevel(hostname, params);
