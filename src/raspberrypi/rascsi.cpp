@@ -460,6 +460,16 @@ void SetLogLevel(const string& log_level) {
 	}
 }
 
+void LogDeviceList(const string& device_list)
+{
+	stringstream ss(device_list);
+	string line;
+
+	while (getline(ss, line, '\n')) {
+		LOGINFO("%s", line.c_str());
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command Processing
@@ -771,9 +781,11 @@ bool ParseArgument(int argc, char* argv[])
 
 	SetLogLevel(log_level);
 
-	// Display the device list
-	PbDevices devices = GetDevices();
-	cout << ListDevices(devices) << endl;
+	// Display and log the device list
+	const PbDevices devices = GetDevices();
+	const string device_list = ListDevices(devices);
+	cout << device_list << endl;
+	LogDeviceList(device_list);
 
 	return true;
 }
@@ -839,11 +851,11 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
-			// List all of the devices
+			// List and log all of the devices
 			if (command.cmd() == LIST) {
-				PbDevices devices = GetDevices();
-				ListDevices(devices);
+				const PbDevices devices = GetDevices();
 				SerializeMessage(fd, devices);
+				LogDeviceList(ListDevices(devices));
 			}
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());
