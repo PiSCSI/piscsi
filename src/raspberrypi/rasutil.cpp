@@ -10,11 +10,13 @@
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
-#include <string>
+#include <sstream>
+#include "rascsi_interface.pb.h"
 #include "exceptions.h"
 #include "rasutil.h"
 
 using namespace std;
+using namespace rascsi_interface;
 
 //---------------------------------------------------------------------------
 //
@@ -64,4 +66,34 @@ void DeserializeMessage(int fd, google::protobuf::MessageLite& message)
 
 		message.ParseFromString(data);
 	}
+}
+
+//---------------------------------------------------------------------------
+//
+//	List devices
+//
+//---------------------------------------------------------------------------
+string ListDevices(const PbDevices& devices) {
+	ostringstream s;
+
+	if (devices.devices_size()) {
+    	s << endl
+    		<< "+----+----+------+-------------------------------------" << endl
+    		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
+			<< "+----+----+------+-------------------------------------" << endl;
+	}
+	else {
+		return "No images currently attached.\n";
+	}
+
+	for (int i = 0; i < devices.devices_size() ; i++) {
+		PbDevice device = devices.devices(i);
+
+		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
+				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
+	}
+
+	s << "+----+----+------+-------------------------------------" << endl;
+
+	return s.str();
 }

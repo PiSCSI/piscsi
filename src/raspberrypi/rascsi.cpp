@@ -300,45 +300,6 @@ PbDevices GetDevices() {
 
 //---------------------------------------------------------------------------
 //
-//	List and log devices
-//
-//---------------------------------------------------------------------------
-string ListDevices(const PbDevices& devices) {
-	ostringstream s;
-
-	if (devices.devices_size()) {
-    	s << endl
-    		<< "+----+----+------+-------------------------------------" << endl
-    		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
-			<< "+----+----+------+-------------------------------------" << endl;
-
-    	LOGINFO( "+----+----+------+-------------------------------------");
-    	LOGINFO( "| ID | UN | TYPE | DEVICE STATUS");
-    	LOGINFO( "+----+----+------+-------------------------------------\n");
-	}
-	else {
-		return "No images currently attached.\n";
-	}
-
-	for (int i = 0; i < devices.devices_size() ; i++) {
-		PbDevice device = devices.devices(i);
-
-		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
-				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
-
- 		LOGINFO( "|  %d |  %d | %s | %s%s", device.id(), device.un(), device.type().c_str(),
- 				device.file().c_str(), device.read_only() ? " (WRITEPROTECT)" : "");
-	}
-
-	s << "+----+----+------+-------------------------------------" << endl;
-
-    LOGINFO( "+----+----+------+-------------------------------------");
-
-	return s.str();
-}
-
-//---------------------------------------------------------------------------
-//
 //	Controller Mapping
 //
 //---------------------------------------------------------------------------
