@@ -1124,7 +1124,7 @@ void FASTCALL SCSIDEV::CmdRetrieveStats()
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
-	if (ctrl.unit[lun]->GetID() != "SCDP") {
+	if (ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.unit[lun]->GetID().c_str());
 		Error();
 		return;
@@ -1160,7 +1160,7 @@ void FASTCALL SCSIDEV::CmdSetIfaceMode()
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
-	if (ctrl.unit[lun]->GetID() != "SCDP"){
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetID().c_str());
 		Error();
 		return;
@@ -1199,7 +1199,7 @@ void FASTCALL SCSIDEV::CmdSetMcastAddr()
 
 	DWORD lun = GetLun();
 
-	if (ctrl.unit[lun]->GetID() != "SCDP") {
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
 		Error();
 		return;
@@ -1279,7 +1279,7 @@ void FASTCALL SCSIDEV::Send()
 		// The Daynaport needs to have a delay after the size/flags field
 		// of the read response. In the MacOS driver, it looks like the
 		// driver is doing two "READ" system calls.
-		if (ctrl.unit[0] && ctrl.unit[0]->GetID() == "SCDP") {
+		if (ctrl.unit[0] && ctrl.unit[0]->IsDaynaPort()) {
 			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
 				&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
 		}
