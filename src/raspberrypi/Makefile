@@ -1,15 +1,11 @@
 .DEFAULT_GOAL: all
 
 ## Optional build flags:
-##   ARCH=arm : Specify which target platform you're compiling
-##              for. This will default to arm, which is typical
-##              on a Raspberry Pi.
 ##   CROSS_COMPILE=arm-linux-gnueabihf- : Specify which compiler
 ##              toolchain to use. This will default to arm-linux-
 ##              gnueabihf-, which is typical on a Raspberry Pi.
 ##              To cross compile on a x86_64 system set these to:
 ##                 ARM=x86_64 CROSS_COMPILE=x86_64-linux-gnu-cpp
-ARCH ?= arm
 CROSS_COMPILE ?= arm-linux-gnueabihf-
 
 CC  = $(CROSS_COMPILE)gcc
@@ -87,10 +83,6 @@ SRC_RASCSI = \
 	fileio.cpp\
 	rascsi_version.cpp \
 	rasutil.cpp
-#	os.cpp
-#	rasctl_command.cpp
-#	rascsi_mgr.cpp
-#	command_thread.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI += $(SRC_PROTOBUF)
@@ -107,7 +99,6 @@ SRC_RASCTL = \
 	rasctl.cpp\
 	rascsi_version.cpp \
 	rasutil.cpp
-#	rasctl_command.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 
 SRC_RASDUMP = \

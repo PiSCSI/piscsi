@@ -119,7 +119,7 @@ void Banner(int argc, char* argv[])
 //	Initialization
 //
 //---------------------------------------------------------------------------
-BOOL Init()
+BOOL Init(int port)
 {
 	struct sockaddr_in server;
 	int yes, result;
@@ -134,7 +134,7 @@ BOOL Init()
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
-	server.sin_port   = htons(6868);
+	server.sin_port   = htons(port);
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// allow address reuse
@@ -704,7 +704,7 @@ bool has_suffix(const string& filename, const string& suffix) {
 //	Argument Parsing
 //
 //---------------------------------------------------------------------------
-bool ParseArgument(int argc, char* argv[])
+bool ParseArgument(int argc, char* argv[], int& port)
 {
 	int id = -1;
 	bool is_sasi = false;
@@ -712,7 +712,7 @@ bool ParseArgument(int argc, char* argv[])
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -739,6 +739,14 @@ bool ParseArgument(int argc, char* argv[])
 				}
 				continue;
 			}
+
+			case 'p':
+				port = atoi(optarg);
+				if (port <= 0 || port > 65535) {
+					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+					return false;
+				}
+				continue;
 
 			default:
 				return false;
@@ -925,21 +933,22 @@ int main(int argc, char* argv[])
 	// Output the Banner
 	Banner(argc, argv);
 
-	// Initialize
+	// Argument parsing
 	int ret = 0;
-	if (!Init()) {
+	int port = 6868;
+	if (!ParseArgument(argc, argv, port)) {
+		ret = EINVAL;
+		goto err_exit;
+	}
+
+	// Initialize
+	if (!Init(port)) {
 		ret = EPERM;
 		goto init_exit;
 	}
 
 	// Reset
 	Reset();
-
-	// Argument parsing
-	if (!ParseArgument(argc, argv)) {
-		ret = EINVAL;
-		goto err_exit;
-	}
 
     // Set the affinity to a specific processor core
 	FixCpu(3);
