@@ -811,6 +811,11 @@ bool FASTCALL Disk::IsSASI() const
 	return disk.id == "SAHD";
 }
 
+bool FASTCALL Disk::IsSCSI() const
+{
+	return disk.id == "SCHD";
+}
+
 bool FASTCALL Disk::IsCdRom() const
 {
 	return disk.id == "SCCD";
@@ -1072,7 +1077,7 @@ int FASTCALL Disk::SelectCheck(const DWORD *cdb)
 	ASSERT(cdb);
 
 	// Error if save parameters are set instead of SCSIHD
-	if (disk.id != "SCHD") {
+	if (!IsSCSI()) {
 		// Error if save parameters are set
 		if (cdb[1] & 0x01) {
 			disk.code = DISK_INVALIDCDB;
@@ -1097,7 +1102,7 @@ int FASTCALL Disk::SelectCheck10(const DWORD *cdb)
 	ASSERT(cdb);
 
 	// Error if save parameters are set instead of SCSIHD
-	if (disk.id != "SCHD") {
+	if (!IsSCSI()) {
 		if (cdb[1] & 0x01) {
 			disk.code = DISK_INVALIDCDB;
 			return 0;
