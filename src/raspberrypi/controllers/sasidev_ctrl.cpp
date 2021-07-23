@@ -1375,7 +1375,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 		case SASIDEV::eCmdWriteAndVerify10:
 			// If we're a host bridge, use the host bridge's SendMessage10 
 			// function
-			if (ctrl.unit[lun]->IsBr()) {
+			if (ctrl.unit[lun]->IsBridge()) {
 				bridge = (SCSIBR*)ctrl.unit[lun];
 				if (!bridge->SendMessage10(ctrl.cmd, ctrl.buffer)) {
 					// write failed

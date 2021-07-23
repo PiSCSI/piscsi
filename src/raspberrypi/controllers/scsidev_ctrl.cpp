@@ -679,7 +679,7 @@ void FASTCALL SCSIDEV::CmdRead10()
 	DWORD lun = GetLun();
 
 	// Receive message if host bridge
-	if (ctrl.unit[lun]->IsBr()) {
+	if (ctrl.unit[lun]->IsBridge()) {
 		CmdGetMessage10();
 		return;
 	}
@@ -729,7 +729,7 @@ void FASTCALL SCSIDEV::CmdWrite10()
 	DWORD lun = GetLun();
 
 	// Receive message with host bridge
-	if (ctrl.unit[lun]->IsBr()) {
+	if (ctrl.unit[lun]->IsBridge()) {
 		CmdSendMessage10();
 		return;
 	}
@@ -1037,7 +1037,7 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 	DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsBr() && !ctrl.unit[lun]->IsNuvolink()) {
+	if (!ctrl.unit[lun]->IsBridge() && !ctrl.unit[lun]->IsNuvolink()) {
 		LOGWARN("Received a GetMessage10 command for a non-bridge unit");
 		Error();
 		return;
@@ -1080,7 +1080,7 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 	DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsBr()) {
+	if (!ctrl.unit[lun]->IsBridge()) {
 		LOGERROR("Received CmdSendMessage10 for a non-bridge device");
 		Error();
 		return;

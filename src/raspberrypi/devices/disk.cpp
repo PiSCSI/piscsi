@@ -826,7 +826,7 @@ bool FASTCALL Disk::IsMo() const
 	return disk.id == "SCMO";
 }
 
-bool FASTCALL Disk::IsBr() const
+bool FASTCALL Disk::IsBridge() const
 {
 	return disk.id == "SCBR";
 }

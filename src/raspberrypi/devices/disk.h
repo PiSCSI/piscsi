@@ -193,7 +193,7 @@ public:
 	bool FASTCALL IsSCSI() const;						// SASI Check
 	bool FASTCALL IsCdRom() const;
 	bool FASTCALL IsMo() const;
-	bool FASTCALL IsBr() const;
+	bool FASTCALL IsBridge() const;
 	bool FASTCALL IsDaynaPort() const;
 	bool FASTCALL IsNuvolink() const;
 
