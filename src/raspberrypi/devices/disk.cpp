@@ -811,11 +811,6 @@ bool FASTCALL Disk::IsSASI() const
 	return disk.id == "SAHD";
 }
 
-bool FASTCALL Disk::IsSCSI() const
-{
-	return disk.id == "SCHD";
-}
-
 bool FASTCALL Disk::IsCdRom() const
 {
 	return disk.id == "SCCD";

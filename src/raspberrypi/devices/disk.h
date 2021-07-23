@@ -190,7 +190,6 @@ public:
 	const std::string& FASTCALL GetID() const;			// Get media ID
 	bool FASTCALL IsNULL() const;						// NULL check
 	bool FASTCALL IsSASI() const;						// SASI Check
-	bool FASTCALL IsSCSI() const;						// SASI Check
 	bool FASTCALL IsCdRom() const;
 	bool FASTCALL IsMo() const;
 	bool FASTCALL IsBridge() const;
