@@ -209,7 +209,6 @@ public:
 	BOOL FASTCALL IsLocked() const		{ return disk.lock; }		// Get locked status
 	BOOL FASTCALL IsAttn() const		{ return disk.attn; }		// Get attention flag
 	BOOL FASTCALL Flush();							// Flush the cache
-	void FASTCALL GetDisk(disk_t *buffer) const;				// Get the internal data struct
 
 	// Properties
 	void FASTCALL SetLUN(DWORD lun)		{ disk.lun = lun; }		// LUN set
