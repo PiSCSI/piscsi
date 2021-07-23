@@ -706,7 +706,6 @@ void FASTCALL DiskCache::Update()
 Disk::Disk()
 {
 	// Work initialization
-	disk.id = MAKEID('N', 'U', 'L', 'L');
 	disk.ready = FALSE;
 	disk.writep = FALSE;
 	disk.readonly = FALSE;
@@ -767,10 +766,7 @@ void FASTCALL Disk::Reset()
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::IsNULL() const
 {
-	if (disk.id == MAKEID('N', 'U', 'L', 'L')) {
-		return TRUE;
-	}
-	return FALSE;
+	return disk.id.empty();
 }
 
 //---------------------------------------------------------------------------
@@ -778,7 +774,7 @@ BOOL FASTCALL Disk::IsNULL() const
 //	Retrieve the disk's ID
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL Disk::GetID() const
+std::string FASTCALL Disk::GetID() const
 { 
 	return disk.id; 
 }
@@ -821,10 +817,7 @@ void FASTCALL Disk::InvalidCmd()
 //---------------------------------------------------------------------------
 BOOL FASTCALL Disk::IsSASI() const
 {
-	if (disk.id == MAKEID('S', 'A', 'H', 'D')) {
-		return TRUE;
-	}
-	return FALSE;
+	return disk.id == "SAHD";
 }
 
 //---------------------------------------------------------------------------
@@ -835,7 +828,7 @@ BOOL FASTCALL Disk::IsSASI() const
 BOOL FASTCALL Disk::IsSCSI() const
 {
 	// If this isn't SASI, then it must be SCSI.
-	return (this->IsSASI()) ? FALSE : TRUE;
+	return !this->IsSASI();
 }
 
 //---------------------------------------------------------------------------
@@ -1087,7 +1080,7 @@ int FASTCALL Disk::SelectCheck(const DWORD *cdb)
 	ASSERT(cdb);
 
 	// Error if save parameters are set instead of SCSIHD
-	if (disk.id != MAKEID('S', 'C', 'H', 'D')) {
+	if (disk.id != "SCHD") {
 		// Error if save parameters are set
 		if (cdb[1] & 0x01) {
 			disk.code = DISK_INVALIDCDB;
@@ -1112,7 +1105,7 @@ int FASTCALL Disk::SelectCheck10(const DWORD *cdb)
 	ASSERT(cdb);
 
 	// Error if save parameters are set instead of SCSIHD
-	if (disk.id != MAKEID('S', 'C', 'H', 'D')) {
+	if (disk.id != "SCHD") {
 		if (cdb[1] & 0x01) {
 			disk.code = DISK_INVALIDCDB;
 			return 0;
@@ -1188,7 +1181,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	int size = 4;
 
 	// MEDIUM TYPE
-	if (disk.id == MAKEID('S', 'C', 'M', 'O')) {
+	if (disk.id == "SCMO") {
 		buf[1] = 0x03; // optical reversible or erasable
 	}
 
@@ -1239,7 +1232,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 6(optical)
-	if (disk.id == MAKEID('S', 'C', 'M', 'O')) {
+	if (disk.id == "SCMO") {
 		if ((page == 0x06) || (page == 0x3f)) {
 			size += AddOpt(change, &buf[size]);
 			valid = TRUE;
@@ -1253,7 +1246,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 13(CD-ROM)
-	if (disk.id == MAKEID('S', 'C', 'C', 'D')) {
+	if (disk.id == "SCCD") {
 		if ((page == 0x0d) || (page == 0x3f)) {
 			size += AddCDROM(change, &buf[size]);
 			valid = TRUE;
@@ -1261,7 +1254,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 14(CD-DA)
-	if (disk.id == MAKEID('S', 'C', 'C', 'D')) {
+	if (disk.id == "SCCD") {
 		if ((page == 0x0e) || (page == 0x3f)) {
 			size += AddCDDA(change, &buf[size]);
 			valid = TRUE;
@@ -1378,7 +1371,7 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// ペPage code 6(optical)
-	if (disk.id == MAKEID('S', 'C', 'M', 'O')) {
+	if (disk.id == "SCMO") {
 		if ((page == 0x06) || (page == 0x3f)) {
 			size += AddOpt(change, &buf[size]);
 			valid = TRUE;
@@ -1392,7 +1385,7 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 13(CD-ROM)
-	if (disk.id == MAKEID('S', 'C', 'C', 'D')) {
+	if (disk.id == "SCCD") {
 		if ((page == 0x0d) || (page == 0x3f)) {
 			size += AddCDROM(change, &buf[size]);
 			valid = TRUE;
@@ -1400,7 +1393,7 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 14(CD-DA)
-	if (disk.id == MAKEID('S', 'C', 'C', 'D')) {
+	if (disk.id == "SCCD") {
 		if ((page == 0x0e) || (page == 0x3f)) {
 			size += AddCDDA(change, &buf[size]);
 			valid = TRUE;

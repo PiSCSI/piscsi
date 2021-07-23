@@ -270,18 +270,12 @@ Devices GetDevices() {
 		device->set_un(i % UnitNum);
 
 		// ID,UNIT,Type,Device Status
-		char type[5];
-		type[0] = (char)(pUnit->GetID() >> 24);
-		type[1] = (char)(pUnit->GetID() >> 16);
-		type[2] = (char)(pUnit->GetID() >> 8);
-		type[3] = (char)(pUnit->GetID());
-		type[4] = 0;
-		device->set_type(type);
+		device->set_type(pUnit->GetID());
 
 		// mount status output
-		if (pUnit->GetID() == MAKEID('S', 'C', 'B', 'R')) {
+		if (pUnit->GetID() == "SCBR") {
 			device->set_file("X68000 HOST BRIDGE");
-		} else if (pUnit->GetID() == MAKEID('S', 'C', 'D', 'P')) {
+		} else if (pUnit->GetID() == "SCDP") {
 			device->set_file("DaynaPort SCSI/Link");
 		} else {
 			Filepath filepath;
@@ -621,13 +615,7 @@ bool ProcessCmd(int fd, const Command &command)
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-			type_str[0] = (char)(pUnit->GetID() >> 24);
-	        type_str[1] = (char)(pUnit->GetID() >> 16);
-	        type_str[2] = (char)(pUnit->GetID() >> 8);
-	        type_str[3] = (char)(pUnit->GetID());
-	        type_str[4] = '\0';
-
-	        LOGINFO("rasctl added new %s device. ID: %d UN: %d", type_str, id, un);
+	        LOGINFO("rasctl added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 		}
 
 		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
@@ -648,15 +636,9 @@ bool ProcessCmd(int fd, const Command &command)
 		return ReturnStatus(fd, false, "Error : No such device");
 	}
 
-	type_str[0] = (char)(pUnit->GetID() >> 24);
-    type_str[1] = (char)(pUnit->GetID() >> 16);
-    type_str[2] = (char)(pUnit->GetID() >> 8);
-    type_str[3] = (char)(pUnit->GetID());
-    type_str[4] = '\0';
-
 	// Disconnect Command
 	if (cmd == DETACH) {
-		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", type_str, id, un);
+		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
@@ -667,9 +649,8 @@ bool ProcessCmd(int fd, const Command &command)
 	}
 
 	// Valid only for MO or CD
-	if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O') &&
-		pUnit->GetID() != MAKEID('S', 'C', 'C', 'D')) {
-		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, type_str);
+	if (pUnit->GetID() != "SCMO" && pUnit->GetID() != "SCCD") {
+		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, pUnit->GetID().c_str());
 
 		ostringstream error;
 		error << "Operation denied (Device type " << type_str << " isn't removable)";
@@ -679,7 +660,7 @@ bool ProcessCmd(int fd, const Command &command)
 	switch (cmd) {
 		case INSERT:
 			filepath.SetPath(params.c_str());
-			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), type_str, id, un);
+			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
 
 			if (!pUnit->Open(filepath)) {
 				ostringstream error;
@@ -695,12 +676,12 @@ bool ProcessCmd(int fd, const Command &command)
 			break;
 
 		case PROTECT:
-			if (pUnit->GetID() != MAKEID('S', 'C', 'M', 'O')) {
-				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", type_str, id, un);
+			if (pUnit->GetID() != "SCMO") {
+				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 
 				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
 			}
-			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), type_str, id, un);
+			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), pUnit->GetID().c_str(), id, un);
 			pUnit->WriteP(!pUnit->IsWriteP());
 			break;
 

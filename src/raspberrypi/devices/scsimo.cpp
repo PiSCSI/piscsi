@@ -32,7 +32,7 @@
 SCSIMO::SCSIMO() : Disk()
 {
 	// SCSI magneto-optical disk
-	disk.id = MAKEID('S', 'C', 'M', 'O');
+	disk.id = "SCMO";
 
 	// Set as removable
 	disk.removable = TRUE;

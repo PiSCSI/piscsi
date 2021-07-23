@@ -164,7 +164,7 @@ class Disk
 public:
 	// Internal data structure
 	typedef struct {
-		DWORD id;							// Media ID
+		std::string id;						// Media ID
 		BOOL ready;							// Valid Disk
 		BOOL writep;							// Write protected
 		BOOL readonly;							// Read only
@@ -187,7 +187,7 @@ public:
 	virtual void FASTCALL Reset();						// Device Reset
 
 	// ID
-	DWORD FASTCALL GetID() const;						// Get media ID
+	std::string FASTCALL GetID() const;					// Get media ID
 	BOOL FASTCALL IsNULL() const;						// NULL check
 	BOOL FASTCALL IsSASI() const;						// SASI Check
 	BOOL FASTCALL IsSCSI() const;						// SASI Check
