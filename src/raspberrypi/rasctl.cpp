@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
 
 			case 'p':
 				port = atoi(optarg);
-				if (!port || port > 65535) {
+				if (port <= 0 || port > 65535) {
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					exit(-1);
 				}
