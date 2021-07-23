@@ -166,6 +166,9 @@ BOOL InitService(int port)
 		return FALSE;
 	}
 
+	running = FALSE;
+	active = FALSE;
+
 	return true;
 }
 
@@ -190,10 +193,6 @@ bool InitBusAndDisks() {
 	for (int i = 0; i < CtrlMax; i++) {
 		disk[i] = NULL;
 	}
-
-	// Other
-	running = FALSE;
-	active = FALSE;
 
 	return TRUE;
 }
