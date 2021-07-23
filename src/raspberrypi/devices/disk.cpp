@@ -764,7 +764,7 @@ void FASTCALL Disk::Reset()
 //	NULL Check
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL Disk::IsNULL() const
+bool FASTCALL Disk::IsNULL() const
 {
 	return disk.id.empty();
 }
@@ -785,7 +785,7 @@ const std::string& FASTCALL Disk::GetID() const
 //	Get cache writeback mode
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL Disk::IsCacheWB() 
+bool FASTCALL Disk::IsCacheWB()
 { 
 	return cache_wb; 
 }
@@ -802,23 +802,43 @@ void FASTCALL Disk::SetCacheWB(BOOL enable)
 
 //---------------------------------------------------------------------------
 //
-//	SASI Check
+//	Device type checks
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL Disk::IsSASI() const
+
+bool FASTCALL Disk::IsSASI() const
 {
 	return disk.id == "SAHD";
 }
 
-//---------------------------------------------------------------------------
-//
-//	SCSI Check
-//
-//---------------------------------------------------------------------------
-BOOL FASTCALL Disk::IsSCSI() const
+bool FASTCALL Disk::IsSCSI() const
 {
-	// If this isn't SASI, then it must be SCSI.
-	return !this->IsSASI();
+	return disk.id == "SCHD";
+}
+
+bool FASTCALL Disk::IsCdRom() const
+{
+	return disk.id == "SCCD";
+}
+
+bool FASTCALL Disk::IsMo() const
+{
+	return disk.id == "SCMO";
+}
+
+bool FASTCALL Disk::IsBr() const
+{
+	return disk.id == "SCBR";
+}
+
+bool FASTCALL Disk::IsDp() const
+{
+	return disk.id == "SCDP";
+}
+
+bool FASTCALL Disk::IsNl() const
+{
+	return disk.id == "SCNL";
 }
 
 //---------------------------------------------------------------------------
@@ -1171,7 +1191,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	int size = 4;
 
 	// MEDIUM TYPE
-	if (disk.id == "SCMO") {
+	if (IsMo()) {
 		buf[1] = 0x03; // optical reversible or erasable
 	}
 
@@ -1222,7 +1242,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 6(optical)
-	if (disk.id == "SCMO") {
+	if (IsMo()) {
 		if ((page == 0x06) || (page == 0x3f)) {
 			size += AddOpt(change, &buf[size]);
 			valid = TRUE;
@@ -1236,7 +1256,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 13(CD-ROM)
-	if (disk.id == "SCCD") {
+	if (IsCdRom()) {
 		if ((page == 0x0d) || (page == 0x3f)) {
 			size += AddCDROM(change, &buf[size]);
 			valid = TRUE;
@@ -1244,7 +1264,7 @@ int FASTCALL Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 14(CD-DA)
-	if (disk.id == "SCCD") {
+	if (IsCdRom()) {
 		if ((page == 0x0e) || (page == 0x3f)) {
 			size += AddCDDA(change, &buf[size]);
 			valid = TRUE;
@@ -1361,7 +1381,7 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// ペPage code 6(optical)
-	if (disk.id == "SCMO") {
+	if (IsMo()) {
 		if ((page == 0x06) || (page == 0x3f)) {
 			size += AddOpt(change, &buf[size]);
 			valid = TRUE;
@@ -1375,7 +1395,7 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 13(CD-ROM)
-	if (disk.id == "SCCD") {
+	if (IsCdRom()) {
 		if ((page == 0x0d) || (page == 0x3f)) {
 			size += AddCDROM(change, &buf[size]);
 			valid = TRUE;
@@ -1383,7 +1403,7 @@ int FASTCALL Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 14(CD-DA)
-	if (disk.id == "SCCD") {
+	if (IsCdRom()) {
 		if ((page == 0x0e) || (page == 0x3f)) {
 			size += AddCDDA(change, &buf[size]);
 			valid = TRUE;

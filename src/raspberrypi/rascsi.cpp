@@ -273,9 +273,9 @@ Devices GetDevices() {
 		device->set_type(pUnit->GetID());
 
 		// mount status output
-		if (pUnit->GetID() == "SCBR") {
+		if (pUnit->IsBr()) {
 			device->set_file("X68000 HOST BRIDGE");
-		} else if (pUnit->GetID() == "SCDP") {
+		} else if (pUnit->IsDp()) {
 			device->set_file("DaynaPort SCSI/Link");
 		} else {
 			Filepath filepath;
@@ -649,7 +649,7 @@ bool ProcessCmd(int fd, const Command &command)
 	}
 
 	// Valid only for MO or CD
-	if (pUnit->GetID() != "SCMO" && pUnit->GetID() != "SCCD") {
+	if (!pUnit->IsMo() && !pUnit->IsCdRom()) {
 		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, pUnit->GetID().c_str());
 
 		ostringstream error;
@@ -676,7 +676,7 @@ bool ProcessCmd(int fd, const Command &command)
 			break;
 
 		case PROTECT:
-			if (pUnit->GetID() != "SCMO") {
+			if (!pUnit->IsMo()) {
 				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 
 				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");

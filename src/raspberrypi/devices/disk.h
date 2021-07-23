@@ -188,9 +188,14 @@ public:
 
 	// ID
 	const std::string& FASTCALL GetID() const;			// Get media ID
-	BOOL FASTCALL IsNULL() const;						// NULL check
-	BOOL FASTCALL IsSASI() const;						// SASI Check
-	BOOL FASTCALL IsSCSI() const;						// SASI Check
+	bool FASTCALL IsNULL() const;						// NULL check
+	bool FASTCALL IsSASI() const;						// SASI Check
+	bool FASTCALL IsSCSI() const;						// SASI Check
+	bool FASTCALL IsCdRom() const;
+	bool FASTCALL IsMo() const;
+	bool FASTCALL IsBr() const;
+	bool FASTCALL IsDp() const;
+	bool FASTCALL IsNl() const;
 
 	// Media Operations
 	virtual BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);	// Open
@@ -238,10 +243,9 @@ public:
 	virtual BOOL FASTCALL PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
 	virtual BOOL FASTCALL PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
 	virtual BOOL FASTCALL PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
-	void FASTCALL InvalidCmd();										// Unsupported command
 
 	// Other
-	BOOL FASTCALL IsCacheWB();								// Get cache writeback mode
+	bool FASTCALL IsCacheWB();								// Get cache writeback mode
 	void FASTCALL SetCacheWB(BOOL enable);						// Set cache writeback mode
 
 protected:

@@ -904,20 +904,20 @@ void FASTCALL SASIDEV::CmdRead6()
 		ctrl.blocks = 0x100;
 	}
 
-	if(ctrl.unit[lun]->GetID() == "SCDP"){
+	if(ctrl.unit[lun]->IsDp()){
 		// The DaynaPort only wants one block.
 		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
 		ctrl.blocks=1;
 	}
 
-	LOGTRACE("%s READ(6) command record=%06X blocks=%d ID %s", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks, ctrl.unit[lun]->GetID());
+	LOGTRACE("%s READ(6) command record=%06X blocks=%d ID %s", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks, ctrl.unit[lun]->GetID().c_str());
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 
 	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
-	if ((ctrl.length <= 0) && (ctrl.unit[lun]->GetID() != "SCDP")) {
+	if (ctrl.length <= 0 && !ctrl.unit[lun]->IsDp()) {
 		// Failure (Error)
 		Error();
 		return;
@@ -940,7 +940,7 @@ void FASTCALL SASIDEV::DaynaPortWrite()
         DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if (ctrl.unit[lun]->GetID() != "SCDP") {
+	if (!ctrl.unit[lun]->IsDp()) {
 		LOGERROR("Received DaynaPortWrite for a non-DaynaPort device");
 		Error();
 		return;
@@ -989,10 +989,10 @@ void FASTCALL SASIDEV::DaynaPortWrite()
 //---------------------------------------------------------------------------
 void FASTCALL SASIDEV::CmdWrite6()
 {
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Special receive function for the DaynaPort
-	if (ctrl.unit[lun]->GetID() == "SCDP"){
+	if (ctrl.unit[lun]->IsDp()){
 		DaynaPortWrite();
 		return;
 	}
@@ -1375,7 +1375,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 		case SASIDEV::eCmdWriteAndVerify10:
 			// If we're a host bridge, use the host bridge's SendMessage10 
 			// function
-			if (ctrl.unit[lun]->GetID() == "SCBR") {
+			if (ctrl.unit[lun]->IsBr()) {
 				bridge = (SCSIBR*)ctrl.unit[lun];
 				if (!bridge->SendMessage10(ctrl.cmd, ctrl.buffer)) {
 					// write failed
@@ -1388,7 +1388,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Special case Write function for DaynaPort
-			if (ctrl.unit[lun]->GetID() == "SCDP") {
+			if (ctrl.unit[lun]->IsDp()) {
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
 				if (!(SCSIDaynaPort*)ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
