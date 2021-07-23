@@ -831,12 +831,12 @@ bool FASTCALL Disk::IsBr() const
 	return disk.id == "SCBR";
 }
 
-bool FASTCALL Disk::IsDp() const
+bool FASTCALL Disk::IsDaynaPort() const
 {
 	return disk.id == "SCDP";
 }
 
-bool FASTCALL Disk::IsNl() const
+bool FASTCALL Disk::IsNuvolink() const
 {
 	return disk.id == "SCNL";
 }

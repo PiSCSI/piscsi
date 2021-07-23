@@ -275,7 +275,7 @@ Devices GetDevices() {
 		// mount status output
 		if (pUnit->IsBr()) {
 			device->set_file("X68000 HOST BRIDGE");
-		} else if (pUnit->IsDp()) {
+		} else if (pUnit->IsDaynaPort()) {
 			device->set_file("DaynaPort SCSI/Link");
 		} else {
 			Filepath filepath;

@@ -1037,7 +1037,7 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 	DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsBr() && !ctrl.unit[lun]->IsNl()) {
+	if (!ctrl.unit[lun]->IsBr() && !ctrl.unit[lun]->IsNuvolink()) {
 		LOGWARN("Received a GetMessage10 command for a non-bridge unit");
 		Error();
 		return;
@@ -1232,7 +1232,7 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
-	if (!ctrl.unit[lun]->IsDp()) {
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetID().c_str());
 		Error();
 		return;

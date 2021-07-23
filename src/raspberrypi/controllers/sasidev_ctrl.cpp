@@ -904,7 +904,7 @@ void FASTCALL SASIDEV::CmdRead6()
 		ctrl.blocks = 0x100;
 	}
 
-	if(ctrl.unit[lun]->IsDp()){
+	if(ctrl.unit[lun]->IsDaynaPort()){
 		// The DaynaPort only wants one block.
 		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
 		ctrl.blocks=1;
@@ -917,7 +917,7 @@ void FASTCALL SASIDEV::CmdRead6()
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 
 	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
-	if (ctrl.length <= 0 && !ctrl.unit[lun]->IsDp()) {
+	if (ctrl.length <= 0 && !ctrl.unit[lun]->IsDaynaPort()) {
 		// Failure (Error)
 		Error();
 		return;
@@ -940,7 +940,7 @@ void FASTCALL SASIDEV::DaynaPortWrite()
         DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsDp()) {
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGERROR("Received DaynaPortWrite for a non-DaynaPort device");
 		Error();
 		return;
@@ -992,7 +992,7 @@ void FASTCALL SASIDEV::CmdWrite6()
 	DWORD lun = GetLun();
 
 	// Special receive function for the DaynaPort
-	if (ctrl.unit[lun]->IsDp()){
+	if (ctrl.unit[lun]->IsDaynaPort()){
 		DaynaPortWrite();
 		return;
 	}
@@ -1388,7 +1388,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Special case Write function for DaynaPort
-			if (ctrl.unit[lun]->IsDp()) {
+			if (ctrl.unit[lun]->IsDaynaPort()) {
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
 				if (!(SCSIDaynaPort*)ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed

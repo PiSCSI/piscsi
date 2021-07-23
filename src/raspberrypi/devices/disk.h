@@ -194,8 +194,8 @@ public:
 	bool FASTCALL IsCdRom() const;
 	bool FASTCALL IsMo() const;
 	bool FASTCALL IsBr() const;
-	bool FASTCALL IsDp() const;
-	bool FASTCALL IsNl() const;
+	bool FASTCALL IsDaynaPort() const;
+	bool FASTCALL IsNuvolink() const;
 
 	// Media Operations
 	virtual BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);	// Open
