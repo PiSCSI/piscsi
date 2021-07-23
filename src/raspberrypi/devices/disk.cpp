@@ -774,7 +774,7 @@ BOOL FASTCALL Disk::IsNULL() const
 //	Retrieve the disk's ID
 //
 //---------------------------------------------------------------------------
-std::string FASTCALL Disk::GetID() const
+const std::string& FASTCALL Disk::GetID() const
 { 
 	return disk.id; 
 }

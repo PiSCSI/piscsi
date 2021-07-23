@@ -187,7 +187,7 @@ public:
 	virtual void FASTCALL Reset();						// Device Reset
 
 	// ID
-	std::string FASTCALL GetID() const;					// Get media ID
+	const std::string& FASTCALL GetID() const;			// Get media ID
 	BOOL FASTCALL IsNULL() const;						// NULL check
 	BOOL FASTCALL IsSASI() const;						// SASI Check
 	BOOL FASTCALL IsSCSI() const;						// SASI Check
