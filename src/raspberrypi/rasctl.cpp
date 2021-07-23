@@ -17,6 +17,7 @@
 #include "rasutil.h"
 #include "rascsi_interface.pb.h"
 #include <sstream>
+#include <iostream>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -77,9 +78,9 @@ bool ReceiveResult(int fd) {
 
     try {
         PbResult result;
-    	DeserializeMessage(fd, result);
+        DeserializeMessage(fd, result);
 
-    	status = result.status();
+        status = result.status();
     	if (status) {
     		cerr << result.msg();
     	}
@@ -98,11 +99,6 @@ bool ReceiveResult(int fd) {
     close(fd);
 
     return status;
-}
-
-void Deserialize(google::protobuf::MessageLite& message) {
-	const string data;
-	message.ParseFromString(data);
 }
 
 //---------------------------------------------------------------------------
