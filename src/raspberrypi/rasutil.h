@@ -18,4 +18,5 @@
 void SerializeMessage(int fd, const google::protobuf::MessageLite&);
 void DeserializeMessage(int fd, google::protobuf::MessageLite&);
 string ListDevices(const rascsi_interface::PbDevices&);
+
 #endif

@@ -119,7 +119,8 @@ void Banner(int argc, char* argv[])
 //	Initialization
 //
 //---------------------------------------------------------------------------
-BOOL Init(int port)
+
+BOOL InitService(int port)
 {
 	struct sockaddr_in server;
 	int yes, result;
@@ -165,6 +166,10 @@ BOOL Init(int port)
 		return FALSE;
 	}
 
+	return true;
+}
+
+bool InitBusAndDisks() {
 	// GPIOBUS creation
 	bus = new GPIOBUS();
 
@@ -919,16 +924,20 @@ int main(int argc, char* argv[])
 	// Output the Banner
 	Banner(argc, argv);
 
-	// Argument parsing
 	int ret = 0;
 	int port = 6868;
+
+	if (!InitBusAndDisks()) {
+		ret = EPERM;
+		goto init_exit;
+	}
+
 	if (!ParseArgument(argc, argv, port)) {
 		ret = EINVAL;
 		goto err_exit;
 	}
 
-	// Initialize
-	if (!Init(port)) {
+	if (!InitService(port)) {
 		ret = EPERM;
 		goto init_exit;
 	}
