@@ -29,7 +29,7 @@ using namespace rascsi_interface;
 //---------------------------------------------------------------------------
 int SendCommand(const string& hostname, const PbCommand& command)
 {
-	int fd;
+	int fd = -1;
 
 	try {
     	struct hostent *host = gethostbyname(hostname.c_str());
