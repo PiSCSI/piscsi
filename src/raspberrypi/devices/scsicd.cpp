@@ -254,7 +254,7 @@ SCSICD::SCSICD() : Disk()
 	int i;
 
 	// SCSI CD-ROM
-	disk.id = MAKEID('S', 'C', 'C', 'D');
+	disk.id = "SCCD";
 
 	// removable, write protected
 	disk.removable = TRUE;

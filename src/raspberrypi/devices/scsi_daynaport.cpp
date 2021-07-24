@@ -51,7 +51,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk()
 {
 	LOGTRACE("SCSI DaynaPort Constructor");
 	// DaynaPort
-	disk.id = MAKEID('S', 'C', 'D', 'P');
+	disk.id = "SCDP";
 	
 #ifdef __linux__
 	// TAP Driver Generation

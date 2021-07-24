@@ -679,7 +679,7 @@ void FASTCALL SCSIDEV::CmdRead10()
 	DWORD lun = GetLun();
 
 	// Receive message if host bridge
-	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
+	if (ctrl.unit[lun]->IsBridge()) {
 		CmdGetMessage10();
 		return;
 	}
@@ -729,7 +729,7 @@ void FASTCALL SCSIDEV::CmdWrite10()
 	DWORD lun = GetLun();
 
 	// Receive message with host bridge
-	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
+	if (ctrl.unit[lun]->IsBridge()) {
 		CmdSendMessage10();
 		return;
 	}
@@ -1037,8 +1037,7 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 	DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if ((ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) &&
-	    (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'N', 'L'))){
+	if (!ctrl.unit[lun]->IsBridge() && !ctrl.unit[lun]->IsNuvolink()) {
 		LOGWARN("Received a GetMessage10 command for a non-bridge unit");
 		Error();
 		return;
@@ -1081,7 +1080,7 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 	DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
+	if (!ctrl.unit[lun]->IsBridge()) {
 		LOGERROR("Received CmdSendMessage10 for a non-bridge device");
 		Error();
 		return;
@@ -1125,8 +1124,8 @@ void FASTCALL SCSIDEV::CmdRetrieveStats()
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
-		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %08X", (unsigned int)ctrl.unit[lun]->GetID());
+	if (ctrl.unit[lun]->IsDaynaPort()) {
+		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.unit[lun]->GetID().c_str());
 		Error();
 		return;
 	}
@@ -1161,8 +1160,8 @@ void FASTCALL SCSIDEV::CmdSetIfaceMode()
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
-		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %08X", __PRETTY_FUNCTION__, (unsigned int)ctrl.unit[lun]->GetID());
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
+		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetID().c_str());
 		Error();
 		return;
 	}
@@ -1200,7 +1199,7 @@ void FASTCALL SCSIDEV::CmdSetMcastAddr()
 
 	DWORD lun = GetLun();
 
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
 		Error();
 		return;
@@ -1233,8 +1232,8 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'D', 'P')){
-		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %08X", __PRETTY_FUNCTION__, (unsigned int)ctrl.unit[lun]->GetID());
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
+		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetID().c_str());
 		Error();
 		return;
 	}
@@ -1280,7 +1279,7 @@ void FASTCALL SCSIDEV::Send()
 		// The Daynaport needs to have a delay after the size/flags field
 		// of the read response. In the MacOS driver, it looks like the
 		// driver is doing two "READ" system calls.
-		if (ctrl.unit[0] && ctrl.unit[0]->GetID() == MAKEID('S', 'C', 'D', 'P')) {
+		if (ctrl.unit[0] && ctrl.unit[0]->IsDaynaPort()) {
 			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
 				&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
 		}

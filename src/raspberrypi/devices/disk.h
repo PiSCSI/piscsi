@@ -164,7 +164,7 @@ class Disk
 public:
 	// Internal data structure
 	typedef struct {
-		DWORD id;							// Media ID
+		std::string id;						// Media ID
 		BOOL ready;							// Valid Disk
 		BOOL writep;							// Write protected
 		BOOL readonly;							// Read only
@@ -187,10 +187,15 @@ public:
 	virtual void FASTCALL Reset();						// Device Reset
 
 	// ID
-	DWORD FASTCALL GetID() const;						// Get media ID
-	BOOL FASTCALL IsNULL() const;						// NULL check
-	BOOL FASTCALL IsSASI() const;						// SASI Check
-	BOOL FASTCALL IsSCSI() const;						// SASI Check
+	const std::string& FASTCALL GetID() const;			// Get media ID
+	bool FASTCALL IsNULL() const;						// NULL check
+	bool FASTCALL IsSASI() const;						// SASI Check
+	bool FASTCALL IsSCSI() const;						// SASI Check
+	bool FASTCALL IsCdRom() const;
+	bool FASTCALL IsMo() const;
+	bool FASTCALL IsBridge() const;
+	bool FASTCALL IsDaynaPort() const;
+	bool FASTCALL IsNuvolink() const;
 
 	// Media Operations
 	virtual BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);	// Open
@@ -204,7 +209,6 @@ public:
 	BOOL FASTCALL IsLocked() const		{ return disk.lock; }		// Get locked status
 	BOOL FASTCALL IsAttn() const		{ return disk.attn; }		// Get attention flag
 	BOOL FASTCALL Flush();							// Flush the cache
-	void FASTCALL GetDisk(disk_t *buffer) const;				// Get the internal data struct
 
 	// Properties
 	void FASTCALL SetLUN(DWORD lun)		{ disk.lun = lun; }		// LUN set
@@ -238,10 +242,9 @@ public:
 	virtual BOOL FASTCALL PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
 	virtual BOOL FASTCALL PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
 	virtual BOOL FASTCALL PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
-	void FASTCALL InvalidCmd();										// Unsupported command
 
 	// Other
-	BOOL FASTCALL IsCacheWB();								// Get cache writeback mode
+	bool FASTCALL IsCacheWB();								// Get cache writeback mode
 	void FASTCALL SetCacheWB(BOOL enable);						// Set cache writeback mode
 
 protected:

@@ -40,7 +40,7 @@ SCSIBR::SCSIBR() : Disk()
 	packet_len = 0;
 
 	// Host Bridge
-	disk.id = MAKEID('S', 'C', 'B', 'R');
+	disk.id = "SCBR";
 
 	#ifdef __linux__
 	// TAP Driver Generation
