@@ -189,7 +189,6 @@ public:
 
 	// ID
 	const std::string& GetID() const;			// Get media ID
-	bool IsNULL() const;						// NULL check
 	bool IsSASI() const;						// SASI Check
 	bool IsSCSI() const;						// SASI Check
 	bool IsCdRom() const;
