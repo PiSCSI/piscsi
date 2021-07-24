@@ -137,9 +137,9 @@ namespace Human68k {
 		BYTE add[10];			///< ファイル名追加 (PADDING 0x00)
 
 		// 文字列取得
-		void FASTCALL GetCopyPath(BYTE* szPath) const;
+		void GetCopyPath(BYTE* szPath) const;
 		///< パス名取得
-		void FASTCALL GetCopyFilename(BYTE* szFilename) const;
+		void GetCopyFilename(BYTE* szFilename) const;
 		///< ファイル名取得
 	};
 

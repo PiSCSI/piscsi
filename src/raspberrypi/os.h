@@ -82,15 +82,6 @@
 //	Basic Macros
 //
 //---------------------------------------------------------------------------
-#undef FASTCALL
-#define FASTCALL
-
-#undef CDECL
-#define CDECL
-
-#undef INLINE
-#define INLINE
-
 #if !defined(ASSERT)
 #if !defined(NDEBUG)
 #define ASSERT(cond)	assert(cond)

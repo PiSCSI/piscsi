@@ -28,10 +28,8 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIHD::SCSIHD() : Disk()
+SCSIHD::SCSIHD() : Disk("SCHD")
 {
-	// SCSI Hard Disk
-	disk.id = "SCHD";
 }
 
 //---------------------------------------------------------------------------
@@ -39,7 +37,7 @@ SCSIHD::SCSIHD() : Disk()
 //	Reset
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIHD::Reset()
+void SCSIHD::Reset()
 {
 	// Unlock and release attention
 	disk.lock = FALSE;
@@ -55,7 +53,7 @@ void FASTCALL SCSIHD::Reset()
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
+BOOL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 {
 	ASSERT(!disk.ready);
 
@@ -93,7 +91,7 @@ BOOL FASTCALL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIHD:: Inquiry(
+int SCSIHD:: Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	char vendor[32];
@@ -181,7 +179,7 @@ int FASTCALL SCSIHD:: Inquiry(
 //	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	BYTE page;
 	int size;

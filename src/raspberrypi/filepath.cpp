@@ -57,7 +57,7 @@ Filepath& Filepath::operator=(const Filepath& path)
 //      Clear
 //
 //---------------------------------------------------------------------------
-void FASTCALL Filepath::Clear()
+void Filepath::Clear()
 {
 
 	// Clear the path and each part
@@ -72,7 +72,7 @@ void FASTCALL Filepath::Clear()
 //	ファイル設定(ユーザ) MBCS用
 //
 //---------------------------------------------------------------------------
-void FASTCALL Filepath::SetPath(LPCSTR path)
+void Filepath::SetPath(LPCSTR path)
 {
 	ASSERT(path);
 	ASSERT(strlen(path) < _MAX_PATH);
@@ -89,7 +89,7 @@ void FASTCALL Filepath::SetPath(LPCSTR path)
 //	パス分離
 //
 //---------------------------------------------------------------------------
-void FASTCALL Filepath::Split()
+void Filepath::Split()
 {
 	LPTSTR pDir;
 	LPTSTR pDirName;
@@ -135,7 +135,7 @@ void FASTCALL Filepath::Split()
 //	The returned pointer is temporary. Copy immediately.
 //
 //---------------------------------------------------------------------------
-LPCTSTR FASTCALL Filepath::GetFileExt() const
+LPCTSTR Filepath::GetFileExt() const
 {
 
 	// 固定バッファへ合成
@@ -150,7 +150,7 @@ LPCTSTR FASTCALL Filepath::GetFileExt() const
 //	Save
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL Filepath::Save(Fileio *fio, int /*ver*/)
+BOOL Filepath::Save(Fileio *fio, int /*ver*/)
 {
 	ASSERT(fio);
 
@@ -162,7 +162,7 @@ BOOL FASTCALL Filepath::Save(Fileio *fio, int /*ver*/)
 //	Load
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL Filepath::Load(Fileio *fio, int /*ver*/)
+BOOL Filepath::Load(Fileio *fio, int /*ver*/)
 {
 	ASSERT(fio);
 

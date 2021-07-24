@@ -29,11 +29,8 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIMO::SCSIMO() : Disk()
+SCSIMO::SCSIMO() : Disk("SCMO")
 {
-	// SCSI magneto-optical disk
-	disk.id = "SCMO";
-
 	// Set as removable
 	disk.removable = TRUE;
 }
@@ -43,7 +40,7 @@ SCSIMO::SCSIMO() : Disk()
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIMO::Open(const Filepath& path, BOOL attn)
+BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
 {
 	ASSERT(!disk.ready);
 
@@ -103,7 +100,7 @@ BOOL FASTCALL SCSIMO::Open(const Filepath& path, BOOL attn)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIMO::Inquiry(
+int SCSIMO::Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	int size;
@@ -119,7 +116,7 @@ int FASTCALL SCSIMO::Inquiry(
 		return FALSE;
 	}
 
-	// 基本データ
+	// Basic data
 	// buf[0] ... Optical Memory Device
 	// buf[1] ... Removable
 	// buf[2] ... SCSI-2 compliant command system
@@ -171,7 +168,7 @@ int FASTCALL SCSIMO::Inquiry(
 //	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	int page;
 	int size;
@@ -240,7 +237,7 @@ BOOL FASTCALL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Vendor Unique Format Page 20h (MO)
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
+int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 

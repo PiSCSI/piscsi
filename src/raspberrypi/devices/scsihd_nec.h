@@ -27,15 +27,15 @@ class SCSIHD_NEC : public SCSIHD
 public:
 	// Basic Functions
 	SCSIHD_NEC();								// Constructor
-	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	BOOL Open(const Filepath& path, BOOL attn = TRUE);		// Open
 
 	// commands
-	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
+	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
 
 	// Internal processing
-	int FASTCALL AddError(BOOL change, BYTE *buf);				// Add error
-	int FASTCALL AddFormat(BOOL change, BYTE *buf);				// Add format
-	int FASTCALL AddDrive(BOOL change, BYTE *buf);				// Add drive
+	int AddError(BOOL change, BYTE *buf);				// Add error
+	int AddFormat(BOOL change, BYTE *buf);				// Add format
+	int AddDrive(BOOL change, BYTE *buf);				// Add drive
 
 private:
 	int cylinders;								// Number of cylinders

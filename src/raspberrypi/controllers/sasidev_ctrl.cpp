@@ -78,7 +78,7 @@ SASIDEV::~SASIDEV()
 //	Device reset
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Reset()
+void SASIDEV::Reset()
 {
 	// Work initialization
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
@@ -105,7 +105,7 @@ void FASTCALL SASIDEV::Reset()
 //	Connect the controller
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Connect(int id, BUS *bus)
+void SASIDEV::Connect(int id, BUS *bus)
 {
 	ctrl.m_scsi_id = id;
 	ctrl.bus = bus;
@@ -116,7 +116,7 @@ void FASTCALL SASIDEV::Connect(int id, BUS *bus)
 //	Get the logical unit
 //
 //---------------------------------------------------------------------------
-Disk* FASTCALL SASIDEV::GetUnit(int no)
+Disk* SASIDEV::GetUnit(int no)
 {
 	ASSERT(no < UnitMax);
 
@@ -128,7 +128,7 @@ Disk* FASTCALL SASIDEV::GetUnit(int no)
 //	Set the logical unit
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::SetUnit(int no, Disk *dev)
+void SASIDEV::SetUnit(int no, Disk *dev)
 {
 	ASSERT(no < UnitMax);
 
@@ -140,7 +140,7 @@ void FASTCALL SASIDEV::SetUnit(int no, Disk *dev)
 //	Check to see if this has a valid logical unit
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SASIDEV::HasUnit()
+BOOL SASIDEV::HasUnit()
 {
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
@@ -156,7 +156,7 @@ BOOL FASTCALL SASIDEV::HasUnit()
 //	Get internal data
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::GetCTRL(ctrl_t *buffer)
+void SASIDEV::GetCTRL(ctrl_t *buffer)
 {
 	ASSERT(buffer);
 
@@ -169,7 +169,7 @@ void FASTCALL SASIDEV::GetCTRL(ctrl_t *buffer)
 //	Get a busy unit
 //
 //---------------------------------------------------------------------------
-Disk* FASTCALL SASIDEV::GetBusyUnit()
+Disk* SASIDEV::GetBusyUnit()
 {
 	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -181,7 +181,7 @@ Disk* FASTCALL SASIDEV::GetBusyUnit()
 //	Run
 //
 //---------------------------------------------------------------------------
-BUS::phase_t FASTCALL SASIDEV::Process()
+BUS::phase_t SASIDEV::Process()
 {
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
@@ -255,7 +255,7 @@ BUS::phase_t FASTCALL SASIDEV::Process()
 //	Bus free phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::BusFree()
+void SASIDEV::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
@@ -288,7 +288,7 @@ void FASTCALL SASIDEV::BusFree()
 //	Selection phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Selection()
+void SASIDEV::Selection()
 {
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
@@ -324,7 +324,7 @@ void FASTCALL SASIDEV::Selection()
 //	Command phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Command()
+void SASIDEV::Command()
 {
 	int count;
 	int i;
@@ -392,7 +392,7 @@ void FASTCALL SASIDEV::Command()
 //	Execution Phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Execute()
+void SASIDEV::Execute()
 {
 	LOGTRACE("%s Execution Phase Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
 
@@ -491,7 +491,7 @@ void FASTCALL SASIDEV::Execute()
 //	Status phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Status()
+void SASIDEV::Status()
 {
 	DWORD min_exec_time;
 	DWORD time;
@@ -538,7 +538,7 @@ void FASTCALL SASIDEV::Status()
 //	Message in phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::MsgIn()
+void SASIDEV::MsgIn()
 {
 	// Phase change
 	if (ctrl.phase != BUS::msgin) {
@@ -569,7 +569,7 @@ void FASTCALL SASIDEV::MsgIn()
 //	Data-in Phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::DataIn()
+void SASIDEV::DataIn()
 {
 	DWORD min_exec_time;
 	DWORD time;
@@ -620,7 +620,7 @@ void FASTCALL SASIDEV::DataIn()
 //	Data out phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::DataOut()
+void SASIDEV::DataOut()
 {
 	DWORD min_exec_time;
 	DWORD time;
@@ -671,7 +671,7 @@ void FASTCALL SASIDEV::DataOut()
 //	Error
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
+void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 {
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
@@ -717,7 +717,7 @@ void FASTCALL SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc 
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdTestUnitReady()
+void SASIDEV::CmdTestUnitReady()
 {
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
@@ -740,7 +740,7 @@ void FASTCALL SASIDEV::CmdTestUnitReady()
 //	REZERO UNIT
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdRezero()
+void SASIDEV::CmdRezero()
 {
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
@@ -763,7 +763,7 @@ void FASTCALL SASIDEV::CmdRezero()
 //	REQUEST SENSE
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdRequestSense()
+void SASIDEV::CmdRequestSense()
 {
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
@@ -807,7 +807,7 @@ void FASTCALL SASIDEV::CmdRequestSense()
 //	FORMAT UNIT
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdFormat()
+void SASIDEV::CmdFormat()
 {
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
@@ -830,7 +830,7 @@ void FASTCALL SASIDEV::CmdFormat()
 //	REASSIGN BLOCKS
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdReassign()
+void SASIDEV::CmdReassign()
 {
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
@@ -858,7 +858,7 @@ void FASTCALL SASIDEV::CmdReassign()
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdReserveUnit()
+void SASIDEV::CmdReserveUnit()
 {
 	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
 
@@ -876,7 +876,7 @@ void FASTCALL SASIDEV::CmdReserveUnit()
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdReleaseUnit()
+void SASIDEV::CmdReleaseUnit()
 {
 	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
 
@@ -889,7 +889,7 @@ void FASTCALL SASIDEV::CmdReleaseUnit()
 //	READ(6)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdRead6()
+void SASIDEV::CmdRead6()
 {
         DWORD lun = GetLun();
 
@@ -935,7 +935,7 @@ void FASTCALL SASIDEV::CmdRead6()
 //  This Send Message command is used by the DaynaPort SCSI/Link
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::DaynaPortWrite()
+void SASIDEV::DaynaPortWrite()
 {
         DWORD lun = GetLun();
 
@@ -987,7 +987,7 @@ void FASTCALL SASIDEV::DaynaPortWrite()
 //	WRITE(6)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdWrite6()
+void SASIDEV::CmdWrite6()
 {
 	DWORD lun = GetLun();
 
@@ -1031,7 +1031,7 @@ void FASTCALL SASIDEV::CmdWrite6()
 //	SEEK(6)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdSeek6()
+void SASIDEV::CmdSeek6()
 {
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
@@ -1054,7 +1054,7 @@ void FASTCALL SASIDEV::CmdSeek6()
 //	ASSIGN
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdAssign()
+void SASIDEV::CmdAssign()
 {
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
@@ -1080,7 +1080,7 @@ void FASTCALL SASIDEV::CmdAssign()
 //	SPECIFY
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdSpecify()
+void SASIDEV::CmdSpecify()
 {
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
@@ -1106,7 +1106,7 @@ void FASTCALL SASIDEV::CmdSpecify()
 //	Unsupported command
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::CmdInvalid()
+void SASIDEV::CmdInvalid()
 {
 	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
 
@@ -1124,7 +1124,7 @@ void FASTCALL SASIDEV::CmdInvalid()
 //	Data transmission
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Send()
+void SASIDEV::Send()
 {
 	int len;
 	BOOL result;
@@ -1216,7 +1216,7 @@ void FASTCALL SASIDEV::Send()
 //	Receive data
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::Receive()
+void SASIDEV::Receive()
 {
 	int len;
 	BOOL result;
@@ -1301,7 +1301,7 @@ void FASTCALL SASIDEV::Receive()
 //	*Reset offset and length
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
+BOOL SASIDEV::XferIn(BYTE *buf)
 {
 	ASSERT(ctrl.phase == BUS::datain);
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
@@ -1348,7 +1348,7 @@ BOOL FASTCALL SASIDEV::XferIn(BYTE *buf)
 //	*If cont=true, reset the offset and length
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
+BOOL SASIDEV::XferOut(BOOL cont)
 {
 	SCSIBR *bridge;
 
@@ -1447,7 +1447,7 @@ BOOL FASTCALL SASIDEV::XferOut(BOOL cont)
 //	Logical unit flush
 //
 //---------------------------------------------------------------------------
-void FASTCALL SASIDEV::FlushUnit()
+void SASIDEV::FlushUnit()
 {
 	ASSERT(ctrl.phase == BUS::dataout);
 
@@ -1560,7 +1560,7 @@ void SASIDEV::GetPhaseStr(char *str)
 //	Validate LUN
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL SASIDEV::GetLun()
+DWORD SASIDEV::GetLun()
 {
         DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
         if (!ctrl.unit[lun]) {

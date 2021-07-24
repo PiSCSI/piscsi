@@ -36,21 +36,21 @@ public:
 	Filepath& operator=(const Filepath& path);
 										// 代入
 
-	void FASTCALL Clear();
+	void Clear();
 										// クリア
-	void FASTCALL SetPath(LPCSTR path);
+	void SetPath(LPCSTR path);
 										// ファイル設定(ユーザ) MBCS用
-	LPCTSTR FASTCALL GetPath() const	{ return m_szPath; }
+	LPCTSTR GetPath() const	{ return m_szPath; }
 										// パス名取得
-	LPCTSTR FASTCALL GetFileExt() const;
+	LPCTSTR GetFileExt() const;
 										// ショート名取得(LPCTSTR)
-	BOOL FASTCALL Save(Fileio *fio, int ver);
+	BOOL Save(Fileio *fio, int ver);
 										// セーブ
-	BOOL FASTCALL Load(Fileio *fio, int ver);
+	BOOL Load(Fileio *fio, int ver);
 										// ロード
 
 private:
-	void FASTCALL Split();
+	void Split();
 										// パス分割
 	TCHAR m_szPath[_MAX_PATH];
 										// ファイルパス

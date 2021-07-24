@@ -42,9 +42,9 @@ public:
 	// SCSI command name and pointer to implementation
 	typedef struct _command_t {
 		const char* name;
-		void FASTCALL (SCSIDEV::*execute)(void);
+		void (SCSIDEV::*execute)(void);
 
-		_command_t(const char* _name, void FASTCALL (SCSIDEV::*_execute)(void)) : name(_name), execute(_execute) { };
+		_command_t(const char* _name, void (SCSIDEV::*_execute)(void)) : name(_name), execute(_execute) { };
 	} command_t;
 
 	// Mapping of SCSI opcodes to command implementations
@@ -55,62 +55,62 @@ public:
 	SCSIDEV();
 	~SCSIDEV();
 
-	void FASTCALL Reset();							// Device Reset
+	void Reset();							// Device Reset
 
 	// 外部API
-	BUS::phase_t FASTCALL Process();					// Run
+	BUS::phase_t Process();					// Run
 
-	void FASTCALL SyncTransfer(BOOL enable) { scsi.syncenable = enable; }	// Synchronouse transfer enable setting
+	void SyncTransfer(BOOL enable) { scsi.syncenable = enable; }	// Synchronouse transfer enable setting
 
 	// Other
-	BOOL FASTCALL IsSASI() const {return FALSE;}				// SASI Check
-	BOOL FASTCALL IsSCSI() const {return TRUE;}				// SCSI check
+	BOOL IsSASI() const {return FALSE;}				// SASI Check
+	BOOL IsSCSI() const {return TRUE;}				// SCSI check
 
 private:
-	void FASTCALL SetupCommand(scsi_command, const char*, void FASTCALL (SCSIDEV::*)(void));
+	void SetupCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
 
 	// Phase
-	void FASTCALL BusFree();						// Bus free phase
-	void FASTCALL Selection();						// Selection phase
-	void FASTCALL Execute();						// Execution phase
-	void FASTCALL MsgOut();							// Message out phase
-	void FASTCALL Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+	void BusFree();						// Bus free phase
+	void Selection();						// Selection phase
+	void Execute();						// Execution phase
+	void MsgOut();							// Message out phase
+	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common erorr handling
 
 	// commands
-	void FASTCALL CmdInquiry();						// INQUIRY command
-	void FASTCALL CmdModeSelect();						// MODE SELECT command
-	void FASTCALL CmdReserve6();						// RESERVE(6) command
-	void FASTCALL CmdReserve10();						// RESERVE(10) command
-	void FASTCALL CmdRelease6();						// RELEASE(6) command
-	void FASTCALL CmdRelease10();						// RELEASE(10) command
-	void FASTCALL CmdModeSense();						// MODE SENSE command
-	void FASTCALL CmdStartStop();						// START STOP UNIT command
-	void FASTCALL CmdSendDiag();						// SEND DIAGNOSTIC command
-	void FASTCALL CmdRemoval();						// PREVENT/ALLOW MEDIUM REMOVAL command
-	void FASTCALL CmdReadCapacity();					// READ CAPACITY command
-	void FASTCALL CmdRead10();						// READ(10) command
-	void FASTCALL CmdWrite10();						// WRITE(10) command
-	void FASTCALL CmdSeek10();						// SEEK(10) command
-	void FASTCALL CmdVerify();						// VERIFY command
-	void FASTCALL CmdSynchronizeCache();					// SYNCHRONIZE CACHE  command
-	void FASTCALL CmdReadDefectData10();					// READ DEFECT DATA(10)  command
-	void FASTCALL CmdReadToc();						// READ TOC command
-	void FASTCALL CmdPlayAudio10();						// PLAY AUDIO(10) command
-	void FASTCALL CmdPlayAudioMSF();					// PLAY AUDIO MSF command
-	void FASTCALL CmdPlayAudioTrack();					// PLAY AUDIO TRACK INDEX command
-	void FASTCALL CmdModeSelect10();					// MODE SELECT(10) command
-	void FASTCALL CmdModeSense10();						// MODE SENSE(10) command
-	void FASTCALL CmdGetMessage10();					// GET MESSAGE(10) command
-	void FASTCALL CmdSendMessage10();					// SEND MESSAGE(10) command
-	void FASTCALL CmdRetrieveStats();   				// DaynaPort specific command
-	void FASTCALL CmdSetIfaceMode();    				// DaynaPort specific command
-	void FASTCALL CmdSetMcastAddr();					// DaynaPort specific command
-	void FASTCALL CmdEnableInterface(); 				// DaynaPort specific command
+	void CmdInquiry();						// INQUIRY command
+	void CmdModeSelect();						// MODE SELECT command
+	void CmdReserve6();						// RESERVE(6) command
+	void CmdReserve10();						// RESERVE(10) command
+	void CmdRelease6();						// RELEASE(6) command
+	void CmdRelease10();						// RELEASE(10) command
+	void CmdModeSense();						// MODE SENSE command
+	void CmdStartStop();						// START STOP UNIT command
+	void CmdSendDiag();						// SEND DIAGNOSTIC command
+	void CmdRemoval();						// PREVENT/ALLOW MEDIUM REMOVAL command
+	void CmdReadCapacity();					// READ CAPACITY command
+	void CmdRead10();						// READ(10) command
+	void CmdWrite10();						// WRITE(10) command
+	void CmdSeek10();						// SEEK(10) command
+	void CmdVerify();						// VERIFY command
+	void CmdSynchronizeCache();					// SYNCHRONIZE CACHE  command
+	void CmdReadDefectData10();					// READ DEFECT DATA(10)  command
+	void CmdReadToc();						// READ TOC command
+	void CmdPlayAudio10();						// PLAY AUDIO(10) command
+	void CmdPlayAudioMSF();					// PLAY AUDIO MSF command
+	void CmdPlayAudioTrack();					// PLAY AUDIO TRACK INDEX command
+	void CmdModeSelect10();					// MODE SELECT(10) command
+	void CmdModeSense10();						// MODE SENSE(10) command
+	void CmdGetMessage10();					// GET MESSAGE(10) command
+	void CmdSendMessage10();					// SEND MESSAGE(10) command
+	void CmdRetrieveStats();   				// DaynaPort specific command
+	void CmdSetIfaceMode();    				// DaynaPort specific command
+	void CmdSetMcastAddr();					// DaynaPort specific command
+	void CmdEnableInterface(); 				// DaynaPort specific command
 	// データ転送
-	void FASTCALL Send();							// Send data
-	void FASTCALL Receive();						// Receive data
-	BOOL FASTCALL XferMsg(DWORD msg);					// Data transfer message
+	void Send();							// Send data
+	void Receive();						// Receive data
+	BOOL XferMsg(DWORD msg);					// Data transfer message
 
 	scsi_t scsi;								// Internal data
 };
