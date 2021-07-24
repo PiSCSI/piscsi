@@ -5,7 +5,7 @@ option optimize_for = LITE_RUNTIME;
 package rascsi_interface;
 
 // The supported device types
-enum DeviceType {
+enum PbDeviceType {
     UNDEFINED = 0;
     SASI_HD = 1;
     SCSI_HD = 2;
@@ -17,7 +17,7 @@ enum DeviceType {
 }
 
 // rascsi remote operations
-enum Operation {
+enum PbOperation {
     NONE = 0;
     LIST = 1;
     ATTACH = 2;
@@ -29,22 +29,22 @@ enum Operation {
 }
 
 // Commands rascsi can execute
-message Command {
-    Operation cmd = 1;
+message PbCommand {
+    PbOperation cmd = 1;
     int32 id = 2;
     int32 un = 3;
-    DeviceType type = 4;
+    PbDeviceType type = 4;
     string params = 5;
 }
 
 // The result of a command
-message Result {
+message PbResult {
     bool status = 1;
     string msg = 2;
 }
 
 // The device meta data
-message Device {
+message PbDevice {
     int32 id = 1;
     int32 un = 2;
     string type = 3;
@@ -52,6 +52,6 @@ message Device {
     bool read_only = 5;
 }
 
-message Devices {
-    repeated Device devices = 1;
+message PbDevices {
+    repeated PbDevice devices = 1;
 }

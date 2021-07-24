@@ -12,10 +12,11 @@
 #if !defined(rasutil_h)
 #define rasutil_h
 
-#include <cstdio>
-#include <string>
+#include "google/protobuf/message_lite.h"
+#include "rascsi_interface.pb.h"
 
-void SerializeProtobufData(int fd, const std::string& data);
-std::string DeserializeProtobufData(int fd);
+void SerializeMessage(int fd, const google::protobuf::MessageLite&);
+void DeserializeMessage(int fd, google::protobuf::MessageLite&);
+string ListDevices(const rascsi_interface::PbDevices&);
 
 #endif

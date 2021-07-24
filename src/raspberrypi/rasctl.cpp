@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include <netdb.h>
+#include "google/protobuf/message_lite.h"
 #include "os.h"
 #include "rascsi_version.h"
 #include "exceptions.h"
@@ -26,44 +27,45 @@ using namespace rascsi_interface;
 //	Send Command
 //
 //---------------------------------------------------------------------------
-int SendCommand(const char *hostname, int port, const Command& command)
+int SendCommand(const string& hostname, const PbCommand& command)
 {
-	// Create a socket to send the command
-	int fd = socket(AF_INET, SOCK_STREAM, 0);
-	struct sockaddr_in server;
-	memset(&server, 0, sizeof(server));
-	server.sin_family = AF_INET;
-	server.sin_port = htons(port);
-	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+	int fd;
 
-	struct hostent *host = gethostbyname(hostname);
-	if(!host) {
-		fprintf(stderr, "Error : Can't resolve hostname '%s'\n", hostname);
-		return false;
-	}
-    memcpy((char *)&server.sin_addr.s_addr, (char *)host->h_addr,  host->h_length);
+	try {
+    	struct hostent *host = gethostbyname(hostname.c_str());
+    	if (!host) {
+    		throw ioexception("Can't resolve hostname '" + hostname + "'");
+    	}
 
-	// Connect
-	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-		cerr << "Error: Can't connect to rascsi process on '" << hostname << ":" << port << "'" << endl;
-		return -1;
-	}
+    	fd = socket(AF_INET, SOCK_STREAM, 0);
+    	if (fd < 0) {
+    		throw ioexception("Can't create socket");
+    	}
 
-	string data;
-    command.SerializeToString(&data);
+    	struct sockaddr_in server;
+    	memset(&server, 0, sizeof(server));
+    	server.sin_family = AF_INET;
+    	server.sin_port = htons(6868);
+    	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
 
-    try {
-        SerializeProtobufData(fd, data);
+    	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
+    		throw ioexception("Can't connect to rascsi process on host '" + hostname + "'");
+    	}
+
+        SerializeMessage(fd, command);
     }
     catch(const ioexception& e) {
-    	cerr << "Error : " << e.getmsg() << endl;
+    	cerr << "Error: " << e.getmsg() << endl;
 
-    	close(fd);
+        if (fd >= 0) {
+        	close(fd);
+        }
 
-    	return -1;
+        return -1;
     }
 
-	return fd;
+    return fd;
 }
 
 //---------------------------------------------------------------------------
@@ -73,11 +75,12 @@ int SendCommand(const char *hostname, int port, const Command& command)
 //---------------------------------------------------------------------------
 bool ReceiveResult(int fd) {
     bool status = true;
-    try {
-        Result result;
-    	result.ParseFromString(DeserializeProtobufData(fd));
 
-    	status = result.status();
+    try {
+        PbResult result;
+        DeserializeMessage(fd, result);
+
+        status = result.status();
     	if (status) {
     		cerr << result.msg();
     	}
@@ -98,29 +101,53 @@ bool ReceiveResult(int fd) {
     return status;
 }
 
-string ListDevices(const Devices& devices) {
-	ostringstream s;
+//---------------------------------------------------------------------------
+//
+//	Command implementations
+//
+//---------------------------------------------------------------------------
 
-	if (devices.devices_size()) {
-    	s << endl
-    		<< "+----+----+------+-------------------------------------" << endl
-    		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
-			<< "+----+----+------+-------------------------------------" << endl;
-	}
-	else {
-		return "No images currently attached.\n";
-	}
+void CommandList(const string& hostname)
+{
+	PbCommand command;
+	command.set_cmd(LIST);
 
-	for (int i = 0; i < devices.devices_size() ; i++) {
-		Device device = devices.devices(i);
-
-		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
-				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
+	int fd = SendCommand(hostname.c_str(), command);
+	if (fd < 0) {
+		exit(ENOTCONN);
 	}
 
-	s << "+----+----+------+-------------------------------------" << endl;
+	PbDevices devices;
+	try {
+		DeserializeMessage(fd, devices);
+	}
+	catch(const ioexception& e) {
+		cerr << "Error: " << e.getmsg() << endl;
 
-	return s.str();
+		close(fd);
+
+		exit(-1);
+	}
+
+	close (fd);
+
+	cout << ListDevices(devices) << endl;
+}
+
+void CommandLogLevel(const string& hostname, const string& log_level)
+{
+	PbCommand command;
+	command.set_cmd(LOG_LEVEL);
+	command.set_params(log_level);
+
+	int fd = SendCommand(hostname.c_str(), command);
+	if (fd < 0) {
+		exit(ENOTCONN);
+	}
+
+	ReceiveResult(fd);
+
+	close(fd);
 }
 
 //---------------------------------------------------------------------------
@@ -136,14 +163,13 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-p PORT] [-g LOG_LEVEL]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-g LOG_LEVEL]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        HOSTNAME := rascsi host to connect to, default is 'localhost'" << endl;
-		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
 		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
@@ -156,13 +182,12 @@ int main(int argc, char* argv[])
 	int opt;
 	int id = -1;
 	int un = 0;
-	Operation cmd = LIST;
-	DeviceType type = UNDEFINED;
+	PbOperation cmd = LIST;
+	PbDeviceType type = UNDEFINED;
 	const char *hostname = "localhost";
-	int port = 6868;
 	string params;
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:g:l")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:g:l")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -240,14 +265,6 @@ int main(int argc, char* argv[])
 				hostname = optarg;
 				break;
 
-			case 'p':
-				port = atoi(optarg);
-				if (port <= 0 || port > 65535) {
-					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
-					exit(-1);
-				}
-				break;
-
 			case 'g':
 				cmd = LOG_LEVEL;
 				params = optarg;
@@ -255,44 +272,16 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	Command command;
+	PbCommand command;
 
 	if (cmd == LOG_LEVEL) {
-		command.set_cmd(LOG_LEVEL);
-		command.set_params(params);
-		int fd = SendCommand(hostname, port, command);
-		if (fd < 0) {
-			exit(ENOTCONN);
-		}
-
-		ReceiveResult(fd);
+		CommandLogLevel(hostname, params);
 		exit(0);
 	}
 
 	// List display only
 	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
-		command.set_cmd(LIST);
-		int fd = SendCommand(hostname, port, command);
-		if (fd < 0) {
-			exit(ENOTCONN);
-		}
-
-		Devices devices;
-		try {
-			devices.ParseFromString(DeserializeProtobufData(fd));
-		}
-		catch(const ioexception& e) {
-		   	cerr << "Error : " << e.getmsg() << endl;
-
-		   	close(fd);
-
-		   	exit(-1);
-		}
-
-		close (fd);
-
-		cout << ListDevices(devices) << endl;
-
+		CommandList(hostname);
 		exit(0);
 	}
 
@@ -345,8 +334,8 @@ int main(int argc, char* argv[])
 		command.set_params(params);
 	}
 
-	int fd = SendCommand(hostname, port, command);
-	if (fd == -1) {
+	int fd = SendCommand(hostname, command);
+	if (fd < 0) {
 		exit(ENOTCONN);
 	}
 

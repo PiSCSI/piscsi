@@ -119,7 +119,8 @@ void Banner(int argc, char* argv[])
 //	Initialization
 //
 //---------------------------------------------------------------------------
-BOOL Init(int port)
+
+BOOL InitService(int port)
 {
 	struct sockaddr_in server;
 	int yes, result;
@@ -165,6 +166,13 @@ BOOL Init(int port)
 		return FALSE;
 	}
 
+	running = FALSE;
+	active = FALSE;
+
+	return true;
+}
+
+bool InitBusAndDisks() {
 	// GPIOBUS creation
 	bus = new GPIOBUS();
 
@@ -185,10 +193,6 @@ BOOL Init(int port)
 	for (int i = 0; i < CtrlMax; i++) {
 		disk[i] = NULL;
 	}
-
-	// Other
-	running = FALSE;
-	active = FALSE;
 
 	return TRUE;
 }
@@ -253,8 +257,8 @@ void Reset()
 //	Get the list of attached devices
 //
 //---------------------------------------------------------------------------
-Devices GetDevices() {
-	Devices devices;
+PbDevices GetDevices() {
+	PbDevices devices;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
 		// skip if unit does not exist or null disk
@@ -263,7 +267,7 @@ Devices GetDevices() {
 			continue;
 		}
 
-		Device *device = devices.add_devices();
+		PbDevice *device = devices.add_devices();
 
 		// Initialize ID and unit number
 		device->set_id(i / UnitNum);
@@ -296,45 +300,6 @@ Devices GetDevices() {
 	}
 
 	return devices;
-}
-
-//---------------------------------------------------------------------------
-//
-//	List and log devices
-//
-//---------------------------------------------------------------------------
-string ListDevices(Devices devices) {
-	ostringstream s;
-
-	if (devices.devices_size()) {
-    	s << endl
-    		<< "+----+----+------+-------------------------------------" << endl
-    		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
-			<< "+----+----+------+-------------------------------------" << endl;
-
-    	LOGINFO( "+----+----+------+-------------------------------------");
-    	LOGINFO( "| ID | UN | TYPE | DEVICE STATUS");
-    	LOGINFO( "+----+----+------+-------------------------------------\n");
-	}
-	else {
-		return "No images currently attached.\n";
-	}
-
-	for (int i = 0; i < devices.devices_size() ; i++) {
-		Device device = devices.devices(i);
-
-		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
-				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
-
- 		LOGINFO( "|  %d |  %d | %s | %s%s", device.id(), device.un(), device.type().c_str(),
- 				device.file().c_str(), device.read_only() ? " (WRITEPROTECT)" : "");
-	}
-
-	s << "+----+----+------+-------------------------------------" << endl;
-
-    LOGINFO( "+----+----+------+-------------------------------------");
-
-	return s.str();
 }
 
 //---------------------------------------------------------------------------
@@ -462,13 +427,10 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 		}
 	}
 	else {
-		Result result;
+		PbResult result;
 		result.set_status(status);
 		result.set_msg(msg + "\n");
-
-		string data;
-		result.SerializeToString(&data);
-		SerializeProtobufData(fd, data);
+		SerializeMessage(fd, result);
 	}
 
 	return status;
@@ -502,12 +464,22 @@ void SetLogLevel(const string& log_level) {
 	}
 }
 
+void LogDeviceList(const string& device_list)
+{
+	stringstream ss(device_list);
+	string line;
+
+	while (getline(ss, line, '\n')) {
+		LOGINFO("%s", line.c_str());
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command Processing
 //
 //---------------------------------------------------------------------------
-bool ProcessCmd(int fd, const Command &command)
+bool ProcessCmd(int fd, const PbCommand &command)
 {
 	Disk *map[CtrlMax * UnitNum];
 	Filepath filepath;
@@ -516,8 +488,8 @@ bool ProcessCmd(int fd, const Command &command)
 
     int id = command.id();
 	int un = command.un();
-	Operation cmd = command.cmd();
-	DeviceType type = command.type();
+	PbOperation cmd = command.cmd();
+	PbDeviceType type = command.type();
 	string params = command.params().c_str();
 
 	ostringstream s;
@@ -783,7 +755,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		}
 
 		string path = optarg;
-		DeviceType type = SASI_HD;
+		PbDeviceType type = SASI_HD;
 		if (has_suffix(path, ".hdf") || has_suffix(path, ".hds") || has_suffix(path, ".hdn")
 			|| has_suffix(path, ".hdi") || has_suffix(path, ".hda") || has_suffix(path, ".nhd")) {
 			type = SASI_HD;
@@ -807,7 +779,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		}
 
 		// Execute the command
-		Command command;
+		PbCommand command;
 		command.set_id(id);
 		command.set_un(un);
 		command.set_cmd(ATTACH);
@@ -821,9 +793,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	SetLogLevel(log_level);
 
-	// Display the device list
-	Devices devices = GetDevices();
-	cout << ListDevices(devices) << endl;
+	// Display and log the device list
+	const PbDevices devices = GetDevices();
+	const string device_list = ListDevices(devices);
+	cout << device_list << endl;
+	LogDeviceList(device_list);
 
 	return true;
 }
@@ -886,17 +860,14 @@ static void *MonThread(void *param)
 			}
 
 			// Fetch the command
-			Command command;
-			command.ParseFromString(DeserializeProtobufData(fd));
+			PbCommand command;
+			DeserializeMessage(fd, command);
 
-			// List all of the devices
+			// List and log all of the devices
 			if (command.cmd() == LIST) {
-				Devices devices = GetDevices();
-				ListDevices(devices);
-
-				string data;
-				devices.SerializeToString(&data);
-				SerializeProtobufData(fd, data);
+				const PbDevices devices = GetDevices();
+				SerializeMessage(fd, devices);
+				LogDeviceList(ListDevices(devices));
 			}
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());
@@ -915,7 +886,7 @@ static void *MonThread(void *param)
 		}
 	}
 	catch(const ioexception& e) {
-		LOGERROR("%s", e.getmsg());
+		LOGERROR("%s", e.getmsg().c_str());
 
 		// Fall through
 	}
@@ -952,16 +923,20 @@ int main(int argc, char* argv[])
 	// Output the Banner
 	Banner(argc, argv);
 
-	// Argument parsing
 	int ret = 0;
 	int port = 6868;
+
+	if (!InitBusAndDisks()) {
+		ret = EPERM;
+		goto init_exit;
+	}
+
 	if (!ParseArgument(argc, argv, port)) {
 		ret = EINVAL;
 		goto err_exit;
 	}
 
-	// Initialize
-	if (!Init(port)) {
+	if (!InitService(port)) {
 		ret = EPERM;
 		goto init_exit;
 	}
