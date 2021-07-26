@@ -27,7 +27,7 @@ using namespace rascsi_interface;
 //	Send Command
 //
 //---------------------------------------------------------------------------
-int SendCommand(const string& hostname, const PbCommand& command)
+int SendCommand(const string& hostname, int port, const PbCommand& command)
 {
 	int fd = -1;
 
@@ -45,12 +45,14 @@ int SendCommand(const string& hostname, const PbCommand& command)
     	struct sockaddr_in server;
     	memset(&server, 0, sizeof(server));
     	server.sin_family = AF_INET;
-    	server.sin_port = htons(6868);
+    	server.sin_port = htons(port);
     	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
 
     	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-    		throw ioexception("Can't connect to rascsi process on host '" + hostname + "'");
+    		ostringstream s;
+    		s << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
+    		throw ioexception(s.str());
     	}
 
         SerializeMessage(fd, command);
@@ -107,12 +109,12 @@ bool ReceiveResult(int fd) {
 //
 //---------------------------------------------------------------------------
 
-void CommandList(const string& hostname)
+void CommandList(const string& hostname, int port)
 {
 	PbCommand command;
 	command.set_cmd(LIST);
 
-	int fd = SendCommand(hostname.c_str(), command);
+	int fd = SendCommand(hostname.c_str(), port, command);
 	if (fd < 0) {
 		exit(ENOTCONN);
 	}
@@ -134,13 +136,13 @@ void CommandList(const string& hostname)
 	cout << ListDevices(devices) << endl;
 }
 
-void CommandLogLevel(const string& hostname, const string& log_level)
+void CommandLogLevel(const string& hostname, int port, const string& log_level)
 {
 	PbCommand command;
 	command.set_cmd(LOG_LEVEL);
 	command.set_params(log_level);
 
-	int fd = SendCommand(hostname.c_str(), command);
+	int fd = SendCommand(hostname.c_str(), port, command);
 	if (fd < 0) {
 		exit(ENOTCONN);
 	}
@@ -163,13 +165,14 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-g LOG_LEVEL]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-p PORT] [-g LOG_LEVEL]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        HOSTNAME := rascsi host to connect to, default is 'localhost'" << endl;
+		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
 		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
@@ -185,9 +188,10 @@ int main(int argc, char* argv[])
 	PbOperation cmd = LIST;
 	PbDeviceType type = UNDEFINED;
 	const char *hostname = "localhost";
+	int port = 6868;
 	string params;
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:g:l")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:g:l")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -265,6 +269,14 @@ int main(int argc, char* argv[])
 				hostname = optarg;
 				break;
 
+			case 'p':
+				port = atoi(optarg);
+				if (port <= 0 || port > 65535) {
+					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+					exit(-1);
+				}
+				break;
+
 			case 'g':
 				cmd = LOG_LEVEL;
 				params = optarg;
@@ -275,13 +287,13 @@ int main(int argc, char* argv[])
 	PbCommand command;
 
 	if (cmd == LOG_LEVEL) {
-		CommandLogLevel(hostname, params);
+		CommandLogLevel(hostname, port, params);
 		exit(0);
 	}
 
 	// List display only
 	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
-		CommandList(hostname);
+		CommandList(hostname, port);
 		exit(0);
 	}
 
@@ -334,7 +346,7 @@ int main(int argc, char* argv[])
 		command.set_params(params);
 	}
 
-	int fd = SendCommand(hostname, command);
+	int fd = SendCommand(hostname, port, command);
 	if (fd < 0) {
 		exit(ENOTCONN);
 	}
