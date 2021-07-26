@@ -18,7 +18,7 @@
 //	Phase Acquisition
 //
 //---------------------------------------------------------------------------
-BUS::phase_t FASTCALL BUS::GetPhase()
+BUS::phase_t BUS::GetPhase()
 {
 	// Selection Phase
 	if (GetSEL()) {
@@ -42,7 +42,7 @@ BUS::phase_t FASTCALL BUS::GetPhase()
 //	Determine Phase String phase enum
 //
 //---------------------------------------------------------------------------
-const char* FASTCALL BUS::GetPhaseStrRaw(phase_t current_phase){
+const char* BUS::GetPhaseStrRaw(phase_t current_phase){
 	if(current_phase <= phase_t::reserved){
 		return phase_str_table[current_phase];
 	}

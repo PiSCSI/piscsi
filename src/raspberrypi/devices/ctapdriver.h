@@ -33,17 +33,17 @@ class CTapDriver
 public:
 	// Basic Functionality
 	CTapDriver();								// Constructor
-	BOOL FASTCALL Init();							// Initilization
-	BOOL FASTCALL OpenDump(const Filepath& path);
+	BOOL Init();							// Initilization
+	BOOL OpenDump(const Filepath& path);
 										// Capture packets
-	void FASTCALL Cleanup();						// Cleanup
-	void FASTCALL GetMacAddr(BYTE *mac);					// Get Mac Address
-	int FASTCALL Rx(BYTE *buf);						// Receive
-	int FASTCALL Tx(const BYTE *buf, int len);					// Send
-	BOOL FASTCALL PendingPackets();						// Check if there are IP packets available
-	BOOL FASTCALL Enable();						// Enable the ras0 interface
-	BOOL FASTCALL Disable();				// Disable the ras0 interface
-	BOOL FASTCALL Flush();				// Purge all of the packets that are waiting to be processed
+	void Cleanup();						// Cleanup
+	void GetMacAddr(BYTE *mac);					// Get Mac Address
+	int Rx(BYTE *buf);						// Receive
+	int Tx(const BYTE *buf, int len);					// Send
+	BOOL PendingPackets();						// Check if there are IP packets available
+	BOOL Enable();						// Enable the ras0 interface
+	BOOL Disable();				// Disable the ras0 interface
+	BOOL Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
 	BYTE m_MacAddr[6];							// MAC Address

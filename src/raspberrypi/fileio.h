@@ -48,36 +48,36 @@ public:
 										// コンストラクタ
 	virtual ~Fileio();
 										// デストラクタ
-	BOOL FASTCALL Load(const Filepath& path, void *buffer, int size);
+	BOOL Load(const Filepath& path, void *buffer, int size);
 										// ROM,RAMロード
-	BOOL FASTCALL Save(const Filepath& path, void *buffer, int size);
+	BOOL Save(const Filepath& path, void *buffer, int size);
 										// RAMセーブ
 
-	BOOL FASTCALL Open(LPCTSTR fname, OpenMode mode);
+	BOOL Open(LPCTSTR fname, OpenMode mode);
 										// オープン
-	BOOL FASTCALL Open(const Filepath& path, OpenMode mode);
+	BOOL Open(const Filepath& path, OpenMode mode);
 										// オープン
-	BOOL FASTCALL OpenDIO(LPCTSTR fname, OpenMode mode);
+	BOOL OpenDIO(LPCTSTR fname, OpenMode mode);
 										// オープン
-	BOOL FASTCALL OpenDIO(const Filepath& path, OpenMode mode);
+	BOOL OpenDIO(const Filepath& path, OpenMode mode);
 										// オープン
-	BOOL FASTCALL Seek(off64_t offset, BOOL relative = FALSE);
+	BOOL Seek(off64_t offset, BOOL relative = FALSE);
 										// シーク
-	BOOL FASTCALL Read(void *buffer, int size);
+	BOOL Read(void *buffer, int size);
 										// 読み込み
-	BOOL FASTCALL Write(const void *buffer, int size);
+	BOOL Write(const void *buffer, int size);
 										// 書き込み
-	off64_t FASTCALL GetFileSize();
+	off64_t GetFileSize();
 										// ファイルサイズ取得
-	off64_t FASTCALL GetFilePos() const;
+	off64_t GetFilePos() const;
 										// ファイル位置取得
-	void FASTCALL Close();
+	void Close();
 										// クローズ
-	BOOL FASTCALL IsValid() const		{ return (BOOL)(handle != -1); }
+	BOOL IsValid() const		{ return (BOOL)(handle != -1); }
 										// 有効チェック
 
 private:
-	BOOL FASTCALL Open(LPCTSTR fname, OpenMode mode, BOOL directIO);
+	BOOL Open(LPCTSTR fname, OpenMode mode, BOOL directIO);
 										// オープン
 
 	int handle;							// ファイルハンドル

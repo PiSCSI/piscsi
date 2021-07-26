@@ -61,7 +61,7 @@ CDTrack::~CDTrack()
 //	Init
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL CDTrack::Init(int track, DWORD first, DWORD last)
+BOOL CDTrack::Init(int track, DWORD first, DWORD last)
 {
 	ASSERT(!valid);
 	ASSERT(track >= 1);
@@ -83,7 +83,7 @@ BOOL FASTCALL CDTrack::Init(int track, DWORD first, DWORD last)
 //	Set Path
 //
 //---------------------------------------------------------------------------
-void FASTCALL CDTrack::SetPath(BOOL cdda, const Filepath& path)
+void CDTrack::SetPath(BOOL cdda, const Filepath& path)
 {
 	ASSERT(valid);
 
@@ -99,7 +99,7 @@ void FASTCALL CDTrack::SetPath(BOOL cdda, const Filepath& path)
 //	Get Path
 //
 //---------------------------------------------------------------------------
-void FASTCALL CDTrack::GetPath(Filepath& path) const
+void CDTrack::GetPath(Filepath& path) const
 {
 	ASSERT(valid);
 
@@ -112,7 +112,7 @@ void FASTCALL CDTrack::GetPath(Filepath& path) const
 //	Add Index
 //
 //---------------------------------------------------------------------------
-void FASTCALL CDTrack::AddIndex(int index, DWORD lba)
+void CDTrack::AddIndex(int index, DWORD lba)
 {
 	ASSERT(valid);
 	ASSERT(index > 0);
@@ -128,7 +128,7 @@ void FASTCALL CDTrack::AddIndex(int index, DWORD lba)
 //	Gets the start of LBA
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL CDTrack::GetFirst() const
+DWORD CDTrack::GetFirst() const
 {
 	ASSERT(valid);
 	ASSERT(first_lba < last_lba);
@@ -141,7 +141,7 @@ DWORD FASTCALL CDTrack::GetFirst() const
 //	Get the end of LBA
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL CDTrack::GetLast() const
+DWORD CDTrack::GetLast() const
 {
 	ASSERT(valid);
 	ASSERT(first_lba < last_lba);
@@ -154,7 +154,7 @@ DWORD FASTCALL CDTrack::GetLast() const
 //	Get the number of blocks
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL CDTrack::GetBlocks() const
+DWORD CDTrack::GetBlocks() const
 {
 	ASSERT(valid);
 	ASSERT(first_lba < last_lba);
@@ -168,7 +168,7 @@ DWORD FASTCALL CDTrack::GetBlocks() const
 //	Get track number
 //
 //---------------------------------------------------------------------------
-int FASTCALL CDTrack::GetTrackNo() const
+int CDTrack::GetTrackNo() const
 {
 	ASSERT(valid);
 	ASSERT(track_no >= 1);
@@ -181,7 +181,7 @@ int FASTCALL CDTrack::GetTrackNo() const
 //	Is valid block
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL CDTrack::IsValid(DWORD lba) const
+BOOL CDTrack::IsValid(DWORD lba) const
 {
 	// FALSE if the track itself is invalid
 	if (!valid) {
@@ -207,7 +207,7 @@ BOOL FASTCALL CDTrack::IsValid(DWORD lba) const
 //	Is audio track
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL CDTrack::IsAudio() const
+BOOL CDTrack::IsAudio() const
 {
 	ASSERT(valid);
 
@@ -249,13 +249,8 @@ CDDABuf::~CDDABuf()
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSICD::SCSICD() : Disk()
+SCSICD::SCSICD() : Disk("SCCD")
 {
-	int i;
-
-	// SCSI CD-ROM
-	disk.id = "SCCD";
-
 	// removable, write protected
 	disk.removable = TRUE;
 	disk.writep = TRUE;
@@ -267,7 +262,7 @@ SCSICD::SCSICD() : Disk()
 	frame = 0;
 
 	// Track initialization
-	for (i = 0; i < TrackMax; i++) {
+	for (int i = 0; i < TrackMax; i++) {
 		track[i] = NULL;
 	}
 	tracks = 0;
@@ -291,7 +286,7 @@ SCSICD::~SCSICD()
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSICD::Open(const Filepath& path, BOOL attn)
+BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 {
 	Fileio fio;
 	off64_t size;
@@ -372,7 +367,7 @@ BOOL FASTCALL SCSICD::Open(const Filepath& path, BOOL attn)
 //	Open (CUE)
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSICD::OpenCue(const Filepath& /*path*/)
+BOOL SCSICD::OpenCue(const Filepath& /*path*/)
 {
 	// Always fail
 	return FALSE;
@@ -380,10 +375,10 @@ BOOL FASTCALL SCSICD::OpenCue(const Filepath& /*path*/)
 
 //---------------------------------------------------------------------------
 //
-//	オープン(ISO)
+//	Open (ISO)
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSICD::OpenIso(const Filepath& path)
+BOOL SCSICD::OpenIso(const Filepath& path)
 {
 	BYTE header[12];
 	BYTE sync[12];
@@ -472,7 +467,7 @@ BOOL FASTCALL SCSICD::OpenIso(const Filepath& path)
 //	Open (Physical)
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSICD::OpenPhysical(const Filepath& path)
+BOOL SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
@@ -518,7 +513,7 @@ BOOL FASTCALL SCSICD::OpenPhysical(const Filepath& path)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSICD::Inquiry(
+int SCSICD::Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	char rev[32];
@@ -606,7 +601,7 @@ int FASTCALL SCSICD::Inquiry(
 //	READ
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
+int SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	Filepath path;
 
@@ -656,7 +651,7 @@ int FASTCALL SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 //	READ TOC
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
+int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 {
 	int loop;
 	int i;
@@ -781,7 +776,7 @@ int FASTCALL SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 //	PLAY AUDIO
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSICD::PlayAudio(const DWORD* /*cdb*/)
+BOOL SCSICD::PlayAudio(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
 	return FALSE;
@@ -792,7 +787,7 @@ BOOL FASTCALL SCSICD::PlayAudio(const DWORD* /*cdb*/)
 //	PLAY AUDIO MSF
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
+BOOL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
 	return FALSE;
@@ -803,7 +798,7 @@ BOOL FASTCALL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
 //	PLAY AUDIO TRACK
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
+BOOL SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
 	return FALSE;
@@ -814,7 +809,7 @@ BOOL FASTCALL SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
 //	LBA→MSF Conversion
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
+void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 {
 	// 75 and 75*60 get the remainder
 	DWORD m = lba / (75 * 60);
@@ -844,7 +839,7 @@ void FASTCALL SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 //	MSF→LBA Conversion
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL SCSICD::MSFtoLBA(const BYTE *msf) const
+DWORD SCSICD::MSFtoLBA(const BYTE *msf) const
 {
 	ASSERT(msf[2] < 60);
 	ASSERT(msf[3] < 75);
@@ -867,7 +862,7 @@ DWORD FASTCALL SCSICD::MSFtoLBA(const BYTE *msf) const
 //	Clear Track
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSICD::ClearTrack()
+void SCSICD::ClearTrack()
 {
 	// delete the track object
 	for (int i = 0; i < TrackMax; i++) {
@@ -891,7 +886,7 @@ void FASTCALL SCSICD::ClearTrack()
 //	* Returns -1 if not found
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSICD::SearchTrack(DWORD lba) const
+int SCSICD::SearchTrack(DWORD lba) const
 {
 	// Track loop
 	for (int i = 0; i < tracks; i++) {
@@ -911,7 +906,7 @@ int FASTCALL SCSICD::SearchTrack(DWORD lba) const
 //	Next Frame
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSICD::NextFrame()
+BOOL SCSICD::NextFrame()
 {
 	ASSERT((frame >= 0) && (frame < 75));
 
@@ -931,7 +926,7 @@ BOOL FASTCALL SCSICD::NextFrame()
 //	Get CD-DA buffer
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSICD::GetBuf(
+void SCSICD::GetBuf(
 	DWORD* /*buffer*/, int /*samples*/, DWORD /*rate*/)
 {
 	// TODO Missing implementation?

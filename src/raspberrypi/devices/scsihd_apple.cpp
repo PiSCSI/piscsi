@@ -36,7 +36,7 @@ SCSIHD_APPLE::SCSIHD_APPLE() : SCSIHD()
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIHD_APPLE::Inquiry(
+int SCSIHD_APPLE::Inquiry(
 	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	char vendor[32];
@@ -66,7 +66,7 @@ int FASTCALL SCSIHD_APPLE::Inquiry(
 //	Add Vendor special page
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
+int SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 

@@ -29,10 +29,10 @@ class SCSIHD : public Disk
 public:
 	// Basic Functions
 	SCSIHD();								// Constructor
-	void FASTCALL Reset();							// Reset
-	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	void Reset();							// Reset
+	BOOL Open(const Filepath& path, BOOL attn = TRUE);		// Open
 
 	// commands
-	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	BOOL FASTCALL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
+	BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
 };

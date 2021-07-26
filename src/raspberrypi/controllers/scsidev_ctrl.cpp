@@ -90,7 +90,7 @@ SCSIDEV::~SCSIDEV()
 	}
 }
 
-void FASTCALL SCSIDEV::SetupCommand(scsi_command opcode, const char* name, void FASTCALL (SCSIDEV::*execute)(void))
+void SCSIDEV::SetupCommand(scsi_command opcode, const char* name, void (SCSIDEV::*execute)(void))
 {
 	scsi_commands[opcode] = new command_t(name, execute);
 }
@@ -100,7 +100,7 @@ void FASTCALL SCSIDEV::SetupCommand(scsi_command opcode, const char* name, void 
 //	Device reset
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Reset()
+void SCSIDEV::Reset()
 {
 	// Work initialization
 	scsi.atnmsg = FALSE;
@@ -116,7 +116,7 @@ void FASTCALL SCSIDEV::Reset()
 //	Process
 //
 //---------------------------------------------------------------------------
-BUS::phase_t FASTCALL SCSIDEV::Process()
+BUS::phase_t SCSIDEV::Process()
 {
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
@@ -200,7 +200,7 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 //	Bus free phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::BusFree()
+void SCSIDEV::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
@@ -237,7 +237,7 @@ void FASTCALL SCSIDEV::BusFree()
 //	Selection Phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Selection()
+void SCSIDEV::Selection()
 {
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
@@ -278,7 +278,7 @@ void FASTCALL SCSIDEV::Selection()
 //	Execution Phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Execute()
+void SCSIDEV::Execute()
 {
 	LOGTRACE( "%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
@@ -316,7 +316,7 @@ void FASTCALL SCSIDEV::Execute()
 //	Message out phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::MsgOut()
+void SCSIDEV::MsgOut()
 {
 	LOGTRACE("%s ID: %d",__PRETTY_FUNCTION__, this->GetSCSIID());
 
@@ -357,7 +357,7 @@ void FASTCALL SCSIDEV::MsgOut()
 //	Common Error Handling
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
+void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 {
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
@@ -405,7 +405,7 @@ void FASTCALL SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc 
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdInquiry()
+void SCSIDEV::CmdInquiry()
 {
 	LOGTRACE("%s INQUIRY Command", __PRETTY_FUNCTION__);
 
@@ -458,7 +458,7 @@ void FASTCALL SCSIDEV::CmdInquiry()
 //	MODE SELECT
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdModeSelect()
+void SCSIDEV::CmdModeSelect()
 {
 	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
 
@@ -486,7 +486,7 @@ void FASTCALL SCSIDEV::CmdModeSelect()
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReserve6()
+void SCSIDEV::CmdReserve6()
 {
 	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
 
@@ -504,7 +504,7 @@ void FASTCALL SCSIDEV::CmdReserve6()
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReserve10()
+void SCSIDEV::CmdReserve10()
 {
 	LOGTRACE( "%s Reserve(10) Command", __PRETTY_FUNCTION__);
 
@@ -522,7 +522,7 @@ void FASTCALL SCSIDEV::CmdReserve10()
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRelease6()
+void SCSIDEV::CmdRelease6()
 {
 	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
 
@@ -540,7 +540,7 @@ void FASTCALL SCSIDEV::CmdRelease6()
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRelease10()
+void SCSIDEV::CmdRelease10()
 {
 	LOGTRACE( "%s Release(10) Command", __PRETTY_FUNCTION__);
 
@@ -553,7 +553,7 @@ void FASTCALL SCSIDEV::CmdRelease10()
 //	MODE SENSE
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdModeSense()
+void SCSIDEV::CmdModeSense()
 {
 	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
 
@@ -579,7 +579,7 @@ void FASTCALL SCSIDEV::CmdModeSense()
 //	START STOP UNIT
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdStartStop()
+void SCSIDEV::CmdStartStop()
 {
 	LOGTRACE( "%s START STOP UNIT Command ", __PRETTY_FUNCTION__);
 
@@ -602,7 +602,7 @@ void FASTCALL SCSIDEV::CmdStartStop()
 //	SEND DIAGNOSTIC
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSendDiag()
+void SCSIDEV::CmdSendDiag()
 {
 	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
 
@@ -625,7 +625,7 @@ void FASTCALL SCSIDEV::CmdSendDiag()
 //	PREVENT/ALLOW MEDIUM REMOVAL
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRemoval()
+void SCSIDEV::CmdRemoval()
 {
 	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
 
@@ -648,7 +648,7 @@ void FASTCALL SCSIDEV::CmdRemoval()
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReadCapacity()
+void SCSIDEV::CmdReadCapacity()
 {
 	LOGTRACE( "%s READ CAPACITY Command ", __PRETTY_FUNCTION__);
 
@@ -674,7 +674,7 @@ void FASTCALL SCSIDEV::CmdReadCapacity()
 //	READ(10)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRead10()
+void SCSIDEV::CmdRead10()
 {
 	DWORD lun = GetLun();
 
@@ -724,7 +724,7 @@ void FASTCALL SCSIDEV::CmdRead10()
 //	WRITE(10)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdWrite10()
+void SCSIDEV::CmdWrite10()
 {
 	DWORD lun = GetLun();
 
@@ -774,7 +774,7 @@ void FASTCALL SCSIDEV::CmdWrite10()
 //	SEEK(10)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSeek10()
+void SCSIDEV::CmdSeek10()
 {
 	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
 
@@ -797,7 +797,7 @@ void FASTCALL SCSIDEV::CmdSeek10()
 //	VERIFY
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdVerify()
+void SCSIDEV::CmdVerify()
 {
 	BOOL status;
 
@@ -858,7 +858,7 @@ void FASTCALL SCSIDEV::CmdVerify()
 //	SYNCHRONIZE CACHE
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSynchronizeCache()
+void SCSIDEV::CmdSynchronizeCache()
 {
 	GetLun();
 
@@ -873,7 +873,7 @@ void FASTCALL SCSIDEV::CmdSynchronizeCache()
 //	READ DEFECT DATA(10)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReadDefectData10()
+void SCSIDEV::CmdReadDefectData10()
 {
 	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
 
@@ -897,7 +897,7 @@ void FASTCALL SCSIDEV::CmdReadDefectData10()
 //	READ TOC
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReadToc()
+void SCSIDEV::CmdReadToc()
 {
 	DWORD lun = GetLun();
 
@@ -918,7 +918,7 @@ void FASTCALL SCSIDEV::CmdReadToc()
 //	PLAY AUDIO(10)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdPlayAudio10()
+void SCSIDEV::CmdPlayAudio10()
 {
 	DWORD lun = GetLun();
 
@@ -939,7 +939,7 @@ void FASTCALL SCSIDEV::CmdPlayAudio10()
 //	PLAY AUDIO MSF
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdPlayAudioMSF()
+void SCSIDEV::CmdPlayAudioMSF()
 {
 	DWORD lun = GetLun();
 
@@ -960,7 +960,7 @@ void FASTCALL SCSIDEV::CmdPlayAudioMSF()
 //	PLAY AUDIO TRACK
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdPlayAudioTrack()
+void SCSIDEV::CmdPlayAudioTrack()
 {
 	DWORD lun = GetLun();
 
@@ -981,7 +981,7 @@ void FASTCALL SCSIDEV::CmdPlayAudioTrack()
 //	MODE SELECT10
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdModeSelect10()
+void SCSIDEV::CmdModeSelect10()
 {
 	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
 
@@ -1004,7 +1004,7 @@ void FASTCALL SCSIDEV::CmdModeSelect10()
 //	MODE SENSE(10)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdModeSense10()
+void SCSIDEV::CmdModeSense10()
 {
 	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
 
@@ -1030,7 +1030,7 @@ void FASTCALL SCSIDEV::CmdModeSense10()
 //	GET MESSAGE(10)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdGetMessage10()
+void SCSIDEV::CmdGetMessage10()
 {
 	SCSIBR *bridge;
 
@@ -1075,7 +1075,7 @@ void FASTCALL SCSIDEV::CmdGetMessage10()
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSendMessage10()
+void SCSIDEV::CmdSendMessage10()
 {
 	DWORD lun = GetLun();
 
@@ -1119,7 +1119,7 @@ void FASTCALL SCSIDEV::CmdSendMessage10()
 // Retrieve Statistics (09)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRetrieveStats()
+void SCSIDEV::CmdRetrieveStats()
 {
 	DWORD lun = GetLun();
 
@@ -1153,7 +1153,7 @@ void FASTCALL SCSIDEV::CmdRetrieveStats()
 // Set Interface Mode (0c)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSetIfaceMode()
+void SCSIDEV::CmdSetIfaceMode()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
@@ -1193,7 +1193,7 @@ void FASTCALL SCSIDEV::CmdSetIfaceMode()
 // 	Set the multicast address
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSetMcastAddr()
+void SCSIDEV::CmdSetMcastAddr()
 {
 	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
 
@@ -1225,7 +1225,7 @@ void FASTCALL SCSIDEV::CmdSetMcastAddr()
 // 	Enable/disable Interface (0e)
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdEnableInterface()
+void SCSIDEV::CmdEnableInterface()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
@@ -1264,7 +1264,7 @@ void FASTCALL SCSIDEV::CmdEnableInterface()
 //	Send data
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Send()
+void SCSIDEV::Send()
 {
 	int len;
 	BOOL result;
@@ -1373,7 +1373,7 @@ void FASTCALL SCSIDEV::Send()
 //  Receive Data
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Receive()
+void SCSIDEV::Receive()
 {
 	int len;
 	int i;
@@ -1588,7 +1588,7 @@ void FASTCALL SCSIDEV::Receive()
 //	Transfer MSG
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
+BOOL SCSIDEV::XferMsg(DWORD msg)
 {
 	ASSERT(ctrl.phase == BUS::msgout);
 

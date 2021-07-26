@@ -29,9 +29,9 @@ class SASIHD : public Disk
 public:
 	// Basic Functions
 	SASIHD();								// Constructor
-	void FASTCALL Reset();							// Reset
-	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	void Reset();							// Reset
+	BOOL Open(const Filepath& path, BOOL attn = TRUE);		// Open
 
 	// commands
-	int FASTCALL RequestSense(const DWORD *cdb, BYTE *buf);			// REQUEST SENSE command
+	int RequestSense(const DWORD *cdb, BYTE *buf);			// REQUEST SENSE command
 };

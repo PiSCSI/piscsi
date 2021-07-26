@@ -476,11 +476,11 @@ public:
 										// Constructor
 	virtual ~GPIOBUS();
 										// Destructor
-	BOOL FASTCALL Init(mode_e mode = TARGET);
+	BOOL Init(mode_e mode = TARGET);
 										// Initialization
-	void FASTCALL Reset();
+	void Reset();
 										// Reset
-	void FASTCALL Cleanup();
+	void Cleanup();
 										// Cleanup
 
 	//---------------------------------------------------------------------------
@@ -506,111 +506,111 @@ public:
 	#endif // ifdef __x86_64__ || __X86__
 	}
 
-	void FASTCALL SetENB(BOOL ast);
+	void SetENB(BOOL ast);
 										// Set ENB signal
 
-	BOOL FASTCALL GetBSY();
+	BOOL GetBSY();
 										// Get BSY signal
-	void FASTCALL SetBSY(BOOL ast);
+	void SetBSY(BOOL ast);
 										// Set BSY signal
 
-	BOOL FASTCALL GetSEL();
+	BOOL GetSEL();
 										// Get SEL signal
-	void FASTCALL SetSEL(BOOL ast);
+	void SetSEL(BOOL ast);
 										// Set SEL signal
 
-	BOOL FASTCALL GetATN();
+	BOOL GetATN();
 										// Get ATN signal
-	void FASTCALL SetATN(BOOL ast);
+	void SetATN(BOOL ast);
 										// Set ATN signal
 
-	BOOL FASTCALL GetACK();
+	BOOL GetACK();
 										// Get ACK signal
-	void FASTCALL SetACK(BOOL ast);
+	void SetACK(BOOL ast);
 										// Set ACK signal
 
-	BOOL FASTCALL GetACT();
+	BOOL GetACT();
 										// Get ACT signal
-	void FASTCALL SetACT(BOOL ast);
+	void SetACT(BOOL ast);
 										// Set ACT signal
 
-	BOOL FASTCALL GetRST();
+	BOOL GetRST();
 										// Get RST signal
-	void FASTCALL SetRST(BOOL ast);
+	void SetRST(BOOL ast);
 										// Set RST signal
 
-	BOOL FASTCALL GetMSG();
+	BOOL GetMSG();
 										// Get MSG signal
-	void FASTCALL SetMSG(BOOL ast);
+	void SetMSG(BOOL ast);
 										// Set MSG signal
 
-	BOOL FASTCALL GetCD();
+	BOOL GetCD();
 										// Get CD signal
-	void FASTCALL SetCD(BOOL ast);
+	void SetCD(BOOL ast);
 										// Set CD signal
 
-	BOOL FASTCALL GetIO();
+	BOOL GetIO();
 										// Get IO signal
-	void FASTCALL SetIO(BOOL ast);
+	void SetIO(BOOL ast);
 										// Set IO signal
 
-	BOOL FASTCALL GetREQ();
+	BOOL GetREQ();
 										// Get REQ signal
-	void FASTCALL SetREQ(BOOL ast);
+	void SetREQ(BOOL ast);
 										// Set REQ signal
 
-	BYTE FASTCALL GetDAT();
+	BYTE GetDAT();
 										// Get DAT signal
-	void FASTCALL SetDAT(BYTE dat);
+	void SetDAT(BYTE dat);
 										// Set DAT signal
-	BOOL FASTCALL GetDP();
+	BOOL GetDP();
 										// Get Data parity signal
-	int FASTCALL CommandHandShake(BYTE *buf);
+	int CommandHandShake(BYTE *buf);
 										// Command receive handshake
-	int FASTCALL ReceiveHandShake(BYTE *buf, int count);
+	int ReceiveHandShake(BYTE *buf, int count);
 										// Data receive handshake
-	int FASTCALL SendHandShake(BYTE *buf, int count, int delay_after_bytes);
+	int SendHandShake(BYTE *buf, int count, int delay_after_bytes);
 										// Data transmission handshake
 
-	static BUS::phase_t FASTCALL GetPhaseRaw(DWORD raw_data);
+	static BUS::phase_t GetPhaseRaw(DWORD raw_data);
 										// Get the phase based on raw data
 
 #ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
-	int FASTCALL PollSelectEvent();
+	int PollSelectEvent();
 										// SEL signal event polling
-	void FASTCALL ClearSelectEvent();
+	void ClearSelectEvent();
 										// Clear SEL signal event
 #endif	// USE_SEL_EVENT_ENABLE
 
 private:
 	// SCSI I/O signal control
-	void FASTCALL MakeTable();
+	void MakeTable();
 										// Create work data
-	void FASTCALL SetControl(int pin, BOOL ast);
+	void SetControl(int pin, BOOL ast);
 										// Set Control Signal
-	void FASTCALL SetMode(int pin, int mode);
+	void SetMode(int pin, int mode);
 										// Set SCSI I/O mode
-	BOOL FASTCALL GetSignal(int pin);
+	BOOL GetSignal(int pin);
 										// Get SCSI input signal value
-	void FASTCALL SetSignal(int pin, BOOL ast);
+	void SetSignal(int pin, BOOL ast);
 										// Set SCSI output signal value
-	BOOL FASTCALL WaitSignal(int pin, BOOL ast);
+	BOOL WaitSignal(int pin, BOOL ast);
 										// Wait for a signal to change
 	// Interrupt control
-	void FASTCALL DisableIRQ();
+	void DisableIRQ();
 										// IRQ Disabled
-	void FASTCALL EnableIRQ();
+	void EnableIRQ();
 										// IRQ Enabled
 
 	//  GPIO pin functionality settings
-	void FASTCALL PinConfig(int pin, int mode);
+	void PinConfig(int pin, int mode);
 										// GPIO pin direction setting
-	void FASTCALL PullConfig(int pin, int mode);
+	void PullConfig(int pin, int mode);
 										// GPIO pin pull up/down resistor setting
-	void FASTCALL PinSetSignal(int pin, BOOL ast);
+	void PinSetSignal(int pin, BOOL ast);
 										// Set GPIO output signal
-	void FASTCALL DrvConfig(DWORD drive);
+	void DrvConfig(DWORD drive);
 										// Set GPIO drive strength
 
 
@@ -674,15 +674,15 @@ private:
 class SysTimer
 {
 public:
-	static void FASTCALL Init(DWORD *syst, DWORD *armt);
+	static void Init(DWORD *syst, DWORD *armt);
 										// Initialization
-	static DWORD FASTCALL GetTimerLow();
+	static DWORD GetTimerLow();
 										// Get system timer low byte
-	static DWORD FASTCALL GetTimerHigh();
+	static DWORD GetTimerHigh();
 										// Get system timer high byte
-	static void FASTCALL SleepNsec(DWORD nsec);
+	static void SleepNsec(DWORD nsec);
 										// Sleep for N nanoseconds
-	static void FASTCALL SleepUsec(DWORD usec);
+	static void SleepUsec(DWORD usec);
 										// Sleep for N microseconds
 
 private:

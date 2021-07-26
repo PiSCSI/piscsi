@@ -85,7 +85,7 @@ static BOOL ip_link(int fd, const char* ifname, BOOL up) {
 	return TRUE;
 }
 
-BOOL FASTCALL CTapDriver::Init()
+BOOL CTapDriver::Init()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
@@ -202,7 +202,7 @@ BOOL FASTCALL CTapDriver::Init()
 #endif // __linux__
 
 #ifdef __NetBSD__
-BOOL FASTCALL CTapDriver::Init()
+BOOL CTapDriver::Init()
 {
 	struct ifreq ifr;
 	struct ifaddrs *ifa, *a;
@@ -247,7 +247,7 @@ BOOL FASTCALL CTapDriver::Init()
 }
 #endif // __NetBSD__
 
-BOOL FASTCALL CTapDriver::OpenDump(const Filepath& path) {
+BOOL CTapDriver::OpenDump(const Filepath& path) {
 	if (m_pcap == NULL) {
 		m_pcap = pcap_open_dead(DLT_EN10MB, 65535);
 	}
@@ -268,7 +268,7 @@ BOOL FASTCALL CTapDriver::OpenDump(const Filepath& path) {
 //	Cleanup
 //
 //---------------------------------------------------------------------------
-void FASTCALL CTapDriver::Cleanup()
+void CTapDriver::Cleanup()
 {
 	int br_socket_fd = -1;
 	if ((br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
@@ -302,7 +302,7 @@ void FASTCALL CTapDriver::Cleanup()
 //	Enable
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL CTapDriver::Enable(){
+BOOL CTapDriver::Enable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
 	BOOL result = ip_link(fd, "ras0", TRUE);
@@ -315,7 +315,7 @@ BOOL FASTCALL CTapDriver::Enable(){
 //	Disable
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL CTapDriver::Disable(){
+BOOL CTapDriver::Disable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
 	BOOL result = ip_link(fd, "ras0", FALSE);
@@ -328,7 +328,7 @@ BOOL FASTCALL CTapDriver::Disable(){
 //	Flush
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL CTapDriver::Flush(){
+BOOL CTapDriver::Flush(){
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	while(PendingPackets()){
 		(void)Rx(m_garbage_buffer);
@@ -341,7 +341,7 @@ BOOL FASTCALL CTapDriver::Flush(){
 //	MGet MAC Address
 //
 //---------------------------------------------------------------------------
-void FASTCALL CTapDriver::GetMacAddr(BYTE *mac)
+void CTapDriver::GetMacAddr(BYTE *mac)
 {
 	ASSERT(mac);
 
@@ -353,7 +353,7 @@ void FASTCALL CTapDriver::GetMacAddr(BYTE *mac)
 //	Receive
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL CTapDriver::PendingPackets()
+BOOL CTapDriver::PendingPackets()
 {
 	struct pollfd fds;
 
@@ -377,7 +377,7 @@ BOOL FASTCALL CTapDriver::PendingPackets()
 //	Receive
 //
 //---------------------------------------------------------------------------
-int FASTCALL CTapDriver::Rx(BYTE *buf)
+int CTapDriver::Rx(BYTE *buf)
 {
 	ASSERT(m_hTAP != -1);
 
@@ -434,7 +434,7 @@ int FASTCALL CTapDriver::Rx(BYTE *buf)
 //	Send
 //
 //---------------------------------------------------------------------------
-int FASTCALL CTapDriver::Tx(const BYTE *buf, int len)
+int CTapDriver::Tx(const BYTE *buf, int len)
 {
 	ASSERT(m_hTAP != -1);
 

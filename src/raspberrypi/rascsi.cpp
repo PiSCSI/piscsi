@@ -263,7 +263,7 @@ PbDevices GetDevices() {
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
 		// skip if unit does not exist or null disk
 		Disk *pUnit = disk[i];
-		if (!pUnit || pUnit->IsNULL()) {
+		if (!pUnit) {
 			continue;
 		}
 
@@ -730,7 +730,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		if (id < 0) {
 			cerr << optarg << ": ID not specified" << endl;
 			return false;
-		} else if (disk[id] && !disk[id]->IsNULL()) {
+		} else if (disk[id]) {
 			cerr << id << ": duplicate ID" << endl;
 			return false;
 		}

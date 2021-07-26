@@ -46,31 +46,31 @@ public:
 										// Constructor
 	virtual ~SCSIDaynaPort();
 										// Destructor
-	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);
+	BOOL Open(const Filepath& path, BOOL attn = TRUE);
 										// Capture packets
 
 	// commands
-	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor);
+	int Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor);
 										// INQUIRY command
-	BOOL FASTCALL TestUnitReady(const DWORD *cdb);
+	BOOL TestUnitReady(const DWORD *cdb);
 										// TEST UNIT READY command
-	int FASTCALL Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
+	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
 										// READ command
-	BOOL FASTCALL Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
+	BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
 										// WRITE command
-	int FASTCALL WriteCheck(DWORD block) override;
+	int WriteCheck(DWORD block) override;
 										// WRITE check
 
-	int FASTCALL RetrieveStats(const DWORD *cdb, BYTE *buffer);
+	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
 										// Retrieve DaynaPort statistics
-	BOOL FASTCALL EnableInterface(const DWORD *cdb);
+	BOOL EnableInterface(const DWORD *cdb);
 										// Enable/Disable Interface command
 
-	void FASTCALL SetMacAddr(const DWORD *cdb, BYTE *buffer);
+	void SetMacAddr(const DWORD *cdb, BYTE *buffer);
 										// Set MAC address
-	void FASTCALL SetMode(const DWORD *cdb, BYTE *buffer);
+	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
-	int FASTCALL RequestSense(const DWORD *cdb, BYTE *buf) override;
+	int RequestSense(const DWORD *cdb, BYTE *buf) override;
 
 	static const BYTE CMD_SCSILINK_STATS        = 0x09;
 	static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;

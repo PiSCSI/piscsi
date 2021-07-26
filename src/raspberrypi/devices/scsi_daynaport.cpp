@@ -47,12 +47,8 @@ const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff,
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIDaynaPort::SCSIDaynaPort() : Disk()
+SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
-	LOGTRACE("SCSI DaynaPort Constructor");
-	// DaynaPort
-	disk.id = "SCDP";
-	
 #ifdef __linux__
 	// TAP Driver Generation
 	m_tap = new CTapDriver();
@@ -106,7 +102,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-BOOL FASTCALL SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
+BOOL SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
 {
 	LOGTRACE("SCSIDaynaPort Open");
 	return m_tap->OpenDump(path);
@@ -117,7 +113,7 @@ BOOL FASTCALL SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor)
+int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor)
 {
 	// scsi_cdb_6_byte_t command;
 	// memcpy(&command,cdb,sizeof(command));
@@ -169,7 +165,7 @@ int FASTCALL SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major,
 //	RequestSense
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIDaynaPort::RequestSense(const DWORD *cdb, BYTE *buffer)
+int SCSIDaynaPort::RequestSense(const DWORD *cdb, BYTE *buffer)
 {
 	// The DaynaPort RequestSense response will always be 9 bytes.
 	int size = 9;
@@ -193,7 +189,7 @@ int FASTCALL SCSIDaynaPort::RequestSense(const DWORD *cdb, BYTE *buffer)
 //	READ
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
+int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	WORD requested_length = 0;
 	int rx_packet_size = 0;
@@ -329,7 +325,7 @@ int FASTCALL SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 // WRITE check
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIDaynaPort::WriteCheck(DWORD block)
+int SCSIDaynaPort::WriteCheck(DWORD block)
 {
 	LOGTRACE("%s block: %lu", __PRETTY_FUNCTION__, block);
 
@@ -353,7 +349,7 @@ int FASTCALL SCSIDaynaPort::WriteCheck(DWORD block)
 //  Write
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+BOOL SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	BYTE data_format;
 	WORD data_length;
@@ -398,7 +394,7 @@ BOOL FASTCALL SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD bloc
 //	RetrieveStats
 //
 //---------------------------------------------------------------------------
-int FASTCALL SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
+int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 {
 	DWORD response_size;
 	DWORD allocation_length;
@@ -483,7 +479,7 @@ int FASTCALL SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 //	Enable or Disable the interface
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
+BOOL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 {
 	int result;
 	// scsi_cdb_6_byte_t *command = (scsi_cdb_6_byte_t*)cdb;
@@ -520,7 +516,7 @@ BOOL FASTCALL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
+BOOL SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
@@ -534,7 +530,7 @@ BOOL FASTCALL SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 //	Set Mode - enable broadcast messages
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
+void SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
 {
 	LOGTRACE("%s Setting mode", __PRETTY_FUNCTION__);
 

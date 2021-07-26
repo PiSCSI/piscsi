@@ -103,7 +103,7 @@ GPIOBUS::~GPIOBUS()
 //	初期化
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::Init(mode_e mode)
+BOOL GPIOBUS::Init(mode_e mode)
 {
 #if defined(__x86_64__) || defined(__X86__)
 	// When we're running on x86, there is no hardware to talk to, so just return.
@@ -331,7 +331,7 @@ BOOL FASTCALL GPIOBUS::Init(mode_e mode)
 //	Cleanup
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::Cleanup()
+void GPIOBUS::Cleanup()
 {
 #if defined(__x86_64__) || defined(__X86__)
 	return;
@@ -373,7 +373,7 @@ void FASTCALL GPIOBUS::Cleanup()
 //	Reset
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::Reset()
+void GPIOBUS::Reset()
 {
 #if defined(__x86_64__) || defined(__X86__)
 	return;
@@ -464,7 +464,7 @@ void FASTCALL GPIOBUS::Reset()
 //	ENB signal setting
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetENB(BOOL ast)
+void GPIOBUS::SetENB(BOOL ast)
 {
 	PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
 }
@@ -474,7 +474,7 @@ void FASTCALL GPIOBUS::SetENB(BOOL ast)
 //	Get BSY signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetBSY()
+BOOL GPIOBUS::GetBSY()
 {
 	return GetSignal(PIN_BSY);
 }
@@ -484,7 +484,7 @@ BOOL FASTCALL GPIOBUS::GetBSY()
 //	Set BSY signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetBSY(BOOL ast)
+void GPIOBUS::SetBSY(BOOL ast)
 {
 	// Set BSY signal
 	SetSignal(PIN_BSY, ast);
@@ -523,7 +523,7 @@ void FASTCALL GPIOBUS::SetBSY(BOOL ast)
 //	Get SEL signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetSEL()
+BOOL GPIOBUS::GetSEL()
 {
 	return GetSignal(PIN_SEL);
 }
@@ -533,7 +533,7 @@ BOOL FASTCALL GPIOBUS::GetSEL()
 //	Set SEL signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetSEL(BOOL ast)
+void GPIOBUS::SetSEL(BOOL ast)
 {
 	if (actmode == INITIATOR && ast) {
 		// Turn on ACTIVE signal
@@ -549,7 +549,7 @@ void FASTCALL GPIOBUS::SetSEL(BOOL ast)
 //	Get ATN signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetATN()
+BOOL GPIOBUS::GetATN()
 {
 	return GetSignal(PIN_ATN);
 }
@@ -559,7 +559,7 @@ BOOL FASTCALL GPIOBUS::GetATN()
 //	Get ATN signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetATN(BOOL ast)
+void GPIOBUS::SetATN(BOOL ast)
 {
 	SetSignal(PIN_ATN, ast);
 }
@@ -569,7 +569,7 @@ void FASTCALL GPIOBUS::SetATN(BOOL ast)
 //	Get ACK signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetACK()
+BOOL GPIOBUS::GetACK()
 {
 	return GetSignal(PIN_ACK);
 }
@@ -579,7 +579,7 @@ BOOL FASTCALL GPIOBUS::GetACK()
 //	Set ACK signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetACK(BOOL ast)
+void GPIOBUS::SetACK(BOOL ast)
 {
 	SetSignal(PIN_ACK, ast);
 }
@@ -589,7 +589,7 @@ void FASTCALL GPIOBUS::SetACK(BOOL ast)
 //	Get ACK signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetACT()
+BOOL GPIOBUS::GetACT()
 {
 	return GetSignal(PIN_ACT);
 }
@@ -599,7 +599,7 @@ BOOL FASTCALL GPIOBUS::GetACT()
 //	Set ACK signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetACT(BOOL ast)
+void GPIOBUS::SetACT(BOOL ast)
 {
 	SetSignal(PIN_ACT, ast);
 }
@@ -609,7 +609,7 @@ void FASTCALL GPIOBUS::SetACT(BOOL ast)
 //	Get RST signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetRST()
+BOOL GPIOBUS::GetRST()
 {
 	return GetSignal(PIN_RST);
 }
@@ -619,7 +619,7 @@ BOOL FASTCALL GPIOBUS::GetRST()
 //	Set RST signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetRST(BOOL ast)
+void GPIOBUS::SetRST(BOOL ast)
 {
 	SetSignal(PIN_RST, ast);
 }
@@ -629,7 +629,7 @@ void FASTCALL GPIOBUS::SetRST(BOOL ast)
 //	Get MSG signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetMSG()
+BOOL GPIOBUS::GetMSG()
 {
 	return GetSignal(PIN_MSG);
 }
@@ -639,7 +639,7 @@ BOOL FASTCALL GPIOBUS::GetMSG()
 //	Set MSG signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetMSG(BOOL ast)
+void GPIOBUS::SetMSG(BOOL ast)
 {
 	SetSignal(PIN_MSG, ast);
 }
@@ -649,7 +649,7 @@ void FASTCALL GPIOBUS::SetMSG(BOOL ast)
 //	Get CD signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetCD()
+BOOL GPIOBUS::GetCD()
 {
 	return GetSignal(PIN_CD);
 }
@@ -659,7 +659,7 @@ BOOL FASTCALL GPIOBUS::GetCD()
 //	Set CD Signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetCD(BOOL ast)
+void GPIOBUS::SetCD(BOOL ast)
 {
 	SetSignal(PIN_CD, ast);
 }
@@ -669,7 +669,7 @@ void FASTCALL GPIOBUS::SetCD(BOOL ast)
 //	Get IO Signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetIO()
+BOOL GPIOBUS::GetIO()
 {
 	BOOL ast;
 	ast = GetSignal(PIN_IO);
@@ -709,7 +709,7 @@ BOOL FASTCALL GPIOBUS::GetIO()
 //	Set IO signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetIO(BOOL ast)
+void GPIOBUS::SetIO(BOOL ast)
 {
 	SetSignal(PIN_IO, ast);
 
@@ -747,7 +747,7 @@ void FASTCALL GPIOBUS::SetIO(BOOL ast)
 //	Get REQ signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetREQ()
+BOOL GPIOBUS::GetREQ()
 {
 	return GetSignal(PIN_REQ);
 }
@@ -757,7 +757,7 @@ BOOL FASTCALL GPIOBUS::GetREQ()
 //	Set REQ signal
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetREQ(BOOL ast)
+void GPIOBUS::SetREQ(BOOL ast)
 {
 	SetSignal(PIN_REQ, ast);
 }
@@ -767,7 +767,7 @@ void FASTCALL GPIOBUS::SetREQ(BOOL ast)
 // Get data signals
 //
 //---------------------------------------------------------------------------
-BYTE FASTCALL GPIOBUS::GetDAT()
+BYTE GPIOBUS::GetDAT()
 {
 	DWORD data;
 
@@ -790,7 +790,7 @@ BYTE FASTCALL GPIOBUS::GetDAT()
 //	Set data signals
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetDAT(BYTE dat)
+void GPIOBUS::SetDAT(BYTE dat)
 {
 	// Write to port
 #if SIGNAL_CONTROL_MODE == 0
@@ -830,7 +830,7 @@ void FASTCALL GPIOBUS::SetDAT(BYTE dat)
 //	Get data parity signal
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetDP()
+BOOL GPIOBUS::GetDP()
 {
 	return GetSignal(PIN_DP);
 }
@@ -840,7 +840,7 @@ BOOL FASTCALL GPIOBUS::GetDP()
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int FASTCALL GPIOBUS::CommandHandShake(BYTE *buf)
+int GPIOBUS::CommandHandShake(BYTE *buf)
 {
 	int i;
 	BOOL ret;
@@ -941,7 +941,7 @@ irq_enable_exit:
 //	Data reception handshake
 //
 //---------------------------------------------------------------------------
-int FASTCALL GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
+int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 {
 	int i;
 	BOOL ret;
@@ -1043,7 +1043,7 @@ int FASTCALL GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 //	Data transmission handshake
 //
 //---------------------------------------------------------------------------
-int FASTCALL GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
+int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 {
 	int i;
 	BOOL ret;
@@ -1157,7 +1157,7 @@ int FASTCALL GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 //	SEL signal event polling
 //
 //---------------------------------------------------------------------------
-int FASTCALL GPIOBUS::PollSelectEvent()
+int GPIOBUS::PollSelectEvent()
 {
 	// clear errno
 	errno = 0;
@@ -1182,7 +1182,7 @@ int FASTCALL GPIOBUS::PollSelectEvent()
 //	Cancel SEL signal event
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::ClearSelectEvent()
+void GPIOBUS::ClearSelectEvent()
 {
 }
 #endif	// USE_SEL_EVENT_ENABLE
@@ -1205,7 +1205,7 @@ const int GPIOBUS::SignalTable[19] = {
 //	Create work table
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::MakeTable(void)
+void GPIOBUS::MakeTable(void)
 {
 	const int pintbl[] = {
 		PIN_DT0, PIN_DT1, PIN_DT2, PIN_DT3, PIN_DT4,
@@ -1308,7 +1308,7 @@ void FASTCALL GPIOBUS::MakeTable(void)
 //	Control signal setting
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetControl(int pin, BOOL ast)
+void GPIOBUS::SetControl(int pin, BOOL ast)
 {
 	PinSetSignal(pin, ast);
 }
@@ -1318,7 +1318,7 @@ void FASTCALL GPIOBUS::SetControl(int pin, BOOL ast)
 //	Input/output mode setting
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetMode(int pin, int mode)
+void GPIOBUS::SetMode(int pin, int mode)
 {
 	int index;
 	int shift;
@@ -1346,7 +1346,7 @@ void FASTCALL GPIOBUS::SetMode(int pin, int mode)
 //	Get input signal value
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::GetSignal(int pin)
+BOOL GPIOBUS::GetSignal(int pin)
 {
 	return  (signals >> pin) & 1;
 }
@@ -1356,7 +1356,7 @@ BOOL FASTCALL GPIOBUS::GetSignal(int pin)
 //	Set output signal value
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::SetSignal(int pin, BOOL ast)
+void GPIOBUS::SetSignal(int pin, BOOL ast)
 {
 #if SIGNAL_CONTROL_MODE == 0
 	int index;
@@ -1393,7 +1393,7 @@ void FASTCALL GPIOBUS::SetSignal(int pin, BOOL ast)
 //	Wait for signal change
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL GPIOBUS::WaitSignal(int pin, BOOL ast)
+BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
 {
 	DWORD now;
 	DWORD timeout;
@@ -1427,7 +1427,7 @@ BOOL FASTCALL GPIOBUS::WaitSignal(int pin, BOOL ast)
 //	Disable IRQ
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::DisableIRQ()
+void GPIOBUS::DisableIRQ()
 {
 	if (rpitype == 4) {
 		// RPI4 is disabled by GICC
@@ -1450,7 +1450,7 @@ void FASTCALL GPIOBUS::DisableIRQ()
 //	Enable IRQ
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::EnableIRQ()
+void GPIOBUS::EnableIRQ()
 {
 	if (rpitype == 4) {
 		// RPI4 enables interrupts via the GICC
@@ -1469,7 +1469,7 @@ void FASTCALL GPIOBUS::EnableIRQ()
 //	Pin direction setting (input/output)
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::PinConfig(int pin, int mode)
+void GPIOBUS::PinConfig(int pin, int mode)
 {
 	int index;
 	DWORD mask;
@@ -1489,7 +1489,7 @@ void FASTCALL GPIOBUS::PinConfig(int pin, int mode)
 //	Pin pull-up/pull-down setting
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::PullConfig(int pin, int mode)
+void GPIOBUS::PullConfig(int pin, int mode)
 {
 	int shift;
 	DWORD bits;
@@ -1537,7 +1537,7 @@ void FASTCALL GPIOBUS::PullConfig(int pin, int mode)
 //	Set output pin
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::PinSetSignal(int pin, BOOL ast)
+void GPIOBUS::PinSetSignal(int pin, BOOL ast)
 {
 	// Check for invalid pin
 	if (pin < 0) {
@@ -1556,7 +1556,7 @@ void FASTCALL GPIOBUS::PinSetSignal(int pin, BOOL ast)
 //	Set the signal drive strength
 //
 //---------------------------------------------------------------------------
-void FASTCALL GPIOBUS::DrvConfig(DWORD drive)
+void GPIOBUS::DrvConfig(DWORD drive)
 {
 	DWORD data;
 
@@ -1570,7 +1570,7 @@ void FASTCALL GPIOBUS::DrvConfig(DWORD drive)
 //	Generic Phase Acquisition (Doesn't read GPIO)
 //
 //---------------------------------------------------------------------------
-BUS::phase_t FASTCALL GPIOBUS::GetPhaseRaw(DWORD raw_data)
+BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 {
 	DWORD mci;
 
@@ -1623,7 +1623,7 @@ volatile DWORD SysTimer::corefreq;
 //	Initialize the system timer
 //
 //---------------------------------------------------------------------------
-void FASTCALL SysTimer::Init(DWORD *syst, DWORD *armt)
+void SysTimer::Init(DWORD *syst, DWORD *armt)
 {
 	// RPI Mailbox property interface
 	// Get max clock rate
@@ -1661,7 +1661,7 @@ void FASTCALL SysTimer::Init(DWORD *syst, DWORD *armt)
 //	Get system timer low byte
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL SysTimer::GetTimerLow() {
+DWORD SysTimer::GetTimerLow() {
 	return systaddr[SYST_CLO];
 }
 
@@ -1670,7 +1670,7 @@ DWORD FASTCALL SysTimer::GetTimerLow() {
 //	Get system timer high byte
 //
 //---------------------------------------------------------------------------
-DWORD FASTCALL SysTimer::GetTimerHigh() {
+DWORD SysTimer::GetTimerHigh() {
 	return systaddr[SYST_CHI];
 }
 
@@ -1679,7 +1679,7 @@ DWORD FASTCALL SysTimer::GetTimerHigh() {
 //	Sleep in nanoseconds
 //
 //---------------------------------------------------------------------------
-void FASTCALL SysTimer::SleepNsec(DWORD nsec)
+void SysTimer::SleepNsec(DWORD nsec)
 {
 	DWORD diff;
 	DWORD start;
@@ -1709,7 +1709,7 @@ void FASTCALL SysTimer::SleepNsec(DWORD nsec)
 //	Sleep in microseconds
 //
 //---------------------------------------------------------------------------
-void FASTCALL SysTimer::SleepUsec(DWORD usec)
+void SysTimer::SleepUsec(DWORD usec)
 {
 	DWORD now;
 

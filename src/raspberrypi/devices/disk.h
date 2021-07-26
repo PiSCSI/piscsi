@@ -21,6 +21,7 @@
 #include "log.h"
 #include "scsi.h"
 #include "filepath.h"
+#include <string>
 
 //---------------------------------------------------------------------------
 //
@@ -89,17 +90,17 @@ public:
 	// Basic Functions
 	DiskTrack();								// Constructor
 	virtual ~DiskTrack();							// Destructor
-	void FASTCALL Init(int track, int size, int sectors, BOOL raw = FALSE, off64_t imgoff = 0);// Initialization
-	BOOL FASTCALL Load(const Filepath& path);				// Load
-	BOOL FASTCALL Save(const Filepath& path);				// Save
+	void Init(int track, int size, int sectors, BOOL raw = FALSE, off64_t imgoff = 0);// Initialization
+	BOOL Load(const Filepath& path);				// Load
+	BOOL Save(const Filepath& path);				// Save
 
 	// Read / Write
-	BOOL FASTCALL Read(BYTE *buf, int sec) const;				// Sector Read
-	BOOL FASTCALL Write(const BYTE *buf, int sec);				// Sector Write
+	BOOL Read(BYTE *buf, int sec) const;				// Sector Read
+	BOOL Write(const BYTE *buf, int sec);				// Sector Write
 
 	// Other
-	int FASTCALL GetTrack() const		{ return dt.track; }		// Get track
-	BOOL FASTCALL IsChanged() const		{ return dt.changed; }		// Changed flag check
+	int GetTrack() const		{ return dt.track; }		// Get track
+	BOOL IsChanged() const		{ return dt.changed; }		// Changed flag check
 
 private:
 	// Internal data
@@ -129,20 +130,20 @@ public:
 	// Basic Functions
 	DiskCache(const Filepath& path, int size, int blocks,off64_t imgoff = 0);// Constructor
 	virtual ~DiskCache();							// Destructor
-	void FASTCALL SetRawMode(BOOL raw);					// CD-ROM raw mode setting
+	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
 
 	// Access
-	BOOL FASTCALL Save();							// Save and release all
-	BOOL FASTCALL Read(BYTE *buf, int block);				// Sector Read
-	BOOL FASTCALL Write(const BYTE *buf, int block);			// Sector Write
-	BOOL FASTCALL GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
+	BOOL Save();							// Save and release all
+	BOOL Read(BYTE *buf, int block);				// Sector Read
+	BOOL Write(const BYTE *buf, int block);			// Sector Write
+	BOOL GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
 
 private:
 	// Internal Management
-	void FASTCALL Clear();							// Clear all tracks
-	DiskTrack* FASTCALL Assign(int track);					// Load track
-	BOOL FASTCALL Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
-	void FASTCALL Update();							// Update serial number
+	void Clear();							// Clear all tracks
+	DiskTrack* Assign(int track);					// Load track
+	BOOL Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
+	void Update();							// Update serial number
 
 	// Internal data
 	cache_t cache[CacheMax];						// Cache management
@@ -182,82 +183,81 @@ public:
 
 public:
 	// Basic Functions
-	Disk();									// Constructor
+	Disk(std::string);							// Constructor
 	virtual ~Disk();							// Destructor
-	virtual void FASTCALL Reset();						// Device Reset
+	virtual void Reset();						// Device Reset
 
 	// ID
-	const std::string& FASTCALL GetID() const;			// Get media ID
-	bool FASTCALL IsNULL() const;						// NULL check
-	bool FASTCALL IsSASI() const;						// SASI Check
-	bool FASTCALL IsSCSI() const;						// SASI Check
-	bool FASTCALL IsCdRom() const;
-	bool FASTCALL IsMo() const;
-	bool FASTCALL IsBridge() const;
-	bool FASTCALL IsDaynaPort() const;
-	bool FASTCALL IsNuvolink() const;
+	const std::string& GetID() const;			// Get media ID
+	bool IsSASI() const;						// SASI Check
+	bool IsSCSI() const;						// SASI Check
+	bool IsCdRom() const;
+	bool IsMo() const;
+	bool IsBridge() const;
+	bool IsDaynaPort() const;
+	bool IsNuvolink() const;
 
 	// Media Operations
-	virtual BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);	// Open
-	void FASTCALL GetPath(Filepath& path) const;				// Get the path
-	void FASTCALL Eject(BOOL force);					// Eject
-	BOOL FASTCALL IsReady() const		{ return disk.ready; }		// Ready check
-	void FASTCALL WriteP(BOOL flag);					// Set Write Protect flag
-	BOOL FASTCALL IsWriteP() const		{ return disk.writep; }		// Get write protect flag
-	BOOL FASTCALL IsReadOnly() const	{ return disk.readonly; }	// Get read only flag
-	BOOL FASTCALL IsRemovable() const	{ return disk.removable; }	// Get is removable flag
-	BOOL FASTCALL IsLocked() const		{ return disk.lock; }		// Get locked status
-	BOOL FASTCALL IsAttn() const		{ return disk.attn; }		// Get attention flag
-	BOOL FASTCALL Flush();							// Flush the cache
+	virtual BOOL Open(const Filepath& path, BOOL attn = TRUE);	// Open
+	void GetPath(Filepath& path) const;				// Get the path
+	void Eject(BOOL force);					// Eject
+	BOOL IsReady() const		{ return disk.ready; }		// Ready check
+	void WriteP(BOOL flag);					// Set Write Protect flag
+	BOOL IsWriteP() const		{ return disk.writep; }		// Get write protect flag
+	BOOL IsReadOnly() const	{ return disk.readonly; }	// Get read only flag
+	BOOL IsRemovable() const	{ return disk.removable; }	// Get is removable flag
+	BOOL IsLocked() const		{ return disk.lock; }		// Get locked status
+	BOOL IsAttn() const		{ return disk.attn; }		// Get attention flag
+	BOOL Flush();							// Flush the cache
 
 	// Properties
-	void FASTCALL SetLUN(DWORD lun)		{ disk.lun = lun; }		// LUN set
-	DWORD FASTCALL GetLUN()			{ return disk.lun; }		// LUN get
+	void SetLUN(DWORD lun)		{ disk.lun = lun; }		// LUN set
+	DWORD GetLUN()			{ return disk.lun; }		// LUN get
 
 	// commands
-	virtual int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);// INQUIRY command
-	virtual int FASTCALL RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
-	int FASTCALL SelectCheck(const DWORD *cdb);				// SELECT check
-	int FASTCALL SelectCheck10(const DWORD *cdb);				// SELECT(10) check
-	virtual BOOL FASTCALL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
-	virtual int FASTCALL ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
-	virtual int FASTCALL ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
-	int FASTCALL ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
-	virtual BOOL FASTCALL TestUnitReady(const DWORD *cdb);			// TEST UNIT READY command
-	BOOL FASTCALL Rezero(const DWORD *cdb);					// REZERO command
-	BOOL FASTCALL Format(const DWORD *cdb);					// FORMAT UNIT command
-	BOOL FASTCALL Reassign(const DWORD *cdb);				// REASSIGN UNIT command
-	virtual int FASTCALL Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
-	virtual int FASTCALL WriteCheck(DWORD block);					// WRITE check
-	virtual BOOL FASTCALL Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
-	BOOL FASTCALL Seek(const DWORD *cdb);					// SEEK command
-	BOOL FASTCALL Assign(const DWORD *cdb);					// ASSIGN command
-	BOOL FASTCALL Specify(const DWORD *cdb);				// SPECIFY command
-	BOOL FASTCALL StartStop(const DWORD *cdb);				// START STOP UNIT command
-	BOOL FASTCALL SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
-	BOOL FASTCALL Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	int FASTCALL ReadCapacity(const DWORD *cdb, BYTE *buf);			// READ CAPACITY command
-	BOOL FASTCALL Verify(const DWORD *cdb);					// VERIFY command
-	virtual int FASTCALL ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
-	virtual BOOL FASTCALL PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
-	virtual BOOL FASTCALL PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
-	virtual BOOL FASTCALL PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);// INQUIRY command
+	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
+	int SelectCheck(const DWORD *cdb);				// SELECT check
+	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
+	virtual BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
+	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
+	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
+	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
+	virtual BOOL TestUnitReady(const DWORD *cdb);			// TEST UNIT READY command
+	BOOL Rezero(const DWORD *cdb);					// REZERO command
+	BOOL Format(const DWORD *cdb);					// FORMAT UNIT command
+	BOOL Reassign(const DWORD *cdb);				// REASSIGN UNIT command
+	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
+	virtual int WriteCheck(DWORD block);					// WRITE check
+	virtual BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
+	BOOL Seek(const DWORD *cdb);					// SEEK command
+	BOOL Assign(const DWORD *cdb);					// ASSIGN command
+	BOOL Specify(const DWORD *cdb);				// SPECIFY command
+	BOOL StartStop(const DWORD *cdb);				// START STOP UNIT command
+	BOOL SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
+	BOOL Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
+	int ReadCapacity(const DWORD *cdb, BYTE *buf);			// READ CAPACITY command
+	BOOL Verify(const DWORD *cdb);					// VERIFY command
+	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
+	virtual BOOL PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
+	virtual BOOL PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
+	virtual BOOL PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
 
 	// Other
-	bool FASTCALL IsCacheWB();								// Get cache writeback mode
-	void FASTCALL SetCacheWB(BOOL enable);						// Set cache writeback mode
+	bool IsCacheWB();								// Get cache writeback mode
+	void SetCacheWB(BOOL enable);						// Set cache writeback mode
 
 protected:
 	// Internal processing
-	virtual int FASTCALL AddError(BOOL change, BYTE *buf);			// Add error
-	virtual int FASTCALL AddFormat(BOOL change, BYTE *buf);			// Add format
-	virtual int FASTCALL AddDrive(BOOL change, BYTE *buf);			// Add drive
-	int FASTCALL AddOpt(BOOL change, BYTE *buf);				// Add optical
-	int FASTCALL AddCache(BOOL change, BYTE *buf);				// Add cache
-	int FASTCALL AddCDROM(BOOL change, BYTE *buf);				// Add CD-ROM
-	int FASTCALL AddCDDA(BOOL change, BYTE *buf);				// Add CD_DA
-	virtual int FASTCALL AddVendor(int page, BOOL change, BYTE *buf);	// Add vendor special info
-	BOOL FASTCALL CheckReady();						// Check if ready
+	virtual int AddError(BOOL change, BYTE *buf);			// Add error
+	virtual int AddFormat(BOOL change, BYTE *buf);			// Add format
+	virtual int AddDrive(BOOL change, BYTE *buf);			// Add drive
+	int AddOpt(BOOL change, BYTE *buf);				// Add optical
+	int AddCache(BOOL change, BYTE *buf);				// Add cache
+	int AddCDROM(BOOL change, BYTE *buf);				// Add CD-ROM
+	int AddCDDA(BOOL change, BYTE *buf);				// Add CD_DA
+	virtual int AddVendor(int page, BOOL change, BYTE *buf);	// Add vendor special info
+	BOOL CheckReady();						// Check if ready
 
 	// Internal data
 	disk_t disk;								// Internal disk data

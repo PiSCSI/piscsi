@@ -147,72 +147,72 @@ public:
 	// Basic Functions
 	SASIDEV();
 	virtual ~SASIDEV();							// Destructor
-	virtual void FASTCALL Reset();						// Device Reset
+	virtual void Reset();						// Device Reset
 
 	// External API
-	virtual BUS::phase_t FASTCALL Process();				// Run
+	virtual BUS::phase_t Process();				// Run
 
 	// Connect
-	void FASTCALL Connect(int id, BUS *sbus);				// Controller connection
-	Disk* FASTCALL GetUnit(int no);						// Get logical unit
-	void FASTCALL SetUnit(int no, Disk *dev);				// Logical unit setting
-	BOOL FASTCALL HasUnit();						// Has a valid logical unit
+	void Connect(int id, BUS *sbus);				// Controller connection
+	Disk* GetUnit(int no);						// Get logical unit
+	void SetUnit(int no, Disk *dev);				// Logical unit setting
+	BOOL HasUnit();						// Has a valid logical unit
 
 	// Other
-	BUS::phase_t FASTCALL GetPhase() {return ctrl.phase;}			// Get the phase
+	BUS::phase_t GetPhase() {return ctrl.phase;}			// Get the phase
 	#ifdef DISK_LOG
 
 	// Function to get the current phase as a String.
-	void FASTCALL GetPhaseStr(char *str);			
+	void GetPhaseStr(char *str);			
 	#endif
 
-	int FASTCALL GetSCSIID() {return ctrl.m_scsi_id;}					// Get the ID
-	void FASTCALL GetCTRL(ctrl_t *buffer);					// Get the internal information
-	ctrl_t* FASTCALL GetWorkAddr() { return &ctrl; }			// Get the internal information address
-	virtual BOOL FASTCALL IsSASI() const {return TRUE;}			// SASI Check
-	virtual BOOL FASTCALL IsSCSI() const {return FALSE;}			// SCSI check
-	Disk* FASTCALL GetBusyUnit();						// Get the busy unit
+	int GetSCSIID() {return ctrl.m_scsi_id;}					// Get the ID
+	void GetCTRL(ctrl_t *buffer);					// Get the internal information
+	ctrl_t* GetWorkAddr() { return &ctrl; }			// Get the internal information address
+	virtual BOOL IsSASI() const {return TRUE;}			// SASI Check
+	virtual BOOL IsSCSI() const {return FALSE;}			// SCSI check
+	Disk* GetBusyUnit();						// Get the busy unit
 
 protected:
 	// Phase processing
-	virtual void FASTCALL BusFree();					// Bus free phase
-	virtual void FASTCALL Selection();					// Selection phase
-	virtual void FASTCALL Command();					// Command phase
-	virtual void FASTCALL Execute();					// Execution phase
-	void FASTCALL Status();							// Status phase
-	void FASTCALL MsgIn();							// Message in phase
-	void FASTCALL DataIn();							// Data in phase
-	void FASTCALL DataOut();						// Data out phase
-	virtual void FASTCALL Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+	virtual void BusFree();					// Bus free phase
+	virtual void Selection();					// Selection phase
+	virtual void Command();					// Command phase
+	virtual void Execute();					// Execution phase
+	void Status();							// Status phase
+	void MsgIn();							// Message in phase
+	void DataIn();							// Data in phase
+	void DataOut();						// Data out phase
+	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
 
 	// commands
-	void FASTCALL CmdTestUnitReady();					// TEST UNIT READY command
-	void FASTCALL CmdRezero();						// REZERO UNIT command
-	void FASTCALL CmdRequestSense();					// REQUEST SENSE command
-	void FASTCALL CmdFormat();						// FORMAT command
-	void FASTCALL CmdReassign();						// REASSIGN BLOCKS command
-	void FASTCALL CmdReserveUnit();						// RESERVE UNIT command
-	void FASTCALL CmdReleaseUnit();						// RELEASE UNIT command
-	void FASTCALL CmdRead6();						// READ(6) command
-	void FASTCALL CmdWrite6();						// WRITE(6) command
-	void FASTCALL CmdSeek6();						// SEEK(6) command
-	void FASTCALL CmdAssign();						// ASSIGN command
-	void FASTCALL CmdSpecify();						// SPECIFY command
-	void FASTCALL CmdInvalid();						// Unsupported command
-	void FASTCALL DaynaPortWrite();					// DaynaPort specific 'write' operation
+	void CmdTestUnitReady();					// TEST UNIT READY command
+	void CmdRezero();						// REZERO UNIT command
+	void CmdRequestSense();					// REQUEST SENSE command
+	void CmdFormat();						// FORMAT command
+	void CmdReassign();						// REASSIGN BLOCKS command
+	void CmdReserveUnit();						// RESERVE UNIT command
+	void CmdReleaseUnit();						// RELEASE UNIT command
+	void CmdRead6();						// READ(6) command
+	void CmdWrite6();						// WRITE(6) command
+	void CmdSeek6();						// SEEK(6) command
+	void CmdAssign();						// ASSIGN command
+	void CmdSpecify();						// SPECIFY command
+	void CmdInvalid();						// Unsupported command
+	void DaynaPortWrite();					// DaynaPort specific 'write' operation
 	// データ転送
-	virtual void FASTCALL Send();						// Send data
+	virtual void Send();						// Send data
 
-	virtual void FASTCALL Receive();					// Receive data
+	virtual void Receive();					// Receive data
 
-	BOOL FASTCALL XferIn(BYTE* buf);					// Data transfer IN
-	BOOL FASTCALL XferOut(BOOL cont);					// Data transfer OUT
+	BOOL XferIn(BYTE* buf);					// Data transfer IN
+	BOOL XferOut(BOOL cont);					// Data transfer OUT
 
 	// Special operations
-	void FASTCALL FlushUnit();						// Flush the logical unit
+	void FlushUnit();						// Flush the logical unit
 
-        DWORD FASTCALL GetLun();                                           // Get the validated LUN
+        DWORD GetLun();                                           // Get the validated LUN
 
 protected:
 	ctrl_t ctrl;								// Internal data
