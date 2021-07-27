@@ -37,14 +37,14 @@ CDTrack::CDTrack(SCSICD *scsicd)
 	cdrom = scsicd;
 
 	// Track defaults to disabled
-	valid = FALSE;
+	valid = false;
 
 	// Initialize other data
 	track_no = -1;
 	first_lba = 0;
 	last_lba = 0;
-	audio = FALSE;
-	raw = FALSE;
+	audio = false;
+	raw = false;
 }
 
 //---------------------------------------------------------------------------
@@ -69,13 +69,13 @@ BOOL CDTrack::Init(int track, DWORD first, DWORD last)
 
 	// Set and enable track number
 	track_no = track;
-	valid = TRUE;
+	valid = true;
 
 	// Remember LBA
 	first_lba = first;
 	last_lba = last;
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -120,7 +120,7 @@ void CDTrack::AddIndex(int index, DWORD lba)
 	ASSERT(lba <= last_lba);
 
 	// Currently does not support indexes
-	ASSERT(FALSE);
+	ASSERT(false);
 }
 
 //---------------------------------------------------------------------------
@@ -183,23 +183,23 @@ int CDTrack::GetTrackNo() const
 //---------------------------------------------------------------------------
 BOOL CDTrack::IsValid(DWORD lba) const
 {
-	// FALSE if the track itself is invalid
+	// false if the track itself is invalid
 	if (!valid) {
-		return FALSE;
+		return false;
 	}
 
 	// If the block is BEFORE the first block
 	if (lba < first_lba) {
-		return FALSE;
+		return false;
 	}
 
 	// If the block is AFTER the last block
 	if (last_lba < lba) {
-		return FALSE;
+		return false;
 	}
 
 	// This track is valid
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -252,11 +252,11 @@ CDDABuf::~CDDABuf()
 SCSICD::SCSICD() : Disk("SCCD")
 {
 	// removable, write protected
-	disk.removable = TRUE;
-	disk.writep = TRUE;
+	disk.removable = true;
+	disk.writep = true;
 
 	// NOT in raw format
-	rawfile = FALSE;
+	rawfile = false;
 
 	// Frame initialization
 	frame = 0;
@@ -296,12 +296,12 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 
 	// Initialization, track clear
 	disk.blocks = 0;
-	rawfile = FALSE;
+	rawfile = false;
 	ClearTrack();
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return false;
 	}
 
 	// Close and transfer for physical CD access
@@ -311,14 +311,14 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 
 		// Open physical CD
 		if (!OpenPhysical(path)) {
-			return FALSE;
+			return false;
 		}
 	} else {
 		// Get file size
         size = fio.GetFileSize();
 		if (size <= 4) {
 			fio.Close();
-			return FALSE;
+			return false;
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
@@ -330,12 +330,12 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 		if (xstrncasecmp(file, _T("FILE"), 4) == 0) {
 			// Open as CUE
 			if (!OpenCue(path)) {
-				return FALSE;
+				return false;
 			}
 		} else {
 			// Open as ISO
 			if (!OpenIso(path)) {
-				return FALSE;
+				return false;
 			}
 		}
 	}
@@ -352,14 +352,14 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 	disk.dcache->SetRawMode(rawfile);
 
 	// Since it is a ROM media, writing is not possible
-	disk.writep = TRUE;
+	disk.writep = true;
 
 	// Attention if ready
 	if (disk.ready && attn) {
-		disk.attn = TRUE;
+		disk.attn = true;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -370,7 +370,7 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 BOOL SCSICD::OpenCue(const Filepath& /*path*/)
 {
 	// Always fail
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -386,53 +386,53 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return false;
 	}
 
 	// Get file size
 	off64_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
-		return FALSE;
+		return false;
 	}
 
 	// Read the first 12 bytes and close
 	if (!fio.Read(header, sizeof(header))) {
 		fio.Close();
-		return FALSE;
+		return false;
 	}
 
 	// Check if it is RAW format
 	memset(sync, 0xff, sizeof(sync));
 	sync[0] = 0x00;
 	sync[11] = 0x00;
-	rawfile = FALSE;
+	rawfile = false;
 	if (memcmp(header, sync, sizeof(sync)) == 0) {
 		// 00,FFx10,00, so it is presumed to be RAW format
 		if (!fio.Read(header, 4)) {
 			fio.Close();
-			return FALSE;
+			return false;
 		}
 
 		// Supports MODE1/2048 or MODE1/2352 only
 		if (header[3] != 0x01) {
 			// Different mode
 			fio.Close();
-			return FALSE;
+			return false;
 		}
 
 		// Set to RAW file
-		rawfile = TRUE;
+		rawfile = true;
 	}
 	fio.Close();
 
 	if (rawfile) {
 		// Size must be a multiple of 2536 and less than 700MB
 		if (size % 0x930) {
-			return FALSE;
+			return false;
 		}
 		if (size > 912579600) {
-			return FALSE;
+			return false;
 		}
 
 		// Set the number of blocks
@@ -440,10 +440,10 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 	} else {
 		// Size must be a multiple of 2048 and less than 700MB
 		if (size & 0x7ff) {
-			return FALSE;
+			return false;
 		}
 		if (size > 0x2bed5000) {
-			return FALSE;
+			return false;
 		}
 
 		// Set the number of blocks
@@ -454,12 +454,12 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
 	track[0]->Init(1, 0, disk.blocks - 1);
-	track[0]->SetPath(FALSE, path);
+	track[0]->SetPath(false, path);
 	tracks = 1;
 	dataindex = 0;
 
 	// Successful opening
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -472,14 +472,14 @@ BOOL SCSICD::OpenPhysical(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return false;
 	}
 
 	// Get size
 	off64_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
-		return FALSE;
+		return false;
 	}
 
 	// Close
@@ -487,10 +487,10 @@ BOOL SCSICD::OpenPhysical(const Filepath& path)
 
 	// Size must be a multiple of 2048 and less than 700MB
 	if (size & 0x7ff) {
-		return FALSE;
+		return false;
 	}
 	if (size > 0x2bed5000) {
-		return FALSE;
+		return false;
 	}
 
 	// Set the number of blocks
@@ -500,12 +500,12 @@ BOOL SCSICD::OpenPhysical(const Filepath& path)
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
 	track[0]->Init(1, 0, disk.blocks - 1);
-	track[0]->SetPath(FALSE, path);
+	track[0]->SetPath(false, path);
 	tracks = 1;
 	dataindex = 0;
 
 	// Successful opening
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -525,7 +525,7 @@ int SCSICD::Inquiry(
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		disk.code = DISK_INVALIDCDB;
-		return FALSE;
+		return false;
 	}
 
 	// Basic data
@@ -678,9 +678,9 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 
 	// Get MSF Flag
 	if (cdb[1] & 0x02) {
-		msf = TRUE;
+		msf = true;
 	} else {
-		msf = FALSE;
+		msf = false;
 	}
 
 	// Get and check the last track number
@@ -779,7 +779,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 BOOL SCSICD::PlayAudio(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -790,7 +790,7 @@ BOOL SCSICD::PlayAudio(const DWORD* /*cdb*/)
 BOOL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -801,7 +801,7 @@ BOOL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
 BOOL SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -913,11 +913,11 @@ BOOL SCSICD::NextFrame()
 	// set the frame in the range 0-74
 	frame = (frame + 1) % 75;
 
-	// FALSE after one lap
+	// false after one lap
 	if (frame != 0) {
-		return TRUE;
+		return true;
 	} else {
-		return FALSE;
+		return false;
 	}
 }
 

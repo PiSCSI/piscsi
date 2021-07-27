@@ -74,10 +74,10 @@ BOOL Banner(int argc, char* argv[])
 		printf(" BID is rascsi board SCSI ID {0|1|2|3|4|5|6|7}. Default is 7.\n");
 		printf(" FILE is HDS file path.\n");
 		printf(" -r is restore operation.\n");
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -89,26 +89,26 @@ BOOL Init()
 {
 	// Interrupt handler setting
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
 	// GPIO Initialization
 	if (!bus.Init(BUS::INITIATOR)) {
-		return FALSE;
+		return false;
 	}
 
 	// Work Intitialization
 	targetid = -1;
 	boardid = 7;
-	restore = FALSE;
+	restore = false;
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -163,7 +163,7 @@ BOOL ParseArgument(int argc, char* argv[])
 				break;
 
 			case 'r':
-				restore = TRUE;
+				restore = true;
 				break;
 		}
 	}
@@ -172,33 +172,33 @@ BOOL ParseArgument(int argc, char* argv[])
 	if (targetid < 0 || targetid > 7) {
 		fprintf(stderr,
 			"Error : Invalid target id range\n");
-		return FALSE;
+		return false;
 	}
 
 	// BOARD ID check
 	if (boardid < 0 || boardid > 7) {
 		fprintf(stderr,
 			"Error : Invalid board id range\n");
-		return FALSE;
+		return false;
 	}
 
 	// Target and Board ID duplication check
 	if (targetid == boardid) {
 		fprintf(stderr,
 			"Error : Invalid target or board id\n");
-		return FALSE;
+		return false;
 	}
 
 	// File Check
 	if (!file) {
 		fprintf(stderr,
 			"Error : Invalid file path\n");
-		return FALSE;
+		return false;
 	}
 
 	hdsfile.SetPath(file);
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -215,11 +215,11 @@ BOOL WaitPhase(BUS::phase_t phase)
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Aquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -248,7 +248,7 @@ BOOL Selection(int id)
 	data |= (1 << boardid);
 	data |= (1 << id);
 	bus.SetDAT(data);
-	bus.SetSEL(TRUE);
+	bus.SetSEL(true);
 
 	// wait for busy
 	count = 10000;
@@ -261,7 +261,7 @@ BOOL Selection(int id)
 	} while (count--);
 
 	// SEL negate
-	bus.SetSEL(FALSE);
+	bus.SetSEL(false);
 
 	// Success if the target is busy
 	return bus.GetBSY();
@@ -278,7 +278,7 @@ BOOL Command(BYTE *buf, int length)
 
 	// Waiting for Phase
 	if (!WaitPhase(BUS::command)) {
-		return FALSE;
+		return false;
 	}
 
 	// Send Command
@@ -287,11 +287,11 @@ BOOL Command(BYTE *buf, int length)
 	// Success if the transmission result is the same as the number 
 	// of requests
 	if (count == length) {
-		return TRUE;
+		return true;
 	}
 
 	// Return error
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -853,9 +853,9 @@ int main(int argc, char* argv[])
 	BusFree();
 
 	// Assert reset signal
-	bus.SetRST(TRUE);
+	bus.SetRST(true);
 	usleep(1000);
-	bus.SetRST(FALSE);
+	bus.SetRST(false);
 
 	// Start dump
 	printf("TARGET ID               : %d\n", targetid);

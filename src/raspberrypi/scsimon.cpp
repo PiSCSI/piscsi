@@ -78,7 +78,7 @@ char log_file_name[_MAX_FNAME/2] = "log.vcd";
 void KillHandler(int sig)
 {
 	// Stop instruction
-	running = FALSE;
+	running = false;
 }
 
 //---------------------------------------------------------------------------
@@ -121,13 +121,13 @@ BOOL Init()
 {
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
 	// GPIOBUS creation
@@ -136,17 +136,17 @@ BOOL Init()
 	// GPIO Initialization
 	if (!bus->Init()) {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....");
-		return FALSE;
+		return false;
 	}
 
 	// Bus Reset
 	bus->Reset();
 
 	// Other
-	running = FALSE;
-	active = FALSE;
+	running = false;
+	active = false;
 
-	return TRUE;
+	return true;
 }
 
 BOOL get_pin_value(DWORD data, int pin)
@@ -409,8 +409,8 @@ int main(int argc, char* argv[])
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 
 	// Start execution
-	running = TRUE;
-	bus->SetACT(FALSE);
+	running = true;
+	bus->SetACT(false);
 
     (void)gettimeofday(&start_time, NULL);
 

@@ -94,14 +94,6 @@ typedef char *LPTSTR;
 typedef const char *LPCTSTR;
 typedef const char *LPCSTR;
 
-#if !defined(FALSE)
-#define FALSE               0
-#endif
-
-#if !defined(TRUE)
-#define TRUE                1
-#endif
-
 #if !defined(_T)
 #define _T(x)	x
 #endif

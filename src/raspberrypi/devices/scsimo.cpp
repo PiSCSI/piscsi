@@ -32,7 +32,7 @@
 SCSIMO::SCSIMO() : Disk("SCMO")
 {
 	// Set as removable
-	disk.removable = TRUE;
+	disk.removable = true;
 }
 
 //---------------------------------------------------------------------------
@@ -47,7 +47,7 @@ BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return false;
 	}
 
 	// Get file size
@@ -81,7 +81,7 @@ BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
 
 		// Other (this is an error)
 		default:
-			return FALSE;
+			return false;
 	}
 
 	// Call the base class
@@ -89,10 +89,10 @@ BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
 
 	// Attention if ready
 	if (disk.ready && attn) {
-		disk.attn = TRUE;
+		disk.attn = true;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -113,7 +113,7 @@ int SCSIMO::Inquiry(
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		disk.code = DISK_INVALIDCDB;
-		return FALSE;
+		return false;
 	}
 
 	// Basic data
@@ -186,7 +186,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
 				// Currently does not allow changing sector length
 				disk.code = DISK_INVALIDPRM;
-				return FALSE;
+				return false;
 			}
 			buf += 12;
 			length -= 12;
@@ -206,7 +206,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 						buf[0xd] != (BYTE)size) {
 						// Currently does not allow changing sector length
 						disk.code = DISK_INVALIDPRM;
-						return FALSE;
+						return false;
 					}
 					break;
 				// vendor unique format
@@ -229,7 +229,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	// Do not generate an error for the time being (MINIX)
 	disk.code = DISK_NOERROR;
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------

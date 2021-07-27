@@ -75,7 +75,7 @@
 //---------------------------------------------------------------------------
 //
 //	Control signal output logic
-//	  0V:FALSE  3.3V:TRUE
+//	  0V:false  3.3V:true
 //
 //	  ACT_ON
 //	    PIN_ACT signal
@@ -115,11 +115,11 @@
 #define PIN_DTD		-1						// DATA DIRECTION
 
 // Control signal output logic
-#define ACT_ON		TRUE					// ACTIVE SIGNAL ON
-#define ENB_ON		TRUE					// ENABLE SIGNAL ON
-#define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
-#define TAD_IN		FALSE					// TARGET SIGNAL INPUT
-#define DTD_IN		TRUE					// DATA SIGNAL INPUT
+#define ACT_ON		true					// ACTIVE SIGNAL ON
+#define ENB_ON		true					// ENABLE SIGNAL ON
+#define IND_IN		false					// INITIATOR SIGNAL INPUT
+#define TAD_IN		false					// TARGET SIGNAL INPUT
+#define DTD_IN		true					// DATA SIGNAL INPUT
 
 // SCSI signal pin assignment
 #define	PIN_DT0		10						// Data 0
@@ -159,11 +159,11 @@
 #define PIN_DTD		8						// DATA DIRECTION
 
 // Control signal output logic
-#define ACT_ON		TRUE					// ACTIVE SIGNAL ON
-#define ENB_ON		TRUE					// ENABLE SIGNAL ON
-#define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
-#define TAD_IN		FALSE					// TARGET SIGNAL INPUT
-#define DTD_IN		TRUE					// DATA SIGNAL INPUT
+#define ACT_ON		true					// ACTIVE SIGNAL ON
+#define ENB_ON		true					// ENABLE SIGNAL ON
+#define IND_IN		false					// INITIATOR SIGNAL INPUT
+#define TAD_IN		false					// TARGET SIGNAL INPUT
+#define DTD_IN		true					// DATA SIGNAL INPUT
 
 // SCSI signal pin assignment
 #define	PIN_DT0		10						// Data 0
@@ -197,11 +197,11 @@
 #define SIGNAL_CONTROL_MODE 2				// SCSI positive logic specification
 
 // Control signal output logic
-#define ACT_ON		TRUE					// ACTIVE SIGNAL ON
-#define ENB_ON		TRUE					// ENABLE SIGNAL ON
-#define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
-#define TAD_IN		FALSE					// TARGET SIGNAL INPUT
-#define DTD_IN		FALSE					// DATA SIGNAL INPUT
+#define ACT_ON		true					// ACTIVE SIGNAL ON
+#define ENB_ON		true					// ENABLE SIGNAL ON
+#define IND_IN		false					// INITIATOR SIGNAL INPUT
+#define TAD_IN		false					// TARGET SIGNAL INPUT
+#define DTD_IN		false					// DATA SIGNAL INPUT
 
 // Control signal pin assignment (-1 means no control)
 #define	PIN_ACT		4						// ACTIVE
@@ -242,11 +242,11 @@
 #define SIGNAL_CONTROL_MODE 0				// SCSI logical specification
 
 // Control signal output logic
-#define ACT_ON		TRUE					// ACTIVE SIGNAL ON
-#define ENB_ON		TRUE					// ENABLE SIGNAL ON
-#define IND_IN		FALSE					// INITIATOR SIGNAL INPUT
-#define TAD_IN		FALSE					// TARGET SIGNAL INPUT
-#define DTD_IN		TRUE					// DATA SIGNAL INPUT
+#define ACT_ON		true					// ACTIVE SIGNAL ON
+#define ENB_ON		true					// ENABLE SIGNAL ON
+#define IND_IN		false					// INITIATOR SIGNAL INPUT
+#define TAD_IN		false					// TARGET SIGNAL INPUT
+#define DTD_IN		true					// DATA SIGNAL INPUT
 
 // Control signal pin assignment (-1 means no control)
 #define	PIN_ACT		14						// ACTIVE
@@ -424,8 +424,8 @@
 //---------------------------------------------------------------------------
 #define IN		GPIO_INPUT
 #define OUT		GPIO_OUTPUT
-#define ON		TRUE
-#define OFF		FALSE
+#define ON		true
+#define OFF		false
 
 //---------------------------------------------------------------------------
 //

@@ -56,19 +56,19 @@ BOOL Fileio::Load(const Filepath& path, void *buffer, int size)
 
 	// オープン
 	if (!Open(path, ReadOnly)) {
-		return FALSE;
+		return false;
 	}
 
 	// 読み込み
 	if (!Read(buffer, size)) {
 		Close();
-		return FALSE;
+		return false;
 	}
 
 	// クローズ
 	Close();
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -84,19 +84,19 @@ BOOL Fileio::Save(const Filepath& path, void *buffer, int size)
 
 	// オープン
 	if (!Open(path, WriteOnly)) {
-		return FALSE;
+		return false;
 	}
 
 	// 書き込み
 	if (!Write(buffer, size)) {
 		Close();
-		return FALSE;
+		return false;
 	}
 
 	// クローズ
 	Close();
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -114,7 +114,7 @@ BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 	// ヌル文字列からの読み込みは必ず失敗させる
 	if (fname[0] == _T('\0')) {
 		handle = -1;
-		return FALSE;
+		return false;
 	}
 
 	// デフォルトモード
@@ -136,7 +136,7 @@ BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 		case ReadWrite:
 			// CD-ROMからの読み込みはRWが成功してしまう
 			if (access(fname, 0x06) != 0) {
-				return FALSE;
+				return false;
 			}
 			handle = open(fname, O_RDWR | omode);
 			break;
@@ -148,17 +148,17 @@ BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 
 		// それ以外
 		default:
-			ASSERT(FALSE);
+			ASSERT(false);
 			break;
 	}
 
 	// 結果評価
 	if (handle == -1) {
-		return FALSE;
+		return false;
 	}
 
 	ASSERT(handle >= 0);
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -169,7 +169,7 @@ BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 BOOL Fileio::Open(LPCTSTR fname, OpenMode mode)
 {
 
-	return Open(fname, mode, FALSE);
+	return Open(fname, mode, false);
 }
 
 //---------------------------------------------------------------------------
@@ -192,12 +192,12 @@ BOOL Fileio::OpenDIO(LPCTSTR fname, OpenMode mode)
 {
 
 	// O_DIRECT付きでオープン
-	if (!Open(fname, mode, TRUE)) {
+	if (!Open(fname, mode, true)) {
 		// 通常モードリトライ(tmpfs等)
-		return Open(fname, mode, FALSE);
+		return Open(fname, mode, false);
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -227,10 +227,10 @@ BOOL Fileio::Read(void *buffer, int size)
 	// 読み込み
 	count = read(handle, buffer, size);
 	if (count != size) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -249,10 +249,10 @@ BOOL Fileio::Write(const void *buffer, int size)
 	// 書き込み
 	count = write(handle, buffer, size);
 	if (count != size) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -271,10 +271,10 @@ BOOL Fileio::Seek(off64_t offset, BOOL relative)
 	}
 
 	if (lseek(handle, offset, SEEK_SET) != offset) {
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------

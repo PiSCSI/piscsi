@@ -52,7 +52,7 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	}
 
 	// Packet reception flag OFF
-	packet_enable = FALSE;
+	packet_enable = false;
 	#endif
 
 	// Create host file system
@@ -97,7 +97,7 @@ int SCSIBR::Inquiry(
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		disk.code = DISK_INVALIDCDB;
-		return FALSE;
+		return false;
 	}
 
 	// Basic data
@@ -164,7 +164,7 @@ BOOL SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 {
 	// TEST UNIT READY Success
 	disk.code = DISK_NOERROR;
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -252,7 +252,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Error
-	ASSERT(FALSE);
+	ASSERT(false);
 	return 0;
 }
 
@@ -286,17 +286,17 @@ BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
-				return FALSE;
+				return false;
 			}
 
 			switch (func) {
 				case 0:		// MAC address setting
 					SetMacAddr(buf);
-					return TRUE;
+					return true;
 
 				case 1:		// Send packet
 					SendPacket(buf, len);
-					return TRUE;
+					return true;
 			}
 			break;
 
@@ -304,18 +304,18 @@ BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 			switch (phase) {
 				case 0:		// issue command
 					WriteFs(func, buf);
-					return TRUE;
+					return true;
 
 				case 1:		// additional data writing
 					WriteFsOpt(buf, len);
-					return TRUE;
+					return true;
 			}
 			break;
 	}
 
 	// Error
-	ASSERT(FALSE);
-	return FALSE;
+	ASSERT(false);
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -378,7 +378,7 @@ void SCSIBR::ReceivePacket()
 
 	// Store in receive buffer
 	if (packet_len > 0) {
-		packet_enable = TRUE;
+		packet_enable = true;
 	}
 }
 
@@ -402,7 +402,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 	memcpy(buf, packet_buf, len);
 
 	// Received
-	packet_enable = FALSE;
+	packet_enable = false;
 }
 
 //---------------------------------------------------------------------------

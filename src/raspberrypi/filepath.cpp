@@ -154,7 +154,7 @@ BOOL Filepath::Save(Fileio *fio, int /*ver*/)
 {
 	ASSERT(fio);
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -166,7 +166,7 @@ BOOL Filepath::Load(Fileio *fio, int /*ver*/)
 {
 	ASSERT(fio);
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------

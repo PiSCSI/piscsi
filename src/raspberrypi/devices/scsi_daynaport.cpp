@@ -239,7 +239,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 		// This is a very basic filter to prevent unnecessary packets from
 		// being sent to the SCSI initiator. 
-		send_message_to_host = FALSE;
+		send_message_to_host = false;
 
 	// The following doesn't seem to work with unicast messages. Temporarily removing the filtering
 	// functionality.
@@ -247,19 +247,19 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 	///////	// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
 	///////	// of the data.
 	///////	if (memcmp(response->data, m_mac_addr, 6) == 0) {
-	///////		send_message_to_host = TRUE;
+	///////		send_message_to_host = true;
 	///////	}
 
 	///////	// Check to see if this is a broadcast message
 	///////	if (memcmp(response->data, m_bcast_addr, 6) == 0) {
-	///////		send_message_to_host = TRUE;
+	///////		send_message_to_host = true;
 	///////	}
 
 	///////	// Check to see if this is an AppleTalk Message
 	///////	if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
-	///////		send_message_to_host = TRUE;
+	///////		send_message_to_host = true;
 	///////	}
-		send_message_to_host = TRUE;
+		send_message_to_host = true;
 
 		// TODO: We should check to see if this message is in the multicast 
 		// configuration from SCSI command 0x0D
@@ -370,20 +370,20 @@ BOOL SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	if(data_format == 0x00){
 		m_tap->Tx(buf, data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length);
-		return TRUE;
+		return true;
 	}
 	else if (data_format == 0x80){
 		// The data length is actuall specified in the first 2 bytes of the payload
 		data_length=(WORD)buf[1] + ((WORD)buf[0] << 8);
 		m_tap->Tx(&buf[4], data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length);
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		// LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)command->format);
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-		return FALSE;
+		return false;
 	}
 
 }
@@ -508,7 +508,7 @@ BOOL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -522,7 +522,7 @@ BOOL SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 
 	// TEST UNIT READY Success
 	disk.code = DISK_NOERROR;
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------

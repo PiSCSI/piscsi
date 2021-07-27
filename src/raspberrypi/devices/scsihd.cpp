@@ -40,11 +40,11 @@ SCSIHD::SCSIHD() : Disk("SCHD")
 void SCSIHD::Reset()
 {
 	// Unlock and release attention
-	disk.lock = FALSE;
-	disk.attn = FALSE;
+	disk.lock = false;
+	disk.attn = false;
 
 	// No reset, clear code
-	disk.reset = FALSE;
+	disk.reset = false;
 	disk.code = 0x00;
 }
 
@@ -60,7 +60,7 @@ BOOL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 	// read open required
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return false;
 	}
 
 	// Get file size
@@ -69,13 +69,13 @@ BOOL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Must be 512 bytes
 	if (size & 0x1ff) {
-		return FALSE;
+		return false;
 	}
 
     // 2TB according to xm6i
     // There is a similar one in wxw/wxw_cfg.cpp
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		return FALSE;
+		return false;
 	}
 
 	// sector size and number of blocks
@@ -198,7 +198,7 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				buf[11] != (BYTE)size) {
 				// currently does not allow changing sector length
 				disk.code = DISK_INVALIDPRM;
-				return FALSE;
+				return false;
 			}
 			buf += 12;
 			length -= 12;
@@ -218,7 +218,7 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 						buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length
 						disk.code = DISK_INVALIDPRM;
-						return FALSE;
+						return false;
 					}
 					break;
 
@@ -252,5 +252,5 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	// Do not generate an error for the time being (MINIX)
 	disk.code = DISK_NOERROR;
 
-	return TRUE;
+	return true;
 }

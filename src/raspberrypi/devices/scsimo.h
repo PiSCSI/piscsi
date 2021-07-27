@@ -29,7 +29,7 @@ class SCSIMO : public Disk
 public:
 	// Basic Functions
 	SCSIMO();									// Constructor
-	BOOL Open(const Filepath& path, BOOL attn = TRUE);			// Open
+	BOOL Open(const Filepath& path, BOOL attn = true);			// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command

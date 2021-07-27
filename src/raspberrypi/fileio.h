@@ -20,12 +20,12 @@
 //===========================================================================
 #define PROP_IMPORT(f, p) \
 	if (!f->Read(&(p), sizeof(p))) {\
-		return FALSE;\
+		return false;\
 	}\
 
 #define PROP_EXPORT(f, p) \
 	if (!f->Write(&(p), sizeof(p))) {\
-		return FALSE;\
+		return false;\
 	}\
 
 //===========================================================================
@@ -61,7 +61,7 @@ public:
 										// オープン
 	BOOL OpenDIO(const Filepath& path, OpenMode mode);
 										// オープン
-	BOOL Seek(off64_t offset, BOOL relative = FALSE);
+	BOOL Seek(off64_t offset, BOOL relative = false);
 										// シーク
 	BOOL Read(void *buffer, int size);
 										// 読み込み

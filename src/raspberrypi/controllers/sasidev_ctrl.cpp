@@ -144,11 +144,11 @@ BOOL SASIDEV::HasUnit()
 {
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -243,7 +243,7 @@ BUS::phase_t SASIDEV::Process()
 
 		// Other
 		default:
-			ASSERT(FALSE);
+			ASSERT(false);
 			break;
 	}
 
@@ -265,11 +265,11 @@ void SASIDEV::BusFree()
 		ctrl.phase = BUS::busfree;
 
 		// Set Signal lines
-		ctrl.bus->SetREQ(FALSE);
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+		ctrl.bus->SetREQ(false);
+		ctrl.bus->SetMSG(false);
+		ctrl.bus->SetCD(false);
+		ctrl.bus->SetIO(false);
+		ctrl.bus->SetBSY(false);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -309,7 +309,7 @@ void SASIDEV::Selection()
 		ctrl.phase = BUS::selection;
 
 		// Raiase BSY and respond
-		ctrl.bus->SetBSY(TRUE);
+		ctrl.bus->SetBSY(true);
 		return;
 	}
 
@@ -337,9 +337,9 @@ void SASIDEV::Command()
 		ctrl.phase = BUS::command;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(FALSE);
+		ctrl.bus->SetMSG(false);
+		ctrl.bus->SetCD(true);
+		ctrl.bus->SetIO(false);
 
 		// Data transfer is 6 bytes x 1 block
 		ctrl.offset = 0;
@@ -514,9 +514,9 @@ void SASIDEV::Status()
 		ctrl.phase = BUS::status;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(TRUE);
+		ctrl.bus->SetMSG(false);
+		ctrl.bus->SetCD(true);
+		ctrl.bus->SetIO(true);
 
 		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
@@ -548,9 +548,9 @@ void SASIDEV::MsgIn()
 		ctrl.phase = BUS::msgin;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(TRUE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(TRUE);
+		ctrl.bus->SetMSG(true);
+		ctrl.bus->SetCD(true);
+		ctrl.bus->SetIO(true);
 
 		// length, blocks are already set
 		ASSERT(ctrl.length > 0);
@@ -599,9 +599,9 @@ void SASIDEV::DataIn()
 		ctrl.phase = BUS::datain;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(TRUE);
+		ctrl.bus->SetMSG(false);
+		ctrl.bus->SetCD(false);
+		ctrl.bus->SetIO(true);
 
 		// length, blocks are already set
 		ASSERT(ctrl.length > 0);
@@ -651,9 +651,9 @@ void SASIDEV::DataOut()
 		ctrl.phase = BUS::dataout;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(FALSE);
+		ctrl.bus->SetMSG(false);
+		ctrl.bus->SetCD(false);
+		ctrl.bus->SetIO(false);
 
 		// length, blocks are already calculated
 		ASSERT(ctrl.length > 0);
@@ -1155,7 +1155,7 @@ void SASIDEV::Send()
 
 	// Remove block and initialize the result
 	ctrl.blocks--;
-	result = TRUE;
+	result = true;
 
 	// Process after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
@@ -1167,7 +1167,7 @@ void SASIDEV::Send()
 		}
 	}
 
-	// If result FALSE, move to the status phase
+	// If result false, move to the status phase
 	if (!result) {
 		LOGERROR("%s Send result was false", __PRETTY_FUNCTION__);
 		Error();
@@ -1206,7 +1206,7 @@ void SASIDEV::Send()
 
 		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			ASSERT(false);
 			break;
 	}
 }
@@ -1250,16 +1250,16 @@ void SASIDEV::Receive()
 
 	// Remove the control block and initialize the result
 	ctrl.blocks--;
-	result = TRUE;
+	result = true;
 
 	// Process the data out phase
 	if (ctrl.phase == BUS::dataout) {
 		if (ctrl.blocks == 0) {
 			// End with this buffer
-			result = XferOut(FALSE);
+			result = XferOut(false);
 		} else {
 			// Continue to next buffer (set offset, length)
-			result = XferOut(TRUE);
+			result = XferOut(true);
 		}
 	}
 
@@ -1290,7 +1290,7 @@ void SASIDEV::Receive()
 
 		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			ASSERT(false);
 			break;
 	}
 }
@@ -1309,7 +1309,7 @@ BOOL SASIDEV::XferIn(BYTE *buf)
 	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
-		return FALSE;
+		return false;
 	}
 
 	// Limited to read commands
@@ -1325,7 +1325,7 @@ BOOL SASIDEV::XferIn(BYTE *buf)
 			// If there is an error, go to the status phase
 			if (ctrl.length <= 0) {
 				// Cancel data-in
-				return FALSE;
+				return false;
 			}
 
 			// If things are normal, work setting
@@ -1334,12 +1334,12 @@ BOOL SASIDEV::XferIn(BYTE *buf)
 
 		// Other (impossible)
 		default:
-			ASSERT(FALSE);
-			return FALSE;
+			ASSERT(false);
+			return false;
 	}
 
 	// Succeeded in setting the buffer
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1357,7 +1357,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
-		return FALSE;
+		return false;
 	}
 
 	switch ((SASIDEV::scsi_command) ctrl.cmd[0]) {
@@ -1366,7 +1366,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			if (!ctrl.unit[lun]->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
-				return FALSE;
+				return false;
 			}
 			break;
 
@@ -1379,7 +1379,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 				bridge = (SCSIBR*)ctrl.unit[lun];
 				if (!bridge->SendMessage10(ctrl.cmd, ctrl.buffer)) {
 					// write failed
-					return FALSE;
+					return false;
 				}
 
 				// If normal, work setting
@@ -1392,7 +1392,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
 				if (!(SCSIDaynaPort*)ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
-					return FALSE;
+					return false;
 				}
 				LOGTRACE("%s Done with DaynaPort Write", __PRETTY_FUNCTION__);
 
@@ -1405,7 +1405,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			LOGTRACE("%s eCmdWriteAndVerify10 Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
 			if (!ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
-				return FALSE;
+				return false;
 			}
 
 			// If you do not need the next block, end here
@@ -1418,7 +1418,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			ctrl.length = ctrl.unit[lun]->WriteCheck(ctrl.next - 1);
 			if (ctrl.length <= 0) {
 				// Cannot write
-				return FALSE;
+				return false;
 			}
 
 			// If normal, work setting
@@ -1434,12 +1434,12 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			break;
 		default:
 			LOGWARN("Received an unexpected command (%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
-			ASSERT(FALSE);
+			ASSERT(false);
 			break;
 	}
 
 	// Buffer saved successfully
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1500,7 +1500,7 @@ void SASIDEV::FlushUnit()
 			LOGWARN("Received an unexpected flush command %02X!!!!!\n",(WORD)ctrl.cmd[0]);
 			// The following statement makes debugging a huge pain. You can un-comment it
 			// if you're not trying to add new devices....
-			// ASSERT(FALSE);
+			// ASSERT(false);
 			break;
 	}
 }

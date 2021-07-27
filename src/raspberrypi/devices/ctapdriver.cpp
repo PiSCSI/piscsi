@@ -35,7 +35,7 @@ CTapDriver::CTapDriver()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 	// Initialization
-	m_bTxValid = FALSE;
+	m_bTxValid = false;
 	m_hTAP = -1;
 	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
 	m_pcap = NULL;
@@ -54,14 +54,14 @@ static BOOL br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
 		LOGERROR("Error: can't if_nametoindex. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
 	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ);
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		LOGERROR("Error: can't ioctl %s. Errno: %d %s", add ? "SIOCBRADDIF" : "SIOCBRDELIF", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 static BOOL ip_link(int fd, const char* ifname, BOOL up) {
@@ -71,7 +71,7 @@ static BOOL ip_link(int fd, const char* ifname, BOOL up) {
 	err = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (err) {
 		LOGERROR("Error: can't ioctl SIOCGIFFLAGS. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
 	ifr.ifr_flags &= ~IFF_UP;
 	if (up) {
@@ -80,9 +80,9 @@ static BOOL ip_link(int fd, const char* ifname, BOOL up) {
 	err = ioctl(fd, SIOCSIFFLAGS, &ifr);
 	if (err) {
 		LOGERROR("Error: can't ioctl SIOCSIFFLAGS. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 BOOL CTapDriver::Init()
@@ -97,7 +97,7 @@ BOOL CTapDriver::Init()
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
 		LOGERROR("Error: can't open tun. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
 	LOGTRACE("Opened tap device %d",m_hTAP);
 
@@ -110,7 +110,7 @@ BOOL CTapDriver::Init()
 	if ((ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr)) < 0) {
 		LOGERROR("Error: can't ioctl TUNSETIFF. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 	LOGTRACE("return code from ioctl was %d", ret);
 
@@ -118,7 +118,7 @@ BOOL CTapDriver::Init()
 	if ((ip_fd = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
 		LOGERROR("Error: can't open ip socket. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 
 	int br_socket_fd = -1;
@@ -126,7 +126,7 @@ BOOL CTapDriver::Init()
 		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		close(ip_fd);
-		return FALSE;
+		return false;
 	}
 
 	LOGTRACE("Going to see if the bridge is created");
@@ -140,21 +140,21 @@ BOOL CTapDriver::Init()
 			close(m_hTAP);
 			close(ip_fd);
 			close(br_socket_fd);
-			return FALSE;
+			return false;
 		}
 		LOGDEBUG("brctl addif rascsi_bridge eth0");
-		if (!br_setif(br_socket_fd, "rascsi_bridge", "eth0", TRUE)) {
+		if (!br_setif(br_socket_fd, "rascsi_bridge", "eth0", true)) {
 			close(m_hTAP);
 			close(ip_fd);
 			close(br_socket_fd);
-			return FALSE;
+			return false;
 		}
 		LOGDEBUG("ip link set dev rascsi_bridge up");
-		if (!ip_link(ip_fd, "rascsi_bridge", TRUE)) {
+		if (!ip_link(ip_fd, "rascsi_bridge", true)) {
 			close(m_hTAP);
 			close(ip_fd);
 			close(br_socket_fd);
-			return FALSE;
+			return false;
 		}
 	}
 	else
@@ -163,19 +163,19 @@ BOOL CTapDriver::Init()
 	}
 
 	LOGDEBUG("ip link set ras0 up");
-	if (!ip_link(ip_fd, "ras0", TRUE)) {
+	if (!ip_link(ip_fd, "ras0", true)) {
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
-		return FALSE;
+		return false;
 	}
 
 	LOGDEBUG("brctl addif rascsi_bridge ras0");
-	if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", TRUE)) {
+	if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", true)) {
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
-		return FALSE;
+		return false;
 	}
 
 	// Get MAC address
@@ -186,7 +186,7 @@ BOOL CTapDriver::Init()
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
-		return FALSE;
+		return false;
 	}
 	LOGTRACE("got the mac");
 
@@ -197,7 +197,7 @@ BOOL CTapDriver::Init()
 	close(ip_fd);
 	close(br_socket_fd);
 
-	return TRUE;
+	return true;
 }
 #endif // __linux__
 
@@ -210,21 +210,21 @@ BOOL CTapDriver::Init()
 	// TAP Device Initialization
 	if ((m_hTAP = open("/dev/tap", O_RDWR)) < 0) {
 		LOGERROR("Error: can't open tap. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
 
 	// Get device name
 	if (ioctl(m_hTAP, TAPGIFNAME, (void *)&ifr) < 0) {
 		LOGERROR("Error: can't ioctl TAPGIFNAME. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 
 	// Get MAC address
 	if (getifaddrs(&ifa) == -1) {
 		LOGERROR("Error: can't getifaddrs. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 	for (a = ifa; a != NULL; a = a->ifa_next)
 		if (strcmp(ifr.ifr_name, a->ifa_name) == 0 &&
@@ -233,7 +233,7 @@ BOOL CTapDriver::Init()
 	if (a == NULL) {
 		LOGERROR("Error: can't get MAC addressErrno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 
 	// Save MAC address
@@ -243,7 +243,7 @@ BOOL CTapDriver::Init()
 
 	LOGINFO("Tap device : %s\n", ifr.ifr_name);
 
-	return TRUE;
+	return true;
 }
 #endif // __NetBSD__
 
@@ -257,10 +257,10 @@ BOOL CTapDriver::OpenDump(const Filepath& path) {
 	m_pcap_dumper = pcap_dump_open(m_pcap, path.GetPath());
 	if (m_pcap_dumper == NULL) {
 		LOGERROR("Error: can't open pcap file: %s", pcap_geterr(m_pcap));
-		return FALSE;
+		return false;
 	}
 	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath());
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -275,7 +275,7 @@ void CTapDriver::Cleanup()
 		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
 	} else {
 		LOGDEBUG("brctl delif rascsi_bridge ras0");
-		if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", FALSE)) {
+		if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", false)) {
 			LOGWARN("Warning: Removing ras0 from the bridge failed.");
 			LOGWARN("You may need to manually remove the ras0 tap device from the bridge");
 		}
@@ -305,7 +305,7 @@ void CTapDriver::Cleanup()
 BOOL CTapDriver::Enable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
-	BOOL result = ip_link(fd, "ras0", TRUE);
+	BOOL result = ip_link(fd, "ras0", true);
 	close(fd);
 	return result;
 }
@@ -318,7 +318,7 @@ BOOL CTapDriver::Enable(){
 BOOL CTapDriver::Disable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
-	BOOL result = ip_link(fd, "ras0", FALSE);
+	BOOL result = ip_link(fd, "ras0", false);
 	close(fd);
 	return result;
 }
@@ -333,7 +333,7 @@ BOOL CTapDriver::Flush(){
 	while(PendingPackets()){
 		(void)Rx(m_garbage_buffer);
 	}
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -366,9 +366,9 @@ BOOL CTapDriver::PendingPackets()
 	poll(&fds, 1, 0);
 	LOGTRACE("%s %u revents", __PRETTY_FUNCTION__, fds.revents);
 	if (!(fds.revents & POLLIN)) {
-		return FALSE;
+		return false;
 	}else {
-		return TRUE;
+		return true;
 	}
 }
 

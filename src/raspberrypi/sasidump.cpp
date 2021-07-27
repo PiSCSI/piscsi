@@ -87,10 +87,10 @@ BOOL Banner(int argc, char* argv[])
 		printf(" COUNT is block count.\n");
 		printf(" FILE is HDF file path.\n");
 		printf(" -r is restore operation.\n");
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -102,18 +102,18 @@ BOOL Init()
 {
 	// 割り込みハンドラ設定
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
 	// GPIO初期化
 	if (!bus.Init(BUS::INITIATOR)) {
-		return FALSE;
+		return false;
 	}
 
 	// ワーク初期化
@@ -121,9 +121,9 @@ BOOL Init()
 	unitid = 0;
 	bsiz = 256;
 	bnum = -1;
-	restore = FALSE;
+	restore = false;
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -186,7 +186,7 @@ BOOL ParseArgument(int argc, char* argv[])
 				break;
 
 			case 'r':
-				restore = TRUE;
+				restore = true;
 				break;
 		}
 	}
@@ -195,40 +195,40 @@ BOOL ParseArgument(int argc, char* argv[])
 	if (targetid < 0 || targetid > 7) {
 		fprintf(stderr,
 			"Error : Invalid target id range\n");
-		return FALSE;
+		return false;
 	}
 
 	// UNIT IDチェック
 	if (unitid < 0 || unitid > 1) {
 		fprintf(stderr,
 			"Error : Invalid unit id range\n");
-		return FALSE;
+		return false;
 	}
 
 	// BSIZチェック
 	if (bsiz != 256 && bsiz != 512 && bsiz != 1024) {
 		fprintf(stderr,
 			"Error : Invalid block size\n");
-		return FALSE;
+		return false;
 	}
 
 	// BNUMチェック
 	if (bnum < 0) {
 		fprintf(stderr,
 			"Error : Invalid block count\n");
-		return FALSE;
+		return false;
 	}
 
 	// ファイルチェック
 	if (!file) {
 		fprintf(stderr,
 			"Error : Invalid file path\n");
-		return FALSE;
+		return false;
 	}
 
 	hdffile.SetPath(file);
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -245,11 +245,11 @@ BOOL WaitPhase(BUS::phase_t phase)
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Aquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -277,7 +277,7 @@ BOOL Selection(int id)
 	data = 0;
 	data |= (1 << id);
 	bus.SetDAT(data);
-	bus.SetSEL(TRUE);
+	bus.SetSEL(true);
 
 	// BSYを待つ
 	count = 10000;
@@ -290,7 +290,7 @@ BOOL Selection(int id)
 	} while (count--);
 
 	// SELネゲート
-	bus.SetSEL(FALSE);
+	bus.SetSEL(false);
 
 	// ターゲットがビジー状態なら成功
 	return bus.GetBSY();
@@ -307,7 +307,7 @@ BOOL Command(BYTE *buf, int length)
 
 	// フェーズ待ち
 	if (!WaitPhase(BUS::command)) {
-		return FALSE;
+		return false;
 	}
 
 	// コマンド送信
@@ -315,11 +315,11 @@ BOOL Command(BYTE *buf, int length)
 
 	// 送信結果が依頼数と同じなら成功
 	if (count == length) {
-		return TRUE;
+		return true;
 	}
 
 	// 送信エラー
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -697,9 +697,9 @@ int main(int argc, char* argv[])
 	BusFree();
 
 	// RESETシグナル発行
-	bus.SetRST(TRUE);
+	bus.SetRST(true);
 	usleep(1000);
-	bus.SetRST(FALSE);
+	bus.SetRST(false);
 
 	// ダンプ開始
 	printf("TARGET ID               : %d\n", targetid);

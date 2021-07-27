@@ -128,7 +128,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	fd = open("/dev/mem", O_RDWR | O_SYNC);
 	if (fd == -1) {
         LOGERROR("Error: Unable to open /dev/mem. Are you running as root?");
-		return FALSE;
+		return false;
 	}
 
 	// Map peripheral region memory
@@ -136,7 +136,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	if (map == MAP_FAILED) {
         LOGERROR("Error: Unable to map memory");
 		close(fd);
-		return FALSE;
+		return false;
 	}
 
 	// Determine the type of raspberry pi from the base address
@@ -176,7 +176,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 			PROT_READ | PROT_WRITE, MAP_SHARED, fd, ARM_GICD_BASE);
 		if (map == MAP_FAILED) {
 			close(fd);
-			return FALSE;
+			return false;
 		}
 		gicd = (DWORD *)map;
 		gicc = (DWORD *)map;
@@ -202,16 +202,16 @@ BOOL GPIOBUS::Init(mode_e mode)
 	// Initialize all signals
 	for (i = 0; SignalTable[i] >= 0; i++) {
 		j = SignalTable[i];
-		PinSetSignal(j, FALSE);
+		PinSetSignal(j, false);
 		PinConfig(j, GPIO_INPUT);
 		PullConfig(j, pullmode);
 	}
 
 	// Set control signals
-	PinSetSignal(PIN_ACT, FALSE);
-	PinSetSignal(PIN_TAD, FALSE);
-	PinSetSignal(PIN_IND, FALSE);
-	PinSetSignal(PIN_DTD, FALSE);
+	PinSetSignal(PIN_ACT, false);
+	PinSetSignal(PIN_TAD, false);
+	PinSetSignal(PIN_IND, false);
+	PinSetSignal(PIN_DTD, false);
 	PinConfig(PIN_ACT, GPIO_OUTPUT);
 	PinConfig(PIN_TAD, GPIO_OUTPUT);
 	PinConfig(PIN_IND, GPIO_OUTPUT);
@@ -234,7 +234,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	fd = open("/dev/gpiochip0", 0);
 	if (fd == -1) {
 		LOGERROR("Unable to open /dev/gpiochip0. Is RaSCSI already running?")
-		return FALSE;
+		return false;
 	}
 
 	// Event request setting
@@ -251,7 +251,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	if (ioctl(fd, GPIO_GET_LINEEVENT_IOCTL, &selevreq) == -1) {
 		LOGERROR("Unable to register event request. Is RaSCSI already running?")
 		close(fd);
-		return FALSE;
+		return false;
 	}
 
 	// Close GPIO chip file handle
@@ -321,7 +321,7 @@ BOOL GPIOBUS::Init(mode_e mode)
 	// Show the user that this app is running
 	SetControl(PIN_ENB, ENB_ON);
 
-	return TRUE;
+	return true;
 #endif // ifdef __x86_64__ || __X86__
 
 }
@@ -345,11 +345,11 @@ void GPIOBUS::Cleanup()
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Set control signals
-	PinSetSignal(PIN_ENB, FALSE);
-	PinSetSignal(PIN_ACT, FALSE);
-	PinSetSignal(PIN_TAD, FALSE);
-	PinSetSignal(PIN_IND, FALSE);
-	PinSetSignal(PIN_DTD, FALSE);
+	PinSetSignal(PIN_ENB, false);
+	PinSetSignal(PIN_ACT, false);
+	PinSetSignal(PIN_TAD, false);
+	PinSetSignal(PIN_IND, false);
+	PinSetSignal(PIN_DTD, false);
 	PinConfig(PIN_ACT, GPIO_INPUT);
 	PinConfig(PIN_TAD, GPIO_INPUT);
 	PinConfig(PIN_IND, GPIO_INPUT);
@@ -358,7 +358,7 @@ void GPIOBUS::Cleanup()
 	// Initialize all signals
 	for (i = 0; SignalTable[i] >= 0; i++) {
 		pin = SignalTable[i];
-		PinSetSignal(pin, FALSE);
+		PinSetSignal(pin, false);
 		PinConfig(pin, GPIO_INPUT);
 		PullConfig(pin, GPIO_PULLNONE);
 	}
@@ -861,7 +861,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	SetSignal(PIN_REQ, ON);
 
 	// Wait for ACK signal
-	ret = WaitSignal(PIN_ACK, TRUE);
+	ret = WaitSignal(PIN_ACK, true);
 
 	// Wait until the signal line stabilizes
 	SysTimer::SleepNsec(GPIO_DATA_SETTLING);
@@ -878,7 +878,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	}
 
 	// Wait for ACK to clear
-	ret = WaitSignal(PIN_ACK, FALSE);
+	ret = WaitSignal(PIN_ACK, false);
 
 	// Timeout waiting for ACK to clear
 	if (!ret) {
@@ -900,7 +900,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		SetSignal(PIN_REQ, ON);
 
 		// Wait for ACK signal
-		ret = WaitSignal(PIN_ACK, TRUE);
+		ret = WaitSignal(PIN_ACK, true);
 
 		// Wait until the signal line stabilizes
 		SysTimer::SleepNsec(GPIO_DATA_SETTLING);
@@ -917,7 +917,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		}
 
 		// Wait for ACK to clear
-		ret = WaitSignal(PIN_ACK, FALSE);
+		ret = WaitSignal(PIN_ACK, false);
 
 		// Check for timeout waiting for ACK to clear
 		if (!ret) {
@@ -956,7 +956,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			SetSignal(PIN_REQ, ON);
 
 			// Wait for ACK
-			ret = WaitSignal(PIN_ACK, TRUE);
+			ret = WaitSignal(PIN_ACK, true);
 
 			// Wait until the signal line stabilizes
 			SysTimer::SleepNsec(GPIO_DATA_SETTLING);
@@ -973,7 +973,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			}
 
 			// Wait for ACK to clear
-			ret = WaitSignal(PIN_ACK, FALSE);
+			ret = WaitSignal(PIN_ACK, false);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -989,7 +989,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 
 		for (i = 0; i < count; i++) {
 			// Wait for the REQ signal to be asserted
-			ret = WaitSignal(PIN_REQ, TRUE);
+			ret = WaitSignal(PIN_REQ, true);
 
 			// Check for timeout waiting for REQ signal
 			if (!ret) {
@@ -1011,7 +1011,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			SetSignal(PIN_ACK, ON);
 
 			// Wait for REQ to clear
-			ret = WaitSignal(PIN_REQ, FALSE);
+			ret = WaitSignal(PIN_REQ, false);
 
 			// Clear the ACK signal
 			SetSignal(PIN_ACK, OFF);
@@ -1063,7 +1063,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for ACK to clear
-			ret = WaitSignal(PIN_ACK, FALSE);
+			ret = WaitSignal(PIN_ACK, false);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -1076,7 +1076,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetSignal(PIN_REQ, ON);
 
 			// Wait for ACK
-			ret = WaitSignal(PIN_ACK, TRUE);
+			ret = WaitSignal(PIN_ACK, true);
 
 			// Clear REQ signal
 			SetSignal(PIN_REQ, OFF);
@@ -1091,7 +1091,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		}
 
 		// Wait for ACK to clear
-		WaitSignal(PIN_ACK, FALSE);
+		WaitSignal(PIN_ACK, false);
 	} else {
 		// Get Phase
 		phase = Aquire() & GPIO_MCI;
@@ -1106,7 +1106,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for REQ to be asserted
-			ret = WaitSignal(PIN_REQ, TRUE);
+			ret = WaitSignal(PIN_REQ, true);
 
 			// Check for timeout waiting for REQ to be asserted
 			if (!ret) {
@@ -1124,7 +1124,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetSignal(PIN_ACK, ON);
 
 			// Wait for REQ to clear
-			ret = WaitSignal(PIN_REQ, FALSE);
+			ret = WaitSignal(PIN_REQ, false);
 
 			// Clear the ACK signal
 			SetSignal(PIN_ACK, OFF);
@@ -1409,17 +1409,17 @@ BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
 		// Immediately upon receiving a reset
 		Aquire();
 		if (GetRST()) {
-			return FALSE;
+			return false;
 		}
 
 		// Check for the signal edge
         if (((signals >> pin) ^ ~ast) & 1) {
-			return TRUE;
+			return true;
 		}
 	} while ((SysTimer::GetTimerLow() - now) < timeout);
 
 	// We timed out waiting for the signal
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------

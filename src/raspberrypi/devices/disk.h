@@ -90,7 +90,7 @@ public:
 	// Basic Functions
 	DiskTrack();								// Constructor
 	virtual ~DiskTrack();							// Destructor
-	void Init(int track, int size, int sectors, BOOL raw = FALSE, off64_t imgoff = 0);// Initialization
+	void Init(int track, int size, int sectors, BOOL raw = false, off64_t imgoff = 0);// Initialization
 	BOOL Load(const Filepath& path);				// Load
 	BOOL Save(const Filepath& path);				// Save
 
@@ -198,7 +198,7 @@ public:
 	bool IsNuvolink() const;
 
 	// Media Operations
-	virtual BOOL Open(const Filepath& path, BOOL attn = TRUE);	// Open
+	virtual BOOL Open(const Filepath& path, BOOL attn = true);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
 	void Eject(BOOL force);					// Eject
 	BOOL IsReady() const		{ return disk.ready; }		// Ready check

@@ -34,10 +34,10 @@
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
 	// Synchronous transfer work initialization
-	scsi.syncenable = FALSE;
+	scsi.syncenable = false;
 	scsi.syncperiod = 50;
 	scsi.syncoffset = 0;
-	scsi.atnmsg = FALSE;
+	scsi.atnmsg = false;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
@@ -103,7 +103,7 @@ void SCSIDEV::SetupCommand(scsi_command opcode, const char* name, void (SCSIDEV:
 void SCSIDEV::Reset()
 {
 	// Work initialization
-	scsi.atnmsg = FALSE;
+	scsi.atnmsg = false;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
@@ -182,7 +182,7 @@ BUS::phase_t SCSIDEV::Process()
 
 		// Other
 		default:
-			ASSERT(FALSE);
+			ASSERT(false);
 			break;
 	}
 
@@ -211,18 +211,18 @@ void SCSIDEV::BusFree()
 		ctrl.phase = BUS::busfree;
 
 		// Signal line
-		ctrl.bus->SetREQ(FALSE);
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+		ctrl.bus->SetREQ(false);
+		ctrl.bus->SetMSG(false);
+		ctrl.bus->SetCD(false);
+		ctrl.bus->SetIO(false);
+		ctrl.bus->SetBSY(false);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
 		ctrl.message = 0x00;
 
 		// Initialize ATN message reception status
-		scsi.atnmsg = FALSE;
+		scsi.atnmsg = false;
 		return;
 	}
 
@@ -258,7 +258,7 @@ void SCSIDEV::Selection()
 		ctrl.phase = BUS::selection;
 
 		// Raise BSY and respond
-		ctrl.bus->SetBSY(TRUE);
+		ctrl.bus->SetBSY(true);
 		return;
 	}
 
@@ -327,7 +327,7 @@ void SCSIDEV::MsgOut()
 
 	        // process the IDENTIFY message
 		if (ctrl.phase == BUS::selection) {
-			scsi.atnmsg = TRUE;
+			scsi.atnmsg = true;
 			scsi.msc = 0;
 			memset(scsi.msb, 0x00, sizeof(scsi.msb));
 		}
@@ -336,9 +336,9 @@ void SCSIDEV::MsgOut()
 		ctrl.phase = BUS::msgout;
 
 		// Signal line operated by the target
-		ctrl.bus->SetMSG(TRUE);
-		ctrl.bus->SetCD(TRUE);
-		ctrl.bus->SetIO(FALSE);
+		ctrl.bus->SetMSG(true);
+		ctrl.bus->SetCD(true);
+		ctrl.bus->SetIO(false);
 
 		// Data transfer is 1 byte x 1 block
 		ctrl.offset = 0;
@@ -1303,7 +1303,7 @@ void SCSIDEV::Send()
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	result = TRUE;
+	result = true;
 
 	// Processing after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
@@ -1314,7 +1314,7 @@ void SCSIDEV::Send()
 		}
 	}
 
-	// If result FALSE, move to status phase
+	// If result false, move to status phase
 	if (!result) {
 		Error();
 		return;
@@ -1336,7 +1336,7 @@ void SCSIDEV::Send()
 			// Completed sending response to extended message of IDENTIFY message
 			if (scsi.atnmsg) {
 				// flag off
-				scsi.atnmsg = FALSE;
+				scsi.atnmsg = false;
 
 				// command phase
 				Command();
@@ -1363,7 +1363,7 @@ void SCSIDEV::Send()
 
 		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			ASSERT(false);
 			break;
 	}
 }
@@ -1407,7 +1407,7 @@ void SCSIDEV::Receive()
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	BOOL result = TRUE;
+	BOOL result = true;
 
 	// Processing after receiving data (by phase)
 	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
@@ -1417,10 +1417,10 @@ void SCSIDEV::Receive()
 		case BUS::dataout:
 			if (ctrl.blocks == 0) {
 				// End with this buffer
-				result = XferOut(FALSE);
+				result = XferOut(false);
 			} else {
 				// Continue to next buffer (set offset, length)
-				result = XferOut(TRUE);
+				result = XferOut(true);
 			}
 			break;
 
@@ -1441,7 +1441,7 @@ void SCSIDEV::Receive()
 			break;
 	}
 
-	// If result FALSE, move to status phase
+	// If result false, move to status phase
 	if (!result) {
 		Error();
 		return;
@@ -1561,7 +1561,7 @@ void SCSIDEV::Receive()
 			}
 
 			// Initialize ATN message reception status
-			scsi.atnmsg = FALSE;
+			scsi.atnmsg = false;
 
 			// Command phase
 			Command();
@@ -1578,7 +1578,7 @@ void SCSIDEV::Receive()
 
 		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			ASSERT(false);
 			break;
 	}
 }
@@ -1599,5 +1599,5 @@ BOOL SCSIDEV::XferMsg(DWORD msg)
 		scsi.msc %= 256;
 	}
 
-	return TRUE;
+	return true;
 }

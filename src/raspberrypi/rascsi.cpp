@@ -72,7 +72,7 @@ static void *MonThread(void *param);
 void KillHandler(int sig)
 {
 	// Stop instruction
-	running = FALSE;
+	running = false;
 }
 
 //---------------------------------------------------------------------------
@@ -128,7 +128,7 @@ BOOL InitService(int port)
 	result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if(result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Err code: %d", result);
-		return FALSE;
+		return false;
 	}
 
 	// Create socket for monitor
@@ -142,14 +142,14 @@ BOOL InitService(int port)
 	yes = 1;
 	if (setsockopt(
 		monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0){
-		return FALSE;
+		return false;
 	}
 
 	// Bind
 	if (bind(monsocket, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
 		FPRT(stderr, "Error : Already running?\n");
-		return FALSE;
+		return false;
 	}
 
 	// Create Monitor Thread
@@ -157,17 +157,17 @@ BOOL InitService(int port)
 
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
-	running = FALSE;
-	active = FALSE;
+	running = false;
+	active = false;
 
 	return true;
 }
@@ -178,7 +178,7 @@ bool InitBusAndDisks() {
 
 	// GPIO Initialization
 	if (!bus->Init()) {
-		return FALSE;
+		return false;
 	}
 
 	// Bus Reset
@@ -194,7 +194,7 @@ bool InitBusAndDisks() {
 		disk[i] = NULL;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -579,7 +579,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		}
 
 		// Set the cache to write-through
-		pUnit->SetCacheWB(FALSE);
+		pUnit->SetCacheWB(false);
 
 		// Replace with the newly created unit
 		map[id * UnitNum + un] = pUnit;
@@ -644,7 +644,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		case EJECT:
 			LOGINFO("rasctl commands eject %s ID: %d UN: %d", type_str, id, un);
-			pUnit->Eject(TRUE);
+			pUnit->Eject(true);
 			break;
 
 		case PROTECT:
@@ -935,7 +935,7 @@ int main(int argc, char* argv[])
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Start execution
-	running = TRUE;
+	running = true;
 
 	// Main Loop
 	while (running) {
@@ -1007,7 +1007,7 @@ int main(int argc, char* argv[])
 		}
 
 		// Start target device
-		active = TRUE;
+		active = true;
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Scheduling policy setting (highest priority)
@@ -1035,7 +1035,7 @@ int main(int argc, char* argv[])
 #endif	// USE_SEL_EVENT_ENABLE
 
 		// End the target travel
-		active = FALSE;
+		active = false;
 	}
 
 err_exit:

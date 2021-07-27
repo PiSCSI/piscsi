@@ -169,8 +169,8 @@ public:
 	int GetSCSIID() {return ctrl.m_scsi_id;}					// Get the ID
 	void GetCTRL(ctrl_t *buffer);					// Get the internal information
 	ctrl_t* GetWorkAddr() { return &ctrl; }			// Get the internal information address
-	virtual BOOL IsSASI() const {return TRUE;}			// SASI Check
-	virtual BOOL IsSCSI() const {return FALSE;}			// SCSI check
+	virtual BOOL IsSASI() const {return true;}			// SASI Check
+	virtual BOOL IsSCSI() const {return false;}			// SCSI check
 	Disk* GetBusyUnit();						// Get the busy unit
 
 protected:

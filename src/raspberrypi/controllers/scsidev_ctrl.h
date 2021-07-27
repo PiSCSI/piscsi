@@ -63,8 +63,8 @@ public:
 	void SyncTransfer(BOOL enable) { scsi.syncenable = enable; }	// Synchronouse transfer enable setting
 
 	// Other
-	BOOL IsSASI() const {return FALSE;}				// SASI Check
-	BOOL IsSCSI() const {return TRUE;}				// SCSI check
+	BOOL IsSASI() const {return false;}				// SASI Check
+	BOOL IsSCSI() const {return true;}				// SCSI check
 
 private:
 	void SetupCommand(scsi_command, const char*, void (SCSIDEV::*)(void));

@@ -41,11 +41,11 @@ SASIHD::SASIHD() : Disk("SAHD")
 void SASIHD::Reset()
 {
 	// Unlock, clear attention
-	disk.lock = FALSE;
-	disk.attn = FALSE;
+	disk.lock = false;
+	disk.attn = false;
 
 	// Reset, clear the code
-	disk.reset = FALSE;
+	disk.reset = false;
 	disk.code = 0x00;
 }
 
@@ -61,7 +61,7 @@ BOOL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return false;
 	}
 
 	// Get file size
@@ -84,17 +84,17 @@ BOOL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Must be in 256-byte units
 	if (size & 0xff) {
-		return FALSE;
+		return false;
 	}
 
 	// 10MB or more
 	if (size < 0x9f5400) {
-		return FALSE;
+		return false;
 	}
 
 	// Limit to about 512MB
 	if (size > 512 * 1024 * 1024) {
-		return FALSE;
+		return false;
 	}
 	#else
 	// 10MB, 20MB, 40MBのみ
@@ -113,7 +113,7 @@ BOOL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 
 		// Other (Not supported )
 		default:
-			return FALSE;
+			return false;
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 

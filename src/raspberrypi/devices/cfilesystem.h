@@ -685,7 +685,7 @@ public:
 
 	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< 検索キー設定
 	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
-	void  SetUpdate() { m_bUpdate = TRUE; }				///< 更新
+	void  SetUpdate() { m_bUpdate = true; }				///< 更新
 	BOOL  isUpdate() const { return m_bUpdate; }			///< 更新状態取得
 	BOOL  SetMode(DWORD nHumanMode);						///< ファイルオープンモードを設定
 	void  SetFilename(const TCHAR* szFilename);					///< ファイル名を設定
@@ -795,12 +795,12 @@ private:
 		CHostPath f;						///< 実体
 	};
 
-	BOOL m_bWriteProtect;						///< 書き込み禁止ならTRUE
-	BOOL m_bEnable;							///< メディアが利用可能ならTRUE
+	BOOL m_bWriteProtect;						///< 書き込み禁止ならtrue
+	BOOL m_bEnable;							///< メディアが利用可能ならtrue
 	DWORD m_nRing;							///< パス名保持数
 	CRing m_cRing;							///< CHostPath連結用
 	Human68k::capacity_t m_capCache;				///< セクタ情報キャッシュ sectors == 0 なら未キャッシュ
-	BOOL m_bVolumeCache;						///< ボリュームラベル読み込み済みならTRUE
+	BOOL m_bVolumeCache;						///< ボリュームラベル読み込み済みならtrue
 	TCHAR m_szVolumeCache[24];					///< ボリュームラベルキャッシュ
 	TCHAR m_szBase[FILEPATH_MAX];					///< ベースパス
 };
