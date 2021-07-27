@@ -31,5 +31,5 @@ public:
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
 
 	// Internal processing
-	int AddVendor(int page, BOOL change, BYTE *buf);		// Add vendor special page
+	int AddVendor(int page, bool change, BYTE *buf);		// Add vendor special page
 };

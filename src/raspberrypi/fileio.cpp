@@ -48,7 +48,7 @@ Fileio::~Fileio()
 //	ロード
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Load(const Filepath& path, void *buffer, int size)
+bool Fileio::Load(const Filepath& path, void *buffer, int size)
 {
 	ASSERT(buffer);
 	ASSERT(size > 0);
@@ -76,7 +76,7 @@ BOOL Fileio::Load(const Filepath& path, void *buffer, int size)
 //	セーブ
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Save(const Filepath& path, void *buffer, int size)
+bool Fileio::Save(const Filepath& path, void *buffer, int size)
 {
 	ASSERT(buffer);
 	ASSERT(size > 0);
@@ -104,7 +104,7 @@ BOOL Fileio::Save(const Filepath& path, void *buffer, int size)
 //	オープン
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
+bool Fileio::Open(LPCTSTR fname, OpenMode mode, bool directIO)
 {
 	mode_t omode;
 
@@ -166,7 +166,7 @@ BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 //	オープン
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Open(LPCTSTR fname, OpenMode mode)
+bool Fileio::Open(LPCTSTR fname, OpenMode mode)
 {
 
 	return Open(fname, mode, false);
@@ -177,7 +177,7 @@ BOOL Fileio::Open(LPCTSTR fname, OpenMode mode)
 //	オープン
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Open(const Filepath& path, OpenMode mode)
+bool Fileio::Open(const Filepath& path, OpenMode mode)
 {
 
 	return Open(path.GetPath(), mode);
@@ -188,7 +188,7 @@ BOOL Fileio::Open(const Filepath& path, OpenMode mode)
 //	オープン
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::OpenDIO(LPCTSTR fname, OpenMode mode)
+bool Fileio::OpenDIO(LPCTSTR fname, OpenMode mode)
 {
 
 	// O_DIRECT付きでオープン
@@ -205,7 +205,7 @@ BOOL Fileio::OpenDIO(LPCTSTR fname, OpenMode mode)
 //	オープン
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::OpenDIO(const Filepath& path, OpenMode mode)
+bool Fileio::OpenDIO(const Filepath& path, OpenMode mode)
 {
 
 	return OpenDIO(path.GetPath(), mode);
@@ -216,7 +216,7 @@ BOOL Fileio::OpenDIO(const Filepath& path, OpenMode mode)
 //	読み込み
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Read(void *buffer, int size)
+bool Fileio::Read(void *buffer, int size)
 {
 	int count;
 
@@ -238,7 +238,7 @@ BOOL Fileio::Read(void *buffer, int size)
 //	書き込み
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Write(const void *buffer, int size)
+bool Fileio::Write(const void *buffer, int size)
 {
 	int count;
 
@@ -260,7 +260,7 @@ BOOL Fileio::Write(const void *buffer, int size)
 //	シーク
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Seek(off64_t offset, BOOL relative)
+bool Fileio::Seek(off64_t offset, bool relative)
 {
 	ASSERT(handle >= 0);
 	ASSERT(offset >= 0);

@@ -315,7 +315,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 /// メディアチェック
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::isMediaOffline()
+bool CHostDrv::isMediaOffline()
 {
 
 	// オフライン状態チェック
@@ -349,7 +349,7 @@ DWORD CHostDrv::GetStatus() const
 /// メディア状態設定
 //
 //---------------------------------------------------------------------------
-void CHostDrv::SetEnable(BOOL bEnable)
+void CHostDrv::SetEnable(bool bEnable)
 {
 
 	m_bEnable = bEnable;
@@ -367,7 +367,7 @@ void CHostDrv::SetEnable(BOOL bEnable)
 /// メディア交換チェック
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::CheckMedia()
+bool CHostDrv::CheckMedia()
 {
 
 	// 状態更新
@@ -387,7 +387,7 @@ void CHostDrv::Update()
 {
 
 	// メディア挿入とみなす
-	BOOL bEnable = true;
+	bool bEnable = true;
 
 	// メディア状態反映
 	SetEnable(bEnable);
@@ -442,7 +442,7 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 /// キャッシュ内容が有効ならtrueを、無効ならfalseを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::GetVolumeCache(TCHAR* szLabel) const
+bool CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 {
 	ASSERT(szLabel);
 
@@ -496,7 +496,7 @@ DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 /// キャッシュ内容が有効ならtrueを、無効ならfalseを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
+bool CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 {
 	ASSERT(pCapacity);
 
@@ -768,7 +768,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 /// あらかじめ全てのHuman68k用パラメータを設定しておくこと。
 //
 //---------------------------------------------------------------------------
-BOOL CHostDrv::Find(CHostFiles* pFiles)
+bool CHostDrv::Find(CHostFiles* pFiles)
 {
 	ASSERT(pFiles);
 
@@ -1157,7 +1157,7 @@ void CHostFilename::SetEntryName()
 /// Human68k側の名称が加工されたか調査
 //
 //---------------------------------------------------------------------------
-BOOL CHostFilename::isReduce() const
+bool CHostFilename::isReduce() const
 {
 
 	return strcmp((LPTSTR)m_szHost, (const char*)m_szHuman) != 0;	/// @warning Unicode時要修正 → 済
@@ -1168,7 +1168,7 @@ BOOL CHostFilename::isReduce() const
 /// Human68kディレクトリエントリの属性判定
 //
 //---------------------------------------------------------------------------
-BOOL CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
+bool CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
 {
 
 	BYTE nAttribute = m_dirHuman.attr;
@@ -1332,8 +1332,8 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 	ASSERT(pBufLast);
 
 	// 文字比較
-	BOOL bSkip0 = false;
-	BOOL bSkip1 = false;
+	bool bSkip0 = false;
+	bool bSkip1 = false;
 	for (const BYTE* p = pFirst; p < pLast; p++) {
 		// 1文字読み込み
 		BYTE c = *p;
@@ -1401,7 +1401,7 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 /// Human68k側の名称を比較する
 //
 //---------------------------------------------------------------------------
-BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
+bool CHostPath::isSameHuman(const BYTE* szHuman) const
 {
 	ASSERT(szHuman);
 
@@ -1422,7 +1422,7 @@ BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
 /// Human68k側の名称を比較する
 //
 //---------------------------------------------------------------------------
-BOOL CHostPath::isSameChild(const BYTE* szHuman) const
+bool CHostPath::isSameChild(const BYTE* szHuman) const
 {
 	ASSERT(szHuman);
 
@@ -1571,7 +1571,7 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 /// ファイル変更が行なわれたか確認
 //
 //---------------------------------------------------------------------------
-BOOL CHostPath::isRefresh()
+bool CHostPath::isRefresh()
 {
 
 	return m_bRefresh;
@@ -1614,7 +1614,7 @@ void CHostPath::Refresh()
 
 	// ファイル名登録
 	/// @todo ファイル重複処理をホスト側APIを経由せずに全て自前で処理する。
-	BOOL bUpdate = false;
+	bool bUpdate = false;
 	struct dirent **pd = NULL;
 	int nument = 0;
 	int maxent = XM6_HOST_DIRENTRY_FILE_MAX;
@@ -1967,7 +1967,7 @@ void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath)
 /// ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles)
+bool CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles)
 {
 	ASSERT(pFiles);
 	ASSERT(nUnit < DriveMax);
@@ -1996,7 +1996,7 @@ void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
 /// 書き込み禁止か？
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
+bool CHostEntry::isWriteProtect(DWORD nUnit) const
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2009,7 +2009,7 @@ BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
 /// アクセス可能か？
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isEnable(DWORD nUnit) const
+bool CHostEntry::isEnable(DWORD nUnit) const
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2022,7 +2022,7 @@ BOOL CHostEntry::isEnable(DWORD nUnit) const
 /// メディアチェック
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::isMediaOffline(DWORD nUnit)
+bool CHostEntry::isMediaOffline(DWORD nUnit)
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2061,7 +2061,7 @@ DWORD CHostEntry::GetStatus(DWORD nUnit) const
 /// メディア交換チェック
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::CheckMedia(DWORD nUnit)
+bool CHostEntry::CheckMedia(DWORD nUnit)
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2100,7 +2100,7 @@ void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel)
 /// キャッシュからボリュームラベルを取得
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
+bool CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2126,7 +2126,7 @@ DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
 /// キャッシュからクラスタサイズを取得
 //
 //---------------------------------------------------------------------------
-BOOL CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
+bool CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
 {
 	ASSERT(nUnit < DriveMax);
 	ASSERT(m_pDrv[nUnit]);
@@ -2225,7 +2225,7 @@ void CHostFiles::SetPath(const Human68k::namests_t* pNamests)
 /// Human68k側でファイルを検索しホスト側の情報を生成
 //
 //---------------------------------------------------------------------------
-BOOL CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
+bool CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
 {
 	ASSERT(pEntry);
 
@@ -2439,7 +2439,7 @@ void CHostFcb::Init()
 /// ファイルオープンモードを設定
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::SetMode(DWORD nHumanMode)
+bool CHostFcb::SetMode(DWORD nHumanMode)
 {
 	switch (nHumanMode & Human68k::OP_MASK) {
 		case Human68k::OP_READ:
@@ -2493,7 +2493,7 @@ void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 /// エラーの時はfalseを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
+bool CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, bool bForce)
 {
 	ASSERT((nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME)) == 0);
 	ASSERT(strlen(m_szFilename) > 0);
@@ -2519,7 +2519,7 @@ BOOL CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
 /// エラーの時はfalseを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Open()
+bool CHostFcb::Open()
 {
 	struct stat st;
 
@@ -2546,7 +2546,7 @@ BOOL CHostFcb::Open()
 /// エラーの時はfalseを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Rewind(DWORD nOffset)
+bool CHostFcb::Rewind(DWORD nOffset)
 {
 	ASSERT(m_pFile);
 
@@ -2603,7 +2603,7 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 /// エラーの時はfalseを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Truncate()
+bool CHostFcb::Truncate()
 {
 	ASSERT(m_pFile);
 
@@ -2649,7 +2649,7 @@ DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 /// エラーの時はfalseを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
+bool CHostFcb::TimeStamp(DWORD nHumanTime)
 {
 	ASSERT(m_pFile || m_bFlag);
 
@@ -2681,9 +2681,9 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 /// エラーの時はfalseを返す。
 //
 //---------------------------------------------------------------------------
-BOOL CHostFcb::Close()
+bool CHostFcb::Close()
 {
-	BOOL bResult = true;
+	bool bResult = true;
 
 	// ファイルクローズ
 	// Close→Free(内部で再度Close)という流れもあるので必ず初期化すること。
@@ -3375,7 +3375,7 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 /// $49 - ファイル新規作成
 //
 //---------------------------------------------------------------------------
-int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
+int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, bool bForce)
 {
 	ASSERT(pNamests);
 	ASSERT(nKey);
@@ -4071,7 +4071,7 @@ int CFileSys::CheckMedia(DWORD nUnit)
 		return FS_INVALIDFUNC;	// レジューム後に無効なドライブでmint操作時に白帯を出さないよう改良
 
 	// メディア交換チェック
-	BOOL bResult = m_cEntry.CheckMedia(nUnit);
+	bool bResult = m_cEntry.CheckMedia(nUnit);
 
 	// メディア未挿入ならエラーとする
 	if (bResult == false) {
@@ -4209,13 +4209,13 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 /// ボリュームラベル取得
 //
 //---------------------------------------------------------------------------
-BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles)
+bool CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles)
 {
 	ASSERT(pFiles);
 
 	// ボリュームラベル取得
 	TCHAR szVolume[32];
-	BOOL bResult = m_cEntry.GetVolumeCache(nUnit, szVolume);
+	bool bResult = m_cEntry.GetVolumeCache(nUnit, szVolume);
 	if (bResult == false) {
 		// 手動イジェクトだとメディアチェックをすり抜けるためここで捕捉
 		if (m_cEntry.isEnable(nUnit) == false)

@@ -83,7 +83,7 @@ public:
 
 	// Basic Functions
 	// 基本ファンクション
-	virtual BOOL Init(mode_e mode) = 0;
+	virtual bool Init(mode_e mode) = 0;
 										// 初期化
 	virtual void Reset() = 0;
 										// リセット
@@ -107,56 +107,56 @@ public:
 		return ((raw_data >> pin_num) & 1);
 	}
 
-	virtual BOOL GetBSY() = 0;
+	virtual bool GetBSY() = 0;
 										// BSYシグナル取得
-	virtual void SetBSY(BOOL ast) = 0;
+	virtual void SetBSY(bool ast) = 0;
 										// BSYシグナル設定
 
-	virtual BOOL GetSEL() = 0;
+	virtual bool GetSEL() = 0;
 										// SELシグナル取得
-	virtual void SetSEL(BOOL ast) = 0;
+	virtual void SetSEL(bool ast) = 0;
 										// SELシグナル設定
 
-	virtual BOOL GetATN() = 0;
+	virtual bool GetATN() = 0;
 										// ATNシグナル取得
-	virtual void SetATN(BOOL ast) = 0;
+	virtual void SetATN(bool ast) = 0;
 										// ATNシグナル設定
 
-	virtual BOOL GetACK() = 0;
+	virtual bool GetACK() = 0;
 										// ACKシグナル取得
-	virtual void SetACK(BOOL ast) = 0;
+	virtual void SetACK(bool ast) = 0;
 										// ACKシグナル設定
 
-	virtual BOOL GetRST() = 0;
+	virtual bool GetRST() = 0;
 										// RSTシグナル取得
-	virtual void SetRST(BOOL ast) = 0;
+	virtual void SetRST(bool ast) = 0;
 										// RSTシグナル設定
 
-	virtual BOOL GetMSG() = 0;
+	virtual bool GetMSG() = 0;
 										// MSGシグナル取得
-	virtual void SetMSG(BOOL ast) = 0;
+	virtual void SetMSG(bool ast) = 0;
 										// MSGシグナル設定
 
-	virtual BOOL GetCD() = 0;
+	virtual bool GetCD() = 0;
 										// CDシグナル取得
-	virtual void SetCD(BOOL ast) = 0;
+	virtual void SetCD(bool ast) = 0;
 										// CDシグナル設定
 
-	virtual BOOL GetIO() = 0;
+	virtual bool GetIO() = 0;
 										// IOシグナル取得
-	virtual void SetIO(BOOL ast) = 0;
+	virtual void SetIO(bool ast) = 0;
 										// IOシグナル設定
 
-	virtual BOOL GetREQ() = 0;
+	virtual bool GetREQ() = 0;
 										// REQシグナル取得
-	virtual void SetREQ(BOOL ast) = 0;
+	virtual void SetREQ(bool ast) = 0;
 										// REQシグナル設定
 
 	virtual BYTE GetDAT() = 0;
 										// データシグナル取得
 	virtual void SetDAT(BYTE dat) = 0;
 										// データシグナル設定
-	virtual BOOL GetDP() = 0;
+	virtual bool GetDP() = 0;
 										// パリティシグナル取得
 
 	virtual int CommandHandShake(BYTE *buf) = 0;
@@ -167,9 +167,9 @@ public:
 										// データ送信ハンドシェイク
 
 
-	virtual BOOL GetSignal(int pin) = 0;
+	virtual bool GetSignal(int pin) = 0;
 										// Get SCSI input signal value
-	virtual void SetSignal(int pin, BOOL ast) = 0;
+	virtual void SetSignal(int pin, bool ast) = 0;
 										// Set SCSI output signal value
 	static const int SEND_NO_DELAY = -1;
 										// Passed into SendHandShake when we don't want to delay

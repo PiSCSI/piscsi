@@ -48,24 +48,24 @@ public:
 										// コンストラクタ
 	virtual ~Fileio();
 										// デストラクタ
-	BOOL Load(const Filepath& path, void *buffer, int size);
+	bool Load(const Filepath& path, void *buffer, int size);
 										// ROM,RAMロード
-	BOOL Save(const Filepath& path, void *buffer, int size);
+	bool Save(const Filepath& path, void *buffer, int size);
 										// RAMセーブ
 
-	BOOL Open(LPCTSTR fname, OpenMode mode);
+	bool Open(LPCTSTR fname, OpenMode mode);
 										// オープン
-	BOOL Open(const Filepath& path, OpenMode mode);
+	bool Open(const Filepath& path, OpenMode mode);
 										// オープン
-	BOOL OpenDIO(LPCTSTR fname, OpenMode mode);
+	bool OpenDIO(LPCTSTR fname, OpenMode mode);
 										// オープン
-	BOOL OpenDIO(const Filepath& path, OpenMode mode);
+	bool OpenDIO(const Filepath& path, OpenMode mode);
 										// オープン
-	BOOL Seek(off64_t offset, BOOL relative = false);
+	bool Seek(off64_t offset, bool relative = false);
 										// シーク
-	BOOL Read(void *buffer, int size);
+	bool Read(void *buffer, int size);
 										// 読み込み
-	BOOL Write(const void *buffer, int size);
+	bool Write(const void *buffer, int size);
 										// 書き込み
 	off64_t GetFileSize();
 										// ファイルサイズ取得
@@ -73,11 +73,11 @@ public:
 										// ファイル位置取得
 	void Close();
 										// クローズ
-	BOOL IsValid() const		{ return (BOOL)(handle != -1); }
+	bool IsValid() const		{ return (bool)(handle != -1); }
 										// 有効チェック
 
 private:
-	BOOL Open(LPCTSTR fname, OpenMode mode, BOOL directIO);
+	bool Open(LPCTSTR fname, OpenMode mode, bool directIO);
 										// オープン
 
 	int handle;							// ファイルハンドル

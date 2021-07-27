@@ -40,7 +40,7 @@ SCSIMO::SCSIMO() : Disk("SCMO")
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
+bool SCSIMO::Open(const Filepath& path, bool attn)
 {
 	ASSERT(!disk.ready);
 
@@ -168,7 +168,7 @@ int SCSIMO::Inquiry(
 //	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	int page;
 	int size;
@@ -237,7 +237,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Vendor Unique Format Page 20h (MO)
 //
 //---------------------------------------------------------------------------
-int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
+int SCSIMO::AddVendor(int page, bool change, BYTE *buf)
 {
 	ASSERT(buf);
 

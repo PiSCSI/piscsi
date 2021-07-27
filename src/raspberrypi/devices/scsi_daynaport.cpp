@@ -102,7 +102,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-BOOL SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
+bool SCSIDaynaPort::Open(const Filepath& path, bool attn)
 {
 	LOGTRACE("SCSIDaynaPort Open");
 	return m_tap->OpenDump(path);
@@ -193,7 +193,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	WORD requested_length = 0;
 	int rx_packet_size = 0;
-	BOOL send_message_to_host;
+	bool send_message_to_host;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
 	scsi_cmd_read_6_t *command = (scsi_cmd_read_6_t*)cdb;
 	int read_count = 0;
@@ -349,7 +349,7 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //  Write
 //
 //---------------------------------------------------------------------------
-BOOL SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	BYTE data_format;
 	WORD data_length;
@@ -479,7 +479,7 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 //	Enable or Disable the interface
 //
 //---------------------------------------------------------------------------
-BOOL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
+bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 {
 	int result;
 	// scsi_cdb_6_byte_t *command = (scsi_cdb_6_byte_t*)cdb;
@@ -516,7 +516,7 @@ BOOL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-BOOL SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
+bool SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 

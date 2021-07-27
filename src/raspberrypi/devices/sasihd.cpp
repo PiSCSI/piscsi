@@ -54,7 +54,7 @@ void SASIHD::Reset()
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
+bool SASIHD::Open(const Filepath& path, bool /*attn*/)
 {
 	ASSERT(!disk.ready);
 

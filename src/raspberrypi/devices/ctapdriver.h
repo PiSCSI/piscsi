@@ -33,21 +33,21 @@ class CTapDriver
 public:
 	// Basic Functionality
 	CTapDriver();								// Constructor
-	BOOL Init();							// Initilization
-	BOOL OpenDump(const Filepath& path);
+	bool Init();							// Initilization
+	bool OpenDump(const Filepath& path);
 										// Capture packets
 	void Cleanup();						// Cleanup
 	void GetMacAddr(BYTE *mac);					// Get Mac Address
 	int Rx(BYTE *buf);						// Receive
 	int Tx(const BYTE *buf, int len);					// Send
-	BOOL PendingPackets();						// Check if there are IP packets available
-	BOOL Enable();						// Enable the ras0 interface
-	BOOL Disable();				// Disable the ras0 interface
-	BOOL Flush();				// Purge all of the packets that are waiting to be processed
+	bool PendingPackets();						// Check if there are IP packets available
+	bool Enable();						// Enable the ras0 interface
+	bool Disable();				// Disable the ras0 interface
+	bool Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
 	BYTE m_MacAddr[6];							// MAC Address
-	BOOL m_bTxValid;							// Send Valid Flag
+	bool m_bTxValid;							// Send Valid Flag
 	int m_hTAP;								// File handle
 
 	BYTE m_garbage_buffer[ETH_FRAME_LEN];

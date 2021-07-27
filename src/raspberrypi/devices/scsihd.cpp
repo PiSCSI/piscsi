@@ -53,7 +53,7 @@ void SCSIHD::Reset()
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
+bool SCSIHD::Open(const Filepath& path, bool /*attn*/)
 {
 	ASSERT(!disk.ready);
 
@@ -179,7 +179,7 @@ int SCSIHD:: Inquiry(
 //	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	BYTE page;
 	int size;

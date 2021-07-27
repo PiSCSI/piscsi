@@ -88,7 +88,6 @@ typedef unsigned char BYTE;
 typedef unsigned short WORD;
 typedef unsigned long DWORD;
 typedef unsigned long long QWORD;
-typedef int BOOL;
 typedef char TCHAR;
 typedef char *LPTSTR;
 typedef const char *LPCTSTR;

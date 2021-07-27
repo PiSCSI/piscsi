@@ -61,7 +61,7 @@ CDTrack::~CDTrack()
 //	Init
 //
 //---------------------------------------------------------------------------
-BOOL CDTrack::Init(int track, DWORD first, DWORD last)
+bool CDTrack::Init(int track, DWORD first, DWORD last)
 {
 	ASSERT(!valid);
 	ASSERT(track >= 1);
@@ -83,7 +83,7 @@ BOOL CDTrack::Init(int track, DWORD first, DWORD last)
 //	Set Path
 //
 //---------------------------------------------------------------------------
-void CDTrack::SetPath(BOOL cdda, const Filepath& path)
+void CDTrack::SetPath(bool cdda, const Filepath& path)
 {
 	ASSERT(valid);
 
@@ -181,7 +181,7 @@ int CDTrack::GetTrackNo() const
 //	Is valid block
 //
 //---------------------------------------------------------------------------
-BOOL CDTrack::IsValid(DWORD lba) const
+bool CDTrack::IsValid(DWORD lba) const
 {
 	// false if the track itself is invalid
 	if (!valid) {
@@ -207,7 +207,7 @@ BOOL CDTrack::IsValid(DWORD lba) const
 //	Is audio track
 //
 //---------------------------------------------------------------------------
-BOOL CDTrack::IsAudio() const
+bool CDTrack::IsAudio() const
 {
 	ASSERT(valid);
 
@@ -286,7 +286,7 @@ SCSICD::~SCSICD()
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::Open(const Filepath& path, BOOL attn)
+bool SCSICD::Open(const Filepath& path, bool attn)
 {
 	Fileio fio;
 	off64_t size;
@@ -367,7 +367,7 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 //	Open (CUE)
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::OpenCue(const Filepath& /*path*/)
+bool SCSICD::OpenCue(const Filepath& /*path*/)
 {
 	// Always fail
 	return false;
@@ -378,7 +378,7 @@ BOOL SCSICD::OpenCue(const Filepath& /*path*/)
 //	Open (ISO)
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::OpenIso(const Filepath& path)
+bool SCSICD::OpenIso(const Filepath& path)
 {
 	BYTE header[12];
 	BYTE sync[12];
@@ -467,7 +467,7 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 //	Open (Physical)
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::OpenPhysical(const Filepath& path)
+bool SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
@@ -655,7 +655,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 {
 	int loop;
 	int i;
-	BOOL msf;
+	bool msf;
 	DWORD lba;
 
 	ASSERT(cdb);
@@ -776,7 +776,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 //	PLAY AUDIO
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::PlayAudio(const DWORD* /*cdb*/)
+bool SCSICD::PlayAudio(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
 	return false;
@@ -787,7 +787,7 @@ BOOL SCSICD::PlayAudio(const DWORD* /*cdb*/)
 //	PLAY AUDIO MSF
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
+bool SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
 	return false;
@@ -798,7 +798,7 @@ BOOL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
 //	PLAY AUDIO TRACK
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
+bool SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
 {
 	disk.code = DISK_INVALIDCDB;
 	return false;
@@ -906,7 +906,7 @@ int SCSICD::SearchTrack(DWORD lba) const
 //	Next Frame
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::NextFrame()
+bool SCSICD::NextFrame()
 {
 	ASSERT((frame >= 0) && (frame < 75));
 

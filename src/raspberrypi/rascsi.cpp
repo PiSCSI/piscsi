@@ -54,8 +54,8 @@ using namespace rascsi_interface;
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-static volatile BOOL running;		// Running flag
-static volatile BOOL active;		// Processing flag
+static volatile bool running;		// Running flag
+static volatile bool active;		// Processing flag
 SASIDEV *ctrl[CtrlMax];				// Controller
 Disk *disk[CtrlMax * UnitNum];		// Disk
 GPIOBUS *bus;						// GPIO Bus
@@ -120,7 +120,7 @@ void Banner(int argc, char* argv[])
 //
 //---------------------------------------------------------------------------
 
-BOOL InitService(int port)
+bool InitService(int port)
 {
 	struct sockaddr_in server;
 	int yes, result;

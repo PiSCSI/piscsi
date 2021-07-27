@@ -586,7 +586,7 @@ void SCSIDEV::CmdStartStop()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->StartStop(ctrl.cmd);
+	bool status = ctrl.unit[lun]->StartStop(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -609,7 +609,7 @@ void SCSIDEV::CmdSendDiag()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
+	bool status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -632,7 +632,7 @@ void SCSIDEV::CmdRemoval()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Removal(ctrl.cmd);
+	bool status = ctrl.unit[lun]->Removal(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -781,7 +781,7 @@ void SCSIDEV::CmdSeek10()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Seek(ctrl.cmd);
+	bool status = ctrl.unit[lun]->Seek(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -799,7 +799,7 @@ void SCSIDEV::CmdSeek10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdVerify()
 {
-	BOOL status;
+	bool status;
 
 	DWORD lun = GetLun();
 
@@ -923,7 +923,7 @@ void SCSIDEV::CmdPlayAudio10()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -944,7 +944,7 @@ void SCSIDEV::CmdPlayAudioMSF()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -965,7 +965,7 @@ void SCSIDEV::CmdPlayAudioTrack()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1241,7 +1241,7 @@ void SCSIDEV::CmdEnableInterface()
 	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
 
 	// Command processing on drive
-	BOOL status = dayna_port->EnableInterface(ctrl.cmd);
+	bool status = dayna_port->EnableInterface(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1267,7 +1267,7 @@ void SCSIDEV::CmdEnableInterface()
 void SCSIDEV::Send()
 {
 	int len;
-	BOOL result;
+	bool result;
 
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
@@ -1407,7 +1407,7 @@ void SCSIDEV::Receive()
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	BOOL result = true;
+	bool result = true;
 
 	// Processing after receiving data (by phase)
 	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
@@ -1588,7 +1588,7 @@ void SCSIDEV::Receive()
 //	Transfer MSG
 //
 //---------------------------------------------------------------------------
-BOOL SCSIDEV::XferMsg(DWORD msg)
+bool SCSIDEV::XferMsg(DWORD msg)
 {
 	ASSERT(ctrl.phase == BUS::msgout);
 

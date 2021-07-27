@@ -43,7 +43,7 @@ int unitid;							// ターゲットユニットID
 int bsiz;							// ブロックサイズ
 int bnum;							// ブロック数
 Filepath hdffile;					// HDFファイル
-BOOL restore;						// リストアフラグ
+bool restore;						// リストアフラグ
 BYTE buffer[BUFSIZE];				// ワークバッファ
 int result;							// 結果コード
 
@@ -71,7 +71,7 @@ void KillHandler(int sig)
 //	バナー出力
 //
 //---------------------------------------------------------------------------
-BOOL Banner(int argc, char* argv[])
+bool Banner(int argc, char* argv[])
 {
 	printf("RaSCSI hard disk dump utility(SASI HDD) ");
 	printf("version %s (%s, %s)\n",
@@ -98,7 +98,7 @@ BOOL Banner(int argc, char* argv[])
 //	初期化
 //
 //---------------------------------------------------------------------------
-BOOL Init()
+bool Init()
 {
 	// 割り込みハンドラ設定
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
@@ -153,7 +153,7 @@ void Reset()
 //	引数処理
 //
 //---------------------------------------------------------------------------
-BOOL ParseArgument(int argc, char* argv[])
+bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
 	char *file;
@@ -236,7 +236,7 @@ BOOL ParseArgument(int argc, char* argv[])
 //	フェーズ待ち
 //
 //---------------------------------------------------------------------------
-BOOL WaitPhase(BUS::phase_t phase)
+bool WaitPhase(BUS::phase_t phase)
 {
 	DWORD now;
 
@@ -268,7 +268,7 @@ void BusFree()
 //	セレクションフェーズ実行
 //
 //---------------------------------------------------------------------------
-BOOL Selection(int id)
+bool Selection(int id)
 {
 	BYTE data;
 	int count;
@@ -301,7 +301,7 @@ BOOL Selection(int id)
 //	コマンドフェーズ実行
 //
 //---------------------------------------------------------------------------
-BOOL Command(BYTE *buf, int length)
+bool Command(BYTE *buf, int length)
 {
 	int count;
 

@@ -30,9 +30,9 @@ public:
 	// Basic Functions
 	SCSIHD();								// Constructor
 	void Reset();							// Reset
-	BOOL Open(const Filepath& path, BOOL attn = true);		// Open
+	bool Open(const Filepath& path, bool attn = true);		// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
 };

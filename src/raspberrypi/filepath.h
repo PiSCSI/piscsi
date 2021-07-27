@@ -44,9 +44,9 @@ public:
 										// パス名取得
 	LPCTSTR GetFileExt() const;
 										// ショート名取得(LPCTSTR)
-	BOOL Save(Fileio *fio, int ver);
+	bool Save(Fileio *fio, int ver);
 										// セーブ
-	BOOL Load(Fileio *fio, int ver);
+	bool Load(Fileio *fio, int ver);
 										// ロード
 
 private:

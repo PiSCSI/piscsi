@@ -32,7 +32,7 @@ GPIOBUS bus;						// Bus
 int targetid;						// Target ID
 int boardid;						// Board ID (own ID)
 Filepath hdsfile;					// HDS file
-BOOL restore;						// Restore flag
+bool restore;						// Restore flag
 BYTE buffer[BUFSIZE];					// Work Buffer
 int result;						// Result Code
 
@@ -60,7 +60,7 @@ void KillHandler(int sig)
 //	Banner Output
 //
 //---------------------------------------------------------------------------
-BOOL Banner(int argc, char* argv[])
+bool Banner(int argc, char* argv[])
 {
 	printf("RaSCSI hard disk dump utility ");
 	printf("version %s (%s, %s)\n",
@@ -85,7 +85,7 @@ BOOL Banner(int argc, char* argv[])
 //	Initialization
 //
 //---------------------------------------------------------------------------
-BOOL Init()
+bool Init()
 {
 	// Interrupt handler setting
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
@@ -138,7 +138,7 @@ void Reset()
 //	Argument processing
 //
 //---------------------------------------------------------------------------
-BOOL ParseArgument(int argc, char* argv[])
+bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
 	char *file;
@@ -206,7 +206,7 @@ BOOL ParseArgument(int argc, char* argv[])
 //	Wait Phase
 //
 //---------------------------------------------------------------------------
-BOOL WaitPhase(BUS::phase_t phase)
+bool WaitPhase(BUS::phase_t phase)
 {
 	DWORD now;
 
@@ -238,7 +238,7 @@ void BusFree()
 //	Selection Phase
 //
 //---------------------------------------------------------------------------
-BOOL Selection(int id)
+bool Selection(int id)
 {
 	BYTE data;
 	int count;
@@ -272,7 +272,7 @@ BOOL Selection(int id)
 //	Command Phase
 //
 //---------------------------------------------------------------------------
-BOOL Command(BYTE *buf, int length)
+bool Command(BYTE *buf, int length)
 {
 	int count;
 

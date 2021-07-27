@@ -49,7 +49,7 @@ CTapDriver::CTapDriver()
 //---------------------------------------------------------------------------
 #ifdef __linux__
 
-static BOOL br_setif(int br_socket_fd, const char* bridgename, const char* ifname, BOOL add) {
+static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
@@ -64,7 +64,7 @@ static BOOL br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 	return true;
 }
 
-static BOOL ip_link(int fd, const char* ifname, BOOL up) {
+static bool ip_link(int fd, const char* ifname, bool up) {
 	struct ifreq ifr;
 	int err;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
@@ -85,7 +85,7 @@ static BOOL ip_link(int fd, const char* ifname, BOOL up) {
 	return true;
 }
 
-BOOL CTapDriver::Init()
+bool CTapDriver::Init()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
@@ -202,7 +202,7 @@ BOOL CTapDriver::Init()
 #endif // __linux__
 
 #ifdef __NetBSD__
-BOOL CTapDriver::Init()
+bool CTapDriver::Init()
 {
 	struct ifreq ifr;
 	struct ifaddrs *ifa, *a;
@@ -247,7 +247,7 @@ BOOL CTapDriver::Init()
 }
 #endif // __NetBSD__
 
-BOOL CTapDriver::OpenDump(const Filepath& path) {
+bool CTapDriver::OpenDump(const Filepath& path) {
 	if (m_pcap == NULL) {
 		m_pcap = pcap_open_dead(DLT_EN10MB, 65535);
 	}
@@ -302,10 +302,10 @@ void CTapDriver::Cleanup()
 //	Enable
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::Enable(){
+bool CTapDriver::Enable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
-	BOOL result = ip_link(fd, "ras0", true);
+	bool result = ip_link(fd, "ras0", true);
 	close(fd);
 	return result;
 }
@@ -315,10 +315,10 @@ BOOL CTapDriver::Enable(){
 //	Disable
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::Disable(){
+bool CTapDriver::Disable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
-	BOOL result = ip_link(fd, "ras0", false);
+	bool result = ip_link(fd, "ras0", false);
 	close(fd);
 	return result;
 }
@@ -328,7 +328,7 @@ BOOL CTapDriver::Disable(){
 //	Flush
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::Flush(){
+bool CTapDriver::Flush(){
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	while(PendingPackets()){
 		(void)Rx(m_garbage_buffer);
@@ -353,7 +353,7 @@ void CTapDriver::GetMacAddr(BYTE *mac)
 //	Receive
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::PendingPackets()
+bool CTapDriver::PendingPackets()
 {
 	struct pollfd fds;
 
