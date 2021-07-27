@@ -18,19 +18,6 @@
 
 //---------------------------------------------------------------------------
 //
-//	#define
-//
-//---------------------------------------------------------------------------
-#ifndef _LARGEFILE64_SOURCE
-#define _LARGEFILE64_SOURCE
-#endif
-
-#ifndef  _FILE_OFFSET_BITS
-#define _FILE_OFFSET_BITS 64
-#endif
-
-//---------------------------------------------------------------------------
-//
 //	#include
 //
 //---------------------------------------------------------------------------
@@ -89,14 +76,6 @@
 #define ASSERT(cond)	((void)0)
 #endif	// NDEBUG
 #endif	// ASSERT
-
-#if !defined(ASSERT_DIAG)
-#if !defined(NDEBUG)
-#define ASSERT_DIAG()	AssertDiag()
-#else
-#define ASSERT_DIAG()	((void)0)
-#endif	// NDEBUG
-#endif	// ASSERT_DIAG
 
 #define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
 
