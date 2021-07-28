@@ -46,24 +46,24 @@ public:
 										// Constructor
 	virtual ~SCSIDaynaPort();
 										// Destructor
-	bool Open(const Filepath& path, bool attn = true);
+	BOOL Open(const Filepath& path, BOOL attn = true);
 										// Capture packets
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor);
 										// INQUIRY command
-	bool TestUnitReady(const DWORD *cdb);
+	BOOL TestUnitReady(const DWORD *cdb);
 										// TEST UNIT READY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
 										// READ command
-	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
+	BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
 										// WRITE command
 	int WriteCheck(DWORD block) override;
 										// WRITE check
 
 	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
 										// Retrieve DaynaPort statistics
-	bool EnableInterface(const DWORD *cdb);
+	BOOL EnableInterface(const DWORD *cdb);
 										// Enable/Disable Interface command
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);
@@ -175,7 +175,7 @@ private:
 
 	CTapDriver *m_tap;
 										// TAP driver
-	bool m_bTapEnable;
+	BOOL m_bTapEnable;
 										// TAP valid flag
 	BYTE m_mac_addr[6];
 										// MAC Address

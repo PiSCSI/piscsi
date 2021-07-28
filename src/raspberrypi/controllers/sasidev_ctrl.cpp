@@ -140,7 +140,7 @@ void SASIDEV::SetUnit(int no, Disk *dev)
 //	Check to see if this has a valid logical unit
 //
 //---------------------------------------------------------------------------
-bool SASIDEV::HasUnit()
+BOOL SASIDEV::HasUnit()
 {
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
@@ -724,7 +724,7 @@ void SASIDEV::CmdTestUnitReady()
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -747,7 +747,7 @@ void SASIDEV::CmdRezero()
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->Rezero(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Rezero(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -814,7 +814,7 @@ void SASIDEV::CmdFormat()
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->Format(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Format(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -837,7 +837,7 @@ void SASIDEV::CmdReassign()
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->Reassign(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Reassign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1038,7 +1038,7 @@ void SASIDEV::CmdSeek6()
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->Seek(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Seek(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1061,7 +1061,7 @@ void SASIDEV::CmdAssign()
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->Assign(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1087,7 +1087,7 @@ void SASIDEV::CmdSpecify()
         DWORD lun = GetLun();
 
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->Assign(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1127,7 +1127,7 @@ void SASIDEV::CmdInvalid()
 void SASIDEV::Send()
 {
 	int len;
-	bool result;
+	BOOL result;
 
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
@@ -1219,7 +1219,7 @@ void SASIDEV::Send()
 void SASIDEV::Receive()
 {
 	int len;
-	bool result;
+	BOOL result;
 
 	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
@@ -1301,7 +1301,7 @@ void SASIDEV::Receive()
 //	*Reset offset and length
 //
 //---------------------------------------------------------------------------
-bool SASIDEV::XferIn(BYTE *buf)
+BOOL SASIDEV::XferIn(BYTE *buf)
 {
 	ASSERT(ctrl.phase == BUS::datain);
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
@@ -1348,7 +1348,7 @@ bool SASIDEV::XferIn(BYTE *buf)
 //	*If cont=true, reset the offset and length
 //
 //---------------------------------------------------------------------------
-bool SASIDEV::XferOut(bool cont)
+BOOL SASIDEV::XferOut(BOOL cont)
 {
 	SCSIBR *bridge;
 

@@ -29,12 +29,12 @@ class SCSIMO : public Disk
 public:
 	// Basic Functions
 	SCSIMO();									// Constructor
-	bool Open(const Filepath& path, bool attn = true);			// Open
+	BOOL Open(const Filepath& path, BOOL attn = true);			// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+	BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
 
 	// Internal processing
-	int AddVendor(int page, bool change, BYTE *buf);			// Add vendor special page
+	int AddVendor(int page, BOOL change, BYTE *buf);			// Add vendor special page
 };

@@ -84,7 +84,7 @@ DiskTrack::~DiskTrack()
 //
 //---------------------------------------------------------------------------
 void DiskTrack::Init(
-	int track, int size, int sectors, bool raw, off64_t imgoff)
+	int track, int size, int sectors, BOOL raw, off64_t imgoff)
 {
 	ASSERT(track >= 0);
 	ASSERT((size >= 8) && (size <= 11));
@@ -112,7 +112,7 @@ void DiskTrack::Init(
 //	Load
 //
 //---------------------------------------------------------------------------
-bool DiskTrack::Load(const Filepath& path)
+BOOL DiskTrack::Load(const Filepath& path)
 {
 	Fileio fio;
 	int i;
@@ -167,7 +167,7 @@ bool DiskTrack::Load(const Filepath& path)
 
 	// Reserve change map memory
 	if (dt.changemap == NULL) {
-		dt.changemap = (bool *)malloc(dt.sectors * sizeof(bool));
+		dt.changemap = (BOOL *)malloc(dt.sectors * sizeof(BOOL));
 		dt.maplen = dt.sectors;
 	}
 
@@ -178,12 +178,12 @@ bool DiskTrack::Load(const Filepath& path)
 	// Reallocate if the buffer length is different
 	if (dt.maplen != (DWORD)dt.sectors) {
 		free(dt.changemap);
-		dt.changemap = (bool *)malloc(dt.sectors * sizeof(bool));
+		dt.changemap = (BOOL *)malloc(dt.sectors * sizeof(BOOL));
 		dt.maplen = dt.sectors;
 	}
 
 	// Clear changemap
-	memset(dt.changemap, 0x00, dt.sectors * sizeof(bool));
+	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 
 	// Read from File
 	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
@@ -231,7 +231,7 @@ bool DiskTrack::Load(const Filepath& path)
 //	Save
 //
 //---------------------------------------------------------------------------
-bool DiskTrack::Save(const Filepath& path)
+BOOL DiskTrack::Save(const Filepath& path)
 {
 	int i;
 	int j;
@@ -314,7 +314,7 @@ bool DiskTrack::Save(const Filepath& path)
 	fio.Close();
 
 	// Drop the change flag and exit
-	memset(dt.changemap, 0x00, dt.sectors * sizeof(bool));
+	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 	dt.changed = false;
 	return true;
 }
@@ -324,7 +324,7 @@ bool DiskTrack::Save(const Filepath& path)
 //	Read Sector
 //
 //---------------------------------------------------------------------------
-bool DiskTrack::Read(BYTE *buf, int sec) const
+BOOL DiskTrack::Read(BYTE *buf, int sec) const
 {
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
@@ -355,7 +355,7 @@ bool DiskTrack::Read(BYTE *buf, int sec) const
 //	Write Sector
 //
 //---------------------------------------------------------------------------
-bool DiskTrack::Write(const BYTE *buf, int sec)
+BOOL DiskTrack::Write(const BYTE *buf, int sec)
 {
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
@@ -444,7 +444,7 @@ DiskCache::~DiskCache()
 //	RAW Mode Setting
 //
 //---------------------------------------------------------------------------
-void DiskCache::SetRawMode(bool raw)
+void DiskCache::SetRawMode(BOOL raw)
 {
 	ASSERT(sec_size == 11);
 
@@ -457,7 +457,7 @@ void DiskCache::SetRawMode(bool raw)
 //	Save
 //
 //---------------------------------------------------------------------------
-bool DiskCache::Save()
+BOOL DiskCache::Save()
 {
 	// Save track
 	for (int i = 0; i < CacheMax; i++) {
@@ -478,7 +478,7 @@ bool DiskCache::Save()
 //	Get disk cache information
 //
 //---------------------------------------------------------------------------
-bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
+BOOL DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 {
 	ASSERT((index >= 0) && (index < CacheMax));
 
@@ -515,7 +515,7 @@ void DiskCache::Clear()
 //	Sector Read
 //
 //---------------------------------------------------------------------------
-bool DiskCache::Read(BYTE *buf, int block)
+BOOL DiskCache::Read(BYTE *buf, int block)
 {
 	ASSERT(sec_size != 0);
 
@@ -540,7 +540,7 @@ bool DiskCache::Read(BYTE *buf, int block)
 //	Sector write
 //
 //---------------------------------------------------------------------------
-bool DiskCache::Write(const BYTE *buf, int block)
+BOOL DiskCache::Write(const BYTE *buf, int block)
 {
 	ASSERT(sec_size != 0);
 
@@ -638,7 +638,7 @@ DiskTrack* DiskCache::Assign(int track)
 //	Load cache
 //
 //---------------------------------------------------------------------------
-bool DiskCache::Load(int index, int track, DiskTrack *disktrk)
+BOOL DiskCache::Load(int index, int track, DiskTrack *disktrk)
 {
 	ASSERT((index >= 0) && (index < CacheMax));
 	ASSERT(track >= 0);
@@ -789,7 +789,7 @@ bool Disk::IsCacheWB()
 //	Set cache writeback mode
 //
 //---------------------------------------------------------------------------
-void Disk::SetCacheWB(bool enable) 
+void Disk::SetCacheWB(BOOL enable) 
 { 
 	cache_wb = enable; 
 }
@@ -841,7 +841,7 @@ bool Disk::IsNuvolink() const
 //  * Call as a post-process after successful opening in a derived class
 //
 //---------------------------------------------------------------------------
-bool Disk::Open(const Filepath& path, bool /*attn*/)
+BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
 {
 	ASSERT((disk.size >= 8) && (disk.size <= 11));
 	ASSERT(disk.blocks > 0);
@@ -882,7 +882,7 @@ bool Disk::Open(const Filepath& path, bool /*attn*/)
 //	Eject
 //
 //---------------------------------------------------------------------------
-void Disk::Eject(bool force)
+void Disk::Eject(BOOL force)
 {
 	// Can only be ejected if it is removable
 	if (!disk.removable) {
@@ -918,7 +918,7 @@ void Disk::Eject(bool force)
 //	Write Protected
 //
 //---------------------------------------------------------------------------
-void Disk::WriteP(bool writep)
+void Disk::WriteP(BOOL writep)
 {
 	// be ready
 	if (!disk.ready) {
@@ -950,7 +950,7 @@ void Disk::GetPath(Filepath& path) const
 //	Flush
 //
 //---------------------------------------------------------------------------
-bool Disk::Flush()
+BOOL Disk::Flush()
 {
 	// Do nothing if there's nothing cached
 	if (!disk.dcache) {
@@ -966,7 +966,7 @@ bool Disk::Flush()
 //	Check Ready
 //
 //---------------------------------------------------------------------------
-bool Disk::CheckReady()
+BOOL Disk::CheckReady()
 {
 	// Not ready if reset
 	if (disk.reset) {
@@ -1120,7 +1120,7 @@ int Disk::SelectCheck10(const DWORD *cdb)
 //	* Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-bool Disk::ModeSelect(
+BOOL Disk::ModeSelect(
 	const DWORD* /*cdb*/, const BYTE *buf, int length)
 {
 	ASSERT(buf);
@@ -1140,8 +1140,8 @@ bool Disk::ModeSelect(
 //---------------------------------------------------------------------------
 int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 {
-	bool valid;
-	bool change;
+	BOOL valid;
+	BOOL change;
 	int ret;
 
 	ASSERT(cdb);
@@ -1281,8 +1281,8 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
-	bool valid;
-	bool change;
+	BOOL valid;
+	BOOL change;
 	int ret;
 
 	ASSERT(cdb);
@@ -1417,7 +1417,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 //	Add error page
 //
 //---------------------------------------------------------------------------
-int Disk::AddError(bool change, BYTE *buf)
+int Disk::AddError(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1439,7 +1439,7 @@ int Disk::AddError(bool change, BYTE *buf)
 //	Add format page
 //
 //---------------------------------------------------------------------------
-int Disk::AddFormat(bool change, BYTE *buf)
+int Disk::AddFormat(BOOL change, BYTE *buf)
 {
 	int size;
 
@@ -1484,7 +1484,7 @@ int Disk::AddFormat(bool change, BYTE *buf)
 //	Add drive page
 //
 //---------------------------------------------------------------------------
-int Disk::AddDrive(bool change, BYTE *buf)
+int Disk::AddDrive(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1519,7 +1519,7 @@ int Disk::AddDrive(bool change, BYTE *buf)
 //	Add option
 //
 //---------------------------------------------------------------------------
-int Disk::AddOpt(bool change, BYTE *buf)
+int Disk::AddOpt(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1541,7 +1541,7 @@ int Disk::AddOpt(bool change, BYTE *buf)
 //	Add Cache Page
 //
 //---------------------------------------------------------------------------
-int Disk::AddCache(bool change, BYTE *buf)
+int Disk::AddCache(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1563,7 +1563,7 @@ int Disk::AddCache(bool change, BYTE *buf)
 //	Add CDROM Page
 //
 //---------------------------------------------------------------------------
-int Disk::AddCDROM(bool change, BYTE *buf)
+int Disk::AddCDROM(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1591,7 +1591,7 @@ int Disk::AddCDROM(bool change, BYTE *buf)
 //	CD-DAページ追加
 //
 //---------------------------------------------------------------------------
-int Disk::AddCDDA(bool change, BYTE *buf)
+int Disk::AddCDDA(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1614,7 +1614,7 @@ int Disk::AddCDDA(bool change, BYTE *buf)
 //	Add special vendor page
 //
 //---------------------------------------------------------------------------
-int Disk::AddVendor(int /*page*/, bool /*change*/, BYTE *buf)
+int Disk::AddVendor(int /*page*/, BOOL /*change*/, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1673,7 +1673,7 @@ int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-bool Disk::TestUnitReady(const DWORD* /*cdb*/)
+BOOL Disk::TestUnitReady(const DWORD* /*cdb*/)
 {
 	// Status check
 	if (!CheckReady()) {
@@ -1689,7 +1689,7 @@ bool Disk::TestUnitReady(const DWORD* /*cdb*/)
 //	REZERO UNIT
 //
 //---------------------------------------------------------------------------
-bool Disk::Rezero(const DWORD* /*cdb*/)
+BOOL Disk::Rezero(const DWORD* /*cdb*/)
 {
 	// Status check
 	if (!CheckReady()) {
@@ -1706,7 +1706,7 @@ bool Disk::Rezero(const DWORD* /*cdb*/)
 //	*Opcode $06 for SASI, Opcode $04 for SCSI
 //
 //---------------------------------------------------------------------------
-bool Disk::Format(const DWORD *cdb)
+BOOL Disk::Format(const DWORD *cdb)
 {
 	// Status check
 	if (!CheckReady()) {
@@ -1728,7 +1728,7 @@ bool Disk::Format(const DWORD *cdb)
 //	REASSIGN BLOCKS
 //
 //---------------------------------------------------------------------------
-bool Disk::Reassign(const DWORD* /*cdb*/)
+BOOL Disk::Reassign(const DWORD* /*cdb*/)
 {
 	// Status check
 	if (!CheckReady()) {
@@ -1801,7 +1801,7 @@ int Disk::WriteCheck(DWORD block)
 //	WRITE
 //
 //---------------------------------------------------------------------------
-bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+BOOL Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
@@ -1841,7 +1841,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 //	*Does not check LBA (SASI IOCS)
 //
 //---------------------------------------------------------------------------
-bool Disk::Seek(const DWORD* /*cdb*/)
+BOOL Disk::Seek(const DWORD* /*cdb*/)
 {
 	// Status check
 	if (!CheckReady()) {
@@ -1857,7 +1857,7 @@ bool Disk::Seek(const DWORD* /*cdb*/)
 //	ASSIGN
 //
 //---------------------------------------------------------------------------
-bool Disk::Assign(const DWORD* /*cdb*/)
+BOOL Disk::Assign(const DWORD* /*cdb*/)
 {
 	// Status check
 	if (!CheckReady()) {
@@ -1873,7 +1873,7 @@ bool Disk::Assign(const DWORD* /*cdb*/)
 //	SPECIFY
 //
 //---------------------------------------------------------------------------
-bool Disk::Specify(const DWORD* /*cdb*/)
+BOOL Disk::Specify(const DWORD* /*cdb*/)
 {
 	// Status check
 	if (!CheckReady()) {
@@ -1889,7 +1889,7 @@ bool Disk::Specify(const DWORD* /*cdb*/)
 //	START STOP UNIT
 //
 //---------------------------------------------------------------------------
-bool Disk::StartStop(const DWORD *cdb)
+BOOL Disk::StartStop(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1b);
@@ -1916,7 +1916,7 @@ bool Disk::StartStop(const DWORD *cdb)
 //	SEND DIAGNOSTIC
 //
 //---------------------------------------------------------------------------
-bool Disk::SendDiag(const DWORD *cdb)
+BOOL Disk::SendDiag(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1d);
@@ -1943,7 +1943,7 @@ bool Disk::SendDiag(const DWORD *cdb)
 //	PREVENT/ALLOW MEDIUM REMOVAL
 //
 //---------------------------------------------------------------------------
-bool Disk::Removal(const DWORD *cdb)
+BOOL Disk::Removal(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1e);
@@ -2013,7 +2013,7 @@ int Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 //	VERIFY
 //
 //---------------------------------------------------------------------------
-bool Disk::Verify(const DWORD *cdb)
+BOOL Disk::Verify(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x2f);
@@ -2066,7 +2066,7 @@ int Disk::ReadToc(const DWORD *cdb, BYTE *buf)
 //	PLAY AUDIO
 //
 //---------------------------------------------------------------------------
-bool Disk::PlayAudio(const DWORD *cdb)
+BOOL Disk::PlayAudio(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x45);
@@ -2081,7 +2081,7 @@ bool Disk::PlayAudio(const DWORD *cdb)
 //	PLAY AUDIO MSF
 //
 //---------------------------------------------------------------------------
-bool Disk::PlayAudioMSF(const DWORD *cdb)
+BOOL Disk::PlayAudioMSF(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x47);
@@ -2096,7 +2096,7 @@ bool Disk::PlayAudioMSF(const DWORD *cdb)
 //	PLAY AUDIO TRACK
 //
 //---------------------------------------------------------------------------
-bool Disk::PlayAudioTrack(const DWORD *cdb)
+BOOL Disk::PlayAudioTrack(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x48);

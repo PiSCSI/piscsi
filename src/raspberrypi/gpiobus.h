@@ -476,7 +476,7 @@ public:
 										// Constructor
 	virtual ~GPIOBUS();
 										// Destructor
-	bool Init(mode_e mode = TARGET);
+	BOOL Init(mode_e mode = TARGET);
 										// Initialization
 	void Reset();
 										// Reset
@@ -506,64 +506,64 @@ public:
 	#endif // ifdef __x86_64__ || __X86__
 	}
 
-	void SetENB(bool ast);
+	void SetENB(BOOL ast);
 										// Set ENB signal
 
-	bool GetBSY();
+	BOOL GetBSY();
 										// Get BSY signal
-	void SetBSY(bool ast);
+	void SetBSY(BOOL ast);
 										// Set BSY signal
 
-	bool GetSEL();
+	BOOL GetSEL();
 										// Get SEL signal
-	void SetSEL(bool ast);
+	void SetSEL(BOOL ast);
 										// Set SEL signal
 
-	bool GetATN();
+	BOOL GetATN();
 										// Get ATN signal
-	void SetATN(bool ast);
+	void SetATN(BOOL ast);
 										// Set ATN signal
 
-	bool GetACK();
+	BOOL GetACK();
 										// Get ACK signal
-	void SetACK(bool ast);
+	void SetACK(BOOL ast);
 										// Set ACK signal
 
-	bool GetACT();
+	BOOL GetACT();
 										// Get ACT signal
-	void SetACT(bool ast);
+	void SetACT(BOOL ast);
 										// Set ACT signal
 
-	bool GetRST();
+	BOOL GetRST();
 										// Get RST signal
-	void SetRST(bool ast);
+	void SetRST(BOOL ast);
 										// Set RST signal
 
-	bool GetMSG();
+	BOOL GetMSG();
 										// Get MSG signal
-	void SetMSG(bool ast);
+	void SetMSG(BOOL ast);
 										// Set MSG signal
 
-	bool GetCD();
+	BOOL GetCD();
 										// Get CD signal
-	void SetCD(bool ast);
+	void SetCD(BOOL ast);
 										// Set CD signal
 
-	bool GetIO();
+	BOOL GetIO();
 										// Get IO signal
-	void SetIO(bool ast);
+	void SetIO(BOOL ast);
 										// Set IO signal
 
-	bool GetREQ();
+	BOOL GetREQ();
 										// Get REQ signal
-	void SetREQ(bool ast);
+	void SetREQ(BOOL ast);
 										// Set REQ signal
 
 	BYTE GetDAT();
 										// Get DAT signal
 	void SetDAT(BYTE dat);
 										// Set DAT signal
-	bool GetDP();
+	BOOL GetDP();
 										// Get Data parity signal
 	int CommandHandShake(BYTE *buf);
 										// Command receive handshake
@@ -587,15 +587,15 @@ private:
 	// SCSI I/O signal control
 	void MakeTable();
 										// Create work data
-	void SetControl(int pin, bool ast);
+	void SetControl(int pin, BOOL ast);
 										// Set Control Signal
 	void SetMode(int pin, int mode);
 										// Set SCSI I/O mode
-	bool GetSignal(int pin);
+	BOOL GetSignal(int pin);
 										// Get SCSI input signal value
-	void SetSignal(int pin, bool ast);
+	void SetSignal(int pin, BOOL ast);
 										// Set SCSI output signal value
-	bool WaitSignal(int pin, bool ast);
+	BOOL WaitSignal(int pin, BOOL ast);
 										// Wait for a signal to change
 	// Interrupt control
 	void DisableIRQ();
@@ -608,7 +608,7 @@ private:
 										// GPIO pin direction setting
 	void PullConfig(int pin, int mode);
 										// GPIO pin pull up/down resistor setting
-	void PinSetSignal(int pin, bool ast);
+	void PinSetSignal(int pin, BOOL ast);
 										// Set GPIO output signal
 	void DrvConfig(DWORD drive);
 										// Set GPIO drive strength

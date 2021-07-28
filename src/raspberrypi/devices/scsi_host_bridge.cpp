@@ -160,7 +160,7 @@ int SCSIBR::Inquiry(
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-bool SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
+BOOL SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 {
 	// TEST UNIT READY Success
 	disk.code = DISK_NOERROR;
@@ -261,7 +261,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 //	SEND MESSAGE(10)
 //
 //---------------------------------------------------------------------------
-bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
+BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
@@ -683,9 +683,9 @@ void SCSIBR::FS_Create(BYTE *buf)
 	DWORD nAttribute = ntohl(*dp);
 	i += sizeof(DWORD);
 
-	bool *bp = (bool*)&buf[i];
+	BOOL *bp = (BOOL*)&buf[i];
 	DWORD bForce = ntohl(*bp);
-	i += sizeof(bool);
+	i += sizeof(BOOL);
 
 	pFcb->fileptr = ntohl(pFcb->fileptr);
 	pFcb->mode = ntohs(pFcb->mode);

@@ -37,9 +37,9 @@ public:
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	bool TestUnitReady(const DWORD *cdb);				// TEST UNIT READY command
+	BOOL TestUnitReady(const DWORD *cdb);				// TEST UNIT READY command
 	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
-	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	BOOL SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
 
 private:
 	int GetMacAddr(BYTE *buf);					// Get MAC address
@@ -49,11 +49,11 @@ private:
 	void SendPacket(BYTE *buf, int len);				// Send a packet
 
 	CTapDriver *tap;							// TAP driver
-	bool m_bTapEnable;							// TAP valid flag
+	BOOL m_bTapEnable;							// TAP valid flag
 	BYTE mac_addr[6];							// MAC Addres
 	int packet_len;								// Receive packet size
 	BYTE packet_buf[0x1000];						// Receive packet buffer
-	bool packet_enable;							// Received packet valid
+	BOOL packet_enable;							// Received packet valid
 
 	int ReadFsResult(BYTE *buf);					// Read filesystem (result code)
 	int ReadFsOut(BYTE *buf);					// Read filesystem (return data)

@@ -65,7 +65,7 @@ static inline DWORD getDwordLE(const BYTE *b)
 //	Open
 //
 //---------------------------------------------------------------------------
-bool SCSIHD_NEC::Open(const Filepath& path, bool /*attn*/)
+BOOL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 {
 	Fileio fio;
 	off64_t size;
@@ -196,7 +196,7 @@ int SCSIHD_NEC::Inquiry(
 //	Error page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddError(bool change, BYTE *buf)
+int SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -218,7 +218,7 @@ int SCSIHD_NEC::AddError(bool change, BYTE *buf)
 //	Format page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddFormat(bool change, BYTE *buf)
+int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -261,7 +261,7 @@ int SCSIHD_NEC::AddFormat(bool change, BYTE *buf)
 //	Drive page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddDrive(bool change, BYTE *buf)
+int SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 

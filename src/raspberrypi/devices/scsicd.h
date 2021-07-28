@@ -38,27 +38,27 @@ public:
 	// Basic Functions
 	CDTrack(SCSICD *scsicd);						// Constructor
 	virtual ~CDTrack();							// Destructor
-	bool Init(int track, DWORD first, DWORD last);			// Initialization
+	BOOL Init(int track, DWORD first, DWORD last);			// Initialization
 
 	// Properties
-	void SetPath(bool cdda, const Filepath& path);			// Set the path
+	void SetPath(BOOL cdda, const Filepath& path);			// Set the path
 	void GetPath(Filepath& path) const;				// Get the path
 	void AddIndex(int index, DWORD lba);				// Add index
 	DWORD GetFirst() const;					// Get the start LBA
 	DWORD GetLast() const;						// Get the last LBA
 	DWORD GetBlocks() const;					// Get the number of blocks
 	int GetTrackNo() const;					// Get the track number
-	bool IsValid(DWORD lba) const;					// Is this a valid LBA?
-	bool IsAudio() const;						// Is this an audio track?
+	BOOL IsValid(DWORD lba) const;					// Is this a valid LBA?
+	BOOL IsAudio() const;						// Is this an audio track?
 
 private:
 	SCSICD *cdrom;								// Parent device
-	bool valid;								// Valid track
+	BOOL valid;								// Valid track
 	int track_no;								// Track number
 	DWORD first_lba;							// First LBA
 	DWORD last_lba;								// Last LBA
-	bool audio;								// Audio track flag
-	bool raw;								// RAW data flag
+	BOOL audio;								// Audio track flag
+	BOOL raw;								// RAW data flag
 	Filepath imgpath;							// Image file path
 };
 
@@ -74,21 +74,21 @@ public:
 	CDDABuf();								// Constructor
 	virtual ~CDDABuf();							// Destructor
 	#if 0
-	bool Init();								// Initialization
-	bool Load(const Filepath& path);				// Load
-	bool Save(const Filepath& path);				// Save
+	BOOL Init();								// Initialization
+	BOOL Load(const Filepath& path);				// Load
+	BOOL Save(const Filepath& path);				// Save
 
 	// API
 	void Clear();							// Clear the buffer
-	bool Open(Filepath& path);					// File specification
-	bool GetBuf(DWORD *buffer, int frames);			// Get the buffer
-	bool IsValid();						// Check if Valid
-	bool ReadReq();						// Read Request
-	bool IsEnd() const;						// Finish check
+	BOOL Open(Filepath& path);					// File specification
+	BOOL GetBuf(DWORD *buffer, int frames);			// Get the buffer
+	BOOL IsValid();						// Check if Valid
+	BOOL ReadReq();						// Read Request
+	BOOL IsEnd() const;						// Finish check
 
 private:
 	Filepath wavepath;							// Wave path
-	bool valid;								// Open result (is it valid?)
+	BOOL valid;								// Open result (is it valid?)
 	DWORD *buf;								// Data buffer
 	DWORD read;								// Read pointer
 	DWORD write;								// Write pointer
@@ -114,18 +114,18 @@ public:
 	// Basic Functions
 	SCSICD();								// Constructor
 	virtual ~SCSICD();							// Destructor
-	bool Open(const Filepath& path, bool attn = true);		// Open
+	BOOL Open(const Filepath& path, BOOL attn = true);		// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
-	bool PlayAudio(const DWORD *cdb);				// PLAY AUDIO command
-	bool PlayAudioMSF(const DWORD *cdb);				// PLAY AUDIO MSF command
-	bool PlayAudioTrack(const DWORD *cdb);				// PLAY AUDIO TRACK command
+	BOOL PlayAudio(const DWORD *cdb);				// PLAY AUDIO command
+	BOOL PlayAudioMSF(const DWORD *cdb);				// PLAY AUDIO MSF command
+	BOOL PlayAudioTrack(const DWORD *cdb);				// PLAY AUDIO TRACK command
 
 	// CD-DA
-	bool NextFrame();						// Frame notification
+	BOOL NextFrame();						// Frame notification
 	void GetBuf(DWORD *buffer, int samples, DWORD rate);		// Get CD-DA buffer
 
 	// LBA-MSF変換
@@ -134,10 +134,10 @@ public:
 
 private:
 	// Open
-	bool OpenCue(const Filepath& path);				// Open(CUE)
-	bool OpenIso(const Filepath& path);				// Open(ISO)
-	bool OpenPhysical(const Filepath& path);			// Open(Physical)
-	bool rawfile;								// RAW flag
+	BOOL OpenCue(const Filepath& path);				// Open(CUE)
+	BOOL OpenIso(const Filepath& path);				// Open(ISO)
+	BOOL OpenPhysical(const Filepath& path);			// Open(Physical)
+	BOOL rawfile;								// RAW flag
 
 	// Track management
 	void ClearTrack();						// Clear the track
@@ -154,6 +154,6 @@ private:
 	int da_num;								// Number of CD-DA tracks
 	int da_cur;								// CD-DA current track
 	int da_next;								// CD-DA next track
-	bool da_req;								// CD-DA data request
+	BOOL da_req;								// CD-DA data request
 	#endif
 };

@@ -456,8 +456,8 @@ public:
 	const TCHAR*  GetHost() const { return m_szHost; }	///< ホスト側の名称を取得
 	void  ConvertHuman(int nCount = -1);					///< Human68k側の名称を変換
 	void  CopyHuman(const BYTE* szHuman);					///< Human68k側の名称を複製
-	bool  isReduce() const;							///< Human68k側の名称が加工されたか調査
-	bool  isCorrect() const { return m_bCorrect; }		///< Human68k側のファイル名規則に合致しているか調査
+	BOOL  isReduce() const;							///< Human68k側の名称が加工されたか調査
+	BOOL  isCorrect() const { return m_bCorrect; }		///< Human68k側のファイル名規則に合致しているか調査
 	const BYTE*  GetHuman() const { return m_szHuman; }	///< Human68kファイル名を取得
 	const BYTE*  GetHumanLast() const 
 	{ return m_pszHumanLast; }				///< Human68kファイル名を取得
@@ -475,8 +475,8 @@ public:
 	{ m_dirHuman.cluster = nHumanCluster; }			///< Human68kディレクトリエントリを設定
 	const Human68k::dirent_t*  GetEntry() const 
 	{ return &m_dirHuman; }					///< Human68kディレクトリエントリを取得
-	bool  CheckAttribute(DWORD nHumanAttribute) const;			///< Human68kディレクトリエントリの属性判定
-	bool  isSameEntry(const Human68k::dirent_t* pdirHuman) const
+	BOOL  CheckAttribute(DWORD nHumanAttribute) const;			///< Human68kディレクトリエントリの属性判定
+	BOOL  isSameEntry(const Human68k::dirent_t* pdirHuman) const
 	{ ASSERT(pdirHuman); return memcmp(&m_dirHuman, pdirHuman, sizeof(m_dirHuman)) == 0; }
 										///< Human68kディレクトリエントリの一致判定
 
@@ -489,7 +489,7 @@ private:
 
 	const BYTE* m_pszHumanLast;		///< 該当エントリのHuman68k内部名の終端位置
 	const BYTE* m_pszHumanExt;		///< 該当エントリのHuman68k内部名の拡張子位置
-	bool m_bCorrect;			///< 該当エントリのHuman68k内部名が正しければ真
+	BOOL m_bCorrect;			///< 該当エントリのHuman68k内部名が正しければ真
 	BYTE m_szHuman[24];			///< 該当エントリのHuman68k内部名
 	Human68k::dirent_t m_dirHuman;		///< 該当エントリのHuman68k全情報
 	TCHAR m_szHost[FILEPATH_MAX];		///< 該当エントリのホスト側の名称 (可変長)
@@ -544,14 +544,14 @@ public:
 
 	void  SetHuman(const BYTE* szHuman);					///< Human68k側の名称を直接指定する
 	void  SetHost(const TCHAR* szHost);					///< ホスト側の名称を直接指定する
-	bool  isSameHuman(const BYTE* szHuman) const;				///< Human68k側の名称を比較する
-	bool  isSameChild(const BYTE* szHuman) const;				///< Human68k側の名称を比較する
+	BOOL  isSameHuman(const BYTE* szHuman) const;				///< Human68k側の名称を比較する
+	BOOL  isSameChild(const BYTE* szHuman) const;				///< Human68k側の名称を比較する
 	const TCHAR*  GetHost() const { return m_szHost; }	///< ホスト側の名称の獲得
 	const CHostFilename*  FindFilename(const BYTE* szHuman, DWORD nHumanAttribute = Human68k::AT_ALL) const;
 										///< ファイル名を検索
 	const CHostFilename*  FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const;
 										///< ファイル名を検索 (ワイルドカード対応)
-	bool  isRefresh();							///< ファイル変更が行なわれたか確認
+	BOOL  isRefresh();							///< ファイル変更が行なわれたか確認
 	void  Refresh();							///< ファイル再構成
 	void  Backup();								/// ホスト側のタイムスタンプを保存
 	void  Restore() const;							/// ホスト側のタイムスタンプを復元
@@ -568,7 +568,7 @@ private:
 
 	CRing m_cRing;								///< CHostFilename連結用
 	time_t m_tBackup;							///< 時刻復元用
-	bool m_bRefresh;							///< 更新フラグ
+	BOOL m_bRefresh;							///< 更新フラグ
 	DWORD m_nId;								///< 識別ID (値が変化した場合は更新を意味する)
 	BYTE m_szHuman[HUMAN68K_PATH_MAX];					///< 該当エントリのHuman68k内部名
 	TCHAR m_szHost[FILEPATH_MAX];						///< 該当エントリのホスト側の名称
@@ -604,15 +604,15 @@ public:
 	void  Init();									///< 初期化
 
 	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< 検索キー設定
-	bool  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
+	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
 	void  SetPath(const Human68k::namests_t* pNamests);				///< パス名・ファイル名を内部で生成
-	bool  isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< ルートディレクトリ判定
+	BOOL  isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< ルートディレクトリ判定
 	void  SetPathWildcard() { m_nHumanWildcard = 1; }				///< ワイルドカードによるファイル検索を有効化
 	void  SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< パス名のみを有効化
-	bool  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< パス名のみ設定か判定
+	BOOL  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< パス名のみ設定か判定
 	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }
 											///< 検索属性を設定
-	bool  Find(DWORD nUnit, class CHostEntry* pEntry);				///< Human68k側でファイルを検索しホスト側の情報を生成
+	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry);				///< Human68k側でファイルを検索しホスト側の情報を生成
 	const CHostFilename*  Find(CHostPath* pPath);					///< ファイル名検索
 	void  SetEntry(const CHostFilename* pFilename);					///< Human68k側の検索結果保存
 	void  SetResult(const TCHAR* szPath);						///< ホスト側の名称を設定
@@ -684,27 +684,27 @@ public:
 	void  Init();									///< 初期化
 
 	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< 検索キー設定
-	bool  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
+	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
 	void  SetUpdate() { m_bUpdate = true; }				///< 更新
-	bool  isUpdate() const { return m_bUpdate; }			///< 更新状態取得
-	bool  SetMode(DWORD nHumanMode);						///< ファイルオープンモードを設定
+	BOOL  isUpdate() const { return m_bUpdate; }			///< 更新状態取得
+	BOOL  SetMode(DWORD nHumanMode);						///< ファイルオープンモードを設定
 	void  SetFilename(const TCHAR* szFilename);					///< ファイル名を設定
 	void  SetHumanPath(const BYTE* szHumanPath);					///< Human68kパス名を設定
 	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Human68kパス名を取得
 
-	bool  Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, bool bForce);	///< ファイル作成
-	bool  Open();									///< ファイルオープン
-	bool  Rewind(DWORD nOffset);							///< ファイルシーク
+	BOOL  Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);	///< ファイル作成
+	BOOL  Open();									///< ファイルオープン
+	BOOL  Rewind(DWORD nOffset);							///< ファイルシーク
 	DWORD  Read(BYTE* pBuffer, DWORD nSize);					///< ファイル読み込み
 	DWORD  Write(const BYTE* pBuffer, DWORD nSize);					///< ファイル書き込み
-	bool  Truncate();								///< ファイル切り詰め
+	BOOL  Truncate();								///< ファイル切り詰め
 	DWORD  Seek(DWORD nOffset, DWORD nHumanSeek);					///< ファイルシーク
-	bool  TimeStamp(DWORD nHumanTime);						///< ファイル時刻設定
-	bool  Close();									///< ファイルクローズ
+	BOOL  TimeStamp(DWORD nHumanTime);						///< ファイル時刻設定
+	BOOL  Close();									///< ファイルクローズ
 
 private:
 	DWORD m_nKey;									///< Human68kのFCBバッファアドレス (0なら未使用)
-	bool m_bUpdate;									///< 更新フラグ
+	BOOL m_bUpdate;									///< 更新フラグ
 	FILE* m_pFile;									///< ホスト側のファイルオブジェクト
 	const char* m_pszMode;								///< ホスト側のファイルオープンモード
 	bool m_bFlag;									///< ホスト側のファイルオープンフラグ
@@ -756,19 +756,19 @@ public:
 	~CHostDrv();								///< デストラクタ final
 	void  Init(const TCHAR* szBase, DWORD nFlag);				///< 初期化 (デバイス起動とロード)
 
-	bool  isWriteProtect() const { return m_bWriteProtect; }	///< 書き込み禁止か？
-	bool  isEnable() const { return m_bEnable; }		///< アクセス可能か？
-	bool  isMediaOffline();							///< メディアチェック
+	BOOL  isWriteProtect() const { return m_bWriteProtect; }	///< 書き込み禁止か？
+	BOOL  isEnable() const { return m_bEnable; }		///< アクセス可能か？
+	BOOL  isMediaOffline();							///< メディアチェック
 	BYTE  GetMediaByte() const;						///< メディアバイトの取得
 	DWORD  GetStatus() const;						///< ドライブ状態の取得
-	void  SetEnable(bool bEnable);						///< メディア状態設定
-	bool CheckMedia();							///< メディア交換チェック
+	void  SetEnable(BOOL bEnable);						///< メディア状態設定
+	BOOL CheckMedia();							///< メディア交換チェック
 	void Update();								///< メディア状態更新
 	void Eject();								///< イジェクト
 	void  GetVolume(TCHAR* szLabel);					///< ボリュームラベルの取得
-	bool  GetVolumeCache(TCHAR* szLabel) const;				///< キャッシュからボリュームラベルを取得
+	BOOL  GetVolumeCache(TCHAR* szLabel) const;				///< キャッシュからボリュームラベルを取得
 	DWORD  GetCapacity(Human68k::capacity_t* pCapacity);			///< 容量の取得
-	bool  GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< キャッシュから容量を取得
+	BOOL  GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< キャッシュから容量を取得
 
 	// キャッシュ操作
 	void  CleanCache();							///< 全てのキャッシュを更新する
@@ -778,7 +778,7 @@ public:
 	CHostPath*  FindCache(const BYTE* szHuman);				///< 指定されたパスがキャッシュされているか検索する
 	CHostPath*  CopyCache(CHostFiles* pFiles);				///< キャッシュ情報を元に、ホスト側の名称を獲得する
 	CHostPath*  MakeCache(CHostFiles* pFiles);				///< ホスト側の名称の構築に必要な情報をすべて取得する
-	bool  Find(CHostFiles* pFiles);						///< ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
+	BOOL  Find(CHostFiles* pFiles);						///< ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
 
 private:
 	// パス名操作
@@ -795,12 +795,12 @@ private:
 		CHostPath f;						///< 実体
 	};
 
-	bool m_bWriteProtect;						///< 書き込み禁止ならtrue
-	bool m_bEnable;							///< メディアが利用可能ならtrue
+	BOOL m_bWriteProtect;						///< 書き込み禁止ならtrue
+	BOOL m_bEnable;							///< メディアが利用可能ならtrue
 	DWORD m_nRing;							///< パス名保持数
 	CRing m_cRing;							///< CHostPath連結用
 	Human68k::capacity_t m_capCache;				///< セクタ情報キャッシュ sectors == 0 なら未キャッシュ
-	bool m_bVolumeCache;						///< ボリュームラベル読み込み済みならtrue
+	BOOL m_bVolumeCache;						///< ボリュームラベル読み込み済みならtrue
 	TCHAR m_szVolumeCache[24];					///< ボリュームラベルキャッシュ
 	TCHAR m_szBase[FILEPATH_MAX];					///< ベースパス
 };
@@ -824,22 +824,22 @@ public:
 	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< 指定されたパスのキャッシュを更新する
 	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< 指定されたパス以下のキャッシュを全て更新する
 	void  DeleteCache(DWORD nUnit, const BYTE* szHumanPath);		///< 指定されたパスのキャッシュを削除する
-	bool  Find(DWORD nUnit, CHostFiles* pFiles);				///< ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
+	BOOL  Find(DWORD nUnit, CHostFiles* pFiles);				///< ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
 	void  ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< ホスト側ファイルシステム状態変化通知
 
 	// ドライブオブジェクト操作
 	void  SetDrv(DWORD nUnit, CHostDrv* pDrv);				///< ドライブ設定
-	bool  isWriteProtect(DWORD nUnit) const;				///< 書き込み禁止か？
-	bool  isEnable(DWORD nUnit) const;					///< アクセス可能か？
-	bool  isMediaOffline(DWORD nUnit);					///< メディアチェック
+	BOOL  isWriteProtect(DWORD nUnit) const;				///< 書き込み禁止か？
+	BOOL  isEnable(DWORD nUnit) const;					///< アクセス可能か？
+	BOOL  isMediaOffline(DWORD nUnit);					///< メディアチェック
 	BYTE  GetMediaByte(DWORD nUnit) const;					///< メディアバイトの取得
 	DWORD  GetStatus(DWORD nUnit) const;					///< ドライブ状態の取得
-	bool CheckMedia(DWORD nUnit);						///< メディア交換チェック
+	BOOL CheckMedia(DWORD nUnit);						///< メディア交換チェック
 	void Eject(DWORD nUnit);						///< イジェクト
 	void  GetVolume(DWORD nUnit, TCHAR* szLabel);				///< ボリュームラベルの取得
-	bool  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< キャッシュからボリュームラベルを取得
+	BOOL  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< キャッシュからボリュームラベルを取得
 	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);	///< 容量の取得
-	bool  GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
+	BOOL  GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
 										///< キャッシュからクラスタサイズを取得
 
 	/// 定数
@@ -908,7 +908,7 @@ public:
 	int Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::files_t* pFiles);
 										///< $47 - ファイル検索
 	int NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles);		///< $48 - ファイル次検索
-	int Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, bool bForce);
+	int Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);
 										///< $49 - ファイル作成
 	int Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb);
 										///< $4A - ファイルオープン
@@ -945,7 +945,7 @@ public:
 private:
 	// 内部補助用
 	void  InitOption(const Human68k::argument_t* pArgument);		///< オプション初期化
-	bool  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles);		///< ボリュームラベル取得
+	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles);		///< ボリュームラベル取得
 
 	DWORD m_nUnits;								///< 現在のドライブオブジェクト数 (レジューム毎に変化)
 

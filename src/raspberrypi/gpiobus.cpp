@@ -103,7 +103,7 @@ GPIOBUS::~GPIOBUS()
 //	初期化
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::Init(mode_e mode)
+BOOL GPIOBUS::Init(mode_e mode)
 {
 #if defined(__x86_64__) || defined(__X86__)
 	// When we're running on x86, there is no hardware to talk to, so just return.
@@ -464,7 +464,7 @@ void GPIOBUS::Reset()
 //	ENB signal setting
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetENB(bool ast)
+void GPIOBUS::SetENB(BOOL ast)
 {
 	PinSetSignal(PIN_ENB, ast ? ENB_ON : ENB_OFF);
 }
@@ -474,7 +474,7 @@ void GPIOBUS::SetENB(bool ast)
 //	Get BSY signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetBSY()
+BOOL GPIOBUS::GetBSY()
 {
 	return GetSignal(PIN_BSY);
 }
@@ -484,7 +484,7 @@ bool GPIOBUS::GetBSY()
 //	Set BSY signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetBSY(bool ast)
+void GPIOBUS::SetBSY(BOOL ast)
 {
 	// Set BSY signal
 	SetSignal(PIN_BSY, ast);
@@ -523,7 +523,7 @@ void GPIOBUS::SetBSY(bool ast)
 //	Get SEL signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetSEL()
+BOOL GPIOBUS::GetSEL()
 {
 	return GetSignal(PIN_SEL);
 }
@@ -533,7 +533,7 @@ bool GPIOBUS::GetSEL()
 //	Set SEL signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetSEL(bool ast)
+void GPIOBUS::SetSEL(BOOL ast)
 {
 	if (actmode == INITIATOR && ast) {
 		// Turn on ACTIVE signal
@@ -549,7 +549,7 @@ void GPIOBUS::SetSEL(bool ast)
 //	Get ATN signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetATN()
+BOOL GPIOBUS::GetATN()
 {
 	return GetSignal(PIN_ATN);
 }
@@ -559,7 +559,7 @@ bool GPIOBUS::GetATN()
 //	Get ATN signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetATN(bool ast)
+void GPIOBUS::SetATN(BOOL ast)
 {
 	SetSignal(PIN_ATN, ast);
 }
@@ -569,7 +569,7 @@ void GPIOBUS::SetATN(bool ast)
 //	Get ACK signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetACK()
+BOOL GPIOBUS::GetACK()
 {
 	return GetSignal(PIN_ACK);
 }
@@ -579,7 +579,7 @@ bool GPIOBUS::GetACK()
 //	Set ACK signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetACK(bool ast)
+void GPIOBUS::SetACK(BOOL ast)
 {
 	SetSignal(PIN_ACK, ast);
 }
@@ -589,7 +589,7 @@ void GPIOBUS::SetACK(bool ast)
 //	Get ACK signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetACT()
+BOOL GPIOBUS::GetACT()
 {
 	return GetSignal(PIN_ACT);
 }
@@ -599,7 +599,7 @@ bool GPIOBUS::GetACT()
 //	Set ACK signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetACT(bool ast)
+void GPIOBUS::SetACT(BOOL ast)
 {
 	SetSignal(PIN_ACT, ast);
 }
@@ -609,7 +609,7 @@ void GPIOBUS::SetACT(bool ast)
 //	Get RST signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetRST()
+BOOL GPIOBUS::GetRST()
 {
 	return GetSignal(PIN_RST);
 }
@@ -619,7 +619,7 @@ bool GPIOBUS::GetRST()
 //	Set RST signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetRST(bool ast)
+void GPIOBUS::SetRST(BOOL ast)
 {
 	SetSignal(PIN_RST, ast);
 }
@@ -629,7 +629,7 @@ void GPIOBUS::SetRST(bool ast)
 //	Get MSG signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetMSG()
+BOOL GPIOBUS::GetMSG()
 {
 	return GetSignal(PIN_MSG);
 }
@@ -639,7 +639,7 @@ bool GPIOBUS::GetMSG()
 //	Set MSG signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetMSG(bool ast)
+void GPIOBUS::SetMSG(BOOL ast)
 {
 	SetSignal(PIN_MSG, ast);
 }
@@ -649,7 +649,7 @@ void GPIOBUS::SetMSG(bool ast)
 //	Get CD signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetCD()
+BOOL GPIOBUS::GetCD()
 {
 	return GetSignal(PIN_CD);
 }
@@ -659,7 +659,7 @@ bool GPIOBUS::GetCD()
 //	Set CD Signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetCD(bool ast)
+void GPIOBUS::SetCD(BOOL ast)
 {
 	SetSignal(PIN_CD, ast);
 }
@@ -669,9 +669,9 @@ void GPIOBUS::SetCD(bool ast)
 //	Get IO Signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetIO()
+BOOL GPIOBUS::GetIO()
 {
-	bool ast;
+	BOOL ast;
 	ast = GetSignal(PIN_IO);
 
 	if (actmode == INITIATOR) {
@@ -709,7 +709,7 @@ bool GPIOBUS::GetIO()
 //	Set IO signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetIO(bool ast)
+void GPIOBUS::SetIO(BOOL ast)
 {
 	SetSignal(PIN_IO, ast);
 
@@ -747,7 +747,7 @@ void GPIOBUS::SetIO(bool ast)
 //	Get REQ signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetREQ()
+BOOL GPIOBUS::GetREQ()
 {
 	return GetSignal(PIN_REQ);
 }
@@ -757,7 +757,7 @@ bool GPIOBUS::GetREQ()
 //	Set REQ signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetREQ(bool ast)
+void GPIOBUS::SetREQ(BOOL ast)
 {
 	SetSignal(PIN_REQ, ast);
 }
@@ -830,7 +830,7 @@ void GPIOBUS::SetDAT(BYTE dat)
 //	Get data parity signal
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetDP()
+BOOL GPIOBUS::GetDP()
 {
 	return GetSignal(PIN_DP);
 }
@@ -843,7 +843,7 @@ bool GPIOBUS::GetDP()
 int GPIOBUS::CommandHandShake(BYTE *buf)
 {
 	int i;
-	bool ret;
+	BOOL ret;
 	int count;
 
 	// Only works in TARGET mode
@@ -944,7 +944,7 @@ irq_enable_exit:
 int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 {
 	int i;
-	bool ret;
+	BOOL ret;
 	DWORD phase;
 
 	// Disable IRQs
@@ -1046,7 +1046,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 {
 	int i;
-	bool ret;
+	BOOL ret;
 	DWORD phase;
 
 	// Disable IRQs
@@ -1214,7 +1214,7 @@ void GPIOBUS::MakeTable(void)
 
 	int i;
 	int j;
-	bool tblParity[256];
+	BOOL tblParity[256];
 	DWORD bits;
 	DWORD parity;
 #if SIGNAL_CONTROL_MODE == 0
@@ -1308,7 +1308,7 @@ void GPIOBUS::MakeTable(void)
 //	Control signal setting
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetControl(int pin, bool ast)
+void GPIOBUS::SetControl(int pin, BOOL ast)
 {
 	PinSetSignal(pin, ast);
 }
@@ -1346,7 +1346,7 @@ void GPIOBUS::SetMode(int pin, int mode)
 //	Get input signal value
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::GetSignal(int pin)
+BOOL GPIOBUS::GetSignal(int pin)
 {
 	return  (signals >> pin) & 1;
 }
@@ -1356,7 +1356,7 @@ bool GPIOBUS::GetSignal(int pin)
 //	Set output signal value
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetSignal(int pin, bool ast)
+void GPIOBUS::SetSignal(int pin, BOOL ast)
 {
 #if SIGNAL_CONTROL_MODE == 0
 	int index;
@@ -1393,7 +1393,7 @@ void GPIOBUS::SetSignal(int pin, bool ast)
 //	Wait for signal change
 //
 //---------------------------------------------------------------------------
-bool GPIOBUS::WaitSignal(int pin, bool ast)
+BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
 {
 	DWORD now;
 	DWORD timeout;
@@ -1537,7 +1537,7 @@ void GPIOBUS::PullConfig(int pin, int mode)
 //	Set output pin
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::PinSetSignal(int pin, bool ast)
+void GPIOBUS::PinSetSignal(int pin, BOOL ast)
 {
 	// Check for invalid pin
 	if (pin < 0) {

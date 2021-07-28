@@ -28,13 +28,13 @@ public:
 	// Internal data definition
 	typedef struct {
 		// Synchronous transfer
-		bool syncenable;				// Synchronous transfer possible
+		BOOL syncenable;				// Synchronous transfer possible
 		int syncperiod;					// Synchronous transfer period
 		int syncoffset;					// Synchronous transfer offset
 		int syncack;					// Number of synchronous transfer ACKs
 
 		// ATN message
-		bool atnmsg;
+		BOOL atnmsg;
 		int msc;
 		BYTE msb[256];
 	} scsi_t;
@@ -60,11 +60,11 @@ public:
 	// 外部API
 	BUS::phase_t Process();					// Run
 
-	void SyncTransfer(bool enable) { scsi.syncenable = enable; }	// Synchronouse transfer enable setting
+	void SyncTransfer(BOOL enable) { scsi.syncenable = enable; }	// Synchronouse transfer enable setting
 
 	// Other
-	bool IsSASI() const {return false;}				// SASI Check
-	bool IsSCSI() const {return true;}				// SCSI check
+	BOOL IsSASI() const {return false;}				// SASI Check
+	BOOL IsSCSI() const {return true;}				// SCSI check
 
 private:
 	void SetupCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
@@ -110,7 +110,7 @@ private:
 	// データ転送
 	void Send();							// Send data
 	void Receive();						// Receive data
-	bool XferMsg(DWORD msg);					// Data transfer message
+	BOOL XferMsg(DWORD msg);					// Data transfer message
 
 	scsi_t scsi;								// Internal data
 };

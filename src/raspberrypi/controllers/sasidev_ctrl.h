@@ -156,7 +156,7 @@ public:
 	void Connect(int id, BUS *sbus);				// Controller connection
 	Disk* GetUnit(int no);						// Get logical unit
 	void SetUnit(int no, Disk *dev);				// Logical unit setting
-	bool HasUnit();						// Has a valid logical unit
+	BOOL HasUnit();						// Has a valid logical unit
 
 	// Other
 	BUS::phase_t GetPhase() {return ctrl.phase;}			// Get the phase
@@ -169,8 +169,8 @@ public:
 	int GetSCSIID() {return ctrl.m_scsi_id;}					// Get the ID
 	void GetCTRL(ctrl_t *buffer);					// Get the internal information
 	ctrl_t* GetWorkAddr() { return &ctrl; }			// Get the internal information address
-	virtual bool IsSASI() const {return true;}			// SASI Check
-	virtual bool IsSCSI() const {return false;}			// SCSI check
+	virtual BOOL IsSASI() const {return true;}			// SASI Check
+	virtual BOOL IsSCSI() const {return false;}			// SCSI check
 	Disk* GetBusyUnit();						// Get the busy unit
 
 protected:
@@ -206,8 +206,8 @@ protected:
 
 	virtual void Receive();					// Receive data
 
-	bool XferIn(BYTE* buf);					// Data transfer IN
-	bool XferOut(bool cont);					// Data transfer OUT
+	BOOL XferIn(BYTE* buf);					// Data transfer IN
+	BOOL XferOut(BOOL cont);					// Data transfer OUT
 
 	// Special operations
 	void FlushUnit();						// Flush the logical unit

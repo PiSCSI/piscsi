@@ -150,7 +150,7 @@ LPCTSTR Filepath::GetFileExt() const
 //	Save
 //
 //---------------------------------------------------------------------------
-bool Filepath::Save(Fileio *fio, int /*ver*/)
+BOOL Filepath::Save(Fileio *fio, int /*ver*/)
 {
 	ASSERT(fio);
 
@@ -162,7 +162,7 @@ bool Filepath::Save(Fileio *fio, int /*ver*/)
 //	Load
 //
 //---------------------------------------------------------------------------
-bool Filepath::Load(Fileio *fio, int /*ver*/)
+BOOL Filepath::Load(Fileio *fio, int /*ver*/)
 {
 	ASSERT(fio);
 

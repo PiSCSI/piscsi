@@ -52,8 +52,8 @@
 //
 //---------------------------------------------------------------------------
 static BYTE prev_value[32] = {0xFF};
-static volatile bool running;		// Running flag
-static volatile bool active;		// Processing flag
+static volatile BOOL running;		// Running flag
+static volatile BOOL active;		// Processing flag
 GPIOBUS *bus;						// GPIO Bus
 typedef struct data_capture{
     DWORD data;
@@ -117,7 +117,7 @@ void Banner(int argc, char* argv[])
 //	Initialization
 //
 //---------------------------------------------------------------------------
-bool Init()
+BOOL Init()
 {
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
@@ -149,7 +149,7 @@ bool Init()
 	return true;
 }
 
-bool get_pin_value(DWORD data, int pin)
+BOOL get_pin_value(DWORD data, int pin)
 {
 	return  (data >> pin) & 1;
 }
@@ -182,7 +182,7 @@ void vcd_output_if_changed_phase(FILE *fp, DWORD data, int pin, char symbol)
 
 void vcd_output_if_changed_bool(FILE *fp, DWORD data, int pin, char symbol)
 {
-    bool new_value = get_pin_value(data,pin);
+    BOOL new_value = get_pin_value(data,pin);
     if(prev_value[pin] != new_value)
     {
         prev_value[pin] = new_value;

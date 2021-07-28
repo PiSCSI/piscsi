@@ -78,11 +78,11 @@ public:
 		int sectors;							// Number of sectors(<=0x100)
 		DWORD length;							// Data buffer length
 		BYTE *buffer;							// Data buffer
-		bool init;							// Is it initilized?
-		bool changed;							// Changed flag
+		BOOL init;							// Is it initilized?
+		BOOL changed;							// Changed flag
 		DWORD maplen;							// Changed map length
-		bool *changemap;						// Changed map
-		bool raw;							// RAW mode flag
+		BOOL *changemap;						// Changed map
+		BOOL raw;							// RAW mode flag
 		off64_t imgoffset;						// Offset to actual data
 	} disktrk_t;
 
@@ -90,17 +90,17 @@ public:
 	// Basic Functions
 	DiskTrack();								// Constructor
 	virtual ~DiskTrack();							// Destructor
-	void Init(int track, int size, int sectors, bool raw = false, off64_t imgoff = 0);// Initialization
-	bool Load(const Filepath& path);				// Load
-	bool Save(const Filepath& path);				// Save
+	void Init(int track, int size, int sectors, BOOL raw = false, off64_t imgoff = 0);// Initialization
+	BOOL Load(const Filepath& path);				// Load
+	BOOL Save(const Filepath& path);				// Save
 
 	// Read / Write
-	bool Read(BYTE *buf, int sec) const;				// Sector Read
-	bool Write(const BYTE *buf, int sec);				// Sector Write
+	BOOL Read(BYTE *buf, int sec) const;				// Sector Read
+	BOOL Write(const BYTE *buf, int sec);				// Sector Write
 
 	// Other
 	int GetTrack() const		{ return dt.track; }		// Get track
-	bool IsChanged() const		{ return dt.changed; }		// Changed flag check
+	BOOL IsChanged() const		{ return dt.changed; }		// Changed flag check
 
 private:
 	// Internal data
@@ -130,19 +130,19 @@ public:
 	// Basic Functions
 	DiskCache(const Filepath& path, int size, int blocks,off64_t imgoff = 0);// Constructor
 	virtual ~DiskCache();							// Destructor
-	void SetRawMode(bool raw);					// CD-ROM raw mode setting
+	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
 
 	// Access
-	bool Save();							// Save and release all
-	bool Read(BYTE *buf, int block);				// Sector Read
-	bool Write(const BYTE *buf, int block);			// Sector Write
-	bool GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
+	BOOL Save();							// Save and release all
+	BOOL Read(BYTE *buf, int block);				// Sector Read
+	BOOL Write(const BYTE *buf, int block);			// Sector Write
+	BOOL GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
 
 private:
 	// Internal Management
 	void Clear();							// Clear all tracks
 	DiskTrack* Assign(int track);					// Load track
-	bool Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
+	BOOL Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
 	void Update();							// Update serial number
 
 	// Internal data
@@ -151,7 +151,7 @@ private:
 	Filepath sec_path;							// Path
 	int sec_size;								// Sector size (8 or 9 or 11)
 	int sec_blocks;								// Blocks per sector
-	bool cd_raw;								// CD-ROM RAW mode
+	BOOL cd_raw;								// CD-ROM RAW mode
 	off64_t imgoffset;							// Offset to actual data
 };
 
@@ -166,13 +166,13 @@ public:
 	// Internal data structure
 	typedef struct {
 		std::string id;						// Media ID
-		bool ready;							// Valid Disk
-		bool writep;							// Write protected
-		bool readonly;							// Read only
-		bool removable;							// Removable
-		bool lock;							// Locked
-		bool attn;							// Attention
-		bool reset;							// Reset
+		BOOL ready;							// Valid Disk
+		BOOL writep;							// Write protected
+		BOOL readonly;							// Read only
+		BOOL removable;							// Removable
+		BOOL lock;							// Locked
+		BOOL attn;							// Attention
+		BOOL reset;							// Reset
 		int size;							// Sector Size
 		DWORD blocks;							// Total number of sectors
 		DWORD lun;							// LUN
@@ -198,17 +198,17 @@ public:
 	bool IsNuvolink() const;
 
 	// Media Operations
-	virtual bool Open(const Filepath& path, bool attn = true);	// Open
+	virtual BOOL Open(const Filepath& path, BOOL attn = true);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
-	void Eject(bool force);					// Eject
-	bool IsReady() const		{ return disk.ready; }		// Ready check
-	void WriteP(bool flag);					// Set Write Protect flag
-	bool IsWriteP() const		{ return disk.writep; }		// Get write protect flag
-	bool IsReadOnly() const	{ return disk.readonly; }	// Get read only flag
-	bool IsRemovable() const	{ return disk.removable; }	// Get is removable flag
-	bool IsLocked() const		{ return disk.lock; }		// Get locked status
-	bool IsAttn() const		{ return disk.attn; }		// Get attention flag
-	bool Flush();							// Flush the cache
+	void Eject(BOOL force);					// Eject
+	BOOL IsReady() const		{ return disk.ready; }		// Ready check
+	void WriteP(BOOL flag);					// Set Write Protect flag
+	BOOL IsWriteP() const		{ return disk.writep; }		// Get write protect flag
+	BOOL IsReadOnly() const	{ return disk.readonly; }	// Get read only flag
+	BOOL IsRemovable() const	{ return disk.removable; }	// Get is removable flag
+	BOOL IsLocked() const		{ return disk.lock; }		// Get locked status
+	BOOL IsAttn() const		{ return disk.attn; }		// Get attention flag
+	BOOL Flush();							// Flush the cache
 
 	// Properties
 	void SetLUN(DWORD lun)		{ disk.lun = lun; }		// LUN set
@@ -219,48 +219,48 @@ public:
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
-	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
+	virtual BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
 	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
-	virtual bool TestUnitReady(const DWORD *cdb);			// TEST UNIT READY command
-	bool Rezero(const DWORD *cdb);					// REZERO command
-	bool Format(const DWORD *cdb);					// FORMAT UNIT command
-	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
+	virtual BOOL TestUnitReady(const DWORD *cdb);			// TEST UNIT READY command
+	BOOL Rezero(const DWORD *cdb);					// REZERO command
+	BOOL Format(const DWORD *cdb);					// FORMAT UNIT command
+	BOOL Reassign(const DWORD *cdb);				// REASSIGN UNIT command
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
 	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
-	bool Seek(const DWORD *cdb);					// SEEK command
-	bool Assign(const DWORD *cdb);					// ASSIGN command
-	bool Specify(const DWORD *cdb);				// SPECIFY command
-	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
-	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
-	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
+	virtual BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
+	BOOL Seek(const DWORD *cdb);					// SEEK command
+	BOOL Assign(const DWORD *cdb);					// ASSIGN command
+	BOOL Specify(const DWORD *cdb);				// SPECIFY command
+	BOOL StartStop(const DWORD *cdb);				// START STOP UNIT command
+	BOOL SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
+	BOOL Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
 	int ReadCapacity(const DWORD *cdb, BYTE *buf);			// READ CAPACITY command
-	bool Verify(const DWORD *cdb);					// VERIFY command
+	BOOL Verify(const DWORD *cdb);					// VERIFY command
 	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
-	virtual bool PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
-	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
-	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
+	virtual BOOL PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
+	virtual BOOL PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
+	virtual BOOL PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
 
 	// Other
 	bool IsCacheWB();								// Get cache writeback mode
-	void SetCacheWB(bool enable);						// Set cache writeback mode
+	void SetCacheWB(BOOL enable);						// Set cache writeback mode
 
 protected:
 	// Internal processing
-	virtual int AddError(bool change, BYTE *buf);			// Add error
-	virtual int AddFormat(bool change, BYTE *buf);			// Add format
-	virtual int AddDrive(bool change, BYTE *buf);			// Add drive
-	int AddOpt(bool change, BYTE *buf);				// Add optical
-	int AddCache(bool change, BYTE *buf);				// Add cache
-	int AddCDROM(bool change, BYTE *buf);				// Add CD-ROM
-	int AddCDDA(bool change, BYTE *buf);				// Add CD_DA
-	virtual int AddVendor(int page, bool change, BYTE *buf);	// Add vendor special info
-	bool CheckReady();						// Check if ready
+	virtual int AddError(BOOL change, BYTE *buf);			// Add error
+	virtual int AddFormat(BOOL change, BYTE *buf);			// Add format
+	virtual int AddDrive(BOOL change, BYTE *buf);			// Add drive
+	int AddOpt(BOOL change, BYTE *buf);				// Add optical
+	int AddCache(BOOL change, BYTE *buf);				// Add cache
+	int AddCDROM(BOOL change, BYTE *buf);				// Add CD-ROM
+	int AddCDDA(BOOL change, BYTE *buf);				// Add CD_DA
+	virtual int AddVendor(int page, BOOL change, BYTE *buf);	// Add vendor special info
+	BOOL CheckReady();						// Check if ready
 
 	// Internal data
 	disk_t disk;								// Internal disk data
 	Filepath diskpath;							// File path (for GetPath)
-	bool cache_wb;								// Cache mode
+	BOOL cache_wb;								// Cache mode
 };
