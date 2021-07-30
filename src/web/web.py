@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file
-from werkzeug.utils import secure_filename
 
 from file_cmds import (
     create_new_image,
@@ -235,7 +234,7 @@ def upload_file():
         return redirect(url_for("index"))
     file = request.files["file"]
     if file:
-        filename = secure_filename(file.filename)
+        filename = file.filename
         file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
         return redirect(url_for("index", filename=filename))
 
@@ -244,9 +243,9 @@ def upload_file():
 def create_file():
     file_name = request.form.get("file_name")
     size = request.form.get("size")
-    type = request.form.get("type")
+    file_type = request.form.get("type")
 
-    process = create_new_image(file_name, type, size)
+    process = create_new_image(file_name, file_type, size)
     if process.returncode == 0:
         flash("Drive created")
         return redirect(url_for("index"))
@@ -293,6 +292,6 @@ if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
-    from waitress import serve
+    import bjoern
+    bjoern.run(app, "0.0.0.0", 8080)
 
-    serve(app, host="0.0.0.0", port=8080)
