@@ -139,6 +139,7 @@ function updateRaScsiWebInterface() {
     updateRaScsiGit
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
     sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
+    echo "Restarting rascsi-web services..."
     sudo systemctl restart rascsi-web
     sudo systemctl restart nginx
 }
