@@ -232,11 +232,16 @@ def upload_file():
     if "file" not in request.files:
         flash("No file part", "error")
         return redirect(url_for("index"))
-    file = request.files["file"]
-    if file:
-        filename = file.filename
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-        return redirect(url_for("index", filename=filename))
+    filename = request.form["filename"]
+
+    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename, "bw")) as f:
+        chunk_size = 4096
+        while True:
+            chunk = request.stream.read(chunk_size)
+            if len(chunk) == 0:
+                break
+            f.write(chunk)
+    return redirect(url_for("index", filename=filename))
 
 
 @app.route("/files/create", methods=["POST"])
