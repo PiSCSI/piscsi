@@ -279,10 +279,24 @@ function runChoice() {
               createDriveCustom
               echo "Creating a custom drive - Complete!"
           ;;
+          -h|--help|h|help)
+              showMenu
+          ;;
           *)
               echo "${1} is not a valid option, exiting..."
               exit 1
       esac
+}
+
+function readChoice() {
+   choice=-1
+
+   until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
+       echo -n "Enter your choice (0-7) or CTRL-C to exit: "
+       read -r choice
+   done
+
+   runChoice choice
 }
 
 function showMenu() {
@@ -299,16 +313,6 @@ function showMenu() {
     echo "CREATE EMPTY DRIVE"
     echo "  6) 600MB drive (recommended)"
     echo "  7) custom drive size (up to 4000MB)"
-
-
-    choice=-1
-
-    until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-        echo -n "Enter your choice (0-7) or CTRL-C to exit: "
-        read -r choice
-    done
-
-    runChoice choice
 }
 
 
@@ -316,6 +320,7 @@ showRaSCSILogo
 initialChecks
 if [ -z "${1}" ]; then # $1 is unset, show menu
     showMenu
+    readChoice
 else
     runChoice "$1"
 fi
