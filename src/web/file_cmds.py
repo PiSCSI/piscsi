@@ -6,7 +6,7 @@ import time
 from ractl_cmds import attach_image
 from settings import *
 
-valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.mos", "*.iso", "*.cdr", "*.zip"]
+valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.iso", "*.cdr", "*.zip"]
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
 
 
