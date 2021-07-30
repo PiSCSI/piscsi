@@ -227,22 +227,20 @@ def download_img():
     return redirect(url_for("index"))
 
 
-@app.route("/files/upload", methods=["POST"])
-def upload_file():
+@app.route("/files/upload/<filename>", methods=["POST"])
+def upload_file(filename):
     # if "file" not in request.files:
     #     flash("No file part", "error")
     #     return redirect(url_for("index"))
 
-    # filename = request.form["file"]# Content-Disposition
-
-    with open(os.path.join(app.config["UPLOAD_FOLDER"], "test.iso"), "bw") as f:
+    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "bw") as f:
         chunk_size = 4096
         while True:
             chunk = request.stream.read(chunk_size)
             if len(chunk) == 0:
                 break
             f.write(chunk)
-    return redirect(url_for("index", filename="filename"))
+    return redirect(url_for("index", filename=filename))
 
 
 @app.route("/files/create", methods=["POST"])

@@ -153,7 +153,7 @@
     <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
-                <form action="/files/upload" method="post" enctype="multipart/form-data">
+                <form id="uploadForm" action="/files/upload/" onchange="fileSelect(event)" method="post" enctype="multipart/form-data">
                     <label for="file">File:</label>
                     <input type="file" name="file"/>
                     <input type="submit" value="Upload" />
@@ -161,6 +161,12 @@
             </td>
         </tr>
     </table>
+<script>
+    function fileSelect(e) {
+        document.getElementById("uploadForm").setAttribute('action', "/files/upload/" + e.target.files[0].name)
+        console.log(e.target.files[0].name);
+    }
+</script>
 
     <hr/>
 
