@@ -41,7 +41,7 @@ function initialChecks() {
 }
 
 function installPackages() {
-    sudo apt-get update && sudo apt install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils -y
+    sudo apt-get update && sudo apt install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y
 }
 
 # install all dependency packages for RaSCSI Service
