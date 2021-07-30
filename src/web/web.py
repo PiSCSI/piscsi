@@ -229,9 +229,9 @@ def download_img():
 
 @app.route("/files/upload/<filename>", methods=["POST"])
 def upload_file(filename):
-    # if "file" not in request.files:
-    #     flash("No file part", "error")
-    #     return redirect(url_for("index"))
+    if not filename:
+        flash("No file provided.", "error")
+        return redirect(url_for("index"))
 
     with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "bw") as f:
         chunk_size = 4096
