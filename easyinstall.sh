@@ -105,10 +105,20 @@ function installRaScsiWebInterface() {
 function updateRaScsiGit() {
     echo "Updating checked out branch $GIT_REMOTE/$GIT_BRANCH"
     cd ~/RASCSI
+    stashed=0
+    if [[ $(git diff --stat) != '' ]]; then
+        echo 'There are local changes, we will stash and reapply them.'
+        git stash
+        stashed=1
+    fi
+
     git fetch $GIT_REMOTE
-    git stash
     git rebase $GIT_REMOTE/$GIT_BRANCH
-    git stash apply
+
+    if [ $stashed -eq 1 ]; then
+        echo "Reapplying local changes..."
+        git stash apply
+    fi
 }
 
 function updateRaScsi() {
