@@ -150,7 +150,7 @@ function createDriveCustom() {
         read driveName
     done
 
-    createDrive $driveSize "$driveName"
+    createDrive "$driveSize" "$driveName"
 }
 
 function formatDrive() {
@@ -167,17 +167,17 @@ function formatDrive() {
         git clone git://www.codesrc.com/git/hfdisk.git
         cd hfdisk
         make
-        
+
         sudo cp hfdisk /usr/bin/hfdisk
     fi
 
     # Inject hfdisk commands to create Drive with correct partitions
-    (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath" 
+    (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath"
     partitionOk=$?
 
     if [ $partitionOk -eq 0 ]; then
         if [ ! -f $LIDO_DRIVER ];then
-            echo "Lido driver couldn't be found. Make sure RASCSI is up-to-date with git pull"
+            echo "Lido driver couldn't be found. Make sure RaSCSI is up-to-date with git pull"
             return 1
         fi
 
@@ -217,7 +217,7 @@ function createDrive() {
     driveName=$2
     mkdir -p $VIRTUAL_DRIVER_PATH
     drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hda"
-    
+
     if [ ! -f $drivePath ]; then
         echo "Creating a ${driveSize}MB Drive"
         truncate --size ${driveSize}m $drivePath
@@ -228,6 +228,53 @@ function createDrive() {
     else
         echo "Error: drive already exists"
     fi
+}
+
+function runChoice() {
+  case $1 in
+          0)
+              echo "Installing RaSCSI Service + Web interface"
+              installRaScsi
+              installRaScsiWebInterface
+              createDrive600MB
+              showRaScsiStatus
+          ;;
+          1)
+              echo "Installing RaSCSI Service"
+              installRaScsi
+              showRaScsiStatus
+          ;;
+          2)
+              echo "Installing RaSCSI Web interface"
+              installRaScsiWebInterface
+          ;;
+          3)
+              echo "Updating RaSCSI Service + Web interface"
+              updateRaScsi
+              updateRaScsiWebInterface
+              showRaScsiStatus
+          ;;
+          4)
+              echo "Updating RaSCSI Service"
+              updateRaScsi
+              showRaScsiStatus
+          ;;
+          5)
+              echo "Updating RaSCSI Web interface"
+              updateRaScsiWebInterface
+          ;;
+          6)
+              echo "Creating a 600MB drive"
+              createDrive600MB
+          ;;
+          7)
+              echo "Creating a custom drive"
+              createDriveCustom
+          ;;
+          *)
+              echo "${1} is not a valid option, exiting..."
+              exit 1
+      esac
 }
 
 function showMenu() {
@@ -253,51 +300,14 @@ function showMenu() {
         read -r choice
     done
 
-
-    case $choice in
-        0)
-            echo "Installing RaSCSI Service + Web interface"
-            installRaScsi
-            installRaScsiWebInterface
-            createDrive600MB
-            showRaScsiStatus
-        ;;
-        1)
-            echo "Installing RaSCSI Service"
-            installRaScsi
-            showRaScsiStatus
-        ;;
-        2)
-            echo "Installing RaSCSI Web interface"
-            installRaScsiWebInterface
-        ;;
-        3)
-            echo "Updating RaSCSI Service + Web interface"
-            updateRaScsi
-            updateRaScsiWebInterface
-            showRaScsiStatus
-        ;;
-        4)
-            echo "Updating RaSCSI Service"
-            updateRaScsi
-            showRaScsiStatus
-        ;;
-        5)
-            echo "Updating RaSCSI Web interface"
-            updateRaScsiWebInterface
-        ;;
-        6)
-            echo "Creating a 600MB drive"
-            createDrive600MB
-        ;;
-        7)
-            echo "Creating a custom drive"
-            createDriveCustom
-        ;;
-    esac
+    runChoice choice
 }
 
 
 showRaSCSILogo
 initialChecks
-showMenu
+if [ -z "${1}" ]; then # $1 is unset, show menu
+    showMenu
+else
+    runChoice "$1"
+fi
