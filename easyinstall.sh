@@ -238,38 +238,46 @@ function runChoice() {
               installRaScsiWebInterface
               createDrive600MB
               showRaScsiStatus
+              echo "Installing RaSCSI Service + Web interface - Complete!"
           ;;
           1)
               echo "Installing RaSCSI Service"
               installRaScsi
               showRaScsiStatus
+              echo "Installing RaSCSI Service - Complete!"
           ;;
           2)
               echo "Installing RaSCSI Web interface"
               installRaScsiWebInterface
+              echo "Installing RaSCSI Web interface - Complete!"
           ;;
           3)
               echo "Updating RaSCSI Service + Web interface"
               updateRaScsi
               updateRaScsiWebInterface
               showRaScsiStatus
+              echo "Updating RaSCSI Service + Web interface - Complete!"
           ;;
           4)
               echo "Updating RaSCSI Service"
               updateRaScsi
               showRaScsiStatus
+              echo "Updating RaSCSI Service - Complete!"
           ;;
           5)
               echo "Updating RaSCSI Web interface"
               updateRaScsiWebInterface
+              echo "Updating RaSCSI Web interface - Complete!"
           ;;
           6)
               echo "Creating a 600MB drive"
               createDrive600MB
+              echo "Creating a 600MB drive - Complete!"
           ;;
           7)
               echo "Creating a custom drive"
               createDriveCustom
+              echo "Creating a custom drive - Complete!"
           ;;
           *)
               echo "${1} is not a valid option, exiting..."
