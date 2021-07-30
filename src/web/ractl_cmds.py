@@ -1,12 +1,12 @@
 import fnmatch
-import os
 import subprocess
 import re
 
 from settings import *
 
-valid_file_types = ["*.hda", "*.iso", "*.cdr", "*.zip"]
-valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_types])
+
+valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.mos", "*.iso", "*.cdr", "*.zip"]
+valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
 # List of SCSI ID's you'd like to exclude - eg if you are on a Mac, the System is usually 7
 EXCLUDE_SCSI_IDS = [7]
 

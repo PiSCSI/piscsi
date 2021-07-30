@@ -1,3 +1,5 @@
+import re
+
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file
 
 from file_cmds import (
@@ -21,6 +23,8 @@ from ractl_cmds import (
     daynaport_setup_bridge,
     list_config_files,
     detach_all,
+    valid_file_suffix,
+    valid_file_types
 )
 from settings import *
 
@@ -128,12 +132,17 @@ def attach():
     scsi_id = request.form.get("scsi_id")
 
     # Validate image type by suffix
-    if file_name.lower().endswith(".iso") or file_name.lower().endswith("iso"):
-        image_type = "cd"
-    elif file_name.lower().endswith(".hda"):
-        image_type = "hd"
+    print("file_name", file_name)
+    print("valid_file_types: ", valid_file_types)
+    if re.match(valid_file_types, file_name):
+        if file_name.lower().endswith("iso"):
+            image_type = "cd"
+        elif file_name.lower().endswith("mos"):
+            image_type = "mo"
+        else:
+            image_type = "hd"
     else:
-        flash("Unknown file type. Valid files are .iso, .hda, .cdr", "error")
+        flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
         return redirect(url_for("index"))
 
     process = attach_image(scsi_id, file_name, image_type)
