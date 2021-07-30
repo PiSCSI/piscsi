@@ -25,6 +25,7 @@ HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=~/RASCSI/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+GIT_REMOTE=${GIT_REMOTE:-origin}
 
 function initialChecks() {
     currentUser=$(whoami)
@@ -102,11 +103,11 @@ function installRaScsiWebInterface() {
 }
 
 function updateRaScsiGit() {
-    echo "Updating checked out branch $GIT_BRANCH"
+    echo "Updating checked out branch $GIT_REMOTE/$GIT_BRANCH"
     cd ~/RASCSI
-    git fetch origin
+    git fetch $GIT_REMOTE
     git stash
-    git rebase origin/$GIT_BRANCH
+    git rebase $GIT_REMOTE/$GIT_BRANCH
     git stash apply
 }
 
