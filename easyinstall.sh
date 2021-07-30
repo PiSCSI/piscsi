@@ -296,7 +296,7 @@ function readChoice() {
        read -r choice
    done
 
-   runChoice choice
+   runChoice "$choice"
 }
 
 function showMenu() {
