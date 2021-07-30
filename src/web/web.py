@@ -1,3 +1,4 @@
+import io
 import re
 
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file
@@ -240,8 +241,14 @@ def upload_file(filename):
         flash("No file provided.", "error")
         return redirect(url_for("index"))
 
-    with open(os.path.join(app.config["UPLOAD_FOLDER"], filename), "bw") as f:
-        chunk_size = 4096
+    file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    if os.path.isfile(file_path):
+        flash(f"{filename} already exists.", "error")
+        return redirect(url_for("index"))
+
+    binary_new_file = "bx"
+    with open(file_path, binary_new_file, buffering=io.DEFAULT_BUFFER_SIZE) as f:
+        chunk_size = io.DEFAULT_BUFFER_SIZE
         while True:
             chunk = request.stream.read(chunk_size)
             if len(chunk) == 0:
@@ -304,5 +311,6 @@ if __name__ == "__main__":
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
     import bjoern
+    print("Serving rascsi-web...")
     bjoern.run(app, "0.0.0.0", 8080)
 
