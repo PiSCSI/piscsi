@@ -1,0 +1,2259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="D">
+  <design>
+    <source>C:\Users\theto\Downloads\RASCSI-master\hw\rascsi_2p3\rascsi_2p3.sch</source>
+    <date>9/22/2020 8:59:04 AM</date>
+    <tool>Eeschema (5.1.4)-1</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>rascsi_2p3.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+    <sheet number="2" name="/USB_Conn/" tstamps="/5FEC586E/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>USB_Conn.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="J3">
+      <value>Conn_02x25_Odd_Even</value>
+      <footprint>Connector_PinHeader_2.54mm:PinHeader_2x25_P2.54mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1810221914_BOOMELE-Boom-Precision-Elec-C30006_C30006.pdf</datasheet>
+      <fields>
+        <field name="Description">Header 50 0.100"(2.54mm) 2 2.54MM IDC Connectors RoHS</field>
+        <field name="LCSC">C30006</field>
+        <field name="Manufacturer_Name">BOOMELE(Boom Precision Elec)</field>
+        <field name="Manufacturer_Part_Number">C30006</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_02x25_Odd_Even" description="Generic connector, double row, 02x25, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF63F70</tstamp>
+    </comp>
+    <comp ref="FUSE1">
+      <value>1A</value>
+      <footprint>Fuse:Fuse_1206_3216Metric</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1808301742_Shenzhen-lanson-Elec-12B1100B_C182974.pdf</datasheet>
+      <fields>
+        <field name="Description">SMD Fuse Fast Blow 1A 50A 0.0062 SMD1206 Surface Mount Fuses</field>
+        <field name="LCSC">C182974</field>
+        <field name="Manufacturer_Name">Shenzhen lanson Elec</field>
+        <field name="Manufacturer_Part_Number">12B1100B</field>
+      </fields>
+      <libsource lib="Device" part="Fuse_Small" description="Fuse, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60874FC5</tstamp>
+    </comp>
+    <comp ref="R1">
+      <value>2k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf</datasheet>
+      <fields>
+        <field name="Description">2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C4109</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2001TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF6D1CC</tstamp>
+    </comp>
+    <comp ref="D1">
+      <value>Green</value>
+      <footprint>LED_SMD:LED_0805_2012Metric</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf</datasheet>
+      <fields>
+        <field name="Description">0805 Light Emitting Diodes (LED) RoHS</field>
+        <field name="LCSC">C2297</field>
+        <field name="Manufacturer_Name">Hubei KENTO Elec</field>
+        <field name="Manufacturer_Part_Number">C2297</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF6E9E0</tstamp>
+    </comp>
+    <comp ref="D2">
+      <value>Green</value>
+      <footprint>LED_SMD:LED_0805_2012Metric</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf</datasheet>
+      <fields>
+        <field name="Description">0805 Light Emitting Diodes (LED) RoHS</field>
+        <field name="LCSC">C2297</field>
+        <field name="Manufacturer_Name">Hubei KENTO Elec</field>
+        <field name="Manufacturer_Part_Number">C2297</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF6FA85</tstamp>
+    </comp>
+    <comp ref="D3">
+      <value>Green</value>
+      <footprint>LED_SMD:LED_0805_2012Metric</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf</datasheet>
+      <fields>
+        <field name="Description">0805 Light Emitting Diodes (LED) RoHS</field>
+        <field name="LCSC">C2297</field>
+        <field name="Manufacturer_Name">Hubei KENTO Elec</field>
+        <field name="Manufacturer_Part_Number">C2297</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF6FD13</tstamp>
+    </comp>
+    <comp ref="D4">
+      <value>Green</value>
+      <footprint>LED_SMD:LED_0805_2012Metric</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1806151820_Hubei-KENTO-Elec-C2297_C2297.pdf</datasheet>
+      <fields>
+        <field name="Description">0805 Light Emitting Diodes (LED) RoHS</field>
+        <field name="LCSC">C2297</field>
+        <field name="Manufacturer_Name">Hubei KENTO Elec</field>
+        <field name="Manufacturer_Part_Number">C2297</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF6FF93</tstamp>
+    </comp>
+    <comp ref="J1">
+      <value>Raspberry_Pi_2_3</value>
+      <footprint>Connector_PinSocket_2.54mm:PinSocket_2x20_P2.54mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811111512_BOOMELE-Boom-Precision-Elec-C50982_C50982.pdf</datasheet>
+      <fields>
+        <field name="Description">Female Header 40 2 right-angle，180degrees 2.54mm 2.54mm Pin Header &amp; Female Header RoHS</field>
+        <field name="LCSC">C50982</field>
+        <field name="Manufacturer_Name">BOOMELE(Boom Precision Elec)</field>
+        <field name="Manufacturer_Part_Number">C50982</field>
+      </fields>
+      <libsource lib="Connector" part="Raspberry_Pi_2_3" description="expansion header for Raspberry Pi 2 &amp; 3"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60B58FCD</tstamp>
+    </comp>
+    <comp ref="H1">
+      <value>Hole1</value>
+      <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF88248</tstamp>
+    </comp>
+    <comp ref="H3">
+      <value>Hole3</value>
+      <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF89564</tstamp>
+    </comp>
+    <comp ref="H4">
+      <value>Hole5</value>
+      <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF896FC</tstamp>
+    </comp>
+    <comp ref="H2">
+      <value>Hole2</value>
+      <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF89881</tstamp>
+    </comp>
+    <comp ref="H5">
+      <value>Hole4</value>
+      <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF89A1E</tstamp>
+    </comp>
+    <comp ref="H6">
+      <value>Hole6</value>
+      <footprint>MountingHole:MountingHole_2.7mm_M2.5_Pad_Via</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Mechanical" part="MountingHole_Pad" description="Mounting Hole with connection"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF89B2F</tstamp>
+    </comp>
+    <comp ref="X1">
+      <value>Mac</value>
+      <footprint>SamacSys_Parts:mac_happy_small</footprint>
+      <datasheet>N/A - Silkscreen</datasheet>
+      <fields>
+        <field name="Description">N/A - Silkscreen</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFCC51E</tstamp>
+    </comp>
+    <comp ref="X2">
+      <value>Dogcow</value>
+      <footprint>SamacSys_Parts:dogcow</footprint>
+      <datasheet>N/A - Silkscreen</datasheet>
+      <fields>
+        <field name="Description">N/A - Silkscreen</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFCD6CA</tstamp>
+    </comp>
+    <comp ref="X3">
+      <value>Mac</value>
+      <footprint>SamacSys_Parts:mac_happy_small</footprint>
+      <datasheet>N/A - Silkscreen</datasheet>
+      <fields>
+        <field name="Description">N/A - Silkscreen</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFCD8D2</tstamp>
+    </comp>
+    <comp ref="X5">
+      <value>Dogcow</value>
+      <footprint>SamacSys_Parts:dogcow</footprint>
+      <datasheet>N/A - Silkscreen</datasheet>
+      <fields>
+        <field name="Description">N/A - Silkscreen</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFCDBC9</tstamp>
+    </comp>
+    <comp ref="X6">
+      <value>Dogcow</value>
+      <footprint>SamacSys_Parts:dogcow</footprint>
+      <datasheet>N/A - Silkscreen</datasheet>
+      <fields>
+        <field name="Description">N/A - Silkscreen</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFCDFAD</tstamp>
+    </comp>
+    <comp ref="J4">
+      <value>I2C Pinout</value>
+      <footprint>Connector_PinSocket_2.54mm:PinSocket_1x05_P2.54mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811092140_BOOMELE-Boom-Precision-Elec-C50950_C50950.pdf</datasheet>
+      <fields>
+        <field name="Description">Female Header 5 1 right-angle，180degrees 2.54mm 2.54mm Pin Header &amp; Female Header RoHS</field>
+        <field name="LCSC">C50950</field>
+        <field name="Manufacturer_Name">BOOMELE(Boom Precision Elec) C50950</field>
+        <field name="Manufacturer_Part_Number">C50950</field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x05_Male" description="Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F0B528E</tstamp>
+    </comp>
+    <comp ref="X7">
+      <value>Pi</value>
+      <footprint>SamacSys_Parts:pi_logo</footprint>
+      <datasheet>N/A - Silkscreen</datasheet>
+      <fields>
+        <field name="Description">N/A - Silkscreen</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F2D2B3B</tstamp>
+    </comp>
+    <comp ref="X4">
+      <value>Dogcow</value>
+      <footprint>SamacSys_Parts:dogcow</footprint>
+      <datasheet>N/A - Silkscreen</datasheet>
+      <fields>
+        <field name="Description">N/A - Silkscreen</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFCDD94</tstamp>
+    </comp>
+    <comp ref="S1">
+      <value>Switch x2</value>
+      <footprint>rascsi_din:SOIC127P812X230-4N</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1810191714_Dongguan-Guangzhu-Industrial-DSHP02TSGET_C40735.pdf</datasheet>
+      <fields>
+        <field name="Description">SPST 2 1.27mm, Half Slide (Standard) Black SMD DIP Switches</field>
+        <field name="LCSC">C40735</field>
+        <field name="Manufacturer_Name">C &amp; K COMPONENTS</field>
+        <field name="Manufacturer_Part_Number">DSHP02TSGET</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="TDA02H0SB1R" description="DIP Switches / SIP Switches HALF PITCH 2 POS"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F38ECD6</tstamp>
+    </comp>
+    <comp ref="R31">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F34697E</tstamp>
+    </comp>
+    <comp ref="IC1">
+      <value>SN74LS641-1DW</value>
+      <footprint>SamacSys_Parts:SOIC127P1030X265-20N</footprint>
+      <datasheet>https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW</datasheet>
+      <fields>
+        <field name="Description">Octal bus transceivers</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">Texas Instruments</field>
+        <field name="Manufacturer_Part_Number">SN74LS641-1DW</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="SN74LS245DW" description="Octal bus transceivers"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F2BE68A</tstamp>
+    </comp>
+    <comp ref="IC2">
+      <value>SN74LS641-1DW</value>
+      <footprint>SamacSys_Parts:SOIC127P1030X265-20N</footprint>
+      <datasheet>https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW</datasheet>
+      <fields>
+        <field name="Description">Octal bus transceivers</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">Texas Instruments</field>
+        <field name="Manufacturer_Part_Number">SN74LS641-1DW</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="SN74LS245DW" description="Octal bus transceivers"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F2C1889</tstamp>
+    </comp>
+    <comp ref="IC3">
+      <value>SN74LS641-1DW</value>
+      <footprint>SamacSys_Parts:SOIC127P1030X265-20N</footprint>
+      <datasheet>https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW</datasheet>
+      <fields>
+        <field name="Description">Octal bus transceivers</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">Texas Instruments</field>
+        <field name="Manufacturer_Part_Number">SN74LS641-1DW</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="SN74LS245DW" description="Octal bus transceivers"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F2C26E6</tstamp>
+    </comp>
+    <comp ref="IC4">
+      <value>SN74LS641-1DW</value>
+      <footprint>SamacSys_Parts:SOIC127P1030X265-20N</footprint>
+      <datasheet>https://www.ti.com/lit/ds/symlink/sn74ls641.pdf?ts=1596466276486&amp;ref_url=https%253A%252F%252Fwww.ti.com%252Fstore%252Fti%252Fen%252Fp%252Fproduct%252F%253Fp%253DSN74LS641-1DW</datasheet>
+      <fields>
+        <field name="Description">Octal bus transceivers</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">Texas Instruments</field>
+        <field name="Manufacturer_Part_Number">SN74LS641-1DW</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="SN74LS245DW" description="Octal bus transceivers"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F2C314F</tstamp>
+    </comp>
+    <comp ref="R13">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F456160</tstamp>
+    </comp>
+    <comp ref="R12">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F486B17</tstamp>
+    </comp>
+    <comp ref="R11">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F49BB11</tstamp>
+    </comp>
+    <comp ref="R10">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F4A637A</tstamp>
+    </comp>
+    <comp ref="R9">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F4B1092</tstamp>
+    </comp>
+    <comp ref="R8">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F4BC384</tstamp>
+    </comp>
+    <comp ref="R7">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F4C7C4F</tstamp>
+    </comp>
+    <comp ref="R6">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F4D3BDE</tstamp>
+    </comp>
+    <comp ref="R5">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F4DFFF3</tstamp>
+    </comp>
+    <comp ref="R22">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F4ECC1A</tstamp>
+    </comp>
+    <comp ref="R14">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F4F9D6D</tstamp>
+    </comp>
+    <comp ref="R15">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F507536</tstamp>
+    </comp>
+    <comp ref="R16">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F5154B0</tstamp>
+    </comp>
+    <comp ref="R17">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F5238B5</tstamp>
+    </comp>
+    <comp ref="R18">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F53230F</tstamp>
+    </comp>
+    <comp ref="R19">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F5413F6</tstamp>
+    </comp>
+    <comp ref="R20">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F550C5E</tstamp>
+    </comp>
+    <comp ref="R21">
+      <value>10k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301717_UNI-ROYAL-Uniroyal-Elec-0402WGF1002TCE_C25744.pdf</datasheet>
+      <fields>
+        <field name="Description">10kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25744</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF1002TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F560AC2</tstamp>
+    </comp>
+    <comp ref="R30">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F737D06</tstamp>
+    </comp>
+    <comp ref="R29">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F737F19</tstamp>
+    </comp>
+    <comp ref="R28">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7380C0</tstamp>
+    </comp>
+    <comp ref="R27">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F738225</tstamp>
+    </comp>
+    <comp ref="R26">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7383C6</tstamp>
+    </comp>
+    <comp ref="R25">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7384B7</tstamp>
+    </comp>
+    <comp ref="R24">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7385AE</tstamp>
+    </comp>
+    <comp ref="R23">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F738717</tstamp>
+    </comp>
+    <comp ref="R40">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F738860</tstamp>
+    </comp>
+    <comp ref="R39">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F738A29</tstamp>
+    </comp>
+    <comp ref="R38">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F738B34</tstamp>
+    </comp>
+    <comp ref="R37">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F738C93</tstamp>
+    </comp>
+    <comp ref="R36">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F738DEC</tstamp>
+    </comp>
+    <comp ref="R35">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F738F7D</tstamp>
+    </comp>
+    <comp ref="R34">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F73904C</tstamp>
+    </comp>
+    <comp ref="R33">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F739229</tstamp>
+    </comp>
+    <comp ref="R32">
+      <value>220</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811011214_UNI-ROYAL-Uniroyal-Elec-0402WGF2200TCE_C25091.pdf</datasheet>
+      <fields>
+        <field name="Description">220Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25091</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2200TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F73941A</tstamp>
+    </comp>
+    <comp ref="R41">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B429D</tstamp>
+    </comp>
+    <comp ref="R42">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B4A2E</tstamp>
+    </comp>
+    <comp ref="R43">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B4B35</tstamp>
+    </comp>
+    <comp ref="R44">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B4C32</tstamp>
+    </comp>
+    <comp ref="R45">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B4DA1</tstamp>
+    </comp>
+    <comp ref="R46">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B4FCE</tstamp>
+    </comp>
+    <comp ref="R47">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B511D</tstamp>
+    </comp>
+    <comp ref="R48">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B523C</tstamp>
+    </comp>
+    <comp ref="R49">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B5465</tstamp>
+    </comp>
+    <comp ref="R50">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B55EE</tstamp>
+    </comp>
+    <comp ref="R51">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B583D</tstamp>
+    </comp>
+    <comp ref="R52">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B594E</tstamp>
+    </comp>
+    <comp ref="R53">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B5AF5</tstamp>
+    </comp>
+    <comp ref="R54">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B5C32</tstamp>
+    </comp>
+    <comp ref="R55">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B5DC7</tstamp>
+    </comp>
+    <comp ref="R56">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B5EDA</tstamp>
+    </comp>
+    <comp ref="R57">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B602D</tstamp>
+    </comp>
+    <comp ref="R58">
+      <value>330</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811151642_UNI-ROYAL-Uniroyal-Elec-0402WGF3300TCE_C25104.pdf</datasheet>
+      <fields>
+        <field name="Description">330Ω ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25104</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF3300TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F7B612E</tstamp>
+    </comp>
+    <comp ref="R3">
+      <value>5.1k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1810301112_UNI-ROYAL-Uniroyal-Elec-0402WGF5101TCE_C25905.pdf</datasheet>
+      <fields>
+        <field name="Description">5.1kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C25905</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF5101TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F9E7EC2</tstamp>
+    </comp>
+    <comp ref="R2">
+      <value>2k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf</datasheet>
+      <fields>
+        <field name="Description">2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C4109</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2001TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F9E856D</tstamp>
+    </comp>
+    <comp ref="R4">
+      <value>2k</value>
+      <footprint>Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P1.90mm_Vertical</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809192311_UNI-ROYAL-Uniroyal-Elec-0402WGF2001TCE_C4109.pdf</datasheet>
+      <fields>
+        <field name="Description">2kΩ ±1% 1/16W ±100ppm/℃ 0402 Chip Resistor</field>
+        <field name="LCSC">C4109</field>
+        <field name="Manufacturer_Name">UNI-ROYAL(Uniroyal Elec)</field>
+        <field name="Manufacturer_Part_Number">0402WGF2001TCE</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F9E88F6</tstamp>
+    </comp>
+    <comp ref="J2">
+      <value>DNP</value>
+      <footprint>Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Horizontal</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F9E980B</tstamp>
+    </comp>
+    <comp ref="J6">
+      <value>CONNFLY DB-25</value>
+      <footprint>SamacSys_Parts:L717SDB25PA4CH4F</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1811081022_CONNFLY-Elec-DS1037-25FNAKT74-0CC_C77838.pdf</datasheet>
+      <fields>
+        <field name="Description">D-Sub Receptacle,Female Socket 25 2 1.5A(Contact) Through Hole D-Sub Connectors RoHS</field>
+        <field name="LCSC">C77838</field>
+        <field name="Manufacturer_Name">CONNFLY Elec</field>
+        <field name="Manufacturer_Part_Number">DS1037-25FNAKT74-0CC</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="L717SDB25PA4CH4F" description="D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA017A4</tstamp>
+    </comp>
+    <comp ref="X8">
+      <value>Pi</value>
+      <footprint>SamacSys_Parts:scsi_logo</footprint>
+      <datasheet>N/A - Silkscreen</datasheet>
+      <fields>
+        <field name="Description">N/A - Silkscreen</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FB668EF</tstamp>
+    </comp>
+    <comp ref="J5">
+      <value>DNP</value>
+      <footprint>Connector_PinHeader_2.54mm:PinHeader_2x03_P2.54mm_Vertical</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_02x03_Odd_Even" description="Generic connector, double row, 02x03, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F604F7F</tstamp>
+    </comp>
+    <comp ref="J7">
+      <value>DNP</value>
+      <footprint>Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical</footprint>
+      <datasheet>DNP</datasheet>
+      <fields>
+        <field name="Description">DNP</field>
+        <field name="LCSC">DNP</field>
+        <field name="Manufacturer_Name">DNP</field>
+        <field name="Manufacturer_Part_Number">DNP</field>
+      </fields>
+      <libsource lib="Connector" part="Conn_01x02_Male" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5F729663</tstamp>
+    </comp>
+    <comp ref="D5">
+      <value>SM4007PL</value>
+      <footprint>Diode_SMD:D_SOD-123F</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/1809301215_MDD-Microdiode-Electronics-SM4007PL_C64898.pdf</datasheet>
+      <fields>
+        <field name="Description">1kV 1A 1.1V @ 1A SOD-123FL Diodes - General Purpose RoHS</field>
+        <field name="LCSC">C64898</field>
+        <field name="Manufacturer_Name">	MDD(Microdiode Electronics)</field>
+        <field name="Manufacturer_Part_Number">SM4007PL</field>
+      </fields>
+      <libsource lib="Device" part="D_Small" description="Diode, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60874AD6</tstamp>
+    </comp>
+    <comp ref="J8">
+      <value>USB_B_Micro</value>
+      <footprint>SamacSys_Parts:U254051N4BH806</footprint>
+      <datasheet>https://datasheet.lcsc.com/szlcsc/2002271812_XKB-Connectivity-U254-051N-4BH806_C319170.pdf</datasheet>
+      <fields>
+        <field name="Description">USB - Micro B Female USB 2 5 SMD USB Connectors</field>
+        <field name="LCSC">C319170</field>
+        <field name="Manufacturer_Name">XKB Connectivity</field>
+        <field name="Manufacturer_Part_Number">U254-051N-4BH806</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="U254-051N-4BH806" description="USB Connectors SMD RoHS"/>
+      <sheetpath names="/USB_Conn/" tstamps="/5FEC586E/"/>
+      <tstamp>5FEC9A88</tstamp>
+    </comp>
+    <comp ref="TP1">
+      <value>TestPoint</value>
+      <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <datasheet>N/A - Test pad</datasheet>
+      <fields>
+        <field name="Description">N/A - Test pad</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/USB_Conn/" tstamps="/5FEC586E/"/>
+      <tstamp>5FED04F9</tstamp>
+    </comp>
+    <comp ref="TP2">
+      <value>TestPoint</value>
+      <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <datasheet>N/A - Test pad</datasheet>
+      <fields>
+        <field name="Description">N/A - Test pad</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/USB_Conn/" tstamps="/5FEC586E/"/>
+      <tstamp>5FED0B15</tstamp>
+    </comp>
+    <comp ref="TP3">
+      <value>TestPoint</value>
+      <footprint>TestPoint:TestPoint_Pad_D1.0mm</footprint>
+      <datasheet>N/A - Test pad</datasheet>
+      <fields>
+        <field name="Description">N/A - Test pad</field>
+        <field name="LCSC">N/A</field>
+        <field name="Manufacturer_Name">N/A</field>
+        <field name="Manufacturer_Part_Number">N/A</field>
+      </fields>
+      <libsource lib="Connector" part="TestPoint" description="test point"/>
+      <sheetpath names="/USB_Conn/" tstamps="/5FEC586E/"/>
+      <tstamp>5FED0C52</tstamp>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector" part="Conn_01x02_Male">
+      <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x02_Male</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="Conn_01x05_Male">
+      <description>Generic connector, single row, 01x05, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x05_Male</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="Raspberry_Pi_2_3">
+      <description>expansion header for Raspberry Pi 2 &amp; 3</description>
+      <docs>https://www.raspberrypi.org/documentation/hardware/raspberrypi/schematics/rpi_SCH_3bplus_1p0_reduced.pdf</docs>
+      <footprints>
+        <fp>PinHeader*2x20*P2.54mm*Vertical*</fp>
+        <fp>PinSocket*2x20*P2.54mm*Vertical*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Raspberry_Pi_2_3</field>
+      </fields>
+      <pins>
+        <pin num="1" name="3V3" type="power_in"/>
+        <pin num="2" name="5V" type="power_in"/>
+        <pin num="3" name="SDA/GPIO2" type="BiDi"/>
+        <pin num="4" name="5V" type="power_in"/>
+        <pin num="5" name="SCL/GPIO3" type="BiDi"/>
+        <pin num="6" name="GND" type="power_in"/>
+        <pin num="7" name="GCLK0/GPIO4" type="BiDi"/>
+        <pin num="8" name="GPIO14/TXD" type="BiDi"/>
+        <pin num="9" name="GND" type="power_in"/>
+        <pin num="10" name="GPIO15/RXD" type="BiDi"/>
+        <pin num="11" name="GPIO17" type="BiDi"/>
+        <pin num="12" name="GPIO18/PWM0" type="BiDi"/>
+        <pin num="13" name="GPIO27" type="BiDi"/>
+        <pin num="14" name="GND" type="power_in"/>
+        <pin num="15" name="GPIO22" type="BiDi"/>
+        <pin num="16" name="GPIO23" type="BiDi"/>
+        <pin num="17" name="3V3" type="power_in"/>
+        <pin num="18" name="GPIO24" type="BiDi"/>
+        <pin num="19" name="MOSI0/GPIO10" type="BiDi"/>
+        <pin num="20" name="GND" type="power_in"/>
+        <pin num="21" name="MISO0/GPIO9" type="BiDi"/>
+        <pin num="22" name="GPIO25" type="BiDi"/>
+        <pin num="23" name="SCLK0/GPIO11" type="BiDi"/>
+        <pin num="24" name="~CE0~/GPIO8" type="BiDi"/>
+        <pin num="25" name="GND" type="power_in"/>
+        <pin num="26" name="~CE1~/GPIO7" type="BiDi"/>
+        <pin num="27" name="ID_SD/GPIO0" type="BiDi"/>
+        <pin num="28" name="ID_SC/GPIO1" type="BiDi"/>
+        <pin num="29" name="GCLK1/GPIO5" type="BiDi"/>
+        <pin num="30" name="GND" type="power_in"/>
+        <pin num="31" name="GCLK2/GPIO6" type="BiDi"/>
+        <pin num="32" name="PWM0/GPIO12" type="BiDi"/>
+        <pin num="33" name="PWM1/GPIO13" type="BiDi"/>
+        <pin num="34" name="GND" type="power_in"/>
+        <pin num="35" name="GPIO19/MISO1" type="BiDi"/>
+        <pin num="36" name="GPIO16" type="BiDi"/>
+        <pin num="37" name="GPIO26" type="BiDi"/>
+        <pin num="38" name="GPIO20/MOSI1" type="BiDi"/>
+        <pin num="39" name="GND" type="power_in"/>
+        <pin num="40" name="GPIO21/SCLK1" type="BiDi"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector" part="TestPoint">
+      <description>test point</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Pin*</fp>
+        <fp>Test*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">TP</field>
+        <field name="Value">TestPoint</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_02x03_Odd_Even">
+      <description>Generic connector, double row, 02x03, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_2x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_02x03_Odd_Even</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Connector_Generic" part="Conn_02x25_Odd_Even">
+      <description>Generic connector, double row, 02x25, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_2x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_02x25_Odd_Even</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+        <pin num="11" name="Pin_11" type="passive"/>
+        <pin num="12" name="Pin_12" type="passive"/>
+        <pin num="13" name="Pin_13" type="passive"/>
+        <pin num="14" name="Pin_14" type="passive"/>
+        <pin num="15" name="Pin_15" type="passive"/>
+        <pin num="16" name="Pin_16" type="passive"/>
+        <pin num="17" name="Pin_17" type="passive"/>
+        <pin num="18" name="Pin_18" type="passive"/>
+        <pin num="19" name="Pin_19" type="passive"/>
+        <pin num="20" name="Pin_20" type="passive"/>
+        <pin num="21" name="Pin_21" type="passive"/>
+        <pin num="22" name="Pin_22" type="passive"/>
+        <pin num="23" name="Pin_23" type="passive"/>
+        <pin num="24" name="Pin_24" type="passive"/>
+        <pin num="25" name="Pin_25" type="passive"/>
+        <pin num="26" name="Pin_26" type="passive"/>
+        <pin num="27" name="Pin_27" type="passive"/>
+        <pin num="28" name="Pin_28" type="passive"/>
+        <pin num="29" name="Pin_29" type="passive"/>
+        <pin num="30" name="Pin_30" type="passive"/>
+        <pin num="31" name="Pin_31" type="passive"/>
+        <pin num="32" name="Pin_32" type="passive"/>
+        <pin num="33" name="Pin_33" type="passive"/>
+        <pin num="34" name="Pin_34" type="passive"/>
+        <pin num="35" name="Pin_35" type="passive"/>
+        <pin num="36" name="Pin_36" type="passive"/>
+        <pin num="37" name="Pin_37" type="passive"/>
+        <pin num="38" name="Pin_38" type="passive"/>
+        <pin num="39" name="Pin_39" type="passive"/>
+        <pin num="40" name="Pin_40" type="passive"/>
+        <pin num="41" name="Pin_41" type="passive"/>
+        <pin num="42" name="Pin_42" type="passive"/>
+        <pin num="43" name="Pin_43" type="passive"/>
+        <pin num="44" name="Pin_44" type="passive"/>
+        <pin num="45" name="Pin_45" type="passive"/>
+        <pin num="46" name="Pin_46" type="passive"/>
+        <pin num="47" name="Pin_47" type="passive"/>
+        <pin num="48" name="Pin_48" type="passive"/>
+        <pin num="49" name="Pin_49" type="passive"/>
+        <pin num="50" name="Pin_50" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="D_Small">
+      <description>Diode, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>TO-???*</fp>
+        <fp>*_Diode_*</fp>
+        <fp>*SingleDiode*</fp>
+        <fp>D_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">D_Small</field>
+      </fields>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="Fuse_Small">
+      <description>Fuse, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>SM*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">F</field>
+        <field name="Value">Fuse_Small</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="LED_Small">
+      <description>Light emitting diode, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>LED*</fp>
+        <fp>LED_SMD:*</fp>
+        <fp>LED_THT:*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">LED_Small</field>
+      </fields>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R_Small">
+      <description>Resistor, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R_Small</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Mechanical" part="MountingHole_Pad">
+      <description>Mounting Hole with connection</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>MountingHole*Pad*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">H</field>
+        <field name="Value">MountingHole_Pad</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="input"/>
+      </pins>
+    </libpart>
+    <libpart lib="SamacSys_Parts" part="L717SDB25PA4CH4F">
+      <description>D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD</description>
+      <docs>https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf</docs>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">L717SDB25PA4CH4F</field>
+        <field name="Footprint">L717SDB25PA4CH4F</field>
+        <field name="Datasheet">https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf</field>
+        <field name="Description">D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD</field>
+        <field name="Height">12.55</field>
+        <field name="Mouser Part Number">523-L717SDB25PA4CH4F</field>
+        <field name="Mouser Price/Stock">https://www.mouser.com/Search/Refine.aspx?Keyword=523-L717SDB25PA4CH4F</field>
+        <field name="Manufacturer_Name">Amphenol</field>
+        <field name="Manufacturer_Part_Number">L717SDB25PA4CH4F</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+        <pin num="3" name="3" type="passive"/>
+        <pin num="4" name="4" type="passive"/>
+        <pin num="5" name="5" type="passive"/>
+        <pin num="6" name="6" type="passive"/>
+        <pin num="7" name="7" type="passive"/>
+        <pin num="8" name="8" type="passive"/>
+        <pin num="9" name="9" type="passive"/>
+        <pin num="10" name="10" type="passive"/>
+        <pin num="11" name="11" type="passive"/>
+        <pin num="12" name="12" type="passive"/>
+        <pin num="13" name="13" type="passive"/>
+        <pin num="14" name="14" type="passive"/>
+        <pin num="15" name="15" type="passive"/>
+        <pin num="16" name="16" type="passive"/>
+        <pin num="17" name="17" type="passive"/>
+        <pin num="18" name="18" type="passive"/>
+        <pin num="19" name="19" type="passive"/>
+        <pin num="20" name="20" type="passive"/>
+        <pin num="21" name="21" type="passive"/>
+        <pin num="22" name="22" type="passive"/>
+        <pin num="23" name="23" type="passive"/>
+        <pin num="24" name="24" type="passive"/>
+        <pin num="25" name="25" type="passive"/>
+        <pin num="MH1" name="MH1" type="passive"/>
+        <pin num="MH2" name="MH2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="SamacSys_Parts" part="Logo">
+      <fields>
+        <field name="Reference">X</field>
+        <field name="Value">Logo</field>
+      </fields>
+    </libpart>
+    <libpart lib="SamacSys_Parts" part="SN74LS245DW">
+      <description>Octal bus transceivers</description>
+      <docs>http://www.ti.com/lit/gpn/sn74ls245</docs>
+      <fields>
+        <field name="Reference">IC</field>
+        <field name="Value">SN74LS245DW</field>
+        <field name="Footprint">SOIC127P1030X265-20N</field>
+        <field name="Datasheet">http://www.ti.com/lit/gpn/sn74ls245</field>
+        <field name="Description">Octal bus transceivers</field>
+        <field name="Height">2.65</field>
+        <field name="Mouser Part Number">595-SN74LS245DW</field>
+        <field name="Mouser Price/Stock">https://www.mouser.co.uk/ProductDetail/Texas-Instruments/SN74LS245DW?qs=ZA235jQDfbpxKQZqDHbgmw%3D%3D</field>
+        <field name="Manufacturer_Name">Texas Instruments</field>
+        <field name="Manufacturer_Part_Number">SN74LS245DW</field>
+      </fields>
+      <pins>
+        <pin num="1" name="DIR" type="passive"/>
+        <pin num="2" name="A1" type="passive"/>
+        <pin num="3" name="A2" type="passive"/>
+        <pin num="4" name="A3" type="passive"/>
+        <pin num="5" name="A4" type="passive"/>
+        <pin num="6" name="A5" type="passive"/>
+        <pin num="7" name="A6" type="passive"/>
+        <pin num="8" name="A7" type="passive"/>
+        <pin num="9" name="A8" type="passive"/>
+        <pin num="10" name="GND" type="passive"/>
+        <pin num="11" name="B8" type="passive"/>
+        <pin num="12" name="B7" type="passive"/>
+        <pin num="13" name="B6" type="passive"/>
+        <pin num="14" name="B5" type="passive"/>
+        <pin num="15" name="B4" type="passive"/>
+        <pin num="16" name="B3" type="passive"/>
+        <pin num="17" name="B2" type="passive"/>
+        <pin num="18" name="B1" type="passive"/>
+        <pin num="19" name="~OE" type="passive"/>
+        <pin num="20" name="VCC" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="SamacSys_Parts" part="TDA02H0SB1R">
+      <description>DIP Switches / SIP Switches HALF PITCH 2 POS</description>
+      <docs>https://www.ckswitches.com/media/1328/tda.pdf</docs>
+      <fields>
+        <field name="Reference">S</field>
+        <field name="Value">TDA02H0SB1R</field>
+        <field name="Footprint">SOIC127P812X230-4N</field>
+        <field name="Datasheet">https://www.ckswitches.com/media/1328/tda.pdf</field>
+        <field name="Description">DIP Switches / SIP Switches HALF PITCH 2 POS</field>
+        <field name="Height">2.3</field>
+        <field name="Mouser Part Number">611-TDA02H0SB1R</field>
+        <field name="Mouser Price/Stock">https://www.mouser.co.uk/ProductDetail/CK/TDA02H0SB1R?qs=%2FNF5U5UGuWn3xddlBViRrw%3D%3D</field>
+        <field name="Manufacturer_Name">C &amp; K COMPONENTS</field>
+        <field name="Manufacturer_Part_Number">TDA02H0SB1R</field>
+      </fields>
+      <pins>
+        <pin num="1" name="COM_1" type="passive"/>
+        <pin num="2" name="COM_2" type="passive"/>
+        <pin num="3" name="NO_1" type="passive"/>
+        <pin num="4" name="NO_2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="SamacSys_Parts" part="U254-051N-4BH806">
+      <description>USB Connectors SMD RoHS</description>
+      <docs>https://datasheet.lcsc.com/szlcsc/XKB-U254-051N-4BH806_C319170.pdf</docs>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">U254-051N-4BH806</field>
+        <field name="Footprint">U254051N4BH806</field>
+        <field name="Datasheet">https://datasheet.lcsc.com/szlcsc/XKB-U254-051N-4BH806_C319170.pdf</field>
+        <field name="Description">USB Connectors SMD RoHS</field>
+        <field name="Height">3</field>
+        <field name="Manufacturer_Name">XKB Enterprise</field>
+        <field name="Manufacturer_Part_Number">U254-051N-4BH806</field>
+        <field name="Arrow Part Number">U254-051N-4BH806</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+        <pin num="3" name="3" type="passive"/>
+        <pin num="4" name="4" type="passive"/>
+        <pin num="5" name="5" type="passive"/>
+        <pin num="MH1" name="MH1" type="passive"/>
+        <pin num="MH2" name="MH2" type="passive"/>
+        <pin num="MH3" name="MH3" type="passive"/>
+        <pin num="MH4" name="MH4" type="passive"/>
+      </pins>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Connector.lib</uri>
+    </library>
+    <library logical="Connector_Generic">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Connector_Generic.lib</uri>
+    </library>
+    <library logical="Device">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Device.lib</uri>
+    </library>
+    <library logical="Mechanical">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Mechanical.lib</uri>
+    </library>
+    <library logical="SamacSys_Parts">
+      <uri>C:\Users\theto\Downloads\RASCSI-master\hw\rascsi_2p3/SamacSys_Parts.lib</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="C-RST">
+      <node ref="J3" pin="40"/>
+      <node ref="R43" pin="2"/>
+      <node ref="J6" pin="4"/>
+      <node ref="R25" pin="2"/>
+      <node ref="IC4" pin="17"/>
+    </net>
+    <net code="2" name="C-D7">
+      <node ref="J3" pin="16"/>
+      <node ref="R32" pin="2"/>
+      <node ref="R50" pin="2"/>
+      <node ref="J6" pin="13"/>
+      <node ref="IC2" pin="2"/>
+    </net>
+    <net code="3" name="C-DP">
+      <node ref="IC1" pin="2"/>
+      <node ref="R40" pin="2"/>
+      <node ref="J6" pin="20"/>
+      <node ref="R58" pin="2"/>
+      <node ref="J3" pin="18"/>
+    </net>
+    <net code="4" name="C-MSG">
+      <node ref="J3" pin="42"/>
+      <node ref="J6" pin="2"/>
+      <node ref="R46" pin="2"/>
+      <node ref="IC3" pin="15"/>
+      <node ref="R28" pin="2"/>
+    </net>
+    <net code="5" name="C-C_D">
+      <node ref="J3" pin="46"/>
+      <node ref="J6" pin="15"/>
+      <node ref="R47" pin="2"/>
+      <node ref="R29" pin="2"/>
+      <node ref="IC3" pin="16"/>
+    </net>
+    <net code="6" name="C-REQ">
+      <node ref="R30" pin="2"/>
+      <node ref="J3" pin="48"/>
+      <node ref="J6" pin="1"/>
+      <node ref="IC3" pin="17"/>
+      <node ref="R48" pin="2"/>
+    </net>
+    <net code="7" name="C-ATN">
+      <node ref="J6" pin="17"/>
+      <node ref="R23" pin="2"/>
+      <node ref="IC4" pin="15"/>
+      <node ref="J3" pin="32"/>
+      <node ref="R41" pin="2"/>
+    </net>
+    <net code="8" name="C-ACK">
+      <node ref="R42" pin="2"/>
+      <node ref="IC4" pin="16"/>
+      <node ref="R24" pin="2"/>
+      <node ref="J3" pin="38"/>
+      <node ref="J6" pin="5"/>
+    </net>
+    <net code="9" name="C-D6">
+      <node ref="R33" pin="2"/>
+      <node ref="J3" pin="14"/>
+      <node ref="IC2" pin="3"/>
+      <node ref="J6" pin="12"/>
+      <node ref="R51" pin="2"/>
+    </net>
+    <net code="10" name="C-SEL">
+      <node ref="R26" pin="2"/>
+      <node ref="IC4" pin="18"/>
+      <node ref="J3" pin="44"/>
+      <node ref="R44" pin="2"/>
+      <node ref="J6" pin="19"/>
+    </net>
+    <net code="11" name="PI-D0">
+      <node ref="IC2" pin="11"/>
+      <node ref="J1" pin="19"/>
+      <node ref="R21" pin="2"/>
+    </net>
+    <net code="12" name="PI-D1">
+      <node ref="R20" pin="2"/>
+      <node ref="IC2" pin="12"/>
+      <node ref="J1" pin="23"/>
+    </net>
+    <net code="13" name="C-D5">
+      <node ref="J6" pin="11"/>
+      <node ref="R34" pin="2"/>
+      <node ref="IC2" pin="4"/>
+      <node ref="J3" pin="12"/>
+      <node ref="R52" pin="2"/>
+    </net>
+    <net code="14" name="C-D4">
+      <node ref="R53" pin="2"/>
+      <node ref="J6" pin="23"/>
+      <node ref="J3" pin="10"/>
+      <node ref="IC2" pin="5"/>
+      <node ref="R35" pin="2"/>
+    </net>
+    <net code="15" name="C-D3">
+      <node ref="IC2" pin="6"/>
+      <node ref="J6" pin="10"/>
+      <node ref="R54" pin="2"/>
+      <node ref="J3" pin="8"/>
+      <node ref="R36" pin="2"/>
+    </net>
+    <net code="16" name="C-D2">
+      <node ref="R55" pin="2"/>
+      <node ref="R37" pin="2"/>
+      <node ref="J6" pin="22"/>
+      <node ref="J3" pin="6"/>
+      <node ref="IC2" pin="7"/>
+    </net>
+    <net code="17" name="C-D1">
+      <node ref="J3" pin="4"/>
+      <node ref="R56" pin="2"/>
+      <node ref="J6" pin="21"/>
+      <node ref="R38" pin="2"/>
+      <node ref="IC2" pin="8"/>
+    </net>
+    <net code="18" name="C-D0">
+      <node ref="R57" pin="2"/>
+      <node ref="IC2" pin="9"/>
+      <node ref="J3" pin="2"/>
+      <node ref="R39" pin="2"/>
+      <node ref="J6" pin="8"/>
+    </net>
+    <net code="19" name="PI-D6">
+      <node ref="IC2" pin="17"/>
+      <node ref="R15" pin="2"/>
+      <node ref="J1" pin="36"/>
+    </net>
+    <net code="20" name="PI-D4">
+      <node ref="J1" pin="8"/>
+      <node ref="R17" pin="2"/>
+      <node ref="IC2" pin="15"/>
+    </net>
+    <net code="21" name="PI-D5">
+      <node ref="IC2" pin="16"/>
+      <node ref="J1" pin="10"/>
+      <node ref="R16" pin="2"/>
+    </net>
+    <net code="22" name="PI-D7">
+      <node ref="J1" pin="11"/>
+      <node ref="R14" pin="2"/>
+      <node ref="IC2" pin="18"/>
+    </net>
+    <net code="23" name="PI-D3">
+      <node ref="J1" pin="33"/>
+      <node ref="IC2" pin="14"/>
+      <node ref="R18" pin="2"/>
+    </net>
+    <net code="24" name="PI-D2">
+      <node ref="J1" pin="32"/>
+      <node ref="R19" pin="2"/>
+      <node ref="IC2" pin="13"/>
+    </net>
+    <net code="25" name="C-I_O">
+      <node ref="J6" pin="3"/>
+      <node ref="R49" pin="2"/>
+      <node ref="J3" pin="50"/>
+      <node ref="IC3" pin="18"/>
+      <node ref="R31" pin="2"/>
+    </net>
+    <net code="26" name="C-BSY">
+      <node ref="J6" pin="6"/>
+      <node ref="J3" pin="36"/>
+      <node ref="IC3" pin="14"/>
+      <node ref="R27" pin="2"/>
+      <node ref="R45" pin="2"/>
+    </net>
+    <net code="27" name="PI-IND">
+      <node ref="IC4" pin="1"/>
+      <node ref="J1" pin="31"/>
+    </net>
+    <net code="28" name="PI-BSY">
+      <node ref="R9" pin="2"/>
+      <node ref="IC3" pin="6"/>
+      <node ref="J1" pin="37"/>
+    </net>
+    <net code="29" name="PI-MSG">
+      <node ref="IC3" pin="5"/>
+      <node ref="J1" pin="16"/>
+      <node ref="R10" pin="2"/>
+    </net>
+    <net code="30" name="PI-C_D">
+      <node ref="J1" pin="18"/>
+      <node ref="IC3" pin="4"/>
+      <node ref="R11" pin="2"/>
+    </net>
+    <net code="31" name="PI-RST">
+      <node ref="IC4" pin="3"/>
+      <node ref="R7" pin="2"/>
+      <node ref="J1" pin="38"/>
+    </net>
+    <net code="32" name="PI-TAD">
+      <node ref="J1" pin="26"/>
+      <node ref="IC3" pin="1"/>
+    </net>
+    <net code="33" name="PI-I_O">
+      <node ref="J1" pin="22"/>
+      <node ref="R13" pin="2"/>
+      <node ref="IC3" pin="2"/>
+    </net>
+    <net code="34" name="PI-REQ">
+      <node ref="J1" pin="15"/>
+      <node ref="IC3" pin="3"/>
+      <node ref="R12" pin="2"/>
+    </net>
+    <net code="35" name="PI-SEL">
+      <node ref="J1" pin="13"/>
+      <node ref="R8" pin="2"/>
+      <node ref="IC4" pin="2"/>
+    </net>
+    <net code="36" name="PI-ACK">
+      <node ref="IC4" pin="4"/>
+      <node ref="R6" pin="2"/>
+      <node ref="J1" pin="40"/>
+    </net>
+    <net code="37" name="PI-ATN">
+      <node ref="R5" pin="2"/>
+      <node ref="IC4" pin="5"/>
+      <node ref="J1" pin="35"/>
+    </net>
+    <net code="38" name="PI-DP">
+      <node ref="IC1" pin="18"/>
+      <node ref="R22" pin="2"/>
+      <node ref="J1" pin="12"/>
+    </net>
+    <net code="39" name="GND">
+      <node ref="D2" pin="1"/>
+      <node ref="D1" pin="1"/>
+      <node ref="D3" pin="1"/>
+      <node ref="S1" pin="2"/>
+      <node ref="J3" pin="15"/>
+      <node ref="J3" pin="35"/>
+      <node ref="J3" pin="33"/>
+      <node ref="J3" pin="31"/>
+      <node ref="J3" pin="30"/>
+      <node ref="J3" pin="3"/>
+      <node ref="J3" pin="29"/>
+      <node ref="J3" pin="28"/>
+      <node ref="J3" pin="27"/>
+      <node ref="J3" pin="1"/>
+      <node ref="J3" pin="11"/>
+      <node ref="J3" pin="13"/>
+      <node ref="J3" pin="37"/>
+      <node ref="J3" pin="19"/>
+      <node ref="J3" pin="20"/>
+      <node ref="J3" pin="21"/>
+      <node ref="J3" pin="22"/>
+      <node ref="J3" pin="23"/>
+      <node ref="J3" pin="24"/>
+      <node ref="J3" pin="17"/>
+      <node ref="J3" pin="39"/>
+      <node ref="D4" pin="1"/>
+      <node ref="J3" pin="45"/>
+      <node ref="J3" pin="41"/>
+      <node ref="J3" pin="43"/>
+      <node ref="J3" pin="49"/>
+      <node ref="J3" pin="5"/>
+      <node ref="J3" pin="7"/>
+      <node ref="J3" pin="9"/>
+      <node ref="J3" pin="47"/>
+      <node ref="J6" pin="MH2"/>
+      <node ref="J6" pin="MH1"/>
+      <node ref="J6" pin="9"/>
+      <node ref="J6" pin="7"/>
+      <node ref="J6" pin="24"/>
+      <node ref="J2" pin="2"/>
+      <node ref="J6" pin="16"/>
+      <node ref="J6" pin="18"/>
+      <node ref="J6" pin="14"/>
+      <node ref="H1" pin="1"/>
+      <node ref="H3" pin="1"/>
+      <node ref="H2" pin="1"/>
+      <node ref="IC3" pin="7"/>
+      <node ref="J8" pin="MH3"/>
+      <node ref="J8" pin="MH4"/>
+      <node ref="IC4" pin="9"/>
+      <node ref="IC4" pin="8"/>
+      <node ref="IC4" pin="7"/>
+      <node ref="IC4" pin="6"/>
+      <node ref="J8" pin="MH2"/>
+      <node ref="IC3" pin="8"/>
+      <node ref="IC3" pin="9"/>
+      <node ref="IC4" pin="10"/>
+      <node ref="IC4" pin="12"/>
+      <node ref="IC4" pin="13"/>
+      <node ref="IC4" pin="14"/>
+      <node ref="IC4" pin="19"/>
+      <node ref="IC4" pin="11"/>
+      <node ref="J7" pin="2"/>
+      <node ref="IC3" pin="19"/>
+      <node ref="J8" pin="5"/>
+      <node ref="IC3" pin="13"/>
+      <node ref="IC3" pin="12"/>
+      <node ref="IC3" pin="11"/>
+      <node ref="IC3" pin="10"/>
+      <node ref="J8" pin="MH1"/>
+      <node ref="IC2" pin="19"/>
+      <node ref="IC1" pin="15"/>
+      <node ref="IC1" pin="16"/>
+      <node ref="IC1" pin="17"/>
+      <node ref="IC1" pin="19"/>
+      <node ref="IC1" pin="3"/>
+      <node ref="IC1" pin="4"/>
+      <node ref="IC1" pin="5"/>
+      <node ref="IC1" pin="6"/>
+      <node ref="IC1" pin="7"/>
+      <node ref="IC1" pin="8"/>
+      <node ref="IC1" pin="9"/>
+      <node ref="IC2" pin="10"/>
+      <node ref="H5" pin="1"/>
+      <node ref="H6" pin="1"/>
+      <node ref="J4" pin="2"/>
+      <node ref="IC1" pin="13"/>
+      <node ref="IC1" pin="12"/>
+      <node ref="IC1" pin="11"/>
+      <node ref="IC1" pin="10"/>
+      <node ref="IC1" pin="14"/>
+      <node ref="H4" pin="1"/>
+      <node ref="J1" pin="6"/>
+      <node ref="J5" pin="4"/>
+      <node ref="J5" pin="2"/>
+      <node ref="J1" pin="39"/>
+      <node ref="J1" pin="14"/>
+      <node ref="J1" pin="20"/>
+      <node ref="J1" pin="25"/>
+      <node ref="J1" pin="30"/>
+      <node ref="J5" pin="6"/>
+      <node ref="J1" pin="34"/>
+      <node ref="J1" pin="9"/>
+    </net>
+    <net code="40" name="TERMPOW">
+      <node ref="FUSE1" pin="2"/>
+      <node ref="J3" pin="26"/>
+      <node ref="J6" pin="25"/>
+    </net>
+    <net code="41" name="Net-(D3-Pad2)">
+      <node ref="D3" pin="2"/>
+      <node ref="R3" pin="2"/>
+    </net>
+    <net code="42" name="Net-(D2-Pad2)">
+      <node ref="D2" pin="2"/>
+      <node ref="R2" pin="2"/>
+    </net>
+    <net code="43" name="Net-(D4-Pad2)">
+      <node ref="D4" pin="2"/>
+      <node ref="R4" pin="2"/>
+    </net>
+    <net code="44" name="+5V">
+      <node ref="IC1" pin="20"/>
+      <node ref="J8" pin="1"/>
+      <node ref="J1" pin="4"/>
+      <node ref="J1" pin="2"/>
+      <node ref="J4" pin="1"/>
+      <node ref="S1" pin="1"/>
+      <node ref="R3" pin="1"/>
+      <node ref="J7" pin="1"/>
+      <node ref="D5" pin="2"/>
+      <node ref="IC4" pin="20"/>
+      <node ref="IC2" pin="20"/>
+      <node ref="IC3" pin="20"/>
+    </net>
+    <net code="45" name="Net-(D5-Pad1)">
+      <node ref="FUSE1" pin="1"/>
+      <node ref="D5" pin="1"/>
+    </net>
+    <net code="46" name="EXT-ACT-LED">
+      <node ref="J2" pin="1"/>
+      <node ref="D1" pin="2"/>
+      <node ref="R1" pin="2"/>
+    </net>
+    <net code="47" name="/TERM_GND">
+      <node ref="R49" pin="1"/>
+      <node ref="R48" pin="1"/>
+      <node ref="R47" pin="1"/>
+      <node ref="R46" pin="1"/>
+      <node ref="R45" pin="1"/>
+      <node ref="R44" pin="1"/>
+      <node ref="R43" pin="1"/>
+      <node ref="R42" pin="1"/>
+      <node ref="S1" pin="3"/>
+      <node ref="R58" pin="1"/>
+      <node ref="R50" pin="1"/>
+      <node ref="R51" pin="1"/>
+      <node ref="R52" pin="1"/>
+      <node ref="R53" pin="1"/>
+      <node ref="R55" pin="1"/>
+      <node ref="R56" pin="1"/>
+      <node ref="R57" pin="1"/>
+      <node ref="R41" pin="1"/>
+      <node ref="R54" pin="1"/>
+    </net>
+    <net code="48" name="Net-(J3-Pad25)">
+      <node ref="J3" pin="25"/>
+    </net>
+    <net code="49" name="PI-ACT">
+      <node ref="R1" pin="1"/>
+      <node ref="J1" pin="7"/>
+    </net>
+    <net code="50" name="Net-(J3-Pad34)">
+      <node ref="J3" pin="34"/>
+    </net>
+    <net code="51" name="+3V3">
+      <node ref="R10" pin="1"/>
+      <node ref="J1" pin="17"/>
+      <node ref="R11" pin="1"/>
+      <node ref="R12" pin="1"/>
+      <node ref="R13" pin="1"/>
+      <node ref="R22" pin="1"/>
+      <node ref="R16" pin="1"/>
+      <node ref="R17" pin="1"/>
+      <node ref="R8" pin="1"/>
+      <node ref="R19" pin="1"/>
+      <node ref="R15" pin="1"/>
+      <node ref="R21" pin="1"/>
+      <node ref="R7" pin="1"/>
+      <node ref="R14" pin="1"/>
+      <node ref="J4" pin="3"/>
+      <node ref="R18" pin="1"/>
+      <node ref="R4" pin="1"/>
+      <node ref="R5" pin="1"/>
+      <node ref="R6" pin="1"/>
+      <node ref="R9" pin="1"/>
+      <node ref="J1" pin="1"/>
+      <node ref="R20" pin="1"/>
+    </net>
+    <net code="52" name="DBG_LED">
+      <node ref="J1" pin="29"/>
+      <node ref="R2" pin="1"/>
+    </net>
+    <net code="53" name="PI-DTD">
+      <node ref="IC2" pin="1"/>
+      <node ref="IC1" pin="1"/>
+      <node ref="J1" pin="24"/>
+    </net>
+    <net code="54" name="/TERM_5v">
+      <node ref="R28" pin="1"/>
+      <node ref="R27" pin="1"/>
+      <node ref="R29" pin="1"/>
+      <node ref="R30" pin="1"/>
+      <node ref="R26" pin="1"/>
+      <node ref="R25" pin="1"/>
+      <node ref="R24" pin="1"/>
+      <node ref="R23" pin="1"/>
+      <node ref="R37" pin="1"/>
+      <node ref="R38" pin="1"/>
+      <node ref="R31" pin="1"/>
+      <node ref="R40" pin="1"/>
+      <node ref="R39" pin="1"/>
+      <node ref="R33" pin="1"/>
+      <node ref="R34" pin="1"/>
+      <node ref="R35" pin="1"/>
+      <node ref="S1" pin="4"/>
+      <node ref="R32" pin="1"/>
+      <node ref="R36" pin="1"/>
+    </net>
+    <net code="55" name="PI_SCL">
+      <node ref="J1" pin="5"/>
+      <node ref="J4" pin="4"/>
+    </net>
+    <net code="56" name="PI_GPIO9">
+      <node ref="J1" pin="21"/>
+      <node ref="J5" pin="5"/>
+    </net>
+    <net code="57" name="PI_GPIO0">
+      <node ref="J5" pin="1"/>
+      <node ref="J1" pin="27"/>
+    </net>
+    <net code="58" name="PI_GPIO1">
+      <node ref="J5" pin="3"/>
+      <node ref="J1" pin="28"/>
+    </net>
+    <net code="59" name="PI_SDA">
+      <node ref="J1" pin="3"/>
+      <node ref="J4" pin="5"/>
+    </net>
+    <net code="60" name="USB_Pin_2">
+      <node ref="J8" pin="2"/>
+      <node ref="TP3" pin="1"/>
+    </net>
+    <net code="61" name="USB_Pin_3">
+      <node ref="TP2" pin="1"/>
+      <node ref="J8" pin="3"/>
+    </net>
+    <net code="62" name="USB_Pin_4">
+      <node ref="TP1" pin="1"/>
+      <node ref="J8" pin="4"/>
+    </net>
+  </nets>
+</export>
