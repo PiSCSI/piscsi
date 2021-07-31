@@ -37,6 +37,7 @@ if ! test -e venv; then
   echo "Activating venv"
   source venv/bin/activate
   echo "Installing requirements.txt"
+  pip install wheel
   pip install -r requirements.txt
   git rev-parse HEAD > current
 fi

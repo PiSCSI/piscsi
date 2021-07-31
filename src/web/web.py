@@ -1,5 +1,7 @@
+import io
+import re
+
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file
-from werkzeug.utils import secure_filename
 
 from file_cmds import (
     create_new_image,
@@ -22,6 +24,8 @@ from ractl_cmds import (
     daynaport_setup_bridge,
     list_config_files,
     detach_all,
+    valid_file_suffix,
+    valid_file_types
 )
 from settings import *
 
@@ -129,12 +133,15 @@ def attach():
     scsi_id = request.form.get("scsi_id")
 
     # Validate image type by suffix
-    if file_name.lower().endswith(".iso") or file_name.lower().endswith("iso"):
-        image_type = "cd"
-    elif file_name.lower().endswith(".hda"):
-        image_type = "hd"
+    print("file_name", file_name)
+    print("valid_file_types: ", valid_file_types)
+    if re.match(valid_file_types, file_name):
+        if file_name.lower().endswith("iso"):
+            image_type = "cd"
+        else:
+            image_type = "hd"
     else:
-        flash("Unknown file type. Valid files are .iso, .hda, .cdr", "error")
+        flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
         return redirect(url_for("index"))
 
     process = attach_image(scsi_id, file_name, image_type)
@@ -228,25 +235,35 @@ def download_img():
     return redirect(url_for("index"))
 
 
-@app.route("/files/upload", methods=["POST"])
-def upload_file():
-    if "file" not in request.files:
-        flash("No file part", "error")
+@app.route("/files/upload/<filename>", methods=["POST"])
+def upload_file(filename):
+    if not filename:
+        flash("No file provided.", "error")
         return redirect(url_for("index"))
-    file = request.files["file"]
-    if file:
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
-        return redirect(url_for("index", filename=filename))
+
+    file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+    if os.path.isfile(file_path):
+        flash(f"{filename} already exists.", "error")
+        return redirect(url_for("index"))
+
+    binary_new_file = "bx"
+    with open(file_path, binary_new_file, buffering=io.DEFAULT_BUFFER_SIZE) as f:
+        chunk_size = io.DEFAULT_BUFFER_SIZE
+        while True:
+            chunk = request.stream.read(chunk_size)
+            if len(chunk) == 0:
+                break
+            f.write(chunk)
+    return redirect(url_for("index", filename=filename))
 
 
 @app.route("/files/create", methods=["POST"])
 def create_file():
     file_name = request.form.get("file_name")
     size = request.form.get("size")
-    type = request.form.get("type")
+    file_type = request.form.get("type")
 
-    process = create_new_image(file_name, type, size)
+    process = create_new_image(file_name, file_type, size)
     if process.returncode == 0:
         flash("Drive created")
         return redirect(url_for("index"))
@@ -293,6 +310,7 @@ if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
-    from waitress import serve
+    import bjoern
+    print("Serving rascsi-web...")
+    bjoern.run(app, "0.0.0.0", 8080)
 
-    serve(app, host="0.0.0.0", port=8080)
