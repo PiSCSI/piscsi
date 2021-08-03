@@ -15,8 +15,9 @@
 #include "google/protobuf/message_lite.h"
 #include "rascsi_interface.pb.h"
 
-void SerializeMessage(int fd, const google::protobuf::MessageLite&);
-void DeserializeMessage(int fd, google::protobuf::MessageLite&);
+void SerializeMessage(int, const google::protobuf::MessageLite&);
+void DeserializeMessage(int, google::protobuf::MessageLite&);
+int ReadNBytes(int, uint8_t *, int);
 string ListDevices(const rascsi_interface::PbDevices&);
 
 #endif

@@ -20,7 +20,8 @@ using namespace rascsi_interface;
 
 //---------------------------------------------------------------------------
 //
-//	Serialize/Deserialize protobuf message: Length followed by the actual data
+//	Serialize/Deserialize protobuf message: Length followed by the actual data.
+//  Little endian is assumed.
 //
 //---------------------------------------------------------------------------
 
@@ -36,36 +37,48 @@ void SerializeMessage(int fd, const google::protobuf::MessageLite& message)
     }
 
     // Write the actual protobuf data
-    void *buf = malloc(size);
+    uint8_t buf[size];
     memcpy(buf, data.data(), size);
     if (write(fd, buf, size) != size) {
-    	free(buf);
-
     	throw ioexception("Can't write protobuf data");
     }
-
-    free(buf);
 }
 
 void DeserializeMessage(int fd, google::protobuf::MessageLite& message)
 {
-	// First read the header with the size of the protobuf data
-	int32_t size;
-	if (read(fd, &size, sizeof(size)) == sizeof(size)) {
-		// Read the actual protobuf data
-		void *buf = malloc(size);
-		if (read(fd, buf, size) != (ssize_t)size) {
-			free(buf);
+	// Read the header with the size of the protobuf data
+	uint8_t header_buf[4];
+	int bytes_read = ReadNBytes(fd, header_buf, 4);
+	if (bytes_read < 4) {
+		return;
+	}
+	int32_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
 
-			throw ioexception("Missing protobuf data");
+	// Read the binary protobuf data
+	uint8_t data_buf[size];
+	bytes_read = ReadNBytes(fd, data_buf, size);
+	if (bytes_read < size) {
+		throw ioexception("Missing protobuf data");
+	}
+
+	// Create protobuf message
+	string data((const char *)data_buf, size);
+	message.ParseFromString(data);
+}
+
+int ReadNBytes(int fd, uint8_t *buf, int n)
+{
+	int offset = 0;
+	while (offset < n) {
+		ssize_t len = read(fd, buf + offset, n - offset);
+		if (!len) {
+			break;
 		}
 
-		// Read protobuf data into a string, to be converted into a protobuf data structure by the caller
-		string data((const char *)buf, size);
-		free(buf);
-
-		message.ParseFromString(data);
+		offset += len;
 	}
+
+	return offset;
 }
 
 //---------------------------------------------------------------------------
