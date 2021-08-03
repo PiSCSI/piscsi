@@ -1,5 +1,6 @@
+bjoern==3.1.0
 click==7.1.2
-Flask==2.0.0
+Flask==2.0.1
 itsdangerous==2.0.0
 Jinja2==3.0.0
 machfs==1.2.4
@@ -7,6 +8,5 @@ macresources==1.2
 MarkupSafe==2.0.0
 rsrcfork==1.8.0
 waitress==1.4.4
-Werkzeug==2.0.0
 zope.event==4.5.0
 zope.interface==5.1.2

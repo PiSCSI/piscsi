@@ -6,8 +6,8 @@ import time
 from ractl_cmds import attach_image
 from settings import *
 
-valid_file_types = ["*.hda", "*.iso", "*.cdr"]
-valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_types])
+valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.iso", "*.cdr", "*.zip"]
+valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
 
 
 def create_new_image(file_name, type, size):

@@ -25,6 +25,7 @@ HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=~/RASCSI/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+GIT_REMOTE=${GIT_REMOTE:-origin}
 
 function initialChecks() {
     currentUser=$(whoami)
@@ -41,7 +42,7 @@ function initialChecks() {
 }
 
 function installPackages() {
-    sudo apt-get update && sudo apt install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler -y
+    sudo apt-get update && sudo apt install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y
 }
 
 # install all dependency packages for RaSCSI Service
@@ -102,12 +103,22 @@ function installRaScsiWebInterface() {
 }
 
 function updateRaScsiGit() {
-    echo "Updating checked out branch $GIT_BRANCH"
+    echo "Updating checked out branch $GIT_REMOTE/$GIT_BRANCH"
     cd ~/RASCSI
-    git fetch origin
-    git stash
-    git rebase origin/$GIT_BRANCH
-    git stash apply
+    stashed=0
+    if [[ $(git diff --stat) != '' ]]; then
+        echo 'There are local changes, we will stash and reapply them.'
+        git stash
+        stashed=1
+    fi
+
+    git fetch $GIT_REMOTE
+    git rebase $GIT_REMOTE/$GIT_BRANCH
+
+    if [ $stashed -eq 1 ]; then
+        echo "Reapplying local changes..."
+        git stash apply
+    fi
 }
 
 function updateRaScsi() {
@@ -128,6 +139,7 @@ function updateRaScsiWebInterface() {
     updateRaScsiGit
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
     sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
+    echo "Restarting rascsi-web services..."
     sudo systemctl restart rascsi-web
     sudo systemctl restart nginx
 }
@@ -150,7 +162,7 @@ function createDriveCustom() {
         read driveName
     done
 
-    createDrive $driveSize "$driveName"
+    createDrive "$driveSize" "$driveName"
 }
 
 function formatDrive() {
@@ -167,17 +179,17 @@ function formatDrive() {
         git clone git://www.codesrc.com/git/hfdisk.git
         cd hfdisk
         make
-        
+
         sudo cp hfdisk /usr/bin/hfdisk
     fi
 
     # Inject hfdisk commands to create Drive with correct partitions
-    (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath" 
+    (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath"
     partitionOk=$?
 
     if [ $partitionOk -eq 0 ]; then
         if [ ! -f $LIDO_DRIVER ];then
-            echo "Lido driver couldn't be found. Make sure RASCSI is up-to-date with git pull"
+            echo "Lido driver couldn't be found. Make sure RaSCSI is up-to-date with git pull"
             return 1
         fi
 
@@ -217,7 +229,7 @@ function createDrive() {
     driveName=$2
     mkdir -p $VIRTUAL_DRIVER_PATH
     drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hda"
-    
+
     if [ ! -f $drivePath ]; then
         echo "Creating a ${driveSize}MB Drive"
         truncate --size ${driveSize}m $drivePath
@@ -228,6 +240,75 @@ function createDrive() {
     else
         echo "Error: drive already exists"
     fi
+}
+
+function runChoice() {
+  case $1 in
+          0)
+              echo "Installing RaSCSI Service + Web interface"
+              installRaScsi
+              installRaScsiWebInterface
+              createDrive600MB
+              showRaScsiStatus
+              echo "Installing RaSCSI Service + Web interface - Complete!"
+          ;;
+          1)
+              echo "Installing RaSCSI Service"
+              installRaScsi
+              showRaScsiStatus
+              echo "Installing RaSCSI Service - Complete!"
+          ;;
+          2)
+              echo "Installing RaSCSI Web interface"
+              installRaScsiWebInterface
+              echo "Installing RaSCSI Web interface - Complete!"
+          ;;
+          3)
+              echo "Updating RaSCSI Service + Web interface"
+              updateRaScsi
+              updateRaScsiWebInterface
+              showRaScsiStatus
+              echo "Updating RaSCSI Service + Web interface - Complete!"
+          ;;
+          4)
+              echo "Updating RaSCSI Service"
+              updateRaScsi
+              showRaScsiStatus
+              echo "Updating RaSCSI Service - Complete!"
+          ;;
+          5)
+              echo "Updating RaSCSI Web interface"
+              updateRaScsiWebInterface
+              echo "Updating RaSCSI Web interface - Complete!"
+          ;;
+          6)
+              echo "Creating a 600MB drive"
+              createDrive600MB
+              echo "Creating a 600MB drive - Complete!"
+          ;;
+          7)
+              echo "Creating a custom drive"
+              createDriveCustom
+              echo "Creating a custom drive - Complete!"
+          ;;
+          -h|--help|h|help)
+              showMenu
+          ;;
+          *)
+              echo "${1} is not a valid option, exiting..."
+              exit 1
+      esac
+}
+
+function readChoice() {
+   choice=-1
+
+   until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
+       echo -n "Enter your choice (0-7) or CTRL-C to exit: "
+       read -r choice
+   done
+
+   runChoice "$choice"
 }
 
 function showMenu() {
@@ -244,60 +325,14 @@ function showMenu() {
     echo "CREATE EMPTY DRIVE"
     echo "  6) 600MB drive (recommended)"
     echo "  7) custom drive size (up to 4000MB)"
-
-
-    choice=-1
-
-    until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-        echo -n "Enter your choice (0-7) or CTRL-C to exit: "
-        read -r choice
-    done
-
-
-    case $choice in
-        0)
-            echo "Installing RaSCSI Service + Web interface"
-            installRaScsi
-            installRaScsiWebInterface
-            createDrive600MB
-            showRaScsiStatus
-        ;;
-        1)
-            echo "Installing RaSCSI Service"
-            installRaScsi
-            showRaScsiStatus
-        ;;
-        2)
-            echo "Installing RaSCSI Web interface"
-            installRaScsiWebInterface
-        ;;
-        3)
-            echo "Updating RaSCSI Service + Web interface"
-            updateRaScsi
-            updateRaScsiWebInterface
-            showRaScsiStatus
-        ;;
-        4)
-            echo "Updating RaSCSI Service"
-            updateRaScsi
-            showRaScsiStatus
-        ;;
-        5)
-            echo "Updating RaSCSI Web interface"
-            updateRaScsiWebInterface
-        ;;
-        6)
-            echo "Creating a 600MB drive"
-            createDrive600MB
-        ;;
-        7)
-            echo "Creating a custom drive"
-            createDriveCustom
-        ;;
-    esac
 }
 
 
 showRaSCSILogo
 initialChecks
-showMenu
+if [ -z "${1}" ]; then # $1 is unset, show menu
+    showMenu
+    readChoice
+else
+    runChoice "$1"
+fi
