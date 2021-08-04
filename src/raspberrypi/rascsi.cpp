@@ -876,30 +876,38 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
-			// List and log all of the devices
-			if (command.cmd() == LIST) {
-				const PbDevices devices = GetDevices();
-				SerializeMessage(fd, devices);
-				LogDeviceList(ListDevices(devices));
-			}
-			else if (command.cmd() == LOG_LEVEL) {
-				SetLogLevel(command.params());
-			}
-			else if (command.cmd() == SERVER_INFO) {
-				PbServerInfo serverInfo;
-				serverInfo.set_rascsi_version(rascsi_get_version_string());
-				serverInfo.set_log_level(spdlog_log_level);
-				serverInfo.set_default_image_folder(default_image_folder);
-				GetAvailableImages(serverInfo);
-				SerializeMessage(fd, serverInfo);
-			}
-			else {
-				// Wait until we become idle
-				while (active) {
-					usleep(500 * 1000);
+			switch(command.cmd()) {
+				case LIST: {
+					const PbDevices devices = GetDevices();
+					SerializeMessage(fd, devices);
+					LogDeviceList(ListDevices(devices));
+					break;
 				}
 
-				ProcessCmd(fd, command);
+				case LOG_LEVEL: {
+					SetLogLevel(command.params());
+					break;
+				}
+
+				case SERVER_INFO: {
+					PbServerInfo serverInfo;
+					serverInfo.set_rascsi_version(rascsi_get_version_string());
+					serverInfo.set_log_level(spdlog_log_level);
+					serverInfo.set_default_image_folder(default_image_folder);
+					GetAvailableImages(serverInfo);
+					SerializeMessage(fd, serverInfo);
+					break;
+				}
+
+				default: {
+					// Wait until we become idle
+					while (active) {
+						usleep(500 * 1000);
+					}
+
+					ProcessCmd(fd, command);
+					break;
+				}
 			}
 
 			close(fd);
