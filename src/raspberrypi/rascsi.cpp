@@ -477,8 +477,8 @@ void LogDeviceList(const string& device_list)
 set<string> GetAvailableImages() {
 	set<string> available_images;
 
-	for (const auto & entry : filesystem::directory_iterator(default_image_folder)) {
-		available_images.insert(entry.path());
+	for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
+		available_images.insert(entry.path().filename());
 	}
 
 	return available_images;
@@ -889,6 +889,13 @@ static void *MonThread(void *param)
 				PbServerInfo serverInfo;
 				serverInfo.set_rascsi_version(rascsi_get_version_string());
 				serverInfo.set_log_level(spdlog_log_level);
+				serverInfo.set_default_image_folder(default_image_folder);
+				set<string> available_images = GetAvailableImages();
+				set<string>::iterator it = available_images.begin();
+				while (it != available_images.end()) {
+					serverInfo.add_available_images(*it);
+					it++;
+				}
 				SerializeMessage(fd, serverInfo);
 			}
 			else {

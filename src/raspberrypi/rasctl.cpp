@@ -179,6 +179,11 @@ void CommandServerInfo(const string& hostname, int port)
 
 	cout << "rascsi version: " << serverInfo.rascsi_version() << endl;
 	cout << "rascsi log level: " << serverInfo.log_level() << endl;
+	cout << "Default image folder: " << serverInfo.default_image_folder() << endl;
+	cout << "Available image files:" << endl;
+	for (int i = 0; i < serverInfo.available_images_size(); i++) {
+		cout << "  " << serverInfo.available_images(i) << endl;
+	}
 }
 
 //---------------------------------------------------------------------------
