@@ -477,8 +477,10 @@ void LogDeviceList(const string& device_list)
 set<string> GetAvailableImages() {
 	set<string> available_images;
 
-	for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
-		available_images.insert(entry.path().filename());
+	if (access(default_image_folder.c_str(), F_OK) != -1) {
+		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
+			available_images.insert(entry.path().filename());
+		}
 	}
 
 	return available_images;
@@ -744,8 +746,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 'l':
 				struct stat folder_stat;
 				stat(optarg, &folder_stat);
-				if (!S_ISDIR(folder_stat.st_mode)) {
-					cerr << "Invalid default image folder '" << optarg << "'" << endl;
+				if (!S_ISDIR(folder_stat.st_mode) || access(optarg, F_OK) == -1) {
+					cerr << "Default image folder '" << optarg << "' is not accessible" << endl;
 					return false;
 				}
 
