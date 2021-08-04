@@ -64,6 +64,7 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
+string spdlog_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder = "/home/pi/images";
 
 //---------------------------------------------------------------------------
@@ -433,6 +434,8 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 }
 
 void SetLogLevel(const string& log_level) {
+	spdlog_log_level = log_level;
+
 	if (log_level == "trace") {
 		set_level(level::trace);
 	}
@@ -456,6 +459,7 @@ void SetLogLevel(const string& log_level) {
 	}
 	else {
 		LOGWARN("Invalid log level '%s', falling back to 'trace'", log_level.c_str());
+		spdlog_log_level = "trace";
 		set_level(level::trace);
 	}
 }
@@ -499,7 +503,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	string params = command.params().c_str();
 
 	ostringstream s;
-	s << "Processing: cmd=" << cmd << ", id=" << id << ", un=" << un << ", type=" << type << ", params=" << params << endl;
+	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params << endl;
 	LOGINFO("%s", s.str().c_str());
 
 	// Copy the Unit List
@@ -566,7 +570,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				break;
 			default:
 				ostringstream error;
-				error << "rasctl sent a command for an invalid drive type: " << type;
+				error << "rasctl sent a command for an invalid drive type: " << PbDeviceType_Name(type);
 				return ReturnStatus(fd, false, error.str());
 		}
 
@@ -676,7 +680,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		default:
 			ostringstream error;
-			error << "Received unknown command from rasctl: " << cmd;
+			error << "Received unknown command from rasctl: " << PbOperation_Name(cmd);
 			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error.str());
 	}
@@ -881,6 +885,12 @@ static void *MonThread(void *param)
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());
 			}
+			else if (command.cmd() == SERVER_INFO) {
+				PbServerInfo serverInfo;
+				serverInfo.set_rascsi_version(rascsi_get_version_string());
+				serverInfo.set_log_level(spdlog_log_level);
+				SerializeMessage(fd, serverInfo);
+			}
 			else {
 				// Wait until we become idle
 				while (active) {
@@ -925,7 +935,7 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	set_level(level::trace);
+	SetLogLevel("trace");
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
