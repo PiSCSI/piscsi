@@ -491,7 +491,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	string params = command.params().c_str();
 
 	ostringstream s;
-	s << "Processing: cmd=" << cmd << ", id=" << id << ", un=" << un << ", type=" << type << ", params=" << params << endl;
+	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params << endl;
 	LOGINFO("%s", s.str().c_str());
 
 	// Copy the Unit List
@@ -558,7 +558,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				break;
 			default:
 				ostringstream error;
-				error << "rasctl sent a command for an invalid drive type: " << type;
+				error << "rasctl sent a command for an invalid drive type: " << PbDeviceType_Name(type);
 				return ReturnStatus(fd, false, error.str());
 		}
 
@@ -663,7 +663,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		default:
 			ostringstream error;
-			error << "Received unknown command from rasctl: " << cmd;
+			error << "Received unknown command from rasctl: " << PbOperation_Name(cmd);
 			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error.str());
 	}
