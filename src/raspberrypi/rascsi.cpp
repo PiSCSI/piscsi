@@ -63,6 +63,7 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
+string default_image_folder = "/home/pi/images";
 
 //---------------------------------------------------------------------------
 //
@@ -568,13 +569,18 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 			// Open the file path
 			if (!pUnit->Open(filepath)) {
-				delete pUnit;
+				// If the file does not exist search for it in the default image folder
+				string default_file = default_image_folder + "/" + file;
+				filepath.SetPath(default_file.c_str());
+				if (!pUnit->Open(filepath)) {
+					delete pUnit;
 
-				LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
+					LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
 
-				ostringstream error;
-				error << "File open error [" << file << "]";
-				return ReturnStatus(fd, false, error.str());
+					ostringstream error;
+					error << "File open error [" << file << "]";
+					return ReturnStatus(fd, false, error.str());
+				}
 			}
 		}
 
@@ -684,7 +690,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:l:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -718,6 +724,17 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					return false;
 				}
+				continue;
+
+			case 'l':
+				struct stat folder_stat;
+				stat(optarg, &folder_stat);
+				if (!S_ISDIR(folder_stat.st_mode)) {
+					cerr << "Invalid default image folder '" << optarg << "'" << endl;
+					return false;
+				}
+
+				default_image_folder = optarg;
 				continue;
 
 			default:
