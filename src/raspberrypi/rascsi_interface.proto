@@ -59,4 +59,6 @@ message PbDevices {
 message PbServerInfo {
     string rascsi_version = 1;
     string log_level = 2;
+    // Not used yet
+    string default_image_folder = 3;
 }
