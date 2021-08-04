@@ -479,7 +479,9 @@ set<string> GetAvailableImages() {
 
 	if (access(default_image_folder.c_str(), F_OK) != -1) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
-			available_images.insert(entry.path().filename());
+			if(entry.is_regular_file()) {
+				available_images.insert(entry.path().filename());
+			}
 		}
 	}
 
