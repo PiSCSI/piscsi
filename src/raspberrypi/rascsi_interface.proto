@@ -1,7 +1,5 @@
 syntax = "proto3";
 
-option optimize_for = LITE_RUNTIME;
-
 package rascsi_interface;
 
 // The supported device types
