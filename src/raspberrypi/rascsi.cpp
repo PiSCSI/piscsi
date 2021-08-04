@@ -63,6 +63,7 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
+string spdlog_log_level;			// Some versions of spdlog do not support get_log_level()
 
 //---------------------------------------------------------------------------
 //
@@ -431,6 +432,8 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 }
 
 void SetLogLevel(const string& log_level) {
+	spdlog_log_level = log_level;
+
 	if (log_level == "trace") {
 		set_level(level::trace);
 	}
@@ -454,36 +457,8 @@ void SetLogLevel(const string& log_level) {
 	}
 	else {
 		LOGWARN("Invalid log level '%s', falling back to 'trace'", log_level.c_str());
+		spdlog_log_level = "trace";
 		set_level(level::trace);
-	}
-}
-
-const char *GetLogLevel() {
-	switch (get_level()) {
-		case level::trace:
-			return "trace";
-
-		case level::debug:
-			return "debug";
-
-		case level::info:
-			return "info";
-
-		case level::warn:
-			return "warn";
-
-		case level::err:
-			return "err";
-
-		case level::critical:
-			return "critical";
-
-		case level::off:
-			return "off";
-
-		default:
-			assert(false);
-			return "";
 	}
 }
 
@@ -885,7 +860,7 @@ static void *MonThread(void *param)
 			else if (command.cmd() == SERVER_INFO) {
 				PbServerInfo serverInfo;
 				serverInfo.set_rascsi_version(rascsi_get_version_string());
-				serverInfo.set_log_level(GetLogLevel());
+				serverInfo.set_log_level(spdlog_log_level);
 				SerializeMessage(fd, serverInfo);
 			}
 			else {
@@ -932,7 +907,7 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	set_level(level::trace);
+	SetLogLevel("trace");
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
