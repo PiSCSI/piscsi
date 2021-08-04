@@ -35,6 +35,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <filesystem>
 
 using namespace std;
 using namespace spdlog;
@@ -467,6 +468,16 @@ void LogDeviceList(const string& device_list)
 	while (getline(ss, line, '\n')) {
 		LOGINFO("%s", line.c_str());
 	}
+}
+
+set<string> GetAvailableImages() {
+	set<string> available_images;
+
+	for (const auto & entry : filesystem::directory_iterator(default_image_folder)) {
+		available_images.insert(entry.path());
+	}
+
+	return available_images;
 }
 
 //---------------------------------------------------------------------------
