@@ -458,6 +458,35 @@ void SetLogLevel(const string& log_level) {
 	}
 }
 
+const char *GetLogLevel() {
+	switch (get_level()) {
+		case level::trace:
+			return "trace";
+
+		case level::debug:
+			return "debug";
+
+		case level::info:
+			return "info";
+
+		case level::warn:
+			return "warn";
+
+		case level::err:
+			return "err";
+
+		case level::critical:
+			return "critical";
+
+		case level::off:
+			return "off";
+
+		default:
+			assert(false);
+			return "";
+	}
+}
+
 void LogDeviceList(const string& device_list)
 {
 	stringstream ss(device_list);
@@ -852,6 +881,12 @@ static void *MonThread(void *param)
 			}
 			else if (command.cmd() == LOG_LEVEL) {
 				SetLogLevel(command.params());
+			}
+			else if (command.cmd() == SERVER_INFO) {
+				PbServerInfo serverInfo;
+				serverInfo.set_rascsi_version(rascsi_get_version_string());
+				serverInfo.set_log_level(GetLogLevel());
+				SerializeMessage(fd, serverInfo);
 			}
 			else {
 				// Wait until we become idle
