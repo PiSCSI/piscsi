@@ -36,8 +36,11 @@ To quit RaSCSI, press Control + C. If it is running in the background, you can k
 
 .SH OPTIONS
 .TP
+.BR \-f\fI " " \fIDEFAULT_IMAGE_FOLDER
+The default folder for image files. For files in this folder no absolute path needs to be specified. The default folder is /home/pi/images.
+.TP
 .BR \-g\fI " " \fILOG_LEVEL
-The rascsi log level (trace, debug, info, warn, err, critical, off), default is trace.
+The rascsi log level (trace, debug, info, warn, err, critical, off). The default log level is 'trace'.
 .TP
 .BR \-p\fI " " \fIPORT
 The rascsi server port, default is 6868.
