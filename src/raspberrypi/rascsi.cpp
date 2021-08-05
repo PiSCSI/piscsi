@@ -684,7 +684,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:P:p:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
