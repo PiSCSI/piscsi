@@ -58,7 +58,8 @@ message PbDevices {
 // The rascsi server information
 message PbServerInfo {
     string rascsi_version = 1;
-    string log_level = 2;
-    string default_image_folder = 3;
-    repeated string available_images = 4;
+    repeated string available_log_levels = 2;
+    string current_log_level = 3;
+    string default_image_folder = 4;
+    repeated string available_image_files = 5;
 }

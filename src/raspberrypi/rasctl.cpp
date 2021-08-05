@@ -18,6 +18,7 @@
 #include "rascsi_interface.pb.h"
 #include <sstream>
 #include <iostream>
+#include <list>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -178,15 +179,39 @@ void CommandServerInfo(const string& hostname, int port)
 	close(fd);
 
 	cout << "rascsi version: " << serverInfo.rascsi_version() << endl;
-	cout << "rascsi log level: " << serverInfo.log_level() << endl;
-	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
-	if (!serverInfo.available_images_size()) {
-		cout << "No image files available in the default folder" << endl;
+
+	if (!serverInfo.available_log_levels_size()) {
+		cout << "  No log level settings available" << endl;
 	}
 	else {
+		list<string> sorted_log_levels;
+		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
+			sorted_log_levels.push_back(serverInfo.available_log_levels(i));
+		}
+		sorted_log_levels.sort();
+
+		cout << "Available log levels:" << endl;
+		for (auto it = sorted_log_levels.begin(); it != sorted_log_levels.end(); ++it) {
+			cout << "  " << *it << endl;
+		}
+
+		cout << "Current log level: " << serverInfo.current_log_level() << endl;
+	}
+
+	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
+	if (!serverInfo.available_image_files_size()) {
+		cout << "  No image files available in the default folder" << endl;
+	}
+	else {
+		list<string> sorted_image_files;
+		for (int i = 0; i < serverInfo.available_image_files_size(); i++) {
+			sorted_image_files.push_back(serverInfo.available_image_files(i));
+		}
+		sorted_image_files.sort();
+
 		cout << "Image files available in the default folder:" << endl;
-		for (int i = 0; i < serverInfo.available_images_size(); i++) {
-			cout << "  " << serverInfo.available_images(i) << endl;
+		for (auto it = sorted_image_files.begin(); it != sorted_image_files.end(); ++it) {
+			cout << "  " << *it << endl;
 		}
 	}
 }

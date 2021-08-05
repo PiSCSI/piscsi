@@ -64,7 +64,8 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-string spdlog_log_level;			// Some versions of spdlog do not support get_log_level()
+set<string> available_log_levels;
+string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder = "/home/pi/images";
 
 //---------------------------------------------------------------------------
@@ -125,16 +126,14 @@ void Banner(int argc, char* argv[])
 
 BOOL InitService(int port)
 {
-	struct sockaddr_in server;
-	int yes, result;
-
-	result = pthread_mutex_init(&ctrl_mutex,NULL);
+	int result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if(result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Err code: %d", result);
 		return FALSE;
 	}
 
 	// Create socket for monitor
+	struct sockaddr_in server;
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
@@ -142,7 +141,7 @@ BOOL InitService(int port)
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// allow address reuse
-	yes = 1;
+	int yes = 1;
 	if (setsockopt(
 		monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0){
 		return FALSE;
@@ -459,7 +458,7 @@ bool SetLogLevel(const string& log_level) {
 		return false;
 	}
 
-	spdlog_log_level = log_level;
+	current_log_level = log_level;
 
 	return true;
 }
@@ -474,11 +473,19 @@ void LogDeviceList(const string& device_list)
 	}
 }
 
-void GetAvailableImages(PbServerInfo& serverInfo) {
+void GetAvailableLogLevels(PbServerInfo& serverInfo)
+{
+	for (auto it = available_log_levels.begin(); it != available_log_levels.end(); ++it) {
+		serverInfo.add_available_log_levels(*it);
+	}
+}
+
+void GetAvailableImages(PbServerInfo& serverInfo)
+{
 	if (access(default_image_folder.c_str(), F_OK) != -1) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				serverInfo.add_available_images(entry.path().filename());
+				serverInfo.add_available_image_files(entry.path().filename());
 			}
 		}
 	}
@@ -902,7 +909,8 @@ static void *MonThread(void *param)
 				case SERVER_INFO: {
 					PbServerInfo serverInfo;
 					serverInfo.set_rascsi_version(rascsi_get_version_string());
-					serverInfo.set_log_level(spdlog_log_level);
+					GetAvailableLogLevels(serverInfo);
+					serverInfo.set_current_log_level(current_log_level);
 					serverInfo.set_default_image_folder(default_image_folder);
 					GetAvailableImages(serverInfo);
 					SerializeMessage(fd, serverInfo);
@@ -955,6 +963,13 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
+	available_log_levels.insert("trace");
+	available_log_levels.insert("debug");
+	available_log_levels.insert("info");
+	available_log_levels.insert("warn");
+	available_log_levels.insert("err");
+	available_log_levels.insert("critical");
+	available_log_levels.insert("off");
 	SetLogLevel("trace");
 
 	// Create a thread-safe stdout logger to process the log messages
