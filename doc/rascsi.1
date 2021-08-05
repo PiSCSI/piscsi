@@ -3,8 +3,10 @@
 rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 .SH SYNOPSIS
 .B rascsi
-[\fB\-IDn\fR \fIfile\fR]
-[\fB\-HDn\fR \fIfile\fR]...
+[\fB\-g\f® \fILOG_LEVEL\fR]
+[\fB\-p\f® \fIPORT\fR]
+[\fB\-IDn\fR \fIFILE\fR]
+[\fB\-HDn\fR \fIFILE\fR]...
 .SH DESCRIPTION
 .B rascsi
 Emulates SCSI devices using the Raspberry Pi GPIO pins.
@@ -33,6 +35,12 @@ Once RaSCSI has initialized, the rasctl utility can be used to send commands.
 To quit RaSCSI, press Control + C. If it is running in the background, you can kill it using an INT signal.
 
 .SH OPTIONS
+.TP
+.BR \-g\fI " " \fILOG_LEVEL
+The rascsi log level (trace, debug, info, warn, err, critical, off), default is trace.
+.TP
+.BR \-p\fI " " \fIPORT
+The rascsi server port, default is 6868.
 .TP
 .BR \-ID\fIn " " \fIFILE
 n is the SCSI ID number (0-7)
