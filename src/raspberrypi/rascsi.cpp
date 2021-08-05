@@ -964,13 +964,13 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	available_log_levels.push_back("off");
 	available_log_levels.push_back("trace");
 	available_log_levels.push_back("debug");
 	available_log_levels.push_back("info");
 	available_log_levels.push_back("warn");
 	available_log_levels.push_back("err");
 	available_log_levels.push_back("critical");
+	available_log_levels.push_back("off");
 	SetLogLevel("trace");
 
 	// Create a thread-safe stdout logger to process the log messages
