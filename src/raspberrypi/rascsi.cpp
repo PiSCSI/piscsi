@@ -35,7 +35,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <map>
+#include <list>
 #include <filesystem>
 
 using namespace std;
@@ -65,7 +65,7 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-map<string, level::level_enum> available_log_levels;
+list<string> available_log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder = "/home/pi/images";
 
@@ -434,12 +434,30 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 }
 
 bool SetLogLevel(const string& log_level) {
-	map<string, level::level_enum>::iterator it = available_log_levels.find(log_level);
-	if (it == available_log_levels.end()) {
+	if (log_level == "trace") {
+		set_level(level::trace);
+	}
+	else if (log_level == "debug") {
+		set_level(level::debug);
+	}
+	else if (log_level == "info") {
+		set_level(level::info);
+	}
+	else if (log_level == "warn") {
+		set_level(level::warn);
+	}
+	else if (log_level == "err") {
+		set_level(level::err);
+	}
+	else if (log_level == "critical") {
+		set_level(level::critical);
+	}
+	else if (log_level == "off") {
+		set_level(level::off);
+	}
+	else {
 		return false;
 	}
-
-	set_level(it->second);
 
 	current_log_level = log_level;
 
@@ -459,7 +477,7 @@ void LogDeviceList(const string& device_list)
 void GetAvailableLogLevels(PbServerInfo& serverInfo)
 {
 	for (auto it = available_log_levels.begin(); it != available_log_levels.end(); ++it) {
-		serverInfo.add_available_log_levels((*it).first);
+		serverInfo.add_available_log_levels(*it);
 	}
 }
 
@@ -946,13 +964,13 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	available_log_levels["trace"] = level::trace;
-	available_log_levels["debug"] = level::debug;
-	available_log_levels["info"] = level::info;
-	available_log_levels["warn"] = level::warn;
-	available_log_levels["err"] = level::err;
-	available_log_levels["critical"] = level::critical;
-	available_log_levels["off"] = level::off;
+	available_log_levels.push_back("trace");
+	available_log_levels.push_back("debug");
+	available_log_levels.push_back("info");
+	available_log_levels.push_back("warn");
+	available_log_levels.push_back("err");
+	available_log_levels.push_back("critical");
+	available_log_levels.push_back("off");
 	SetLogLevel("trace");
 
 	// Create a thread-safe stdout logger to process the log messages
