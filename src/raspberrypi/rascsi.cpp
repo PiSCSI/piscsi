@@ -712,7 +712,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:l:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:f:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -748,7 +748,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				}
 				continue;
 
-			case 'l':
+			case 'f':
 				struct stat folder_stat;
 				stat(optarg, &folder_stat);
 				if (!S_ISDIR(folder_stat.st_mode) || access(optarg, F_OK) == -1) {
