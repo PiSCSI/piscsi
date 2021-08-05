@@ -433,9 +433,7 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	return status;
 }
 
-void SetLogLevel(const string& log_level) {
-	spdlog_log_level = log_level;
-
+bool SetLogLevel(const string& log_level) {
 	if (log_level == "trace") {
 		set_level(level::trace);
 	}
@@ -458,10 +456,12 @@ void SetLogLevel(const string& log_level) {
 		set_level(level::off);
 	}
 	else {
-		LOGWARN("Invalid log level '%s', falling back to 'trace'", log_level.c_str());
-		spdlog_log_level = "trace";
-		set_level(level::trace);
+		return false;
 	}
+
+	spdlog_log_level = log_level;
+
+	return true;
 }
 
 void LogDeviceList(const string& device_list)
@@ -804,7 +804,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		id = -1;
 	}
 
-	SetLogLevel(log_level);
+	if (!SetLogLevel(log_level)) {
+		LOGWARN("Invalid log level '%s'", log_level.c_str());
+	}
 
 	// Display and log the device list
 	const PbDevices devices = GetDevices();
@@ -885,7 +887,15 @@ static void *MonThread(void *param)
 				}
 
 				case LOG_LEVEL: {
-					SetLogLevel(command.params());
+					bool status = SetLogLevel(command.params());
+					if (!status) {
+						ostringstream error;
+						error << "Invalid log level: " << command.params();
+						ReturnStatus(fd, false, error.str());
+					}
+					else {
+						ReturnStatus(fd);
+					}
 					break;
 				}
 
@@ -946,6 +956,7 @@ int main(int argc, char* argv[])
 	struct sched_param schparam;
 
 	SetLogLevel("trace");
+
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
