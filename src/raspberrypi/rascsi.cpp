@@ -35,6 +35,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <list>
 #include <filesystem>
 
 using namespace std;
@@ -64,7 +65,7 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-set<string> available_log_levels;
+list<string> available_log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder = "/home/pi/images";
 
@@ -963,13 +964,13 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	available_log_levels.insert("trace");
-	available_log_levels.insert("debug");
-	available_log_levels.insert("info");
-	available_log_levels.insert("warn");
-	available_log_levels.insert("err");
-	available_log_levels.insert("critical");
-	available_log_levels.insert("off");
+	available_log_levels.push_back("off");
+	available_log_levels.push_back("trace");
+	available_log_levels.push_back("debug");
+	available_log_levels.push_back("info");
+	available_log_levels.push_back("warn");
+	available_log_levels.push_back("err");
+	available_log_levels.push_back("critical");
 	SetLogLevel("trace");
 
 	// Create a thread-safe stdout logger to process the log messages

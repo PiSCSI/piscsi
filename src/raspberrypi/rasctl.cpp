@@ -184,15 +184,9 @@ void CommandServerInfo(const string& hostname, int port)
 		cout << "  No log level settings available" << endl;
 	}
 	else {
-		list<string> sorted_log_levels;
+		cout << "Available log levels, sorted by severity:" << endl;
 		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
-			sorted_log_levels.push_back(serverInfo.available_log_levels(i));
-		}
-		sorted_log_levels.sort();
-
-		cout << "Available log levels:" << endl;
-		for (auto it = sorted_log_levels.begin(); it != sorted_log_levels.end(); ++it) {
-			cout << "  " << *it << endl;
+			cout << "  " << serverInfo.available_log_levels(i) << endl;
 		}
 
 		cout << "Current log level: " << serverInfo.current_log_level() << endl;
