@@ -434,7 +434,7 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 }
 
 bool SetLogLevel(const string& log_level) {
-	map<string, level::level_enum>::iterator it = available_log_levels.find(log_level);
+	auto it = available_log_levels.find(log_level);
 	if (it == available_log_levels.end()) {
 		return false;
 	}
