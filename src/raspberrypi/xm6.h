@@ -25,7 +25,6 @@
 //	Various Operation Settings
 //
 //---------------------------------------------------------------------------
-#undef USE_SEL_EVENT_ENABLE
 #define USE_SEL_EVENT_ENABLE			// Check SEL signal by event
 #define REMOVE_FIXED_SASIHD_SIZE		// remove the size limitation of SASIHD
 #define USE_MZ1F23_1024_SUPPORT			// MZ-1F23 (SASI 20M/sector size 1024)
