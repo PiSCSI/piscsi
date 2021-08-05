@@ -4,11 +4,15 @@ rasctl \- Sends management commands to the rascsi process
 .SH SYNOPSIS
 .B rasctl
 \fB\-l\fR |
+\fB\-s\fR |
 \fB\-i\fR \fIID\fR
 [\fB\-u\fR \fIUNIT\fR]
 [\fB\-c\fR \fICMD\fR]
 [\fB\-t\fR \fITYPE\fR]
 [\fB\-f\fR \fIFILE\fR]
+[\fB\-g\fR \fILOG_LEVEL\fR]
+[\fB\-h\fR \fIHOST\fR]
+[\fB\-p\fR \fIPORT\fR]
 .SH DESCRIPTION
 .B rasctl
 Sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the devices.
@@ -23,6 +27,9 @@ Note: The command and type arguments are case insensitive. Only the first letter
 .TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
+.TP
+.BR \-s\fI
+Display server-side configuration settings.
 .TP
 .BR \-i\fI " " \fIID
 ID is the SCSI ID that you want to control. (0-7)
@@ -49,6 +56,15 @@ Specifies the type of disk. If this disagrees with the file extension of the spe
 .TP 
 .BR \-f\fI " " \fIFILE
 Path to the disk image file. See the rascsi(1) man page for allowable file types.
+.TP
+.BR \-g\fI " "\fILOG_LEVEL
+The rascsi log level to set (trace, debug, info, warn, err, critical, off)
+.TP
+.BR \-h\fI " " \fIHOST
+The rascsi host to connect to, default is 'localhost'.
+.TP
+.BR \-p\fI " " \fIPORT
+The rascsi port to connect to, default is 6868.
 
 .SH EXAMPLES
 Show a listing of all of the SCSI devices and their current status.
