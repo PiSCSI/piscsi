@@ -511,7 +511,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	string params = command.params().c_str();
 
 	ostringstream s;
-	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params << endl;
+	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params;
 	LOGINFO("%s", s.str().c_str());
 
 	// Copy the Unit List
