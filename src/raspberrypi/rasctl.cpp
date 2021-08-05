@@ -165,13 +165,13 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-p PORT] [-g LOG_LEVEL]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOST] [-p PORT] [-g LOG_LEVEL]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
-		cerr << "        HOSTNAME := rascsi host to connect to, default is 'localhost'" << endl;
+		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
 		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
 		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;

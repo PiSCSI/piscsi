@@ -3,6 +3,7 @@
 rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 .SH SYNOPSIS
 .B rascsi
+[\fB\-f\f® \fIFOLDER\fR]
 [\fB\-g\f® \fILOG_LEVEL\fR]
 [\fB\-p\f® \fIPORT\fR]
 [\fB\-IDn\fR \fIFILE\fR]
@@ -36,7 +37,7 @@ To quit RaSCSI, press Control + C. If it is running in the background, you can k
 
 .SH OPTIONS
 .TP
-.BR \-f\fI " " \fIDEFAULT_IMAGE_FOLDER
+.BR \-f\fI " " \fIFOLDER
 The default folder for image files. For files in this folder no absolute path needs to be specified. The default folder is /home/pi/images.
 .TP
 .BR \-g\fI " " \fILOG_LEVEL
