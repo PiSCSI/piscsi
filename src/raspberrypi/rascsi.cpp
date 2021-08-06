@@ -693,10 +693,16 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
 
 			if (!pUnit->Open(filepath)) {
-				ostringstream error;
-				error << "File open error [" << params << "]";
+				// If the file does not exist search for it in the default image folder
+				string default_file = default_image_folder + "/" + params;
+				filepath.SetPath(default_file.c_str());
+				if (!pUnit->Open(filepath)) {
+					LOGWARN("rasctl tried to open an invalid file %s", params.c_str());
 
-				return ReturnStatus(fd, false, error.str());
+					ostringstream error;
+					error << "File open error [" << params << "]";
+					return ReturnStatus(fd, false, error.str());
+				}
 			}
 			break;
 
