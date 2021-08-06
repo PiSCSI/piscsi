@@ -63,6 +63,7 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
+set<string> files_in_use;
 
 //---------------------------------------------------------------------------
 //
@@ -563,6 +564,13 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string file = params.find("/dev/") ? params : params.substr(0, params.length() - 4);
 
+			if (files_in_use.find(file) != files_in_use.end()) {
+				ostringstream error;
+				error << "Image file '" << file << "' is already in use";
+				return ReturnStatus(fd, false, error.str());
+			}
+			files_in_use.insert(file);
+
 			// Set the Path
 			filepath.SetPath(file.c_str());
 
@@ -617,6 +625,13 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		// Re-map the controller
 		bool status = MapController(map);
+		if (status) {
+			Filepath filepath;
+			pUnit->GetPath(filepath);
+
+			files_in_use.erase(filepath.GetPath());
+		}
+
 		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
