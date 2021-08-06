@@ -68,6 +68,7 @@ static void *MonThread(void *param);
 list<string> available_log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder = "/home/pi/images";
+set<string> files_in_use;
 
 //---------------------------------------------------------------------------
 //
@@ -587,6 +588,13 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string file = params.find("/dev/") ? params : params.substr(0, params.length() - 4);
 
+			if (files_in_use.find(file) != files_in_use.end()) {
+				ostringstream error;
+				error << "Image file '" << file << "' is already in use";
+				return ReturnStatus(fd, false, error.str());
+			}
+			files_in_use.insert(file);
+
 			// Set the Path
 			filepath.SetPath(file.c_str());
 
@@ -646,6 +654,13 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		// Re-map the controller
 		bool status = MapController(map);
+		if (status) {
+			Filepath filepath;
+			pUnit->GetPath(filepath);
+
+			files_in_use.erase(filepath.GetPath());
+		}
+
 		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
