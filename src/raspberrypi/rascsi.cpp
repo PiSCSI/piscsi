@@ -679,7 +679,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		return ReturnStatus(fd, false, error.str());
 	}
 
-	if (!pUnit->IsProtectable()) {
+	if ((cmd == PROTECT || cmd == UNPROTECT) && !pUnit->IsProtectable()) {
 		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
 		ostringstream error;
