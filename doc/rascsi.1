@@ -5,7 +5,9 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 .B rascsi
 [\fB\-f\f® \fIFOLDER\fR]
 [\fB\-g\f® \fILOG_LEVEL\fR]
+[\fB\-h\fR]
 [\fB\-p\f® \fIPORT\fR]
+[\fB\-v\fR]
 [\fB\-IDn\fR \fIFILE\fR]
 [\fB\-HDn\fR \fIFILE\fR]...
 .SH DESCRIPTION
@@ -43,8 +45,14 @@ The default folder for image files. For files in this folder no absolute path ne
 .BR \-g\fI " " \fILOG_LEVEL
 The rascsi log level (trace, debug, info, warn, err, critical, off). The default log level is 'trace'.
 .TP
+.BR \-h\fI " " \fI
+Show a help page.
+.TP
 .BR \-p\fI " " \fIPORT
 The rascsi server port, default is 6868.
+.TP
+.BR \-v\fI " " \fI
+Display the rascsi version.
 .TP
 .BR \-ID\fIn " " \fIFILE
 n is the SCSI ID number (0-7)

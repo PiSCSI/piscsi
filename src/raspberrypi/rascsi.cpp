@@ -728,7 +728,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:P:p:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:P:p:f:Vv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -774,6 +774,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 				default_image_folder = optarg;
 				continue;
+
+			case 'v':
+				cout << rascsi_get_version_string() << endl;
+				exit(0);
+				break;
 
 			default:
 				return false;

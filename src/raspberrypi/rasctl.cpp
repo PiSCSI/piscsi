@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOST] [-p PORT] [-g LOG_LEVEL]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
 	int port = 6868;
 	string params;
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:g:ls")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:g:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -342,6 +342,11 @@ int main(int argc, char* argv[])
 
 			case 's':
 				cmd = SERVER_INFO;
+				break;
+
+			case 'v':
+				cout << rascsi_get_version_string() << endl;
+				exit(0);
 				break;
 		}
 	}
