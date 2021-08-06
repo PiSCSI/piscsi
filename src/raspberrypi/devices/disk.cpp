@@ -716,7 +716,8 @@ Disk::Disk(std::string id)
 	disk.readonly = false;
 	disk.removable = false;
 	disk.removed = false;
-	disk.lock = FALSE;
+	disk.lockable = false;
+	disk.locked = false;
 	disk.attn = FALSE;
 	disk.reset = FALSE;
 	disk.size = 0;
@@ -760,7 +761,7 @@ Disk::~Disk()
 void Disk::Reset()
 {
 	// no lock, no attention, reset
-	disk.lock = FALSE;
+	disk.locked = false;
 	disk.attn = FALSE;
 	disk.reset = TRUE;
 }
@@ -869,8 +870,9 @@ BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
 		disk.readonly = true;
 	}
 
-	// Not locked
-	disk.lock = FALSE;
+	// Not locked, not removed
+	disk.locked = false;
+	disk.removed = false;
 
 	// Save path
 	diskpath = path;
@@ -897,7 +899,7 @@ bool Disk::Eject(bool force)
 	}
 
 	// Must be unlocked if there is no force flag
-	if (!force && disk.lock) {
+	if (!force && disk.locked) {
 		return false;
 	}
 
@@ -1900,7 +1902,7 @@ BOOL Disk::StartStop(const DWORD *cdb)
 
 	// Look at the eject bit and eject if necessary
 	if (cdb[4] & 0x02) {
-		if (disk.lock) {
+		if (disk.locked) {
 			// Cannot be ejected because it is locked
 			disk.code = DISK_PREVENT;
 			return FALSE;
@@ -1959,9 +1961,9 @@ BOOL Disk::Removal(const DWORD *cdb)
 
 	// Set Lock flag
 	if (cdb[4] & 0x01) {
-		disk.lock = TRUE;
+		disk.locked = true;
 	} else {
-		disk.lock = FALSE;
+		disk.locked = false;
 	}
 
 	// REMOVAL Success

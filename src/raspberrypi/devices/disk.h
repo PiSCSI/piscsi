@@ -172,7 +172,8 @@ public:
 		bool writep;							// Write protected
 		bool removable;							// Removable
 		bool removed;
-		BOOL lock;							// Locked
+		bool lockable;
+		bool locked;							// Locked
 		BOOL attn;							// Attention
 		BOOL reset;							// Reset
 		int size;							// Sector Size
@@ -210,7 +211,8 @@ public:
 	bool IsReadOnly() const		{ return disk.readonly; }	// Get read only flag
 	bool IsRemovable() const	{ return disk.removable; }	// Get is removable flag
 	bool IsRemoved() const		{ return disk.removed; }
-	bool IsLocked() const		{ return disk.lock; }		// Get locked status
+	bool IsLockable() const		{ return disk.lockable; }
+	bool IsLocked() const		{ return disk.locked; }		// Get locked status
 	bool IsAttn() const		{ return disk.attn; }		// Get attention flag
 	bool Flush();							// Flush the cache
 

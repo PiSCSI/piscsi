@@ -41,7 +41,7 @@ SASIHD::SASIHD() : Disk("SAHD")
 void SASIHD::Reset()
 {
 	// Unlock, clear attention
-	disk.lock = FALSE;
+	disk.locked = FALSE;
 	disk.attn = FALSE;
 
 	// Reset, clear the code

@@ -55,6 +55,8 @@ message PbDevice {
     bool protected = 7;
     bool removable = 8;
     bool removed = 9;
+    bool lockable = 10;
+    bool locked = 11;
 }
 
 message PbDevices {

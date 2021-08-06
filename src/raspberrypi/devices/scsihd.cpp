@@ -40,7 +40,7 @@ SCSIHD::SCSIHD() : Disk("SCHD")
 void SCSIHD::Reset()
 {
 	// Unlock and release attention
-	disk.lock = FALSE;
+	disk.locked = FALSE;
 	disk.attn = FALSE;
 
 	// No reset, clear code

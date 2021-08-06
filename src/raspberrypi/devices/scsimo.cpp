@@ -32,6 +32,7 @@
 SCSIMO::SCSIMO() : Disk("SCMO")
 {
 	disk.removable = true;
+	disk.lockable = true;
 	disk.protectable = true;
 }
 
