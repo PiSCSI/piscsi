@@ -291,7 +291,12 @@ PbDevices GetDevices() {
 			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "NO MEDIA" : filepath.GetPath());
 		}
 
+		device->set_protectable(pUnit->IsProtectable());
+		device->set_protected_(pUnit->IsWriteP());
 		device->set_removable(pUnit->IsRemovable());
+		device->set_removed(pUnit->IsRemoved());
+		device->set_ejectable(pUnit->IsEjectable());
+		device->set_ejected(pUnit->IsEjected());
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
@@ -690,7 +695,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		case EJECT:
 			LOGINFO("rasctl commanded eject for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
-			pUnit->Eject(TRUE);
+			pUnit->Eject(true);
 			break;
 
 		case PROTECT:
@@ -700,7 +705,17 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
 			}
 			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), pUnit->GetID().c_str(), id, un);
-			pUnit->WriteP(!pUnit->IsWriteP());
+			pUnit->WriteP(true);
+			break;
+
+		case UNPROTECT:
+			if (!pUnit->IsMo()) {
+				LOGWARN("rasctl sent an invalid UNPROTECT command for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+
+				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
+			}
+			LOGINFO("rasctl is setting write unprotect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), pUnit->GetID().c_str(), id, un);
+			pUnit->WriteP(false);
 			break;
 
 		default:

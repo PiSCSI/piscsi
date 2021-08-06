@@ -251,9 +251,9 @@ CDDABuf::~CDDABuf()
 //---------------------------------------------------------------------------
 SCSICD::SCSICD() : Disk("SCCD")
 {
-	// removable, write protected
-	disk.removable = TRUE;
-	disk.writep = TRUE;
+	disk.removable = true;
+	disk.writep = true;
+	disk.ejectable = true;
 
 	// NOT in raw format
 	rawfile = FALSE;

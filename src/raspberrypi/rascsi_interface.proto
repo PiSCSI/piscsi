@@ -18,13 +18,14 @@ enum PbDeviceType {
 enum PbOperation {
     NONE = 0;
     SERVER_INFO = 1;
-    LIST = 2;
-    ATTACH = 3;
-    DETACH = 4;
-    INSERT = 5;
-    EJECT = 6;
-    PROTECT = 7;
-    LOG_LEVEL = 8;
+    LOG_LEVEL = 2;
+    LIST = 3;
+    ATTACH = 4;
+    DETACH = 5;
+    INSERT = 6;
+    EJECT = 7;
+    PROTECT = 8;
+    UNPROTECT = 9;
 }
 
 // Commands rascsi can execute
@@ -42,14 +43,20 @@ message PbResult {
     string msg = 2;
 }
 
+
 // The device meta data
 message PbDevice {
     int32 id = 1;
     int32 un = 2;
     string type = 3;
     string file = 4;
-    bool removable = 5;
-    bool read_only = 6;
+    bool read_only = 5;
+    bool protectable = 6;
+    bool protected = 7;
+    bool removable = 8;
+    bool removed = 9;
+    bool ejectable = 10;
+    bool ejected = 11;
 }
 
 message PbDevices {

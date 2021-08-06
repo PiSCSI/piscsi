@@ -31,8 +31,9 @@
 //---------------------------------------------------------------------------
 SCSIMO::SCSIMO() : Disk("SCMO")
 {
-	// Set as removable
-	disk.removable = TRUE;
+	disk.removable = true;
+	disk.ejectable = true;
+	disk.protectable = true;
 }
 
 //---------------------------------------------------------------------------

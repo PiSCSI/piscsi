@@ -167,9 +167,13 @@ public:
 	typedef struct {
 		std::string id;						// Media ID
 		BOOL ready;							// Valid Disk
-		BOOL writep;							// Write protected
-		BOOL readonly;							// Read only
-		BOOL removable;							// Removable
+		bool readonly;							// Read only
+		bool protectable;
+		bool writep;							// Write protected
+		bool removable;							// Removable
+		bool removed;
+		bool ejectable;
+		bool ejected;
 		BOOL lock;							// Locked
 		BOOL attn;							// Attention
 		BOOL reset;							// Reset
@@ -200,12 +204,16 @@ public:
 	// Media Operations
 	virtual BOOL Open(const Filepath& path, BOOL attn = TRUE);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
-	void Eject(BOOL force);					// Eject
+	bool Eject(bool);					// Eject
 	bool IsReady() const		{ return disk.ready; }		// Ready check
-	void WriteP(BOOL flag);					// Set Write Protect flag
+	bool IsProtectable() const 	{ return disk.protectable; }
+	bool WriteP(bool);					// Set Write Protect flag
 	bool IsWriteP() const		{ return disk.writep; }		// Get write protect flag
-	bool IsReadOnly() const	{ return disk.readonly; }	// Get read only flag
+	bool IsReadOnly() const		{ return disk.readonly; }	// Get read only flag
 	bool IsRemovable() const	{ return disk.removable; }	// Get is removable flag
+	bool IsRemoved() const		{ return disk.removed; }
+	bool IsEjectable() const	{ return disk.ejectable; }
+	bool IsEjected() const		{ return disk.ejected; }
 	bool IsLocked() const		{ return disk.lock; }		// Get locked status
 	bool IsAttn() const		{ return disk.attn; }		// Get attention flag
 	bool Flush();							// Flush the cache

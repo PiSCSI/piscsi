@@ -711,9 +711,13 @@ Disk::Disk(std::string id)
 
 	// Work initialization
 	disk.ready = FALSE;
-	disk.writep = FALSE;
-	disk.readonly = FALSE;
-	disk.removable = FALSE;
+	disk.protectable = true;
+	disk.writep = false;
+	disk.readonly = false;
+	disk.removable = false;
+	disk.removed = false;
+	disk.ejectable = false;
+	disk.ejected = false;
 	disk.lock = FALSE;
 	disk.attn = FALSE;
 	disk.reset = FALSE;
@@ -858,13 +862,13 @@ BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
 	Fileio fio;
 	if (fio.Open(path, Fileio::ReadWrite)) {
 		// Write permission, not read only
-		disk.writep = FALSE;
-		disk.readonly = FALSE;
+		disk.writep = false;
+		disk.readonly = false;
 		fio.Close();
 	} else {
 		// Write protected, read only
-		disk.writep = TRUE;
-		disk.readonly = TRUE;
+		disk.writep = true;
+		disk.readonly = true;
 	}
 
 	// Not locked
@@ -882,23 +886,21 @@ BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
 //	Eject
 //
 //---------------------------------------------------------------------------
-void Disk::Eject(BOOL force)
+bool Disk::Eject(bool force)
 {
 	// Can only be ejected if it is removable
 	if (!disk.removable) {
-		return;
+		return false;
 	}
 
 	// If you're not ready, you don't need to eject
 	if (!disk.ready) {
-		return;
+		return false;
 	}
 
 	// Must be unlocked if there is no force flag
-	if (!force) {
-		if (disk.lock) {
-			return;
-		}
+	if (!force && disk.lock) {
+		return false;
 	}
 
 	// Remove disk cache
@@ -908,9 +910,12 @@ void Disk::Eject(BOOL force)
 
 	// Not ready, no attention
 	disk.ready = FALSE;
-	disk.writep = FALSE;
-	disk.readonly = FALSE;
+	disk.writep = false;
+	disk.readonly = false;
 	disk.attn = FALSE;
+	disk.ejected = true;
+
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -918,21 +923,22 @@ void Disk::Eject(BOOL force)
 //	Write Protected
 //
 //---------------------------------------------------------------------------
-void Disk::WriteP(BOOL writep)
+bool Disk::WriteP(bool writep)
 {
 	// be ready
-	if (!disk.ready) {
-		return;
+	if (!disk.ready || !disk.protectable) {
+		return false;
 	}
 
 	// Read Only, protect only
-	if (disk.readonly) {
-		ASSERT(disk.writep);
-		return;
+	if (disk.readonly && !writep) {
+		return false;
 	}
 
 	// Write protect flag setting
 	disk.writep = writep;
+
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1903,7 +1909,7 @@ BOOL Disk::StartStop(const DWORD *cdb)
 		}
 
 		// Eject
-		Eject(FALSE);
+		Eject(false);
 	}
 
 	// OK

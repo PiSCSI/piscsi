@@ -249,7 +249,7 @@ int main(int argc, char* argv[])
 	int port = 6868;
 	string params;
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:g:ls")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:u:g:ls")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -279,6 +279,10 @@ int main(int argc, char* argv[])
 
 					case 'p':
 						cmd = PROTECT;
+						break;
+
+					case 'u':
+						cmd = UNPROTECT;
 						break;
 				}
 				break;
