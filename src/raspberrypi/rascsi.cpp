@@ -704,7 +704,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
 			}
-			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), pUnit->GetID().c_str(), id, un);
+			LOGINFO("rasctl is setting write protection to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), pUnit->GetID().c_str(), id, un);
 			pUnit->WriteP(true);
 			break;
 
@@ -714,7 +714,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
 			}
-			LOGINFO("rasctl is setting write unprotect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), pUnit->GetID().c_str(), id, un);
+			LOGINFO("rasctl is setting write protection to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), pUnit->GetID().c_str(), id, un);
 			pUnit->WriteP(false);
 			break;
 

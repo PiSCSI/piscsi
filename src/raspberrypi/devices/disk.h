@@ -174,8 +174,8 @@ public:
 		bool removed;
 		bool lockable;
 		bool locked;							// Locked
-		BOOL attn;							// Attention
-		BOOL reset;							// Reset
+		bool attn;							// Attention
+		bool reset;							// Reset
 		int size;							// Sector Size
 		DWORD blocks;							// Total number of sectors
 		DWORD lun;							// LUN

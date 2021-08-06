@@ -718,8 +718,8 @@ Disk::Disk(std::string id)
 	disk.removed = false;
 	disk.lockable = false;
 	disk.locked = false;
-	disk.attn = FALSE;
-	disk.reset = FALSE;
+	disk.attn = false;
+	disk.reset = false;
 	disk.size = 0;
 	disk.blocks = 0;
 	disk.lun = 0;
@@ -762,8 +762,8 @@ void Disk::Reset()
 {
 	// no lock, no attention, reset
 	disk.locked = false;
-	disk.attn = FALSE;
-	disk.reset = TRUE;
+	disk.attn = false;
+	disk.reset = false;
 }
 
 //---------------------------------------------------------------------------
@@ -913,7 +913,7 @@ bool Disk::Eject(bool force)
 	disk.writep = false;
 	disk.readonly = false;
 	disk.removed = true;
-	disk.attn = FALSE;
+	disk.attn = false;
 
 	return true;
 }
@@ -977,7 +977,7 @@ BOOL Disk::CheckReady()
 	// Not ready if reset
 	if (disk.reset) {
 		disk.code = DISK_DEVRESET;
-		disk.reset = FALSE;
+		disk.reset = false;
 		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
@@ -985,7 +985,7 @@ BOOL Disk::CheckReady()
 	// Not ready if it needs attention
 	if (disk.attn) {
 		disk.code = DISK_ATTENTION;
-		disk.attn = FALSE;
+		disk.attn = false;
 		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
