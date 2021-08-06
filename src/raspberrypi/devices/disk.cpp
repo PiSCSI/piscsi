@@ -716,8 +716,6 @@ Disk::Disk(std::string id)
 	disk.readonly = false;
 	disk.removable = false;
 	disk.removed = false;
-	disk.ejectable = false;
-	disk.ejected = false;
 	disk.lock = FALSE;
 	disk.attn = FALSE;
 	disk.reset = FALSE;
@@ -913,7 +911,6 @@ bool Disk::Eject(bool force)
 	disk.writep = false;
 	disk.readonly = false;
 	disk.attn = FALSE;
-	disk.ejected = true;
 
 	return true;
 }

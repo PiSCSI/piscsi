@@ -212,8 +212,6 @@ public:
 	bool IsReadOnly() const		{ return disk.readonly; }	// Get read only flag
 	bool IsRemovable() const	{ return disk.removable; }	// Get is removable flag
 	bool IsRemoved() const		{ return disk.removed; }
-	bool IsEjectable() const	{ return disk.ejectable; }
-	bool IsEjected() const		{ return disk.ejected; }
 	bool IsLocked() const		{ return disk.lock; }		// Get locked status
 	bool IsAttn() const		{ return disk.attn; }		// Get attention flag
 	bool Flush();							// Flush the cache

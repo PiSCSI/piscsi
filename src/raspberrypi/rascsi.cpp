@@ -295,8 +295,6 @@ PbDevices GetDevices() {
 		device->set_protected_(pUnit->IsWriteP());
 		device->set_removable(pUnit->IsRemovable());
 		device->set_removed(pUnit->IsRemoved());
-		device->set_ejectable(pUnit->IsEjectable());
-		device->set_ejected(pUnit->IsEjected());
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {

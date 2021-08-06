@@ -253,7 +253,6 @@ SCSICD::SCSICD() : Disk("SCCD")
 {
 	disk.removable = true;
 	disk.writep = true;
-	disk.ejectable = true;
 
 	// NOT in raw format
 	rawfile = FALSE;
