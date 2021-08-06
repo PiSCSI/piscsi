@@ -35,6 +35,8 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <list>
+#include <filesystem>
 
 using namespace std;
 using namespace spdlog;
@@ -63,6 +65,9 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
+list<string> available_log_levels;
+string current_log_level;			// Some versions of spdlog do not support get_log_level()
+string default_image_folder = "/home/pi/images";
 set<string> files_in_use;
 
 //---------------------------------------------------------------------------
@@ -123,16 +128,14 @@ void Banner(int argc, char* argv[])
 
 BOOL InitService(int port)
 {
-	struct sockaddr_in server;
-	int yes, result;
-
-	result = pthread_mutex_init(&ctrl_mutex,NULL);
+	int result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if(result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Err code: %d", result);
 		return FALSE;
 	}
 
 	// Create socket for monitor
+	struct sockaddr_in server;
 	monsocket = socket(PF_INET, SOCK_STREAM, 0);
 	memset(&server, 0, sizeof(server));
 	server.sin_family = PF_INET;
@@ -140,7 +143,7 @@ BOOL InitService(int port)
 	server.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	// allow address reuse
-	yes = 1;
+	int yes = 1;
 	if (setsockopt(
 		monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0){
 		return FALSE;
@@ -431,7 +434,7 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	return status;
 }
 
-void SetLogLevel(const string& log_level) {
+bool SetLogLevel(const string& log_level) {
 	if (log_level == "trace") {
 		set_level(level::trace);
 	}
@@ -454,9 +457,12 @@ void SetLogLevel(const string& log_level) {
 		set_level(level::off);
 	}
 	else {
-		LOGWARN("Invalid log level '%s', falling back to 'trace'", log_level.c_str());
-		set_level(level::trace);
+		return false;
 	}
+
+	current_log_level = log_level;
+
+	return true;
 }
 
 void LogDeviceList(const string& device_list)
@@ -466,6 +472,24 @@ void LogDeviceList(const string& device_list)
 
 	while (getline(ss, line, '\n')) {
 		LOGINFO("%s", line.c_str());
+	}
+}
+
+void GetAvailableLogLevels(PbServerInfo& serverInfo)
+{
+	for (auto it = available_log_levels.begin(); it != available_log_levels.end(); ++it) {
+		serverInfo.add_available_log_levels(*it);
+	}
+}
+
+void GetAvailableImages(PbServerInfo& serverInfo)
+{
+	if (access(default_image_folder.c_str(), F_OK) != -1) {
+		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
+			if (entry.is_regular_file()) {
+				serverInfo.add_available_image_files(entry.path().filename());
+			}
+		}
 	}
 }
 
@@ -488,7 +512,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	string params = command.params().c_str();
 
 	ostringstream s;
-	s << "Processing: cmd=" << cmd << ", id=" << id << ", un=" << un << ", type=" << type << ", params=" << params << endl;
+	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params;
 	LOGINFO("%s", s.str().c_str());
 
 	// Copy the Unit List
@@ -555,7 +579,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				break;
 			default:
 				ostringstream error;
-				error << "rasctl sent a command for an invalid drive type: " << type;
+				error << "rasctl sent a command for an invalid drive type: " << PbDeviceType_Name(type);
 				return ReturnStatus(fd, false, error.str());
 		}
 
@@ -576,13 +600,18 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 			// Open the file path
 			if (!pUnit->Open(filepath)) {
-				delete pUnit;
+				// If the file does not exist search for it in the default image folder
+				string default_file = default_image_folder + "/" + file;
+				filepath.SetPath(default_file.c_str());
+				if (!pUnit->Open(filepath)) {
+					delete pUnit;
 
-				LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
+					LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
 
-				ostringstream error;
-				error << "File open error [" << file << "]";
-				return ReturnStatus(fd, false, error.str());
+					ostringstream error;
+					error << "File open error [" << file << "]";
+					return ReturnStatus(fd, false, error.str());
+				}
 			}
 		}
 
@@ -674,7 +703,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		default:
 			ostringstream error;
-			error << "Received unknown command from rasctl: " << cmd;
+			error << "Received unknown command from rasctl: " << PbOperation_Name(cmd);
 			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error.str());
 	}
@@ -699,7 +728,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:f:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -733,6 +762,17 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					return false;
 				}
+				continue;
+
+			case 'f':
+				struct stat folder_stat;
+				stat(optarg, &folder_stat);
+				if (!S_ISDIR(folder_stat.st_mode) || access(optarg, F_OK) == -1) {
+					cerr << "Default image folder '" << optarg << "' is not accessible" << endl;
+					return false;
+				}
+
+				default_image_folder = optarg;
 				continue;
 
 			default:
@@ -787,7 +827,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		id = -1;
 	}
 
-	SetLogLevel(log_level);
+	if (!SetLogLevel(log_level)) {
+		LOGWARN("Invalid log level '%s'", log_level.c_str());
+	}
 
 	// Display and log the device list
 	const PbDevices devices = GetDevices();
@@ -859,22 +901,47 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
-			// List and log all of the devices
-			if (command.cmd() == LIST) {
-				const PbDevices devices = GetDevices();
-				SerializeMessage(fd, devices);
-				LogDeviceList(ListDevices(devices));
-			}
-			else if (command.cmd() == LOG_LEVEL) {
-				SetLogLevel(command.params());
-			}
-			else {
-				// Wait until we become idle
-				while (active) {
-					usleep(500 * 1000);
+			switch(command.cmd()) {
+				case LIST: {
+					const PbDevices devices = GetDevices();
+					SerializeMessage(fd, devices);
+					LogDeviceList(ListDevices(devices));
+					break;
 				}
 
-				ProcessCmd(fd, command);
+				case LOG_LEVEL: {
+					bool status = SetLogLevel(command.params());
+					if (!status) {
+						ostringstream error;
+						error << "Invalid log level: " << command.params();
+						ReturnStatus(fd, false, error.str());
+					}
+					else {
+						ReturnStatus(fd);
+					}
+					break;
+				}
+
+				case SERVER_INFO: {
+					PbServerInfo serverInfo;
+					serverInfo.set_rascsi_version(rascsi_get_version_string());
+					GetAvailableLogLevels(serverInfo);
+					serverInfo.set_current_log_level(current_log_level);
+					serverInfo.set_default_image_folder(default_image_folder);
+					GetAvailableImages(serverInfo);
+					SerializeMessage(fd, serverInfo);
+					break;
+				}
+
+				default: {
+					// Wait until we become idle
+					while (active) {
+						usleep(500 * 1000);
+					}
+
+					ProcessCmd(fd, command);
+					break;
+				}
 			}
 
 			close(fd);
@@ -912,7 +979,15 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	set_level(level::trace);
+	available_log_levels.push_back("trace");
+	available_log_levels.push_back("debug");
+	available_log_levels.push_back("info");
+	available_log_levels.push_back("warn");
+	available_log_levels.push_back("err");
+	available_log_levels.push_back("critical");
+	available_log_levels.push_back("off");
+	SetLogLevel("trace");
+
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 

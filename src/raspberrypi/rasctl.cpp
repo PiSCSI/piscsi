@@ -18,6 +18,7 @@
 #include "rascsi_interface.pb.h"
 #include <sstream>
 #include <iostream>
+#include <list>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -152,6 +153,63 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	close(fd);
 }
 
+void CommandServerInfo(const string& hostname, int port)
+{
+	PbCommand command;
+	command.set_cmd(SERVER_INFO);
+
+	int fd = SendCommand(hostname.c_str(), port, command);
+	if (fd < 0) {
+		exit(ENOTCONN);
+	}
+
+
+	PbServerInfo serverInfo;
+	try {
+		DeserializeMessage(fd, serverInfo);
+	}
+	catch(const ioexception& e) {
+		cerr << "Error: " << e.getmsg() << endl;
+
+		close(fd);
+
+		exit(-1);
+	}
+
+	close(fd);
+
+	cout << "rascsi version: " << serverInfo.rascsi_version() << endl;
+
+	if (!serverInfo.available_log_levels_size()) {
+		cout << "  No log level settings available" << endl;
+	}
+	else {
+		cout << "Available log levels, sorted by severity:" << endl;
+		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
+			cout << "  " << serverInfo.available_log_levels(i) << endl;
+		}
+
+		cout << "Current log level: " << serverInfo.current_log_level() << endl;
+	}
+
+	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
+	if (!serverInfo.available_image_files_size()) {
+		cout << "  No image files available in the default folder" << endl;
+	}
+	else {
+		list<string> sorted_image_files;
+		for (int i = 0; i < serverInfo.available_image_files_size(); i++) {
+			sorted_image_files.push_back(serverInfo.available_image_files(i));
+		}
+		sorted_image_files.sort();
+
+		cout << "Image files available in the default folder:" << endl;
+		for (auto it = sorted_image_files.begin(); it != sorted_image_files.end(); ++it) {
+			cout << "  " << *it << endl;
+		}
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 //	Main processing
@@ -165,7 +223,7 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-p PORT] [-g LOG_LEVEL]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-h HOSTNAME] [-p PORT] [-g LOG_LEVEL] [-s]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
@@ -191,7 +249,7 @@ int main(int argc, char* argv[])
 	int port = 6868;
 	string params;
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:g:l")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:g:ls")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -281,6 +339,10 @@ int main(int argc, char* argv[])
 				cmd = LOG_LEVEL;
 				params = optarg;
 				break;
+
+			case 's':
+				cmd = SERVER_INFO;
+				break;
 		}
 	}
 
@@ -288,6 +350,11 @@ int main(int argc, char* argv[])
 
 	if (cmd == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, params);
+		exit(0);
+	}
+
+	if (cmd == SERVER_INFO) {
+		CommandServerInfo(hostname, port);
 		exit(0);
 	}
 
