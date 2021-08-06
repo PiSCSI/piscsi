@@ -49,12 +49,12 @@ The rascsi server port, default is 6868.
 .BR \-ID\fIn " " \fIFILE
 n is the SCSI ID number (0-7)
 .IP
-FILE is the name of the image file to attach to that ID.
+FILE is the name of the image file to attach to that ID. If FILE starts with '/dev/' the extension, which encodes the device type, is stripped, so that device files can conveniently be used as image files.
 .TP 
 .BR \-HD\fIn " " \fIFILE
 n is the SASI ID number (0-15)
 .IP
-FILE is the name of the image file to attach to that ID.
+FILE is the name of the image file to attach to that ID. If FILE starts with '/dev/' the extension, which encodes the device type, is stripped, so that device files can conveniently be used as image files.
 .IP
 Note: SASI usage is rare, and is typically limited to early Sharp X68000 systems.
 
@@ -62,11 +62,17 @@ Note: SASI usage is rare, and is typically limited to early Sharp X68000 systems
 Launch RaSCSI with no emulated drives attached:
    rascsi
 
-Launch RaSCSI with an Apple hard drive image as ID0 and a CD-ROM as ID 2
+Launch RaSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
    rascsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
+
+Launch RaSCSI with a SCSI hard drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) as image file:
+   rascsi -ID0 /dev/hdb.hds
 
 To create an empty, 100MB HD image, use the following command:
    dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800
+
+In case the fallocate command is available a much faster alternative to the dd command is:
+   fallocate -l 104857600 /path/to/newimage.hda
 
 .SH SEE ALSO
 rasctl(1), scsimon(1)
