@@ -689,7 +689,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			break;
 
 		case EJECT:
-			LOGINFO("rasctl commands eject %s ID: %d UN: %d", type_str, id, un);
+			LOGINFO("rasctl commanded eject for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 			pUnit->Eject(TRUE);
 			break;
 
