@@ -291,6 +291,8 @@ PbDevices GetDevices() {
 			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "NO MEDIA" : filepath.GetPath());
 		}
 
+		device->set_removable(pUnit->IsRemovable());
+
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
 			device->set_read_only(true);

@@ -201,14 +201,14 @@ public:
 	virtual BOOL Open(const Filepath& path, BOOL attn = TRUE);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
 	void Eject(BOOL force);					// Eject
-	BOOL IsReady() const		{ return disk.ready; }		// Ready check
+	bool IsReady() const		{ return disk.ready; }		// Ready check
 	void WriteP(BOOL flag);					// Set Write Protect flag
-	BOOL IsWriteP() const		{ return disk.writep; }		// Get write protect flag
-	BOOL IsReadOnly() const	{ return disk.readonly; }	// Get read only flag
-	BOOL IsRemovable() const	{ return disk.removable; }	// Get is removable flag
-	BOOL IsLocked() const		{ return disk.lock; }		// Get locked status
-	BOOL IsAttn() const		{ return disk.attn; }		// Get attention flag
-	BOOL Flush();							// Flush the cache
+	bool IsWriteP() const		{ return disk.writep; }		// Get write protect flag
+	bool IsReadOnly() const	{ return disk.readonly; }	// Get read only flag
+	bool IsRemovable() const	{ return disk.removable; }	// Get is removable flag
+	bool IsLocked() const		{ return disk.lock; }		// Get locked status
+	bool IsAttn() const		{ return disk.attn; }		// Get attention flag
+	bool Flush();							// Flush the cache
 
 	// Properties
 	void SetLUN(DWORD lun)		{ disk.lun = lun; }		// LUN set
