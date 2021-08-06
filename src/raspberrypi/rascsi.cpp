@@ -588,13 +588,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string file = params.find("/dev/") ? params : params.substr(0, params.length() - 4);
 
-			if (files_in_use.find(file) != files_in_use.end()) {
-				ostringstream error;
-				error << "Image file '" << file << "' is already in use";
-				return ReturnStatus(fd, false, error.str());
-			}
-			files_in_use.insert(file);
-
 			// Set the Path
 			filepath.SetPath(file.c_str());
 
@@ -613,6 +606,14 @@ bool ProcessCmd(int fd, const PbCommand &command)
 					return ReturnStatus(fd, false, error.str());
 				}
 			}
+
+			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
+				ostringstream error;
+				error << "Image file '" << file << "' is already in use";
+				return ReturnStatus(fd, false, error.str());
+			}
+
+			files_in_use.insert(filepath.GetPath());
 		}
 
 		// Set the cache to write-through
@@ -652,14 +653,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
 
+		Filepath filepath;
+		pUnit->GetPath(filepath);
+		files_in_use.erase(filepath.GetPath());
+
 		// Re-map the controller
 		bool status = MapController(map);
-		if (status) {
-			Filepath filepath;
-			pUnit->GetPath(filepath);
-
-			files_in_use.erase(filepath.GetPath());
-		}
 
 		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
