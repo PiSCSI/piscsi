@@ -910,6 +910,7 @@ bool Disk::Eject(bool force)
 	disk.ready = FALSE;
 	disk.writep = false;
 	disk.readonly = false;
+	disk.removed = true;
 	disk.attn = FALSE;
 
 	return true;

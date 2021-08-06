@@ -172,8 +172,6 @@ public:
 		bool writep;							// Write protected
 		bool removable;							// Removable
 		bool removed;
-		bool ejectable;
-		bool ejected;
 		BOOL lock;							// Locked
 		BOOL attn;							// Attention
 		BOOL reset;							// Reset
