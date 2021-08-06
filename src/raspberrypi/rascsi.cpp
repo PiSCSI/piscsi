@@ -671,19 +671,27 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
 
-	// Valid only for MO or CD
-	if (!pUnit->IsMo() && !pUnit->IsCdRom()) {
-		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, pUnit->GetID().c_str());
+	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
+	if ((cmd == INSERT || cmd == EJECT) && !pUnit->IsRemovable()) {
+		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
 		ostringstream error;
 		error << "Operation denied (Device type " << type_str << " isn't removable)";
 		return ReturnStatus(fd, false, error.str());
 	}
 
+	if (pUnit->IsCdRom() || !pUnit->IsProtectable()) {
+		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
+
+		ostringstream error;
+		error << "Operation denied (Device type " << type_str << " isn't protectable)";
+		return ReturnStatus(fd, false, error.str());
+	}
+
 	switch (cmd) {
 		case INSERT:
 			filepath.SetPath(params.c_str());
-			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
+			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
 
 			if (!pUnit->Open(filepath)) {
 				ostringstream error;
@@ -694,33 +702,23 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			break;
 
 		case EJECT:
-			LOGINFO("rasctl commanded eject for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			LOGINFO("Eject requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 			pUnit->Eject(true);
 			break;
 
 		case PROTECT:
-			if (!pUnit->IsMo()) {
-				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
-
-				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
-			}
-			LOGINFO("rasctl is setting write protection to true for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			LOGINFO("Write protection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 			pUnit->WriteP(true);
 			break;
 
 		case UNPROTECT:
-			if (!pUnit->IsMo()) {
-				LOGWARN("rasctl sent an invalid UNPROTECT command for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
-
-				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
-			}
-			LOGINFO("rasctl is setting write protection to false for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			LOGINFO("Write unprotection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 			pUnit->WriteP(false);
 			break;
 
 		default:
 			ostringstream error;
-			error << "Received unknown command from rasctl: " << PbOperation_Name(cmd);
+			error << "Received unknown command: " << PbOperation_Name(cmd);
 			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error.str());
 	}
