@@ -510,7 +510,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	Disk *map[CtrlMax * UnitNum];
 	Filepath filepath;
 	Disk *pUnit;
-    char type_str[5];
 
     int id = command.id();
 	int un = command.un();
@@ -676,15 +675,15 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
 		ostringstream error;
-		error << "Operation denied (Device type " << type_str << " isn't removable)";
+		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't removable)";
 		return ReturnStatus(fd, false, error.str());
 	}
 
-	if (pUnit->IsCdRom() || !pUnit->IsProtectable()) {
+	if (!pUnit->IsProtectable()) {
 		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
 		ostringstream error;
-		error << "Operation denied (Device type " << type_str << " isn't protectable)";
+		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't protectable)";
 		return ReturnStatus(fd, false, error.str());
 	}
 

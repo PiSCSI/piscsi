@@ -711,7 +711,7 @@ Disk::Disk(std::string id)
 
 	// Work initialization
 	disk.ready = FALSE;
-	disk.protectable = true;
+	disk.protectable = false;
 	disk.writep = false;
 	disk.readonly = false;
 	disk.removable = false;
