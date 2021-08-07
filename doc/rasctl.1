@@ -4,11 +4,16 @@ rasctl \- Sends management commands to the rascsi process
 .SH SYNOPSIS
 .B rasctl
 \fB\-l\fR |
+\fB\-s\fR |
+[\fB\-g\fR \fILOG_LEVEL\fR]
+[\fB\-h\fR \fIHOST\fR]
+[\fB\-p\fR \fIPORT\fR]
+[\fB\-v\fR]
 \fB\-i\fR \fIID\fR
-[\fB\-u\fR \fIUNIT\fR]
 [\fB\-c\fR \fICMD\fR]
-[\fB\-t\fR \fITYPE\fR]
 [\fB\-f\fR \fIFILE\fR]
+[\fB\-t\fR \fITYPE\fR]
+[\fB\-u\fR \fIUNIT\fR]
 .SH DESCRIPTION
 .B rasctl
 Sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the devices.
@@ -21,14 +26,26 @@ Note: The command and type arguments are case insensitive. Only the first letter
 
 .SH OPTIONS
 .TP
+.BR \-g\fI " "\fILOG_LEVEL
+The rascsi log level to set (trace, debug, info, warn, err, critical, off)
+.TP
+.BR \-h\fI " " \fIHOST
+The rascsi host to connect to, default is 'localhost'.
+.TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
 .TP
+.BR \-p\fI " " \fIPORT
+The rascsi port to connect to, default is 6868.
+.TP
+.BR \-s\fI
+Display the server-side configuration settings.
+.TP
+.BR \-v\fI " " \fI
+Display the rascsi version.
+.TP
 .BR \-i\fI " " \fIID
 ID is the SCSI ID that you want to control. (0-7)
-.TP 
-.BR \-u\fI " " \fIUNIT
-Unit number (0 or 1). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
 .TP 
 .BR \-c\fI " " \fICMD
 Command is the operation being requested. options are:
@@ -40,6 +57,9 @@ Command is the operation being requested. options are:
 .IP
 When the command is omitted, rasctl will default to the 'attach' command.
 .TP 
+.BR \-f\fI " " \fIFILE
+Path to the disk image file. See the rascsi(1) man page for allowable file types.
+.TP 
 .BR \-t\fI " " \fITYPE
 Specifies the type of disk. If this disagrees with the file extension of the specified image, the TYPE argument is ignored. Available drive types are:
    hd: Hard disk (SCSI or SASI)
@@ -47,8 +67,8 @@ Specifies the type of disk. If this disagrees with the file extension of the spe
    cd: CD-ROM
    bridge: Bridge device (This is only applicable to the Sharp X68000)
 .TP 
-.BR \-f\fI " " \fIFILE
-Path to the disk image file. See the rascsi(1) man page for allowable file types.
+.BR \-u\fI " " \fIUNIT
+Unit number (0 or 1). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
 
 .SH EXAMPLES
 Show a listing of all of the SCSI devices and their current status.

@@ -594,13 +594,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			// Strip the image file extension from device file names, so that device files can be used as drive images
 			string file = params.find("/dev/") ? params : params.substr(0, params.length() - 4);
 
-			if (files_in_use.find(file) != files_in_use.end()) {
-				ostringstream error;
-				error << "Image file '" << file << "' is already in use";
-				return ReturnStatus(fd, false, error.str());
-			}
-			files_in_use.insert(file);
-
 			// Set the Path
 			filepath.SetPath(file.c_str());
 
@@ -619,6 +612,14 @@ bool ProcessCmd(int fd, const PbCommand &command)
 					return ReturnStatus(fd, false, error.str());
 				}
 			}
+
+			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
+				ostringstream error;
+				error << "Image file '" << file << "' is already in use";
+				return ReturnStatus(fd, false, error.str());
+			}
+
+			files_in_use.insert(filepath.GetPath());
 		}
 
 		// Set the cache to write-through
@@ -658,14 +659,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
 
+		Filepath filepath;
+		pUnit->GetPath(filepath);
+		files_in_use.erase(filepath.GetPath());
+
 		// Re-map the controller
 		bool status = MapController(map);
-		if (status) {
-			Filepath filepath;
-			pUnit->GetPath(filepath);
-
-			files_in_use.erase(filepath.GetPath());
-		}
 
 		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
 	}
@@ -748,7 +747,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:p:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:P:p:f:Vv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -794,6 +793,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 				default_image_folder = optarg;
 				continue;
+
+			case 'v':
+				cout << rascsi_get_version_string() << endl;
+				exit(0);
+				break;
 
 			default:
 				return false;

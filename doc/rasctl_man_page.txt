@@ -1,36 +1,42 @@
 !!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
-!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating
-
-
+!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating\n\n
 rascsi(1)                   General Commands Manual                  rascsi(1)
 
 NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl -l | -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE]
+       rasctl  -l | -s | [-g LOG_LEVEL] [-h HOST] [-p PORT] -i ID [-c CMD] [-f
+       FILE] [-t TYPE] [-u UNIT]
 
 DESCRIPTION
-       rasctl  Sends  commands to the rascsi process to make configuration ad‐
+       rasctl Sends commands to the rascsi process to make  configuration  ad‐
        justments at runtime or to check the status of the devices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
        You do NOT need root privileges to use rasctl.
 
-       Note: The command and type arguments are  case  insensitive.  Only  the
+       Note:  The  command  and  type arguments are case insensitive. Only the
        first letter of the command/type is evaluated by the tool.
 
 OPTIONS
+       -g LOG_LEVEL
+              The rascsi log level to set  (trace,  debug,  info,  warn,  err,
+              critical, off)
+
+       -h HOST
+              The rascsi host to connect to, default is 'localhost'.
+
        -l     List  all  of  the  devices that are currently being emulated by
               RaSCSI, as well as their current status.
 
-       -i ID  ID is the SCSI ID that you want to control. (0-7)
+       -p PORT
+              The rascsi port to connect to, default is 6868.
 
-       -u UNIT
-              Unit number (0 or 1). This will default to  0.  This  option  is
-              only  used when there are multiple SCSI devices on a shared SCSI
-              controller. (This is not common)
+       -s     Display server-side configuration settings.
+
+       -i ID  ID is the SCSI ID that you want to control. (0-7)
 
        -c CMD Command is the operation being requested. options are:
                  attach: attach disk
@@ -42,19 +48,24 @@ OPTIONS
               When the command is omitted, rasctl will default to the 'attach'
               command.
 
+       -f FILE
+              Path  to the disk image file. See the rascsi(1) man page for al‐
+              lowable file types.
+
        -t TYPE
-              Specifies  the type of disk. If this disagrees with the file ex‐
-              tension of the specified image, the TYPE  argument  is  ignored.
+              Specifies the type of disk. If this disagrees with the file  ex‐
+              tension  of  the  specified image, the TYPE argument is ignored.
               Available drive types are:
                  hd: Hard disk (SCSI or SASI)
                  mo: Magneto-Optical disk)
                  cd: CD-ROM
-                 bridge:  Bridge  device (This is only applicable to the Sharp
+                 bridge: Bridge device (This is only applicable to  the  Sharp
               X68000)
 
-       -f FILE
-              Path to the disk image file. See the rascsi(1) man page for  al‐
-              lowable file types.
+       -u UNIT
+              Unit  number  (0  or  1). This will default to 0. This option is
+              only used when there are multiple SCSI devices on a shared  SCSI
+              controller. (This is not common)
 
 EXAMPLES
        Show a listing of all of the SCSI devices and their current status.
