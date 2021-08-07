@@ -63,9 +63,9 @@
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <netinet/in.h>
-#include <linux/gpio.h>
 
 #if defined(__linux__)
+#include <linux/gpio.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #elif defined(__NetBSD__)
