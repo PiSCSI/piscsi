@@ -65,7 +65,7 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
         	close(fd);
         }
 
-        return -1;
+        exit(fd < 0 ? ENOTCONN : -1);
     }
 
     return fd;
@@ -110,9 +110,6 @@ void CommandList(const string& hostname, int port)
 	command.set_cmd(LIST);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
-	if (fd < 0) {
-		exit(ENOTCONN);
-	}
 
 	PbDevices devices;
 	try {
@@ -138,12 +135,7 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	command.set_params(log_level);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
-	if (fd < 0) {
-		exit(ENOTCONN);
-	}
-
 	ReceiveResult(fd);
-
 	close(fd);
 }
 
@@ -153,10 +145,6 @@ void CommandServerInfo(const string& hostname, int port)
 	command.set_cmd(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
-	if (fd < 0) {
-		exit(ENOTCONN);
-	}
-
 
 	PbServerInfo serverInfo;
 	try {
@@ -376,10 +364,6 @@ int main(int argc, char* argv[])
 	}
 
 	int fd = SendCommand(hostname, port, command);
-	if (fd < 0) {
-		exit(ENOTCONN);
-	}
-
 	bool status = ReceiveResult(fd);
 	close(fd);
 
