@@ -529,7 +529,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		error << "Invalid ID " << id << " (0-" << CtrlMax << ")";
+		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
 		return ReturnStatus(fd, false, error.str());
 	}
 
@@ -540,7 +540,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
-		error << "Invalid unit " << un << " (0-" << UnitNum << ")";
+		error << "Invalid unit " << un << " (0-" << UnitNum - 1 << ")";
 		return ReturnStatus(fd, false, error.str());
 	}
 
