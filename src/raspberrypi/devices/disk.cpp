@@ -929,7 +929,7 @@ bool Disk::Eject(bool force)
 bool Disk::WriteP(bool writep)
 {
 	// be ready
-	if (!disk.ready || !disk.protectable) {
+	if (!disk.ready) {
 		return false;
 	}
 
