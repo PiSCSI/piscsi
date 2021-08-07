@@ -178,18 +178,18 @@ void CommandServerInfo(const string& hostname, int port)
 
 	close(fd);
 
-	cout << "rascsi version: " << serverInfo.rascsi_version() << endl;
+	cout << "rascsi server version: " << serverInfo.rascsi_version() << endl;
 
 	if (!serverInfo.available_log_levels_size()) {
 		cout << "  No log level settings available" << endl;
 	}
 	else {
-		cout << "Available log levels, sorted by severity:" << endl;
+		cout << "Available rascsi log levels, sorted by severity:" << endl;
 		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
 			cout << "  " << serverInfo.available_log_levels(i) << endl;
 		}
 
-		cout << "Current log level: " << serverInfo.current_log_level() << endl;
+		cout << "Current rascsi log level: " << serverInfo.current_log_level() << endl;
 	}
 
 	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
-		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
+		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
