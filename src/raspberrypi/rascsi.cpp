@@ -536,6 +536,11 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Connect Command
 	if (cmd == ATTACH) {
+		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
+		if ((type == SASI_HD || type == SCSI_HD) && params.empty()) {
+			return ReturnStatus(fd, false, "Missing filename");
+		}
+
 		string ext;
 
 		// Distinguish between SASI and SCSI
@@ -688,6 +693,10 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	switch (cmd) {
 		case INSERT:
+			if (params.empty()) {
+				return ReturnStatus(fd, false, "Missing filename");
+			}
+
 			filepath.SetPath(params.c_str());
 			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
 

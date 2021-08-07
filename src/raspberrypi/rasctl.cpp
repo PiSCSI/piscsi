@@ -355,8 +355,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	PbCommand command;
-
 	if (cmd == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, params);
 		exit(0);
@@ -401,19 +399,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// File check (command is ATTACH and type is HD, for CD and MO the medium (=file) may be inserted later)
-	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD) && params.empty()) {
-		cerr << "Error : Invalid file path" << endl;
-		exit(EINVAL);
-	}
-
-	// File check (command is INSERT)
-	if (cmd == INSERT && params.empty()) {
-		cerr << "Error : Invalid file path" << endl;
-		exit(EINVAL);
-	}
-
 	// Generate the command and send it
+	PbCommand command;
 	command.set_id(id);
 	command.set_un(un);
 	command.set_cmd(cmd);
