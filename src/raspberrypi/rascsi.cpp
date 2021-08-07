@@ -288,7 +288,7 @@ PbDevices GetDevices() {
 		} else {
 			Filepath filepath;
 			pUnit->GetPath(filepath);
-			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "NO MEDIA" : filepath.GetPath());
+			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
 		}
 
 		device->set_protectable(pUnit->IsProtectable());
