@@ -51,9 +51,9 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
     	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
 
     	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-    		ostringstream s;
-    		s << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
-    		throw ioexception(s.str());
+    		ostringstream error;
+    		error << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
+    		throw ioexception(error.str());
     	}
 
         SerializeMessage(fd, command);
@@ -76,32 +76,26 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
 //	Receive command result
 //
 //---------------------------------------------------------------------------
-bool ReceiveResult(int fd) {
-    bool status = true;
-
+bool ReceiveResult(int fd)
+{
     try {
         PbResult result;
         DeserializeMessage(fd, result);
+        close(fd);
 
-        status = result.status();
-    	if (status) {
-    		cout << result.msg() << endl;
+    	if (!result.status()) {
+    		throw ioexception(result.msg());
     	}
-    	else {
-    		cerr << "Error: " << result.msg() << endl;
-    	}
+
+    	cout << result.msg() << endl;
     }
     catch(const ioexception& e) {
     	cerr << "Error: " << e.getmsg() << endl;
 
-    	// Fall through
-
-    	status = false;
+    	return false;
     }
 
-    close(fd);
-
-    return status;
+    return true;
 }
 
 //---------------------------------------------------------------------------
