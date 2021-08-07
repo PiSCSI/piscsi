@@ -48,7 +48,8 @@ message PbDevice {
     int32 un = 2;
     string type = 3;
     string file = 4;
-    bool read_only = 5;
+    bool removable = 5;
+    bool read_only = 6;
 }
 
 message PbDevices {

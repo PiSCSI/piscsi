@@ -950,7 +950,7 @@ void Disk::GetPath(Filepath& path) const
 //	Flush
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Flush()
+bool Disk::Flush()
 {
 	// Do nothing if there's nothing cached
 	if (!disk.dcache) {
