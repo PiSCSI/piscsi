@@ -550,8 +550,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		ext = params.substr(len - 3);
 	}
 
-	cerr << "Ext: " << ext << "   " << PbDeviceType_Name(type) << endl;
-
 	// Connect Command
 	if (cmd == ATTACH) {
 		// If no type was specified try to derive the file type from the extension
