@@ -589,7 +589,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				break;
 			default:
 				ostringstream error;
-				error << "rasctl sent a command for an invalid drive type: " << PbDeviceType_Name(type);
+				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
 				return ReturnStatus(fd, false, error.str());
 		}
 
@@ -609,7 +609,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				if (!pUnit->Open(filepath)) {
 					delete pUnit;
 
-					LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
+					LOGWARN("Tried to open an invalid file %s", file.c_str());
 
 					ostringstream error;
 					error << "File open error [" << file << "]";
@@ -635,7 +635,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-	        LOGINFO("rasctl added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+	        LOGINFO("Added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 		}
 
 		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed");
@@ -643,7 +643,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
-		LOGWARN("rasctl sent a command for invalid controller %d", id);
+		LOGWARN("Received a command for invalid controller %d", id);
 
 		return ReturnStatus(fd, false, "Error : No such device");
 	}
@@ -651,14 +651,14 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	// Does the unit exist?
 	pUnit = disk[id * UnitNum + un];
 	if (pUnit == NULL) {
-		LOGWARN("rasctl sent a command for invalid unit ID %d UN %d", id, un);
+		LOGWARN("Received a command for invalid unit ID %d UN %d", id, un);
 
 		return ReturnStatus(fd, false, "Error : No such device");
 	}
 
 	// Disconnect Command
 	if (cmd == DETACH) {
-		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+		LOGINFO("Disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
@@ -704,7 +704,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				string default_file = default_image_folder + "/" + params;
 				filepath.SetPath(default_file.c_str());
 				if (!pUnit->Open(filepath)) {
-					LOGWARN("rasctl tried to open an invalid file %s", params.c_str());
+					LOGWARN("Tried to open an invalid file %s", params.c_str());
 
 					ostringstream error;
 					error << "File open error [" << params << "]";
