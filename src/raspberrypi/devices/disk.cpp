@@ -842,6 +842,7 @@ bool Disk::IsNuvolink() const
 //
 //	Open
 //  * Call as a post-process after successful opening in a derived class
+// TODO Use exceptions for error handling instead of returning a string
 //
 //---------------------------------------------------------------------------
 const char *Disk::Open(const Filepath& path, BOOL /*attn*/)
