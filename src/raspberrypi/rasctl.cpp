@@ -85,10 +85,10 @@ bool ReceiveResult(int fd) {
 
         status = result.status();
     	if (status) {
-    		cout << result.msg();
+    		cout << result.msg() << endl;
     	}
     	else {
-    		cerr << "Error: " << result.msg();
+    		cerr << "Error: " << result.msg() << endl;
     	}
     }
     catch(const ioexception& e) {

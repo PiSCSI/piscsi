@@ -428,13 +428,12 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	if (fd == -1) {
 		if (msg.length()) {
 			FPRT(stderr, msg.c_str());
-			FPRT(stderr, "\n");
 		}
 	}
 	else {
 		PbResult result;
 		result.set_status(status);
-		result.set_msg(msg + "\n");
+		result.set_msg(msg);
 		SerializeMessage(fd, result);
 	}
 
@@ -639,7 +638,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	        LOGINFO("rasctl added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 		}
 
-		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
+		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed");
 	}
 
 	// Does the controller exist?
@@ -671,7 +670,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		// Re-map the controller
 		bool status = MapController(map);
 
-		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
+		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed");
 	}
 
 	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
