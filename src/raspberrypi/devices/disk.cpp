@@ -844,7 +844,7 @@ bool Disk::IsNuvolink() const
 //  * Call as a post-process after successful opening in a derived class
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
+const char *Disk::Open(const Filepath& path, BOOL /*attn*/)
 {
 	ASSERT((disk.size >= 8) && (disk.size <= 11));
 	ASSERT(disk.blocks > 0);
@@ -854,8 +854,7 @@ BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Cache initialization
 	ASSERT(!disk.dcache);
-	disk.dcache =
-		new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
+	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
 
 	// Can read/write open
 	Fileio fio;
@@ -878,7 +877,7 @@ BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
 	diskpath = path;
 
 	// Success
-	return TRUE;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------

@@ -54,14 +54,14 @@ void SASIHD::Reset()
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
+const char *SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 {
 	ASSERT(!disk.ready);
 
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return "Can't open hard disk file read-only";
 	}
 
 	// Get file size
@@ -84,7 +84,7 @@ BOOL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Must be in 256-byte units
 	if (size & 0xff) {
-		return FALSE;
+		return "File size must be a multiple of 512";
 	}
 
 	// 10MB or more
@@ -94,7 +94,7 @@ BOOL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Limit to about 512MB
 	if (size > 512 * 1024 * 1024) {
-		return FALSE;
+		return "File size must not exceed 512 MB";
 	}
 	#else
 	// 10MB, 20MB, 40MBのみ
@@ -113,7 +113,7 @@ BOOL SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 
 		// Other (Not supported )
 		default:
-			return FALSE;
+			return "Unsupported file size";
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 

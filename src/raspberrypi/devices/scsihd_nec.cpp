@@ -65,7 +65,7 @@ static inline DWORD getDwordLE(const BYTE *b)
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
+const char *SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 {
 	Fileio fio;
 	off64_t size;
@@ -76,7 +76,7 @@ BOOL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return "Can't open hard disk file read-only";
 	}
 
 	// Get file size
@@ -86,14 +86,14 @@ BOOL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	if (size >= (off64_t)sizeof(hdr)) {
 		if (!fio.Read(hdr, sizeof(hdr))) {
 			fio.Close();
-			return FALSE;
+			return "Can't read hard disk file header";
 		}
 	}
 	fio.Close();
 
 	// Must be in 512 byte units
 	if (size & 0x1ff) {
-		return FALSE;
+		return "File size must be a multiple of 512";
 	}
 
 	// 10MB or more
@@ -102,7 +102,7 @@ BOOL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	}
 	// 2TB according to xm6i
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		return FALSE;
+		return "File size must not exceed 2 TB";
 	}
 
 	// Determine parameters by extension
@@ -136,12 +136,12 @@ BOOL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Supports 256 or 512 sector sizes
 	if (sectorsize != 256 && sectorsize != 512) {
-		return FALSE;
+		return "Sector size must be 256 or 512";
 	}
 
 	// Image size consistency check
 	if (imgoffset + imgsize > size || (imgsize % sectorsize != 0)) {
-		return FALSE;
+		return "Image size consistency check failed";
 	}
 
 	// Sector size
@@ -150,7 +150,7 @@ BOOL SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 			break;
 	}
 	if (disk.size <= 0 || disk.size > 16) {
-		return FALSE;
+		return "Invalid disk size";
 	}
 
 	// Number of blocks

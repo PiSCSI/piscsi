@@ -427,7 +427,9 @@ bool MapController(Disk **map)
 bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	if (fd == -1) {
 		if (msg.length()) {
+			FPRT(stderr, "Error: ");
 			FPRT(stderr, msg.c_str());
+			FPRT(stderr, "\n");
 		}
 	}
 	else {
@@ -509,8 +511,9 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	Filepath filepath;
 	Disk *pUnit;
 	ostringstream error;
+	const char *result;
 
-    int id = command.id();
+	int id = command.id();
 	int un = command.un();
 	PbOperation cmd = command.cmd();
 	PbDeviceType type = command.type();
@@ -536,28 +539,33 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		return ReturnStatus(fd, false, error.str());
 	}
 
+	string ext;
+	int len = params.length();
+	if (len > 4 && params[len - 4] == '.') {
+		ext = params.substr(len - 3);
+	}
+
+	cerr << "Ext: " << ext << "   " << PbDeviceType_Name(type) << endl;
+
 	// Connect Command
 	if (cmd == ATTACH) {
+		// If no type was specified try to derive the file type from the extension
+		if (type == UNDEFINED) {
+			if (ext == "hdf") {
+				type = SASI_HD;
+			}
+			else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
+				type = SCSI_HD;
+			} else if (ext == "mos") {
+				type = MO;
+			} else if (ext == "iso") {
+				type = CD;
+			}
+		}
+
 		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
 		if ((type == SASI_HD || type == SCSI_HD) && params.empty()) {
 			return ReturnStatus(fd, false, "Missing filename");
-		}
-
-		string ext;
-
-		// Distinguish between SASI and SCSI
-		if (type == SASI_HD) {
-			// Check the extension
-			int len = params.length();
-			if (len < 5 || params[len - 4] != '.') {
-				return ReturnStatus(fd, false);
-			}
-
-			// If the extension is not SASI type, replace with SCSI
-			ext = params.substr(len - 3);
-			if (ext != "hdf") {
-				type = SCSI_HD;
-			}
 		}
 
 		// Create a new drive, based upon type
@@ -604,16 +612,17 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			filepath.SetPath(file.c_str());
 
 			// Open the file path
-			if (!pUnit->Open(filepath)) {
+			result = pUnit->Open(filepath);
+			if (result) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + file;
 				filepath.SetPath(default_file.c_str());
-				if (!pUnit->Open(filepath)) {
+				result = pUnit->Open(filepath);
+				if (result) {
 					delete pUnit;
 
-					LOGWARN("Tried to open an invalid file %s", file.c_str());
-
-					error << "File open error [" << file << "]";
+					error << "Tried to open an invalid file '" << file << "': " << result;
+					LOGWARN("%s", error.str().c_str());
 					return ReturnStatus(fd, false, error.str());
 				}
 			}
@@ -697,14 +706,15 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			filepath.SetPath(params.c_str());
 			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
 
-			if (!pUnit->Open(filepath)) {
+			result = pUnit->Open(filepath);
+			if (result) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + params;
 				filepath.SetPath(default_file.c_str());
-				if (!pUnit->Open(filepath)) {
-					LOGWARN("Tried to open an invalid file %s", params.c_str());
-
-					error << "File open error [" << params << "]";
+				result = pUnit->Open(filepath);
+				if (result) {
+					error << "Tried to open an invalid file '" << params << "': " << result;
+					LOGWARN("%s", error.str().c_str());
 					return ReturnStatus(fd, false, error.str());
 				}
 			}
@@ -810,30 +820,13 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				break;
 		}
 
+		// TODO Move this check to ProcessCmd()
 		if (id < 0) {
 			cerr << optarg << ": ID not specified" << endl;
 			return false;
 		} else if (disk[id]) {
 			cerr << id << ": duplicate ID" << endl;
 			return false;
-		}
-
-		string path = optarg;
-		PbDeviceType type = SASI_HD;
-		if (has_suffix(path, ".hdf") || has_suffix(path, ".hds") || has_suffix(path, ".hdn")
-			|| has_suffix(path, ".hdi") || has_suffix(path, ".hda") || has_suffix(path, ".nhd")) {
-			type = SASI_HD;
-		} else if (has_suffix(path, ".mos")) {
-			type = MO;
-		} else if (has_suffix(path, ".iso")) {
-			type = CD;
-		} else if (path == "bridge") {
-			type = BR;
-		} else if (path == "daynaport") {
-			type = DAYNAPORT;
-		} else {
-			cerr << path << ": unknown file extension or basename is missing" << endl;
-		    return false;
 		}
 
 		int un = 0;
@@ -847,8 +840,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		command.set_id(id);
 		command.set_un(un);
 		command.set_cmd(ATTACH);
-		command.set_type(type);
-		command.set_params(path);
+		command.set_params(optarg);
 		if (!ProcessCmd(-1, command)) {
 			return false;
 		}

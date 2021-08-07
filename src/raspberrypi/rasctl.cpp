@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
 	int id = -1;
 	int un = 0;
 	PbOperation cmd = LIST;
-	PbDeviceType type = UNDEFINED;
+	PbDeviceType type;
 	const char *hostname = "localhost";
 	int port = 6868;
 	string params;
@@ -369,21 +369,6 @@ int main(int argc, char* argv[])
 	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
 		CommandList(hostname, port);
 		exit(0);
-	}
-
-	// Try to derive the attached file type from the extension
-	if (cmd == ATTACH && type == UNDEFINED) {
-		int len = params.length();
-		if (len > 4 && params[len - 4] == '.') {
-			string ext = params.substr(len - 3);
-			if (ext == "hdf" || ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
-				type = SASI_HD;
-			} else if (ext == "mos") {
-				type = MO;
-			} else if (ext == "iso") {
-				type = CD;
-			}
-		}
 	}
 
 	// Generate the command and send it
