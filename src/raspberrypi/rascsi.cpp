@@ -506,9 +506,9 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 //---------------------------------------------------------------------------
 bool ProcessCmd(int fd, const PbCommand &command)
 {
-	Disk *map[CtrlMax * UnitNum];
 	Filepath filepath;
 	Disk *pUnit;
+	ostringstream error;
 
     int id = command.id();
 	int un = command.un();
@@ -521,16 +521,19 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	LOGINFO("%s", s.str().c_str());
 
 	// Copy the Unit List
+	Disk *map[CtrlMax * UnitNum];
 	memcpy(map, disk, sizeof(disk));
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		return ReturnStatus(fd, false, "Error : Invalid ID");
+		error << "Invalid ID " << id << " (0-" << CtrlMax << ")";
+		return ReturnStatus(fd, false, error.str());
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
-		return ReturnStatus(fd, false, "Error : Invalid unit number");
+		error << "Invalid unit " << un << " (0-" << UnitNum << ")";
+		return ReturnStatus(fd, false, error.str());
 	}
 
 	// Connect Command
@@ -588,7 +591,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				pUnit = new SCSIDaynaPort();
 				break;
 			default:
-				ostringstream error;
 				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
 				return ReturnStatus(fd, false, error.str());
 		}
@@ -611,14 +613,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 					LOGWARN("Tried to open an invalid file %s", file.c_str());
 
-					ostringstream error;
 					error << "File open error [" << file << "]";
 					return ReturnStatus(fd, false, error.str());
 				}
 			}
 
 			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
-				ostringstream error;
 				error << "Image file '" << file << "' is already in use";
 				return ReturnStatus(fd, false, error.str());
 			}
@@ -638,14 +638,14 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	        LOGINFO("Added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 		}
 
-		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed");
+		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
 	}
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
 		LOGWARN("Received a command for invalid controller %d", id);
 
-		return ReturnStatus(fd, false, "Error : No such device");
+		return ReturnStatus(fd, false, "No such device");
 	}
 
 	// Does the unit exist?
@@ -653,7 +653,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	if (pUnit == NULL) {
 		LOGWARN("Received a command for invalid unit ID %d UN %d", id, un);
 
-		return ReturnStatus(fd, false, "Error : No such device");
+		return ReturnStatus(fd, false, "No such device");
 	}
 
 	// Disconnect Command
@@ -670,14 +670,13 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		// Re-map the controller
 		bool status = MapController(map);
 
-		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed");
+		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
 	}
 
 	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
 	if ((cmd == INSERT || cmd == EJECT) && !pUnit->IsRemovable()) {
 		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
-		ostringstream error;
 		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't removable)";
 		return ReturnStatus(fd, false, error.str());
 	}
@@ -685,7 +684,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	if ((cmd == PROTECT || cmd == UNPROTECT) && !pUnit->IsProtectable()) {
 		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
-		ostringstream error;
 		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't protectable)";
 		return ReturnStatus(fd, false, error.str());
 	}
@@ -706,7 +704,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				if (!pUnit->Open(filepath)) {
 					LOGWARN("Tried to open an invalid file %s", params.c_str());
 
-					ostringstream error;
 					error << "File open error [" << params << "]";
 					return ReturnStatus(fd, false, error.str());
 				}
@@ -729,7 +726,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			break;
 
 		default:
-			ostringstream error;
 			error << "Received unknown command: " << PbOperation_Name(cmd);
 			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error.str());

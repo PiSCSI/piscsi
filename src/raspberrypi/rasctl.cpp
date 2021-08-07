@@ -371,21 +371,8 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 
-	// Check the ID number
-	if (id < 0 || id > 7) {
-		cerr << __PRETTY_FUNCTION__ << " Error : Invalid ID " << id << endl;
-		exit(EINVAL);
-	}
-
-	// Check the unit number
-	if (un < 0 || un > 1) {
-		cerr << __PRETTY_FUNCTION__ << " Error : Invalid UNIT " << un << endl;
-		exit(EINVAL);
-	}
-
-	// Type Check
+	// Try to derive the attached file type from the extension
 	if (cmd == ATTACH && type == UNDEFINED) {
-		// Try to determine the file type from the extension
 		int len = params.length();
 		if (len > 4 && params[len - 4] == '.') {
 			string ext = params.substr(len - 3);
