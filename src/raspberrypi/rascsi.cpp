@@ -424,7 +424,8 @@ bool MapController(Disk **map)
 	return status;
 }
 
-bool ReturnStatus(int fd, bool status = true, const string msg = "") {
+bool ReturnStatus(int fd, bool status = true, const string msg = "")
+{
 	if (fd == -1) {
 		if (msg.length()) {
 			FPRT(stderr, "Error: ");
@@ -442,7 +443,13 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	return status;
 }
 
-bool SetLogLevel(const string& log_level) {
+bool ReturnStatus(int fd, bool status, const ostringstream& msg)
+{
+	return ReturnStatus(fd, status, msg.str());
+}
+
+bool SetLogLevel(const string& log_level)
+{
 	if (log_level == "trace") {
 		set_level(level::trace);
 	}
@@ -530,18 +537,18 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
 		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
-		return ReturnStatus(fd, false, error.str());
+		return ReturnStatus(fd, false, error);
 	}
 
 	if (map[id]) {
 		error << "Duplicate ID " << id << endl;
-		return ReturnStatus(fd, false, error.str());
+		return ReturnStatus(fd, false, error);
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
 		error << "Invalid unit " << un << " (0-" << UnitNum - 1 << ")";
-		return ReturnStatus(fd, false, error.str());
+		return ReturnStatus(fd, false, error);
 	}
 
 	string ext;
@@ -603,7 +610,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				break;
 			default:
 				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
-				return ReturnStatus(fd, false, error.str());
+				return ReturnStatus(fd, false, error);
 		}
 
 		// drive checks files
@@ -626,13 +633,13 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 					error << "Tried to open an invalid file '" << file << "': " << result;
 					LOGWARN("%s", error.str().c_str());
-					return ReturnStatus(fd, false, error.str());
+					return ReturnStatus(fd, false, error);
 				}
 			}
 
 			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
 				error << "Image file '" << file << "' is already in use";
-				return ReturnStatus(fd, false, error.str());
+				return ReturnStatus(fd, false, error);
 			}
 
 			files_in_use.insert(filepath.GetPath());
@@ -690,14 +697,14 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
 		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't removable)";
-		return ReturnStatus(fd, false, error.str());
+		return ReturnStatus(fd, false, error);
 	}
 
 	if ((cmd == PROTECT || cmd == UNPROTECT) && !pUnit->IsProtectable()) {
 		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
 		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't protectable)";
-		return ReturnStatus(fd, false, error.str());
+		return ReturnStatus(fd, false, error);
 	}
 
 	switch (cmd) {
@@ -718,7 +725,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				if (result) {
 					error << "Tried to open an invalid file '" << params << "': " << result;
 					LOGWARN("%s", error.str().c_str());
-					return ReturnStatus(fd, false, error.str());
+					return ReturnStatus(fd, false, error);
 				}
 			}
 			break;
@@ -741,10 +748,10 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		default:
 			error << "Received unknown command: " << PbOperation_Name(cmd);
 			LOGWARN("%s", error.str().c_str());
-			return ReturnStatus(fd, false, error.str());
+			return ReturnStatus(fd, false, error);
 	}
 
-	return ReturnStatus(fd, true);
+	return ReturnStatus(fd);
 }
 
 bool has_suffix(const string& filename, const string& suffix) {
@@ -928,7 +935,7 @@ static void *MonThread(void *param)
 					if (!status) {
 						ostringstream error;
 						error << "Invalid log level: " << command.params();
-						ReturnStatus(fd, false, error.str());
+						ReturnStatus(fd, false, error);
 					}
 					else {
 						ReturnStatus(fd);
