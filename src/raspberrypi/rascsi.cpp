@@ -533,6 +533,11 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		return ReturnStatus(fd, false, error.str());
 	}
 
+	if (map[id]) {
+		error << "Duplicate ID " << id << endl;
+		return ReturnStatus(fd, false, error.str());
+	}
+
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
 		error << "Invalid unit " << un << " (0-" << UnitNum << ")";
@@ -818,15 +823,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 			case 1:
 				break;
-		}
-
-		// TODO Move this check to ProcessCmd()
-		if (id < 0) {
-			cerr << optarg << ": ID not specified" << endl;
-			return false;
-		} else if (disk[id]) {
-			cerr << id << ": duplicate ID" << endl;
-			return false;
 		}
 
 		int un = 0;
