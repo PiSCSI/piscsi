@@ -540,12 +540,14 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
 		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
+		LOGWARN("%s", error.str().c_str());
 		return ReturnStatus(fd, false, error);
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
 		error << "Invalid unit " << un << " (0-" << UnitNum - 1 << ")";
+		LOGWARN("%s", error.str().c_str());
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -563,6 +565,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	if (cmd == ATTACH) {
 		if (map[id * UnitNum + un]) {
 			error << "Duplicate ID " << id;
+			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error);
 		}
 
