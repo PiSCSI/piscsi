@@ -48,7 +48,7 @@ message PbResult {
 message PbDevice {
     int32 id = 1;
     int32 un = 2;
-    string type = 3;
+    PbDeviceType type = 3;
     string file = 4;
     bool read_only = 5;
     bool protectable = 6;
