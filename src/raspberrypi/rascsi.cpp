@@ -292,7 +292,7 @@ PbDevices GetDevices() {
 		}
 
 		device->set_protectable(pUnit->IsProtectable());
-		device->set_protected_(pUnit->IsWriteP());
+		device->set_protected_(pUnit->IsProtectable() && pUnit->IsWriteP());
 		device->set_removable(pUnit->IsRemovable());
 		device->set_removed(pUnit->IsRemoved());
 		device->set_lockable(pUnit->IsLockable());
