@@ -43,7 +43,6 @@ message PbResult {
     string msg = 2;
 }
 
-
 // The device meta data
 message PbDevice {
     int32 id = 1;
@@ -75,4 +74,6 @@ message PbServerInfo {
     string default_image_folder = 4;
     // Files in the default folder
     repeated string available_image_files = 5;
+    // The attached devices
+    PbDevices devices = 6;
 }

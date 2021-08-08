@@ -267,7 +267,7 @@ void Reset()
 //	Get the list of attached devices
 //
 //---------------------------------------------------------------------------
-PbDevices GetDevices() {
+const PbDevices GetDevices() {
 	PbDevices devices;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
@@ -487,7 +487,7 @@ bool SetLogLevel(const string& log_level)
 	return true;
 }
 
-void LogDeviceList(const string& device_list)
+void LogDevices(const string& device_list)
 {
 	stringstream ss(device_list);
 	string line;
@@ -860,10 +860,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	}
 
 	// Display and log the device list
-	const PbDevices devices = GetDevices();
-	const string device_list = ListDevices(devices);
-	cout << device_list << endl;
-	LogDeviceList(device_list);
+	const string devices = ListDevices(GetDevices());
+	cout << devices << endl;
+	LogDevices(devices);
 
 	return true;
 }
@@ -933,7 +932,7 @@ static void *MonThread(void *param)
 				case LIST: {
 					const PbDevices devices = GetDevices();
 					SerializeMessage(fd, devices);
-					LogDeviceList(ListDevices(devices));
+					LogDevices(ListDevices(devices));
 					break;
 				}
 
@@ -957,6 +956,7 @@ static void *MonThread(void *param)
 					serverInfo.set_current_log_level(current_log_level);
 					serverInfo.set_default_image_folder(default_image_folder);
 					GetAvailableImages(serverInfo);
+					serverInfo.set_allocated_devices(new PbDevices(GetDevices()));
 					SerializeMessage(fd, serverInfo);
 					break;
 				}
