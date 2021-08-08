@@ -104,6 +104,30 @@ bool ReceiveResult(int fd)
 //
 //---------------------------------------------------------------------------
 
+void CommandList(const string& hostname, int port)
+{
+	PbCommand command;
+	command.set_cmd(LIST);
+
+	int fd = SendCommand(hostname.c_str(), port, command);
+
+	PbDevices devices;
+	try {
+		DeserializeMessage(fd, devices);
+	}
+	catch(const ioexception& e) {
+		cerr << "Error: " << e.getmsg() << endl;
+
+		close(fd);
+
+		exit(-1);
+	}
+
+	close (fd);
+
+	cout << ListDevices(devices) << endl;
+}
+
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
 {
 	PbCommand command;
@@ -115,7 +139,7 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	close(fd);
 }
 
-const PbServerInfo CommandServerInfo(const string& hostname, int port)
+void CommandServerInfo(const string& hostname, int port)
 {
 	PbCommand command;
 	command.set_cmd(SERVER_INFO);
@@ -136,11 +160,6 @@ const PbServerInfo CommandServerInfo(const string& hostname, int port)
 
 	close(fd);
 
-	return serverInfo;
-}
-
-void DisplayServerInfo(const PbServerInfo& serverInfo)
-{
 	cout << "rascsi server version: " << serverInfo.rascsi_version() << endl;
 
 	if (!serverInfo.available_log_levels_size()) {
@@ -324,15 +343,13 @@ int main(int argc, char* argv[])
 	}
 
 	if (cmd == SERVER_INFO) {
-		PbServerInfo serverInfo = CommandServerInfo(hostname, port);
-		DisplayServerInfo(serverInfo);
+		CommandServerInfo(hostname, port);
 		exit(0);
 	}
 
 	// List display only
 	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
-		PbServerInfo serverInfo = CommandServerInfo(hostname, port);
-		cout << ListDevices(serverInfo.devices()) << endl;
+		CommandList(hostname, port);
 		exit(0);
 	}
 
