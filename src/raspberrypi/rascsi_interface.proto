@@ -19,8 +19,8 @@ enum PbOperation {
     NONE = 0;
     // Returns the full server information
     SERVER_INFO = 1;
-    // Returns the device list only (deprecated, required for rasctl/logging compatibility)
-    LIST = 2;
+    // Returns the device list only (required for rasctl/logging compatibility)
+    LIST = 2 [deprecated = true];
     LOG_LEVEL = 3;
     ATTACH = 4;
     DETACH = 5;
