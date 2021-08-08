@@ -711,12 +711,16 @@ Disk::Disk(std::string id)
 
 	// Work initialization
 	disk.ready = FALSE;
-	disk.writep = FALSE;
-	disk.readonly = FALSE;
-	disk.removable = FALSE;
-	disk.lock = FALSE;
-	disk.attn = FALSE;
-	disk.reset = FALSE;
+	disk.protectable = false;
+	disk.writep = false;
+	disk.readonly = false;
+	disk.removable = false;
+	disk.removed = false;
+	disk.lockable = false;
+	disk.locked = false;
+	disk.supports_file = true;
+	disk.attn = false;
+	disk.reset = false;
 	disk.size = 0;
 	disk.blocks = 0;
 	disk.lun = 0;
@@ -758,9 +762,9 @@ Disk::~Disk()
 void Disk::Reset()
 {
 	// no lock, no attention, reset
-	disk.lock = FALSE;
-	disk.attn = FALSE;
-	disk.reset = TRUE;
+	disk.locked = false;
+	disk.attn = false;
+	disk.reset = false;
 }
 
 //---------------------------------------------------------------------------
@@ -839,9 +843,10 @@ bool Disk::IsNuvolink() const
 //
 //	Open
 //  * Call as a post-process after successful opening in a derived class
+// TODO Use exceptions for error handling instead of returning a string
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
+const char *Disk::Open(const Filepath& path, BOOL /*attn*/)
 {
 	ASSERT((disk.size >= 8) && (disk.size <= 11));
 	ASSERT(disk.blocks > 0);
@@ -851,54 +856,55 @@ BOOL Disk::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Cache initialization
 	ASSERT(!disk.dcache);
-	disk.dcache =
-		new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
+	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
 
 	// Can read/write open
 	Fileio fio;
 	if (fio.Open(path, Fileio::ReadWrite)) {
 		// Write permission, not read only
-		disk.writep = FALSE;
-		disk.readonly = FALSE;
+		disk.writep = false;
+		disk.readonly = false;
 		fio.Close();
 	} else {
 		// Write protected, read only
-		disk.writep = TRUE;
-		disk.readonly = TRUE;
+		disk.writep = true;
+		disk.readonly = true;
 	}
 
-	// Not locked
-	disk.lock = FALSE;
+	// Not locked, not removed
+	disk.locked = false;
+	disk.removed = false;
 
 	// Save path
 	diskpath = path;
 
 	// Success
-	return TRUE;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------
 //
 //	Eject
+// TODO This implemenation appears to be wrong: If a device is locked there
+// is no way to eject the medium without unlocking. In other words, there is
+// no "force" mode.
 //
 //---------------------------------------------------------------------------
-void Disk::Eject(BOOL force)
+bool Disk::Eject(bool force)
 {
 	// Can only be ejected if it is removable
 	if (!disk.removable) {
-		return;
+		return false;
 	}
 
 	// If you're not ready, you don't need to eject
 	if (!disk.ready) {
-		return;
+		return false;
 	}
 
 	// Must be unlocked if there is no force flag
-	if (!force) {
-		if (disk.lock) {
-			return;
-		}
+	if (!force && disk.locked) {
+		return false;
 	}
 
 	// Remove disk cache
@@ -908,9 +914,12 @@ void Disk::Eject(BOOL force)
 
 	// Not ready, no attention
 	disk.ready = FALSE;
-	disk.writep = FALSE;
-	disk.readonly = FALSE;
-	disk.attn = FALSE;
+	disk.writep = false;
+	disk.readonly = false;
+	disk.removed = true;
+	disk.attn = false;
+
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -918,21 +927,22 @@ void Disk::Eject(BOOL force)
 //	Write Protected
 //
 //---------------------------------------------------------------------------
-void Disk::WriteP(BOOL writep)
+bool Disk::WriteP(bool writep)
 {
 	// be ready
 	if (!disk.ready) {
-		return;
+		return false;
 	}
 
 	// Read Only, protect only
-	if (disk.readonly) {
-		ASSERT(disk.writep);
-		return;
+	if (disk.readonly && !writep) {
+		return false;
 	}
 
 	// Write protect flag setting
 	disk.writep = writep;
+
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -971,7 +981,7 @@ BOOL Disk::CheckReady()
 	// Not ready if reset
 	if (disk.reset) {
 		disk.code = DISK_DEVRESET;
-		disk.reset = FALSE;
+		disk.reset = false;
 		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
@@ -979,7 +989,7 @@ BOOL Disk::CheckReady()
 	// Not ready if it needs attention
 	if (disk.attn) {
 		disk.code = DISK_ATTENTION;
-		disk.attn = FALSE;
+		disk.attn = false;
 		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
@@ -1896,14 +1906,14 @@ BOOL Disk::StartStop(const DWORD *cdb)
 
 	// Look at the eject bit and eject if necessary
 	if (cdb[4] & 0x02) {
-		if (disk.lock) {
+		if (disk.locked) {
 			// Cannot be ejected because it is locked
 			disk.code = DISK_PREVENT;
 			return FALSE;
 		}
 
 		// Eject
-		Eject(FALSE);
+		Eject(false);
 	}
 
 	// OK
@@ -1955,9 +1965,9 @@ BOOL Disk::Removal(const DWORD *cdb)
 
 	// Set Lock flag
 	if (cdb[4] & 0x01) {
-		disk.lock = TRUE;
+		disk.locked = true;
 	} else {
-		disk.lock = FALSE;
+		disk.locked = false;
 	}
 
 	// REMOVAL Success

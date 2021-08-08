@@ -51,9 +51,9 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
     	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
 
     	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-    		ostringstream s;
-    		s << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
-    		throw ioexception(s.str());
+    		ostringstream error;
+    		error << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
+    		throw ioexception(error.str());
     	}
 
         SerializeMessage(fd, command);
@@ -65,7 +65,7 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
         	close(fd);
         }
 
-        return -1;
+        exit(fd < 0 ? ENOTCONN : -1);
     }
 
     return fd;
@@ -76,32 +76,26 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
 //	Receive command result
 //
 //---------------------------------------------------------------------------
-bool ReceiveResult(int fd) {
-    bool status = true;
-
+bool ReceiveResult(int fd)
+{
     try {
         PbResult result;
         DeserializeMessage(fd, result);
+        close(fd);
 
-        status = result.status();
-    	if (status) {
-    		cerr << result.msg();
+    	if (!result.status()) {
+    		throw ioexception(result.msg());
     	}
-    	else {
-    		cout << result.msg();
-    	}
+
+    	cout << result.msg() << endl;
     }
     catch(const ioexception& e) {
     	cerr << "Error: " << e.getmsg() << endl;
 
-    	// Fall through
-
-    	status = false;
+    	return false;
     }
 
-    close(fd);
-
-    return status;
+    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -116,9 +110,6 @@ void CommandList(const string& hostname, int port)
 	command.set_cmd(LIST);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
-	if (fd < 0) {
-		exit(ENOTCONN);
-	}
 
 	PbDevices devices;
 	try {
@@ -144,12 +135,7 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	command.set_params(log_level);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
-	if (fd < 0) {
-		exit(ENOTCONN);
-	}
-
 	ReceiveResult(fd);
-
 	close(fd);
 }
 
@@ -159,10 +145,6 @@ void CommandServerInfo(const string& hostname, int port)
 	command.set_cmd(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
-	if (fd < 0) {
-		exit(ENOTCONN);
-	}
-
 
 	PbServerInfo serverInfo;
 	try {
@@ -178,18 +160,18 @@ void CommandServerInfo(const string& hostname, int port)
 
 	close(fd);
 
-	cout << "rascsi version: " << serverInfo.rascsi_version() << endl;
+	cout << "rascsi server version: " << serverInfo.rascsi_version() << endl;
 
 	if (!serverInfo.available_log_levels_size()) {
 		cout << "  No log level settings available" << endl;
 	}
 	else {
-		cout << "Available log levels, sorted by severity:" << endl;
+		cout << "Available rascsi log levels, sorted by severity:" << endl;
 		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
 			cout << "  " << serverInfo.available_log_levels(i) << endl;
 		}
 
-		cout << "Current log level: " << serverInfo.current_log_level() << endl;
+		cout << "Current rascsi log level: " << serverInfo.current_log_level() << endl;
 	}
 
 	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
@@ -226,7 +208,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
-		cerr << "        CMD := {attach|detach|insert|eject|protect}" << endl;
+		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
 		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
@@ -249,7 +231,7 @@ int main(int argc, char* argv[])
 	int port = 6868;
 	string params;
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:g:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:u:g:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				id = optarg[0] - '0';
@@ -279,6 +261,10 @@ int main(int argc, char* argv[])
 
 					case 'p':
 						cmd = PROTECT;
+						break;
+
+					case 'u':
+						cmd = UNPROTECT;
 						break;
 				}
 				break;
@@ -351,8 +337,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	PbCommand command;
-
 	if (cmd == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, params);
 		exit(0);
@@ -369,47 +353,8 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 
-	// Check the ID number
-	if (id < 0 || id > 7) {
-		cerr << __PRETTY_FUNCTION__ << " Error : Invalid ID " << id << endl;
-		exit(EINVAL);
-	}
-
-	// Check the unit number
-	if (un < 0 || un > 1) {
-		cerr << __PRETTY_FUNCTION__ << " Error : Invalid UNIT " << un << endl;
-		exit(EINVAL);
-	}
-
-	// Type Check
-	if (cmd == ATTACH && type == UNDEFINED) {
-		// Try to determine the file type from the extension
-		int len = params.length();
-		if (len > 4 && params[len - 4] == '.') {
-			string ext = params.substr(len - 3);
-			if (ext == "hdf" || ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
-				type = SASI_HD;
-			} else if (ext == "mos") {
-				type = MO;
-			} else if (ext == "iso") {
-				type = CD;
-			}
-		}
-	}
-
-	// File check (command is ATTACH and type is HD, for CD and MO the medium (=file) may be inserted later)
-	if (cmd == ATTACH && (type == SASI_HD || type == SCSI_HD) && params.empty()) {
-		cerr << "Error : Invalid file path" << endl;
-		exit(EINVAL);
-	}
-
-	// File check (command is INSERT)
-	if (cmd == INSERT && params.empty()) {
-		cerr << "Error : Invalid file path" << endl;
-		exit(EINVAL);
-	}
-
 	// Generate the command and send it
+	PbCommand command;
 	command.set_id(id);
 	command.set_un(un);
 	command.set_cmd(cmd);
@@ -419,10 +364,6 @@ int main(int argc, char* argv[])
 	}
 
 	int fd = SendCommand(hostname, port, command);
-	if (fd < 0) {
-		exit(ENOTCONN);
-	}
-
 	bool status = ReceiveResult(fd);
 	close(fd);
 

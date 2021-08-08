@@ -46,7 +46,7 @@ public:
 										// Constructor
 	virtual ~SCSIDaynaPort();
 										// Destructor
-	BOOL Open(const Filepath& path, BOOL attn = TRUE);
+	const char *Open(const Filepath& path, BOOL attn = TRUE);
 										// Capture packets
 
 	// commands

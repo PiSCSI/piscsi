@@ -31,8 +31,9 @@
 //---------------------------------------------------------------------------
 SCSIMO::SCSIMO() : Disk("SCMO")
 {
-	// Set as removable
-	disk.removable = TRUE;
+	disk.removable = true;
+	disk.lockable = true;
+	disk.protectable = true;
 }
 
 //---------------------------------------------------------------------------
@@ -40,14 +41,14 @@ SCSIMO::SCSIMO() : Disk("SCMO")
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
+const char *SCSIMO::Open(const Filepath& path, BOOL attn)
 {
 	ASSERT(!disk.ready);
 
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return "Can't open MO file read-only";
 	}
 
 	// Get file size
@@ -81,7 +82,7 @@ BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
 
 		// Other (this is an error)
 		default:
-			return FALSE;
+			return "Invalid MO size";
 	}
 
 	// Call the base class
@@ -92,7 +93,7 @@ BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
 		disk.attn = TRUE;
 	}
 
-	return TRUE;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------

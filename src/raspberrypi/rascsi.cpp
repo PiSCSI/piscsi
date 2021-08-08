@@ -176,18 +176,24 @@ BOOL InitService(int port)
 	return true;
 }
 
-bool InitBusAndDisks() {
+bool InitBus()
+{
 	// GPIOBUS creation
 	bus = new GPIOBUS();
 
 	// GPIO Initialization
 	if (!bus->Init()) {
-		return FALSE;
+		return false;
 	}
 
 	// Bus Reset
 	bus->Reset();
 
+	return true;
+}
+
+void InitDisks()
+{
 	// Controller initialization
 	for (int i = 0; i < CtrlMax; i++) {
 		ctrl[i] = NULL;
@@ -197,8 +203,6 @@ bool InitBusAndDisks() {
 	for (int i = 0; i < CtrlMax; i++) {
 		disk[i] = NULL;
 	}
-
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------
@@ -225,10 +229,12 @@ void Cleanup()
 	}
 
 	// Cleanup the Bus
-	bus->Cleanup();
+	if (bus) {
+		bus->Cleanup();
 
-	// Discard the GPIOBUS object
-	delete bus;
+		// Discard the GPIOBUS object
+		delete bus;
+	}
 
 	// Close the monitor socket
 	if (monsocket >= 0) {
@@ -278,7 +284,7 @@ PbDevices GetDevices() {
 		device->set_un(i % UnitNum);
 
 		// ID,UNIT,Type,Device Status
-		device->set_type(pUnit->GetID());
+		device->set_type(MapIdToType(pUnit->GetID(), pUnit->IsSASI()));
 
 		// mount status output
 		if (pUnit->IsBridge()) {
@@ -288,10 +294,16 @@ PbDevices GetDevices() {
 		} else {
 			Filepath filepath;
 			pUnit->GetPath(filepath);
-			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "NO MEDIA" : filepath.GetPath());
+			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
 		}
 
+		device->set_protectable(pUnit->IsProtectable());
+		device->set_protected_(pUnit->IsProtectable() && pUnit->IsWriteP());
 		device->set_removable(pUnit->IsRemovable());
+		device->set_removed(pUnit->IsRemoved());
+		device->set_lockable(pUnit->IsLockable());
+		device->set_locked(pUnit->IsLocked());
+		device->set_supports_file(pUnit->SupportsFile());
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
@@ -419,9 +431,11 @@ bool MapController(Disk **map)
 	return status;
 }
 
-bool ReturnStatus(int fd, bool status = true, const string msg = "") {
+bool ReturnStatus(int fd, bool status = true, const string msg = "")
+{
 	if (fd == -1) {
 		if (msg.length()) {
+			FPRT(stderr, "Error: ");
 			FPRT(stderr, msg.c_str());
 			FPRT(stderr, "\n");
 		}
@@ -429,14 +443,20 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "") {
 	else {
 		PbResult result;
 		result.set_status(status);
-		result.set_msg(msg + "\n");
+		result.set_msg(msg);
 		SerializeMessage(fd, result);
 	}
 
 	return status;
 }
 
-bool SetLogLevel(const string& log_level) {
+bool ReturnStatus(int fd, bool status, const ostringstream& msg)
+{
+	return ReturnStatus(fd, status, msg.str());
+}
+
+bool SetLogLevel(const string& log_level)
+{
 	if (log_level == "trace") {
 		set_level(level::trace);
 	}
@@ -502,12 +522,12 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 //---------------------------------------------------------------------------
 bool ProcessCmd(int fd, const PbCommand &command)
 {
-	Disk *map[CtrlMax * UnitNum];
 	Filepath filepath;
 	Disk *pUnit;
-    char type_str[5];
+	ostringstream error;
+	const char *result;
 
-    int id = command.id();
+	int id = command.id();
 	int un = command.un();
 	PbOperation cmd = command.cmd();
 	PbDeviceType type = command.type();
@@ -518,35 +538,51 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	LOGINFO("%s", s.str().c_str());
 
 	// Copy the Unit List
+	Disk *map[CtrlMax * UnitNum];
 	memcpy(map, disk, sizeof(disk));
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		return ReturnStatus(fd, false, "Error : Invalid ID");
+		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
+		return ReturnStatus(fd, false, error);
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
-		return ReturnStatus(fd, false, "Error : Invalid unit number");
+		error << "Invalid unit " << un << " (0-" << UnitNum - 1 << ")";
+		return ReturnStatus(fd, false, error);
+	}
+
+	string ext;
+	int len = params.length();
+	if (len > 4 && params[len - 4] == '.') {
+		ext = params.substr(len - 3);
 	}
 
 	// Connect Command
 	if (cmd == ATTACH) {
-		string ext;
+		if (map[id]) {
+			error << "Duplicate ID " << id;
+			return ReturnStatus(fd, false, error);
+		}
 
-		// Distinguish between SASI and SCSI
-		if (type == SASI_HD) {
-			// Check the extension
-			int len = params.length();
-			if (len < 5 || params[len - 4] != '.') {
-				return ReturnStatus(fd, false);
+		// If no type was specified try to derive the file type from the extension
+		if (type == UNDEFINED) {
+			if (ext == "hdf") {
+				type = SASI_HD;
 			}
-
-			// If the extension is not SASI type, replace with SCSI
-			ext = params.substr(len - 3);
-			if (ext != "hdf") {
+			else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
 				type = SCSI_HD;
+			} else if (ext == "mos") {
+				type = MO;
+			} else if (ext == "iso") {
+				type = CD;
 			}
+		}
+
+		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
+		if ((type == SASI_HD || type == SCSI_HD) && params.empty()) {
+			return ReturnStatus(fd, false, "Missing filename");
 		}
 
 		// Create a new drive, based upon type
@@ -580,9 +616,8 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				pUnit = new SCSIDaynaPort();
 				break;
 			default:
-				ostringstream error;
-				error << "rasctl sent a command for an invalid drive type: " << PbDeviceType_Name(type);
-				return ReturnStatus(fd, false, error.str());
+				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
+				return ReturnStatus(fd, false, error);
 		}
 
 		// drive checks files
@@ -594,25 +629,24 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			filepath.SetPath(file.c_str());
 
 			// Open the file path
-			if (!pUnit->Open(filepath)) {
+			result = pUnit->Open(filepath);
+			if (result) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + file;
 				filepath.SetPath(default_file.c_str());
-				if (!pUnit->Open(filepath)) {
+				result = pUnit->Open(filepath);
+				if (result) {
 					delete pUnit;
 
-					LOGWARN("rasctl tried to open an invalid file %s", file.c_str());
-
-					ostringstream error;
-					error << "File open error [" << file << "]";
-					return ReturnStatus(fd, false, error.str());
+					error << "Tried to open an invalid file '" << file << "': " << result;
+					LOGWARN("%s", error.str().c_str());
+					return ReturnStatus(fd, false, error);
 				}
 			}
 
 			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
-				ostringstream error;
 				error << "Image file '" << file << "' is already in use";
-				return ReturnStatus(fd, false, error.str());
+				return ReturnStatus(fd, false, error);
 			}
 
 			files_in_use.insert(filepath.GetPath());
@@ -627,30 +661,30 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-	        LOGINFO("rasctl added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+	        LOGINFO("Added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 		}
 
-		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
+		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
 	}
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
-		LOGWARN("rasctl sent a command for invalid controller %d", id);
+		LOGWARN("Received a command for invalid controller %d", id);
 
-		return ReturnStatus(fd, false, "Error : No such device");
+		return ReturnStatus(fd, false, "No such device");
 	}
 
 	// Does the unit exist?
 	pUnit = disk[id * UnitNum + un];
 	if (pUnit == NULL) {
-		LOGWARN("rasctl sent a command for invalid unit ID %d UN %d", id, un);
+		LOGWARN("Received a command for invalid unit ID %d UN %d", id, un);
 
-		return ReturnStatus(fd, false, "Error : No such device");
+		return ReturnStatus(fd, false, "No such device");
 	}
 
 	// Disconnect Command
 	if (cmd == DETACH) {
-		LOGINFO("rasctl command disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+		LOGINFO("Disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
 
 		// Free the existing unit
 		map[id * UnitNum + un] = NULL;
@@ -662,54 +696,69 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		// Re-map the controller
 		bool status = MapController(map);
 
-		return ReturnStatus(fd, status, status ? "" : "Error : SASI and SCSI can't be mixed\n");
+		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
 	}
 
-	// Valid only for MO or CD
-	if (!pUnit->IsMo() && !pUnit->IsCdRom()) {
-		LOGWARN("rasctl sent an Insert/Eject/Protect command (%d) for incompatible type %s", cmd, pUnit->GetID().c_str());
+	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
+	if ((cmd == INSERT || cmd == EJECT) && !pUnit->IsRemovable()) {
+		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
-		ostringstream error;
-		error << "Operation denied (Device type " << type_str << " isn't removable)";
-		return ReturnStatus(fd, false, error.str());
+		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't removable)";
+		return ReturnStatus(fd, false, error);
+	}
+
+	if ((cmd == PROTECT || cmd == UNPROTECT) && (!pUnit->IsProtectable() || pUnit->IsReadOnly())) {
+		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
+
+		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't protectable)";
+		return ReturnStatus(fd, false, error);
 	}
 
 	switch (cmd) {
 		case INSERT:
+			if (params.empty()) {
+				return ReturnStatus(fd, false, "Missing filename");
+			}
+
 			filepath.SetPath(params.c_str());
-			LOGINFO("rasctl commanded insert file %s into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
+			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
 
-			if (!pUnit->Open(filepath)) {
-				ostringstream error;
-				error << "File open error [" << params << "]";
-
-				return ReturnStatus(fd, false, error.str());
+			result = pUnit->Open(filepath);
+			if (result) {
+				// If the file does not exist search for it in the default image folder
+				string default_file = default_image_folder + "/" + params;
+				filepath.SetPath(default_file.c_str());
+				result = pUnit->Open(filepath);
+				if (result) {
+					error << "Tried to open an invalid file '" << params << "': " << result;
+					LOGWARN("%s", error.str().c_str());
+					return ReturnStatus(fd, false, error);
+				}
 			}
 			break;
 
 		case EJECT:
-			LOGINFO("rasctl commanded eject for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
-			pUnit->Eject(TRUE);
+			LOGINFO("Eject requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			pUnit->Eject(true);
 			break;
 
 		case PROTECT:
-			if (!pUnit->IsMo()) {
-				LOGWARN("rasctl sent an invalid PROTECT command for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			LOGINFO("Write protection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			pUnit->WriteP(true);
+			break;
 
-				return ReturnStatus(fd, false, "Error : Operation denied (Device isn't MO)");
-			}
-			LOGINFO("rasctl is setting write protect to %d for %s ID: %d UN: %d",!pUnit->IsWriteP(), pUnit->GetID().c_str(), id, un);
-			pUnit->WriteP(!pUnit->IsWriteP());
+		case UNPROTECT:
+			LOGINFO("Write unprotection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			pUnit->WriteP(false);
 			break;
 
 		default:
-			ostringstream error;
-			error << "Received unknown command from rasctl: " << PbOperation_Name(cmd);
+			error << "Received unknown command: " << PbOperation_Name(cmd);
 			LOGWARN("%s", error.str().c_str());
-			return ReturnStatus(fd, false, error.str());
+			return ReturnStatus(fd, false, error);
 	}
 
-	return ReturnStatus(fd, true);
+	return ReturnStatus(fd);
 }
 
 bool has_suffix(const string& filename, const string& suffix) {
@@ -788,32 +837,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				break;
 		}
 
-		if (id < 0) {
-			cerr << optarg << ": ID not specified" << endl;
-			return false;
-		} else if (disk[id]) {
-			cerr << id << ": duplicate ID" << endl;
-			return false;
-		}
-
-		string path = optarg;
-		PbDeviceType type = SASI_HD;
-		if (has_suffix(path, ".hdf") || has_suffix(path, ".hds") || has_suffix(path, ".hdn")
-			|| has_suffix(path, ".hdi") || has_suffix(path, ".hda") || has_suffix(path, ".nhd")) {
-			type = SASI_HD;
-		} else if (has_suffix(path, ".mos")) {
-			type = MO;
-		} else if (has_suffix(path, ".iso")) {
-			type = CD;
-		} else if (path == "bridge") {
-			type = BR;
-		} else if (path == "daynaport") {
-			type = DAYNAPORT;
-		} else {
-			cerr << path << ": unknown file extension or basename is missing" << endl;
-		    return false;
-		}
-
 		int un = 0;
 		if (is_sasi) {
 			un = id % UnitNum;
@@ -825,8 +848,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		command.set_id(id);
 		command.set_un(un);
 		command.set_cmd(ATTACH);
-		command.set_type(type);
-		command.set_params(path);
+		command.set_params(optarg);
 		if (!ProcessCmd(-1, command)) {
 			return false;
 		}
@@ -920,7 +942,7 @@ static void *MonThread(void *param)
 					if (!status) {
 						ostringstream error;
 						error << "Invalid log level: " << command.params();
-						ReturnStatus(fd, false, error.str());
+						ReturnStatus(fd, false, error);
 					}
 					else {
 						ReturnStatus(fd);
@@ -1003,14 +1025,16 @@ int main(int argc, char* argv[])
 	int ret = 0;
 	int port = 6868;
 
-	if (!InitBusAndDisks()) {
-		ret = EPERM;
-		goto init_exit;
-	}
+	InitDisks();
 
 	if (!ParseArgument(argc, argv, port)) {
 		ret = EINVAL;
 		goto err_exit;
+	}
+
+	if (!InitBus()) {
+		ret = EPERM;
+		goto init_exit;
 	}
 
 	if (!InitService(port)) {

@@ -35,19 +35,16 @@
 //
 //---------------------------------------------------------------------------
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <stddef.h>
-#include <assert.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstddef>
+#include <cstdarg>
+#include <cstring>
+#include <csignal>
+#include <cassert>
 #include <unistd.h>
-#include <errno.h>
-#include <time.h>
 #include <utime.h>
 #include <fcntl.h>
-#include <signal.h>
-#include <stdarg.h>
-#include <string.h>
 #include <sched.h>
 #include <pthread.h>
 #include <iconv.h>
@@ -58,14 +55,13 @@
 
 #include <poll.h>
 #include <dirent.h>
-#include <sys/mman.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
 #include <netinet/in.h>
-#include <linux/gpio.h>
 
 #if defined(__linux__)
+#include <linux/gpio.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
 #elif defined(__NetBSD__)

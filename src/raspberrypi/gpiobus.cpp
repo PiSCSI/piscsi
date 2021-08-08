@@ -12,6 +12,8 @@
 //
 //---------------------------------------------------------------------------
 
+#include <sys/mman.h>
+
 #include "os.h"
 #include "xm6.h"
 #include "gpiobus.h"

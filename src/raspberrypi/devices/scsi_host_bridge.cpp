@@ -34,6 +34,8 @@
 //---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
+	disk.supports_file = false;
+
 	fsoptlen = 0;
 	fsoutlen = 0;
 	fsresult = 0;

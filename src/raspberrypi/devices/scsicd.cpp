@@ -251,9 +251,9 @@ CDDABuf::~CDDABuf()
 //---------------------------------------------------------------------------
 SCSICD::SCSICD() : Disk("SCCD")
 {
-	// removable, write protected
-	disk.removable = TRUE;
-	disk.writep = TRUE;
+	disk.removable = true;
+	disk.lockable = true;
+	disk.writep = true;
 
 	// NOT in raw format
 	rawfile = FALSE;
@@ -286,7 +286,7 @@ SCSICD::~SCSICD()
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::Open(const Filepath& path, BOOL attn)
+const char *SCSICD::Open(const Filepath& path, BOOL attn)
 {
 	Fileio fio;
 	off64_t size;
@@ -301,7 +301,7 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return "Can't open CD-ROM file read-only";
 	}
 
 	// Close and transfer for physical CD access
@@ -311,14 +311,14 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 
 		// Open physical CD
 		if (!OpenPhysical(path)) {
-			return FALSE;
+			return "Can't open physical CD";
 		}
 	} else {
 		// Get file size
         size = fio.GetFileSize();
 		if (size <= 4) {
 			fio.Close();
-			return FALSE;
+			return "Invalid file size";
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
@@ -330,12 +330,12 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 		if (xstrncasecmp(file, _T("FILE"), 4) == 0) {
 			// Open as CUE
 			if (!OpenCue(path)) {
-				return FALSE;
+				return "Can't open as CUE";
 			}
 		} else {
 			// Open as ISO
 			if (!OpenIso(path)) {
-				return FALSE;
+				return "Can't open as ISO";
 			}
 		}
 	}
@@ -359,7 +359,7 @@ BOOL SCSICD::Open(const Filepath& path, BOOL attn)
 		disk.attn = TRUE;
 	}
 
-	return TRUE;
+	return NULL;
 }
 
 //---------------------------------------------------------------------------

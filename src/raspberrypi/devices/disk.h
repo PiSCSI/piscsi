@@ -167,12 +167,17 @@ public:
 	typedef struct {
 		std::string id;						// Media ID
 		BOOL ready;							// Valid Disk
-		BOOL writep;							// Write protected
-		BOOL readonly;							// Read only
-		BOOL removable;							// Removable
-		BOOL lock;							// Locked
-		BOOL attn;							// Attention
-		BOOL reset;							// Reset
+		bool readonly;							// Read only
+		bool protectable;
+		bool writep;							// Write protected
+		bool removable;							// Removable
+		bool removed;
+		bool lockable;
+		bool locked;							// Locked
+		// TODO Non-disk devices must not inherit from Disk class
+		bool supports_file;
+		bool attn;							// Attention
+		bool reset;							// Reset
 		int size;							// Sector Size
 		DWORD blocks;							// Total number of sectors
 		DWORD lun;							// LUN
@@ -198,15 +203,19 @@ public:
 	bool IsNuvolink() const;
 
 	// Media Operations
-	virtual BOOL Open(const Filepath& path, BOOL attn = TRUE);	// Open
+	virtual const char *Open(const Filepath& path, BOOL attn = TRUE);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
-	void Eject(BOOL force);					// Eject
+	bool Eject(bool);					// Eject
 	bool IsReady() const		{ return disk.ready; }		// Ready check
-	void WriteP(BOOL flag);					// Set Write Protect flag
+	bool IsProtectable() const 	{ return disk.protectable; }
+	bool WriteP(bool);					// Set Write Protect flag
 	bool IsWriteP() const		{ return disk.writep; }		// Get write protect flag
-	bool IsReadOnly() const	{ return disk.readonly; }	// Get read only flag
+	bool IsReadOnly() const		{ return disk.readonly; }	// Get read only flag
 	bool IsRemovable() const	{ return disk.removable; }	// Get is removable flag
-	bool IsLocked() const		{ return disk.lock; }		// Get locked status
+	bool IsRemoved() const		{ return disk.removed; }
+	bool IsLockable() const		{ return disk.lockable; }
+	bool IsLocked() const		{ return disk.locked; }		// Get locked status
+	bool SupportsFile() const	{ return disk.supports_file; }
 	bool IsAttn() const		{ return disk.attn; }		// Get attention flag
 	bool Flush();							// Flush the cache
 

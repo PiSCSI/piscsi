@@ -6,8 +6,8 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -l | -s | [-g LOG_LEVEL] [-h HOST] [-p PORT] -i ID [-c CMD] [-f
-       FILE] [-t TYPE] [-u UNIT]
+       rasctl -l | -s | [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v] -i ID [-c CMD]
+       [-f FILE] [-t TYPE] [-u UNIT]
 
 DESCRIPTION
        rasctl Sends commands to the rascsi process to make  configuration  ad‐
@@ -34,7 +34,9 @@ OPTIONS
        -p PORT
               The rascsi port to connect to, default is 6868.
 
-       -s     Display server-side configuration settings.
+       -s     Display the server-side configuration settings.
+
+       -v     Display the rascsi version.
 
        -i ID  ID is the SCSI ID that you want to control. (0-7)
 
@@ -44,27 +46,29 @@ OPTIONS
                  insert: insert media (Magneto-Optical and CD only)
                  eject:  eject media  (Magneto-Optical and CD only)
                  protect: Write protect the media (Magneto-Optical only)
+                 unprotect: Remove write protection from the  media  (Magneto-
+              Optical only)
 
               When the command is omitted, rasctl will default to the 'attach'
               command.
 
        -f FILE
-              Path  to the disk image file. See the rascsi(1) man page for al‐
+              Path to the disk image file. See the rascsi(1) man page for  al‐
               lowable file types.
 
        -t TYPE
-              Specifies the type of disk. If this disagrees with the file  ex‐
-              tension  of  the  specified image, the TYPE argument is ignored.
+              Specifies  the type of disk. If this disagrees with the file ex‐
+              tension of the specified image, the TYPE  argument  is  ignored.
               Available drive types are:
                  hd: Hard disk (SCSI or SASI)
                  mo: Magneto-Optical disk)
                  cd: CD-ROM
-                 bridge: Bridge device (This is only applicable to  the  Sharp
+                 bridge:  Bridge  device (This is only applicable to the Sharp
               X68000)
 
        -u UNIT
-              Unit  number  (0  or  1). This will default to 0. This option is
-              only used when there are multiple SCSI devices on a shared  SCSI
+              Unit number (0 or 1). This will default to  0.  This  option  is
+              only  used when there are multiple SCSI devices on a shared SCSI
               controller. (This is not common)
 
 EXAMPLES
