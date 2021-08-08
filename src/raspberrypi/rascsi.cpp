@@ -702,10 +702,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	}
 
 	if ((cmd == PROTECT || cmd == UNPROTECT) && !pUnit->IsProtectable()) {
-		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
+		if (cmd == UNPROTECT && pUnit->IsReadOnly()) {
+			LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
 
-		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't protectable)";
-		return ReturnStatus(fd, false, error);
+			error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't protectable)";
+			return ReturnStatus(fd, false, error);
+		}
 	}
 
 	switch (cmd) {
