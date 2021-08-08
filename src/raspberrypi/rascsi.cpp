@@ -540,11 +540,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		return ReturnStatus(fd, false, error);
 	}
 
-	if (map[id]) {
-		error << "Duplicate ID " << id << endl;
-		return ReturnStatus(fd, false, error);
-	}
-
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
 		error << "Invalid unit " << un << " (0-" << UnitNum - 1 << ")";
@@ -559,6 +554,11 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Connect Command
 	if (cmd == ATTACH) {
+		if (map[id]) {
+			error << "Duplicate ID " << id << endl;
+			return ReturnStatus(fd, false, error);
+		}
+
 		// If no type was specified try to derive the file type from the extension
 		if (type == UNDEFINED) {
 			if (ext == "hdf") {
