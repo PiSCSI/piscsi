@@ -176,18 +176,24 @@ BOOL InitService(int port)
 	return true;
 }
 
-bool InitBusAndDisks() {
+bool InitBus()
+{
 	// GPIOBUS creation
 	bus = new GPIOBUS();
 
 	// GPIO Initialization
 	if (!bus->Init()) {
-		return FALSE;
+		return false;
 	}
 
 	// Bus Reset
 	bus->Reset();
 
+	return true;
+}
+
+void InitDisks()
+{
 	// Controller initialization
 	for (int i = 0; i < CtrlMax; i++) {
 		ctrl[i] = NULL;
@@ -197,8 +203,6 @@ bool InitBusAndDisks() {
 	for (int i = 0; i < CtrlMax; i++) {
 		disk[i] = NULL;
 	}
-
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------
@@ -225,10 +229,12 @@ void Cleanup()
 	}
 
 	// Cleanup the Bus
-	bus->Cleanup();
+	if (bus) {
+		bus->Cleanup();
 
-	// Discard the GPIOBUS object
-	delete bus;
+		// Discard the GPIOBUS object
+		delete bus;
+	}
 
 	// Close the monitor socket
 	if (monsocket >= 0) {
@@ -556,7 +562,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	// Connect Command
 	if (cmd == ATTACH) {
 		if (map[id]) {
-			error << "Duplicate ID " << id << endl;
+			error << "Duplicate ID " << id;
 			return ReturnStatus(fd, false, error);
 		}
 
@@ -1019,14 +1025,16 @@ int main(int argc, char* argv[])
 	int ret = 0;
 	int port = 6868;
 
-	if (!InitBusAndDisks()) {
-		ret = EPERM;
-		goto init_exit;
-	}
+	InitDisks();
 
 	if (!ParseArgument(argc, argv, port)) {
 		ret = EINVAL;
 		goto err_exit;
+	}
+
+	if (!InitBus()) {
+		ret = EPERM;
+		goto init_exit;
 	}
 
 	if (!InitService(port)) {
