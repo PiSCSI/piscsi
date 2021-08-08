@@ -51,6 +51,7 @@ message PbDevice {
     PbDeviceType type = 3;
     string file = 4;
     bool read_only = 5;
+    // Note: Implicit read-only media (e.g. CD-ROMs) are not protectable
     bool protectable = 6;
     bool protected = 7;
     bool removable = 8;
