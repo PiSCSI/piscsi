@@ -297,6 +297,7 @@ PbDevices GetDevices() {
 		device->set_removed(pUnit->IsRemoved());
 		device->set_lockable(pUnit->IsLockable());
 		device->set_locked(pUnit->IsLocked());
+		device->set_supports_file(pUnit->SupportsFile());
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {

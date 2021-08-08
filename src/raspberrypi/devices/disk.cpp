@@ -718,6 +718,7 @@ Disk::Disk(std::string id)
 	disk.removed = false;
 	disk.lockable = false;
 	disk.locked = false;
+	disk.supports_file = true;
 	disk.attn = false;
 	disk.reset = false;
 	disk.size = 0;

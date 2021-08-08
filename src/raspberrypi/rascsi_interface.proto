@@ -57,6 +57,7 @@ message PbDevice {
     bool removed = 9;
     bool lockable = 10;
     bool locked = 11;
+    bool supports_file = 12;
 }
 
 message PbDevices {

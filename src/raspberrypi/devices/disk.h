@@ -174,6 +174,8 @@ public:
 		bool removed;
 		bool lockable;
 		bool locked;							// Locked
+		// TODO Non-disk devices must not inherit from Disk class
+		bool supports_file;
 		bool attn;							// Attention
 		bool reset;							// Reset
 		int size;							// Sector Size
@@ -213,6 +215,7 @@ public:
 	bool IsRemoved() const		{ return disk.removed; }
 	bool IsLockable() const		{ return disk.lockable; }
 	bool IsLocked() const		{ return disk.locked; }		// Get locked status
+	bool SupportsFile() const	{ return disk.supports_file; }
 	bool IsAttn() const		{ return disk.attn; }		// Get attention flag
 	bool Flush();							// Flush the cache
 
