@@ -18,8 +18,9 @@ enum PbDeviceType {
 enum PbOperation {
     NONE = 0;
     SERVER_INFO = 1;
-    LOG_LEVEL = 2;
-    LIST = 3;
+    // Returns the device list only (required for rasctl compatibility)
+    LIST = 2;
+    LOG_LEVEL = 3;
     ATTACH = 4;
     DETACH = 5;
     INSERT = 6;
