@@ -620,6 +620,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				break;
 			default:
 				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
+				LOGWARN("%s", error.str().c_str());
 				return ReturnStatus(fd, false, error);
 		}
 
@@ -649,6 +650,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
 				error << "Image file '" << file << "' is already in use";
+				LOGWARN("%s", error.str().c_str());
 				return ReturnStatus(fd, false, error);
 			}
 
