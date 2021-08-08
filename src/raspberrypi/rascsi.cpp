@@ -638,9 +638,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		// drive checks files
 		if (type != BR && type != DAYNAPORT && !command.params().empty()) {
-			// Strip the image file extension from device file names, so that device files can be used as drive images
-			file = file.find("/dev/") ? file : file.substr(0, file.length() - 4);
-
 			// Set the Path
 			filepath.SetPath(file.c_str());
 
