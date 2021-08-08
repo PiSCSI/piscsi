@@ -537,10 +537,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params;
 	LOGINFO("%s", s.str().c_str());
 
-	// Copy the Unit List
-	Disk *map[CtrlMax * UnitNum];
-	memcpy(map, disk, sizeof(disk));
-
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
 		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
@@ -559,9 +555,13 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		ext = params.substr(len - 3);
 	}
 
+	// Copy the Unit List
+	Disk *map[CtrlMax * UnitNum];
+	memcpy(map, disk, sizeof(disk));
+
 	// Connect Command
 	if (cmd == ATTACH) {
-		if (map[id]) {
+		if (map[id * UnitNum + un]) {
 			error << "Duplicate ID " << id;
 			return ReturnStatus(fd, false, error);
 		}
