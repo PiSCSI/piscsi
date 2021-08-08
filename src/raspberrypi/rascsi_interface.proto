@@ -17,6 +17,7 @@ enum PbDeviceType {
 // rascsi remote operations
 enum PbOperation {
     NONE = 0;
+    // Returns the full server information
     SERVER_INFO = 1;
     // Returns the device list only (required for rasctl compatibility)
     LIST = 2;
