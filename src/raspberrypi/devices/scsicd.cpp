@@ -17,6 +17,7 @@
 #include "xm6.h"
 #include "scsicd.h"
 #include "fileio.h"
+#include "exceptions.h"
 
 //===========================================================================
 //
@@ -286,7 +287,7 @@ SCSICD::~SCSICD()
 //	Open
 //
 //---------------------------------------------------------------------------
-const char *SCSICD::Open(const Filepath& path, BOOL attn)
+void SCSICD::Open(const Filepath& path, BOOL attn)
 {
 	Fileio fio;
 	off64_t size;
@@ -301,7 +302,7 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return "Can't open CD-ROM file read-only";
+		throw ioexception("Can't open CD-ROM file read-only");
 	}
 
 	// Close and transfer for physical CD access
@@ -311,14 +312,14 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 
 		// Open physical CD
 		if (!OpenPhysical(path)) {
-			return "Can't open physical CD";
+			throw ioexception("Can't open physical CD");
 		}
 	} else {
 		// Get file size
         size = fio.GetFileSize();
 		if (size <= 4) {
 			fio.Close();
-			return "Invalid file size";
+			throw ioexception("Invalid file size");
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
@@ -330,12 +331,12 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 		if (xstrncasecmp(file, _T("FILE"), 4) == 0) {
 			// Open as CUE
 			if (!OpenCue(path)) {
-				return "Can't open as CUE";
+				throw ioexception("Can't open as CUE");
 			}
 		} else {
 			// Open as ISO
 			if (!OpenIso(path)) {
-				return "Can't open as ISO";
+				throw ioexception("Can't open as ISO");
 			}
 		}
 	}
@@ -358,8 +359,6 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 	if (disk.ready && attn) {
 		disk.attn = TRUE;
 	}
-
-	return NULL;
 }
 
 //---------------------------------------------------------------------------

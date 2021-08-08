@@ -17,6 +17,7 @@
 #include "scsimo.h"
 #include "xm6.h"
 #include "fileio.h"
+#include "exceptions.h"
 
 //===========================================================================
 //
@@ -41,14 +42,14 @@ SCSIMO::SCSIMO() : Disk("SCMO")
 //	Open
 //
 //---------------------------------------------------------------------------
-const char *SCSIMO::Open(const Filepath& path, BOOL attn)
+void SCSIMO::Open(const Filepath& path, BOOL attn)
 {
 	ASSERT(!disk.ready);
 
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return "Can't open MO file read-only";
+		throw ioexception("Can't open MO file read-only");
 	}
 
 	// Get file size
@@ -82,7 +83,7 @@ const char *SCSIMO::Open(const Filepath& path, BOOL attn)
 
 		// Other (this is an error)
 		default:
-			return "Invalid MO size";
+			throw ioexception("Invalid MO file size");
 	}
 
 	// Call the base class
@@ -92,8 +93,6 @@ const char *SCSIMO::Open(const Filepath& path, BOOL attn)
 	if (disk.ready && attn) {
 		disk.attn = TRUE;
 	}
-
-	return NULL;
 }
 
 //---------------------------------------------------------------------------

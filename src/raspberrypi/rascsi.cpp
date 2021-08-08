@@ -525,7 +525,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	Filepath filepath;
 	Disk *pUnit;
 	ostringstream error;
-	const char *result;
 
 	int id = command.id();
 	int un = command.un();
@@ -629,16 +628,20 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			filepath.SetPath(file.c_str());
 
 			// Open the file path
-			result = pUnit->Open(filepath);
-			if (result) {
+			try {
+				pUnit->Open(filepath);
+			}
+			catch(const ioexception& e) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + file;
 				filepath.SetPath(default_file.c_str());
-				result = pUnit->Open(filepath);
-				if (result) {
+				try {
+					pUnit->Open(filepath);
+				}
+				catch(const ioexception&) {
 					delete pUnit;
 
-					error << "Tried to open an invalid file '" << file << "': " << result;
+					error << "Tried to open an invalid file '" << file << "': " << e.getmsg();
 					LOGWARN("%s", error.str().c_str());
 					return ReturnStatus(fd, false, error);
 				}
@@ -723,14 +726,18 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			filepath.SetPath(params.c_str());
 			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
 
-			result = pUnit->Open(filepath);
-			if (result) {
+			try {
+				pUnit->Open(filepath);
+			}
+			catch(const ioexception& e) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + params;
 				filepath.SetPath(default_file.c_str());
-				result = pUnit->Open(filepath);
-				if (result) {
-					error << "Tried to open an invalid file '" << params << "': " << result;
+				try {
+					pUnit->Open(filepath);
+				}
+				catch(const ioexception&) {
+					error << "Tried to open an invalid file '" << params << "': " << e.getmsg();
 					LOGWARN("%s", error.str().c_str());
 					return ReturnStatus(fd, false, error);
 				}
