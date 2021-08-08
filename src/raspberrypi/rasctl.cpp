@@ -226,7 +226,7 @@ int main(int argc, char* argv[])
 	int id = -1;
 	int un = 0;
 	PbOperation cmd = LIST;
-	PbDeviceType type;
+	PbDeviceType type = UNDEFINED;
 	const char *hostname = "localhost";
 	int port = 6868;
 	string params;
