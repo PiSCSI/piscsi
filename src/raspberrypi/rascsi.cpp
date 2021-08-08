@@ -567,7 +567,11 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		if (separatorPos != string::npos) {
 			string t = file.substr(separatorPos + 1);
 			transform(t.begin(), t.end(), t.begin(), ::toupper);
-			PbDeviceType_Parse(t, &type);
+
+			if (!PbDeviceType_Parse(t, &type)) {
+				error << "Invalid device type " << t;
+				return ReturnStatus(fd, false, error);
+			}
 
 			file = file.substr(0, separatorPos);
 		}
