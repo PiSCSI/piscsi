@@ -328,7 +328,7 @@ void SCSICD::Open(const Filepath& path, BOOL attn)
 		fio.Close();
 
 		// If it starts with FILE, consider it as a CUE sheet
-		if (xstrncasecmp(file, _T("FILE"), 4) == 0) {
+		if (strncasecmp(file, _T("FILE"), 4) == 0) {
 			// Open as CUE
 			if (!OpenCue(path)) {
 				throw ioexception("Can't open as CUE");

@@ -130,7 +130,4 @@ typedef const char *LPCSTR;
 
 #define off64_t off_t
 
-#define xstrcasecmp strcasecmp
-#define xstrncasecmp strncasecmp
-
 #endif	// os_h
