@@ -319,7 +319,7 @@ void SCSICD::Open(const Filepath& path, BOOL attn)
         size = fio.GetFileSize();
 		if (size <= 4) {
 			fio.Close();
-			throw ioexception("Invalid file size");
+			throw ioexception("CD file size must be at least 4 bytes");
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
