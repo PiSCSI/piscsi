@@ -2697,19 +2697,19 @@ BOOL CHostFcb::Close()
 
 //===========================================================================
 //
-//	FCB処理 マネージャ
+// FCB processing manager
 //
 //===========================================================================
 
 #ifdef _DEBUG
 //---------------------------------------------------------------------------
 //
-/// デストラクタ final
+// Final destructor
 //
 //---------------------------------------------------------------------------
 CHostFcbManager::~CHostFcbManager()
 {
-	// 実体が存在しないことを確認 (念のため)
+	// Confirm that the entity does not exist (just in case)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
 }
@@ -2717,17 +2717,17 @@ CHostFcbManager::~CHostFcbManager()
 
 //---------------------------------------------------------------------------
 //
-/// 初期化 (ドライバ組込み時)
+// Initialization (when the driver is installed)
 //
 //---------------------------------------------------------------------------
 void CHostFcbManager::Init()
 {
 
-	// 実体が存在しないことを確認 (念のため)
+	// Confirm that the entity does not exist (just in case)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
 
-	// メモリ確保
+	// Memory allocation
 	for (DWORD i = 0; i < XM6_HOST_FCB_MAX; i++) {
 		ring_t* p = new ring_t;
 		ASSERT(p);
@@ -2737,13 +2737,13 @@ void CHostFcbManager::Init()
 
 //---------------------------------------------------------------------------
 //
-/// 解放 (起動・リセット時)
+// Clean (at startup/reset)
 //
 //---------------------------------------------------------------------------
 void CHostFcbManager::Clean()
 {
 
-	// メモリ解放
+	//  Fast task killer
 	CRing* p;
 	while ((p = m_cRing.Next()) != &m_cRing) {
 		delete (ring_t*)p;
@@ -2752,26 +2752,26 @@ void CHostFcbManager::Clean()
 
 //---------------------------------------------------------------------------
 //
-/// 確保
+// Alloc
 //
 //---------------------------------------------------------------------------
 CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 {
 	ASSERT(nKey);
 
-	// 末尾から選択
+	// Select from the end
 	ring_t* p = (ring_t*)m_cRing.Prev();
 
-	// 使用中ならエラー (念のため)
+	// Error if in use (just in case)
 	if (p->f.isSameKey(0) == FALSE) {
 		ASSERT(0);
 		return NULL;
 	}
 
-	// リング先頭へ移動
+	// Move to the top of the ring
 	p->r.Insert(&m_cRing);
 
-	// キーを設定
+	//  Set key
 	p->f.SetKey(nKey);
 
 	return &p->f;
@@ -2779,18 +2779,18 @@ CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 
 //---------------------------------------------------------------------------
 //
-/// 検索
+// Search
 //
 //---------------------------------------------------------------------------
 CHostFcb* CHostFcbManager::Search(DWORD nKey)
 {
 	ASSERT(nKey);
 
-	// 該当するオブジェクトを検索
+	// Search for applicable objects
 	ring_t* p = (ring_t*)m_cRing.Next();
 	while (p != (ring_t*)&m_cRing) {
 		if (p->f.isSameKey(nKey)) {
-			// リング先頭へ移動
+			 // Move to the top of the ring
 			p->r.Insert(&m_cRing);
 			return &p->f;
 		}
@@ -2802,40 +2802,40 @@ CHostFcb* CHostFcbManager::Search(DWORD nKey)
 
 //---------------------------------------------------------------------------
 //
-/// 解放
+// Free
 //
 //---------------------------------------------------------------------------
 void CHostFcbManager::Free(CHostFcb* pFcb)
 {
 	ASSERT(pFcb);
 
-	// 解放
+	// Free
 	pFcb->SetKey(0);
 	pFcb->Close();
 
-	// リング末尾へ移動
+	// Move to the end of the ring
 	ring_t* p = (ring_t*)((size_t)pFcb - offsetof(ring_t, f));
 	p->r.InsertTail(&m_cRing);
 }
 
 //===========================================================================
 //
-//	ホスト側ファイルシステム
+// Host side file system
 //
 //===========================================================================
 
-DWORD CFileSys::g_nOption;		///< ファイル名変換フラグ
+DWORD CFileSys::g_nOption;		// File name conversion flag
 
 //---------------------------------------------------------------------------
 //
-/// デフォルトコンストラクタ
+// Default constructor
 //
 //---------------------------------------------------------------------------
 CFileSys::CFileSys()
 {
 	m_nHostSectorCount = 0;
 
-	// コンフィグデータ初期化
+	// Config data initialization
 	m_nDrives = 0;
 
 	for (size_t n = 0; n < DriveMax; n++) {
