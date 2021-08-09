@@ -433,6 +433,10 @@ bool MapController(Disk **map)
 
 bool ReturnStatus(int fd, bool status = true, const string msg = "")
 {
+	if (!status) {
+		LOGWARN("%s", msg.c_str());
+	}
+
 	if (fd == -1) {
 		if (msg.length()) {
 			FPRT(stderr, "Error: ");
@@ -540,14 +544,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
 		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
-		LOGWARN("%s", error.str().c_str());
 		return ReturnStatus(fd, false, error);
 	}
 
 	// Check the Unit Number
 	if (un < 0 || un >= UnitNum) {
 		error << "Invalid unit " << un << " (0-" << UnitNum - 1 << ")";
-		LOGWARN("%s", error.str().c_str());
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -565,7 +567,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	if (cmd == ATTACH) {
 		if (map[id * UnitNum + un]) {
 			error << "Duplicate ID " << id;
-			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error);
 		}
 
@@ -620,7 +621,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				break;
 			default:
 				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
-				LOGWARN("%s", error.str().c_str());
 				return ReturnStatus(fd, false, error);
 		}
 
@@ -643,14 +643,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 					delete pUnit;
 
 					error << "Tried to open an invalid file '" << file << "': " << result;
-					LOGWARN("%s", error.str().c_str());
 					return ReturnStatus(fd, false, error);
 				}
 			}
 
 			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
 				error << "Image file '" << file << "' is already in use";
-				LOGWARN("%s", error.str().c_str());
 				return ReturnStatus(fd, false, error);
 			}
 
@@ -674,17 +672,15 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
-		LOGWARN("Received a command for invalid controller %d", id);
-
-		return ReturnStatus(fd, false, "No such device");
+		error << "Received a command for invalid ID " << id;
+		return ReturnStatus(fd, false, error);
 	}
 
 	// Does the unit exist?
 	pUnit = disk[id * UnitNum + un];
 	if (pUnit == NULL) {
-		LOGWARN("Received a command for invalid unit ID %d UN %d", id, un);
-
-		return ReturnStatus(fd, false, "No such device");
+		error << "Received a command for invalid ID " << id << ", unit " << un;
+		return ReturnStatus(fd, false, error);
 	}
 
 	// Disconnect Command
@@ -706,16 +702,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
 	if ((cmd == INSERT || cmd == EJECT) && !pUnit->IsRemovable()) {
-		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
-
-		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't removable)";
+		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't removable)";
 		return ReturnStatus(fd, false, error);
 	}
 
 	if ((cmd == PROTECT || cmd == UNPROTECT) && (!pUnit->IsProtectable() || pUnit->IsReadOnly())) {
-		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
-
-		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't protectable)";
+		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't protectable)";
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -736,7 +728,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 				result = pUnit->Open(filepath);
 				if (result) {
 					error << "Tried to open an invalid file '" << params << "': " << result;
-					LOGWARN("%s", error.str().c_str());
 					return ReturnStatus(fd, false, error);
 				}
 			}
@@ -759,7 +750,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		default:
 			error << "Received unknown command: " << PbOperation_Name(cmd);
-			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error);
 	}
 
