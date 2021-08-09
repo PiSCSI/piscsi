@@ -54,7 +54,7 @@ message PbDevice {
     bool read_only = 5;
     // Note: Read-only media (e.g. CD-ROMs) are not protectable
     bool protectable = 6;
-    // Note: Read-only media (e.g. CD-ROMs) are not protected by just read-only
+    // Note: Read-only media (e.g. CD-ROMs) are not protected but just read-only
     bool protected = 7;
     bool removable = 8;
     bool removed = 9;
