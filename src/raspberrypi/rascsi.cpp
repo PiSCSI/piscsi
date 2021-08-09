@@ -433,12 +433,12 @@ bool MapController(Disk **map)
 
 bool ReturnStatus(int fd, bool status = true, const string msg = "")
 {
-	if (!status) {
+	if (!status && !msg.empty()) {
 		LOGWARN("%s", msg.c_str());
 	}
 
 	if (fd == -1) {
-		if (msg.length()) {
+		if (!msg.empty()) {
 			FPRT(stderr, "Error: ");
 			FPRT(stderr, msg.c_str());
 			FPRT(stderr, "\n");
