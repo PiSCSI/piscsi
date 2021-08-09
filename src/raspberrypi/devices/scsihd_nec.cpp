@@ -16,6 +16,7 @@
 
 #include "scsihd_nec.h"
 #include "fileio.h"
+#include "exceptions.h"
 
 //===========================================================================
 //
@@ -65,7 +66,7 @@ static inline DWORD getDwordLE(const BYTE *b)
 //	Open
 //
 //---------------------------------------------------------------------------
-const char *SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
+void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 {
 	Fileio fio;
 	off64_t size;
@@ -76,7 +77,7 @@ const char *SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return "Can't open hard disk file read-only";
+		throw ioexception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
@@ -86,28 +87,24 @@ const char *SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	if (size >= (off64_t)sizeof(hdr)) {
 		if (!fio.Read(hdr, sizeof(hdr))) {
 			fio.Close();
-			return "Can't read hard disk file header";
+			throw ioexception("Can't read hard disk file header");
 		}
 	}
 	fio.Close();
 
 	// Must be in 512 byte units
 	if (size & 0x1ff) {
-		return "File size must be a multiple of 512";
+		throw ioexception("File size must be a multiple of 512 bytes");
 	}
 
-	// 10MB or more
-	if (size < 0x9f5400) {
-		return FALSE;
-	}
 	// 2TB according to xm6i
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		return "File size must not exceed 2 TB";
+		throw ioexception("File size must not exceed 2 TB");
 	}
 
 	// Determine parameters by extension
 	ext = path.GetFileExt();
-	if (xstrcasecmp(ext, _T(".HDN")) == 0) {
+	if (strcasecmp(ext, _T(".HDN")) == 0) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		imgoffset = 0;
 		imgsize = size;
@@ -117,14 +114,14 @@ const char *SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 		cylinders = (int)(size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
-	} else if (xstrcasecmp(ext, _T(".HDI")) == 0) { // Anex86 HD image?
+	} else if (strcasecmp(ext, _T(".HDI")) == 0) { // Anex86 HD image?
 		imgoffset = getDwordLE(&hdr[4 + 4]);
 		imgsize = getDwordLE(&hdr[4 + 4 + 4]);
 		sectorsize = getDwordLE(&hdr[4 + 4 + 4 + 4]);
 		sectors = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4]);
 		heads = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4]);
 		cylinders = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4 + 4]);
-	} else if (xstrcasecmp(ext, _T(".NHD")) == 0 &&
+	} else if (strcasecmp(ext, _T(".NHD")) == 0 &&
 		memcmp(hdr, "T98HDDIMAGE.R0\0", 15) == 0) { // T98Next HD image?
 		imgoffset = getDwordLE(&hdr[0x10 + 0x100]);
 		cylinders = getDwordLE(&hdr[0x10 + 0x100 + 4]);
@@ -136,12 +133,12 @@ const char *SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Supports 256 or 512 sector sizes
 	if (sectorsize != 256 && sectorsize != 512) {
-		return "Sector size must be 256 or 512";
+		throw ioexception("Sector size must be 256 or 512 bytes");
 	}
 
 	// Image size consistency check
 	if (imgoffset + imgsize > size || (imgsize % sectorsize != 0)) {
-		return "Image size consistency check failed";
+		throw ioexception("Image size consistency check failed");
 	}
 
 	// Sector size
@@ -150,7 +147,7 @@ const char *SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 			break;
 	}
 	if (disk.size <= 0 || disk.size > 16) {
-		return "Invalid disk size";
+		throw ioexception("Invalid disk size");
 	}
 
 	// Number of blocks
@@ -158,7 +155,7 @@ const char *SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	disk.imgoffset = imgoffset;
 
 	// Call the base class
-	return Disk::Open(path);
+	Disk::Open(path);
 }
 
 //---------------------------------------------------------------------------

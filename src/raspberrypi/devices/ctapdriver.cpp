@@ -24,7 +24,7 @@
 #include "xm6.h"
 #include "ctapdriver.h"
 #include "log.h"
-
+#include "exceptions.h"
 
 //---------------------------------------------------------------------------
 //
@@ -247,7 +247,7 @@ BOOL CTapDriver::Init()
 }
 #endif // __NetBSD__
 
-const char *CTapDriver::OpenDump(const Filepath& path) {
+void CTapDriver::OpenDump(const Filepath& path) {
 	if (m_pcap == NULL) {
 		m_pcap = pcap_open_dead(DLT_EN10MB, 65535);
 	}
@@ -257,10 +257,10 @@ const char *CTapDriver::OpenDump(const Filepath& path) {
 	m_pcap_dumper = pcap_dump_open(m_pcap, path.GetPath());
 	if (m_pcap_dumper == NULL) {
 		LOGERROR("Error: can't open pcap file: %s", pcap_geterr(m_pcap));
-		return "Can't open pcap file";
+		throw ioexception("Can't open pcap file");
 	}
+
 	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath());
-	return NULL;
 }
 
 //---------------------------------------------------------------------------

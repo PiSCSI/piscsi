@@ -16,7 +16,7 @@
 #include "sasihd.h"
 #include "xm6.h"
 #include "fileio.h"
-
+#include "exceptions.h"
 
 //===========================================================================
 //
@@ -55,14 +55,14 @@ void SASIHD::Reset()
 //	Open
 //
 //---------------------------------------------------------------------------
-const char *SASIHD::Open(const Filepath& path, BOOL /*attn*/)
+void SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 {
 	ASSERT(!disk.ready);
 
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return "Can't open hard disk file read-only";
+		throw ioexception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
@@ -78,24 +78,24 @@ const char *SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 		disk.blocks = (DWORD)(size >> 10);
 
 		// Call the base class
-		return Disk::Open(path);
+		Disk::Open(path);
 	}
 	#endif	// USE_MZ1F23_1024_SUPPORT
 
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Must be in 256-byte units
 	if (size & 0xff) {
-		return "File size must be a multiple of 512";
+		throw ioexception("File size must be a multiple of 512 bytes");
 	}
 
 	// 10MB or more
 	if (size < 0x9f5400) {
-		return FALSE;
+		throw ioexception("File size must be at least 10 MB");
 	}
 
 	// Limit to about 512MB
 	if (size > 512 * 1024 * 1024) {
-		return "File size must not exceed 512 MB";
+		throw ioexception("File size must not exceed 512 MB");
 	}
 	#else
 	// 10MB, 20MB, 40MBのみ
@@ -114,7 +114,7 @@ const char *SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 
 		// Other (Not supported )
 		default:
-			return "Unsupported file size";
+			throw ioexception("Unsupported file size");
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 
@@ -123,7 +123,7 @@ const char *SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 	disk.blocks = (DWORD)(size >> 8);
 
 	// Call the base class
-	return Disk::Open(path);
+	Disk::Open(path);
 }
 
 //---------------------------------------------------------------------------

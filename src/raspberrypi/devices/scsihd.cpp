@@ -16,6 +16,7 @@
 #include "scsihd.h"
 #include "xm6.h"
 #include "fileio.h"
+#include "exceptions.h"
 
 //===========================================================================
 //
@@ -54,14 +55,14 @@ void SCSIHD::Reset()
 //	Open
 //
 //---------------------------------------------------------------------------
-const char *SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
+void SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 {
 	ASSERT(!disk.ready);
 
 	// read open required
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return "Can't open hard disk file read-only";
+		throw ioexception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
@@ -70,14 +71,14 @@ const char *SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Must be 512 bytes
 	if (size & 0x1ff) {
-		return "File size must be a multiple of 512 bytes";
+		throw ioexception("File size must be a multiple of 512 bytes");
 	}
 
     // 2TB according to xm6i
     // There is a similar one in wxw/wxw_cfg.cpp
 	// Bigger files/drives require READ/WRITE(16) to be implemented
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		return "File size must not exceed 2 TB";
+		throw ioexception("File size must not exceed 2 TB");
 	}
 
 	// sector size and number of blocks
@@ -85,7 +86,7 @@ const char *SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 	disk.blocks = (DWORD)(size >> 9);
 
 	// Call base class
-	return Disk::Open(path);
+	Disk::Open(path);
 }
 
 //---------------------------------------------------------------------------

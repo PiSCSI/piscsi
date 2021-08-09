@@ -136,6 +136,9 @@ PbDeviceType MapIdToType(const string& id, bool is_sasi)
 	else if (id == "SCDP") {
 		return DAYNAPORT;
 	}
+	else if (id == "SCNL") {
+		return NUVOLINK;
+	}
 	else {
 		return UNDEFINED;
 	}
@@ -159,6 +162,9 @@ string MapTypeToId(const PbDeviceType type)
 
 		case DAYNAPORT:
 			return "SCDP";
+
+		case NUVOLINK:
+			return "SCNL";
 
 		default:
 			return "????";

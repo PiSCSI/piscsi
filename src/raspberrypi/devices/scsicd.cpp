@@ -17,6 +17,7 @@
 #include "xm6.h"
 #include "scsicd.h"
 #include "fileio.h"
+#include "exceptions.h"
 
 //===========================================================================
 //
@@ -286,7 +287,7 @@ SCSICD::~SCSICD()
 //	Open
 //
 //---------------------------------------------------------------------------
-const char *SCSICD::Open(const Filepath& path, BOOL attn)
+void SCSICD::Open(const Filepath& path, BOOL attn)
 {
 	Fileio fio;
 	off64_t size;
@@ -301,7 +302,7 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return "Can't open CD-ROM file read-only";
+		throw ioexception("Can't open CD-ROM file read-only");
 	}
 
 	// Close and transfer for physical CD access
@@ -310,15 +311,13 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 		fio.Close();
 
 		// Open physical CD
-		if (!OpenPhysical(path)) {
-			return "Can't open physical CD";
-		}
+		OpenPhysical(path);
 	} else {
 		// Get file size
         size = fio.GetFileSize();
 		if (size <= 4) {
 			fio.Close();
-			return "Invalid file size";
+			throw ioexception("CD-ROM file size must be at least 4 bytes");
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
@@ -327,16 +326,12 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 		fio.Close();
 
 		// If it starts with FILE, consider it as a CUE sheet
-		if (xstrncasecmp(file, _T("FILE"), 4) == 0) {
+		if (strncasecmp(file, _T("FILE"), 4) == 0) {
 			// Open as CUE
-			if (!OpenCue(path)) {
-				return "Can't open as CUE";
-			}
+			OpenCue(path);
 		} else {
 			// Open as ISO
-			if (!OpenIso(path)) {
-				return "Can't open as ISO";
-			}
+			OpenIso(path);
 		}
 	}
 
@@ -358,8 +353,6 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 	if (disk.ready && attn) {
 		disk.attn = TRUE;
 	}
-
-	return NULL;
 }
 
 //---------------------------------------------------------------------------
@@ -367,10 +360,9 @@ const char *SCSICD::Open(const Filepath& path, BOOL attn)
 //	Open (CUE)
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::OpenCue(const Filepath& /*path*/)
+void SCSICD::OpenCue(const Filepath& /*path*/)
 {
-	// Always fail
-	return FALSE;
+	throw ioexception("Opening CUE CD-ROM files is not supported");
 }
 
 //---------------------------------------------------------------------------
@@ -378,7 +370,7 @@ BOOL SCSICD::OpenCue(const Filepath& /*path*/)
 //	Open (ISO)
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::OpenIso(const Filepath& path)
+void SCSICD::OpenIso(const Filepath& path)
 {
 	BYTE header[12];
 	BYTE sync[12];
@@ -386,20 +378,20 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		throw ioexception("Can't open ISO CD-ROM file read-only");
 	}
 
 	// Get file size
 	off64_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
-		return FALSE;
+		throw ioexception("ISO CD-ROM file size must be at least 2048 bytes");
 	}
 
 	// Read the first 12 bytes and close
 	if (!fio.Read(header, sizeof(header))) {
 		fio.Close();
-		return FALSE;
+		throw ioexception("Can't read header of ISO CD-ROM file");
 	}
 
 	// Check if it is RAW format
@@ -411,14 +403,14 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 		// 00,FFx10,00, so it is presumed to be RAW format
 		if (!fio.Read(header, 4)) {
 			fio.Close();
-			return FALSE;
+			throw ioexception("Can't read header of raw ISO CD-ROM file");
 		}
 
 		// Supports MODE1/2048 or MODE1/2352 only
 		if (header[3] != 0x01) {
 			// Different mode
 			fio.Close();
-			return FALSE;
+			throw ioexception("Illegal raw ISO CD-ROM file header");
 		}
 
 		// Set to RAW file
@@ -429,10 +421,10 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 	if (rawfile) {
 		// Size must be a multiple of 2536 and less than 700MB
 		if (size % 0x930) {
-			return FALSE;
+			throw ioexception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes");
 		}
 		if (size > 912579600) {
-			return FALSE;
+			throw ioexception("Raw ISO CD-ROM file size must not exceed 700 MB");
 		}
 
 		// Set the number of blocks
@@ -440,10 +432,10 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 	} else {
 		// Size must be a multiple of 2048 and less than 700MB
 		if (size & 0x7ff) {
-			return FALSE;
+			throw ioexception("ISO CD-ROM file size must be a multiple of 2048 bytes");
 		}
 		if (size > 0x2bed5000) {
-			return FALSE;
+			throw ioexception("ISO CD-ROM file size must not exceed 700 MB");
 		}
 
 		// Set the number of blocks
@@ -457,9 +449,6 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 	track[0]->SetPath(FALSE, path);
 	tracks = 1;
 	dataindex = 0;
-
-	// Successful opening
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------
@@ -467,19 +456,19 @@ BOOL SCSICD::OpenIso(const Filepath& path)
 //	Open (Physical)
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::OpenPhysical(const Filepath& path)
+void SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		throw ioexception("Can't open CD-ROM file read-only");
 	}
 
 	// Get size
 	off64_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
-		return FALSE;
+		throw ioexception("CD-ROM file size must be at least 2048 bytes");
 	}
 
 	// Close
@@ -487,10 +476,10 @@ BOOL SCSICD::OpenPhysical(const Filepath& path)
 
 	// Size must be a multiple of 2048 and less than 700MB
 	if (size & 0x7ff) {
-		return FALSE;
+		throw ioexception("CD-ROM file size must be a multiple of 2048 bytes");
 	}
 	if (size > 0x2bed5000) {
-		return FALSE;
+		throw ioexception("CD-ROM file size must not exceed 700 MB");
 	}
 
 	// Set the number of blocks
@@ -503,9 +492,6 @@ BOOL SCSICD::OpenPhysical(const Filepath& path)
 	track[0]->SetPath(FALSE, path);
 	tracks = 1;
 	dataindex = 0;
-
-	// Successful opening
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------

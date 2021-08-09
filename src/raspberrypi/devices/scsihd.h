@@ -30,7 +30,7 @@ public:
 	// Basic Functions
 	SCSIHD();								// Constructor
 	void Reset();							// Reset
-	const char *Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
