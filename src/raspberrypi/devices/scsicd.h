@@ -134,9 +134,9 @@ public:
 
 private:
 	// Open
-	BOOL OpenCue(const Filepath& path);				// Open(CUE)
-	BOOL OpenIso(const Filepath& path);				// Open(ISO)
-	BOOL OpenPhysical(const Filepath& path);			// Open(Physical)
+	void OpenCue(const Filepath& path);				// Open(CUE)
+	void OpenIso(const Filepath& path);				// Open(ISO)
+	void OpenPhysical(const Filepath& path);			// Open(Physical)
 	BOOL rawfile;								// RAW flag
 
 	// Track management
