@@ -17,9 +17,11 @@ enum PbDeviceType {
 // rascsi remote operations
 enum PbOperation {
     NONE = 0;
+    // Returns the full server information
     SERVER_INFO = 1;
-    LOG_LEVEL = 2;
-    LIST = 3;
+    // Returns the device list only (required for rasctl/logging semantics compatibility)
+    LIST = 2 [deprecated = true];
+    LOG_LEVEL = 3;
     ATTACH = 4;
     DETACH = 5;
     INSERT = 6;
@@ -43,7 +45,6 @@ message PbResult {
     string msg = 2;
 }
 
-
 // The device meta data
 message PbDevice {
     int32 id = 1;
@@ -53,7 +54,7 @@ message PbDevice {
     bool read_only = 5;
     // Note: Read-only media (e.g. CD-ROMs) are not protectable
     bool protectable = 6;
-    // Note: Read-only media (e.g. CD-ROMs) are not protected by just read-only
+    // Note: Read-only media (e.g. CD-ROMs) are not protected but just read-only
     bool protected = 7;
     bool removable = 8;
     bool removed = 9;
@@ -75,4 +76,6 @@ message PbServerInfo {
     string default_image_folder = 4;
     // Files in the default folder
     repeated string available_image_files = 5;
+    // The attached devices
+    PbDevices devices = 6;
 }

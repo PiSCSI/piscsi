@@ -267,7 +267,7 @@ void Reset()
 //	Get the list of attached devices
 //
 //---------------------------------------------------------------------------
-PbDevices GetDevices() {
+const PbDevices GetDevices() {
 	PbDevices devices;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
@@ -433,8 +433,12 @@ bool MapController(Disk **map)
 
 bool ReturnStatus(int fd, bool status = true, const string msg = "")
 {
+	if (!status && !msg.empty()) {
+		LOGWARN("%s", msg.c_str());
+	}
+
 	if (fd == -1) {
-		if (msg.length()) {
+		if (!msg.empty()) {
 			FPRT(stderr, "Error: ");
 			FPRT(stderr, msg.c_str());
 			FPRT(stderr, "\n");
@@ -487,7 +491,7 @@ bool SetLogLevel(const string& log_level)
 	return true;
 }
 
-void LogDeviceList(const string& device_list)
+void LogDevices(const string& device_list)
 {
 	stringstream ss(device_list);
 	string line;
@@ -536,10 +540,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params;
 	LOGINFO("%s", s.str().c_str());
 
-	// Copy the Unit List
-	Disk *map[CtrlMax * UnitNum];
-	memcpy(map, disk, sizeof(disk));
-
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
 		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
@@ -558,9 +558,13 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		ext = params.substr(len - 3);
 	}
 
+	// Copy the Unit List
+	Disk *map[CtrlMax * UnitNum];
+	memcpy(map, disk, sizeof(disk));
+
 	// Connect Command
 	if (cmd == ATTACH) {
-		if (map[id]) {
+		if (map[id * UnitNum + un]) {
 			error << "Duplicate ID " << id;
 			return ReturnStatus(fd, false, error);
 		}
@@ -642,7 +646,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 					delete pUnit;
 
 					error << "Tried to open an invalid file '" << file << "': " << e.getmsg();
-					LOGWARN("%s", error.str().c_str());
 					return ReturnStatus(fd, false, error);
 				}
 			}
@@ -672,17 +675,15 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Does the controller exist?
 	if (ctrl[id] == NULL) {
-		LOGWARN("Received a command for invalid controller %d", id);
-
-		return ReturnStatus(fd, false, "No such device");
+		error << "Received a command for invalid ID " << id;
+		return ReturnStatus(fd, false, error);
 	}
 
 	// Does the unit exist?
 	pUnit = disk[id * UnitNum + un];
 	if (pUnit == NULL) {
-		LOGWARN("Received a command for invalid unit ID %d UN %d", id, un);
-
-		return ReturnStatus(fd, false, "No such device");
+		error << "Received a command for invalid ID " << id << ", unit " << un;
+		return ReturnStatus(fd, false, error);
 	}
 
 	// Disconnect Command
@@ -704,16 +705,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
 	if ((cmd == INSERT || cmd == EJECT) && !pUnit->IsRemovable()) {
-		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
-
-		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't removable)";
+		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't removable)";
 		return ReturnStatus(fd, false, error);
 	}
 
 	if ((cmd == PROTECT || cmd == UNPROTECT) && (!pUnit->IsProtectable() || pUnit->IsReadOnly())) {
-		LOGWARN("%s requested for incompatible type %s", PbOperation_Name(cmd).c_str(), pUnit->GetID().c_str());
-
-		error << "Operation denied (Device type " << pUnit->GetID().c_str() << " isn't protectable)";
+		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't protectable)";
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -761,7 +758,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		default:
 			error << "Received unknown command: " << PbOperation_Name(cmd);
-			LOGWARN("%s", error.str().c_str());
 			return ReturnStatus(fd, false, error);
 	}
 
@@ -867,10 +863,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	}
 
 	// Display and log the device list
-	const PbDevices devices = GetDevices();
-	const string device_list = ListDevices(devices);
-	cout << device_list << endl;
-	LogDeviceList(device_list);
+	const string devices = ListDevices(GetDevices());
+	cout << devices << endl;
+	LogDevices(devices);
 
 	return true;
 }
@@ -940,7 +935,7 @@ static void *MonThread(void *param)
 				case LIST: {
 					const PbDevices devices = GetDevices();
 					SerializeMessage(fd, devices);
-					LogDeviceList(ListDevices(devices));
+					LogDevices(ListDevices(devices));
 					break;
 				}
 
@@ -964,6 +959,7 @@ static void *MonThread(void *param)
 					serverInfo.set_current_log_level(current_log_level);
 					serverInfo.set_default_image_folder(default_image_folder);
 					GetAvailableImages(serverInfo);
+					serverInfo.set_allocated_devices(new PbDevices(GetDevices()));
 					SerializeMessage(fd, serverInfo);
 					break;
 				}
