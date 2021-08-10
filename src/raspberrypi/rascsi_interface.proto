@@ -1,3 +1,8 @@
+//
+// Each rascsi remote interface message is preceded by a little endian 32 bit header,
+// which contains the protobuf message size.
+//
+
 syntax = "proto3";
 
 package rascsi_interface;

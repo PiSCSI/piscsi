@@ -117,7 +117,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout,"  mos : SCSI MO image (XM6 SCSI MO image)\n");
 		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
 
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 }
 
@@ -130,7 +130,7 @@ void Banner(int argc, char* argv[])
 BOOL InitService(int port)
 {
 	int result = pthread_mutex_init(&ctrl_mutex,NULL);
-	if(result != EXIT_SUCCESS){
+	if (result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Err code: %d", result);
 		return FALSE;
 	}
@@ -145,10 +145,11 @@ BOOL InitService(int port)
 
 	// allow address reuse
 	int yes = 1;
-	if (setsockopt(
-		monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0){
+	if (setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		return FALSE;
 	}
+
+	signal(SIGPIPE, SIG_IGN);
 
 	// Bind
 	if (bind(monsocket, (struct sockaddr *)&server,
@@ -457,8 +458,13 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "")
 
 	if (fd == -1) {
 		if (!msg.empty()) {
-			FPRT(stderr, "Error: ");
-			FPRT(stderr, msg.c_str());
+			if (status) {
+				FPRT(stderr, "Error: ");
+				FPRT(stderr, msg.c_str());
+			}
+			else {
+				FPRT(stdout, msg.c_str());
+			}
 		}
 	}
 	else {
@@ -735,7 +741,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 	// Disconnect Command
 	if (cmd == DETACH) {
-		LOGINFO("Disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
+		LOGINFO("Disconnect %s at ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
 
 		// Free the existing unit
 		map[id * UnitNum + unit] = NULL;
@@ -768,7 +774,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			}
 
 			filepath.SetPath(params.c_str());
-			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, unit);
+			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", params.c_str(), pUnit->GetID().c_str(), id, unit);
 
 			try {
 				pUnit->Open(filepath);
@@ -789,17 +795,17 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			break;
 
 		case EJECT:
-			LOGINFO("Eject requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
+			LOGINFO("Eject requested for %s ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
 			pUnit->Eject(true);
 			break;
 
 		case PROTECT:
-			LOGINFO("Write protection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
+			LOGINFO("Write protection requested for %s ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
 			pUnit->WriteP(true);
 			break;
 
 		case UNPROTECT:
-			LOGINFO("Write unprotection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
+			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
 			pUnit->WriteP(false);
 			break;
 
@@ -820,10 +826,6 @@ bool ProcessCmd(int fd, const PbCommand& command)
 	}
 
 	return true;
-}
-
-bool has_suffix(const string& filename, const string& suffix) {
-    return filename.size() >= suffix.size() && !filename.compare(filename.size() - suffix.size(), suffix.size(), suffix);
 }
 
 //---------------------------------------------------------------------------
@@ -888,7 +890,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 			case 'v':
 				cout << rascsi_get_version_string() << endl;
-				exit(0);
+				exit(EXIT_SUCCESS);
 				break;
 
 			default:
@@ -963,8 +965,6 @@ void FixCpu(int cpu)
 //---------------------------------------------------------------------------
 static void *MonThread(void *param)
 {
-	int fd;
-
     // Scheduler Settings
 	struct sched_param schedparam;
 	schedparam.sched_priority = 0;
@@ -981,8 +981,10 @@ static void *MonThread(void *param)
 	// Set up the monitor socket to receive commands
 	listen(monsocket, 1);
 
-	try {
-		while (true) {
+	while (true) {
+		int fd;
+
+		try {
 			// Wait for connection
 			struct sockaddr_in client;
 			socklen_t socklen = sizeof(client);
@@ -1039,19 +1041,16 @@ static void *MonThread(void *param)
 					break;
 				}
 			}
-
-			close(fd);
-			fd = -1;
 		}
-	}
-	catch(const ioexception& e) {
-		LOGERROR("%s", e.getmsg().c_str());
+		catch(const ioexception& e) {
+			LOGWARN("%s", e.getmsg().c_str());
 
-		// Fall through
-	}
+			// Fall through
+		}
 
-    if (fd >= 0) {
-		close(fd);
+		if (fd >= 0) {
+			close(fd);
+		}
 	}
 
 	return NULL;

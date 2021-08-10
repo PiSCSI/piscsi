@@ -65,7 +65,7 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
         	close(fd);
         }
 
-        exit(fd < 0 ? ENOTCONN : -1);
+        exit(fd < 0 ? ENOTCONN : EXIT_FAILURE);
     }
 
     return fd;
@@ -120,7 +120,7 @@ void CommandList(const string& hostname, int port)
 
 		close(fd);
 
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	close (fd);
@@ -155,7 +155,7 @@ void CommandServerInfo(const string& hostname, int port)
 
 		close(fd);
 
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	close(fd);
@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -l" << endl;
 		cerr << "       Print device list." << endl;
 
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	// Parse the arguments
@@ -320,7 +320,7 @@ int main(int argc, char* argv[])
 				port = atoi(optarg);
 				if (port <= 0 || port > 65535) {
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
-					exit(-1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 
@@ -335,7 +335,7 @@ int main(int argc, char* argv[])
 
 			case 'v':
 				cout << rascsi_get_version_string() << endl;
-				exit(0);
+				exit(EXIT_SUCCESS);
 				break;
 		}
 	}
@@ -344,18 +344,18 @@ int main(int argc, char* argv[])
 
 	if (command.cmd() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, params);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	if (command.cmd() == SERVER_INFO) {
 		CommandServerInfo(hostname, port);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	// List display only
 	if (command.cmd() == LIST || (device->id() < 0 && device->type() == UNDEFINED && image_file.filename().empty())) {
 		CommandList(hostname, port);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	// Send the command
@@ -364,5 +364,5 @@ int main(int argc, char* argv[])
 	close(fd);
 
 	// All done!
-	exit(status ? 0 : -1);
+	exit(status ? EXIT_SUCCESS : EXIT_FAILURE);
 }
