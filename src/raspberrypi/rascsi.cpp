@@ -552,12 +552,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		return ReturnStatus(fd, false, error);
 	}
 
-	string ext;
-	int len = params.length();
-	if (len > 4 && params[len - 4] == '.') {
-		ext = params.substr(len - 3);
-	}
-
 	// Copy the Unit List
 	Disk *map[CtrlMax * UnitNum];
 	memcpy(map, disk, sizeof(disk));
@@ -567,6 +561,28 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		if (map[id * UnitNum + un]) {
 			error << "Duplicate ID " << id;
 			return ReturnStatus(fd, false, error);
+		}
+
+		string file = params;
+
+		// Try to extract the file type from the filename. Convention: "filename:type".
+		size_t separatorPos = file.find(':');
+		if (separatorPos != string::npos) {
+			string t = file.substr(separatorPos + 1);
+			transform(t.begin(), t.end(), t.begin(), ::toupper);
+
+			if (!PbDeviceType_Parse(t, &type)) {
+				error << "Invalid device type " << t;
+				return ReturnStatus(fd, false, error);
+			}
+
+			file = file.substr(0, separatorPos);
+		}
+
+		string ext;
+		int len = file.size();
+		if (len > 4 && file[len - 4] == '.') {
+			ext = file.substr(len - 3);
 		}
 
 		// If no type was specified try to derive the file type from the extension
@@ -584,7 +600,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		}
 
 		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
-		if ((type == SASI_HD || type == SCSI_HD) && params.empty()) {
+		if ((type == SASI_HD || type == SCSI_HD) && file.empty()) {
 			return ReturnStatus(fd, false, "Missing filename");
 		}
 
@@ -625,9 +641,6 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 		// drive checks files
 		if (type != BR && type != DAYNAPORT && !command.params().empty()) {
-			// Strip the image file extension from device file names, so that device files can be used as drive images
-			string file = params.find("/dev/") ? params : params.substr(0, params.length() - 4);
-
 			// Set the Path
 			filepath.SetPath(file.c_str());
 
