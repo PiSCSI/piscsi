@@ -721,9 +721,10 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		bool status = MapController(map);
 		if (status) {
 	        LOGINFO("Added new %s device, ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
+	        return true;
 		}
 
-		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
+		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 	}
 
 	// Does the controller exist?
@@ -741,8 +742,6 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 	// Disconnect Command
 	if (cmd == DETACH) {
-		LOGINFO("Disconnect %s at ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
-
 		// Free the existing unit
 		map[id * UnitNum + unit] = NULL;
 
@@ -752,8 +751,12 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 		// Re-map the controller
 		bool status = MapController(map);
+		if (status) {
+	        LOGINFO("Disconnected %s device, ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
+			return true;
+		}
 
-		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
+		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 	}
 
 	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
@@ -825,7 +828,7 @@ bool ProcessCmd(int fd, const PbCommand& command)
 		}
 	}
 
-	ReturnStatus(fd);
+	return ReturnStatus(fd);
 }
 
 //---------------------------------------------------------------------------
