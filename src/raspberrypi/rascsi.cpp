@@ -814,7 +814,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			return ReturnStatus(fd, false, error);
 	}
 
-	return true
+	return true;
 }
 
 bool ProcessCmd(int fd, const PbCommand& command)
