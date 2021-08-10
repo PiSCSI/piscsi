@@ -223,10 +223,10 @@ int main(int argc, char* argv[])
 
 	// Parse the arguments
 	int opt;
-	int id = -1;
-	int un = 0;
-	PbOperation cmd = LIST;
-	PbDeviceType type = UNDEFINED;
+	PbCommand command;
+	command.set_cmd(LIST);
+	PbDevice device;
+	device.set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
 	string params;
@@ -234,37 +234,37 @@ int main(int argc, char* argv[])
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:u:g:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
-				id = optarg[0] - '0';
+				device.set_id(optarg[0] - '0');
 				break;
 
 			case 'u':
-				un = optarg[0] - '0';
+				device.set_unit(optarg[0] - '0');
 				break;
 
 			case 'c':
 				switch (tolower(optarg[0])) {
 					case 'a':
-						cmd = ATTACH;
+						command.set_cmd(ATTACH);
 						break;
 
 					case 'd':
-						cmd = DETACH;
+						command.set_cmd(DETACH);
 						break;
 
 					case 'i':
-						cmd = INSERT;
+						command.set_cmd(INSERT);
 						break;
 
 					case 'e':
-						cmd = EJECT;
+						command.set_cmd(EJECT);
 						break;
 
 					case 'p':
-						cmd = PROTECT;
+						command.set_cmd(PROTECT);
 						break;
 
 					case 'u':
-						cmd = UNPROTECT;
+						command.set_cmd(UNPROTECT);
 						break;
 				}
 				break;
@@ -272,41 +272,41 @@ int main(int argc, char* argv[])
 			case 't':
 				switch (tolower(optarg[0])) {
 					case 's':
-						type = SAHD;
+						device.set_type(SAHD);
 						break;
 
 					case 'h':
-						type = SCHD;
+						device.set_type(SCHD);
 						break;
 
 					case 'r':
-						type = SCRM;
+						device.set_type(SCRM);
 						break;
 
 					case 'm':
-						type = SCMO;
+						device.set_type(SCMO);
 						break;
 
 					case 'c':
-						type = SCCD;
+						device.set_type(SCCD);
 						break;
 
 					case 'b':
-						type = SCBR;
+						device.set_type(SCBR);
 						break;
 
 					case 'd':
-						type = SCDP;
+						device.set_type(SCDP);
 						break;
 				}
 				break;
 
 			case 'f':
-				params = optarg;
+				device.set_file(optarg);
 				break;
 
 			case 'l':
-				cmd = LIST;
+				command.set_cmd(LIST);
 				break;
 
 			case 'h':
@@ -322,12 +322,12 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'g':
-				cmd = LOG_LEVEL;
+				command.set_cmd(LOG_LEVEL);
 				params = optarg;
 				break;
 
 			case 's':
-				cmd = SERVER_INFO;
+				command.set_cmd(SERVER_INFO);
 				break;
 
 			case 'v':
@@ -337,32 +337,25 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if (cmd == LOG_LEVEL) {
+	command.set_allocated_device(new PbDevice(device));
+
+	if (command.cmd() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, params);
 		exit(0);
 	}
 
-	if (cmd == SERVER_INFO) {
+	if (command.cmd() == SERVER_INFO) {
 		CommandServerInfo(hostname, port);
 		exit(0);
 	}
 
 	// List display only
-	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
+	if (command.cmd() == LIST || (device.id() < 0 && device.type() == UNDEFINED && device.file().empty())) {
 		CommandList(hostname, port);
 		exit(0);
 	}
 
-	// Generate the command and send it
-	PbCommand command;
-	command.set_id(id);
-	command.set_un(un);
-	command.set_cmd(cmd);
-	command.set_type(type);
-	if (!params.empty()) {
-		command.set_params(params);
-	}
-
+	// Send the command
 	int fd = SendCommand(hostname, port, command);
 	bool status = ReceiveResult(fd);
 	close(fd);

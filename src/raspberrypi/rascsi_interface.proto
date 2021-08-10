@@ -44,27 +44,10 @@ enum PbOperation {
     UNPROTECT = 9;
 }
 
-// Commands rascsi can execute
-message PbCommand {
-    PbOperation cmd = 1;
-    int32 id = 2;
-    int32 un = 3;
-    PbDeviceType type = 4;
-    string params = 5;
-}
-
-// The result of a command
-message PbResult {
-    // false means that an error occurred
-    bool status = 1;
-    // The (error) message
-    string msg = 2;
-}
-
-// The device meta data
+// The device data
 message PbDevice {
     int32 id = 1;
-    int32 un = 2;
+    int32 unit = 2;
     PbDeviceType type = 3;
     string file = 4;
     bool read_only = 5;
@@ -86,6 +69,23 @@ message PbDevice {
 
 message PbDevices {
     repeated PbDevice devices = 1;
+}
+
+// Commands rascsi can execute and their parameters
+message PbCommand {
+    PbOperation cmd = 1;
+    // The optional device
+    PbDevice device = 2;
+    // The optional parameters
+    string params = 3;
+}
+
+// The result of a command
+message PbResult {
+    // false means that an error occurred
+    bool status = 1;
+    // The (error) message
+    string msg = 2;
 }
 
 // The rascsi server information

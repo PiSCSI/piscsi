@@ -282,7 +282,7 @@ const PbDevices GetDevices() {
 
 		// Initialize ID and unit number
 		device->set_id(i / UnitNum);
-		device->set_un(i % UnitNum);
+		device->set_unit(i % UnitNum);
 
 		// ID,UNIT,Type,Device Status
 		PbDeviceType type;
@@ -527,20 +527,22 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 //	Command Processing
 //
 //---------------------------------------------------------------------------
-bool ProcessCmd(int fd, const PbCommand &command)
+bool ProcessCmd(int fd, const PbCommand& command)
 {
 	Filepath filepath;
 	Disk *pUnit;
 	ostringstream error;
 
-	int id = command.id();
-	int un = command.un();
 	PbOperation cmd = command.cmd();
-	PbDeviceType type = command.type();
+	PbDevice device = command.device();
+	int id = device.id();
+	int unit = device.unit();
+	PbDeviceType type = device.type();
 	string params = command.params().c_str();
 
 	ostringstream s;
-	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params;
+	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
+			<< ", file='" << device.file() << "', params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
@@ -550,8 +552,8 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	}
 
 	// Check the Unit Number
-	if (un < 0 || un >= UnitNum) {
-		error << "Invalid unit " << un << " (0-" << UnitNum - 1 << ")";
+	if (unit < 0 || unit >= UnitNum) {
+		error << "Invalid unit " << unit << " (0-" << UnitNum - 1 << ")";
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -561,12 +563,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 	// Connect Command
 	if (cmd == ATTACH) {
-		if (map[id * UnitNum + un]) {
+		if (map[id * UnitNum + unit]) {
 			error << "Duplicate ID " << id;
 			return ReturnStatus(fd, false, error);
 		}
 
-		string file = params;
+		string file = device.file();
 
 		// Try to extract the file type from the filename. Convention: "filename:type".
 		size_t separatorPos = file.find(':');
@@ -688,12 +690,12 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		pUnit->SetCacheWB(FALSE);
 
 		// Replace with the newly created unit
-		map[id * UnitNum + un] = pUnit;
+		map[id * UnitNum + unit] = pUnit;
 
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-	        LOGINFO("Added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+	        LOGINFO("Added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
 		}
 
 		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
@@ -706,18 +708,18 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	}
 
 	// Does the unit exist?
-	pUnit = disk[id * UnitNum + un];
+	pUnit = disk[id * UnitNum + unit];
 	if (pUnit == NULL) {
-		error << "Received a command for invalid ID " << id << ", unit " << un;
+		error << "Received a command for invalid ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
 	}
 
 	// Disconnect Command
 	if (cmd == DETACH) {
-		LOGINFO("Disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+		LOGINFO("Disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
 
 		// Free the existing unit
-		map[id * UnitNum + un] = NULL;
+		map[id * UnitNum + unit] = NULL;
 
 		Filepath filepath;
 		pUnit->GetPath(filepath);
@@ -747,7 +749,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			}
 
 			filepath.SetPath(params.c_str());
-			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
+			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, unit);
 
 			try {
 				pUnit->Open(filepath);
@@ -768,17 +770,17 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			break;
 
 		case EJECT:
-			LOGINFO("Eject requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			LOGINFO("Eject requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
 			pUnit->Eject(true);
 			break;
 
 		case PROTECT:
-			LOGINFO("Write protection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			LOGINFO("Write protection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
 			pUnit->WriteP(true);
 			break;
 
 		case UNPROTECT:
-			LOGINFO("Write unprotection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+			LOGINFO("Write unprotection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
 			pUnit->WriteP(false);
 			break;
 
@@ -866,21 +868,25 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				break;
 		}
 
-		int un = 0;
+		int unit = 0;
 		if (is_sasi) {
-			un = id % UnitNum;
+			unit = id % UnitNum;
 			id /= UnitNum;
 		}
 
 		// Execute the command
+		PbDevice device;
+		device.set_id(id);
+		device.set_unit(unit);
+		device.set_file(optarg);
 		PbCommand command;
-		command.set_id(id);
-		command.set_un(un);
+		command.set_allocated_device(new PbDevice(device));
 		command.set_cmd(ATTACH);
 		command.set_params(optarg);
 		if (!ProcessCmd(-1, command)) {
 			return false;
 		}
+
 		id = -1;
 	}
 
