@@ -91,9 +91,8 @@ string ListDevices(const PbDevices& devices)
 	ostringstream s;
 
 	if (devices.devices_size()) {
-    	s << endl
-    		<< "+----+----+------+-------------------------------------" << endl
-    		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
+		s << "+----+----+------+-------------------------------------" << endl
+			<< "| ID | UN | TYPE | DEVICE STATUS" << endl
 			<< "+----+----+------+-------------------------------------" << endl;
 	}
 	else {
@@ -108,7 +107,7 @@ string ListDevices(const PbDevices& devices)
 				<< (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
 	}
 
-	s << "+----+----+------+-------------------------------------" << endl;
+	s << "+----+----+------+-------------------------------------";
 
 	return s.str();
 }

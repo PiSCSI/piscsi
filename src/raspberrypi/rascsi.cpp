@@ -461,9 +461,11 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "")
 			if (status) {
 				FPRT(stderr, "Error: ");
 				FPRT(stderr, msg.c_str());
+				FPRT(stderr, "\n");
 			}
 			else {
 				FPRT(stdout, msg.c_str());
+				FPRT(stderr, "\n");
 			}
 		}
 	}
@@ -838,6 +840,7 @@ bool ProcessCmd(int fd, const PbCommand& command)
 //---------------------------------------------------------------------------
 bool ParseArgument(int argc, char* argv[], int& port)
 {
+	PbDevices devices;
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
@@ -909,21 +912,13 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			id /= UnitNum;
 		}
 
-		// Execute the command
-		PbDevices devices;
+		// Set up the device data
 		PbDevice *device = devices.add_devices();
 		device->set_id(id);
 		device->set_unit(unit);
 		PbImageFile image_file;
 		image_file.set_filename(optarg);
 		device->set_allocated_image_file(new PbImageFile(image_file));
-		PbCommand command;
-		command.set_cmd(ATTACH);
-		command.set_allocated_devices(new PbDevices(devices));
-
-		if (!ProcessCmd(-1, command)) {
-			return false;
-		}
 
 		id = -1;
 	}
@@ -932,10 +927,19 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		LOGWARN("Invalid log level '%s'", log_level.c_str());
 	}
 
+	// Attach all specified devices
+	PbCommand command;
+	command.set_cmd(ATTACH);
+	command.set_allocated_devices(new PbDevices(devices));
+
+	if (!ProcessCmd(-1, command)) {
+		return false;
+	}
+
 	// Display and log the device list
-	const string devices = ListDevices(GetDevices());
-	cout << devices << endl;
-	LogDevices(devices);
+	const string deviceList = ListDevices(GetDevices());
+	cout << deviceList << endl;
+	LogDevices(deviceList);
 
 	return true;
 }
