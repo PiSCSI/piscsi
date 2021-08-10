@@ -618,8 +618,7 @@ private:
 
 	DWORD baseaddr;						// Base address
 
-	int rpitype;
-										// Type of Raspberry Pi
+	int rpitype;						// Type of Raspberry Pi
 
 	volatile DWORD *gpio;				// GPIO register
 

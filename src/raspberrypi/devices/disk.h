@@ -203,7 +203,7 @@ public:
 	bool IsNuvolink() const;
 
 	// Media Operations
-	virtual const char *Open(const Filepath& path, BOOL attn = TRUE);	// Open
+	virtual void Open(const Filepath& path, BOOL attn = TRUE);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
 	bool Eject(bool);					// Eject
 	bool IsReady() const		{ return disk.ready; }		// Ready check
