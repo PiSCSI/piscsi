@@ -103,7 +103,7 @@ string ListDevices(const PbDevices& devices)
 	for (int i = 0; i < devices.devices_size() ; i++) {
 		PbDevice device = devices.devices(i);
 
-		s << "|  " << device.id() << " |  " << device.un() << " | " << MapTypeToId(device.type()) << " | "
+		s << "|  " << device.id() << " |  " << device.un() << " | " << PbDeviceType_Name(device.type()) << " | "
 				<< (device.file().empty() ? "NO MEDIA" : device.file())
 				<< (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
 	}
@@ -111,62 +111,4 @@ string ListDevices(const PbDevices& devices)
 	s << "+----+----+------+-------------------------------------" << endl;
 
 	return s.str();
-}
-
-//---------------------------------------------------------------------------
-//
-//	Map the device ID to the PbDeviceType and vice versa
-//
-//---------------------------------------------------------------------------
-
-PbDeviceType MapIdToType(const string& id, bool is_sasi)
-{
-	if (id == "SCHD") {
-		return is_sasi ? SASI_HD : SCSI_HD;
-	}
-	else if (id == "SCMO") {
-		return MO;
-	}
-	else if (id == "SCCD") {
-		return CD;
-	}
-	else if (id == "SCBR") {
-		return BR;
-	}
-	else if (id == "SCDP") {
-		return DAYNAPORT;
-	}
-	else if (id == "SCNL") {
-		return NUVOLINK;
-	}
-	else {
-		return UNDEFINED;
-	}
-}
-
-string MapTypeToId(const PbDeviceType type)
-{
-	switch (type) {
-		case SASI_HD:
-		case SCSI_HD:
-			return "SCHD";
-
-		case MO:
-			return "SCMO";
-
-		case CD:
-			return "SCCD";
-
-		case BR:
-			return "SCBR";
-
-		case DAYNAPORT:
-			return "SCDP";
-
-		case NUVOLINK:
-			return "SCNL";
-
-		default:
-			return "????";
-	}
 }

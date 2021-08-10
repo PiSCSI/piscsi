@@ -209,7 +209,7 @@ int main(int argc, char* argv[])
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
-		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
+		cerr << "        TYPE := {hd|rm|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
 		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
@@ -272,31 +272,31 @@ int main(int argc, char* argv[])
 			case 't':
 				switch (tolower(optarg[0])) {
 					case 's':
-						type = SASI_HD;
+						type = SAHD;
 						break;
 
 					case 'h':
-						type = SCSI_HD;
+						type = SCHD;
+						break;
+
+					case 'r':
+						type = SCRM;
 						break;
 
 					case 'm':
-						type = MO;
+						type = SCMO;
 						break;
 
 					case 'c':
-						type = CD;
+						type = SCCD;
 						break;
 
 					case 'b':
-						type = BR;
+						type = SCBR;
 						break;
 
-					// case 'n':
-					// 	type = NUVOLINK;
-					// 	break;
-
 					case 'd':
-						type = DAYNAPORT;
+						type = SCDP;
 						break;
 				}
 				break;

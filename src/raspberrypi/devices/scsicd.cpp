@@ -250,9 +250,8 @@ CDDABuf::~CDDABuf()
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSICD::SCSICD() : Disk("SCCD")
+SCSICD::SCSICD() : Disk("SCCD", true)
 {
-	disk.removable = true;
 	disk.lockable = true;
 	disk.writep = true;
 

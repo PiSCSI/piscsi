@@ -284,7 +284,9 @@ const PbDevices GetDevices() {
 		device->set_un(i % UnitNum);
 
 		// ID,UNIT,Type,Device Status
-		device->set_type(MapIdToType(pUnit->GetID(), pUnit->IsSASI()));
+		PbDeviceType type;
+		PbDeviceType_Parse(pUnit->GetID(), &type);
+		device->set_type(type);
 
 		// mount status output
 		if (pUnit->IsBridge()) {
@@ -588,59 +590,66 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		// If no type was specified try to derive the file type from the extension
 		if (type == UNDEFINED) {
 			if (ext == "hdf") {
-				type = SASI_HD;
+				type = SAHD;
 			}
 			else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
-				type = SCSI_HD;
+				type = SCHD;
 			} else if (ext == "mos") {
-				type = MO;
+				type = SCMO;
 			} else if (ext == "iso") {
-				type = CD;
+				type = SCCD;
 			}
 		}
 
 		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
-		if ((type == SASI_HD || type == SCSI_HD) && file.empty()) {
+		if ((type == SAHD || type == SCHD) && file.empty()) {
 			return ReturnStatus(fd, false, "Missing filename");
 		}
 
 		// Create a new drive, based upon type
 		pUnit = NULL;
 		switch (type) {
-			case SASI_HD:		// HDF
+			case SAHD:		// HDF
 				pUnit = new SASIHD();
 				break;
-			case SCSI_HD:		// HDS/HDN/HDI/NHD/HDA
+
+			case SCHD:		// HDS/HDN/HDI/NHD/HDA
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-					pUnit = new SCSIHD_NEC();
+					pUnit = new SCSIHD_NEC(false);
 				} else if (ext == "hda") {
-					pUnit = new SCSIHD_APPLE();
+					pUnit = new SCSIHD_APPLE(false);
 				} else {
-					pUnit = new SCSIHD();
+					pUnit = new SCSIHD(false);
 				}
 				break;
-			case MO:
+
+			case SCRM:
+				pUnit = new SCSIHD(true);
+				break;
+
+			case SCMO:
 				pUnit = new SCSIMO();
 				break;
-			case CD:
+
+			case SCCD:
 				pUnit = new SCSICD();
 				break;
-			case BR:
+
+			case SCBR:
 				pUnit = new SCSIBR();
 				break;
-			// case NUVOLINK:
-			// 	pUnit = new SCSINuvolink();
-			// 	break;
-			case DAYNAPORT:
+
+			case SCDP:
 				pUnit = new SCSIDaynaPort();
 				break;
+
 			default:
 				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
 				return ReturnStatus(fd, false, error);
 		}
 
 		// drive checks files
-		if (type != BR && type != DAYNAPORT && !command.params().empty()) {
+		if (type != SCBR && type != SCDP && !command.params().empty()) {
 			// Set the Path
 			filepath.SetPath(file.c_str());
 

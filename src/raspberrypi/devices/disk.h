@@ -188,19 +188,18 @@ public:
 
 public:
 	// Basic Functions
-	Disk(std::string);							// Constructor
+	Disk(std::string, bool);					// Constructor
 	virtual ~Disk();							// Destructor
 	virtual void Reset();						// Device Reset
 
 	// ID
 	const std::string& GetID() const;			// Get media ID
 	bool IsSASI() const;						// SASI Check
-	bool IsSCSI() const;						// SASI Check
 	bool IsCdRom() const;
 	bool IsMo() const;
 	bool IsBridge() const;
 	bool IsDaynaPort() const;
-	bool IsNuvolink() const;
+	bool IsScsiDevice() const;
 
 	// Media Operations
 	virtual void Open(const Filepath& path, BOOL attn = TRUE);	// Open

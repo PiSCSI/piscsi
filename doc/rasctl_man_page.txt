@@ -61,7 +61,8 @@ OPTIONS
               tension of the specified image, the TYPE  argument  is  ignored.
               Available drive types are:
                  hd: Hard disk (SCSI or SASI)
-                 mo: Magneto-Optical disk)
+                 rm: Removable hard disk (SCSI)
+                 mo: Magneto-Optical disk
                  cd: CD-ROM
                  bridge:  Bridge  device (This is only applicable to the Sharp
               X68000)

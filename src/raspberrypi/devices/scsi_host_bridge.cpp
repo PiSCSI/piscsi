@@ -32,7 +32,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIBR::SCSIBR() : Disk("SCBR")
+SCSIBR::SCSIBR() : Disk("SCBR", false)
 {
 	disk.supports_file = false;
 

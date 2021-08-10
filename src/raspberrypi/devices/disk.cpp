@@ -703,7 +703,7 @@ void DiskCache::Update()
 //	Constructor
 //
 //---------------------------------------------------------------------------
-Disk::Disk(std::string id)
+Disk::Disk(std::string id, bool removable)
 {
 	assert(id.length() == 4);
 
@@ -714,7 +714,7 @@ Disk::Disk(std::string id)
 	disk.protectable = false;
 	disk.writep = false;
 	disk.readonly = false;
-	disk.removable = false;
+	disk.removable = removable;
 	disk.removed = false;
 	disk.lockable = false;
 	disk.locked = false;
@@ -809,11 +809,6 @@ bool Disk::IsSASI() const
 	return disk.id == "SAHD";
 }
 
-bool Disk::IsSCSI() const
-{
-	return disk.id == "SCHD";
-}
-
 bool Disk::IsCdRom() const
 {
 	return disk.id == "SCCD";
@@ -834,9 +829,9 @@ bool Disk::IsDaynaPort() const
 	return disk.id == "SCDP";
 }
 
-bool Disk::IsNuvolink() const
+bool Disk::IsScsiDevice() const
 {
-	return disk.id == "SCNL";
+	return disk.id == "SCHD" || disk.id == "SCRM";
 }
 
 //---------------------------------------------------------------------------
@@ -1076,8 +1071,8 @@ int Disk::SelectCheck(const DWORD *cdb)
 {
 	ASSERT(cdb);
 
-	// Error if save parameters are set instead of SCSIHD
-	if (!IsSCSI()) {
+	// Error if save parameters are set instead of SCSIHD or SCSIRM
+	if (!IsScsiDevice()) {
 		// Error if save parameters are set
 		if (cdb[1] & 0x01) {
 			disk.code = DISK_INVALIDCDB;
@@ -1101,8 +1096,8 @@ int Disk::SelectCheck10(const DWORD *cdb)
 {
 	ASSERT(cdb);
 
-	// Error if save parameters are set instead of SCSIHD
-	if (!IsSCSI()) {
+	// Error if save parameters are set instead of SCSIHD or SCSIRM
+	if (!IsScsiDevice()) {
 		if (cdb[1] & 0x01) {
 			disk.code = DISK_INVALIDCDB;
 			return 0;

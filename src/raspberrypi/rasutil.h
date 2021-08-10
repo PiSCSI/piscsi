@@ -19,7 +19,5 @@ void SerializeMessage(int, const google::protobuf::MessageLite&);
 void DeserializeMessage(int, google::protobuf::MessageLite&);
 int ReadNBytes(int, uint8_t *, int);
 string ListDevices(const rascsi_interface::PbDevices&);
-rascsi_interface::PbDeviceType MapIdToType(const string&, bool);
-string MapTypeToId(const rascsi_interface::PbDeviceType);
 
 #endif

@@ -29,7 +29,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SASIHD::SASIHD() : Disk("SAHD")
+SASIHD::SASIHD() : Disk("SAHD", false)
 {
 	disk.protectable = true;
 }

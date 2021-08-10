@@ -30,9 +30,8 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIMO::SCSIMO() : Disk("SCMO")
+SCSIMO::SCSIMO() : Disk("SCMO", true)
 {
-	disk.removable = true;
 	disk.lockable = true;
 	disk.protectable = true;
 }

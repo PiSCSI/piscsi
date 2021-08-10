@@ -2,16 +2,23 @@ syntax = "proto3";
 
 package rascsi_interface;
 
-// The supported device types
+// The available device types
 enum PbDeviceType {
     UNDEFINED = 0;
-    SASI_HD = 1;
-    SCSI_HD = 2;
-    MO = 3;
-    CD = 4;
-    BR = 5;
-    NUVOLINK = 6;
-    DAYNAPORT = 7;
+    // Non-removable SASI drive
+    SAHD = 1;
+    // Non-removable SCSI drive
+    SCHD = 2;
+    // Removable SCSI drive
+    SCRM = 3;
+    // Magnoto-Optical drive
+    SCMO = 4;
+    // CD-ROM drive
+    SCCD = 5;
+    // Network bridge
+    SCBR = 6;
+    // DaynaPort network adapter
+    SCDP = 7;
 }
 
 // rascsi remote operations
@@ -21,12 +28,19 @@ enum PbOperation {
     SERVER_INFO = 1;
     // Returns the device list only (required for rasctl/logging semantics compatibility)
     LIST = 2 [deprecated = true];
+    // Set server log level
     LOG_LEVEL = 3;
+    // Attach new device
     ATTACH = 4;
+    // Detach device
     DETACH = 5;
+    // Insert medium
     INSERT = 6;
+    // Eject medium
     EJECT = 7;
+    // Write-protect medium
     PROTECT = 8;
+    // Make medium writable
     UNPROTECT = 9;
 }
 
@@ -41,7 +55,9 @@ message PbCommand {
 
 // The result of a command
 message PbResult {
+    // false means that an error occurred
     bool status = 1;
+    // The (error) message
     string msg = 2;
 }
 
@@ -56,10 +72,15 @@ message PbDevice {
     bool protectable = 6;
     // Note: Read-only media (e.g. CD-ROMs) are not protected but just read-only
     bool protected = 7;
+    // Medium can be removed
     bool removable = 8;
+    // Medium is removed
     bool removed = 9;
+    // Medium can be locked
     bool lockable = 10;
+    // Medium is locked
     bool locked = 11;
+    // Medium supports image file (Bridge and Daynaport do not)
     bool supports_file = 12;
 }
 

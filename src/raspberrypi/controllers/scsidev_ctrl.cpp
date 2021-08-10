@@ -1037,7 +1037,7 @@ void SCSIDEV::CmdGetMessage10()
 	DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsBridge() && !ctrl.unit[lun]->IsNuvolink()) {
+	if (!ctrl.unit[lun]->IsBridge()) {
 		LOGWARN("Received a GetMessage10 command for a non-bridge unit");
 		Error();
 		return;
