@@ -321,7 +321,7 @@ const PbDevices GetDevices()
 		device->set_lockable(pUnit->IsLockable());
 		device->set_locked(pUnit->IsLocked());
 		device->set_supports_file(pUnit->SupportsFile());
-		//device->set_allocated_image_file(image_file);
+		device->set_allocated_image_file(image_file);
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
@@ -556,7 +556,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 	ostringstream s;
 	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", file='" << filename << "', params='" << params << "'";
+			<< ", filename='" << filename << "', params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
@@ -619,11 +619,6 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			}
 		}
 
-		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
-		if ((type == SAHD || type == SCHD || type == SCRM) && filename.empty()) {
-			return ReturnStatus(fd, false, "Missing filename");
-		}
-
 		// Create a new drive, based upon type
 		pUnit = NULL;
 		switch (type) {
@@ -666,8 +661,20 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 				return ReturnStatus(fd, false, error);
 		}
 
+		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
+		if (!device.removable() && pUnit->SupportsFile() && filename.empty()) {
+			free(pUnit);
+
+			error << "Device type " << PbDeviceType_Name(type) << " requires a filename";
+			return ReturnStatus(fd, false, error);
+		}
+
+		if (device.protected_() && pUnit->IsProtectable()) {
+			pUnit->WriteP(true);
+		}
+
 		// drive checks files
-		if (type != SCBR && type != SCDP && !filename.empty()) {
+		if (pUnit->SupportsFile() && !filename.empty()) {
 			// Set the Path
 			filepath.SetPath(filename.c_str());
 
@@ -707,7 +714,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-	        LOGINFO("Added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, unit);
+	        LOGINFO("Added new %s device, ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
 		}
 
 		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
@@ -906,9 +913,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		image_file.set_filename(optarg);
 		device->set_allocated_image_file(new PbImageFile(image_file));
 		PbCommand command;
-		command.set_allocated_devices(new PbDevices(devices));
 		command.set_cmd(ATTACH);
-		command.set_params(optarg);
+		command.set_allocated_devices(new PbDevices(devices));
+
 		if (!ProcessCmd(-1, command)) {
 			return false;
 		}
