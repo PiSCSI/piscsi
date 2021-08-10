@@ -288,16 +288,23 @@ const PbDevices GetDevices() {
 		PbDeviceType type;
 		PbDeviceType_Parse(pUnit->GetID(), &type);
 		device->set_type(type);
+		PbImageFile image_file;
 
 		// mount status output
 		if (pUnit->IsBridge()) {
-			device->set_file("X68000 HOST BRIDGE");
+			image_file.set_filename("X68000 HOST BRIDGE");
 		} else if (pUnit->IsDaynaPort()) {
-			device->set_file("DaynaPort SCSI/Link");
+			image_file.set_filename("DaynaPort SCSI/Link");
 		} else {
 			Filepath filepath;
 			pUnit->GetPath(filepath);
-			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
+			image_file.set_filename(pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
+			image_file.set_read_only(access(filepath.GetPath(), W_OK));
+			if (!image_file.filename().empty()) {
+				struct stat st;
+				stat(image_file.filename().c_str(), &st);
+				image_file.set_size(st.st_size);
+			}
 		}
 
 		device->set_protectable(pUnit->IsProtectable());
@@ -307,6 +314,7 @@ const PbDevices GetDevices() {
 		device->set_lockable(pUnit->IsLockable());
 		device->set_locked(pUnit->IsLocked());
 		device->set_supports_file(pUnit->SupportsFile());
+		device->set_allocated_image_file(new PbImageFile(image_file));
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
@@ -537,12 +545,13 @@ bool ProcessCmd(int fd, const PbCommand& command)
 	PbDevice device = command.device();
 	int id = device.id();
 	int unit = device.unit();
+	string filename = device.image_file().filename();
 	PbDeviceType type = device.type();
 	string params = command.params().c_str();
 
 	ostringstream s;
 	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", file='" << device.file() << "', params='" << params << "'";
+			<< ", file='" << filename << "', params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
@@ -568,12 +577,10 @@ bool ProcessCmd(int fd, const PbCommand& command)
 			return ReturnStatus(fd, false, error);
 		}
 
-		string file = device.file();
-
 		// Try to extract the file type from the filename. Convention: "filename:type".
-		size_t separatorPos = file.find(':');
+		size_t separatorPos = filename.find(':');
 		if (separatorPos != string::npos) {
-			string t = file.substr(separatorPos + 1);
+			string t = filename.substr(separatorPos + 1);
 			transform(t.begin(), t.end(), t.begin(), ::toupper);
 
 			if (!PbDeviceType_Parse(t, &type)) {
@@ -581,13 +588,13 @@ bool ProcessCmd(int fd, const PbCommand& command)
 				return ReturnStatus(fd, false, error);
 			}
 
-			file = file.substr(0, separatorPos);
+			filename = filename.substr(0, separatorPos);
 		}
 
 		string ext;
-		int len = file.size();
-		if (len > 4 && file[len - 4] == '.') {
-			ext = file.substr(len - 3);
+		int len = filename.size();
+		if (len > 4 && filename[len - 4] == '.') {
+			ext = filename.substr(len - 3);
 		}
 
 		// If no type was specified try to derive the file type from the extension
@@ -608,7 +615,7 @@ bool ProcessCmd(int fd, const PbCommand& command)
 		}
 
 		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
-		if ((type == SAHD || type == SCHD || type == SCRM) && file.empty()) {
+		if ((type == SAHD || type == SCHD || type == SCRM) && filename.empty()) {
 			return ReturnStatus(fd, false, "Missing filename");
 		}
 
@@ -657,7 +664,7 @@ bool ProcessCmd(int fd, const PbCommand& command)
 		// drive checks files
 		if (type != SCBR && type != SCDP && !command.params().empty()) {
 			// Set the Path
-			filepath.SetPath(file.c_str());
+			filepath.SetPath(filename.c_str());
 
 			// Open the file path
 			try {
@@ -665,7 +672,7 @@ bool ProcessCmd(int fd, const PbCommand& command)
 			}
 			catch(const ioexception& e) {
 				// If the file does not exist search for it in the default image folder
-				string default_file = default_image_folder + "/" + file;
+				string default_file = default_image_folder + "/" + filename;
 				filepath.SetPath(default_file.c_str());
 				try {
 					pUnit->Open(filepath);
@@ -673,13 +680,13 @@ bool ProcessCmd(int fd, const PbCommand& command)
 				catch(const ioexception&) {
 					delete pUnit;
 
-					error << "Tried to open an invalid file '" << file << "': " << e.getmsg();
+					error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
 					return ReturnStatus(fd, false, error);
 				}
 			}
 
 			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
-				error << "Image file '" << file << "' is already in use";
+				error << "Image file '" << filename << "' is already in use";
 				return ReturnStatus(fd, false, error);
 			}
 
@@ -878,7 +885,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		PbDevice device;
 		device.set_id(id);
 		device.set_unit(unit);
-		device.set_file(optarg);
+		PbImageFile image_file;
+		image_file.set_filename(optarg);
+		device.set_allocated_image_file(new PbImageFile(image_file));
 		PbCommand command;
 		command.set_allocated_device(new PbDevice(device));
 		command.set_cmd(ATTACH);

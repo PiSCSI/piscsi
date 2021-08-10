@@ -44,16 +44,24 @@ enum PbOperation {
     UNPROTECT = 9;
 }
 
+// The image file data
+message PbImageFile {
+    string filename = 1;
+    // Hint for clients that want to prevent assigning read-only files to writeable device types
+    bool read_only = 2;
+    int64 size = 3;
+}
+
 // The device data
 message PbDevice {
     int32 id = 1;
     int32 unit = 2;
     PbDeviceType type = 3;
-    string file = 4;
+    PbImageFile image_file = 4;
     bool read_only = 5;
     // Note: Read-only media (e.g. CD-ROMs) are not protectable
     bool protectable = 6;
-    // Note: Read-only media (e.g. CD-ROMs) are not protected but just read-only
+    // Note: Read-only media (e.g. CD-ROMs) cannot be protected but are read-only all the time
     bool protected = 7;
     // Medium can be removed
     bool removable = 8;

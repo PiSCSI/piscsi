@@ -226,6 +226,7 @@ int main(int argc, char* argv[])
 	PbCommand command;
 	command.set_cmd(LIST);
 	PbDevice device;
+	PbImageFile image_file;
 	device.set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
@@ -302,7 +303,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				device.set_file(optarg);
+				image_file.set_filename(optarg);
 				break;
 
 			case 'l':
@@ -337,6 +338,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	device.set_allocated_image_file(new PbImageFile(image_file));
 	command.set_allocated_device(new PbDevice(device));
 
 	if (command.cmd() == LOG_LEVEL) {
@@ -350,7 +352,7 @@ int main(int argc, char* argv[])
 	}
 
 	// List display only
-	if (command.cmd() == LIST || (device.id() < 0 && device.type() == UNDEFINED && device.file().empty())) {
+	if (command.cmd() == LIST || (device.id() < 0 && device.type() == UNDEFINED && image_file.filename().empty())) {
 		CommandList(hostname, port);
 		exit(0);
 	}
