@@ -27,7 +27,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIHD_APPLE::SCSIHD_APPLE(bool removable) : SCSIHD(removable)
+SCSIHD_APPLE::SCSIHD_APPLE() : SCSIHD(false)
 {
 }
 

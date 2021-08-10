@@ -619,9 +619,9 @@ bool ProcessCmd(int fd, const PbCommand &command)
 
 			case SCHD:		// HDS/HDN/HDI/NHD/HDA
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-					pUnit = new SCSIHD_NEC(false);
+					pUnit = new SCSIHD_NEC();
 				} else if (ext == "hda") {
-					pUnit = new SCSIHD_APPLE(false);
+					pUnit = new SCSIHD_APPLE();
 				} else {
 					pUnit = new SCSIHD(false);
 				}

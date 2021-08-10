@@ -26,7 +26,7 @@ class SCSIHD_NEC : public SCSIHD
 {
 public:
 	// Basic Functions
-	SCSIHD_NEC(bool);							// Constructor
+	SCSIHD_NEC();							// Constructor
 	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
 
 	// commands

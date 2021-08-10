@@ -26,7 +26,7 @@ class SCSIHD_APPLE : public SCSIHD
 {
 public:
 	// Basic Functions
-	SCSIHD_APPLE(bool);							// Constructor
+	SCSIHD_APPLE();							// Constructor
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
 
