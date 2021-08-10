@@ -833,12 +833,14 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 bool ProcessCmd(int fd, const PbCommand& command)
 {
+	// Dry run first
 	for (int i = 0; i < command.devices().devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), true)) {
 			return false;
 		}
 	}
 
+	// Execute
 	for (int i = 0; i < command.devices().devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), false)) {
 			return false;
