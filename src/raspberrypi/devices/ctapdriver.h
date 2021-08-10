@@ -34,7 +34,7 @@ public:
 	// Basic Functionality
 	CTapDriver();								// Constructor
 	BOOL Init();							// Initilization
-	const char *OpenDump(const Filepath& path);
+	void OpenDump(const Filepath& path);
 										// Capture packets
 	void Cleanup();						// Cleanup
 	void GetMacAddr(BYTE *mac);					// Get Mac Address

@@ -114,7 +114,7 @@ public:
 	// Basic Functions
 	SCSICD();								// Constructor
 	virtual ~SCSICD();							// Destructor
-	const char *Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
@@ -134,9 +134,9 @@ public:
 
 private:
 	// Open
-	BOOL OpenCue(const Filepath& path);				// Open(CUE)
-	BOOL OpenIso(const Filepath& path);				// Open(ISO)
-	BOOL OpenPhysical(const Filepath& path);			// Open(Physical)
+	void OpenCue(const Filepath& path);				// Open(CUE)
+	void OpenIso(const Filepath& path);				// Open(ISO)
+	void OpenPhysical(const Filepath& path);			// Open(Physical)
 	BOOL rawfile;								// RAW flag
 
 	// Track management

@@ -104,10 +104,10 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-const char *SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
+ void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
 {
 	LOGTRACE("SCSIDaynaPort Open");
-	return m_tap->OpenDump(path);
+	m_tap->OpenDump(path);
 }
 
 //---------------------------------------------------------------------------
