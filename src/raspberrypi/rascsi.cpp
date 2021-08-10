@@ -563,8 +563,8 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 	PbDeviceType type = device.type();
 
 	ostringstream s;
-	s << (dryRun ? "Checking: " : "Processing: ");
-	s << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
+	s << (dryRun ? "Validating: " : "Executing: ");
+	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
 			<< ", filename='" << filename << "', params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
