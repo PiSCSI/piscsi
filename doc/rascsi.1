@@ -58,7 +58,7 @@ Display the rascsi version.
 .BR \-ID\fIn " " \fIFILE[:TYPE]
 n is the SCSI ID number (0-7)
 .IP
-FILE is the name of the image file to attach to that ID. An optional explicit device type (SASI_HD, SCSI_HD, CD, MO, BR, NUVOLINK, DAYNAPORT) can be provided after a colon.
+FILE is the name of the image file to attach to that ID. An optional explicit case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP) can be provided after a colon. For devices without image file support (SCBR, SCDP) FILE may start with a colon.
 .TP 
 .BR \-HD\fIn " " \fIFILE
 n is the SASI ID number (0-15)
@@ -74,8 +74,8 @@ Launch RaSCSI with no emulated drives attached:
 Launch RaSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
    rascsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
 
-Launch RaSCSI with a SCSI hard drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) as a SCSI hard disk image file:
-   rascsi -ID0 /dev/hdb:SCSI_HD
+Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick):
+   rascsi -ID0 /dev/hdb:scrm
 
 To create an empty, 100MB HD image, use the following command:
    dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800
