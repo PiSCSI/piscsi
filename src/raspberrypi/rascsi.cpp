@@ -268,7 +268,21 @@ void Reset()
 //	Get the list of attached devices
 //
 //---------------------------------------------------------------------------
-const PbDevices GetDevices() {
+
+void GetImageFile(PbImageFile *image_file, const string& filename)
+{
+	image_file->set_filename(filename);
+	if (!filename.empty()) {
+		image_file->set_read_only(access(filename.c_str(), W_OK));
+
+		struct stat st;
+		stat(image_file->filename().c_str(), &st);
+		image_file->set_size(st.st_size);
+	}
+}
+
+const PbDevices GetDevices()
+{
 	PbDevices devices;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
@@ -288,23 +302,16 @@ const PbDevices GetDevices() {
 		PbDeviceType type;
 		PbDeviceType_Parse(pUnit->GetID(), &type);
 		device->set_type(type);
-		PbImageFile image_file;
 
-		// mount status output
+		Filepath filepath;
+		pUnit->GetPath(filepath);
+		PbImageFile *image_file = new PbImageFile();
+		GetImageFile(image_file, pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
+
 		if (pUnit->IsBridge()) {
-			image_file.set_filename("X68000 HOST BRIDGE");
+			image_file->set_filename("X68000 HOST BRIDGE");
 		} else if (pUnit->IsDaynaPort()) {
-			image_file.set_filename("DaynaPort SCSI/Link");
-		} else {
-			Filepath filepath;
-			pUnit->GetPath(filepath);
-			image_file.set_filename(pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
-			image_file.set_read_only(access(filepath.GetPath(), W_OK));
-			if (!image_file.filename().empty()) {
-				struct stat st;
-				stat(image_file.filename().c_str(), &st);
-				image_file.set_size(st.st_size);
-			}
+			image_file->set_filename("DaynaPort SCSI/Link");
 		}
 
 		device->set_protectable(pUnit->IsProtectable());
@@ -314,7 +321,7 @@ const PbDevices GetDevices() {
 		device->set_lockable(pUnit->IsLockable());
 		device->set_locked(pUnit->IsLocked());
 		device->set_supports_file(pUnit->SupportsFile());
-		device->set_allocated_image_file(new PbImageFile(image_file));
+		//device->set_allocated_image_file(image_file);
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
@@ -452,7 +459,6 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "")
 		if (!msg.empty()) {
 			FPRT(stderr, "Error: ");
 			FPRT(stderr, msg.c_str());
-			FPRT(stderr, "\n");
 		}
 	}
 	else {
@@ -524,7 +530,8 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 	if (access(default_image_folder.c_str(), F_OK) != -1) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				serverInfo.add_available_image_files(entry.path().filename());
+				PbImageFile *image_file = serverInfo.add_available_image_files();
+				GetImageFile(image_file, entry.path().filename());
 			}
 		}
 	}
@@ -535,19 +542,17 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 //	Command Processing
 //
 //---------------------------------------------------------------------------
-bool ProcessCmd(int fd, const PbCommand& command)
+
+bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const string& params)
 {
 	Filepath filepath;
 	Disk *pUnit;
 	ostringstream error;
 
-	PbOperation cmd = command.cmd();
-	PbDevice device = command.device();
 	int id = device.id();
 	int unit = device.unit();
 	string filename = device.image_file().filename();
 	PbDeviceType type = device.type();
-	string params = command.params().c_str();
 
 	ostringstream s;
 	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
@@ -662,7 +667,7 @@ bool ProcessCmd(int fd, const PbCommand& command)
 		}
 
 		// drive checks files
-		if (type != SCBR && type != SCDP && !command.params().empty()) {
+		if (type != SCBR && type != SCDP && !filename.empty()) {
 			// Set the Path
 			filepath.SetPath(filename.c_str());
 
@@ -799,6 +804,17 @@ bool ProcessCmd(int fd, const PbCommand& command)
 	return ReturnStatus(fd);
 }
 
+bool ProcessCmd(int fd, const PbCommand& command)
+{
+	for (int i = 0; i < command.devices().devices_size(); i++) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params())) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool has_suffix(const string& filename, const string& suffix) {
     return filename.size() >= suffix.size() && !filename.compare(filename.size() - suffix.size(), suffix.size(), suffix);
 }
@@ -882,14 +898,15 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		}
 
 		// Execute the command
-		PbDevice device;
-		device.set_id(id);
-		device.set_unit(unit);
+		PbDevices devices;
+		PbDevice *device = devices.add_devices();
+		device->set_id(id);
+		device->set_unit(unit);
 		PbImageFile image_file;
 		image_file.set_filename(optarg);
-		device.set_allocated_image_file(new PbImageFile(image_file));
+		device->set_allocated_image_file(new PbImageFile(image_file));
 		PbCommand command;
-		command.set_allocated_device(new PbDevice(device));
+		command.set_allocated_devices(new PbDevices(devices));
 		command.set_cmd(ATTACH);
 		command.set_params(optarg);
 		if (!ProcessCmd(-1, command)) {

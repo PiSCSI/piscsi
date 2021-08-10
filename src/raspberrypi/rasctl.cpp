@@ -181,7 +181,7 @@ void CommandServerInfo(const string& hostname, int port)
 	else {
 		list<string> sorted_image_files;
 		for (int i = 0; i < serverInfo.available_image_files_size(); i++) {
-			sorted_image_files.push_back(serverInfo.available_image_files(i));
+			sorted_image_files.push_back(serverInfo.available_image_files(i).filename());
 		}
 		sorted_image_files.sort();
 
@@ -225,9 +225,11 @@ int main(int argc, char* argv[])
 	int opt;
 	PbCommand command;
 	command.set_cmd(LIST);
-	PbDevice device;
+	PbDevices devices;
+	command.set_allocated_devices(&devices);
+	PbDevice *device = devices.add_devices();
+	device->set_id(-1);
 	PbImageFile image_file;
-	device.set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
 	string params;
@@ -235,11 +237,11 @@ int main(int argc, char* argv[])
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:u:g:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
-				device.set_id(optarg[0] - '0');
+				device->set_id(optarg[0] - '0');
 				break;
 
 			case 'u':
-				device.set_unit(optarg[0] - '0');
+				device->set_unit(optarg[0] - '0');
 				break;
 
 			case 'c':
@@ -273,31 +275,31 @@ int main(int argc, char* argv[])
 			case 't':
 				switch (tolower(optarg[0])) {
 					case 's':
-						device.set_type(SAHD);
+						device->set_type(SAHD);
 						break;
 
 					case 'h':
-						device.set_type(SCHD);
+						device->set_type(SCHD);
 						break;
 
 					case 'r':
-						device.set_type(SCRM);
+						device->set_type(SCRM);
 						break;
 
 					case 'm':
-						device.set_type(SCMO);
+						device->set_type(SCMO);
 						break;
 
 					case 'c':
-						device.set_type(SCCD);
+						device->set_type(SCCD);
 						break;
 
 					case 'b':
-						device.set_type(SCBR);
+						device->set_type(SCBR);
 						break;
 
 					case 'd':
-						device.set_type(SCDP);
+						device->set_type(SCDP);
 						break;
 				}
 				break;
@@ -338,8 +340,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	device.set_allocated_image_file(new PbImageFile(image_file));
-	command.set_allocated_device(new PbDevice(device));
+	device->set_allocated_image_file(new PbImageFile(image_file));
 
 	if (command.cmd() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, params);
@@ -352,7 +353,7 @@ int main(int argc, char* argv[])
 	}
 
 	// List display only
-	if (command.cmd() == LIST || (device.id() < 0 && device.type() == UNDEFINED && image_file.filename().empty())) {
+	if (command.cmd() == LIST || (device->id() < 0 && device->type() == UNDEFINED && image_file.filename().empty())) {
 		CommandList(hostname, port);
 		exit(0);
 	}

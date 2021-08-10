@@ -82,8 +82,8 @@ message PbDevices {
 // Commands rascsi can execute and their parameters
 message PbCommand {
     PbOperation cmd = 1;
-    // The optional device
-    PbDevice device = 2;
+    // The optional device list
+    PbDevices devices = 2;
     // The optional parameters
     string params = 3;
 }
@@ -104,7 +104,7 @@ message PbServerInfo {
     string current_log_level = 3;
     string default_image_folder = 4;
     // Files in the default folder
-    repeated string available_image_files = 5;
+    repeated PbImageFile available_image_files = 5;
     // The attached devices
     PbDevices devices = 6;
 }
