@@ -107,14 +107,15 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
 		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
-		FPRT(stdout,"  hdf : SASI HD image(XM6 SASI HD image)\n");
-		FPRT(stdout,"  hds : SCSI HD image(XM6 SCSI HD image)\n");
-		FPRT(stdout,"  hdn : SCSI HD image(NEC GENUINE)\n");
-		FPRT(stdout,"  hdi : SCSI HD image(Anex86 HD image)\n");
-		FPRT(stdout,"  nhd : SCSI HD image(T98Next HD image)\n");
-		FPRT(stdout,"  hda : SCSI HD image(APPLE GENUINE)\n");
-		FPRT(stdout,"  mos : SCSI MO image(XM6 SCSI MO image)\n");
-		FPRT(stdout,"  iso : SCSI CD image(ISO 9660 image)\n");
+		FPRT(stdout,"  hdf : SASI HD image (XM6 SASI HD image)\n");
+		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
+		FPRT(stdout,"  hdr : SCSI HD image (Removable generic SCSI HD image)\n");
+		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
+		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
+		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
+		FPRT(stdout,"  hda : SCSI HD image (APPLE GENUINE)\n");
+		FPRT(stdout,"  mos : SCSI MO image (XM6 SCSI MO image)\n");
+		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
 
 		exit(0);
 	}
@@ -594,6 +595,9 @@ bool ProcessCmd(int fd, const PbCommand &command)
 			}
 			else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
 				type = SCHD;
+			}
+			else if (ext == "hdr") {
+				type = SCRM;
 			} else if (ext == "mos") {
 				type = SCMO;
 			} else if (ext == "iso") {
@@ -602,7 +606,7 @@ bool ProcessCmd(int fd, const PbCommand &command)
 		}
 
 		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
-		if ((type == SAHD || type == SCHD) && file.empty()) {
+		if ((type == SAHD || type == SCHD || type == SCRM) && file.empty()) {
 			return ReturnStatus(fd, false, "Missing filename");
 		}
 
