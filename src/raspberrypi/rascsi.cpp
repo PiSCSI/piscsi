@@ -551,7 +551,7 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 //
 //---------------------------------------------------------------------------
 
-bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const string& params)
+bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const string& params, bool dryRun)
 {
 	Filepath filepath;
 	Disk *pUnit;
@@ -563,7 +563,8 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 	PbDeviceType type = device.type();
 
 	ostringstream s;
-	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
+	s << (dryRun ? "Checking: " : "Processing: ");
+	s << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
 			<< ", filename='" << filename << "', params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
@@ -705,45 +706,49 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 				}
 			}
 
-			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
-				error << "Image file '" << filename << "' is already in use";
-				return ReturnStatus(fd, false, error);
-			}
+			if (!dryRun) {
+				if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
+					error << "Image file '" << filename << "' is already in use";
+					return ReturnStatus(fd, false, error);
+				}
 
-			files_in_use.insert(filepath.GetPath());
+				files_in_use.insert(filepath.GetPath());
+			}
 		}
 
 		// Set the cache to write-through
 		pUnit->SetCacheWB(FALSE);
 
-		// Replace with the newly created unit
-		map[id * UnitNum + unit] = pUnit;
+		if (!dryRun) {
+			// Replace with the newly created unit
+			map[id * UnitNum + unit] = pUnit;
 
-		// Re-map the controller
-		bool status = MapController(map);
-		if (status) {
-	        LOGINFO("Added new %s device, ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
-	        return true;
+			// Re-map the controller
+			bool status = MapController(map);
+			if (status) {
+				LOGINFO("Added new %s device, ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
+				return true;
+			}
+
+			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 		}
-
-		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 	}
 
 	// Does the controller exist?
-	if (ctrl[id] == NULL) {
+	if (!dryRun && ctrl[id] == NULL) {
 		error << "Received a command for invalid ID " << id;
 		return ReturnStatus(fd, false, error);
 	}
 
 	// Does the unit exist?
 	pUnit = disk[id * UnitNum + unit];
-	if (pUnit == NULL) {
+	if (!dryRun && pUnit == NULL) {
 		error << "Received a command for invalid ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
 	}
 
 	// Disconnect Command
-	if (cmd == DETACH) {
+	if (!dryRun && cmd == DETACH) {
 		// Free the existing unit
 		map[id * UnitNum + unit] = NULL;
 
@@ -770,6 +775,10 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 	if ((cmd == PROTECT || cmd == UNPROTECT) && (!pUnit->IsProtectable() || pUnit->IsReadOnly())) {
 		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't protectable)";
 		return ReturnStatus(fd, false, error);
+	}
+
+	if (dryRun) {
+		return true;
 	}
 
 	switch (cmd) {
@@ -825,7 +834,13 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 bool ProcessCmd(int fd, const PbCommand& command)
 {
 	for (int i = 0; i < command.devices().devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params())) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), true)) {
+			return false;
+		}
+	}
+
+	for (int i = 0; i < command.devices().devices_size(); i++) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), false)) {
 			return false;
 		}
 	}
