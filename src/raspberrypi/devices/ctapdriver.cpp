@@ -66,9 +66,8 @@ static BOOL br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 
 static BOOL ip_link(int fd, const char* ifname, BOOL up) {
 	struct ifreq ifr;
-	int err;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
-	err = ioctl(fd, SIOCGIFFLAGS, &ifr);
+	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (err) {
 		LOGERROR("Error: can't ioctl SIOCGIFFLAGS. Errno: %d %s", errno, strerror(errno));
 		return FALSE;

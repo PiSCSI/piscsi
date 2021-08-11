@@ -163,27 +163,22 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	int size;
-
 	// Base class
-	size = SCSIHD::Inquiry(cdb, buf, major, minor);
+	int size = SCSIHD::Inquiry(cdb, buf, major, minor);
 
-	// Exit if there is an error in the base class
-	if (size == 0) {
-		return 0;
+	// Do nothing if there is an error in the base class
+	if (size != 0) {
+		// Changed to equivalent to SCSI-1
+		buf[2] = 0x01;
+		buf[3] = 0x01;
+
+		// Replace Vendor name
+		buf[8] = 'N';
+		buf[9] = 'E';
+		buf[10] = 'C';
 	}
-
-	// Changed to equivalent to SCSI-1
-	buf[2] = 0x01;
-	buf[3] = 0x01;
-
-	// Replace Vendor name
-	buf[8] = 'N';
-	buf[9] = 'E';
-	buf[10] = 'C';
 
 	return size;
 }
@@ -200,11 +195,6 @@ int SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
 	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x06;
-
-	// No changeable area
-	if (change) {
-		return 8;
-	}
 
 	// The retry count is 0, and the limit time uses the default value inside the device.
 	return 8;
@@ -267,11 +257,7 @@ int SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 	buf[1] = 0x12;
 
 	// No changeable area
-	if (change) {
-		return 20;
-	}
-
-	if (IsReady()) {
+	if (!change && IsReady()) {
 		// Set the number of cylinders
 		buf[0x2] = (BYTE)(cylinders >> 16);
 		buf[0x3] = (BYTE)(cylinders >> 8);

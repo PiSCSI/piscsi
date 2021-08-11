@@ -911,8 +911,7 @@ BOOL SCSICD::NextFrame()
 //	Get CD-DA buffer
 //
 //---------------------------------------------------------------------------
-void SCSICD::GetBuf(
-	DWORD* /*buffer*/, int /*samples*/, DWORD /*rate*/)
+void SCSICD::GetBuf(DWORD* /*buffer*/, int /*samples*/, DWORD /*rate*/)
 {
 	// TODO Missing implementation?
 }

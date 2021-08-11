@@ -33,8 +33,6 @@
 //---------------------------------------------------------------------------
 SASIDEV::SASIDEV()
 {
-	int i;
-
 	// Work initialization
 	ctrl.phase = BUS::busfree;
 	ctrl.m_scsi_id = UNKNOWN_SCSI_ID;
@@ -54,7 +52,7 @@ SASIDEV::SASIDEV()
 	ctrl.length = 0;
 
 	// Logical unit initialization
-	for (i = 0; i < UnitMax; i++) {
+	for (int i = 0; i < UnitMax; i++) {
 		ctrl.unit[i] = NULL;
 	}
 }
@@ -326,9 +324,6 @@ void SASIDEV::Selection()
 //---------------------------------------------------------------------------
 void SASIDEV::Command()
 {
-	int count;
-	int i;
-
 	// Phase change
 	if (ctrl.phase != BUS::command) {
 		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__);
@@ -347,7 +342,7 @@ void SASIDEV::Command()
 		ctrl.blocks = 1;
 
 		// Command reception handshake (10 bytes are automatically received at the first command)
-		count = ctrl.bus->CommandHandShake(ctrl.buffer);
+		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
 
 		// If no byte can be received move to the status phase
 		if (count == 0) {
@@ -367,7 +362,7 @@ void SASIDEV::Command()
 		}
 
 		// Command data transfer
-		for (i = 0; i < (int)ctrl.length; i++) {
+		for (int i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
 		}
 
@@ -376,14 +371,14 @@ void SASIDEV::Command()
 		ctrl.blocks = 0;
 
 		// Execution Phase
-                try {
-                    Execute();
-                }
-                catch (lunexception& e) {
-                	LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+		try {
+			Execute();
+		}
+		catch (lunexception& e) {
+			LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
 
-                	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-                }
+			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+		}
 	}
 }
 
@@ -493,15 +488,12 @@ void SASIDEV::Execute()
 //---------------------------------------------------------------------------
 void SASIDEV::Status()
 {
-	DWORD min_exec_time;
-	DWORD time;
-
 	// Phase change
 	if (ctrl.phase != BUS::status) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
-			time = SysTimer::GetTimerLow() - ctrl.execstart;
+			DWORD min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
+			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < min_exec_time) {
 				SysTimer::SleepUsec(min_exec_time - time);
 			}
@@ -571,17 +563,14 @@ void SASIDEV::MsgIn()
 //---------------------------------------------------------------------------
 void SASIDEV::DataIn()
 {
-	DWORD min_exec_time;
-	DWORD time;
-
 	ASSERT(ctrl.length >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::datain) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
-			time = SysTimer::GetTimerLow() - ctrl.execstart;
+			DWORD min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
+			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < min_exec_time) {
 				SysTimer::SleepUsec(min_exec_time - time);
 			}
@@ -622,17 +611,14 @@ void SASIDEV::DataIn()
 //---------------------------------------------------------------------------
 void SASIDEV::DataOut()
 {
-	DWORD min_exec_time;
-	DWORD time;
-
 	ASSERT(ctrl.length >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
-			time = SysTimer::GetTimerLow() - ctrl.execstart;
+			DWORD min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
+			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < min_exec_time) {
 				SysTimer::SleepUsec(min_exec_time - time);
 			}
@@ -721,7 +707,7 @@ void SASIDEV::CmdTestUnitReady()
 {
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	BOOL status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
@@ -744,7 +730,7 @@ void SASIDEV::CmdRezero()
 {
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	BOOL status = ctrl.unit[lun]->Rezero(ctrl.cmd);
@@ -811,7 +797,7 @@ void SASIDEV::CmdFormat()
 {
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	BOOL status = ctrl.unit[lun]->Format(ctrl.cmd);
@@ -834,7 +820,7 @@ void SASIDEV::CmdReassign()
 {
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	BOOL status = ctrl.unit[lun]->Reassign(ctrl.cmd);
@@ -891,7 +877,7 @@ void SASIDEV::CmdReleaseUnit()
 //---------------------------------------------------------------------------
 void SASIDEV::CmdRead6()
 {
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Get record number and block number
 	DWORD record = ctrl.cmd[1] & 0x1f;
@@ -937,7 +923,7 @@ void SASIDEV::CmdRead6()
 //---------------------------------------------------------------------------
 void SASIDEV::DaynaPortWrite()
 {
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Error if not a host bridge
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
@@ -1035,7 +1021,7 @@ void SASIDEV::CmdSeek6()
 {
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	BOOL status = ctrl.unit[lun]->Seek(ctrl.cmd);
@@ -1084,7 +1070,7 @@ void SASIDEV::CmdSpecify()
 {
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
+	DWORD lun = GetLun();
 
 	// Command processing on drive
 	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
@@ -1557,10 +1543,10 @@ void SASIDEV::GetPhaseStr(char *str)
 //---------------------------------------------------------------------------
 DWORD SASIDEV::GetLun()
 {
-        DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-        if (!ctrl.unit[lun]) {
-                throw lunexception(lun);
-        }
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		throw lunexception(lun);
+	}
 
-        return lun;
+	return lun;
 }

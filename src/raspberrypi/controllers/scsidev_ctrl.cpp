@@ -204,7 +204,6 @@ void SCSIDEV::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
-
 		LOGTRACE( "%s Bus free phase", __PRETTY_FUNCTION__);
 
 		// Phase setting
@@ -322,10 +321,9 @@ void SCSIDEV::MsgOut()
 
 	// Phase change
 	if (ctrl.phase != BUS::msgout) {
-
 		LOGTRACE("Message Out Phase");
 
-	        // process the IDENTIFY message
+	    // process the IDENTIFY message
 		if (ctrl.phase == BUS::selection) {
 			scsi.atnmsg = TRUE;
 			scsi.msc = 0;

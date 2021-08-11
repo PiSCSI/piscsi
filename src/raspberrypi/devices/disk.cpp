@@ -845,8 +845,7 @@ BOOL Disk::CheckReady()
 //	*You need to be successful at all times
 //
 //---------------------------------------------------------------------------
-int Disk::Inquiry(
-	const DWORD* /*cdb*/, BYTE* /*buf*/, DWORD /*major*/, DWORD /*minor*/)
+int Disk::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/, DWORD /*major*/, DWORD /*minor*/)
 {
 	// default is INQUIRY failure
 	SetStatusCode(STATUS_INVALIDCMD);
@@ -961,8 +960,7 @@ int Disk::SelectCheck10(const DWORD *cdb)
 //	* Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL Disk::ModeSelect(
-	const DWORD* /*cdb*/, const BYTE *buf, int length)
+BOOL Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 {
 	ASSERT(buf);
 	ASSERT(length >= 0);
@@ -981,10 +979,6 @@ BOOL Disk::ModeSelect(
 //---------------------------------------------------------------------------
 int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 {
-	BOOL valid;
-	BOOL change;
-	int ret;
-
 	ASSERT(cdb);
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x1a);
@@ -995,6 +989,7 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, length);
 
 	// Get changeable flag
+	bool change;
 	if ((cdb[2] & 0xc0) == 0x40) {
 		change = TRUE;
 	} else {
@@ -1002,6 +997,7 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Get page code (0x00 is valid from the beginning)
+	bool valid;
 	int page = cdb[2] & 0x3f;
 	if (page == 0x00) {
 		valid = TRUE;
@@ -1094,7 +1090,7 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page (vendor special)
-	ret = AddVendor(page, change, &buf[size]);
+	int ret = AddVendor(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
 		valid = TRUE;
@@ -1514,15 +1510,10 @@ int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-BOOL Disk::TestUnitReady(const DWORD* /*cdb*/)
+bool Disk::TestUnitReady(const DWORD* /*cdb*/)
 {
 	// Status check
-	if (!CheckReady()) {
-		return FALSE;
-	}
-
-	// TEST UNIT READY Success
-	return TRUE;
+	return CheckReady();
 }
 
 //---------------------------------------------------------------------------
@@ -1530,15 +1521,10 @@ BOOL Disk::TestUnitReady(const DWORD* /*cdb*/)
 //	REZERO UNIT
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Rezero(const DWORD* /*cdb*/)
+bool Disk::Rezero(const DWORD* /*cdb*/)
 {
 	// Status check
-	if (!CheckReady()) {
-		return FALSE;
-	}
-
-	// REZERO Success
-	return TRUE;
+	return CheckReady();
 }
 
 //---------------------------------------------------------------------------
@@ -1569,15 +1555,10 @@ BOOL Disk::Format(const DWORD *cdb)
 //	REASSIGN BLOCKS
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Reassign(const DWORD* /*cdb*/)
+bool Disk::Reassign(const DWORD* /*cdb*/)
 {
 	// Status check
-	if (!CheckReady()) {
-		return FALSE;
-	}
-
-	// REASSIGN BLOCKS Success
-	return TRUE;
+	return CheckReady();
 }
 
 //---------------------------------------------------------------------------
@@ -1683,15 +1664,10 @@ BOOL Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 //	*Does not check LBA (SASI IOCS)
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Seek(const DWORD* /*cdb*/)
+bool Disk::Seek(const DWORD* /*cdb*/)
 {
 	// Status check
-	if (!CheckReady()) {
-		return FALSE;
-	}
-
-	// SEEK Success
-	return TRUE;
+	return CheckReady();
 }
 
 //---------------------------------------------------------------------------
@@ -1699,15 +1675,10 @@ BOOL Disk::Seek(const DWORD* /*cdb*/)
 //	ASSIGN
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Assign(const DWORD* /*cdb*/)
+bool Disk::Assign(const DWORD* /*cdb*/)
 {
 	// Status check
-	if (!CheckReady()) {
-		return FALSE;
-	}
-
-	//  Success
-	return TRUE;
+	return CheckReady();
 }
 
 //---------------------------------------------------------------------------
@@ -1715,15 +1686,10 @@ BOOL Disk::Assign(const DWORD* /*cdb*/)
 //	SPECIFY
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Specify(const DWORD* /*cdb*/)
+bool Disk::Specify(const DWORD* /*cdb*/)
 {
 	// Status check
-	if (!CheckReady()) {
-		return FALSE;
-	}
-
-	//  Success
-	return TRUE;
+	return CheckReady();
 }
 
 //---------------------------------------------------------------------------
@@ -1813,9 +1779,6 @@ BOOL Disk::Removal(const DWORD *cdb)
 //---------------------------------------------------------------------------
 int Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 {
-	DWORD blocks;
-	DWORD length;
-
 	ASSERT(buf);
 
 	// Buffer clear
@@ -1833,14 +1796,14 @@ int Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 	}
 
 	// Create end of logical block address (disk.blocks-1)
-	blocks = disk.blocks - 1;
+	DWORD blocks = disk.blocks - 1;
 	buf[0] = (BYTE)(blocks >> 24);
 	buf[1] = (BYTE)(blocks >> 16);
 	buf[2] = (BYTE)(blocks >> 8);
 	buf[3] = (BYTE)blocks;
 
 	// Create block length (1 << disk.size)
-	length = 1 << disk.size;
+	DWORD length = 1 << disk.size;
 	buf[4] = (BYTE)(length >> 24);
 	buf[5] = (BYTE)(length >> 16);
 	buf[6] = (BYTE)(length >> 8);

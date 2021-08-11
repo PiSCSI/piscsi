@@ -26,7 +26,7 @@
 
 //---------------------------------------------------------------------------
 //
-// 漢字コード変換
+//  Kanji code conversion
 //
 //---------------------------------------------------------------------------
 #define IC_BUF_SIZE 1024
@@ -46,28 +46,23 @@ static void convert(char const *src, char const *dest,
 #endif
 {
 #ifndef __APPLE__
-	iconv_t cd;
-	size_t in;
-	size_t out;
-	size_t ret;
-
 	*outbuf = '\0';
-	in = strlen(inbuf);
-	out = outsize - 1;
+	size_t in = strlen(inbuf);
+	size_t out = outsize - 1;
 
-	cd = iconv_open(dest, src);
+	iconv_t cd = iconv_open(dest, src);
 	if (cd == (iconv_t)-1) {
 		return;
 	}
 
-	ret = iconv(cd, &inbuf, &in, &outbuf, &out);
+	size_t ret = iconv(cd, &inbuf, &in, &outbuf, &out);
 	if (ret == (size_t)-1) {
 		return;
 	}
 
 	iconv_close(cd);
 	*outbuf = '\0';
-#endif //ifndef __macintosh__
+#endif //ifndef __APPLE__
 }
 
 //---------------------------------------------------------------------------
@@ -202,33 +197,33 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 					if (ext[j] != ' ')
 						goto next_ext;
 				}
-				// 拡張子終端なら転送終了
+				// If the extension ends, the transfer ends
 				break;
 			}
 		next_ext:
 			*p++ = c;
 		}
-		// 全ての文字を読み込むと、ここで i >= 3 となる
+		//  When all the characters are read, here i >= 3
 	}
 
-	// 番兵追加
+	//  Add sentinel
 	*p = '\0';
 }
 
 //===========================================================================
 //
-//	ホスト側ドライブ
+//	Host side drive
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-/// デフォルトコンストラクタ
+// Default constructor
 //
 //---------------------------------------------------------------------------
 CHostDrv::CHostDrv()
 {
-	// 初期化
+	// Initialization
 	m_bWriteProtect = FALSE;
 	m_bEnable = FALSE;
 	m_capCache.sectors = 0;
@@ -240,7 +235,7 @@ CHostDrv::CHostDrv()
 
 //---------------------------------------------------------------------------
 //
-/// デストラクタ final
+// Final destructor
 //
 //---------------------------------------------------------------------------
 CHostDrv::~CHostDrv()
@@ -252,7 +247,7 @@ CHostDrv::~CHostDrv()
 		m_nRing--;
 	}
 
-	// 実体が存在しないことを確認 (念のため)
+	//  Confirm that the entity does not exist (just in case)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
 	ASSERT(m_nRing == 0);
@@ -260,7 +255,7 @@ CHostDrv::~CHostDrv()
 
 //---------------------------------------------------------------------------
 //
-/// 初期化 (デバイス起動とロード)
+// Initialization (device boot and load)
 //
 //---------------------------------------------------------------------------
 void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
@@ -273,18 +268,18 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 	ASSERT(m_bVolumeCache == FALSE);
 	ASSERT(m_szVolumeCache[0] == _T('\0'));
 
-	// 実体が存在しないことを確認 (念のため)
+	// Confirm that the entity does not exist (just in case)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
 	ASSERT(m_nRing == 0);
 
-	// パラメータを受け取る
+	// Receive parameters
 	if (nFlag & FSFLAG_WRITE_PROTECT)
 		m_bWriteProtect = TRUE;
 	strcpy(m_szBase, szBase);
 
-	// ベースパスの最後のパス区切りマークを削除する
-	/// @warning Unicode利用時は修正が必要
+	// Remove the last path delimiter in the base path
+	// @warning needs to be modified when using Unicode
 	TCHAR* pClear = NULL;
 	TCHAR* p = m_szBase;
 	for (;;) {
@@ -306,56 +301,52 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 	if (pClear)
 		*pClear = _T('\0');
 
-	// 状態更新
+	// Status update
 	m_bEnable = TRUE;
 }
 
 //---------------------------------------------------------------------------
 //
-/// メディアチェック
+// Media check
 //
 //---------------------------------------------------------------------------
 BOOL CHostDrv::isMediaOffline()
 {
-
-	// オフライン状態チェック
+	// Offline status check
 	return m_bEnable == FALSE;
 }
 
 //---------------------------------------------------------------------------
 //
-/// メディアバイトの取得
+// Get media bytes
 //
 //---------------------------------------------------------------------------
 BYTE CHostDrv::GetMediaByte() const
 {
-
 	return Human68k::MEDIA_REMOTE;
 }
 
 //---------------------------------------------------------------------------
 //
-/// ドライブ状態の取得
+// Get drive status
 //
 //---------------------------------------------------------------------------
 DWORD CHostDrv::GetStatus() const
 {
-
 	return 0x40 | (m_bEnable ? (m_bWriteProtect ? 0x08 : 0) | 0x02 : 0);
 }
 
 //---------------------------------------------------------------------------
 //
-/// メディア状態設定
+// Media status settings
 //
 //---------------------------------------------------------------------------
 void CHostDrv::SetEnable(BOOL bEnable)
 {
-
 	m_bEnable = bEnable;
 
 	if (bEnable == FALSE) {
-		// キャッシュ消去
+		// Clear cache
 		m_capCache.sectors = 0;
 		m_bVolumeCache = FALSE;
 		m_szVolumeCache[0] = _T('\0');
@@ -364,13 +355,12 @@ void CHostDrv::SetEnable(BOOL bEnable)
 
 //---------------------------------------------------------------------------
 //
-/// メディア交換チェック
+// Media change check
 //
 //---------------------------------------------------------------------------
 BOOL CHostDrv::CheckMedia()
 {
-
-	// 状態更新
+	// Status update
 	Update();
 	if (m_bEnable == FALSE)
 		CleanCache();
@@ -380,38 +370,36 @@ BOOL CHostDrv::CheckMedia()
 
 //---------------------------------------------------------------------------
 //
-/// メディア状態更新
+// Media status update
 //
 //---------------------------------------------------------------------------
 void CHostDrv::Update()
 {
-
-	// メディア挿入とみなす
+	// Considered as media insertion
 	BOOL bEnable = TRUE;
 
-	// メディア状態反映
+	// Media status reflected
 	SetEnable(bEnable);
 }
 
 //---------------------------------------------------------------------------
 //
-/// イジェクト
+// Eject
 //
 //---------------------------------------------------------------------------
 void CHostDrv::Eject()
 {
-
-	// メディア排出
+	// Media discharge
 	CleanCache();
 	SetEnable(FALSE);
 
-	// 状態更新
+	// Status update
 	Update();
 }
 
 //---------------------------------------------------------------------------
 //
-/// ボリュームラベルの取得
+// Get volume label
 //
 //---------------------------------------------------------------------------
 void CHostDrv::GetVolume(TCHAR* szLabel)
@@ -419,7 +407,7 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 	ASSERT(szLabel);
 	ASSERT(m_bEnable);
 
-	// ボリュームラベルの取得
+	// Get volume label
 	strcpy(m_szVolumeCache, "RASDRV ");
 	if (m_szBase[0]) {
 		strcat(m_szVolumeCache, m_szBase);
@@ -427,10 +415,10 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 		strcat(m_szVolumeCache, "/");
 	}
 
-	// キャッシュ更新
+	// Cache update
 	m_bVolumeCache = TRUE;
 
-	// 内容を転送
+	// Transfer content
 	strcpy(szLabel, m_szVolumeCache);
 }
 
@@ -513,7 +501,6 @@ BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache()
 {
-
 	Lock();
 	for (CHostPath* p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
 		p->Release();

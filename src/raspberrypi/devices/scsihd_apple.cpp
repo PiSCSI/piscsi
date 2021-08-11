@@ -80,12 +80,9 @@ int SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
 	buf[1] = 0x1c;
 
 	// No changeable area
-	if (change) {
-		return 30;
+	if (!change) {
+		memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
 	}
-
-	// APPLE COMPUTER, INC.
-	memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
 
 	return 30;
 }
