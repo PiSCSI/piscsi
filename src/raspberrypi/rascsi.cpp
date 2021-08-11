@@ -301,7 +301,7 @@ const PbDevices GetDevices()
 
 		// ID,UNIT,Type,Device Status
 		PbDeviceType type;
-		PbDeviceType_Parse(pUnit->GetID(), &type);
+		PbDeviceType_Parse(pUnit->GetType(), &type);
 		device->set_type(type);
 
 		Filepath filepath;
@@ -629,7 +629,6 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		}
 
 		// Create a new drive, based upon type
-		pUnit = NULL;
 		switch (type) {
 			case SAHD:		// HDF
 				pUnit = new SASIHD();
@@ -669,6 +668,9 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
 				return ReturnStatus(fd, false, error);
 		}
+
+		pUnit->SetId(id);
+		pUnit->SetLun(unit);
 
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
 		if (!device.removable() && pUnit->SupportsFile() && filename.empty()) {
@@ -723,7 +725,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			// Re-map the controller
 			bool status = MapController(map);
 			if (status) {
-				LOGINFO("Added new %s device, ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
+				LOGINFO("Added new %s device, ID: %d unit: %d", pUnit->GetType().c_str(), id, unit);
 				return true;
 			}
 
@@ -756,7 +758,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-	        LOGINFO("Disconnected %s device, ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
+	        LOGINFO("Disconnected %s device, ID: %d unit: %d", pUnit->GetType().c_str(), id, unit);
 			return true;
 		}
 
@@ -765,12 +767,12 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
 	if ((cmd == INSERT || cmd == EJECT) && !pUnit->IsRemovable()) {
-		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't removable)";
+		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetType() << " isn't removable)";
 		return ReturnStatus(fd, false, error);
 	}
 
 	if ((cmd == PROTECT || cmd == UNPROTECT) && (!pUnit->IsProtectable() || pUnit->IsReadOnly())) {
-		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't protectable)";
+		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetType() << " isn't protectable)";
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -785,7 +787,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			}
 
 			filepath.SetPath(params.c_str());
-			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", params.c_str(), pUnit->GetID().c_str(), id, unit);
+			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", params.c_str(), pUnit->GetType().c_str(), id, unit);
 
 			try {
 				pUnit->Open(filepath);
@@ -806,17 +808,17 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			break;
 
 		case EJECT:
-			LOGINFO("Eject requested for %s ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
+			LOGINFO("Eject requested for %s ID: %d unit: %d", pUnit->GetType().c_str(), id, unit);
 			pUnit->Eject(true);
 			break;
 
 		case PROTECT:
-			LOGINFO("Write protection requested for %s ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
+			LOGINFO("Write protection requested for %s ID: %d unit: %d", pUnit->GetType().c_str(), id, unit);
 			pUnit->SetProtected(true);
 			break;
 
 		case UNPROTECT:
-			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
+			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", pUnit->GetType().c_str(), id, unit);
 			pUnit->SetProtected(false);
 			break;
 

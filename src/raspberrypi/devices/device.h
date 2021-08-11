@@ -48,7 +48,7 @@ class Device
 {
 private:
 
-	std::string id;
+	std::string type;
 
 	bool ready;
 	bool reset;
@@ -67,6 +67,7 @@ private:
 	bool lockable;
 	bool locked;
 
+	unsigned int id;
 	unsigned int lun;
 
 	int status_code;
@@ -77,7 +78,7 @@ protected:
 	virtual ~Device() { };
 
 public:
-	const string& GetID() const { return id; }
+	const string& GetType() const { return type; }
 
 	bool IsReady() const { return ready; }
 	void SetReady(bool ready) { this->ready = ready; }
@@ -104,6 +105,8 @@ public:
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool locked) { this->locked = locked; }
 
+	unsigned int GetId() const { return id; }
+	void SetId(unsigned int id) { this->id = id; }
 	unsigned int GetLun() const { return lun; }
 	void SetLun(unsigned int lun) { this->lun = lun; }
 
@@ -112,10 +115,10 @@ public:
 
 	bool Eject(bool);
 
-	bool IsSASI() const { return id == "SAHD"; }
-	bool IsSCSI() const { return id == "SCHD" || id == "SCRM"; }
-	bool IsCdRom() const { return id == "SCCD"; }
-	bool IsMo() const { return id == "SCMO"; }
-	bool IsBridge() const { return id == "SCBR"; }
-	bool IsDaynaPort() const { return id == "SCDP"; }
+	bool IsSASI() const { return type == "SAHD"; }
+	bool IsSCSI() const { return type == "SCHD" || type == "SCRM"; }
+	bool IsCdRom() const { return type == "SCCD"; }
+	bool IsMo() const { return type == "SCMO"; }
+	bool IsBridge() const { return type == "SCBR"; }
+	bool IsDaynaPort() const { return type == "SCDP"; }
 };

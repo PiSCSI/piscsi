@@ -10,11 +10,11 @@
 #include <cassert>
 #include "device.h"
 
-Device::Device(std::string id, bool removable)
+Device::Device(std::string type, bool removable)
 {
-	assert(id.length() == 4);
+	assert(type.length() == 4);
 
-	this->id = id;
+	this->type = type;
 	this->removable = removable;
 
 	ready = false;
@@ -27,6 +27,7 @@ Device::Device(std::string id, bool removable)
 	lockable = false;
 	locked = false;
 
+	id = 0;
 	lun = 0;
 
 	status_code = STATUS_NOERROR;
