@@ -316,7 +316,7 @@ const PbDevices GetDevices()
 		}
 
 		device->set_protectable(pUnit->IsProtectable());
-		device->set_protected_(pUnit->IsProtectable() && pUnit->IsWriteP());
+		device->set_protected_(pUnit->IsProtectable() && pUnit->IsProtected());
 		device->set_removable(pUnit->IsRemovable());
 		device->set_removed(pUnit->IsRemoved());
 		device->set_lockable(pUnit->IsLockable());
@@ -325,7 +325,7 @@ const PbDevices GetDevices()
 		device->set_allocated_image_file(image_file);
 
 		// Write protection status
-		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
+		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsProtected()) {
 			device->set_read_only(true);
 		}
 	}
@@ -679,7 +679,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		}
 
 		if (device.protected_() && pUnit->IsProtectable()) {
-			pUnit->WriteP(true);
+			pUnit->SetProtected(true);
 		}
 
 		// drive checks files
@@ -715,9 +715,6 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 				files_in_use.insert(filepath.GetPath());
 			}
 		}
-
-		// Set the cache to write-through
-		pUnit->SetCacheWB(FALSE);
 
 		if (!dryRun) {
 			// Replace with the newly created unit
@@ -815,12 +812,12 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 		case PROTECT:
 			LOGINFO("Write protection requested for %s ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
-			pUnit->WriteP(true);
+			pUnit->SetProtected(true);
 			break;
 
 		case UNPROTECT:
 			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", pUnit->GetID().c_str(), id, unit);
-			pUnit->WriteP(false);
+			pUnit->SetProtected(false);
 			break;
 
 		default:

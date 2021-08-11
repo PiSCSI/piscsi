@@ -31,7 +31,7 @@
 //---------------------------------------------------------------------------
 SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD", removable)
 {
-	disk.protectable = true;
+	SetProtected(true);
 }
 
 //---------------------------------------------------------------------------
@@ -42,12 +42,12 @@ SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD", removable)
 void SCSIHD::Reset()
 {
 	// Unlock and release attention
-	disk.locked = FALSE;
-	disk.attn = FALSE;
+	SetLocked(false);
+	SetAttn(false);
 
 	// No reset, clear code
-	disk.reset = FALSE;
-	disk.code = 0x00;
+	SetReset(false);
+	SetStatusCode(STATUS_NOERROR);
 }
 
 //---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ void SCSIHD::Reset()
 //---------------------------------------------------------------------------
 void SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 {
-	ASSERT(!disk.ready);
+	ASSERT(!IsReady());
 
 	// read open required
 	Fileio fio;
@@ -107,13 +107,13 @@ int SCSIHD:: Inquiry(
 
 	// EVPD check
 	if (cdb[1] & 0x01) {
-		disk.code = DISK_INVALIDCDB;
+		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
 	// Ready check (Error if no image file)
-	if (!disk.ready) {
-		disk.code = DISK_NOTREADY;
+	if (!IsReady()) {
+		SetStatusCode(STATUS_NOTREADY);
 		return 0;
 	}
 
@@ -125,7 +125,7 @@ int SCSIHD:: Inquiry(
 	memset(buf, 0, 8);
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
+	if (((cdb[1] >> 5) & 0x07) != GetLun()) {
 		buf[0] = 0x7f;
 	}
 
@@ -172,7 +172,7 @@ int SCSIHD:: Inquiry(
 	}
 
 	//  Success
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 
@@ -200,7 +200,7 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				buf[10] != (BYTE)(size >> 8) ||
 				buf[11] != (BYTE)size) {
 				// currently does not allow changing sector length
-				disk.code = DISK_INVALIDPRM;
+				SetStatusCode(STATUS_INVALIDPRM);
 				return FALSE;
 			}
 			buf += 12;
@@ -220,7 +220,7 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length
-						disk.code = DISK_INVALIDPRM;
+						SetStatusCode(STATUS_INVALIDPRM);
 						return FALSE;
 					}
 					break;
@@ -253,7 +253,7 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	}
 
 	// Do not generate an error for the time being (MINIX)
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 
 	return TRUE;
 }

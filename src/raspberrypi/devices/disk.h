@@ -20,46 +20,9 @@
 #include "xm6.h"
 #include "log.h"
 #include "scsi.h"
+#include "device.h"
 #include "filepath.h"
 #include <string>
-
-//---------------------------------------------------------------------------
-//
-//	Error definition (sense code returned by REQUEST SENSE)
-//
-//	MSB		Reserved (0x00)
-//			Sense Key
-//			Additional Sense Code (ASC)
-//	LSB		Additional Sense Code Qualifier(ASCQ)
-//
-//---------------------------------------------------------------------------
-#define DISK_NOERROR		0x00000000	// NO ADDITIONAL SENSE INFO.
-#define DISK_DEVRESET		0x00062900	// POWER ON OR RESET OCCURED
-#define DISK_NOTREADY		0x00023a00	// MEDIUM NOT PRESENT
-#define DISK_ATTENTION		0x00062800	// MEDIUM MAY HAVE CHANGED
-#define DISK_PREVENT		0x00045302	// MEDIUM REMOVAL PREVENTED
-#define DISK_READFAULT		0x00031100	// UNRECOVERED READ ERROR
-#define DISK_WRITEFAULT		0x00030300	// PERIPHERAL DEVICE WRITE FAULT
-#define DISK_WRITEPROTECT	0x00042700	// WRITE PROTECTED
-#define DISK_MISCOMPARE		0x000e1d00	// MISCOMPARE DURING VERIFY
-#define DISK_INVALIDCMD		0x00052000	// INVALID COMMAND OPERATION CODE
-#define DISK_INVALIDLBA		0x00052100	// LOGICAL BLOCK ADDR. OUT OF RANGE
-#define DISK_INVALIDCDB		0x00052400	// INVALID FIELD IN CDB
-#define DISK_INVALIDLUN		0x00052500	// LOGICAL UNIT NOT SUPPORTED
-#define DISK_INVALIDPRM		0x00052600	// INVALID FIELD IN PARAMETER LIST
-#define DISK_INVALIDMSG		0x00054900	// INVALID MESSAGE ERROR
-#define DISK_PARAMLEN		0x00051a00	// PARAMETERS LIST LENGTH ERROR
-#define DISK_PARAMNOT		0x00052601	// PARAMETERS NOT SUPPORTED
-#define DISK_PARAMVALUE		0x00052602	// PARAMETERS VALUE INVALID
-#define DISK_PARAMSAVE		0x00053900	// SAVING PARAMETERS NOT SUPPORTED
-#define DISK_NODEFECT		0x00010000	// DEFECT LIST NOT FOUND
-
-#if 0
-#define DISK_AUDIOPROGRESS	0x00??0011	// AUDIO PLAY IN PROGRESS
-#define DISK_AUDIOPAUSED	0x00??0012	// AUDIO PLAY PAUSED
-#define DISK_AUDIOSTOPPED	0x00??0014	// AUDIO PLAY STOPPED DUE TO ERROR
-#define DISK_AUDIOCOMPLETE	0x00??0013	// AUDIO PLAY SUCCESSFULLY COMPLETED
-#endif
 
 #define BENDER_SIGNATURE 	"RaSCSI"
 
@@ -160,28 +123,14 @@ private:
 //	Disk
 //
 //===========================================================================
-class Disk
+class Disk : public Device
 {
 public:
 	// Internal data structure
 	typedef struct {
-		std::string id;						// Media ID
-		BOOL ready;							// Valid Disk
-		bool readonly;							// Read only
-		bool protectable;
-		bool writep;							// Write protected
-		bool removable;							// Removable
-		bool removed;
-		bool lockable;
-		bool locked;							// Locked
-		// TODO Non-disk devices must not inherit from Disk class
 		bool supports_file;
-		bool attn;							// Attention
-		bool reset;							// Reset
 		int size;							// Sector Size
 		DWORD blocks;							// Total number of sectors
-		DWORD lun;							// LUN
-		DWORD code;							// Status code
 		DiskCache *dcache;						// Disk cache
 		off64_t imgoffset;						// Offset to actual data
 	} disk_t;
@@ -190,37 +139,13 @@ public:
 	// Basic Functions
 	Disk(std::string, bool);					// Constructor
 	virtual ~Disk();							// Destructor
-	virtual void Reset();						// Device Reset
-
-	// ID
-	const std::string& GetID() const;			// Get media ID
-	bool IsSASI() const;						// SASI Check
-	bool IsCdRom() const;
-	bool IsMo() const;
-	bool IsBridge() const;
-	bool IsDaynaPort() const;
-	bool IsScsiDevice() const;
 
 	// Media Operations
 	virtual void Open(const Filepath& path, BOOL attn = TRUE);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
 	bool Eject(bool);					// Eject
-	bool IsReady() const		{ return disk.ready; }		// Ready check
-	bool IsProtectable() const 	{ return disk.protectable; }
-	bool WriteP(bool);					// Set Write Protect flag
-	bool IsWriteP() const		{ return disk.writep; }		// Get write protect flag
-	bool IsReadOnly() const		{ return disk.readonly; }	// Get read only flag
-	bool IsRemovable() const	{ return disk.removable; }	// Get is removable flag
-	bool IsRemoved() const		{ return disk.removed; }
-	bool IsLockable() const		{ return disk.lockable; }
-	bool IsLocked() const		{ return disk.locked; }		// Get locked status
 	bool SupportsFile() const	{ return disk.supports_file; }
-	bool IsAttn() const		{ return disk.attn; }		// Get attention flag
 	bool Flush();							// Flush the cache
-
-	// Properties
-	void SetLUN(DWORD lun)		{ disk.lun = lun; }		// LUN set
-	DWORD GetLUN()			{ return disk.lun; }		// LUN get
 
 	// commands
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);// INQUIRY command
@@ -250,10 +175,6 @@ public:
 	virtual BOOL PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
 	virtual BOOL PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
 	virtual BOOL PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
-
-	// Other
-	bool IsCacheWB();								// Get cache writeback mode
-	void SetCacheWB(BOOL enable);						// Set cache writeback mode
 
 protected:
 	// Internal processing

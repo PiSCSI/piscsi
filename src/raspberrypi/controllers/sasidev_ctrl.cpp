@@ -95,7 +95,7 @@ void SASIDEV::Reset()
 	// Unit initialization
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
-			ctrl.unit[i]->Reset();
+			ctrl.unit[i]->SetReset(true);
 		}
 	}
 }
@@ -1462,11 +1462,6 @@ void SASIDEV::FlushUnit()
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
 		case SASIDEV::eCmdWriteAndVerify10:
-			// Flush
-			if (!ctrl.unit[lun]->IsCacheWB()) {
-				ctrl.unit[lun]->Flush();
-			}
-			break;
 		case SASIDEV::eCmdModeSelect:
 		case SASIDEV::eCmdModeSelect10:
             // Debug code related to Issue #2 on github, where we get an unhandled Model select when

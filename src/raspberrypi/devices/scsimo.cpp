@@ -32,8 +32,8 @@
 //---------------------------------------------------------------------------
 SCSIMO::SCSIMO() : Disk("SCMO", true)
 {
-	disk.lockable = true;
-	disk.protectable = true;
+	SetLocked(true);
+	SetProtectable(true);
 }
 
 //---------------------------------------------------------------------------
@@ -43,7 +43,7 @@ SCSIMO::SCSIMO() : Disk("SCMO", true)
 //---------------------------------------------------------------------------
 void SCSIMO::Open(const Filepath& path, BOOL attn)
 {
-	ASSERT(!disk.ready);
+	ASSERT(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -89,8 +89,8 @@ void SCSIMO::Open(const Filepath& path, BOOL attn)
 	Disk::Open(path);
 
 	// Attention if ready
-	if (disk.ready && attn) {
-		disk.attn = TRUE;
+	if (IsReady() && attn) {
+		SetAttn(true);
 	}
 }
 
@@ -111,7 +111,7 @@ int SCSIMO::Inquiry(
 
 	// EVPD check
 	if (cdb[1] & 0x01) {
-		disk.code = DISK_INVALIDCDB;
+		SetStatusCode(STATUS_INVALIDCDB);
 		return FALSE;
 	}
 
@@ -125,7 +125,7 @@ int SCSIMO::Inquiry(
 	buf[0] = 0x07;
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
+	if (((cdb[1] >> 5) & 0x07) != GetLun()) {
 		buf[0] = 0x7f;
 	}
 
@@ -157,7 +157,7 @@ int SCSIMO::Inquiry(
 	}
 
 	//  Success
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 
@@ -184,7 +184,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 			if (buf[9] != (BYTE)(size >> 16) ||
 				buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
 				// Currently does not allow changing sector length
-				disk.code = DISK_INVALIDPRM;
+				SetStatusCode(STATUS_INVALIDPRM);
 				return FALSE;
 			}
 			buf += 12;
@@ -204,7 +204,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// Currently does not allow changing sector length
-						disk.code = DISK_INVALIDPRM;
+						SetStatusCode(STATUS_INVALIDPRM);
 						return FALSE;
 					}
 					break;
@@ -226,7 +226,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	}
 
 	// Do not generate an error for the time being (MINIX)
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 
 	return TRUE;
 }
@@ -277,7 +277,7 @@ int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 		further information: http://r2089.blog36.fc2.com/blog-entry-177.html
 	*/
 
-	if (disk.ready) {
+	if (IsReady()) {
 		unsigned spare = 0;
 		unsigned bands = 0;
 

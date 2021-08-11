@@ -252,8 +252,8 @@ CDDABuf::~CDDABuf()
 //---------------------------------------------------------------------------
 SCSICD::SCSICD() : Disk("SCCD", true)
 {
-	disk.lockable = true;
-	disk.writep = true;
+	SetLocked(true);
+	SetProtected(true);
 
 	// NOT in raw format
 	rawfile = FALSE;
@@ -292,7 +292,7 @@ void SCSICD::Open(const Filepath& path, BOOL attn)
 	off64_t size;
 	TCHAR file[5];
 
-	ASSERT(!disk.ready);
+	ASSERT(!IsReady());
 
 	// Initialization, track clear
 	disk.blocks = 0;
@@ -346,11 +346,11 @@ void SCSICD::Open(const Filepath& path, BOOL attn)
 	disk.dcache->SetRawMode(rawfile);
 
 	// Since it is a ROM media, writing is not possible
-	disk.writep = TRUE;
+	SetProtected(true);
 
 	// Attention if ready
-	if (disk.ready && attn) {
-		disk.attn = TRUE;
+	if (IsReady() && attn) {
+		SetAttn(true);
 	}
 }
 
@@ -509,7 +509,7 @@ int SCSICD::Inquiry(
 
 	// EVPD check
 	if (cdb[1] & 0x01) {
-		disk.code = DISK_INVALIDCDB;
+		SetStatusCode(STATUS_INVALIDCDB);
 		return FALSE;
 	}
 
@@ -523,7 +523,7 @@ int SCSICD::Inquiry(
 	buf[0] = 0x05;
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
+	if (((cdb[1] >> 5) & 0x07) != GetLun()) {
 		buf[0] = 0x7f;
 	}
 
@@ -577,7 +577,7 @@ int SCSICD::Inquiry(
 	}
 
 	//  Success
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 
@@ -602,7 +602,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 	// if invalid, out of range
 	if (index < 0) {
-		disk.code = DISK_INVALIDLBA;
+		SetStatusCode(STATUS_INVALIDLBA);
 		return 0;
 	}
 	ASSERT(track[index]);
@@ -673,7 +673,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	if ((int)cdb[6] > last) {
 		// Except for AA
 		if (cdb[6] != 0xaa) {
-			disk.code = DISK_INVALIDCDB;
+			SetStatusCode(STATUS_INVALIDCDB);
 			return 0;
 		}
 	}
@@ -709,7 +709,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 			}
 
 			// Otherwise, error
-			disk.code = DISK_INVALIDCDB;
+			SetStatusCode(STATUS_INVALIDCDB);
 			return 0;
 		}
 	}
@@ -763,7 +763,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 BOOL SCSICD::PlayAudio(const DWORD* /*cdb*/)
 {
-	disk.code = DISK_INVALIDCDB;
+	SetStatusCode(STATUS_INVALIDCDB);
 	return FALSE;
 }
 
@@ -774,7 +774,7 @@ BOOL SCSICD::PlayAudio(const DWORD* /*cdb*/)
 //---------------------------------------------------------------------------
 BOOL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
 {
-	disk.code = DISK_INVALIDCDB;
+	SetStatusCode(STATUS_INVALIDCDB);
 	return FALSE;
 }
 
@@ -785,7 +785,7 @@ BOOL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
 //---------------------------------------------------------------------------
 BOOL SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
 {
-	disk.code = DISK_INVALIDCDB;
+	SetStatusCode(STATUS_INVALIDCDB);
 	return FALSE;
 }
 

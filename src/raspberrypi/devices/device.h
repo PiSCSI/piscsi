@@ -1,0 +1,121 @@
+//---------------------------------------------------------------------------
+//
+//      SCSI Target Emulator RaSCSI (*^..^*)
+//      for Raspberry Pi
+//
+//      Copyright (C) 2021 Uwe Seimet
+//
+//---------------------------------------------------------------------------
+
+#pragma once
+
+#include <string>
+
+using namespace std;
+
+//---------------------------------------------------------------------------
+//
+//	Error definition (sense code returned by REQUEST SENSE)
+//
+//	MSB		Reserved (0x00)
+//			Sense Key
+//			Additional Sense Code (ASC)
+//	LSB		Additional Sense Code Qualifier(ASCQ)
+//
+//---------------------------------------------------------------------------
+#define STATUS_NOERROR		0x00000000	// NO ADDITIONAL SENSE INFO.
+#define STATUS_DEVRESET		0x00062900	// POWER ON OR RESET OCCURED
+#define STATUS_NOTREADY		0x00023a00	// MEDIUM NOT PRESENT
+#define STATUS_ATTENTION	0x00062800	// MEDIUM MAY HAVE CHANGED
+#define STATUS_PREVENT		0x00045302	// MEDIUM REMOVAL PREVENTED
+#define STATUS_READFAULT	0x00031100	// UNRECOVERED READ ERROR
+#define STATUS_WRITEFAULT	0x00030300	// PERIPHERAL DEVICE WRITE FAULT
+#define STATUS_WRITEPROTECT	0x00042700	// WRITE PROTECTED
+#define STATUS_MISCOMPARE	0x000e1d00	// MISCOMPARE DURING VERIFY
+#define STATUS_INVALIDCMD	0x00052000	// INVALID COMMAND OPERATION CODE
+#define STATUS_INVALIDLBA	0x00052100	// LOGICAL BLOCK ADDR. OUT OF RANGE
+#define STATUS_INVALIDCDB	0x00052400	// INVALID FIELD IN CDB
+#define STATUS_INVALIDLUN	0x00052500	// LOGICAL UNIT NOT SUPPORTED
+#define STATUS_INVALIDPRM	0x00052600	// INVALID FIELD IN PARAMETER LIST
+#define STATUS_INVALIDMSG	0x00054900	// INVALID MESSAGE ERROR
+#define STATUS_PARAMLEN		0x00051a00	// PARAMETERS LIST LENGTH ERROR
+#define STATUS_PARAMNOT		0x00052601	// PARAMETERS NOT SUPPORTED
+#define STATUS_PARAMVALUE	0x00052602	// PARAMETERS VALUE INVALID
+#define STATUS_PARAMSAVE	0x00053900	// SAVING PARAMETERS NOT SUPPORTED
+#define STATUS_NODEFECT		0x00010000	// DEFECT LIST NOT FOUND
+
+class Device
+{
+private:
+
+	std::string id;
+
+	bool ready;
+	bool reset;
+	bool attn;
+
+	// Device is protectable/write-protected or implicitly read-only
+	bool protectable;
+	bool write_protected;
+	bool read_only;
+
+	// Device is removable/removed
+	bool removable;
+	bool removed;
+
+	// Device is lockable/locked
+	bool lockable;
+	bool locked;
+
+	unsigned int lun;
+
+	int status_code;
+
+protected:
+
+	Device(std::string, bool);
+	virtual ~Device() { };
+
+public:
+	const string& GetID() const { return id; }
+
+	bool IsReady() const { return ready; }
+	void SetReady(bool ready) { this->ready = ready; }
+	bool IsReset() const { return reset; }
+	void SetReset(bool reset) { this->reset = reset; }
+	void Reset();
+	bool IsAttn() const { return attn; }
+	void SetAttn(bool attn) { this->attn = attn; }
+
+	bool IsProtectable() const { return protectable; }
+	void SetProtectable(bool protectable) { this->protectable = protectable; }
+	bool IsProtected() const { return write_protected; }
+	bool SetProtected(bool);
+	bool IsReadOnly() const { return read_only; }
+	void SetReadOnly(bool read_only) { this->read_only = read_only; }
+
+	bool IsRemovable() const { return removable; }
+	void SetRemovable(bool removable) { this->removable = removable; }
+	bool IsRemoved() const { return removed; }
+	void SetRemoved(bool removed) { this->removed = removed; }
+
+	bool IsLockable() const { return lockable; }
+	void SetLockable(bool lockable) { this->lockable = lockable; }
+	bool IsLocked() const { return locked; }
+	void SetLocked(bool locked) { this->locked = locked; }
+
+	unsigned int GetLun() const { return lun; }
+	void SetLun(unsigned int lun) { this->lun = lun; }
+
+	int GetStatusCode() const { return status_code; }
+	void SetStatusCode(int status_code) { this->status_code = status_code; }
+
+	bool Eject(bool);
+
+	bool IsSASI() const { return id == "SAHD"; }
+	bool IsSCSI() const { return id == "SCHD" || id == "SCRM"; }
+	bool IsCdRom() const { return id == "SCCD"; }
+	bool IsMo() const { return id == "SCMO"; }
+	bool IsBridge() const { return id == "SCBR"; }
+	bool IsDaynaPort() const { return id == "SCDP"; }
+};

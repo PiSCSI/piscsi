@@ -63,8 +63,8 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP", false)
 
 	LOGTRACE("%s this->reset()", __PRETTY_FUNCTION__);
 	this->Reset();
-	disk.ready = true;
-	disk.reset = false;
+	SetReady(true);
+	SetReset(false);
 
 	// Generate MAC Address
 	LOGTRACE("%s memset(m_mac_addr, 0x00, 6);", __PRETTY_FUNCTION__);
@@ -137,7 +137,7 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD mi
 	// Work-around in order to report an error for LUNs > 0
 	DWORD lun = (cdb[1] >> 5) & 0x07;
 	if (lun) {
-		disk.code = DISK_INVALIDLUN;
+		SetStatusCode(STATUS_INVALIDLUN);
 		return -1;
 	}
 
@@ -158,7 +158,7 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD mi
 	LOGTRACE("response size is %d", (int)allocation_length);
 
 	// Success
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 	return allocation_length;
 }
 
@@ -181,7 +181,7 @@ int SCSIDaynaPort::RequestSense(const DWORD *cdb, BYTE *buffer)
 	buffer[0] = 0x70;
 
 	// Clear the code
-	disk.code = 0x00;
+	SetStatusCode(STATUS_NOERROR);
 
 	return size;
 }
@@ -337,7 +337,7 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 	}
 
 	if(!m_bTapEnable){
-		disk.code = DISK_NOTREADY;
+		SetStatusCode(STATUS_NOTREADY);
 		return 0;
 	}
 
@@ -444,7 +444,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 
 	response_size = 18;
 
-
 	response_size = sizeof(m_scsi_link_stats);
 	memcpy(buffer, &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
@@ -457,7 +456,7 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	}
 
 	//  Success
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 	return response_size;
 	// scsi_cdb_6_byte_t *command = (scsi_cdb_6_byte_t*)cdb;
 	// scsi_resp_link_stats_t *response = (scsi_resp_link_stats_t*) buffer;
@@ -523,7 +522,7 @@ BOOL SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// TEST UNIT READY Success
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 	return TRUE;
 }
 

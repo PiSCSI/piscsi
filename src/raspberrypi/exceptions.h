@@ -3,14 +3,11 @@
 //      SCSI Target Emulator RaSCSI (*^..^*)
 //      for Raspberry Pi
 //
-//      Powered by XM6 TypeG Technology.
-//      Copyright (C) 2016-2020 GIMONS
-//      [ Exceptions ]
+//      Copyright (C) 2021 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#if !defined(exceptions_h)
-#define exceptions_h
+#pragma once
 
 #include <exception>
 #include <string>
@@ -44,5 +41,3 @@ public:
 		return msg;
 	}
 };
-
-#endif

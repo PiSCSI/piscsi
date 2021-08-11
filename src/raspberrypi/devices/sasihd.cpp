@@ -31,7 +31,7 @@
 //---------------------------------------------------------------------------
 SASIHD::SASIHD() : Disk("SAHD", false)
 {
-	disk.protectable = true;
+	SetProtectable(true);
 }
 
 //---------------------------------------------------------------------------
@@ -42,12 +42,12 @@ SASIHD::SASIHD() : Disk("SAHD", false)
 void SASIHD::Reset()
 {
 	// Unlock, clear attention
-	disk.locked = FALSE;
-	disk.attn = FALSE;
+	SetLocked(false);
+	SetAttn(false);
 
 	// Reset, clear the code
-	disk.reset = FALSE;
-	disk.code = 0x00;
+	SetReset(false);
+	SetStatusCode(STATUS_NOERROR);
 }
 
 //---------------------------------------------------------------------------
@@ -57,7 +57,7 @@ void SASIHD::Reset()
 //---------------------------------------------------------------------------
 void SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 {
-	ASSERT(!disk.ready);
+	ASSERT(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -147,11 +147,11 @@ int SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)
 
 	// SASI fixed to non-extended format
 	memset(buf, 0, size);
-	buf[0] = (BYTE)(disk.code >> 16);
-	buf[1] = (BYTE)(disk.lun << 5);
+	buf[0] = (BYTE)(GetStatusCode() >> 16);
+	buf[1] = (BYTE)(GetLun() << 5);
 
 	// Clear the code
-	disk.code = 0x00;
+	SetStatusCode(STATUS_NOERROR);
 
 	return size;
 }

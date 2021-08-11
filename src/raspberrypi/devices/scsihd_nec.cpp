@@ -73,7 +73,7 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	BYTE hdr[512];
 	LPCTSTR ext;
 
-	ASSERT(!disk.ready);
+	ASSERT(!IsReady());
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
@@ -230,7 +230,7 @@ int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 		return 24;
 	}
 
-	if (disk.ready) {
+	if (IsReady()) {
 		// Set the number of tracks in one zone (PC-9801-55 seems to see this value)
 		buf[0x2] = (BYTE)(heads >> 8);
 		buf[0x3] = (BYTE)heads;
@@ -246,7 +246,7 @@ int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 	}
 
 	// Set removable attributes (remains of the old days)
-	if (disk.removable) {
+	if (IsRemovable()) {
 		buf[20] = 0x20;
 	}
 
@@ -271,7 +271,7 @@ int SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 		return 20;
 	}
 
-	if (disk.ready) {
+	if (IsReady()) {
 		// Set the number of cylinders
 		buf[0x2] = (BYTE)(cylinders >> 16);
 		buf[0x3] = (BYTE)(cylinders >> 8);
