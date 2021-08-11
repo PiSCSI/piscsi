@@ -598,10 +598,10 @@ bool ProcessCmd(int fd, const PbDevice& pbDevice, const PbOperation cmd, const s
 			ext = filename.substr(len - 3);
 		}
 
-		// Create a new drive, based upon type
+		// Create a new device, based upon type or file extension
 		device = DeviceFactory::CreateDevice(type, ext);
 		if (!device) {
-			error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
+			error << "Received a command for an invalid device type: " << PbDeviceType_Name(type);
 			return ReturnStatus(fd, false, error);
 		}
 
