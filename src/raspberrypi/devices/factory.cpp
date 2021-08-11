@@ -19,8 +19,25 @@
 
 using namespace rascsi_interface;
 
-Device *DeviceFactory::CreateDevice(const PbDeviceType type, const std::string& ext)
+Device *DeviceFactory::CreateDevice(PbDeviceType& type, const std::string& ext)
 {
+	// If no type was specified try to derive the device type from the file extension
+	if (type == UNDEFINED) {
+		if (ext == "hdf") {
+			type = SAHD;
+		}
+		else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
+			type = SCHD;
+		}
+		else if (ext == "hdr") {
+			type = SCRM;
+		} else if (ext == "mos") {
+			type = SCMO;
+		} else if (ext == "iso") {
+			type = SCCD;
+		}
+	}
+
 	switch (type) {
 		case SAHD:
 			return new SASIHD();

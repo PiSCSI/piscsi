@@ -21,5 +21,5 @@ public:
 	DeviceFactory() { };
 	~DeviceFactory() { };
 
-	static Device *CreateDevice(const rascsi_interface::PbDeviceType type, const std::string& ext);
+	static Device *CreateDevice(rascsi_interface::PbDeviceType& type, const std::string& ext);
 };

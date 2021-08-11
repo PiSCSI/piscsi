@@ -598,23 +598,6 @@ bool ProcessCmd(int fd, const PbDevice& pbDevice, const PbOperation cmd, const s
 			ext = filename.substr(len - 3);
 		}
 
-		// If no type was specified try to derive the file type from the extension
-		if (type == UNDEFINED) {
-			if (ext == "hdf") {
-				type = SAHD;
-			}
-			else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
-				type = SCHD;
-			}
-			else if (ext == "hdr") {
-				type = SCRM;
-			} else if (ext == "mos") {
-				type = SCMO;
-			} else if (ext == "iso") {
-				type = SCCD;
-			}
-		}
-
 		// Create a new drive, based upon type
 		device = DeviceFactory::CreateDevice(type, ext);
 		if (!device) {
