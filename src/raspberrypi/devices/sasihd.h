@@ -24,7 +24,7 @@
 //	SASI Hard Disk
 //
 //===========================================================================
-class SASIHD : public Disk
+class SASIHD : public Disk, public FileSupport
 {
 public:
 	// Basic Functions

@@ -706,7 +706,6 @@ void DiskCache::Update()
 Disk::Disk(std::string id, bool removable) : Device(id, removable)
 {
 	// Work initialization
-	disk.supports_file = true;
 	disk.size = 0;
 	disk.blocks = 0;
 	disk.dcache = NULL;
@@ -770,9 +769,6 @@ void Disk::Open(const Filepath& path, BOOL /*attn*/)
 
 	SetLocked(false);
 	SetRemoved(false);
-
-	// Save path
-	diskpath = path;
 }
 
 //---------------------------------------------------------------------------
@@ -788,16 +784,6 @@ bool Disk::Eject(bool force)
 	disk.dcache = NULL;
 
 	return Device::Eject(force);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Get Path
-//
-//---------------------------------------------------------------------------
-void Disk::GetPath(Filepath& path) const
-{
-	path = diskpath;
 }
 
 //---------------------------------------------------------------------------

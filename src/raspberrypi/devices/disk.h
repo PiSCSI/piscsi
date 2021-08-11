@@ -21,6 +21,7 @@
 #include "log.h"
 #include "scsi.h"
 #include "device.h"
+#include "file_support.h"
 #include "filepath.h"
 #include <string>
 
@@ -123,12 +124,14 @@ private:
 //	Disk
 //
 //===========================================================================
+// TODO This class should inherit from FileSupport, and FileSupport should be
+// an interface, not an implementation class.
+// Resolve this as soon as SCSIDaynaport and SCSIBridge do not inherit from Disk anymore.
 class Disk : public Device
 {
 public:
 	// Internal data structure
 	typedef struct {
-		bool supports_file;
 		int size;							// Sector Size
 		DWORD blocks;							// Total number of sectors
 		DiskCache *dcache;						// Disk cache
@@ -144,7 +147,6 @@ public:
 	virtual void Open(const Filepath& path, BOOL attn = TRUE);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
 	bool Eject(bool);					// Eject
-	bool SupportsFile() const	{ return disk.supports_file; }
 	bool Flush();							// Flush the cache
 
 	// commands
@@ -190,6 +192,5 @@ protected:
 
 	// Internal data
 	disk_t disk;								// Internal disk data
-	Filepath diskpath;							// File path (for GetPath)
 	BOOL cache_wb;								// Cache mode
 };

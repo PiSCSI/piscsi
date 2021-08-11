@@ -275,7 +275,7 @@ const PbDevices GetDevices()
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
 		// skip if unit does not exist or null disk
-		Disk *pUnit = disks[i];
+		Device *pUnit = disks[i];
 		if (!pUnit) {
 			continue;
 		}
@@ -291,29 +291,26 @@ const PbDevices GetDevices()
 		PbDeviceType_Parse(pUnit->GetType(), &type);
 		device->set_type(type);
 
-		Filepath filepath;
-		pUnit->GetPath(filepath);
-		PbImageFile *image_file = new PbImageFile();
-		GetImageFile(image_file, pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
-
-		if (pUnit->IsBridge()) {
-			image_file->set_filename("X68000 HOST BRIDGE");
-		} else if (pUnit->IsDaynaPort()) {
-			image_file->set_filename("DaynaPort SCSI/Link");
-		}
-
 		device->set_protectable(pUnit->IsProtectable());
 		device->set_protected_(pUnit->IsProtectable() && pUnit->IsProtected());
 		device->set_removable(pUnit->IsRemovable());
 		device->set_removed(pUnit->IsRemoved());
 		device->set_lockable(pUnit->IsLockable());
 		device->set_locked(pUnit->IsLocked());
-		device->set_supports_file(pUnit->SupportsFile());
-		device->set_allocated_image_file(image_file);
 
 		// Write protection status
 		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsProtected()) {
 			device->set_read_only(true);
+		}
+
+		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(pUnit);
+		if (fileSupport) {
+			Filepath filepath;
+			fileSupport->GetPath(filepath);
+			PbImageFile *image_file = new PbImageFile();
+			GetImageFile(image_file, pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
+			device->set_allocated_image_file(image_file);
+			device->set_supports_file(true);
 		}
 	}
 
@@ -662,20 +659,22 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		pUnit->SetId(id);
 		pUnit->SetLun(unit);
 
+		if (device.protected_() && pUnit->IsProtectable()) {
+			pUnit->SetProtected(true);
+		}
+
+		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(pUnit);
+
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
-		if (!device.removable() && pUnit->SupportsFile() && filename.empty()) {
+		if (fileSupport && !device.removable() && filename.empty()) {
 			free(pUnit);
 
 			error << "Device type " << PbDeviceType_Name(type) << " requires a filename";
 			return ReturnStatus(fd, false, error);
 		}
 
-		if (device.protected_() && pUnit->IsProtectable()) {
-			pUnit->SetProtected(true);
-		}
-
 		// drive checks files
-		if (pUnit->SupportsFile() && !filename.empty()) {
+		if (fileSupport && !filename.empty()) {
 			// Set the Path
 			filepath.SetPath(filename.c_str());
 
@@ -741,9 +740,12 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		// Free the existing unit
 		map[id * UnitNum + unit] = NULL;
 
-		Filepath filepath;
-		pUnit->GetPath(filepath);
-		files_in_use.erase(filepath.GetPath());
+		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(pUnit);
+		if (fileSupport) {
+			Filepath filepath;
+			fileSupport->GetPath(filepath);
+			files_in_use.erase(filepath.GetPath());
+		}
 
 		// Re-map the controller
 		bool status = MapController(map);

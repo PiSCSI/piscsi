@@ -102,7 +102,7 @@ private:
 //	SCSI CD-ROM
 //
 //===========================================================================
-class SCSICD : public Disk
+class SCSICD : public Disk, public FileSupport
 {
 public:
 	// Number of tracks

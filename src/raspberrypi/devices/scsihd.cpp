@@ -85,8 +85,8 @@ void SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
 	disk.size = 9;
 	disk.blocks = (DWORD)(size >> 9);
 
-	// Call base class
 	Disk::Open(path);
+	FileSupport::SetPath(path);
 }
 
 //---------------------------------------------------------------------------

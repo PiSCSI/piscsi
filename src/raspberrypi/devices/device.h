@@ -72,12 +72,11 @@ private:
 
 	int status_code;
 
-protected:
+public:
 
 	Device(std::string, bool);
 	virtual ~Device() { };
 
-public:
 	const string& GetType() const { return type; }
 
 	bool IsReady() const { return ready; }

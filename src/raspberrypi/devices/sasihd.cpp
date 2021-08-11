@@ -77,8 +77,8 @@ void SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 		disk.size = 10;
 		disk.blocks = (DWORD)(size >> 10);
 
-		// Call the base class
 		Disk::Open(path);
+		FileSupport::SetPath(path);
 	}
 	#endif	// USE_MZ1F23_1024_SUPPORT
 

@@ -154,8 +154,8 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	disk.blocks = (DWORD)(imgsize >> disk.size);
 	disk.imgoffset = imgoffset;
 
-	// Call the base class
 	Disk::Open(path);
+	FileSupport::SetPath(path);
 }
 
 //---------------------------------------------------------------------------

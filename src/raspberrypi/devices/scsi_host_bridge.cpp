@@ -34,14 +34,12 @@
 //---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk("SCBR", false)
 {
-	disk.supports_file = false;
-
 	fsoptlen = 0;
 	fsoutlen = 0;
 	fsresult = 0;
 	packet_len = 0;
 
-	#ifdef __linux__
+#ifdef __linux__
 	// TAP Driver Generation
 	tap = new CTapDriver();
 	m_bTapEnable = tap->Init();
@@ -55,7 +53,7 @@ SCSIBR::SCSIBR() : Disk("SCBR", false)
 
 	// Packet reception flag OFF
 	packet_enable = FALSE;
-	#endif
+#endif
 
 	// Create host file system
 	fs = new CFileSys();

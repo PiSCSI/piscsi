@@ -85,8 +85,8 @@ void SCSIMO::Open(const Filepath& path, BOOL attn)
 			throw ioexception("Invalid MO file size");
 	}
 
-	// Call the base class
 	Disk::Open(path);
+	FileSupport::SetPath(path);
 
 	// Attention if ready
 	if (IsReady() && attn) {

@@ -338,8 +338,8 @@ void SCSICD::Open(const Filepath& path, BOOL attn)
 	ASSERT(disk.blocks > 0);
 	disk.size = 11;
 
-	// Call the base class
 	Disk::Open(path);
+	FileSupport::SetPath(path);
 
 	// Set RAW flag
 	ASSERT(disk.dcache);

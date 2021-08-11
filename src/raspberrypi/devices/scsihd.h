@@ -24,7 +24,7 @@
 //	SCSI Hard Disk
 //
 //===========================================================================
-class SCSIHD : public Disk
+class SCSIHD : public Disk, public FileSupport
 {
 public:
 	// Basic Functions

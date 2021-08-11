@@ -51,7 +51,7 @@ OPTIONS
        -f FOLDER
               The  default folder for image files. For files in this folder no
               absolute path needs to  be  specified.  The  default  folder  is
-              '/home/pi/images'.
+              '~/images'.
 
        -g LOG_LEVEL
               The  rascsi  log level (trace, debug, info, warn, err, critical,
@@ -68,8 +68,10 @@ OPTIONS
               n is the SCSI ID number (0-7)
 
               FILE is the name of the image file to attach to that ID. An  op‐
-              tional  explicit  device type (SASI_HD, SCSI_HD, CD, MO, BR, NU‐
-              VOLINK, DAYNAPORT) can be provided after a colon.
+              tional  explicit case-insensitive device type (SAHD, SCHD, SCRM,
+              SCCD, SCMO, SCBR, SCDP) can be provided after a colon.  For  de‐
+              vices  without  image  file  support (SCBR, SCDP) FILE may start
+              with a colon.
 
        -HDn FILE
               n is the SASI ID number (0-15)
@@ -90,9 +92,9 @@ EXAMPLES
        2
           rascsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
 
-       Launch  RaSCSI  with a SCSI hard drive image as ID 0 and the raw device
-       file /dev/hdb (e.g. a USB stick) as a SCSI hard disk image file:
-          rascsi -ID0 /dev/hdb:SCSI_HD
+       Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw de‐
+       vice file /dev/hdb (e.g. a USB stick):
+          rascsi -ID0 /dev/hdb:scrm
 
        To create an empty, 100MB HD image, use the following command:
           dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800

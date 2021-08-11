@@ -24,7 +24,7 @@
 //	SCSI magneto-optical disk
 //
 //===========================================================================
-class SCSIMO : public Disk
+class SCSIMO : public Disk, public FileSupport
 {
 public:
 	// Basic Functions

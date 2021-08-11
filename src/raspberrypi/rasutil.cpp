@@ -102,8 +102,23 @@ string ListDevices(const PbDevices& devices)
 	for (int i = 0; i < devices.devices_size() ; i++) {
 		PbDevice device = devices.devices(i);
 
+		string filename;
+		switch (device.type()) {
+			case SCBR:
+				filename = "X68000 HOST BRIDGE";
+				break;
+
+			case SCDP:
+				filename = "DaynaPort SCSI/Link";
+				break;
+
+			default:
+				filename = device.image_file().filename();
+				break;
+		}
+
 		s << "|  " << device.id() << " |  " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
-				<< (device.image_file().filename().empty() ? "NO MEDIA" : device.image_file().filename())
+				<< (filename.empty() ? "NO MEDIA" : filename)
 				<< (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
 	}
 
