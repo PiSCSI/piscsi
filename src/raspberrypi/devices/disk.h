@@ -126,7 +126,7 @@ private:
 //===========================================================================
 class Disk : public Device
 {
-public:
+protected:
 	// Internal data structure
 	typedef struct {
 		int size;							// Sector Size
