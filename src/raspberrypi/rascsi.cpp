@@ -13,7 +13,8 @@
 #include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
-#include "devices/disk.h"
+#include "devices/factory.h"
+#include "devices/device.h"
 #include "devices/sasihd.h"
 #include "devices/scsihd.h"
 #include "devices/scsihd_apple.h"
@@ -615,44 +616,10 @@ bool ProcessCmd(int fd, const PbDevice& pbDevice, const PbOperation cmd, const s
 		}
 
 		// Create a new drive, based upon type
-		switch (type) {
-			case SAHD:		// HDF
-				device = new SASIHD();
-				break;
-
-			case SCHD:		// HDS/HDN/HDI/NHD/HDA
-				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-					device = new SCSIHD_NEC();
-				} else if (ext == "hda") {
-					device = new SCSIHD_APPLE();
-				} else {
-					device = new SCSIHD(false);
-				}
-				break;
-
-			case SCRM:
-				device = new SCSIHD(true);
-				break;
-
-			case SCMO:
-				device = new SCSIMO();
-				break;
-
-			case SCCD:
-				device = new SCSICD();
-				break;
-
-			case SCBR:
-				device = new SCSIBR();
-				break;
-
-			case SCDP:
-				device = new SCSIDaynaPort();
-				break;
-
-			default:
-				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
-				return ReturnStatus(fd, false, error);
+		device = DeviceFactory::CreateDevice(type, ext);
+		if (!device) {
+			error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
+			return ReturnStatus(fd, false, error);
 		}
 
 		device->SetId(id);
