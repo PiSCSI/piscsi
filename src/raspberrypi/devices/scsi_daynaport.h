@@ -38,7 +38,7 @@
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort: public Disk
+class SCSIDaynaPort: public Device
 {
 public:
 	// Basic Functions
@@ -54,11 +54,11 @@ public:
 										// INQUIRY command
 	BOOL TestUnitReady(const DWORD *cdb);
 										// TEST UNIT READY command
-	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
+	int Read(const DWORD *cdb, BYTE *buf, DWORD block);
 										// READ command
-	BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
+	BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block);
 										// WRITE command
-	int WriteCheck(DWORD block) override;
+	int WriteCheck(DWORD block);
 										// WRITE check
 
 	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
@@ -70,7 +70,7 @@ public:
 										// Set MAC address
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
-	int RequestSense(const DWORD *cdb, BYTE *buf) override;
+	int RequestSense(const DWORD *cdb, BYTE *buf);
 
 	static const BYTE CMD_SCSILINK_STATS        = 0x09;
 	static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;
@@ -181,4 +181,6 @@ private:
 										// MAC Address
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
+
+	BOOL CheckReady();						// Check if ready
 };

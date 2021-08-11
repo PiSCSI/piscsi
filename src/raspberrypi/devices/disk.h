@@ -124,8 +124,6 @@ private:
 //	Disk
 //
 //===========================================================================
-// TODO This class should also provide the functionality of the FileSupport class.
-// Resolve this as soon as SCSIDaynaport and SCSIBridge do not inherit from Disk anymore.
 class Disk : public Device
 {
 public:

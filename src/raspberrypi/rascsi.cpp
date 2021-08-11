@@ -59,7 +59,7 @@ using namespace rascsi_interface;
 static volatile BOOL running;		// Running flag
 static volatile BOOL active;		// Processing flag
 vector<SASIDEV *> controllers(CtrlMax);	// Controller
-vector<Disk *> disks(CtrlMax * UnitNum);	// Disk
+vector<Device *> devices(CtrlMax * UnitNum);	// Disk
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
@@ -202,7 +202,7 @@ bool InitBus()
 void Cleanup()
 {
 	// Delete the disks
-	for (auto it = disks.begin(); it != disks.end(); ++it) {
+	for (auto it = devices.begin(); it != devices.end(); ++it) {
 		if (*it) {
 			delete *it;
 			*it = NULL;
@@ -271,16 +271,16 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 
 const PbDevices GetDevices()
 {
-	PbDevices devices;
+	PbDevices pbDevices;
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
 		// skip if unit does not exist or null disk
-		Device *pUnit = disks[i];
+		Device *pUnit = devices[i];
 		if (!pUnit) {
 			continue;
 		}
 
-		PbDevice *device = devices.add_devices();
+		PbDevice *device = pbDevices.add_devices();
 
 		// Initialize ID and unit number
 		device->set_id(i / UnitNum);
@@ -314,7 +314,7 @@ const PbDevices GetDevices()
 		}
 	}
 
-	return devices;
+	return pbDevices;
 }
 
 //---------------------------------------------------------------------------
@@ -322,7 +322,7 @@ const PbDevices GetDevices()
 //	Controller Mapping
 //
 //---------------------------------------------------------------------------
-bool MapController(Disk **map)
+bool MapController(Device **map)
 {
 	bool status = true;
 
@@ -333,20 +333,20 @@ bool MapController(Disk **map)
 	for (int i = 0; i < CtrlMax; i++) {
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
-			if (disks[unitno] != map[unitno]) {
+			if (devices[unitno] != map[unitno]) {
 				// Check if the original unit exists
-				if (disks[unitno]) {
+				if (devices[unitno]) {
 					// Disconnect it from the controller
 					if (controllers[i]) {
 						controllers[i]->SetUnit(j, NULL);
 					}
 
 					// Free the Unit
-					delete disks[unitno];
+					delete devices[unitno];
 				}
 
 				// Setup a new unit
-				disks[unitno] = map[unitno];
+				devices[unitno] = map[unitno];
 			}
 		}
 	}
@@ -360,8 +360,8 @@ bool MapController(Disk **map)
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
 			// branch by unit type
-			if (disks[unitno]) {
-				if (disks[unitno]->IsSASI()) {
+			if (devices[unitno]) {
+				if (devices[unitno]->IsSASI()) {
 					// Drive is SASI, so increment SASI count
 					sasi_num++;
 				} else {
@@ -424,9 +424,9 @@ bool MapController(Disk **map)
 		// connect all units
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
-			if (disks[unitno]) {
+			if (devices[unitno]) {
 				// Add the unit connection
-				(*it)->SetUnit(j, disks[unitno]);
+				(*it)->SetUnit(j, (static_cast<Disk *>(devices[unitno])));
 			}
 		}
 	}
@@ -539,7 +539,7 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const string& params, bool dryRun)
 {
 	Filepath filepath;
-	Disk *pUnit;
+	Device *pUnit;
 	ostringstream error;
 
 	int id = device.id();
@@ -566,9 +566,9 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 	}
 
 	// Copy the devices
-	Disk *map[CtrlMax * UnitNum];
+	Device *map[CtrlMax * UnitNum];
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
-		map[i] = disks[i];
+		map[i] = devices[i];
 	}
 
 	// Connect Command
@@ -680,14 +680,15 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 			// Open the file path
 			try {
-				pUnit->Open(filepath);
+				// TODO Get rid of casts asap
+				(static_cast<Disk *>(pUnit))->Open(filepath);
 			}
 			catch(const ioexception& e) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + filename;
 				filepath.SetPath(default_file.c_str());
 				try {
-					pUnit->Open(filepath);
+					(static_cast<Disk *>(pUnit))->Open(filepath);
 				}
 				catch(const ioexception&) {
 					delete pUnit;
@@ -729,7 +730,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 	}
 
 	// Does the unit exist?
-	pUnit = disks[id * UnitNum + unit];
+	pUnit = devices[id * UnitNum + unit];
 	if (!dryRun && pUnit == NULL) {
 		error << "Received a command for invalid ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
@@ -782,14 +783,14 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", params.c_str(), pUnit->GetType().c_str(), id, unit);
 
 			try {
-				pUnit->Open(filepath);
+				(static_cast<Disk *>(pUnit))->Open(filepath);
 			}
 			catch(const ioexception& e) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + params;
 				filepath.SetPath(default_file.c_str());
 				try {
-					pUnit->Open(filepath);
+					(static_cast<Disk *>(pUnit))->Open(filepath);
 				}
 				catch(const ioexception&) {
 					error << "Tried to open an invalid file '" << params << "': " << e.getmsg();

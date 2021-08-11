@@ -47,7 +47,7 @@ const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff,
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP", false)
+SCSIDaynaPort::SCSIDaynaPort() : Device("SCDP", false)
 {
 #ifdef __linux__
 	// TAP Driver Generation
@@ -107,6 +107,43 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	LOGTRACE("SCSIDaynaPort Open");
 	m_tap->OpenDump(path);
 }
+
+ //---------------------------------------------------------------------------
+ //
+ //	Check Ready
+ //
+ //---------------------------------------------------------------------------
+ BOOL SCSIDaynaPort::CheckReady()
+ {
+ 	// Not ready if reset
+ 	if (IsReset()) {
+ 		SetStatusCode(STATUS_DEVRESET);
+ 		SetReset(false);
+ 		LOGTRACE("%s DaynaPort in reset", __PRETTY_FUNCTION__);
+ 		return FALSE;
+ 	}
+
+ 	// Not ready if it needs attention
+ 	if (IsAttn()) {
+ 		SetStatusCode(STATUS_ATTENTION);
+ 		SetAttn(false);
+ 		LOGTRACE("%s DaynaPort in needs attention", __PRETTY_FUNCTION__);
+ 		return FALSE;
+ 	}
+
+ 	// Return status if not ready
+ 	if (!IsReady()) {
+ 		SetStatusCode(STATUS_NOTREADY);
+ 		LOGTRACE("%s DaynaPort not ready", __PRETTY_FUNCTION__);
+ 		return FALSE;
+ 	}
+
+ 	// Initialization with no error
+ 	SetStatusCode(STATUS_NOERROR);
+ 	LOGTRACE("%s DaynaPort is ready!", __PRETTY_FUNCTION__);
+
+ 	return TRUE;
+ }
 
 //---------------------------------------------------------------------------
 //
@@ -343,7 +380,6 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 	return 1;
 }
 	
-
 //---------------------------------------------------------------------------
 //
 //  Write

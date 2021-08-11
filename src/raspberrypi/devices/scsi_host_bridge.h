@@ -28,7 +28,7 @@
 //===========================================================================
 class CTapDriver;
 class CFileSys;
-class SCSIBR : public Disk
+class SCSIBR : public Device
 {
 public:
 	// Basic Functions

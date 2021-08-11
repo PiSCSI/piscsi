@@ -32,7 +32,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIBR::SCSIBR() : Disk("SCBR", false)
+SCSIBR::SCSIBR() : Device("SCBR", false)
 {
 	fsoptlen = 0;
 	fsoutlen = 0;
