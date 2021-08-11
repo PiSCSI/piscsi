@@ -58,8 +58,8 @@ using namespace rascsi_interface;
 //---------------------------------------------------------------------------
 static volatile BOOL running;		// Running flag
 static volatile BOOL active;		// Processing flag
-SASIDEV *ctrl[CtrlMax];				// Controller
-Disk *disk[CtrlMax * UnitNum];		// Disk
+vector<SASIDEV *> controllers(CtrlMax);	// Controller
+vector<Disk *> disks(CtrlMax * UnitNum);	// Disk
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
@@ -67,7 +67,7 @@ pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
 list<string> available_log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
-string default_image_folder = "/home/pi/images";
+string default_image_folder;
 set<string> files_in_use;
 
 //---------------------------------------------------------------------------
@@ -194,19 +194,6 @@ bool InitBus()
 	return true;
 }
 
-void InitDisks()
-{
-	// Controller initialization
-	for (int i = 0; i < CtrlMax; i++) {
-		ctrl[i] = NULL;
-	}
-
-	// Disk Initialization
-	for (int i = 0; i < CtrlMax; i++) {
-		disk[i] = NULL;
-	}
-}
-
 //---------------------------------------------------------------------------
 //
 //	Cleanup
@@ -215,18 +202,18 @@ void InitDisks()
 void Cleanup()
 {
 	// Delete the disks
-	for (int i = 0; i < CtrlMax * UnitNum; i++) {
-		if (disk[i]) {
-			delete disk[i];
-			disk[i] = NULL;
+	for (auto it = disks.begin(); it != disks.end(); ++it) {
+		if (*it) {
+			delete *it;
+			*it = NULL;
 		}
 	}
 
 	// Delete the Controllers
-	for (int i = 0; i < CtrlMax; i++) {
-		if (ctrl[i]) {
-			delete ctrl[i];
-			ctrl[i] = NULL;
+	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
+		if (*it) {
+			delete *it;
+			*it = NULL;
 		}
 	}
 
@@ -254,9 +241,9 @@ void Cleanup()
 void Reset()
 {
 	// Reset all of the controllers
-	for (int i = 0; i < CtrlMax; i++) {
-		if (ctrl[i]) {
-			ctrl[i]->Reset();
+	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
+		if (*it) {
+			(*it)->Reset();
 		}
 	}
 
@@ -288,7 +275,7 @@ const PbDevices GetDevices()
 
 	for (int i = 0; i < CtrlMax * UnitNum; i++) {
 		// skip if unit does not exist or null disk
-		Disk *pUnit = disk[i];
+		Disk *pUnit = disks[i];
 		if (!pUnit) {
 			continue;
 		}
@@ -349,34 +336,35 @@ bool MapController(Disk **map)
 	for (int i = 0; i < CtrlMax; i++) {
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
-			if (disk[unitno] != map[unitno]) {
+			if (disks[unitno] != map[unitno]) {
 				// Check if the original unit exists
-				if (disk[unitno]) {
+				if (disks[unitno]) {
 					// Disconnect it from the controller
-					if (ctrl[i]) {
-						ctrl[i]->SetUnit(j, NULL);
+					if (controllers[i]) {
+						controllers[i]->SetUnit(j, NULL);
 					}
 
 					// Free the Unit
-					delete disk[unitno];
+					delete disks[unitno];
 				}
 
 				// Setup a new unit
-				disk[unitno] = map[unitno];
+				disks[unitno] = map[unitno];
 			}
 		}
 	}
 
 	// Reconfigure all of the controllers
-	for (int i = 0; i < CtrlMax; i++) {
+	int i = 0;
+	for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 		// Examine the unit configuration
 		int sasi_num = 0;
 		int scsi_num = 0;
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
 			// branch by unit type
-			if (disk[unitno]) {
-				if (disk[unitno]->IsSASI()) {
+			if (disks[unitno]) {
+				if (disks[unitno]->IsSASI()) {
 					// Drive is SASI, so increment SASI count
 					sasi_num++;
 				} else {
@@ -386,16 +374,16 @@ bool MapController(Disk **map)
 			}
 
 			// Remove the unit
-			if (ctrl[i]) {
-				ctrl[i]->SetUnit(j, NULL);
+			if (*it) {
+				(*it)->SetUnit(j, NULL);
 			}
 		}
 
 		// If there are no units connected
 		if (sasi_num == 0 && scsi_num == 0) {
-			if (ctrl[i]) {
-				delete ctrl[i];
-				ctrl[i] = NULL;
+			if (*it) {
+				delete *it;
+				*it = NULL;
 				continue;
 			}
 		}
@@ -410,38 +398,38 @@ bool MapController(Disk **map)
 			// Only SASI Unit(s)
 
 			// Release the controller if it is not SASI
-			if (ctrl[i] && !ctrl[i]->IsSASI()) {
-				delete ctrl[i];
-				ctrl[i] = NULL;
+			if (*it && !(*it)->IsSASI()) {
+				delete *it;
+				*it = NULL;
 			}
 
 			// Create a new SASI controller
-			if (!ctrl[i]) {
-				ctrl[i] = new SASIDEV();
-				ctrl[i]->Connect(i, bus);
+			if (!*it) {
+				*it = new SASIDEV();
+				(*it)->Connect(i, bus);
 			}
 		} else {
 			// Only SCSI Unit(s)
 
 			// Release the controller if it is not SCSI
-			if (ctrl[i] && !ctrl[i]->IsSCSI()) {
-				delete ctrl[i];
-				ctrl[i] = NULL;
+			if (*it && !(*it)->IsSCSI()) {
+				delete *it;
+				*it = NULL;
 			}
 
 			// Create a new SCSI controller
-			if (!ctrl[i]) {
-				ctrl[i] = new SCSIDEV();
-				ctrl[i]->Connect(i, bus);
+			if (!*it) {
+				*it = new SCSIDEV();
+				(*it)->Connect(i, bus);
 			}
 		}
 
 		// connect all units
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
-			if (disk[unitno]) {
+			if (disks[unitno]) {
 				// Add the unit connection
-				ctrl[i]->SetUnit(j, disk[unitno]);
+				(*it)->SetUnit(j, disks[unitno]);
 			}
 		}
 	}
@@ -580,9 +568,11 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		return ReturnStatus(fd, false, error);
 	}
 
-	// Copy the Unit List
+	// Copy the devices
 	Disk *map[CtrlMax * UnitNum];
-	memcpy(map, disk, sizeof(disk));
+	for (int i = 0; i < CtrlMax * UnitNum; i++) {
+		map[i] = disks[i];
+	}
 
 	// Connect Command
 	if (cmd == ATTACH) {
@@ -734,13 +724,13 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 	}
 
 	// Does the controller exist?
-	if (!dryRun && ctrl[id] == NULL) {
+	if (!dryRun && controllers[id] == NULL) {
 		error << "Received a command for invalid ID " << id;
 		return ReturnStatus(fd, false, error);
 	}
 
 	// Does the unit exist?
-	pUnit = disk[id * UnitNum + unit];
+	pUnit = disks[id * UnitNum + unit];
 	if (!dryRun && pUnit == NULL) {
 		error << "Received a command for invalid ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
@@ -1088,7 +1078,6 @@ int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	int i;
 	int actid;
 	DWORD now;
 	BUS::phase_t phase;
@@ -1109,13 +1098,16 @@ int main(int argc, char* argv[])
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
+	// ~/images is the default folder for device image file
+	const passwd *passwd = getpwuid(getuid());
+	default_image_folder = passwd->pw_dir;
+	default_image_folder += "/images";
+
 	// Output the Banner
 	Banner(argc, argv);
 
 	int ret = 0;
 	int port = 6868;
-
-	InitDisks();
 
 	if (!ParseArgument(argc, argv, port)) {
 		ret = EINVAL;
@@ -1194,13 +1186,14 @@ int main(int argc, char* argv[])
 
 		// Notify all controllers
 		data = bus->GetDAT();
-		for (i = 0; i < CtrlMax; i++) {
-			if (!ctrl[i] || (data & (1 << i)) == 0) {
+		int i = 0;
+		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
+			if (!*it || (data & (1 << i)) == 0) {
 				continue;
 			}
 
 			// Find the target that has moved to the selection phase
-			if (ctrl[i]->Process() == BUS::selection) {
+			if ((*it)->Process() == BUS::selection) {
 				// Get the target ID
 				actid = i;
 
@@ -1228,7 +1221,7 @@ int main(int argc, char* argv[])
 		// Loop until the bus is free
 		while (running) {
 			// Target drive
-			phase = ctrl[actid]->Process();
+			phase = controllers[actid]->Process();
 
 			// End when the bus is free
 			if (phase == BUS::busfree) {

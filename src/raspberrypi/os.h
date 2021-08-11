@@ -55,6 +55,7 @@
 
 #include <poll.h>
 #include <dirent.h>
+#include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
