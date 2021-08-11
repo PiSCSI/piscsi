@@ -41,7 +41,7 @@ SCSIMO::SCSIMO() : Disk("SCMO", true)
 //	Open
 //
 //---------------------------------------------------------------------------
-void SCSIMO::Open(const Filepath& path, BOOL attn)
+void SCSIMO::Open(const Filepath& path)
 {
 	ASSERT(!IsReady());
 
@@ -89,7 +89,7 @@ void SCSIMO::Open(const Filepath& path, BOOL attn)
 	FileSupport::SetPath(path);
 
 	// Attention if ready
-	if (IsReady() && attn) {
+	if (IsReady()) {
 		SetAttn(true);
 	}
 }
@@ -99,8 +99,7 @@ void SCSIMO::Open(const Filepath& path, BOOL attn)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIMO::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	int size;
 	char rev[32];

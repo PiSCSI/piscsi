@@ -141,7 +141,7 @@ public:
 	virtual ~Disk();							// Destructor
 
 	// Media Operations
-	virtual void Open(const Filepath& path, BOOL attn = TRUE);	// Open
+	virtual void Open(const Filepath& path);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
 	bool Eject(bool);					// Eject
 	bool Flush();							// Flush the cache

@@ -113,8 +113,8 @@ public:
 public:
 	// Basic Functions
 	SCSICD();								// Constructor
-	virtual ~SCSICD();							// Destructor
-	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	virtual ~SCSICD();						// Destructor
+	void Open(const Filepath& path);		// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command

@@ -30,7 +30,7 @@ public:
 	// Basic Functions
 	SASIHD();								// Constructor
 	void Reset();							// Reset
-	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	void Open(const Filepath& path);		// Open
 
 	// commands
 	int RequestSense(const DWORD *cdb, BYTE *buf);			// REQUEST SENSE command

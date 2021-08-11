@@ -663,7 +663,7 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			pUnit->SetProtected(true);
 		}
 
-		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(pUnit);
+		FileSupport *fileSupport = dynamic_cast<FileSupport *>(pUnit);
 
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
 		if (fileSupport && !device.removable() && filename.empty()) {
@@ -680,15 +680,14 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 
 			// Open the file path
 			try {
-				// TODO Get rid of casts asap
-				(static_cast<Disk *>(pUnit))->Open(filepath);
+				fileSupport->Open(filepath);
 			}
 			catch(const ioexception& e) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + filename;
 				filepath.SetPath(default_file.c_str());
 				try {
-					(static_cast<Disk *>(pUnit))->Open(filepath);
+					fileSupport->Open(filepath);
 				}
 				catch(const ioexception&) {
 					delete pUnit;
@@ -736,12 +735,13 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 		return ReturnStatus(fd, false, error);
 	}
 
+	FileSupport *fileSupport = dynamic_cast<FileSupport *>(pUnit);
+
 	// Disconnect Command
 	if (!dryRun && cmd == DETACH) {
 		// Free the existing unit
 		map[id * UnitNum + unit] = NULL;
 
-		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(pUnit);
 		if (fileSupport) {
 			Filepath filepath;
 			fileSupport->GetPath(filepath);
@@ -783,14 +783,14 @@ bool ProcessCmd(int fd, const PbDevice& device, const PbOperation cmd, const str
 			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", params.c_str(), pUnit->GetType().c_str(), id, unit);
 
 			try {
-				(static_cast<Disk *>(pUnit))->Open(filepath);
+				fileSupport->Open(filepath);
 			}
 			catch(const ioexception& e) {
 				// If the file does not exist search for it in the default image folder
 				string default_file = default_image_folder + "/" + params;
 				filepath.SetPath(default_file.c_str());
 				try {
-					(static_cast<Disk *>(pUnit))->Open(filepath);
+					fileSupport->Open(filepath);
 				}
 				catch(const ioexception&) {
 					error << "Tried to open an invalid file '" << params << "': " << e.getmsg();

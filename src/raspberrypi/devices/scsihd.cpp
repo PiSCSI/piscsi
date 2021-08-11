@@ -55,7 +55,7 @@ void SCSIHD::Reset()
 //	Open
 //
 //---------------------------------------------------------------------------
-void SCSIHD::Open(const Filepath& path, BOOL /*attn*/)
+void SCSIHD::Open(const Filepath& path)
 {
 	ASSERT(!IsReady());
 

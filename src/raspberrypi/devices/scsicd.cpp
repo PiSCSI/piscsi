@@ -286,7 +286,7 @@ SCSICD::~SCSICD()
 //	Open
 //
 //---------------------------------------------------------------------------
-void SCSICD::Open(const Filepath& path, BOOL attn)
+void SCSICD::Open(const Filepath& path)
 {
 	Fileio fio;
 	off64_t size;
@@ -349,7 +349,7 @@ void SCSICD::Open(const Filepath& path, BOOL attn)
 	SetProtected(true);
 
 	// Attention if ready
-	if (IsReady() && attn) {
+	if (IsReady()) {
 		SetAttn(true);
 	}
 }

@@ -23,4 +23,6 @@ public:
 
 	void GetPath(Filepath& path) const { path = diskpath; }
 	void SetPath(const Filepath& path) { diskpath = path; }
+
+	virtual void Open(const Filepath&) = 0;
 };

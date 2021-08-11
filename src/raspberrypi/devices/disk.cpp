@@ -743,7 +743,7 @@ Disk::~Disk()
 //  * Call as a post-process after successful opening in a derived class
 //
 //---------------------------------------------------------------------------
-void Disk::Open(const Filepath& path, BOOL /*attn*/)
+void Disk::Open(const Filepath& path)
 {
 	ASSERT((disk.size >= 8) && (disk.size <= 11));
 	ASSERT(disk.blocks > 0);
