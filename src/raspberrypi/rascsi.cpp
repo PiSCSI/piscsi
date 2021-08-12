@@ -559,7 +559,7 @@ void SetDeviceName(Device *device, const string& name)
 //
 //---------------------------------------------------------------------------
 
-bool ProcessCmd(int fd, const PbDevice& pbDevice, const PbOperation cmd, const string& params, bool dryRun)
+bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cmd, const string& params, bool dryRun)
 {
 	Filepath filepath;
 	Device *device;
@@ -828,7 +828,7 @@ bool ProcessCmd(int fd, const PbCommand& command)
 //---------------------------------------------------------------------------
 bool ParseArgument(int argc, char* argv[], int& port)
 {
-	PbDevices devices;
+	PbDeviceDefinitions devices;
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
@@ -907,7 +907,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		}
 
 		// Set up the device data
-		PbDevice *device = devices.add_devices();
+		PbDeviceDefinition *device = devices.add_devices();
 		device->set_id(id);
 		device->set_unit(unit);
 		device->set_name(name);
@@ -925,7 +925,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Attach all specified devices
 	PbCommand command;
 	command.set_cmd(ATTACH);
-	command.set_allocated_devices(new PbDevices(devices));
+	command.set_allocated_devices(new PbDeviceDefinitions(devices));
 
 	if (!ProcessCmd(-1, command)) {
 		return false;

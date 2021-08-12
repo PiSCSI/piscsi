@@ -228,9 +228,9 @@ int main(int argc, char* argv[])
 	int opt;
 	PbCommand command;
 	command.set_cmd(LIST);
-	PbDevices devices;
+	PbDeviceDefinitions devices;
 	command.set_allocated_devices(&devices);
-	PbDevice *device = devices.add_devices();
+	PbDeviceDefinition *device = devices.add_devices();
 	device->set_id(-1);
 	PbImageFile image_file;
 	const char *hostname = "localhost";
