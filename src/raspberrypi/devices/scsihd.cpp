@@ -17,8 +17,7 @@
 #include "xm6.h"
 #include "fileio.h"
 #include "exceptions.h"
-
-#include <iostream>
+#include <sstream>
 
 //===========================================================================
 //
@@ -88,28 +87,28 @@ void SCSIHD::Open(const Filepath& path)
 	disk.blocks = (DWORD)(size >> 9);
 
 	// Set the default product name based on the drive capacity
-	// TODO Use C++20 string formatting asap
 	int capacity = disk.blocks >> 11;
-	char product[17];
+	stringstream product;
 	if (capacity < 300) {
-		sprintf(product, "PRODRIVE LPS%3dS", capacity);
+		product << "PRODRIVE LPS" << capacity;
 	}
 	else if (capacity < 600) {
-		sprintf(product, "MAVERICK%dS", capacity);
+		product << "MAVERICK" << capacity;
 	}
 	else if (capacity < 800) {
-		sprintf(product, "LIGHTNING%dS", capacity);
+		product << "LIGHTNING" << capacity;
 	}
 	else if (capacity < 1000) {
-		sprintf(product, "TRAILBRAZER%dS", capacity);
+		product << "TRAILBRAZER" << capacity;
 	}
 	else if (capacity < 2000) {
-		sprintf(product, "FIREBALL%dS", capacity);
+		product << "FIREBALLS" << capacity;
 	}
 	else {
-		sprintf(product, "FBSE%d.%dS", capacity / 1000, (capacity % 1000) / 100);
+		product << "FBSE" << capacity / 1000 << "." << (capacity % 1000) / 100;
 	}
-	SetProduct(product, false);
+	product << "S";
+	SetProduct(product.str(), false);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
