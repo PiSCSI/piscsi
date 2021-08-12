@@ -25,8 +25,6 @@
 #include "filepath.h"
 #include <string>
 
-#define BENDER_SIGNATURE 	"RaSCSI"
-
 //===========================================================================
 //
 //	Disk Track

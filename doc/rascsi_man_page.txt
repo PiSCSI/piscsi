@@ -6,8 +6,8 @@ NAME
        rascsi - Emulates SCSI devices using the Raspberry Pi GPIO pins
 
 SYNOPSIS
-       rascsi  [-f[u00AE]  FOLDER] [-g[u00AE] LOG_LEVEL] [-h] [-p[u00AE] PORT]
-       [-v] [-IDn FILE] [-HDn FILE]...
+       rascsi  [-f[u00AE]  FOLDER] [-g[u00AE] LOG_LEVEL] [-h] [-n VENDOR:PROD‐
+       UCT:REVISION] [-p[u00AE] PORT] [-v] [-IDn FILE] [-HDn FILE]...
 
 DESCRIPTION
        rascsi Emulates SCSI devices using the Raspberry Pi GPIO pins.
@@ -59,6 +59,12 @@ OPTIONS
 
        -h     Show a help page.
 
+       -n VENDOR:PRODUCT:REVISION
+              Set the vendor, product and revision for the device, to  be  re‐
+              turned  with the INQUIRY data. A complete set of name components
+              must be specified. VENDOR may have up to 8, PRODUCT up to 8, RE‐
+              VISION up to 4 characters.
+
        -p PORT
               The rascsi server port, default is 6868.
 
@@ -67,21 +73,21 @@ OPTIONS
        -IDn FILE[:TYPE]
               n is the SCSI ID number (0-7)
 
-              FILE is the name of the image file to attach to that ID. An  op‐
-              tional  explicit case-insensitive device type (SAHD, SCHD, SCRM,
-              SCCD, SCMO, SCBR, SCDP) can be provided after a colon.  For  de‐
-              vices  without  image  file  support (SCBR, SCDP) FILE may start
-              with a colon.
+              FILE  is the name of the image file to attach to that ID. An op‐
+              tional explicit case-insensitive device type (SAHD, SCHD,  SCRM,
+              SCCD,  SCMO,  SCBR, SCDP) can be provided after a colon. For de‐
+              vices without image file support (SCBR,  SCDP)  FILE  may  start
+              with a colon, e.g. ':scdp'.
 
        -HDn FILE
               n is the SASI ID number (0-15)
 
               FILE is the name of the image file to attach to that ID. If FILE
-              starts  with  '/dev/'  the  extension,  which encodes the device
+              starts with '/dev/' the  extension,  which  encodes  the  device
               type, is stripped, so that device files can conveniently be used
               as image files.
 
-              Note:  SASI  usage  is  rare,  and is typically limited to early
+              Note: SASI usage is rare, and  is  typically  limited  to  early
               Sharp X68000 systems.
 
 EXAMPLES

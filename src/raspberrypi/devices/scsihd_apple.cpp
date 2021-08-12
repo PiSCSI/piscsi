@@ -29,36 +29,8 @@
 //---------------------------------------------------------------------------
 SCSIHD_APPLE::SCSIHD_APPLE() : SCSIHD(false)
 {
-}
-
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-int SCSIHD_APPLE::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
-{
-	char vendor[32];
-	char product[32];
-
-	// Call the base class
-	int size = SCSIHD::Inquiry(cdb, buf, major, minor);
-
-	// End if there is an error in the base class
-	if (size == 0) {
-		return 0;
-	}
-
-	// Vendor name
-	sprintf(vendor, " SEAGATE");
-	memcpy(&buf[8], vendor, strlen(vendor));
-
-	// Product name
-	sprintf(product, "          ST225N");
-	memcpy(&buf[16], product, strlen(product));
-
-	return size;
+	SetVendor(" SEAGATE");
+	SetProduct("          ST225N");
 }
 
 //---------------------------------------------------------------------------

@@ -18,4 +18,4 @@ extern const int rascsi_patch_version; // Patch number
 //	Fetch the version string
 //
 //---------------------------------------------------------------------------
-extern char* rascsi_get_version_string();
+const char* rascsi_get_version_string();

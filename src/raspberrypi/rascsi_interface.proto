@@ -61,23 +61,24 @@ message PbImageFile {
 message PbDevice {
     int32 id = 1;
     int32 unit = 2;
-    PbDeviceType type = 3;
-    PbImageFile image_file = 4;
-    bool read_only = 5;
+    string name = 3;
+    PbDeviceType type = 4;
+    PbImageFile image_file = 5;
+    bool read_only = 6;
     // Note: Read-only media (e.g. CD-ROMs) are not protectable
-    bool protectable = 6;
+    bool protectable = 7;
     // Note: Read-only media (e.g. CD-ROMs) cannot be protected but are read-only all the time
-    bool protected = 7;
+    bool protected = 8;
     // Medium can be removed
-    bool removable = 8;
+    bool removable = 9;
     // Medium is removed
-    bool removed = 9;
+    bool removed = 10;
     // Medium can be locked
-    bool lockable = 10;
+    bool lockable = 11;
     // Medium is locked
-    bool locked = 11;
+    bool locked = 12;
     // Medium supports image file (Bridge and Daynaport do not)
-    bool supports_file = 12;
+    bool supports_file = 13;
 }
 
 message PbDevices {

@@ -325,6 +325,8 @@ const PbDevices GetDevices()
 //---------------------------------------------------------------------------
 bool MapController(Device **map)
 {
+	assert(bus);
+
 	bool status = true;
 
 	// Take ownership of the ctrl data structure
@@ -531,6 +533,21 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 	}
 }
 
+void SetDeviceName(Device *device, const string& name)
+{
+	size_t productSeparatorPos = name.find(':');
+	if (productSeparatorPos != string::npos) {
+		device->SetVendor(name.substr(0, productSeparatorPos));
+
+		string remaining = name.substr(productSeparatorPos + 1);
+		size_t revisionSeparatorPos = remaining.find(':');
+		if (revisionSeparatorPos != string::npos) {
+			device->SetProduct(remaining.substr(0, revisionSeparatorPos));
+			device->SetRevision(remaining.substr(revisionSeparatorPos + 1));
+		}
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command Processing
@@ -593,7 +610,7 @@ bool ProcessCmd(int fd, const PbDevice& pbDevice, const PbOperation cmd, const s
 		}
 
 		string ext;
-		int len = filename.size();
+		int len = filename.length();
 		if (len > 4 && filename[len - 4] == '.') {
 			ext = filename.substr(len - 3);
 		}
@@ -603,6 +620,13 @@ bool ProcessCmd(int fd, const PbDevice& pbDevice, const PbOperation cmd, const s
 		if (!device) {
 			error << "Received a command for an invalid device type: " << PbDeviceType_Name(type);
 			return ReturnStatus(fd, false, error);
+		}
+
+		try {
+			SetDeviceName(device, pbDevice.name());
+		}
+		catch(const illegalargumentexception& e) {
+			return ReturnStatus(fd, false, e.getmsg());
 		}
 
 		device->SetId(id);
@@ -801,10 +825,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
+	string name;
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:P:p:f:Vv")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:P:p:f:Vv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -851,6 +876,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				default_image_folder = optarg;
 				continue;
 
+			case 'n':
+				name = optarg;
+				continue;
+
 			case 'v':
 				cout << rascsi_get_version_string() << endl;
 				exit(EXIT_SUCCESS);
@@ -860,6 +889,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				return false;
 
 			case 1:
+				// Encountered filename
 				break;
 		}
 
@@ -873,6 +903,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		PbDevice *device = devices.add_devices();
 		device->set_id(id);
 		device->set_unit(unit);
+		device->set_name(name);
 		PbImageFile image_file;
 		image_file.set_filename(optarg);
 		device->set_allocated_image_file(new PbImageFile(image_file));
@@ -1060,14 +1091,14 @@ int main(int argc, char* argv[])
 	int ret = 0;
 	int port = 6868;
 
-	if (!ParseArgument(argc, argv, port)) {
-		ret = EINVAL;
-		goto err_exit;
-	}
-
 	if (!InitBus()) {
 		ret = EPERM;
 		goto init_exit;
+	}
+
+	if (!ParseArgument(argc, argv, port)) {
+		ret = EINVAL;
+		goto err_exit;
 	}
 
 	if (!InitService(port)) {

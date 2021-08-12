@@ -49,7 +49,10 @@ const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff,
 //---------------------------------------------------------------------------
 SCSIDaynaPort::SCSIDaynaPort() : Device("SCDP", false)
 {
-#ifdef __linux__
+	SetVendor("Dayna");
+	SetProduct("SCSI/Link");
+
+	#ifdef __linux__
 	// TAP Driver Generation
 	m_tap = new CTapDriver();
 	m_bTapEnable = m_tap->Init();

@@ -13,6 +13,8 @@
 
 using namespace std;
 
+#define DEFAULT_VENDOR "RaSCSI"
+
 //---------------------------------------------------------------------------
 //
 //	Error definition (sense code returned by REQUEST SENSE)
@@ -48,7 +50,7 @@ class Device
 {
 private:
 
-	std::string type;
+	string type;
 
 	bool ready;
 	bool reset;
@@ -70,12 +72,16 @@ private:
 	unsigned int id;
 	unsigned int lun;
 
+	string vendor;
+	string product;
+	string revision;
+
 	int status_code;
 
 public:
 
-	Device(std::string, bool);
-	virtual ~Device() { };
+	Device(const string&, bool);
+	virtual ~Device() {};
 
 	const string& GetType() const { return type; }
 
@@ -108,6 +114,11 @@ public:
 	void SetId(unsigned int id) { this->id = id; }
 	unsigned int GetLun() const { return lun; }
 	void SetLun(unsigned int lun) { this->lun = lun; }
+
+	void SetVendor(const string&);
+	void SetProduct(const string&, bool = true);
+	void SetRevision(const string&);
+	void GetPaddedName(string&) const;
 
 	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int status_code) { this->status_code = status_code; }

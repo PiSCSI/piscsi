@@ -6,6 +6,7 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 [\fB\-f\f® \fIFOLDER\fR]
 [\fB\-g\f® \fILOG_LEVEL\fR]
 [\fB\-h\fR]
+[\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
 [\fB\-p\f® \fIPORT\fR]
 [\fB\-v\fR]
 [\fB\-IDn\fR \fIFILE\fR]
@@ -49,6 +50,9 @@ The rascsi log level (trace, debug, info, warn, err, critical, off). The default
 .BR \-h\fI " " \fI
 Show a help page.
 .TP
+.BR \-n\fI " " \fIVENDOR:PRODUCT:REVISION
+Set the vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be specified. VENDOR may have up to 8, PRODUCT up to 8, REVISION up to 4 characters.
+.TP
 .BR \-p\fI " " \fIPORT
 The rascsi server port, default is 6868.
 .TP
@@ -58,7 +62,7 @@ Display the rascsi version.
 .BR \-ID\fIn " " \fIFILE[:TYPE]
 n is the SCSI ID number (0-7)
 .IP
-FILE is the name of the image file to attach to that ID. An optional explicit case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP) can be provided after a colon. For devices without image file support (SCBR, SCDP) FILE may start with a colon.
+FILE is the name of the image file to attach to that ID. An optional explicit case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP) can be provided after a colon. For devices without image file support (SCBR, SCDP) FILE may start with a colon, e.g. ':scdp'.
 .TP 
 .BR \-HD\fIn " " \fIFILE
 n is the SASI ID number (0-15)

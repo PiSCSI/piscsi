@@ -34,6 +34,8 @@ SCSIMO::SCSIMO() : Disk("SCMO", true)
 {
 	SetLocked(true);
 	SetProtectable(true);
+
+	SetProduct("M2513A");
 }
 
 //---------------------------------------------------------------------------
@@ -102,7 +104,6 @@ void SCSIMO::Open(const Filepath& path)
 int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
 	int size;
-	char rev[32];
 
 	ASSERT(cdb);
 	ASSERT(buf);
@@ -133,19 +134,10 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 	buf[3] = 0x02;
 	buf[4] = 36 - 5;	// required
 
-	// Fill with blanks
-	memset(&buf[8], 0x20, buf[4] - 3);
-
-	// Vendor name
-	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
-
-	// Product name
-	memcpy(&buf[16], "M2513A", 6);
-
-	// Revision (XM6 version number)
-	sprintf(rev, "0%01d%01d%01d",
-				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-	memcpy(&buf[32], rev, 4);
+	// Padded vendor, product, revision
+	string name;
+	GetPaddedName(name);
+	memcpy(&buf[8], name.c_str(), 28);
 
 	// Size return data
 	size = (buf[4] + 5);

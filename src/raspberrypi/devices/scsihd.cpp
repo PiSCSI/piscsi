@@ -18,6 +18,8 @@
 #include "fileio.h"
 #include "exceptions.h"
 
+#include <iostream>
+
 //===========================================================================
 //
 //	SCSI Hard Disk
@@ -85,6 +87,30 @@ void SCSIHD::Open(const Filepath& path)
 	disk.size = 9;
 	disk.blocks = (DWORD)(size >> 9);
 
+	// Set the default product name based on the drive capacity
+	// TODO Use C++20 string formatting asap
+	int capacity = disk.blocks >> 11;
+	char product[17];
+	if (capacity < 300) {
+		sprintf(product, "PRODRIVE LPS%dS", capacity);
+	}
+	else if (capacity < 600) {
+		sprintf(product, "MAVERICK%dS", capacity);
+	}
+	else if (capacity < 800) {
+		sprintf(product, "LIGHTNING%dS", capacity);
+	}
+	else if (capacity < 1000) {
+		sprintf(product, "TRAILBRAZER%dS", capacity);
+	}
+	else if (capacity < 2000) {
+		sprintf(product, "FIREBALL%dS", capacity);
+	}
+	else {
+		sprintf(product, "FBSE%d.%dS", capacity / 1000, (capacity % 1000) / 100);
+	}
+	SetProduct(product, false);
+
 	Disk::Open(path);
 	FileSupport::SetPath(path);
 }
@@ -94,13 +120,8 @@ void SCSIHD::Open(const Filepath& path)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIHD:: Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIHD:: Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	char vendor[32];
-	char product[32];
-	char rev[32];
-
 	ASSERT(cdb);
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
@@ -133,38 +154,13 @@ int SCSIHD:: Inquiry(
 	buf[3] = 0x02;
 	buf[4] = 122 + 3;	// Value close to real HDD
 
-	// Fill with blanks
-	memset(&buf[8], 0x20, buf[4] - 3);
-
-	// Determine vendor name/product name
-	sprintf(vendor, BENDER_SIGNATURE);
-	int size = disk.blocks >> 11;
-	if (size < 300)
-		sprintf(product, "PRODRIVE LPS%dS", size);
-	else if (size < 600)
-		sprintf(product, "MAVERICK%dS", size);
-	else if (size < 800)
-		sprintf(product, "LIGHTNING%dS", size);
-	else if (size < 1000)
-		sprintf(product, "TRAILBRAZER%dS", size);
-	else if (size < 2000)
-		sprintf(product, "FIREBALL%dS", size);
-	else
-		sprintf(product, "FBSE%d.%dS", size / 1000, (size % 1000) / 100);
-
-	// Vendor name
-	memcpy(&buf[8], vendor, strlen(vendor));
-
-	// Product name
-	memcpy(&buf[16], product, strlen(product));
-
-	// Revision
-	sprintf(rev, "0%01d%01d%01d",
-			(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-	memcpy(&buf[32], rev, 4);
+	// Padded vendor, product, revision
+	string name;
+	GetPaddedName(name);
+	memcpy(&buf[8], name.c_str(), 28);
 
 	// Size of data that can be returned
-	size = (buf[4] + 5);
+	int size = (buf[4] + 5);
 
 	// Limit if the other buffer is small
 	if (size > (int)cdb[4]) {

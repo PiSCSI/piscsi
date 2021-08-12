@@ -34,6 +34,8 @@
 //---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Device("SCBR", false)
 {
+	SetProduct("RASCSI BRIDGE");
+
 	fsoptlen = 0;
 	fsoutlen = 0;
 	fsresult = 0;
@@ -85,11 +87,8 @@ SCSIBR::~SCSIBR()
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIBR::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	char rev[32];
-
 	ASSERT(cdb);
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
@@ -117,19 +116,10 @@ int SCSIBR::Inquiry(
 	buf[3] = 0x02;
 	buf[4] = 36 - 5 + 8;	// required + 8 byte extension
 
-	// Fill with blanks
-	memset(&buf[8], 0x20, buf[4] - 3);
-
-	// Vendor name
-	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
-
-	// Product name
-	memcpy(&buf[16], "RASCSI BRIDGE", 13);
-
-	// Revision (XM6 version number)
-	sprintf(rev, "0%01d%01d%01d",
-				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-	memcpy(&buf[32], rev, 4);
+	// Padded vendor, product, revision
+	string name;
+	GetPaddedName(name);
+	memcpy(&buf[8], name.c_str(), 28);
 
 	// Optional function valid flag
 	buf[36] = '0';

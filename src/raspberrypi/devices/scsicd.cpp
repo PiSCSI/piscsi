@@ -255,6 +255,8 @@ SCSICD::SCSICD() : Disk("SCCD", true)
 	SetLocked(true);
 	SetProtected(true);
 
+	SetProduct("CD-ROM CDU-55S");
+
 	// NOT in raw format
 	rawfile = FALSE;
 
@@ -498,11 +500,8 @@ void SCSICD::OpenPhysical(const Filepath& path)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSICD::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	char rev[32];
-
 	ASSERT(cdb);
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
@@ -535,16 +534,11 @@ int SCSICD::Inquiry(
 	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);
 
-	// Vendor name
-	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
+	// Padded vendor, product, revision
+	string name;
+	GetPaddedName(name);
+	memcpy(&buf[8], name.c_str(), 28);
 
-	// Product name
-	memcpy(&buf[16], "CD-ROM CDU-55S", 14);
-
-	// Revision (XM6 version number)
-	sprintf(rev, "0%01d%01d%01d",
-				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-	memcpy(&buf[32], rev, 4);
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to
 // test with the original code to see if it works as well....
