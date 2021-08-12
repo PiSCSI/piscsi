@@ -87,7 +87,9 @@ bool ReceiveResult(int fd)
     		throw ioexception(result.msg());
     	}
 
-    	cout << result.msg() << endl;
+    	if (!result.msg().empty()) {
+    		cout << result.msg() << endl;
+    	}
     }
     catch(const ioexception& e) {
     	cerr << "Error: " << e.getmsg() << endl;

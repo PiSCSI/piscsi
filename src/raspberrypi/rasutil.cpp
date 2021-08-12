@@ -96,7 +96,7 @@ string ListDevices(const PbDevices& devices)
 			<< "+----+----+------+-------------------------------------" << endl;
 	}
 	else {
-		return "No images currently attached.\n";
+		return "No images currently attached.";
 	}
 
 	for (int i = 0; i < devices.devices_size() ; i++) {
