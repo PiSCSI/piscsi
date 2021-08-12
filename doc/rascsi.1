@@ -8,6 +8,7 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 [\fB\-h\fR]
 [\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
 [\fB\-p\f® \fIPORT\fR]
+[\fB\-n\fR \fITYPE\fR]
 [\fB\-v\fR]
 [\fB\-IDn\fR \fIFILE\fR]
 [\fB\-HDn\fR \fIFILE\fR]...
@@ -56,18 +57,21 @@ Set the vendor, product and revision for the device, to be returned with the INQ
 .BR \-p\fI " " \fIPORT
 The rascsi server port, default is 6868.
 .TP
+.BR \-p\fI " " \fITYPE
+The optional case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP). If no type is specified for devices that support an image file, rascsi tries to derive the type from the file extension.
+.TP
 .BR \-v\fI " " \fI
 Display the rascsi version.
 .TP
-.BR \-ID\fIn " " \fIFILE[:TYPE]
+.BR \-ID\fIn " " \fIFILE
 n is the SCSI ID number (0-7)
 .IP
-FILE is the name of the image file to attach to that ID. An optional explicit case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP) can be provided after a colon. For devices without image file support (SCBR, SCDP) FILE may start with a colon, e.g. ':scdp'.
+FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file (SCBR, SCDP) a dummy name must be provided.
 .TP 
 .BR \-HD\fIn " " \fIFILE
 n is the SASI ID number (0-15)
 .IP
-FILE is the name of the image file to attach to that ID. If FILE starts with '/dev/' the extension, which encodes the device type, is stripped, so that device files can conveniently be used as image files.
+FILE is the name of the image file to use for the SASI device.
 .IP
 Note: SASI usage is rare, and is typically limited to early Sharp X68000 systems.
 
@@ -78,8 +82,8 @@ Launch RaSCSI with no emulated drives attached:
 Launch RaSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
    rascsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
 
-Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick):
-   rascsi -ID0 /dev/hdb:scrm
+Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter as ID 6:
+   rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp DUMMY_FILENAME
 
 To create an empty, 100MB HD image, use the following command:
    dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800

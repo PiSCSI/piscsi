@@ -57,15 +57,16 @@ OPTIONS
               lowable file types.
 
        -t TYPE
-              Specifies  the type of disk. If this disagrees with the file ex‐
-              tension of the specified image, the TYPE  argument  is  ignored.
-              Available drive types are:
+              Specifies  the device type. This type overrides the type derived
+              from the file extension of the specified image. Available  drive
+              types are:
                  hd: Hard disk (SCSI or SASI)
                  rm: Removable hard disk (SCSI)
                  mo: Magneto-Optical disk
                  cd: CD-ROM
                  bridge:  Bridge  device (This is only applicable to the Sharp
               X68000)
+                 daynaport: DaynaPort network adapter
 
        -u NAME
               The vendor, product and revision for the device, to be  returned

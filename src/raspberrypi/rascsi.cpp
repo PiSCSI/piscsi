@@ -600,20 +600,6 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			return ReturnStatus(fd, false, error);
 		}
 
-		// Try to extract the file type from the filename. Convention: "filename:type".
-		size_t separatorPos = filename.find(':');
-		if (separatorPos != string::npos) {
-			string t = filename.substr(separatorPos + 1);
-			transform(t.begin(), t.end(), t.begin(), ::toupper);
-
-			if (!PbDeviceType_Parse(t, &type)) {
-				error << "Invalid device type " << t;
-				return ReturnStatus(fd, false, error);
-			}
-
-			filename = filename.substr(0, separatorPos);
-		}
-
 		string ext;
 		int len = filename.length();
 		if (len > 4 && filename[len - 4] == '.') {
@@ -832,11 +818,12 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
+	PbDeviceType type = UNDEFINED;
 	string name;
 	string log_level = "trace";
 
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:P:p:f:Vv")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:T:t:P:p:f:Vv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -887,6 +874,16 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				name = optarg;
 				continue;
 
+			case 't': {
+					string t = optarg;
+					transform(t.begin(), t.end(), t.begin(), ::toupper);
+					if (!PbDeviceType_Parse(t, &type)) {
+						cerr << "Illegal device type '" << optarg << "'" << endl;
+						return false;
+					}
+				}
+				continue;
+
 			case 'v':
 				cout << rascsi_get_version_string() << endl;
 				exit(EXIT_SUCCESS);
@@ -910,6 +907,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		PbDeviceDefinition *device = devices.add_devices();
 		device->set_id(id);
 		device->set_unit(unit);
+		device->set_type(type);
 		device->set_name(name);
 		PbImageFile image_file;
 		image_file.set_name(optarg);
