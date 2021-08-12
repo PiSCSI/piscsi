@@ -627,11 +627,13 @@ bool ProcessCmd(int fd, const PbDevice& pbDevice, const PbOperation cmd, const s
 			return ReturnStatus(fd, false, error);
 		}
 
-		try {
-			SetDeviceName(device, pbDevice.name());
-		}
-		catch(const illegalargumentexception& e) {
-			return ReturnStatus(fd, false, e.getmsg());
+		if (!pbDevice.name().empty()) {
+			try {
+				SetDeviceName(device, pbDevice.name());
+			}
+			catch(const illegalargumentexception& e) {
+				return ReturnStatus(fd, false, e.getmsg());
+			}
 		}
 
 		device->SetId(id);
