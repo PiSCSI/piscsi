@@ -288,7 +288,7 @@ const PbDevices GetDevices()
 		pbDevice->set_unit(i % UnitNum);
 
 		// ID,UNIT,Type,Device Status
-		PbDeviceType type;
+		PbDeviceType type = UNDEFINED;
 		PbDeviceType_Parse(device->GetType(), &type);
 		pbDevice->set_type(type);
 
