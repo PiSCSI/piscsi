@@ -7,7 +7,7 @@ NAME
 
 SYNOPSIS
        rasctl -l | -s | [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v] -i ID [-c CMD]
-       [-f FILE] [-t TYPE] [-u UNIT]
+       [-f FILE] [-n NAME] [-t TYPE] [-u UNIT]
 
 DESCRIPTION
        rasctl Sends commands to the rascsi process to make  configuration  ad‐
@@ -66,6 +66,13 @@ OPTIONS
                  cd: CD-ROM
                  bridge:  Bridge  device (This is only applicable to the Sharp
               X68000)
+
+       -u NAME
+              The vendor, product and revision for the device, to be  returned
+              with the INQUIRY data. A complete set of name components must be
+              specified. VENDOR may have up to 8, PRODUCT up to  16,  REVISION
+              up  to  4  characters.  Once  set the name of a device cannot be
+              changed.
 
        -u UNIT
               Unit number (0 or 1). This will default to  0.  This  option  is
