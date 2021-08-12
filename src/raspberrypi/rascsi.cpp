@@ -321,6 +321,8 @@ const PbDevices GetDevices() {
 //---------------------------------------------------------------------------
 bool MapController(Disk **map)
 {
+	assert(bus);
+
 	bool status = true;
 
 	// Take ownership of the ctrl data structure
@@ -1043,14 +1045,14 @@ int main(int argc, char* argv[])
 
 	InitDisks();
 
-	if (!ParseArgument(argc, argv, port)) {
-		ret = EINVAL;
-		goto err_exit;
-	}
-
 	if (!InitBus()) {
 		ret = EPERM;
 		goto init_exit;
+	}
+
+	if (!ParseArgument(argc, argv, port)) {
+		ret = EINVAL;
+		goto err_exit;
 	}
 
 	if (!InitService(port)) {
