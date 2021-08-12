@@ -102,7 +102,7 @@ void SCSIHD::Open(const Filepath& path)
 		product << "TRAILBRAZER" << capacity;
 	}
 	else if (capacity < 2000) {
-		product << "FIREBALLS" << capacity;
+		product << "FIREBALL" << capacity;
 	}
 	else {
 		product << "FBSE" << capacity / 1000 << "." << (capacity % 1000) / 100;
