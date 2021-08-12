@@ -12,6 +12,7 @@ rasctl \- Sends management commands to the rascsi process
 \fB\-i\fR \fIID\fR
 [\fB\-c\fR \fICMD\fR]
 [\fB\-f\fR \fIFILE\fR]
+[\fB\-n\fR \fINAME\fR]
 [\fB\-t\fR \fITYPE\fR]
 [\fB\-u\fR \fIUNIT\fR]
 .SH DESCRIPTION
@@ -68,6 +69,9 @@ Specifies the type of disk. If this disagrees with the file extension of the spe
    mo: Magneto-Optical disk
    cd: CD-ROM
    bridge: Bridge device (This is only applicable to the Sharp X68000)
+.TP 
+.BR \-u\fI " " \fINAME
+The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be specified. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Once set the name of a device cannot be changed.
 .TP 
 .BR \-u\fI " " \fIUNIT
 Unit number (0 or 1). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
