@@ -984,7 +984,7 @@ static void *MonThread(void *param)
 	listen(monsocket, 1);
 
 	while (true) {
-		int fd;
+		int fd = -1;
 
 		try {
 			// Wait for connection
