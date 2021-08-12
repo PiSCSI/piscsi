@@ -51,7 +51,7 @@ enum PbOperation {
 
 // The image file data
 message PbImageFile {
-    string filename = 1;
+    string name = 1;
     // Hint for clients that want to prevent assigning read-only files to writeable device types
     bool read_only = 2;
     int64 size = 3;

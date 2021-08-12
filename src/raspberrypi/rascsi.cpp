@@ -260,12 +260,12 @@ void Reset()
 
 void GetImageFile(PbImageFile *image_file, const string& filename)
 {
-	image_file->set_filename(filename);
+	image_file->set_name(filename);
 	if (!filename.empty()) {
 		image_file->set_read_only(access(filename.c_str(), W_OK));
 
 		struct stat st;
-		stat(image_file->filename().c_str(), &st);
+		stat(image_file->name().c_str(), &st);
 		image_file->set_size(st.st_size);
 	}
 }
@@ -567,7 +567,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	int id = pbDevice.id();
 	int unit = pbDevice.unit();
-	string filename = pbDevice.file().filename();
+	string filename = pbDevice.file().name();
 	PbDeviceType type = pbDevice.type();
 
 	ostringstream s;
@@ -912,7 +912,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_unit(unit);
 		device->set_name(name);
 		PbImageFile image_file;
-		image_file.set_filename(optarg);
+		image_file.set_name(optarg);
 		device->set_allocated_file(new PbImageFile(image_file));
 
 		id = -1;

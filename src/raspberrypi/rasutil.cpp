@@ -113,7 +113,7 @@ string ListDevices(const PbDevices& devices)
 				break;
 
 			default:
-				filename = device.image_file().filename();
+				filename = device.image_file().name();
 				break;
 		}
 

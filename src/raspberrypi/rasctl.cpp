@@ -181,14 +181,14 @@ void CommandServerInfo(const string& hostname, int port)
 		cout << "  No image files available in the default folder" << endl;
 	}
 	else {
-		list<string> sorted_image_files;
+		list<string> sorted_files;
 		for (int i = 0; i < serverInfo.available_image_files_size(); i++) {
-			sorted_image_files.push_back(serverInfo.available_image_files(i).filename());
+			sorted_files.push_back(serverInfo.available_image_files(i).name());
 		}
-		sorted_image_files.sort();
+		sorted_files.sort();
 
 		cout << "Image files available in the default folder:" << endl;
-		for (auto it = sorted_image_files.begin(); it != sorted_image_files.end(); ++it) {
+		for (auto it = sorted_files.begin(); it != sorted_files.end(); ++it) {
 			cout << "  " << *it << endl;
 		}
 	}
@@ -309,7 +309,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				image_file.set_filename(optarg);
+				image_file.set_name(optarg);
 				break;
 
 			case 'h':
@@ -361,7 +361,7 @@ int main(int argc, char* argv[])
 	}
 
 	// List display only
-	if (command.cmd() == LIST || (device->id() < 0 && device->type() == UNDEFINED && image_file.filename().empty())) {
+	if (command.cmd() == LIST || (device->id() < 0 && device->type() == UNDEFINED && image_file.name().empty())) {
 		CommandList(hostname, port);
 		exit(EXIT_SUCCESS);
 	}
