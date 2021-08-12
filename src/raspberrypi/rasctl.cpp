@@ -348,7 +348,7 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	device->set_allocated_image_file(new PbImageFile(image_file));
+	device->set_allocated_file(new PbImageFile(image_file));
 
 	if (command.cmd() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, params);

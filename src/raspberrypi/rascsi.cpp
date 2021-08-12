@@ -567,7 +567,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	int id = pbDevice.id();
 	int unit = pbDevice.unit();
-	string filename = pbDevice.image_file().filename();
+	string filename = pbDevice.file().filename();
 	PbDeviceType type = pbDevice.type();
 
 	ostringstream s;
@@ -913,7 +913,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_name(name);
 		PbImageFile image_file;
 		image_file.set_filename(optarg);
-		device->set_allocated_image_file(new PbImageFile(image_file));
+		device->set_allocated_file(new PbImageFile(image_file));
 
 		id = -1;
 	}
