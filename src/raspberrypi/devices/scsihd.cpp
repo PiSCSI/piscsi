@@ -92,7 +92,7 @@ void SCSIHD::Open(const Filepath& path)
 	int capacity = disk.blocks >> 11;
 	char product[17];
 	if (capacity < 300) {
-		sprintf(product, "PRODRIVE LPS%dS", capacity);
+		sprintf(product, "PRODRIVE LPS%3dS", capacity);
 	}
 	else if (capacity < 600) {
 		sprintf(product, "MAVERICK%dS", capacity);
