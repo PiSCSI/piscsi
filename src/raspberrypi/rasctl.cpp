@@ -205,11 +205,12 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-n NAME] [-f FILE] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
 		cerr << "        TYPE := {hd|rm|mo|cd|bridge|daynaport}" << endl;
+		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
 		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
@@ -234,7 +235,8 @@ int main(int argc, char* argv[])
 	int port = 6868;
 	string params;
 	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:u:g:lsv")) != -1) {
+
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:n:p:u:g:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -308,12 +310,16 @@ int main(int argc, char* argv[])
 				image_file.set_filename(optarg);
 				break;
 
+			case 'h':
+				hostname = optarg;
+				break;
+
 			case 'l':
 				command.set_cmd(LIST);
 				break;
 
-			case 'h':
-				hostname = optarg;
+			case 'n':
+				device->set_name(optarg);
 				break;
 
 			case 'p':

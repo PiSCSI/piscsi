@@ -544,8 +544,13 @@ void SetDeviceName(Device *device, const string& name)
 		if (revisionSeparatorPos != string::npos) {
 			device->SetProduct(remaining.substr(0, revisionSeparatorPos));
 			device->SetRevision(remaining.substr(revisionSeparatorPos + 1));
+			return;
 		}
 	}
+
+	ostringstream error;
+	error << "Wrong device name format: '" << name << "', must be VENDOR:PRODUCT:REVISION";
+	throw illegalargumentexception(error.str());
 }
 
 //---------------------------------------------------------------------------
@@ -568,7 +573,7 @@ bool ProcessCmd(int fd, const PbDevice& pbDevice, const PbOperation cmd, const s
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
 	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", filename='" << filename << "', params='" << params << "'";
+			<< ", filename='" << filename << "', device name='" << pbDevice.name() << "', params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
