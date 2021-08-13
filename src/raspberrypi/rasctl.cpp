@@ -109,13 +109,13 @@ bool ReceiveResult(int fd)
 void CommandList(const string& hostname, int port)
 {
 	PbCommand command;
-	command.set_cmd(LIST);
+	command.set_cmd(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
-	PbDevices devices;
+	PbServerInfo serverInfo;
 	try {
-		DeserializeMessage(fd, devices);
+		DeserializeMessage(fd, serverInfo);
 	}
 	catch(const ioexception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
@@ -125,9 +125,9 @@ void CommandList(const string& hostname, int port)
 		exit(EXIT_FAILURE);
 	}
 
-	close (fd);
+	close(fd);
 
-	cout << ListDevices(devices) << endl;
+	cout << ListDevices(serverInfo.devices()) << endl;
 }
 
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
@@ -299,6 +299,7 @@ int main(int argc, char* argv[])
 	int port = 6868;
 	string log_level;
 	string default_folder;
+	bool list = false;
 	opterr = 0;
 
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:d:h:n:p:u:g:lsv")) != -1) {
@@ -333,7 +334,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'l':
-				command.set_cmd(LIST);
+				list = true;
 				break;
 
 			case 'n':
@@ -380,7 +381,7 @@ int main(int argc, char* argv[])
 	}
 
 	// List display only
-	if (command.cmd() == LIST || (device->id() < 0 && device->type() == UNDEFINED && device->file().empty())) {
+	if (list || (device->id() < 0 && device->type() == UNDEFINED && device->file().empty())) {
 		CommandList(hostname, port);
 		exit(EXIT_SUCCESS);
 	}

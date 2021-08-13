@@ -1030,13 +1030,6 @@ static void *MonThread(void *param)
 			DeserializeMessage(fd, command);
 
 			switch(command.cmd()) {
-				case LIST: {
-					const PbDevices devices = GetDevices();
-					SerializeMessage(fd, devices);
-					LogDevices(ListDevices(devices));
-					break;
-				}
-
 				case LOG_LEVEL: {
 					bool status = SetLogLevel(command.params());
 					if (!status) {
@@ -1070,6 +1063,7 @@ static void *MonThread(void *param)
 					GetAvailableImages(serverInfo);
 					serverInfo.set_allocated_devices(new PbDevices(GetDevices()));
 					SerializeMessage(fd, serverInfo);
+					LogDevices(ListDevices(serverInfo.devices()));
 					break;
 				}
 
