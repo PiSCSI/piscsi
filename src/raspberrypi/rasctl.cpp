@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include <netdb.h>
-#include "google/protobuf/message_lite.h"
 #include "os.h"
 #include "rascsi_version.h"
 #include "exceptions.h"

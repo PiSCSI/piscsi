@@ -569,9 +569,7 @@ void SetDeviceName(Device *device, const string& name)
 		}
 	}
 
-	ostringstream error;
-	error << "Wrong device name format: '" << name << "', must be VENDOR:PRODUCT:REVISION";
-	throw illegalargumentexception(error.str());
+	throw illegalargumentexception("Wrong device name format: '" + name + "', must be VENDOR:PRODUCT:REVISION");
 }
 
 //---------------------------------------------------------------------------
