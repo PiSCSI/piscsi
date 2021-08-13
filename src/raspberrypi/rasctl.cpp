@@ -194,7 +194,7 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 }
 
-PbOperation ParseCommand(const char *optarg)
+PbOperation ParseOperation(const char *optarg)
 {
 	switch (tolower(optarg[0])) {
 		case 'a':
@@ -285,7 +285,7 @@ int main(int argc, char* argv[])
 	device->set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
-	string params;
+	string log_level;
 	opterr = 0;
 
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:n:p:u:g:lsv")) != -1) {
@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				command.set_cmd(ParseCommand(optarg));
+				command.set_cmd(ParseOperation(optarg));
 				break;
 
 			case 't':
@@ -332,7 +332,7 @@ int main(int argc, char* argv[])
 
 			case 'g':
 				command.set_cmd(LOG_LEVEL);
-				params = optarg;
+				log_level = optarg;
 				break;
 
 			case 's':
@@ -347,7 +347,7 @@ int main(int argc, char* argv[])
 	}
 
 	if (command.cmd() == LOG_LEVEL) {
-		CommandLogLevel(hostname, port, params);
+		CommandLogLevel(hostname, port, log_level);
 		exit(EXIT_SUCCESS);
 	}
 
