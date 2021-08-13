@@ -194,6 +194,31 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 }
 
+PbDeviceType ParseType(const string& optarg)
+{
+	string t = optarg;
+	transform(t.begin(), t.end(), t.begin(), ::toupper);
+	PbDeviceType type;
+	if (PbDeviceType_Parse(t, &type)) {
+		return type;
+	}
+	else {
+		// Parse legacy types
+		switch (tolower(optarg[0])) {
+			case 'm':
+				return SCMO;
+
+			case 'c':
+				return SCCD;
+
+			case 'b':
+				return SCBR;
+		}
+	}
+
+	return UNDEFINED;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Main processing
@@ -211,7 +236,7 @@ int main(int argc, char* argv[])
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
-		cerr << "        TYPE := {hd|rm|mo|cd|bridge|daynaport}" << endl;
+		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or legacy types {hd|mo|cd|bridge}" << endl;
 		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
@@ -232,7 +257,6 @@ int main(int argc, char* argv[])
 	command.set_allocated_devices(&devices);
 	PbDeviceDefinition *device = devices.add_devices();
 	device->set_id(-1);
-	string image_file;
 	const char *hostname = "localhost";
 	int port = 6868;
 	string params;
@@ -277,39 +301,11 @@ int main(int argc, char* argv[])
 				break;
 
 			case 't':
-				switch (tolower(optarg[0])) {
-					case 's':
-						device->set_type(SAHD);
-						break;
-
-					case 'h':
-						device->set_type(SCHD);
-						break;
-
-					case 'r':
-						device->set_type(SCRM);
-						break;
-
-					case 'm':
-						device->set_type(SCMO);
-						break;
-
-					case 'c':
-						device->set_type(SCCD);
-						break;
-
-					case 'b':
-						device->set_type(SCBR);
-						break;
-
-					case 'd':
-						device->set_type(SCDP);
-						break;
-				}
+				device->set_type(ParseType(optarg));
 				break;
 
 			case 'f':
-				image_file = optarg;
+				device->set_file(optarg);
 				break;
 
 			case 'h':
@@ -348,8 +344,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	device->set_file(image_file);
-
 	if (command.cmd() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, params);
 		exit(EXIT_SUCCESS);
@@ -361,7 +355,7 @@ int main(int argc, char* argv[])
 	}
 
 	// List display only
-	if (command.cmd() == LIST || (device->id() < 0 && device->type() == UNDEFINED && image_file.empty())) {
+	if (command.cmd() == LIST || (device->id() < 0 && device->type() == UNDEFINED && device->file().empty())) {
 		CommandList(hostname, port);
 		exit(EXIT_SUCCESS);
 	}

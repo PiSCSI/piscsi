@@ -63,13 +63,11 @@ When the command is omitted, rasctl will default to the 'attach' command.
 Path to the disk image file. See the rascsi(1) man page for allowable file types.
 .TP 
 .BR \-t\fI " " \fITYPE
-Specifies the device type. This type overrides the type derived from the file extension of the specified image. Available drive types are:
+Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the rascsi(1) man page for the available device types. Legacy drive types are:
    hd: Hard disk (SCSI or SASI)
-   rm: Removable hard disk (SCSI)
    mo: Magneto-Optical disk
    cd: CD-ROM
    bridge: Bridge device (This is only applicable to the Sharp X68000)
-   daynaport: DaynaPort network adapter
 .TP 
 .BR \-u\fI " " \fINAME
 The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be specified. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Once set the name of a device cannot be changed.

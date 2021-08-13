@@ -52,7 +52,6 @@ enum PbOperation {
 // The image file data
 message PbImageFile {
     string name = 1;
-    // Hint for clients that want to prevent assigning read-only files to writeable device types
     bool read_only = 2;
     int64 size = 3;
 }
@@ -63,6 +62,7 @@ message PbDeviceDefinition {
     int32 unit = 2;
     PbDeviceType type = 3;
     string file = 4;
+    // The device name, format is VENDOR:PRODUCT:REVISION
     string name = 5;
     bool protected = 6;
     bool removable = 7;
@@ -81,10 +81,11 @@ message PbDevice {
     string vendor = 5;
     string product = 6;
     string revision = 7;
+    // Read-only media (e.g. CD-ROMs) are not protectable but read-only all the time
     bool read_only = 8;
-    // Note: Read-only media (e.g. CD-ROMs) are not protectable
+    // Medium can be write-protected
     bool protectable = 9;
-    // Note: Read-only media (e.g. CD-ROMs) cannot be protected but are read-only all the time
+    // Medium is write-protected
     bool protected = 10;
     // Medium can be removed
     bool removable = 11;
@@ -107,7 +108,7 @@ message PbCommand {
     PbOperation cmd = 1;
     // The optional device list
     PbDeviceDefinitions devices = 2;
-    // The optional parameters
+    // The optional parameters, currently only used for the log level
     string params = 3;
 }
 

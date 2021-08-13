@@ -561,9 +561,9 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	Device *device;
 	ostringstream error;
 
-	int id = pbDevice.id();
-	int unit = pbDevice.unit();
-	string filename = pbDevice.file();
+	const int id = pbDevice.id();
+	const int unit = pbDevice.unit();
+	const string filename = pbDevice.file();
 	PbDeviceType type = pbDevice.type();
 
 	ostringstream s;
@@ -736,25 +736,29 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	switch (cmd) {
 		case INSERT:
-			if (params.empty()) {
+			if (!pbDevice.name().empty()) {
+				return ReturnStatus(fd, false, "Device name cannot be changed");
+			}
+
+			if (filename.empty()) {
 				return ReturnStatus(fd, false, "Missing filename");
 			}
 
-			filepath.SetPath(params.c_str());
-			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", params.c_str(), device->GetType().c_str(), id, unit);
+			filepath.SetPath(filename.c_str());
+			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", filename.c_str(), device->GetType().c_str(), id, unit);
 
 			try {
 				fileSupport->Open(filepath);
 			}
 			catch(const ioexception& e) {
 				// If the file does not exist search for it in the default image folder
-				string default_file = default_image_folder + "/" + params;
+				string default_file = default_image_folder + "/" + filename;
 				filepath.SetPath(default_file.c_str());
 				try {
 					fileSupport->Open(filepath);
 				}
 				catch(const ioexception&) {
-					error << "Tried to open an invalid file '" << params << "': " << e.getmsg();
+					error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
 					LOGWARN("%s", error.str().c_str());
 					return ReturnStatus(fd, false, error);
 				}
