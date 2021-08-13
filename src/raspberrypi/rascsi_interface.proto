@@ -29,15 +29,15 @@ enum PbDeviceType {
 // rascsi remote operations
 enum PbOperation {
     NONE = 0;
-    // Returns the full server information
+    // Returns the server information
     SERVER_INFO = 1;
-    // Set the default folder for image files
+    // Set the default folder for image files, PbCommand.params contains the folder name
     DEFAULT_FOLDER = 2;
-    // Set server log level
+    // Set server log level, PbCommand.params contains the log level
     LOG_LEVEL = 3;
     // Attach new device
     ATTACH = 4;
-    // Detach device
+    // Detach device. Detach all devices if PbCommand.params == "all". In this case ID and unit are ignored.
     DETACH = 5;
     // Insert medium
     INSERT = 6;
@@ -108,7 +108,7 @@ message PbCommand {
     PbOperation cmd = 1;
     // The optional device list
     PbDeviceDefinitions devices = 2;
-    // The optional parameters, currently only used for the log level and the default image folder
+    // The optional parameters, depending on the operation
     string params = 3;
 }
 

@@ -731,24 +731,46 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
-	if (!dryRun && cmd == DETACH) {
-		// Free the existing unit
-		map[id * UnitNum + unit] = NULL;
-
-		if (fileSupport) {
-			Filepath filepath;
-			fileSupport->GetPath(filepath);
-			files_in_use.erase(filepath.GetPath());
+	if (cmd == DETACH) {
+		bool all = params == "all";
+		if (!all && !params.empty()) {
+			error << "Invalid command parameter '" << params << "' for " << PbOperation_Name(DETACH);
+			return ReturnStatus(fd, false, error);
 		}
 
-		// Re-map the controller
-		bool status = MapController(map);
-		if (status) {
-	        LOGINFO("Disconnected %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
-			return true;
-		}
+		if (!dryRun) {
+			// Free the existing unit(s)
+			if (all) {
+				for (int i = 0; i < CtrlMax * UnitNum; i++) {
+					map[i] = NULL;
+				}
 
-		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+				files_in_use.clear();
+			}
+			else {
+				map[id * UnitNum + unit] = NULL;
+
+				if (fileSupport) {
+					Filepath filepath;
+					fileSupport->GetPath(filepath);
+					files_in_use.erase(filepath.GetPath());
+				}
+			}
+
+			// Re-map the controller
+			bool status = MapController(map);
+			if (status) {
+				if (all) {
+					LOGINFO("Disconnected all devices");
+				}
+				else {
+					LOGINFO("Disconnected %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
+				}
+				return true;
+			}
+
+			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+		}
 	}
 
 	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
