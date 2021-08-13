@@ -529,6 +529,31 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 	}
 }
 
+bool SetDefaultImageFolder(const string& f)
+{
+	string folder = f;
+
+	// If a relative path is specified the path is assumed to relative to the user's home directory
+	if (folder[0] != '/') {
+		const passwd *passwd = getpwuid(getuid());
+		if (passwd) {
+			folder = passwd->pw_dir;
+			folder += "/";
+			folder += f;
+		}
+	}
+
+	struct stat info;
+	stat(folder.c_str(), &info);
+	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
+		return false;
+	}
+
+	default_image_folder = folder;
+
+	return true;
+}
+
 void SetDeviceName(Device *device, const string& name)
 {
 	size_t productSeparatorPos = name.find(':');
@@ -645,17 +670,24 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				fileSupport->Open(filepath);
 			}
 			catch(const ioexception& e) {
-				// If the file does not exist search for it in the default image folder
-				string default_file = default_image_folder + "/" + filename;
-				filepath.SetPath(default_file.c_str());
-				try {
-					fileSupport->Open(filepath);
+				if (!default_image_folder.empty()) {
+					// If the file does not exist search for it in the default image folder
+					string default_file = default_image_folder + "/" + filename;
+					filepath.SetPath(default_file.c_str());
+					try {
+						fileSupport->Open(filepath);
+					}
+					catch(const ioexception&) {
+						delete device;
+
+						error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
+						return ReturnStatus(fd, false, error);
+					}
 				}
-				catch(const ioexception&) {
+				else {
 					delete device;
 
-					error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
-					return ReturnStatus(fd, false, error);
+					return ReturnStatus(fd, false, "No default image folder");
 				}
 			}
 
@@ -751,16 +783,20 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				fileSupport->Open(filepath);
 			}
 			catch(const ioexception& e) {
-				// If the file does not exist search for it in the default image folder
-				string default_file = default_image_folder + "/" + filename;
-				filepath.SetPath(default_file.c_str());
-				try {
-					fileSupport->Open(filepath);
+				if (!default_image_folder.empty()) {
+					// If the file does not exist search for it in the default image folder
+					string default_file = default_image_folder + "/" + filename;
+					filepath.SetPath(default_file.c_str());
+					try {
+						fileSupport->Open(filepath);
+					}
+					catch(const ioexception&) {
+						error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
+						return ReturnStatus(fd, false, error);
+					}
 				}
-				catch(const ioexception&) {
-					error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
-					LOGWARN("%s", error.str().c_str());
-					return ReturnStatus(fd, false, error);
+				else {
+					return ReturnStatus(fd, false, "No default image folder");
 				}
 			}
 			break;
@@ -860,14 +896,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'f':
-				struct stat folder_stat;
-				stat(optarg, &folder_stat);
-				if (!S_ISDIR(folder_stat.st_mode) || access(optarg, F_OK) == -1) {
-					cerr << "Default image folder '" << optarg << "' is not accessible" << endl;
+				if (!SetDefaultImageFolder(optarg)) {
+					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
 					return false;
 				}
-
-				default_image_folder = optarg;
 				continue;
 
 			case 'n':
@@ -1018,6 +1050,17 @@ static void *MonThread(void *param)
 					break;
 				}
 
+				case DEFAULT_FOLDER:
+					if (!SetDefaultImageFolder(command.params())) {
+						ostringstream error;
+						error << "Folder '" << command.params() << "' does not exist or is not accessible";
+						ReturnStatus(fd, false, error);
+					}
+					else {
+						ReturnStatus(fd);
+					}
+					break;
+
 				case SERVER_INFO: {
 					PbServerInfo serverInfo;
 					serverInfo.set_rascsi_version(rascsi_get_version_string());
@@ -1086,8 +1129,11 @@ int main(int argc, char* argv[])
 
 	// ~/images is the default folder for device image file
 	const passwd *passwd = getpwuid(getuid());
-	default_image_folder = passwd->pw_dir;
-	default_image_folder += "/images";
+	if (passwd) {
+		string folder = passwd->pw_dir;
+		folder += "/images";
+		default_image_folder = folder;
+	}
 
 	// Output the Banner
 	Banner(argc, argv);

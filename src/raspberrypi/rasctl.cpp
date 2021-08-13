@@ -141,6 +141,17 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	close(fd);
 }
 
+void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
+{
+	PbCommand command;
+	command.set_cmd(DEFAULT_FOLDER);
+	command.set_params(folder);
+
+	int fd = SendCommand(hostname.c_str(), port, command);
+	ReceiveResult(fd);
+	close(fd);
+}
+
 void CommandServerInfo(const string& hostname, int port)
 {
 	PbCommand command;
@@ -259,13 +270,14 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-n NAME] [-f FILE] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-n NAME] [-f FILE] [-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
 		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or legacy types {hd|mo|cd|bridge}" << endl;
 		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
 		cerr << "        FILE := image file path" << endl;
+		cerr << "        DEFAULT_IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
 		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
 		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
@@ -286,9 +298,10 @@ int main(int argc, char* argv[])
 	const char *hostname = "localhost";
 	int port = 6868;
 	string log_level;
+	string default_folder;
 	opterr = 0;
 
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:n:p:u:g:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:d:h:n:p:u:g:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -308,6 +321,11 @@ int main(int argc, char* argv[])
 
 			case 'f':
 				device->set_file(optarg);
+				break;
+
+			case 'd':
+				command.set_cmd(DEFAULT_FOLDER);
+				default_folder = optarg;
 				break;
 
 			case 'h':
@@ -348,6 +366,11 @@ int main(int argc, char* argv[])
 
 	if (command.cmd() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, log_level);
+		exit(EXIT_SUCCESS);
+	}
+
+	if (command.cmd() == DEFAULT_FOLDER) {
+		CommandDefaultImageFolder(hostname, port, default_folder);
 		exit(EXIT_SUCCESS);
 	}
 

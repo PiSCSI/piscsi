@@ -51,8 +51,8 @@ DESCRIPTION
 OPTIONS
        -f FOLDER
               The default folder for image files. For files in this folder  no
-              absolute  path  needs  to  be  specified.  The default folder is
-              '~/images'.
+              absolute  path needs to be specified. The initial default folder
+              is '~/images'.
 
        -g LOG_LEVEL
               The rascsi log level (trace, debug, info, warn,  err,  critical,
