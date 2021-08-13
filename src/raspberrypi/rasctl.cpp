@@ -194,10 +194,37 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 }
 
-PbDeviceType ParseType(const string& optarg)
+PbOperation ParseCommand(const char *optarg)
+{
+	switch (tolower(optarg[0])) {
+		case 'a':
+			return ATTACH;
+
+		case 'd':
+			return DETACH;
+
+		case 'i':
+			return INSERT;
+
+		case 'e':
+			return EJECT;
+
+		case 'p':
+			return PROTECT;
+
+		case 'u':
+			return UNPROTECT;
+
+		default:
+			return NONE;
+	}
+}
+
+PbDeviceType ParseType(const char *optarg)
 {
 	string t = optarg;
 	transform(t.begin(), t.end(), t.begin(), ::toupper);
+
 	PbDeviceType type;
 	if (PbDeviceType_Parse(t, &type)) {
 		return type;
@@ -272,31 +299,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				switch (tolower(optarg[0])) {
-					case 'a':
-						command.set_cmd(ATTACH);
-						break;
-
-					case 'd':
-						command.set_cmd(DETACH);
-						break;
-
-					case 'i':
-						command.set_cmd(INSERT);
-						break;
-
-					case 'e':
-						command.set_cmd(EJECT);
-						break;
-
-					case 'p':
-						command.set_cmd(PROTECT);
-						break;
-
-					case 'u':
-						command.set_cmd(UNPROTECT);
-						break;
-				}
+				command.set_cmd(ParseCommand(optarg));
 				break;
 
 			case 't':
