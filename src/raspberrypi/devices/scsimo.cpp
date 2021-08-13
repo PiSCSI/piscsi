@@ -30,8 +30,9 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIMO::SCSIMO() : Disk("SCMO", true)
+SCSIMO::SCSIMO() : Disk("SCMO")
 {
+	SetRemovable(true);
 	SetLocked(true);
 	SetProtectable(true);
 

@@ -119,7 +119,7 @@ string ListDevices(const PbDevices& devices)
 
 		s << "|  " << device.id() << " |  " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
 				<< (filename.empty() ? "NO MEDIA" : filename)
-				<< (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
+				<< (device.read_only() || device.protected_() ? " (WRITEPROTECT)" : "") << endl;
 	}
 
 	s << "+----+----+------+-------------------------------------";

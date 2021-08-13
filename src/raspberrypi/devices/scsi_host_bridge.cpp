@@ -32,8 +32,10 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIBR::SCSIBR() : Device("SCBR", false)
+SCSIBR::SCSIBR() : Device("SCBR")
 {
+	SetRemovable(false);
+
 	SetProduct("RASCSI BRIDGE");
 
 	fsoptlen = 0;

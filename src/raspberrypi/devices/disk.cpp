@@ -404,17 +404,14 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 //	Constructor
 //
 //---------------------------------------------------------------------------
-DiskCache::DiskCache(
-	const Filepath& path, int size, int blocks, off64_t imgoff)
+DiskCache::DiskCache(const Filepath& path, int size, int blocks, off64_t imgoff)
 {
-	int i;
-
 	ASSERT((size >= 8) && (size <= 11));
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
 
 	// Cache work
-	for (i = 0; i < CacheMax; i++) {
+	for (int i = 0; i < CacheMax; i++) {
 		cache[i].disktrk = NULL;
 		cache[i].serial = 0;
 	}
@@ -703,7 +700,7 @@ void DiskCache::Update()
 //	Constructor
 //
 //---------------------------------------------------------------------------
-Disk::Disk(std::string id, bool removable) : Device(id, removable)
+Disk::Disk(const std::string id) : Device(id)
 {
 	// Work initialization
 	disk.size = 0;
@@ -757,13 +754,10 @@ void Disk::Open(const Filepath& path)
 	// Can read/write open
 	Fileio fio;
 	if (fio.Open(path, Fileio::ReadWrite)) {
-		// Write permission, not read only
-		SetProtected(false);
-		SetReadOnly(false);
+		// Write permission
 		fio.Close();
 	} else {
-		// Write protected, read only
-		SetProtected(true);
+		// Write protected
 		SetReadOnly(true);
 	}
 

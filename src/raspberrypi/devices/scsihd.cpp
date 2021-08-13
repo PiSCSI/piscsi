@@ -30,8 +30,9 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD", removable)
+SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
+	SetRemovable(removable);
 	SetProtected(true);
 }
 

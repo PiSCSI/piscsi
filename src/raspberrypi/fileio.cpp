@@ -141,11 +141,6 @@ BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 			handle = open(fname, O_RDWR | omode);
 			break;
 
-		// アペンド
-		case Append:
-			handle = open(fname, O_CREAT | O_WRONLY | O_APPEND | omode, 0666);
-			break;
-
 		// それ以外
 		default:
 			ASSERT(FALSE);

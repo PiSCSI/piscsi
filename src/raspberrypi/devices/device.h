@@ -80,7 +80,7 @@ private:
 
 public:
 
-	Device(const string&, bool);
+	Device(const string);
 	virtual ~Device() {};
 
 	const string& GetType() const { return type; }
@@ -96,7 +96,7 @@ public:
 	bool IsProtectable() const { return protectable; }
 	void SetProtectable(bool protectable) { this->protectable = protectable; }
 	bool IsProtected() const { return write_protected; }
-	bool SetProtected(bool);
+	void SetProtected(bool);
 	bool IsReadOnly() const { return read_only; }
 	void SetReadOnly(bool read_only) { this->read_only = read_only; }
 

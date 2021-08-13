@@ -29,8 +29,9 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SASIHD::SASIHD() : Disk("SAHD", false)
+SASIHD::SASIHD() : Disk("SAHD")
 {
+	SetRemovable(false);
 	SetProtectable(true);
 }
 

@@ -13,7 +13,7 @@
 #include "exceptions.h"
 #include "device.h"
 
-Device::Device(const string& type, bool removable)
+Device::Device(const string type)
 {
 	assert(type.length() == 4);
 
@@ -48,20 +48,12 @@ void Device::Reset()
 	reset = false;
 }
 
-bool Device::SetProtected(bool write_protected)
+void Device::SetProtected(bool write_protected)
 {
-	if (!ready) {
-		return false;
+	// The protected status only makes sense for devices that are not read-only
+	if (!read_only) {
+		this->write_protected = write_protected;
 	}
-
-	// Read Only, protect only
-	if (read_only && !write_protected) {
-		return false;
-	}
-
-	this->write_protected = write_protected;
-
-	return true;
 }
 
 void Device::SetVendor(const string& vendor)
@@ -130,7 +122,6 @@ bool Device::Eject(bool force)
 
 	SetReady(false);
 	SetProtected(false);
-	SetReadOnly(false);
 	SetRemoved(true);
 	SetAttn(false);
 

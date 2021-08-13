@@ -292,17 +292,13 @@ const PbDevices GetDevices()
 		PbDeviceType_Parse(device->GetType(), &type);
 		pbDevice->set_type(type);
 
+		pbDevice->set_read_only(device->IsReadOnly());
 		pbDevice->set_protectable(device->IsProtectable());
 		pbDevice->set_protected_(device->IsProtectable() && device->IsProtected());
 		pbDevice->set_removable(device->IsRemovable());
 		pbDevice->set_removed(device->IsRemoved());
 		pbDevice->set_lockable(device->IsLockable());
 		pbDevice->set_locked(device->IsLocked());
-
-		// Write protection status
-		if (device->IsRemovable() && device->IsReady() && device->IsProtected()) {
-			pbDevice->set_read_only(true);
-		}
 
 		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 		if (fileSupport) {
@@ -912,6 +908,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_file(optarg);
 
 		id = -1;
+		type = UNDEFINED;
 	}
 
 	if (!SetLogLevel(log_level)) {

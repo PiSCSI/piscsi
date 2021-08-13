@@ -135,7 +135,7 @@ protected:
 
 public:
 	// Basic Functions
-	Disk(std::string, bool);					// Constructor
+	Disk(std::string);							// Constructor
 	virtual ~Disk();							// Destructor
 
 	// Media Operations

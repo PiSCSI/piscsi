@@ -39,8 +39,7 @@ public:
 	enum OpenMode {
 		ReadOnly,						// 読み込みのみ
 		WriteOnly,						// 書き込みのみ
-		ReadWrite,						// 読み書き両方
-		Append							// アペンド
+		ReadWrite						// 読み書き両方
 	};
 
 public:

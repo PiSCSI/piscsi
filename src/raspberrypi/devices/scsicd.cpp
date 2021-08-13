@@ -250,10 +250,11 @@ CDDABuf::~CDDABuf()
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSICD::SCSICD() : Disk("SCCD", true)
+SCSICD::SCSICD() : Disk("SCCD")
 {
+	SetRemovable(true);
 	SetLocked(true);
-	SetProtected(true);
+	SetReadOnly(true);
 
 	SetProduct("CD-ROM CDU-55S");
 

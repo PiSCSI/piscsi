@@ -47,8 +47,10 @@ const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff,
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIDaynaPort::SCSIDaynaPort() : Device("SCDP", false)
+SCSIDaynaPort::SCSIDaynaPort() : Device("SCDP")
 {
+	SetRemovable(false);
+
 	SetVendor("Dayna");
 	SetProduct("SCSI/Link");
 
