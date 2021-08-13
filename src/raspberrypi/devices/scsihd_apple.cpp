@@ -27,7 +27,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIHD_APPLE::SCSIHD_APPLE() : SCSIHD(false)
+SCSIHD_APPLE::SCSIHD_APPLE() : SCSIHD()
 {
 	SetVendor(" SEAGATE");
 	SetProduct("          ST225N");

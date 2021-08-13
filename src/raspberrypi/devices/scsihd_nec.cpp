@@ -29,7 +29,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIHD_NEC::SCSIHD_NEC() : SCSIHD(false)
+SCSIHD_NEC::SCSIHD_NEC() : SCSIHD()
 {
 	// Work initialization
 	cylinders = 0;

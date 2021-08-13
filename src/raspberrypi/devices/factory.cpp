@@ -48,7 +48,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const std::string& ext)
 			} else if (ext == "hda") {
 				return new SCSIHD_APPLE();
 			} else {
-				return new SCSIHD(false);
+				return new SCSIHD();
 			}
 
 		case SCRM:

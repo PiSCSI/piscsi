@@ -28,7 +28,7 @@ class SCSIHD : public Disk, public FileSupport
 {
 public:
 	// Basic Functions
-	SCSIHD(bool);							// Constructor
+	SCSIHD(bool = false);					// Constructor
 	void Reset();							// Reset
 	void Open(const Filepath& path);		// Open
 
