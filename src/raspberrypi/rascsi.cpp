@@ -876,7 +876,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	int max_id = 7;
 	PbDeviceType type = UNDEFINED;
 	string name;
-	string log_level = "trace";
+	string log_level;
 
 	int opt;
 	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:T:t:P:p:f:Vv")) != -1) {
@@ -967,7 +967,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		type = UNDEFINED;
 	}
 
-	if (!SetLogLevel(log_level)) {
+	if (!log_level.empty() && !SetLogLevel(log_level)) {
 		LOGWARN("Invalid log level '%s'", log_level.c_str());
 	}
 
@@ -1136,7 +1136,7 @@ int main(int argc, char* argv[])
 	available_log_levels.push_back("err");
 	available_log_levels.push_back("critical");
 	available_log_levels.push_back("off");
-	SetLogLevel("trace");
+	SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
