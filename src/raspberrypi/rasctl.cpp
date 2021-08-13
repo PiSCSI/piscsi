@@ -252,7 +252,6 @@ int main(int argc, char* argv[])
 	// Parse the arguments
 	int opt;
 	PbCommand command;
-	command.set_cmd(LIST);
 	PbDeviceDefinitions devices;
 	command.set_allocated_devices(&devices);
 	PbDeviceDefinition *device = devices.add_devices();
