@@ -62,8 +62,7 @@ message PbDeviceDefinition {
     int32 id = 1;
     int32 unit = 2;
     PbDeviceType type = 3;
-    // TODO This should be a string but the generated code does not compile
-    PbImageFile file = 4;
+    string file = 4;
     string name = 5;
     bool protected = 6;
     bool removable = 7;
@@ -78,7 +77,7 @@ message PbDevice {
     int32 id = 1;
     int32 unit = 2;
     PbDeviceType type = 3;
-    PbImageFile image_file = 4;
+    PbImageFile file = 4;
     string vendor = 5;
     string product = 6;
     string revision = 7;

@@ -310,7 +310,7 @@ const PbDevices GetDevices()
 			fileSupport->GetPath(filepath);
 			PbImageFile *image_file = new PbImageFile();
 			GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
-			pbDevice->set_allocated_image_file(image_file);
+			pbDevice->set_allocated_file(image_file);
 			pbDevice->set_supports_file(true);
 		}
 	}
@@ -567,7 +567,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	int id = pbDevice.id();
 	int unit = pbDevice.unit();
-	string filename = pbDevice.file().name();
+	string filename = pbDevice.file();
 	PbDeviceType type = pbDevice.type();
 
 	ostringstream s;
@@ -909,9 +909,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_unit(unit);
 		device->set_type(type);
 		device->set_name(name);
-		PbImageFile image_file;
-		image_file.set_name(optarg);
-		device->set_allocated_file(new PbImageFile(image_file));
+		device->set_file(optarg);
 
 		id = -1;
 	}
