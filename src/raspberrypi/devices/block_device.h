@@ -12,6 +12,7 @@
 #include "os.h"
 #include "device.h"
 
+// TODO Add more block device methods
 class BlockDevice : public Device
 {
 public:
