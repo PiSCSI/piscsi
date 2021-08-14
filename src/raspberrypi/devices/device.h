@@ -80,7 +80,7 @@ private:
 
 public:
 
-	Device(const string);
+	Device(const string&);
 	virtual ~Device() {};
 
 	const string& GetType() const { return type; }

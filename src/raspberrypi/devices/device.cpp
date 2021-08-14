@@ -13,17 +13,17 @@
 #include "exceptions.h"
 #include "device.h"
 
-Device::Device(const string type)
+Device::Device(const string& type)
 {
 	assert(type.length() == 4);
+
+	this->type = type;
+	this->removable = removable;
 
 	vendor = DEFAULT_VENDOR;
 	char rev[5];
 	sprintf(rev, "%02d%02d", rascsi_major_version, rascsi_minor_version);
 	revision = rev;
-
-	this->type = type;
-	this->removable = removable;
 
 	ready = false;
 	reset = false;

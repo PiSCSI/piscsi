@@ -755,14 +755,15 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				}
 			}
 
-			// Re-map the controller
+			// Re-map the controller, remember the device type because the device gets lost when re-mapping
+			string device_type = device->GetType();
 			bool status = MapController(map);
 			if (status) {
 				if (all) {
 					LOGINFO("Disconnected all devices");
 				}
 				else {
-					LOGINFO("Disconnected %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
+					LOGINFO("Disconnected %s device, ID: %d unit: %d", device_type.c_str(), id, unit);
 				}
 				return true;
 			}
@@ -782,10 +783,6 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		return ReturnStatus(fd, false, error);
 	}
 
-	if (dryRun) {
-		return true;
-	}
-
 	switch (cmd) {
 		case INSERT:
 			if (!pbDevice.name().empty()) {
@@ -794,6 +791,10 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 			if (filename.empty()) {
 				return ReturnStatus(fd, false, "Missing filename");
+			}
+
+			if (dryRun) {
+				return true;
 			}
 
 			filepath.SetPath(filename.c_str());
@@ -822,19 +823,38 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			break;
 
 		case EJECT:
+			if (dryRun) {
+				return true;
+			}
+
 			LOGINFO("Eject requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
 			device->Eject(true);
 			break;
 
 		case PROTECT:
+			if (dryRun) {
+				return true;
+			}
+
 			LOGINFO("Write protection requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
 			device->SetProtected(true);
 			break;
 
 		case UNPROTECT:
+			if (dryRun) {
+				return true;
+			}
+
 			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
 			device->SetProtected(false);
 			break;
+
+		case ATTACH:
+		case DETACH:
+			assert(dryRun);
+
+			// The non dry-run case was handled above
+			return true;
 
 		default:
 			error << "Received unknown command: " << PbOperation_Name(cmd);
