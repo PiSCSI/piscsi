@@ -33,6 +33,6 @@ public:
 	void Open(const Filepath& path);		// Open
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
+	int Inquiry(const DWORD *cdb, BYTE *buf);	// INQUIRY command
 	BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
 };

@@ -120,7 +120,7 @@ void SCSIHD::Open(const Filepath& path)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIHD:: Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIHD:: Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);

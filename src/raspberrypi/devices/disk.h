@@ -20,7 +20,7 @@
 #include "xm6.h"
 #include "log.h"
 #include "scsi.h"
-#include "device.h"
+#include "block_device.h"
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
@@ -122,7 +122,7 @@ private:
 //	Disk
 //
 //===========================================================================
-class Disk : public Device
+class Disk : public BlockDevice
 {
 protected:
 	// Internal data structure
@@ -145,7 +145,7 @@ public:
 	bool Flush();							// Flush the cache
 
 	// commands
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);// INQUIRY command
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf);	// INQUIRY command
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
@@ -159,7 +159,7 @@ public:
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
 	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
+	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
 	bool Seek(const DWORD *cdb);					// SEEK command
 	bool Assign(const DWORD *cdb);					// ASSIGN command
 	bool Specify(const DWORD *cdb);				// SPECIFY command

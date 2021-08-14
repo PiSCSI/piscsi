@@ -129,6 +129,4 @@ typedef const char *LPCSTR;
 #define _MAX_FNAME  256
 #define _MAX_EXT    256
 
-#define off64_t off_t
-
 #endif	// os_h

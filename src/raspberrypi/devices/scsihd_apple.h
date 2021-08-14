@@ -29,5 +29,5 @@ public:
 	SCSIHD_APPLE();							// Constructor
 
 	// Internal processing
-	int AddVendor(int page, BOOL change, BYTE *buf);		// Add vendor special page
+	int AddVendor(int page, BOOL change, BYTE *buf) override;	// Add vendor special page
 };

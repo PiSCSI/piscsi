@@ -1,9 +1,9 @@
 //---------------------------------------------------------------------------
 //
-//      SCSI Target Emulator RaSCSI (*^..^*)
-//      for Raspberry Pi
+// SCSI Target Emulator RaSCSI (*^..^*)
+// for Raspberry Pi
 //
-//      Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -18,8 +18,8 @@ private:
 
 public:
 
-	FileSupport() { };
-	virtual ~FileSupport() { };
+	FileSupport() {};
+	virtual ~FileSupport() {};
 
 	void GetPath(Filepath& path) const { path = diskpath; }
 	void SetPath(const Filepath& path) { diskpath = path; }

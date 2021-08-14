@@ -410,22 +410,19 @@ void SCSIDEV::CmdInquiry()
 	// Find a valid unit
 	// TODO The code below is most likely wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	Disk *disk = NULL;
+	Device *device = NULL;
 	int valid_lun;
 	for (valid_lun = 0; valid_lun < UnitMax; valid_lun++) {
 		if (ctrl.unit[valid_lun]) {
-			disk = ctrl.unit[valid_lun];
+			device = ctrl.unit[valid_lun];
 			break;
 		}
 	}
 
 	// Processed on the disk side (it is originally processed by the controller)
-	if (disk) {
-		DWORD major = (DWORD)(RASCSI >> 8);
-		DWORD minor = (DWORD)(RASCSI & 0xff);
+	if (device) {
 		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
-		ctrl.length =
-			ctrl.unit[valid_lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
+		ctrl.length = ctrl.unit[valid_lun]->Inquiry(ctrl.cmd, ctrl.buffer);
 	} else {
 		ctrl.length = 0;
 	}

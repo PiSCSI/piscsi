@@ -50,13 +50,13 @@ public:
 										// Capture packets
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor);
+	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
 										// INQUIRY command
-	bool TestUnitReady(const DWORD *cdb);
+	bool TestUnitReady(const DWORD *cdb) override;
 										// TEST UNIT READY command
-	int Read(const DWORD *cdb, BYTE *buf, DWORD block);
+	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
 										// READ command
-	BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block);
+	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
 										// WRITE command
 	int WriteCheck(DWORD block);
 										// WRITE check
@@ -70,7 +70,7 @@ public:
 										// Set MAC address
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
-	int RequestSense(const DWORD *cdb, BYTE *buf);
+	int RequestSense(const DWORD *cdb, BYTE *buf) override;
 
 	static const BYTE CMD_SCSILINK_STATS        = 0x09;
 	static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;

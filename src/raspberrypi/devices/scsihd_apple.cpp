@@ -42,8 +42,8 @@ int SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
 {
 	ASSERT(buf);
 
-	// Page code 48
-	if ((page != 0x30) && (page != 0x3f)) {
+	// Page code 48 or 63
+	if (page != 0x30 && page != 0x3f) {
 		return 0;
 	}
 

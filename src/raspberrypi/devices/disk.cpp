@@ -83,8 +83,7 @@ DiskTrack::~DiskTrack()
 //	Initialization
 //
 //---------------------------------------------------------------------------
-void DiskTrack::Init(
-	int track, int size, int sectors, BOOL raw, off64_t imgoff)
+void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off64_t imgoff)
 {
 	ASSERT(track >= 0);
 	ASSERT((size >= 8) && (size <= 11));
@@ -700,7 +699,7 @@ void DiskCache::Update()
 //	Constructor
 //
 //---------------------------------------------------------------------------
-Disk::Disk(const std::string id) : Device(id)
+Disk::Disk(const std::string id) : BlockDevice(id)
 {
 	// Work initialization
 	disk.size = 0;
@@ -839,7 +838,7 @@ BOOL Disk::CheckReady()
 //	*You need to be successful at all times
 //
 //---------------------------------------------------------------------------
-int Disk::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/, DWORD /*major*/, DWORD /*minor*/)
+int Disk::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/)
 {
 	// default is INQUIRY failure
 	SetStatusCode(STATUS_INVALIDCMD);
@@ -1617,7 +1616,7 @@ int Disk::WriteCheck(DWORD block)
 //	WRITE
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
@@ -1626,30 +1625,30 @@ BOOL Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	// Error if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		return FALSE;
+		return false;
 	}
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
 		SetStatusCode(STATUS_INVALIDLBA);
-		return FALSE;
+		return false;
 	}
 
 	// Error if write protected
 	if (IsProtected()) {
 		SetStatusCode(STATUS_WRITEPROTECT);
-		return FALSE;
+		return false;
 	}
 
 	// Leave it to the cache
 	if (!disk.dcache->Write(buf, block)) {
 		SetStatusCode(STATUS_WRITEFAULT);
-		return FALSE;
+		return false;
 	}
 
 	//  Success
 	SetStatusCode(STATUS_NOERROR);
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------

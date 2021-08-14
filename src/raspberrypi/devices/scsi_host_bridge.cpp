@@ -89,7 +89,7 @@ SCSIBR::~SCSIBR()
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);

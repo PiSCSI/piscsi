@@ -155,7 +155,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor)
+int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 {
 	// scsi_cdb_6_byte_t command;
 	// memcpy(&command,cdb,sizeof(command));
@@ -167,7 +167,7 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD mi
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+		return -1;
 	}
 
 	//allocation_length = command->length;
@@ -178,17 +178,12 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD mi
 	// 	LOGWARN(":::::::::: Doing runtime pointer conversion: %04X", ((scsi_cdb_6_byte_t*)cdb)->length);
 	// }
 
-	LOGTRACE("%s Inquiry with major %ld, minor %ld. Allocation length: %d",__PRETTY_FUNCTION__, major, minor, (int)allocation_length);
+	LOGTRACE("%s Inquiry, allocation length: %d",__PRETTY_FUNCTION__, (int)allocation_length);
 
 	// Work-around in order to report an error for LUNs > 0
 	DWORD lun = (cdb[1] >> 5) & 0x07;
 	if (lun) {
 		SetStatusCode(STATUS_INVALIDLUN);
-		return -1;
-	}
-
-	if(cdb[1] & 0x1) {
-		LOGERROR("EVPD bit is not supported");
 		return -1;
 	}
 
@@ -199,6 +194,9 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD mi
 
 		// Copy the pre-canned response
 		memcpy(buffer, m_daynaport_inquiry_response, allocation_length);
+
+		// Padded vendor, product, revision
+		memcpy(&buffer[8], GetPaddedName().c_str(), 28);
 	}
 
 	LOGTRACE("response size is %d", (int)allocation_length);
@@ -396,7 +394,7 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //  Write
 //
 //---------------------------------------------------------------------------
-BOOL SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	BYTE data_format;
 	WORD data_length;
@@ -417,22 +415,21 @@ BOOL SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	if(data_format == 0x00){
 		m_tap->Tx(buf, data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length);
-		return TRUE;
+		return true;
 	}
 	else if (data_format == 0x80){
 		// The data length is actuall specified in the first 2 bytes of the payload
 		data_length=(WORD)buf[1] + ((WORD)buf[0] << 8);
 		m_tap->Tx(&buf[4], data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length);
-		return TRUE;
+		return true;
 	}
 	else
 	{
 		// LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)command->format);
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-		return FALSE;
+		return true;
 	}
-
 }
 	
 

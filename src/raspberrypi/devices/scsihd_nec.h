@@ -30,12 +30,12 @@ public:
 	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 
 	// Internal processing
-	int AddError(BOOL change, BYTE *buf);				// Add error
-	int AddFormat(BOOL change, BYTE *buf);				// Add format
-	int AddDrive(BOOL change, BYTE *buf);				// Add drive
+	int AddError(BOOL change, BYTE *buf) override;		// Add error
+	int AddFormat(BOOL change, BYTE *buf) override;		// Add format
+	int AddDrive(BOOL change, BYTE *buf) override;		// Add drive
 
 private:
 	int cylinders;								// Number of cylinders

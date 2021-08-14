@@ -31,6 +31,8 @@
 //---------------------------------------------------------------------------
 SCSIHD_NEC::SCSIHD_NEC() : SCSIHD()
 {
+	SetVendor("NEC");
+
 	// Work initialization
 	cylinders = 0;
 	heads = 0;
@@ -68,22 +70,19 @@ static inline DWORD getDwordLE(const BYTE *b)
 //---------------------------------------------------------------------------
 void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 {
-	Fileio fio;
-	off64_t size;
-	BYTE hdr[512];
-	LPCTSTR ext;
-
 	ASSERT(!IsReady());
 
 	// Open as read-only
+	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		throw io_exception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
-	size = fio.GetFileSize();
+	off64_t size = fio.GetFileSize();
 
 	// Read header
+	BYTE hdr[512];
 	if (size >= (off64_t)sizeof(hdr)) {
 		if (!fio.Read(hdr, sizeof(hdr))) {
 			fio.Close();
@@ -103,7 +102,7 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	}
 
 	// Determine parameters by extension
-	ext = path.GetFileExt();
+	LPCTSTR ext = path.GetFileExt();
 	if (strcasecmp(ext, _T(".HDN")) == 0) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		imgoffset = 0;
@@ -163,22 +162,13 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	// Base class
-	int size = SCSIHD::Inquiry(cdb, buf, major, minor);
+	int size = SCSIHD::Inquiry(cdb, buf);
 
-	// Do nothing if there is an error in the base class
-	if (size != 0) {
-		// Changed to equivalent to SCSI-1
-		buf[2] = 0x01;
-		buf[3] = 0x01;
-
-		// Replace Vendor name
-		buf[8] = 'N';
-		buf[9] = 'E';
-		buf[10] = 'C';
-	}
+	// This drive is a SCSI-1 SCCS drive
+	buf[2] = 0x01;
+	buf[3] = 0x01;
 
 	return size;
 }
