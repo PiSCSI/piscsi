@@ -56,7 +56,7 @@ OPTIONS
 
        -g LOG_LEVEL
               The rascsi log level (trace, debug, info, warn,  err,  critical,
-              off). The default log level is 'trace'.
+              off). The default log level is 'info'.
 
        -h     Show a help page.
 
