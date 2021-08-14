@@ -113,12 +113,4 @@ private:
 	int audioindex;								// Current audio track
 
 	int frame;								// Frame number
-
-	#if 0
-	CDDABuf da_buf;								// CD-DA buffer
-	int da_num;								// Number of CD-DA tracks
-	int da_cur;								// CD-DA current track
-	int da_next;								// CD-DA next track
-	BOOL da_req;								// CD-DA data request
-	#endif
 };
