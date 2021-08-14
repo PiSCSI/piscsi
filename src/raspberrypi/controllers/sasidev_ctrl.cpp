@@ -890,6 +890,7 @@ void SASIDEV::CmdRead6()
 		ctrl.blocks = 0x100;
 	}
 
+	// TODO This class must not know about SCDP
 	if(ctrl.unit[lun]->IsDaynaPort()){
 		// The DaynaPort only wants one block.
 		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
@@ -919,13 +920,14 @@ void SASIDEV::CmdRead6()
 //---------------------------------------------------------------------------
 //
 //  This Send Message command is used by the DaynaPort SCSI/Link
+// TODO This class must not know about SCDP
 //
 //---------------------------------------------------------------------------
 void SASIDEV::DaynaPortWrite()
 {
 	DWORD lun = GetLun();
 
-	// Error if not a host bridge
+	// Error if not a DaynaPort device
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGERROR("Received DaynaPortWrite for a non-DaynaPort device");
 		Error();
