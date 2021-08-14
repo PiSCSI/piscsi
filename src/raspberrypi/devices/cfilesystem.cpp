@@ -3989,7 +3989,7 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 
 		case 1:
 			// Human68k互換のためのダミー
-			pIoctrl->param = (unsigned long)-1;
+			pIoctrl->param = -1;
 			return 0;
 
 		case 2:
