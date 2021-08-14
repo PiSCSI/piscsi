@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include "os.h"
 #include "device.h"
 
 // TODO Add more primary commands
@@ -19,5 +18,4 @@ public:
 
 	PrimaryDevice(const string& id) : Device(id) {};
 	virtual ~PrimaryDevice() {};
-
 };
