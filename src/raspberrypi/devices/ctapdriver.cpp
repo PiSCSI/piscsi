@@ -408,7 +408,7 @@ int CTapDriver::Rx(BYTE *buf)
 		buf[dwReceived + 2] = (BYTE)((crc >> 16) & 0xFF);
 		buf[dwReceived + 3] = (BYTE)((crc >> 24) & 0xFF);
 
-		LOGDEBUG("%s CRC is %08lX - %02X %02X %02X %02X\n", __PRETTY_FUNCTION__, crc, buf[dwReceived+0], buf[dwReceived+1], buf[dwReceived+2], buf[dwReceived+3]);
+		LOGDEBUG("%s CRC is %08X - %02X %02X %02X %02X\n", __PRETTY_FUNCTION__, crc, buf[dwReceived+0], buf[dwReceived+1], buf[dwReceived+2], buf[dwReceived+3]);
 
 		// Add FCS size to the received message size
 		dwReceived += 4;

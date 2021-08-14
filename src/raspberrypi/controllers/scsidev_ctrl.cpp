@@ -19,6 +19,7 @@
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "exceptions.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -1269,7 +1270,9 @@ void SCSIDEV::Send()
 
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
-		LOGTRACE("%s sending handhake with offset %lu, length %lu", __PRETTY_FUNCTION__, ctrl.offset, ctrl.length);
+		ostringstream s;
+		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
+		LOGTRACE(s.str().c_str());
 
 		// The Daynaport needs to have a delay after the size/flags field
 		// of the read response. In the MacOS driver, it looks like the
@@ -1305,7 +1308,9 @@ void SCSIDEV::Send()
 		if (ctrl.blocks != 0) {
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			LOGTRACE("%s processing after data collection. Blocks: %lu", __PRETTY_FUNCTION__, ctrl.blocks);
+			ostringstream s;
+			s << __PRETTY_FUNCTION__ << " processing after data collection. Blocks: " << ctrl.blocks;
+			LOGTRACE(s.str().c_str());
 		}
 	}
 
@@ -1317,7 +1322,9 @@ void SCSIDEV::Send()
 
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
-		LOGTRACE("%s Continuing to send. blocks = %lu", __PRETTY_FUNCTION__, ctrl.blocks);
+		ostringstream s;
+		s << __PRETTY_FUNCTION__ << " Continuing to send. blocks = " << ctrl.blocks;
+		LOGTRACE(s.str().c_str());
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 		return;
