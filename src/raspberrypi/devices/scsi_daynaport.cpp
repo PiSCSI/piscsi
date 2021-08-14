@@ -47,7 +47,7 @@ const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff,
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIDaynaPort::SCSIDaynaPort() : Device("SCDP")
+SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	SetRemovable(false);
 
@@ -163,6 +163,12 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD mi
 	ASSERT(cdb);
 	ASSERT(buffer);
 	ASSERT(cdb[0] == 0x12);
+
+	// EVPD check
+	if (cdb[1] & 0x01) {
+		SetStatusCode(STATUS_INVALIDCDB);
+		return FALSE;
+	}
 
 	//allocation_length = command->length;
 	DWORD allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
@@ -556,13 +562,13 @@ BOOL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-BOOL SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
+bool SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 {
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// TEST UNIT READY Success
 	SetStatusCode(STATUS_NOERROR);
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------

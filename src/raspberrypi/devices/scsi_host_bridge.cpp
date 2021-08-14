@@ -32,7 +32,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSIBR::SCSIBR() : Device("SCBR")
+SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	SetRemovable(false);
 
@@ -150,11 +150,11 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-BOOL SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
+bool SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 {
 	// TEST UNIT READY Success
 	SetStatusCode(STATUS_NOERROR);
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------

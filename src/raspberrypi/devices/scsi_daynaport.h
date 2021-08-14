@@ -38,13 +38,13 @@
 //	DaynaPort SCSI Link
 //
 //===========================================================================
-class SCSIDaynaPort: public Device
+class SCSIDaynaPort: public Disk
 {
 public:
 	// Basic Functions
 	SCSIDaynaPort();
 										// Constructor
-	virtual ~SCSIDaynaPort();
+	~SCSIDaynaPort();
 										// Destructor
 	void Open(const Filepath& path, BOOL attn = TRUE);
 										// Capture packets
@@ -52,7 +52,7 @@ public:
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor);
 										// INQUIRY command
-	BOOL TestUnitReady(const DWORD *cdb);
+	bool TestUnitReady(const DWORD *cdb);
 										// TEST UNIT READY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block);
 										// READ command
