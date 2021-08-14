@@ -77,7 +77,7 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open hard disk file read-only");
+		throw io_exception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
@@ -87,19 +87,19 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	if (size >= (off64_t)sizeof(hdr)) {
 		if (!fio.Read(hdr, sizeof(hdr))) {
 			fio.Close();
-			throw ioexception("Can't read hard disk file header");
+			throw io_exception("Can't read hard disk file header");
 		}
 	}
 	fio.Close();
 
 	// Must be in 512 byte units
 	if (size & 0x1ff) {
-		throw ioexception("File size must be a multiple of 512 bytes");
+		throw io_exception("File size must be a multiple of 512 bytes");
 	}
 
 	// 2TB according to xm6i
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw ioexception("File size must not exceed 2 TB");
+		throw io_exception("File size must not exceed 2 TB");
 	}
 
 	// Determine parameters by extension
@@ -133,12 +133,12 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 
 	// Supports 256 or 512 sector sizes
 	if (sectorsize != 256 && sectorsize != 512) {
-		throw ioexception("Sector size must be 256 or 512 bytes");
+		throw io_exception("Sector size must be 256 or 512 bytes");
 	}
 
 	// Image size consistency check
 	if (imgoffset + imgsize > size || (imgsize % sectorsize != 0)) {
-		throw ioexception("Image size consistency check failed");
+		throw io_exception("Image size consistency check failed");
 	}
 
 	// Sector size
@@ -147,7 +147,7 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 			break;
 	}
 	if (disk.size <= 0 || disk.size > 16) {
-		throw ioexception("Invalid disk size");
+		throw io_exception("Invalid disk size");
 	}
 
 	// Number of blocks

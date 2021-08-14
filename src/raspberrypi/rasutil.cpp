@@ -33,14 +33,14 @@ void SerializeMessage(int fd, const google::protobuf::MessageLite& message)
 	// Write the size of the protobuf data as a header
     int32_t size = data.length();
     if (write(fd, &size, sizeof(size)) != sizeof(size)) {
-    	throw ioexception("Can't write protobuf header");
+    	throw io_exception("Can't write protobuf header");
     }
 
     // Write the actual protobuf data
     uint8_t buf[size];
     memcpy(buf, data.data(), size);
     if (write(fd, buf, size) != size) {
-    	throw ioexception("Can't write protobuf data");
+    	throw io_exception("Can't write protobuf data");
     }
 }
 
@@ -58,7 +58,7 @@ void DeserializeMessage(int fd, google::protobuf::MessageLite& message)
 	uint8_t data_buf[size];
 	bytes_read = ReadNBytes(fd, data_buf, size);
 	if (bytes_read < size) {
-		throw ioexception("Missing protobuf data");
+		throw io_exception("Missing protobuf data");
 	}
 
 	// Create protobuf message

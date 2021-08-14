@@ -34,12 +34,12 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
 	try {
     	struct hostent *host = gethostbyname(hostname.c_str());
     	if (!host) {
-    		throw ioexception("Can't resolve hostname '" + hostname + "'");
+    		throw io_exception("Can't resolve hostname '" + hostname + "'");
     	}
 
     	fd = socket(AF_INET, SOCK_STREAM, 0);
     	if (fd < 0) {
-    		throw ioexception("Can't create socket");
+    		throw io_exception("Can't create socket");
     	}
 
     	struct sockaddr_in server;
@@ -52,12 +52,12 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
     	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
     		ostringstream error;
     		error << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
-    		throw ioexception(error.str());
+    		throw io_exception(error.str());
     	}
 
         SerializeMessage(fd, command);
     }
-    catch(const ioexception& e) {
+    catch(const io_exception& e) {
     	cerr << "Error: " << e.getmsg() << endl;
 
         if (fd >= 0) {
@@ -83,14 +83,14 @@ bool ReceiveResult(int fd)
         close(fd);
 
     	if (!result.status()) {
-    		throw ioexception(result.msg());
+    		throw io_exception(result.msg());
     	}
 
     	if (!result.msg().empty()) {
     		cout << result.msg() << endl;
     	}
     }
-    catch(const ioexception& e) {
+    catch(const io_exception& e) {
     	cerr << "Error: " << e.getmsg() << endl;
 
     	return false;
@@ -116,7 +116,7 @@ void CommandList(const string& hostname, int port)
 	try {
 		DeserializeMessage(fd, serverInfo);
 	}
-	catch(const ioexception& e) {
+	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
 
 		close(fd);
@@ -162,7 +162,7 @@ void CommandServerInfo(const string& hostname, int port)
 	try {
 		DeserializeMessage(fd, serverInfo);
 	}
-	catch(const ioexception& e) {
+	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
 
 		close(fd);

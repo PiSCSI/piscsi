@@ -61,7 +61,7 @@ void Device::SetVendor(const string& vendor)
 	if (vendor.empty() || vendor.length() > 8) {
 		ostringstream error;
 		error << "Vendor '" << vendor << "' must be between 1 and 8 characters";
-		throw illegalargumentexception(error.str());
+		throw illegal_argument_exception(error.str());
 	}
 
 	this->vendor = vendor;
@@ -77,7 +77,7 @@ void Device::SetProduct(const string& product, bool force)
 	if (product.empty() || product.length() > 16) {
 		ostringstream error;
 		error << "Product '" << product << "' must be between 1 and 16 characters";
-		throw illegalargumentexception(error.str());
+		throw illegal_argument_exception(error.str());
 	}
 
 	this->product = product;
@@ -88,7 +88,7 @@ void Device::SetRevision(const string& revision)
 	if (revision.empty() || revision.length() > 4) {
 		ostringstream error;
 		error << "Revision '" << revision << "' must be between 1 and 4 characters";
-		throw illegalargumentexception(error.str());
+		throw illegal_argument_exception(error.str());
 	}
 
 	this->revision = revision;

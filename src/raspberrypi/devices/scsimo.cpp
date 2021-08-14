@@ -51,7 +51,7 @@ void SCSIMO::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open MO file read-only");
+		throw io_exception("Can't open MO file read-only");
 	}
 
 	// Get file size
@@ -85,7 +85,7 @@ void SCSIMO::Open(const Filepath& path)
 
 		// Other (this is an error)
 		default:
-			throw ioexception("Invalid MO file size");
+			throw io_exception("Invalid MO file size");
 	}
 
 	Disk::Open(path);

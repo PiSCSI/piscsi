@@ -374,7 +374,7 @@ void SASIDEV::Command()
 		try {
 			Execute();
 		}
-		catch (lunexception& e) {
+		catch (lun_exception& e) {
 			LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
@@ -757,7 +757,7 @@ void SASIDEV::CmdRequestSense()
     try {
      	lun = GetLun();
     }
-    catch(const lunexception& e) {
+    catch(const lun_exception& e) {
         LOGINFO("%s Non-existing LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
 
         // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
@@ -1545,7 +1545,7 @@ DWORD SASIDEV::GetLun()
 {
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun]) {
-		throw lunexception(lun);
+		throw lun_exception(lun);
 	}
 
 	return lun;

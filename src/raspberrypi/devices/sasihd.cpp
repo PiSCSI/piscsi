@@ -63,7 +63,7 @@ void SASIHD::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open hard disk file read-only");
+		throw io_exception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
@@ -86,17 +86,17 @@ void SASIHD::Open(const Filepath& path)
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Must be in 256-byte units
 	if (size & 0xff) {
-		throw ioexception("File size must be a multiple of 512 bytes");
+		throw io_exception("File size must be a multiple of 512 bytes");
 	}
 
 	// 10MB or more
 	if (size < 0x9f5400) {
-		throw ioexception("File size must be at least 10 MB");
+		throw io_exception("File size must be at least 10 MB");
 	}
 
 	// Limit to about 512MB
 	if (size > 512 * 1024 * 1024) {
-		throw ioexception("File size must not exceed 512 MB");
+		throw io_exception("File size must not exceed 512 MB");
 	}
 	#else
 	// 10MB, 20MB, 40MBのみ
@@ -115,7 +115,7 @@ void SASIHD::Open(const Filepath& path)
 
 		// Other (Not supported )
 		default:
-			throw ioexception("Unsupported file size");
+			throw io_exception("Unsupported file size");
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 

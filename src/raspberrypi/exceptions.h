@@ -14,39 +14,39 @@
 
 using namespace std;
 
-class illegalargumentexception final : public exception {
+class illegal_argument_exception final : public exception {
 private:
 	string msg;
 
 public:
-	illegalargumentexception(const string& _msg) : msg(_msg) {}
-	illegalargumentexception() {};
+	illegal_argument_exception(const string& _msg) : msg(_msg) {}
+	illegal_argument_exception() {};
 
 	const string& getmsg() const {
 		return msg;
 	}
 };
 
-class lunexception final : public exception {
+class lun_exception final : public exception {
 private:
 	int lun;
 
 public:
-	lunexception(int _lun) : lun(_lun) {}
-	~lunexception() {}
+	lun_exception(int _lun) : lun(_lun) {}
+	~lun_exception() {}
 
 	int getlun() const {
 		return lun;
 	}
 };
 
-class ioexception : public exception {
+class io_exception : public exception {
 private:
 	string msg;
 
 public:
-	ioexception(const string& _msg) : msg(_msg) {}
-	~ioexception() {}
+	io_exception(const string& _msg) : msg(_msg) {}
+	~io_exception() {}
 
 	const string& getmsg() const {
 		return msg;

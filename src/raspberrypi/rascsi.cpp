@@ -569,7 +569,7 @@ void SetDeviceName(Device *device, const string& name)
 		}
 	}
 
-	throw illegalargumentexception("Wrong device name format: '" + name + "', must be VENDOR:PRODUCT:REVISION");
+	throw illegal_argument_exception("Wrong device name format: '" + name + "', must be VENDOR:PRODUCT:REVISION");
 }
 
 //---------------------------------------------------------------------------
@@ -636,7 +636,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			try {
 				SetDeviceName(device, pbDevice.name());
 			}
-			catch(const illegalargumentexception& e) {
+			catch(const illegal_argument_exception& e) {
 				return ReturnStatus(fd, false, e.getmsg());
 			}
 		}
@@ -667,7 +667,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			try {
 				fileSupport->Open(filepath);
 			}
-			catch(const ioexception& e) {
+			catch(const io_exception& e) {
 				if (!default_image_folder.empty()) {
 					// If the file does not exist search for it in the default image folder
 					string default_file = default_image_folder + "/" + filename;
@@ -675,7 +675,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 					try {
 						fileSupport->Open(filepath);
 					}
-					catch(const ioexception&) {
+					catch(const io_exception&) {
 						delete device;
 
 						error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
@@ -802,7 +802,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			try {
 				fileSupport->Open(filepath);
 			}
-			catch(const ioexception& e) {
+			catch(const io_exception& e) {
 				if (!default_image_folder.empty()) {
 					// If the file does not exist search for it in the default image folder
 					string default_file = default_image_folder + "/" + filename;
@@ -810,7 +810,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 					try {
 						fileSupport->Open(filepath);
 					}
-					catch(const ioexception&) {
+					catch(const io_exception&) {
 						error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
 						return ReturnStatus(fd, false, error);
 					}
@@ -1042,7 +1042,7 @@ static void *MonThread(void *param)
 			memset(&client, 0, socklen);
 			fd = accept(monsocket, (struct sockaddr*)&client, &socklen);
 			if (fd < 0) {
-				throw ioexception("accept() failed");
+				throw io_exception("accept() failed");
 			}
 
 			// Fetch the command
@@ -1098,7 +1098,7 @@ static void *MonThread(void *param)
 				}
 			}
 		}
-		catch(const ioexception& e) {
+		catch(const io_exception& e) {
 			LOGWARN("%s", e.getmsg().c_str());
 
 			// Fall through

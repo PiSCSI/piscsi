@@ -64,7 +64,7 @@ void SCSIHD::Open(const Filepath& path)
 	// read open required
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open hard disk file read-only");
+		throw io_exception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
@@ -73,14 +73,14 @@ void SCSIHD::Open(const Filepath& path)
 
 	// Must be 512 bytes
 	if (size & 0x1ff) {
-		throw ioexception("File size must be a multiple of 512 bytes");
+		throw io_exception("File size must be a multiple of 512 bytes");
 	}
 
     // 2TB according to xm6i
     // There is a similar one in wxw/wxw_cfg.cpp
 	// Bigger files/drives require READ/WRITE(16) to be implemented
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw ioexception("File size must not exceed 2 TB");
+		throw io_exception("File size must not exceed 2 TB");
 	}
 
 	// sector size and number of blocks

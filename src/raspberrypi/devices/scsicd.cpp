@@ -304,7 +304,7 @@ void SCSICD::Open(const Filepath& path)
 
 	// Open as read-only
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open CD-ROM file read-only");
+		throw io_exception("Can't open CD-ROM file read-only");
 	}
 
 	// Close and transfer for physical CD access
@@ -319,7 +319,7 @@ void SCSICD::Open(const Filepath& path)
         size = fio.GetFileSize();
 		if (size <= 4) {
 			fio.Close();
-			throw ioexception("CD-ROM file size must be at least 4 bytes");
+			throw io_exception("CD-ROM file size must be at least 4 bytes");
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
@@ -364,7 +364,7 @@ void SCSICD::Open(const Filepath& path)
 //---------------------------------------------------------------------------
 void SCSICD::OpenCue(const Filepath& /*path*/)
 {
-	throw ioexception("Opening CUE CD-ROM files is not supported");
+	throw io_exception("Opening CUE CD-ROM files is not supported");
 }
 
 //---------------------------------------------------------------------------
@@ -380,20 +380,20 @@ void SCSICD::OpenIso(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open ISO CD-ROM file read-only");
+		throw io_exception("Can't open ISO CD-ROM file read-only");
 	}
 
 	// Get file size
 	off64_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
-		throw ioexception("ISO CD-ROM file size must be at least 2048 bytes");
+		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
 	}
 
 	// Read the first 12 bytes and close
 	if (!fio.Read(header, sizeof(header))) {
 		fio.Close();
-		throw ioexception("Can't read header of ISO CD-ROM file");
+		throw io_exception("Can't read header of ISO CD-ROM file");
 	}
 
 	// Check if it is RAW format
@@ -405,14 +405,14 @@ void SCSICD::OpenIso(const Filepath& path)
 		// 00,FFx10,00, so it is presumed to be RAW format
 		if (!fio.Read(header, 4)) {
 			fio.Close();
-			throw ioexception("Can't read header of raw ISO CD-ROM file");
+			throw io_exception("Can't read header of raw ISO CD-ROM file");
 		}
 
 		// Supports MODE1/2048 or MODE1/2352 only
 		if (header[3] != 0x01) {
 			// Different mode
 			fio.Close();
-			throw ioexception("Illegal raw ISO CD-ROM file header");
+			throw io_exception("Illegal raw ISO CD-ROM file header");
 		}
 
 		// Set to RAW file
@@ -423,10 +423,10 @@ void SCSICD::OpenIso(const Filepath& path)
 	if (rawfile) {
 		// Size must be a multiple of 2536 and less than 700MB
 		if (size % 0x930) {
-			throw ioexception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes");
+			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes");
 		}
 		if (size > 912579600) {
-			throw ioexception("Raw ISO CD-ROM file size must not exceed 700 MB");
+			throw io_exception("Raw ISO CD-ROM file size must not exceed 700 MB");
 		}
 
 		// Set the number of blocks
@@ -434,10 +434,10 @@ void SCSICD::OpenIso(const Filepath& path)
 	} else {
 		// Size must be a multiple of 2048 and less than 700MB
 		if (size & 0x7ff) {
-			throw ioexception("ISO CD-ROM file size must be a multiple of 2048 bytes");
+			throw io_exception("ISO CD-ROM file size must be a multiple of 2048 bytes");
 		}
 		if (size > 0x2bed5000) {
-			throw ioexception("ISO CD-ROM file size must not exceed 700 MB");
+			throw io_exception("ISO CD-ROM file size must not exceed 700 MB");
 		}
 
 		// Set the number of blocks
@@ -463,14 +463,14 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open CD-ROM file read-only");
+		throw io_exception("Can't open CD-ROM file read-only");
 	}
 
 	// Get size
 	off64_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
-		throw ioexception("CD-ROM file size must be at least 2048 bytes");
+		throw io_exception("CD-ROM file size must be at least 2048 bytes");
 	}
 
 	// Close
@@ -478,10 +478,10 @@ void SCSICD::OpenPhysical(const Filepath& path)
 
 	// Size must be a multiple of 2048 and less than 700MB
 	if (size & 0x7ff) {
-		throw ioexception("CD-ROM file size must be a multiple of 2048 bytes");
+		throw io_exception("CD-ROM file size must be a multiple of 2048 bytes");
 	}
 	if (size > 0x2bed5000) {
-		throw ioexception("CD-ROM file size must not exceed 700 MB");
+		throw io_exception("CD-ROM file size must not exceed 700 MB");
 	}
 
 	// Set the number of blocks
