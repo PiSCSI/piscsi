@@ -1336,8 +1336,6 @@ BOOL SASIDEV::XferIn(BYTE *buf)
 //---------------------------------------------------------------------------
 BOOL SASIDEV::XferOut(BOOL cont)
 {
-	SCSIBR *bridge;
-
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
@@ -1359,11 +1357,10 @@ BOOL SASIDEV::XferOut(BOOL cont)
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
 		case SASIDEV::eCmdWriteAndVerify10:
-			// If we're a host bridge, use the host bridge's SendMessage10 
-			// function
+			// If we're a host bridge, use the host bridge's SendMessage10 function
+			// TODO This class must not know about SCSIBR
 			if (ctrl.unit[lun]->IsBridge()) {
-				bridge = (SCSIBR*)ctrl.unit[lun];
-				if (!bridge->SendMessage10(ctrl.cmd, ctrl.buffer)) {
+				if (!((SCSIBR*)ctrl.unit[lun])->SendMessage10(ctrl.cmd, ctrl.buffer)) {
 					// write failed
 					return FALSE;
 				}
@@ -1374,6 +1371,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Special case Write function for DaynaPort
+			// TODO This class must not know about SCSIDP
 			if (ctrl.unit[lun]->IsDaynaPort()) {
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
 				if (!(SCSIDaynaPort*)ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
