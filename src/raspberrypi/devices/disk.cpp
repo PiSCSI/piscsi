@@ -776,7 +776,7 @@ bool Disk::Eject(bool force)
 	delete disk.dcache;
 	disk.dcache = NULL;
 
-	return Device::Eject(force);
+	return BlockDevice::Eject(force);
 }
 
 //---------------------------------------------------------------------------

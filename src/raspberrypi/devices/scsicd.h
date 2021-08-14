@@ -64,41 +64,6 @@ private:
 
 //===========================================================================
 //
-//	CD-DA Buffer
-//
-//===========================================================================
-class CDDABuf
-{
-public:
-	// Basic Functions
-	CDDABuf();								// Constructor
-	virtual ~CDDABuf();							// Destructor
-	#if 0
-	BOOL Init();								// Initialization
-	BOOL Load(const Filepath& path);				// Load
-	BOOL Save(const Filepath& path);				// Save
-
-	// API
-	void Clear();							// Clear the buffer
-	BOOL Open(Filepath& path);					// File specification
-	BOOL GetBuf(DWORD *buffer, int frames);			// Get the buffer
-	BOOL IsValid();						// Check if Valid
-	BOOL ReadReq();						// Read Request
-	BOOL IsEnd() const;						// Finish check
-
-private:
-	Filepath wavepath;							// Wave path
-	BOOL valid;								// Open result (is it valid?)
-	DWORD *buf;								// Data buffer
-	DWORD read;								// Read pointer
-	DWORD write;								// Write pointer
-	DWORD num;								// Valid number of data
-	DWORD rest;								// Remaining file size
-#endif
-};
-
-//===========================================================================
-//
 //	SCSI CD-ROM
 //
 //===========================================================================
@@ -117,7 +82,7 @@ public:
 	void Open(const Filepath& path);		// Open
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 	BOOL PlayAudio(const DWORD *cdb);				// PLAY AUDIO command
