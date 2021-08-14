@@ -536,9 +536,7 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 	memset(&buf[8], 0x20, buf[4] - 3);
 
 	// Padded vendor, product, revision
-	string name;
-	GetPaddedName(name);
-	memcpy(&buf[8], name.c_str(), 28);
+	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to

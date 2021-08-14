@@ -119,9 +119,7 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 	buf[4] = 36 - 5 + 8;	// required + 8 byte extension
 
 	// Padded vendor, product, revision
-	string name;
-	GetPaddedName(name);
-	memcpy(&buf[8], name.c_str(), 28);
+	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 	// Optional function valid flag
 	buf[36] = '0';

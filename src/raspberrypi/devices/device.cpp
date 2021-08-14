@@ -94,9 +94,9 @@ void Device::SetRevision(const string& revision)
 	this->revision = revision;
 }
 
-void Device::GetPaddedName(string& name) const
+const string Device::GetPaddedName() const
 {
-	name = vendor;
+	string name = vendor;
 	name.append(8 - vendor.length(), ' ');
 	name += product;
 	name.append(16 - product.length(), ' ');
@@ -104,6 +104,8 @@ void Device::GetPaddedName(string& name) const
 	name.append(4 - revision.length(), ' ');
 
 	assert(name.length() == 28);
+
+	return name;
 }
 
 // TODO This implementation appears to be wrong: If a device is locked there

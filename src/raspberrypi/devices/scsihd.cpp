@@ -155,9 +155,7 @@ int SCSIHD:: Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 	buf[4] = 122 + 3;	// Value close to real HDD
 
 	// Padded vendor, product, revision
-	string name;
-	GetPaddedName(name);
-	memcpy(&buf[8], name.c_str(), 28);
+	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 	// Size of data that can be returned
 	int size = (buf[4] + 5);

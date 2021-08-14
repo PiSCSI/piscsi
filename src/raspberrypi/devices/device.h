@@ -118,7 +118,7 @@ public:
 	void SetVendor(const string&);
 	void SetProduct(const string&, bool = true);
 	void SetRevision(const string&);
-	void GetPaddedName(string&) const;
+	const string GetPaddedName() const;
 
 	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int status_code) { this->status_code = status_code; }
