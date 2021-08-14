@@ -145,15 +145,15 @@ public:
 	bool Flush();							// Flush the cache
 
 	// commands
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf);	// INQUIRY command
-	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
+	virtual bool TestUnitReady(const DWORD *cdb) override;	// TEST UNIT READY command
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
+	virtual int RequestSense(const DWORD *cdb, BYTE *buf) override;		// REQUEST SENSE command
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
 	virtual BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
 	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
-	virtual bool TestUnitReady(const DWORD *cdb);			// TEST UNIT READY command
 	bool Rezero(const DWORD *cdb);					// REZERO command
 	BOOL Format(const DWORD *cdb);					// FORMAT UNIT command
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command

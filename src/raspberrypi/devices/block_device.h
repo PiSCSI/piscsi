@@ -9,10 +9,10 @@
 
 #pragma once
 
-#include "os.h"
 #include "primary_device.h"
 
-// TODO Add more block device commands
+/// A device supporting SCSI block commands (see https://www.t10.org/drafts.htm)
+// TODO Add more block commands
 class BlockDevice : public PrimaryDevice
 {
 public:
