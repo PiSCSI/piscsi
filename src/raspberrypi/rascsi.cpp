@@ -13,7 +13,7 @@
 #include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
-#include "devices/factory.h"
+#include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/sasihd.h"
 #include "devices/scsihd.h"

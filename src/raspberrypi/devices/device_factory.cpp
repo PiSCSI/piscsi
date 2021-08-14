@@ -15,7 +15,7 @@
 #include "scsicd.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
-#include "factory.h"
+#include "device_factory.h"
 
 using namespace rascsi_interface;
 
