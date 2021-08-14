@@ -500,9 +500,9 @@ bool SetLogLevel(const string& log_level)
 	return true;
 }
 
-void LogDevices(const string& device_list)
+void LogDevices(const string& devices)
 {
-	stringstream ss(device_list);
+	stringstream ss(devices);
 	string line;
 
 	while (getline(ss, line, '\n')) {
@@ -560,7 +560,7 @@ void SetDeviceName(Device *device, const string& name)
 	if (productSeparatorPos != string::npos) {
 		device->SetVendor(name.substr(0, productSeparatorPos));
 
-		string remaining = name.substr(productSeparatorPos + 1);
+		const string remaining = name.substr(productSeparatorPos + 1);
 		size_t revisionSeparatorPos = remaining.find(':');
 		if (revisionSeparatorPos != string::npos) {
 			device->SetProduct(remaining.substr(0, revisionSeparatorPos));
@@ -569,7 +569,7 @@ void SetDeviceName(Device *device, const string& name)
 		}
 	}
 
-	throw illegal_argument_exception("Wrong device name format: '" + name + "', must be VENDOR:PRODUCT:REVISION");
+	throw illegal_argument_exception("Invalid device name '" + name + "', format must be VENDOR:PRODUCT:REVISION");
 }
 
 //---------------------------------------------------------------------------
@@ -756,7 +756,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			}
 
 			// Re-map the controller, remember the device type because the device gets lost when re-mapping
-			string device_type = device->GetType();
+			const string device_type = device->GetType();
 			bool status = MapController(map);
 			if (status) {
 				if (all) {
@@ -864,7 +864,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	return true;
 }
 
-bool ProcessCmd(int fd, const PbCommand& command)
+bool ProcessCmd(const int fd, const PbCommand& command)
 {
 	// Dry run first
 	for (int i = 0; i < command.devices().devices_size(); i++) {
