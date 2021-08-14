@@ -288,7 +288,6 @@ int main(int argc, char* argv[])
 	}
 
 	// Parse the arguments
-	int opt;
 	PbCommand command;
 	PbDeviceDefinitions devices;
 	command.set_allocated_devices(&devices);
@@ -299,8 +298,9 @@ int main(int argc, char* argv[])
 	string log_level;
 	string default_folder;
 	bool list = false;
-	opterr = 0;
 
+	opterr = 1;
+	int opt;
 	while ((opt = getopt(argc, argv, "i:u:c:t:f:d:h:n:p:u:g:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
@@ -364,6 +364,10 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	if (optopt) {
+		exit(EXIT_FAILURE);
+	}
+
 	if (command.cmd() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, log_level);
 		exit(EXIT_SUCCESS);
@@ -379,8 +383,7 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	// List display only
-	if (list || (device->id() < 0 && device->type() == UNDEFINED && device->file().empty())) {
+	if (list) {
 		CommandList(hostname, port);
 		exit(EXIT_SUCCESS);
 	}

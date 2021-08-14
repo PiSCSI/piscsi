@@ -13,18 +13,12 @@
 #include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
-#include "devices/device_factory.h"
-#include "devices/device.h"
-#include "devices/sasihd.h"
-#include "devices/scsihd.h"
-#include "devices/scsihd_apple.h"
-#include "devices/scsihd_nec.h"
-#include "devices/scsicd.h"
-#include "devices/scsimo.h"
-#include "devices/scsi_host_bridge.h"
-#include "devices/scsi_daynaport.h"
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
+#include "devices/device_factory.h"
+#include "devices/device.h"
+#include "devices/disk.h"
+#include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
 #include "rascsi_version.h"
@@ -36,7 +30,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <list>
+#include <vector>
 #include <filesystem>
 
 using namespace std;
@@ -59,14 +53,14 @@ using namespace rascsi_interface;
 //---------------------------------------------------------------------------
 static volatile BOOL running;		// Running flag
 static volatile BOOL active;		// Processing flag
-vector<SASIDEV *> controllers(CtrlMax);	// Controller
-vector<Device *> devices(CtrlMax * UnitNum);	// Disk
+vector<SASIDEV *> controllers(CtrlMax);	// Controllers
+vector<Device *> devices(CtrlMax * UnitNum);	// Disks
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-list<string> available_log_levels;
+vector<string> available_log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
 set<string> files_in_use;
@@ -274,7 +268,7 @@ const PbDevices GetDevices()
 {
 	PbDevices pbDevices;
 
-	for (int i = 0; i < CtrlMax * UnitNum; i++) {
+	for (size_t i = 0; i < devices.size(); i++) {
 		// skip if unit does not exist or null disk
 		Device *device = devices[i];
 		if (!device) {
@@ -329,7 +323,7 @@ bool MapController(Device **map)
 	pthread_mutex_lock(&ctrl_mutex);
 
 	// Replace the changed unit
-	for (int i = 0; i < CtrlMax; i++) {
+	for (size_t i = 0; i < controllers.size(); i++) {
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
 			if (devices[unitno] != map[unitno]) {
@@ -608,8 +602,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	}
 
 	// Copy the devices
-	Device *map[CtrlMax * UnitNum];
-	for (int i = 0; i < CtrlMax * UnitNum; i++) {
+	Device *map[devices.size()];
+	for (size_t i = 0; i < devices.size(); i++) {
 		map[i] = devices[i];
 	}
 
@@ -716,14 +710,14 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	// Does the controller exist?
 	if (!dryRun && controllers[id] == NULL) {
-		error << "Received a command for invalid ID " << id;
+		error << "Received a command for non-existing ID " << id;
 		return ReturnStatus(fd, false, error);
 	}
 
 	// Does the unit exist?
 	device = devices[id * UnitNum + unit];
 	if (!dryRun && device == NULL) {
-		error << "Received a command for invalid ID " << id << ", unit " << unit;
+		error << "Received a command for ID " << id << ", non-existing unit " << unit;
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -739,7 +733,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		if (!dryRun) {
 			// Free the existing unit(s)
 			if (all) {
-				for (int i = 0; i < CtrlMax * UnitNum; i++) {
+				for (size_t i = 0; i < devices.size(); i++) {
 					map[i] = NULL;
 				}
 
@@ -898,6 +892,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string name;
 	string log_level;
 
+	opterr = 1;
 	int opt;
 	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:T:t:P:p:f:Vv")) != -1) {
 		switch (tolower(opt)) {
@@ -967,6 +962,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 1:
 				// Encountered filename
 				break;
+		}
+
+		if (optopt) {
+			return false;
 		}
 
 		int unit = 0;
