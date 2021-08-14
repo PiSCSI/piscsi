@@ -10,14 +10,14 @@
 #pragma once
 
 #include "os.h"
-#include "device.h"
+#include "primary_device.h"
 
-// TODO Add more block device methods
-class BlockDevice : public Device
+// TODO Add more block device commands
+class BlockDevice : public PrimaryDevice
 {
 public:
 
-	BlockDevice(const string& id) : Device(id) {};
+	BlockDevice(const string& id) : PrimaryDevice(id) {};
 	virtual ~BlockDevice() {};
 
 	// READ(6), READ(10)
