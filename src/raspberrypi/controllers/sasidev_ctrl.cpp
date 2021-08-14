@@ -406,6 +406,7 @@ void SASIDEV::Execute()
 	}
 
 	// Process by command
+	// TODO This code does not belong here. Each device needs such a dispatcher, which the controller has to call.
 	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
 		case SASIDEV::eCmdTestUnitReady:
