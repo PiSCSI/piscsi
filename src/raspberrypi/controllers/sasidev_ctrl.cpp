@@ -897,6 +897,14 @@ void SASIDEV::CmdRead6()
 		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
 		ctrl.blocks=1;
 	}
+	else {
+		// Check capacity
+		DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+		if (record > capacity || record + ctrl.blocks > capacity) {
+			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+			return;
+		}
+	}
 
 	LOGTRACE("%s READ(6) command record=%06X blocks=%d ID %s", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks, ctrl.unit[lun]->GetType().c_str());
 
@@ -995,6 +1003,13 @@ void SASIDEV::CmdWrite6()
 	ctrl.blocks = ctrl.cmd[4];
 	if (ctrl.blocks == 0) {
 		ctrl.blocks = 0x100;
+	}
+
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
 	}
 
 	LOGTRACE("%s WRITE(6) command record=%06X blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);

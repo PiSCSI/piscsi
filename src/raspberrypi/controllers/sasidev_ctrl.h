@@ -154,7 +154,7 @@ public:
 
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
-	Disk* GetUnit(int no);						// Get logical unit
+	Disk* GetUnit(int no);							// Get logical unit
 	void SetUnit(int no, Disk *dev);				// Logical unit setting
 	BOOL HasUnit();						// Has a valid logical unit
 
@@ -171,7 +171,7 @@ public:
 	ctrl_t* GetWorkAddr() { return &ctrl; }			// Get the internal information address
 	virtual BOOL IsSASI() const {return TRUE;}			// SASI Check
 	virtual BOOL IsSCSI() const {return FALSE;}			// SCSI check
-	Disk* GetBusyUnit();						// Get the busy unit
+	Disk* GetBusyUnit();								// Get the busy unit
 
 protected:
 	// Phase processing

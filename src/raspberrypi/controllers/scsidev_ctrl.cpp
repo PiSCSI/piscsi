@@ -692,6 +692,13 @@ void SCSIDEV::CmdRead10()
 	ctrl.blocks <<= 8;
 	ctrl.blocks |= ctrl.cmd[8];
 
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
 	LOGTRACE("%s READ(10) command record=%08X block=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Do not process 0 blocks
@@ -741,6 +748,13 @@ void SCSIDEV::CmdWrite10()
 	ctrl.blocks = ctrl.cmd[7];
 	ctrl.blocks <<= 8;
 	ctrl.blocks |= ctrl.cmd[8];
+
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
 
 	LOGTRACE("%s WRTIE(10) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
 
