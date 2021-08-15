@@ -1134,7 +1134,7 @@ void SCSIDEV::CmdRetrieveStats()
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
-	if (ctrl.unit[lun]->IsDaynaPort()) {
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.unit[lun]->GetType().c_str());
 		Error();
 		return;
