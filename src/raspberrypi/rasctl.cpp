@@ -13,6 +13,7 @@
 #include "os.h"
 #include "rascsi_version.h"
 #include "exceptions.h"
+#include "protobuf_util.h"
 #include "rasutil.h"
 #include "rascsi_interface.pb.h"
 #include <sstream>

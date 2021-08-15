@@ -21,6 +21,7 @@
 #include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
+#include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rasutil.h"
 #include "rascsi_interface.pb.h"
