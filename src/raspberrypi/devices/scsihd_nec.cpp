@@ -178,7 +178,7 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 //	Error page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
+int SCSIHD_NEC::AddError(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -195,7 +195,7 @@ int SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
 //	Format page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
+int SCSIHD_NEC::AddFormat(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -238,7 +238,7 @@ int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 //	Drive page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
+int SCSIHD_NEC::AddDrive(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 

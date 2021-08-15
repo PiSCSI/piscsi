@@ -176,7 +176,7 @@ int SCSIHD:: Inquiry(const DWORD *cdb, BYTE *buf)
 //	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	BYTE page;
 	int size;
@@ -195,7 +195,7 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				buf[11] != (BYTE)size) {
 				// currently does not allow changing sector length
 				SetStatusCode(STATUS_INVALIDPRM);
-				return FALSE;
+				return false;
 			}
 			buf += 12;
 			length -= 12;
@@ -215,7 +215,7 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 						buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length
 						SetStatusCode(STATUS_INVALIDPRM);
-						return FALSE;
+						return false;
 					}
 					break;
 
@@ -249,5 +249,5 @@ BOOL SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	// Do not generate an error for the time being (MINIX)
 	SetStatusCode(STATUS_NOERROR);
 
-	return TRUE;
+	return true;
 }

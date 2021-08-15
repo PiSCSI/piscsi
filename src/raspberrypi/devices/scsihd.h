@@ -34,5 +34,5 @@ public:
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf);	// INQUIRY command
-	BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
 };

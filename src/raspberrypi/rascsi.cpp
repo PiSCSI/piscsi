@@ -439,11 +439,11 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "")
 		if (!msg.empty()) {
 			if (status) {
 				FPRT(stderr, "Error: ");
-				FPRT(stderr, msg.c_str());
+				FPRT(stderr, "%s", msg.c_str());
 				FPRT(stderr, "\n");
 			}
 			else {
-				FPRT(stdout, msg.c_str());
+				FPRT(stdout, "%s", msg.c_str());
 				FPRT(stderr, "\n");
 			}
 		}

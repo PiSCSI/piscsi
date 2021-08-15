@@ -157,7 +157,7 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 //	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	int page;
 	int size;
@@ -175,7 +175,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
 				// Currently does not allow changing sector length
 				SetStatusCode(STATUS_INVALIDPRM);
-				return FALSE;
+				return false;
 			}
 			buf += 12;
 			length -= 12;
@@ -195,7 +195,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 						buf[0xd] != (BYTE)size) {
 						// Currently does not allow changing sector length
 						SetStatusCode(STATUS_INVALIDPRM);
-						return FALSE;
+						return false;
 					}
 					break;
 				// vendor unique format
@@ -218,7 +218,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	// Do not generate an error for the time being (MINIX)
 	SetStatusCode(STATUS_NOERROR);
 
-	return TRUE;
+	return false;
 }
 
 //---------------------------------------------------------------------------

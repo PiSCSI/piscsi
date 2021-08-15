@@ -38,7 +38,7 @@ SCSIHD_APPLE::SCSIHD_APPLE() : SCSIHD()
 //	Add Vendor special page
 //
 //---------------------------------------------------------------------------
-int SCSIHD_APPLE::AddVendor(int page, BOOL change, BYTE *buf)
+int SCSIHD_APPLE::AddVendor(int page, bool change, BYTE *buf)
 {
 	ASSERT(buf);
 

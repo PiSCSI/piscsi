@@ -38,7 +38,7 @@ public:
 	// Basic Functions
 	CDTrack(SCSICD *scsicd);						// Constructor
 	virtual ~CDTrack();							// Destructor
-	BOOL Init(int track, DWORD first, DWORD last);			// Initialization
+	void Init(int track, DWORD first, DWORD last);			// Initialization
 
 	// Properties
 	void SetPath(BOOL cdda, const Filepath& path);			// Set the path
@@ -78,19 +78,18 @@ public:
 public:
 	// Basic Functions
 	SCSICD();								// Constructor
-	virtual ~SCSICD();						// Destructor
+	~SCSICD();								// Destructor
 	void Open(const Filepath& path);		// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
-	BOOL PlayAudio(const DWORD *cdb);				// PLAY AUDIO command
-	BOOL PlayAudioMSF(const DWORD *cdb);				// PLAY AUDIO MSF command
-	BOOL PlayAudioTrack(const DWORD *cdb);				// PLAY AUDIO TRACK command
 
 	// CD-DA
-	BOOL NextFrame();						// Frame notification
+	// TODO Never called
+	bool NextFrame();						// Frame notification
+	// TODO Never called
 	void GetBuf(DWORD *buffer, int samples, DWORD rate);		// Get CD-DA buffer
 
 	// LBA-MSF変換

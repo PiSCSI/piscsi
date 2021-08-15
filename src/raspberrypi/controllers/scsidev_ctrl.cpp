@@ -582,7 +582,7 @@ void SCSIDEV::CmdStartStop()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->StartStop(ctrl.cmd);
+	bool status = ctrl.unit[lun]->StartStop(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -605,7 +605,7 @@ void SCSIDEV::CmdSendDiag()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
+	bool status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -628,7 +628,7 @@ void SCSIDEV::CmdRemoval()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Removal(ctrl.cmd);
+	bool status = ctrl.unit[lun]->Removal(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -919,7 +919,7 @@ void SCSIDEV::CmdPlayAudio10()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -940,7 +940,7 @@ void SCSIDEV::CmdPlayAudioMSF()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -961,7 +961,7 @@ void SCSIDEV::CmdPlayAudioTrack()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1272,7 +1272,7 @@ void SCSIDEV::Send()
 	if (ctrl.length != 0) {
 		ostringstream s;
 		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
-		LOGTRACE(s.str().c_str());
+		LOGTRACE("%s", s.str().c_str());
 
 		// The Daynaport needs to have a delay after the size/flags field
 		// of the read response. In the MacOS driver, it looks like the
@@ -1310,7 +1310,7 @@ void SCSIDEV::Send()
 			result = XferIn(ctrl.buffer);
 			ostringstream s;
 			s << __PRETTY_FUNCTION__ << " processing after data collection. Blocks: " << ctrl.blocks;
-			LOGTRACE(s.str().c_str());
+			LOGTRACE("%s", s.str().c_str());
 		}
 	}
 
@@ -1324,7 +1324,7 @@ void SCSIDEV::Send()
 	if (ctrl.blocks != 0){
 		ostringstream s;
 		s << __PRETTY_FUNCTION__ << " Continuing to send. blocks = " << ctrl.blocks;
-		LOGTRACE(s.str().c_str());
+		LOGTRACE("%s", s.str().c_str());
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 		return;

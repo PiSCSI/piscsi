@@ -62,7 +62,7 @@ CDTrack::~CDTrack()
 //	Init
 //
 //---------------------------------------------------------------------------
-BOOL CDTrack::Init(int track, DWORD first, DWORD last)
+void CDTrack::Init(int track, DWORD first, DWORD last)
 {
 	ASSERT(!valid);
 	ASSERT(track >= 1);
@@ -75,8 +75,6 @@ BOOL CDTrack::Init(int track, DWORD first, DWORD last)
 	// Remember LBA
 	first_lba = first;
 	last_lba = last;
-
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------
@@ -727,39 +725,6 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	PLAY AUDIO
-//
-//---------------------------------------------------------------------------
-BOOL SCSICD::PlayAudio(const DWORD* /*cdb*/)
-{
-	SetStatusCode(STATUS_INVALIDCDB);
-	return FALSE;
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO MSF
-//
-//---------------------------------------------------------------------------
-BOOL SCSICD::PlayAudioMSF(const DWORD* /*cdb*/)
-{
-	SetStatusCode(STATUS_INVALIDCDB);
-	return FALSE;
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO TRACK
-//
-//---------------------------------------------------------------------------
-BOOL SCSICD::PlayAudioTrack(const DWORD* /*cdb*/)
-{
-	SetStatusCode(STATUS_INVALIDCDB);
-	return FALSE;
-}
-
-//---------------------------------------------------------------------------
-//
 //	LBA→MSF Conversion
 //
 //---------------------------------------------------------------------------
@@ -860,7 +825,7 @@ int SCSICD::SearchTrack(DWORD lba) const
 //	Next Frame
 //
 //---------------------------------------------------------------------------
-BOOL SCSICD::NextFrame()
+bool SCSICD::NextFrame()
 {
 	ASSERT((frame >= 0) && (frame < 75));
 
@@ -868,9 +833,5 @@ BOOL SCSICD::NextFrame()
 	frame = (frame + 1) % 75;
 
 	// FALSE after one lap
-	if (frame != 0) {
-		return TRUE;
-	} else {
-		return FALSE;
-	}
+	return frame != 0;
 }

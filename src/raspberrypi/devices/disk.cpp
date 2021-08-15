@@ -953,7 +953,7 @@ int Disk::SelectCheck10(const DWORD *cdb)
 //	* Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
+bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 {
 	ASSERT(buf);
 	ASSERT(length >= 0);
@@ -961,7 +961,7 @@ BOOL Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 	// cannot be set
 	SetStatusCode(STATUS_INVALIDPRM);
 
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -982,21 +982,11 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, length);
 
 	// Get changeable flag
-	bool change;
-	if ((cdb[2] & 0xc0) == 0x40) {
-		change = TRUE;
-	} else {
-		change = FALSE;
-	}
+	bool change = (cdb[2] & 0xc0) == 0x40;
 
 	// Get page code (0x00 is valid from the beginning)
-	bool valid;
 	int page = cdb[2] & 0x3f;
-	if (page == 0x00) {
-		valid = TRUE;
-	} else {
-		valid = FALSE;
-	}
+	bool valid = page == 0x00;
 
 	// Basic information
 	int size = 4;
@@ -1037,40 +1027,40 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	// Page code 1(read-write error recovery)
 	if ((page == 0x01) || (page == 0x3f)) {
 		size += AddError(change, &buf[size]);
-		valid = TRUE;
+		valid = true;
 	}
 
 	// Page code 3(format device)
 	if ((page == 0x03) || (page == 0x3f)) {
 		size += AddFormat(change, &buf[size]);
-		valid = TRUE;
+		valid = true;
 	}
 
 	// Page code 4(drive parameter)
 	if ((page == 0x04) || (page == 0x3f)) {
 		size += AddDrive(change, &buf[size]);
-		valid = TRUE;
+		valid = true;
 	}
 
 	// Page code 6(optical)
 	if (IsMo()) {
 		if ((page == 0x06) || (page == 0x3f)) {
 			size += AddOpt(change, &buf[size]);
-			valid = TRUE;
+			valid = true;
 		}
 	}
 
 	// Page code 8(caching)
 	if ((page == 0x08) || (page == 0x3f)) {
 		size += AddCache(change, &buf[size]);
-		valid = TRUE;
+		valid = true;
 	}
 
 	// Page code 13(CD-ROM)
 	if (IsCdRom()) {
 		if ((page == 0x0d) || (page == 0x3f)) {
 			size += AddCDROM(change, &buf[size]);
-			valid = TRUE;
+			valid = true;
 		}
 	}
 
@@ -1078,7 +1068,7 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	if (IsCdRom()) {
 		if ((page == 0x0e) || (page == 0x3f)) {
 			size += AddCDDA(change, &buf[size]);
-			valid = TRUE;
+			valid = true;
 		}
 	}
 
@@ -1086,7 +1076,7 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 	int ret = AddVendor(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
-		valid = TRUE;
+		valid = true;
 	}
 
 	// final setting of mode data length
@@ -1111,8 +1101,6 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
-	BOOL valid;
-	BOOL change;
 	int ret;
 
 	ASSERT(cdb);
@@ -1130,19 +1118,11 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, length);
 
 	// Get changeable flag
-	if ((cdb[2] & 0xc0) == 0x40) {
-		change = TRUE;
-	} else {
-		change = FALSE;
-	}
+	bool change = (cdb[2] & 0xc0) == 0x40;
 
 	// Get page code (0x00 is valid from the beginning)
 	int page = cdb[2] & 0x3f;
-	if (page == 0x00) {
-		valid = TRUE;
-	} else {
-		valid = FALSE;
-	}
+	bool valid = page == 0x00;
 
 	// Basic Information
 	int size = 4;
@@ -1176,40 +1156,40 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	// Page code 1(read-write error recovery)
 	if ((page == 0x01) || (page == 0x3f)) {
 		size += AddError(change, &buf[size]);
-		valid = TRUE;
+		valid = true;
 	}
 
 	// Page code 3(format device)
 	if ((page == 0x03) || (page == 0x3f)) {
 		size += AddFormat(change, &buf[size]);
-		valid = TRUE;
+		valid = true;
 	}
 
 	// Page code 4(drive parameter)
 	if ((page == 0x04) || (page == 0x3f)) {
 		size += AddDrive(change, &buf[size]);
-		valid = TRUE;
+		valid = true;
 	}
 
 	// ペPage code 6(optical)
 	if (IsMo()) {
 		if ((page == 0x06) || (page == 0x3f)) {
 			size += AddOpt(change, &buf[size]);
-			valid = TRUE;
+			valid = true;
 		}
 	}
 
 	// Page code 8(caching)
 	if ((page == 0x08) || (page == 0x3f)) {
 		size += AddCache(change, &buf[size]);
-		valid = TRUE;
+		valid = true;
 	}
 
 	// Page code 13(CD-ROM)
 	if (IsCdRom()) {
 		if ((page == 0x0d) || (page == 0x3f)) {
 			size += AddCDROM(change, &buf[size]);
-			valid = TRUE;
+			valid = true;
 		}
 	}
 
@@ -1217,7 +1197,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	if (IsCdRom()) {
 		if ((page == 0x0e) || (page == 0x3f)) {
 			size += AddCDDA(change, &buf[size]);
-			valid = TRUE;
+			valid = true;
 		}
 	}
 
@@ -1225,7 +1205,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	ret = AddVendor(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
-		valid = TRUE;
+		valid = true;
 	}
 
 	// final setting of mode data length
@@ -1247,7 +1227,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 //	Add error page
 //
 //---------------------------------------------------------------------------
-int Disk::AddError(BOOL change, BYTE *buf)
+int Disk::AddError(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1269,7 +1249,7 @@ int Disk::AddError(BOOL change, BYTE *buf)
 //	Add format page
 //
 //---------------------------------------------------------------------------
-int Disk::AddFormat(BOOL change, BYTE *buf)
+int Disk::AddFormat(bool change, BYTE *buf)
 {
 	int size;
 
@@ -1314,7 +1294,7 @@ int Disk::AddFormat(BOOL change, BYTE *buf)
 //	Add drive page
 //
 //---------------------------------------------------------------------------
-int Disk::AddDrive(BOOL change, BYTE *buf)
+int Disk::AddDrive(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1349,7 +1329,7 @@ int Disk::AddDrive(BOOL change, BYTE *buf)
 //	Add option
 //
 //---------------------------------------------------------------------------
-int Disk::AddOpt(BOOL change, BYTE *buf)
+int Disk::AddOpt(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1371,7 +1351,7 @@ int Disk::AddOpt(BOOL change, BYTE *buf)
 //	Add Cache Page
 //
 //---------------------------------------------------------------------------
-int Disk::AddCache(BOOL change, BYTE *buf)
+int Disk::AddCache(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1393,7 +1373,7 @@ int Disk::AddCache(BOOL change, BYTE *buf)
 //	Add CDROM Page
 //
 //---------------------------------------------------------------------------
-int Disk::AddCDROM(BOOL change, BYTE *buf)
+int Disk::AddCDROM(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1421,7 +1401,7 @@ int Disk::AddCDROM(BOOL change, BYTE *buf)
 //	CD-DAページ追加
 //
 //---------------------------------------------------------------------------
-int Disk::AddCDDA(BOOL change, BYTE *buf)
+int Disk::AddCDDA(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1444,7 +1424,7 @@ int Disk::AddCDDA(BOOL change, BYTE *buf)
 //	Add special vendor page
 //
 //---------------------------------------------------------------------------
-int Disk::AddVendor(int /*page*/, BOOL /*change*/, BYTE *buf)
+int Disk::AddVendor(int /*page*/, bool /*change*/, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1526,21 +1506,21 @@ bool Disk::Rezero(const DWORD* /*cdb*/)
 //	*Opcode $06 for SASI, Opcode $04 for SCSI
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Format(const DWORD *cdb)
+bool Disk::FormatUnit(const DWORD *cdb)
 {
 	// Status check
 	if (!CheckReady()) {
-		return FALSE;
+		return false;
 	}
 
 	// FMTDATA=1 is not supported (but OK if there is no DEFECT LIST)
 	if ((cdb[1] & 0x10) != 0 && cdb[4] != 0) {
 		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+		return false;
 	}
 
 	// FORMAT Success
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1690,7 +1670,7 @@ bool Disk::Specify(const DWORD* /*cdb*/)
 //	START STOP UNIT
 //
 //---------------------------------------------------------------------------
-BOOL Disk::StartStop(const DWORD *cdb)
+bool Disk::StartStop(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1b);
@@ -1700,7 +1680,7 @@ BOOL Disk::StartStop(const DWORD *cdb)
 		if (IsLocked()) {
 			// Cannot be ejected because it is locked
 			SetStatusCode(STATUS_PREVENT);
-			return FALSE;
+			return false;
 		}
 
 		// Eject
@@ -1709,7 +1689,7 @@ BOOL Disk::StartStop(const DWORD *cdb)
 
 	// OK
 	SetStatusCode(STATUS_NOERROR);
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1717,7 +1697,7 @@ BOOL Disk::StartStop(const DWORD *cdb)
 //	SEND DIAGNOSTIC
 //
 //---------------------------------------------------------------------------
-BOOL Disk::SendDiag(const DWORD *cdb)
+bool Disk::SendDiag(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1d);
@@ -1725,18 +1705,18 @@ BOOL Disk::SendDiag(const DWORD *cdb)
 	// Do not support PF bit
 	if (cdb[1] & 0x10) {
 		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+		return false;
 	}
 
 	// Do not support parameter list
 	if ((cdb[3] != 0) || (cdb[4] != 0)) {
 		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+		return false;
 	}
 
 	// Always successful
 	SetStatusCode(STATUS_NOERROR);
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1744,14 +1724,14 @@ BOOL Disk::SendDiag(const DWORD *cdb)
 //	PREVENT/ALLOW MEDIUM REMOVAL
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Removal(const DWORD *cdb)
+bool Disk::Removal(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x1e);
 
 	// Status check
 	if (!CheckReady()) {
-		return FALSE;
+		return false;
 	}
 
 	// Set Lock flag
@@ -1762,7 +1742,7 @@ BOOL Disk::Removal(const DWORD *cdb)
 	}
 
 	// REMOVAL Success
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1811,7 +1791,7 @@ int Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 //	VERIFY
 //
 //---------------------------------------------------------------------------
-BOOL Disk::Verify(const DWORD *cdb)
+bool Disk::Verify(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x2f);
@@ -1830,17 +1810,17 @@ BOOL Disk::Verify(const DWORD *cdb)
 
 	// Status check
 	if (!CheckReady()) {
-		return 0;
+		return false;
 	}
 
 	// Parameter check
 	if (disk.blocks < (record + blocks)) {
 		SetStatusCode(STATUS_INVALIDLBA);
-		return FALSE;
+		return false;
 	}
 
 	//  Success
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1864,14 +1844,14 @@ int Disk::ReadToc(const DWORD *cdb, BYTE *buf)
 //	PLAY AUDIO
 //
 //---------------------------------------------------------------------------
-BOOL Disk::PlayAudio(const DWORD *cdb)
+bool Disk::PlayAudio(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x45);
 
 	// This command is not supported
 	SetStatusCode(STATUS_INVALIDCMD);
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -1879,14 +1859,14 @@ BOOL Disk::PlayAudio(const DWORD *cdb)
 //	PLAY AUDIO MSF
 //
 //---------------------------------------------------------------------------
-BOOL Disk::PlayAudioMSF(const DWORD *cdb)
+bool Disk::PlayAudioMSF(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x47);
 
 	// This command is not supported
 	SetStatusCode(STATUS_INVALIDCMD);
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -1894,13 +1874,13 @@ BOOL Disk::PlayAudioMSF(const DWORD *cdb)
 //	PLAY AUDIO TRACK
 //
 //---------------------------------------------------------------------------
-BOOL Disk::PlayAudioTrack(const DWORD *cdb)
+bool Disk::PlayAudioTrack(const DWORD *cdb)
 {
 	ASSERT(cdb);
 	ASSERT(cdb[0] == 0x48);
 
 	// This command is not supported
 	SetStatusCode(STATUS_INVALIDCMD);
-	return FALSE;
+	return false;
 }
 

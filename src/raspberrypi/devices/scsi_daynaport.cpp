@@ -249,7 +249,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 	ostringstream s;
 	s << __PRETTY_FUNCTION__ << " reading DaynaPort block " << block;
-	LOGTRACE(s.str().c_str());
+	LOGTRACE("%s", s.str().c_str());
 
 	if(command->operation_code != 0x08){
 		LOGERROR("Received unexpected cdb command: %02X. Expected 0x08", (unsigned int)command->operation_code);
@@ -378,7 +378,7 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 {
 	ostringstream s;
 	s << __PRETTY_FUNCTION__ << " block: " << block;
-	LOGTRACE(s.str().c_str());
+	LOGTRACE("%s", s.str().c_str());
 
 	// Status check
 	if (!CheckReady()) {

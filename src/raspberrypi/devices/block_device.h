@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// A BlockDevice supports SCSI block commands (see https://www.t10.org/drafts.htm)
+// A BlockDevice supports SCSI block commands (see https://www.t10.org/drafts.htm, SBC-5)
 //
 //---------------------------------------------------------------------------
 
@@ -13,7 +13,6 @@
 
 #include "primary_device.h"
 
-// TODO Add more block commands
 class BlockDevice : public PrimaryDevice
 {
 public:
@@ -21,8 +20,17 @@ public:
 	BlockDevice(const string& id) : PrimaryDevice(id) {};
 	virtual ~BlockDevice() {};
 
+	// Mandatory commands
+	// TODO Add the mandatory commands READ/WRITE(16), READ CAPACITY(16), REPORT LUNS
+	virtual bool TestUnitReady(const DWORD *cdb) = 0;
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
+	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
+	virtual bool FormatUnit(const DWORD *cdb) = 0;
 	// READ(6), READ(10)
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 	// WRITE(6), WRITE(10)
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) = 0;
+
+	// Optional commands
+	// TODO Add the optional commands currently implemented
 };

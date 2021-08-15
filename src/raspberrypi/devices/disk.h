@@ -150,12 +150,12 @@ public:
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) override;		// REQUEST SENSE command
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
-	virtual BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
+	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
 	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
 	bool Rezero(const DWORD *cdb);					// REZERO command
-	BOOL Format(const DWORD *cdb);					// FORMAT UNIT command
+	bool FormatUnit(const DWORD *cdb);					// FORMAT UNIT command
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
 	virtual int WriteCheck(DWORD block);					// WRITE check
@@ -163,26 +163,27 @@ public:
 	bool Seek(const DWORD *cdb);					// SEEK command
 	bool Assign(const DWORD *cdb);					// ASSIGN command
 	bool Specify(const DWORD *cdb);				// SPECIFY command
-	BOOL StartStop(const DWORD *cdb);				// START STOP UNIT command
-	BOOL SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
-	BOOL Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
+	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
+	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
+	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
 	int ReadCapacity(const DWORD *cdb, BYTE *buf);			// READ CAPACITY command
-	BOOL Verify(const DWORD *cdb);					// VERIFY command
+	// TODO Currently not called
+	bool Verify(const DWORD *cdb);					// VERIFY command
 	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
-	virtual BOOL PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
-	virtual BOOL PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
-	virtual BOOL PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
+	virtual bool PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
+	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
+	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
 
 protected:
 	// Internal processing
-	virtual int AddError(BOOL change, BYTE *buf);			// Add error
-	virtual int AddFormat(BOOL change, BYTE *buf);			// Add format
-	virtual int AddDrive(BOOL change, BYTE *buf);			// Add drive
-	int AddOpt(BOOL change, BYTE *buf);				// Add optical
-	int AddCache(BOOL change, BYTE *buf);				// Add cache
-	int AddCDROM(BOOL change, BYTE *buf);				// Add CD-ROM
-	int AddCDDA(BOOL change, BYTE *buf);				// Add CD_DA
-	virtual int AddVendor(int page, BOOL change, BYTE *buf);	// Add vendor special info
+	virtual int AddError(bool change, BYTE *buf);			// Add error
+	virtual int AddFormat(bool change, BYTE *buf);			// Add format
+	virtual int AddDrive(bool change, BYTE *buf);			// Add drive
+	int AddOpt(bool change, BYTE *buf);				// Add optical
+	int AddCache(bool change, BYTE *buf);				// Add cache
+	int AddCDROM(bool change, BYTE *buf);				// Add CD-ROM
+	int AddCDDA(bool, BYTE *buf);				// Add CD_DA
+	virtual int AddVendor(int page, bool change, BYTE *buf);	// Add vendor special info
 	BOOL CheckReady();						// Check if ready
 
 	// Internal data
