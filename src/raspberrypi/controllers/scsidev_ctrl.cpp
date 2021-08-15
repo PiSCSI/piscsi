@@ -1171,7 +1171,7 @@ void SCSIDEV::CmdSetIfaceMode()
 
 	// Error if not a DaynaPort SCSI Link
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
-		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
+		LOGWARN("%s Received a CmdSetIfaceMode command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
 		Error();
 		return;
 	}
@@ -1243,7 +1243,7 @@ void SCSIDEV::CmdEnableInterface()
 
 	// Error if not a DaynaPort SCSI Link
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
-		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
+		LOGWARN("%s Received a CmdEnableInterface command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
 		Error();
 		return;
 	}
