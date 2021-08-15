@@ -215,7 +215,7 @@ void SCSIDEV::BusFree()
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+		ctrl.bus->SetBSY(false);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -258,7 +258,7 @@ void SCSIDEV::Selection()
 		ctrl.phase = BUS::selection;
 
 		// Raise BSY and respond
-		ctrl.bus->SetBSY(TRUE);
+		ctrl.bus->SetBSY(true);
 		return;
 	}
 

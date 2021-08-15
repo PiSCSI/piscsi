@@ -52,8 +52,8 @@ using namespace rascsi_interface;
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-static volatile BOOL running;		// Running flag
-static volatile BOOL active;		// Processing flag
+static volatile bool running;		// Running flag
+static volatile bool active;		// Processing flag
 vector<SASIDEV *> controllers(CtrlMax);	// Controllers
 vector<Device *> devices(CtrlMax * UnitNum);	// Disks
 GPIOBUS *bus;						// GPIO Bus
@@ -74,7 +74,7 @@ set<string> files_in_use;
 void KillHandler(int sig)
 {
 	// Stop instruction
-	running = FALSE;
+	running = false;
 }
 
 //---------------------------------------------------------------------------
@@ -123,7 +123,7 @@ void Banner(int argc, char* argv[])
 //
 //---------------------------------------------------------------------------
 
-BOOL InitService(int port)
+bool InitService(int port)
 {
 	int result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if (result != EXIT_SUCCESS){
@@ -168,8 +168,8 @@ BOOL InitService(int port)
 		return FALSE;
 	}
 
-	running = FALSE;
-	active = FALSE;
+	running = false;
+	active = false;
 
 	return true;
 }
@@ -1203,7 +1203,7 @@ int main(int argc, char* argv[])
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Start execution
-	running = TRUE;
+	running = true;
 
 	// Main Loop
 	while (running) {
@@ -1276,7 +1276,7 @@ int main(int argc, char* argv[])
 		}
 
 		// Start target device
-		active = TRUE;
+		active = true;
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Scheduling policy setting (highest priority)
@@ -1304,7 +1304,7 @@ int main(int argc, char* argv[])
 #endif	// USE_SEL_EVENT_ENABLE
 
 		// End the target travel
-		active = FALSE;
+		active = false;
 	}
 
 err_exit:

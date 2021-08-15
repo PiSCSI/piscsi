@@ -53,8 +53,7 @@
 //
 //---------------------------------------------------------------------------
 static BYTE prev_value[32] = {0xFF};
-static volatile BOOL running;		// Running flag
-static volatile BOOL active;		// Processing flag
+static volatile bool running;		// Running flag
 GPIOBUS *bus;						// GPIO Bus
 typedef struct data_capture{
     DWORD data;
@@ -79,7 +78,7 @@ char log_file_name[_MAX_FNAME/2] = "log.vcd";
 void KillHandler(int sig)
 {
 	// Stop instruction
-	running = FALSE;
+	running = false;
 }
 
 //---------------------------------------------------------------------------
@@ -144,8 +143,7 @@ BOOL Init()
 	bus->Reset();
 
 	// Other
-	running = FALSE;
-	active = FALSE;
+	running = false;
 
 	return TRUE;
 }
@@ -414,13 +412,14 @@ int main(int argc, char* argv[])
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 
 	// Start execution
-	running = TRUE;
+	running = false;
 	bus->SetACT(FALSE);
 
     (void)gettimeofday(&start_time, NULL);
 
     LOGDEBUG("ALL_SCSI_PINS %08X\n",ALL_SCSI_PINS);
-	// Main Loop
+
+    // Main Loop
 	while (running) {
 		// Work initialization
 		this_sample = (bus->Aquire() & ALL_SCSI_PINS);

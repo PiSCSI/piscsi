@@ -509,9 +509,9 @@ public:
 	void SetENB(BOOL ast);
 										// Set ENB signal
 
-	BOOL GetBSY();
+	bool GetBSY();
 										// Get BSY signal
-	void SetBSY(BOOL ast);
+	void SetBSY(bool ast);
 										// Set BSY signal
 
 	BOOL GetSEL();

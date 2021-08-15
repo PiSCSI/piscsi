@@ -487,7 +487,7 @@ void GPIOBUS::SetENB(BOOL ast)
 //	Get BSY signal
 //
 //---------------------------------------------------------------------------
-BOOL GPIOBUS::GetBSY()
+bool GPIOBUS::GetBSY()
 {
 	return GetSignal(PIN_BSY);
 }
@@ -497,7 +497,7 @@ BOOL GPIOBUS::GetBSY()
 //	Set BSY signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetBSY(BOOL ast)
+void GPIOBUS::SetBSY(bool ast)
 {
 	// Set BSY signal
 	SetSignal(PIN_BSY, ast);

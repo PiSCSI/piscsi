@@ -267,7 +267,7 @@ void SASIDEV::BusFree()
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+		ctrl.bus->SetBSY(false);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -307,7 +307,7 @@ void SASIDEV::Selection()
 		ctrl.phase = BUS::selection;
 
 		// Raiase BSY and respond
-		ctrl.bus->SetBSY(TRUE);
+		ctrl.bus->SetBSY(true);
 		return;
 	}
 

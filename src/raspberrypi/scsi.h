@@ -107,9 +107,9 @@ public:
 		return ((raw_data >> pin_num) & 1);
 	}
 
-	virtual BOOL GetBSY() = 0;
+	virtual bool GetBSY() = 0;
 										// BSYシグナル取得
-	virtual void SetBSY(BOOL ast) = 0;
+	virtual void SetBSY(bool ast) = 0;
 										// BSYシグナル設定
 
 	virtual BOOL GetSEL() = 0;
