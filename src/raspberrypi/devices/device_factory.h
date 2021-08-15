@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
+// A DeviceFactory creates devices based on their type and the extension of their image file
+//
 //---------------------------------------------------------------------------
 
 #pragma once

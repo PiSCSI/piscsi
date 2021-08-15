@@ -5,13 +5,14 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
+// A PrimaryDevice supports SCSI primary commands (see https://www.t10.org/drafts.htm)
+//
 //---------------------------------------------------------------------------
 
 #pragma once
 
 #include "device.h"
 
-// A device supporting SCSI primary commands (see https://www.t10.org/drafts.htm)
 class PrimaryDevice : public Device
 {
 public:

@@ -5,13 +5,14 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
+// A BlockDevice supports SCSI block commands (see https://www.t10.org/drafts.htm)
+//
 //---------------------------------------------------------------------------
 
 #pragma once
 
 #include "primary_device.h"
 
-/// A device supporting SCSI block commands (see https://www.t10.org/drafts.htm)
 // TODO Add more block commands
 class BlockDevice : public PrimaryDevice
 {

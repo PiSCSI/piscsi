@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
+// Devices inheriting from FileSupport support device image files
+//
 //---------------------------------------------------------------------------
 
 #pragma once
