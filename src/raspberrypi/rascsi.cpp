@@ -625,7 +625,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		}
 
 		// Create a new device, based upon type or file extension
-		device = DeviceFactory::CreateDevice(type, ext);
+		device = DeviceFactory::CreateDevice(type, filename, ext);
 		if (!device) {
 			error << "Received a command for an invalid device type: " << PbDeviceType_Name(type);
 			return ReturnStatus(fd, false, error);

@@ -17,9 +17,10 @@
 #include "scsi_daynaport.h"
 #include "device_factory.h"
 
+using namespace std;
 using namespace rascsi_interface;
 
-Device *DeviceFactory::CreateDevice(PbDeviceType& type, const std::string& ext)
+Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, const string& ext)
 {
 	// If no type was specified try to derive the device type from the file extension
 	if (type == UNDEFINED) {
@@ -35,6 +36,12 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const std::string& ext)
 			type = SCMO;
 		} else if (ext == "iso") {
 			type = SCCD;
+		}
+		else if (filename == "bridge") {
+			type = SCBR;
+		}
+		else if (filename == "daynaport") {
+			type = SCDP;
 		}
 	}
 
