@@ -1144,7 +1144,7 @@ void SCSIDEV::CmdRetrieveStats()
 	// Error if not a DaynaPort SCSI Link
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.unit[lun]->GetType().c_str());
-		Error();
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
@@ -1180,7 +1180,7 @@ void SCSIDEV::CmdSetIfaceMode()
 	// Error if not a DaynaPort SCSI Link
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("%s Received a CmdSetIfaceMode command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
-		Error();
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
@@ -1219,7 +1219,7 @@ void SCSIDEV::CmdSetMcastAddr()
 
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
-		Error();
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
@@ -1252,7 +1252,7 @@ void SCSIDEV::CmdEnableInterface()
 	// Error if not a DaynaPort SCSI Link
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("%s Received a CmdEnableInterface command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
-		Error();
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
