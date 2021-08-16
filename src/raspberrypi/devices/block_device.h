@@ -21,7 +21,7 @@ public:
 	virtual ~BlockDevice() {};
 
 	// Mandatory commands
-	// TODO Add the mandatory commands READ/WRITE(16), REPORT LUNS
+	// TODO Add the mandatory command REPORT LUNS
 	virtual bool TestUnitReady(const DWORD *cdb) = 0;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
