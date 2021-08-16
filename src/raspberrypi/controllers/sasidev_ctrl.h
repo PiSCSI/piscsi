@@ -121,7 +121,7 @@ public:
 		BUS *bus;						// Bus
 
 		// commands
-		DWORD cmd[10];					// Command data
+		DWORD cmd[16];					// Command data
 		DWORD status;					// Status data
 		DWORD message;					// Message data
 
