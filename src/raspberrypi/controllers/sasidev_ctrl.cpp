@@ -19,6 +19,7 @@
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "exceptions.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -93,7 +94,7 @@ void SASIDEV::Reset()
 	// Unit initialization
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
-			ctrl.unit[i]->SetReset(true);
+			ctrl.unit[i]->Reset();
 		}
 	}
 }
@@ -901,12 +902,16 @@ void SASIDEV::CmdRead6()
 		// Check capacity
 		DWORD capacity = ctrl.unit[lun]->GetBlockCount();
 		if (record > capacity || record + ctrl.blocks > capacity) {
+			ostringstream s;
+			s << "Media capacity of " << capacity << " blocks exceeded: "
+					<< "Trying to read block " << record << ", block count " << ctrl.blocks;
+			LOGWARN("%s", s.str().c_str());
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 			return;
 		}
 	}
 
-	LOGTRACE("%s READ(6) command record=%06X blocks=%d ID %s", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks, ctrl.unit[lun]->GetType().c_str());
+	LOGTRACE("%s READ(6) command record=%d blocks=%d ID %s", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks, ctrl.unit[lun]->GetType().c_str());
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
@@ -1008,18 +1013,21 @@ void SASIDEV::CmdWrite6()
 	// Check capacity
 	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to write block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return;
 	}
 
-	LOGTRACE("%s WRITE(6) command record=%06X blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
+	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
 	if (ctrl.length <= 0) {
-		LOGDEBUG("WriteCheck failed");
 		// Failure (Error)
-		Error();
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
 		return;
 	}
 
@@ -1464,9 +1472,11 @@ void SASIDEV::FlushUnit()
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
 		case SASIDEV::eCmdWriteAndVerify10:
+			break;
+
 		case SASIDEV::eCmdModeSelect:
 		case SASIDEV::eCmdModeSelect10:
-            // Debug code related to Issue #2 on github, where we get an unhandled Model select when
+            // Debug code related to Issue #2 on github, where we get an unhandled Mode Select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
             LOGWARN("Received \'Mode Select\'\n");

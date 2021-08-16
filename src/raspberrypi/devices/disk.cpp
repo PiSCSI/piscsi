@@ -1543,6 +1543,8 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
+
 	// Status check
 	if (!CheckReady()) {
 		return 0;
@@ -1573,16 +1575,19 @@ int Disk::WriteCheck(DWORD block)
 {
 	// Status check
 	if (!CheckReady()) {
+		LOGDEBUG("WriteCheck failed (not ready)");
 		return 0;
 	}
 
 	// Error if the total number of blocks is exceeded
 	if (block >= disk.blocks) {
+		LOGDEBUG("WriteCheck failed (capacity exceeded)");
 		return 0;
 	}
 
 	// Error if write protected
 	if (IsProtected()) {
+		LOGDEBUG("WriteCheck failed (protected)");
 		SetStatusCode(STATUS_WRITEPROTECT);
 		return 0;
 	}

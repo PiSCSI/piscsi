@@ -695,11 +695,15 @@ void SCSIDEV::CmdRead10()
 	// Check capacity
 	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return;
 	}
 
-	LOGTRACE("%s READ(10) command record=%08X block=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
+	LOGTRACE("%s READ(10) command record=%d block=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
@@ -752,11 +756,15 @@ void SCSIDEV::CmdWrite10()
 	// Check capacity
 	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to write block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return;
 	}
 
-	LOGTRACE("%s WRTIE(10) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
+	LOGTRACE("%s WRTIE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
@@ -768,7 +776,7 @@ void SCSIDEV::CmdWrite10()
 	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
-		Error();
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
 		return;
 	}
 

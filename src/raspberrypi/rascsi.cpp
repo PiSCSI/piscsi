@@ -1161,12 +1161,16 @@ int main(int argc, char* argv[])
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
-	// ~/images is the default folder for device image file
-	const passwd *passwd = getpwuid(getuid());
-	if (passwd) {
+	// ~/images is the default folder for device image file. For the root user /home/pi/images is the default.
+	const int uid = getuid();
+	const passwd *passwd = getpwuid(uid);
+	if (uid && passwd) {
 		string folder = passwd->pw_dir;
 		folder += "/images";
 		default_image_folder = folder;
+	}
+	else {
+		default_image_folder = "/home/pi/images";
 	}
 
 	// Output the Banner
