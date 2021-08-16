@@ -22,7 +22,7 @@ using namespace rascsi_interface;
 
 Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, const string& ext)
 {
-	// If no type was specified try to derive the device type from the file extension
+	// If no type was specified try to derive the device type from the filename and extension
 	if (type == UNDEFINED) {
 		if (ext == "hdf") {
 			type = SAHD;
