@@ -1453,6 +1453,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 		case SASIDEV::eCmdSetMcastAddr:
 			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__);
 			break;
+
 		default:
 			LOGWARN("Received an unexpected command (%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
 			ASSERT(FALSE);

@@ -1050,15 +1050,17 @@ void SCSIDEV::CmdReportLuns()
 {
 	DWORD lun = GetLun();
 
-	ctrl.length = ctrl.unit[lun]->ReportLuns(ctrl.cmd, ctrl.buffer);
-	if (ctrl.length <= 0) {
+	int length = ctrl.unit[lun]->ReportLuns(ctrl.cmd, ctrl.buffer);
+	if (length <= 0) {
 		// Failure (Error)
 		Error();
 		return;
 	}
 
-	// Data out phase
-	DataOut();
+	ctrl.length = length;
+
+	// Data in phase
+	DataIn();
 }
 
 //---------------------------------------------------------------------------
