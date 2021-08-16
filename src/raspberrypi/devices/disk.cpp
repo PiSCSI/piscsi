@@ -1506,7 +1506,7 @@ bool Disk::Rezero(const DWORD* /*cdb*/)
 //	*Opcode $06 for SASI, Opcode $04 for SCSI
 //
 //---------------------------------------------------------------------------
-bool Disk::FormatUnit(const DWORD *cdb)
+bool Disk::Format(const DWORD *cdb)
 {
 	// Status check
 	if (!CheckReady()) {

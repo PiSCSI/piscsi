@@ -808,7 +808,7 @@ void SASIDEV::CmdFormat()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->FormatUnit(ctrl.cmd);
+	BOOL status = ctrl.unit[lun]->Format(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();

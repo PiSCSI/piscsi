@@ -155,7 +155,7 @@ public:
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
 	bool Rezero(const DWORD *cdb);					// REZERO command
-	bool FormatUnit(const DWORD *cdb);					// FORMAT UNIT command
+	bool Format(const DWORD *cdb);					// FORMAT UNIT command
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
 	virtual int WriteCheck(DWORD block);					// WRITE check

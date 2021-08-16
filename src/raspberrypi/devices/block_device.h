@@ -25,7 +25,7 @@ public:
 	virtual bool TestUnitReady(const DWORD *cdb) = 0;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
-	virtual bool FormatUnit(const DWORD *cdb) = 0;
+	virtual bool Format(const DWORD *cdb) = 0;
 	// READ(6), READ(10)
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 	// WRITE(6), WRITE(10)
