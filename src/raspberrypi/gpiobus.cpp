@@ -898,8 +898,12 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		goto irq_enable_exit;
 	}
 
-	// Distinguise whether the command is 6 bytes or 10 bytes
-	if (*buf >= 0x20 && *buf <= 0x7D) {
+	// TODO The command length should be determined by the end of the COMMAND phase
+	// Distinguish whether the command is 6 bytes or 10 bytes
+	if (*buf == 0x88 || *buf == 0x8A || *buf== 0x0F || *buf == 0x9E) {
+		count = 16;
+	}
+	else if (*buf >= 0x20 && *buf <= 0x7D) {
 		count = 10;
 	} else {
 		count = 6;

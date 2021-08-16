@@ -351,9 +351,17 @@ void SASIDEV::Command()
 			return;
 		}
 
+		// TODO The command length should be calculated based on the number of bytes transferred during the COMMAND phase
+		// Note that there is a duplicate length calculation in gpiobus.cpp
+
 		// Check 10-byte CDB
 		if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
 			ctrl.length = 10;
+		}
+
+		// Check 16-byte CDB (READ CAPACITY(16), READ/WRITE/VERIFY(16))
+		if (ctrl.buffer[0] == 0x88 || ctrl.buffer[0] == 0x8A || ctrl.buffer[0] == 0x8F || ctrl.buffer[0] == 0x9E) {
+			ctrl.length = 16;
 		}
 
 		// If not able to receive all, move to the status phase
@@ -407,7 +415,7 @@ void SASIDEV::Execute()
 	}
 
 	// Process by command
-	// TODO This code does not belong here. Each device needs such a dispatcher, which the controller has to call.
+	// TODO This code does not belong here. Each device type needs such a dispatcher, which the controller has to call.
 	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
 		case SASIDEV::eCmdTestUnitReady:
@@ -424,9 +432,7 @@ void SASIDEV::Execute()
 			CmdRequestSense();
 			return;
 
-		// FORMAT UNIT
-		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
-		// leaving it here for now....
+		// FORMAT
 		case SASIDEV::eCmdFormat:
 			CmdFormat();
 			return;
@@ -451,7 +457,7 @@ void SASIDEV::Execute()
 			CmdSeek6();
 			return;
 
-		// ASSIGN(SASIのみ)
+		// ASSIGN (SASI only)
 		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
 		case SASIDEV::eCmdSasiCmdAssign:
@@ -468,7 +474,7 @@ void SASIDEV::Execute()
 			CmdReleaseUnit();
 			return;
 
-		// SPECIFY(SASIのみ)
+		// SPECIFY (SASI only)
 		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
 		case SASIDEV::eCmdInvalid:
@@ -1326,10 +1332,9 @@ BOOL SASIDEV::XferIn(BYTE *buf)
 
 	// Limited to read commands
 	switch (ctrl.cmd[0]) {
-		// READ(6)
 		case eCmdRead6:
-		// READ(10)
 		case eCmdRead10:
+		case eCmdRead16:
 			// Read from disk
 			ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, buf, ctrl.next);
 			ctrl.next++;
@@ -1382,7 +1387,9 @@ BOOL SASIDEV::XferOut(BOOL cont)
 
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
-		case SASIDEV::eCmdWriteAndVerify10:
+		case SASIDEV::eCmdWrite16:
+		case SASIDEV::eCmdVerify10:
+		case SASIDEV::eCmdVerify16:
 			// If we're a host bridge, use the host bridge's SendMessage10 function
 			// TODO This class must not know about SCSIBR
 			if (ctrl.unit[lun]->IsBridge()) {
@@ -1412,7 +1419,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 				break;
 			}
 
-			LOGTRACE("%s eCmdWriteAndVerify10 Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
+			LOGTRACE("%s eCmdVerify Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
 			if (!ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
 				return FALSE;
@@ -1471,7 +1478,9 @@ void SASIDEV::FlushUnit()
 	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
-		case SASIDEV::eCmdWriteAndVerify10:
+		case SASIDEV::eCmdWrite16:
+		case SASIDEV::eCmdVerify10:
+		case SASIDEV::eCmdVerify16:
 			break;
 
 		case SASIDEV::eCmdModeSelect:

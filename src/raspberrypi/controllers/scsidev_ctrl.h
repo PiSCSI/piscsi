@@ -67,7 +67,7 @@ public:
 	BOOL IsSCSI() const {return TRUE;}				// SCSI check
 
 private:
-	void SetupCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
+	void SetUpCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
 
 	// Phase
 	void BusFree();						// Bus free phase
@@ -102,6 +102,8 @@ private:
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command
 	void CmdReadCapacity16();					// READ CAPACITY(16) command
+	void CmdRead16();						// READ(16) command
+	void CmdWrite16();						// WRITE(16) command
 	void CmdGetMessage10();					// GET MESSAGE(10) command
 	void CmdSendMessage10();					// SEND MESSAGE(10) command
 	void CmdRetrieveStats();   				// DaynaPort specific command

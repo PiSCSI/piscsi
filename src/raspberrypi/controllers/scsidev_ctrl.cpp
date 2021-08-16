@@ -42,47 +42,50 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	SetupCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
-	SetupCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
-	SetupCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
-	SetupCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
-	SetupCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
-	SetupCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
-	SetupCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
-	SetupCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
-	SetupCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
-	SetupCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
-	SetupCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
-	SetupCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
-	SetupCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
-	SetupCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
-	SetupCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
-	SetupCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
-	SetupCommand(eCmdReadCapacity10, "CmdReadCapacity10", &SCSIDEV::CmdReadCapacity10);
-	SetupCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
-	SetupCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
-	SetupCommand(eCmdWriteAndVerify10, "CmdWriteAndVerify10", &SCSIDEV::CmdWrite10);
-	SetupCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
-	SetupCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
-	SetupCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
-	SetupCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
-	SetupCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
-	SetupCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
-	SetupCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
-	SetupCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
-	SetupCommand(eCmdReadCapacity16, "CmdReadCapacity16", &SCSIDEV::CmdReadCapacity16);
+	SetUpCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
+	SetUpCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
+	SetUpCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
+	SetUpCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
+	SetUpCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
+	SetUpCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
+	SetUpCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
+	SetUpCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
+	SetUpCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
+	SetUpCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
+	SetUpCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
+	SetUpCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
+	SetUpCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
+	SetUpCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
+	SetUpCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
+	SetUpCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
+	SetUpCommand(eCmdReadCapacity10, "CmdReadCapacity10", &SCSIDEV::CmdReadCapacity10);
+	SetUpCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
+	SetUpCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
+	SetUpCommand(eCmdVerify10, "CmdVerify10", &SCSIDEV::CmdWrite10);
+	SetUpCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
+	SetUpCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
+	SetUpCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
+	SetUpCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
+	SetUpCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
+	SetUpCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
+	SetUpCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
+	SetUpCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+	SetUpCommand(eCmdRead16, "CmdRead16", &SCSIDEV::CmdRead16);
+	SetUpCommand(eCmdWrite16, "CmdWrite16", &SCSIDEV::CmdWrite16);
+	SetUpCommand(eCmdVerify16, "CmdVerify16", &SCSIDEV::CmdWrite16);
+	SetUpCommand(eCmdReadCapacity16, "CmdReadCapacity16", &SCSIDEV::CmdReadCapacity16);
 
 	// MMC specific. TODO Move to separate class
-	SetupCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
-	SetupCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
-	SetupCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
-	SetupCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
+	SetUpCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
+	SetUpCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
+	SetUpCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
+	SetUpCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
 
 	// DaynaPort specific. TODO Move to separate class
-	SetupCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
-	SetupCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
-	SetupCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
-	SetupCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
+	SetUpCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
+	SetUpCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
+	SetUpCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
+	SetUpCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
 }
 
 SCSIDEV::~SCSIDEV()
@@ -92,7 +95,7 @@ SCSIDEV::~SCSIDEV()
 	}
 }
 
-void SCSIDEV::SetupCommand(scsi_command opcode, const char* name, void (SCSIDEV::*execute)(void))
+void SCSIDEV::SetUpCommand(scsi_command opcode, const char* name, void (SCSIDEV::*execute)(void))
 {
 	scsi_commands[opcode] = new command_t(name, execute);
 }
@@ -750,6 +753,82 @@ void SCSIDEV::CmdRead10()
 
 //---------------------------------------------------------------------------
 //
+//	READ(16)
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::CmdRead16()
+{
+	DWORD lun = GetLun();
+
+	// Receive message if host bridge
+	if (ctrl.unit[lun]->IsBridge()) {
+		Error();
+		return;
+	}
+
+	// Report an error as long as big drives are not supported
+	if (ctrl.cmd[2] || ctrl.cmd[3] || ctrl.cmd[4] || ctrl.cmd[5]) {
+		LOGWARN("Can't execute READ(16) with 64 bit sector number");
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	// Get record number and block number
+	DWORD record = ctrl.cmd[6];
+	record <<= 8;
+	record |= ctrl.cmd[7];
+	record <<= 8;
+	record |= ctrl.cmd[8];
+	record <<= 8;
+	record |= ctrl.cmd[9];
+	ctrl.blocks = ctrl.cmd[10];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[11];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[12];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[13];
+
+	ostringstream c;
+	c << "Read16: " << record << "   " << ctrl.blocks << endl;
+	LOGERROR(c.str().c_str());
+
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGTRACE("%s READ(16) command record=%d block=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
+
+	// Do not process 0 blocks
+	if (ctrl.blocks == 0) {
+		Status();
+		return;
+	}
+
+	// Command processing on drive
+	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
+	if (ctrl.length <= 0) {
+		// Failure (Error)
+		Error();
+		return;
+	}
+
+	// Set next block
+	ctrl.next = record + 1;
+
+	// Data-in Phase
+	DataIn();
+}
+
+//---------------------------------------------------------------------------
+//
 //	WRITE(10)
 //
 //---------------------------------------------------------------------------
@@ -787,6 +866,77 @@ void SCSIDEV::CmdWrite10()
 	}
 
 	LOGTRACE("%s WRTIE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
+
+	// Do not process 0 blocks
+	if (ctrl.blocks == 0) {
+		Status();
+		return;
+	}
+
+	// Command processing on drive
+	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
+	if (ctrl.length <= 0) {
+		// Failure (Error)
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		return;
+	}
+
+	// Set next block
+	ctrl.next = record + 1;
+
+	// Data out phase
+	DataOut();
+}
+//---------------------------------------------------------------------------
+//
+//	WRITE(16)
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::CmdWrite16()
+{
+	DWORD lun = GetLun();
+
+	// Receive message if host bridge
+	if (ctrl.unit[lun]->IsBridge()) {
+		Error();
+		return;
+	}
+
+	// Report an error as long as big drives are not supported
+	if (ctrl.cmd[2] || ctrl.cmd[3] || ctrl.cmd[4] || ctrl.cmd[5]) {
+		LOGWARN("Can't execute WRITE(16) with 64 bit sector number");
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	// Get record number and block number
+	DWORD record = ctrl.cmd[6];
+	record <<= 8;
+	record |= ctrl.cmd[7];
+	record <<= 8;
+	record |= ctrl.cmd[8];
+	record <<= 8;
+	record |= ctrl.cmd[9];
+	ctrl.blocks = ctrl.cmd[10];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[11];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[12];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[13];
+
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to write block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGTRACE("%s WRTIE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {

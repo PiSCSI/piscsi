@@ -81,7 +81,7 @@ protected:
 			eCmdRead10 = 0x28,
 			eCmdWrite10 = 0x2A,
 			eCmdSeek10 = 0x2B,
-			eCmdWriteAndVerify10 = 0x2E,
+			eCmdVerify10 = 0x2E,
 			eCmdVerify = 0x2F,
 			eCmdSynchronizeCache = 0x35,
 			eCmdReadDefectData10 = 0x37,
@@ -93,9 +93,12 @@ protected:
 			eCmdReserve10 = 0x56,
 			eCmdRelease10 = 0x57,
 			eCmdModeSense10 = 0x5A,
+			eCmdRead16 = 0x88,
+			eCmdWrite16 = 0x8A,
+			eCmdVerify16 = 0x8F,
 			eCmdReadCapacity16 = 0x9E,
 			eCmdInvalid = 0xC2,		// (SASI only/Suppress warning when using SxSI)
-			eCmdSasiCmdAssign = 0x0e, // This isn't used by SCSI, and can probably be removed.
+			eCmdSasiCmdAssign = 0x0E, // This isn't used by SCSI, and can probably be removed.
 	};
 
 public:
@@ -121,7 +124,7 @@ public:
 		BUS *bus;						// Bus
 
 		// commands
-		DWORD cmd[10];					// Command data
+		DWORD cmd[16];					// Command data
 		DWORD status;					// Status data
 		DWORD message;					// Message data
 

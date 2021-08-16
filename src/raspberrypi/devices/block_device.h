@@ -32,6 +32,10 @@ public:
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) = 0;
 	virtual int ReadCapacity10(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int ReadCapacity16(const DWORD *cdb, BYTE *buf) = 0;
+	// TODO Uncomment as soon as there is a clean separation between controllers and devices
+	//virtual int Read16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
+	//virtual int Write16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
+	//virtual int Verify16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 
 	// Optional commands
 	// TODO Add the optional commands currently implemented
