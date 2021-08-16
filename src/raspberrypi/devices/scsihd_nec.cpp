@@ -79,11 +79,11 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	}
 
 	// Get file size
-	off64_t size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 
 	// Read header
 	BYTE hdr[512];
-	if (size >= (off64_t)sizeof(hdr)) {
+	if (size >= (off_t)sizeof(hdr)) {
 		if (!fio.Read(hdr, sizeof(hdr))) {
 			fio.Close();
 			throw io_exception("Can't read hard disk file header");

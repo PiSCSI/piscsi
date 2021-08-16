@@ -255,7 +255,7 @@ BOOL Fileio::Write(const void *buffer, int size)
 //	シーク
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Seek(off64_t offset, BOOL relative)
+BOOL Fileio::Seek(off_t offset, BOOL relative)
 {
 	ASSERT(handle >= 0);
 	ASSERT(offset >= 0);
@@ -277,10 +277,10 @@ BOOL Fileio::Seek(off64_t offset, BOOL relative)
 //	ファイルサイズ取得
 //
 //---------------------------------------------------------------------------
-off64_t Fileio::GetFileSize()
+off_t Fileio::GetFileSize()
 {
-	off64_t cur;
-	off64_t end;
+	off_t cur;
+	off_t end;
 
 	ASSERT(handle >= 0);
 
@@ -301,9 +301,9 @@ off64_t Fileio::GetFileSize()
 //	ファイル位置取得
 //
 //---------------------------------------------------------------------------
-off64_t Fileio::GetFilePos() const
+off_t Fileio::GetFilePos() const
 {
-	off64_t pos;
+	off_t pos;
 
 	ASSERT(handle >= 0);
 

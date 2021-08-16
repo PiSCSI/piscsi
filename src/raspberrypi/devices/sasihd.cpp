@@ -67,7 +67,7 @@ void SASIHD::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off64_t size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	fio.Close();
 
 	#if defined(USE_MZ1F23_1024_SUPPORT)
@@ -86,7 +86,7 @@ void SASIHD::Open(const Filepath& path)
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Must be in 256-byte units
 	if (size & 0xff) {
-		throw io_exception("File size must be a multiple of 512 bytes");
+		throw io_exception("File size must be a multiple of 256 bytes");
 	}
 
 	// 10MB or more
@@ -119,7 +119,7 @@ void SASIHD::Open(const Filepath& path)
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 
-	// Sector size and number of blocks
+	// Sector size 256 bytes and number of blocks
 	disk.size = 8;
 	disk.blocks = (DWORD)(size >> 8);
 

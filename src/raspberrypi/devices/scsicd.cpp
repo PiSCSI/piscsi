@@ -266,7 +266,7 @@ SCSICD::~SCSICD()
 void SCSICD::Open(const Filepath& path)
 {
 	Fileio fio;
-	off64_t size;
+	off_t size;
 	TCHAR file[5];
 
 	ASSERT(!IsReady());
@@ -358,7 +358,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Get file size
-	off64_t size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
 		throw io_exception("ISO CD-ROM file size must be at least 2048 bytes");
@@ -441,7 +441,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	}
 
 	// Get size
-	off64_t size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	if (size < 0x800) {
 		fio.Close();
 		throw io_exception("CD-ROM file size must be at least 2048 bytes");

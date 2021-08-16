@@ -808,7 +808,7 @@ int main(int argc, char* argv[])
 	DWORD dnum;
 	Fileio fio;
 	Fileio::OpenMode omode;
-	off64_t size;
+	off_t size;
 
 	// Banner output
 	if (!Banner(argc, argv)) {
@@ -918,9 +918,9 @@ int main(int argc, char* argv[])
 	if (restore) {
 		size = fio.GetFileSize();
 		printf("Restore file size       : %d bytes", (int)size);
-		if (size > (off64_t)(bsiz * bnum)) {
+		if (size > (off_t)(bsiz * bnum)) {
 			printf("(WARNING : File size is larger than disk size)");
-		} else if (size < (off64_t)(bsiz * bnum)) {
+		} else if (size < (off_t)(bsiz * bnum)) {
 			printf("(ERROR   : File size is smaller than disk size)\n");
 			goto cleanup_exit;
 		}

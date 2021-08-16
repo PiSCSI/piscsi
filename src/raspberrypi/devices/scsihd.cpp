@@ -68,10 +68,10 @@ void SCSIHD::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off64_t size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	// Must be 512 bytes
+	// Must be a multiple of 512 bytes
 	if (size & 0x1ff) {
 		throw io_exception("File size must be a multiple of 512 bytes");
 	}
@@ -83,7 +83,7 @@ void SCSIHD::Open(const Filepath& path)
 		throw io_exception("File size must not exceed 2 TB");
 	}
 
-	// sector size and number of blocks
+	// sector size 612 bytes and number of blocks
 	disk.size = 9;
 	disk.blocks = (DWORD)(size >> 9);
 
