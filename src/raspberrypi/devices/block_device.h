@@ -24,6 +24,7 @@ public:
 	// TODO Add the mandatory command REPORT LUNS
 	virtual bool TestUnitReady(const DWORD *cdb) = 0;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
+	virtual int ReportLuns(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
 	virtual bool Format(const DWORD *cdb) = 0;
 	// READ(6), READ(10)

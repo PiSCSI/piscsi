@@ -1841,7 +1841,7 @@ int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
 	ASSERT(buf);
 
 	// Buffer clear
-	memset(buf, 0, 12);
+	memset(buf, 0, 16);
 
 	// Status check
 	if (!CheckReady()) {
@@ -1853,7 +1853,7 @@ int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
 
 	// As long as there is no proper support for more than one SCSI LUN no other fields must be set => 1 LUN
 
-	return 12;
+	return 16;
 }
 
 //---------------------------------------------------------------------------

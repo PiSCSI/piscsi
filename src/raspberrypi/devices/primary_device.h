@@ -23,7 +23,7 @@ public:
 	// Mandatory commands
 	virtual bool TestUnitReady(const DWORD *cdb) = 0;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
-	// TODO Add mandatory command REPORT LUNS
+	virtual int ReportLuns(const DWORD *cdb, BYTE *buf) = 0;
 
 	// Optional commands
 	// TODO Add the optional commands currently implemented

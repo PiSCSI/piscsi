@@ -790,10 +790,6 @@ void SCSIDEV::CmdRead16()
 	ctrl.blocks <<= 8;
 	ctrl.blocks |= ctrl.cmd[13];
 
-	ostringstream c;
-	c << "Read16: " << record << "   " << ctrl.blocks << endl;
-	LOGERROR(c.str().c_str());
-
 	// Check capacity
 	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
