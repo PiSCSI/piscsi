@@ -614,6 +614,10 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			return ReturnStatus(fd, false, error);
 		}
 
+		if (dryRun) {
+			return true;
+		}
+
 		string ext;
 		int len = filename.length();
 		if (len > 4 && filename[len - 4] == '.') {
