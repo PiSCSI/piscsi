@@ -1824,7 +1824,7 @@ int Disk::ReadCapacity16(const DWORD* /*cdb*/, BYTE *buf)
 	buf[10] = (BYTE)(length >> 8);
 	buf[11] = (BYTE)length;
 
-	// Physical per logical sectors: not reported (1 or more)
+	// Logical blocks per physical block: not reported (1 or more)
 	buf[13] = 0;
 
 	// return the size
