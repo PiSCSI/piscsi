@@ -36,7 +36,7 @@ public:
 	//virtual int Write16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 	//virtual int Verify16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 
-	// Optional commands
+	// Implemented optional commands
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int ModeSense(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) = 0;

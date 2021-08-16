@@ -25,7 +25,7 @@ public:
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int ReportLuns(const DWORD *cdb, BYTE *buf) = 0;
 
-	// Optional commands
+	// Implemented optional commands
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int ModeSense(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) = 0;
