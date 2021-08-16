@@ -24,7 +24,6 @@ public:
 	virtual bool TestUnitReady(const DWORD *cdb) = 0;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int ReportLuns(const DWORD *cdb, BYTE *buf) = 0;
-	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
 	virtual bool Format(const DWORD *cdb) = 0;
 	// READ(6), READ(10)
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
@@ -38,5 +37,10 @@ public:
 	//virtual int Verify16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 
 	// Optional commands
-	// TODO Add the optional commands currently implemented
+	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
+	virtual int ModeSense(const DWORD *cdb, BYTE *buf) = 0;
+	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) = 0;
+	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) = 0;
+
+	// TODO Add the other optional commands currently implemented
 };

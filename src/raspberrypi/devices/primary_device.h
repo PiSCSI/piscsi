@@ -26,5 +26,8 @@ public:
 	virtual int ReportLuns(const DWORD *cdb, BYTE *buf) = 0;
 
 	// Optional commands
-	// TODO Add the optional commands currently implemented
+	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
+	virtual int ModeSense(const DWORD *cdb, BYTE *buf) = 0;
+	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) = 0;
+	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) = 0;
 };
