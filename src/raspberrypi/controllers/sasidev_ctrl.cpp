@@ -359,8 +359,9 @@ void SASIDEV::Command()
 			ctrl.length = 10;
 		}
 
-		// Check 16-byte CDB (READ CAPACITY(16), READ/WRITE/VERIFY(16))
-		if (ctrl.buffer[0] == 0x88 || ctrl.buffer[0] == 0x8A || ctrl.buffer[0] == 0x8F || ctrl.buffer[0] == 0x9E) {
+		// Check 16-byte CDB (READ CAPACITY(16), READ/WRITE/VERIFY(16)), REPORT LUNS
+		if (ctrl.buffer[0] == eCmdRead16 || ctrl.buffer[0] == eCmdWrite16 || ctrl.buffer[0] == eCmdVerify16 ||
+				ctrl.buffer[0] == eCmdReadCapacity16 || ctrl.buffer[0] == eCmdReportLuns) {
 			ctrl.length = 16;
 		}
 

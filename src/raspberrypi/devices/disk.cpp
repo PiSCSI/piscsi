@@ -1833,6 +1833,31 @@ int Disk::ReadCapacity16(const DWORD* /*cdb*/, BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
+//	REPORT LUNS
+//
+//---------------------------------------------------------------------------
+int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
+{
+	ASSERT(buf);
+
+	// Buffer clear
+	memset(buf, 0, 12);
+
+	// Status check
+	if (!CheckReady()) {
+		return 0;
+	}
+
+	// LUN list length
+	buf[3] = 8;
+
+	// As long as there is no proper support for more than one SCSI LUN no other fields must be set => 1 LUN
+
+	return 12;
+}
+
+//---------------------------------------------------------------------------
+//
 //	VERIFY
 //
 //---------------------------------------------------------------------------

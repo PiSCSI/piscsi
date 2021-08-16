@@ -97,6 +97,7 @@ protected:
 			eCmdWrite16 = 0x8A,
 			eCmdVerify16 = 0x8F,
 			eCmdReadCapacity16 = 0x9E,
+			eCmdReportLuns = 0xA0,
 			eCmdInvalid = 0xC2,		// (SASI only/Suppress warning when using SxSI)
 			eCmdSasiCmdAssign = 0x0E, // This isn't used by SCSI, and can probably be removed.
 	};

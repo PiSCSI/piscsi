@@ -104,6 +104,7 @@ private:
 	void CmdReadCapacity16();					// READ CAPACITY(16) command
 	void CmdRead16();						// READ(16) command
 	void CmdWrite16();						// WRITE(16) command
+	void CmdReportLuns();					// REPORT LUNS command
 	void CmdGetMessage10();					// GET MESSAGE(10) command
 	void CmdSendMessage10();					// SEND MESSAGE(10) command
 	void CmdRetrieveStats();   				// DaynaPort specific command

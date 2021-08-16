@@ -74,6 +74,7 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	SetUpCommand(eCmdWrite16, "CmdWrite16", &SCSIDEV::CmdWrite16);
 	SetUpCommand(eCmdVerify16, "CmdVerify16", &SCSIDEV::CmdWrite16);
 	SetUpCommand(eCmdReadCapacity16, "CmdReadCapacity16", &SCSIDEV::CmdReadCapacity16);
+	SetUpCommand(eCmdReportLuns, "CmdReportLuns", &SCSIDEV::CmdReportLuns);
 
 	// MMC specific. TODO Move to separate class
 	SetUpCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
@@ -887,6 +888,7 @@ void SCSIDEV::CmdWrite10()
 	// Data out phase
 	DataOut();
 }
+
 //---------------------------------------------------------------------------
 //
 //	WRITE(16)
@@ -1038,6 +1040,26 @@ void SCSIDEV::CmdVerify()
 
 	// Set next block
 	ctrl.next = record + 1;
+
+	// Data out phase
+	DataOut();
+}
+
+//---------------------------------------------------------------------------
+//
+//	REPORT LUNS
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::CmdReportLuns()
+{
+	DWORD lun = GetLun();
+
+	ctrl.length = ctrl.unit[lun]->ReportLuns(ctrl.cmd, ctrl.buffer);
+	if (ctrl.length <= 0) {
+		// Failure (Error)
+		Error();
+		return;
+	}
 
 	// Data out phase
 	DataOut();
