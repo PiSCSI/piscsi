@@ -114,43 +114,6 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	m_tap->OpenDump(path);
 }
 
- //---------------------------------------------------------------------------
- //
- //	Check Ready
- //
- //---------------------------------------------------------------------------
- BOOL SCSIDaynaPort::CheckReady()
- {
- 	// Not ready if reset
- 	if (IsReset()) {
- 		SetStatusCode(STATUS_DEVRESET);
- 		SetReset(false);
- 		LOGTRACE("%s DaynaPort in reset", __PRETTY_FUNCTION__);
- 		return FALSE;
- 	}
-
- 	// Not ready if it needs attention
- 	if (IsAttn()) {
- 		SetStatusCode(STATUS_ATTENTION);
- 		SetAttn(false);
- 		LOGTRACE("%s DaynaPort in needs attention", __PRETTY_FUNCTION__);
- 		return FALSE;
- 	}
-
- 	// Return status if not ready
- 	if (!IsReady()) {
- 		SetStatusCode(STATUS_NOTREADY);
- 		LOGTRACE("%s DaynaPort not ready", __PRETTY_FUNCTION__);
- 		return FALSE;
- 	}
-
- 	// Initialization with no error
- 	SetStatusCode(STATUS_NOERROR);
- 	LOGTRACE("%s DaynaPort is ready!", __PRETTY_FUNCTION__);
-
- 	return TRUE;
- }
-
 //---------------------------------------------------------------------------
 //
 //	INQUIRY
@@ -164,12 +127,6 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 	ASSERT(cdb);
 	ASSERT(buffer);
 	ASSERT(cdb[0] == 0x12);
-
-	// EVPD check
-	if (cdb[1] & 0x01) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return -1;
-	}
 
 	//allocation_length = command->length;
 	DWORD allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);

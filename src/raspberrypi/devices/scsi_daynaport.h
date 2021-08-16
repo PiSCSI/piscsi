@@ -181,6 +181,4 @@ private:
 										// MAC Address
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
-
-	BOOL CheckReady();						// Check if ready
 };
