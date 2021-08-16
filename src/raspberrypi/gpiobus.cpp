@@ -900,7 +900,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 
 	// TODO The command length should be determined by the end of the COMMAND phase
 	// Distinguish whether the command is 6 bytes or 10 bytes
-	if (*buf == 0x88 || *buf == 0x8A || *buf== 0x0F || *buf == 0x9E) {
+	if (*buf == 0x88 || *buf == 0x8A || *buf== 0x8F || *buf == 0x9E) {
 		count = 16;
 	}
 	else if (*buf == 0xA0) {
