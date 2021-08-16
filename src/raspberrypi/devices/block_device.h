@@ -21,7 +21,7 @@ public:
 	virtual ~BlockDevice() {};
 
 	// Mandatory commands
-	// TODO Add the mandatory commands READ/WRITE(16), READ CAPACITY(16), REPORT LUNS
+	// TODO Add the mandatory commands READ/WRITE(16), REPORT LUNS
 	virtual bool TestUnitReady(const DWORD *cdb) = 0;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
@@ -30,6 +30,8 @@ public:
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 	// WRITE(6), WRITE(10)
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) = 0;
+	virtual int ReadCapacity10(const DWORD *cdb, BYTE *buf) = 0;
+	virtual int ReadCapacity16(const DWORD *cdb, BYTE *buf) = 0;
 
 	// Optional commands
 	// TODO Add the optional commands currently implemented

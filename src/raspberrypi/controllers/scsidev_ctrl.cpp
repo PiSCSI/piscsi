@@ -58,7 +58,7 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	SetupCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
 	SetupCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
 	SetupCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
-	SetupCommand(eCmdReadCapacity, "CmdReadCapacity", &SCSIDEV::CmdReadCapacity);
+	SetupCommand(eCmdReadCapacity10, "CmdReadCapacity10", &SCSIDEV::CmdReadCapacity10);
 	SetupCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
 	SetupCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
 	SetupCommand(eCmdWriteAndVerify10, "CmdWriteAndVerify10", &SCSIDEV::CmdWrite10);
@@ -70,6 +70,7 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	SetupCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
 	SetupCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
 	SetupCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+	SetupCommand(eCmdReadCapacity16, "CmdReadCapacity16", &SCSIDEV::CmdReadCapacity16);
 
 	// MMC specific. TODO Move to separate class
 	SetupCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
@@ -644,14 +645,35 @@ void SCSIDEV::CmdRemoval()
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-void SCSIDEV::CmdReadCapacity()
+void SCSIDEV::CmdReadCapacity10()
 {
-	LOGTRACE( "%s READ CAPACITY Command ", __PRETTY_FUNCTION__);
+	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	int length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
+	int length = ctrl.unit[lun]->ReadCapacity10(ctrl.cmd, ctrl.buffer);
+	ASSERT(length >= 0);
+	if (length <= 0) {
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
+		return;
+	}
+
+	// Length setting
+	ctrl.length = length;
+
+	// Data-in Phase
+	DataIn();
+}
+
+void SCSIDEV::CmdReadCapacity16()
+{
+	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
+
+	DWORD lun = GetLun();
+
+	// Command processing on drive
+	int length = ctrl.unit[lun]->ReadCapacity16(ctrl.cmd, ctrl.buffer);
 	ASSERT(length >= 0);
 	if (length <= 0) {
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);

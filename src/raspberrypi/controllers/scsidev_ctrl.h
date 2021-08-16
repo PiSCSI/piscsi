@@ -88,7 +88,7 @@ private:
 	void CmdStartStop();						// START STOP UNIT command
 	void CmdSendDiag();						// SEND DIAGNOSTIC command
 	void CmdRemoval();						// PREVENT/ALLOW MEDIUM REMOVAL command
-	void CmdReadCapacity();					// READ CAPACITY command
+	void CmdReadCapacity10();					// READ CAPACITY(10) command
 	void CmdRead10();						// READ(10) command
 	void CmdWrite10();						// WRITE(10) command
 	void CmdSeek10();						// SEEK(10) command
@@ -101,6 +101,7 @@ private:
 	void CmdPlayAudioTrack();					// PLAY AUDIO TRACK INDEX command
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command
+	void CmdReadCapacity16();					// READ CAPACITY(16) command
 	void CmdGetMessage10();					// GET MESSAGE(10) command
 	void CmdSendMessage10();					// SEND MESSAGE(10) command
 	void CmdRetrieveStats();   				// DaynaPort specific command

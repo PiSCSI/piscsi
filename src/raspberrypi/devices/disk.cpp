@@ -1755,7 +1755,7 @@ bool Disk::Removal(const DWORD *cdb)
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-int Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
+int Disk::ReadCapacity10(const DWORD* /*cdb*/, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1789,6 +1789,46 @@ int Disk::ReadCapacity(const DWORD* /*cdb*/, BYTE *buf)
 
 	// return the size
 	return 8;
+}
+
+int Disk::ReadCapacity16(const DWORD* /*cdb*/, BYTE *buf)
+{
+	ASSERT(buf);
+
+	// Buffer clear
+	memset(buf, 0, 14);
+
+	// Status check
+	if (!CheckReady()) {
+		return 0;
+	}
+
+	if (disk.blocks <= 0) {
+		LOGWARN("%s Capacity not available, medium may not be present", __PRETTY_FUNCTION__);
+
+		return -1;
+	}
+
+	// Create end of logical block address (disk.blocks-1)
+	// TODO blocks should be a 64 bit value in order to support higher capacities
+	DWORD blocks = disk.blocks - 1;
+	buf[4] = (BYTE)(blocks >> 24);
+	buf[5] = (BYTE)(blocks >> 16);
+	buf[6] = (BYTE)(blocks >> 8);
+	buf[7] = (BYTE)blocks;
+
+	// Create block length (1 << disk.size)
+	DWORD length = 1 << disk.size;
+	buf[8] = (BYTE)(length >> 24);
+	buf[9] = (BYTE)(length >> 16);
+	buf[10] = (BYTE)(length >> 8);
+	buf[11] = (BYTE)length;
+
+	// Physical per logical sectors: not reported (1 or more)
+	buf[13] = 0;
+
+	// return the size
+	return 14;
 }
 
 //---------------------------------------------------------------------------

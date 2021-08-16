@@ -166,7 +166,8 @@ public:
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	int ReadCapacity(const DWORD *cdb, BYTE *buf);			// READ CAPACITY command
+	int ReadCapacity10(const DWORD *cdb, BYTE *buf);			// READ CAPACITY(10) command
+	int ReadCapacity16(const DWORD *cdb, BYTE *buf);			// READ CAPACITY(16) command
 	DWORD GetBlockCount() const { return disk.blocks; }
 	// TODO Currently not called
 	bool Verify(const DWORD *cdb);					// VERIFY command

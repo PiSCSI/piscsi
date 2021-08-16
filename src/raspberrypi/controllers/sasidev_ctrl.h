@@ -77,7 +77,7 @@ protected:
 			eCmdStartStop = 0x1B,
 			eCmdSendDiag = 0x1D,
 			eCmdRemoval = 0x1E,
-			eCmdReadCapacity = 0x25,
+			eCmdReadCapacity10 = 0x25,
 			eCmdRead10 = 0x28,
 			eCmdWrite10 = 0x2A,
 			eCmdSeek10 = 0x2B,
@@ -93,6 +93,7 @@ protected:
 			eCmdReserve10 = 0x56,
 			eCmdRelease10 = 0x57,
 			eCmdModeSense10 = 0x5A,
+			eCmdReadCapacity16 = 0x9E,
 			eCmdInvalid = 0xC2,		// (SASI only/Suppress warning when using SxSI)
 			eCmdSasiCmdAssign = 0x0e, // This isn't used by SCSI, and can probably be removed.
 	};
