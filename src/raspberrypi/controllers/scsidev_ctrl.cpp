@@ -657,7 +657,6 @@ void SCSIDEV::CmdReadCapacity10()
 
 	// Command processing on drive
 	int length = ctrl.unit[lun]->ReadCapacity10(ctrl.cmd, ctrl.buffer);
-	ASSERT(length >= 0);
 	if (length <= 0) {
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
@@ -678,7 +677,6 @@ void SCSIDEV::CmdReadCapacity16()
 
 	// Command processing on drive
 	int length = ctrl.unit[lun]->ReadCapacity16(ctrl.cmd, ctrl.buffer);
-	ASSERT(length >= 0);
 	if (length <= 0) {
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
