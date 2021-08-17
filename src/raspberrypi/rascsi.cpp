@@ -627,8 +627,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		// Create a new device, based upon type or file extension
 		device = DeviceFactory::CreateDevice(type, filename, ext);
 		if (!device) {
-			error << "Received a command for an invalid device type: " << PbDeviceType_Name(type);
-			return ReturnStatus(fd, false, error);
+			return ReturnStatus(fd, false, "Received a command for an invalid device type: " + PbDeviceType_Name(type));
 		}
 
 		if (!pbDevice.name().empty()) {
@@ -653,8 +652,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		if (fileSupport && !pbDevice.removable() && filename.empty()) {
 			free(device);
 
-			error << "Device type " << PbDeviceType_Name(type) << " requires a filename";
-			return ReturnStatus(fd, false, error);
+			return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
 		}
 
 		// drive checks files
@@ -677,8 +675,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 					catch(const io_exception&) {
 						delete device;
 
-						error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
-						return ReturnStatus(fd, false, error);
+						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
 					}
 				}
 				else {
@@ -690,8 +687,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 			if (!dryRun) {
 				if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
-					error << "Image file '" << filename << "' is already in use";
-					return ReturnStatus(fd, false, error);
+					return ReturnStatus(fd, false, "Image file '" + filename + "' is already in use");
 				}
 
 				files_in_use.insert(filepath.GetPath());
@@ -731,8 +727,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	if (cmd == DETACH) {
 		bool all = params == "all";
 		if (!all && !params.empty()) {
-			error << "Invalid command parameter '" << params << "' for " << PbOperation_Name(DETACH);
-			return ReturnStatus(fd, false, error);
+			return ReturnStatus(fd, false, "Invalid command parameter '" + params + "' for " + PbOperation_Name(DETACH));
 		}
 
 		if (!dryRun) {
@@ -773,13 +768,11 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
 	if ((cmd == INSERT || cmd == EJECT) && !device->IsRemovable()) {
-		error << PbOperation_Name(cmd) << " operation denied (Device type " << device->GetType() << " isn't removable)";
-		return ReturnStatus(fd, false, error);
+		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't removable)");
 	}
 
 	if ((cmd == PROTECT || cmd == UNPROTECT) && (!device->IsProtectable() || device->IsReadOnly())) {
-		error << PbOperation_Name(cmd) << " operation denied (Device type " << device->GetType() << " isn't protectable)";
-		return ReturnStatus(fd, false, error);
+		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't protectable)");
 	}
 
 	switch (cmd) {
@@ -811,8 +804,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 						fileSupport->Open(filepath);
 					}
 					catch(const io_exception&) {
-						error << "Tried to open an invalid file '" << filename << "': " << e.getmsg();
-						return ReturnStatus(fd, false, error);
+						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
 					}
 				}
 				else {
@@ -856,8 +848,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			return true;
 
 		default:
-			error << "Received unknown command: " << PbOperation_Name(cmd);
-			return ReturnStatus(fd, false, error);
+			return ReturnStatus(fd, false, "Received unknown command: " + PbOperation_Name(cmd));
 	}
 
 	return true;
@@ -1077,9 +1068,7 @@ static void *MonThread(void *param)
 				case LOG_LEVEL: {
 					bool status = SetLogLevel(command.params());
 					if (!status) {
-						ostringstream error;
-						error << "Invalid log level: " << command.params();
-						ReturnStatus(fd, false, error);
+						ReturnStatus(fd, false, "Invalid log level: " + command.params());
 					}
 					else {
 						ReturnStatus(fd);
@@ -1089,9 +1078,7 @@ static void *MonThread(void *param)
 
 				case DEFAULT_FOLDER:
 					if (!SetDefaultImageFolder(command.params())) {
-						ostringstream error;
-						error << "Folder '" << command.params() << "' does not exist or is not accessible";
-						ReturnStatus(fd, false, error);
+						ReturnStatus(fd, false, "Folder '" + command.params() + "' does not exist or is not accessible");
 					}
 					else {
 						ReturnStatus(fd);
