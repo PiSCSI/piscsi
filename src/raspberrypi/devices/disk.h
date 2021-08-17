@@ -45,14 +45,14 @@ public:
 		DWORD maplen;							// Changed map length
 		BOOL *changemap;						// Changed map
 		BOOL raw;							// RAW mode flag
-		off64_t imgoffset;						// Offset to actual data
+		off_t imgoffset;						// Offset to actual data
 	} disktrk_t;
 
 public:
 	// Basic Functions
 	DiskTrack();								// Constructor
 	virtual ~DiskTrack();							// Destructor
-	void Init(int track, int size, int sectors, BOOL raw = FALSE, off64_t imgoff = 0);// Initialization
+	void Init(int track, int size, int sectors, BOOL raw = FALSE, off_t imgoff = 0);// Initialization
 	BOOL Load(const Filepath& path);				// Load
 	BOOL Save(const Filepath& path);				// Save
 
@@ -90,7 +90,7 @@ public:
 
 public:
 	// Basic Functions
-	DiskCache(const Filepath& path, int size, int blocks,off64_t imgoff = 0);// Constructor
+	DiskCache(const Filepath& path, int size, int blocks,off_t imgoff = 0);// Constructor
 	virtual ~DiskCache();							// Destructor
 	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
 
@@ -114,7 +114,7 @@ private:
 	int sec_size;								// Sector size (8 or 9 or 11)
 	int sec_blocks;								// Blocks per sector
 	BOOL cd_raw;								// CD-ROM RAW mode
-	off64_t imgoffset;							// Offset to actual data
+	off_t imgoffset;							// Offset to actual data
 };
 
 //===========================================================================
@@ -130,7 +130,7 @@ protected:
 		int size;							// Sector Size
 		DWORD blocks;							// Total number of sectors
 		DiskCache *dcache;						// Disk cache
-		off64_t imgoffset;						// Offset to actual data
+		off_t imgoffset;						// Offset to actual data
 	} disk_t;
 
 public:

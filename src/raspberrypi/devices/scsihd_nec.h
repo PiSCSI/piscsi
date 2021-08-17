@@ -42,6 +42,6 @@ private:
 	int heads;								// Number of heads
 	int sectors;								// Number of sectors
 	int sectorsize;								// Sector size
-	off64_t imgoffset;							// Image offset
-	off64_t imgsize;							// Image size
+	off_t imgoffset;							// Image offset
+	off_t imgsize;							// Image size
 };

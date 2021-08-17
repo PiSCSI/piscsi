@@ -83,7 +83,7 @@ DiskTrack::~DiskTrack()
 //	Initialization
 //
 //---------------------------------------------------------------------------
-void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off64_t imgoff)
+void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off_t imgoff)
 {
 	ASSERT(track >= 0);
 	ASSERT((size >= 8) && (size <= 11));
@@ -125,7 +125,7 @@ BOOL DiskTrack::Load(const Filepath& path)
 
 	// Calculate offset (previous tracks are considered to
     // hold 256 sectors)
-	off64_t offset = ((off64_t)dt.track << 8);
+	off_t offset = ((off_t)dt.track << 8);
 	if (dt.raw) {
 		ASSERT(dt.size == 11);
 		offset *= 0x930;
@@ -256,7 +256,7 @@ BOOL DiskTrack::Save(const Filepath& path)
 	ASSERT(!dt.raw);
 
 	// Calculate offset (previous tracks are considered to hold 256
-	off64_t offset = ((off64_t)dt.track << 8);
+	off_t offset = ((off_t)dt.track << 8);
 	offset <<= dt.size;
 
 	// Add offset to real image
@@ -279,7 +279,7 @@ BOOL DiskTrack::Save(const Filepath& path)
 			total = 0;
 
 			// Seek
-			if (!fio.Seek(offset + ((off64_t)i << dt.size))) {
+			if (!fio.Seek(offset + ((off_t)i << dt.size))) {
 				fio.Close();
 				return FALSE;
 			}
@@ -343,7 +343,7 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 	ASSERT(dt.buffer);
 	ASSERT((dt.size >= 8) && (dt.size <= 11));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
-	memcpy(buf, &dt.buffer[(off64_t)sec << dt.size], (off64_t)1 << dt.size);
+	memcpy(buf, &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
 
 	// Success
 	return TRUE;
@@ -403,7 +403,7 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 //	Constructor
 //
 //---------------------------------------------------------------------------
-DiskCache::DiskCache(const Filepath& path, int size, int blocks, off64_t imgoff)
+DiskCache::DiskCache(const Filepath& path, int size, int blocks, off_t imgoff)
 {
 	ASSERT((size >= 8) && (size <= 11));
 	ASSERT(blocks > 0);

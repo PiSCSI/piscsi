@@ -479,7 +479,6 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
-	ASSERT(cdb[0] == 0x12);
 
 	// EVPD check
 	if (cdb[1] & 0x01) {
@@ -555,8 +554,6 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
-	Filepath path;
-
 	ASSERT(buf);
 
 	// Status check
@@ -585,6 +582,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		ASSERT(disk.blocks > 0);
 
 		// Recreate the disk cache
+		Filepath path;
 		track[index]->GetPath(path);
 		disk.dcache = new DiskCache(path, disk.size, disk.blocks);
 		disk.dcache->SetRawMode(rawfile);
@@ -611,7 +609,6 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	DWORD lba;
 
 	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x43);
 	ASSERT(buf);
 
 	// Check if ready

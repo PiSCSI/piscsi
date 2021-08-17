@@ -55,37 +55,42 @@ void SCSIMO::Open(const Filepath& path)
 	}
 
 	// Get file size
-	off64_t size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	fio.Close();
 
 	switch (size) {
 		// 128MB
 		case 0x797f400:
+			// 512 bytes per sector
 			disk.size = 9;
 			disk.blocks = 248826;
 			break;
 
 		// 230MB
 		case 0xd9eea00:
+			// 512 bytes per sector
 			disk.size = 9;
 			disk.blocks = 446325;
 			break;
 
 		// 540MB
 		case 0x1fc8b800:
+			// 512 bytes per sector
 			disk.size = 9;
 			disk.blocks = 1041500;
 			break;
 
 		// 640MB
 		case 0x25e28000:
+			// 2048 bytes per sector
 			disk.size = 11;
 			disk.blocks = 310352;
 			break;
 
 		// Other (this is an error)
 		default:
-			throw io_exception("Invalid MO file size");
+			throw io_exception("Invalid MO file size, supported sizes are 127398912 bytes (128 MB), "
+					"228518400 bytes (230 MB), 533248000 bytes (540 MB), 635600896 bytes (640 MB)");
 	}
 
 	Disk::Open(path);
@@ -104,11 +109,8 @@ void SCSIMO::Open(const Filepath& path)
 //---------------------------------------------------------------------------
 int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 {
-	int size;
-
 	ASSERT(cdb);
 	ASSERT(buf);
-	ASSERT(cdb[0] == 0x12);
 
 	// EVPD check
 	if (cdb[1] & 0x01) {
@@ -139,7 +141,7 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 	// Size return data
-	size = (buf[4] + 5);
+	int size = (buf[4] + 5);
 
 	// Limit the size if the buffer is too small
 	if (size > (int)cdb[4]) {

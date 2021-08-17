@@ -127,7 +127,7 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 		heads = getWordLE(&hdr[0x10 + 0x100 + 4 + 4]);
 		sectors = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2]);
 		sectorsize = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2 + 2]);
-		imgsize = (off64_t)cylinders * heads * sectors * sectorsize;
+		imgsize = (off_t)cylinders * heads * sectors * sectorsize;
 	}
 
 	// Supports 256 or 512 sector sizes
