@@ -251,3 +251,29 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 
 	return true;
 }
+
+//---------------------------------------------------------------------------
+//
+//	Add Vendor special page to make drive Apple compatible
+//
+//---------------------------------------------------------------------------
+int SCSIHD::AddVendor(int page, bool change, BYTE *buf)
+{
+	ASSERT(buf);
+
+	// Page code 48 or 63
+	if (page != 0x30 && page != 0x3f) {
+		return 0;
+	}
+
+	// Set the message length
+	buf[0] = 0x30;
+	buf[1] = 0x1c;
+
+	// No changeable area
+	if (!change) {
+		memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
+	}
+
+	return 30;
+}

@@ -35,4 +35,7 @@ public:
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf);	// INQUIRY command
 	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+
+	// Internal processing
+	int AddVendor(int page, bool change, BYTE *buf) override;	// Add vendor special page
 };

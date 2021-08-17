@@ -10,7 +10,6 @@
 #include "sasihd.h"
 #include "scsihd.h"
 #include "scsihd_nec.h"
-#include "scsihd_apple.h"
 #include "scsimo.h"
 #include "scsicd.h"
 #include "scsi_host_bridge.h"
@@ -52,8 +51,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 		case SCHD:
 			if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 				return new SCSIHD_NEC();
-			} else if (ext == "hda") {
-				return new SCSIHD_APPLE();
 			} else {
 				return new SCSIHD();
 			}
