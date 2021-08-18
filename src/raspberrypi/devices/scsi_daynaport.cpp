@@ -458,17 +458,12 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 //	Enable or Disable the interface
 //
 //---------------------------------------------------------------------------
-BOOL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
+bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 {
-	int result;
-	// scsi_cdb_6_byte_t *command = (scsi_cdb_6_byte_t*)cdb;
-
-	// if(command->control & 0x80)
-	if(cdb[5] & 0x80)
-
-	{
+	bool result;
+	if (cdb[5] & 0x80) {
 		result = m_tap->Enable();
-		if(result){
+		if (result) {
 			LOGINFO("The DaynaPort interface has been ENABLED.");
 		}
 		else{
@@ -476,10 +471,9 @@ BOOL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 		}
 		m_tap->Flush();
 	}
-	else
-	{
+	else {
 		result = m_tap->Disable();
-		if(result){
+		if (result) {
 			LOGINFO("The DaynaPort interface has been DISABLED.");
 		}
 		else{
@@ -487,7 +481,7 @@ BOOL SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 		}
 	}
 
-	return TRUE;
+	return result;
 }
 
 //---------------------------------------------------------------------------

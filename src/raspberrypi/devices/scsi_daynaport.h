@@ -63,7 +63,7 @@ public:
 
 	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
 										// Retrieve DaynaPort statistics
-	BOOL EnableInterface(const DWORD *cdb);
+	bool EnableInterface(const DWORD *cdb);
 										// Enable/Disable Interface command
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);

@@ -301,10 +301,10 @@ void CTapDriver::Cleanup()
 //	Enable
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::Enable(){
+bool CTapDriver::Enable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
-	BOOL result = ip_link(fd, "ras0", TRUE);
+	bool result = ip_link(fd, "ras0", TRUE);
 	close(fd);
 	return result;
 }
@@ -314,10 +314,10 @@ BOOL CTapDriver::Enable(){
 //	Disable
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::Disable(){
+bool CTapDriver::Disable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
-	BOOL result = ip_link(fd, "ras0", FALSE);
+	bool result = ip_link(fd, "ras0", FALSE);
 	close(fd);
 	return result;
 }
