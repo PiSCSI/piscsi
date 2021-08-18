@@ -757,8 +757,6 @@ void SASIDEV::CmdRequestSense()
      	lun = GetLun();
     }
     catch(const lun_exception& e) {
-        LOGINFO("%s Non-existing LUN %d", __PRETTY_FUNCTION__, e.getlun());
-
         // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
         // Non-existing LUNs do *not* result in CHECK CONDITION.
         // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
