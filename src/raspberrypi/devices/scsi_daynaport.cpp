@@ -142,7 +142,7 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 	DWORD lun = (cdb[1] >> 5) & 0x07;
 	if (lun) {
 		SetStatusCode(STATUS_INVALIDLUN);
-		return -1;
+		return 0;
 	}
 
 	if (allocation_length > 4){

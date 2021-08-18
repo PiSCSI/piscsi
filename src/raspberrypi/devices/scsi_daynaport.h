@@ -161,7 +161,7 @@ private:
 	//http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
 	const uint8_t m_daynaport_inquiry_response[44] =  {
 		0x03, 0x00, 0x01, 0x00, // 4 bytes
-		0x1E, 0x00, 0x00, 0x00, // 4 bytes
+		0x1F, 0x00, 0x00, 0x00, // 4 bytes
 		// Vendor ID (8 Bytes)
 		 'D','a','y','n','a',' ',' ',' ',
 		// Product ID (16 Bytes)
