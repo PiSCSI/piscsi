@@ -120,7 +120,7 @@ void SCSIHD::Open(const Filepath& path)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIHD:: Inquiry(const DWORD *cdb, BYTE *buf)
+int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
@@ -139,6 +139,7 @@ int SCSIHD:: Inquiry(const DWORD *cdb, BYTE *buf)
 
 	// Basic data
 	// buf[0] ... Direct Access Device
+	// buf[1] ... Bit 7 set means removable
 	// buf[2] ... SCSI-2 compliant command system
 	// buf[3] ... SCSI-2 compliant Inquiry response
 	// buf[4] ... Inquiry additional data
@@ -149,6 +150,7 @@ int SCSIHD:: Inquiry(const DWORD *cdb, BYTE *buf)
 		buf[0] = 0x7f;
 	}
 
+	buf[1] = IsRemovable() ? 0x80 : 0x00;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
 	buf[4] = 122 + 3;	// Value close to real HDD
