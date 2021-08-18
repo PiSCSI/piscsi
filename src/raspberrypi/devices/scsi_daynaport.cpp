@@ -137,13 +137,6 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 
 	LOGTRACE("%s Inquiry, allocation length: %d",__PRETTY_FUNCTION__, (int)allocation_length);
 
-	// Work-around in order to report an error for LUNs > 0
-	DWORD lun = (cdb[1] >> 5) & 0x07;
-	if (lun) {
-		SetStatusCode(STATUS_INVALIDLUN);
-		return 0;
-	}
-
 	if (allocation_length > 4){
 		if (allocation_length > sizeof(m_daynaport_inquiry_response)) {
 			allocation_length = sizeof(m_daynaport_inquiry_response);
@@ -156,10 +149,15 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 		memcpy(&buffer[8], GetPaddedName().c_str(), 28);
 	}
 
+	// Work-around in order to report an error for LUNs > 0
+	DWORD lun = (cdb[1] >> 5) & 0x07;
+	if (lun) {
+		buffer[0] |= 0x7f;
+		SetStatusCode(STATUS_INVALIDLUN);
+	}
+
 	LOGTRACE("response size is %d", (int)allocation_length);
 
-	// Success
-	SetStatusCode(STATUS_NOERROR);
 	return allocation_length;
 }
 
