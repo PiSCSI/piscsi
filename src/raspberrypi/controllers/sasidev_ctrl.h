@@ -142,10 +142,6 @@ public:
 
 		// Logical unit
 		Disk *unit[UnitMax];
-
-		// Sense Key and Additional Sense Code (ASC) of the previous command
-		int sense_key;
-		int asc;
 	} ctrl_t;
 
 public:

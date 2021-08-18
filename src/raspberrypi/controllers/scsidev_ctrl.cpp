@@ -285,7 +285,7 @@ void SCSIDEV::Selection()
 //---------------------------------------------------------------------------
 void SCSIDEV::Execute()
 {
-	LOGTRACE( "%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	// Phase Setting
 	ctrl.phase = BUS::execute;
@@ -296,20 +296,19 @@ void SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	// If the command is valid it must be contained in the command map
+	//LOGERROR("COUNT: $%02X  %d\n", (int)ctrl.cmd[0], (int)(scsi_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))));
 	if (!scsi_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
-		LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
 		CmdInvalid();
 		return;
 	}
 
 	command_t* command = scsi_commands[static_cast<scsi_command>(ctrl.cmd[0])];
 
-	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl.cmd[0]);
+	LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((unsigned int)ctrl.cmd[0] != 0x03) {
-		ctrl.sense_key = 0;
-		ctrl.asc = 0;
+	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.status = 0;
 	}
 
 	// Process by command
@@ -323,7 +322,7 @@ void SCSIDEV::Execute()
 //---------------------------------------------------------------------------
 void SCSIDEV::MsgOut()
 {
-	LOGTRACE("%s ID: %d",__PRETTY_FUNCTION__, this->GetSCSIID());
+	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetSCSIID());
 
 	// Phase change
 	if (ctrl.phase != BUS::msgout) {
@@ -382,14 +381,19 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
+		lun = 0;
+	}
+
 	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
 	// Set Sense Key and ASC for a subsequent REQUEST SENSE
-	ctrl.sense_key = sense_key;
-	ctrl.asc = asc;
+	ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
 
-	// Set status and message(CHECK CONDITION)
-	ctrl.status = 0x02;
+	// Set status and message (CHECK CONDITION only for valid LUNs)
+	ctrl.status = asc != ERROR_CODES::asc::INVALID_LUN ? 0x02 : 0x00;
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
@@ -1376,8 +1380,7 @@ void SCSIDEV::CmdSetIfaceMode()
 
 	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
 
-	// Check whether this command is telling us to "Set Interface Mode" 
-	// or "Set MAC Address"
+	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
 	ctrl.length = dayna_port->RetrieveStats(ctrl.cmd, ctrl.buffer);
 	switch(ctrl.cmd[5]){

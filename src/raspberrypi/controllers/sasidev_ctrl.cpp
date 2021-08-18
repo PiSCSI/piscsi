@@ -414,8 +414,7 @@ void SASIDEV::Execute()
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
-		ctrl.sense_key = 0;
-		ctrl.asc = 0;
+		ctrl.status = 0;
 	}
 
 	// Process by command
@@ -489,7 +488,6 @@ void SASIDEV::Execute()
 	}
 
 	// Unsupported command
-	LOGWARN("%s Unsupported command $%02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
 	CmdInvalid();
 }
 
@@ -690,14 +688,16 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
+		lun = 0;
+	}
+
 	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
 	// Set Sense Key and ASC for a subsequent REQUEST SENSE
-	ctrl.sense_key = sense_key;
-	ctrl.asc = asc;
-
-	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;
@@ -779,22 +779,13 @@ void SASIDEV::CmdRequestSense()
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
         lun = 0;
 
-    	ctrl.sense_key = ERROR_CODES::sense_key::ILLEGAL_REQUEST;
-    	ctrl.asc = ERROR_CODES::asc::INVALID_LUN;
+        Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
     }
 
-	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
+    ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
 
-    LOGTRACE("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl.sense_key, ctrl.asc);
-
-    // REQUEST SENSE returns the sense data set by the previous (failed) command
-    ctrl.buffer[2] = ctrl.sense_key;
-    ctrl.buffer[12] = ctrl.asc;
-
-    // The sense data are only valid once
-    ctrl.sense_key = 0;
-    ctrl.asc = 0;
+    LOGTRACE("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl.buffer[2], ctrl.buffer[12]);
 
 	// Read phase
 	DataIn();
@@ -1130,7 +1121,7 @@ void SASIDEV::CmdSpecify()
 //---------------------------------------------------------------------------
 void SASIDEV::CmdInvalid()
 {
-	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
+	LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
 	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 }

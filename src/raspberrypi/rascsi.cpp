@@ -528,7 +528,7 @@ bool SetDefaultImageFolder(const string& f)
 {
 	string folder = f;
 
-	// If a relative path is specified the path is assumed to relative to the user's home directory
+	// If a relative path is specified the path is assumed to be relative to the user's home directory
 	if (folder[0] != '/') {
 		const passwd *passwd = getpwuid(getuid());
 		if (passwd) {
@@ -664,8 +664,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			catch(const io_exception& e) {
 				if (!default_image_folder.empty()) {
 					// If the file does not exist search for it in the default image folder
-					string default_file = default_image_folder + "/" + filename;
-					filepath.SetPath(default_file.c_str());
+					string file = default_image_folder + "/" + filename;
+					filepath.SetPath(file.c_str());
 					try {
 						fileSupport->Open(filepath);
 					}

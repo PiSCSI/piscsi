@@ -602,11 +602,6 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 //---------------------------------------------------------------------------
 int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 {
-	int loop;
-	int i;
-	BOOL msf;
-	DWORD lba;
-
 	ASSERT(cdb);
 	ASSERT(buf);
 
@@ -625,6 +620,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, length);
 
 	// Get MSF Flag
+	BOOL msf;
 	if (cdb[1] & 0x02) {
 		msf = TRUE;
 	} else {
@@ -661,7 +657,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 				buf[2] = (BYTE)track[0]->GetTrackNo();
 				buf[3] = (BYTE)last;
 				buf[6] = 0xaa;
-				lba = track[tracks - 1]->GetLast() + 1;
+				DWORD lba = track[tracks - 1]->GetLast() + 1;
 				if (msf) {
 					LBAtoMSF(lba, &buf[8]);
 				} else {
@@ -678,7 +674,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Number of track descriptors returned this time (number of loops)
-	loop = last - track[index]->GetTrackNo() + 1;
+	int loop = last - track[index]->GetTrackNo() + 1;
 	ASSERT(loop >= 1);
 
 	// Create header
@@ -689,7 +685,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	buf += 4;
 
 	// Loop....
-	for (i = 0; i < loop; i++) {
+	for (int i = 0; i < loop; i++) {
 		// ADR and Control
 		if (track[index]->IsAudio()) {
 			// audio track
