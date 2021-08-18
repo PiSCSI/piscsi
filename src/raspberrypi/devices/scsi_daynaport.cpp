@@ -149,11 +149,9 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 		memcpy(&buffer[8], GetPaddedName().c_str(), 28);
 	}
 
-	// Work-around in order to report an error for LUNs > 0
-	DWORD lun = (cdb[1] >> 5) & 0x07;
-	if (lun) {
+	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
+	if ((cdb[1] >> 5) & 0x07) {
 		buffer[0] |= 0x7f;
-		SetStatusCode(STATUS_INVALIDLUN);
 	}
 
 	LOGTRACE("response size is %d", (int)allocation_length);
