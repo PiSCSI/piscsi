@@ -18,7 +18,6 @@ Device::Device(const string& type)
 	assert(type.length() == 4);
 
 	this->type = type;
-	this->removable = removable;
 
 	vendor = DEFAULT_VENDOR;
 	char rev[5];
@@ -31,6 +30,7 @@ Device::Device(const string& type)
 	protectable = false;
 	write_protected = false;
 	read_only = false;
+	removable = false;
 	removed = false;
 	lockable = false;
 	locked = false;

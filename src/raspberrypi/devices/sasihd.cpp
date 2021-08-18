@@ -31,7 +31,6 @@
 //---------------------------------------------------------------------------
 SASIHD::SASIHD() : Disk("SAHD")
 {
-	SetRemovable(false);
 	SetProtectable(true);
 }
 

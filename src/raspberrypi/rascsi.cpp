@@ -641,10 +641,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 		device->SetId(id);
 		device->SetLun(unit);
-
-		if (pbDevice.protected_() && device->IsProtectable()) {
-			device->SetProtected(true);
-		}
+		device->SetProtected(pbDevice.protected_());
 
 		FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 

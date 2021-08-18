@@ -227,7 +227,6 @@ BOOL CDTrack::IsAudio() const
 SCSICD::SCSICD() : Disk("SCCD")
 {
 	SetRemovable(true);
-	SetLocked(true);
 	SetReadOnly(true);
 
 	SetProduct("CD-ROM CDU-55S");

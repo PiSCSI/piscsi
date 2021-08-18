@@ -33,8 +33,6 @@
 SCSIMO::SCSIMO() : Disk("SCMO")
 {
 	SetRemovable(true);
-	SetLocked(true);
-	SetProtectable(true);
 
 	SetProduct("M2513A");
 }

@@ -1740,11 +1740,7 @@ bool Disk::Removal(const DWORD *cdb)
 	}
 
 	// Set Lock flag
-	if (cdb[4] & 0x01) {
-		SetLocked(true);
-	} else {
-		SetLocked(false);
-	}
+	SetLocked(cdb[4] & 0x01);
 
 	// REMOVAL Success
 	return true;
