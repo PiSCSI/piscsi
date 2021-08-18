@@ -815,7 +815,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				return true;
 			}
 
-			LOGINFO("Eject requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 			device->Eject(true);
 			break;
 
@@ -824,7 +824,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				return true;
 			}
 
-			LOGINFO("Write protection requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 			device->SetProtected(true);
 			break;
 
