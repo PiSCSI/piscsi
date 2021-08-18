@@ -898,19 +898,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		goto irq_enable_exit;
 	}
 
-	// TODO The command length should be determined by the end of the COMMAND phase
-	// Distinguish whether the command is 6 bytes or 10 bytes
-	if (*buf == 0x88 || *buf == 0x8A || *buf== 0x8F || *buf == 0x9E) {
-		count = 16;
-	}
-	else if (*buf == 0xA0) {
-		count = 12;
-	}
-	else if (*buf >= 0x20 && *buf <= 0x7D) {
-		count = 10;
-	} else {
-		count = 6;
-	}
+	count = GetCommandByteCount(*buf);
 
 	// Increment buffer pointer
 	buf++;
@@ -1616,6 +1604,26 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 	return GetPhase(mci);
 }
 
+//---------------------------------------------------------------------------
+//
+//	Get the number of bytes for a command
+//
+// TODO The command length should be determined based on the bytes transferred in the COMMAND phase
+//
+//---------------------------------------------------------------------------
+int GPIOBUS::GetCommandByteCount(BYTE opcode) {
+	if (opcode == 0x88 || opcode == 0x8A || opcode == 0x8F || opcode == 0x9E) {
+		return 16;
+	}
+	else if (opcode == 0xA0) {
+		return 12;
+	}
+	else if (opcode >= 0x20 && opcode <= 0x7D) {
+		return 10;
+	} else {
+		return 6;
+	}
+}
 
 //---------------------------------------------------------------------------
 //

@@ -351,22 +351,7 @@ void SASIDEV::Command()
 			return;
 		}
 
-		// TODO The command length should be calculated based on the number of bytes transferred during the COMMAND phase
-		// Note that there is a duplicate length calculation in gpiobus.cpp
-
-		// Check 10-byte CDB
-		if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
-			ctrl.length = 10;
-		}
-
-		if (ctrl.buffer[0] == eCmdReportLuns) {
-			ctrl.length = 12;
-		}
-
-		if (ctrl.buffer[0] == eCmdRead16 || ctrl.buffer[0] == eCmdWrite16 || ctrl.buffer[0] == eCmdVerify16 ||
-				ctrl.buffer[0] == eCmdReadCapacity16) {
-			ctrl.length = 16;
-		}
+		ctrl.length = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 		// If not able to receive all, move to the status phase
 		if (count != (int)ctrl.length) {
@@ -388,7 +373,7 @@ void SASIDEV::Command()
 			Execute();
 		}
 		catch (lun_exception& e) {
-			LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+			LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 		}
@@ -770,7 +755,7 @@ void SASIDEV::CmdRequestSense()
      	lun = GetLun();
     }
     catch(const lun_exception& e) {
-        LOGINFO("%s Non-existing LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+        LOGINFO("%s Non-existing LUN %d", __PRETTY_FUNCTION__, e.getlun());
 
         // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
         // Non-existing LUNs do *not* result in CHECK CONDITION.

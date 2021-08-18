@@ -306,11 +306,6 @@ void SCSIDEV::Execute()
 
 	LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
 
-	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
-		ctrl.status = 0;
-	}
-
 	// Process by command
 	(this->*command->execute)();
 }
@@ -392,8 +387,8 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 	// Set Sense Key and ASC for a subsequent REQUEST SENSE
 	ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
 
-	// Set status and message (CHECK CONDITION only for valid LUNs)
-	ctrl.status = asc != ERROR_CODES::asc::INVALID_LUN ? 0x02 : 0x00;
+	// Set status and message (CHECK CONDITION only for valid LUNs for non-REQUEST SENSE)
+	ctrl.status = (ctrl.cmd[0] == eCmdRequestSense && asc == ERROR_CODES::asc::INVALID_LUN) ? 0x00 : 0x02;
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
@@ -1593,7 +1588,6 @@ void SCSIDEV::Send()
 void SCSIDEV::Receive()
 {
 	int len;
-	int i;
 	BYTE data;
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
@@ -1606,8 +1600,7 @@ void SCSIDEV::Receive()
 	if (ctrl.length != 0) {
 		LOGTRACE("%s length was != 0", __PRETTY_FUNCTION__);
 		// Receive
-		len = ctrl.bus->ReceiveHandShake(
-			&ctrl.buffer[ctrl.offset], ctrl.length);
+		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -1675,26 +1668,22 @@ void SCSIDEV::Receive()
 	switch (ctrl.phase) {
 		// Command phase
 		case BUS::command:
-			// Command data transfer
-			len = 6;
-			if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
-				// 10 byte CDB
-				len = 10;
-			}
-			for (i = 0; i < len; i++) {
+			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+
+			for (int i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
-				LOGTRACE("%s Command $%02X",__PRETTY_FUNCTION__, (int)ctrl.cmd[i]);
+				LOGTRACE("%s Command $%02X",__PRETTY_FUNCTION__, ctrl.cmd[i]);
 			}
 
 			// Execution Phase
-                        try {
-                        	Execute();
-                        }
-                        catch (const lun_exception& e) {
-                            LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+			try {
+				Execute();
+			}
+			catch (const lun_exception& e) {
+				LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, e.getlun());
 
-                            Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-                        }
+				Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+			}
 			break;
 
 		// Message out phase
@@ -1710,7 +1699,7 @@ void SCSIDEV::Receive()
 
 			// Parsing messages sent by ATN
 			if (scsi.atnmsg) {
-				i = 0;
+				int i = 0;
 				while (i < scsi.msc) {
 					// Message type
 					data = scsi.msb[i];
