@@ -70,8 +70,6 @@ public:
 										// Set MAC address
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
-	int RequestSense(const DWORD *cdb, BYTE *buf) override;
-
 	static const BYTE CMD_SCSILINK_STATS        = 0x09;
 	static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;
 	static const BYTE CMD_SCSILINK_SET          = 0x0C;

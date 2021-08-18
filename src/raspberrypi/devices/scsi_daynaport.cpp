@@ -126,7 +126,6 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 
 	ASSERT(cdb);
 	ASSERT(buffer);
-	ASSERT(cdb[0] == 0x12);
 
 	//allocation_length = command->length;
 	DWORD allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
@@ -162,30 +161,6 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 	// Success
 	SetStatusCode(STATUS_NOERROR);
 	return allocation_length;
-}
-
-//---------------------------------------------------------------------------
-//
-//	RequestSense
-//
-//---------------------------------------------------------------------------
-int SCSIDaynaPort::RequestSense(const DWORD *cdb, BYTE *buffer)
-{
-	// The DaynaPort RequestSense response will always be 9 bytes.
-	int size = 9;
-
-	LOGTRACE("%s size of sense data = %d", __PRETTY_FUNCTION__, size);
-
-	// Clear the buffer
-	memset(buffer, 0, size);
-
-	// Only set the response code (70h)
-	buffer[0] = 0x70;
-
-	// Clear the code
-	SetStatusCode(STATUS_NOERROR);
-
-	return size;
 }
 
 //---------------------------------------------------------------------------
