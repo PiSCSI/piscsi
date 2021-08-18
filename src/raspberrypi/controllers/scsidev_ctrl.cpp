@@ -296,7 +296,6 @@ void SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	// If the command is valid it must be contained in the command map
-	//LOGERROR("COUNT: $%02X  %d\n", (int)ctrl.cmd[0], (int)(scsi_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))));
 	if (!scsi_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
 		CmdInvalid();
 		return;
@@ -384,11 +383,14 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 
 	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
-	// Set Sense Key and ASC for a subsequent REQUEST SENSE
-	ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
+	if (sense_key || asc) {
+		// Set Sense Key and ASC for a subsequent REQUEST SENSE
+		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
+	}
 
-	// Set status and message (CHECK CONDITION only for valid LUNs for non-REQUEST SENSE)
+	// Set status (CHECK CONDITION only for valid LUNs for non-REQUEST SENSE)
 	ctrl.status = (ctrl.cmd[0] == eCmdRequestSense && asc == ERROR_CODES::asc::INVALID_LUN) ? 0x00 : 0x02;
+
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);

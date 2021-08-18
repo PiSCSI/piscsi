@@ -1902,7 +1902,7 @@ int Disk::ReadToc(const DWORD *cdb, BYTE *buf)
 
 	// This command is not supported
 	SetStatusCode(STATUS_INVALIDCMD);
-	return FALSE;
+	return 0;
 }
 
 //---------------------------------------------------------------------------

@@ -10,6 +10,8 @@
 #include <cassert>
 #include <sstream>
 #include "rascsi_version.h"
+#include "os.h"
+#include "log.h"
 #include "exceptions.h"
 #include "device.h"
 
@@ -106,6 +108,13 @@ const string Device::GetPaddedName() const
 	assert(name.length() == 28);
 
 	return name;
+}
+
+void Device::SetStatusCode(int status_code)
+{
+    LOGTRACE("Setting status: Sense Key: $%02X, ASC: $%02X, ASCQ: $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff);
+
+	this->status_code = status_code;
 }
 
 // TODO This implementation appears to be wrong: If a device is locked there

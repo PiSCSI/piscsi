@@ -681,8 +681,10 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 
 	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
-	// Set Sense Key and ASC for a subsequent REQUEST SENSE
-	ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
+	if (sense_key || asc) {
+		// Set Sense Key and ASC for a subsequent REQUEST SENSE
+		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
+	}
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;

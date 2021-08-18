@@ -460,7 +460,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	}
 
 	//  Success
-	SetStatusCode(STATUS_NOERROR);
 	return response_size;
 	// scsi_cdb_6_byte_t *command = (scsi_cdb_6_byte_t*)cdb;
 	// scsi_resp_link_stats_t *response = (scsi_resp_link_stats_t*) buffer;
@@ -526,7 +525,6 @@ bool SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// TEST UNIT READY Success
-	SetStatusCode(STATUS_NOERROR);
 	return true;
 }
 

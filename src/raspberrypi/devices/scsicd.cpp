@@ -620,12 +620,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, length);
 
 	// Get MSF Flag
-	BOOL msf;
-	if (cdb[1] & 0x02) {
-		msf = TRUE;
-	} else {
-		msf = FALSE;
-	}
+	bool msf = cdb[1] & 0x02;
 
 	// Get and check the last track number
 	int last = track[tracks - 1]->GetTrackNo();

@@ -108,7 +108,7 @@ public:
 	};
 
 	const int UNKNOWN_SCSI_ID = -1;
-	const int DEFAULT_BUFFER_SIZE = 0x800;
+	const int DEFAULT_BUFFER_SIZE = 0x1000;
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
 	// For timing adjustments
