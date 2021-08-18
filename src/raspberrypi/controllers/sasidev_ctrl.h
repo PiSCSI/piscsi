@@ -89,6 +89,7 @@ protected:
 			eCmdPlayAudio10 = 0x45,
 			eCmdPlayAudioMSF = 0x47,
 			eCmdPlayAudioTrack = 0x48,
+			eCmdGetEventStatusNotification = 0x4a,
 			eCmdModeSelect10 = 0x55,
 			eCmdReserve10 = 0x56,
 			eCmdRelease10 = 0x57,

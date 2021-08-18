@@ -891,7 +891,7 @@ void SASIDEV::CmdRead6()
 		DWORD capacity = ctrl.unit[lun]->GetBlockCount();
 		if (record > capacity || record + ctrl.blocks > capacity) {
 			ostringstream s;
-			s << "Media capacity of " << capacity << " blocks exceeded: "
+			s << "ID " << ctrl.unit[lun]->GetType() << ": Media capacity of " << capacity << " blocks exceeded: "
 					<< "Trying to read block " << record << ", block count " << ctrl.blocks;
 			LOGWARN("%s", s.str().c_str());
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);

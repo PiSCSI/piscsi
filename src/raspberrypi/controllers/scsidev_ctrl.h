@@ -99,6 +99,7 @@ private:
 	void CmdPlayAudio10();						// PLAY AUDIO(10) command
 	void CmdPlayAudioMSF();					// PLAY AUDIO MSF command
 	void CmdPlayAudioTrack();					// PLAY AUDIO TRACK INDEX command
+	void CmdGetEventStatusNotification();
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command
 	void CmdReadCapacity16();					// READ CAPACITY(16) command

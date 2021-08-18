@@ -81,6 +81,7 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	SetUpCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
 	SetUpCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
 	SetUpCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
+	SetUpCommand(eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDEV::CmdGetEventStatusNotification);
 
 	// DaynaPort specific. TODO Move to separate class
 	SetUpCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
@@ -721,7 +722,7 @@ void SCSIDEV::CmdRead10()
 	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
 		ostringstream s;
-		s << "Media capacity of " << capacity << " blocks exceeded: "
+		s << "ID " << ctrl.unit[lun]->GetType() << ": Media capacity of " << capacity << " blocks exceeded: "
 				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
 		LOGWARN("%s", s.str().c_str());
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
@@ -1183,6 +1184,19 @@ void SCSIDEV::CmdPlayAudioTrack()
 
 	// status phase
 	Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	GET EVENT STATUS NOTIFICATION
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::CmdGetEventStatusNotification()
+{
+	GetLun();
+
+	// This naive (but legal) implementation avoids constant warnings in the logs
+	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------
