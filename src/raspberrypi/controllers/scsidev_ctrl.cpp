@@ -416,7 +416,7 @@ void SCSIDEV::CmdInquiry()
 	LOGTRACE("%s INQUIRY Command", __PRETTY_FUNCTION__);
 
 	// Find a valid unit
-	// TODO The code below is most likely wrong. It results in the same INQUIRY data being
+	// TODO The code below is probably wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
 	PrimaryDevice *device = NULL;
 	for (int valid_lun = 0; valid_lun < UnitMax; valid_lun++) {
