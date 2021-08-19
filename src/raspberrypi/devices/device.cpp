@@ -122,19 +122,20 @@ void Device::SetStatusCode(int status_code)
 // no "force" mode.
 bool Device::Eject(bool force)
 {
-	if (!IsReady() || !IsRemovable()) {
+	if (!ready || !removable) {
 		return false;
 	}
 
 	// Must be unlocked if there is no force flag
-	if (!force && IsLocked()) {
+	if (!force && locked) {
 		return false;
 	}
 
-	SetReady(false);
-	SetProtected(false);
-	SetRemoved(true);
-	SetAttn(false);
+	ready = false;
+	attn = false;
+	removed = true;
+	write_protected = false;
+	locked = false;
 
 	return true;
 }

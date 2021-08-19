@@ -771,12 +771,15 @@ void Disk::Open(const Filepath& path)
 //---------------------------------------------------------------------------
 bool Disk::Eject(bool force)
 {
-	// Remove disk cache
-	disk.dcache->Save();
-	delete disk.dcache;
-	disk.dcache = NULL;
+	bool status = BlockDevice::Eject(force);
+	if (status) {
+		// Remove disk cache
+		disk.dcache->Save();
+		delete disk.dcache;
+		disk.dcache = NULL;
+	}
 
-	return BlockDevice::Eject(force);
+	return status;
 }
 
 //---------------------------------------------------------------------------
@@ -788,7 +791,7 @@ bool Disk::Flush()
 {
 	// Do nothing if there's nothing cached
 	if (!disk.dcache) {
-		return TRUE;
+		return true;
 	}
 
 	// Save cache
