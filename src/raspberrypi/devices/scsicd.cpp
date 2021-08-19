@@ -312,6 +312,8 @@ void SCSICD::Open(const Filepath& path)
 
 	// Successful opening
 	ASSERT(disk.blocks > 0);
+
+	// Sector size 2048 bytes
 	disk.size = 11;
 
 	Disk::Open(path);
@@ -320,9 +322,6 @@ void SCSICD::Open(const Filepath& path)
 	// Set RAW flag
 	ASSERT(disk.dcache);
 	disk.dcache->SetRawMode(rawfile);
-
-	// Since it is a ROM media, writing is not possible
-	SetProtected(true);
 
 	// Attention if ready
 	if (IsReady()) {

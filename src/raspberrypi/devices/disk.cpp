@@ -756,7 +756,7 @@ void Disk::Open(const Filepath& path)
 		// Write permission
 		fio.Close();
 	} else {
-		// Write protected
+		// Permanently write-protected
 		SetReadOnly(true);
 	}
 

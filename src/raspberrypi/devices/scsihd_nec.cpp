@@ -86,7 +86,7 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	if (size >= (off_t)sizeof(hdr)) {
 		if (!fio.Read(hdr, sizeof(hdr))) {
 			fio.Close();
-			throw io_exception("Can't read hard disk file header");
+			throw io_exception("Can't read NEC hard disk file header");
 		}
 	}
 	fio.Close();
@@ -96,7 +96,7 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 		throw io_exception("File size must be a multiple of 512 bytes");
 	}
 
-	// 2TB according to xm6i
+	// 2TB is the current maximum
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
 		throw io_exception("File size must not exceed 2 TB");
 	}

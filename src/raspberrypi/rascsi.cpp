@@ -684,6 +684,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 			if (!dryRun) {
 				if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
+					delete device;
+
 					return ReturnStatus(fd, false, "Image file '" + filename + "' is already in use");
 				}
 

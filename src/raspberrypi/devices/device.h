@@ -56,9 +56,10 @@ private:
 	bool reset;
 	bool attn;
 
-	// Device is protectable/write-protected or implicitly read-only
+	// Device is protectable/write-protected
 	bool protectable;
 	bool write_protected;
+	// Device is permanently read-only
 	bool read_only;
 
 	// Device is removable/removed
@@ -69,6 +70,7 @@ private:
 	bool lockable;
 	bool locked;
 
+	// Device ID and LUN
 	unsigned int id;
 	unsigned int lun;
 
@@ -76,6 +78,7 @@ private:
 	string product;
 	string revision;
 
+	// Sense Key, ASC and ASCQ
 	int status_code;
 
 public:
