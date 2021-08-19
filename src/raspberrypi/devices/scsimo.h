@@ -32,8 +32,8 @@ public:
 	void Open(const Filepath& path);			// Open
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
+	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;	// MODE SELECT(6) command
 
 	// Internal processing
 	int AddVendor(int page, BOOL change, BYTE *buf);			// Add vendor special page

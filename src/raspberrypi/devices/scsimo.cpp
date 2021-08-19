@@ -106,7 +106,7 @@ void SCSIMO::Open(const Filepath& path)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
