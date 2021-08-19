@@ -170,6 +170,7 @@ public:
 	int ReadCapacity16(const DWORD *cdb, BYTE *buf);			// READ CAPACITY(16) command
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
 	DWORD GetBlockCount() const { return disk.blocks; }
+	void SetBlockCount(DWORD blocks) { disk.blocks = blocks; }
 	// TODO Currently not called
 	bool Verify(const DWORD *cdb);					// VERIFY command
 	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command

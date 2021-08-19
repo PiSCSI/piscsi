@@ -271,7 +271,7 @@ void SCSICD::Open(const Filepath& path)
 	ASSERT(!IsReady());
 
 	// Initialization, track clear
-	disk.blocks = 0;
+	SetBlockCount(0);
 	rawfile = FALSE;
 	ClearTrack();
 
@@ -311,7 +311,7 @@ void SCSICD::Open(const Filepath& path)
 	}
 
 	// Successful opening
-	ASSERT(disk.blocks > 0);
+	ASSERT(GetBlockCount() > 0);
 
 	// Sector size 2048 bytes
 	disk.size = 11;
@@ -402,7 +402,7 @@ void SCSICD::OpenIso(const Filepath& path)
 		}
 
 		// Set the number of blocks
-		disk.blocks = (DWORD)(size / 0x930);
+		SetBlockCount((DWORD)(size / 0x930));
 	} else {
 		// Size must be a multiple of 2048 and less than 700MB
 		if (size & 0x7ff) {
@@ -413,15 +413,15 @@ void SCSICD::OpenIso(const Filepath& path)
 		}
 
 		// Set the number of blocks
-		disk.blocks = (DWORD)(size >> 11);
+		SetBlockCount((DWORD)(size >> 11));
 	}
 
-	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(), disk.blocks);
+	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(), GetBlockCount());
 
 	// Create only one data track
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
-	track[0]->Init(1, 0, disk.blocks - 1);
+	track[0]->Init(1, 0, GetBlockCount() - 1);
 	track[0]->SetPath(FALSE, path);
 	tracks = 1;
 	dataindex = 0;
@@ -459,12 +459,12 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	}
 
 	// Set the number of blocks
-	disk.blocks = (DWORD)(size >> 11);
+	SetBlockCount((DWORD)(size >> 11));
 
 	// Create only one data track
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
-	track[0]->Init(1, 0, disk.blocks - 1);
+	track[0]->Init(1, 0, GetBlockCount() - 1);
 	track[0]->SetPath(FALSE, path);
 	tracks = 1;
 	dataindex = 0;
@@ -576,13 +576,13 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		disk.dcache = NULL;
 
 		// Reset the number of blocks
-		disk.blocks = track[index]->GetBlocks();
-		ASSERT(disk.blocks > 0);
+		SetBlockCount(track[index]->GetBlocks());
+		ASSERT(GetBlockCount() > 0);
 
 		// Recreate the disk cache
 		Filepath path;
 		track[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, disk.size, disk.blocks);
+		disk.dcache = new DiskCache(path, disk.size, GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index

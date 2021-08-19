@@ -83,13 +83,13 @@ void SCSIHD::Open(const Filepath& path)
 
 	// sector size 512 bytes and number of blocks
 	disk.size = 9;
-	disk.blocks = (DWORD)(size >> 9);
+	SetBlockCount((DWORD)(size >> 9));
 
-	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(), disk.blocks);
+	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(),GetBlockCount());
 
 	// Set the default product name based on the drive capacity
 	stringstream product;
-	product << DEFAULT_PRODUCT << " " << (disk.blocks >> 11) << " MB";
+	product << DEFAULT_PRODUCT << " " << (GetBlockCount() >> 11) << " MB";
 	SetProduct(product.str(), false);
 
 	Disk::Open(path);
