@@ -647,7 +647,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
 		if (fileSupport && !pbDevice.removable() && filename.empty()) {
-			free(device);
+			delete device;
 
 			return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
 		}
