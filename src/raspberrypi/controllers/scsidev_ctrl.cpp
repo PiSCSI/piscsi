@@ -428,9 +428,7 @@ void SCSIDEV::CmdInquiry()
 
 	// Processed on the disk side (it is originally processed by the controller)
 	if (device) {
-		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
 		ctrl.length = device->Inquiry(ctrl.cmd, ctrl.buffer);
-		LOGTRACE("%s Length is %d",__PRETTY_FUNCTION__, ctrl.length);
 	} else {
 		ctrl.length = 0;
 	}
