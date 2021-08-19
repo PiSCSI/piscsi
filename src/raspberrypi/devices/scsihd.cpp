@@ -85,6 +85,8 @@ void SCSIHD::Open(const Filepath& path)
 	disk.size = 9;
 	disk.blocks = (DWORD)(size >> 9);
 
+	LOGTRACE("Media capacity for image file '%s': %d blocks", path.GetPath(), disk.blocks);
+
 	// Set the default product name based on the drive capacity
 	stringstream product;
 	product << DEFAULT_PRODUCT << " " << (disk.blocks >> 11) << " MB";
