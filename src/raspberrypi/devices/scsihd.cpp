@@ -86,27 +86,8 @@ void SCSIHD::Open(const Filepath& path)
 	disk.blocks = (DWORD)(size >> 9);
 
 	// Set the default product name based on the drive capacity
-	int capacity = disk.blocks >> 11;
 	stringstream product;
-	if (capacity < 300) {
-		product << "PRODRIVE LPS" << capacity;
-	}
-	else if (capacity < 600) {
-		product << "MAVERICK" << capacity;
-	}
-	else if (capacity < 800) {
-		product << "LIGHTNING" << capacity;
-	}
-	else if (capacity < 1000) {
-		product << "TRAILBRAZER" << capacity;
-	}
-	else if (capacity < 2000) {
-		product << "FIREBALL" << capacity;
-	}
-	else {
-		product << "FBSE" << capacity / 1000 << "." << (capacity % 1000) / 100;
-	}
-	product << "S";
+	product << "SCSI HD " << (disk.blocks >> 11) << " MB";
 	SetProduct(product.str(), false);
 
 	Disk::Open(path);
