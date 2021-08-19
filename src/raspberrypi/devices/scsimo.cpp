@@ -147,8 +147,6 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
 		size = (int)cdb[4];
 	}
 
-	//  Success
-	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 
@@ -217,9 +215,7 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	}
 
 	// Do not generate an error for the time being (MINIX)
-	SetStatusCode(STATUS_NOERROR);
-
-	return false;
+	return true;
 }
 
 //---------------------------------------------------------------------------

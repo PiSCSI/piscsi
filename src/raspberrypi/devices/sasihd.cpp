@@ -150,8 +150,5 @@ int SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)
 	buf[0] = (BYTE)(GetStatusCode() >> 16);
 	buf[1] = (BYTE)(GetLun() << 5);
 
-	// Clear the code
-	SetStatusCode(STATUS_NOERROR);
-
 	return size;
 }

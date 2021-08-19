@@ -87,7 +87,7 @@ void SCSIHD::Open(const Filepath& path)
 
 	// Set the default product name based on the drive capacity
 	stringstream product;
-	product << "SCSI HD " << (disk.blocks >> 11) << " MB";
+	product << DEFAULT_PRODUCT << " " << (disk.blocks >> 11) << " MB";
 	SetProduct(product.str(), false);
 
 	Disk::Open(path);
@@ -225,8 +225,6 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	}
 
 	// Do not generate an error for the time being (MINIX)
-	SetStatusCode(STATUS_NOERROR);
-
 	return true;
 }
 

@@ -540,8 +540,6 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 		size = (int)cdb[4];
 	}
 
-	//  Success
-	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 

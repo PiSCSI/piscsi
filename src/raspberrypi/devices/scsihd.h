@@ -19,6 +19,8 @@
 #include "disk.h"
 #include "filepath.h"
 
+#define DEFAULT_PRODUCT "SCSI HD"
+
 //===========================================================================
 //
 //	SCSI Hard Disk
