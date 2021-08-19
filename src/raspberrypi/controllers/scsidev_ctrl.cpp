@@ -729,7 +729,7 @@ void SCSIDEV::CmdRead10()
 		return;
 	}
 
-	LOGTRACE("%s READ(10) command record=%d block=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
+	LOGTRACE("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
@@ -801,7 +801,7 @@ void SCSIDEV::CmdRead16()
 		return;
 	}
 
-	LOGTRACE("%s READ(16) command record=%d block=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
+	LOGTRACE("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
@@ -862,7 +862,7 @@ void SCSIDEV::CmdWrite10()
 		return;
 	}
 
-	LOGTRACE("%s WRTIE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
+	LOGTRACE("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
@@ -934,7 +934,7 @@ void SCSIDEV::CmdWrite16()
 		return;
 	}
 
-	LOGTRACE("%s WRTIE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
+	LOGTRACE("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
