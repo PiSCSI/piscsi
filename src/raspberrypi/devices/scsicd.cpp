@@ -416,6 +416,8 @@ void SCSICD::OpenIso(const Filepath& path)
 		disk.blocks = (DWORD)(size >> 11);
 	}
 
+	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(), disk.blocks);
+
 	// Create only one data track
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
