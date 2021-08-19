@@ -141,7 +141,7 @@ public:
 	// Media Operations
 	virtual void Open(const Filepath& path);	// Open
 	void GetPath(Filepath& path) const;				// Get the path
-	bool Eject(bool);					// Eject
+	bool Eject(bool) override;					// Eject
 	bool Flush();							// Flush the cache
 
 	// commands

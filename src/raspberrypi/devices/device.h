@@ -126,7 +126,7 @@ public:
 	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int status_code);
 
-	bool Eject(bool);
+	virtual bool Eject(bool);
 
 	bool IsSASI() const { return type == "SAHD"; }
 	bool IsSCSI() const { return type == "SCHD" || type == "SCRM"; }
