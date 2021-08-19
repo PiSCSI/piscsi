@@ -627,7 +627,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		// Create a new device, based upon type or file extension
 		device = DeviceFactory::CreateDevice(type, filename, ext);
 		if (!device) {
-			return ReturnStatus(fd, false, "Received a command for an invalid device type: " + PbDeviceType_Name(type));
+			return ReturnStatus(fd, false, "Invalid device type " + PbDeviceType_Name(type));
 		}
 
 		if (!pbDevice.name().empty()) {
@@ -641,7 +641,9 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 		device->SetId(id);
 		device->SetLun(unit);
-		device->SetProtected(pbDevice.protected_());
+		if (!device->IsReadOnly()) {
+			device->SetProtected(pbDevice.protected_());
+		}
 
 		FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
@@ -662,23 +664,16 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				fileSupport->Open(filepath);
 			}
 			catch(const io_exception& e) {
-				if (!default_image_folder.empty()) {
-					// If the file does not exist search for it in the default image folder
-					string file = default_image_folder + "/" + filename;
-					filepath.SetPath(file.c_str());
-					try {
-						fileSupport->Open(filepath);
-					}
-					catch(const io_exception&) {
-						delete device;
-
-						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
-					}
+				// If the file does not exist search for it in the default image folder
+				string file = default_image_folder + "/" + filename;
+				filepath.SetPath(file.c_str());
+				try {
+					fileSupport->Open(filepath);
 				}
-				else {
+				catch(const io_exception&) {
 					delete device;
 
-					return ReturnStatus(fd, false, "No default image folder");
+					return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
 				}
 			}
 
@@ -765,12 +760,11 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		}
 	}
 
-	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
 	if ((cmd == INSERT || cmd == EJECT) && !device->IsRemovable()) {
 		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't removable)");
 	}
 
-	if ((cmd == PROTECT || cmd == UNPROTECT) && (!device->IsProtectable() || device->IsReadOnly())) {
+	if ((cmd == PROTECT || cmd == UNPROTECT) && !device->IsProtectable()) {
 		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't protectable)");
 	}
 
@@ -818,6 +812,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			}
 
 			LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+			// EJECT is idempotent
 			device->Eject(true);
 			break;
 
@@ -827,6 +822,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			}
 
 			LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+			// PROTECT is idempotent
 			device->SetProtected(true);
 			break;
 
@@ -836,6 +832,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			}
 
 			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			// UNPROTECT is idempotent
 			device->SetProtected(false);
 			break;
 

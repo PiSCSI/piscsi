@@ -52,12 +52,12 @@ ID is the SCSI ID that you want to control. (0-7)
 Command is the operation being requested. options are:
    attach: attach disk
    detach: detach disk
-   insert: insert media (Magneto-Optical and CD only)
-   eject:  eject media  (Magneto-Optical and CD only)
-   protect: Write protect the media (Magneto-Optical only)
-   unprotect: Remove write protection from the media (Magneto-Optical only)
+   insert: insert media (removable media devices only)
+   eject: eject media (removable media devices only)
+   protect: write protect the media (not for CD-ROMs, which are always read-only)
+   unprotect: remove write protection from the media (not for CD-ROMs, which are always read-only)
 .IP
-When the command is omitted, rasctl will default to the 'attach' command.
+eject, protect and unprotect are idempotent.
 .TP 
 .BR \-f\fI " " \fIFILE
 Path to the disk image file. See the rascsi(1) man page for allowable file types.
@@ -69,8 +69,8 @@ Specifies the device type. This type overrides the type derived from the file ex
    cd: CD-ROM
    bridge: Bridge device (This is only applicable to the Sharp X68000)
 .TP 
-.BR \-u\fI " " \fINAME
-The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be specified. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Once set the name of a device cannot be changed.
+.BR \-u\fI " " \fIVENDOR:PRODUCT:REVISION
+The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.
 .TP 
 .BR \-u\fI " " \fIUNIT
 Unit number (0 or 1). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)

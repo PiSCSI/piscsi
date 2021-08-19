@@ -52,10 +52,9 @@ void Device::Reset()
 
 void Device::SetProtected(bool write_protected)
 {
-	// The protected status only makes sense for devices that are not read-only
-	if (!read_only) {
-		this->write_protected = write_protected;
-	}
+	assert(!read_only);
+
+	this->write_protected = write_protected;
 }
 
 void Device::SetVendor(const string& vendor)

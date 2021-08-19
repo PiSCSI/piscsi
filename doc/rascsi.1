@@ -52,7 +52,7 @@ The rascsi log level (trace, debug, info, warn, err, critical, off). The default
 Show a help page.
 .TP
 .BR \-n\fI " " \fIVENDOR:PRODUCT:REVISION
-Set the vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be specified. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Once set the name of a device cannot be changed.
+Set the vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.
 .TP
 .BR \-p\fI " " \fIPORT
 The rascsi server port, default is 6868.

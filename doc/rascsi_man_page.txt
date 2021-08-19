@@ -63,16 +63,17 @@ OPTIONS
        -n VENDOR:PRODUCT:REVISION
               Set  the  vendor, product and revision for the device, to be re‐
               turned with the INQUIRY data. A complete set of name  components
-              must  be  specified.  VENDOR may have up to 8, PRODUCT up to 16,
-              REVISION up to 4 characters. Once set the name of a device  can‐
-              not be changed.
+              must be provided. VENDOR may have up to 8, PRODUCT up to 16, RE‐
+              VISION up to 4 characters. Padding with  blanks  to  the  maxium
+              length  is  automatically applied. Once set the name of a device
+              cannot be changed.
 
        -p PORT
               The rascsi server port, default is 6868.
 
        -p TYPE
-              The  optional  case-insensitive  device  type (SAHD, SCHD, SCRM,
-              SCCD, SCMO, SCBR, SCDP). If no type  is  specified  for  devices
+              The optional case-insensitive device  type  (SAHD,  SCHD,  SCRM,
+              SCCD,  SCMO,  SCBR,  SCDP).  If no type is specified for devices
               that support an image file, rascsi tries to derive the type from
               the file extension.
 
@@ -81,8 +82,8 @@ OPTIONS
        -IDn FILE
               n is the SCSI ID number (0-7)
 
-              FILE is the name of the image file to use for the  SCSI  device.
-              For  devices  that  do  not support an image file (SCBR, SCDP) a
+              FILE  is  the name of the image file to use for the SCSI device.
+              For devices that do not support an image  file  (SCBR,  SCDP)  a
               dummy name must be provided.
 
        -HDn FILE
@@ -90,7 +91,7 @@ OPTIONS
 
               FILE is the name of the image file to use for the SASI device.
 
-              Note: SASI usage is rare, and  is  typically  limited  to  early
+              Note:  SASI  usage  is  rare,  and is typically limited to early
               Sharp X68000 systems.
 
 EXAMPLES
@@ -102,7 +103,7 @@ EXAMPLES
           rascsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
 
        Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw de‐
-       vice  file  /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter
+       vice file /dev/hdb (e.g. a USB stick) and a DaynaPort  network  adapter
        as ID 6:
           rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp DUMMY_FILENAME
 
