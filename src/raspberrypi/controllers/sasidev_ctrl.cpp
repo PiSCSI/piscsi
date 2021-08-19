@@ -897,7 +897,7 @@ void SASIDEV::CmdRead6()
 		}
 	}
 
-	LOGTRACE("%s READ(6) command record=%d blocks=%d ID %s", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks, ctrl.unit[lun]->GetType().c_str());
+	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Command processing on drive
 	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
