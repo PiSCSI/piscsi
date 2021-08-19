@@ -141,6 +141,7 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 	}
 
 	// Sector size
+	// TODO Do not use disk.size directly
 	for(disk.size = 16; disk.size > 0; --(disk.size)) {
 		if ((1 << disk.size) == sectorsize)
 			break;

@@ -169,6 +169,8 @@ public:
 	int ReadCapacity10(const DWORD *cdb, BYTE *buf);			// READ CAPACITY(10) command
 	int ReadCapacity16(const DWORD *cdb, BYTE *buf);			// READ CAPACITY(16) command
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
+	int GetSectorSize() const { return disk.size; }
+	void SetSectorSize(int size) { disk.size = size; }
 	DWORD GetBlockCount() const { return disk.blocks; }
 	void SetBlockCount(DWORD blocks) { disk.blocks = blocks; }
 	// TODO Currently not called

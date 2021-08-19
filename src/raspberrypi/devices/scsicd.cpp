@@ -314,7 +314,7 @@ void SCSICD::Open(const Filepath& path)
 	ASSERT(GetBlockCount() > 0);
 
 	// Sector size 2048 bytes
-	disk.size = 11;
+	SetSectorSize(11);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
@@ -582,7 +582,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		// Recreate the disk cache
 		Filepath path;
 		track[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, disk.size, GetBlockCount());
+		disk.dcache = new DiskCache(path, GetSectorSize(), GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index

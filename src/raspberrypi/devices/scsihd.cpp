@@ -82,7 +82,7 @@ void SCSIHD::Open(const Filepath& path)
 	}
 
 	// sector size 512 bytes and number of blocks
-	disk.size = 9;
+	SetSectorSize(9);
 	SetBlockCount((DWORD)(size >> 9));
 
 	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(),GetBlockCount());
@@ -169,7 +169,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Mode Parameter header
 		if (length >= 12) {
 			// Check the block length bytes
-			size = 1 << disk.size;
+			size = 1 << GetSectorSize();
 			if (buf[9] != (BYTE)(size >> 16) ||
 				buf[10] != (BYTE)(size >> 8) ||
 				buf[11] != (BYTE)size) {
@@ -190,7 +190,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				// format device
 				case 0x03:
 					// check the number of bytes in the physical sector
-					size = 1 << disk.size;
+					size = 1 << GetSectorSize();
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length
