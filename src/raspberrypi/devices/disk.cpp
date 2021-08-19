@@ -1953,3 +1953,22 @@ bool Disk::PlayAudioTrack(const DWORD *cdb)
 	return false;
 }
 
+int Disk::GetSectorSize() const
+{
+	return disk.size;
+}
+
+void Disk::SetSectorSize(int size)
+{
+	disk.size = size;
+}
+
+DWORD Disk::GetBlockCount() const
+{
+	return disk.blocks;
+}
+
+void Disk::SetBlockCount(DWORD blocks)
+{
+	disk.blocks = blocks;
+}

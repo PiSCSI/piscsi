@@ -169,10 +169,10 @@ public:
 	int ReadCapacity10(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(10) command
 	int ReadCapacity16(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(16) command
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
-	int GetSectorSize() const { return disk.size; }
-	void SetSectorSize(int size) { disk.size = size; }
-	DWORD GetBlockCount() const { return disk.blocks; }
-	void SetBlockCount(DWORD blocks) { disk.blocks = blocks; }
+	int GetSectorSize() const;
+	void SetSectorSize(int);
+	DWORD GetBlockCount() const;
+	void SetBlockCount(DWORD);
 	// TODO Currently not called
 	bool Verify(const DWORD *cdb);					// VERIFY command
 	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
