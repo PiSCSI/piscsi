@@ -150,24 +150,24 @@ public:
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) override;		// REQUEST SENSE command
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
-	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
-	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
-	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
+	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;// MODE SELECT command
+	virtual int ModeSense(const DWORD *cdb, BYTE *buf) override;		// MODE SENSE command
+	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) override;		// MODE SENSE(10) command
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
 	bool Rezero(const DWORD *cdb);					// REZERO command
-	bool Format(const DWORD *cdb);					// FORMAT UNIT command
+	bool Format(const DWORD *cdb) override;					// FORMAT UNIT command
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
-	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
+	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;			// READ command
 	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
+	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;			// WRITE command
 	bool Seek(const DWORD *cdb);					// SEEK command
 	bool Assign(const DWORD *cdb);					// ASSIGN command
 	bool Specify(const DWORD *cdb);				// SPECIFY command
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	int ReadCapacity10(const DWORD *cdb, BYTE *buf);			// READ CAPACITY(10) command
-	int ReadCapacity16(const DWORD *cdb, BYTE *buf);			// READ CAPACITY(16) command
+	int ReadCapacity10(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(10) command
+	int ReadCapacity16(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(16) command
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
 	int GetSectorSize() const { return disk.size; }
 	void SetSectorSize(int size) { disk.size = size; }
