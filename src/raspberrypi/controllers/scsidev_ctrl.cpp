@@ -431,6 +431,7 @@ void SCSIDEV::CmdInquiry()
 	if (device) {
 		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
 		ctrl.length = ctrl.unit[valid_lun]->Inquiry(ctrl.cmd, ctrl.buffer);
+		LOGTRACE("%s Length is %d",__PRETTY_FUNCTION__, ctrl.length);
 	} else {
 		ctrl.length = 0;
 	}
