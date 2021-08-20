@@ -702,6 +702,7 @@ void DiskCache::Update()
 Disk::Disk(const std::string id) : BlockDevice(id)
 {
 	// Work initialization
+	configured_sector_size = 0;
 	disk.size = 0;
 	disk.blocks = 0;
 	disk.dcache = NULL;
