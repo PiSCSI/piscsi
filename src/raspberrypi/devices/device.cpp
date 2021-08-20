@@ -52,9 +52,9 @@ void Device::Reset()
 
 void Device::SetProtected(bool write_protected)
 {
-	assert(!read_only);
-
-	this->write_protected = write_protected;
+	if (!read_only) {
+		this->write_protected = write_protected;
+	}
 }
 
 void Device::SetVendor(const string& vendor)

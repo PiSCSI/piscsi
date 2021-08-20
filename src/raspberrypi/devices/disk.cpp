@@ -758,6 +758,8 @@ void Disk::Open(const Filepath& path)
 	} else {
 		// Permanently write-protected
 		SetReadOnly(true);
+		SetProtectable(false);
+		SetProtected(false);
 	}
 
 	SetLocked(false);
