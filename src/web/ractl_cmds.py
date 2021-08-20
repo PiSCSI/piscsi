@@ -70,8 +70,6 @@ def attach_image(scsi_id, image, device_type):
     elif device_type == "SCDP":
         attach_daynaport(scsi_id)
     else:
-        if device_type == "SCCD":
-            device_type = "cd"
         return subprocess.run(
             ["rasctl", "-c", "attach", "-t", device_type, "-i", scsi_id, "-f", image],
             capture_output=True,
@@ -105,7 +103,7 @@ def insert(scsi_id, image):
 
 def attach_daynaport(scsi_id):
     return subprocess.run(
-        ["rasctl", "-i", scsi_id, "-c", "attach", "-t", "daynaport"],
+        ["rasctl", "-i", scsi_id, "-c", "attach", "-t", "scdp"],
         capture_output=True,
     )
 
