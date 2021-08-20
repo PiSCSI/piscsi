@@ -646,6 +646,33 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			device->SetProtected(pbDevice.protected_());
 		}
 
+		if (pbDevice.block_size()) {
+			Disk *disk = dynamic_cast<Disk *>(device);
+			if (disk) {
+				switch (pbDevice.block_size()) {
+				case 512:
+					disk->SetConfiguredSectorSize(9);
+					break;
+
+				case 1024:
+					disk->SetConfiguredSectorSize(10);
+					break;
+
+				case 2048:
+					disk->SetConfiguredSectorSize(11);
+					break;
+
+				case 4096:
+					disk->SetConfiguredSectorSize(12);
+					break;
+
+				default:
+					error << "Invalid block size " << pbDevice.block_size();
+					return ReturnStatus(fd, false, error);
+				}
+			}
+		}
+
 		FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
@@ -884,6 +911,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	bool is_sasi = false;
 	int max_id = 7;
 	PbDeviceType type = UNDEFINED;
+	int block_size;
 	string name;
 	string log_level;
 
@@ -902,6 +930,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				max_id = 15;
 				id = -1;
 				continue;
+
+			case 'b': {
+				block_size = atoi(optarg);
+				continue;
+			}
 
 			case 'g':
 				log_level = optarg;
@@ -974,6 +1007,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_id(id);
 		device->set_unit(unit);
 		device->set_type(type);
+		device->set_block_size(block_size);
 		device->set_name(name);
 		device->set_file(optarg);
 

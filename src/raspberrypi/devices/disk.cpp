@@ -1965,6 +1965,16 @@ void Disk::SetSectorSize(int size)
 	disk.size = size;
 }
 
+int Disk::GetConfiguredSectorSize() const
+{
+	return configured_sector_size;
+}
+
+void Disk::SetConfiguredSectorSize(int configured_sector_size)
+{
+	this->configured_sector_size = configured_sector_size;
+}
+
 DWORD Disk::GetBlockCount() const
 {
 	return disk.blocks;

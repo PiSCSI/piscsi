@@ -61,10 +61,13 @@ message PbDeviceDefinition {
     int32 id = 1;
     int32 unit = 2;
     PbDeviceType type = 3;
-    string file = 4;
+    // The optional SCSI drive block size in bytes per sector, must be 512, 1024, 2048 or 4096
+    int32 block_size = 4;
+    // The optional name of the image file
+    string file = 5;
     // The device name, format is VENDOR:PRODUCT:REVISION
-    string name = 5;
-    bool protected = 6;
+    string name = 6;
+    bool protected = 7;
 }
 
 message PbDeviceDefinitions {
@@ -80,22 +83,24 @@ message PbDevice {
     string vendor = 5;
     string product = 6;
     string revision = 7;
+    // SCSI drives only
+    int32 block_size = 8;
     // Read-only media (e.g. CD-ROMs) are not protectable but read-only all the time
-    bool read_only = 8;
+    bool read_only = 9;
     // Media can be write-protected
-    bool protectable = 9;
+    bool protectable = 10;
     // Media is write-protected
-    bool protected = 10;
+    bool protected = 11;
     // Media can be removed
-    bool removable = 11;
+    bool removable = 12;
     // Media is removed
-    bool removed = 12;
+    bool removed = 13;
     // Media can be locked
-    bool lockable = 13;
+    bool lockable = 14;
     // Media is locked
-    bool locked = 14;
+    bool locked = 15;
     // Device supports image file
-    bool supports_file = 15;
+    bool supports_file = 16;
 }
 
 message PbDevices {

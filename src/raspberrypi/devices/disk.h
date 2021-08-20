@@ -36,8 +36,8 @@ public:
 	// Internal data definition
 	typedef struct {
 		int track;							// Track Number
-		int size;							// Sector Size(8 or 9)
-		int sectors;							// Number of sectors(<=0x100)
+		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
+		int sectors;							// Number of sectors(<0x100)
 		DWORD length;							// Data buffer length
 		BYTE *buffer;							// Data buffer
 		BOOL init;							// Is it initilized?
@@ -111,7 +111,7 @@ private:
 	cache_t cache[CacheMax];						// Cache management
 	DWORD serial;								// Last serial number
 	Filepath sec_path;							// Path
-	int sec_size;								// Sector size (8 or 9 or 11)
+	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 	int sec_blocks;								// Blocks per sector
 	BOOL cd_raw;								// CD-ROM RAW mode
 	off_t imgoffset;							// Offset to actual data
@@ -124,10 +124,13 @@ private:
 //===========================================================================
 class Disk : public BlockDevice
 {
+private:
+	int configured_sector_size;
+
 protected:
 	// Internal data structure
 	typedef struct {
-		int size;							// Sector Size
+		int size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		DWORD blocks;							// Total number of sectors
 		DiskCache *dcache;						// Disk cache
 		off_t imgoffset;						// Offset to actual data
@@ -171,6 +174,8 @@ public:
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
 	int GetSectorSize() const;
 	void SetSectorSize(int);
+	int GetConfiguredSectorSize() const;
+	void SetConfiguredSectorSize(int);
 	DWORD GetBlockCount() const;
 	void SetBlockCount(DWORD);
 	// TODO Currently not called
