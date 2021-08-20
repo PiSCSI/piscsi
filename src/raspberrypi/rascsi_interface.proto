@@ -65,7 +65,6 @@ message PbDeviceDefinition {
     // The device name, format is VENDOR:PRODUCT:REVISION
     string name = 5;
     bool protected = 6;
-    bool removable = 7;
 }
 
 message PbDeviceDefinitions {
