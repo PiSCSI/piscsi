@@ -52,6 +52,11 @@ OPTIONS
 
               eject, protect and unprotect are idempotent.
 
+       -b BLOCK_SIZE
+              The optional block size for SCSI disk and MO drives, either 512,
+              1024,  2048  or  4096. The default size is device type and media
+              specific.
+
        -f FILE
               Path to the disk image file. See the rascsi(1) man page for  al‐
               lowable file types.

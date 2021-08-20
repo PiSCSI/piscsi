@@ -917,7 +917,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:T:t:P:p:f:Vv")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:f:Vv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
