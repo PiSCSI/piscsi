@@ -649,7 +649,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
-		if (fileSupport && !pbDevice.removable() && filename.empty()) {
+		if (fileSupport && !device->IsRemovable() && filename.empty()) {
 			delete device;
 
 			return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
