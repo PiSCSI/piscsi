@@ -1013,6 +1013,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 		id = -1;
 		type = UNDEFINED;
+		block_size = 0;
+		name = "";
 	}
 
 	if (!log_level.empty() && !SetLogLevel(log_level)) {
