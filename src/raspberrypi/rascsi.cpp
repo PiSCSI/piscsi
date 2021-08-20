@@ -576,13 +576,14 @@ void SetDeviceName(Device *device, const string& name)
 bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cmd, const string& params, bool dryRun)
 {
 	Filepath filepath;
-	Device *device;
+	Device *device = NULL;
 	ostringstream error;
 
 	const int id = pbDevice.id();
 	const int unit = pbDevice.unit();
 	const string filename = pbDevice.file();
 	PbDeviceType type = pbDevice.type();
+	bool all = params == "all";
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
@@ -703,23 +704,25 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		}
 	}
 
-	// Does the controller exist?
-	if (!dryRun && controllers[id] == NULL) {
-		error << "Received a command for non-existing ID " << id;
-		return ReturnStatus(fd, false, error);
-	}
+	// When detaching all devices no controller/unit tests are required
+	if (cmd != DETACH || !all) {
+		// Does the controller exist?
+		if (!dryRun && !controllers[id]) {
+			error << "Received a command for non-existing ID " << id;
+			return ReturnStatus(fd, false, error);
+		}
 
-	// Does the unit exist?
-	device = devices[id * UnitNum + unit];
-	if (!dryRun && device == NULL) {
-		error << "Received a command for ID " << id << ", non-existing unit " << unit;
-		return ReturnStatus(fd, false, error);
+		// Does the unit exist?
+		device = devices[id * UnitNum + unit];
+		if (!dryRun && !device) {
+			error << "Received a command for ID " << id << ", non-existing unit " << unit;
+			return ReturnStatus(fd, false, error);
+		}
 	}
 
 	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
 	if (cmd == DETACH) {
-		bool all = params == "all";
 		if (!all && !params.empty()) {
 			return ReturnStatus(fd, false, "Invalid command parameter '" + params + "' for " + PbOperation_Name(DETACH));
 		}
@@ -744,14 +747,14 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			}
 
 			// Re-map the controller, remember the device type because the device gets lost when re-mapping
-			const string device_type = device->GetType();
+			const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
 			bool status = MapController(map);
 			if (status) {
 				if (all) {
 					LOGINFO("Disconnected all devices");
 				}
 				else {
-					LOGINFO("Disconnected %s device, ID: %d unit: %d", device_type.c_str(), id, unit);
+					LOGINFO("Disconnected %s device with ID %d, unit %d", device_type.c_str(), id, unit);
 				}
 				return true;
 			}
