@@ -911,7 +911,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	bool is_sasi = false;
 	int max_id = 7;
 	PbDeviceType type = UNDEFINED;
-	int block_size;
+	int block_size = 0;
 	string name;
 	string log_level;
 
