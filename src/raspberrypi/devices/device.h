@@ -70,6 +70,9 @@ private:
 	bool lockable;
 	bool locked;
 
+	// The block size is configurable
+	bool block_size_configurable;
+
 	// Device ID and LUN
 	unsigned int id;
 	unsigned int lun;

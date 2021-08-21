@@ -34,6 +34,7 @@ SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
 	SetRemovable(removable);
 	SetProtectable(true);
+	SetSectorSizeConfigurable(true);
 }
 
 //---------------------------------------------------------------------------
@@ -81,9 +82,9 @@ void SCSIHD::Open(const Filepath& path)
 		throw io_exception("File size must not exceed 2 TB");
 	}
 
-	// sector size 512 bytes and number of blocks
-	SetSectorSize(9);
-	SetBlockCount((DWORD)(size >> 9));
+	// sector size (default 512 bytes) and number of blocks
+	SetSectorSize(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 9);
+	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
 	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(),GetBlockCount());
 

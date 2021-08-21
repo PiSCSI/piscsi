@@ -590,7 +590,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
 	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", filename='" << filename << "', device name='" << pbDevice.name() << "', params='" << params << "'";
+			<< ", filename='" << filename << "', device name='" << pbDevice.name()
+			<< "', block size=" << pbDevice.block_size() << ", params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
@@ -646,6 +647,36 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		device->SetLun(unit);
 		if (!device->IsReadOnly()) {
 			device->SetProtected(pbDevice.protected_());
+		}
+
+		if (pbDevice.block_size()) {
+			Disk *disk = dynamic_cast<Disk *>(device);
+			if (disk && disk->IsSectorSizeConfigurable()) {
+				switch (pbDevice.block_size()) {
+				case 512:
+					disk->SetConfiguredSectorSize(9);
+					break;
+
+				case 1024:
+					disk->SetConfiguredSectorSize(10);
+					break;
+
+				case 2048:
+					disk->SetConfiguredSectorSize(11);
+					break;
+
+				case 4096:
+					disk->SetConfiguredSectorSize(12);
+					break;
+
+				default:
+					error << "Invalid block size " << pbDevice.block_size();
+					return ReturnStatus(fd, false, error);
+				}
+			}
+			else {
+				return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
+			}
 		}
 
 		FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
@@ -886,12 +917,13 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	bool is_sasi = false;
 	int max_id = 7;
 	PbDeviceType type = UNDEFINED;
+	int block_size = 0;
 	string name;
 	string log_level;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:T:t:P:p:f:Vv")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:f:Vv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -904,6 +936,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				max_id = 15;
 				id = -1;
 				continue;
+
+			case 'b': {
+				block_size = atoi(optarg);
+				continue;
+			}
 
 			case 'g':
 				log_level = optarg;
@@ -976,11 +1013,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_id(id);
 		device->set_unit(unit);
 		device->set_type(type);
+		device->set_block_size(block_size);
 		device->set_name(name);
 		device->set_file(optarg);
 
 		id = -1;
 		type = UNDEFINED;
+		block_size = 0;
+		name = "";
 	}
 
 	if (!log_level.empty() && !SetLogLevel(log_level)) {
