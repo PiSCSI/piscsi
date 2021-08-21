@@ -702,6 +702,7 @@ void DiskCache::Update()
 Disk::Disk(const std::string id) : BlockDevice(id)
 {
 	// Work initialization
+	sector_size_configurable = false;
 	configured_sector_size = 0;
 	disk.size = 0;
 	disk.blocks = 0;
@@ -1964,6 +1965,16 @@ int Disk::GetSectorSize() const
 void Disk::SetSectorSize(int size)
 {
 	disk.size = size;
+}
+
+bool Disk::IsSectorSizeConfigurable() const
+{
+	return sector_size_configurable;
+}
+
+void Disk::SetSectorSizeConfigurable(bool sector_size_configurable)
+{
+	this->sector_size_configurable = sector_size_configurable;
 }
 
 int Disk::GetConfiguredSectorSize() const

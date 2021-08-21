@@ -125,6 +125,7 @@ private:
 class Disk : public BlockDevice
 {
 private:
+	bool sector_size_configurable;
 	int configured_sector_size;
 
 protected:
@@ -174,6 +175,8 @@ public:
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
 	int GetSectorSize() const;
 	void SetSectorSize(int);
+	bool IsSectorSizeConfigurable() const;
+	void SetSectorSizeConfigurable(bool);
 	int GetConfiguredSectorSize() const;
 	void SetConfiguredSectorSize(int);
 	DWORD GetBlockCount() const;
