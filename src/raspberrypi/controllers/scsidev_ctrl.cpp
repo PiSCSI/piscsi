@@ -697,35 +697,12 @@ void SCSIDEV::CmdRead10()
 	}
 
 	// Get record number and block number
-	DWORD record = ctrl.cmd[2];
-	record <<= 8;
-	record |= ctrl.cmd[3];
-	record <<= 8;
-	record |= ctrl.cmd[4];
-	record <<= 8;
-	record |= ctrl.cmd[5];
-	ctrl.blocks = ctrl.cmd[7];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[8];
-
-	// Check capacity
-	DWORD capacity = ctrl.device->GetBlockCount();
-	if (record > capacity || record + ctrl.blocks > capacity) {
-		ostringstream s;
-		s << "Media capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
-		LOGWARN("%s", s.str().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+	uint64_t record;
+	if (!GetStartAndCount(record, ctrl.blocks, false)) {
 		return;
 	}
 
 	LOGTRACE("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
-
-	// Do not process 0 blocks
-	if (ctrl.blocks == 0) {
-		Status();
-		return;
-	}
 
 	// Command processing on drive
 	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
@@ -756,47 +733,13 @@ void SCSIDEV::CmdRead16()
 		return;
 	}
 
-	// Report an error as long as big drives are not supported
-	if (ctrl.cmd[2] || ctrl.cmd[3] || ctrl.cmd[4] || ctrl.cmd[5]) {
-		LOGWARN("Can't execute READ(16) with 64 bit sector number");
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
-		return;
-	}
-
 	// Get record number and block number
-	DWORD record = ctrl.cmd[6];
-	record <<= 8;
-	record |= ctrl.cmd[7];
-	record <<= 8;
-	record |= ctrl.cmd[8];
-	record <<= 8;
-	record |= ctrl.cmd[9];
-	ctrl.blocks = ctrl.cmd[10];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[11];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[12];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[13];
-
-	// Check capacity
-	DWORD capacity = ctrl.device->GetBlockCount();
-	if (record > capacity || record + ctrl.blocks > capacity) {
-		ostringstream s;
-		s << "Media capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
-		LOGWARN("%s", s.str().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+	uint64_t record;
+	if (!GetStartAndCount(record, ctrl.blocks, true)) {
 		return;
 	}
 
 	LOGTRACE("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
-
-	// Do not process 0 blocks
-	if (ctrl.blocks == 0) {
-		Status();
-		return;
-	}
 
 	// Command processing on drive
 	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
@@ -828,35 +771,12 @@ void SCSIDEV::CmdWrite10()
 	}
 
 	// Get record number and block number
-	DWORD record = ctrl.cmd[2];
-	record <<= 8;
-	record |= ctrl.cmd[3];
-	record <<= 8;
-	record |= ctrl.cmd[4];
-	record <<= 8;
-	record |= ctrl.cmd[5];
-	ctrl.blocks = ctrl.cmd[7];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[8];
-
-	// Check capacity
-	DWORD capacity = ctrl.device->GetBlockCount();
-	if (record > capacity || record + ctrl.blocks > capacity) {
-		ostringstream s;
-		s << "Media capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
-		LOGWARN("%s", s.str().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+	uint64_t record;
+	if (!GetStartAndCount(record, ctrl.blocks, false)) {
 		return;
 	}
 
 	LOGTRACE("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
-
-	// Do not process 0 blocks
-	if (ctrl.blocks == 0) {
-		Status();
-		return;
-	}
 
 	// Command processing on drive
 	ctrl.length = ctrl.device->WriteCheck(record);
@@ -887,47 +807,13 @@ void SCSIDEV::CmdWrite16()
 		return;
 	}
 
-	// Report an error as long as big drives are not supported
-	if (ctrl.cmd[2] || ctrl.cmd[3] || ctrl.cmd[4] || ctrl.cmd[5]) {
-		LOGWARN("Can't execute WRITE(16) with 64 bit sector number");
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
-		return;
-	}
-
 	// Get record number and block number
-	DWORD record = ctrl.cmd[6];
-	record <<= 8;
-	record |= ctrl.cmd[7];
-	record <<= 8;
-	record |= ctrl.cmd[8];
-	record <<= 8;
-	record |= ctrl.cmd[9];
-	ctrl.blocks = ctrl.cmd[10];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[11];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[12];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[13];
-
-	// Check capacity
-	DWORD capacity = ctrl.device->GetBlockCount();
-	if (record > capacity || record + ctrl.blocks > capacity) {
-		ostringstream s;
-		s << "Media capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
-		LOGWARN("%s", s.str().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+	uint64_t record;
+	if (!GetStartAndCount(record, ctrl.blocks, true)) {
 		return;
 	}
 
 	LOGTRACE("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
-
-	// Do not process 0 blocks
-	if (ctrl.blocks == 0) {
-		Status();
-		return;
-	}
 
 	// Command processing on drive
 	ctrl.length = ctrl.device->WriteCheck(record);
@@ -972,32 +858,16 @@ void SCSIDEV::CmdSeek10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdVerify()
 {
-	bool status;
-
 	// Get record number and block number
-	DWORD record = ctrl.cmd[2];
-	record <<= 8;
-	record |= ctrl.cmd[3];
-	record <<= 8;
-	record |= ctrl.cmd[4];
-	record <<= 8;
-	record |= ctrl.cmd[5];
-	ctrl.blocks = ctrl.cmd[7];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[8];
+	uint64_t record;
+	GetStartAndCount(record, ctrl.blocks, false);
 
 	LOGTRACE("%s VERIFY command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
-
-	// Do not process 0 blocks
-	if (ctrl.blocks == 0) {
-		Status();
-		return;
-	}
 
 	// if BytChk=0
 	if ((ctrl.cmd[1] & 0x02) == 0) {
 		// Command processing on drive
-		status = ctrl.device->Seek(ctrl.cmd);
+		bool status = ctrl.device->Seek(ctrl.cmd);
 		if (!status) {
 			// Failure (Error)
 			Error();
@@ -1776,4 +1646,65 @@ BOOL SCSIDEV::XferMsg(DWORD msg)
 	}
 
 	return TRUE;
+}
+
+//---------------------------------------------------------------------------
+//
+//	Get start sector and sector count for a READ/WRITE(10/16) operation
+//
+//---------------------------------------------------------------------------
+bool SCSIDEV::GetStartAndCount(uint64_t& start, uint32_t& count, bool rw64)
+{
+	start = ctrl.cmd[2];
+	start <<= 8;
+	start |= ctrl.cmd[3];
+	start <<= 8;
+	start |= ctrl.cmd[4];
+	start <<= 8;
+	start |= ctrl.cmd[5];
+	if (rw64) {
+		start <<= 8;
+		start |= ctrl.cmd[6];
+		start <<= 8;
+		start |= ctrl.cmd[7];
+		start <<= 8;
+		start |= ctrl.cmd[8];
+		start <<= 8;
+		start |= ctrl.cmd[9];
+	}
+
+	if (rw64) {
+		count = ctrl.cmd[10];
+		count <<= 8;
+		count |= ctrl.cmd[11];
+		count <<= 8;
+		count |= ctrl.cmd[12];
+		count <<= 8;
+		count |= ctrl.cmd[13];
+	}
+	else {
+		count = ctrl.cmd[7];
+		count <<= 8;
+		count |= ctrl.cmd[8];
+	}
+
+	// Check capacity
+	uint64_t capacity = ctrl.device->GetBlockCount();
+	if (start > capacity || start + count > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << start << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return false;
+	}
+
+	// Do not process 0 blocks
+	if (!count) {
+		LOGTRACE("NOT processing 0 blocks");
+		Status();
+		return false;
+	}
+
+	return true;
 }

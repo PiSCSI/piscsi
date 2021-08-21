@@ -136,7 +136,7 @@ public:
 		// Transfer
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
-		DWORD blocks;					// Number of transfer block
+		uint32_t blocks;				// Number of transfer block
 		DWORD next;						// Next record
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
