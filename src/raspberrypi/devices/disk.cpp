@@ -1563,6 +1563,12 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		return 0;
 	}
 
+	// Error if the total number of blocks is exceeded
+	if (block >= disk.blocks) {
+		SetStatusCode(STATUS_INVALIDLBA);
+		return 0;
+	}
+
 	// leave it to the cache
 	if (!disk.dcache->Read(buf, block)) {
 		SetStatusCode(STATUS_READFAULT);
@@ -1583,6 +1589,12 @@ int Disk::WriteCheck(DWORD block)
 	// Status check
 	if (!CheckReady()) {
 		LOGDEBUG("WriteCheck failed (not ready)");
+		return 0;
+	}
+
+	// Error if the total number of blocks is exceeded
+	if (block >= disk.blocks) {
+		LOGDEBUG("WriteCheck failed (capacity exceeded)");
 		return 0;
 	}
 
@@ -1617,6 +1629,12 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	// Error if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
+		return false;
+	}
+
+	// Error if the total number of blocks is exceeded
+	if (block >= disk.blocks) {
+		SetStatusCode(STATUS_INVALIDLBA);
 		return false;
 	}
 
@@ -1758,8 +1776,12 @@ bool Disk::Removal(const DWORD *cdb)
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-int Disk::ReadCapacity10(const DWORD* /*cdb*/, BYTE *buf)
+void Disk::ReadCapacity10(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 {
+	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
+
+	BYTE *buf = ctrl->buffer;
+
 	ASSERT(buf);
 
 	// Buffer clear
@@ -1767,13 +1789,16 @@ int Disk::ReadCapacity10(const DWORD* /*cdb*/, BYTE *buf)
 
 	// Status check
 	if (!CheckReady()) {
-		return 0;
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
+		return;
 	}
 
 	if (disk.blocks <= 0) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
+
 		LOGWARN("%s Capacity not available, medium may not be present", __PRETTY_FUNCTION__);
 
-		return -1;
+		return;
 	}
 
 	// Create end of logical block address (disk.blocks-1)
@@ -1790,12 +1815,19 @@ int Disk::ReadCapacity10(const DWORD* /*cdb*/, BYTE *buf)
 	buf[6] = (BYTE)(length >> 8);
 	buf[7] = (BYTE)length;
 
-	// return the size
-	return 8;
+	// the size
+	ctrl->length = 8;
+
+	// Data-in Phase
+	controller->DataIn();
 }
 
-int Disk::ReadCapacity16(const DWORD* /*cdb*/, BYTE *buf)
+void Disk::ReadCapacity16(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 {
+	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
+
+	BYTE *buf = ctrl->buffer;
+
 	ASSERT(buf);
 
 	// Buffer clear
@@ -1803,13 +1835,16 @@ int Disk::ReadCapacity16(const DWORD* /*cdb*/, BYTE *buf)
 
 	// Status check
 	if (!CheckReady()) {
-		return 0;
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
+		return;
 	}
 
 	if (disk.blocks <= 0) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
+
 		LOGWARN("%s Capacity not available, medium may not be present", __PRETTY_FUNCTION__);
 
-		return -1;
+		return;
 	}
 
 	// Create end of logical block address (disk.blocks-1)
@@ -1830,8 +1865,11 @@ int Disk::ReadCapacity16(const DWORD* /*cdb*/, BYTE *buf)
 	// Logical blocks per physical block: not reported (1 or more)
 	buf[13] = 0;
 
-	// return the size
-	return 14;
+	// the size
+	ctrl->length = 14;
+
+	// Data-in Phase
+	controller->DataIn();
 }
 
 //---------------------------------------------------------------------------

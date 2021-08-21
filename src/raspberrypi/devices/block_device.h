@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "controllers/sasidev_ctrl.h"
+#include "controllers/scsidev_ctrl.h"
 #include "primary_device.h"
 
 class BlockDevice : public PrimaryDevice
@@ -29,8 +31,8 @@ public:
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 	// WRITE(6), WRITE(10)
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) = 0;
-	virtual int ReadCapacity10(const DWORD *cdb, BYTE *buf) = 0;
-	virtual int ReadCapacity16(const DWORD *cdb, BYTE *buf) = 0;
+	virtual void ReadCapacity10(SCSIDEV *, SASIDEV::ctrl_t *) = 0;
+	virtual void ReadCapacity16(SCSIDEV *, SASIDEV::ctrl_t *) = 0;
 	// TODO Uncomment as soon as there is a clean separation between controllers and devices
 	//virtual int Read16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 	//virtual int Write16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;

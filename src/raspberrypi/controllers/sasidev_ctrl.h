@@ -136,13 +136,15 @@ public:
 		// Transfer
 		BYTE *buffer;					// Transfer data buffer
 		int bufsize;					// Transfer data buffer size
-		DWORD blocks;					// Number of transfer block
+		uint32_t blocks;				// Number of transfer block
 		DWORD next;						// Next record
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
 
 		// Logical unit
 		Disk *unit[UnitMax];
+
+		Disk *device;
 	} ctrl_t;
 
 public:
@@ -158,7 +160,7 @@ public:
 	void Connect(int id, BUS *sbus);				// Controller connection
 	Disk* GetUnit(int no);							// Get logical unit
 	void SetUnit(int no, Disk *dev);				// Logical unit setting
-	BOOL HasUnit();						// Has a valid logical unit
+	bool HasUnit();						// Has a valid logical unit
 
 	// Other
 	BUS::phase_t GetPhase() {return ctrl.phase;}			// Get the phase
@@ -175,6 +177,9 @@ public:
 	virtual BOOL IsSCSI() const {return FALSE;}			// SCSI check
 	Disk* GetBusyUnit();								// Get the busy unit
 
+public:
+	void DataIn();							// Data in phase
+
 protected:
 	// Phase processing
 	virtual void BusFree();					// Bus free phase
@@ -183,7 +188,6 @@ protected:
 	virtual void Execute();					// Execution phase
 	void Status();							// Status phase
 	void MsgIn();							// Message in phase
-	void DataIn();							// Data in phase
 	void DataOut();						// Data out phase
 	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling

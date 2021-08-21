@@ -40,15 +40,21 @@ public:
 	} scsi_t;
 
 	// SCSI command name and pointer to implementation
-	typedef struct _command_t {
+	typedef struct _controller_command_t {
 		const char* name;
 		void (SCSIDEV::*execute)(void);
 
-		_command_t(const char* _name, void (SCSIDEV::*_execute)(void)) : name(_name), execute(_execute) { };
-	} command_t;
+		_controller_command_t(const char* _name, void (SCSIDEV::*_execute)(void)) : name(_name), execute(_execute) { };
+	} controller_command_t;
+	std::map<scsi_command, controller_command_t*> controller_commands;
 
-	// Mapping of SCSI opcodes to command implementations
-	std::map<scsi_command, command_t*> scsi_commands;
+	typedef struct _device_command_t {
+		const char* name;
+		void (Disk::*execute)(SCSIDEV *, SASIDEV::ctrl_t *);
+
+		_device_command_t(const char* _name, void (Disk::*_execute)(SCSIDEV *, SASIDEV::ctrl_t *)) : name(_name), execute(_execute) { };
+	} device_command_t;
+	std::map<scsi_command, device_command_t*> device_commands;
 
 public:
 	// Basic Functions
@@ -66,16 +72,18 @@ public:
 	BOOL IsSASI() const {return FALSE;}				// SASI Check
 	BOOL IsSCSI() const {return TRUE;}				// SCSI check
 
+	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common erorr handling
+
 private:
-	void SetUpCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
+	void SetUpControllerCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
+	void SetUpDeviceCommand(scsi_command, const char*, void (Disk::*)(SCSIDEV *, SASIDEV::ctrl_t *));
 
 	// Phase
 	void BusFree();						// Bus free phase
 	void Selection();						// Selection phase
 	void Execute();						// Execution phase
 	void MsgOut();							// Message out phase
-	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common erorr handling
 
 	// commands
 	void CmdInquiry();						// INQUIRY command
@@ -88,7 +96,6 @@ private:
 	void CmdStartStop();						// START STOP UNIT command
 	void CmdSendDiag();						// SEND DIAGNOSTIC command
 	void CmdRemoval();						// PREVENT/ALLOW MEDIUM REMOVAL command
-	void CmdReadCapacity10();					// READ CAPACITY(10) command
 	void CmdRead10();						// READ(10) command
 	void CmdWrite10();						// WRITE(10) command
 	void CmdSeek10();						// SEEK(10) command
@@ -102,7 +109,6 @@ private:
 	void CmdGetEventStatusNotification();
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command
-	void CmdReadCapacity16();					// READ CAPACITY(16) command
 	void CmdRead16();						// READ(16) command
 	void CmdWrite16();						// WRITE(16) command
 	void CmdReportLuns();					// REPORT LUNS command
@@ -116,6 +122,8 @@ private:
 	void Send();							// Send data
 	void Receive();						// Receive data
 	BOOL XferMsg(DWORD msg);					// Data transfer message
+
+	bool GetStartAndCount(uint64_t&, uint32_t&, bool);
 
 	scsi_t scsi;								// Internal data
 };

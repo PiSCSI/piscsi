@@ -139,7 +139,7 @@ void SASIDEV::SetUnit(int no, Disk *dev)
 //	Check to see if this has a valid logical unit
 //
 //---------------------------------------------------------------------------
-BOOL SASIDEV::HasUnit()
+bool SASIDEV::HasUnit()
 {
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
@@ -400,6 +400,13 @@ void SASIDEV::Execute()
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
 		ctrl.status = 0;
+	}
+
+	ctrl.device = NULL;
+
+	// REQUEST SENSE requires a special LUN handling
+	if (ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.device = ctrl.unit[GetLun()];
 	}
 
 	// Process by command
@@ -706,10 +713,8 @@ void SASIDEV::CmdTestUnitReady()
 {
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
+	bool status = ctrl.device->TestUnitReady(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -729,10 +734,8 @@ void SASIDEV::CmdRezero()
 {
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Rezero(ctrl.cmd);
+	bool status = ctrl.device->Rezero(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -785,10 +788,8 @@ void SASIDEV::CmdFormat()
 {
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Format(ctrl.cmd);
+	bool status = ctrl.device->Format(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -808,10 +809,8 @@ void SASIDEV::CmdReassign()
 {
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Reassign(ctrl.cmd);
+	bool status = ctrl.device->Reassign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -865,8 +864,6 @@ void SASIDEV::CmdReleaseUnit()
 //---------------------------------------------------------------------------
 void SASIDEV::CmdRead6()
 {
-	DWORD lun = GetLun();
-
 	// Get record number and block number
 	DWORD record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
@@ -878,15 +875,16 @@ void SASIDEV::CmdRead6()
 		ctrl.blocks = 0x100;
 	}
 
+	// TODO Move Daynaport specific test
 	// TODO This class must not know about SCDP
-	if(ctrl.unit[lun]->IsDaynaPort()){
+	if(ctrl.device->IsDaynaPort()){
 		// The DaynaPort only wants one block.
 		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
 		ctrl.blocks=1;
 	}
 	else {
 		// Check capacity
-		DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+		DWORD capacity = ctrl.device->GetBlockCount();
 		if (record > capacity || record + ctrl.blocks > capacity) {
 			ostringstream s;
 			s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
@@ -900,11 +898,11 @@ void SASIDEV::CmdRead6()
 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
+	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 
 	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
-	if (ctrl.length <= 0 && !ctrl.unit[lun]->IsDaynaPort()) {
+	if (ctrl.length <= 0 && !ctrl.device->IsDaynaPort()) {
 		// Failure (Error)
 		Error();
 		return;
@@ -925,10 +923,8 @@ void SASIDEV::CmdRead6()
 //---------------------------------------------------------------------------
 void SASIDEV::DaynaPortWrite()
 {
-	DWORD lun = GetLun();
-
 	// Error if not a DaynaPort device
-	if (!ctrl.unit[lun]->IsDaynaPort()) {
+	if (!ctrl.device->IsDaynaPort()) {
 		LOGERROR("Received DaynaPortWrite for a non-DaynaPort device");
 		Error();
 		return;
@@ -977,10 +973,8 @@ void SASIDEV::DaynaPortWrite()
 //---------------------------------------------------------------------------
 void SASIDEV::CmdWrite6()
 {
-	DWORD lun = GetLun();
-
 	// Special receive function for the DaynaPort
-	if (ctrl.unit[lun]->IsDaynaPort()){
+	if (ctrl.device->IsDaynaPort()){
 		DaynaPortWrite();
 		return;
 	}
@@ -997,7 +991,7 @@ void SASIDEV::CmdWrite6()
 	}
 
 	// Check capacity
-	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	DWORD capacity = ctrl.device->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
 		ostringstream s;
 		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
@@ -1010,7 +1004,7 @@ void SASIDEV::CmdWrite6()
 	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
 
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
+	ctrl.length = ctrl.device->WriteCheck(record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
@@ -1033,10 +1027,8 @@ void SASIDEV::CmdSeek6()
 {
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Seek(ctrl.cmd);
+	bool status = ctrl.device->Seek(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1056,10 +1048,8 @@ void SASIDEV::CmdAssign()
 {
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
+	bool status = ctrl.device->Assign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1082,10 +1072,8 @@ void SASIDEV::CmdSpecify()
 {
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
+	bool status = ctrl.device->Assign(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1125,7 +1113,6 @@ void SASIDEV::CmdInvalid()
 void SASIDEV::Send()
 {
 	int len;
-	BOOL result;
 
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
@@ -1153,7 +1140,7 @@ void SASIDEV::Send()
 
 	// Remove block and initialize the result
 	ctrl.blocks--;
-	result = TRUE;
+	BOOL result = TRUE;
 
 	// Process after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
@@ -1217,7 +1204,6 @@ void SASIDEV::Send()
 void SASIDEV::Receive()
 {
 	int len;
-	BOOL result;
 
 	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
@@ -1248,7 +1234,7 @@ void SASIDEV::Receive()
 
 	// Remove the control block and initialize the result
 	ctrl.blocks--;
-	result = TRUE;
+	BOOL result = TRUE;
 
 	// Process the data out phase
 	if (ctrl.phase == BUS::dataout) {
@@ -1354,11 +1340,12 @@ BOOL SASIDEV::XferOut(BOOL cont)
 	if (!ctrl.unit[lun]) {
 		return FALSE;
 	}
+	Disk *device = ctrl.unit[lun];
 
 	switch ((SASIDEV::scsi_command) ctrl.cmd[0]) {
 		case SASIDEV::eCmdModeSelect:
 		case SASIDEV::eCmdModeSelect10:
-			if (!ctrl.unit[lun]->ModeSelect(
+			if (!device->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
 				return FALSE;
@@ -1372,8 +1359,8 @@ BOOL SASIDEV::XferOut(BOOL cont)
 		case SASIDEV::eCmdVerify16:
 			// If we're a host bridge, use the host bridge's SendMessage10 function
 			// TODO This class must not know about SCSIBR
-			if (ctrl.unit[lun]->IsBridge()) {
-				if (!((SCSIBR*)ctrl.unit[lun])->SendMessage10(ctrl.cmd, ctrl.buffer)) {
+			if (device->IsBridge()) {
+				if (!((SCSIBR*)device)->SendMessage10(ctrl.cmd, ctrl.buffer)) {
 					// write failed
 					return FALSE;
 				}
@@ -1385,9 +1372,9 @@ BOOL SASIDEV::XferOut(BOOL cont)
 
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about SCSIDP
-			if (ctrl.unit[lun]->IsDaynaPort()) {
+			if (device->IsDaynaPort()) {
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
-				if (!(SCSIDaynaPort*)ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+				if (!(SCSIDaynaPort*)device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return FALSE;
 				}
@@ -1400,7 +1387,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			LOGTRACE("%s eCmdVerify Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
-			if (!ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
+			if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
 				return FALSE;
 			}
@@ -1412,7 +1399,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Check the next block
-			ctrl.length = ctrl.unit[lun]->WriteCheck(ctrl.next - 1);
+			ctrl.length = device->WriteCheck(ctrl.next - 1);
 			if (ctrl.length <= 0) {
 				// Cannot write
 				return FALSE;
@@ -1454,6 +1441,7 @@ void SASIDEV::FlushUnit()
 	if (!ctrl.unit[lun]) {
 		return;
 	}
+	Disk *device = ctrl.unit[lun];
 
 	// WRITE system only
 	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
@@ -1480,7 +1468,7 @@ void SASIDEV::FlushUnit()
             LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
             LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
-			if (!ctrl.unit[lun]->ModeSelect(
+			if (!device->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
@@ -1554,7 +1542,7 @@ void SASIDEV::GetPhaseStr(char *str)
 
 //---------------------------------------------------------------------------
 //
-//	Validate LUN
+//	Validate and get LUN
 //
 //---------------------------------------------------------------------------
 DWORD SASIDEV::GetLun()
