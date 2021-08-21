@@ -116,9 +116,6 @@ public:
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool locked) { this->locked = locked; }
 
-	bool IsBlockSizeConfigurable() const { return block_size_configurable; }
-	void SetBlockSizeConfigurable(bool block_size_configurable) { this->block_size_configurable = block_size_configurable; }
-
 	unsigned int GetId() const { return id; }
 	void SetId(unsigned int id) { this->id = id; }
 	unsigned int GetLun() const { return lun; }

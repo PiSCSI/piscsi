@@ -588,7 +588,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
 	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", filename='" << filename << "', device name='" << pbDevice.name() << "', params='" << params << "'";
+			<< ", filename='" << filename << "', device name='" << pbDevice.name()
+			<< "', block size=" << pbDevice.block_size() << ", params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
@@ -648,7 +649,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 		if (pbDevice.block_size()) {
 			Disk *disk = dynamic_cast<Disk *>(device);
-			if (disk && disk->IsBlockSizeConfigurable()) {
+			if (disk && disk->IsSectorSizeConfigurable()) {
 				switch (pbDevice.block_size()) {
 				case 512:
 					disk->SetConfiguredSectorSize(9);
