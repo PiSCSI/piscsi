@@ -70,6 +70,9 @@ private:
 	bool lockable;
 	bool locked;
 
+	// The block size is configurable
+	bool block_size_configurable;
+
 	// Device ID and LUN
 	unsigned int id;
 	unsigned int lun;
@@ -112,6 +115,9 @@ public:
 	void SetLockable(bool lockable) { this->lockable = lockable; }
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool locked) { this->locked = locked; }
+
+	bool IsBlockSizeConfigurable() const { return block_size_configurable; }
+	void SetBlockSizeConfigurable(bool block_size_configurable) { this->block_size_configurable = block_size_configurable; }
 
 	unsigned int GetId() const { return id; }
 	void SetId(unsigned int id) { this->id = id; }

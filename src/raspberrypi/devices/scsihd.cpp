@@ -34,6 +34,7 @@ SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
 	SetRemovable(removable);
 	SetProtectable(true);
+	SetBlockSizeConfigurable(true);
 }
 
 //---------------------------------------------------------------------------

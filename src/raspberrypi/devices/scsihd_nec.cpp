@@ -31,6 +31,8 @@
 //---------------------------------------------------------------------------
 SCSIHD_NEC::SCSIHD_NEC() : SCSIHD()
 {
+	SetBlockSizeConfigurable(false);
+
 	SetVendor("NEC");
 
 	// Work initialization

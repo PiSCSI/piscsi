@@ -36,6 +36,7 @@ Device::Device(const string& type)
 	removed = false;
 	lockable = false;
 	locked = false;
+	block_size_configurable = false;
 
 	id = 0;
 	lun = 0;
