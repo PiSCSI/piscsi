@@ -42,64 +42,73 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	SetUpCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
-	SetUpCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
-	SetUpCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
-	SetUpCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
-	SetUpCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
-	SetUpCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
-	SetUpCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
-	SetUpCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
-	SetUpCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
-	SetUpCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
-	SetUpCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
-	SetUpCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
-	SetUpCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
-	SetUpCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
-	SetUpCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
-	SetUpCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
-	SetUpCommand(eCmdReadCapacity10, "CmdReadCapacity10", &SCSIDEV::CmdReadCapacity10);
-	SetUpCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
-	SetUpCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
-	SetUpCommand(eCmdVerify10, "CmdVerify10", &SCSIDEV::CmdWrite10);
-	SetUpCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
-	SetUpCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
-	SetUpCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
-	SetUpCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
-	SetUpCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
-	SetUpCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
-	SetUpCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
-	SetUpCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
-	SetUpCommand(eCmdRead16, "CmdRead16", &SCSIDEV::CmdRead16);
-	SetUpCommand(eCmdWrite16, "CmdWrite16", &SCSIDEV::CmdWrite16);
-	SetUpCommand(eCmdVerify16, "CmdVerify16", &SCSIDEV::CmdWrite16);
-	SetUpCommand(eCmdReadCapacity16, "CmdReadCapacity16", &SCSIDEV::CmdReadCapacity16);
-	SetUpCommand(eCmdReportLuns, "CmdReportLuns", &SCSIDEV::CmdReportLuns);
+	SetUpControllerCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
+	SetUpControllerCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
+	SetUpControllerCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
+	SetUpControllerCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
+	SetUpControllerCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
+	SetUpControllerCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
+	SetUpControllerCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
+	SetUpControllerCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
+	SetUpControllerCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
+	SetUpControllerCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
+	SetUpControllerCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
+	SetUpControllerCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
+	SetUpControllerCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
+	SetUpControllerCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
+	SetUpControllerCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
+	SetUpControllerCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
+	SetUpDeviceCommand(eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);
+	SetUpControllerCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
+	SetUpControllerCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
+	SetUpControllerCommand(eCmdVerify10, "CmdVerify10", &SCSIDEV::CmdWrite10);
+	SetUpControllerCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
+	SetUpControllerCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
+	SetUpControllerCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
+	SetUpControllerCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
+	SetUpControllerCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
+	SetUpControllerCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
+	SetUpControllerCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
+	SetUpControllerCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+	SetUpControllerCommand(eCmdRead16, "CmdRead16", &SCSIDEV::CmdRead16);
+	SetUpControllerCommand(eCmdWrite16, "CmdWrite16", &SCSIDEV::CmdWrite16);
+	SetUpControllerCommand(eCmdVerify16, "CmdVerify16", &SCSIDEV::CmdWrite16);
+	SetUpDeviceCommand(eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
+	SetUpControllerCommand(eCmdReportLuns, "CmdReportLuns", &SCSIDEV::CmdReportLuns);
 
 	// MMC specific. TODO Move to separate class
-	SetUpCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
-	SetUpCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
-	SetUpCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
-	SetUpCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
-	SetUpCommand(eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDEV::CmdGetEventStatusNotification);
+	SetUpControllerCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
+	SetUpControllerCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
+	SetUpControllerCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
+	SetUpControllerCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
+	SetUpControllerCommand(eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDEV::CmdGetEventStatusNotification);
 
 	// DaynaPort specific. TODO Move to separate class
-	SetUpCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
-	SetUpCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
-	SetUpCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
-	SetUpCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
+	SetUpControllerCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
+	SetUpControllerCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
+	SetUpControllerCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
+	SetUpControllerCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
 }
 
 SCSIDEV::~SCSIDEV()
 {
-	for (auto const& command : scsi_commands) {
+	for (auto const& command : controller_commands) {
+		free(command.second);
+	}
+
+	for (auto const& command : device_commands) {
 		free(command.second);
 	}
 }
 
-void SCSIDEV::SetUpCommand(scsi_command opcode, const char* name, void (SCSIDEV::*execute)(void))
+void SCSIDEV::SetUpControllerCommand(scsi_command opcode, const char* name, void (SCSIDEV::*execute)(void))
 {
-	scsi_commands[opcode] = new command_t(name, execute);
+	controller_commands[opcode] = new controller_command_t(name, execute);
+}
+
+void SCSIDEV::SetUpDeviceCommand(scsi_command opcode, const char* name, void (Disk::*execute)(SCSIDEV *, SASIDEV::ctrl_t *))
+{
+	device_commands[opcode] = new device_command_t(name, execute);
 }
 
 //---------------------------------------------------------------------------
@@ -296,12 +305,6 @@ void SCSIDEV::Execute()
 	ctrl.blocks = 1;
 	ctrl.execstart = SysTimer::GetTimerLow();
 
-	// If the command is valid it must be contained in the command map
-	if (!scsi_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
-		CmdInvalid();
-		return;
-	}
-
 	ctrl.device = NULL;
 
 	// INQUIRY requires a special LUN handling
@@ -309,7 +312,23 @@ void SCSIDEV::Execute()
 		ctrl.device = ctrl.unit[GetLun()];
 	}
 
-	command_t* command = scsi_commands[static_cast<scsi_command>(ctrl.cmd[0])];
+	if (device_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
+		device_command_t *command = device_commands[static_cast<scsi_command>(ctrl.cmd[0])];
+
+		LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
+
+		(ctrl.device->*command->execute)(this, &ctrl);
+
+		return;
+	}
+
+	// If the command is valid it must be contained in the command map
+	if (!controller_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
+		CmdInvalid();
+		return;
+	}
+
+	controller_command_t* command = controller_commands[static_cast<scsi_command>(ctrl.cmd[0])];
 
 	LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
 
@@ -639,27 +658,6 @@ void SCSIDEV::CmdRemoval()
 
 	// status phase
 	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ CAPACITY
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdReadCapacity10()
-{
-	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.device->ReadCapacity10(this, &ctrl);
-}
-
-void SCSIDEV::CmdReadCapacity16()
-{
-	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.device->ReadCapacity16(this, &ctrl);
 }
 
 //---------------------------------------------------------------------------

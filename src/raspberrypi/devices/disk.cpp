@@ -1740,6 +1740,8 @@ bool Disk::Removal(const DWORD *cdb)
 //---------------------------------------------------------------------------
 void Disk::ReadCapacity10(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 {
+	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
+
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -1784,6 +1786,8 @@ void Disk::ReadCapacity10(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 
 void Disk::ReadCapacity16(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 {
+	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
+
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
