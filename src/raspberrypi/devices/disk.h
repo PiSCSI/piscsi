@@ -168,7 +168,7 @@ public:
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	int ReadCapacity10(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(10) command
+	void ReadCapacity10(SCSIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(10) command
 	void ReadCapacity16(SCSIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(16) command
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
 	int GetSectorSize() const;

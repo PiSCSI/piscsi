@@ -651,17 +651,7 @@ void SCSIDEV::CmdReadCapacity10()
 	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	int length = ctrl.device->ReadCapacity10(ctrl.cmd, ctrl.buffer);
-	if (length <= 0) {
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
-		return;
-	}
-
-	// Length setting
-	ctrl.length = length;
-
-	// Data-in Phase
-	DataIn();
+	ctrl.device->ReadCapacity10(this, &ctrl);
 }
 
 void SCSIDEV::CmdReadCapacity16()
