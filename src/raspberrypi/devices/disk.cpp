@@ -702,6 +702,7 @@ void DiskCache::Update()
 Disk::Disk(const std::string id) : BlockDevice(id)
 {
 	// Work initialization
+	configured_sector_size = 0;
 	disk.size = 0;
 	disk.blocks = 0;
 	disk.dcache = NULL;
@@ -1963,6 +1964,16 @@ int Disk::GetSectorSize() const
 void Disk::SetSectorSize(int size)
 {
 	disk.size = size;
+}
+
+int Disk::GetConfiguredSectorSize() const
+{
+	return configured_sector_size;
+}
+
+void Disk::SetConfiguredSectorSize(int configured_sector_size)
+{
+	this->configured_sector_size = configured_sector_size;
 }
 
 DWORD Disk::GetBlockCount() const

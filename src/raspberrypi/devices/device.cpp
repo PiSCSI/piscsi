@@ -36,8 +36,7 @@ Device::Device(const string& type)
 	removed = false;
 	lockable = false;
 	locked = false;
-	sector_size_configurable = false;
-	configured_sector_size = 0;
+	block_size_configurable = false;
 
 	id = 0;
 	lun = 0;

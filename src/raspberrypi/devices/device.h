@@ -71,8 +71,7 @@ private:
 	bool locked;
 
 	// The block size is configurable
-	bool sector_size_configurable;
-	int configured_sector_size;
+	bool block_size_configurable;
 
 	// Device ID and LUN
 	unsigned int id;
@@ -117,10 +116,8 @@ public:
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool locked) { this->locked = locked; }
 
-	bool IsSectorSizeConfigurable() const { return sector_size_configurable; }
-	void SetSectorSizeConfigurable(bool sector_size_configurable) { this->sector_size_configurable = sector_size_configurable; }
-	int GetConfiguredSectorSize() const { return configured_sector_size; }
-	void SetConfiguredSectorSize(int) { this->configured_sector_size = configured_sector_size; }
+	bool IsBlockSizeConfigurable() const { return block_size_configurable; }
+	void SetBlockSizeConfigurable(bool block_size_configurable) { this->block_size_configurable = block_size_configurable; }
 
 	unsigned int GetId() const { return id; }
 	void SetId(unsigned int id) { this->id = id; }

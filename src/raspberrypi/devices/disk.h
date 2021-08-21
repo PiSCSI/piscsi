@@ -124,6 +124,9 @@ private:
 //===========================================================================
 class Disk : public BlockDevice
 {
+private:
+	int configured_sector_size;
+
 protected:
 	// Internal data structure
 	typedef struct {
@@ -171,6 +174,8 @@ public:
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
 	int GetSectorSize() const;
 	void SetSectorSize(int);
+	int GetConfiguredSectorSize() const;
+	void SetConfiguredSectorSize(int);
 	DWORD GetBlockCount() const;
 	void SetBlockCount(DWORD);
 	// TODO Currently not called
