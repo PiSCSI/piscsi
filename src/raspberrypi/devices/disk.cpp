@@ -1555,12 +1555,6 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		return 0;
 	}
 
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
-		return 0;
-	}
-
 	// leave it to the cache
 	if (!disk.dcache->Read(buf, block)) {
 		SetStatusCode(STATUS_READFAULT);
@@ -1581,12 +1575,6 @@ int Disk::WriteCheck(DWORD block)
 	// Status check
 	if (!CheckReady()) {
 		LOGDEBUG("WriteCheck failed (not ready)");
-		return 0;
-	}
-
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		LOGDEBUG("WriteCheck failed (capacity exceeded)");
 		return 0;
 	}
 
@@ -1615,12 +1603,6 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	// Error if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		return false;
-	}
-
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
 		return false;
 	}
 
