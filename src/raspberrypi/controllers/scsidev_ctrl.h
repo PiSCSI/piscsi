@@ -66,6 +66,9 @@ public:
 	BOOL IsSASI() const {return FALSE;}				// SASI Check
 	BOOL IsSCSI() const {return TRUE;}				// SCSI check
 
+	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common erorr handling
+
 private:
 	void SetUpCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
 
@@ -74,8 +77,6 @@ private:
 	void Selection();						// Selection phase
 	void Execute();						// Execution phase
 	void MsgOut();							// Message out phase
-	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common erorr handling
 
 	// commands
 	void CmdInquiry();						// INQUIRY command

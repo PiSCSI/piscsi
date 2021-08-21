@@ -177,6 +177,9 @@ public:
 	virtual BOOL IsSCSI() const {return FALSE;}			// SCSI check
 	Disk* GetBusyUnit();								// Get the busy unit
 
+public:
+	void DataIn();							// Data in phase
+
 protected:
 	// Phase processing
 	virtual void BusFree();					// Bus free phase
@@ -185,7 +188,6 @@ protected:
 	virtual void Execute();					// Execution phase
 	void Status();							// Status phase
 	void MsgIn();							// Message in phase
-	void DataIn();							// Data in phase
 	void DataOut();						// Data out phase
 	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling

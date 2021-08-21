@@ -20,6 +20,8 @@
 #include "xm6.h"
 #include "log.h"
 #include "scsi.h"
+#include "controllers/sasidev_ctrl.h"
+#include "controllers/scsidev_ctrl.h"
 #include "block_device.h"
 #include "file_support.h"
 #include "filepath.h"
@@ -167,7 +169,7 @@ public:
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
 	int ReadCapacity10(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(10) command
-	int ReadCapacity16(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(16) command
+	void ReadCapacity16(SCSIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(16) command
 	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
 	int GetSectorSize() const;
 	void SetSectorSize(int);
