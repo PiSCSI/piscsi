@@ -31,7 +31,7 @@
 //---------------------------------------------------------------------------
 SCSIHD_NEC::SCSIHD_NEC() : SCSIHD()
 {
-	SetBlockSizeConfigurable(false);
+	SetSectorSizeConfigurable(false);
 
 	SetVendor("NEC");
 
