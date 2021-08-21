@@ -546,6 +546,8 @@ bool SetDefaultImageFolder(const string& f)
 
 	default_image_folder = folder;
 
+	LOGINFO("Set default image folder to '%s'", default_image_folder.c_str());
+
 	return true;
 }
 
@@ -1116,6 +1118,10 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER:
+					if (command.params().empty()) {
+						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
+					}
+
 					if (!SetDefaultImageFolder(command.params())) {
 						ReturnStatus(fd, false, "Folder '" + command.params() + "' does not exist or is not accessible");
 					}
