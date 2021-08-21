@@ -82,7 +82,8 @@ SRC_RASCSI = \
 	filepath.cpp \
 	fileio.cpp\
 	rascsi_version.cpp \
-	rasutil.cpp
+	rasutil.cpp \
+	protobuf_util.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI += $(SRC_PROTOBUF)
@@ -98,7 +99,8 @@ SRC_SCSIMON = \
 SRC_RASCTL = \
 	rasctl.cpp\
 	rascsi_version.cpp \
-	rasutil.cpp
+	rasutil.cpp \
+	protobuf_util.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 
 SRC_RASDUMP = \

@@ -77,11 +77,11 @@ protected:
 			eCmdStartStop = 0x1B,
 			eCmdSendDiag = 0x1D,
 			eCmdRemoval = 0x1E,
-			eCmdReadCapacity = 0x25,
+			eCmdReadCapacity10 = 0x25,
 			eCmdRead10 = 0x28,
 			eCmdWrite10 = 0x2A,
 			eCmdSeek10 = 0x2B,
-			eCmdWriteAndVerify10 = 0x2E,
+			eCmdVerify10 = 0x2E,
 			eCmdVerify = 0x2F,
 			eCmdSynchronizeCache = 0x35,
 			eCmdReadDefectData10 = 0x37,
@@ -89,12 +89,18 @@ protected:
 			eCmdPlayAudio10 = 0x45,
 			eCmdPlayAudioMSF = 0x47,
 			eCmdPlayAudioTrack = 0x48,
+			eCmdGetEventStatusNotification = 0x4a,
 			eCmdModeSelect10 = 0x55,
 			eCmdReserve10 = 0x56,
 			eCmdRelease10 = 0x57,
 			eCmdModeSense10 = 0x5A,
+			eCmdRead16 = 0x88,
+			eCmdWrite16 = 0x8A,
+			eCmdVerify16 = 0x8F,
+			eCmdReadCapacity16 = 0x9E,
+			eCmdReportLuns = 0xA0,
 			eCmdInvalid = 0xC2,		// (SASI only/Suppress warning when using SxSI)
-			eCmdSasiCmdAssign = 0x0e, // This isn't used by SCSI, and can probably be removed.
+			eCmdSasiCmdAssign = 0x0E, // This isn't used by SCSI, and can probably be removed.
 	};
 
 public:
@@ -103,7 +109,7 @@ public:
 	};
 
 	const int UNKNOWN_SCSI_ID = -1;
-	const int DEFAULT_BUFFER_SIZE = 0x800;
+	const int DEFAULT_BUFFER_SIZE = 0x1000;
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
 	// For timing adjustments
@@ -120,7 +126,7 @@ public:
 		BUS *bus;						// Bus
 
 		// commands
-		DWORD cmd[10];					// Command data
+		DWORD cmd[16];					// Command data
 		DWORD status;					// Status data
 		DWORD message;					// Message data
 
@@ -137,10 +143,6 @@ public:
 
 		// Logical unit
 		Disk *unit[UnitMax];
-
-		// Sense Key and Additional Sense Code (ASC) of the previous command
-		int sense_key;
-		int asc;
 	} ctrl_t;
 
 public:
@@ -154,7 +156,7 @@ public:
 
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
-	Disk* GetUnit(int no);						// Get logical unit
+	Disk* GetUnit(int no);							// Get logical unit
 	void SetUnit(int no, Disk *dev);				// Logical unit setting
 	BOOL HasUnit();						// Has a valid logical unit
 
@@ -171,7 +173,7 @@ public:
 	ctrl_t* GetWorkAddr() { return &ctrl; }			// Get the internal information address
 	virtual BOOL IsSASI() const {return TRUE;}			// SASI Check
 	virtual BOOL IsSCSI() const {return FALSE;}			// SCSI check
-	Disk* GetBusyUnit();						// Get the busy unit
+	Disk* GetBusyUnit();								// Get the busy unit
 
 protected:
 	// Phase processing

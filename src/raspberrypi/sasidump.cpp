@@ -27,14 +27,14 @@
 
 //---------------------------------------------------------------------------
 //
-//	定数宣言
+// Constant declaration
 //
 //---------------------------------------------------------------------------
 #define BUFSIZE 1024 * 64			// 64KBぐらいかなぁ
 
 //---------------------------------------------------------------------------
 //
-//	変数宣言
+// Variable declaration
 //
 //---------------------------------------------------------------------------
 GPIOBUS bus;						// バス
@@ -43,35 +43,35 @@ int unitid;							// ターゲットユニットID
 int bsiz;							// ブロックサイズ
 int bnum;							// ブロック数
 Filepath hdffile;					// HDFファイル
-BOOL restore;						// リストアフラグ
+bool restore;						// リストアフラグ
 BYTE buffer[BUFSIZE];				// ワークバッファ
 int result;							// 結果コード
 
 //---------------------------------------------------------------------------
 //
-//	関数宣言
+// Function declaration
 //
 //---------------------------------------------------------------------------
 void Cleanup();
 
 //---------------------------------------------------------------------------
 //
-//	シグナル処理
+// Signal processing
 //
 //---------------------------------------------------------------------------
 void KillHandler(int sig)
 {
-	// 停止指示
+	// Stop instruction
 	Cleanup();
 	exit(0);
 }
 
 //---------------------------------------------------------------------------
 //
-//	バナー出力
+// Banner output
 //
 //---------------------------------------------------------------------------
-BOOL Banner(int argc, char* argv[])
+bool Banner(int argc, char* argv[])
 {
 	printf("RaSCSI hard disk dump utility(SASI HDD) ");
 	printf("version %s (%s, %s)\n",
@@ -87,33 +87,33 @@ BOOL Banner(int argc, char* argv[])
 		printf(" COUNT is block count.\n");
 		printf(" FILE is HDF file path.\n");
 		printf(" -r is restore operation.\n");
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
 //
-//	初期化
+// Initialization
 //
 //---------------------------------------------------------------------------
-BOOL Init()
+bool Init()
 {
 	// 割り込みハンドラ設定
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
 	// GPIO初期化
 	if (!bus.Init(BUS::INITIATOR)) {
-		return FALSE;
+		return false;
 	}
 
 	// ワーク初期化
@@ -121,9 +121,9 @@ BOOL Init()
 	unitid = 0;
 	bsiz = 256;
 	bnum = -1;
-	restore = FALSE;
+	restore = false;
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -139,21 +139,21 @@ void Cleanup()
 
 //---------------------------------------------------------------------------
 //
-//	リセット
+// Reset
 //
 //---------------------------------------------------------------------------
 void Reset()
 {
-	// バス信号線をリセット
+	// Reset bus signal line
 	bus.Reset();
 }
 
 //---------------------------------------------------------------------------
 //
-//	引数処理
+//  Argument processing
 //
 //---------------------------------------------------------------------------
-BOOL ParseArgument(int argc, char* argv[])
+bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
 	char *file;
@@ -186,7 +186,7 @@ BOOL ParseArgument(int argc, char* argv[])
 				break;
 
 			case 'r':
-				restore = TRUE;
+				restore = true;
 				break;
 		}
 	}
@@ -195,48 +195,48 @@ BOOL ParseArgument(int argc, char* argv[])
 	if (targetid < 0 || targetid > 7) {
 		fprintf(stderr,
 			"Error : Invalid target id range\n");
-		return FALSE;
+		return false;
 	}
 
 	// UNIT IDチェック
 	if (unitid < 0 || unitid > 1) {
 		fprintf(stderr,
 			"Error : Invalid unit id range\n");
-		return FALSE;
+		return false;
 	}
 
 	// BSIZチェック
 	if (bsiz != 256 && bsiz != 512 && bsiz != 1024) {
 		fprintf(stderr,
 			"Error : Invalid block size\n");
-		return FALSE;
+		return false;
 	}
 
 	// BNUMチェック
 	if (bnum < 0) {
 		fprintf(stderr,
 			"Error : Invalid block count\n");
-		return FALSE;
+		return false;
 	}
 
 	// ファイルチェック
 	if (!file) {
 		fprintf(stderr,
 			"Error : Invalid file path\n");
-		return FALSE;
+		return false;
 	}
 
 	hdffile.SetPath(file);
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
 //
-//	フェーズ待ち
+// Waiting for phase
 //
 //---------------------------------------------------------------------------
-BOOL WaitPhase(BUS::phase_t phase)
+bool WaitPhase(BUS::phase_t phase)
 {
 	DWORD now;
 
@@ -245,11 +245,11 @@ BOOL WaitPhase(BUS::phase_t phase)
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Aquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -265,10 +265,10 @@ void BusFree()
 
 //---------------------------------------------------------------------------
 //
-//	セレクションフェーズ実行
+// Selection phase execution
 //
 //---------------------------------------------------------------------------
-BOOL Selection(int id)
+bool Selection(int id)
 {
 	BYTE data;
 	int count;
@@ -298,16 +298,16 @@ BOOL Selection(int id)
 
 //---------------------------------------------------------------------------
 //
-//	コマンドフェーズ実行
+// Command phase execution
 //
 //---------------------------------------------------------------------------
-BOOL Command(BYTE *buf, int length)
+bool Command(BYTE *buf, int length)
 {
 	int count;
 
 	// フェーズ待ち
 	if (!WaitPhase(BUS::command)) {
-		return FALSE;
+		return false;
 	}
 
 	// コマンド送信
@@ -315,16 +315,16 @@ BOOL Command(BYTE *buf, int length)
 
 	// 送信結果が依頼数と同じなら成功
 	if (count == length) {
-		return TRUE;
+		return true;
 	}
 
 	// 送信エラー
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
 //
-//	データインフェーズ実行
+// Data in phase execution
 //
 //---------------------------------------------------------------------------
 int DataIn(BYTE *buf, int length)
@@ -340,7 +340,7 @@ int DataIn(BYTE *buf, int length)
 
 //---------------------------------------------------------------------------
 //
-//	データアウトフェーズ実行
+// Data out phase execution
 //
 //---------------------------------------------------------------------------
 int DataOut(BYTE *buf, int length)
@@ -652,7 +652,7 @@ int main(int argc, char* argv[])
 	DWORD dnum;
 	Fileio fio;
 	Fileio::OpenMode omode;
-	off64_t size;
+	off_t size;
 
 	// バナー出力
 	if (!Banner(argc, argv)) {
@@ -732,9 +732,9 @@ int main(int argc, char* argv[])
 	if (restore) {
 		size = fio.GetFileSize();
 		printf("Restore file size       : %d bytes", (int)size);
-		if (size > (off64_t)(bsiz * bnum)) {
+		if (size > (off_t)(bsiz * bnum)) {
 			printf("(WARNING : File size is larger than disk size)");
-		} else if (size < (off64_t)(bsiz * bnum)) {
+		} else if (size < (off_t)(bsiz * bnum)) {
 			printf("(ERROR   : File size is smaller than disk size)\n");
 			goto cleanup_exit;
 		}

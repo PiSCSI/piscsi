@@ -41,8 +41,8 @@ public:
 	int Rx(BYTE *buf);						// Receive
 	int Tx(const BYTE *buf, int len);					// Send
 	BOOL PendingPackets();						// Check if there are IP packets available
-	BOOL Enable();						// Enable the ras0 interface
-	BOOL Disable();				// Disable the ras0 interface
+	bool Enable();						// Enable the ras0 interface
+	bool Disable();				// Disable the ras0 interface
 	BOOL Flush();				// Purge all of the packets that are waiting to be processed
 
 private:

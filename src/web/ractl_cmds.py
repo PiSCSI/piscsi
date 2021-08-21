@@ -5,7 +5,7 @@ import re
 from settings import *
 
 
-valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.iso", "*.cdr", "*.zip"]
+valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.hdr", "*.iso", "*.cdr", "*.zip"]
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
 # List of SCSI ID's you'd like to exclude - eg if you are on a Mac, the System is usually 7
 EXCLUDE_SCSI_IDS = [7]
@@ -70,8 +70,6 @@ def attach_image(scsi_id, image, device_type):
     elif device_type == "SCDP":
         attach_daynaport(scsi_id)
     else:
-        if device_type == "SCCD":
-            device_type = "cd"
         return subprocess.run(
             ["rasctl", "-c", "attach", "-t", device_type, "-i", scsi_id, "-f", image],
             capture_output=True,
@@ -105,7 +103,7 @@ def insert(scsi_id, image):
 
 def attach_daynaport(scsi_id):
     return subprocess.run(
-        ["rasctl", "-i", scsi_id, "-c", "attach", "-t", "daynaport"],
+        ["rasctl", "-i", scsi_id, "-c", "attach", "-t", "scdp"],
         capture_output=True,
     )
 

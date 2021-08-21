@@ -10,10 +10,10 @@
 //---------------------------------------------------------------------------
 
 #include <netdb.h>
-#include "google/protobuf/message_lite.h"
 #include "os.h"
 #include "rascsi_version.h"
 #include "exceptions.h"
+#include "protobuf_util.h"
 #include "rasutil.h"
 #include "rascsi_interface.pb.h"
 #include <sstream>
@@ -35,12 +35,12 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
 	try {
     	struct hostent *host = gethostbyname(hostname.c_str());
     	if (!host) {
-    		throw ioexception("Can't resolve hostname '" + hostname + "'");
+    		throw io_exception("Can't resolve hostname '" + hostname + "'");
     	}
 
     	fd = socket(AF_INET, SOCK_STREAM, 0);
     	if (fd < 0) {
-    		throw ioexception("Can't create socket");
+    		throw io_exception("Can't create socket");
     	}
 
     	struct sockaddr_in server;
@@ -53,19 +53,19 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
     	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
     		ostringstream error;
     		error << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
-    		throw ioexception(error.str());
+    		throw io_exception(error.str());
     	}
 
         SerializeMessage(fd, command);
     }
-    catch(const ioexception& e) {
+    catch(const io_exception& e) {
     	cerr << "Error: " << e.getmsg() << endl;
 
         if (fd >= 0) {
         	close(fd);
         }
 
-        exit(fd < 0 ? ENOTCONN : -1);
+        exit(fd < 0 ? ENOTCONN : EXIT_FAILURE);
     }
 
     return fd;
@@ -84,12 +84,14 @@ bool ReceiveResult(int fd)
         close(fd);
 
     	if (!result.status()) {
-    		throw ioexception(result.msg());
+    		throw io_exception(result.msg());
     	}
 
-    	cout << result.msg() << endl;
+    	if (!result.msg().empty()) {
+    		cout << result.msg() << endl;
+    	}
     }
-    catch(const ioexception& e) {
+    catch(const io_exception& e) {
     	cerr << "Error: " << e.getmsg() << endl;
 
     	return false;
@@ -107,25 +109,25 @@ bool ReceiveResult(int fd)
 void CommandList(const string& hostname, int port)
 {
 	PbCommand command;
-	command.set_cmd(LIST);
+	command.set_cmd(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
-	PbDevices devices;
+	PbServerInfo serverInfo;
 	try {
-		DeserializeMessage(fd, devices);
+		DeserializeMessage(fd, serverInfo);
 	}
-	catch(const ioexception& e) {
+	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
 
 		close(fd);
 
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
-	close (fd);
+	close(fd);
 
-	cout << ListDevices(devices) << endl;
+	cout << ListDevices(serverInfo.devices()) << endl;
 }
 
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
@@ -133,6 +135,17 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	PbCommand command;
 	command.set_cmd(LOG_LEVEL);
 	command.set_params(log_level);
+
+	int fd = SendCommand(hostname.c_str(), port, command);
+	ReceiveResult(fd);
+	close(fd);
+}
+
+void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
+{
+	PbCommand command;
+	command.set_cmd(DEFAULT_FOLDER);
+	command.set_params(folder);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 	ReceiveResult(fd);
@@ -150,12 +163,12 @@ void CommandServerInfo(const string& hostname, int port)
 	try {
 		DeserializeMessage(fd, serverInfo);
 	}
-	catch(const ioexception& e) {
+	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
 
 		close(fd);
 
-		exit(-1);
+		exit(EXIT_FAILURE);
 	}
 
 	close(fd);
@@ -179,17 +192,69 @@ void CommandServerInfo(const string& hostname, int port)
 		cout << "  No image files available in the default folder" << endl;
 	}
 	else {
-		list<string> sorted_image_files;
+		list<string> sorted_files;
 		for (int i = 0; i < serverInfo.available_image_files_size(); i++) {
-			sorted_image_files.push_back(serverInfo.available_image_files(i));
+			sorted_files.push_back(serverInfo.available_image_files(i).name());
 		}
-		sorted_image_files.sort();
+		sorted_files.sort();
 
 		cout << "Image files available in the default folder:" << endl;
-		for (auto it = sorted_image_files.begin(); it != sorted_image_files.end(); ++it) {
+		for (auto it = sorted_files.begin(); it != sorted_files.end(); ++it) {
 			cout << "  " << *it << endl;
 		}
 	}
+}
+
+PbOperation ParseOperation(const char *optarg)
+{
+	switch (tolower(optarg[0])) {
+		case 'a':
+			return ATTACH;
+
+		case 'd':
+			return DETACH;
+
+		case 'i':
+			return INSERT;
+
+		case 'e':
+			return EJECT;
+
+		case 'p':
+			return PROTECT;
+
+		case 'u':
+			return UNPROTECT;
+
+		default:
+			return NONE;
+	}
+}
+
+PbDeviceType ParseType(const char *optarg)
+{
+	string t = optarg;
+	transform(t.begin(), t.end(), t.begin(), ::toupper);
+
+	PbDeviceType type;
+	if (PbDeviceType_Parse(t, &type)) {
+		return type;
+	}
+	else {
+		// Parse legacy types
+		switch (tolower(optarg[0])) {
+			case 'm':
+				return SCMO;
+
+			case 'c':
+				return SCCD;
+
+			case 'b':
+				return SCBR;
+		}
+	}
+
+	return UNDEFINED;
 }
 
 //---------------------------------------------------------------------------
@@ -205,12 +270,14 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-f FILE] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-n NAME] [-f FILE] [-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1} default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
-		cerr << "        TYPE := {hd|mo|cd|bridge|daynaport}" << endl;
+		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or legacy types {hd|mo|cd|bridge}" << endl;
+		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
 		cerr << "        FILE := image file path" << endl;
+		cerr << "        DEFAULT_IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
 		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
 		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
@@ -218,155 +285,115 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -l" << endl;
 		cerr << "       Print device list." << endl;
 
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
 	// Parse the arguments
-	int opt;
-	int id = -1;
-	int un = 0;
-	PbOperation cmd = LIST;
-	PbDeviceType type = UNDEFINED;
+	PbCommand command;
+	PbDeviceDefinitions devices;
+	command.set_allocated_devices(&devices);
+	PbDeviceDefinition *device = devices.add_devices();
+	device->set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
-	string params;
-	opterr = 0;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:h:p:u:g:lsv")) != -1) {
+	string log_level;
+	string default_folder;
+	bool list = false;
+
+	opterr = 1;
+	int opt;
+	while ((opt = getopt(argc, argv, "i:u:c:t:f:d:h:n:p:u:g:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
-				id = optarg[0] - '0';
+				device->set_id(optarg[0] - '0');
 				break;
 
 			case 'u':
-				un = optarg[0] - '0';
+				device->set_unit(optarg[0] - '0');
 				break;
 
 			case 'c':
-				switch (tolower(optarg[0])) {
-					case 'a':
-						cmd = ATTACH;
-						break;
-
-					case 'd':
-						cmd = DETACH;
-						break;
-
-					case 'i':
-						cmd = INSERT;
-						break;
-
-					case 'e':
-						cmd = EJECT;
-						break;
-
-					case 'p':
-						cmd = PROTECT;
-						break;
-
-					case 'u':
-						cmd = UNPROTECT;
-						break;
-				}
+				command.set_cmd(ParseOperation(optarg));
 				break;
 
 			case 't':
-				switch (tolower(optarg[0])) {
-					case 's':
-						type = SASI_HD;
-						break;
-
-					case 'h':
-						type = SCSI_HD;
-						break;
-
-					case 'm':
-						type = MO;
-						break;
-
-					case 'c':
-						type = CD;
-						break;
-
-					case 'b':
-						type = BR;
-						break;
-
-					// case 'n':
-					// 	type = NUVOLINK;
-					// 	break;
-
-					case 'd':
-						type = DAYNAPORT;
-						break;
-				}
+				device->set_type(ParseType(optarg));
 				break;
 
 			case 'f':
-				params = optarg;
+				device->set_file(optarg);
 				break;
 
-			case 'l':
-				cmd = LIST;
+			case 'd':
+				command.set_cmd(DEFAULT_FOLDER);
+				default_folder = optarg;
 				break;
 
 			case 'h':
 				hostname = optarg;
 				break;
 
+			case 'l':
+				list = true;
+				break;
+
+			case 'n':
+				device->set_name(optarg);
+				break;
+
 			case 'p':
 				port = atoi(optarg);
 				if (port <= 0 || port > 65535) {
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
-					exit(-1);
+					exit(EXIT_FAILURE);
 				}
 				break;
 
 			case 'g':
-				cmd = LOG_LEVEL;
-				params = optarg;
+				command.set_cmd(LOG_LEVEL);
+				log_level = optarg;
 				break;
 
 			case 's':
-				cmd = SERVER_INFO;
+				command.set_cmd(SERVER_INFO);
 				break;
 
 			case 'v':
 				cout << rascsi_get_version_string() << endl;
-				exit(0);
+				exit(EXIT_SUCCESS);
 				break;
 		}
 	}
 
-	if (cmd == LOG_LEVEL) {
-		CommandLogLevel(hostname, port, params);
-		exit(0);
+	if (optopt) {
+		exit(EXIT_FAILURE);
 	}
 
-	if (cmd == SERVER_INFO) {
+	if (command.cmd() == LOG_LEVEL) {
+		CommandLogLevel(hostname, port, log_level);
+		exit(EXIT_SUCCESS);
+	}
+
+	if (command.cmd() == DEFAULT_FOLDER) {
+		CommandDefaultImageFolder(hostname, port, default_folder);
+		exit(EXIT_SUCCESS);
+	}
+
+	if (command.cmd() == SERVER_INFO) {
 		CommandServerInfo(hostname, port);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
-	// List display only
-	if (cmd == LIST || (id < 0 && type == UNDEFINED && params.empty())) {
+	if (list) {
 		CommandList(hostname, port);
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 
-	// Generate the command and send it
-	PbCommand command;
-	command.set_id(id);
-	command.set_un(un);
-	command.set_cmd(cmd);
-	command.set_type(type);
-	if (!params.empty()) {
-		command.set_params(params);
-	}
-
+	// Send the command
 	int fd = SendCommand(hostname, port, command);
 	bool status = ReceiveResult(fd);
 	close(fd);
 
 	// All done!
-	exit(status ? 0 : -1);
+	exit(status ? EXIT_SUCCESS : EXIT_FAILURE);
 }

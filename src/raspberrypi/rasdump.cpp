@@ -32,7 +32,7 @@ GPIOBUS bus;						// Bus
 int targetid;						// Target ID
 int boardid;						// Board ID (own ID)
 Filepath hdsfile;					// HDS file
-BOOL restore;						// Restore flag
+bool restore;						// Restore flag
 BYTE buffer[BUFSIZE];					// Work Buffer
 int result;						// Result Code
 
@@ -60,7 +60,7 @@ void KillHandler(int sig)
 //	Banner Output
 //
 //---------------------------------------------------------------------------
-BOOL Banner(int argc, char* argv[])
+bool Banner(int argc, char* argv[])
 {
 	printf("RaSCSI hard disk dump utility ");
 	printf("version %s (%s, %s)\n",
@@ -74,10 +74,10 @@ BOOL Banner(int argc, char* argv[])
 		printf(" BID is rascsi board SCSI ID {0|1|2|3|4|5|6|7}. Default is 7.\n");
 		printf(" FILE is HDS file path.\n");
 		printf(" -r is restore operation.\n");
-		return FALSE;
+		return false;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -85,30 +85,30 @@ BOOL Banner(int argc, char* argv[])
 //	Initialization
 //
 //---------------------------------------------------------------------------
-BOOL Init()
+bool Init()
 {
 	// Interrupt handler setting
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
 	// GPIO Initialization
 	if (!bus.Init(BUS::INITIATOR)) {
-		return FALSE;
+		return false;
 	}
 
 	// Work Intitialization
 	targetid = -1;
 	boardid = 7;
-	restore = FALSE;
+	restore = false;
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -138,7 +138,7 @@ void Reset()
 //	Argument processing
 //
 //---------------------------------------------------------------------------
-BOOL ParseArgument(int argc, char* argv[])
+bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
 	char *file;
@@ -163,7 +163,7 @@ BOOL ParseArgument(int argc, char* argv[])
 				break;
 
 			case 'r':
-				restore = TRUE;
+				restore = true;
 				break;
 		}
 	}
@@ -172,33 +172,33 @@ BOOL ParseArgument(int argc, char* argv[])
 	if (targetid < 0 || targetid > 7) {
 		fprintf(stderr,
 			"Error : Invalid target id range\n");
-		return FALSE;
+		return false;
 	}
 
 	// BOARD ID check
 	if (boardid < 0 || boardid > 7) {
 		fprintf(stderr,
 			"Error : Invalid board id range\n");
-		return FALSE;
+		return false;
 	}
 
 	// Target and Board ID duplication check
 	if (targetid == boardid) {
 		fprintf(stderr,
 			"Error : Invalid target or board id\n");
-		return FALSE;
+		return false;
 	}
 
 	// File Check
 	if (!file) {
 		fprintf(stderr,
 			"Error : Invalid file path\n");
-		return FALSE;
+		return false;
 	}
 
 	hdsfile.SetPath(file);
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -206,7 +206,7 @@ BOOL ParseArgument(int argc, char* argv[])
 //	Wait Phase
 //
 //---------------------------------------------------------------------------
-BOOL WaitPhase(BUS::phase_t phase)
+bool WaitPhase(BUS::phase_t phase)
 {
 	DWORD now;
 
@@ -215,11 +215,11 @@ BOOL WaitPhase(BUS::phase_t phase)
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Aquire();
 		if (bus.GetREQ() && bus.GetPhase() == phase) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -238,7 +238,7 @@ void BusFree()
 //	Selection Phase
 //
 //---------------------------------------------------------------------------
-BOOL Selection(int id)
+bool Selection(int id)
 {
 	BYTE data;
 	int count;
@@ -272,13 +272,13 @@ BOOL Selection(int id)
 //	Command Phase
 //
 //---------------------------------------------------------------------------
-BOOL Command(BYTE *buf, int length)
+bool Command(BYTE *buf, int length)
 {
 	int count;
 
 	// Waiting for Phase
 	if (!WaitPhase(BUS::command)) {
-		return FALSE;
+		return false;
 	}
 
 	// Send Command
@@ -287,11 +287,11 @@ BOOL Command(BYTE *buf, int length)
 	// Success if the transmission result is the same as the number 
 	// of requests
 	if (count == length) {
-		return TRUE;
+		return true;
 	}
 
 	// Return error
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -808,7 +808,7 @@ int main(int argc, char* argv[])
 	DWORD dnum;
 	Fileio fio;
 	Fileio::OpenMode omode;
-	off64_t size;
+	off_t size;
 
 	// Banner output
 	if (!Banner(argc, argv)) {
@@ -918,9 +918,9 @@ int main(int argc, char* argv[])
 	if (restore) {
 		size = fio.GetFileSize();
 		printf("Restore file size       : %d bytes", (int)size);
-		if (size > (off64_t)(bsiz * bnum)) {
+		if (size > (off_t)(bsiz * bnum)) {
 			printf("(WARNING : File size is larger than disk size)");
-		} else if (size < (off64_t)(bsiz * bnum)) {
+		} else if (size < (off_t)(bsiz * bnum)) {
 			printf("(ERROR   : File size is smaller than disk size)\n");
 			goto cleanup_exit;
 		}

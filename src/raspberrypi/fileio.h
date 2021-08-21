@@ -39,8 +39,7 @@ public:
 	enum OpenMode {
 		ReadOnly,						// 読み込みのみ
 		WriteOnly,						// 書き込みのみ
-		ReadWrite,						// 読み書き両方
-		Append							// アペンド
+		ReadWrite						// 読み書き両方
 	};
 
 public:
@@ -61,15 +60,15 @@ public:
 										// オープン
 	BOOL OpenDIO(const Filepath& path, OpenMode mode);
 										// オープン
-	BOOL Seek(off64_t offset, BOOL relative = FALSE);
+	BOOL Seek(off_t offset, BOOL relative = FALSE);
 										// シーク
 	BOOL Read(void *buffer, int size);
 										// 読み込み
 	BOOL Write(const void *buffer, int size);
 										// 書き込み
-	off64_t GetFileSize();
+	off_t GetFileSize();
 										// ファイルサイズ取得
-	off64_t GetFilePos() const;
+	off_t GetFilePos() const;
 										// ファイル位置取得
 	void Close();
 										// クローズ

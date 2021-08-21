@@ -31,6 +31,8 @@
 //---------------------------------------------------------------------------
 SCSIHD_NEC::SCSIHD_NEC() : SCSIHD()
 {
+	SetVendor("NEC");
+
 	// Work initialization
 	cylinders = 0;
 	heads = 0;
@@ -68,42 +70,39 @@ static inline DWORD getDwordLE(const BYTE *b)
 //---------------------------------------------------------------------------
 void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 {
-	Fileio fio;
-	off64_t size;
-	BYTE hdr[512];
-	LPCTSTR ext;
-
-	ASSERT(!disk.ready);
+	ASSERT(!IsReady());
 
 	// Open as read-only
+	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open hard disk file read-only");
+		throw io_exception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
-	size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 
 	// Read header
-	if (size >= (off64_t)sizeof(hdr)) {
+	BYTE hdr[512];
+	if (size >= (off_t)sizeof(hdr)) {
 		if (!fio.Read(hdr, sizeof(hdr))) {
 			fio.Close();
-			throw ioexception("Can't read hard disk file header");
+			throw io_exception("Can't read NEC hard disk file header");
 		}
 	}
 	fio.Close();
 
 	// Must be in 512 byte units
 	if (size & 0x1ff) {
-		throw ioexception("File size must be a multiple of 512 bytes");
+		throw io_exception("File size must be a multiple of 512 bytes");
 	}
 
-	// 2TB according to xm6i
+	// 2TB is the current maximum
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw ioexception("File size must not exceed 2 TB");
+		throw io_exception("File size must not exceed 2 TB");
 	}
 
 	// Determine parameters by extension
-	ext = path.GetFileExt();
+	LPCTSTR ext = path.GetFileExt();
 	if (strcasecmp(ext, _T(".HDN")) == 0) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		imgoffset = 0;
@@ -128,34 +127,37 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 		heads = getWordLE(&hdr[0x10 + 0x100 + 4 + 4]);
 		sectors = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2]);
 		sectorsize = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2 + 2]);
-		imgsize = (off64_t)cylinders * heads * sectors * sectorsize;
+		imgsize = (off_t)cylinders * heads * sectors * sectorsize;
 	}
 
 	// Supports 256 or 512 sector sizes
 	if (sectorsize != 256 && sectorsize != 512) {
-		throw ioexception("Sector size must be 256 or 512 bytes");
+		throw io_exception("Sector size must be 256 or 512 bytes");
 	}
 
 	// Image size consistency check
 	if (imgoffset + imgsize > size || (imgsize % sectorsize != 0)) {
-		throw ioexception("Image size consistency check failed");
+		throw io_exception("Image size consistency check failed");
 	}
 
 	// Sector size
+	// TODO Do not use disk.size directly
 	for(disk.size = 16; disk.size > 0; --(disk.size)) {
 		if ((1 << disk.size) == sectorsize)
 			break;
 	}
 	if (disk.size <= 0 || disk.size > 16) {
-		throw ioexception("Invalid disk size");
+		throw io_exception("Invalid disk size");
 	}
 
 	// Number of blocks
-	disk.blocks = (DWORD)(imgsize >> disk.size);
+	SetBlockCount((DWORD)(imgsize >> disk.size));
 	disk.imgoffset = imgoffset;
 
-	// Call the base class
+	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(), GetBlockCount());
+
 	Disk::Open(path);
+	FileSupport::SetPath(path);
 }
 
 //---------------------------------------------------------------------------
@@ -163,27 +165,13 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	int size;
+	int size = SCSIHD::Inquiry(cdb, buf);
 
-	// Base class
-	size = SCSIHD::Inquiry(cdb, buf, major, minor);
-
-	// Exit if there is an error in the base class
-	if (size == 0) {
-		return 0;
-	}
-
-	// Changed to equivalent to SCSI-1
+	// This drive is a SCSI-1 SCCS drive
 	buf[2] = 0x01;
 	buf[3] = 0x01;
-
-	// Replace Vendor name
-	buf[8] = 'N';
-	buf[9] = 'E';
-	buf[10] = 'C';
 
 	return size;
 }
@@ -193,18 +181,13 @@ int SCSIHD_NEC::Inquiry(
 //	Error page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
+int SCSIHD_NEC::AddError(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
 	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x06;
-
-	// No changeable area
-	if (change) {
-		return 8;
-	}
 
 	// The retry count is 0, and the limit time uses the default value inside the device.
 	return 8;
@@ -215,7 +198,7 @@ int SCSIHD_NEC::AddError(BOOL change, BYTE *buf)
 //	Format page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
+int SCSIHD_NEC::AddFormat(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -230,7 +213,7 @@ int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 		return 24;
 	}
 
-	if (disk.ready) {
+	if (IsReady()) {
 		// Set the number of tracks in one zone (PC-9801-55 seems to see this value)
 		buf[0x2] = (BYTE)(heads >> 8);
 		buf[0x3] = (BYTE)heads;
@@ -246,7 +229,7 @@ int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 	}
 
 	// Set removable attributes (remains of the old days)
-	if (disk.removable) {
+	if (IsRemovable()) {
 		buf[20] = 0x20;
 	}
 
@@ -258,7 +241,7 @@ int SCSIHD_NEC::AddFormat(BOOL change, BYTE *buf)
 //	Drive page added
 //
 //---------------------------------------------------------------------------
-int SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
+int SCSIHD_NEC::AddDrive(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -267,11 +250,7 @@ int SCSIHD_NEC::AddDrive(BOOL change, BYTE *buf)
 	buf[1] = 0x12;
 
 	// No changeable area
-	if (change) {
-		return 20;
-	}
-
-	if (disk.ready) {
+	if (!change && IsReady()) {
 		// Set the number of cylinders
 		buf[0x2] = (BYTE)(cylinders >> 16);
 		buf[0x3] = (BYTE)(cylinders >> 8);

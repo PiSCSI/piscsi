@@ -55,6 +55,7 @@
 
 #include <poll.h>
 #include <dirent.h>
+#include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -102,9 +103,9 @@
 //
 //---------------------------------------------------------------------------
 typedef unsigned char BYTE;
-typedef unsigned short WORD;
-typedef unsigned long DWORD;
-typedef unsigned long long QWORD;
+typedef uint16_t WORD;
+typedef uint32_t DWORD;
+typedef uint64_t QWORD;
 typedef int BOOL;
 typedef char TCHAR;
 typedef char *LPTSTR;
@@ -127,7 +128,5 @@ typedef const char *LPCSTR;
 #define _MAX_DIR    256
 #define _MAX_FNAME  256
 #define _MAX_EXT    256
-
-#define off64_t off_t
 
 #endif	// os_h

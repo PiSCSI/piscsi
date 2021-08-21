@@ -24,16 +24,16 @@
 //	SCSI magneto-optical disk
 //
 //===========================================================================
-class SCSIMO : public Disk
+class SCSIMO : public Disk, public FileSupport
 {
 public:
 	// Basic Functions
 	SCSIMO();									// Constructor
-	void Open(const Filepath& path, BOOL attn = TRUE);			// Open
+	void Open(const Filepath& path);			// Open
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
+	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;	// MODE SELECT(6) command
 
 	// Internal processing
 	int AddVendor(int page, BOOL change, BYTE *buf);			// Add vendor special page

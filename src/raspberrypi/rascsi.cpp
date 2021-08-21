@@ -13,19 +13,15 @@
 #include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
-#include "devices/disk.h"
-#include "devices/sasihd.h"
-#include "devices/scsihd.h"
-#include "devices/scsihd_apple.h"
-#include "devices/scsihd_nec.h"
-#include "devices/scsicd.h"
-#include "devices/scsimo.h"
-#include "devices/scsi_host_bridge.h"
-#include "devices/scsi_daynaport.h"
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
+#include "devices/device_factory.h"
+#include "devices/device.h"
+#include "devices/disk.h"
+#include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
+#include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rasutil.h"
 #include "rascsi_interface.pb.h"
@@ -35,7 +31,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <list>
+#include <vector>
 #include <filesystem>
 
 using namespace std;
@@ -56,18 +52,18 @@ using namespace rascsi_interface;
 //	Variable declarations
 //
 //---------------------------------------------------------------------------
-static volatile BOOL running;		// Running flag
-static volatile BOOL active;		// Processing flag
-SASIDEV *ctrl[CtrlMax];				// Controller
-Disk *disk[CtrlMax * UnitNum];		// Disk
+static volatile bool running;		// Running flag
+static volatile bool active;		// Processing flag
+vector<SASIDEV *> controllers(CtrlMax);	// Controllers
+vector<Device *> devices(CtrlMax * UnitNum);	// Disks
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-list<string> available_log_levels;
+vector<string> available_log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
-string default_image_folder = "/home/pi/images";
+string default_image_folder;
 set<string> files_in_use;
 
 //---------------------------------------------------------------------------
@@ -78,7 +74,7 @@ set<string> files_in_use;
 void KillHandler(int sig)
 {
 	// Stop instruction
-	running = FALSE;
+	running = false;
 }
 
 //---------------------------------------------------------------------------
@@ -107,16 +103,17 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
 		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
-		FPRT(stdout,"  hdf : SASI HD image(XM6 SASI HD image)\n");
-		FPRT(stdout,"  hds : SCSI HD image(XM6 SCSI HD image)\n");
-		FPRT(stdout,"  hdn : SCSI HD image(NEC GENUINE)\n");
-		FPRT(stdout,"  hdi : SCSI HD image(Anex86 HD image)\n");
-		FPRT(stdout,"  nhd : SCSI HD image(T98Next HD image)\n");
-		FPRT(stdout,"  hda : SCSI HD image(APPLE GENUINE)\n");
-		FPRT(stdout,"  mos : SCSI MO image(XM6 SCSI MO image)\n");
-		FPRT(stdout,"  iso : SCSI CD image(ISO 9660 image)\n");
+		FPRT(stdout,"  hdf : SASI HD image (XM6 SASI HD image)\n");
+		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
+		FPRT(stdout,"  hdr : SCSI HD image (Removable generic SCSI HD image)\n");
+		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
+		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
+		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
+		FPRT(stdout,"  hda : SCSI HD image (APPLE GENUINE)\n");
+		FPRT(stdout,"  mos : SCSI MO image (XM6 SCSI MO image)\n");
+		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
 
-		exit(0);
+		exit(EXIT_SUCCESS);
 	}
 }
 
@@ -126,10 +123,10 @@ void Banner(int argc, char* argv[])
 //
 //---------------------------------------------------------------------------
 
-BOOL InitService(int port)
+bool InitService(int port)
 {
 	int result = pthread_mutex_init(&ctrl_mutex,NULL);
-	if(result != EXIT_SUCCESS){
+	if (result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Err code: %d", result);
 		return FALSE;
 	}
@@ -144,10 +141,11 @@ BOOL InitService(int port)
 
 	// allow address reuse
 	int yes = 1;
-	if (setsockopt(
-		monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0){
+	if (setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
 		return FALSE;
 	}
+
+	signal(SIGPIPE, SIG_IGN);
 
 	// Bind
 	if (bind(monsocket, (struct sockaddr *)&server,
@@ -170,8 +168,8 @@ BOOL InitService(int port)
 		return FALSE;
 	}
 
-	running = FALSE;
-	active = FALSE;
+	running = false;
+	active = false;
 
 	return true;
 }
@@ -192,19 +190,6 @@ bool InitBus()
 	return true;
 }
 
-void InitDisks()
-{
-	// Controller initialization
-	for (int i = 0; i < CtrlMax; i++) {
-		ctrl[i] = NULL;
-	}
-
-	// Disk Initialization
-	for (int i = 0; i < CtrlMax; i++) {
-		disk[i] = NULL;
-	}
-}
-
 //---------------------------------------------------------------------------
 //
 //	Cleanup
@@ -213,18 +198,18 @@ void InitDisks()
 void Cleanup()
 {
 	// Delete the disks
-	for (int i = 0; i < CtrlMax * UnitNum; i++) {
-		if (disk[i]) {
-			delete disk[i];
-			disk[i] = NULL;
+	for (auto it = devices.begin(); it != devices.end(); ++it) {
+		if (*it) {
+			delete *it;
+			*it = NULL;
 		}
 	}
 
 	// Delete the Controllers
-	for (int i = 0; i < CtrlMax; i++) {
-		if (ctrl[i]) {
-			delete ctrl[i];
-			ctrl[i] = NULL;
+	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
+		if (*it) {
+			delete *it;
+			*it = NULL;
 		}
 	}
 
@@ -252,9 +237,9 @@ void Cleanup()
 void Reset()
 {
 	// Reset all of the controllers
-	for (int i = 0; i < CtrlMax; i++) {
-		if (ctrl[i]) {
-			ctrl[i]->Reset();
+	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
+		if (*it) {
+			(*it)->Reset();
 		}
 	}
 
@@ -267,51 +252,61 @@ void Reset()
 //	Get the list of attached devices
 //
 //---------------------------------------------------------------------------
-const PbDevices GetDevices() {
-	PbDevices devices;
 
-	for (int i = 0; i < CtrlMax * UnitNum; i++) {
+void GetImageFile(PbImageFile *image_file, const string& filename)
+{
+	image_file->set_name(filename);
+	if (!filename.empty()) {
+		image_file->set_read_only(access(filename.c_str(), W_OK));
+
+		struct stat st;
+		stat(image_file->name().c_str(), &st);
+		image_file->set_size(st.st_size);
+	}
+}
+
+const PbDevices GetDevices()
+{
+	PbDevices pbDevices;
+
+	for (size_t i = 0; i < devices.size(); i++) {
 		// skip if unit does not exist or null disk
-		Disk *pUnit = disk[i];
-		if (!pUnit) {
+		Device *device = devices[i];
+		if (!device) {
 			continue;
 		}
 
-		PbDevice *device = devices.add_devices();
+		PbDevice *pbDevice = pbDevices.add_devices();
 
 		// Initialize ID and unit number
-		device->set_id(i / UnitNum);
-		device->set_un(i % UnitNum);
+		pbDevice->set_id(i / UnitNum);
+		pbDevice->set_unit(i % UnitNum);
 
 		// ID,UNIT,Type,Device Status
-		device->set_type(MapIdToType(pUnit->GetID(), pUnit->IsSASI()));
+		PbDeviceType type = UNDEFINED;
+		PbDeviceType_Parse(device->GetType(), &type);
+		pbDevice->set_type(type);
 
-		// mount status output
-		if (pUnit->IsBridge()) {
-			device->set_file("X68000 HOST BRIDGE");
-		} else if (pUnit->IsDaynaPort()) {
-			device->set_file("DaynaPort SCSI/Link");
-		} else {
+		pbDevice->set_read_only(device->IsReadOnly());
+		pbDevice->set_protectable(device->IsProtectable());
+		pbDevice->set_protected_(device->IsProtectable() && device->IsProtected());
+		pbDevice->set_removable(device->IsRemovable());
+		pbDevice->set_removed(device->IsRemoved());
+		pbDevice->set_lockable(device->IsLockable());
+		pbDevice->set_locked(device->IsLocked());
+
+		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
+		if (fileSupport) {
 			Filepath filepath;
-			pUnit->GetPath(filepath);
-			device->set_file(pUnit->IsRemovable() && !pUnit->IsReady() ? "" : filepath.GetPath());
-		}
-
-		device->set_protectable(pUnit->IsProtectable());
-		device->set_protected_(pUnit->IsProtectable() && pUnit->IsWriteP());
-		device->set_removable(pUnit->IsRemovable());
-		device->set_removed(pUnit->IsRemoved());
-		device->set_lockable(pUnit->IsLockable());
-		device->set_locked(pUnit->IsLocked());
-		device->set_supports_file(pUnit->SupportsFile());
-
-		// Write protection status
-		if (pUnit->IsRemovable() && pUnit->IsReady() && pUnit->IsWriteP()) {
-			device->set_read_only(true);
+			fileSupport->GetPath(filepath);
+			PbImageFile *image_file = new PbImageFile();
+			GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
+			pbDevice->set_allocated_file(image_file);
+			pbDevice->set_supports_file(true);
 		}
 	}
 
-	return devices;
+	return pbDevices;
 }
 
 //---------------------------------------------------------------------------
@@ -319,45 +314,48 @@ const PbDevices GetDevices() {
 //	Controller Mapping
 //
 //---------------------------------------------------------------------------
-bool MapController(Disk **map)
+bool MapController(Device **map)
 {
+	assert(bus);
+
 	bool status = true;
 
 	// Take ownership of the ctrl data structure
 	pthread_mutex_lock(&ctrl_mutex);
 
 	// Replace the changed unit
-	for (int i = 0; i < CtrlMax; i++) {
+	for (size_t i = 0; i < controllers.size(); i++) {
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
-			if (disk[unitno] != map[unitno]) {
+			if (devices[unitno] != map[unitno]) {
 				// Check if the original unit exists
-				if (disk[unitno]) {
+				if (devices[unitno]) {
 					// Disconnect it from the controller
-					if (ctrl[i]) {
-						ctrl[i]->SetUnit(j, NULL);
+					if (controllers[i]) {
+						controllers[i]->SetUnit(j, NULL);
 					}
 
 					// Free the Unit
-					delete disk[unitno];
+					delete devices[unitno];
 				}
 
 				// Setup a new unit
-				disk[unitno] = map[unitno];
+				devices[unitno] = map[unitno];
 			}
 		}
 	}
 
 	// Reconfigure all of the controllers
-	for (int i = 0; i < CtrlMax; i++) {
+	int i = 0;
+	for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 		// Examine the unit configuration
 		int sasi_num = 0;
 		int scsi_num = 0;
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
 			// branch by unit type
-			if (disk[unitno]) {
-				if (disk[unitno]->IsSASI()) {
+			if (devices[unitno]) {
+				if (devices[unitno]->IsSASI()) {
 					// Drive is SASI, so increment SASI count
 					sasi_num++;
 				} else {
@@ -367,16 +365,16 @@ bool MapController(Disk **map)
 			}
 
 			// Remove the unit
-			if (ctrl[i]) {
-				ctrl[i]->SetUnit(j, NULL);
+			if (*it) {
+				(*it)->SetUnit(j, NULL);
 			}
 		}
 
 		// If there are no units connected
 		if (sasi_num == 0 && scsi_num == 0) {
-			if (ctrl[i]) {
-				delete ctrl[i];
-				ctrl[i] = NULL;
+			if (*it) {
+				delete *it;
+				*it = NULL;
 				continue;
 			}
 		}
@@ -391,38 +389,38 @@ bool MapController(Disk **map)
 			// Only SASI Unit(s)
 
 			// Release the controller if it is not SASI
-			if (ctrl[i] && !ctrl[i]->IsSASI()) {
-				delete ctrl[i];
-				ctrl[i] = NULL;
+			if (*it && !(*it)->IsSASI()) {
+				delete *it;
+				*it = NULL;
 			}
 
 			// Create a new SASI controller
-			if (!ctrl[i]) {
-				ctrl[i] = new SASIDEV();
-				ctrl[i]->Connect(i, bus);
+			if (!*it) {
+				*it = new SASIDEV();
+				(*it)->Connect(i, bus);
 			}
 		} else {
 			// Only SCSI Unit(s)
 
 			// Release the controller if it is not SCSI
-			if (ctrl[i] && !ctrl[i]->IsSCSI()) {
-				delete ctrl[i];
-				ctrl[i] = NULL;
+			if (*it && !(*it)->IsSCSI()) {
+				delete *it;
+				*it = NULL;
 			}
 
 			// Create a new SCSI controller
-			if (!ctrl[i]) {
-				ctrl[i] = new SCSIDEV();
-				ctrl[i]->Connect(i, bus);
+			if (!*it) {
+				*it = new SCSIDEV();
+				(*it)->Connect(i, bus);
 			}
 		}
 
 		// connect all units
 		for (int j = 0; j < UnitNum; j++) {
 			int unitno = i * UnitNum + j;
-			if (disk[unitno]) {
+			if (devices[unitno]) {
 				// Add the unit connection
-				ctrl[i]->SetUnit(j, disk[unitno]);
+				(*it)->SetUnit(j, (static_cast<Disk *>(devices[unitno])));
 			}
 		}
 	}
@@ -439,9 +437,15 @@ bool ReturnStatus(int fd, bool status = true, const string msg = "")
 
 	if (fd == -1) {
 		if (!msg.empty()) {
-			FPRT(stderr, "Error: ");
-			FPRT(stderr, msg.c_str());
-			FPRT(stderr, "\n");
+			if (status) {
+				FPRT(stderr, "Error: ");
+				FPRT(stderr, "%s", msg.c_str());
+				FPRT(stderr, "\n");
+			}
+			else {
+				FPRT(stdout, "%s", msg.c_str());
+				FPRT(stderr, "\n");
+			}
 		}
 	}
 	else {
@@ -491,9 +495,9 @@ bool SetLogLevel(const string& log_level)
 	return true;
 }
 
-void LogDevices(const string& device_list)
+void LogDevices(const string& devices)
 {
-	stringstream ss(device_list);
+	stringstream ss(devices);
 	string line;
 
 	while (getline(ss, line, '\n')) {
@@ -513,10 +517,56 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 	if (access(default_image_folder.c_str(), F_OK) != -1) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				serverInfo.add_available_image_files(entry.path().filename());
+				PbImageFile *image_file = serverInfo.add_available_image_files();
+				GetImageFile(image_file, entry.path().filename());
 			}
 		}
 	}
+}
+
+bool SetDefaultImageFolder(const string& f)
+{
+	string folder = f;
+
+	// If a relative path is specified the path is assumed to be relative to the user's home directory
+	if (folder[0] != '/') {
+		const passwd *passwd = getpwuid(getuid());
+		if (passwd) {
+			folder = passwd->pw_dir;
+			folder += "/";
+			folder += f;
+		}
+	}
+
+	struct stat info;
+	stat(folder.c_str(), &info);
+	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
+		return false;
+	}
+
+	default_image_folder = folder;
+
+	LOGINFO("Set default image folder to '%s'", default_image_folder.c_str());
+
+	return true;
+}
+
+void SetDeviceName(Device *device, const string& name)
+{
+	size_t productSeparatorPos = name.find(':');
+	if (productSeparatorPos != string::npos) {
+		device->SetVendor(name.substr(0, productSeparatorPos));
+
+		const string remaining = name.substr(productSeparatorPos + 1);
+		size_t revisionSeparatorPos = remaining.find(':');
+		if (revisionSeparatorPos != string::npos) {
+			device->SetProduct(remaining.substr(0, revisionSeparatorPos));
+			device->SetRevision(remaining.substr(revisionSeparatorPos + 1));
+			return;
+		}
+	}
+
+	throw illegal_argument_exception("Invalid device name '" + name + "', format must be VENDOR:PRODUCT:REVISION");
 }
 
 //---------------------------------------------------------------------------
@@ -524,20 +574,23 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 //	Command Processing
 //
 //---------------------------------------------------------------------------
-bool ProcessCmd(int fd, const PbCommand &command)
+
+bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cmd, const string& params, bool dryRun)
 {
 	Filepath filepath;
-	Disk *pUnit;
+	Device *device = NULL;
 	ostringstream error;
 
-	int id = command.id();
-	int un = command.un();
-	PbOperation cmd = command.cmd();
-	PbDeviceType type = command.type();
-	string params = command.params().c_str();
+	const int id = pbDevice.id();
+	const int unit = pbDevice.unit();
+	const string filename = pbDevice.file();
+	PbDeviceType type = pbDevice.type();
+	bool all = params == "all";
 
 	ostringstream s;
-	s << "Processing: cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", un=" << un << ", type=" << PbDeviceType_Name(type) << ", params=" << params;
+	s << (dryRun ? "Validating: " : "Executing: ");
+	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
+			<< ", filename='" << filename << "', device name='" << pbDevice.name() << "', params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
@@ -547,238 +600,278 @@ bool ProcessCmd(int fd, const PbCommand &command)
 	}
 
 	// Check the Unit Number
-	if (un < 0 || un >= UnitNum) {
-		error << "Invalid unit " << un << " (0-" << UnitNum - 1 << ")";
+	if (unit < 0 || unit >= UnitNum) {
+		error << "Invalid unit " << unit << " (0-" << UnitNum - 1 << ")";
 		return ReturnStatus(fd, false, error);
 	}
 
-	// Copy the Unit List
-	Disk *map[CtrlMax * UnitNum];
-	memcpy(map, disk, sizeof(disk));
+	// Copy the devices
+	Device *map[devices.size()];
+	for (size_t i = 0; i < devices.size(); i++) {
+		map[i] = devices[i];
+	}
 
-	// Connect Command
 	if (cmd == ATTACH) {
-		if (map[id * UnitNum + un]) {
+		if (map[id * UnitNum + unit]) {
 			error << "Duplicate ID " << id;
 			return ReturnStatus(fd, false, error);
 		}
 
-		string file = params;
-
-		// Try to extract the file type from the filename. Convention: "filename:type".
-		size_t separatorPos = file.find(':');
-		if (separatorPos != string::npos) {
-			string t = file.substr(separatorPos + 1);
-			transform(t.begin(), t.end(), t.begin(), ::toupper);
-
-			if (!PbDeviceType_Parse(t, &type)) {
-				error << "Invalid device type " << t;
-				return ReturnStatus(fd, false, error);
-			}
-
-			file = file.substr(0, separatorPos);
+		if (dryRun) {
+			return true;
 		}
 
 		string ext;
-		int len = file.size();
-		if (len > 4 && file[len - 4] == '.') {
-			ext = file.substr(len - 3);
+		int len = filename.length();
+		if (len > 4 && filename[len - 4] == '.') {
+			ext = filename.substr(len - 3);
 		}
 
-		// If no type was specified try to derive the file type from the extension
-		if (type == UNDEFINED) {
-			if (ext == "hdf") {
-				type = SASI_HD;
+		// Create a new device, based upon type or file extension
+		device = DeviceFactory::CreateDevice(type, filename, ext);
+		if (!device) {
+			return ReturnStatus(fd, false, "Invalid device type " + PbDeviceType_Name(type));
+		}
+
+		if (!pbDevice.name().empty()) {
+			try {
+				SetDeviceName(device, pbDevice.name());
 			}
-			else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
-				type = SCSI_HD;
-			} else if (ext == "mos") {
-				type = MO;
-			} else if (ext == "iso") {
-				type = CD;
+			catch(const illegal_argument_exception& e) {
+				return ReturnStatus(fd, false, e.getmsg());
 			}
 		}
 
-		// File check (type is HD, for CD and MO the medium (=file) may be inserted later)
-		if ((type == SASI_HD || type == SCSI_HD) && file.empty()) {
-			return ReturnStatus(fd, false, "Missing filename");
+		device->SetId(id);
+		device->SetLun(unit);
+		if (!device->IsReadOnly()) {
+			device->SetProtected(pbDevice.protected_());
 		}
 
-		// Create a new drive, based upon type
-		pUnit = NULL;
-		switch (type) {
-			case SASI_HD:		// HDF
-				pUnit = new SASIHD();
-				break;
-			case SCSI_HD:		// HDS/HDN/HDI/NHD/HDA
-				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-					pUnit = new SCSIHD_NEC();
-				} else if (ext == "hda") {
-					pUnit = new SCSIHD_APPLE();
-				} else {
-					pUnit = new SCSIHD();
-				}
-				break;
-			case MO:
-				pUnit = new SCSIMO();
-				break;
-			case CD:
-				pUnit = new SCSICD();
-				break;
-			case BR:
-				pUnit = new SCSIBR();
-				break;
-			// case NUVOLINK:
-			// 	pUnit = new SCSINuvolink();
-			// 	break;
-			case DAYNAPORT:
-				pUnit = new SCSIDaynaPort();
-				break;
-			default:
-				error << "Received a command for an invalid drive type: " << PbDeviceType_Name(type);
-				return ReturnStatus(fd, false, error);
+		FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
+
+		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
+		if (fileSupport && !device->IsRemovable() && filename.empty()) {
+			delete device;
+
+			return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
 		}
 
 		// drive checks files
-		if (type != BR && type != DAYNAPORT && !command.params().empty()) {
+		if (fileSupport && !filename.empty()) {
 			// Set the Path
-			filepath.SetPath(file.c_str());
+			filepath.SetPath(filename.c_str());
 
 			// Open the file path
 			try {
-				pUnit->Open(filepath);
+				fileSupport->Open(filepath);
 			}
-			catch(const ioexception& e) {
+			catch(const io_exception& e) {
 				// If the file does not exist search for it in the default image folder
-				string default_file = default_image_folder + "/" + file;
-				filepath.SetPath(default_file.c_str());
+				string file = default_image_folder + "/" + filename;
+				filepath.SetPath(file.c_str());
 				try {
-					pUnit->Open(filepath);
+					fileSupport->Open(filepath);
 				}
-				catch(const ioexception&) {
-					delete pUnit;
+				catch(const io_exception&) {
+					delete device;
 
-					error << "Tried to open an invalid file '" << file << "': " << e.getmsg();
-					return ReturnStatus(fd, false, error);
+					return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
 				}
 			}
 
-			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
-				error << "Image file '" << file << "' is already in use";
-				return ReturnStatus(fd, false, error);
+			if (!dryRun) {
+				if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
+					delete device;
+
+					return ReturnStatus(fd, false, "Image file '" + filename + "' is already in use");
+				}
+
+				files_in_use.insert(filepath.GetPath());
+			}
+		}
+
+		if (!dryRun) {
+			// Replace with the newly created unit
+			map[id * UnitNum + unit] = device;
+
+			// Re-map the controller
+			bool status = MapController(map);
+			if (status) {
+				LOGINFO("Added new %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
+				return true;
 			}
 
-			files_in_use.insert(filepath.GetPath());
+			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+		}
+	}
+
+	// When detaching all devices no controller/unit tests are required
+	if (cmd != DETACH || !all) {
+		// Does the controller exist?
+		if (!dryRun && !controllers[id]) {
+			error << "Received a command for non-existing ID " << id;
+			return ReturnStatus(fd, false, error);
 		}
 
-		// Set the cache to write-through
-		pUnit->SetCacheWB(FALSE);
-
-		// Replace with the newly created unit
-		map[id * UnitNum + un] = pUnit;
-
-		// Re-map the controller
-		bool status = MapController(map);
-		if (status) {
-	        LOGINFO("Added new %s device. ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+		// Does the unit exist?
+		device = devices[id * UnitNum + unit];
+		if (!dryRun && !device) {
+			error << "Received a command for ID " << id << ", non-existing unit " << unit;
+			return ReturnStatus(fd, false, error);
 		}
-
-		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
 	}
 
-	// Does the controller exist?
-	if (ctrl[id] == NULL) {
-		error << "Received a command for invalid ID " << id;
-		return ReturnStatus(fd, false, error);
-	}
+	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
-	// Does the unit exist?
-	pUnit = disk[id * UnitNum + un];
-	if (pUnit == NULL) {
-		error << "Received a command for invalid ID " << id << ", unit " << un;
-		return ReturnStatus(fd, false, error);
-	}
-
-	// Disconnect Command
 	if (cmd == DETACH) {
-		LOGINFO("Disconnect %s at ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
+		if (!all && !params.empty()) {
+			return ReturnStatus(fd, false, "Invalid command parameter '" + params + "' for " + PbOperation_Name(DETACH));
+		}
 
-		// Free the existing unit
-		map[id * UnitNum + un] = NULL;
+		if (!dryRun) {
+			// Free the existing unit(s)
+			if (all) {
+				for (size_t i = 0; i < devices.size(); i++) {
+					map[i] = NULL;
+				}
 
-		Filepath filepath;
-		pUnit->GetPath(filepath);
-		files_in_use.erase(filepath.GetPath());
+				files_in_use.clear();
+			}
+			else {
+				map[id * UnitNum + unit] = NULL;
 
-		// Re-map the controller
-		bool status = MapController(map);
+				if (fileSupport) {
+					Filepath filepath;
+					fileSupport->GetPath(filepath);
+					files_in_use.erase(filepath.GetPath());
+				}
+			}
 
-		return ReturnStatus(fd, status, status ? "" : "SASI and SCSI can't be mixed");
+			// Re-map the controller, remember the device type because the device gets lost when re-mapping
+			const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
+			bool status = MapController(map);
+			if (status) {
+				if (all) {
+					LOGINFO("Disconnected all devices");
+				}
+				else {
+					LOGINFO("Disconnected %s device with ID %d, unit %d", device_type.c_str(), id, unit);
+				}
+				return true;
+			}
+
+			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+		}
 	}
 
-	// Only MOs or CDs may be inserted/ejected, only MOs, CDs or hard disks may be protected
-	if ((cmd == INSERT || cmd == EJECT) && !pUnit->IsRemovable()) {
-		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't removable)";
-		return ReturnStatus(fd, false, error);
+	if ((cmd == INSERT || cmd == EJECT) && !device->IsRemovable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't removable)");
 	}
 
-	if ((cmd == PROTECT || cmd == UNPROTECT) && (!pUnit->IsProtectable() || pUnit->IsReadOnly())) {
-		error << PbOperation_Name(cmd) << " operation denied (Device type " << pUnit->GetID() << " isn't protectable)";
-		return ReturnStatus(fd, false, error);
+	if ((cmd == PROTECT || cmd == UNPROTECT) && !device->IsProtectable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't protectable)");
 	}
 
 	switch (cmd) {
 		case INSERT:
-			if (params.empty()) {
+			if (!pbDevice.name().empty()) {
+				return ReturnStatus(fd, false, "Device name cannot be changed");
+			}
+
+			if (filename.empty()) {
 				return ReturnStatus(fd, false, "Missing filename");
 			}
 
-			filepath.SetPath(params.c_str());
-			LOGINFO("Insert file '%s' requested into %s ID: %d UN: %d", params.c_str(), pUnit->GetID().c_str(), id, un);
+			if (dryRun) {
+				return true;
+			}
+
+			filepath.SetPath(filename.c_str());
+			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", filename.c_str(), device->GetType().c_str(), id, unit);
 
 			try {
-				pUnit->Open(filepath);
+				fileSupport->Open(filepath);
 			}
-			catch(const ioexception& e) {
-				// If the file does not exist search for it in the default image folder
-				string default_file = default_image_folder + "/" + params;
-				filepath.SetPath(default_file.c_str());
-				try {
-					pUnit->Open(filepath);
+			catch(const io_exception& e) {
+				if (!default_image_folder.empty()) {
+					// If the file does not exist search for it in the default image folder
+					string default_file = default_image_folder + "/" + filename;
+					filepath.SetPath(default_file.c_str());
+					try {
+						fileSupport->Open(filepath);
+					}
+					catch(const io_exception&) {
+						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
+					}
 				}
-				catch(const ioexception&) {
-					error << "Tried to open an invalid file '" << params << "': " << e.getmsg();
-					LOGWARN("%s", error.str().c_str());
-					return ReturnStatus(fd, false, error);
+				else {
+					return ReturnStatus(fd, false, "No default image folder");
 				}
 			}
 			break;
 
 		case EJECT:
-			LOGINFO("Eject requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
-			pUnit->Eject(true);
+			if (dryRun) {
+				return true;
+			}
+
+			LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+			// EJECT is idempotent
+			device->Eject(true);
 			break;
 
 		case PROTECT:
-			LOGINFO("Write protection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
-			pUnit->WriteP(true);
+			if (dryRun) {
+				return true;
+			}
+
+			LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+			// PROTECT is idempotent
+			device->SetProtected(true);
 			break;
 
 		case UNPROTECT:
-			LOGINFO("Write unprotection requested for %s ID: %d UN: %d", pUnit->GetID().c_str(), id, un);
-			pUnit->WriteP(false);
+			if (dryRun) {
+				return true;
+			}
+
+			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			// UNPROTECT is idempotent
+			device->SetProtected(false);
 			break;
 
+		case ATTACH:
+		case DETACH:
+			assert(dryRun);
+
+			// The non dry-run case was handled above
+			return true;
+
 		default:
-			error << "Received unknown command: " << PbOperation_Name(cmd);
-			return ReturnStatus(fd, false, error);
+			return ReturnStatus(fd, false, "Received unknown command: " + PbOperation_Name(cmd));
+	}
+
+	return true;
+}
+
+bool ProcessCmd(const int fd, const PbCommand& command)
+{
+	// Dry run first
+	for (int i = 0; i < command.devices().devices_size(); i++) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), true)) {
+			return false;
+		}
+	}
+
+	// Execute
+	for (int i = 0; i < command.devices().devices_size(); i++) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), false)) {
+			return false;
+		}
 	}
 
 	return ReturnStatus(fd);
-}
-
-bool has_suffix(const string& filename, const string& suffix) {
-    return filename.size() >= suffix.size() && !filename.compare(filename.size() - suffix.size(), suffix.size(), suffix);
 }
 
 //---------------------------------------------------------------------------
@@ -788,13 +881,17 @@ bool has_suffix(const string& filename, const string& suffix) {
 //---------------------------------------------------------------------------
 bool ParseArgument(int argc, char* argv[], int& port)
 {
+	PbDeviceDefinitions devices;
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
-	string log_level = "trace";
+	PbDeviceType type = UNDEFINED;
+	string name;
+	string log_level;
 
+	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:P:p:f:Vv")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:T:t:P:p:f:Vv")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -831,54 +928,78 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'f':
-				struct stat folder_stat;
-				stat(optarg, &folder_stat);
-				if (!S_ISDIR(folder_stat.st_mode) || access(optarg, F_OK) == -1) {
-					cerr << "Default image folder '" << optarg << "' is not accessible" << endl;
+				if (!SetDefaultImageFolder(optarg)) {
+					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
 					return false;
 				}
+				continue;
 
-				default_image_folder = optarg;
+			case 'n':
+				name = optarg;
+				continue;
+
+			case 't': {
+					string t = optarg;
+					transform(t.begin(), t.end(), t.begin(), ::toupper);
+					if (!PbDeviceType_Parse(t, &type)) {
+						cerr << "Illegal device type '" << optarg << "'" << endl;
+						return false;
+					}
+				}
 				continue;
 
 			case 'v':
 				cout << rascsi_get_version_string() << endl;
-				exit(0);
+				exit(EXIT_SUCCESS);
 				break;
 
 			default:
 				return false;
 
 			case 1:
+				// Encountered filename
 				break;
 		}
 
-		int un = 0;
+		if (optopt) {
+			return false;
+		}
+
+		int unit = 0;
 		if (is_sasi) {
-			un = id % UnitNum;
+			unit = id % UnitNum;
 			id /= UnitNum;
 		}
 
-		// Execute the command
-		PbCommand command;
-		command.set_id(id);
-		command.set_un(un);
-		command.set_cmd(ATTACH);
-		command.set_params(optarg);
-		if (!ProcessCmd(-1, command)) {
-			return false;
-		}
+		// Set up the device data
+		PbDeviceDefinition *device = devices.add_devices();
+		device->set_id(id);
+		device->set_unit(unit);
+		device->set_type(type);
+		device->set_name(name);
+		device->set_file(optarg);
+
 		id = -1;
+		type = UNDEFINED;
 	}
 
-	if (!SetLogLevel(log_level)) {
+	if (!log_level.empty() && !SetLogLevel(log_level)) {
 		LOGWARN("Invalid log level '%s'", log_level.c_str());
 	}
 
+	// Attach all specified devices
+	PbCommand command;
+	command.set_cmd(ATTACH);
+	command.set_allocated_devices(new PbDeviceDefinitions(devices));
+
+	if (!ProcessCmd(-1, command)) {
+		return false;
+	}
+
 	// Display and log the device list
-	const string devices = ListDevices(GetDevices());
-	cout << devices << endl;
-	LogDevices(devices);
+	const string deviceList = ListDevices(GetDevices());
+	cout << deviceList << endl;
+	LogDevices(deviceList);
 
 	return true;
 }
@@ -911,8 +1032,6 @@ void FixCpu(int cpu)
 //---------------------------------------------------------------------------
 static void *MonThread(void *param)
 {
-	int fd;
-
     // Scheduler Settings
 	struct sched_param schedparam;
 	schedparam.sched_priority = 0;
@@ -929,15 +1048,17 @@ static void *MonThread(void *param)
 	// Set up the monitor socket to receive commands
 	listen(monsocket, 1);
 
-	try {
-		while (true) {
+	while (true) {
+		int fd = -1;
+
+		try {
 			// Wait for connection
 			struct sockaddr_in client;
 			socklen_t socklen = sizeof(client);
 			memset(&client, 0, socklen);
 			fd = accept(monsocket, (struct sockaddr*)&client, &socklen);
 			if (fd < 0) {
-				throw ioexception("accept() failed");
+				throw io_exception("accept() failed");
 			}
 
 			// Fetch the command
@@ -945,25 +1066,29 @@ static void *MonThread(void *param)
 			DeserializeMessage(fd, command);
 
 			switch(command.cmd()) {
-				case LIST: {
-					const PbDevices devices = GetDevices();
-					SerializeMessage(fd, devices);
-					LogDevices(ListDevices(devices));
-					break;
-				}
-
 				case LOG_LEVEL: {
 					bool status = SetLogLevel(command.params());
 					if (!status) {
-						ostringstream error;
-						error << "Invalid log level: " << command.params();
-						ReturnStatus(fd, false, error);
+						ReturnStatus(fd, false, "Invalid log level: " + command.params());
 					}
 					else {
 						ReturnStatus(fd);
 					}
 					break;
 				}
+
+				case DEFAULT_FOLDER:
+					if (command.params().empty()) {
+						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
+					}
+
+					if (!SetDefaultImageFolder(command.params())) {
+						ReturnStatus(fd, false, "Folder '" + command.params() + "' does not exist or is not accessible");
+					}
+					else {
+						ReturnStatus(fd);
+					}
+					break;
 
 				case SERVER_INFO: {
 					PbServerInfo serverInfo;
@@ -974,6 +1099,7 @@ static void *MonThread(void *param)
 					GetAvailableImages(serverInfo);
 					serverInfo.set_allocated_devices(new PbDevices(GetDevices()));
 					SerializeMessage(fd, serverInfo);
+					LogDevices(ListDevices(serverInfo.devices()));
 					break;
 				}
 
@@ -987,19 +1113,16 @@ static void *MonThread(void *param)
 					break;
 				}
 			}
-
-			close(fd);
-			fd = -1;
 		}
-	}
-	catch(const ioexception& e) {
-		LOGERROR("%s", e.getmsg().c_str());
+		catch(const io_exception& e) {
+			LOGWARN("%s", e.getmsg().c_str());
 
-		// Fall through
-	}
+			// Fall through
+		}
 
-    if (fd >= 0) {
-		close(fd);
+		if (fd >= 0) {
+			close(fd);
+		}
 	}
 
 	return NULL;
@@ -1014,7 +1137,6 @@ int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	int i;
 	int actid;
 	DWORD now;
 	BUS::phase_t phase;
@@ -1030,10 +1152,22 @@ int main(int argc, char* argv[])
 	available_log_levels.push_back("err");
 	available_log_levels.push_back("critical");
 	available_log_levels.push_back("off");
-	SetLogLevel("trace");
+	SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
+
+	// ~/images is the default folder for device image file. For the root user /home/pi/images is the default.
+	const int uid = getuid();
+	const passwd *passwd = getpwuid(uid);
+	if (uid && passwd) {
+		string folder = passwd->pw_dir;
+		folder += "/images";
+		default_image_folder = folder;
+	}
+	else {
+		default_image_folder = "/home/pi/images";
+	}
 
 	// Output the Banner
 	Banner(argc, argv);
@@ -1041,16 +1175,14 @@ int main(int argc, char* argv[])
 	int ret = 0;
 	int port = 6868;
 
-	InitDisks();
+	if (!InitBus()) {
+		ret = EPERM;
+		goto init_exit;
+	}
 
 	if (!ParseArgument(argc, argv, port)) {
 		ret = EINVAL;
 		goto err_exit;
-	}
-
-	if (!InitBus()) {
-		ret = EPERM;
-		goto init_exit;
 	}
 
 	if (!InitService(port)) {
@@ -1071,7 +1203,7 @@ int main(int argc, char* argv[])
 #endif	// USE_SEL_EVENT_ENABLE
 
 	// Start execution
-	running = TRUE;
+	running = true;
 
 	// Main Loop
 	while (running) {
@@ -1120,13 +1252,14 @@ int main(int argc, char* argv[])
 
 		// Notify all controllers
 		data = bus->GetDAT();
-		for (i = 0; i < CtrlMax; i++) {
-			if (!ctrl[i] || (data & (1 << i)) == 0) {
+		int i = 0;
+		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
+			if (!*it || (data & (1 << i)) == 0) {
 				continue;
 			}
 
 			// Find the target that has moved to the selection phase
-			if (ctrl[i]->Process() == BUS::selection) {
+			if ((*it)->Process() == BUS::selection) {
 				// Get the target ID
 				actid = i;
 
@@ -1143,7 +1276,7 @@ int main(int argc, char* argv[])
 		}
 
 		// Start target device
-		active = TRUE;
+		active = true;
 
 #ifndef USE_SEL_EVENT_ENABLE
 		// Scheduling policy setting (highest priority)
@@ -1154,7 +1287,7 @@ int main(int argc, char* argv[])
 		// Loop until the bus is free
 		while (running) {
 			// Target drive
-			phase = ctrl[actid]->Process();
+			phase = controllers[actid]->Process();
 
 			// End when the bus is free
 			if (phase == BUS::busfree) {
@@ -1171,7 +1304,7 @@ int main(int argc, char* argv[])
 #endif	// USE_SEL_EVENT_ENABLE
 
 		// End the target travel
-		active = FALSE;
+		active = false;
 	}
 
 err_exit:

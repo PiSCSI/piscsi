@@ -20,6 +20,7 @@
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
 #include <climits>
+#include <sstream>
 
 //---------------------------------------------------------------------------
 //
@@ -52,8 +53,7 @@
 //
 //---------------------------------------------------------------------------
 static BYTE prev_value[32] = {0xFF};
-static volatile BOOL running;		// Running flag
-static volatile BOOL active;		// Processing flag
+static volatile bool running;		// Running flag
 GPIOBUS *bus;						// GPIO Bus
 typedef struct data_capture{
     DWORD data;
@@ -78,7 +78,7 @@ char log_file_name[_MAX_FNAME/2] = "log.vcd";
 void KillHandler(int sig)
 {
 	// Stop instruction
-	running = FALSE;
+	running = false;
 }
 
 //---------------------------------------------------------------------------
@@ -143,8 +143,7 @@ BOOL Init()
 	bus->Reset();
 
 	// Other
-	running = FALSE;
-	active = FALSE;
+	running = false;
 
 	return TRUE;
 }
@@ -266,7 +265,9 @@ void create_value_change_dump()
 
     while(i < data_idx)
     {
-        fprintf(fp, "#%llu\n",(QWORD)(data_buffer[i].timestamp*ns_per_loop));
+    	ostringstream s;
+    	s << (QWORD)(data_buffer[i].timestamp*ns_per_loop);
+        fprintf(fp, "#%s\n",s.str().c_str());
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_SEL, SYMBOL_PIN_SEL);
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_CD,  SYMBOL_PIN_CD);
@@ -350,7 +351,9 @@ static DWORD low_bits = 0xFFFFFFFF;
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-#ifdef DEBUG
+    ostringstream s;
+
+    #ifdef DEBUG
     DWORD prev_high = high_bits;
     DWORD prev_low = low_bits;
 #endif
@@ -409,13 +412,14 @@ int main(int argc, char* argv[])
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 
 	// Start execution
-	running = TRUE;
+	running = false;
 	bus->SetACT(FALSE);
 
     (void)gettimeofday(&start_time, NULL);
 
     LOGDEBUG("ALL_SCSI_PINS %08X\n",ALL_SCSI_PINS);
-	// Main Loop
+
+    // Main Loop
 	while (running) {
 		// Work initialization
 		this_sample = (bus->Aquire() & ALL_SCSI_PINS);
@@ -441,12 +445,14 @@ int main(int argc, char* argv[])
             low_bits &= this_sample;
             if ((high_bits != prev_high) || (low_bits != prev_low))
             {
-                LOGDEBUG("   %08lX    %08lX\n",high_bits, low_bits);
+                LOGDEBUG("   %08X    %08X\n",high_bits, low_bits);
             }
             prev_high = high_bits;
             prev_low = low_bits;
             if((data_idx % 1000) == 0){
-                LOGDEBUG("Collected %lu samples...", data_idx);
+            	s.str("");
+            	s << "Collected " << data_idx << " samples...";
+            	LOGDEBUG("%s", s.str().c_str());
             }
 #endif
             data_buffer[data_idx].data = this_sample;
@@ -471,12 +477,18 @@ int main(int argc, char* argv[])
     timersub(&stop_time, &start_time, &time_diff);
 
     elapsed_us = ((time_diff.tv_sec*1000000) + time_diff.tv_usec);
-    LOGINFO("Elapsed time: %llu microseconds (%lf seconds)",elapsed_us, ((double)elapsed_us)/1000000);
-    LOGINFO("Collected %lu changes", data_idx);
+    s.str("");
+    s << "Elapsed time: " << elapsed_us << " microseconds (" << elapsed_us / 1000000 << " seconds)";
+    LOGINFO("%s", s.str().c_str());
+    s.str("");
+    s << "Collected %lu changes" << data_idx;
+    LOGINFO("%s", s.str().c_str());
 
     // Note: ns_per_loop is a global variable that is used by Cleanup() to printout the timestamps.    
     ns_per_loop = (elapsed_us * 1000) / (double)loop_count;
-    LOGINFO("Read the SCSI bus %llu times with an average of %lu ns for each read", loop_count, (DWORD)ns_per_loop);
+    s.str("");
+    s << "Read the SCSI bus " << loop_count << " times with an average of " << ns_per_loop << " ns for each read";
+    LOGINFO("%s", s.str().c_str());
 
 	// Cleanup
 	Cleanup();

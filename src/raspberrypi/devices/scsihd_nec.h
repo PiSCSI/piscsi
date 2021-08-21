@@ -26,22 +26,22 @@ class SCSIHD_NEC : public SCSIHD
 {
 public:
 	// Basic Functions
-	SCSIHD_NEC();								// Constructor
+	SCSIHD_NEC();							// Constructor
 	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 
 	// Internal processing
-	int AddError(BOOL change, BYTE *buf);				// Add error
-	int AddFormat(BOOL change, BYTE *buf);				// Add format
-	int AddDrive(BOOL change, BYTE *buf);				// Add drive
+	int AddError(bool change, BYTE *buf) override;		// Add error
+	int AddFormat(bool change, BYTE *buf) override;		// Add format
+	int AddDrive(bool change, BYTE *buf) override;		// Add drive
 
 private:
 	int cylinders;								// Number of cylinders
 	int heads;								// Number of heads
 	int sectors;								// Number of sectors
 	int sectorsize;								// Sector size
-	off64_t imgoffset;							// Image offset
-	off64_t imgsize;							// Image size
+	off_t imgoffset;							// Image offset
+	off_t imgsize;							// Image size
 };

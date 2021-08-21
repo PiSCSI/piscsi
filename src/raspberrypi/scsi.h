@@ -42,7 +42,10 @@ public:
 	enum asc : int {
 		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
 		INVALID_COMMAND_OPERATION_CODE = 0x20,
+		LBA_OUT_OF_RANGE = 0x21,
+		INVALID_FIELD_IN_CDB = 0x24,
 		INVALID_LUN = 0x25,
+		WRITE_PROTECTED = 0x27,
 		MEDIUM_NOT_PRESENT = 0x3a
 	};
 };
@@ -107,9 +110,9 @@ public:
 		return ((raw_data >> pin_num) & 1);
 	}
 
-	virtual BOOL GetBSY() = 0;
+	virtual bool GetBSY() = 0;
 										// BSYシグナル取得
-	virtual void SetBSY(BOOL ast) = 0;
+	virtual void SetBSY(bool ast) = 0;
 										// BSYシグナル設定
 
 	virtual BOOL GetSEL() = 0;

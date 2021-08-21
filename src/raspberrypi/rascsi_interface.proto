@@ -1,70 +1,122 @@
+//
+// Each rascsi remote interface message is preceded by a little endian 32 bit header,
+// which contains the protobuf message size.
+//
+
 syntax = "proto3";
 
 package rascsi_interface;
 
-// The supported device types
+// The available device types
 enum PbDeviceType {
     UNDEFINED = 0;
-    SASI_HD = 1;
-    SCSI_HD = 2;
-    MO = 3;
-    CD = 4;
-    BR = 5;
-    NUVOLINK = 6;
-    DAYNAPORT = 7;
+    // Non-removable SASI drive
+    SAHD = 1;
+    // Non-removable SCSI drive
+    SCHD = 2;
+    // Removable SCSI drive
+    SCRM = 3;
+    // Magnoto-Optical drive
+    SCMO = 4;
+    // CD-ROM drive
+    SCCD = 5;
+    // Network bridge
+    SCBR = 6;
+    // DaynaPort network adapter
+    SCDP = 7;
 }
 
 // rascsi remote operations
 enum PbOperation {
     NONE = 0;
-    // Returns the full server information
+    // Returns the server information
     SERVER_INFO = 1;
-    // Returns the device list only (required for rasctl/logging semantics compatibility)
-    LIST = 2 [deprecated = true];
+    // Set the default folder for image files, PbCommand.params contains the folder name
+    DEFAULT_FOLDER = 2;
+    // Set server log level, PbCommand.params contains the log level
     LOG_LEVEL = 3;
+    // Attach new device
     ATTACH = 4;
+    // Detach device. Detach all devices if PbCommand.params == "all". In this case ID and unit are ignored.
     DETACH = 5;
+    // Insert media
     INSERT = 6;
+    // Eject media
     EJECT = 7;
+    // Write-protect media (not possible for read-only media)
     PROTECT = 8;
+    // Make media writable (not possible for read-only media)
     UNPROTECT = 9;
 }
 
-// Commands rascsi can execute
-message PbCommand {
-    PbOperation cmd = 1;
-    int32 id = 2;
-    int32 un = 3;
-    PbDeviceType type = 4;
-    string params = 5;
+// The image file data
+message PbImageFile {
+    string name = 1;
+    bool read_only = 2;
+    int64 size = 3;
 }
 
-// The result of a command
-message PbResult {
-    bool status = 1;
-    string msg = 2;
-}
-
-// The device meta data
-message PbDevice {
+// The device definition, sent from the client to the server
+message PbDeviceDefinition {
     int32 id = 1;
-    int32 un = 2;
+    int32 unit = 2;
     PbDeviceType type = 3;
     string file = 4;
-    bool read_only = 5;
-    // Note: Read-only media (e.g. CD-ROMs) are not protectable
-    bool protectable = 6;
-    // Note: Read-only media (e.g. CD-ROMs) are not protected but just read-only
-    bool protected = 7;
-    bool removable = 8;
-    bool removed = 9;
-    bool lockable = 10;
-    bool locked = 11;
-    bool supports_file = 12;
+    // The device name, format is VENDOR:PRODUCT:REVISION
+    string name = 5;
+    bool protected = 6;
+}
+
+message PbDeviceDefinitions {
+    repeated PbDeviceDefinition devices = 1;
+}
+
+// The device data, sent from the server to the client
+message PbDevice {
+    int32 id = 1;
+    int32 unit = 2;
+    PbDeviceType type = 3;
+    PbImageFile file = 4;
+    string vendor = 5;
+    string product = 6;
+    string revision = 7;
+    // Read-only media (e.g. CD-ROMs) are not protectable but read-only all the time
+    bool read_only = 8;
+    // Media can be write-protected
+    bool protectable = 9;
+    // Media is write-protected
+    bool protected = 10;
+    // Media can be removed
+    bool removable = 11;
+    // Media is removed
+    bool removed = 12;
+    // Media can be locked
+    bool lockable = 13;
+    // Media is locked
+    bool locked = 14;
+    // Device supports image file
+    bool supports_file = 15;
 }
 
 message PbDevices {
     repeated PbDevice devices = 1;
+}
+
+// Commands rascsi can execute and their parameters
+message PbCommand {
+    PbOperation cmd = 1;
+    // The optional device list
+    PbDeviceDefinitions devices = 2;
+    // The optional parameters, depending on the operation
+    string params = 3;
+}
+
+// The result of a command
+message PbResult {
+    // false means that an error occurred
+    bool status = 1;
+    // The (error) message
+    string msg = 2;
 }
 
 // The rascsi server information
@@ -75,7 +127,7 @@ message PbServerInfo {
     string current_log_level = 3;
     string default_image_folder = 4;
     // Files in the default folder
-    repeated string available_image_files = 5;
+    repeated PbImageFile available_image_files = 5;
     // The attached devices
     PbDevices devices = 6;
 }

@@ -44,34 +44,32 @@ public:
 	// Basic Functions
 	SCSIDaynaPort();
 										// Constructor
-	virtual ~SCSIDaynaPort();
+	~SCSIDaynaPort();
 										// Destructor
 	void Open(const Filepath& path, BOOL attn = TRUE);
 										// Capture packets
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buffer, DWORD major, DWORD minor);
+	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
 										// INQUIRY command
-	BOOL TestUnitReady(const DWORD *cdb);
+	bool TestUnitReady(const DWORD *cdb) override;
 										// TEST UNIT READY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
 										// READ command
-	BOOL Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
+	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
 										// WRITE command
-	int WriteCheck(DWORD block) override;
+	int WriteCheck(DWORD block);
 										// WRITE check
 
 	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
 										// Retrieve DaynaPort statistics
-	BOOL EnableInterface(const DWORD *cdb);
+	bool EnableInterface(const DWORD *cdb);
 										// Enable/Disable Interface command
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);
 										// Set MAC address
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
-	int RequestSense(const DWORD *cdb, BYTE *buf) override;
-
 	static const BYTE CMD_SCSILINK_STATS        = 0x09;
 	static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;
 	static const BYTE CMD_SCSILINK_SET          = 0x0C;
@@ -161,7 +159,7 @@ private:
 	//http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
 	const uint8_t m_daynaport_inquiry_response[44] =  {
 		0x03, 0x00, 0x01, 0x00, // 4 bytes
-		0x1E, 0x00, 0x00, 0x00, // 4 bytes
+		0x1F, 0x00, 0x00, 0x00, // 4 bytes
 		// Vendor ID (8 Bytes)
 		 'D','a','y','n','a',' ',' ',' ',
 		// Product ID (16 Bytes)

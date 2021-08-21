@@ -509,9 +509,9 @@ public:
 	void SetENB(BOOL ast);
 										// Set ENB signal
 
-	BOOL GetBSY();
+	bool GetBSY();
 										// Get BSY signal
-	void SetBSY(BOOL ast);
+	void SetBSY(bool ast);
 										// Set BSY signal
 
 	BOOL GetSEL();
@@ -575,7 +575,9 @@ public:
 	static BUS::phase_t GetPhaseRaw(DWORD raw_data);
 										// Get the phase based on raw data
 
-#ifdef USE_SEL_EVENT_ENABLE
+	static int GetCommandByteCount(BYTE opcode);
+
+	#ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
 	int PollSelectEvent();
 										// SEL signal event polling

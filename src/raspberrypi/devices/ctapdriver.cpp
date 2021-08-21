@@ -66,9 +66,8 @@ static BOOL br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 
 static BOOL ip_link(int fd, const char* ifname, BOOL up) {
 	struct ifreq ifr;
-	int err;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
-	err = ioctl(fd, SIOCGIFFLAGS, &ifr);
+	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (err) {
 		LOGERROR("Error: can't ioctl SIOCGIFFLAGS. Errno: %d %s", errno, strerror(errno));
 		return FALSE;
@@ -257,7 +256,7 @@ void CTapDriver::OpenDump(const Filepath& path) {
 	m_pcap_dumper = pcap_dump_open(m_pcap, path.GetPath());
 	if (m_pcap_dumper == NULL) {
 		LOGERROR("Error: can't open pcap file: %s", pcap_geterr(m_pcap));
-		throw ioexception("Can't open pcap file");
+		throw io_exception("Can't open pcap file");
 	}
 
 	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath());
@@ -302,10 +301,10 @@ void CTapDriver::Cleanup()
 //	Enable
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::Enable(){
+bool CTapDriver::Enable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
-	BOOL result = ip_link(fd, "ras0", TRUE);
+	bool result = ip_link(fd, "ras0", TRUE);
 	close(fd);
 	return result;
 }
@@ -315,10 +314,10 @@ BOOL CTapDriver::Enable(){
 //	Disable
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::Disable(){
+bool CTapDriver::Disable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
-	BOOL result = ip_link(fd, "ras0", FALSE);
+	bool result = ip_link(fd, "ras0", FALSE);
 	close(fd);
 	return result;
 }
@@ -409,7 +408,7 @@ int CTapDriver::Rx(BYTE *buf)
 		buf[dwReceived + 2] = (BYTE)((crc >> 16) & 0xFF);
 		buf[dwReceived + 3] = (BYTE)((crc >> 24) & 0xFF);
 
-		LOGDEBUG("%s CRC is %08lX - %02X %02X %02X %02X\n", __PRETTY_FUNCTION__, crc, buf[dwReceived+0], buf[dwReceived+1], buf[dwReceived+2], buf[dwReceived+3]);
+		LOGDEBUG("%s CRC is %08X - %02X %02X %02X %02X\n", __PRETTY_FUNCTION__, crc, buf[dwReceived+0], buf[dwReceived+1], buf[dwReceived+2], buf[dwReceived+3]);
 
 		// Add FCS size to the received message size
 		dwReceived += 4;

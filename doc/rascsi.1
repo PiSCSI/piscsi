@@ -6,7 +6,9 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 [\fB\-f\f® \fIFOLDER\fR]
 [\fB\-g\f® \fILOG_LEVEL\fR]
 [\fB\-h\fR]
+[\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
 [\fB\-p\f® \fIPORT\fR]
+[\fB\-n\fR \fITYPE\fR]
 [\fB\-v\fR]
 [\fB\-IDn\fR \fIFILE\fR]
 [\fB\-HDn\fR \fIFILE\fR]...
@@ -20,7 +22,8 @@ For SCSI: The ID is limited from 0-7. However, typically SCSI ID 7 is reserved f
 .PP
 RaSCSI will determine the type of device based upon the file extension of the FILE argument.
     hdf: SASI Hard Disk image (XM6 SASI HD image - typically only used with X68000)
-    hds: SCSI Hard Disk image (generic)
+    hds: SCSI Hard Disk image (generic, non-removable)
+    hdr: SCSI Hard Disk image (generic, removable)
     hdn: SCSI Hard Disk image (NEC GENUINE)
     hdi: SCSI Hard Disk image (Anex86 HD image)
     nhd: SCSI Hard Disk image (T98Next HD image)
@@ -40,29 +43,35 @@ To quit RaSCSI, press Control + C. If it is running in the background, you can k
 .SH OPTIONS
 .TP
 .BR \-f\fI " " \fIFOLDER
-The default folder for image files. For files in this folder no absolute path needs to be specified. The default folder is '/home/pi/images'.
+The default folder for image files. For files in this folder no absolute path needs to be specified. The initial default folder is '~/images'.
 .TP
 .BR \-g\fI " " \fILOG_LEVEL
-The rascsi log level (trace, debug, info, warn, err, critical, off). The default log level is 'trace'.
+The rascsi log level (trace, debug, info, warn, err, critical, off). The default log level is 'info'.
 .TP
 .BR \-h\fI " " \fI
 Show a help page.
 .TP
+.BR \-n\fI " " \fIVENDOR:PRODUCT:REVISION
+Set the vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.
+.TP
 .BR \-p\fI " " \fIPORT
 The rascsi server port, default is 6868.
+.TP
+.BR \-p\fI " " \fITYPE
+The optional case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP). If no type is specified for devices that support an image file, rascsi tries to derive the type from the file extension.
 .TP
 .BR \-v\fI " " \fI
 Display the rascsi version.
 .TP
-.BR \-ID\fIn " " \fIFILE[:TYPE]
+.BR \-ID\fIn " " \fIFILE
 n is the SCSI ID number (0-7)
 .IP
-FILE is the name of the image file to attach to that ID. An optional explicit device type (SASI_HD, SCSI_HD, CD, MO, BR, NUVOLINK, DAYNAPORT) can be provided after a colon.
+FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file (SCBR, SCDP) a dummy name must be provided.
 .TP 
 .BR \-HD\fIn " " \fIFILE
 n is the SASI ID number (0-15)
 .IP
-FILE is the name of the image file to attach to that ID. If FILE starts with '/dev/' the extension, which encodes the device type, is stripped, so that device files can conveniently be used as image files.
+FILE is the name of the image file to use for the SASI device.
 .IP
 Note: SASI usage is rare, and is typically limited to early Sharp X68000 systems.
 
@@ -73,8 +82,8 @@ Launch RaSCSI with no emulated drives attached:
 Launch RaSCSI with an Apple hard drive image as ID 0 and a CD-ROM as ID 2
    rascsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
 
-Launch RaSCSI with a SCSI hard drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) as a SCSI hard disk image file:
-   rascsi -ID0 /dev/hdb:SCSI_HD
+Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw device file /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter as ID 6:
+   rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp DUMMY_FILENAME
 
 To create an empty, 100MB HD image, use the following command:
    dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800

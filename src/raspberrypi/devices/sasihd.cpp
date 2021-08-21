@@ -31,7 +31,7 @@
 //---------------------------------------------------------------------------
 SASIHD::SASIHD() : Disk("SAHD")
 {
-	disk.protectable = true;
+	SetProtectable(true);
 }
 
 //---------------------------------------------------------------------------
@@ -42,12 +42,12 @@ SASIHD::SASIHD() : Disk("SAHD")
 void SASIHD::Reset()
 {
 	// Unlock, clear attention
-	disk.locked = FALSE;
-	disk.attn = FALSE;
+	SetLocked(false);
+	SetAttn(false);
 
 	// Reset, clear the code
-	disk.reset = FALSE;
-	disk.code = 0x00;
+	SetReset(false);
+	SetStatusCode(STATUS_NOERROR);
 }
 
 //---------------------------------------------------------------------------
@@ -55,18 +55,18 @@ void SASIHD::Reset()
 //	Open
 //
 //---------------------------------------------------------------------------
-void SASIHD::Open(const Filepath& path, BOOL /*attn*/)
+void SASIHD::Open(const Filepath& path)
 {
-	ASSERT(!disk.ready);
+	ASSERT(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw ioexception("Can't open hard disk file read-only");
+		throw io_exception("Can't open hard disk file read-only");
 	}
 
 	// Get file size
-	off64_t size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	fio.Close();
 
 	#if defined(USE_MZ1F23_1024_SUPPORT)
@@ -74,28 +74,28 @@ void SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 	// 20M(22437888 BS=1024 C=21912)
 	if (size == 0x1566000) {
 		// Sector size and number of blocks
-		disk.size = 10;
-		disk.blocks = (DWORD)(size >> 10);
+		SetSectorSize(10);
+		SetBlockCount((DWORD)(size >> 10));
 
-		// Call the base class
 		Disk::Open(path);
+		FileSupport::SetPath(path);
 	}
 	#endif	// USE_MZ1F23_1024_SUPPORT
 
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Must be in 256-byte units
 	if (size & 0xff) {
-		throw ioexception("File size must be a multiple of 512 bytes");
+		throw io_exception("File size must be a multiple of 256 bytes");
 	}
 
 	// 10MB or more
 	if (size < 0x9f5400) {
-		throw ioexception("File size must be at least 10 MB");
+		throw io_exception("File size must be at least 10 MB");
 	}
 
 	// Limit to about 512MB
 	if (size > 512 * 1024 * 1024) {
-		throw ioexception("File size must not exceed 512 MB");
+		throw io_exception("File size must not exceed 512 MB");
 	}
 	#else
 	// 10MB, 20MB, 40MBのみ
@@ -114,13 +114,13 @@ void SASIHD::Open(const Filepath& path, BOOL /*attn*/)
 
 		// Other (Not supported )
 		default:
-			throw ioexception("Unsupported file size");
+			throw io_exception("Unsupported file size");
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 
-	// Sector size and number of blocks
-	disk.size = 8;
-	disk.blocks = (DWORD)(size >> 8);
+	// Sector size 256 bytes and number of blocks
+	SetSectorSize(8);
+	SetBlockCount((DWORD)(size >> 8));
 
 	// Call the base class
 	Disk::Open(path);
@@ -147,11 +147,8 @@ int SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)
 
 	// SASI fixed to non-extended format
 	memset(buf, 0, size);
-	buf[0] = (BYTE)(disk.code >> 16);
-	buf[1] = (BYTE)(disk.lun << 5);
-
-	// Clear the code
-	disk.code = 0x00;
+	buf[0] = (BYTE)(GetStatusCode() >> 16);
+	buf[1] = (BYTE)(GetLun() << 5);
 
 	return size;
 }

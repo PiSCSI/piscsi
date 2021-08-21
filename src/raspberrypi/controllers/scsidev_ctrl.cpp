@@ -19,6 +19,7 @@
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "exceptions.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -41,46 +42,52 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	SetupCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
-	SetupCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
-	SetupCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
-	SetupCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
-	SetupCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
-	SetupCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
-	SetupCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
-	SetupCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
-	SetupCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
-	SetupCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
-	SetupCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
-	SetupCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
-	SetupCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
-	SetupCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
-	SetupCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
-	SetupCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
-	SetupCommand(eCmdReadCapacity, "CmdReadCapacity", &SCSIDEV::CmdReadCapacity);
-	SetupCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
-	SetupCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
-	SetupCommand(eCmdWriteAndVerify10, "CmdWriteAndVerify10", &SCSIDEV::CmdWrite10);
-	SetupCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
-	SetupCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
-	SetupCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
-	SetupCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
-	SetupCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
-	SetupCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
-	SetupCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
-	SetupCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+	SetUpCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
+	SetUpCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
+	SetUpCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
+	SetUpCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
+	SetUpCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
+	SetUpCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
+	SetUpCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
+	SetUpCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
+	SetUpCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
+	SetUpCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
+	SetUpCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
+	SetUpCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
+	SetUpCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
+	SetUpCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
+	SetUpCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
+	SetUpCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
+	SetUpCommand(eCmdReadCapacity10, "CmdReadCapacity10", &SCSIDEV::CmdReadCapacity10);
+	SetUpCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
+	SetUpCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
+	SetUpCommand(eCmdVerify10, "CmdVerify10", &SCSIDEV::CmdWrite10);
+	SetUpCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
+	SetUpCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
+	SetUpCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
+	SetUpCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
+	SetUpCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
+	SetUpCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
+	SetUpCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
+	SetUpCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+	SetUpCommand(eCmdRead16, "CmdRead16", &SCSIDEV::CmdRead16);
+	SetUpCommand(eCmdWrite16, "CmdWrite16", &SCSIDEV::CmdWrite16);
+	SetUpCommand(eCmdVerify16, "CmdVerify16", &SCSIDEV::CmdWrite16);
+	SetUpCommand(eCmdReadCapacity16, "CmdReadCapacity16", &SCSIDEV::CmdReadCapacity16);
+	SetUpCommand(eCmdReportLuns, "CmdReportLuns", &SCSIDEV::CmdReportLuns);
 
 	// MMC specific. TODO Move to separate class
-	SetupCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
-	SetupCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
-	SetupCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
-	SetupCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
+	SetUpCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
+	SetUpCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
+	SetUpCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
+	SetUpCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
+	SetUpCommand(eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDEV::CmdGetEventStatusNotification);
 
 	// DaynaPort specific. TODO Move to separate class
-	SetupCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
-	SetupCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
-	SetupCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
-	SetupCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
+	SetUpCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
+	SetUpCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
+	SetUpCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
+	SetUpCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
 }
 
 SCSIDEV::~SCSIDEV()
@@ -90,7 +97,7 @@ SCSIDEV::~SCSIDEV()
 	}
 }
 
-void SCSIDEV::SetupCommand(scsi_command opcode, const char* name, void (SCSIDEV::*execute)(void))
+void SCSIDEV::SetUpCommand(scsi_command opcode, const char* name, void (SCSIDEV::*execute)(void))
 {
 	scsi_commands[opcode] = new command_t(name, execute);
 }
@@ -204,7 +211,6 @@ void SCSIDEV::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
-
 		LOGTRACE( "%s Bus free phase", __PRETTY_FUNCTION__);
 
 		// Phase setting
@@ -215,7 +221,7 @@ void SCSIDEV::BusFree()
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+		ctrl.bus->SetBSY(false);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
@@ -258,7 +264,7 @@ void SCSIDEV::Selection()
 		ctrl.phase = BUS::selection;
 
 		// Raise BSY and respond
-		ctrl.bus->SetBSY(TRUE);
+		ctrl.bus->SetBSY(true);
 		return;
 	}
 
@@ -280,7 +286,7 @@ void SCSIDEV::Selection()
 //---------------------------------------------------------------------------
 void SCSIDEV::Execute()
 {
-	LOGTRACE( "%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	// Phase Setting
 	ctrl.phase = BUS::execute;
@@ -292,20 +298,13 @@ void SCSIDEV::Execute()
 
 	// If the command is valid it must be contained in the command map
 	if (!scsi_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
-		LOGWARN("%s Received unsupported command: $%02X", __PRETTY_FUNCTION__, (BYTE)ctrl.cmd[0]);
 		CmdInvalid();
 		return;
 	}
 
 	command_t* command = scsi_commands[static_cast<scsi_command>(ctrl.cmd[0])];
 
-	LOGDEBUG("++++ CMD ++++ %s Received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl.cmd[0]);
-
-	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((unsigned int)ctrl.cmd[0] != 0x03) {
-		ctrl.sense_key = 0;
-		ctrl.asc = 0;
-	}
+	LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
 
 	// Process by command
 	(this->*command->execute)();
@@ -318,14 +317,13 @@ void SCSIDEV::Execute()
 //---------------------------------------------------------------------------
 void SCSIDEV::MsgOut()
 {
-	LOGTRACE("%s ID: %d",__PRETTY_FUNCTION__, this->GetSCSIID());
+	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetSCSIID());
 
 	// Phase change
 	if (ctrl.phase != BUS::msgout) {
-
 		LOGTRACE("Message Out Phase");
 
-	        // process the IDENTIFY message
+	    // process the IDENTIFY message
 		if (ctrl.phase == BUS::selection) {
 			scsi.atnmsg = TRUE;
 			scsi.msc = 0;
@@ -378,14 +376,22 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
+		lun = 0;
+	}
+
 	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
-	// Set Sense Key and ASC for a subsequent REQUEST SENSE
-	ctrl.sense_key = sense_key;
-	ctrl.asc = asc;
+	if (sense_key || asc) {
+		// Set Sense Key and ASC for a subsequent REQUEST SENSE
+		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
+	}
 
-	// Set status and message(CHECK CONDITION)
-	ctrl.status = 0x02;
+	// Set status (CHECK CONDITION only for valid LUNs for non-REQUEST SENSE)
+	ctrl.status = (ctrl.cmd[0] == eCmdRequestSense && asc == ERROR_CODES::asc::INVALID_LUN) ? 0x00 : 0x02;
+
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
@@ -410,24 +416,19 @@ void SCSIDEV::CmdInquiry()
 	LOGTRACE("%s INQUIRY Command", __PRETTY_FUNCTION__);
 
 	// Find a valid unit
-	// TODO The code below is most likely wrong. It results in the same INQUIRY data being
+	// TODO The code below is probably wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	Disk *disk = NULL;
-	int valid_lun;
-	for (valid_lun = 0; valid_lun < UnitMax; valid_lun++) {
+	PrimaryDevice *device = NULL;
+	for (int valid_lun = 0; valid_lun < UnitMax; valid_lun++) {
 		if (ctrl.unit[valid_lun]) {
-			disk = ctrl.unit[valid_lun];
+			device = ctrl.unit[valid_lun];
 			break;
 		}
 	}
 
 	// Processed on the disk side (it is originally processed by the controller)
-	if (disk) {
-		DWORD major = (DWORD)(RASCSI >> 8);
-		DWORD minor = (DWORD)(RASCSI & 0xff);
-		LOGTRACE("%s Buffer size is %d",__PRETTY_FUNCTION__, ctrl.bufsize);
-		ctrl.length =
-			ctrl.unit[valid_lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
+	if (device) {
+		ctrl.length = device->Inquiry(ctrl.cmd, ctrl.buffer);
 	} else {
 		ctrl.length = 0;
 	}
@@ -586,7 +587,7 @@ void SCSIDEV::CmdStartStop()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->StartStop(ctrl.cmd);
+	bool status = ctrl.unit[lun]->StartStop(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -609,7 +610,7 @@ void SCSIDEV::CmdSendDiag()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
+	bool status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -632,7 +633,7 @@ void SCSIDEV::CmdRemoval()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Removal(ctrl.cmd);
+	bool status = ctrl.unit[lun]->Removal(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -648,15 +649,34 @@ void SCSIDEV::CmdRemoval()
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-void SCSIDEV::CmdReadCapacity()
+void SCSIDEV::CmdReadCapacity10()
 {
-	LOGTRACE( "%s READ CAPACITY Command ", __PRETTY_FUNCTION__);
+	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	int length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
-	ASSERT(length >= 0);
+	int length = ctrl.unit[lun]->ReadCapacity10(ctrl.cmd, ctrl.buffer);
+	if (length <= 0) {
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
+		return;
+	}
+
+	// Length setting
+	ctrl.length = length;
+
+	// Data-in Phase
+	DataIn();
+}
+
+void SCSIDEV::CmdReadCapacity16()
+{
+	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
+
+	DWORD lun = GetLun();
+
+	// Command processing on drive
+	int length = ctrl.unit[lun]->ReadCapacity16(ctrl.cmd, ctrl.buffer);
 	if (length <= 0) {
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
@@ -696,7 +716,90 @@ void SCSIDEV::CmdRead10()
 	ctrl.blocks <<= 8;
 	ctrl.blocks |= ctrl.cmd[8];
 
-	LOGTRACE("%s READ(10) command record=%08X block=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGTRACE("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
+
+	// Do not process 0 blocks
+	if (ctrl.blocks == 0) {
+		Status();
+		return;
+	}
+
+	// Command processing on drive
+	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
+	if (ctrl.length <= 0) {
+		// Failure (Error)
+		Error();
+		return;
+	}
+
+	// Set next block
+	ctrl.next = record + 1;
+
+	// Data-in Phase
+	DataIn();
+}
+
+//---------------------------------------------------------------------------
+//
+//	READ(16)
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::CmdRead16()
+{
+	DWORD lun = GetLun();
+
+	// Receive message if host bridge
+	if (ctrl.unit[lun]->IsBridge()) {
+		Error();
+		return;
+	}
+
+	// Report an error as long as big drives are not supported
+	if (ctrl.cmd[2] || ctrl.cmd[3] || ctrl.cmd[4] || ctrl.cmd[5]) {
+		LOGWARN("Can't execute READ(16) with 64 bit sector number");
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	// Get record number and block number
+	DWORD record = ctrl.cmd[6];
+	record <<= 8;
+	record |= ctrl.cmd[7];
+	record <<= 8;
+	record |= ctrl.cmd[8];
+	record <<= 8;
+	record |= ctrl.cmd[9];
+	ctrl.blocks = ctrl.cmd[10];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[11];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[12];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[13];
+
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGTRACE("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
@@ -746,7 +849,18 @@ void SCSIDEV::CmdWrite10()
 	ctrl.blocks <<= 8;
 	ctrl.blocks |= ctrl.cmd[8];
 
-	LOGTRACE("%s WRTIE(10) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGTRACE("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
 
 	// Do not process 0 blocks
 	if (ctrl.blocks == 0) {
@@ -758,7 +872,79 @@ void SCSIDEV::CmdWrite10()
 	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		return;
+	}
+
+	// Set next block
+	ctrl.next = record + 1;
+
+	// Data out phase
+	DataOut();
+}
+
+//---------------------------------------------------------------------------
+//
+//	WRITE(16)
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::CmdWrite16()
+{
+	DWORD lun = GetLun();
+
+	// Receive message if host bridge
+	if (ctrl.unit[lun]->IsBridge()) {
 		Error();
+		return;
+	}
+
+	// Report an error as long as big drives are not supported
+	if (ctrl.cmd[2] || ctrl.cmd[3] || ctrl.cmd[4] || ctrl.cmd[5]) {
+		LOGWARN("Can't execute WRITE(16) with 64 bit sector number");
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	// Get record number and block number
+	DWORD record = ctrl.cmd[6];
+	record <<= 8;
+	record |= ctrl.cmd[7];
+	record <<= 8;
+	record |= ctrl.cmd[8];
+	record <<= 8;
+	record |= ctrl.cmd[9];
+	ctrl.blocks = ctrl.cmd[10];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[11];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[12];
+	ctrl.blocks <<= 8;
+	ctrl.blocks |= ctrl.cmd[13];
+
+	// Check capacity
+	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	if (record > capacity || record + ctrl.blocks > capacity) {
+		ostringstream s;
+		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << record << ", block count " << ctrl.blocks;
+		LOGWARN("%s", s.str().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGTRACE("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
+
+	// Do not process 0 blocks
+	if (ctrl.blocks == 0) {
+		Status();
+		return;
+	}
+
+	// Command processing on drive
+	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
+	if (ctrl.length <= 0) {
+		// Failure (Error)
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
 		return;
 	}
 
@@ -855,6 +1041,28 @@ void SCSIDEV::CmdVerify()
 
 //---------------------------------------------------------------------------
 //
+//	REPORT LUNS
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::CmdReportLuns()
+{
+	DWORD lun = GetLun();
+
+	int length = ctrl.unit[lun]->ReportLuns(ctrl.cmd, ctrl.buffer);
+	if (length <= 0) {
+		// Failure (Error)
+		Error();
+		return;
+	}
+
+	ctrl.length = length;
+
+	// Data in phase
+	DataIn();
+}
+
+//---------------------------------------------------------------------------
+//
 //	SYNCHRONIZE CACHE
 //
 //---------------------------------------------------------------------------
@@ -923,7 +1131,7 @@ void SCSIDEV::CmdPlayAudio10()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -944,7 +1152,7 @@ void SCSIDEV::CmdPlayAudioMSF()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -965,7 +1173,7 @@ void SCSIDEV::CmdPlayAudioTrack()
 	DWORD lun = GetLun();
 
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
+	bool status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -974,6 +1182,19 @@ void SCSIDEV::CmdPlayAudioTrack()
 
 	// status phase
 	Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	GET EVENT STATUS NOTIFICATION
+//
+//---------------------------------------------------------------------------
+void SCSIDEV::CmdGetEventStatusNotification()
+{
+	GetLun();
+
+	// This naive (but legal) implementation avoids constant warnings in the logs
+	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------
@@ -1037,7 +1258,7 @@ void SCSIDEV::CmdGetMessage10()
 	DWORD lun = GetLun();
 
 	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsBridge() && !ctrl.unit[lun]->IsNuvolink()) {
+	if (!ctrl.unit[lun]->IsBridge()) {
 		LOGWARN("Received a GetMessage10 command for a non-bridge unit");
 		Error();
 		return;
@@ -1124,9 +1345,9 @@ void SCSIDEV::CmdRetrieveStats()
 	DWORD lun = GetLun();
 
 	// Error if not a DaynaPort SCSI Link
-	if (ctrl.unit[lun]->IsDaynaPort()) {
-		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.unit[lun]->GetID().c_str());
-		Error();
+	if (!ctrl.unit[lun]->IsDaynaPort()) {
+		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.unit[lun]->GetType().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
@@ -1161,15 +1382,14 @@ void SCSIDEV::CmdSetIfaceMode()
 
 	// Error if not a DaynaPort SCSI Link
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
-		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetID().c_str());
-		Error();
+		LOGWARN("%s Received a CmdSetIfaceMode command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
 	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
 
-	// Check whether this command is telling us to "Set Interface Mode" 
-	// or "Set MAC Address"
+	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
 	ctrl.length = dayna_port->RetrieveStats(ctrl.cmd, ctrl.buffer);
 	switch(ctrl.cmd[5]){
@@ -1201,7 +1421,7 @@ void SCSIDEV::CmdSetMcastAddr()
 
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
 		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
-		Error();
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
@@ -1233,8 +1453,8 @@ void SCSIDEV::CmdEnableInterface()
 
 	// Error if not a DaynaPort SCSI Link
 	if (!ctrl.unit[lun]->IsDaynaPort()) {
-		LOGWARN("%s Received a CmdRetrieveStats command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetID().c_str());
-		Error();
+		LOGWARN("%s Received a CmdEnableInterface command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
@@ -1274,7 +1494,9 @@ void SCSIDEV::Send()
 
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
-		LOGTRACE("%s sending handhake with offset %lu, length %lu", __PRETTY_FUNCTION__, ctrl.offset, ctrl.length);
+		ostringstream s;
+		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
+		LOGTRACE("%s", s.str().c_str());
 
 		// The Daynaport needs to have a delay after the size/flags field
 		// of the read response. In the MacOS driver, it looks like the
@@ -1310,7 +1532,9 @@ void SCSIDEV::Send()
 		if (ctrl.blocks != 0) {
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			LOGTRACE("%s processing after data collection. Blocks: %lu", __PRETTY_FUNCTION__, ctrl.blocks);
+			ostringstream s;
+			s << __PRETTY_FUNCTION__ << " processing after data collection. Blocks: " << ctrl.blocks;
+			LOGTRACE("%s", s.str().c_str());
 		}
 	}
 
@@ -1322,7 +1546,9 @@ void SCSIDEV::Send()
 
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
-		LOGTRACE("%s Continuing to send. blocks = %lu", __PRETTY_FUNCTION__, ctrl.blocks);
+		ostringstream s;
+		s << __PRETTY_FUNCTION__ << " Continuing to send. blocks = " << ctrl.blocks;
+		LOGTRACE("%s", s.str().c_str());
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 		return;
@@ -1376,7 +1602,6 @@ void SCSIDEV::Send()
 void SCSIDEV::Receive()
 {
 	int len;
-	int i;
 	BYTE data;
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
@@ -1389,8 +1614,7 @@ void SCSIDEV::Receive()
 	if (ctrl.length != 0) {
 		LOGTRACE("%s length was != 0", __PRETTY_FUNCTION__);
 		// Receive
-		len = ctrl.bus->ReceiveHandShake(
-			&ctrl.buffer[ctrl.offset], ctrl.length);
+		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -1458,26 +1682,22 @@ void SCSIDEV::Receive()
 	switch (ctrl.phase) {
 		// Command phase
 		case BUS::command:
-			// Command data transfer
-			len = 6;
-			if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
-				// 10 byte CDB
-				len = 10;
-			}
-			for (i = 0; i < len; i++) {
+			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+
+			for (int i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
-				LOGTRACE("%s Command $%02X",__PRETTY_FUNCTION__, (int)ctrl.cmd[i]);
+				LOGTRACE("%s Command $%02X",__PRETTY_FUNCTION__, ctrl.cmd[i]);
 			}
 
 			// Execution Phase
-                        try {
-                        	Execute();
-                        }
-                        catch (const lunexception& e) {
-                            LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
+			try {
+				Execute();
+			}
+			catch (const lun_exception& e) {
+				LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, e.getlun());
 
-                            Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-                        }
+				Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+			}
 			break;
 
 		// Message out phase
@@ -1493,7 +1713,7 @@ void SCSIDEV::Receive()
 
 			// Parsing messages sent by ATN
 			if (scsi.atnmsg) {
-				i = 0;
+				int i = 0;
 				while (i < scsi.msc) {
 					// Message type
 					data = scsi.msb[i];

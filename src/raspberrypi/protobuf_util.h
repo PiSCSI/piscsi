@@ -5,13 +5,15 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// Helper methods used by rascsi and rasctl
+// Helper methods for serializing/deserializing protobuf messages
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
-#include <string>
+#include "google/protobuf/message_lite.h"
 #include "rascsi_interface.pb.h"
 
-std::string ListDevices(const rascsi_interface::PbDevices&);
+void SerializeMessage(int, const google::protobuf::MessageLite&);
+void DeserializeMessage(int, google::protobuf::MessageLite&);
+int ReadNBytes(int, uint8_t *, int);

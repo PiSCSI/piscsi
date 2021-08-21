@@ -34,14 +34,16 @@
 //---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
-	disk.supports_file = false;
+	SetRemovable(false);
+
+	SetProduct("RASCSI BRIDGE");
 
 	fsoptlen = 0;
 	fsoutlen = 0;
 	fsresult = 0;
 	packet_len = 0;
 
-	#ifdef __linux__
+#ifdef __linux__
 	// TAP Driver Generation
 	tap = new CTapDriver();
 	m_bTapEnable = tap->Init();
@@ -55,7 +57,7 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 
 	// Packet reception flag OFF
 	packet_enable = FALSE;
-	#endif
+#endif
 
 	// Create host file system
 	fs = new CFileSys();
@@ -87,18 +89,15 @@ SCSIBR::~SCSIBR()
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIBR::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	char rev[32];
-
 	ASSERT(cdb);
 	ASSERT(buf);
 	ASSERT(cdb[0] == 0x12);
 
 	// EVPD check
 	if (cdb[1] & 0x01) {
-		disk.code = DISK_INVALIDCDB;
+		SetStatusCode(STATUS_INVALIDCDB);
 		return FALSE;
 	}
 
@@ -111,7 +110,7 @@ int SCSIBR::Inquiry(
 	buf[0] = 0x09;
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
+	if (((cdb[1] >> 5) & 0x07) != GetLun()) {
 		buf[0] = 0x7f;
 	}
 
@@ -119,19 +118,8 @@ int SCSIBR::Inquiry(
 	buf[3] = 0x02;
 	buf[4] = 36 - 5 + 8;	// required + 8 byte extension
 
-	// Fill with blanks
-	memset(&buf[8], 0x20, buf[4] - 3);
-
-	// Vendor name
-	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
-
-	// Product name
-	memcpy(&buf[16], "RASCSI BRIDGE", 13);
-
-	// Revision (XM6 version number)
-	sprintf(rev, "0%01d%01d%01d",
-				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-	memcpy(&buf[32], rev, 4);
+	// Padded vendor, product, revision
+	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 	// Optional function valid flag
 	buf[36] = '0';
@@ -153,7 +141,7 @@ int SCSIBR::Inquiry(
 	}
 
 	//  Success
-	disk.code = DISK_NOERROR;
+	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 
@@ -162,11 +150,11 @@ int SCSIBR::Inquiry(
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-BOOL SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
+bool SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 {
 	// TEST UNIT READY Success
-	disk.code = DISK_NOERROR;
-	return TRUE;
+	SetStatusCode(STATUS_NOERROR);
+	return true;
 }
 
 //---------------------------------------------------------------------------

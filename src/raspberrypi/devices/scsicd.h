@@ -38,7 +38,7 @@ public:
 	// Basic Functions
 	CDTrack(SCSICD *scsicd);						// Constructor
 	virtual ~CDTrack();							// Destructor
-	BOOL Init(int track, DWORD first, DWORD last);			// Initialization
+	void Init(int track, DWORD first, DWORD last);			// Initialization
 
 	// Properties
 	void SetPath(BOOL cdda, const Filepath& path);			// Set the path
@@ -64,45 +64,10 @@ private:
 
 //===========================================================================
 //
-//	CD-DA Buffer
-//
-//===========================================================================
-class CDDABuf
-{
-public:
-	// Basic Functions
-	CDDABuf();								// Constructor
-	virtual ~CDDABuf();							// Destructor
-	#if 0
-	BOOL Init();								// Initialization
-	BOOL Load(const Filepath& path);				// Load
-	BOOL Save(const Filepath& path);				// Save
-
-	// API
-	void Clear();							// Clear the buffer
-	BOOL Open(Filepath& path);					// File specification
-	BOOL GetBuf(DWORD *buffer, int frames);			// Get the buffer
-	BOOL IsValid();						// Check if Valid
-	BOOL ReadReq();						// Read Request
-	BOOL IsEnd() const;						// Finish check
-
-private:
-	Filepath wavepath;							// Wave path
-	BOOL valid;								// Open result (is it valid?)
-	DWORD *buf;								// Data buffer
-	DWORD read;								// Read pointer
-	DWORD write;								// Write pointer
-	DWORD num;								// Valid number of data
-	DWORD rest;								// Remaining file size
-#endif
-};
-
-//===========================================================================
-//
 //	SCSI CD-ROM
 //
 //===========================================================================
-class SCSICD : public Disk
+class SCSICD : public Disk, public FileSupport
 {
 public:
 	// Number of tracks
@@ -113,19 +78,18 @@ public:
 public:
 	// Basic Functions
 	SCSICD();								// Constructor
-	virtual ~SCSICD();							// Destructor
-	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	~SCSICD();								// Destructor
+	void Open(const Filepath& path);		// Open
 
 	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
-	BOOL PlayAudio(const DWORD *cdb);				// PLAY AUDIO command
-	BOOL PlayAudioMSF(const DWORD *cdb);				// PLAY AUDIO MSF command
-	BOOL PlayAudioTrack(const DWORD *cdb);				// PLAY AUDIO TRACK command
 
 	// CD-DA
-	BOOL NextFrame();						// Frame notification
+	// TODO Never called
+	bool NextFrame();						// Frame notification
+	// TODO Never called
 	void GetBuf(DWORD *buffer, int samples, DWORD rate);		// Get CD-DA buffer
 
 	// LBA-MSF変換
@@ -148,12 +112,4 @@ private:
 	int audioindex;								// Current audio track
 
 	int frame;								// Frame number
-
-	#if 0
-	CDDABuf da_buf;								// CD-DA buffer
-	int da_num;								// Number of CD-DA tracks
-	int da_cur;								// CD-DA current track
-	int da_next;								// CD-DA next track
-	BOOL da_req;								// CD-DA data request
-	#endif
 };

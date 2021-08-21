@@ -24,7 +24,7 @@ static char rascsi_version_string[30]; // Allow for string up to "XX.XX.XXX" + n
 //	Get the RaSCSI version string
 //
 //---------------------------------------------------------------------------
-char* rascsi_get_version_string()
+const char* rascsi_get_version_string()
 {
     if(rascsi_patch_version < 0)
     {
@@ -42,3 +42,5 @@ char* rascsi_get_version_string()
     }
     return rascsi_version_string;
 }
+
+
