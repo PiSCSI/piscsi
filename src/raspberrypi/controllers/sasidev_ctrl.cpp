@@ -1340,11 +1340,12 @@ BOOL SASIDEV::XferOut(BOOL cont)
 	if (!ctrl.unit[lun]) {
 		return FALSE;
 	}
+	Disk *device = ctrl.unit[lun];
 
 	switch ((SASIDEV::scsi_command) ctrl.cmd[0]) {
 		case SASIDEV::eCmdModeSelect:
 		case SASIDEV::eCmdModeSelect10:
-			if (!ctrl.unit[lun]->ModeSelect(
+			if (!device->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
 				return FALSE;
@@ -1358,8 +1359,8 @@ BOOL SASIDEV::XferOut(BOOL cont)
 		case SASIDEV::eCmdVerify16:
 			// If we're a host bridge, use the host bridge's SendMessage10 function
 			// TODO This class must not know about SCSIBR
-			if (ctrl.unit[lun]->IsBridge()) {
-				if (!((SCSIBR*)ctrl.unit[lun])->SendMessage10(ctrl.cmd, ctrl.buffer)) {
+			if (device->IsBridge()) {
+				if (!((SCSIBR*)device)->SendMessage10(ctrl.cmd, ctrl.buffer)) {
 					// write failed
 					return FALSE;
 				}
@@ -1371,9 +1372,9 @@ BOOL SASIDEV::XferOut(BOOL cont)
 
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about SCSIDP
-			if (ctrl.unit[lun]->IsDaynaPort()) {
+			if (device->IsDaynaPort()) {
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
-				if (!(SCSIDaynaPort*)ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+				if (!(SCSIDaynaPort*)device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return FALSE;
 				}
@@ -1386,7 +1387,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			LOGTRACE("%s eCmdVerify Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
-			if (!ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
+			if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
 				return FALSE;
 			}
@@ -1398,7 +1399,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Check the next block
-			ctrl.length = ctrl.unit[lun]->WriteCheck(ctrl.next - 1);
+			ctrl.length = device->WriteCheck(ctrl.next - 1);
 			if (ctrl.length <= 0) {
 				// Cannot write
 				return FALSE;
@@ -1440,6 +1441,7 @@ void SASIDEV::FlushUnit()
 	if (!ctrl.unit[lun]) {
 		return;
 	}
+	Disk *device = ctrl.unit[lun];
 
 	// WRITE system only
 	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
@@ -1466,7 +1468,7 @@ void SASIDEV::FlushUnit()
             LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
             LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
-			if (!ctrl.unit[lun]->ModeSelect(
+			if (!device->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
@@ -1540,7 +1542,7 @@ void SASIDEV::GetPhaseStr(char *str)
 
 //---------------------------------------------------------------------------
 //
-//	Validate LUN
+//	Validate and get LUN
 //
 //---------------------------------------------------------------------------
 DWORD SASIDEV::GetLun()
