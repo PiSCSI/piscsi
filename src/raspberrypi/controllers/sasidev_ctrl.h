@@ -143,6 +143,8 @@ public:
 
 		// Logical unit
 		Disk *unit[UnitMax];
+
+		Disk *device;
 	} ctrl_t;
 
 public:
@@ -158,7 +160,7 @@ public:
 	void Connect(int id, BUS *sbus);				// Controller connection
 	Disk* GetUnit(int no);							// Get logical unit
 	void SetUnit(int no, Disk *dev);				// Logical unit setting
-	BOOL HasUnit();						// Has a valid logical unit
+	bool HasUnit();						// Has a valid logical unit
 
 	// Other
 	BUS::phase_t GetPhase() {return ctrl.phase;}			// Get the phase

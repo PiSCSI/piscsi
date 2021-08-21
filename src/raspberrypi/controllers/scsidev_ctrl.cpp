@@ -302,6 +302,13 @@ void SCSIDEV::Execute()
 		return;
 	}
 
+	ctrl.device = NULL;
+
+	// INQUIRY requires a special LUN handling
+	if (ctrl.cmd[0] != eCmdInquiry) {
+		ctrl.device = ctrl.unit[GetLun()];
+	}
+
 	command_t* command = scsi_commands[static_cast<scsi_command>(ctrl.cmd[0])];
 
 	LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
@@ -463,10 +470,8 @@ void SCSIDEV::CmdModeSelect()
 {
 	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->SelectCheck(ctrl.cmd);
+	ctrl.length = ctrl.device->SelectCheck(ctrl.cmd);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
@@ -558,10 +563,8 @@ void SCSIDEV::CmdModeSense()
 {
 	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->ModeSense(ctrl.cmd, ctrl.buffer);
+	ctrl.length = ctrl.device->ModeSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length >= 0);
 	if (ctrl.length == 0) {
 		LOGWARN("%s Not supported MODE SENSE page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[2]);
@@ -584,10 +587,8 @@ void SCSIDEV::CmdStartStop()
 {
 	LOGTRACE( "%s START STOP UNIT Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->StartStop(ctrl.cmd);
+	bool status = ctrl.device->StartStop(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -607,10 +608,8 @@ void SCSIDEV::CmdSendDiag()
 {
 	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
+	bool status = ctrl.device->SendDiag(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -630,10 +629,8 @@ void SCSIDEV::CmdRemoval()
 {
 	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->Removal(ctrl.cmd);
+	bool status = ctrl.device->Removal(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -653,10 +650,8 @@ void SCSIDEV::CmdReadCapacity10()
 {
 	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	int length = ctrl.unit[lun]->ReadCapacity10(ctrl.cmd, ctrl.buffer);
+	int length = ctrl.device->ReadCapacity10(ctrl.cmd, ctrl.buffer);
 	if (length <= 0) {
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
@@ -673,10 +668,8 @@ void SCSIDEV::CmdReadCapacity16()
 {
 	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	int length = ctrl.unit[lun]->ReadCapacity16(ctrl.cmd, ctrl.buffer);
+	int length = ctrl.device->ReadCapacity16(ctrl.cmd, ctrl.buffer);
 	if (length <= 0) {
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
@@ -696,10 +689,9 @@ void SCSIDEV::CmdReadCapacity16()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdRead10()
 {
-	DWORD lun = GetLun();
-
+	// TODO Move bridge specific test
 	// Receive message if host bridge
-	if (ctrl.unit[lun]->IsBridge()) {
+	if (ctrl.device->IsBridge()) {
 		CmdGetMessage10();
 		return;
 	}
@@ -717,7 +709,7 @@ void SCSIDEV::CmdRead10()
 	ctrl.blocks |= ctrl.cmd[8];
 
 	// Check capacity
-	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	DWORD capacity = ctrl.device->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
 		ostringstream s;
 		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
@@ -736,7 +728,7 @@ void SCSIDEV::CmdRead10()
 	}
 
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
+	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
@@ -757,10 +749,9 @@ void SCSIDEV::CmdRead10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdRead16()
 {
-	DWORD lun = GetLun();
-
+	// TODO Move bridge specific test
 	// Receive message if host bridge
-	if (ctrl.unit[lun]->IsBridge()) {
+	if (ctrl.device->IsBridge()) {
 		Error();
 		return;
 	}
@@ -789,7 +780,7 @@ void SCSIDEV::CmdRead16()
 	ctrl.blocks |= ctrl.cmd[13];
 
 	// Check capacity
-	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	DWORD capacity = ctrl.device->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
 		ostringstream s;
 		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
@@ -808,7 +799,7 @@ void SCSIDEV::CmdRead16()
 	}
 
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
+	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
@@ -829,10 +820,9 @@ void SCSIDEV::CmdRead16()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdWrite10()
 {
-	DWORD lun = GetLun();
-
+	// TODO Move bridge specific test
 	// Receive message with host bridge
-	if (ctrl.unit[lun]->IsBridge()) {
+	if (ctrl.device->IsBridge()) {
 		CmdSendMessage10();
 		return;
 	}
@@ -850,7 +840,7 @@ void SCSIDEV::CmdWrite10()
 	ctrl.blocks |= ctrl.cmd[8];
 
 	// Check capacity
-	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	DWORD capacity = ctrl.device->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
 		ostringstream s;
 		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
@@ -869,7 +859,7 @@ void SCSIDEV::CmdWrite10()
 	}
 
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
+	ctrl.length = ctrl.device->WriteCheck(record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
@@ -890,10 +880,9 @@ void SCSIDEV::CmdWrite10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdWrite16()
 {
-	DWORD lun = GetLun();
-
+	// TODO Move bridge specific test
 	// Receive message if host bridge
-	if (ctrl.unit[lun]->IsBridge()) {
+	if (ctrl.device->IsBridge()) {
 		Error();
 		return;
 	}
@@ -922,7 +911,7 @@ void SCSIDEV::CmdWrite16()
 	ctrl.blocks |= ctrl.cmd[13];
 
 	// Check capacity
-	DWORD capacity = ctrl.unit[lun]->GetBlockCount();
+	DWORD capacity = ctrl.device->GetBlockCount();
 	if (record > capacity || record + ctrl.blocks > capacity) {
 		ostringstream s;
 		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
@@ -941,7 +930,7 @@ void SCSIDEV::CmdWrite16()
 	}
 
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
+	ctrl.length = ctrl.device->WriteCheck(record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
@@ -964,10 +953,8 @@ void SCSIDEV::CmdSeek10()
 {
 	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Seek(ctrl.cmd);
+	bool status = ctrl.device->Seek(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -985,9 +972,7 @@ void SCSIDEV::CmdSeek10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdVerify()
 {
-	BOOL status;
-
-	DWORD lun = GetLun();
+	bool status;
 
 	// Get record number and block number
 	DWORD record = ctrl.cmd[2];
@@ -1012,7 +997,7 @@ void SCSIDEV::CmdVerify()
 	// if BytChk=0
 	if ((ctrl.cmd[1] & 0x02) == 0) {
 		// Command processing on drive
-		status = ctrl.unit[lun]->Seek(ctrl.cmd);
+		status = ctrl.device->Seek(ctrl.cmd);
 		if (!status) {
 			// Failure (Error)
 			Error();
@@ -1025,7 +1010,7 @@ void SCSIDEV::CmdVerify()
 	}
 
 	// Test loading
-	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
+	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
@@ -1046,9 +1031,7 @@ void SCSIDEV::CmdVerify()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdReportLuns()
 {
-	DWORD lun = GetLun();
-
-	int length = ctrl.unit[lun]->ReportLuns(ctrl.cmd, ctrl.buffer);
+	int length = ctrl.device->ReportLuns(ctrl.cmd, ctrl.buffer);
 	if (length <= 0) {
 		// Failure (Error)
 		Error();
@@ -1068,8 +1051,6 @@ void SCSIDEV::CmdReportLuns()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdSynchronizeCache()
 {
-	GetLun();
-
 	// Make it do something (not implemented)...
 
 	// status phase
@@ -1085,10 +1066,8 @@ void SCSIDEV::CmdReadDefectData10()
 {
 	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->ReadDefectData10(ctrl.cmd, ctrl.buffer);
+	ctrl.length = ctrl.device->ReadDefectData10(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length >= 0);
 
 	if (ctrl.length <= 4) {
@@ -1107,10 +1086,8 @@ void SCSIDEV::CmdReadDefectData10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdReadToc()
 {
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->ReadToc(ctrl.cmd, ctrl.buffer);
+	ctrl.length = ctrl.device->ReadToc(ctrl.cmd, ctrl.buffer);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
@@ -1128,10 +1105,8 @@ void SCSIDEV::CmdReadToc()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdPlayAudio10()
 {
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
+	bool status = ctrl.device->PlayAudio(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1149,10 +1124,8 @@ void SCSIDEV::CmdPlayAudio10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdPlayAudioMSF()
 {
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
+	bool status = ctrl.device->PlayAudioMSF(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1170,10 +1143,8 @@ void SCSIDEV::CmdPlayAudioMSF()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdPlayAudioTrack()
 {
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	bool status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
+	bool status = ctrl.device->PlayAudioTrack(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1191,8 +1162,6 @@ void SCSIDEV::CmdPlayAudioTrack()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdGetEventStatusNotification()
 {
-	GetLun();
-
 	// This naive (but legal) implementation avoids constant warnings in the logs
 	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
@@ -1206,10 +1175,8 @@ void SCSIDEV::CmdModeSelect10()
 {
 	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->SelectCheck10(ctrl.cmd);
+	ctrl.length = ctrl.device->SelectCheck10(ctrl.cmd);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
@@ -1229,10 +1196,8 @@ void SCSIDEV::CmdModeSense10()
 {
 	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->ModeSense10(ctrl.cmd, ctrl.buffer);
+	ctrl.length = ctrl.device->ModeSense10(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length >= 0);
 	if (ctrl.length == 0) {
 		LOGWARN("%s Not supported MODE SENSE(10) page $%02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[2]);
@@ -1253,12 +1218,9 @@ void SCSIDEV::CmdModeSense10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdGetMessage10()
 {
-	SCSIBR *bridge;
-
-	DWORD lun = GetLun();
-
+	// TODO Move bridge specific test
 	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsBridge()) {
+	if (!ctrl.device->IsBridge()) {
 		LOGWARN("Received a GetMessage10 command for a non-bridge unit");
 		Error();
 		return;
@@ -1272,7 +1234,7 @@ void SCSIDEV::CmdGetMessage10()
 	}
 
 	// Process with drive
-	bridge = (SCSIBR*)ctrl.unit[lun];
+	SCSIBR *bridge = (SCSIBR*)ctrl.device;
 	ctrl.length = bridge->GetMessage10(ctrl.cmd, ctrl.buffer);
 
 	if (ctrl.length <= 0) {
@@ -1298,10 +1260,9 @@ void SCSIDEV::CmdGetMessage10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdSendMessage10()
 {
-	DWORD lun = GetLun();
-
+	// TODO Move bridge specific test
 	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsBridge()) {
+	if (!ctrl.device->IsBridge()) {
 		LOGERROR("Received CmdSendMessage10 for a non-bridge device");
 		Error();
 		return;
@@ -1342,17 +1303,16 @@ void SCSIDEV::CmdSendMessage10()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdRetrieveStats()
 {
-	DWORD lun = GetLun();
-
+	// TODO Move Daynaport specific test
 	// Error if not a DaynaPort SCSI Link
-	if (!ctrl.unit[lun]->IsDaynaPort()) {
-		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.unit[lun]->GetType().c_str());
+	if (!ctrl.device->IsDaynaPort()) {
+		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.device->GetType().c_str());
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
 	// Process with drive
-	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
+	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.device;
 	ctrl.length = dayna_port->RetrieveStats(ctrl.cmd, ctrl.buffer);
 
 	if (ctrl.length <= 0) {
@@ -1378,16 +1338,15 @@ void SCSIDEV::CmdSetIfaceMode()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
+	// TODO Move DaynaPort specific test
 	// Error if not a DaynaPort SCSI Link
-	if (!ctrl.unit[lun]->IsDaynaPort()) {
-		LOGWARN("%s Received a CmdSetIfaceMode command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
+	if (!ctrl.device->IsDaynaPort()) {
+		LOGWARN("%s Received a CmdSetIfaceMode command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.device->GetType().c_str());
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
-	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
+	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.device;
 
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
@@ -1417,9 +1376,8 @@ void SCSIDEV::CmdSetMcastAddr()
 {
 	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
-	if (!ctrl.unit[lun]->IsDaynaPort()) {
+	// TODO Move DaynaPort specific test
+	if (!ctrl.device->IsDaynaPort()) {
 		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
@@ -1449,19 +1407,18 @@ void SCSIDEV::CmdEnableInterface()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-	DWORD lun = GetLun();
-
+	// TODO Move DaynaPort specific test
 	// Error if not a DaynaPort SCSI Link
-	if (!ctrl.unit[lun]->IsDaynaPort()) {
-		LOGWARN("%s Received a CmdEnableInterface command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.unit[lun]->GetType().c_str());
+	if (!ctrl.device->IsDaynaPort()) {
+		LOGWARN("%s Received a CmdEnableInterface command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.device->GetType().c_str());
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 		return;
 	}
 
-	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.unit[lun];
+	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.device;
 
 	// Command processing on drive
-	BOOL status = dayna_port->EnableInterface(ctrl.cmd);
+	bool status = dayna_port->EnableInterface(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1487,7 +1444,6 @@ void SCSIDEV::CmdEnableInterface()
 void SCSIDEV::Send()
 {
 	int len;
-	BOOL result;
 
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
@@ -1525,7 +1481,7 @@ void SCSIDEV::Send()
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	result = TRUE;
+	BOOL result = TRUE;
 
 	// Processing after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
