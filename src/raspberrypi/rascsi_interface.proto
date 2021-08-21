@@ -100,8 +100,6 @@ message PbDevice {
     bool locked = 15;
     // Device supports image file
     bool supports_file = 16;
-    // Block size is configurable (currently for SCSI hard disk drives only)
-    bool block_size_configurable = 17;
 }
 
 message PbDevices {
