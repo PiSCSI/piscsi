@@ -170,14 +170,14 @@ public:
 	void ReadDefectData10(SASIDEV *);
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
 	void Read6(SASIDEV *);
-	void Read10(SASIDEV *);
-	void Read16(SASIDEV *);
+	void Read10(SASIDEV *) override;
+	void Read16(SASIDEV *) override;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf);	// INQUIRY command
 	virtual int WriteCheck(DWORD block);					// WRITE check
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
 	void Write6(SASIDEV *);
-	void Write10(SASIDEV *);
-	void Write16(SASIDEV *);
+	void Write10(SASIDEV *) override;
+	void Write16(SASIDEV *) override;
 	void Seek(SASIDEV *);
 	void Seek6(SASIDEV *);
 	void Seek10(SASIDEV *);
@@ -186,8 +186,8 @@ public:
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	void ReadCapacity10(SASIDEV *) override;			// READ CAPACITY(10) command
-	void ReadCapacity16(SASIDEV *) override;			// READ CAPACITY(16) command
+	void ReadCapacity10(SASIDEV *) override;
+	void ReadCapacity16(SASIDEV *) override;
 	void ReportLuns(SASIDEV *) override;
 	void Reserve6(SASIDEV *);
 	void Reserve10(SASIDEV *);

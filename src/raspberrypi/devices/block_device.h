@@ -34,14 +34,10 @@ public:
 	virtual void Write10(SASIDEV *) = 0;
 	virtual void Write16(SASIDEV *) = 0;
 
-	// Implemented optional commands
-	// TODO uncomment
-	//virtual void Verify10(SASIDEV *) = 0;
-	//virtual void Verify16(SASIDEV *) = 0;
 	virtual void RequestSense(SASIDEV *) override = 0;
-	//virtual void ModeSense(SASIDEV *) override = 0;
-	//virtual void ModeSense10(SASIDEV *) override = 0;
-	//virtual void ModeSelect(SASIDEV *) override = 0;
+	virtual void ModeSense(SASIDEV *) override = 0;
+	virtual void ModeSense10(SASIDEV *) override = 0;
+	virtual void ModeSelect(SASIDEV *) override = 0;
 
 	// TODO Add the other optional commands currently implemented
 };
