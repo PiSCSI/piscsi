@@ -35,11 +35,6 @@
 //	DaynaPort SCSI Link Ethernet Adapter
 //
 //===========================================================================
-const char* SCSIDaynaPort::m_vendor_name = "DAYNA   ";
-const char* SCSIDaynaPort::m_device_name = "SCSI/Link       ";
-const char* SCSIDaynaPort::m_revision = "1.4a";
-const char* SCSIDaynaPort::m_firmware_version = "01.00.00";
-
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
@@ -199,7 +194,6 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 //---------------------------------------------------------------------------
 int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
-	WORD requested_length = 0;
 	int rx_packet_size = 0;
 	BOOL send_message_to_host;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
@@ -216,7 +210,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 		LOGERROR("Received unexpected cdb command: %02X. Expected 0x08", (unsigned int)command->operation_code);
 	}
 
-	requested_length = (WORD)command->transfer_length;
+	WORD requested_length = (WORD)command->transfer_length;
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, (unsigned int)requested_length, (unsigned int)requested_length);
 
 
@@ -362,12 +356,10 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //---------------------------------------------------------------------------
 bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
-	BYTE data_format;
-	WORD data_length;
 	// const scsi_cmd_daynaport_write_t* command = (const scsi_cmd_daynaport_write_t*)cdb;
 
-	data_format = cdb[5];
-	data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
+	BYTE data_format = cdb[5];
+	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
 
 	// if(data_format != command->format){
 	// 	LOGDEBUG("%s CDB: %02X %02X %02X %02X %02X %02X", __PRETTY_FUNCTION__, (unsigned int)cdb[0], (unsigned int)cdb[1], (unsigned int)cdb[2], (unsigned int)cdb[3], (unsigned int)cdb[4], (unsigned int)cdb[5] );
@@ -398,7 +390,6 @@ bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	}
 }
 	
-
 //---------------------------------------------------------------------------
 //
 //	RetrieveStats
@@ -476,7 +467,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	// response->frame_alignment_errors = 0;
 
 	// //  Success
-	// disk.code = DISK_NOERROR;
 	// return sizeof(scsi_resp_link_stats_t);
 }
 
@@ -579,7 +569,6 @@ void SCSIDaynaPort::CmdWrite6(SASIDEV *controller)
 void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
 {
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
-
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
@@ -618,8 +607,6 @@ void SCSIDaynaPort::CmdSetIfaceMode(SASIDEV *controller)
 void SCSIDaynaPort::CmdSetMcastAddr(SASIDEV *controller)
 {
 	ctrl->length = (DWORD)ctrl->cmd[4];
-
-	// ASSERT(ctrl.length >= 0);
 	if (ctrl->length == 0) {
 		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
 
@@ -659,7 +646,7 @@ void SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
 {
 	LOGTRACE("%s Setting mode", __PRETTY_FUNCTION__);
 
-	for(size_t i=0; i<sizeof(6); i++)
+	for(size_t i = 0; i < sizeof(6); i++)
 	{
 		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, (unsigned int)i,(WORD)cdb[i]);
 	}	

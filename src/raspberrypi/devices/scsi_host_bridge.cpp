@@ -141,7 +141,6 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 	}
 
 	//  Success
-	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 
