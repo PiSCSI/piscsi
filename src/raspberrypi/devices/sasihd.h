@@ -33,6 +33,6 @@ public:
 	void Open(const Filepath& path);		// Open
 
 	// Commands
-	int RequestSense(const DWORD *cdb, BYTE *buf);
-	int Inquiry(const DWORD *cdb, BYTE *buf);
+	int RequestSense(const DWORD *cdb, BYTE *buf) override;
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;
 };
