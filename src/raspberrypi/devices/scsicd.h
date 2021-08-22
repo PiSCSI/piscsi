@@ -69,6 +69,17 @@ private:
 //===========================================================================
 class SCSICD : public Disk, public FileSupport
 {
+private:
+	typedef struct _command_t {
+		const char* name;
+		void (SCSICD::*execute)(SASIDEV *);
+
+		_command_t(const char* _name, void (SCSICD::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
+
+	SASIDEV::ctrl_t *ctrl;
+
 public:
 	// Number of tracks
 	enum {
@@ -96,11 +107,21 @@ public:
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
 	DWORD MSFtoLBA(const BYTE *msf) const;				// MSF→LBA conversion
 
+	bool Dispatch(SCSIDEV *);
+
 private:
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
+
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
+
+	void CmdReadToc(SASIDEV *);
+	void CmdPlayAudio10(SASIDEV *);
+	void CmdPlayAudioMSF(SASIDEV *);
+	void CmdPlayAudioTrack(SASIDEV *);
+
 	BOOL rawfile;								// RAW flag
 
 	// Track management

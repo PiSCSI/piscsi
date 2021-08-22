@@ -20,12 +20,12 @@
 #include "xm6.h"
 #include "log.h"
 #include "scsi.h"
-#include "controllers/sasidev_ctrl.h"
 #include "controllers/scsidev_ctrl.h"
 #include "block_device.h"
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
+#include <map>
 
 //===========================================================================
 //
@@ -130,6 +130,8 @@ private:
 	bool sector_size_configurable;
 	int configured_sector_size;
 
+	SASIDEV::ctrl_t *ctrl;
+
 protected:
 	// Internal data structure
 	typedef struct {
@@ -138,6 +140,15 @@ protected:
 		DiskCache *dcache;						// Disk cache
 		off_t imgoffset;						// Offset to actual data
 	} disk_t;
+
+private:
+	typedef struct _command_t {
+		const char* name;
+		void (Disk::*execute)(SASIDEV *);
+
+		_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
 
 public:
 	// Basic Functions
@@ -150,31 +161,49 @@ public:
 	bool Eject(bool) override;					// Eject
 	bool Flush();							// Flush the cache
 
-	// commands
-	virtual bool TestUnitReady(const DWORD *cdb) override;	// TEST UNIT READY command
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	virtual int RequestSense(const DWORD *cdb, BYTE *buf) override;		// REQUEST SENSE command
+	// Commands
+	void TestUnitReady(SASIDEV *) override;
+	void Inquiry(SASIDEV *) override;
+	void RequestSense(SASIDEV *) override;
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
-	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;// MODE SELECT command
-	virtual int ModeSense(const DWORD *cdb, BYTE *buf) override;		// MODE SENSE command
-	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) override;		// MODE SENSE(10) command
-	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
-	bool Rezero(const DWORD *cdb);					// REZERO command
-	bool Format(const DWORD *cdb) override;					// FORMAT UNIT command
-	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
-	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;			// READ command
+	void ModeSelect(SASIDEV *);
+	void ModeSelect10(SASIDEV *);
+	void ModeSense(SASIDEV *);
+	void ModeSense10(SASIDEV *);
+	void Rezero(SASIDEV *);
+	void Format(SASIDEV *) override;
+	void Reassign(SASIDEV *);
+	void ReassignBlocks(SASIDEV *);
+	void StartStop(SASIDEV *);						// START STOP UNIT command
+	void SendDiagnostic(SASIDEV *);
+	void PreventAllowRemoval(SASIDEV *);						// PREVENT/ALLOW MEDIUM REMOVAL command
+	void SynchronizeCache(SASIDEV *);
+	void ReadDefectData10(SASIDEV *);
+	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
+	void Read6(SASIDEV *);
+	void Read10(SASIDEV *) override;
+	void Read16(SASIDEV *) override;
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
 	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;			// WRITE command
-	bool Seek(const DWORD *cdb);					// SEEK command
+	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
+	void Write6(SASIDEV *);
+	void Write10(SASIDEV *) override;
+	void Write16(SASIDEV *) override;
+	void Seek(SASIDEV *);
+	void Seek6(SASIDEV *);
+	void Seek10(SASIDEV *);
 	bool Assign(const DWORD *cdb);					// ASSIGN command
-	bool Specify(const DWORD *cdb);				// SPECIFY command
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	void ReadCapacity10(SCSIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(10) command
-	void ReadCapacity16(SCSIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(16) command
-	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
+	void ReadCapacity10(SASIDEV *) override;
+	void ReadCapacity16(SASIDEV *) override;
+	void ReportLuns(SASIDEV *) override;
+	void Reserve6(SASIDEV *);
+	void Reserve10(SASIDEV *);
+	void Release6(SASIDEV *);
+	void Release10(SASIDEV *);
 	int GetSectorSize() const;
 	void SetSectorSize(int);
 	bool IsSectorSizeConfigurable() const;
@@ -183,12 +212,27 @@ public:
 	void SetConfiguredSectorSize(int);
 	DWORD GetBlockCount() const;
 	void SetBlockCount(DWORD);
-	// TODO Currently not called
-	bool Verify(const DWORD *cdb);					// VERIFY command
+	void Verify(SASIDEV *controller);					// VERIFY command
 	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
 	virtual bool PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
 	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
 	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
+
+	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, bool);
+
+	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
+	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
+
+	// TODO Try to get rid of these methods, which are currently use by SASIDEV
+	virtual bool TestUnitReady(const DWORD *cdb);	// TEST UNIT READY command
+	bool Rezero(const DWORD *cdb);					// REZERO command
+	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
+	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
+	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
+	bool Format(const DWORD *cdb);					// FORMAT UNIT command
+	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
+
+	virtual bool Dispatch(SCSIDEV *);
 
 protected:
 	// Internal processing
@@ -204,5 +248,7 @@ protected:
 
 	// Internal data
 	disk_t disk;								// Internal disk data
-	BOOL cache_wb;								// Cache mode
+
+private:
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (Disk::*)(SASIDEV *));
 };

@@ -229,7 +229,7 @@ SCSICD::SCSICD() : Disk("SCCD")
 	SetRemovable(true);
 	SetReadOnly(true);
 
-	SetProduct("CD-ROM CDU-55S");
+	SetProduct("CD-ROM");
 
 	// NOT in raw format
 	rawfile = FALSE;
@@ -244,6 +244,11 @@ SCSICD::SCSICD() : Disk("SCCD")
 	tracks = 0;
 	dataindex = -1;
 	audioindex = -1;
+
+	AddCommand(SCSIDEV::eCmdReadToc, "CmdReadToc", &SCSICD::CmdReadToc);
+	AddCommand(SCSIDEV::eCmdPlayAudio10, "CmdPlayAudio10", &SCSICD::CmdPlayAudio10);
+	AddCommand(SCSIDEV::eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSICD::CmdPlayAudioMSF);
+	AddCommand(SCSIDEV::eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSICD::CmdPlayAudioTrack);
 }
 
 //---------------------------------------------------------------------------
@@ -255,6 +260,33 @@ SCSICD::~SCSICD()
 {
 	// Clear track
 	ClearTrack();
+
+	for (auto const& command : commands) {
+		free(command.second);
+	}
+}
+
+void SCSICD::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSICD::*execute)(SASIDEV *))
+{
+	commands[opcode] = new command_t(name, execute);
+}
+
+bool SCSICD::Dispatch(SCSIDEV *controller)
+{
+	ctrl = controller->GetWorkAddr();
+
+	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
+	}
+
+	// The base class handles the less specific commands
+	return Disk::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -468,6 +500,61 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	track[0]->SetPath(FALSE, path);
 	tracks = 1;
 	dataindex = 0;
+}
+
+void SCSICD::CmdReadToc(SASIDEV *controller)
+{
+	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void SCSICD::CmdPlayAudio10(SASIDEV *controller)
+{
+ 	// Command processing on drive
+	bool status = PlayAudio(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Status phase
+	controller->Status();
+}
+
+void SCSICD::CmdPlayAudioMSF(SASIDEV *controller)
+{
+ 	// Command processing on drive
+	bool status = PlayAudioMSF(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Status phase
+	controller->Status();
+}
+
+void SCSICD::CmdPlayAudioTrack(SASIDEV *controller)
+{
+ 	// Command processing on drive
+	bool status = PlayAudioTrack(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Status phase
+	controller->Status();
 }
 
 //---------------------------------------------------------------------------

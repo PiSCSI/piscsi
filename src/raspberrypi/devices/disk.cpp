@@ -24,7 +24,11 @@
 #include "gpiobus.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
+#include "controllers/sasidev_ctrl.h"
+#include "controllers/scsidev_ctrl.h"
+#include "exceptions.h"
 #include "disk.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -349,6 +353,185 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 	return TRUE;
 }
 
+void Disk::TestUnitReady(SASIDEV *controller)
+{
+	// Command processing on drive
+	bool status = TestUnitReady(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::Rezero(SASIDEV *controller)
+{
+	bool status = Rezero(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::RequestSense(SASIDEV *controller)
+{
+    DWORD lun;
+    try {
+     	lun = GetLun();
+    }
+    catch(const lun_exception& e) {
+        // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
+        // Non-existing LUNs do *not* result in CHECK CONDITION.
+        // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+
+        // LUN 0 can be assumed to be present (required to call RequestSense() below)
+        lun = 0;
+
+        controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+    }
+
+    ctrl->length = ctrl->unit[lun]->RequestSense(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length > 0);
+
+    LOGDEBUG("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->buffer[2], ctrl->buffer[12]);
+
+	// Read phase
+    controller->DataIn();
+}
+
+void Disk::Format(SASIDEV *controller)
+{
+	// Command processing on drive
+	bool status = Format(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::ReassignBlocks(SASIDEV *controller)
+{
+	// Command processing on drive
+	bool status = Reassign(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::Read6(SASIDEV *controller)
+{
+	// Get record number and block number
+	DWORD record = ctrl->cmd[1] & 0x1f;
+	record <<= 8;
+	record |= ctrl->cmd[2];
+	record <<= 8;
+	record |= ctrl->cmd[3];
+	ctrl->blocks = ctrl->cmd[4];
+	if (ctrl->blocks == 0) {
+		ctrl->blocks = 0x100;
+	}
+
+	// Check capacity
+	DWORD capacity = GetBlockCount();
+	if (record > capacity || record + ctrl->blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << record << ", block count " << ctrl->blocks;
+		LOGWARN("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGDEBUG("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	// Command processing on drive
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Read phase
+	controller->DataIn();
+}
+
+void Disk::Read10(SASIDEV *controller)
+{
+	// TODO Move to subclass
+	// Receive message if host bridge
+	if (IsBridge()) {
+		((SCSIDEV *)controller)->CmdGetMessage10();
+		return;
+	}
+
+	// Get record number and block number
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, false)) {
+		return;
+	}
+
+	LOGDEBUG("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void Disk::Read16(SASIDEV *controller)
+{
+	// Get record number and block number
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, true)) {
+		return;
+	}
+
+	LOGDEBUG("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	ctrl->length = ctrl->device->Read(ctrl->cmd, ctrl->buffer, record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
 //---------------------------------------------------------------------------
 //
 //	Write Sector
@@ -390,6 +573,299 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 
 	// Success
 	return TRUE;
+}
+
+void Disk::Write6(SASIDEV *controller)
+{
+	// Get record number and block number
+	DWORD record = ctrl->cmd[1] & 0x1f;
+	record <<= 8;
+	record |= ctrl->cmd[2];
+	record <<= 8;
+	record |= ctrl->cmd[3];
+	ctrl->blocks = ctrl->cmd[4];
+	if (ctrl->blocks == 0) {
+		ctrl->blocks = 0x100;
+	}
+
+	// Check capacity
+	DWORD capacity = GetBlockCount();
+	if (record > capacity || record + ctrl->blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to write block " << record << ", block count " << ctrl->blocks;
+		LOGWARN("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGDEBUG("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl->blocks);
+
+	// Command processing on drive
+	ctrl->length = WriteCheck(record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Write phase
+	controller->DataOut();
+}
+
+void Disk::Write10(SASIDEV *controller)
+{
+	// TODO Move to subclass
+	// Receive message with host bridge
+	if (ctrl->device->IsBridge()) {
+		((SCSIDEV *)controller)->CmdSendMessage10();
+		return;
+	}
+
+	// Get record number and block number
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, false)) {
+		return;
+	}
+
+	LOGDEBUG("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
+
+	ctrl->length = WriteCheck(record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data out phase
+	controller->DataOut();
+}
+
+void Disk::Write16(SASIDEV *controller)
+{
+	// Get record number and block number
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, true)) {
+		return;
+	}
+
+	LOGDEBUG("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
+
+	ctrl->length = WriteCheck(record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data out phase
+	controller->DataOut();
+}
+
+//---------------------------------------------------------------------------
+//
+//	VERIFY
+//
+//---------------------------------------------------------------------------
+void Disk::Verify(SASIDEV *controller)
+{
+	// Get record number and block number
+	uint64_t record;
+	GetStartAndCount(controller, record, ctrl->blocks, false);
+
+	LOGDEBUG("%s VERIFY command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	// if BytChk=0
+	if ((ctrl->cmd[1] & 0x02) == 0) {
+		Seek(controller);
+		return;
+	}
+
+	// Test loading
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data out phase
+	controller->DataOut();
+}
+
+void Disk::Inquiry(SASIDEV *controller)
+{
+	// Find a valid unit
+	// TODO The code below is probably wrong. It results in the same INQUIRY data being
+	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
+	PrimaryDevice *device = NULL;
+	for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
+		if (ctrl->unit[valid_lun]) {
+			device = ctrl->unit[valid_lun];
+			break;
+		}
+	}
+
+	// Processed on the disk side (it is originally processed by the controller)
+	if (device) {
+		ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
+	} else {
+		ctrl->length = 0;
+	}
+
+	if (ctrl->length <= 0) {
+		// failure (error)
+		controller->Error();
+		return;
+	}
+
+	// Report if the device does not support the requested LUN
+	DWORD lun = (ctrl->cmd[1] >> 5) & 0x07;
+	if (!ctrl->unit[lun]) {
+		ctrl->buffer[0] |= 0x7f;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void Disk::ModeSelect(SASIDEV *controller)
+{
+	// Command processing on drive
+	ctrl->length = SelectCheck(ctrl->cmd);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data out phase
+	controller->DataOut();
+}
+
+void Disk::ModeSelect10(SASIDEV *controller)
+{
+	// Command processing on drive
+	ctrl->length = SelectCheck10(ctrl->cmd);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data out phase
+	controller->DataOut();
+}
+
+void Disk::ModeSense(SASIDEV *controller)
+{
+	// Command processing on drive
+	ctrl->length = ModeSense(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length >= 0);
+	if (ctrl->length == 0) {
+		LOGWARN("%s Not supported MODE SENSE page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
+
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void Disk::ModeSense10(SASIDEV *controller)
+{
+	// Command processing on drive
+	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length >= 0);
+	if (ctrl->length == 0) {
+		LOGWARN("%s Not supported MODE SENSE(10) page $%02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
+
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void Disk::StartStop(SASIDEV *controller)
+{
+	// Command processing on drive
+	bool status = StartStop(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::SendDiagnostic(SASIDEV *controller)
+{
+	// Command processing on drive
+	bool status = SendDiag(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::PreventAllowRemoval(SASIDEV *controller)
+{
+	// Command processing on drive
+	bool status = Removal(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::SynchronizeCache(SASIDEV *controller)
+{
+	// Nothing to do
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::ReadDefectData10(SASIDEV *controller)
+{
+	// Command processing on drive
+	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length >= 0);
+
+	if (ctrl->length <= 4) {
+		controller->Error();
+		return;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
 }
 
 //===========================================================================
@@ -709,8 +1185,39 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 	disk.dcache = NULL;
 	disk.imgoffset = 0;
 
-	// Other
-	cache_wb = TRUE;
+	AddCommand(SCSIDEV::eCmdTestUnitReady, "CmdTestUnitReady", &Disk::TestUnitReady);
+	AddCommand(SCSIDEV::eCmdRezero, "CmdRezero", &Disk::Rezero);
+	AddCommand(SCSIDEV::eCmdRequestSense, "CmdRequestSense", &Disk::RequestSense);
+	AddCommand(SCSIDEV::eCmdFormat, "CmdFormat", &Disk::Format);
+	AddCommand(SCSIDEV::eCmdReassign, "CmdReassign", &Disk::ReassignBlocks);
+	AddCommand(SCSIDEV::eCmdRead6, "CmdRead6", &Disk::Read6);
+	AddCommand(SCSIDEV::eCmdWrite6, "CmdWrite6", &Disk::Write6);
+	AddCommand(SCSIDEV::eCmdSeek6, "CmdSeek6", &Disk::Seek6);
+	AddCommand(SCSIDEV::eCmdInquiry, "CmdInquiry", &Disk::Inquiry);
+	AddCommand(SCSIDEV::eCmdModeSelect, "CmdModeSelect", &Disk::ModeSelect);
+	AddCommand(SCSIDEV::eCmdReserve6, "CmdReserve6", &Disk::Reserve6);
+	AddCommand(SCSIDEV::eCmdRelease6, "CmdRelease6", &Disk::Release6);
+	AddCommand(SCSIDEV::eCmdModeSense, "CmdModeSense", &Disk::ModeSense);
+	AddCommand(SCSIDEV::eCmdStartStop, "CmdStartStop", &Disk::StartStop);
+	AddCommand(SCSIDEV::eCmdSendDiag, "CmdSendDiag", &Disk::SendDiagnostic);
+	AddCommand(SCSIDEV::eCmdRemoval, "CmdRemoval", &Disk::PreventAllowRemoval);
+	AddCommand(SCSIDEV::eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);
+	AddCommand(SCSIDEV::eCmdRead10, "CmdRead10", &Disk::Read10);
+	AddCommand(SCSIDEV::eCmdWrite10, "CmdWrite10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdVerify10, "CmdVerify10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdSeek10, "CmdSeek10", &Disk::Seek10);
+	AddCommand(SCSIDEV::eCmdVerify, "CmdVerify", &Disk::Verify);
+	AddCommand(SCSIDEV::eCmdSynchronizeCache, "CmdSynchronizeCache", &Disk::SynchronizeCache);
+	AddCommand(SCSIDEV::eCmdReadDefectData10, "CmdReadDefectData10", &Disk::ReadDefectData10);
+	AddCommand(SCSIDEV::eCmdModeSelect10, "CmdModeSelect10", &Disk::ModeSelect10);
+	AddCommand(SCSIDEV::eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
+	AddCommand(SCSIDEV::eCmdRelease10, "CmdRelease10", &Disk::Release10);
+	AddCommand(SCSIDEV::eCmdModeSense10, "CmdModeSense10", &Disk::ModeSense10);
+	AddCommand(SCSIDEV::eCmdRead16, "CmdRead16", &Disk::Read16);
+	AddCommand(SCSIDEV::eCmdWrite16, "CmdWrite16", &Disk::Write16);
+	AddCommand(SCSIDEV::eCmdVerify16, "CmdVerify16", &Disk::Write16);
+	AddCommand(SCSIDEV::eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
+	AddCommand(SCSIDEV::eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
 }
 
 //---------------------------------------------------------------------------
@@ -733,6 +1240,33 @@ Disk::~Disk()
 		delete disk.dcache;
 		disk.dcache = NULL;
 	}
+
+	for (auto const& command : commands) {
+		free(command.second);
+	}
+}
+
+void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
+{
+	commands[opcode] = new command_t(name, execute);
+}
+
+bool Disk::Dispatch(SCSIDEV *controller)
+{
+	ctrl = controller->GetWorkAddr();
+
+	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
+	}
+
+	// Unknown command
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -813,7 +1347,7 @@ BOOL Disk::CheckReady()
 	if (IsReset()) {
 		SetStatusCode(STATUS_DEVRESET);
 		SetReset(false);
-		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
+		LOGDEBUG("%s Disk in reset", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
@@ -821,35 +1355,22 @@ BOOL Disk::CheckReady()
 	if (IsAttn()) {
 		SetStatusCode(STATUS_ATTENTION);
 		SetAttn(false);
-		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
+		LOGDEBUG("%s Disk in needs attention", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
+		LOGDEBUG("%s Disk not ready", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
 	// Initialization with no error
 	SetStatusCode(STATUS_NOERROR);
-	LOGTRACE("%s Disk is ready!", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s Disk is ready!", __PRETTY_FUNCTION__);
 
 	return TRUE;
-}
-
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//	*You need to be successful at all times
-//
-//---------------------------------------------------------------------------
-int Disk::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/)
-{
-	// default is INQUIRY failure
-	SetStatusCode(STATUS_INVALIDCMD);
-	return 0;
 }
 
 //---------------------------------------------------------------------------
@@ -1550,7 +2071,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s", __PRETTY_FUNCTION__);
 
 	// Status check
 	if (!CheckReady()) {
@@ -1624,7 +2145,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s", __PRETTY_FUNCTION__);
 
 	// Error if not ready
 	if (!IsReady()) {
@@ -1661,16 +2182,37 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	SEEK
-//	*Does not check LBA (SASI IOCS)
-//
-//---------------------------------------------------------------------------
-bool Disk::Seek(const DWORD* /*cdb*/)
+void Disk::Seek(SASIDEV *controller)
 {
 	// Status check
-	return CheckReady();
+	if (!CheckReady()) {
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	SEEK(6)
+//	Does not check LBA (SASI IOCS)
+//
+//---------------------------------------------------------------------------
+void Disk::Seek6(SASIDEV *controller)
+{
+	Seek(controller);
+}
+
+//---------------------------------------------------------------------------
+//
+//	SEEK(10)
+//
+//---------------------------------------------------------------------------
+void Disk::Seek10(SASIDEV *controller)
+{
+	Seek(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -1679,17 +2221,6 @@ bool Disk::Seek(const DWORD* /*cdb*/)
 //
 //---------------------------------------------------------------------------
 bool Disk::Assign(const DWORD* /*cdb*/)
-{
-	// Status check
-	return CheckReady();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SPECIFY
-//
-//---------------------------------------------------------------------------
-bool Disk::Specify(const DWORD* /*cdb*/)
 {
 	// Status check
 	return CheckReady();
@@ -1776,10 +2307,8 @@ bool Disk::Removal(const DWORD *cdb)
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-void Disk::ReadCapacity10(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::ReadCapacity10(SASIDEV *controller)
 {
-	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
-
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -1822,10 +2351,8 @@ void Disk::ReadCapacity10(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 	controller->DataIn();
 }
 
-void Disk::ReadCapacity16(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::ReadCapacity16(SASIDEV *controller)
 {
-	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
-
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -1877,8 +2404,10 @@ void Disk::ReadCapacity16(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 //	REPORT LUNS
 //
 //---------------------------------------------------------------------------
-int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
+void Disk::ReportLuns(SASIDEV *controller)
 {
+	BYTE *buf = ctrl->buffer;
+
 	ASSERT(buf);
 
 	// Buffer clear
@@ -1886,7 +2415,8 @@ int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
 
 	// Status check
 	if (!CheckReady()) {
-		return 0;
+		controller->Error();
+		return;
 	}
 
 	// LUN list length
@@ -1894,44 +2424,74 @@ int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
 
 	// As long as there is no proper support for more than one SCSI LUN no other fields must be set => 1 LUN
 
-	return 16;
+	ctrl->length = 16;
+
+	// Data in phase
+	controller->DataIn();
 }
 
 //---------------------------------------------------------------------------
 //
-//	VERIFY
+//	RESERVE(6)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-bool Disk::Verify(const DWORD *cdb)
+void Disk::Reserve6(SASIDEV *controller)
 {
-	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x2f);
+	// status phase
+	controller->Status();
+}
 
-	// Get parameters
-	DWORD record = cdb[2];
-	record <<= 8;
-	record |= cdb[3];
-	record <<= 8;
-	record |= cdb[4];
-	record <<= 8;
-	record |= cdb[5];
-	DWORD blocks = cdb[7];
-	blocks <<= 8;
-	blocks |= cdb[8];
+//---------------------------------------------------------------------------
+//
+//	RESERVE(10)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void Disk::Reserve10(SASIDEV *controller)
+{
+	// status phase
+	controller->Status();
+}
 
-	// Status check
-	if (!CheckReady()) {
-		return false;
-	}
+//---------------------------------------------------------------------------
+//
+//	RELEASE(6)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void Disk::Release6(SASIDEV *controller)
+{
+	// status phase
+	controller->Status();
+}
 
-	// Parameter check
-	if (disk.blocks < (record + blocks)) {
-		SetStatusCode(STATUS_INVALIDLBA);
-		return false;
-	}
-
-	//  Success
-	return true;
+//---------------------------------------------------------------------------
+//
+//	RELEASE(10)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void Disk::Release10(SASIDEV *controller)
+{
+	// status phase
+	controller->Status();
 }
 
 //---------------------------------------------------------------------------
@@ -1993,6 +2553,67 @@ bool Disk::PlayAudioTrack(const DWORD *cdb)
 	// This command is not supported
 	SetStatusCode(STATUS_INVALIDCMD);
 	return false;
+}
+
+//---------------------------------------------------------------------------
+//
+//	Get start sector and sector count for a READ/WRITE(10/16) operation
+//
+//---------------------------------------------------------------------------
+bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, bool rw64)
+{
+	start = ctrl->cmd[2];
+	start <<= 8;
+	start |= ctrl->cmd[3];
+	start <<= 8;
+	start |= ctrl->cmd[4];
+	start <<= 8;
+	start |= ctrl->cmd[5];
+	if (rw64) {
+		start <<= 8;
+		start |= ctrl->cmd[6];
+		start <<= 8;
+		start |= ctrl->cmd[7];
+		start <<= 8;
+		start |= ctrl->cmd[8];
+		start <<= 8;
+		start |= ctrl->cmd[9];
+	}
+
+	if (rw64) {
+		count = ctrl->cmd[10];
+		count <<= 8;
+		count |= ctrl->cmd[11];
+		count <<= 8;
+		count |= ctrl->cmd[12];
+		count <<= 8;
+		count |= ctrl->cmd[13];
+	}
+	else {
+		count = ctrl->cmd[7];
+		count <<= 8;
+		count |= ctrl->cmd[8];
+	}
+
+	// Check capacity
+	uint64_t capacity = GetBlockCount();
+	if (start > capacity || start + count > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << start << ", block count " << ctrl->blocks;
+		LOGWARN("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return false;
+	}
+
+	// Do not process 0 blocks
+	if (!count) {
+		LOGTRACE("NOT processing 0 blocks");
+		controller->Status();
+		return false;
+	}
+
+	return true;
 }
 
 int Disk::GetSectorSize() const

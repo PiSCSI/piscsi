@@ -372,7 +372,7 @@ void SASIDEV::Command()
 		try {
 			Execute();
 		}
-		catch (lun_exception& e) {
+		catch (const lun_exception& e) {
 			LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
@@ -397,21 +397,9 @@ void SASIDEV::Execute()
 	ctrl.blocks = 1;
 	ctrl.execstart = SysTimer::GetTimerLow();
 
-	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
-		ctrl.status = 0;
-	}
-
-	ctrl.device = NULL;
-
-	// REQUEST SENSE requires a special LUN handling
-	if (ctrl.cmd[0] != eCmdRequestSense) {
-		ctrl.device = ctrl.unit[GetLun()];
-	}
-
 	// Process by command
 	// TODO This code does not belong here. Each device type needs such a dispatcher, which the controller has to call.
-	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
+	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
 		case SASIDEV::eCmdTestUnitReady:
 			CmdTestUnitReady();
@@ -469,9 +457,7 @@ void SASIDEV::Execute()
 			CmdReleaseUnit();
 			return;
 
-		// SPECIFY (SASI only)
-		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
-		// leaving it here for now....
+		// SPECIFY
 		case SASIDEV::eCmdInvalid:
 			CmdSpecify();
 			return;
@@ -680,25 +666,15 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
-	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
-		lun = 0;
-	}
-
-	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
-
-	if (sense_key || asc) {
-		// Set Sense Key and ASC for a subsequent REQUEST SENSE
-		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
-	}
-
-	// Set status and message(CHECK CONDITION)
-	ctrl.status = (lun << 5) | 0x02;
-
 #if defined(DISK_LOG)
 	LOGWARN("Error occured (going to status phase)");
 #endif	// DISK_LOG
+
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+
+	// Set status and message(CHECK CONDITION)
+	ctrl.status = (lun << 5) | 0x02;
 
 	// status phase
 	Status();
@@ -714,7 +690,7 @@ void SASIDEV::CmdTestUnitReady()
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->TestUnitReady(ctrl.cmd);
+	bool status = ((Disk *)ctrl.device)->TestUnitReady(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -755,21 +731,14 @@ void SASIDEV::CmdRequestSense()
 {
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
-    DWORD lun;
-    try {
-     	lun = GetLun();
-    }
-    catch(const lun_exception& e) {
-        // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
-        // Non-existing LUNs do *not* result in CHECK CONDITION.
-        // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		Error();
+		return;
+	}
 
-        // LUN 0 can be assumed to be present (required to call RequestSense() below)
-        lun = 0;
-
-        Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-    }
-
+	// Command processing on drive
     ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
 
@@ -875,26 +844,6 @@ void SASIDEV::CmdRead6()
 		ctrl.blocks = 0x100;
 	}
 
-	// TODO Move Daynaport specific test
-	// TODO This class must not know about SCDP
-	if(ctrl.device->IsDaynaPort()){
-		// The DaynaPort only wants one block.
-		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
-		ctrl.blocks=1;
-	}
-	else {
-		// Check capacity
-		DWORD capacity = ctrl.device->GetBlockCount();
-		if (record > capacity || record + ctrl.blocks > capacity) {
-			ostringstream s;
-			s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
-					<< "Trying to read block " << record << ", block count " << ctrl.blocks;
-			LOGWARN("%s", s.str().c_str());
-			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
-			return;
-		}
-	}
-
 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Command processing on drive
@@ -902,7 +851,7 @@ void SASIDEV::CmdRead6()
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 
 	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
-	if (ctrl.length <= 0 && !ctrl.device->IsDaynaPort()) {
+	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
 		return;
@@ -917,68 +866,11 @@ void SASIDEV::CmdRead6()
 
 //---------------------------------------------------------------------------
 //
-//  This Send Message command is used by the DaynaPort SCSI/Link
-// TODO This class must not know about SCDP
-//
-//---------------------------------------------------------------------------
-void SASIDEV::DaynaPortWrite()
-{
-	// Error if not a DaynaPort device
-	if (!ctrl.device->IsDaynaPort()) {
-		LOGERROR("Received DaynaPortWrite for a non-DaynaPort device");
-		Error();
-		return;
-	}
-
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl.bufsize < DAYNAPORT_BUFFER_SIZE) {
-		free(ctrl.buffer);
-		ctrl.bufsize = DAYNAPORT_BUFFER_SIZE;
-		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
-	}
-
-	DWORD data_format = ctrl.cmd[5];
-
-	if(data_format == 0x00){
-		ctrl.length = (WORD)ctrl.cmd[4] + ((WORD)ctrl.cmd[3] << 8);
-	}
-	else if (data_format == 0x80){
-		ctrl.length = (WORD)ctrl.cmd[4] + ((WORD)ctrl.cmd[3] << 8) + 8;
-	}
-	else
-	{
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-	}
-	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.length, (int)ctrl.length, (unsigned int)data_format);
-
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.blocks = 1;
-	ctrl.next = 1;
-
-	// Light phase
-	DataOut();
-}
-
-
-//---------------------------------------------------------------------------
-//
 //	WRITE(6)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::CmdWrite6()
 {
-	// Special receive function for the DaynaPort
-	if (ctrl.device->IsDaynaPort()){
-		DaynaPortWrite();
-		return;
-	}
-
 	// Get record number and block number
 	DWORD record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
@@ -990,24 +882,13 @@ void SASIDEV::CmdWrite6()
 		ctrl.blocks = 0x100;
 	}
 
-	// Check capacity
-	DWORD capacity = ctrl.device->GetBlockCount();
-	if (record > capacity || record + ctrl.blocks > capacity) {
-		ostringstream s;
-		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to write block " << record << ", block count " << ctrl.blocks;
-		LOGWARN("%s", s.str().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
-		return;
-	}
-
 	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
 
 	// Command processing on drive
 	ctrl.length = ctrl.device->WriteCheck(record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		Error();
 		return;
 	}
 
@@ -1028,15 +909,7 @@ void SASIDEV::CmdSeek6()
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->Seek(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	ctrl.device->Seek6(this);
 }
 
 //---------------------------------------------------------------------------
@@ -1096,7 +969,15 @@ void SASIDEV::CmdInvalid()
 {
 	LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
-	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (ctrl.unit[lun]) {
+		// Command processing on drive
+		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
+	}
+
+	// Failure (Error)
+	Error();
 }
 
 //===========================================================================
@@ -1342,7 +1223,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 	}
 	Disk *device = ctrl.unit[lun];
 
-	switch ((SASIDEV::scsi_command) ctrl.cmd[0]) {
+	switch ((SASIDEV::sasi_command) ctrl.cmd[0]) {
 		case SASIDEV::eCmdModeSelect:
 		case SASIDEV::eCmdModeSelect10:
 			if (!device->ModeSelect(
@@ -1371,7 +1252,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Special case Write function for DaynaPort
-			// TODO This class must not know about SCSIDP
+			// TODO This class must not know about DaynaPort
 			if (device->IsDaynaPort()) {
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
 				if (!(SCSIDaynaPort*)device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
@@ -1444,7 +1325,7 @@ void SASIDEV::FlushUnit()
 	Disk *device = ctrl.unit[lun];
 
 	// WRITE system only
-	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
+	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
 		case SASIDEV::eCmdWrite16:
@@ -1539,18 +1420,3 @@ void SASIDEV::GetPhaseStr(char *str)
     }
 }
 #endif
-
-//---------------------------------------------------------------------------
-//
-//	Validate and get LUN
-//
-//---------------------------------------------------------------------------
-DWORD SASIDEV::GetLun()
-{
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		throw lun_exception(lun);
-	}
-
-	return lun;
-}

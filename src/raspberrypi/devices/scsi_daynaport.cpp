@@ -89,8 +89,14 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	m_mac_addr[5]=0xE3;
 
 #endif	// linux
-	LOGTRACE("SCSIDaynaPort Constructor End");
 
+	AddCommand(SCSIDEV::eCmdRead6, "CmdRead6", &SCSIDaynaPort::CmdRead6);
+	AddCommand(SCSIDEV::eCmdWrite6, "CmdWrite6", &SCSIDaynaPort::CmdWrite6);
+	AddCommand(SCSIDEV::eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDaynaPort::CmdRetrieveStats);
+	AddCommand(SCSIDEV::eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDaynaPort::CmdSetIfaceMode);
+	AddCommand(SCSIDEV::eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDaynaPort::CmdSetMcastAddr);
+	AddCommand(SCSIDEV::eCmdEnableInterface, "CmdEnableInterface", &SCSIDaynaPort::CmdEnableInterface);
+	AddCommand(SCSIDEV::eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDaynaPort::CmdGetEventStatusNotification);
 }
 
 //---------------------------------------------------------------------------
@@ -100,19 +106,46 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 //---------------------------------------------------------------------------
 SCSIDaynaPort::~SCSIDaynaPort()
 {
-	LOGTRACE("SCSIDaynaPort Destructor");
 	// TAP driver release
 	if (m_tap) {
 		m_tap->Cleanup();
 		delete m_tap;
 	}
+
+	for (auto const& command : commands) {
+		free(command.second);
+	}
 }
 
- void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
+void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
 {
 	LOGTRACE("SCSIDaynaPort Open");
+
 	m_tap->OpenDump(path);
 }
+
+ void SCSIDaynaPort::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
+ {
+ 	commands[opcode] = new command_t(name, execute);
+ }
+
+ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
+ {
+ 	ctrl = controller->GetWorkAddr();
+
+ 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+ 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+ 		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+ 		(this->*command->execute)(controller);
+
+ 		return true;
+ 	}
+
+	// The base class handles the less specific commands
+ 	return Disk::Dispatch(controller);
+ }
 
 //---------------------------------------------------------------------------
 //
@@ -380,8 +413,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	// DWORD crc_errors;
 	// DWORD frames_lost;
 
-	LOGTRACE("%s RetrieveStats ", __PRETTY_FUNCTION__);
-
 	ASSERT(cdb);
 	ASSERT(buffer);
 
@@ -480,17 +511,143 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 	return result;
 }
 
-//---------------------------------------------------------------------------
-//
-//	TEST UNIT READY
-//
-//---------------------------------------------------------------------------
 bool SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
-
 	// TEST UNIT READY Success
 	return true;
+}
+
+void SCSIDaynaPort::CmdRead6(SASIDEV *controller)
+{
+	// Get record number and block number
+	DWORD record = ctrl->cmd[1] & 0x1f;
+	record <<= 8;
+	record |= ctrl->cmd[2];
+	record <<= 8;
+	record |= ctrl->cmd[3];
+	ctrl->blocks=1;
+
+	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Read phase
+	controller->DataIn();
+}
+
+void SCSIDaynaPort::CmdWrite6(SASIDEV *controller)
+{
+	// Reallocate buffer (because it is not transfer for each block)
+	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
+		free(ctrl->buffer);
+		ctrl->bufsize = DAYNAPORT_BUFFER_SIZE;
+		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+	}
+
+	DWORD data_format = ctrl->cmd[5];
+
+	if(data_format == 0x00){
+		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8);
+	}
+	else if (data_format == 0x80){
+		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8) + 8;
+	}
+	else
+	{
+		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
+	}
+	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->length, (int)ctrl->length, (unsigned int)data_format);
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	// Data out phase
+	controller->DataOut();
+}
+
+void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
+{
+	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	// Data in phase
+	controller->DataIn();
+}
+
+void SCSIDaynaPort::CmdSetIfaceMode(SASIDEV *controller)
+{
+	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
+
+	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
+	switch(ctrl->cmd[5]){
+		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
+			SetMode(ctrl->cmd, ctrl->buffer);
+			controller->Status();
+			break;
+		break;
+		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
+			ctrl->length = 6;
+			// Write phase
+			controller->DataOut();
+			break;
+		default:
+			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[5]);
+	}
+}
+
+void SCSIDaynaPort::CmdSetMcastAddr(SASIDEV *controller)
+{
+	ctrl->length = (DWORD)ctrl->cmd[4];
+
+	// ASSERT(ctrl.length >= 0);
+	if (ctrl->length == 0) {
+		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
+
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	controller->DataOut();
+}
+
+void SCSIDaynaPort::CmdEnableInterface(SASIDEV *controller)
+{
+	bool status = EnableInterface(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void SCSIDaynaPort::CmdGetEventStatusNotification(SASIDEV *controller)
+{
+	// This naive (but legal) implementation avoids constant warnings in the logs
+	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------

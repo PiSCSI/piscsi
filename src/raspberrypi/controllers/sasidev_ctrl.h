@@ -55,52 +55,31 @@ protected:
 		eMsgCodeTerminateIOProcess              = 0x11,
 	};
 
-protected:
-	enum scsi_command : int {
+private:
+	enum sasi_command : int {
 			eCmdTestUnitReady = 0x00,
 			eCmdRezero =  0x01,
 			eCmdRequestSense = 0x03,
 			eCmdFormat = 0x04,
 			eCmdReassign = 0x07,
 			eCmdRead6 = 0x08,
-			eCmdRetrieveStats = 0x09,    // DaynaPort specific command
 			eCmdWrite6 = 0x0A,
 			eCmdSeek6 = 0x0B,
 			eCmdSetIfaceMode = 0x0C,     // DaynaPort specific command
 			eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
-			eCmdEnableInterface = 0x0E,  // DaynaPort specific command
-			eCmdInquiry = 0x12,
 			eCmdModeSelect = 0x15,
 			eCmdReserve6 = 0x16,
 			eCmdRelease6 = 0x17,
-			eCmdModeSense = 0x1A,
-			eCmdStartStop = 0x1B,
-			eCmdSendDiag = 0x1D,
-			eCmdRemoval = 0x1E,
-			eCmdReadCapacity10 = 0x25,
 			eCmdRead10 = 0x28,
 			eCmdWrite10 = 0x2A,
-			eCmdSeek10 = 0x2B,
 			eCmdVerify10 = 0x2E,
 			eCmdVerify = 0x2F,
-			eCmdSynchronizeCache = 0x35,
-			eCmdReadDefectData10 = 0x37,
-			eCmdReadToc = 0x43,
-			eCmdPlayAudio10 = 0x45,
-			eCmdPlayAudioMSF = 0x47,
-			eCmdPlayAudioTrack = 0x48,
-			eCmdGetEventStatusNotification = 0x4a,
 			eCmdModeSelect10 = 0x55,
-			eCmdReserve10 = 0x56,
-			eCmdRelease10 = 0x57,
-			eCmdModeSense10 = 0x5A,
 			eCmdRead16 = 0x88,
 			eCmdWrite16 = 0x8A,
 			eCmdVerify16 = 0x8F,
-			eCmdReadCapacity16 = 0x9E,
-			eCmdReportLuns = 0xA0,
-			eCmdInvalid = 0xC2,		// (SASI only/Suppress warning when using SxSI)
-			eCmdSasiCmdAssign = 0x0E, // This isn't used by SCSI, and can probably be removed.
+			eCmdInvalid = 0xC2,
+			eCmdSasiCmdAssign = 0x0E
 	};
 
 public:
@@ -110,6 +89,7 @@ public:
 
 	const int UNKNOWN_SCSI_ID = -1;
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
+	// TODO Remove this duplicate
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
 	// For timing adjustments
@@ -179,6 +159,12 @@ public:
 
 public:
 	void DataIn();							// Data in phase
+	void Status();							// Status phase
+	void MsgIn();							// Message in phase
+	void DataOut();						// Data out phase
+
+	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
 
 protected:
 	// Phase processing
@@ -186,11 +172,6 @@ protected:
 	virtual void Selection();					// Selection phase
 	virtual void Command();					// Command phase
 	virtual void Execute();					// Execution phase
-	void Status();							// Status phase
-	void MsgIn();							// Message in phase
-	void DataOut();						// Data out phase
-	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
 
 	// commands
 	void CmdTestUnitReady();					// TEST UNIT READY command
@@ -206,7 +187,6 @@ protected:
 	void CmdAssign();						// ASSIGN command
 	void CmdSpecify();						// SPECIFY command
 	void CmdInvalid();						// Unsupported command
-	void DaynaPortWrite();					// DaynaPort specific 'write' operation
 	// データ転送
 	virtual void Send();						// Send data
 
@@ -217,8 +197,6 @@ protected:
 
 	// Special operations
 	void FlushUnit();						// Flush the logical unit
-
-        DWORD GetLun();                                           // Get the validated LUN
 
 protected:
 	ctrl_t ctrl;								// Internal data
