@@ -499,7 +499,7 @@ void SCSIDEV::Send()
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	BOOL result = true;
+	bool result = true;
 
 	// Processing after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {

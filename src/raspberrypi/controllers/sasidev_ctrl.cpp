@@ -985,7 +985,7 @@ void SASIDEV::Send()
 
 	// Remove block and initialize the result
 	ctrl.blocks--;
-	BOOL result = true;
+	bool result = true;
 
 	// Process after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
