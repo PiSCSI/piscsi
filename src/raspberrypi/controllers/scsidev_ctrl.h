@@ -25,7 +25,7 @@
 class SCSIDEV : public SASIDEV
 {
 
-private:
+public:
 	enum scsi_command : int {
 			eCmdTestUnitReady = 0x00,
 			eCmdRezero =  0x01,
@@ -71,7 +71,6 @@ private:
 			eCmdReportLuns = 0xA0
 	};
 
-public:
 	// Internal data definition
 	typedef struct {
 		// Synchronous transfer
@@ -95,14 +94,6 @@ public:
 	} controller_command_t;
 	std::map<scsi_command, controller_command_t*> controller_commands;
 
-	typedef struct _disk_command_t {
-		const char* name;
-		void (Disk::*execute)(SASIDEV *);
-
-		_disk_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} disk_command_t;
-	std::map<scsi_command, disk_command_t*> disk_commands;
-
 public:
 	// Basic Functions
 	SCSIDEV();
@@ -125,7 +116,6 @@ public:
 
 private:
 	void SetUpControllerCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
-	void SetUpDiskCommand(scsi_command, const char*, void (Disk::*)(SASIDEV *));
 
 	// Phase
 	void BusFree();						// Bus free phase

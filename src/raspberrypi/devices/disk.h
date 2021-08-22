@@ -20,11 +20,12 @@
 #include "xm6.h"
 #include "log.h"
 #include "scsi.h"
-#include "controllers/sasidev_ctrl.h"
+#include "controllers/scsidev_ctrl.h"
 #include "block_device.h"
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
+#include <map>
 
 //===========================================================================
 //
@@ -138,6 +139,15 @@ protected:
 		off_t imgoffset;						// Offset to actual data
 	} disk_t;
 
+private:
+	typedef struct _disk_command_t {
+		const char* name;
+		void (Disk::*execute)(SASIDEV *);
+
+		_disk_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} disk_command_t;
+	std::map<SCSIDEV::scsi_command, disk_command_t*> disk_commands;
+
 public:
 	// Basic Functions
 	Disk(std::string);							// Constructor
@@ -221,6 +231,8 @@ public:
 	bool Format(const DWORD *cdb);					// FORMAT UNIT command
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
 
+	bool Dispatch(SCSIDEV *);
+
 protected:
 	// Internal processing
 	virtual int AddError(bool change, BYTE *buf);			// Add error
@@ -236,4 +248,7 @@ protected:
 	// Internal data
 	disk_t disk;								// Internal disk data
 	BOOL cache_wb;								// Cache mode
+
+private:
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (Disk::*)(SASIDEV *));
 };

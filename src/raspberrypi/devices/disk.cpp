@@ -1273,6 +1273,40 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 
 	// Other
 	cache_wb = TRUE;
+
+	AddCommand(SCSIDEV::eCmdTestUnitReady, "CmdTestUnitReady", &Disk::TestUnitReady);
+	AddCommand(SCSIDEV::eCmdRezero, "CmdRezero", &Disk::Rezero);
+	AddCommand(SCSIDEV::eCmdRequestSense, "CmdRequestSense", &Disk::RequestSense);
+	AddCommand(SCSIDEV::eCmdFormat, "CmdFormat", &Disk::Format);
+	AddCommand(SCSIDEV::eCmdReassign, "CmdReassign", &Disk::ReassignBlocks);
+	AddCommand(SCSIDEV::eCmdRead6, "CmdRead6", &Disk::Read6);
+	AddCommand(SCSIDEV::eCmdWrite6, "CmdWrite6", &Disk::Write6);
+	AddCommand(SCSIDEV::eCmdSeek6, "CmdSeek6", &Disk::Seek6);
+	AddCommand(SCSIDEV::eCmdInquiry, "CmdInquiry", &Disk::Inquiry);
+	AddCommand(SCSIDEV::eCmdModeSelect, "CmdModeSelect", &Disk::ModeSelect);
+	AddCommand(SCSIDEV::eCmdReserve6, "CmdReserve6", &Disk::Reserve6);
+	AddCommand(SCSIDEV::eCmdRelease6, "CmdRelease6", &Disk::Release6);
+	AddCommand(SCSIDEV::eCmdModeSense, "CmdModeSense", &Disk::ModeSense);
+	AddCommand(SCSIDEV::eCmdStartStop, "CmdStartStop", &Disk::StartStop);
+	AddCommand(SCSIDEV::eCmdSendDiag, "CmdSendDiag", &Disk::SendDiagnostic);
+	AddCommand(SCSIDEV::eCmdRemoval, "CmdRemoval", &Disk::PreventAllowRemoval);
+	AddCommand(SCSIDEV::eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);
+	AddCommand(SCSIDEV::eCmdRead10, "CmdRead10", &Disk::Read10);
+	AddCommand(SCSIDEV::eCmdWrite10, "CmdWrite10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdVerify10, "CmdVerify10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdSeek10, "CmdSeek10", &Disk::Seek10);
+	AddCommand(SCSIDEV::eCmdVerify, "CmdVerify", &Disk::Verify);
+	AddCommand(SCSIDEV::eCmdSynchronizeCache, "CmdSynchronizeCache", &Disk::SynchronizeCache);
+	AddCommand(SCSIDEV::eCmdReadDefectData10, "CmdReadDefectData10", &Disk::ReadDefectData10);
+	AddCommand(SCSIDEV::eCmdModeSelect10, "CmdModeSelect10", &Disk::ModeSelect10);
+	AddCommand(SCSIDEV::eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
+	AddCommand(SCSIDEV::eCmdRelease10, "CmdRelease10", &Disk::Release10);
+	AddCommand(SCSIDEV::eCmdModeSense10, "CmdModeSense10", &Disk::ModeSense10);
+	AddCommand(SCSIDEV::eCmdRead16, "CmdRead16", &Disk::Read16);
+	AddCommand(SCSIDEV::eCmdWrite16, "CmdWrite16", &Disk::Write16);
+	AddCommand(SCSIDEV::eCmdVerify16, "CmdVerify16", &Disk::Write16);
+	AddCommand(SCSIDEV::eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
+	AddCommand(SCSIDEV::eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
 }
 
 //---------------------------------------------------------------------------
@@ -1295,6 +1329,32 @@ Disk::~Disk()
 		delete disk.dcache;
 		disk.dcache = NULL;
 	}
+
+	for (auto const& command : disk_commands) {
+		free(command.second);
+	}
+}
+
+void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
+{
+	disk_commands[opcode] = new disk_command_t(name, execute);
+}
+
+bool Disk::Dispatch(SCSIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	if (disk_commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+		disk_command_t *command = disk_commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+		LOGDEBUG("++++ CMD ++++ %s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
+	}
+
+	return false;
 }
 
 //---------------------------------------------------------------------------
