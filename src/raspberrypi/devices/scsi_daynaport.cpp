@@ -143,6 +143,7 @@ void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
  		return true;
  	}
 
+	// The base class handles the less specific commands
  	return Disk::Dispatch(controller);
  }
 

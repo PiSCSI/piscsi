@@ -32,6 +32,7 @@ public:
 	void Reset();							// Reset
 	void Open(const Filepath& path);		// Open
 
-	// commands
-	int RequestSense(const DWORD *cdb, BYTE *buf);			// REQUEST SENSE command
+	// Commands
+	int RequestSense(const DWORD *cdb, BYTE *buf);
+	int Inquiry(const DWORD *cdb, BYTE *buf);
 };

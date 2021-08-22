@@ -285,6 +285,7 @@ bool SCSICD::Dispatch(SCSIDEV *controller)
 		return true;
 	}
 
+	// The base class handles the less specific commands
 	return Disk::Dispatch(controller);
 }
 

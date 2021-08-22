@@ -1448,19 +1448,6 @@ BOOL Disk::CheckReady()
 
 //---------------------------------------------------------------------------
 //
-//	INQUIRY
-//	*You need to be successful at all times
-//
-//---------------------------------------------------------------------------
-int Disk::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/)
-{
-	// default is INQUIRY failure
-	SetStatusCode(STATUS_INVALIDCMD);
-	return 0;
-}
-
-//---------------------------------------------------------------------------
-//
 //	REQUEST SENSE
 //	*SASI is a separate process
 //

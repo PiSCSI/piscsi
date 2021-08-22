@@ -241,6 +241,11 @@ void SCSIDEV::Execute()
 	ctrl.blocks = 1;
 	ctrl.execstart = SysTimer::GetTimerLow();
 
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.status = 0;
+	}
+
 	try {
 		ctrl.device = ctrl.unit[GetLun()];
 	}
@@ -251,7 +256,11 @@ void SCSIDEV::Execute()
 		return;
 	}
 
-	ctrl.device->Dispatch(this);
+	if (!ctrl.device->Dispatch(this)) {
+		LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
+
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
+	}
 }
 
 //---------------------------------------------------------------------------

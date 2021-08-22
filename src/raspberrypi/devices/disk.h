@@ -182,7 +182,7 @@ public:
 	void Read6(SASIDEV *);
 	void Read10(SASIDEV *) override;
 	void Read16(SASIDEV *) override;
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf);	// INQUIRY command
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
 	virtual int WriteCheck(DWORD block);					// WRITE check
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
 	void Write6(SASIDEV *);
