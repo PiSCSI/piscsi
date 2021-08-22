@@ -59,7 +59,7 @@ public:
 										// Constructor
 	~SCSIDaynaPort();
 										// Destructor
-	void Open(const Filepath& path, BOOL attn = TRUE);
+	void Open(const Filepath& path);
 										// Capture packets
 
 	// commands

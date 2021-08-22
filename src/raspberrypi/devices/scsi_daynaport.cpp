@@ -112,7 +112,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
+void SCSIDaynaPort::Open(const Filepath& path)
 {
 	LOGTRACE("SCSIDaynaPort Open");
 
@@ -197,7 +197,7 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	int rx_packet_size = 0;
-	BOOL send_message_to_host;
+	bool send_message_to_host;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
 	scsi_cmd_read_6_t *command = (scsi_cmd_read_6_t*)cdb;
 	int read_count = 0;
@@ -245,7 +245,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 
 		// This is a very basic filter to prevent unnecessary packets from
 		// being sent to the SCSI initiator. 
-		send_message_to_host = FALSE;
+		send_message_to_host = false;
 
 	// The following doesn't seem to work with unicast messages. Temporarily removing the filtering
 	// functionality.
@@ -253,19 +253,19 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 	///////	// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
 	///////	// of the data.
 	///////	if (memcmp(response->data, m_mac_addr, 6) == 0) {
-	///////		send_message_to_host = TRUE;
+	///////		send_message_to_host = true;
 	///////	}
 
 	///////	// Check to see if this is a broadcast message
 	///////	if (memcmp(response->data, m_bcast_addr, 6) == 0) {
-	///////		send_message_to_host = TRUE;
+	///////		send_message_to_host = true;
 	///////	}
 
 	///////	// Check to see if this is an AppleTalk Message
 	///////	if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
-	///////		send_message_to_host = TRUE;
+	///////		send_message_to_host = true;
 	///////	}
-		send_message_to_host = TRUE;
+		send_message_to_host = true;
 
 		// TODO: We should check to see if this message is in the multicast 
 		// configuration from SCSI command 0x0D
