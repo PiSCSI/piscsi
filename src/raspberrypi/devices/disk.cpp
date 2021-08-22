@@ -1277,7 +1277,7 @@ bool Disk::Dispatch(SCSIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Open(const Filepath& path)
 {
-	ASSERT((disk.size >= 8) && (disk.size <= 11));
+	ASSERT((disk.size >= 8) && (disk.size <= 12));
 	ASSERT(disk.blocks > 0);
 
 	SetReady(true);
