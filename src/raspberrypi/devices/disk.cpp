@@ -1466,7 +1466,7 @@ int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 
 	// Size determination (according to allocation length)
 	int size = (int)cdb[4];
-	LOGDEBUG("%s size of data = %d", __PRETTY_FUNCTION__, size);
+	LOGTRACE("%s size of data = %d", __PRETTY_FUNCTION__, size);
 	ASSERT((size >= 0) && (size < 0x100));
 
 	// For SCSI-1, transfer 4 bytes when the size is 0

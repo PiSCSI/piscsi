@@ -250,7 +250,7 @@ void SCSIDEV::Execute()
 		ctrl.device = ctrl.unit[GetLun()];
 	}
 	catch (const lun_exception& e) {
-		LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, e.getlun());
+		LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
 
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 		return;
@@ -337,7 +337,7 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		lun = 0;
 	}
 
-	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
+	LOGDEBUG("%s Sense Key and ASC: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
 	if (sense_key || asc) {
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE
@@ -661,7 +661,7 @@ void SCSIDEV::Receive()
 				Execute();
 			}
 			catch (const lun_exception& e) {
-				LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, e.getlun());
+				LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
 
 				Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 			}
