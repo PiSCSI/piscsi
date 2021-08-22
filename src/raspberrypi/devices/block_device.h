@@ -27,18 +27,17 @@ public:
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override = 0;
 	virtual void ReportLuns(SASIDEV *) override = 0;
 	virtual bool Format(const DWORD *cdb) = 0;
-	// READ(6), READ(10)
-	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
-	// WRITE(6), WRITE(10)
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) = 0;
 	virtual void ReadCapacity10(SASIDEV *) = 0;
 	virtual void ReadCapacity16(SASIDEV *) = 0;
-	// TODO Uncomment as soon as there is a clean separation between controllers and devices
-	//virtual int Read16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
-	//virtual int Write16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
-	//virtual int Verify16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
+	virtual void Read10(SASIDEV *) = 0;
+	virtual void Read16(SASIDEV *) = 0;
+	virtual void Write10(SASIDEV *) = 0;
+	virtual void Write16(SASIDEV *) = 0;
 
 	// Implemented optional commands
+	// TODO uncomment
+	//virtual void Verify10(SASIDEV *) = 0;
+	//virtual void Verify16(SASIDEV *) = 0;
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) override = 0;
 	virtual int ModeSense(const DWORD *cdb, BYTE *buf) override = 0;
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) override = 0;

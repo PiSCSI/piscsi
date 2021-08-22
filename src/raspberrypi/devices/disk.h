@@ -162,9 +162,13 @@ public:
 	bool Rezero(const DWORD *cdb);					// REZERO command
 	bool Format(const DWORD *cdb) override;					// FORMAT UNIT command
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
-	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;			// READ command
+	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
+	void Read10(SASIDEV *);
+	void Read16(SASIDEV *);
 	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;			// WRITE command
+	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
+	void Write10(SASIDEV *);
+	void Write16(SASIDEV *);
 	void Seek(SASIDEV *);
 	void Seek6(SASIDEV *);
 	void Seek10(SASIDEV *);
@@ -188,12 +192,13 @@ public:
 	void SetConfiguredSectorSize(int);
 	DWORD GetBlockCount() const;
 	void SetBlockCount(DWORD);
-	// TODO Currently not called
-	bool Verify(const DWORD *cdb);					// VERIFY command
+	void Verify(SASIDEV *controller);					// VERIFY command
 	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
 	virtual bool PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
 	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
 	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
+
+	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, bool);
 
 protected:
 	// Internal processing

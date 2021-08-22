@@ -75,6 +75,9 @@ public:
 	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common erorr handling
 
+	void CmdGetMessage10();					// GET MESSAGE(10) command
+	void CmdSendMessage10();					// SEND MESSAGE(10) command
+
 private:
 	void SetUpControllerCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
 	void SetUpDeviceCommand(scsi_command, const char*, void (Disk::*)(SASIDEV *));
@@ -92,9 +95,6 @@ private:
 	void CmdStartStop();						// START STOP UNIT command
 	void CmdSendDiag();						// SEND DIAGNOSTIC command
 	void CmdRemoval();						// PREVENT/ALLOW MEDIUM REMOVAL command
-	void CmdRead10();						// READ(10) command
-	void CmdWrite10();						// WRITE(10) command
-	void CmdVerify();						// VERIFY command
 	void CmdSynchronizeCache();					// SYNCHRONIZE CACHE  command
 	void CmdReadDefectData10();					// READ DEFECT DATA(10)  command
 	void CmdReadToc();						// READ TOC command
@@ -104,10 +104,6 @@ private:
 	void CmdGetEventStatusNotification();
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command
-	void CmdRead16();						// READ(16) command
-	void CmdWrite16();						// WRITE(16) command
-	void CmdGetMessage10();					// GET MESSAGE(10) command
-	void CmdSendMessage10();					// SEND MESSAGE(10) command
 	void CmdRetrieveStats();   				// DaynaPort specific command
 	void CmdSetIfaceMode();    				// DaynaPort specific command
 	void CmdSetMcastAddr();					// DaynaPort specific command

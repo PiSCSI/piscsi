@@ -25,7 +25,9 @@
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include "controllers/sasidev_ctrl.h"
+#include "controllers/scsidev_ctrl.h"
 #include "disk.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -350,6 +352,65 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 	return TRUE;
 }
 
+void Disk::Read10(SASIDEV *controller)
+{
+	// TODO Move to subclass
+	// Receive message if host bridge
+	if (IsBridge()) {
+		((SCSIDEV *)controller)->CmdGetMessage10();
+		return;
+	}
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Get record number and block number
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, false)) {
+		return;
+	}
+
+	LOGTRACE("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void Disk::Read16(SASIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Get record number and block number
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, true)) {
+		return;
+	}
+
+	LOGTRACE("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	ctrl->length = ctrl->device->Read(ctrl->cmd, ctrl->buffer, record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
 //---------------------------------------------------------------------------
 //
 //	Write Sector
@@ -391,6 +452,101 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 
 	// Success
 	return TRUE;
+}
+
+void Disk::Write10(SASIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// TODO Move to subclass
+	// Receive message with host bridge
+	if (ctrl->device->IsBridge()) {
+		((SCSIDEV *)controller)->CmdSendMessage10();
+		return;
+	}
+
+	// Get record number and block number
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, false)) {
+		return;
+	}
+
+	LOGTRACE("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
+
+	ctrl->length = WriteCheck(record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data out phase
+	controller->DataOut();
+}
+
+void Disk::Write16(SASIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Get record number and block number
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, true)) {
+		return;
+	}
+
+	LOGTRACE("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
+
+	ctrl->length = WriteCheck(record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data out phase
+	controller->DataOut();
+}
+
+//---------------------------------------------------------------------------
+//
+//	VERIFY
+//
+//---------------------------------------------------------------------------
+void Disk::Verify(SASIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Get record number and block number
+	uint64_t record;
+	GetStartAndCount(controller, record, ctrl->blocks, false);
+
+	LOGTRACE("%s VERIFY command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	// if BytChk=0
+	if ((ctrl->cmd[1] & 0x02) == 0) {
+		Seek(controller);
+		return;
+	}
+
+	// Test loading
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Data out phase
+	controller->DataOut();
 }
 
 //===========================================================================
@@ -1934,43 +2090,6 @@ void Disk::ReportLuns(SASIDEV *controller)
 
 //---------------------------------------------------------------------------
 //
-//	VERIFY
-//
-//---------------------------------------------------------------------------
-bool Disk::Verify(const DWORD *cdb)
-{
-	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x2f);
-
-	// Get parameters
-	DWORD record = cdb[2];
-	record <<= 8;
-	record |= cdb[3];
-	record <<= 8;
-	record |= cdb[4];
-	record <<= 8;
-	record |= cdb[5];
-	DWORD blocks = cdb[7];
-	blocks <<= 8;
-	blocks |= cdb[8];
-
-	// Status check
-	if (!CheckReady()) {
-		return false;
-	}
-
-	// Parameter check
-	if (disk.blocks < (record + blocks)) {
-		SetStatusCode(STATUS_INVALIDLBA);
-		return false;
-	}
-
-	//  Success
-	return true;
-}
-
-//---------------------------------------------------------------------------
-//
 //	RESERVE(6)
 //
 //  The reserve/release commands are only used in multi-initiator
@@ -2100,6 +2219,69 @@ bool Disk::PlayAudioTrack(const DWORD *cdb)
 	// This command is not supported
 	SetStatusCode(STATUS_INVALIDCMD);
 	return false;
+}
+
+//---------------------------------------------------------------------------
+//
+//	Get start sector and sector count for a READ/WRITE(10/16) operation
+//
+//---------------------------------------------------------------------------
+bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, bool rw64)
+{
+	const SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	start = ctrl->cmd[2];
+	start <<= 8;
+	start |= ctrl->cmd[3];
+	start <<= 8;
+	start |= ctrl->cmd[4];
+	start <<= 8;
+	start |= ctrl->cmd[5];
+	if (rw64) {
+		start <<= 8;
+		start |= ctrl->cmd[6];
+		start <<= 8;
+		start |= ctrl->cmd[7];
+		start <<= 8;
+		start |= ctrl->cmd[8];
+		start <<= 8;
+		start |= ctrl->cmd[9];
+	}
+
+	if (rw64) {
+		count = ctrl->cmd[10];
+		count <<= 8;
+		count |= ctrl->cmd[11];
+		count <<= 8;
+		count |= ctrl->cmd[12];
+		count <<= 8;
+		count |= ctrl->cmd[13];
+	}
+	else {
+		count = ctrl->cmd[7];
+		count <<= 8;
+		count |= ctrl->cmd[8];
+	}
+
+	// Check capacity
+	uint64_t capacity = GetBlockCount();
+	if (start > capacity || start + count > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << start << ", block count " << ctrl->blocks;
+		LOGWARN("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return false;
+	}
+
+	// Do not process 0 blocks
+	if (!count) {
+		LOGTRACE("NOT processing 0 blocks");
+		controller->Status();
+		return false;
+	}
+
+	return true;
 }
 
 int Disk::GetSectorSize() const

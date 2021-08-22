@@ -59,20 +59,20 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	SetUpControllerCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
 	SetUpControllerCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
 	SetUpDeviceCommand(eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);
-	SetUpControllerCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
-	SetUpControllerCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
-	SetUpControllerCommand(eCmdVerify10, "CmdVerify10", &SCSIDEV::CmdWrite10);
+	SetUpDeviceCommand(eCmdRead10, "CmdRead10", &Disk::Read10);
+	SetUpDeviceCommand(eCmdWrite10, "CmdWrite10", &Disk::Write10);
+	SetUpDeviceCommand(eCmdVerify10, "CmdVerify10", &Disk::Write10);
 	SetUpDeviceCommand(eCmdSeek10, "CmdSeek10", &Disk::Seek10);
-	SetUpControllerCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
+	SetUpDeviceCommand(eCmdVerify, "CmdVerify", &Disk::Verify);
 	SetUpControllerCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
 	SetUpControllerCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
 	SetUpControllerCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
 	SetUpDeviceCommand(eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
 	SetUpDeviceCommand(eCmdRelease10, "CmdRelease10", &Disk::Release10);
 	SetUpControllerCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
-	SetUpControllerCommand(eCmdRead16, "CmdRead16", &SCSIDEV::CmdRead16);
-	SetUpControllerCommand(eCmdWrite16, "CmdWrite16", &SCSIDEV::CmdWrite16);
-	SetUpControllerCommand(eCmdVerify16, "CmdVerify16", &SCSIDEV::CmdWrite16);
+	SetUpDeviceCommand(eCmdRead16, "CmdRead16", &Disk::Read16);
+	SetUpDeviceCommand(eCmdWrite16, "CmdWrite16", &Disk::Write16);
+	SetUpDeviceCommand(eCmdVerify16, "CmdVerify16", &Disk::Write16);
 	SetUpDeviceCommand(eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
 	SetUpDeviceCommand(eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
 
@@ -586,189 +586,6 @@ void SCSIDEV::CmdRemoval()
 
 	// status phase
 	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ(10)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdRead10()
-{
-	// TODO Move bridge specific test
-	// Receive message if host bridge
-	if (ctrl.device->IsBridge()) {
-		CmdGetMessage10();
-		return;
-	}
-
-	// Get record number and block number
-	uint64_t record;
-	if (!GetStartAndCount(record, ctrl.blocks, false)) {
-		return;
-	}
-
-	LOGTRACE("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ(16)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdRead16()
-{
-	// TODO Move bridge specific test
-	// Receive message if host bridge
-	if (ctrl.device->IsBridge()) {
-		Error();
-		return;
-	}
-
-	// Get record number and block number
-	uint64_t record;
-	if (!GetStartAndCount(record, ctrl.blocks, true)) {
-		return;
-	}
-
-	LOGTRACE("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	WRITE(10)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdWrite10()
-{
-	// TODO Move bridge specific test
-	// Receive message with host bridge
-	if (ctrl.device->IsBridge()) {
-		CmdSendMessage10();
-		return;
-	}
-
-	// Get record number and block number
-	uint64_t record;
-	if (!GetStartAndCount(record, ctrl.blocks, false)) {
-		return;
-	}
-
-	LOGTRACE("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->WriteCheck(record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Data out phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	WRITE(16)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdWrite16()
-{
-	// TODO Move bridge specific test
-	// Receive message if host bridge
-	if (ctrl.device->IsBridge()) {
-		Error();
-		return;
-	}
-
-	// Get record number and block number
-	uint64_t record;
-	if (!GetStartAndCount(record, ctrl.blocks, true)) {
-		return;
-	}
-
-	LOGTRACE("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl.blocks);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->WriteCheck(record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Data out phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	VERIFY
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdVerify()
-{
-	// Get record number and block number
-	uint64_t record;
-	GetStartAndCount(record, ctrl.blocks, false);
-
-	LOGTRACE("%s VERIFY command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
-
-	// if BytChk=0
-	if ((ctrl.cmd[1] & 0x02) == 0) {
-		// Command processing on drive
-		ctrl.device->Seek(this);
-		return;
-	}
-
-	// Test loading
-	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Data out phase
-	DataOut();
 }
 
 //---------------------------------------------------------------------------
