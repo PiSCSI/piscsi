@@ -357,8 +357,6 @@ void Disk::TestUnitReady(SASIDEV *controller)
 {
 	LOGDEBUG("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Command processing on drive
 	bool status = TestUnitReady(ctrl->cmd);
 	if (!status) {
@@ -375,8 +373,6 @@ void Disk::Rezero(SASIDEV *controller)
 {
 	LOGDEBUG( "%s REZERO Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	bool status = Rezero(ctrl->cmd);
 	if (!status) {
 		// Failure (Error)
@@ -391,8 +387,6 @@ void Disk::Rezero(SASIDEV *controller)
 void Disk::RequestSense(SASIDEV *controller)
 {
 	LOGDEBUG( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
-
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
     DWORD lun;
     try {
@@ -422,8 +416,6 @@ void Disk::Format(SASIDEV *controller)
 {
 	LOGDEBUG( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Command processing on drive
 	bool status = Format(ctrl->cmd);
 	if (!status) {
@@ -440,8 +432,6 @@ void Disk::ReassignBlocks(SASIDEV *controller)
 {
 	LOGDEBUG("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Command processing on drive
 	bool status = Reassign(ctrl->cmd);
 	if (!status) {
@@ -456,8 +446,6 @@ void Disk::ReassignBlocks(SASIDEV *controller)
 
 void Disk::Read6(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Get record number and block number
 	DWORD record = ctrl->cmd[1] & 0x1f;
 	record <<= 8;
@@ -508,8 +496,6 @@ void Disk::Read10(SASIDEV *controller)
 		return;
 	}
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Get record number and block number
 	uint64_t record;
 	if (!GetStartAndCount(controller, record, ctrl->blocks, false)) {
@@ -534,8 +520,6 @@ void Disk::Read10(SASIDEV *controller)
 
 void Disk::Read16(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Get record number and block number
 	uint64_t record;
 	if (!GetStartAndCount(controller, record, ctrl->blocks, true)) {
@@ -603,8 +587,6 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 
 void Disk::Write6(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Get record number and block number
 	DWORD record = ctrl->cmd[1] & 0x1f;
 	record <<= 8;
@@ -646,8 +628,6 @@ void Disk::Write6(SASIDEV *controller)
 
 void Disk::Write10(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// TODO Move to subclass
 	// Receive message with host bridge
 	if (ctrl->device->IsBridge()) {
@@ -679,8 +659,6 @@ void Disk::Write10(SASIDEV *controller)
 
 void Disk::Write16(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Get record number and block number
 	uint64_t record;
 	if (!GetStartAndCount(controller, record, ctrl->blocks, true)) {
@@ -710,8 +688,6 @@ void Disk::Write16(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Verify(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Get record number and block number
 	uint64_t record;
 	GetStartAndCount(controller, record, ctrl->blocks, false);
@@ -742,8 +718,6 @@ void Disk::Verify(SASIDEV *controller)
 void Disk::Inquiry(SASIDEV *controller)
 {
 	LOGDEBUG("%s INQUIRY Command", __PRETTY_FUNCTION__);
-
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
@@ -783,8 +757,6 @@ void Disk::ModeSelect(SASIDEV *controller)
 {
 	LOGDEBUG( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Command processing on drive
 	ctrl->length = SelectCheck(ctrl->cmd);
 	if (ctrl->length <= 0) {
@@ -801,8 +773,6 @@ void Disk::ModeSelect10(SASIDEV *controller)
 {
 	LOGDEBUG( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Command processing on drive
 	ctrl->length = SelectCheck10(ctrl->cmd);
 	if (ctrl->length <= 0) {
@@ -818,8 +788,6 @@ void Disk::ModeSelect10(SASIDEV *controller)
 void Disk::ModeSense(SASIDEV *controller)
 {
 	LOGDEBUG( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
-
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
 	// Command processing on drive
 	ctrl->length = ModeSense(ctrl->cmd, ctrl->buffer);
@@ -840,8 +808,6 @@ void Disk::ModeSense10(SASIDEV *controller)
 {
 	LOGDEBUG( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Command processing on drive
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length >= 0);
@@ -861,8 +827,6 @@ void Disk::StartStop(SASIDEV *controller)
 {
 	LOGDEBUG( "%s START STOP Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Command processing on drive
 	bool status = StartStop(ctrl->cmd);
 	if (!status) {
@@ -879,8 +843,6 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 {
 	LOGDEBUG( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Command processing on drive
 	bool status = SendDiag(ctrl->cmd);
 	if (!status) {
@@ -896,8 +858,6 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 void Disk::PreventAllowRemoval(SASIDEV *controller)
 {
 	LOGDEBUG( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
-
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
 	// Command processing on drive
 	bool status = Removal(ctrl->cmd);
@@ -922,8 +882,6 @@ void Disk::SynchronizeCache(SASIDEV *controller)
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
 	LOGDEBUG( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
-
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
 	// Command processing on drive
 	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer);
@@ -1326,7 +1284,7 @@ void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+	ctrl = controller->GetWorkAddr();
 
 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
@@ -2388,8 +2346,6 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 {
 	LOGDEBUG( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -2436,7 +2392,6 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 {
 	LOGDEBUG( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -2490,7 +2445,6 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::ReportLuns(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -2655,8 +2609,6 @@ bool Disk::PlayAudioTrack(const DWORD *cdb)
 //---------------------------------------------------------------------------
 bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, bool rw64)
 {
-	const SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	start = ctrl->cmd[2];
 	start <<= 8;
 	start |= ctrl->cmd[3];

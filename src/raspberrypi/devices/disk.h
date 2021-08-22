@@ -130,6 +130,8 @@ private:
 	bool sector_size_configurable;
 	int configured_sector_size;
 
+	SASIDEV::ctrl_t *ctrl;
+
 protected:
 	// Internal data structure
 	typedef struct {
