@@ -1367,7 +1367,6 @@ BOOL Disk::CheckReady()
 	}
 
 	// Initialization with no error
-	SetStatusCode(STATUS_NOERROR);
 	LOGDEBUG("%s Disk is ready!", __PRETTY_FUNCTION__);
 
 	return TRUE;
@@ -1414,9 +1413,6 @@ int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 	buf[7] = 10;
 	buf[12] = (BYTE)(GetStatusCode() >> 8);
 	buf[13] = (BYTE)GetStatusCode();
-
-	// Clear the code
-	SetStatusCode(STATUS_NOERROR);
 
 	return size;
 }
@@ -1616,8 +1612,6 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 		return 0;
 	}
 
-	// MODE SENSE success
-	SetStatusCode(STATUS_NOERROR);
 	return length;
 }
 
@@ -1745,8 +1739,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		return 0;
 	}
 
-	// MODE SENSE success
-	SetStatusCode(STATUS_NOERROR);
 	return length;
 }
 
@@ -2177,8 +2169,6 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 		return false;
 	}
 
-	//  Success
-	SetStatusCode(STATUS_NOERROR);
 	return true;
 }
 
@@ -2248,8 +2238,6 @@ bool Disk::StartStop(const DWORD *cdb)
 		Eject(false);
 	}
 
-	// OK
-	SetStatusCode(STATUS_NOERROR);
 	return true;
 }
 
@@ -2275,8 +2263,6 @@ bool Disk::SendDiag(const DWORD *cdb)
 		return false;
 	}
 
-	// Always successful
-	SetStatusCode(STATUS_NOERROR);
 	return true;
 }
 

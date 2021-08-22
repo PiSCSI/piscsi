@@ -138,6 +138,8 @@ void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
  		return true;
  	}
 
+ 	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
 	// The base class handles the less specific commands
  	return Disk::Dispatch(controller);
  }
