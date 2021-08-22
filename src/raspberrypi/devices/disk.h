@@ -192,7 +192,6 @@ public:
 	void Seek6(SASIDEV *);
 	void Seek10(SASIDEV *);
 	bool Assign(const DWORD *cdb);					// ASSIGN command
-	bool Specify(const DWORD *cdb);				// SPECIFY command
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
