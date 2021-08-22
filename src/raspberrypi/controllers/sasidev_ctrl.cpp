@@ -660,25 +660,15 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
-	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
-		lun = 0;
-	}
-
-	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
-
-	if (sense_key || asc) {
-		// Set Sense Key and ASC for a subsequent REQUEST SENSE
-		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
-	}
-
-	// Set status and message(CHECK CONDITION)
-	ctrl.status = (lun << 5) | 0x02;
-
 #if defined(DISK_LOG)
 	LOGWARN("Error occured (going to status phase)");
 #endif	// DISK_LOG
+
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+
+	// Set status and message(CHECK CONDITION)
+	ctrl.status = (lun << 5) | 0x02;
 
 	// status phase
 	Status();
@@ -855,18 +845,6 @@ void SASIDEV::CmdRead6()
 		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
 		ctrl.blocks=1;
 	}
-	else {
-		// Check capacity
-		DWORD capacity = ctrl.device->GetBlockCount();
-		if (record > capacity || record + ctrl.blocks > capacity) {
-			ostringstream s;
-			s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
-					<< "Trying to read block " << record << ", block count " << ctrl.blocks;
-			LOGWARN("%s", s.str().c_str());
-			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
-			return;
-		}
-	}
 
 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
@@ -962,24 +940,13 @@ void SASIDEV::CmdWrite6()
 		ctrl.blocks = 0x100;
 	}
 
-	// Check capacity
-	DWORD capacity = ctrl.device->GetBlockCount();
-	if (record > capacity || record + ctrl.blocks > capacity) {
-		ostringstream s;
-		s << "ID " << GetSCSIID() << ": Media capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to write block " << record << ", block count " << ctrl.blocks;
-		LOGWARN("%s", s.str().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
-		return;
-	}
-
 	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
 
 	// Command processing on drive
 	ctrl.length = ctrl.device->WriteCheck(record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		Error();
 		return;
 	}
 
@@ -1060,7 +1027,15 @@ void SASIDEV::CmdInvalid()
 {
 	LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
-	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (ctrl.unit[lun]) {
+		// Command processing on drive
+		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
+	}
+
+	// Failure (Error)
+	Error();
 }
 
 //===========================================================================

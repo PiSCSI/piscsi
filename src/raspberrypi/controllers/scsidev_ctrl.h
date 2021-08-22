@@ -71,7 +71,7 @@ public:
 	BOOL IsSCSI() const {return TRUE;}				// SCSI check
 
 	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common erorr handling
+			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION) override;	// Common erorr handling
 
 	void CmdGetMessage10();					// GET MESSAGE(10) command
 	void CmdSendMessage10();					// SEND MESSAGE(10) command
