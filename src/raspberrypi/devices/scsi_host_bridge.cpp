@@ -36,7 +36,7 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	SetRemovable(false);
 
-	SetProduct("RASCSI BRIDGE");
+	SetProduct("BRIDGE");
 
 	fsoptlen = 0;
 	fsoutlen = 0;
@@ -141,7 +141,6 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 	}
 
 	//  Success
-	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 
@@ -153,7 +152,6 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 bool SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 {
 	// TEST UNIT READY Success
-	SetStatusCode(STATUS_NOERROR);
 	return true;
 }
 

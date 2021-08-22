@@ -173,7 +173,7 @@ protected:
 	virtual void Command();					// Command phase
 	virtual void Execute();					// Execution phase
 
-	// commands
+	// Commands
 	void CmdTestUnitReady();					// TEST UNIT READY command
 	void CmdRezero();						// REZERO UNIT command
 	void CmdRequestSense();					// REQUEST SENSE command
@@ -186,10 +186,9 @@ protected:
 	void CmdSeek6();						// SEEK(6) command
 	void CmdAssign();						// ASSIGN command
 	void CmdSpecify();						// SPECIFY command
-	void CmdInvalid();						// Unsupported command
-	// データ転送
-	virtual void Send();						// Send data
 
+	// Data transfer
+	virtual void Send();						// Send data
 	virtual void Receive();					// Receive data
 
 	BOOL XferIn(BYTE* buf);					// Data transfer IN

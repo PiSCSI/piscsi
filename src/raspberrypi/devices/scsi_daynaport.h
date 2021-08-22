@@ -161,11 +161,6 @@ private:
 		DWORD frames_lost;
 	} scsi_resp_link_stats_t;
 
-	static const char* m_vendor_name;
-	static const char* m_device_name;
-	static const char* m_revision;
-	static const char* m_firmware_version;
-
 	scsi_resp_link_stats_t m_scsi_link_stats = {
 		.mac_address = { 0x00, 0x80, 0x19, 0x10, 0x98, 0xE3 },//MAC address of @PotatoFi's DayanPort
 		.frame_alignment_errors = 0,
