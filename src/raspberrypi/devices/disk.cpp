@@ -803,7 +803,7 @@ void Disk::ModeSense10(SASIDEV *controller)
 	controller->DataIn();
 }
 
-void Disk::StartStop(SASIDEV *controller)
+void Disk::StartStopUnit(SASIDEV *controller)
 {
 	// Command processing on drive
 	bool status = StartStop(ctrl->cmd);
@@ -1198,7 +1198,7 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 	AddCommand(SCSIDEV::eCmdReserve6, "CmdReserve6", &Disk::Reserve6);
 	AddCommand(SCSIDEV::eCmdRelease6, "CmdRelease6", &Disk::Release6);
 	AddCommand(SCSIDEV::eCmdModeSense, "CmdModeSense", &Disk::ModeSense);
-	AddCommand(SCSIDEV::eCmdStartStop, "CmdStartStop", &Disk::StartStop);
+	AddCommand(SCSIDEV::eCmdStartStop, "CmdStartStop", &Disk::StartStopUnit);
 	AddCommand(SCSIDEV::eCmdSendDiag, "CmdSendDiag", &Disk::SendDiagnostic);
 	AddCommand(SCSIDEV::eCmdRemoval, "CmdRemoval", &Disk::PreventAllowRemoval);
 	AddCommand(SCSIDEV::eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);

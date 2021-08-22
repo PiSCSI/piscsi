@@ -161,12 +161,10 @@ public:
 	bool Eject(bool) override;					// Eject
 	bool Flush();							// Flush the cache
 
-	// Commands
+	// Commands covered by the SCSI specification
 	void TestUnitReady(SASIDEV *) override;
 	void Inquiry(SASIDEV *) override;
 	void RequestSense(SASIDEV *) override;
-	int SelectCheck(const DWORD *cdb);				// SELECT check
-	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
 	void ModeSelect(SASIDEV *);
 	void ModeSelect10(SASIDEV *);
 	void ModeSense(SASIDEV *);
@@ -175,28 +173,20 @@ public:
 	void Format(SASIDEV *) override;
 	void Reassign(SASIDEV *);
 	void ReassignBlocks(SASIDEV *);
-	void StartStop(SASIDEV *);						// START STOP UNIT command
+	void StartStopUnit(SASIDEV *);
 	void SendDiagnostic(SASIDEV *);
-	void PreventAllowRemoval(SASIDEV *);						// PREVENT/ALLOW MEDIUM REMOVAL command
+	void PreventAllowRemoval(SASIDEV *);
 	void SynchronizeCache(SASIDEV *);
 	void ReadDefectData10(SASIDEV *);
-	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
 	void Read6(SASIDEV *);
 	void Read10(SASIDEV *) override;
 	void Read16(SASIDEV *) override;
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
-	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
 	void Write6(SASIDEV *);
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
 	void Seek(SASIDEV *);
 	void Seek6(SASIDEV *);
 	void Seek10(SASIDEV *);
-	bool Assign(const DWORD *cdb);					// ASSIGN command
-	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
-	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
-	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
 	void ReadCapacity10(SASIDEV *) override;
 	void ReadCapacity16(SASIDEV *) override;
 	void ReportLuns(SASIDEV *) override;
@@ -204,6 +194,27 @@ public:
 	void Reserve10(SASIDEV *);
 	void Release6(SASIDEV *);
 	void Release10(SASIDEV *);
+
+	// Command helpers
+	void Verify(SASIDEV *controller);					// VERIFY command
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
+	virtual int WriteCheck(DWORD block);					// WRITE check
+	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
+	bool Assign(const DWORD *cdb);					// ASSIGN command
+	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
+	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
+	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
+	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
+	virtual bool PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
+	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
+	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
+
+	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
+	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
+	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
+	int SelectCheck(const DWORD *cdb);				// SELECT check
+	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
+
 	int GetSectorSize() const;
 	void SetSectorSize(int);
 	bool IsSectorSizeConfigurable() const;
@@ -212,18 +223,9 @@ public:
 	void SetConfiguredSectorSize(int);
 	DWORD GetBlockCount() const;
 	void SetBlockCount(DWORD);
-	void Verify(SASIDEV *controller);					// VERIFY command
-	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
-	virtual bool PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
-	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
-	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
-
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, bool);
 
-	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
-	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
-
-	// TODO Try to get rid of these methods, which are currently use by SASIDEV
+	// TODO Try to get rid of these methods, which are currently used by SASIDEV
 	virtual bool TestUnitReady(const DWORD *cdb);	// TEST UNIT READY command
 	bool Rezero(const DWORD *cdb);					// REZERO command
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
