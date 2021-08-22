@@ -64,14 +64,12 @@ def get_type(scsi_id):
     return list_devices()[int(scsi_id)]["type"]
 
 
-def attach_image(scsi_id, image, device_type):
-    if device_type == "SCCD" and get_type(scsi_id) == "SCCD":
+def attach_image(scsi_id, image, image_type):
+    if image_type == "SCCD" and get_type(scsi_id) == "SCCD":
         return insert(scsi_id, image)
-    elif device_type == "SCDP":
-        attach_daynaport(scsi_id)
     else:
         return subprocess.run(
-            ["rasctl", "-c", "attach", "-t", device_type, "-i", scsi_id, "-f", image],
+            ["rasctl", "-c", "attach", "-t", image_type, "-i", scsi_id, "-f", image],
             capture_output=True,
         )
 
