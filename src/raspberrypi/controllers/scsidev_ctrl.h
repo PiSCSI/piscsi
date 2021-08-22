@@ -80,7 +80,7 @@ public:
 		int syncack;					// Number of synchronous transfer ACKs
 
 		// ATN message
-		BOOL atnmsg;
+		bool atnmsg;
 		int msc;
 		BYTE msb[256];
 	} scsi_t;
@@ -120,7 +120,7 @@ private:
 	// データ転送
 	void Send();							// Send data
 	void Receive();						// Receive data
-	BOOL XferMsg(DWORD msg);					// Data transfer message
+	bool XferMsg(DWORD msg);					// Data transfer message
 
 	DWORD GetLun() const;
 

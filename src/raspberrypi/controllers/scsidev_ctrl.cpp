@@ -38,7 +38,7 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	scsi.syncenable = FALSE;
 	scsi.syncperiod = 50;
 	scsi.syncoffset = 0;
-	scsi.atnmsg = FALSE;
+	scsi.atnmsg = false;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 }
@@ -55,7 +55,7 @@ SCSIDEV::~SCSIDEV()
 void SCSIDEV::Reset()
 {
 	// Work initialization
-	scsi.atnmsg = FALSE;
+	scsi.atnmsg = false;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
@@ -173,7 +173,7 @@ void SCSIDEV::BusFree()
 		ctrl.message = 0x00;
 
 		// Initialize ATN message reception status
-		scsi.atnmsg = FALSE;
+		scsi.atnmsg = false;
 		return;
 	}
 
@@ -287,7 +287,7 @@ void SCSIDEV::MsgOut()
 
 	    // process the IDENTIFY message
 		if (ctrl.phase == BUS::selection) {
-			scsi.atnmsg = TRUE;
+			scsi.atnmsg = true;
 			scsi.msc = 0;
 			memset(scsi.msb, 0x00, sizeof(scsi.msb));
 		}
@@ -536,7 +536,7 @@ void SCSIDEV::Send()
 			// Completed sending response to extended message of IDENTIFY message
 			if (scsi.atnmsg) {
 				// flag off
-				scsi.atnmsg = FALSE;
+				scsi.atnmsg = false;
 
 				// command phase
 				Command();
@@ -755,7 +755,7 @@ void SCSIDEV::Receive()
 			}
 
 			// Initialize ATN message reception status
-			scsi.atnmsg = FALSE;
+			scsi.atnmsg = false;
 
 			// Command phase
 			Command();
@@ -782,7 +782,7 @@ void SCSIDEV::Receive()
 //	Transfer MSG
 //
 //---------------------------------------------------------------------------
-BOOL SCSIDEV::XferMsg(DWORD msg)
+bool SCSIDEV::XferMsg(DWORD msg)
 {
 	ASSERT(ctrl.phase == BUS::msgout);
 
@@ -793,7 +793,7 @@ BOOL SCSIDEV::XferMsg(DWORD msg)
 		scsi.msc %= 256;
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
