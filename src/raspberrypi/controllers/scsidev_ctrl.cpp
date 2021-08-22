@@ -49,11 +49,11 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	SetUpControllerCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
 	SetUpControllerCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
 	SetUpControllerCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
-	SetUpControllerCommand(eCmdSeek6, "CmdSeek6", &SCSIDEV::CmdSeek6);
+	SetUpDeviceCommand(eCmdSeek6, "CmdSeek6", &Disk::Seek6);
 	SetUpControllerCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
 	SetUpControllerCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
-	SetUpControllerCommand(eCmdReserve6, "CmdReserve6", &SCSIDEV::CmdReserve6);
-	SetUpControllerCommand(eCmdRelease6, "CmdRelease6", &SCSIDEV::CmdRelease6);
+	SetUpDeviceCommand(eCmdReserve6, "CmdReserve6", &Disk::Reserve6);
+	SetUpDeviceCommand(eCmdRelease6, "CmdRelease6", &Disk::Release6);
 	SetUpControllerCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
 	SetUpControllerCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
 	SetUpControllerCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
@@ -62,19 +62,19 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	SetUpControllerCommand(eCmdRead10, "CmdRead10", &SCSIDEV::CmdRead10);
 	SetUpControllerCommand(eCmdWrite10, "CmdWrite10", &SCSIDEV::CmdWrite10);
 	SetUpControllerCommand(eCmdVerify10, "CmdVerify10", &SCSIDEV::CmdWrite10);
-	SetUpControllerCommand(eCmdSeek10, "CmdSeek10", &SCSIDEV::CmdSeek10);
+	SetUpDeviceCommand(eCmdSeek10, "CmdSeek10", &Disk::Seek10);
 	SetUpControllerCommand(eCmdVerify, "CmdVerify", &SCSIDEV::CmdVerify);
 	SetUpControllerCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
 	SetUpControllerCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
 	SetUpControllerCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
-	SetUpControllerCommand(eCmdReserve10, "CmdReserve10", &SCSIDEV::CmdReserve10);
-	SetUpControllerCommand(eCmdRelease10, "CmdRelease10", &SCSIDEV::CmdRelease10);
+	SetUpDeviceCommand(eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
+	SetUpDeviceCommand(eCmdRelease10, "CmdRelease10", &Disk::Release10);
 	SetUpControllerCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
 	SetUpControllerCommand(eCmdRead16, "CmdRead16", &SCSIDEV::CmdRead16);
 	SetUpControllerCommand(eCmdWrite16, "CmdWrite16", &SCSIDEV::CmdWrite16);
 	SetUpControllerCommand(eCmdVerify16, "CmdVerify16", &SCSIDEV::CmdWrite16);
 	SetUpDeviceCommand(eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
-	SetUpControllerCommand(eCmdReportLuns, "CmdReportLuns", &SCSIDEV::CmdReportLuns);
+	SetUpDeviceCommand(eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
 
 	// MMC specific. TODO Move to separate class
 	SetUpControllerCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
@@ -106,7 +106,7 @@ void SCSIDEV::SetUpControllerCommand(scsi_command opcode, const char* name, void
 	controller_commands[opcode] = new controller_command_t(name, execute);
 }
 
-void SCSIDEV::SetUpDeviceCommand(scsi_command opcode, const char* name, void (Disk::*execute)(SCSIDEV *, SASIDEV::ctrl_t *))
+void SCSIDEV::SetUpDeviceCommand(scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *, SASIDEV::ctrl_t *))
 {
 	device_commands[opcode] = new device_command_t(name, execute);
 }
@@ -503,78 +503,6 @@ void SCSIDEV::CmdModeSelect()
 
 //---------------------------------------------------------------------------
 //
-//	RESERVE(6)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdReserve6()
-{
-	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RESERVE(10)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdReserve10()
-{
-	LOGTRACE( "%s Reserve(10) Command", __PRETTY_FUNCTION__);
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RELEASE(6)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdRelease6()
-{
-	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RELEASE(10)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdRelease10()
-{
-	LOGTRACE( "%s Release(10) Command", __PRETTY_FUNCTION__);
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
 //	MODE SENSE
 //
 //---------------------------------------------------------------------------
@@ -810,27 +738,6 @@ void SCSIDEV::CmdWrite16()
 
 //---------------------------------------------------------------------------
 //
-//	SEEK(10)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdSeek10()
-{
-	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	bool status = ctrl.device->Seek(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
 //	VERIFY
 //
 //---------------------------------------------------------------------------
@@ -845,15 +752,7 @@ void SCSIDEV::CmdVerify()
 	// if BytChk=0
 	if ((ctrl.cmd[1] & 0x02) == 0) {
 		// Command processing on drive
-		bool status = ctrl.device->Seek(ctrl.cmd);
-		if (!status) {
-			// Failure (Error)
-			Error();
-			return;
-		}
-
-		// status phase
-		Status();
+		ctrl.device->Seek(this, &ctrl);
 		return;
 	}
 
@@ -870,26 +769,6 @@ void SCSIDEV::CmdVerify()
 
 	// Data out phase
 	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	REPORT LUNS
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdReportLuns()
-{
-	int length = ctrl.device->ReportLuns(ctrl.cmd, ctrl.buffer);
-	if (length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	ctrl.length = length;
-
-	// Data in phase
-	DataIn();
 }
 
 //---------------------------------------------------------------------------

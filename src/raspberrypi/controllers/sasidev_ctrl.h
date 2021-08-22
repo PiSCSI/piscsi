@@ -179,6 +179,12 @@ public:
 
 public:
 	void DataIn();							// Data in phase
+	void Status();							// Status phase
+	void MsgIn();							// Message in phase
+	void DataOut();						// Data out phase
+
+	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
 
 protected:
 	// Phase processing
@@ -186,11 +192,6 @@ protected:
 	virtual void Selection();					// Selection phase
 	virtual void Command();					// Command phase
 	virtual void Execute();					// Execution phase
-	void Status();							// Status phase
-	void MsgIn();							// Message in phase
-	void DataOut();						// Data out phase
-	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
 
 	// commands
 	void CmdTestUnitReady();					// TEST UNIT READY command

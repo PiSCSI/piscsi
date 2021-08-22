@@ -1028,15 +1028,7 @@ void SASIDEV::CmdSeek6()
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->Seek(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	ctrl.device->Seek6(this, &ctrl);
 }
 
 //---------------------------------------------------------------------------

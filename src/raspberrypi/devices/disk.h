@@ -21,7 +21,6 @@
 #include "log.h"
 #include "scsi.h"
 #include "controllers/sasidev_ctrl.h"
-#include "controllers/scsidev_ctrl.h"
 #include "block_device.h"
 #include "file_support.h"
 #include "filepath.h"
@@ -166,15 +165,21 @@ public:
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;			// READ command
 	virtual int WriteCheck(DWORD block);					// WRITE check
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;			// WRITE command
-	bool Seek(const DWORD *cdb);					// SEEK command
+	void Seek(SASIDEV *, SASIDEV::ctrl_t *);
+	void Seek6(SASIDEV *, SASIDEV::ctrl_t *);
+	void Seek10(SASIDEV *, SASIDEV::ctrl_t *);
 	bool Assign(const DWORD *cdb);					// ASSIGN command
 	bool Specify(const DWORD *cdb);				// SPECIFY command
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	void ReadCapacity10(SCSIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(10) command
-	void ReadCapacity16(SCSIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(16) command
-	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
+	void ReadCapacity10(SASIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(10) command
+	void ReadCapacity16(SASIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(16) command
+	void ReportLuns(SASIDEV *, SASIDEV::ctrl_t *) override;
+	void Reserve6(SASIDEV *, SASIDEV::ctrl_t *);
+	void Reserve10(SASIDEV *, SASIDEV::ctrl_t *);
+	void Release6(SASIDEV *, SASIDEV::ctrl_t *);
+	void Release10(SASIDEV *, SASIDEV::ctrl_t *);
 	int GetSectorSize() const;
 	void SetSectorSize(int);
 	bool IsSectorSizeConfigurable() const;

@@ -50,9 +50,9 @@ public:
 
 	typedef struct _device_command_t {
 		const char* name;
-		void (Disk::*execute)(SCSIDEV *, SASIDEV::ctrl_t *);
+		void (Disk::*execute)(SASIDEV *, SASIDEV::ctrl_t *);
 
-		_device_command_t(const char* _name, void (Disk::*_execute)(SCSIDEV *, SASIDEV::ctrl_t *)) : name(_name), execute(_execute) { };
+		_device_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *, SASIDEV::ctrl_t *)) : name(_name), execute(_execute) { };
 	} device_command_t;
 	std::map<scsi_command, device_command_t*> device_commands;
 
@@ -77,7 +77,7 @@ public:
 
 private:
 	void SetUpControllerCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
-	void SetUpDeviceCommand(scsi_command, const char*, void (Disk::*)(SCSIDEV *, SASIDEV::ctrl_t *));
+	void SetUpDeviceCommand(scsi_command, const char*, void (Disk::*)(SASIDEV *, SASIDEV::ctrl_t *));
 
 	// Phase
 	void BusFree();						// Bus free phase
@@ -88,17 +88,12 @@ private:
 	// commands
 	void CmdInquiry();						// INQUIRY command
 	void CmdModeSelect();						// MODE SELECT command
-	void CmdReserve6();						// RESERVE(6) command
-	void CmdReserve10();						// RESERVE(10) command
-	void CmdRelease6();						// RELEASE(6) command
-	void CmdRelease10();						// RELEASE(10) command
 	void CmdModeSense();						// MODE SENSE command
 	void CmdStartStop();						// START STOP UNIT command
 	void CmdSendDiag();						// SEND DIAGNOSTIC command
 	void CmdRemoval();						// PREVENT/ALLOW MEDIUM REMOVAL command
 	void CmdRead10();						// READ(10) command
 	void CmdWrite10();						// WRITE(10) command
-	void CmdSeek10();						// SEEK(10) command
 	void CmdVerify();						// VERIFY command
 	void CmdSynchronizeCache();					// SYNCHRONIZE CACHE  command
 	void CmdReadDefectData10();					// READ DEFECT DATA(10)  command
@@ -111,7 +106,6 @@ private:
 	void CmdModeSense10();						// MODE SENSE(10) command
 	void CmdRead16();						// READ(16) command
 	void CmdWrite16();						// WRITE(16) command
-	void CmdReportLuns();					// REPORT LUNS command
 	void CmdGetMessage10();					// GET MESSAGE(10) command
 	void CmdSendMessage10();					// SEND MESSAGE(10) command
 	void CmdRetrieveStats();   				// DaynaPort specific command

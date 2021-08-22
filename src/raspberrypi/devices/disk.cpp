@@ -1661,16 +1661,41 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	SEEK
-//	*Does not check LBA (SASI IOCS)
-//
-//---------------------------------------------------------------------------
-bool Disk::Seek(const DWORD* /*cdb*/)
+void Disk::Seek(SASIDEV *controller, SASIDEV::ctrl_t *)
 {
 	// Status check
-	return CheckReady();
+	if (!CheckReady()) {
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	SEEK(6)
+//	Does not check LBA (SASI IOCS)
+//
+//---------------------------------------------------------------------------
+void Disk::Seek6(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
+{
+	LOGTRACE( "%s SEEK(6) Command ", __PRETTY_FUNCTION__);
+
+	Seek(controller, ctrl);
+}
+
+//---------------------------------------------------------------------------
+//
+//	SEEK(10)
+//
+//---------------------------------------------------------------------------
+void Disk::Seek10(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
+{
+	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
+
+	Seek(controller, ctrl);
 }
 
 //---------------------------------------------------------------------------
@@ -1776,7 +1801,7 @@ bool Disk::Removal(const DWORD *cdb)
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-void Disk::ReadCapacity10(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::ReadCapacity10(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
 {
 	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
@@ -1822,7 +1847,7 @@ void Disk::ReadCapacity10(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 	controller->DataIn();
 }
 
-void Disk::ReadCapacity16(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::ReadCapacity16(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
 {
 	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
 
@@ -1877,8 +1902,10 @@ void Disk::ReadCapacity16(SCSIDEV *controller, SASIDEV::ctrl_t *ctrl)
 //	REPORT LUNS
 //
 //---------------------------------------------------------------------------
-int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
+void Disk::ReportLuns(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
 {
+	BYTE *buf = ctrl->buffer;
+
 	ASSERT(buf);
 
 	// Buffer clear
@@ -1886,7 +1913,8 @@ int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
 
 	// Status check
 	if (!CheckReady()) {
-		return 0;
+		controller->Error();
+		return;
 	}
 
 	// LUN list length
@@ -1894,7 +1922,10 @@ int Disk::ReportLuns(const DWORD* /*cdb*/, BYTE *buf)
 
 	// As long as there is no proper support for more than one SCSI LUN no other fields must be set => 1 LUN
 
-	return 16;
+	ctrl->length = 16;
+
+	// Data in phase
+	controller->DataIn();
 }
 
 //---------------------------------------------------------------------------
@@ -1932,6 +1963,78 @@ bool Disk::Verify(const DWORD *cdb)
 
 	//  Success
 	return true;
+}
+
+//---------------------------------------------------------------------------
+//
+//	RESERVE(6)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void Disk::Reserve6(SASIDEV *controller, SASIDEV::ctrl_t *)
+{
+	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	controller->Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RESERVE(10)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void Disk::Reserve10(SASIDEV *controller, SASIDEV::ctrl_t *)
+{
+	LOGTRACE( "%s Reserve(10) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	controller->Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RELEASE(6)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void Disk::Release6(SASIDEV *controller, SASIDEV::ctrl_t *)
+{
+	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	controller->Status();
+}
+
+//---------------------------------------------------------------------------
+//
+//	RELEASE(10)
+//
+//  The reserve/release commands are only used in multi-initiator
+//  environments. RaSCSI doesn't support this use case. However, some old
+//  versions of Solaris will issue the reserve/release commands. We will
+//  just respond with an OK status.
+//
+//---------------------------------------------------------------------------
+void Disk::Release10(SASIDEV *controller, SASIDEV::ctrl_t *)
+{
+	LOGTRACE( "%s Release(10) Command", __PRETTY_FUNCTION__);
+
+	// status phase
+	controller->Status();
 }
 
 //---------------------------------------------------------------------------
