@@ -318,9 +318,7 @@ void SCSIBR::Read10(SASIDEV *controller)
 		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
 	}
 
-	// TODO Move code to subclass
-	ctrl->length = ((SCSIBR*)ctrl->device)->GetMessage10(ctrl->cmd, ctrl->buffer);
-
+	ctrl->length = GetMessage10(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
