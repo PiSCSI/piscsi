@@ -131,10 +131,6 @@ private:
 	void CmdGetEventStatusNotification();
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command
-	void CmdRetrieveStats();   				// DaynaPort specific command
-	void CmdSetIfaceMode();    				// DaynaPort specific command
-	void CmdSetMcastAddr();					// DaynaPort specific command
-	void CmdEnableInterface(); 				// DaynaPort specific command
 	// データ転送
 	void Send();							// Send data
 	void Receive();						// Receive data

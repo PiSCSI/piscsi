@@ -140,13 +140,13 @@ protected:
 	} disk_t;
 
 private:
-	typedef struct _disk_command_t {
+	typedef struct _command_t {
 		const char* name;
 		void (Disk::*execute)(SASIDEV *);
 
-		_disk_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} disk_command_t;
-	std::map<SCSIDEV::scsi_command, disk_command_t*> disk_commands;
+		_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
 
 public:
 	// Basic Functions
@@ -231,7 +231,7 @@ public:
 	bool Format(const DWORD *cdb);					// FORMAT UNIT command
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
 
-	bool Dispatch(SCSIDEV *);
+	virtual bool Dispatch(SCSIDEV *);
 
 protected:
 	// Internal processing

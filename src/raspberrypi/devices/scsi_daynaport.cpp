@@ -91,6 +91,10 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 #endif	// linux
 	LOGTRACE("SCSIDaynaPort Constructor End");
 
+	AddCommand(SCSIDEV::eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDaynaPort::CmdRetrieveStats);
+	AddCommand(SCSIDEV::eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDaynaPort::CmdSetIfaceMode);
+	AddCommand(SCSIDEV::eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDaynaPort::CmdSetMcastAddr);
+	AddCommand(SCSIDEV::eCmdEnableInterface, "CmdEnableInterface", &SCSIDaynaPort::CmdEnableInterface);
 }
 
 //---------------------------------------------------------------------------
@@ -106,6 +110,10 @@ SCSIDaynaPort::~SCSIDaynaPort()
 		m_tap->Cleanup();
 		delete m_tap;
 	}
+
+	for (auto const& command : commands) {
+		free(command.second);
+	}
 }
 
  void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
@@ -113,6 +121,28 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	LOGTRACE("SCSIDaynaPort Open");
 	m_tap->OpenDump(path);
 }
+
+ void SCSIDaynaPort::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
+ {
+ 	commands[opcode] = new command_t(name, execute);
+ }
+
+ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
+ {
+ 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+ 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+ 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+ 		LOGDEBUG("++++ CMD ++++ %s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+ 		(this->*command->execute)(controller);
+
+ 		return true;
+ 	}
+
+ 	return Disk::Dispatch(controller);
+ }
 
 //---------------------------------------------------------------------------
 //
@@ -491,6 +521,90 @@ bool SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 
 	// TEST UNIT READY Success
 	return true;
+}
+
+void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
+{
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	// Data in phase
+	controller->DataIn();
+}
+
+void SCSIDaynaPort::CmdSetIfaceMode(SASIDEV *controller)
+{
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
+
+	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
+	switch(ctrl->cmd[5]){
+		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
+			SetMode(ctrl->cmd, ctrl->buffer);
+			controller->Status();
+			break;
+		break;
+		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
+			ctrl->length = 6;
+			// Write phase
+			controller->DataOut();
+			break;
+		default:
+			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[5]);
+	}
+}
+
+void SCSIDaynaPort::CmdSetMcastAddr(SASIDEV *controller)
+{
+	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	ctrl->length = (DWORD)ctrl->cmd[4];
+
+	// ASSERT(ctrl.length >= 0);
+	if (ctrl->length == 0) {
+		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
+
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	controller->DataOut();
+}
+
+void SCSIDaynaPort::CmdEnableInterface(SASIDEV *controller)
+{
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	bool status = EnableInterface(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
 }
 
 //---------------------------------------------------------------------------

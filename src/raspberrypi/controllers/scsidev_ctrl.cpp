@@ -48,12 +48,6 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	SetUpControllerCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
 	SetUpControllerCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
 	SetUpControllerCommand(eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDEV::CmdGetEventStatusNotification);
-
-	// DaynaPort specific. TODO Move to separate class
-	SetUpControllerCommand(eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDEV::CmdRetrieveStats);
-	SetUpControllerCommand(eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDEV::CmdSetIfaceMode);
-	SetUpControllerCommand(eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDEV::CmdSetMcastAddr);
-	SetUpControllerCommand(eCmdEnableInterface, "CmdEnableInterface", &SCSIDEV::CmdEnableInterface);
 }
 
 SCSIDEV::~SCSIDEV()
@@ -550,140 +544,6 @@ void SCSIDEV::CmdSendMessage10()
 	DataOut();
 }
 
-//---------------------------------------------------------------------------
-//
-// Retrieve Statistics (09)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdRetrieveStats()
-{
-	// TODO Move Daynaport specific test
-	// Error if not a DaynaPort SCSI Link
-	if (!ctrl.device->IsDaynaPort()) {
-		LOGWARN("Received a CmdRetrieveStats command for a non-daynaport unit %s", ctrl.device->GetType().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
-		return;
-	}
-
-	// Process with drive
-	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.device;
-	ctrl.length = dayna_port->RetrieveStats(ctrl.cmd, ctrl.buffer);
-
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.blocks = 1;
-	ctrl.next = 1;
-
-	// Data in phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-// Set Interface Mode (0c)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdSetIfaceMode()
-{
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
-	// TODO Move DaynaPort specific test
-	// Error if not a DaynaPort SCSI Link
-	if (!ctrl.device->IsDaynaPort()) {
-		LOGWARN("%s Received a CmdSetIfaceMode command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.device->GetType().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
-		return;
-	}
-
-	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.device;
-
-	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
-
-	ctrl.length = dayna_port->RetrieveStats(ctrl.cmd, ctrl.buffer);
-	switch(ctrl.cmd[5]){
-		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
-			dayna_port->SetMode(ctrl.cmd, ctrl.buffer);
-			Status();
-			break;
-		break;
-		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
-			ctrl.length = 6;
-			// Write phase
-			DataOut();
-			break;
-		default:
-			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[5]);
-	}
-}
-
-//---------------------------------------------------------------------------
-//
-// 	Set the multicast address
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdSetMcastAddr()
-{
-	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
-
-	// TODO Move DaynaPort specific test
-	if (!ctrl.device->IsDaynaPort()) {
-		LOGWARN("Received a SetMcastAddress command for a non-daynaport unit");
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = (DWORD)ctrl.cmd[4];
-	
-	// ASSERT(ctrl.length >= 0);
-	if (ctrl.length == 0) {
-		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[2]);
-
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-// 	Enable/disable Interface (0e)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdEnableInterface()
-{
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
-	// TODO Move DaynaPort specific test
-	// Error if not a DaynaPort SCSI Link
-	if (!ctrl.device->IsDaynaPort()) {
-		LOGWARN("%s Received a CmdEnableInterface command for a non-daynaport unit %s", __PRETTY_FUNCTION__, ctrl.device->GetType().c_str());
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
-		return;
-	}
-
-	SCSIDaynaPort *dayna_port = (SCSIDaynaPort*)ctrl.device;
-
-	// Command processing on drive
-	bool status = dayna_port->EnableInterface(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-
 //===========================================================================
 //
 //	Data Transfer
@@ -708,6 +568,7 @@ void SCSIDEV::Send()
 		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
 		LOGTRACE("%s", s.str().c_str());
 
+		// TODO Get rid of Daynaport specific code
 		// The Daynaport needs to have a delay after the size/flags field
 		// of the read response. In the MacOS driver, it looks like the
 		// driver is doing two "READ" system calls.

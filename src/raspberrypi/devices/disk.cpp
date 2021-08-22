@@ -1330,22 +1330,22 @@ Disk::~Disk()
 		disk.dcache = NULL;
 	}
 
-	for (auto const& command : disk_commands) {
+	for (auto const& command : commands) {
 		free(command.second);
 	}
 }
 
 void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
 {
-	disk_commands[opcode] = new disk_command_t(name, execute);
+	commands[opcode] = new command_t(name, execute);
 }
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
-	if (disk_commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
-		disk_command_t *command = disk_commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
 
 		LOGDEBUG("++++ CMD ++++ %s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 

@@ -32,6 +32,7 @@
 #include "os.h"
 #include "disk.h"
 #include "ctapdriver.h"
+#include <map>
 
 //===========================================================================
 //
@@ -40,6 +41,16 @@
 //===========================================================================
 class SCSIDaynaPort: public Disk
 {
+
+private:
+	typedef struct _command_t {
+		const char* name;
+		void (SCSIDaynaPort::*execute)(SASIDEV *);
+
+		_command_t(const char* _name, void (SCSIDaynaPort::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
+
 public:
 	// Basic Functions
 	SCSIDaynaPort();
@@ -70,6 +81,14 @@ public:
 										// Set MAC address
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
+
+	void CmdRetrieveStats(SASIDEV *);
+	void CmdSetIfaceMode(SASIDEV *);
+	void CmdSetMcastAddr(SASIDEV *);
+	void CmdEnableInterface(SASIDEV *);
+
+	bool Dispatch(SCSIDEV *);
+
 	static const BYTE CMD_SCSILINK_STATS        = 0x09;
 	static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;
 	static const BYTE CMD_SCSILINK_SET          = 0x0C;
@@ -179,4 +198,7 @@ private:
 										// MAC Address
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
+
+private:
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIDaynaPort::*)(SASIDEV *));
 };
