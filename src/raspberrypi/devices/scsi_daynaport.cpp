@@ -136,7 +136,7 @@ void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
  	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
  		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
 
- 		LOGTRACE("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+ 		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 
  		(this->*command->execute)(controller);
 

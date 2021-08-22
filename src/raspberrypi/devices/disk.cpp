@@ -355,7 +355,7 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 
 void Disk::TestUnitReady(SASIDEV *controller)
 {
-	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -373,7 +373,7 @@ void Disk::TestUnitReady(SASIDEV *controller)
 
 void Disk::Rezero(SASIDEV *controller)
 {
-	LOGTRACE( "%s REZERO Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s REZERO Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -390,7 +390,7 @@ void Disk::Rezero(SASIDEV *controller)
 
 void Disk::RequestSense(SASIDEV *controller)
 {
-	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -412,7 +412,7 @@ void Disk::RequestSense(SASIDEV *controller)
     ctrl->length = ctrl->unit[lun]->RequestSense(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length > 0);
 
-    LOGTRACE("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->buffer[2], ctrl->buffer[12]);
+    LOGDEBUG("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->buffer[2], ctrl->buffer[12]);
 
 	// Read phase
     controller->DataIn();
@@ -420,7 +420,7 @@ void Disk::RequestSense(SASIDEV *controller)
 
 void Disk::Format(SASIDEV *controller)
 {
-	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -438,7 +438,7 @@ void Disk::Format(SASIDEV *controller)
 
 void Disk::ReassignBlocks(SASIDEV *controller)
 {
-	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -480,14 +480,13 @@ void Disk::Read6(SASIDEV *controller)
 		return;
 	}
 
-	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+	LOGDEBUG("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
 
 	// Command processing on drive
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
-	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
-	if (ctrl->length <= 0 && !IsDaynaPort()) {
+	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
 		return;
@@ -517,7 +516,7 @@ void Disk::Read10(SASIDEV *controller)
 		return;
 	}
 
-	LOGTRACE("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+	LOGDEBUG("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
 
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
 	if (ctrl->length <= 0) {
@@ -543,7 +542,7 @@ void Disk::Read16(SASIDEV *controller)
 		return;
 	}
 
-	LOGTRACE("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+	LOGDEBUG("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
 
 	ctrl->length = ctrl->device->Read(ctrl->cmd, ctrl->buffer, record);
 	if (ctrl->length <= 0) {
@@ -628,7 +627,7 @@ void Disk::Write6(SASIDEV *controller)
 		return;
 	}
 
-	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl->blocks);
+	LOGDEBUG("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl->blocks);
 
 	// Command processing on drive
 	ctrl->length = WriteCheck(record);
@@ -662,7 +661,7 @@ void Disk::Write10(SASIDEV *controller)
 		return;
 	}
 
-	LOGTRACE("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
+	LOGDEBUG("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
 
 	ctrl->length = WriteCheck(record);
 	if (ctrl->length <= 0) {
@@ -688,7 +687,7 @@ void Disk::Write16(SASIDEV *controller)
 		return;
 	}
 
-	LOGTRACE("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
+	LOGDEBUG("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
 
 	ctrl->length = WriteCheck(record);
 	if (ctrl->length <= 0) {
@@ -717,7 +716,7 @@ void Disk::Verify(SASIDEV *controller)
 	uint64_t record;
 	GetStartAndCount(controller, record, ctrl->blocks, false);
 
-	LOGTRACE("%s VERIFY command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+	LOGDEBUG("%s VERIFY command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
 
 	// if BytChk=0
 	if ((ctrl->cmd[1] & 0x02) == 0) {
@@ -742,7 +741,7 @@ void Disk::Verify(SASIDEV *controller)
 
 void Disk::Inquiry(SASIDEV *controller)
 {
-	LOGTRACE("%s INQUIRY Command", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s INQUIRY Command", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -782,7 +781,7 @@ void Disk::Inquiry(SASIDEV *controller)
 
 void Disk::ModeSelect(SASIDEV *controller)
 {
-	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -800,7 +799,7 @@ void Disk::ModeSelect(SASIDEV *controller)
 
 void Disk::ModeSelect10(SASIDEV *controller)
 {
-	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -818,7 +817,7 @@ void Disk::ModeSelect10(SASIDEV *controller)
 
 void Disk::ModeSense(SASIDEV *controller)
 {
-	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -839,7 +838,7 @@ void Disk::ModeSense(SASIDEV *controller)
 
 void Disk::ModeSense10(SASIDEV *controller)
 {
-	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -860,7 +859,7 @@ void Disk::ModeSense10(SASIDEV *controller)
 
 void Disk::StartStop(SASIDEV *controller)
 {
-	LOGTRACE( "%s START STOP Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s START STOP Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -878,7 +877,7 @@ void Disk::StartStop(SASIDEV *controller)
 
 void Disk::SendDiagnostic(SASIDEV *controller)
 {
-	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -896,7 +895,7 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 
 void Disk::PreventAllowRemoval(SASIDEV *controller)
 {
-	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -922,7 +921,7 @@ void Disk::SynchronizeCache(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
-	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -1332,13 +1331,14 @@ bool Disk::Dispatch(SCSIDEV *controller)
 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
 
-		LOGTRACE("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 
 		(this->*command->execute)(controller);
 
 		return true;
 	}
 
+	// Unknown command
 	return false;
 }
 
@@ -1420,7 +1420,7 @@ BOOL Disk::CheckReady()
 	if (IsReset()) {
 		SetStatusCode(STATUS_DEVRESET);
 		SetReset(false);
-		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
+		LOGDEBUG("%s Disk in reset", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
@@ -1428,20 +1428,20 @@ BOOL Disk::CheckReady()
 	if (IsAttn()) {
 		SetStatusCode(STATUS_ATTENTION);
 		SetAttn(false);
-		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
+		LOGDEBUG("%s Disk in needs attention", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
+		LOGDEBUG("%s Disk not ready", __PRETTY_FUNCTION__);
 		return FALSE;
 	}
 
 	// Initialization with no error
 	SetStatusCode(STATUS_NOERROR);
-	LOGTRACE("%s Disk is ready!", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s Disk is ready!", __PRETTY_FUNCTION__);
 
 	return TRUE;
 }
@@ -1466,7 +1466,7 @@ int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 
 	// Size determination (according to allocation length)
 	int size = (int)cdb[4];
-	LOGTRACE("%s size of data = %d", __PRETTY_FUNCTION__, size);
+	LOGDEBUG("%s size of data = %d", __PRETTY_FUNCTION__, size);
 	ASSERT((size >= 0) && (size < 0x100));
 
 	// For SCSI-1, transfer 4 bytes when the size is 0
@@ -2144,7 +2144,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s", __PRETTY_FUNCTION__);
 
 	// Status check
 	if (!CheckReady()) {
@@ -2218,7 +2218,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
+	LOGDEBUG("%s", __PRETTY_FUNCTION__);
 
 	// Error if not ready
 	if (!IsReady()) {
@@ -2275,7 +2275,7 @@ void Disk::Seek(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Seek6(SASIDEV *controller)
 {
-	LOGTRACE( "%s SEEK(6) Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
 	Seek(controller);
 }
@@ -2287,7 +2287,7 @@ void Disk::Seek6(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Seek10(SASIDEV *controller)
 {
-	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
 
 	Seek(controller);
 }
@@ -2397,7 +2397,7 @@ bool Disk::Removal(const DWORD *cdb)
 //---------------------------------------------------------------------------
 void Disk::ReadCapacity10(SASIDEV *controller)
 {
-	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
@@ -2445,7 +2445,7 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 
 void Disk::ReadCapacity16(SASIDEV *controller)
 {
-	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 	BYTE *buf = ctrl->buffer;
@@ -2538,7 +2538,7 @@ void Disk::ReportLuns(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Reserve6(SASIDEV *controller)
 {
-	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
 
 	// status phase
 	controller->Status();
@@ -2556,7 +2556,7 @@ void Disk::Reserve6(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Reserve10(SASIDEV *controller)
 {
-	LOGTRACE( "%s Reserve(10) Command", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s Reserve(10) Command", __PRETTY_FUNCTION__);
 
 	// status phase
 	controller->Status();
@@ -2574,7 +2574,7 @@ void Disk::Reserve10(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Release6(SASIDEV *controller)
 {
-	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s Release(6) Command", __PRETTY_FUNCTION__);
 
 	// status phase
 	controller->Status();
@@ -2592,7 +2592,7 @@ void Disk::Release6(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Release10(SASIDEV *controller)
 {
-	LOGTRACE( "%s Release(10) Command", __PRETTY_FUNCTION__);
+	LOGDEBUG( "%s Release(10) Command", __PRETTY_FUNCTION__);
 
 	// status phase
 	controller->Status();
