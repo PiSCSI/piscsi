@@ -247,7 +247,14 @@ void SCSIDEV::Execute()
 	}
 
 	try {
-		ctrl.device = ctrl.unit[GetLun()];
+		// TODO Verify LUN handling
+		if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
+			// Use LUN0 for INQUIRY because LUN0 is assumbed to be always available
+			ctrl.device = ctrl.unit[0];
+		}
+		else {
+			ctrl.device = ctrl.unit[GetLun()];
+		}
 	}
 	catch (const lun_exception& e) {
 		LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
