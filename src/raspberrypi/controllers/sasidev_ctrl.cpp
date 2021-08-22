@@ -466,7 +466,17 @@ void SASIDEV::Execute()
 	}
 
 	// Unsupported command
-	CmdInvalid();
+	LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
+
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (ctrl.unit[lun]) {
+		// Command processing on drive
+		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
+	}
+
+	// Failure (Error)
+	Error();
 }
 
 //---------------------------------------------------------------------------
@@ -960,26 +970,6 @@ void SASIDEV::CmdSpecify()
 	DataOut();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Unsupported command
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdInvalid()
-{
-	LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
-
-	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (ctrl.unit[lun]) {
-		// Command processing on drive
-		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
-	}
-
-	// Failure (Error)
-	Error();
-}
-
 //===========================================================================
 //
 //	Data transfer
@@ -993,14 +983,12 @@ void SASIDEV::CmdInvalid()
 //---------------------------------------------------------------------------
 void SASIDEV::Send()
 {
-	int len;
-
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
 	// Check that the length isn't 0
 	if (ctrl.length != 0) {
-		len = ctrl.bus->SendHandShake(
+		int len = ctrl.bus->SendHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
 
 		// If you can not send it all, move on to the status phase
@@ -1084,8 +1072,6 @@ void SASIDEV::Send()
 //---------------------------------------------------------------------------
 void SASIDEV::Receive()
 {
-	int len;
-
 	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
@@ -1093,7 +1079,7 @@ void SASIDEV::Receive()
 	// Length != 0 if received
 	if (ctrl.length != 0) {
 		// Receive
-		len = ctrl.bus->ReceiveHandShake(
+		int len = ctrl.bus->ReceiveHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length);
 		LOGDEBUG("%s Received %d bytes", __PRETTY_FUNCTION__, len);
 
