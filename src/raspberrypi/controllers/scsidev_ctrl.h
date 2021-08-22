@@ -95,13 +95,13 @@ public:
 	} controller_command_t;
 	std::map<scsi_command, controller_command_t*> controller_commands;
 
-	typedef struct _device_command_t {
+	typedef struct _disk_command_t {
 		const char* name;
 		void (Disk::*execute)(SASIDEV *);
 
-		_device_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} device_command_t;
-	std::map<scsi_command, device_command_t*> device_commands;
+		_disk_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} disk_command_t;
+	std::map<scsi_command, disk_command_t*> disk_commands;
 
 public:
 	// Basic Functions
@@ -125,7 +125,7 @@ public:
 
 private:
 	void SetUpControllerCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
-	void SetUpDeviceCommand(scsi_command, const char*, void (Disk::*)(SASIDEV *));
+	void SetUpDiskCommand(scsi_command, const char*, void (Disk::*)(SASIDEV *));
 
 	// Phase
 	void BusFree();						// Bus free phase

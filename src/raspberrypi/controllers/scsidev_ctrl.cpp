@@ -42,39 +42,39 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	SetUpDeviceCommand(eCmdTestUnitReady, "CmdTestUnitReady", &Disk::TestUnitReady);
-	SetUpDeviceCommand(eCmdRezero, "CmdRezero", &Disk::Rezero);
-	SetUpDeviceCommand(eCmdRequestSense, "CmdRequestSense", &Disk::RequestSense);
-	SetUpDeviceCommand(eCmdFormat, "CmdFormat", &Disk::Format);
-	SetUpDeviceCommand(eCmdReassign, "CmdReassign", &Disk::ReassignBlocks);
-	SetUpDeviceCommand(eCmdRead6, "CmdRead6", &Disk::Read6);
-	SetUpDeviceCommand(eCmdWrite6, "CmdWrite6", &Disk::Write6);
-	SetUpDeviceCommand(eCmdSeek6, "CmdSeek6", &Disk::Seek6);
-	SetUpDeviceCommand(eCmdInquiry, "CmdInquiry", &Disk::Inquiry);
-	SetUpDeviceCommand(eCmdModeSelect, "CmdModeSelect", &Disk::ModeSelect);
-	SetUpDeviceCommand(eCmdReserve6, "CmdReserve6", &Disk::Reserve6);
-	SetUpDeviceCommand(eCmdRelease6, "CmdRelease6", &Disk::Release6);
-	SetUpDeviceCommand(eCmdModeSense, "CmdModeSense", &Disk::ModeSense);
-	SetUpDeviceCommand(eCmdStartStop, "CmdStartStop", &Disk::StartStop);
-	SetUpDeviceCommand(eCmdSendDiag, "CmdSendDiag", &Disk::SendDiagnostic);
-	SetUpDeviceCommand(eCmdRemoval, "CmdRemoval", &Disk::PreventAllowRemoval);
-	SetUpDeviceCommand(eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);
-	SetUpDeviceCommand(eCmdRead10, "CmdRead10", &Disk::Read10);
-	SetUpDeviceCommand(eCmdWrite10, "CmdWrite10", &Disk::Write10);
-	SetUpDeviceCommand(eCmdVerify10, "CmdVerify10", &Disk::Write10);
-	SetUpDeviceCommand(eCmdSeek10, "CmdSeek10", &Disk::Seek10);
-	SetUpDeviceCommand(eCmdVerify, "CmdVerify", &Disk::Verify);
-	SetUpDeviceCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &Disk::SynchronizeCache);
-	SetUpDeviceCommand(eCmdReadDefectData10, "CmdReadDefectData10", &Disk::ReadDefectData10);
-	SetUpDeviceCommand(eCmdModeSelect10, "CmdModeSelect10", &Disk::ModeSelect10);
-	SetUpDeviceCommand(eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
-	SetUpDeviceCommand(eCmdRelease10, "CmdRelease10", &Disk::Release10);
-	SetUpDeviceCommand(eCmdModeSense10, "CmdModeSense10", &Disk::ModeSense10);
-	SetUpDeviceCommand(eCmdRead16, "CmdRead16", &Disk::Read16);
-	SetUpDeviceCommand(eCmdWrite16, "CmdWrite16", &Disk::Write16);
-	SetUpDeviceCommand(eCmdVerify16, "CmdVerify16", &Disk::Write16);
-	SetUpDeviceCommand(eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
-	SetUpDeviceCommand(eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
+	SetUpDiskCommand(eCmdTestUnitReady, "CmdTestUnitReady", &Disk::TestUnitReady);
+	SetUpDiskCommand(eCmdRezero, "CmdRezero", &Disk::Rezero);
+	SetUpDiskCommand(eCmdRequestSense, "CmdRequestSense", &Disk::RequestSense);
+	SetUpDiskCommand(eCmdFormat, "CmdFormat", &Disk::Format);
+	SetUpDiskCommand(eCmdReassign, "CmdReassign", &Disk::ReassignBlocks);
+	SetUpDiskCommand(eCmdRead6, "CmdRead6", &Disk::Read6);
+	SetUpDiskCommand(eCmdWrite6, "CmdWrite6", &Disk::Write6);
+	SetUpDiskCommand(eCmdSeek6, "CmdSeek6", &Disk::Seek6);
+	SetUpDiskCommand(eCmdInquiry, "CmdInquiry", &Disk::Inquiry);
+	SetUpDiskCommand(eCmdModeSelect, "CmdModeSelect", &Disk::ModeSelect);
+	SetUpDiskCommand(eCmdReserve6, "CmdReserve6", &Disk::Reserve6);
+	SetUpDiskCommand(eCmdRelease6, "CmdRelease6", &Disk::Release6);
+	SetUpDiskCommand(eCmdModeSense, "CmdModeSense", &Disk::ModeSense);
+	SetUpDiskCommand(eCmdStartStop, "CmdStartStop", &Disk::StartStop);
+	SetUpDiskCommand(eCmdSendDiag, "CmdSendDiag", &Disk::SendDiagnostic);
+	SetUpDiskCommand(eCmdRemoval, "CmdRemoval", &Disk::PreventAllowRemoval);
+	SetUpDiskCommand(eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);
+	SetUpDiskCommand(eCmdRead10, "CmdRead10", &Disk::Read10);
+	SetUpDiskCommand(eCmdWrite10, "CmdWrite10", &Disk::Write10);
+	SetUpDiskCommand(eCmdVerify10, "CmdVerify10", &Disk::Write10);
+	SetUpDiskCommand(eCmdSeek10, "CmdSeek10", &Disk::Seek10);
+	SetUpDiskCommand(eCmdVerify, "CmdVerify", &Disk::Verify);
+	SetUpDiskCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &Disk::SynchronizeCache);
+	SetUpDiskCommand(eCmdReadDefectData10, "CmdReadDefectData10", &Disk::ReadDefectData10);
+	SetUpDiskCommand(eCmdModeSelect10, "CmdModeSelect10", &Disk::ModeSelect10);
+	SetUpDiskCommand(eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
+	SetUpDiskCommand(eCmdRelease10, "CmdRelease10", &Disk::Release10);
+	SetUpDiskCommand(eCmdModeSense10, "CmdModeSense10", &Disk::ModeSense10);
+	SetUpDiskCommand(eCmdRead16, "CmdRead16", &Disk::Read16);
+	SetUpDiskCommand(eCmdWrite16, "CmdWrite16", &Disk::Write16);
+	SetUpDiskCommand(eCmdVerify16, "CmdVerify16", &Disk::Write16);
+	SetUpDiskCommand(eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
+	SetUpDiskCommand(eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
 
 	// MMC specific. TODO Move to separate class
 	SetUpControllerCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
@@ -96,7 +96,7 @@ SCSIDEV::~SCSIDEV()
 		free(command.second);
 	}
 
-	for (auto const& command : device_commands) {
+	for (auto const& command : disk_commands) {
 		free(command.second);
 	}
 }
@@ -106,9 +106,9 @@ void SCSIDEV::SetUpControllerCommand(scsi_command opcode, const char* name, void
 	controller_commands[opcode] = new controller_command_t(name, execute);
 }
 
-void SCSIDEV::SetUpDeviceCommand(scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
+void SCSIDEV::SetUpDiskCommand(scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
 {
-	device_commands[opcode] = new device_command_t(name, execute);
+	disk_commands[opcode] = new disk_command_t(name, execute);
 }
 
 //---------------------------------------------------------------------------
@@ -307,8 +307,8 @@ void SCSIDEV::Execute()
 
 	ctrl.device = ctrl.unit[GetLun()];
 
-	if (device_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
-		device_command_t *command = device_commands[static_cast<scsi_command>(ctrl.cmd[0])];
+	if (disk_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
+		disk_command_t *command = disk_commands[static_cast<scsi_command>(ctrl.cmd[0])];
 
 		LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
 
