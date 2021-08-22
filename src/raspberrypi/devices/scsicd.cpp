@@ -271,7 +271,7 @@ void SCSICD::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SC
 	commands[opcode] = new command_t(name, execute);
 }
 
-bool SCSICD::Dispatch(SASIDEV *controller)
+bool SCSICD::Dispatch(SCSIDEV *controller)
 {
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 

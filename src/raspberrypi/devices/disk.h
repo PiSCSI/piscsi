@@ -231,7 +231,7 @@ public:
 	bool Format(const DWORD *cdb);					// FORMAT UNIT command
 	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
 
-	virtual bool Dispatch(SASIDEV *);
+	virtual bool Dispatch(SCSIDEV *);
 
 protected:
 	// Internal processing

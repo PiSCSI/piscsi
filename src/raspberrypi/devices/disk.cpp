@@ -1325,7 +1325,7 @@ void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk
 	commands[opcode] = new command_t(name, execute);
 }
 
-bool Disk::Dispatch(SASIDEV *controller)
+bool Disk::Dispatch(SCSIDEV *controller)
 {
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 

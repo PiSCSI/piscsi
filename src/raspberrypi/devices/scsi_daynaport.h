@@ -90,7 +90,7 @@ public:
 	void CmdEnableInterface(SASIDEV *);
 	void CmdGetEventStatusNotification(SASIDEV *);
 
-	bool Dispatch(SASIDEV *);
+	bool Dispatch(SCSIDEV *);
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 

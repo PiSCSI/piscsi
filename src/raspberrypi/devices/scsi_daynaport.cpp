@@ -129,7 +129,7 @@ void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
  	commands[opcode] = new command_t(name, execute);
  }
 
- bool SCSIDaynaPort::Dispatch(SASIDEV *controller)
+ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
  {
  	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 

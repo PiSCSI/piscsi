@@ -105,7 +105,7 @@ public:
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
 	DWORD MSFtoLBA(const BYTE *msf) const;				// MSF→LBA conversion
 
-	bool Dispatch(SASIDEV *);
+	bool Dispatch(SCSIDEV *);
 
 private:
 	// Open
