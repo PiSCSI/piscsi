@@ -256,6 +256,8 @@ void SCSIDEV::Execute()
 		return;
 	}
 
+	LOGDEBUG("++++ CMD ++++ %s Dispatching command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+
 	if (!ctrl.device->Dispatch(this)) {
 		LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
