@@ -413,8 +413,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	// DWORD crc_errors;
 	// DWORD frames_lost;
 
-	LOGTRACE("%s RetrieveStats ", __PRETTY_FUNCTION__);
-
 	ASSERT(cdb);
 	ASSERT(buffer);
 
@@ -515,16 +513,12 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 
 bool SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
 {
-	LOGTRACE("%s", __PRETTY_FUNCTION__);
-
 	// TEST UNIT READY Success
 	return true;
 }
 
 void SCSIDaynaPort::CmdRead6(SASIDEV *controller)
 {
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
 	// Get record number and block number
 	DWORD record = ctrl->cmd[1] & 0x1f;
 	record <<= 8;
@@ -547,8 +541,6 @@ void SCSIDaynaPort::CmdRead6(SASIDEV *controller)
 
 void SCSIDaynaPort::CmdWrite6(SASIDEV *controller)
 {
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
 		free(ctrl->buffer);
@@ -586,8 +578,6 @@ void SCSIDaynaPort::CmdWrite6(SASIDEV *controller)
 
 void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
 {
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
 
 	if (ctrl->length <= 0) {
@@ -606,8 +596,6 @@ void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
 
 void SCSIDaynaPort::CmdSetIfaceMode(SASIDEV *controller)
 {
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
@@ -629,8 +617,6 @@ void SCSIDaynaPort::CmdSetIfaceMode(SASIDEV *controller)
 
 void SCSIDaynaPort::CmdSetMcastAddr(SASIDEV *controller)
 {
-	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
-
 	ctrl->length = (DWORD)ctrl->cmd[4];
 
 	// ASSERT(ctrl.length >= 0);
@@ -647,8 +633,6 @@ void SCSIDaynaPort::CmdSetMcastAddr(SASIDEV *controller)
 
 void SCSIDaynaPort::CmdEnableInterface(SASIDEV *controller)
 {
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
 	bool status = EnableInterface(ctrl->cmd);
 	if (!status) {
 		// Failure (Error)
@@ -662,8 +646,6 @@ void SCSIDaynaPort::CmdEnableInterface(SASIDEV *controller)
 
 void SCSIDaynaPort::CmdGetEventStatusNotification(SASIDEV *controller)
 {
-	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
 	// This naive (but legal) implementation avoids constant warnings in the logs
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
