@@ -162,15 +162,11 @@ bool SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 //---------------------------------------------------------------------------
 int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 {
-	int func;
-	int total_len;
-	int i;
-
 	// Type
 	int type = cdb[2];
 
 	// Function number
-	func = cdb[3];
+	int func = cdb[3];
 
 	// Phase
 	int phase = cdb[9];
@@ -209,8 +205,8 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 				case 3:		// Simultaneous acquisition of multiple packets (size + buffer simultaneously)
 					// Currently the maximum number of packets is 10
 					// Isn't it too fast if I increase more?
-					total_len = 0;
-					for (i = 0; i < 10; i++) {
+					int total_len = 0;
+					for (int i = 0; i < 10; i++) {
 						ReceivePacket();
 						*buf++ = (BYTE)(packet_len >> 8);
 						*buf++ = (BYTE)packet_len;
@@ -249,7 +245,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 //	SEND MESSAGE(10)
 //
 //---------------------------------------------------------------------------
-BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
+bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
@@ -274,17 +270,17 @@ BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
-				return FALSE;
+				return false;
 			}
 
 			switch (func) {
 				case 0:		// MAC address setting
 					SetMacAddr(buf);
-					return TRUE;
+					return true;
 
 				case 1:		// Send packet
 					SendPacket(buf, len);
-					return TRUE;
+					return true;
 			}
 			break;
 
@@ -292,18 +288,90 @@ BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 			switch (phase) {
 				case 0:		// issue command
 					WriteFs(func, buf);
-					return TRUE;
+					return true;
 
 				case 1:		// additional data writing
 					WriteFsOpt(buf, len);
-					return TRUE;
+					return true;
 			}
 			break;
 	}
 
 	// Error
 	ASSERT(FALSE);
-	return FALSE;
+	return false;
+}
+
+//---------------------------------------------------------------------------
+//
+//	GET MESSAGE(10)
+//
+//---------------------------------------------------------------------------
+void SCSIBR::Read10(SASIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Reallocate buffer (because it is not transfer for each block)
+	if (ctrl->bufsize < 0x1000000) {
+		free(ctrl->buffer);
+		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+	}
+
+	// TODO Move code to subclass
+	ctrl->length = ((SCSIBR*)ctrl->device)->GetMessage10(ctrl->cmd, ctrl->buffer);
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	// Data in phase
+	controller->DataIn();
+}
+
+//---------------------------------------------------------------------------
+//
+//	SEND MESSAGE(10)
+//
+//  This Send Message command is used by the X68000 host driver
+//
+//---------------------------------------------------------------------------
+void SCSIBR::Write10(SASIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Reallocate buffer (because it is not transfer for each block)
+	if (ctrl->bufsize < 0x1000000) {
+		free(ctrl->buffer);
+		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+	}
+
+	// Set transfer amount
+	ctrl->length = ctrl->cmd[6];
+	ctrl->length <<= 8;
+	ctrl->length |= ctrl->cmd[7];
+	ctrl->length <<= 8;
+	ctrl->length |= ctrl->cmd[8];
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	// Data out phase
+	controller->DataOut();
 }
 
 //---------------------------------------------------------------------------

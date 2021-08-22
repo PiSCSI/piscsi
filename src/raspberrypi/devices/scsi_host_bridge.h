@@ -39,7 +39,9 @@ public:
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 	bool TestUnitReady(const DWORD *cdb) override;		// TEST UNIT READY command
 	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
-	BOOL SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	void Write10(SASIDEV *) override;
+	void Read10(SASIDEV *) override;
 
 private:
 	int GetMacAddr(BYTE *buf);					// Get MAC address

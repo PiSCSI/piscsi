@@ -196,8 +196,6 @@ public:
 	void Release10(SASIDEV *);
 
 	// Command helpers
-	void CmdSendMessage10(SASIDEV *);
-	void CmdGetMessage10(SASIDEV *);
 	void Verify(SASIDEV *);					// VERIFY command
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
 	virtual int WriteCheck(DWORD block);					// WRITE check
