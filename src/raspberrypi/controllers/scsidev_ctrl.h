@@ -66,8 +66,6 @@ public:
 	// 外部API
 	BUS::phase_t Process();					// Run
 
-	void SyncTransfer(BOOL enable) { scsi.syncenable = enable; }	// Synchronouse transfer enable setting
-
 	// Other
 	BOOL IsSASI() const {return FALSE;}				// SASI Check
 	BOOL IsSCSI() const {return TRUE;}				// SCSI check
@@ -89,14 +87,6 @@ private:
 	void MsgOut();							// Message out phase
 
 	// commands
-	void CmdInquiry();						// INQUIRY command
-	void CmdModeSelect();						// MODE SELECT command
-	void CmdModeSense();						// MODE SENSE command
-	void CmdStartStop();						// START STOP UNIT command
-	void CmdSendDiag();						// SEND DIAGNOSTIC command
-	void CmdRemoval();						// PREVENT/ALLOW MEDIUM REMOVAL command
-	void CmdSynchronizeCache();					// SYNCHRONIZE CACHE  command
-	void CmdReadDefectData10();					// READ DEFECT DATA(10)  command
 	void CmdReadToc();						// READ TOC command
 	void CmdPlayAudio10();						// PLAY AUDIO(10) command
 	void CmdPlayAudioMSF();					// PLAY AUDIO MSF command

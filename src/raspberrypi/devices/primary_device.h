@@ -23,13 +23,13 @@ public:
 	virtual ~PrimaryDevice() {};
 
 	// Mandatory commands
-	virtual bool TestUnitReady(const DWORD *cdb) = 0;
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
+	virtual void TestUnitReady(SASIDEV *) = 0;
+	virtual void Inquiry(SASIDEV *) = 0;
 	virtual void ReportLuns(SASIDEV *) = 0;
 
 	// Implemented optional commands
-	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;
-	virtual int ModeSense(const DWORD *cdb, BYTE *buf) = 0;
-	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) = 0;
-	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) = 0;
+	virtual void RequestSense(SASIDEV *) = 0;
+	virtual void ModeSense(SASIDEV *) = 0;
+	virtual void ModeSense10(SASIDEV *) = 0;
+	virtual void ModeSelect(SASIDEV *) = 0;
 };

@@ -183,6 +183,8 @@ public:
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
 
+	void DaynaPortWrite();					// DaynaPort specific 'write' operation
+
 	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
 
@@ -207,7 +209,6 @@ protected:
 	void CmdAssign();						// ASSIGN command
 	void CmdSpecify();						// SPECIFY command
 	void CmdInvalid();						// Unsupported command
-	void DaynaPortWrite();					// DaynaPort specific 'write' operation
 	// データ転送
 	virtual void Send();						// Send data
 

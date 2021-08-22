@@ -714,7 +714,7 @@ void SASIDEV::CmdTestUnitReady()
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->TestUnitReady(ctrl.cmd);
+	bool status = ((Disk *)ctrl.device)->TestUnitReady(ctrl.cmd);
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -964,7 +964,6 @@ void SASIDEV::DaynaPortWrite()
 	// Light phase
 	DataOut();
 }
-
 
 //---------------------------------------------------------------------------
 //

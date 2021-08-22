@@ -42,34 +42,34 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	SetUpControllerCommand(eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDEV::CmdTestUnitReady);
-	SetUpControllerCommand(eCmdRezero, "CmdRezero", &SCSIDEV::CmdRezero);
-	SetUpControllerCommand(eCmdRequestSense, "CmdRequestSense", &SCSIDEV::CmdRequestSense);
-	SetUpControllerCommand(eCmdFormat, "CmdFormat", &SCSIDEV::CmdFormat);
-	SetUpControllerCommand(eCmdReassign, "CmdReassign", &SCSIDEV::CmdReassign);
-	SetUpControllerCommand(eCmdRead6, "CmdRead6", &SCSIDEV::CmdRead6);
-	SetUpControllerCommand(eCmdWrite6, "CmdWrite6", &SCSIDEV::CmdWrite6);
+	SetUpDeviceCommand(eCmdTestUnitReady, "CmdTestUnitReady", &Disk::TestUnitReady);
+	SetUpDeviceCommand(eCmdRezero, "CmdRezero", &Disk::Rezero);
+	SetUpDeviceCommand(eCmdRequestSense, "CmdRequestSense", &Disk::RequestSense);
+	SetUpDeviceCommand(eCmdFormat, "CmdFormat", &Disk::Format);
+	SetUpDeviceCommand(eCmdReassign, "CmdReassign", &Disk::ReassignBlocks);
+	SetUpDeviceCommand(eCmdRead6, "CmdRead6", &Disk::Read6);
+	SetUpDeviceCommand(eCmdWrite6, "CmdWrite6", &Disk::Write6);
 	SetUpDeviceCommand(eCmdSeek6, "CmdSeek6", &Disk::Seek6);
-	SetUpControllerCommand(eCmdInquiry, "CmdInquiry", &SCSIDEV::CmdInquiry);
-	SetUpControllerCommand(eCmdModeSelect, "CmdModeSelect", &SCSIDEV::CmdModeSelect);
+	SetUpDeviceCommand(eCmdInquiry, "CmdInquiry", &Disk::Inquiry);
+	SetUpDeviceCommand(eCmdModeSelect, "CmdModeSelect", &Disk::ModeSelect);
 	SetUpDeviceCommand(eCmdReserve6, "CmdReserve6", &Disk::Reserve6);
 	SetUpDeviceCommand(eCmdRelease6, "CmdRelease6", &Disk::Release6);
-	SetUpControllerCommand(eCmdModeSense, "CmdModeSense", &SCSIDEV::CmdModeSense);
-	SetUpControllerCommand(eCmdStartStop, "CmdStartStop", &SCSIDEV::CmdStartStop);
-	SetUpControllerCommand(eCmdSendDiag, "CmdSendDiag", &SCSIDEV::CmdSendDiag);
-	SetUpControllerCommand(eCmdRemoval, "CmdRemoval", &SCSIDEV::CmdRemoval);
+	SetUpDeviceCommand(eCmdModeSense, "CmdModeSense", &Disk::ModeSense);
+	SetUpDeviceCommand(eCmdStartStop, "CmdStartStop", &Disk::StartStop);
+	SetUpDeviceCommand(eCmdSendDiag, "CmdSendDiag", &Disk::SendDiagnostic);
+	SetUpDeviceCommand(eCmdRemoval, "CmdRemoval", &Disk::PreventAllowRemoval);
 	SetUpDeviceCommand(eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);
 	SetUpDeviceCommand(eCmdRead10, "CmdRead10", &Disk::Read10);
 	SetUpDeviceCommand(eCmdWrite10, "CmdWrite10", &Disk::Write10);
 	SetUpDeviceCommand(eCmdVerify10, "CmdVerify10", &Disk::Write10);
 	SetUpDeviceCommand(eCmdSeek10, "CmdSeek10", &Disk::Seek10);
 	SetUpDeviceCommand(eCmdVerify, "CmdVerify", &Disk::Verify);
-	SetUpControllerCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &SCSIDEV::CmdSynchronizeCache);
-	SetUpControllerCommand(eCmdReadDefectData10, "CmdReadDefectData10", &SCSIDEV::CmdReadDefectData10);
-	SetUpControllerCommand(eCmdModeSelect10, "CmdModeSelect10", &SCSIDEV::CmdModeSelect10);
+	SetUpDeviceCommand(eCmdSynchronizeCache, "CmdSynchronizeCache", &Disk::SynchronizeCache);
+	SetUpDeviceCommand(eCmdReadDefectData10, "CmdReadDefectData10", &Disk::ReadDefectData10);
+	SetUpDeviceCommand(eCmdModeSelect10, "CmdModeSelect10", &Disk::ModeSelect10);
 	SetUpDeviceCommand(eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
 	SetUpDeviceCommand(eCmdRelease10, "CmdRelease10", &Disk::Release10);
-	SetUpControllerCommand(eCmdModeSense10, "CmdModeSense10", &SCSIDEV::CmdModeSense10);
+	SetUpDeviceCommand(eCmdModeSense10, "CmdModeSense10", &Disk::ModeSense10);
 	SetUpDeviceCommand(eCmdRead16, "CmdRead16", &Disk::Read16);
 	SetUpDeviceCommand(eCmdWrite16, "CmdWrite16", &Disk::Write16);
 	SetUpDeviceCommand(eCmdVerify16, "CmdVerify16", &Disk::Write16);
@@ -434,197 +434,6 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 
 //---------------------------------------------------------------------------
 //
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdInquiry()
-{
-	LOGTRACE("%s INQUIRY Command", __PRETTY_FUNCTION__);
-
-	// Find a valid unit
-	// TODO The code below is probably wrong. It results in the same INQUIRY data being
-	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	PrimaryDevice *device = NULL;
-	for (int valid_lun = 0; valid_lun < UnitMax; valid_lun++) {
-		if (ctrl.unit[valid_lun]) {
-			device = ctrl.unit[valid_lun];
-			break;
-		}
-	}
-
-	// Processed on the disk side (it is originally processed by the controller)
-	if (device) {
-		ctrl.length = device->Inquiry(ctrl.cmd, ctrl.buffer);
-	} else {
-		ctrl.length = 0;
-	}
-
-	if (ctrl.length <= 0) {
-		// failure (error)
-		Error();
-		return;
-	}
-
-	// Add synchronous transfer support information
-	if (scsi.syncenable) {
-		ctrl.buffer[7] |= (1 << 4);
-	}
-
-	// Report if the device does not support the requested LUN
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		ctrl.buffer[0] |= 0x7f;
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdModeSelect()
-{
-	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->SelectCheck(ctrl.cmd);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data out phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdModeSense()
-{
-	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->ModeSense(ctrl.cmd, ctrl.buffer);
-	ASSERT(ctrl.length >= 0);
-	if (ctrl.length == 0) {
-		LOGWARN("%s Not supported MODE SENSE page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[2]);
-
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	START STOP UNIT
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdStartStop()
-{
-	LOGTRACE( "%s START STOP UNIT Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	bool status = ctrl.device->StartStop(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SEND DIAGNOSTIC
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdSendDiag()
-{
-	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	bool status = ctrl.device->SendDiag(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	PREVENT/ALLOW MEDIUM REMOVAL
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdRemoval()
-{
-	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	bool status = ctrl.device->Removal(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SYNCHRONIZE CACHE
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdSynchronizeCache()
-{
-	// Nothing to do
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ DEFECT DATA(10)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdReadDefectData10()
-{
-	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->ReadDefectData10(ctrl.cmd, ctrl.buffer);
-	ASSERT(ctrl.length >= 0);
-
-	if (ctrl.length <= 4) {
-		Error();
-		return;
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
 //	READ TOC
 //
 //---------------------------------------------------------------------------
@@ -708,51 +517,6 @@ void SCSIDEV::CmdGetEventStatusNotification()
 {
 	// This naive (but legal) implementation avoids constant warnings in the logs
 	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT10
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdModeSelect10()
-{
-	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->SelectCheck10(ctrl.cmd);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data out phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE(10)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdModeSense10()
-{
-	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.length = ctrl.device->ModeSense10(ctrl.cmd, ctrl.buffer);
-	ASSERT(ctrl.length >= 0);
-	if (ctrl.length == 0) {
-		LOGWARN("%s Not supported MODE SENSE(10) page $%02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[2]);
-
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data-in Phase
-	DataIn();
 }
 
 //---------------------------------------------------------------------------

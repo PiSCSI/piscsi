@@ -26,6 +26,7 @@
 #include "cfilesystem.h"
 #include "controllers/sasidev_ctrl.h"
 #include "controllers/scsidev_ctrl.h"
+#include "exceptions.h"
 #include "disk.h"
 #include <sstream>
 
@@ -352,6 +353,162 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 	return TRUE;
 }
 
+void Disk::TestUnitReady(SASIDEV *controller)
+{
+	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	bool status = TestUnitReady(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::Rezero(SASIDEV *controller)
+{
+	LOGTRACE( "%s REZERO Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	bool status = Rezero(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::RequestSense(SASIDEV *controller)
+{
+	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+    DWORD lun;
+    try {
+     	lun = GetLun();
+    }
+    catch(const lun_exception& e) {
+        // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
+        // Non-existing LUNs do *not* result in CHECK CONDITION.
+        // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+
+        // LUN 0 can be assumed to be present (required to call RequestSense() below)
+        lun = 0;
+
+        controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+    }
+
+    ctrl->length = ctrl->unit[lun]->RequestSense(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length > 0);
+
+    LOGTRACE("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->buffer[2], ctrl->buffer[12]);
+
+	// Read phase
+    controller->DataIn();
+}
+
+void Disk::Format(SASIDEV *controller)
+{
+	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	bool status = Format(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::ReassignBlocks(SASIDEV *controller)
+{
+	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	bool status = Reassign(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::Read6(SASIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Get record number and block number
+	DWORD record = ctrl->cmd[1] & 0x1f;
+	record <<= 8;
+	record |= ctrl->cmd[2];
+	record <<= 8;
+	record |= ctrl->cmd[3];
+	ctrl->blocks = ctrl->cmd[4];
+	if (ctrl->blocks == 0) {
+		ctrl->blocks = 0x100;
+	}
+
+	// TODO Move Daynaport specific test
+	// TODO This class must not know about SCDP
+	if(IsDaynaPort()){
+		// The DaynaPort only wants one block.
+		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
+		ctrl->blocks=1;
+	}
+	else {
+		// Check capacity
+		DWORD capacity = GetBlockCount();
+		if (record > capacity || record + ctrl->blocks > capacity) {
+			ostringstream s;
+			s << "Media capacity of " << capacity << " blocks exceeded: "
+					<< "Trying to read block " << record << ", block count " << ctrl->blocks;
+			LOGWARN("%s", s.str().c_str());
+			controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+			return;
+		}
+	}
+
+	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	// Command processing on drive
+	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
+	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+
+	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
+	if (ctrl->length <= 0 && !IsDaynaPort()) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Read phase
+	controller->DataIn();
+}
+
 void Disk::Read10(SASIDEV *controller)
 {
 	// TODO Move to subclass
@@ -454,6 +611,55 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 	return TRUE;
 }
 
+void Disk::Write6(SASIDEV *controller)
+{
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Special receive function for the DaynaPort
+	if (IsDaynaPort()){
+		controller->DaynaPortWrite();
+		return;
+	}
+
+	// Get record number and block number
+	DWORD record = ctrl->cmd[1] & 0x1f;
+	record <<= 8;
+	record |= ctrl->cmd[2];
+	record <<= 8;
+	record |= ctrl->cmd[3];
+	ctrl->blocks = ctrl->cmd[4];
+	if (ctrl->blocks == 0) {
+		ctrl->blocks = 0x100;
+	}
+
+	// Check capacity
+	DWORD capacity = GetBlockCount();
+	if (record > capacity || record + ctrl->blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to write block " << record << ", block count " << ctrl->blocks;
+		LOGWARN("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
+	}
+
+	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl->blocks);
+
+	// Command processing on drive
+	ctrl->length = WriteCheck(record);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		return;
+	}
+
+	// Set next block
+	ctrl->next = record + 1;
+
+	// Write phase
+	controller->DataOut();
+}
+
 void Disk::Write10(SASIDEV *controller)
 {
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
@@ -547,6 +753,205 @@ void Disk::Verify(SASIDEV *controller)
 
 	// Data out phase
 	controller->DataOut();
+}
+
+void Disk::Inquiry(SASIDEV *controller)
+{
+	LOGTRACE("%s INQUIRY Command", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Find a valid unit
+	// TODO The code below is probably wrong. It results in the same INQUIRY data being
+	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
+	PrimaryDevice *device = NULL;
+	for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
+		if (ctrl->unit[valid_lun]) {
+			device = ctrl->unit[valid_lun];
+			break;
+		}
+	}
+
+	// Processed on the disk side (it is originally processed by the controller)
+	if (device) {
+		ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
+	} else {
+		ctrl->length = 0;
+	}
+
+	if (ctrl->length <= 0) {
+		// failure (error)
+		controller->Error();
+		return;
+	}
+
+	// Report if the device does not support the requested LUN
+	DWORD lun = (ctrl->cmd[1] >> 5) & 0x07;
+	if (!ctrl->unit[lun]) {
+		ctrl->buffer[0] |= 0x7f;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void Disk::ModeSelect(SASIDEV *controller)
+{
+	LOGTRACE( "%s MODE SELECT Command", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	ctrl->length = SelectCheck(ctrl->cmd);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data out phase
+	controller->DataOut();
+}
+
+void Disk::ModeSelect10(SASIDEV *controller)
+{
+	LOGTRACE( "%s MODE SELECT10 Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	ctrl->length = SelectCheck10(ctrl->cmd);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data out phase
+	controller->DataOut();
+}
+
+void Disk::ModeSense(SASIDEV *controller)
+{
+	LOGTRACE( "%s MODE SENSE Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	ctrl->length = ModeSense(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length >= 0);
+	if (ctrl->length == 0) {
+		LOGWARN("%s Not supported MODE SENSE page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
+
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void Disk::ModeSense10(SASIDEV *controller)
+{
+	LOGTRACE( "%s MODE SENSE(10) Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length >= 0);
+	if (ctrl->length == 0) {
+		LOGWARN("%s Not supported MODE SENSE(10) page $%02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
+
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
+}
+
+void Disk::StartStop(SASIDEV *controller)
+{
+	LOGTRACE( "%s START STOP Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	bool status = StartStop(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::SendDiagnostic(SASIDEV *controller)
+{
+	LOGTRACE( "%s SEND DIAGNOSTIC Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	bool status = SendDiag(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::PreventAllowRemoval(SASIDEV *controller)
+{
+	LOGTRACE( "%s PREVENT/ALLOW MEDIUM REMOVAL Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	bool status = Removal(ctrl->cmd);
+	if (!status) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::SynchronizeCache(SASIDEV *controller)
+{
+	// Nothing to do
+
+	// status phase
+	controller->Status();
+}
+
+void Disk::ReadDefectData10(SASIDEV *controller)
+{
+	LOGTRACE( "%s READ DEFECT DATA(10) Command ", __PRETTY_FUNCTION__);
+
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
+	// Command processing on drive
+	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length >= 0);
+
+	if (ctrl->length <= 4) {
+		controller->Error();
+		return;
+	}
+
+	// Data-in Phase
+	controller->DataIn();
 }
 
 //===========================================================================
@@ -1963,6 +2368,7 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);

@@ -23,10 +23,10 @@ public:
 	virtual ~BlockDevice() {};
 
 	// Mandatory commands
-	virtual bool TestUnitReady(const DWORD *cdb) override = 0;
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override = 0;
+	virtual void TestUnitReady(SASIDEV *) override = 0;
+	virtual void Inquiry(SASIDEV *) override = 0;
 	virtual void ReportLuns(SASIDEV *) override = 0;
-	virtual bool Format(const DWORD *cdb) = 0;
+	virtual void Format(SASIDEV *) = 0;
 	virtual void ReadCapacity10(SASIDEV *) = 0;
 	virtual void ReadCapacity16(SASIDEV *) = 0;
 	virtual void Read10(SASIDEV *) = 0;
@@ -38,10 +38,10 @@ public:
 	// TODO uncomment
 	//virtual void Verify10(SASIDEV *) = 0;
 	//virtual void Verify16(SASIDEV *) = 0;
-	virtual int RequestSense(const DWORD *cdb, BYTE *buf) override = 0;
-	virtual int ModeSense(const DWORD *cdb, BYTE *buf) override = 0;
-	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) override = 0;
-	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override = 0;
+	virtual void RequestSense(SASIDEV *) override = 0;
+	//virtual void ModeSense(SASIDEV *) override = 0;
+	//virtual void ModeSense10(SASIDEV *) override = 0;
+	//virtual void ModeSelect(SASIDEV *) override = 0;
 
 	// TODO Add the other optional commands currently implemented
 };
