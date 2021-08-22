@@ -241,16 +241,17 @@ void SCSIDEV::Execute()
 	ctrl.blocks = 1;
 	ctrl.execstart = SysTimer::GetTimerLow();
 
-	ctrl.device = ctrl.unit[GetLun()];
-
 	try {
-		ctrl.device->Dispatch(this);
+		ctrl.device = ctrl.unit[GetLun()];
 	}
 	catch (const lun_exception& e) {
 		LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, e.getlun());
 
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+		return;
 	}
+
+	ctrl.device->Dispatch(this);
 }
 
 //---------------------------------------------------------------------------
