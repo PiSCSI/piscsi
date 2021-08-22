@@ -103,6 +103,7 @@ private:
 	void Receive();						// Receive data
 	BOOL XferMsg(DWORD msg);					// Data transfer message
 
+	DWORD GetLun() const;
 	bool GetStartAndCount(uint64_t&, uint32_t&, bool);
 
 	scsi_t scsi;								// Internal data

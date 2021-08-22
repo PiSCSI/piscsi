@@ -1083,6 +1083,21 @@ BOOL SCSIDEV::XferMsg(DWORD msg)
 
 //---------------------------------------------------------------------------
 //
+//	Validate and get LUN
+//
+//---------------------------------------------------------------------------
+DWORD SCSIDEV::GetLun() const
+{
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		throw lun_exception(lun);
+	}
+
+	return lun;
+}
+
+//---------------------------------------------------------------------------
+//
 //	Get start sector and sector count for a READ/WRITE(10/16) operation
 //
 //---------------------------------------------------------------------------

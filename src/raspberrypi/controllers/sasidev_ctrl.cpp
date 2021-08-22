@@ -18,7 +18,6 @@
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
-#include "exceptions.h"
 #include <sstream>
 
 //===========================================================================
@@ -369,14 +368,7 @@ void SASIDEV::Command()
 		ctrl.blocks = 0;
 
 		// Execution Phase
-		try {
-			Execute();
-		}
-		catch (lun_exception& e) {
-			LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
-
-			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-		}
+		Execute();
 	}
 }
 
@@ -396,18 +388,6 @@ void SASIDEV::Execute()
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
 	ctrl.execstart = SysTimer::GetTimerLow();
-
-	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
-		ctrl.status = 0;
-	}
-
-	ctrl.device = NULL;
-
-	// REQUEST SENSE requires a special LUN handling
-	if (ctrl.cmd[0] != eCmdRequestSense) {
-		ctrl.device = ctrl.unit[GetLun()];
-	}
 
 	// Process by command
 	// TODO This code does not belong here. Each device type needs such a dispatcher, which the controller has to call.
@@ -755,21 +735,14 @@ void SASIDEV::CmdRequestSense()
 {
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
-    DWORD lun;
-    try {
-     	lun = GetLun();
-    }
-    catch(const lun_exception& e) {
-        // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
-        // Non-existing LUNs do *not* result in CHECK CONDITION.
-        // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+	// Logical Unit
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		Error();
+		return;
+	}
 
-        // LUN 0 can be assumed to be present (required to call RequestSense() below)
-        lun = 0;
-
-        Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-    }
-
+	// Command processing on drive
     ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
 	ASSERT(ctrl.length > 0);
 
@@ -1530,18 +1503,3 @@ void SASIDEV::GetPhaseStr(char *str)
     }
 }
 #endif
-
-//---------------------------------------------------------------------------
-//
-//	Validate and get LUN
-//
-//---------------------------------------------------------------------------
-DWORD SASIDEV::GetLun()
-{
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		throw lun_exception(lun);
-	}
-
-	return lun;
-}

@@ -220,8 +220,6 @@ protected:
 	// Special operations
 	void FlushUnit();						// Flush the logical unit
 
-        DWORD GetLun();                                           // Get the validated LUN
-
 protected:
 	ctrl_t ctrl;								// Internal data
 };
