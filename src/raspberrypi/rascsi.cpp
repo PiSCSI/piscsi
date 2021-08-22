@@ -634,6 +634,11 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			return ReturnStatus(fd, false, "Invalid device type " + PbDeviceType_Name(type));
 		}
 
+		// If no filename was provided the media is considered removed
+		if (filename.empty()) {
+			device->SetRemoved(true);
+		}
+
 		if (!pbDevice.name().empty()) {
 			try {
 				SetDeviceName(device, pbDevice.name());
