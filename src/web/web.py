@@ -136,7 +136,7 @@ def attach():
     print("file_name", file_name)
     print("valid_file_types: ", valid_file_types)
     if re.match(valid_file_types, file_name):
-        if file_name.lower().endswith("iso"):
+        if file_name.lower().endswith((".iso", ".cdr", ".toast", ".img")):
             image_type = "cd"
         else:
             image_type = "hd"
