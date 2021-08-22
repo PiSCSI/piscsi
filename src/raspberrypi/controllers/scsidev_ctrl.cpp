@@ -499,7 +499,7 @@ void SCSIDEV::Send()
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	BOOL result = TRUE;
+	BOOL result = true;
 
 	// Processing after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
@@ -605,7 +605,7 @@ void SCSIDEV::Receive()
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	BOOL result = TRUE;
+	bool result = true;
 
 	// Processing after receiving data (by phase)
 	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
@@ -615,10 +615,10 @@ void SCSIDEV::Receive()
 		case BUS::dataout:
 			if (ctrl.blocks == 0) {
 				// End with this buffer
-				result = XferOut(FALSE);
+				result = XferOut(false);
 			} else {
 				// Continue to next buffer (set offset, length)
-				result = XferOut(TRUE);
+				result = XferOut(true);
 			}
 			break;
 

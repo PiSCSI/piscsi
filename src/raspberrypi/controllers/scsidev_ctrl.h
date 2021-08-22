@@ -96,8 +96,8 @@ public:
 	BUS::phase_t Process();					// Run
 
 	// Other
-	BOOL IsSASI() const {return FALSE;}				// SASI Check
-	BOOL IsSCSI() const {return TRUE;}				// SCSI check
+	bool IsSASI() const { return false; }			// SASI Check
+	bool IsSCSI() const { return true; }			// SCSI check
 
 	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION) override;	// Common erorr handling
