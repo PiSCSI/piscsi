@@ -391,7 +391,7 @@ void SASIDEV::Execute()
 
 	// Process by command
 	// TODO This code does not belong here. Each device type needs such a dispatcher, which the controller has to call.
-	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
+	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
 		case SASIDEV::eCmdTestUnitReady:
 			CmdTestUnitReady();
@@ -449,9 +449,7 @@ void SASIDEV::Execute()
 			CmdReleaseUnit();
 			return;
 
-		// SPECIFY (SASI only)
-		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
-		// leaving it here for now....
+		// SPECIFY
 		case SASIDEV::eCmdInvalid:
 			CmdSpecify();
 			return;
@@ -1281,7 +1279,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 	}
 	Disk *device = ctrl.unit[lun];
 
-	switch ((SASIDEV::scsi_command) ctrl.cmd[0]) {
+	switch ((SASIDEV::sasi_command) ctrl.cmd[0]) {
 		case SASIDEV::eCmdModeSelect:
 		case SASIDEV::eCmdModeSelect10:
 			if (!device->ModeSelect(
@@ -1383,7 +1381,7 @@ void SASIDEV::FlushUnit()
 	Disk *device = ctrl.unit[lun];
 
 	// WRITE system only
-	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
+	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
 		case SASIDEV::eCmdWrite16:
