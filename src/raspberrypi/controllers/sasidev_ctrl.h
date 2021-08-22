@@ -155,7 +155,6 @@ public:
 	ctrl_t* GetWorkAddr() { return &ctrl; }			// Get the internal information address
 	virtual BOOL IsSASI() const {return TRUE;}			// SASI Check
 	virtual BOOL IsSCSI() const {return FALSE;}			// SCSI check
-	Disk* GetBusyUnit();								// Get the busy unit
 
 public:
 	void DataIn();							// Data in phase
