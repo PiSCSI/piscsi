@@ -1185,9 +1185,6 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 	disk.dcache = NULL;
 	disk.imgoffset = 0;
 
-	// Other
-	cache_wb = TRUE;
-
 	AddCommand(SCSIDEV::eCmdTestUnitReady, "CmdTestUnitReady", &Disk::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRezero, "CmdRezero", &Disk::Rezero);
 	AddCommand(SCSIDEV::eCmdRequestSense, "CmdRequestSense", &Disk::RequestSense);
