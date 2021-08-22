@@ -307,6 +307,7 @@ bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 //	GET MESSAGE(10)
 //
 //---------------------------------------------------------------------------
+// TODO Rename and call it with a new dispatcher in this class
 void SCSIBR::Read10(SASIDEV *controller)
 {
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
@@ -340,6 +341,7 @@ void SCSIBR::Read10(SASIDEV *controller)
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
+// TODO Rename and call it with a new dispatcher in this class
 void SCSIBR::Write10(SASIDEV *controller)
 {
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
