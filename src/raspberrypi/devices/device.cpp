@@ -111,7 +111,7 @@ const string Device::GetPaddedName() const
 
 void Device::SetStatusCode(int status_code)
 {
-    LOGTRACE("Setting status: Sense Key: $%02X, ASC: $%02X, ASCQ: $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff);
+    LOGDEBUG("Setting status: Sense Key: $%02X, ASC: $%02X, ASCQ: $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff);
 
 	this->status_code = status_code;
 }
