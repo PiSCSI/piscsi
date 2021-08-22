@@ -78,6 +78,8 @@ private:
 	} command_t;
 	std::map<SCSIDEV::scsi_command, command_t*> commands;
 
+	SASIDEV::ctrl_t *ctrl;
+
 public:
 	// Number of tracks
 	enum {

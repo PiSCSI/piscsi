@@ -273,7 +273,7 @@ void SCSICD::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SC
 
 bool SCSICD::Dispatch(SCSIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+	ctrl = controller->GetWorkAddr();
 
 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
@@ -504,8 +504,6 @@ void SCSICD::OpenPhysical(const Filepath& path)
 
 void SCSICD::CmdReadToc(SASIDEV *controller)
 {
- 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
@@ -519,8 +517,6 @@ void SCSICD::CmdReadToc(SASIDEV *controller)
 
 void SCSICD::CmdPlayAudio10(SASIDEV *controller)
 {
- 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
  	// Command processing on drive
 	bool status = PlayAudio(ctrl->cmd);
 	if (!status) {
@@ -535,8 +531,6 @@ void SCSICD::CmdPlayAudio10(SASIDEV *controller)
 
 void SCSICD::CmdPlayAudioMSF(SASIDEV *controller)
 {
- 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
  	// Command processing on drive
 	bool status = PlayAudioMSF(ctrl->cmd);
 	if (!status) {
@@ -551,8 +545,6 @@ void SCSICD::CmdPlayAudioMSF(SASIDEV *controller)
 
 void SCSICD::CmdPlayAudioTrack(SASIDEV *controller)
 {
- 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
  	// Command processing on drive
 	bool status = PlayAudioTrack(ctrl->cmd);
 	if (!status) {

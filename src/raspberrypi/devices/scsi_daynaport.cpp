@@ -131,7 +131,7 @@ void SCSIDaynaPort::Open(const Filepath& path, BOOL attn)
 
  bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
  {
- 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
+ 	ctrl = controller->GetWorkAddr();
 
  	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
  		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
@@ -525,8 +525,6 @@ void SCSIDaynaPort::CmdRead6(SASIDEV *controller)
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Get record number and block number
 	DWORD record = ctrl->cmd[1] & 0x1f;
 	record <<= 8;
@@ -550,8 +548,6 @@ void SCSIDaynaPort::CmdRead6(SASIDEV *controller)
 void SCSIDaynaPort::CmdWrite6(SASIDEV *controller)
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
@@ -592,8 +588,6 @@ void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
 
 	if (ctrl->length <= 0) {
@@ -613,8 +607,6 @@ void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
 void SCSIDaynaPort::CmdSetIfaceMode(SASIDEV *controller)
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
@@ -639,8 +631,6 @@ void SCSIDaynaPort::CmdSetMcastAddr(SASIDEV *controller)
 {
 	LOGTRACE("%s Set Multicast Address Command ", __PRETTY_FUNCTION__);
 
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	ctrl->length = (DWORD)ctrl->cmd[4];
 
 	// ASSERT(ctrl.length >= 0);
@@ -658,8 +648,6 @@ void SCSIDaynaPort::CmdSetMcastAddr(SASIDEV *controller)
 void SCSIDaynaPort::CmdEnableInterface(SASIDEV *controller)
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
-
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 
 	bool status = EnableInterface(ctrl->cmd);
 	if (!status) {
