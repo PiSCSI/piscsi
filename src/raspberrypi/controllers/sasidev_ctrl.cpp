@@ -1028,7 +1028,7 @@ void SASIDEV::CmdSeek6()
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	ctrl.device->Seek6(this, &ctrl);
+	ctrl.device->Seek6(this);
 }
 
 //---------------------------------------------------------------------------

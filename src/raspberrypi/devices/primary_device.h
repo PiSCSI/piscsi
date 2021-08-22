@@ -11,8 +11,9 @@
 
 #pragma once
 
-#include "controllers/sasidev_ctrl.h"
 #include "device.h"
+
+class SASIDEV;
 
 class PrimaryDevice : public Device
 {
@@ -24,7 +25,7 @@ public:
 	// Mandatory commands
 	virtual bool TestUnitReady(const DWORD *cdb) = 0;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;
-	virtual void ReportLuns(SASIDEV *, SASIDEV::ctrl_t *) = 0;
+	virtual void ReportLuns(SASIDEV *) = 0;
 
 	// Implemented optional commands
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf) = 0;

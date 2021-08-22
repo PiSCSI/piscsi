@@ -165,21 +165,21 @@ public:
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;			// READ command
 	virtual int WriteCheck(DWORD block);					// WRITE check
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;			// WRITE command
-	void Seek(SASIDEV *, SASIDEV::ctrl_t *);
-	void Seek6(SASIDEV *, SASIDEV::ctrl_t *);
-	void Seek10(SASIDEV *, SASIDEV::ctrl_t *);
+	void Seek(SASIDEV *);
+	void Seek6(SASIDEV *);
+	void Seek10(SASIDEV *);
 	bool Assign(const DWORD *cdb);					// ASSIGN command
 	bool Specify(const DWORD *cdb);				// SPECIFY command
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	void ReadCapacity10(SASIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(10) command
-	void ReadCapacity16(SASIDEV *, SASIDEV::ctrl_t *) override;			// READ CAPACITY(16) command
-	void ReportLuns(SASIDEV *, SASIDEV::ctrl_t *) override;
-	void Reserve6(SASIDEV *, SASIDEV::ctrl_t *);
-	void Reserve10(SASIDEV *, SASIDEV::ctrl_t *);
-	void Release6(SASIDEV *, SASIDEV::ctrl_t *);
-	void Release10(SASIDEV *, SASIDEV::ctrl_t *);
+	void ReadCapacity10(SASIDEV *) override;			// READ CAPACITY(10) command
+	void ReadCapacity16(SASIDEV *) override;			// READ CAPACITY(16) command
+	void ReportLuns(SASIDEV *) override;
+	void Reserve6(SASIDEV *);
+	void Reserve10(SASIDEV *);
+	void Release6(SASIDEV *);
+	void Release10(SASIDEV *);
 	int GetSectorSize() const;
 	void SetSectorSize(int);
 	bool IsSectorSizeConfigurable() const;

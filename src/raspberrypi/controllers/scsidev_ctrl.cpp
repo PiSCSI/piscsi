@@ -106,7 +106,7 @@ void SCSIDEV::SetUpControllerCommand(scsi_command opcode, const char* name, void
 	controller_commands[opcode] = new controller_command_t(name, execute);
 }
 
-void SCSIDEV::SetUpDeviceCommand(scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *, SASIDEV::ctrl_t *))
+void SCSIDEV::SetUpDeviceCommand(scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
 {
 	device_commands[opcode] = new device_command_t(name, execute);
 }
@@ -317,7 +317,7 @@ void SCSIDEV::Execute()
 
 		LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
 
-		(ctrl.device->*command->execute)(this, &ctrl);
+		(ctrl.device->*command->execute)(this);
 
 		return;
 	}
@@ -752,7 +752,7 @@ void SCSIDEV::CmdVerify()
 	// if BytChk=0
 	if ((ctrl.cmd[1] & 0x02) == 0) {
 		// Command processing on drive
-		ctrl.device->Seek(this, &ctrl);
+		ctrl.device->Seek(this);
 		return;
 	}
 
@@ -778,7 +778,7 @@ void SCSIDEV::CmdVerify()
 //---------------------------------------------------------------------------
 void SCSIDEV::CmdSynchronizeCache()
 {
-	// Make it do something (not implemented)...
+	// Nothing to do
 
 	// status phase
 	Status();

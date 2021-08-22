@@ -24,6 +24,7 @@
 #include "gpiobus.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
+#include "controllers/sasidev_ctrl.h"
 #include "disk.h"
 
 //===========================================================================
@@ -1661,7 +1662,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	return true;
 }
 
-void Disk::Seek(SASIDEV *controller, SASIDEV::ctrl_t *)
+void Disk::Seek(SASIDEV *controller)
 {
 	// Status check
 	if (!CheckReady()) {
@@ -1679,11 +1680,11 @@ void Disk::Seek(SASIDEV *controller, SASIDEV::ctrl_t *)
 //	Does not check LBA (SASI IOCS)
 //
 //---------------------------------------------------------------------------
-void Disk::Seek6(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::Seek6(SASIDEV *controller)
 {
 	LOGTRACE( "%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
-	Seek(controller, ctrl);
+	Seek(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -1691,11 +1692,11 @@ void Disk::Seek6(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
 //	SEEK(10)
 //
 //---------------------------------------------------------------------------
-void Disk::Seek10(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::Seek10(SASIDEV *controller)
 {
 	LOGTRACE( "%s SEEK(10) Command ", __PRETTY_FUNCTION__);
 
-	Seek(controller, ctrl);
+	Seek(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -1801,10 +1802,11 @@ bool Disk::Removal(const DWORD *cdb)
 //	READ CAPACITY
 //
 //---------------------------------------------------------------------------
-void Disk::ReadCapacity10(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::ReadCapacity10(SASIDEV *controller)
 {
 	LOGTRACE( "%s READ CAPACITY(10) Command ", __PRETTY_FUNCTION__);
 
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -1847,10 +1849,11 @@ void Disk::ReadCapacity10(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
 	controller->DataIn();
 }
 
-void Disk::ReadCapacity16(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::ReadCapacity16(SASIDEV *controller)
 {
 	LOGTRACE( "%s READ CAPACITY(16) Command ", __PRETTY_FUNCTION__);
 
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -1902,8 +1905,9 @@ void Disk::ReadCapacity16(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
 //	REPORT LUNS
 //
 //---------------------------------------------------------------------------
-void Disk::ReportLuns(SASIDEV *controller, SASIDEV::ctrl_t *ctrl)
+void Disk::ReportLuns(SASIDEV *controller)
 {
+	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 	BYTE *buf = ctrl->buffer;
 
 	ASSERT(buf);
@@ -1975,7 +1979,7 @@ bool Disk::Verify(const DWORD *cdb)
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void Disk::Reserve6(SASIDEV *controller, SASIDEV::ctrl_t *)
+void Disk::Reserve6(SASIDEV *controller)
 {
 	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
 
@@ -1993,7 +1997,7 @@ void Disk::Reserve6(SASIDEV *controller, SASIDEV::ctrl_t *)
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void Disk::Reserve10(SASIDEV *controller, SASIDEV::ctrl_t *)
+void Disk::Reserve10(SASIDEV *controller)
 {
 	LOGTRACE( "%s Reserve(10) Command", __PRETTY_FUNCTION__);
 
@@ -2011,7 +2015,7 @@ void Disk::Reserve10(SASIDEV *controller, SASIDEV::ctrl_t *)
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void Disk::Release6(SASIDEV *controller, SASIDEV::ctrl_t *)
+void Disk::Release6(SASIDEV *controller)
 {
 	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
 
@@ -2029,7 +2033,7 @@ void Disk::Release6(SASIDEV *controller, SASIDEV::ctrl_t *)
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void Disk::Release10(SASIDEV *controller, SASIDEV::ctrl_t *)
+void Disk::Release10(SASIDEV *controller)
 {
 	LOGTRACE( "%s Release(10) Command", __PRETTY_FUNCTION__);
 

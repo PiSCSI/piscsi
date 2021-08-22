@@ -11,8 +11,9 @@
 
 #pragma once
 
-#include "controllers/sasidev_ctrl.h"
 #include "primary_device.h"
+
+class SASIDEV;
 
 class BlockDevice : public PrimaryDevice
 {
@@ -24,14 +25,14 @@ public:
 	// Mandatory commands
 	virtual bool TestUnitReady(const DWORD *cdb) override = 0;
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override = 0;
-	virtual void ReportLuns(SASIDEV *, SASIDEV::ctrl_t *) override = 0;
+	virtual void ReportLuns(SASIDEV *) override = 0;
 	virtual bool Format(const DWORD *cdb) = 0;
 	// READ(6), READ(10)
 	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 	// WRITE(6), WRITE(10)
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) = 0;
-	virtual void ReadCapacity10(SASIDEV *, SASIDEV::ctrl_t *) = 0;
-	virtual void ReadCapacity16(SASIDEV *, SASIDEV::ctrl_t *) = 0;
+	virtual void ReadCapacity10(SASIDEV *) = 0;
+	virtual void ReadCapacity16(SASIDEV *) = 0;
 	// TODO Uncomment as soon as there is a clean separation between controllers and devices
 	//virtual int Read16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
 	//virtual int Write16(const DWORD *cdb, BYTE *buf, DWORD block) = 0;
