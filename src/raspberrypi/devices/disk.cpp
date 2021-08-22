@@ -469,24 +469,15 @@ void Disk::Read6(SASIDEV *controller)
 		ctrl->blocks = 0x100;
 	}
 
-	// TODO Move Daynaport specific test
-	// TODO This class must not know about SCDP
-	if(IsDaynaPort()){
-		// The DaynaPort only wants one block.
-		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
-		ctrl->blocks=1;
-	}
-	else {
-		// Check capacity
-		DWORD capacity = GetBlockCount();
-		if (record > capacity || record + ctrl->blocks > capacity) {
-			ostringstream s;
-			s << "Media capacity of " << capacity << " blocks exceeded: "
-					<< "Trying to read block " << record << ", block count " << ctrl->blocks;
-			LOGWARN("%s", s.str().c_str());
-			controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
-			return;
-		}
+	// Check capacity
+	DWORD capacity = GetBlockCount();
+	if (record > capacity || record + ctrl->blocks > capacity) {
+		ostringstream s;
+		s << "Media capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to read block " << record << ", block count " << ctrl->blocks;
+		LOGWARN("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return;
 	}
 
 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
@@ -614,12 +605,6 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 void Disk::Write6(SASIDEV *controller)
 {
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
-	// Special receive function for the DaynaPort
-	if (IsDaynaPort()){
-		controller->DaynaPortWrite();
-		return;
-	}
 
 	// Get record number and block number
 	DWORD record = ctrl->cmd[1] & 0x1f;
@@ -1340,7 +1325,7 @@ void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk
 	commands[opcode] = new command_t(name, execute);
 }
 
-bool Disk::Dispatch(SCSIDEV *controller)
+bool Disk::Dispatch(SASIDEV *controller)
 {
 	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
 

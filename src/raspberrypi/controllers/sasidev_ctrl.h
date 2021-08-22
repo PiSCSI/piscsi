@@ -89,6 +89,7 @@ public:
 
 	const int UNKNOWN_SCSI_ID = -1;
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
+	// TODO Remove this duplicate
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
 	// For timing adjustments
@@ -161,8 +162,6 @@ public:
 	void Status();							// Status phase
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
-
-	void DaynaPortWrite();					// DaynaPort specific 'write' operation
 
 	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling

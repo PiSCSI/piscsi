@@ -836,14 +836,6 @@ void SASIDEV::CmdRead6()
 		ctrl.blocks = 0x100;
 	}
 
-	// TODO Move Daynaport specific test
-	// TODO This class must not know about SCDP
-	if(ctrl.device->IsDaynaPort()){
-		// The DaynaPort only wants one block.
-		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
-		ctrl.blocks=1;
-	}
-
 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Command processing on drive
@@ -851,7 +843,7 @@ void SASIDEV::CmdRead6()
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 
 	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
-	if (ctrl.length <= 0 && !ctrl.device->IsDaynaPort()) {
+	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
 		return;
@@ -866,67 +858,11 @@ void SASIDEV::CmdRead6()
 
 //---------------------------------------------------------------------------
 //
-//  This Send Message command is used by the DaynaPort SCSI/Link
-// TODO This class must not know about SCDP
-//
-//---------------------------------------------------------------------------
-void SASIDEV::DaynaPortWrite()
-{
-	// Error if not a DaynaPort device
-	if (!ctrl.device->IsDaynaPort()) {
-		LOGERROR("Received DaynaPortWrite for a non-DaynaPort device");
-		Error();
-		return;
-	}
-
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl.bufsize < DAYNAPORT_BUFFER_SIZE) {
-		free(ctrl.buffer);
-		ctrl.bufsize = DAYNAPORT_BUFFER_SIZE;
-		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
-	}
-
-	DWORD data_format = ctrl.cmd[5];
-
-	if(data_format == 0x00){
-		ctrl.length = (WORD)ctrl.cmd[4] + ((WORD)ctrl.cmd[3] << 8);
-	}
-	else if (data_format == 0x80){
-		ctrl.length = (WORD)ctrl.cmd[4] + ((WORD)ctrl.cmd[3] << 8) + 8;
-	}
-	else
-	{
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-	}
-	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.length, (int)ctrl.length, (unsigned int)data_format);
-
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.blocks = 1;
-	ctrl.next = 1;
-
-	// Light phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
 //	WRITE(6)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::CmdWrite6()
 {
-	// Special receive function for the DaynaPort
-	if (ctrl.device->IsDaynaPort()){
-		DaynaPortWrite();
-		return;
-	}
-
 	// Get record number and block number
 	DWORD record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
@@ -1308,7 +1244,7 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Special case Write function for DaynaPort
-			// TODO This class must not know about SCSIDP
+			// TODO This class must not know about DaynaPort
 			if (device->IsDaynaPort()) {
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
 				if (!(SCSIDaynaPort*)device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {

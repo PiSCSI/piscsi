@@ -82,12 +82,17 @@ public:
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
 
+	void CmdRead6(SASIDEV *);
+	void CmdWrite6(SASIDEV *);
 	void CmdRetrieveStats(SASIDEV *);
 	void CmdSetIfaceMode(SASIDEV *);
 	void CmdSetMcastAddr(SASIDEV *);
 	void CmdEnableInterface(SASIDEV *);
+	void CmdGetEventStatusNotification(SASIDEV *);
 
-	bool Dispatch(SCSIDEV *);
+	bool Dispatch(SASIDEV *);
+
+	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
 	static const BYTE CMD_SCSILINK_STATS        = 0x09;
 	static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;

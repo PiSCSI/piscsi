@@ -85,15 +85,6 @@ public:
 		BYTE msb[256];
 	} scsi_t;
 
-	// SCSI command name and pointer to implementation
-	typedef struct _controller_command_t {
-		const char* name;
-		void (SCSIDEV::*execute)(void);
-
-		_controller_command_t(const char* _name, void (SCSIDEV::*_execute)(void)) : name(_name), execute(_execute) { };
-	} controller_command_t;
-	std::map<scsi_command, controller_command_t*> controller_commands;
-
 public:
 	// Basic Functions
 	SCSIDEV();
@@ -115,7 +106,6 @@ public:
 	void CmdSendMessage10();					// SEND MESSAGE(10) command
 
 private:
-	void SetUpControllerCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
 
 	// Phase
 	void BusFree();						// Bus free phase
@@ -124,10 +114,6 @@ private:
 	void MsgOut();							// Message out phase
 
 	// commands
-	void CmdReadToc();						// READ TOC command
-	void CmdPlayAudio10();						// PLAY AUDIO(10) command
-	void CmdPlayAudioMSF();					// PLAY AUDIO MSF command
-	void CmdPlayAudioTrack();					// PLAY AUDIO TRACK INDEX command
 	void CmdGetEventStatusNotification();
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command

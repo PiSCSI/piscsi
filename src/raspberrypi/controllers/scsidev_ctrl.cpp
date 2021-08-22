@@ -41,25 +41,10 @@ SCSIDEV::SCSIDEV() : SASIDEV()
 	scsi.atnmsg = FALSE;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
-
-	// MMC specific. TODO Move to separate class
-	SetUpControllerCommand(eCmdReadToc, "CmdReadToc", &SCSIDEV::CmdReadToc);
-	SetUpControllerCommand(eCmdPlayAudio10, "CmdPlayAudio10", &SCSIDEV::CmdPlayAudio10);
-	SetUpControllerCommand(eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSIDEV::CmdPlayAudioMSF);
-	SetUpControllerCommand(eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSIDEV::CmdPlayAudioTrack);
-	SetUpControllerCommand(eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDEV::CmdGetEventStatusNotification);
 }
 
 SCSIDEV::~SCSIDEV()
 {
-	for (auto const& command : controller_commands) {
-		free(command.second);
-	}
-}
-
-void SCSIDEV::SetUpControllerCommand(scsi_command opcode, const char* name, void (SCSIDEV::*execute)(void))
-{
-	controller_commands[opcode] = new controller_command_t(name, execute);
 }
 
 //---------------------------------------------------------------------------
@@ -257,23 +242,7 @@ void SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	ctrl.device = ctrl.unit[GetLun()];
-
-	if (ctrl.device->Dispatch(this)) {
-		return;
-	}
-
-	// If the command is valid it must be contained in the command map
-	if (!controller_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
-		CmdInvalid();
-		return;
-	}
-
-	controller_command_t* command = controller_commands[static_cast<scsi_command>(ctrl.cmd[0])];
-
-	LOGDEBUG("++++ CMD ++++ %s ID %d received %s ($%02X)", __PRETTY_FUNCTION__, GetSCSIID(), command->name, (unsigned int)ctrl.cmd[0]);
-
-	// Process by command
-	(this->*command->execute)();
+	ctrl.device->Dispatch(this);
 }
 
 //---------------------------------------------------------------------------
@@ -364,99 +333,6 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 
 	// status phase
 	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	Command
-//
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-//
-//	READ TOC
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdReadToc()
-{
-	// Command processing on drive
-	ctrl.length = ctrl.device->ReadToc(ctrl.cmd, ctrl.buffer);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO(10)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdPlayAudio10()
-{
-	// Command processing on drive
-	bool status = ctrl.device->PlayAudio(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO MSF
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdPlayAudioMSF()
-{
-	// Command processing on drive
-	bool status = ctrl.device->PlayAudioMSF(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO TRACK
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdPlayAudioTrack()
-{
-	// Command processing on drive
-	bool status = ctrl.device->PlayAudioTrack(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	GET EVENT STATUS NOTIFICATION
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdGetEventStatusNotification()
-{
-	// This naive (but legal) implementation avoids constant warnings in the logs
-	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------
