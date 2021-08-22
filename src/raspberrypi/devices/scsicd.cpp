@@ -229,7 +229,7 @@ SCSICD::SCSICD() : Disk("SCCD")
 	SetRemovable(true);
 	SetReadOnly(true);
 
-	SetProduct("CD-ROM CDU-55S");
+	SetProduct("CD-ROM");
 
 	// NOT in raw format
 	rawfile = FALSE;
