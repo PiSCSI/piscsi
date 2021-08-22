@@ -27,6 +27,7 @@
 #include "controllers/sasidev_ctrl.h"
 #include "controllers/scsidev_ctrl.h"
 #include "exceptions.h"
+#include "scsi_host_bridge.h"
 #include "disk.h"
 #include <sstream>
 
@@ -478,7 +479,7 @@ void Disk::Read10(SASIDEV *controller)
 	// TODO Move to subclass
 	// Receive message if host bridge
 	if (IsBridge()) {
-		((SCSIDEV *)controller)->CmdGetMessage10();
+		CmdGetMessage10(controller);
 		return;
 	}
 
@@ -614,9 +615,9 @@ void Disk::Write6(SASIDEV *controller)
 void Disk::Write10(SASIDEV *controller)
 {
 	// TODO Move to subclass
-	// Receive message with host bridge
+	// Send message with host bridge
 	if (ctrl->device->IsBridge()) {
-		((SCSIDEV *)controller)->CmdSendMessage10();
+		CmdSendMessage10(controller);
 		return;
 	}
 
@@ -661,6 +662,74 @@ void Disk::Write16(SASIDEV *controller)
 
 	// Set next block
 	ctrl->next = record + 1;
+
+	// Data out phase
+	controller->DataOut();
+}
+
+//---------------------------------------------------------------------------
+//
+//	GET MESSAGE(10)
+//
+//---------------------------------------------------------------------------
+void Disk::CmdGetMessage10(SASIDEV *controller)
+{
+	// Reallocate buffer (because it is not transfer for each block)
+	if (ctrl->bufsize < 0x1000000) {
+		free(ctrl->buffer);
+		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+	}
+
+	// TODO Move code to subclass
+	ctrl->length = ((SCSIBR*)ctrl->device)->SendMessage10(ctrl->cmd, ctrl->buffer);
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	// Data in phase
+	controller->DataIn();
+}
+
+//---------------------------------------------------------------------------
+//
+//	SEND MESSAGE(10)
+//
+//  This Send Message command is used by the X68000 host driver
+//
+//---------------------------------------------------------------------------
+void Disk::CmdSendMessage10(SASIDEV *controller)
+{
+	// Reallocate buffer (because it is not transfer for each block)
+	if (ctrl->bufsize < 0x1000000) {
+		free(ctrl->buffer);
+		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+	}
+
+	// Set transfer amount
+	ctrl->length = ctrl->cmd[6];
+	ctrl->length <<= 8;
+	ctrl->length |= ctrl->cmd[7];
+	ctrl->length <<= 8;
+	ctrl->length |= ctrl->cmd[8];
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
 
 	// Data out phase
 	controller->DataOut();

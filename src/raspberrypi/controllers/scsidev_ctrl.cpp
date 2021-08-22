@@ -16,7 +16,6 @@
 #include "log.h"
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
-#include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
 #include "exceptions.h"
 #include <sstream>
@@ -360,91 +359,6 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 
 	// status phase
 	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	GET MESSAGE(10)
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdGetMessage10()
-{
-	// TODO Move bridge specific test
-	// Error if not a host bridge
-	if (!ctrl.device->IsBridge()) {
-		LOGWARN("Received a GetMessage10 command for a non-bridge unit");
-		Error();
-		return;
-	}
-
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl.bufsize < 0x1000000) {
-		free(ctrl.buffer);
-		ctrl.bufsize = 0x1000000;
-		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
-	}
-
-	// Process with drive
-	SCSIBR *bridge = (SCSIBR*)ctrl.device;
-	ctrl.length = bridge->GetMessage10(ctrl.cmd, ctrl.buffer);
-
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.blocks = 1;
-	ctrl.next = 1;
-
-	// Data in phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SEND MESSAGE(10)
-//
-//  This Send Message command is used by the X68000 host driver
-//
-//---------------------------------------------------------------------------
-void SCSIDEV::CmdSendMessage10()
-{
-	// TODO Move bridge specific test
-	// Error if not a host bridge
-	if (!ctrl.device->IsBridge()) {
-		LOGERROR("Received CmdSendMessage10 for a non-bridge device");
-		Error();
-		return;
-	}
-
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl.bufsize < 0x1000000) {
-		free(ctrl.buffer);
-		ctrl.bufsize = 0x1000000;
-		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
-	}
-
-	// Set transfer amount
-	ctrl.length = ctrl.cmd[6];
-	ctrl.length <<= 8;
-	ctrl.length |= ctrl.cmd[7];
-	ctrl.length <<= 8;
-	ctrl.length |= ctrl.cmd[8];
-
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.blocks = 1;
-	ctrl.next = 1;
-
-	// Light phase
-	DataOut();
 }
 
 //===========================================================================
