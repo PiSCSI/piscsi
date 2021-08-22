@@ -305,12 +305,7 @@ void SCSIDEV::Execute()
 	ctrl.blocks = 1;
 	ctrl.execstart = SysTimer::GetTimerLow();
 
-	ctrl.device = NULL;
-
-	// INQUIRY requires a special LUN handling
-	if (ctrl.cmd[0] != eCmdInquiry) {
-		ctrl.device = ctrl.unit[GetLun()];
-	}
+	ctrl.device = ctrl.unit[GetLun()];
 
 	if (device_commands.count(static_cast<scsi_command>(ctrl.cmd[0]))) {
 		device_command_t *command = device_commands[static_cast<scsi_command>(ctrl.cmd[0])];
