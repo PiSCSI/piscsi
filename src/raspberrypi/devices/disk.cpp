@@ -355,7 +355,6 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 
 void Disk::TestUnitReady(SASIDEV *controller)
 {
-	// Command processing on drive
 	bool status = TestUnitReady(ctrl->cmd);
 	if (!status) {
 		// Failure (Error)
@@ -408,7 +407,6 @@ void Disk::RequestSense(SASIDEV *controller)
 
 void Disk::Format(SASIDEV *controller)
 {
-	// Command processing on drive
 	bool status = Format(ctrl->cmd);
 	if (!status) {
 		// Failure (Error)
@@ -422,7 +420,6 @@ void Disk::Format(SASIDEV *controller)
 
 void Disk::ReassignBlocks(SASIDEV *controller)
 {
-	// Command processing on drive
 	bool status = Reassign(ctrl->cmd);
 	if (!status) {
 		// Failure (Error)
@@ -460,7 +457,6 @@ void Disk::Read6(SASIDEV *controller)
 
 	LOGDEBUG("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
 
-	// Command processing on drive
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
@@ -601,7 +597,6 @@ void Disk::Write6(SASIDEV *controller)
 
 	LOGDEBUG("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl->blocks);
 
-	// Command processing on drive
 	ctrl->length = WriteCheck(record);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
@@ -718,7 +713,6 @@ void Disk::Inquiry(SASIDEV *controller)
 		}
 	}
 
-	// Processed on the disk side (it is originally processed by the controller)
 	if (device) {
 		ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
 	} else {
@@ -743,7 +737,6 @@ void Disk::Inquiry(SASIDEV *controller)
 
 void Disk::ModeSelect(SASIDEV *controller)
 {
-	// Command processing on drive
 	ctrl->length = SelectCheck(ctrl->cmd);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
@@ -757,7 +750,6 @@ void Disk::ModeSelect(SASIDEV *controller)
 
 void Disk::ModeSelect10(SASIDEV *controller)
 {
-	// Command processing on drive
 	ctrl->length = SelectCheck10(ctrl->cmd);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
@@ -771,7 +763,6 @@ void Disk::ModeSelect10(SASIDEV *controller)
 
 void Disk::ModeSense(SASIDEV *controller)
 {
-	// Command processing on drive
 	ctrl->length = ModeSense(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length >= 0);
 	if (ctrl->length == 0) {
@@ -788,7 +779,6 @@ void Disk::ModeSense(SASIDEV *controller)
 
 void Disk::ModeSense10(SASIDEV *controller)
 {
-	// Command processing on drive
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length >= 0);
 	if (ctrl->length == 0) {
@@ -805,7 +795,6 @@ void Disk::ModeSense10(SASIDEV *controller)
 
 void Disk::StartStopUnit(SASIDEV *controller)
 {
-	// Command processing on drive
 	bool status = StartStop(ctrl->cmd);
 	if (!status) {
 		// Failure (Error)
@@ -819,7 +808,6 @@ void Disk::StartStopUnit(SASIDEV *controller)
 
 void Disk::SendDiagnostic(SASIDEV *controller)
 {
-	// Command processing on drive
 	bool status = SendDiag(ctrl->cmd);
 	if (!status) {
 		// Failure (Error)
@@ -833,7 +821,6 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 
 void Disk::PreventAllowRemoval(SASIDEV *controller)
 {
-	// Command processing on drive
 	bool status = Removal(ctrl->cmd);
 	if (!status) {
 		// Failure (Error)
@@ -855,7 +842,6 @@ void Disk::SynchronizeCache(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
-	// Command processing on drive
 	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length >= 0);
 
