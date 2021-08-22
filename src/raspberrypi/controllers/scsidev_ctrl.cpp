@@ -252,6 +252,9 @@ void SCSIDEV::Execute()
 	catch (const lun_exception& e) {
 		LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
 
+		// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
+		ctrl.buffer[0] = 0x7f;
+
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 		return;
 	}
@@ -662,6 +665,9 @@ void SCSIDEV::Receive()
 			}
 			catch (const lun_exception& e) {
 				LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
+
+				// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
+				ctrl.buffer[0] = 0x7f;
 
 				Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 			}
