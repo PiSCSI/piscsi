@@ -249,7 +249,7 @@ void SCSIDEV::Execute()
 	try {
 		// TODO Verify LUN handling
 		if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
-			// Use LUN0 for INQUIRY because LUN0 is assumbed to be always available
+			// Use LUN0 for INQUIRY because LUN0 is assumed to be always available
 			ctrl.device = ctrl.unit[0];
 		}
 		else {
