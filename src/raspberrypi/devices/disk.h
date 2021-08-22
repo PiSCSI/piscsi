@@ -248,6 +248,7 @@ protected:
 
 	// Internal data
 	disk_t disk;								// Internal disk data
+	BOOL cache_wb;								// Cache mode
 
 private:
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (Disk::*)(SASIDEV *));
