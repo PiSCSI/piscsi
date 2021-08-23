@@ -47,6 +47,4 @@ public:
 	virtual void StartStopUnit(SASIDEV *) = 0;
 	virtual void SynchronizeCache10(SASIDEV *) = 0;
 	virtual void SynchronizeCache16(SASIDEV *) = 0;
-
-	// TODO Add the other optional commands currently implemented
 };
