@@ -428,16 +428,13 @@ void Disk::ReassignBlocks(SASIDEV *controller)
 	controller->Status();
 }
 
-void Disk::Read6(SASIDEV *controller)
+//---------------------------------------------------------------------------
+//
+//	READ
+//
+//---------------------------------------------------------------------------
+void Disk::Read(SASIDEV *controller, uint64_t record)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
-		return;
-	}
-
-	LOGDEBUG("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
-
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
@@ -450,56 +447,40 @@ void Disk::Read6(SASIDEV *controller)
 	// Set next block
 	ctrl->next = record + 1;
 
-	// Read phase
 	controller->DataIn();
+}
+
+void Disk::Read6(SASIDEV *controller)
+{
+	// Get record number and block number
+	uint64_t record;
+	if (GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
+		LOGDEBUG("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+		Read(controller, record);
+	}
 }
 
 void Disk::Read10(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		return;
+	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+		Read(controller, record);
 	}
-
-	LOGDEBUG("%s READ(10) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
-
-	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
-
-	// Set next block
-	ctrl->next = record + 1;
-
-	// Data-in Phase
-	controller->DataIn();
 }
 
 void Disk::Read16(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		return;
+	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+		Read(controller, record);
 	}
-
-	LOGDEBUG("%s READ(16) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
-
-	ctrl->length = ctrl->device->Read(ctrl->cmd, ctrl->buffer, record);
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
-
-	// Set next block
-	ctrl->next = record + 1;
-
-	// Data-in Phase
-	controller->DataIn();
 }
 
 //---------------------------------------------------------------------------
@@ -545,16 +526,13 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 	return TRUE;
 }
 
-void Disk::Write6(SASIDEV *controller)
+//---------------------------------------------------------------------------
+//
+//	WRITE
+//
+//---------------------------------------------------------------------------
+void Disk::Write(SASIDEV *controller, uint64_t record)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
-		return;
-	}
-
-	LOGDEBUG("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl->blocks);
-
 	ctrl->length = WriteCheck(record);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
@@ -565,56 +543,40 @@ void Disk::Write6(SASIDEV *controller)
 	// Set next block
 	ctrl->next = record + 1;
 
-	// Write phase
 	controller->DataOut();
+}
+
+void Disk::Write6(SASIDEV *controller)
+{
+	// Get record number and block number
+	uint64_t record;
+	if (GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
+		LOGDEBUG("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl->blocks);
+
+		Write(controller, record);
+	}
 }
 
 void Disk::Write10(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		return;
+	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
+
+		Write(controller, record);
 	}
-
-	LOGDEBUG("%s WRITE(10) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
-
-	ctrl->length = WriteCheck(record);
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
-		return;
-	}
-
-	// Set next block
-	ctrl->next = record + 1;
-
-	// Data out phase
-	controller->DataOut();
 }
 
 void Disk::Write16(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		return;
+	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
+
+		Write(controller, record);
 	}
-
-	LOGDEBUG("%s WRITE(16) command record=%d blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (unsigned int)ctrl->blocks);
-
-	ctrl->length = WriteCheck(record);
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
-		return;
-	}
-
-	// Set next block
-	ctrl->next = record + 1;
-
-	// Data out phase
-	controller->DataOut();
 }
 
 //---------------------------------------------------------------------------
@@ -649,22 +611,22 @@ void Disk::Verify10(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	GetStartAndCount(controller, record, ctrl->blocks, RW10);
+	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s VERIFY(10) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
 
-	LOGDEBUG("%s VERIFY(10) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
-
-	Verify(controller, record);
+		Verify(controller, record);
+	}
 }
 
 void Disk::Verify16(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	GetStartAndCount(controller, record, ctrl->blocks, RW16);
+	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s VERIFY(16) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
 
-	LOGDEBUG("%s VERIFY(16) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
-
-	Verify(controller, record);
+		Verify(controller, record);
+	}
 }
 
 void Disk::Inquiry(SASIDEV *controller)

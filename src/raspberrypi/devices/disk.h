@@ -188,7 +188,6 @@ public:
 	virtual void Write6(SASIDEV *);
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
-	void Verify(SASIDEV *, uint64_t);
 	void Verify10(SASIDEV *) override;
 	void Verify16(SASIDEV *) override;
 	void Seek(SASIDEV *);
@@ -253,6 +252,9 @@ protected:
 	disk_t disk;								// Internal disk data
 
 private:
+	void Read(SASIDEV *, uint64_t);
+	void Write(SASIDEV *, uint64_t);
+	void Verify(SASIDEV *, uint64_t);
 	bool Format(const DWORD *cdb);					// FORMAT UNIT command
 	int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
 };
