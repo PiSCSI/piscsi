@@ -200,7 +200,7 @@ void CommandServerInfo(const string& hostname, int port)
 
 		cout << "Image files available in the default folder:" << endl;
 		for (auto it = sorted_files.begin(); it != sorted_files.end(); ++it) {
-			cout << "  " << (*it).name() << " (" << (*it).size() << " bytes)" << ((*it).read_only() ? ", read only": "")
+			cout << "  " << (*it).name() << " (" << (*it).size() << " bytes)" << ((*it).read_only() ? ", read-only": "")
 					<< endl;
 		}
 	}
