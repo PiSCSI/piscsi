@@ -720,6 +720,8 @@ void Disk::Inquiry(SASIDEV *controller)
 
 void Disk::ModeSelect(SASIDEV *controller)
 {
+	LOGTRACE("MODE SELECT for unsupported page %d", ctrl->buffer[0]);
+
 	ctrl->length = SelectCheck(ctrl->cmd);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
@@ -733,6 +735,8 @@ void Disk::ModeSelect(SASIDEV *controller)
 
 void Disk::ModeSelect10(SASIDEV *controller)
 {
+	LOGTRACE("MODE SELECT (10) for unsupported page %d", ctrl->buffer[0]);
+
 	ctrl->length = SelectCheck10(ctrl->cmd);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
@@ -1388,7 +1392,6 @@ int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT check
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int Disk::SelectCheck(const DWORD *cdb)
@@ -1409,11 +1412,9 @@ int Disk::SelectCheck(const DWORD *cdb)
 	return length;
 }
 
-
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT(10) check
-//	* Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int Disk::SelectCheck10(const DWORD *cdb)
@@ -1442,7 +1443,6 @@ int Disk::SelectCheck10(const DWORD *cdb)
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	* Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
@@ -1459,7 +1459,6 @@ bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 //---------------------------------------------------------------------------
 //
 //	MODE SENSE
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
@@ -1586,7 +1585,6 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	MODE SENSE(10)
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
@@ -1922,7 +1920,6 @@ int Disk::AddVendor(int /*page*/, bool /*change*/, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	READ DEFECT DATA(10)
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)

@@ -147,12 +147,10 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int page;
 	int size;
 
 	ASSERT(buf);
@@ -177,7 +175,7 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Parsing the page
 		while (length > 0) {
 			// Get the page
-			page = buf[0];
+			int page = buf[0];
 
 			switch (page) {
 				// format device
