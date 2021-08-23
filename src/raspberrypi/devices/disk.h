@@ -248,7 +248,7 @@ protected:
 	int AddCDROM(bool change, BYTE *buf);				// Add CD-ROM
 	int AddCDDA(bool, BYTE *buf);				// Add CD_DA
 	virtual int AddVendor(int page, bool change, BYTE *buf);	// Add vendor special info
-	BOOL CheckReady();						// Check if ready
+	bool CheckReady();						// Check if ready
 
 	// Internal data
 	disk_t disk;								// Internal disk data

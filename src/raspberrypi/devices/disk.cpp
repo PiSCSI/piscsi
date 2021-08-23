@@ -1313,14 +1313,14 @@ bool Disk::Flush()
 //	Check Ready
 //
 //---------------------------------------------------------------------------
-BOOL Disk::CheckReady()
+bool Disk::CheckReady()
 {
 	// Not ready if reset
 	if (IsReset()) {
 		SetStatusCode(STATUS_DEVRESET);
 		SetReset(false);
 		LOGDEBUG("%s Disk in reset", __PRETTY_FUNCTION__);
-		return FALSE;
+		return false;
 	}
 
 	// Not ready if it needs attention
@@ -1328,20 +1328,20 @@ BOOL Disk::CheckReady()
 		SetStatusCode(STATUS_ATTENTION);
 		SetAttn(false);
 		LOGDEBUG("%s Disk in needs attention", __PRETTY_FUNCTION__);
-		return FALSE;
+		return false;
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
 		LOGDEBUG("%s Disk not ready", __PRETTY_FUNCTION__);
-		return FALSE;
+		return false;
 	}
 
 	// Initialization with no error
 	LOGDEBUG("%s Disk is ready!", __PRETTY_FUNCTION__);
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
