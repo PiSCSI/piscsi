@@ -149,34 +149,34 @@ void SCSIDaynaPort::Open(const Filepath& path)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
+int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	// scsi_cdb_6_byte_t command;
-	// memcpy(&command,cdb,sizeof(command));
-
 	ASSERT(cdb);
-	ASSERT(buffer);
+	ASSERT(buf);
 
-	//allocation_length = command->length;
 	DWORD allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-	// if(allocation_length != command.length){
-	// 	LOGDEBUG("%s CDB: %02X %02X %02X %02X %02X %02X", __PRETTY_FUNCTION__, (unsigned int)cdb[0], (unsigned int)cdb[1], (unsigned int)cdb[2], (unsigned int)cdb[3], (unsigned int)cdb[4], (unsigned int)cdb[5] );
-	// 	LOGWARN(":::::::::: Expected allocation length %04X but found %04X", (unsigned int)allocation_length, (unsigned int)command.length);
-	// 	LOGWARN(":::::::::: Doing runtime pointer conversion: %04X", ((scsi_cdb_6_byte_t*)cdb)->length);
-	// }
 
 	LOGTRACE("%s Inquiry, allocation length: %d",__PRETTY_FUNCTION__, (int)allocation_length);
 
 	if (allocation_length > 4){
-		if (allocation_length > sizeof(m_daynaport_inquiry_response)) {
-			allocation_length = sizeof(m_daynaport_inquiry_response);
+		if (allocation_length > 44) {
+			allocation_length = 44;
 		}
 
-		// Copy the pre-canned response
-		memcpy(buffer, m_daynaport_inquiry_response, allocation_length);
+		// Basic data
+		// buf[0] ... Processor Device
+		// buf[1] ... Not removable
+		// buf[2] ... SCSI-2 compliant command system
+		// buf[3] ... SCSI-2 compliant Inquiry response
+		// buf[4] ... Inquiry additional data
+		//http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
+		memset(buf, 0, allocation_length);
+		buf[0] = 0x03;
+		buf[2] = 0x01;
+		buf[4] = 0x1F;
 
 		// Padded vendor, product, revision
-		memcpy(&buffer[8], GetPaddedName().c_str(), 28);
+		memcpy(&buf[8], GetPaddedName().c_str(), 28);
 	}
 
 	LOGTRACE("response size is %d", (int)allocation_length);

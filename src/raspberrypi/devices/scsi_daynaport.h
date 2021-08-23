@@ -172,28 +172,6 @@ private:
 
 	const BYTE m_daynacom_mac_prefix[3] = {0x00,0x80,0x19};
 
-
-	// Basic data
-	// buf[0] ... Processor Device
-	// buf[1] ... Not removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	//http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
-	const uint8_t m_daynaport_inquiry_response[44] =  {
-		0x03, 0x00, 0x01, 0x00, // 4 bytes
-		0x1F, 0x00, 0x00, 0x00, // 4 bytes
-		// Vendor ID (8 Bytes)
-		 'D','a','y','n','a',' ',' ',' ',
-		// Product ID (16 Bytes)
-		'S','C','S','I','/','L','i','n',
-		'k',' ',' ',' ',' ',' ',' ',' ',
-		// Revision Number (4 Bytes)
-		'1','.','4','a',
-		// Firmware Version (8 Bytes)
-		0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
-	};
-
 	CTapDriver *m_tap;
 										// TAP driver
 	BOOL m_bTapEnable;
