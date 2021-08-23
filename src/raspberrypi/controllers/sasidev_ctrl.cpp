@@ -701,13 +701,7 @@ void SASIDEV::CmdRequestSense()
 	}
 
 	// Command processing on drive
-    ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
-	ASSERT(ctrl.length > 0);
-
-    LOGTRACE("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl.buffer[2], ctrl.buffer[12]);
-
-	// Read phase
-	DataIn();
+    ctrl.unit[lun]->RequestSense(this);
 }
 
 //---------------------------------------------------------------------------
