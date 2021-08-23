@@ -87,8 +87,8 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 
 	AddCommand(SCSIDEV::eCmdRead6, "CmdRead6", &SCSIDaynaPort::CmdRead6);
 	AddCommand(SCSIDEV::eCmdWrite6, "CmdWrite6", &SCSIDaynaPort::CmdWrite6);
-	AddCommand(SCSIDEV::eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDaynaPort::CmdRetrieveStats);
-	AddCommand(SCSIDEV::eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDaynaPort::CmdSetIfaceMode);
+	AddCommand(SCSIDEV::eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDaynaPort::CmdRetrieveStatistics);
+	AddCommand(SCSIDEV::eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDaynaPort::CmdSetInterfaceMode);
 	AddCommand(SCSIDEV::eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDaynaPort::CmdSetMcastAddr);
 	AddCommand(SCSIDEV::eCmdEnableInterface, "CmdEnableInterface", &SCSIDaynaPort::CmdEnableInterface);
 	AddCommand(SCSIDEV::eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDaynaPort::CmdGetEventStatusNotification);
@@ -154,9 +154,9 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 	ASSERT(cdb);
 	ASSERT(buf);
 
-	DWORD allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 
-	LOGTRACE("%s Inquiry, allocation length: %d",__PRETTY_FUNCTION__, (int)allocation_length);
+	LOGTRACE("%s Inquiry, allocation length: %d",__PRETTY_FUNCTION__, allocation_length);
 
 	if (allocation_length > 4){
 		if (allocation_length > 44) {
@@ -169,7 +169,7 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 		// buf[2] ... SCSI-2 compliant command system
 		// buf[3] ... SCSI-2 compliant Inquiry response
 		// buf[4] ... Inquiry additional data
-		//http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
+		// http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
 		memset(buf, 0, allocation_length);
 		buf[0] = 0x03;
 		buf[2] = 0x01;
@@ -179,7 +179,7 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 		memcpy(&buf[8], GetPaddedName().c_str(), 28);
 	}
 
-	LOGTRACE("response size is %d", (int)allocation_length);
+	LOGTRACE("response size is %d", allocation_length);
 
 	return allocation_length;
 }
@@ -187,6 +187,32 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	READ
+//
+//   Command:  08 00 00 LL LL XX (LLLL is data length, XX = c0 or 80)
+//   Function: Read a packet at a time from the device (standard SCSI Read)
+//   Type:     Input; the following data is returned:
+//             LL LL NN NN NN NN XX XX XX ... CC CC CC CC
+//   where:
+//             LLLL      is normally the length of the packet (a 2-byte
+//                       big-endian hex value), including 4 trailing bytes
+//                       of CRC, but excluding itself and the flag field.
+//                       See below for special values
+//             NNNNNNNN  is a 4-byte flag field with the following meanings:
+//                       FFFFFFFF  a packet has been dropped (?); in this case
+//                                 the length field appears to be always 4000
+//                       00000010  there are more packets currently available
+//                                 in SCSI/Link memory
+//                       00000000  this is the last packet
+//             XX XX ... is the actual packet
+//             CCCCCCCC  is the CRC
+//
+//   Notes:
+//    - When all packets have been retrieved successfully, a length field
+//      of 0000 is returned; however, if a packet has been dropped, the
+//      SCSI/Link will instead return a non-zero length field with a flag
+//      of FFFFFFFF when there are no more packets available.  This behaviour
+//      seems to continue until a disable/enable sequence has been issued.
+//    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
 int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
@@ -350,6 +376,19 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //
 //  Write
 //
+//   Command:  0a 00 00 LL LL XX (LLLL is data length, XX = 80 or 00)
+//   Function: Write a packet at a time to the device (standard SCSI Write)
+//   Type:     Output; the format of the data to be sent depends on the value
+//             of XX, as follows:
+//              - if XX = 00, LLLL is the packet length, and the data to be sent
+//                must be an image of the data packet
+//              - if XX = 80, LLLL is the packet length + 8, and the data to be
+//                sent is:
+//                  PP PP 00 00 XX XX XX ... 00 00 00 00
+//                where:
+//                  PPPP      is the actual (2-byte big-endian) packet length
+//               XX XX ... is the actual packet
+//
 //---------------------------------------------------------------------------
 bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
@@ -390,6 +429,17 @@ bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 //---------------------------------------------------------------------------
 //
 //	RetrieveStats
+//
+//   Command:  09 00 00 00 12 00
+//   Function: Retrieve MAC address and device statistics
+//   Type:     Input; returns 18 (decimal) bytes of data as follows:
+//              - bytes 0-5:  the current hardware ethernet (MAC) address
+//              - bytes 6-17: three long word (4-byte) counters (little-endian).
+//   Notes:    The contents of the three longs are typically zero, and their
+//             usage is unclear; they are suspected to be:
+//              - long #1: frame alignment errors
+//              - long #2: CRC errors
+//              - long #3: frames lost
 //
 //---------------------------------------------------------------------------
 int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
@@ -470,6 +520,13 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 //---------------------------------------------------------------------------
 //
 //	Enable or Disable the interface
+//
+//  Command:  0e 00 00 00 00 XX (XX = 80 or 00)
+//  Function: Enable (80) / disable (00) Ethernet interface
+//  Type:     No data transferred
+//  Notes:    After issuing an Enable, the initiator should avoid sending
+//            any subsequent commands to the device for approximately 0.5
+//            seconds
 //
 //---------------------------------------------------------------------------
 bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
@@ -563,7 +620,7 @@ void SCSIDaynaPort::CmdWrite6(SASIDEV *controller)
 	controller->DataOut();
 }
 
-void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
+void SCSIDaynaPort::CmdRetrieveStatistics(SASIDEV *controller)
 {
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
@@ -580,7 +637,33 @@ void SCSIDaynaPort::CmdRetrieveStats(SASIDEV *controller)
 	controller->DataIn();
 }
 
-void SCSIDaynaPort::CmdSetIfaceMode(SASIDEV *controller)
+//---------------------------------------------------------------------------
+//
+//	Set interface mode/Set MAC address
+//
+//   Set Interface Mode (0c)
+//   -----------------------
+//   Command:  0c 00 00 00 FF 80 (FF = 08 or 04)
+//   Function: Allow interface to receive broadcast messages (FF = 04); the
+//             function of (FF = 08) is currently unknown.
+//   Type:     No data transferred
+//   Notes:    This command is accepted by firmware 1.4a & 2.0f, but has no
+//             effect on 2.0f, which is always capable of receiving broadcast
+//             messages.  In 1.4a, once broadcast mode is set, it remains set
+//             until the interface is disabled.
+//
+//   Set MAC Address (0c)
+//   --------------------
+//   Command:  0c 00 00 00 FF 40 (FF = 08 or 04)
+//   Function: Set MAC address
+//   Type:     Output; overrides built-in MAC address with user-specified
+//             6-byte value
+//   Notes:    This command is intended primarily for debugging/test purposes.
+//             Disabling the interface resets the MAC address to the built-in
+//             value.
+//
+//---------------------------------------------------------------------------
+void SCSIDaynaPort::CmdSetInterfaceMode(SASIDEV *controller)
 {
 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
 
@@ -591,13 +674,16 @@ void SCSIDaynaPort::CmdSetIfaceMode(SASIDEV *controller)
 			controller->Status();
 			break;
 		break;
+
 		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
 			ctrl->length = 6;
 			// Write phase
 			controller->DataOut();
 			break;
+
 		default:
 			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[5]);
+			break;
 	}
 }
 

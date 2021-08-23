@@ -88,8 +88,8 @@ public:
 
 	void CmdRead6(SASIDEV *);
 	void CmdWrite6(SASIDEV *);
-	void CmdRetrieveStats(SASIDEV *);
-	void CmdSetIfaceMode(SASIDEV *);
+	void CmdRetrieveStatistics(SASIDEV *);
+	void CmdSetInterfaceMode(SASIDEV *);
 	void CmdSetMcastAddr(SASIDEV *);
 	void CmdEnableInterface(SASIDEV *);
 	void CmdGetEventStatusNotification(SASIDEV *);
