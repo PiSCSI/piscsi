@@ -192,15 +192,16 @@ void CommandServerInfo(const string& hostname, int port)
 		cout << "  No image files available in the default folder" << endl;
 	}
 	else {
-		list<string> sorted_files;
+		list<PbImageFile> sorted_files;
 		for (int i = 0; i < serverInfo.available_image_files_size(); i++) {
-			sorted_files.push_back(serverInfo.available_image_files(i).name());
+			sorted_files.push_back(serverInfo.available_image_files(i));
 		}
-		sorted_files.sort();
+		sorted_files.sort([](const PbImageFile& a, const PbImageFile& b) { return a.name() < b.name(); });
 
 		cout << "Image files available in the default folder:" << endl;
 		for (auto it = sorted_files.begin(); it != sorted_files.end(); ++it) {
-			cout << "  " << *it << endl;
+			cout << "  " << (*it).name() << " (" << (*it).size() << " bytes)" << ((*it).read_only() ? ", read only": "")
+					<< endl;
 		}
 	}
 }

@@ -257,10 +257,12 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 {
 	image_file->set_name(filename);
 	if (!filename.empty()) {
-		image_file->set_read_only(access(filename.c_str(), W_OK));
+		string f = filename[0] == '/' ? filename : default_image_folder + "/" + filename;
+
+		image_file->set_read_only(access(f.c_str(), W_OK));
 
 		struct stat st;
-		stat(filename.c_str(), &st);
+		stat(f.c_str(), &st);
 		image_file->set_size(st.st_size);
 	}
 }
