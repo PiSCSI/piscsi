@@ -179,7 +179,9 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 void SCSIBR::TestUnitReady(SASIDEV *controller)
 {
 	// TEST UNIT READY Success
-}
+
+	// status phase
+	controller->Status();}
 
 //---------------------------------------------------------------------------
 //

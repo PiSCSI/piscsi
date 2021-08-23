@@ -558,6 +558,9 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 void SCSIDaynaPort::TestUnitReady(SASIDEV *controller)
 {
 	// TEST UNIT READY Success
+
+	// status phase
+	controller->Status();
 }
 
 void SCSIDaynaPort::Read6(SASIDEV *controller)
