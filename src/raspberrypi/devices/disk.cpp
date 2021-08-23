@@ -431,24 +431,8 @@ void Disk::ReassignBlocks(SASIDEV *controller)
 void Disk::Read6(SASIDEV *controller)
 {
 	// Get record number and block number
-	DWORD record = ctrl->cmd[1] & 0x1f;
-	record <<= 8;
-	record |= ctrl->cmd[2];
-	record <<= 8;
-	record |= ctrl->cmd[3];
-	ctrl->blocks = ctrl->cmd[4];
-	if (ctrl->blocks == 0) {
-		ctrl->blocks = 0x100;
-	}
-
-	// Check capacity
-	uint32_t capacity = GetBlockCount();
-	if (record > capacity || record + ctrl->blocks > capacity) {
-		ostringstream s;
-		s << "Media capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to read block " << record << ", block count " << ctrl->blocks;
-		LOGWARN("%s", s.str().c_str());
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
 		return;
 	}
 
@@ -474,7 +458,7 @@ void Disk::Read10(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, false)) {
+	if (!GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
 		return;
 	}
 
@@ -498,7 +482,7 @@ void Disk::Read16(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, true)) {
+	if (!GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
 		return;
 	}
 
@@ -564,24 +548,8 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 void Disk::Write6(SASIDEV *controller)
 {
 	// Get record number and block number
-	DWORD record = ctrl->cmd[1] & 0x1f;
-	record <<= 8;
-	record |= ctrl->cmd[2];
-	record <<= 8;
-	record |= ctrl->cmd[3];
-	ctrl->blocks = ctrl->cmd[4];
-	if (ctrl->blocks == 0) {
-		ctrl->blocks = 0x100;
-	}
-
-	// Check capacity
-	uint32_t capacity = GetBlockCount();
-	if (record > capacity || record + ctrl->blocks > capacity) {
-		ostringstream s;
-		s << "Media capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to write block " << record << ", block count " << ctrl->blocks;
-		LOGWARN("%s", s.str().c_str());
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+	uint64_t record;
+	if (!GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
 		return;
 	}
 
@@ -605,7 +573,7 @@ void Disk::Write10(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, false)) {
+	if (!GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
 		return;
 	}
 
@@ -629,7 +597,7 @@ void Disk::Write16(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (!GetStartAndCount(controller, record, ctrl->blocks, true)) {
+	if (!GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
 		return;
 	}
 
@@ -654,14 +622,8 @@ void Disk::Write16(SASIDEV *controller)
 //	VERIFY
 //
 //---------------------------------------------------------------------------
-void Disk::Verify10(SASIDEV *controller)
+void Disk::Verify(SASIDEV *controller, uint64_t record)
 {
-	// Get record number and block number
-	uint64_t record;
-	GetStartAndCount(controller, record, ctrl->blocks, false);
-
-	LOGDEBUG("%s VERIFY command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
-
 	// if BytChk=0
 	if ((ctrl->cmd[1] & 0x02) == 0) {
 		Seek(controller);
@@ -681,6 +643,28 @@ void Disk::Verify10(SASIDEV *controller)
 
 	// Data out phase
 	controller->DataOut();
+}
+
+void Disk::Verify10(SASIDEV *controller)
+{
+	// Get record number and block number
+	uint64_t record;
+	GetStartAndCount(controller, record, ctrl->blocks, RW10);
+
+	LOGDEBUG("%s VERIFY(10) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	Verify(controller, record);
+}
+
+void Disk::Verify16(SASIDEV *controller)
+{
+	// Get record number and block number
+	uint64_t record;
+	GetStartAndCount(controller, record, ctrl->blocks, RW16);
+
+	LOGDEBUG("%s VERIFY(16) command record=%08X blocks=%d",__PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
+
+	Verify(controller, record);
 }
 
 void Disk::Inquiry(SASIDEV *controller)
@@ -1997,7 +1981,7 @@ bool Disk::Format(const DWORD *cdb)
 //	READ
 //
 //---------------------------------------------------------------------------
-int Disk::Read(const DWORD *cdb, BYTE *buf, DWORD block)
+int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
 
@@ -2484,39 +2468,53 @@ bool Disk::PlayAudioTrack(const DWORD *cdb)
 //	Get start sector and sector count for a READ/WRITE(10/16) operation
 //
 //---------------------------------------------------------------------------
-bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, bool rw64)
+bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, access_mode mode)
 {
-	start = ctrl->cmd[2];
-	start <<= 8;
-	start |= ctrl->cmd[3];
-	start <<= 8;
-	start |= ctrl->cmd[4];
-	start <<= 8;
-	start |= ctrl->cmd[5];
-	if (rw64) {
+	if (mode == RW6) {
+		start = ctrl->cmd[1] & 0x1f;
 		start <<= 8;
-		start |= ctrl->cmd[6];
+		start |= ctrl->cmd[2];
 		start <<= 8;
-		start |= ctrl->cmd[7];
-		start <<= 8;
-		start |= ctrl->cmd[8];
-		start <<= 8;
-		start |= ctrl->cmd[9];
-	}
+		start |= ctrl->cmd[3];
 
-	if (rw64) {
-		count = ctrl->cmd[10];
-		count <<= 8;
-		count |= ctrl->cmd[11];
-		count <<= 8;
-		count |= ctrl->cmd[12];
-		count <<= 8;
-		count |= ctrl->cmd[13];
+		count = ctrl->cmd[4];
+		if (!count) {
+			count= 0x100;
+		}
 	}
 	else {
-		count = ctrl->cmd[7];
-		count <<= 8;
-		count |= ctrl->cmd[8];
+		start = ctrl->cmd[2];
+		start <<= 8;
+		start |= ctrl->cmd[3];
+		start <<= 8;
+		start |= ctrl->cmd[4];
+		start <<= 8;
+		start |= ctrl->cmd[5];
+		if (mode == RW16) {
+			start <<= 8;
+			start |= ctrl->cmd[6];
+			start <<= 8;
+			start |= ctrl->cmd[7];
+			start <<= 8;
+			start |= ctrl->cmd[8];
+			start <<= 8;
+			start |= ctrl->cmd[9];
+		}
+
+		if (mode == RW16) {
+			count = ctrl->cmd[10];
+			count <<= 8;
+			count |= ctrl->cmd[11];
+			count <<= 8;
+			count |= ctrl->cmd[12];
+			count <<= 8;
+			count |= ctrl->cmd[13];
+		}
+		else {
+			count = ctrl->cmd[7];
+			count <<= 8;
+			count |= ctrl->cmd[8];
+		}
 	}
 
 	// Check capacity

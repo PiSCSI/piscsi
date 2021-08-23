@@ -67,7 +67,7 @@ public:
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
 										// INQUIRY command
-	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
+	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
 										// READ command
 	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
 										// WRITE command

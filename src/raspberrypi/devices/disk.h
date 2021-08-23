@@ -127,6 +127,8 @@ private:
 class Disk : public BlockDevice
 {
 private:
+	enum access_mode { RW6, RW10, RW16 };
+
 	bool sector_size_configurable;
 	int configured_sector_size;
 
@@ -186,7 +188,9 @@ public:
 	void Write6(SASIDEV *);
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
+	void Verify(SASIDEV *, uint64_t);
 	void Verify10(SASIDEV *) override;
+	void Verify16(SASIDEV *) override;
 	void Seek(SASIDEV *);
 	void Seek6(SASIDEV *);
 	void Seek10(SASIDEV *);
@@ -211,7 +215,7 @@ public:
 	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
 	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
 
-	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block);			// READ command
+	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
 	int SelectCheck(const DWORD *cdb);				// SELECT check
@@ -225,7 +229,7 @@ public:
 	void SetConfiguredSectorSize(int);
 	uint32_t GetBlockCount() const;
 	void SetBlockCount(DWORD);
-	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, bool);
+	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 
 	// TODO Try to get rid of this method, which is called by SASIDEV (but must not)
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command

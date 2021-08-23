@@ -634,7 +634,7 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 //	READ
 //
 //---------------------------------------------------------------------------
-int SCSICD::Read(const DWORD *cdb, BYTE *buf, DWORD block)
+int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
 

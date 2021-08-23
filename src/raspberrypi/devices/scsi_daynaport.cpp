@@ -214,7 +214,7 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 //    - The SCSI/Link apparently has about 6KB buffer space for packets.
 //
 //---------------------------------------------------------------------------
-int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, DWORD block)
+int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	int rx_packet_size = 0;
 	bool send_message_to_host;

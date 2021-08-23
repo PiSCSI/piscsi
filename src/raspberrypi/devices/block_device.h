@@ -37,8 +37,7 @@ public:
 
 	// Implemented optional commands
 	virtual void Verify10(SASIDEV *) = 0;
-	// TODO Implement
-	// virtual void Verify16(SASIDEV *) = 0;
+	virtual void Verify16(SASIDEV *) = 0;
 	virtual void ModeSense(SASIDEV *) override = 0;
 	virtual void ModeSense10(SASIDEV *) override = 0;
 	virtual void ModeSelect(SASIDEV *) override = 0;

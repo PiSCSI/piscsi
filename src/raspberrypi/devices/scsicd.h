@@ -96,7 +96,7 @@ public:
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;		// READ command
+	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 
 	bool Dispatch(SCSIDEV *);
