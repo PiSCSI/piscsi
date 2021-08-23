@@ -14,6 +14,7 @@
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
+#include <arpa/inet.h>
 #ifdef __linux__
 #include <net/if.h>
 #include <sys/ioctl.h>
@@ -25,6 +26,9 @@
 #include "ctapdriver.h"
 #include "log.h"
 #include "exceptions.h"
+#include <string>
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -84,6 +88,24 @@ static BOOL ip_link(int fd, const char* ifname, BOOL up) {
 	return TRUE;
 }
 
+static bool is_interface_up(const char *interface) {
+	string file = "/sys/class/net/";
+	file += interface;
+	file += "/carrier";
+
+	bool status = true;
+	FILE *fp = fopen(file.c_str(), "r");
+	if (!fp || fgetc(fp) != '1') {
+		status = false;
+	}
+
+	if (fp) {
+		fclose(fp);
+	}
+
+	return status;
+}
+
 BOOL CTapDriver::Init()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
@@ -128,11 +150,24 @@ BOOL CTapDriver::Init()
 		return FALSE;
 	}
 
-	LOGTRACE("Going to see if the bridge is created");
-
 	// Check if the bridge is already created
 	if (access("/sys/class/net/rascsi_bridge", F_OK) != 0) {
-		LOGINFO("Creating the rascsi_bridge...");
+		LOGINFO("rascsi_bridge is not yet available");
+
+		LOGINFO("Checking whether to create bridge for interface eth0 or wlan0");
+		const char *interface = NULL;
+		if (is_interface_up("eth0")) {
+			interface = "eth0";
+		}
+		else if (is_interface_up("wlan0")) {
+			interface = "wlan0";
+		}
+		if (!interface) {
+			LOGERROR("Neither interface eth0 nor wlan0 is up, not creating bridge");
+			return FALSE;
+		}
+
+		LOGINFO("Creating rascsi_bridge for interface %s...", interface);
 		LOGDEBUG("brctl addbr rascsi_bridge");
 		if ((ret = ioctl(br_socket_fd, SIOCBRADDBR, "rascsi_bridge")) < 0) {
 			LOGERROR("Error: can't ioctl SIOCBRADDBR. Errno: %d %s", errno, strerror(errno));
@@ -141,12 +176,34 @@ BOOL CTapDriver::Init()
 			close(br_socket_fd);
 			return FALSE;
 		}
-		LOGDEBUG("brctl addif rascsi_bridge eth0");
-		if (!br_setif(br_socket_fd, "rascsi_bridge", "eth0", TRUE)) {
-			close(m_hTAP);
-			close(ip_fd);
-			close(br_socket_fd);
-			return FALSE;
+		if (strcmp(interface, "wlan0")) {
+			LOGDEBUG("brctl addif rascsi_bridge %s", interface);
+			if (!br_setif(br_socket_fd, "rascsi_bridge", interface, TRUE)) {
+				close(m_hTAP);
+				close(ip_fd);
+				close(br_socket_fd);
+				return FALSE;
+			}
+		}
+		if (!strcmp(interface, "wlan0")) {
+			LOGDEBUG("ip address add 10.10.20.1/24 dev rascsi_bridge");
+			struct ifreq ifr_a;
+			ifr_a.ifr_addr.sa_family = AF_INET;
+			strncpy(ifr_a.ifr_name, "rascsi_bridge", IFNAMSIZ);
+			struct sockaddr_in* addr = (struct sockaddr_in*)&ifr_a.ifr_addr;
+			inet_pton(AF_INET, "10.10.20.1", &addr->sin_addr);
+			struct ifreq ifr_n;
+			ifr_n.ifr_addr.sa_family = AF_INET;
+			strncpy(ifr_n.ifr_name, "rascsi_bridge", IFNAMSIZ);
+			struct sockaddr_in* netmask = (struct sockaddr_in*)&ifr_n.ifr_addr;
+			inet_pton(AF_INET, "255.255.255.0", &netmask->sin_addr);
+			if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
+				LOGERROR("Error: can't ioctl SIOCSIFADDR or SIOCSIFNETMASK. Errno: %d %s", errno, strerror(errno));
+				close(m_hTAP);
+				close(ip_fd);
+				close(br_socket_fd);
+				return FALSE;
+			}
 		}
 		LOGDEBUG("ip link set dev rascsi_bridge up");
 		if (!ip_link(ip_fd, "rascsi_bridge", TRUE)) {
@@ -158,7 +215,7 @@ BOOL CTapDriver::Init()
 	}
 	else
 	{
-		LOGINFO("Note: rascsi_bridge already created");
+		LOGINFO("rascsi_bridge is already available");
 	}
 
 	LOGDEBUG("ip link set ras0 up");
