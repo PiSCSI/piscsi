@@ -85,6 +85,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 
 #endif	// linux
 
+	AddCommand(SCSIDEV::eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRead6, "CmdRead6", &SCSIDaynaPort::Read6);
 	AddCommand(SCSIDEV::eCmdWrite6, "CmdWrite6", &SCSIDaynaPort::Write6);
 	AddCommand(SCSIDEV::eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDaynaPort::RetrieveStatistics);

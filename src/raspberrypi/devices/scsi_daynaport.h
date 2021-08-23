@@ -84,9 +84,9 @@ public:
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
 
-	void TestUnitReady(SASIDEV *);
-	void Read6(SASIDEV *);
-	void Write6(SASIDEV *);
+	void TestUnitReady(SASIDEV *) override;
+	void Read6(SASIDEV *) override;
+	void Write6(SASIDEV *) override;
 	void RetrieveStatistics(SASIDEV *);
 	void SetInterfaceMode(SASIDEV *);
 	void SetMcastAddr(SASIDEV *);

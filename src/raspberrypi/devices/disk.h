@@ -166,7 +166,7 @@ public:
 	bool Flush();							// Flush the cache
 
 	// Commands covered by the SCSI specification
-	void TestUnitReady(SASIDEV *) override;
+	virtual void TestUnitReady(SASIDEV *) override;
 	void Inquiry(SASIDEV *) override;
 	void RequestSense(SASIDEV *) override;
 	void ModeSelect(SASIDEV *);
@@ -182,10 +182,10 @@ public:
 	void SynchronizeCache10(SASIDEV *);
 	void SynchronizeCache16(SASIDEV *);
 	void ReadDefectData10(SASIDEV *);
-	void Read6(SASIDEV *);
+	virtual void Read6(SASIDEV *);
 	void Read10(SASIDEV *) override;
 	void Read16(SASIDEV *) override;
-	void Write6(SASIDEV *);
+	virtual void Write6(SASIDEV *);
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
 	void Verify(SASIDEV *, uint64_t);

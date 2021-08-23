@@ -63,6 +63,7 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	fs = new CFileSys();
 	fs->Reset();
 
+	AddCommand(SCSIDEV::eCmdTestUnitReady, "CmdTestUnitReady", &SCSIBR::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRead6, "CmdGetMessage10", &SCSIBR::GetMessage10);
 	AddCommand(SCSIDEV::eCmdWrite6, "CmdSendMessage10", &SCSIBR::SendMessage10);
 }
