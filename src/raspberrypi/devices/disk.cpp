@@ -19,12 +19,7 @@
 
 #include "os.h"
 #include "xm6.h"
-#include "filepath.h"
-#include "fileio.h"
-#include "gpiobus.h"
-#include "cfilesystem.h"
 #include "controllers/sasidev_ctrl.h"
-#include "controllers/scsidev_ctrl.h"
 #include "disk.h"
 #include <sstream>
 
