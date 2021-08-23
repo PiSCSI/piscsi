@@ -554,10 +554,9 @@ bool SCSIDaynaPort::EnableInterface(const DWORD *cdb)
 	return result;
 }
 
-bool SCSIDaynaPort::TestUnitReady(const DWORD* /*cdb*/)
+void SCSIDaynaPort::TestUnitReady(SASIDEV *controller)
 {
 	// TEST UNIT READY Success
-	return true;
 }
 
 void SCSIDaynaPort::CmdRead6(SASIDEV *controller)

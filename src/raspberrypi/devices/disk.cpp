@@ -1971,17 +1971,6 @@ int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 
 //---------------------------------------------------------------------------
 //
-//	TEST UNIT READY
-//
-//---------------------------------------------------------------------------
-bool Disk::TestUnitReady(const DWORD* /*cdb*/)
-{
-	// Status check
-	return CheckReady();
-}
-
-//---------------------------------------------------------------------------
-//
 //	FORMAT UNIT
 //	*Opcode $06 for SASI, Opcode $04 for SCSI
 //

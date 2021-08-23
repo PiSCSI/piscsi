@@ -227,11 +227,9 @@ public:
 	void SetBlockCount(DWORD);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, bool);
 
-	// TODO Try to get rid of these methods
-	virtual bool TestUnitReady(const DWORD *cdb);	// TEST UNIT READY command
+	// TODO Try to get rid of these methods, which are called by SASIDEV (but should not)
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
-	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
 	bool Format(const DWORD *cdb);					// FORMAT UNIT command
 
 	virtual bool Dispatch(SCSIDEV *);
@@ -250,4 +248,7 @@ protected:
 
 	// Internal data
 	disk_t disk;								// Internal disk data
+
+private:
+	int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
 };

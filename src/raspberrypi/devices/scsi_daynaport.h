@@ -67,8 +67,6 @@ public:
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
 										// INQUIRY command
-	bool TestUnitReady(const DWORD *cdb) override;
-										// TEST UNIT READY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;
 										// READ command
 	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
@@ -86,6 +84,7 @@ public:
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
 
+	void TestUnitReady(SASIDEV *) override;
 	void CmdRead6(SASIDEV *);
 	void CmdWrite6(SASIDEV *);
 	void CmdRetrieveStatistics(SASIDEV *);

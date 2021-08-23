@@ -175,10 +175,9 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-bool SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
+void SCSIBR::TestUnitReady(SASIDEV *controller)
 {
 	// TEST UNIT READY Success
-	return true;
 }
 
 //---------------------------------------------------------------------------
