@@ -262,8 +262,9 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
 		struct stat st;
-		stat(f.c_str(), &st);
-		image_file->set_size(st.st_size);
+		if (!stat(f.c_str(), &st)) {
+			image_file->set_size(st.st_size);
+		}
 	}
 }
 
