@@ -383,20 +383,20 @@ void Disk::RequestSense(SASIDEV *controller)
 {
 	DWORD lun = (ctrl->cmd[1] >> 5) & 0x07;
 
-    // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
-    // Non-existing LUNs do *not* result in CHECK CONDITION.
-    // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+    // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
+	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
 	if (!ctrl->unit[lun]) {
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
 		lun = 0;
 
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+		ctrl->status = 0x00;
 	}
 
     ctrl->length = ctrl->unit[lun]->RequestSense(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length > 0);
 
-    LOGDEBUG("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->buffer[2], ctrl->buffer[12]);
+    LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
 
 	// Read phase
     controller->DataIn();
@@ -1361,7 +1361,6 @@ int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 
 	// Size determination (according to allocation length)
 	int size = (int)cdb[4];
-	LOGTRACE("%s size of data = %d", __PRETTY_FUNCTION__, size);
 	ASSERT((size >= 0) && (size < 0x100));
 
 	// For SCSI-1, transfer 4 bytes when the size is 0

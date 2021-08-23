@@ -246,13 +246,12 @@ void SCSIDEV::Execute()
 
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
-	int lun;
-	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
-		// Use LUN0 for INQUIRY because LUN0 is assumed to be always available
-		lun = 0;
-	}
-	else {
+	// Use LUN0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
+	// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
+	int lun = 0;
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
 		lun = (ctrl.cmd[1] >> 5) & 0x07;
+
 		if (!ctrl.unit[lun]) {
 			LOGINFO("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
@@ -353,9 +352,7 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
 	}
 
-	// Set status (CHECK CONDITION only for valid LUNs for non-REQUEST SENSE)
-	ctrl.status = (ctrl.cmd[0] == eCmdRequestSense && asc == ERROR_CODES::asc::INVALID_LUN) ? 0x00 : 0x02;
-
+	ctrl.status = 0x02;
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
