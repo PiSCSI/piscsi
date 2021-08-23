@@ -84,13 +84,13 @@ public:
 	void SetMode(const DWORD *cdb, BYTE *buffer);
 										// Set the mode: whether broadcast traffic is enabled or not
 
-	void TestUnitReady(SASIDEV *) override;
-	void CmdRead6(SASIDEV *);
-	void CmdWrite6(SASIDEV *);
-	void CmdRetrieveStatistics(SASIDEV *);
-	void CmdSetInterfaceMode(SASIDEV *);
-	void CmdSetMcastAddr(SASIDEV *);
-	void CmdEnableInterface(SASIDEV *);
+	void TestUnitReady(SASIDEV *);
+	void Read6(SASIDEV *);
+	void Write6(SASIDEV *);
+	void RetrieveStatistics(SASIDEV *);
+	void SetInterfaceMode(SASIDEV *);
+	void SetMcastAddr(SASIDEV *);
+	void EnableInterface(SASIDEV *);
 
 	bool Dispatch(SCSIDEV *);
 
