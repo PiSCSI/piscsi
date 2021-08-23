@@ -80,6 +80,8 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
+
 public:
 	// Number of tracks
 	enum {
@@ -114,8 +116,6 @@ private:
 	void OpenCue(const Filepath& path);				// Open(CUE)
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
-
-	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
 
 	void CmdReadToc(SASIDEV *);
 	void CmdPlayAudio10(SASIDEV *);

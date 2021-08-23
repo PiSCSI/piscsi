@@ -62,6 +62,9 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	// Create host file system
 	fs = new CFileSys();
 	fs->Reset();
+
+	AddCommand(SCSIDEV::eCmdRead6, "CmdGetMessage10", &SCSIBR::GetMessage10);
+	AddCommand(SCSIDEV::eCmdWrite6, "CmdSendMessage10", &SCSIBR::SendMessage10);
 }
 
 //---------------------------------------------------------------------------
@@ -82,6 +85,35 @@ SCSIBR::~SCSIBR()
 		fs->Reset();
 		delete fs;
 	}
+
+	for (auto const& command : commands) {
+		free(command.second);
+	}
+}
+
+void SCSIBR::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
+{
+	commands[opcode] = new command_t(name, execute);
+}
+
+bool SCSIBR::Dispatch(SCSIDEV *controller)
+{
+	ctrl = controller->GetWorkAddr();
+
+	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
+	}
+
+	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
+	// The base class handles the less specific commands
+	return Disk::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -307,11 +339,8 @@ bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 //	GET MESSAGE(10)
 //
 //---------------------------------------------------------------------------
-// TODO Rename and call it with a new dispatcher in this class
-void SCSIBR::Read10(SASIDEV *controller)
+void SCSIBR::GetMessage10(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
 		free(ctrl->buffer);
@@ -341,11 +370,8 @@ void SCSIBR::Read10(SASIDEV *controller)
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-// TODO Rename and call it with a new dispatcher in this class
-void SCSIBR::Write10(SASIDEV *controller)
+void SCSIBR::SendMessage10(SASIDEV *controller)
 {
-	SASIDEV::ctrl_t *ctrl = controller->GetWorkAddr();
-
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
 		free(ctrl->buffer);

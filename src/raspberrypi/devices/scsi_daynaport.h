@@ -53,6 +53,8 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIDaynaPort::*)(SASIDEV *));
+
 public:
 	// Basic Functions
 	SCSIDaynaPort();
@@ -200,7 +202,4 @@ private:
 										// MAC Address
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
-
-private:
-	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIDaynaPort::*)(SASIDEV *));
 };

@@ -150,6 +150,8 @@ private:
 	} command_t;
 	std::map<SCSIDEV::scsi_command, command_t*> commands;
 
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (Disk::*)(SASIDEV *));
+
 public:
 	// Basic Functions
 	Disk(std::string);							// Constructor
@@ -250,7 +252,4 @@ protected:
 
 	// Internal data
 	disk_t disk;								// Internal disk data
-
-private:
-	void AddCommand(SCSIDEV::scsi_command, const char*, void (Disk::*)(SASIDEV *));
 };

@@ -30,18 +30,34 @@ class CTapDriver;
 class CFileSys;
 class SCSIBR : public Disk
 {
+
+private:
+	typedef struct _command_t {
+		const char* name;
+		void (SCSIBR::*execute)(SASIDEV *);
+
+		_command_t(const char* _name, void (SCSIBR::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
+
+	SASIDEV::ctrl_t *ctrl;
+
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
+
 public:
 	// Basic Functions
 	SCSIBR();								// Constructor
 	~SCSIBR();								// Destructor
+
+	bool Dispatch(SCSIDEV *);
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 	bool TestUnitReady(const DWORD *cdb) override;		// TEST UNIT READY command
 	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
 	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
-	void Write10(SASIDEV *) override;
-	void Read10(SASIDEV *) override;
+	void GetMessage10(SASIDEV *);
+	void SendMessage10(SASIDEV *);
 
 private:
 	int GetMacAddr(BYTE *buf);					// Get MAC address
