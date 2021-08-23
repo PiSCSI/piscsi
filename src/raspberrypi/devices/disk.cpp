@@ -362,7 +362,6 @@ void Disk::TestUnitReady(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
@@ -375,13 +374,12 @@ void Disk::Rezero(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
 void Disk::RequestSense(SASIDEV *controller)
 {
-	DWORD lun = (ctrl->cmd[1] >> 5) & 0x07;
+	int lun = (ctrl->cmd[1] >> 5) & 0x07;
 
     // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
 	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
@@ -398,7 +396,6 @@ void Disk::RequestSense(SASIDEV *controller)
 
     LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
 
-	// Read phase
     controller->DataIn();
 }
 
@@ -411,7 +408,6 @@ void Disk::FormatUnit(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
@@ -424,7 +420,6 @@ void Disk::ReassignBlocks(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
@@ -603,7 +598,6 @@ void Disk::Verify(SASIDEV *controller, uint64_t record)
 	// Set next block
 	ctrl->next = record + 1;
 
-	// Data out phase
 	controller->DataOut();
 }
 
@@ -655,12 +649,11 @@ void Disk::Inquiry(SASIDEV *controller)
 	}
 
 	// Report if the device does not support the requested LUN
-	DWORD lun = (ctrl->cmd[1] >> 5) & 0x07;
+	int lun = (ctrl->cmd[1] >> 5) & 0x07;
 	if (!ctrl->unit[lun]) {
 		ctrl->buffer[0] |= 0x7f;
 	}
 
-	// Data-in Phase
 	controller->DataIn();
 }
 
@@ -675,7 +668,6 @@ void Disk::ModeSelect(SASIDEV *controller)
 		return;
 	}
 
-	// Data out phase
 	controller->DataOut();
 }
 
@@ -690,7 +682,6 @@ void Disk::ModeSelect10(SASIDEV *controller)
 		return;
 	}
 
-	// Data out phase
 	controller->DataOut();
 }
 
@@ -706,7 +697,6 @@ void Disk::ModeSense(SASIDEV *controller)
 		return;
 	}
 
-	// Data-in Phase
 	controller->DataIn();
 }
 
@@ -722,7 +712,6 @@ void Disk::ModeSense10(SASIDEV *controller)
 		return;
 	}
 
-	// Data-in Phase
 	controller->DataIn();
 }
 
@@ -735,7 +724,6 @@ void Disk::StartStopUnit(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
@@ -748,7 +736,6 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
@@ -761,7 +748,6 @@ void Disk::PreventAllowRemoval(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
@@ -769,7 +755,6 @@ void Disk::SynchronizeCache10(SASIDEV *controller)
 {
 	// Nothing to do
 
-	// status phase
 	controller->Status();
 }
 
@@ -788,7 +773,6 @@ void Disk::ReadDefectData10(SASIDEV *controller)
 		return;
 	}
 
-	// Data-in Phase
 	controller->DataIn();
 }
 
@@ -2064,7 +2048,6 @@ void Disk::Seek(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
@@ -2217,7 +2200,6 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 	// the size
 	ctrl->length = 8;
 
-	// Data-in Phase
 	controller->DataIn();
 }
 
@@ -2265,7 +2247,6 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 	// the size
 	ctrl->length = 14;
 
-	// Data-in Phase
 	controller->DataIn();
 }
 
@@ -2296,7 +2277,6 @@ void Disk::ReportLuns(SASIDEV *controller)
 
 	ctrl->length = 16;
 
-	// Data in phase
 	controller->DataIn();
 }
 
@@ -2312,7 +2292,6 @@ void Disk::ReportLuns(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Reserve6(SASIDEV *controller)
 {
-	// status phase
 	controller->Status();
 }
 
@@ -2328,7 +2307,6 @@ void Disk::Reserve6(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Reserve10(SASIDEV *controller)
 {
-	// status phase
 	controller->Status();
 }
 
@@ -2344,7 +2322,6 @@ void Disk::Reserve10(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Release6(SASIDEV *controller)
 {
-	// status phase
 	controller->Status();
 }
 
@@ -2360,7 +2337,6 @@ void Disk::Release6(SASIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Release10(SASIDEV *controller)
 {
-	// status phase
 	controller->Status();
 }
 
