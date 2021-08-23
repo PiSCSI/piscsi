@@ -223,7 +223,7 @@ public:
 	void SetSectorSizeConfigurable(bool);
 	int GetConfiguredSectorSize() const;
 	void SetConfiguredSectorSize(int);
-	DWORD GetBlockCount() const;
+	uint32_t GetBlockCount() const;
 	void SetBlockCount(DWORD);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, bool);
 

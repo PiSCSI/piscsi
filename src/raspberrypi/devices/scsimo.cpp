@@ -259,7 +259,7 @@ int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 	if (IsReady()) {
 		unsigned spare = 0;
 		unsigned bands = 0;
-		DWORD blocks = GetBlockCount();
+		uint32_t blocks = GetBlockCount();
 
 		if (GetSectorSize() == 9) switch (blocks) {
 			// 128MB

@@ -442,7 +442,7 @@ void Disk::Read6(SASIDEV *controller)
 	}
 
 	// Check capacity
-	DWORD capacity = GetBlockCount();
+	uint32_t capacity = GetBlockCount();
 	if (record > capacity || record + ctrl->blocks > capacity) {
 		ostringstream s;
 		s << "Media capacity of " << capacity << " blocks exceeded: "
@@ -575,7 +575,7 @@ void Disk::Write6(SASIDEV *controller)
 	}
 
 	// Check capacity
-	DWORD capacity = GetBlockCount();
+	uint32_t capacity = GetBlockCount();
 	if (record > capacity || record + ctrl->blocks > capacity) {
 		ostringstream s;
 		s << "Media capacity of " << capacity << " blocks exceeded: "
@@ -2520,7 +2520,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	}
 
 	// Check capacity
-	uint64_t capacity = GetBlockCount();
+	uint32_t capacity = GetBlockCount();
 	if (start > capacity || start + count > capacity) {
 		ostringstream s;
 		s << "Media capacity of " << capacity << " blocks exceeded: "
@@ -2570,7 +2570,7 @@ void Disk::SetConfiguredSectorSize(int configured_sector_size)
 	this->configured_sector_size = configured_sector_size;
 }
 
-DWORD Disk::GetBlockCount() const
+uint32_t Disk::GetBlockCount() const
 {
 	return disk.blocks;
 }
