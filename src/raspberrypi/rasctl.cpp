@@ -343,8 +343,33 @@ int main(int argc, char* argv[])
 				list = true;
 				break;
 
-			case 'n':
-				device->set_name(optarg);
+			case 'n': {
+					string vendor;
+					string product;
+					string revision;
+
+					string s = optarg;
+					size_t separatorPos = s.find(':');
+					if (separatorPos != string::npos) {
+						vendor = s.substr(0, separatorPos);
+						s = s.substr(separatorPos + 1);
+						separatorPos = s.find(':');
+						if (separatorPos != string::npos) {
+							product = s.substr(0, separatorPos);
+							revision = s.substr(separatorPos + 1);
+						}
+						else {
+							product = s;
+						}
+					}
+					else {
+						vendor = s;
+					}
+
+					device->set_vendor(vendor);
+					device->set_product(product);
+					device->set_revision(revision);
+				}
 				break;
 
 			case 'p':

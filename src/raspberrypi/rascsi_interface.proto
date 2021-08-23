@@ -65,9 +65,12 @@ message PbDeviceDefinition {
     int32 block_size = 4;
     // The optional name of the image file
     string file = 5;
-    // The device name, format is VENDOR:PRODUCT:REVISION
-    string name = 6;
-    bool protected = 7;
+    // The device name components
+    string vendor = 6;
+    string product = 7;
+    string revision = 8;
+    // Create a write-protected device
+    bool protected = 9;
 }
 
 message PbDeviceDefinitions {

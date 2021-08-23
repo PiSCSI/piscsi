@@ -554,24 +554,6 @@ bool SetDefaultImageFolder(const string& f)
 	return true;
 }
 
-void SetDeviceName(Device *device, const string& name)
-{
-	size_t productSeparatorPos = name.find(':');
-	if (productSeparatorPos != string::npos) {
-		device->SetVendor(name.substr(0, productSeparatorPos));
-
-		const string remaining = name.substr(productSeparatorPos + 1);
-		size_t revisionSeparatorPos = remaining.find(':');
-		if (revisionSeparatorPos != string::npos) {
-			device->SetProduct(remaining.substr(0, revisionSeparatorPos));
-			device->SetRevision(remaining.substr(revisionSeparatorPos + 1));
-			return;
-		}
-	}
-
-	throw illegal_argument_exception("Invalid device name '" + name + "', format must be VENDOR:PRODUCT:REVISION");
-}
-
 //---------------------------------------------------------------------------
 //
 //	Command Processing
@@ -593,7 +575,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
 	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", filename='" << filename << "', device name='" << pbDevice.name()
+			<< ", filename='" << filename << "', vendor='" << pbDevice.vendor()
+			<< ", product='" << pbDevice.product() << "', revision='" << pbDevice.revision() << "'"
 			<< "', block size=" << pbDevice.block_size() << ", params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
 
@@ -642,17 +625,17 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			device->SetRemoved(true);
 		}
 
-		if (!pbDevice.name().empty()) {
-			try {
-				SetDeviceName(device, pbDevice.name());
-			}
-			catch(const illegal_argument_exception& e) {
-				return ReturnStatus(fd, false, e.getmsg());
-			}
-		}
-
 		device->SetId(id);
 		device->SetLun(unit);
+		if (!pbDevice.vendor().empty()) {
+			device->SetVendor(pbDevice.vendor());
+		}
+		if (!pbDevice.product().empty()) {
+			device->SetProduct(pbDevice.product());
+		}
+		if (!pbDevice.revision().empty()) {
+			device->SetRevision(pbDevice.revision());
+		}
 		if (!device->IsReadOnly()) {
 			device->SetProtected(pbDevice.protected_());
 		}
@@ -814,7 +797,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	switch (cmd) {
 		case INSERT:
-			if (!pbDevice.name().empty()) {
+			if (!pbDevice.vendor().empty() || !pbDevice.product().empty() || !pbDevice.revision().empty()) {
 				return ReturnStatus(fd, false, "Device name cannot be changed");
 			}
 
@@ -1022,8 +1005,24 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_unit(unit);
 		device->set_type(type);
 		device->set_block_size(block_size);
-		device->set_name(name);
 		device->set_file(optarg);
+
+		size_t separatorPos = name.find(':');
+		if (separatorPos != string::npos) {
+			device->set_vendor(name.substr(0, separatorPos));
+			name = name.substr(separatorPos + 1);
+			separatorPos = name.find(':');
+			if (separatorPos != string::npos) {
+				device->set_product(name.substr(0, separatorPos));
+				device->set_revision(name.substr(separatorPos + 1));
+			}
+			else {
+				device->set_product(name);
+			}
+		}
+		else {
+			device->set_vendor(name);
+		}
 
 		id = -1;
 		type = UNDEFINED;
