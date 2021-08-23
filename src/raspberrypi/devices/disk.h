@@ -173,7 +173,6 @@ public:
 	void ModeSense10(SASIDEV *);
 	void Rezero(SASIDEV *);
 	void Format(SASIDEV *) override;
-	void Reassign(SASIDEV *);
 	void ReassignBlocks(SASIDEV *);
 	void StartStopUnit(SASIDEV *);
 	void SendDiagnostic(SASIDEV *);
@@ -233,7 +232,6 @@ public:
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
 	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
 	bool Format(const DWORD *cdb);					// FORMAT UNIT command
-	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
 
 	virtual bool Dispatch(SCSIDEV *);
 

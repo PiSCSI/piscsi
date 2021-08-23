@@ -177,7 +177,7 @@ protected:
 	void CmdRezero();						// REZERO UNIT command
 	void CmdRequestSense();					// REQUEST SENSE command
 	void CmdFormat();						// FORMAT command
-	void CmdReassign();						// REASSIGN BLOCKS command
+	void CmdReassignBlocks();						// REASSIGN BLOCKS command
 	void CmdReserveUnit();						// RESERVE UNIT command
 	void CmdReleaseUnit();						// RELEASE UNIT command
 	void CmdRead6();						// READ(6) command

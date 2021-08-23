@@ -417,7 +417,7 @@ void Disk::Format(SASIDEV *controller)
 
 void Disk::ReassignBlocks(SASIDEV *controller)
 {
-	bool status = Reassign(ctrl->cmd);
+	bool status = CheckReady();
 	if (!status) {
 		// Failure (Error)
 		controller->Error();
@@ -1995,17 +1995,6 @@ bool Disk::Format(const DWORD *cdb)
 
 	// FORMAT Success
 	return true;
-}
-
-//---------------------------------------------------------------------------
-//
-//	REASSIGN BLOCKS
-//
-//---------------------------------------------------------------------------
-bool Disk::Reassign(const DWORD* /*cdb*/)
-{
-	// Status check
-	return CheckReady();
 }
 
 //---------------------------------------------------------------------------

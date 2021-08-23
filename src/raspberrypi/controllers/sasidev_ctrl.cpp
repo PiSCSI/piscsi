@@ -390,7 +390,7 @@ void SASIDEV::Execute()
 
 		// REASSIGN BLOCKS
 		case SASIDEV::eCmdReassign:
-			CmdReassign();
+			CmdReassignBlocks();
 			return;
 
 		// READ(6)
@@ -720,15 +720,7 @@ void SASIDEV::CmdFormat()
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->Format(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	ctrl.device->Format(this);
 }
 
 //---------------------------------------------------------------------------
@@ -736,20 +728,12 @@ void SASIDEV::CmdFormat()
 //	REASSIGN BLOCKS
 //
 //---------------------------------------------------------------------------
-void SASIDEV::CmdReassign()
+void SASIDEV::CmdReassignBlocks()
 {
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->Reassign(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	ctrl.device->ReassignBlocks(this);
 }
 
 //---------------------------------------------------------------------------
