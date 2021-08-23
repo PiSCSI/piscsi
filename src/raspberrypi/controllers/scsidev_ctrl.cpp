@@ -245,29 +245,38 @@ void SCSIDEV::Execute()
 		ctrl.status = 0;
 	}
 
+	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+
+	int lun;
 	try {
-		// TODO Verify LUN handling
 		if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
 			// Use LUN0 for INQUIRY because LUN0 is assumed to be always available
-			ctrl.device = ctrl.unit[0];
+			lun = 0;
 		}
 		else {
-			ctrl.device = ctrl.unit[GetLun()];
+			lun = GetLun();
 		}
 	}
 	catch (const lun_exception& e) {
-		LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
+		LOGINFO("Invalid LUN %d for ID %d", e.getlun(), GetSCSIID());
 
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 		return;
 	}
 
-	LOGDEBUG("++++ CMD ++++ %s Dispatching command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+	ctrl.device = ctrl.unit[lun];
 
 	if (!ctrl.device->Dispatch(this)) {
-		LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
+		LOGWARN("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
+	}
+
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
+		// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
+		if (((ctrl.cmd[1] >> 5) & 0x07) != ctrl.device->GetLun()) {
+			ctrl.buffer[0] = 0x7f;
+		}
 	}
 }
 
@@ -337,13 +346,10 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
-	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
 		lun = 0;
 	}
-
-	LOGDEBUG("%s Sense Key and ASC: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
 
 	if (sense_key || asc) {
 		// Set Sense Key and ASC for a subsequent REQUEST SENSE

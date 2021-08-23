@@ -583,12 +583,6 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
 	buf[0] = 0x05;
-
-	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != GetLun()) {
-		buf[0] = 0x7f;
-	}
-
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;

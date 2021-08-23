@@ -179,11 +179,6 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buffer)
 		memcpy(&buffer[8], GetPaddedName().c_str(), 28);
 	}
 
-	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((cdb[1] >> 5) & 0x07) {
-		buffer[0] |= 0x7f;
-	}
-
 	LOGTRACE("response size is %d", (int)allocation_length);
 
 	return allocation_length;
