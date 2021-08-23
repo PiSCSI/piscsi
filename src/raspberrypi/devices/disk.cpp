@@ -22,11 +22,9 @@
 #include "filepath.h"
 #include "fileio.h"
 #include "gpiobus.h"
-#include "ctapdriver.h"
 #include "cfilesystem.h"
 #include "controllers/sasidev_ctrl.h"
 #include "controllers/scsidev_ctrl.h"
-#include "exceptions.h"
 #include "disk.h"
 #include <sstream>
 
