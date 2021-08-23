@@ -402,7 +402,7 @@ void Disk::RequestSense(SASIDEV *controller)
     controller->DataIn();
 }
 
-void Disk::Format(SASIDEV *controller)
+void Disk::FormatUnit(SASIDEV *controller)
 {
 	bool status = Format(ctrl->cmd);
 	if (!status) {
@@ -654,7 +654,7 @@ void Disk::Write16(SASIDEV *controller)
 //	VERIFY
 //
 //---------------------------------------------------------------------------
-void Disk::Verify(SASIDEV *controller)
+void Disk::Verify10(SASIDEV *controller)
 {
 	// Get record number and block number
 	uint64_t record;
@@ -819,12 +819,17 @@ void Disk::PreventAllowRemoval(SASIDEV *controller)
 	controller->Status();
 }
 
-void Disk::SynchronizeCache(SASIDEV *controller)
+void Disk::SynchronizeCache10(SASIDEV *controller)
 {
 	// Nothing to do
 
 	// status phase
 	controller->Status();
+}
+
+void Disk::SynchronizeCache16(SASIDEV *controller)
+{
+	return SynchronizeCache10(controller);
 }
 
 void Disk::ReadDefectData10(SASIDEV *controller)
@@ -1161,7 +1166,7 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 	AddCommand(SCSIDEV::eCmdTestUnitReady, "CmdTestUnitReady", &Disk::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRezero, "CmdRezero", &Disk::Rezero);
 	AddCommand(SCSIDEV::eCmdRequestSense, "CmdRequestSense", &Disk::RequestSense);
-	AddCommand(SCSIDEV::eCmdFormat, "CmdFormat", &Disk::Format);
+	AddCommand(SCSIDEV::eCmdFormat, "CmdFormat", &Disk::FormatUnit);
 	AddCommand(SCSIDEV::eCmdReassign, "CmdReassign", &Disk::ReassignBlocks);
 	AddCommand(SCSIDEV::eCmdRead6, "CmdRead6", &Disk::Read6);
 	AddCommand(SCSIDEV::eCmdWrite6, "CmdWrite6", &Disk::Write6);
@@ -1179,8 +1184,9 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 	AddCommand(SCSIDEV::eCmdWrite10, "CmdWrite10", &Disk::Write10);
 	AddCommand(SCSIDEV::eCmdVerify10, "CmdVerify10", &Disk::Write10);
 	AddCommand(SCSIDEV::eCmdSeek10, "CmdSeek10", &Disk::Seek10);
-	AddCommand(SCSIDEV::eCmdVerify, "CmdVerify", &Disk::Verify);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache, "CmdSynchronizeCache", &Disk::SynchronizeCache);
+	AddCommand(SCSIDEV::eCmdVerify10, "CmdVerify10", &Disk::Verify10);
+	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "CmdSynchronizeCache10", &Disk::SynchronizeCache10);
+	AddCommand(SCSIDEV::eCmdSynchronizeCache16, "CmdSynchronizeCache16", &Disk::SynchronizeCache16);
 	AddCommand(SCSIDEV::eCmdReadDefectData10, "CmdReadDefectData10", &Disk::ReadDefectData10);
 	AddCommand(SCSIDEV::eCmdModeSelect10, "CmdModeSelect10", &Disk::ModeSelect10);
 	AddCommand(SCSIDEV::eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
@@ -1188,7 +1194,7 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 	AddCommand(SCSIDEV::eCmdModeSense10, "CmdModeSense10", &Disk::ModeSense10);
 	AddCommand(SCSIDEV::eCmdRead16, "CmdRead16", &Disk::Read16);
 	AddCommand(SCSIDEV::eCmdWrite16, "CmdWrite16", &Disk::Write16);
-	AddCommand(SCSIDEV::eCmdVerify16, "CmdVerify16", &Disk::Write16);
+	//AddCommand(SCSIDEV::eCmdVerify16, "CmdVerify16", &Disk::Verify16);
 	AddCommand(SCSIDEV::eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
 	AddCommand(SCSIDEV::eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
 }

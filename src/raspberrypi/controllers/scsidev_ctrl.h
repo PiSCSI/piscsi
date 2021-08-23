@@ -51,9 +51,8 @@ public:
 			eCmdRead10 = 0x28,
 			eCmdWrite10 = 0x2A,
 			eCmdSeek10 = 0x2B,
-			eCmdVerify10 = 0x2E,
-			eCmdVerify = 0x2F,
-			eCmdSynchronizeCache = 0x35,
+			eCmdVerify10 = 0x2F,
+			eCmdSynchronizeCache10 = 0x35,
 			eCmdReadDefectData10 = 0x37,
 			eCmdReadToc = 0x43,
 			eCmdPlayAudio10 = 0x45,
@@ -67,6 +66,7 @@ public:
 			eCmdRead16 = 0x88,
 			eCmdWrite16 = 0x8A,
 			eCmdVerify16 = 0x8F,
+			eCmdSynchronizeCache16 = 0x91,
 			eCmdReadCapacity16 = 0x9E,
 			eCmdReportLuns = 0xA0
 	};

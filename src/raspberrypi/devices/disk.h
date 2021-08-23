@@ -172,12 +172,13 @@ public:
 	void ModeSense(SASIDEV *);
 	void ModeSense10(SASIDEV *);
 	void Rezero(SASIDEV *);
-	void Format(SASIDEV *) override;
+	void FormatUnit(SASIDEV *) override;
 	void ReassignBlocks(SASIDEV *);
 	void StartStopUnit(SASIDEV *);
 	void SendDiagnostic(SASIDEV *);
 	void PreventAllowRemoval(SASIDEV *);
-	void SynchronizeCache(SASIDEV *);
+	void SynchronizeCache10(SASIDEV *);
+	void SynchronizeCache16(SASIDEV *);
 	void ReadDefectData10(SASIDEV *);
 	void Read6(SASIDEV *);
 	void Read10(SASIDEV *) override;
@@ -185,6 +186,7 @@ public:
 	void Write6(SASIDEV *);
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
+	void Verify10(SASIDEV *) override;
 	void Seek(SASIDEV *);
 	void Seek6(SASIDEV *);
 	void Seek10(SASIDEV *);
@@ -197,7 +199,6 @@ public:
 	void Release10(SASIDEV *);
 
 	// Command helpers
-	void Verify(SASIDEV *);					// VERIFY command
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
 	virtual int WriteCheck(DWORD block);					// WRITE check
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command

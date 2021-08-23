@@ -720,7 +720,7 @@ void SASIDEV::CmdFormat()
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	ctrl.device->Format(this);
+	ctrl.device->FormatUnit(this);
 }
 
 //---------------------------------------------------------------------------
