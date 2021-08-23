@@ -1178,7 +1178,7 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 	AddCommand(SCSIDEV::eCmdModeSense10, "CmdModeSense10", &Disk::ModeSense10);
 	AddCommand(SCSIDEV::eCmdRead16, "CmdRead16", &Disk::Read16);
 	AddCommand(SCSIDEV::eCmdWrite16, "CmdWrite16", &Disk::Write16);
-	//AddCommand(SCSIDEV::eCmdVerify16, "CmdVerify16", &Disk::Verify16);
+	AddCommand(SCSIDEV::eCmdVerify16, "CmdVerify16", &Disk::Verify16);
 	AddCommand(SCSIDEV::eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
 	AddCommand(SCSIDEV::eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
 }
