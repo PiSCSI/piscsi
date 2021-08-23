@@ -61,8 +61,7 @@ static inline WORD getWordLE(const BYTE *b)
 //---------------------------------------------------------------------------
 static inline DWORD getDwordLE(const BYTE *b)
 {
-	return ((DWORD)(b[3]) << 24) | ((DWORD)(b[2]) << 16) |
-		((DWORD)(b[1]) << 8) | b[0];
+	return ((DWORD)(b[3]) << 24) | ((DWORD)(b[2]) << 16) | ((DWORD)(b[1]) << 8) | b[0];
 }
 
 //---------------------------------------------------------------------------

@@ -1160,7 +1160,7 @@ bool Disk::Dispatch(SCSIDEV *controller)
 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
 
-		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 
 		(this->*command->execute)(controller);
 

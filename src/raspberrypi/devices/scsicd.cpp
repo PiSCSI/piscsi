@@ -279,7 +279,7 @@ bool SCSICD::Dispatch(SCSIDEV *controller)
 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
 
-		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 
 		(this->*command->execute)(controller);
 
@@ -299,9 +299,7 @@ bool SCSICD::Dispatch(SCSIDEV *controller)
 //---------------------------------------------------------------------------
 void SCSICD::Open(const Filepath& path)
 {
-	Fileio fio;
 	off_t size;
-	TCHAR file[5];
 
 	ASSERT(!IsReady());
 
@@ -311,6 +309,7 @@ void SCSICD::Open(const Filepath& path)
 	ClearTrack();
 
 	// Open as read-only
+	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
 		throw io_exception("Can't open CD-ROM file read-only");
 	}
@@ -331,12 +330,13 @@ void SCSICD::Open(const Filepath& path)
 		}
 
 		// Judge whether it is a CUE sheet or an ISO file
+		TCHAR file[5];
 		fio.Read(file, 4);
 		file[4] = '\0';
 		fio.Close();
 
 		// If it starts with FILE, consider it as a CUE sheet
-		if (strncasecmp(file, _T("FILE"), 4) == 0) {
+		if (!strncasecmp(file, _T("FILE"), 4)) {
 			// Open as CUE
 			OpenCue(path);
 		} else {
@@ -381,9 +381,6 @@ void SCSICD::OpenCue(const Filepath& /*path*/)
 //---------------------------------------------------------------------------
 void SCSICD::OpenIso(const Filepath& path)
 {
-	BYTE header[12];
-	BYTE sync[12];
-
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
@@ -398,12 +395,14 @@ void SCSICD::OpenIso(const Filepath& path)
 	}
 
 	// Read the first 12 bytes and close
+	BYTE header[12];
 	if (!fio.Read(header, sizeof(header))) {
 		fio.Close();
 		throw io_exception("Can't read header of ISO CD-ROM file");
 	}
 
 	// Check if it is RAW format
+	BYTE sync[12];
 	memset(sync, 0xff, sizeof(sync));
 	sync[0] = 0x00;
 	sync[11] = 0x00;
@@ -514,7 +513,6 @@ void SCSICD::CmdReadToc(SASIDEV *controller)
 		return;
 	}
 
-	// Data-in Phase
 	controller->DataIn();
 }
 
@@ -528,7 +526,6 @@ void SCSICD::CmdPlayAudio10(SASIDEV *controller)
 		return;
 	}
 
-	// Status phase
 	controller->Status();
 }
 
@@ -542,7 +539,6 @@ void SCSICD::CmdPlayAudioMSF(SASIDEV *controller)
 		return;
 	}
 
-	// Status phase
 	controller->Status();
 }
 
@@ -556,7 +552,6 @@ void SCSICD::CmdPlayAudioTrack(SASIDEV *controller)
 		return;
 	}
 
-	// Status phase
 	controller->Status();
 }
 

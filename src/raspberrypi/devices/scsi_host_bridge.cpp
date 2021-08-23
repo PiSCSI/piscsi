@@ -104,7 +104,7 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
 
-		LOGDEBUG("%s received %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 
 		(this->*command->execute)(controller);
 
@@ -180,7 +180,6 @@ void SCSIBR::TestUnitReady(SASIDEV *controller)
 {
 	// TEST UNIT READY Success
 
-	// status phase
 	controller->Status();}
 
 //---------------------------------------------------------------------------
@@ -264,7 +263,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Error
-	ASSERT(FALSE);
+	ASSERT(false);
 	return 0;
 }
 
@@ -326,7 +325,7 @@ bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Error
-	ASSERT(FALSE);
+	ASSERT(false);
 	return false;
 }
 
@@ -355,7 +354,6 @@ void SCSIBR::GetMessage10(SASIDEV *controller)
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	// Data in phase
 	controller->DataIn();
 }
 
@@ -392,7 +390,6 @@ void SCSIBR::SendMessage10(SASIDEV *controller)
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	// Data out phase
 	controller->DataOut();
 }
 
