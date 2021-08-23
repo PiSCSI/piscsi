@@ -17,7 +17,6 @@
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
 #include "devices/scsi_daynaport.h"
-#include "exceptions.h"
 #include <sstream>
 
 //===========================================================================
@@ -248,20 +247,18 @@ void SCSIDEV::Execute()
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	int lun;
-	try {
-		if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
-			// Use LUN0 for INQUIRY because LUN0 is assumed to be always available
-			lun = 0;
-		}
-		else {
-			lun = GetLun();
-		}
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
+		// Use LUN0 for INQUIRY because LUN0 is assumed to be always available
+		lun = 0;
 	}
-	catch (const lun_exception& e) {
-		LOGINFO("Invalid LUN %d for ID %d", e.getlun(), GetSCSIID());
+	else {
+		lun = (ctrl.cmd[1] >> 5) & 0x07;
+		if (!ctrl.unit[lun]) {
+			LOGINFO("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-		return;
+			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+			return;
+		}
 	}
 
 	ctrl.device = ctrl.unit[lun];
@@ -584,14 +581,7 @@ void SCSIDEV::Receive()
 			}
 
 			// Execution Phase
-			try {
-				Execute();
-			}
-			catch (const lun_exception& e) {
-				LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
-
-				Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-			}
+			Execute();
 			break;
 
 		// Message out phase
@@ -714,20 +704,5 @@ bool SCSIDEV::XferMsg(DWORD msg)
 	}
 
 	return true;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Validate and get LUN
-//
-//---------------------------------------------------------------------------
-DWORD SCSIDEV::GetLun() const
-{
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		throw lun_exception(lun);
-	}
-
-	return lun;
 }
 

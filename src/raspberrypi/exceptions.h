@@ -29,19 +29,6 @@ public:
 	}
 };
 
-class lun_exception final : public exception {
-private:
-	int lun;
-
-public:
-	lun_exception(int _lun) : lun(_lun) {}
-	~lun_exception() {}
-
-	int getlun() const {
-		return lun;
-	}
-};
-
 class io_exception : public exception {
 private:
 	string msg;

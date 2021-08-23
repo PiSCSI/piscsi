@@ -119,8 +119,6 @@ private:
 	void Receive();						// Receive data
 	bool XferMsg(DWORD msg);					// Data transfer message
 
-	DWORD GetLun() const;
-
 	scsi_t scsi;								// Internal data
 };
 

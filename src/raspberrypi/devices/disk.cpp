@@ -381,20 +381,17 @@ void Disk::Rezero(SASIDEV *controller)
 
 void Disk::RequestSense(SASIDEV *controller)
 {
-    DWORD lun;
-    try {
-     	lun = GetLun();
-    }
-    catch(const lun_exception& e) {
-        // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
-        // Non-existing LUNs do *not* result in CHECK CONDITION.
-        // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+	DWORD lun = (ctrl->cmd[1] >> 5) & 0x07;
 
+    // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
+    // Non-existing LUNs do *not* result in CHECK CONDITION.
+    // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+	if (!ctrl->unit[lun]) {
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
-        lun = 0;
+		lun = 0;
 
-        controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-    }
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+	}
 
     ctrl->length = ctrl->unit[lun]->RequestSense(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length > 0);

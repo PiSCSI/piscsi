@@ -18,7 +18,6 @@
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
-#include "exceptions.h"
 #include <sstream>
 
 //===========================================================================
@@ -345,14 +344,7 @@ void SASIDEV::Command()
 		ctrl.blocks = 0;
 
 		// Execution Phase
-		try {
-			Execute();
-		}
-		catch (const lun_exception& e) {
-			LOGINFO("%s Invalid LUN %d for ID %d", __PRETTY_FUNCTION__, e.getlun(), GetSCSIID());
-
-			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-		}
+		Execute();
 	}
 }
 
