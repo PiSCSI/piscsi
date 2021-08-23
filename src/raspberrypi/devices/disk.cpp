@@ -355,7 +355,7 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 
 void Disk::TestUnitReady(SASIDEV *controller)
 {
-	bool status = TestUnitReady(ctrl->cmd);
+	bool status = CheckReady();
 	if (!status) {
 		// Failure (Error)
 		controller->Error();
@@ -368,7 +368,7 @@ void Disk::TestUnitReady(SASIDEV *controller)
 
 void Disk::Rezero(SASIDEV *controller)
 {
-	bool status = Rezero(ctrl->cmd);
+	bool status = CheckReady();
 	if (!status) {
 		// Failure (Error)
 		controller->Error();
@@ -1969,17 +1969,6 @@ int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 //
 //---------------------------------------------------------------------------
 bool Disk::TestUnitReady(const DWORD* /*cdb*/)
-{
-	// Status check
-	return CheckReady();
-}
-
-//---------------------------------------------------------------------------
-//
-//	REZERO UNIT
-//
-//---------------------------------------------------------------------------
-bool Disk::Rezero(const DWORD* /*cdb*/)
 {
 	// Status check
 	return CheckReady();

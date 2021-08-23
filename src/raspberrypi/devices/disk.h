@@ -227,9 +227,8 @@ public:
 	void SetBlockCount(DWORD);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, bool);
 
-	// TODO Try to get rid of these methods, which are currently used by SASIDEV
+	// TODO Try to get rid of these methods
 	virtual bool TestUnitReady(const DWORD *cdb);	// TEST UNIT READY command
-	bool Rezero(const DWORD *cdb);					// REZERO command
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
 	virtual int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command

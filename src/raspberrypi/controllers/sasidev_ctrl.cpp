@@ -668,15 +668,7 @@ void SASIDEV::CmdTestUnitReady()
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ((Disk *)ctrl.device)->TestUnitReady(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	ctrl.device->TestUnitReady(this);
 }
 
 //---------------------------------------------------------------------------
@@ -689,15 +681,7 @@ void SASIDEV::CmdRezero()
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->Rezero(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	ctrl.device->Rezero(this);
 }
 
 //---------------------------------------------------------------------------
