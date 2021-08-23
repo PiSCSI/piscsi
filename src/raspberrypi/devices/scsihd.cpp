@@ -148,12 +148,10 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	BYTE page;
 	int size;
 
 	ASSERT(buf);
@@ -179,7 +177,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Parsing the page
 		while (length > 0) {
 			// Get page
-			page = buf[0];
+			BYTE page = buf[0];
 
 			switch (page) {
 				// format device
@@ -195,6 +193,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					break;
 
                 // CD-ROM Parameters
+				// TODO Move to scsicd.cpp
                 // According to the SONY CDU-541 manual, Page code 8 is supposed
                 // to set the Logical Block Adress Format, as well as the
                 // inactivity timer multiplier

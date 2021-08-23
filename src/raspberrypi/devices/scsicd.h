@@ -41,24 +41,24 @@ public:
 	void Init(int track, DWORD first, DWORD last);			// Initialization
 
 	// Properties
-	void SetPath(BOOL cdda, const Filepath& path);			// Set the path
+	void SetPath(bool cdda, const Filepath& path);			// Set the path
 	void GetPath(Filepath& path) const;				// Get the path
 	void AddIndex(int index, DWORD lba);				// Add index
 	DWORD GetFirst() const;					// Get the start LBA
 	DWORD GetLast() const;						// Get the last LBA
 	DWORD GetBlocks() const;					// Get the number of blocks
 	int GetTrackNo() const;					// Get the track number
-	BOOL IsValid(DWORD lba) const;					// Is this a valid LBA?
-	BOOL IsAudio() const;						// Is this an audio track?
+	bool IsValid(DWORD lba) const;					// Is this a valid LBA?
+	bool IsAudio() const;						// Is this an audio track?
 
 private:
 	SCSICD *cdrom;								// Parent device
-	BOOL valid;								// Valid track
+	bool valid;								// Valid track
 	int track_no;								// Track number
 	DWORD first_lba;							// First LBA
 	DWORD last_lba;								// Last LBA
-	BOOL audio;								// Audio track flag
-	BOOL raw;								// RAW data flag
+	bool audio;								// Audio track flag
+	bool raw;								// RAW data flag
 	Filepath imgpath;							// Image file path
 };
 
@@ -92,22 +92,12 @@ public:
 	// Basic Functions
 	SCSICD();								// Constructor
 	~SCSICD();								// Destructor
-	void Open(const Filepath& path);		// Open
+	void Open(const Filepath& path) override;		// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
-
-	// CD-DA
-	// TODO Never called
-	bool NextFrame();						// Frame notification
-	// TODO Never called
-	void GetBuf(DWORD *buffer, int samples, DWORD rate);		// Get CD-DA buffer
-
-	// LBA-MSF変換
-	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
-	DWORD MSFtoLBA(const BYTE *msf) const;				// MSF→LBA conversion
 
 	bool Dispatch(SCSIDEV *);
 
@@ -123,7 +113,10 @@ private:
 	void CmdPlayAudioTrack(SASIDEV *);
 	void CmdGetEventStatusNotification(SASIDEV *);
 
-	BOOL rawfile;								// RAW flag
+	// LBA-MSF変換
+	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
+
+	bool rawfile;								// RAW flag
 
 	// Track management
 	void ClearTrack();						// Clear the track

@@ -27,7 +27,7 @@ class SCSIHD_NEC : public SCSIHD
 public:
 	// Basic Functions
 	SCSIHD_NEC();							// Constructor
-	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	void Open(const Filepath& path) override;		// Open
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command

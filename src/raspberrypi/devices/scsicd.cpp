@@ -38,14 +38,14 @@ CDTrack::CDTrack(SCSICD *scsicd)
 	cdrom = scsicd;
 
 	// Track defaults to disabled
-	valid = FALSE;
+	valid = false;
 
 	// Initialize other data
 	track_no = -1;
 	first_lba = 0;
 	last_lba = 0;
-	audio = FALSE;
-	raw = FALSE;
+	audio = false;
+	raw = false;
 }
 
 //---------------------------------------------------------------------------
@@ -82,7 +82,7 @@ void CDTrack::Init(int track, DWORD first, DWORD last)
 //	Set Path
 //
 //---------------------------------------------------------------------------
-void CDTrack::SetPath(BOOL cdda, const Filepath& path)
+void CDTrack::SetPath(bool cdda, const Filepath& path)
 {
 	ASSERT(valid);
 
@@ -180,25 +180,25 @@ int CDTrack::GetTrackNo() const
 //	Is valid block
 //
 //---------------------------------------------------------------------------
-BOOL CDTrack::IsValid(DWORD lba) const
+bool CDTrack::IsValid(DWORD lba) const
 {
 	// FALSE if the track itself is invalid
 	if (!valid) {
-		return FALSE;
+		return false;
 	}
 
 	// If the block is BEFORE the first block
 	if (lba < first_lba) {
-		return FALSE;
+		return false;
 	}
 
 	// If the block is AFTER the last block
 	if (last_lba < lba) {
-		return FALSE;
+		return false;
 	}
 
 	// This track is valid
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -206,7 +206,7 @@ BOOL CDTrack::IsValid(DWORD lba) const
 //	Is audio track
 //
 //---------------------------------------------------------------------------
-BOOL CDTrack::IsAudio() const
+bool CDTrack::IsAudio() const
 {
 	ASSERT(valid);
 
@@ -232,7 +232,7 @@ SCSICD::SCSICD() : Disk("SCCD")
 	SetProduct("CD-ROM");
 
 	// NOT in raw format
-	rawfile = FALSE;
+	rawfile = false;
 
 	// Frame initialization
 	frame = 0;
@@ -307,7 +307,7 @@ void SCSICD::Open(const Filepath& path)
 
 	// Initialization, track clear
 	SetBlockCount(0);
-	rawfile = FALSE;
+	rawfile = false;
 	ClearTrack();
 
 	// Open as read-only
@@ -407,7 +407,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	memset(sync, 0xff, sizeof(sync));
 	sync[0] = 0x00;
 	sync[11] = 0x00;
-	rawfile = FALSE;
+	rawfile = false;
 	if (memcmp(header, sync, sizeof(sync)) == 0) {
 		// 00,FFx10,00, so it is presumed to be RAW format
 		if (!fio.Read(header, 4)) {
@@ -423,7 +423,7 @@ void SCSICD::OpenIso(const Filepath& path)
 		}
 
 		// Set to RAW file
-		rawfile = TRUE;
+		rawfile = true;
 	}
 	fio.Close();
 
@@ -457,7 +457,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
 	track[0]->Init(1, 0, GetBlockCount() - 1);
-	track[0]->SetPath(FALSE, path);
+	track[0]->SetPath(false, path);
 	tracks = 1;
 	dataindex = 0;
 }
@@ -500,7 +500,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	ASSERT(!track[0]);
 	track[0] = new CDTrack(this);
 	track[0]->Init(1, 0, GetBlockCount() - 1);
-	track[0]->SetPath(FALSE, path);
+	track[0]->SetPath(false, path);
 	tracks = 1;
 	dataindex = 0;
 }
@@ -831,29 +831,6 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 
 //---------------------------------------------------------------------------
 //
-//	MSF→LBA Conversion
-//
-//---------------------------------------------------------------------------
-DWORD SCSICD::MSFtoLBA(const BYTE *msf) const
-{
-	ASSERT(msf[2] < 60);
-	ASSERT(msf[3] < 75);
-
-	// 1, 75, add up in multiples of 75*60
-	DWORD lba = msf[1];
-	lba *= 60;
-	lba += msf[2];
-	lba *= 75;
-	lba += msf[3];
-
-	// Since the base point is M=0, S=2, F=0, subtract 150
-	lba -= 150;
-
-	return lba;
-}
-
-//---------------------------------------------------------------------------
-//
 //	Clear Track
 //
 //---------------------------------------------------------------------------
@@ -896,18 +873,3 @@ int SCSICD::SearchTrack(DWORD lba) const
 	return -1;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Next Frame
-//
-//---------------------------------------------------------------------------
-bool SCSICD::NextFrame()
-{
-	ASSERT((frame >= 0) && (frame < 75));
-
-	// set the frame in the range 0-74
-	frame = (frame + 1) % 75;
-
-	// FALSE after one lap
-	return frame != 0;
-}

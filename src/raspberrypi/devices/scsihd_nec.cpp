@@ -70,7 +70,7 @@ static inline DWORD getDwordLE(const BYTE *b)
 //	Open
 //
 //---------------------------------------------------------------------------
-void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
+void SCSIHD_NEC::Open(const Filepath& path)
 {
 	ASSERT(!IsReady());
 
