@@ -87,7 +87,7 @@ SCSIBR::~SCSIBR()
 	}
 
 	for (auto const& command : commands) {
-		free(command.second);
+		delete command.second;
 	}
 }
 
