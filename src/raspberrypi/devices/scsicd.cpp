@@ -249,6 +249,7 @@ SCSICD::SCSICD() : Disk("SCCD")
 	AddCommand(SCSIDEV::eCmdPlayAudio10, "CmdPlayAudio10", &SCSICD::CmdPlayAudio10);
 	AddCommand(SCSIDEV::eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSICD::CmdPlayAudioMSF);
 	AddCommand(SCSIDEV::eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSICD::CmdPlayAudioTrack);
+	AddCommand(SCSIDEV::eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSICD::CmdGetEventStatusNotification);
 }
 
 //---------------------------------------------------------------------------
@@ -790,6 +791,12 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 
 	// Always return only the allocation length
 	return length;
+}
+
+void SCSICD::CmdGetEventStatusNotification(SASIDEV *controller)
+{
+	// This naive (but legal) implementation avoids constant warnings in the logs
+	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------

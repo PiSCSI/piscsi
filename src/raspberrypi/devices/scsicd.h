@@ -121,6 +121,7 @@ private:
 	void CmdPlayAudio10(SASIDEV *);
 	void CmdPlayAudioMSF(SASIDEV *);
 	void CmdPlayAudioTrack(SASIDEV *);
+	void CmdGetEventStatusNotification(SASIDEV *);
 
 	BOOL rawfile;								// RAW flag
 

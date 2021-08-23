@@ -92,7 +92,6 @@ public:
 	void CmdSetInterfaceMode(SASIDEV *);
 	void CmdSetMcastAddr(SASIDEV *);
 	void CmdEnableInterface(SASIDEV *);
-	void CmdGetEventStatusNotification(SASIDEV *);
 
 	bool Dispatch(SCSIDEV *);
 

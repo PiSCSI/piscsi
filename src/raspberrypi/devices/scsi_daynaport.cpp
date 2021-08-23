@@ -91,7 +91,6 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	AddCommand(SCSIDEV::eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDaynaPort::CmdSetInterfaceMode);
 	AddCommand(SCSIDEV::eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDaynaPort::CmdSetMcastAddr);
 	AddCommand(SCSIDEV::eCmdEnableInterface, "CmdEnableInterface", &SCSIDaynaPort::CmdEnableInterface);
-	AddCommand(SCSIDEV::eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSIDaynaPort::CmdGetEventStatusNotification);
 }
 
 //---------------------------------------------------------------------------
@@ -712,12 +711,6 @@ void SCSIDaynaPort::CmdEnableInterface(SASIDEV *controller)
 
 	// status phase
 	controller->Status();
-}
-
-void SCSIDaynaPort::CmdGetEventStatusNotification(SASIDEV *controller)
-{
-	// This naive (but legal) implementation avoids constant warnings in the logs
-	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------
