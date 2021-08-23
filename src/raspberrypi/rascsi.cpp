@@ -260,7 +260,7 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 		image_file->set_read_only(access(filename.c_str(), W_OK));
 
 		struct stat st;
-		stat(image_file->name().c_str(), &st);
+		stat(filename.c_str(), &st);
 		image_file->set_size(st.st_size);
 	}
 }
