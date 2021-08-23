@@ -35,9 +35,7 @@ void SerializeMessage(int fd, const google::protobuf::MessageLite& message)
     }
 
     // Write the actual protobuf data
-    uint8_t buf[size];
-    memcpy(buf, data.data(), size);
-    if (write(fd, buf, size) != size) {
+    if (write(fd, data.data(), size) != size) {
     	throw io_exception("Can't write protobuf data");
     }
 }
