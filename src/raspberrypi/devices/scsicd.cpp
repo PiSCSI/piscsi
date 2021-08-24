@@ -229,7 +229,7 @@ SCSICD::SCSICD() : Disk("SCCD"), MmcDevice(), FileSupport()
 	SetRemovable(true);
 	SetReadOnly(true);
 
-	SetProduct("CD-ROM");
+	SetProduct("SCSI CD-ROM");
 
 	// NOT in raw format
 	rawfile = false;
