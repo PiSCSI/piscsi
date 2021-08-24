@@ -298,6 +298,30 @@ const PbDevices GetDevices()
 		pbDevice->set_lockable(device->IsLockable());
 		pbDevice->set_locked(device->IsLocked());
 
+		const Disk *disk = dynamic_cast<Disk*>(device);
+		if (disk) {
+			switch (disk->GetSectorSize()) {
+				case 9:
+					pbDevice->set_block_size(512);
+					break;
+
+				case 10:
+					pbDevice->set_block_size(1024);
+					break;
+
+				case 11:
+					pbDevice->set_block_size(2048);
+					break;
+
+				case 12:
+					pbDevice->set_block_size(4096);
+					break;
+
+				default:
+					break;
+			}
+		}
+
 		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 		if (fileSupport) {
 			Filepath filepath;
