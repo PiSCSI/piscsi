@@ -360,7 +360,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				device->set_file(optarg);
+				device->set_params(optarg);
 				break;
 
 			case 't':

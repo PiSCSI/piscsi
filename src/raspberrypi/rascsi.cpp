@@ -592,14 +592,13 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	const int id = pbDevice.id();
 	const int unit = pbDevice.unit();
-	const string filename = pbDevice.file();
 	PbDeviceType type = pbDevice.type();
 	bool all = params == "all";
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
 	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", filename='" << filename << "', vendor='" << pbDevice.vendor()
+			<< ", params='" << pbDevice.params() << "', vendor='" << pbDevice.vendor()
 			<< ", product='" << pbDevice.product() << "', revision='" << pbDevice.revision() << "'"
 			<< "', block size=" << pbDevice.block_size() << ", params='" << params << "'";
 	LOGINFO("%s", s.str().c_str());
@@ -628,6 +627,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			return ReturnStatus(fd, false, error);
 		}
 
+		string filename = pbDevice.params();
 		string ext;
 		int len = filename.length();
 		if (len > 4 && filename[len - 4] == '.') {
@@ -736,7 +736,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		}
 
 		// Initialize everything that would have caused issues when being initialized during the dry run
-		device->Init();
+		device->Init(pbDevice.params());
 
 		// Replace with the newly created unit
 		map[id * UnitNum + unit] = device;
@@ -819,39 +819,42 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	}
 
 	switch (cmd) {
-		case INSERT:
-			if (!pbDevice.vendor().empty() || !pbDevice.product().empty() || !pbDevice.revision().empty()) {
-				return ReturnStatus(fd, false, "Device name cannot be changed");
-			}
-
-			if (filename.empty()) {
-				return ReturnStatus(fd, false, "Missing filename");
-			}
-
-			if (dryRun) {
-				return true;
-			}
-
-			filepath.SetPath(filename.c_str());
-			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", filename.c_str(), device->GetType().c_str(), id, unit);
-
-			try {
-				fileSupport->Open(filepath);
-			}
-			catch(const io_exception& e) {
-				if (!default_image_folder.empty()) {
-					// If the file does not exist search for it in the default image folder
-					string default_file = default_image_folder + "/" + filename;
-					filepath.SetPath(default_file.c_str());
-					try {
-						fileSupport->Open(filepath);
-					}
-					catch(const io_exception&) {
-						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
-					}
+		case INSERT: {
+				if (!pbDevice.vendor().empty() || !pbDevice.product().empty() || !pbDevice.revision().empty()) {
+					return ReturnStatus(fd, false, "Device name cannot be changed");
 				}
-				else {
-					return ReturnStatus(fd, false, "No default image folder");
+
+				string filename = pbDevice.params();
+
+				if (filename.empty()) {
+					return ReturnStatus(fd, false, "Missing filename");
+				}
+
+				if (dryRun) {
+					return true;
+				}
+
+				filepath.SetPath(filename.c_str());
+				LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", filename.c_str(), device->GetType().c_str(), id, unit);
+
+				try {
+					fileSupport->Open(filepath);
+				}
+				catch(const io_exception& e) {
+					if (!default_image_folder.empty()) {
+						// If the file does not exist search for it in the default image folder
+						string default_file = default_image_folder + "/" + filename;
+						filepath.SetPath(default_file.c_str());
+						try {
+							fileSupport->Open(filepath);
+						}
+						catch(const io_exception&) {
+							return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
+						}
+					}
+					else {
+						return ReturnStatus(fd, false, "No default image folder");
+					}
 				}
 			}
 			break;
@@ -1030,7 +1033,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_unit(unit);
 		device->set_type(type);
 		device->set_block_size(block_size);
-		device->set_file(optarg);
+		device->set_params(optarg);
 
 		size_t separatorPos = name.find(':');
 		if (separatorPos != string::npos) {

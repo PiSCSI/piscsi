@@ -20,6 +20,7 @@
 #include "xm6.h"
 #include "os.h"
 #include "disk.h"
+#include <string>
 
 //===========================================================================
 //
@@ -49,7 +50,7 @@ public:
 	SCSIBR();
 	~SCSIBR();
 
-	void Init() override;
+	void Init(const string&) override;
 
 	bool Dispatch(SCSIDEV *) override;
 

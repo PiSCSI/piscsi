@@ -33,6 +33,7 @@
 #include "disk.h"
 #include "ctapdriver.h"
 #include <map>
+#include <string>
 
 //===========================================================================
 //
@@ -60,7 +61,7 @@ public:
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
 
-	void Init() override;
+	void Init(const string&) override;
 
 	void Open(const Filepath& path);
 										// Capture packets

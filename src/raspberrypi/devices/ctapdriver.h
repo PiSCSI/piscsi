@@ -18,6 +18,8 @@
 
 #include <pcap/pcap.h>
 #include "filepath.h"
+#include <vector>
+#include <string>
 
 #ifndef ETH_FRAME_LEN
 #define ETH_FRAME_LEN 1514
@@ -32,8 +34,8 @@ class CTapDriver
 {
 public:
 	// Basic Functionality
-	CTapDriver();								// Constructor
-	BOOL Init();							// Initilization
+	CTapDriver(const std::string&);								// Constructor
+	BOOL Init();							// Initialization
 	void OpenDump(const Filepath& path);
 										// Capture packets
 	void Cleanup();						// Cleanup
@@ -55,6 +57,8 @@ private:
 	pcap_t *m_pcap;
 	pcap_dumper_t *m_pcap_dumper;
 
+	// Prioritized comma-separated list of interfaces to create the bridge for
+	std::vector<std::string> interfaces;
 };
 
 #endif	// ctapdriver_h

@@ -21,6 +21,8 @@
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 
+using namespace std;
+
 //===========================================================================
 //
 //	SCSI Host Bridge
@@ -76,11 +78,11 @@ SCSIBR::~SCSIBR()
 	}
 }
 
-void SCSIBR::Init()
+void SCSIBR::Init(const string&)
 {
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver();
+	tap = new CTapDriver("");
 	m_bTapEnable = tap->Init();
 
 	// Generate MAC Address

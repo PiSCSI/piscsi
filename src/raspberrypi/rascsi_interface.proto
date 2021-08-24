@@ -61,10 +61,10 @@ message PbDeviceDefinition {
     int32 id = 1;
     int32 unit = 2;
     PbDeviceType type = 3;
+    // Optional device specific parameter, e.g. the name of an image file
+    string params = 4;
     // The optional SCSI hard disk drive block size in bytes per sector, must be 512, 1024, 2048 or 4096
-    int32 block_size = 4;
-    // The optional name of the image file
-    string file = 5;
+    int32 block_size = 5;
     // The device name components
     string vendor = 6;
     string product = 7;
