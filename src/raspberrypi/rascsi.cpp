@@ -290,13 +290,18 @@ const PbDevices GetDevices()
 		PbDeviceType_Parse(device->GetType(), &type);
 		pbDevice->set_type(type);
 
-		pbDevice->set_read_only(device->IsReadOnly());
-		pbDevice->set_protectable(device->IsProtectable());
-		pbDevice->set_protected_(device->IsProtectable() && device->IsProtected());
-		pbDevice->set_removable(device->IsRemovable());
-		pbDevice->set_removed(device->IsRemoved());
-		pbDevice->set_lockable(device->IsLockable());
-		pbDevice->set_locked(device->IsLocked());
+		PbDeviceFeatures *features = new PbDeviceFeatures();
+		pbDevice->set_allocated_features(features);
+		features->set_read_only(device->IsReadOnly());
+		features->set_protectable(device->IsProtectable());
+		features->set_removable(device->IsRemovable());
+		features->set_lockable(device->IsLockable());
+
+		PbDeviceStatus *status = new PbDeviceStatus();
+		pbDevice->set_allocated_status(status);
+		status->set_protected_(device->IsProtected());
+		status->set_removed(device->IsRemoved());
+		status->set_locked(device->IsLocked());
 
 		const Disk *disk = dynamic_cast<Disk*>(device);
 		if (disk) {
@@ -329,7 +334,7 @@ const PbDevices GetDevices()
 			PbImageFile *image_file = new PbImageFile();
 			GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 			pbDevice->set_allocated_file(image_file);
-			pbDevice->set_supports_file(true);
+			features->set_supports_file(true);
 		}
 	}
 
