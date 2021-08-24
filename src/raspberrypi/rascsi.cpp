@@ -562,6 +562,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	types_features->set_type(SCRM);
 	features->set_protectable(true);
 	features->set_removable(true);
+	features->set_lockable(true);
 	features->set_supports_file(true);
 
 	types_features = serverInfo.add_types_features();
