@@ -36,10 +36,6 @@ using namespace std;
 //---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
-	SetRemovable(false);
-
-	SetProduct("BRIDGE");
-
 	fsoptlen = 0;
 	fsoutlen = 0;
 	fsresult = 0;

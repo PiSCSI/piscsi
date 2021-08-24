@@ -44,33 +44,64 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 		}
 	}
 
+	Device *device = NULL;
+
 	switch (type) {
 		case SAHD:
-			return new SASIHD();
+			device = new SASIHD();
+			break;
 
 		case SCHD:
 			if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-				return new SCSIHD_NEC();
+				device = new SCSIHD_NEC();
+				((Disk *)device)->SetVendor("NEC");
 			} else {
-				return new SCSIHD();
+				device = new SCSIHD();
+				device->SetProtectable(true);
+				((Disk *)device)->SetSectorSizeConfigurable(true);
 			}
 
+			break;
+
 		case SCRM:
-			return new SCSIHD(true);
+			device = new SCSIHD(true);
+			device->SetProtectable(true);
+			device->SetLockable(true);
+			((Disk *)device)->SetSectorSizeConfigurable(true);
+			break;
 
 		case SCMO:
-			return new SCSIMO();
+			device = new SCSIMO();
+			device->SetProtectable(true);
+			device->SetRemovable(true);
+			device->SetLockable(true);
+			device->SetProduct("SCSI MO");
+			break;
 
 		case SCCD:
-			return new SCSICD();
+			device = new SCSICD();
+			device->SetReadOnly(true);
+			device->SetRemovable(true);
+			device->SetLockable(true);
+			device->SetProduct("SCSI CD-ROM");
+			break;
 
 		case SCBR:
-			return new SCSIBR();
+			device = new SCSIBR();
+			device->SetProduct("BRIDGE");
+			break;
 
 		case SCDP:
-			return new SCSIDaynaPort();
+			device = new SCSIDaynaPort();
+			device->SetVendor("Dayna");
+			device->SetProduct("SCSI/Link");
+			device->SetRevision("1.4a");
+			break;
 
 		default:
-			return NULL;
+			assert(false);
+			break;
 	}
+
+	return device;
 }

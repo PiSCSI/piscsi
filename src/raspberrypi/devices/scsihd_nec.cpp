@@ -31,10 +31,6 @@
 //---------------------------------------------------------------------------
 SCSIHD_NEC::SCSIHD_NEC() : SCSIHD()
 {
-	SetSectorSizeConfigurable(false);
-
-	SetVendor("NEC");
-
 	// Work initialization
 	cylinders = 0;
 	heads = 0;

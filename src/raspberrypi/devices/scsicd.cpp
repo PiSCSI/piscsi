@@ -226,11 +226,6 @@ bool CDTrack::IsAudio() const
 //---------------------------------------------------------------------------
 SCSICD::SCSICD() : Disk("SCCD"), MmcDevice(), FileSupport()
 {
-	SetRemovable(true);
-	SetReadOnly(true);
-
-	SetProduct("SCSI CD-ROM");
-
 	// NOT in raw format
 	rawfile = false;
 
