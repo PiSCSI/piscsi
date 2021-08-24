@@ -224,7 +224,7 @@ bool CDTrack::IsAudio() const
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSICD::SCSICD() : Disk("SCCD")
+SCSICD::SCSICD() : Disk("SCCD"), MmcDevice(), FileSupport()
 {
 	SetRemovable(true);
 	SetReadOnly(true);

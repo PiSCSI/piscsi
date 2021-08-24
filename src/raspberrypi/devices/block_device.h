@@ -11,22 +11,19 @@
 
 #pragma once
 
-#include "primary_device.h"
-
 class SASIDEV;
 
-// TODO There should also be MMCDevice, and scsicd should be derived from MMCDevice, not from BlockDevice
-class BlockDevice : public PrimaryDevice
+class BlockDevice
 {
 public:
 
-	BlockDevice(const string& id) : PrimaryDevice(id) {};
+	BlockDevice() {};
 	virtual ~BlockDevice() {};
 
 	// Mandatory commands
-	virtual void TestUnitReady(SASIDEV *) override = 0;
-	virtual void Inquiry(SASIDEV *) override = 0;
-	virtual void ReportLuns(SASIDEV *) override = 0;
+	virtual void TestUnitReady(SASIDEV *) = 0;
+	virtual void Inquiry(SASIDEV *) = 0;
+	virtual void ReportLuns(SASIDEV *) = 0;
 	virtual void FormatUnit(SASIDEV *) = 0;
 	virtual void ReadCapacity10(SASIDEV *) = 0;
 	virtual void ReadCapacity16(SASIDEV *) = 0;
@@ -34,15 +31,15 @@ public:
 	virtual void Read16(SASIDEV *) = 0;
 	virtual void Write10(SASIDEV *) = 0;
 	virtual void Write16(SASIDEV *) = 0;
-	virtual void RequestSense(SASIDEV *) override = 0;
+	virtual void RequestSense(SASIDEV *) = 0;
 
 	// Implemented optional commands
 	virtual void Verify10(SASIDEV *) = 0;
 	virtual void Verify16(SASIDEV *) = 0;
-	virtual void ModeSense(SASIDEV *) override = 0;
-	virtual void ModeSense10(SASIDEV *) override = 0;
-	virtual void ModeSelect(SASIDEV *) override = 0;
-	virtual void ModeSelect10(SASIDEV *) override = 0;
+	virtual void ModeSense(SASIDEV *) = 0;
+	virtual void ModeSense10(SASIDEV *) = 0;
+	virtual void ModeSelect(SASIDEV *) = 0;
+	virtual void ModeSelect10(SASIDEV *) = 0;
 	virtual void ReassignBlocks(SASIDEV *) = 0;
 	virtual void SendDiagnostic(SASIDEV *) = 0;
 	virtual void StartStopUnit(SASIDEV *) = 0;

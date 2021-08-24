@@ -11,15 +11,13 @@
 
 #pragma once
 
-#include "device.h"
-
 class SASIDEV;
 
-class PrimaryDevice : public Device
+class PrimaryDevice
 {
 public:
 
-	PrimaryDevice(const string& id) : Device(id) {};
+	PrimaryDevice() {};
 	virtual ~PrimaryDevice() {};
 
 	// Mandatory commands

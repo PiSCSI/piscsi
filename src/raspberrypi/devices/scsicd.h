@@ -16,6 +16,8 @@
 #pragma once
 
 #include "os.h"
+#include "primary_device.h"
+#include "mmc_device.h"
 #include "disk.h"
 #include "filepath.h"
 
@@ -67,7 +69,7 @@ private:
 //	SCSI CD-ROM
 //
 //===========================================================================
-class SCSICD : public Disk, public FileSupport
+class SCSICD : public Disk, public MmcDevice, public FileSupport
 {
 private:
 	typedef struct _command_t {

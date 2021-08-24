@@ -21,7 +21,9 @@
 #include "log.h"
 #include "scsi.h"
 #include "controllers/scsidev_ctrl.h"
+#include "primary_device.h"
 #include "block_device.h"
+#include "device.h"
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
@@ -124,7 +126,7 @@ private:
 //	Disk
 //
 //===========================================================================
-class Disk : public BlockDevice
+class Disk : public Device, public PrimaryDevice, public BlockDevice
 {
 private:
 	enum access_mode { RW6, RW10, RW16 };

@@ -1076,7 +1076,7 @@ void DiskCache::Update()
 //	Constructor
 //
 //---------------------------------------------------------------------------
-Disk::Disk(const std::string id) : BlockDevice(id)
+Disk::Disk(const std::string id) : Device(id), PrimaryDevice(), BlockDevice()
 {
 	// Work initialization
 	sector_size_configurable = false;
@@ -1211,7 +1211,7 @@ void Disk::Open(const Filepath& path)
 //---------------------------------------------------------------------------
 bool Disk::Eject(bool force)
 {
-	bool status = BlockDevice::Eject(force);
+	bool status = Device::Eject(force);
 	if (status) {
 		// Remove disk cache
 		disk.dcache->Save();
