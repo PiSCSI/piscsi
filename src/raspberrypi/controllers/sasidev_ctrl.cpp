@@ -412,10 +412,13 @@ void SASIDEV::Execute()
 			CmdReleaseUnit();
 			return;
 
-		// SPECIFY
+		// SPECIFY (SASI only)
+		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
+		// leaving it here for now....
 		case SASIDEV::eCmdInvalid:
 			CmdSpecify();
 			return;
+
 		default:
 			break;
 	}
@@ -454,6 +457,8 @@ void SASIDEV::Status()
 		} else {
 			SysTimer::SleepUsec(5);
 		}
+
+		LOGTRACE("%s Status phase", __PRETTY_FUNCTION__);
 
 		// Phase Setting
 		ctrl.phase = BUS::status;
@@ -680,15 +685,8 @@ void SASIDEV::CmdRequestSense()
 {
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
-	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
 	// Command processing on drive
-    ctrl.unit[lun]->RequestSense(this);
+    ctrl.device->RequestSense(this);
 }
 
 //---------------------------------------------------------------------------
@@ -775,9 +773,6 @@ void SASIDEV::CmdRead6()
 
 	// Command processing on drive
 	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
-	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
-
-	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
