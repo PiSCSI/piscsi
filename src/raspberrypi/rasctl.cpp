@@ -237,7 +237,7 @@ void CommandServerInfo(const string& hostname, int port)
 					cout << "  Image file support";
 				}
 				if (features.supports_block_size()) {
-					cout << "  Configurable block size";
+					cout << "  Block size configurable";
 				}
 				cout << endl;
 			}
