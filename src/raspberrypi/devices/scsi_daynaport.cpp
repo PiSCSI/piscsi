@@ -49,6 +49,7 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 
 	SetVendor("Dayna");
 	SetProduct("SCSI/Link");
+	SetRevision("1.4a");
 
 	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
