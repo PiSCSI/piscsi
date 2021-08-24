@@ -229,8 +229,11 @@ void CommandServerInfo(const string& hostname, int port)
 			const PbDevice& device = *it;
 
 			cout << "  " << device.id() << ":" << device.unit() << "  " << PbDeviceType_Name(device.type())
-					<< "  " << device.vendor() << ":" << device.product() << ":" << device.revision()
-					<< (device.file().name().empty() ? "" : "  " + device.file().name()) << endl;
+					<< "  " << device.vendor() << ":" << device.product() << ":" << device.revision();
+			if (device.block_size()) {
+				cout << "  " << device.block_size() << " BPS";
+			}
+			cout << (device.file().name().empty() ? "" : "  " + device.file().name()) << endl;
 		}
 	}
 }
