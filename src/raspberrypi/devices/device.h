@@ -121,8 +121,11 @@ public:
 	unsigned int GetLun() const { return lun; }
 	void SetLun(unsigned int lun) { this->lun = lun; }
 
+	const string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
+	const string GetProduct() const { return product; }
 	void SetProduct(const string&, bool = true);
+	const string GetRevision() const { return revision; }
 	void SetRevision(const string&);
 	const string GetPaddedName() const;
 

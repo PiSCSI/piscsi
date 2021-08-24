@@ -281,11 +281,11 @@ const PbDevices GetDevices()
 
 		PbDevice *pbDevice = pbDevices.add_devices();
 
-		// Initialize ID and unit number
 		pbDevice->set_id(i / UnitNum);
 		pbDevice->set_unit(i % UnitNum);
-
-		// ID,UNIT,Type,Device Status
+		pbDevice->set_vendor(device->GetVendor());
+		pbDevice->set_product(device->GetProduct());
+		pbDevice->set_revision(device->GetRevision());
 		PbDeviceType type = UNDEFINED;
 		PbDeviceType_Parse(device->GetType(), &type);
 		pbDevice->set_type(type);
