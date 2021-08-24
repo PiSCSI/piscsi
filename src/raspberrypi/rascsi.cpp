@@ -537,11 +537,54 @@ void LogDevices(const string& devices)
 	}
 }
 
-void GetAvailableLogLevels(PbServerInfo& serverInfo)
+void GetLogLevels(PbServerInfo& serverInfo)
 {
 	for (auto it = available_log_levels.begin(); it != available_log_levels.end(); ++it) {
 		serverInfo.add_available_log_levels(*it);
 	}
+}
+
+void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
+{
+	PbDeviceTypeFeatures *types_features = serverInfo.add_types_features();
+	PbDeviceFeatures *features = types_features->add_features();
+	types_features->set_type(SAHD);
+	features->set_supports_file(true);
+
+	types_features = serverInfo.add_types_features();
+	features = types_features->add_features();
+	types_features->set_type(SCHD);
+	features->set_protectable(true);
+	features->set_supports_file(true);
+
+	types_features = serverInfo.add_types_features();
+	features = types_features->add_features();
+	types_features->set_type(SCRM);
+	features->set_protectable(true);
+	features->set_removable(true);
+	features->set_supports_file(true);
+
+	types_features = serverInfo.add_types_features();
+	features = types_features->add_features();
+	types_features->set_type(SCMO);
+	features->set_protectable(true);
+	features->set_removable(true);
+	features->set_lockable(true);
+	features->set_supports_file(true);
+
+	types_features = serverInfo.add_types_features();
+	features = types_features->add_features();
+	types_features->set_type(SCCD);
+	features->set_read_only(true);
+	features->set_removable(true);
+	features->set_lockable(true);
+	features->set_supports_file(true);
+
+	types_features = serverInfo.add_types_features();
+	types_features->set_type(SCBR);
+
+	types_features = serverInfo.add_types_features();
+	types_features->set_type(SCDP);
 }
 
 void GetAvailableImages(PbServerInfo& serverInfo)
@@ -549,7 +592,7 @@ void GetAvailableImages(PbServerInfo& serverInfo)
 	if (access(default_image_folder.c_str(), F_OK) != -1) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				PbImageFile *image_file = serverInfo.add_available_image_files();
+				PbImageFile *image_file = serverInfo.add_image_files();
 				GetImageFile(image_file, entry.path().filename());
 			}
 		}
@@ -1173,9 +1216,10 @@ static void *MonThread(void *param)
 				case SERVER_INFO: {
 					PbServerInfo serverInfo;
 					serverInfo.set_rascsi_version(rascsi_get_version_string());
-					GetAvailableLogLevels(serverInfo);
+					GetLogLevels(serverInfo);
 					serverInfo.set_current_log_level(current_log_level);
 					serverInfo.set_default_image_folder(default_image_folder);
+					GetDeviceTypeFeatures(serverInfo);
 					GetAvailableImages(serverInfo);
 					serverInfo.set_allocated_devices(new PbDevices(GetDevices()));
 					SerializeMessage(fd, serverInfo);

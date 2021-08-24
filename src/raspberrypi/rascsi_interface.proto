@@ -49,7 +49,7 @@ enum PbOperation {
     UNPROTECT = 9;
 }
 
-// The features supported by a device type
+// The features supported by a device
 message PbDeviceFeatures {
      // Read-only medium (e.g. CD-ROMs) are not protectable but permanently read-only
     bool read_only = 1;
@@ -71,6 +71,12 @@ message PbDeviceStatus {
     bool removed = 2;
     // Medium is locked
     bool locked = 3;
+}
+
+// Device features by device type
+message PbDeviceTypeFeatures {
+    PbDeviceType type = 1;
+    repeated PbDeviceFeatures features = 2;
 }
 
 // The image file data
@@ -143,8 +149,10 @@ message PbServerInfo {
     repeated string available_log_levels = 2;
     string current_log_level = 3;
     string default_image_folder = 4;
+    // Supported device types and their features
+    repeated PbDeviceTypeFeatures types_features = 5;
     // Files in the default folder
-    repeated PbImageFile available_image_files = 5;
+    repeated PbImageFile image_files = 6;
     // The attached devices
-    PbDevices devices = 6;
+    PbDevices devices = 7;
 }

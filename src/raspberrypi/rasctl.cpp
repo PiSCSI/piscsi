@@ -194,13 +194,13 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 
 	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
-	if (!serverInfo.available_image_files_size()) {
+	if (!serverInfo.image_files_size()) {
 		cout << "  No image files available in the default folder" << endl;
 	}
 	else {
 		list<PbImageFile> sorted_files;
-		for (int i = 0; i < serverInfo.available_image_files_size(); i++) {
-			sorted_files.push_back(serverInfo.available_image_files(i));
+		for (int i = 0; i < serverInfo.image_files_size(); i++) {
+			sorted_files.push_back(serverInfo.image_files(i));
 		}
 		sorted_files.sort([](const PbImageFile& a, const PbImageFile& b) { return a.name() < b.name(); });
 
@@ -210,6 +210,37 @@ void CommandServerInfo(const string& hostname, int port)
 
 			cout << "  " << file.name() << " (" << file.size() << " bytes)" << (file.read_only() ? ", read-only": "")
 					<< endl;
+		}
+	}
+
+	cout << "Available device types and their features:" << endl;
+	for (int i = 0; i < serverInfo.types_features_size(); i++) {
+		PbDeviceTypeFeatures type_features = serverInfo.types_features(i);
+		cout << "  " << PbDeviceType_Name(type_features.type());
+
+		if (type_features.features_size()) {
+			for (int j = 0; j < type_features.features_size(); j++) {
+				PbDeviceFeatures features = type_features.features(j);
+				if (features.read_only()) {
+					cout << "  Read-only";
+				}
+				if (features.protectable()) {
+					cout << "  Protectable";
+				}
+				if (features.removable()) {
+					cout << "  Removable";
+				}
+				if (features.lockable()) {
+					cout << "  Lockable";
+				}
+				if (features.supports_file()) {
+					cout << "  Image file support";
+				}
+				cout << endl;
+			}
+		}
+		else {
+			cout << endl;
 		}
 	}
 
