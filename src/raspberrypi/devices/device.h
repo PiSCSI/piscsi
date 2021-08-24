@@ -46,6 +46,8 @@ using namespace std;
 #define STATUS_PARAMSAVE	0x00053900	// SAVING PARAMETERS NOT SUPPORTED
 #define STATUS_NODEFECT		0x00010000	// DEFECT LIST NOT FOUND
 
+class SCSIDEV;
+
 class Device
 {
 private:
@@ -91,6 +93,8 @@ public:
 
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual void Init() {};
+
+	virtual bool Dispatch(SCSIDEV *) = 0;
 
 	const string& GetType() const { return type; }
 

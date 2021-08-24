@@ -231,7 +231,7 @@ public:
 	// TODO Try to get rid of this method, which is called by SASIDEV (but must not)
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
 
-	virtual bool Dispatch(SCSIDEV *);
+	virtual bool Dispatch(SCSIDEV *) override;
 
 protected:
 	// Internal processing

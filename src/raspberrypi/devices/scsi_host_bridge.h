@@ -28,6 +28,7 @@
 //===========================================================================
 class CTapDriver;
 class CFileSys;
+
 class SCSIBR : public Disk
 {
 
@@ -50,7 +51,7 @@ public:
 
 	void Init() override;
 
-	bool Dispatch(SCSIDEV *);
+	bool Dispatch(SCSIDEV *) override;
 
 	// commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
