@@ -15,6 +15,7 @@
 
 class SASIDEV;
 
+// TODO There should also be MMCDevice, and scsicd should be derived from MMCDevice, not from BlockDevice
 class BlockDevice : public PrimaryDevice
 {
 public:
