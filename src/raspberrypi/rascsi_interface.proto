@@ -61,6 +61,8 @@ message PbDeviceFeatures {
     bool lockable = 4;
     // Device supports image file
     bool supports_file = 5;
+    // Device supports configurable block size
+    bool supports_block_size = 6;
 }
 
 // The status of a device

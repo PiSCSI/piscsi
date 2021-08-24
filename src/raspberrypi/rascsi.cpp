@@ -556,6 +556,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	types_features->set_type(SCHD);
 	features->set_protectable(true);
 	features->set_supports_file(true);
+	features->set_supports_block_size(true);
 
 	types_features = serverInfo.add_types_features();
 	features = types_features->add_features();
@@ -564,6 +565,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	features->set_removable(true);
 	features->set_lockable(true);
 	features->set_supports_file(true);
+	features->set_supports_block_size(true);
 
 	types_features = serverInfo.add_types_features();
 	features = types_features->add_features();
