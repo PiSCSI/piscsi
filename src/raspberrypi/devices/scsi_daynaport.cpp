@@ -50,41 +50,6 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	SetVendor("Dayna");
 	SetProduct("SCSI/Link");
 
-	#ifdef __linux__
-	// TAP Driver Generation
-	m_tap = new CTapDriver();
-	m_bTapEnable = m_tap->Init();
-	if(!m_bTapEnable){
-		LOGERROR("Unable to open the TAP interface");
-	}else {
-		LOGDEBUG("Tap interface created");
-	}
-
-	LOGTRACE("%s this->reset()", __PRETTY_FUNCTION__);
-	this->Reset();
-	SetReady(true);
-	SetReset(false);
-
-	// Generate MAC Address
-	LOGTRACE("%s memset(m_mac_addr, 0x00, 6);", __PRETTY_FUNCTION__);
-	memset(m_mac_addr, 0x00, 6);
-
-	// if (m_bTapEnable) {
-	// 	tap->GetMacAddr(m_mac_addr);
-	// 	m_mac_addr[5]++;
-	// }
-	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
-	// TODO: Remove this hard-coded address
-	LOGTRACE("%s m_mac_addr[0]=0x00;", __PRETTY_FUNCTION__);
-	m_mac_addr[0]=0x00;
-	m_mac_addr[1]=0x80;
-	m_mac_addr[2]=0x19;
-	m_mac_addr[3]=0x10;
-	m_mac_addr[4]=0x98;
-	m_mac_addr[5]=0xE3;
-
-#endif	// linux
-
 	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
 	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
@@ -110,6 +75,42 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	for (auto const& command : commands) {
 		delete command.second;
 	}
+}
+
+void SCSIDaynaPort::Init()
+{
+#ifdef __linux__
+	// TAP Driver Generation
+	m_tap = new CTapDriver();
+	m_bTapEnable = m_tap->Init();
+	if(!m_bTapEnable){
+		LOGERROR("Unable to open the TAP interface");
+	}else {
+		LOGDEBUG("Tap interface created");
+	}
+
+	this->Reset();
+	SetReady(true);
+	SetReset(false);
+
+	// Generate MAC Address
+	LOGTRACE("%s memset(m_mac_addr, 0x00, 6);", __PRETTY_FUNCTION__);
+	memset(m_mac_addr, 0x00, 6);
+
+	// if (m_bTapEnable) {
+	// 	tap->GetMacAddr(m_mac_addr);
+	// 	m_mac_addr[5]++;
+	// }
+	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
+	// TODO: Remove this hard-coded address
+	LOGTRACE("%s m_mac_addr[0]=0x00;", __PRETTY_FUNCTION__);
+	m_mac_addr[0]=0x00;
+	m_mac_addr[1]=0x80;
+	m_mac_addr[2]=0x19;
+	m_mac_addr[3]=0x10;
+	m_mac_addr[4]=0x98;
+	m_mac_addr[5]=0xE3;
+#endif	// linux
 }
 
 void SCSIDaynaPort::Open(const Filepath& path)

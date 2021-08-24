@@ -86,8 +86,6 @@ void SCSIHD::Open(const Filepath& path)
 	SetSectorSize(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 9);
 	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
-	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(),GetBlockCount());
-
 	// Set the default product name based on the drive capacity
 	stringstream product;
 	product << DEFAULT_PRODUCT << " " << (GetBlockCount() >> 11) << " MB";

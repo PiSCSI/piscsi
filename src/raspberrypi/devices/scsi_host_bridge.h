@@ -45,9 +45,10 @@ private:
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
 
 public:
-	// Basic Functions
-	SCSIBR();								// Constructor
-	~SCSIBR();								// Destructor
+	SCSIBR();
+	~SCSIBR();
+
+	void Init() override;
 
 	bool Dispatch(SCSIDEV *);
 

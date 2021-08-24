@@ -43,22 +43,6 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	fsresult = 0;
 	packet_len = 0;
 
-#ifdef __linux__
-	// TAP Driver Generation
-	tap = new CTapDriver();
-	m_bTapEnable = tap->Init();
-
-	// Generate MAC Address
-	memset(mac_addr, 0x00, 6);
-	if (m_bTapEnable) {
-		tap->GetMacAddr(mac_addr);
-		mac_addr[5]++;
-	}
-
-	// Packet reception flag OFF
-	packet_enable = FALSE;
-#endif
-
 	// Create host file system
 	fs = new CFileSys();
 	fs->Reset();
@@ -90,6 +74,25 @@ SCSIBR::~SCSIBR()
 	for (auto const& command : commands) {
 		delete command.second;
 	}
+}
+
+void SCSIBR::Init()
+{
+#ifdef __linux__
+	// TAP Driver Generation
+	tap = new CTapDriver();
+	m_bTapEnable = tap->Init();
+
+	// Generate MAC Address
+	memset(mac_addr, 0x00, 6);
+	if (m_bTapEnable) {
+		tap->GetMacAddr(mac_addr);
+		mac_addr[5]++;
+	}
+
+	// Packet reception flag OFF
+	packet_enable = FALSE;
+#endif
 }
 
 void SCSIBR::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))

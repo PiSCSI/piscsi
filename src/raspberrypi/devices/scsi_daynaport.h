@@ -58,9 +58,10 @@ private:
 public:
 	// Basic Functions
 	SCSIDaynaPort();
-										// Constructor
 	~SCSIDaynaPort();
-										// Destructor
+
+	void Init() override;
+
 	void Open(const Filepath& path);
 										// Capture packets
 

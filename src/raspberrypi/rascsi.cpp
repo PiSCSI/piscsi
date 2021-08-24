@@ -573,7 +573,7 @@ bool SetDefaultImageFolder(const string& f)
 
 	default_image_folder = folder;
 
-	LOGINFO("Set default image folder to '%s'", default_image_folder.c_str());
+	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
 
 	return true;
 }
@@ -626,10 +626,6 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		if (map[id * UnitNum + unit]) {
 			error << "Duplicate ID " << id;
 			return ReturnStatus(fd, false, error);
-		}
-
-		if (dryRun) {
-			return true;
 		}
 
 		string ext;
@@ -726,30 +722,33 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				}
 			}
 
-			if (!dryRun) {
-				if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
-					delete device;
+			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
+				delete device;
 
-					return ReturnStatus(fd, false, "Image file '" + filename + "' is already in use");
-				}
-
-				files_in_use.insert(filepath.GetPath());
-			}
-		}
-
-		if (!dryRun) {
-			// Replace with the newly created unit
-			map[id * UnitNum + unit] = device;
-
-			// Re-map the controller
-			bool status = MapController(map);
-			if (status) {
-				LOGINFO("Added new %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
-				return true;
+				return ReturnStatus(fd, false, "Image file '" + filename + "' is already in use");
 			}
 
-			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+			files_in_use.insert(filepath.GetPath());
 		}
+
+		if (dryRun) {
+			return true;
+		}
+
+		// Initialize everything that would have caused issues when being initialized during the dry run
+		device->Init();
+
+		// Replace with the newly created unit
+		map[id * UnitNum + unit] = device;
+
+		// Re-map the controller
+		bool status = MapController(map);
+		if (status) {
+			LOGINFO("Added new %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			return true;
+		}
+
+		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 	}
 
 	// When detaching all devices no controller/unit tests are required
@@ -909,6 +908,8 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 			return false;
 		}
 	}
+
+	files_in_use.clear();
 
 	// Execute
 	for (int i = 0; i < command.devices().devices_size(); i++) {

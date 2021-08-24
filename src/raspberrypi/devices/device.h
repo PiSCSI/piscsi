@@ -89,6 +89,9 @@ public:
 	Device(const string&);
 	virtual ~Device() {};
 
+	// Override for device specific initializations, to be called after all device properties have been set
+	virtual void Init() {};
+
 	const string& GetType() const { return type; }
 
 	bool IsReady() const { return ready; }
