@@ -127,7 +127,7 @@ void SCSIDaynaPort::Open(const Filepath& path)
 
  bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
  {
- 	ctrl = controller->GetWorkAddr();
+ 	ctrl = controller->GetCtrl();
 
  	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
  		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];

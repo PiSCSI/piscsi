@@ -151,8 +151,7 @@ public:
 	#endif
 
 	int GetSCSIID() {return ctrl.m_scsi_id;}					// Get the ID
-	void GetCTRL(ctrl_t *buffer);					// Get the internal information
-	ctrl_t* GetWorkAddr() { return &ctrl; }			// Get the internal information address
+	ctrl_t* GetCtrl() { return &ctrl; }			// Get the internal information address
 	virtual bool IsSASI() const { return true; }		// SASI Check
 	virtual bool IsSCSI() const { return false; }		// SCSI check
 

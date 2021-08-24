@@ -1155,7 +1155,7 @@ void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetWorkAddr();
+	ctrl = controller->GetCtrl();
 
 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
