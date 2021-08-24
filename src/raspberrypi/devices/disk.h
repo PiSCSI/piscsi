@@ -24,108 +24,12 @@
 #include "primary_device.h"
 #include "block_device.h"
 #include "device.h"
+#include "disk_track_cache.h"
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
 #include <map>
 
-//===========================================================================
-//
-//	Disk Track
-//
-//===========================================================================
-class DiskTrack
-{
-public:
-	// Internal data definition
-	typedef struct {
-		int track;							// Track Number
-		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
-		int sectors;							// Number of sectors(<0x100)
-		DWORD length;							// Data buffer length
-		BYTE *buffer;							// Data buffer
-		BOOL init;							// Is it initilized?
-		BOOL changed;							// Changed flag
-		DWORD maplen;							// Changed map length
-		BOOL *changemap;						// Changed map
-		BOOL raw;							// RAW mode flag
-		off_t imgoffset;						// Offset to actual data
-	} disktrk_t;
-
-public:
-	// Basic Functions
-	DiskTrack();								// Constructor
-	virtual ~DiskTrack();							// Destructor
-	void Init(int track, int size, int sectors, BOOL raw = FALSE, off_t imgoff = 0);// Initialization
-	BOOL Load(const Filepath& path);				// Load
-	BOOL Save(const Filepath& path);				// Save
-
-	// Read / Write
-	BOOL Read(BYTE *buf, int sec) const;				// Sector Read
-	BOOL Write(const BYTE *buf, int sec);				// Sector Write
-
-	// Other
-	int GetTrack() const		{ return dt.track; }		// Get track
-	BOOL IsChanged() const		{ return dt.changed; }		// Changed flag check
-
-private:
-	// Internal data
-	disktrk_t dt;								// Internal data
-};
-
-//===========================================================================
-//
-//	Disk Cache
-//
-//===========================================================================
-class DiskCache
-{
-public:
-	// Internal data definition
-	typedef struct {
-		DiskTrack *disktrk;						// Disk Track
-		DWORD serial;							// Serial
-	} cache_t;
-
-	// Number of caches
-	enum {
-		CacheMax = 16							// Number of tracks to cache
-	};
-
-public:
-	// Basic Functions
-	DiskCache(const Filepath& path, int size, int blocks,off_t imgoff = 0);// Constructor
-	virtual ~DiskCache();							// Destructor
-	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
-
-	// Access
-	BOOL Save();							// Save and release all
-	BOOL Read(BYTE *buf, int block);				// Sector Read
-	BOOL Write(const BYTE *buf, int block);			// Sector Write
-	BOOL GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
-
-private:
-	// Internal Management
-	void Clear();							// Clear all tracks
-	DiskTrack* Assign(int track);					// Load track
-	BOOL Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
-	void Update();							// Update serial number
-
-	// Internal data
-	cache_t cache[CacheMax];						// Cache management
-	DWORD serial;								// Last serial number
-	Filepath sec_path;							// Path
-	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
-	int sec_blocks;								// Blocks per sector
-	BOOL cd_raw;								// CD-ROM RAW mode
-	off_t imgoffset;							// Offset to actual data
-};
-
-//===========================================================================
-//
-//	Disk
-//
-//===========================================================================
 class Disk : public Device, public PrimaryDevice, public BlockDevice
 {
 private:
