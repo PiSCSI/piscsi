@@ -180,7 +180,7 @@ public:
 	void ReassignBlocks(SASIDEV *);
 	void StartStopUnit(SASIDEV *);
 	void SendDiagnostic(SASIDEV *);
-	void PreventAllowRemoval(SASIDEV *);
+	void PreventAllowMediumRemoval(SASIDEV *);
 	void SynchronizeCache10(SASIDEV *);
 	void SynchronizeCache16(SASIDEV *);
 	void ReadDefectData10(SASIDEV *);

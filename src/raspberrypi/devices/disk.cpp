@@ -732,7 +732,7 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 	controller->Status();
 }
 
-void Disk::PreventAllowRemoval(SASIDEV *controller)
+void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 {
 	bool status = Removal(ctrl->cmd);
 	if (!status) {
@@ -1089,8 +1089,8 @@ Disk::Disk(const std::string id) : Device(id), PrimaryDevice(), BlockDevice()
 	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRezero, "Rezero", &Disk::Rezero);
 	AddCommand(SCSIDEV::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
-	AddCommand(SCSIDEV::eCmdFormat, "Format", &Disk::FormatUnit);
-	AddCommand(SCSIDEV::eCmdReassign, "Reassign", &Disk::ReassignBlocks);
+	AddCommand(SCSIDEV::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
+	AddCommand(SCSIDEV::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
 	AddCommand(SCSIDEV::eCmdRead6, "Read6", &Disk::Read6);
 	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &Disk::Write6);
 	AddCommand(SCSIDEV::eCmdSeek6, "Seek6", &Disk::Seek6);
@@ -1099,9 +1099,9 @@ Disk::Disk(const std::string id) : Device(id), PrimaryDevice(), BlockDevice()
 	AddCommand(SCSIDEV::eCmdReserve6, "Reserve6", &Disk::Reserve6);
 	AddCommand(SCSIDEV::eCmdRelease6, "Release6", &Disk::Release6);
 	AddCommand(SCSIDEV::eCmdModeSense, "ModeSense", &Disk::ModeSense);
-	AddCommand(SCSIDEV::eCmdStartStop, "StartStop", &Disk::StartStopUnit);
-	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiag", &Disk::SendDiagnostic);
-	AddCommand(SCSIDEV::eCmdRemoval, "Removal", &Disk::PreventAllowRemoval);
+	AddCommand(SCSIDEV::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
+	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
+	AddCommand(SCSIDEV::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
 	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
 	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
 	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
