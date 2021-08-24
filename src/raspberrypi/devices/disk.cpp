@@ -1086,40 +1086,40 @@ Disk::Disk(const std::string id) : BlockDevice(id)
 	disk.dcache = NULL;
 	disk.imgoffset = 0;
 
-	AddCommand(SCSIDEV::eCmdTestUnitReady, "CmdTestUnitReady", &Disk::TestUnitReady);
-	AddCommand(SCSIDEV::eCmdRezero, "CmdRezero", &Disk::Rezero);
-	AddCommand(SCSIDEV::eCmdRequestSense, "CmdRequestSense", &Disk::RequestSense);
-	AddCommand(SCSIDEV::eCmdFormat, "CmdFormat", &Disk::FormatUnit);
-	AddCommand(SCSIDEV::eCmdReassign, "CmdReassign", &Disk::ReassignBlocks);
-	AddCommand(SCSIDEV::eCmdRead6, "CmdRead6", &Disk::Read6);
-	AddCommand(SCSIDEV::eCmdWrite6, "CmdWrite6", &Disk::Write6);
-	AddCommand(SCSIDEV::eCmdSeek6, "CmdSeek6", &Disk::Seek6);
-	AddCommand(SCSIDEV::eCmdInquiry, "CmdInquiry", &Disk::Inquiry);
-	AddCommand(SCSIDEV::eCmdModeSelect, "CmdModeSelect", &Disk::ModeSelect);
-	AddCommand(SCSIDEV::eCmdReserve6, "CmdReserve6", &Disk::Reserve6);
-	AddCommand(SCSIDEV::eCmdRelease6, "CmdRelease6", &Disk::Release6);
-	AddCommand(SCSIDEV::eCmdModeSense, "CmdModeSense", &Disk::ModeSense);
-	AddCommand(SCSIDEV::eCmdStartStop, "CmdStartStop", &Disk::StartStopUnit);
-	AddCommand(SCSIDEV::eCmdSendDiag, "CmdSendDiag", &Disk::SendDiagnostic);
-	AddCommand(SCSIDEV::eCmdRemoval, "CmdRemoval", &Disk::PreventAllowRemoval);
-	AddCommand(SCSIDEV::eCmdReadCapacity10, "CmdReadCapacity10", &Disk::ReadCapacity10);
-	AddCommand(SCSIDEV::eCmdRead10, "CmdRead10", &Disk::Read10);
-	AddCommand(SCSIDEV::eCmdWrite10, "CmdWrite10", &Disk::Write10);
-	AddCommand(SCSIDEV::eCmdVerify10, "CmdVerify10", &Disk::Write10);
-	AddCommand(SCSIDEV::eCmdSeek10, "CmdSeek10", &Disk::Seek10);
-	AddCommand(SCSIDEV::eCmdVerify10, "CmdVerify10", &Disk::Verify10);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "CmdSynchronizeCache10", &Disk::SynchronizeCache10);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache16, "CmdSynchronizeCache16", &Disk::SynchronizeCache16);
-	AddCommand(SCSIDEV::eCmdReadDefectData10, "CmdReadDefectData10", &Disk::ReadDefectData10);
-	AddCommand(SCSIDEV::eCmdModeSelect10, "CmdModeSelect10", &Disk::ModeSelect10);
-	AddCommand(SCSIDEV::eCmdReserve10, "CmdReserve10", &Disk::Reserve10);
-	AddCommand(SCSIDEV::eCmdRelease10, "CmdRelease10", &Disk::Release10);
-	AddCommand(SCSIDEV::eCmdModeSense10, "CmdModeSense10", &Disk::ModeSense10);
-	AddCommand(SCSIDEV::eCmdRead16, "CmdRead16", &Disk::Read16);
-	AddCommand(SCSIDEV::eCmdWrite16, "CmdWrite16", &Disk::Write16);
-	AddCommand(SCSIDEV::eCmdVerify16, "CmdVerify16", &Disk::Verify16);
-	AddCommand(SCSIDEV::eCmdReadCapacity16, "CmdReadCapacity16", &Disk::ReadCapacity16);
-	AddCommand(SCSIDEV::eCmdReportLuns, "CmdReportLuns", &Disk::ReportLuns);
+	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
+	AddCommand(SCSIDEV::eCmdRezero, "Rezero", &Disk::Rezero);
+	AddCommand(SCSIDEV::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
+	AddCommand(SCSIDEV::eCmdFormat, "Format", &Disk::FormatUnit);
+	AddCommand(SCSIDEV::eCmdReassign, "Reassign", &Disk::ReassignBlocks);
+	AddCommand(SCSIDEV::eCmdRead6, "Read6", &Disk::Read6);
+	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &Disk::Write6);
+	AddCommand(SCSIDEV::eCmdSeek6, "Seek6", &Disk::Seek6);
+	AddCommand(SCSIDEV::eCmdInquiry, "Inquiry", &Disk::Inquiry);
+	AddCommand(SCSIDEV::eCmdModeSelect, "ModeSelect", &Disk::ModeSelect);
+	AddCommand(SCSIDEV::eCmdReserve6, "Reserve6", &Disk::Reserve6);
+	AddCommand(SCSIDEV::eCmdRelease6, "Release6", &Disk::Release6);
+	AddCommand(SCSIDEV::eCmdModeSense, "ModeSense", &Disk::ModeSense);
+	AddCommand(SCSIDEV::eCmdStartStop, "StartStop", &Disk::StartStopUnit);
+	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiag", &Disk::SendDiagnostic);
+	AddCommand(SCSIDEV::eCmdRemoval, "Removal", &Disk::PreventAllowRemoval);
+	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
+	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
+	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
+	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
+	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
+	AddCommand(SCSIDEV::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	AddCommand(SCSIDEV::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
+	AddCommand(SCSIDEV::eCmdModeSelect10, "ModeSelect10", &Disk::ModeSelect10);
+	AddCommand(SCSIDEV::eCmdReserve10, "Reserve10", &Disk::Reserve10);
+	AddCommand(SCSIDEV::eCmdRelease10, "Release10", &Disk::Release10);
+	AddCommand(SCSIDEV::eCmdModeSense10, "ModeSense10", &Disk::ModeSense10);
+	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
+	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
+	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
+	AddCommand(SCSIDEV::eCmdReadCapacity16, "ReadCapacity16", &Disk::ReadCapacity16);
+	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
 }
 
 //---------------------------------------------------------------------------
@@ -2331,67 +2331,6 @@ void Disk::Release6(SASIDEV *controller)
 void Disk::Release10(SASIDEV *controller)
 {
 	controller->Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ TOC
-//
-//---------------------------------------------------------------------------
-int Disk::ReadToc(const DWORD *cdb, BYTE *buf)
-{
-	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x43);
-	ASSERT(buf);
-
-	// This command is not supported
-	SetStatusCode(STATUS_INVALIDCMD);
-	return 0;
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO
-//
-//---------------------------------------------------------------------------
-bool Disk::PlayAudio(const DWORD *cdb)
-{
-	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x45);
-
-	// This command is not supported
-	SetStatusCode(STATUS_INVALIDCMD);
-	return false;
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO MSF
-//
-//---------------------------------------------------------------------------
-bool Disk::PlayAudioMSF(const DWORD *cdb)
-{
-	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x47);
-
-	// This command is not supported
-	SetStatusCode(STATUS_INVALIDCMD);
-	return false;
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO TRACK
-//
-//---------------------------------------------------------------------------
-bool Disk::PlayAudioTrack(const DWORD *cdb)
-{
-	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x48);
-
-	// This command is not supported
-	SetStatusCode(STATUS_INVALIDCMD);
-	return false;
 }
 
 //---------------------------------------------------------------------------

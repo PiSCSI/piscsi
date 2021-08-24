@@ -209,10 +209,6 @@ public:
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
-	virtual bool PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
-	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
-	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
 	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command

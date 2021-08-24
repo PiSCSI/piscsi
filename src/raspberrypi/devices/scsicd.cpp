@@ -245,11 +245,8 @@ SCSICD::SCSICD() : Disk("SCCD")
 	dataindex = -1;
 	audioindex = -1;
 
-	AddCommand(SCSIDEV::eCmdReadToc, "CmdReadToc", &SCSICD::CmdReadToc);
-	AddCommand(SCSIDEV::eCmdPlayAudio10, "CmdPlayAudio10", &SCSICD::CmdPlayAudio10);
-	AddCommand(SCSIDEV::eCmdPlayAudioMSF, "CmdPlayAudioMSF", &SCSICD::CmdPlayAudioMSF);
-	AddCommand(SCSIDEV::eCmdPlayAudioTrack, "CmdPlayAudioTrack", &SCSICD::CmdPlayAudioTrack);
-	AddCommand(SCSIDEV::eCmdGetEventStatusNotification, "CmdGetEventStatusNotification", &SCSICD::CmdGetEventStatusNotification);
+	AddCommand(SCSIDEV::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	AddCommand(SCSIDEV::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 //---------------------------------------------------------------------------
@@ -504,7 +501,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	dataindex = 0;
 }
 
-void SCSICD::CmdReadToc(SASIDEV *controller)
+void SCSICD::ReadToc(SASIDEV *controller)
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
@@ -514,45 +511,6 @@ void SCSICD::CmdReadToc(SASIDEV *controller)
 	}
 
 	controller->DataIn();
-}
-
-void SCSICD::CmdPlayAudio10(SASIDEV *controller)
-{
- 	// Command processing on drive
-	bool status = PlayAudio(ctrl->cmd);
-	if (!status) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
-
-	controller->Status();
-}
-
-void SCSICD::CmdPlayAudioMSF(SASIDEV *controller)
-{
- 	// Command processing on drive
-	bool status = PlayAudioMSF(ctrl->cmd);
-	if (!status) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
-
-	controller->Status();
-}
-
-void SCSICD::CmdPlayAudioTrack(SASIDEV *controller)
-{
- 	// Command processing on drive
-	bool status = PlayAudioTrack(ctrl->cmd);
-	if (!status) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
-
-	controller->Status();
 }
 
 //---------------------------------------------------------------------------
@@ -788,7 +746,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	return length;
 }
 
-void SCSICD::CmdGetEventStatusNotification(SASIDEV *controller)
+void SCSICD::GetEventStatusNotification(SASIDEV *controller)
 {
 	// This naive (but legal) implementation avoids constant warnings in the logs
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);

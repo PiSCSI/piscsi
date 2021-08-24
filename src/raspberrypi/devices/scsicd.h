@@ -107,11 +107,8 @@ private:
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
 
-	void CmdReadToc(SASIDEV *);
-	void CmdPlayAudio10(SASIDEV *);
-	void CmdPlayAudioMSF(SASIDEV *);
-	void CmdPlayAudioTrack(SASIDEV *);
-	void CmdGetEventStatusNotification(SASIDEV *);
+	void ReadToc(SASIDEV *);
+	void GetEventStatusNotification(SASIDEV *);
 
 	// LBA-MSF変換
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion

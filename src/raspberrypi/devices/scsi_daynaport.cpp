@@ -85,13 +85,13 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 
 #endif	// linux
 
-	AddCommand(SCSIDEV::eCmdTestUnitReady, "CmdTestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	AddCommand(SCSIDEV::eCmdRead6, "CmdRead6", &SCSIDaynaPort::Read6);
-	AddCommand(SCSIDEV::eCmdWrite6, "CmdWrite6", &SCSIDaynaPort::Write6);
-	AddCommand(SCSIDEV::eCmdRetrieveStats, "CmdRetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	AddCommand(SCSIDEV::eCmdSetIfaceMode, "CmdSetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	AddCommand(SCSIDEV::eCmdSetMcastAddr, "CmdSetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	AddCommand(SCSIDEV::eCmdEnableInterface, "CmdEnableInterface", &SCSIDaynaPort::EnableInterface);
+	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	AddCommand(SCSIDEV::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	AddCommand(SCSIDEV::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	AddCommand(SCSIDEV::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	AddCommand(SCSIDEV::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	AddCommand(SCSIDEV::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
 //---------------------------------------------------------------------------
