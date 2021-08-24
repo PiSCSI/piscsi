@@ -106,8 +106,7 @@ bool ReceiveResult(int fd)
 //
 //---------------------------------------------------------------------------
 
-void CommandList(const string& hostname, int port)
-{
+const PbServerInfo GetServerInfo(const string&hostname, int port) {
 	PbCommand command;
 	command.set_cmd(SERVER_INFO);
 
@@ -126,6 +125,13 @@ void CommandList(const string& hostname, int port)
 	}
 
 	close(fd);
+
+	return serverInfo;
+}
+
+void CommandList(const string& hostname, int port)
+{
+	PbServerInfo serverInfo = GetServerInfo(hostname, port);
 
 	cout << ListDevices(serverInfo.devices()) << endl;
 }
@@ -200,8 +206,31 @@ void CommandServerInfo(const string& hostname, int port)
 
 		cout << "Image files available in the default folder:" << endl;
 		for (auto it = sorted_files.begin(); it != sorted_files.end(); ++it) {
-			cout << "  " << (*it).name() << " (" << (*it).size() << " bytes)" << ((*it).read_only() ? ", read-only": "")
+			const PbImageFile& file = *it;
+
+			cout << "  " << file.name() << " (" << file.size() << " bytes)" << (file.read_only() ? ", read-only": "")
 					<< endl;
+		}
+	}
+
+	cout << "Available devices:" << endl;
+	const PbDevices& devices = serverInfo.devices();
+	if (!devices.devices_size()) {
+		cout << "No devices available" << endl;
+	}
+	else {
+		list<PbDevice> sorted_devices;
+		for (int i = 0; i < devices.devices_size(); i++) {
+			sorted_devices.push_back(devices.devices(i));
+		}
+		sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id(); });
+
+		for (auto it = sorted_devices.begin(); it != sorted_devices.end(); ++it) {
+			const PbDevice& device = *it;
+
+			cout << "  " << device.id() << ":" << device.unit() << "  " << PbDeviceType_Name(device.type())
+					<< "  " << device.vendor() << ":" << device.product() << ":" << device.revision()
+					<< (device.file().name().empty() ? "" : "  " + device.file().name()) << endl;
 		}
 	}
 }
@@ -271,7 +300,7 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE] [-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE] [-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-l] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1}, default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
@@ -304,7 +333,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "b:i:u:c:t:f:d:h:n:p:u:g:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "b:c:d:f:g:h:i:n:p:t:u:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -322,17 +351,22 @@ int main(int argc, char* argv[])
 				command.set_cmd(ParseOperation(optarg));
 				break;
 
-			case 't':
-				device->set_type(ParseType(optarg));
+			case 'd':
+				command.set_cmd(DEFAULT_FOLDER);
+				default_folder = optarg;
 				break;
 
 			case 'f':
 				device->set_file(optarg);
 				break;
 
-			case 'd':
-				command.set_cmd(DEFAULT_FOLDER);
-				default_folder = optarg;
+			case 't':
+				device->set_type(ParseType(optarg));
+				break;
+
+			case 'g':
+				command.set_cmd(LOG_LEVEL);
+				log_level = optarg;
 				break;
 
 			case 'h':
@@ -378,11 +412,6 @@ int main(int argc, char* argv[])
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					exit(EXIT_FAILURE);
 				}
-				break;
-
-			case 'g':
-				command.set_cmd(LOG_LEVEL);
-				log_level = optarg;
 				break;
 
 			case 's':

@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include <list>
 #include <sstream>
 #include "rascsi_interface.pb.h"
 #include "rasutil.h"
@@ -32,8 +33,14 @@ string ListDevices(const PbDevices& devices)
 		return "No images currently attached.";
 	}
 
-	for (int i = 0; i < devices.devices_size() ; i++) {
-		PbDevice device = devices.devices(i);
+	list<PbDevice> sorted_devices;
+	for (int i = 0; i < devices.devices_size(); i++) {
+		sorted_devices.push_back(devices.devices(i));
+	}
+	sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id(); });
+
+	for (auto it = sorted_devices.begin(); it != sorted_devices.end(); ++it) {
+		const PbDevice& device = *it;
 
 		string filename;
 		switch (device.type()) {
