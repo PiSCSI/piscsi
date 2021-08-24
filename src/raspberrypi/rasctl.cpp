@@ -185,7 +185,7 @@ void CommandServerInfo(const string& hostname, int port)
 		cout << "  No log level settings available" << endl;
 	}
 	else {
-		cout << "Available rascsi log levels, sorted by severity:" << endl;
+		cout << "rascsi log levels, sorted by severity:" << endl;
 		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
 			cout << "  " << serverInfo.available_log_levels(i) << endl;
 		}
@@ -213,7 +213,7 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 	}
 
-	cout << "Available device types and their features:" << endl;
+	cout << "Device types and their features:" << endl;
 	for (int i = 0; i < serverInfo.types_features_size(); i++) {
 		PbDeviceTypeFeatures type_features = serverInfo.types_features(i);
 		cout << "  " << PbDeviceType_Name(type_features.type());
