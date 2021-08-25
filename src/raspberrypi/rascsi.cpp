@@ -552,20 +552,26 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	features->set_supports_file(true);
 
 	types_features = serverInfo.add_types_features();
+	types_features->add_block_sizes(512);
+	types_features->add_block_sizes(1024);
+	types_features->add_block_sizes(2048);
+	types_features->add_block_sizes(4096);
 	features = types_features->add_features();
 	types_features->set_type(SCHD);
 	features->set_protectable(true);
 	features->set_supports_file(true);
-	features->set_supports_block_size(true);
 
 	types_features = serverInfo.add_types_features();
+	types_features->add_block_sizes(512);
+	types_features->add_block_sizes(1024);
+	types_features->add_block_sizes(2048);
+	types_features->add_block_sizes(4096);
 	features = types_features->add_features();
 	types_features->set_type(SCRM);
 	features->set_protectable(true);
 	features->set_removable(true);
 	features->set_lockable(true);
 	features->set_supports_file(true);
-	features->set_supports_block_size(true);
 
 	types_features = serverInfo.add_types_features();
 	features = types_features->add_features();

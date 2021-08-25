@@ -28,6 +28,7 @@
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
+#include <vector>
 #include <map>
 
 class Disk : public Device, public PrimaryDevice, public BlockDevice
@@ -35,7 +36,7 @@ class Disk : public Device, public PrimaryDevice, public BlockDevice
 private:
 	enum access_mode { RW6, RW10, RW16 };
 
-	bool sector_size_configurable;
+	vector<int> sector_sizes;
 	int configured_sector_size;
 
 	SASIDEV::ctrl_t *ctrl;
@@ -125,7 +126,8 @@ public:
 	int GetSectorSize() const;
 	void SetSectorSize(int);
 	bool IsSectorSizeConfigurable() const;
-	void SetSectorSizeConfigurable(bool);
+	vector<int> GetSectorSizes() const;
+	void SetSectorSizes(const vector<int>&);
 	int GetConfiguredSectorSize() const;
 	void SetConfiguredSectorSize(int);
 	uint32_t GetBlockCount() const;

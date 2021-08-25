@@ -424,7 +424,6 @@ void Disk::ReadDefectData10(SASIDEV *controller)
 Disk::Disk(const std::string id) : Device(id), PrimaryDevice(), BlockDevice()
 {
 	// Work initialization
-	sector_size_configurable = false;
 	configured_sector_size = 0;
 	disk.size = 0;
 	disk.blocks = 0;
@@ -1765,12 +1764,12 @@ void Disk::SetSectorSize(int size)
 
 bool Disk::IsSectorSizeConfigurable() const
 {
-	return sector_size_configurable;
+	return !sector_sizes.empty();
 }
 
-void Disk::SetSectorSizeConfigurable(bool sector_size_configurable)
+void Disk::SetSectorSizes(const vector<int>& sector_sizes)
 {
-	this->sector_size_configurable = sector_size_configurable;
+	this->sector_sizes = sector_sizes;
 }
 
 int Disk::GetConfiguredSectorSize() const

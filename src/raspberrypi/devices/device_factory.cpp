@@ -15,6 +15,7 @@
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
 #include "device_factory.h"
+#include <vector>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -44,8 +45,13 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 		}
 	}
 
-	Device *device = NULL;
+	vector<int> sector_sizes;
+	sector_sizes.push_back(512);
+	sector_sizes.push_back(1024);
+	sector_sizes.push_back(2048);
+	sector_sizes.push_back(4096);
 
+	Device *device = NULL;
 	switch (type) {
 		case SAHD:
 			device = new SASIHD();
@@ -58,7 +64,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 			} else {
 				device = new SCSIHD();
 				device->SetProtectable(true);
-				((Disk *)device)->SetSectorSizeConfigurable(true);
+				((Disk *)device)->SetSectorSizes(sector_sizes);
 			}
 
 			break;
@@ -67,7 +73,8 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 			device = new SCSIHD(true);
 			device->SetProtectable(true);
 			device->SetLockable(true);
-			((Disk *)device)->SetSectorSizeConfigurable(true);
+			device->SetProtectable(true);
+			((Disk *)device)->SetSectorSizes(sector_sizes);
 			break;
 
 		case SCMO:
