@@ -106,7 +106,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 			break;
 
 		default:
-			assert(false);
 			break;
 	}
 
