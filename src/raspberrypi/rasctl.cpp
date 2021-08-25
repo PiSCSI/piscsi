@@ -249,7 +249,7 @@ void CommandServerInfo(const string& hostname, int port)
 
 				for (int k = 0 ; k < properties.block_sizes_size(); k++)
 				{
-					block_sizes.push_back(properties.block_sizes(i));
+					block_sizes.push_back(properties.block_sizes(k));
 				}
 			}
 		}
