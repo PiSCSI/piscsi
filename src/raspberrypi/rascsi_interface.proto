@@ -148,7 +148,7 @@ message PbResult {
 message PbServerInfo {
     string rascsi_version = 1;
     // Sorted by severity
-    repeated string log_levels = 2;
+    repeated string available_log_levels = 2;
     string current_log_level = 3;
     string default_image_folder = 4;
     // Supported device types and their properties
