@@ -39,9 +39,7 @@ string ListDevices(const PbDevices& devices)
 	}
 	sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id(); });
 
-	for (auto it = sorted_devices.begin(); it != sorted_devices.end(); ++it) {
-		const PbDevice& device = *it;
-
+	for (const auto& device : sorted_devices) {
 		string filename;
 		switch (device.type()) {
 			case SCBR:

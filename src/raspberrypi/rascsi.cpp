@@ -238,9 +238,9 @@ void Cleanup()
 void Reset()
 {
 	// Reset all of the controllers
-	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
-		if (*it) {
-			(*it)->Reset();
+	for (const auto& controller : controllers) {
+		if (controller) {
+			controller->Reset();
 		}
 	}
 
@@ -383,7 +383,7 @@ bool MapController(Device **map)
 		}
 
 		// If there are no units connected
-		if (sasi_num == 0 && scsi_num == 0) {
+		if (!sasi_num && !scsi_num) {
 			if (*it) {
 				delete *it;
 				*it = NULL;
@@ -519,8 +519,8 @@ void LogDevices(const string& devices)
 
 void GetLogLevels(PbServerInfo& serverInfo)
 {
-	for (auto it = log_levels.begin(); it != log_levels.end(); ++it) {
-		serverInfo.add_log_levels(*it);
+	for (const auto& log_level : log_levels) {
+		serverInfo.add_log_levels(log_level);
 	}
 }
 
@@ -531,8 +531,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	types_properties->set_type(SAHD);
 	properties->set_supports_file(true);
 	vector<int> block_sizes = device_factory.GetSasiSectorSizes();
-	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
-		properties->add_block_sizes(*it);
+	for (const auto& block_size : block_sizes) {
+		properties->add_block_sizes(block_size);
 	}
 
 	block_sizes = device_factory.GetScsiSectorSizes();
@@ -542,8 +542,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties = types_properties->add_properties();
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
-	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
-		properties->add_block_sizes(*it);
+	for (const auto& block_size : block_sizes) {
+		properties->add_block_sizes(block_size);
 	}
 
 	types_properties = serverInfo.add_types_properties();
@@ -553,8 +553,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
-	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
-		properties->add_block_sizes(*it);
+	for (const auto& block_size : block_sizes) {
+		properties->add_block_sizes(block_size);
 	}
 
 	types_properties = serverInfo.add_types_properties();
