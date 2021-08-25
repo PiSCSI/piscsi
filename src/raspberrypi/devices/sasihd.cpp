@@ -17,6 +17,7 @@
 #include "xm6.h"
 #include "fileio.h"
 #include "exceptions.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -73,7 +74,7 @@ void SASIHD::Open(const Filepath& path)
 	// 20M(22437888 BS=1024 C=21912)
 	if (size == 0x1566000) {
 		// Sector size and number of blocks
-		SetSectorSize(10);
+		SetSectorSizeInBytes(1024);
 		SetBlockCount((DWORD)(size >> 10));
 
 		Disk::Open(path);
@@ -83,8 +84,10 @@ void SASIHD::Open(const Filepath& path)
 
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Must be in 256-byte units
-	if (size & 0xff) {
-		throw io_exception("File size must be a multiple of 256 bytes");
+	if (size % 256) {
+		stringstream error;
+		error << "File size must be a multiple of 256 bytes but is " << size << " bytes";
+		throw io_exception(error.str());
 	}
 
 	// 10MB or more
@@ -118,7 +121,7 @@ void SASIHD::Open(const Filepath& path)
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 
 	// Sector size 256 bytes and number of blocks
-	SetSectorSize(8);
+	SetSectorSizeInBytes(256);
 	SetBlockCount((DWORD)(size >> 8));
 
 	// Call the base class

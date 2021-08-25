@@ -57,35 +57,35 @@ void SCSIMO::Open(const Filepath& path)
 		// 128MB
 		case 0x797f400:
 			// 512 bytes per sector
-			SetSectorSize(9);
+			SetSectorSizeInBytes(512);
 			SetBlockCount(248826);
 			break;
 
 		// 230MB
 		case 0xd9eea00:
 			// 512 bytes per sector
-			SetSectorSize(9);
+			SetSectorSizeInBytes(512);
 			SetBlockCount(446325);
 			break;
 
 		// 540MB
 		case 0x1fc8b800:
 			// 512 bytes per sector
-			SetSectorSize(9);
+			SetSectorSizeInBytes(512);
 			SetBlockCount(1041500);
 			break;
 
 		// 640MB
 		case 0x25e28000:
 			// 2048 bytes per sector
-			SetSectorSize(11);
+			SetSectorSizeInBytes(2048);
 			SetBlockCount(310352);
 			break;
 
 		// Other (this is an error)
 		default:
-			throw io_exception("Invalid MO file size, supported sizes are 127398912 bytes (128 MB), "
-					"228518400 bytes (230 MB), 533248000 bytes (540 MB), 635600896 bytes (640 MB)");
+			throw io_exception("Invalid MO file size, supported sizes are 127398912 bytes (128 MB, 512 BPS), "
+					"228518400 bytes (230 MB, 512 BPS), 533248000 bytes (540 MB, 512 BPS), 635600896 bytes (640 MB, 2048 BPS)");
 	}
 
 	Disk::Open(path);
@@ -257,38 +257,42 @@ int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 		unsigned bands = 0;
 		uint32_t blocks = GetBlockCount();
 
-		if (GetSectorSize() == 9) switch (blocks) {
-			// 128MB
-			case 248826:
-				spare = 1024;
-				bands = 1;
-				break;
+		if (GetSectorSizeInBytes() == 512) {
+			switch (blocks) {
+				// 128MB
+				case 248826:
+					spare = 1024;
+					bands = 1;
+					break;
 
-			// 230MB
-			case 446325:
-				spare = 1025;
-				bands = 10;
-				break;
+				// 230MB
+				case 446325:
+					spare = 1025;
+					bands = 10;
+					break;
 
-			// 540MB
-			case 1041500:
-				spare = 2250;
-				bands = 18;
-				break;
+				// 540MB
+				case 1041500:
+					spare = 2250;
+					bands = 18;
+					break;
+			}
 		}
 
-		if (GetSectorSize() == 11) switch (blocks) {
-			// 640MB
-			case 310352:
-				spare = 2244;
-				bands = 11;
-				break;
+		if (GetSectorSizeInBytes() == 2048) {
+			switch (blocks) {
+				// 640MB
+				case 310352:
+					spare = 2244;
+					bands = 11;
+					break;
 
-			// 1.3GB (lpproj: not tested with real device)
-			case 605846:
-				spare = 4437;
-				bands = 18;
-				break;
+					// 1.3GB (lpproj: not tested with real device)
+				case 605846:
+					spare = 4437;
+					bands = 18;
+					break;
+			}
 		}
 
 		buf[2] = 0; // format mode

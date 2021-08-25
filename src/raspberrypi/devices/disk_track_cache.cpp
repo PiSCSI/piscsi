@@ -74,7 +74,7 @@ DiskTrack::~DiskTrack()
 void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off_t imgoff)
 {
 	ASSERT(track >= 0);
-	ASSERT((size >= 8) && (size <= 11));
+	ASSERT((size >= 8) && (size <= 12));
 	ASSERT((sectors > 0) && (sectors <= 0x100));
 	ASSERT(imgoff >= 0);
 
@@ -129,7 +129,7 @@ BOOL DiskTrack::Load(const Filepath& path)
 	int length = dt.sectors << dt.size;
 
 	// Allocate buffer memory
-	ASSERT((dt.size >= 8) && (dt.size <= 11));
+	ASSERT((dt.size >= 8) && (dt.size <= 12));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 
 	if (dt.buffer == NULL) {
@@ -237,7 +237,7 @@ BOOL DiskTrack::Save(const Filepath& path)
 	// Need to write
 	ASSERT(dt.buffer);
 	ASSERT(dt.changemap);
-	ASSERT((dt.size >= 8) && (dt.size <= 11));
+	ASSERT((dt.size >= 8) && (dt.size <= 12));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 
 	// Writing in RAW mode is not allowed
@@ -329,7 +329,7 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 
 	// Copy
 	ASSERT(dt.buffer);
-	ASSERT((dt.size >= 8) && (dt.size <= 11));
+	ASSERT((dt.size >= 8) && (dt.size <= 12));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 	memcpy(buf, &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
 
@@ -364,7 +364,7 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 
 	// Compare
 	ASSERT(dt.buffer);
-	ASSERT((dt.size >= 8) && (dt.size <= 11));
+	ASSERT((dt.size >= 8) && (dt.size <= 12));
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 	if (memcmp(buf, &dt.buffer[offset], length) == 0) {
 		// 同じものを書き込もうとしているので、正常終了
@@ -393,7 +393,7 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 //---------------------------------------------------------------------------
 DiskCache::DiskCache(const Filepath& path, int size, int blocks, off_t imgoff)
 {
-	ASSERT((size >= 8) && (size <= 11));
+	ASSERT((size >= 8) && (size <= 12));
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
 

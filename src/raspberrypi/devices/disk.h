@@ -123,13 +123,14 @@ public:
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
 
+	int GetSectorSizeInBytes() const;
+	void SetSectorSizeInBytes(int);
 	int GetSectorSize() const;
-	void SetSectorSize(int);
 	bool IsSectorSizeConfigurable() const;
 	vector<int> GetSectorSizes() const;
 	void SetSectorSizes(const vector<int>&);
 	int GetConfiguredSectorSize() const;
-	void SetConfiguredSectorSize(int);
+	bool SetConfiguredSectorSize(int);
 	uint32_t GetBlockCount() const;
 	void SetBlockCount(DWORD);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);

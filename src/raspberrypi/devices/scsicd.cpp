@@ -18,6 +18,7 @@
 #include "scsicd.h"
 #include "fileio.h"
 #include "exceptions.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -341,7 +342,7 @@ void SCSICD::Open(const Filepath& path)
 	ASSERT(GetBlockCount() > 0);
 
 	// Sector size 2048 bytes
-	SetSectorSize(11);
+	SetSectorSizeInBytes(2048);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
@@ -420,8 +421,10 @@ void SCSICD::OpenIso(const Filepath& path)
 
 	if (rawfile) {
 		// Size must be a multiple of 2536 and less than 700MB
-		if (size % 0x930) {
-			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes");
+		if (size % 2536) {
+			stringstream error;
+			error << "Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is " << size << " bytes";
+			throw io_exception(error.str());
 		}
 		if (size > 912579600) {
 			throw io_exception("Raw ISO CD-ROM file size must not exceed 700 MB");
@@ -431,7 +434,7 @@ void SCSICD::OpenIso(const Filepath& path)
 		SetBlockCount((DWORD)(size / 0x930));
 	} else {
 		// Size must be a multiple of 2048 and less than 700MB
-		if (size & 0x7ff) {
+		if (size % 2048) {
 			throw io_exception("ISO CD-ROM file size must be a multiple of 2048 bytes");
 		}
 		if (size > 0x2bed5000) {

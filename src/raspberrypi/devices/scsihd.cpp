@@ -70,19 +70,21 @@ void SCSIHD::Open(const Filepath& path)
 	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	// Must be a multiple of 512 bytes
-	if (size & 0x1ff) {
-		throw io_exception("File size must be a multiple of 512 bytes");
+	// sector size (default 512 bytes) and number of blocks
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
+	SetBlockCount((DWORD)(size >> GetSectorSize()));
+
+	// File size must be a multiple of the sector size
+	if (size % GetSectorSizeInBytes()) {
+		stringstream error;
+		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
+		throw io_exception(error.str());
 	}
 
     // 2TB is the current maximum
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
 		throw io_exception("File size must not exceed 2 TB");
 	}
-
-	// sector size (default 512 bytes) and number of blocks
-	SetSectorSize(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 9);
-	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
 	// Set the default product name based on the drive capacity
 	stringstream product;

@@ -304,28 +304,7 @@ const PbDevices GetDevices()
 		status->set_locked(device->IsLocked());
 
 		const Disk *disk = dynamic_cast<Disk*>(device);
-		if (disk) {
-			switch (disk->GetSectorSize()) {
-				case 9:
-					pbDevice->set_block_size(512);
-					break;
-
-				case 10:
-					pbDevice->set_block_size(1024);
-					break;
-
-				case 11:
-					pbDevice->set_block_size(2048);
-					break;
-
-				case 12:
-					pbDevice->set_block_size(4096);
-					break;
-
-				default:
-					break;
-			}
-		}
+		pbDevice->set_block_size(disk->GetSectorSizeInBytes());
 
 		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 		if (fileSupport) {
@@ -720,24 +699,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		if (pbDevice.block_size()) {
 			Disk *disk = dynamic_cast<Disk *>(device);
 			if (disk && disk->IsSectorSizeConfigurable()) {
-				switch (pbDevice.block_size()) {
-				case 512:
-					disk->SetConfiguredSectorSize(9);
-					break;
-
-				case 1024:
-					disk->SetConfiguredSectorSize(10);
-					break;
-
-				case 2048:
-					disk->SetConfiguredSectorSize(11);
-					break;
-
-				case 4096:
-					disk->SetConfiguredSectorSize(12);
-					break;
-
-				default:
+				if (!disk->SetConfiguredSectorSize(pbDevice.block_size())) {
 					error << "Invalid block size " << pbDevice.block_size();
 					return ReturnStatus(fd, false, error);
 				}

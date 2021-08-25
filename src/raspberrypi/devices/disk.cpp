@@ -1752,14 +1752,44 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	return true;
 }
 
+int Disk::GetSectorSizeInBytes() const
+{
+	return 1 << disk.size;
+}
+
+void Disk::SetSectorSizeInBytes(int size)
+{
+	switch (size) {
+		case 256:
+			disk.size = 8;
+			break;
+
+		case 512:
+			disk.size = 9;
+			break;
+
+		case 1024:
+			disk.size = 10;
+			break;
+
+		case 2048:
+			disk.size = 11;
+			break;
+
+		case 4096:
+			disk.size = 12;
+			break;
+
+		default:
+			assert(false);
+			disk.size = 9;
+			break;
+	}
+}
+
 int Disk::GetSectorSize() const
 {
 	return disk.size;
-}
-
-void Disk::SetSectorSize(int size)
-{
-	disk.size = size;
 }
 
 bool Disk::IsSectorSizeConfigurable() const
@@ -1777,9 +1807,16 @@ int Disk::GetConfiguredSectorSize() const
 	return configured_sector_size;
 }
 
-void Disk::SetConfiguredSectorSize(int configured_sector_size)
+bool Disk::SetConfiguredSectorSize(int configured_sector_size)
 {
+	if (configured_sector_size != 512 && configured_sector_size != 1024 &&
+			configured_sector_size != 2048 && configured_sector_size != 4096) {
+		return false;
+	}
+
 	this->configured_sector_size = configured_sector_size;
+
+	return true;
 }
 
 uint32_t Disk::GetBlockCount() const
