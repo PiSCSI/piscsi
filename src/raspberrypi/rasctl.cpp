@@ -181,13 +181,13 @@ void CommandServerInfo(const string& hostname, int port)
 
 	cout << "rascsi server version: " << serverInfo.rascsi_version() << endl;
 
-	if (!serverInfo.available_log_levels_size()) {
+	if (!serverInfo.log_levels_size()) {
 		cout << "  No log level settings available" << endl;
 	}
 	else {
 		cout << "rascsi log levels, sorted by severity:" << endl;
-		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
-			cout << "  " << serverInfo.available_log_levels(i) << endl;
+		for (int i = 0; i < serverInfo.log_levels_size(); i++) {
+			cout << "  " << serverInfo.log_levels(i) << endl;
 		}
 
 		cout << "Current rascsi log level: " << serverInfo.current_log_level() << endl;

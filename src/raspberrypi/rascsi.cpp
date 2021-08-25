@@ -61,7 +61,7 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-vector<string> available_log_levels;
+vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
 set<string> files_in_use;
@@ -519,8 +519,8 @@ void LogDevices(const string& devices)
 
 void GetLogLevels(PbServerInfo& serverInfo)
 {
-	for (auto it = available_log_levels.begin(); it != available_log_levels.end(); ++it) {
-		serverInfo.add_available_log_levels(*it);
+	for (auto it = log_levels.begin(); it != log_levels.end(); ++it) {
+		serverInfo.add_log_levels(*it);
 	}
 }
 
@@ -1245,13 +1245,13 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	available_log_levels.push_back("trace");
-	available_log_levels.push_back("debug");
-	available_log_levels.push_back("info");
-	available_log_levels.push_back("warn");
-	available_log_levels.push_back("err");
-	available_log_levels.push_back("critical");
-	available_log_levels.push_back("off");
+	log_levels.push_back("trace");
+	log_levels.push_back("debug");
+	log_levels.push_back("info");
+	log_levels.push_back("warn");
+	log_levels.push_back("err");
+	log_levels.push_back("critical");
+	log_levels.push_back("off");
 	SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages
