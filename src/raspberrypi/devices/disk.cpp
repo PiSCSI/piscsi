@@ -20,6 +20,7 @@
 #include "os.h"
 #include "xm6.h"
 #include "controllers/sasidev_ctrl.h"
+#include "exceptions.h"
 #include "disk.h"
 #include <sstream>
 
@@ -1750,10 +1751,12 @@ int Disk::GetSectorSizeInBytes() const
 	return disk.size ? 1 << disk.size : 0;
 }
 
-bool Disk::SetSectorSizeInBytes(int size, bool sasi)
+void Disk::SetSectorSizeInBytes(int size, bool sasi)
 {
 	if (sasi && size != 256 && size != 1024) {
-		return false;
+		stringstream error;
+		error << "Invalid sector size of " << size << " bytes";
+		throw io_exception(error.str());
 	}
 
 	switch (size) {
@@ -1778,12 +1781,11 @@ bool Disk::SetSectorSizeInBytes(int size, bool sasi)
 			break;
 
 		default:
-			assert(false);
-			disk.size = 9;
+			stringstream error;
+			error << "Invalid sector size of " << size << " bytes";
+			throw io_exception(error.str());
 			break;
 	}
-
-	return true;
 }
 
 int Disk::GetSectorSize() const

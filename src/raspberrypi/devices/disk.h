@@ -124,7 +124,7 @@ public:
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
 
 	int GetSectorSizeInBytes() const;
-	bool SetSectorSizeInBytes(int, bool);
+	void SetSectorSizeInBytes(int, bool);
 	int GetSectorSize() const;
 	bool IsSectorSizeConfigurable() const;
 	vector<int> GetSectorSizes() const;
