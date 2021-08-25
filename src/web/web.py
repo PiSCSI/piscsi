@@ -75,8 +75,7 @@ def config_load():
     with open(file_name) as csv_file:
         config_reader = csv.reader(csv_file)
         for row in config_reader:
-            image_name = row[3].replace("(WRITEPROTECT)", "")
-            attach_image(row[0], image_name, row[2])
+            attach_image(row[0], row[4], row[2])
     flash(f"Loaded config from  {file_name}!")
     return redirect(url_for("index"))
 

@@ -24,9 +24,9 @@ string ListDevices(const PbDevices& devices)
 	ostringstream s;
 
 	if (devices.devices_size()) {
-		s << "+----+----+------+-------------------------------------" << endl
-			<< "| ID | UN | TYPE | DEVICE STATUS" << endl
-			<< "+----+----+------+-------------------------------------" << endl;
+		s << "+----+----+------+---------------+---------------------" << endl
+			<< "| ID | UN | TYPE | DEVICE STATUS | IMAGE" << endl
+			<< "+----+----+------+---------------+---------------------" << endl;
 	}
 	else {
 		return "No images currently attached.";
@@ -36,6 +36,8 @@ string ListDevices(const PbDevices& devices)
 		PbDevice device = devices.devices(i);
 
 		string filename;
+		string status;
+		
 		switch (device.type()) {
 			case SCBR:
 				filename = "X68000 HOST BRIDGE";
@@ -49,10 +51,23 @@ string ListDevices(const PbDevices& devices)
 				filename = device.file().name();
 				break;
 		}
-
-		s << "|  " << device.id() << " |  " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
-				<< (filename.empty() ? "NO MEDIA" : filename)
-				<< (!device.removed() && (device.read_only() || device.protected_()) ? " (WRITEPROTECT)" : "") << endl;
+		
+		if ((!device.removed() && (device.read_only() || device.protected_())) {
+			status = "WRITEPROTECT";
+		}
+		else if (filename.empty()) {
+			status = "NO MEDIA";
+		}
+		else if (!device.removed()) {
+			status = "ATTACHED";
+		}
+		else {
+			status = "";
+		}
+		
+		s << "|  " << device.id() << " |  " << device.unit() << " | "
+				<< PbDeviceType_Name(device.type()) << " | "
+				<< status << " | " << filename << endl;s
 	}
 
 	s << "+----+----+------+-------------------------------------";
