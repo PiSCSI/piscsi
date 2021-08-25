@@ -213,7 +213,7 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 	}
 
-	cout << "Device types and their properties:" << endl;
+	cout << "Supported device types and their properties:" << endl;
 	for (int i = 0; i < serverInfo.types_properties_size(); i++) {
 		PbDeviceTypeProperties types_properties = serverInfo.types_properties(i);
 		cout << "  " << PbDeviceType_Name(types_properties.type());
@@ -272,10 +272,10 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 	}
 
-	cout << "Available devices:" << endl;
+	cout << "Attached devices:" << endl;
 	const PbDevices& devices = serverInfo.devices();
 	if (!devices.devices_size()) {
-		cout << "No devices available" << endl;
+		cout << "No devices attached" << endl;
 	}
 	else {
 		list<PbDevice> sorted_devices;
