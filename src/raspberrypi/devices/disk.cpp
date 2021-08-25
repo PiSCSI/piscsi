@@ -29,6 +29,137 @@
 //
 //===========================================================================
 
+//---------------------------------------------------------------------------
+//
+//	Constructor
+//
+//---------------------------------------------------------------------------
+Disk::Disk(const std::string id) : Device(id), PrimaryDevice(), BlockDevice()
+{
+	// Work initialization
+	configured_sector_size = 0;
+	disk.size = 0;
+	disk.blocks = 0;
+	disk.dcache = NULL;
+	disk.imgoffset = 0;
+
+	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
+	AddCommand(SCSIDEV::eCmdRezero, "Rezero", &Disk::Rezero);
+	AddCommand(SCSIDEV::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
+	AddCommand(SCSIDEV::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
+	AddCommand(SCSIDEV::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
+	AddCommand(SCSIDEV::eCmdRead6, "Read6", &Disk::Read6);
+	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &Disk::Write6);
+	AddCommand(SCSIDEV::eCmdSeek6, "Seek6", &Disk::Seek6);
+	AddCommand(SCSIDEV::eCmdInquiry, "Inquiry", &Disk::Inquiry);
+	AddCommand(SCSIDEV::eCmdModeSelect, "ModeSelect", &Disk::ModeSelect);
+	AddCommand(SCSIDEV::eCmdReserve6, "Reserve6", &Disk::Reserve6);
+	AddCommand(SCSIDEV::eCmdRelease6, "Release6", &Disk::Release6);
+	AddCommand(SCSIDEV::eCmdModeSense, "ModeSense", &Disk::ModeSense);
+	AddCommand(SCSIDEV::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
+	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
+	AddCommand(SCSIDEV::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
+	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
+	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
+	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
+	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
+	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
+	AddCommand(SCSIDEV::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	AddCommand(SCSIDEV::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
+	AddCommand(SCSIDEV::eCmdModeSelect10, "ModeSelect10", &Disk::ModeSelect10);
+	AddCommand(SCSIDEV::eCmdReserve10, "Reserve10", &Disk::Reserve10);
+	AddCommand(SCSIDEV::eCmdRelease10, "Release10", &Disk::Release10);
+	AddCommand(SCSIDEV::eCmdModeSense10, "ModeSense10", &Disk::ModeSense10);
+	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
+	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
+	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
+	AddCommand(SCSIDEV::eCmdReadCapacity16, "ReadCapacity16", &Disk::ReadCapacity16);
+	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
+}
+
+//---------------------------------------------------------------------------
+//
+//	Destructor
+//
+//---------------------------------------------------------------------------
+Disk::~Disk()
+{
+	// Save disk cache
+	if (IsReady()) {
+		// Only if ready...
+		if (disk.dcache) {
+			disk.dcache->Save();
+		}
+	}
+
+	// Clear disk cache
+	if (disk.dcache) {
+		delete disk.dcache;
+		disk.dcache = NULL;
+	}
+
+	for (auto const& command : commands) {
+		delete command.second;
+	}
+}
+
+void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
+{
+	commands[opcode] = new command_t(name, execute);
+}
+
+bool Disk::Dispatch(SCSIDEV *controller)
+{
+	ctrl = controller->GetCtrl();
+
+	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
+	}
+
+	// Unknown command
+	return false;
+}
+
+//---------------------------------------------------------------------------
+//
+//	Open
+//  * Call as a post-process after successful opening in a derived class
+//
+//---------------------------------------------------------------------------
+void Disk::Open(const Filepath& path)
+{
+	ASSERT((disk.size >= 8) && (disk.size <= 12));
+	ASSERT(disk.blocks > 0);
+
+	SetReady(true);
+
+	// Cache initialization
+	ASSERT(!disk.dcache);
+	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
+
+	// Can read/write open
+	Fileio fio;
+	if (fio.Open(path, Fileio::ReadWrite)) {
+		// Write permission
+		fio.Close();
+	} else {
+		// Permanently write-protected
+		SetReadOnly(true);
+		SetProtectable(false);
+		SetProtected(false);
+	}
+
+	SetLocked(false);
+	SetRemoved(false);
+}
 
 void Disk::TestUnitReady(SASIDEV *controller)
 {
@@ -408,144 +539,6 @@ void Disk::ReadDefectData10(SASIDEV *controller)
 	}
 
 	controller->DataIn();
-}
-
-//===========================================================================
-//
-//	Disk
-//
-//===========================================================================
-
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
-Disk::Disk(const std::string id) : Device(id), PrimaryDevice(), BlockDevice()
-{
-	// Work initialization
-	configured_sector_size = 0;
-	disk.size = 0;
-	disk.blocks = 0;
-	disk.dcache = NULL;
-	disk.imgoffset = 0;
-
-	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
-	AddCommand(SCSIDEV::eCmdRezero, "Rezero", &Disk::Rezero);
-	AddCommand(SCSIDEV::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
-	AddCommand(SCSIDEV::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	AddCommand(SCSIDEV::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
-	AddCommand(SCSIDEV::eCmdRead6, "Read6", &Disk::Read6);
-	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &Disk::Write6);
-	AddCommand(SCSIDEV::eCmdSeek6, "Seek6", &Disk::Seek6);
-	AddCommand(SCSIDEV::eCmdInquiry, "Inquiry", &Disk::Inquiry);
-	AddCommand(SCSIDEV::eCmdModeSelect, "ModeSelect", &Disk::ModeSelect);
-	AddCommand(SCSIDEV::eCmdReserve6, "Reserve6", &Disk::Reserve6);
-	AddCommand(SCSIDEV::eCmdRelease6, "Release6", &Disk::Release6);
-	AddCommand(SCSIDEV::eCmdModeSense, "ModeSense", &Disk::ModeSense);
-	AddCommand(SCSIDEV::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
-	AddCommand(SCSIDEV::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
-	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
-	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
-	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
-	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Write10);
-	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
-	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
-	AddCommand(SCSIDEV::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	AddCommand(SCSIDEV::eCmdModeSelect10, "ModeSelect10", &Disk::ModeSelect10);
-	AddCommand(SCSIDEV::eCmdReserve10, "Reserve10", &Disk::Reserve10);
-	AddCommand(SCSIDEV::eCmdRelease10, "Release10", &Disk::Release10);
-	AddCommand(SCSIDEV::eCmdModeSense10, "ModeSense10", &Disk::ModeSense10);
-	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
-	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
-	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(SCSIDEV::eCmdReadCapacity16, "ReadCapacity16", &Disk::ReadCapacity16);
-	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
-}
-
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
-Disk::~Disk()
-{
-	// Save disk cache
-	if (IsReady()) {
-		// Only if ready...
-		if (disk.dcache) {
-			disk.dcache->Save();
-		}
-	}
-
-	// Clear disk cache
-	if (disk.dcache) {
-		delete disk.dcache;
-		disk.dcache = NULL;
-	}
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
-}
-
-void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
-}
-
-bool Disk::Dispatch(SCSIDEV *controller)
-{
-	ctrl = controller->GetCtrl();
-
-	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	// Unknown command
-	return false;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Open
-//  * Call as a post-process after successful opening in a derived class
-//
-//---------------------------------------------------------------------------
-void Disk::Open(const Filepath& path)
-{
-	ASSERT((disk.size >= 8) && (disk.size <= 12));
-	ASSERT(disk.blocks > 0);
-
-	SetReady(true);
-
-	// Cache initialization
-	ASSERT(!disk.dcache);
-	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
-
-	// Can read/write open
-	Fileio fio;
-	if (fio.Open(path, Fileio::ReadWrite)) {
-		// Write permission
-		fio.Close();
-	} else {
-		// Permanently write-protected
-		SetReadOnly(true);
-		SetProtectable(false);
-		SetProtected(false);
-	}
-
-	SetLocked(false);
-	SetRemoved(false);
 }
 
 //---------------------------------------------------------------------------

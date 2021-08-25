@@ -69,24 +69,14 @@ void SASIHD::Open(const Filepath& path)
 	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	#if defined(USE_MZ1F23_1024_SUPPORT)
-	// For MZ-2500 / MZ-2800 MZ-1F23 (SASI 20M / sector size 1024) only
-	// 20M(22437888 BS=1024 C=21912)
-	if (size == 0x1566000) {
-		// Sector size and number of blocks
-		SetSectorSizeInBytes(1024);
-		SetBlockCount((DWORD)(size >> 10));
-
-		Disk::Open(path);
-		FileSupport::SetPath(path);
-	}
-	#endif	// USE_MZ1F23_1024_SUPPORT
+	// Sector size (default 256 bytes) and number of blocks
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 256);
+	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
-	// Must be in 256-byte units
-	if (size % 256) {
+	if (size % GetSectorSizeInBytes()) {
 		stringstream error;
-		error << "File size must be a multiple of 256 bytes but is " << size << " bytes";
+		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
 		throw io_exception(error.str());
 	}
 
@@ -119,10 +109,6 @@ void SASIHD::Open(const Filepath& path)
 			throw io_exception("Unsupported file size");
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
-
-	// Sector size 256 bytes and number of blocks
-	SetSectorSizeInBytes(256);
-	SetBlockCount((DWORD)(size >> 8));
 
 	// Call the base class
 	Disk::Open(path);

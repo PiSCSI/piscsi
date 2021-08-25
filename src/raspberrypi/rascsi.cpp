@@ -65,6 +65,7 @@ vector<string> available_log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
 set<string> files_in_use;
+DeviceFactory& device_factory = DeviceFactory::instance();
 
 //---------------------------------------------------------------------------
 //
@@ -529,16 +530,21 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	PbDeviceProperties *properties = types_properties->add_properties();
 	types_properties->set_type(SAHD);
 	properties->set_supports_file(true);
+	vector<int> block_sizes = device_factory.GetSasiSectorSizes();
+	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
+		properties->add_block_sizes(*it);
+	}
+
+	block_sizes = device_factory.GetScsiSectorSizes();
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCHD);
 	properties = types_properties->add_properties();
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
-	properties->add_block_sizes(512);
-	properties->add_block_sizes(1024);
-	properties->add_block_sizes(2048);
-	properties->add_block_sizes(4096);
+	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
+		properties->add_block_sizes(*it);
+	}
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCRM);
@@ -547,10 +553,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
-	properties->add_block_sizes(512);
-	properties->add_block_sizes(1024);
-	properties->add_block_sizes(2048);
-	properties->add_block_sizes(4096);
+	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
+		properties->add_block_sizes(*it);
+	}
 
 	types_properties = serverInfo.add_types_properties();
 	properties = types_properties->add_properties();
@@ -670,8 +675,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			ext = filename.substr(len - 3);
 		}
 
-		// Create a new device, based upon type or file extension
-		device = DeviceFactory::CreateDevice(type, filename, ext);
+		// Create a new device, based upon provided type or file extension
+		device = device_factory.CreateDevice(type, filename, ext);
 		if (!device) {
 			return ReturnStatus(fd, false, "Invalid device type " + PbDeviceType_Name(type));
 		}

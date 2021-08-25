@@ -20,6 +20,27 @@
 using namespace std;
 using namespace rascsi_interface;
 
+DeviceFactory::DeviceFactory()
+{
+	sector_sizes_sasi.push_back(256);
+	sector_sizes_sasi.push_back(1024);
+
+	sector_sizes_scsi.push_back(512);
+	sector_sizes_scsi.push_back(1024);
+	sector_sizes_scsi.push_back(2048);
+	sector_sizes_scsi.push_back(4096);
+}
+
+DeviceFactory::~DeviceFactory()
+{
+}
+
+DeviceFactory& DeviceFactory::instance()
+{
+	static DeviceFactory instance;
+	return instance;
+}
+
 Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, const string& ext)
 {
 	// If no type was specified try to derive the device type from the filename and extension
@@ -45,16 +66,12 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 		}
 	}
 
-	vector<int> sector_sizes;
-	sector_sizes.push_back(512);
-	sector_sizes.push_back(1024);
-	sector_sizes.push_back(2048);
-	sector_sizes.push_back(4096);
-
 	Device *device = NULL;
 	switch (type) {
-		case SAHD:
-			device = new SASIHD();
+		case SAHD: {
+				device = new SASIHD();
+				((Disk *)device)->SetSectorSizes(sector_sizes_sasi);
+			}
 			break;
 
 		case SCHD:
@@ -64,7 +81,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 			} else {
 				device = new SCSIHD();
 				device->SetProtectable(true);
-				((Disk *)device)->SetSectorSizes(sector_sizes);
+				((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
 			}
 
 			break;
@@ -74,7 +91,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 			device->SetProtectable(true);
 			device->SetLockable(true);
 			device->SetProtectable(true);
-			((Disk *)device)->SetSectorSizes(sector_sizes);
+			((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
 			break;
 
 		case SCMO:

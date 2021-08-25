@@ -70,7 +70,7 @@ void SCSIHD::Open(const Filepath& path)
 	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	// sector size (default 512 bytes) and number of blocks
+	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
 	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
