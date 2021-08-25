@@ -99,8 +99,8 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 
 	// Determine parameters by extension
-	LPCTSTR ext = path.GetFileExt();
-	if (strcasecmp(ext, _T(".HDN")) == 0) {
+	const char *ext = path.GetFileExt();
+	if (!strcasecmp(ext, _T(".HDN"))) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		imgoffset = 0;
 		imgsize = size;

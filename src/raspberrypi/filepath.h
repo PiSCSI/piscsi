@@ -40,9 +40,9 @@ public:
 										// クリア
 	void SetPath(const char *path);
 										// ファイル設定(ユーザ) MBCS用
-	LPCTSTR GetPath() const	{ return m_szPath; }
+	const char *GetPath() const	{ return m_szPath; }
 										// パス名取得
-	LPCTSTR GetFileExt() const;
+	const char *GetFileExt() const;
 										// ショート名取得(LPCTSTR)
 	BOOL Save(Fileio *fio, int ver);
 										// セーブ

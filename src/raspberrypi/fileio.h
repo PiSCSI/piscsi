@@ -52,11 +52,11 @@ public:
 	BOOL Save(const Filepath& path, void *buffer, int size);
 										// RAMセーブ
 
-	BOOL Open(LPCTSTR fname, OpenMode mode);
+	BOOL Open(const char *fname, OpenMode mode);
 										// オープン
 	BOOL Open(const Filepath& path, OpenMode mode);
 										// オープン
-	BOOL OpenDIO(LPCTSTR fname, OpenMode mode);
+	BOOL OpenDIO(const char *fname, OpenMode mode);
 										// オープン
 	BOOL OpenDIO(const Filepath& path, OpenMode mode);
 										// オープン
@@ -76,7 +76,7 @@ public:
 										// 有効チェック
 
 private:
-	BOOL Open(LPCTSTR fname, OpenMode mode, BOOL directIO);
+	BOOL Open(const char *fname, OpenMode mode, BOOL directIO);
 										// オープン
 
 	int handle;							// ファイルハンドル

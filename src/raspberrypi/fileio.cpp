@@ -104,7 +104,7 @@ BOOL Fileio::Save(const Filepath& path, void *buffer, int size)
 //	オープン
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
+BOOL Fileio::Open(const char *fname, OpenMode mode, BOOL directIO)
 {
 	mode_t omode;
 
@@ -161,7 +161,7 @@ BOOL Fileio::Open(LPCTSTR fname, OpenMode mode, BOOL directIO)
 //	オープン
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::Open(LPCTSTR fname, OpenMode mode)
+BOOL Fileio::Open(const char *fname, OpenMode mode)
 {
 
 	return Open(fname, mode, FALSE);
@@ -183,7 +183,7 @@ BOOL Fileio::Open(const Filepath& path, OpenMode mode)
 //	オープン
 //
 //---------------------------------------------------------------------------
-BOOL Fileio::OpenDIO(LPCTSTR fname, OpenMode mode)
+BOOL Fileio::OpenDIO(const char *fname, OpenMode mode)
 {
 
 	// O_DIRECT付きでオープン

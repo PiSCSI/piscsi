@@ -135,14 +135,14 @@ void Filepath::Split()
 //	The returned pointer is temporary. Copy immediately.
 //
 //---------------------------------------------------------------------------
-LPCTSTR Filepath::GetFileExt() const
+const char *Filepath::GetFileExt() const
 {
 
 	// 固定バッファへ合成
 	strcpy(FileExt, m_szExt);
 
 	// LPCTSTRとして返す
-	return (LPCTSTR)FileExt;
+	return (const char *)FileExt;
 }
 
 //---------------------------------------------------------------------------
