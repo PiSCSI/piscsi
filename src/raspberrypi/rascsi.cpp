@@ -290,12 +290,12 @@ const PbDevices GetDevices()
 		PbDeviceType_Parse(device->GetType(), &type);
 		pbDevice->set_type(type);
 
-		PbDeviceFeatures *features = new PbDeviceFeatures();
-		pbDevice->set_allocated_features(features);
-		features->set_read_only(device->IsReadOnly());
-		features->set_protectable(device->IsProtectable());
-		features->set_removable(device->IsRemovable());
-		features->set_lockable(device->IsLockable());
+		PbDeviceProperties *properties = new PbDeviceProperties();
+		pbDevice->set_allocated_properties(properties);
+		properties->set_read_only(device->IsReadOnly());
+		properties->set_protectable(device->IsProtectable());
+		properties->set_removable(device->IsRemovable());
+		properties->set_lockable(device->IsLockable());
 
 		PbDeviceStatus *status = new PbDeviceStatus();
 		pbDevice->set_allocated_status(status);
@@ -334,7 +334,7 @@ const PbDevices GetDevices()
 			PbImageFile *image_file = new PbImageFile();
 			GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 			pbDevice->set_allocated_file(image_file);
-			features->set_supports_file(true);
+			properties->set_supports_file(true);
 		}
 	}
 
@@ -546,54 +546,54 @@ void GetLogLevels(PbServerInfo& serverInfo)
 
 void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 {
-	PbDeviceTypeFeatures *types_features = serverInfo.add_types_features();
-	PbDeviceFeatures *features = types_features->add_features();
-	types_features->set_type(SAHD);
-	features->set_supports_file(true);
+	PbDeviceTypeProperties *types_properties = serverInfo.add_types_properties();
+	PbDeviceProperties *properties = types_properties->add_properties();
+	types_properties->set_type(SAHD);
+	properties->set_supports_file(true);
 
-	types_features = serverInfo.add_types_features();
-	types_features->add_block_sizes(512);
-	types_features->add_block_sizes(1024);
-	types_features->add_block_sizes(2048);
-	types_features->add_block_sizes(4096);
-	features = types_features->add_features();
-	types_features->set_type(SCHD);
-	features->set_protectable(true);
-	features->set_supports_file(true);
+	types_properties = serverInfo.add_types_properties();
+	types_properties->add_block_sizes(512);
+	types_properties->add_block_sizes(1024);
+	types_properties->add_block_sizes(2048);
+	types_properties->add_block_sizes(4096);
+	properties = types_properties->add_properties();
+	types_properties->set_type(SCHD);
+	properties->set_protectable(true);
+	properties->set_supports_file(true);
 
-	types_features = serverInfo.add_types_features();
-	types_features->add_block_sizes(512);
-	types_features->add_block_sizes(1024);
-	types_features->add_block_sizes(2048);
-	types_features->add_block_sizes(4096);
-	features = types_features->add_features();
-	types_features->set_type(SCRM);
-	features->set_protectable(true);
-	features->set_removable(true);
-	features->set_lockable(true);
-	features->set_supports_file(true);
+	types_properties = serverInfo.add_types_properties();
+	types_properties->add_block_sizes(512);
+	types_properties->add_block_sizes(1024);
+	types_properties->add_block_sizes(2048);
+	types_properties->add_block_sizes(4096);
+	properties = types_properties->add_properties();
+	types_properties->set_type(SCRM);
+	properties->set_protectable(true);
+	properties->set_removable(true);
+	properties->set_lockable(true);
+	properties->set_supports_file(true);
 
-	types_features = serverInfo.add_types_features();
-	features = types_features->add_features();
-	types_features->set_type(SCMO);
-	features->set_protectable(true);
-	features->set_removable(true);
-	features->set_lockable(true);
-	features->set_supports_file(true);
+	types_properties = serverInfo.add_types_properties();
+	properties = types_properties->add_properties();
+	types_properties->set_type(SCMO);
+	properties->set_protectable(true);
+	properties->set_removable(true);
+	properties->set_lockable(true);
+	properties->set_supports_file(true);
 
-	types_features = serverInfo.add_types_features();
-	features = types_features->add_features();
-	types_features->set_type(SCCD);
-	features->set_read_only(true);
-	features->set_removable(true);
-	features->set_lockable(true);
-	features->set_supports_file(true);
+	types_properties = serverInfo.add_types_properties();
+	properties = types_properties->add_properties();
+	types_properties->set_type(SCCD);
+	properties->set_read_only(true);
+	properties->set_removable(true);
+	properties->set_lockable(true);
+	properties->set_supports_file(true);
 
-	types_features = serverInfo.add_types_features();
-	types_features->set_type(SCBR);
+	types_properties = serverInfo.add_types_properties();
+	types_properties->set_type(SCBR);
 
-	types_features = serverInfo.add_types_features();
-	types_features->set_type(SCDP);
+	types_properties = serverInfo.add_types_properties();
+	types_properties->set_type(SCDP);
 }
 
 void GetAvailableImages(PbServerInfo& serverInfo)

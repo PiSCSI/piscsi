@@ -49,8 +49,8 @@ enum PbOperation {
     UNPROTECT = 9;
 }
 
-// The features supported by a device
-message PbDeviceFeatures {
+// The properties supported by a device
+message PbDeviceProperties {
      // Read-only medium (e.g. CD-ROMs) are not protectable but permanently read-only
     bool read_only = 1;
     // Medium can be write-protected
@@ -73,10 +73,10 @@ message PbDeviceStatus {
     bool locked = 3;
 }
 
-// Device features by device type
-message PbDeviceTypeFeatures {
+// Device properties by device type
+message PbDeviceTypeProperties {
     PbDeviceType type = 1;
-    repeated PbDeviceFeatures features = 2;
+    repeated PbDeviceProperties properties = 2;
     // List of supported block sizes
     repeated uint32 block_sizes = 6;
 }
@@ -114,7 +114,7 @@ message PbDevice {
     int32 id = 1;
     int32 unit = 2;
     PbDeviceType type = 3;
-    PbDeviceFeatures features = 4;
+    PbDeviceProperties properties = 4;
     PbDeviceStatus status = 5;
     PbImageFile file = 6;
     string vendor = 7;
@@ -151,8 +151,8 @@ message PbServerInfo {
     repeated string available_log_levels = 2;
     string current_log_level = 3;
     string default_image_folder = 4;
-    // Supported device types and their features
-    repeated PbDeviceTypeFeatures types_features = 5;
+    // Supported device types and their properties
+    repeated PbDeviceTypeProperties types_properties = 5;
     // Files in the default folder
     repeated PbImageFile image_files = 6;
     // The attached devices

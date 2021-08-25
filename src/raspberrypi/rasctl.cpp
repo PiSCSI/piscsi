@@ -213,43 +213,53 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 	}
 
-	cout << "Device types and their features:" << endl;
-	for (int i = 0; i < serverInfo.types_features_size(); i++) {
-		PbDeviceTypeFeatures type_features = serverInfo.types_features(i);
-		cout << "  " << PbDeviceType_Name(type_features.type());
+	cout << "Device types and their properties:" << endl;
+	for (int i = 0; i < serverInfo.types_properties_size(); i++) {
+		PbDeviceTypeProperties types_properties = serverInfo.types_properties(i);
+		cout << "  " << PbDeviceType_Name(types_properties.type());
 
-		if (type_features.features_size()) {
-			for (int j = 0; j < type_features.features_size(); j++) {
-				PbDeviceFeatures features = type_features.features(j);
-				if (features.read_only()) {
-					cout << "  Read-only";
+		cout << "  Properties: ";
+		if (types_properties.properties_size()) {
+			for (int j = 0; j < types_properties.properties_size(); j++) {
+				bool has_feature = false;
+
+				PbDeviceProperties properties = types_properties.properties(j);
+				if (properties.read_only()) {
+					cout << "Read-only";
+					has_feature = true;
 				}
-				if (features.protectable()) {
-					cout << "  Protectable";
+				if (properties.protectable()) {
+					cout << (has_feature ? ", " : "") << "Protectable";
+					has_feature = true;
 				}
-				if (features.removable()) {
-					cout << "  Removable";
+				if (properties.removable()) {
+					cout << (has_feature ? ", " : "") << "Removable";
+					has_feature = true;
 				}
-				if (features.lockable()) {
-					cout << "  Lockable";
+				if (properties.lockable()) {
+					cout << (has_feature ? ", " : "") << "Lockable";
+					has_feature = true;
 				}
-				if (features.supports_file()) {
-					cout << "  Image file support";
+				if (properties.supports_file()) {
+					cout << (has_feature ? ", " : "") << "Image file support";
 				}
 				cout << endl;
 			}
 		}
 		else {
-			cout << endl;
+			cout << "None" << endl;
 		}
 
-		if (type_features.block_sizes_size()) {
-			cout << "        Supported block sizes: ";
-			for (int j = 0; j < type_features.block_sizes_size(); j++) {
+		if (!types_properties.block_sizes_size()) {
+			cout << "        Block size is not configurable" << endl;
+		}
+		else {
+			cout << "        Configurable block sizes: ";
+			for (int j = 0; j < types_properties.block_sizes_size(); j++) {
 				if (j) {
 					cout << ", ";
 				}
-				cout << type_features.block_sizes(j);
+				cout << types_properties.block_sizes(j);
 			}
 			cout << endl;
 		}
