@@ -38,7 +38,7 @@ public:
 
 	void Clear();
 										// クリア
-	void SetPath(LPCSTR path);
+	void SetPath(const char *path);
 										// ファイル設定(ユーザ) MBCS用
 	LPCTSTR GetPath() const	{ return m_szPath; }
 										// パス名取得

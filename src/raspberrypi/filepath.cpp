@@ -72,7 +72,7 @@ void Filepath::Clear()
 //	ファイル設定(ユーザ) MBCS用
 //
 //---------------------------------------------------------------------------
-void Filepath::SetPath(LPCSTR path)
+void Filepath::SetPath(const char *path)
 {
 	ASSERT(path);
 	ASSERT(strlen(path) < _MAX_PATH);
