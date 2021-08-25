@@ -1147,7 +1147,7 @@ void CHostFilename::SetEntryName()
 BOOL CHostFilename::isReduce() const
 {
 
-	return strcmp((LPTSTR)m_szHost, (const char*)m_szHuman) != 0;	/// @warning Unicode時要修正 → 済
+	return strcmp((char *)m_szHost, (const char*)m_szHuman) != 0;	/// @warning Unicode時要修正 → 済
 }
 
 //---------------------------------------------------------------------------

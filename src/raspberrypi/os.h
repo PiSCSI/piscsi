@@ -107,7 +107,6 @@ typedef uint16_t WORD;
 typedef uint32_t DWORD;
 typedef int BOOL;
 typedef char TCHAR;
-typedef char *LPTSTR;
 
 #if !defined(FALSE)
 #define FALSE               0

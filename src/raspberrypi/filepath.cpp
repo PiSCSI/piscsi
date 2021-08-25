@@ -78,7 +78,7 @@ void Filepath::SetPath(const char *path)
 	ASSERT(strlen(path) < _MAX_PATH);
 
 	// Copy pathname
-	strcpy(m_szPath, (LPTSTR)path);
+	strcpy(m_szPath, (char *)path);
 
 	// Split
 	Split();
@@ -91,24 +91,17 @@ void Filepath::SetPath(const char *path)
 //---------------------------------------------------------------------------
 void Filepath::Split()
 {
-	LPTSTR pDir;
-	LPTSTR pDirName;
-	LPTSTR pBase;
-	LPTSTR pBaseName;
-	LPTSTR pExtName;
-
-
 	// パーツを初期化
 	m_szDir[0] = _T('\0');
 	m_szFile[0] = _T('\0');
 	m_szExt[0] = _T('\0');
 
 	// 分離
-	pDir = strdup(m_szPath);
-	pDirName = dirname(pDir);
-	pBase = strdup(m_szPath);
-	pBaseName = basename(pBase);
-	pExtName = strrchr(pBaseName, '.');
+	char *pDir = strdup(m_szPath);
+	char *pDirName = dirname(pDir);
+	char *pBase = strdup(m_szPath);
+	char *pBaseName = basename(pBase);
+	char *pExtName = strrchr(pBaseName, '.');
 
 	// 転送
 	if (pDirName) {
