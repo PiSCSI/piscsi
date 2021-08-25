@@ -34,7 +34,8 @@ OPTIONS
        -p PORT
               The rascsi port to connect to, default is 6868.
 
-       -s     Display the server-side configuration settings.
+       -s     Display server-side settings like available images or  supported
+              device types.
 
        -v     Display the rascsi version.
 
@@ -45,16 +46,17 @@ OPTIONS
                  detach: detach disk
                  insert: insert media (removable media devices only)
                  eject: eject media (removable media devices only)
-                 protect: write protect the media (not for CD-ROMs, which  are
+                 protect:  write protect the media (not for CD-ROMs, which are
               always read-only)
-                 unprotect:  remove  write  protection from the media (not for
+                 unprotect: remove write protection from the  media  (not  for
               CD-ROMs, which are always read-only)
 
               eject, protect and unprotect are idempotent.
 
        -b BLOCK_SIZE
-              The optional block size for SCSI hard disk drives,  either  512,
-              1024, 2048 or 4096. The default size is 512 bytes.
+              The optional block size. For SCSI drives 512, 1024, 2048 or 4096
+              bytes, default size is 512 bytes. For SASI drives  256  or  1024
+              bytes, default is 256 bytes.
 
        -f FILE
               Path  to the disk image file. See the rascsi(1) man page for al‐
