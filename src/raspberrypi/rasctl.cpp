@@ -181,13 +181,13 @@ void CommandServerInfo(const string& hostname, int port)
 
 	cout << "rascsi server version: " << serverInfo.rascsi_version() << endl;
 
-	if (!serverInfo.available_log_levels_size()) {
+	if (!serverInfo.log_levels_size()) {
 		cout << "  No log level settings available" << endl;
 	}
 	else {
 		cout << "rascsi log levels, sorted by severity:" << endl;
-		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
-			cout << "  " << serverInfo.available_log_levels(i) << endl;
+		for (int i = 0; i < serverInfo.log_levels_size(); i++) {
+			cout << "  " << serverInfo.log_levels(i) << endl;
 		}
 
 		cout << "Current rascsi log level: " << serverInfo.current_log_level() << endl;
@@ -205,9 +205,7 @@ void CommandServerInfo(const string& hostname, int port)
 		sorted_files.sort([](const PbImageFile& a, const PbImageFile& b) { return a.name() < b.name(); });
 
 		cout << "Image files available in the default folder:" << endl;
-		for (auto it = sorted_files.begin(); it != sorted_files.end(); ++it) {
-			const PbImageFile& file = *it;
-
+		for (const auto& file: sorted_files) {
 			cout << "  " << file.name() << " (" << file.size() << " bytes)" << (file.read_only() ? ", read-only": "")
 					<< endl;
 		}
@@ -284,9 +282,7 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 		sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id(); });
 
-		for (auto it = sorted_devices.begin(); it != sorted_devices.end(); ++it) {
-			const PbDevice& device = *it;
-
+		for (const auto& device : sorted_devices) {
 			cout << "  " << device.id() << ":" << device.unit() << "  " << PbDeviceType_Name(device.type())
 					<< "  " << device.vendor() << ":" << device.product() << ":" << device.revision();
 			if (device.block_size()) {

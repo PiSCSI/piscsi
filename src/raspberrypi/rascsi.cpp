@@ -61,7 +61,7 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-vector<string> available_log_levels;
+vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
 set<string> files_in_use;
@@ -238,9 +238,9 @@ void Cleanup()
 void Reset()
 {
 	// Reset all of the controllers
-	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
-		if (*it) {
-			(*it)->Reset();
+	for (const auto& controller : controllers) {
+		if (controller) {
+			controller->Reset();
 		}
 	}
 
@@ -383,7 +383,7 @@ bool MapController(Device **map)
 		}
 
 		// If there are no units connected
-		if (sasi_num == 0 && scsi_num == 0) {
+		if (!sasi_num && !scsi_num) {
 			if (*it) {
 				delete *it;
 				*it = NULL;
@@ -519,8 +519,8 @@ void LogDevices(const string& devices)
 
 void GetLogLevels(PbServerInfo& serverInfo)
 {
-	for (auto it = available_log_levels.begin(); it != available_log_levels.end(); ++it) {
-		serverInfo.add_available_log_levels(*it);
+	for (const auto& log_level : log_levels) {
+		serverInfo.add_log_levels(log_level);
 	}
 }
 
@@ -531,8 +531,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	types_properties->set_type(SAHD);
 	properties->set_supports_file(true);
 	vector<int> block_sizes = device_factory.GetSasiSectorSizes();
-	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
-		properties->add_block_sizes(*it);
+	for (auto block_size : block_sizes) {
+		properties->add_block_sizes(block_size);
 	}
 
 	block_sizes = device_factory.GetScsiSectorSizes();
@@ -542,8 +542,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties = types_properties->add_properties();
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
-	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
-		properties->add_block_sizes(*it);
+	for (auto block_size : block_sizes) {
+		properties->add_block_sizes(block_size);
 	}
 
 	types_properties = serverInfo.add_types_properties();
@@ -553,8 +553,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
-	for (auto it = block_sizes.begin(); it != block_sizes.end(); ++it) {
-		properties->add_block_sizes(*it);
+	for (auto block_size : block_sizes) {
+		properties->add_block_sizes(block_size);
 	}
 
 	types_properties = serverInfo.add_types_properties();
@@ -1245,13 +1245,13 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	available_log_levels.push_back("trace");
-	available_log_levels.push_back("debug");
-	available_log_levels.push_back("info");
-	available_log_levels.push_back("warn");
-	available_log_levels.push_back("err");
-	available_log_levels.push_back("critical");
-	available_log_levels.push_back("off");
+	log_levels.push_back("trace");
+	log_levels.push_back("debug");
+	log_levels.push_back("info");
+	log_levels.push_back("warn");
+	log_levels.push_back("err");
+	log_levels.push_back("critical");
+	log_levels.push_back("off");
 	SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages
@@ -1353,13 +1353,13 @@ int main(int argc, char* argv[])
 		// Notify all controllers
 		data = bus->GetDAT();
 		int i = 0;
-		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
-			if (!*it || (data & (1 << i)) == 0) {
+		for (const auto& controller : controllers) {
+			if (!controller || (data & (1 << i)) == 0) {
 				continue;
 			}
 
 			// Find the target that has moved to the selection phase
-			if ((*it)->Process() == BUS::selection) {
+			if (controller->Process() == BUS::selection) {
 				// Get the target ID
 				actid = i;
 
