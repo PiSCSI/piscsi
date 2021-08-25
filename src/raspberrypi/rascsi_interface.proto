@@ -78,7 +78,7 @@ message PbDeviceTypeProperties {
     PbDeviceType type = 1;
     repeated PbDeviceProperties properties = 2;
     // List of supported block sizes
-    repeated uint32 block_sizes = 6;
+    repeated uint32 block_sizes = 3;
 }
 
 // The image file data
