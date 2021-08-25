@@ -105,7 +105,6 @@
 typedef unsigned char BYTE;
 typedef uint16_t WORD;
 typedef uint32_t DWORD;
-typedef uint64_t QWORD;
 typedef int BOOL;
 typedef char TCHAR;
 typedef char *LPTSTR;
