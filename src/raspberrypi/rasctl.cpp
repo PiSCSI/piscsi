@@ -218,6 +218,8 @@ void CommandServerInfo(const string& hostname, int port)
 		PbDeviceTypeProperties types_properties = serverInfo.types_properties(i);
 		cout << "  " << PbDeviceType_Name(types_properties.type());
 
+		vector<int> block_sizes;
+
 		cout << "  Properties: ";
 		if (types_properties.properties_size()) {
 			for (int j = 0; j < types_properties.properties_size(); j++) {
@@ -244,22 +246,27 @@ void CommandServerInfo(const string& hostname, int port)
 					cout << (has_property ? ", " : "") << "Image file support";
 				}
 				cout << endl;
+
+				for (int k = 0 ; k < properties.block_sizes_size(); k++)
+				{
+					block_sizes.push_back(properties.block_sizes(i));
+				}
 			}
 		}
 		else {
 			cout << "None" << endl;
 		}
 
-		if (!types_properties.block_sizes_size()) {
+		if (block_sizes.empty()) {
 			cout << "        Block size is not configurable" << endl;
 		}
 		else {
 			cout << "        Configurable block sizes: ";
-			for (int j = 0; j < types_properties.block_sizes_size(); j++) {
+			for (size_t j = 0; j < block_sizes.size(); j++) {
 				if (j) {
 					cout << ", ";
 				}
-				cout << types_properties.block_sizes(j);
+				cout << block_sizes.at(j);
 			}
 			cout << endl;
 		}
