@@ -40,7 +40,7 @@ Disk::Disk(const std::string id) : Device(id), PrimaryDevice(), BlockDevice()
 {
 	// Work initialization
 	configured_sector_size = 0;
-	disk.size = 0;
+	disk.size = 9;
 	disk.blocks = 0;
 	disk.dcache = NULL;
 	disk.imgoffset = 0;
@@ -138,7 +138,6 @@ bool Disk::Dispatch(SCSIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Open(const Filepath& path)
 {
-	ASSERT((disk.size >= 8) && (disk.size <= 12));
 	ASSERT(disk.blocks > 0);
 
 	SetReady(true);
