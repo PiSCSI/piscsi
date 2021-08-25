@@ -136,9 +136,9 @@ def attach():
     print("valid_file_types: ", valid_file_types)
     if re.match(valid_file_types, file_name):
         if file_name.lower().endswith((".iso", ".cdr", ".toast", ".img")):
-            image_type = "cd"
+            image_type = "SCCD"
         else:
-            image_type = "hd"
+            image_type = "SCHD"
     else:
         flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
         return redirect(url_for("index"))
