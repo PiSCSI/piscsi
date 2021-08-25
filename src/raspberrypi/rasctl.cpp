@@ -221,27 +221,27 @@ void CommandServerInfo(const string& hostname, int port)
 		cout << "  Properties: ";
 		if (types_properties.properties_size()) {
 			for (int j = 0; j < types_properties.properties_size(); j++) {
-				bool has_feature = false;
+				bool has_property = false;
 
 				PbDeviceProperties properties = types_properties.properties(j);
 				if (properties.read_only()) {
 					cout << "Read-only";
-					has_feature = true;
+					has_property = true;
 				}
 				if (properties.protectable()) {
-					cout << (has_feature ? ", " : "") << "Protectable";
-					has_feature = true;
+					cout << (has_property ? ", " : "") << "Protectable";
+					has_property = true;
 				}
 				if (properties.removable()) {
-					cout << (has_feature ? ", " : "") << "Removable";
-					has_feature = true;
+					cout << (has_property ? ", " : "") << "Removable";
+					has_property = true;
 				}
 				if (properties.lockable()) {
-					cout << (has_feature ? ", " : "") << "Lockable";
-					has_feature = true;
+					cout << (has_property ? ", " : "") << "Lockable";
+					has_property = true;
 				}
 				if (properties.supports_file()) {
-					cout << (has_feature ? ", " : "") << "Image file support";
+					cout << (has_property ? ", " : "") << "Image file support";
 				}
 				cout << endl;
 			}
