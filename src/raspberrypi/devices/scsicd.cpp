@@ -342,7 +342,7 @@ void SCSICD::Open(const Filepath& path)
 	ASSERT(GetBlockCount() > 0);
 
 	// Sector size 2048 bytes
-	SetSectorSizeInBytes(2048);
+	SetSectorSizeInBytes(2048, false);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);

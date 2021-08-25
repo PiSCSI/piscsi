@@ -57,28 +57,28 @@ void SCSIMO::Open(const Filepath& path)
 		// 128MB
 		case 0x797f400:
 			// 512 bytes per sector
-			SetSectorSizeInBytes(512);
+			SetSectorSizeInBytes(512, false);
 			SetBlockCount(248826);
 			break;
 
 		// 230MB
 		case 0xd9eea00:
 			// 512 bytes per sector
-			SetSectorSizeInBytes(512);
+			SetSectorSizeInBytes(512, false);
 			SetBlockCount(446325);
 			break;
 
 		// 540MB
 		case 0x1fc8b800:
 			// 512 bytes per sector
-			SetSectorSizeInBytes(512);
+			SetSectorSizeInBytes(512, false);
 			SetBlockCount(1041500);
 			break;
 
 		// 640MB
 		case 0x25e28000:
 			// 2048 bytes per sector
-			SetSectorSizeInBytes(2048);
+			SetSectorSizeInBytes(2048, false);
 			SetBlockCount(310352);
 			break;
 

@@ -71,7 +71,12 @@ void SCSIHD::Open(const Filepath& path)
 	fio.Close();
 
 	// Sector size (default 512 bytes) and number of blocks
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
+	if (!SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, false)) {
+		stringstream error;
+		error << "Invalid sector size " << GetConfiguredSectorSize();
+		throw io_exception(error.str());
+
+	}
 	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
 	// File size must be a multiple of the sector size

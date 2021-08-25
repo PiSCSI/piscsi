@@ -70,7 +70,12 @@ void SASIHD::Open(const Filepath& path)
 	fio.Close();
 
 	// Sector size (default 256 bytes) and number of blocks
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 256);
+	if (!SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 256, true)) {
+		stringstream error;
+		error << "Invalid sector size " << GetConfiguredSectorSize();
+		throw io_exception(error.str());
+
+	}
 	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
@@ -110,8 +115,8 @@ void SASIHD::Open(const Filepath& path)
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 
-	// Call the base class
 	Disk::Open(path);
+	FileSupport::SetPath(path);
 }
 
 //---------------------------------------------------------------------------
