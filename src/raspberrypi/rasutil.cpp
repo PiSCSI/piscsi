@@ -67,10 +67,10 @@ string ListDevices(const PbDevices& devices)
 		
 		s << "|  " << device.id() << " |  " << device.unit() << " | "
 				<< PbDeviceType_Name(device.type()) << " | "
-				<< status << " | " << filename << endl;s
+				<< std::setw(13) << status << " | " << filename << endl;s
 	}
 
-	s << "+----+----+------+-------------------------------------";
+	s << "+----+----+------+---------------+---------------------";
 
 	return s.str();
 }
