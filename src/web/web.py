@@ -54,13 +54,14 @@ def index():
 def config_save():
     file_name = request.form.get("name") or "default"
     file_name = f"{base_dir}{file_name}.csv"
+    exclude_columns = (4,)
     import csv
 
     with open(file_name, "w") as csv_file:
         writer = csv.writer(csv_file)
         for device in list_devices():
             if device["type"] != "-":
-                writer.writerow(device.values())
+                writer.writerow([r for i, r in enumerate(device.values()) if i not in exclude_columns])
     flash(f"Saved config to  {file_name}!")
     return redirect(url_for("index"))
 
