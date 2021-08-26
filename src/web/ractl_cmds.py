@@ -155,6 +155,7 @@ def list_devices():
                 device_list[idx]["id"] = str(idx)
                 device_list[idx]["un"] = segments[2].strip()
                 device_list[idx]["type"] = segments[3].strip()
+                device_list[idx]["status"] = segments[4].strip()
                 device_list[idx]["file"] = segments[5].strip()
 
     return device_list
