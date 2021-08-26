@@ -35,7 +35,7 @@ class CTapDriver
 public:
 	// Basic Functionality
 	CTapDriver(const std::string&);								// Constructor
-	BOOL Init();							// Initialization
+	bool Init();							// Initialization
 	void OpenDump(const Filepath& path);
 										// Capture packets
 	void Cleanup();						// Cleanup

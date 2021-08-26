@@ -70,7 +70,7 @@ private:
 	void SendPacket(BYTE *buf, int len);				// Send a packet
 
 	CTapDriver *tap;							// TAP driver
-	BOOL m_bTapEnable;							// TAP valid flag
+	bool m_bTapEnable;							// TAP valid flag
 	BYTE mac_addr[6];							// MAC Addres
 	int packet_len;								// Receive packet size
 	BYTE packet_buf[0x1000];						// Receive packet buffer

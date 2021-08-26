@@ -111,7 +111,7 @@ static bool is_interface_up(const string& interface) {
 	return status;
 }
 
-BOOL CTapDriver::Init()
+bool CTapDriver::Init()
 {
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
@@ -123,8 +123,9 @@ BOOL CTapDriver::Init()
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
 		LOGERROR("Error: can't open tun. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
+
 	LOGTRACE("Opened tap device %d",m_hTAP);
 
 	
@@ -136,7 +137,7 @@ BOOL CTapDriver::Init()
 	if ((ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr)) < 0) {
 		LOGERROR("Error: can't ioctl TUNSETIFF. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 	LOGTRACE("return code from ioctl was %d", ret);
 
@@ -144,7 +145,7 @@ BOOL CTapDriver::Init()
 	if ((ip_fd = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
 		LOGERROR("Error: can't open ip socket. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 
 	int br_socket_fd = -1;
@@ -152,7 +153,7 @@ BOOL CTapDriver::Init()
 		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
 		close(ip_fd);
-		return FALSE;
+		return false;
 	}
 
 	// Check if the bridge has already been created
@@ -160,22 +161,27 @@ BOOL CTapDriver::Init()
 		LOGINFO("rascsi_bridge is not yet available");
 
 		LOGTRACE("Checking which interface is available for creating the bridge");
-		string interface;
-		for (auto it = interfaces.begin(); it != interfaces.end(); ++it) {
-			if (is_interface_up(*it)) {
-				LOGTRACE(string("Interface " + (*it) + " is up").c_str());
 
-				interface = *it;
+		string interface;
+		for (const auto& iface : interfaces) {
+			ostringstream error;
+
+			if (is_interface_up(iface)) {
+				error << "Interface " << iface << " is up";
+				LOGTRACE("%s", error.str().c_str());
+
+				interface = iface;
 				break;
 			}
 			else {
-				LOGTRACE(string("Interface " + (*it) + " is not up").c_str());
+				error << "Interface " << iface << " is not up";
+				LOGTRACE("%s", error.str().c_str());
 			}
 		}
 
 		if (interface.empty()) {
 			LOGERROR("No interface is up, not creating bridge");
-			return FALSE;
+			return false;
 		}
 
 		LOGINFO("Creating rascsi_bridge for interface %s", interface.c_str());
@@ -186,7 +192,7 @@ BOOL CTapDriver::Init()
 			close(m_hTAP);
 			close(ip_fd);
 			close(br_socket_fd);
-			return FALSE;
+			return false;
 		}
 
 		if (interface == "eth0") {
@@ -195,7 +201,7 @@ BOOL CTapDriver::Init()
 				close(m_hTAP);
 				close(ip_fd);
 				close(br_socket_fd);
-				return FALSE;
+				return false;
 			}
 		}
 		else {
@@ -215,7 +221,7 @@ BOOL CTapDriver::Init()
 				close(m_hTAP);
 				close(ip_fd);
 				close(br_socket_fd);
-				return FALSE;
+				return false;
 			}
 		}
 		LOGDEBUG("ip link set dev rascsi_bridge up");
@@ -223,7 +229,7 @@ BOOL CTapDriver::Init()
 			close(m_hTAP);
 			close(ip_fd);
 			close(br_socket_fd);
-			return FALSE;
+			return false;
 		}
 	}
 	else
@@ -236,7 +242,7 @@ BOOL CTapDriver::Init()
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
-		return FALSE;
+		return false;
 	}
 
 	LOGDEBUG("brctl addif rascsi_bridge ras0");
@@ -244,7 +250,7 @@ BOOL CTapDriver::Init()
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
-		return FALSE;
+		return false;
 	}
 
 	// Get MAC address
@@ -255,7 +261,7 @@ BOOL CTapDriver::Init()
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
-		return FALSE;
+		return false;
 	}
 	LOGTRACE("got the mac");
 
@@ -266,7 +272,7 @@ BOOL CTapDriver::Init()
 	close(ip_fd);
 	close(br_socket_fd);
 
-	return TRUE;
+	return true;
 }
 #endif // __linux__
 
@@ -279,21 +285,21 @@ BOOL CTapDriver::Init()
 	// TAP Device Initialization
 	if ((m_hTAP = open("/dev/tap", O_RDWR)) < 0) {
 		LOGERROR("Error: can't open tap. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
 
 	// Get device name
 	if (ioctl(m_hTAP, TAPGIFNAME, (void *)&ifr) < 0) {
 		LOGERROR("Error: can't ioctl TAPGIFNAME. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 
 	// Get MAC address
 	if (getifaddrs(&ifa) == -1) {
 		LOGERROR("Error: can't getifaddrs. Errno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 	for (a = ifa; a != NULL; a = a->ifa_next)
 		if (strcmp(ifr.ifr_name, a->ifa_name) == 0 &&
@@ -302,7 +308,7 @@ BOOL CTapDriver::Init()
 	if (a == NULL) {
 		LOGERROR("Error: can't get MAC addressErrno: %d %s", errno, strerror(errno));
 		close(m_hTAP);
-		return FALSE;
+		return false;
 	}
 
 	// Save MAC address
@@ -312,7 +318,7 @@ BOOL CTapDriver::Init()
 
 	LOGINFO("Tap device : %s\n", ifr.ifr_name);
 
-	return TRUE;
+	return true;
 }
 #endif // __NetBSD__
 
