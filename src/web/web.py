@@ -143,6 +143,11 @@ def attach():
         flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
         return redirect(url_for("index"))
 
+    # Validate SCSI ID
+    if re.match("[0-7]", str(scsi_id)) == None:
+        flash(f"Invalid SCSI ID. Should be a number between 0-7", "error")
+        return redirect(url_for("index"))
+
     process = attach_image(scsi_id, file_name, image_type)
     if process.returncode == 0:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
