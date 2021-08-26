@@ -52,7 +52,7 @@ string ListDevices(const PbDevices& devices)
 				break;
 		}
 		
-		if ((!device.removed() && (device.read_only() || device.protected_())) {
+		if (!device.removed() && (device.read_only() || device.protected_())) {
 			status = "WRITEPROTECT";
 		}
 		else if (filename.empty()) {
@@ -67,7 +67,7 @@ string ListDevices(const PbDevices& devices)
 		
 		s << "|  " << device.id() << " |  " << device.unit() << " | "
 				<< PbDeviceType_Name(device.type()) << " | "
-				<< std::setw(13) << status << " | " << filename << endl;s
+				<< std::setw(13) << status << " | " << filename << endl;
 	}
 
 	s << "+----+----+------+---------------+---------------------";
