@@ -26,7 +26,7 @@ string ListDevices(const PbDevices& devices)
 
 	if (devices.devices_size()) {
 		s << "+----+----+------+---------------+---------------------" << endl
-			<< "| ID | UN | TYPE | DEVICE STATUS | IMAGE" << endl
+			<< "| ID | UN | TYPE | STATUS        | FILE" << endl
 			<< "+----+----+------+---------------+---------------------" << endl;
 	}
 	else {
@@ -66,9 +66,11 @@ string ListDevices(const PbDevices& devices)
 			status = "";
 		}
 		
-		s << "|  " << device.id() << " |  " << device.unit() << " | "
-				<< PbDeviceType_Name(device.type()) << " | "
-				<< std::setw(13) << status << " | " << filename << endl;
+		s << "| " << std::setw(2) << std::left << device.id() 
+			<< " | " << std::setw(2) << std::left << device.unit() 
+			<< " | " << std::setw(4) << std::left << PbDeviceType_Name(device.type()) 
+			<< " | " << std::setw(13) << std::left << status 
+			<< " | " << filename << endl;
 	}
 
 	s << "+----+----+------+---------------+---------------------";
