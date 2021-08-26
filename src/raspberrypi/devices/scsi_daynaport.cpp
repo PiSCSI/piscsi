@@ -80,8 +80,12 @@ bool SCSIDaynaPort::Init(const string& interfaces)
 	m_bTapEnable = m_tap->Init();
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
+
+// Not terminating on regular Linux PCs is helpful for testing
+#if !defined(__x86_64__) && !defined(__X86__)
 		return false;
-	}else {
+#endif
+	} else {
 		LOGDEBUG("Tap interface created");
 	}
 
