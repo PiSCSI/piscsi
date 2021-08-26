@@ -164,18 +164,18 @@ bool CTapDriver::Init()
 
 		string interface;
 		for (const auto& iface : interfaces) {
-			ostringstream error;
+			ostringstream msg;
 
 			if (is_interface_up(iface)) {
-				error << "Interface " << iface << " is up";
-				LOGTRACE("%s", error.str().c_str());
+				msg << "Interface " << iface << " is up";
+				LOGTRACE("%s", msg.str().c_str());
 
 				interface = iface;
 				break;
 			}
 			else {
-				error << "Interface " << iface << " is not up";
-				LOGTRACE("%s", error.str().c_str());
+				msg << "Interface " << iface << " is not up";
+				LOGTRACE("%s", msg.str().c_str());
 			}
 		}
 
