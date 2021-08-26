@@ -25,7 +25,7 @@
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
-#include <vector>
+#include <set>
 #include <map>
 
 #include "../rascsi.h"
@@ -37,7 +37,7 @@ class Disk : public Device, public ScsiPrimaryCommands, public ScsiBlockCommands
 private:
 	enum access_mode { RW6, RW10, RW16 };
 
-	vector<int> sector_sizes;
+	set<int> sector_sizes;
 	int configured_sector_size;
 
 	SASIDEV::ctrl_t *ctrl;
@@ -128,8 +128,8 @@ public:
 	void SetSectorSizeInBytes(int, bool);
 	int GetSectorSize() const;
 	bool IsSectorSizeConfigurable() const;
-	vector<int> GetSectorSizes() const;
-	void SetSectorSizes(const vector<int>&);
+	set<int> GetSectorSizes() const;
+	void SetSectorSizes(const set<int>&);
 	int GetConfiguredSectorSize() const;
 	bool SetConfiguredSectorSize(int);
 	uint32_t GetBlockCount() const;

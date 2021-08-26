@@ -198,14 +198,14 @@ void CommandServerInfo(const string& hostname, int port)
 		cout << "  No image files available in the default folder" << endl;
 	}
 	else {
-		list<PbImageFile> sorted_files;
+		list<PbImageFile> files;
 		for (int i = 0; i < serverInfo.image_files_size(); i++) {
-			sorted_files.push_back(serverInfo.image_files(i));
+			files.push_back(serverInfo.image_files(i));
 		}
-		sorted_files.sort([](const PbImageFile& a, const PbImageFile& b) { return a.name() < b.name(); });
+		files.sort([](const PbImageFile& a, const PbImageFile& b) { return a.name() < b.name(); });
 
 		cout << "Image files available in the default folder:" << endl;
-		for (const auto& file : sorted_files) {
+		for (const auto& file : files) {
 			cout << "  " << file.name() << " (" << file.size() << " bytes)" << (file.read_only() ? ", read-only": "")
 					<< endl;
 		}
@@ -216,7 +216,7 @@ void CommandServerInfo(const string& hostname, int port)
 		PbDeviceTypeProperties types_properties = serverInfo.types_properties(i);
 		cout << "  " << PbDeviceType_Name(types_properties.type());
 
-		vector<int> block_sizes;
+		list<int> block_sizes;
 
 		cout << "  Properties: ";
 		if (types_properties.properties_size()) {
@@ -259,12 +259,18 @@ void CommandServerInfo(const string& hostname, int port)
 			cout << "        Block size is not configurable" << endl;
 		}
 		else {
+			block_sizes.sort([](const int& a, const int& b) { return a < b; });
+
 			cout << "        Configurable block sizes: ";
-			for (size_t j = 0; j < block_sizes.size(); j++) {
-				if (j) {
+
+			bool isFirst = true;
+			for (const auto& block_size : block_sizes) {
+				if (!isFirst) {
 					cout << ", ";
 				}
-				cout << block_sizes.at(j);
+				cout << block_size;
+
+				isFirst = false;
 			}
 			cout << endl;
 		}

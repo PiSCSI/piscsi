@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <vector>
+#include <set>
 #include <string>
 #include "rascsi_interface.pb.h"
 
@@ -26,13 +26,13 @@ public:
 
 	static DeviceFactory& instance();
 
-	const std::vector<int>& GetSasiSectorSizes() const { return sector_sizes_sasi; };
-	const std::vector<int>& GetScsiSectorSizes() const { return sector_sizes_scsi; };
+	const std::set<int>& GetSasiSectorSizes() const { return sector_sizes_sasi; };
+	const std::set<int>& GetScsiSectorSizes() const { return sector_sizes_scsi; };
 
 	Device *CreateDevice(rascsi_interface::PbDeviceType& type, const std::string& filename, const std::string& ext);
 
 private:
 
-	std::vector<int> sector_sizes_sasi;
-	std::vector<int> sector_sizes_scsi;
+	std::set<int> sector_sizes_sasi;
+	std::set<int> sector_sizes_scsi;
 };

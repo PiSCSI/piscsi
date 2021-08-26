@@ -15,20 +15,20 @@
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
 #include "device_factory.h"
-#include <vector>
+#include <set>
 
 using namespace std;
 using namespace rascsi_interface;
 
 DeviceFactory::DeviceFactory()
 {
-	sector_sizes_sasi.push_back(256);
-	sector_sizes_sasi.push_back(1024);
+	sector_sizes_sasi.insert(256);
+	sector_sizes_sasi.insert(1024);
 
-	sector_sizes_scsi.push_back(512);
-	sector_sizes_scsi.push_back(1024);
-	sector_sizes_scsi.push_back(2048);
-	sector_sizes_scsi.push_back(4096);
+	sector_sizes_scsi.insert(512);
+	sector_sizes_scsi.insert(1024);
+	sector_sizes_scsi.insert(2048);
+	sector_sizes_scsi.insert(4096);
 }
 
 DeviceFactory::~DeviceFactory()

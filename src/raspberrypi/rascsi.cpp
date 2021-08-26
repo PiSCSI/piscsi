@@ -531,7 +531,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	PbDeviceProperties *properties = types_properties->add_properties();
 	types_properties->set_type(SAHD);
 	properties->set_supports_file(true);
-	vector<int> block_sizes = device_factory.GetSasiSectorSizes();
+	set<int> block_sizes = device_factory.GetSasiSectorSizes();
 	for (const auto& block_size : block_sizes) {
 		properties->add_block_sizes(block_size);
 	}
