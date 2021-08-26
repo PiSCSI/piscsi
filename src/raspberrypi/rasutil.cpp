@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include <sstream>
+#include <iomanip>
 #include "rascsi_interface.pb.h"
 #include "rasutil.h"
 

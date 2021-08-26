@@ -54,7 +54,7 @@
             <td>{{device.file}}</td>
             <td>{{device.status}}</td>
             <td>
-                {% if device.type == "SCCD" and device.file != "NO MEDIA" %}
+                {% if device.type == "SCCD" and device.status != "NO MEDIA" %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Eject" />
