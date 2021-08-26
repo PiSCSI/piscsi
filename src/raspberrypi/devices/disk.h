@@ -29,8 +29,8 @@
 #include <map>
 
 #include "../rascsi.h"
-#include "scsi_block_commands.h"
-#include "scsi_primary_commands.h"
+#include "interfaces/scsi_block_commands.h"
+#include "interfaces/scsi_primary_commands.h"
 
 class Disk : public Device, public ScsiPrimaryCommands, public ScsiBlockCommands
 {

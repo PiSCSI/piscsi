@@ -18,8 +18,8 @@
 #include "os.h"
 #include "disk.h"
 #include "filepath.h"
-#include "scsi_mmc_commands.h"
-#include "scsi_primary_commands.h"
+#include "interfaces/scsi_mmc_commands.h"
+#include "interfaces/scsi_primary_commands.h"
 
 
 //---------------------------------------------------------------------------
