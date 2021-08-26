@@ -26,7 +26,7 @@ string ListDevices(const PbDevices& devices)
 
 	if (devices.devices_size()) {
 		s << "+----+----+------+---------------+---------------------" << endl
-			<< "| ID | UN | TYPE | STATUS        | FILE" << endl
+			<< "| ID | UN | TYPE | DEVICE STATUS | FILE" << endl
 			<< "+----+----+------+---------------+---------------------" << endl;
 	}
 	else {
