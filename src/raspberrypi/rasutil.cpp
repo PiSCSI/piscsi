@@ -67,7 +67,7 @@ string ListDevices(const PbDevices& devices)
 		
 		s << "|  " << device.id() << " |  " << device.unit() << " | "
 				<< PbDeviceType_Name(device.type()) << " | "
-				<< status << " | " << filename << endl;s
+				<< status << " | " << filename << endl;
 	}
 
 	s << "+----+----+------+-------------------------------------";
