@@ -52,7 +52,7 @@ string ListDevices(const PbDevices& devices)
 				break;
 		}
 		
-		if ((!device.removed() && (device.read_only() || device.protected_())) {
+		if (!device.removed() && (device.read_only() || device.protected_())) {
 			status = "WRITEPROTECT";
 		}
 		else if (filename.empty()) {
