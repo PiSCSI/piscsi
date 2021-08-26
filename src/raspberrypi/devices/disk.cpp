@@ -40,7 +40,7 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 {
 	// Work initialization
 	configured_sector_size = 0;
-	disk.size = 9;
+	disk.size = 0;
 	disk.blocks = 0;
 	disk.dcache = NULL;
 	disk.imgoffset = 0;
@@ -1754,7 +1754,7 @@ int Disk::GetSectorSizeInBytes() const
 void Disk::SetSectorSizeInBytes(int size, bool sasi)
 {
 	set<int> sector_sizes = sasi ? DeviceFactory::instance().GetSasiSectorSizes() : DeviceFactory::instance().GetScsiSectorSizes();
-	if (find(sector_sizes.begin(), sector_sizes.end(), size) == sector_sizes.end()) {
+	if (sector_sizes.find(size) == sector_sizes.end()) {
 		stringstream error;
 		error << "Invalid sector size of " << size << " bytes";
 		throw io_exception(error.str());
@@ -1783,7 +1783,6 @@ void Disk::SetSectorSizeInBytes(int size, bool sasi)
 
 		default:
 			assert(false);
-			disk.size = 9;
 			break;
 	}
 }
