@@ -110,8 +110,7 @@ BOOL DiskTrack::Load(const Filepath& path)
 		return TRUE;
 	}
 
-	// Calculate offset (previous tracks are considered to
-    // hold 256 sectors)
+	// Calculate offset (previous tracks are considered to hold 256 sectors)
 	off_t offset = ((off_t)dt.track << 8);
 	if (dt.raw) {
 		ASSERT(dt.size == 11);
@@ -240,7 +239,7 @@ BOOL DiskTrack::Save(const Filepath& path)
 	// Writing in RAW mode is not allowed
 	ASSERT(!dt.raw);
 
-	// Calculate offset (previous tracks are considered to hold 256
+	// Calculate offset (previous tracks are considered to hold 256 sectors)
 	off_t offset = ((off_t)dt.track << 8);
 	offset <<= dt.size;
 
