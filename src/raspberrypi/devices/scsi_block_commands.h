@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// A BlockDevice supports SCSI block commands (see https://www.t10.org/drafts.htm, SBC-5)
+// Interface for SCSI block commands (see https://www.t10.org/drafts.htm, SBC-5)
 //
 //---------------------------------------------------------------------------
 
@@ -13,12 +13,12 @@
 
 class SASIDEV;
 
-class BlockDevice
+class ScsiBlockCommands
 {
 public:
 
-	BlockDevice() {};
-	virtual ~BlockDevice() {};
+	ScsiBlockCommands() {};
+	virtual ~ScsiBlockCommands() {};
 
 	// Mandatory commands
 	virtual void TestUnitReady(SASIDEV *) = 0;

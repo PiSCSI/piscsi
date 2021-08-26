@@ -36,7 +36,7 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-Disk::Disk(const std::string id) : Device(id), PrimaryDevice(), BlockDevice()
+Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockCommands()
 {
 	// Work initialization
 	configured_sector_size = 0;
@@ -394,7 +394,7 @@ void Disk::Inquiry(SASIDEV *controller)
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	PrimaryDevice *device = NULL;
+	ScsiPrimaryCommands *device = NULL;
 	for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
 		if (ctrl->unit[valid_lun]) {
 			device = ctrl->unit[valid_lun];

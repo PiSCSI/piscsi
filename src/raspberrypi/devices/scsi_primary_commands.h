@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// A PrimaryDevice supports SCSI primary commands (see https://www.t10.org/drafts.htm, SPC-6)
+// Interface for SCSI primary commands (see https://www.t10.org/drafts.htm, SPC-6)
 //
 //---------------------------------------------------------------------------
 
@@ -13,12 +13,12 @@
 
 class SASIDEV;
 
-class PrimaryDevice
+class ScsiPrimaryCommands
 {
 public:
 
-	PrimaryDevice() {};
-	virtual ~PrimaryDevice() {};
+	ScsiPrimaryCommands() {};
+	virtual ~ScsiPrimaryCommands() {};
 
 	// Mandatory commands
 	virtual void TestUnitReady(SASIDEV *) = 0;

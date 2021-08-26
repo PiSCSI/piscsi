@@ -225,7 +225,7 @@ bool CDTrack::IsAudio() const
 //	Constructor
 //
 //---------------------------------------------------------------------------
-SCSICD::SCSICD() : Disk("SCCD"), MmcDevice(), FileSupport()
+SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
 	// NOT in raw format
 	rawfile = false;

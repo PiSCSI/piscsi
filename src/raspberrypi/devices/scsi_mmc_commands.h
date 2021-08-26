@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// An MmcDevice supports SCSI MMC commands (see https://www.t10.org/drafts.htm, MMC-6)
+// Interface for SCSI MMC commands (see https://www.t10.org/drafts.htm, MMC-6)
 //
 //---------------------------------------------------------------------------
 
@@ -13,12 +13,12 @@
 
 class SASIDEV;
 
-class MmcDevice
+class ScsiMmcCommands
 {
 public:
 
-	MmcDevice() {};
-	virtual ~MmcDevice() {};
+	ScsiMmcCommands() {};
+	virtual ~ScsiMmcCommands() {};
 
 	virtual void ReadToc(SASIDEV *) = 0;
 	virtual void GetEventStatusNotification(SASIDEV *) = 0;

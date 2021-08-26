@@ -21,8 +21,6 @@
 #include "log.h"
 #include "scsi.h"
 #include "controllers/scsidev_ctrl.h"
-#include "primary_device.h"
-#include "block_device.h"
 #include "device.h"
 #include "disk_track_cache.h"
 #include "file_support.h"
@@ -30,8 +28,10 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "scsi_block_commands.h"
+#include "scsi_primary_commands.h"
 
-class Disk : public Device, public PrimaryDevice, public BlockDevice
+class Disk : public Device, public ScsiPrimaryCommands, public ScsiBlockCommands
 {
 private:
 	enum access_mode { RW6, RW10, RW16 };
