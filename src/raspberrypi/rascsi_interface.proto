@@ -61,7 +61,7 @@ message PbDeviceProperties {
     bool lockable = 4;
     // Device supports image file
     bool supports_file = 5;
-    // List of supported block sizes
+    // Unordered list of supported block sizes
     repeated uint32 block_sizes = 6;
 }
 
@@ -147,13 +147,13 @@ message PbResult {
 // The rascsi server information
 message PbServerInfo {
     string rascsi_version = 1;
-    // Sorted by severity
+    // List of available log levels, ordered by increasing by severity
     repeated string log_levels = 2;
     string current_log_level = 3;
     string default_image_folder = 4;
     // Supported device types and their properties
     repeated PbDeviceTypeProperties types_properties = 5;
-    // Files in the default folder
+    // Unordered list of files in the default image folder
     repeated PbImageFile image_files = 6;
     // The attached devices
     PbDevices devices = 7;
