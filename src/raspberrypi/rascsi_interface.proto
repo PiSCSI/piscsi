@@ -136,7 +136,7 @@ message PbCommand {
     string params = 3;
 }
 
-// The result of a command
+// The result of a command. Note that the SERVER_INFO command has a special result.
 message PbResult {
     // false means that an error occurred
     bool status = 1;

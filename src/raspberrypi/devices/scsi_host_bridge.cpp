@@ -75,7 +75,7 @@ SCSIBR::~SCSIBR()
 	}
 }
 
-void SCSIBR::Init(const string&)
+bool SCSIBR::Init(const string&)
 {
 #ifdef __linux__
 	// TAP Driver Generation
@@ -92,6 +92,8 @@ void SCSIBR::Init(const string&)
 	// Packet reception flag OFF
 	packet_enable = FALSE;
 #endif
+
+	return m_bTapEnable;
 }
 
 void SCSIBR::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))

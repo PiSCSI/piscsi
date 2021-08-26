@@ -92,7 +92,7 @@ public:
 	virtual ~Device() {};
 
 	// Override for device specific initializations, to be called after all device properties have been set
-	virtual void Init(const string&) {};
+	virtual bool Init(const string&) { return true; };
 
 	virtual bool Dispatch(SCSIDEV *) = 0;
 
