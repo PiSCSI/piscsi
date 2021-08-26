@@ -761,7 +761,13 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		}
 
 		// Initialize everything that would have caused issues when being initialized during the dry run
-		device->Init(pbDevice.params());
+		if (!device->Init(pbDevice.params())) {
+			error << "Initialization of " << device->GetType() << " device, ID: " << id << ", unit: " << unit << " failed";
+
+			delete device;
+
+			return ReturnStatus(fd, false, error);
+		}
 
 		// Replace with the newly created unit
 		map[id * UnitNum + unit] = device;

@@ -61,7 +61,7 @@ public:
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
 
-	void Init(const string&) override;
+	bool Init(const string&) override;
 
 	void Open(const Filepath& path);
 										// Capture packets

@@ -50,7 +50,7 @@ public:
 	SCSIBR();
 	~SCSIBR();
 
-	void Init(const string&) override;
+	bool Init(const string&) override;
 
 	bool Dispatch(SCSIDEV *) override;
 

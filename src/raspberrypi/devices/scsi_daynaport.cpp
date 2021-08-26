@@ -72,7 +72,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-void SCSIDaynaPort::Init(const string& interfaces)
+bool SCSIDaynaPort::Init(const string& interfaces)
 {
 #ifdef __linux__
 	// TAP Driver Generation
@@ -80,6 +80,7 @@ void SCSIDaynaPort::Init(const string& interfaces)
 	m_bTapEnable = m_tap->Init();
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
+		return false;
 	}else {
 		LOGDEBUG("Tap interface created");
 	}
@@ -106,6 +107,8 @@ void SCSIDaynaPort::Init(const string& interfaces)
 	m_mac_addr[4]=0x98;
 	m_mac_addr[5]=0xE3;
 #endif	// linux
+
+	return true;
 }
 
 void SCSIDaynaPort::Open(const Filepath& path)
