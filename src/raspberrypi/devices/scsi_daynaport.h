@@ -28,12 +28,12 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "xm6.h"
 #include "os.h"
 #include "disk.h"
 #include "ctapdriver.h"
 #include <map>
 #include <string>
+#include "../rascsi.h"
 
 //===========================================================================
 //

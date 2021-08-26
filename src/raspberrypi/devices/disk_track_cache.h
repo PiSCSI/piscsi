@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "xm6.h"
+#include "../rascsi.h"
 #include "log.h"
 #include "filepath.h"
 

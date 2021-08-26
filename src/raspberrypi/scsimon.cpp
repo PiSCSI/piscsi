@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
 #include "devices/disk.h"
@@ -21,6 +20,7 @@
 #include <sys/time.h>
 #include <climits>
 #include <sstream>
+#include "rascsi.h"
 
 //---------------------------------------------------------------------------
 //

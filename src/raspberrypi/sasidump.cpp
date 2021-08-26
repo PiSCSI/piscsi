@@ -19,10 +19,10 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "xm6.h"
 #include "fileio.h"
 #include "filepath.h"
 #include "gpiobus.h"
+#include "rascsi.h"
 #include "rascsi_version.h"
 
 //---------------------------------------------------------------------------

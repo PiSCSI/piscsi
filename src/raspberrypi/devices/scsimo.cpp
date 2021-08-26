@@ -15,7 +15,8 @@
 //---------------------------------------------------------------------------
 
 #include "scsimo.h"
-#include "xm6.h"
+
+#include "../rascsi.h"
 #include "fileio.h"
 #include "exceptions.h"
 

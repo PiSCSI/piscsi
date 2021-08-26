@@ -18,12 +18,12 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "xm6.h"
 #include "controllers/sasidev_ctrl.h"
 #include "device_factory.h"
 #include "exceptions.h"
 #include "disk.h"
 #include <sstream>
+#include "../rascsi.h"
 
 //===========================================================================
 //

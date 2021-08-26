@@ -15,9 +15,9 @@
 #include <sys/mman.h>
 
 #include "os.h"
-#include "xm6.h"
 #include "gpiobus.h"
 #include "log.h"
+#include "rascsi.h"
 
 #ifdef __linux__
 //---------------------------------------------------------------------------

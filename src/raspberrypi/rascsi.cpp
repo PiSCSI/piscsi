@@ -9,8 +9,9 @@
 //
 //---------------------------------------------------------------------------
 
+#include "rascsi.h"
+
 #include "os.h"
-#include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
 #include "controllers/scsidev_ctrl.h"

@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "xm6.h"
 #include "log.h"
 #include "scsi.h"
 #include "controllers/scsidev_ctrl.h"
@@ -28,6 +27,8 @@
 #include <string>
 #include <vector>
 #include <map>
+
+#include "../rascsi.h"
 #include "scsi_block_commands.h"
 #include "scsi_primary_commands.h"
 

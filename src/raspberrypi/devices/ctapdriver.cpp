@@ -22,7 +22,7 @@
 #endif
 #include <zlib.h> // For crc32()
 #include "os.h"
-#include "xm6.h"
+#include "../rascsi.h"
 #include "ctapdriver.h"
 #include "log.h"
 #include "exceptions.h"
