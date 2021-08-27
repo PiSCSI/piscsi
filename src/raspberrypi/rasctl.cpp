@@ -219,43 +219,39 @@ void CommandServerInfo(const string& hostname, int port)
 		list<int> block_sizes;
 
 		cout << "  Properties: ";
-		if (types_properties.properties_size()) {
-			for (int j = 0; j < types_properties.properties_size(); j++) {
-				bool has_property = false;
-
-				PbDeviceProperties properties = types_properties.properties(j);
-				if (properties.read_only()) {
-					cout << "Read-only";
+		bool has_property = false;
+		const PbDeviceProperties& properties = types_properties.properties();
+		if (properties.read_only()) {
+			cout << "Read-only";
 					has_property = true;
-				}
-				if (properties.protectable()) {
-					cout << (has_property ? ", " : "") << "Protectable";
-					has_property = true;
-				}
-				if (properties.removable()) {
-					cout << (has_property ? ", " : "") << "Removable";
-					has_property = true;
-				}
-				if (properties.lockable()) {
-					cout << (has_property ? ", " : "") << "Lockable";
-					has_property = true;
-				}
-				if (properties.supports_file()) {
-					cout << (has_property ? ", " : "") << "Image file support";
-				}
-				else if (properties.supports_params()) {
-					cout << (has_property ? ", " : "") << "Parameter support";
-				}
-				cout << endl;
-
-				for (int k = 0 ; k < properties.block_sizes_size(); k++)
-				{
-					block_sizes.push_back(properties.block_sizes(k));
-				}
-			}
 		}
-		else {
-			cout << "None" << endl;
+		if (properties.protectable()) {
+			cout << (has_property ? ", " : "") << "Protectable";
+			has_property = true;
+		}
+		if (properties.removable()) {
+			cout << (has_property ? ", " : "") << "Removable";
+			has_property = true;
+		}
+		if (properties.lockable()) {
+			cout << (has_property ? ", " : "") << "Lockable";
+					has_property = true;
+		}
+		if (properties.supports_file()) {
+			cout << (has_property ? ", " : "") << "Image file support";
+		}
+		else if (properties.supports_params()) {
+			cout << (has_property ? ", " : "") << "Parameter support";
+		}
+
+		if (!has_property) {
+			cout << "None";
+		}
+		cout << endl;
+
+		for (int k = 0 ; k < properties.block_sizes_size(); k++)
+		{
+			block_sizes.push_back(properties.block_sizes(k));
 		}
 
 		if (block_sizes.empty()) {

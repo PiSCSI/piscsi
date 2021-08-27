@@ -80,7 +80,7 @@ message PbDeviceStatus {
 // Device properties by device type
 message PbDeviceTypeProperties {
     PbDeviceType type = 1;
-    repeated PbDeviceProperties properties = 2;
+    PbDeviceProperties properties = 2;
 }
 
 // The image file data

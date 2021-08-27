@@ -528,8 +528,9 @@ void GetLogLevels(PbServerInfo& serverInfo)
 void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 {
 	PbDeviceTypeProperties *types_properties = serverInfo.add_types_properties();
-	PbDeviceProperties *properties = types_properties->add_properties();
 	types_properties->set_type(SAHD);
+	PbDeviceProperties *properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_supports_file(true);
 	set<int> block_sizes = device_factory.GetSasiSectorSizes();
 	for (const auto& block_size : block_sizes) {
@@ -540,7 +541,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCHD);
-	properties = types_properties->add_properties();
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
 	for (const auto& block_size : block_sizes) {
@@ -549,7 +551,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCRM);
-	properties = types_properties->add_properties();
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
@@ -560,7 +563,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCMO);
-	properties = types_properties->add_properties();
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
@@ -568,7 +572,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCCD);
-	properties = types_properties->add_properties();
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_read_only(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
@@ -579,7 +584,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCDP);
-	properties = types_properties->add_properties();
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
 }
 
