@@ -95,7 +95,7 @@ message PbDeviceDefinition {
     PbDeviceType type = 3;
     // Optional device specific parameter, e.g. the name of an image file
     string params = 4;
-    // The optional SCSI hard disk drive block size in bytes per sector, must be 512, 1024, 2048 or 4096
+    // The optional block size in bytes per sector, must be one of the supported block sizes for SASI/SCSI
     int32 block_size = 5;
     // The device name components
     string vendor = 6;
