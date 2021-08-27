@@ -756,11 +756,11 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			files_in_use.insert(filepath.GetPath());
 		}
 
+		// Stop the dry run here, before permanently modifying something
 		if (dryRun) {
 			return true;
 		}
 
-		// Initialize everything that would have caused issues when being initialized during the dry run
 		if (!device->Init(pbDevice.params())) {
 			error << "Initialization of " << device->GetType() << " device, ID: " << id << ", unit: " << unit << " failed";
 
