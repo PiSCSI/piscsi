@@ -61,7 +61,7 @@ message PbDeviceProperties {
     bool lockable = 4;
     // Device supports image file
     bool supports_file = 5;
-    // Unordered list of supported block sizes
+    // Unordered list of supported block sizes, empty if the block size is not configurable
     repeated uint32 block_sizes = 6;
 }
 
