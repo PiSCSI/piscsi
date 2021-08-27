@@ -235,13 +235,15 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 		if (properties.lockable()) {
 			cout << (has_property ? ", " : "") << "Lockable";
-					has_property = true;
+			has_property = true;
 		}
 		if (properties.supports_file()) {
 			cout << (has_property ? ", " : "") << "Image file support";
+			has_property = true;
 		}
 		else if (properties.supports_params()) {
 			cout << (has_property ? ", " : "") << "Parameter support";
+			has_property = true;
 		}
 
 		if (!has_property) {
