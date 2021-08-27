@@ -326,7 +326,7 @@ bool CTapDriver::Init()
 		close(br_socket_fd);
 		return false;
 	}
-	LOGTRACE("got the mac");
+	LOGTRACE("Got the MAC");
 
 	// Save MAC address
 	memcpy(m_MacAddr, ifr.ifr_hwaddr.sa_data, sizeof(m_MacAddr));

@@ -32,13 +32,13 @@
 #define IC_BUF_SIZE 1024
 static char convert_buf[IC_BUF_SIZE];
 #ifndef __NetBSD__
-// POSIX.1準拠iconv(3)を使用
+// Using POSIX.1 compliant iconv(3)
 #define CONVERT(src, dest, inbuf, outbuf, outsize) \
 	convert(src, dest, (char *)inbuf, outbuf, outsize)
 static void convert(char const *src, char const *dest,
 	char *inbuf, char *outbuf, size_t outsize)
 #else
-// NetBSD版iconv(3)を使用: 第2引数はconst char **
+// Using NetBSD version of iconv(3): The second argument is 'const char **'
 #define CONVERT(src, dest, inbuf, outbuf, outsize) \
 	convert(src, dest, inbuf, outbuf, outsize)
 static void convert(char const *src, char const *dest,
@@ -67,7 +67,7 @@ static void convert(char const *src, char const *dest,
 
 //---------------------------------------------------------------------------
 //
-// SJIS->UTF8変換
+// SJIS->UTF8 conversion
 //
 //---------------------------------------------------------------------------
 static char* SJIS2UTF8(const char *sjis, char *utf8, size_t bufsize)
@@ -78,7 +78,7 @@ static char* SJIS2UTF8(const char *sjis, char *utf8, size_t bufsize)
 
 //---------------------------------------------------------------------------
 //
-// UTF8->SJIS変換
+// UTF8->SJIS conversion
 //
 //---------------------------------------------------------------------------
 static char* UTF82SJIS(const char *utf8, char *sjis, size_t bufsize)
@@ -89,7 +89,7 @@ static char* UTF82SJIS(const char *utf8, char *sjis, size_t bufsize)
 
 //---------------------------------------------------------------------------
 //
-// SJIS->UTF8変換(簡易版)
+// SJIS->UTF8 conversion (simplified versoin)
 //
 //---------------------------------------------------------------------------
 static char* S2U(const char *sjis)
@@ -100,7 +100,7 @@ static char* S2U(const char *sjis)
 
 //---------------------------------------------------------------------------
 //
-// UTF8->SJIS変換(簡易版)
+// UTF8->SJIS conversion (simplified version)
 //
 //---------------------------------------------------------------------------
 static char* U2S(const char *utf8)
@@ -111,10 +111,10 @@ static char* U2S(const char *utf8)
 
 //---------------------------------------------------------------------------
 //
-/// パス名取得
+/// Get path name
 ///
-/// Human68k用namests構造体から、Human68kパス名を取得する。
-/// 書き込み先バッファは66バイト必要。
+/// From the structure used in Human68k namests, get the Human68k path name.
+/// A 66 byte buffer is required for writing.
 //
 //---------------------------------------------------------------------------
 void Human68k::namests_t::GetCopyPath(BYTE* szPath) const
@@ -137,10 +137,10 @@ void Human68k::namests_t::GetCopyPath(BYTE* szPath) const
 
 //---------------------------------------------------------------------------
 //
-/// ファイル名取得
+/// Get file name
 ///
-/// Human68k用namests構造体から、Human68kファイル名を取得する。
-/// 書き込み先バッファは23バイト必要。
+/// From the structure used in Human68k namests, get the Human68k file name.
+/// A 23 byte buffer is required for writing.
 //
 //---------------------------------------------------------------------------
 void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
@@ -150,7 +150,7 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 	size_t i;
 	BYTE* p = szFilename;
 
-	// ファイル名本体転送
+	// Transfer the file name payload
 	for (i = 0; i < 8; i++) {
 		BYTE c = name[i];
 		if (c == ' ') {

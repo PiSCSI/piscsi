@@ -10,7 +10,7 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI Hard Disk for Apple Macintosh ]
+//	[ SCSI CD-ROM for Apple Macintosh ]
 //
 //---------------------------------------------------------------------------
 

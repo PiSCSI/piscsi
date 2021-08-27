@@ -11,7 +11,7 @@
 //  	Imported sava's Anex86/T98Next image and MO format support patch.
 //  	Comments translated to english by akuker.
 //
-//	[ DiskTrack and DiskCache]
+//	[ DiskTrack and DiskCache ]
 //
 //---------------------------------------------------------------------------
 
@@ -56,7 +56,6 @@ public:
 	BOOL IsChanged() const		{ return dt.changed; }		// Changed flag check
 
 private:
-	// Internal data
 	disktrk_t dt;								// Internal data
 };
 

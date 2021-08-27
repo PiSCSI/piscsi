@@ -361,7 +361,7 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 	ASSERT(dt.buffer);
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 	if (memcmp(buf, &dt.buffer[offset], length) == 0) {
-		// 同じものを書き込もうとしているので、正常終了
+		// Exit normally since it's attempting to write the same thing
 		return TRUE;
 	}
 
@@ -638,7 +638,7 @@ BOOL DiskCache::Load(int index, int track, DiskTrack *disktrk)
 
 	// Try loading
 	if (!disktrk->Load(sec_path)) {
-		// 失敗
+		// Failure
 		delete disktrk;
 		return FALSE;
 	}

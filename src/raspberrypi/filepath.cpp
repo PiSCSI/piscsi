@@ -4,7 +4,7 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2012-2020 GIMONS
-//	[ ファイルパス(サブセット) ]
+//	[ File path (subset) ]
 //
 //---------------------------------------------------------------------------
 
@@ -19,31 +19,16 @@
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 Filepath::Filepath()
 {
 	// Clear
 	Clear();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 Filepath::~Filepath()
 {
 }
 
-//---------------------------------------------------------------------------
-//
-//	Assignment operator
-//
-//---------------------------------------------------------------------------
 Filepath& Filepath::operator=(const Filepath& path)
 {
 	// Set path (split internally)
@@ -52,11 +37,6 @@ Filepath& Filepath::operator=(const Filepath& path)
 	return *this;
 }
 
-//---------------------------------------------------------------------------
-//
-//      Clear
-//
-//---------------------------------------------------------------------------
 void Filepath::Clear()
 {
 
@@ -69,7 +49,7 @@ void Filepath::Clear()
 
 //---------------------------------------------------------------------------
 //
-//	ファイル設定(ユーザ) MBCS用
+//	File settings (user) for MBCS
 //
 //---------------------------------------------------------------------------
 void Filepath::SetPath(const char *path)
@@ -86,24 +66,24 @@ void Filepath::SetPath(const char *path)
 
 //---------------------------------------------------------------------------
 //
-//	パス分離
+//	Split paths
 //
 //---------------------------------------------------------------------------
 void Filepath::Split()
 {
-	// パーツを初期化
+	// Initialize the parts
 	m_szDir[0] = _T('\0');
 	m_szFile[0] = _T('\0');
 	m_szExt[0] = _T('\0');
 
-	// 分離
+	// Split
 	char *pDir = strdup(m_szPath);
 	char *pDirName = dirname(pDir);
 	char *pBase = strdup(m_szPath);
 	char *pBaseName = basename(pBase);
 	char *pExtName = strrchr(pBaseName, '.');
 
-	// 転送
+	// Transmit
 	if (pDirName) {
 		strcpy(m_szDir, pDirName);
 		strcat(m_szDir, "/");
@@ -117,7 +97,7 @@ void Filepath::Split()
 		strcpy(m_szFile, pBaseName);
 	}
 
-	// 解放
+	// Release
 	free(pDir);
 	free(pBase);
 }
@@ -131,18 +111,13 @@ void Filepath::Split()
 const char *Filepath::GetFileExt() const
 {
 
-	// 固定バッファへ合成
+	// Merge into static buffer
 	strcpy(FileExt, m_szExt);
 
-	// LPCTSTRとして返す
+	// Return as LPCTSTR
 	return (const char *)FileExt;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Save
-//
-//---------------------------------------------------------------------------
 BOOL Filepath::Save(Fileio *fio, int /*ver*/)
 {
 	ASSERT(fio);
@@ -150,11 +125,6 @@ BOOL Filepath::Save(Fileio *fio, int /*ver*/)
 	return TRUE;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Load
-//
-//---------------------------------------------------------------------------
 BOOL Filepath::Load(Fileio *fio, int /*ver*/)
 {
 	ASSERT(fio);

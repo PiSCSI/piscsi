@@ -10,7 +10,7 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI Hard Disk for Apple Macintosh ]
+//	[ SCSI CD-ROM for Apple Macintosh ]
 //
 //---------------------------------------------------------------------------
 #pragma once
@@ -112,7 +112,6 @@ private:
 	void ReadToc(SASIDEV *);
 	void GetEventStatusNotification(SASIDEV *);
 
-	// LBA-MSF変換
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
 
 	bool rawfile;								// RAW flag

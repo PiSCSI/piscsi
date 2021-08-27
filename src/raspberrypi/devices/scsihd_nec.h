@@ -19,7 +19,7 @@
 
 //===========================================================================
 //
-//	SCSI hard disk (PC-9801-55 NEC genuine /Anex86/T98Next)
+//	SCSI hard disk (PC-9801-55 NEC genuine / Anex86 / T98Next)
 //
 //===========================================================================
 class SCSIHD_NEC : public SCSIHD
