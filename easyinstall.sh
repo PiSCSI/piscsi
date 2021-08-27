@@ -20,6 +20,32 @@ logo="""
 echo -e $logo
 }
 
+function showMacNetworkWire(){
+logo="""
+                              .-~-.-~~~-.~-.\n
+ ╔═══════╗                  .(              )\n
+ ║|¯¯¯¯¯|║                 /               \`.\n
+ ║|_____|║>--------------<~               .   )\n
+ ║ .  __ ║                 (              :'-'\n
+ ╚╦═════╦╝                  ~-.________.:'\n
+  ¯¯¯¯¯¯¯\n
+"""
+echo -e $logo
+}
+
+function showMacNetworkWireless(){
+logo="""
+                              .-~-.-~~~-.~-.\n
+ ╔═══════╗        .(       .(              )\n
+ ║|¯¯¯¯¯|║  .(  .(        /               \`.\n
+ ║|_____|║ .o    o       ~               .   )\n
+ ║ .  __ ║  '(  '(        (              :'-'\n
+ ╚╦═════╦╝        '(       ~-.________.:'\n
+  ¯¯¯¯¯¯¯\n
+"""
+echo -e $logo
+}
+
 VIRTUAL_DRIVER_PATH=/home/pi/images
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
@@ -426,6 +452,10 @@ ifconfig rascsi_bridge $ROUTER_IP/24 up
 
 
 function checkNetworkType() {
+
+
+
+
     HAS_WIFI=$(ifconfig | grep -c wlan0)
     HAS_WIRE=$(ifconfig | grep -c eth)
 
@@ -433,9 +463,11 @@ function checkNetworkType() {
         echo "No network interface found. Please configure your network interface first."
     elif [ $HAS_WIFI -eq 1 ]; then
         echo "Wifi detected (Wireless)"
+        showMacNetworkWireless
         setupWirelessNetworking
     elif [ $HAS_WIRE -eq 1 ]; then
         echo "Ethernet detected (Wired)"
+        showMacNetworkWire
         setupWiredNetworking
     fi
 }
@@ -488,7 +520,6 @@ function showMenu() {
     echo "  8) Network assistant (wire and wireless)"
 }
 
-
 showRaSCSILogo
 initialChecks
 if [ -z "${1}" ]; then # $1 is unset, show menu
@@ -497,4 +528,3 @@ if [ -z "${1}" ]; then # $1 is unset, show menu
 else
     runChoice "$1"
 fi
-
