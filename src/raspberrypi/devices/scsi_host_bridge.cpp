@@ -1337,7 +1337,6 @@ void SCSIBR::WriteFs(int func, BYTE *buf)
 	fsoutlen = 0;
 	fsoptlen = 0;
 
-	// コマンド分岐
 	func &= 0x1f;
 	switch (func) {
 		case 0x00: return FS_InitDevice(buf);	// $40 - start device

@@ -4,7 +4,7 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2012-2020 GIMONS
-//	[ ファイルパス(サブセット) ]
+//	[ File path (subset) ]
 //
 //---------------------------------------------------------------------------
 
@@ -22,47 +22,32 @@ class Fileio;
 
 //===========================================================================
 //
-//	ファイルパス
-//	※代入演算子を用意すること
+//	File path
+//	Assignment operators are prepared here
 //
 //===========================================================================
 class Filepath
 {
 public:
 	Filepath();
-										// コンストラクタ
 	virtual ~Filepath();
-										// デストラクタ
 	Filepath& operator=(const Filepath& path);
-										// 代入
 
 	void Clear();
-										// クリア
-	void SetPath(const char *path);
-										// ファイル設定(ユーザ) MBCS用
-	const char *GetPath() const	{ return m_szPath; }
-										// パス名取得
-	const char *GetFileExt() const;
-										// ショート名取得(LPCTSTR)
+	void SetPath(const char *path);		// File settings (user) for MBCS
+	const char *GetPath() const	{ return m_szPath; }	// Get path name
+	const char *GetFileExt() const;		// Get short name (LPCTSTR)
 	BOOL Save(Fileio *fio, int ver);
-										// セーブ
 	BOOL Load(Fileio *fio, int ver);
-										// ロード
 
 private:
-	void Split();
-										// パス分割
-	TCHAR m_szPath[_MAX_PATH];
-										// ファイルパス
-	TCHAR m_szDir[_MAX_DIR];
-										// ディレクトリ
-	TCHAR m_szFile[_MAX_FNAME];
-										// ファイル
-	TCHAR m_szExt[_MAX_EXT];
-										// 拡張子
+	void Split();						// Split the path
+	TCHAR m_szPath[_MAX_PATH];			// File path
+	TCHAR m_szDir[_MAX_DIR];			// Directory
+	TCHAR m_szFile[_MAX_FNAME];			// File
+	TCHAR m_szExt[_MAX_EXT];			// Extension
 
-	static TCHAR FileExt[_MAX_FNAME + _MAX_DIR];
-										// ショート名(TCHAR)
+	static TCHAR FileExt[_MAX_FNAME + _MAX_DIR];	// Short name (TCHAR)
 };
 
 #endif	// filepath_h

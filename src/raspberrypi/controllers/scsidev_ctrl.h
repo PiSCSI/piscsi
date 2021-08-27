@@ -89,7 +89,7 @@ public:
 
 	void Reset();							// Device Reset
 
-	// 外部API
+	// External API
 	BUS::phase_t Process();					// Run
 
 	// Other
@@ -111,7 +111,8 @@ private:
 	void CmdGetEventStatusNotification();
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command
-	// データ転送
+
+	// Data transfer
 	void Send();							// Send data
 	void Receive();						// Receive data
 	bool XferMsg(DWORD msg);					// Data transfer message

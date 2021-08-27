@@ -189,7 +189,7 @@
 
 #ifdef CONNECT_TYPE_AIBOM
 //
-// RaSCSI Adapter Aibomu version
+// RaSCSI Adapter Aibom version
 //
 
 #define CONNECT_DESC "AIBOM PRODUCTS version"		// Startup message
@@ -234,7 +234,7 @@
 
 #ifdef CONNECT_TYPE_GAMERNIUM
 //
-// RaSCSI Adapter GAMERnium.com版
+// RaSCSI Adapter GAMERnium.com version
 //
 
 #define CONNECT_DESC "GAMERnium.com version"// Startup message
@@ -299,7 +299,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GPIO)
+//	Constant declarations (GPIO)
 //
 //---------------------------------------------------------------------------
 #define SYST_OFFSET		0x00003000
@@ -376,7 +376,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GIC)
+//	Constant declarations (GIC)
 //
 //---------------------------------------------------------------------------
 #define ARM_GICD_BASE		0xFF841000
@@ -401,7 +401,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GIC IRQ)
+//	Constant declarations (GIC IRQ)
 //
 //---------------------------------------------------------------------------
 #define GIC_IRQLOCAL0		(16 + 14)
@@ -420,7 +420,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(SCSI)
+//	Constant declarations (SCSI)
 //
 //---------------------------------------------------------------------------
 #define IN		GPIO_INPUT
