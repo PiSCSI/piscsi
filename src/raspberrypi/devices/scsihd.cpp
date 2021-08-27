@@ -87,8 +87,18 @@ void SCSIHD::Open(const Filepath& path)
 	}
 
 	// Set the default product name based on the drive capacity
+	int capacity;
+	string unit;
+	if (GetBlockCount() >> 11 >= 1) {
+		capacity = GetBlockCount() >> 11;
+		unit = "MB";
+	}
+	else {
+		capacity = GetBlockCount() >> 1;
+		unit = "KB";
+	}
 	stringstream product;
-	product << DEFAULT_PRODUCT << " " << (GetBlockCount() >> 11) << " MB";
+	product << DEFAULT_PRODUCT << " " << capacity << " " << unit;
 	SetProduct(product.str(), false);
 
 	Disk::Open(path);
