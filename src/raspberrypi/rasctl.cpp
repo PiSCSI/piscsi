@@ -243,6 +243,9 @@ void CommandServerInfo(const string& hostname, int port)
 				if (properties.supports_file()) {
 					cout << (has_property ? ", " : "") << "Image file support";
 				}
+				else if (properties.supports_params()) {
+					cout << (has_property ? ", " : "") << "Parameter support";
+				}
 				cout << endl;
 
 				for (int k = 0 ; k < properties.block_sizes_size(); k++)

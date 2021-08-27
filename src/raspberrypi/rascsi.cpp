@@ -559,16 +559,16 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	}
 
 	types_properties = serverInfo.add_types_properties();
-	properties = types_properties->add_properties();
 	types_properties->set_type(SCMO);
+	properties = types_properties->add_properties();
 	properties->set_protectable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
 
 	types_properties = serverInfo.add_types_properties();
-	properties = types_properties->add_properties();
 	types_properties->set_type(SCCD);
+	properties = types_properties->add_properties();
 	properties->set_read_only(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
@@ -579,6 +579,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCDP);
+	properties = types_properties->add_properties();
+	properties->set_supports_params(true);
 }
 
 void GetAvailableImages(PbServerInfo& serverInfo)

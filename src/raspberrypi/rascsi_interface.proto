@@ -59,10 +59,12 @@ message PbDeviceProperties {
     bool removable = 3;
     // Medium can be locked
     bool lockable = 4;
-    // Device supports image file
+    // Device supports image file as a parameter
     bool supports_file = 5;
+    // Device supports parameters other than a filename
+    bool supports_params = 6;
     // Unordered list of supported block sizes, empty if the block size is not configurable
-    repeated uint32 block_sizes = 6;
+    repeated uint32 block_sizes = 7;
 }
 
 // The status of a device
