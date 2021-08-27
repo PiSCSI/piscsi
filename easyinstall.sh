@@ -371,10 +371,10 @@ function readChoice() {
 function setupWiredNetworking() {
     echo "Setting up wired network..."
     # Setup bridge
-    cp ~/RASCSI/src/raspberrypi/os_integration/rascsi_bridge /etc/network/interfaces.d/rascsi_bridge
+    sudo cp ~/RASCSI/src/raspberrypi/os_integration/rascsi_bridge /etc/network/interfaces.d/rascsi_bridge
 
     # Setup routing
-    grep "^denyinterfaces eth0" || echo "denyinterfaces eth0" >> /etc/dhcpcd.conf
+    grep "^denyinterfaces eth0" || sudo echo "denyinterfaces eth0" >> /etc/dhcpcd.conf
 
     # Setup daynaPORT at start up
     sudo sed s@"^ExecStart=/usr/local/bin/rascsi"@"ExecStart=/usr/local/bin/rascsi -ID2 daynaport"@ /etc/systemd/system/rascsi.service > /etc/systemd/system/rascsi.service
