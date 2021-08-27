@@ -647,10 +647,11 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
-	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
+	s << "command=" << PbOperation_Name(cmd) << ", command params='" << params << "'"
+			<< ", device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
 			<< ", params='" << pbDevice.params() << "', vendor='" << pbDevice.vendor()
 			<< ", product='" << pbDevice.product() << "', revision='" << pbDevice.revision() << "'"
-			<< "', block size=" << pbDevice.block_size() << ", params='" << params << "'";
+			<< "', block size=" << pbDevice.block_size();
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
