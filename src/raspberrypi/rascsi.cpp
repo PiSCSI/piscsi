@@ -306,7 +306,7 @@ const PbDevices GetDevices()
 		status->set_locked(device->IsLocked());
 
 		const Disk *disk = dynamic_cast<Disk*>(device);
-		if (disk && disk->IsSectorSizeConfigurable()) {
+		if (disk) {
 			pbDevice->set_block_size(disk->GetSectorSizeInBytes());
 		}
 
