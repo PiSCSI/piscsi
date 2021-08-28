@@ -59,10 +59,12 @@ message PbDeviceProperties {
     bool removable = 3;
     // Medium can be locked
     bool lockable = 4;
-    // Device supports image file
+    // Device supports image file as a parameter
     bool supports_file = 5;
-    // Unordered list of supported block sizes
-    repeated uint32 block_sizes = 6;
+    // Device supports parameters other than a filename
+    bool supports_params = 6;
+    // Unordered list of supported block sizes, empty if the block size is not configurable
+    repeated uint32 block_sizes = 7;
 }
 
 // The status of a device
@@ -78,7 +80,7 @@ message PbDeviceStatus {
 // Device properties by device type
 message PbDeviceTypeProperties {
     PbDeviceType type = 1;
-    repeated PbDeviceProperties properties = 2;
+    PbDeviceProperties properties = 2;
 }
 
 // The image file data
@@ -95,7 +97,7 @@ message PbDeviceDefinition {
     PbDeviceType type = 3;
     // Optional device specific parameter, e.g. the name of an image file
     string params = 4;
-    // The optional SCSI hard disk drive block size in bytes per sector, must be 512, 1024, 2048 or 4096
+    // The optional block size in bytes per sector, must be one of the supported block sizes for SASI/SCSI
     int32 block_size = 5;
     // The device name components
     string vendor = 6;
@@ -129,7 +131,7 @@ message PbDevices {
 
 // Commands rascsi can execute and their parameters
 message PbCommand {
-    PbOperation cmd = 1;
+    PbOperation operation = 1;
     // The optional device list
     PbDeviceDefinitions devices = 2;
     // The optional parameters, depending on the operation
@@ -140,7 +142,7 @@ message PbCommand {
 message PbResult {
     // false means that an error occurred
     bool status = 1;
-    // The (error) message
+    // An error message or an information message, depending on status
     string msg = 2;
 }
 

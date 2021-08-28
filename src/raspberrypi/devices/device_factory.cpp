@@ -14,6 +14,7 @@
 #include "scsicd.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
+#include "exceptions.h"
 #include "device_factory.h"
 #include <set>
 
@@ -64,66 +65,75 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 		else if (filename == "daynaport") {
 			type = SCDP;
 		}
+		else {
+			return NULL;
+		}
 	}
 
 	Device *device = NULL;
-	switch (type) {
-		case SAHD: {
+	try {
+		switch (type) {
+			case SAHD:
 				device = new SASIHD();
 				((Disk *)device)->SetSectorSizes(sector_sizes_sasi);
-			}
 			break;
 
-		case SCHD:
-			if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-				device = new SCSIHD_NEC();
-				((Disk *)device)->SetVendor("NEC");
-			} else {
-				device = new SCSIHD();
+			case SCHD:
+				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
+					device = new SCSIHD_NEC();
+					((Disk *)device)->SetVendor("NEC");
+				} else {
+					device = new SCSIHD(false);
+					device->SetProtectable(true);
+					((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
+				}
+				break;
+
+			case SCRM:
+				device = new SCSIHD(true);
+				device->SetRemovable(true);
+				device->SetLockable(true);
 				device->SetProtectable(true);
+				device->SetProduct("SCSI HD (REM.)");
 				((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
-			}
+				break;
 
-			break;
+			case SCMO:
+				device = new SCSIMO();
+				device->SetProtectable(true);
+				device->SetRemovable(true);
+				device->SetLockable(true);
+				device->SetProduct("SCSI MO");
+				break;
 
-		case SCRM:
-			device = new SCSIHD(true);
-			device->SetProtectable(true);
-			device->SetLockable(true);
-			device->SetProtectable(true);
-			((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
-			break;
+			case SCCD:
+				device = new SCSICD();
+				device->SetReadOnly(true);
+				device->SetRemovable(true);
+				device->SetLockable(true);
+				device->SetProduct("SCSI CD-ROM");
+				break;
 
-		case SCMO:
-			device = new SCSIMO();
-			device->SetProtectable(true);
-			device->SetRemovable(true);
-			device->SetLockable(true);
-			device->SetProduct("SCSI MO");
-			break;
+			case SCBR:
+				device = new SCSIBR();
+				device->SetProduct("SCSI HOST BRIDGE");
+				break;
 
-		case SCCD:
-			device = new SCSICD();
-			device->SetReadOnly(true);
-			device->SetRemovable(true);
-			device->SetLockable(true);
-			device->SetProduct("SCSI CD-ROM");
-			break;
+			case SCDP:
+				device = new SCSIDaynaPort();
+				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+				device->SetVendor("Dayna");
+				device->SetProduct("SCSI/Link");
+				device->SetRevision("1.4a");
+				break;
 
-		case SCBR:
-			device = new SCSIBR();
-			device->SetProduct("BRIDGE");
-			break;
-
-		case SCDP:
-			device = new SCSIDaynaPort();
-			device->SetVendor("Dayna");
-			device->SetProduct("SCSI/Link");
-			device->SetRevision("1.4a");
-			break;
-
-		default:
-			break;
+			default:
+				break;
+		}
+	}
+	catch(const illegal_argument_exception& e) {
+		// There was an internal problem with setting the INQUIRY DATA
+		return NULL;
 	}
 
 	return device;

@@ -20,6 +20,9 @@
 #include <iostream>
 #include <list>
 
+// Separator for the INQUIRY name components
+#define COMPONENT_SEPARATOR ':'
+
 using namespace std;
 using namespace rascsi_interface;
 
@@ -108,7 +111,7 @@ bool ReceiveResult(int fd)
 
 const PbServerInfo GetServerInfo(const string&hostname, int port) {
 	PbCommand command;
-	command.set_cmd(SERVER_INFO);
+	command.set_operation(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
@@ -139,7 +142,7 @@ void CommandList(const string& hostname, int port)
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
 {
 	PbCommand command;
-	command.set_cmd(LOG_LEVEL);
+	command.set_operation(LOG_LEVEL);
 	command.set_params(log_level);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
@@ -150,7 +153,7 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
 {
 	PbCommand command;
-	command.set_cmd(DEFAULT_FOLDER);
+	command.set_operation(DEFAULT_FOLDER);
 	command.set_params(folder);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
@@ -161,7 +164,7 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 void CommandServerInfo(const string& hostname, int port)
 {
 	PbCommand command;
-	command.set_cmd(SERVER_INFO);
+	command.set_operation(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
@@ -219,40 +222,41 @@ void CommandServerInfo(const string& hostname, int port)
 		list<int> block_sizes;
 
 		cout << "  Properties: ";
-		if (types_properties.properties_size()) {
-			for (int j = 0; j < types_properties.properties_size(); j++) {
-				bool has_property = false;
-
-				PbDeviceProperties properties = types_properties.properties(j);
-				if (properties.read_only()) {
-					cout << "Read-only";
+		bool has_property = false;
+		const PbDeviceProperties& properties = types_properties.properties();
+		if (properties.read_only()) {
+			cout << "Read-only";
 					has_property = true;
-				}
-				if (properties.protectable()) {
-					cout << (has_property ? ", " : "") << "Protectable";
-					has_property = true;
-				}
-				if (properties.removable()) {
-					cout << (has_property ? ", " : "") << "Removable";
-					has_property = true;
-				}
-				if (properties.lockable()) {
-					cout << (has_property ? ", " : "") << "Lockable";
-					has_property = true;
-				}
-				if (properties.supports_file()) {
-					cout << (has_property ? ", " : "") << "Image file support";
-				}
-				cout << endl;
-
-				for (int k = 0 ; k < properties.block_sizes_size(); k++)
-				{
-					block_sizes.push_back(properties.block_sizes(k));
-				}
-			}
 		}
-		else {
-			cout << "None" << endl;
+		if (properties.protectable()) {
+			cout << (has_property ? ", " : "") << "Protectable";
+			has_property = true;
+		}
+		if (properties.removable()) {
+			cout << (has_property ? ", " : "") << "Removable";
+			has_property = true;
+		}
+		if (properties.lockable()) {
+			cout << (has_property ? ", " : "") << "Lockable";
+			has_property = true;
+		}
+		if (properties.supports_file()) {
+			cout << (has_property ? ", " : "") << "Image file support";
+			has_property = true;
+		}
+		else if (properties.supports_params()) {
+			cout << (has_property ? ", " : "") << "Parameter support";
+			has_property = true;
+		}
+
+		if (!has_property) {
+			cout << "None";
+		}
+		cout << endl;
+
+		for (int k = 0 ; k < properties.block_sizes_size(); k++)
+		{
+			block_sizes.push_back(properties.block_sizes(k));
 		}
 
 		if (block_sizes.empty()) {
@@ -412,11 +416,11 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				command.set_cmd(ParseOperation(optarg));
+				command.set_operation(ParseOperation(optarg));
 				break;
 
 			case 'd':
-				command.set_cmd(DEFAULT_FOLDER);
+				command.set_operation(DEFAULT_FOLDER);
 				default_folder = optarg;
 				break;
 
@@ -426,10 +430,14 @@ int main(int argc, char* argv[])
 
 			case 't':
 				device->set_type(ParseType(optarg));
+				if (device->type() == UNDEFINED) {
+					cerr << "Error: Unknown device type '" << optarg << "'" << endl;
+					exit(EXIT_FAILURE);
+				}
 				break;
 
 			case 'g':
-				command.set_cmd(LOG_LEVEL);
+				command.set_operation(LOG_LEVEL);
 				log_level = optarg;
 				break;
 
@@ -447,11 +455,11 @@ int main(int argc, char* argv[])
 					string revision;
 
 					string s = optarg;
-					size_t separatorPos = s.find(':');
+					size_t separatorPos = s.find(COMPONENT_SEPARATOR);
 					if (separatorPos != string::npos) {
 						vendor = s.substr(0, separatorPos);
 						s = s.substr(separatorPos + 1);
-						separatorPos = s.find(':');
+						separatorPos = s.find(COMPONENT_SEPARATOR);
 						if (separatorPos != string::npos) {
 							product = s.substr(0, separatorPos);
 							revision = s.substr(separatorPos + 1);
@@ -473,13 +481,13 @@ int main(int argc, char* argv[])
 			case 'p':
 				port = atoi(optarg);
 				if (port <= 0 || port > 65535) {
-					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+					cerr << "Error: Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					exit(EXIT_FAILURE);
 				}
 				break;
 
 			case 's':
-				command.set_cmd(SERVER_INFO);
+				command.set_operation(SERVER_INFO);
 				break;
 
 			case 'v':
@@ -493,17 +501,17 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (command.cmd() == LOG_LEVEL) {
+	if (command.operation() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, log_level);
 		exit(EXIT_SUCCESS);
 	}
 
-	if (command.cmd() == DEFAULT_FOLDER) {
+	if (command.operation() == DEFAULT_FOLDER) {
 		CommandDefaultImageFolder(hostname, port, default_folder);
 		exit(EXIT_SUCCESS);
 	}
 
-	if (command.cmd() == SERVER_INFO) {
+	if (command.operation() == SERVER_INFO) {
 		CommandServerInfo(hostname, port);
 		exit(EXIT_SUCCESS);
 	}

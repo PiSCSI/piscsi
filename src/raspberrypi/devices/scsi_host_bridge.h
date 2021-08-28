@@ -74,7 +74,7 @@ private:
 	BYTE mac_addr[6];							// MAC Addres
 	int packet_len;								// Receive packet size
 	BYTE packet_buf[0x1000];						// Receive packet buffer
-	BOOL packet_enable;							// Received packet valid
+	bool packet_enable;							// Received packet valid
 
 	int ReadFsResult(BYTE *buf);					// Read filesystem (result code)
 	int ReadFsOut(BYTE *buf);					// Read filesystem (return data)

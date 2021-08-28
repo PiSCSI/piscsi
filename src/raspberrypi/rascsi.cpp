@@ -32,6 +32,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <map>
 #include <vector>
 #include <filesystem>
 
@@ -65,7 +66,7 @@ static void *MonThread(void *param);
 vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
-set<string> files_in_use;
+map<string, pair<int, int>> files_in_use;
 DeviceFactory& device_factory = DeviceFactory::instance();
 
 //---------------------------------------------------------------------------
@@ -306,7 +307,9 @@ const PbDevices GetDevices()
 		status->set_locked(device->IsLocked());
 
 		const Disk *disk = dynamic_cast<Disk*>(device);
-		pbDevice->set_block_size(disk->GetSectorSizeInBytes());
+		if (disk) {
+			pbDevice->set_block_size(disk->GetSectorSizeInBytes());
+		}
 
 		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 		if (fileSupport) {
@@ -528,8 +531,9 @@ void GetLogLevels(PbServerInfo& serverInfo)
 void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 {
 	PbDeviceTypeProperties *types_properties = serverInfo.add_types_properties();
-	PbDeviceProperties *properties = types_properties->add_properties();
 	types_properties->set_type(SAHD);
+	PbDeviceProperties *properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_supports_file(true);
 	set<int> block_sizes = device_factory.GetSasiSectorSizes();
 	for (const auto& block_size : block_sizes) {
@@ -540,7 +544,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCHD);
-	properties = types_properties->add_properties();
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
 	for (const auto& block_size : block_sizes) {
@@ -549,7 +554,8 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCRM);
-	properties = types_properties->add_properties();
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
@@ -559,16 +565,18 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	}
 
 	types_properties = serverInfo.add_types_properties();
-	properties = types_properties->add_properties();
 	types_properties->set_type(SCMO);
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
 
 	types_properties = serverInfo.add_types_properties();
-	properties = types_properties->add_properties();
 	types_properties->set_type(SCCD);
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
 	properties->set_read_only(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
@@ -579,6 +587,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCDP);
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
+	properties->set_supports_params(true);
 }
 
 void GetAvailableImages(PbServerInfo& serverInfo)
@@ -626,7 +637,7 @@ bool SetDefaultImageFolder(const string& f)
 //
 //---------------------------------------------------------------------------
 
-bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cmd, const string& params, bool dryRun)
+bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation operation, const string& params, bool dryRun)
 {
 	Filepath filepath;
 	Device *device = NULL;
@@ -639,10 +650,11 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
-	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
+	s << "operation=" << PbOperation_Name(operation) << ", command params='" << params
+			<< "', device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
 			<< ", params='" << pbDevice.params() << "', vendor='" << pbDevice.vendor()
-			<< ", product='" << pbDevice.product() << "', revision='" << pbDevice.revision() << "'"
-			<< "', block size=" << pbDevice.block_size() << ", params='" << params << "'";
+			<< "', product='" << pbDevice.product() << "', revision='" << pbDevice.revision()
+			<< "', block size=" << pbDevice.block_size();
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
@@ -663,23 +675,28 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		map[i] = devices[i];
 	}
 
-	if (cmd == ATTACH) {
+	if (operation == ATTACH) {
 		if (map[id * UnitNum + unit]) {
-			error << "Duplicate ID " << id;
+			error << "Duplicate ID " << id << ", unit " << unit;
 			return ReturnStatus(fd, false, error);
 		}
 
 		string filename = pbDevice.params();
 		string ext;
-		int len = filename.length();
-		if (len > 4 && filename[len - 4] == '.') {
-			ext = filename.substr(len - 3);
+		size_t separator = filename.rfind('.');
+		if (separator != string::npos) {
+			ext = filename.substr(separator + 1);
 		}
 
-		// Create a new device, based upon provided type or file extension
+		// Create a new device, based upon the provided type or filename extension
 		device = device_factory.CreateDevice(type, filename, ext);
 		if (!device) {
-			return ReturnStatus(fd, false, "Invalid device type " + PbDeviceType_Name(type));
+			if (type == UNDEFINED) {
+				return ReturnStatus(fd, false, "No device type provided for unknown file extension '" + ext + "'");
+			}
+			else {
+				return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));
+			}
 		}
 
 		// If no filename was provided the media is considered removed
@@ -689,17 +706,23 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 		device->SetId(id);
 		device->SetLun(unit);
-		if (!pbDevice.vendor().empty()) {
-			device->SetVendor(pbDevice.vendor());
-		}
-		if (!pbDevice.product().empty()) {
-			device->SetProduct(pbDevice.product());
-		}
-		if (!pbDevice.revision().empty()) {
-			device->SetRevision(pbDevice.revision());
-		}
 		if (!device->IsReadOnly()) {
 			device->SetProtected(pbDevice.protected_());
+		}
+
+		try {
+			if (!pbDevice.vendor().empty()) {
+				device->SetVendor(pbDevice.vendor());
+			}
+			if (!pbDevice.product().empty()) {
+				device->SetProduct(pbDevice.product());
+			}
+			if (!pbDevice.revision().empty()) {
+				device->SetRevision(pbDevice.revision());
+			}
+		}
+		catch(const illegal_argument_exception& e) {
+			return ReturnStatus(fd, false, e.getmsg());
 		}
 
 		if (pbDevice.block_size()) {
@@ -726,17 +749,15 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 		// drive checks files
 		if (fileSupport && !filename.empty()) {
-			// Set the Path
 			filepath.SetPath(filename.c_str());
 
-			// Open the file path
 			try {
 				fileSupport->Open(filepath);
 			}
 			catch(const io_exception& e) {
 				// If the file does not exist search for it in the default image folder
-				string file = default_image_folder + "/" + filename;
-				filepath.SetPath(file.c_str());
+				string default_file = default_image_folder + "/" + filename;
+				filepath.SetPath(default_file.c_str());
 				try {
 					fileSupport->Open(filepath);
 				}
@@ -747,22 +768,25 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				}
 			}
 
-			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
+			const string path = filepath.GetPath();
+			if (files_in_use.find(path) != files_in_use.end()) {
 				delete device;
 
-				return ReturnStatus(fd, false, "Image file '" + filename + "' is already in use");
+				const auto& full_id = files_in_use[path];
+				error << "Image file '" << filename << "' is already used by ID " << full_id.first << ", unit " << full_id.second;
+				return ReturnStatus(fd, false, error);
 			}
 
-			files_in_use.insert(filepath.GetPath());
+			files_in_use[path] = make_pair(device->GetId(), device->GetLun());
 		}
 
+		// Stop the dry run here, before permanently modifying something
 		if (dryRun) {
 			return true;
 		}
 
-		// Initialize everything that would have caused issues when being initialized during the dry run
 		if (!device->Init(pbDevice.params())) {
-			error << "Initialization of " << device->GetType() << " device, ID: " << id << ", unit: " << unit << " failed";
+			error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
 
 			delete device;
 
@@ -775,7 +799,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-			LOGINFO("Added new %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			LOGINFO("Added new %s device, ID %d, unit %d", device->GetType().c_str(), id, unit);
 			return true;
 		}
 
@@ -783,7 +807,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	}
 
 	// When detaching all devices no controller/unit tests are required
-	if (cmd != DETACH || !all) {
+	if (operation != DETACH || !all) {
 		// Does the controller exist?
 		if (!dryRun && !controllers[id]) {
 			error << "Received a command for non-existing ID " << id;
@@ -800,7 +824,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
-	if (cmd == DETACH) {
+	if (operation == DETACH) {
 		if (!all && !params.empty()) {
 			return ReturnStatus(fd, false, "Invalid command parameter '" + params + "' for " + PbOperation_Name(DETACH));
 		}
@@ -841,15 +865,15 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		}
 	}
 
-	if ((cmd == INSERT || cmd == EJECT) && !device->IsRemovable()) {
-		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't removable)");
+	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't removable)");
 	}
 
-	if ((cmd == PROTECT || cmd == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't protectable)");
+	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't protectable)");
 	}
 
-	switch (cmd) {
+	switch (operation) {
 		case INSERT: {
 				if (!pbDevice.vendor().empty() || !pbDevice.product().empty() || !pbDevice.revision().empty()) {
 					return ReturnStatus(fd, false, "Device name cannot be changed");
@@ -866,25 +890,21 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				}
 
 				filepath.SetPath(filename.c_str());
-				LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", filename.c_str(), device->GetType().c_str(), id, unit);
+
+				LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(), id, unit);
 
 				try {
 					fileSupport->Open(filepath);
 				}
 				catch(const io_exception& e) {
-					if (!default_image_folder.empty()) {
-						// If the file does not exist search for it in the default image folder
-						string default_file = default_image_folder + "/" + filename;
-						filepath.SetPath(default_file.c_str());
-						try {
-							fileSupport->Open(filepath);
-						}
-						catch(const io_exception&) {
-							return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
-						}
+					// If the file does not exist search for it in the default image folder
+					string default_file = default_image_folder + "/" + filename;
+					filepath.SetPath(default_file.c_str());
+					try {
+						fileSupport->Open(filepath);
 					}
-					else {
-						return ReturnStatus(fd, false, "No default image folder");
+					catch(const io_exception&) {
+						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
 					}
 				}
 			}
@@ -896,6 +916,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			}
 
 			LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
 			// EJECT is idempotent
 			device->Eject(true);
 			break;
@@ -906,6 +927,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			}
 
 			LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
 			// PROTECT is idempotent
 			device->SetProtected(true);
 			break;
@@ -915,7 +937,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				return true;
 			}
 
-			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
 			// UNPROTECT is idempotent
 			device->SetProtected(false);
 			break;
@@ -928,7 +951,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			return true;
 
 		default:
-			return ReturnStatus(fd, false, "Received unknown command: " + PbOperation_Name(cmd));
+			return ReturnStatus(fd, false, "Received unknown operation: " + PbOperation_Name(operation));
 	}
 
 	return true;
@@ -938,7 +961,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 {
 	// Dry run first
 	for (int i = 0; i < command.devices().devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), true)) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.operation(), command.params(), true)) {
 			return false;
 		}
 	}
@@ -947,7 +970,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 	// Execute
 	for (int i = 0; i < command.devices().devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), false)) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.operation(), command.params(), false)) {
 			return false;
 		}
 	}
@@ -1095,7 +1118,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Attach all specified devices
 	PbCommand command;
-	command.set_cmd(ATTACH);
+	command.set_operation(ATTACH);
 	command.set_allocated_devices(new PbDeviceDefinitions(devices));
 
 	if (!ProcessCmd(-1, command)) {
@@ -1171,7 +1194,7 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
-			switch(command.cmd()) {
+			switch(command.operation()) {
 				case LOG_LEVEL: {
 					bool status = SetLogLevel(command.params());
 					if (!status) {

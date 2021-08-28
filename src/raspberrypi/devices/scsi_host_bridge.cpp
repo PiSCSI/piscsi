@@ -90,10 +90,15 @@ bool SCSIBR::Init(const string&)
 	}
 
 	// Packet reception flag OFF
-	packet_enable = FALSE;
+	packet_enable = false;
 #endif
 
+	// Not terminating on regular Linux PCs is helpful for testing
+#if defined(__x86_64__) || defined(__X86__)
+	return true;
+#else
 	return m_bTapEnable;
+#endif
 }
 
 void SCSIBR::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
@@ -457,7 +462,7 @@ void SCSIBR::ReceivePacket()
 
 	// Store in receive buffer
 	if (packet_len > 0) {
-		packet_enable = TRUE;
+		packet_enable = true;
 	}
 }
 
@@ -481,7 +486,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 	memcpy(buf, packet_buf, len);
 
 	// Received
-	packet_enable = FALSE;
+	packet_enable = false;
 }
 
 //---------------------------------------------------------------------------
