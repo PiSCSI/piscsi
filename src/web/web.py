@@ -60,7 +60,14 @@ def config_save():
         writer = csv.writer(csv_file)
         for device in list_devices():
             if device["type"] != "-":
-                writer.writerow(device.values())
+                device_info = list (device.values())
+                # Match a *nix file path, cutting out the last chunk that starts with a space
+                filesearch = re.search("(^(/[^/ ]*)+)(\s.*)*$", device_info[3])
+                if filesearch is None:
+                    device_info[3] = ""
+                else:
+                    device_info[3] = filesearch.group(1)
+                writer.writerow(device_info)
     flash(f"Saved config to  {file_name}!")
     return redirect(url_for("index"))
 
@@ -74,8 +81,12 @@ def config_load():
 
     with open(file_name) as csv_file:
         config_reader = csv.reader(csv_file)
+        #TODO: Remove hard-coded string sanitation (e.g. after implementing protobuf)
+        exclude_list = ("X68000 HOST BRIDGE", "DaynaPort SCSI/Link", " (WRITEPROTECT)", "NO MEDIA")
         for row in config_reader:
-            image_name = row[3].replace("(WRITEPROTECT)", "")
+            image_name = row[3]
+            for e in exclude_list:
+                image_name = image_name.replace(e, "")
             attach_image(row[0], image_name, row[2])
     flash(f"Loaded config from  {file_name}!")
     return redirect(url_for("index"))
@@ -142,6 +153,11 @@ def attach():
             image_type = "SCHD"
     else:
         flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
+        return redirect(url_for("index"))
+
+    # Validate the SCSI ID
+    if re.match("[0-7]", str(scsi_id)) == None:
+        flash(f"Invalid SCSI ID. Should be a number between 0-7", "error")
         return redirect(url_for("index"))
 
     process = attach_image(scsi_id, file_name, image_type)
