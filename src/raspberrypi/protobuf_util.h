@@ -11,9 +11,9 @@
 
 #pragma once
 
-#include "google/protobuf/message_lite.h"
+#include "google/protobuf/message.h"
 #include "rascsi_interface.pb.h"
 
-void SerializeMessage(int, const google::protobuf::MessageLite&);
-void DeserializeMessage(int, google::protobuf::MessageLite&);
+void SerializeMessage(int, const google::protobuf::Message&);
+void DeserializeMessage(int, google::protobuf::Message&);
 int ReadNBytes(int, uint8_t *, int);
