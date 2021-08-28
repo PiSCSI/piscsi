@@ -142,7 +142,7 @@ message PbCommand {
 message PbResult {
     // false means that an error occurred
     bool status = 1;
-    // The (error) message
+    // An error message or an information message, depending on status
     string msg = 2;
 }
 
