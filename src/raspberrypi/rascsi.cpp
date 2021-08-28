@@ -706,17 +706,23 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 
 		device->SetId(id);
 		device->SetLun(unit);
-		if (!pbDevice.vendor().empty()) {
-			device->SetVendor(pbDevice.vendor());
-		}
-		if (!pbDevice.product().empty()) {
-			device->SetProduct(pbDevice.product());
-		}
-		if (!pbDevice.revision().empty()) {
-			device->SetRevision(pbDevice.revision());
-		}
 		if (!device->IsReadOnly()) {
 			device->SetProtected(pbDevice.protected_());
+		}
+
+		try {
+			if (!pbDevice.vendor().empty()) {
+				device->SetVendor(pbDevice.vendor());
+			}
+			if (!pbDevice.product().empty()) {
+				device->SetProduct(pbDevice.product());
+			}
+			if (!pbDevice.revision().empty()) {
+				device->SetRevision(pbDevice.revision());
+			}
+		}
+		catch(const illegal_argument_exception& e) {
+			return ReturnStatus(fd, false, e.getmsg());
 		}
 
 		if (pbDevice.block_size()) {
