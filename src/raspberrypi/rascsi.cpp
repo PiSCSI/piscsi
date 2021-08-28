@@ -692,7 +692,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 		device = device_factory.CreateDevice(type, filename, ext);
 		if (!device) {
 			if (type == UNDEFINED) {
-				return ReturnStatus(fd, false, "Unknown image file extension '" + ext + "'");
+				return ReturnStatus(fd, false, "No device type provided for unknown file extension '" + ext + "'");
 			}
 			else {
 				return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));
