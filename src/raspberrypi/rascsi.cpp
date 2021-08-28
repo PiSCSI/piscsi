@@ -32,6 +32,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <map>
 #include <vector>
 #include <filesystem>
 
@@ -65,7 +66,8 @@ static void *MonThread(void *param);
 vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
-set<string> files_in_use;
+typedef pair<int, int> full_id;
+map<string, full_id> files_in_use;
 DeviceFactory& device_factory = DeviceFactory::instance();
 
 //---------------------------------------------------------------------------
@@ -758,13 +760,16 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 				}
 			}
 
-			if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
+			const string path = filepath.GetPath();
+			if (files_in_use.find(path) != files_in_use.end()) {
 				delete device;
 
-				return ReturnStatus(fd, false, "Image file '" + filename + "' is already in use");
+				const auto& full_id = files_in_use[path];
+				error << "Image file '" << filename << "' is already used by ID " << full_id.first << ", unit " << full_id.second;
+				return ReturnStatus(fd, false, error);
 			}
 
-			files_in_use.insert(filepath.GetPath());
+			files_in_use[path] = make_pair(device->GetId(), device->GetLun());
 		}
 
 		// Stop the dry run here, before permanently modifying something
