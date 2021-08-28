@@ -82,7 +82,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 				device = new SCSIHD_NEC();
 				((Disk *)device)->SetVendor("NEC");
 			} else {
-				device = new SCSIHD();
+				device = new SCSIHD(false);
 				device->SetProtectable(true);
 				((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
 			}
@@ -94,6 +94,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 			device->SetRemovable(true);
 			device->SetLockable(true);
 			device->SetProtectable(true);
+			device->SetProduct("SCSI HD (REM.)");
 			((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
 			break;
 
