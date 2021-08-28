@@ -56,12 +56,18 @@ def config_save():
     file_name = f"{base_dir}{file_name}.csv"
     import csv
 
+    # This method takes the output of 'rasctl -l' and parses it into csv format:
+    # 0: ID
+    # 1: Unit Number (unused in rascsi-web)
+    # 2: Device Type
+    # 3: Device Status (includes the path to a loaded image file)
+    # TODO: Remove the dependence on rasctl; e.g. when implementing protobuf for rascsi-web
     with open(file_name, "w") as csv_file:
         writer = csv.writer(csv_file)
         for device in list_devices():
             if device["type"] != "-":
                 device_info = list (device.values())
-                # Match a *nix file path, cutting out the last chunk that starts with a space
+                # Match a *nix file path inside column 3, cutting out the last chunk that starts with a space
                 filesearch = re.search("(^(/[^/ ]*)+)(\s.*)*$", device_info[3])
                 if filesearch is None:
                     device_info[3] = ""
