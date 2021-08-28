@@ -20,6 +20,9 @@
 #include <iostream>
 #include <list>
 
+// Separator for the INQUIRY name components
+#define COMPONENT_SEPARATOR ':'
+
 using namespace std;
 using namespace rascsi_interface;
 
@@ -452,11 +455,11 @@ int main(int argc, char* argv[])
 					string revision;
 
 					string s = optarg;
-					size_t separatorPos = s.find(':');
+					size_t separatorPos = s.find(COMPONENT_SEPARATOR);
 					if (separatorPos != string::npos) {
 						vendor = s.substr(0, separatorPos);
 						s = s.substr(separatorPos + 1);
-						separatorPos = s.find(':');
+						separatorPos = s.find(COMPONENT_SEPARATOR);
 						if (separatorPos != string::npos) {
 							product = s.substr(0, separatorPos);
 							revision = s.substr(separatorPos + 1);
