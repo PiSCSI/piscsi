@@ -747,8 +747,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 			}
 			catch(const io_exception& e) {
 				// If the file does not exist search for it in the default image folder
-				string file = default_image_folder + "/" + filename;
-				filepath.SetPath(file.c_str());
+				string default_file = default_image_folder + "/" + filename;
+				filepath.SetPath(default_file.c_str());
 				try {
 					fileSupport->Open(filepath);
 				}
@@ -887,19 +887,14 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 					fileSupport->Open(filepath);
 				}
 				catch(const io_exception& e) {
-					if (!default_image_folder.empty()) {
-						// If the file does not exist search for it in the default image folder
-						string default_file = default_image_folder + "/" + filename;
-						filepath.SetPath(default_file.c_str());
-						try {
-							fileSupport->Open(filepath);
-						}
-						catch(const io_exception&) {
-							return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
-						}
+					// If the file does not exist search for it in the default image folder
+					string default_file = default_image_folder + "/" + filename;
+					filepath.SetPath(default_file.c_str());
+					try {
+						fileSupport->Open(filepath);
 					}
-					else {
-						return ReturnStatus(fd, false, "No default image folder");
+					catch(const io_exception&) {
+						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
 					}
 				}
 			}
