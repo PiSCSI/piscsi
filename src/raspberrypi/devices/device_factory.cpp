@@ -64,6 +64,9 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 		else if (filename == "daynaport") {
 			type = SCDP;
 		}
+		else {
+			return NULL;
+		}
 	}
 
 	Device *device = NULL;

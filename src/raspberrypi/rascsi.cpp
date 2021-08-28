@@ -650,10 +650,10 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
-	s << "operation=" << PbOperation_Name(operation) << ", command params='" << params << "'"
-			<< ", device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
+	s << "operation=" << PbOperation_Name(operation) << ", command params='" << params
+			<< "', device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
 			<< ", params='" << pbDevice.params() << "', vendor='" << pbDevice.vendor()
-			<< ", product='" << pbDevice.product() << "', revision='" << pbDevice.revision() << "'"
+			<< "', product='" << pbDevice.product() << "', revision='" << pbDevice.revision()
 			<< "', block size=" << pbDevice.block_size();
 	LOGINFO("%s", s.str().c_str());
 
@@ -677,21 +677,26 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 
 	if (operation == ATTACH) {
 		if (map[id * UnitNum + unit]) {
-			error << "Duplicate ID " << id;
+			error << "Duplicate ID " << id << ", unit " << unit;
 			return ReturnStatus(fd, false, error);
 		}
 
 		string filename = pbDevice.params();
 		string ext;
-		int len = filename.length();
-		if (len > 4 && filename[len - 4] == '.') {
-			ext = filename.substr(len - 3);
+		size_t separator = filename.rfind('.');
+		if (separator != string::npos) {
+			ext = filename.substr(separator + 1);
 		}
 
-		// Create a new device, based upon provided type or file extension
+		// Create a new device, based upon the provided type or filename extension
 		device = device_factory.CreateDevice(type, filename, ext);
 		if (!device) {
-			return ReturnStatus(fd, false, "Invalid device type " + PbDeviceType_Name(type));
+			if (type == UNDEFINED) {
+				return ReturnStatus(fd, false, "Unknown image file extension '" + ext + "'");
+			}
+			else {
+				return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));
+			}
 		}
 
 		// If no filename was provided the media is considered removed

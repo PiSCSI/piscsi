@@ -427,6 +427,10 @@ int main(int argc, char* argv[])
 
 			case 't':
 				device->set_type(ParseType(optarg));
+				if (device->type() == UNDEFINED) {
+					cerr << "Error: Unknown device type '" << optarg << "'" << endl;
+					exit(EXIT_FAILURE);
+				}
 				break;
 
 			case 'g':
@@ -474,7 +478,7 @@ int main(int argc, char* argv[])
 			case 'p':
 				port = atoi(optarg);
 				if (port <= 0 || port > 65535) {
-					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+					cerr << "Error: Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					exit(EXIT_FAILURE);
 				}
 				break;
