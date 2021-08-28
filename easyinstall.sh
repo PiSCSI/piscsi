@@ -404,11 +404,6 @@ function setupWirelessNetworking() {
     echo "Press enter to continue or CTRL-C to exit"
     read REPLY
 
-    # Installing required packages
-    echo "Installing required packages (pytun)"
-    sudo apt-get install -y python3-pip 
-    sudo pip3 install python-pytun
-
     # Configuring bridge
     grep "rascsi_bridge" /etc/rc.local || echo "
 brctl addbr rascsi_bridge
@@ -452,10 +447,6 @@ ifconfig rascsi_bridge $ROUTER_IP/24 up
 
 
 function checkNetworkType() {
-
-
-
-
     HAS_WIFI=$(ifconfig | grep -c wlan0)
     HAS_WIRE=$(ifconfig | grep -c eth)
 
