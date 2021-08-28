@@ -19,8 +19,6 @@
 #include "disk.h"
 #include "filepath.h"
 
-#define DEFAULT_PRODUCT "SCSI HD"
-
 //===========================================================================
 //
 //	SCSI Hard Disk
@@ -30,7 +28,7 @@ class SCSIHD : public Disk, public FileSupport
 {
 public:
 	// Basic Functions
-	SCSIHD(bool = false);					// Constructor
+	SCSIHD(bool);							// Constructor
 	void Reset();							// Reset
 	void Open(const Filepath& path);		// Open
 

@@ -19,6 +19,8 @@
 #include <sstream>
 #include "../rascsi.h"
 
+#define DEFAULT_PRODUCT "SCSI HD"
+
 //===========================================================================
 //
 //	SCSI Hard Disk
@@ -32,7 +34,6 @@
 //---------------------------------------------------------------------------
 SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
-	SetRemovable(removable);
 }
 
 //---------------------------------------------------------------------------
@@ -86,10 +87,22 @@ void SCSIHD::Open(const Filepath& path)
 		throw io_exception("File size must not exceed 2 TB");
 	}
 
-	// Set the default product name based on the drive capacity
-	stringstream product;
-	product << DEFAULT_PRODUCT << " " << (GetBlockCount() >> 11) << " MB";
-	SetProduct(product.str(), false);
+	// For non-removable media drives set the default product name based on the drive capacity
+	if (!IsRemovable()) {
+		int capacity;
+		string unit;
+		if (GetBlockCount() >> 11 >= 1) {
+			capacity = GetBlockCount() >> 11;
+			unit = "MB";
+		}
+		else {
+			capacity = GetBlockCount() >> 1;
+			unit = "KB";
+		}
+		stringstream product;
+		product << DEFAULT_PRODUCT << " " << capacity << " " << unit;
+		SetProduct(product.str(), false);
+	}
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
