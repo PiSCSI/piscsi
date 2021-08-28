@@ -91,7 +91,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 
 		case SCRM:
 			device = new SCSIHD(true);
-			device->SetProtectable(true);
+			device->SetRemovable(true);
 			device->SetLockable(true);
 			device->SetProtectable(true);
 			((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
@@ -120,6 +120,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 
 		case SCDP:
 			device = new SCSIDaynaPort();
+			// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 			device->SetVendor("Dayna");
 			device->SetProduct("SCSI/Link");
 			device->SetRevision("1.4a");
