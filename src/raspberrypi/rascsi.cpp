@@ -738,10 +738,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 
 		// drive checks files
 		if (fileSupport && !filename.empty()) {
-			// Set the Path
 			filepath.SetPath(filename.c_str());
 
-			// Open the file path
 			try {
 				fileSupport->Open(filepath);
 			}
@@ -777,7 +775,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 		}
 
 		if (!device->Init(pbDevice.params())) {
-			error << "Initialization of " << device->GetType() << " device, ID: " << id << ", unit: " << unit << " failed";
+			error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
 
 			delete device;
 
@@ -790,7 +788,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 		// Re-map the controller
 		bool status = MapController(map);
 		if (status) {
-			LOGINFO("Added new %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			LOGINFO("Added new %s device, ID %d, unit %d", device->GetType().c_str(), id, unit);
 			return true;
 		}
 
@@ -881,7 +879,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 				}
 
 				filepath.SetPath(filename.c_str());
-				LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", filename.c_str(), device->GetType().c_str(), id, unit);
+
+				LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(), id, unit);
 
 				try {
 					fileSupport->Open(filepath);
@@ -906,6 +905,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 			}
 
 			LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
 			// EJECT is idempotent
 			device->Eject(true);
 			break;
@@ -916,6 +916,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 			}
 
 			LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
 			// PROTECT is idempotent
 			device->SetProtected(true);
 			break;
@@ -925,7 +926,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 				return true;
 			}
 
-			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
+			LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
 			// UNPROTECT is idempotent
 			device->SetProtected(false);
 			break;
@@ -938,7 +940,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 			return true;
 
 		default:
-			return ReturnStatus(fd, false, "Received unknown command: " + PbOperation_Name(operation));
+			return ReturnStatus(fd, false, "Received unknown operation: " + PbOperation_Name(operation));
 	}
 
 	return true;
