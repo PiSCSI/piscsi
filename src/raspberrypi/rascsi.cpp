@@ -66,8 +66,7 @@ static void *MonThread(void *param);
 vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
-typedef pair<int, int> full_id;
-map<string, full_id> files_in_use;
+map<string, pair<int, int>> files_in_use;
 DeviceFactory& device_factory = DeviceFactory::instance();
 
 //---------------------------------------------------------------------------
