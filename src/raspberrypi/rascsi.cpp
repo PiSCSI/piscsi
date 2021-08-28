@@ -637,7 +637,7 @@ bool SetDefaultImageFolder(const string& f)
 //
 //---------------------------------------------------------------------------
 
-bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cmd, const string& params, bool dryRun)
+bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation operation, const string& params, bool dryRun)
 {
 	Filepath filepath;
 	Device *device = NULL;
@@ -650,7 +650,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
-	s << "command=" << PbOperation_Name(cmd) << ", command params='" << params << "'"
+	s << "operation=" << PbOperation_Name(operation) << ", command params='" << params << "'"
 			<< ", device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
 			<< ", params='" << pbDevice.params() << "', vendor='" << pbDevice.vendor()
 			<< ", product='" << pbDevice.product() << "', revision='" << pbDevice.revision() << "'"
@@ -675,7 +675,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		map[i] = devices[i];
 	}
 
-	if (cmd == ATTACH) {
+	if (operation == ATTACH) {
 		if (map[id * UnitNum + unit]) {
 			error << "Duplicate ID " << id;
 			return ReturnStatus(fd, false, error);
@@ -798,7 +798,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 	}
 
 	// When detaching all devices no controller/unit tests are required
-	if (cmd != DETACH || !all) {
+	if (operation != DETACH || !all) {
 		// Does the controller exist?
 		if (!dryRun && !controllers[id]) {
 			error << "Received a command for non-existing ID " << id;
@@ -815,7 +815,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
-	if (cmd == DETACH) {
+	if (operation == DETACH) {
 		if (!all && !params.empty()) {
 			return ReturnStatus(fd, false, "Invalid command parameter '" + params + "' for " + PbOperation_Name(DETACH));
 		}
@@ -856,15 +856,15 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		}
 	}
 
-	if ((cmd == INSERT || cmd == EJECT) && !device->IsRemovable()) {
-		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't removable)");
+	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't removable)");
 	}
 
-	if ((cmd == PROTECT || cmd == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't protectable)");
+	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't protectable)");
 	}
 
-	switch (cmd) {
+	switch (operation) {
 		case INSERT: {
 				if (!pbDevice.vendor().empty() || !pbDevice.product().empty() || !pbDevice.revision().empty()) {
 					return ReturnStatus(fd, false, "Device name cannot be changed");
@@ -943,7 +943,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 			return true;
 
 		default:
-			return ReturnStatus(fd, false, "Received unknown command: " + PbOperation_Name(cmd));
+			return ReturnStatus(fd, false, "Received unknown command: " + PbOperation_Name(operation));
 	}
 
 	return true;
