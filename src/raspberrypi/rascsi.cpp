@@ -953,7 +953,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 {
 	// Dry run first
 	for (int i = 0; i < command.devices().devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), true)) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.operation(), command.params(), true)) {
 			return false;
 		}
 	}
@@ -962,7 +962,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 	// Execute
 	for (int i = 0; i < command.devices().devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), false)) {
+		if (!ProcessCmd(fd, command.devices().devices(i), command.operation(), command.params(), false)) {
 			return false;
 		}
 	}
@@ -1110,7 +1110,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Attach all specified devices
 	PbCommand command;
-	command.set_cmd(ATTACH);
+	command.set_operation(ATTACH);
 	command.set_allocated_devices(new PbDeviceDefinitions(devices));
 
 	if (!ProcessCmd(-1, command)) {
@@ -1186,7 +1186,7 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
-			switch(command.cmd()) {
+			switch(command.operation()) {
 				case LOG_LEVEL: {
 					bool status = SetLogLevel(command.params());
 					if (!status) {

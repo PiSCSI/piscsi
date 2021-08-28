@@ -108,7 +108,7 @@ bool ReceiveResult(int fd)
 
 const PbServerInfo GetServerInfo(const string&hostname, int port) {
 	PbCommand command;
-	command.set_cmd(SERVER_INFO);
+	command.set_operation(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
@@ -139,7 +139,7 @@ void CommandList(const string& hostname, int port)
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
 {
 	PbCommand command;
-	command.set_cmd(LOG_LEVEL);
+	command.set_operation(LOG_LEVEL);
 	command.set_params(log_level);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
@@ -150,7 +150,7 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
 {
 	PbCommand command;
-	command.set_cmd(DEFAULT_FOLDER);
+	command.set_operation(DEFAULT_FOLDER);
 	command.set_params(folder);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
@@ -161,7 +161,7 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 void CommandServerInfo(const string& hostname, int port)
 {
 	PbCommand command;
-	command.set_cmd(SERVER_INFO);
+	command.set_operation(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
@@ -413,11 +413,11 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				command.set_cmd(ParseOperation(optarg));
+				command.set_operation(ParseOperation(optarg));
 				break;
 
 			case 'd':
-				command.set_cmd(DEFAULT_FOLDER);
+				command.set_operation(DEFAULT_FOLDER);
 				default_folder = optarg;
 				break;
 
@@ -430,7 +430,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'g':
-				command.set_cmd(LOG_LEVEL);
+				command.set_operation(LOG_LEVEL);
 				log_level = optarg;
 				break;
 
@@ -480,7 +480,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 's':
-				command.set_cmd(SERVER_INFO);
+				command.set_operation(SERVER_INFO);
 				break;
 
 			case 'v':
@@ -494,17 +494,17 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (command.cmd() == LOG_LEVEL) {
+	if (command.operation() == LOG_LEVEL) {
 		CommandLogLevel(hostname, port, log_level);
 		exit(EXIT_SUCCESS);
 	}
 
-	if (command.cmd() == DEFAULT_FOLDER) {
+	if (command.operation() == DEFAULT_FOLDER) {
 		CommandDefaultImageFolder(hostname, port, default_folder);
 		exit(EXIT_SUCCESS);
 	}
 
-	if (command.cmd() == SERVER_INFO) {
+	if (command.operation() == SERVER_INFO) {
 		CommandServerInfo(hostname, port);
 		exit(EXIT_SUCCESS);
 	}

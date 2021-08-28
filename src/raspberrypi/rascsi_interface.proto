@@ -131,7 +131,7 @@ message PbDevices {
 
 // Commands rascsi can execute and their parameters
 message PbCommand {
-    PbOperation cmd = 1;
+    PbOperation operation = 1;
     // The optional device list
     PbDeviceDefinitions devices = 2;
     // The optional parameters, depending on the operation
