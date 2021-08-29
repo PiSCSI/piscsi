@@ -66,7 +66,8 @@ static void *MonThread(void *param);
 vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
-map<string, pair<int, int>> files_in_use;
+typedef pair<int, int> id_set;
+map<string, id_set> files_in_use;
 DeviceFactory& device_factory = DeviceFactory::instance();
 
 //---------------------------------------------------------------------------
@@ -902,6 +903,13 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 
 				LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(), id, unit);
 
+				const string path = filepath.GetPath();
+				if (files_in_use.find(path) != files_in_use.end()) {
+					const auto& full_id = files_in_use[path];
+					error << "Image file '" << filename << "' is already used by ID " << full_id.first << ", unit " << full_id.second;
+					return ReturnStatus(fd, false, error);
+				}
+
 				try {
 					try {
 						fileSupport->Open(filepath);
@@ -914,13 +922,6 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 				}
 				catch(const io_exception& e) {
 					return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
-				}
-
-				const string path = filepath.GetPath();
-				if (files_in_use.find(path) != files_in_use.end()) {
-					const auto& full_id = files_in_use[path];
-					error << "Image file '" << filename << "' is already used by ID " << full_id.first << ", unit " << full_id.second;
-					return ReturnStatus(fd, false, error);
 				}
 
 				files_in_use[path] = make_pair(device->GetId(), device->GetLun());
@@ -982,15 +983,15 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
 	// Dry run first
+	const auto files = files_in_use;
 	for (int i = 0; i < command.devices().devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices().devices(i), command.operation(), command.params(), true)) {
 			return false;
 		}
 	}
 
-	files_in_use.clear();
-
 	// Execute
+	files_in_use = files;
 	for (int i = 0; i < command.devices().devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices().devices(i), command.operation(), command.params(), false)) {
 			return false;
