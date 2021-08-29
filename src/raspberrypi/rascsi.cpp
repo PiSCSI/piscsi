@@ -584,6 +584,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCBR);
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
+	properties->set_supports_params(true);
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCDP);
