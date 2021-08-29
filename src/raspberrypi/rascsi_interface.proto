@@ -51,7 +51,7 @@ enum PbOperation {
 
 // The properties supported by a device, helping clients to offer a good user experience
 message PbDeviceProperties {
-     // Read-only medium (e.g. CD-ROMs) are not protectable but permanently read-only
+     // Read-only media (e.g. CD-ROMs) are not protectable but permanently read-only
     bool read_only = 1;
     // Medium can be write-protected
     bool protectable = 2;
