@@ -2,8 +2,13 @@ import fnmatch
 import os
 import subprocess
 import time
+import io
+import re
 
-from ractl_cmds import attach_image
+from ractl_cmds import (
+    attach_image,
+    detach_all,
+)
 from settings import *
 
 
@@ -73,7 +78,7 @@ def download_image(url):
     urllib.request.urlretrieve(url, full_path)
 
 def write_config_csv(file_name):
-	import csv
+    import csv
 
     # This method takes the output of 'rasctl -l' and parses it into csv format:
     # 0: ID
@@ -95,7 +100,7 @@ def write_config_csv(file_name):
                 writer.writerow(device_info)
 				
 def read_config_csv(file_name):
-	detach_all()
+    detach_all()
     import csv
 
     with open(file_name) as csv_file:

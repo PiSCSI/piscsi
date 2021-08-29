@@ -9,6 +9,8 @@ from file_cmds import (
     delete_image,
     unzip_file,
     download_image,
+    write_config_csv,
+    read_config_csv,
 )
 from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
 from ractl_cmds import (
@@ -65,7 +67,7 @@ def config_load():
     file_name = request.form.get("name") or "default.csv"
     file_name = f"{base_dir}{file_name}"
 
-	read_config_csv(file_name)
+    read_config_csv(file_name)
     flash(f"Loaded config from  {file_name}!")
     return redirect(url_for("index"))
 
@@ -303,6 +305,8 @@ if __name__ == "__main__":
     app.config["UPLOAD_FOLDER"] = base_dir
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
+    
+    read_config_csv(f"{base_dir}default.csv")
 
     import bjoern
     print("Serving rascsi-web...")

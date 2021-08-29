@@ -21,6 +21,8 @@
 
     {% block content %}
     <h2>Current RaSCSI Configuration</h2>
+    <p>The <em>default</em> configuration will be loaded when the Web UI starts up.</p>
+    <p>
     <form action="/config/load" method="post">
         <select name="name" >
             {% for config in config_files %}
@@ -36,6 +38,7 @@
     <form action="/scsi/detach_all" method="post" onsubmit="return confirm('Detach all SCSI Devices?')">
         <input type="submit" value="Detach All" />
     </form>
+    </p>
 
     <table cellpadding="3" border="black">
         <tbody>
