@@ -537,9 +537,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_file(true);
 	auto block_sizes = device_factory.GetSasiSectorSizes();
-	for (const auto& block_size : block_sizes) {
-		properties->add_block_sizes(block_size);
-	}
+	properties->mutable_block_sizes()->Add(block_sizes.begin(), block_sizes.end());
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCHD);
@@ -548,9 +546,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
 	block_sizes = device_factory.GetScsiSectorSizes();
-	for (const auto& block_size : block_sizes) {
-		properties->add_block_sizes(block_size);
-	}
+	properties->mutable_block_sizes()->Add(block_sizes.begin(), block_sizes.end());
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCRM);
@@ -560,9 +556,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
-	for (const auto& block_size : block_sizes) {
-		properties->add_block_sizes(block_size);
-	}
+	properties->mutable_block_sizes()->Add(block_sizes.begin(), block_sizes.end());
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCMO);
@@ -573,9 +567,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
 	auto capacities = device_factory.GetMoCapacities();
-	for (const auto& capacity : capacities) {
-		properties->add_capacities(capacity);
-	}
+	properties->mutable_capacities()->Add(capacities.begin(), capacities.end());
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCCD);

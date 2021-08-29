@@ -198,30 +198,29 @@ void CommandServerInfo(const string& hostname, int port)
 
 	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
 	if (!serverInfo.image_files_size()) {
-		cout << "  No image files available in the default folder" << endl;
+		cout << "  No image files available" << endl;
 	}
 	else {
-		list<PbImageFile> files;
-		for (int i = 0; i < serverInfo.image_files_size(); i++) {
-			files.push_back(serverInfo.image_files(i));
-		}
+		list<PbImageFile> files = { serverInfo.image_files().begin(), serverInfo.image_files().end() };
 		files.sort([](const PbImageFile& a, const PbImageFile& b) { return a.name() < b.name(); });
 
-		cout << "Image files available in the default folder:" << endl;
+		cout << "Available image files:" << endl;
 		for (const auto& file : files) {
-			cout << "  " << file.name() << " (" << file.size() << " bytes)" << (file.read_only() ? ", read-only": "")
-					<< endl;
+			cout << "  " << file.name() << " (" << file.size() << " bytes)";
+			if (file.read_only()) {
+				cout << ", read-only";
+			}
+			cout << endl;
 		}
 	}
 
 	cout << "Supported device types and their properties:" << endl;
-	for (int i = 0; i < serverInfo.types_properties_size(); i++) {
-		PbDeviceTypeProperties types_properties = serverInfo.types_properties(i);
-		cout << "  " << PbDeviceType_Name(types_properties.type());
+	for (auto it = serverInfo.types_properties().begin(); it != serverInfo.types_properties().end(); ++it) {
+		cout << "  " << PbDeviceType_Name(it->type());
 
 		cout << "  Properties: ";
 		bool has_property = false;
-		const PbDeviceProperties& properties = types_properties.properties();
+		const PbDeviceProperties& properties = it->properties();
 		if (properties.read_only()) {
 			cout << "Read-only";
 					has_property = true;
@@ -252,12 +251,8 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 		cout << endl;
 
-		list<uint32_t> block_sizes;
-		for (int k = 0 ; k < properties.block_sizes_size(); k++) {
-			block_sizes.push_back(properties.block_sizes(k));
-		}
-
-		if (!block_sizes.empty()) {
+		if (properties.block_sizes_size()) {
+			list<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
 			block_sizes.sort([](const auto& a, const auto& b) { return a < b; });
 
 			cout << "        Configurable block sizes in bytes: ";
@@ -274,12 +269,8 @@ void CommandServerInfo(const string& hostname, int port)
 			cout << endl;
 		}
 
-		list<uint64_t> capacities;
-		for (int k = 0; k < properties.capacities_size(); k++) {
-			capacities.push_back(properties.capacities(k));
-		}
-
-		if (!capacities.empty()) {
+		if (properties.capacities_size()) {
+			list<uint64_t> capacities = { properties.capacities().begin(), properties.capacities().end() };
 			capacities.sort([](const auto& a, const auto& b) { return a < b; });
 
 			cout << "        Media capacities in bytes: ";
@@ -297,17 +288,14 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 	}
 
-	cout << "Attached devices:" << endl;
-	const PbDevices& devices = serverInfo.devices();
-	if (!devices.devices_size()) {
+	if (!serverInfo.devices().devices_size()) {
 		cout << "No devices attached" << endl;
 	}
 	else {
-		list<PbDevice> sorted_devices;
-		for (int i = 0; i < devices.devices_size(); i++) {
-			sorted_devices.push_back(devices.devices(i));
-		}
+		list<PbDevice> sorted_devices = { serverInfo.devices().devices().begin(), serverInfo.devices().devices().end() };
 		sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id(); });
+
+		cout << "Attached devices:" << endl;
 
 		for (const auto& device : sorted_devices) {
 			cout << "  " << device.id() << ":" << device.unit() << "  " << PbDeviceType_Name(device.type())
