@@ -315,7 +315,11 @@ void CommandServerInfo(const string& hostname, int port)
 			if (device.block_size()) {
 				cout << "  " << device.block_size() << " BPS";
 			}
-			cout << (device.file().name().empty() ? "" : "  " + device.file().name()) << endl;
+			cout << (device.file().name().empty() ? "" : "  " + device.file().name());
+			if (device.properties().read_only() || device.status().protected_()) {
+				cout << "  read-only";
+			}
+			cout <<endl;
 		}
 	}
 }
