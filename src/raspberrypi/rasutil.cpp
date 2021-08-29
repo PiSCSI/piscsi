@@ -33,11 +33,8 @@ string ListDevices(const PbDevices& devices)
 		return "No images currently attached.";
 	}
 
-	list<PbDevice> sorted_devices;
-	for (int i = 0; i < devices.devices_size(); i++) {
-		sorted_devices.push_back(devices.devices(i));
-	}
-	sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id(); });
+	list<PbDevice> sorted_devices = { devices.devices().begin(), devices.devices().end() };
+	sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id() && a.unit() < b.unit(); });
 
 	for (const auto& device : sorted_devices) {
 		string filename;

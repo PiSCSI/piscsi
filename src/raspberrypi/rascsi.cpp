@@ -593,11 +593,10 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 void GetAvailableImages(PbServerInfo& serverInfo)
 {
-	if (access(default_image_folder.c_str(), F_OK) != -1) {
+	if (!access(default_image_folder.c_str(), F_OK)) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				PbImageFile *image_file = serverInfo.add_image_files();
-				GetImageFile(image_file, entry.path().filename());
+				GetImageFile(serverInfo.add_image_files(), entry.path().filename());
 			}
 		}
 	}

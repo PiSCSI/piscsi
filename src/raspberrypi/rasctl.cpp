@@ -202,7 +202,7 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 	else {
 		list<PbImageFile> files = { serverInfo.image_files().begin(), serverInfo.image_files().end() };
-		files.sort([](const PbImageFile& a, const PbImageFile& b) { return a.name() < b.name(); });
+		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 		cout << "Available image files:" << endl;
 		for (const auto& file : files) {
@@ -293,7 +293,7 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 	else {
 		list<PbDevice> sorted_devices = { serverInfo.devices().devices().begin(), serverInfo.devices().devices().end() };
-		sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id(); });
+		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
 
 		cout << "Attached devices:" << endl;
 
