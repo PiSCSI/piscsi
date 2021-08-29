@@ -259,10 +259,7 @@ void CommandServerInfo(const string& hostname, int port)
 			block_sizes.push_back(properties.block_sizes(k));
 		}
 
-		if (block_sizes.empty()) {
-			cout << "        Block size is not configurable" << endl;
-		}
-		else {
+		if (!block_sizes.empty()) {
 			block_sizes.sort([](const int& a, const int& b) { return a < b; });
 
 			cout << "        Configurable block sizes: ";
