@@ -370,12 +370,31 @@ function readChoice() {
 
 function setupWiredNetworking() {
     echo "Setting up wired network..."
-    # Setup bridge
-    sudo cp ~/RASCSI/src/raspberrypi/os_integration/rascsi_bridge /etc/network/interfaces.d/rascsi_bridge
 
-    # Setup routing
-    grep "^denyinterfaces eth0" || sudo echo "denyinterfaces eth0" >> /etc/dhcpcd.conf
+    LAN_INTERFACE=$(ifconfig | grep eth | cut -d":" -f 1)
 
+    if [ $(grep -c . <<<"$LAN_INTERFACE") -gt "1" ] ; then
+        SELECTED=""
+        until [ $(grep -c "^$SELECTED$" <<< "$LAN_INTERFACE") -eq 1 ]; do
+            echo "Multiple network interfaces found:"
+            for INTERFACE in $LAN_INTERFACE ; do
+                echo "$INTERFACE"
+            done
+            echo "Please select the interface you want to use: (eg: eth0)"
+            read -r SELECTED
+        done
+
+        LAN_INTERFACE=$SELECTED
+    fi
+    
+    echo "$LAN_INTERFACE will be configured."
+    echo "Press Enter to continue or CTRL-C to exit"
+    read REPLY
+
+    grep "^denyinterfaces $LAN_INTERFACE" || sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
+
+    # default config file is made for eth0, this will set the right net interface
+    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
     
     echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
     echo ""
@@ -395,6 +414,30 @@ function setupWirelessNetworking() {
     NETWORK="`echo $IP | cut -d"." -f1`.`echo $IP | cut -d"." -f2`.`echo $IP | cut -d"." -f3`"
     NETWORK_MASK=$NETWORK.0/24
     ROUTER_IP=$NETWORK.1
+
+
+    WLAN_INTERFACE=$(ifconfig | grep wlan | cut -d":" -f 1)
+
+    if [ $(grep -c . <<<"$WLAN_INTERFACE") -gt "1" ] ; then
+        SELECTED=""
+        until [ $(grep -c "^$SELECTED$" <<< "$WLAN_INTERFACE") -eq 1 ]; do
+            echo "Multiple network interfaces found:"
+            
+            for INTERFACE in $WLAN_INTERFACE ; do
+                echo "$INTERFACE"
+            done
+            echo "Please select the wireless interface you want to use: (eg: wlan0)"
+            read -r SELECTED
+        done
+
+        WLAN_INTERFACE=$SELECTED
+    fi
+
+    echo "$WLAN_INTERFACE will be configured."
+    echo "Press Enter to continue or CTRL-C to exit"
+    read REPLY
+    
+
     # IP Address
     echo "Bridge network settings, please verify:"
     echo "Macintosh or Device IP: $IP"
@@ -419,7 +462,7 @@ ifconfig rascsi_bridge '"$ROUTER_IP"'/24 up
     sudo iptables -P INPUT ACCEPT
     sudo iptables -P OUTPUT ACCEPT
     sudo iptables -P FORWARD ACCEPT
-    sudo iptables -t nat -A POSTROUTING -o wlan0 -s $NETWORK_MASK -j MASQUERADE
+    sudo iptables -t nat -A POSTROUTING -o $WLAN_INTERFACE -s $NETWORK_MASK -j MASQUERADE
 
 
     # Check if iptables-persistent is installed
@@ -487,7 +530,7 @@ function readNetworkChoice() {
 }
 
 function checkNetworkType() {
-    HAS_WIFI=$(ifconfig | grep -c wlan0)
+    HAS_WIFI=$(ifconfig | grep -c wlan)
     HAS_WIRE=$(ifconfig | grep -c eth)
 
     if [ $HAS_WIFI -eq 0 ] && [ $HAS_WIRE -eq 0 ]; then
@@ -495,7 +538,6 @@ function checkNetworkType() {
     elif [ $HAS_WIFI -eq 1 ] && [ $HAS_WIRE -eq 1 ]; then
         showNetworkMenu
         readNetworkChoice
-
     elif [ $HAS_WIRE -eq 1 ]; then
         echo "Ethernet detected (Wired)"
         showMacNetworkWire
@@ -509,7 +551,7 @@ function checkNetworkType() {
 
 function checkIfNetworkIsConfigured() {
     echo "Checking current Network status"
-    ROUTING=$(grep -c "10.10.20.0/24 -o wlan0" /etc/iptables/rules.v4)
+    ROUTING=$(grep -c "10.10.20.0/24 -o wlan" /etc/iptables/rules.v4)
     BRIDGE=$(brctl show | grep -c "rascsi_bridge")
     FORWARD=$(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf)
 
@@ -551,7 +593,7 @@ function showMenu() {
     echo "  6) 600MB drive (recommended)"
     echo "  7) custom drive size (up to 4000MB)"
     echo "NETWORK"
-    echo "  8) Network assistant (wire and wireless)"
+    echo "  8) Network assistant (wireless and wire)"
 }
 
 showRaSCSILogo
