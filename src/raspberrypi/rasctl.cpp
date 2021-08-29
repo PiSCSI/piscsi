@@ -282,7 +282,7 @@ void CommandServerInfo(const string& hostname, int port)
 		if (!capacities.empty()) {
 			capacities.sort([](const auto& a, const auto& b) { return a < b; });
 
-			cout << "        Supported capacities in bytes: ";
+			cout << "        Media capacities in bytes: ";
 
 			bool isFirst = true;
 			for (const auto& capacity : capacities) {
