@@ -21,6 +21,7 @@
 #include "scsi.h"
 #include "controllers/scsidev_ctrl.h"
 #include "device.h"
+#include "device_factory.h"
 #include "disk_track_cache.h"
 #include "file_support.h"
 #include "filepath.h"
@@ -37,8 +38,12 @@ class Disk : public Device, public ScsiPrimaryCommands, public ScsiBlockCommands
 private:
 	enum access_mode { RW6, RW10, RW16 };
 
-	set<int> sector_sizes;
-	int configured_sector_size;
+	// The supported configurable block sizes, empty if not configurable
+	set<uint32_t> sector_sizes;
+	uint32_t configured_sector_size;
+
+	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
+	map<uint64_t, Geometry> geometries;
 
 	SASIDEV::ctrl_t *ctrl;
 
@@ -46,7 +51,7 @@ protected:
 	// Internal data structure
 	typedef struct {
 		int size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
-		DWORD blocks;							// Total number of sectors
+		uint32_t blocks;						// Total number of sectors
 		DiskCache *dcache;						// Disk cache
 		off_t imgoffset;						// Offset to actual data
 	} disk_t;
@@ -124,16 +129,18 @@ public:
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
 
-	int GetSectorSizeInBytes() const;
-	void SetSectorSizeInBytes(int, bool);
-	int GetSectorSize() const;
+	uint32_t GetSectorSizeInBytes() const;
+	void SetSectorSizeInBytes(uint32_t, bool);
+	uint32_t GetSectorSize() const;
 	bool IsSectorSizeConfigurable() const;
-	set<int> GetSectorSizes() const;
-	void SetSectorSizes(const set<int>&);
-	int GetConfiguredSectorSize() const;
-	bool SetConfiguredSectorSize(int);
+	set<uint32_t> GetSectorSizes() const;
+	void SetSectorSizes(const set<uint32_t>&);
+	uint32_t GetConfiguredSectorSize() const;
+	bool SetConfiguredSectorSize(uint32_t);
+	void SetGeometries(const map<uint64_t, Geometry>&);
+	void SetGeometryForCapacity(uint64_t);
 	uint32_t GetBlockCount() const;
-	void SetBlockCount(DWORD);
+	void SetBlockCount(uint32_t);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 
 	// TODO Try to get rid of this method, which is called by SASIDEV (but must not)

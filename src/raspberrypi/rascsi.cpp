@@ -66,7 +66,8 @@ static void *MonThread(void *param);
 vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
-map<string, pair<int, int>> files_in_use;
+typedef pair<int, int> id_set;
+map<string, id_set> files_in_use;
 DeviceFactory& device_factory = DeviceFactory::instance();
 
 //---------------------------------------------------------------------------
@@ -448,7 +449,7 @@ bool MapController(Device **map)
 bool ReturnStatus(int fd, bool status = true, const string msg = "")
 {
 	if (!status && !msg.empty()) {
-		LOGWARN("%s", msg.c_str());
+		LOGERROR("%s", msg.c_str());
 	}
 
 	if (fd == -1) {
@@ -535,12 +536,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	PbDeviceProperties *properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_file(true);
-	set<int> block_sizes = device_factory.GetSasiSectorSizes();
-	for (const auto& block_size : block_sizes) {
+	for (const auto& block_size : device_factory.GetSasiSectorSizes()) {
 		properties->add_block_sizes(block_size);
 	}
-
-	block_sizes = device_factory.GetScsiSectorSizes();
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCHD);
@@ -548,7 +546,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
-	for (const auto& block_size : block_sizes) {
+	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
 		properties->add_block_sizes(block_size);
 	}
 
@@ -560,7 +558,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
-	for (const auto& block_size : block_sizes) {
+	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
 		properties->add_block_sizes(block_size);
 	}
 
@@ -572,6 +570,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
+	for (const auto& capacity : device_factory.GetMoCapacities()) {
+		properties->add_capacities(capacity);
+	}
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCCD);
@@ -584,6 +585,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCBR);
+	properties = new PbDeviceProperties();
+	types_properties->set_allocated_properties(properties);
+	properties->set_supports_params(true);
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCDP);
@@ -594,11 +598,10 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 
 void GetAvailableImages(PbServerInfo& serverInfo)
 {
-	if (access(default_image_folder.c_str(), F_OK) != -1) {
+	if (!access(default_image_folder.c_str(), F_OK)) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				PbImageFile *image_file = serverInfo.add_image_files();
-				GetImageFile(image_file, entry.path().filename());
+				GetImageFile(serverInfo.add_image_files(), entry.path().filename());
 			}
 		}
 	}
@@ -729,7 +732,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 			Disk *disk = dynamic_cast<Disk *>(device);
 			if (disk && disk->IsSectorSizeConfigurable()) {
 				if (!disk->SetConfiguredSectorSize(pbDevice.block_size())) {
-					error << "Invalid block size " << pbDevice.block_size();
+					error << "Invalid block size " << pbDevice.block_size() << " bytes";
 					return ReturnStatus(fd, false, error);
 				}
 			}
@@ -752,20 +755,19 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 			filepath.SetPath(filename.c_str());
 
 			try {
-				fileSupport->Open(filepath);
-			}
-			catch(const io_exception& e) {
-				// If the file does not exist search for it in the default image folder
-				string default_file = default_image_folder + "/" + filename;
-				filepath.SetPath(default_file.c_str());
 				try {
 					fileSupport->Open(filepath);
 				}
-				catch(const io_exception&) {
-					delete device;
-
-					return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
+				catch(const file_not_found_exception&) {
+					// If the file does not exist search for it in the default image folder
+					filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
+					fileSupport->Open(filepath);
 				}
+			}
+			catch(const io_exception& e) {
+				delete device;
+
+				return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
 			}
 
 			const string path = filepath.GetPath();
@@ -875,6 +877,10 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 
 	switch (operation) {
 		case INSERT: {
+				if (!device->IsRemoved()) {
+					return ReturnStatus(fd, false, "Existing medium must first be ejected");
+				}
+
 				if (!pbDevice.vendor().empty() || !pbDevice.product().empty() || !pbDevice.revision().empty()) {
 					return ReturnStatus(fd, false, "Device name cannot be changed");
 				}
@@ -893,32 +899,45 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 
 				LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(), id, unit);
 
-				try {
-					fileSupport->Open(filepath);
+				const string path = filepath.GetPath();
+				if (files_in_use.find(path) != files_in_use.end()) {
+					const auto& full_id = files_in_use[path];
+					error << "Image file '" << filename << "' is already used by ID " << full_id.first << ", unit " << full_id.second;
+					return ReturnStatus(fd, false, error);
 				}
-				catch(const io_exception& e) {
-					// If the file does not exist search for it in the default image folder
-					string default_file = default_image_folder + "/" + filename;
-					filepath.SetPath(default_file.c_str());
+
+				try {
 					try {
 						fileSupport->Open(filepath);
 					}
-					catch(const io_exception&) {
-						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
+					catch(const file_not_found_exception&) {
+						// If the file does not exist search for it in the default image folder
+						filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
+						fileSupport->Open(filepath);
 					}
 				}
+				catch(const io_exception& e) {
+					return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
+				}
+
+				files_in_use[path] = make_pair(device->GetId(), device->GetLun());
 			}
 			break;
 
-		case EJECT:
-			if (dryRun) {
-				return true;
+		case EJECT: {
+				if (dryRun) {
+					return true;
+				}
+
+				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
+				// EJECT is idempotent
+				if (device->Eject(true) && fileSupport) {
+					Filepath filepath;
+					fileSupport->GetPath(filepath);
+					files_in_use.erase(filepath.GetPath());
+				}
 			}
-
-			LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
-
-			// EJECT is idempotent
-			device->Eject(true);
 			break;
 
 		case PROTECT:
@@ -960,15 +979,15 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
 	// Dry run first
+	const auto files = files_in_use;
 	for (int i = 0; i < command.devices().devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices().devices(i), command.operation(), command.params(), true)) {
 			return false;
 		}
 	}
 
-	files_in_use.clear();
-
 	// Execute
+	files_in_use = files;
 	for (int i = 0; i < command.devices().devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices().devices(i), command.operation(), command.params(), false)) {
 			return false;

@@ -35,9 +35,15 @@ private:
 
 public:
 	io_exception(const string& _msg) : msg(_msg) {}
-	~io_exception() {}
+	virtual ~io_exception() {}
 
 	const string& getmsg() const {
 		return msg;
 	}
+};
+
+class file_not_found_exception : public io_exception {
+public:
+	file_not_found_exception(const string& msg) : io_exception(msg) {}
+	~file_not_found_exception() {}
 };

@@ -39,19 +39,19 @@ enum PbOperation {
     ATTACH = 4;
     // Detach device. Detach all devices if PbCommand.params == "all". In this case ID and unit are ignored.
     DETACH = 5;
-    // Insert media
+    // Insert medium
     INSERT = 6;
-    // Eject media
+    // Eject medium
     EJECT = 7;
-    // Write-protect media (not possible for read-only media)
+    // Write-protect medium (not possible for read-only media)
     PROTECT = 8;
-    // Make media writable (not possible for read-only media)
+    // Make medium writable (not possible for read-only media)
     UNPROTECT = 9;
 }
 
-// The properties supported by a device
+// The properties supported by a device, helping clients to offer a good user experience
 message PbDeviceProperties {
-     // Read-only medium (e.g. CD-ROMs) are not protectable but permanently read-only
+     // Read-only media (e.g. CD-ROMs) are not protectable but permanently read-only
     bool read_only = 1;
     // Medium can be write-protected
     bool protectable = 2;
@@ -63,8 +63,10 @@ message PbDeviceProperties {
     bool supports_file = 5;
     // Device supports parameters other than a filename
     bool supports_params = 6;
-    // Unordered list of supported block sizes, empty if the block size is not configurable
+    // Unordered list of supported block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 7;
+    // Unordered list of supported media capacities in bytes, empty if there is no capacity restriction
+    repeated uint64 capacities = 8;
 }
 
 // The status of a device
