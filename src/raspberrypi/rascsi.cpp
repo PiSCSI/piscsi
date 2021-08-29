@@ -536,8 +536,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	PbDeviceProperties *properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_file(true);
-	auto block_sizes = device_factory.GetSasiSectorSizes();
-	properties->mutable_block_sizes()->Add(block_sizes.begin(), block_sizes.end());
+	for (const auto& block_size : device_factory.GetSasiSectorSizes()) {
+		properties->add_block_sizes(block_size);
+	}
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCHD);
@@ -545,8 +546,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
-	block_sizes = device_factory.GetScsiSectorSizes();
-	properties->mutable_block_sizes()->Add(block_sizes.begin(), block_sizes.end());
+	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
+		properties->add_block_sizes(block_size);
+	}
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCRM);
@@ -556,7 +558,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
-	properties->mutable_block_sizes()->Add(block_sizes.begin(), block_sizes.end());
+	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
+		properties->add_block_sizes(block_size);
+	}
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCMO);
@@ -566,8 +570,9 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
-	auto capacities = device_factory.GetMoCapacities();
-	properties->mutable_capacities()->Add(capacities.begin(), capacities.end());
+	for (const auto& capacity : device_factory.GetMoCapacities()) {
+		properties->add_capacities(capacity);
+	}
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCCD);
