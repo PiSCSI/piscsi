@@ -79,7 +79,7 @@ bool SCSIBR::Init(const string& interfaces)
 {
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver(!interfaces.empty() ? interfaces : "eth0,wlan0");
+	tap = new CTapDriver(interfaces);
 	m_bTapEnable = tap->Init();
 
 	// Generate MAC Address
