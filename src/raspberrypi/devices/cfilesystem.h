@@ -16,330 +16,321 @@
 
 //---------------------------------------------------------------------------
 //
-//	ステータスコード定義
+//	Status code definitions
 //
 //---------------------------------------------------------------------------
-#define FS_INVALIDFUNC		0xFFFFFFFF	///< 無効なファンクションコードを実行した
-#define FS_FILENOTFND		0xFFFFFFFE	///< 指定したファイルが見つからない
-#define FS_DIRNOTFND		0xFFFFFFFD	///< 指定したディレクトリが見つからない
-#define FS_OVEROPENED		0xFFFFFFFC	///< オープンしているファイルが多すぎる
-#define FS_CANTACCESS		0xFFFFFFFB	///< ディレクトリやボリュームラベルはアクセス不可
-#define FS_NOTOPENED		0xFFFFFFFA	///< 指定したハンドルはオープンされていない
-#define FS_INVALIDMEM		0xFFFFFFF9	///< メモリ管理領域が破壊された
-#define FS_OUTOFMEM		0xFFFFFFF8	///< 実行に必要なメモリがない
-#define FS_INVALIDPTR		0xFFFFFFF7	///< 無効なメモリ管理ポインタを指定した
-#define FS_INVALIDENV		0xFFFFFFF6	///< 不正な環境を指定した
-#define FS_ILLEGALFMT		0xFFFFFFF5	///< 実行ファイルのフォーマットが異常
-#define FS_ILLEGALMOD		0xFFFFFFF4	///< オープンのアクセスモードが異常
-#define FS_INVALIDPATH		0xFFFFFFF3	///< ファイル名の指定に誤りがある
-#define FS_INVALIDPRM		0xFFFFFFF2	///< 無効なパラメータでコールした
-#define FS_INVALIDDRV		0xFFFFFFF1	///< ドライブ指定に誤りがある
-#define FS_DELCURDIR		0xFFFFFFF0	///< カレントディレクトリは削除できない
-#define FS_NOTIOCTRL		0xFFFFFFEF	///< IOCTRLできないデバイス
-#define FS_LASTFILE		0xFFFFFFEE	///< これ以上ファイルが見つからない
-#define FS_CANTWRITE		0xFFFFFFED	///< 指定のファイルは書き込みできない
-#define FS_DIRALREADY		0xFFFFFFEC	///< 指定のディレクトリは既に登録されている
-#define FS_CANTDELETE		0xFFFFFFEB	///< ファイルがあるので削除できない
-#define FS_CANTRENAME		0xFFFFFFEA	///< ファイルがあるのでリネームできない
-#define FS_DISKFULL		0xFFFFFFE9	///< ディスクが一杯でファイルが作れない
-#define FS_DIRFULL		0xFFFFFFE8	///< ディレクトリが一杯でファイルが作れない
-#define FS_CANTSEEK		0xFFFFFFE7	///< 指定の位置にはシークできない
-#define FS_SUPERVISOR		0xFFFFFFE6	///< スーパーバイザ状態でスーパバイザ指定した
-#define FS_THREADNAME		0xFFFFFFE5	///< 同じスレッド名が存在する
-#define FS_BUFWRITE		0xFFFFFFE4	///< プロセス間通信のバッファが書込み禁止
-#define FS_BACKGROUND		0xFFFFFFE3	///< バックグラウンドプロセスを起動できない
-#define FS_OUTOFLOCK		0xFFFFFFE0	///< ロック領域が足りない
-#define FS_LOCKED		0xFFFFFFDF	///< ロックされていてアクセスできない
-#define FS_DRIVEOPENED		0xFFFFFFDE	///< 指定のドライブはハンドラがオープンされている
-#define FS_LINKOVER		0xFFFFFFDD	///< シンボリックリンクネストが16回を超えた
-#define FS_FILEEXIST		0xFFFFFFB0	///< ファイルが存在する
+#define FS_INVALIDFUNC		0xFFFFFFFF	///< Executed an invalid function
+#define FS_FILENOTFND		0xFFFFFFFE	///< The selected file can not be found
+#define FS_DIRNOTFND		0xFFFFFFFD	///< The selected directory can not be found
+#define FS_OVEROPENED		0xFFFFFFFC	///< There are too many files open
+#define FS_CANTACCESS		0xFFFFFFFB	///< Can not access the direcory or volume
+#define FS_NOTOPENED		0xFFFFFFFA	///< The selected handle is not opened
+#define FS_INVALIDMEM		0xFFFFFFF9	///< Memory management has been destroyed
+#define FS_OUTOFMEM		0xFFFFFFF8	///< Insufficient memory for execution
+#define FS_INVALIDPTR		0xFFFFFFF7	///< Selected an invalid memory management pointer
+#define FS_INVALIDENV		0xFFFFFFF6	///< Selected an invalid environment
+#define FS_ILLEGALFMT		0xFFFFFFF5	///< The exeucted file is in an invalid format
+#define FS_ILLEGALMOD		0xFFFFFFF4	///< Invalid open access mode
+#define FS_INVALIDPATH		0xFFFFFFF3	///< Mistake in selected file name
+#define FS_INVALIDPRM		0xFFFFFFF2	///< Called with an invalid parameter
+#define FS_INVALIDDRV		0xFFFFFFF1	///< Mistake in selected drive
+#define FS_DELCURDIR		0xFFFFFFF0	///< Unable to delete the current directory
+#define FS_NOTIOCTRL		0xFFFFFFEF	///< Unable to use IOCTRL with the device
+#define FS_LASTFILE		0xFFFFFFEE	///< Can not find any more files
+#define FS_CANTWRITE		0xFFFFFFED	///< Selected file can not be written
+#define FS_DIRALREADY		0xFFFFFFEC	///< Selected directory is already registered
+#define FS_CANTDELETE		0xFFFFFFEB	///< Can not delete because of a file
+#define FS_CANTRENAME		0xFFFFFFEA	///< Can not rename because of a file
+#define FS_DISKFULL		0xFFFFFFE9	///< Can not create a file because the disk is full
+#define FS_DIRFULL		0xFFFFFFE8	///< Can not create a file because the directory is full
+#define FS_CANTSEEK		0xFFFFFFE7	///< Can not seek in the selected location
+#define FS_SUPERVISOR		0xFFFFFFE6	///< Selected supervisor in supervisor mode
+#define FS_THREADNAME		0xFFFFFFE5	///< A thread with this name already exists
+#define FS_BUFWRITE		0xFFFFFFE4	///< Writing to inter-process communication buffers is disallowed
+#define FS_BACKGROUND		0xFFFFFFE3	///< Unable to start a background process
+#define FS_OUTOFLOCK		0xFFFFFFE0	///< Insufficient lock space
+#define FS_LOCKED		0xFFFFFFDF	///< Can not access because it is locked
+#define FS_DRIVEOPENED		0xFFFFFFDE	///< Selected drive has an open handler
+#define FS_LINKOVER		0xFFFFFFDD	///< The symbolic link is nested over 16 times
+#define FS_FILEEXIST		0xFFFFFFB0	///< The file exists
 
-#define FS_FATAL_MEDIAOFFLINE	0xFFFFFFA3	///< メディアが入っていない
-#define FS_FATAL_WRITEPROTECT	0xFFFFFFA2	///< 書き込み禁止違反
-#define FS_FATAL_INVALIDCOMMAND	0xFFFFFFA1	///< 不正なコマンド番号
-#define FS_FATAL_INVALIDUNIT	0xFFFFFFA0	///< 不正なユニット番号
+#define FS_FATAL_MEDIAOFFLINE	0xFFFFFFA3	///< No media inserted
+#define FS_FATAL_WRITEPROTECT	0xFFFFFFA2	///< Write protected
+#define FS_FATAL_INVALIDCOMMAND	0xFFFFFFA1	///< Invalid command number
+#define FS_FATAL_INVALIDUNIT	0xFFFFFFA0	///< Invalid unit number
 
-#define HUMAN68K_PATH_MAX	96		///< Human68kのパス最大長
+#define HUMAN68K_PATH_MAX	96		///< Longest path allowed in Human68k
 
 //===========================================================================
 //
-/// Human68k 名前空間
+/// Human68k name space
 //
 //===========================================================================
 namespace Human68k {
-	/// ファイル属性ビット
+	/// File attribute bit
 	enum attribute_t {
-		AT_READONLY = 0x01,		///< 読み込み専用属性
-		AT_HIDDEN = 0x02,		///< 隠し属性
-		AT_SYSTEM = 0x04,		///< システム属性
-		AT_VOLUME = 0x08,		///< ボリュームラベル属性
-		AT_DIRECTORY = 0x10,		///< ディレクトリ属性
-		AT_ARCHIVE = 0x20,		///< アーカイブ属性
-		AT_ALL = 0xFF,			///< 全ての属性ビットが1
+		AT_READONLY = 0x01,		///< Read only attribute
+		AT_HIDDEN = 0x02,		///< Hidden attribute
+		AT_SYSTEM = 0x04,		///< System attribute
+		AT_VOLUME = 0x08,		///< Volume label attribute
+		AT_DIRECTORY = 0x10,		///< Directory attribute
+		AT_ARCHIVE = 0x20,		///< Archive attribute
+		AT_ALL = 0xFF,			///< All attribute bits are 1
 	};
 
-	/// ファイルオープンモード
+	/// File open modes
 	enum open_t {
-		OP_READ = 0,			///< 読み込み
-		OP_WRITE = 1,			///< 書き込み
-		OP_FULL = 2,			///< 読み書き
-		OP_MASK = 0x0F,			///< 判定用マスク
-		OP_SHARE_NONE = 0x10,		///< 共有禁止
-		OP_SHARE_READ = 0x20,		///< 読み込み共有
-		OP_SHARE_WRITE = 0x30,		///< 書き込み共有
-		OP_SHARE_FULL = 0x40,		///< 読み書き共有
-		OP_SHARE_MASK = 0x70,		///< 共有判定用マスク
-		OP_SPECIAL = 0x100,		///< 辞書アクセス
+		OP_READ = 0,			///< Read
+		OP_WRITE = 1,			///< Write
+		OP_FULL = 2,			///< Read/Write
+		OP_MASK = 0x0F,			///< Decision mask
+		OP_SHARE_NONE = 0x10,		///< Sharing forbidden
+		OP_SHARE_READ = 0x20,		///< Read sharing
+		OP_SHARE_WRITE = 0x30,		///< Write sharing
+		OP_SHARE_FULL = 0x40,		///< Read/Write sharing
+		OP_SHARE_MASK = 0x70,		///< Sharing decision mask
+		OP_SPECIAL = 0x100,		///< Dictionary access
 	};
 
-	/// シーク種類
+	/// Seek types
 	enum seek_t {
-		SK_BEGIN = 0,			///< ファイル先頭から
-		SK_CURRENT = 1,			///< 現在位置から
-		SK_END = 2,			///< ファイル末尾から
+		SK_BEGIN = 0,			///< From the beginning of a file
+		SK_CURRENT = 1,			///< From the current location
+		SK_END = 2,			///< From the end of the file
 	};
 
-	/// メディアバイト
+	/// Media byte
 	enum media_t {
-		MEDIA_2DD_10 = 0xE0,		///< 2DD/10セクタ
-		MEDIA_1D_9 = 0xE5,		///< 1D/9セクタ
-		MEDIA_2D_9 = 0xE6,		///< 2D/9セクタ
-		MEDIA_1D_8 = 0xE7,		///< 1D/8セクタ
-		MEDIA_2D_8 = 0xE8,		///< 2D/8セクタ
+		MEDIA_2DD_10 = 0xE0,		///< 2DD/10 sector
+		MEDIA_1D_9 = 0xE5,		///< 1D/9 sector
+		MEDIA_2D_9 = 0xE6,		///< 2D/9 sector
+		MEDIA_1D_8 = 0xE7,		///< 1D/8 sector
+		MEDIA_2D_8 = 0xE8,		///< 2D/8 sector
 		MEDIA_2HT = 0xEA,		///< 2HT
 		MEDIA_2HS = 0xEB,		///< 2HS
 		MEDIA_2HDE = 0xEC,		///< 2DDE
-		MEDIA_1DD_9 = 0xEE,		///< 1DD/9セクタ
-		MEDIA_1DD_8 = 0xEF,		///< 1DD/8セクタ
-		MEDIA_MANUAL = 0xF1,		///< リモートドライブ (手動イジェクト)
-		MEDIA_REMOVABLE = 0xF2,		///< リモートドライブ (リムーバブル)
-		MEDIA_REMOTE = 0xF3,		///< リモートドライブ
+		MEDIA_1DD_9 = 0xEE,		///< 1DD/9 sector
+		MEDIA_1DD_8 = 0xEF,		///< 1DD/8 sector
+		MEDIA_MANUAL = 0xF1,		///< Remote drive (manual eject)
+		MEDIA_REMOVABLE = 0xF2,		///< Remote drive (removable)
+		MEDIA_REMOTE = 0xF3,		///< Remote drive
 		MEDIA_DAT = 0xF4,		///< SCSI-DAT
 		MEDIA_CDROM = 0xF5,		///< SCSI-CDROM
 		MEDIA_MO = 0xF6,		///< SCSI-MO
 		MEDIA_SCSI_HD = 0xF7,		///< SCSI-HD
 		MEDIA_SASI_HD = 0xF8,		///< SASI-HD
-		MEDIA_RAMDISK = 0xF9,		///< RAMディスク
+		MEDIA_RAMDISK = 0xF9,		///< RAM disk
 		MEDIA_2HQ = 0xFA,		///< 2HQ
-		MEDIA_2DD_8 = 0xFB,		///< 2DD/8セクタ
-		MEDIA_2DD_9 = 0xFC,		///< 2DD/9セクタ
+		MEDIA_2DD_8 = 0xFB,		///< 2DD/8 sector
+		MEDIA_2DD_9 = 0xFC,		///< 2DD/9 sector
 		MEDIA_2HC = 0xFD,		///< 2HC
 		MEDIA_2HD = 0xFE,		///< 2HD
 	};
 
-	/// namests構造体
 	struct namests_t {
-		BYTE wildcard;			///< ワイルドカード文字数
-		BYTE drive;			///< ドライブ番号
-		BYTE path[65];			///< パス(サブディレクトリ+/)
-		BYTE name[8];			///< ファイル名 (PADDING 0x20)
-		BYTE ext[3];			///< 拡張子 (PADDING 0x20)
-		BYTE add[10];			///< ファイル名追加 (PADDING 0x00)
+		BYTE wildcard;			///< Wildcard array
+		BYTE drive;			///< Drive number
+		BYTE path[65];			///< Path (subdirectory +/)
+		BYTE name[8];			///< File name (PADDING 0x20)
+		BYTE ext[3];			///< Extension (PADDING 0x20)
+		BYTE add[10];			///< File name addition (PADDING 0x00)
 
-		// 文字列取得
 		void GetCopyPath(BYTE* szPath) const;
-		///< パス名取得
 		void GetCopyFilename(BYTE* szFilename) const;
-		///< ファイル名取得
 	};
 
-	/// files構造体
 	struct files_t {
-		BYTE fatr;			///< + 0 検索する属性			読込専用
-		//		BYTE drive;	///< + 1 ドライブ番号			読込専用
-		DWORD sector;			///< + 2 ディレクトリのセクタ		DOS _FILES先頭アドレスで代用
-		//		WORD cluster;	///< + 6 ディレクトリのクラスタ		詳細不明 (未使用)
-		WORD offset;			///< + 8 ディレクトリエントリ		書込専用
-		//		BYTE name[8];	///< +10 作業用ファイル名		読込専用 (未使用)
-		//		BYTE ext[3];	///< +18 作業用拡張子			読込専用 (未使用)
-		BYTE attr;			///< +21 ファイル属性			書込専用
-		WORD time;			///< +22 最終変更時刻			書込専用
-		WORD date;			///< +24 最終変更月日			書込専用
-		DWORD size;			///< +26 ファイルサイズ			書込専用
-		BYTE full[23];			///< +30 フルファイル名			書込専用
+		BYTE fatr;			///< + 0 search attribute; read-only
+		//		BYTE drive;	///< + 1 drive number; read-only
+		DWORD sector;			///< + 2 directory sector; DOS _FILES first address substitute
+		//		WORD cluster;	///< + 6 directory cluster; details unknown (unused)
+		WORD offset;			///< + 8 directory entry; write-only
+		//		BYTE name[8];	///< +10 working file name; write-only (unused)
+		//		BYTE ext[3];	///< +18 working extension; write-only (unused)
+		BYTE attr;			///< +21 file attribute; write-only
+		WORD time;			///< +22 last change time of day; write-only
+		WORD date;			///< +24 last change date; write-only
+		DWORD size;			///< +26 file size; write-only
+		BYTE full[23];			///< +30 full name; write-only
 	};
 
-	/// FCB構造体
 	struct fcb_t {
-		//		BYTE pad00[6];	///< + 0～+ 5	(未使用)
-		DWORD fileptr;			///< + 6～+ 9	ファイルポインタ
-		//		BYTE pad01[4];	///< +10～+13	(未使用)
-		WORD mode;			///< +14～+15	オープンモード
-		//		BYTE pad02[16];	///< +16～+31	(未使用)
-		//		DWORD zero;	///< +32～+35	オープンのとき0が書き込まれている (未使用)
-		//		BYTE name[8];	///< +36～+43	ファイル名 (PADDING 0x20) (未使用)
-		//		BYTE ext[3];	///< +44～+46	拡張子 (PADDING 0x20) (未使用)
-		BYTE attr;			///< +47	ファイル属性
-		//		BYTE add[10];	///< +48～+57	ファイル名追加 (PADDING 0x00) (未使用)
-		WORD time;			///< +58～+59	最終変更時刻
-		WORD date;			///< +60～+61	最終変更月日
-		//		WORD cluster;	///< +62～+63	クラスタ番号 (未使用)
-		DWORD size;			///< +64～+67	ファイルサイズ
-		//		BYTE pad03[28];	///< +68～+95	FATキャッシュ (未使用)
+		//		BYTE pad00[6];	///< + 0~+ 5	(unused)
+		DWORD fileptr;			///< + 6~+ 9	file pointer
+		//		BYTE pad01[4];	///< +10~+13	(unused)
+		WORD mode;			///< +14~+15	open mode
+		//		BYTE pad02[16];	///< +16~+31	(unused)
+		//		DWORD zero;	///< +32~+35	zeros are written when opened (unused)
+		//		BYTE name[8];	///< +36~+43	file name (PADDING 0x20) (unused)
+		//		BYTE ext[3];	///< +44~+46	extension (PADDING 0x20) (unused)
+		BYTE attr;			///< +47	file attribute
+		//		BYTE add[10];	///< +48~+57	file name addition (PADDING 0x00) (unused)
+		WORD time;			///< +58~+59	last change time of day
+		WORD date;			///< +60~+61	last change date
+		//		WORD cluster;	///< +62~+63	cluster number (unused)
+		DWORD size;			///< +64~+67	file size
+		//		BYTE pad03[28];	///< +68~+95	FAT cache (unused)
 	};
 
-	/// capacity構造体
 	struct capacity_t {
-		WORD freearea;			///< + 0	使用可能なクラスタ数
-		WORD clusters;			///< + 2	総クラスタ数
-		WORD sectors;			///< + 4	クラスタあたりのセクタ数
-		WORD bytes;			///< + 6	セクタ当たりのバイト数
+		WORD freearea;			///< + 0	Number of available clusters
+		WORD clusters;			///< + 2	Total number of clusters
+		WORD sectors;			///< + 4	Number of sectors per cluster
+		WORD bytes;			///< + 6	Number of bytes per sector
 	};
 
-	/// ctrldrive構造体
 	struct ctrldrive_t {
-		BYTE status;			///< +13	状態
+		BYTE status;			///< +13	status
 		BYTE pad[3];			///< Padding
 	};
 
-	/// DPB構造体
 	struct dpb_t {
-		WORD sector_size;		///< + 0	1セクタ当りのバイト数
-		BYTE cluster_size;		///< + 2	1クラスタ当りのセクタ数-1
-		BYTE shift;			///< + 3	クラスタ→セクタのシフト数
-		WORD fat_sector;		///< + 4	FATの先頭セクタ番号
-		BYTE fat_max;			///< + 6	FAT領域の個数
-		BYTE fat_size;			///< + 7	FATの占めるセクタ数(複写分を除く)
-		WORD file_max;			///< + 8	ルートディレクトリに入るファイルの個数
-		WORD data_sector;		///< +10	データ領域の先頭セクタ番号
-		WORD cluster_max;		///< +12	総クラスタ数+1
-		WORD root_sector;		///< +14	ルートディレクトリの先頭セクタ番号
-		//	DWORD driverentry;	///< +16	デバイスドライバへのポインタ (未使用)
-		BYTE media;			///< +20	メディア識別子
-		//	BYTE flag;		///< +21	DPB使用フラグ (未使用)
+		WORD sector_size;		///< + 0	Number of bytes in one sector
+		BYTE cluster_size;		///< + 2	Number sectors in one cluster -1
+		BYTE shift;			///< + 3	Number of cluster→sector shifts
+		WORD fat_sector;		///< + 4	FAT first sector number
+		BYTE fat_max;			///< + 6	FAT storage quantity
+		BYTE fat_size;			///< + 7	FAT controlled sector number (excluding duplicates)
+		WORD file_max;			///< + 8	Number of files in the root directory
+		WORD data_sector;		///< +10	First sector number of data storage
+		WORD cluster_max;		///< +12	Total number of clusters +1
+		WORD root_sector;		///< +14	First sector number of root directory
+		//	DWORD driverentry;	///< +16	Device driver pointer (unused)
+		BYTE media;			///< +20	Media identifier
+		//	BYTE flag;		///< +21	Flag used by DPB (unused)
 	};
 
-	/// ディレクトリエントリ構造体
+	/// Directory entry struct
 	struct dirent_t {
-		BYTE name[8];			///< + 0	ファイル名 (PADDING 0x20)
-		BYTE ext[3];			///< + 8	拡張子 (PADDING 0x20)
-		BYTE attr;			///< +11	ファイル属性
-		BYTE add[10];			///< +12	ファイル名追加 (PADDING 0x00)
-		WORD time;			///< +22	最終変更時刻
-		WORD date;			///< +24	最終変更月日
-		WORD cluster;			///< +26	クラスタ番号
-		DWORD size;			///< +28	ファイルサイズ
+		BYTE name[8];			///< + 0	File name (PADDING 0x20)
+		BYTE ext[3];			///< + 8	Extension (PADDING 0x20)
+		BYTE attr;			///< +11	File attribute
+		BYTE add[10];			///< +12	File name addition (PADDING 0x00)
+		WORD time;			///< +22	Last change time of day
+		WORD date;			///< +24	Last change date
+		WORD cluster;			///< +26	Cluster number
+		DWORD size;			///< +28	File size
 	};
 
-	/// IOCTRLパラメータ共用体
+	/// IOCTRL parameter union
 	union ioctrl_t {
-		BYTE buffer[8];			///< バイト単位でのアクセス
-		DWORD param;			///< パラメータ(先頭4バイト)
-		WORD media;			///< メディアバイト(先頭2バイト)
+		BYTE buffer[8];			///< Access in byte units
+		DWORD param;			///< Parameter (First 4 bytes)
+		WORD media;			///< Media byte (First 2 bytes)
 	};
 
-	/// コマンドライン引数構造体
+	/// Command line parameter struct
 	/**
-	先頭にドライバ自身のパスが含まれるためHUMAN68K_PATH_MAX以上のサイズにする。
+	The driver itself is included in the beginning of the argument, 
+	so setting to a length longer than HUMAN68K_PATH_MAX
 	*/
 	struct argument_t {
-		BYTE buf[256];			///< コマンドライン引数
+		BYTE buf[256];			///< Command line argument
 	};
 }
 
-/// FILES用バッファ個数
+/// Number of FILES buffers
 /**
-通常は数個で十分だが、Human68kの複数のプロセスがマルチタスクで同時に
-深い階層に渡って作業する時などはこの値を増やす必要がある。
+Under normal circumstances it's enough with just a few buffers,
+but Human68k multitasking may lead to multiple threads working
+deeply in the system, which is why this value is set this high.
 
-デフォルトは20個。
+Default is 20 buffers.
 */
 #define XM6_HOST_FILES_MAX	20
 
-/// FCB用バッファ個数
+/// Number of FCB buffers
 /**
-同時にオープンできるファイル数はこれで決まる。
+This decides how many files can be opened at the same time.
 
-デフォルトは100ファイル。
+Default is 100 files.
 */
 #define XM6_HOST_FCB_MAX	100
 
-/// 仮想セクタ/クラスタ 最大個数
+/// Max number of virtual clusters and sectors
 /**
-ファイル実体の先頭セクタへのアクセスに対応するための仮想セクタの個数。
-lzdsysによるアクセスを行なうスレッドの数より多めに確保する。
+Number of virtual sectors used for accessing the first sector of a file entity.
+Allocating a generous amount to exceed the number of threads lzdsys uses for access.
 
-デフォルトは10セクタ。
+Default is 10 sectors.
 */
 #define XM6_HOST_PSEUDO_CLUSTER_MAX	10
 
-/// ディレクトリエントリ キャッシュ個数
+/// Number of caches for directory entries
 /**
-Human68kは、サブディレクトリ内で処理を行なう際にディレクトリエントリ
-のチェックを大量に発行する。この応答を高速化するための簡易キャッシュ
-の個数を指定する。キャッシュは各ドライブ毎に確保される。
-多いほど高速になるが、増やしすぎるとホストOS側に負担がかかるので注意。
+Human68k carries out a large number of checks of directory entries when doing an operation 
+inside a subdirectory. This specifies the number of caches used to speed up this operation. 
+Cache is allocated per drive. The more you add the faster it gets, but use too many 
+and the host OS gets under a heavy load, so be careful.
 
-デフォルトは16個。
+Default is 16.
 */
 #define XM6_HOST_DIRENTRY_CACHE_MAX	16
 
-/// 1ディレクトリに収納できるエントリの最大数
+/// Max number of entries that can be stored per directory
 /**
-ディレクトリ内にファイルが大量に存在すると、当時のアプリケーションが
-想定していない大量のデータを返してしまうことになる。アプリによっては
-一部しか認識されなかったり、速度が大幅に低下したり、メモリ不足で停止
-するなどの危険性が存在する。このため上限を設定することで対処する。
-例えばとあるファイラの場合、2560ファイルが上限となっている。この数を
-一つの目安とするのが良い。
+When a large number of files are stored in a directory, a larger amount of data than 
+contemporanous applications can handle will be returned. This may lead to errors such as 
+partial data being recognized, performance dropping significantly, or OOM crashes.
+To guard against this, an upper limit is defined here. In the case of a particular 
+file manager, the upper limit is 2560 files. This is one good example to use as reference.
 
-デフォルトは約6万エントリ。(FATのルートディレクトリでの上限値)
+Default is around 60000 entries. (Upper limit of the FAT root directory)
 */
 #define XM6_HOST_DIRENTRY_FILE_MAX	65535
 
-/// ファイル名の重複除外パターンの最大数
+/// Max number of patterns for file name deduplication
 /**
-Human68k側のファイル名は、ホスト側のファイルシステムの名称をもとに自
-動生成されるが、Human68k側のファイル名よりもホスト側のファイル名の名
-称のほうが長いため、同名のファイル名が生成されてしまう可能性がある。
-その時、Human68k側からファイル名を区別できるようにするため、WindrvXM
-独自の命名規則に従って別名を生成して解決している。
-理論上は約6千万(36の5乗)通りの別名を生成できる方式を取っているが、実
-際には数百パターン以上の重複判定が発生すると処理に時間がかかってしま
-うため、重複の上限を設定することで速度を維持する。常識的な運用であれ
-ば、代替名は数パターンもあれば十分運用できるはずであり、この値を可能
-な限り小さい値にすることでパフォーマンスの改善が期待できる。
-この個数を超えるファイル名が重複してしまった場合は、同名のエントリが
-複数生成される。この場合、ファイル一覧では見えるがファイル名で指定す
-ると最初のエントリのみ扱える状態となる。
+The file names on the Human68k side are automatically created based on the file system on 
+the host side. However, Human68k have stricter file name length restrictions than the host has. 
+Because of this, there is a risk that file name duplication will occur. When this happens, 
+WindrvXM will use a certain renaming heuristic to generate alternate file names to resolve 
+the duplication. Theoretically, there are over 60 million (36^5) unique file names that 
+can be generated by this method. However, in reality any more than a few hundred 
+deduplications will take excessive processing time. So here an upper limit to deduplication 
+is set in order to maintain system performance. If a system is operated with common sense, 
+you should only need a few dozen deduplication patterns, so this value can be kept low 
+to further improce performance. In the case deduplication is not carried out, multiple files 
+with the same name will be created. When trying to access such files, 
+only the first entry will ever be accessed.
 
-デフォルトは36パターン。
+Default is 36 patterns.
 */
 #define XM6_HOST_FILENAME_PATTERN_MAX	36
 
-/// ファイル名重複防止マーク
+/// Duplicate file identification mark
 /**
-ホスト側のファイル名とHuman68k側ファイル名の名称の区別をつけるときに
-使う文字。コマンドシェル等のエスケープ文字と重ならないものを選ぶと吉。
+A symbol used to distinguish between host and Human68k files.
+Do not use a command shell escape character, or similar protected symbol.
 
-デフォルトは「@」。
+Default is '@'.
 */
 #define XM6_HOST_FILENAME_MARK	'@'
 
-/// WINDRV動作フラグ
+/// WINDRV operational flags
 /**
-通常は0にする。ファイル削除にOSのごみ箱機能を利用する場合は1にする。
-それ以外の値は将来のための予約とする。
-内部動作フラグとメディアバイト偽装などを見越した将来の拡張用。
+Normally set to 0. When put in the OS trash can for deletion, it is set to 1.
+Other values are reserved for future use.
+Can be used for future extentions such as internal operational flags or mock media byte.
 */
 enum {
-	WINDRV_OPT_REMOVE =		0x00000001,	///< Bit 0: ファイル削除処理			0:直接 1:ごみ箱
-	WINDRV_OPT_ALPHABET =		0x00000020,	///< Bit 5: ファイル名比較 Alphabet区別		0:なし 1:あり	0:-C 1:+C
-	WINDRV_OPT_COMPARE_LENGTH =	0x00000040,	///< Bit 6: ファイル名比較 文字数(未実装)	0:18+3 1:8+3	0:+T 1:-T
-	WINDRV_OPT_CONVERT_LENGTH =	0x00000080,	///< Bit 7: ファイル名変換 文字数		0:18+3 1:8+3	0:-A 1:+A
-	WINDRV_OPT_CONVERT_SPACE =	0x00000100,	///< Bit 8: ファイル名変換 スペース		0:なし 1:'_'
-	WINDRV_OPT_CONVERT_BADCHAR =	0x00000200,	///< Bit 9: ファイル名変換 無効な文字		0:なし 1:'_'
-	WINDRV_OPT_CONVERT_HYPHENS =	0x00000400,	///< Bit10: ファイル名変換 中間のハイフン	0:なし 1:'_'
-	WINDRV_OPT_CONVERT_HYPHEN =	0x00000800,	///< Bit11: ファイル名変換 先頭のハイフン	0:なし 1:'_'
-	WINDRV_OPT_CONVERT_PERIODS =	0x00001000,	///< Bit12: ファイル名変換 中間のピリオド	0:なし 1:'_'
-	WINDRV_OPT_CONVERT_PERIOD =	0x00002000,	///< Bit13: ファイル名変換 先頭のピリオド	0:なし 1:'_'
-	WINDRV_OPT_REDUCED_SPACE =	0x00010000,	///< Bit16: ファイル名短縮 スペース		0:なし 1:短縮
-	WINDRV_OPT_REDUCED_BADCHAR =	0x00020000,	///< Bit17: ファイル名短縮 無効な文字		0:なし 1:短縮
-	WINDRV_OPT_REDUCED_HYPHENS =	0x00040000,	///< Bit18: ファイル名短縮 中間のハイフン	0:なし 1:短縮
-	WINDRV_OPT_REDUCED_HYPHEN =	0x00080000,	///< Bit19: ファイル名短縮 先頭のハイフン	0:なし 1:短縮
-	WINDRV_OPT_REDUCED_PERIODS =	0x00100000,	///< Bit20: ファイル名短縮 中間のピリオド	0:なし 1:短縮
-	WINDRV_OPT_REDUCED_PERIOD =	0x00200000,	///< Bit21: ファイル名短縮 先頭のピリオド	0:なし 1:短縮
-	// Bit24～30 ファイル重複防止マーク			0:自動 1～127:文字
+	WINDRV_OPT_REMOVE =		0x00000001,	///< Bit 0: File delete process			0:Directly 1:Trash can
+	WINDRV_OPT_ALPHABET =		0x00000020,	///< Bit 5: File name comparison; Alphabet distinction		0:No 1:Yes	0:-C 1:+C
+	WINDRV_OPT_COMPARE_LENGTH =	0x00000040,	///< Bit 6: File name comparison; String length (unimplemented)	0:18+3 1:8+3	0:+T 1:-T
+	WINDRV_OPT_CONVERT_LENGTH =	0x00000080,	///< Bit 7: File name conversion; String length		0:18+3 1:8+3	0:-A 1:+A
+	WINDRV_OPT_CONVERT_SPACE =	0x00000100,	///< Bit 8: File name conversion; Space		0:No 1:'_'
+	WINDRV_OPT_CONVERT_BADCHAR =	0x00000200,	///< Bit 9: File name conversion; Invalid char		0:No 1:'_'
+	WINDRV_OPT_CONVERT_HYPHENS =	0x00000400,	///< Bit10: File name conversion; Middle hyphen	0:No 1:'_'
+	WINDRV_OPT_CONVERT_HYPHEN =	0x00000800,	///< Bit11: File name conversion; Initial hyphen	0:No 1:'_'
+	WINDRV_OPT_CONVERT_PERIODS =	0x00001000,	///< Bit12: File name conversion; Middle period	0:No 1:'_'
+	WINDRV_OPT_CONVERT_PERIOD =	0x00002000,	///< Bit13: File name conversion; Initial period	0:No 1:'_'
+	WINDRV_OPT_REDUCED_SPACE =	0x00010000,	///< Bit16: File name reduction; Space		0:No 1:Reduced
+	WINDRV_OPT_REDUCED_BADCHAR =	0x00020000,	///< Bit17: File name reduction; Invalid char		0:No 1:Reduced
+	WINDRV_OPT_REDUCED_HYPHENS =	0x00040000,	///< Bit18: File name reduction Middle hyphen	0:No 1:Reduced
+	WINDRV_OPT_REDUCED_HYPHEN =	0x00080000,	///< Bit19: File name reduction Initial hyphen	0:No 1:Reduced
+	WINDRV_OPT_REDUCED_PERIODS =	0x00100000,	///< Bit20: File name reduction Middle period	0:No 1:Reduced
+	WINDRV_OPT_REDUCED_PERIOD =	0x00200000,	///< Bit21: File name reduction Initial period	0:No 1:Reduced
+	// Bit24～30 Duplicate file identification mark			0:Automatic 1～127:Chars
 };
 
 /// ファイルシステム動作フラグ
