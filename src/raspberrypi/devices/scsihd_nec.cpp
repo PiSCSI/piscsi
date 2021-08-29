@@ -72,7 +72,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open hard disk file read-only");
+		throw io_exception("Can't open hard disk file");
 	}
 
 	// Get file size

@@ -48,7 +48,7 @@ void SCSIMO::Open(const Filepath& path)
 	Fileio fio;
 
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw file_not_found_exception("Can't open MO file read-only");
+		throw file_not_found_exception("Can't open MO file");
 	}
 
 	// Get file size
