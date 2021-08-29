@@ -880,6 +880,10 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 
 	switch (operation) {
 		case INSERT: {
+				if (!device->IsRemoved()) {
+					return ReturnStatus(fd, false, "Existing medium must first be ejected");
+				}
+
 				if (!pbDevice.vendor().empty() || !pbDevice.product().empty() || !pbDevice.revision().empty()) {
 					return ReturnStatus(fd, false, "Device name cannot be changed");
 				}
