@@ -29,8 +29,11 @@
                 <option value="{{config}}">{{config.replace(".csv", '')}}</option>
             {% endfor %}
         </select>
-        <input type="submit" value="Load" />
+        <input type="submit" name="load" value="Load" />
+        <input type="submit" name="delete" value="Delete" />
     </form>
+    </p>
+    <p>
     <form action="/config/save" method="post">
         <input name="name" placeholder="default">
         <input type="submit" value="Save" />

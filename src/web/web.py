@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, flash, url_for, redirect, sen
 from file_cmds import (
     create_new_image,
     download_file_to_iso,
-    delete_image,
+    delete_file,
     unzip_file,
     download_image,
     write_config_csv,
@@ -67,8 +67,15 @@ def config_load():
     file_name = request.form.get("name") or "default.csv"
     file_name = f"{base_dir}{file_name}"
 
-    read_config_csv(file_name)
-    flash(f"Loaded config from  {file_name}!")
+    if "load" in request.form:
+        read_config_csv(file_name)
+        flash(f"Loaded config from  {file_name}!")
+    elif "delete" in request.form:
+        if delete_file(file_name):
+            flash(f"Deleted config  {file_name}!")
+        else:
+            flash(f"Failed to delete  {file_name}!", "error")
+
     return redirect(url_for("index"))
 
 
@@ -279,7 +286,7 @@ def download():
 @app.route("/files/delete", methods=["POST"])
 def delete():
     image = request.form.get("image")
-    if delete_image(image):
+    if delete_file(base_dir + image):
         flash("File " + image + " deleted")
         return redirect(url_for("index"))
     else:

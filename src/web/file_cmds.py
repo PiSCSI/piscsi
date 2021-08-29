@@ -26,10 +26,9 @@ def create_new_image(file_name, type, size):
     )
 
 
-def delete_image(file_name):
-    full_path = base_dir + file_name
-    if os.path.exists(full_path):
-        os.remove(full_path)
+def delete_file(file_name):
+    if os.path.exists(file_name):
+        os.remove(file_name)
         return True
     else:
         return False
