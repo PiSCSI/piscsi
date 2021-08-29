@@ -18,16 +18,16 @@
 
 using namespace std;
 
+typedef pair<uint32_t, uint32_t> Geometry;
+
 class Device;
 
 class DeviceFactory
 {
 public:
 
-	typedef pair<uint32_t, uint32_t> Geometry;
-
 	DeviceFactory();
-	~DeviceFactory();
+	~DeviceFactory() {};
 
 	static DeviceFactory& instance();
 

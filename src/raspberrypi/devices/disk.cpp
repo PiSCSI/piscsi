@@ -1756,7 +1756,7 @@ void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 	set<uint32_t> sector_sizes = sasi ? DeviceFactory::instance().GetSasiSectorSizes() : DeviceFactory::instance().GetScsiSectorSizes();
 	if (sector_sizes.find(size) == sector_sizes.end()) {
 		stringstream error;
-		error << "Invalid sector size of " << size << " bytes";
+		error << "Invalid block size of " << size << " bytes";
 		throw io_exception(error.str());
 	}
 
@@ -1809,8 +1809,10 @@ uint32_t Disk::GetConfiguredSectorSize() const
 
 bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 {
-	if (configured_sector_size != 512 && configured_sector_size != 1024 &&
-			configured_sector_size != 2048 && configured_sector_size != 4096) {
+	const DeviceFactory& device_factory = DeviceFactory::instance();
+
+	set<uint32_t> sector_sizes = IsSCSI() ? device_factory.GetScsiSectorSizes() : device_factory.GetSasiSectorSizes();
+	if (sector_sizes.find(configured_sector_size) == sector_sizes.end()) {
 		return false;
 	}
 
@@ -1819,15 +1821,13 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 	return true;
 }
 
-bool Disk::SetGeometries(const map<uint64_t, DeviceFactory::Geometry>& geometries)
+void Disk::SetGeometries(const map<uint64_t, Geometry>& geometries)
 {
 	if (!IsMo()) {
-		return false;
+		throw illegal_argument_exception("Can't set geometry for");
 	}
 
 	this->geometries = geometries;
-
-	return true;
 }
 
 void Disk::SetGeometryForCapacity(uint64_t capacity) {

@@ -34,7 +34,7 @@ string ListDevices(const PbDevices& devices)
 	}
 
 	list<PbDevice> sorted_devices = { devices.devices().begin(), devices.devices().end() };
-	sorted_devices.sort([](const PbDevice& a, const PbDevice& b) { return a.id() < b.id() && a.unit() < b.unit(); });
+	sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() && a.unit() < b.unit(); });
 
 	for (const auto& device : sorted_devices) {
 		string filename;

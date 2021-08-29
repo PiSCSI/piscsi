@@ -727,7 +727,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation op
 			Disk *disk = dynamic_cast<Disk *>(device);
 			if (disk && disk->IsSectorSizeConfigurable()) {
 				if (!disk->SetConfiguredSectorSize(pbDevice.block_size())) {
-					error << "Invalid block size " << pbDevice.block_size();
+					error << "Invalid block size " << pbDevice.block_size() << " bytes";
 					return ReturnStatus(fd, false, error);
 				}
 			}

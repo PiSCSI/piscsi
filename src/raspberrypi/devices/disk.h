@@ -43,7 +43,7 @@ private:
 	uint32_t configured_sector_size;
 
 	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
-	map<uint64_t, DeviceFactory::Geometry> geometries;
+	map<uint64_t, Geometry> geometries;
 
 	SASIDEV::ctrl_t *ctrl;
 
@@ -137,7 +137,7 @@ public:
 	void SetSectorSizes(const set<uint32_t>&);
 	uint32_t GetConfiguredSectorSize() const;
 	bool SetConfiguredSectorSize(uint32_t);
-	bool SetGeometries(const map<uint64_t, DeviceFactory::Geometry>&);
+	void SetGeometries(const map<uint64_t, Geometry>&);
 	void SetGeometryForCapacity(uint64_t);
 	uint32_t GetBlockCount() const;
 	void SetBlockCount(uint32_t);
