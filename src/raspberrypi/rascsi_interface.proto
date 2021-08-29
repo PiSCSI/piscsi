@@ -39,17 +39,17 @@ enum PbOperation {
     ATTACH = 4;
     // Detach device. Detach all devices if PbCommand.params == "all". In this case ID and unit are ignored.
     DETACH = 5;
-    // Insert media
+    // Insert medium
     INSERT = 6;
-    // Eject media
+    // Eject medium
     EJECT = 7;
-    // Write-protect media (not possible for read-only media)
+    // Write-protect medium (not possible for read-only media)
     PROTECT = 8;
-    // Make media writable (not possible for read-only media)
+    // Make medium writable (not possible for read-only media)
     UNPROTECT = 9;
 }
 
-// The properties supported by a device
+// The properties supported by a device, helping clients to offer a good user experience
 message PbDeviceProperties {
      // Read-only medium (e.g. CD-ROMs) are not protectable but permanently read-only
     bool read_only = 1;
