@@ -376,14 +376,9 @@ function setupWiredNetworking() {
     # Setup routing
     grep "^denyinterfaces eth0" || sudo echo "denyinterfaces eth0" >> /etc/dhcpcd.conf
 
-    # Setup daynaPORT at start up
-    IS_ID2_USED=$(grep -c "-ID2" /etc/systemd/system/rascsi.service)
-    if [ $IS_ID2_USED -eq 0 ]; then
-        sudo sed s@"^ExecStart=/usr/local/bin/rascsi"@"ExecStart=/usr/local/bin/rascsi -ID2 daynaport"@ /etc/systemd/system/rascsi.service > /etc/systemd/system/rascsi.service
-    else
-        echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
-    fi
     
+    echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
+    echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
     read
