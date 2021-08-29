@@ -304,7 +304,7 @@ void SCSICD::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open CD-ROM file read-only");
+		throw file_not_found_exception("Can't open CD-ROM file read-only");
 	}
 
 	// Close and transfer for physical CD access

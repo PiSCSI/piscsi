@@ -63,8 +63,10 @@ message PbDeviceProperties {
     bool supports_file = 5;
     // Device supports parameters other than a filename
     bool supports_params = 6;
-    // Unordered list of supported block sizes, empty if the block size is not configurable
+    // Unordered list of supported block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 7;
+    // Unordered list of supported capacities in bytes, empty if there is no capacity restriction
+    repeated uint64 capacities = 8;
 }
 
 // The status of a device

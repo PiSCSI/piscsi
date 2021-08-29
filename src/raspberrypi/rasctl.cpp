@@ -219,8 +219,6 @@ void CommandServerInfo(const string& hostname, int port)
 		PbDeviceTypeProperties types_properties = serverInfo.types_properties(i);
 		cout << "  " << PbDeviceType_Name(types_properties.type());
 
-		list<int> block_sizes;
-
 		cout << "  Properties: ";
 		bool has_property = false;
 		const PbDeviceProperties& properties = types_properties.properties();
@@ -254,15 +252,15 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 		cout << endl;
 
-		for (int k = 0 ; k < properties.block_sizes_size(); k++)
-		{
+		list<uint32_t> block_sizes;
+		for (int k = 0 ; k < properties.block_sizes_size(); k++) {
 			block_sizes.push_back(properties.block_sizes(k));
 		}
 
 		if (!block_sizes.empty()) {
-			block_sizes.sort([](const int& a, const int& b) { return a < b; });
+			block_sizes.sort([](const auto& a, const auto& b) { return a < b; });
 
-			cout << "        Configurable block sizes: ";
+			cout << "        Configurable block sizes in bytes: ";
 
 			bool isFirst = true;
 			for (const auto& block_size : block_sizes) {
@@ -270,6 +268,28 @@ void CommandServerInfo(const string& hostname, int port)
 					cout << ", ";
 				}
 				cout << block_size;
+
+				isFirst = false;
+			}
+			cout << endl;
+		}
+
+		list<uint64_t> capacities;
+		for (int k = 0; k < properties.capacities_size(); k++) {
+			capacities.push_back(properties.capacities(k));
+		}
+
+		if (!capacities.empty()) {
+			capacities.sort([](const auto& a, const auto& b) { return a < b; });
+
+			cout << "        Supported capacities in bytes: ";
+
+			bool isFirst = true;
+			for (const auto& capacity : capacities) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				cout << capacity;
 
 				isFirst = false;
 			}

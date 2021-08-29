@@ -1746,14 +1746,14 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	return true;
 }
 
-int Disk::GetSectorSizeInBytes() const
+uint32_t Disk::GetSectorSizeInBytes() const
 {
 	return disk.size ? 1 << disk.size : 0;
 }
 
-void Disk::SetSectorSizeInBytes(int size, bool sasi)
+void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 {
-	set<int> sector_sizes = sasi ? DeviceFactory::instance().GetSasiSectorSizes() : DeviceFactory::instance().GetScsiSectorSizes();
+	set<uint32_t> sector_sizes = sasi ? DeviceFactory::instance().GetSasiSectorSizes() : DeviceFactory::instance().GetScsiSectorSizes();
 	if (sector_sizes.find(size) == sector_sizes.end()) {
 		stringstream error;
 		error << "Invalid sector size of " << size << " bytes";
@@ -1787,7 +1787,7 @@ void Disk::SetSectorSizeInBytes(int size, bool sasi)
 	}
 }
 
-int Disk::GetSectorSize() const
+uint32_t Disk::GetSectorSize() const
 {
 	return disk.size;
 }
@@ -1797,17 +1797,17 @@ bool Disk::IsSectorSizeConfigurable() const
 	return !sector_sizes.empty();
 }
 
-void Disk::SetSectorSizes(const set<int>& sector_sizes)
+void Disk::SetSectorSizes(const set<uint32_t>& sector_sizes)
 {
 	this->sector_sizes = sector_sizes;
 }
 
-int Disk::GetConfiguredSectorSize() const
+uint32_t Disk::GetConfiguredSectorSize() const
 {
 	return configured_sector_size;
 }
 
-bool Disk::SetConfiguredSectorSize(int configured_sector_size)
+bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 {
 	if (configured_sector_size != 512 && configured_sector_size != 1024 &&
 			configured_sector_size != 2048 && configured_sector_size != 4096) {
@@ -1819,12 +1819,45 @@ bool Disk::SetConfiguredSectorSize(int configured_sector_size)
 	return true;
 }
 
+bool Disk::SetGeometries(const map<uint64_t, DeviceFactory::Geometry>& geometries)
+{
+	if (!IsMo()) {
+		return false;
+	}
+
+	this->geometries = geometries;
+
+	return true;
+}
+
+void Disk::SetGeometryForCapacity(uint64_t capacity) {
+	const auto& geometry = geometries.find(capacity);
+
+	if (geometry == geometries.end()) {
+		ostringstream error;
+		error << "Invalid file size of " << capacity << " bytes. Supported file sizes are ";
+		bool isFirst = true;
+		for (const auto& g : geometries) {
+			if (!isFirst) {
+				error << ", ";
+			}
+			error << g.first << " bytes";
+			isFirst = false;
+		}
+		error << ".";
+		throw io_exception(error.str());
+	}
+
+	SetSectorSizeInBytes(geometry->second.first, false);
+	SetBlockCount(geometry->second.second);
+}
+
 uint32_t Disk::GetBlockCount() const
 {
 	return disk.blocks;
 }
 
-void Disk::SetBlockCount(DWORD blocks)
+void Disk::SetBlockCount(uint32_t blocks)
 {
 	disk.blocks = blocks;
 }

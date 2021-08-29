@@ -46,48 +46,16 @@ void SCSIMO::Open(const Filepath& path)
 
 	// Open as read-only
 	Fileio fio;
+
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open MO file read-only");
+		throw file_not_found_exception("Can't open MO file read-only");
 	}
 
 	// Get file size
 	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	switch (size) {
-		// 128MB
-		case 0x797f400:
-			// 512 bytes per sector
-			SetSectorSizeInBytes(512, false);
-			SetBlockCount(248826);
-			break;
-
-		// 230MB
-		case 0xd9eea00:
-			// 512 bytes per sector
-			SetSectorSizeInBytes(512, false);
-			SetBlockCount(446325);
-			break;
-
-		// 540MB
-		case 0x1fc8b800:
-			// 512 bytes per sector
-			SetSectorSizeInBytes(512, false);
-			SetBlockCount(1041500);
-			break;
-
-		// 640MB
-		case 0x25e28000:
-			// 2048 bytes per sector
-			SetSectorSizeInBytes(2048, false);
-			SetBlockCount(310352);
-			break;
-
-		// Other (this is an error)
-		default:
-			throw io_exception("Invalid MO file size, supported sizes are 127398912 bytes (128 MB, 512 BPS), "
-					"228518400 bytes (230 MB, 512 BPS), 533248000 bytes (540 MB, 512 BPS), 635600896 bytes (640 MB, 2048 BPS)");
-	}
+	SetGeometryForCapacity(size);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);

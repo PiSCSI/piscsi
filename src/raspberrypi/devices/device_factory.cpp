@@ -17,6 +17,7 @@
 #include "exceptions.h"
 #include "device_factory.h"
 #include <set>
+#include <map>
 
 using namespace std;
 using namespace rascsi_interface;
@@ -30,6 +31,15 @@ DeviceFactory::DeviceFactory()
 	sector_sizes_scsi.insert(1024);
 	sector_sizes_scsi.insert(2048);
 	sector_sizes_scsi.insert(4096);
+
+	// 128 MB, 512 bytes per block, 248826 blocks
+	geometries_mo[0x797f400] = make_pair(512, 248826);
+	// 230 MB, 512 bytes per sector, 446325 blocks
+	geometries_mo[0xd9eea00] = make_pair(512, 446325);
+	// 540 MB, 512 bytes per sector, 1041500 blocks
+	geometries_mo[0x1fc8b800] = make_pair(512, 1041500);
+	// 640 MB, 20248 bytes per sector, 310352 blocks
+	geometries_mo[0x25e28000] = make_pair(2048, 310352);
 }
 
 DeviceFactory::~DeviceFactory()
@@ -104,6 +114,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI MO");
+				((Disk *)device)->SetGeometries(geometries_mo);
 				break;
 
 			case SCCD:
@@ -137,4 +148,15 @@ Device *DeviceFactory::CreateDevice(PbDeviceType& type, const string& filename, 
 	}
 
 	return device;
+}
+
+const set<uint64_t> DeviceFactory::GetMoCapacities() const
+{
+	set<uint64_t> keys;
+
+	for (const auto& geometry : geometries_mo) {
+		keys.insert(geometry.first);
+	}
+
+	return keys;
 }

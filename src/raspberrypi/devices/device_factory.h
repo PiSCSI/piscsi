@@ -12,8 +12,11 @@
 #pragma once
 
 #include <set>
+#include <map>
 #include <string>
 #include "rascsi_interface.pb.h"
+
+using namespace std;
 
 class Device;
 
@@ -21,18 +24,25 @@ class DeviceFactory
 {
 public:
 
+	typedef pair<uint32_t, uint32_t> Geometry;
+
 	DeviceFactory();
 	~DeviceFactory();
 
 	static DeviceFactory& instance();
 
-	const std::set<int>& GetSasiSectorSizes() const { return sector_sizes_sasi; };
-	const std::set<int>& GetScsiSectorSizes() const { return sector_sizes_scsi; };
+	const set<uint32_t>& GetSasiSectorSizes() const { return sector_sizes_sasi; };
+	const set<uint32_t>& GetScsiSectorSizes() const { return sector_sizes_scsi; };
 
-	Device *CreateDevice(rascsi_interface::PbDeviceType& type, const std::string& filename, const std::string& ext);
+	const set<uint64_t> GetMoCapacities() const;
+
+	Device *CreateDevice(rascsi_interface::PbDeviceType& type, const string& filename, const string& ext);
 
 private:
 
-	std::set<int> sector_sizes_sasi;
-	std::set<int> sector_sizes_scsi;
+	set<uint32_t> sector_sizes_sasi;
+	set<uint32_t> sector_sizes_scsi;
+
+	// Mapping of supported MO capacities in bytes to the respective block sizes and block counts
+	map<uint64_t, Geometry> geometries_mo;
 };
