@@ -394,7 +394,7 @@ void Disk::Inquiry(SASIDEV *controller)
 
 void Disk::ModeSelect6(SASIDEV *controller)
 {
-	LOGTRACE("MODE SELECT (6) for unsupported page %d", ctrl->buffer[0]);
+	LOGTRACE("MODE SELECT(6) for unsupported page %d", ctrl->buffer[0]);
 
 	ctrl->length = ModeSelectCheck6(ctrl->cmd);
 	if (ctrl->length <= 0) {
@@ -407,7 +407,7 @@ void Disk::ModeSelect6(SASIDEV *controller)
 
 void Disk::ModeSelect10(SASIDEV *controller)
 {
-	LOGTRACE("MODE SELECT (10) for unsupported page %d", ctrl->buffer[0]);
+	LOGTRACE("MODE SELECT(10) for unsupported page %d", ctrl->buffer[0]);
 
 	ctrl->length = ModeSelectCheck10(ctrl->cmd);
 	if (ctrl->length <= 0) {
@@ -466,10 +466,13 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 
 void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 {
-	if (!Removal(ctrl->cmd)) {
+	if (!CheckReady()) {
 		controller->Error();
 		return;
 	}
+
+	// Set Lock flag
+	SetLocked(ctrl->cmd[4] & 0x01);
 
 	controller->Status();
 }
@@ -1306,16 +1309,6 @@ void Disk::Seek10(SASIDEV *controller)
 
 //---------------------------------------------------------------------------
 //
-//	ASSIGN
-//
-//---------------------------------------------------------------------------
-bool Disk::Assign(const DWORD* /*cdb*/)
-{
-	return CheckReady();
-}
-
-//---------------------------------------------------------------------------
-//
 //	START STOP UNIT
 //
 //---------------------------------------------------------------------------
@@ -1359,26 +1352,6 @@ bool Disk::SendDiag(const DWORD *cdb)
 		return false;
 	}
 
-	return true;
-}
-
-//---------------------------------------------------------------------------
-//
-//	PREVENT/ALLOW MEDIUM REMOVAL
-//
-//---------------------------------------------------------------------------
-bool Disk::Removal(const DWORD *cdb)
-{
-	ASSERT(cdb);
-
-	if (!CheckReady()) {
-		return false;
-	}
-
-	// Set Lock flag
-	SetLocked(cdb[4] & 0x01);
-
-	// REMOVAL Success
 	return true;
 }
 
@@ -1558,7 +1531,7 @@ void Disk::Release10(SASIDEV *controller)
 
 //---------------------------------------------------------------------------
 //
-//	Get start sector and sector count for a READ/WRITE(10/16) operation
+//	Get start sector and sector count for a READ/WRITE operation
 //
 //---------------------------------------------------------------------------
 bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, access_mode mode)

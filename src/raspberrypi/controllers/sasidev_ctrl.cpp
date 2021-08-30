@@ -844,7 +844,7 @@ void SASIDEV::CmdAssign()
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->Assign(ctrl.cmd);
+	bool status = ctrl.device->CheckReady();
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -868,7 +868,7 @@ void SASIDEV::CmdSpecify()
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->Assign(ctrl.cmd);
+	bool status = ctrl.device->CheckReady();
 	if (!status) {
 		// Failure (Error)
 		Error();

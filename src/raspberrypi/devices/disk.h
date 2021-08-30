@@ -120,10 +120,8 @@ public:
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
 	virtual int WriteCheck(DWORD block);					// WRITE check
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
-	bool Assign(const DWORD *cdb);					// ASSIGN command
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
-	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
@@ -141,6 +139,7 @@ public:
 	uint64_t GetBlockCount() const;
 	void SetBlockCount(uint32_t);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
+	bool CheckReady();
 
 	// TODO This method should not be called by SASIDEV
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
@@ -155,7 +154,6 @@ protected:
 	int AddCDROM(bool change, BYTE *buf);				// Add CD-ROM
 	int AddCDDA(bool, BYTE *buf);				// Add CD_DA
 	virtual int AddVendor(int page, bool change, BYTE *buf);	// Add vendor special info
-	bool CheckReady();						// Check if ready
 	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
 
 	// Internal data
