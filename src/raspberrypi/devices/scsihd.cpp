@@ -64,7 +64,7 @@ void SCSIHD::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw file_not_found_exception("Can't open hard disk file");
+		throw file_not_found_exception("Can't open SCSI hard disk file");
 	}
 
 	// Get file size
