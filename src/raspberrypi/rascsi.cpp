@@ -982,10 +982,6 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
-	if (!command.devices_size()) {
-		return ReturnStatus(fd, false, "Empty device list");
-	}
-
 	// Dry run first
 	const auto files = files_in_use;
 	for (int i = 0; i < command.devices_size(); i++) {
