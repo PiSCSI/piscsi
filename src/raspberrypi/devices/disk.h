@@ -83,9 +83,9 @@ public:
 	virtual void TestUnitReady(SASIDEV *) override;
 	void Inquiry(SASIDEV *) override;
 	void RequestSense(SASIDEV *) override;
-	void ModeSelect(SASIDEV *);
+	void ModeSelect6(SASIDEV *);
 	void ModeSelect10(SASIDEV *);
-	void ModeSense(SASIDEV *);
+	void ModeSense6(SASIDEV *);
 	void ModeSense10(SASIDEV *);
 	void Rezero(SASIDEV *);
 	void FormatUnit(SASIDEV *) override;

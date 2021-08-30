@@ -41,10 +41,10 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &Disk::Write6);
 	AddCommand(SCSIDEV::eCmdSeek6, "Seek6", &Disk::Seek6);
 	AddCommand(SCSIDEV::eCmdInquiry, "Inquiry", &Disk::Inquiry);
-	AddCommand(SCSIDEV::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect);
+	AddCommand(SCSIDEV::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect6);
 	AddCommand(SCSIDEV::eCmdReserve6, "Reserve6", &Disk::Reserve6);
 	AddCommand(SCSIDEV::eCmdRelease6, "Release6", &Disk::Release6);
-	AddCommand(SCSIDEV::eCmdModeSense6, "ModeSense6", &Disk::ModeSense);
+	AddCommand(SCSIDEV::eCmdModeSense6, "ModeSense6", &Disk::ModeSense6);
 	AddCommand(SCSIDEV::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
 	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
 	AddCommand(SCSIDEV::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
@@ -393,7 +393,7 @@ void Disk::Inquiry(SASIDEV *controller)
 	controller->DataIn();
 }
 
-void Disk::ModeSelect(SASIDEV *controller)
+void Disk::ModeSelect6(SASIDEV *controller)
 {
 	LOGTRACE("MODE SELECT for unsupported page %d", ctrl->buffer[0]);
 
@@ -419,7 +419,7 @@ void Disk::ModeSelect10(SASIDEV *controller)
 	controller->DataOut();
 }
 
-void Disk::ModeSense(SASIDEV *controller)
+void Disk::ModeSense6(SASIDEV *controller)
 {
 	ctrl->length = ModeSense(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length >= 0);
