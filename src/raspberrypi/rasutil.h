@@ -11,7 +11,8 @@
 
 #pragma once
 
+#include <list>
 #include <string>
 #include "rascsi_interface.pb.h"
 
-std::string ListDevices(const rascsi_interface::PbDevices&);
+std::string ListDevices(const rascsi_interface::PbServerInfo&);

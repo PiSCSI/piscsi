@@ -111,10 +111,6 @@ message PbDeviceDefinition {
     bool protected = 9;
 }
 
-message PbDeviceDefinitions {
-    repeated PbDeviceDefinition devices = 1;
-}
-
 // The device data, sent from the server to the client
 message PbDevice {
     int32 id = 1;
@@ -129,16 +125,12 @@ message PbDevice {
     int32 block_size = 10;
 }
 
-message PbDevices {
-    repeated PbDevice devices = 1;
-}
-
 // Commands rascsi can execute and their parameters
 message PbCommand {
     PbOperation operation = 1;
-    // The optional device list
-    PbDeviceDefinitions devices = 2;
-    // The optional parameters, depending on the operation
+    // The non-empty list of devices for this command
+    repeated PbDeviceDefinition devices = 2;
+    // The optional parameters depending on the operation, e.g. a filename or a network interface list
     string params = 3;
 }
 
@@ -162,5 +154,5 @@ message PbServerInfo {
     // Unordered list of files in the default image folder
     repeated PbImageFile image_files = 6;
     // The attached devices
-    PbDevices devices = 7;
+    repeated PbDevice devices = 7;
 }

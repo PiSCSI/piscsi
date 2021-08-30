@@ -135,8 +135,7 @@ const PbServerInfo GetServerInfo(const string&hostname, int port) {
 void CommandList(const string& hostname, int port)
 {
 	PbServerInfo serverInfo = GetServerInfo(hostname, port);
-
-	cout << ListDevices(serverInfo.devices()) << endl;
+	cout << ListDevices(serverInfo) << endl;
 }
 
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
@@ -291,11 +290,11 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 	}
 
-	if (!serverInfo.devices().devices_size()) {
+	if (!serverInfo.devices_size()) {
 		cout << "No devices attached" << endl;
 	}
 	else {
-		list<PbDevice> sorted_devices = { serverInfo.devices().devices().begin(), serverInfo.devices().devices().end() };
+		list<PbDevice> sorted_devices = { serverInfo.devices().begin(), serverInfo.devices().end() };
 		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
 
 		cout << "Attached devices:" << endl;
@@ -401,9 +400,8 @@ int main(int argc, char* argv[])
 
 	// Parse the arguments
 	PbCommand command;
-	PbDeviceDefinitions devices;
-	command.set_allocated_devices(&devices);
-	PbDeviceDefinition *device = devices.add_devices();
+	list<PbDeviceDefinition> devices;
+	PbDeviceDefinition* device = command.add_devices();
 	device->set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
