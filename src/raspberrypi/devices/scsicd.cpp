@@ -747,6 +747,7 @@ void SCSICD::GetEventStatusNotification(SASIDEV *controller)
 	if (!ctrl->cmd[1] & 0x01) {
 		// Asynchronous notification is optional and not supported by rascsi
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
 	}
 
 	LOGTRACE("Received request for event polling, which is currently not supported");
