@@ -1,6 +1,7 @@
 import fnmatch
 import subprocess
 import re
+import logging
 
 from settings import *
 
@@ -54,9 +55,12 @@ def get_valid_scsi_ids(devices):
 
     valid_list = list(range(8))
     for id in invalid_list:
-        valid_list.remove(id)
+        try:
+            valid_list.remove(id)
+        except:
+            logging.warning("Reserved SCSI id " + str(id) + " is in use.")
     valid_list.reverse()
-
+    
     return valid_list
 
 
