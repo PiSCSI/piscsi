@@ -51,10 +51,9 @@ public:
 	~SCSIBR();
 
 	bool Init(const string&) override;
-
 	bool Dispatch(SCSIDEV *) override;
 
-	// commands
+	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
 	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command

@@ -11,8 +11,7 @@
 //        It is highly unlikely that this will work for other platforms.
 //---------------------------------------------------------------------------
 
-#ifndef cfilesystem_h
-#define cfilesystem_h
+#pragma once
 
 //---------------------------------------------------------------------------
 //
@@ -961,5 +960,3 @@ private:
 	TCHAR m_szBase[DriveMax][FILEPATH_MAX];					///< ベースパス状態復元用の候補
 	static DWORD g_nOption;							///< ファイル名変換フラグ
 };
-
-#endif	// cfilesystem_h

@@ -1638,7 +1638,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	}
 
 	// Check capacity
-	uint32_t capacity = GetBlockCount();
+	uint64_t capacity = GetBlockCount();
 	if (start > capacity || start + count > capacity) {
 		ostringstream s;
 		s << "Capacity of " << capacity << " blocks exceeded: "
@@ -1764,7 +1764,7 @@ void Disk::SetGeometryForCapacity(uint64_t capacity) {
 	SetBlockCount(geometry->second.second);
 }
 
-uint32_t Disk::GetBlockCount() const
+uint64_t Disk::GetBlockCount() const
 {
 	return disk.blocks;
 }

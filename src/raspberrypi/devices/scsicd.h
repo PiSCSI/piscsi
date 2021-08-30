@@ -37,10 +37,10 @@ class SCSICD;
 class CDTrack
 {
 public:
-	// Basic Functions
-	CDTrack(SCSICD *scsicd);						// Constructor
-	virtual ~CDTrack();							// Destructor
-	void Init(int track, DWORD first, DWORD last);			// Initialization
+	CDTrack(SCSICD *scsicd);
+	virtual ~CDTrack();
+
+	void Init(int track, DWORD first, DWORD last);
 
 	// Properties
 	void SetPath(bool cdda, const Filepath& path);			// Set the path
@@ -85,23 +85,22 @@ private:
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
 
 public:
-	// Number of tracks
 	enum {
 		TrackMax = 96							// Maximum number of tracks
 	};
 
 public:
-	// Basic Functions
-	SCSICD();								// Constructor
-	~SCSICD();								// Destructor
-	void Open(const Filepath& path) override;		// Open
+	SCSICD();
+	~SCSICD();
 
-	// commands
+	bool Dispatch(SCSIDEV *) override;
+
+	void Open(const Filepath& path) override;
+
+	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
-
-	bool Dispatch(SCSIDEV *) override;
 
 private:
 	// Open

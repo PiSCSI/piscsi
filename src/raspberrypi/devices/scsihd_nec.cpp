@@ -148,10 +148,10 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 
 	// Number of blocks
-	SetBlockCount((DWORD)(imgsize >> disk.size));
+	SetBlockCount(imgsize >> disk.size);
 	disk.imgoffset = imgoffset;
 
-	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(), GetBlockCount());
+	LOGINFO("Media capacity for image file '%s': %ld blocks", path.GetPath(), GetBlockCount());
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);

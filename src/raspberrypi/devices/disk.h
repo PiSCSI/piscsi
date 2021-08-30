@@ -140,7 +140,7 @@ public:
 	bool SetConfiguredSectorSize(uint32_t);
 	void SetGeometries(const map<uint64_t, Geometry>&);
 	void SetGeometryForCapacity(uint64_t);
-	uint32_t GetBlockCount() const;
+	uint64_t GetBlockCount() const;
 	void SetBlockCount(uint32_t);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 
