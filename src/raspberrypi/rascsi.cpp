@@ -1015,7 +1015,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:f:Vv")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:f:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -1076,11 +1076,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					}
 				}
 				continue;
-
-			case 'v':
-				cout << rascsi_get_version_string() << endl;
-				exit(EXIT_SUCCESS);
-				break;
 
 			default:
 				return false;
@@ -1292,6 +1287,18 @@ int main(int argc, char* argv[])
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
+	// Output the Banner
+	Banner(argc, argv);
+
+	// ParseArgument() requires the bus to have been initialized first, which requires the root user.
+	// The -v option should be available for any user, which requires special handling.
+	for (int i = 1 ; i < argc; i++) {
+		if (!strcasecmp(argv[i], "-v")) {
+			cout << rascsi_get_version_string() << endl;
+			return 0;
+		}
+	}
+
 	log_levels.push_back("trace");
 	log_levels.push_back("debug");
 	log_levels.push_back("info");
@@ -1315,9 +1322,6 @@ int main(int argc, char* argv[])
 	else {
 		default_image_folder = "/home/pi/images";
 	}
-
-	// Output the Banner
-	Banner(argc, argv);
 
 	int port = 6868;
 
