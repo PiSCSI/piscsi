@@ -421,7 +421,7 @@ void Disk::ModeSelect10(SASIDEV *controller)
 
 void Disk::ModeSense6(SASIDEV *controller)
 {
-	ctrl->length = ModeSense(ctrl->cmd, ctrl->buffer);
+	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length >= 0);
 	if (ctrl->length == 0) {
 		LOGWARN("%s Not supported MODE SENSE page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
@@ -688,10 +688,10 @@ bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 
 //---------------------------------------------------------------------------
 //
-//	MODE SENSE
+//	MODE SENSE(6)
 //
 //---------------------------------------------------------------------------
-int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
+int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);

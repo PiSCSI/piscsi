@@ -125,7 +125,6 @@ public:
 	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
-	virtual int ModeSense10(const DWORD *cdb, BYTE *buf);		// MODE SENSE(10) command
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
 	int SelectCheck(const DWORD *cdb);				// SELECT check
 	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
@@ -169,6 +168,7 @@ private:
 	void Read(SASIDEV *, uint64_t);
 	void Write(SASIDEV *, uint64_t);
 	void Verify(SASIDEV *, uint64_t);
-	bool Format(const DWORD *cdb);					// FORMAT UNIT command
-	int ModeSense(const DWORD *cdb, BYTE *buf);		// MODE SENSE command
+	bool Format(const DWORD *cdb);
+	int ModeSense6(const DWORD *cdb, BYTE *buf);
+	int ModeSense10(const DWORD *cdb, BYTE *buf);
 };
