@@ -983,7 +983,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
 	if (!command.devices_size()) {
-		ReturnStatus(fd, false, "Empty device list");
+		return ReturnStatus(fd, false, "Empty device list");
 	}
 
 	// Dry run first
