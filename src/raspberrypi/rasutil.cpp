@@ -22,7 +22,7 @@ using namespace rascsi_interface;
 //---------------------------------------------------------------------------
 string ListDevices(const PbServerInfo& server_info)
 {
-	if (server_info.devices_size() == 0) {
+	if (!server_info.devices_size()) {
 		return "No images currently attached.";
 	}
 
