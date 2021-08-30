@@ -878,6 +878,9 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
 		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't protectable)");
 	}
+	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't ready)");
+	}
 
 	switch (operation) {
 		case INSERT: {
@@ -982,10 +985,6 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
-	if (!command.devices_size()) {
-		return ReturnStatus(fd, false, "Empty device list");
-	}
-
 	// Dry run first
 	const auto files = files_in_use;
 	for (int i = 0; i < command.devices_size(); i++) {
