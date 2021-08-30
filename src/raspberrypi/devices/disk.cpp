@@ -54,10 +54,10 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &Disk::Write6);
 	AddCommand(SCSIDEV::eCmdSeek6, "Seek6", &Disk::Seek6);
 	AddCommand(SCSIDEV::eCmdInquiry, "Inquiry", &Disk::Inquiry);
-	AddCommand(SCSIDEV::eCmdModeSelect, "ModeSelect", &Disk::ModeSelect);
+	AddCommand(SCSIDEV::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect);
 	AddCommand(SCSIDEV::eCmdReserve6, "Reserve6", &Disk::Reserve6);
 	AddCommand(SCSIDEV::eCmdRelease6, "Release6", &Disk::Release6);
-	AddCommand(SCSIDEV::eCmdModeSense, "ModeSense", &Disk::ModeSense);
+	AddCommand(SCSIDEV::eCmdModeSense6, "ModeSense6", &Disk::ModeSense);
 	AddCommand(SCSIDEV::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
 	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
 	AddCommand(SCSIDEV::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
@@ -732,7 +732,6 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
-	ASSERT(cdb[0] == 0x1a);
 
 	// Get length, clear buffer
 	int length = (int)cdb[4];
@@ -854,13 +853,11 @@ int Disk::ModeSense(const DWORD *cdb, BYTE *buf)
 //	MODE SENSE(10)
 //
 //---------------------------------------------------------------------------
+// TODO Remove duplicate code, see MODE SENSE above
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
-	int ret;
-
 	ASSERT(cdb);
 	ASSERT(buf);
-	ASSERT(cdb[0] == 0x5a);
 
 	// Get length, clear buffer
 	int length = cdb[7];
@@ -957,7 +954,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page (vendor special)
-	ret = AddVendor(page, change, &buf[size]);
+	int ret = AddVendor(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
 		valid = true;
@@ -988,11 +985,6 @@ int Disk::AddError(bool change, BYTE *buf)
 	buf[0] = 0x01;
 	buf[1] = 0x0a;
 
-	// No changeable area
-	if (change) {
-		return 12;
-	}
-
 	// Retry count is 0, limit time uses internal default value
 	return 12;
 }
@@ -1004,8 +996,6 @@ int Disk::AddError(bool change, BYTE *buf)
 //---------------------------------------------------------------------------
 int Disk::AddFormat(bool change, BYTE *buf)
 {
-	int size;
-
 	ASSERT(buf);
 
 	// Set the message length
@@ -1029,7 +1019,7 @@ int Disk::AddFormat(bool change, BYTE *buf)
 		buf[0xb] = 0x19;
 
 		// Set the number of bytes in the physical sector
-		size = 1 << disk.size;
+		int size = 1 << disk.size;
 		buf[0xc] = (BYTE)(size >> 8);
 		buf[0xd] = (BYTE)size;
 	}
@@ -1090,11 +1080,6 @@ int Disk::AddOpt(bool change, BYTE *buf)
 	buf[0] = 0x06;
 	buf[1] = 0x02;
 
-	// No changeable area
-	if (change) {
-		return 4;
-	}
-
 	// Do not report update blocks
 	return 4;
 }
@@ -1111,11 +1096,6 @@ int Disk::AddCache(bool change, BYTE *buf)
 	// Set the message length
 	buf[0] = 0x08;
 	buf[1] = 0x0a;
-
-	// No changeable area
-	if (change) {
-		return 12;
-	}
 
 	// Only read cache is valid, no prefetch
 	return 12;
@@ -1162,11 +1142,6 @@ int Disk::AddCDDA(bool change, BYTE *buf)
 	buf[0] = 0x0e;
 	buf[1] = 0x0e;
 
-	// No changeable area
-	if (change) {
-		return 16;
-	}
-
 	// Audio waits for operation completion and allows
 	// PLAY across multiple tracks
 	return 16;
@@ -1193,7 +1168,6 @@ int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
-	ASSERT(cdb[0] == 0x37);
 
 	// Get length, clear buffer
 	DWORD length = cdb[7];
@@ -1223,12 +1197,6 @@ int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 	SetStatusCode(STATUS_NODEFECT);
 	return 4;
 }
-
-//---------------------------------------------------------------------------
-//
-//	Command
-//
-//---------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------
 //
@@ -1422,7 +1390,6 @@ bool Disk::Assign(const DWORD* /*cdb*/)
 bool Disk::StartStop(const DWORD *cdb)
 {
 	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x1b);
 
 	// Look at the eject bit and eject if necessary
 	if (cdb[4] & 0x02) {
@@ -1447,7 +1414,6 @@ bool Disk::StartStop(const DWORD *cdb)
 bool Disk::SendDiag(const DWORD *cdb)
 {
 	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x1d);
 
 	// Do not support PF bit
 	if (cdb[1] & 0x10) {
@@ -1472,7 +1438,6 @@ bool Disk::SendDiag(const DWORD *cdb)
 bool Disk::Removal(const DWORD *cdb)
 {
 	ASSERT(cdb);
-	ASSERT(cdb[0] == 0x1e);
 
 	// Status check
 	if (!CheckReady()) {

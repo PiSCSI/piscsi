@@ -1122,7 +1122,7 @@ bool SASIDEV::XferOut(bool cont)
 	Disk *device = ctrl.unit[lun];
 
 	switch ((SASIDEV::sasi_command) ctrl.cmd[0]) {
-		case SASIDEV::eCmdModeSelect:
+		case SASIDEV::eCmdModeSelect6:
 		case SASIDEV::eCmdModeSelect10:
 			if (!device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
@@ -1228,7 +1228,7 @@ void SASIDEV::FlushUnit()
 		case SASIDEV::eCmdVerify16:
 			break;
 
-		case SASIDEV::eCmdModeSelect:
+		case SASIDEV::eCmdModeSelect6:
 		case SASIDEV::eCmdModeSelect10:
             // Debug code related to Issue #2 on github, where we get an unhandled Mode Select when
             // the mac is rebooted

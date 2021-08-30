@@ -40,10 +40,10 @@ public:
 		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
 		eCmdEnableInterface = 0x0E,  // DaynaPort specific command
 		eCmdInquiry = 0x12,
-		eCmdModeSelect = 0x15,
+		eCmdModeSelect6 = 0x15,
 		eCmdReserve6 = 0x16,
 		eCmdRelease6 = 0x17,
-		eCmdModeSense = 0x1A,
+		eCmdModeSense6 = 0x1A,
 		eCmdStartStop = 0x1B,
 		eCmdSendDiag = 0x1D,
 		eCmdRemoval = 0x1E,
