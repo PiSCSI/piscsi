@@ -100,8 +100,10 @@ def write_config_csv(file_name):
                     else:
                         device_info[3] = filesearch.group(1)
                     writer.writerow(device_info)
+        return True
     except:
         print ("Could not open file for writing: ", file_name)
+        return False
 				
 def read_config_csv(file_name):
     detach_all()
@@ -117,5 +119,7 @@ def read_config_csv(file_name):
                 for e in exclude_list:
                     image_name = image_name.replace(e, "")
                 attach_image(row[0], image_name, row[2])
+        return True
     except:
         print ("Could not access file: ", file_name)
+        return False

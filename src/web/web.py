@@ -64,12 +64,14 @@ def config_save():
 
 @app.route("/config/load", methods=["POST"])
 def config_load():
-    file_name = request.form.get("name") or "default.csv"
+    file_name = request.form.get("name")
     file_name = f"{base_dir}{file_name}"
 
     if "load" in request.form:
-        read_config_csv(file_name)
-        flash(f"Loaded config from  {file_name}!")
+        if read_config_csv(file_name):
+            flash(f"Loaded config from  {file_name}!")
+        else:
+            flash(f"Failed to load  {file_name}!", "error")
     elif "delete" in request.form:
         if delete_file(file_name):
             flash(f"Deleted config  {file_name}!")
