@@ -69,17 +69,18 @@ private:
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (Disk::*)(SASIDEV *));
 
 public:
-	// Basic Functions
-	Disk(std::string);							// Constructor
-	virtual ~Disk();							// Destructor
+	Disk(std::string);
+	virtual ~Disk();
+
+	virtual bool Dispatch(SCSIDEV *) override;
 
 	// Media Operations
-	virtual void Open(const Filepath& path);	// Open
-	void GetPath(Filepath& path) const;				// Get the path
-	bool Eject(bool) override;					// Eject
-	bool Flush();							// Flush the cache
+	virtual void Open(const Filepath& path);
+	void GetPath(Filepath& path) const;
+	bool Eject(bool) override;
+	bool FlushCache();
 
-	// Commands covered by the SCSI specification
+	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
 	virtual void TestUnitReady(SASIDEV *) override;
 	void Inquiry(SASIDEV *) override;
 	void RequestSense(SASIDEV *) override;
@@ -141,10 +142,8 @@ public:
 	void SetBlockCount(uint32_t);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 
-	// TODO Try to get rid of this method, which is called by SASIDEV (but must not)
-	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);// MODE SELECT command
-
-	virtual bool Dispatch(SCSIDEV *) override;
+	// TODO This method should not be called by SASIDEV
+	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
 
 protected:
 	// Internal processing
@@ -169,7 +168,7 @@ private:
 	bool Format(const DWORD *cdb);
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);
-	int SelectCheck(const DWORD *cdb, int length);
-	int SelectCheck6(const DWORD *cdb);
-	int SelectCheck10(const DWORD *cdb);
+	int ModeSelectCheck(const DWORD *cdb, int length);
+	int ModeSelectCheck6(const DWORD *cdb);
+	int ModeSelectCheck10(const DWORD *cdb);
 };

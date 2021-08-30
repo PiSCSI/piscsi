@@ -379,7 +379,6 @@ void Disk::Inquiry(SASIDEV *controller)
 	}
 
 	if (ctrl->length <= 0) {
-		// failure (error)
 		controller->Error();
 		return;
 	}
@@ -395,9 +394,9 @@ void Disk::Inquiry(SASIDEV *controller)
 
 void Disk::ModeSelect6(SASIDEV *controller)
 {
-	LOGTRACE("MODE SELECT for unsupported page %d", ctrl->buffer[0]);
+	LOGTRACE("MODE SELECT (6) for unsupported page %d", ctrl->buffer[0]);
 
-	ctrl->length = SelectCheck6(ctrl->cmd);
+	ctrl->length = ModeSelectCheck6(ctrl->cmd);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -410,7 +409,7 @@ void Disk::ModeSelect10(SASIDEV *controller)
 {
 	LOGTRACE("MODE SELECT (10) for unsupported page %d", ctrl->buffer[0]);
 
-	ctrl->length = SelectCheck10(ctrl->cmd);
+	ctrl->length = ModeSelectCheck10(ctrl->cmd);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -422,8 +421,7 @@ void Disk::ModeSelect10(SASIDEV *controller)
 void Disk::ModeSense6(SASIDEV *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
-	ASSERT(ctrl->length >= 0);
-	if (ctrl->length == 0) {
+	if (ctrl->length <= 0) {
 		LOGWARN("%s Not supported MODE SENSE page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
 
 		controller->Error();
@@ -436,8 +434,7 @@ void Disk::ModeSense6(SASIDEV *controller)
 void Disk::ModeSense10(SASIDEV *controller)
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
-	ASSERT(ctrl->length >= 0);
-	if (ctrl->length == 0) {
+	if (ctrl->length <= 0) {
 		LOGWARN("%s Not supported MODE SENSE(10) page $%02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
 
 		controller->Error();
@@ -449,8 +446,7 @@ void Disk::ModeSense10(SASIDEV *controller)
 
 void Disk::StartStopUnit(SASIDEV *controller)
 {
-	bool status = StartStop(ctrl->cmd);
-	if (!status) {
+	if (!StartStop(ctrl->cmd)) {
 		controller->Error();
 		return;
 	}
@@ -460,8 +456,7 @@ void Disk::StartStopUnit(SASIDEV *controller)
 
 void Disk::SendDiagnostic(SASIDEV *controller)
 {
-	bool status = SendDiag(ctrl->cmd);
-	if (!status) {
+	if (!SendDiag(ctrl->cmd)) {
 		controller->Error();
 		return;
 	}
@@ -471,8 +466,7 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 
 void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 {
-	bool status = Removal(ctrl->cmd);
-	if (!status) {
+	if (!Removal(ctrl->cmd)) {
 		controller->Error();
 		return;
 	}
@@ -528,7 +522,7 @@ bool Disk::Eject(bool force)
 //	Flush
 //
 //---------------------------------------------------------------------------
-bool Disk::Flush()
+bool Disk::FlushCache()
 {
 	// Do nothing if there's nothing cached
 	if (!disk.dcache) {
@@ -619,7 +613,7 @@ int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-int Disk::SelectCheck(const DWORD *cdb, int length)
+int Disk::ModeSelectCheck(const DWORD *cdb, int length)
 {
 	// Error if save parameters are set for other types than of SCHD or SCRM
 	if (!IsSCSIHD() && (cdb[1] & 0x01)) {
@@ -630,23 +624,13 @@ int Disk::SelectCheck(const DWORD *cdb, int length)
 	return length;
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT(6) check
-//
-//---------------------------------------------------------------------------
-int Disk::SelectCheck6(const DWORD *cdb)
+int Disk::ModeSelectCheck6(const DWORD *cdb)
 {
 	// Receive the data specified by the parameter length
-	return SelectCheck(cdb, cdb[4]);
+	return ModeSelectCheck(cdb, cdb[4]);
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT(10) check
-//
-//---------------------------------------------------------------------------
-int Disk::SelectCheck10(const DWORD *cdb)
+int Disk::ModeSelectCheck10(const DWORD *cdb)
 {
 	// Receive the data specified by the parameter length
 	int length = cdb[7];
@@ -656,7 +640,7 @@ int Disk::SelectCheck10(const DWORD *cdb)
 		length = 0x800;
 	}
 
-	return SelectCheck(cdb, length);
+	return ModeSelectCheck(cdb, length);
 }
 
 //---------------------------------------------------------------------------
