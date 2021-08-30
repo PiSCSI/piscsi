@@ -113,9 +113,6 @@ void Device::SetStatusCode(int status_code)
 	this->status_code = status_code;
 }
 
-// TODO This implementation appears to be wrong: If a device is locked there
-// is no way to eject the medium without unlocking. In other words, there is
-// no "force" mode.
 bool Device::Eject(bool force)
 {
 	if (!ready || !removable) {
