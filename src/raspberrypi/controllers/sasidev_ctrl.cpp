@@ -1124,8 +1124,7 @@ bool SASIDEV::XferOut(bool cont)
 	switch ((SASIDEV::sasi_command) ctrl.cmd[0]) {
 		case SASIDEV::eCmdModeSelect:
 		case SASIDEV::eCmdModeSelect10:
-			if (!device->ModeSelect(
-				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+			if (!device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
 				return false;
 			}
@@ -1157,7 +1156,6 @@ bool SASIDEV::XferOut(bool cont)
 					// write failed
 					return false;
 				}
-				LOGTRACE("%s Done with DaynaPort Write", __PRETTY_FUNCTION__);
 
 				// If normal, work setting
 				ctrl.offset = 0;
@@ -1165,7 +1163,6 @@ bool SASIDEV::XferOut(bool cont)
 				break;
 			}
 
-			LOGTRACE("%s eCmdVerify Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
 			if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
 				return false;
@@ -1254,12 +1251,11 @@ void SASIDEV::FlushUnit()
 				return;
 			}
             break;
-		case SASIDEV::eCmdSetIfaceMode:
-			LOGWARN("%s Trying to flush a command set interface mode. This should be a daynaport?", __PRETTY_FUNCTION__);
-			break;
+
 		case SASIDEV::eCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...
 			break;
+
 		default:
 			LOGWARN("Received an unexpected flush command %02X!!!!!\n",(WORD)ctrl.cmd[0]);
 			// The following statement makes debugging a huge pain. You can un-comment it
