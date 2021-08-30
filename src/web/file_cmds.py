@@ -106,11 +106,11 @@ def write_config_csv(file_name):
         return False
 				
 def read_config_csv(file_name):
-    detach_all()
     import csv
 
     try:
         with open(file_name) as csv_file:
+            detach_all()
             config_reader = csv.reader(csv_file)
             #TODO: Remove hard-coded string sanitation (e.g. after implementing protobuf)
             exclude_list = ("X68000 HOST BRIDGE", "DaynaPort SCSI/Link", " (WRITEPROTECT)", "NO MEDIA")
