@@ -128,7 +128,7 @@ message PbDevice {
 // Commands rascsi can execute and their parameters
 message PbCommand {
     PbOperation operation = 1;
-    // The optional device list
+    // The non-empty list of devices for this command
     repeated PbDeviceDefinition devices = 2;
     // The optional parameters depending on the operation, e.g. a filename or a network interface list
     string params = 3;
