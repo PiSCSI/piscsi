@@ -57,34 +57,23 @@ private:
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIDaynaPort::*)(SASIDEV *));
 
 public:
-	// Basic Functions
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
 
 	bool Init(const string&) override;
+	void Open(const Filepath& path) override;
 
-	void Open(const Filepath& path);
-										// Capture packets
-
-	// commands
+	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
-										// INQUIRY command
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
-										// READ command
 	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
-										// WRITE command
-	int WriteCheck(DWORD block);
-										// WRITE check
+	int WriteCheck(DWORD block);	// WRITE check
 
 	int RetrieveStats(const DWORD *cdb, BYTE *buffer);
-										// Retrieve DaynaPort statistics
 	bool EnableInterface(const DWORD *cdb);
-										// Enable/Disable Interface command
 
-	void SetMacAddr(const DWORD *cdb, BYTE *buffer);
-										// Set MAC address
-	void SetMode(const DWORD *cdb, BYTE *buffer);
-										// Set the mode: whether broadcast traffic is enabled or not
+	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
+	void SetMode(const DWORD *cdb, BYTE *buffer);	// Set the mode: whether broadcast traffic is enabled or not
 
 	void TestUnitReady(SASIDEV *) override;
 	void Read6(SASIDEV *) override;
@@ -118,49 +107,30 @@ public:
 private:
 	typedef struct __attribute__((packed)) {
 		BYTE operation_code;
-		BYTE reserved;
-		WORD pad;
-		BYTE transfer_length;
-		BYTE control;
-	} scsi_cmd_config_multicast_t;
-
-	typedef struct __attribute__((packed)) {
-		BYTE operation_code;
-		BYTE reserved;
-		BYTE pad2;
-		BYTE pad3;
-		BYTE pad4;
-		BYTE control;
-	} scsi_cmd_enable_disable_iface_t;
-
-
-	typedef struct __attribute__((packed)) {
-		BYTE operation_code;
 		BYTE misc_cdb_information;
 		BYTE logical_block_address;
-		WORD length;
+		uint16_t length;
 		BYTE format;
 	} scsi_cmd_daynaport_write_t;
 
-
-	enum read_data_flags_t : DWORD {
+	enum read_data_flags_t : uint32_t {
 		e_no_more_data = 0x00000000,
 		e_more_data_available = 0x00000001,
 		e_dropped_packets = 0xFFFFFFFF,
 	};
 
 	typedef struct __attribute__((packed)) {
-		WORD length;
+		uint32_t length;
 		read_data_flags_t flags;
 		BYTE pad;
-		BYTE data[ETH_FRAME_LEN + sizeof(DWORD)]; // Frame length + 4 byte CRC
+		BYTE data[ETH_FRAME_LEN + sizeof(uint32_t)]; // Frame length + 4 byte CRC
 	} scsi_resp_read_t;
 
 	typedef struct __attribute__((packed)) {
 		BYTE mac_address[6];
-		DWORD frame_alignment_errors;
-		DWORD crc_errors;
-		DWORD frames_lost;
+		uint32_t frame_alignment_errors;
+		uint32_t crc_errors;
+		uint32_t frames_lost;
 	} scsi_resp_link_stats_t;
 
 	scsi_resp_link_stats_t m_scsi_link_stats = {
@@ -170,11 +140,11 @@ private:
 		.frames_lost = 0,
 	};
 
-	const BYTE m_daynacom_mac_prefix[3] = {0x00,0x80,0x19};
+	const BYTE m_daynacom_mac_prefix[3] = { 0x00, 0x80, 0x19 };
 
 	CTapDriver *m_tap;
 										// TAP driver
-	BOOL m_bTapEnable;
+	bool m_bTapEnable;
 										// TAP valid flag
 	BYTE m_mac_addr[6];
 										// MAC Address

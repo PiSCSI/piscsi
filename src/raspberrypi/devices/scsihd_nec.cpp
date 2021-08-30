@@ -72,7 +72,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open hard disk file read-only");
+		throw io_exception("Can't open hard disk file");
 	}
 
 	// Get file size
@@ -148,10 +148,8 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 
 	// Number of blocks
-	SetBlockCount((DWORD)(imgsize >> disk.size));
+	SetBlockCount(imgsize >> disk.size);
 	disk.imgoffset = imgoffset;
-
-	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(), GetBlockCount());
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);

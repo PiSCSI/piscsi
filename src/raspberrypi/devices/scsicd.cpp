@@ -304,7 +304,7 @@ void SCSICD::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw file_not_found_exception("Can't open CD-ROM file read-only");
+		throw file_not_found_exception("Can't open CD-ROM file");
 	}
 
 	// Close and transfer for physical CD access
@@ -377,7 +377,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open ISO CD-ROM file read-only");
+		throw io_exception("Can't open ISO CD-ROM file");
 	}
 
 	// Get file size
@@ -464,7 +464,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open CD-ROM file read-only");
+		throw io_exception("Can't open CD-ROM file");
 	}
 
 	// Get size
@@ -744,7 +744,13 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 
 void SCSICD::GetEventStatusNotification(SASIDEV *controller)
 {
-	// This naive (but legal) implementation avoids constant warnings in the logs
+	if (!ctrl->cmd[1] & 0x01) {
+		// Asynchronous notification is optional and not supported by rascsi
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
+	}
+
+	LOGTRACE("Received request for event polling, which is currently not supported");
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 

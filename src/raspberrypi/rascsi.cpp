@@ -372,7 +372,7 @@ bool MapController(Device **map)
 			int unitno = i * UnitNum + j;
 			// branch by unit type
 			if (devices[unitno]) {
-				if (devices[unitno]->IsSASI()) {
+				if (devices[unitno]->IsSASIHD()) {
 					// Drive is SASI, so increment SASI count
 					sasi_num++;
 				} else {
@@ -536,6 +536,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	PbDeviceProperties *properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_file(true);
+	properties->set_luns(2);
 	for (const auto& block_size : device_factory.GetSasiSectorSizes()) {
 		properties->add_block_sizes(block_size);
 	}
@@ -546,6 +547,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
 	properties->set_supports_file(true);
+	properties->set_luns(1);
 	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
 		properties->add_block_sizes(block_size);
 	}
@@ -558,6 +560,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
+	properties->set_luns(1);
 	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
 		properties->add_block_sizes(block_size);
 	}
@@ -570,6 +573,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
+	properties->set_luns(1);
 	for (const auto& capacity : device_factory.GetMoCapacities()) {
 		properties->add_capacities(capacity);
 	}
@@ -582,18 +586,21 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
+	properties->set_luns(1);
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCBR);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
+	properties->set_luns(1);
 
 	types_properties = serverInfo.add_types_properties();
 	types_properties->set_type(SCDP);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
+	properties->set_luns(1);
 }
 
 void GetAvailableImages(PbServerInfo& serverInfo)
@@ -1015,7 +1022,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:f:Vv")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:f:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -1076,11 +1083,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					}
 				}
 				continue;
-
-			case 'v':
-				cout << rascsi_get_version_string() << endl;
-				exit(EXIT_SUCCESS);
-				break;
 
 			default:
 				return false;
@@ -1287,12 +1289,22 @@ int main(int argc, char* argv[])
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	int actid;
-	DWORD now;
 	BUS::phase_t phase;
-	BYTE data;
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
+
+	// Output the Banner
+	Banner(argc, argv);
+
+	// ParseArgument() requires the bus to have been initialized first, which requires the root user.
+	// The -v option should be available for any user, which requires special handling.
+	for (int i = 1 ; i < argc; i++) {
+		if (!strcasecmp(argv[i], "-v")) {
+			cout << rascsi_get_version_string() << endl;
+			return 0;
+		}
+	}
 
 	log_levels.push_back("trace");
 	log_levels.push_back("debug");
@@ -1318,25 +1330,19 @@ int main(int argc, char* argv[])
 		default_image_folder = "/home/pi/images";
 	}
 
-	// Output the Banner
-	Banner(argc, argv);
-
-	int ret = 0;
 	int port = 6868;
 
 	if (!InitBus()) {
-		ret = EPERM;
-		goto init_exit;
+		return EPERM;
 	}
 
 	if (!ParseArgument(argc, argv, port)) {
-		ret = EINVAL;
-		goto err_exit;
+		Cleanup();
+		return -1;
 	}
 
 	if (!InitService(port)) {
-		ret = EPERM;
-		goto init_exit;
+		return EPERM;
 	}
 
 	// Reset
@@ -1383,7 +1389,7 @@ int main(int argc, char* argv[])
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus->GetBSY()) {
-			now = SysTimer::GetTimerLow();
+			int now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 				bus->Aquire();
 				if (!bus->GetBSY()) {
@@ -1400,7 +1406,7 @@ int main(int argc, char* argv[])
 		pthread_mutex_lock(&ctrl_mutex);
 
 		// Notify all controllers
-		data = bus->GetDAT();
+		BYTE data = bus->GetDAT();
 		int i = 0;
 		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 			if (!*it || (data & (1 << i)) == 0) {
@@ -1456,10 +1462,5 @@ int main(int argc, char* argv[])
 		active = false;
 	}
 
-err_exit:
-	// Cleanup
-	Cleanup();
-
-init_exit:
-	return ret;
+	return 0;
 }

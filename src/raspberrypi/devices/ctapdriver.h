@@ -13,8 +13,7 @@
 //
 //---------------------------------------------------------------------------
 
-#if !defined(ctapdriver_h)
-#define ctapdriver_h
+#pragma once
 
 #include <pcap/pcap.h>
 #include "filepath.h"
@@ -33,9 +32,10 @@
 class CTapDriver
 {
 public:
-	// Basic Functionality
-	CTapDriver(const std::string&);								// Constructor
-	bool Init();							// Initialization
+	CTapDriver(const std::string&);
+	~CTapDriver() {};
+
+	bool Init();
 	void OpenDump(const Filepath& path);
 										// Capture packets
 	void Cleanup();						// Cleanup
@@ -61,4 +61,3 @@ private:
 	std::vector<std::string> interfaces;
 };
 
-#endif	// ctapdriver_h

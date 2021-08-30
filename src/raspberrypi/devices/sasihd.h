@@ -27,10 +27,11 @@
 class SASIHD : public Disk, public FileSupport
 {
 public:
-	// Basic Functions
-	SASIHD();								// Constructor
-	void Reset();							// Reset
-	void Open(const Filepath& path);		// Open
+	SASIHD();
+	~SASIHD() {};
+
+	void Reset();
+	void Open(const Filepath& path);
 
 	// Commands
 	int RequestSense(const DWORD *cdb, BYTE *buf) override;

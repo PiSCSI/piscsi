@@ -31,55 +31,54 @@ class SASIDEV
 {
 protected:
 	enum scsi_message_code : BYTE {
-		eMsgCodeAbort                              = 0x06,                           
-		eMsgCodeAbortTag                           = 0x0D,
-		eMsgCodeBusDeviceReset                   = 0x0C,
-		eMsgCodeClearQueue             = 0x0E,
-		eMsgCodeCommandComplete                   = 0x00,
-		eMsgCodeDisconnect                         = 0x04,
-		eMsgCodeIdentify                           = 0x80,
-		eMsgCodeIgnoreWideResidue    = 0x23, // (Two Bytes)
-		eMsgCodeInitiateRecovery                  = 0x0F,
-		eMsgCodeInitiatorDetectedError           = 0x05,
-		eMsgCodeLinkedCommandComplete            = 0x0A,
+		eMsgCodeAbort = 0x06,
+		eMsgCodeAbortTag = 0x0D,
+		eMsgCodeBusDeviceReset = 0x0C,
+		eMsgCodeClearQueue = 0x0E,
+		eMsgCodeCommandComplete = 0x00,
+		eMsgCodeDisconnect = 0x04,
+		eMsgCodeIdentify = 0x80,
+		eMsgCodeIgnoreWideResidue = 0x23, // (Two Bytes)
+		eMsgCodeInitiateRecovery = 0x0F,
+		eMsgCodeInitiatorDetectedError = 0x05,
+		eMsgCodeLinkedCommandComplete = 0x0A,
 		eMsgCodeLinkedCommandCompleteWithFlag = 0x0B,
-		eMsgCodeMessageParityError               = 0x09,
-		eMsgCodeMessageReject                     = 0x07,
-		eMsgCodeNoOperation                       = 0x08,
-		eMsgCodeHeadOfQueueTag                = 0x21,
-		eMsgCodeOrderedQueueTag                = 0x22,
-		eMsgCodeSimpleQueueTag                 = 0x20,
-		eMsgCodeReleaseRecovery                   = 0x10,
-		eMsgCodeRestorePointers                   = 0x03,
-		eMsgCodeSaveDataPointer                  = 0x02,
-		eMsgCodeTerminateIOProcess              = 0x11,
+		eMsgCodeMessageParityError = 0x09,
+		eMsgCodeMessageReject = 0x07,
+		eMsgCodeNoOperation = 0x08,
+		eMsgCodeHeadOfQueueTag = 0x21,
+		eMsgCodeOrderedQueueTag = 0x22,
+		eMsgCodeSimpleQueueTag = 0x20,
+		eMsgCodeReleaseRecovery = 0x10,
+		eMsgCodeRestorePointers = 0x03,
+		eMsgCodeSaveDataPointer = 0x02,
+		eMsgCodeTerminateIOProcess = 0x11
 	};
 
 private:
-	enum sasi_command : int {
-			eCmdTestUnitReady = 0x00,
-			eCmdRezero =  0x01,
-			eCmdRequestSense = 0x03,
-			eCmdFormat = 0x04,
-			eCmdReassign = 0x07,
-			eCmdRead6 = 0x08,
-			eCmdWrite6 = 0x0A,
-			eCmdSeek6 = 0x0B,
-			eCmdSetIfaceMode = 0x0C,     // DaynaPort specific command
-			eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
-			eCmdModeSelect = 0x15,
-			eCmdReserve6 = 0x16,
-			eCmdRelease6 = 0x17,
-			eCmdRead10 = 0x28,
-			eCmdWrite10 = 0x2A,
-			eCmdVerify10 = 0x2E,
-			eCmdVerify = 0x2F,
-			eCmdModeSelect10 = 0x55,
-			eCmdRead16 = 0x88,
-			eCmdWrite16 = 0x8A,
-			eCmdVerify16 = 0x8F,
-			eCmdInvalid = 0xC2,
-			eCmdSasiCmdAssign = 0x0E
+	enum sasi_command {
+		eCmdTestUnitReady = 0x00,
+		eCmdRezero =  0x01,
+		eCmdRequestSense = 0x03,
+		eCmdFormat = 0x06,
+		eCmdReassign = 0x07,
+		eCmdRead6 = 0x08,
+		eCmdWrite6 = 0x0A,
+		eCmdSeek6 = 0x0B,
+		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
+		eCmdModeSelect6 = 0x15,
+		eCmdReserve6 = 0x16,
+		eCmdRelease6 = 0x17,
+		eCmdRead10 = 0x28,
+		eCmdWrite10 = 0x2A,
+		eCmdVerify10 = 0x2E,
+		eCmdVerify = 0x2F,
+		eCmdModeSelect10 = 0x55,
+		eCmdRead16 = 0x88,
+		eCmdWrite16 = 0x8A,
+		eCmdVerify16 = 0x8F,
+		eCmdInvalid = 0xC2,
+		eCmdSasiCmdAssign = 0x0E
 	};
 
 public:
