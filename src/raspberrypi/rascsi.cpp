@@ -1319,22 +1319,19 @@ int main(int argc, char* argv[])
 	// Output the Banner
 	Banner(argc, argv);
 
-	int ret = 0;
 	int port = 6868;
 
 	if (!InitBus()) {
-		ret = EPERM;
-		goto init_exit;
+		return EPERM;
 	}
 
 	if (!ParseArgument(argc, argv, port)) {
-		ret = EINVAL;
-		goto err_exit;
+		Cleanup();
+		return -1;
 	}
 
 	if (!InitService(port)) {
-		ret = EPERM;
-		goto init_exit;
+		return EPERM;
 	}
 
 	// Reset
@@ -1454,10 +1451,5 @@ int main(int argc, char* argv[])
 		active = false;
 	}
 
-err_exit:
-	// Cleanup
-	Cleanup();
-
-init_exit:
-	return ret;
+	return 0;
 }
