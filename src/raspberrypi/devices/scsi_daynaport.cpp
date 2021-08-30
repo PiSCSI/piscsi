@@ -24,25 +24,15 @@
 //  This does NOT include the file system functionality that is present
 //  in the Sharp X68000 host bridge.
 //
-//  Note: This requires the DaynaPort SCSI Link driver.
+//  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
 #include "scsi_daynaport.h"
 #include <sstream>
 
-//===========================================================================
-//
-//	DaynaPort SCSI Link Ethernet Adapter
-//
-//===========================================================================
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
@@ -54,11 +44,6 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	AddCommand(SCSIDEV::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 SCSIDaynaPort::~SCSIDaynaPort()
 {
 	// TAP driver release
@@ -70,6 +55,31 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	for (auto const& command : commands) {
 		delete command.second;
 	}
+}
+
+void SCSIDaynaPort::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
+{
+	commands[opcode] = new command_t(name, execute);
+}
+
+bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
+{
+	ctrl = controller->GetCtrl();
+
+	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
+	}
+
+	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
+	// The base class handles the less specific commands
+	return Disk::Dispatch(controller);
 }
 
 bool SCSIDaynaPort::Init(const string& interfaces)
@@ -120,31 +130,6 @@ void SCSIDaynaPort::Open(const Filepath& path)
 	m_tap->OpenDump(path);
 }
 
- void SCSIDaynaPort::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
- {
- 	commands[opcode] = new command_t(name, execute);
- }
-
- bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
- {
- 	ctrl = controller->GetCtrl();
-
- 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
- 		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
-
- 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
- 		(this->*command->execute)(controller);
-
- 		return true;
- 	}
-
- 	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
-
-	// The base class handles the less specific commands
- 	return Disk::Dispatch(controller);
- }
-
 //---------------------------------------------------------------------------
 //
 //	INQUIRY
@@ -152,14 +137,11 @@ void SCSIDaynaPort::Open(const Filepath& path)
 //---------------------------------------------------------------------------
 int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 
 	LOGTRACE("%s Inquiry, allocation length: %d",__PRETTY_FUNCTION__, allocation_length);
 
-	if (allocation_length > 4){
+	if (allocation_length > 4) {
 		if (allocation_length > 44) {
 			allocation_length = 44;
 		}
@@ -219,35 +201,32 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	int rx_packet_size = 0;
-	bool send_message_to_host;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
 	scsi_cmd_read_6_t *command = (scsi_cmd_read_6_t*)cdb;
-	int read_count = 0;
-
-	ASSERT(buf);
 
 	ostringstream s;
 	s << __PRETTY_FUNCTION__ << " reading DaynaPort block " << block;
 	LOGTRACE("%s", s.str().c_str());
 
-	if(command->operation_code != 0x08){
-		LOGERROR("Received unexpected cdb command: %02X. Expected 0x08", (unsigned int)command->operation_code);
+	if (command->operation_code != 0x08) {
+		LOGERROR("Received unexpected cdb command: %02X. Expected 0x08", command->operation_code);
 	}
 
-	WORD requested_length = (WORD)command->transfer_length;
-	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, (unsigned int)requested_length, (unsigned int)requested_length);
+	int requested_length = command->transfer_length;
+	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length);
 
 
 	// At host startup, it will send a READ(6) command with a length of 1. We should 
 	// respond by going into the status mode with a code of 0x02
-	if(requested_length == 1){
+	if (requested_length == 1) {
 		return 0;
 	}
 
 	// Some of the packets we receive will not be for us. So, we'll keep pulling messages
 	// until the buffer is empty, or we've read X times. (X is just a made up number)
-	while(read_count < MAX_READ_RETRIES)
-	{
+	bool send_message_to_host;
+	int read_count = 0;
+	while (read_count < MAX_READ_RETRIES) {
 		read_count++;
 
 		// The first 2 bytes are reserved for the length of the packet
@@ -256,7 +235,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		rx_packet_size = m_tap->Rx(&buf[DAYNAPORT_READ_HEADER_SZ]);
 
 		// If we didn't receive anything, return size of 0
-		if(rx_packet_size <= 0){
+		if (rx_packet_size <= 0) {
 			LOGTRACE("%s No packet received", __PRETTY_FUNCTION__);
 			response->length = 0;
 			response->flags = e_no_more_data;
@@ -292,7 +271,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		// TODO: We should check to see if this message is in the multicast 
 		// configuration from SCSI command 0x0D
 
-		if(!send_message_to_host){
+		if (!send_message_to_host) {
 			LOGDEBUG("%s Received a packet that's not for me: %02X %02X %02X %02X %02X %02X", \
 				__PRETTY_FUNCTION__,
 				(int)response->data[0],
@@ -304,18 +283,15 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 			// If there are pending packets to be processed, we'll tell the host that the read
 			// length was 0.
-			if(!m_tap->PendingPackets())
+			if (!m_tap->PendingPackets())
 			{
 				response->length = 0;
 				response->flags = e_no_more_data;
 				return DAYNAPORT_READ_HEADER_SZ;
 			}
 		}
-		else
-		{
-
+		else {
 			// TODO: Need to do some sort of size checking. The buffer can easily overflow, probably.
-
 
 			// response->length = rx_packet_size;
 			// if(m_tap->PendingPackets()){
@@ -355,21 +331,17 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 //---------------------------------------------------------------------------
 int SCSIDaynaPort::WriteCheck(DWORD block)
 {
-	ostringstream s;
-	s << __PRETTY_FUNCTION__ << " block: " << block;
-	LOGTRACE("%s", s.str().c_str());
-
 	// Status check
 	if (!CheckReady()) {
 		return 0;
 	}
 
-	if(!m_bTapEnable){
+	if (!m_bTapEnable){
 		SetStatusCode(STATUS_NOTREADY);
 		return 0;
 	}
 
-	//  Success
+	// Success
 	return 1;
 }
 	
@@ -393,27 +365,16 @@ int SCSIDaynaPort::WriteCheck(DWORD block)
 //---------------------------------------------------------------------------
 bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
-	// const scsi_cmd_daynaport_write_t* command = (const scsi_cmd_daynaport_write_t*)cdb;
-
 	BYTE data_format = cdb[5];
 	WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
 
-	// if(data_format != command->format){
-	// 	LOGDEBUG("%s CDB: %02X %02X %02X %02X %02X %02X", __PRETTY_FUNCTION__, (unsigned int)cdb[0], (unsigned int)cdb[1], (unsigned int)cdb[2], (unsigned int)cdb[3], (unsigned int)cdb[4], (unsigned int)cdb[5] );
-	// 	LOGWARN("Expected data_format: %02X, but found %02X", (unsigned int)cdb[5], (unsigned int)command->format);
-	// }
-	// if(data_length != command->length){
-	// 	LOGDEBUG("%s CDB: %02X %02X %02X %02X %02X %02X", __PRETTY_FUNCTION__, (unsigned int)cdb[0], (unsigned int)cdb[1], (unsigned int)cdb[2], (unsigned int)cdb[3], (unsigned int)cdb[4], (unsigned int)cdb[5] );
-	// 	LOGWARN("Expected data_length: %04X, but found %04X", data_length, (unsigned int)command->length);
-	// }
-
-	if(data_format == 0x00){
+	if (data_format == 0x00){
 		m_tap->Tx(buf, data_length);
 		LOGTRACE("%s Transmitted %u bytes (00 format)", __PRETTY_FUNCTION__, data_length);
 		return true;
 	}
 	else if (data_format == 0x80){
-		// The data length is actuall specified in the first 2 bytes of the payload
+		// The data length is specified in the first 2 bytes of the payload
 		data_length=(WORD)buf[1] + ((WORD)buf[0] << 8);
 		m_tap->Tx(&buf[4], data_length);
 		LOGTRACE("%s Transmitted %u bytes (80 format)", __PRETTY_FUNCTION__, data_length);
@@ -445,33 +406,18 @@ bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 //---------------------------------------------------------------------------
 int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 {
-	DWORD response_size;
-	DWORD allocation_length;
+	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	LOGTRACE("%s Retrieve Stats buffer size is %d", __PRETTY_FUNCTION__, (int)allocation_length);
 
-	// DWORD frame_alignment_errors;
-	// DWORD crc_errors;
-	// DWORD frames_lost;
-
-	ASSERT(cdb);
-	ASSERT(buffer);
-
-	allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-	LOGTRACE("%s Retrieve Stats buffer size was %d", __PRETTY_FUNCTION__, (int)allocation_length);
-
-	// // ASSERT(cdb[0] == 0x09);
-
-	// if(cdb[0] != 0x09)
-	// {
-	// 	LOGWARN("%s cdb[0] was not 0x09, as I expected. It was %02X.", __PRETTY_FUNCTION__, (unsigned int)cdb[0]);
-	// }
 	// if(cdb[4] != 0x12)
 	// {
 	// 	LOGWARN("%s cdb[4] was not 0x12, as I expected. It was %02X.", __PRETTY_FUNCTION__, (unsigned int)cdb[4]);
 	// }
-
 	// memset(buffer,0,18);
-
 	// memcpy(&buffer[0],m_mac_addr,sizeof(m_mac_addr));
+	// uint32_t frame_alignment_errors;
+	// uint32_t crc_errors;
+	// uint32_t frames_lost;
 	// // frame alignment errors
 	// frame_alignment_errors = htonl(0);
 	// memcpy(&(buffer[6]),&frame_alignment_errors,sizeof(frame_alignment_errors));
@@ -482,40 +428,22 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	// frames_lost = htonl(0);
 	// memcpy(&(buffer[14]),&frames_lost,sizeof(frames_lost));
 
-	for(int i=0; i< 6; i++)
-	{
+	for (int i = 0; i < 6; i++) {
 		LOGTRACE("%s CDB byte %d: %02X",__PRETTY_FUNCTION__, i, (unsigned int)cdb[i]);
 	}
 
-	response_size = 18;
-
-	response_size = sizeof(m_scsi_link_stats);
+	int response_size = sizeof(m_scsi_link_stats);
 	memcpy(buffer, &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
 	LOGTRACE("%s response size is %d", __PRETTY_FUNCTION__, (int)response_size);
 
-	if(response_size > allocation_length)
-	{
+	if (response_size > allocation_length) {
 		response_size = allocation_length;
 		LOGINFO("%s Truncating the inquiry response", __PRETTY_FUNCTION__)
 	}
 
-	//  Success
+	// Success
 	return response_size;
-	// scsi_cdb_6_byte_t *command = (scsi_cdb_6_byte_t*)cdb;
-	// scsi_resp_link_stats_t *response = (scsi_resp_link_stats_t*) buffer;
-
-	// LOGTRACE("%s Retrieve Stats buffer size was %d", __PRETTY_FUNCTION__, command->length);
-
-	// ASSERT(sizeof(scsi_resp_link_stats_t) == 18);
-
-	// memcpy(response->mac_address, m_mac_addr, sizeof(m_mac_addr));
-	// response->crc_errors = 0;
-	// response->frames_lost = 0;
-	// response->frame_alignment_errors = 0;
-
-	// //  Success
-	// return sizeof(scsi_resp_link_stats_t);
 }
 
 //---------------------------------------------------------------------------
@@ -560,14 +488,13 @@ void SCSIDaynaPort::TestUnitReady(SASIDEV *controller)
 {
 	// TEST UNIT READY Success
 
-	// status phase
 	controller->Status();
 }
 
 void SCSIDaynaPort::Read6(SASIDEV *controller)
 {
 	// Get record number and block number
-	DWORD record = ctrl->cmd[1] & 0x1f;
+	uint32_t record = ctrl->cmd[1] & 0x1f;
 	record <<= 8;
 	record |= ctrl->cmd[2];
 	record <<= 8;
@@ -582,7 +509,6 @@ void SCSIDaynaPort::Read6(SASIDEV *controller)
 	// Set next block
 	ctrl->next = record + 1;
 
-	// Read phase
 	controller->DataIn();
 }
 
@@ -597,14 +523,13 @@ void SCSIDaynaPort::Write6(SASIDEV *controller)
 
 	DWORD data_format = ctrl->cmd[5];
 
-	if(data_format == 0x00){
+	if(data_format == 0x00) {
 		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8);
 	}
-	else if (data_format == 0x80){
+	else if (data_format == 0x80) {
 		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8) + 8;
 	}
-	else
-	{
+	else {
 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
 	}
 	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->length, (int)ctrl->length, (unsigned int)data_format);
@@ -619,7 +544,6 @@ void SCSIDaynaPort::Write6(SASIDEV *controller)
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	// Data out phase
 	controller->DataOut();
 }
 
@@ -636,7 +560,6 @@ void SCSIDaynaPort::RetrieveStatistics(SASIDEV *controller)
 	ctrl->blocks = 1;
 	ctrl->next = 1;
 
-	// Data in phase
 	controller->DataIn();
 }
 
@@ -680,7 +603,6 @@ void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
 
 		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
 			ctrl->length = 6;
-			// Write phase
 			controller->DataOut();
 			break;
 
@@ -713,7 +635,6 @@ void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
 		return;
 	}
 
-	// status phase
 	controller->Status();
 }
 
@@ -726,9 +647,8 @@ void SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
 {
 	LOGTRACE("%s Setting mode", __PRETTY_FUNCTION__);
 
-	for(size_t i = 0; i < sizeof(6); i++)
-	{
-		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, (unsigned int)i,(WORD)cdb[i]);
+	for (int i = 0; i < 6; i++) {
+		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, (unsigned int)i, (int)cdb[i]);
 	}	
 }
 

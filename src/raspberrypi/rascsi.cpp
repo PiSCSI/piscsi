@@ -1287,9 +1287,7 @@ int main(int argc, char* argv[])
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	int actid;
-	DWORD now;
 	BUS::phase_t phase;
-	BYTE data;
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
@@ -1383,7 +1381,7 @@ int main(int argc, char* argv[])
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus->GetBSY()) {
-			now = SysTimer::GetTimerLow();
+			int now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 				bus->Aquire();
 				if (!bus->GetBSY()) {
@@ -1400,7 +1398,7 @@ int main(int argc, char* argv[])
 		pthread_mutex_lock(&ctrl_mutex);
 
 		// Notify all controllers
-		data = bus->GetDAT();
+		BYTE data = bus->GetDAT();
 		int i = 0;
 		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 			if (!*it || (data & (1 << i)) == 0) {
