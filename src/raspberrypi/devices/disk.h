@@ -126,8 +126,6 @@ public:
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
-	int SelectCheck(const DWORD *cdb);				// SELECT check
-	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
 
 	uint32_t GetSectorSizeInBytes() const;
 	void SetSectorSizeInBytes(uint32_t, bool);
@@ -171,4 +169,7 @@ private:
 	bool Format(const DWORD *cdb);
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);
+	int SelectCheck(const DWORD *cdb, int length);
+	int SelectCheck6(const DWORD *cdb);
+	int SelectCheck10(const DWORD *cdb);
 };

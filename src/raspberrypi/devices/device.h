@@ -141,8 +141,8 @@ public:
 
 	virtual bool Eject(bool);
 
-	bool IsSASI() const { return type == "SAHD"; }
-	bool IsSCSI() const { return type == "SCHD" || type == "SCRM"; }
+	bool IsSASIHD() const { return type == "SAHD"; }
+	bool IsSCSIHD() const { return type == "SCHD" || type == "SCRM"; }
 	bool IsCdRom() const { return type == "SCCD"; }
 	bool IsMo() const { return type == "SCMO"; }
 	bool IsBridge() const { return type == "SCBR"; }

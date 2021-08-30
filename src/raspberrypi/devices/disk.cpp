@@ -397,7 +397,7 @@ void Disk::ModeSelect6(SASIDEV *controller)
 {
 	LOGTRACE("MODE SELECT for unsupported page %d", ctrl->buffer[0]);
 
-	ctrl->length = SelectCheck(ctrl->cmd);
+	ctrl->length = SelectCheck6(ctrl->cmd);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -619,27 +619,26 @@ int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT check
-//
-//---------------------------------------------------------------------------
-int Disk::SelectCheck(const DWORD *cdb)
+int Disk::SelectCheck(const DWORD *cdb, int length)
 {
-	ASSERT(cdb);
-
-	// Error if save parameters are set instead of SCSIHD or SCSIRM
-	if (!IsSCSI()) {
-		// Error if save parameters are set
-		if (cdb[1] & 0x01) {
-			SetStatusCode(STATUS_INVALIDCDB);
-			return 0;
-		}
+	// Error if save parameters are set for other types than of SCHD or SCRM
+	if (!IsSCSIHD() && (cdb[1] & 0x01)) {
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
 	}
 
-	// Receive the data specified by the parameter length
-	int length = (int)cdb[4];
 	return length;
+}
+
+//---------------------------------------------------------------------------
+//
+//	MODE SELECT(6) check
+//
+//---------------------------------------------------------------------------
+int Disk::SelectCheck6(const DWORD *cdb)
+{
+	// Receive the data specified by the parameter length
+	return SelectCheck(cdb, cdb[4]);
 }
 
 //---------------------------------------------------------------------------
@@ -649,25 +648,15 @@ int Disk::SelectCheck(const DWORD *cdb)
 //---------------------------------------------------------------------------
 int Disk::SelectCheck10(const DWORD *cdb)
 {
-	ASSERT(cdb);
-
-	// Error if save parameters are set instead of SCSIHD or SCSIRM
-	if (!IsSCSI()) {
-		if (cdb[1] & 0x01) {
-			SetStatusCode(STATUS_INVALIDCDB);
-			return 0;
-		}
-	}
-
 	// Receive the data specified by the parameter length
-	DWORD length = cdb[7];
+	int length = cdb[7];
 	length <<= 8;
 	length |= cdb[8];
 	if (length > 0x800) {
 		length = 0x800;
 	}
 
-	return (int)length;
+	return SelectCheck(cdb, length);
 }
 
 //---------------------------------------------------------------------------
@@ -1723,7 +1712,7 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 {
 	const DeviceFactory& device_factory = DeviceFactory::instance();
 
-	set<uint32_t> sector_sizes = IsSCSI() ? device_factory.GetScsiSectorSizes() : device_factory.GetSasiSectorSizes();
+	set<uint32_t> sector_sizes = IsSCSIHD() ? device_factory.GetScsiSectorSizes() : device_factory.GetSasiSectorSizes();
 	if (sector_sizes.find(configured_sector_size) == sector_sizes.end()) {
 		return false;
 	}

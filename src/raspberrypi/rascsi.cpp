@@ -372,7 +372,7 @@ bool MapController(Device **map)
 			int unitno = i * UnitNum + j;
 			// branch by unit type
 			if (devices[unitno]) {
-				if (devices[unitno]->IsSASI()) {
+				if (devices[unitno]->IsSASIHD()) {
 					// Drive is SASI, so increment SASI count
 					sasi_num++;
 				} else {
