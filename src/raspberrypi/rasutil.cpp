@@ -20,23 +20,21 @@ using namespace rascsi_interface;
 //	List devices
 //
 //---------------------------------------------------------------------------
-string ListDevices(const PbDevices& devices)
+string ListDevices(const PbServerInfo& server_info)
 {
-	ostringstream s;
-
-	if (devices.devices_size()) {
-		s << "+----+----+------+-------------------------------------" << endl
-			<< "| ID | UN | TYPE | DEVICE STATUS" << endl
-			<< "+----+----+------+-------------------------------------" << endl;
-	}
-	else {
+	if (server_info.devices_size() == 0) {
 		return "No images currently attached.";
 	}
 
-	list<PbDevice> sorted_devices = { devices.devices().begin(), devices.devices().end() };
-	sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() && a.unit() < b.unit(); });
+	ostringstream s;
+	s << "+----+----+------+-------------------------------------" << endl
+			<< "| ID | UN | TYPE | DEVICE STATUS" << endl
+			<< "+----+----+------+-------------------------------------" << endl;
 
-	for (const auto& device : sorted_devices) {
+	list<PbDevice> devices = { server_info.devices().begin(), server_info.devices().end() };
+	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() && a.unit() < b.unit(); });
+
+	for (const auto& device : devices) {
 		string filename;
 		switch (device.type()) {
 			case SCBR:
