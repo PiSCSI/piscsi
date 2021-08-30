@@ -53,7 +53,7 @@
         </tr>
         {% for device in devices %}
         <tr>
-            {% if device.id != "7" %}
+            {% if device.id != exclude_scsi_id %}
             <td style="text-align:center">{{device.id}}</td>
             <td style="text-align:center">{{device.type}}</td>
             <td>{{device.file}}</td>
@@ -73,7 +73,7 @@
             {% else %}
             <td style="text-align:center">{{device.id}}</td>
             <td style="text-align:center">-</td>
-            <td>Host Machine</td>
+            <td>Reserved ID</td>
             <td>-</td>
             {% endif %}
         </tr>

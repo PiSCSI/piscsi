@@ -8,8 +8,6 @@ from settings import *
 
 valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
-# List of SCSI ID's you'd like to exclude - eg if you are on a Mac, the System is usually 7
-EXCLUDE_SCSI_IDS = [7]
 
 
 def is_active():
@@ -47,8 +45,8 @@ def list_config_files():
     return files_list
 
 
-def get_valid_scsi_ids(devices):
-    invalid_list = EXCLUDE_SCSI_IDS.copy()
+def get_valid_scsi_ids(devices, exclude_id):
+    invalid_list = [exclude_id]
     for device in devices:
         if device["file"] != "NO MEDIA" and device["file"] != "-":
             invalid_list.append(int(device["id"]))
