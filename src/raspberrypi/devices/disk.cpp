@@ -64,7 +64,6 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
 	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
 	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
-	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Write10);
 	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
 	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
 	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
