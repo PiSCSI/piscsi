@@ -13,8 +13,6 @@
 //	Imported NetBSD support and some optimisation patch by Rin Okuyama.
 //  	Comments translated to english by akuker.
 //
-//	[ Disk ]
-//
 //---------------------------------------------------------------------------
 
 #include "os.h"
@@ -25,17 +23,6 @@
 #include <sstream>
 #include "../rascsi.h"
 
-//===========================================================================
-//
-//	Disk
-//
-//===========================================================================
-
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockCommands()
 {
 	// Work initialization
@@ -80,11 +67,6 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 Disk::~Disk()
 {
 	// Save disk cache
@@ -163,9 +145,7 @@ void Disk::Open(const Filepath& path)
 
 void Disk::TestUnitReady(SASIDEV *controller)
 {
-	bool status = CheckReady();
-	if (!status) {
-		// Failure (Error)
+	if (!CheckReady()) {
 		controller->Error();
 		return;
 	}
@@ -175,9 +155,7 @@ void Disk::TestUnitReady(SASIDEV *controller)
 
 void Disk::Rezero(SASIDEV *controller)
 {
-	bool status = CheckReady();
-	if (!status) {
-		// Failure (Error)
+	if (!CheckReady()) {
 		controller->Error();
 		return;
 	}
@@ -209,9 +187,7 @@ void Disk::RequestSense(SASIDEV *controller)
 
 void Disk::FormatUnit(SASIDEV *controller)
 {
-	bool status = Format(ctrl->cmd);
-	if (!status) {
-		// Failure (Error)
+	if (!Format(ctrl->cmd)) {
 		controller->Error();
 		return;
 	}
@@ -221,9 +197,7 @@ void Disk::FormatUnit(SASIDEV *controller)
 
 void Disk::ReassignBlocks(SASIDEV *controller)
 {
-	bool status = CheckReady();
-	if (!status) {
-		// Failure (Error)
+	if (!CheckReady()) {
 		controller->Error();
 		return;
 	}
@@ -242,7 +216,6 @@ void Disk::Read(SASIDEV *controller, uint64_t record)
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
 	if (ctrl->length <= 0) {
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -295,7 +268,6 @@ void Disk::Write(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
 	if (ctrl->length <= 0) {
-		// Failure (Error)
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
 		return;
 	}
@@ -355,7 +327,6 @@ void Disk::Verify(SASIDEV *controller, uint64_t record)
 	// Test loading
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
 	if (ctrl->length <= 0) {
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -428,7 +399,6 @@ void Disk::ModeSelect(SASIDEV *controller)
 
 	ctrl->length = SelectCheck(ctrl->cmd);
 	if (ctrl->length <= 0) {
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -442,7 +412,6 @@ void Disk::ModeSelect10(SASIDEV *controller)
 
 	ctrl->length = SelectCheck10(ctrl->cmd);
 	if (ctrl->length <= 0) {
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -457,7 +426,6 @@ void Disk::ModeSense(SASIDEV *controller)
 	if (ctrl->length == 0) {
 		LOGWARN("%s Not supported MODE SENSE page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
 
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -472,7 +440,6 @@ void Disk::ModeSense10(SASIDEV *controller)
 	if (ctrl->length == 0) {
 		LOGWARN("%s Not supported MODE SENSE(10) page $%02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
 
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -484,7 +451,6 @@ void Disk::StartStopUnit(SASIDEV *controller)
 {
 	bool status = StartStop(ctrl->cmd);
 	if (!status) {
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -496,7 +462,6 @@ void Disk::SendDiagnostic(SASIDEV *controller)
 {
 	bool status = SendDiag(ctrl->cmd);
 	if (!status) {
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -508,7 +473,6 @@ void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 {
 	bool status = Removal(ctrl->cmd);
 	if (!status) {
-		// Failure (Error)
 		controller->Error();
 		return;
 	}
@@ -1052,7 +1016,7 @@ int Disk::AddDrive(bool change, BYTE *buf)
 	if (IsReady()) {
 		// Set the number of cylinders (total number of blocks
         // divided by 25 sectors/track and 8 heads)
-		DWORD cylinder = disk.blocks;
+		uint32_t cylinder = disk.blocks;
 		cylinder >>= 3;
 		cylinder /= 25;
 		buf[0x2] = (BYTE)(cylinder >> 16);
@@ -1205,7 +1169,6 @@ int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 bool Disk::Format(const DWORD *cdb)
 {
-	// Status check
 	if (!CheckReady()) {
 		return false;
 	}
@@ -1231,7 +1194,6 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 	LOGDEBUG("%s", __PRETTY_FUNCTION__);
 
-	// Status check
 	if (!CheckReady()) {
 		return 0;
 	}
@@ -1340,7 +1302,6 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 
 void Disk::Seek(SASIDEV *controller)
 {
-	// Status check
 	if (!CheckReady()) {
 		controller->Error();
 		return;
@@ -1377,7 +1338,6 @@ void Disk::Seek10(SASIDEV *controller)
 //---------------------------------------------------------------------------
 bool Disk::Assign(const DWORD* /*cdb*/)
 {
-	// Status check
 	return CheckReady();
 }
 
@@ -1399,7 +1359,7 @@ bool Disk::StartStop(const DWORD *cdb)
 		}
 
 		// Eject
-		Eject(false);
+		return Eject(false);
 	}
 
 	return true;
@@ -1438,7 +1398,6 @@ bool Disk::Removal(const DWORD *cdb)
 {
 	ASSERT(cdb);
 
-	// Status check
 	if (!CheckReady()) {
 		return false;
 	}
@@ -1461,10 +1420,8 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 
 	ASSERT(buf);
 
-	// Buffer clear
 	memset(buf, 0, 8);
 
-	// Status check
 	if (!CheckReady()) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
@@ -1479,14 +1436,14 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 	}
 
 	// Create end of logical block address (disk.blocks-1)
-	DWORD blocks = disk.blocks - 1;
+	uint32_t blocks = disk.blocks - 1;
 	buf[0] = (BYTE)(blocks >> 24);
 	buf[1] = (BYTE)(blocks >> 16);
 	buf[2] = (BYTE)(blocks >> 8);
 	buf[3] = (BYTE)blocks;
 
 	// Create block length (1 << disk.size)
-	DWORD length = 1 << disk.size;
+	uint32_t length = 1 << disk.size;
 	buf[4] = (BYTE)(length >> 24);
 	buf[5] = (BYTE)(length >> 16);
 	buf[6] = (BYTE)(length >> 8);
@@ -1504,33 +1461,26 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 
 	ASSERT(buf);
 
-	// Buffer clear
 	memset(buf, 0, 14);
 
-	// Status check
-	if (!CheckReady()) {
+	if (!CheckReady() || disk.blocks <= 0) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
-		return;
-	}
-
-	if (disk.blocks <= 0) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
-
-		LOGWARN("%s Capacity not available, medium may not be present", __PRETTY_FUNCTION__);
-
 		return;
 	}
 
 	// Create end of logical block address (disk.blocks-1)
-	// TODO blocks should be a 64 bit value in order to support higher capacities
-	DWORD blocks = disk.blocks - 1;
+	uint64_t blocks = disk.blocks - 1;
+	buf[0] = (BYTE)(blocks >> 56);
+	buf[1] = (BYTE)(blocks >> 48);
+	buf[2] = (BYTE)(blocks >> 40);
+	buf[3] = (BYTE)(blocks >> 32);
 	buf[4] = (BYTE)(blocks >> 24);
 	buf[5] = (BYTE)(blocks >> 16);
 	buf[6] = (BYTE)(blocks >> 8);
 	buf[7] = (BYTE)blocks;
 
 	// Create block length (1 << disk.size)
-	DWORD length = 1 << disk.size;
+	uint32_t length = 1 << disk.size;
 	buf[8] = (BYTE)(length >> 24);
 	buf[9] = (BYTE)(length >> 16);
 	buf[10] = (BYTE)(length >> 8);
@@ -1556,10 +1506,8 @@ void Disk::ReportLuns(SASIDEV *controller)
 
 	ASSERT(buf);
 
-	// Buffer clear
 	memset(buf, 0, 16);
 
-	// Status check
 	if (!CheckReady()) {
 		controller->Error();
 		return;
