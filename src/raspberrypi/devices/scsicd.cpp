@@ -744,7 +744,14 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 
 void SCSICD::GetEventStatusNotification(SASIDEV *controller)
 {
-	// This naive (but legal) implementation avoids constant warnings in the logs
+	if (!ctrl->cmd[1] & 0x01) {
+		// Asynchronous notification is not supproted
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+	}
+
+	LOGTRACE("Received request for event polling, which is currently not supported");
+
+	// This avoids constant warnings in the logs if polling is requested
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
