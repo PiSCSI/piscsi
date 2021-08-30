@@ -6,9 +6,11 @@ from flask import Flask, render_template, request, flash, url_for, redirect, sen
 from file_cmds import (
     create_new_image,
     download_file_to_iso,
-    delete_image,
+    delete_file,
     unzip_file,
     download_image,
+    write_config_csv,
+    read_config_csv,
 )
 from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
 from ractl_cmds import (
@@ -54,30 +56,28 @@ def index():
 def config_save():
     file_name = request.form.get("name") or "default"
     file_name = f"{base_dir}{file_name}.csv"
-    import csv
 
-    with open(file_name, "w") as csv_file:
-        writer = csv.writer(csv_file)
-        for device in list_devices():
-            if device["type"] != "-":
-                writer.writerow(device.values())
+    write_config_csv(file_name)
     flash(f"Saved config to  {file_name}!")
     return redirect(url_for("index"))
 
 
 @app.route("/config/load", methods=["POST"])
 def config_load():
-    file_name = request.form.get("name") or "default.csv"
+    file_name = request.form.get("name")
     file_name = f"{base_dir}{file_name}"
-    detach_all()
-    import csv
 
-    with open(file_name) as csv_file:
-        config_reader = csv.reader(csv_file)
-        for row in config_reader:
-            image_name = row[3].replace("(WRITEPROTECT)", "")
-            attach_image(row[0], image_name, row[2])
-    flash(f"Loaded config from  {file_name}!")
+    if "load" in request.form:
+        if read_config_csv(file_name):
+            flash(f"Loaded config from  {file_name}!")
+        else:
+            flash(f"Failed to load  {file_name}!", "error")
+    elif "delete" in request.form:
+        if delete_file(file_name):
+            flash(f"Deleted config  {file_name}!")
+        else:
+            flash(f"Failed to delete  {file_name}!", "error")
+
     return redirect(url_for("index"))
 
 
@@ -142,6 +142,11 @@ def attach():
             image_type = "SCHD"
     else:
         flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
+        return redirect(url_for("index"))
+
+    # Validate the SCSI ID
+    if re.match("[0-7]", str(scsi_id)) == None:
+        flash(f"Invalid SCSI ID. Should be a number between 0-7", "error")
         return redirect(url_for("index"))
 
     process = attach_image(scsi_id, file_name, image_type)
@@ -283,7 +288,7 @@ def download():
 @app.route("/files/delete", methods=["POST"])
 def delete():
     image = request.form.get("image")
-    if delete_image(image):
+    if delete_file(base_dir + image):
         flash("File " + image + " deleted")
         return redirect(url_for("index"))
     else:
@@ -309,6 +314,8 @@ if __name__ == "__main__":
     app.config["UPLOAD_FOLDER"] = base_dir
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
+    
+    read_config_csv(f"{base_dir}default.csv")
 
     import bjoern
     print("Serving rascsi-web...")
