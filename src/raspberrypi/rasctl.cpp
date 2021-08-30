@@ -218,9 +218,12 @@ void CommandServerInfo(const string& hostname, int port)
 	for (auto it = serverInfo.types_properties().begin(); it != serverInfo.types_properties().end(); ++it) {
 		cout << "  " << PbDeviceType_Name(it->type());
 
-		cout << "  Properties: ";
-		bool has_property = false;
 		const PbDeviceProperties& properties = it->properties();
+
+		cout << "  Supported LUNs: " << properties.luns() << endl;
+
+		cout << "        Properties: ";
+		bool has_property = false;
 		if (properties.read_only()) {
 			cout << "Read-only";
 					has_property = true;
