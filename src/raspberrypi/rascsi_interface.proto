@@ -37,9 +37,9 @@ enum PbOperation {
     LOG_LEVEL = 3;
     // Attach new device
     ATTACH = 4;
-    // Detach device. Detach all devices if PbCommand.params == "all". In this case ID and unit are ignored.
+    // Detach device
     DETACH = 5;
-    // Detach all devices, requires no device list
+    // Detach all devices, does not require a device list
     DETACH_ALL = 6;
     // Insert medium
     INSERT = 7;
