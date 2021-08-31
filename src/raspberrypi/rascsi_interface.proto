@@ -49,6 +49,9 @@ enum PbOperation {
     PROTECT = 9;
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 10;
+    // IDs blocked from being used, usually the ID of the initiator (computer) in the SCSI chain.
+    // The command params field contains the full list of IDs to reserve, or is empty in order to allow all IDs.
+    RESERVE = 11;
 }
 
 // The properties supported by a device, helping clients to offer a good user experience
@@ -132,7 +135,7 @@ message PbCommand {
     PbOperation operation = 1;
     // The non-empty list of devices for this command
     repeated PbDeviceDefinition devices = 2;
-    // The optional parameters depending on the operation, e.g. a filename or a network interface list
+    // The optional parameters depending on the operation, e.g. a filename, or a network interface list
     repeated string params = 3;
 }
 
@@ -160,4 +163,6 @@ message PbServerInfo {
     repeated PbImageFile image_files = 8;
     // The attached devices
     repeated PbDevice devices = 9;
+    // The unsorted list of reserved IDs
+    repeated uint32 reserved_ids = 10;
 }

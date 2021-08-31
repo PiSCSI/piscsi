@@ -149,6 +149,23 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	close(fd);
 }
 
+void CommandReserve(const string&hostname, int port, const string& reserved_ids)
+{
+	PbCommand command;
+	command.set_operation(RESERVE);
+
+	stringstream ss(reserved_ids);
+    string reserved_id;
+
+    while (getline(ss, reserved_id, ',')) {
+		command.add_params(reserved_id);
+	}
+
+	int fd = SendCommand(hostname.c_str(), port, command);
+	ReceiveResult(fd);
+	close(fd);
+}
+
 void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
 {
 	PbCommand command;
@@ -294,10 +311,18 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 	}
 
-	if (!server_info.devices_size()) {
-		cout << "No devices attached" << endl;
+	if (server_info.reserved_ids_size()) {
+		cout << "Reserved IDs: ";
+		for (int i = 0; i < server_info.reserved_ids_size(); i++) {
+			if(i) {
+				cout << ", ";
+			}
+			cout << server_info.reserved_ids(i);
+		}
+		cout <<endl;
 	}
-	else {
+
+	if (server_info.devices_size()) {
 		list<PbDevice> sorted_devices = { server_info.devices().begin(), server_info.devices().end() };
 		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
 
@@ -383,7 +408,8 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE] [-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-l] [-v]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE] ";
+		cerr << "[-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] [-l] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1}, default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
@@ -394,6 +420,7 @@ int main(int argc, char* argv[])
 		cerr << "        DEFAULT_IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
 		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
+		cerr << "        RESERVED_IDS := comma-separated list of IDs to reserve" << endl;
 		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
@@ -411,11 +438,12 @@ int main(int argc, char* argv[])
 	int port = 6868;
 	string log_level;
 	string default_folder;
+	string reserved_ids;
 	bool list = false;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "b:c:d:f:g:h:i:n:p:t:u:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "b:c:d:f:g:h:i:n:p:r:t:u:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -500,6 +528,11 @@ int main(int argc, char* argv[])
 				}
 				break;
 
+			case 'r':
+				command.set_operation(RESERVE);
+				reserved_ids = optarg;
+				break;
+
 			case 's':
 				command.set_operation(SERVER_INFO);
 				break;
@@ -515,19 +548,25 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (command.operation() == LOG_LEVEL) {
-		CommandLogLevel(hostname, port, log_level);
-		exit(EXIT_SUCCESS);
-	}
+	switch(command.operation()) {
+		case LOG_LEVEL:
+			CommandLogLevel(hostname, port, log_level);
+			exit(EXIT_SUCCESS);
 
-	if (command.operation() == DEFAULT_FOLDER) {
-		CommandDefaultImageFolder(hostname, port, default_folder);
-		exit(EXIT_SUCCESS);
-	}
+		case DEFAULT_FOLDER:
+			CommandDefaultImageFolder(hostname, port, default_folder);
+			exit(EXIT_SUCCESS);
 
-	if (command.operation() == SERVER_INFO) {
-		CommandServerInfo(hostname, port);
-		exit(EXIT_SUCCESS);
+		case RESERVE:
+			CommandReserve(hostname, port, reserved_ids);
+			exit(EXIT_SUCCESS);
+
+		case SERVER_INFO:
+			CommandServerInfo(hostname, port);
+			exit(EXIT_SUCCESS);
+
+		default:
+			break;
 	}
 
 	if (list) {
