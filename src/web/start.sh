@@ -2,6 +2,22 @@
 set -e
 # set -x # Uncomment to Debug
 
+# parse arguments
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    VALUE=`echo $1 | awk -F= '{print $2}'`
+    case $PARAM in
+        -e | --exclude_id)
+	    EXCLUDE_ID=$VALUE
+	    ;;
+	*)
+	    echo "ERROR: unknown parameter \"$PARAM\""
+	    exit 1
+	    ;;
+    esac
+    shift
+done
+
 cd $(dirname $0)
 # verify packages installed
 ERROR=0
@@ -56,4 +72,9 @@ else
 fi
 
 echo "Starting web server..."
-python3 web.py
+if [ "$EXCLUDE_ID" ]; then
+  echo "Reserving SCSI ID(s)" $EXCLUDE_ID
+  python3 web.py $EXCLUDE_ID
+else
+  python3 web.py
+fi

@@ -69,6 +69,7 @@ string current_log_level;			// Some versions of spdlog do not support get_log_le
 string default_image_folder;
 typedef pair<int, int> id_set;
 map<string, id_set> files_in_use;
+set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
 
 //---------------------------------------------------------------------------
@@ -705,6 +706,11 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		return ReturnStatus(fd, false, error);
 	}
 
+	if (reserved_ids.find(id) != reserved_ids.end()) {
+		error << "Device ID " << id << " is reserved";
+		return ReturnStatus(fd, false, error);
+	}
+
 	// Check the Unit Number
 	if (unit < 0 || unit >= UnitNum) {
 		error << "Invalid unit " << unit << " (0-" << UnitNum - 1 << ")";
@@ -1004,6 +1010,37 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		DetachAll();
 		return ReturnStatus(fd);
 	}
+	else if (command.operation() == RESERVE) {
+		set<int> reserved;
+		for (int i = 0; i < command.params_size(); i++) {
+			try {
+				reserved.insert(std::stoi(command.params(i)));
+			}
+			catch(const invalid_argument& e) {
+				return ReturnStatus(fd, false, "Invalid ID " + command.params(i));
+			}
+			catch(const out_of_range& e) {
+				return ReturnStatus(fd, false, "Invalid ID " + command.params(i));
+			}
+		}
+
+		reserved_ids = reserved;
+
+		list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
+		ids.sort([](const auto& a, const auto& b) { return a < b; });
+		ostringstream s;
+		bool isFirst = true;
+		for (auto const& id : ids) {
+			if (!isFirst) {
+				s << ", ";
+			}
+			s << id;
+			isFirst = false;
+		}
+		LOGINFO("Reserved IDs: %s", s.str().c_str());
+
+		return ReturnStatus(fd);
+	}
 
 	vector<string> params = { command.params().begin(), command.params().end() };
 
@@ -1042,10 +1079,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	int block_size = 0;
 	string name;
 	string log_level;
+	string reserved_ids;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:F:f:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -1064,10 +1102,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'g':
-				log_level = optarg;
-				continue;
-
 			case 'd': {
 				char* end;
 				id = strtol(optarg, &end, 10);
@@ -1078,17 +1112,21 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'p':
-				port = atoi(optarg);
-				if (port <= 0 || port > 65535) {
-					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+			case 'f':
+				if (!SetDefaultImageFolder(optarg)) {
+					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
 					return false;
 				}
 				continue;
 
-			case 'f':
-				if (!SetDefaultImageFolder(optarg)) {
-					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
+			case 'g':
+				log_level = optarg;
+				continue;
+
+			case 'p':
+				port = atoi(optarg);
+				if (port <= 0 || port > 65535) {
+					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					return false;
 				}
 				continue;
@@ -1276,6 +1314,9 @@ static void *MonThread(void *param)
 					GetDeviceTypeFeatures(server_info);
 					GetAvailableImages(server_info);
 					GetDevices(server_info);
+					for (int id : reserved_ids) {
+						server_info.add_reserved_ids(id);
+					}
 					SerializeMessage(fd, server_info);
 					LogDevices(ListDevices(server_info));
 					break;
