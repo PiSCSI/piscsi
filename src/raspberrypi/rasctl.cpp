@@ -312,7 +312,7 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 
 	if (server_info.reserved_ids_size()) {
-		cout << "Reserved IDs: ";
+		cout << "Reserved device IDs: ";
 		for (int i = 0; i < server_info.reserved_ids_size(); i++) {
 			if(i) {
 				cout << ", ";
