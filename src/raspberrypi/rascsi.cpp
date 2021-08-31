@@ -1011,6 +1011,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	const auto files = files_in_use;
 	for (int i = 0; i < command.devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices(i), command.operation(), params, true)) {
+			files_in_use = files;
 			return false;
 		}
 	}
