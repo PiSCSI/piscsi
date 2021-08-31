@@ -142,7 +142,7 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 {
 	PbCommand command;
 	command.set_operation(LOG_LEVEL);
-	command.set_params(log_level);
+	command.add_params(log_level);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 	ReceiveResult(fd);
@@ -153,7 +153,7 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 {
 	PbCommand command;
 	command.set_operation(DEFAULT_FOLDER);
-	command.set_params(folder);
+	command.add_params(folder);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 	ReceiveResult(fd);
@@ -167,9 +167,9 @@ void CommandServerInfo(const string& hostname, int port)
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
-	PbServerInfo serverInfo;
+	PbServerInfo server_info;
 	try {
-		DeserializeMessage(fd, serverInfo);
+		DeserializeMessage(fd, server_info);
 	}
 	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
@@ -181,26 +181,30 @@ void CommandServerInfo(const string& hostname, int port)
 
 	close(fd);
 
-	cout << "rascsi server version: " << serverInfo.rascsi_version() << endl;
+	cout << "rascsi server version: " << server_info.major_version() << "." << server_info.minor_version();
+	if (server_info.patch_version()) {
+		cout << "." << server_info.patch_version();
+	}
+	cout << endl;
 
-	if (!serverInfo.log_levels_size()) {
+	if (!server_info.log_levels_size()) {
 		cout << "  No log level settings available" << endl;
 	}
 	else {
 		cout << "rascsi log levels, sorted by severity:" << endl;
-		for (int i = 0; i < serverInfo.log_levels_size(); i++) {
-			cout << "  " << serverInfo.log_levels(i) << endl;
+		for (int i = 0; i < server_info.log_levels_size(); i++) {
+			cout << "  " << server_info.log_levels(i) << endl;
 		}
 
-		cout << "Current rascsi log level: " << serverInfo.current_log_level() << endl;
+		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
 	}
 
-	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
-	if (!serverInfo.image_files_size()) {
+	cout << "Default image file folder: " << server_info.default_image_folder() << endl;
+	if (!server_info.image_files_size()) {
 		cout << "  No image files available" << endl;
 	}
 	else {
-		list<PbImageFile> files = { serverInfo.image_files().begin(), serverInfo.image_files().end() };
+		list<PbImageFile> files = { server_info.image_files().begin(), server_info.image_files().end() };
 		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 		cout << "Available image files:" << endl;
@@ -214,7 +218,7 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 
 	cout << "Supported device types and their properties:" << endl;
-	for (auto it = serverInfo.types_properties().begin(); it != serverInfo.types_properties().end(); ++it) {
+	for (auto it = server_info.types_properties().begin(); it != server_info.types_properties().end(); ++it) {
 		cout << "  " << PbDeviceType_Name(it->type());
 
 		const PbDeviceProperties& properties = it->properties();
@@ -290,11 +294,11 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 	}
 
-	if (!serverInfo.devices_size()) {
+	if (!server_info.devices_size()) {
 		cout << "No devices attached" << endl;
 	}
 	else {
-		list<PbDevice> sorted_devices = { serverInfo.devices().begin(), serverInfo.devices().end() };
+		list<PbDevice> sorted_devices = { server_info.devices().begin(), server_info.devices().end() };
 		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
 
 		cout << "Attached devices:" << endl;
@@ -435,7 +439,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				device->set_params(optarg);
+				device->add_params(optarg);
 				break;
 
 			case 't':
