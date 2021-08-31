@@ -895,7 +895,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 				string filename = pb_device.params();
 
 				if (filename.empty()) {
-					return ReturnStatus(fd, false, "Missing filename");
+					return ReturnStatus(fd, false, "Missing filename for " + PbOperation_Name(operation));
 				}
 
 				if (dryRun) {
