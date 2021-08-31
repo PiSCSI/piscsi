@@ -682,7 +682,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		}
 	}
 
-	s << "', device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type);
+	s << ", device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type);
 
 	if (pb_device.params_size()) {
 		s << ", device params=";
@@ -694,7 +694,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		}
 	}
 
-	s << "', vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
+	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
 			<< "', revision='" << pb_device.revision()
 			<< "', block size=" << pb_device.block_size();
 	LOGINFO("%s", s.str().c_str());
