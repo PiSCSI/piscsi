@@ -1589,7 +1589,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		ostringstream s;
 		s << "Capacity of " << capacity << " blocks exceeded: "
 				<< "Trying to read block " << start << ", block count " << ctrl->blocks;
-		LOGWARN("%s", s.str().c_str());
+		LOGDEBUG("%s", s.str().c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
 	}

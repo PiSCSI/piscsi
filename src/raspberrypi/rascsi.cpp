@@ -638,13 +638,27 @@ bool SetDefaultImageFolder(const string& f)
 	return true;
 }
 
+void DetachAll()
+{
+	Device *map[devices.size()];
+	for (size_t i = 0; i < devices.size(); i++) {
+		map[i] = NULL;
+	}
+
+	if (MapController(map)) {
+		LOGINFO("Disconnected all devices");
+	}
+
+	files_in_use.clear();
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command Processing
 //
 //---------------------------------------------------------------------------
 
-bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation operation, const string& params, bool dryRun)
+bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation operation, const vector<string>& params, bool dryRun)
 {
 	Filepath filepath;
 	Device *device = NULL;
@@ -653,14 +667,35 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 	const int id = pb_device.id();
 	const int unit = pb_device.unit();
 	PbDeviceType type = pb_device.type();
-	bool all = params == "all";
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
-	s << "operation=" << PbOperation_Name(operation) << ", command params='" << params
-			<< "', device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", params='" << pb_device.params() << "', vendor='" << pb_device.vendor()
-			<< "', product='" << pb_device.product() << "', revision='" << pb_device.revision()
+	s << "operation=" << PbOperation_Name(operation);
+
+	if (!params.empty()) {
+		s << ", command params=";
+		for (size_t i = 0; i < params.size(); i++) {
+			if (i) {
+				s << ", ";
+			}
+			s << "'" << params[i] << "'";
+		}
+	}
+
+	s << "', device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type);
+
+	if (pb_device.params_size()) {
+		s << ", device params=";
+		for (int i = 0; i < pb_device.params_size(); i++) {
+			if (i) {
+				s << ", ";
+			}
+			s << "'" << pb_device.params().Get(i) << "'";
+		}
+	}
+
+	s << "', vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
+			<< "', revision='" << pb_device.revision()
 			<< "', block size=" << pb_device.block_size();
 	LOGINFO("%s", s.str().c_str());
 
@@ -688,7 +723,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 			return ReturnStatus(fd, false, error);
 		}
 
-		string filename = pb_device.params();
+		string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0) : "";
 		string ext;
 		size_t separator = filename.rfind('.');
 		if (separator != string::npos) {
@@ -791,7 +826,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 			return true;
 		}
 
-		if (!device->Init(pb_device.params())) {
+		if (!device->Init(pb_device.params_size() > 0 ? pb_device.params().Get(0) : "")) {
 			error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
 
 			delete device;
@@ -803,8 +838,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		map[id * UnitNum + unit] = device;
 
 		// Re-map the controller
-		bool status = MapController(map);
-		if (status) {
+		if (MapController(map)) {
 			LOGINFO("Added new %s device, ID %d, unit %d", device->GetType().c_str(), id, unit);
 			return true;
 		}
@@ -813,7 +847,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 	}
 
 	// When detaching all devices no controller/unit tests are required
-	if (operation != DETACH || !all) {
+	if (operation != DETACH) {
 		// Does the controller exist?
 		if (!dryRun && !controllers[id]) {
 			error << "Received a command for non-existing ID " << id;
@@ -831,39 +865,20 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
 	if (operation == DETACH) {
-		if (!all && !params.empty()) {
-			return ReturnStatus(fd, false, "Invalid command parameter '" + params + "' for " + PbOperation_Name(DETACH));
-		}
-
 		if (!dryRun) {
-			// Free the existing unit(s)
-			if (all) {
-				for (size_t i = 0; i < devices.size(); i++) {
-					map[i] = NULL;
-				}
+			map[id * UnitNum + unit] = NULL;
 
-				files_in_use.clear();
-			}
-			else {
-				map[id * UnitNum + unit] = NULL;
-
-				if (fileSupport) {
-					Filepath filepath;
-					fileSupport->GetPath(filepath);
-					files_in_use.erase(filepath.GetPath());
-				}
+			if (fileSupport) {
+				Filepath filepath;
+				fileSupport->GetPath(filepath);
+				files_in_use.erase(filepath.GetPath());
 			}
 
 			// Re-map the controller, remember the device type because the device gets lost when re-mapping
 			const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
 			bool status = MapController(map);
 			if (status) {
-				if (all) {
-					LOGINFO("Disconnected all devices");
-				}
-				else {
-					LOGINFO("Disconnected %s device with ID %d, unit %d", device_type.c_str(), id, unit);
-				}
+				LOGINFO("Disconnected %s device with ID %d, unit %d", device_type.c_str(), id, unit);
 				return true;
 			}
 
@@ -892,7 +907,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 					return ReturnStatus(fd, false, "Device name cannot be changed");
 				}
 
-				string filename = pb_device.params();
+				string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0): "";
 
 				if (filename.empty()) {
 					return ReturnStatus(fd, false, "Missing filename for " + PbOperation_Name(operation));
@@ -985,10 +1000,17 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
+	if (command.operation() == DETACH_ALL) {
+		DetachAll();
+		return ReturnStatus(fd);
+	}
+
+	vector<string> params = { command.params().begin(), command.params().end() };
+
 	// Dry run first
 	const auto files = files_in_use;
 	for (int i = 0; i < command.devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices(i), command.operation(), command.params(), true)) {
+		if (!ProcessCmd(fd, command.devices(i), command.operation(), params, true)) {
 			return false;
 		}
 	}
@@ -996,7 +1018,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	// Execute
 	files_in_use = files;
 	for (int i = 0; i < command.devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices(i), command.operation(), command.params(), false)) {
+		if (!ProcessCmd(fd, command.devices(i), command.operation(), params, false)) {
 			return false;
 		}
 	}
@@ -1108,7 +1130,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_unit(unit);
 		device->set_type(type);
 		device->set_block_size(block_size);
-		device->set_params(optarg);
+		device->add_params(optarg);
 
 		size_t separatorPos = name.find(':');
 		if (separatorPos != string::npos) {
@@ -1217,9 +1239,10 @@ static void *MonThread(void *param)
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {
-					bool status = SetLogLevel(command.params());
+					string log_level = command.params_size() > 0 ? command.params().Get(0) : "";
+					bool status = SetLogLevel(log_level);
 					if (!status) {
-						ReturnStatus(fd, false, "Invalid log level: " + command.params());
+						ReturnStatus(fd, false, "Invalid log level: " + log_level);
 					}
 					else {
 						ReturnStatus(fd);
@@ -1227,30 +1250,33 @@ static void *MonThread(void *param)
 					break;
 				}
 
-				case DEFAULT_FOLDER:
+				case DEFAULT_FOLDER: {
 					if (command.params().empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					if (!SetDefaultImageFolder(command.params())) {
-						ReturnStatus(fd, false, "Folder '" + command.params() + "' does not exist or is not accessible");
+					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
+					if (!SetDefaultImageFolder(folder)) {
+						ReturnStatus(fd, false, "Folder '" + folder + "' does not exist or is not accessible");
 					}
 					else {
 						ReturnStatus(fd);
 					}
 					break;
+				}
 
 				case SERVER_INFO: {
-					PbServerInfo serverInfo;
-					serverInfo.set_rascsi_version(rascsi_get_version_string());
-					GetLogLevels(serverInfo);
-					serverInfo.set_current_log_level(current_log_level);
-					serverInfo.set_default_image_folder(default_image_folder);
-					GetDeviceTypeFeatures(serverInfo);
-					GetAvailableImages(serverInfo);
-					GetDevices(serverInfo);
-					SerializeMessage(fd, serverInfo);
-					LogDevices(ListDevices(serverInfo));
+					PbServerInfo server_info;
+					server_info.set_major_version(rascsi_major_version);
+					server_info.set_minor_version(rascsi_minor_version);
+					GetLogLevels(server_info);
+					server_info.set_current_log_level(current_log_level);
+					server_info.set_default_image_folder(default_image_folder);
+					GetDeviceTypeFeatures(server_info);
+					GetAvailableImages(server_info);
+					GetDevices(server_info);
+					SerializeMessage(fd, server_info);
+					LogDevices(ListDevices(server_info));
 					break;
 				}
 

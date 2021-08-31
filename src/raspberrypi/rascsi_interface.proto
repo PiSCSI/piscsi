@@ -39,14 +39,16 @@ enum PbOperation {
     ATTACH = 4;
     // Detach device. Detach all devices if PbCommand.params == "all". In this case ID and unit are ignored.
     DETACH = 5;
+    // Detach all devices, requires no device list
+    DETACH_ALL = 6;
     // Insert medium
-    INSERT = 6;
+    INSERT = 7;
     // Eject medium
-    EJECT = 7;
+    EJECT = 8;
     // Write-protect medium (not possible for read-only media)
-    PROTECT = 8;
+    PROTECT = 9;
     // Make medium writable (not possible for read-only media)
-    UNPROTECT = 9;
+    UNPROTECT = 10;
 }
 
 // The properties supported by a device, helping clients to offer a good user experience
@@ -99,8 +101,8 @@ message PbDeviceDefinition {
     int32 id = 1;
     int32 unit = 2;
     PbDeviceType type = 3;
-    // Optional device specific parameter, e.g. the name of an image file
-    string params = 4;
+    // Optional device specific parameters, e.g. the name of an image file
+    repeated string params = 4;
     // The optional block size in bytes per sector, must be one of the supported block sizes for SASI/SCSI
     int32 block_size = 5;
     // The device name components
@@ -131,7 +133,7 @@ message PbCommand {
     // The non-empty list of devices for this command
     repeated PbDeviceDefinition devices = 2;
     // The optional parameters depending on the operation, e.g. a filename or a network interface list
-    string params = 3;
+    repeated string params = 3;
 }
 
 // The result of a command. Note that the SERVER_INFO command has a special result.
@@ -144,15 +146,18 @@ message PbResult {
 
 // The rascsi server information
 message PbServerInfo {
-    string rascsi_version = 1;
+    // The rascsi server version
+    uint32 major_version = 1;
+    uint32 minor_version = 2;
+    uint32 patch_version = 3;
     // List of available log levels, ordered by increasing by severity
-    repeated string log_levels = 2;
-    string current_log_level = 3;
-    string default_image_folder = 4;
+    repeated string log_levels = 4;
+    string current_log_level = 5;
+    string default_image_folder = 6;
     // Supported device types and their properties
-    repeated PbDeviceTypeProperties types_properties = 5;
+    repeated PbDeviceTypeProperties types_properties = 7;
     // Unordered list of files in the default image folder
-    repeated PbImageFile image_files = 6;
+    repeated PbImageFile image_files = 8;
     // The attached devices
-    repeated PbDevice devices = 7;
+    repeated PbDevice devices = 9;
 }
