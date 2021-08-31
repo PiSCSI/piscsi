@@ -1037,7 +1037,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 			s << id;
 			isFirst = false;
 		}
-		LOGINFO("Reserved IDs: %s", s.str().c_str());
+		LOGINFO("Reserved IDs set to: %s", s.str().c_str());
 
 		return ReturnStatus(fd);
 	}
