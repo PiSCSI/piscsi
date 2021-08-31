@@ -6,7 +6,8 @@ After=network.target
 Type=simple
 Restart=always
 ExecStart=/home/pi/RASCSI/src/web/start.sh --exclude_id=7
-# exclude_id is set to 7 for Macintosh. Change to a different value for other platforms.
+# Use the --exclude_id argument to define an id or range of ids that will be unavailable for use in the Web UI.
+# The default is 7 for Macintosh. To reserve, say, IDs 0, 1, and 7 do --exclude_id=017
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=RASCSIWEB

@@ -38,8 +38,8 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     devices = list_devices()
-    exclude_scsi_id = app.config.get('EXCLUDE_SCSI_ID')
-    scsi_ids = get_valid_scsi_ids(devices, exclude_scsi_id)
+    exclude_scsi_ids = str(app.config.get("EXCLUDE_SCSI_IDS"))
+    scsi_ids = get_valid_scsi_ids(devices, list(exclude_scsi_ids))
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup("eth0"),
@@ -50,7 +50,7 @@ def index():
         base_dir=base_dir,
         scsi_ids=scsi_ids,
         max_file_size=MAX_FILE_SIZE,
-        exclude_scsi_id=str(exclude_scsi_id),
+        exclude_scsi_ids=exclude_scsi_ids,
         version=running_version(),
     )
 
@@ -318,9 +318,9 @@ if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
     if len(sys.argv) >= 2:
-        app.config["EXCLUDE_SCSI_ID"] = int(sys.argv[1])
+        app.config["EXCLUDE_SCSI_IDS"] = sys.argv[1]
     else:
-        app.config["EXCLUDE_SCSI_ID"] = None
+        app.config["EXCLUDE_SCSI_IDS"] = None
     
     read_config_csv(f"{base_dir}default.csv")
 

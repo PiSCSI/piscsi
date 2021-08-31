@@ -73,7 +73,7 @@ fi
 
 echo "Starting web server..."
 if [ "$EXCLUDE_ID" ]; then
-  echo "Reserving SCSI ID" $EXCLUDE_ID
+  echo "Reserving SCSI ID(s)" $EXCLUDE_ID
   python3 web.py $EXCLUDE_ID
 else
   python3 web.py
