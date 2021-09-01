@@ -862,12 +862,13 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		}
 	}
 
-	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
-
 	if (operation == DETACH) {
 		if (!dryRun) {
+			device = map[id * UnitNum + unit];
+
 			map[id * UnitNum + unit] = NULL;
 
+			FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 			if (fileSupport) {
 				Filepath filepath;
 				fileSupport->GetPath(filepath);
@@ -885,6 +886,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 		}
 	}
+
+	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
 
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
 		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't removable)");
