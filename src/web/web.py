@@ -28,7 +28,8 @@ from ractl_cmds import (
     list_config_files,
     detach_all,
     valid_file_suffix,
-    valid_file_types
+    valid_file_types,
+    reserve_scsi_ids,
 )
 from settings import *
 
@@ -38,8 +39,8 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     devices = list_devices()
-    exclude_scsi_ids = str(app.config.get("EXCLUDE_SCSI_IDS"))
-    scsi_ids = get_valid_scsi_ids(devices, list(exclude_scsi_ids))
+    reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
+    scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids))
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup("eth0"),
@@ -49,8 +50,8 @@ def index():
         config_files=list_config_files(),
         base_dir=base_dir,
         scsi_ids=scsi_ids,
+        reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=MAX_FILE_SIZE,
-        exclude_scsi_ids=exclude_scsi_ids,
         version=running_version(),
     )
 
@@ -318,10 +319,13 @@ if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
     if len(sys.argv) >= 2:
-        app.config["EXCLUDE_SCSI_IDS"] = sys.argv[1]
+        app.config["RESERVED_SCSI_IDS"] = str(sys.argv[1])
+        # Reserve SCSI IDs on the backend side to prevent use
+        reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
     else:
-        app.config["EXCLUDE_SCSI_IDS"] = None
-    
+        app.config["RESERVED_SCSI_IDS"] = ""
+
+    # Load the configuration in default.cvs, if it exists
     read_config_csv(f"{base_dir}default.csv")
 
     import bjoern

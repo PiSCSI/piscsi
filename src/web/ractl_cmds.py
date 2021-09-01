@@ -55,7 +55,7 @@ def get_valid_scsi_ids(devices, invalid_list):
         try:
             valid_list.remove(int(id))
         except:
-            logging.warning("Reserved SCSI id " + str(id) + " is in use.")
+            logging.warning("Invalid SCSI id " + str(id))
     valid_list.reverse()
     return valid_list
 
@@ -158,3 +158,7 @@ def list_devices():
                 device_list[idx]["file"] = segments[4].strip()
 
     return device_list
+
+def reserve_scsi_ids(reserved_scsi_ids):
+    scsi_ids = ",".join(list(reserved_scsi_ids))
+    return subprocess.run(["rasctl", "-r", scsi_ids])
