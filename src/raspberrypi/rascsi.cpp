@@ -1037,7 +1037,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 			s << id;
 			isFirst = false;
 		}
-		LOGINFO("Reserved IDs: %s", s.str().c_str());
+		LOGINFO("Reserved IDs set to: %s", s.str().c_str());
 
 		return ReturnStatus(fd);
 	}
@@ -1209,8 +1209,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	PbServerInfo server_info;
 	GetDevices(server_info);
 	const string device_list = ListDevices(server_info);
-	cout << device_list << endl;
 	LogDevices(device_list);
+	cout << device_list << endl;
 
 	return true;
 }
