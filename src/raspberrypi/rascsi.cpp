@@ -253,12 +253,6 @@ void Reset()
 	bus->Reset();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get the list of attached devices
-//
-//---------------------------------------------------------------------------
-
 void GetImageFile(PbImageFile *image_file, const string& filename)
 {
 	image_file->set_name(filename);
@@ -1013,15 +1007,12 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	else if (command.operation() == RESERVE) {
 		set<int> reserved;
 		for (int i = 0; i < command.params_size(); i++) {
-			try {
-				reserved.insert(std::stoi(command.params(i)));
-			}
-			catch(const invalid_argument& e) {
+			int id;
+			if (!GetAsInt(command.params(i), id)) {
 				return ReturnStatus(fd, false, "Invalid ID " + command.params(i));
 			}
-			catch(const out_of_range& e) {
-				return ReturnStatus(fd, false, "Invalid ID " + command.params(i));
-			}
+
+			reserved.insert(id);
 		}
 
 		reserved_ids = reserved;
@@ -1098,7 +1089,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'b': {
-				block_size = atoi(optarg);
+				if (!GetAsInt(optarg, block_size)) {
+					cerr << "Invalid block size " << optarg << endl;
+					return false;
+				}
 				continue;
 			}
 
@@ -1124,8 +1118,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'p':
-				port = atoi(optarg);
-				if (port <= 0 || port > 65535) {
+				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					return false;
 				}
