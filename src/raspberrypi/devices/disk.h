@@ -33,7 +33,7 @@
 #include "interfaces/scsi_block_commands.h"
 #include "interfaces/scsi_primary_commands.h"
 
-class Disk : public Device, public ScsiPrimaryCommands, public ScsiBlockCommands
+class Disk : public Device, ScsiPrimaryCommands, ScsiBlockCommands
 {
 private:
 	enum access_mode { RW6, RW10, RW16 };
