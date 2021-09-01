@@ -1070,7 +1070,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	int block_size = 0;
 	string name;
 	string log_level;
-	string reserved_ids;
 
 	opterr = 1;
 	int opt;
