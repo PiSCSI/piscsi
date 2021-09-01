@@ -15,11 +15,25 @@
 using namespace std;
 using namespace rascsi_interface;
 
-//---------------------------------------------------------------------------
-//
-//	List devices
-//
-//---------------------------------------------------------------------------
+bool GetAsInt(const string& value, int& result)
+{
+	if (value.find_first_not_of("0123456789") != string::npos) {
+		return false;
+	}
+
+	try {
+		result = std::stoul(value);
+	}
+	catch(const invalid_argument& e) {
+		return false;
+	}
+	catch(const out_of_range& e) {
+		return false;
+	}
+
+	return true;
+}
+
 string ListDevices(const PbServerInfo& server_info)
 {
 	if (!server_info.devices_size()) {

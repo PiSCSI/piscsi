@@ -454,7 +454,12 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'b':
-				device->set_block_size(atoi(optarg));
+				int block_size;
+				if (!GetAsInt(optarg, block_size)) {
+					cerr << "Error: Invalid block size " << optarg << endl;
+					exit(EXIT_FAILURE);
+				}
+				device->set_block_size(block_size);
 				break;
 
 			case 'c':
@@ -521,8 +526,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'p':
-				port = atoi(optarg);
-				if (port <= 0 || port > 65535) {
+				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
 					cerr << "Error: Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					exit(EXIT_FAILURE);
 				}

@@ -253,25 +253,6 @@ void Reset()
 	bus->Reset();
 }
 
-bool GetAsInt(const string& value, int& result)
-{
-	if (value.find_first_not_of("0123456789") != string::npos) {
-		return false;
-	}
-
-	try {
-		result = std::stoul(value);
-	}
-	catch(const invalid_argument& e) {
-		return false;
-	}
-	catch(const out_of_range& e) {
-		return false;
-	}
-
-	return true;
-}
-
 void GetImageFile(PbImageFile *image_file, const string& filename)
 {
 	image_file->set_name(filename);
