@@ -255,6 +255,10 @@ void Reset()
 
 bool GetAsInt(const string& value, int& result)
 {
+	if (value.find_first_not_of("0123456789") != string::npos) {
+		return false;
+	}
+
 	try {
 		result = std::stoul(value);
 	}
@@ -1106,6 +1110,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 'b': {
 				if (!GetAsInt(optarg, block_size)) {
 					cerr << "Invalid block size " << optarg << endl;
+					return false;
 				}
 				continue;
 			}
