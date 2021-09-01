@@ -5,9 +5,9 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/home/pi/RASCSI/src/web/start.sh --exclude_id=7
-# Use the --exclude_id argument to define an id or range of ids that will be unavailable for use in the Web UI.
-# The default is 7 for Macintosh. To reserve, say, IDs 0, 1, and 7 do --exclude_id=017
+ExecStart=/home/pi/RASCSI/src/web/start.sh --reserved_ids=7
+# Use the --reserved_ids argument to define an id or range of ids that will be unavailable for attaching devices.
+# The default is 7 for Macintosh. Ex. to reserve IDs 0, 1, and 7 do:  --reserved_ids=017
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=RASCSIWEB
