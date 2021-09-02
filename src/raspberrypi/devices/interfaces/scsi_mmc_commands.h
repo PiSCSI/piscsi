@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// Interface for SCSI MMC commands (see https://www.t10.org/drafts.htm, MMC-6)
+// Interface for SCSI Multi-Media commands (see https://www.t10.org/drafts.htm, MMC-6)
 //
 //---------------------------------------------------------------------------
 
