@@ -27,6 +27,22 @@ LIDO_DRIVER=~/RASCSI/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
+# parse arguments
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    VALUE=`echo $1 | awk -F= '{print $2}'`
+    case $PARAM in
+        -c | --connect_type)
+            CONNECT_TYPE=$VALUE
+            ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            exit 1
+            ;;
+    esac
+    shift
+done
+
 function initialChecks() {
     currentUser=$(whoami)
     if [ "pi" != "$currentUser" ]; then
@@ -51,8 +67,8 @@ function installRaScsi() {
     installPackages
 
     cd ~/RASCSI/src/raspberrypi
-    make all CONNECT_TYPE=FULLSPEC
-    sudo make install CONNECT_TYPE=FULLSPEC
+    make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
+    sudo make install CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
 
     sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
 
@@ -129,8 +145,8 @@ function updateRaScsi() {
     cd ~/RASCSI/src/raspberrypi
 
     make clean
-    make all CONNECT_TYPE=FULLSPEC
-    sudo make install CONNECT_TYPE=FULLSPEC
+    make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
+    sudo make install CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
     sudo systemctl start rascsi
 }
 
