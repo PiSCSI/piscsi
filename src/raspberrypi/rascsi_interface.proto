@@ -152,7 +152,8 @@ message PbServerInfo {
     // The rascsi server version
     uint32 major_version = 1;
     uint32 minor_version = 2;
-    uint32 patch_version = 3;
+    // < 0 for a development version, = 0 if there is no patch yet
+    int32 patch_version = 3;
     // List of available log levels, ordered by increasing by severity
     repeated string log_levels = 4;
     string current_log_level = 5;
