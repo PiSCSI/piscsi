@@ -199,8 +199,11 @@ void CommandServerInfo(const string& hostname, int port)
 	close(fd);
 
 	cout << "rascsi server version: " << server_info.major_version() << "." << server_info.minor_version();
-	if (server_info.patch_version()) {
+	if (server_info.patch_version() > 0) {
 		cout << "." << server_info.patch_version();
+	}
+	else if (server_info.patch_version() < 0) {
+		cout << " (development version)";
 	}
 	cout << endl;
 

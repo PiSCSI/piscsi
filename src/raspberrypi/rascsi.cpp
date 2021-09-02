@@ -1303,6 +1303,7 @@ static void *MonThread(void *param)
 					PbServerInfo server_info;
 					server_info.set_major_version(rascsi_major_version);
 					server_info.set_minor_version(rascsi_minor_version);
+					server_info.set_patch_version(rascsi_patch_version);
 					GetLogLevels(server_info);
 					server_info.set_current_log_level(current_log_level);
 					server_info.set_default_image_folder(default_image_folder);
