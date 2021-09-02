@@ -384,14 +384,17 @@ PbDeviceType ParseType(const char *optarg)
 	else {
 		// Parse legacy types
 		switch (tolower(optarg[0])) {
-			case 'm':
-				return SCMO;
-
 			case 'c':
 				return SCCD;
 
 			case 'b':
 				return SCBR;
+
+			case 'd':
+				return SCDP;
+
+			case 'm':
+				return SCMO;
 		}
 	}
 
