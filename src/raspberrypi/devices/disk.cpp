@@ -515,6 +515,14 @@ bool Disk::Eject(bool force)
 		disk.dcache->Save();
 		delete disk.dcache;
 		disk.dcache = NULL;
+
+		// The image file for this drive is not in use anymore
+		FileSupport *file_support = dynamic_cast<FileSupport *>(this);
+		if (file_support) {
+			Filepath filepath;
+			file_support->GetPath(filepath);
+			file_support->UnreserveFile(filepath);
+		}
 	}
 
 	return status;

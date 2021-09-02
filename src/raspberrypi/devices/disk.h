@@ -74,6 +74,8 @@ public:
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
+	void ReserveFile(const string&);
+
 	// Media Operations
 	virtual void Open(const Filepath& path);
 	void GetPath(Filepath& path) const;

@@ -32,7 +32,6 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <map>
 #include <list>
 #include <vector>
 #include <filesystem>
@@ -67,8 +66,6 @@ static void *MonThread(void *param);
 vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
-typedef pair<int, int> id_set;
-map<string, id_set> files_in_use;
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
 
@@ -306,10 +303,10 @@ void GetDevices(PbServerInfo& serverInfo)
 			pb_device->set_block_size(disk->GetSectorSizeInBytes());
 		}
 
-		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
-		if (fileSupport) {
+		const FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+		if (file_support) {
 			Filepath filepath;
-			fileSupport->GetPath(filepath);
+			file_support->GetPath(filepath);
 			PbImageFile *image_file = new PbImageFile();
 			GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 			pb_device->set_allocated_file(image_file);
@@ -644,7 +641,7 @@ void DetachAll()
 		LOGINFO("Disconnected all devices");
 	}
 
-	files_in_use.clear();
+	FileSupport::UnreserveAll();
 }
 
 //---------------------------------------------------------------------------
@@ -780,27 +777,27 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 			}
 		}
 
-		FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
+		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 
 		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
-		if (fileSupport && !device->IsRemovable() && filename.empty()) {
+		if (file_support && !device->IsRemovable() && filename.empty()) {
 			delete device;
 
 			return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
 		}
 
 		// drive checks files
-		if (fileSupport && !filename.empty()) {
+		if (file_support && !filename.empty()) {
 			filepath.SetPath(filename.c_str());
 
 			try {
 				try {
-					fileSupport->Open(filepath);
+					file_support->Open(filepath);
 				}
 				catch(const file_not_found_exception&) {
 					// If the file does not exist search for it in the default image folder
 					filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
-					fileSupport->Open(filepath);
+					file_support->Open(filepath);
 				}
 			}
 			catch(const io_exception& e) {
@@ -809,16 +806,16 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 				return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
 			}
 
-			const string path = filepath.GetPath();
-			if (files_in_use.find(path) != files_in_use.end()) {
+			int id;
+			int unit;
+			if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
 				delete device;
 
-				const auto& full_id = files_in_use[path];
-				error << "Image file '" << filename << "' is already used by ID " << full_id.first << ", unit " << full_id.second;
+				error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
 				return ReturnStatus(fd, false, error);
 			}
 
-			files_in_use[path] = make_pair(device->GetId(), device->GetLun());
+			file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
 		}
 
 		// Stop the dry run here, before permanently modifying something
@@ -868,11 +865,9 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 			map[id * UnitNum + unit] = NULL;
 
-			FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
-			if (fileSupport) {
-				Filepath filepath;
-				fileSupport->GetPath(filepath);
-				files_in_use.erase(filepath.GetPath());
+			FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+			if (file_support) {
+				file_support->UnreserveFile(filepath);
 			}
 
 			// Re-map the controller, remember the device type because the device gets lost when re-mapping
@@ -887,7 +882,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		}
 	}
 
-	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
 		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't removable)");
@@ -924,28 +919,30 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 				LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(), id, unit);
 
-				const string path = filepath.GetPath();
-				if (files_in_use.find(path) != files_in_use.end()) {
-					const auto& full_id = files_in_use[path];
-					error << "Image file '" << filename << "' is already used by ID " << full_id.first << ", unit " << full_id.second;
+				int id;
+				int unit;
+				if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+					error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
 					return ReturnStatus(fd, false, error);
 				}
 
 				try {
 					try {
-						fileSupport->Open(filepath);
+						file_support->Open(filepath);
 					}
 					catch(const file_not_found_exception&) {
 						// If the file does not exist search for it in the default image folder
 						filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
-						fileSupport->Open(filepath);
+						file_support->Open(filepath);
 					}
 				}
 				catch(const io_exception& e) {
 					return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
 				}
 
-				files_in_use[path] = make_pair(device->GetId(), device->GetLun());
+				if (file_support) {
+					file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+				}
 			}
 			break;
 
@@ -957,11 +954,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
 				// EJECT is idempotent
-				if (device->Eject(true) && fileSupport) {
-					Filepath filepath;
-					fileSupport->GetPath(filepath);
-					files_in_use.erase(filepath.GetPath());
-				}
+				device->Eject(true);
 			}
 			break;
 
@@ -1036,19 +1029,20 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		return ReturnStatus(fd);
 	}
 
-	vector<string> params = { command.params().begin(), command.params().end() };
+	const vector<string> params = { command.params().begin(), command.params().end() };
 
-	// Dry run first
-	const auto files = files_in_use;
+	// Remember the list of reserved files, than run the dry run
+	const auto reserved_files = FileSupport::GetReservedFiles();
 	for (int i = 0; i < command.devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices(i), command.operation(), params, true)) {
-			files_in_use = files;
+			// Dry run failed, restore the file list
+			FileSupport::SetReservedFiles(reserved_files);
 			return false;
 		}
 	}
 
-	// Execute
-	files_in_use = files;
+	// Restore list of reserved files, then execute the command
+	FileSupport::SetReservedFiles(reserved_files);
 	for (int i = 0; i < command.devices_size(); i++) {
 		if (!ProcessCmd(fd, command.devices(i), command.operation(), params, false)) {
 			return false;
