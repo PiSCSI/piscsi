@@ -101,6 +101,8 @@ function installRaScsiWebInterface() {
     stopOldWebInterface
     installPackages
 
+    protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
+
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
     sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
 
@@ -153,6 +155,7 @@ function updateRaScsi() {
 function updateRaScsiWebInterface() {
     stopOldWebInterface
     updateRaScsiGit
+    protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
     sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
     echo "Restarting rascsi-web services..."
