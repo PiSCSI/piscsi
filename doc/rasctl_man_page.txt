@@ -34,7 +34,7 @@ OPTIONS
        -p PORT
               The rascsi port to connect to, default is 6868.
 
-       -p IDS Comma-separated list of IDs to reserve.
+       -r IDS Comma-separated list of IDs to reserve.
 
        -s     Display server-side settings like available images or  supported
               device types.

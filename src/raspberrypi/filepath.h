@@ -8,8 +8,9 @@
 //
 //---------------------------------------------------------------------------
 
-#if !defined(filepath_h)
-#define filepath_h
+#pragma once
+
+#include "os.h"
 
 class Fileio;
 
@@ -49,5 +50,3 @@ private:
 
 	static TCHAR FileExt[_MAX_FNAME + _MAX_DIR];	// Short name (TCHAR)
 };
-
-#endif	// filepath_h
