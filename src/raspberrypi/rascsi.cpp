@@ -882,7 +882,9 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		}
 	}
 
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	if (!device) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " requires an attached device");
+	}
 
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
 		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't removable)");
@@ -894,6 +896,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
 		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't ready)");
 	}
+
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 
 	switch (operation) {
 		case INSERT: {
