@@ -210,6 +210,9 @@ def restart():
 def rascsi_restart():
     rascsi_service("restart")
     flash("Restarting RaSCSI Service...")
+    reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS") 
+    if reserved_scsi_ids != "":
+        reserve_scsi_ids(reserved_scsi_ids)
     return redirect(url_for("index"))
 
 
