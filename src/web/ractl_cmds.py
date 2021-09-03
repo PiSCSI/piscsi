@@ -82,8 +82,11 @@ def detach_all():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH_ALL
 
-    send_pb_command(command.SerializeToString())
+    return_data = send_pb_command(command.SerializeToString())
 
+    result_message = proto.PbResult().ParseFromString(return_data)
+
+    logging.warning(result_message)
     #for scsi_id in range(0, 8):
     #    subprocess.run(["rasctl", "-c" "detach", "-i", str(scsi_id)])
 
@@ -179,4 +182,7 @@ def send_pb_command(payload):
         s.connect((HOST, PORT))
         s.send(struct.pack("<i", len(payload)))
         s.send(payload)
-        data = s.recv(1024)
+        response_header = struct.unpack("<i", s.recv(4))[0]
+        response_data = s.recv(response_header)
+
+    return response_data
