@@ -638,7 +638,7 @@ void DetachAll()
 	}
 
 	if (MapController(map)) {
-		LOGINFO("Disconnected all devices");
+		LOGINFO("Detached all devices");
 	}
 
 	FileSupport::UnreserveAll();
