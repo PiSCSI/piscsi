@@ -882,7 +882,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		}
 	}
 
-	if (!device) {
+	if (!device && operation != DETACH) {
 		return ReturnStatus(fd, false, PbOperation_Name(operation) + " requires an attached device");
 	}
 
