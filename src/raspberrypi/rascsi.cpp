@@ -867,6 +867,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 			FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 			if (file_support) {
+				Filepath filepath;
+				file_support->GetPath(filepath);
 				file_support->UnreserveFile(filepath);
 			}
 
