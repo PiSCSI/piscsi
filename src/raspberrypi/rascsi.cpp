@@ -265,52 +265,54 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 	}
 }
 
+void GetDevice(const Device *device, PbDevice *pb_device)
+{
+	pb_device->set_id(device->GetId());
+	pb_device->set_unit(device->GetLun());
+	pb_device->set_vendor(device->GetVendor());
+	pb_device->set_product(device->GetProduct());
+	pb_device->set_revision(device->GetRevision());
+	PbDeviceType type = UNDEFINED;
+	PbDeviceType_Parse(device->GetType(), &type);
+	pb_device->set_type(type);
+
+	PbDeviceProperties *properties = new PbDeviceProperties();
+	pb_device->set_allocated_properties(properties);
+	properties->set_read_only(device->IsReadOnly());
+	properties->set_protectable(device->IsProtectable());
+	properties->set_removable(device->IsRemovable());
+	properties->set_lockable(device->IsLockable());
+
+	PbDeviceStatus *status = new PbDeviceStatus();
+	pb_device->set_allocated_status(status);
+	status->set_protected_(device->IsProtected());
+	status->set_removed(device->IsRemoved());
+	status->set_locked(device->IsLocked());
+
+	const Disk *disk = dynamic_cast<const Disk*>(device);
+	if (disk) {
+		pb_device->set_block_size(disk->GetSectorSizeInBytes());
+	}
+
+	const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
+	if (file_support) {
+		Filepath filepath;
+		file_support->GetPath(filepath);
+		PbImageFile *image_file = new PbImageFile();
+		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
+		pb_device->set_allocated_file(image_file);
+		properties->set_supports_file(true);
+	}
+}
+
 void GetDevices(PbServerInfo& serverInfo)
 {
 	for (size_t i = 0; i < devices.size(); i++) {
 		// skip if unit does not exist or null disk
 		Device *device = devices[i];
-		if (!device) {
-			continue;
-		}
-
-		PbDevice *pb_device = serverInfo.add_devices();
-
-		pb_device->set_id(i / UnitNum);
-		pb_device->set_unit(i % UnitNum);
-		pb_device->set_vendor(device->GetVendor());
-		pb_device->set_product(device->GetProduct());
-		pb_device->set_revision(device->GetRevision());
-		PbDeviceType type = UNDEFINED;
-		PbDeviceType_Parse(device->GetType(), &type);
-		pb_device->set_type(type);
-
-		PbDeviceProperties *properties = new PbDeviceProperties();
-		pb_device->set_allocated_properties(properties);
-		properties->set_read_only(device->IsReadOnly());
-		properties->set_protectable(device->IsProtectable());
-		properties->set_removable(device->IsRemovable());
-		properties->set_lockable(device->IsLockable());
-
-		PbDeviceStatus *status = new PbDeviceStatus();
-		pb_device->set_allocated_status(status);
-		status->set_protected_(device->IsProtected());
-		status->set_removed(device->IsRemoved());
-		status->set_locked(device->IsLocked());
-
-		const Disk *disk = dynamic_cast<Disk*>(device);
-		if (disk) {
-			pb_device->set_block_size(disk->GetSectorSizeInBytes());
-		}
-
-		const FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-		if (file_support) {
-			Filepath filepath;
-			file_support->GetPath(filepath);
-			PbImageFile *image_file = new PbImageFile();
-			GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
-			pb_device->set_allocated_file(image_file);
-			properties->set_supports_file(true);
+		if (device) {
+			PbDevice *pb_device = serverInfo.add_devices();
+			GetDevice(device, pb_device);
 		}
 	}
 }
@@ -1313,6 +1315,20 @@ static void *MonThread(void *param)
 					else {
 						ReturnStatus(fd);
 					}
+					break;
+				}
+
+				case DEVICE_INFO: {
+					PbDevice pb_device;
+
+					for (size_t i = 0; i < devices.size(); i++) {
+						Device *device = devices[i];
+						if (device && device->GetId() == command.devices(0).id() && device->GetLun() == command.devices(0).unit()) {
+							GetDevice(device, &pb_device);
+							break;
+						}
+					}
+					SerializeMessage(fd, pb_device);
 					break;
 				}
 

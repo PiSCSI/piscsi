@@ -43,15 +43,16 @@ OPTIONS
 
        -i ID  ID is the SCSI ID that you want to control. (0-7)
 
-       -c CMD Command is the operation being requested. options are:
-                 attach: attach disk
-                 detach: detach disk
-                 insert: insert media (removable media devices only)
-                 eject: eject media (removable media devices only)
-                 protect:  write protect the media (not for CD-ROMs, which are
-              always read-only)
-                 unprotect: remove write protection from the  media  (not  for
+       -c CMD Command is the operation being requested. Options are:
+                 a(ttach): Attach disk
+                 d(etach): Detach disk
+                 i(nsert): Insert media (removable media devices only)
+                 e(ject): Eject media (removable media devices only)
+                 p(rotect):  Write  protect the medium (not for CD-ROMs, which
+              are always read-only)
+                 u(nprotect): Remove write protection from the medium (not for
               CD-ROMs, which are always read-only)
+                 s(how): Display device information
 
               eject, protect and unprotect are idempotent.
 

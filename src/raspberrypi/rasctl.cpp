@@ -103,21 +103,36 @@ bool ReceiveResult(int fd)
     return true;
 }
 
+void DisplayDeviceInfo(const PbDevice& pb_device)
+{
+	cout << "  " << pb_device.id() << ":" << pb_device.unit() << "  " << PbDeviceType_Name(pb_device.type())
+			<< "  " << pb_device.vendor() << ":" << pb_device.product() << ":" << pb_device.revision();
+	if (pb_device.block_size()) {
+		cout << "  " << pb_device.block_size() << " BPS";
+	}
+	cout << (pb_device.file().name().empty() ? "" : "  " + pb_device.file().name());
+	if (pb_device.properties().read_only() || pb_device.status().protected_()) {
+		cout << "  read-only";
+	}
+	cout <<endl;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command implementations
 //
 //---------------------------------------------------------------------------
 
-const PbServerInfo GetServerInfo(const string&hostname, int port) {
+const PbServerInfo GetServerInfo(const string& hostname, int port)
+{
 	PbCommand command;
 	command.set_operation(SERVER_INFO);
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
-	PbServerInfo serverInfo;
+	PbServerInfo server_info;
 	try {
-		DeserializeMessage(fd, serverInfo);
+		DeserializeMessage(fd, server_info);
 	}
 	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
@@ -129,7 +144,7 @@ const PbServerInfo GetServerInfo(const string&hostname, int port) {
 
 	close(fd);
 
-	return serverInfo;
+	return server_info;
 }
 
 void CommandList(const string& hostname, int port)
@@ -175,6 +190,32 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 	int fd = SendCommand(hostname.c_str(), port, command);
 	ReceiveResult(fd);
 	close(fd);
+}
+
+void CommandDeviceInfo(const string& hostname, int port, const PbCommand& command)
+{
+	int fd = SendCommand(hostname.c_str(), port, command);
+
+	PbDevice pb_device;
+	try {
+		DeserializeMessage(fd, pb_device);
+	}
+	catch(const io_exception& e) {
+		cerr << "Error: " << e.getmsg() << endl;
+
+		close(fd);
+
+		exit(EXIT_FAILURE);
+	}
+
+	close(fd);
+
+	if (pb_device.type() == UNDEFINED) {
+		cerr << "Error: Unknown device ID or unit" << endl;
+	}
+	else {
+		DisplayDeviceInfo(pb_device);
+	}
 }
 
 void CommandServerInfo(const string& hostname, int port)
@@ -332,16 +373,7 @@ void CommandServerInfo(const string& hostname, int port)
 		cout << "Attached devices:" << endl;
 
 		for (const auto& device : sorted_devices) {
-			cout << "  " << device.id() << ":" << device.unit() << "  " << PbDeviceType_Name(device.type())
-					<< "  " << device.vendor() << ":" << device.product() << ":" << device.revision();
-			if (device.block_size()) {
-				cout << "  " << device.block_size() << " BPS";
-			}
-			cout << (device.file().name().empty() ? "" : "  " + device.file().name());
-			if (device.properties().read_only() || device.status().protected_()) {
-				cout << "  read-only";
-			}
-			cout <<endl;
+			DisplayDeviceInfo(device);
 		}
 	}
 }
@@ -366,6 +398,9 @@ PbOperation ParseOperation(const char *optarg)
 
 		case 'u':
 			return UNPROTECT;
+
+		case 's':
+			return DEVICE_INFO;
 
 		default:
 			return NONE;
@@ -424,7 +459,7 @@ int main(int argc, char* argv[])
 		cerr << "[-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] [-l] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1}, default setting is 0." << endl;
-		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
+		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
 		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        BLOCK_SIZE := {256|512|1024|2048|4096) bytes per hard disk drive block" << endl;
 		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
@@ -575,6 +610,10 @@ int main(int argc, char* argv[])
 
 		case RESERVE:
 			CommandReserve(hostname, port, reserved_ids);
+			exit(EXIT_SUCCESS);
+
+		case DEVICE_INFO:
+			CommandDeviceInfo(hostname, port, command);
 			exit(EXIT_SUCCESS);
 
 		case SERVER_INFO:
