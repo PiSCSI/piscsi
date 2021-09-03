@@ -34,7 +34,7 @@ public:
 
 	void GetPath(Filepath& path) const { path = diskpath; }
 	void SetPath(const Filepath& path) { diskpath = path; }
-	static const map<string, id_set> GetReservedFiles() { return reserved_files; } const
+	static const map<string, id_set> GetReservedFiles(){ return reserved_files; }
 	static void SetReservedFiles(const map<string, id_set>& files_in_use) { FileSupport::reserved_files = files_in_use; }
 	void ReserveFile(const Filepath&, int, int);
 	void UnreserveFile();
