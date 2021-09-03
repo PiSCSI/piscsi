@@ -68,6 +68,7 @@ def get_type(scsi_id):
     result_message = proto.PbDeviceDefinition().ParseFromString(return_data)
 
     logging.warning(result_message)
+    return result_message
     #return list_devices()[int(scsi_id)]["type"]
 
 
@@ -75,19 +76,29 @@ def attach_image(scsi_id, image, image_type):
     if image_type == "SCCD" and get_type(scsi_id) == "SCCD":
         return insert(scsi_id, image)
     else:
-        return subprocess.run(
-            ["rasctl", "-c", "attach", "-t", image_type, "-i", scsi_id, "-f", image],
-            capture_output=True,
-        )
+        command = proto.PbCommand()
+        devices = proto.PbDeviceDefinition()
+        devices.id = int(scsi_id)
+        devices.params.append(image)
+        command.operation = proto.PbOperation.ATTACH
+        command.devices.append(devices)
+
+        return_data = send_pb_command(command.SerializeToString())
+        result_message = proto.PbResult().ParseFromString(return_data)
+        return result_message
+        #return subprocess.run(
+        #    ["rasctl", "-c", "attach", "-t", image_type, "-i", scsi_id, "-f", image],
+        #    capture_output=True,
+        #)
 
 
 def detach_by_id(scsi_id):
     command = proto.PbCommand()
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
+    command.devices.append(devices)
 
     command.operation = proto.PbOperation.DETACH
-    command.devices.append(devices)
 
     return_data = send_pb_command(command.SerializeToString())
 
@@ -103,39 +114,66 @@ def detach_all():
     return_data = send_pb_command(command.SerializeToString())
 
     result_message = proto.PbResult().ParseFromString(return_data)
-
-    logging.warning(result_message)
+    return result_message
     #for scsi_id in range(0, 8):
     #    subprocess.run(["rasctl", "-c" "detach", "-i", str(scsi_id)])
 
 
-def disconnect_by_id(scsi_id):
-    return subprocess.run(
-        ["rasctl", "-c", "disconnect", "-i", scsi_id], capture_output=True
-    )
-
-
 def eject_by_id(scsi_id):
-    return subprocess.run(["rasctl", "-i", scsi_id, "-c", "eject"])
+    command = proto.PbCommand()
+    devices = proto.PbDeviceDefinition()
+    devices.id = int(scsi_id)
+
+    command.operation = proto.PbOperation.EJECT
+    command.devices.append(devices)
+
+    return_data = send_pb_command(command.SerializeToString())
+
+    result_message = proto.PbResult().ParseFromString(return_data)
+    return result_message
+    #return subprocess.run(["rasctl", "-i", scsi_id, "-c", "eject"])
 
 
 def insert(scsi_id, image):
-    return subprocess.run(
-        ["rasctl", "-i", scsi_id, "-c", "insert", "-f", image], capture_output=True
-    )
+    command = proto.PbCommand()
+    devices = proto.PbDeviceDefinition()
+    devices.id = int(scsi_id)
+    devices.params.append(image)
+    command.devices.append(devices)
+    command.operation = proto.PbOperation.INSERT
+
+    return_data = send_pb_command(command.SerializeToString())
+    result_message = proto.PbResult().ParseFromString(return_data)
+    return result_message
+    #return subprocess.run(
+    #    ["rasctl", "-i", scsi_id, "-c", "insert", "-f", image], capture_output=True
+    #)
 
 
 def attach_daynaport(scsi_id):
-    return subprocess.run(
-        ["rasctl", "-i", scsi_id, "-c", "attach", "-t", "scdp"],
-        capture_output=True,
-    )
+    command = proto.PbCommand()
+    devices = proto.PbDeviceDefinition()
+    devices.id = int(scsi_id)
+    devices.type = proto.PbDeviceType.SCDP
+    command.devices.append(devices)
+    command.operation = proto.PbOperation.ATTACH
+
+    return_data = send_pb_command(command.SerializeToString())
+    if return_data != False:
+        result_message = proto.PbResult().ParseFromString(return_data)
+        return result_message
+    else:
+        return 0
+    #return subprocess.run(
+    #    ["rasctl", "-i", scsi_id, "-c", "attach", "-t", "scdp"],
+    #    capture_output=True,
+    #)
 
 
 def is_bridge_setup(interface):
     process = subprocess.run(["brctl", "show"], capture_output=True)
     output = process.stdout.decode("utf-8")
-    if "rascsi_bridge" in output and interface in output:
+    if "rascsi_bridge" in output:
         return True
     return False
 
@@ -186,8 +224,19 @@ def list_devices():
     return device_list
 
 def reserve_scsi_ids(reserved_scsi_ids):
-    scsi_ids = ",".join(list(reserved_scsi_ids))
-    return subprocess.run(["rasctl", "-r", scsi_ids])
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.RESERVE
+    command.params.append(reserved_scsi_ids)
+
+    return_data = send_pb_command(command.SerializeToString())
+    if return_data != False:
+        result_message = proto.PbResult().ParseFromString(return_data)
+        return result_message
+    else:
+        return 0
+
+    #scsi_ids = ",".join(list(reserved_scsi_ids))
+    #return subprocess.run(["rasctl", "-r", scsi_ids])
 
 def send_pb_command(payload):
     import socket
@@ -197,13 +246,40 @@ def send_pb_command(payload):
     HOST = 'localhost'
     PORT = 6868
 
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((HOST, PORT))
-        # Prepending a little endian 32bit header with the message size
-        s.send(struct.pack("<i", len(payload)))
-        s.send(payload)
-        # Extracting the response header to get the size of the response message
-        response_header = struct.unpack("<i", s.recv(4))[0]
-        response_data = s.recv(int(response_header))
+    counter = 0
+    while counter < 100:
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.connect((HOST, PORT))
+                # Prepending a little endian 32bit header with the message size
+                s.send(struct.pack("<i", len(payload)))
+                s.send(payload)
+                # Extracting the response header to get the size of the response message
+                response = s.recv(4)
+                if len(response) >= 4:
+                    response_header = struct.unpack("<i", response)[0]
+                    response_data = s.recv(int(response_header))
+                    return response_data
+                else:
+                    logging.error("Missing protobuf data.")
+                    return 0
+                    break
+        except socket.error as error:
+            logging.error("Failed to connect to the RaSCSI service: {error}")
+            counter += 1
 
-    return response_data
+    #with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    #    s.connect((HOST, PORT))
+        # Prepending a little endian 32bit header with the message size
+    #    s.send(struct.pack("<i", len(payload)))
+    #    s.send(payload)
+        # Extracting the response header to get the size of the response message
+    #    response = s.recv(4)
+    #    if len(response) >= 4:
+    #        response_header = struct.unpack("<i", response)[0]
+    #        response_data = s.recv(int(response_header))
+    #        return response_data
+    #    else:
+    #        logging.error("Missing protobuf data.")
+    #        return 0
+

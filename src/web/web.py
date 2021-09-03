@@ -106,13 +106,14 @@ def logs():
 def daynaport_attach():
     scsi_id = request.form.get("scsi_id")
     process = attach_daynaport(scsi_id)
-    if process.returncode == 0:
+    #if process.returncode == 0:
+    if process != 0:
         flash(f"Attached DaynaPORT to SCSI id {scsi_id}!")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to attach DaynaPORT to SCSI id {scsi_id}!", "error")
-        flash(process.stdout.decode("utf-8"), "stdout")
-        flash(process.stderr.decode("utf-8"), "stderr")
+        #flash(process.stdout.decode("utf-8"), "stdout")
+        #flash(process.stderr.decode("utf-8"), "stderr")
         return redirect(url_for("index"))
 
 
@@ -154,13 +155,14 @@ def attach():
         return redirect(url_for("index"))
 
     process = attach_image(scsi_id, file_name, image_type)
-    if process.returncode == 0:
+    if process != 0:
+    #if process.returncode == 0:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
-        flash(process.stdout.decode("utf-8"), "stdout")
-        flash(process.stderr.decode("utf-8"), "stderr")
+        #flash(process.stdout.decode("utf-8"), "stdout")
+        #flash(process.stderr.decode("utf-8"), "stderr")
         return redirect(url_for("index"))
 
 
@@ -175,7 +177,7 @@ def detach_all_devices():
 def detach():
     scsi_id = request.form.get("scsi_id")
     process = detach_by_id(scsi_id)
-    if process == 2:
+    if process != 0:
         flash("Detached SCSI id " + scsi_id + "!")
         return redirect(url_for("index"))
     else:
@@ -189,13 +191,14 @@ def detach():
 def eject():
     scsi_id = request.form.get("scsi_id")
     process = eject_by_id(scsi_id)
-    if process.returncode == 0:
+    if process != 0:
+    #if process.returncode == 0:
         flash("Ejected scsi id " + scsi_id + "!")
         return redirect(url_for("index"))
     else:
         flash("Failed to eject SCSI id " + scsi_id + "!", "error")
-        flash(process.stdout, "stdout")
-        flash(process.stderr, "stderr")
+        #flash(process.stdout, "stdout")
+        #flash(process.stderr, "stderr")
         return redirect(url_for("index"))
 
 
