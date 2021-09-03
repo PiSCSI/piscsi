@@ -382,7 +382,7 @@ PbDeviceType ParseType(const char *optarg)
 		return type;
 	}
 	else {
-		// Parse type shortcuts
+		// Parse convenience types (shortcuts)
 		switch (tolower(optarg[0])) {
 			case 'c':
 				return SCCD;
@@ -425,8 +425,8 @@ int main(int argc, char* argv[])
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
 		cerr << "        UNIT := {0|1}, default setting is 0." << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
-		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or legacy types {hd|mo|cd|bridge}" << endl;
-		cerr << "        BLOCK_SIZE := {512|1024|2048|4096) bytes per hard disk drive block" << endl;
+		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}" << endl;
+		cerr << "        BLOCK_SIZE := {256|512|1024|2048|4096) bytes per hard disk drive block" << endl;
 		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        DEFAULT_IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
