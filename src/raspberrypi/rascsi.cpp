@@ -775,7 +775,17 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 	// Re-map the controller
 	if (MapController(map)) {
-		LOGINFO("Added new %s device, ID %d, unit %d", device->GetType().c_str(), id, unit);
+		ostringstream msg;
+		msg << "Attached ";
+		if (device->IsReadOnly()) {
+			msg << "read-only ";
+		}
+		else if (device->IsProtectable()) {
+			msg << (device->IsProtected() ? "protected " : "unprotected ");
+		}
+		msg << device->GetType() << " device, ID " << id << ", unit " << unit;
+		LOGINFO("%s", msg.str().c_str());
+
 		return true;
 	}
 
@@ -801,7 +811,7 @@ bool Detach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
 		bool status = MapController(map);
 		if (status) {
-			LOGINFO("Disconnected %s device with ID %d, unit %d", device_type.c_str(), id, unit);
+			LOGINFO("Detached %s device with ID %d, unit %d", device_type.c_str(), id, unit);
 			return true;
 		}
 
