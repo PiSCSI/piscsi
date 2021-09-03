@@ -809,6 +809,58 @@ bool Detach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	return true;
 }
 
+bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dryRun)
+{
+	if (!device->IsRemoved()) {
+		return ReturnStatus(fd, false, "Existing medium must first be ejected");
+	}
+
+	if (!pb_device.vendor().empty() || !pb_device.product().empty() || !pb_device.revision().empty()) {
+		return ReturnStatus(fd, false, "Device name cannot be changed");
+	}
+
+	string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0): "";
+	if (filename.empty()) {
+		return ReturnStatus(fd, false, "Missing filename for " + PbOperation_Name(INSERT));
+	}
+
+	if (dryRun) {
+		return true;
+	}
+
+	LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(),
+			pb_device.id(), pb_device.unit());
+
+	int id;
+	int unit;
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+		ostringstream error;
+		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, error);
+	}
+
+	try {
+		try {
+			file_support->Open(filepath);
+		}
+		catch(const file_not_found_exception&) {
+			// If the file does not exist search for it in the default image folder
+			filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
+			file_support->Open(filepath);
+		}
+	}
+	catch(const io_exception& e) {
+		return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
+	}
+
+	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+
+	return true;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command Processing
@@ -817,7 +869,6 @@ bool Detach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation operation, const vector<string>& params, bool dryRun)
 {
-	Filepath filepath;
 	Device *device = NULL;
 	ostringstream error;
 
@@ -916,64 +967,12 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't ready)");
 	}
 
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-
 	switch (operation) {
-		case INSERT: {
-				if (!device->IsRemoved()) {
-					return ReturnStatus(fd, false, "Existing medium must first be ejected");
-				}
+		case INSERT:
+			return Insert(fd, pb_device, device, dryRun);
 
-				if (!pb_device.vendor().empty() || !pb_device.product().empty() || !pb_device.revision().empty()) {
-					return ReturnStatus(fd, false, "Device name cannot be changed");
-				}
-
-				string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0): "";
-
-				if (filename.empty()) {
-					return ReturnStatus(fd, false, "Missing filename for " + PbOperation_Name(operation));
-				}
-
-				if (dryRun) {
-					return true;
-				}
-
-				filepath.SetPath(filename.c_str());
-
-				LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(), id, unit);
-
-				int id;
-				int unit;
-				if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
-					error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
-					return ReturnStatus(fd, false, error);
-				}
-
-				try {
-					try {
-						file_support->Open(filepath);
-					}
-					catch(const file_not_found_exception&) {
-						// If the file does not exist search for it in the default image folder
-						filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
-						file_support->Open(filepath);
-					}
-				}
-				catch(const io_exception& e) {
-					return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
-				}
-
-				if (file_support) {
-					file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
-				}
-			}
-			break;
-
-		case EJECT: {
-				if (dryRun) {
-					return true;
-				}
-
+		case EJECT:
+			if (!dryRun) {
 				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
 				// EJECT is idempotent
@@ -982,25 +981,21 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 			break;
 
 		case PROTECT:
-			if (dryRun) {
-				return true;
+			if (!dryRun) {
+				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
+				// PROTECT is idempotent
+				device->SetProtected(true);
 			}
-
-			LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
-
-			// PROTECT is idempotent
-			device->SetProtected(true);
 			break;
 
 		case UNPROTECT:
-			if (dryRun) {
-				return true;
+			if (!dryRun) {
+				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
+				// UNPROTECT is idempotent
+				device->SetProtected(false);
 			}
-
-			LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
-
-			// UNPROTECT is idempotent
-			device->SetProtected(false);
 			break;
 
 		case ATTACH:
