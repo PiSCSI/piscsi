@@ -869,7 +869,6 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 
 bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation operation, const vector<string>& params, bool dryRun)
 {
-	Device *device = NULL;
 	ostringstream error;
 
 	const int id = pb_device.id();
@@ -934,26 +933,21 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		return Attach(fd, pb_device, map, dryRun);
 	}
 
+	// Does the controller exist?
+	if (!dryRun && !controllers[id]) {
+		error << "Received a command for non-existing ID " << id;
+		return ReturnStatus(fd, false, error);
+	}
+
+	// Does the unit exist?
+	Device *device = devices[id * UnitNum + unit];
+	if (!device) {
+		error << "Received a command for a non-existing device, ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, error);
+	}
+
 	if (operation == DETACH) {
 		return Detach(fd, pb_device, map, dryRun);
-	}
-	else {
-		// Does the controller exist?
-		if (!dryRun && !controllers[id]) {
-			error << "Received a command for non-existing ID " << id;
-			return ReturnStatus(fd, false, error);
-		}
-
-		// Does the unit exist?
-		device = devices[id * UnitNum + unit];
-		if (!dryRun && !device) {
-			error << "Received a command for ID " << id << ", non-existing unit " << unit;
-			return ReturnStatus(fd, false, error);
-		}
-	}
-
-	if (!device && operation != DETACH) {
-		return ReturnStatus(fd, false, PbOperation_Name(operation) + " requires an attached device");
 	}
 
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
