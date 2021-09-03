@@ -994,10 +994,9 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 		case ATTACH:
 		case DETACH:
+			// The non dry-run case has been handled before the switch
 			assert(dryRun);
-
-			// The non dry-run case was handled above
-			return true;
+			break;
 
 		default:
 			return ReturnStatus(fd, false, "Received unknown operation: " + PbOperation_Name(operation));
