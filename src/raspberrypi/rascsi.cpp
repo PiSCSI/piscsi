@@ -757,6 +757,8 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 	// Stop the dry run here, before permanently modifying something
 	if (dryRun) {
+		delete device;
+
 		return true;
 	}
 
