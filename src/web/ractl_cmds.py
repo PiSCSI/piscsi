@@ -61,7 +61,14 @@ def get_valid_scsi_ids(devices, invalid_list):
 
 
 def get_type(scsi_id):
-    return list_devices()[int(scsi_id)]["type"]
+    command = proto.PbDevice()
+    command.id = int(scsi_id)
+
+    return_data = send_pb_command(command.SerializeToString())
+    result_message = proto.PbDeviceDefinition().ParseFromString(return_data)
+
+    logging.warning(result_message)
+    #return list_devices()[int(scsi_id)]["type"]
 
 
 def attach_image(scsi_id, image, image_type):
@@ -75,7 +82,18 @@ def attach_image(scsi_id, image, image_type):
 
 
 def detach_by_id(scsi_id):
-    return subprocess.run(["rasctl", "-c" "detach", "-i", scsi_id], capture_output=True)
+    command = proto.PbCommand()
+    devices = proto.PbDeviceDefinition()
+    devices.id = int(scsi_id)
+
+    command.operation = proto.PbOperation.DETACH
+    command.devices.append(devices)
+
+    return_data = send_pb_command(command.SerializeToString())
+
+    result_message = proto.PbResult().ParseFromString(return_data)
+    return result_message
+    #return subprocess.run(["rasctl", "-c" "detach", "-i", scsi_id], capture_output=True)
 
 
 def detach_all():
@@ -175,14 +193,17 @@ def send_pb_command(payload):
     import socket
     import struct
 
+    # Host and port number where rascsi is listening for socket connections
     HOST = 'localhost'
     PORT = 6868
 
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
+        # Prepending a little endian 32bit header with the message size
         s.send(struct.pack("<i", len(payload)))
         s.send(payload)
+        # Extracting the response header to get the size of the response message
         response_header = struct.unpack("<i", s.recv(4))[0]
-        response_data = s.recv(response_header)
+        response_data = s.recv(int(response_header))
 
     return response_data

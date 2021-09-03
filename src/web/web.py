@@ -175,13 +175,13 @@ def detach_all_devices():
 def detach():
     scsi_id = request.form.get("scsi_id")
     process = detach_by_id(scsi_id)
-    if process.returncode == 0:
+    if process == 2:
         flash("Detached SCSI id " + scsi_id + "!")
         return redirect(url_for("index"))
     else:
         flash("Failed to detach SCSI id " + scsi_id + "!", "error")
-        flash(process.stdout, "stdout")
-        flash(process.stderr, "stderr")
+        #flash(process.stdout, "stdout")
+        #flash(process.stderr, "stderr")
         return redirect(url_for("index"))
 
 
