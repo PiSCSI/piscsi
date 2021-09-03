@@ -67,25 +67,26 @@ OPTIONS
        -t TYPE
               Specifies the device type. This type overrides the type  derived
               from  the  file  extension  of  the  specified  image.  See  the
-              rascsi(1) man page for the available device types. Legacy  drive
-              types are:
-                 hd: Hard disk (SCSI or SASI)
-                 mo: Magneto-Optical disk
+              rascsi(1) man page for the  available  device  types.  For  some
+              types there are shortcuts (only the first letter is required):
+                 hd: SCSI hard disk drive
+                 rm: SCSI removable media drive
                  cd: CD-ROM
-                 bridge:  Bridge  device (This is only applicable to the Sharp
-              X68000)
+                 mo: Magneto-Optical disk
+                 bridge: Bridge device (Only applicable to the Sharp X68000)
+                 daynaport: Daynaport network adapter
 
        -u VENDOR:PRODUCT:REVISION
-              The vendor, product and revision for the device, to be  returned
+              The  vendor, product and revision for the device, to be returned
               with the INQUIRY data. A complete set of name components must be
               provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
               to 4 characters. Padding with blanks to the maxium length is au‐
-              tomatically applied. Once set the name of  a  device  cannot  be
+              tomatically  applied.  Once  set  the name of a device cannot be
               changed.
 
        -u UNIT
-              Unit  number  (0  or  1). This will default to 0. This option is
-              only used when there are multiple SCSI devices on a shared  SCSI
+              Unit number (0 or 1). This will default to  0.  This  option  is
+              only  used when there are multiple SCSI devices on a shared SCSI
               controller. (This is not common)
 
 EXAMPLES

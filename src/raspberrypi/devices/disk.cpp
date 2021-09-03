@@ -519,9 +519,7 @@ bool Disk::Eject(bool force)
 		// The image file for this drive is not in use anymore
 		FileSupport *file_support = dynamic_cast<FileSupport *>(this);
 		if (file_support) {
-			Filepath filepath;
-			file_support->GetPath(filepath);
-			file_support->UnreserveFile(filepath);
+			file_support->UnreserveFile();
 		}
 	}
 

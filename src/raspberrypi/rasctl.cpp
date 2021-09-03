@@ -382,7 +382,7 @@ PbDeviceType ParseType(const char *optarg)
 		return type;
 	}
 	else {
-		// Parse legacy types
+		// Parse type shortcuts
 		switch (tolower(optarg[0])) {
 			case 'c':
 				return SCCD;
@@ -393,8 +393,14 @@ PbDeviceType ParseType(const char *optarg)
 			case 'd':
 				return SCDP;
 
+			case 'h':
+				return SCHD;
+
 			case 'm':
 				return SCMO;
+
+			case 'r':
+				return SCRM;
 		}
 	}
 
