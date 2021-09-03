@@ -36,7 +36,7 @@ public:
 
 	const set<uint64_t> GetMoCapacities() const;
 
-	Device *CreateDevice(rascsi_interface::PbDeviceType& type, const string& filename, const string& ext);
+	Device *CreateDevice(rascsi_interface::PbDeviceType type, const string& filename, const string& ext);
 
 private:
 

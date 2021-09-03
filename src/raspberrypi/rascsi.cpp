@@ -644,6 +644,171 @@ void DetachAll()
 	FileSupport::UnreserveAll();
 }
 
+bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dryRun)
+{
+	const int id = pb_device.id();
+	const int unit = pb_device.unit();
+	PbDeviceType type = pb_device.type();
+	ostringstream error;
+
+	if (map[id * UnitNum + unit]) {
+		error << "Duplicate ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, error);
+	}
+
+	string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0) : "";
+	string ext;
+	size_t separator = filename.rfind('.');
+	if (separator != string::npos) {
+		ext = filename.substr(separator + 1);
+	}
+
+	// Create a new device, based upon the provided type or filename extension
+	Device *device = device_factory.CreateDevice(type, filename, ext);
+	if (!device) {
+		if (type == UNDEFINED) {
+			return ReturnStatus(fd, false, "No device type provided for unknown file extension '" + ext + "'");
+		}
+		else {
+			return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));
+		}
+	}
+
+	// If no filename was provided the media is considered removed
+	if (filename.empty()) {
+		device->SetRemoved(true);
+	}
+
+	device->SetId(id);
+	device->SetLun(unit);
+	if (!device->IsReadOnly()) {
+		device->SetProtected(pb_device.protected_());
+	}
+
+	try {
+		if (!pb_device.vendor().empty()) {
+			device->SetVendor(pb_device.vendor());
+		}
+		if (!pb_device.product().empty()) {
+			device->SetProduct(pb_device.product());
+		}
+		if (!pb_device.revision().empty()) {
+			device->SetRevision(pb_device.revision());
+		}
+	}
+	catch(const illegal_argument_exception& e) {
+		return ReturnStatus(fd, false, e.getmsg());
+	}
+
+	if (pb_device.block_size()) {
+		Disk *disk = dynamic_cast<Disk *>(device);
+		if (disk && disk->IsSectorSizeConfigurable()) {
+			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				error << "Invalid block size " << pb_device.block_size() << " bytes";
+				return ReturnStatus(fd, false, error);
+			}
+		}
+		else {
+			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
+		}
+	}
+
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+
+	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
+	if (file_support && !device->IsRemovable() && filename.empty()) {
+		delete device;
+
+		return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
+	}
+
+	// drive checks files
+	Filepath filepath;
+	if (file_support && !filename.empty()) {
+		filepath.SetPath(filename.c_str());
+
+		try {
+			try {
+				file_support->Open(filepath);
+			}
+			catch(const file_not_found_exception&) {
+				// If the file does not exist search for it in the default image folder
+				filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
+				file_support->Open(filepath);
+			}
+		}
+		catch(const io_exception& e) {
+			delete device;
+
+			return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
+		}
+
+		int id;
+		int unit;
+		if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+			delete device;
+
+			error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+			return ReturnStatus(fd, false, error);
+		}
+
+		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+	}
+
+	// Stop the dry run here, before permanently modifying something
+	if (dryRun) {
+		return true;
+	}
+
+	if (!device->Init(pb_device.params_size() > 0 ? pb_device.params().Get(0) : "")) {
+		error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
+
+		delete device;
+
+		return ReturnStatus(fd, false, error);
+	}
+
+	// Replace with the newly created unit
+	map[id * UnitNum + unit] = device;
+
+	// Re-map the controller
+	if (MapController(map)) {
+		LOGINFO("Added new %s device, ID %d, unit %d", device->GetType().c_str(), id, unit);
+		return true;
+	}
+
+	return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+}
+
+bool Detach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dryRun)
+{
+	if (!dryRun) {
+		const int id = pb_device.id();
+		const int unit = pb_device.unit();
+
+		Device *device = map[id * UnitNum + unit];
+
+		map[id * UnitNum + unit] = NULL;
+
+		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+		if (file_support) {
+			file_support->UnreserveFile();
+		}
+
+		// Re-map the controller, remember the device type because the device gets lost when re-mapping
+		const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
+		bool status = MapController(map);
+		if (status) {
+			LOGINFO("Disconnected %s device with ID %d, unit %d", device_type.c_str(), id, unit);
+			return true;
+		}
+
+		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+	}
+
+	return true;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command Processing
@@ -715,136 +880,13 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 	}
 
 	if (operation == ATTACH) {
-		if (map[id * UnitNum + unit]) {
-			error << "Duplicate ID " << id << ", unit " << unit;
-			return ReturnStatus(fd, false, error);
-		}
-
-		string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0) : "";
-		string ext;
-		size_t separator = filename.rfind('.');
-		if (separator != string::npos) {
-			ext = filename.substr(separator + 1);
-		}
-
-		// Create a new device, based upon the provided type or filename extension
-		device = device_factory.CreateDevice(type, filename, ext);
-		if (!device) {
-			if (type == UNDEFINED) {
-				return ReturnStatus(fd, false, "No device type provided for unknown file extension '" + ext + "'");
-			}
-			else {
-				return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));
-			}
-		}
-
-		// If no filename was provided the media is considered removed
-		if (filename.empty()) {
-			device->SetRemoved(true);
-		}
-
-		device->SetId(id);
-		device->SetLun(unit);
-		if (!device->IsReadOnly()) {
-			device->SetProtected(pb_device.protected_());
-		}
-
-		try {
-			if (!pb_device.vendor().empty()) {
-				device->SetVendor(pb_device.vendor());
-			}
-			if (!pb_device.product().empty()) {
-				device->SetProduct(pb_device.product());
-			}
-			if (!pb_device.revision().empty()) {
-				device->SetRevision(pb_device.revision());
-			}
-		}
-		catch(const illegal_argument_exception& e) {
-			return ReturnStatus(fd, false, e.getmsg());
-		}
-
-		if (pb_device.block_size()) {
-			Disk *disk = dynamic_cast<Disk *>(device);
-			if (disk && disk->IsSectorSizeConfigurable()) {
-				if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-					error << "Invalid block size " << pb_device.block_size() << " bytes";
-					return ReturnStatus(fd, false, error);
-				}
-			}
-			else {
-				return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
-			}
-		}
-
-		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-
-		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
-		if (file_support && !device->IsRemovable() && filename.empty()) {
-			delete device;
-
-			return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
-		}
-
-		// drive checks files
-		if (file_support && !filename.empty()) {
-			filepath.SetPath(filename.c_str());
-
-			try {
-				try {
-					file_support->Open(filepath);
-				}
-				catch(const file_not_found_exception&) {
-					// If the file does not exist search for it in the default image folder
-					filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
-					file_support->Open(filepath);
-				}
-			}
-			catch(const io_exception& e) {
-				delete device;
-
-				return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
-			}
-
-			int id;
-			int unit;
-			if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
-				delete device;
-
-				error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
-				return ReturnStatus(fd, false, error);
-			}
-
-			file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
-		}
-
-		// Stop the dry run here, before permanently modifying something
-		if (dryRun) {
-			return true;
-		}
-
-		if (!device->Init(pb_device.params_size() > 0 ? pb_device.params().Get(0) : "")) {
-			error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
-
-			delete device;
-
-			return ReturnStatus(fd, false, error);
-		}
-
-		// Replace with the newly created unit
-		map[id * UnitNum + unit] = device;
-
-		// Re-map the controller
-		if (MapController(map)) {
-			LOGINFO("Added new %s device, ID %d, unit %d", device->GetType().c_str(), id, unit);
-			return true;
-		}
-
-		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+		return Attach(fd, pb_device, map, dryRun);
 	}
 
-	// When detaching all devices no controller/unit tests are required
-	if (operation != DETACH) {
+	if (operation == DETACH) {
+		return Detach(fd, pb_device, map, dryRun);
+	}
+	else {
 		// Does the controller exist?
 		if (!dryRun && !controllers[id]) {
 			error << "Received a command for non-existing ID " << id;
@@ -856,29 +898,6 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		if (!dryRun && !device) {
 			error << "Received a command for ID " << id << ", non-existing unit " << unit;
 			return ReturnStatus(fd, false, error);
-		}
-	}
-
-	if (operation == DETACH) {
-		if (!dryRun) {
-			device = map[id * UnitNum + unit];
-
-			map[id * UnitNum + unit] = NULL;
-
-			FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-			if (file_support) {
-				file_support->UnreserveFile();
-			}
-
-			// Re-map the controller, remember the device type because the device gets lost when re-mapping
-			const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
-			bool status = MapController(map);
-			if (status) {
-				LOGINFO("Disconnected %s device with ID %d, unit %d", device_type.c_str(), id, unit);
-				return true;
-			}
-
-			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 		}
 	}
 
