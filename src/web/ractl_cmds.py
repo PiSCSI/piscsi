@@ -4,7 +4,7 @@ import re
 import logging
 
 from settings import *
-
+import rascsi_interface_pb2 as proto
 
 valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
@@ -79,8 +79,13 @@ def detach_by_id(scsi_id):
 
 
 def detach_all():
-    for scsi_id in range(0, 8):
-        subprocess.run(["rasctl", "-c" "detach", "-i", str(scsi_id)])
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DETACH_ALL
+
+    send_pb_command(command.SerializeToString())
+
+    #for scsi_id in range(0, 8):
+    #    subprocess.run(["rasctl", "-c" "detach", "-i", str(scsi_id)])
 
 
 def disconnect_by_id(scsi_id):
@@ -162,3 +167,16 @@ def list_devices():
 def reserve_scsi_ids(reserved_scsi_ids):
     scsi_ids = ",".join(list(reserved_scsi_ids))
     return subprocess.run(["rasctl", "-r", scsi_ids])
+
+def send_pb_command(payload):
+    import socket
+    import struct
+
+    HOST = 'localhost'
+    PORT = 6868
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect((HOST, PORT))
+        s.send(struct.pack("<i", len(payload)))
+        s.send(payload)
+        data = s.recv(1024)
