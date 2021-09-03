@@ -1028,7 +1028,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		for (int i = 0; i < command.params_size(); i++) {
 			int id;
 			if (!GetAsInt(command.params(i), id)) {
-				return ReturnStatus(fd, false, "Invalid ID " + command.params(i));
+				return ReturnStatus(fd, false, "Invalid ID " + command.params(i) + " for " + PbOperation_Name(RESERVE));
 			}
 
 			reserved.insert(id);
