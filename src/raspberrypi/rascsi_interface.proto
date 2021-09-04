@@ -89,7 +89,7 @@ message PbDeviceStatus {
     bool locked = 3;
 }
 
-// Device properties by device type
+// Device properties by device type. (Note that a protobuf map cannot be used because enums cannot be map keys.)
 message PbDeviceTypeProperties {
     PbDeviceType type = 1;
     PbDeviceProperties properties = 2;
@@ -146,12 +146,18 @@ message PbCommand {
     repeated string params = 3;
 }
 
-// The result of a command. Note that the SERVER_INFO command has a special result.
+// The result of a command
 message PbResult {
     // false means that an error occurred
     bool status = 1;
-    // An error message or an information message, depending on status
-    string msg = 2;
+    oneof result {
+        // The result of most commands: An error message or an information message, depending on the result status.
+        string msg = 2;
+        // The result of a SERVER_INFO command
+        PbServerInfo server_info = 3;
+        // The rsult of a DEVICE_INFO command
+        PbDevices device_info = 4;
+    }
 }
 
 // The rascsi server information

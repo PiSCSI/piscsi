@@ -130,9 +130,9 @@ const PbServerInfo GetServerInfo(const string& hostname, int port)
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
-	PbServerInfo server_info;
+	PbResult result;
 	try {
-		DeserializeMessage(fd, server_info);
+		DeserializeMessage(fd, result);
 	}
 	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
@@ -144,7 +144,7 @@ const PbServerInfo GetServerInfo(const string& hostname, int port)
 
 	close(fd);
 
-	return server_info;
+	return result.server_info();
 }
 
 void CommandList(const string& hostname, int port)
@@ -196,9 +196,9 @@ void CommandDeviceInfo(const string& hostname, int port, const PbCommand& comman
 {
 	int fd = SendCommand(hostname.c_str(), port, command);
 
-	PbDevices pb_devices;
+	PbResult result;
 	try {
-		DeserializeMessage(fd, pb_devices);
+		DeserializeMessage(fd, result);
 	}
 	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
@@ -209,6 +209,8 @@ void CommandDeviceInfo(const string& hostname, int port, const PbCommand& comman
 	}
 
 	close(fd);
+
+	PbDevices pb_devices = result.device_info();
 
 	for (const auto& pb_device : pb_devices.devices()) {
 		if (pb_device.type() == UNDEFINED) {
@@ -227,9 +229,9 @@ void CommandServerInfo(const string& hostname, int port)
 
 	int fd = SendCommand(hostname.c_str(), port, command);
 
-	PbServerInfo server_info;
+	PbResult result;;
 	try {
-		DeserializeMessage(fd, server_info);
+		DeserializeMessage(fd, result);
 	}
 	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
@@ -240,6 +242,8 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 
 	close(fd);
+
+	PbServerInfo server_info = result.server_info();
 
 	cout << "rascsi server version: " << server_info.major_version() << "." << server_info.minor_version();
 	if (server_info.patch_version() > 0) {
