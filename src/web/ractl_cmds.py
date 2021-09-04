@@ -11,6 +11,7 @@ import rascsi_interface_pb2 as proto
 valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
 
+ERROR_PROTOBUF_PARSE = "Failed to parse the response from the RaSCSI service."
 
 def is_active():
     process = subprocess.run(["systemctl", "is-active", "rascsi"], capture_output=True)
@@ -70,19 +71,26 @@ def get_type(scsi_id):
     command.devices.append(device)
 
     return_data = send_pb_command(command.SerializeToString())
+
     try:
-        result_message = proto.PbDevice()
+        result_message = proto.PbResult()
         result_message.ParseFromString(return_data)
-        result_type = proto.PbDeviceType.Name(result_message.type)
-        return result_type
+        result_status = result_message.status
+        result_msg = result_message.msg
+        # Assuming that only one PbDevice object is present in the response
+        result_type = proto.PbDeviceType.Name(result_message.device_info.devices[0].type)
+        logging.warning(result_status)
+        logging.warning(result_msg)
+        logging.warning(result_type)
+        return {"result": result_status, "message": result_msg, "type": result_type}
     except:
-        return 0
+        return {"result": False, "message": ERROR_PROTOBUF_PARSE}
 
 
 def attach_image(scsi_id, image, image_type):
-    tst = get_type(scsi_id)
-    logging.warning(tst)
-    if image_type == "SCCD" and get_type(scsi_id) == "SCCD":
+    #device_type = get_type(scsi_id)
+    #logging.warning(tst)
+    if image_type == "SCCD" and get_type(scsi_id)["type"] == "SCCD":
         return insert(scsi_id, image)
     else:
         command = proto.PbCommand()
@@ -93,6 +101,7 @@ def attach_image(scsi_id, image, image_type):
         command.devices.append(devices)
 
         return_data = send_pb_command(command.SerializeToString())
+
         try:
             result_message = proto.PbResult()
             result_message.ParseFromString(return_data)
@@ -233,12 +242,12 @@ def reserve_scsi_ids(reserved_scsi_ids):
     command.params.append(reserved_scsi_ids)
 
     return_data = send_pb_command(command.SerializeToString())
-    #if return_data != False and return_data != "":
     try:
-        result_message = proto.PbResult().ParseFromString(return_data)
+        result_message = proto.PbResult()
+        result_message.ParseFromString(return_data)
         return result_message
     except:
-        return 0
+        return {"result": False, "message": ERROR_PROTOBUF_PARSE}
 
 
 def send_pb_command(payload):
@@ -265,6 +274,7 @@ def send_over_socket(s, payload):
 
 
 def recv_from_socket(s):
+    # Receive the first 4 bytes to get the response header
     response = s.recv(4)
     if len(response) >= 4:
         # Extracting the response header to get the length of the response message
