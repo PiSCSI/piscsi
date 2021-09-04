@@ -1319,16 +1319,20 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_INFO: {
-					PbDevice pb_device;
-
-					for (size_t i = 0; i < devices.size(); i++) {
-						Device *device = devices[i];
-						if (device && device->GetId() == command.devices(0).id() && device->GetLun() == command.devices(0).unit()) {
-							GetDevice(device, &pb_device);
-							break;
+					if (command.devices().empty()) {
+						ReturnStatus(fd, false, "Can't get device information: Missing device ID and unit");
+					}
+					else {
+						for (size_t i = 0; i < devices.size(); i++) {
+							Device *device = devices[i];
+							if (device && device->GetId() == command.devices(0).id() && device->GetLun() == command.devices(0).unit()) {
+								PbDevice pb_device;
+								GetDevice(device, &pb_device);
+								SerializeMessage(fd, pb_device);
+								break;
+							}
 						}
 					}
-					SerializeMessage(fd, pb_device);
 					break;
 				}
 
