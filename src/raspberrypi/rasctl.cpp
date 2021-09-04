@@ -26,15 +26,10 @@
 using namespace std;
 using namespace rascsi_interface;
 
-//---------------------------------------------------------------------------
-//
-//	Send Command
-//
-//---------------------------------------------------------------------------
-int SendCommand(const string& hostname, int port, const PbCommand& command)
+bool SendCommand(const string& hostname, int port, const PbCommand& command, PbResult& result)
 {
+	// Send command
 	int fd = -1;
-
 	try {
     	struct hostent *host = gethostbyname(hostname.c_str());
     	if (!host) {
@@ -71,7 +66,28 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
         exit(fd < 0 ? ENOTCONN : EXIT_FAILURE);
     }
 
-    return fd;
+    // Receive result
+    try {
+        DeserializeMessage(fd, result);
+        close(fd);
+
+    	if (!result.status()) {
+    		throw io_exception(result.msg());
+    	}
+
+    	if (!result.msg().empty()) {
+    		cout << result.msg() << endl;
+    	}
+    }
+    catch(const io_exception& e) {
+    	close(fd);
+
+    	cerr << "Error: " << e.getmsg() << endl;
+
+    	return false;
+    }
+
+    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -79,10 +95,9 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
 //	Receive command result
 //
 //---------------------------------------------------------------------------
-bool ReceiveResult(int fd)
+bool ReceiveResult(int fd, PbResult& result)
 {
     try {
-        PbResult result;
         DeserializeMessage(fd, result);
         close(fd);
 
@@ -128,21 +143,10 @@ const PbServerInfo GetServerInfo(const string& hostname, int port)
 	PbCommand command;
 	command.set_operation(SERVER_INFO);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-
 	PbResult result;
-	try {
-		DeserializeMessage(fd, result);
-	}
-	catch(const io_exception& e) {
-		cerr << "Error: " << e.getmsg() << endl;
-
-		close(fd);
-
+	if (!SendCommand(hostname.c_str(), port, command, result)) {
 		exit(EXIT_FAILURE);
 	}
-
-	close(fd);
 
 	return result.server_info();
 }
@@ -159,9 +163,8 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	command.set_operation(LOG_LEVEL);
 	command.add_params(log_level);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-	ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 }
 
 void CommandReserve(const string&hostname, int port, const string& reserved_ids)
@@ -176,9 +179,8 @@ void CommandReserve(const string&hostname, int port, const string& reserved_ids)
 		command.add_params(reserved_id);
 	}
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-	ReceiveResult(fd);
-	close(fd);
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
 }
 
 void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
@@ -187,28 +189,16 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 	command.set_operation(DEFAULT_FOLDER);
 	command.add_params(folder);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-	ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 }
 
 void CommandDeviceInfo(const string& hostname, int port, const PbCommand& command)
 {
-	int fd = SendCommand(hostname.c_str(), port, command);
-
 	PbResult result;
-	try {
-		DeserializeMessage(fd, result);
+	if (!SendCommand(hostname.c_str(), port, command, result)) {
+		return;
 	}
-	catch(const io_exception& e) {
-		cerr << "Error: " << e.getmsg() << endl;
-
-		close(fd);
-
-		exit(EXIT_FAILURE);
-	}
-
-	close(fd);
 
 	PbDevices pb_devices = result.device_info();
 
@@ -227,21 +217,10 @@ void CommandServerInfo(const string& hostname, int port)
 	PbCommand command;
 	command.set_operation(SERVER_INFO);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-
-	PbResult result;;
-	try {
-		DeserializeMessage(fd, result);
+	PbResult result;
+	if (!SendCommand(hostname.c_str(), port, command, result)) {
+		return;
 	}
-	catch(const io_exception& e) {
-		cerr << "Error: " << e.getmsg() << endl;
-
-		close(fd);
-
-		exit(EXIT_FAILURE);
-	}
-
-	close(fd);
 
 	PbServerInfo server_info = result.server_info();
 
@@ -640,9 +619,8 @@ int main(int argc, char* argv[])
 	}
 
 	// Send the command
-	int fd = SendCommand(hostname, port, command);
-	bool status = ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	bool status = SendCommand(hostname, port, command, result);
 
 	// All done!
 	exit(status ? EXIT_SUCCESS : EXIT_FAILURE);
