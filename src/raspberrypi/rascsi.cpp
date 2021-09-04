@@ -520,9 +520,9 @@ void GetLogLevels(PbServerInfo& serverInfo)
 	}
 }
 
-void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
+void GetDeviceTypeFeatures(PbServerInfo& server_info)
 {
-	PbDeviceTypeProperties *types_properties = serverInfo.add_types_properties();
+	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
 	types_properties->set_type(SAHD);
 	PbDeviceProperties *properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -532,7 +532,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 		properties->add_block_sizes(block_size);
 	}
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCHD);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -543,7 +543,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 		properties->add_block_sizes(block_size);
 	}
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCRM);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -556,7 +556,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 		properties->add_block_sizes(block_size);
 	}
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCMO);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -569,7 +569,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 		properties->add_capacities(capacity);
 	}
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCCD);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -579,14 +579,14 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_supports_file(true);
 	properties->set_luns(1);
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCBR);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
 	properties->set_luns(1);
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCDP);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -594,14 +594,53 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_luns(1);
 }
 
-void GetAvailableImages(PbServerInfo& serverInfo)
+void GetAvailableImages(PbServerInfo& server_info)
 {
 	if (!access(default_image_folder.c_str(), F_OK)) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				GetImageFile(serverInfo.add_image_files(), entry.path().filename());
+				GetImageFile(server_info.add_image_files(), entry.path().filename());
 			}
 		}
+	}
+}
+
+void GetDeviceInfo(const PbCommand& command, PbDevices& pb_devices)
+{
+	for (const auto& pb_device_information : command.devices()) {
+		PbDevice *pb_device = pb_devices.add_devices();
+
+		for (size_t i = 0; i < devices.size(); i++) {
+			Device *device = devices[i];
+			if (device) {
+				if (device->GetId() == pb_device_information.id() && device->GetLun() == pb_device_information.unit()) {
+					GetDevice(device, pb_device);
+				}
+				else {
+					// For unknown devices the type is UNDEFINED
+					pb_device->set_id(pb_device_information.id());
+					pb_device->set_unit(pb_device_information.unit());
+					pb_device->set_type(UNDEFINED);
+				}
+				break;
+			}
+		}
+	}
+}
+
+void GetServerInfo(PbServerInfo& server_info)
+{
+	server_info.set_major_version(rascsi_major_version);
+	server_info.set_minor_version(rascsi_minor_version);
+	server_info.set_patch_version(rascsi_patch_version);
+	GetLogLevels(server_info);
+	server_info.set_current_log_level(current_log_level);
+	server_info.set_default_image_folder(default_image_folder);
+	GetDeviceTypeFeatures(server_info);
+	GetAvailableImages(server_info);
+	GetDevices(server_info);
+	for (int id : reserved_ids) {
+		server_info.add_reserved_ids(id);
 	}
 }
 
@@ -1013,7 +1052,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 			break;
 
 		default:
-			return ReturnStatus(fd, false, "Received unknown operation: " + PbOperation_Name(operation));
+			return ReturnStatus(fd, false, "Unknown operation");
 	}
 
 	return true;
@@ -1320,36 +1359,18 @@ static void *MonThread(void *param)
 
 				case DEVICE_INFO: {
 					if (command.devices().empty()) {
-						ReturnStatus(fd, false, "Can't get device information: Missing device ID and unit");
+						ReturnStatus(fd, false, "Can't get device information: Missing device IDs");
 					}
 					else {
-						for (size_t i = 0; i < devices.size(); i++) {
-							Device *device = devices[i];
-							if (device && device->GetId() == command.devices(0).id() && device->GetLun() == command.devices(0).unit()) {
-								PbDevice pb_device;
-								GetDevice(device, &pb_device);
-								SerializeMessage(fd, pb_device);
-								break;
-							}
-						}
+						PbDevices devices;
+						GetDeviceInfo(command, devices);
+						SerializeMessage(fd, devices);
 					}
 					break;
 				}
 
 				case SERVER_INFO: {
 					PbServerInfo server_info;
-					server_info.set_major_version(rascsi_major_version);
-					server_info.set_minor_version(rascsi_minor_version);
-					server_info.set_patch_version(rascsi_patch_version);
-					GetLogLevels(server_info);
-					server_info.set_current_log_level(current_log_level);
-					server_info.set_default_image_folder(default_image_folder);
-					GetDeviceTypeFeatures(server_info);
-					GetAvailableImages(server_info);
-					GetDevices(server_info);
-					for (int id : reserved_ids) {
-						server_info.add_reserved_ids(id);
-					}
 					SerializeMessage(fd, server_info);
 					LogDevices(ListDevices(server_info));
 					break;

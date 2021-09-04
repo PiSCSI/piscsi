@@ -196,9 +196,9 @@ void CommandDeviceInfo(const string& hostname, int port, const PbCommand& comman
 {
 	int fd = SendCommand(hostname.c_str(), port, command);
 
-	PbDevice pb_device;
+	PbDevices pb_devices;
 	try {
-		DeserializeMessage(fd, pb_device);
+		DeserializeMessage(fd, pb_devices);
 	}
 	catch(const io_exception& e) {
 		cerr << "Error: " << e.getmsg() << endl;
@@ -210,11 +210,13 @@ void CommandDeviceInfo(const string& hostname, int port, const PbCommand& comman
 
 	close(fd);
 
-	if (pb_device.type() == UNDEFINED) {
-		cerr << "Error: Unknown device ID or unit" << endl;
-	}
-	else {
-		DisplayDeviceInfo(pb_device);
+	for (const auto& pb_device : pb_devices.devices()) {
+		if (pb_device.type() == UNDEFINED) {
+			cerr << "Error: No device for ID " << pb_device.id() << ", unit " << pb_device.unit() << endl;
+		}
+		else {
+			DisplayDeviceInfo(pb_device);
+		}
 	}
 }
 
@@ -511,6 +513,10 @@ int main(int argc, char* argv[])
 
 			case 'c':
 				command.set_operation(ParseOperation(optarg));
+				if (command.operation() == NONE) {
+					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
+					exit(EXIT_FAILURE);
+				}
 				break;
 
 			case 'd':
