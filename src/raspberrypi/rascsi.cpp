@@ -513,10 +513,10 @@ void LogDevices(const string& devices)
 	}
 }
 
-void GetLogLevels(PbServerInfo& serverInfo)
+void GetLogLevels(PbServerInfo& server_info)
 {
 	for (const auto& log_level : log_levels) {
-		serverInfo.add_log_levels(log_level);
+		server_info.add_log_levels(log_level);
 	}
 }
 
