@@ -127,7 +127,7 @@
 
     <hr/>
     <h2>Attach Ethernet Adapter</h2>
-    <p>Emulates a SCSI DaynaPORT Ethernet Adapter. Host drivers required.</p>
+    <p>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link">Host drivers required.</a></p>
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -146,7 +146,7 @@
                 {% if bridge_configured %}
                 <small>Bridge is currently configured!</small>
                 {% else %}
-		<small>Attach a DaynaPORT Ethernet Adapter to automatically configure the bridge.</small>
+		<small>Bridge is automatically configured when an adapter device is attached.</small>
                 {% endif %}
             </td>
         </tr>
