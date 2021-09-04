@@ -29,10 +29,10 @@ enum PbDeviceType {
 // rascsi remote operations. PbResult is returned, except for SERVER_INFO and DEVICE_INFO.
 enum PbOperation {
     NONE = 0;
-    // Bets the server information. Returns PbServerInfo.
+    // Gets the server information. Returns PbServerInfo.
     SERVER_INFO = 1;
-    // Gets information on a particular device. Returns PbDevice.
-    // If the device does on exist the returned device type is UNDEFINED.
+    // Gets information on a list of devices. Returns PbDevices.
+    // If a device does not exist the device type returned for the respective ID and unit is UNDEFINED.
     DEVICE_INFO = 2;
     // Set the default folder for image files, PbCommand.params contains the folder name
     DEFAULT_FOLDER = 3;
@@ -131,6 +131,10 @@ message PbDevice {
     string product = 8;
     string revision = 9;
     int32 block_size = 10;
+}
+
+message PbDevices {
+    repeated PbDevice devices = 1;
 }
 
 // Commands rascsi can execute and their parameters
