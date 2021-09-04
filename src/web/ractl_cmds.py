@@ -61,18 +61,25 @@ def get_valid_scsi_ids(devices, invalid_list):
 
 
 def get_type(scsi_id):
-    command = proto.PbDevice()
-    command.id = int(scsi_id)
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DEVICE_INFO
+    device = proto.PbDeviceDefinition()
+    device.id = int(scsi_id)
+    command.devices.append(device)
 
     return_data = send_pb_command(command.SerializeToString())
-    logging.warning(return_data)
-    result_message = proto.PbDeviceDefinition().ParseFromString(return_data)
-
-    logging.warning(result_message)
-    return result_message
+    try:
+        result_message = proto.PbDevice()
+        result_message.ParseFromString(return_data)
+        result_type = proto.PbDeviceType.Name(result_message.type)
+        return result_type
+    except:
+        return 0
 
 
 def attach_image(scsi_id, image, image_type):
+    tst = get_type(scsi_id)
+    logging.warning(tst)
     if image_type == "SCCD" and get_type(scsi_id) == "SCCD":
         return insert(scsi_id, image)
     else:
@@ -84,8 +91,12 @@ def attach_image(scsi_id, image, image_type):
         command.devices.append(devices)
 
         return_data = send_pb_command(command.SerializeToString())
-        result_message = proto.PbResult().ParseFromString(return_data)
-        return result_message
+        try:
+            result_message = proto.PbResult()
+            result_message.ParseFromString(return_data)
+            return result_message
+        except:
+            return 0
 
 
 def detach_by_id(scsi_id):
@@ -98,7 +109,8 @@ def detach_by_id(scsi_id):
 
     return_data = send_pb_command(command.SerializeToString())
 
-    result_message = proto.PbResult().ParseFromString(return_data)
+    result_message = proto.PbResult()
+    result_message.ParseFromString(return_data)
     return result_message
 
 
@@ -108,7 +120,8 @@ def detach_all():
 
     return_data = send_pb_command(command.SerializeToString())
 
-    result_message = proto.PbResult().ParseFromString(return_data)
+    result_message = proto.PbResult()
+    result_message.ParseFromString(return_data)
     return result_message
 
 
@@ -122,7 +135,8 @@ def eject_by_id(scsi_id):
 
     return_data = send_pb_command(command.SerializeToString())
 
-    result_message = proto.PbResult().ParseFromString(return_data)
+    result_message = proto.PbResult()
+    result_message.ParseFromString(return_data)
     return result_message
 
 
@@ -135,7 +149,8 @@ def insert(scsi_id, image):
     command.operation = proto.PbOperation.INSERT
 
     return_data = send_pb_command(command.SerializeToString())
-    result_message = proto.PbResult().ParseFromString(return_data)
+    result_message = proto.PbResult()
+    result_message.ParseFromString(return_data)
     return result_message
 
 
@@ -149,7 +164,8 @@ def attach_daynaport(scsi_id):
 
     return_data = send_pb_command(command.SerializeToString())
     if return_data != False:
-        result_message = proto.PbResult().ParseFromString(return_data)
+        result_message = proto.PbResult()
+        result_message.ParseFromString(return_data)
         return result_message
     else:
         return 0
@@ -215,10 +231,11 @@ def reserve_scsi_ids(reserved_scsi_ids):
     command.params.append(reserved_scsi_ids)
 
     return_data = send_pb_command(command.SerializeToString())
-    if return_data != False:
+    #if return_data != False and return_data != "":
+    try:
         result_message = proto.PbResult().ParseFromString(return_data)
         return result_message
-    else:
+    except:
         return 0
 
 
