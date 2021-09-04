@@ -88,34 +88,6 @@ void SendCommand(const string& hostname, int port, const PbCommand& command, PbR
     }
 }
 
-//---------------------------------------------------------------------------
-//
-//	Receive command result
-//
-//---------------------------------------------------------------------------
-bool ReceiveResult(int fd, PbResult& result)
-{
-    try {
-        DeserializeMessage(fd, result);
-        close(fd);
-
-    	if (!result.status()) {
-    		throw io_exception(result.msg());
-    	}
-
-    	if (!result.msg().empty()) {
-    		cout << result.msg() << endl;
-    	}
-    }
-    catch(const io_exception& e) {
-    	cerr << "Error: " << e.getmsg() << endl;
-
-    	return false;
-    }
-
-    return true;
-}
-
 void DisplayDeviceInfo(const PbDevice& pb_device)
 {
 	cout << "  " << pb_device.id() << ":" << pb_device.unit() << "  " << PbDeviceType_Name(pb_device.type())
@@ -603,10 +575,8 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	// Send the command
 	PbResult result;
 	SendCommand(hostname, port, command, result);
 
-	// All done!
 	exit(EXIT_SUCCESS);
 }
