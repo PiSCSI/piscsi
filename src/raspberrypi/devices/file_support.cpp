@@ -20,9 +20,9 @@ void FileSupport::ReserveFile(const Filepath& path, int id, int lun)
 	reserved_files[path.GetPath()] = make_pair(id, lun);
 }
 
-void FileSupport::UnreserveFile(const Filepath& path)
+void FileSupport::UnreserveFile()
 {
-	reserved_files.erase(path.GetPath());
+	reserved_files.erase(diskpath.GetPath());
 }
 
 bool FileSupport::GetIdsForReservedFile(const Filepath& path, int& id, int& unit) const

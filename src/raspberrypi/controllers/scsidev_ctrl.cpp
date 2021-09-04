@@ -270,7 +270,7 @@ void SCSIDEV::Execute()
 
 	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
 		// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-		if (((ctrl.cmd[1] >> 5) & 0x07) != ctrl.device->GetLun()) {
+		if (((ctrl.cmd[1] >> 5) & 0x07) != (DWORD)ctrl.device->GetLun()) {
 			ctrl.buffer[0] = 0x7f;
 		}
 	}

@@ -53,13 +53,14 @@ Display the rascsi version.
 ID is the SCSI ID that you want to control. (0-7)
 .TP 
 .BR \-c\fI " " \fICMD
-Command is the operation being requested. options are:
-   attach: attach disk
-   detach: detach disk
-   insert: insert media (removable media devices only)
-   eject: eject media (removable media devices only)
-   protect: write protect the media (not for CD-ROMs, which are always read-only)
-   unprotect: remove write protection from the media (not for CD-ROMs, which are always read-only)
+Command is the operation being requested. Options are:
+   a(ttach): Attach disk
+   d(etach): Detach disk
+   i(nsert): Insert media (removable media devices only)
+   e(ject): Eject media (removable media devices only)
+   p(rotect): Write protect the medium (not for CD-ROMs, which are always read-only)
+   u(nprotect): Remove write protection from the medium (not for CD-ROMs, which are always read-only)
+   s(how): Display device information
 .IP
 eject, protect and unprotect are idempotent.
 .TP 
@@ -70,11 +71,13 @@ The optional block size. For SCSI drives 512, 1024, 2048 or 4096 bytes, default 
 Path to the disk image file. See the rascsi(1) man page for allowable file types.
 .TP 
 .BR \-t\fI " " \fITYPE
-Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the rascsi(1) man page for the available device types. Legacy drive types are:
-   hd: Hard disk (SCSI or SASI)
-   mo: Magneto-Optical disk
+Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the rascsi(1) man page for the available device types. For some types there are shortcuts (only the first letter is required):
+   hd: SCSI hard disk drive
+   rm: SCSI removable media drive
    cd: CD-ROM
-   bridge: Bridge device (This is only applicable to the Sharp X68000)
+   mo: Magneto-Optical disk
+   bridge: Bridge device (Only applicable to the Sharp X68000)
+   daynaport: Daynaport network adapter
 .TP 
 .BR \-u\fI " " \fIVENDOR:PRODUCT:REVISION
 The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.

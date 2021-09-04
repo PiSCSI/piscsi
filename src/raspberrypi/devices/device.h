@@ -76,8 +76,8 @@ private:
 	bool block_size_configurable;
 
 	// Device ID and LUN
-	unsigned int id;
-	unsigned int lun;
+	int32_t id;
+	int32_t lun;
 
 	string vendor;
 	string product;
@@ -123,10 +123,10 @@ public:
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool locked) { this->locked = locked; }
 
-	unsigned int GetId() const { return id; }
-	void SetId(unsigned int id) { this->id = id; }
-	unsigned int GetLun() const { return lun; }
-	void SetLun(unsigned int lun) { this->lun = lun; }
+	int32_t GetId() const { return id; }
+	void SetId(int32_t id) { this->id = id; }
+	int32_t GetLun() const { return lun; }
+	void SetLun(int32_t lun) { this->lun = lun; }
 
 	const string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
