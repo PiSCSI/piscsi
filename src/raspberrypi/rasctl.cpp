@@ -122,8 +122,14 @@ const PbServerInfo GetServerInfo(const string& hostname, int port)
 
 void CommandList(const string& hostname, int port)
 {
-	PbServerInfo serverInfo = GetServerInfo(hostname, port);
-	cout << ListDevices(serverInfo) << endl;
+	PbCommand command;
+	command.set_operation(DEVICE_INFO);
+
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
+	cout << ListDevices(devices) << endl;
 }
 
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
