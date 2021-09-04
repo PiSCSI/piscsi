@@ -1381,7 +1381,11 @@ static void *MonThread(void *param)
 					GetDeviceInfo(command, result);
 					SerializeMessage(fd, result);
 					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
-					LogDevices(ListDevices(devices));
+
+					// For backwards compatibility: Log device list if information on all devices was requested.
+					if (command.devices_size() == 0) {
+						LogDevices(ListDevices(devices));
+					}
 					break;
 				}
 
