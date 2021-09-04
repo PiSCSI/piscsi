@@ -69,14 +69,9 @@ void SendCommand(const string& hostname, int port, const PbCommand& command, PbR
     // Receive result
     try {
         DeserializeMessage(fd, result);
-        close(fd);
 
     	if (!result.status()) {
     		throw io_exception(result.msg());
-    	}
-
-    	if (!result.msg().empty()) {
-    		cout << result.msg() << endl;
     	}
     }
     catch(const io_exception& e) {
@@ -86,6 +81,12 @@ void SendCommand(const string& hostname, int port, const PbCommand& command, PbR
 
     	exit(EXIT_FAILURE);
     }
+
+    close(fd);
+
+	if (!result.msg().empty()) {
+		cout << result.msg() << endl;
+	}
 }
 
 void DisplayDeviceInfo(const PbDevice& pb_device)
