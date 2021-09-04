@@ -24,7 +24,6 @@ from ractl_cmds import (
     get_valid_scsi_ids,
     attach_daynaport,
     is_bridge_setup,
-    daynaport_setup_bridge,
     list_config_files,
     detach_all,
     valid_file_suffix,
@@ -112,21 +111,6 @@ def daynaport_attach():
     else:
         flash(f"Failed to attach DaynaPORT to SCSI id {scsi_id}!", "error")
         flash(process["msg"], "error")
-        return redirect(url_for("index"))
-
-
-@app.route("/daynaport/setup", methods=["POST"])
-def daynaport_setup():
-    # Future use for wifi
-    interface = request.form.get("interface") or "eth0"
-    process = daynaport_setup_bridge(interface)
-    if process.returncode == 0:
-        flash(f"Configured DaynaPORT bridge on {interface}!")
-        return redirect(url_for("index"))
-    else:
-        flash(f"Failed to configure DaynaPORT bridge on {interface}!", "error")
-        flash(process.stdout.decode("utf-8"), "stdout")
-        flash(process.stderr.decode("utf-8"), "stderr")
         return redirect(url_for("index"))
 
 

@@ -146,9 +146,7 @@
                 {% if bridge_configured %}
                 <small>Bridge is currently configured!</small>
                 {% else %}
-                <form action="/daynaport/setup" method="post">
-                    <input type="submit" value="Create Bridge" />
-                </form>
+		<small>Attach a DaynaPORT Ethernet Adapter to automatically configure the bridge.</small>
                 {% endif %}
             </td>
         </tr>

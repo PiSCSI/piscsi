@@ -176,13 +176,6 @@ def is_bridge_setup():
     return False
 
 
-def daynaport_setup_bridge(interface):
-    return subprocess.run(
-        [f"{base_dir}../RASCSI/src/raspberrypi/setup_bridge.sh", interface],
-        capture_output=True,
-    )
-
-
 def rascsi_service(action):
     # start/stop/restart
     return (
