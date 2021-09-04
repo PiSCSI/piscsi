@@ -101,6 +101,7 @@ function installRaScsiWebInterface() {
     stopOldWebInterface
     installPackages
 
+    echo "Compiling the Python protobuf library..."
     protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
 
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
@@ -155,6 +156,7 @@ function updateRaScsi() {
 function updateRaScsiWebInterface() {
     stopOldWebInterface
     updateRaScsiGit
+    echo "Compiling the Python protobuf library..."
     protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
     sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
