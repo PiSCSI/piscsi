@@ -11,7 +11,6 @@ import rascsi_interface_pb2 as proto
 valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
 
-ERROR_PROTOBUF_PARSE = "Failed to parse the response from the RaSCSI service."
 
 def is_active():
     process = subprocess.run(["systemctl", "is-active", "rascsi"], capture_output=True)
@@ -70,26 +69,20 @@ def get_type(scsi_id):
     device.id = int(scsi_id)
     command.devices.append(device)
 
-    return_data = send_pb_command(command.SerializeToString())
+    data = send_pb_command(command.SerializeToString())
 
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    # Assuming that only one PbDevice object is present in the response
     try:
-        result_message = proto.PbResult()
-        result_message.ParseFromString(return_data)
-        result_status = result_message.status
-        result_msg = result_message.msg
-        # Assuming that only one PbDevice object is present in the response
-        result_type = proto.PbDeviceType.Name(result_message.device_info.devices[0].type)
-        logging.warning(result_status)
-        logging.warning(result_msg)
-        logging.warning(result_type)
-        return {"result": result_status, "message": result_msg, "type": result_type}
+        result_type = proto.PbDeviceType.Name(result.device_info.devices[0].type)
+        return {"status": result.status, "msg": result.msg, "type": result_type}
     except:
-        return {"result": False, "message": ERROR_PROTOBUF_PARSE}
+        return {"status": result.status, "msg": result.msg, "type": ""}
+    #return {"status": result.status, "msg": result.msg, "type": result_type}
 
 
 def attach_image(scsi_id, image, image_type):
-    #device_type = get_type(scsi_id)
-    #logging.warning(tst)
     if image_type == "SCCD" and get_type(scsi_id)["type"] == "SCCD":
         return insert(scsi_id, image)
     else:
@@ -100,14 +93,11 @@ def attach_image(scsi_id, image, image_type):
         command.operation = proto.PbOperation.ATTACH
         command.devices.append(devices)
 
-        return_data = send_pb_command(command.SerializeToString())
+        data = send_pb_command(command.SerializeToString())
 
-        try:
-            result_message = proto.PbResult()
-            result_message.ParseFromString(return_data)
-            return result_message
-        except:
-            return 0
+        result = proto.PbResult()
+        result.ParseFromString(data)
+        return {"status": result.status, "msg": result.msg}
 
 
 def detach_by_id(scsi_id):
@@ -118,22 +108,22 @@ def detach_by_id(scsi_id):
 
     command.operation = proto.PbOperation.DETACH
 
-    return_data = send_pb_command(command.SerializeToString())
+    data = send_pb_command(command.SerializeToString())
 
-    result_message = proto.PbResult()
-    result_message.ParseFromString(return_data)
-    return result_message
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def detach_all():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH_ALL
 
-    return_data = send_pb_command(command.SerializeToString())
+    data = send_pb_command(command.SerializeToString())
 
-    result_message = proto.PbResult()
-    result_message.ParseFromString(return_data)
-    return result_message
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def eject_by_id(scsi_id):
@@ -144,11 +134,11 @@ def eject_by_id(scsi_id):
     command.operation = proto.PbOperation.EJECT
     command.devices.append(devices)
 
-    return_data = send_pb_command(command.SerializeToString())
+    data = send_pb_command(command.SerializeToString())
 
-    result_message = proto.PbResult()
-    result_message.ParseFromString(return_data)
-    return result_message
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def insert(scsi_id, image):
@@ -159,10 +149,10 @@ def insert(scsi_id, image):
     command.devices.append(devices)
     command.operation = proto.PbOperation.INSERT
 
-    return_data = send_pb_command(command.SerializeToString())
-    result_message = proto.PbResult()
-    result_message.ParseFromString(return_data)
-    return result_message
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def attach_daynaport(scsi_id):
@@ -173,13 +163,10 @@ def attach_daynaport(scsi_id):
     command.devices.append(devices)
     command.operation = proto.PbOperation.ATTACH
 
-    return_data = send_pb_command(command.SerializeToString())
-    if return_data != False:
-        result_message = proto.PbResult()
-        result_message.ParseFromString(return_data)
-        return result_message
-    else:
-        return 0
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def is_bridge_setup(interface):
@@ -241,13 +228,10 @@ def reserve_scsi_ids(reserved_scsi_ids):
     command.operation = proto.PbOperation.RESERVE
     command.params.append(reserved_scsi_ids)
 
-    return_data = send_pb_command(command.SerializeToString())
-    try:
-        result_message = proto.PbResult()
-        result_message.ParseFromString(return_data)
-        return result_message
-    except:
-        return {"result": False, "message": ERROR_PROTOBUF_PARSE}
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def send_pb_command(payload):
