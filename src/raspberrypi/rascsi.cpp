@@ -1361,11 +1361,11 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					if (command.params().empty()) {
+					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
+					if (folder.empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
 					if (!SetDefaultImageFolder(folder)) {
 						ReturnStatus(fd, false, "Folder '" + folder + "' does not exist or is not accessible");
 					}
