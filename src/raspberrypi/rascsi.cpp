@@ -607,50 +607,58 @@ void GetAvailableImages(PbServerInfo& server_info)
 
 void GetDeviceInfo(const PbCommand& command, PbResult& result)
 {
-	PbDevices *pb_devices = new PbDevices();
-
-	for (const auto& pb_device_information : command.devices()) {
-		PbDevice *pb_device = pb_devices->add_devices();
-
-		for (size_t i = 0; i < devices.size(); i++) {
-			Device *device = devices[i];
+	set<id_set> id_sets;
+	if (command.devices_size() == 0) {
+		for (const Device *device : devices) {
 			if (device) {
-				if (device->GetId() == pb_device_information.id() && device->GetLun() == pb_device_information.unit()) {
-					GetDevice(device, pb_device);
-				}
-				else {
-					delete pb_devices;
-
-					ostringstream error;
-					error << "No device for ID " << pb_device_information.id() << ", unit " << pb_device_information.unit();
-					result.set_msg(error.str());
-
-					return;
-				}
-
-				break;
+				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
+			}
+		}
+	}
+	else {
+		for (const auto& device : command.devices()) {
+			if (devices[device.id() * UnitNum + device.unit()]) {
+				id_sets.insert(make_pair(device.id(), device.unit()));
+			}
+			else {
+				ostringstream error;
+				error << "No device for ID " << device.id() << ", unit " << device.unit();
+				result.set_status(false);
+				result.set_msg(error.str());
+				return;
 			}
 		}
 	}
 
-	result.set_status(true);
+	PbDevices *pb_devices = new PbDevices();
+
+	for (const auto& id_set : id_sets) {
+		Device *device = devices[id_set.first * UnitNum + id_set.second];
+		PbDevice *pb_device = pb_devices->add_devices();
+		GetDevice(device, pb_device);
+	}
+
 	result.set_allocated_device_info(pb_devices);
 }
 
-void GetServerInfo(PbServerInfo& server_info)
+void GetServerInfo(PbResult& result)
 {
-	server_info.set_major_version(rascsi_major_version);
-	server_info.set_minor_version(rascsi_minor_version);
-	server_info.set_patch_version(rascsi_patch_version);
-	GetLogLevels(server_info);
-	server_info.set_current_log_level(current_log_level);
-	server_info.set_default_image_folder(default_image_folder);
-	GetDeviceTypeFeatures(server_info);
-	GetAvailableImages(server_info);
-	GetDevices(server_info);
+	PbServerInfo *server_info = new PbServerInfo();
+
+	server_info->set_major_version(rascsi_major_version);
+	server_info->set_minor_version(rascsi_minor_version);
+	server_info->set_patch_version(rascsi_patch_version);
+	GetLogLevels(*server_info);
+	server_info->set_current_log_level(current_log_level);
+	server_info->set_default_image_folder(default_image_folder);
+	GetDeviceTypeFeatures(*server_info);
+	GetAvailableImages(*server_info);
+	GetDevices(*server_info);
 	for (int id : reserved_ids) {
-		server_info.add_reserved_ids(id);
+		server_info->add_reserved_ids(id);
 	}
+
+	result.set_allocated_server_info(server_info);
 }
 
 bool SetDefaultImageFolder(const string& f)
@@ -1270,7 +1278,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Display and log the device list
 	PbServerInfo server_info;
 	GetDevices(server_info);
-	const string device_list = ListDevices(server_info);
+	const list<PbDevice>& devices = { server_info.devices().begin(), server_info.devices().end() };
+	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << endl;
 
@@ -1367,25 +1376,20 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_INFO: {
-					if (command.devices().empty()) {
-						ReturnStatus(fd, false, "Can't get device information: Missing device IDs");
-					}
-					else {
-						PbResult result;
-						GetDeviceInfo(command, result);
-						SerializeMessage(fd, result);
-					}
+					PbResult result;
+					result.set_status(true);
+					GetDeviceInfo(command, result);
+					SerializeMessage(fd, result);
+					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
+					LogDevices(ListDevices(devices));
 					break;
 				}
 
 				case SERVER_INFO: {
-					PbServerInfo *server_info = new PbServerInfo();
-					GetServerInfo(*server_info);
 					PbResult result;
 					result.set_status(true);
-					result.set_allocated_server_info(server_info);
+					GetServerInfo(result);
 					SerializeMessage(fd, result);
-					LogDevices(ListDevices(*server_info));
 					break;
 				}
 

@@ -34,9 +34,9 @@ bool GetAsInt(const string& value, int& result)
 	return true;
 }
 
-string ListDevices(const PbServerInfo& server_info)
+string ListDevices(const list<PbDevice>& pb_devices)
 {
-	if (!server_info.devices_size()) {
+	if (pb_devices.empty()) {
 		return "No images currently attached.";
 	}
 
@@ -45,7 +45,7 @@ string ListDevices(const PbServerInfo& server_info)
 			<< "| ID | UN | TYPE | DEVICE STATUS" << endl
 			<< "+----+----+------+-------------------------------------" << endl;
 
-	list<PbDevice> devices = { server_info.devices().begin(), server_info.devices().end() };
+	list<PbDevice> devices = pb_devices;
 	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() && a.unit() < b.unit(); });
 
 	for (const auto& device : devices) {

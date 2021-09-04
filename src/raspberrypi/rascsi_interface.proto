@@ -1,6 +1,7 @@
 //
 // Each rascsi remote interface message is preceded by a little endian 32 bit header,
 // which contains the protobuf message size.
+// The order of repeated data returned is undefined.
 //
 
 syntax = "proto3";
@@ -26,20 +27,20 @@ enum PbDeviceType {
     SCDP = 7;
 }
 
-// rascsi remote operations. PbResult is returned, except for SERVER_INFO and DEVICE_INFO.
+// rascsi remote operations, returns PbResult
 enum PbOperation {
     NONE = 0;
     // Gets the server information
     SERVER_INFO = 1;
-    // Gets information for a list of devices
+    // Gets information for a list of attached devices. Returns data for all attached devices if empty.
     DEVICE_INFO = 2;
-    // Set the default folder for image files, PbCommand.params contains the folder name
+    // Set the default folder for image files. PbCommand.params contains the folder name.
     DEFAULT_FOLDER = 3;
-    // Set server log level, PbCommand.params contains the log level
+    // Set server log level. PbCommand.params contains the log level.
     LOG_LEVEL = 4;
-    // Attach new device
+    // Attach devices
     ATTACH = 5;
-    // Detach device
+    // Detach devices
     DETACH = 6;
     // Detach all devices, does not require a device list
     DETACH_ALL = 7;
@@ -51,8 +52,8 @@ enum PbOperation {
     PROTECT = 10;
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 11;
-    // IDs blocked from being used, usually the ID of the initiator (computer) in the SCSI chain.
-    // The command params field contains the full list of IDs to reserve, or is empty in order to allow all IDs.
+    // IDs blocked from being used, usually the IDs of the initiators (computers) in the SCSI chain.
+    // PbCommand.params contains the list of IDs to reserve, or is empty in order to allow all IDs.
     RESERVE = 12;
 }
 
@@ -149,7 +150,7 @@ message PbCommand {
 message PbResult {
     // false means that an error occurred
     bool status = 1;
-    // An optional error or information message, depending on the result status
+    // An optional error or information message, depending on the status. A one-line string without CR/LF.
     string msg = 2;
     // Optional additional result data
     oneof result {
