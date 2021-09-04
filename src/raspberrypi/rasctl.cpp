@@ -26,7 +26,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-bool SendCommand(const string& hostname, int port, const PbCommand& command, PbResult& result)
+void SendCommand(const string& hostname, int port, const PbCommand& command, PbResult& result)
 {
 	// Send command
 	int fd = -1;
@@ -84,10 +84,8 @@ bool SendCommand(const string& hostname, int port, const PbCommand& command, PbR
 
     	cerr << "Error: " << e.getmsg() << endl;
 
-    	return false;
+    	exit(EXIT_FAILURE);
     }
-
-    return true;
 }
 
 //---------------------------------------------------------------------------
@@ -144,9 +142,7 @@ const PbServerInfo GetServerInfo(const string& hostname, int port)
 	command.set_operation(SERVER_INFO);
 
 	PbResult result;
-	if (!SendCommand(hostname.c_str(), port, command, result)) {
-		exit(EXIT_FAILURE);
-	}
+	SendCommand(hostname.c_str(), port, command, result);
 
 	return result.server_info();
 }
@@ -196,19 +192,10 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 void CommandDeviceInfo(const string& hostname, int port, const PbCommand& command)
 {
 	PbResult result;
-	if (!SendCommand(hostname.c_str(), port, command, result)) {
-		return;
-	}
+	SendCommand(hostname.c_str(), port, command, result);
 
-	PbDevices pb_devices = result.device_info();
-
-	for (const auto& pb_device : pb_devices.devices()) {
-		if (pb_device.type() == UNDEFINED) {
-			cerr << "Error: No device for ID " << pb_device.id() << ", unit " << pb_device.unit() << endl;
-		}
-		else {
-			DisplayDeviceInfo(pb_device);
-		}
+	for (const auto& pb_device : result.device_info().devices()) {
+		DisplayDeviceInfo(pb_device);
 	}
 }
 
@@ -218,9 +205,7 @@ void CommandServerInfo(const string& hostname, int port)
 	command.set_operation(SERVER_INFO);
 
 	PbResult result;
-	if (!SendCommand(hostname.c_str(), port, command, result)) {
-		return;
-	}
+	SendCommand(hostname.c_str(), port, command, result);
 
 	PbServerInfo server_info = result.server_info();
 
@@ -620,8 +605,8 @@ int main(int argc, char* argv[])
 
 	// Send the command
 	PbResult result;
-	bool status = SendCommand(hostname, port, command, result);
+	SendCommand(hostname, port, command, result);
 
 	// All done!
-	exit(status ? EXIT_SUCCESS : EXIT_FAILURE);
+	exit(EXIT_SUCCESS);
 }

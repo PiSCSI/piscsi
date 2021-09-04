@@ -29,10 +29,9 @@ enum PbDeviceType {
 // rascsi remote operations. PbResult is returned, except for SERVER_INFO and DEVICE_INFO.
 enum PbOperation {
     NONE = 0;
-    // Gets the server information. Returns PbServerInfo.
+    // Gets the server information
     SERVER_INFO = 1;
-    // Gets information on a list of devices. Returns PbDevices.
-    // If a device does not exist the device type returned for the respective ID and unit is UNDEFINED.
+    // Gets information for a list of devices
     DEVICE_INFO = 2;
     // Set the default folder for image files, PbCommand.params contains the folder name
     DEFAULT_FOLDER = 3;
@@ -73,9 +72,9 @@ message PbDeviceProperties {
     bool supports_params = 6;
     // The number of supported LUNs, at least 1 (for LUN 0)
     uint32 luns = 7;
-    // Unordered list of supported block sizes in bytes, empty if the block size is not configurable
+    // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 8;
-    // Unordered list of supported media capacities in bytes, empty if there is no capacity restriction
+    // Unordered list of permitted media capacities in bytes, empty if there is no capacity restriction
     repeated uint64 capacities = 9;
 }
 

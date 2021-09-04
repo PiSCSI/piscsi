@@ -605,10 +605,12 @@ void GetAvailableImages(PbServerInfo& server_info)
 	}
 }
 
-void GetDeviceInfo(const PbCommand& command, PbDevices& pb_devices)
+void GetDeviceInfo(const PbCommand& command, PbResult& result)
 {
+	PbDevices *pb_devices = new PbDevices();
+
 	for (const auto& pb_device_information : command.devices()) {
-		PbDevice *pb_device = pb_devices.add_devices();
+		PbDevice *pb_device = pb_devices->add_devices();
 
 		for (size_t i = 0; i < devices.size(); i++) {
 			Device *device = devices[i];
@@ -617,15 +619,22 @@ void GetDeviceInfo(const PbCommand& command, PbDevices& pb_devices)
 					GetDevice(device, pb_device);
 				}
 				else {
-					// For unknown devices the type is UNDEFINED
-					pb_device->set_id(pb_device_information.id());
-					pb_device->set_unit(pb_device_information.unit());
-					pb_device->set_type(UNDEFINED);
+					delete pb_devices;
+
+					ostringstream error;
+					error << "No device for ID " << pb_device_information.id() << ", unit " << pb_device_information.unit();
+					result.set_msg(error.str());
+
+					return;
 				}
+
 				break;
 			}
 		}
 	}
+
+	result.set_status(true);
+	result.set_allocated_device_info(pb_devices);
 }
 
 void GetServerInfo(PbServerInfo& server_info)
@@ -1362,11 +1371,8 @@ static void *MonThread(void *param)
 						ReturnStatus(fd, false, "Can't get device information: Missing device IDs");
 					}
 					else {
-						PbDevices *devices = new PbDevices();
-						GetDeviceInfo(command, *devices);
 						PbResult result;
-						result.set_status(true);
-						result.set_allocated_device_info(devices);
+						GetDeviceInfo(command, result);
 						SerializeMessage(fd, result);
 					}
 					break;
