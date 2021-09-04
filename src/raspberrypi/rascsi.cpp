@@ -1371,6 +1371,7 @@ static void *MonThread(void *param)
 
 				case SERVER_INFO: {
 					PbServerInfo server_info;
+					GetServerInfo(server_info);
 					SerializeMessage(fd, server_info);
 					LogDevices(ListDevices(server_info));
 					break;
