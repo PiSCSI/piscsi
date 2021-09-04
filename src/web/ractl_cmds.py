@@ -2,6 +2,8 @@ import fnmatch
 import subprocess
 import re
 import logging
+import socket
+import struct
 
 from settings import *
 import rascsi_interface_pb2 as proto
@@ -240,9 +242,6 @@ def reserve_scsi_ids(reserved_scsi_ids):
 
 
 def send_pb_command(payload):
-    import socket
-    import struct
-
     # Host and port number where rascsi is listening for socket connections
     HOST = 'localhost'
     PORT = 6868
@@ -252,30 +251,40 @@ def send_pb_command(payload):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect((HOST, PORT))
-                # Prepending a little endian 32bit header with the message size
-                s.send(struct.pack("<i", len(payload)))
-                s.send(payload)
-                response = s.recv(4)
-                if len(response) >= 4:
-                    # Extracting the response header to get the length of the response message
-                    response_length = struct.unpack("<i", response)[0]
-                    logging.warning("Response length " + str(response_length) + str(type(response_length)))
-                    chunks = []
-                    bytes_recvd = 0
-                    while bytes_recvd < response_length:
-                        chunk = s.recv(min(response_length - bytes_recvd, 2048))
-                        if chunk == b'':
-                            logging.error("Socket connection dropped.")
-                            return 0
-                        chunks.append(chunk)
-                        bytes_recvd = bytes_recvd + len(chunk)
-                        logging.warning("read bytes" + str(bytes_recvd))
-                    response_message = b''.join(chunks)
-                    logging.warning(response_message)
-                    return response_message
-                else:
-                    logging.error("Missing protobuf data.")
-                    return 0
+                send_over_socket(s, payload)
+                return recv_from_socket(s)
         except socket.error as error:
             logging.error("Failed to connect to the RaSCSI service: {error}")
             counter += 1
+
+
+def send_over_socket(s, payload):
+    # Prepending a little endian 32bit header with the message size
+    s.send(struct.pack("<i", len(payload)))
+    s.send(payload)
+
+
+def recv_from_socket(s):
+    response = s.recv(4)
+    if len(response) >= 4:
+        # Extracting the response header to get the length of the response message
+        response_length = struct.unpack("<i", response)[0]
+        logging.warning("Response length " + str(response_length) + str(type(response_length)))
+        # Reading in chunks, to handle a case where the response message is very large
+        chunks = []
+        bytes_recvd = 0
+        while bytes_recvd < response_length:
+            chunk = s.recv(min(response_length - bytes_recvd, 2048))
+            if chunk == b'':
+                logging.error("Socket connection dropped.")
+                return 0
+            chunks.append(chunk)
+            bytes_recvd = bytes_recvd + len(chunk)
+            logging.warning("read bytes" + str(bytes_recvd))
+        response_message = b''.join(chunks)
+        logging.warning(response_message)
+        return response_message
+    else:
+        logging.error("Missing protobuf data.")
+        return 0
+
