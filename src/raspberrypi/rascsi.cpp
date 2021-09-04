@@ -1362,18 +1362,24 @@ static void *MonThread(void *param)
 						ReturnStatus(fd, false, "Can't get device information: Missing device IDs");
 					}
 					else {
-						PbDevices devices;
-						GetDeviceInfo(command, devices);
-						SerializeMessage(fd, devices);
+						PbDevices *devices = new PbDevices();
+						GetDeviceInfo(command, *devices);
+						PbResult result;
+						result.set_status(true);
+						result.set_allocated_device_info(devices);
+						SerializeMessage(fd, result);
 					}
 					break;
 				}
 
 				case SERVER_INFO: {
-					PbServerInfo server_info;
-					GetServerInfo(server_info);
-					SerializeMessage(fd, server_info);
-					LogDevices(ListDevices(server_info));
+					PbServerInfo *server_info = new PbServerInfo();
+					GetServerInfo(*server_info);
+					PbResult result;
+					result.set_status(true);
+					result.set_allocated_server_info(server_info);
+					SerializeMessage(fd, result);
+					LogDevices(ListDevices(*server_info));
 					break;
 				}
 
