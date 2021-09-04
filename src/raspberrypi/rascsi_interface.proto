@@ -150,9 +150,10 @@ message PbCommand {
 message PbResult {
     // false means that an error occurred
     bool status = 1;
+    // An optional error or information message, depending on the result status
+    string msg = 2;
+    // Optional additional result data
     oneof result {
-        // The result of most commands: An error message or an information message, depending on the result status.
-        string msg = 2;
         // The result of a SERVER_INFO command
         PbServerInfo server_info = 3;
         // The rsult of a DEVICE_INFO command
