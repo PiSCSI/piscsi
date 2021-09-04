@@ -150,7 +150,7 @@ message PbCommand {
 message PbResult {
     // false means that an error occurred
     bool status = 1;
-    // An optional error or information message, depending on the status. A one-line string without CR/LF.
+    // An optional error or information message, depending on the status. A string without trailing CR/LF.
     string msg = 2;
     // Optional additional result data
     oneof result {
