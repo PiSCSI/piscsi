@@ -43,7 +43,7 @@ def index():
     scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids))
     return render_template(
         "index.html",
-        bridge_configured=is_bridge_setup("eth0"),
+        bridge_configured=is_bridge_setup(),
         devices=devices,
         active=is_active(),
         files=list_files(),

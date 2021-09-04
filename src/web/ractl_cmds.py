@@ -79,7 +79,6 @@ def get_type(scsi_id):
         return {"status": result.status, "msg": result.msg, "type": result_type}
     except:
         return {"status": result.status, "msg": result.msg, "type": ""}
-    #return {"status": result.status, "msg": result.msg, "type": result_type}
 
 
 def attach_image(scsi_id, image, image_type):
@@ -169,7 +168,7 @@ def attach_daynaport(scsi_id):
     return {"status": result.status, "msg": result.msg}
 
 
-def is_bridge_setup(interface):
+def is_bridge_setup():
     process = subprocess.run(["brctl", "show"], capture_output=True)
     output = process.stdout.decode("utf-8")
     if "rascsi_bridge" in output:
