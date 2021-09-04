@@ -513,16 +513,16 @@ void LogDevices(const string& devices)
 	}
 }
 
-void GetLogLevels(PbServerInfo& serverInfo)
+void GetLogLevels(PbServerInfo& server_info)
 {
 	for (const auto& log_level : log_levels) {
-		serverInfo.add_log_levels(log_level);
+		server_info.add_log_levels(log_level);
 	}
 }
 
-void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
+void GetDeviceTypeFeatures(PbServerInfo& server_info)
 {
-	PbDeviceTypeProperties *types_properties = serverInfo.add_types_properties();
+	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
 	types_properties->set_type(SAHD);
 	PbDeviceProperties *properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -532,7 +532,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 		properties->add_block_sizes(block_size);
 	}
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCHD);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -543,7 +543,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 		properties->add_block_sizes(block_size);
 	}
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCRM);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -556,7 +556,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 		properties->add_block_sizes(block_size);
 	}
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCMO);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -569,7 +569,7 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 		properties->add_capacities(capacity);
 	}
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCCD);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -579,14 +579,14 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_supports_file(true);
 	properties->set_luns(1);
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCBR);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
 	properties->set_luns(1);
 
-	types_properties = serverInfo.add_types_properties();
+	types_properties = server_info.add_types_properties();
 	types_properties->set_type(SCDP);
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
@@ -594,15 +594,71 @@ void GetDeviceTypeFeatures(PbServerInfo& serverInfo)
 	properties->set_luns(1);
 }
 
-void GetAvailableImages(PbServerInfo& serverInfo)
+void GetAvailableImages(PbServerInfo& server_info)
 {
 	if (!access(default_image_folder.c_str(), F_OK)) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				GetImageFile(serverInfo.add_image_files(), entry.path().filename());
+				GetImageFile(server_info.add_image_files(), entry.path().filename());
 			}
 		}
 	}
+}
+
+void GetDeviceInfo(const PbCommand& command, PbResult& result)
+{
+	set<id_set> id_sets;
+	if (command.devices_size() == 0) {
+		for (const Device *device : devices) {
+			if (device) {
+				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
+			}
+		}
+	}
+	else {
+		for (const auto& device : command.devices()) {
+			if (devices[device.id() * UnitNum + device.unit()]) {
+				id_sets.insert(make_pair(device.id(), device.unit()));
+			}
+			else {
+				ostringstream error;
+				error << "No device for ID " << device.id() << ", unit " << device.unit();
+				result.set_status(false);
+				result.set_msg(error.str());
+				return;
+			}
+		}
+	}
+
+	PbDevices *pb_devices = new PbDevices();
+
+	for (const auto& id_set : id_sets) {
+		Device *device = devices[id_set.first * UnitNum + id_set.second];
+		PbDevice *pb_device = pb_devices->add_devices();
+		GetDevice(device, pb_device);
+	}
+
+	result.set_allocated_device_info(pb_devices);
+}
+
+void GetServerInfo(PbResult& result)
+{
+	PbServerInfo *server_info = new PbServerInfo();
+
+	server_info->set_major_version(rascsi_major_version);
+	server_info->set_minor_version(rascsi_minor_version);
+	server_info->set_patch_version(rascsi_patch_version);
+	GetLogLevels(*server_info);
+	server_info->set_current_log_level(current_log_level);
+	server_info->set_default_image_folder(default_image_folder);
+	GetDeviceTypeFeatures(*server_info);
+	GetAvailableImages(*server_info);
+	GetDevices(*server_info);
+	for (int id : reserved_ids) {
+		server_info->add_reserved_ids(id);
+	}
+
+	result.set_allocated_server_info(server_info);
 }
 
 bool SetDefaultImageFolder(const string& f)
@@ -1013,7 +1069,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 			break;
 
 		default:
-			return ReturnStatus(fd, false, "Received unknown operation: " + PbOperation_Name(operation));
+			return ReturnStatus(fd, false, "Unknown operation");
 	}
 
 	return true;
@@ -1222,7 +1278,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Display and log the device list
 	PbServerInfo server_info;
 	GetDevices(server_info);
-	const string device_list = ListDevices(server_info);
+	const list<PbDevice>& devices = { server_info.devices().begin(), server_info.devices().end() };
+	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << endl;
 
@@ -1319,35 +1376,20 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_INFO: {
-					PbDevice pb_device;
-
-					for (size_t i = 0; i < devices.size(); i++) {
-						Device *device = devices[i];
-						if (device && device->GetId() == command.devices(0).id() && device->GetLun() == command.devices(0).unit()) {
-							GetDevice(device, &pb_device);
-							break;
-						}
-					}
-					SerializeMessage(fd, pb_device);
+					PbResult result;
+					result.set_status(true);
+					GetDeviceInfo(command, result);
+					SerializeMessage(fd, result);
+					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
+					LogDevices(ListDevices(devices));
 					break;
 				}
 
 				case SERVER_INFO: {
-					PbServerInfo server_info;
-					server_info.set_major_version(rascsi_major_version);
-					server_info.set_minor_version(rascsi_minor_version);
-					server_info.set_patch_version(rascsi_patch_version);
-					GetLogLevels(server_info);
-					server_info.set_current_log_level(current_log_level);
-					server_info.set_default_image_folder(default_image_folder);
-					GetDeviceTypeFeatures(server_info);
-					GetAvailableImages(server_info);
-					GetDevices(server_info);
-					for (int id : reserved_ids) {
-						server_info.add_reserved_ids(id);
-					}
-					SerializeMessage(fd, server_info);
-					LogDevices(ListDevices(server_info));
+					PbResult result;
+					result.set_status(true);
+					GetServerInfo(result);
+					SerializeMessage(fd, result);
 					break;
 				}
 

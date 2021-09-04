@@ -11,8 +11,9 @@
 
 #pragma once
 
+#include <list>
 #include <string>
 #include "rascsi_interface.pb.h"
 
 bool GetAsInt(const std::string&, int&);
-std::string ListDevices(const rascsi_interface::PbServerInfo&);
+std::string ListDevices(const std::list<rascsi_interface::PbDevice>&);

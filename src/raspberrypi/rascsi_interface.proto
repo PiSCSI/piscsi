@@ -1,6 +1,7 @@
 //
 // Each rascsi remote interface message is preceded by a little endian 32 bit header,
 // which contains the protobuf message size.
+// The order of repeated data returned is undefined.
 //
 
 syntax = "proto3";
@@ -26,21 +27,20 @@ enum PbDeviceType {
     SCDP = 7;
 }
 
-// rascsi remote operations. PbResult is returned, except for SERVER_INFO and DEVICE_INFO.
+// rascsi remote operations, returns PbResult
 enum PbOperation {
     NONE = 0;
-    // Bets the server information. Returns PbServerInfo.
+    // Gets the server information
     SERVER_INFO = 1;
-    // Gets information on a particular device. Returns PbDevice.
-    // If the device does on exist the returned device type is UNDEFINED.
+    // Gets information for a list of attached devices. Returns data for all attached devices if empty.
     DEVICE_INFO = 2;
-    // Set the default folder for image files, PbCommand.params contains the folder name
+    // Set the default folder for image files. PbCommand.params contains the folder name.
     DEFAULT_FOLDER = 3;
-    // Set server log level, PbCommand.params contains the log level
+    // Set server log level. PbCommand.params contains the log level.
     LOG_LEVEL = 4;
-    // Attach new device
+    // Attach devices
     ATTACH = 5;
-    // Detach device
+    // Detach devices
     DETACH = 6;
     // Detach all devices, does not require a device list
     DETACH_ALL = 7;
@@ -52,8 +52,8 @@ enum PbOperation {
     PROTECT = 10;
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 11;
-    // IDs blocked from being used, usually the ID of the initiator (computer) in the SCSI chain.
-    // The command params field contains the full list of IDs to reserve, or is empty in order to allow all IDs.
+    // IDs blocked from being used, usually the IDs of the initiators (computers) in the SCSI chain.
+    // PbCommand.params contains the list of IDs to reserve, or is empty in order to allow all IDs.
     RESERVE = 12;
 }
 
@@ -73,9 +73,9 @@ message PbDeviceProperties {
     bool supports_params = 6;
     // The number of supported LUNs, at least 1 (for LUN 0)
     uint32 luns = 7;
-    // Unordered list of supported block sizes in bytes, empty if the block size is not configurable
+    // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 8;
-    // Unordered list of supported media capacities in bytes, empty if there is no capacity restriction
+    // Unordered list of permitted media capacities in bytes, empty if there is no capacity restriction
     repeated uint64 capacities = 9;
 }
 
@@ -89,7 +89,7 @@ message PbDeviceStatus {
     bool locked = 3;
 }
 
-// Device properties by device type
+// Device properties by device type. (Note that a protobuf map cannot be used because enums cannot be map keys.)
 message PbDeviceTypeProperties {
     PbDeviceType type = 1;
     PbDeviceProperties properties = 2;
@@ -133,6 +133,10 @@ message PbDevice {
     int32 block_size = 10;
 }
 
+message PbDevices {
+    repeated PbDevice devices = 1;
+}
+
 // Commands rascsi can execute and their parameters
 message PbCommand {
     PbOperation operation = 1;
@@ -142,12 +146,19 @@ message PbCommand {
     repeated string params = 3;
 }
 
-// The result of a command. Note that the SERVER_INFO command has a special result.
+// The result of a command
 message PbResult {
     // false means that an error occurred
     bool status = 1;
-    // An error message or an information message, depending on status
+    // An optional error or information message, depending on the status. A string without trailing CR/LF.
     string msg = 2;
+    // Optional additional result data
+    oneof result {
+        // The result of a SERVER_INFO command
+        PbServerInfo server_info = 3;
+        // The result of a DEVICE_INFO command
+        PbDevices device_info = 4;
+    }
 }
 
 // The rascsi server information

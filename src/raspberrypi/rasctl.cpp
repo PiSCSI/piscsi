@@ -26,15 +26,10 @@
 using namespace std;
 using namespace rascsi_interface;
 
-//---------------------------------------------------------------------------
-//
-//	Send Command
-//
-//---------------------------------------------------------------------------
-int SendCommand(const string& hostname, int port, const PbCommand& command)
+void SendCommand(const string& hostname, int port, const PbCommand& command, PbResult& result)
 {
+	// Send command
 	int fd = -1;
-
 	try {
     	struct hostent *host = gethostbyname(hostname.c_str());
     	if (!host) {
@@ -71,36 +66,27 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
         exit(fd < 0 ? ENOTCONN : EXIT_FAILURE);
     }
 
-    return fd;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Receive command result
-//
-//---------------------------------------------------------------------------
-bool ReceiveResult(int fd)
-{
+    // Receive result
     try {
-        PbResult result;
         DeserializeMessage(fd, result);
-        close(fd);
 
     	if (!result.status()) {
     		throw io_exception(result.msg());
     	}
-
-    	if (!result.msg().empty()) {
-    		cout << result.msg() << endl;
-    	}
     }
     catch(const io_exception& e) {
+    	close(fd);
+
     	cerr << "Error: " << e.getmsg() << endl;
 
-    	return false;
+    	exit(EXIT_FAILURE);
     }
 
-    return true;
+    close(fd);
+
+	if (!result.msg().empty()) {
+		cout << result.msg() << endl;
+	}
 }
 
 void DisplayDeviceInfo(const PbDevice& pb_device)
@@ -128,29 +114,22 @@ const PbServerInfo GetServerInfo(const string& hostname, int port)
 	PbCommand command;
 	command.set_operation(SERVER_INFO);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 
-	PbServerInfo server_info;
-	try {
-		DeserializeMessage(fd, server_info);
-	}
-	catch(const io_exception& e) {
-		cerr << "Error: " << e.getmsg() << endl;
-
-		close(fd);
-
-		exit(EXIT_FAILURE);
-	}
-
-	close(fd);
-
-	return server_info;
+	return result.server_info();
 }
 
 void CommandList(const string& hostname, int port)
 {
-	PbServerInfo serverInfo = GetServerInfo(hostname, port);
-	cout << ListDevices(serverInfo) << endl;
+	PbCommand command;
+	command.set_operation(DEVICE_INFO);
+
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
+	cout << ListDevices(devices) << endl;
 }
 
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
@@ -159,9 +138,8 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 	command.set_operation(LOG_LEVEL);
 	command.add_params(log_level);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-	ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 }
 
 void CommandReserve(const string&hostname, int port, const string& reserved_ids)
@@ -176,9 +154,8 @@ void CommandReserve(const string&hostname, int port, const string& reserved_ids)
 		command.add_params(reserved_id);
 	}
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-	ReceiveResult(fd);
-	close(fd);
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
 }
 
 void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
@@ -187,33 +164,16 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 	command.set_operation(DEFAULT_FOLDER);
 	command.add_params(folder);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-	ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 }
 
 void CommandDeviceInfo(const string& hostname, int port, const PbCommand& command)
 {
-	int fd = SendCommand(hostname.c_str(), port, command);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 
-	PbDevice pb_device;
-	try {
-		DeserializeMessage(fd, pb_device);
-	}
-	catch(const io_exception& e) {
-		cerr << "Error: " << e.getmsg() << endl;
-
-		close(fd);
-
-		exit(EXIT_FAILURE);
-	}
-
-	close(fd);
-
-	if (pb_device.type() == UNDEFINED) {
-		cerr << "Error: Unknown device ID or unit" << endl;
-	}
-	else {
+	for (const auto& pb_device : result.device_info().devices()) {
 		DisplayDeviceInfo(pb_device);
 	}
 }
@@ -223,21 +183,10 @@ void CommandServerInfo(const string& hostname, int port)
 	PbCommand command;
 	command.set_operation(SERVER_INFO);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 
-	PbServerInfo server_info;
-	try {
-		DeserializeMessage(fd, server_info);
-	}
-	catch(const io_exception& e) {
-		cerr << "Error: " << e.getmsg() << endl;
-
-		close(fd);
-
-		exit(EXIT_FAILURE);
-	}
-
-	close(fd);
+	PbServerInfo server_info = result.server_info();
 
 	cout << "rascsi server version: " << server_info.major_version() << "." << server_info.minor_version();
 	if (server_info.patch_version() > 0) {
@@ -511,6 +460,10 @@ int main(int argc, char* argv[])
 
 			case 'c':
 				command.set_operation(ParseOperation(optarg));
+				if (command.operation() == NONE) {
+					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
+					exit(EXIT_FAILURE);
+				}
 				break;
 
 			case 'd':
@@ -629,11 +582,8 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	// Send the command
-	int fd = SendCommand(hostname, port, command);
-	bool status = ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	SendCommand(hostname, port, command, result);
 
-	// All done!
-	exit(status ? EXIT_SUCCESS : EXIT_FAILURE);
+	exit(EXIT_SUCCESS);
 }
