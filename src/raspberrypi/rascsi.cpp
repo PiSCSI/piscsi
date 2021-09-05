@@ -732,9 +732,13 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		}
 	}
 
-	// If no filename was provided the media is considered removed
-	if (filename.empty()) {
-		device->SetRemoved(true);
+	// If no filename was provided the medium is considered removed
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	if (file_support) {
+		device->SetRemoved(filename.empty());
+	}
+	else {
+		device->SetRemoved(false);
 	}
 
 	device->SetId(id);
@@ -770,8 +774,6 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
 		}
 	}
-
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
 	if (file_support && !device->IsRemovable() && filename.empty()) {
