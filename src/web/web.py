@@ -39,10 +39,9 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
-    unsorted_devices = list_devices()
-    devices = sort_and_format_devices(unsorted_devices[0], unsorted_devices[1])
-    # TODO: Clean up this call
-    scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids), list(map(str, unsorted_devices[1])))
+    unsorted_devices, occupied_ids = list_devices()
+    devices = sort_and_format_devices(unsorted_devices, occupied_ids)
+    scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids), occupied_ids)
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),

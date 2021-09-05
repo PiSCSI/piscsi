@@ -60,7 +60,8 @@ def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
     logging.warning(str(invalid_list))
     logging.warning(str(occupied_ids))
     for device in devices:
-        # Make it possible to insert images on top of a removable media device such as CD-ROM or MO
+        # Make it possible to insert images on top of a 
+        # removable media device such as CD-ROM or Magneto-Optical
         if "No Media" in device["status"]:
             occupied_ids.remove(device["id"])
 
@@ -225,16 +226,15 @@ def list_devices():
         dblock = result.device_info.devices[n].block_size or "N/A"
         # TODO: Move formatting elsewhere
         device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": ", ".join(dstat_msg), "file": dfile, "product": dprod, "block": dblock})
-        occupied_ids.append(did)
+        occupied_ids.append(str(did))
         n += 1
-    # TODO: Want to go back to returning only one variable here
-    return [device_list, occupied_ids]
+    return device_list, occupied_ids
 
 
 def sort_and_format_devices(device_list, occupied_ids):
     # Add padding devices and sort the list
     for id in range(8):
-        if id not in occupied_ids:
+        if str(id) not in occupied_ids:
             device_list.append({"id": str(id), "un": "-", "type": "-", "status": "-", "file": "-", "product": "-", "block": "-"})
 
     # Sort list of devices by id
