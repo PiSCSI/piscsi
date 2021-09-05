@@ -17,6 +17,7 @@ from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
 from ractl_cmds import (
     attach_image,
     list_devices,
+    sort_and_format_devices,
     is_active,
     list_files,
     detach_by_id,
@@ -42,7 +43,8 @@ def index():
     if reserved_scsi_ids != "" and is_active():
         # Reserve SCSI IDs on the backend side to prevent use
         reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
-    devices = list_devices()
+    unsorted_devices = list_devices()
+    devices = sort_and_format_devices(unsorted_devices[0], unsorted_devices[1])
     scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids))
     return render_template(
         "index.html",

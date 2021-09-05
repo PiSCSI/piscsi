@@ -103,6 +103,7 @@ def attach_image(scsi_id, image, image_type):
         command = proto.PbCommand()
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)
+        devices.type = proto.PbDeviceType.Value(image_type)
         devices.params.append(image)
         command.operation = proto.PbOperation.ATTACH
         command.devices.append(devices)
@@ -214,20 +215,25 @@ def list_devices():
         dun = result.device_info.devices[n].unit
         dtype = proto.PbDeviceType.Name(result.device_info.devices[n].type) 
         dstat = result.device_info.devices[n].status
-        logging.warning(dstat)
         dfile = result.device_info.devices[n].file.name
         dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product + " " + result.device_info.devices[n].revision
         dblock = result.device_info.devices[n].block_size
         device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": dstat, "file": dfile, "product": dprod, "block": dblock})
         occupied_ids.append(did)
         n += 1
+    # TODO: Want to go back to returning only one variable here
+    return [device_list, occupied_ids]
 
+
+def sort_and_format_devices(device_list, occupied_ids):
+    # Add padding devices and sort the list
     for id in range(8):
         if id not in occupied_ids:
             device_list.append({"id": str(id), "un": "-", "type": "-", "status": "-", "file": "-", "product": "-", "block": "-"})
 
     # Sort list of devices by id
     device_list.sort(key=lambda tup: tup["id"][0])
+
     return device_list
 
 
