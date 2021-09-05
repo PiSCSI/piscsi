@@ -49,7 +49,8 @@ def list_config_files():
 
 def get_valid_scsi_ids(devices, invalid_list):
     for device in devices:
-        if device["file"] != "NO MEDIA" and device["file"] != "-":
+        # TODO: Check for actual status rather than the file name
+        if device["file"] != "RaSCSI SCSI CD-ROM" and device["file"] != "-":
             invalid_list.append(int(device["id"]))
 
     valid_list = list(range(8))
@@ -185,33 +186,32 @@ def rascsi_service(action):
 
 
 def list_devices():
-    device_list = []
-    for id in range(8):
-        device_list.append({"id": str(id), "un": "-", "type": "-", "file": "-"})
-    output = subprocess.run(["rasctl", "-l"], capture_output=True).stdout.decode(
-        "utf-8"
-    )
-    for line in output.splitlines():
-        # Valid line to process, continue
-        if (
-            not line.startswith("+")
-            and not line.startswith("| ID |")
-            and (
-                not line.startswith("No device is installed.")
-                or line.startswith("No images currently attached.")
-            )
-            and len(line) > 0
-        ):
-            line.rstrip()
-            device = {}
-            segments = line.split("|")
-            if len(segments) > 4:
-                idx = int(segments[1].strip())
-                device_list[idx]["id"] = str(idx)
-                device_list[idx]["un"] = segments[2].strip()
-                device_list[idx]["type"] = segments[3].strip()
-                device_list[idx]["file"] = segments[4].strip()
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DEVICE_INFO
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
 
+    device_list = []
+    occupied_ids = []
+    n = 0
+    while n < len(result.device_info.devices):
+        did = result.device_info.devices[n].id
+        dun = result.device_info.devices[n].unit
+        dtype = proto.PbDeviceType.Name(result.device_info.devices[n].type) 
+        dfile = result.device_info.devices[n].file.name
+        if dfile == "":
+            dfile = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product
+        device_list.append({"id": str(did), "un": str(dun), "type": dtype, "file": dfile})
+        occupied_ids.append(did)
+        n += 1
+
+    for id in range(8):
+        if id not in occupied_ids:
+            device_list.append({"id": str(id), "un": "-", "type": "-", "file": "-"})
+
+    # Sort list of devices by id
+    device_list.sort(key=lambda tup: tup["id"][0])
     return device_list
 
 
@@ -255,7 +255,6 @@ def recv_from_socket(s):
     if len(response) >= 4:
         # Extracting the response header to get the length of the response message
         response_length = struct.unpack("<i", response)[0]
-        logging.warning("Response length " + str(response_length) + str(type(response_length)))
         # Reading in chunks, to handle a case where the response message is very large
         chunks = []
         bytes_recvd = 0
@@ -266,9 +265,7 @@ def recv_from_socket(s):
                 return 0
             chunks.append(chunk)
             bytes_recvd = bytes_recvd + len(chunk)
-            logging.warning("read bytes" + str(bytes_recvd))
         response_message = b''.join(chunks)
-        logging.warning(response_message)
         return response_message
     else:
         logging.error("Missing protobuf data.")

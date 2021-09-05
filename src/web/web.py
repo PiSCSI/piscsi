@@ -104,6 +104,10 @@ def logs():
 @app.route("/daynaport/attach", methods=["POST"])
 def daynaport_attach():
     scsi_id = request.form.get("scsi_id")
+    # Validate the SCSI ID
+    if re.match("[0-7]", str(scsi_id)) == None:
+        flash(f"Invalid SCSI ID. Should be a number between 0-7", "error")
+        return redirect(url_for("index"))
     process = attach_daynaport(scsi_id)
     if process["status"] == True:
         flash(f"Attached DaynaPORT to SCSI id {scsi_id}!")

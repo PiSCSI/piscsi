@@ -58,7 +58,7 @@
             <td style="text-align:center">{{device.type}}</td>
             <td>{{device.file}}</td>
             <td>
-                {% if device.type == "SCCD" and device.file != "NO MEDIA" %}
+                {% if device.type == "SCCD" and device.file != "RaSCSI SCSI CD-ROM" %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Eject" />
@@ -146,7 +146,7 @@
                 {% if bridge_configured %}
                 <small>Bridge is currently configured!</small>
                 {% else %}
-		<small>Bridge is automatically configured when an adapter device is attached.</small>
+		<small>Bridge is automatically configured when a network adapter is attached.</small>
                 {% endif %}
             </td>
         </tr>
