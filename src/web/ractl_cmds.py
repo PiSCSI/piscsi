@@ -213,16 +213,18 @@ def list_devices():
         did = result.device_info.devices[n].id
         dun = result.device_info.devices[n].unit
         dtype = proto.PbDeviceType.Name(result.device_info.devices[n].type) 
+        dstat = result.device_info.devices[n].status
+        logging.warning(dstat)
         dfile = result.device_info.devices[n].file.name
-        if dfile == "":
-            dfile = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product
-        device_list.append({"id": str(did), "un": str(dun), "type": dtype, "file": dfile})
+        dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product + " " + result.device_info.devices[n].revision
+        dblock = result.device_info.devices[n].block_size
+        device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": dstat, "file": dfile, "product": dprod, "block": dblock})
         occupied_ids.append(did)
         n += 1
 
     for id in range(8):
         if id not in occupied_ids:
-            device_list.append({"id": str(id), "un": "-", "type": "-", "file": "-"})
+            device_list.append({"id": str(id), "un": "-", "type": "-", "status": "-", "file": "-", "product": "-", "block": "-"})
 
     # Sort list of devices by id
     device_list.sort(key=lambda tup: tup["id"][0])
