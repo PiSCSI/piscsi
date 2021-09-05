@@ -9,7 +9,6 @@
 
 #pragma once
 
-#include <list>
 #include <string>
 
 using namespace std;
@@ -93,7 +92,7 @@ public:
 	virtual ~Device() {};
 
 	// Override for device specific initializations, to be called after all device properties have been set
-	virtual bool Init(const list<string>&) { return true; };
+	virtual bool Init(const string&) { return true; };
 
 	virtual bool Dispatch(SCSIDEV *) = 0;
 

@@ -822,8 +822,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		return true;
 	}
 
-	const list<string> params = { pb_device.params().begin(), pb_device.params().end() };
-	if (!device->Init(params)) {
+	if (!device->Init(pb_device.params_size() > 0 ? pb_device.params().Get(0) : "")) {
 		error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
 
 		delete device;
