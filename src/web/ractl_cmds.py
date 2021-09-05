@@ -61,20 +61,19 @@ def list_config_files():
     return files_list
 
 
-def get_valid_scsi_ids(devices, invalid_list):
+def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
+    logging.warning(str(invalid_list))
+    logging.warning(str(occupied_ids))
     for device in devices:
-        # TODO: Check for actual status rather than the file name
-        if device["file"] != "RaSCSI SCSI CD-ROM" and device["file"] != "-":
-            invalid_list.append(int(device["id"]))
+        if device["status"] == "Removed " and device["type"] in ["SCCD", "SCMO"]:
+            occupied_ids.remove(device["id"])
 
-    valid_list = list(range(8))
-    for id in invalid_list:
-        try:
-            valid_list.remove(int(id))
-        except:
-            logging.warning("Invalid SCSI id " + str(id))
-    valid_list.reverse()
-    return valid_list
+    invalid_ids = invalid_list + occupied_ids
+    valid_ids = list(range(8))
+    for id in invalid_ids:
+        valid_ids.remove(int(id))
+    valid_ids.reverse()
+    return valid_ids
 
 
 def get_type(scsi_id):
@@ -215,10 +214,18 @@ def list_devices():
         dun = result.device_info.devices[n].unit
         dtype = proto.PbDeviceType.Name(result.device_info.devices[n].type) 
         dstat = result.device_info.devices[n].status
+        dstat_msg = ""
+        if dstat.protected == True:
+            dstat_msg += "Protected "
+        if dstat.removed == True:
+            dstat_msg += "Removed "
+        if dstat.locked == True:
+            dstat_msg += "Locked "
         dfile = result.device_info.devices[n].file.name
         dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product + " " + result.device_info.devices[n].revision
         dblock = result.device_info.devices[n].block_size
-        device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": dstat, "file": dfile, "product": dprod, "block": dblock})
+        # TODO: Move formatting elsewhere
+        device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": dstat_msg, "file": dfile, "product": dprod, "block": dblock})
         occupied_ids.append(did)
         n += 1
     # TODO: Want to go back to returning only one variable here

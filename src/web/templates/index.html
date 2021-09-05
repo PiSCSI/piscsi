@@ -66,7 +66,7 @@
             <td style="text-align:center">{{device.product}}</td>
 	    <td style="text-align:center">{{device.block}}</td>
             <td>
-                {% if device.type == "SCCD" and device.product != "RaSCSI SCSI CD-ROM" %}
+                {% if device.type == "SCCD" and device.status != "Removed " %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Eject" />
@@ -81,12 +81,12 @@
             {% else %}
             <td style="text-align:center">{{device.id}}</td>
             <td style="text-align:center">-</td>
+            <td style="text-align:center">-</td>
             <td>Reserved ID</td>
             <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
-            <td>-</td>
+            <td style="text-align:center">-</td>
+            <td style="text-align:center">-</td>
+            <td style="text-align:center">-</td>
             {% endif %}
         </tr>
         {% endfor %}

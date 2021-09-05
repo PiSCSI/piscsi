@@ -45,7 +45,8 @@ def index():
         reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
     unsorted_devices = list_devices()
     devices = sort_and_format_devices(unsorted_devices[0], unsorted_devices[1])
-    scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids))
+    # TODO: Clean up this call
+    scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids), list(map(str, unsorted_devices[1])))
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
