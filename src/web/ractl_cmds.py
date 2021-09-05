@@ -63,7 +63,8 @@ def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
         if "No Media" in device["status"]:
             occupied_ids.remove(device["id"])
 
-    invalid_ids = invalid_list + occupied_ids
+    # Combine lists and remove duplicates
+    invalid_ids = list(set(invalid_list + occupied_ids))
     valid_ids = list(range(8))
     for id in invalid_ids:
         valid_ids.remove(int(id))
