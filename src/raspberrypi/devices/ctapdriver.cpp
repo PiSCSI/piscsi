@@ -30,15 +30,25 @@
 
 using namespace std;
 
+// The prioritized list of default interfaces
+#define DEFAULT_INTERFACES "eth0,wlan0"
+
+//---------------------------------------------------------------------------
+//
+//	Constructor
+//
+//---------------------------------------------------------------------------
 CTapDriver::CTapDriver(const list<string>& params)
 {
 	if (!params.empty()) {
 		interfaces = params;
 	}
 	else {
-		// eth0 and wlan0 are the default interfaces
-		interfaces.push_back("eth0");
-		interfaces.push_back("wlan0");
+		stringstream s(DEFAULT_INTERFACES);
+		string interface;
+		while (getline(s, interface, ',')) {
+			interfaces.push_back(interface);
+		}
 	}
 
 	// Initialization
@@ -400,6 +410,11 @@ void CTapDriver::OpenDump(const Filepath& path) {
 	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath());
 }
 
+//---------------------------------------------------------------------------
+//
+//	Cleanup
+//
+//---------------------------------------------------------------------------
 void CTapDriver::Cleanup()
 {
 	int br_socket_fd = -1;
@@ -429,6 +444,11 @@ void CTapDriver::Cleanup()
 	}
 }
 
+//---------------------------------------------------------------------------
+//
+//	Enable
+//
+//---------------------------------------------------------------------------
 bool CTapDriver::Enable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
@@ -437,6 +457,11 @@ bool CTapDriver::Enable(){
 	return result;
 }
 
+//---------------------------------------------------------------------------
+//
+//	Disable
+//
+//---------------------------------------------------------------------------
 bool CTapDriver::Disable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
@@ -445,6 +470,11 @@ bool CTapDriver::Disable(){
 	return result;
 }
 
+//---------------------------------------------------------------------------
+//
+//	Flush
+//
+//---------------------------------------------------------------------------
 BOOL CTapDriver::Flush(){
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	while(PendingPackets()){
@@ -453,6 +483,11 @@ BOOL CTapDriver::Flush(){
 	return TRUE;
 }
 
+//---------------------------------------------------------------------------
+//
+//	MGet MAC Address
+//
+//---------------------------------------------------------------------------
 void CTapDriver::GetMacAddr(BYTE *mac)
 {
 	ASSERT(mac);
@@ -460,6 +495,11 @@ void CTapDriver::GetMacAddr(BYTE *mac)
 	memcpy(mac, m_MacAddr, sizeof(m_MacAddr));
 }
 
+//---------------------------------------------------------------------------
+//
+//	Receive
+//
+//---------------------------------------------------------------------------
 BOOL CTapDriver::PendingPackets()
 {
 	struct pollfd fds;
@@ -479,6 +519,11 @@ BOOL CTapDriver::PendingPackets()
 	}
 }
 
+//---------------------------------------------------------------------------
+//
+//	Receive
+//
+//---------------------------------------------------------------------------
 int CTapDriver::Rx(BYTE *buf)
 {
 	ASSERT(m_hTAP != -1);
@@ -531,6 +576,11 @@ int CTapDriver::Rx(BYTE *buf)
 	return dwReceived;
 }
 
+//---------------------------------------------------------------------------
+//
+//	Send
+//
+//---------------------------------------------------------------------------
 int CTapDriver::Tx(const BYTE *buf, int len)
 {
 	ASSERT(m_hTAP != -1);
