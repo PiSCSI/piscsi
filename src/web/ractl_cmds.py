@@ -65,7 +65,7 @@ def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
     logging.warning(str(invalid_list))
     logging.warning(str(occupied_ids))
     for device in devices:
-        if device["status"] == "Removed " and device["type"] in ["SCCD", "SCMO"]:
+        if "Removed" in device["status"] and device["type"] in ["SCCD", "SCMO"]:
             occupied_ids.remove(device["id"])
 
     invalid_ids = invalid_list + occupied_ids
@@ -214,18 +214,18 @@ def list_devices():
         dun = result.device_info.devices[n].unit
         dtype = proto.PbDeviceType.Name(result.device_info.devices[n].type) 
         dstat = result.device_info.devices[n].status
-        dstat_msg = ""
+        dstat_msg = []
         if dstat.protected == True:
-            dstat_msg += "Protected "
+            dstat_msg.append("Protected")
         if dstat.removed == True:
-            dstat_msg += "Removed "
+            dstat_msg.append("Removed")
         if dstat.locked == True:
-            dstat_msg += "Locked "
+            dstat_msg.append("Locked")
         dfile = result.device_info.devices[n].file.name
         dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product + " " + result.device_info.devices[n].revision
         dblock = result.device_info.devices[n].block_size
         # TODO: Move formatting elsewhere
-        device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": dstat_msg, "file": dfile, "product": dprod, "block": dblock})
+        device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": ", ".join(dstat_msg), "file": dfile, "product": dprod, "block": dblock})
         occupied_ids.append(did)
         n += 1
     # TODO: Want to go back to returning only one variable here
@@ -271,7 +271,7 @@ def send_pb_command(payload):
             logging.error("Failed to connect to the RaSCSI service: " + str(error))
             counter += 1
     # TODO: Fail the webapp gracefully when connection fails
-    return False
+    return {"status": False, "msg": "The RaSCSI service does not seem to be running."}
 
 
 def send_over_socket(s, payload):
