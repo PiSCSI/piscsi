@@ -39,9 +39,6 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
-    if reserved_scsi_ids != "":
-        # Reserve SCSI IDs on the backend side to prevent use
-        reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
     unsorted_devices = list_devices()
     devices = sort_and_format_devices(unsorted_devices[0], unsorted_devices[1])
     # TODO: Clean up this call
@@ -318,6 +315,8 @@ if __name__ == "__main__":
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
     if len(sys.argv) >= 2:
         app.config["RESERVED_SCSI_IDS"] = str(sys.argv[1])
+        # Reserve SCSI IDs on the backend side to prevent use
+        reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
     else:
         app.config["RESERVED_SCSI_IDS"] = ""
 
