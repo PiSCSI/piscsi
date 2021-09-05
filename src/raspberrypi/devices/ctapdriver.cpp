@@ -38,12 +38,17 @@ using namespace std;
 //	Constructor
 //
 //---------------------------------------------------------------------------
-CTapDriver::CTapDriver(const string& interfaces)
+CTapDriver::CTapDriver(const list<string>& params)
 {
-	stringstream s(!interfaces.empty() ? interfaces : DEFAULT_INTERFACES);
-	string interface;
-	while (getline(s, interface, ',')) {
-		this->interfaces.push_back(interface);
+	if (!params.empty()) {
+		interfaces = params;
+	}
+	else {
+		stringstream s(DEFAULT_INTERFACES);
+		string interface;
+		while (getline(s, interface, ',')) {
+			interfaces.push_back(interface);
+		}
 	}
 
 	// Initialization

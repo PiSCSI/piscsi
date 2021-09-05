@@ -19,6 +19,7 @@
 
 #include "os.h"
 #include "disk.h"
+#include <list>
 #include <string>
 #include "../rascsi.h"
 
@@ -50,7 +51,7 @@ public:
 	SCSIBR();
 	~SCSIBR();
 
-	bool Init(const string&) override;
+	bool Init(const list<string>&) override;
 	bool Dispatch(SCSIDEV *) override;
 
 	// Commands
