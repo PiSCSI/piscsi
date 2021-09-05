@@ -17,6 +17,20 @@ def is_active():
     return process.stdout.decode("utf-8").strip() == "active"
 
 
+def rascsi_version():
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.SERVER_INFO
+
+    data = send_pb_command(command.SerializeToString())
+
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    majv = result.server_info.major_version
+    minv = result.server_info.minor_version
+    patv = result.server_info.patch_version
+    return {"status": result.status, "msg": str(majv) + "." + str(minv) + "." + str(patv)}
+    
+
 def list_files():
     files_list = []
     for path, dirs, files in os.walk(base_dir):
@@ -239,8 +253,10 @@ def send_pb_command(payload):
                 send_over_socket(s, payload)
                 return recv_from_socket(s)
         except socket.error as error:
-            logging.error("Failed to connect to the RaSCSI service: {error}")
+            logging.error("Failed to connect to the RaSCSI service: " + str(error))
             counter += 1
+    # TODO: Fail the webapp gracefully when connection fails
+    return False
 
 
 def send_over_socket(s, payload):
@@ -262,12 +278,12 @@ def recv_from_socket(s):
             chunk = s.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
                 logging.error("Socket connection dropped.")
-                return 0
+                return False
             chunks.append(chunk)
             bytes_recvd = bytes_recvd + len(chunk)
         response_message = b''.join(chunks)
         return response_message
     else:
         logging.error("Missing protobuf data.")
-        return 0
+        return False
 

@@ -29,6 +29,7 @@ from ractl_cmds import (
     valid_file_suffix,
     valid_file_types,
     reserve_scsi_ids,
+    rascsi_version,
 )
 from settings import *
 
@@ -37,8 +38,11 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    devices = list_devices()
     reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
+    if reserved_scsi_ids != "" and is_active():
+        # Reserve SCSI IDs on the backend side to prevent use
+        reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
+    devices = list_devices()
     scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids))
     return render_template(
         "index.html",
@@ -52,6 +56,7 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
+        rascsi_version=rascsi_version()["msg"],
     )
 
 
@@ -312,8 +317,6 @@ if __name__ == "__main__":
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
     if len(sys.argv) >= 2:
         app.config["RESERVED_SCSI_IDS"] = str(sys.argv[1])
-        # Reserve SCSI IDs on the backend side to prevent use
-        reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
     else:
         app.config["RESERVED_SCSI_IDS"] = ""
 
