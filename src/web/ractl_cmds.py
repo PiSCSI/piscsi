@@ -60,7 +60,8 @@ def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
     logging.warning(str(invalid_list))
     logging.warning(str(occupied_ids))
     for device in devices:
-        if "Removed" in device["status"] and device["type"] in ["SCCD", "SCMO"]:
+        # Make it possible to insert images on top of a removable media device such as CD-ROM or MO
+        if "Removed" in device["status"]:
             occupied_ids.remove(device["id"])
 
     invalid_ids = invalid_list + occupied_ids
