@@ -12,11 +12,6 @@ valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.hd
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
 
 
-def is_active():
-    process = subprocess.run(["systemctl", "is-active", "rascsi"], capture_output=True)
-    return process.stdout.decode("utf-8").strip() == "active"
-
-
 def rascsi_version():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.SERVER_INFO
@@ -222,7 +217,8 @@ def list_devices():
         if dstat.locked == True:
             dstat_msg.append("Locked")
         dfile = result.device_info.devices[n].file.name
-        dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product + " " + result.device_info.devices[n].revision
+        #dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product + " " + result.device_info.devices[n].revision
+        dprod = result.device_info.devices[n].product
         dblock = result.device_info.devices[n].block_size
         # TODO: Move formatting elsewhere
         device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": ", ".join(dstat_msg), "file": dfile, "product": dprod, "block": dblock})
@@ -261,17 +257,22 @@ def send_pb_command(payload):
     PORT = 6868
 
     counter = 0
-    while counter < 100:
+    tries = 100
+    error_msg = ""
+    while counter < tries:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.connect((HOST, PORT))
                 send_over_socket(s, payload)
                 return recv_from_socket(s)
         except socket.error as error:
-            logging.error("Failed to connect to the RaSCSI service: " + str(error))
             counter += 1
-    # TODO: Fail the webapp gracefully when connection fails
-    return {"status": False, "msg": "The RaSCSI service does not seem to be running."}
+            logging.warning("Connecting to the RaSCSI service - attempt " + str(counter) + "/" + str(tries))
+            error_msg = "Failed to connect to the RaSCSI service: " + str(error)
+
+    # After failing all attempts, throw a 404 error
+    from flask import abort
+    abort(404, error_msg + ". Is the RaSCSI service running on " + str(HOST) + ":" + str(PORT) + "?")
 
 
 def send_over_socket(s, payload):

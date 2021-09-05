@@ -18,7 +18,6 @@ from ractl_cmds import (
     attach_image,
     list_devices,
     sort_and_format_devices,
-    is_active,
     list_files,
     detach_by_id,
     eject_by_id,
@@ -40,7 +39,7 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
-    if reserved_scsi_ids != "" and is_active():
+    if reserved_scsi_ids != "":
         # Reserve SCSI IDs on the backend side to prevent use
         reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
     unsorted_devices = list_devices()
@@ -51,7 +50,6 @@ def index():
         "index.html",
         bridge_configured=is_bridge_setup(),
         devices=devices,
-        active=is_active(),
         files=list_files(),
         config_files=list_config_files(),
         base_dir=base_dir,
@@ -59,7 +57,7 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
-        rascsi_version=rascsi_version()["msg"],
+        rascsi_version=rascsi_version(),
     )
 
 
