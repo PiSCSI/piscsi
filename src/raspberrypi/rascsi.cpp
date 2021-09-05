@@ -1351,6 +1351,8 @@ static void *MonThread(void *param)
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {
+					LOGTRACE(string("Received " + PbOperation_Name(LOG_LEVEL) + " command").c_str());
+
 					string log_level = command.params_size() > 0 ? command.params().Get(0) : "";
 					bool status = SetLogLevel(log_level);
 					if (!status) {
@@ -1363,6 +1365,8 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
+					LOGTRACE(string("Received " + PbOperation_Name(DEFAULT_FOLDER) + " command").c_str());
+
 					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
 					if (folder.empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
@@ -1378,6 +1382,8 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(DEVICE_INFO) + " command").c_str());
+
 					PbResult result;
 					result.set_status(true);
 					GetDeviceInfo(command, result);
@@ -1392,6 +1398,8 @@ static void *MonThread(void *param)
 				}
 
 				case SERVER_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(SERVER_INFO) + " command").c_str());
+
 					PbResult result;
 					result.set_status(true);
 					GetServerInfo(result);
