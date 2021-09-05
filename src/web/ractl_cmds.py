@@ -57,11 +57,9 @@ def list_config_files():
 
 
 def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
-    logging.warning(str(invalid_list))
-    logging.warning(str(occupied_ids))
     for device in devices:
         # Make it possible to insert images on top of a 
-        # removable media device such as CD-ROM or Magneto-Optical
+        # removable media device currently without an image attached
         if "No Media" in device["status"]:
             occupied_ids.remove(device["id"])
 
