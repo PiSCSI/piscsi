@@ -85,8 +85,7 @@ def write_config_csv(file_name):
         with open(file_name, "w") as csv_file:
             writer = csv.writer(csv_file)
             for device in list_devices()[0]:
-                # Saving the 'un' value only for backwards compatibility purposes;
-                # not actually used when reading the config.
+                # The 'un' (Unit) value is saved to the csv for backwards compatibilty reasons
                 device_info = [device["id"], device["un"], device["type"], device["file"]]
                 writer.writerow(device_info)
         return True
@@ -103,15 +102,8 @@ def read_config_csv(file_name):
             config_reader = csv.reader(csv_file)
             # Format of the rascsi-web config file:
             # id, un [unused], type, file [optional]
-
-            # Hard-coded string sanitation is here for backwards compatibility purposes:
-            # older versions of rascsi-web wrote these to file when saving
-            exclude_list = ("X68000 HOST BRIDGE", "DaynaPort SCSI/Link", " (WRITEPROTECT)", "NO MEDIA")
             for row in config_reader:
-                image_name = row[3]
-                for e in exclude_list:
-                    image_name = image_name.replace(e, "")
-                attach_image(row[0], image_name, row[2])
+                attach_image(row[0], row[3], row[2])
         return True
     except:
         print ("Could not access file: ", file_name)
