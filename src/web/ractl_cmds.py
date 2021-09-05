@@ -61,7 +61,7 @@ def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
     logging.warning(str(occupied_ids))
     for device in devices:
         # Make it possible to insert images on top of a removable media device such as CD-ROM or MO
-        if "Removed" in device["status"]:
+        if "No Media" in device["status"]:
             occupied_ids.remove(device["id"])
 
     invalid_ids = invalid_list + occupied_ids
@@ -210,17 +210,19 @@ def list_devices():
         dun = result.device_info.devices[n].unit
         dtype = proto.PbDeviceType.Name(result.device_info.devices[n].type) 
         dstat = result.device_info.devices[n].status
-        dstat_msg = []
-        if dstat.protected == True:
-            dstat_msg.append("Protected")
-        if dstat.removed == True:
-            dstat_msg.append("Removed")
-        if dstat.locked == True:
+        dprop = result.device_info.devices[n].properties
+        dstat_msg = ["Attached"]
+        if dprop.read_only == True:
+            dstat_msg.append("Read-Only")
+        if dstat.protected == True and dprop.protectable == True:
+            dstat_msg.append("Write-Protected")
+        if dstat.removed == True and dprop.removable == True:
+            dstat_msg.append("No Media")
+        if dstat.locked == True and dprop.lockable == True:
             dstat_msg.append("Locked")
-        dfile = result.device_info.devices[n].file.name
-        #dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product + " " + result.device_info.devices[n].revision
-        dprod = result.device_info.devices[n].product
-        dblock = result.device_info.devices[n].block_size
+        dfile = result.device_info.devices[n].file.name or "-"
+        dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product
+        dblock = result.device_info.devices[n].block_size or "N/A"
         # TODO: Move formatting elsewhere
         device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": ", ".join(dstat_msg), "file": dfile, "product": dprod, "block": dblock})
         occupied_ids.append(did)
