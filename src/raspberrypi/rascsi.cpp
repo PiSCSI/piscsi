@@ -1361,11 +1361,11 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					if (command.params().empty()) {
+					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
+					if (folder.empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
 					if (!SetDefaultImageFolder(folder)) {
 						ReturnStatus(fd, false, "Folder '" + folder + "' does not exist or is not accessible");
 					}
@@ -1381,7 +1381,11 @@ static void *MonThread(void *param)
 					GetDeviceInfo(command, result);
 					SerializeMessage(fd, result);
 					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
-					LogDevices(ListDevices(devices));
+
+					// For backwards compatibility: Log device list if information on all devices was requested.
+					if (command.devices_size() == 0) {
+						LogDevices(ListDevices(devices));
+					}
 					break;
 				}
 
