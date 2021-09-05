@@ -732,9 +732,13 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		}
 	}
 
-	// If no filename was provided the media is considered removed
-	if (filename.empty()) {
-		device->SetRemoved(true);
+	// If no filename was provided the medium is considered removed
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	if (file_support) {
+		device->SetRemoved(filename.empty());
+	}
+	else {
+		device->SetRemoved(false);
 	}
 
 	device->SetId(id);
@@ -770,8 +774,6 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
 		}
 	}
-
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
 	if (file_support && !device->IsRemovable() && filename.empty()) {
@@ -1349,6 +1351,8 @@ static void *MonThread(void *param)
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {
+					LOGTRACE(string("Received " + PbOperation_Name(LOG_LEVEL) + " command").c_str());
+
 					string log_level = command.params_size() > 0 ? command.params().Get(0) : "";
 					bool status = SetLogLevel(log_level);
 					if (!status) {
@@ -1361,6 +1365,8 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
+					LOGTRACE(string("Received " + PbOperation_Name(DEFAULT_FOLDER) + " command").c_str());
+
 					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
 					if (folder.empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
@@ -1376,6 +1382,8 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(DEVICE_INFO) + " command").c_str());
+
 					PbResult result;
 					result.set_status(true);
 					GetDeviceInfo(command, result);
@@ -1390,6 +1398,8 @@ static void *MonThread(void *param)
 				}
 
 				case SERVER_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(SERVER_INFO) + " command").c_str());
+
 					PbResult result;
 					result.set_status(true);
 					GetServerInfo(result);

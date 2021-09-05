@@ -79,7 +79,7 @@ message PbDeviceProperties {
     repeated uint64 capacities = 9;
 }
 
-// The status of a device
+// The status of a device, only meaningful if the respective feature is supported
 message PbDeviceStatus {
     // Medium is write-protected
     bool protected = 1;
