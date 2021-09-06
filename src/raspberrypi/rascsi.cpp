@@ -113,7 +113,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
 		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
 		FPRT(stdout,"  hda : SCSI HD image (APPLE GENUINE)\n");
-		FPRT(stdout,"  mos : SCSI MO image (XM6 SCSI MO image)\n");
+		FPRT(stdout,"  mos : SCSI MO image (MO image)\n");
 		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
 
 		exit(EXIT_SUCCESS);
