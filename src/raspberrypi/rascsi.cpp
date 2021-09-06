@@ -688,6 +688,38 @@ bool SetDefaultImageFolder(const string& f)
 	return true;
 }
 
+string SetReservedIds(const list<string>& ids_to_reserve)
+{
+    set<int> reserved;
+    for (string id_to_reserve : ids_to_reserve) {
+    	int id;
+ 		if (!GetAsInt(id_to_reserve, id)) {
+ 			return id_to_reserve;
+ 		}
+
+ 		reserved.insert(id);
+    }
+
+    reserved_ids = reserved;
+
+
+	list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
+	ids.sort([](const auto& a, const auto& b) { return a < b; });
+	ostringstream s;
+	bool isFirst = true;
+	for (auto const& id : ids) {
+		if (!isFirst) {
+			s << ", ";
+		}
+		s << id;
+		isFirst = false;
+	}
+
+	LOGINFO("Reserved IDs set to: %s", s.str().c_str());
+
+	return "";
+}
+
 void DetachAll()
 {
 	Device *map[devices.size()];
@@ -1084,30 +1116,11 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		return ReturnStatus(fd);
 	}
 	else if (command.operation() == RESERVE) {
-		set<int> reserved;
-		for (int i = 0; i < command.params_size(); i++) {
-			int id;
-			if (!GetAsInt(command.params(i), id)) {
-				return ReturnStatus(fd, false, "Invalid ID " + command.params(i) + " for " + PbOperation_Name(RESERVE));
-			}
-
-			reserved.insert(id);
+		const list<string> ids = { command.params().begin(), command.params().end() };
+		string invalid_id = SetReservedIds(ids);
+		if (!invalid_id.empty()) {
+			return ReturnStatus(fd, false,"Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
 		}
-
-		reserved_ids = reserved;
-
-		list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
-		ids.sort([](const auto& a, const auto& b) { return a < b; });
-		ostringstream s;
-		bool isFirst = true;
-		for (auto const& id : ids) {
-			if (!isFirst) {
-				s << ", ";
-			}
-			s << id;
-			isFirst = false;
-		}
-		LOGINFO("Reserved IDs set to: %s", s.str().c_str());
 
 		return ReturnStatus(fd);
 	}
@@ -1153,7 +1166,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:F:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:R:r:F:f:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -1196,6 +1209,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				log_level = optarg;
 				continue;
 
+			case 'n':
+				name = optarg;
+				continue;
+
 			case 'p':
 				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
@@ -1203,8 +1220,21 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				}
 				continue;
 
-			case 'n':
-				name = optarg;
+			case 'r': {
+					stringstream ss(optarg);
+					string id;
+
+					list<string> ids;
+					while (getline(ss, id, ',')) {
+						ids.push_back(id);
+					}
+
+					string invalid_id = SetReservedIds(ids);
+					if (!invalid_id.empty()) {
+						cerr << "Invalid ID " << invalid_id << " for " << PbOperation_Name(RESERVE);
+						return false;
+					}
+				}
 				continue;
 
 			case 't': {
