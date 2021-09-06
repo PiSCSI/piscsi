@@ -127,7 +127,7 @@ namespace Human68k {
 	};
 
 	struct namests_t {
-		BYTE wildcard;			///< Wildcard array
+		BYTE wildcard;			///< Wildcard character length
 		BYTE drive;			///< Drive number
 		BYTE path[65];			///< Path (subdirectory +/)
 		BYTE name[8];			///< File name (PADDING 0x20)
@@ -332,45 +332,44 @@ enum {
 	// Bit24～30 Duplicate file identification mark			0:Automatic 1～127:Chars
 };
 
-/// ファイルシステム動作フラグ
+/// File system operational flag
 /**
-通常は0にする。リードオンリーでマウントしたいドライブの場合は1にする。
-それ以外の値は将来のための予約とする。
-判定が困難なデバイス(自作USBストレージとか)のための保険用。
+Normal is 0. Becomes 1 if attempting to mount in read-only mode.
+Reserving the other values for future use.
+Insurance against hard-to-detect devices such as automatic USB storage.
 */
 enum {
-	FSFLAG_WRITE_PROTECT =		0x00000001,	///< Bit0: 強制書き込み禁止
-	FSFLAG_REMOVABLE =		0x00000002,	///< Bit1: 強制リムーバブルメディア
-	FSFLAG_MANUAL =			0x00000004,	///< Bit2: 強制手動イジェクト
+	FSFLAG_WRITE_PROTECT =		0x00000001,	///< Bit0: Force write protect
+	FSFLAG_REMOVABLE =		0x00000002,	///< Bit1: Force removable media
+	FSFLAG_MANUAL =			0x00000004,	///< Bit2: Force manual eject
 };
 
 //===========================================================================
 //
-/// まるっとリングリスト
+/// Full ring list
 ///
-/// 先頭(root.next)が最も新しいオブジェクト。
-/// 末尾(root.prev)が最も古い/未使用オブジェクト。
-/// コード効率追求のため、delete時は必ずポインタをアップキャストすること。
+/// First (root.next) is the most recent object.
+/// Last (root.prev) is the oldest / unusued object.
+/// For code optimization purposes, always upcast the pointer when deleting
 //
 //===========================================================================
 class CRing {
 public:
-	// 基本ファンクション
-	CRing() { Init(); }							///< デフォルトコンストラクタ
-	~CRing() { Remove(); }							///< デストラクタ final
-	void  Init() { next = prev = this; }			///< 初期化
+	CRing() { Init(); }
+	~CRing() { Remove(); }
+	void  Init() { next = prev = this; }
 
-	CRing*  Next() const { return next; }			///< 次の要素を取得
-	CRing*  Prev() const { return prev; }			///< 前の要素を取得
+	CRing*  Next() const { return next; }			///< Get the next element
+	CRing*  Prev() const { return prev; }			///< Get the previous element
 
 	void  Insert(CRing* pRoot)
 	{
-			// 該当オブジェクトを切り離し
+			// Separate the relevant objects
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
 		prev->next = next;
-		// リング先頭へ挿入
+		// Insert into the beginning of the ring
 		ASSERT(pRoot);
 		ASSERT(pRoot->next);
 		next = pRoot->next;
@@ -378,16 +377,16 @@ public:
 		pRoot->next->prev = this;
 		pRoot->next = this;
 	}
-										///< オブジェクト切り離し & リング先頭へ挿入
+										///< Separate objects & insert into the beginning of the ring
 
 	void  InsertTail(CRing* pRoot)
 	{
-			// 該当オブジェクトを切り離し
+			// Separate the relevant objects
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
 		prev->next = next;
-		// リング末尾へ挿入
+		// Insert into the end of the ring
 		ASSERT(pRoot);
 		ASSERT(pRoot->prev);
 		next = pRoot;
@@ -395,13 +394,13 @@ public:
 		pRoot->prev->next = this;
 		pRoot->prev = this;
 	}
-										///< オブジェクト切り離し & リング末尾へ挿入
+										///< Separate objects & insert into the end of the ring
 
 	void  InsertRing(CRing* pRoot)
 	{
 			if (next == prev) return;
 
-		// リング先頭へ挿入
+		// Insert into the beginning of the ring
 		ASSERT(pRoot);
 		ASSERT(pRoot->next);
 		pRoot->next->prev = prev;
@@ -409,554 +408,539 @@ public:
 		pRoot->next = next;
 		next->prev = pRoot;
 
-		// 自分自身を空にする
+		// Empty self
 		next = prev = this;
 	}
-										///< 自分以外のオブジェクト切り離し & リング先頭へ挿入
+										///< Separate objects except self & insert into the beginning of the ring
 
 	void  Remove()
 	{
-			// 該当オブジェクトを切り離し
+			// Separate the relevant objects
 		ASSERT(next);
 		ASSERT(prev);
 		next->prev = prev;
 		prev->next = next;
-		// 安全のため自分自身を指しておく (何度切り離しても問題ない)
+		// To be safe, assign self (nothing stops you from separating any number of times)
 		next = prev = this;
 	}
-										///< オブジェクト切り離し
+										///< Separate objects
 
 private:
-	CRing* next;						///< 次の要素
-	CRing* prev;						///< 前の要素
+	CRing* next;						///< Next element
+	CRing* prev;						///< Previous element
 };
 
 //===========================================================================
 //
-/// ディレクトリエントリ ファイル名
+/// Directory Entry: File Name
 //
 //===========================================================================
 class CHostFilename {
 public:
-	// 基本ファンクション
-	CHostFilename();							///< デフォルトコンストラクタ
-	static size_t  Offset() { return offsetof(CHostFilename, m_szHost); }	///< オフセット位置取得
+	CHostFilename();
+	static size_t  Offset() { return offsetof(CHostFilename, m_szHost); }	///< Get offset location
 
-	void  SetHost(const TCHAR* szHost);					///< ホスト側の名称を設定
-	const TCHAR*  GetHost() const { return m_szHost; }	///< ホスト側の名称を取得
-	void  ConvertHuman(int nCount = -1);					///< Human68k側の名称を変換
-	void  CopyHuman(const BYTE* szHuman);					///< Human68k側の名称を複製
-	BOOL  isReduce() const;							///< Human68k側の名称が加工されたか調査
-	BOOL  isCorrect() const { return m_bCorrect; }		///< Human68k側のファイル名規則に合致しているか調査
-	const BYTE*  GetHuman() const { return m_szHuman; }	///< Human68kファイル名を取得
+	void  SetHost(const TCHAR* szHost);					///< Set the name of the host
+	const TCHAR*  GetHost() const { return m_szHost; }	///< Get the name of the host
+	void  ConvertHuman(int nCount = -1);					///< Convert the Human68k name
+	void  CopyHuman(const BYTE* szHuman);					///< Copy the Human68k name
+	BOOL  isReduce() const;							///< Inspect if the Human68k name is generated
+	BOOL  isCorrect() const { return m_bCorrect; }		///< Inspect if the Human68k file name adhers to naming rules
+	const BYTE*  GetHuman() const { return m_szHuman; }	///< Get Human68k file name
 	const BYTE*  GetHumanLast() const 
-	{ return m_pszHumanLast; }				///< Human68kファイル名を取得
-	const BYTE*  GetHumanExt() const { return m_pszHumanExt; }///< Human68kファイル名を取得
-	void  SetEntryName();							///< Human68kディレクトリエントリを設定
+	{ return m_pszHumanLast; }				///< Get Human68k file name
+	const BYTE*  GetHumanExt() const { return m_pszHumanExt; }///< Get Human68k file name
+	void  SetEntryName();							///< Set Human68k directory entry
 	void  SetEntryAttribute(BYTE nHumanAttribute)
-	{ m_dirHuman.attr = nHumanAttribute; }			///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.attr = nHumanAttribute; }			///< Set Human68k directory entry
 	void  SetEntrySize(DWORD nHumanSize)
-	{ m_dirHuman.size = nHumanSize; }				///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.size = nHumanSize; }				///< Set Human68k directory entry
 	void  SetEntryDate(WORD nHumanDate)
-	{ m_dirHuman.date = nHumanDate; }				///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.date = nHumanDate; }				///< Set Human68k directory entry
 	void  SetEntryTime(WORD nHumanTime)
-	{ m_dirHuman.time = nHumanTime; }				///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.time = nHumanTime; }				///< Set Human68k directory entry
 	void  SetEntryCluster(WORD nHumanCluster)
-	{ m_dirHuman.cluster = nHumanCluster; }			///< Human68kディレクトリエントリを設定
+	{ m_dirHuman.cluster = nHumanCluster; }			///< Set Human68k directory entry
 	const Human68k::dirent_t*  GetEntry() const 
-	{ return &m_dirHuman; }					///< Human68kディレクトリエントリを取得
-	BOOL  CheckAttribute(DWORD nHumanAttribute) const;			///< Human68kディレクトリエントリの属性判定
+	{ return &m_dirHuman; }					///< Get Human68k directory entry
+	BOOL  CheckAttribute(DWORD nHumanAttribute) const;			///< Determine Human68k directory entry attributes
 	BOOL  isSameEntry(const Human68k::dirent_t* pdirHuman) const
 	{ ASSERT(pdirHuman); return memcmp(&m_dirHuman, pdirHuman, sizeof(m_dirHuman)) == 0; }
-										///< Human68kディレクトリエントリの一致判定
+										///< Determine Human68k directory entry match
 
-	// パス名操作
-	static const BYTE*  SeparateExt(const BYTE* szHuman);			///< Human68kファイル名から拡張子を分離
+	// Path name operations
+	static const BYTE*  SeparateExt(const BYTE* szHuman);			///< Extract extension from Human68k file name
 
 private:
 	static BYTE*  CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast);
-										///< Human68k側のファイル名要素をコピー
+										///< Copy Human68k file name elements
 
-	const BYTE* m_pszHumanLast;		///< 該当エントリのHuman68k内部名の終端位置
-	const BYTE* m_pszHumanExt;		///< 該当エントリのHuman68k内部名の拡張子位置
-	BOOL m_bCorrect;			///< 該当エントリのHuman68k内部名が正しければ真
-	BYTE m_szHuman[24];			///< 該当エントリのHuman68k内部名
-	Human68k::dirent_t m_dirHuman;		///< 該当エントリのHuman68k全情報
-	TCHAR m_szHost[FILEPATH_MAX];		///< 該当エントリのホスト側の名称 (可変長)
+	const BYTE* m_pszHumanLast;		///< Last position of the Human68k internal name of the relevant entry
+	const BYTE* m_pszHumanExt;		///< Position of the extension of the Human68k internal name of the relevant entry
+	BOOL m_bCorrect;			///< TRUE if the relevant entry of the Human68k internal name is correct
+	BYTE m_szHuman[24];			///< Human68k internal name of the relevant entry
+	Human68k::dirent_t m_dirHuman;		///< All information for the Human68k relevant entry
+	TCHAR m_szHost[FILEPATH_MAX];		///< The host name of the relevant entry (variable length)
 };
 
 //===========================================================================
 //
-/// ディレクトリエントリ パス名
+/// Directory entry: path name
 ///
-/// Human68k側のパス名は、必ず先頭が/で始まり、末尾が/で終わる。
-/// ユニット番号は持たない。
-/// 高速化のため、ホスト側の名称にはベースパス部分も含む。
+/// A file path in Human68k always begings with / and ends with /
+/// They don't hold unit numbers.
+/// Include the base path part of the name on the host side for a performance boost.
 //
 //===========================================================================
 /** @note
-ほとんどのHuman68kのアプリは、ファイルの更新等によってディレクトリエ
-ントリに変更が生じた際、親ディレクトリのタイムスタンプは変化しないも
-のと想定して作られている。
-ところがホスト側のファイルシステムでは親ディレクトリのタイムスタンプ
-も変化してしまうものが主流となってしまっている。
+Most Human68k applications are written in a way to expect that time stamps do not 
+get updated on new directories created as a result of file operations 
+triggering updates to directory entires.
+However, on the host file system, new directories do typically get an updated time stamp.
 
-このため、ディレクトリのコピー等において、アプリ側は正確にタイムスタ
-ンプ情報などを設定しているにもかかわらず、実行結果では時刻情報が上書
-きされてしまうという惨劇が起きてしまう。
+The unfortunate outcome is that when copying a directory for instance, the time stamp 
+will get overwritten even if the application did not intend for the time stamp to get updated.
 
-そこでディレクトリキャッシュ内にFATタイムスタンプのエミュレーション
-機能を実装した。ホスト側のファイルシステムの更新時にタイムスタンプ情
-報を復元することでHuman68k側の期待する結果と一致させる。
+Here follows an implementation of a directory cache FAT time stamp  emulation feature.
+At the time of a file system update on the host side, time stamp information will be restored
+in order to achieve expected behavior on the Human68k side.
 */
 class CHostPath: public CRing {
-	/// メモリ管理用
+	/// For memory management
 	struct ring_t {
-		CRing r;			///< 円環
-		CHostFilename f;		///< 実体
+		CRing r;
+		CHostFilename f;
 	};
 
 public:
-	/// 検索用バッファ
+	/// Search buffer
 	struct find_t {
-		DWORD count;			///< 検索実行回数 + 1 (0のときは以下の値は無効)
-		DWORD id;			///< 次回検索を続行するパスのエントリ識別ID
-		const ring_t* pos;		///< 次回検索を続行する位置 (識別ID一致時)
-		Human68k::dirent_t entry;	///< 次回検索を続行するエントリ内容
+		DWORD count;			///< Search execution count + 1 (When 0 the below value is invalid)
+		DWORD id;			///< Entry unique ID for the path of the next search
+		const ring_t* pos;		///< Position of the next search (When identical to unique ID)
+		Human68k::dirent_t entry;	///< Contents of the next seach entry
 
-		void  Clear() { count = 0; }	///< 初期化
+		void  Clear() { count = 0; }	///< Initialize
 	};
 
-	// 基本ファンクション
-	CHostPath();								///< デフォルトコンストラクタ
-	~CHostPath();								///< デストラクタ final
-	void  Clean();								///< 再利用のための初期化
+	CHostPath();
+	~CHostPath();
+	void  Clean();								///< Initialialize for reuse
 
-	void  SetHuman(const BYTE* szHuman);					///< Human68k側の名称を直接指定する
-	void  SetHost(const TCHAR* szHost);					///< ホスト側の名称を直接指定する
-	BOOL  isSameHuman(const BYTE* szHuman) const;				///< Human68k側の名称を比較する
-	BOOL  isSameChild(const BYTE* szHuman) const;				///< Human68k側の名称を比較する
-	const TCHAR*  GetHost() const { return m_szHost; }	///< ホスト側の名称の獲得
+	void  SetHuman(const BYTE* szHuman);					///< Directly specify the name on the Human68k side
+	void  SetHost(const TCHAR* szHost);					///< Directly specify the name on the host side
+	BOOL  isSameHuman(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
+	BOOL  isSameChild(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
+	const TCHAR*  GetHost() const { return m_szHost; }	///< Obtain the name on the host side
 	const CHostFilename*  FindFilename(const BYTE* szHuman, DWORD nHumanAttribute = Human68k::AT_ALL) const;
-										///< ファイル名を検索
+										///< Search for file name
 	const CHostFilename*  FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const;
-										///< ファイル名を検索 (ワイルドカード対応)
-	BOOL  isRefresh();							///< ファイル変更が行なわれたか確認
-	void  Refresh();							///< ファイル再構成
-	void  Backup();								/// ホスト側のタイムスタンプを保存
-	void  Restore() const;							/// ホスト側のタイムスタンプを復元
-	void  Release();							///< 更新
+										///< Search for file name (with support for wildcards)
+	BOOL  isRefresh();							///< Check that the file change has been done
+	void  Refresh();							///< Refresh file
+	void  Backup();								/// Backup the time stamp on the host side
+	void  Restore() const;							/// Restore the time stamp on the host side
+	void  Release();							///< Update
 
-	// CHostEntryが利用する外部API
-	static void  InitId() { g_nId = 0; }					///< 識別ID生成用カウンタ初期化
+	// CHostEntry is an external API that we use
+	static void  InitId() { g_nId = 0; }					///< Initialize the counter for the unique ID generation
 
 private:
-	static ring_t*  Alloc(size_t nLength);					///< ファイル名領域確保
-	static void  Free(ring_t* pRing);					///< ファイル名領域解放
+	static ring_t*  Alloc(size_t nLength);					///< Allocate memory for the file name
+	static void  Free(ring_t* pRing);					///< Release memory for the file name
 	static int  Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFirst, const BYTE* pBufLast);
-										///< 文字列比較 (ワイルドカード対応)
+										///< Compare string (with support for wildcards)
 
-	CRing m_cRing;								///< CHostFilename連結用
-	time_t m_tBackup;							///< 時刻復元用
-	BOOL m_bRefresh;							///< 更新フラグ
-	DWORD m_nId;								///< 識別ID (値が変化した場合は更新を意味する)
-	BYTE m_szHuman[HUMAN68K_PATH_MAX];					///< 該当エントリのHuman68k内部名
-	TCHAR m_szHost[FILEPATH_MAX];						///< 該当エントリのホスト側の名称
+	CRing m_cRing;								///< For CHostFilename linking
+	time_t m_tBackup;							///< For time stamp restoration
+	BOOL m_bRefresh;							///< Refresh flag
+	DWORD m_nId;								///< Unique ID (When the value has changed, it means an update has been made)
+	BYTE m_szHuman[HUMAN68K_PATH_MAX];					///< The internal Human68k name for the relevant entry
+	TCHAR m_szHost[FILEPATH_MAX];						///< The host side name for the relevant entry
 
-	static DWORD g_nId;							///< 識別ID生成用カウンタ
+	static DWORD g_nId;							///< Counter for the unique ID generation
 };
 
 //===========================================================================
 //
-/// ファイル検索処理
+/// File search processing
 ///
-/// Human68k側のファイル名を内部Unicodeで処理するのは正直キツい。と
-/// いうわけで、全てBYTEに変換して処理する。変換処理はディレクトリエ
-/// ントリキャッシュが一手に担い、WINDRV側はすべてシフトJISのみで扱
-/// えるようにする。
-/// また、Human68k側名称は、完全にベースパス指定から独立させる。
+/// It's pretty much impossible to process Human68k file names as Unicode internally. 
+/// So, we carry out binary conversion for processing. We leave it up to the
+/// directory entry cache to handle the conversion, which allows WINDRV to read 
+/// everything as Shift-JIS. Additionally, it allows Human68k names to be
+/// fully independent of base path assignments.
 ///
-/// ファイルを扱う直前に、ディレクトリエントリのキャッシュを生成する。
-/// ディレクトリエントリの生成処理は高コストのため、一度生成したエントリは
-/// 可能な限り維持して使い回す。
+/// We create directory entry cache just before file handling.
+/// Since creating directory entires is very costly, we try to reuse created entries
+/// as much as humanly possible.
 ///
-/// ファイル検索は3方式。すべてCHostFiles::Find()で処理する。
-/// 1. パス名のみ検索 属性はディレクトリのみ _CHKDIR _CREATE
-/// 2. パス名+ファイル名+属性の検索 _OPEN
-/// 3. パス名+ワイルドカード+属性の検索 _FILES _NFILES
-/// 検索結果は、ディレクトリエントリ情報として保持しておく。
+/// There are three kinds of file search. They are all processed in CHostFiles::Find()
+/// 1. Search by path name only; the only attribute is 'directory'; _CHKDIR _CREATE
+/// 2. Path + file name + attribute search; _OPEN
+/// 3. Path + wildcard + attribute search; _FILES _NFILES
+/// The search results are kept as directory entry data.
 //
 //===========================================================================
 class CHostFiles {
 public:
-	// 基本ファンクション
-	CHostFiles() { SetKey(0); Init(); }						///< デフォルトコンストラクタ
-	void  Init();									///< 初期化
+	CHostFiles() { SetKey(0); Init(); }
+	void  Init();
 
-	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< 検索キー設定
-	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
-	void  SetPath(const Human68k::namests_t* pNamests);				///< パス名・ファイル名を内部で生成
-	BOOL  isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< ルートディレクトリ判定
-	void  SetPathWildcard() { m_nHumanWildcard = 1; }				///< ワイルドカードによるファイル検索を有効化
-	void  SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< パス名のみを有効化
-	BOOL  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< パス名のみ設定か判定
+	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
+	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
+	void  SetPath(const Human68k::namests_t* pNamests);				///< Create path and file name internally
+	BOOL  isRootPath() const { return m_szHumanPath[1] == '\0'; }			///< Check if root directory
+	void  SetPathWildcard() { m_nHumanWildcard = 1; }				///< Enable file search using wildcards
+	void  SetPathOnly() { m_nHumanWildcard = 0xFF; }				///< Enable only path names
+	BOOL  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
 	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }
-											///< 検索属性を設定
-	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry);				///< Human68k側でファイルを検索しホスト側の情報を生成
-	const CHostFilename*  Find(CHostPath* pPath);					///< ファイル名検索
-	void  SetEntry(const CHostFilename* pFilename);					///< Human68k側の検索結果保存
-	void  SetResult(const TCHAR* szPath);						///< ホスト側の名称を設定
-	void  AddResult(const TCHAR* szPath);						///< ホスト側の名称にファイル名を追加
-	void  AddFilename();								///< ホスト側の名称にHuman68kの新規ファイル名を追加
+											///< Set search attribute
+	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry);				///< Search for files on the Human68k side, generating data on the host side
+	const CHostFilename*  Find(CHostPath* pPath);					///< Search for file name
+	void  SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
+	void  SetResult(const TCHAR* szPath);						///< Set names on the host side
+	void  AddResult(const TCHAR* szPath);						///< Add file name to the name on the host side
+	void  AddFilename();								///< Add the new Human68k file name to the name on the host side
 
-	const TCHAR*  GetPath() const { return m_szHostResult; }		///< ホスト側の名称を取得
+	const TCHAR*  GetPath() const { return m_szHostResult; }		///< Get the name on the host side
 
-	const Human68k::dirent_t*  GetEntry() const { return &m_dirHuman; }///< Human68kディレクトリエントリを取得
+	const Human68k::dirent_t*  GetEntry() const { return &m_dirHuman; }///< Get Human68k directory entry
 
-	DWORD  GetAttribute() const { return m_dirHuman.attr; }		///< Human68k属性を取得
-	WORD  GetDate() const { return m_dirHuman.date; }			///< Human68k日付を取得
-	WORD  GetTime() const { return m_dirHuman.time; }			///< Human68k時刻を取得
-	DWORD  GetSize() const { return m_dirHuman.size; }		///< Human68kファイルサイズを取得
-	const BYTE*  GetHumanFilename() const { return m_szHumanFilename; }///< Human68kファイル名を取得
-	const BYTE*  GetHumanResult() const { return m_szHumanResult; }	///< Human68kファイル名検索結果を取得
-	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Human68kパス名を取得
+	DWORD  GetAttribute() const { return m_dirHuman.attr; }		///< Get Human68k attribute
+	WORD  GetDate() const { return m_dirHuman.date; }			///< Get Human68k date
+	WORD  GetTime() const { return m_dirHuman.time; }			///< Get Human68k time
+	DWORD  GetSize() const { return m_dirHuman.size; }		///< Get Human68k file size
+	const BYTE*  GetHumanFilename() const { return m_szHumanFilename; }///< Get Human68k file name
+	const BYTE*  GetHumanResult() const { return m_szHumanResult; }	///< Get Human68k file name search results
+	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
 private:
-	DWORD m_nKey;						///< Human68kのFILESバッファアドレス 0なら未使用
-	DWORD m_nHumanWildcard;					///< Human68kのワイルドカード情報
-	DWORD m_nHumanAttribute;				///< Human68kの検索属性
-	CHostPath::find_t m_findNext;				///< 次回検索位置情報
-	Human68k::dirent_t m_dirHuman;				///< 検索結果 Human68kファイル情報
-	BYTE m_szHumanFilename[24];				///< Human68kのファイル名
-	BYTE m_szHumanResult[24];				///< 検索結果 Human68kファイル名
+	DWORD m_nKey;						///< FILES buffer address for Human68k; 0 is unused
+	DWORD m_nHumanWildcard;					///< Human68k wildcard data
+	DWORD m_nHumanAttribute;				///< Human68k search attribute
+	CHostPath::find_t m_findNext;				///< Next search location data
+	Human68k::dirent_t m_dirHuman;				///< Search results: Human68k file data
+	BYTE m_szHumanFilename[24];				///< Human68k file name
+	BYTE m_szHumanResult[24];				///< Search results: Human68k file name
 	BYTE m_szHumanPath[HUMAN68K_PATH_MAX];
-								///< Human68kのパス名
-	TCHAR m_szHostResult[FILEPATH_MAX];			///< 検索結果 ホスト側のフルパス名
+								///< Human68k path name
+	TCHAR m_szHostResult[FILEPATH_MAX];			///< Search results: host's full path name
 };
 
 //===========================================================================
 //
-/// ファイル検索領域 マネージャ
+/// File search memory manager
 //
 //===========================================================================
 class CHostFilesManager {
 public:
 #ifdef _DEBUG
-	// 基本ファンクション
-	~CHostFilesManager();					///< デストラクタ final
+	~CHostFilesManager();
 #endif	// _DEBUG
-	void  Init();						///< 初期化 (ドライバ組込み時)
-	void  Clean();						///< 解放 (起動・リセット時)
+	void  Init();						///< Initialization (when integrating driver)
+	void  Clean();						///< Release (when starting up or resetting)
 
-	CHostFiles*  Alloc(DWORD nKey);				///< 確保
-	CHostFiles*  Search(DWORD nKey);			///< 検索
-	void  Free(CHostFiles* pFiles);				///< 解放
+	CHostFiles*  Alloc(DWORD nKey);
+	CHostFiles*  Search(DWORD nKey);
+	void  Free(CHostFiles* pFiles);
 private:
-	/// メモリ管理用
+	/// For memory management
 	struct ring_t {
-		CRing r;					///< 円環
-		CHostFiles f;					///< 実体
+		CRing r;
+		CHostFiles f;
 	};
 
-	CRing m_cRing;						///< CHostFiles連結用
+	CRing m_cRing;						///< For attaching to CHostFiles
 };
 
 //===========================================================================
 //
-/// FCB処理
+/// FCB processing
 //
 //===========================================================================
 class CHostFcb {
 public:
-	// 基本ファンクション
-	CHostFcb() { SetKey(0); Init(); }						///< デフォルトコンストラクタ
-	~CHostFcb() { Close(); }							///< デストラクタ final
-	void  Init();									///< 初期化
+	CHostFcb() { SetKey(0); Init(); }
+	~CHostFcb() { Close(); }
+	void  Init();
 
-	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< 検索キー設定
-	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< 検索キー比較
-	void  SetUpdate() { m_bUpdate = TRUE; }				///< 更新
-	BOOL  isUpdate() const { return m_bUpdate; }			///< 更新状態取得
-	BOOL  SetMode(DWORD nHumanMode);						///< ファイルオープンモードを設定
-	void  SetFilename(const TCHAR* szFilename);					///< ファイル名を設定
-	void  SetHumanPath(const BYTE* szHumanPath);					///< Human68kパス名を設定
-	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Human68kパス名を取得
+	void  SetKey(DWORD nKey) { m_nKey = nKey; }			///< Set search key
+	BOOL  isSameKey(DWORD nKey) const { return m_nKey == nKey; }	///< Compare search key
+	void  SetUpdate() { m_bUpdate = TRUE; }				///< Update
+	BOOL  isUpdate() const { return m_bUpdate; }			///< Get update state
+	BOOL  SetMode(DWORD nHumanMode);						///< Set file open mode
+	void  SetFilename(const TCHAR* szFilename);					///< Set file name
+	void  SetHumanPath(const BYTE* szHumanPath);					///< Set Human68k path name
+	const BYTE*  GetHumanPath() const { return m_szHumanPath; }	///< Get Human68k path name
 
-	BOOL  Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);	///< ファイル作成
-	BOOL  Open();									///< ファイルオープン
-	BOOL  Rewind(DWORD nOffset);							///< ファイルシーク
-	DWORD  Read(BYTE* pBuffer, DWORD nSize);					///< ファイル読み込み
-	DWORD  Write(const BYTE* pBuffer, DWORD nSize);					///< ファイル書き込み
-	BOOL  Truncate();								///< ファイル切り詰め
-	DWORD  Seek(DWORD nOffset, DWORD nHumanSeek);					///< ファイルシーク
-	BOOL  TimeStamp(DWORD nHumanTime);						///< ファイル時刻設定
-	BOOL  Close();									///< ファイルクローズ
+	BOOL  Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);	///< Create file
+	BOOL  Open();									///< Open file
+	BOOL  Rewind(DWORD nOffset);							///< Seek file
+	DWORD  Read(BYTE* pBuffer, DWORD nSize);					///< Read file
+	DWORD  Write(const BYTE* pBuffer, DWORD nSize);					///< Write file
+	BOOL  Truncate();								///< Truncate file
+	DWORD  Seek(DWORD nOffset, DWORD nHumanSeek);					///< Seek file
+	BOOL  TimeStamp(DWORD nHumanTime);						///< Set file time stamp
+	BOOL  Close();									///< Close file
 
 private:
-	DWORD m_nKey;									///< Human68kのFCBバッファアドレス (0なら未使用)
-	BOOL m_bUpdate;									///< 更新フラグ
-	FILE* m_pFile;									///< ホスト側のファイルオブジェクト
-	const char* m_pszMode;								///< ホスト側のファイルオープンモード
-	bool m_bFlag;									///< ホスト側のファイルオープンフラグ
+	DWORD m_nKey;									///< Human68k FCB buffer address (0 if unused)
+	BOOL m_bUpdate;									///< Update flag
+	FILE* m_pFile;									///< Host side file object
+	const char* m_pszMode;								///< Host side file open mode
+	bool m_bFlag;									///< Host side file open flag
 	BYTE m_szHumanPath[HUMAN68K_PATH_MAX];
-											///< Human68kのパス名
-	TCHAR m_szFilename[FILEPATH_MAX];						///< ホスト側のファイル名
+											///< Human68k path name
+	TCHAR m_szFilename[FILEPATH_MAX];						///< Host side file name
 };
 
 //===========================================================================
 //
-/// FCB処理 マネージャ
+/// FCB processing manager
 //
 //===========================================================================
 class CHostFcbManager {
 public:
 	#ifdef _DEBUG
-	// 基本ファンクション
-	~CHostFcbManager();							///< デストラクタ final
+	~CHostFcbManager();
 	#endif	// _DEBUG
-	void  Init();								///< 初期化 (ドライバ組込み時)
-	void  Clean();								///< 解放 (起動・リセット時)
+	void  Init();								///< Initialization (when integrating driver)
+	void  Clean();								///< Release (when starting up or resetting)
 
-	CHostFcb*  Alloc(DWORD nKey);						///< 確保
-	CHostFcb*  Search(DWORD nKey);						///< 検索
-	void  Free(CHostFcb* p);						///< 解放
+	CHostFcb*  Alloc(DWORD nKey);
+	CHostFcb*  Search(DWORD nKey);
+	void  Free(CHostFcb* p);
 
 private:
-	/// メモリ管理用
+	/// For memory management
 	struct ring_t {
-		CRing r;							///< 円環
-		CHostFcb f;							///< 実体
+		CRing r;
+		CHostFcb f;
 	};
 
-	CRing m_cRing;								///< CHostFcb連結用
+	CRing m_cRing;								///< For attaching to CHostFcb
 };
 
 //===========================================================================
 //
-/// ホスト側ドライブ
+/// Host side drive
 ///
-/// ドライブ毎に必要な情報の保持に専念し、管理はCHostEntryで行なう。
+/// Keeps the required data for each drive, managed in CHostEntry.
 //
 //===========================================================================
 class CHostDrv
 {
 public:
-	// 基本ファンクション
-	CHostDrv();								///< デフォルトコンストラクタ
-	~CHostDrv();								///< デストラクタ final
-	void  Init(const TCHAR* szBase, DWORD nFlag);				///< 初期化 (デバイス起動とロード)
+	CHostDrv();
+	~CHostDrv();
+	void  Init(const TCHAR* szBase, DWORD nFlag);				///< Initialization (device startup and load)
 
-	BOOL  isWriteProtect() const { return m_bWriteProtect; }	///< 書き込み禁止か？
-	BOOL  isEnable() const { return m_bEnable; }		///< アクセス可能か？
-	BOOL  isMediaOffline();							///< メディアチェック
-	BYTE  GetMediaByte() const;						///< メディアバイトの取得
-	DWORD  GetStatus() const;						///< ドライブ状態の取得
-	void  SetEnable(BOOL bEnable);						///< メディア状態設定
-	BOOL CheckMedia();							///< メディア交換チェック
-	void Update();								///< メディア状態更新
-	void Eject();								///< イジェクト
-	void  GetVolume(TCHAR* szLabel);					///< ボリュームラベルの取得
-	BOOL  GetVolumeCache(TCHAR* szLabel) const;				///< キャッシュからボリュームラベルを取得
-	DWORD  GetCapacity(Human68k::capacity_t* pCapacity);			///< 容量の取得
-	BOOL  GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< キャッシュから容量を取得
+	BOOL  isWriteProtect() const { return m_bWriteProtect; }
+	BOOL  isEnable() const { return m_bEnable; }		///< Is it accessible?
+	BOOL  isMediaOffline();	
+	BYTE  GetMediaByte() const;
+	DWORD  GetStatus() const;
+	void  SetEnable(BOOL bEnable);						///< Set media status
+	BOOL CheckMedia();							///< Check if media was changed
+	void Update();								///< Update media status
+	void Eject();
+	void  GetVolume(TCHAR* szLabel);					///< Get volume label
+	BOOL  GetVolumeCache(TCHAR* szLabel) const;				///< Get volume label from cache
+	DWORD  GetCapacity(Human68k::capacity_t* pCapacity);
+	BOOL  GetCapacityCache(Human68k::capacity_t* pCapacity) const;		///< Get capacity from cache
 
-	// キャッシュ操作
-	void  CleanCache();							///< 全てのキャッシュを更新する
-	void  CleanCache(const BYTE* szHumanPath);				///< 指定されたパスのキャッシュを更新する
-	void  CleanCacheChild(const BYTE* szHumanPath);				///< 指定されたパス以下のキャッシュを全て更新する
-	void  DeleteCache(const BYTE* szHumanPath);				///< 指定されたパスのキャッシュを削除する
-	CHostPath*  FindCache(const BYTE* szHuman);				///< 指定されたパスがキャッシュされているか検索する
-	CHostPath*  CopyCache(CHostFiles* pFiles);				///< キャッシュ情報を元に、ホスト側の名称を獲得する
-	CHostPath*  MakeCache(CHostFiles* pFiles);				///< ホスト側の名称の構築に必要な情報をすべて取得する
-	BOOL  Find(CHostFiles* pFiles);						///< ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
+	// Cache operations
+	void  CleanCache();							///< Update all cache
+	void  CleanCache(const BYTE* szHumanPath);				///< Update cache for the specified path
+	void  CleanCacheChild(const BYTE* szHumanPath);				///< Update all cache below the specified path
+	void  DeleteCache(const BYTE* szHumanPath);				///< Delete the cache for the specified path
+	CHostPath*  FindCache(const BYTE* szHuman);				///< Inspect if the specified path is cached
+	CHostPath*  CopyCache(CHostFiles* pFiles);				///< Acquire the host side name on the basis of cache information
+	CHostPath*  MakeCache(CHostFiles* pFiles);				///< Get all required data to construct a host side name
+	BOOL  Find(CHostFiles* pFiles);						///< Search the host side name (path + file name (can be abbreviated) + attribute)
 
 private:
-	// パス名操作
+	// Path name operations
 	static const BYTE*  SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer);
-										///< Human68kフルパス名から先頭の要素を分離・コピー
+										///< Split and copy the first element of the Human68k full path name
 
-	// 排他制御
+	// Mutual exclusion
 	void  Lock() {}
 	void  Unlock() {}
 
-	/// メモリ管理用
+	/// For memory management
 	struct ring_t {
-		CRing r;						///< 円環
-		CHostPath f;						///< 実体
+		CRing r;
+		CHostPath f;
 	};
 
-	BOOL m_bWriteProtect;						///< 書き込み禁止ならTRUE
-	BOOL m_bEnable;							///< メディアが利用可能ならTRUE
-	DWORD m_nRing;							///< パス名保持数
-	CRing m_cRing;							///< CHostPath連結用
-	Human68k::capacity_t m_capCache;				///< セクタ情報キャッシュ sectors == 0 なら未キャッシュ
-	BOOL m_bVolumeCache;						///< ボリュームラベル読み込み済みならTRUE
-	TCHAR m_szVolumeCache[24];					///< ボリュームラベルキャッシュ
-	TCHAR m_szBase[FILEPATH_MAX];					///< ベースパス
+	BOOL m_bWriteProtect;						///< TRUE if write-protected
+	BOOL m_bEnable;							///< TRUE if media is usable
+	DWORD m_nRing;							///< Number of stored path names
+	CRing m_cRing;							///< For attaching to CHostPath
+	Human68k::capacity_t m_capCache;				///< Sector data cache: if "sectors == 0" then not cached
+	BOOL m_bVolumeCache;						///< TRUE if the volume label has been read
+	TCHAR m_szVolumeCache[24];					///< Volume label cache
+	TCHAR m_szBase[FILEPATH_MAX];					///< Base path
 };
 
 //===========================================================================
 //
-/// ディレクトリエントリ管理
+/// Directory entry management
 //
 //===========================================================================
 class CHostEntry {
 public:
-	// 基本ファンクション
-	CHostEntry();								///< デフォルトコンストラクタ
-	~CHostEntry();								///< デストラクタ final
-	void  Init();								///< 初期化 (ドライバ組込み時)
-	void  Clean();								///< 解放 (起動・リセット時)
+	CHostEntry();
+	~CHostEntry();
+	void  Init();								///< Initialization (when integrating driver)
+	void  Clean();								///< Release (when starting up or resetting)
 
-	// キャッシュ操作
-	void  CleanCache();							///< 全てのキャッシュを更新する
-	void  CleanCache(DWORD nUnit);						///< 指定されたユニットのキャッシュを更新する
-	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< 指定されたパスのキャッシュを更新する
-	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< 指定されたパス以下のキャッシュを全て更新する
-	void  DeleteCache(DWORD nUnit, const BYTE* szHumanPath);		///< 指定されたパスのキャッシュを削除する
-	BOOL  Find(DWORD nUnit, CHostFiles* pFiles);				///< ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
-	void  ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< ホスト側ファイルシステム状態変化通知
+	// Cache operations
+	void  CleanCache();							///< Update all cache
+	void  CleanCache(DWORD nUnit);						///< Update cache for the specified unit
+	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< Update cache for the specified path
+	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< Update cache below the specified path
+	void  DeleteCache(DWORD nUnit, const BYTE* szHumanPath);		///< Delete cache for the specified path
+	BOOL  Find(DWORD nUnit, CHostFiles* pFiles);				///< Search host side name (path + file name (can be abbreviated) + attribute)
+	void  ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
 
-	// ドライブオブジェクト操作
-	void  SetDrv(DWORD nUnit, CHostDrv* pDrv);				///< ドライブ設定
-	BOOL  isWriteProtect(DWORD nUnit) const;				///< 書き込み禁止か？
-	BOOL  isEnable(DWORD nUnit) const;					///< アクセス可能か？
-	BOOL  isMediaOffline(DWORD nUnit);					///< メディアチェック
-	BYTE  GetMediaByte(DWORD nUnit) const;					///< メディアバイトの取得
-	DWORD  GetStatus(DWORD nUnit) const;					///< ドライブ状態の取得
-	BOOL CheckMedia(DWORD nUnit);						///< メディア交換チェック
-	void Eject(DWORD nUnit);						///< イジェクト
-	void  GetVolume(DWORD nUnit, TCHAR* szLabel);				///< ボリュームラベルの取得
-	BOOL  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< キャッシュからボリュームラベルを取得
-	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);	///< 容量の取得
+	// Drive object operations
+	void  SetDrv(DWORD nUnit, CHostDrv* pDrv);
+	BOOL  isWriteProtect(DWORD nUnit) const;
+	BOOL  isEnable(DWORD nUnit) const;					///< Is it accessible?
+	BOOL  isMediaOffline(DWORD nUnit);
+	BYTE  GetMediaByte(DWORD nUnit) const;
+	DWORD  GetStatus(DWORD nUnit) const;					///< Get drive status
+	BOOL CheckMedia(DWORD nUnit);						///< Media change check
+	void Eject(DWORD nUnit);
+	void  GetVolume(DWORD nUnit, TCHAR* szLabel);				///< Get volume label
+	BOOL  GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const;		///< Get volume label from cache
+	DWORD  GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);
 	BOOL  GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const;
-										///< キャッシュからクラスタサイズを取得
+										///< Get cluster size from cache
 
-	/// 定数
 	enum {
-		DriveMax = 10							///< ドライブ最大候補数
+		DriveMax = 10							///< Max number of drive candidates
 	};
 
 private:
-	CHostDrv* m_pDrv[DriveMax];						///< ホスト側ドライブオブジェクト
-	DWORD m_nTimeout;							///< 最後にタイムアウトチェックを行なった時刻
+	CHostDrv* m_pDrv[DriveMax];						///< Host side drive object
+	DWORD m_nTimeout;							///< Last time a timeout check was carried out
 };
 
 //===========================================================================
 //
-/// ホスト側ファイルシステム
+/// Host side file system
 //
 //===========================================================================
 /** @note
-現在の見解。
+Current state of affairs:
 
-XM6の設計思想とは反するが、class Windrvまたはclass CWindrvに直接
-class CFileSysへのポインタを持たせる方法を模索するべきである。
-これにより、以下のメリットが得られる。
+While it violates the design philosophy of XM6, we should find a way for 
+'class Windrv' and 'class CWindrv' to have a direct pointer to 'class CFileSys'. 
+This way, we get the following benefits.
 
-メリットその1。
-コマンドハンドラの大量のメソッド群を一ヶ所で集中管理できる。
-コマンドハンドラはホスト側の仕様変更などの要因によって激しく変化する
-可能性が高いため、メソッドの追加削除や引数の変更などのメンテナンスが
-大幅に楽になる。
+Benefit no. 1
+Makes it possible to manage a large number of command handler methods in one place. 
+There is a high chance the command handlers will change drastically because of 
+host system architectural changes, so we will save a huge amount of maintenance work
+in the long run.
 
-メリットその2。
-仮想関数のテーブル生成・参照処理に関する処理コードを駆逐できる。
-XM6では複数のファイルシステムオブジェクトを同時に使うような実装は
-ありえない。つまりファイルシステムオブジェクトにポリモーフィズムは
-まったく必要ないどころか、ただクロックの無駄となっているだけである。
+Benefit no. 2
+We would get rid of virtual funcion code for processing table creation and lookup.
+It is not feasible to implement code in XM6 for simultaneous use of file system objects.
+Therefore file system object polymorphism is a waste of CPU cycles.
 
-試しに変えてみた。実際効率上がった。
-windrv.h内のFILESYS_FAST_STRUCTUREの値を変えてコンパイラの吐くソース
-を比較すれば一目瞭然。何故私がこんな長文を書こうと思ったのかを理解で
-きるはず。
+I made the change as an experiment. Performance did improve.
+The improvement was obvious from looking at the source the compiler spit out 
+after changing the FILESYS_FAST_STRUCTURE value in windrv.h.
+You may understand now why I decided to rant here.
 
-一方ロシアはclass CWindrv内にclass CFileSysを直接設置した。
-(本当はclass CHostを廃止して直接置きたい……良い方法はないものか……)
+The easy solution is to put the content of 'class CFileSys' into 'class CWindrv'.
+(To be honest, I really want to deprecate 'class CHost'... I wonder if there's a good way...)
 */
 class CFileSys
 {
 public:
-	// 基本ファンクション
-	CFileSys();								///< デフォルトコンストラクタ
-	virtual ~CFileSys() {};							///< デストラクタ
+	CFileSys();
+	virtual ~CFileSys() {};
 
-	// 初期化・終了
-	void Reset();								///< リセット (全クローズ)
-	void Init();								///< 初期化 (デバイス起動とロード)
+	void Reset();								///< Reset (close all)
+	void Init();								///< Initialization (device startup and load)
 
-	// コマンドハンドラ
-	DWORD InitDevice(const Human68k::argument_t* pArgument);		///< $40 - デバイス起動
-	int CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $41 - ディレクトリチェック
-	int MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $42 - ディレクトリ作成
-	int RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests);	///< $43 - ディレクトリ削除
+	// Command handlers
+	DWORD InitDevice(const Human68k::argument_t* pArgument);		///< $40 - Device startup
+	int CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $41 - Directory check
+	int MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $42 - Create directory
+	int RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests);	///< $43 - Delete directory
 	int Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew);
-										///< $44 - ファイル名変更
-	int Delete(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $45 - ファイル削除
+										///< $44 - Change file name
+	int Delete(DWORD nUnit, const Human68k::namests_t* pNamests);		///< $45 - Delete file
 	int Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute);
-										///< $46 - ファイル属性取得/設定
+										///< $46 - Get / set file attribute
 	int Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::files_t* pFiles);
-										///< $47 - ファイル検索
-	int NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles);		///< $48 - ファイル次検索
+										///< $47 - Search file
+	int NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles);		///< $48 - Search next file
 	int Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);
-										///< $49 - ファイル作成
+										///< $49 - Create file
 	int Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb);
-										///< $4A - ファイルオープン
-	int Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb);		///< $4B - ファイルクローズ
+										///< $4A - Open file
+	int Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb);		///< $4B - Close file
 	int Read(DWORD nKey, Human68k::fcb_t* pFcb, BYTE* pAddress, DWORD nSize);
-										///< $4C - ファイル読み込み
+										///< $4C - Read file
 	int Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pAddress, DWORD nSize);
-										///< $4D - ファイル書き込み
-	int Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset);	///< $4E - ファイルシーク
+										///< $4D - Write file
+	int Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset);	///< $4E - Seek file
 	DWORD TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD nHumanTime);
-										///< $4F - ファイル時刻取得/設定
-	int GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);		///< $50 - 容量取得
-	int CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive);		///< $51 - ドライブ状態検査/制御
-	int GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb);				///< $52 - DPB取得
-	int DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize);	///< $53 - セクタ読み込み
-	int DiskWrite(DWORD nUnit);						///< $54 - セクタ書き込み
+										///< $4F - Get / set file timestamp
+	int GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity);		///< $50 - Get capacity
+	int CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive);		///< $51 - Inspect / control drive status
+	int GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb);				///< $52 - Get DPB
+	int DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize);	///< $53 - Read sectors
+	int DiskWrite(DWORD nUnit);						///< $54 - Write sectors
 	int Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl);	///< $55 - IOCTRL
-	int Flush(DWORD nUnit);							///< $56 - フラッシュ
-	int CheckMedia(DWORD nUnit);						///< $57 - メディア交換チェック
-	int Lock(DWORD nUnit);							///< $58 - 排他制御
+	int Flush(DWORD nUnit);							///< $56 - Flush
+	int CheckMedia(DWORD nUnit);						///< $57 - Media change check
+	int Lock(DWORD nUnit);							///< $58 - Mutual exclusion
 
-	void SetOption(DWORD nOption);						///< オプション設定
-	DWORD GetOption() const { return m_nOption; }		///< オプション取得
-	DWORD GetDefault() const { return m_nOptionDefault; }	///< デフォルトオプション取得
-	static DWORD GetFileOption() { return g_nOption; }			///< ファイル名変換オプション取得
+	void SetOption(DWORD nOption);						///< Set option
+	DWORD GetOption() const { return m_nOption; }		///< Get option
+	DWORD GetDefault() const { return m_nOptionDefault; }	///< Get default options
+	static DWORD GetFileOption() { return g_nOption; }			///< Get file name change option
 	void ShellNotify(DWORD nEvent, const TCHAR* szPath)
-	{ m_cEntry.ShellNotify(nEvent, szPath); }			///< ホスト側ファイルシステム状態変化通知
+	{ m_cEntry.ShellNotify(nEvent, szPath); }			///< Notify host side file system status change
 
-	/// 定数
 	enum {
-		DriveMax = CHostEntry::DriveMax					///< ドライブ最大候補数
+		DriveMax = CHostEntry::DriveMax					///< Max number of drive candidates
 	};
 
 private:
-	// 内部補助用
-	void  InitOption(const Human68k::argument_t* pArgument);		///< オプション初期化
-	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles);		///< ボリュームラベル取得
+	// For internal support
+	void  InitOption(const Human68k::argument_t* pArgument);
+	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles);		///< Get volume label
 
-	DWORD m_nUnits;								///< 現在のドライブオブジェクト数 (レジューム毎に変化)
+	DWORD m_nUnits;								///< Number of current drive objects (Changes for every resume)
 
-	DWORD m_nOption;							///< 現在の動作フラグ
-	DWORD m_nOptionDefault;							///< リセット時の動作フラグ
+	DWORD m_nOption;							///< Current runtime flag
+	DWORD m_nOptionDefault;							///< Runtime flag at reset
 
-	DWORD m_nDrives;							///< ベースパス状態復元用の候補数 (0なら毎回スキャン)
+	DWORD m_nDrives;							///< Number of candidates for base path status restoration (scan every time if 0)
 
-	DWORD m_nKernel;							///< カーネルチェック用カウンタ
-	DWORD m_nKernelSearch;							///< NULデバイスの先頭アドレス
+	DWORD m_nKernel;							///< Counter for kernel check
+	DWORD m_nKernelSearch;							///< Initial address for NUL device
 
-	DWORD m_nHostSectorCount;						///< 擬似セクタ番号
+	DWORD m_nHostSectorCount;						///< Virtual sector identifier
 
-	CHostFilesManager m_cFiles;						///< ファイル検索領域
-	CHostFcbManager m_cFcb;							///< FCB操作領域
-	CHostEntry m_cEntry;							///< ドライブオブジェクトとディレクトリエントリ
+	CHostFilesManager m_cFiles;						///< File search area
+	CHostFcbManager m_cFcb;							///< FCB operation area
+	CHostEntry m_cEntry;							///< Drive object and directory entry
 
 	DWORD m_nHostSectorBuffer[XM6_HOST_PSEUDO_CLUSTER_MAX];
-										///< 擬似セクタの指すファイル実体
+										///< Actual file that the virtual sector points to
 
-	DWORD m_nFlag[DriveMax];						///< ベースパス状態復元用の動作フラグ候補
-	TCHAR m_szBase[DriveMax][FILEPATH_MAX];					///< ベースパス状態復元用の候補
-	static DWORD g_nOption;							///< ファイル名変換フラグ
+	DWORD m_nFlag[DriveMax];						///< Candidate runtime flag for base path restoration
+	TCHAR m_szBase[DriveMax][FILEPATH_MAX];					///< Candidate for base path restoration
+	static DWORD g_nOption;							///< File name change flag
 };

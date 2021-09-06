@@ -154,45 +154,45 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 	for (i = 0; i < 8; i++) {
 		BYTE c = name[i];
 		if (c == ' ') {
-			// ファイル名中にスペースが出現した場合、以降のエントリが続いているかどうか確認
-			/// @todo 8+3文字とTewntyOne互換モードで動作を変えるべき
-			// add[0] が有効な文字なら続ける
+			// Check that the file name continues after a space is detected
+			/// TODO: Should change this function to be compatible with 8+3 chars and TwentyOne
+			// Continue if add[0] is a valid character
 			if (add[0] != '\0')
 				goto next_name;
-			// name[i] より後に空白以外の文字が存在するなら続ける
+			// Continue if a non-space character exists after name[i]
 			for (size_t j = i + 1; j < 8; j++) {
 				if (name[j] != ' ')
 					goto next_name;
 			}
-			// ファイル名終端なら転送終了
+			// Exit if the file name ends
 			break;
 		}
 	next_name:
 		*p++ = c;
 	}
-	// 全ての文字を読み込むと、ここで i >= 8 となる
+	// At this point, the number of read characters becomes i >= 8
 
-	// ファイル名本体が8文字以上なら追加部分も加える
+	// If the body of the file name exceeds 8 characters, add the extraneous part
 	if (i >= 8) {
-		// ファイル名追加部分転送
+		// Transfer the extraneous part
 		for (i = 0; i < 10; i++) {
 			BYTE c = add[i];
 			if (c == '\0')
 				break;
 			*p++ = c;
 		}
-		// 全ての文字を読み込むと、ここで i >= 10 となる
+		// At this point, the number of read characters becomes i >= 10
 	}
 
-	// 拡張子が存在する場合は転送
+	// Transfer the file extension if it exists
 	if (ext[0] != ' ' || ext[1] != ' ' || ext[2] != ' ') {
 		*p++ = '.';
 		for (i = 0; i < 3; i++) {
 			BYTE c = ext[i];
 			if (c == ' ') {
-				// 拡張子中にスペースが出現した場合、以降のエントリが続いているかどうか確認
-				/// @todo 8+3文字とTewntyOne互換モードで動作を変えるべき
-				// ext[i] より後に空白以外の文字が存在するなら続ける
+				// Check that the file extension continues after a space is detected
+				/// TODO: Should change this function to be compatible with 8+3 chars and TwentyOne
+				// Continue if a non-space character exists after ext[i]
 				for (size_t j = i + 1; j < 3; j++) {
 					if (ext[j] != ' ')
 						goto next_ext;
@@ -216,14 +216,8 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-// Default constructor
-//
-//---------------------------------------------------------------------------
 CHostDrv::CHostDrv()
 {
-	// Initialization
 	m_bWriteProtect = FALSE;
 	m_bEnable = FALSE;
 	m_capCache.sectors = 0;
@@ -233,11 +227,6 @@ CHostDrv::CHostDrv()
 	m_nRing = 0;
 }
 
-//---------------------------------------------------------------------------
-//
-// Final destructor
-//
-//---------------------------------------------------------------------------
 CHostDrv::~CHostDrv()
 {
 	CHostPath* p;
@@ -291,7 +280,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 		} else {
 			pClear = NULL;
 		}
-		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// 厳密には 0x81～0x9F 0xE0～0xEF
+		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// To be precise: 0x81~0x9F 0xE0~0xEF
 			p++;
 			if (*p == _T('\0'))
 				break;
@@ -424,17 +413,17 @@ void CHostDrv::GetVolume(TCHAR* szLabel)
 
 //---------------------------------------------------------------------------
 //
-/// キャッシュからボリュームラベルを取得
+/// Get volume label from cache
 ///
-/// キャッシュされているボリュームラベル情報を転送する。
-/// キャッシュ内容が有効ならTRUEを、無効ならFALSEを返す。
+/// Transfer the cached volume label information.
+/// If the cache contents are valid return TRUE, if invalid return FALSE.
 //
 //---------------------------------------------------------------------------
 BOOL CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 {
 	ASSERT(szLabel);
 
-	// 内容を転送
+	// Transfer contents
 	strcpy(szLabel, m_szVolumeCache);
 
 	return m_bVolumeCache;
@@ -442,7 +431,7 @@ BOOL CHostDrv::GetVolumeCache(TCHAR* szLabel) const
 
 //---------------------------------------------------------------------------
 //
-/// 容量の取得
+/// Get Capacity
 //
 //---------------------------------------------------------------------------
 DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
@@ -459,18 +448,18 @@ DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 	clusters = 0xFFFF;
 	sectors = 64;
 
-	// パラメータ範囲想定
+	// Estimated parameter range
 	ASSERT(freearea <= 0xFFFF);
 	ASSERT(clusters <= 0xFFFF);
 	ASSERT(sectors <= 64);
 
-	// キャッシュ更新
+	// Update cache
 	m_capCache.freearea = (WORD)freearea;
 	m_capCache.clusters = (WORD)clusters;
 	m_capCache.sectors = (WORD)sectors;
 	m_capCache.bytes = 512;
 
-	// 内容を転送
+	// Transfer contents
 	memcpy(pCapacity, &m_capCache, sizeof(m_capCache));
 
 	return nFree;
