@@ -702,20 +702,24 @@ string SetReservedIds(const list<string>& ids_to_reserve)
 
     reserved_ids = reserved;
 
+    if (!reserved_ids.empty()) {
+    	list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
+    	ids.sort([](const auto& a, const auto& b) { return a < b; });
+    	ostringstream s;
+    	bool isFirst = true;
+    	for (auto const& id : ids) {
+    		if (!isFirst) {
+    			s << ", ";
+    		}
+    		s << id;
+    		isFirst = false;
+    	}
 
-	list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
-	ids.sort([](const auto& a, const auto& b) { return a < b; });
-	ostringstream s;
-	bool isFirst = true;
-	for (auto const& id : ids) {
-		if (!isFirst) {
-			s << ", ";
-		}
-		s << id;
-		isFirst = false;
-	}
-
-	LOGINFO("Reserved IDs set to: %s", s.str().c_str());
+    	LOGINFO("Reserved IDs set to: %s", s.str().c_str());
+    }
+    else {
+    	LOGINFO("No reserved IDs");
+    }
 
 	return "";
 }
