@@ -55,14 +55,6 @@ function installRaScsi() {
     make all CONNECT_TYPE=FULLSPEC
     sudo make install CONNECT_TYPE=FULLSPEC
 
-    if [ -f /etc/systemd/system/rascsi.service ]; then
-	echo "Found an existing rascsi configuration; backing up to rascsi.service.old..."
-	sudo cp /etc/systemd/system/rascsi-web.service /etc/systemd/system/rascsi-web.service.old
-    else
-	echo "Installing the rascsi.service configuration..."
-	sudo cp ~/RASCSI/src/web/service-infra/rascsi.service /etc/systemd/system/rascsi.service
-    fi
-
     sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
 
     if [ $sudoIsReady = "0" ]; then
