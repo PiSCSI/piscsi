@@ -131,7 +131,7 @@ bool InitService(int port)
 	int result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if (result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Err code: %d", result);
-		return FALSE;
+		return false;
 	}
 
 	// Create socket for monitor
@@ -145,7 +145,7 @@ bool InitService(int port)
 	// allow address reuse
 	int yes = 1;
 	if (setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-		return FALSE;
+		return false;
 	}
 
 	signal(SIGPIPE, SIG_IGN);
@@ -154,7 +154,7 @@ bool InitService(int port)
 	if (bind(monsocket, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
 		FPRT(stderr, "Error : Already running?\n");
-		return FALSE;
+		return false;
 	}
 
 	// Create Monitor Thread
@@ -162,13 +162,13 @@ bool InitService(int port)
 
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
 	running = false;
