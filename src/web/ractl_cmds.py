@@ -270,14 +270,16 @@ def send_pb_command(payload):
                 return recv_from_socket(s)
         except socket.error as error:
             counter += 1
-            logging.warning("Connecting to the RaSCSI service - attempt " + \
+            logging.warning("The RaSCSI service is not responding - attempt " + \
                     str(counter) + "/" + str(tries))
-            error_msg = "Failed to connect to the RaSCSI service: " + str(error)
+            error_msg = str(error)
+
+    logging.error(error_msg)
 
     # After failing all attempts, throw a 404 error
     from flask import abort
-    abort(404, error_msg + ". Is the RaSCSI service running on " + \
-            str(HOST) + ":" + str(PORT) + "?")
+    abort(404, "Failed to connect to RaSCSI at " + str(HOST) + ":" + str(PORT) + \
+            " with error: " + error_msg + ". Is the RaSCSI service running?")
 
 
 def send_over_socket(s, payload):

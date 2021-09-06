@@ -127,8 +127,8 @@ function createImagesDir() {
     if [ -d $VIRTUAL_DRIVER_PATH ]; then
         echo "The $VIRTUAL_DRIVER_PATH directory already exists."
     else
-	echo "The $VIRTUAL_DRIVER_PATH directory does not exist; creating..."
-	mkdir -p $VIRTUAL_DRIVER_PATH
+        echo "The $VIRTUAL_DRIVER_PATH directory does not exist; creating..."
+        mkdir -p $VIRTUAL_DRIVER_PATH
         chmod -R 775 $VIRTUAL_DRIVER_PATH
     fi
 }
@@ -317,7 +317,7 @@ function readChoice() {
    choice=-1
 
    until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-       echo -n "Enter your choice (0-7) or CTRL-C to exit: "
+       echo -n "Enter your choice (0-4) or CTRL-C to exit: "
        read -r choice
    done
 
