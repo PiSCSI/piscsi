@@ -40,6 +40,15 @@ while [ "$1" != "" ]; do
             exit 1
             ;;
     esac
+    case $VALUE in
+        FULLSPEC | STANDARD)
+            echo "Will compile the \"$VALUE\" version of RaSCSI"
+            ;;
+        *)
+            echo "ERROR: valid options are \"FULLSPEC\" and \"STANDARD\""
+            exit 1
+            ;;
+    esac
     shift
 done
 
