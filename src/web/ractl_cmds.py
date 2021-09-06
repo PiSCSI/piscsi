@@ -8,7 +8,8 @@ import struct
 from settings import *
 import rascsi_interface_pb2 as proto
 
-valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
+valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", \
+        "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
 
 
@@ -80,7 +81,6 @@ def get_type(scsi_id):
     command.devices.append(device)
 
     data = send_pb_command(command.SerializeToString())
-
     result = proto.PbResult()
     result.ParseFromString(data)
     # Assuming that only one PbDevice object is present in the response
@@ -104,7 +104,6 @@ def attach_image(scsi_id, image, image_type):
         command.devices.append(devices)
 
         data = send_pb_command(command.SerializeToString())
-
         result = proto.PbResult()
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
@@ -115,11 +114,9 @@ def detach_by_id(scsi_id):
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
     command.devices.append(devices)
-
     command.operation = proto.PbOperation.DETACH
 
     data = send_pb_command(command.SerializeToString())
-
     result = proto.PbResult()
     result.ParseFromString(data)
     return {"status": result.status, "msg": result.msg}
@@ -130,7 +127,6 @@ def detach_all():
     command.operation = proto.PbOperation.DETACH_ALL
 
     data = send_pb_command(command.SerializeToString())
-
     result = proto.PbResult()
     result.ParseFromString(data)
     return {"status": result.status, "msg": result.msg}
@@ -140,12 +136,10 @@ def eject_by_id(scsi_id):
     command = proto.PbCommand()
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
-
     command.operation = proto.PbOperation.EJECT
     command.devices.append(devices)
 
     data = send_pb_command(command.SerializeToString())
-
     result = proto.PbResult()
     result.ParseFromString(data)
     return {"status": result.status, "msg": result.msg}
@@ -211,6 +205,8 @@ def list_devices():
         dtype = proto.PbDeviceType.Name(result.device_info.devices[n].type) 
         dstat = result.device_info.devices[n].status
         dprop = result.device_info.devices[n].properties
+
+        # Building the status string, starting with 'Attached' for every active device
         dstat_msg = ["Attached"]
         if dprop.read_only == True:
             dstat_msg.append("Read-Only")
@@ -220,11 +216,15 @@ def list_devices():
             dstat_msg.append("No Media")
         if dstat.locked == True and dprop.lockable == True:
             dstat_msg.append("Locked")
+
         dfile = result.device_info.devices[n].file.name or "-"
-        dprod = result.device_info.devices[n].vendor + " " + result.device_info.devices[n].product
+        dprod = result.device_info.devices[n].vendor + " " \
+                + result.device_info.devices[n].product
         dblock = result.device_info.devices[n].block_size or "N/A"
         # TODO: Move formatting elsewhere
-        device_list.append({"id": str(did), "un": str(dun), "type": dtype, "status": ", ".join(dstat_msg), "file": dfile, "product": dprod, "block": dblock})
+        device_list.append({"id": str(did), "un": str(dun), "type": dtype, \
+                "status": ", ".join(dstat_msg), "file": dfile, \
+                "product": dprod, "block": dblock})
         occupied_ids.append(str(did))
         n += 1
     return device_list, occupied_ids
@@ -234,10 +234,11 @@ def sort_and_format_devices(device_list, occupied_ids):
     # Add padding devices and sort the list
     for id in range(8):
         if str(id) not in occupied_ids:
-            device_list.append({"id": str(id), "un": "-", "type": "-", "status": "-", "file": "-", "product": "-", "block": "-"})
+            device_list.append({"id": str(id), "un": "-", "type": "-", \
+                    "status": "-", "file": "-", "product": "-", "block": "-"})
 
     # Sort list of devices by id
-    device_list.sort(key=lambda tup: tup["id"][0])
+    device_list.sort(key=lambda dic: dic["id"][0])
 
     return device_list
 
@@ -269,12 +270,14 @@ def send_pb_command(payload):
                 return recv_from_socket(s)
         except socket.error as error:
             counter += 1
-            logging.warning("Connecting to the RaSCSI service - attempt " + str(counter) + "/" + str(tries))
+            logging.warning("Connecting to the RaSCSI service - attempt " + \
+                    str(counter) + "/" + str(tries))
             error_msg = "Failed to connect to the RaSCSI service: " + str(error)
 
     # After failing all attempts, throw a 404 error
     from flask import abort
-    abort(404, error_msg + ". Is the RaSCSI service running on " + str(HOST) + ":" + str(PORT) + "?")
+    abort(404, error_msg + ". Is the RaSCSI service running on " + \
+            str(HOST) + ":" + str(PORT) + "?")
 
 
 def send_over_socket(s, payload):

@@ -21,7 +21,6 @@
 
     {% block content %}
     <h2>Current RaSCSI Configuration</h2>
-    <p>The <em>default</em> configuration will be loaded when the Web UI starts up.</p>
     <p>
     <form action="/config/load" method="post">
         <select name="name" >
@@ -42,6 +41,7 @@
         <input type="submit" value="Detach All" />
     </form>
     </p>
+    <p><small>The <em>default</em> configuration will be loaded when the Web UI starts up.</small></p>
 
     <table cellpadding="3" border="black">
         <tbody>
