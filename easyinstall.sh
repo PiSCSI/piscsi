@@ -41,18 +41,27 @@ function initialChecks() {
     fi
 }
 
+# install all dependency packages for RaSCSI Service
 function installPackages() {
     sudo apt-get update && sudo apt install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y
 }
 
-# install all dependency packages for RaSCSI Service
 # compile and install RaSCSI Service
 function installRaScsi() {
-    installPackages
+    sudo systemctl stop rascsi
 
     cd ~/RASCSI/src/raspberrypi
+    make clean
     make all CONNECT_TYPE=FULLSPEC
     sudo make install CONNECT_TYPE=FULLSPEC
+
+    if [ -f /etc/systemd/system/rascsi.service ]; then
+	echo "Found an existing rascsi configuration; backing up to rascsi.service.old..."
+	sudo cp /etc/systemd/system/rascsi-web.service /etc/systemd/system/rascsi-web.service.old
+    else
+	echo "Installing the rascsi.service configuration..."
+	sudo cp ~/RASCSI/src/web/service-infra/rascsi.service /etc/systemd/system/rascsi.service
+    fi
 
     sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
 
@@ -71,38 +80,50 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
     sudo systemctl start rascsi
 }
 
+# install everything required to run an HTTP server (Nginx + Python Flask App)
+function installRaScsiWebInterface() {
+    echo "Compiling the Python protobuf library..."
+    [ -f ~/RASCSI/src/web/rascsi_interface.proto ] && rm ~/RASCSI/src/web/rascsi_interface.proto
+    protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
+
+    sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
+    sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
+
+    sudo usermod -a -G pi www-data
+
+    sudo systemctl reload nginx
+
+    if [ -f /etc/systemd/system/rascsi-web.service ]; then
+	echo "Found an existing rascsi-web configuration; backing up to rascsi-web.service.old..."
+	sudo cp /etc/systemd/system/rascsi-web.service /etc/systemd/system/rascsi-web.service.old
+    else
+	echo "Installing the rascsi-web.service configuration..."
+	sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
+    fi
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable rascsi-web
+    sudo systemctl start rascsi-web
+}
+
+function createImagesDir() {
+    if [ -d $VIRTUAL_DRIVER_PATH ]; then
+        echo "The $VIRTUAL_DRIVER_PATH directory already exists."
+    else
+	echo "The $VIRTUAL_DRIVER_PATH directory does not exist; creating..."
+	mkdir -p $VIRTUAL_DRIVER_PATH
+        chmod -R 775 $VIRTUAL_DRIVER_PATH
+    fi
+}
+
 function stopOldWebInterface() {
+    sudo systemctl stop rascsi-web
     APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
     if [ "$APACHE_STATUS" -eq 0 ] ; then
         echo "Stopping old Apache2 RaSCSI Web..."
         sudo systemctl disable apache2
         sudo systemctl stop apache2
     fi
-}
-
-# install everything required to run an HTTP server (Nginx + Python Flask App)
-function installRaScsiWebInterface() {
-    stopOldWebInterface
-    installPackages
-
-    echo "Compiling the Python protobuf library..."
-    protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
-
-    sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
-    sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
-
-    mkdir -p $VIRTUAL_DRIVER_PATH
-    chmod -R 775 $VIRTUAL_DRIVER_PATH
-    groups www-data
-    sudo usermod -a -G pi www-data
-    groups www-data
-
-    sudo systemctl reload nginx
-
-    sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
-    sudo systemctl daemon-reload
-    sudo systemctl enable rascsi-web
-    sudo systemctl start rascsi-web
 }
 
 function updateRaScsiGit() {
@@ -122,31 +143,6 @@ function updateRaScsiGit() {
         echo "Reapplying local changes..."
         git stash apply
     fi
-}
-
-function updateRaScsi() {
-    updateRaScsiGit
-    installPackages
-    sudo systemctl stop rascsi
-
-    cd ~/RASCSI/src/raspberrypi
-
-    make clean
-    make all CONNECT_TYPE=FULLSPEC
-    sudo make install CONNECT_TYPE=FULLSPEC
-    sudo systemctl start rascsi
-}
-
-function updateRaScsiWebInterface() {
-    stopOldWebInterface
-    updateRaScsiGit
-    echo "Compiling the Python protobuf library..."
-    protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
-    sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
-    sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
-    echo "Restarting rascsi-web services..."
-    sudo systemctl restart rascsi-web
-    sudo systemctl restart nginx
 }
 
 function showRaScsiStatus() {
@@ -250,48 +246,43 @@ function createDrive() {
 function runChoice() {
   case $1 in
           0)
-              echo "Installing RaSCSI Service + Web interface"
+              echo "Installing RaSCSI Service + Web interface + 600MB Drive"
+              stopOldWebInterface
+              updateRaScsiGit
+              createImagesDir
+              installPackages
               installRaScsi
               installRaScsiWebInterface
               createDrive600MB
               showRaScsiStatus
-              echo "Installing RaSCSI Service + Web interface - Complete!"
+              echo "Installing RaSCSI Service + Web interface + 600MB Drive - Complete!"
           ;;
           1)
+              echo "Installing RaSCSI Service + Web interface"
+              stopOldWebInterface
+              updateRaScsiGit
+              createImagesDir
+              installPackages
+              installRaScsi
+              installRaScsiWebInterface
+              showRaScsiStatus
+              echo "Installing RaSCSI Service + Web interface - Complete!"
+          ;;
+          2)
               echo "Installing RaSCSI Service"
+              updateRaScsiGit
+              createImagesDir
+              installPackages
               installRaScsi
               showRaScsiStatus
               echo "Installing RaSCSI Service - Complete!"
           ;;
-          2)
-              echo "Installing RaSCSI Web interface"
-              installRaScsiWebInterface
-              echo "Installing RaSCSI Web interface - Complete!"
-          ;;
           3)
-              echo "Updating RaSCSI Service + Web interface"
-              updateRaScsi
-              updateRaScsiWebInterface
-              showRaScsiStatus
-              echo "Updating RaSCSI Service + Web interface - Complete!"
-          ;;
-          4)
-              echo "Updating RaSCSI Service"
-              updateRaScsi
-              showRaScsiStatus
-              echo "Updating RaSCSI Service - Complete!"
-          ;;
-          5)
-              echo "Updating RaSCSI Web interface"
-              updateRaScsiWebInterface
-              echo "Updating RaSCSI Web interface - Complete!"
-          ;;
-          6)
               echo "Creating a 600MB drive"
               createDrive600MB
               echo "Creating a 600MB drive - Complete!"
           ;;
-          7)
+          4)
               echo "Creating a custom drive"
               createDriveCustom
               echo "Creating a custom drive - Complete!"
@@ -318,18 +309,14 @@ function readChoice() {
 
 function showMenu() {
     echo ""
-    echo "Choose among the following options:"
-    echo "INSTALL"
-    echo "  0) install RaSCSI Service + web interface + 600MB Drive (recommended)"
-    echo "  1) install RaSCSI Service (initial)"
-    echo "  2) install RaSCSI Web interface"
-    echo "UPDATE"
-    echo "  3) update RaSCSI Service + web interface (recommended)"
-    echo "  4) update RaSCSI Service"
-    echo "  5) update RaSCSI Web interface"
-    echo "CREATE EMPTY DRIVE"
-    echo "  6) 600MB drive (recommended)"
-    echo "  7) custom drive size (up to 4000MB)"
+    echo "Choose from the following options:"
+    echo "INSTALL/UPDATE RASCSI"
+    echo "  0) install or update RaSCSI Service + web interface + 600MB Drive (recommended)"
+    echo "  1) install or update RaSCSI Service + web interface"
+    echo "  2) install or update RaSCSI Service"
+    echo "CREATE EMPTY DRIVE IMAGE"
+    echo "  3) 600MB drive (recommended)"
+    echo "  4) custom drive size (up to 4000MB)"
 }
 
 
