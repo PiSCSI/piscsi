@@ -289,6 +289,10 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_removed(device->IsRemoved());
 	status->set_locked(device->IsLocked());
 
+	for (const string& param : device->GetParams()) {
+		pb_device->add_params(param);
+	}
+
 	const Disk *disk = dynamic_cast<const Disk*>(device);
 	if (disk) {
 		pb_device->set_block_size(disk->GetSectorSizeInBytes());
@@ -633,14 +637,13 @@ void GetDeviceInfo(const PbCommand& command, PbResult& result)
 	}
 
 	PbDevices *pb_devices = new PbDevices();
+	result.set_allocated_device_info(pb_devices);
 
 	for (const auto& id_set : id_sets) {
 		Device *device = devices[id_set.first * UnitNum + id_set.second];
 		PbDevice *pb_device = pb_devices->add_devices();
 		GetDevice(device, pb_device);
 	}
-
-	result.set_allocated_device_info(pb_devices);
 }
 
 void GetServerInfo(PbResult& result)

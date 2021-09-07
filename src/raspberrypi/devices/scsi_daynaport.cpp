@@ -87,6 +87,10 @@ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 
 bool SCSIDaynaPort::Init(const string& interfaces)
 {
+	list<string> params;
+	params.push_back(interfaces);
+	SetParams(params);
+
 #ifdef __linux__
 	// TAP Driver Generation
 	m_tap = new CTapDriver(interfaces);

@@ -77,6 +77,10 @@ SCSIBR::~SCSIBR()
 
 bool SCSIBR::Init(const string& interfaces)
 {
+	list<string> params;
+	params.push_back(interfaces);
+	SetParams(params);
+
 #ifdef __linux__
 	// TAP Driver Generation
 	tap = new CTapDriver(interfaces);

@@ -96,11 +96,19 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 	if (pb_device.block_size()) {
 		cout << "  " << pb_device.block_size() << " BPS";
 	}
+
 	cout << (pb_device.file().name().empty() ? "" : "  " + pb_device.file().name());
 	if (pb_device.properties().read_only() || pb_device.status().protected_()) {
 		cout << "  read-only";
 	}
-	cout <<endl;
+
+	if (pb_device.params_size()) {
+		for (const string param : pb_device.params()) {
+			cout << "  " << param;
+		}
+	}
+
+	cout << endl;
 }
 
 //---------------------------------------------------------------------------
