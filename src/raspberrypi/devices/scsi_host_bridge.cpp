@@ -21,6 +21,7 @@
 #include "../rascsi.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
+#include <sstream>
 
 using namespace std;
 
@@ -64,11 +65,24 @@ SCSIBR::~SCSIBR()
 
 bool SCSIBR::Init(const list<string>& params)
 {
-	SetParams(params);
+	list<string> p = params;
+
+	// Use default parameters if on parameters were provided
+	if (p.empty() || p.front().empty()) {
+		p.clear();
+
+		stringstream s(DEFAULT_INTERFACES);
+		string interface;
+		while (getline(s, interface, ',')) {
+			p.push_back(interface);
+		}
+	}
+
+	SetParams(p);
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver(!params.empty() ? params.front() : DEFAULT_INTERFACES);
+	tap = new CTapDriver(p.front());
 	m_bTapEnable = tap->Init();
 
 	// Generate MAC Address

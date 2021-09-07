@@ -90,11 +90,24 @@ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 
 bool SCSIDaynaPort::Init(const list<string>& params)
 {
-	SetParams(params);
+	list<string> p = params;
+
+	// Use default parameters if on parameters were provided
+	if (p.empty() || p.front().empty()) {
+		p.clear();
+
+		stringstream s(DEFAULT_INTERFACES);
+		string interface;
+		while (getline(s, interface, ',')) {
+			p.push_back(interface);
+		}
+	}
+
+	SetParams(p);
 
 #ifdef __linux__
 	// TAP Driver Generation
-	m_tap = new CTapDriver(!params.empty() ? params.front() : DEFAULT_INTERFACES);
+	m_tap = new CTapDriver(p.front());
 	m_bTapEnable = m_tap->Init();
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
