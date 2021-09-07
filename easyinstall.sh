@@ -330,6 +330,7 @@ function setupWirelessNetworking() {
     IP=$NETWORK.2 # Macintosh or Device IP
     NETWORK_MASK="255.255.255.0"
     ROUTER_IP=$NETWORK.1
+    ROUTING_ADDRESS=$NETWORK.0/24
 
 
     #WLAN_INTERFACE=$(ifconfig | grep wlan | cut -d":" -f 1)
@@ -384,7 +385,7 @@ function setupWirelessNetworking() {
     sudo iptables -P INPUT ACCEPT
     sudo iptables -P OUTPUT ACCEPT
     sudo iptables -P FORWARD ACCEPT
-    sudo iptables -t nat -A POSTROUTING -o $WLAN_INTERFACE -s $NETWORK_MASK -j MASQUERADE
+    sudo iptables -t nat -A POSTROUTING -o $WLAN_INTERFACE -s $ROUTING_ADDRESS -j MASQUERADE
 
 
     # Check if iptables-persistent is installed
