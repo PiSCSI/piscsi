@@ -282,23 +282,19 @@ function setupWiredNetworking() {
 
     LAN_INTERFACE=eth0
 
-    echo "$LAN_INTERFACE will be configured with DHCP."
-    echo "If you want to use a different interface, please exit out of here and refer to the documentation."
+    echo "$LAN_INTERFACE will be configured for network forwarding with DHCP."
+    echo "If you want to use a different configuration, please exit out of here and refer to the documentation."
     echo ""
-    echo "WARNING: The IP address of your Pi may change upon reboot afterwards."
+    echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
     echo ""
     echo "Press Enter to continue or CTRL-C to exit"
     read REPLY
 
-    if [ $(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf) -ge 1 ]; then
-        echo "WARNING: IP forwarding seems to already be configured."
-    else
-        sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
-    fi
-
     if [ $(grep -c "^denyinterfaces $LAN_INTERFACE" /etc/dhcpcd.conf) -ge 1 ]; then
-        echo "WARNING: IP forwarding seems to already be configured."
+        echo "WARNING: Network forwarding may already have been configured."
+        echo "Press enter to continue or CTRL-C to exit"
+        read REPLY
     else
         sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
     fi
@@ -325,20 +321,22 @@ function setupWirelessNetworking() {
     ROUTING_ADDRESS=$NETWORK.0/24
     WLAN_INTERFACE="wlan0"
 
-    echo "$WLAN_INTERFACE will be configured for network forwarding."
+    echo "$WLAN_INTERFACE will be configured for network forwarding with a static IP."
     echo "Configure your Macintosh or other device with the following:"
     echo "IP Address (static): $IP"
     echo "Router Address: $ROUTER_IP"
     echo "Subnet Mask: $NETWORK_MASK"
     echo "DNS Server: Any public DNS server"
-    echo "If you want to use a different interface or settings, please exit out of here and refer to the documentation."
+    echo "If you want to use a different configuration, please exit out of here and refer to the documentation."
     echo ""
 
     echo "Press enter to continue or CTRL-C to exit"
     read REPLY
 
     if [ $(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf) -ge 1 ]; then
-        echo "WARNING: IP forwarding seems to already be configured."
+        echo "WARNING: Network forwarding may already have been configured."
+        echo "Press enter to continue or CTRL-C to exit"
+        read REPLY
     else
         grep "^net.ipv4.ip_forward=1" /etc/sysctl.conf || sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
     fi
