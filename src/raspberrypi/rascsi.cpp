@@ -113,7 +113,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
 		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
 		FPRT(stdout,"  hda : SCSI HD image (APPLE GENUINE)\n");
-		FPRT(stdout,"  mos : SCSI MO image (XM6 SCSI MO image)\n");
+		FPRT(stdout,"  mos : SCSI MO image (MO image)\n");
 		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
 
 		exit(EXIT_SUCCESS);
@@ -131,7 +131,7 @@ bool InitService(int port)
 	int result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if (result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Err code: %d", result);
-		return FALSE;
+		return false;
 	}
 
 	// Create socket for monitor
@@ -145,7 +145,7 @@ bool InitService(int port)
 	// allow address reuse
 	int yes = 1;
 	if (setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-		return FALSE;
+		return false;
 	}
 
 	signal(SIGPIPE, SIG_IGN);
@@ -154,7 +154,7 @@ bool InitService(int port)
 	if (bind(monsocket, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
 		FPRT(stderr, "Error : Already running?\n");
-		return FALSE;
+		return false;
 	}
 
 	// Create Monitor Thread
@@ -162,13 +162,13 @@ bool InitService(int port)
 
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
 	running = false;
@@ -584,6 +584,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
+	properties->add_default_params("eth0,wlan0");
 	properties->set_luns(1);
 
 	types_properties = server_info.add_types_properties();
@@ -591,6 +592,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
+	properties->add_default_params("eth0,wlan0");
 	properties->set_luns(1);
 }
 
@@ -686,6 +688,42 @@ bool SetDefaultImageFolder(const string& f)
 	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
 
 	return true;
+}
+
+string SetReservedIds(const list<string>& ids_to_reserve)
+{
+    set<int> reserved;
+    for (string id_to_reserve : ids_to_reserve) {
+    	int id;
+ 		if (!GetAsInt(id_to_reserve, id)) {
+ 			return id_to_reserve;
+ 		}
+
+ 		reserved.insert(id);
+    }
+
+    reserved_ids = reserved;
+
+    if (!reserved_ids.empty()) {
+    	list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
+    	ids.sort([](const auto& a, const auto& b) { return a < b; });
+    	ostringstream s;
+    	bool isFirst = true;
+    	for (auto const& id : ids) {
+    		if (!isFirst) {
+    			s << ", ";
+    		}
+    		s << id;
+    		isFirst = false;
+    	}
+
+    	LOGINFO("Reserved IDs set to: %s", s.str().c_str());
+    }
+    else {
+    	LOGINFO("Cleared reserved IDs");
+    }
+
+	return "";
 }
 
 void DetachAll()
@@ -1084,30 +1122,11 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		return ReturnStatus(fd);
 	}
 	else if (command.operation() == RESERVE) {
-		set<int> reserved;
-		for (int i = 0; i < command.params_size(); i++) {
-			int id;
-			if (!GetAsInt(command.params(i), id)) {
-				return ReturnStatus(fd, false, "Invalid ID " + command.params(i) + " for " + PbOperation_Name(RESERVE));
-			}
-
-			reserved.insert(id);
+		const list<string> ids = { command.params().begin(), command.params().end() };
+		string invalid_id = SetReservedIds(ids);
+		if (!invalid_id.empty()) {
+			return ReturnStatus(fd, false,"Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
 		}
-
-		reserved_ids = reserved;
-
-		list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
-		ids.sort([](const auto& a, const auto& b) { return a < b; });
-		ostringstream s;
-		bool isFirst = true;
-		for (auto const& id : ids) {
-			if (!isFirst) {
-				s << ", ";
-			}
-			s << id;
-			isFirst = false;
-		}
-		LOGINFO("Reserved IDs set to: %s", s.str().c_str());
 
 		return ReturnStatus(fd);
 	}
@@ -1153,7 +1172,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:F:f:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:R:r:F:f:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -1196,6 +1215,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				log_level = optarg;
 				continue;
 
+			case 'n':
+				name = optarg;
+				continue;
+
 			case 'p':
 				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
@@ -1203,8 +1226,21 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				}
 				continue;
 
-			case 'n':
-				name = optarg;
+			case 'r': {
+					stringstream ss(optarg);
+					string id;
+
+					list<string> ids;
+					while (getline(ss, id, ',')) {
+						ids.push_back(id);
+					}
+
+					string invalid_id = SetReservedIds(ids);
+					if (!invalid_id.empty()) {
+						cerr << "Invalid ID " << invalid_id << " for " << PbOperation_Name(RESERVE);
+						return false;
+					}
+				}
 				continue;
 
 			case 't': {
