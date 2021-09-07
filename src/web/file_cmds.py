@@ -60,13 +60,18 @@ def download_file_to_iso(scsi_id, url):
     tmp_full_path = tmp_dir + file_name
     iso_filename = base_dir + file_name + ".iso"
 
-    urllib.request.urlretrieve(url, tmp_full_path)
+    try:
+        urllib.request.urlretrieve(url, tmp_full_path)
+    except:
+        # TODO: Capture a more descriptive error message
+        return {"status": False, "msg": "Error loading the URL"}
+
     # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
     iso_proc = subprocess.run(
         ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
     )
     if iso_proc.returncode != 0:
-        return iso_proc
+        return {"status": False, "msg": iso_proc}
     return attach_image(scsi_id, iso_filename, "SCCD")
 
 
@@ -76,7 +81,12 @@ def download_image(url):
     file_name = url.split("/")[-1]
     full_path = base_dir + file_name
 
-    urllib.request.urlretrieve(url, full_path)
+    try:
+        urllib.request.urlretrieve(url, full_path)
+        return {"status": True, "msg": "Downloaded the URL"}
+    except:
+        # TODO: Capture a more descriptive error message
+        return {"status": False, "msg": "Error loading the URL"}
 
 def write_config_csv(file_name):
     import csv

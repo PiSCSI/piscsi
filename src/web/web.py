@@ -169,10 +169,10 @@ def detach():
     scsi_id = request.form.get("scsi_id")
     process = detach_by_id(scsi_id)
     if process["status"] == True:
-        flash("Detached SCSI id " + scsi_id + "!")
+        flash(f"Detached SCSI id {scsi_id}!")
         return redirect(url_for("index"))
     else:
-        flash("Failed to detach SCSI id " + scsi_id + "!", "error")
+        flash(f"Failed to detach SCSI id {scsi_id}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -182,10 +182,10 @@ def eject():
     scsi_id = request.form.get("scsi_id")
     process = eject_by_id(scsi_id)
     if process["status"] == True:
-        flash("Ejected scsi id " + scsi_id + "!")
+        flash(f"Ejected scsi id {scsi_id}!")
         return redirect(url_for("index"))
     else:
-        flash("Failed to eject SCSI id " + scsi_id + "!", "error")
+        flash(f"Failed to eject SCSI id {scsi_id}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -219,23 +219,27 @@ def download_file():
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
     process = download_file_to_iso(scsi_id, url)
-    if process.returncode == 0:
-        flash("File Downloaded")
+    if process["status"] == True:
+        flash(f"File Downloaded and Attached to SCSI id {scsi_id}")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash("Failed to download file", "error")
-        flash(process.stdout, "stdout")
-        flash(process.stderr, "stderr")
+        flash(f"Failed to download and attach file {url}", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
 
 
 @app.route("/files/download_image", methods=["POST"])
 def download_img():
     url = request.form.get("url")
-    # TODO: error handling
-    download_image(url)
-    flash("File Downloaded")
-    return redirect(url_for("index"))
+    process = download_image(url)
+    if process["status"] == True:
+        flash(f"File Downloaded from {url}")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to download file {url}", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
 
 
 @app.route("/files/upload/<filename>", methods=["POST"])
