@@ -24,17 +24,9 @@
 
 using namespace std;
 
-//===========================================================================
-//
-//	SCSI Host Bridge
-//
-//===========================================================================
+// The prioritized list of default interfaces
+#define DEFAULT_INTERFACES "eth0,wlan0"
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	fsoptlen = 0;
@@ -51,11 +43,6 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	AddCommand(SCSIDEV::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 SCSIBR::~SCSIBR()
 {
 	// TAP driver release
@@ -75,15 +62,13 @@ SCSIBR::~SCSIBR()
 	}
 }
 
-bool SCSIBR::Init(const string& interfaces)
+bool SCSIBR::Init(const list<string>& params)
 {
-	list<string> params;
-	params.push_back(interfaces);
 	SetParams(params);
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver(interfaces);
+	tap = new CTapDriver(!params.empty() ? params.front() : DEFAULT_INTERFACES);
 	m_bTapEnable = tap->Init();
 
 	// Generate MAC Address

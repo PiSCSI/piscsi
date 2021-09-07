@@ -60,7 +60,7 @@ public:
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
 
-	bool Init(const string&) override;
+	bool Init(const list<string>&) override;
 	void Open(const Filepath& path) override;
 
 	// Commands

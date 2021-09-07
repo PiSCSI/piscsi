@@ -33,6 +33,9 @@
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
+// The prioritized list of default interfaces
+#define DEFAULT_INTERFACES "eth0,wlan0"
+
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	m_tap = NULL;
@@ -85,15 +88,13 @@ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 	return Disk::Dispatch(controller);
 }
 
-bool SCSIDaynaPort::Init(const string& interfaces)
+bool SCSIDaynaPort::Init(const list<string>& params)
 {
-	list<string> params;
-	params.push_back(interfaces);
 	SetParams(params);
 
 #ifdef __linux__
 	// TAP Driver Generation
-	m_tap = new CTapDriver(interfaces);
+	m_tap = new CTapDriver(!params.empty() ? params.front() : DEFAULT_INTERFACES);
 	m_bTapEnable = m_tap->Init();
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
