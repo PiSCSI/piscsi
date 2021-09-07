@@ -54,6 +54,8 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
+	static const list<string> default_params;
+
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIDaynaPort::*)(SASIDEV *));
 
 public:
@@ -62,6 +64,8 @@ public:
 
 	bool Init(const list<string>&) override;
 	void Open(const Filepath& path) override;
+
+	static const list<string>& GetDefaultParams() { return default_params; }
 
 	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buffer) override;

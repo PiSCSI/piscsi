@@ -26,7 +26,7 @@
 using namespace std;
 
 // The prioritized list of default interfaces
-#define DEFAULT_INTERFACES "eth0,wlan0"
+const list<string> SCSIBR::default_params = { "eth0,wlan0" };
 
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
@@ -65,19 +65,12 @@ SCSIBR::~SCSIBR()
 
 bool SCSIBR::Init(const list<string>& params)
 {
-	list<string> p = params;
-
 	// Use default parameters if no parameters were provided
-	if (p.empty() || p.front().empty()) {
-		p.clear();
-		p.push_back(DEFAULT_INTERFACES);
-	}
-
-	SetParams(p);
+	SetParams(params.empty() || params.front().empty() ? default_params : params);
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver(p.front());
+	tap = new CTapDriver(GetParams().front());
 	m_bTapEnable = tap->Init();
 
 	// Generate MAC Address

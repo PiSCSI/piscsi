@@ -19,6 +19,8 @@
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
+#include "devices/scsi_host_bridge.h"
+#include "devices/scsi_daynaport.h"
 #include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
@@ -588,7 +590,9 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
-	properties->add_default_params("eth0,wlan0");
+	for (const string& param : SCSIBR::GetDefaultParams()) {
+		properties->add_default_params(param);
+	}
 	properties->set_luns(1);
 
 	types_properties = server_info.add_types_properties();
@@ -596,7 +600,9 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
-	properties->add_default_params("eth0,wlan0");
+	for (const string& param : SCSIDaynaPort::GetDefaultParams()) {
+		properties->add_default_params(param);
+	}
 	properties->set_luns(1);
 }
 

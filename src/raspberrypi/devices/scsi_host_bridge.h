@@ -44,6 +44,8 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
+	static const list<string> default_params;
+
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
 
 public:
@@ -52,6 +54,8 @@ public:
 
 	bool Init(const list<string>&) override;
 	bool Dispatch(SCSIDEV *) override;
+
+	static const list<string>& GetDefaultParams() { return default_params; }
 
 	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
