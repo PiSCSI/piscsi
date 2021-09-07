@@ -1,7 +1,7 @@
 import io
 import re
 
-from flask import Flask, render_template, request, flash, url_for, redirect, send_file
+from flask import Flask, render_template, request, flash, url_for, redirect, send_file, send_from_directory
 
 from file_cmds import (
     create_new_image,
@@ -49,6 +49,9 @@ def index():
         version=running_version(),
     )
 
+@app.route('/pwa/<path:path>')
+def send_pwa_files(path):
+    return send_from_directory('pwa', path)
 
 @app.route("/config/save", methods=["POST"])
 def config_save():
