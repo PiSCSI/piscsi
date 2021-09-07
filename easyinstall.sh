@@ -283,6 +283,7 @@ function setupWiredNetworking() {
     #LAN_INTERFACE=$(ifconfig | grep eth | cut -d":" -f 1)
     LAN_INTERFACE=eth0
 
+    checkIfNetworkIsConfigured
     #if [ $(grep -c . <<<"$LAN_INTERFACE") -gt "1" ] ; then
     #    SELECTED=""
     #    until [ $(grep -c "^$SELECTED$" <<< "$LAN_INTERFACE") -eq 1 ]; do
@@ -297,15 +298,22 @@ function setupWiredNetworking() {
     #    LAN_INTERFACE=$SELECTED
     #fi
     
-    echo "$LAN_INTERFACE will be configured."
+    echo "$LAN_INTERFACE will be configured with DHCP."
+    echo "If you want to use a different interface, please exit out of here and refer to the documentation."
+    echo ""
+    echo "WARNING: The IP address of your Pi may change upon reboot afterwards."
+    echo "Please make sure you will not lose access to the Pi system."
+    echo ""
     echo "Press Enter to continue or CTRL-C to exit"
     read REPLY
 
     grep "^denyinterfaces $LAN_INTERFACE" || sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
 
     # default config file is made for eth0, this will set the right net interface
-    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
+    #sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
+    sudo cp /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge /etc/network/interfaces.d/
     
+    echo "Configuration completed!"
     echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
     echo ""
     echo "We need to reboot your Pi"
@@ -318,18 +326,15 @@ function setupWiredNetworking() {
 }
 
 function setupWirelessNetworking() {
-    # IP=`ip route get 1.2.3.4 | awk '{print $7}' | head -n 1`
-
-    #IP="10.10.20.2" # Macintosh or Device IP
-    #NETWORK="`echo $IP | cut -d"." -f1`.`echo $IP | cut -d"." -f2`.`echo $IP | cut -d"." -f3`"
     NETWORK="10.10.20"
     IP=$NETWORK.2 # Macintosh or Device IP
-    NETWORK_MASK=$NETWORK.0/24
+    NETWORK_MASK="255.255.255.0"
     ROUTER_IP=$NETWORK.1
 
 
     #WLAN_INTERFACE=$(ifconfig | grep wlan | cut -d":" -f 1)
-    WLAN_INTERFACE=wlan0
+    WLAN_INTERFACE="wlan0"
+    checkIfNetworkIsConfigured
 
     #if [ $(grep -c . <<<"$WLAN_INTERFACE") -gt "1" ] ; then
     #    SELECTED=""
@@ -346,16 +351,20 @@ function setupWirelessNetworking() {
     #    WLAN_INTERFACE=$SELECTED
     #fi
 
-    echo "$WLAN_INTERFACE will be configured."
-    echo "Press Enter to continue or CTRL-C to exit"
-    read REPLY
+    echo "$WLAN_INTERFACE will be configured for network forwarding."
+    echo "Configure your Macintosh or other Device with the following:"
+    #echo "Press Enter to continue or CTRL-C to exit"
+    #read REPLY
     
 
     # IP Address
-    echo "Bridge network settings, please verify:"
-    echo "Macintosh or Device IP: $IP"
-    echo "ROUTER_IP: $ROUTER_IP"
-    echo "NETWORK_MASK: $NETWORK_MASK"
+    #echo "Bridge network settings, please verify:"
+    echo "IP Address (static): $IP"
+    echo "Router Address: $ROUTER_IP"
+    echo "Subnet Mask: $NETWORK_MASK"
+    echo "DNS Server: Any public DNS server"
+    echo "If you want to use a different interface or settings, please exit out of here and refer to the documentation."
+    echo ""
 
     echo "Press enter to continue or CTRL-C to exit"
     read REPLY
@@ -401,6 +410,9 @@ function setupWirelessNetworking() {
     # it is possible to re-save the rules with:
     #sudo bash -c 'iptables-save > /etc/iptables/rules.v4'
 
+    echo "Configuration completed!"
+    echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
+    echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
     read REPLY
@@ -417,33 +429,33 @@ function checkIfNetworkIsConfigured() {
     FORWARD=$(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf)
 
     #echo "Routing: $ROUTING / Bridge: $BRIDGE / Forward: $FORWARD"
-    echo "Bridge: $BRIDGE / Forward: $FORWARD"
 
     #if [ $ROUTING -ge 1 ]; then
     #    echo "Network routing seems to be configured."
     #fi
     if [ $BRIDGE -ge 1 ]; then
-        echo "Network bridge seems to be configured."
+        echo "WARNING: Network bridge seems to already be configured."
     fi
     if [ $FORWARD -ge 1 ]; then
-        echo "IP forwarding seems to be configured."
+        echo "WARNING: IP forwarding seems to already be configured."
     fi
+    echo ""
+    #if [ $ROUTING -ge 1 ] || [ $BRIDGE -ge 1 ] || [ $FORWARD -ge 1 ]; then
+    #if [ $BRIDGE -ge 1 ] || [ $FORWARD -ge 1 ]; then
+    #    echo "Are you sure you want to proceed with network configuration? Y/n"
+    #    read REPLY
 
-    if [ $ROUTING -ge 1 ] || [ $BRIDGE -ge 1 ] || [ $FORWARD -ge 1 ]; then
-        echo "Are you sure you want to proceed with network configuration? Y/n"
-        read REPLY
-
-        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
-            echo "Proceeding with network configuration..."
-            checkNetworkType
-        fi
-    fi
+    #    if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
+    #        echo "Proceeding with network configuration..."
+    #        checkNetworkType
+    #    fi
+    #fi
 }
 
 function runChoice() {
   case $1 in
           0)
-              echo "Installing RaSCSI Service + Web interface + 600MB Drive"
+              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive"
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
@@ -452,10 +464,10 @@ function runChoice() {
               installRaScsiWebInterface
               createDrive600MB
               showRaScsiStatus
-              echo "Installing RaSCSI Service + Web interface + 600MB Drive - Complete!"
+              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive - Complete!"
           ;;
           1)
-              echo "Installing RaSCSI Service + Web interface"
+              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface"
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
@@ -463,16 +475,17 @@ function runChoice() {
               installRaScsi
               installRaScsiWebInterface
               showRaScsiStatus
-              echo "Installing RaSCSI Service + Web interface - Complete!"
+              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface - Complete!"
           ;;
           2)
-              echo "Installing RaSCSI Service"
+              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC})" 
               updateRaScsiGit
               createImagesDir
               installPackages
               installRaScsi
               showRaScsiStatus
-	      echo "Installing RaSCSI Service - Complete!" ;;
+	      echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
+	  ;;
           3)
               echo "Creating a 600MB drive"
               createDrive600MB
@@ -485,14 +498,12 @@ function runChoice() {
           ;;
           5)
               echo "Configuring wired network bridge"
-              checkIfNetworkIsConfigured
               showMacNetworkWired
 	      setupWiredNetworking
               echo "Configuring wired network bridge - Complete!"
           ;;
           6)
               echo "Configuring wifi network bridge"
-              checkIfNetworkIsConfigured
 	      showMacNetworkWireless
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
@@ -532,9 +543,6 @@ function showMenu() {
     echo "  6) configure wireless network forwarding over WiFi" 
 }
 
-showRaSCSILogo
-initialChecks
-
 # parse arguments
 while [ "$1" != "" ]; do
     PARAM=`echo $1 | awk -F= '{print $1}'`
@@ -561,6 +569,9 @@ while [ "$1" != "" ]; do
     esac
     shift
 done
+
+showRaSCSILogo
+initialChecks
 
 if [ -z "${RUN_CHOICE}" ]; then # RUN_CHOICE is unset, show menu
     showMenu
