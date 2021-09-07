@@ -294,13 +294,13 @@ function setupWiredNetworking() {
     if [ $(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf) -ge 1 ]; then
         echo "WARNING: IP forwarding seems to already be configured."
     else
-        grep "^net.ipv4.ip_forward=1" /etc/sysctl.conf || sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+        sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
     fi
 
     if [ $(grep -c "^denyinterfaces $LAN_INTERFACE" /etc/dhcpcd.conf) -ge 1 ]; then
         echo "WARNING: IP forwarding seems to already be configured."
     else
-        grep "^denyinterfaces $LAN_INTERFACE" || sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
+        sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
     fi
 
     sudo cp /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge /etc/network/interfaces.d/
@@ -461,8 +461,8 @@ function showMenu() {
     echo "  3) 600MB drive (recommended)"
     echo "  4) custom drive size (up to 4000MB)"
     echo "NETWORK ASSISTANT"
-    echo "  5) configure wired network forwarding over Ethernet"
-    echo "  6) configure wireless network forwarding over WiFi" 
+    echo "  5) configure network forwarding over Ethernet"
+    echo "  6) configure network forwarding over WiFi" 
 }
 
 # parse arguments
