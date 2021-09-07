@@ -584,6 +584,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
+	properties->add_default_params("eth0,wlan0");
 	properties->set_luns(1);
 
 	types_properties = server_info.add_types_properties();
@@ -591,6 +592,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
+	properties->add_default_params("eth0,wlan0");
 	properties->set_luns(1);
 }
 
