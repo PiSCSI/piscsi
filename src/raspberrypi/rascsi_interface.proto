@@ -1,7 +1,7 @@
 //
 // Each rascsi remote interface message is preceded by a little endian 32 bit header,
 // which contains the protobuf message size.
-// The order of repeated data returned is undefined.
+// Unless explicitly specified the order of repeated data returned is undefined.
 //
 
 syntax = "proto3";
@@ -71,9 +71,9 @@ message PbDeviceProperties {
     bool supports_file = 5;
     // Device supports parameters other than a filename
     bool supports_params = 6;
-    // The default parameters, if any  (requires supports_params to be true)
+    // Ordered list of default parameters, if any  (requires supports_params to be true)
     repeated string default_params = 7;
-    // The number of supported LUNs, at least 1 (for LUN 0)
+    // Number of supported LUNs, at least 1 (for LUN 0)
     uint32 luns = 8;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 9;
@@ -130,7 +130,7 @@ message PbDevice {
     PbDeviceStatus status = 5;
     // Image file information, if the device supports image files
     PbImageFile file = 6;
-    // Effective parameters the device was created with
+    // Ordered list of effective parameters the device was created with
     repeated string params = 7;
     string vendor = 8;
     string product = 9;
