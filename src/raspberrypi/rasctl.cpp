@@ -267,6 +267,24 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 		cout << endl;
 
+		if (properties.supports_params() && properties.default_params_size()) {
+			list<string> params = { properties.default_params().begin(), properties.default_params().end() };
+			params.sort([](const auto& a, const auto& b) { return a < b; });
+
+			cout << "        Default parameters: ";
+
+			bool isFirst = true;
+			for (const auto& param : params) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				cout << param;
+
+				isFirst = false;
+			}
+			cout << endl;
+		}
+
 		if (properties.block_sizes_size()) {
 			list<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
 			block_sizes.sort([](const auto& a, const auto& b) { return a < b; });

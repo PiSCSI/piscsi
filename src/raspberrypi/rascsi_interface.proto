@@ -71,12 +71,14 @@ message PbDeviceProperties {
     bool supports_file = 5;
     // Device supports parameters other than a filename
     bool supports_params = 6;
+    // The default parameters, if any, and if support_params is true
+    repeated string default_params = 7;
     // The number of supported LUNs, at least 1 (for LUN 0)
-    uint32 luns = 7;
+    uint32 luns = 8;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
-    repeated uint32 block_sizes = 8;
+    repeated uint32 block_sizes = 9;
     // Unordered list of permitted media capacities in bytes, empty if there is no capacity restriction
-    repeated uint64 capacities = 9;
+    repeated uint64 capacities = 10;
 }
 
 // The status of a device, only meaningful if the respective feature is supported
