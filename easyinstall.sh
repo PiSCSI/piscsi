@@ -288,11 +288,32 @@ function setupWiredNetworking() {
     echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
     echo ""
-    echo "Press Enter to continue or CTRL-C to exit"
+    echo "Do you want to proceed with network configuration using the default settings? Y/n"
     read REPLY
 
-    if [ $(grep -c "^denyinterfaces $LAN_INTERFACE" /etc/dhcpcd.conf) -ge 1 ]; then
-        echo "WARNING: Network forwarding may already have been configured."
+    if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
+        LAN_INTERFACE=$(ifconfig | grep eth | cut -d":" -f 1)
+        if [ $(grep -c . <<<"$WLAN_INTERFACE") -gt "1" ] ; then
+            SELECTED=""
+            until [ $(grep -c "^$SELECTED$" <<< "$WLAN_INTERFACE") -eq 1 ]; do
+                echo "Multiple wireless network interfaces found:"
+                    for INTERFACE in $WLAN_INTERFACE ; do
+                    echo "$INTERFACE"
+                done
+            done
+	fi
+        echo "Please type the wireless interface you want to use and press Enter:"
+        read -r SELECTED
+        LAN_INTERFACE=$SELECTED
+    fi
+
+    if [ $(grep -c "^denyinterfaces" /etc/dhcpcd.conf) -ge 1 ]; then
+        echo "WARNING: Network forwarding is already active. If proceeding, you may have to manually clean up your configuration."
+        echo "Press enter to continue or CTRL-C to exit"
+        read REPLY
+        sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
+    elif [ $(grep -c "^denyinterfaces $LAN_INTERFACE" /etc/dhcpcd.conf) -ge 1 ]; then
+        echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
     else
@@ -300,9 +321,10 @@ function setupWiredNetworking() {
     fi
 
     sudo cp /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge /etc/network/interfaces.d/
-    
+
     echo "Configuration completed!"
     echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
+    echo "Either use the Web UI, or on the command line: \"rascsi -ID 6 -t scdp $LAN_INTERFACE\""
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
@@ -317,8 +339,9 @@ function setupWirelessNetworking() {
     NETWORK="10.10.20"
     IP=$NETWORK.2 # Macintosh or Device IP
     NETWORK_MASK="255.255.255.0"
+    CIDR="24"
     ROUTER_IP=$NETWORK.1
-    ROUTING_ADDRESS=$NETWORK.0/24
+    ROUTING_ADDRESS=$NETWORK.0/$CIDR
     WLAN_INTERFACE="wlan0"
 
     echo "$WLAN_INTERFACE will be configured for network forwarding with a static IP."
@@ -327,20 +350,44 @@ function setupWirelessNetworking() {
     echo "Router Address: $ROUTER_IP"
     echo "Subnet Mask: $NETWORK_MASK"
     echo "DNS Server: Any public DNS server"
-    echo "If you want to use a different configuration, please exit out of here and refer to the documentation."
     echo ""
-
-    echo "Press enter to continue or CTRL-C to exit"
+    echo "Do you want to proceed with network configuration using the default settings? Y/n"
     read REPLY
 
+    if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
+        WLAN_INTERFACE=$(ifconfig | grep wlan | cut -d":" -f 1)
+        if [ $(grep -c . <<<"$WLAN_INTERFACE") -gt "1" ] ; then
+            SELECTED=""
+            until [ $(grep -c "^$SELECTED$" <<< "$WLAN_INTERFACE") -eq 1 ]; do
+                echo "Multiple wireless network interfaces found:"
+                    for INTERFACE in $WLAN_INTERFACE ; do
+                    echo "$INTERFACE"
+                done
+            done
+	fi
+        echo "Please type the wireless interface you want to use and press Enter:"
+        read -r SELECTED
+        WLAN_INTERFACE=$SELECTED
+        echo "Base IP address (ex. 10.10.20)"
+        read -r NETWORK
+        echo "Subnet Mask (ex. 255.255.255.0)"
+        read -r NETWORK_MASK
+        echo "CIDR for Subnet Mask (ex. '24' for 255.255.255.0)"
+        read -r CIDR
+        ROUTER_IP=$NETWORK.1
+        ROUTING_ADDRESS=$NETWORK.0/$CIDR
+
+    fi
+
+
     if [ $(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf) -ge 1 ]; then
-        echo "WARNING: Network forwarding may already have been configured."
+        echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
     else
         sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
     fi
-    
+
     sudo iptables --flush
     sudo iptables -t nat -F
     sudo iptables -X
@@ -361,7 +408,9 @@ function setupWirelessNetworking() {
     fi
 
     echo "Configuration completed!"
-    echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
+    echo ""
+    echo "Please make sure you attach a DaynaPORT adapter to the RaSCSI configuration"
+    echo "Either use the Web UI, or on the command line: \"rascsi -ID 6 -t scdp $WLAN_INTERFACE:$ROUTER_IP/$CIDR\""
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
@@ -375,7 +424,7 @@ function setupWirelessNetworking() {
 function runChoice() {
   case $1 in
           0)
-              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive"
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
@@ -384,10 +433,10 @@ function runChoice() {
               installRaScsiWebInterface
               createDrive600MB
               showRaScsiStatus
-              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive - Complete!"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive - Complete!"
           ;;
           1)
-              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface"
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
@@ -395,16 +444,16 @@ function runChoice() {
               installRaScsi
               installRaScsiWebInterface
               showRaScsiStatus
-              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface - Complete!"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface - Complete!"
           ;;
           2)
-              echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC})" 
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC})" 
               updateRaScsiGit
               createImagesDir
               installPackages
               installRaScsi
               showRaScsiStatus
-	      echo "Installing RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
+	      echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
 	  ;;
           3)
               echo "Creating a 600MB drive"
