@@ -70,12 +70,7 @@ bool SCSIBR::Init(const list<string>& params)
 	// Use default parameters if on parameters were provided
 	if (p.empty() || p.front().empty()) {
 		p.clear();
-
-		stringstream s(DEFAULT_INTERFACES);
-		string interface;
-		while (getline(s, interface, ',')) {
-			p.push_back(interface);
-		}
+		p.push_back(DEFAULT_INTERFACES);
 	}
 
 	SetParams(p);
