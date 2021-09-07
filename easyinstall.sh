@@ -338,7 +338,7 @@ function setupWirelessNetworking() {
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
     else
-        grep "^net.ipv4.ip_forward=1" /etc/sysctl.conf || sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+        sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
     fi
     
     sudo iptables --flush
