@@ -20,37 +20,38 @@ logo="""
 echo -e $logo
 }
 
+function showMacNetworkWired(){
+logo="""
+                              .-~-.-~~~-.~-.\n
+ ╔═══════╗                  .(              )\n
+ ║|¯¯¯¯¯|║                 /               \`.\n
+ ║|_____|║>--------------<~               .   )\n
+ ║ .  __ ║                 (              :'-'\n
+ ╚╦═════╦╝                  ~-.________.:'\n
+  ¯¯¯¯¯¯¯\n
+"""
+echo -e $logo
+}
+
+function showMacNetworkWireless(){
+logo="""
+                              .-~-.-~~~-.~-.\n
+ ╔═══════╗        .(       .(              )\n
+ ║|¯¯¯¯¯|║  .(  .(        /               \`.\n
+ ║|_____|║ .o    o       ~               .   )\n
+ ║ .  __ ║  '(  '(        (              :'-'\n
+ ╚╦═════╦╝        '(       ~-.________.:'\n
+  ¯¯¯¯¯¯¯\n
+"""
+echo -e $logo
+}
+
 VIRTUAL_DRIVER_PATH=/home/pi/images
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=~/RASCSI/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
-
-# parse arguments
-while [ "$1" != "" ]; do
-    PARAM=`echo $1 | awk -F= '{print $1}'`
-    VALUE=`echo $1 | awk -F= '{print $2}'`
-    case $PARAM in
-        -c | --connect_type)
-            CONNECT_TYPE=$VALUE
-            ;;
-        *)
-            echo "ERROR: unknown parameter \"$PARAM\""
-            exit 1
-            ;;
-    esac
-    case $VALUE in
-        FULLSPEC | STANDARD)
-            echo "Will compile the \"$VALUE\" version of RaSCSI"
-            ;;
-        *)
-            echo "ERROR: valid options are \"FULLSPEC\" and \"STANDARD\""
-            exit 1
-            ;;
-    esac
-    shift
-done
 
 function initialChecks() {
     currentUser=$(whoami)
@@ -202,6 +203,22 @@ function formatDrive() {
     fi
 
     # Inject hfdisk commands to create Drive with correct partitions
+    # https://www.codesrc.com/mediawiki/index.php/HFSFromScratch
+    # i                         initialize partition map
+    # continue with default first block
+    # C                         Create 1st partition with type specified next) 
+    # continue with default
+    # 32                        32 blocks (required for HFS+)
+    # Driver_Partition          Partition Name
+    # Apple_Driver              Partition Type  (available types: Apple_Driver, Apple_Driver43, Apple_Free, Apple_HFS...)
+    # C                         Create 2nd partition with type specified next
+    # continue with default first block
+    # continue with default block size (rest of the disk)
+    # ${volumeName}             Partition name provided by user
+    # Apple_HFS                 Partition Type
+    # w                         Write partition map to disk
+    # y                         Confirm partition table
+    # p                         Print partition map
     (echo i; echo ; echo C; echo ; echo 32; echo "Driver_Partition"; echo "Apple_Driver"; echo C; echo ; echo ; echo "${volumeName}"; echo "Apple_HFS"; echo w; echo y; echo p;) | $HFDISK_BIN "$diskPath"
     partitionOk=$?
 
@@ -260,6 +277,169 @@ function createDrive() {
     fi
 }
 
+function setupWiredNetworking() {
+    echo "Setting up wired network..."
+
+    #LAN_INTERFACE=$(ifconfig | grep eth | cut -d":" -f 1)
+    LAN_INTERFACE=eth0
+
+    #if [ $(grep -c . <<<"$LAN_INTERFACE") -gt "1" ] ; then
+    #    SELECTED=""
+    #    until [ $(grep -c "^$SELECTED$" <<< "$LAN_INTERFACE") -eq 1 ]; do
+    #        echo "Multiple network interfaces found:"
+    #        for INTERFACE in $LAN_INTERFACE ; do
+    #            echo "$INTERFACE"
+    #        done
+    #        echo "Please select the interface you want to use: (eg: eth0)"
+    #        read -r SELECTED
+    #    done
+
+    #    LAN_INTERFACE=$SELECTED
+    #fi
+    
+    echo "$LAN_INTERFACE will be configured."
+    echo "Press Enter to continue or CTRL-C to exit"
+    read REPLY
+
+    grep "^denyinterfaces $LAN_INTERFACE" || sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
+
+    # default config file is made for eth0, this will set the right net interface
+    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
+    
+    echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
+    echo ""
+    echo "We need to reboot your Pi"
+    echo "Press Enter to reboot or CTRL-C to exit"
+    read
+
+    echo "Rebooting..."
+    sleep 3
+    sudo reboot
+}
+
+function setupWirelessNetworking() {
+    # IP=`ip route get 1.2.3.4 | awk '{print $7}' | head -n 1`
+
+    #IP="10.10.20.2" # Macintosh or Device IP
+    #NETWORK="`echo $IP | cut -d"." -f1`.`echo $IP | cut -d"." -f2`.`echo $IP | cut -d"." -f3`"
+    NETWORK="10.10.20"
+    IP=$NETWORK.2 # Macintosh or Device IP
+    NETWORK_MASK=$NETWORK.0/24
+    ROUTER_IP=$NETWORK.1
+
+
+    #WLAN_INTERFACE=$(ifconfig | grep wlan | cut -d":" -f 1)
+    WLAN_INTERFACE=wlan0
+
+    #if [ $(grep -c . <<<"$WLAN_INTERFACE") -gt "1" ] ; then
+    #    SELECTED=""
+    #    until [ $(grep -c "^$SELECTED$" <<< "$WLAN_INTERFACE") -eq 1 ]; do
+    #        echo "Multiple network interfaces found:"
+    #        
+    #        for INTERFACE in $WLAN_INTERFACE ; do
+    #            echo "$INTERFACE"
+    #        done
+    #        echo "Please select the wireless interface you want to use: (eg: wlan0)"
+    #        read -r SELECTED
+    #    done
+
+    #    WLAN_INTERFACE=$SELECTED
+    #fi
+
+    echo "$WLAN_INTERFACE will be configured."
+    echo "Press Enter to continue or CTRL-C to exit"
+    read REPLY
+    
+
+    # IP Address
+    echo "Bridge network settings, please verify:"
+    echo "Macintosh or Device IP: $IP"
+    echo "ROUTER_IP: $ROUTER_IP"
+    echo "NETWORK_MASK: $NETWORK_MASK"
+
+    echo "Press enter to continue or CTRL-C to exit"
+    read REPLY
+
+    # Configuring bridge
+    #grep "rascsi_bridge" /etc/rc.local || sudo bash -c 'echo "
+#brctl addbr rascsi_bridge
+#ifconfig rascsi_bridge '"$ROUTER_IP"'/24 up
+#" >> /etc/rc.local'
+
+    grep "^net.ipv4.ip_forward=1" /etc/sysctl.conf || sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+    
+    sudo iptables --flush
+    sudo iptables -t nat -F
+    sudo iptables -X
+    sudo iptables -Z
+    sudo iptables -P INPUT ACCEPT
+    sudo iptables -P OUTPUT ACCEPT
+    sudo iptables -P FORWARD ACCEPT
+    sudo iptables -t nat -A POSTROUTING -o $WLAN_INTERFACE -s $NETWORK_MASK -j MASQUERADE
+
+
+    # Check if iptables-persistent is installed
+    IPTABLES_PERSISTENT=$(dpkg -s iptables-persistent | grep Status | grep -c "install ok")
+    if [ $IPTABLES_PERSISTENT -eq 0 ]; then
+        sudo apt-get install iptables-persistent --assume-yes
+    else
+	# If iptables-persistent has been installed in the past, need to remove then install again
+        sudo apt-get remove iptables-persistent --assume-yes	
+        sudo apt-get install iptables-persistent --assume-yes
+    fi
+
+    # #### Below are an example of the rules you should have in rules.v4 ####
+    # Generated by xtables-save v1.8.2 on Thu Aug 26 10:41:38 2021
+    # *nat
+    # :PREROUTING ACCEPT [0:0]
+    # :INPUT ACCEPT [0:0]
+    # :POSTROUTING ACCEPT [0:0]
+    # :OUTPUT ACCEPT [0:0]
+    # -A POSTROUTING -s 10.10.20.0/24 -o wlan0 -j MASQUERADE
+    # COMMIT
+    # ##############################################
+    # it is possible to re-save the rules with:
+    #sudo bash -c 'iptables-save > /etc/iptables/rules.v4'
+
+    echo "We need to reboot your Pi"
+    echo "Press Enter to reboot or CTRL-C to exit"
+    read REPLY
+
+    echo "Rebooting..."
+    sleep 3
+    sudo reboot
+}
+
+function checkIfNetworkIsConfigured() {
+    echo "Checking current Network status"
+    #ROUTING=$(grep -c "10.10.20.0/24 -o wlan" /etc/iptables/rules.v4)
+    BRIDGE=$(brctl show | grep -c "rascsi_bridge")
+    FORWARD=$(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf)
+
+    #echo "Routing: $ROUTING / Bridge: $BRIDGE / Forward: $FORWARD"
+    echo "Bridge: $BRIDGE / Forward: $FORWARD"
+
+    #if [ $ROUTING -ge 1 ]; then
+    #    echo "Network routing seems to be configured."
+    #fi
+    if [ $BRIDGE -ge 1 ]; then
+        echo "Network bridge seems to be configured."
+    fi
+    if [ $FORWARD -ge 1 ]; then
+        echo "IP forwarding seems to be configured."
+    fi
+
+    if [ $ROUTING -ge 1 ] || [ $BRIDGE -ge 1 ] || [ $FORWARD -ge 1 ]; then
+        echo "Are you sure you want to proceed with network configuration? Y/n"
+        read REPLY
+
+        if [ "$REPLY" == "Y" ] || [ "$REPLY" == "y" ]; then
+            echo "Proceeding with network configuration..."
+            checkNetworkType
+        fi
+    fi
+}
+
 function runChoice() {
   case $1 in
           0)
@@ -292,8 +472,7 @@ function runChoice() {
               installPackages
               installRaScsi
               showRaScsiStatus
-              echo "Installing RaSCSI Service - Complete!"
-          ;;
+	      echo "Installing RaSCSI Service - Complete!" ;;
           3)
               echo "Creating a 600MB drive"
               createDrive600MB
@@ -303,6 +482,20 @@ function runChoice() {
               echo "Creating a custom drive"
               createDriveCustom
               echo "Creating a custom drive - Complete!"
+          ;;
+          5)
+              echo "Configuring wired network bridge"
+              checkIfNetworkIsConfigured
+              showMacNetworkWired
+	      setupWiredNetworking
+              echo "Configuring wired network bridge - Complete!"
+          ;;
+          6)
+              echo "Configuring wifi network bridge"
+              checkIfNetworkIsConfigured
+	      showMacNetworkWireless
+              setupWirelessNetworking
+              echo "Configuring wifi network bridge - Complete!"
           ;;
           -h|--help|h|help)
               showMenu
@@ -316,8 +509,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-       echo -n "Enter your choice (0-4) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "6" ]; do
+       echo -n "Enter your choice (0-6) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -327,21 +520,51 @@ function readChoice() {
 function showMenu() {
     echo ""
     echo "Choose among the following options:"
-    echo "INSTALL/UPDATE RASCSI"
+    echo "INSTALL/UPDATE RASCSI (${CONNECT_TYPE-FULLSPEC} version)"
     echo "  0) install or update RaSCSI Service + web interface + 600MB Drive (recommended)"
     echo "  1) install or update RaSCSI Service + web interface"
     echo "  2) install or update RaSCSI Service"
     echo "CREATE EMPTY DRIVE IMAGE"
     echo "  3) 600MB drive (recommended)"
     echo "  4) custom drive size (up to 4000MB)"
+    echo "NETWORK ASSISTANT"
+    echo "  5) configure wired network forwarding over Ethernet"
+    echo "  6) configure wireless network forwarding over WiFi" 
 }
-
 
 showRaSCSILogo
 initialChecks
-if [ -z "${1}" ]; then # $1 is unset, show menu
+
+# parse arguments
+while [ "$1" != "" ]; do
+    PARAM=`echo $1 | awk -F= '{print $1}'`
+    VALUE=`echo $1 | awk -F= '{print $2}'`
+    case $PARAM in
+        -c | --connect_type)
+            CONNECT_TYPE=$VALUE
+            ;;
+	-r | --run_choice)
+	    RUN_CHOICE=$VALUE
+	    ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            exit 1
+            ;;
+    esac
+    case $VALUE in
+        FULLSPEC | STANDARD | 0 | 1 | 2 | 3 | 4 | 5 | 6 )
+            ;;
+        *)
+            echo "ERROR: unknown option \"$VALUE\""
+	    exit 1
+            ;;
+    esac
+    shift
+done
+
+if [ -z "${RUN_CHOICE}" ]; then # RUN_CHOICE is unset, show menu
     showMenu
     readChoice
 else
-    runChoice "$1"
+    runChoice "$RUN_CHOICE"
 fi
