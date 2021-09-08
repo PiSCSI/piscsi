@@ -283,7 +283,6 @@ function setupWiredNetworking() {
     LAN_INTERFACE=eth0
 
     echo "$LAN_INTERFACE will be configured for network forwarding with DHCP."
-    echo "If you want to use a different configuration, please exit out of here and refer to the documentation."
     echo ""
     echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
@@ -292,17 +291,9 @@ function setupWiredNetworking() {
     read REPLY
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
-        LAN_INTERFACE=$(ifconfig | grep eth | cut -d":" -f 1)
-        if [ $(grep -c . <<<"$WLAN_INTERFACE") -gt "1" ] ; then
-            SELECTED=""
-            until [ $(grep -c "^$SELECTED$" <<< "$WLAN_INTERFACE") -eq 1 ]; do
-                echo "Multiple wireless network interfaces found:"
-                    for INTERFACE in $WLAN_INTERFACE ; do
-                    echo "$INTERFACE"
-                done
-            done
-	fi
-        echo "Please type the wireless interface you want to use and press Enter:"
+        echo "Available interfaces on this system:"
+	ip -o addr show scope link | awk '{split($4, a, "/"); print $2}'
+        echo "Please type the wired interface you want to use and press Enter:"
         read -r SELECTED
         LAN_INTERFACE=$SELECTED
     fi
@@ -312,19 +303,22 @@ function setupWiredNetworking() {
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
         sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
+	echo "Modified \"/etc/dhcpcd.conf\""
     elif [ $(grep -c "^denyinterfaces $LAN_INTERFACE" /etc/dhcpcd.conf) -ge 1 ]; then
         echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
     else
         sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
+	echo "Modified \"/etc/dhcpcd.conf\""
     fi
 
     sudo cp /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge /etc/network/interfaces.d/
+    echo "Modified \"/etc/network/interfaces.d/rascsi_bridge\""
 
     echo "Configuration completed!"
-    echo "Please make sure you attach DaynaPORT to the RaSCSI (you can use the web interface for this)"
-    echo "Either use the Web UI, or on the command line: \"rascsi -ID 6 -t scdp $LAN_INTERFACE\""
+    echo "Please make sure you attach ia DaynaPORT network adapter to the RaSCSI configuration."
+    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6): \"rascsi -ID 6 -t scdp $LAN_INTERFACE\""
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
@@ -344,7 +338,7 @@ function setupWirelessNetworking() {
     ROUTING_ADDRESS=$NETWORK.0/$CIDR
     WLAN_INTERFACE="wlan0"
 
-    echo "$WLAN_INTERFACE will be configured for network forwarding with a static IP."
+    echo "$WLAN_INTERFACE will be configured for network forwarding with static IP assignment."
     echo "Configure your Macintosh or other device with the following:"
     echo "IP Address (static): $IP"
     echo "Router Address: $ROUTER_IP"
@@ -355,24 +349,16 @@ function setupWirelessNetworking() {
     read REPLY
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
-        WLAN_INTERFACE=$(ifconfig | grep wlan | cut -d":" -f 1)
-        if [ $(grep -c . <<<"$WLAN_INTERFACE") -gt "1" ] ; then
-            SELECTED=""
-            until [ $(grep -c "^$SELECTED$" <<< "$WLAN_INTERFACE") -eq 1 ]; do
-                echo "Multiple wireless network interfaces found:"
-                    for INTERFACE in $WLAN_INTERFACE ; do
-                    echo "$INTERFACE"
-                done
-            done
-	fi
+        echo "Available interfaces on this system:"
+	ip -o addr show scope link | awk '{split($4, a, "/"); print $2}'
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r SELECTED
         WLAN_INTERFACE=$SELECTED
-        echo "Base IP address (ex. 10.10.20)"
+        echo "Base IP address (ex. 10.10.20):"
         read -r NETWORK
-        echo "Subnet Mask (ex. 255.255.255.0)"
+        echo "Subnet Mask (ex. 255.255.255.0):"
         read -r NETWORK_MASK
-        echo "CIDR for Subnet Mask (ex. '24' for 255.255.255.0)"
+        echo "CIDR for Subnet Mask (ex. '24' for 255.255.255.0):"
         read -r CIDR
         ROUTER_IP=$NETWORK.1
         ROUTING_ADDRESS=$NETWORK.0/$CIDR
@@ -386,6 +372,7 @@ function setupWirelessNetworking() {
         read REPLY
     else
         sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
+	echo "Modified \"/etc/sysctl.conf\""
     fi
 
     sudo iptables --flush
@@ -401,16 +388,15 @@ function setupWirelessNetworking() {
     IPTABLES_PERSISTENT=$(dpkg -s iptables-persistent | grep Status | grep -c "install ok")
     if [ $IPTABLES_PERSISTENT -eq 0 ]; then
         sudo apt-get install iptables-persistent --assume-yes
-    else
-	# If iptables-persistent has been installed in the past, need to remove then install again
-        sudo apt-get remove iptables-persistent --assume-yes	
-        sudo apt-get install iptables-persistent --assume-yes
+    else)
+        sudo iptables-save --file /etc/iptables/rules.v4
     fi
+    echo "Modified /etc/iptables/rules.v4"
 
     echo "Configuration completed!"
     echo ""
-    echo "Please make sure you attach a DaynaPORT adapter to the RaSCSI configuration"
-    echo "Either use the Web UI, or on the command line: \"rascsi -ID 6 -t scdp $WLAN_INTERFACE:$ROUTER_IP/$CIDR\""
+    echo "Please make sure you attach a DaynaPORT network adapter to the RaSCSI configuration"
+    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6): \"rascsi -ID 6 -t scdp $WLAN_INTERFACE:$ROUTER_IP/$CIDR\""
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
@@ -508,8 +494,8 @@ function showMenu() {
     echo "  3) 600MB drive (recommended)"
     echo "  4) custom drive size (up to 4000MB)"
     echo "NETWORK ASSISTANT"
-    echo "  5) configure network forwarding over Ethernet"
-    echo "  6) configure network forwarding over WiFi" 
+    echo "  5) configure network forwarding over Ethernet (DHCP)"
+    echo "  6) configure network forwarding over WiFi (static IP)" 
 }
 
 # parse arguments
