@@ -19,6 +19,8 @@
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
+#include "devices/scsi_host_bridge.h"
+#include "devices/scsi_daynaport.h"
 #include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
@@ -288,6 +290,10 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_protected_(device->IsProtected());
 	status->set_removed(device->IsRemoved());
 	status->set_locked(device->IsLocked());
+
+	for (const string& param : device->GetParams()) {
+		pb_device->add_params(param);
+	}
 
 	const Disk *disk = dynamic_cast<const Disk*>(device);
 	if (disk) {
@@ -584,7 +590,9 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
-	properties->add_default_params("eth0,wlan0");
+	for (const string& param : SCSIBR::GetDefaultParams()) {
+		properties->add_default_params(param);
+	}
 	properties->set_luns(1);
 
 	types_properties = server_info.add_types_properties();
@@ -592,7 +600,9 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_supports_params(true);
-	properties->add_default_params("eth0,wlan0");
+	for (const string& param : SCSIDaynaPort::GetDefaultParams()) {
+		properties->add_default_params(param);
+	}
 	properties->set_luns(1);
 }
 
@@ -633,14 +643,13 @@ void GetDeviceInfo(const PbCommand& command, PbResult& result)
 	}
 
 	PbDevices *pb_devices = new PbDevices();
+	result.set_allocated_device_info(pb_devices);
 
 	for (const auto& id_set : id_sets) {
 		Device *device = devices[id_set.first * UnitNum + id_set.second];
 		PbDevice *pb_device = pb_devices->add_devices();
 		GetDevice(device, pb_device);
 	}
-
-	result.set_allocated_device_info(pb_devices);
 }
 
 void GetServerInfo(PbResult& result)
@@ -860,7 +869,8 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		return true;
 	}
 
-	if (!device->Init(pb_device.params_size() > 0 ? pb_device.params().Get(0) : "")) {
+	const list<string> params = { pb_device.params().begin(), pb_device.params().end() };
+	if (!device->Init(params)) {
 		error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
 
 		delete device;

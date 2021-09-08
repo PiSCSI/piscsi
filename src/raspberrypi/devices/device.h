@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <list>
 #include <string>
 
 using namespace std;
@@ -79,9 +80,13 @@ private:
 	int32_t id;
 	int32_t lun;
 
+	// Device identifier (for INQUIRY)
 	string vendor;
 	string product;
 	string revision;
+
+	// The parameter the device was created with
+	list<string> params;
 
 	// Sense Key, ASC and ASCQ
 	int status_code;
@@ -92,7 +97,7 @@ public:
 	virtual ~Device() {};
 
 	// Override for device specific initializations, to be called after all device properties have been set
-	virtual bool Init(const string&) { return true; };
+	virtual bool Init(const list<string>&) { return true; };
 
 	virtual bool Dispatch(SCSIDEV *) = 0;
 
@@ -135,6 +140,9 @@ public:
 	const string GetRevision() const { return revision; }
 	void SetRevision(const string&);
 	const string GetPaddedName() const;
+
+	const list<string> GetParams() const { return params; }
+	void SetParams(const list<string>& params) { this->params = params; }
 
 	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int status_code);
