@@ -30,17 +30,9 @@
 
 using namespace std;
 
-// The prioritized list of default interfaces
-#define DEFAULT_INTERFACES "eth0,wlan0"
-
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 CTapDriver::CTapDriver(const string& interfaces)
 {
-	stringstream s(!interfaces.empty() ? interfaces : DEFAULT_INTERFACES);
+	stringstream s(interfaces);
 	string interface;
 	while (getline(s, interface, ',')) {
 		this->interfaces.push_back(interface);

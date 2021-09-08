@@ -21,20 +21,13 @@
 #include "../rascsi.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
+#include <sstream>
 
 using namespace std;
 
-//===========================================================================
-//
-//	SCSI Host Bridge
-//
-//===========================================================================
+// The prioritized list of default interfaces
+const list<string> SCSIBR::default_params = { "eth0,wlan0" };
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	fsoptlen = 0;
@@ -51,11 +44,6 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	AddCommand(SCSIDEV::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 SCSIBR::~SCSIBR()
 {
 	// TAP driver release
@@ -75,11 +63,14 @@ SCSIBR::~SCSIBR()
 	}
 }
 
-bool SCSIBR::Init(const string& interfaces)
+bool SCSIBR::Init(const list<string>& params)
 {
+	// Use default parameters if no parameters were provided
+	SetParams(params.empty() || params.front().empty() ? default_params : params);
+
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver(interfaces);
+	tap = new CTapDriver(GetParams().front());
 	m_bTapEnable = tap->Init();
 
 	// Generate MAC Address

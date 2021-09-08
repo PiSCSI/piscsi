@@ -1,7 +1,7 @@
 //
 // Each rascsi remote interface message is preceded by a little endian 32 bit header,
 // which contains the protobuf message size.
-// The order of repeated data returned is undefined.
+// Unless explicitly specified the order of repeated data returned is undefined.
 //
 
 syntax = "proto3";
@@ -53,7 +53,7 @@ enum PbOperation {
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 11;
     // IDs blocked from being used, usually the IDs of the initiators (computers) in the SCSI chain.
-    // PbCommand.params contains the list of IDs to reserve, or is empty in order to allow all IDs.
+    // PbCommand.params contains the list of IDs to reserve, or is empty in order not to reserve any ID.
     RESERVE = 12;
 }
 
@@ -71,9 +71,9 @@ message PbDeviceProperties {
     bool supports_file = 5;
     // Device supports parameters other than a filename
     bool supports_params = 6;
-    // The default parameters, if any, and if support_params is true
+    // Ordered list of default parameters, if any  (requires supports_params to be true)
     repeated string default_params = 7;
-    // The number of supported LUNs, at least 1 (for LUN 0)
+    // Number of supported LUNs, at least 1 (for LUN 0)
     uint32 luns = 8;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 9;
@@ -128,11 +128,14 @@ message PbDevice {
     PbDeviceType type = 3;
     PbDeviceProperties properties = 4;
     PbDeviceStatus status = 5;
+    // Image file information, if the device supports image files
     PbImageFile file = 6;
-    string vendor = 7;
-    string product = 8;
-    string revision = 9;
-    int32 block_size = 10;
+    // Ordered list of effective parameters the device was created with
+    repeated string params = 7;
+    string vendor = 8;
+    string product = 9;
+    string revision = 10;
+    int32 block_size = 11;
 }
 
 message PbDevices {
