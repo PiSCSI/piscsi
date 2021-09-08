@@ -124,6 +124,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 			case SCBR:
 				device = new SCSIBR();
 				device->SetProduct("SCSI HOST BRIDGE");
+				device->SupportsParams(true);
 				break;
 
 			case SCDP:
@@ -132,6 +133,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 				device->SetVendor("Dayna");
 				device->SetProduct("SCSI/Link");
 				device->SetRevision("1.4a");
+				device->SupportsParams(true);
 				break;
 
 			default:

@@ -76,6 +76,9 @@ private:
 	// The block size is configurable
 	bool block_size_configurable;
 
+	// Device can be created with parameters
+	bool supports_params;
+
 	// Device ID and LUN
 	int32_t id;
 	int32_t lun;
@@ -141,6 +144,8 @@ public:
 	void SetRevision(const string&);
 	const string GetPaddedName() const;
 
+	bool SupportsParams() const { return supports_params; }
+	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
 	const list<string> GetParams() const { return params; }
 	void SetParams(const list<string>& params) { this->params = params; }
 
