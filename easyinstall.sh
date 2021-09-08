@@ -299,21 +299,16 @@ function setupWiredNetworking() {
     fi
 
     if [ $(grep -c "^denyinterfaces" /etc/dhcpcd.conf) -ge 1 ]; then
-        echo "WARNING: Network forwarding is already active. If proceeding, you may have to manually clean up your configuration."
-        echo "Press enter to continue or CTRL-C to exit"
-        read REPLY
-        sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
-	echo "Modified \"/etc/dhcpcd.conf\""
-    elif [ $(grep -c "^denyinterfaces $LAN_INTERFACE" /etc/dhcpcd.conf) -ge 1 ]; then
         echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
-    else
-        sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
-	echo "Modified \"/etc/dhcpcd.conf\""
+	sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
+    sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
+    echo "Modified \"/etc/dhcpcd.conf\""
 
-    sudo cp /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge /etc/network/interfaces.d/
+    # default config file is made for eth0, this will set the right net interface
+    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
     echo "Modified \"/etc/network/interfaces.d/rascsi_bridge\""
 
     echo "Configuration completed!"
@@ -388,7 +383,7 @@ function setupWirelessNetworking() {
     IPTABLES_PERSISTENT=$(dpkg -s iptables-persistent | grep Status | grep -c "install ok")
     if [ $IPTABLES_PERSISTENT -eq 0 ]; then
         sudo apt-get install iptables-persistent --assume-yes
-    else)
+    else
         sudo iptables-save --file /etc/iptables/rules.v4
     fi
     echo "Modified /etc/iptables/rules.v4"
