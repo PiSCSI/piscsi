@@ -467,17 +467,17 @@ DWORD CHostDrv::GetCapacity(Human68k::capacity_t* pCapacity)
 
 //---------------------------------------------------------------------------
 //
-/// キャッシュから容量を取得
+/// Get capacity from the cache
 ///
-/// キャッシュされている容量情報を転送する。
-/// キャッシュ内容が有効ならTRUEを、無効ならFALSEを返す。
+/// Transfer the capacity data stored in cache.
+/// If the contents of the cache is valid return TRUE, is invalid return FALSE.
 //
 //---------------------------------------------------------------------------
 BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 {
 	ASSERT(pCapacity);
 
-	// 内容を転送
+	// Transfer contents
 	memcpy(pCapacity, &m_capCache, sizeof(m_capCache));
 
 	return m_capCache.sectors != 0;
@@ -485,7 +485,7 @@ BOOL CHostDrv::GetCapacityCache(Human68k::capacity_t* pCapacity) const
 
 //---------------------------------------------------------------------------
 //
-/// 全てのキャッシュを更新する
+/// Update all cache
 //
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache()
@@ -500,7 +500,7 @@ void CHostDrv::CleanCache()
 
 //---------------------------------------------------------------------------
 //
-/// 指定されたパスのキャッシュを更新する
+/// Update the cache for the specified path
 //
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCache(const BYTE* szHumanPath)
@@ -518,7 +518,7 @@ void CHostDrv::CleanCache(const BYTE* szHumanPath)
 
 //---------------------------------------------------------------------------
 //
-/// 指定されたパス以下のキャッシュを全て更新する
+/// Update the cache below and including the specified path
 //
 //---------------------------------------------------------------------------
 void CHostDrv::CleanCacheChild(const BYTE* szHumanPath)
@@ -537,7 +537,7 @@ void CHostDrv::CleanCacheChild(const BYTE* szHumanPath)
 
 //---------------------------------------------------------------------------
 //
-/// 指定されたパスのキャッシュを削除する
+/// Delete the cache for the specified path
 //
 //---------------------------------------------------------------------------
 void CHostDrv::DeleteCache(const BYTE* szHumanPath)
@@ -556,18 +556,18 @@ void CHostDrv::DeleteCache(const BYTE* szHumanPath)
 
 //---------------------------------------------------------------------------
 //
-/// 指定されたパスがキャッシュされているか検索する
+/// Check if the specified path is cached
 ///
-/// 所有するキャシュバッファの中から完全一致で検索し、見つかればその名称を返す。
-/// ファイル名を除外しておくこと。
-/// 必ず上位で排他制御を行なうこと。
+/// Check if whether it is a perfect match with the cache buffer, and return the name if found.
+/// File names are excempted.
+/// Make sure to lock from the top.
 //
 //---------------------------------------------------------------------------
 CHostPath* CHostDrv::FindCache(const BYTE* szHuman)
 {
 	ASSERT(szHuman);
 
-	// 所持している全てのファイル名の中から完全一致するものを検索
+	// Search for something that matches perfectly with either of the stored file names
 	for (CHostPath* p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
 		if (p->isSameHuman(szHuman))
 			return p;
@@ -579,11 +579,11 @@ CHostPath* CHostDrv::FindCache(const BYTE* szHuman)
 
 //---------------------------------------------------------------------------
 //
-/// キャッシュ情報を元に、ホスト側の名称を獲得する
+/// Get the host side name from cached data.
 ///
-/// パスがキャッシュにあるか確認。なければエラー。
-/// 見つかったキャッシュの更新チェック。更新が必要ならエラー。
-/// 必ず上位で排他制御を行なうこと。
+/// Confirm if the path is cached. If not, throw an error.
+/// Carry out an update check on found cache. If an update is needed, throw an error.
+/// Make sure to lock from the top.
 //
 //---------------------------------------------------------------------------
 CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
@@ -591,21 +591,21 @@ CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
 	ASSERT(pFiles);
 	ASSERT(strlen((const char*)pFiles->GetHumanPath()) < HUMAN68K_PATH_MAX);
 
-	// キャッシュ検索
+	// Search in cache
 	CHostPath* pPath = FindCache(pFiles->GetHumanPath());
 	if (pPath == NULL) {
-		return NULL;	// エラー: キャッシュなし
+		return NULL;	// Error: No cache
 	}
 
-	// リング先頭へ移動
+	// Move to the beginning of the ring
 	pPath->Insert(&m_cRing);
 
-	// キャッシュ更新チェック
+	// Cache update check
 	if (pPath->isRefresh()) {
-		return NULL;	// エラー: キャッシュ更新が必要
+		return NULL;	// Error: Cache update is required
 	}
 
-	// ホスト側のパス名を保存
+	// Store the host side path
 	pFiles->SetResult(pPath->GetHost());
 
 	return pPath;
@@ -613,22 +613,22 @@ CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側の名称の構築に必要な情報をすべて取得する
+/// Get all the data required for a host side name structure
 ///
-/// ファイル名は省略可能。(普通は指定しない)
-/// 必ず上位で排他制御を行なうこと。
-/// ベースパス末尾にパス区切り文字をつけないよう注意。
-/// ファイルアクセスが多発する可能性があるときは、VMスレッドの動作を開始させる。
+/// File names can be abbreviated. (Normally not selected)
+/// Make sure to lock from the top.
+/// Be careful not to append the path separator char to the end of the base path.
+/// Initiate VM threads when there is a chance of multiple file accesses.
 ///
-/// 使いかた:
-/// CopyCache()してエラーの場合はMakeCache()する。必ず正しいホスト側のパスが取得できる。
+/// How to use:
+/// When CopyCache() throws an error execute MakeCache(). It ensures you get a correct host side path.
 ///
-/// ファイル名とパス名をすべて分離する。
-/// 上位ディレクトリから順に、キャッシュされているかどうか確認。
-/// キャッシュされていれば破棄チェック。破棄した場合未キャッシュ扱いとなる。
-/// キャッシュされていなければキャッシュを構築。
-/// 順番にすべてのディレクトリ・ファイル名に対して行ない終了。
-/// エラーが発生した場合はNULLとなる。
+/// Split all file names and path names.
+/// Confirm that it's cached from the top level directory down.
+/// If it's cached, do a destruction check. If it was destroyed, treat it as uncached.
+/// If it isn't cached, build cache.
+/// Exit after processing all directory and file names in order.
+/// Make it NULL is an error is thrown.
 //
 //---------------------------------------------------------------------------
 CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
@@ -639,7 +639,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 	ASSERT(m_szBase);
 	ASSERT(strlen(m_szBase) < FILEPATH_MAX);
 
-	BYTE szHumanPath[HUMAN68K_PATH_MAX];	// ルートから順にパス名が入る
+	BYTE szHumanPath[HUMAN68K_PATH_MAX];	// Path names are entered in order from the route
 	szHumanPath[0] = '\0';
 	size_t nHumanPath = 0;
 
@@ -650,35 +650,35 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 	CHostPath* pPath;
 	const BYTE* p = pFiles->GetHumanPath();
 	for (;;) {
-		// パス区切りを追加
+		// Add path separators
 		if (nHumanPath + 1 >= HUMAN68K_PATH_MAX)
-			return NULL;				// エラー: Human68kパスが長すぎる
+			return NULL;				// Error: The Human68k path is too long
 		szHumanPath[nHumanPath++] = '/';
 		szHumanPath[nHumanPath] = '\0';
 		if (nHostPath + 1 >= FILEPATH_MAX)
-			return NULL;				// エラー: ホスト側のパスが長すぎる
+			return NULL;				// Error: The host side path is too long
 		szHostPath[nHostPath++] = _T('/');
 		szHostPath[nHostPath] = _T('\0');
 
-		// ファイルいっこいれる
-		BYTE szHumanFilename[24];		// ファイル名部分
+		// Insert one file
+		BYTE szHumanFilename[24];		// File name part
 		p = SeparateCopyFilename(p, szHumanFilename);
 		if (p == NULL)
-			return NULL;				// エラー: ファイル名読み込み失敗
+			return NULL;				// Error: Failed to read file name
 		size_t n = strlen((const char*)szHumanFilename);
 		if (nHumanPath + n >= HUMAN68K_PATH_MAX)
-			return NULL;				// エラー: Human68kパスが長すぎる
+			return NULL;				// Error: The Human68k path is too long
 
-		// 該当パスがキャッシュされているか？
+		// Is the relevant path cached?
 		pPath = FindCache(szHumanPath);
 		if (pPath == NULL) {
-			// キャッシュ最大数チェック
+			// Check for max number of cache
 			if (m_nRing >= XM6_HOST_DIRENTRY_CACHE_MAX) {
-				// 最も古いキャッシュを破棄して再利用
+				// Destroy the oldest cache and reuse it
 				pPath = (CHostPath*)m_cRing.Prev();
-				pPath->Clean();			// 全ファイル解放 更新チェック用ハンドルも解放
+				pPath->Clean();			// Release all files. Release update check handlers.
 			} else {
-				// 新規登録
+				// Register new
 				pPath = new CHostPath;
 				ASSERT(pPath);
 				m_nRing++;
@@ -686,43 +686,42 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 			pPath->SetHuman(szHumanPath);
 			pPath->SetHost(szHostPath);
 
-			// 状態更新
+			// Update status
 			pPath->Refresh();
 		}
 
-		// キャッシュ更新チェック
+		// Cache update check
 		if (pPath->isRefresh()) {
-			// 更新
 			Update();
 
-			// 状態更新
+			// Update status
 			pPath->Refresh();
 		}
 
-		// リング先頭へ
+		// Into the beginning of the ring
 		pPath->Insert(&m_cRing);
 
-		// ファイル名がなければここで終了
+		// Exit if there is not file name
 		if (n == 0)
 			break;
 
-		// 次のパスを検索
-		// パスの途中ならディレクトリかどうか確認
+		// Search the next path
+		// Confirm if directory from the middle of the path
 		const CHostFilename* pFilename;
 		if (*p != '\0')
 			pFilename = pPath->FindFilename(szHumanFilename, Human68k::AT_DIRECTORY);
 		else
 			pFilename = pPath->FindFilename(szHumanFilename);
 		if (pFilename == NULL)
-			return NULL;				// エラー: 途中のパス名/ファイル名が見つからない
+			return NULL;				// Error: Could not find path or file names in the middle
 
-		// パス名を連結
+		// Link path name
 		strcpy((char*)szHumanPath + nHumanPath, (const char*)szHumanFilename);
 		nHumanPath += n;
 
 		n = strlen(pFilename->GetHost());
 		if (nHostPath + n >= FILEPATH_MAX)
-			return NULL;				// エラー: ホスト側のパスが長すぎる
+			return NULL;				// Error: Host side path is too long
 		strcpy(szHostPath + nHostPath, pFilename->GetHost());
 		nHostPath += n;
 
@@ -731,7 +730,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 			break;
 	}
 
-	// ホスト側のパス名を保存
+	// Store the host side path name
 	pFiles->SetResult(szHostPath);
 
 	return pPath;
@@ -739,52 +738,50 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
+/// Search for host side name (path name + file name (can be abbeviated) + attribute)
 ///
-/// あらかじめ全てのHuman68k用パラメータを設定しておくこと。
+/// Set all Human68k parameters once more.
 //
 //---------------------------------------------------------------------------
 BOOL CHostDrv::Find(CHostFiles* pFiles)
 {
 	ASSERT(pFiles);
 
-	// 排他制御開始
 	Lock();
 
-	// パス名獲得およびキャッシュ構築
+	// Get path name and build cache
 	CHostPath* pPath = CopyCache(pFiles);
 	if (pPath == NULL) {
 		pPath = MakeCache(pFiles);
 		if (pPath == NULL) {
 			Unlock();
 			CleanCache();
-			return FALSE;	// エラー: キャッシュ構築失敗
+			return FALSE;	// Error: Failed to build cache
 		}
 	}
 
-	// ホスト側のパス名を保存
+	// Store host side path
 	pFiles->SetResult(pPath->GetHost());
 
-	// パス名のみなら終了
+	// Exit if only path name
 	if (pFiles->isPathOnly()) {
 		Unlock();
-		return TRUE;		// 正常終了: パス名のみ
+		return TRUE;		// Normal exit: only path name
 	}
 
-	// ファイル名検索
+	// Search file name
 	const CHostFilename* pFilename = pFiles->Find(pPath);
 	if (pFilename == NULL) {
 		Unlock();
-		return FALSE;		// エラー: ファイル名が獲得できません
+		return FALSE;		// Error: Could not get file name
 	}
 
-	// Human68k側の検索結果保存
+	// Store the Human68k side search results
 	pFiles->SetEntry(pFilename);
 
-	// ホスト側のフルパス名保存
+	// Store the host side full path name
 	pFiles->AddResult(pFilename->GetHost());
 
-	// 排他制御終了
 	Unlock();
 
 	return TRUE;
@@ -792,15 +789,10 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 
 //===========================================================================
 //
-//	ディレクトリエントリ ファイル名
+//	Directory entry: File name
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-/// デフォルトコンストラクタ
-//
-//---------------------------------------------------------------------------
 CHostFilename::CHostFilename()
 {
 	m_bCorrect = FALSE;
@@ -810,7 +802,7 @@ CHostFilename::CHostFilename()
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側の名称を設定
+/// Set host side name
 //
 //---------------------------------------------------------------------------
 void CHostFilename::SetHost(const TCHAR* szHost)
@@ -823,7 +815,7 @@ void CHostFilename::SetHost(const TCHAR* szHost)
 
 //---------------------------------------------------------------------------
 //
-/// Human68k側のファイル名要素をコピー
+/// Copy the Human68k file name elements
 //
 //---------------------------------------------------------------------------
 BYTE* CHostFilename::CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLast)	// static
@@ -841,15 +833,15 @@ BYTE* CHostFilename::CopyName(BYTE* pWrite, const BYTE* pFirst, const BYTE* pLas
 
 //---------------------------------------------------------------------------
 //
-/// Human68k側の名称を変換
+/// Convert the Human68k side name
 ///
-/// あらかじめSetHost()を実行しておくこと。
-/// 18+3の命名規則に従った名前変換を行なう。
-/// ファイル名先頭および末尾の空白は、Human68kで扱えないため自動的に削除される。
-/// ディレクトリエントリの名前部分を、ファイル名変換時の拡張子の位置情報を使って生成する。
-/// その後、ファイル名の異常判定を行なう。(スペース8文字だけのファイル名など)
-/// ファイル名の重複判定は行なわないので注意。これらの判定は上位クラスで行なう。
-/// TwentyOne version 1.36c modified +14 patchlevel9以降の拡張子規則に対応させる。
+/// Once more, execute SetHost().
+/// Carry out name conversion to the 18+3 standard.
+/// Automatically delete spaces in the beginning and end of the names, since Human68k can't handle them.
+/// The directory entry name segment is created at the time of conversion using knowledge of the location of the file name extension.
+/// Afterwards, a file name validity check is performed. (Ex. file names consisting of 8 spaces only.)
+/// No file name duplication check is performed so be careful. Such validation is carried out in classes higher up.
+/// Adhers to the naming standards of: TwentyOne version 1.36c modified +14 patchlevel9 or later
 //
 //---------------------------------------------------------------------------
 void CHostFilename::ConvertHuman(int nCount)
@@ -857,10 +849,10 @@ void CHostFilename::ConvertHuman(int nCount)
 	char szHost[FILEPATH_MAX];
 
 
-	// 特殊ディレクトリ名の場合は変換しない
+	// Don't do conversion for special directory names
 	if (m_szHost[0] == _T('.') &&
 		(m_szHost[1] == _T('\0') || (m_szHost[1] == _T('.') && m_szHost[2] == _T('\0')))) {
-		strcpy((char*)m_szHuman, m_szHost);	/// @warning Unicode時要修正 → 済
+		strcpy((char*)m_szHuman, m_szHost);
 
 		m_bCorrect = TRUE;
 		m_pszHumanLast = m_szHuman + strlen((const char*)m_szHuman);
@@ -868,17 +860,17 @@ void CHostFilename::ConvertHuman(int nCount)
 		return;
 	}
 
-	size_t nMax = 18;	// ベース部分(ベース名と拡張子名)のバイト数
+	size_t nMax = 18;	// Number of bytes for the base segment (base name and extension)
 	DWORD nOption = CFileSys::GetFileOption();
 	if (nOption & WINDRV_OPT_CONVERT_LENGTH)
 		nMax = 8;
 
-	// ベース名部分の補正準備
+	// Preparations to adjust the base name segment
 	BYTE szNumber[8];
 	BYTE* pNumber = NULL;
 	if (nCount >= 0) {
 		pNumber = &szNumber[8];
-		for (DWORD i = 0; i < 5; i++) {	// 最大5+1桁まで (ベース名先頭2バイトは必ず残す)
+		for (DWORD i = 0; i < 5; i++) {	// Max 5+1 digits (always leave the first 2 bytes of the base name)
 			int n = nCount % 36;
 			nMax--;
 			pNumber--;
@@ -895,8 +887,7 @@ void CHostFilename::ConvertHuman(int nCount)
 		*pNumber = c;
 	}
 
-	// 文字変換
-	/// @warning Unicode未対応。いずれUnicodeの世界に飮まれた時はここで変換を行なう → 済
+	// Char conversion
 	BYTE szHuman[FILEPATH_MAX];
 	const BYTE* pFirst = szHuman;
 	const BYTE* pLast;
@@ -917,7 +908,7 @@ void CHostFilename::ConvertHuman(int nCount)
 					if (nOption & WINDRV_OPT_CONVERT_SPACE)
 						c = '_';
 					else if (pWrite == szHuman)
-						continue;	// 先頭の空白は無視
+						continue;	// Ignore spaces in the beginning
 					break;
 				case '=':
 				case '+':
@@ -940,7 +931,7 @@ void CHostFilename::ConvertHuman(int nCount)
 						c = '_';
 					break;
 				case '.':
-					if (pRead - 1 == pPeriod) {		// Human68k拡張子は例外とする
+					if (pRead - 1 == pPeriod) {		// Make exception for Human68k extensions
 						pExt = pWrite;
 						break;
 					}
@@ -965,76 +956,76 @@ void CHostFilename::ConvertHuman(int nCount)
 		pLast = pWrite - 1;
 	}
 
-	// 拡張子補正
+	// Adjust extensions
 	if (pExt) {
-		// 末尾の空白を削除する
+		// Delete spaces at the end
 		while (pExt < pLast - 1 && *(pLast - 1) == ' ') {
 			pLast--;
 			BYTE* p = (BYTE*)pLast;
 			*p = '\0';
 		}
 
-		// 変換後に実体がなくなった場合は削除
+		// Delete if the file name disappeared after conversion
 		if (pExt + 1 >= pLast) {
 			pLast = pExt;
 			BYTE* p = (BYTE*)pLast;
-			*p = '\0';		// 念のため
+			*p = '\0';		// Just in case
 		}
 	} else {
 		pExt = pLast;
 	}
 
-	// 登場人物紹介
+	// Introducing the cast of characters
 	//
-	// pFirst: 俺はリーダー。ファイル名先頭
-	// pCut: 通称フェイス。最初のピリオドの出現位置 その後ベース名終端位置となる
-	// pSecond: よぉおまちどう。俺様こそマードック。拡張子名の開始位置。だから何。
-	// pExt: B・A・バラカス。Human68k拡張子の天才だ。でも、3文字より長い名前は勘弁な。
-	// 最後のピリオドの出現位置 該当しなければpLastと同じ値
+	// pFirst: I'm the glorious leader. The start of the file name.
+	// pCut: A.k.a. Phase. Location of the initial period. Afterwards becomes the end of the base name.
+	// pSecond: Hello there! I'm the incredible Murdock. The start of the file name extension. What's it to you?
+	// pExt: B.A. Baracus. The Human68k extension genius. But don't you dare giving me more than 3 chars, fool.
+	// The location of the final period. If not applicable, gets the same value as pLast.
 	//
 	// ↓pFirst            ↓pStop ↓pSecond ←                ↓pExt
 	// T h i s _ i s _ a . V e r y . L o n g . F i l e n a m e . t x t \0
-	//         ↑pCut ← ↑pCut初期位置                                ↑pLast
+	//         ↑pCut ← ↑pCut initial location                   ↑pLast
 	//
-	// 上記の場合、変換後は This.Long.Filename.txt となる
+	// The above example becomes "This.Long.Filename.txt" after conversion
 
-	// 1文字目判定
+	// Evaluate first char
 	const BYTE* pCut = pFirst;
-	const BYTE* pStop = pExt - nMax;	// 拡張子名は最大17バイトとする(ベース名を残す)
+	const BYTE* pStop = pExt - nMax;	// Allow for up to 17 bytes for extension (leave base name)
 	if (pFirst < pExt) {
-		pCut++;		// 必ず1バイトはベース名を使う
+		pCut++;		// 1 byte always uses the base name
 		BYTE c = *pFirst;
-		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// 厳密には 0x81～0x9F 0xE0～0xEF
-			pCut++;		// ベース名 最小2バイト
-			pStop++;	// 拡張子名 最大16バイト
+		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F 0xE0~0xEF
+			pCut++;		// Base name. At least 2 bytes.
+			pStop++;	// File extension. Max 16 bytes.
 		}
 	}
 	if (pStop < pFirst)
 		pStop = pFirst;
 
-	// ベース名判定
-	pCut = (BYTE*)strchr((const char*)pCut, '.');	// SJIS2バイト目は必ず0x40以上なので問題ない
+	// Evaluate base name
+	pCut = (BYTE*)strchr((const char*)pCut, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
 	if (pCut == NULL)
 		pCut = pLast;
 	if ((size_t)(pCut - pFirst) > nMax)
-		pCut = pFirst + nMax;	// 後ほどSJIS2バイト判定/補正を行なう ここで判定してはいけない
+		pCut = pFirst + nMax;	// Execute Shift-JIS 2 byte evaluation/adjustment later. Not allowed to do it here.
 
-	// 拡張子名判定
+	// Evaluate extension
 	const BYTE* pSecond = pExt;
 	const BYTE* p;
 	for (p = pExt - 1; pStop < p; p--) {
 		if (*p == '.')
-			pSecond = p;	// SJIS2バイト目は必ず0x40以上なので問題ない
+			pSecond = p;	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
 	}
 
-	// ベース名を短縮
-	size_t nExt = pExt - pSecond;	// 拡張子名部分の長さ
+	// Shorten base name
+	size_t nExt = pExt - pSecond;	// Length of extension segment
 	if ((size_t)(pCut - pFirst) + nExt > nMax)
 		pCut = pFirst + nMax - nExt;
-	// 2バイト文字の途中ならさらに短縮
+	// If in the middle of a 2 byte char, shorten even further
 	for (p = pFirst; p < pCut; p++) {
 		BYTE c = *p;
-		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// 厳密には 0x81～0x9F 0xE0～0xEF
+		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F 0xE0~0xEF
 			p++;
 			if (p >= pCut) {
 				pCut--;
@@ -1043,31 +1034,31 @@ void CHostFilename::ConvertHuman(int nCount)
 		}
 	}
 
-	// 名前の結合
+	// Joining the name
 	BYTE* pWrite = m_szHuman;
-	pWrite = CopyName(pWrite, pFirst, pCut);	// ベース名を転送
+	pWrite = CopyName(pWrite, pFirst, pCut);	// Transfer the base name
 	if (pNumber)
-		pWrite = CopyName(pWrite, pNumber, &szNumber[8]);	// 補正文字を転送
-	pWrite = CopyName(pWrite, pSecond, pExt);	// 拡張子名を転送
-	m_pszHumanExt = pWrite;						// 拡張子位置保存
-	pWrite = CopyName(pWrite, pExt, pLast);		// Human68k拡張子を転送
-	m_pszHumanLast = pWrite;					// 終端位置保存
+		pWrite = CopyName(pWrite, pNumber, &szNumber[8]);	// Transfer the adjustment char
+	pWrite = CopyName(pWrite, pSecond, pExt);	// Transfer the extension name
+	m_pszHumanExt = pWrite;						// Store the extention position
+	pWrite = CopyName(pWrite, pExt, pLast);		// Transfer the Human68k extension
+	m_pszHumanLast = pWrite;					// Store the end position
 	*pWrite = '\0';
 
-	// 変換結果の確認
+	// Confirm the conversion results
 	m_bCorrect = TRUE;
 
-	// ファイル名本体が存在しなければ不合格
+	// Fail if the base file name does not exist
 	if (m_pszHumanExt <= m_szHuman)
 		m_bCorrect = FALSE;
 
-	// ファイル名本体が1文字以上でかつ空白で終了していれば不合格
-	// ファイル名本体が8文字以上の場合、理論上は空白での終了が表現可
-	// 能だが、Human68kでは正しく扱えないため、これも不合格とする
+	// Fail if the base file name is more than 1 char and ends with a space
+	// While it is theoretically valid to have a base file name exceed 8 chars,
+	// Human68k is unable to handle it, so failing this case too.
 	else if (m_pszHumanExt[-1] == ' ')
 		m_bCorrect = FALSE;
 
-	// 変換結果が特殊ディレクトリ名と同じなら不合格
+	// Fail if the conversion result is the same as a special directory name
 	if (m_szHuman[0] == '.' &&
 		(m_szHuman[1] == '\0' || (m_szHuman[1] == '.' && m_szHuman[2] == '\0')))
 		m_bCorrect = FALSE;
@@ -1075,9 +1066,9 @@ void CHostFilename::ConvertHuman(int nCount)
 
 //---------------------------------------------------------------------------
 //
-/// Human68k側の名称を複製
+/// Human68k side name duplication
 ///
-/// ファイル名部分の情報を複製し、ConvertHuman()相当の初期化動作を行なう。
+/// Duplicates the file name segment data, then executes the correspoding initialization with ConvertHuman().
 //
 //---------------------------------------------------------------------------
 void CHostFilename::CopyHuman(const BYTE* szHuman)
@@ -1093,15 +1084,15 @@ void CHostFilename::CopyHuman(const BYTE* szHuman)
 
 //---------------------------------------------------------------------------
 //
-/// Human68kディレクトリエントリを設定
+/// Set Human68k directory entry
 ///
-/// ConvertHuman()で設定済みのファイル名をディレクトリエントリに反映する。
+/// Apply the set file name to the directory entry with ConvertHuman().
 //
 //---------------------------------------------------------------------------
 void CHostFilename::SetEntryName()
 {
 
-	// ファイル名設定
+	// Set file name
 	BYTE* p = m_szHuman;
 	size_t i;
 	for (i = 0; i < 8; i++) {
@@ -1130,18 +1121,18 @@ void CHostFilename::SetEntryName()
 
 //---------------------------------------------------------------------------
 //
-/// Human68k側の名称が加工されたか調査
+/// Investigate if the Human68k side name has been processed
 //
 //---------------------------------------------------------------------------
 BOOL CHostFilename::isReduce() const
 {
 
-	return strcmp((char *)m_szHost, (const char*)m_szHuman) != 0;	/// @warning Unicode時要修正 → 済
+	return strcmp((char *)m_szHost, (const char*)m_szHuman) != 0;
 }
 
 //---------------------------------------------------------------------------
 //
-/// Human68kディレクトリエントリの属性判定
+/// Evaluate Human68k directory entry attribute
 //
 //---------------------------------------------------------------------------
 BOOL CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
@@ -1156,26 +1147,26 @@ BOOL CHostFilename::CheckAttribute(DWORD nHumanAttribute) const
 
 //---------------------------------------------------------------------------
 //
-/// Human68kファイル名から拡張子を分離
+/// Split the extension from Human68k file name
 //
 //---------------------------------------------------------------------------
 const BYTE* CHostFilename::SeparateExt(const BYTE* szHuman)		// static
 {
-	// ファイル名の長さを獲得
+	// Obtain the file name length
 	size_t nLength = strlen((const char*)szHuman);
 	const BYTE* pFirst = szHuman;
 	const BYTE* pLast = pFirst + nLength;
 
-	// Human68k拡張子の位置を確認
-	const BYTE* pExt = (BYTE*)strrchr((const char*)pFirst, '.');	// SJIS2バイト目は必ず0x40以上なので問題ない
+	// Confirm the position of the Human68k extension
+	const BYTE* pExt = (BYTE*)strrchr((const char*)pFirst, '.');	// The 2nd byte of Shift-JIS is always 0x40 or higher, so this is ok
 	if (pExt == NULL)
 		pExt = pLast;
-	// ファイル名が20～22文字かつ19文字目が'.'かつ'.'で終了というパターンを特別扱いする
+	// Special handling of the pattern where the file name is 20~22 chars, and the 19th char is '.' or ends with '.'
 	if (20 <= nLength && nLength <= 22 && pFirst[18] == '.' && pFirst[nLength - 1] == '.')
 		pExt = pFirst + 18;
-	// 拡張子の文字数を計算	(-1:なし 0:ピリオドだけ 1～3:Human68k拡張子 4以上:拡張子名)
+	// Calculate the number of chars in the extension (-1:None 0:Only period 1~3:Human68k extension 4 or above:extension name)
 	size_t nExt = pLast - pExt - 1;
-	// '.' が文字列先頭以外に存在して、かつ1～3文字の場合のみ拡張子とみなす
+	// Consider it an extension only when '.' is anywhere except the beginning of the string, and between 1~3 chars long
 	if (pExt == pFirst || nExt < 1 || nExt > 3)
 		pExt = pLast;
 
@@ -1184,17 +1175,12 @@ const BYTE* CHostFilename::SeparateExt(const BYTE* szHuman)		// static
 
 //===========================================================================
 //
-//	ディレクトリエントリ パス名
+//	Directory entry: path name
 //
 //===========================================================================
 
-DWORD CHostPath::g_nId;				///< 識別ID生成用カウンタ
+DWORD CHostPath::g_nId;				///< Identifier creation counter
 
-//---------------------------------------------------------------------------
-//
-/// デフォルトコンストラクタ
-//
-//---------------------------------------------------------------------------
 CHostPath::CHostPath()
 {
 	m_bRefresh = TRUE;
@@ -1202,16 +1188,11 @@ CHostPath::CHostPath()
 	m_tBackup = FALSE;
 
 #ifdef _DEBUG
-	// 必ず値が更新されるので初期化不要 (デバッグ時の初期動作確認用)
+	// Initialization is not required because this value always gets updated (used for debugging or initialization operation)
 	m_nId = 0;
 #endif	// _DEBUG
 }
 
-//---------------------------------------------------------------------------
-//
-/// デストラクタ final
-//
-//---------------------------------------------------------------------------
 CHostPath::~CHostPath()
 {
 	Clean();
@@ -1219,11 +1200,11 @@ CHostPath::~CHostPath()
 
 //---------------------------------------------------------------------------
 //
-/// ファイル名領域確保
+/// File name memory allocation
 ///
-/// ほとんどのケースでは、ホスト側ファイル名の長さはバッファ最大長に
-/// 比べて非常に短い。さらにファイル名は大量に生成される可能性がある。
-/// そのため文字数に応じた可変長で確保する。
+/// In most cases, the length of the host side file name is way shorter
+/// than the size of the buffer. In addition, file names may be created in huge volumes.
+/// Therefore, allocate variable lengths that correspond to the number of chars.
 //
 //---------------------------------------------------------------------------
 CHostPath::ring_t* CHostPath::Alloc(size_t nLength)	// static
@@ -1234,14 +1215,14 @@ CHostPath::ring_t* CHostPath::Alloc(size_t nLength)	// static
 	ring_t* p = (ring_t*)malloc(n);
 	ASSERT(p);
 
-	p->r.Init();	// 榛名は大丈夫です！
+	p->r.Init();	// This is nothing to worry about!
 
 	return p;
 }
 
 //---------------------------------------------------------------------------
 //
-// ファイル名領域解放
+// Release file name allocations
 //
 //---------------------------------------------------------------------------
 void CHostPath::Free(ring_t* pRing)	// static
@@ -1254,7 +1235,7 @@ void CHostPath::Free(ring_t* pRing)	// static
 
 //---------------------------------------------------------------------------
 //
-/// 再利用のための初期化
+/// Initialize for reuse
 //
 //---------------------------------------------------------------------------
 void CHostPath::Clean()
@@ -1262,7 +1243,7 @@ void CHostPath::Clean()
 
 	Release();
 
-	// 全ファイル名を解放
+	// Release all file names
 	ring_t* p;
 	while ((p = (ring_t*)m_cRing.Next()) != (ring_t*)&m_cRing) {
 		Free(p);
@@ -1271,7 +1252,7 @@ void CHostPath::Clean()
 
 //---------------------------------------------------------------------------
 //
-/// Human68k側の名称を直接指定する
+/// Specify Human68k side names directly
 //
 //---------------------------------------------------------------------------
 void CHostPath::SetHuman(const BYTE* szHuman)
@@ -1284,7 +1265,7 @@ void CHostPath::SetHuman(const BYTE* szHuman)
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側の名称を直接指定する
+/// Specify host side names directly
 //
 //---------------------------------------------------------------------------
 void CHostPath::SetHost(const TCHAR* szHost)
@@ -1297,7 +1278,7 @@ void CHostPath::SetHost(const TCHAR* szHost)
 
 //---------------------------------------------------------------------------
 //
-/// 文字列比較 (ワイルドカード対応)
+/// Compare arrays (supports wild cards)
 //
 //---------------------------------------------------------------------------
 int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFirst, const BYTE* pBufLast)
@@ -1307,59 +1288,59 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 	ASSERT(pBufFirst);
 	ASSERT(pBufLast);
 
-	// 文字比較
+	// Compare chars
 	BOOL bSkip0 = FALSE;
 	BOOL bSkip1 = FALSE;
 	for (const BYTE* p = pFirst; p < pLast; p++) {
-		// 1文字読み込み
+		// Read 1 char
 		BYTE c = *p;
 		BYTE d = '\0';
 		if (pBufFirst < pBufLast)
 			d = *pBufFirst++;
 
-		// 比較のための文字補正
+		// Ajust char for comparison
 		if (bSkip0 == FALSE) {
-			if (bSkip1 == FALSE) {	// cもdも1バイト目
-				if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// 厳密には 0x81～0x9F 0xE0～0xEF
+			if (bSkip1 == FALSE) {	// First byte for both c and d
+				if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F 0xE0~0xEF
 					bSkip0 = TRUE;
 				}
-				if ((0x80 <= d && d <= 0x9F) || 0xE0 <= d) {	// 厳密には 0x81～0x9F 0xE0～0xEF
+				if ((0x80 <= d && d <= 0x9F) || 0xE0 <= d) {	// Specifically 0x81~0x9F 0xE0~0xEF
 					bSkip1 = TRUE;
 				}
 				if (c == d)
-					continue;	// 高確率で判定完了する
+					continue;	// Finishes the evaluation here with high probability
 				if ((CFileSys::GetFileOption() & WINDRV_OPT_ALPHABET) == 0) {
 					if ('A' <= c && c <= 'Z')
-						c += 'a' - 'A';	// 小文字化
+						c += 'a' - 'A';	// To lower case
 					if ('A' <= d && d <= 'Z')
-						d += 'a' - 'A';	// 小文字化
+						d += 'a' - 'A';	// To lower case
 				}
-				// バックスラッシュをスラッシュに統一して比較する
+				// Unify slashes and backslashes for comparison
 				if (c == '\\') {
 					c = '/';
 				}
 				if (d == '\\') {
 					d = '/';
 				}
-			} else {		// cだけが1バイト目
-				if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// 厳密には 0x81～0x9F 0xE0～0xEF
+			} else {		// Only c is first byte
+				if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F 0xE0~0xEF
 					bSkip0 = TRUE;
 				}
 				bSkip1 = FALSE;
 			}
 		} else {
-			if (bSkip1 == FALSE) {	// dだけが1バイト目
+			if (bSkip1 == FALSE) {	// Only d is first byte
 				bSkip0 = FALSE;
-				if ((0x80 <= d && d <= 0x9F) || 0xE0 <= d) {	// 厳密には 0x81～0x9F 0xE0～0xEF
+				if ((0x80 <= d && d <= 0x9F) || 0xE0 <= d) {	// Specifically 0x81~0x9F 0xE0~0xEF
 					bSkip1 = TRUE;
 				}
-			} else {		// cもdも2バイト目
+			} else {		// Second byte for both c and d
 				bSkip0 = FALSE;
 				bSkip1 = FALSE;
 			}
 		}
 
-		// 比較
+		// Compare
 		if (c == d)
 			continue;
 		if (c == '?')
@@ -1652,7 +1633,7 @@ void CHostPath::Refresh()
 					if (pCheck == NULL) {
 						// 一致するものがなければ、実ファイルが存在するか確認
 						strcpy(szPath, m_szHost);
-						strcat(szPath, (const char*)pFilename->GetHuman());	/// @warning Unicode時要修正 → 済
+						strcat(szPath, (const char*)pFilename->GetHuman());
 						struct stat sb;
 						if (stat(S2U(szPath), &sb))
 							break;	// 利用可能パターンを発見

@@ -765,7 +765,6 @@ private:
 	static const BYTE*  SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer);
 										///< Split and copy the first element of the Human68k full path name
 
-	// Mutual exclusion
 	void  Lock() {}
 	void  Unlock() {}
 
@@ -903,7 +902,7 @@ public:
 	int Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl);	///< $55 - IOCTRL
 	int Flush(DWORD nUnit);							///< $56 - Flush
 	int CheckMedia(DWORD nUnit);						///< $57 - Media change check
-	int Lock(DWORD nUnit);							///< $58 - Mutual exclusion
+	int Lock(DWORD nUnit);							///< $58 - Lock
 
 	void SetOption(DWORD nOption);						///< Set option
 	DWORD GetOption() const { return m_nOption; }		///< Get option
