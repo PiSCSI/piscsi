@@ -291,6 +291,7 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_removed(device->IsRemoved());
 	status->set_locked(device->IsLocked());
 
+	properties->set_supports_params(device->SupportsParams());
 	for (const string& param : device->GetParams()) {
 		pb_device->add_params(param);
 	}
