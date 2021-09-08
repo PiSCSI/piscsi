@@ -291,8 +291,8 @@ function setupWiredNetworking() {
     read REPLY
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
-        echo "Available interfaces on this system:"
-	ip -o addr show scope link | awk '{split($4, a, "/"); print $2}'
+        echo "Available wired interfaces on this system:"
+	ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth
         echo "Please type the wired interface you want to use and press Enter:"
         read -r SELECTED
         LAN_INTERFACE=$SELECTED
@@ -345,7 +345,7 @@ function setupWirelessNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available interfaces on this system:"
-	ip -o addr show scope link | awk '{split($4, a, "/"); print $2}'
+	ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r SELECTED
         WLAN_INTERFACE=$SELECTED
