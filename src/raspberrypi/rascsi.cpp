@@ -553,7 +553,7 @@ void GetDeviceTypeProperties(PbServerInfo& server_info, PbDeviceType type)
 	delete device;
 }
 
-void GetDeviceTypeFeatures(PbServerInfo& server_info)
+void GetDeviceTypeProperties(PbServerInfo& server_info)
 {
 	GetDeviceTypeProperties(server_info, SAHD);
 	GetDeviceTypeProperties(server_info, SCHD);
@@ -620,7 +620,7 @@ void GetServerInfo(PbResult& result)
 	GetLogLevels(*server_info);
 	server_info->set_current_log_level(current_log_level);
 	server_info->set_default_image_folder(default_image_folder);
-	GetDeviceTypeFeatures(*server_info);
+	GetDeviceTypeProperties(*server_info);
 	GetAvailableImages(*server_info);
 	GetDevices(*server_info);
 	for (int id : reserved_ids) {
