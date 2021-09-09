@@ -120,11 +120,6 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		}
 	}
 
-	// Supports 256 or 512 sector sizes
-	if (sectorsize != 256 && sectorsize != 512) {
-		throw io_exception("Sector size must be 256 or 512 bytes");
-	}
-
 	// Image size consistency check
 	if (imgoffset + imgsize > size || (imgsize % sectorsize != 0)) {
 		throw io_exception("Image size consistency check failed");
