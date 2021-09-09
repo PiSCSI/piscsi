@@ -572,6 +572,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
+	properties->set_stoppable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
