@@ -66,7 +66,7 @@ SCSIBR::~SCSIBR()
 bool SCSIBR::Init(const list<string>& params)
 {
 	// Use default parameters if no parameters were provided
-	SetParams(params.empty() || params.front().empty() ? default_params : params);
+	SetParams(params.empty() ? default_params : params);
 
 #ifdef __linux__
 	// TAP Driver Generation

@@ -291,6 +291,7 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_removed(device->IsRemoved());
 	status->set_locked(device->IsLocked());
 
+	properties->set_supports_params(device->SupportsParams());
 	for (const string& param : device->GetParams()) {
 		pb_device->add_params(param);
 	}
@@ -1287,7 +1288,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_unit(unit);
 		device->set_type(type);
 		device->set_block_size(block_size);
-		device->add_params(optarg);
+		if (strlen(optarg)) {
+			device->add_params(optarg);
+		}
 
 		size_t separatorPos = name.find(':');
 		if (separatorPos != string::npos) {
