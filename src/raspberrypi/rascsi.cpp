@@ -536,6 +536,7 @@ void GetDeviceTypeProperties(PbServerInfo& server_info, PbDeviceType type)
 	types_properties->set_type(type);
 	PbDeviceProperties *properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
+	properties->set_read_only(device->IsReadOnly());
 	properties->set_protectable(device->IsProtectable());
 	properties->set_stoppable(device->IsStoppable());
 	properties->set_removable(device->IsRemovable());
