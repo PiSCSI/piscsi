@@ -567,7 +567,7 @@ CHostPath* CHostDrv::FindCache(const BYTE* szHuman)
 {
 	ASSERT(szHuman);
 
-	// Search for something that matches perfectly with either of the stored file names
+	// Find something that matches perfectly with either of the stored file names
 	for (CHostPath* p = (CHostPath*)m_cRing.Next(); p != &m_cRing;) {
 		if (p->isSameHuman(szHuman))
 			return p;
@@ -591,7 +591,7 @@ CHostPath* CHostDrv::CopyCache(CHostFiles* pFiles)
 	ASSERT(pFiles);
 	ASSERT(strlen((const char*)pFiles->GetHumanPath()) < HUMAN68K_PATH_MAX);
 
-	// Search in cache
+	// Find in cache
 	CHostPath* pPath = FindCache(pFiles->GetHumanPath());
 	if (pPath == NULL) {
 		return NULL;	// Error: No cache
@@ -705,7 +705,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 		if (n == 0)
 			break;
 
-		// Search the next path
+		// Find the next path
 		// Confirm if directory from the middle of the path
 		const CHostFilename* pFilename;
 		if (*p != '\0')
@@ -738,7 +738,7 @@ CHostPath* CHostDrv::MakeCache(CHostFiles* pFiles)
 
 //---------------------------------------------------------------------------
 //
-/// Search for host side name (path name + file name (can be abbeviated) + attribute)
+/// Find host side name (path name + file name (can be abbeviated) + attribute)
 ///
 /// Set all Human68k parameters once more.
 //
@@ -769,7 +769,7 @@ BOOL CHostDrv::Find(CHostFiles* pFiles)
 		return TRUE;		// Normal exit: only path name
 	}
 
-	// Search file name
+	// Find file name
 	const CHostFilename* pFilename = pFiles->Find(pPath);
 	if (pFilename == NULL) {
 		Unlock();
@@ -1278,7 +1278,7 @@ void CHostPath::SetHost(const TCHAR* szHost)
 
 //---------------------------------------------------------------------------
 //
-/// Compare arrays (supports wild cards)
+/// Compare arrays (supports wildcards)
 //
 //---------------------------------------------------------------------------
 int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFirst, const BYTE* pBufLast)
@@ -1355,78 +1355,72 @@ int CHostPath::Compare(const BYTE* pFirst, const BYTE* pLast, const BYTE* pBufFi
 
 //---------------------------------------------------------------------------
 //
-/// Human68k側の名称を比較する
+/// Compare Human68k side name
 //
 //---------------------------------------------------------------------------
 BOOL CHostPath::isSameHuman(const BYTE* szHuman) const
 {
 	ASSERT(szHuman);
 
-	// 文字数計算
+	// Calulate number of chars
 	size_t nLength = strlen((const char*)m_szHuman);
 	size_t n = strlen((const char*)szHuman);
 
-	// 文字数チェック
+	// Check number of chars
 	if (nLength != n)
 		return FALSE;
 
-	// Human68kパス名の比較
+	// Compare Human68k path name
 	return Compare(m_szHuman, m_szHuman + nLength, szHuman, szHuman + n) == 0;
 }
 
-//---------------------------------------------------------------------------
-//
-/// Human68k側の名称を比較する
-//
-//---------------------------------------------------------------------------
 BOOL CHostPath::isSameChild(const BYTE* szHuman) const
 {
 	ASSERT(szHuman);
 
-	// 文字数計算
+	// Calulate number of chars
 	size_t nLength = strlen((const char*)m_szHuman);
 	size_t n = strlen((const char*)szHuman);
 
-	// 文字数チェック
+	// Check number of chars
 	if (nLength < n)
 		return FALSE;
 
-	// Human68kパス名の比較
+	// Compare Human68k path name
 	return Compare(m_szHuman, m_szHuman + n, szHuman, szHuman + n) == 0;
 }
 
 //---------------------------------------------------------------------------
 //
-/// ファイル名を検索
+/// Find file name
 ///
-/// 所有するキャシュバッファの中から検索し、見つかればその名称を返す。
-/// パス名を除外しておくこと。
-/// 必ず上位で排他制御を行なうこと。
+/// Check if whether it is a perfect match with the cache buffer, and return the name if found.
+/// Path names are excempted.
+/// Make sure to lock from the top.
 //
 //---------------------------------------------------------------------------
 const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, DWORD nHumanAttribute) const
 {
 	ASSERT(szHuman);
 
-	// 文字数計算
+	// Calulate number of chars
 	const BYTE* pFirst = szHuman;
 	size_t nLength = strlen((const char*)pFirst);
 	const BYTE* pLast = pFirst + nLength;
 
-	// 所持している全てのファイル名の中から完全一致するものを検索
+	// Find something that matches perfectly with either of the stored file names
 	const ring_t* p = (ring_t*)m_cRing.Next();
 	for (; p != (ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
-		// 属性チェック
 		if (p->f.CheckAttribute(nHumanAttribute) == 0)
 			continue;
-		// 文字数計算
+		// Calulate number of chars
 		const BYTE* pBufFirst = p->f.GetHuman();
 		const BYTE* pBufLast = p->f.GetHumanLast();
 		size_t nBufLength = pBufLast - pBufFirst;
-		// 文字数チェック
+		// Check number of chars
 		if (nLength != nBufLength)
 			continue;
-		// ファイル名チェック
+		// File name check
 		if (Compare(pFirst, pLast, pBufFirst, pBufLast) == 0)
 			return &p->f;
 	}
@@ -1436,11 +1430,11 @@ const CHostFilename* CHostPath::FindFilename(const BYTE* szHuman, DWORD nHumanAt
 
 //---------------------------------------------------------------------------
 //
-/// ファイル名を検索 (ワイルドカード対応)
+/// Find file name (with wildcard support)
 ///
-/// 所有するバッファの中から検索し、見つかればその名称を返す。
-/// パス名を除外しておくこと。
-/// 必ず上位で排他制御を行なうこと。
+/// Check if whether it is a perfect match with the cache buffer, and return the name if found.
+/// Path names are excempted.
+/// Make sure to lock from the top.
 //
 //---------------------------------------------------------------------------
 const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const
@@ -1448,23 +1442,23 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 	ASSERT(szHuman);
 	ASSERT(pFind);
 
-	// 検索ファイル名を本体とHuman68k拡張子に分ける
+	// Split the base file name and Human68k file extension
 	const BYTE* pFirst = szHuman;
 	const BYTE* pLast = pFirst + strlen((const char*)pFirst);
 	const BYTE* pExt = CHostFilename::SeparateExt(pFirst);
 
-	// 開始地点へ移動
+	// Move to the start position
 	const ring_t* p = (ring_t*)m_cRing.Next();
 	if (pFind->count > 0) {
 		if (pFind->id == m_nId) {
-			// ディレクトリエントリが同一なら、前回の位置から即継続
+			// If the same directory entry, continue right away from the previous position
 			p = pFind->pos;
 		} else {
-			// 開始地点をディレクトリエントリ内容から検索する
+			// Find the start position in the directory entry contents
 			DWORD n = 0;
 			for (;; p = (ring_t*)p->r.Next()) {
 				if (p == (ring_t*)&m_cRing) {
-					// 同一エントリが見つからなかった場合、回数から推定 (念のため)
+					// Extrapolate from the count when the same entry isn't found (just in case)
 					p = (ring_t*)m_cRing.Next();
 					n = 0;
 					for (; p != (ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
@@ -1475,7 +1469,7 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 					break;
 				}
 				if (p->f.isSameEntry(&pFind->entry)) {
-					// 同一エントリを発見
+					// Same entry is found
 					pFind->count = n;
 					break;
 				}
@@ -1484,28 +1478,27 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 		}
 	}
 
-	// ファイル検索
+	// Find files
 	for (; p != (ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
 		pFind->count++;
 
-		// 属性チェック
 		if (p->f.CheckAttribute(nHumanAttribute) == 0)
 			continue;
 
-		// ファイル名を本体とHuman68k拡張子に分ける
+		// Split the base file name and Human68k file extension
 		const BYTE* pBufFirst = p->f.GetHuman();
 		const BYTE* pBufLast = p->f.GetHumanLast();
 		const BYTE* pBufExt = p->f.GetHumanExt();
 
-		// 本体比較
+		// Compare base file name
 		if (Compare(pFirst, pExt, pBufFirst, pBufExt))
 			continue;
 
-		// Human68k拡張子比較
-		// 拡張子.???の場合は、Human68k拡張子のピリオドなしにもマッチさせる
+		// Compare Human68k extension
+		// In the case of a '.???' extension, match the Human68k extension without period.
 		if (strcmp((const char*)pExt, ".???") == 0 ||
 			Compare(pExt, pLast, pBufExt, pBufLast) == 0) {
-			// 次の候補のディレクトリエントリ内容を記録
+			// Store the contents of the next candidate's directory entry
 			const ring_t* pNext = (ring_t*)p->r.Next();
 			pFind->id = m_nId;
 			pFind->pos = pNext;
@@ -1525,7 +1518,7 @@ const CHostFilename* CHostPath::FindFilenameWildcard(const BYTE* szHuman, DWORD 
 
 //---------------------------------------------------------------------------
 //
-/// ファイル変更が行なわれたか確認
+/// Confirm that the file update has been carried out
 //
 //---------------------------------------------------------------------------
 BOOL CHostPath::isRefresh()
@@ -1536,7 +1529,7 @@ BOOL CHostPath::isRefresh()
 
 //---------------------------------------------------------------------------
 //
-/// ASCIIソート関数
+/// ASCII sort function
 //
 //---------------------------------------------------------------------------
 int AsciiSort(const dirent **a, const dirent **b)
@@ -1546,31 +1539,31 @@ int AsciiSort(const dirent **a, const dirent **b)
 
 //---------------------------------------------------------------------------
 //
-/// ファイル再構成
+/// Reconstruct the file
 ///
-/// ここで初めて、ホスト側のファイルシステムの観測が行なわれる。
-/// 必ず上位で排他制御を行なうこと。
+/// Here we carry out the first host side file system observation.
+/// Always lock from the top.
 //
 //---------------------------------------------------------------------------
 void CHostPath::Refresh()
 {
 	ASSERT(strlen(m_szHost) + 22 < FILEPATH_MAX);
 
-	// タイムスタンプ保存
+	// Store time stamp
 	Backup();
 
 	TCHAR szPath[FILEPATH_MAX];
 	strcpy(szPath, m_szHost);
 
-	// 更新フラグ変更
+	// Update refresh flag
 	m_bRefresh = FALSE;
 
-	// 以前のキャッシュ内容を保存
+	// Store previous cache contents
 	CRing cRingBackup;
 	m_cRing.InsertRing(&cRingBackup);
 
-	// ファイル名登録
-	/// @todo ファイル重複処理をホスト側APIを経由せずに全て自前で処理する。
+	// Register file name
+	/// TODO: Process file duplication by ourselves rather than using the host API.
 	BOOL bUpdate = FALSE;
 	struct dirent **pd = NULL;
 	int nument = 0;
@@ -1586,7 +1579,7 @@ void CHostPath::Refresh()
 			maxent = nument;
 		}
 
-		// 最上位ディレクトリならカレントとパレントを対象外とする
+		// When at the top level directory, exclude current and parent
 		struct dirent* pe = pd[i];
 		if (m_szHuman[0] == '/' && m_szHuman[1] == 0) {
 			if (strcmp(pe->d_name, ".") == 0 || strcmp(pe->d_name, "..") == 0) {
@@ -1594,60 +1587,60 @@ void CHostPath::Refresh()
 			}
 		}
 
-		// ファイル名を獲得
+		// Get file name
 		strcpy(szFilename, U2S(pe->d_name));
 
-		// ファイル名領域確保
+		// Allocate file name memory
 		ring_t* pRing = Alloc(strlen(szFilename));
 		CHostFilename* pFilename = &pRing->f;
 		pFilename->SetHost(szFilename);
 
-		// 以前のキャッシュ内容に該当するファイル名があればそのHuman68k名称を優先する
+		// If there is a relevant file name in the previous cache, prioritize that for the Human68k name
 		ring_t* pCache = (ring_t*)cRingBackup.Next();
 		for (;;) {
 			if (pCache == (ring_t*)&cRingBackup) {
-				pCache = NULL;			// 該当するエントリなし
-				bUpdate = TRUE;			// 新規エントリと確定
+				pCache = NULL;			// No relevant entry
+				bUpdate = TRUE;			// Confirm new entry
 				pFilename->ConvertHuman();
 				break;
 			}
 			if (strcmp(pFilename->GetHost(), pCache->f.GetHost()) == 0) {
-				pFilename->CopyHuman(pCache->f.GetHuman());	// Human68k名称のコピー
+				pFilename->CopyHuman(pCache->f.GetHuman());	// Copy Human68k name
 				break;
 			}
 			pCache = (ring_t*)pCache->r.Next();
 		}
 
-		// 新規エントリの場合はファイル名重複をチェックする
-		// ホスト側のファイル名から変更があったか、Human68kで表現できないファイル名の場合は
-		// 以下のチェックを全てパスするファイル名を新たに生成する
-		// ・正しいファイル名であること
-		// ・過去のエントリに同名のものが存在しないこと
-		// ・同名の実ファイル名が存在しないこと
-		if (pFilename->isReduce() || !pFilename->isCorrect()) {	// ファイル名変更が必要か確認
+		// If there is a new entry, carry out file name duplication check.
+		// If the host side file name changed, or if Human68k cannot express the file name,
+		// generate a new file name that passes all the below checks:
+		// - File name correctness
+		// - No duplicated names in previous entries
+		// - No entity with the same name exists
+		if (pFilename->isReduce() || !pFilename->isCorrect()) {	// Confirm that file name update is required
 			for (DWORD n = 0; n < XM6_HOST_FILENAME_PATTERN_MAX; n++) {
-				// 正しいファイル名かどうか確認
+				// Confirm file name validity
 				if (pFilename->isCorrect()) {
-					// 過去のエントリと一致するか確認
+					// Confirm match with previous entry
 					const CHostFilename* pCheck = FindFilename(pFilename->GetHuman());
 					if (pCheck == NULL) {
-						// 一致するものがなければ、実ファイルが存在するか確認
+						// If no match, confirm existence of real file
 						strcpy(szPath, m_szHost);
 						strcat(szPath, (const char*)pFilename->GetHuman());
 						struct stat sb;
 						if (stat(S2U(szPath), &sb))
-							break;	// 利用可能パターンを発見
+							break;	// Discover available patterns
 					}
 				}
-				// 新しい名前を生成
+				// Generate new name
 				pFilename->ConvertHuman(n);
 			}
 		}
 
-		// ディレクトリエントリ名称
+		// Directory entry name
 		pFilename->SetEntryName();
 
-		// 情報取得
+		// Get data
 		strcpy(szPath, m_szHost);
 		strcat(szPath, U2S(pe->d_name));
 
@@ -1655,7 +1648,6 @@ void CHostPath::Refresh()
 		if (stat(S2U(szPath), &sb))
 			continue;
 
-		// 属性
 		BYTE nHumanAttribute = Human68k::AT_ARCHIVE;
 		if (S_ISDIR(sb.st_mode))
 			nHumanAttribute = Human68k::AT_DIRECTORY;
@@ -1663,11 +1655,9 @@ void CHostPath::Refresh()
 			nHumanAttribute |= Human68k::AT_READONLY;
 		pFilename->SetEntryAttribute(nHumanAttribute);
 
-		// サイズ
 		DWORD nHumanSize = (DWORD)sb.st_size;
 		pFilename->SetEntrySize(nHumanSize);
 
-		// 日付時刻
 		WORD nHumanDate = 0;
 		WORD nHumanTime = 0;
 		struct tm* pt = localtime(&sb.st_mtime);
@@ -1678,25 +1668,24 @@ void CHostPath::Refresh()
 		pFilename->SetEntryDate(nHumanDate);
 		pFilename->SetEntryTime(nHumanTime);
 
-		// クラスタ番号設定
 		pFilename->SetEntryCluster(0);
 
-		// 以前のキャッシュ内容と比較
+		// Compare with previous cached contents
 		if (pCache) {
 			if (pCache->f.isSameEntry(pFilename->GetEntry())) {
-				Free(pRing);			// 今回作成したエントリは破棄し
-				pRing = pCache;			// 以前のキャッシュ内容を使う
+				Free(pRing);			// Destroy entry that was created here
+				pRing = pCache;			// Use previous cache
 			} else {
-				Free(pCache);			// 次回の検索対象から除外
-				bUpdate = TRUE;			// 一致しなければ更新あり
+				Free(pCache);			// Remove from the next search target
+				bUpdate = TRUE;			// Flag for update if no match
 			}
 		}
 
-		// リング末尾へ追加
+		// Add to end of ring
 		pRing->r.InsertTail(&m_cRing);
 	}
 
-	// ディレクトリエントリを解放
+	// Release directory entry
 	if (pd) {
 		for (int i = 0; i < nument; i++) {
 			free(pd[i]);
@@ -1704,14 +1693,14 @@ void CHostPath::Refresh()
 		free(pd);
 	}
 
-	// 残存するキャッシュ内容を削除
+	// Delete remaining cache
 	ring_t* p;
 	while ((p = (ring_t*)cRingBackup.Next()) != (ring_t*)&cRingBackup) {
-		bUpdate = TRUE;					// 削除によってエントリ数の減少が判明
+		bUpdate = TRUE;					// Confirms the decrease in entries due to deletion
 		Free(p);
 	}
 
-	// 更新が行なわれたら識別IDを変更
+	// Update the identifier if the update has been carried out
 	if (bUpdate)
 		m_nId = ++g_nId;
 	//	ASSERT(m_nId);
@@ -1719,7 +1708,7 @@ void CHostPath::Refresh()
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側のタイムスタンプを保存
+/// Store the host side time stamp
 //
 //---------------------------------------------------------------------------
 void CHostPath::Backup()
@@ -1732,7 +1721,7 @@ void CHostPath::Backup()
 	size_t len = strlen(szPath);
 
 	m_tBackup = 0;
-	if (len > 1) {	// ルートディレクトリの場合は何もしない
+	if (len > 1) {	// Don't do anything if it is the root directory
 		len--;
 		ASSERT(szPath[len] == _T('/'));
 		szPath[len] = _T('\0');
@@ -1744,7 +1733,7 @@ void CHostPath::Backup()
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側のタイムスタンプを復元
+/// Restore the host side time stamp
 //
 //---------------------------------------------------------------------------
 void CHostPath::Restore() const
@@ -1771,7 +1760,7 @@ void CHostPath::Restore() const
 
 //---------------------------------------------------------------------------
 //
-/// 更新
+/// Update
 //
 //---------------------------------------------------------------------------
 void CHostPath::Release()
@@ -1782,15 +1771,10 @@ void CHostPath::Release()
 
 //===========================================================================
 //
-//	ディレクトリエントリ管理
+//	Manage directory entries
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-/// デフォルトコンストラクタ
-//
-//---------------------------------------------------------------------------
 CHostEntry::CHostEntry()
 {
 	for (size_t n = 0; n < DriveMax; n++) {
@@ -1800,17 +1784,12 @@ CHostEntry::CHostEntry()
 	m_nTimeout = 0;
 }
 
-//---------------------------------------------------------------------------
-//
-/// デストラクタ final
-//
-//---------------------------------------------------------------------------
 CHostEntry::~CHostEntry()
 {
 	Clean();
 
 #ifdef _DEBUG
-	// オブジェクト確認
+	// Confirm object
 	for (size_t n = 0; n < DriveMax; n++) {
 		ASSERT(m_pDrv[n] == NULL);
 	}
@@ -1819,14 +1798,14 @@ CHostEntry::~CHostEntry()
 
 //---------------------------------------------------------------------------
 //
-/// 初期化 (ドライバ組込み時)
+/// Initialize (when the driver is installed)
 //
 //---------------------------------------------------------------------------
 void CHostEntry::Init()
 {
 
 #ifdef _DEBUG
-	// オブジェクト確認
+	// Confirm object
 	for (size_t n = 0; n < DriveMax; n++) {
 		ASSERT(m_pDrv[n] == NULL);
 	}
@@ -1835,13 +1814,13 @@ void CHostEntry::Init()
 
 //---------------------------------------------------------------------------
 //
-/// 解放 (起動・リセット時)
+/// Release (at startup and reset)
 //
 //---------------------------------------------------------------------------
 void CHostEntry::Clean()
 {
 
-	// オブジェクト削除
+	// Delete object
 	for (size_t n = 0; n < DriveMax; n++) {
 		delete m_pDrv[n];
 		m_pDrv[n] = NULL;
@@ -1850,7 +1829,7 @@ void CHostEntry::Clean()
 
 //---------------------------------------------------------------------------
 //
-/// 全てのキャッシュを更新する
+/// Update all cache
 //
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache()
@@ -1866,7 +1845,7 @@ void CHostEntry::CleanCache()
 
 //---------------------------------------------------------------------------
 //
-/// 指定されたユニットのキャッシュを更新する
+/// Update the cache for the specified unit
 //
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache(DWORD nUnit)
@@ -1879,7 +1858,7 @@ void CHostEntry::CleanCache(DWORD nUnit)
 
 //---------------------------------------------------------------------------
 //
-/// 指定されたパスのキャッシュを更新する
+/// Update the cache for the specified path
 //
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCache(DWORD nUnit, const BYTE* szHumanPath)
@@ -1893,7 +1872,7 @@ void CHostEntry::CleanCache(DWORD nUnit, const BYTE* szHumanPath)
 
 //---------------------------------------------------------------------------
 //
-/// 指定されたパス以下のキャッシュを全て更新する
+/// Update all cache for the specified path and below
 //
 //---------------------------------------------------------------------------
 void CHostEntry::CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath)
@@ -1907,7 +1886,7 @@ void CHostEntry::CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath)
 
 //---------------------------------------------------------------------------
 //
-/// 指定されたパスのキャッシュを削除する
+/// Delete cache for the specified path
 //
 //---------------------------------------------------------------------------
 void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath)
@@ -1921,7 +1900,7 @@ void CHostEntry::DeleteCache(DWORD nUnit, const BYTE* szHumanPath)
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側の名称を検索 (パス名+ファイル名(省略可)+属性)
+/// Find host side names (path name + file name (can be abbreviated) + attribute)
 //
 //---------------------------------------------------------------------------
 BOOL CHostEntry::Find(DWORD nUnit, CHostFiles* pFiles)
@@ -1937,7 +1916,7 @@ void CHostEntry::ShellNotify(DWORD, const TCHAR*) {}
 
 //---------------------------------------------------------------------------
 //
-/// ドライブ設定
+/// Drive settings
 //
 //---------------------------------------------------------------------------
 void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
@@ -1950,7 +1929,7 @@ void CHostEntry::SetDrv(DWORD nUnit, CHostDrv* pDrv)
 
 //---------------------------------------------------------------------------
 //
-/// 書き込み禁止か？
+/// Is it write-protected?
 //
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
@@ -1963,7 +1942,7 @@ BOOL CHostEntry::isWriteProtect(DWORD nUnit) const
 
 //---------------------------------------------------------------------------
 //
-/// アクセス可能か？
+/// Is it accessible?
 //
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isEnable(DWORD nUnit) const
@@ -1976,7 +1955,7 @@ BOOL CHostEntry::isEnable(DWORD nUnit) const
 
 //---------------------------------------------------------------------------
 //
-/// メディアチェック
+/// Media check
 //
 //---------------------------------------------------------------------------
 BOOL CHostEntry::isMediaOffline(DWORD nUnit)
@@ -1989,7 +1968,7 @@ BOOL CHostEntry::isMediaOffline(DWORD nUnit)
 
 //---------------------------------------------------------------------------
 //
-/// メディアバイトの取得
+/// Get media byte
 //
 //---------------------------------------------------------------------------
 BYTE CHostEntry::GetMediaByte(DWORD nUnit) const
@@ -2002,7 +1981,7 @@ BYTE CHostEntry::GetMediaByte(DWORD nUnit) const
 
 //---------------------------------------------------------------------------
 //
-/// ドライブ状態の取得
+/// Get drive status
 //
 //---------------------------------------------------------------------------
 DWORD CHostEntry::GetStatus(DWORD nUnit) const
@@ -2015,7 +1994,7 @@ DWORD CHostEntry::GetStatus(DWORD nUnit) const
 
 //---------------------------------------------------------------------------
 //
-/// メディア交換チェック
+/// Media change check
 //
 //---------------------------------------------------------------------------
 BOOL CHostEntry::CheckMedia(DWORD nUnit)
@@ -2028,7 +2007,7 @@ BOOL CHostEntry::CheckMedia(DWORD nUnit)
 
 //---------------------------------------------------------------------------
 //
-/// イジェクト
+/// Eject
 //
 //---------------------------------------------------------------------------
 void CHostEntry::Eject(DWORD nUnit)
@@ -2041,7 +2020,7 @@ void CHostEntry::Eject(DWORD nUnit)
 
 //---------------------------------------------------------------------------
 //
-/// ボリュームラベルの取得
+/// Get volume label
 //
 //---------------------------------------------------------------------------
 void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel)
@@ -2054,7 +2033,7 @@ void CHostEntry::GetVolume(DWORD nUnit, TCHAR* szLabel)
 
 //---------------------------------------------------------------------------
 //
-/// キャッシュからボリュームラベルを取得
+/// Get volume label from cache
 //
 //---------------------------------------------------------------------------
 BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
@@ -2067,7 +2046,7 @@ BOOL CHostEntry::GetVolumeCache(DWORD nUnit, TCHAR* szLabel) const
 
 //---------------------------------------------------------------------------
 //
-/// 容量の取得
+/// Get capacity
 //
 //---------------------------------------------------------------------------
 DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
@@ -2080,7 +2059,7 @@ DWORD CHostEntry::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
 
 //---------------------------------------------------------------------------
 //
-/// キャッシュからクラスタサイズを取得
+/// Get cluster size from cache
 //
 //---------------------------------------------------------------------------
 BOOL CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) const
@@ -2093,13 +2072,13 @@ BOOL CHostEntry::GetCapacityCache(DWORD nUnit, Human68k::capacity_t* pCapacity) 
 
 //---------------------------------------------------------------------------
 //
-/// Human68kフルパス名から先頭の要素を分離・コピー
+/// Split and copy the first element from the Human68k full path name
 ///
-/// Human68kフルパス名の先頭の要素をパス区切り文字を除外して取得する。
-/// 書き込み先バッファは23バイト必要。
-/// Human68kパスは必ず/で開始すること。
-/// 途中/が2つ以上連続して出現した場合はエラーとする。
-/// 文字列終端が/だけの場合は空の文字列として処理し、エラーにはしない。
+/// Get the first element from the Human68k full path name and delete the path separator char.
+/// 23 bytes is required in the buffer to write to.
+/// A Human68k path always starts with a '/'.
+/// Throw an error if 2 '/' appears in sequence.
+/// If the array ends with a '/' treat it as an empty array and don't trow an error.
 //
 //---------------------------------------------------------------------------
 const BYTE* CHostDrv::SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer)		// static
@@ -2110,60 +2089,55 @@ const BYTE* CHostDrv::SeparateCopyFilename(const BYTE* szHuman, BYTE* szBuffer)	
 	const size_t nMax = 22;
 	const BYTE* p = szHuman;
 
-	BYTE c = *p++;				// 読み込み
+	BYTE c = *p++;				// Read
 	if (c != '/' && c != '\\')
-		return NULL;			// エラー: 不正なパス名
+		return NULL;			// Error: Invalid path name
 
-	// ファイルいっこいれる
+	// Insert one file
 	size_t i = 0;
 	for (;;) {
-		c = *p;					// 読み込み
+		c = *p;					// Read
 		if (c == '\0')
-			break;				// 文字列終端なら終了 (終端位置を返す)
+			break;				// Exit if at the end of an array (return the end position)
 		if (c == '/' || c == '\\') {
 			if (i == 0)
-				return NULL;	// エラー: パス区切り文字が連続している
-			break;				// パスの区切りを読んだら終了 (文字の位置を返す)
+				return NULL;	// Error: Two separator chars appear in sequence
+			break;				// Exit after reading the separator (return the char position)
 		}
 		p++;
 
 		if (i >= nMax)
-			return NULL;		// エラー: 1バイト目がバッファ終端にかかる
-		szBuffer[i++] = c;		// 書き込み
+			return NULL;		// Error: The first byte hits the end of the buffer
+		szBuffer[i++] = c;		// Read
 
-		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// 厳密には0x81～0x9Fと0xE0～0xEF
-			c = *p++;			// 読み込み
+		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// Specifically 0x81~0x9F and 0xE0~0xEF
+			c = *p++;			// Read
 			if (c < 0x40)
-				return NULL;	// エラー: 不正なSJIS2バイト目
+				return NULL;	// Error: Invalid Shift-JIS 2nd byte
 
 			if (i >= nMax)
-				return NULL;	// エラー: 2バイト目がバッファ終端にかかる
-			szBuffer[i++] = c;	// 書き込み
+				return NULL;	// Error: The second byte hits the end of the buffer
+			szBuffer[i++] = c;	// Read
 		}
 	}
-	szBuffer[i] = '\0';			// 書き込み
+	szBuffer[i] = '\0';			// Read
 
 	return p;
 }
 
 //===========================================================================
 //
-//	ファイル検索処理
+//	File search processing
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-/// 初期化
-//
-//---------------------------------------------------------------------------
 void CHostFiles::Init()
 {
 }
 
 //---------------------------------------------------------------------------
 //
-/// パス名・ファイル名を内部で生成
+/// Generate path and file name internally
 //
 //---------------------------------------------------------------------------
 void CHostFiles::SetPath(const Human68k::namests_t* pNamests)
@@ -2179,7 +2153,7 @@ void CHostFiles::SetPath(const Human68k::namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-/// Human68k側でファイルを検索しホスト側の情報を生成
+/// Find file on the Human68k side and create data on the host side
 //
 //---------------------------------------------------------------------------
 BOOL CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
@@ -2191,7 +2165,7 @@ BOOL CHostFiles::Find(DWORD nUnit, CHostEntry* pEntry)
 
 //---------------------------------------------------------------------------
 //
-/// ファイル名検索
+/// Find file name
 //
 //---------------------------------------------------------------------------
 const CHostFilename* CHostFiles::Find(CHostPath* pPath)
@@ -2206,23 +2180,23 @@ const CHostFilename* CHostFiles::Find(CHostPath* pPath)
 
 //---------------------------------------------------------------------------
 //
-/// Human68k側の検索結果保存
+/// Store the Human68k side search results
 //
 //---------------------------------------------------------------------------
 void CHostFiles::SetEntry(const CHostFilename* pFilename)
 {
 	ASSERT(pFilename);
 
-	// Human68kディレクトリエントリ保存
+	// Store Human68k directory entry
 	memcpy(&m_dirHuman, pFilename->GetEntry(), sizeof(m_dirHuman));
 
-	// Human68kファイル名保存
+	// Stire Human68k file name
 	strcpy((char*)m_szHumanResult, (const char*)pFilename->GetHuman());
 }
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側の名称を設定
+/// Set host side name
 //
 //---------------------------------------------------------------------------
 void CHostFiles::SetResult(const TCHAR* szPath)
@@ -2235,7 +2209,7 @@ void CHostFiles::SetResult(const TCHAR* szPath)
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側の名称にファイル名を追加
+/// Add file name to the host side name
 //
 //---------------------------------------------------------------------------
 void CHostFiles::AddResult(const TCHAR* szPath)
@@ -2248,31 +2222,25 @@ void CHostFiles::AddResult(const TCHAR* szPath)
 
 //---------------------------------------------------------------------------
 //
-/// ホスト側の名称にHuman68kの新規ファイル名を追加
+/// Add a new Human68k file name to the host side name
 //
 //---------------------------------------------------------------------------
 void CHostFiles::AddFilename()
 {
 	ASSERT(strlen(m_szHostResult) + strlen((const char*)m_szHumanFilename) < FILEPATH_MAX);
-	/// @warning Unicode未対応。いずれUnicodeの世界に飮まれた時はここで変換を行なう → 済
 	strncat(m_szHostResult, (const char*)m_szHumanFilename, ARRAY_SIZE(m_szHumanFilename));
 }
 
 //===========================================================================
 //
-//	ファイル検索領域 マネージャ
+//	File search memory manager
 //
 //===========================================================================
 
 #ifdef _DEBUG
-//---------------------------------------------------------------------------
-//
-/// デストラクタ final
-//
-//---------------------------------------------------------------------------
 CHostFilesManager::~CHostFilesManager()
 {
-	// 実体が存在しないことを確認 (念のため)
+	// Confirm that the entity does not exist (just in case)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
 }
@@ -2280,17 +2248,17 @@ CHostFilesManager::~CHostFilesManager()
 
 //---------------------------------------------------------------------------
 //
-/// 初期化 (ドライバ組込み時)
+/// Initialization (when the driver is installed)
 //
 //---------------------------------------------------------------------------
 void CHostFilesManager::Init()
 {
 
-	// 実体が存在しないことを確認 (念のため)
+	// Confirm that the entity does not exist (just in case)
 	ASSERT(m_cRing.Next() == &m_cRing);
 	ASSERT(m_cRing.Prev() == &m_cRing);
 
-	// メモリ確保
+	// Allocate memory
 	for (DWORD i = 0; i < XM6_HOST_FILES_MAX; i++) {
 		ring_t* p = new ring_t;
 		ASSERT(p);
@@ -2300,54 +2268,43 @@ void CHostFilesManager::Init()
 
 //---------------------------------------------------------------------------
 //
-/// 解放 (起動・リセット時)
+/// Release (at startup and reset)
 //
 //---------------------------------------------------------------------------
 void CHostFilesManager::Clean()
 {
 
-	// メモリ解放
+	// Release memory
 	CRing* p;
 	while ((p = m_cRing.Next()) != &m_cRing) {
 		delete (ring_t*)p;
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-/// 確保
-//
-//---------------------------------------------------------------------------
 CHostFiles* CHostFilesManager::Alloc(DWORD nKey)
 {
 	ASSERT(nKey);
 
-	// 末尾から選択
+	// Select from the end
 	ring_t* p = (ring_t*)m_cRing.Prev();
 
-	// リング先頭へ移動
+	// Move to the start of the ring
 	p->r.Insert(&m_cRing);
 
-	// キーを設定
 	p->f.SetKey(nKey);
 
 	return &p->f;
 }
 
-//---------------------------------------------------------------------------
-//
-/// 検索
-//
-//---------------------------------------------------------------------------
 CHostFiles* CHostFilesManager::Search(DWORD nKey)
 {
-	// ASSERT(nKey);	// DPB破損により検索キーが0になることもある
+	// ASSERT(nKey);	// The search key may become 0 due to DPB damage
 
-	// 該当するオブジェクトを検索
+	// Find the relevant object
 	ring_t* p = (ring_t*)m_cRing.Next();
 	for (; p != (ring_t*)&m_cRing; p = (ring_t*)p->r.Next()) {
 		if (p->f.isSameKey(nKey)) {
-			// リング先頭へ移動
+			// Move to the start of the ring
 			p->r.Insert(&m_cRing);
 			return &p->f;
 		}
@@ -2356,35 +2313,25 @@ CHostFiles* CHostFilesManager::Search(DWORD nKey)
 	return NULL;
 }
 
-//---------------------------------------------------------------------------
-//
-/// 解放
-//
-//---------------------------------------------------------------------------
 void CHostFilesManager::Free(CHostFiles* pFiles)
 {
 	ASSERT(pFiles);
 
-	// 解放
+	// Release
 	pFiles->SetKey(0);
 	pFiles->Init();
 
-	// リング末尾へ移動
+	// Move to the end of the ring
 	ring_t* p = (ring_t*)((size_t)pFiles - offsetof(ring_t, f));
 	p->r.InsertTail(&m_cRing);
 }
 
 //===========================================================================
 //
-//	FCB処理
+//	FCB processing
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-/// 初期化
-//
-//---------------------------------------------------------------------------
 void CHostFcb::Init()
 {
 	m_bUpdate = FALSE;
@@ -2393,7 +2340,7 @@ void CHostFcb::Init()
 
 //---------------------------------------------------------------------------
 //
-/// ファイルオープンモードを設定
+/// Set file open mode
 //
 //---------------------------------------------------------------------------
 BOOL CHostFcb::SetMode(DWORD nHumanMode)
@@ -2417,11 +2364,6 @@ BOOL CHostFcb::SetMode(DWORD nHumanMode)
 	return TRUE;
 }
 
-//---------------------------------------------------------------------------
-//
-/// ファイル名を設定
-//
-//---------------------------------------------------------------------------
 void CHostFcb::SetFilename(const TCHAR* szFilename)
 {
 	ASSERT(szFilename);
@@ -2430,11 +2372,6 @@ void CHostFcb::SetFilename(const TCHAR* szFilename)
 	strcpy(m_szFilename, szFilename);
 }
 
-//---------------------------------------------------------------------------
-//
-/// Human68kパス名を設定
-//
-//---------------------------------------------------------------------------
 void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 {
 	ASSERT(szHumanPath);
@@ -2445,9 +2382,9 @@ void CHostFcb::SetHumanPath(const BYTE* szHumanPath)
 
 //---------------------------------------------------------------------------
 //
-/// ファイル作成
+/// Create file
 ///
-/// エラーの時はFALSEを返す。
+/// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
@@ -2456,24 +2393,24 @@ BOOL CHostFcb::Create(Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
 	ASSERT(strlen(m_szFilename) > 0);
 	ASSERT(m_pFile == NULL);
 
-	// 重複チェック
+	// Duplication check
 	if (bForce == FALSE) {
 		struct stat sb;
 		if (stat(S2U(m_szFilename), &sb) == 0)
 			return FALSE;
 	}
 
-	// ファイル作成
-	m_pFile = fopen(S2U(m_szFilename), "w+b");	/// @warning 理想動作は属性ごと上書き
+	// Create file
+	m_pFile = fopen(S2U(m_szFilename), "w+b");	/// @warning The ideal operation is to overwrite each attribute
 
 	return m_pFile != NULL;
 }
 
 //---------------------------------------------------------------------------
 //
-/// ファイルオープン
+/// File open
 ///
-/// エラーの時はFALSEを返す。
+/// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Open()
@@ -2482,14 +2419,14 @@ BOOL CHostFcb::Open()
 
 	ASSERT(strlen(m_szFilename) > 0);
 
-	// ディレクトリなら失敗
+	// Fail if directory
 	if (stat(S2U(m_szFilename), &st) == 0) {
 		if ((st.st_mode & S_IFMT) == S_IFDIR) {
 			return FALSE || m_bFlag;
 		}
 	}
 
-	// ファイルオープン
+	// File open
 	if (m_pFile == NULL)
 		m_pFile = fopen(S2U(m_szFilename), m_pszMode);
 
@@ -2498,9 +2435,9 @@ BOOL CHostFcb::Open()
 
 //---------------------------------------------------------------------------
 //
-/// ファイルシーク
+/// File seek
 ///
-/// エラーの時はFALSEを返す。
+/// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Rewind(DWORD nOffset)
@@ -2515,10 +2452,10 @@ BOOL CHostFcb::Rewind(DWORD nOffset)
 
 //---------------------------------------------------------------------------
 //
-/// ファイル読み込み
+/// Read file
 ///
-/// 0バイト読み込みでも正常動作とする。
-/// エラーの時は-1を返す。
+/// Handle a 0 byte read as normal operation too.
+/// Return -1 if error is thrown.
 //
 //---------------------------------------------------------------------------
 DWORD CHostFcb::Read(BYTE* pBuffer, DWORD nSize)
@@ -2535,10 +2472,10 @@ DWORD CHostFcb::Read(BYTE* pBuffer, DWORD nSize)
 
 //---------------------------------------------------------------------------
 //
-/// ファイル書き込み
+/// Write file
 ///
-/// 0バイト書き込みでも正常動作とする。
-/// エラーの時は-1を返す。
+/// Handle a 0 byte read as normal operation too.
+/// Return -1 if error is thrown.
 //
 //---------------------------------------------------------------------------
 DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
@@ -2555,9 +2492,9 @@ DWORD CHostFcb::Write(const BYTE* pBuffer, DWORD nSize)
 
 //---------------------------------------------------------------------------
 //
-/// ファイル切り詰め
+/// Truncate file
 ///
-/// エラーの時はFALSEを返す。
+/// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Truncate()
@@ -2569,9 +2506,9 @@ BOOL CHostFcb::Truncate()
 
 //---------------------------------------------------------------------------
 //
-/// ファイルシーク
+/// File seek
 ///
-/// エラーの時は-1を返す。
+/// Return -1 if error is thrown.
 //
 //---------------------------------------------------------------------------
 DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
@@ -2601,9 +2538,9 @@ DWORD CHostFcb::Seek(DWORD nOffset, DWORD nHumanSeek)
 
 //---------------------------------------------------------------------------
 //
-/// ファイル時刻設定
+/// Set file time stamp
 ///
-/// エラーの時はFALSEを返す。
+/// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
 BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
@@ -2624,8 +2561,8 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 	ut.actime = ti;
 	ut.modtime = ti;
 
-	// クローズ時に更新時刻が上書きされるのを防止するため
-	// タイムスタンプの更新前にフラッシュして同期させる
+	// This is for preventing the last updated time stamp to be overwritten upon closing.
+	// Flush and synchronize before updating the time stamp.
 	fflush(m_pFile);
 
 	return utime(S2U(m_szFilename), &ut) == 0 || m_bFlag;
@@ -2633,17 +2570,17 @@ BOOL CHostFcb::TimeStamp(DWORD nHumanTime)
 
 //---------------------------------------------------------------------------
 //
-/// ファイルクローズ
+/// File close
 ///
-/// エラーの時はFALSEを返す。
+/// Return FALSE if error is thrown.
 //
 //---------------------------------------------------------------------------
 BOOL CHostFcb::Close()
 {
 	BOOL bResult = TRUE;
 
-	// ファイルクローズ
-	// Close→Free(内部で再度Close)という流れもあるので必ず初期化すること。
+	// File close
+	// Always initialize because of the Close→Free (internally one more Close) flow.
 	if (m_pFile) {
 		fclose(m_pFile);
 		m_pFile = NULL;
@@ -2659,11 +2596,6 @@ BOOL CHostFcb::Close()
 //===========================================================================
 
 #ifdef _DEBUG
-//---------------------------------------------------------------------------
-//
-// Final destructor
-//
-//---------------------------------------------------------------------------
 CHostFcbManager::~CHostFcbManager()
 {
 	// Confirm that the entity does not exist (just in case)
@@ -2707,11 +2639,6 @@ void CHostFcbManager::Clean()
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-// Alloc
-//
-//---------------------------------------------------------------------------
 CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 {
 	ASSERT(nKey);
@@ -2734,11 +2661,6 @@ CHostFcb* CHostFcbManager::Alloc(DWORD nKey)
 	return &p->f;
 }
 
-//---------------------------------------------------------------------------
-//
-// Search
-//
-//---------------------------------------------------------------------------
 CHostFcb* CHostFcbManager::Search(DWORD nKey)
 {
 	ASSERT(nKey);
@@ -2757,11 +2679,6 @@ CHostFcb* CHostFcbManager::Search(DWORD nKey)
 	return NULL;
 }
 
-//---------------------------------------------------------------------------
-//
-// Free
-//
-//---------------------------------------------------------------------------
 void CHostFcbManager::Free(CHostFcb* pFcb)
 {
 	ASSERT(pFcb);
@@ -2783,11 +2700,6 @@ void CHostFcbManager::Free(CHostFcb* pFcb)
 
 DWORD CFileSys::g_nOption;		// File name conversion flag
 
-//---------------------------------------------------------------------------
-//
-// Default constructor
-//
-//---------------------------------------------------------------------------
 CFileSys::CFileSys()
 {
 	m_nHostSectorCount = 0;
@@ -2800,108 +2712,107 @@ CFileSys::CFileSys()
 		m_szBase[n][0] = _T('\0');
 	}
 
-	// TwentyOneオプション監視初期化
+	// Initialize TwentyOne option monitoring
 	m_nKernel = 0;
 	m_nKernelSearch = 0;
 
-	// 動作フラグ初期化
+	// Initialize operational flags
 	m_nOptionDefault = 0;
 	m_nOption = 0;
 	ASSERT(g_nOption == 0);
 
-	// 登録したドライブ数は0
+	// Number of registered drives are 0
 	m_nUnits = 0;
 }
 
 //---------------------------------------------------------------------------
 //
-/// リセット (全クローズ)
+/// Reset (close all)
 //
 //---------------------------------------------------------------------------
 void CFileSys::Reset()
 {
 
-	// 仮想セクタ領域初期化
+	// Initialize virtual sectors
 	m_nHostSectorCount = 0;
 	memset(m_nHostSectorBuffer, 0, sizeof(m_nHostSectorBuffer));
 
-	// ファイル検索領域 解放 (起動・リセット時)
+	// File search memory - release (on startup and reset)
 	m_cFiles.Clean();
 
-	// FCB操作領域 解放 (起動・リセット時)
+	// FCB operation memory (on startup and reset)
 	m_cFcb.Clean();
 
-	// ディレクトリエントリ 解放 (起動・リセット時)
+	// Directory entry - release (on startup and reset)
 	m_cEntry.Clean();
 
-	// TwentyOneオプション監視初期化
+	// Initialize TwentyOne option monitoring
 	m_nKernel = 0;
 	m_nKernelSearch = 0;
 
-	// 動作フラグ初期化
+	// Initialize operational flags
 	SetOption(m_nOptionDefault);
 }
 
 //---------------------------------------------------------------------------
 //
-/// 初期化 (デバイス起動とロード)
+/// Initialize (device startup and load)
 //
 //---------------------------------------------------------------------------
 void CFileSys::Init()
 {
 
-	// ファイル検索領域 初期化 (デバイス起動・ロード時)
+	// Initialize file search memory (device startup and load)
 	m_cFiles.Init();
 
-	// FCB操作領域 初期化 (デバイス起動・ロード時)
+	// Initialize FCB operation memory (device startup and load)
 	m_cFcb.Init();
 
-	// ディレクトリエントリ 初期化 (デバイス起動・ロード時)
+	// Initialize directory entries (device startup and load)
 	m_cEntry.Init();
 
-	// パス個別設定の有無を判定
+	// Evaluate per-path setting validity
 	DWORD nDrives = m_nDrives;
 	if (nDrives == 0) {
-		// 個別設定を使わずにルートディレクトリを使用する
+		// Use root directory instead of per-path settings
 		strcpy(m_szBase[0], _T("/"));
 		m_nFlag[0] = 0;
 		nDrives++;
 	}
 
-	// ファイルシステムを登録
+	// Register file system
 	DWORD nUnit = 0;
 	for (DWORD n = 0; n < nDrives; n++) {
-		// ベースパスが存在しないエントリは登録しない
+		// Don't register is base path do not exist
 		if (m_szBase[n][0] == _T('\0'))
 			continue;
 
-		// ファイルシステムを1ユニット生成
+		// Create 1 unit file system
 		CHostDrv* p = new CHostDrv;	// std::nothrow
 		if (p) {
 			m_cEntry.SetDrv(nUnit, p);
 			p->Init(m_szBase[n], m_nFlag[n]);
 
-			// 次のユニットへ
+			// To the next unit
 			nUnit++;
 		}
 	}
 
-	// 登録したドライブ数を保存
+	// Store the registered number of drives
 	m_nUnits = nUnit;
 }
 
 //---------------------------------------------------------------------------
 //
-/// $40 - デバイス起動
+/// $40 - Device startup
 //
 //---------------------------------------------------------------------------
 DWORD CFileSys::InitDevice(const Human68k::argument_t* pArgument)
 {
 
-	// オプション初期化
 	InitOption(pArgument);
 
-	// ファイルシステム初期化
+	// File system initialization
 	Init();
 
 	return m_nUnits;
@@ -2909,20 +2820,20 @@ DWORD CFileSys::InitDevice(const Human68k::argument_t* pArgument)
 
 //---------------------------------------------------------------------------
 //
-/// $41 - ディレクトリチェック
+/// $41 - Directory check
 //
 //---------------------------------------------------------------------------
 int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 {
 	ASSERT(pNamests);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_INVALIDFUNC;	// レジューム後に無効なドライブでmint操作時に白帯を出さないよう改良
+		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
 
-	// パス名生成
+	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
 	if (f.isRootPath())
@@ -2936,29 +2847,29 @@ int CFileSys::CheckDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-/// $42 - ディレクトリ作成
+/// $42 - Create directory
 //
 //---------------------------------------------------------------------------
 int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 {
 	ASSERT(pNamests);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	if (m_cEntry.isWriteProtect(nUnit))
 		return FS_FATAL_WRITEPROTECT;
 
-	// パス名生成
+	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetPathOnly();
@@ -2966,11 +2877,11 @@ int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 		return FS_INVALIDPATH;
 	f.AddFilename();
 
-	// ディレクトリ作成
+	// Create directory
 	if (mkdir(S2U(f.GetPath()), 0777))
 		return FS_INVALIDPATH;
 
-	// キャッシュ更新
+	// Update cache
 	m_cEntry.CleanCache(nUnit, f.GetHumanPath());
 
 	return 0;
@@ -2978,36 +2889,36 @@ int CFileSys::MakeDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-/// $43 - ディレクトリ削除
+/// $43 - Delete directory
 //
 //---------------------------------------------------------------------------
 int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 {
 	ASSERT(pNamests);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	if (m_cEntry.isWriteProtect(nUnit))
 		return FS_FATAL_WRITEPROTECT;
 
-	// パス名生成
+	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetAttribute(Human68k::AT_DIRECTORY);
 	if (f.Find(nUnit, &m_cEntry) == FALSE)
 		return FS_DIRNOTFND;
 
-	// キャッシュ削除
+	// Delete cache
 	BYTE szHuman[HUMAN68K_PATH_MAX + 24];
 	ASSERT(strlen((const char*)f.GetHumanPath()) +
 		strlen((const char*)f.GetHumanFilename()) < HUMAN68K_PATH_MAX + 24);
@@ -3016,11 +2927,11 @@ int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 	strcat((char*)szHuman, "/");
 	m_cEntry.DeleteCache(nUnit, szHuman);
 
-	// ディレクトリ削除
+	// Delete directory
 	if (rmdir(S2U(f.GetPath())))
 		return FS_CANTDELETE;
 
-	// キャッシュ更新
+	// Update cache
 	m_cEntry.CleanCache(nUnit, f.GetHumanPath());
 
 	return 0;
@@ -3028,29 +2939,29 @@ int CFileSys::RemoveDir(DWORD nUnit, const Human68k::namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-/// $44 - ファイル名変更
+/// $44 - Change file name
 //
 //---------------------------------------------------------------------------
 int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Human68k::namests_t* pNamestsNew)
 {
 	ASSERT(pNamests);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	if (m_cEntry.isWriteProtect(nUnit))
 		return FS_FATAL_WRITEPROTECT;
 
-	// パス名生成
+	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetAttribute(Human68k::AT_ALL);
@@ -3064,11 +2975,11 @@ int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Hum
 		return FS_INVALIDPATH;
 	fNew.AddFilename();
 
-	// キャッシュ更新
+	// Update cache
 	if (f.GetAttribute() & Human68k::AT_DIRECTORY)
 		m_cEntry.CleanCacheChild(nUnit, f.GetHumanPath());
 
-	// ファイル名変更
+	// Change file name
 	char szFrom[FILENAME_MAX];
 	char szTo[FILENAME_MAX];
 	SJIS2UTF8(f.GetPath(), szFrom, FILENAME_MAX);
@@ -3077,7 +2988,7 @@ int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Hum
 		return FS_FILENOTFND;
 	}
 
-	// キャッシュ更新
+	// Update cache
 	m_cEntry.CleanCache(nUnit, f.GetHumanPath());
 	m_cEntry.CleanCache(nUnit, fNew.GetHumanPath());
 
@@ -3086,39 +2997,39 @@ int CFileSys::Rename(DWORD nUnit, const Human68k::namests_t* pNamests, const Hum
 
 //---------------------------------------------------------------------------
 //
-/// $45 - ファイル削除
+/// $45 - Delete file
 //
 //---------------------------------------------------------------------------
 int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
 {
 	ASSERT(pNamests);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	if (m_cEntry.isWriteProtect(nUnit))
 		return FS_FATAL_WRITEPROTECT;
 
-	// パス名生成
+	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
 	if (f.Find(nUnit, &m_cEntry) == FALSE)
 		return FS_FILENOTFND;
 
-	// ファイル削除
+	// Delete file
 	if (unlink(S2U(f.GetPath())))
 		return FS_CANTDELETE;
 
-	// キャッシュ更新
+	// Update cache
 	m_cEntry.CleanCache(nUnit, f.GetHumanPath());
 
 	return 0;
@@ -3126,43 +3037,43 @@ int CFileSys::Delete(DWORD nUnit, const Human68k::namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-/// $46 - ファイル属性取得/設定
+/// $46 - Get/set file attribute
 //
 //---------------------------------------------------------------------------
 int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute)
 {
 	ASSERT(pNamests);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// レジューム後に無効なドライブ上で発生
+		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// パス名生成
+	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetAttribute(Human68k::AT_ALL);
 	if (f.Find(nUnit, &m_cEntry) == FALSE)
 		return FS_FILENOTFND;
 
-	// 属性取得なら終了
+	// Exit if attribute is acquired
 	if (nHumanAttribute == 0xFF)
 		return f.GetAttribute();
 
-	// 属性チェック
+	// Attribute check
 	if (nHumanAttribute & Human68k::AT_VOLUME)
 		return FS_CANTACCESS;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	if (m_cEntry.isWriteProtect(nUnit))
 		return FS_FATAL_WRITEPROTECT;
 
-	// 属性生成
+	// Generate attribute
 	DWORD nAttribute = (nHumanAttribute & Human68k::AT_READONLY) |
 		(f.GetAttribute() & ~Human68k::AT_READONLY);
 	if (f.GetAttribute() != nAttribute) {
@@ -3175,15 +3086,15 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 		else
 			m |= 0200;	// u+w
 
-		// 属性設定
+		// Set attribute
 		if (chmod(S2U(f.GetPath()), m))
 			return FS_FILENOTFND;
 	}
 
-	// キャッシュ更新
+	// Update cache
 	m_cEntry.CleanCache(nUnit, f.GetHumanPath());
 
-	// 変更後の属性取得
+	// Get attribute after changing
 	if (f.Find(nUnit, &m_cEntry) == FALSE)
 		return FS_FILENOTFND;
 
@@ -3192,7 +3103,7 @@ int CFileSys::Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD 
 
 //---------------------------------------------------------------------------
 //
-/// $47 - ファイル検索
+/// $47 - File search
 //
 //---------------------------------------------------------------------------
 int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::files_t* pFiles)
@@ -3201,49 +3112,48 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 	ASSERT(nKey);
 	ASSERT(pFiles);
 
-	// 既に同じキーを持つ領域があれば解放しておく
+	// Release if memory with the same key already exists
 	CHostFiles* pHostFiles = m_cFiles.Search(nKey);
 	if (pHostFiles != NULL) {
 		m_cFiles.Free(pHostFiles);
 	}
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// レジューム後に無効なドライブ上で発生
+		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
 
-	// ボリュームラベルの取得
+	// Get volume label
 	/** @note
-	直前のメディア交換チェックで正しくエラーを返しているにもかかわら
-	ず、ボリュームラベルの取得を実行する行儀の悪いアプリでホスト側の
-	リムーバブルメディア(CD-ROMドライブ等)が白帯を出すのを防ぐため、
-	ボリュームラベルの取得はメディアチェックをせずに行なう仕様とした。
+	This skips the media check when getting the volume label to avoid triggering a fatal error
+	with host side removable media (CD-ROM, etc.) Some poorly coded applications will attempt to
+    get the volume label even though a proper error was thrown doing a media change check just before.
 	*/
 	if ((pFiles->fatr & (Human68k::AT_ARCHIVE | Human68k::AT_DIRECTORY | Human68k::AT_VOLUME))
 		== Human68k::AT_VOLUME) {
-		// パスチェック
+		// Path check
 		CHostFiles f;
 		f.SetPath(pNamests);
 		if (f.isRootPath() == FALSE)
 			return FS_FILENOTFND;
 
-		// バッファを確保せず、いきなり結果を返す
+		// Immediately return the results without allocating buffer
 		if (FilesVolume(nUnit, pFiles) == FALSE)
 			return FS_FILENOTFND;
 		return 0;
 	}
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// バッファ確保
+	// Allocate buffer
 	pHostFiles = m_cFiles.Alloc(nKey);
 	if (pHostFiles == NULL)
 		return FS_OUTOFMEM;
 
-	// ディレクトリチェック
+	// Directory check
 	pHostFiles->SetPath(pNamests);
 	if (pHostFiles->isRootPath() == FALSE) {
 		pHostFiles->SetPathOnly();
@@ -3253,30 +3163,30 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 		}
 	}
 
-	// ワイルドカード使用可能に設定
+	// Enable wildcards
 	pHostFiles->SetPathWildcard();
 	pHostFiles->SetAttribute(pFiles->fatr);
 
-	// ファイル検索
+	// Find file
 	if (pHostFiles->Find(nUnit, &m_cEntry) == FALSE) {
 		m_cFiles.Free(pHostFiles);
 		return FS_FILENOTFND;
 	}
 
-	// 検索結果を格納
+	// Store search results
 	pFiles->attr = (BYTE)pHostFiles->GetAttribute();
 	pFiles->date = pHostFiles->GetDate();
 	pFiles->time = pHostFiles->GetTime();
 	pFiles->size = pHostFiles->GetSize();
 	strcpy((char*)pFiles->full, (const char*)pHostFiles->GetHumanResult());
 
-	// 擬似ディレクトリエントリを指定
+	// Specify pseudo-directory entry
 	pFiles->sector = nKey;
 	pFiles->offset = 0;
 
-	// ファイル名にワイルドカードがなければ、この時点でバッファを解放可能
+	// When the file name does not include wildcards, the buffer may be released
 	if (pNamests->wildcard == 0) {
-		// しかし、仮想セクタのエミュレーションで使う可能性があるため、すぐには解放しない
+		// However, there is a chance the virtual selector may be used for emulation, so don't release immediately
 		// m_cFiles.Free(pHostFiles);
 	}
 
@@ -3285,7 +3195,7 @@ int CFileSys::Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests
 
 //---------------------------------------------------------------------------
 //
-/// $48 - ファイル次検索
+/// $48 - Search next file
 //
 //---------------------------------------------------------------------------
 int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
@@ -3293,22 +3203,22 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 	ASSERT(nKey);
 	ASSERT(pFiles);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// レジューム後に無効なドライブ上で発生
+		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// バッファ検索
+	// Find buffer
 	CHostFiles* pHostFiles = m_cFiles.Search(nKey);
 	if (pHostFiles == NULL)
 		return FS_INVALIDPTR;
 
-	// ファイル検索
+	// Find file
 	if (pHostFiles->Find(nUnit, &m_cEntry) == FALSE) {
 		m_cFiles.Free(pHostFiles);
 		return FS_FILENOTFND;
@@ -3317,7 +3227,7 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 	ASSERT(pFiles->sector == nKey);
 	ASSERT(pFiles->offset == 0);
 
-	// 検索結果を格納
+	// Store search results
 	pFiles->attr = (BYTE)pHostFiles->GetAttribute();
 	pFiles->date = pHostFiles->GetDate();
 	pFiles->time = pHostFiles->GetTime();
@@ -3329,7 +3239,7 @@ int CFileSys::NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles)
 
 //---------------------------------------------------------------------------
 //
-/// $49 - ファイル新規作成
+/// $49 - Create new file
 //
 //---------------------------------------------------------------------------
 int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce)
@@ -3338,26 +3248,26 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 	ASSERT(nKey);
 	ASSERT(pFcb);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	if (m_cEntry.isWriteProtect(nUnit))
 		return FS_FATAL_WRITEPROTECT;
 
-	// 既に同じキーを持つ領域があればエラーとする
+	// Release if memory with the same key already exists
 	if (m_cFcb.Search(nKey) != NULL)
 		return FS_INVALIDPTR;
 
-	// パス名生成
+	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetPathOnly();
@@ -3365,31 +3275,31 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 		return FS_INVALIDPATH;
 	f.AddFilename();
 
-	// 属性チェック
+	// Attribute check
 	if (nHumanAttribute & (Human68k::AT_DIRECTORY | Human68k::AT_VOLUME))
 		return FS_CANTACCESS;
 
-	// パス名保存
+	// Store path name
 	CHostFcb* pHostFcb = m_cFcb.Alloc(nKey);
 	if (pHostFcb == NULL)
 		return FS_OUTOFMEM;
 	pHostFcb->SetFilename(f.GetPath());
 	pHostFcb->SetHumanPath(f.GetHumanPath());
 
-	// オープンモード設定
+	// Set open mode
 	pFcb->mode = (WORD)((pFcb->mode & ~Human68k::OP_MASK) | Human68k::OP_FULL);
 	if (pHostFcb->SetMode(pFcb->mode) == FALSE) {
 		m_cFcb.Free(pHostFcb);
 		return FS_ILLEGALMOD;
 	}
 
-	// ファイル作成
+	// Create file
 	if (pHostFcb->Create(pFcb, nHumanAttribute, bForce) == FALSE) {
 		m_cFcb.Free(pHostFcb);
 		return FS_FILEEXIST;
 	}
 
-	// キャッシュ更新
+	// Update cache
 	m_cEntry.CleanCache(nUnit, f.GetHumanPath());
 
 	return 0;
@@ -3397,7 +3307,7 @@ int CFileSys::Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamest
 
 //---------------------------------------------------------------------------
 //
-/// $4A - ファイルオープン
+/// $4A - File open
 //
 //---------------------------------------------------------------------------
 int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb)
@@ -3406,17 +3316,17 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 	ASSERT(nKey);
 	ASSERT(pFcb);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// レジューム後に無効なドライブ上で発生
+		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	switch (pFcb->mode & Human68k::OP_MASK) {
 		case Human68k::OP_WRITE:
 		case Human68k::OP_FULL:
@@ -3424,38 +3334,38 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 				return FS_FATAL_WRITEPROTECT;
 	}
 
-	// 既に同じキーを持つ領域があればエラーとする
+	// Release if memory with the same key already exists
 	if (m_cFcb.Search(nKey) != NULL)
 		return FS_INVALIDPRM;
 
-	// パス名生成
+	// Generate path name
 	CHostFiles f;
 	f.SetPath(pNamests);
 	f.SetAttribute(Human68k::AT_ALL);
 	if (f.Find(nUnit, &m_cEntry) == FALSE)
 		return FS_FILENOTFND;
 
-	// タイムスタンプ
+	// Time stamp
 	pFcb->date = f.GetDate();
 	pFcb->time = f.GetTime();
 
-	// ファイルサイズ
+	// File size
 	pFcb->size = f.GetSize();
 
-	// パス名保存
+	// Store path name
 	CHostFcb* pHostFcb = m_cFcb.Alloc(nKey);
 	if (pHostFcb == NULL)
 		return FS_OUTOFMEM;
 	pHostFcb->SetFilename(f.GetPath());
 	pHostFcb->SetHumanPath(f.GetHumanPath());
 
-	// オープンモード設定
+	// Set open mode
 	if (pHostFcb->SetMode(pFcb->mode) == FALSE) {
 		m_cFcb.Free(pHostFcb);
 		return FS_ILLEGALMOD;
 	}
 
-	// ファイルオープン
+	// File open
 	if (pHostFcb->Open() == FALSE) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDPATH;
@@ -3466,119 +3376,119 @@ int CFileSys::Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests,
 
 //---------------------------------------------------------------------------
 //
-/// $4B - ファイルクローズ
+/// $4B - File close
 //
 //---------------------------------------------------------------------------
 int CFileSys::Close(DWORD nUnit, DWORD nKey, Human68k::fcb_t* /* pFcb */)
 {
 	ASSERT(nKey);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// レジューム後に無効なドライブ上で発生
+		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 既に同じキーを持つ領域がなければエラーとする
+	// Throw error if memory with the same key does not exist
 	CHostFcb* pHostFcb = m_cFcb.Search(nKey);
 	if (pHostFcb == NULL)
 		return FS_INVALIDPRM;
 
-	// ファイルクローズと領域解放
+	// File close and release memory
 	m_cFcb.Free(pHostFcb);
 
-	// キャッシュ更新
+	// Update cache
 	if (pHostFcb->isUpdate())
 		m_cEntry.CleanCache(nUnit, pHostFcb->GetHumanPath());
 
-	/// @note クローズ時のFCBの状態を他のデバイスと合わせたい
+	/// TODO: Match the FCB status on close with other devices
 
 	return 0;
 }
 
 //---------------------------------------------------------------------------
 //
-/// $4C - ファイル読み込み
+/// $4C - Read file
 ///
-/// 0バイト読み込みでも正常終了する。
+/// Clean exit when 0 bytes are read.
 //
 //---------------------------------------------------------------------------
 int CFileSys::Read(DWORD nKey, Human68k::fcb_t* pFcb, BYTE* pBuffer, DWORD nSize)
 {
 	ASSERT(nKey);
 	ASSERT(pFcb);
-	// ASSERT(pBuffer);			// 必要時のみ判定
-	ASSERT(nSize <= 0xFFFFFF);	// クリップ済
+	// ASSERT(pBuffer);			// Evaluate only when needed
+	ASSERT(nSize <= 0xFFFFFF);	// Clipped
 
-	// 既に同じキーを持つ領域がなければエラーとする
+	// Throw error if memory with the same key does not exist
 	CHostFcb* pHostFcb = m_cFcb.Search(nKey);
 	if (pHostFcb == NULL)
 		return FS_NOTOPENED;
 
-	// バッファ存在確認
+	// Confirm the existence of the buffer
 	if (pBuffer == NULL) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDFUNC;
 	}
 
-	// 読み込み
+	// Read
 	DWORD nResult;
 	nResult = pHostFcb->Read(pBuffer, nSize);
 	if (nResult == (DWORD)-1) {
 		m_cFcb.Free(pHostFcb);
-		return FS_INVALIDFUNC;	/// @note これに加えてエラーコード10(読み込みエラー)を返すべき
+		return FS_INVALIDFUNC;	// TODO: Should return error code 10 (read error) here as well
 	}
 	ASSERT(nResult <= nSize);
 
-	// ファイルポインタ更新
-	pFcb->fileptr += nResult;	/// @note オーバーフロー確認は必要じゃろうか？
+	// Update file pointer
+	pFcb->fileptr += nResult;	/// TODO: Maybe an overflow check is needed here?
 
 	return nResult;
 }
 
 //---------------------------------------------------------------------------
 //
-/// $4D - ファイル書き込み
+/// $4D - Write file
 ///
-/// 0バイト書き込みの場合はファイルを切り詰める。
+/// Truncate file if 0 bytes are written.
 //
 //---------------------------------------------------------------------------
 int CFileSys::Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, DWORD nSize)
 {
 	ASSERT(nKey);
 	ASSERT(pFcb);
-	// ASSERT(pBuffer);			// 必要時のみ判定
-	ASSERT(nSize <= 0xFFFFFF);	// クリップ済
+	// ASSERT(pBuffer);			// Evaluate only when needed
+	ASSERT(nSize <= 0xFFFFFF);	// Clipped
 
-	// 既に同じキーを持つ領域がなければエラーとする
+	// Throw error if memory with the same key does not exist
 	CHostFcb* pHostFcb = m_cFcb.Search(nKey);
 	if (pHostFcb == NULL)
 		return FS_NOTOPENED;
 
 	DWORD nResult;
 	if (nSize == 0) {
-		// 切り詰め
+		// Truncate
 		if (pHostFcb->Truncate() == FALSE) {
 			m_cFcb.Free(pHostFcb);
 			return FS_CANTSEEK;
 		}
 
-		// ファイルサイズ更新
+		// Update file size
 		pFcb->size = pFcb->fileptr;
 
 		nResult = 0;
 	} else {
-		// バッファ存在確認
+		// Confirm the existence of the buffer
 		if (pBuffer == NULL) {
 			m_cFcb.Free(pHostFcb);
 			return FS_INVALIDFUNC;
 		}
 
-		// 書き込み
+		// Write
 		nResult = pHostFcb->Write(pBuffer, nSize);
 		if (nResult == (DWORD)-1) {
 			m_cFcb.Free(pHostFcb);
@@ -3586,15 +3496,15 @@ int CFileSys::Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, DWOR
 		}
 		ASSERT(nResult <= nSize);
 
-		// ファイルポインタ更新
+		// Update file pointer
 		pFcb->fileptr += nResult;	/// @note オーバーフロー確認は必要じゃろうか？
 
-		// ファイルサイズ更新
+		// Update file size
 		if (pFcb->size < pFcb->fileptr)
 			pFcb->size = pFcb->fileptr;
 	}
 
-	// フラグ更新
+	// Update flag
 	pHostFcb->SetUpdate();
 
 	return nResult;
@@ -3602,32 +3512,32 @@ int CFileSys::Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, DWOR
 
 //---------------------------------------------------------------------------
 //
-/// $4E - ファイルシーク
+/// $4E - File seek
 //
 //---------------------------------------------------------------------------
 int CFileSys::Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset)
 {
 	ASSERT(pFcb);
 
-	// 既に同じキーを持つ領域がなければエラーとする
+	// Throw error if memory with the same key does not exist
 	CHostFcb* pHostFcb = m_cFcb.Search(nKey);
 	if (pHostFcb == NULL)
 		return FS_NOTOPENED;
 
-	// パラメータチェック
+	// Parameter check
 	if (nSeek > Human68k::SK_END) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDPRM;
 	}
 
-	// ファイルシーク
+	// File seek
 	DWORD nResult = pHostFcb->Seek(nOffset, nSeek);
 	if (nResult == (DWORD)-1) {
 		m_cFcb.Free(pHostFcb);
 		return FS_CANTSEEK;
 	}
 
-	// ファイルポインタ更新
+	// Update file pointer
 	pFcb->fileptr = nResult;
 
 	return nResult;
@@ -3635,9 +3545,9 @@ int CFileSys::Seek(DWORD nKey, Human68k::fcb_t* pFcb, DWORD nSeek, int nOffset)
 
 //---------------------------------------------------------------------------
 //
-/// $4F - ファイル時刻取得/設定
+/// $4F - Get/set file time stamp
 ///
-/// 結果の上位16Bitが$FFFFだとエラー。
+/// Throw error when the top 16 bits are $FFFF.
 //
 //---------------------------------------------------------------------------
 DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD nHumanTime)
@@ -3645,31 +3555,31 @@ DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD 
 	ASSERT(nKey);
 	ASSERT(pFcb);
 
-	// 取得のみ
+	// Get only
 	if (nHumanTime == 0)
 		return ((DWORD)pFcb->date << 16) | pFcb->time;
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	if (m_cEntry.isWriteProtect(nUnit))
 		return FS_FATAL_WRITEPROTECT;
 
-	// 既に同じキーを持つ領域がなければエラーとする
+	// Throw error if memory with the same key does not exist
 	CHostFcb* pHostFcb = m_cFcb.Search(nKey);
 	if (pHostFcb == NULL)
 		return FS_NOTOPENED;
 
-	// 時刻設定
+	// Set time stamp
 	if (pHostFcb->TimeStamp(nHumanTime) == FALSE) {
 		m_cFcb.Free(pHostFcb);
 		return FS_INVALIDPRM;
@@ -3677,7 +3587,7 @@ DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD 
 	pFcb->date = (WORD)(nHumanTime >> 16);
 	pFcb->time = (WORD)nHumanTime;
 
-	// キャッシュ更新
+	// Update cache
 	m_cEntry.CleanCache(nUnit, pHostFcb->GetHumanPath());
 
 	return 0;
@@ -3685,59 +3595,59 @@ DWORD CFileSys::TimeStamp(DWORD nUnit, DWORD nKey, Human68k::fcb_t* pFcb, DWORD 
 
 //---------------------------------------------------------------------------
 //
-/// $50 - 容量取得
+/// $50 - Get capacity
 //
 //---------------------------------------------------------------------------
 int CFileSys::GetCapacity(DWORD nUnit, Human68k::capacity_t* pCapacity)
 {
 	ASSERT(pCapacity);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 容量取得
+	// Get capacity
 	return m_cEntry.GetCapacity(nUnit, pCapacity);
 }
 
 //---------------------------------------------------------------------------
 //
-/// $51 - ドライブ状態検査/制御
+/// $51 - Inspect/control drive status
 //
 //---------------------------------------------------------------------------
 int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive)
 {
 	ASSERT(pCtrlDrive);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_INVALIDFUNC;	// レジューム後に無効なドライブでmint操作時に白帯を出さないよう改良
+		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
 
 	switch (pCtrlDrive->status) {
-		case 0:		// 状態検査
-		case 9:		// 状態検査2
+		case 0:		// Inspect status
+		case 9:		// Inspect status 2
 			pCtrlDrive->status = (BYTE)m_cEntry.GetStatus(nUnit);
 			return pCtrlDrive->status;
 
-		case 1:		// イジェクト
-		case 2:		// イジェクト禁止1 (未実装)
-		case 3:		// イジェクト許可1 (未実装)
-		case 4:		// メディア未挿入時にLED点滅 (未実装)
-		case 5:		// メディア未挿入時にLED消灯 (未実装)
-		case 6:		// イジェクト禁止2 (未実装)
-		case 7:		// イジェクト許可2 (未実装)
+		case 1:		// Eject
+		case 2:		// Eject forbidden 1 (not implemented)
+		case 3:		// Eject allowed 1 (not implemented)
+		case 4:		// Flash LED when media is not inserted (not implemented)
+		case 5:		// Turn off LED when media is not inserted (not implemented)
+		case 6:		// Eject forbidden 2 (not implemented)
+		case 7:		// Eject allowed 2 (not implemented)
 			return 0;
 
-		case 8:		// イジェクト検査
+		case 8:		// Eject inspection
 			return 1;
 	}
 
@@ -3746,17 +3656,17 @@ int CFileSys::CtrlDrive(DWORD nUnit, Human68k::ctrldrive_t* pCtrlDrive)
 
 //---------------------------------------------------------------------------
 //
-/// $52 - DPB取得
+/// $52 - Get DPB
 ///
-/// レジューム後にDPBが取得できないとHuman68k内部でドライブが消滅するため、
-/// 範囲外のユニットでもとにかく正常系として処理する。
+/// If DPB cannot be acquired after resuming, the drive will be torn down internally in Human68k.
+/// Therefore, treat even a unit out of bounds as normal operation.
 //
 //---------------------------------------------------------------------------
 int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb)
 {
 	ASSERT(pDpb);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 
@@ -3765,27 +3675,27 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb)
 	if (nUnit < m_nUnits) {
 		media = m_cEntry.GetMediaByte(nUnit);
 
-		// セクタ情報獲得
+		// Acquire sector data
 		if (m_cEntry.GetCapacityCache(nUnit, &cap) == FALSE) {
-			// 手動イジェクトだとメディアチェックをすり抜けるためここで捕捉
+			// Carry out an extra media check here because it may be skipped when doing a manual eject
 			if (m_cEntry.isEnable(nUnit) == FALSE)
 				goto none;
 
-			// メディアチェック
+			// Media check
 			if (m_cEntry.isMediaOffline(nUnit))
 				goto none;
 
-			// ドライブ状態取得
+			// Get drive status
 			m_cEntry.GetCapacity(nUnit, &cap);
 		}
 	} else {
 	none:
-		cap.clusters = 4;	// まっったく問題ないッスよ？
+		cap.clusters = 4;	// This is totally fine, right?
 		cap.sectors = 64;
 		cap.bytes = 512;
 	}
 
-	// シフト数計算
+	// Calculate number of shifts
 	DWORD nSize = 1;
 	DWORD nShift = 0;
 	for (;;) {
@@ -3795,102 +3705,102 @@ int CFileSys::GetDPB(DWORD nUnit, Human68k::dpb_t* pDpb)
 		nShift++;
 	}
 
-	// セクタ番号計算
+	// Sector number calculation
 	//
-	// 以下の順に並べる。
-	// クラスタ0: 未使用
-	// クラスタ1: FAT
-	// クラスタ2: ルートディレクトリ
-	// クラスタ3: データ領域(擬似セクタ)
+	// In the following order:
+	// Cluster 0: Unused
+	// Cluster 1: FAT
+	// Cluster 2: Root directory
+	// Cluster 3: Data memory (pseudo-sector)
 	DWORD nFat = cap.sectors;
 	DWORD nRoot = cap.sectors * 2;
 	DWORD nData = cap.sectors * 3;
 
-	// DPB設定
-	pDpb->sector_size = (WORD)cap.bytes;		// 1セクタ当りのバイト数
+	// Set DPB
+	pDpb->sector_size = (WORD)cap.bytes;		// Bytes per sector
 	pDpb->cluster_size =
-		(BYTE)(cap.sectors - 1);				// 1クラスタ当りのセクタ数 - 1
-	pDpb->shift = (BYTE)nShift;					// クラスタ→セクタのシフト数
-	pDpb->fat_sector = (WORD)nFat;				// FAT の先頭セクタ番号
-	pDpb->fat_max = 1;							// FAT 領域の個数
-	pDpb->fat_size = (BYTE)cap.sectors;			// FAT の占めるセクタ数(複写分を除く)
+		(BYTE)(cap.sectors - 1);				// Sectors per cluster - 1
+	pDpb->shift = (BYTE)nShift;					// Number of cluster → sector shifts
+	pDpb->fat_sector = (WORD)nFat;				// First FAT sector number
+	pDpb->fat_max = 1;							// Number of FAT memory spaces
+	pDpb->fat_size = (BYTE)cap.sectors;			// Number of sectors controlled by FAT (excluding copies)
 	pDpb->file_max =
-		(WORD)(cap.sectors * cap.bytes / 0x20);	// ルートディレクトリに入るファイルの個数
-	pDpb->data_sector = (WORD)nData;			// データ領域の先頭セクタ番号
-	pDpb->cluster_max = (WORD)cap.clusters;		// 総クラスタ数 + 1
-	pDpb->root_sector = (WORD)nRoot;			// ルートディレクトリの先頭セクタ番号
-	pDpb->media = media;						// メディアバイト
+		(WORD)(cap.sectors * cap.bytes / 0x20);	// Number of files in the root directory
+	pDpb->data_sector = (WORD)nData;			// First sector number of data memory
+	pDpb->cluster_max = (WORD)cap.clusters;		// Total number of clusters + 1
+	pDpb->root_sector = (WORD)nRoot;			// First sector number of the root directory
+	pDpb->media = media;						// Media byte
 
 	return 0;
 }
 
 //---------------------------------------------------------------------------
 //
-/// $53 - セクタ読み込み
+/// $53 - Read sector
 ///
-/// セクタは疑似的に構築したものを使用する。
-/// バッファサイズは$200バイト固定。
+/// We use pseudo-sectors.
+/// Buffer size is hard coded to $200 byte.
 //
 //---------------------------------------------------------------------------
 int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 {
 	ASSERT(pBuffer);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// レジューム後に無効なドライブ上で発生
+		return FS_FATAL_MEDIAOFFLINE;	// This occurs when resuming with an invalid drive
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// セクタ数1以外の場合はエラー
+	// Throw error if number of sectors exceed 1
 	if (nSize != 1)
 		return FS_INVALIDPRM;
 
-	// セクタ情報獲得
+	// Acquire sector data
 	Human68k::capacity_t cap;
 	if (m_cEntry.GetCapacityCache(nUnit, &cap) == FALSE) {
-		// ドライブ状態取得
+		// Get drive status
 		m_cEntry.GetCapacity(nUnit, &cap);
 	}
 
-	// 擬似ディレクトリエントリへのアクセス
+	// Access pseudo-directory entry
 	CHostFiles* pHostFiles = m_cFiles.Search(nSector);
 	if (pHostFiles) {
-		// 擬似ディレクトリエントリを生成
+		// Generate pseudo-directory entry
 		Human68k::dirent_t* dir = (Human68k::dirent_t*)pBuffer;
 		memcpy(pBuffer, pHostFiles->GetEntry(), sizeof(*dir));
 		memset(pBuffer + sizeof(*dir), 0xE5, 0x200 - sizeof(*dir));
 
-		// 擬似ディレクトリエントリ内にファイル実体を指す擬似セクタ番号を記録
-		// なお、lzdsysでは以下の式で読み込みセクタ番号を算出している。
+		// Register the pseudo-sector number that points to the file entity inside the pseudo-directory.
+		// Note that in lzdsys the sector number to read is calculated by the following formula:
 		// (dirent.cluster - 2) * (dpb.cluster_size + 1) + dpb.data_sector
-		/// @warning リトルエンディアン専用
-		dir->cluster = (WORD)(m_nHostSectorCount + 2);		// 擬似セクタ番号
-		m_nHostSectorBuffer[m_nHostSectorCount] = nSector;	// 擬似セクタの指す実体
+		/// @warning little endian only
+		dir->cluster = (WORD)(m_nHostSectorCount + 2);		// Pseudo-sector number
+		m_nHostSectorBuffer[m_nHostSectorCount] = nSector;	// Entity that points to the pseudo-sector
 		m_nHostSectorCount++;
 		m_nHostSectorCount %= XM6_HOST_PSEUDO_CLUSTER_MAX;
 
 		return 0;
 	}
 
-	// クラスタ番号からセクタ番号を算出
+	// Calculate the sector number from the cluster number
 	DWORD n = nSector - (3 * cap.sectors);
 	DWORD nMod = 1;
 	if (cap.sectors) {
-		// メディアが存在しない場合はcap.sectorsが0になるので注意
+		// Beware that cap.sectors becomes 0 when media does not exist
 		nMod = n % cap.sectors;
 		n /= cap.sectors;
 	}
 
-	// ファイル実体へのアクセス
+	// Access the file entity
 	if (nMod == 0 && n < XM6_HOST_PSEUDO_CLUSTER_MAX) {
-		pHostFiles = m_cFiles.Search(m_nHostSectorBuffer[n]);	// 実体を検索
+		pHostFiles = m_cFiles.Search(m_nHostSectorBuffer[n]);	// Find entity
 		if (pHostFiles) {
-			// 擬似セクタを生成
+			// Generate pseudo-sector
 			CHostFcb f;
 			f.SetFilename(pHostFiles->GetPath());
 			f.SetMode(Human68k::OP_READ);
@@ -3911,28 +3821,28 @@ int CFileSys::DiskRead(DWORD nUnit, BYTE* pBuffer, DWORD nSector, DWORD nSize)
 
 //---------------------------------------------------------------------------
 //
-/// $54 - セクタ書き込み
+/// $54 - Write sector
 //
 //---------------------------------------------------------------------------
 int CFileSys::DiskWrite(DWORD nUnit)
 {
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 書き込み禁止チェック
+	// Write-protect check
 	if (m_cEntry.isWriteProtect(nUnit))
 		return FS_FATAL_WRITEPROTECT;
 
-	// 現実を突きつける
+	// Thrust at reality
 	return FS_INVALIDPRM;
 }
 
@@ -3945,49 +3855,49 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 {
 	ASSERT(pIoctrl);
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_INVALIDFUNC;	// レジューム後に無効なドライブでmint操作時に白帯を出さないよう改良
+		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
 
 	switch (nFunction) {
 		case 0:
-			// メディアバイトの獲得
+			// Acquire media byte
 			pIoctrl->media = m_cEntry.GetMediaByte(nUnit);
 			return 0;
 
 		case 1:
-			// Human68k互換のためのダミー
+			// Dummy for Human68k compatibility
 			pIoctrl->param = -1;
 			return 0;
 
 		case 2:
 			switch (pIoctrl->param) {
 				case (DWORD)-1:
-					// メディア再認識
+					// Re-identify media
 					m_cEntry.isMediaOffline(nUnit);
 					return 0;
 
 				case 0:
 				case 1:
-					// Human68k互換のためのダミー
+					// Dummy for Human68k compatibility
 					return 0;
 			}
 			break;
 
 		case (DWORD)-1:
-			// 常駐判定
+			// Resident evaluation
 			memcpy(pIoctrl->buffer, "WindrvXM", 8);
 			return 0;
 
 		case (DWORD)-2:
-			// オプション設定
+			// Set options
 			SetOption(pIoctrl->param);
 			return 0;
 
 		case (DWORD)-3:
-			// オプション獲得
+			// Get options
 			pIoctrl->param = GetOption();
 			return 0;
 	}
@@ -3997,40 +3907,40 @@ int CFileSys::Ioctrl(DWORD nUnit, DWORD nFunction, Human68k::ioctrl_t* pIoctrl)
 
 //---------------------------------------------------------------------------
 //
-/// $56 - フラッシュ
+/// $56 - Flush
 //
 //---------------------------------------------------------------------------
 int CFileSys::Flush(DWORD nUnit)
 {
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_INVALIDFUNC;	// レジューム後に無効なドライブでmintからコマンドを実行し戻る時に白帯を出さないよう改良
+		return FS_INVALIDFUNC;	// Avoid triggering a fatal error returning from a mint command when resuming with an invalid drive
 
-	// 常に成功
+	// Always succeed
 	return 0;
 }
 
 //---------------------------------------------------------------------------
 //
-/// $57 - メディア交換チェック
+/// $57 - Media change check
 //
 //---------------------------------------------------------------------------
 int CFileSys::CheckMedia(DWORD nUnit)
 {
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	if (nUnit >= m_nUnits)
-		return FS_INVALIDFUNC;	// レジューム後に無効なドライブでmint操作時に白帯を出さないよう改良
+		return FS_INVALIDFUNC;	// Avoid triggering a fatal error in mint when resuming with an invalid drive
 
-	// メディア交換チェック
+	// Media change check
 	BOOL bResult = m_cEntry.CheckMedia(nUnit);
 
-	// メディア未挿入ならエラーとする
+	// Throw error when media is not inserted
 	if (bResult == FALSE) {
 		return FS_INVALIDFUNC;
 	}
@@ -4040,36 +3950,36 @@ int CFileSys::CheckMedia(DWORD nUnit)
 
 //---------------------------------------------------------------------------
 //
-/// $58 - 排他制御
+/// $58 - Lock
 //
 //---------------------------------------------------------------------------
 int CFileSys::Lock(DWORD nUnit)
 {
 
-	// ユニットチェック
+	// Unit check
 	if (nUnit >= DriveMax)
 		return FS_FATAL_INVALIDUNIT;
 	ASSERT(nUnit < m_nUnits);
 	if (nUnit >= m_nUnits)
-		return FS_FATAL_MEDIAOFFLINE;	// 念のため
+		return FS_FATAL_MEDIAOFFLINE;	// Just in case
 
-	// メディアチェック
+	// Media check
 	if (m_cEntry.isMediaOffline(nUnit))
 		return FS_FATAL_MEDIAOFFLINE;
 
-	// 常に成功
+	// Always succeed
 	return 0;
 }
 
 //---------------------------------------------------------------------------
 //
-/// オプション設定
+/// Set options
 //
 //---------------------------------------------------------------------------
 void CFileSys::SetOption(DWORD nOption)
 {
 
-	// オプション設定変更でキャッシュクリア
+	// Clear cache when option settings change
 	if (m_nOption ^ nOption)
 		m_cEntry.CleanCache();
 
@@ -4079,14 +3989,14 @@ void CFileSys::SetOption(DWORD nOption)
 
 //---------------------------------------------------------------------------
 //
-/// オプション初期化
+/// Initialize options
 //
 //---------------------------------------------------------------------------
 void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 {
 	ASSERT(pArgument);
 
-	// ドライブ数を初期化
+	// Initialize number of drives
 	m_nDrives = 0;
 
 	const BYTE* pp = pArgument->buf;
@@ -4106,7 +4016,7 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 		} else if (c == '-') {
 			nMode = 0;
 		} else if (c == '/') {
-			// デフォルトベースパスの指定
+			// Specify default base path
 			if (m_nDrives < DriveMax) {
 				p--;
 				strcpy(m_szBase[m_nDrives], (const char *)p);
@@ -4115,7 +4025,7 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 			pp += strlen((const char*)pp) + 1;
 			continue;
 		} else {
-			// オプション指定ではないので次へ
+			// Continue since no option is specified
 			pp += strlen((const char*)pp) + 1;
 			continue;
 		}
@@ -4155,7 +4065,7 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 		pp = p;
 	}
 
-	// オプション設定
+	// Set options
 	if (nOption != m_nOption) {
 		SetOption(nOption);
 	}
@@ -4163,26 +4073,26 @@ void CFileSys::InitOption(const Human68k::argument_t* pArgument)
 
 //---------------------------------------------------------------------------
 //
-/// ボリュームラベル取得
+/// Get volume label
 //
 //---------------------------------------------------------------------------
 BOOL CFileSys::FilesVolume(DWORD nUnit, Human68k::files_t* pFiles)
 {
 	ASSERT(pFiles);
 
-	// ボリュームラベル取得
+	// Get volume label
 	TCHAR szVolume[32];
 	BOOL bResult = m_cEntry.GetVolumeCache(nUnit, szVolume);
 	if (bResult == FALSE) {
-		// 手動イジェクトだとメディアチェックをすり抜けるためここで捕捉
+		// Carry out an extra media check here because it may be skipped when doing a manual eject
 		if (m_cEntry.isEnable(nUnit) == FALSE)
 			return FALSE;
 
-		// メディアチェック
+		// Media check
 		if (m_cEntry.isMediaOffline(nUnit))
 			return FALSE;
 
-		// ボリュームラベル取得
+		// Get volume label
 		m_cEntry.GetVolume(nUnit, szVolume);
 	}
 	if (szVolume[0] == _T('\0'))

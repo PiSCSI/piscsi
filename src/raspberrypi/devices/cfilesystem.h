@@ -533,9 +533,9 @@ public:
 	BOOL  isSameChild(const BYTE* szHuman) const;				///< Compare the name on the Human68k side
 	const TCHAR*  GetHost() const { return m_szHost; }	///< Obtain the name on the host side
 	const CHostFilename*  FindFilename(const BYTE* szHuman, DWORD nHumanAttribute = Human68k::AT_ALL) const;
-										///< Search for file name
+										///< Find file name
 	const CHostFilename*  FindFilenameWildcard(const BYTE* szHuman, DWORD nHumanAttribute, find_t* pFind) const;
-										///< Search for file name (with support for wildcards)
+										///< Find file name (with support for wildcards)
 	BOOL  isRefresh();							///< Check that the file change has been done
 	void  Refresh();							///< Refresh file
 	void  Backup();								/// Backup the time stamp on the host side
@@ -596,8 +596,8 @@ public:
 	BOOL  isPathOnly() const { return m_nHumanWildcard == 0xFF; }			///< Check if set to only path names
 	void  SetAttribute(DWORD nHumanAttribute) { m_nHumanAttribute = nHumanAttribute; }
 											///< Set search attribute
-	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry);				///< Search for files on the Human68k side, generating data on the host side
-	const CHostFilename*  Find(CHostPath* pPath);					///< Search for file name
+	BOOL  Find(DWORD nUnit, class CHostEntry* pEntry);				///< Find files on the Human68k side, generating data on the host side
+	const CHostFilename*  Find(CHostPath* pPath);					///< Find file name
 	void  SetEntry(const CHostFilename* pFilename);					///< Store search results on the Human68k side
 	void  SetResult(const TCHAR* szPath);						///< Set names on the host side
 	void  AddResult(const TCHAR* szPath);						///< Add file name to the name on the host side
@@ -638,7 +638,7 @@ public:
 #ifdef _DEBUG
 	~CHostFilesManager();
 #endif	// _DEBUG
-	void  Init();						///< Initialization (when integrating driver)
+	void  Init();						///< Initialization (when the driver is installed)
 	void  Clean();						///< Release (when starting up or resetting)
 
 	CHostFiles*  Alloc(DWORD nKey);
@@ -705,7 +705,7 @@ public:
 	#ifdef _DEBUG
 	~CHostFcbManager();
 	#endif	// _DEBUG
-	void  Init();								///< Initialization (when integrating driver)
+	void  Init();								///< Initialization (when the driver is installed)
 	void  Clean();								///< Release (when starting up or resetting)
 
 	CHostFcb*  Alloc(DWORD nKey);
@@ -758,7 +758,7 @@ public:
 	CHostPath*  FindCache(const BYTE* szHuman);				///< Inspect if the specified path is cached
 	CHostPath*  CopyCache(CHostFiles* pFiles);				///< Acquire the host side name on the basis of cache information
 	CHostPath*  MakeCache(CHostFiles* pFiles);				///< Get all required data to construct a host side name
-	BOOL  Find(CHostFiles* pFiles);						///< Search the host side name (path + file name (can be abbreviated) + attribute)
+	BOOL  Find(CHostFiles* pFiles);						///< Find host side name (path + file name (can be abbreviated) + attribute)
 
 private:
 	// Path name operations
@@ -793,7 +793,7 @@ class CHostEntry {
 public:
 	CHostEntry();
 	~CHostEntry();
-	void  Init();								///< Initialization (when integrating driver)
+	void  Init();								///< Initialization (when the driver is installed)
 	void  Clean();								///< Release (when starting up or resetting)
 
 	// Cache operations
@@ -802,7 +802,7 @@ public:
 	void  CleanCache(DWORD nUnit, const BYTE* szHumanPath);			///< Update cache for the specified path
 	void  CleanCacheChild(DWORD nUnit, const BYTE* szHumanPath);		///< Update cache below the specified path
 	void  DeleteCache(DWORD nUnit, const BYTE* szHumanPath);		///< Delete cache for the specified path
-	BOOL  Find(DWORD nUnit, CHostFiles* pFiles);				///< Search host side name (path + file name (can be abbreviated) + attribute)
+	BOOL  Find(DWORD nUnit, CHostFiles* pFiles);				///< Find host side name (path + file name (can be abbreviated) + attribute)
 	void  ShellNotify(DWORD nEvent, const TCHAR* szPath);			///< Notify status change in the host side file system
 
 	// Drive object operations
@@ -880,8 +880,8 @@ public:
 	int Attribute(DWORD nUnit, const Human68k::namests_t* pNamests, DWORD nHumanAttribute);
 										///< $46 - Get / set file attribute
 	int Files(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::files_t* pFiles);
-										///< $47 - Search file
-	int NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles);		///< $48 - Search next file
+										///< $47 - Find file
+	int NFiles(DWORD nUnit, DWORD nKey, Human68k::files_t* pFiles);		///< $48 - Find next file
 	int Create(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb, DWORD nHumanAttribute, BOOL bForce);
 										///< $49 - Create file
 	int Open(DWORD nUnit, DWORD nKey, const Human68k::namests_t* pNamests, Human68k::fcb_t* pFcb);
@@ -916,7 +916,6 @@ public:
 	};
 
 private:
-	// For internal support
 	void  InitOption(const Human68k::argument_t* pArgument);
 	BOOL  FilesVolume(DWORD nUnit, Human68k::files_t* pFiles);		///< Get volume label
 
@@ -932,12 +931,12 @@ private:
 
 	DWORD m_nHostSectorCount;						///< Virtual sector identifier
 
-	CHostFilesManager m_cFiles;						///< File search area
-	CHostFcbManager m_cFcb;							///< FCB operation area
+	CHostFilesManager m_cFiles;						///< File search memory
+	CHostFcbManager m_cFcb;							///< FCB operation memory
 	CHostEntry m_cEntry;							///< Drive object and directory entry
 
 	DWORD m_nHostSectorBuffer[XM6_HOST_PSEUDO_CLUSTER_MAX];
-										///< Actual file that the virtual sector points to
+										///< Entity that the virtual sector points to
 
 	DWORD m_nFlag[DriveMax];						///< Candidate runtime flag for base path restoration
 	TCHAR m_szBase[DriveMax][FILEPATH_MAX];					///< Candidate for base path restoration
