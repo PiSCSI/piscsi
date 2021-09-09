@@ -59,6 +59,9 @@ private:
 	bool reset;
 	bool attn;
 
+	// Number of supported luns
+	int supported_luns;
+
 	// Device is protectable/write-protected
 	bool protectable;
 	bool write_protected;
@@ -117,6 +120,9 @@ public:
 	void Reset();
 	bool IsAttn() const { return attn; }
 	void SetAttn(bool attn) { this->attn = attn; }
+
+	int GetSupportedLuns() const { return supported_luns; }
+	void SetSupportedLuns(int supported_luns) { this->supported_luns = supported_luns; }
 
 	bool IsProtectable() const { return protectable; }
 	void SetProtectable(bool protectable) { this->protectable = protectable; }

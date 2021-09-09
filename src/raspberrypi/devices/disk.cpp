@@ -1585,7 +1585,7 @@ uint32_t Disk::GetSectorSizeInBytes() const
 
 void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 {
-	set<uint32_t> sector_sizes = sasi ? DeviceFactory::instance().GetSasiSectorSizes() : DeviceFactory::instance().GetScsiSectorSizes();
+	set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
 	if (sector_sizes.find(size) == sector_sizes.end()) {
 		stringstream error;
 		error << "Invalid block size of " << size << " bytes";
@@ -1641,9 +1641,9 @@ uint32_t Disk::GetConfiguredSectorSize() const
 
 bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 {
-	const DeviceFactory& device_factory = DeviceFactory::instance();
+	DeviceFactory& device_factory = DeviceFactory::instance();
 
-	set<uint32_t> sector_sizes = IsSCSIHD() ? device_factory.GetScsiSectorSizes() : device_factory.GetSasiSectorSizes();
+	set<uint32_t> sector_sizes = device_factory.GetSectorSizes(GetType());
 	if (sector_sizes.find(configured_sector_size) == sector_sizes.end()) {
 		return false;
 	}

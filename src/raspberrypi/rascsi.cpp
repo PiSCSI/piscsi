@@ -529,88 +529,39 @@ void GetLogLevels(PbServerInfo& server_info)
 	}
 }
 
-void GetDeviceTypeFeatures(PbServerInfo& server_info)
+void GetDeviceTypeProperties(PbServerInfo& server_info, PbDeviceType type)
 {
+	Device *device = device_factory.CreateDevice(type, "", "");
 	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
-	types_properties->set_type(SAHD);
+	types_properties->set_type(type);
 	PbDeviceProperties *properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
-	properties->set_supports_file(true);
-	properties->set_luns(2);
-	for (const auto& block_size : device_factory.GetSasiSectorSizes()) {
+	properties->set_read_only(device->IsReadOnly());
+	properties->set_protectable(device->IsProtectable());
+	properties->set_stoppable(device->IsStoppable());
+	properties->set_removable(device->IsRemovable());
+	properties->set_lockable(device->IsLockable());
+	properties->set_supports_file(dynamic_cast<FileSupport *>(device));
+	properties->set_luns(device->GetSupportedLuns());
+	for (const auto& block_size : device_factory.GetSectorSizes(type)) {
 		properties->add_block_sizes(block_size);
 	}
-
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCHD);
-	properties = new PbDeviceProperties();
-	types_properties->set_allocated_properties(properties);
-	properties->set_protectable(true);
-	properties->set_stoppable(true);
-	properties->set_supports_file(true);
-	properties->set_luns(1);
-	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
-		properties->add_block_sizes(block_size);
-	}
-
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCRM);
-	properties = new PbDeviceProperties();
-	types_properties->set_allocated_properties(properties);
-	properties->set_protectable(true);
-	properties->set_stoppable(true);
-	properties->set_removable(true);
-	properties->set_lockable(true);
-	properties->set_supports_file(true);
-	properties->set_luns(1);
-	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
-		properties->add_block_sizes(block_size);
-	}
-
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCMO);
-	properties = new PbDeviceProperties();
-	types_properties->set_allocated_properties(properties);
-	properties->set_protectable(true);
-	properties->set_stoppable(true);
-	properties->set_removable(true);
-	properties->set_lockable(true);
-	properties->set_supports_file(true);
-	properties->set_luns(1);
-	for (const auto& capacity : device_factory.GetMoCapacities()) {
+	for (const auto& capacity : device_factory.GetCapacities(type)) {
 		properties->add_capacities(capacity);
 	}
 
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCCD);
-	properties = new PbDeviceProperties();
-	types_properties->set_allocated_properties(properties);
-	properties->set_read_only(true);
-	properties->set_stoppable(true);
-	properties->set_removable(true);
-	properties->set_lockable(true);
-	properties->set_supports_file(true);
-	properties->set_luns(1);
+	delete device;
+}
 
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCBR);
-	properties = new PbDeviceProperties();
-	types_properties->set_allocated_properties(properties);
-	properties->set_supports_params(true);
-	for (const string& param : SCSIBR::GetDefaultParams()) {
-		properties->add_default_params(param);
-	}
-	properties->set_luns(1);
-
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCDP);
-	properties = new PbDeviceProperties();
-	types_properties->set_allocated_properties(properties);
-	properties->set_supports_params(true);
-	for (const string& param : SCSIDaynaPort::GetDefaultParams()) {
-		properties->add_default_params(param);
-	}
-	properties->set_luns(1);
+void GetDeviceTypeProperties(PbServerInfo& server_info)
+{
+	GetDeviceTypeProperties(server_info, SAHD);
+	GetDeviceTypeProperties(server_info, SCHD);
+	GetDeviceTypeProperties(server_info, SCRM);
+	GetDeviceTypeProperties(server_info, SCMO);
+	GetDeviceTypeProperties(server_info, SCCD);
+	GetDeviceTypeProperties(server_info, SCBR);
+	GetDeviceTypeProperties(server_info, SCDP);
 }
 
 void GetAvailableImages(PbServerInfo& server_info)
@@ -669,7 +620,7 @@ void GetServerInfo(PbResult& result)
 	GetLogLevels(*server_info);
 	server_info->set_current_log_level(current_log_level);
 	server_info->set_default_image_folder(default_image_folder);
-	GetDeviceTypeFeatures(*server_info);
+	GetDeviceTypeProperties(*server_info);
 	GetAvailableImages(*server_info);
 	GetDevices(*server_info);
 	for (int id : reserved_ids) {
