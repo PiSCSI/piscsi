@@ -126,7 +126,7 @@ public:
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
-	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
+	int ReadDefectData10(const DWORD *cdb, BYTE *buf);
 
 	uint32_t GetSectorSizeInBytes() const;
 	void SetSectorSizeInBytes(uint32_t, bool);
@@ -147,19 +147,19 @@ public:
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
 
 protected:
-	// Internal processing
-	virtual int AddError(bool change, BYTE *buf);			// Add error
-	virtual int AddFormat(bool change, BYTE *buf);			// Add format
-	virtual int AddDrive(bool change, BYTE *buf);			// Add drive
-	int AddOpt(bool change, BYTE *buf);				// Add optical
-	int AddCache(bool change, BYTE *buf);				// Add cache
-	int AddCDROM(bool change, BYTE *buf);				// Add CD-ROM
-	int AddCDDA(bool, BYTE *buf);				// Add CD_DA
-	virtual int AddVendor(int page, bool change, BYTE *buf);	// Add vendor special info
-	virtual int RequestSense(const DWORD *cdb, BYTE *buf);		// REQUEST SENSE command
+	virtual int AddErrorPage(bool change, BYTE *buf);
+	virtual int AddFormatPage(bool change, BYTE *buf);
+	virtual int AddDrivePage(bool change, BYTE *buf);
+	virtual int AddVendorPage(int page, bool change, BYTE *buf);
+	int AddOptionPage(bool change, BYTE *buf);
+	int AddCachePage(bool change, BYTE *buf);
+	int AddCDROMPage(bool change, BYTE *buf);
+	int AddCDDAPage(bool, BYTE *buf);
 
-	// Internal data
-	disk_t disk;								// Internal disk data
+	virtual int RequestSense(const DWORD *cdb, BYTE *buf);
+
+	// Internal disk data
+	disk_t disk;
 
 private:
 	void Read(SASIDEV *, uint64_t);

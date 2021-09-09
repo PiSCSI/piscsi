@@ -728,40 +728,40 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	// Page code 1(read-write error recovery)
 	if ((page == 0x01) || (page == 0x3f)) {
-		size += AddError(change, &buf[size]);
+		size += AddErrorPage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 3(format device)
 	if ((page == 0x03) || (page == 0x3f)) {
-		size += AddFormat(change, &buf[size]);
+		size += AddFormatPage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 4(drive parameter)
 	if ((page == 0x04) || (page == 0x3f)) {
-		size += AddDrive(change, &buf[size]);
+		size += AddDrivePage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 6(optical)
 	if (IsMo()) {
 		if ((page == 0x06) || (page == 0x3f)) {
-			size += AddOpt(change, &buf[size]);
+			size += AddOptionPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
 	// Page code 8(caching)
 	if ((page == 0x08) || (page == 0x3f)) {
-		size += AddCache(change, &buf[size]);
+		size += AddCachePage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 13(CD-ROM)
 	if (IsCdRom()) {
 		if ((page == 0x0d) || (page == 0x3f)) {
-			size += AddCDROM(change, &buf[size]);
+			size += AddCDROMPage(change, &buf[size]);
 			valid = true;
 		}
 	}
@@ -769,13 +769,13 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	// Page code 14(CD-DA)
 	if (IsCdRom()) {
 		if ((page == 0x0e) || (page == 0x3f)) {
-			size += AddCDDA(change, &buf[size]);
+			size += AddCDDAPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
 	// Page (vendor special)
-	int ret = AddVendor(page, change, &buf[size]);
+	int ret = AddVendorPage(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
 		valid = true;
@@ -852,40 +852,40 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 	// Page code 1(read-write error recovery)
 	if ((page == 0x01) || (page == 0x3f)) {
-		size += AddError(change, &buf[size]);
+		size += AddErrorPage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 3(format device)
 	if ((page == 0x03) || (page == 0x3f)) {
-		size += AddFormat(change, &buf[size]);
+		size += AddFormatPage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 4(drive parameter)
 	if ((page == 0x04) || (page == 0x3f)) {
-		size += AddDrive(change, &buf[size]);
+		size += AddDrivePage(change, &buf[size]);
 		valid = true;
 	}
 
 	// ペPage code 6(optical)
 	if (IsMo()) {
 		if ((page == 0x06) || (page == 0x3f)) {
-			size += AddOpt(change, &buf[size]);
+			size += AddOptionPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
 	// Page code 8(caching)
 	if ((page == 0x08) || (page == 0x3f)) {
-		size += AddCache(change, &buf[size]);
+		size += AddCachePage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 13(CD-ROM)
 	if (IsCdRom()) {
 		if ((page == 0x0d) || (page == 0x3f)) {
-			size += AddCDROM(change, &buf[size]);
+			size += AddCDROMPage(change, &buf[size]);
 			valid = true;
 		}
 	}
@@ -893,13 +893,13 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	// Page code 14(CD-DA)
 	if (IsCdRom()) {
 		if ((page == 0x0e) || (page == 0x3f)) {
-			size += AddCDDA(change, &buf[size]);
+			size += AddCDDAPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
 	// Page (vendor special)
-	int ret = AddVendor(page, change, &buf[size]);
+	int ret = AddVendorPage(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
 		valid = true;
@@ -917,12 +917,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	return length;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add error page
-//
-//---------------------------------------------------------------------------
-int Disk::AddError(bool change, BYTE *buf)
+int Disk::AddErrorPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -934,12 +929,7 @@ int Disk::AddError(bool change, BYTE *buf)
 	return 12;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add format page
-//
-//---------------------------------------------------------------------------
-int Disk::AddFormat(bool change, BYTE *buf)
+int Disk::AddFormatPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -977,12 +967,7 @@ int Disk::AddFormat(bool change, BYTE *buf)
 	return 24;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add drive page
-//
-//---------------------------------------------------------------------------
-int Disk::AddDrive(bool change, BYTE *buf)
+int Disk::AddDrivePage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1012,12 +997,7 @@ int Disk::AddDrive(bool change, BYTE *buf)
 	return 24;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add option
-//
-//---------------------------------------------------------------------------
-int Disk::AddOpt(bool change, BYTE *buf)
+int Disk::AddOptionPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1029,12 +1009,7 @@ int Disk::AddOpt(bool change, BYTE *buf)
 	return 4;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add Cache Page
-//
-//---------------------------------------------------------------------------
-int Disk::AddCache(bool change, BYTE *buf)
+int Disk::AddCachePage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1046,12 +1021,7 @@ int Disk::AddCache(bool change, BYTE *buf)
 	return 12;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add CDROM Page
-//
-//---------------------------------------------------------------------------
-int Disk::AddCDROM(bool change, BYTE *buf)
+int Disk::AddCDROMPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1074,12 +1044,7 @@ int Disk::AddCDROM(bool change, BYTE *buf)
 	return 8;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add CD-DA page
-//
-//---------------------------------------------------------------------------
-int Disk::AddCDDA(bool change, BYTE *buf)
+int Disk::AddCDDAPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -1092,23 +1057,13 @@ int Disk::AddCDDA(bool change, BYTE *buf)
 	return 16;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add special vendor page
-//
-//---------------------------------------------------------------------------
-int Disk::AddVendor(int /*page*/, bool /*change*/, BYTE *buf)
+int Disk::AddVendorPage(int /*page*/, bool /*change*/, BYTE *buf)
 {
 	ASSERT(buf);
 
 	return 0;
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ DEFECT DATA(10)
-//
-//---------------------------------------------------------------------------
 int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
