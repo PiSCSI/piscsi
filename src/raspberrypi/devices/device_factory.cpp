@@ -32,6 +32,8 @@ DeviceFactory::DeviceFactory()
 	sector_sizes_scsi.insert(2048);
 	sector_sizes_scsi.insert(4096);
 
+	sector_sizes_nec.insert(512);
+
 	// 128 MB, 512 bytes per sector, 248826 sectors
 	geometries_mo[0x797f400] = make_pair(512, 248826);
 	// 230 MB, 512 bytes per block, 446325 sectors
@@ -88,6 +90,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					device = new SCSIHD_NEC();
 					((Disk *)device)->SetVendor("NEC");
+					((Disk *)device)->SetSectorSizes(sector_sizes_nec);
 				} else {
 					device = new SCSIHD(false);
 					device->SetProtectable(true);
