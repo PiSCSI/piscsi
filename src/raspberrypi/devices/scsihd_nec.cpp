@@ -100,7 +100,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 
 	// Determine parameters by extension
 	const char *ext = path.GetFileExt();
-	if (!strcasecmp(ext, _T(".HDN"))) {
+	if (!strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		imgoffset = 0;
 		imgsize = size;
@@ -110,15 +110,15 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		cylinders = (int)(size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
-	} else if (strcasecmp(ext, _T(".HDI")) == 0) { // Anex86 HD image?
+	} else if (!strcasecmp(ext, ".hdi")) { // Anex86 HD image?
 		imgoffset = getDwordLE(&hdr[4 + 4]);
 		imgsize = getDwordLE(&hdr[4 + 4 + 4]);
 		sectorsize = getDwordLE(&hdr[4 + 4 + 4 + 4]);
 		sectors = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4]);
 		heads = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4]);
 		cylinders = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4 + 4]);
-	} else if (strcasecmp(ext, _T(".NHD")) == 0 &&
-		memcmp(hdr, "T98HDDIMAGE.R0\0", 15) == 0) { // T98Next HD image?
+	} else if (!strcasecmp(ext, ".nhd") &&
+		!memcmp(hdr, "T98HDDIMAGE.R0\0", 15)) { // T98Next HD image?
 		imgoffset = getDwordLE(&hdr[0x10 + 0x100]);
 		cylinders = getDwordLE(&hdr[0x10 + 0x100 + 4]);
 		heads = getWordLE(&hdr[0x10 + 0x100 + 4 + 4]);
