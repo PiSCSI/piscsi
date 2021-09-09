@@ -167,6 +167,10 @@ function showRaScsiStatus() {
     sudo systemctl status rascsi | tee
 }
 
+function showRaScsiWebStatus() {
+    sudo systemctl status rascsi-web | tee
+}
+
 function createDrive600MB() {
     createDrive 600 "HD600"
 }
@@ -414,6 +418,7 @@ function runChoice() {
               installRaScsiWebInterface
               createDrive600MB
               showRaScsiStatus
+              showRaScsiWebStatus
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive - Complete!"
           ;;
           1)
@@ -425,6 +430,7 @@ function runChoice() {
               installRaScsi
               installRaScsiWebInterface
               showRaScsiStatus
+              showRaScsiWebStatus
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface - Complete!"
           ;;
           2)
