@@ -18,17 +18,6 @@
 #include "fileio.h"
 #include "exceptions.h"
 
-//===========================================================================
-//
-//	SCSI hard disk (PC-9801-55 NEC genuine / Anex86 / T98Next)
-//
-//===========================================================================
-
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSIHD_NEC::SCSIHD_NEC() : SCSIHD(false)
 {
 	// Work initialization
@@ -60,11 +49,6 @@ static inline DWORD getDwordLE(const BYTE *b)
 	return ((DWORD)(b[3]) << 24) | ((DWORD)(b[2]) << 16) | ((DWORD)(b[1]) << 8) | b[0];
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
 void SCSIHD_NEC::Open(const Filepath& path)
 {
 	ASSERT(!IsReady());
@@ -100,6 +84,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 
 	// Determine parameters by extension
 	const char *ext = path.GetFileExt();
+	// PC-9801-55 NEC genuine?
 	if (!strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
 		imgoffset = 0;
@@ -110,7 +95,8 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		cylinders = (int)(size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
-	}  // Anex86 HD image?
+	}
+	// Anex86 HD image?
 	else if (!strcasecmp(ext, ".hdi")) {
 		imgoffset = getDwordLE(&hdr[4 + 4]);
 		imgsize = getDwordLE(&hdr[4 + 4 + 4]);
@@ -118,8 +104,9 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		sectors = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4]);
 		heads = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4]);
 		cylinders = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4 + 4]);
-	} else if (!strcasecmp(ext, ".nhd")) {
-		// T98Next HD image?
+	}
+	// T98Next HD image?
+	else if (!strcasecmp(ext, ".nhd")) {
 		if (!memcmp(hdr, "T98HDDIMAGE.R0\0", 15)) {
 			imgoffset = getDwordLE(&hdr[0x10 + 0x100]);
 			cylinders = getDwordLE(&hdr[0x10 + 0x100 + 4]);
@@ -161,11 +148,6 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
 int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	int size = SCSIHD::Inquiry(cdb, buf);
@@ -177,12 +159,7 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Error page added
-//
-//---------------------------------------------------------------------------
-int SCSIHD_NEC::AddError(bool change, BYTE *buf)
+int SCSIHD_NEC::AddErrorPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -194,12 +171,7 @@ int SCSIHD_NEC::AddError(bool change, BYTE *buf)
 	return 8;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Format page added
-//
-//---------------------------------------------------------------------------
-int SCSIHD_NEC::AddFormat(bool change, BYTE *buf)
+int SCSIHD_NEC::AddFormatPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -237,12 +209,7 @@ int SCSIHD_NEC::AddFormat(bool change, BYTE *buf)
 	return 24;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Drive page added
-//
-//---------------------------------------------------------------------------
-int SCSIHD_NEC::AddDrive(bool change, BYTE *buf)
+int SCSIHD_NEC::AddDrivePage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
