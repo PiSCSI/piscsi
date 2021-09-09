@@ -471,8 +471,11 @@ void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 		return;
 	}
 
-	// Set Lock flag
-	SetLocked(ctrl->cmd[4] & 0x01);
+	bool lock = ctrl->cmd[4] & 0x01;
+
+	LOGTRACE("%s", lock ? "Locking medium" : "Unlocking medium");
+
+	SetLocked(lock);
 
 	controller->Status();
 }
@@ -1277,8 +1280,12 @@ bool Disk::StartStop(const DWORD *cdb)
 {
 	ASSERT(cdb);
 
+	bool stop = cdb[4] & 0x02;
+
+	LOGTRACE("%s", stop ? "Stopping unit" : "Starting unit");
+
 	// Look at the eject bit and eject if necessary
-	if (cdb[4] & 0x02) {
+	if (stop) {
 		if (IsLocked()) {
 			// Cannot be ejected because it is locked
 			SetStatusCode(STATUS_PREVENT);
