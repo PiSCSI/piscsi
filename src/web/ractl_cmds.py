@@ -315,13 +315,14 @@ def send_over_socket(s, payload):
         while bytes_recvd < response_length:
             chunk = s.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
-                logging.error("Socket connection dropped.")
-                return False
+                from flask import abort
+                logging.error("Read an empty chunk from the socket. Socket connection may have dropped unexpectedly.")
+                abort(503, "Lost connection to RaSCSI. Please go back and try again. If the issue persists, please report a bug.")
             chunks.append(chunk)
             bytes_recvd = bytes_recvd + len(chunk)
         response_message = b''.join(chunks)
         return response_message
     else:
-        logging.error("Missing protobuf data.")
-        return False
-
+        from flask import abort
+        logging.error("The response from RaSCSI did not contain a protobuf header.")
+        abort(500, "Did not get a valid response from RaSCSI. Please go back and try again. If the issue persists, please report a bug.")
