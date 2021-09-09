@@ -89,7 +89,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 			case SCHD:
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					device = new SCSIHD_NEC();
-					((Disk *)device)->SetVendor("NEC");
 					((Disk *)device)->SetSectorSizes(sector_sizes_nec);
 				} else {
 					device = new SCSIHD(false);
