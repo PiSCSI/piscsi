@@ -65,6 +65,10 @@ private:
 	// Device is permanently read-only
 	bool read_only;
 
+	// Device can be stopped (parked)/is stopped (parked)
+	bool stoppable;
+	bool stopped;
+
 	// Device is removable/removed
 	bool removable;
 	bool removed;
@@ -121,6 +125,10 @@ public:
 	bool IsReadOnly() const { return read_only; }
 	void SetReadOnly(bool read_only) { this->read_only = read_only; }
 
+	bool IsStoppable() const { return stoppable; }
+	void SetStoppable(bool stoppable) { this->stoppable = stoppable; }
+	bool IsStopped() const { return stopped; }
+	void SetStopped(bool stopped) { this->stopped = stopped; }
 	bool IsRemovable() const { return removable; }
 	void SetRemovable(bool removable) { this->removable = removable; }
 	bool IsRemoved() const { return removed; }
