@@ -131,6 +131,8 @@ def attach():
     if match(valid_file_types, file_name):
         if file_name.lower().endswith((".iso", ".cdr", ".toast", ".img")):
             image_type = "SCCD"
+        elif file_name.lower().endswith(".hdr"):
+            image_type = "SCRM"
         else:
             image_type = "SCHD"
     else:
