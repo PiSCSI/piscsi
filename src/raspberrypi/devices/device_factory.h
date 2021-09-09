@@ -17,6 +17,7 @@
 #include "rascsi_interface.pb.h"
 
 using namespace std;
+using namespace rascsi_interface;
 
 typedef pair<uint32_t, uint32_t> Geometry;
 
@@ -31,19 +32,18 @@ public:
 
 	static DeviceFactory& instance();
 
-	const set<uint32_t>& GetSasiSectorSizes() const { return sector_sizes_sasi; };
-	const set<uint32_t>& GetScsiSectorSizes() const { return sector_sizes_scsi; };
+	const set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
+	const set<uint32_t>& GetSectorSizes(const string&);
+	const set<uint64_t> GetCapacities(PbDeviceType);
 
-	const set<uint64_t> GetMoCapacities() const;
-
-	Device *CreateDevice(rascsi_interface::PbDeviceType type, const string& filename, const string& ext);
+	Device *CreateDevice(PbDeviceType type, const string& filename, const string& ext);
 
 private:
 
 	set<uint32_t> sector_sizes_sasi;
 	set<uint32_t> sector_sizes_scsi;
 	set<uint32_t> sector_sizes_nec;
+	map<PbDeviceType, set<uint32_t>> sector_sizes;
 
-	// Mapping of supported MO capacities in bytes to the respective block sizes and block counts
-	map<uint64_t, Geometry> geometries_mo;
+	map<PbDeviceType, map<uint64_t, Geometry>> geometries;
 };

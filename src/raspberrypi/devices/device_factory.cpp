@@ -34,14 +34,28 @@ DeviceFactory::DeviceFactory()
 
 	sector_sizes_nec.insert(512);
 
+	sector_sizes[SAHD] = sector_sizes_sasi;
+	sector_sizes[SCHD] = sector_sizes_scsi;
+	sector_sizes[SCRM] = sector_sizes_scsi;
+	sector_sizes[SCMO] = sector_sizes_scsi;
+	sector_sizes[SCCD] = sector_sizes_scsi;
+	sector_sizes[SCBR] = {};
+	sector_sizes[SCDP] = {};
+
 	// 128 MB, 512 bytes per sector, 248826 sectors
-	geometries_mo[0x797f400] = make_pair(512, 248826);
+	geometries[SCMO][0x797f400] = make_pair(512, 248826);
 	// 230 MB, 512 bytes per block, 446325 sectors
-	geometries_mo[0xd9eea00] = make_pair(512, 446325);
+	geometries[SCMO][0xd9eea00] = make_pair(512, 446325);
 	// 540 MB, 512 bytes per sector, 1041500 sectors
-	geometries_mo[0x1fc8b800] = make_pair(512, 1041500);
+	geometries[SCMO][0x1fc8b800] = make_pair(512, 1041500);
 	// 640 MB, 20248 bytes per sector, 310352 sectors
-	geometries_mo[0x25e28000] = make_pair(2048, 310352);
+	geometries[SCMO][0x25e28000] = make_pair(2048, 310352);
+	geometries[SAHD] = {};
+	geometries[SCHD] = {};
+	geometries[SCRM] = {};
+	geometries[SCCD] = {};
+	geometries[SCBR] = {};
+	geometries[SCDP] = {};
 }
 
 DeviceFactory& DeviceFactory::instance()
@@ -83,6 +97,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 		switch (type) {
 			case SAHD:
 				device = new SASIHD();
+				device->SetSupportedLuns(2);
 				((Disk *)device)->SetSectorSizes(sector_sizes_sasi);
 			break;
 
@@ -92,34 +107,38 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 					((Disk *)device)->SetSectorSizes(sector_sizes_nec);
 				} else {
 					device = new SCSIHD(false);
-					((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
+					((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);
 				}
+				device->SetSupportedLuns(1);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				break;
 
 			case SCRM:
 				device = new SCSIHD(true);
+				device->SetSupportedLuns(1);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI HD (REM.)");
-				((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
+				((Disk *)device)->SetSectorSizes(sector_sizes[SCRM]);
 				break;
 
 			case SCMO:
 				device = new SCSIMO();
+				device->SetSupportedLuns(1);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI MO");
-				((Disk *)device)->SetGeometries(geometries_mo);
+				((Disk *)device)->SetGeometries(geometries[SCMO]);
 				break;
 
 			case SCCD:
 				device = new SCSICD();
+				device->SetSupportedLuns(1);
 				device->SetReadOnly(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -129,12 +148,14 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 
 			case SCBR:
 				device = new SCSIBR();
+				device->SetSupportedLuns(1);
 				device->SetProduct("SCSI HOST BRIDGE");
 				device->SupportsParams(true);
 				break;
 
 			case SCDP:
 				device = new SCSIDaynaPort();
+				device->SetSupportedLuns(1);
 				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 				device->SetVendor("Dayna");
 				device->SetProduct("SCSI/Link");
@@ -154,11 +175,18 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 	return device;
 }
 
-const set<uint64_t> DeviceFactory::GetMoCapacities() const
+const set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
+{
+	PbDeviceType t;
+	PbDeviceType_Parse(type, &t);
+	return sector_sizes[t];
+}
+
+const set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type)
 {
 	set<uint64_t> keys;
 
-	for (const auto& geometry : geometries_mo) {
+	for (const auto& geometry : geometries[type]) {
 		keys.insert(geometry.first);
 	}
 
