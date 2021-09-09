@@ -1,7 +1,3 @@
-import io
-import re
-import sys
-
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file
 
 from file_cmds import (
@@ -30,6 +26,7 @@ from ractl_cmds import (
     valid_file_types,
     reserve_scsi_ids,
     rascsi_version,
+    validate_scsi_id,
 )
 from settings import *
 
@@ -88,10 +85,10 @@ def config_load():
 
 @app.route("/logs")
 def logs():
-    import subprocess
+    from subprocess import run
 
     lines = request.args.get("lines") or "100"
-    process = subprocess.run(["journalctl", "-n", lines], capture_output=True)
+    process = run(["journalctl", "-n", lines], capture_output=True)
 
     if process.returncode == 0:
         headers = {"content-type": "text/plain"}
@@ -106,10 +103,12 @@ def logs():
 @app.route("/daynaport/attach", methods=["POST"])
 def daynaport_attach():
     scsi_id = request.form.get("scsi_id")
-    # Validate the SCSI ID
-    if re.match("[0-7]", str(scsi_id)) == None:
-        flash(f"Invalid SCSI ID. Should be a number between 0-7", "error")
+
+    validate = validate_scsi_id(scsi_id)
+    if validate["status"] == False:
+        flash(validate["msg"], "error")
         return redirect(url_for("index"))
+
     process = attach_daynaport(scsi_id)
     if process["status"] == True:
         flash(f"Attached DaynaPORT to SCSI id {scsi_id}!")
@@ -126,9 +125,10 @@ def attach():
     scsi_id = request.form.get("scsi_id")
 
     # Validate image type by suffix
+    from re import match
     print("file_name", file_name)
     print("valid_file_types: ", valid_file_types)
-    if re.match(valid_file_types, file_name):
+    if match(valid_file_types, file_name):
         if file_name.lower().endswith((".iso", ".cdr", ".toast", ".img")):
             image_type = "SCCD"
         else:
@@ -137,9 +137,9 @@ def attach():
         flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
         return redirect(url_for("index"))
 
-    # Validate the SCSI ID
-    if re.match("[0-7]", str(scsi_id)) == None:
-        flash(f"Invalid SCSI ID. Should be a number between 0-7", "error")
+    validate = validate_scsi_id(scsi_id)
+    if validate["status"] == False:
+        flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
     process = attach_image(scsi_id, file_name, image_type)
@@ -253,6 +253,7 @@ def upload_file(filename):
         flash(f"{filename} already exists.", "error")
         return redirect(url_for("index"))
 
+    import io
     binary_new_file = "bx"
     with open(file_path, binary_new_file, buffering=io.DEFAULT_BUFFER_SIZE) as f:
         chunk_size = io.DEFAULT_BUFFER_SIZE
@@ -316,6 +317,8 @@ if __name__ == "__main__":
     app.config["UPLOAD_FOLDER"] = base_dir
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
+
+    import sys
     if len(sys.argv) >= 2:
         app.config["RESERVED_SCSI_IDS"] = str(sys.argv[1])
         # Reserve SCSI IDs on the backend side to prevent use
