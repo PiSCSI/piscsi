@@ -3440,7 +3440,7 @@ int CFileSys::Read(DWORD nKey, Human68k::fcb_t* pFcb, BYTE* pBuffer, DWORD nSize
 	nResult = pHostFcb->Read(pBuffer, nSize);
 	if (nResult == (DWORD)-1) {
 		m_cFcb.Free(pHostFcb);
-		return FS_INVALIDFUNC;	// TODO: Should return error code 10 (read error) here as well
+		return FS_INVALIDFUNC;	// TODO: Should return error code 10 (read error) as well here
 	}
 	ASSERT(nResult <= nSize);
 
@@ -3492,12 +3492,12 @@ int CFileSys::Write(DWORD nKey, Human68k::fcb_t* pFcb, const BYTE* pBuffer, DWOR
 		nResult = pHostFcb->Write(pBuffer, nSize);
 		if (nResult == (DWORD)-1) {
 			m_cFcb.Free(pHostFcb);
-			return FS_CANTWRITE;	/// @note これに加えてエラーコード11(書き込みエラー)を返すべき
+			return FS_CANTWRITE;	/// TODO: Should return error code 11 (write error) as well here
 		}
 		ASSERT(nResult <= nSize);
 
 		// Update file pointer
-		pFcb->fileptr += nResult;	/// @note オーバーフロー確認は必要じゃろうか？
+		pFcb->fileptr += nResult;	/// TODO: Do we need an overflow check here?
 
 		// Update file size
 		if (pFcb->size < pFcb->fileptr)
