@@ -62,12 +62,12 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	// Get file size
 	off_t size = fio.GetFileSize();
 
-	// Read header
-	BYTE hdr[512];
-	if (size >= (off_t)sizeof(hdr)) {
-		if (!fio.Read(hdr, sizeof(hdr))) {
+	// NEC root sector
+	BYTE root_sector[512];
+	if (size >= (off_t)sizeof(root_sector)) {
+		if (!fio.Read(root_sector, sizeof(root_sector))) {
 			fio.Close();
-			throw io_exception("Can't read NEC hard disk file header");
+			throw io_exception("Can't read NEC hard disk file root sector");
 		}
 	}
 	fio.Close();
@@ -98,21 +98,21 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 	// Anex86 HD image?
 	else if (!strcasecmp(ext, ".hdi")) {
-		imgoffset = getDwordLE(&hdr[4 + 4]);
-		imgsize = getDwordLE(&hdr[4 + 4 + 4]);
-		sectorsize = getDwordLE(&hdr[4 + 4 + 4 + 4]);
-		sectors = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4]);
-		heads = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4]);
-		cylinders = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4 + 4]);
+		imgoffset = getDwordLE(&root_sector[4 + 4]);
+		imgsize = getDwordLE(&root_sector[4 + 4 + 4]);
+		sectorsize = getDwordLE(&root_sector[4 + 4 + 4 + 4]);
+		sectors = getDwordLE(&root_sector[4 + 4 + 4 + 4 + 4]);
+		heads = getDwordLE(&root_sector[4 + 4 + 4 + 4 + 4 + 4]);
+		cylinders = getDwordLE(&root_sector[4 + 4 + 4 + 4 + 4 + 4 + 4]);
 	}
 	// T98Next HD image?
 	else if (!strcasecmp(ext, ".nhd")) {
-		if (!memcmp(hdr, "T98HDDIMAGE.R0\0", 15)) {
-			imgoffset = getDwordLE(&hdr[0x10 + 0x100]);
-			cylinders = getDwordLE(&hdr[0x10 + 0x100 + 4]);
-			heads = getWordLE(&hdr[0x10 + 0x100 + 4 + 4]);
-			sectors = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2]);
-			sectorsize = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2 + 2]);
+		if (!memcmp(root_sector, "T98HDDIMAGE.R0\0", 15)) {
+			imgoffset = getDwordLE(&root_sector[0x10 + 0x100]);
+			cylinders = getDwordLE(&root_sector[0x10 + 0x100 + 4]);
+			heads = getWordLE(&root_sector[0x10 + 0x100 + 4 + 4]);
+			sectors = getWordLE(&root_sector[0x10 + 0x100 + 4 + 4 + 2]);
+			sectorsize = getWordLE(&root_sector[0x10 + 0x100 + 4 + 4 + 2 + 2]);
 			imgsize = (off_t)cylinders * heads * sectors * sectorsize;
 		}
 		else {
