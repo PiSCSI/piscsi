@@ -110,21 +110,27 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		cylinders = (int)(size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
-	} else if (!strcasecmp(ext, ".hdi")) { // Anex86 HD image?
+	}  // Anex86 HD image?
+	else if (!strcasecmp(ext, ".hdi")) {
 		imgoffset = getDwordLE(&hdr[4 + 4]);
 		imgsize = getDwordLE(&hdr[4 + 4 + 4]);
 		sectorsize = getDwordLE(&hdr[4 + 4 + 4 + 4]);
 		sectors = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4]);
 		heads = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4]);
 		cylinders = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4 + 4]);
-	} else if (!strcasecmp(ext, ".nhd") &&
-		!memcmp(hdr, "T98HDDIMAGE.R0\0", 15)) { // T98Next HD image?
-		imgoffset = getDwordLE(&hdr[0x10 + 0x100]);
-		cylinders = getDwordLE(&hdr[0x10 + 0x100 + 4]);
-		heads = getWordLE(&hdr[0x10 + 0x100 + 4 + 4]);
-		sectors = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2]);
-		sectorsize = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2 + 2]);
-		imgsize = (off_t)cylinders * heads * sectors * sectorsize;
+	} else if (!strcasecmp(ext, ".nhd")) {
+		// T98Next HD image?
+		if (!memcmp(hdr, "T98HDDIMAGE.R0\0", 15)) {
+			imgoffset = getDwordLE(&hdr[0x10 + 0x100]);
+			cylinders = getDwordLE(&hdr[0x10 + 0x100 + 4]);
+			heads = getWordLE(&hdr[0x10 + 0x100 + 4 + 4]);
+			sectors = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2]);
+			sectorsize = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2 + 2]);
+			imgsize = (off_t)cylinders * heads * sectors * sectorsize;
+		}
+		else {
+			throw io_exception("Invalid NEC image file format");
+		}
 	}
 
 	// Supports 256 or 512 sector sizes
