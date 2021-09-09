@@ -89,19 +89,23 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 			case SCHD:
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					device = new SCSIHD_NEC();
+					device->SetProtectable(true);
+					device->SetStoppable(true);
 					((Disk *)device)->SetSectorSizes(sector_sizes_nec);
 				} else {
 					device = new SCSIHD(false);
 					device->SetProtectable(true);
+					device->SetStoppable(true);
 					((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
 				}
 				break;
 
 			case SCRM:
 				device = new SCSIHD(true);
+				device->SetProtectable(true);
+				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
-				device->SetProtectable(true);
 				device->SetProduct("SCSI HD (REM.)");
 				((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
 				break;
@@ -109,6 +113,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 			case SCMO:
 				device = new SCSIMO();
 				device->SetProtectable(true);
+				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI MO");
@@ -118,6 +123,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 			case SCCD:
 				device = new SCSICD();
 				device->SetReadOnly(true);
+				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI CD-ROM");

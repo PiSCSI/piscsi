@@ -32,6 +32,8 @@ Device::Device(const string& type)
 	protectable = false;
 	write_protected = false;
 	read_only = false;
+	stoppable = false;
+	stopped = false;
 	removable = false;
 	removed = false;
 	lockable = false;

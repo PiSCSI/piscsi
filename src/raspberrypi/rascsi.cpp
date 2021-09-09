@@ -282,12 +282,14 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 	pb_device->set_allocated_properties(properties);
 	properties->set_read_only(device->IsReadOnly());
 	properties->set_protectable(device->IsProtectable());
+	properties->set_stoppable(device->IsStoppable());
 	properties->set_removable(device->IsRemovable());
 	properties->set_lockable(device->IsLockable());
 
 	PbDeviceStatus *status = new PbDeviceStatus();
 	pb_device->set_allocated_status(status);
 	status->set_protected_(device->IsProtected());
+	status->set_stopped(device->IsStopped());
 	status->set_removed(device->IsRemoved());
 	status->set_locked(device->IsLocked());
 
@@ -544,6 +546,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
+	properties->set_stoppable(true);
 	properties->set_supports_file(true);
 	properties->set_luns(1);
 	for (const auto& block_size : device_factory.GetScsiSectorSizes()) {
@@ -555,6 +558,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
+	properties->set_stoppable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
@@ -568,6 +572,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_protectable(true);
+	properties->set_stoppable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
@@ -581,6 +586,7 @@ void GetDeviceTypeFeatures(PbServerInfo& server_info)
 	properties = new PbDeviceProperties();
 	types_properties->set_allocated_properties(properties);
 	properties->set_read_only(true);
+	properties->set_stoppable(true);
 	properties->set_removable(true);
 	properties->set_lockable(true);
 	properties->set_supports_file(true);
