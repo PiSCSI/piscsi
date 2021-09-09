@@ -89,15 +89,13 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 			case SCHD:
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					device = new SCSIHD_NEC();
-					device->SetProtectable(true);
-					device->SetStoppable(true);
 					((Disk *)device)->SetSectorSizes(sector_sizes_nec);
 				} else {
 					device = new SCSIHD(false);
-					device->SetProtectable(true);
-					device->SetStoppable(true);
 					((Disk *)device)->SetSectorSizes(sector_sizes_scsi);
 				}
+				device->SetProtectable(true);
+				device->SetStoppable(true);
 				break;
 
 			case SCRM:
