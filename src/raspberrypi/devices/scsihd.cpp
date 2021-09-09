@@ -240,7 +240,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Add Vendor special page to make drive Apple compatible
 //
 //---------------------------------------------------------------------------
-int SCSIHD::AddVendor(int page, bool change, BYTE *buf)
+int SCSIHD::AddVendorPage(int page, bool change, BYTE *buf)
 {
 	ASSERT(buf);
 

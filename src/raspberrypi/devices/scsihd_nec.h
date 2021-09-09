@@ -33,10 +33,9 @@ public:
 	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;
 
-	// Internal processing
-	int AddError(bool change, BYTE *buf) override;		// Add error
-	int AddFormat(bool change, BYTE *buf) override;		// Add format
-	int AddDrive(bool change, BYTE *buf) override;		// Add drive
+	int AddErrorPage(bool change, BYTE *buf) override;
+	int AddFormatPage(bool change, BYTE *buf) override;
+	int AddDrivePage(bool change, BYTE *buf) override;
 
 private:
 	int cylinders;								// Number of cylinders
