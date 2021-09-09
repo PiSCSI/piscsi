@@ -42,6 +42,7 @@ private:
 
 	set<uint32_t> sector_sizes_sasi;
 	set<uint32_t> sector_sizes_scsi;
+	set<uint32_t> sector_sizes_nec;
 
 	// Mapping of supported MO capacities in bytes to the respective block sizes and block counts
 	map<uint64_t, Geometry> geometries_mo;
