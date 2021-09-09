@@ -253,6 +253,10 @@ void CommandServerInfo(const string& hostname, int port)
 			cout << (has_property ? ", " : "") << "Protectable";
 			has_property = true;
 		}
+		if (properties.stoppable()) {
+			cout << (has_property ? ", " : "") << "Stoppable";
+			has_property = true;
+		}
 		if (properties.removable()) {
 			cout << (has_property ? ", " : "") << "Removable";
 			has_property = true;
