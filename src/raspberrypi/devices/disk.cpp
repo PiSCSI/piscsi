@@ -1291,9 +1291,6 @@ bool Disk::StartStop(const DWORD *cdb)
 		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit");
 
 		SetStopped(!start);
-		if (!start) {
-			SetReady(false);
-		}
 	}
 
 	// Look at the eject bit and eject if necessary
