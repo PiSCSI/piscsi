@@ -187,7 +187,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 
 const set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 {
-	PbDeviceType t;
+	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(type, &t);
 	return sector_sizes[t];
 }
