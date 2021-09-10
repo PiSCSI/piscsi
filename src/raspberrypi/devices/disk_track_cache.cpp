@@ -18,6 +18,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
+#include "log.h"
 #include "fileio.h"
 #include "disk_track_cache.h"
 
@@ -27,11 +28,6 @@
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 DiskTrack::DiskTrack()
 {
 	// Initialization of internal information
@@ -48,11 +44,6 @@ DiskTrack::DiskTrack()
 	dt.imgoffset = 0;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 DiskTrack::~DiskTrack()
 {
 	// Release memory, but do not save automatically
@@ -98,16 +89,15 @@ void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off_t imgoff)
 //	Load
 //
 //---------------------------------------------------------------------------
-BOOL DiskTrack::Load(const Filepath& path)
+bool DiskTrack::Load(const Filepath& path)
 {
 	Fileio fio;
-	int i;
 
 	// Not needed if already loaded
 	if (dt.init) {
 		ASSERT(dt.buffer);
 		ASSERT(dt.changemap);
-		return TRUE;
+		return true;
 	}
 
 	// Calculate offset (previous tracks are considered to hold 256 sectors)
@@ -137,7 +127,7 @@ BOOL DiskTrack::Load(const Filepath& path)
 	}
 
 	if (!dt.buffer) {
-		return FALSE;
+		return false;
 	}
 
 	// Reallocate if the buffer length is different
@@ -156,7 +146,7 @@ BOOL DiskTrack::Load(const Filepath& path)
 	}
 
 	if (!dt.changemap) {
-		return FALSE;
+		return false;
 	}
 
 	// Reallocate if the buffer length is different
@@ -171,21 +161,21 @@ BOOL DiskTrack::Load(const Filepath& path)
 
 	// Read from File
 	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
-		return FALSE;
+		return false;
 	}
 	if (dt.raw) {
 		// Split Reading
-		for (i = 0; i < dt.sectors; i++) {
+		for (int i = 0; i < dt.sectors; i++) {
 			// Seek
 			if (!fio.Seek(offset)) {
 				fio.Close();
-				return FALSE;
+				return false;
 			}
 
 			// Read
 			if (!fio.Read(&dt.buffer[i << dt.size], 1 << dt.size)) {
 				fio.Close();
-				return FALSE;
+				return false;
 			}
 
 			// Next offset
@@ -195,11 +185,11 @@ BOOL DiskTrack::Load(const Filepath& path)
 		// Continuous reading
 		if (!fio.Seek(offset)) {
 			fio.Close();
-			return FALSE;
+			return false;
 		}
 		if (!fio.Read(dt.buffer, length)) {
 			fio.Close();
-			return FALSE;
+			return false;
 		}
 	}
 	fio.Close();
@@ -207,7 +197,7 @@ BOOL DiskTrack::Load(const Filepath& path)
 	// Set a flag and end normally
 	dt.init = TRUE;
 	dt.changed = FALSE;
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -215,20 +205,16 @@ BOOL DiskTrack::Load(const Filepath& path)
 //	Save
 //
 //---------------------------------------------------------------------------
-BOOL DiskTrack::Save(const Filepath& path)
+bool DiskTrack::Save(const Filepath& path)
 {
-	int i;
-	int j;
-	int total;
-
 	// Not needed if not initialized
 	if (!dt.init) {
-		return TRUE;
+		return true;
 	}
 
 	// Not needed unless changed
 	if (!dt.changed) {
-		return TRUE;
+		return true;
 	}
 
 	// Need to write
@@ -252,11 +238,12 @@ BOOL DiskTrack::Save(const Filepath& path)
 	// Open file
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadWrite)) {
-		return FALSE;
+		return false;
 	}
 
 	// Partial write loop
-	for (i = 0; i < dt.sectors;) {
+	int total;
+	for (int i = 0; i < dt.sectors;) {
 		// If changed
 		if (dt.changemap[i]) {
 			// Initialize write size
@@ -265,10 +252,11 @@ BOOL DiskTrack::Save(const Filepath& path)
 			// Seek
 			if (!fio.Seek(offset + ((off_t)i << dt.size))) {
 				fio.Close();
-				return FALSE;
+				return false;
 			}
 
 			// Consectutive sector length
+			int j;
 			for (j = i; j < dt.sectors; j++) {
 				// end when interrupted
 				if (!dt.changemap[j]) {
@@ -282,7 +270,7 @@ BOOL DiskTrack::Save(const Filepath& path)
 			// Write
 			if (!fio.Write(&dt.buffer[i << dt.size], total)) {
 				fio.Close();
-				return FALSE;
+				return false;
 			}
 
 			// To unmodified sector
@@ -299,7 +287,7 @@ BOOL DiskTrack::Save(const Filepath& path)
 	// Drop the change flag and exit
 	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 	dt.changed = FALSE;
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -307,7 +295,7 @@ BOOL DiskTrack::Save(const Filepath& path)
 //	Read Sector
 //
 //---------------------------------------------------------------------------
-BOOL DiskTrack::Read(BYTE *buf, int sec) const
+bool DiskTrack::Read(BYTE *buf, int sec) const
 {
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
@@ -315,12 +303,12 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 	LOGTRACE("%s reading sector: %d", __PRETTY_FUNCTION__,sec);
 	// Error if not initialized
 	if (!dt.init) {
-		return FALSE;
+		return false;
 	}
 
 	// // Error if the number of sectors exceeds the valid number
 	if (sec >= dt.sectors) {
-		return FALSE;
+		return false;
 	}
 
 	// Copy
@@ -329,7 +317,7 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 	memcpy(buf, &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
 
 	// Success
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -337,7 +325,7 @@ BOOL DiskTrack::Read(BYTE *buf, int sec) const
 //	Write Sector
 //
 //---------------------------------------------------------------------------
-BOOL DiskTrack::Write(const BYTE *buf, int sec)
+bool DiskTrack::Write(const BYTE *buf, int sec)
 {
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
@@ -345,12 +333,12 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 
 	// Error if not initialized
 	if (!dt.init) {
-		return FALSE;
+		return false;
 	}
 
 	// // Error if the number of sectors exceeds the valid number
 	if (sec >= dt.sectors) {
-		return FALSE;
+		return false;
 	}
 
 	// Calculate offset and length
@@ -362,7 +350,7 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
 	if (memcmp(buf, &dt.buffer[offset], length) == 0) {
 		// Exit normally since it's attempting to write the same thing
-		return TRUE;
+		return true;
 	}
 
 	// Copy, change
@@ -371,7 +359,7 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 	dt.changed = TRUE;
 
 	// Success
-	return TRUE;
+	return true;
 }
 
 //===========================================================================
@@ -385,7 +373,7 @@ BOOL DiskTrack::Write(const BYTE *buf, int sec)
 //	Constructor
 //
 //---------------------------------------------------------------------------
-DiskCache::DiskCache(const Filepath& path, int size, int blocks, off_t imgoff)
+DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff)
 {
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
@@ -434,7 +422,7 @@ void DiskCache::SetRawMode(BOOL raw)
 //	Save
 //
 //---------------------------------------------------------------------------
-BOOL DiskCache::Save()
+bool DiskCache::Save()
 {
 	// Save track
 	for (int i = 0; i < CacheMax; i++) {
@@ -442,12 +430,12 @@ BOOL DiskCache::Save()
 		if (cache[i].disktrk) {
 			// Save
 			if (!cache[i].disktrk->Save(sec_path)) {
-				return FALSE;
+				return false;
 			}
 		}
 	}
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -455,20 +443,20 @@ BOOL DiskCache::Save()
 //	Get disk cache information
 //
 //---------------------------------------------------------------------------
-BOOL DiskCache::GetCache(int index, int& track, DWORD& aserial) const
+bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 {
 	ASSERT((index >= 0) && (index < CacheMax));
 
-	// FALSE if unused
+	// false if unused
 	if (!cache[index].disktrk) {
-		return FALSE;
+		return false;
 	}
 
 	// Set track and serial
 	track = cache[index].disktrk->GetTrack();
 	aserial = cache[index].serial;
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -492,7 +480,7 @@ void DiskCache::Clear()
 //	Sector Read
 //
 //---------------------------------------------------------------------------
-BOOL DiskCache::Read(BYTE *buf, int block)
+bool DiskCache::Read(BYTE *buf, int block)
 {
 	ASSERT(sec_size != 0);
 
@@ -505,7 +493,7 @@ BOOL DiskCache::Read(BYTE *buf, int block)
 	// Get the track data
 	DiskTrack *disktrk = Assign(track);
 	if (!disktrk) {
-		return FALSE;
+		return false;
 	}
 
 	// Read the track data to the cache
@@ -517,7 +505,7 @@ BOOL DiskCache::Read(BYTE *buf, int block)
 //	Sector write
 //
 //---------------------------------------------------------------------------
-BOOL DiskCache::Write(const BYTE *buf, int block)
+bool DiskCache::Write(const BYTE *buf, int block)
 {
 	ASSERT(sec_size != 0);
 
@@ -530,7 +518,7 @@ BOOL DiskCache::Write(const BYTE *buf, int block)
 	// Get that track data
 	DiskTrack *disktrk = Assign(track);
 	if (!disktrk) {
-		return FALSE;
+		return false;
 	}
 
 	// Write the data to the cache
@@ -615,7 +603,7 @@ DiskTrack* DiskCache::Assign(int track)
 //	Load cache
 //
 //---------------------------------------------------------------------------
-BOOL DiskCache::Load(int index, int track, DiskTrack *disktrk)
+bool DiskCache::Load(int index, int track, DiskTrack *disktrk)
 {
 	ASSERT((index >= 0) && (index < CacheMax));
 	ASSERT(track >= 0);
@@ -640,13 +628,13 @@ BOOL DiskCache::Load(int index, int track, DiskTrack *disktrk)
 	if (!disktrk->Load(sec_path)) {
 		// Failure
 		delete disktrk;
-		return FALSE;
+		return false;
 	}
 
 	// Allocation successful, work set
 	cache[index].disktrk = disktrk;
 
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------

@@ -18,14 +18,15 @@
 #pragma once
 
 #include "../rascsi.h"
-#include "log.h"
 #include "filepath.h"
+
+// Number of tracks to cache
+#define CacheMax 16
 
 class DiskTrack
 {
-public:
-	// Internal data definition
-	typedef struct {
+private:
+	 struct {
 		int track;							// Track Number
 		int size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		int sectors;							// Number of sectors(<0x100)
@@ -37,33 +38,23 @@ public:
 		BOOL *changemap;						// Changed map
 		BOOL raw;							// RAW mode flag
 		off_t imgoffset;						// Offset to actual data
-	} disktrk_t;
+	} dt;
 
 public:
-	// Basic Functions
-	DiskTrack();								// Constructor
-	virtual ~DiskTrack();							// Destructor
-	void Init(int track, int size, int sectors, BOOL raw = FALSE, off_t imgoff = 0);// Initialization
-	BOOL Load(const Filepath& path);				// Load
-	BOOL Save(const Filepath& path);				// Save
+	DiskTrack();
+	~DiskTrack();
+
+	void Init(int track, int size, int sectors, BOOL raw = FALSE, off_t imgoff = 0);
+	bool Load(const Filepath& path);
+	bool Save(const Filepath& path);
 
 	// Read / Write
-	BOOL Read(BYTE *buf, int sec) const;				// Sector Read
-	BOOL Write(const BYTE *buf, int sec);				// Sector Write
+	bool Read(BYTE *buf, int sec) const;				// Sector Read
+	bool Write(const BYTE *buf, int sec);				// Sector Write
 
-	// Other
 	int GetTrack() const		{ return dt.track; }		// Get track
-	BOOL IsChanged() const		{ return dt.changed; }		// Changed flag check
-
-private:
-	disktrk_t dt;								// Internal data
 };
 
-//===========================================================================
-//
-//	Disk Cache
-//
-//===========================================================================
 class DiskCache
 {
 public:
@@ -73,28 +64,23 @@ public:
 		DWORD serial;							// Serial
 	} cache_t;
 
-	// Number of caches
-	enum {
-		CacheMax = 16							// Number of tracks to cache
-	};
-
 public:
-	// Basic Functions
-	DiskCache(const Filepath& path, int size, int blocks,off_t imgoff = 0);// Constructor
-	virtual ~DiskCache();							// Destructor
+	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
+	~DiskCache();
+
 	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
 
 	// Access
-	BOOL Save();							// Save and release all
-	BOOL Read(BYTE *buf, int block);				// Sector Read
-	BOOL Write(const BYTE *buf, int block);			// Sector Write
-	BOOL GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
+	bool Save();							// Save and release all
+	bool Read(BYTE *buf, int block);				// Sector Read
+	bool Write(const BYTE *buf, int block);			// Sector Write
+	bool GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
 
 private:
 	// Internal Management
 	void Clear();							// Clear all tracks
 	DiskTrack* Assign(int track);					// Load track
-	BOOL Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
+	bool Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
 	void Update();							// Update serial number
 
 	// Internal data
