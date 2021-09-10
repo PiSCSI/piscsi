@@ -93,13 +93,17 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 {
 	cout << "  " << pb_device.id() << ":" << pb_device.unit() << "  " << PbDeviceType_Name(pb_device.type())
 			<< "  " << pb_device.vendor() << ":" << pb_device.product() << ":" << pb_device.revision();
+
 	if (pb_device.block_size()) {
 		cout << "  " << pb_device.block_size() << " BPS";
 	}
 
-	cout << (pb_device.file().name().empty() ? "" : "  " + pb_device.file().name());
+	if (pb_device.properties().supports_file() && !pb_device.file().name().empty()) {
+		cout << "  " << pb_device.file().name();
+	}
+
 	if (pb_device.properties().read_only() || pb_device.status().protected_()) {
-		cout << "  read-only";
+		cout << ", read-only";
 	}
 
 	if (pb_device.params_size()) {
