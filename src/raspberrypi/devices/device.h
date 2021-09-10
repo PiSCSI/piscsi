@@ -95,8 +95,11 @@ private:
 	string product;
 	string revision;
 
-	// The parameter the device was created with
+	// The parameters the device was created with
 	list<string> params;
+
+	// The default parameters
+	list<string> default_params;
 
 	// Sense Key, ASC and ASCQ
 	int status_code;
@@ -162,6 +165,8 @@ public:
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
 	const list<string> GetParams() const { return params; }
 	void SetParams(const list<string>& params) { this->params = params; }
+	const list<string> GetDefaultParams() const { return default_params; }
+	void SetDefaultParams(const list<string>& default_params) { this->default_params = default_params; }
 
 	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int status_code);

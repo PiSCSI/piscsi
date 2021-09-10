@@ -25,9 +25,6 @@
 
 using namespace std;
 
-// The prioritized list of default interfaces
-const list<string> SCSIBR::default_params = { "eth0,wlan0" };
-
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	fsoptlen = 0;
@@ -66,7 +63,7 @@ SCSIBR::~SCSIBR()
 bool SCSIBR::Init(const list<string>& params)
 {
 	// Use default parameters if no parameters were provided
-	SetParams(params.empty() ? default_params : params);
+	SetParams(params.empty() ? GetDefaultParams() : params);
 
 #ifdef __linux__
 	// TAP Driver Generation
