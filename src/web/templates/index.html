@@ -65,12 +65,14 @@
             <td>{{device.file}}</td>
             <td style="text-align:center">{{device.product}}</td>
 	    <td style="text-align:center">{{device.block}}</td>
-            <td>
+            <td style="text-align:center">
                 {% if device.type in ["SCCD", "SCMO", "SCRM"] and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Eject" />
                 </form>
+                {% elif device.type in ["-"] %}
+		<div>-</div>
                 {% else %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
