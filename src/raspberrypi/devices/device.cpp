@@ -151,6 +151,7 @@ bool Device::Eject(bool force)
 	removed = true;
 	write_protected = false;
 	locked = false;
+	stopped = true;
 
 	return true;
 }
