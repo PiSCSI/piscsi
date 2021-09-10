@@ -1284,13 +1284,11 @@ bool Disk::StartStop(const DWORD *cdb)
 	bool start = cdb[4] & 0x01;
 	bool load = cdb[4] & 0x02;
 
-	LOGERROR("$%02X  %d  %d", cdb[4], start, load);
-
 	if (load) {
-		LOGERROR("%s", start ? "Loading medium" : "Ejecting medium");
+		LOGTRACE("%s", start ? "Loading medium" : "Ejecting medium");
 	}
 	else {
-		LOGERROR("%s", start ? "Starting unit" : "Stopping unit");
+		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit");
 
 		SetStopped(!start);
 	}
