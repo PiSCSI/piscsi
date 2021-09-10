@@ -395,7 +395,7 @@ void Disk::Inquiry(SASIDEV *controller)
 
 void Disk::ModeSelect6(SASIDEV *controller)
 {
-	LOGTRACE("MODE SELECT(6) for unsupported page %d", ctrl->buffer[0]);
+	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
 	ctrl->length = ModeSelectCheck6(ctrl->cmd);
 	if (ctrl->length <= 0) {
@@ -408,7 +408,7 @@ void Disk::ModeSelect6(SASIDEV *controller)
 
 void Disk::ModeSelect10(SASIDEV *controller)
 {
-	LOGTRACE("MODE SELECT(10) for unsupported page %d", ctrl->buffer[0]);
+	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
 	ctrl->length = ModeSelectCheck10(ctrl->cmd);
 	if (ctrl->length <= 0) {
@@ -423,7 +423,7 @@ void Disk::ModeSense6(SASIDEV *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		LOGWARN("%s Not supported MODE SENSE page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
+		LOGTRACE("%s Unsupported mode page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
 
 		controller->Error();
 		return;
@@ -436,7 +436,7 @@ void Disk::ModeSense10(SASIDEV *controller)
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		LOGWARN("%s Not supported MODE SENSE(10) page $%02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
 
 		controller->Error();
 		return;
