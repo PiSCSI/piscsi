@@ -1280,18 +1280,18 @@ bool Disk::StartStop(const DWORD *cdb)
 {
 	ASSERT(cdb);
 
-	bool stop = cdb[4] & 0x01;
-	bool eject = cdb[4] & 0x02;
+	bool start = cdb[4] & 0x01;
+	bool load = cdb[4] & 0x02;
 
-	if (eject) {
-		LOGTRACE("%s", stop ? "Loading unit" : "Ejecting unit");
+	if (load) {
+		LOGTRACE("%s", start ? "Loading unit" : "Ejecting unit");
 	}
 	else {
-		LOGTRACE("%s", stop ? "Starting unit" : "Stopping unit");
+		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit");
 	}
 
 	// Look at the eject bit and eject if necessary
-	if (eject) {
+	if (!start && load) {
 		if (IsLocked()) {
 			// Cannot be ejected because it is locked
 			SetStatusCode(STATUS_PREVENT);
