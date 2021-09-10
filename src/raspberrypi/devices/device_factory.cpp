@@ -56,6 +56,14 @@ DeviceFactory::DeviceFactory()
 	geometries[SCCD] = {};
 	geometries[SCBR] = {};
 	geometries[SCDP] = {};
+
+	default_params[SAHD] = {};
+	default_params[SCHD] = {};
+	default_params[SCRM] = {};
+	default_params[SCMO] = {};
+	default_params[SCCD] = {};
+	default_params[SCBR] = { "eth0,wlan0" };
+	default_params[SCDP] = { "eth0,wlan0" };
 }
 
 DeviceFactory& DeviceFactory::instance()
@@ -151,6 +159,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 				device->SetSupportedLuns(1);
 				device->SetProduct("SCSI HOST BRIDGE");
 				device->SupportsParams(true);
+				device->SetDefaultParams(default_params[SCBR]);
 				break;
 
 			case SCDP:
@@ -161,6 +170,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 				device->SetProduct("SCSI/Link");
 				device->SetRevision("1.4a");
 				device->SupportsParams(true);
+				device->SetDefaultParams(default_params[SCDP]);
 				break;
 
 			default:

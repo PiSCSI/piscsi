@@ -12,6 +12,7 @@
 #pragma once
 
 #include <set>
+#include <list>
 #include <map>
 #include <string>
 #include "rascsi_interface.pb.h"
@@ -35,6 +36,7 @@ public:
 	const set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const set<uint32_t>& GetSectorSizes(const string&);
 	const set<uint64_t> GetCapacities(PbDeviceType);
+	const list<string>& GetDefaultParams(PbDeviceType type) { return default_params[type]; }
 
 	Device *CreateDevice(PbDeviceType type, const string& filename, const string& ext);
 
@@ -46,4 +48,6 @@ private:
 	map<PbDeviceType, set<uint32_t>> sector_sizes;
 
 	map<PbDeviceType, map<uint64_t, Geometry>> geometries;
+
+	map<PbDeviceType, list<string>> default_params;
 };

@@ -486,6 +486,12 @@ PbDeviceProperties *GetDeviceProperties(const Device *device)
 	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(device->GetType(), &t);
 
+	if (device->SupportsParams()) {
+		for (const auto& param : device_factory.GetDefaultParams(t)) {
+			properties->add_default_params(param);
+		}
+	}
+
 	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
 		properties->add_block_sizes(block_size);
 	}
