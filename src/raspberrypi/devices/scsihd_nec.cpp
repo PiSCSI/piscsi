@@ -139,6 +139,10 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	// Number of blocks
 	SetBlockCount(image_size >> disk.size);
 
+	SetReadOnly(false);
+	SetProtectable(true);
+	SetProtected(false);
+
 	Disk::Open(path);
 	FileSupport::SetPath(path);
 }

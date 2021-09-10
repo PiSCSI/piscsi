@@ -426,8 +426,10 @@ void CTapDriver::Cleanup()
 		pcap_dump_close(m_pcap_dumper);
 		m_pcap_dumper = NULL;
 	}
+
 	if (m_pcap != NULL) {
 		pcap_close(m_pcap);
+		m_pcap = NULL;
 	}
 }
 

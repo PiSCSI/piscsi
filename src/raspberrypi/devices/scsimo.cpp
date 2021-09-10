@@ -57,6 +57,10 @@ void SCSIMO::Open(const Filepath& path)
 
 	SetGeometryForCapacity(size);
 
+	SetReadOnly(false);
+	SetProtectable(true);
+	SetProtected(false);
+
 	Disk::Open(path);
 	FileSupport::SetPath(path);
 
