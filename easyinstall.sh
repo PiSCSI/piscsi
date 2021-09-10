@@ -345,8 +345,7 @@ function setupWirelessNetworking() {
         echo "Available interfaces on this system:"
 	ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan
         echo "Please type the wireless interface you want to use and press Enter:"
-        read -r SELECTED
-        WLAN_INTERFACE=$SELECTED
+        read -r WLAN_INTERFACE
         echo "Base IP address (ex. 10.10.20):"
         read -r NETWORK
         echo "Subnet Mask (ex. 255.255.255.0):"
@@ -355,7 +354,6 @@ function setupWirelessNetworking() {
         read -r CIDR
         ROUTER_IP=$NETWORK.1
         ROUTING_ADDRESS=$NETWORK.0/$CIDR
-
     fi
 
 
