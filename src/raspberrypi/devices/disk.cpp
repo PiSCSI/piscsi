@@ -242,7 +242,7 @@ void Disk::Read10(SASIDEV *controller)
 	// Get record number and block number
 	uint64_t record;
 	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s READ(10) command record=$%8X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
 
 		Read(controller, record);
 	}
