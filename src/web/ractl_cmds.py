@@ -208,9 +208,8 @@ def list_devices(scsi_id=None):
     command.operation = proto.PbOperation.DEVICE_INFO
 
     # If method is called with scsi_id parameter, return the info on those devices
-    # Otherwise, return the info on all devices
+    # Otherwise, return the info on all attached devices
     if scsi_id != None:
-        logging.warning(scsi_id)
         device = proto.PbDeviceDefinition()
         device.id = int(scsi_id)
         command.devices.append(device)
@@ -253,7 +252,6 @@ def list_devices(scsi_id=None):
                 "product": dprod, "revision": dprod_rev, "block": dblock})
         occupied_ids.append(str(did))
         n += 1
-        logging.warning(device_list)
     return device_list, occupied_ids
 
 
@@ -263,9 +261,8 @@ def sort_and_format_devices(device_list, occupied_ids):
         if str(id) not in occupied_ids:
             device_list.append({"id": str(id), "type": "-", \
                     "status": "-", "file": "-", "product": "-"})
-
     # Sort list of devices by id
-    device_list.sort(key=lambda dic: dic["id"][0])
+    device_list.sort(key=lambda dic: dic["id"])
 
     return device_list
 

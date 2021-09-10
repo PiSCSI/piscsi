@@ -194,7 +194,6 @@ def eject():
 @app.route("/scsi/info", methods=["POST"])
 def device_info():
     scsi_id = request.form.get("scsi_id")
-    # TODO: Getting a dictionary in a list in a tuple back
     device = list_devices(scsi_id)[0][0]
     if device["id"] == scsi_id:
         flash("=== DEVICE INFO ===")

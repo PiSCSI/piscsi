@@ -41,7 +41,7 @@
         <input type="submit" value="Detach All" />
     </form>
     </p>
-    <p><small>The <em>default</em> configuration will be loaded when the Web UI starts up.</small></p>
+    <p><small>The <em>default</em> configuration will be loaded when the Web UI starts up, if available.</small></p>
 
     <table cellpadding="3" border="black">
         <tbody>
@@ -51,7 +51,7 @@
             <td><b>Status</b></td>
             <td><b>File</b></td>
             <td><b>Product</b></td>
-            <td><b>Action</b></td>
+            <td><b>Actions</b></td>
         </tr>
         {% for device in devices %}
         <tr>
@@ -59,9 +59,9 @@
             <td style="text-align:center">{{device.id}}</td>
             <td style="text-align:center">{{device.type}}</td>
             <td style="text-align:center">{{device.status}}</td>
-            <td>{{device.file}}</td>
+            <td style="text-align:left">{{device.file}}</td>
             <td style="text-align:center">{{device.product}}</td>
-            <td style="text-align:center">
+            <td style="text-align:left">
                 {% if device.type in ["SCCD", "SCMO", "SCRM"] and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
