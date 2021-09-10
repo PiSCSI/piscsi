@@ -126,15 +126,15 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		throw io_exception("Image size consistency check failed");
 	}
 
-	// Sector size
-	// TODO Do not use disk.size directly
-	for(disk.size = 16; disk.size > 0; --(disk.size)) {
-		if ((1 << disk.size) == sector_size)
+	// Calculate sector size
+	for (size = 16; size > 0; --size) {
+		if ((1 << size) == sector_size)
 			break;
 	}
-	if (disk.size <= 0 || disk.size > 16) {
+	if (size <= 0 || size > 16) {
 		throw io_exception("Invalid NEC disk size");
 	}
+	SetSize(size);
 
 	// Number of blocks
 	SetBlockCount(image_size >> disk.size);
