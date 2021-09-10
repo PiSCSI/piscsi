@@ -243,41 +243,38 @@ void CommandServerInfo(const string& hostname, int port)
 
 		cout << "  Supported LUNs: " << properties.luns() << endl;
 
-		cout << "        Properties: ";
-		bool has_property = false;
-		if (properties.read_only()) {
-			cout << "Read-only";
-					has_property = true;
-		}
-		if (properties.protectable()) {
-			cout << (has_property ? ", " : "") << "Protectable";
-			has_property = true;
-		}
-		if (properties.stoppable()) {
-			cout << (has_property ? ", " : "") << "Stoppable";
-			has_property = true;
-		}
-		if (properties.removable()) {
-			cout << (has_property ? ", " : "") << "Removable";
-			has_property = true;
-		}
-		if (properties.lockable()) {
-			cout << (has_property ? ", " : "") << "Lockable";
-			has_property = true;
-		}
-		if (properties.supports_file()) {
-			cout << (has_property ? ", " : "") << "Image file support";
-			has_property = true;
-		}
-		else if (properties.supports_params()) {
-			cout << (has_property ? ", " : "") << "Parameter support";
-			has_property = true;
+		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.read_only()
+				|| properties.lockable()) {
+			cout << "        Properties: ";
+			bool has_property = false;
+			if (properties.read_only()) {
+				cout << "Read-only";
+				has_property = true;
+			}
+			if (properties.protectable()) {
+				cout << (has_property ? ", " : "") << "Protectable";
+				has_property = true;
+			}
+			if (properties.stoppable()) {
+				cout << (has_property ? ", " : "") << "Stoppable";
+				has_property = true;
+			}
+			if (properties.removable()) {
+				cout << (has_property ? ", " : "") << "Removable";
+				has_property = true;
+			}
+			if (properties.lockable()) {
+				cout << (has_property ? ", " : "") << "Lockable";
+			}
+			cout << endl;
 		}
 
-		if (!has_property) {
-			cout << "None";
+		if (properties.supports_file()) {
+			cout << "        Image file support" << endl;
 		}
-		cout << endl;
+		else if (properties.supports_params()) {
+			cout << "        Parameter support" << endl;
+		}
 
 		if (properties.supports_params() && properties.default_params_size()) {
 			list<string> params = { properties.default_params().begin(), properties.default_params().end() };

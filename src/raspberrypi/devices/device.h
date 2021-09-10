@@ -166,6 +166,8 @@ public:
 	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int status_code);
 
+	bool Start();
+	void Stop();
 	virtual bool Eject(bool);
 
 	bool IsSASIHD() const { return type == "SAHD"; }
