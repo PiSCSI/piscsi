@@ -30,7 +30,7 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	disk.size = 0;
 	disk.blocks = 0;
 	disk.dcache = NULL;
-	disk.imgoffset = 0;
+	disk.image_offset = 0;
 
 	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRezero, "Rezero", &Disk::Rezero);
@@ -125,7 +125,7 @@ void Disk::Open(const Filepath& path)
 
 	// Cache initialization
 	assert (!disk.dcache);
-	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
+	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.image_offset);
 
 	// Can read/write open
 	Fileio fio;

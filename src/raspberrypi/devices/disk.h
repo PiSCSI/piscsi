@@ -54,7 +54,7 @@ protected:
 		// TODO blocks should be a 64 bit value in order to support higher capacities
 		uint32_t blocks;						// Total number of sectors
 		DiskCache *dcache;						// Disk cache
-		off_t imgoffset;						// Offset to actual data
+		off_t image_offset;						// Offset to actual data
 	} disk_t;
 
 private:
