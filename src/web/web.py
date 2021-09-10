@@ -194,10 +194,11 @@ def eject():
 @app.route("/scsi/info", methods=["POST"])
 def device_info():
     scsi_id = request.form.get("scsi_id")
+    # Extracting the 0th dictionary in list index 0
     device = list_devices(scsi_id)[0][0]
     if device["id"] == scsi_id:
         flash("=== DEVICE INFO ===")
-        flash(f"SCSI ID {device['id']}:")
+        flash(f"SCSI ID: {device['id']}")
         flash(f"Unit: {device['un']}")
         flash(f"Type: {device['type']}")
         flash(f"Status: {device['status']}")
