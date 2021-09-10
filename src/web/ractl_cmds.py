@@ -202,9 +202,18 @@ def rascsi_service(action):
     )
 
 
-def list_devices():
+def list_devices(scsi_id=None):
+    from os import path
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICE_INFO
+
+    # If method is called with scsi_id parameter, return the info on those devices
+    # Otherwise, return the info on all devices
+    if scsi_id != None:
+        logging.warning(scsi_id)
+        device = proto.PbDeviceDefinition()
+        device.id = int(scsi_id)
+        command.devices.append(device)
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -220,8 +229,8 @@ def list_devices():
         dstat = result.device_info.devices[n].status
         dprop = result.device_info.devices[n].properties
 
-        # Building the status string, starting with 'Attached' for every active device
-        dstat_msg = ["Attached"]
+        # Building the status string
+        dstat_msg = []
         if dprop.read_only == True:
             dstat_msg.append("Read-Only")
         if dstat.protected == True and dprop.protectable == True:
@@ -231,16 +240,20 @@ def list_devices():
         if dstat.locked == True and dprop.lockable == True:
             dstat_msg.append("Locked")
 
-        dfile = result.device_info.devices[n].file.name or "-"
+        dpath = result.device_info.devices[n].file.name or "-"
+        dfile = path.basename(dpath)
+        dparam = result.device_info.devices[n].params
         dprod = result.device_info.devices[n].vendor + " " \
                 + result.device_info.devices[n].product
+        dprod_rev = result.device_info.devices[n].revision
         dblock = result.device_info.devices[n].block_size or "N/A"
 
         device_list.append({"id": str(did), "un": str(dun), "type": dtype, \
-                "status": ", ".join(dstat_msg), "file": dfile, \
-                "product": dprod, "block": dblock})
+                "status": ", ".join(dstat_msg), "path": dpath, "file": dfile, "params": str(dparam),\
+                "product": dprod, "revision": dprod_rev, "block": dblock})
         occupied_ids.append(str(did))
         n += 1
+        logging.warning(device_list)
     return device_list, occupied_ids
 
 
@@ -248,8 +261,8 @@ def sort_and_format_devices(device_list, occupied_ids):
     # Add padding devices and sort the list
     for id in range(8):
         if str(id) not in occupied_ids:
-            device_list.append({"id": str(id), "un": "-", "type": "-", \
-                    "status": "-", "file": "-", "product": "-", "block": "-"})
+            device_list.append({"id": str(id), "type": "-", \
+                    "status": "-", "file": "-", "product": "-"})
 
     # Sort list of devices by id
     device_list.sort(key=lambda dic: dic["id"][0])

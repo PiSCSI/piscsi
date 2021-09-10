@@ -191,6 +191,25 @@ def eject():
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
+@app.route("/scsi/info", methods=["POST"])
+def device_info():
+    scsi_id = request.form.get("scsi_id")
+    # TODO: Getting a dictionary in a list in a tuple back
+    device = list_devices(scsi_id)[0][0]
+    if device["id"] == scsi_id:
+        flash("=== DEVICE INFO ===")
+        flash(f"SCSI ID {device['id']}:")
+        flash(f"Unit: {device['un']}")
+        flash(f"Type: {device['type']}")
+        flash(f"Status: {device['status']}")
+        flash(f"File: {device['path']}")
+        flash(f"Parameters: {device['params']}")
+        flash(f"Product: {device['product']} {device['revision']}")
+        flash(f"Block Size: {device['block']}")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to get device info for SCSI id {scsi_id}!", "error")
+        return redirect(url_for("index"))
 
 @app.route("/pi/reboot", methods=["POST"])
 def restart():
