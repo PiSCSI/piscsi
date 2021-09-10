@@ -79,8 +79,8 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		throw io_exception("File size must not exceed 2 TB");
 	}
 
-	int image_size;
-	int sector_size;
+	int image_size = 0;
+	int sector_size = 0;
 
 	// Determine parameters by extension
 	const char *ext = path.GetFileExt();
