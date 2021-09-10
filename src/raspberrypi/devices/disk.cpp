@@ -124,7 +124,7 @@ void Disk::Open(const Filepath& path)
 	SetReady(true);
 
 	// Cache initialization
-	ASSERT(!disk.dcache);
+	assert (!disk.dcache);
 	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
 
 	// Can read/write open
@@ -139,8 +139,9 @@ void Disk::Open(const Filepath& path)
 		SetProtected(false);
 	}
 
-	SetLocked(false);
+	SetStopped(false);
 	SetRemoved(false);
+	SetLocked(false);
 }
 
 void Disk::TestUnitReady(SASIDEV *controller)

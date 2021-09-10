@@ -81,6 +81,8 @@ bool SCSIBR::Init(const list<string>& params)
 	packet_enable = false;
 #endif
 
+	SetReady(m_bTapEnable);
+
 	// Not terminating on regular Linux PCs is helpful for testing
 #if defined(__x86_64__) || defined(__X86__)
 	return true;
