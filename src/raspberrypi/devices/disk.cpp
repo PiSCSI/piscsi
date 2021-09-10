@@ -1581,6 +1581,11 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	return true;
 }
 
+void Disk::SetSize(uint32_t size)
+{
+	disk.size = size;
+}
+
 uint32_t Disk::GetSectorSizeInBytes() const
 {
 	return disk.size ? 1 << disk.size : 0;

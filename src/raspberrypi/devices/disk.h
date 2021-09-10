@@ -47,8 +47,6 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
-protected:
-	// Internal data structure
 	typedef struct {
 		uint32_t size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		// TODO blocks should be a 64 bit value in order to support higher capacities
@@ -57,7 +55,6 @@ protected:
 		off_t image_offset;						// Offset to actual data
 	} disk_t;
 
-private:
 	typedef struct _command_t {
 		const char* name;
 		void (Disk::*execute)(SASIDEV *);
@@ -128,6 +125,7 @@ public:
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);
 
+	void SetSize(uint32_t);
 	uint32_t GetSectorSizeInBytes() const;
 	void SetSectorSizeInBytes(uint32_t, bool);
 	uint32_t GetSectorSize() const;
