@@ -149,8 +149,7 @@ function updateRaScsiGit() {
         stashed=1
     fi
 
-    git fetch $GIT_REMOTE
-    git rebase $GIT_REMOTE/$GIT_BRANCH
+    git pull --ff-only
 
     if [ $stashed -eq 1 ]; then
         echo "Reapplying local changes..."
