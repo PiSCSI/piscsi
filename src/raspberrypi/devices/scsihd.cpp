@@ -104,6 +104,10 @@ void SCSIHD::Open(const Filepath& path)
 		SetProduct(product.str(), false);
 	}
 
+	SetReadOnly(false);
+	SetProtectable(true);
+	SetProtected(false);
+
 	Disk::Open(path);
 	FileSupport::SetPath(path);
 }
