@@ -267,65 +267,6 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 	}
 }
 
-void GetDevice(const Device *device, PbDevice *pb_device)
-{
-	pb_device->set_id(device->GetId());
-	pb_device->set_unit(device->GetLun());
-	pb_device->set_vendor(device->GetVendor());
-	pb_device->set_product(device->GetProduct());
-	pb_device->set_revision(device->GetRevision());
-	PbDeviceType type = UNDEFINED;
-	PbDeviceType_Parse(device->GetType(), &type);
-	pb_device->set_type(type);
-
-	PbDeviceProperties *properties = new PbDeviceProperties();
-	pb_device->set_allocated_properties(properties);
-	properties->set_read_only(device->IsReadOnly());
-	properties->set_protectable(device->IsProtectable());
-	properties->set_stoppable(device->IsStoppable());
-	properties->set_removable(device->IsRemovable());
-	properties->set_lockable(device->IsLockable());
-
-	PbDeviceStatus *status = new PbDeviceStatus();
-	pb_device->set_allocated_status(status);
-	status->set_protected_(device->IsProtected());
-	status->set_stopped(device->IsStopped());
-	status->set_removed(device->IsRemoved());
-	status->set_locked(device->IsLocked());
-
-	properties->set_supports_params(device->SupportsParams());
-	for (const string& param : device->GetParams()) {
-		pb_device->add_params(param);
-	}
-
-	const Disk *disk = dynamic_cast<const Disk*>(device);
-	if (disk) {
-		pb_device->set_block_size(disk->GetSectorSizeInBytes());
-	}
-
-	const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
-	if (file_support) {
-		Filepath filepath;
-		file_support->GetPath(filepath);
-		PbImageFile *image_file = new PbImageFile();
-		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
-		pb_device->set_allocated_file(image_file);
-		properties->set_supports_file(true);
-	}
-}
-
-void GetDevices(PbServerInfo& serverInfo)
-{
-	for (size_t i = 0; i < devices.size(); i++) {
-		// skip if unit does not exist or null disk
-		Device *device = devices[i];
-		if (device) {
-			PbDevice *pb_device = serverInfo.add_devices();
-			GetDevice(device, pb_device);
-		}
-	}
-}
-
 //---------------------------------------------------------------------------
 //
 //	Controller Mapping
@@ -529,39 +470,82 @@ void GetLogLevels(PbServerInfo& server_info)
 	}
 }
 
-void GetDeviceTypeProperties(PbServerInfo& server_info, PbDeviceType type)
+PbDeviceProperties *GetDeviceProperties(const Device *device)
 {
-	Device *device = device_factory.CreateDevice(type, "", "");
-	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
-	types_properties->set_type(type);
 	PbDeviceProperties *properties = new PbDeviceProperties();
-	types_properties->set_allocated_properties(properties);
+
+	properties->set_luns(device->GetSupportedLuns());
 	properties->set_read_only(device->IsReadOnly());
 	properties->set_protectable(device->IsProtectable());
 	properties->set_stoppable(device->IsStoppable());
 	properties->set_removable(device->IsRemovable());
 	properties->set_lockable(device->IsLockable());
-	properties->set_supports_file(dynamic_cast<FileSupport *>(device));
-	properties->set_luns(device->GetSupportedLuns());
-	for (const auto& block_size : device_factory.GetSectorSizes(type)) {
+	properties->set_supports_file(dynamic_cast<const FileSupport *>(device));
+	properties->set_supports_params(device->SupportsParams());
+
+	PbDeviceType t = UNDEFINED;
+	PbDeviceType_Parse(device->GetType(), &t);
+
+	if (device->SupportsParams()) {
+		for (const auto& param : device_factory.GetDefaultParams(t)) {
+			properties->add_default_params(param);
+		}
+	}
+
+	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
 		properties->add_block_sizes(block_size);
 	}
-	for (const auto& capacity : device_factory.GetCapacities(type)) {
+
+	for (const auto& capacity : device_factory.GetCapacities(t)) {
 		properties->add_capacities(capacity);
 	}
 
-	delete device;
+	return properties;
 }
 
 void GetDeviceTypeProperties(PbServerInfo& server_info)
 {
-	GetDeviceTypeProperties(server_info, SAHD);
-	GetDeviceTypeProperties(server_info, SCHD);
-	GetDeviceTypeProperties(server_info, SCRM);
-	GetDeviceTypeProperties(server_info, SCMO);
-	GetDeviceTypeProperties(server_info, SCCD);
-	GetDeviceTypeProperties(server_info, SCBR);
-	GetDeviceTypeProperties(server_info, SCDP);
+	Device *device = device_factory.CreateDevice(SAHD, "", "");
+	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
+	types_properties->set_type(SAHD);
+	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
+
+	device = device_factory.CreateDevice(SCHD, "", "");
+	types_properties = server_info.add_types_properties();
+	types_properties->set_type(SCHD);
+	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
+
+	device = device_factory.CreateDevice(SCRM, "", "");
+	types_properties = server_info.add_types_properties();
+	types_properties->set_type(SCRM);
+	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
+
+	device = device_factory.CreateDevice(SCMO, "", "");
+	types_properties = server_info.add_types_properties();
+	types_properties->set_type(SCMO);
+	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
+
+	device = device_factory.CreateDevice(SCCD, "", "");
+	types_properties = server_info.add_types_properties();
+	types_properties->set_type(SCCD);
+	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
+
+	device = device_factory.CreateDevice(SCBR, "", "");
+	types_properties = server_info.add_types_properties();
+	types_properties->set_type(SCBR);
+	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
+
+	device = device_factory.CreateDevice(SCDP, "", "");
+	types_properties = server_info.add_types_properties();
+	types_properties->set_type(SCDP);
+	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
 }
 
 void GetAvailableImages(PbServerInfo& server_info)
@@ -571,6 +555,60 @@ void GetAvailableImages(PbServerInfo& server_info)
 			if (entry.is_regular_file()) {
 				GetImageFile(server_info.add_image_files(), entry.path().filename());
 			}
+		}
+	}
+}
+
+void GetDevice(const Device *device, PbDevice *pb_device)
+{
+	pb_device->set_id(device->GetId());
+	pb_device->set_unit(device->GetLun());
+	pb_device->set_vendor(device->GetVendor());
+	pb_device->set_product(device->GetProduct());
+	pb_device->set_revision(device->GetRevision());
+
+	PbDeviceType type = UNDEFINED;
+	PbDeviceType_Parse(device->GetType(), &type);
+	pb_device->set_type(type);
+
+    pb_device->set_allocated_properties(GetDeviceProperties(device));
+
+    PbDeviceStatus *status = new PbDeviceStatus();
+	pb_device->set_allocated_status(status);
+	status->set_protected_(device->IsProtected());
+	status->set_stopped(device->IsStopped());
+	status->set_removed(device->IsRemoved());
+	status->set_locked(device->IsLocked());
+
+	if (device->SupportsParams()) {
+		for (const string& param : device->GetParams()) {
+			pb_device->add_params(param);
+		}
+	}
+
+	const Disk *disk = dynamic_cast<const Disk*>(device);
+    if (disk) {
+    	pb_device->set_block_size(disk->GetSectorSizeInBytes());
+    }
+
+    const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
+	if (file_support) {
+		Filepath filepath;
+		file_support->GetPath(filepath);
+		PbImageFile *image_file = new PbImageFile();
+		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
+		pb_device->set_allocated_file(image_file);
+	}
+}
+
+void GetDevices(PbServerInfo& serverInfo)
+{
+	for (size_t i = 0; i < devices.size(); i++) {
+		// skip if unit does not exist or null disk
+		Device *device = devices[i];
+		if (device) {
+			PbDevice *pb_device = serverInfo.add_devices();
+			GetDevice(device, pb_device);
 		}
 	}
 }
@@ -1028,6 +1066,10 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 		return Detach(fd, pb_device, map, dryRun);
 	}
 
+	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't stoppable)");
+	}
+
 	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
 		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't removable)");
 	}
@@ -1040,6 +1082,25 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 	}
 
 	switch (operation) {
+		case START:
+			if (!dryRun) {
+				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
+				if (!device->Start()) {
+					LOGWARN("Start failed");
+				}
+			}
+			break;
+
+		case STOP:
+			if (!dryRun) {
+				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
+				// STOP is idempotent
+				device->Stop();
+			}
+			break;
+
 		case INSERT:
 			return Insert(fd, pb_device, device, dryRun);
 
@@ -1047,8 +1108,9 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 			if (!dryRun) {
 				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
-				// EJECT is idempotent
-				device->Eject(true);
+				if (!device->Eject(true)) {
+					LOGWARN("Eject failed");
+				}
 			}
 			break;
 

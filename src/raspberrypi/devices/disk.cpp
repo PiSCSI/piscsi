@@ -30,7 +30,7 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	disk.size = 0;
 	disk.blocks = 0;
 	disk.dcache = NULL;
-	disk.imgoffset = 0;
+	disk.image_offset = 0;
 
 	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
 	AddCommand(SCSIDEV::eCmdRezero, "Rezero", &Disk::Rezero);
@@ -124,8 +124,8 @@ void Disk::Open(const Filepath& path)
 	SetReady(true);
 
 	// Cache initialization
-	ASSERT(!disk.dcache);
-	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.imgoffset);
+	assert (!disk.dcache);
+	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.image_offset);
 
 	// Can read/write open
 	Fileio fio;
@@ -139,8 +139,9 @@ void Disk::Open(const Filepath& path)
 		SetProtected(false);
 	}
 
-	SetLocked(false);
+	SetStopped(false);
 	SetRemoved(false);
+	SetLocked(false);
 }
 
 void Disk::TestUnitReady(SASIDEV *controller)
@@ -242,7 +243,7 @@ void Disk::Read10(SASIDEV *controller)
 	// Get record number and block number
 	uint64_t record;
 	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s READ(10) command record=$%8X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
 
 		Read(controller, record);
 	}
@@ -556,7 +557,7 @@ bool Disk::CheckReady()
 	if (IsReset()) {
 		SetStatusCode(STATUS_DEVRESET);
 		SetReset(false);
-		LOGDEBUG("%s Disk in reset", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
 		return false;
 	}
 
@@ -564,19 +565,19 @@ bool Disk::CheckReady()
 	if (IsAttn()) {
 		SetStatusCode(STATUS_ATTENTION);
 		SetAttn(false);
-		LOGDEBUG("%s Disk in needs attention", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
 		return false;
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		LOGDEBUG("%s Disk not ready", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
 		return false;
 	}
 
 	// Initialization with no error
-	LOGDEBUG("%s Disk is ready!", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Disk is ready", __PRETTY_FUNCTION__);
 
 	return true;
 }
@@ -1280,18 +1281,20 @@ bool Disk::StartStop(const DWORD *cdb)
 {
 	ASSERT(cdb);
 
-	bool stop = cdb[4] & 0x01;
-	bool eject = cdb[4] & 0x02;
+	bool start = cdb[4] & 0x01;
+	bool load = cdb[4] & 0x02;
 
-	if (eject) {
-		LOGTRACE("%s", stop ? "Loading unit" : "Ejecting unit");
+	if (load) {
+		LOGTRACE("%s", start ? "Loading medium" : "Ejecting medium");
 	}
 	else {
-		LOGTRACE("%s", stop ? "Starting unit" : "Stopping unit");
+		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit");
+
+		SetStopped(!start);
 	}
 
 	// Look at the eject bit and eject if necessary
-	if (eject) {
+	if (load && !start) {
 		if (IsLocked()) {
 			// Cannot be ejected because it is locked
 			SetStatusCode(STATUS_PREVENT);

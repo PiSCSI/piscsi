@@ -44,17 +44,21 @@ enum PbOperation {
     DETACH = 6;
     // Detach all devices, does not require a device list
     DETACH_ALL = 7;
+    // Start device
+    START = 8;
+    // Stop device, e.g. park drive
+    STOP = 9;
     // Insert medium
-    INSERT = 8;
+    INSERT = 10;
     // Eject medium
-    EJECT = 9;
+    EJECT = 11;
     // Write-protect medium (not possible for read-only media)
-    PROTECT = 10;
+    PROTECT = 12;
     // Make medium writable (not possible for read-only media)
-    UNPROTECT = 11;
+    UNPROTECT = 13;
     // IDs blocked from being used, usually the IDs of the initiators (computers) in the SCSI chain.
     // PbCommand.params contains the list of IDs to reserve, or is empty in order not to reserve any ID.
-    RESERVE = 12;
+    RESERVE = 14;
 }
 
 // The properties supported by a device, helping clients to offer a good user experience

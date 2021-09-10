@@ -117,6 +117,24 @@ void Device::SetStatusCode(int status_code)
 	this->status_code = status_code;
 }
 
+bool Device::Start()
+{
+	if (!ready) {
+		return false;
+	}
+
+	stopped = false;
+
+	return true;
+}
+
+void Device::Stop()
+{
+	ready = false;
+	attn = false;
+	stopped = true;
+}
+
 bool Device::Eject(bool force)
 {
 	if (!ready || !removable) {
@@ -133,6 +151,7 @@ bool Device::Eject(bool force)
 	removed = true;
 	write_protected = false;
 	locked = false;
+	stopped = true;
 
 	return true;
 }

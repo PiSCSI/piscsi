@@ -38,10 +38,8 @@ public:
 	int AddDrivePage(bool change, BYTE *buf) override;
 
 private:
-	int cylinders;								// Number of cylinders
-	int heads;								// Number of heads
-	int sectors;								// Number of sectors
-	int sectorsize;								// Sector size
-	off_t imgoffset;							// Image offset
-	off_t imgsize;							// Image size
+	// Geometry data
+	int cylinders;
+	int heads;
+	int sectors;
 };

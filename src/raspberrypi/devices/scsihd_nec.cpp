@@ -24,9 +24,6 @@ SCSIHD_NEC::SCSIHD_NEC() : SCSIHD(false)
 	cylinders = 0;
 	heads = 0;
 	sectors = 0;
-	sectorsize = 0;
-	imgoffset = 0;
-	imgsize = 0;
 }
 
 //---------------------------------------------------------------------------
@@ -82,14 +79,18 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		throw io_exception("File size must not exceed 2 TB");
 	}
 
+	int image_size;
+	int sector_size;
+
 	// Determine parameters by extension
 	const char *ext = path.GetFileExt();
+
 	// PC-9801-55 NEC genuine?
 	if (!strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
-		imgoffset = 0;
-		imgsize = size;
-		sectorsize = 512;
+		disk.image_offset = 0;
+		image_size = size;
+		sector_size = 512;
 		sectors = 25;
 		heads = 8;
 		cylinders = (int)(size >> 9);
@@ -98,22 +99,22 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 	// Anex86 HD image?
 	else if (!strcasecmp(ext, ".hdi")) {
-		imgoffset = getDwordLE(&root_sector[4 + 4]);
-		imgsize = getDwordLE(&root_sector[4 + 4 + 4]);
-		sectorsize = getDwordLE(&root_sector[4 + 4 + 4 + 4]);
-		sectors = getDwordLE(&root_sector[4 + 4 + 4 + 4 + 4]);
-		heads = getDwordLE(&root_sector[4 + 4 + 4 + 4 + 4 + 4]);
-		cylinders = getDwordLE(&root_sector[4 + 4 + 4 + 4 + 4 + 4 + 4]);
+		disk.image_offset = getDwordLE(&root_sector[8]);
+		image_size = getDwordLE(&root_sector[12]);
+		sector_size = getDwordLE(&root_sector[16]);
+		sectors = getDwordLE(&root_sector[20]);
+		heads = getDwordLE(&root_sector[24]);
+		cylinders = getDwordLE(&root_sector[28]);
 	}
 	// T98Next HD image?
 	else if (!strcasecmp(ext, ".nhd")) {
 		if (!memcmp(root_sector, "T98HDDIMAGE.R0\0", 15)) {
-			imgoffset = getDwordLE(&root_sector[0x10 + 0x100]);
-			cylinders = getDwordLE(&root_sector[0x10 + 0x100 + 4]);
-			heads = getWordLE(&root_sector[0x10 + 0x100 + 4 + 4]);
-			sectors = getWordLE(&root_sector[0x10 + 0x100 + 4 + 4 + 2]);
-			sectorsize = getWordLE(&root_sector[0x10 + 0x100 + 4 + 4 + 2 + 2]);
-			imgsize = (off_t)cylinders * heads * sectors * sectorsize;
+			disk.image_offset = getDwordLE(&root_sector[0x110]);
+			cylinders = getDwordLE(&root_sector[0x114]);
+			heads = getWordLE(&root_sector[0x118]);
+			sectors = getWordLE(&root_sector[0x11a]);
+			sector_size = getWordLE(&root_sector[0x11c]);
+			image_size = (off_t)cylinders * heads * sectors * sector_size;
 		}
 		else {
 			throw io_exception("Invalid NEC image file format");
@@ -121,23 +122,22 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 
 	// Image size consistency check
-	if (imgoffset + imgsize > size || (imgsize % sectorsize != 0)) {
+	if (disk.image_offset + image_size > size || (image_size % sector_size != 0)) {
 		throw io_exception("Image size consistency check failed");
 	}
 
 	// Sector size
 	// TODO Do not use disk.size directly
 	for(disk.size = 16; disk.size > 0; --(disk.size)) {
-		if ((1 << disk.size) == sectorsize)
+		if ((1 << disk.size) == sector_size)
 			break;
 	}
 	if (disk.size <= 0 || disk.size > 16) {
-		throw io_exception("Invalid disk size");
+		throw io_exception("Invalid NEC disk size");
 	}
 
 	// Number of blocks
-	SetBlockCount(imgsize >> disk.size);
-	disk.imgoffset = imgoffset;
+	SetBlockCount(image_size >> disk.size);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);

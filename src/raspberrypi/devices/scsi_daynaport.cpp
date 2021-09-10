@@ -33,9 +33,6 @@
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
-// The prioritized list of default interfaces
-const list<string> SCSIDaynaPort::default_params = { "eth0,wlan0" };
-
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	m_tap = NULL;
@@ -90,7 +87,7 @@ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 
 bool SCSIDaynaPort::Init(const list<string>& params)
 {
-	SetParams(params.empty() ? default_params : params);
+	SetParams(params.empty() ? GetDefaultParams() : params);
 
 #ifdef __linux__
 	// TAP Driver Generation
