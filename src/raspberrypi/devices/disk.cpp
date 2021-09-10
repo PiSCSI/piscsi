@@ -556,7 +556,7 @@ bool Disk::CheckReady()
 	if (IsReset()) {
 		SetStatusCode(STATUS_DEVRESET);
 		SetReset(false);
-		LOGDEBUG("%s Disk in reset", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
 		return false;
 	}
 
@@ -564,19 +564,19 @@ bool Disk::CheckReady()
 	if (IsAttn()) {
 		SetStatusCode(STATUS_ATTENTION);
 		SetAttn(false);
-		LOGDEBUG("%s Disk in needs attention", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
 		return false;
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		LOGDEBUG("%s Disk not ready", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
 		return false;
 	}
 
 	// Initialization with no error
-	LOGDEBUG("%s Disk is ready!", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Disk is ready", __PRETTY_FUNCTION__);
 
 	return true;
 }
