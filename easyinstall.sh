@@ -111,13 +111,8 @@ function installRaScsiWebInterface() {
 
     sudo systemctl reload nginx
 
-    if [ -f /etc/systemd/system/rascsi-web.service ]; then
-	echo "Found an existing rascsi-web configuration; backing up to rascsi-web.service.old..."
-	sudo cp /etc/systemd/system/rascsi-web.service /etc/systemd/system/rascsi-web.service.old
-    else
-	echo "Installing the rascsi-web.service configuration..."
-	sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
-    fi
+    echo "Installing the rascsi-web.service configuration..."
+    sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
@@ -309,11 +304,11 @@ function setupWiredNetworking() {
 	sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
     sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
-    echo "Modified \"/etc/dhcpcd.conf\""
+    echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
     sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
-    echo "Modified \"/etc/network/interfaces.d/rascsi_bridge\""
+    echo "Modified /etc/network/interfaces.d/rascsi_bridge"
 
     echo "Configuration completed!"
     echo "Please make sure you attach ia DaynaPORT network adapter to the RaSCSI configuration."
@@ -371,7 +366,7 @@ function setupWirelessNetworking() {
         read REPLY
     else
         sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
-	echo "Modified \"/etc/sysctl.conf\""
+	echo "Modified /etc/sysctl.conf"
     fi
 
     sudo iptables --flush
@@ -404,6 +399,23 @@ function setupWirelessNetworking() {
     echo "Rebooting..."
     sleep 3
     sudo reboot
+}
+
+function reserveScsiIds() {
+    if [ ! -f /etc/systemd/system/rascsi-web.service ]; then
+	echo "This feature depends on the RaSCSI Web UI being installed. Please install RaSCSI Web before continuing."
+	exit
+    fi
+
+    sudo systemctl stop rascsi-web
+    echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
+    echo "The input should be a string of digits without separators, e.g. \"017\" for IDs 0, 1, and 7."
+    read -r RESERVED_IDS
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service 
+    sudo sed -i "8 i ExecStart=/home/pi/RASCSI/src/web/start.sh --reserved_ids=$RESERVED_IDS" /etc/systemd/system/rascsi-web.service 
+
+    sudo systemctl daemon-reload
+    sudo systemctl start rascsi-web
 }
 
 function runChoice() {
@@ -464,6 +476,12 @@ function runChoice() {
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
           ;;
+          7)
+              echo "Reserving SCSI IDs"
+	      reserveScsiIds
+              showRaScsiWebStatus
+              echo "Reserving SCSI IDs - Complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -476,8 +494,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "6" ]; do
-       echo -n "Enter your choice (0-6) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
+       echo -n "Enter your choice (0-7) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -497,6 +515,8 @@ function showMenu() {
     echo "NETWORK ASSISTANT"
     echo "  5) configure network forwarding over Ethernet (DHCP)"
     echo "  6) configure network forwarding over WiFi (static IP)" 
+    echo "MISCELLANEOUS"
+    echo "  7) reserve SCSI IDs"
 }
 
 # parse arguments
@@ -516,7 +536,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 0 | 1 | 2 | 3 | 4 | 5 | 6 )
+        FULLSPEC | STANDARD | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7)
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
