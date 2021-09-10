@@ -1283,11 +1283,11 @@ bool Disk::StartStop(const DWORD *cdb)
 	bool start = cdb[4] & 0x01;
 	bool load = cdb[4] & 0x02;
 
-	if (start) {
-		LOGTRACE("%s", load ? "Starting unit" : "Loading medium");
+	if (load) {
+		LOGTRACE("%s", start ? "Loading medium" : "Ejecting medium");
 	}
 	else {
-		LOGTRACE("%s", load ? "Stopping unit" : "Unloading medium");
+		LOGTRACE("%s", start ? "Starting unit" : "Stopping unit");
 	}
 
 	// Look at the eject bit and eject if necessary
