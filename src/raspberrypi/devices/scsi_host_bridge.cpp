@@ -27,6 +27,9 @@ using namespace std;
 
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
+	tap = NULL;
+	m_bTapEnable = false;
+
 	fsoptlen = 0;
 	fsoutlen = 0;
 	fsresult = 0;
