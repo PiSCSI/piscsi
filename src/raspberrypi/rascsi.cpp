@@ -859,8 +859,8 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		if (device->IsReadOnly()) {
 			msg << "read-only ";
 		}
-		else if (device->IsProtectable()) {
-			msg << (device->IsProtected() ? "protected " : "unprotected ");
+		else if (device->IsProtectable() && device->IsProtected()) {
+			msg << "protected ";
 		}
 		msg << device->GetType() << " device, ID " << id << ", unit " << unit;
 		LOGINFO("%s", msg.str().c_str());
