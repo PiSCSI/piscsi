@@ -268,7 +268,11 @@ void Disk::Read16(SASIDEV *controller)
 void Disk::Write(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
-	if (ctrl->length <= 0) {
+	if (ctrl->length == 0) {
+		controller->Error(ERROR_CODES::sense_key::NOT_READY, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);
+		return;
+	}
+	else if (ctrl->length < 0) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
 		return;
 	}
@@ -1153,6 +1157,8 @@ bool Disk::Format(const DWORD *cdb)
 //	READ
 //
 //---------------------------------------------------------------------------
+// TODO Read more than one block in a single call. Currently blocked by the SASI code (missing early range check)
+// and the track-oriented cache.
 int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
@@ -1201,8 +1207,7 @@ int Disk::WriteCheck(DWORD block)
 	// Error if write protected
 	if (IsProtected()) {
 		LOGDEBUG("WriteCheck failed (protected)");
-		SetStatusCode(STATUS_WRITEPROTECT);
-		return 0;
+		return -1;
 	}
 
 	//  Success
@@ -1214,6 +1219,8 @@ int Disk::WriteCheck(DWORD block)
 //	WRITE
 //
 //---------------------------------------------------------------------------
+// TODO Write more than one block in a single call. Currently blocked by the SASI code (missing early range check)
+// and the track-oriented cache.
 bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(buf);

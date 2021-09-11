@@ -503,49 +503,24 @@ PbDeviceProperties *GetDeviceProperties(const Device *device)
 	return properties;
 }
 
-void GetDeviceTypeProperties(PbServerInfo& server_info)
+void GetDeviceTypeProperties(PbServerInfo& server_info, PbDeviceType type)
 {
-	Device *device = device_factory.CreateDevice(SAHD, "", "");
 	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
-	types_properties->set_type(SAHD);
+	types_properties->set_type(type);
+	Device *device = device_factory.CreateDevice(types_properties->type(), "", "");
 	types_properties->set_allocated_properties(GetDeviceProperties(device));
 	delete device;
+}
 
-	device = device_factory.CreateDevice(SCHD, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCHD);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCRM, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCRM);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCMO, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCMO);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCCD, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCCD);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCBR, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCBR);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCDP, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCDP);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
+void GetAllDeviceTypeProperties(PbServerInfo& server_info)
+{
+	GetDeviceTypeProperties(server_info, SAHD);
+	GetDeviceTypeProperties(server_info, SCHD);
+	GetDeviceTypeProperties(server_info, SCRM);
+	GetDeviceTypeProperties(server_info, SCMO);
+	GetDeviceTypeProperties(server_info, SCCD);
+	GetDeviceTypeProperties(server_info, SCBR);
+	GetDeviceTypeProperties(server_info, SCDP);
 }
 
 void GetAvailableImages(PbServerInfo& server_info)
@@ -658,7 +633,7 @@ void GetServerInfo(PbResult& result)
 	GetLogLevels(*server_info);
 	server_info->set_current_log_level(current_log_level);
 	server_info->set_default_image_folder(default_image_folder);
-	GetDeviceTypeProperties(*server_info);
+	GetAllDeviceTypeProperties(*server_info);
 	GetAvailableImages(*server_info);
 	GetDevices(*server_info);
 	for (int id : reserved_ids) {
@@ -1619,7 +1594,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		// Stop because it the bus is busy or another device responded
+		// Stop because the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}
