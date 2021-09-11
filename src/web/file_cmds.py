@@ -98,6 +98,9 @@ def write_config_csv(file_name):
             writer = csv.writer(csv_file)
             for device in list_devices()[0]:
                 device_info = [device["id"], device["un"], device["type"], device["path"], "".join(device["params"]), device["vendor"], device["product"], device["revision"], device["block"]]
+                # Don't store RaSCSI generated product info
+                if device_info[5] == "RaSCSI":
+                    device_info[5] = device_info[6] = device_info[7] = None
                 writer.writerow(device_info)
         return {"status": True, "msg": ""}
     except:
@@ -115,8 +118,6 @@ def read_config_csv(file_name):
             # Format of the rascsi-web config file:
             # id, unit, type, full path to file, parameters, vendor, product, revision, block size
             for row in config_reader:
-                #if row[2] == "SCCD":
-                #    row[8] = None
                 #TODO: make it backwards compatible with old cfg files (i.e. variable length rows)
                 attach_image(row[0], row[2], row[3], int(row[1]), row[4], row[5], row[6], row[7], int(row[8]))
         return {"status": True, "msg": ""}

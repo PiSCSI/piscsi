@@ -107,7 +107,7 @@ def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=N
         devices.unit = unit
         if image not in [None, ""]:
             devices.params.append(image)
-        # TODO: handle multiple params
+        # TODO: handle multiple params, if needed?
         #for p in params:
         #    devices.params.append(str(p))
         if params not in [None, ""]:
@@ -116,6 +116,7 @@ def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=N
             devices.vendor = vendor
             devices.product = product
             devices.revision = revision
+        # Don't try to attach a CD-ROM device with block size option as this is not supported
         if block != None and device_type != "SCCD":
             devices.block_size = block
 
