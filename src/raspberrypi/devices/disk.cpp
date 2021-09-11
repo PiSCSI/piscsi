@@ -1204,12 +1204,6 @@ int Disk::WriteCheck(DWORD block)
 		return 0;
 	}
 
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		LOGDEBUG("WriteCheck failed (capacity exceeded)");
-		return 0;
-	}
-
 	// Error if write protected
 	if (IsProtected()) {
 		LOGDEBUG("WriteCheck failed (protected)");
