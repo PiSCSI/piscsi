@@ -1152,7 +1152,7 @@ bool SASIDEV::XferOut(bool cont)
 			// TODO This class must not know about DaynaPort
 			if (device->IsDaynaPort()) {
 				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
-				if (!(SCSIDaynaPort*)device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+				if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return false;
 				}
