@@ -170,7 +170,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 		}
 	}
 	catch(const illegal_argument_exception& e) {
-		// There was an internal problem with setting up the device data
+		// There was an internal problem with setting up the device data for INQUIRY
 		return NULL;
 	}
 
