@@ -268,7 +268,11 @@ void Disk::Read16(SASIDEV *controller)
 void Disk::Write(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
-	if (ctrl->length <= 0) {
+	if (ctrl->length == 0) {
+		controller->Error(ERROR_CODES::sense_key::NOT_READY, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);
+		return;
+	}
+	else if (ctrl->length < 0) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
 		return;
 	}
@@ -1163,12 +1167,6 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		return 0;
 	}
 
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
-		return 0;
-	}
-
 	// leave it to the cache
 	if (!disk.dcache->Read(buf, block)) {
 		SetStatusCode(STATUS_READFAULT);
@@ -1192,17 +1190,10 @@ int Disk::WriteCheck(DWORD block)
 		return 0;
 	}
 
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		LOGDEBUG("WriteCheck failed (capacity exceeded)");
-		return 0;
-	}
-
 	// Error if write protected
 	if (IsProtected()) {
 		LOGDEBUG("WriteCheck failed (protected)");
-		SetStatusCode(STATUS_WRITEPROTECT);
-		return 0;
+		return -1;
 	}
 
 	//  Success
@@ -1223,12 +1214,6 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	// Error if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		return false;
-	}
-
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
 		return false;
 	}
 
