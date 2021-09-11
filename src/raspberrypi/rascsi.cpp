@@ -919,8 +919,8 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		return true;
 	}
 
-	LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(),
-			pb_device.id(), pb_device.unit());
+	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
+			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit());
 
 	int id;
 	int unit;
