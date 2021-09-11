@@ -1157,7 +1157,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
 
-	LOGDEBUG("%s", __PRETTY_FUNCTION__);
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	if (!CheckReady()) {
 		return 0;
@@ -1218,7 +1218,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
-	LOGDEBUG("%s", __PRETTY_FUNCTION__);
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// Error if not ready
 	if (!IsReady()) {
