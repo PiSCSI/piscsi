@@ -59,8 +59,13 @@ def config_save():
     file_name = request.form.get("name") or "default"
     file_name = f"{base_dir}{file_name}.csv"
 
-    write_config_csv(file_name)
-    flash(f"Saved config to  {file_name}!")
+    process = write_config_csv(file_name)
+    if process["status"] == True:
+        flash(f"Saved config to  {file_name}!")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to saved config to  {file_name}!", "error")
+        #flash(f"{process['msg']}", "error")
     return redirect(url_for("index"))
 
 
@@ -70,7 +75,7 @@ def config_load():
     file_name = f"{base_dir}{file_name}"
 
     if "load" in request.form:
-        if read_config_csv(file_name):
+        if read_config_csv(file_name)["status"] == True:
             flash(f"Loaded config from  {file_name}!")
         else:
             flash(f"Failed to load  {file_name}!", "error")
@@ -351,7 +356,7 @@ if __name__ == "__main__":
         app.config["RESERVED_SCSI_IDS"] = ""
 
     # Load the configuration in default.cvs, if it exists
-    #read_config_csv(f"{base_dir}default.csv")
+    read_config_csv(f"{base_dir}default.csv")
 
     import bjoern
     print("Serving rascsi-web...")

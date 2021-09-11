@@ -105,18 +105,18 @@ def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=N
         devices.id = int(scsi_id)
         devices.type = proto.PbDeviceType.Value(device_type)
         devices.unit = unit
-        if image != None:
+        if image not in [None, ""]:
             devices.params.append(image)
         # TODO: handle multiple params
         #for p in params:
         #    devices.params.append(str(p))
-        if params != None:
+        if params not in [None, ""]:
             devices.params.append(params)
         if None not in [vendor, product, revision]:
             devices.vendor = vendor
             devices.product = product
             devices.revision = revision
-        if block != None:
+        if block != None and device_type != "SCCD":
             devices.block_size = block
 
         command = proto.PbCommand()

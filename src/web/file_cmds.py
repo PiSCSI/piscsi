@@ -5,6 +5,7 @@ import time
 import io
 import re
 import sys
+import logging
 
 from ractl_cmds import (
     attach_image,
@@ -98,10 +99,10 @@ def write_config_csv(file_name):
             for device in list_devices()[0]:
                 device_info = [device["id"], device["un"], device["type"], device["path"], "".join(device["params"]), device["vendor"], device["product"], device["revision"], device["block"]]
                 writer.writerow(device_info)
-        return True
+        return {"status": True, "msg": ""}
     except:
-        print ("Could not open file for writing: ", file_name)
-        return False
+        logging.error(f"Could not open file for writing: {file_name}")
+        return {"status": False, "msg": ""}
 	
 def read_config_csv(file_name):
     import csv
@@ -114,9 +115,11 @@ def read_config_csv(file_name):
             # Format of the rascsi-web config file:
             # id, unit, type, full path to file, parameters, vendor, product, revision, block size
             for row in config_reader:
+                #if row[2] == "SCCD":
+                #    row[8] = None
                 #TODO: make it backwards compatible with old cfg files (i.e. variable length rows)
                 attach_image(row[0], row[2], row[3], int(row[1]), row[4], row[5], row[6], row[7], int(row[8]))
-        return True
+        return {"status": True, "msg": ""}
     except:
-        print ("Could not access file: ", file_name)
-        return False
+        logging.error(f"Could not access file: {file_name}")
+        return {"status": False, "msg": ""}
