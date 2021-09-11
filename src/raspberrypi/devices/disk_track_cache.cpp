@@ -411,8 +411,6 @@ DiskCache::~DiskCache()
 //---------------------------------------------------------------------------
 void DiskCache::SetRawMode(BOOL raw)
 {
-	ASSERT(sec_size == 11);
-
 	// Configuration
 	cd_raw = raw;
 }
