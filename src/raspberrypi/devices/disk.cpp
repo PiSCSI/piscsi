@@ -1157,7 +1157,8 @@ bool Disk::Format(const DWORD *cdb)
 //	READ
 //
 //---------------------------------------------------------------------------
-// TODO Read more than one block in a single call. Currently blocked by the SASI code (missing early range check).
+// TODO Read more than one block in a single call. Currently blocked by the SASI code (missing early range check)
+// and the track-oriented cache.
 int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
@@ -1218,7 +1219,8 @@ int Disk::WriteCheck(DWORD block)
 //	WRITE
 //
 //---------------------------------------------------------------------------
-// TODO Write more than one block in a single call. Currently blocked by the SASI code (missing early range check).
+// TODO Write more than one block in a single call. Currently blocked by the SASI code (missing early range check)
+// and the track-oriented cache.
 bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
