@@ -143,11 +143,6 @@ public:
 
 	// Other
 	BUS::phase_t GetPhase() {return ctrl.phase;}			// Get the phase
-	#ifdef DISK_LOG
-
-	// Function to get the current phase as a String.
-	void GetPhaseStr(char *str);			
-	#endif
 
 	int GetSCSIID() {return ctrl.m_scsi_id;}					// Get the ID
 	ctrl_t* GetCtrl() { return &ctrl; }			// Get the internal information address

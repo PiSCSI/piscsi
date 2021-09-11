@@ -8,7 +8,7 @@
 ##                 ARM=x86_64 CROSS_COMPILE=x86_64-linux-gnu-cpp
 CROSS_COMPILE ?= arm-linux-gnueabihf-
 
-CC  = $(CROSS_COMPILE)gcc
+CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
 
 ##   DEBUG=1  : A Debug build includes the debugger symbols
@@ -17,8 +17,8 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug CFLAGS
-	CFLAGS   += -DDISK_LOG -O0 -g -Wall -DDEBUG
-	CXXFLAGS   += -DDISK_LOG -O0 -g -Wall -DDEBUG
+	CFLAGS += -O0 -g -Wall -DDEBUG
+	CXXFLAGS += -O0 -g -Wall -DDEBUG
 	BUILD_TYPE = Debug
 else
 	# Release CFLAGS
@@ -42,7 +42,7 @@ CXXFLAGS += $(EXTRA_FLAGS)
 CONNECT_TYPE ?= FULLSPEC
 
 ifdef CONNECT_TYPE
-CFLAGS   += -DCONNECT_TYPE_$(CONNECT_TYPE)
+CFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 CXXFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 endif
 

@@ -636,10 +636,6 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
-#if defined(DISK_LOG)
-	LOGWARN("Error occured (going to status phase)");
-#endif	// DISK_LOG
-
 	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
 
@@ -1151,7 +1147,6 @@ bool SASIDEV::XferOut(bool cont)
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
 			if (device->IsDaynaPort()) {
-				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
 				if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return false;
@@ -1264,53 +1259,3 @@ void SASIDEV::FlushUnit()
 			break;
 	}
 }
-
-#ifdef DISK_LOG
-//---------------------------------------------------------------------------
-//
-//	Get the current phase as a string
-//
-//---------------------------------------------------------------------------
-void SASIDEV::GetPhaseStr(char *str)
-{
-    switch(this->GetPhase())
-    {
-        case BUS::busfree:
-        strcpy(str,"busfree    ");
-        break;
-        case BUS::arbitration:
-        strcpy(str,"arbitration");
-        break;
-        case BUS::selection:
-        strcpy(str,"selection  ");
-        break;
-        case BUS::reselection:
-        strcpy(str,"reselection");
-        break;
-        case BUS::command:
-        strcpy(str,"command    ");
-        break;
-        case BUS::execute:
-        strcpy(str,"execute    ");
-        break;
-        case BUS::datain:
-        strcpy(str,"datain     ");
-        break;
-        case BUS::dataout:
-        strcpy(str,"dataout    ");
-        break;
-        case BUS::status:
-        strcpy(str,"status     ");
-        break;
-        case BUS::msgin:
-        strcpy(str,"msgin      ");
-        break;
-        case BUS::msgout:
-        strcpy(str,"msgout     ");
-        break;
-        case BUS::reserved:
-        strcpy(str,"reserved   ");
-        break;
-    }
-}
-#endif
