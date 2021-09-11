@@ -709,21 +709,24 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	// add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
-		// Mode parameter header
+		// Mode parameter header, block descriptor length
 		buf[3] = 0x08;
 
 		// Only if ready
 		if (IsReady()) {
-			// Block descriptor (number of blocks)
-			buf[5] = (BYTE)(disk.blocks >> 16);
-			buf[6] = (BYTE)(disk.blocks >> 8);
-			buf[7] = (BYTE)disk.blocks;
+			// Short LBA mode parameter block descriptor (number of blocks and block length)
+
+			uint64_t disk_blocks = GetBlockCount();
+			buf[4] = disk_blocks >> 24;
+			buf[5] = disk_blocks >> 16;
+			buf[6] = disk_blocks >> 8;
+			buf[7] = disk_blocks;
 
 			// Block descriptor (block length)
-			size = 1 << disk.size;
-			buf[9] = (BYTE)(size >> 16);
-			buf[10] = (BYTE)(size >> 8);
-			buf[11] = (BYTE)size;
+			uint32_t disk_size = GetSectorSizeInBytes();
+			buf[9] = disk_size >> 16;
+			buf[10] = disk_size >> 8;
+			buf[11] = disk_size;
 		}
 
 		// size
@@ -786,7 +789,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 
 	// final setting of mode data length
-	buf[0] = (BYTE)(size - 1);
+	buf[0] = size - 1;
 
 	// Unsupported page
 	if (!valid) {
@@ -802,7 +805,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 //	MODE SENSE(10)
 //
 //---------------------------------------------------------------------------
-// TODO Remove duplicate code, see MODE SENSE above
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
@@ -826,32 +828,69 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	bool valid = page == 0x00;
 
 	// Basic Information
-	int size = 4;
+	int size = 8;
+
+	// MEDIUM TYPE
+	if (IsMo()) {
+		buf[2] = 0x03; // optical reversible or erasable
+	}
+
+	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
-		buf[2] = 0x80;
+		buf[3] = 0x80;
 	}
 
 	// add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
-		// Mode parameter header
-		buf[3] = 0x08;
-
 		// Only if ready
 		if (IsReady()) {
-			// Block descriptor (number of blocks)
-			buf[5] = (BYTE)(disk.blocks >> 16);
-			buf[6] = (BYTE)(disk.blocks >> 8);
-			buf[7] = (BYTE)disk.blocks;
+			uint64_t disk_blocks = GetBlockCount();
+			uint32_t disk_size = GetSectorSizeInBytes();
 
-			// Block descriptor (block length)
-			size = 1 << disk.size;
-			buf[9] = (BYTE)(size >> 16);
-			buf[10] = (BYTE)(size >> 8);
-			buf[11] = (BYTE)size;
+			// Check LLBAA for short or long block descriptor
+			if ((cdb[1] & 0x10) == 0 || disk_blocks <= 0xFFFFFFFF) {
+				// Mode parameter header, block descriptor length
+				buf[3] = 0x08;
+
+				// Short LBA mode parameter block descriptor (number of blocks and block length)
+
+				buf[4] = disk_blocks >> 24;
+				buf[5] = disk_blocks >> 16;
+				buf[6] = disk_blocks >> 8;
+				buf[7] = disk_blocks;
+
+				buf[9] = disk_size >> 16;
+				buf[10] = disk_size >> 8;
+				buf[11] = disk_size;
+
+				size = 12;
+			}
+			else {
+				// Mode parameter header, LONGLBA
+				buf[4] = 0x01;
+
+				// Mode parameter header, block descriptor length
+				buf[7] = 0x10;
+
+				// Long LBA mode parameter block descriptor (number of blocks and block length)
+
+				buf[4] = disk_blocks >> 56;
+				buf[5] = disk_blocks >> 48;
+				buf[6] = disk_blocks >> 40;
+				buf[7] = disk_blocks >> 32;
+				buf[8] = disk_blocks >> 24;
+				buf[9] = disk_blocks >> 16;
+				buf[10] = disk_blocks >> 8;
+				buf[11] = disk_blocks;
+
+				buf[16] = disk_size >> 24;
+				buf[17] = disk_size >> 16;
+				buf[18] = disk_size >> 8;
+				buf[19] = disk_size;
+
+				size = 20;
+			}
 		}
-
-		// Size
-		size = 12;
 	}
 
 	// Page code 1(read-write error recovery)
@@ -910,7 +949,8 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// final setting of mode data length
-	buf[0] = (BYTE)(size - 1);
+	buf[0] = (size - 1) >> 8;
+	buf[1] = size - 1;
 
 	// Unsupported page
 	if (!valid) {
