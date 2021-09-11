@@ -92,80 +92,86 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 	}
 
 	Device *device = NULL;
-	switch (type) {
-	case SAHD:
-		device = new SASIHD();
-		device->SetSupportedLuns(2);
-		((Disk *)device)->SetSectorSizes(sector_sizes[SAHD]);
-		break;
+	try {
+		switch (type) {
+			case SAHD:
+				device = new SASIHD();
+				device->SetSupportedLuns(2);
+				((Disk *)device)->SetSectorSizes(sector_sizes[SAHD]);
+			break;
 
-	case SCHD:
-		if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-			device = new SCSIHD_NEC();
-			((Disk *)device)->SetSectorSizes({ 512 });
-		} else {
-			device = new SCSIHD(false);
-			((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);
+			case SCHD:
+				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
+					device = new SCSIHD_NEC();
+					((Disk *)device)->SetSectorSizes({ 512 });
+				} else {
+					device = new SCSIHD(false);
+					((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);
+				}
+				device->SetSupportedLuns(1);
+				device->SetProtectable(true);
+				device->SetStoppable(true);
+				break;
+
+			case SCRM:
+				device = new SCSIHD(true);
+				device->SetSupportedLuns(1);
+				device->SetProtectable(true);
+				device->SetStoppable(true);
+				device->SetRemovable(true);
+				device->SetLockable(true);
+				device->SetProduct("SCSI HD (REM.)");
+				((Disk *)device)->SetSectorSizes(sector_sizes[SCRM]);
+				break;
+
+			case SCMO:
+				device = new SCSIMO();
+				device->SetSupportedLuns(1);
+				device->SetProtectable(true);
+				device->SetStoppable(true);
+				device->SetRemovable(true);
+				device->SetLockable(true);
+				device->SetProduct("SCSI MO");
+				((Disk *)device)->SetGeometries(geometries[SCMO]);
+				break;
+
+			case SCCD:
+				device = new SCSICD();
+				device->SetSupportedLuns(1);
+				device->SetReadOnly(true);
+				device->SetStoppable(true);
+				device->SetRemovable(true);
+				device->SetLockable(true);
+				device->SetProduct("SCSI CD-ROM");
+				((Disk *)device)->SetSectorSizes(sector_sizes[SCCD]);
+				break;
+
+			case SCBR:
+				device = new SCSIBR();
+				device->SetSupportedLuns(1);
+				device->SetProduct("SCSI HOST BRIDGE");
+				device->SupportsParams(true);
+				device->SetDefaultParams(default_params[SCBR]);
+				break;
+
+			case SCDP:
+				device = new SCSIDaynaPort();
+				device->SetSupportedLuns(1);
+				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+				device->SetVendor("Dayna");
+				device->SetProduct("SCSI/Link");
+				device->SetRevision("1.4a");
+				device->SupportsParams(true);
+				device->SetDefaultParams(default_params[SCDP]);
+				break;
+
+			default:
+				break;
 		}
-		device->SetSupportedLuns(1);
-		device->SetProtectable(true);
-		device->SetStoppable(true);
-		break;
-
-	case SCRM:
-		device = new SCSIHD(true);
-		device->SetSupportedLuns(1);
-		device->SetProtectable(true);
-		device->SetStoppable(true);
-		device->SetRemovable(true);
-		device->SetLockable(true);
-		device->SetProduct("SCSI HD (REM.)");
-		((Disk *)device)->SetSectorSizes(sector_sizes[SCRM]);
-		break;
-
-	case SCMO:
-		device = new SCSIMO();
-		device->SetSupportedLuns(1);
-		device->SetProtectable(true);
-		device->SetStoppable(true);
-		device->SetRemovable(true);
-		device->SetLockable(true);
-		device->SetProduct("SCSI MO");
-		((Disk *)device)->SetGeometries(geometries[SCMO]);
-		break;
-
-	case SCCD:
-		device = new SCSICD();
-		device->SetSupportedLuns(1);
-		device->SetReadOnly(true);
-		device->SetStoppable(true);
-		device->SetRemovable(true);
-		device->SetLockable(true);
-		device->SetProduct("SCSI CD-ROM");
-		((Disk *)device)->SetSectorSizes(sector_sizes[SCCD]);
-		break;
-
-	case SCBR:
-		device = new SCSIBR();
-		device->SetSupportedLuns(1);
-		device->SetProduct("SCSI HOST BRIDGE");
-		device->SupportsParams(true);
-		device->SetDefaultParams(default_params[SCBR]);
-		break;
-
-	case SCDP:
-		device = new SCSIDaynaPort();
-		device->SetSupportedLuns(1);
-		// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
-		device->SetVendor("Dayna");
-		device->SetProduct("SCSI/Link");
-		device->SetRevision("1.4a");
-		device->SupportsParams(true);
-		device->SetDefaultParams(default_params[SCDP]);
-		break;
-
-	default:
-		break;
+	}
+	catch(const illegal_argument_exception& e) {
+		// There was an internal problem with setting up the device data
+		return NULL;
 	}
 
 	return device;
