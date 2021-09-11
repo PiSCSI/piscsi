@@ -1600,7 +1600,7 @@ uint32_t Disk::GetSectorSizeInBytes() const
 void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 {
 	set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
-	if (sector_sizes.find(size) == sector_sizes.end()) {
+	if (!sector_sizes.empty() && sector_sizes.find(size) == sector_sizes.end()) {
 		stringstream error;
 		error << "Invalid block size of " << size << " bytes";
 		throw io_exception(error.str());
