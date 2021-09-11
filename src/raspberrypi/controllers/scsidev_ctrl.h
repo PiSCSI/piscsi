@@ -27,7 +27,7 @@ class SCSIDEV : public SASIDEV
 {
 
 public:
-	enum scsi_command {
+	enum scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,

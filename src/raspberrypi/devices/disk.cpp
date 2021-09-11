@@ -532,22 +532,6 @@ bool Disk::Eject(bool force)
 
 //---------------------------------------------------------------------------
 //
-//	Flush
-//
-//---------------------------------------------------------------------------
-bool Disk::FlushCache()
-{
-	// Do nothing if there's nothing cached
-	if (!disk.dcache) {
-		return true;
-	}
-
-	// Save cache
-	return disk.dcache->Save();
-}
-
-//---------------------------------------------------------------------------
-//
 //	Check Ready
 //
 //---------------------------------------------------------------------------
@@ -1173,15 +1157,9 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
 
-	LOGDEBUG("%s", __PRETTY_FUNCTION__);
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	if (!CheckReady()) {
-		return 0;
-	}
-
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
 		return 0;
 	}
 
@@ -1220,12 +1198,6 @@ int Disk::WriteCheck(DWORD block)
 		return 0;
 	}
 
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		LOGDEBUG("WriteCheck failed (capacity exceeded)");
-		return 0;
-	}
-
 	// Error if write protected
 	if (IsProtected()) {
 		LOGDEBUG("WriteCheck failed (protected)");
@@ -1246,17 +1218,11 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
 	ASSERT(buf);
 
-	LOGDEBUG("%s", __PRETTY_FUNCTION__);
+	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// Error if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		return false;
-	}
-
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
 		return false;
 	}
 
@@ -1634,7 +1600,7 @@ uint32_t Disk::GetSectorSizeInBytes() const
 void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 {
 	set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
-	if (sector_sizes.find(size) == sector_sizes.end()) {
+	if (!sector_sizes.empty() && sector_sizes.find(size) == sector_sizes.end()) {
 		stringstream error;
 		error << "Invalid block size of " << size << " bytes";
 		throw io_exception(error.str());

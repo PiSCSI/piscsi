@@ -1121,7 +1121,7 @@ bool SASIDEV::XferOut(bool cont)
 	}
 	Disk *device = ctrl.unit[lun];
 
-	switch ((SASIDEV::sasi_command) ctrl.cmd[0]) {
+	switch (ctrl.cmd[0]) {
 		case SASIDEV::eCmdModeSelect6:
 		case SASIDEV::eCmdModeSelect10:
 			if (!device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
