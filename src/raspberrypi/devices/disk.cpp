@@ -1229,6 +1229,12 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 		return false;
 	}
 
+	// Error if the total number of blocks is exceeded
+	if (block >= disk.blocks) {
+		SetStatusCode(STATUS_INVALIDLBA);
+		return false;
+	}
+
 	// Error if write protected
 	if (IsProtected()) {
 		SetStatusCode(STATUS_WRITEPROTECT);
