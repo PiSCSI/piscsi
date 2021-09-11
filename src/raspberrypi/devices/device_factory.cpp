@@ -27,8 +27,9 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SAHD] = { 256, 1024 };
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
-	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
-	sector_sizes[SCCD] = {};
+	sector_sizes[SCMO] = { 512, 2048 };
+	// Some old Sun CD-ROM drives support 512 bytes per sector
+	sector_sizes[SCCD] = { 512, 2048};
 	sector_sizes[SCBR] = {};
 	sector_sizes[SCDP] = {};
 
@@ -142,6 +143,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI CD-ROM");
+				((Disk *)device)->SetSectorSizes(sector_sizes[SCCD]);
 				break;
 
 			case SCBR:
