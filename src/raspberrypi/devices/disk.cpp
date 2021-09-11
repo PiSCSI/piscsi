@@ -1169,12 +1169,6 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		return 0;
 	}
 
-	// Error if the total number of blocks is exceeded
-	if (block >= disk.blocks) {
-		SetStatusCode(STATUS_INVALIDLBA);
-		return 0;
-	}
-
 	// leave it to the cache
 	if (!disk.dcache->Read(buf, block)) {
 		SetStatusCode(STATUS_READFAULT);
