@@ -123,18 +123,18 @@ void SASIDEV::SetUnit(int no, Disk *dev)
 
 //---------------------------------------------------------------------------
 //
-//	Check to see if this has a valid logical unit
+//	Check to see if this has a valid LUN
 //
 //---------------------------------------------------------------------------
 bool SASIDEV::HasUnit()
 {
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -220,7 +220,7 @@ void SASIDEV::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
-		LOGINFO("Bus free phase");
+		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
 
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
@@ -259,7 +259,7 @@ void SASIDEV::Selection()
 			return;
 		}
 
-		// Return if there is no unit
+		// Return if there is no valid LUN
 		if (!HasUnit()) {
 			return;
 		}
@@ -282,7 +282,7 @@ void SASIDEV::Selection()
 
 //---------------------------------------------------------------------------
 //
-//	Command phase
+//	Command phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::Command()
@@ -485,7 +485,7 @@ void SASIDEV::Status()
 
 //---------------------------------------------------------------------------
 //
-//	Message in phase
+//	Message in phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::MsgIn()
@@ -516,7 +516,7 @@ void SASIDEV::MsgIn()
 
 //---------------------------------------------------------------------------
 //
-//	Data-in Phase
+//	Data-in Phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::DataIn()
@@ -564,7 +564,7 @@ void SASIDEV::DataIn()
 
 //---------------------------------------------------------------------------
 //
-//	Data out phase
+//	Data out phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::DataOut()

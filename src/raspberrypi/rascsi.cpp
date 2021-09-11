@@ -1619,7 +1619,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		// Stop because it the bus is busy or another device responded
+		// Stop because the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}

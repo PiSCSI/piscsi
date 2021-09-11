@@ -101,7 +101,7 @@ public:
 	typedef struct {
 		// General
 		BUS::phase_t phase;				// Transition phase
-		int m_scsi_id;							// Controller ID (0-7)
+		int m_scsi_id;					// Controller ID (0-7)
 		BUS *bus;						// Bus
 
 		// commands
