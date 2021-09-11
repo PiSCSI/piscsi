@@ -24,21 +24,11 @@ using namespace rascsi_interface;
 
 DeviceFactory::DeviceFactory()
 {
-	sector_sizes_sasi.insert(256);
-	sector_sizes_sasi.insert(1024);
-
-	sector_sizes_scsi.insert(512);
-	sector_sizes_scsi.insert(1024);
-	sector_sizes_scsi.insert(2048);
-	sector_sizes_scsi.insert(4096);
-
-	sector_sizes_nec.insert(512);
-
-	sector_sizes[SAHD] = sector_sizes_sasi;
-	sector_sizes[SCHD] = sector_sizes_scsi;
-	sector_sizes[SCRM] = sector_sizes_scsi;
-	sector_sizes[SCMO] = sector_sizes_scsi;
-	sector_sizes[SCCD] = sector_sizes_scsi;
+	sector_sizes[SAHD] = { 256, 1024 };
+	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
+	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
+	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
+	sector_sizes[SCCD] = {};
 	sector_sizes[SCBR] = {};
 	sector_sizes[SCDP] = {};
 
@@ -106,13 +96,13 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, c
 			case SAHD:
 				device = new SASIHD();
 				device->SetSupportedLuns(2);
-				((Disk *)device)->SetSectorSizes(sector_sizes_sasi);
+				((Disk *)device)->SetSectorSizes(sector_sizes[SAHD]);
 			break;
 
 			case SCHD:
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					device = new SCSIHD_NEC();
-					((Disk *)device)->SetSectorSizes(sector_sizes_nec);
+					((Disk *)device)->SetSectorSizes({ 512 });
 				} else {
 					device = new SCSIHD(false);
 					((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);

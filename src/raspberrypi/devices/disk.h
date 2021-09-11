@@ -77,7 +77,6 @@ public:
 	virtual void Open(const Filepath& path);
 	void GetPath(Filepath& path) const;
 	bool Eject(bool) override;
-	bool FlushCache();
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
 	virtual void TestUnitReady(SASIDEV *) override;

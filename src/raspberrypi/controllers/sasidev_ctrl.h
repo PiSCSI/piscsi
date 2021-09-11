@@ -56,7 +56,7 @@ protected:
 	};
 
 private:
-	enum sasi_command {
+	enum sasi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,

@@ -42,9 +42,6 @@ public:
 
 private:
 
-	set<uint32_t> sector_sizes_sasi;
-	set<uint32_t> sector_sizes_scsi;
-	set<uint32_t> sector_sizes_nec;
 	map<PbDeviceType, set<uint32_t>> sector_sizes;
 
 	map<PbDeviceType, map<uint64_t, Geometry>> geometries;
