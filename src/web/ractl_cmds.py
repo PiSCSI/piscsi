@@ -239,18 +239,18 @@ def list_devices(scsi_id=None):
         if dstat.locked == True and dprop.lockable == True:
             dstat_msg.append("Locked")
 
-        dpath = result.device_info.devices[n].file.name or "-"
+        dpath = result.device_info.devices[n].file.name
         dfile = path.basename(dpath)
         dparam = result.device_info.devices[n].params
-        dprod = result.device_info.devices[n].vendor + " " \
-                + result.device_info.devices[n].product
-        dprod_rev = result.device_info.devices[n].revision
-        dblock = result.device_info.devices[n].block_size or "N/A"
+        dven = result.device_info.devices[n].vendor
+        dprod = result.device_info.devices[n].product
+        drev = result.device_info.devices[n].revision
+        dblock = result.device_info.devices[n].block_size
 
-        device_list.append({"id": str(did), "un": str(dun), "type": dtype, \
-                "status": ", ".join(dstat_msg), "path": dpath, "file": dfile, "params": str(dparam),\
-                "product": dprod, "revision": dprod_rev, "block": dblock})
-        occupied_ids.append(str(did))
+        device_list.append({"id": did, "un": dun, "type": dtype, \
+                "status": ", ".join(dstat_msg), "path": dpath, "file": dfile, "params": dparam,\
+                "vendor": dven, "product": dprod, "revision": drev, "block": dblock})
+        occupied_ids.append(did)
         n += 1
     return device_list, occupied_ids
 
@@ -258,11 +258,11 @@ def list_devices(scsi_id=None):
 def sort_and_format_devices(device_list, occupied_ids):
     # Add padding devices and sort the list
     for id in range(8):
-        if str(id) not in occupied_ids:
-            device_list.append({"id": str(id), "type": "-", \
+        if id not in occupied_ids:
+            device_list.append({"id": id, "type": "-", \
                     "status": "-", "file": "-", "product": "-"})
     # Sort list of devices by id
-    device_list.sort(key=lambda dic: dic["id"])
+    device_list.sort(key=lambda dic: str(dic["id"]))
 
     return device_list
 
@@ -270,6 +270,7 @@ def sort_and_format_devices(device_list, occupied_ids):
 def reserve_scsi_ids(reserved_scsi_ids):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVE
+    logging.warning(reserved_scsi_ids)
     command.params.append(reserved_scsi_ids)
 
     data = send_pb_command(command.SerializeToString())

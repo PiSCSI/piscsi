@@ -55,12 +55,12 @@
         </tr>
         {% for device in devices %}
         <tr>
-            {% if device.id not in reserved_scsi_ids %}
+            {% if device["id"]|string() not in reserved_scsi_ids %}
             <td style="text-align:center">{{device.id}}</td>
             <td style="text-align:center">{{device.type}}</td>
             <td style="text-align:center">{{device.status}}</td>
             <td style="text-align:left">{{device.file}}</td>
-            <td style="text-align:center">{{device.product}}</td>
+            <td style="text-align:center">{{device.vendor}} {{device.product}}</td>
             <td style="text-align:left">
                 {% if device.type in ["SCCD", "SCMO", "SCRM"] and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">

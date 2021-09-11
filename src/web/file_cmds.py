@@ -95,8 +95,7 @@ def write_config_csv(file_name):
         with open(file_name, "w") as csv_file:
             writer = csv.writer(csv_file)
             for device in list_devices()[0]:
-                # The 'un' (Unit) value is saved to the csv for backwards compatibilty reasons
-                device_info = [device["id"], device["un"], device["type"], device["file"]]
+                device_info = [device["id"], device["un"], device["type"], device["path"], device["params"], device["vendor"], device["product"], device["revision"], device["block"]]
                 writer.writerow(device_info)
         return True
     except:
@@ -111,7 +110,7 @@ def read_config_csv(file_name):
             detach_all()
             config_reader = csv.reader(csv_file)
             # Format of the rascsi-web config file:
-            # id, un [unused], type, file [optional]
+            # id, un, type, full path to file [optional]
             for row in config_reader:
                 attach_image(row[0], row[3], row[2])
         return True

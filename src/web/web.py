@@ -47,7 +47,7 @@ def index():
         config_files=list_config_files(),
         base_dir=base_dir,
         scsi_ids=scsi_ids,
-        reserved_scsi_ids=reserved_scsi_ids,
+        reserved_scsi_ids=[reserved_scsi_ids],
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
         rascsi_version=rascsi_version(),
@@ -196,7 +196,7 @@ def device_info():
     scsi_id = request.form.get("scsi_id")
     # Extracting the 0th dictionary in list index 0
     device = list_devices(scsi_id)[0][0]
-    if device["id"] == scsi_id:
+    if str(device["id"]) == scsi_id:
         flash("=== DEVICE INFO ===")
         flash(f"SCSI ID: {device['id']}")
         flash(f"Unit: {device['un']}")
@@ -204,7 +204,9 @@ def device_info():
         flash(f"Status: {device['status']}")
         flash(f"File: {device['path']}")
         flash(f"Parameters: {device['params']}")
-        flash(f"Product: {device['product']} {device['revision']}")
+        flash(f"Vendor: {device['vendor']}")
+        flash(f"Product: {device['product']}")
+        flash(f"Revision: {device['revision']}")
         flash(f"Block Size: {device['block']}")
         return redirect(url_for("index"))
     else:
@@ -341,6 +343,7 @@ if __name__ == "__main__":
 
     import sys
     if len(sys.argv) >= 2:
+        # Reserved ids format is a string of digits such as '017'
         app.config["RESERVED_SCSI_IDS"] = str(sys.argv[1])
         # Reserve SCSI IDs on the backend side to prevent use
         reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
