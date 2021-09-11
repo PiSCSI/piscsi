@@ -91,28 +91,31 @@ def download_image(url):
 def write_config_csv(file_name):
     import csv
 
+    #TODO: better error handling
     try:
         with open(file_name, "w") as csv_file:
             writer = csv.writer(csv_file)
             for device in list_devices()[0]:
-                device_info = [device["id"], device["un"], device["type"], device["path"], device["params"], device["vendor"], device["product"], device["revision"], device["block"]]
+                device_info = [device["id"], device["un"], device["type"], device["path"], "".join(device["params"]), device["vendor"], device["product"], device["revision"], device["block"]]
                 writer.writerow(device_info)
         return True
     except:
         print ("Could not open file for writing: ", file_name)
         return False
-				
+	
 def read_config_csv(file_name):
     import csv
 
+    #TODO: better error handling
     try:
         with open(file_name) as csv_file:
             detach_all()
             config_reader = csv.reader(csv_file)
             # Format of the rascsi-web config file:
-            # id, un, type, full path to file [optional]
+            # id, unit, type, full path to file, parameters, vendor, product, revision, block size
             for row in config_reader:
-                attach_image(row[0], row[3], row[2])
+                #TODO: make it backwards compatible with old cfg files (i.e. variable length rows)
+                attach_image(row[0], row[2], row[3], int(row[1]), row[4], row[5], row[6], row[7], int(row[8]))
         return True
     except:
         print ("Could not access file: ", file_name)

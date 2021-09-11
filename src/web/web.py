@@ -144,7 +144,7 @@ def attach():
         flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
-    process = attach_image(scsi_id, file_name, image_type)
+    process = attach_image(scsi_id, image_type, file_name)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
         return redirect(url_for("index"))
@@ -351,7 +351,7 @@ if __name__ == "__main__":
         app.config["RESERVED_SCSI_IDS"] = ""
 
     # Load the configuration in default.cvs, if it exists
-    read_config_csv(f"{base_dir}default.csv")
+    #read_config_csv(f"{base_dir}default.csv")
 
     import bjoern
     print("Serving rascsi-web...")

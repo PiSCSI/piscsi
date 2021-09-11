@@ -97,14 +97,27 @@ def get_type(scsi_id):
         return {"status": result.status, "msg": result.msg, "type": ""}
 
 
-def attach_image(scsi_id, image, image_type):
-    if image_type in ["SCCD", "SCRM"] and get_type(scsi_id)["type"] in ["SCCD", "SCRM"]:
+def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=None, product=None, revision=None, block=None):
+    if device_type in ["SCCD", "SCRM", "SCMO"] and get_type(scsi_id)["type"] in ["SCCD", "SCRM", "SCMO"]:
         return insert(scsi_id, image)
     else:
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)
-        devices.type = proto.PbDeviceType.Value(image_type)
-        devices.params.append(image)
+        devices.type = proto.PbDeviceType.Value(device_type)
+        devices.unit = unit
+        if image != None:
+            devices.params.append(image)
+        # TODO: handle multiple params
+        #for p in params:
+        #    devices.params.append(str(p))
+        if params != None:
+            devices.params.append(params)
+        if None not in [vendor, product, revision]:
+            devices.vendor = vendor
+            devices.product = product
+            devices.revision = revision
+        if block != None:
+            devices.block_size = block
 
         command = proto.PbCommand()
         command.operation = proto.PbOperation.ATTACH
