@@ -60,6 +60,7 @@ def get_type(scsi_id):
         return {"status": result.status, "msg": result.msg, "type": ""}
 
 
+# TODO: Move to kwargs for attach_image
 def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=None, product=None, revision=None, block=None):
     currently_attached = get_type(scsi_id)["type"] 
     if device_type in ["SCCD", "SCRM", "SCMO"] and currently_attached in ["SCCD", "SCRM", "SCMO"]:
@@ -74,9 +75,7 @@ def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=N
         devices.unit = unit
         if image not in [None, ""]:
             devices.params.append(image)
-        # TODO: handle multiple params, if needed?
-        #for p in params:
-        #    devices.params.append(str(p))
+        # TODO: handle multiple param strings, if needed?
         if params not in [None, ""]:
             devices.params.append(params)
         if None not in [vendor, product, revision]:
