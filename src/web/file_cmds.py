@@ -132,9 +132,9 @@ def write_config(file_name):
                 # RaSCSI does not allow attaching a CD-ROM device with custom block size
                 if device_info[2] == "SCCD":
                     device_info[8] = None
-				# Don't store a 0 block size since it's irrelevant
-				if device_info[8] == 0:
-					device_info[8] = None
+                # Don't store a 0 block size since it's irrelevant
+                if device_info[8] == 0:
+                    device_info[8] = None
                 devices.append(device_info)
             dump(devices, json_file)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
