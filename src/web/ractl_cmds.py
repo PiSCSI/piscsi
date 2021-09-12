@@ -120,7 +120,7 @@ def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=N
             devices.revision = revision
         # Don't try to attach a CD-ROM device with block size option as this is not supported
         if block != None and device_type != "SCCD":
-            devices.block_size = block
+            devices.block_size = int(block)
 
         command = proto.PbCommand()
         command.operation = proto.PbOperation.ATTACH

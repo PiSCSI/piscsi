@@ -89,47 +89,12 @@ def download_image(url):
         # TODO: Capture a more descriptive error message
         return {"status": False, "msg": "Error loading the URL"}
 
-def write_config_csv(file_name):
-    import csv
-
-    #TODO: better error handling
-    try:
-        with open(file_name, "w") as csv_file:
-            writer = csv.writer(csv_file)
-            for device in list_devices()[0]:
-                device_info = [device["id"], device["un"], device["type"], device["path"], "".join(device["params"]), device["vendor"], device["product"], device["revision"], device["block"]]
-                # Don't store RaSCSI generated product info
-                if device_info[5] == "RaSCSI":
-                    device_info[5] = device_info[6] = device_info[7] = None
-                writer.writerow(device_info)
-        return {"status": True, "msg": ""}
-    except:
-        logging.error(f"Could not open file for writing: {file_name}")
-        return {"status": False, "msg": ""}
-	
-def read_config_csv(file_name):
-    import csv
-    #TODO: better error handling
-    try:
-        with open(file_name) as csv_file:
-            detach_all()
-            config_reader = csv.reader(csv_file)
-            # Format of the rascsi-web config file:
-            # id, unit, type, full path to file, parameters, vendor, product, revision, block size
-            for row in config_reader:
-                #TODO: make it backwards compatible with old cfg files (i.e. variable length rows)
-                attach_image(row[0], row[2], row[3], int(row[1]), row[4], row[5], row[6], row[7], int(row[8]))
-        return {"status": True, "msg": ""}
-    except:
-        logging.error(f"Could not access file: {file_name}")
-        return {"status": False, "msg": ""}
 
 def write_config(file_name):
-    devices = list_devices()[0]
-
     from json import dump
     try:
         with open(file_name, "w") as json_file:
+            devices = []
             for device in list_devices()[0]:
                 device_info = [device["id"], device["un"], device["type"], device["path"], \
                     "".join(device["params"]), device["vendor"], device["product"], \
@@ -142,12 +107,14 @@ def write_config(file_name):
                 # RaSCSI does not allow attaching a CD-ROM device with custom block size
                 if device_info[2] == "SCCD":
                     device_info[8] = None
-                dump([device_info], json_file)
+                devices.append(device_info)
+            dump(devices, json_file)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
     #TODO: better error handling
     except:
         logging.error(f"Could not write to file: {file_name}")
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
+
 
 def read_config(file_name):
     from json import load
@@ -156,9 +123,8 @@ def read_config(file_name):
             detach_all()
             devices = load(json_file)
             for row in devices:
-                import logging
-                attach_image(row[0], row[2], row[3], int(row[1]), row[4], row[5], row[6], row[7], int(row[8]))
-        return {"status": True, "msg": ""}
+                attach_image(row[0], row[2], row[3], int(row[1]), row[4], row[5], row[6], row[7], row[8])
+        return {"status": True, "msg": f"Successfully read from file: {file_name}"}
     #TODO: better error handling
     except:
         logging.error(f"Could not read file: {file_name}")

@@ -347,16 +347,16 @@ if __name__ == "__main__":
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
-    import sys
-    if len(sys.argv) >= 2:
+    from sys import argv
+    if len(argv) >= 2:
         # Reserved ids format is a string of digits such as '017'
-        app.config["RESERVED_SCSI_IDS"] = str(sys.argv[1])
+        app.config["RESERVED_SCSI_IDS"] = str(argv[1])
         # Reserve SCSI IDs on the backend side to prevent use
         reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
     else:
         app.config["RESERVED_SCSI_IDS"] = ""
 
-    # Load the configuration in default.cvs, if it exists
+    # Load the configuration in default.json
     read_config(f"{base_dir}default.json")
 
     import bjoern
