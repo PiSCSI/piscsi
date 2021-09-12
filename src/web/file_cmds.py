@@ -12,9 +12,9 @@ from settings import *
 
 
 def list_files():
-	from fnmatch import translate
-	valid_file_suffix = [each_string.upper() for each_string in VALID_FILE_SUFFIX]
-	valid_file_types = r"|".join([translate(x) for x in valid_file_suffix])
+    from fnmatch import translate
+    valid_file_suffix = VALID_FILE_SUFFIX + [each_string.upper() for each_string in VALID_FILE_SUFFIX]
+    valid_file_types = r"|".join([translate(x) for x in valid_file_suffix])
 
     from re import match
 

@@ -12,10 +12,10 @@ from file_cmds import (
     read_config,
 )
 from pi_cmds import (
-	shutdown_pi, 
-	reboot_pi, 
-	running_version, 
-	rascsi_service,
+    shutdown_pi, 
+    reboot_pi, 
+    running_version, 
+    rascsi_service,
     is_bridge_setup,
 )
 from ractl_cmds import (
@@ -133,12 +133,12 @@ def attach():
     scsi_id = request.form.get("scsi_id")
 
     # Validate image type by suffix
-	if file_name.lower().endswith(CDROM_FILE_SUFFIX):
-		image_type = "SCCD"
-	elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
-		image_type = "SCRM"
-	else:
-		image_type = "SCHD"
+    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
+        image_type = "SCCD"
+    elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
+        image_type = "SCRM"
+    else:
+        image_type = "SCHD"
 
     validate = validate_scsi_id(scsi_id)
     if validate["status"] == False:

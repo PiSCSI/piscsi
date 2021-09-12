@@ -230,7 +230,6 @@ def sort_and_format_devices(device_list, occupied_ids):
 def reserve_scsi_ids(reserved_scsi_ids):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVE
-    logging.warning(reserved_scsi_ids)
     command.params.append(reserved_scsi_ids)
 
     data = send_pb_command(command.SerializeToString())
