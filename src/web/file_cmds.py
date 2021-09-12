@@ -13,6 +13,42 @@ from ractl_cmds import (
     list_devices,
 )
 from settings import *
+from fnmatch import translate
+valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", \
+        "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
+valid_file_types = r"|".join([translate(x) for x in valid_file_suffix])
+
+
+def list_files():
+    from re import match
+
+    files_list = []
+    for path, dirs, files in os.walk(base_dir):
+        # Only list valid file types
+        files = [f for f in files if match(valid_file_types, f)]
+        files_list.extend(
+            [
+                (
+                    os.path.join(path, file),
+                    # TODO: move formatting to template
+                    "{:,.0f}".format(
+                        os.path.getsize(os.path.join(path, file)) / float(1 << 20)
+                    )
+                    + " MB",
+                )
+                for file in files
+            ]
+        )
+    return files_list
+
+
+def list_config_files():
+    files_list = []
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.endswith(".json"):
+                files_list.append(file)
+    return files_list
 
 
 def create_new_image(file_name, type, size):
@@ -41,14 +77,6 @@ def unzip_file(file_name):
     with zipfile.ZipFile(base_dir + file_name, "r") as zip_ref:
         zip_ref.extractall(base_dir)
         return True
-
-
-def rascsi_service(action):
-    # start/stop/restart
-    return (
-        subprocess.run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode
-        == 0
-    )
 
 
 def download_file_to_iso(scsi_id, url):

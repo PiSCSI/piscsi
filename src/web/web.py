@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file
 
 from file_cmds import (
+    valid_file_suffix,
+    valid_file_types,
+    list_files,
+    list_config_files,
     create_new_image,
     download_file_to_iso,
     delete_file,
@@ -14,16 +18,12 @@ from ractl_cmds import (
     attach_image,
     list_devices,
     sort_and_format_devices,
-    list_files,
     detach_by_id,
     eject_by_id,
     get_valid_scsi_ids,
     attach_daynaport,
     is_bridge_setup,
-    list_config_files,
     detach_all,
-    valid_file_suffix,
-    valid_file_types,
     reserve_scsi_ids,
     rascsi_version,
     validate_scsi_id,

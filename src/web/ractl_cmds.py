@@ -3,11 +3,6 @@ import logging
 from settings import *
 import rascsi_interface_pb2 as proto
 
-from fnmatch import translate
-valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", \
-        "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
-valid_file_types = r"|".join([translate(x) for x in valid_file_suffix])
-
 
 def rascsi_version():
     command = proto.PbCommand()
@@ -21,40 +16,6 @@ def rascsi_version():
               str(result.server_info.patch_version)
     return {"status": result.status, "msg": version}
     
-
-# TODO: Move to file_cmds.py
-def list_files():
-    from re import match
-
-    files_list = []
-    for path, dirs, files in os.walk(base_dir):
-        # Only list valid file types
-        files = [f for f in files if match(valid_file_types, f)]
-        files_list.extend(
-            [
-                (
-                    os.path.join(path, file),
-                    # TODO: move formatting to template
-                    "{:,.0f}".format(
-                        os.path.getsize(os.path.join(path, file)) / float(1 << 20)
-                    )
-                    + " MB",
-                )
-                for file in files
-            ]
-        )
-    return files_list
-
-
-# TODO: Move to file_cmds.py
-def list_config_files():
-    files_list = []
-    for root, dirs, files in os.walk(base_dir):
-        for file in files:
-            if file.endswith(".json"):
-                files_list.append(file)
-    return files_list
-
 
 def validate_scsi_id(scsi_id):
     from re import match
@@ -207,15 +168,6 @@ def is_bridge_setup():
     if "rascsi_bridge" in output:
         return True
     return False
-
-
-def rascsi_service(action):
-    # start/stop/restart
-    from subprocess import run
-    return (
-        run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode
-        == 0
-    )
 
 
 def list_devices(scsi_id=None):
