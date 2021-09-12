@@ -61,7 +61,7 @@ def get_type(scsi_id):
 
 
 # TODO: Move to kwargs for attach_image
-def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=None, product=None, revision=None, block=None):
+def attach_image(scsi_id, device_type, image=None, unit=0, params=[], vendor=None, product=None, revision=None, block=None):
     currently_attached = get_type(scsi_id)["type"] 
     if device_type in ["SCCD", "SCRM", "SCMO"] and currently_attached in ["SCCD", "SCRM", "SCMO"]:
         if currently_attached != device_type:
@@ -75,9 +75,8 @@ def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=N
         devices.unit = unit
         if image not in [None, ""]:
             devices.params.append(image)
-        # TODO: handle multiple param strings, if needed?
-        if params not in [None, ""]:
-            devices.params.append(params)
+        for p in params:
+            devices.params.append(p)
         if None not in [vendor, product, revision]:
             devices.vendor = vendor
             devices.product = product
@@ -191,7 +190,7 @@ def list_devices(scsi_id=None):
         dprop = result.device_info.devices[n].properties
 
         # Building the status string
-		# TODO: This formatting should probably be moved elsewhere
+        # TODO: This formatting should probably be moved elsewhere
         dstat_msg = []
         if dprop.read_only == True:
             dstat_msg.append("Read-Only")

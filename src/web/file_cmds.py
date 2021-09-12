@@ -119,24 +119,27 @@ def write_config(file_name):
     from json import dump
     try:
         with open(file_name, "w") as json_file:
-            devices = []
-            for device in list_devices()[0]:
-                device_info = [device["id"], device["un"], device["type"], device["path"], \
-                    "".join(device["params"]), device["vendor"], device["product"], \
-                    device["revision"], device["block"]]
+            devices = list_devices()[0]
+            for device in devices: #list_devices()[0]:
+                # Remove keys that we don't want to store in the file
+                del device["status"]
+                del device["file"]
+                if device["path"] == "":
+                    device["path"] = None
                 # Don't store RaSCSI generated product info
                 # It is redundant for all intents and purposes, and may cause trouble down the line
-                if device_info[5] == "RaSCSI":
-                    device_info[5] = device_info[6] = device_info[7] = None
+                if device["vendor"] == "RaSCSI":
+                    device["vendor"] = device["product"] = device["revision"] = None
                 # Don't store block size info for CD-ROM devices
                 # RaSCSI does not allow attaching a CD-ROM device with custom block size
-                if device_info[2] == "SCCD":
-                    device_info[8] = None
+                if device["type"] == "SCCD":
+                    device["block"] = None
                 # Don't store a 0 block size since it's irrelevant
-                if device_info[8] == 0:
-                    device_info[8] = None
-                devices.append(device_info)
-            dump(devices, json_file)
+                if device["block"] == 0:
+                    device["block"] = None
+                # Convert to a data type that can be serialized
+                device["params"] = list(device["params"])
+            dump(devices, json_file, indent=4)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
     #TODO: better error handling
     except:
@@ -151,7 +154,9 @@ def read_config(file_name):
             detach_all()
             devices = load(json_file)
             for row in devices:
-                attach_image(row[0], row[2], row[3], int(row[1]), row[4], row[5], row[6], row[7], row[8])
+                attach_image(row["id"], row["type"], row["path"], int(row["un"]), \
+                        row["params"], row["vendor"], row["product"], \
+                        row["revision"], row["block"])
         return {"status": True, "msg": f"Successfully read from file: {file_name}"}
     #TODO: better error handling
     except:
