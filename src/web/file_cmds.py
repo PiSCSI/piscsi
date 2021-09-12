@@ -1,10 +1,6 @@
-import fnmatch
 import os
 import subprocess
 import time
-import io
-import re
-import sys
 import logging
 
 from ractl_cmds import (
@@ -13,14 +9,13 @@ from ractl_cmds import (
     list_devices,
 )
 from settings import *
-from fnmatch import translate
-valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", \
-        "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
-valid_file_suffix += [each_string.upper() for each_string in valid_file_suffix]
-valid_file_types = r"|".join([translate(x) for x in valid_file_suffix])
 
 
 def list_files():
+	from fnmatch import translate
+	valid_file_suffix = [each_string.upper() for each_string in VALID_FILE_SUFFIX]
+	valid_file_types = r"|".join([translate(x) for x in valid_file_suffix])
+
     from re import match
 
     files_list = []

@@ -1,8 +1,6 @@
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file
 
 from file_cmds import (
-    valid_file_suffix,
-    valid_file_types,
     list_files,
     list_config_files,
     create_new_image,
@@ -13,7 +11,13 @@ from file_cmds import (
     write_config,
     read_config,
 )
-from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
+from pi_cmds import (
+	shutdown_pi, 
+	reboot_pi, 
+	running_version, 
+	rascsi_service,
+    is_bridge_setup,
+)
 from ractl_cmds import (
     attach_image,
     list_devices,
@@ -22,7 +26,6 @@ from ractl_cmds import (
     eject_by_id,
     get_valid_scsi_ids,
     attach_daynaport,
-    is_bridge_setup,
     detach_all,
     reserve_scsi_ids,
     rascsi_version,
@@ -60,7 +63,6 @@ def config_save():
     file_name = f"{base_dir}{file_name}.json"
 
     process = write_config(file_name)
-    #process = write_config_csv(file_name)
     if process["status"] == True:
         flash(f"Saved config to  {file_name}!")
         return redirect(url_for("index"))
@@ -131,19 +133,12 @@ def attach():
     scsi_id = request.form.get("scsi_id")
 
     # Validate image type by suffix
-    from re import match
-    print("file_name", file_name)
-    print("valid_file_types: ", valid_file_types)
-    if match(valid_file_types, file_name):
-        if file_name.lower().endswith((".iso", ".cdr", ".toast", ".img")):
-            image_type = "SCCD"
-        elif file_name.lower().endswith(".hdr"):
-            image_type = "SCRM"
-        else:
-            image_type = "SCHD"
-    else:
-        flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
-        return redirect(url_for("index"))
+	if file_name.lower().endswith(CDROM_FILE_SUFFIX):
+		image_type = "SCCD"
+	elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
+		image_type = "SCRM"
+	else:
+		image_type = "SCHD"
 
     validate = validate_scsi_id(scsi_id)
     if validate["status"] == False:
@@ -360,9 +355,9 @@ if __name__ == "__main__":
     else:
         app.config["RESERVED_SCSI_IDS"] = ""
 
-    # Load the configuration in default.json
+    # Load the default configuration file, if found
     from pathlib import Path
-    default_config = Path(base_dir + "default.json")
+    default_config = Path(DEFAULT_CONFIG)
     if default_config.is_file():
         read_config(default_config)
 

@@ -29,3 +29,12 @@ def running_version():
         .strip()
     )
     return ra_web_version + " " + pi_version
+
+
+def is_bridge_setup():
+    from subprocess import run
+    process = run(["brctl", "show"], capture_output=True)
+    output = process.stdout.decode("utf-8")
+    if "rascsi_bridge" in output:
+        return True
+    return False

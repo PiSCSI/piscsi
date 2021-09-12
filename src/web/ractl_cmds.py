@@ -62,7 +62,7 @@ def get_type(scsi_id):
 
 def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=None, product=None, revision=None, block=None):
     if device_type in ["SCCD", "SCRM", "SCMO"] and get_type(scsi_id)["type"] in ["SCCD", "SCRM", "SCMO"]:
-        return insert(scsi_id, image)
+        return insert(scsi_id, device_type, image)
     else:
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)
@@ -161,15 +161,6 @@ def attach_daynaport(scsi_id):
     return {"status": result.status, "msg": result.msg}
 
 
-def is_bridge_setup():
-    from subprocess import run
-    process = run(["brctl", "show"], capture_output=True)
-    output = process.stdout.decode("utf-8")
-    if "rascsi_bridge" in output:
-        return True
-    return False
-
-
 def list_devices(scsi_id=None):
     from os import path
     command = proto.PbCommand()
@@ -197,6 +188,7 @@ def list_devices(scsi_id=None):
         dprop = result.device_info.devices[n].properties
 
         # Building the status string
+		# TODO: This formatting should probably be moved elsewhere
         dstat_msg = []
         if dprop.read_only == True:
             dstat_msg.append("Read-Only")
