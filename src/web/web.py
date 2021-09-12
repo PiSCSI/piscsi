@@ -6,8 +6,8 @@ from file_cmds import (
     delete_file,
     unzip_file,
     download_image,
-    write_config_csv,
-    read_config_csv,
+    write_config,
+    read_config,
 )
 from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
 from ractl_cmds import (
@@ -57,9 +57,10 @@ def index():
 @app.route("/config/save", methods=["POST"])
 def config_save():
     file_name = request.form.get("name") or "default"
-    file_name = f"{base_dir}{file_name}.csv"
+    file_name = f"{base_dir}{file_name}.json"
 
-    process = write_config_csv(file_name)
+    process = write_config(file_name)
+    #process = write_config_csv(file_name)
     if process["status"] == True:
         flash(f"Saved config to  {file_name}!")
         return redirect(url_for("index"))
@@ -75,7 +76,7 @@ def config_load():
     file_name = f"{base_dir}{file_name}"
 
     if "load" in request.form:
-        if read_config_csv(file_name)["status"] == True:
+        if read_config(file_name)["status"] == True:
             flash(f"Loaded config from  {file_name}!")
         else:
             flash(f"Failed to load  {file_name}!", "error")
@@ -356,7 +357,7 @@ if __name__ == "__main__":
         app.config["RESERVED_SCSI_IDS"] = ""
 
     # Load the configuration in default.cvs, if it exists
-    read_config_csv(f"{base_dir}default.csv")
+    read_config(f"{base_dir}default.json")
 
     import bjoern
     print("Serving rascsi-web...")

@@ -22,6 +22,7 @@ def rascsi_version():
     return {"status": result.status, "msg": version}
     
 
+# TODO: Move to file_cmds.py
 def list_files():
     from re import match
 
@@ -45,11 +46,12 @@ def list_files():
     return files_list
 
 
+# TODO: Move to file_cmds.py
 def list_config_files():
     files_list = []
     for root, dirs, files in os.walk(base_dir):
         for file in files:
-            if file.endswith(".csv"):
+            if file.endswith(".json"):
                 files_list.append(file)
     return files_list
 

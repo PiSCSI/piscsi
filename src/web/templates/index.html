@@ -25,7 +25,7 @@
     <form action="/config/load" method="post">
         <select name="name" >
             {% for config in config_files %}
-                <option value="{{config}}">{{config.replace(".csv", '')}}</option>
+                <option value="{{config}}">{{config.replace(".json", '')}}</option>
             {% endfor %}
         </select>
         <input type="submit" name="load" value="Load" />
