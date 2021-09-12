@@ -61,8 +61,12 @@ def get_type(scsi_id):
 
 
 def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=None, product=None, revision=None, block=None):
-    if device_type in ["SCCD", "SCRM", "SCMO"] and get_type(scsi_id)["type"] in ["SCCD", "SCRM", "SCMO"]:
-        return insert(scsi_id, image)
+    currently_attached = get_type(scsi_id)["type"] 
+    if device_type in ["SCCD", "SCRM", "SCMO"] and currently_attached in ["SCCD", "SCRM", "SCMO"]:
+        if currently_attached != device_type:
+            return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {currently_attached} device."}
+        else:
+            return insert(scsi_id, image)
     else:
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)

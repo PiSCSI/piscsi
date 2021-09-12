@@ -162,7 +162,7 @@ def detach_all_devices():
         flash("Detached all SCSI devices!")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to detach all SCSI devices!", "error")
+        flash("Failed to detach all SCSI devices!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
