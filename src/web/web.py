@@ -54,6 +54,7 @@ def index():
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
         rascsi_version=rascsi_version(),
+        valid_file_suffix=VALID_FILE_SUFFIX
     )
 
 

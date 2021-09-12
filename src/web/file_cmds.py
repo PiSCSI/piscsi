@@ -13,7 +13,7 @@ from settings import *
 
 def list_files():
     from fnmatch import translate
-    valid_file_types = list(HARDDRIVE_FILE_SUFFIX + REMOVABLE_FILE_SUFFIX + CDROM_FILE_SUFFIX + ARCHIVE_FILE_SUFFIX)
+    valid_file_types = list(VALID_FILE_SUFFIX)
     valid_file_types = ["*." + s for s in valid_file_types]
     valid_file_types = r"|".join([translate(x) for x in valid_file_types])
 
