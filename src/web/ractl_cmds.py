@@ -62,7 +62,7 @@ def get_type(scsi_id):
 
 def attach_image(scsi_id, device_type, image=None, unit=0, params=None, vendor=None, product=None, revision=None, block=None):
     if device_type in ["SCCD", "SCRM", "SCMO"] and get_type(scsi_id)["type"] in ["SCCD", "SCRM", "SCMO"]:
-        return insert(scsi_id, device_type, image)
+        return insert(scsi_id, image)
     else:
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)

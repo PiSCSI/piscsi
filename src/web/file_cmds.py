@@ -13,15 +13,16 @@ from settings import *
 
 def list_files():
     from fnmatch import translate
-    valid_file_suffix = VALID_FILE_SUFFIX + [each_string.upper() for each_string in VALID_FILE_SUFFIX]
-    valid_file_types = r"|".join([translate(x) for x in valid_file_suffix])
+    valid_file_types = list(HARDDRIVE_FILE_SUFFIX + REMOVABLE_FILE_SUFFIX + CDROM_FILE_SUFFIX + ARCHIVE_FILE_SUFFIX)
+    valid_file_types = ["*." + s for s in valid_file_types]
+    valid_file_types = r"|".join([translate(x) for x in valid_file_types])
 
-    from re import match
+    from re import match, IGNORECASE
 
     files_list = []
     for path, dirs, files in os.walk(base_dir):
         # Only list valid file types
-        files = [f for f in files if match(valid_file_types, f)]
+        files = [f for f in files if match(valid_file_types, f, IGNORECASE)]
         files_list.extend(
             [
                 (
