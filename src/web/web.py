@@ -277,20 +277,22 @@ def upload_file(filename):
         flash("No file provided.", "error")
         return redirect(url_for("index"))
 
-    file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-    if os.path.isfile(file_path):
+    from os import path
+    file_path = path.join(app.config["UPLOAD_FOLDER"], filename)
+    if path.isfile(file_path):
         flash(f"{filename} already exists.", "error")
         return redirect(url_for("index"))
 
-    import io
+    from io import DEFAULT_BUFFER_SIZE
     binary_new_file = "bx"
-    with open(file_path, binary_new_file, buffering=io.DEFAULT_BUFFER_SIZE) as f:
-        chunk_size = io.DEFAULT_BUFFER_SIZE
+    with open(file_path, binary_new_file, buffering=DEFAULT_BUFFER_SIZE) as f:
+        chunk_size = DEFAULT_BUFFER_SIZE
         while True:
             chunk = request.stream.read(chunk_size)
             if len(chunk) == 0:
                 break
             f.write(chunk)
+    # TODO: display an informative success message
     return redirect(url_for("index", filename=filename))
 
 
@@ -344,7 +346,9 @@ if __name__ == "__main__":
     app.secret_key = "rascsi_is_awesome_insecure_secret_key"
     app.config["SESSION_TYPE"] = "filesystem"
     app.config["UPLOAD_FOLDER"] = base_dir
-    os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+
+    from os import makedirs
+    makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
     from sys import argv
@@ -357,7 +361,10 @@ if __name__ == "__main__":
         app.config["RESERVED_SCSI_IDS"] = ""
 
     # Load the configuration in default.json
-    read_config(f"{base_dir}default.json")
+    from pathlib import Path
+    default_config = Path(base_dir + "default.json")
+    if default_config.is_file():
+        read_config(default_config)
 
     import bjoern
     print("Serving rascsi-web...")
