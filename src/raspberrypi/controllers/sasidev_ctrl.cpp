@@ -123,18 +123,18 @@ void SASIDEV::SetUnit(int no, Disk *dev)
 
 //---------------------------------------------------------------------------
 //
-//	Check to see if this has a valid logical unit
+//	Check to see if this has a valid LUN
 //
 //---------------------------------------------------------------------------
 bool SASIDEV::HasUnit()
 {
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -220,7 +220,7 @@ void SASIDEV::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
-		LOGINFO("Bus free phase");
+		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
 
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
@@ -259,7 +259,7 @@ void SASIDEV::Selection()
 			return;
 		}
 
-		// Return if there is no unit
+		// Return if there is no valid LUN
 		if (!HasUnit()) {
 			return;
 		}
@@ -282,7 +282,7 @@ void SASIDEV::Selection()
 
 //---------------------------------------------------------------------------
 //
-//	Command phase
+//	Command phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::Command()
@@ -485,7 +485,7 @@ void SASIDEV::Status()
 
 //---------------------------------------------------------------------------
 //
-//	Message in phase
+//	Message in phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::MsgIn()
@@ -516,7 +516,7 @@ void SASIDEV::MsgIn()
 
 //---------------------------------------------------------------------------
 //
-//	Data-in Phase
+//	Data-in Phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::DataIn()
@@ -564,7 +564,7 @@ void SASIDEV::DataIn()
 
 //---------------------------------------------------------------------------
 //
-//	Data out phase
+//	Data out phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::DataOut()
@@ -635,10 +635,6 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		BusFree();
 		return;
 	}
-
-#if defined(DISK_LOG)
-	LOGWARN("Error occured (going to status phase)");
-#endif	// DISK_LOG
 
 	// Logical Unit
 	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
@@ -1151,8 +1147,7 @@ bool SASIDEV::XferOut(bool cont)
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
 			if (device->IsDaynaPort()) {
-				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
-				if (!(SCSIDaynaPort*)device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+				if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return false;
 				}
@@ -1264,53 +1259,3 @@ void SASIDEV::FlushUnit()
 			break;
 	}
 }
-
-#ifdef DISK_LOG
-//---------------------------------------------------------------------------
-//
-//	Get the current phase as a string
-//
-//---------------------------------------------------------------------------
-void SASIDEV::GetPhaseStr(char *str)
-{
-    switch(this->GetPhase())
-    {
-        case BUS::busfree:
-        strcpy(str,"busfree    ");
-        break;
-        case BUS::arbitration:
-        strcpy(str,"arbitration");
-        break;
-        case BUS::selection:
-        strcpy(str,"selection  ");
-        break;
-        case BUS::reselection:
-        strcpy(str,"reselection");
-        break;
-        case BUS::command:
-        strcpy(str,"command    ");
-        break;
-        case BUS::execute:
-        strcpy(str,"execute    ");
-        break;
-        case BUS::datain:
-        strcpy(str,"datain     ");
-        break;
-        case BUS::dataout:
-        strcpy(str,"dataout    ");
-        break;
-        case BUS::status:
-        strcpy(str,"status     ");
-        break;
-        case BUS::msgin:
-        strcpy(str,"msgin      ");
-        break;
-        case BUS::msgout:
-        strcpy(str,"msgout     ");
-        break;
-        case BUS::reserved:
-        strcpy(str,"reserved   ");
-        break;
-    }
-}
-#endif

@@ -503,49 +503,24 @@ PbDeviceProperties *GetDeviceProperties(const Device *device)
 	return properties;
 }
 
-void GetDeviceTypeProperties(PbServerInfo& server_info)
+void GetDeviceTypeProperties(PbServerInfo& server_info, PbDeviceType type)
 {
-	Device *device = device_factory.CreateDevice(SAHD, "", "");
 	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
-	types_properties->set_type(SAHD);
+	types_properties->set_type(type);
+	Device *device = device_factory.CreateDevice(type, "", "");
 	types_properties->set_allocated_properties(GetDeviceProperties(device));
 	delete device;
+}
 
-	device = device_factory.CreateDevice(SCHD, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCHD);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCRM, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCRM);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCMO, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCMO);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCCD, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCCD);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCBR, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCBR);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-
-	device = device_factory.CreateDevice(SCDP, "", "");
-	types_properties = server_info.add_types_properties();
-	types_properties->set_type(SCDP);
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
+void GetAllDeviceTypeProperties(PbServerInfo& server_info)
+{
+	GetDeviceTypeProperties(server_info, SAHD);
+	GetDeviceTypeProperties(server_info, SCHD);
+	GetDeviceTypeProperties(server_info, SCRM);
+	GetDeviceTypeProperties(server_info, SCMO);
+	GetDeviceTypeProperties(server_info, SCCD);
+	GetDeviceTypeProperties(server_info, SCBR);
+	GetDeviceTypeProperties(server_info, SCDP);
 }
 
 void GetAvailableImages(PbServerInfo& server_info)
@@ -603,9 +578,8 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 
 void GetDevices(PbServerInfo& serverInfo)
 {
-	for (size_t i = 0; i < devices.size(); i++) {
-		// skip if unit does not exist or null disk
-		Device *device = devices[i];
+	for (const Device *device : devices) {
+		// skip if unit does not exist or is not assigned
 		if (device) {
 			PbDevice *pb_device = serverInfo.add_devices();
 			GetDevice(device, pb_device);
@@ -616,7 +590,7 @@ void GetDevices(PbServerInfo& serverInfo)
 void GetDeviceInfo(const PbCommand& command, PbResult& result)
 {
 	set<id_set> id_sets;
-	if (command.devices_size() == 0) {
+	if (!command.devices_size()) {
 		for (const Device *device : devices) {
 			if (device) {
 				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
@@ -643,8 +617,7 @@ void GetDeviceInfo(const PbCommand& command, PbResult& result)
 
 	for (const auto& id_set : id_sets) {
 		Device *device = devices[id_set.first * UnitNum + id_set.second];
-		PbDevice *pb_device = pb_devices->add_devices();
-		GetDevice(device, pb_device);
+		GetDevice(device, pb_devices->add_devices());
 	}
 }
 
@@ -658,7 +631,7 @@ void GetServerInfo(PbResult& result)
 	GetLogLevels(*server_info);
 	server_info->set_current_log_level(current_log_level);
 	server_info->set_default_image_folder(default_image_folder);
-	GetDeviceTypeProperties(*server_info);
+	GetAllDeviceTypeProperties(*server_info);
 	GetAvailableImages(*server_info);
 	GetDevices(*server_info);
 	for (int id : reserved_ids) {
@@ -749,7 +722,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 {
 	const int id = pb_device.id();
 	const int unit = pb_device.unit();
-	PbDeviceType type = pb_device.type();
+	const PbDeviceType type = pb_device.type();
 	ostringstream error;
 
 	if (map[id * UnitNum + unit]) {
@@ -786,6 +759,8 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 	device->SetId(id);
 	device->SetLun(unit);
+
+	// Only non read-only devices support protect/unprotect
 	if (!device->IsReadOnly()) {
 		device->SetProtected(pb_device.protected_());
 	}
@@ -884,8 +859,8 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		if (device->IsReadOnly()) {
 			msg << "read-only ";
 		}
-		else if (device->IsProtectable()) {
-			msg << (device->IsProtected() ? "protected " : "unprotected ");
+		else if (device->IsProtectable() && device->IsProtected()) {
+			msg << "protected ";
 		}
 		msg << device->GetType() << " device, ID " << id << ", unit " << unit;
 		LOGINFO("%s", msg.str().c_str());
@@ -932,7 +907,7 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	}
 
 	if (!pb_device.vendor().empty() || !pb_device.product().empty() || !pb_device.revision().empty()) {
-		return ReturnStatus(fd, false, "Device name cannot be changed");
+		return ReturnStatus(fd, false, "Once set the device name cannot be changed anymore");
 	}
 
 	string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0): "";
@@ -944,8 +919,8 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		return true;
 	}
 
-	LOGINFO("Insert file '%s' requested into %s ID %d, unit %d", filename.c_str(), device->GetType().c_str(),
-			pb_device.id(), pb_device.unit());
+	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
+			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit());
 
 	int id;
 	int unit;
@@ -989,7 +964,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 	const int id = pb_device.id();
 	const int unit = pb_device.unit();
-	PbDeviceType type = pb_device.type();
+	const PbDeviceType type = pb_device.type();
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
@@ -1024,7 +999,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
+		error << "Invalid device ID " << id << " (0-" << CtrlMax - 1 << ")";
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -1087,7 +1062,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
 				if (!device->Start()) {
-					LOGWARN("Start failed");
+					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit);
 				}
 			}
 			break;
@@ -1109,7 +1084,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
 				if (!device->Eject(true)) {
-					LOGWARN("Eject failed");
+					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit);
 				}
 			}
 			break;
@@ -1165,8 +1140,8 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 	// Remember the list of reserved files, than run the dry run
 	const auto reserved_files = FileSupport::GetReservedFiles();
-	for (int i = 0; i < command.devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices(i), command.operation(), params, true)) {
+	for (const auto& device : command.devices()) {
+		if (!ProcessCmd(fd, device, command.operation(), params, true)) {
 			// Dry run failed, restore the file list
 			FileSupport::SetReservedFiles(reserved_files);
 			return false;
@@ -1175,8 +1150,8 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 	// Restore list of reserved files, then execute the command
 	FileSupport::SetReservedFiles(reserved_files);
-	for (int i = 0; i < command.devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices(i), command.operation(), params, false)) {
+	for (const auto& device : command.devices()) {
+		if (!ProcessCmd(fd, device, command.operation(), params, false)) {
 			return false;
 		}
 	}
@@ -1619,7 +1594,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		// Stop because it the bus is busy or another device responded
+		// Stop because the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}

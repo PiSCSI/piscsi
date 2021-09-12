@@ -95,7 +95,7 @@ BUS::phase_t SCSIDEV::Process()
 			BusFree();
 			break;
 
-		// Selection phase
+		// Selection
 		case BUS::selection:
 			Selection();
 			break;
@@ -141,12 +141,6 @@ BUS::phase_t SCSIDEV::Process()
 
 //---------------------------------------------------------------------------
 //
-//	Phases
-//
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-//
 //	Bus free phase
 //
 //---------------------------------------------------------------------------
@@ -154,12 +148,12 @@ void SCSIDEV::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
-		LOGTRACE( "%s Bus free phase", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
 
 		// Phase setting
 		ctrl.phase = BUS::busfree;
 
-		// Signal line
+		// Set Signal lines
 		ctrl.bus->SetREQ(FALSE);
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
@@ -196,7 +190,7 @@ void SCSIDEV::Selection()
 			return;
 		}
 
-		// End if there is no valid unit
+		// Return if there is no valid LUN
 		if (!HasUnit()) {
 			return;
 		}
@@ -357,15 +351,8 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
 
-	// status phase
 	Status();
 }
-
-//===========================================================================
-//
-//	Data Transfer
-//
-//===========================================================================
 
 //---------------------------------------------------------------------------
 //
@@ -374,8 +361,6 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 //---------------------------------------------------------------------------
 void SCSIDEV::Send()
 {
-	int len;
-
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
@@ -385,18 +370,18 @@ void SCSIDEV::Send()
 		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
 		LOGTRACE("%s", s.str().c_str());
 
-		// TODO Get rid of Daynaport specific code
+		// TODO Get rid of Daynaport specific code in this class
 		// The Daynaport needs to have a delay after the size/flags field
 		// of the read response. In the MacOS driver, it looks like the
 		// driver is doing two "READ" system calls.
+		int len;
 		if (ctrl.unit[0] && ctrl.unit[0]->IsDaynaPort()) {
 			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
-				&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
+					&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
 		}
 		else
 		{
-			len = ctrl.bus->SendHandShake(
-				&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
+			len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
 		}
 
 		// If you cannot send all, move to status phase
@@ -421,7 +406,7 @@ void SCSIDEV::Send()
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
 			ostringstream s;
-			s << __PRETTY_FUNCTION__ << " processing after data collection. Blocks: " << ctrl.blocks;
+			s << __PRETTY_FUNCTION__ << " Processing after data collection. Blocks: " << ctrl.blocks;
 			LOGTRACE("%s", s.str().c_str());
 		}
 	}
@@ -435,7 +420,7 @@ void SCSIDEV::Send()
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
 		ostringstream s;
-		s << __PRETTY_FUNCTION__ << " Continuing to send. blocks = " << ctrl.blocks;
+		s << __PRETTY_FUNCTION__ << " Continuing to send. Blocks: " << ctrl.blocks;
 		LOGTRACE("%s", s.str().c_str());
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
