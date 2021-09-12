@@ -129,7 +129,7 @@
                     <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
                     <input type="submit" value="Delete" />
                 </form>
-                {% if file[0].endswith('.zip') or file[0].endswith('.ZIP') %}
+                {% if file[0].lower().endswith('.zip') %}
                 <form action="/files/unzip" method="post">
                     <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
                     <input type="submit" value="Unzip" />

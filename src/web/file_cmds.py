@@ -16,6 +16,7 @@ from settings import *
 from fnmatch import translate
 valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", \
         "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
+valid_file_suffix += [each_string.upper() for each_string in valid_file_suffix]
 valid_file_types = r"|".join([translate(x) for x in valid_file_suffix])
 
 
@@ -101,7 +102,7 @@ def download_file_to_iso(scsi_id, url):
     )
     if iso_proc.returncode != 0:
         return {"status": False, "msg": iso_proc}
-    return attach_image(scsi_id, iso_filename, "SCCD")
+    return attach_image(scsi_id, "SCCD", iso_filename)
 
 
 def download_image(url):
