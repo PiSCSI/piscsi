@@ -28,8 +28,9 @@ from ractl_cmds import (
     attach_daynaport,
     detach_all,
     reserve_scsi_ids,
-    rascsi_version,
+    get_server_info,
     validate_scsi_id,
+    set_log_level,
 )
 from settings import *
 
@@ -53,7 +54,7 @@ def index():
         reserved_scsi_ids=[reserved_scsi_ids],
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
-        rascsi_version=rascsi_version(),
+        server_info=get_server_info(),
         valid_file_suffix=VALID_FILE_SUFFIX
     )
 
@@ -92,20 +93,38 @@ def config_load():
     return redirect(url_for("index"))
 
 
-@app.route("/logs")
+@app.route("/logs", methods=["POST"])
 def logs():
-    from subprocess import run
+    lines = request.form.get("lines") or "200"
+    scope = request.form.get("scope") or "default"
 
-    lines = request.args.get("lines") or "100"
-    process = run(["journalctl", "-n", lines], capture_output=True)
+    from subprocess import run
+    if scope != "default":
+        process = run(["journalctl", "-n", lines, "-u", scope], capture_output=True)
+    else:
+        process = run(["journalctl", "-n", lines], capture_output=True)
 
     if process.returncode == 0:
         headers = {"content-type": "text/plain"}
-        return process.stdout.decode("utf-8"), 200, headers
+        return process.stdout.decode("utf-8"), int(lines), headers
     else:
         flash("Failed to get logs")
         flash(process.stdout.decode("utf-8"), "stdout")
         flash(process.stderr.decode("utf-8"), "stderr")
+        return redirect(url_for("index"))
+
+
+@app.route("/logs/level", methods=["POST"])
+def manage_log_level():
+    log_level = request.form.get("level")
+
+    process = set_log_level(log_level)
+    if process["status"] == True:
+        flash(f"Log level set to {level}!")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to set log level to {level}!", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
 
 

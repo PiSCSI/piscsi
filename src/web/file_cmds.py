@@ -120,7 +120,7 @@ def write_config(file_name):
     try:
         with open(file_name, "w") as json_file:
             devices = list_devices()[0]
-            for device in devices: #list_devices()[0]:
+            for device in devices:
                 # Remove keys that we don't want to store in the file
                 del device["status"]
                 del device["file"]

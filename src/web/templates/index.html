@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block header %}
-{% if rascsi_version["status"] == True %}
+{% if server_info["status"] == True %}
 <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Running</span>
 {% else %}
 <span style="display: inline-block; width: 100%; color: white; background-color: red; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Stopped</span>
@@ -281,10 +281,47 @@
             </td>
         </tr>
     </table>
+
+    <hr/>
+
+    <h2>Logging</h2>
+    <table style="border: none">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+                <form action="/logs" method="post">
+                    <label for="lines">Log Lines:</label>
+                    <input type="text" placeholder="200" name="lines"/>
+                    <label for="scope">Scope:</label>
+                    <select name="scope">
+                        <option value="default">default</option>
+                        <option value="rascsi">rascsi.service</option>
+                        <option value="rascsi-web">rascsi-web.service</option>
+                    </select>
+                    <input type="submit" value="Go" />
+                </form>
+            </td>
+	</tr>
+    </table>
+    <table style="border: none">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+		<form action"/logs/level" method="post">
+		    <label for "level">Log Level:</label>
+		    <select name="level">
+			{% for level in server_info["log_levels"] %}
+			<option value="{{level}}">{{level}}</option>
+			{% endfor %}
+                    </select>
+		    <input type="submit" value="Set" />
+		</form>
+            </td>
+        </tr>
+    </table>
+
 {% endblock %}
 
 {% block footer %}
-    <center><tt>RaSCSI version {{rascsi_version["msg"]}}</tt></center>
+    <center><tt>RaSCSI version {{server_info["version"]}}</tt></center>
     <center><tt>Git revision {{version}}</tt></center>
-    <center><a href="/logs">Logs</a></center>
+    <center><tt>Server log level {{server_info["current_log_level"]}}</tt></center>
 {% endblock %}

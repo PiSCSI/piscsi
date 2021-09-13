@@ -4,7 +4,7 @@ from settings import *
 import rascsi_interface_pb2 as proto
 
 
-def rascsi_version():
+def get_server_info():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.SERVER_INFO
 
@@ -14,7 +14,9 @@ def rascsi_version():
     version = str(result.server_info.major_version) + "." +\
               str(result.server_info.minor_version) + "." +\
               str(result.server_info.patch_version)
-    return {"status": result.status, "msg": version}
+    log_levels = result.server_info.log_levels
+    current_log_level = result.server_info.current_log_level
+    return {"status": result.status, "version": version, "log_levels": log_levels, "current_log_level": current_log_level}
     
 
 def validate_scsi_id(scsi_id):
@@ -233,6 +235,18 @@ def reserve_scsi_ids(reserved_scsi_ids):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVE
     command.params.append(reserved_scsi_ids)
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
+
+
+def set_log_level(log_level):
+    '''Sends a command to the server to change the log level. Takes target log level as an argument'''
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.LOG_LEVEL
+    command.params.append(log_level)
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
