@@ -563,8 +563,8 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 
 	const Disk *disk = dynamic_cast<const Disk*>(device);
     if (disk) {
-    	pb_device->set_block_size(disk->GetSectorSizeInBytes());
-    	pb_device->set_block_count(disk->GetBlockCount());
+    	pb_device->set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
+    	pb_device->set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
     }
 
     const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
@@ -932,6 +932,20 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		ostringstream error;
 		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
+	}
+
+	if (pb_device.block_size()) {
+		Disk *disk = dynamic_cast<Disk *>(device);
+		if (disk && disk->IsSectorSizeConfigurable()) {
+			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				ostringstream error;
+				error << "Invalid block size " << pb_device.block_size() << " bytes";
+				return ReturnStatus(fd, false, error);
+			}
+		}
+		else {
+			return ReturnStatus(fd, false, "Block size is not configurable for device type " + device->GetType());
+		}
 	}
 
 	try {
