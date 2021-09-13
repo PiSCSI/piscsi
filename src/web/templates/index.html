@@ -57,7 +57,7 @@
         <tr>
             {% if device["id"]|string() not in reserved_scsi_ids %}
             <td style="text-align:center">{{device.id}}</td>
-            <td style="text-align:center">{{device.type}}</td>
+            <td style="text-align:center">{{device.device_type}}</td>
             <td style="text-align:center">{{device.status}}</td>
             <td style="text-align:left">{{device.file}}</td>
 	    {% if device.vendor == "RaSCSI" %}
@@ -66,7 +66,7 @@
             <td style="text-align:center">{{device.vendor}} {{device.product}}</td>
 	    {% endif %}
             <td style="text-align:left">
-                {% if device.type in ["SCCD", "SCMO", "SCRM"] and "No Media" not in device.status %}
+                {% if device.device_type in ["SCCD", "SCMO", "SCRM"] and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Eject" />
@@ -75,7 +75,7 @@
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Info" />
                 </form>
-                {% elif device.type in ["-"] %}
+                {% elif device.device_type in ["-"] %}
 		<div>-</div>
                 {% else %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">

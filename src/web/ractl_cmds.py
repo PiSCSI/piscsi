@@ -57,28 +57,29 @@ def get_type(scsi_id):
     # Assuming that only one PbDevice object is present in the response
     try:
         result_type = proto.PbDeviceType.Name(result.device_info.devices[0].type)
-        return {"status": result.status, "msg": result.msg, "type": result_type}
+        return {"status": result.status, "msg": result.msg, "device_type": result_type}
     except:
-        return {"status": result.status, "msg": result.msg, "type": ""}
+        return {"status": result.status, "msg": result.msg, "device_type": None}
 
 
-# TODO: Move to kwargs for attach_image
-#def attach_image(scsi_id, device_type, image=None, unit=0, params=[], vendor=None, product=None, revision=None, block=None):
 def attach_image(scsi_id, **kwargs):
 
     # Handling the inserting of media into an attached removable type device
-    currently_attached = get_type(scsi_id)["type"] 
-    if kwargs.pop("type", None) in ["SCCD", "SCRM", "SCMO"] and currently_attached in ["SCCD", "SCRM", "SCMO"]:
+    currently_attached = get_type(scsi_id)["device_type"] 
+    device_type = kwargs.get("device_type", None) 
+
+    if device_type in ["SCCD", "SCRM", "SCMO"] and currently_attached in ["SCCD", "SCRM", "SCMO"]:
         if currently_attached != device_type:
             return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {currently_attached} device."}
         else:
-            return insert(scsi_id, image)
+            return insert(scsi_id, kwargs.get("image", ""))
     # Handling attaching a new device
     else:
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)
-        if "type" in kwargs.keys():
-            devices.type = proto.PbDeviceType.Value(kwargs["type"])
+        if "device_type" in kwargs.keys():
+            logging.warning(kwargs["device_type"])
+            devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
         if "unit" in kwargs.keys():
             devices.unit = kwargs["unit"]
         if "image" in kwargs.keys():
@@ -96,9 +97,9 @@ def attach_image(scsi_id, **kwargs):
         if "revision" in kwargs.keys():
             if kwargs["revision"] not in [None, ""]:
                 devices.revision = kwargs["revision"]
-        if "block" in kwargs.keys():
-            if kwargs["block"] not in [None, ""]:
-                devices.block_size = int(kwargs["block"])
+        if "block_size" in kwargs.keys():
+            if kwargs["block_size"] not in [None, ""]:
+                devices.block_size = int(kwargs["block_size"])
 
         command = proto.PbCommand()
         command.operation = proto.PbOperation.ATTACH
@@ -224,9 +225,9 @@ def list_devices(scsi_id=None):
         drev = result.device_info.devices[n].revision
         dblock = result.device_info.devices[n].block_size
 
-        device_list.append({"id": did, "un": dun, "type": dtype, \
-                "status": ", ".join(dstat_msg), "path": dpath, "file": dfile, "params": dparam,\
-                "vendor": dven, "product": dprod, "revision": drev, "block": dblock})
+        device_list.append({"id": did, "un": dun, "device_type": dtype, \
+                "status": ", ".join(dstat_msg), "image": dpath, "file": dfile, "params": dparam,\
+                "vendor": dven, "product": dprod, "revision": drev, "block_size": dblock})
         occupied_ids.append(did)
         n += 1
     return device_list, occupied_ids

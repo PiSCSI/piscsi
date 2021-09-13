@@ -125,36 +125,41 @@ def write_config(file_name):
                 del device["status"]
                 del device["file"]
                 # It's cleaner not to store an empty parameter for every device without media
-                if device["path"] == "":
-                    device["path"] = None
+                if device["image"] == "":
+                    device["image"] = None
                 # RaSCSI product names will be generated on the fly by RaSCSI
                 if device["vendor"] == "RaSCSI":
                     device["vendor"] = device["product"] = device["revision"] = None
                 # A block size of 0 is how RaSCSI indicates N/A for block size
-                if device["block"] == 0:
-                    device["block"] = None
+                if device["block_size"] == 0:
+                    device["block_size"] = None
                 # Convert to a data type that can be serialized
                 device["params"] = list(device["params"])
             dump(devices, json_file, indent=4)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
-    #TODO: more verbose error handling
+    #TODO: more verbose error handling of file system errors
     except:
+        raise
         logging.error(f"Could not write to file: {file_name}")
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
 
 def read_config(file_name):
     from json import load
-    #try:
-    with open(file_name) as json_file:
-        detach_all()
-        devices = load(json_file)
-        for row in devices:
-            attach_image(row["id"], type=row["type"], image=row["path"], unit=int(row["un"]), \
+    try:
+        with open(file_name) as json_file:
+            detach_all()
+            devices = load(json_file)
+            for row in devices:
+                process = attach_image(row["id"], device_type=row["device_type"], image=row["image"], unit=int(row["un"]), \
                         params=row["params"], vendor=row["vendor"], product=row["product"], \
-                        revision=row["revision"], block=row["block"])
-    return {"status": True, "msg": f"Successfully read from file: {file_name}"}
-    #TODO: more verbose error handling
-    #except:
-    #    logging.error(f"Could not read file: {file_name}")
-    #    return {"status": False, "msg": f"Could not read file: {file_name}"}
+                        revision=row["revision"], block_size=row["block_size"])
+        if process["status"] == True:
+            return {"status": process["status"], "msg": f"Successfully read from file: {file_name}"}
+        else:
+            return {"status": process["status"], "msg": process["msg"]}
+    #TODO: more verbose error handling of file system errors
+    except:
+        raise
+        logging.error(f"Could not read file: {file_name}")
+        return {"status": False, "msg": f"Could not read file: {file_name}"}

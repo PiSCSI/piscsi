@@ -70,7 +70,7 @@ def config_save():
         return redirect(url_for("index"))
     else:
         flash(f"Failed to saved config to  {file_name}!", "error")
-        #flash(f"{process['msg']}", "error")
+        flash(f"{process['msg']}", "error")
     return redirect(url_for("index"))
 
 
@@ -80,10 +80,12 @@ def config_load():
     file_name = f"{base_dir}{file_name}"
 
     if "load" in request.form:
-        if read_config(file_name)["status"] == True:
+        process = read_config(file_name)
+        if process["status"] == True:
             flash(f"Loaded config from  {file_name}!")
         else:
             flash(f"Failed to load  {file_name}!", "error")
+            flash(f"{process['msg']}", "error")
     elif "delete" in request.form:
         if delete_file(file_name):
             flash(f"Deleted config  {file_name}!")
@@ -165,7 +167,7 @@ def attach():
         flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
-    process = attach_image(scsi_id, type=image_type, image=file_name)
+    process = attach_image(scsi_id, device_type=image_type, image=file_name)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
         return redirect(url_for("index"))
@@ -221,14 +223,14 @@ def device_info():
         flash("=== DEVICE INFO ===")
         flash(f"SCSI ID: {device['id']}")
         flash(f"Unit: {device['un']}")
-        flash(f"Type: {device['type']}")
+        flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
-        flash(f"File: {device['path']}")
+        flash(f"File: {device['image']}")
         flash(f"Parameters: {device['params']}")
         flash(f"Vendor: {device['vendor']}")
         flash(f"Product: {device['product']}")
         flash(f"Revision: {device['revision']}")
-        flash(f"Block Size: {device['block']}")
+        flash(f"Block Size: {device['block_size']}")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to get device info for SCSI id {scsi_id}!", "error")
