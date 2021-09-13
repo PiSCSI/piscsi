@@ -143,7 +143,10 @@ message PbDevice {
     string vendor = 8;
     string product = 9;
     string revision = 10;
+    // Block size in bytes
     int32 block_size = 11;
+    // Number of blocks
+    int64 block_count = 12;
 }
 
 message PbDevices {

@@ -564,6 +564,7 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 	const Disk *disk = dynamic_cast<const Disk*>(device);
     if (disk) {
     	pb_device->set_block_size(disk->GetSectorSizeInBytes());
+    	pb_device->set_block_count(disk->GetBlockCount());
     }
 
     const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
