@@ -124,24 +124,20 @@ def write_config(file_name):
                 # Remove keys that we don't want to store in the file
                 del device["status"]
                 del device["file"]
+                # It's cleaner not to store an empty parameter for every device without media
                 if device["path"] == "":
                     device["path"] = None
-                # Don't store RaSCSI generated product info
-                # It is redundant for all intents and purposes, and may cause trouble down the line
+                # RaSCSI product names will be generated on the fly by RaSCSI
                 if device["vendor"] == "RaSCSI":
                     device["vendor"] = device["product"] = device["revision"] = None
-                # Don't store block size info for CD-ROM devices
-                # RaSCSI does not allow attaching a CD-ROM device with custom block size
-                if device["type"] == "SCCD":
-                    device["block"] = None
-                # Don't store a 0 block size since it's irrelevant
+                # A block size of 0 is how RaSCSI indicates N/A for block size
                 if device["block"] == 0:
                     device["block"] = None
                 # Convert to a data type that can be serialized
                 device["params"] = list(device["params"])
             dump(devices, json_file, indent=4)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
-    #TODO: better error handling
+    #TODO: more verbose error handling
     except:
         logging.error(f"Could not write to file: {file_name}")
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
@@ -158,7 +154,7 @@ def read_config(file_name):
                         row["params"], row["vendor"], row["product"], \
                         row["revision"], row["block"])
         return {"status": True, "msg": f"Successfully read from file: {file_name}"}
-    #TODO: better error handling
+    #TODO: more verbose error handling
     except:
         logging.error(f"Could not read file: {file_name}")
         return {"status": False, "msg": f"Could not read file: {file_name}"}

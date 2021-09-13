@@ -79,12 +79,12 @@ def attach_image(scsi_id, device_type, image=None, unit=0, params=[], vendor=Non
             devices.params.append(image)
         for p in params:
             devices.params.append(p)
+        # Ensure all three product name segments are defined before using them
         if None not in [vendor, product, revision]:
             devices.vendor = vendor
             devices.product = product
             devices.revision = revision
-        # Don't try to attach a CD-ROM device with block size option as this is not supported
-        if block != None and device_type != "SCCD":
+        if block != None:
             devices.block_size = int(block)
 
         command = proto.PbCommand()
@@ -244,7 +244,6 @@ def reserve_scsi_ids(reserved_scsi_ids):
 
 def set_log_level(log_level):
     '''Sends a command to the server to change the log level. Takes target log level as an argument'''
-    logging.warning(log_level)
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL
     command.params.append(str(log_level))
