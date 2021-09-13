@@ -57,6 +57,10 @@ def index():
         server_info=get_server_info(),
         valid_file_suffix=VALID_FILE_SUFFIX,
         removable_device_types=REMOVABLE_DEVICE_TYPES,
+        harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
+        cdrom_file_suffix=CDROM_FILE_SUFFIX,
+        removable_file_suffix=REMOVABLE_FILE_SUFFIX,
+        archive_file_suffix=ARCHIVE_FILE_SUFFIX,
     )
 
 

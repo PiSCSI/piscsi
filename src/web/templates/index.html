@@ -127,25 +127,30 @@
                         <option value="{{id}}">{{id}}</option>
                         {% endfor %}
                     </select>
+                    {% if not file[0].lower().endswith(archive_file_suffix) %}
 		    <select name="product_name">
 			    <option value="">RaSCSI default</option>
-			    <option disabled>HARD DRIVES</option>
+			{% if file[0].lower().endswith(harddrive_file_suffix) %}
 			    <option value="DEC:RZ57 (C) DEC:5000:">DEC RZ57</option>
 			    <option value="SEAGATE:ST34371W SUN4.2:7462:">Seagate ST34371W</option>
-			    <option disabled>CD-ROM DRIVES</option>
+			{% endif %}
+			{% if file[0].lower().endswith(cdrom_file_suffix) %}
 			    <option value="TOSHIBA:CD-ROM XM-3401TA:0283:512">Toshiba XM-3401TA</option>
 			    <option value="SONY:CD-ROM CDU-8012:3.1a:512">Sony CDU-8012</option>
-			    <option disabled>REMOVABLE DRIVES</option>
+			{% endif %}
+			{% if file[0].lower().endswith(removable_file_suffix) %}
 			    <option value="IOMEGA:ZIP 100:D.13:">Iomega Zip 100MB</option>
 			    <option value="iomega:jaz 1GB:H.72">Iomega Jaz 1GB</option>
+			{% endif %}
                     </select>
                     <input type="submit" value="Attach" />
+		    {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
                     <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
                     <input type="submit" value="Delete" />
                 </form>
-                {% if file[0].lower().endswith('.zip') %}
+                {% if file[0].lower().endswith(archive_file_suffix) %}
                 <form action="/files/unzip" method="post">
                     <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
                     <input type="submit" value="Unzip" />
@@ -338,7 +343,7 @@
 {% endblock %}
 
 {% block footer %}
-    <center><tt>RaSCSI version: {{server_info["version"]}}</tt></center>
-    <center><tt>Environment: {{version}}</tt></center>
-    <center><tt>Server log level: {{server_info["current_log_level"]}}</tt></center>
+<center><tt>RaSCSI version: <strong>{{server_info["version"]}}</strong></tt></center>
+<center><tt>Server log level: <strong>{{server_info["current_log_level"]}}</strong></tt></center>
+<center><tt>{{version}}</tt></center>
 {% endblock %}
