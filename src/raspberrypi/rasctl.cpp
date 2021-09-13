@@ -96,6 +96,9 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 
 	if (pb_device.block_size()) {
 		cout << "  " << pb_device.block_size() << " BPS";
+		if (pb_device.block_count()) {
+			cout << "  " << pb_device.block_size() * pb_device.block_count() << " bytes";
+		}
 	}
 
 	if (pb_device.properties().supports_file() && !pb_device.file().name().empty()) {
