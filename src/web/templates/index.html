@@ -66,7 +66,7 @@
             <td style="text-align:center">{{device.vendor}} {{device.product}}</td>
 	    {% endif %}
             <td style="text-align:left">
-                {% if device.device_type in ["SCCD", "SCMO", "SCRM"] and "No Media" not in device.status %}
+                {% if device.device_type in removable_device_types and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Eject" />
@@ -126,6 +126,18 @@
                         {% for id in scsi_ids %}
                         <option value="{{id}}">{{id}}</option>
                         {% endfor %}
+                    </select>
+		    <select name="product_name">
+			    <option value="">RaSCSI default</option>
+			    <option disabled>HARD DRIVES</option>
+			    <option value="DEC:RZ57 (C) DEC:5000:">DEC RZ57</option>
+			    <option value="SEAGATE:ST34371W SUN4.2:7462:">Seagate ST34371W</option>
+			    <option disabled>CD-ROM DRIVES</option>
+			    <option value="TOSHIBA:CD-ROM XM-3401TA:0283:512">Toshiba XM-3401TA</option>
+			    <option value="SONY:CD-ROM CDU-8012:3.1a:512">Sony CDU-8012</option>
+			    <option disabled>REMOVABLE DRIVES</option>
+			    <option value="IOMEGA:ZIP 100:D.13:">Iomega Zip 100MB</option>
+			    <option value="iomega:jaz 1GB:H.72">Iomega Jaz 1GB</option>
                     </select>
                     <input type="submit" value="Attach" />
                 </form>

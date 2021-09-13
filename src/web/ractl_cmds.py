@@ -68,7 +68,7 @@ def attach_image(scsi_id, **kwargs):
     currently_attached = get_type(scsi_id)["device_type"] 
     device_type = kwargs.get("device_type", None) 
 
-    if device_type in ["SCCD", "SCRM", "SCMO"] and currently_attached in ["SCCD", "SCRM", "SCMO"]:
+    if device_type in REMOVABLE_DEVICE_TYPES and currently_attached in REMOVABLE_DEVICE_TYPES:
         if currently_attached != device_type:
             return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {currently_attached} device."}
         else:

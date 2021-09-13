@@ -55,7 +55,8 @@ def index():
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
         server_info=get_server_info(),
-        valid_file_suffix=VALID_FILE_SUFFIX
+        valid_file_suffix=VALID_FILE_SUFFIX,
+        removable_device_types=REMOVABLE_DEVICE_TYPES,
     )
 
 
@@ -153,21 +154,32 @@ def daynaport_attach():
 def attach():
     file_name = request.form.get("file_name")
     scsi_id = request.form.get("scsi_id")
-
-    # Validate image type by suffix
-    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
-        image_type = "SCCD"
-    elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
-        image_type = "SCRM"
-    else:
-        image_type = "SCHD"
+    product_name = request.form.get("product_name") or None
 
     validate = validate_scsi_id(scsi_id)
     if validate["status"] == False:
         flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
-    process = attach_image(scsi_id, device_type=image_type, image=file_name)
+    kwargs = {"image": file_name}
+
+    # Validate image type by suffix
+    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
+        kwargs["device_type"] = "SCCD"
+    elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
+        kwargs["device_type"] = "SCRM"
+    elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
+        kwargs["device_type"] = "SCHD"
+
+    if product_name != None:
+        segments = product_name.split(":")
+        kwargs["vendor"] = segments[0]
+        kwargs["product"] = segments[1]
+        kwargs["revision"] = segments[2]
+        kwargs["block_size"] = segments[3]
+
+    #process = attach_image(scsi_id, device_type=image_type, image=file_name)
+    process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
         return redirect(url_for("index"))
