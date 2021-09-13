@@ -98,7 +98,7 @@ def download_file_to_iso(scsi_id, url):
     )
     if iso_proc.returncode != 0:
         return {"status": False, "msg": iso_proc}
-    return attach_image(scsi_id, "SCCD", iso_filename)
+    return attach_image(scsi_id, type="SCCD", image=iso_filename)
 
 
 def download_image(url):
@@ -145,16 +145,16 @@ def write_config(file_name):
 
 def read_config(file_name):
     from json import load
-    try:
-        with open(file_name) as json_file:
-            detach_all()
-            devices = load(json_file)
-            for row in devices:
-                attach_image(row["id"], row["type"], row["path"], int(row["un"]), \
-                        row["params"], row["vendor"], row["product"], \
-                        row["revision"], row["block"])
-        return {"status": True, "msg": f"Successfully read from file: {file_name}"}
+    #try:
+    with open(file_name) as json_file:
+        detach_all()
+        devices = load(json_file)
+        for row in devices:
+            attach_image(row["id"], type=row["type"], image=row["path"], unit=int(row["un"]), \
+                        params=row["params"], vendor=row["vendor"], product=row["product"], \
+                        revision=row["revision"], block=row["block"])
+    return {"status": True, "msg": f"Successfully read from file: {file_name}"}
     #TODO: more verbose error handling
-    except:
-        logging.error(f"Could not read file: {file_name}")
-        return {"status": False, "msg": f"Could not read file: {file_name}"}
+    #except:
+    #    logging.error(f"Could not read file: {file_name}")
+    #    return {"status": False, "msg": f"Could not read file: {file_name}"}

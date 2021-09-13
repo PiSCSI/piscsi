@@ -165,7 +165,7 @@ def attach():
         flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
-    process = attach_image(scsi_id, image_type, file_name)
+    process = attach_image(scsi_id, type=image_type, image=file_name)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
         return redirect(url_for("index"))

@@ -63,29 +63,42 @@ def get_type(scsi_id):
 
 
 # TODO: Move to kwargs for attach_image
-def attach_image(scsi_id, device_type, image=None, unit=0, params=[], vendor=None, product=None, revision=None, block=None):
+#def attach_image(scsi_id, device_type, image=None, unit=0, params=[], vendor=None, product=None, revision=None, block=None):
+def attach_image(scsi_id, **kwargs):
+
+    # Handling the inserting of media into an attached removable type device
     currently_attached = get_type(scsi_id)["type"] 
-    if device_type in ["SCCD", "SCRM", "SCMO"] and currently_attached in ["SCCD", "SCRM", "SCMO"]:
+    if kwargs.pop("type", None) in ["SCCD", "SCRM", "SCMO"] and currently_attached in ["SCCD", "SCRM", "SCMO"]:
         if currently_attached != device_type:
             return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {currently_attached} device."}
         else:
             return insert(scsi_id, image)
+    # Handling attaching a new device
     else:
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)
-        devices.type = proto.PbDeviceType.Value(device_type)
-        devices.unit = unit
-        if image not in [None, ""]:
-            devices.params.append(image)
-        for p in params:
-            devices.params.append(p)
-        # Ensure all three product name segments are defined before using them
-        if None not in [vendor, product, revision]:
-            devices.vendor = vendor
-            devices.product = product
-            devices.revision = revision
-        if block != None:
-            devices.block_size = int(block)
+        if "type" in kwargs.keys():
+            devices.type = proto.PbDeviceType.Value(kwargs["type"])
+        if "unit" in kwargs.keys():
+            devices.unit = kwargs["unit"]
+        if "image" in kwargs.keys():
+            if kwargs["image"] not in [None, ""]:
+                devices.params.append(kwargs["image"])
+        if "params" in kwargs.keys():
+            for p in kwargs["params"]:
+                devices.params.append(p)
+        if "vendor" in kwargs.keys():
+            if kwargs["vendor"] not in [None, ""]:
+                devices.vendor = kwargs["vendor"]
+        if "product" in kwargs.keys():
+            if kwargs["product"] not in [None, ""]:
+                devices.product = kwargs["product"]
+        if "revision" in kwargs.keys():
+            if kwargs["revision"] not in [None, ""]:
+                devices.revision = kwargs["revision"]
+        if "block" in kwargs.keys():
+            if kwargs["block"] not in [None, ""]:
+                devices.block_size = int(kwargs["block"])
 
         command = proto.PbCommand()
         command.operation = proto.PbOperation.ATTACH
