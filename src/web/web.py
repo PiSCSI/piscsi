@@ -93,8 +93,8 @@ def config_load():
     return redirect(url_for("index"))
 
 
-@app.route("/logs", methods=["POST"])
-def logs():
+@app.route("/logs/show", methods=["POST"])
+def show_logs():
     lines = request.form.get("lines") or "200"
     scope = request.form.get("scope") or "default"
 
@@ -115,10 +115,10 @@ def logs():
 
 
 @app.route("/logs/level", methods=["POST"])
-def manage_log_level():
-    log_level = request.form.get("level")
+def log_level():
+    level = request.form.get("level") or "info"
 
-    process = set_log_level(log_level)
+    process = set_log_level(level)
     if process["status"] == True:
         flash(f"Log level set to {level}!")
         return redirect(url_for("index"))

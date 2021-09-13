@@ -260,6 +260,47 @@
     </table>
 
     <hr/>
+
+    <h2>Logging</h2>
+    <table style="border: none">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+                <form action="/logs/show" method="post">
+                    <label for="lines">Log Lines:</label>
+                    <input type="text" placeholder="200" name="lines"/>
+                    <label for="scope">Scope:</label>
+                    <select name="scope">
+                        <option value="default">default</option>
+                        <option value="rascsi">rascsi.service</option>
+                        <option value="rascsi-web">rascsi-web.service</option>
+                    </select>
+                    <input type="submit" value="Show Logs" />
+                </form>
+            </td>
+	</tr>
+    </table>
+
+    <hr/>
+
+    <h2>Server Log Level</h2>
+    <table style="border: none">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+		<form action="/logs/level" method="post">
+		    <label for="level">Log Level:</label>
+		    <select name="level">
+			{% for level in server_info["log_levels"] %}
+			<option value="{{level}}">{{level}}</option>
+			{% endfor %}
+                    </select>
+		    <input type="submit" value="Set Log Level" />
+		</form>
+            </td>
+        </tr>
+    </table>
+
+    <hr/>
+
     <h2>Raspberry Pi Operations</h2>
     <table style="border: none">
             <tr style="border: none">
@@ -282,46 +323,10 @@
         </tr>
     </table>
 
-    <hr/>
-
-    <h2>Logging</h2>
-    <table style="border: none">
-        <tr style="border: none">
-            <td style="border: none; vertical-align:top;">
-                <form action="/logs" method="post">
-                    <label for="lines">Log Lines:</label>
-                    <input type="text" placeholder="200" name="lines"/>
-                    <label for="scope">Scope:</label>
-                    <select name="scope">
-                        <option value="default">default</option>
-                        <option value="rascsi">rascsi.service</option>
-                        <option value="rascsi-web">rascsi-web.service</option>
-                    </select>
-                    <input type="submit" value="Go" />
-                </form>
-            </td>
-	</tr>
-    </table>
-    <table style="border: none">
-        <tr style="border: none">
-            <td style="border: none; vertical-align:top;">
-		<form action"/logs/level" method="post">
-		    <label for "level">Log Level:</label>
-		    <select name="level">
-			{% for level in server_info["log_levels"] %}
-			<option value="{{level}}">{{level}}</option>
-			{% endfor %}
-                    </select>
-		    <input type="submit" value="Set" />
-		</form>
-            </td>
-        </tr>
-    </table>
-
 {% endblock %}
 
 {% block footer %}
-    <center><tt>RaSCSI version {{server_info["version"]}}</tt></center>
-    <center><tt>Git revision {{version}}</tt></center>
-    <center><tt>Server log level {{server_info["current_log_level"]}}</tt></center>
+    <center><tt>RaSCSI version: {{server_info["version"]}}</tt></center>
+    <center><tt>Environment: {{version}}</tt></center>
+    <center><tt>Server log level: {{server_info["current_log_level"]}}</tt></center>
 {% endblock %}

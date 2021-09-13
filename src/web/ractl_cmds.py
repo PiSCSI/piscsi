@@ -244,9 +244,10 @@ def reserve_scsi_ids(reserved_scsi_ids):
 
 def set_log_level(log_level):
     '''Sends a command to the server to change the log level. Takes target log level as an argument'''
+    logging.warning(log_level)
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL
-    command.params.append(log_level)
+    command.params.append(str(log_level))
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
