@@ -535,14 +535,14 @@ function checkNetworkType() {
 
     if [ $HAS_WIFI -eq 0 ] && [ $HAS_WIRE -eq 0 ]; then
         echo "No network interface found. Please configure your network interface first."
-    elif [ $HAS_WIFI -eq 1 ] && [ $HAS_WIRE -eq 1 ]; then
+    elif [ $HAS_WIFI -ge 1 ] && [ $HAS_WIRE -ge 1 ]; then
         showNetworkMenu
         readNetworkChoice
-    elif [ $HAS_WIRE -eq 1 ]; then
+    elif [ $HAS_WIRE -ge 1 ]; then
         echo "Ethernet detected (Wired)"
         showMacNetworkWire
         setupWiredNetworking
-    elif [ $HAS_WIFI -eq 1 ]; then
+    elif [ $HAS_WIFI -ge 1 ]; then
         echo "Wifi detected (Wireless)"
         showMacNetworkWireless
         setupWirelessNetworking
@@ -554,8 +554,6 @@ function checkIfNetworkIsConfigured() {
     ROUTING=$(grep -c "10.10.20.0/24 -o wlan" /etc/iptables/rules.v4)
     BRIDGE=$(brctl show | grep -c "rascsi_bridge")
     FORWARD=$(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf)
-
-    echo "Routing: $ROUTING / Bridge: $BRIDGE / Forward: $FORWARD"
 
     if [ $ROUTING -ge 1 ]; then
         echo "Network routing seems to be configured."
