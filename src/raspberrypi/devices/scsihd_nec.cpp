@@ -74,11 +74,6 @@ void SCSIHD_NEC::Open(const Filepath& path)
 		throw io_exception("File size must be a multiple of 512 bytes");
 	}
 
-	// 2TB is the current maximum
-	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("File size must not exceed 2 TB");
-	}
-
 	int image_size = 0;
 	int sector_size = 0;
 
@@ -139,12 +134,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	// Number of blocks
 	SetBlockCount(image_size >> disk.size);
 
-	SetReadOnly(false);
-	SetProtectable(true);
-	SetProtected(false);
-
-	Disk::Open(path);
-	FileSupport::SetPath(path);
+	FinalizeSetup(path, size);
 }
 
 int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)

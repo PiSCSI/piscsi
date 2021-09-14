@@ -25,8 +25,10 @@ public:
 	SCSIHD(bool);
 	virtual ~SCSIHD() {};
 
+	void FinalizeSetup(const Filepath&, off_t);
+
 	void Reset();
-	virtual void Open(const Filepath& path);
+	virtual void Open(const Filepath&);
 
 	// Commands
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override;
