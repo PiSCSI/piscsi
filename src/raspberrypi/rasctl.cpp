@@ -105,13 +105,46 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 		cout << "  " << pb_device.file().name();
 	}
 
-	if (pb_device.properties().read_only() || pb_device.status().protected_()) {
-		cout << ", read-only";
+	cout << "  ";
+	bool hasProperty = false;
+	if (pb_device.properties().read_only()) {
+		cout << "read-only";
+		hasProperty = true;
+	}
+	if (pb_device.properties().protectable() && pb_device.status().protected_()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "protected";
+		hasProperty = true;
+	}
+	if (pb_device.properties().stoppable() && pb_device.status().stopped()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "stopped";
+		hasProperty = true;
+	}
+	if (pb_device.properties().removable() && pb_device.status().removed()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "removed";
+		hasProperty = true;
+	}
+	if (pb_device.properties().lockable() && pb_device.status().locked()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "locked";
+	}
+	if (hasProperty) {
+		cout << "  ";
 	}
 
 	if (pb_device.params_size()) {
 		for (const string param : pb_device.params()) {
-			cout << "  " << param;
+			cout << param << "  ";
 		}
 	}
 
