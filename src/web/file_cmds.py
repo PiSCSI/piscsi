@@ -166,7 +166,8 @@ def read_device_config(file_name):
     from json import load
     try:
         with open(file_name) as json_file:
-            return load(json_file)
+            conf = load(json_file)
+            return {"status": True, "msg": f"Read data from file: {file_name}", "conf": conf}
     #TODO: more verbose error handling of file system errors
     except:
         logging.error(f"Could not read file: {file_name}")

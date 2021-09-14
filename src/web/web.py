@@ -173,7 +173,11 @@ def attach():
     from pathlib import Path
     device_config = Path(base_dir + str(Path(file_name).stem) + ".rascsi")
     if device_config.is_file():
-        conf = read_device_config(device_config)
+        process = read_device_config(device_config)
+        if process["status"] == False:
+            flash(process["msg"], "error")
+            return redirect(url_for("index"))
+        conf = process["conf"]
         if conf["file_size"] != "" and conf["file_size"] > int(file_size):
             flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
             flash(f"The file size {file_size} MB needs to be at least {conf['file_size']} MB.", "error")
