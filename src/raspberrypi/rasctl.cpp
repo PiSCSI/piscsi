@@ -288,23 +288,23 @@ void CommandServerInfo(const string& hostname, int port)
 			cout << "        Properties: ";
 			bool has_property = false;
 			if (properties.read_only()) {
-				cout << "Read-only";
+				cout << "read-only";
 				has_property = true;
 			}
 			if (properties.protectable()) {
-				cout << (has_property ? ", " : "") << "Protectable";
+				cout << (has_property ? ", " : "") << "protectable";
 				has_property = true;
 			}
 			if (properties.stoppable()) {
-				cout << (has_property ? ", " : "") << "Stoppable";
+				cout << (has_property ? ", " : "") << "stoppable";
 				has_property = true;
 			}
 			if (properties.removable()) {
-				cout << (has_property ? ", " : "") << "Removable";
+				cout << (has_property ? ", " : "") << "removable";
 				has_property = true;
 			}
 			if (properties.lockable()) {
-				cout << (has_property ? ", " : "") << "Lockable";
+				cout << (has_property ? ", " : "") << "lockable";
 			}
 			cout << endl;
 		}
