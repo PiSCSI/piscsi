@@ -129,23 +129,6 @@
                         {% endfor %}
                     </select>
                     {% if not file[0].lower().endswith(archive_file_suffix) %}
-		    <select name="product_name">
-			{% if file[0].lower().endswith(harddrive_file_suffix) %}
-			    <option value="">RaSCSI Hard Drive</option>
-			    <option value="DEC:RZ57 (C) DEC:5000::1001">DEC RZ57</option>
-			    <option value="SEAGATE:ST34371W SUN4.2:7462::2050">Seagate ST34371W</option>
-			{% endif %}
-			{% if file[0].lower().endswith(cdrom_file_suffix) %}
-			    <option value="">RaSCSI CD-ROM</option>
-			    <option value="TOSHIBA:CD-ROM XM-3401TA:0283:512:">Toshiba XM-3401TA</option>
-			    <option value="SONY:CD-ROM CDU-8012:3.1a:512:">Sony CDU-8012</option>
-			{% endif %}
-			{% if file[0].lower().endswith(removable_file_suffix) %}
-			    <option value="">RaSCSI Removable</option>
-			    <option value="IOMEGA:ZIP 100:D.13::">Iomega Zip 100MB</option>
-			    <option value="iomega:jaz 1GB:H.72::">Iomega Jaz 1GB</option>
-			{% endif %}
-                    </select>
                     <input type="submit" value="Attach" />
 		    {% endif %}
                 </form>

@@ -10,6 +10,7 @@ from file_cmds import (
     download_image,
     write_config,
     read_config,
+    read_device_config,
 )
 from pi_cmds import (
     shutdown_pi, 
@@ -159,7 +160,6 @@ def attach():
     file_name = request.form.get("file_name")
     file_size = request.form.get("file_size")
     scsi_id = request.form.get("scsi_id")
-    product_data = request.form.get("product_name") or None
 
     validate = validate_scsi_id(scsi_id)
     if validate["status"] == False:
@@ -168,27 +168,29 @@ def attach():
 
     kwargs = {"image": file_name}
 
-    # Validate image type by suffix
-    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
+    # Attempt to load the device config sidecar file:
+    # same base path but .rascsi instead of the original suffix.
+    from pathlib import Path
+    device_config = Path(base_dir + str(Path(file_name).stem) + ".rascsi")
+    if device_config.is_file():
+        conf = read_device_config(device_config)
+        if conf["file_size"] != "" and conf["file_size"] > int(file_size):
+            flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
+            flash(f"The file size {file_size} MB needs to be at least {conf['file_size']} MB.", "error")
+            return redirect(url_for("index"))
+        kwargs["device_type"] = conf["device_type"]
+        kwargs["vendor"] = conf["vendor"]
+        kwargs["product"] = conf["product"]
+        kwargs["revision"] = conf["revision"]
+        kwargs["block_size"] = conf["block_size"]
+    # Validate image type by file name suffix as fallback
+    elif file_name.lower().endswith(CDROM_FILE_SUFFIX):
         kwargs["device_type"] = "SCCD"
     elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
         kwargs["device_type"] = "SCRM"
     elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
         kwargs["device_type"] = "SCHD"
-
-    if product_data != None:
-        segments = product_data.split(":")
-        if segments[4] != "" and int(segments[4]) > int(file_size):
-            flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
-            flash(f"The file size {file_size} MB needs to be at least {segments[4]} MB.", "error")
-            return redirect(url_for("index"))
-
-        kwargs["vendor"] = segments[0]
-        kwargs["product"] = segments[1]
-        kwargs["revision"] = segments[2]
-        kwargs["block_size"] = segments[3]
-
-    #process = attach_image(scsi_id, device_type=image_type, image=file_name)
+ 
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")

@@ -138,7 +138,6 @@ def write_config(file_name):
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
     #TODO: more verbose error handling of file system errors
     except:
-        raise
         logging.error(f"Could not write to file: {file_name}")
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
@@ -159,6 +158,16 @@ def read_config(file_name):
             return {"status": process["status"], "msg": process["msg"]}
     #TODO: more verbose error handling of file system errors
     except:
-        raise
+        logging.error(f"Could not read file: {file_name}")
+        return {"status": False, "msg": f"Could not read file: {file_name}"}
+
+
+def read_device_config(file_name):
+    from json import load
+    try:
+        with open(file_name) as json_file:
+            return load(json_file)
+    #TODO: more verbose error handling of file system errors
+    except:
         logging.error(f"Could not read file: {file_name}")
         return {"status": False, "msg": f"Could not read file: {file_name}"}
