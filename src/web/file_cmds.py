@@ -27,10 +27,10 @@ def list_files():
             [
                 (
                     os.path.join(path, file),
-                    # TODO: move formatting to template
-                    "{:,.0f}".format(
-                        os.path.getsize(os.path.join(path, file)) / float(1 << 20)
+                    "{:,.1f}".format(
+                        os.path.getsize(os.path.join(path, file)) / float(1 << 20),
                     ),
+                    os.path.getsize(os.path.join(path, file)),
                 )
                 for file in files
             ]

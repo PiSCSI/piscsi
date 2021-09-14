@@ -178,9 +178,10 @@ def attach():
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
-        if conf["file_size"] != "" and conf["file_size"] > int(file_size):
+        conf_file_size = conf["blocks"] * conf["block_size"]
+        if conf_file_size != 0 and conf_file_size > int(file_size):
             flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
-            flash(f"The file size {file_size} MB needs to be at least {conf['file_size']} MB.", "error")
+            flash(f"The file size {file_size} bytes needs to be at least {conf_file_size} bytes.", "error")
             return redirect(url_for("index"))
         kwargs["device_type"] = conf["device_type"]
         kwargs["vendor"] = conf["vendor"]
