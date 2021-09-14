@@ -36,6 +36,38 @@ SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
 }
 
+void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
+{
+    // 2TB is the current maximum
+	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
+		throw io_exception("File size must not exceed 2 TB");
+	}
+
+	// For non-removable media drives set the default product name based on the drive capacity
+	if (!IsRemovable()) {
+		int capacity;
+		string unit;
+		if (GetBlockCount() >> 11 >= 1) {
+			capacity = GetBlockCount() >> 11;
+			unit = "MB";
+		}
+		else {
+			capacity = GetBlockCount() >> 1;
+			unit = "KB";
+		}
+		stringstream product;
+		product << DEFAULT_PRODUCT << " " << capacity << " " << unit;
+		SetProduct(product.str(), false);
+	}
+
+	SetReadOnly(false);
+	SetProtectable(true);
+	SetProtected(false);
+
+	Disk::Open(path);
+	FileSupport::SetPath(path);
+}
+
 //---------------------------------------------------------------------------
 //
 //	Reset
@@ -82,34 +114,7 @@ void SCSIHD::Open(const Filepath& path)
 		throw io_exception(error.str());
 	}
 
-    // 2TB is the current maximum
-	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("File size must not exceed 2 TB");
-	}
-
-	// For non-removable media drives set the default product name based on the drive capacity
-	if (!IsRemovable()) {
-		int capacity;
-		string unit;
-		if (GetBlockCount() >> 11 >= 1) {
-			capacity = GetBlockCount() >> 11;
-			unit = "MB";
-		}
-		else {
-			capacity = GetBlockCount() >> 1;
-			unit = "KB";
-		}
-		stringstream product;
-		product << DEFAULT_PRODUCT << " " << capacity << " " << unit;
-		SetProduct(product.str(), false);
-	}
-
-	SetReadOnly(false);
-	SetProtectable(true);
-	SetProtected(false);
-
-	Disk::Open(path);
-	FileSupport::SetPath(path);
+	FinalizeSetup(path, size);
 }
 
 //---------------------------------------------------------------------------
