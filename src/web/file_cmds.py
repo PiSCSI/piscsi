@@ -30,8 +30,7 @@ def list_files():
                     # TODO: move formatting to template
                     "{:,.0f}".format(
                         os.path.getsize(os.path.join(path, file)) / float(1 << 20)
-                    )
-                    + " MB",
+                    ),
                 )
                 for file in files
             ]

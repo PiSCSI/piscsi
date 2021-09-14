@@ -116,12 +116,13 @@
             <td style="text-align:center">
                 <form action="/files/download" method="post">
                     <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
-                    <input type="submit" value="{{file[1]}} &#8595;" />
+                    <input type="submit" value="{{file[1]}} MB &#8595;" />
                 </form>
             </td>
             <td>
                 <form action="/scsi/attach" method="post">
                     <input type="hidden" name="file_name" value="{{file[0]}}">
+                    <input type="hidden" name="file_size" value="{{file[1]}}">
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
                         <option value="{{id}}">{{id}}</option>
@@ -129,18 +130,20 @@
                     </select>
                     {% if not file[0].lower().endswith(archive_file_suffix) %}
 		    <select name="product_name">
-			    <option value="">RaSCSI default</option>
 			{% if file[0].lower().endswith(harddrive_file_suffix) %}
-			    <option value="DEC:RZ57 (C) DEC:5000:">DEC RZ57</option>
-			    <option value="SEAGATE:ST34371W SUN4.2:7462:">Seagate ST34371W</option>
+			    <option value="">RaSCSI Hard Drive</option>
+			    <option value="DEC:RZ57 (C) DEC:5000::1001">DEC RZ57</option>
+			    <option value="SEAGATE:ST34371W SUN4.2:7462::2050">Seagate ST34371W</option>
 			{% endif %}
 			{% if file[0].lower().endswith(cdrom_file_suffix) %}
-			    <option value="TOSHIBA:CD-ROM XM-3401TA:0283:512">Toshiba XM-3401TA</option>
-			    <option value="SONY:CD-ROM CDU-8012:3.1a:512">Sony CDU-8012</option>
+			    <option value="">RaSCSI CD-ROM</option>
+			    <option value="TOSHIBA:CD-ROM XM-3401TA:0283:512:">Toshiba XM-3401TA</option>
+			    <option value="SONY:CD-ROM CDU-8012:3.1a:512:">Sony CDU-8012</option>
 			{% endif %}
 			{% if file[0].lower().endswith(removable_file_suffix) %}
-			    <option value="IOMEGA:ZIP 100:D.13:">Iomega Zip 100MB</option>
-			    <option value="iomega:jaz 1GB:H.72">Iomega Jaz 1GB</option>
+			    <option value="">RaSCSI Removable</option>
+			    <option value="IOMEGA:ZIP 100:D.13::">Iomega Zip 100MB</option>
+			    <option value="iomega:jaz 1GB:H.72::">Iomega Jaz 1GB</option>
 			{% endif %}
                     </select>
                     <input type="submit" value="Attach" />

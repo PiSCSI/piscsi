@@ -157,8 +157,9 @@ def daynaport_attach():
 @app.route("/scsi/attach", methods=["POST"])
 def attach():
     file_name = request.form.get("file_name")
+    file_size = request.form.get("file_size")
     scsi_id = request.form.get("scsi_id")
-    product_name = request.form.get("product_name") or None
+    product_data = request.form.get("product_name") or None
 
     validate = validate_scsi_id(scsi_id)
     if validate["status"] == False:
@@ -175,8 +176,13 @@ def attach():
     elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
         kwargs["device_type"] = "SCHD"
 
-    if product_name != None:
-        segments = product_name.split(":")
+    if product_data != None:
+        segments = product_data.split(":")
+        if segments[4] != "" and int(segments[4]) > int(file_size):
+            flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
+            flash(f"The file size {file_size} MB needs to be at least {segments[4]} MB.", "error")
+            return redirect(url_for("index"))
+
         kwargs["vendor"] = segments[0]
         kwargs["product"] = segments[1]
         kwargs["revision"] = segments[2]
