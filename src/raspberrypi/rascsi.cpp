@@ -719,7 +719,7 @@ bool CreateImage(int fd, const PbCommand& command)
 		}
 
 		if (!strcasecmp(permission, "true")) {
-			permissions = S_IRUSR | S_IWUSR | S_IRGRP;
+			permissions = S_IRUSR | S_IRGRP | S_IROTH;
 		}
 	}
 
