@@ -800,6 +800,11 @@ bool RenameImage(int fd, const PbCommand& command)
 	src = default_image_folder + "/" + src;
 	dst = default_image_folder + "/" + dst;
 
+	struct stat st;
+	if (!stat(dst.c_str(), &st)) {
+		return ReturnStatus(fd, false, "Image file '" + dst + "' already exists");
+	}
+
 	if (rename(src.c_str(), dst.c_str())) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + src + "' to '" + dst + "': " + string(strerror(errno)));
 	}
