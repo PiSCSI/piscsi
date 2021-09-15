@@ -711,6 +711,18 @@ bool CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't create image file: Missing filename or file size");
 	}
 
+	int permissions = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+	if (command.params().size() > 2) {
+		const char *permission = command.params().Get(2).c_str();
+		if (strcasecmp(permission, "true") && strcasecmp(permission, "false")) {
+			return ReturnStatus(fd, false, "Invalid read-only setting '" + command.params().Get(2) + "'");
+		}
+
+		if (!strcasecmp(permission, "true")) {
+			permissions = S_IRUSR | S_IWUSR | S_IRGRP;
+		}
+	}
+
 	string filename = command.params().Get(0);
 	if (filename.find('/') != string::npos) {
 		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
@@ -740,7 +752,7 @@ bool CreateImage(int fd, const PbCommand& command)
 	}
 
 	// Since rascsi is running as root ensure that others can access the file
-	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, permissions);
 	if (image_fd == -1) {
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': " + string(strerror(errno)));
 	}
@@ -754,7 +766,7 @@ bool CreateImage(int fd, const PbCommand& command)
 	close(image_fd);
 
 	ostringstream msg;
-	msg << "Created image file '" << filename + "' with a size of " << len << " bytes";
+	msg << "Created " << (permissions & S_IWUSR ? "": "read-only ") << "image file '" << filename + "' with a size of " << len << " bytes";
 	LOGINFO("%s", msg.str().c_str());
 
 	return ReturnStatus(fd);

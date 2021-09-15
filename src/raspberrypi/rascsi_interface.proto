@@ -61,6 +61,8 @@ enum PbOperation {
     RESERVE = 14;
     // Create an image file. The image file must not yet exist.
     // PbCommand.params(0) contains the filename, PbCommand.params(1) contains the file size in bytes.
+    // PbCommand.params(2) is optional (default is false) and controls the file permissions.
+    // If "true" (case-insensitive) a read-only file is created.
     // The filename is relative to the default image folder and must not contain a slash.
     // The file size must be a multiple of 512.
     CREATE_IMAGE = 15;
