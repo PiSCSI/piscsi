@@ -7,7 +7,7 @@ NAME
 
 SYNOPSIS
        rasctl  -l  | -s | [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS]
-       [-v] -i ID [-c CMD] [-f FILE] [-n NAME] [-t TYPE] [-u UNIT]
+       [-v] -i ID [-c CMD] [-f FILE|PARAM] [-n NAME] [-t TYPE] [-u UNIT]
 
 DESCRIPTION
        rasctl Sends commands to the rascsi process to make  configuration  ad‐
@@ -75,14 +75,15 @@ OPTIONS
               bytes,  default  size  is 512 bytes. For SASI drives 256 or 1024
               bytes, default is 256 bytes.
 
-       -f FILE
-              Path to the disk image file. See the rascsi(1) man page for  al‐
-              lowable file types.
+       -f FILE|PARAM
+              Device-specific: Either a path to a disk image file, or a param‐
+              eter  for a non-disk device. See the rascsi(1) man page for per‐
+              mitted file types.
 
        -t TYPE
-              Specifies  the device type. This type overrides the type derived
+              Specifies the device type. This type overrides the type  derived
               from  the  file  extension  of  the  specified  image.  See  the
-              rascsi(1)  man  page  for  the  available device types. For some
+              rascsi(1) man page for the  available  device  types.  For  some
               types there are shortcuts (only the first letter is required):
                  hd: SCSI hard disk drive
                  rm: SCSI removable media drive
@@ -92,16 +93,16 @@ OPTIONS
                  daynaport: DaynaPORT network adapter
 
        -n VENDOR:PRODUCT:REVISION
-              The vendor, product and revision for the device, to be  returned
+              The  vendor, product and revision for the device, to be returned
               with the INQUIRY data. A complete set of name components must be
               provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
               to 4 characters. Padding with blanks to the maxium length is au‐
-              tomatically applied. Once set the name of  a  device  cannot  be
+              tomatically  applied.  Once  set  the name of a device cannot be
               changed.
 
        -u UNIT
-              Unit  number  (0  or  1). This will default to 0. This option is
-              only used when there are multiple SCSI devices on a shared  SCSI
+              Unit number (0 or 1). This will default to  0.  This  option  is
+              only  used when there are multiple SCSI devices on a shared SCSI
               controller. (This is not common)
 
 EXAMPLES
