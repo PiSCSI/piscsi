@@ -791,7 +791,7 @@ bool DeleteImage(int fd, const PbCommand& command)
 	filepath.SetPath(filename.c_str());
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 		ostringstream msg;
-		msg << "Can't delete image file '" << filename << "', it is in use by device ID " << id << ", unit " << unit;
+		msg << "Can't delete image file '" << filename << "', it is used by device ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, msg.str());
 	}
 
