@@ -336,7 +336,7 @@ enum {
 /**
 Normal is 0. Becomes 1 if attempting to mount in read-only mode.
 Reserving the other values for future use.
-Insurance against hard-to-detect devices such as automatic USB storage.
+Insurance against hard-to-detect devices such as homemade USB storage.
 */
 enum {
 	FSFLAG_WRITE_PROTECT =		0x00000001,	///< Bit0: Force write protect
