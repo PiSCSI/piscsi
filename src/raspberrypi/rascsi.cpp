@@ -801,10 +801,10 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
 	}
 
-	// drive checks files
 	Filepath filepath;
 	if (file_support && !filename.empty()) {
 		filepath.SetPath(filename.c_str());
+		string initial_filename = filepath.GetPath();
 
 		try {
 			try {
@@ -819,7 +819,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		catch(const io_exception& e) {
 			delete device;
 
-			return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
+			return ReturnStatus(fd, false, "Tried to open an invalid file '" + initial_filename + "': " + e.getmsg());
 		}
 
 		int id;
@@ -927,6 +927,7 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	int unit;
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
+	string initial_filename = filepath.GetPath();
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 	if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
 		ostringstream error;
@@ -959,7 +960,7 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		}
 	}
 	catch(const io_exception& e) {
-		return ReturnStatus(fd, false, "Tried to open an invalid file '" + string(filepath.GetPath()) + "': " + e.getmsg());
+		return ReturnStatus(fd, false, "Tried to open an invalid file '" + initial_filename + "': " + e.getmsg());
 	}
 
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());

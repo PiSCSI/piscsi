@@ -9,3 +9,4 @@ src/web/current
 src/web/rascsi_interface_pb2.py
 src/oled_monitor/current
 src/raspberrypi/hfdisk/
+*~

@@ -105,13 +105,46 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 		cout << "  " << pb_device.file().name();
 	}
 
-	if (pb_device.properties().read_only() || pb_device.status().protected_()) {
-		cout << ", read-only";
+	cout << "  ";
+	bool hasProperty = false;
+	if (pb_device.properties().read_only()) {
+		cout << "read-only";
+		hasProperty = true;
+	}
+	if (pb_device.properties().protectable() && pb_device.status().protected_()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "protected";
+		hasProperty = true;
+	}
+	if (pb_device.properties().stoppable() && pb_device.status().stopped()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "stopped";
+		hasProperty = true;
+	}
+	if (pb_device.properties().removable() && pb_device.status().removed()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "removed";
+		hasProperty = true;
+	}
+	if (pb_device.properties().lockable() && pb_device.status().locked()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "locked";
+	}
+	if (hasProperty) {
+		cout << "  ";
 	}
 
 	if (pb_device.params_size()) {
 		for (const string param : pb_device.params()) {
-			cout << "  " << param;
+			cout << param << "  ";
 		}
 	}
 
@@ -255,23 +288,23 @@ void CommandServerInfo(const string& hostname, int port)
 			cout << "        Properties: ";
 			bool has_property = false;
 			if (properties.read_only()) {
-				cout << "Read-only";
+				cout << "read-only";
 				has_property = true;
 			}
 			if (properties.protectable()) {
-				cout << (has_property ? ", " : "") << "Protectable";
+				cout << (has_property ? ", " : "") << "protectable";
 				has_property = true;
 			}
 			if (properties.stoppable()) {
-				cout << (has_property ? ", " : "") << "Stoppable";
+				cout << (has_property ? ", " : "") << "stoppable";
 				has_property = true;
 			}
 			if (properties.removable()) {
-				cout << (has_property ? ", " : "") << "Removable";
+				cout << (has_property ? ", " : "") << "removable";
 				has_property = true;
 			}
 			if (properties.lockable()) {
-				cout << (has_property ? ", " : "") << "Lockable";
+				cout << (has_property ? ", " : "") << "lockable";
 			}
 			cout << endl;
 		}

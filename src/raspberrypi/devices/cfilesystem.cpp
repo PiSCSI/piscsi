@@ -150,7 +150,7 @@ void Human68k::namests_t::GetCopyFilename(BYTE* szFilename) const
 	size_t i;
 	BYTE* p = szFilename;
 
-	// Transfer the file name payload
+	// Transfer the base file name
 	for (i = 0; i < 8; i++) {
 		BYTE c = name[i];
 		if (c == ' ') {
