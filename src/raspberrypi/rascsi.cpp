@@ -707,20 +707,19 @@ string SetReservedIds(const list<string>& ids_to_reserve)
 
 bool CreateImage(int fd, const PbCommand& command)
 {
-	if (command.params().size() < 2 || command.params().Get(0).empty() || command.params().Get(1).empty()) {
-		return ReturnStatus(fd, false, "Can't create image file: Missing filename or file size");
+	if (command.params().size() < 3 || command.params().Get(0).empty() || command.params().Get(1).empty()
+			|| command.params().Get(2).empty()) {
+		return ReturnStatus(fd, false, "Can't create image file: Missing filename, file size or permission");
 	}
 
 	int permissions = S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-	if (command.params().size() > 2) {
-		const char *permission = command.params().Get(2).c_str();
-		if (strcasecmp(permission, "true") && strcasecmp(permission, "false")) {
-			return ReturnStatus(fd, false, "Invalid read-only setting '" + command.params().Get(2) + "'");
-		}
+	const char *permission = command.params().Get(2).c_str();
+	if (strcasecmp(permission, "true") && strcasecmp(permission, "false")) {
+		return ReturnStatus(fd, false, "Invalid read-only setting '" + command.params().Get(2) + "'");
+	}
 
-		if (!strcasecmp(permission, "true")) {
-			permissions = S_IRUSR | S_IRGRP | S_IROTH;
-		}
+	if (!strcasecmp(permission, "true")) {
+		permissions = S_IRUSR | S_IRGRP | S_IROTH;
 	}
 
 	string filename = command.params().Get(0);
