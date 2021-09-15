@@ -8,6 +8,7 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 [\fB\-h\fR]
 [\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
 [\fB\-p\f® \fIPORT\fR]
+[\fB\-r\fR \fIRESERVED_IDS\fR]
 [\fB\-n\fR \fITYPE\fR]
 [\fB\-v\fR]
 [\fB\-IDn\fR \fIFILE\fR]
@@ -42,6 +43,9 @@ To quit RaSCSI, press Control + C. If it is running in the background, you can k
 
 .SH OPTIONS
 .TP
+.BR \-b\fI " " \fIBLOCK_SIZE
+The optional block size. For SCSI drives 512, 1024, 2048 or 4096 bytes, default size is 512 bytes. For SASI drives 256 or 1024 bytes, default is 256 bytes.
+.TP
 .BR \-f\fI " " \fIFOLDER
 The default folder for image files. For files in this folder no absolute path needs to be specified. The initial default folder is '~/images'.
 .TP
@@ -57,6 +61,8 @@ Set the vendor, product and revision for the device, to be returned with the INQ
 .BR \-p\fI " " \fIPORT
 The rascsi server port, default is 6868.
 .TP
+.BR \-r\fI " " \fIRESERVED_IDS
+Comma-separated list of IDs to reserve.
 .BR \-p\fI " " \fITYPE
 The optional case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, SCDP). If no type is specified for devices that support an image file, rascsi tries to derive the type from the file extension.
 .TP
@@ -73,7 +79,7 @@ n is the SASI ID number (0-15)
 .IP
 FILE is the name of the image file to use for the SASI device.
 .IP
-Note: SASI usage is rare, and is typically limited to early Sharp X68000 systems.
+Note: SASI usage is rare, and is typically limited to early Unix workstations and Sharp X68000 systems.
 
 .SH EXAMPLES
 Launch RaSCSI with no emulated drives attached:

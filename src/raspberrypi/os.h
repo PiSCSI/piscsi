@@ -105,12 +105,8 @@
 typedef unsigned char BYTE;
 typedef uint16_t WORD;
 typedef uint32_t DWORD;
-typedef uint64_t QWORD;
 typedef int BOOL;
 typedef char TCHAR;
-typedef char *LPTSTR;
-typedef const char *LPCTSTR;
-typedef const char *LPCSTR;
 
 #if !defined(FALSE)
 #define FALSE               0

@@ -23,7 +23,7 @@ using namespace rascsi_interface;
 //
 //---------------------------------------------------------------------------
 
-void SerializeMessage(int fd, const google::protobuf::MessageLite& message)
+void SerializeMessage(int fd, const google::protobuf::Message& message)
 {
 	string data;
 	message.SerializeToString(&data);
@@ -35,14 +35,12 @@ void SerializeMessage(int fd, const google::protobuf::MessageLite& message)
     }
 
     // Write the actual protobuf data
-    uint8_t buf[size];
-    memcpy(buf, data.data(), size);
-    if (write(fd, buf, size) != size) {
+    if (write(fd, data.data(), size) != size) {
     	throw io_exception("Can't write protobuf data");
     }
 }
 
-void DeserializeMessage(int fd, google::protobuf::MessageLite& message)
+void DeserializeMessage(int fd, google::protobuf::Message& message)
 {
 	// Read the header with the size of the protobuf data
 	uint8_t header_buf[4];

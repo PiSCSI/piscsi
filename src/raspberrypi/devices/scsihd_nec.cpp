@@ -18,28 +18,12 @@
 #include "fileio.h"
 #include "exceptions.h"
 
-//===========================================================================
-//
-//	SCSI hard disk (PC-9801-55 NEC genuine /Anex86/T98Next)
-//
-//===========================================================================
-
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
-SCSIHD_NEC::SCSIHD_NEC() : SCSIHD()
+SCSIHD_NEC::SCSIHD_NEC() : SCSIHD(false)
 {
-	SetVendor("NEC");
-
 	// Work initialization
 	cylinders = 0;
 	heads = 0;
 	sectors = 0;
-	sectorsize = 0;
-	imgoffset = 0;
-	imgsize = 0;
 }
 
 //---------------------------------------------------------------------------
@@ -59,34 +43,28 @@ static inline WORD getWordLE(const BYTE *b)
 //---------------------------------------------------------------------------
 static inline DWORD getDwordLE(const BYTE *b)
 {
-	return ((DWORD)(b[3]) << 24) | ((DWORD)(b[2]) << 16) |
-		((DWORD)(b[1]) << 8) | b[0];
+	return ((DWORD)(b[3]) << 24) | ((DWORD)(b[2]) << 16) | ((DWORD)(b[1]) << 8) | b[0];
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
-void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
+void SCSIHD_NEC::Open(const Filepath& path)
 {
 	ASSERT(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open hard disk file read-only");
+		throw file_not_found_exception("Can't open hard disk file");
 	}
 
 	// Get file size
 	off_t size = fio.GetFileSize();
 
-	// Read header
-	BYTE hdr[512];
-	if (size >= (off_t)sizeof(hdr)) {
-		if (!fio.Read(hdr, sizeof(hdr))) {
+	// NEC root sector
+	BYTE root_sector[512];
+	if (size >= (off_t)sizeof(root_sector)) {
+		if (!fio.Read(root_sector, sizeof(root_sector))) {
 			fio.Close();
-			throw io_exception("Can't read NEC hard disk file header");
+			throw io_exception("Can't read NEC hard disk file root sector");
 		}
 	}
 	fio.Close();
@@ -96,75 +74,69 @@ void SCSIHD_NEC::Open(const Filepath& path, BOOL /*attn*/)
 		throw io_exception("File size must be a multiple of 512 bytes");
 	}
 
-	// 2TB is the current maximum
-	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("File size must not exceed 2 TB");
-	}
+	int image_size = 0;
+	int sector_size = 0;
 
 	// Determine parameters by extension
-	LPCTSTR ext = path.GetFileExt();
-	if (strcasecmp(ext, _T(".HDN")) == 0) {
+	const char *ext = path.GetFileExt();
+
+	// PC-9801-55 NEC genuine?
+	if (!strcasecmp(ext, ".hdn")) {
 		// Assuming sector size 512, number of sectors 25, number of heads 8 as default settings
-		imgoffset = 0;
-		imgsize = size;
-		sectorsize = 512;
+		disk.image_offset = 0;
+		image_size = size;
+		sector_size = 512;
 		sectors = 25;
 		heads = 8;
 		cylinders = (int)(size >> 9);
 		cylinders >>= 3;
 		cylinders /= 25;
-	} else if (strcasecmp(ext, _T(".HDI")) == 0) { // Anex86 HD image?
-		imgoffset = getDwordLE(&hdr[4 + 4]);
-		imgsize = getDwordLE(&hdr[4 + 4 + 4]);
-		sectorsize = getDwordLE(&hdr[4 + 4 + 4 + 4]);
-		sectors = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4]);
-		heads = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4]);
-		cylinders = getDwordLE(&hdr[4 + 4 + 4 + 4 + 4 + 4 + 4]);
-	} else if (strcasecmp(ext, _T(".NHD")) == 0 &&
-		memcmp(hdr, "T98HDDIMAGE.R0\0", 15) == 0) { // T98Next HD image?
-		imgoffset = getDwordLE(&hdr[0x10 + 0x100]);
-		cylinders = getDwordLE(&hdr[0x10 + 0x100 + 4]);
-		heads = getWordLE(&hdr[0x10 + 0x100 + 4 + 4]);
-		sectors = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2]);
-		sectorsize = getWordLE(&hdr[0x10 + 0x100 + 4 + 4 + 2 + 2]);
-		imgsize = (off_t)cylinders * heads * sectors * sectorsize;
 	}
-
-	// Supports 256 or 512 sector sizes
-	if (sectorsize != 256 && sectorsize != 512) {
-		throw io_exception("Sector size must be 256 or 512 bytes");
+	// Anex86 HD image?
+	else if (!strcasecmp(ext, ".hdi")) {
+		disk.image_offset = getDwordLE(&root_sector[8]);
+		image_size = getDwordLE(&root_sector[12]);
+		sector_size = getDwordLE(&root_sector[16]);
+		sectors = getDwordLE(&root_sector[20]);
+		heads = getDwordLE(&root_sector[24]);
+		cylinders = getDwordLE(&root_sector[28]);
+	}
+	// T98Next HD image?
+	else if (!strcasecmp(ext, ".nhd")) {
+		if (!memcmp(root_sector, "T98HDDIMAGE.R0\0", 15)) {
+			disk.image_offset = getDwordLE(&root_sector[0x110]);
+			cylinders = getDwordLE(&root_sector[0x114]);
+			heads = getWordLE(&root_sector[0x118]);
+			sectors = getWordLE(&root_sector[0x11a]);
+			sector_size = getWordLE(&root_sector[0x11c]);
+			image_size = (off_t)cylinders * heads * sectors * sector_size;
+		}
+		else {
+			throw io_exception("Invalid NEC image file format");
+		}
 	}
 
 	// Image size consistency check
-	if (imgoffset + imgsize > size || (imgsize % sectorsize != 0)) {
+	if (disk.image_offset + image_size > size || (image_size % sector_size != 0)) {
 		throw io_exception("Image size consistency check failed");
 	}
 
-	// Sector size
-	// TODO Do not use disk.size directly
-	for(disk.size = 16; disk.size > 0; --(disk.size)) {
-		if ((1 << disk.size) == sectorsize)
+	// Calculate sector size
+	for (size = 16; size > 0; --size) {
+		if ((1 << size) == sector_size)
 			break;
 	}
-	if (disk.size <= 0 || disk.size > 16) {
-		throw io_exception("Invalid disk size");
+	if (size <= 0 || size > 16) {
+		throw io_exception("Invalid NEC disk size");
 	}
+	SetSize(size);
 
 	// Number of blocks
-	SetBlockCount((DWORD)(imgsize >> disk.size));
-	disk.imgoffset = imgoffset;
+	SetBlockCount(image_size >> disk.size);
 
-	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(), GetBlockCount());
-
-	Disk::Open(path);
-	FileSupport::SetPath(path);
+	FinalizeSetup(path, size);
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
 int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	int size = SCSIHD::Inquiry(cdb, buf);
@@ -176,12 +148,7 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Error page added
-//
-//---------------------------------------------------------------------------
-int SCSIHD_NEC::AddError(bool change, BYTE *buf)
+int SCSIHD_NEC::AddErrorPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -193,12 +160,7 @@ int SCSIHD_NEC::AddError(bool change, BYTE *buf)
 	return 8;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Format page added
-//
-//---------------------------------------------------------------------------
-int SCSIHD_NEC::AddFormat(bool change, BYTE *buf)
+int SCSIHD_NEC::AddFormatPage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 
@@ -236,12 +198,7 @@ int SCSIHD_NEC::AddFormat(bool change, BYTE *buf)
 	return 24;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Drive page added
-//
-//---------------------------------------------------------------------------
-int SCSIHD_NEC::AddDrive(bool change, BYTE *buf)
+int SCSIHD_NEC::AddDrivePage(bool change, BYTE *buf)
 {
 	ASSERT(buf);
 

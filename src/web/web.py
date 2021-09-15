@@ -1,14 +1,17 @@
 import io
 import re
+import sys
 
 from flask import Flask, render_template, request, flash, url_for, redirect, send_file, send_from_directory
 
 from file_cmds import (
     create_new_image,
     download_file_to_iso,
-    delete_image,
+    delete_file,
     unzip_file,
     download_image,
+    write_config_csv,
+    read_config_csv,
 )
 from pi_cmds import shutdown_pi, reboot_pi, running_version, rascsi_service
 from ractl_cmds import (
@@ -25,7 +28,8 @@ from ractl_cmds import (
     list_config_files,
     detach_all,
     valid_file_suffix,
-    valid_file_types
+    valid_file_types,
+    reserve_scsi_ids,
 )
 from settings import *
 
@@ -35,7 +39,8 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     devices = list_devices()
-    scsi_ids = get_valid_scsi_ids(devices)
+    reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
+    scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids))
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup("eth0"),
@@ -45,6 +50,7 @@ def index():
         config_files=list_config_files(),
         base_dir=base_dir,
         scsi_ids=scsi_ids,
+        reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
     )
@@ -57,30 +63,28 @@ def send_pwa_files(path):
 def config_save():
     file_name = request.form.get("name") or "default"
     file_name = f"{base_dir}{file_name}.csv"
-    import csv
 
-    with open(file_name, "w") as csv_file:
-        writer = csv.writer(csv_file)
-        for device in list_devices():
-            if device["type"] != "-":
-                writer.writerow(device.values())
+    write_config_csv(file_name)
     flash(f"Saved config to  {file_name}!")
     return redirect(url_for("index"))
 
 
 @app.route("/config/load", methods=["POST"])
 def config_load():
-    file_name = request.form.get("name") or "default.csv"
+    file_name = request.form.get("name")
     file_name = f"{base_dir}{file_name}"
-    detach_all()
-    import csv
 
-    with open(file_name) as csv_file:
-        config_reader = csv.reader(csv_file)
-        for row in config_reader:
-            image_name = row[3].replace("(WRITEPROTECT)", "")
-            attach_image(row[0], image_name, row[2])
-    flash(f"Loaded config from  {file_name}!")
+    if "load" in request.form:
+        if read_config_csv(file_name):
+            flash(f"Loaded config from  {file_name}!")
+        else:
+            flash(f"Failed to load  {file_name}!", "error")
+    elif "delete" in request.form:
+        if delete_file(file_name):
+            flash(f"Deleted config  {file_name}!")
+        else:
+            flash(f"Failed to delete  {file_name}!", "error")
+
     return redirect(url_for("index"))
 
 
@@ -147,6 +151,11 @@ def attach():
         flash(f"Unknown file type. Valid files are: {', '.join(valid_file_suffix)}", "error")
         return redirect(url_for("index"))
 
+    # Validate the SCSI ID
+    if re.match("[0-7]", str(scsi_id)) == None:
+        flash(f"Invalid SCSI ID. Should be a number between 0-7", "error")
+        return redirect(url_for("index"))
+
     process = attach_image(scsi_id, file_name, image_type)
     if process.returncode == 0:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
@@ -204,6 +213,9 @@ def restart():
 def rascsi_restart():
     rascsi_service("restart")
     flash("Restarting RaSCSI Service...")
+    reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS") 
+    if reserved_scsi_ids != "":
+        reserve_scsi_ids(reserved_scsi_ids)
     return redirect(url_for("index"))
 
 
@@ -286,7 +298,7 @@ def download():
 @app.route("/files/delete", methods=["POST"])
 def delete():
     image = request.form.get("image")
-    if delete_image(image):
+    if delete_file(base_dir + image):
         flash("File " + image + " deleted")
         return redirect(url_for("index"))
     else:
@@ -312,6 +324,15 @@ if __name__ == "__main__":
     app.config["UPLOAD_FOLDER"] = base_dir
     os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
+    if len(sys.argv) >= 2:
+        app.config["RESERVED_SCSI_IDS"] = str(sys.argv[1])
+        # Reserve SCSI IDs on the backend side to prevent use
+        reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
+    else:
+        app.config["RESERVED_SCSI_IDS"] = ""
+
+    # Load the configuration in default.cvs, if it exists
+    read_config_csv(f"{base_dir}default.csv")
 
     import bjoern
     print("Serving rascsi-web...")

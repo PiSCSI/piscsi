@@ -14,6 +14,7 @@
 //
 //---------------------------------------------------------------------------
 #pragma once
+
 #include "controllers/sasidev_ctrl.h"
 #include <map>
 
@@ -24,7 +25,50 @@
 //===========================================================================
 class SCSIDEV : public SASIDEV
 {
+
 public:
+	enum scsi_command : int {
+		eCmdTestUnitReady = 0x00,
+		eCmdRezero =  0x01,
+		eCmdRequestSense = 0x03,
+		eCmdFormat = 0x04,
+		eCmdReassign = 0x07,
+		eCmdRead6 = 0x08,
+		eCmdRetrieveStats = 0x09,    // DaynaPort specific command
+		eCmdWrite6 = 0x0A,
+		eCmdSeek6 = 0x0B,
+		eCmdSetIfaceMode = 0x0C,     // DaynaPort specific command
+		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
+		eCmdEnableInterface = 0x0E,  // DaynaPort specific command
+		eCmdInquiry = 0x12,
+		eCmdModeSelect6 = 0x15,
+		eCmdReserve6 = 0x16,
+		eCmdRelease6 = 0x17,
+		eCmdModeSense6 = 0x1A,
+		eCmdStartStop = 0x1B,
+		eCmdSendDiag = 0x1D,
+		eCmdRemoval = 0x1E,
+		eCmdReadCapacity10 = 0x25,
+		eCmdRead10 = 0x28,
+		eCmdWrite10 = 0x2A,
+		eCmdSeek10 = 0x2B,
+		eCmdVerify10 = 0x2F,
+		eCmdSynchronizeCache10 = 0x35,
+		eCmdReadDefectData10 = 0x37,
+		eCmdReadToc = 0x43,
+		eCmdGetEventStatusNotification = 0x4a,
+		eCmdModeSelect10 = 0x55,
+		eCmdReserve10 = 0x56,
+		eCmdRelease10 = 0x57,
+		eCmdModeSense10 = 0x5A,
+		eCmdRead16 = 0x88,
+		eCmdWrite16 = 0x8A,
+		eCmdVerify16 = 0x8F,
+		eCmdSynchronizeCache16 = 0x91,
+		eCmdReadCapacity16 = 0x9E,
+		eCmdReportLuns = 0xA0
+	};
+
 	// Internal data definition
 	typedef struct {
 		// Synchronous transfer
@@ -34,21 +78,10 @@ public:
 		int syncack;					// Number of synchronous transfer ACKs
 
 		// ATN message
-		BOOL atnmsg;
+		bool atnmsg;
 		int msc;
 		BYTE msb[256];
 	} scsi_t;
-
-	// SCSI command name and pointer to implementation
-	typedef struct _command_t {
-		const char* name;
-		void (SCSIDEV::*execute)(void);
-
-		_command_t(const char* _name, void (SCSIDEV::*_execute)(void)) : name(_name), execute(_execute) { };
-	} command_t;
-
-	// Mapping of SCSI opcodes to command implementations
-	std::map<scsi_command, command_t*> scsi_commands;
 
 public:
 	// Basic Functions
@@ -57,65 +90,33 @@ public:
 
 	void Reset();							// Device Reset
 
-	// 外部API
+	// External API
 	BUS::phase_t Process();					// Run
 
-	void SyncTransfer(BOOL enable) { scsi.syncenable = enable; }	// Synchronouse transfer enable setting
-
 	// Other
-	BOOL IsSASI() const {return FALSE;}				// SASI Check
-	BOOL IsSCSI() const {return TRUE;}				// SCSI check
+	bool IsSASI() const { return false; }			// SASI Check
+	bool IsSCSI() const { return true; }			// SCSI check
+
+	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
+			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION) override;	// Common error handling
 
 private:
-	void SetUpCommand(scsi_command, const char*, void (SCSIDEV::*)(void));
 
 	// Phase
 	void BusFree();						// Bus free phase
 	void Selection();						// Selection phase
 	void Execute();						// Execution phase
 	void MsgOut();							// Message out phase
-	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common erorr handling
 
 	// commands
-	void CmdInquiry();						// INQUIRY command
-	void CmdModeSelect();						// MODE SELECT command
-	void CmdReserve6();						// RESERVE(6) command
-	void CmdReserve10();						// RESERVE(10) command
-	void CmdRelease6();						// RELEASE(6) command
-	void CmdRelease10();						// RELEASE(10) command
-	void CmdModeSense();						// MODE SENSE command
-	void CmdStartStop();						// START STOP UNIT command
-	void CmdSendDiag();						// SEND DIAGNOSTIC command
-	void CmdRemoval();						// PREVENT/ALLOW MEDIUM REMOVAL command
-	void CmdReadCapacity10();					// READ CAPACITY(10) command
-	void CmdRead10();						// READ(10) command
-	void CmdWrite10();						// WRITE(10) command
-	void CmdSeek10();						// SEEK(10) command
-	void CmdVerify();						// VERIFY command
-	void CmdSynchronizeCache();					// SYNCHRONIZE CACHE  command
-	void CmdReadDefectData10();					// READ DEFECT DATA(10)  command
-	void CmdReadToc();						// READ TOC command
-	void CmdPlayAudio10();						// PLAY AUDIO(10) command
-	void CmdPlayAudioMSF();					// PLAY AUDIO MSF command
-	void CmdPlayAudioTrack();					// PLAY AUDIO TRACK INDEX command
 	void CmdGetEventStatusNotification();
 	void CmdModeSelect10();					// MODE SELECT(10) command
 	void CmdModeSense10();						// MODE SENSE(10) command
-	void CmdReadCapacity16();					// READ CAPACITY(16) command
-	void CmdRead16();						// READ(16) command
-	void CmdWrite16();						// WRITE(16) command
-	void CmdReportLuns();					// REPORT LUNS command
-	void CmdGetMessage10();					// GET MESSAGE(10) command
-	void CmdSendMessage10();					// SEND MESSAGE(10) command
-	void CmdRetrieveStats();   				// DaynaPort specific command
-	void CmdSetIfaceMode();    				// DaynaPort specific command
-	void CmdSetMcastAddr();					// DaynaPort specific command
-	void CmdEnableInterface(); 				// DaynaPort specific command
-	// データ転送
+
+	// Data transfer
 	void Send();							// Send data
 	void Receive();						// Receive data
-	BOOL XferMsg(DWORD msg);					// Data transfer message
+	bool XferMsg(DWORD msg);					// Data transfer message
 
 	scsi_t scsi;								// Internal data
 };

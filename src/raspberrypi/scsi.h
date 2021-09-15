@@ -9,8 +9,7 @@
 //
 //---------------------------------------------------------------------------
 
-#if !defined(scsi_h)
-#define scsi_h
+#pragma once
 
 //===========================================================================
 //
@@ -65,41 +64,35 @@ public:
 		MONITOR = 2,
 	};
 
-	//	Phase definition
+	//	Phase definitions
 	enum phase_t : BYTE {
-		busfree,						// バスフリーフェーズ
-		arbitration,					// アービトレーションフェーズ
-		selection,						// セレクションフェーズ
-		reselection,					// リセレクションフェーズ
-		command,						// コマンドフェーズ
-		execute,						// 実行フェーズ  Execute is an extension of the command phase
-		datain,							// データイン
-		dataout,						// データアウト
-		status,							// ステータスフェーズ
-		msgin,							// メッセージフェーズ
-		msgout,							// メッセージアウトフェーズ
-		reserved						// 未使用/リザーブ
+		busfree,
+		arbitration,
+		selection,
+		reselection,
+		command,
+		execute,						// Execute phase is an extension of the command phase
+		datain,
+		dataout,
+		status,
+		msgin,
+		msgout,
+		reserved						// Unused
 	};
 
 	BUS() { };
 	virtual ~BUS() { };
 
 	// Basic Functions
-	// 基本ファンクション
 	virtual BOOL Init(mode_e mode) = 0;
-										// 初期化
 	virtual void Reset() = 0;
-										// リセット
 	virtual void Cleanup() = 0;
-										// クリーンアップ
 	phase_t GetPhase();
-										// フェーズ取得
 
 	static phase_t GetPhase(DWORD mci)
 	{
 		return phase_table[mci];
 	}
-										// フェーズ取得
 
 	static const char* GetPhaseStrRaw(phase_t current_phase);
 										// Get the string phase name, based upon the raw data
@@ -111,64 +104,39 @@ public:
 	}
 
 	virtual bool GetBSY() = 0;
-										// BSYシグナル取得
 	virtual void SetBSY(bool ast) = 0;
-										// BSYシグナル設定
 
 	virtual BOOL GetSEL() = 0;
-										// SELシグナル取得
 	virtual void SetSEL(BOOL ast) = 0;
-										// SELシグナル設定
 
 	virtual BOOL GetATN() = 0;
-										// ATNシグナル取得
 	virtual void SetATN(BOOL ast) = 0;
-										// ATNシグナル設定
 
 	virtual BOOL GetACK() = 0;
-										// ACKシグナル取得
 	virtual void SetACK(BOOL ast) = 0;
-										// ACKシグナル設定
 
 	virtual BOOL GetRST() = 0;
-										// RSTシグナル取得
 	virtual void SetRST(BOOL ast) = 0;
-										// RSTシグナル設定
 
 	virtual BOOL GetMSG() = 0;
-										// MSGシグナル取得
 	virtual void SetMSG(BOOL ast) = 0;
-										// MSGシグナル設定
 
 	virtual BOOL GetCD() = 0;
-										// CDシグナル取得
 	virtual void SetCD(BOOL ast) = 0;
-										// CDシグナル設定
 
 	virtual BOOL GetIO() = 0;
-										// IOシグナル取得
 	virtual void SetIO(BOOL ast) = 0;
-										// IOシグナル設定
 
 	virtual BOOL GetREQ() = 0;
-										// REQシグナル取得
 	virtual void SetREQ(BOOL ast) = 0;
-										// REQシグナル設定
 
 	virtual BYTE GetDAT() = 0;
-										// データシグナル取得
 	virtual void SetDAT(BYTE dat) = 0;
-										// データシグナル設定
-	virtual BOOL GetDP() = 0;
-										// パリティシグナル取得
+	virtual BOOL GetDP() = 0;			// Get parity signal
 
 	virtual int CommandHandShake(BYTE *buf) = 0;
-										// コマンド受信ハンドシェイク
 	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
-										// データ受信ハンドシェイク
 	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
-										// データ送信ハンドシェイク
-
 
 	virtual BOOL GetSignal(int pin) = 0;
 										// Get SCSI input signal value
@@ -181,89 +149,6 @@ protected:
 
 private:
 	static const phase_t phase_table[8];
-										// フェーズテーブル
 
 	static const char* phase_str_table[];
 };
-
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE misc_cdb_information;
-    BYTE page_code;
-	WORD length;
-	BYTE control;
-} scsi_cdb_6_byte_t;
-
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE service_action;
-    DWORD logical_block_address;
-	BYTE misc_cdb_information;
-	WORD length;
-	BYTE control;
-} scsi_cdb_10_byte_t;
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE service_action;
-    DWORD logical_block_address;
-	DWORD length;
-	BYTE misc_cdb_information;
-	BYTE control;
-} scsi_cdb_12_byte_t;
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE service_action;
-    DWORD logical_block_address;
-	DWORD length;
-	BYTE misc_cdb_information;
-	BYTE control;
-} scsi_cdb_16_byte_t;
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE reserved;
-	BYTE page_code;
-	WORD allocation_length;
-	BYTE control;
-} scsi_cmd_inquiry_t;
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE lba_msb_bits_4_0;
-	WORD logical_block_address;
-	BYTE transfer_length;
-	BYTE control;
-} scsi_cmd_read_6_t;
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE flags;
-	DWORD logical_block_address;
-	BYTE group_number;
-	WORD transfer_length;
-	BYTE control;
-} scsi_cmd_read_10_t;
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE flags;
-	DWORD logical_block_address;
-	DWORD transfer_length;
-	BYTE group_number;
-	BYTE control;
-} scsi_cmd_read_12_t;
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE descriptor_format;
-	WORD reserved;
-	BYTE allocation_length;
-	BYTE control;
-} scsi_cmd_request_sense_t;
-
-
-#endif	// scsi_h

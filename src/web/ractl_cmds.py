@@ -1,14 +1,13 @@
 import fnmatch
 import subprocess
 import re
+import logging
 
 from settings import *
 
 
 valid_file_suffix = ["*.hda", "*.hdn", "*.hdi", "*.nhd", "*.hdf", "*.hds", "*.hdr", "*.iso", "*.cdr", "*.toast", "*.img", "*.zip"]
 valid_file_types = r"|".join([fnmatch.translate(x) for x in valid_file_suffix])
-# List of SCSI ID's you'd like to exclude - eg if you are on a Mac, the System is usually 7
-EXCLUDE_SCSI_IDS = [7]
 
 
 def is_active():
@@ -46,17 +45,18 @@ def list_config_files():
     return files_list
 
 
-def get_valid_scsi_ids(devices):
-    invalid_list = EXCLUDE_SCSI_IDS.copy()
+def get_valid_scsi_ids(devices, invalid_list):
     for device in devices:
         if device["file"] != "NO MEDIA" and device["file"] != "-":
             invalid_list.append(int(device["id"]))
 
     valid_list = list(range(8))
     for id in invalid_list:
-        valid_list.remove(id)
+        try:
+            valid_list.remove(int(id))
+        except:
+            logging.warning("Invalid SCSI id " + str(id))
     valid_list.reverse()
-
     return valid_list
 
 
@@ -79,7 +79,7 @@ def detach_by_id(scsi_id):
 
 
 def detach_all():
-    for scsi_id in range(0, 7):
+    for scsi_id in range(0, 8):
         subprocess.run(["rasctl", "-c" "detach", "-i", str(scsi_id)])
 
 
@@ -158,3 +158,7 @@ def list_devices():
                 device_list[idx]["file"] = segments[4].strip()
 
     return device_list
+
+def reserve_scsi_ids(reserved_scsi_ids):
+    scsi_ids = ",".join(list(reserved_scsi_ids))
+    return subprocess.run(["rasctl", "-r", scsi_ids])

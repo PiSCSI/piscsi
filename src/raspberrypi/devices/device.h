@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <list>
 #include <string>
 
 using namespace std;
@@ -46,6 +47,8 @@ using namespace std;
 #define STATUS_PARAMSAVE	0x00053900	// SAVING PARAMETERS NOT SUPPORTED
 #define STATUS_NODEFECT		0x00010000	// DEFECT LIST NOT FOUND
 
+class SCSIDEV;
+
 class Device
 {
 private:
@@ -56,11 +59,18 @@ private:
 	bool reset;
 	bool attn;
 
+	// Number of supported luns
+	int supported_luns;
+
 	// Device is protectable/write-protected
 	bool protectable;
 	bool write_protected;
 	// Device is permanently read-only
 	bool read_only;
+
+	// Device can be stopped (parked)/is stopped (parked)
+	bool stoppable;
+	bool stopped;
 
 	// Device is removable/removed
 	bool removable;
@@ -70,13 +80,26 @@ private:
 	bool lockable;
 	bool locked;
 
-	// Device ID and LUN
-	unsigned int id;
-	unsigned int lun;
+	// The block size is configurable
+	bool block_size_configurable;
 
+	// Device can be created with parameters
+	bool supports_params;
+
+	// Device ID and LUN
+	int32_t id;
+	int32_t lun;
+
+	// Device identifier (for INQUIRY)
 	string vendor;
 	string product;
 	string revision;
+
+	// The parameters the device was created with
+	list<string> params;
+
+	// The default parameters
+	list<string> default_params;
 
 	// Sense Key, ASC and ASCQ
 	int status_code;
@@ -85,6 +108,11 @@ public:
 
 	Device(const string&);
 	virtual ~Device() {};
+
+	// Override for device specific initializations, to be called after all device properties have been set
+	virtual bool Init(const list<string>&) { return true; };
+
+	virtual bool Dispatch(SCSIDEV *) = 0;
 
 	const string& GetType() const { return type; }
 
@@ -96,6 +124,9 @@ public:
 	bool IsAttn() const { return attn; }
 	void SetAttn(bool attn) { this->attn = attn; }
 
+	int GetSupportedLuns() const { return supported_luns; }
+	void SetSupportedLuns(int supported_luns) { this->supported_luns = supported_luns; }
+
 	bool IsProtectable() const { return protectable; }
 	void SetProtectable(bool protectable) { this->protectable = protectable; }
 	bool IsProtected() const { return write_protected; }
@@ -103,6 +134,10 @@ public:
 	bool IsReadOnly() const { return read_only; }
 	void SetReadOnly(bool read_only) { this->read_only = read_only; }
 
+	bool IsStoppable() const { return stoppable; }
+	void SetStoppable(bool stoppable) { this->stoppable = stoppable; }
+	bool IsStopped() const { return stopped; }
+	void SetStopped(bool stopped) { this->stopped = stopped; }
 	bool IsRemovable() const { return removable; }
 	void SetRemovable(bool removable) { this->removable = removable; }
 	bool IsRemoved() const { return removed; }
@@ -113,23 +148,35 @@ public:
 	bool IsLocked() const { return locked; }
 	void SetLocked(bool locked) { this->locked = locked; }
 
-	unsigned int GetId() const { return id; }
-	void SetId(unsigned int id) { this->id = id; }
-	unsigned int GetLun() const { return lun; }
-	void SetLun(unsigned int lun) { this->lun = lun; }
+	int32_t GetId() const { return id; }
+	void SetId(int32_t id) { this->id = id; }
+	int32_t GetLun() const { return lun; }
+	void SetLun(int32_t lun) { this->lun = lun; }
 
+	const string GetVendor() const { return vendor; }
 	void SetVendor(const string&);
+	const string GetProduct() const { return product; }
 	void SetProduct(const string&, bool = true);
+	const string GetRevision() const { return revision; }
 	void SetRevision(const string&);
 	const string GetPaddedName() const;
+
+	bool SupportsParams() const { return supports_params; }
+	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
+	const list<string> GetParams() const { return params; }
+	void SetParams(const list<string>& params) { this->params = params; }
+	const list<string> GetDefaultParams() const { return default_params; }
+	void SetDefaultParams(const list<string>& default_params) { this->default_params = default_params; }
 
 	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int status_code);
 
+	bool Start();
+	void Stop();
 	virtual bool Eject(bool);
 
-	bool IsSASI() const { return type == "SAHD"; }
-	bool IsSCSI() const { return type == "SCHD" || type == "SCRM"; }
+	bool IsSASIHD() const { return type == "SAHD"; }
+	bool IsSCSIHD() const { return type == "SCHD" || type == "SCRM"; }
 	bool IsCdRom() const { return type == "SCCD"; }
 	bool IsMo() const { return type == "SCMO"; }
 	bool IsBridge() const { return type == "SCBR"; }

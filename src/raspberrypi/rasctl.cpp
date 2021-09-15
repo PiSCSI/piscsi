@@ -20,18 +20,16 @@
 #include <iostream>
 #include <list>
 
+// Separator for the INQUIRY name components
+#define COMPONENT_SEPARATOR ':'
+
 using namespace std;
 using namespace rascsi_interface;
 
-//---------------------------------------------------------------------------
-//
-//	Send Command
-//
-//---------------------------------------------------------------------------
-int SendCommand(const string& hostname, int port, const PbCommand& command)
+void SendCommand(const string& hostname, int port, const PbCommand& command, PbResult& result)
 {
+	// Send command
 	int fd = -1;
-
 	try {
     	struct hostent *host = gethostbyname(hostname.c_str());
     	if (!host) {
@@ -68,36 +66,89 @@ int SendCommand(const string& hostname, int port, const PbCommand& command)
         exit(fd < 0 ? ENOTCONN : EXIT_FAILURE);
     }
 
-    return fd;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Receive command result
-//
-//---------------------------------------------------------------------------
-bool ReceiveResult(int fd)
-{
+    // Receive result
     try {
-        PbResult result;
         DeserializeMessage(fd, result);
-        close(fd);
 
     	if (!result.status()) {
     		throw io_exception(result.msg());
     	}
-
-    	if (!result.msg().empty()) {
-    		cout << result.msg() << endl;
-    	}
     }
     catch(const io_exception& e) {
+    	close(fd);
+
     	cerr << "Error: " << e.getmsg() << endl;
 
-    	return false;
+    	exit(EXIT_FAILURE);
     }
 
-    return true;
+    close(fd);
+
+	if (!result.msg().empty()) {
+		cout << result.msg() << endl;
+	}
+}
+
+void DisplayDeviceInfo(const PbDevice& pb_device)
+{
+	cout << "  " << pb_device.id() << ":" << pb_device.unit() << "  " << PbDeviceType_Name(pb_device.type())
+			<< "  " << pb_device.vendor() << ":" << pb_device.product() << ":" << pb_device.revision();
+
+	if (pb_device.block_size()) {
+		cout << "  " << pb_device.block_size() << " bytes per sector";
+		if (pb_device.block_count()) {
+			cout << "  " << pb_device.block_size() * pb_device.block_count() << " bytes capacity";
+		}
+	}
+
+	if (pb_device.properties().supports_file() && !pb_device.file().name().empty()) {
+		cout << "  " << pb_device.file().name();
+	}
+
+	cout << "  ";
+	bool hasProperty = false;
+	if (pb_device.properties().read_only()) {
+		cout << "read-only";
+		hasProperty = true;
+	}
+	if (pb_device.properties().protectable() && pb_device.status().protected_()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "protected";
+		hasProperty = true;
+	}
+	if (pb_device.properties().stoppable() && pb_device.status().stopped()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "stopped";
+		hasProperty = true;
+	}
+	if (pb_device.properties().removable() && pb_device.status().removed()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "removed";
+		hasProperty = true;
+	}
+	if (pb_device.properties().lockable() && pb_device.status().locked()) {
+		if (hasProperty) {
+			cout << ", ";
+		}
+		cout << "locked";
+	}
+	if (hasProperty) {
+		cout << "  ";
+	}
+
+	if (pb_device.params_size()) {
+		for (const string param : pb_device.params()) {
+			cout << param << "  ";
+		}
+	}
+
+	cout << endl;
 }
 
 //---------------------------------------------------------------------------
@@ -106,101 +157,239 @@ bool ReceiveResult(int fd)
 //
 //---------------------------------------------------------------------------
 
+const PbServerInfo GetServerInfo(const string& hostname, int port)
+{
+	PbCommand command;
+	command.set_operation(SERVER_INFO);
+
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	return result.server_info();
+}
+
 void CommandList(const string& hostname, int port)
 {
 	PbCommand command;
-	command.set_cmd(SERVER_INFO);
+	command.set_operation(DEVICE_INFO);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 
-	PbServerInfo serverInfo;
-	try {
-		DeserializeMessage(fd, serverInfo);
-	}
-	catch(const io_exception& e) {
-		cerr << "Error: " << e.getmsg() << endl;
-
-		close(fd);
-
-		exit(EXIT_FAILURE);
-	}
-
-	close(fd);
-
-	cout << ListDevices(serverInfo.devices()) << endl;
+	const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
+	cout << ListDevices(devices) << endl;
 }
 
 void CommandLogLevel(const string& hostname, int port, const string& log_level)
 {
 	PbCommand command;
-	command.set_cmd(LOG_LEVEL);
-	command.set_params(log_level);
+	command.set_operation(LOG_LEVEL);
+	command.add_params(log_level);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-	ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+}
+
+void CommandReserve(const string&hostname, int port, const string& reserved_ids)
+{
+	PbCommand command;
+	command.set_operation(RESERVE);
+
+	stringstream ss(reserved_ids);
+    string reserved_id;
+
+    while (getline(ss, reserved_id, ',')) {
+		command.add_params(reserved_id);
+	}
+
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
 }
 
 void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
 {
 	PbCommand command;
-	command.set_cmd(DEFAULT_FOLDER);
-	command.set_params(folder);
+	command.set_operation(DEFAULT_FOLDER);
+	command.add_params(folder);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
-	ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+}
+
+void CommandDeviceInfo(const string& hostname, int port, const PbCommand& command)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	for (const auto& pb_device : result.device_info().devices()) {
+		DisplayDeviceInfo(pb_device);
+	}
 }
 
 void CommandServerInfo(const string& hostname, int port)
 {
 	PbCommand command;
-	command.set_cmd(SERVER_INFO);
+	command.set_operation(SERVER_INFO);
 
-	int fd = SendCommand(hostname.c_str(), port, command);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
 
-	PbServerInfo serverInfo;
-	try {
-		DeserializeMessage(fd, serverInfo);
+	PbServerInfo server_info = result.server_info();
+
+	cout << "rascsi server version: " << server_info.major_version() << "." << server_info.minor_version();
+	if (server_info.patch_version() > 0) {
+		cout << "." << server_info.patch_version();
 	}
-	catch(const io_exception& e) {
-		cerr << "Error: " << e.getmsg() << endl;
-
-		close(fd);
-
-		exit(EXIT_FAILURE);
+	else if (server_info.patch_version() < 0) {
+		cout << " (development version)";
 	}
+	cout << endl;
 
-	close(fd);
-
-	cout << "rascsi server version: " << serverInfo.rascsi_version() << endl;
-
-	if (!serverInfo.available_log_levels_size()) {
+	if (!server_info.log_levels_size()) {
 		cout << "  No log level settings available" << endl;
 	}
 	else {
-		cout << "Available rascsi log levels, sorted by severity:" << endl;
-		for (int i = 0; i < serverInfo.available_log_levels_size(); i++) {
-			cout << "  " << serverInfo.available_log_levels(i) << endl;
+		cout << "rascsi log levels, sorted by severity:" << endl;
+		for (int i = 0; i < server_info.log_levels_size(); i++) {
+			cout << "  " << server_info.log_levels(i) << endl;
 		}
 
-		cout << "Current rascsi log level: " << serverInfo.current_log_level() << endl;
+		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
 	}
 
-	cout << "Default image file folder: " << serverInfo.default_image_folder() << endl;
-	if (!serverInfo.available_image_files_size()) {
-		cout << "  No image files available in the default folder" << endl;
+	cout << "Default image file folder: " << server_info.default_image_folder() << endl;
+	if (!server_info.image_files_size()) {
+		cout << "  No image files available" << endl;
 	}
 	else {
-		list<string> sorted_files;
-		for (int i = 0; i < serverInfo.available_image_files_size(); i++) {
-			sorted_files.push_back(serverInfo.available_image_files(i).name());
-		}
-		sorted_files.sort();
+		list<PbImageFile> files = { server_info.image_files().begin(), server_info.image_files().end() };
+		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
 
-		cout << "Image files available in the default folder:" << endl;
-		for (auto it = sorted_files.begin(); it != sorted_files.end(); ++it) {
-			cout << "  " << *it << endl;
+		cout << "Available image files:" << endl;
+		for (const auto& file : files) {
+			cout << "  " << file.name() << " (" << file.size() << " bytes)";
+			if (file.read_only()) {
+				cout << ", read-only";
+			}
+			cout << endl;
+		}
+	}
+
+	cout << "Supported device types and their properties:" << endl;
+	for (auto it = server_info.types_properties().begin(); it != server_info.types_properties().end(); ++it) {
+		cout << "  " << PbDeviceType_Name(it->type());
+
+		const PbDeviceProperties& properties = it->properties();
+
+		cout << "  Supported LUNs: " << properties.luns() << endl;
+
+		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.read_only()
+				|| properties.lockable()) {
+			cout << "        Properties: ";
+			bool has_property = false;
+			if (properties.read_only()) {
+				cout << "read-only";
+				has_property = true;
+			}
+			if (properties.protectable()) {
+				cout << (has_property ? ", " : "") << "protectable";
+				has_property = true;
+			}
+			if (properties.stoppable()) {
+				cout << (has_property ? ", " : "") << "stoppable";
+				has_property = true;
+			}
+			if (properties.removable()) {
+				cout << (has_property ? ", " : "") << "removable";
+				has_property = true;
+			}
+			if (properties.lockable()) {
+				cout << (has_property ? ", " : "") << "lockable";
+			}
+			cout << endl;
+		}
+
+		if (properties.supports_file()) {
+			cout << "        Image file support" << endl;
+		}
+		else if (properties.supports_params()) {
+			cout << "        Parameter support" << endl;
+		}
+
+		if (properties.supports_params() && properties.default_params_size()) {
+			list<string> params = { properties.default_params().begin(), properties.default_params().end() };
+			params.sort([](const auto& a, const auto& b) { return a < b; });
+
+			cout << "        Default parameters: ";
+
+			bool isFirst = true;
+			for (const auto& param : params) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				cout << param;
+
+				isFirst = false;
+			}
+			cout << endl;
+		}
+
+		if (properties.block_sizes_size()) {
+			list<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
+			block_sizes.sort([](const auto& a, const auto& b) { return a < b; });
+
+			cout << "        Configurable block sizes in bytes: ";
+
+			bool isFirst = true;
+			for (const auto& block_size : block_sizes) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				cout << block_size;
+
+				isFirst = false;
+			}
+			cout << endl;
+		}
+
+		if (properties.capacities_size()) {
+			list<uint64_t> capacities = { properties.capacities().begin(), properties.capacities().end() };
+			capacities.sort([](const auto& a, const auto& b) { return a < b; });
+
+			cout << "        Media capacities in bytes: ";
+
+			bool isFirst = true;
+			for (const auto& capacity : capacities) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				cout << capacity;
+
+				isFirst = false;
+			}
+			cout << endl;
+		}
+	}
+
+	if (server_info.reserved_ids_size()) {
+		cout << "Reserved device IDs: ";
+		for (int i = 0; i < server_info.reserved_ids_size(); i++) {
+			if(i) {
+				cout << ", ";
+			}
+			cout << server_info.reserved_ids(i);
+		}
+		cout <<endl;
+	}
+
+	if (server_info.devices_size()) {
+		list<PbDevice> sorted_devices = { server_info.devices().begin(), server_info.devices().end() };
+		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
+
+		cout << "Attached devices:" << endl;
+
+		for (const auto& device : sorted_devices) {
+			DisplayDeviceInfo(device);
 		}
 	}
 }
@@ -226,6 +415,9 @@ PbOperation ParseOperation(const char *optarg)
 		case 'u':
 			return UNPROTECT;
 
+		case 's':
+			return DEVICE_INFO;
+
 		default:
 			return NONE;
 	}
@@ -241,16 +433,25 @@ PbDeviceType ParseType(const char *optarg)
 		return type;
 	}
 	else {
-		// Parse legacy types
+		// Parse convenience types (shortcuts)
 		switch (tolower(optarg[0])) {
-			case 'm':
-				return SCMO;
-
 			case 'c':
 				return SCCD;
 
 			case 'b':
 				return SCBR;
+
+			case 'd':
+				return SCDP;
+
+			case 'h':
+				return SCHD;
+
+			case 'm':
+				return SCMO;
+
+			case 'r':
+				return SCRM;
 		}
 	}
 
@@ -270,16 +471,19 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-n NAME] [-f FILE] [-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-v]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE] ";
+		cerr << "[-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] [-l] [-v]" << endl;
 		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
-		cerr << "        UNIT := {0|1} default setting is 0." << endl;
-		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect}" << endl;
-		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or legacy types {hd|mo|cd|bridge}" << endl;
+		cerr << "        UNIT := {0|1}, default setting is 0." << endl;
+		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
+		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}" << endl;
+		cerr << "        BLOCK_SIZE := {256|512|1024|2048|4096) bytes per hard disk drive block" << endl;
 		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
 		cerr << "        FILE := image file path" << endl;
 		cerr << "        DEFAULT_IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
 		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
+		cerr << "        RESERVED_IDS := comma-separated list of IDs to reserve" << endl;
 		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
@@ -290,19 +494,19 @@ int main(int argc, char* argv[])
 
 	// Parse the arguments
 	PbCommand command;
-	PbDeviceDefinitions devices;
-	command.set_allocated_devices(&devices);
-	PbDeviceDefinition *device = devices.add_devices();
+	list<PbDeviceDefinition> devices;
+	PbDeviceDefinition* device = command.add_devices();
 	device->set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
 	string log_level;
 	string default_folder;
+	string reserved_ids;
 	bool list = false;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "i:u:c:t:f:d:h:n:p:u:g:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "b:c:d:f:g:h:i:n:p:r:t:u:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -312,21 +516,43 @@ int main(int argc, char* argv[])
 				device->set_unit(optarg[0] - '0');
 				break;
 
+			case 'b':
+				int block_size;
+				if (!GetAsInt(optarg, block_size)) {
+					cerr << "Error: Invalid block size " << optarg << endl;
+					exit(EXIT_FAILURE);
+				}
+				device->set_block_size(block_size);
+				break;
+
 			case 'c':
-				command.set_cmd(ParseOperation(optarg));
+				command.set_operation(ParseOperation(optarg));
+				if (command.operation() == NONE) {
+					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
+					exit(EXIT_FAILURE);
+				}
+				break;
+
+			case 'd':
+				command.set_operation(DEFAULT_FOLDER);
+				default_folder = optarg;
+				break;
+
+			case 'f':
+				device->add_params(optarg);
 				break;
 
 			case 't':
 				device->set_type(ParseType(optarg));
+				if (device->type() == UNDEFINED) {
+					cerr << "Error: Unknown device type '" << optarg << "'" << endl;
+					exit(EXIT_FAILURE);
+				}
 				break;
 
-			case 'f':
-				device->set_file(optarg);
-				break;
-
-			case 'd':
-				command.set_cmd(DEFAULT_FOLDER);
-				default_folder = optarg;
+			case 'g':
+				command.set_operation(LOG_LEVEL);
+				log_level = optarg;
 				break;
 
 			case 'h':
@@ -337,25 +563,49 @@ int main(int argc, char* argv[])
 				list = true;
 				break;
 
-			case 'n':
-				device->set_name(optarg);
+			case 'n': {
+					string vendor;
+					string product;
+					string revision;
+
+					string s = optarg;
+					size_t separatorPos = s.find(COMPONENT_SEPARATOR);
+					if (separatorPos != string::npos) {
+						vendor = s.substr(0, separatorPos);
+						s = s.substr(separatorPos + 1);
+						separatorPos = s.find(COMPONENT_SEPARATOR);
+						if (separatorPos != string::npos) {
+							product = s.substr(0, separatorPos);
+							revision = s.substr(separatorPos + 1);
+						}
+						else {
+							product = s;
+						}
+					}
+					else {
+						vendor = s;
+					}
+
+					device->set_vendor(vendor);
+					device->set_product(product);
+					device->set_revision(revision);
+				}
 				break;
 
 			case 'p':
-				port = atoi(optarg);
-				if (port <= 0 || port > 65535) {
-					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
+					cerr << "Error: Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
 					exit(EXIT_FAILURE);
 				}
 				break;
 
-			case 'g':
-				command.set_cmd(LOG_LEVEL);
-				log_level = optarg;
+			case 'r':
+				command.set_operation(RESERVE);
+				reserved_ids = optarg;
 				break;
 
 			case 's':
-				command.set_cmd(SERVER_INFO);
+				command.set_operation(SERVER_INFO);
 				break;
 
 			case 'v':
@@ -369,19 +619,29 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	if (command.cmd() == LOG_LEVEL) {
-		CommandLogLevel(hostname, port, log_level);
-		exit(EXIT_SUCCESS);
-	}
+	switch(command.operation()) {
+		case LOG_LEVEL:
+			CommandLogLevel(hostname, port, log_level);
+			exit(EXIT_SUCCESS);
 
-	if (command.cmd() == DEFAULT_FOLDER) {
-		CommandDefaultImageFolder(hostname, port, default_folder);
-		exit(EXIT_SUCCESS);
-	}
+		case DEFAULT_FOLDER:
+			CommandDefaultImageFolder(hostname, port, default_folder);
+			exit(EXIT_SUCCESS);
 
-	if (command.cmd() == SERVER_INFO) {
-		CommandServerInfo(hostname, port);
-		exit(EXIT_SUCCESS);
+		case RESERVE:
+			CommandReserve(hostname, port, reserved_ids);
+			exit(EXIT_SUCCESS);
+
+		case DEVICE_INFO:
+			CommandDeviceInfo(hostname, port, command);
+			exit(EXIT_SUCCESS);
+
+		case SERVER_INFO:
+			CommandServerInfo(hostname, port);
+			exit(EXIT_SUCCESS);
+
+		default:
+			break;
 	}
 
 	if (list) {
@@ -389,11 +649,8 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	// Send the command
-	int fd = SendCommand(hostname, port, command);
-	bool status = ReceiveResult(fd);
-	close(fd);
+	PbResult result;
+	SendCommand(hostname, port, command, result);
 
-	// All done!
-	exit(status ? EXIT_SUCCESS : EXIT_FAILURE);
+	exit(EXIT_SUCCESS);
 }

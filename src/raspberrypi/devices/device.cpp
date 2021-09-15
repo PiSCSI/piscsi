@@ -29,13 +29,18 @@ Device::Device(const string& type)
 	ready = false;
 	reset = false;
 	attn = false;
+	supported_luns = 1;
 	protectable = false;
 	write_protected = false;
 	read_only = false;
+	stoppable = false;
+	stopped = false;
 	removable = false;
 	removed = false;
 	lockable = false;
 	locked = false;
+	block_size_configurable = false;
+	supports_params = false;
 
 	id = 0;
 	lun = 0;
@@ -60,9 +65,7 @@ void Device::SetProtected(bool write_protected)
 void Device::SetVendor(const string& vendor)
 {
 	if (vendor.empty() || vendor.length() > 8) {
-		ostringstream error;
-		error << "Vendor '" << vendor << "' must be between 1 and 8 characters";
-		throw illegal_argument_exception(error.str());
+		throw illegal_argument_exception("Vendor '" + vendor + "' must be between 1 and 8 characters");
 	}
 
 	this->vendor = vendor;
@@ -76,9 +79,7 @@ void Device::SetProduct(const string& product, bool force)
 	}
 
 	if (product.empty() || product.length() > 16) {
-		ostringstream error;
-		error << "Product '" << product << "' must be between 1 and 16 characters";
-		throw illegal_argument_exception(error.str());
+		throw illegal_argument_exception("Product '" + product + "' must be between 1 and 16 characters");
 	}
 
 	this->product = product;
@@ -87,9 +88,7 @@ void Device::SetProduct(const string& product, bool force)
 void Device::SetRevision(const string& revision)
 {
 	if (revision.empty() || revision.length() > 4) {
-		ostringstream error;
-		error << "Revision '" << revision << "' must be between 1 and 4 characters";
-		throw illegal_argument_exception(error.str());
+		throw illegal_argument_exception("Revision '" + revision + "' must be between 1 and 4 characters");
 	}
 
 	this->revision = revision;
@@ -111,14 +110,31 @@ const string Device::GetPaddedName() const
 
 void Device::SetStatusCode(int status_code)
 {
-    LOGTRACE("Setting status: Sense Key: $%02X, ASC: $%02X, ASCQ: $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff);
+	if (status_code) {
+		LOGDEBUG("Error status: Sense Key $%02X, ASC $%02X, ASCQ $%02X", status_code >> 16, (status_code >> 8 &0xff), status_code & 0xff);
+	}
 
 	this->status_code = status_code;
 }
 
-// TODO This implementation appears to be wrong: If a device is locked there
-// is no way to eject the medium without unlocking. In other words, there is
-// no "force" mode.
+bool Device::Start()
+{
+	if (!ready) {
+		return false;
+	}
+
+	stopped = false;
+
+	return true;
+}
+
+void Device::Stop()
+{
+	ready = false;
+	attn = false;
+	stopped = true;
+}
+
 bool Device::Eject(bool force)
 {
 	if (!ready || !removable) {
@@ -135,6 +151,7 @@ bool Device::Eject(bool force)
 	removed = true;
 	write_protected = false;
 	locked = false;
+	stopped = true;
 
 	return true;
 }

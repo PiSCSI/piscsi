@@ -19,29 +19,27 @@
 
 //===========================================================================
 //
-//	SCSI hard disk (PC-9801-55 NEC genuine /Anex86/T98Next)
+//	SCSI hard disk (PC-9801-55 NEC genuine / Anex86 / T98Next)
 //
 //===========================================================================
 class SCSIHD_NEC : public SCSIHD
 {
 public:
-	// Basic Functions
-	SCSIHD_NEC();							// Constructor
-	void Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	SCSIHD_NEC();
+	~SCSIHD_NEC() {};
 
-	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
+	void Open(const Filepath& path) override;
 
-	// Internal processing
-	int AddError(bool change, BYTE *buf) override;		// Add error
-	int AddFormat(bool change, BYTE *buf) override;		// Add format
-	int AddDrive(bool change, BYTE *buf) override;		// Add drive
+	// Commands
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;
+
+	int AddErrorPage(bool change, BYTE *buf) override;
+	int AddFormatPage(bool change, BYTE *buf) override;
+	int AddDrivePage(bool change, BYTE *buf) override;
 
 private:
-	int cylinders;								// Number of cylinders
-	int heads;								// Number of heads
-	int sectors;								// Number of sectors
-	int sectorsize;								// Sector size
-	off_t imgoffset;							// Image offset
-	off_t imgsize;							// Image size
+	// Geometry data
+	int cylinders;
+	int heads;
+	int sectors;
 };

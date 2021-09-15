@@ -4,7 +4,7 @@
 //	for Raspberry Pi
 //
 //	Copyright (C) 2020 akuker
-//	[ Define the version string]
+//	[ Define the version string ]
 //
 //---------------------------------------------------------------------------
 

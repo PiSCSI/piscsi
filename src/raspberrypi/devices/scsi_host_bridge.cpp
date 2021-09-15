@@ -17,58 +17,33 @@
 //---------------------------------------------------------------------------
 
 #include "scsi_host_bridge.h"
-#include "xm6.h"
+
+#include "../rascsi.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
+#include <sstream>
 
-//===========================================================================
-//
-//	SCSI Host Bridge
-//
-//===========================================================================
+using namespace std;
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
-	SetRemovable(false);
-
-	SetProduct("RASCSI BRIDGE");
+	tap = NULL;
+	m_bTapEnable = false;
 
 	fsoptlen = 0;
 	fsoutlen = 0;
 	fsresult = 0;
 	packet_len = 0;
 
-#ifdef __linux__
-	// TAP Driver Generation
-	tap = new CTapDriver();
-	m_bTapEnable = tap->Init();
-
-	// Generate MAC Address
-	memset(mac_addr, 0x00, 6);
-	if (m_bTapEnable) {
-		tap->GetMacAddr(mac_addr);
-		mac_addr[5]++;
-	}
-
-	// Packet reception flag OFF
-	packet_enable = FALSE;
-#endif
-
 	// Create host file system
 	fs = new CFileSys();
 	fs->Reset();
+
+	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	AddCommand(SCSIDEV::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	AddCommand(SCSIDEV::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 SCSIBR::~SCSIBR()
 {
 	// TAP driver release
@@ -82,6 +57,66 @@ SCSIBR::~SCSIBR()
 		fs->Reset();
 		delete fs;
 	}
+
+	for (auto const& command : commands) {
+		delete command.second;
+	}
+}
+
+bool SCSIBR::Init(const list<string>& params)
+{
+	// Use default parameters if no parameters were provided
+	SetParams(params.empty() ? GetDefaultParams() : params);
+
+#ifdef __linux__
+	// TAP Driver Generation
+	tap = new CTapDriver(GetParams().front());
+	m_bTapEnable = tap->Init();
+
+	// Generate MAC Address
+	memset(mac_addr, 0x00, 6);
+	if (m_bTapEnable) {
+		tap->GetMacAddr(mac_addr);
+		mac_addr[5]++;
+	}
+
+	// Packet reception flag OFF
+	packet_enable = false;
+#endif
+
+	SetReady(m_bTapEnable);
+
+	// Not terminating on regular Linux PCs is helpful for testing
+#if defined(__x86_64__) || defined(__X86__)
+	return true;
+#else
+	return m_bTapEnable;
+#endif
+}
+
+void SCSIBR::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
+{
+	commands[opcode] = new command_t(name, execute);
+}
+
+bool SCSIBR::Dispatch(SCSIDEV *controller)
+{
+	ctrl = controller->GetCtrl();
+
+	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
+	}
+
+	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
+	// The base class handles the less specific commands
+	return Disk::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -108,12 +143,6 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
 	buf[0] = 0x09;
-
-	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != GetLun()) {
-		buf[0] = 0x7f;
-	}
-
 	buf[2] = 0x02;
 	buf[3] = 0x02;
 	buf[4] = 36 - 5 + 8;	// required + 8 byte extension
@@ -141,7 +170,6 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 	}
 
 	//  Success
-	SetStatusCode(STATUS_NOERROR);
 	return size;
 }
 
@@ -150,12 +178,11 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 //	TEST UNIT READY
 //
 //---------------------------------------------------------------------------
-bool SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
+void SCSIBR::TestUnitReady(SASIDEV *controller)
 {
 	// TEST UNIT READY Success
-	SetStatusCode(STATUS_NOERROR);
-	return true;
-}
+
+	controller->Status();}
 
 //---------------------------------------------------------------------------
 //
@@ -164,15 +191,11 @@ bool SCSIBR::TestUnitReady(const DWORD* /*cdb*/)
 //---------------------------------------------------------------------------
 int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 {
-	int func;
-	int total_len;
-	int i;
-
 	// Type
 	int type = cdb[2];
 
 	// Function number
-	func = cdb[3];
+	int func = cdb[3];
 
 	// Phase
 	int phase = cdb[9];
@@ -211,8 +234,8 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 				case 3:		// Simultaneous acquisition of multiple packets (size + buffer simultaneously)
 					// Currently the maximum number of packets is 10
 					// Isn't it too fast if I increase more?
-					total_len = 0;
-					for (i = 0; i < 10; i++) {
+					int total_len = 0;
+					for (int i = 0; i < 10; i++) {
 						ReceivePacket();
 						*buf++ = (BYTE)(packet_len >> 8);
 						*buf++ = (BYTE)packet_len;
@@ -242,7 +265,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Error
-	ASSERT(FALSE);
+	ASSERT(false);
 	return 0;
 }
 
@@ -251,7 +274,7 @@ int SCSIBR::GetMessage10(const DWORD *cdb, BYTE *buf)
 //	SEND MESSAGE(10)
 //
 //---------------------------------------------------------------------------
-BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
+bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
@@ -276,17 +299,17 @@ BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 		case 1:		// Ethernet
 			// Do not process if TAP is invalid
 			if (!m_bTapEnable) {
-				return FALSE;
+				return false;
 			}
 
 			switch (func) {
 				case 0:		// MAC address setting
 					SetMacAddr(buf);
-					return TRUE;
+					return true;
 
 				case 1:		// Send packet
 					SendPacket(buf, len);
-					return TRUE;
+					return true;
 			}
 			break;
 
@@ -294,18 +317,82 @@ BOOL SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 			switch (phase) {
 				case 0:		// issue command
 					WriteFs(func, buf);
-					return TRUE;
+					return true;
 
 				case 1:		// additional data writing
 					WriteFsOpt(buf, len);
-					return TRUE;
+					return true;
 			}
 			break;
 	}
 
 	// Error
-	ASSERT(FALSE);
-	return FALSE;
+	ASSERT(false);
+	return false;
+}
+
+//---------------------------------------------------------------------------
+//
+//	GET MESSAGE(10)
+//
+//---------------------------------------------------------------------------
+void SCSIBR::GetMessage10(SASIDEV *controller)
+{
+	// Reallocate buffer (because it is not transfer for each block)
+	if (ctrl->bufsize < 0x1000000) {
+		free(ctrl->buffer);
+		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+	}
+
+	ctrl->length = GetMessage10(ctrl->cmd, ctrl->buffer);
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	controller->DataIn();
+}
+
+//---------------------------------------------------------------------------
+//
+//	SEND MESSAGE(10)
+//
+//  This Send Message command is used by the X68000 host driver
+//
+//---------------------------------------------------------------------------
+void SCSIBR::SendMessage10(SASIDEV *controller)
+{
+	// Reallocate buffer (because it is not transfer for each block)
+	if (ctrl->bufsize < 0x1000000) {
+		free(ctrl->buffer);
+		ctrl->bufsize = 0x1000000;
+		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+	}
+
+	// Set transfer amount
+	ctrl->length = ctrl->cmd[6];
+	ctrl->length <<= 8;
+	ctrl->length |= ctrl->cmd[7];
+	ctrl->length <<= 8;
+	ctrl->length |= ctrl->cmd[8];
+
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
+
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	controller->DataOut();
 }
 
 //---------------------------------------------------------------------------
@@ -368,7 +455,7 @@ void SCSIBR::ReceivePacket()
 
 	// Store in receive buffer
 	if (packet_len > 0) {
-		packet_enable = TRUE;
+		packet_enable = true;
 	}
 }
 
@@ -392,7 +479,7 @@ void SCSIBR::GetPacketBuf(BYTE *buf)
 	memcpy(buf, packet_buf, len);
 
 	// Received
-	packet_enable = FALSE;
+	packet_enable = false;
 }
 
 //---------------------------------------------------------------------------
@@ -1248,7 +1335,6 @@ void SCSIBR::WriteFs(int func, BYTE *buf)
 	fsoutlen = 0;
 	fsoptlen = 0;
 
-	// コマンド分岐
 	func &= 0x1f;
 	switch (func) {
 		case 0x00: return FS_InitDevice(buf);	// $40 - start device

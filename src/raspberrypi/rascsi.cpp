@@ -9,8 +9,9 @@
 //
 //---------------------------------------------------------------------------
 
+#include "rascsi.h"
+
 #include "os.h"
-#include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
 #include "controllers/scsidev_ctrl.h"
@@ -18,6 +19,8 @@
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
+#include "devices/scsi_host_bridge.h"
+#include "devices/scsi_daynaport.h"
 #include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
@@ -31,6 +34,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <list>
 #include <vector>
 #include <filesystem>
 
@@ -61,10 +65,11 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-vector<string> available_log_levels;
+vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
-set<string> files_in_use;
+set<int> reserved_ids;
+DeviceFactory& device_factory = DeviceFactory::instance();
 
 //---------------------------------------------------------------------------
 //
@@ -110,7 +115,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
 		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
 		FPRT(stdout,"  hda : SCSI HD image (APPLE GENUINE)\n");
-		FPRT(stdout,"  mos : SCSI MO image (XM6 SCSI MO image)\n");
+		FPRT(stdout,"  mos : SCSI MO image (MO image)\n");
 		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
 
 		exit(EXIT_SUCCESS);
@@ -128,7 +133,7 @@ bool InitService(int port)
 	int result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if (result != EXIT_SUCCESS){
 		LOGERROR("Unable to create a mutex. Err code: %d", result);
-		return FALSE;
+		return false;
 	}
 
 	// Create socket for monitor
@@ -142,7 +147,7 @@ bool InitService(int port)
 	// allow address reuse
 	int yes = 1;
 	if (setsockopt(monsocket, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) < 0) {
-		return FALSE;
+		return false;
 	}
 
 	signal(SIGPIPE, SIG_IGN);
@@ -151,7 +156,7 @@ bool InitService(int port)
 	if (bind(monsocket, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
 		FPRT(stderr, "Error : Already running?\n");
-		return FALSE;
+		return false;
 	}
 
 	// Create Monitor Thread
@@ -159,13 +164,13 @@ bool InitService(int port)
 
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGHUP, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 	if (signal(SIGTERM, KillHandler) == SIG_ERR) {
-		return FALSE;
+		return false;
 	}
 
 	running = false;
@@ -237,9 +242,9 @@ void Cleanup()
 void Reset()
 {
 	// Reset all of the controllers
-	for (auto it = controllers.begin(); it != controllers.end(); ++it) {
-		if (*it) {
-			(*it)->Reset();
+	for (const auto& controller : controllers) {
+		if (controller) {
+			controller->Reset();
 		}
 	}
 
@@ -247,66 +252,19 @@ void Reset()
 	bus->Reset();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get the list of attached devices
-//
-//---------------------------------------------------------------------------
-
 void GetImageFile(PbImageFile *image_file, const string& filename)
 {
 	image_file->set_name(filename);
 	if (!filename.empty()) {
-		image_file->set_read_only(access(filename.c_str(), W_OK));
+		string f = filename[0] == '/' ? filename : default_image_folder + "/" + filename;
+
+		image_file->set_read_only(access(f.c_str(), W_OK));
 
 		struct stat st;
-		stat(image_file->name().c_str(), &st);
-		image_file->set_size(st.st_size);
-	}
-}
-
-const PbDevices GetDevices()
-{
-	PbDevices pbDevices;
-
-	for (size_t i = 0; i < devices.size(); i++) {
-		// skip if unit does not exist or null disk
-		Device *device = devices[i];
-		if (!device) {
-			continue;
-		}
-
-		PbDevice *pbDevice = pbDevices.add_devices();
-
-		// Initialize ID and unit number
-		pbDevice->set_id(i / UnitNum);
-		pbDevice->set_unit(i % UnitNum);
-
-		// ID,UNIT,Type,Device Status
-		PbDeviceType type = UNDEFINED;
-		PbDeviceType_Parse(device->GetType(), &type);
-		pbDevice->set_type(type);
-
-		pbDevice->set_read_only(device->IsReadOnly());
-		pbDevice->set_protectable(device->IsProtectable());
-		pbDevice->set_protected_(device->IsProtectable() && device->IsProtected());
-		pbDevice->set_removable(device->IsRemovable());
-		pbDevice->set_removed(device->IsRemoved());
-		pbDevice->set_lockable(device->IsLockable());
-		pbDevice->set_locked(device->IsLocked());
-
-		const FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
-		if (fileSupport) {
-			Filepath filepath;
-			fileSupport->GetPath(filepath);
-			PbImageFile *image_file = new PbImageFile();
-			GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
-			pbDevice->set_allocated_file(image_file);
-			pbDevice->set_supports_file(true);
+		if (!stat(f.c_str(), &st)) {
+			image_file->set_size(st.st_size);
 		}
 	}
-
-	return pbDevices;
 }
 
 //---------------------------------------------------------------------------
@@ -355,7 +313,7 @@ bool MapController(Device **map)
 			int unitno = i * UnitNum + j;
 			// branch by unit type
 			if (devices[unitno]) {
-				if (devices[unitno]->IsSASI()) {
+				if (devices[unitno]->IsSASIHD()) {
 					// Drive is SASI, so increment SASI count
 					sasi_num++;
 				} else {
@@ -371,7 +329,7 @@ bool MapController(Device **map)
 		}
 
 		// If there are no units connected
-		if (sasi_num == 0 && scsi_num == 0) {
+		if (!sasi_num && !scsi_num) {
 			if (*it) {
 				delete *it;
 				*it = NULL;
@@ -432,7 +390,7 @@ bool MapController(Device **map)
 bool ReturnStatus(int fd, bool status = true, const string msg = "")
 {
 	if (!status && !msg.empty()) {
-		LOGWARN("%s", msg.c_str());
+		LOGERROR("%s", msg.c_str());
 	}
 
 	if (fd == -1) {
@@ -505,23 +463,183 @@ void LogDevices(const string& devices)
 	}
 }
 
-void GetAvailableLogLevels(PbServerInfo& serverInfo)
+void GetLogLevels(PbServerInfo& server_info)
 {
-	for (auto it = available_log_levels.begin(); it != available_log_levels.end(); ++it) {
-		serverInfo.add_available_log_levels(*it);
+	for (const auto& log_level : log_levels) {
+		server_info.add_log_levels(log_level);
 	}
 }
 
-void GetAvailableImages(PbServerInfo& serverInfo)
+PbDeviceProperties *GetDeviceProperties(const Device *device)
 {
-	if (access(default_image_folder.c_str(), F_OK) != -1) {
+	PbDeviceProperties *properties = new PbDeviceProperties();
+
+	properties->set_luns(device->GetSupportedLuns());
+	properties->set_read_only(device->IsReadOnly());
+	properties->set_protectable(device->IsProtectable());
+	properties->set_stoppable(device->IsStoppable());
+	properties->set_removable(device->IsRemovable());
+	properties->set_lockable(device->IsLockable());
+	properties->set_supports_file(dynamic_cast<const FileSupport *>(device));
+	properties->set_supports_params(device->SupportsParams());
+
+	PbDeviceType t = UNDEFINED;
+	PbDeviceType_Parse(device->GetType(), &t);
+
+	if (device->SupportsParams()) {
+		for (const auto& param : device_factory.GetDefaultParams(t)) {
+			properties->add_default_params(param);
+		}
+	}
+
+	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
+		properties->add_block_sizes(block_size);
+	}
+
+	for (const auto& capacity : device_factory.GetCapacities(t)) {
+		properties->add_capacities(capacity);
+	}
+
+	return properties;
+}
+
+void GetDeviceTypeProperties(PbServerInfo& server_info, PbDeviceType type)
+{
+	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
+	types_properties->set_type(type);
+	Device *device = device_factory.CreateDevice(type, "", "");
+	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
+}
+
+void GetAllDeviceTypeProperties(PbServerInfo& server_info)
+{
+	GetDeviceTypeProperties(server_info, SAHD);
+	GetDeviceTypeProperties(server_info, SCHD);
+	GetDeviceTypeProperties(server_info, SCRM);
+	GetDeviceTypeProperties(server_info, SCMO);
+	GetDeviceTypeProperties(server_info, SCCD);
+	GetDeviceTypeProperties(server_info, SCBR);
+	GetDeviceTypeProperties(server_info, SCDP);
+}
+
+void GetAvailableImages(PbServerInfo& server_info)
+{
+	if (!access(default_image_folder.c_str(), F_OK)) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
 			if (entry.is_regular_file()) {
-				PbImageFile *image_file = serverInfo.add_available_image_files();
-				GetImageFile(image_file, entry.path().filename());
+				GetImageFile(server_info.add_image_files(), entry.path().filename());
 			}
 		}
 	}
+}
+
+void GetDevice(const Device *device, PbDevice *pb_device)
+{
+	pb_device->set_id(device->GetId());
+	pb_device->set_unit(device->GetLun());
+	pb_device->set_vendor(device->GetVendor());
+	pb_device->set_product(device->GetProduct());
+	pb_device->set_revision(device->GetRevision());
+
+	PbDeviceType type = UNDEFINED;
+	PbDeviceType_Parse(device->GetType(), &type);
+	pb_device->set_type(type);
+
+    pb_device->set_allocated_properties(GetDeviceProperties(device));
+
+    PbDeviceStatus *status = new PbDeviceStatus();
+	pb_device->set_allocated_status(status);
+	status->set_protected_(device->IsProtected());
+	status->set_stopped(device->IsStopped());
+	status->set_removed(device->IsRemoved());
+	status->set_locked(device->IsLocked());
+
+	if (device->SupportsParams()) {
+		for (const string& param : device->GetParams()) {
+			pb_device->add_params(param);
+		}
+	}
+
+	const Disk *disk = dynamic_cast<const Disk*>(device);
+    if (disk) {
+    	pb_device->set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
+    	pb_device->set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
+    }
+
+    const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
+	if (file_support) {
+		Filepath filepath;
+		file_support->GetPath(filepath);
+		PbImageFile *image_file = new PbImageFile();
+		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
+		pb_device->set_allocated_file(image_file);
+	}
+}
+
+void GetDevices(PbServerInfo& serverInfo)
+{
+	for (const Device *device : devices) {
+		// skip if unit does not exist or is not assigned
+		if (device) {
+			PbDevice *pb_device = serverInfo.add_devices();
+			GetDevice(device, pb_device);
+		}
+	}
+}
+
+void GetDeviceInfo(const PbCommand& command, PbResult& result)
+{
+	set<id_set> id_sets;
+	if (!command.devices_size()) {
+		for (const Device *device : devices) {
+			if (device) {
+				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
+			}
+		}
+	}
+	else {
+		for (const auto& device : command.devices()) {
+			if (devices[device.id() * UnitNum + device.unit()]) {
+				id_sets.insert(make_pair(device.id(), device.unit()));
+			}
+			else {
+				ostringstream error;
+				error << "No device for ID " << device.id() << ", unit " << device.unit();
+				result.set_status(false);
+				result.set_msg(error.str());
+				return;
+			}
+		}
+	}
+
+	PbDevices *pb_devices = new PbDevices();
+	result.set_allocated_device_info(pb_devices);
+
+	for (const auto& id_set : id_sets) {
+		Device *device = devices[id_set.first * UnitNum + id_set.second];
+		GetDevice(device, pb_devices->add_devices());
+	}
+}
+
+void GetServerInfo(PbResult& result)
+{
+	PbServerInfo *server_info = new PbServerInfo();
+
+	server_info->set_major_version(rascsi_major_version);
+	server_info->set_minor_version(rascsi_minor_version);
+	server_info->set_patch_version(rascsi_patch_version);
+	GetLogLevels(*server_info);
+	server_info->set_current_log_level(current_log_level);
+	server_info->set_default_image_folder(default_image_folder);
+	GetAllDeviceTypeProperties(*server_info);
+	GetAvailableImages(*server_info);
+	GetDevices(*server_info);
+	for (int id : reserved_ids) {
+		server_info->add_reserved_ids(id);
+	}
+
+	result.set_allocated_server_info(server_info);
 }
 
 bool SetDefaultImageFolder(const string& f)
@@ -546,27 +664,308 @@ bool SetDefaultImageFolder(const string& f)
 
 	default_image_folder = folder;
 
-	LOGINFO("Set default image folder to '%s'", default_image_folder.c_str());
+	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
 
 	return true;
 }
 
-void SetDeviceName(Device *device, const string& name)
+string SetReservedIds(const list<string>& ids_to_reserve)
 {
-	size_t productSeparatorPos = name.find(':');
-	if (productSeparatorPos != string::npos) {
-		device->SetVendor(name.substr(0, productSeparatorPos));
+    set<int> reserved;
+    for (string id_to_reserve : ids_to_reserve) {
+    	int id;
+ 		if (!GetAsInt(id_to_reserve, id)) {
+ 			return id_to_reserve;
+ 		}
 
-		const string remaining = name.substr(productSeparatorPos + 1);
-		size_t revisionSeparatorPos = remaining.find(':');
-		if (revisionSeparatorPos != string::npos) {
-			device->SetProduct(remaining.substr(0, revisionSeparatorPos));
-			device->SetRevision(remaining.substr(revisionSeparatorPos + 1));
-			return;
+ 		reserved.insert(id);
+    }
+
+    reserved_ids = reserved;
+
+    if (!reserved_ids.empty()) {
+    	list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
+    	ids.sort([](const auto& a, const auto& b) { return a < b; });
+    	ostringstream s;
+    	bool isFirst = true;
+    	for (auto const& id : ids) {
+    		if (!isFirst) {
+    			s << ", ";
+    		}
+    		s << id;
+    		isFirst = false;
+    	}
+
+    	LOGINFO("Reserved IDs set to: %s", s.str().c_str());
+    }
+    else {
+    	LOGINFO("Cleared reserved IDs");
+    }
+
+	return "";
+}
+
+void DetachAll()
+{
+	Device *map[devices.size()];
+	for (size_t i = 0; i < devices.size(); i++) {
+		map[i] = NULL;
+	}
+
+	if (MapController(map)) {
+		LOGINFO("Detached all devices");
+	}
+
+	FileSupport::UnreserveAll();
+}
+
+bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dryRun)
+{
+	const int id = pb_device.id();
+	const int unit = pb_device.unit();
+	const PbDeviceType type = pb_device.type();
+	ostringstream error;
+
+	if (map[id * UnitNum + unit]) {
+		error << "Duplicate ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, error);
+	}
+
+	string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0) : "";
+	string ext;
+	size_t separator = filename.rfind('.');
+	if (separator != string::npos) {
+		ext = filename.substr(separator + 1);
+	}
+
+	// Create a new device, based upon the provided type or filename extension
+	Device *device = device_factory.CreateDevice(type, filename, ext);
+	if (!device) {
+		if (type == UNDEFINED) {
+			return ReturnStatus(fd, false, "No device type provided for unknown file extension '" + ext + "'");
+		}
+		else {
+			return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));
 		}
 	}
 
-	throw illegal_argument_exception("Invalid device name '" + name + "', format must be VENDOR:PRODUCT:REVISION");
+	// If no filename was provided the medium is considered removed
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	if (file_support) {
+		device->SetRemoved(filename.empty());
+	}
+	else {
+		device->SetRemoved(false);
+	}
+
+	device->SetId(id);
+	device->SetLun(unit);
+
+	// Only non read-only devices support protect/unprotect
+	if (!device->IsReadOnly()) {
+		device->SetProtected(pb_device.protected_());
+	}
+
+	try {
+		if (!pb_device.vendor().empty()) {
+			device->SetVendor(pb_device.vendor());
+		}
+		if (!pb_device.product().empty()) {
+			device->SetProduct(pb_device.product());
+		}
+		if (!pb_device.revision().empty()) {
+			device->SetRevision(pb_device.revision());
+		}
+	}
+	catch(const illegal_argument_exception& e) {
+		return ReturnStatus(fd, false, e.getmsg());
+	}
+
+	if (pb_device.block_size()) {
+		Disk *disk = dynamic_cast<Disk *>(device);
+		if (disk && disk->IsSectorSizeConfigurable()) {
+			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				error << "Invalid block size " << pb_device.block_size() << " bytes";
+				return ReturnStatus(fd, false, error);
+			}
+		}
+		else {
+			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
+		}
+	}
+
+	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
+	if (file_support && !device->IsRemovable() && filename.empty()) {
+		delete device;
+
+		return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
+	}
+
+	Filepath filepath;
+	if (file_support && !filename.empty()) {
+		filepath.SetPath(filename.c_str());
+		string initial_filename = filepath.GetPath();
+
+		try {
+			try {
+				file_support->Open(filepath);
+			}
+			catch(const file_not_found_exception&) {
+				// If the file does not exist search for it in the default image folder
+				filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
+				file_support->Open(filepath);
+			}
+		}
+		catch(const io_exception& e) {
+			delete device;
+
+			return ReturnStatus(fd, false, "Tried to open an invalid file '" + initial_filename + "': " + e.getmsg());
+		}
+
+		int id;
+		int unit;
+		if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+			delete device;
+
+			error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+			return ReturnStatus(fd, false, error);
+		}
+
+		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+	}
+
+	// Stop the dry run here, before permanently modifying something
+	if (dryRun) {
+		delete device;
+
+		return true;
+	}
+
+	const list<string> params = { pb_device.params().begin(), pb_device.params().end() };
+	if (!device->Init(params)) {
+		error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
+
+		delete device;
+
+		return ReturnStatus(fd, false, error);
+	}
+
+	// Replace with the newly created unit
+	map[id * UnitNum + unit] = device;
+
+	// Re-map the controller
+	if (MapController(map)) {
+		ostringstream msg;
+		msg << "Attached ";
+		if (device->IsReadOnly()) {
+			msg << "read-only ";
+		}
+		else if (device->IsProtectable() && device->IsProtected()) {
+			msg << "protected ";
+		}
+		msg << device->GetType() << " device, ID " << id << ", unit " << unit;
+		LOGINFO("%s", msg.str().c_str());
+
+		return true;
+	}
+
+	return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+}
+
+bool Detach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dryRun)
+{
+	if (!dryRun) {
+		const int id = pb_device.id();
+		const int unit = pb_device.unit();
+
+		Device *device = map[id * UnitNum + unit];
+
+		map[id * UnitNum + unit] = NULL;
+
+		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+		if (file_support) {
+			file_support->UnreserveFile();
+		}
+
+		// Re-map the controller, remember the device type because the device gets lost when re-mapping
+		const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
+		bool status = MapController(map);
+		if (status) {
+			LOGINFO("Detached %s device with ID %d, unit %d", device_type.c_str(), id, unit);
+			return true;
+		}
+
+		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
+	}
+
+	return true;
+}
+
+bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dryRun)
+{
+	if (!device->IsRemoved()) {
+		return ReturnStatus(fd, false, "Existing medium must first be ejected");
+	}
+
+	if (!pb_device.vendor().empty() || !pb_device.product().empty() || !pb_device.revision().empty()) {
+		return ReturnStatus(fd, false, "Once set the device name cannot be changed anymore");
+	}
+
+	string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0): "";
+	if (filename.empty()) {
+		return ReturnStatus(fd, false, "Missing filename for " + PbOperation_Name(INSERT));
+	}
+
+	if (dryRun) {
+		return true;
+	}
+
+	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
+			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit());
+
+	int id;
+	int unit;
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	string initial_filename = filepath.GetPath();
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+	if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+		ostringstream error;
+		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, error);
+	}
+
+	if (pb_device.block_size()) {
+		Disk *disk = dynamic_cast<Disk *>(device);
+		if (disk && disk->IsSectorSizeConfigurable()) {
+			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				ostringstream error;
+				error << "Invalid block size " << pb_device.block_size() << " bytes";
+				return ReturnStatus(fd, false, error);
+			}
+		}
+		else {
+			return ReturnStatus(fd, false, "Block size is not configurable for device type " + device->GetType());
+		}
+	}
+
+	try {
+		try {
+			file_support->Open(filepath);
+		}
+		catch(const file_not_found_exception&) {
+			// If the file does not exist search for it in the default image folder
+			filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
+			file_support->Open(filepath);
+		}
+	}
+	catch(const io_exception& e) {
+		return ReturnStatus(fd, false, "Tried to open an invalid file '" + initial_filename + "': " + e.getmsg());
+	}
+
+	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -575,27 +974,53 @@ void SetDeviceName(Device *device, const string& name)
 //
 //---------------------------------------------------------------------------
 
-bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cmd, const string& params, bool dryRun)
+bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation operation, const vector<string>& params, bool dryRun)
 {
-	Filepath filepath;
-	Device *device = NULL;
 	ostringstream error;
 
-	const int id = pbDevice.id();
-	const int unit = pbDevice.unit();
-	const string filename = pbDevice.file();
-	PbDeviceType type = pbDevice.type();
-	bool all = params == "all";
+	const int id = pb_device.id();
+	const int unit = pb_device.unit();
+	const PbDeviceType type = pb_device.type();
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
-	s << "cmd=" << PbOperation_Name(cmd) << ", id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type)
-			<< ", filename='" << filename << "', device name='" << pbDevice.name() << "', params='" << params << "'";
+	s << "operation=" << PbOperation_Name(operation);
+
+	if (!params.empty()) {
+		s << ", command params=";
+		for (size_t i = 0; i < params.size(); i++) {
+			if (i) {
+				s << ", ";
+			}
+			s << "'" << params[i] << "'";
+		}
+	}
+
+	s << ", device id=" << id << ", unit=" << unit << ", type=" << PbDeviceType_Name(type);
+
+	if (pb_device.params_size()) {
+		s << ", device params=";
+		for (int i = 0; i < pb_device.params_size(); i++) {
+			if (i) {
+				s << ", ";
+			}
+			s << "'" << pb_device.params().Get(i) << "'";
+		}
+	}
+
+	s << ", vendor='" << pb_device.vendor() << "', product='" << pb_device.product()
+			<< "', revision='" << pb_device.revision()
+			<< "', block size=" << pb_device.block_size();
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
 	if (id < 0 || id >= CtrlMax) {
-		error << "Invalid ID " << id << " (0-" << CtrlMax - 1 << ")";
+		error << "Invalid device ID " << id << " (0-" << CtrlMax - 1 << ")";
+		return ReturnStatus(fd, false, error);
+	}
+
+	if (reserved_ids.find(id) != reserved_ids.end()) {
+		error << "Device ID " << id << " is reserved";
 		return ReturnStatus(fd, false, error);
 	}
 
@@ -611,245 +1036,101 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 		map[i] = devices[i];
 	}
 
-	if (cmd == ATTACH) {
-		if (map[id * UnitNum + unit]) {
-			error << "Duplicate ID " << id;
-			return ReturnStatus(fd, false, error);
-		}
+	if (operation == ATTACH) {
+		return Attach(fd, pb_device, map, dryRun);
+	}
 
-		if (dryRun) {
-			return true;
-		}
+	// Does the controller exist?
+	if (!dryRun && !controllers[id]) {
+		error << "Received a command for non-existing ID " << id;
+		return ReturnStatus(fd, false, error);
+	}
 
-		string ext;
-		int len = filename.length();
-		if (len > 4 && filename[len - 4] == '.') {
-			ext = filename.substr(len - 3);
-		}
+	// Does the unit exist?
+	Device *device = devices[id * UnitNum + unit];
+	if (!device) {
+		error << "Received a command for a non-existing device, ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, error);
+	}
 
-		// Create a new device, based upon type or file extension
-		device = DeviceFactory::CreateDevice(type, filename, ext);
-		if (!device) {
-			return ReturnStatus(fd, false, "Invalid device type " + PbDeviceType_Name(type));
-		}
+	if (operation == DETACH) {
+		return Detach(fd, pb_device, map, dryRun);
+	}
 
-		if (!pbDevice.name().empty()) {
-			try {
-				SetDeviceName(device, pbDevice.name());
-			}
-			catch(const illegal_argument_exception& e) {
-				return ReturnStatus(fd, false, e.getmsg());
-			}
-		}
+	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't stoppable)");
+	}
 
-		device->SetId(id);
-		device->SetLun(unit);
-		if (!device->IsReadOnly()) {
-			device->SetProtected(pbDevice.protected_());
-		}
+	if ((operation == INSERT || operation == EJECT) && !device->IsRemovable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't removable)");
+	}
 
-		FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
+	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsProtectable()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't protectable)");
+	}
+	if ((operation == PROTECT || operation == UNPROTECT) && !device->IsReady()) {
+		return ReturnStatus(fd, false, PbOperation_Name(operation) + " operation denied (" + device->GetType() + " isn't ready)");
+	}
 
-		// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
-		if (fileSupport && !device->IsRemovable() && filename.empty()) {
-			delete device;
-
-			return ReturnStatus(fd, false, "Device type " + PbDeviceType_Name(type) + " requires a filename");
-		}
-
-		// drive checks files
-		if (fileSupport && !filename.empty()) {
-			// Set the Path
-			filepath.SetPath(filename.c_str());
-
-			// Open the file path
-			try {
-				fileSupport->Open(filepath);
-			}
-			catch(const io_exception& e) {
-				// If the file does not exist search for it in the default image folder
-				string file = default_image_folder + "/" + filename;
-				filepath.SetPath(file.c_str());
-				try {
-					fileSupport->Open(filepath);
-				}
-				catch(const io_exception&) {
-					delete device;
-
-					return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
-				}
-			}
-
+	switch (operation) {
+		case START:
 			if (!dryRun) {
-				if (files_in_use.find(filepath.GetPath()) != files_in_use.end()) {
-					delete device;
+				LOGINFO("Start requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
-					return ReturnStatus(fd, false, "Image file '" + filename + "' is already in use");
-				}
-
-				files_in_use.insert(filepath.GetPath());
-			}
-		}
-
-		if (!dryRun) {
-			// Replace with the newly created unit
-			map[id * UnitNum + unit] = device;
-
-			// Re-map the controller
-			bool status = MapController(map);
-			if (status) {
-				LOGINFO("Added new %s device, ID: %d unit: %d", device->GetType().c_str(), id, unit);
-				return true;
-			}
-
-			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
-		}
-	}
-
-	// When detaching all devices no controller/unit tests are required
-	if (cmd != DETACH || !all) {
-		// Does the controller exist?
-		if (!dryRun && !controllers[id]) {
-			error << "Received a command for non-existing ID " << id;
-			return ReturnStatus(fd, false, error);
-		}
-
-		// Does the unit exist?
-		device = devices[id * UnitNum + unit];
-		if (!dryRun && !device) {
-			error << "Received a command for ID " << id << ", non-existing unit " << unit;
-			return ReturnStatus(fd, false, error);
-		}
-	}
-
-	FileSupport *fileSupport = dynamic_cast<FileSupport *>(device);
-
-	if (cmd == DETACH) {
-		if (!all && !params.empty()) {
-			return ReturnStatus(fd, false, "Invalid command parameter '" + params + "' for " + PbOperation_Name(DETACH));
-		}
-
-		if (!dryRun) {
-			// Free the existing unit(s)
-			if (all) {
-				for (size_t i = 0; i < devices.size(); i++) {
-					map[i] = NULL;
-				}
-
-				files_in_use.clear();
-			}
-			else {
-				map[id * UnitNum + unit] = NULL;
-
-				if (fileSupport) {
-					Filepath filepath;
-					fileSupport->GetPath(filepath);
-					files_in_use.erase(filepath.GetPath());
-				}
-			}
-
-			// Re-map the controller, remember the device type because the device gets lost when re-mapping
-			const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
-			bool status = MapController(map);
-			if (status) {
-				if (all) {
-					LOGINFO("Disconnected all devices");
-				}
-				else {
-					LOGINFO("Disconnected %s device with ID %d, unit %d", device_type.c_str(), id, unit);
-				}
-				return true;
-			}
-
-			return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
-		}
-	}
-
-	if ((cmd == INSERT || cmd == EJECT) && !device->IsRemovable()) {
-		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't removable)");
-	}
-
-	if ((cmd == PROTECT || cmd == UNPROTECT) && !device->IsProtectable()) {
-		return ReturnStatus(fd, false, PbOperation_Name(cmd) + " operation denied (" + device->GetType() + " isn't protectable)");
-	}
-
-	switch (cmd) {
-		case INSERT:
-			if (!pbDevice.name().empty()) {
-				return ReturnStatus(fd, false, "Device name cannot be changed");
-			}
-
-			if (filename.empty()) {
-				return ReturnStatus(fd, false, "Missing filename");
-			}
-
-			if (dryRun) {
-				return true;
-			}
-
-			filepath.SetPath(filename.c_str());
-			LOGINFO("Insert file '%s' requested into %s ID: %d unit: %d", filename.c_str(), device->GetType().c_str(), id, unit);
-
-			try {
-				fileSupport->Open(filepath);
-			}
-			catch(const io_exception& e) {
-				if (!default_image_folder.empty()) {
-					// If the file does not exist search for it in the default image folder
-					string default_file = default_image_folder + "/" + filename;
-					filepath.SetPath(default_file.c_str());
-					try {
-						fileSupport->Open(filepath);
-					}
-					catch(const io_exception&) {
-						return ReturnStatus(fd, false, "Tried to open an invalid file '" + filename + "': " + e.getmsg());
-					}
-				}
-				else {
-					return ReturnStatus(fd, false, "No default image folder");
+				if (!device->Start()) {
+					LOGWARN("Starting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit);
 				}
 			}
 			break;
 
-		case EJECT:
-			if (dryRun) {
-				return true;
-			}
+		case STOP:
+			if (!dryRun) {
+				LOGINFO("Stop requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
-			LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
-			// EJECT is idempotent
-			device->Eject(true);
+				// STOP is idempotent
+				device->Stop();
+			}
+			break;
+
+		case INSERT:
+			return Insert(fd, pb_device, device, dryRun);
+
+		case EJECT:
+			if (!dryRun) {
+				LOGINFO("Eject requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
+
+				if (!device->Eject(true)) {
+					LOGWARN("Ejecting %s ID %d, unit %d failed", device->GetType().c_str(), id, unit);
+				}
+			}
 			break;
 
 		case PROTECT:
-			if (dryRun) {
-				return true;
-			}
+			if (!dryRun) {
+				LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
-			LOGINFO("Write protection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
-			// PROTECT is idempotent
-			device->SetProtected(true);
+				// PROTECT is idempotent
+				device->SetProtected(true);
+			}
 			break;
 
 		case UNPROTECT:
-			if (dryRun) {
-				return true;
-			}
+			if (!dryRun) {
+				LOGINFO("Write unprotection requested for %s ID %d, unit %d", device->GetType().c_str(), id, unit);
 
-			LOGINFO("Write unprotection requested for %s ID: %d unit: %d", device->GetType().c_str(), id, unit);
-			// UNPROTECT is idempotent
-			device->SetProtected(false);
+				// UNPROTECT is idempotent
+				device->SetProtected(false);
+			}
 			break;
 
 		case ATTACH:
 		case DETACH:
+			// The non dry-run case has been handled before the switch
 			assert(dryRun);
-
-			// The non dry-run case was handled above
-			return true;
+			break;
 
 		default:
-			return ReturnStatus(fd, false, "Received unknown command: " + PbOperation_Name(cmd));
+			return ReturnStatus(fd, false, "Unknown operation");
 	}
 
 	return true;
@@ -857,16 +1138,36 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pbDevice, const PbOperation cm
 
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
-	// Dry run first
-	for (int i = 0; i < command.devices().devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), true)) {
+	if (command.operation() == DETACH_ALL) {
+		DetachAll();
+		return ReturnStatus(fd);
+	}
+	else if (command.operation() == RESERVE) {
+		const list<string> ids = { command.params().begin(), command.params().end() };
+		string invalid_id = SetReservedIds(ids);
+		if (!invalid_id.empty()) {
+			return ReturnStatus(fd, false,"Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
+		}
+
+		return ReturnStatus(fd);
+	}
+
+	const vector<string> params = { command.params().begin(), command.params().end() };
+
+	// Remember the list of reserved files, than run the dry run
+	const auto reserved_files = FileSupport::GetReservedFiles();
+	for (const auto& device : command.devices()) {
+		if (!ProcessCmd(fd, device, command.operation(), params, true)) {
+			// Dry run failed, restore the file list
+			FileSupport::SetReservedFiles(reserved_files);
 			return false;
 		}
 	}
 
-	// Execute
-	for (int i = 0; i < command.devices().devices_size(); i++) {
-		if (!ProcessCmd(fd, command.devices().devices(i), command.cmd(), command.params(), false)) {
+	// Restore list of reserved files, then execute the command
+	FileSupport::SetReservedFiles(reserved_files);
+	for (const auto& device : command.devices()) {
+		if (!ProcessCmd(fd, device, command.operation(), params, false)) {
 			return false;
 		}
 	}
@@ -881,17 +1182,18 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 //---------------------------------------------------------------------------
 bool ParseArgument(int argc, char* argv[], int& port)
 {
-	PbDeviceDefinitions devices;
+	PbCommand command;
 	int id = -1;
 	bool is_sasi = false;
 	int max_id = 7;
 	PbDeviceType type = UNDEFINED;
+	int block_size = 0;
 	string name;
 	string log_level;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:N:n:T:t:P:p:f:Vv")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:R:r:F:f:")) != -1) {
 		switch (tolower(opt)) {
 			case 'i':
 				is_sasi = false;
@@ -905,9 +1207,13 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				id = -1;
 				continue;
 
-			case 'g':
-				log_level = optarg;
+			case 'b': {
+				if (!GetAsInt(optarg, block_size)) {
+					cerr << "Invalid block size " << optarg << endl;
+					return false;
+				}
 				continue;
+			}
 
 			case 'd': {
 				char* end;
@@ -919,14 +1225,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'p':
-				port = atoi(optarg);
-				if (port <= 0 || port > 65535) {
-					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
-					return false;
-				}
-				continue;
-
 			case 'f':
 				if (!SetDefaultImageFolder(optarg)) {
 					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
@@ -934,8 +1232,36 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				}
 				continue;
 
+			case 'g':
+				log_level = optarg;
+				continue;
+
 			case 'n':
 				name = optarg;
+				continue;
+
+			case 'p':
+				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
+					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+					return false;
+				}
+				continue;
+
+			case 'r': {
+					stringstream ss(optarg);
+					string id;
+
+					list<string> ids;
+					while (getline(ss, id, ',')) {
+						ids.push_back(id);
+					}
+
+					string invalid_id = SetReservedIds(ids);
+					if (!invalid_id.empty()) {
+						cerr << "Invalid ID " << invalid_id << " for " << PbOperation_Name(RESERVE);
+						return false;
+					}
+				}
 				continue;
 
 			case 't': {
@@ -947,11 +1273,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					}
 				}
 				continue;
-
-			case 'v':
-				cout << rascsi_get_version_string() << endl;
-				exit(EXIT_SUCCESS);
-				break;
 
 			default:
 				return false;
@@ -972,15 +1293,36 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		}
 
 		// Set up the device data
-		PbDeviceDefinition *device = devices.add_devices();
+		PbDeviceDefinition *device = command.add_devices();
 		device->set_id(id);
 		device->set_unit(unit);
 		device->set_type(type);
-		device->set_name(name);
-		device->set_file(optarg);
+		device->set_block_size(block_size);
+		if (strlen(optarg)) {
+			device->add_params(optarg);
+		}
+
+		size_t separatorPos = name.find(':');
+		if (separatorPos != string::npos) {
+			device->set_vendor(name.substr(0, separatorPos));
+			name = name.substr(separatorPos + 1);
+			separatorPos = name.find(':');
+			if (separatorPos != string::npos) {
+				device->set_product(name.substr(0, separatorPos));
+				device->set_revision(name.substr(separatorPos + 1));
+			}
+			else {
+				device->set_product(name);
+			}
+		}
+		else {
+			device->set_vendor(name);
+		}
 
 		id = -1;
 		type = UNDEFINED;
+		block_size = 0;
+		name = "";
 	}
 
 	if (!log_level.empty() && !SetLogLevel(log_level)) {
@@ -988,18 +1330,19 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	}
 
 	// Attach all specified devices
-	PbCommand command;
-	command.set_cmd(ATTACH);
-	command.set_allocated_devices(new PbDeviceDefinitions(devices));
+	command.set_operation(ATTACH);
 
 	if (!ProcessCmd(-1, command)) {
 		return false;
 	}
 
 	// Display and log the device list
-	const string deviceList = ListDevices(GetDevices());
-	cout << deviceList << endl;
-	LogDevices(deviceList);
+	PbServerInfo server_info;
+	GetDevices(server_info);
+	const list<PbDevice>& devices = { server_info.devices().begin(), server_info.devices().end() };
+	const string device_list = ListDevices(devices);
+	LogDevices(device_list);
+	cout << device_list << endl;
 
 	return true;
 }
@@ -1065,11 +1408,14 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
-			switch(command.cmd()) {
+			switch(command.operation()) {
 				case LOG_LEVEL: {
-					bool status = SetLogLevel(command.params());
+					LOGTRACE(string("Received " + PbOperation_Name(LOG_LEVEL) + " command").c_str());
+
+					string log_level = command.params_size() > 0 ? command.params().Get(0) : "";
+					bool status = SetLogLevel(log_level);
 					if (!status) {
-						ReturnStatus(fd, false, "Invalid log level: " + command.params());
+						ReturnStatus(fd, false, "Invalid log level: " + log_level);
 					}
 					else {
 						ReturnStatus(fd);
@@ -1077,29 +1423,46 @@ static void *MonThread(void *param)
 					break;
 				}
 
-				case DEFAULT_FOLDER:
-					if (command.params().empty()) {
+				case DEFAULT_FOLDER: {
+					LOGTRACE(string("Received " + PbOperation_Name(DEFAULT_FOLDER) + " command").c_str());
+
+					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
+					if (folder.empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					if (!SetDefaultImageFolder(command.params())) {
-						ReturnStatus(fd, false, "Folder '" + command.params() + "' does not exist or is not accessible");
+					if (!SetDefaultImageFolder(folder)) {
+						ReturnStatus(fd, false, "Folder '" + folder + "' does not exist or is not accessible");
 					}
 					else {
 						ReturnStatus(fd);
 					}
 					break;
+				}
+
+				case DEVICE_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(DEVICE_INFO) + " command").c_str());
+
+					PbResult result;
+					result.set_status(true);
+					GetDeviceInfo(command, result);
+					SerializeMessage(fd, result);
+					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
+
+					// For backwards compatibility: Log device list if information on all devices was requested.
+					if (command.devices_size() == 0) {
+						LogDevices(ListDevices(devices));
+					}
+					break;
+				}
 
 				case SERVER_INFO: {
-					PbServerInfo serverInfo;
-					serverInfo.set_rascsi_version(rascsi_get_version_string());
-					GetAvailableLogLevels(serverInfo);
-					serverInfo.set_current_log_level(current_log_level);
-					serverInfo.set_default_image_folder(default_image_folder);
-					GetAvailableImages(serverInfo);
-					serverInfo.set_allocated_devices(new PbDevices(GetDevices()));
-					SerializeMessage(fd, serverInfo);
-					LogDevices(ListDevices(serverInfo.devices()));
+					LOGTRACE(string("Received " + PbOperation_Name(SERVER_INFO) + " command").c_str());
+
+					PbResult result;
+					result.set_status(true);
+					GetServerInfo(result);
+					SerializeMessage(fd, result);
 					break;
 				}
 
@@ -1138,20 +1501,30 @@ int main(int argc, char* argv[])
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
 	int actid;
-	DWORD now;
 	BUS::phase_t phase;
-	BYTE data;
 	// added setvbuf to override stdout buffering, so logs are written immediately and not when the process exits.
 	setvbuf(stdout, NULL, _IONBF, 0);
 	struct sched_param schparam;
 
-	available_log_levels.push_back("trace");
-	available_log_levels.push_back("debug");
-	available_log_levels.push_back("info");
-	available_log_levels.push_back("warn");
-	available_log_levels.push_back("err");
-	available_log_levels.push_back("critical");
-	available_log_levels.push_back("off");
+	// Output the Banner
+	Banner(argc, argv);
+
+	// ParseArgument() requires the bus to have been initialized first, which requires the root user.
+	// The -v option should be available for any user, which requires special handling.
+	for (int i = 1 ; i < argc; i++) {
+		if (!strcasecmp(argv[i], "-v")) {
+			cout << rascsi_get_version_string() << endl;
+			return 0;
+		}
+	}
+
+	log_levels.push_back("trace");
+	log_levels.push_back("debug");
+	log_levels.push_back("info");
+	log_levels.push_back("warn");
+	log_levels.push_back("err");
+	log_levels.push_back("critical");
+	log_levels.push_back("off");
 	SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages
@@ -1169,25 +1542,19 @@ int main(int argc, char* argv[])
 		default_image_folder = "/home/pi/images";
 	}
 
-	// Output the Banner
-	Banner(argc, argv);
-
-	int ret = 0;
 	int port = 6868;
 
 	if (!InitBus()) {
-		ret = EPERM;
-		goto init_exit;
+		return EPERM;
 	}
 
 	if (!ParseArgument(argc, argv, port)) {
-		ret = EINVAL;
-		goto err_exit;
+		Cleanup();
+		return -1;
 	}
 
 	if (!InitService(port)) {
-		ret = EPERM;
-		goto init_exit;
+		return EPERM;
 	}
 
 	// Reset
@@ -1234,7 +1601,7 @@ int main(int argc, char* argv[])
         // Wait until BSY is released as there is a possibility for the
         // initiator to assert it while setting the ID (for up to 3 seconds)
 		if (bus->GetBSY()) {
-			now = SysTimer::GetTimerLow();
+			int now = SysTimer::GetTimerLow();
 			while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 				bus->Aquire();
 				if (!bus->GetBSY()) {
@@ -1243,7 +1610,7 @@ int main(int argc, char* argv[])
 			}
 		}
 
-		// Stop because it the bus is busy or another device responded
+		// Stop because the bus is busy or another device responded
 		if (bus->GetBSY() || !bus->GetSEL()) {
 			continue;
 		}
@@ -1251,7 +1618,7 @@ int main(int argc, char* argv[])
 		pthread_mutex_lock(&ctrl_mutex);
 
 		// Notify all controllers
-		data = bus->GetDAT();
+		BYTE data = bus->GetDAT();
 		int i = 0;
 		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 			if (!*it || (data & (1 << i)) == 0) {
@@ -1307,10 +1674,5 @@ int main(int argc, char* argv[])
 		active = false;
 	}
 
-err_exit:
-	// Cleanup
-	Cleanup();
-
-init_exit:
-	return ret;
+	return 0;
 }

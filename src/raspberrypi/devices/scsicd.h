@@ -10,7 +10,7 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI Hard Disk for Apple Macintosh ]
+//	[ SCSI CD-ROM for Apple Macintosh ]
 //
 //---------------------------------------------------------------------------
 #pragma once
@@ -18,6 +18,8 @@
 #include "os.h"
 #include "disk.h"
 #include "filepath.h"
+#include "interfaces/scsi_mmc_commands.h"
+#include "interfaces/scsi_primary_commands.h"
 
 
 //---------------------------------------------------------------------------
@@ -35,30 +37,30 @@ class SCSICD;
 class CDTrack
 {
 public:
-	// Basic Functions
-	CDTrack(SCSICD *scsicd);						// Constructor
-	virtual ~CDTrack();							// Destructor
-	void Init(int track, DWORD first, DWORD last);			// Initialization
+	CDTrack(SCSICD *scsicd);
+	virtual ~CDTrack();
+
+	void Init(int track, DWORD first, DWORD last);
 
 	// Properties
-	void SetPath(BOOL cdda, const Filepath& path);			// Set the path
+	void SetPath(bool cdda, const Filepath& path);			// Set the path
 	void GetPath(Filepath& path) const;				// Get the path
 	void AddIndex(int index, DWORD lba);				// Add index
 	DWORD GetFirst() const;					// Get the start LBA
 	DWORD GetLast() const;						// Get the last LBA
 	DWORD GetBlocks() const;					// Get the number of blocks
 	int GetTrackNo() const;					// Get the track number
-	BOOL IsValid(DWORD lba) const;					// Is this a valid LBA?
-	BOOL IsAudio() const;						// Is this an audio track?
+	bool IsValid(DWORD lba) const;					// Is this a valid LBA?
+	bool IsAudio() const;						// Is this an audio track?
 
 private:
 	SCSICD *cdrom;								// Parent device
-	BOOL valid;								// Valid track
+	bool valid;								// Valid track
 	int track_no;								// Track number
 	DWORD first_lba;							// First LBA
 	DWORD last_lba;								// Last LBA
-	BOOL audio;								// Audio track flag
-	BOOL raw;								// RAW data flag
+	bool audio;								// Audio track flag
+	bool raw;								// RAW data flag
 	Filepath imgpath;							// Image file path
 };
 
@@ -67,41 +69,51 @@ private:
 //	SCSI CD-ROM
 //
 //===========================================================================
-class SCSICD : public Disk, public FileSupport
+class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
+private:
+	typedef struct _command_t {
+		const char* name;
+		void (SCSICD::*execute)(SASIDEV *);
+
+		_command_t(const char* _name, void (SCSICD::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
+
+	SASIDEV::ctrl_t *ctrl;
+
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
+
 public:
-	// Number of tracks
 	enum {
 		TrackMax = 96							// Maximum number of tracks
 	};
 
 public:
-	// Basic Functions
-	SCSICD();								// Constructor
-	~SCSICD();								// Destructor
-	void Open(const Filepath& path);		// Open
+	SCSICD();
+	~SCSICD();
 
-	// commands
+	bool Dispatch(SCSIDEV *) override;
+
+	void Open(const Filepath& path) override;
+
+	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;		// READ command
+	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
-
-	// CD-DA
-	// TODO Never called
-	bool NextFrame();						// Frame notification
-	// TODO Never called
-	void GetBuf(DWORD *buffer, int samples, DWORD rate);		// Get CD-DA buffer
-
-	// LBA-MSF変換
-	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
-	DWORD MSFtoLBA(const BYTE *msf) const;				// MSF→LBA conversion
 
 private:
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
-	BOOL rawfile;								// RAW flag
+
+	void ReadToc(SASIDEV *);
+	void GetEventStatusNotification(SASIDEV *);
+
+	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
+
+	bool rawfile;								// RAW flag
 
 	// Track management
 	void ClearTrack();						// Clear the track

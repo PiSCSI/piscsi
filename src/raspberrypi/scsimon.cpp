@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
 #include "devices/disk.h"
@@ -21,6 +20,7 @@
 #include <sys/time.h>
 #include <climits>
 #include <sstream>
+#include "rascsi.h"
 
 //---------------------------------------------------------------------------
 //
@@ -57,7 +57,7 @@ static volatile bool running;		// Running flag
 GPIOBUS *bus;						// GPIO Bus
 typedef struct data_capture{
     DWORD data;
-    QWORD timestamp;
+    uint64_t timestamp;
 } data_capture_t;
 
 data_capture data_buffer[MAX_BUFF_SIZE];
@@ -266,7 +266,7 @@ void create_value_change_dump()
     while(i < data_idx)
     {
     	ostringstream s;
-    	s << (QWORD)(data_buffer[i].timestamp*ns_per_loop);
+    	s << (uint64_t)(data_buffer[i].timestamp*ns_per_loop);
         fprintf(fp, "#%s\n",s.str().c_str());
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_SEL, SYMBOL_PIN_SEL);
@@ -362,9 +362,9 @@ int main(int argc, char* argv[])
 	int ret;
     struct sched_param schparam;
     timeval start_time, stop_time;
-    QWORD loop_count = 0;
+    uint64_t loop_count = 0;
     timeval time_diff;
-    QWORD elapsed_us;
+    uint64_t elapsed_us;
     int str_len;
 
     // If there is an argument specified and it is NOT -h or --help

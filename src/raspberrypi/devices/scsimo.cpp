@@ -15,7 +15,8 @@
 //---------------------------------------------------------------------------
 
 #include "scsimo.h"
-#include "xm6.h"
+
+#include "../rascsi.h"
 #include "fileio.h"
 #include "exceptions.h"
 
@@ -32,10 +33,6 @@
 //---------------------------------------------------------------------------
 SCSIMO::SCSIMO() : Disk("SCMO")
 {
-	SetRemovable(true);
-	SetProtectable(true);
-
-	SetProduct("M2513A");
 }
 
 //---------------------------------------------------------------------------
@@ -49,48 +46,20 @@ void SCSIMO::Open(const Filepath& path)
 
 	// Open as read-only
 	Fileio fio;
+
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open MO file read-only");
+		throw file_not_found_exception("Can't open MO file");
 	}
 
 	// Get file size
 	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	switch (size) {
-		// 128MB
-		case 0x797f400:
-			// 512 bytes per sector
-			SetSectorSize(9);
-			SetBlockCount(248826);
-			break;
+	SetGeometryForCapacity(size);
 
-		// 230MB
-		case 0xd9eea00:
-			// 512 bytes per sector
-			SetSectorSize(9);
-			SetBlockCount(446325);
-			break;
-
-		// 540MB
-		case 0x1fc8b800:
-			// 512 bytes per sector
-			SetSectorSize(9);
-			SetBlockCount(1041500);
-			break;
-
-		// 640MB
-		case 0x25e28000:
-			// 2048 bytes per sector
-			SetSectorSize(11);
-			SetBlockCount(310352);
-			break;
-
-		// Other (this is an error)
-		default:
-			throw io_exception("Invalid MO file size, supported sizes are 127398912 bytes (128 MB), "
-					"228518400 bytes (230 MB), 533248000 bytes (540 MB), 635600896 bytes (640 MB)");
-	}
+	SetReadOnly(false);
+	SetProtectable(true);
+	SetProtected(false);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
@@ -125,12 +94,6 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
 	buf[0] = 0x07;
-
-	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != GetLun()) {
-		buf[0] = 0x7f;
-	}
-
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
@@ -153,12 +116,10 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int page;
 	int size;
 
 	ASSERT(buf);
@@ -183,7 +144,7 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Parsing the page
 		while (length > 0) {
 			// Get the page
-			page = buf[0];
+			int page = buf[0];
 
 			switch (page) {
 				// format device
@@ -267,40 +228,44 @@ int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 	if (IsReady()) {
 		unsigned spare = 0;
 		unsigned bands = 0;
-		DWORD blocks = GetBlockCount();
+		uint64_t blocks = GetBlockCount();
 
-		if (GetSectorSize() == 9) switch (blocks) {
-			// 128MB
-			case 248826:
-				spare = 1024;
-				bands = 1;
-				break;
+		if (GetSectorSizeInBytes() == 512) {
+			switch (blocks) {
+				// 128MB
+				case 248826:
+					spare = 1024;
+					bands = 1;
+					break;
 
-			// 230MB
-			case 446325:
-				spare = 1025;
-				bands = 10;
-				break;
+				// 230MB
+				case 446325:
+					spare = 1025;
+					bands = 10;
+					break;
 
-			// 540MB
-			case 1041500:
-				spare = 2250;
-				bands = 18;
-				break;
+				// 540MB
+				case 1041500:
+					spare = 2250;
+					bands = 18;
+					break;
+			}
 		}
 
-		if (GetSectorSize() == 11) switch (blocks) {
-			// 640MB
-			case 310352:
-				spare = 2244;
-				bands = 11;
-				break;
+		if (GetSectorSizeInBytes() == 2048) {
+			switch (blocks) {
+				// 640MB
+				case 310352:
+					spare = 2244;
+					bands = 11;
+					break;
 
-			// 1.3GB (lpproj: not tested with real device)
-			case 605846:
-				spare = 4437;
-				bands = 18;
-				break;
+					// 1.3GB (lpproj: not tested with real device)
+				case 605846:
+					spare = 4437;
+					bands = 18;
+					break;
+			}
 		}
 
 		buf[2] = 0; // format mode

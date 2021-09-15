@@ -17,9 +17,10 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "xm6.h"
 #include "os.h"
 #include "disk.h"
+#include <string>
+#include "../rascsi.h"
 
 //===========================================================================
 //
@@ -28,18 +29,37 @@
 //===========================================================================
 class CTapDriver;
 class CFileSys;
+
 class SCSIBR : public Disk
 {
-public:
-	// Basic Functions
-	SCSIBR();								// Constructor
-	~SCSIBR();								// Destructor
 
-	// commands
+private:
+	typedef struct _command_t {
+		const char* name;
+		void (SCSIBR::*execute)(SASIDEV *);
+
+		_command_t(const char* _name, void (SCSIBR::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
+
+	SASIDEV::ctrl_t *ctrl;
+
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
+
+public:
+	SCSIBR();
+	~SCSIBR();
+
+	bool Init(const list<string>&) override;
+	bool Dispatch(SCSIDEV *) override;
+
+	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	bool TestUnitReady(const DWORD *cdb) override;		// TEST UNIT READY command
 	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
-	BOOL SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	void TestUnitReady(SASIDEV *) override;
+	void GetMessage10(SASIDEV *);
+	void SendMessage10(SASIDEV *);
 
 private:
 	int GetMacAddr(BYTE *buf);					// Get MAC address
@@ -49,11 +69,11 @@ private:
 	void SendPacket(BYTE *buf, int len);				// Send a packet
 
 	CTapDriver *tap;							// TAP driver
-	BOOL m_bTapEnable;							// TAP valid flag
+	bool m_bTapEnable;							// TAP valid flag
 	BYTE mac_addr[6];							// MAC Addres
 	int packet_len;								// Receive packet size
 	BYTE packet_buf[0x1000];						// Receive packet buffer
-	BOOL packet_enable;							// Received packet valid
+	bool packet_enable;							// Received packet valid
 
 	int ReadFsResult(BYTE *buf);					// Read filesystem (result code)
 	int ReadFsOut(BYTE *buf);					// Read filesystem (return data)

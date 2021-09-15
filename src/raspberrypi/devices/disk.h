@@ -17,182 +17,155 @@
 
 #pragma once
 
-#include "xm6.h"
 #include "log.h"
 #include "scsi.h"
-#include "block_device.h"
+#include "controllers/scsidev_ctrl.h"
+#include "device.h"
+#include "device_factory.h"
+#include "disk_track_cache.h"
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
+#include <set>
+#include <map>
 
-//===========================================================================
-//
-//	Disk Track
-//
-//===========================================================================
-class DiskTrack
+#include "../rascsi.h"
+#include "interfaces/scsi_block_commands.h"
+#include "interfaces/scsi_primary_commands.h"
+
+class Disk : public Device, ScsiPrimaryCommands, ScsiBlockCommands
 {
-public:
-	// Internal data definition
-	typedef struct {
-		int track;							// Track Number
-		int size;							// Sector Size(8 or 9)
-		int sectors;							// Number of sectors(<=0x100)
-		DWORD length;							// Data buffer length
-		BYTE *buffer;							// Data buffer
-		BOOL init;							// Is it initilized?
-		BOOL changed;							// Changed flag
-		DWORD maplen;							// Changed map length
-		BOOL *changemap;						// Changed map
-		BOOL raw;							// RAW mode flag
-		off_t imgoffset;						// Offset to actual data
-	} disktrk_t;
-
-public:
-	// Basic Functions
-	DiskTrack();								// Constructor
-	virtual ~DiskTrack();							// Destructor
-	void Init(int track, int size, int sectors, BOOL raw = FALSE, off_t imgoff = 0);// Initialization
-	BOOL Load(const Filepath& path);				// Load
-	BOOL Save(const Filepath& path);				// Save
-
-	// Read / Write
-	BOOL Read(BYTE *buf, int sec) const;				// Sector Read
-	BOOL Write(const BYTE *buf, int sec);				// Sector Write
-
-	// Other
-	int GetTrack() const		{ return dt.track; }		// Get track
-	BOOL IsChanged() const		{ return dt.changed; }		// Changed flag check
-
 private:
-	// Internal data
-	disktrk_t dt;								// Internal data
-};
+	enum access_mode { RW6, RW10, RW16 };
 
-//===========================================================================
-//
-//	Disk Cache
-//
-//===========================================================================
-class DiskCache
-{
-public:
-	// Internal data definition
+	// The supported configurable block sizes, empty if not configurable
+	set<uint32_t> sector_sizes;
+	uint32_t configured_sector_size;
+
+	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
+	map<uint64_t, Geometry> geometries;
+
+	SASIDEV::ctrl_t *ctrl;
+
 	typedef struct {
-		DiskTrack *disktrk;						// Disk Track
-		DWORD serial;							// Serial
-	} cache_t;
-
-	// Number of caches
-	enum {
-		CacheMax = 16							// Number of tracks to cache
-	};
-
-public:
-	// Basic Functions
-	DiskCache(const Filepath& path, int size, int blocks,off_t imgoff = 0);// Constructor
-	virtual ~DiskCache();							// Destructor
-	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
-
-	// Access
-	BOOL Save();							// Save and release all
-	BOOL Read(BYTE *buf, int block);				// Sector Read
-	BOOL Write(const BYTE *buf, int block);			// Sector Write
-	BOOL GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
-
-private:
-	// Internal Management
-	void Clear();							// Clear all tracks
-	DiskTrack* Assign(int track);					// Load track
-	BOOL Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
-	void Update();							// Update serial number
-
-	// Internal data
-	cache_t cache[CacheMax];						// Cache management
-	DWORD serial;								// Last serial number
-	Filepath sec_path;							// Path
-	int sec_size;								// Sector size (8 or 9 or 11)
-	int sec_blocks;								// Blocks per sector
-	BOOL cd_raw;								// CD-ROM RAW mode
-	off_t imgoffset;							// Offset to actual data
-};
-
-//===========================================================================
-//
-//	Disk
-//
-//===========================================================================
-class Disk : public BlockDevice
-{
-protected:
-	// Internal data structure
-	typedef struct {
-		int size;							// Sector Size
-		DWORD blocks;							// Total number of sectors
+		uint32_t size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
+		// TODO blocks should be a 64 bit value in order to support higher capacities
+		uint32_t blocks;						// Total number of sectors
 		DiskCache *dcache;						// Disk cache
-		off_t imgoffset;						// Offset to actual data
+		off_t image_offset;						// Offset to actual data
 	} disk_t;
 
+	typedef struct _command_t {
+		const char* name;
+		void (Disk::*execute)(SASIDEV *);
+
+		_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
+
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (Disk::*)(SASIDEV *));
+
 public:
-	// Basic Functions
-	Disk(std::string);							// Constructor
-	virtual ~Disk();							// Destructor
+	Disk(std::string);
+	virtual ~Disk();
+
+	virtual bool Dispatch(SCSIDEV *) override;
+
+	void ReserveFile(const string&);
 
 	// Media Operations
-	virtual void Open(const Filepath& path);	// Open
-	void GetPath(Filepath& path) const;				// Get the path
-	bool Eject(bool) override;					// Eject
-	bool Flush();							// Flush the cache
+	virtual void Open(const Filepath& path);
+	void GetPath(Filepath& path) const;
+	bool Eject(bool) override;
 
-	// commands
-	virtual bool TestUnitReady(const DWORD *cdb) override;	// TEST UNIT READY command
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	virtual int RequestSense(const DWORD *cdb, BYTE *buf) override;		// REQUEST SENSE command
-	int SelectCheck(const DWORD *cdb);				// SELECT check
-	int SelectCheck10(const DWORD *cdb);				// SELECT(10) check
-	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;// MODE SELECT command
-	virtual int ModeSense(const DWORD *cdb, BYTE *buf) override;		// MODE SENSE command
-	virtual int ModeSense10(const DWORD *cdb, BYTE *buf) override;		// MODE SENSE(10) command
-	int ReadDefectData10(const DWORD *cdb, BYTE *buf);		// READ DEFECT DATA(10) command
-	bool Rezero(const DWORD *cdb);					// REZERO command
-	bool Format(const DWORD *cdb) override;					// FORMAT UNIT command
-	bool Reassign(const DWORD *cdb);				// REASSIGN UNIT command
-	virtual int Read(const DWORD *cdb, BYTE *buf, DWORD block) override;			// READ command
+	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
+	virtual void TestUnitReady(SASIDEV *) override;
+	void Inquiry(SASIDEV *) override;
+	void RequestSense(SASIDEV *) override;
+	void ModeSelect6(SASIDEV *);
+	void ModeSelect10(SASIDEV *);
+	void ModeSense6(SASIDEV *);
+	void ModeSense10(SASIDEV *);
+	void Rezero(SASIDEV *);
+	void FormatUnit(SASIDEV *) override;
+	void ReassignBlocks(SASIDEV *);
+	void StartStopUnit(SASIDEV *);
+	void SendDiagnostic(SASIDEV *);
+	void PreventAllowMediumRemoval(SASIDEV *);
+	void SynchronizeCache10(SASIDEV *);
+	void SynchronizeCache16(SASIDEV *);
+	void ReadDefectData10(SASIDEV *);
+	virtual void Read6(SASIDEV *);
+	void Read10(SASIDEV *) override;
+	void Read16(SASIDEV *) override;
+	virtual void Write6(SASIDEV *);
+	void Write10(SASIDEV *) override;
+	void Write16(SASIDEV *) override;
+	void Verify10(SASIDEV *) override;
+	void Verify16(SASIDEV *) override;
+	void Seek(SASIDEV *);
+	void Seek6(SASIDEV *);
+	void Seek10(SASIDEV *);
+	void ReadCapacity10(SASIDEV *) override;
+	void ReadCapacity16(SASIDEV *) override;
+	void ReportLuns(SASIDEV *) override;
+	void Reserve6(SASIDEV *);
+	void Reserve10(SASIDEV *);
+	void Release6(SASIDEV *);
+	void Release10(SASIDEV *);
+
+	// Command helpers
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
 	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;			// WRITE command
-	bool Seek(const DWORD *cdb);					// SEEK command
-	bool Assign(const DWORD *cdb);					// ASSIGN command
-	bool Specify(const DWORD *cdb);				// SPECIFY command
+	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
-	bool Removal(const DWORD *cdb);				// PREVENT/ALLOW MEDIUM REMOVAL command
-	int ReadCapacity10(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(10) command
-	int ReadCapacity16(const DWORD *cdb, BYTE *buf) override;			// READ CAPACITY(16) command
-	int ReportLuns(const DWORD *cdb, BYTE *buf);				// REPORT LUNS command
-	int GetSectorSize() const;
-	void SetSectorSize(int);
-	DWORD GetBlockCount() const;
-	void SetBlockCount(DWORD);
-	// TODO Currently not called
-	bool Verify(const DWORD *cdb);					// VERIFY command
-	virtual int ReadToc(const DWORD *cdb, BYTE *buf);		// READ TOC command
-	virtual bool PlayAudio(const DWORD *cdb);			// PLAY AUDIO command
-	virtual bool PlayAudioMSF(const DWORD *cdb);			// PLAY AUDIO MSF command
-	virtual bool PlayAudioTrack(const DWORD *cdb);			// PLAY AUDIO TRACK command
+
+	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
+	int ReadDefectData10(const DWORD *cdb, BYTE *buf);
+
+	void SetSize(uint32_t);
+	uint32_t GetSectorSizeInBytes() const;
+	void SetSectorSizeInBytes(uint32_t, bool);
+	uint32_t GetSectorSize() const;
+	bool IsSectorSizeConfigurable() const;
+	set<uint32_t> GetSectorSizes() const;
+	void SetSectorSizes(const set<uint32_t>&);
+	uint32_t GetConfiguredSectorSize() const;
+	bool SetConfiguredSectorSize(uint32_t);
+	void SetGeometries(const map<uint64_t, Geometry>&);
+	void SetGeometryForCapacity(uint64_t);
+	uint64_t GetBlockCount() const;
+	void SetBlockCount(uint32_t);
+	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
+	bool CheckReady();
+
+	// TODO This method should not be called by SASIDEV
+	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
 
 protected:
-	// Internal processing
-	virtual int AddError(bool change, BYTE *buf);			// Add error
-	virtual int AddFormat(bool change, BYTE *buf);			// Add format
-	virtual int AddDrive(bool change, BYTE *buf);			// Add drive
-	int AddOpt(bool change, BYTE *buf);				// Add optical
-	int AddCache(bool change, BYTE *buf);				// Add cache
-	int AddCDROM(bool change, BYTE *buf);				// Add CD-ROM
-	int AddCDDA(bool, BYTE *buf);				// Add CD_DA
-	virtual int AddVendor(int page, bool change, BYTE *buf);	// Add vendor special info
-	BOOL CheckReady();						// Check if ready
+	virtual int AddErrorPage(bool change, BYTE *buf);
+	virtual int AddFormatPage(bool change, BYTE *buf);
+	virtual int AddDrivePage(bool change, BYTE *buf);
+	virtual int AddVendorPage(int page, bool change, BYTE *buf);
+	int AddOptionPage(bool change, BYTE *buf);
+	int AddCachePage(bool change, BYTE *buf);
+	int AddCDROMPage(bool change, BYTE *buf);
+	int AddCDDAPage(bool, BYTE *buf);
 
-	// Internal data
-	disk_t disk;								// Internal disk data
-	BOOL cache_wb;								// Cache mode
+	virtual int RequestSense(const DWORD *cdb, BYTE *buf);
+
+	// Internal disk data
+	disk_t disk;
+
+private:
+	void Read(SASIDEV *, uint64_t);
+	void Write(SASIDEV *, uint64_t);
+	void Verify(SASIDEV *, uint64_t);
+	bool Format(const DWORD *cdb);
+	int ModeSense6(const DWORD *cdb, BYTE *buf);
+	int ModeSense10(const DWORD *cdb, BYTE *buf);
+	int ModeSelectCheck(const DWORD *cdb, int length);
+	int ModeSelectCheck6(const DWORD *cdb);
+	int ModeSelectCheck10(const DWORD *cdb);
 };

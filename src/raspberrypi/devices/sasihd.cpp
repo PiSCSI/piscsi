@@ -14,9 +14,10 @@
 //
 //---------------------------------------------------------------------------
 #include "sasihd.h"
-#include "xm6.h"
 #include "fileio.h"
 #include "exceptions.h"
+#include <sstream>
+#include "../rascsi.h"
 
 //===========================================================================
 //
@@ -31,7 +32,6 @@
 //---------------------------------------------------------------------------
 SASIHD::SASIHD() : Disk("SAHD")
 {
-	SetProtectable(true);
 }
 
 //---------------------------------------------------------------------------
@@ -62,30 +62,22 @@ void SASIHD::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open hard disk file read-only");
+		throw file_not_found_exception("Can't open SASI hard disk file");
 	}
 
 	// Get file size
 	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	#if defined(USE_MZ1F23_1024_SUPPORT)
-	// For MZ-2500 / MZ-2800 MZ-1F23 (SASI 20M / sector size 1024) only
-	// 20M(22437888 BS=1024 C=21912)
-	if (size == 0x1566000) {
-		// Sector size and number of blocks
-		SetSectorSize(10);
-		SetBlockCount((DWORD)(size >> 10));
-
-		Disk::Open(path);
-		FileSupport::SetPath(path);
-	}
-	#endif	// USE_MZ1F23_1024_SUPPORT
+	// Sector size (default 256 bytes) and number of blocks
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 256, true);
+	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
-	// Must be in 256-byte units
-	if (size & 0xff) {
-		throw io_exception("File size must be a multiple of 256 bytes");
+	if (size % GetSectorSizeInBytes()) {
+		stringstream error;
+		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
+		throw io_exception(error.str());
 	}
 
 	// 10MB or more
@@ -118,12 +110,19 @@ void SASIHD::Open(const Filepath& path)
 	}
 	#endif	// REMOVE_FIXED_SASIHD_SIZE
 
-	// Sector size 256 bytes and number of blocks
-	SetSectorSize(8);
-	SetBlockCount((DWORD)(size >> 8));
-
-	// Call the base class
 	Disk::Open(path);
+	FileSupport::SetPath(path);
+}
+
+//---------------------------------------------------------------------------
+//
+//	INQUIRY
+//
+//---------------------------------------------------------------------------
+int SASIHD::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/)
+{
+	SetStatusCode(STATUS_INVALIDCMD);
+	return 0;
 }
 
 //---------------------------------------------------------------------------

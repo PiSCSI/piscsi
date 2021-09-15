@@ -14,10 +14,12 @@
 //
 //---------------------------------------------------------------------------
 #include "scsihd.h"
-#include "xm6.h"
 #include "fileio.h"
 #include "exceptions.h"
 #include <sstream>
+#include "../rascsi.h"
+
+#define DEFAULT_PRODUCT "SCSI HD"
 
 //===========================================================================
 //
@@ -32,8 +34,38 @@
 //---------------------------------------------------------------------------
 SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
-	SetRemovable(removable);
+}
+
+void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
+{
+    // 2TB is the current maximum
+	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
+		throw io_exception("File size must not exceed 2 TB");
+	}
+
+	// For non-removable media drives set the default product name based on the drive capacity
+	if (!IsRemovable()) {
+		int capacity;
+		string unit;
+		if (GetBlockCount() >> 11 >= 1) {
+			capacity = GetBlockCount() >> 11;
+			unit = "MB";
+		}
+		else {
+			capacity = GetBlockCount() >> 1;
+			unit = "KB";
+		}
+		stringstream product;
+		product << DEFAULT_PRODUCT << " " << capacity << " " << unit;
+		SetProduct(product.str(), false);
+	}
+
+	SetReadOnly(false);
 	SetProtectable(true);
+	SetProtected(false);
+
+	Disk::Open(path);
+	FileSupport::SetPath(path);
 }
 
 //---------------------------------------------------------------------------
@@ -64,36 +96,25 @@ void SCSIHD::Open(const Filepath& path)
 	// Open as read-only
 	Fileio fio;
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		throw io_exception("Can't open hard disk file read-only");
+		throw file_not_found_exception("Can't open SCSI hard disk file");
 	}
 
 	// Get file size
 	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	// Must be a multiple of 512 bytes
-	if (size & 0x1ff) {
-		throw io_exception("File size must be a multiple of 512 bytes");
+	// Sector size (default 512 bytes) and number of blocks
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, false);
+	SetBlockCount((DWORD)(size >> GetSectorSize()));
+
+	// File size must be a multiple of the sector size
+	if (size % GetSectorSizeInBytes()) {
+		stringstream error;
+		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
+		throw io_exception(error.str());
 	}
 
-    // 2TB is the current maximum
-	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("File size must not exceed 2 TB");
-	}
-
-	// sector size 512 bytes and number of blocks
-	SetSectorSize(9);
-	SetBlockCount((DWORD)(size >> 9));
-
-	LOGINFO("Media capacity for image file '%s': %d blocks", path.GetPath(),GetBlockCount());
-
-	// Set the default product name based on the drive capacity
-	stringstream product;
-	product << DEFAULT_PRODUCT << " " << (GetBlockCount() >> 11) << " MB";
-	SetProduct(product.str(), false);
-
-	Disk::Open(path);
-	FileSupport::SetPath(path);
+	FinalizeSetup(path, size);
 }
 
 //---------------------------------------------------------------------------
@@ -125,12 +146,6 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 	// buf[3] ... SCSI-2 compliant Inquiry response
 	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
-
-	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != GetLun()) {
-		buf[0] = 0x7f;
-	}
-
 	buf[1] = IsRemovable() ? 0x80 : 0x00;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
@@ -153,12 +168,10 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	BYTE page;
 	int size;
 
 	ASSERT(buf);
@@ -184,7 +197,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Parsing the page
 		while (length > 0) {
 			// Get page
-			page = buf[0];
+			BYTE page = buf[0];
 
 			switch (page) {
 				// format device
@@ -200,6 +213,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 					break;
 
                 // CD-ROM Parameters
+				// TODO Move to scsicd.cpp
                 // According to the SONY CDU-541 manual, Page code 8 is supposed
                 // to set the Logical Block Adress Format, as well as the
                 // inactivity timer multiplier
@@ -235,7 +249,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Add Vendor special page to make drive Apple compatible
 //
 //---------------------------------------------------------------------------
-int SCSIHD::AddVendor(int page, bool change, BYTE *buf)
+int SCSIHD::AddVendorPage(int page, bool change, BYTE *buf)
 {
 	ASSERT(buf);
 

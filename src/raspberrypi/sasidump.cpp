@@ -5,7 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ HDDダンプユーティリティ(イニシーエタモード/SASI Version) ]
+//	[ HDD dump utility (Initiator mode/SASI Version) ]
 //
 //	SASI IMAGE EXAMPLE
 //		X68000
@@ -19,39 +19,24 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "xm6.h"
 #include "fileio.h"
 #include "filepath.h"
 #include "gpiobus.h"
+#include "rascsi.h"
 #include "rascsi_version.h"
 
-//---------------------------------------------------------------------------
-//
-// Constant declaration
-//
-//---------------------------------------------------------------------------
-#define BUFSIZE 1024 * 64			// 64KBぐらいかなぁ
+#define BUFSIZE 1024 * 64			// Maybe around 64KB?
 
-//---------------------------------------------------------------------------
-//
-// Variable declaration
-//
-//---------------------------------------------------------------------------
-GPIOBUS bus;						// バス
-int targetid;						// ターゲットデバイスID
-int unitid;							// ターゲットユニットID
-int bsiz;							// ブロックサイズ
-int bnum;							// ブロック数
-Filepath hdffile;					// HDFファイル
-bool restore;						// リストアフラグ
-BYTE buffer[BUFSIZE];				// ワークバッファ
-int result;							// 結果コード
+GPIOBUS bus;
+int targetid;
+int unitid;
+int bsiz;							// Block size
+int bnum;							// Number of blocks
+Filepath hdffile;					// HDF file
+bool restore;						// Restore flag
+BYTE buffer[BUFSIZE];				// Work buffer
+int result;							// Result code
 
-//---------------------------------------------------------------------------
-//
-// Function declaration
-//
-//---------------------------------------------------------------------------
 void Cleanup();
 
 //---------------------------------------------------------------------------
@@ -73,7 +58,7 @@ void KillHandler(int sig)
 //---------------------------------------------------------------------------
 bool Banner(int argc, char* argv[])
 {
-	printf("RaSCSI hard disk dump utility(SASI HDD) ");
+	printf("RaSCSI hard disk dump utility (SASI HDD) ");
 	printf("version %s (%s, %s)\n",
 			rascsi_get_version_string(),
 			__DATE__,
@@ -93,14 +78,9 @@ bool Banner(int argc, char* argv[])
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-// Initialization
-//
-//---------------------------------------------------------------------------
 bool Init()
 {
-	// 割り込みハンドラ設定
+	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
 		return false;
 	}
@@ -111,12 +91,12 @@ bool Init()
 		return false;
 	}
 
-	// GPIO初期化
+	// GPIO initialization
 	if (!bus.Init(BUS::INITIATOR)) {
 		return false;
 	}
 
-	// ワーク初期化
+	// Work initialization
 	targetid = -1;
 	unitid = 0;
 	bsiz = 256;
@@ -126,42 +106,26 @@ bool Init()
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	クリーンアップ
-//
-//---------------------------------------------------------------------------
 void Cleanup()
 {
-	// バスをクリーンアップ
 	bus.Cleanup();
 }
 
-//---------------------------------------------------------------------------
-//
-// Reset
-//
-//---------------------------------------------------------------------------
 void Reset()
 {
 	// Reset bus signal line
 	bus.Reset();
 }
 
-//---------------------------------------------------------------------------
-//
-//  Argument processing
-//
-//---------------------------------------------------------------------------
 bool ParseArgument(int argc, char* argv[])
 {
 	int opt;
 	char *file;
 
-	// 初期化
+	// Initialization
 	file = NULL;
 
-	// 引数解析
+	// Argument parsing
 	opterr = 0;
 	while ((opt = getopt(argc, argv, "i:u:b:c:f:r")) != -1) {
 		switch (opt) {
@@ -191,35 +155,35 @@ bool ParseArgument(int argc, char* argv[])
 		}
 	}
 
-	// TARGET IDチェック
+	// TARGET ID check
 	if (targetid < 0 || targetid > 7) {
 		fprintf(stderr,
 			"Error : Invalid target id range\n");
 		return false;
 	}
 
-	// UNIT IDチェック
+	// UNIT ID check
 	if (unitid < 0 || unitid > 1) {
 		fprintf(stderr,
 			"Error : Invalid unit id range\n");
 		return false;
 	}
 
-	// BSIZチェック
+	// BSIZ check
 	if (bsiz != 256 && bsiz != 512 && bsiz != 1024) {
 		fprintf(stderr,
 			"Error : Invalid block size\n");
 		return false;
 	}
 
-	// BNUMチェック
+	// BNUM check
 	if (bnum < 0) {
 		fprintf(stderr,
 			"Error : Invalid block count\n");
 		return false;
 	}
 
-	// ファイルチェック
+	// File check
 	if (!file) {
 		fprintf(stderr,
 			"Error : Invalid file path\n");
@@ -231,16 +195,11 @@ bool ParseArgument(int argc, char* argv[])
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-// Waiting for phase
-//
-//---------------------------------------------------------------------------
 bool WaitPhase(BUS::phase_t phase)
 {
 	DWORD now;
 
-	// タイムアウト(3000ms)
+	// Timeout (3000ms)
 	now = SysTimer::GetTimerLow();
 	while ((SysTimer::GetTimerLow() - now) < 3 * 1000 * 1000) {
 		bus.Aquire();
@@ -254,12 +213,11 @@ bool WaitPhase(BUS::phase_t phase)
 
 //---------------------------------------------------------------------------
 //
-//	バスフリーフェーズ実行
+//	Bus free phase execution
 //
 //---------------------------------------------------------------------------
 void BusFree()
 {
-	// バスリセット
 	bus.Reset();
 }
 
@@ -273,13 +231,13 @@ bool Selection(int id)
 	BYTE data;
 	int count;
 
-	// ID設定とSELアサート
+	// ID setting and SEL assertion
 	data = 0;
 	data |= (1 << id);
 	bus.SetDAT(data);
 	bus.SetSEL(TRUE);
 
-	// BSYを待つ
+	// Wait for BSY
 	count = 10000;
 	do {
 		usleep(20);
@@ -289,10 +247,10 @@ bool Selection(int id)
 		}
 	} while (count--);
 
-	// SELネゲート
+	// SEL negate
 	bus.SetSEL(FALSE);
 
-	// ターゲットがビジー状態なら成功
+	// Return true if target is busy
 	return bus.GetBSY();
 }
 
@@ -305,20 +263,20 @@ bool Command(BYTE *buf, int length)
 {
 	int count;
 
-	// フェーズ待ち
+	// Wait for phase
 	if (!WaitPhase(BUS::command)) {
 		return false;
 	}
 
-	// コマンド送信
+	// Send command
 	count = bus.SendHandShake(buf, length);
 
-	// 送信結果が依頼数と同じなら成功
+	// Return true is send results match number of requests
 	if (count == length) {
 		return true;
 	}
 
-	// 送信エラー
+	// Send error
 	return false;
 }
 
@@ -329,12 +287,12 @@ bool Command(BYTE *buf, int length)
 //---------------------------------------------------------------------------
 int DataIn(BYTE *buf, int length)
 {
-	// フェーズ待ち
+	// Wait for phase
 	if (!WaitPhase(BUS::datain)) {
 		return -1;
 	}
 
-	// データ受信
+	// Receive data
 	return bus.ReceiveHandShake(buf, length);
 }
 
@@ -345,80 +303,78 @@ int DataIn(BYTE *buf, int length)
 //---------------------------------------------------------------------------
 int DataOut(BYTE *buf, int length)
 {
-	// フェーズ待ち
+	// Wait for phase
 	if (!WaitPhase(BUS::dataout)) {
 		return -1;
 	}
 
-	// データ受信
+	// Receive data
 	return bus.SendHandShake(buf, length);
 }
 
 //---------------------------------------------------------------------------
 //
-//	ステータスフェーズ実行
+//	Status phase execution
 //
 //---------------------------------------------------------------------------
 int Status()
 {
 	BYTE buf[256];
 
-	// フェーズ待ち
+	// Wait for phase
 	if (!WaitPhase(BUS::status)) {
 		return -2;
 	}
 
-	// データ受信
+	// Receive data
 	if (bus.ReceiveHandShake(buf, 1) == 1) {
 		return (int)buf[0];
 	}
 
-	// 受信エラー
+	// Receive error
 	return -1;
 }
 
 //---------------------------------------------------------------------------
 //
-//	メッセージインフェーズ実行
+//	Message in phase execution
 //
 //---------------------------------------------------------------------------
 int MessageIn()
 {
 	BYTE buf[256];
 
-	// フェーズ待ち
+	// Wait for phase
 	if (!WaitPhase(BUS::msgin)) {
 		return -2;
 	}
 
-	// データ受信
+	// Receive data
 	if (bus.ReceiveHandShake(buf, 1) == 1) {
 		return (int)buf[0];
 	}
 
-	// 受信エラー
+	// Receive error
 	return -1;
 }
 
 //---------------------------------------------------------------------------
 //
-//	TEST UNIT READY実行
+//	TEST UNIT READY execution
 //
 //---------------------------------------------------------------------------
 int TestUnitReady(int id)
 {
 	BYTE cmd[256];
 
-	// 結果コード初期化
+	// Initialize result code
 	result = 0;
 
-	// SELECTION
 	if (!Selection(id)) {
 		result = -1;
 		goto exit;
 	}
 
-	// COMMAND
 	memset(cmd, 0x00, 6);
 	cmd[0] = 0x00;
 	cmd[1] = unitid << 5;
@@ -427,20 +383,17 @@ int TestUnitReady(int id)
 		goto exit;
 	}
 
-	// STATUS
 	if (Status() < 0) {
 		result = -4;
 		goto exit;
 	}
 
-	// MESSAGE IN
 	if (MessageIn() < 0) {
 		result = -5;
 		goto exit;
 	}
 
 exit:
-	// バスフリー
 	BusFree();
 
 	return result;
@@ -448,7 +401,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	REQUEST SENSE実行
+//	REQUEST SENSE execution
 //
 //---------------------------------------------------------------------------
 int RequestSense(int id, BYTE *buf)
@@ -456,17 +409,15 @@ int RequestSense(int id, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// 結果コード初期化
+	// Initialize result codes
 	result = 0;
 	count = 0;
 
-	// SELECTION
 	if (!Selection(id)) {
 		result = -1;
 		goto exit;
 	}
 
-	// COMMAND
 	memset(cmd, 0x00, 6);
 	cmd[0] = 0x03;
 	cmd[1] = unitid << 5;
@@ -476,7 +427,6 @@ int RequestSense(int id, BYTE *buf)
 		goto exit;
 	}
 
-	// DATAIN
 	memset(buf, 0x00, 256);
 	count = DataIn(buf, 256);
 	if (count <= 0) {
@@ -484,23 +434,20 @@ int RequestSense(int id, BYTE *buf)
 		goto exit;
 	}
 
-	// STATUS
 	if (Status() < 0) {
 		result = -4;
 		goto exit;
 	}
 
-	// MESSAGE IN
 	if (MessageIn() < 0) {
 		result = -5;
 		goto exit;
 	}
 
 exit:
-	// バスフリー
 	BusFree();
 
-	// 成功であれば転送数を返す
+	// If successful, return number of transfers
 	if (result == 0) {
 		return count;
 	}
@@ -510,7 +457,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	READ6実行
+//	READ6 execution
 //
 //---------------------------------------------------------------------------
 int Read6(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
@@ -518,17 +465,15 @@ int Read6(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// 結果コード初期化
+	// Initialize result codes
 	result = 0;
 	count = 0;
 
-	// SELECTION
 	if (!Selection(id)) {
 		result = -1;
 		goto exit;
 	}
 
-	// COMMAND
 	memset(cmd, 0x00, 10);
 	cmd[0] = 0x8;
 	cmd[1] = (BYTE)(bstart >> 16);
@@ -542,30 +487,26 @@ int Read6(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 		goto exit;
 	}
 
-	// DATAIN
 	count = DataIn(buf, length);
 	if (count <= 0) {
 		result = -3;
 		goto exit;
 	}
 
-	// STATUS
 	if (Status() < 0) {
 		result = -4;
 		goto exit;
 	}
 
-	// MESSAGE IN
 	if (MessageIn() < 0) {
 		result = -5;
 		goto exit;
 	}
 
 exit:
-	// バスフリー
 	BusFree();
 
-	// 成功であれば転送数を返す
+	// If successful, return number of transfers
 	if (result == 0) {
 		return count;
 	}
@@ -575,7 +516,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	WRITE6実行
+//	WRITE6 execution
 //
 //---------------------------------------------------------------------------
 int Write6(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
@@ -583,17 +524,15 @@ int Write6(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 	BYTE cmd[256];
 	int count;
 
-	// 結果コード初期化
+	// Initialize result codes
 	result = 0;
 	count = 0;
 
-	// SELECTION
 	if (!Selection(id)) {
 		result = -1;
 		goto exit;
 	}
 
-	// COMMAND
 	memset(cmd, 0x00, 10);
 	cmd[0] = 0xa;
 	cmd[1] = (BYTE)(bstart >> 16);
@@ -607,30 +546,26 @@ int Write6(int id, DWORD bstart, DWORD blength, DWORD length, BYTE *buf)
 		goto exit;
 	}
 
-	// DATAOUT
 	count = DataOut(buf, length);
 	if (count <= 0) {
 		result = -3;
 		goto exit;
 	}
 
-	// STATUS
 	if (Status() < 0) {
 		result = -4;
 		goto exit;
 	}
 
-	// MESSAGE IN
 	if (MessageIn() < 0) {
 		result = -5;
 		goto exit;
 	}
 
 exit:
-	// バスフリー
 	BusFree();
 
-	// 成功であれば転送数を返す
+	// If successful, return number of transfers
 	if (result == 0) {
 		return count;
 	}
@@ -640,7 +575,7 @@ exit:
 
 //---------------------------------------------------------------------------
 //
-//	主処理
+//	Main processing
 //
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
@@ -654,32 +589,28 @@ int main(int argc, char* argv[])
 	Fileio::OpenMode omode;
 	off_t size;
 
-	// バナー出力
+	// Output banner
 	if (!Banner(argc, argv)) {
 		exit(0);
 	}
 
-	// 初期化
 	if (!Init()) {
 		fprintf(stderr, "Error : Initializing\n");
 
-		// 恐らくrootでは無い？
+		// Probably not executing as root?
 		exit(EPERM);
 	}
 
-	// 構築
 	if (!ParseArgument(argc, argv)) {
-		// クリーンアップ
 		Cleanup();
 
-		// 引数エラーで終了
+		// Exit with argument error
 		exit(EINVAL);
 	}
 
-	// リセット
 	Reset();
 
-	// ファイルオープン
+	// Open file
 	if (restore) {
 		omode = Fileio::ReadOnly;
 	} else {
@@ -688,20 +619,18 @@ int main(int argc, char* argv[])
 	if (!fio.Open(hdffile.GetPath(), omode)) {
 		fprintf(stderr, "Error : Can't open hdf file\n");
 
-		// クリーンアップ
 		Cleanup();
 		exit(EPERM);
 	}
 
-	// バスフリー
 	BusFree();
 
-	// RESETシグナル発行
+	// Execute RESET signal
 	bus.SetRST(TRUE);
 	usleep(1000);
 	bus.SetRST(FALSE);
 
-	// ダンプ開始
+	// Start dump
 	printf("TARGET ID               : %d\n", targetid);
 	printf("UNIT ID                 : %d\n", unitid);
 
@@ -712,23 +641,22 @@ int main(int argc, char* argv[])
 		goto cleanup_exit;
 	}
 
-	// REQUEST SENSE(for CHECK CONDITION)
+	// REQUEST SENSE (for CHECK CONDITION)
 	count = RequestSense(targetid, buffer);
 	if (count < 0) {
 		fprintf(stderr, "REQUEST SENSE ERROR %d\n", count);
 		goto cleanup_exit;
 	}
 
-	// ブロックサイズとブロック数の表示
 	printf("Number of blocks        : %d Blocks\n", bnum);
 	printf("Block length            : %d Bytes\n", bsiz);
 
-	// データサイズの表示
+	// Display data size
 	printf("Total length            : %d MBytes %d Bytes\n",
 		(bsiz * bnum / 1024 / 1024),
 		(bsiz * bnum));
 
-	// リストアファイルサイズの取得
+	// Get restore file size
 	if (restore) {
 		size = fio.GetFileSize();
 		printf("Restore file size       : %d bytes", (int)size);
@@ -741,7 +669,7 @@ int main(int argc, char* argv[])
 		printf("\n");
 	}
 
-	// バッファサイズ毎にダンプする
+	// Dump by buffer size
 	duni = BUFSIZE;
 	duni /= bsiz;
 	dsiz = BUFSIZE;
@@ -789,7 +717,7 @@ int main(int argc, char* argv[])
 		printf("\033[0K");
 	}
 
-	// 容量上の端数処理
+	// Rounding of capacity
 	dnum = bnum % duni;
 	dsiz = dnum * bsiz;
 
@@ -805,16 +733,13 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	// 完了メッセージ
+	// Completion message
 	printf("%3d%%(%7d/%7d)\n", 100, bnum, bnum);
 
 cleanup_exit:
-	// ファイルクローズ
 	fio.Close();
 
-	// クリーンアップ
 	Cleanup();
 
-	// 終了
 	exit(0);
 }
