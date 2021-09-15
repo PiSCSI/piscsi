@@ -40,7 +40,7 @@ The rascsi host to connect to, default is 'localhost'.
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
 .TP
-.BR \-m\fI " "\fIOLD_NAME:NEW_NAME
+.BR \-m\fI " "\fICURRENT_NAME:NEW_NAME
 Rename an image file in the default image folder.
 .TP
 .BR \-p\fI " " \fIPORT
@@ -55,8 +55,11 @@ Display server-side settings like available images or supported device types.
 .BR \-v\fI " " \fI
 Display the rascsi version.
 .TP
-.BR \-x\fI " "\fIFILENAME
+.BR \-w\fI " "\fIFILENAME
 Delete an image file in the default image folder.
+.TP
+.BR \-x\fI " "\fICURRENT_NAME:NEW_NAME
+Copy an image file in the default image folder.
 .TP
 .BR \-i\fI " " \fIID
 ID is the SCSI ID that you want to control. (0-7)

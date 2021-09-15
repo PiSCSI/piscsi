@@ -35,7 +35,7 @@ OPTIONS
        -l     List all of the devices that are  currently  being  emulated  by
               RaSCSI, as well as their current status.
 
-       -m OLD_NAME:NEW_NAME
+       -m CURRENT_NAME:NEW_NAME
               Rename an image file in the default image folder.
 
        -p PORT
@@ -49,8 +49,11 @@ OPTIONS
 
        -v     Display the rascsi version.
 
-       -x FILENAME
+       -w FILENAME
               Delete an image file in the default image folder.
+
+       -x CURRENT_NAME:NEW_NAME
+              Copy an image file in the default image folder.
 
        -i ID  ID is the SCSI ID that you want to control. (0-7)
 

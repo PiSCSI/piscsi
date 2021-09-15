@@ -249,7 +249,26 @@ void CommandRenameImage(const string&hostname, int port, const string& image_par
 		command.add_params(image_params.substr(separatorPos + 1));
 	}
 	else {
-		cerr << "Error: Invalid file description '" << image_params << "', format is OLD_NAME:NEW_NAME" << endl;
+		cerr << "Error: Invalid file description '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
+}
+
+void CommandCopyImage(const string&hostname, int port, const string& image_params)
+{
+	PbCommand command;
+	command.set_operation(COPY_IMAGE);
+
+	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
+	if (separatorPos != string::npos) {
+		command.add_params(image_params.substr(0, separatorPos));
+		command.add_params(image_params.substr(separatorPos + 1));
+	}
+	else {
+		cerr << "Error: Invalid file description '" << image_params << "', format is CURENT_NAME:NEW_NAME" << endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -558,7 +577,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -676,6 +695,11 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'x':
+				command.set_operation(COPY_IMAGE);
+				image_params = optarg;
+				break;
+
+			case 'w':
 				command.set_operation(DELETE_IMAGE);
 				image_params = optarg;
 				break;
@@ -709,6 +733,10 @@ int main(int argc, char* argv[])
 
 		case RENAME_IMAGE:
 			CommandRenameImage(hostname, port, image_params);
+			exit(EXIT_SUCCESS);
+
+		case COPY_IMAGE:
+			CommandCopyImage(hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case DEVICE_INFO:
