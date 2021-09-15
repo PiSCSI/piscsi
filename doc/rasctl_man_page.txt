@@ -35,6 +35,9 @@ OPTIONS
        -l     List all of the devices that are  currently  being  emulated  by
               RaSCSI, as well as their current status.
 
+       -m OLD_NAME:NEW_NAME
+              Rename an image file in the default image folder.
+
        -p PORT
               The rascsi port to connect to, default is 6868.
 

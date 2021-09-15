@@ -776,6 +776,31 @@ bool DeleteImage(int fd, const PbCommand& command)
 	return ReturnStatus(fd);
 }
 
+bool RenameImage(int fd, const PbCommand& command)
+{
+	if (command.params().size() < 2 || command.params().Get(0).empty() || command.params().Get(1).empty()) {
+		return ReturnStatus(fd, false, "Can't rename image file: Missing filename");
+	}
+
+	string src = command.params().Get(0);
+	if (src.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + src + "' must not contain a path");
+	}
+	string dst = command.params().Get(1);
+	if (dst.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + dst + "' must not contain a path");
+	}
+
+	src = default_image_folder + "/" + src;
+	dst = default_image_folder + "/" + dst;
+
+	if (rename(src.c_str(), dst.c_str())) {
+		return ReturnStatus(fd, false, "Can't rename image file '" + src + "' to '" + dst + "': " + string(strerror(errno)));
+	}
+
+	return ReturnStatus(fd);
+}
+
 void DetachAll()
 {
 	Device *map[devices.size()];
@@ -1229,6 +1254,9 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 		case DELETE_IMAGE:
 			return DeleteImage(fd, command);
+
+		case RENAME_IMAGE:
+			return RenameImage(fd, command);
 
 		default:
 			// This is a device-specific command handled below
