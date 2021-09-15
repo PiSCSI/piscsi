@@ -22,8 +22,8 @@ DESCRIPTION
 
 OPTIONS
        -a FILENAME:FILESIZE
-              Create a disk image file with the specified  name  and  size  in
-              bytes.
+              Create an image file in the default image folder with the speci‐
+              fied name and size in bytes.
 
        -g LOG_LEVEL
               Set  the rascsi log level (trace, debug, info, warn, err, criti‐

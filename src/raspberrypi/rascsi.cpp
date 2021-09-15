@@ -712,9 +712,11 @@ bool CreateImage(int fd, const PbCommand& command)
 	}
 
 	string filename = command.params().Get(0);
-	if (filename[0] != '/') {
-		filename = default_image_folder + "/" + filename;
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
 	}
+
+	filename = default_image_folder + "/" + filename;
 
 	off_t len;
 	try {

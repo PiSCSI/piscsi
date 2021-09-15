@@ -61,8 +61,12 @@ enum PbOperation {
     RESERVE = 14;
     // Create an image file. The image file must not yet exist.
     // PbCommand.params(0) contains the filename, PbCommand.params(1) contains the file size in bytes.
-    // If the filename is relative (does not start with a slash) the file is created in the default image folder.
+    // The filename always refers to the default image folder and must not contain a slash.
     CREATE_IMAGE = 15;
+    // Delete an image file
+    // PbCommand.params(0) contains the filename.
+    // The filename always refers to the default image folder and must not contain a slash.
+    DELETE_IMAGE = 16;
 }
 
 // The properties supported by a device, helping clients to offer a good user experience
