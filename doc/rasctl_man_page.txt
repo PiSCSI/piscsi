@@ -46,6 +46,9 @@ OPTIONS
 
        -v     Display the rascsi version.
 
+       -x FILENAME
+              Delete an image file in the default image folder.
+
        -i ID  ID is the SCSI ID that you want to control. (0-7)
 
        -c CMD Command is the operation being requested. Options are:

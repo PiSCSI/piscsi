@@ -221,6 +221,17 @@ void CommandCreateImage(const string&hostname, int port, const string& image_par
     SendCommand(hostname.c_str(), port, command, result);
 }
 
+void CommandDeleteImage(const string&hostname, int port, const string& filename)
+{
+	PbCommand command;
+	command.set_operation(DELETE_IMAGE);
+
+	command.add_params(filename);
+
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
+}
+
 void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
 {
 	PbCommand command;
@@ -522,7 +533,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:n:p:r:t:u:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:n:p:r:t:u:x:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -633,6 +644,11 @@ int main(int argc, char* argv[])
 				cout << rascsi_get_version_string() << endl;
 				exit(EXIT_SUCCESS);
 				break;
+
+			case 'x':
+				command.set_operation(DELETE_IMAGE);
+				image_params = optarg;
+				break;
 		}
 	}
 
@@ -655,6 +671,10 @@ int main(int argc, char* argv[])
 
 		case CREATE_IMAGE:
 			CommandCreateImage(hostname, port, image_params);
+			exit(EXIT_SUCCESS);
+
+		case DELETE_IMAGE:
+			CommandDeleteImage(hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case DEVICE_INFO:

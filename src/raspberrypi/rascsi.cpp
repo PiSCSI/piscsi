@@ -756,6 +756,26 @@ bool CreateImage(int fd, const PbCommand& command)
 	return ReturnStatus(fd);
 }
 
+bool DeleteImage(int fd, const PbCommand& command)
+{
+	if (command.params().size() < 1 || command.params().Get(0).empty()) {
+		return ReturnStatus(fd, false, "Can't delete image file: Missing filename");
+	}
+
+	string filename = command.params().Get(0);
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
+	}
+
+	filename = default_image_folder + "/" + filename;
+
+	if (unlink(filename.c_str())) {
+		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
+	}
+
+	return ReturnStatus(fd);
+}
+
 void DetachAll()
 {
 	Device *map[devices.size()];
@@ -1189,21 +1209,30 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
-	if (command.operation() == DETACH_ALL) {
-		DetachAll();
-		return ReturnStatus(fd);
-	}
-	else if (command.operation() == RESERVE) {
-		const list<string> ids = { command.params().begin(), command.params().end() };
-		string invalid_id = SetReservedIds(ids);
-		if (!invalid_id.empty()) {
-			return ReturnStatus(fd, false, "Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
+	switch (command.operation()) {
+		case DETACH_ALL:
+			DetachAll();
+			return ReturnStatus(fd);
+
+		case RESERVE: {
+			const list<string> ids = { command.params().begin(), command.params().end() };
+			string invalid_id = SetReservedIds(ids);
+			if (!invalid_id.empty()) {
+				return ReturnStatus(fd, false, "Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
+			}
+
+			return ReturnStatus(fd);
 		}
 
-		return ReturnStatus(fd);
-	}
-	else if (command.operation() == CREATE_IMAGE) {
-		return CreateImage(fd, command);
+		case CREATE_IMAGE:
+			return CreateImage(fd, command);
+
+		case DELETE_IMAGE:
+			return DeleteImage(fd, command);
+
+		default:
+			// This is a device-specific command handled below
+			break;
 	}
 
 	const vector<string> params = { command.params().begin(), command.params().end() };
