@@ -64,9 +64,7 @@ OPTIONS
        -IDn FILE
               n is the SCSI ID number (0-7)
 
-              FILE is the name of the image file to use for the  SCSI  device.
-              For  devices  that  do  not support an image file (SCBR, SCDP) a
-              dummy name must be provided.
+              FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file (SCBR, SCDP) a dummy name must be provided.
 
        -HDn FILE
               n is the SASI ID number (0-15)
