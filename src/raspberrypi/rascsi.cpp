@@ -31,6 +31,7 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
+#include <sys/sendfile.h>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -811,11 +812,11 @@ bool RenameImage(int fd, const PbCommand& command)
 
 	string src = command.params().Get(0);
 	if (src.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The image filename '" + src + "' must not contain a path");
+		return ReturnStatus(fd, false, "The current filename '" + src + "' must not contain a path");
 	}
 	string dst = command.params().Get(1);
 	if (dst.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The image filename '" + dst + "' must not contain a path");
+		return ReturnStatus(fd, false, "The new filename '" + dst + "' must not contain a path");
 	}
 
 	src = default_image_folder + "/" + src;
@@ -831,6 +832,61 @@ bool RenameImage(int fd, const PbCommand& command)
 	}
 
 	LOGINFO("%s", string("Renamed image file '" + src + "' to '" + dst + "'").c_str());
+
+	return ReturnStatus(fd);
+}
+
+bool CopyImage(int fd, const PbCommand& command)
+{
+	if (command.params().size() < 2 || command.params().Get(0).empty() || command.params().Get(1).empty()) {
+		return ReturnStatus(fd, false, "Can't copy image file: Missing filename");
+	}
+
+	string src = command.params().Get(0);
+	if (src.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The current filename '" + src + "' must not contain a path");
+	}
+	string dst = command.params().Get(1);
+	if (dst.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The new filename '" + dst + "' must not contain a path");
+	}
+
+	src = default_image_folder + "/" + src;
+	dst = default_image_folder + "/" + dst;
+
+	struct stat st;
+	if (!stat(dst.c_str(), &st)) {
+		return ReturnStatus(fd, false, "Image file '" + dst + "' already exists");
+	}
+
+	int fd_src = open(src.c_str(), O_RDONLY, 0);
+	if (fd_src == -1) {
+		return ReturnStatus(fd, false, "Can't open source image file '" + src + "': " + string(strerror(errno)));
+	}
+
+	struct stat st_src;
+    if (fstat(fd_src, &st_src) == -1) {
+		return ReturnStatus(fd, false, "Can't read source image file '" + src + "': " + string(strerror(errno)));
+    }
+
+	int fd_dst = open(dst.c_str(), O_WRONLY | O_CREAT, st_src.st_mode);
+	if (fd_dst == -1) {
+		close (fd_dst);
+
+		return ReturnStatus(fd, false, "Can't open destination image file '" + dst + "': " + string(strerror(errno)));
+	}
+
+    if (sendfile(fd_dst, fd_src, 0, st_src.st_size) == -1) {
+        close(fd_dst);
+        close(fd_src);
+
+        return ReturnStatus(fd, false, "Can't copy image file '" + src + "' to '" + dst + "': " + string(strerror(errno)));
+	}
+
+    close(fd_dst);
+    close(fd_src);
+
+	LOGINFO("%s", string("Copied image file '" + src + "' to '" + dst + "'").c_str());
 
 	return ReturnStatus(fd);
 }
@@ -1292,6 +1348,9 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 		case RENAME_IMAGE:
 			return RenameImage(fd, command);
+
+		case COPY_IMAGE:
+			return CopyImage(fd, command);
 
 		default:
 			// This is a device-specific command handled below

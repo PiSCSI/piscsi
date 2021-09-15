@@ -68,9 +68,12 @@ enum PbOperation {
     // Delete an image file. PbCommand.params(0) contains the filename.
     // The filename is relative to the default image folder and must not contain a slash.
     DELETE_IMAGE = 16;
-    // Rename an image file. PbCommand.params(0) contains the old filename, PbCommand.params(1) the new name.
-    // The filename is relative to the default image folder and must not contain a slash.
+    // Rename an image file. PbCommand.params(0) contains the current filename, PbCommand.params(1) the new name.
+    // The filenames are relative to the default image folder and must not contain a slash.
     RENAME_IMAGE = 17;
+    // Copy an image file. PbCommand.params(0) contains the source filename, PbCommand.params(1) the destination name.
+    // The filenames are relative to the default image folder and must not contain a slash.
+    COPY_IMAGE = 18;
 }
 
 // The properties supported by a device
