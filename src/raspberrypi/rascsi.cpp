@@ -705,6 +705,55 @@ string SetReservedIds(const list<string>& ids_to_reserve)
 	return "";
 }
 
+bool CreateImage(int fd, const PbCommand& command)
+{
+	if (command.params().size() < 2 || command.params().Get(0).empty() || command.params().Get(1).empty()) {
+		return ReturnStatus(fd, false, "Can't create image file: Missing filename or file size");
+	}
+
+	string filename = command.params().Get(0);
+	if (filename[0] != '/') {
+		filename = default_image_folder + "/" + filename;
+	}
+
+	off_t len;
+	try {
+		len = stoul(command.params().Get(1));
+	}
+	catch(const invalid_argument& e) {
+		return ReturnStatus(fd, false, "Invalid image file size " + command.params().Get(1));
+	}
+	catch(const out_of_range& e) {
+		return ReturnStatus(fd, false, "Invalid image file size " + command.params().Get(1));
+	}
+	if (len < 256) {
+		ostringstream error;
+		error << "Invalid image file size " << len;
+		return ReturnStatus(fd, false, error.str());
+	}
+
+	struct stat st;
+	if (!stat(filename.c_str(), &st)) {
+		return ReturnStatus(fd, false, "Image file '" + filename + "' already exists");
+	}
+
+	// Since rascsi is running as root ensure that others can access the file
+	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+	if (image_fd == -1) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': " + string(strerror(errno)));
+	}
+
+	if (fallocate(image_fd, 0, 0, len) == -1) {
+		close(image_fd);
+
+		return ReturnStatus(fd, false, "Can't allocate space for image file '" + filename + "': " + string(strerror(errno)));
+	}
+
+	close(image_fd);
+
+	return ReturnStatus(fd);
+}
+
 void DetachAll()
 {
 	Device *map[devices.size()];
@@ -1146,10 +1195,13 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		const list<string> ids = { command.params().begin(), command.params().end() };
 		string invalid_id = SetReservedIds(ids);
 		if (!invalid_id.empty()) {
-			return ReturnStatus(fd, false,"Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
+			return ReturnStatus(fd, false, "Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
 		}
 
 		return ReturnStatus(fd);
+	}
+	else if (command.operation() == CREATE_IMAGE) {
+		return CreateImage(fd, command);
 	}
 
 	const vector<string> params = { command.params().begin(), command.params().end() };

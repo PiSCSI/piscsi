@@ -206,6 +206,21 @@ void CommandReserve(const string&hostname, int port, const string& reserved_ids)
     SendCommand(hostname.c_str(), port, command, result);
 }
 
+void CommandCreateImage(const string&hostname, int port, const string& image_params)
+{
+	PbCommand command;
+	command.set_operation(CREATE_IMAGE);
+
+	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
+	if (separatorPos != string::npos) {
+		command.add_params(image_params.substr(0, separatorPos));
+		command.add_params(image_params.substr(separatorPos + 1));
+	}
+
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
+}
+
 void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
 {
 	PbCommand command;
@@ -502,11 +517,12 @@ int main(int argc, char* argv[])
 	string log_level;
 	string default_folder;
 	string reserved_ids;
+	string image_params;
 	bool list = false;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "b:c:d:f:g:h:i:n:p:r:t:u:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:n:p:r:t:u:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -514,6 +530,11 @@ int main(int argc, char* argv[])
 
 			case 'u':
 				device->set_unit(optarg[0] - '0');
+				break;
+
+			case 'a':
+				command.set_operation(CREATE_IMAGE);
+				image_params = optarg;
 				break;
 
 			case 'b':
@@ -630,6 +651,10 @@ int main(int argc, char* argv[])
 
 		case RESERVE:
 			CommandReserve(hostname, port, reserved_ids);
+			exit(EXIT_SUCCESS);
+
+		case CREATE_IMAGE:
+			CommandCreateImage(hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case DEVICE_INFO:

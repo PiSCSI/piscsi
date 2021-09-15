@@ -59,6 +59,10 @@ enum PbOperation {
     // IDs blocked from being used, usually the IDs of the initiators (computers) in the SCSI chain.
     // PbCommand.params contains the list of IDs to reserve, or is empty in order not to reserve any ID.
     RESERVE = 14;
+    // Create an image file. The image file must not yet exist.
+    // PbCommand.params(0) contains the filename, PbCommand.params(1) contains the file size in bytes.
+    // If the filename is relative (does not start with a slash) the file is created in the default image folder.
+    CREATE_IMAGE = 15;
 }
 
 // The properties supported by a device, helping clients to offer a good user experience
