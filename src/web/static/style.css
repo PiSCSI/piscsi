@@ -42,3 +42,8 @@ table, tr, td {
   font-size:20px;
   background-color:green;
 }
+
+td.inactive {
+  text-align:center;
+  background-color:tan;
+}

@@ -99,7 +99,7 @@ BOOL Fileio::Open(const char *fname, OpenMode mode, BOOL directIO)
 			break;
 
 		case ReadWrite:
-			// CD-ROMからの読み込みはRWが成功してしまう
+			// Make sure RW does not succeed when reading from CD-ROM
 			if (access(fname, 0x06) != 0) {
 				return FALSE;
 			}

@@ -1,10 +1,7 @@
-import fnmatch
 import os
 import subprocess
 import time
-import io
-import re
-import sys
+import logging
 
 from ractl_cmds import (
     attach_image,
@@ -12,6 +9,42 @@ from ractl_cmds import (
     list_devices,
 )
 from settings import *
+
+
+def list_files():
+    from fnmatch import translate
+    valid_file_types = list(VALID_FILE_SUFFIX)
+    valid_file_types = ["*." + s for s in valid_file_types]
+    valid_file_types = r"|".join([translate(x) for x in valid_file_types])
+
+    from re import match, IGNORECASE
+
+    files_list = []
+    for path, dirs, files in os.walk(base_dir):
+        # Only list valid file types
+        files = [f for f in files if match(valid_file_types, f, IGNORECASE)]
+        files_list.extend(
+            [
+                (
+                    os.path.join(path, file),
+                    "{:,.1f}".format(
+                        os.path.getsize(os.path.join(path, file)) / float(1 << 20),
+                    ),
+                    os.path.getsize(os.path.join(path, file)),
+                )
+                for file in files
+            ]
+        )
+    return files_list
+
+
+def list_config_files():
+    files_list = []
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.endswith(".json"):
+                files_list.append(file)
+    return files_list
 
 
 def create_new_image(file_name, type, size):
@@ -42,14 +75,6 @@ def unzip_file(file_name):
         return True
 
 
-def rascsi_service(action):
-    # start/stop/restart
-    return (
-        subprocess.run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode
-        == 0
-    )
-
-
 def download_file_to_iso(scsi_id, url):
     import urllib.request
 
@@ -60,14 +85,19 @@ def download_file_to_iso(scsi_id, url):
     tmp_full_path = tmp_dir + file_name
     iso_filename = base_dir + file_name + ".iso"
 
-    urllib.request.urlretrieve(url, tmp_full_path)
+    try:
+        urllib.request.urlretrieve(url, tmp_full_path)
+    except:
+        # TODO: Capture a more descriptive error message
+        return {"status": False, "msg": "Error loading the URL"}
+
     # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
     iso_proc = subprocess.run(
         ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
     )
     if iso_proc.returncode != 0:
-        return iso_proc
-    return attach_image(scsi_id, iso_filename, "SCCD")
+        return {"status": False, "msg": iso_proc}
+    return attach_image(scsi_id, type="SCCD", image=iso_filename)
 
 
 def download_image(url):
@@ -76,50 +106,69 @@ def download_image(url):
     file_name = url.split("/")[-1]
     full_path = base_dir + file_name
 
-    urllib.request.urlretrieve(url, full_path)
-
-def write_config_csv(file_name):
-    import csv
-
-    # This method takes the output of 'rasctl -l' and parses it into csv format:
-    # 0: ID
-    # 1: Unit Number (unused in rascsi-web)
-    # 2: Device Type
-    # 3: Device Status (includes the path to a loaded image file)
-    # TODO: Remove the dependence on rasctl; e.g. when implementing protobuf for rascsi-web
     try:
-        with open(file_name, "w") as csv_file:
-            writer = csv.writer(csv_file)
-            for device in list_devices():
-                if device["type"] != "-":
-                    device_info = list (device.values())
-                    # Match a *nix file path inside column 3, cutting out the last chunk that starts with a space
-                    filesearch = re.search("(^(/[^/ ]*)+)(\s.*)*$", device_info[3])
-                    if filesearch is None:
-                        device_info[3] = ""
-                    else:
-                        device_info[3] = filesearch.group(1)
-                    writer.writerow(device_info)
-        return True
+        urllib.request.urlretrieve(url, full_path)
+        return {"status": True, "msg": "Downloaded the URL"}
     except:
-        print ("Could not open file for writing: ", file_name)
-        return False
-				
-def read_config_csv(file_name):
-    import csv
+        # TODO: Capture a more descriptive error message
+        return {"status": False, "msg": "Error loading the URL"}
 
+
+def write_config(file_name):
+    from json import dump
     try:
-        with open(file_name) as csv_file:
+        with open(file_name, "w") as json_file:
+            devices = list_devices()[0]
+            for device in devices:
+                # Remove keys that we don't want to store in the file
+                del device["status"]
+                del device["file"]
+                # It's cleaner not to store an empty parameter for every device without media
+                if device["image"] == "":
+                    device["image"] = None
+                # RaSCSI product names will be generated on the fly by RaSCSI
+                if device["vendor"] == "RaSCSI":
+                    device["vendor"] = device["product"] = device["revision"] = None
+                # A block size of 0 is how RaSCSI indicates N/A for block size
+                if device["block_size"] == 0:
+                    device["block_size"] = None
+                # Convert to a data type that can be serialized
+                device["params"] = list(device["params"])
+            dump(devices, json_file, indent=4)
+        return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
+    #TODO: more verbose error handling of file system errors
+    except:
+        logging.error(f"Could not write to file: {file_name}")
+        return {"status": False, "msg": f"Could not write to file: {file_name}"}
+
+
+def read_config(file_name):
+    from json import load
+    try:
+        with open(file_name) as json_file:
             detach_all()
-            config_reader = csv.reader(csv_file)
-            #TODO: Remove hard-coded string sanitation (e.g. after implementing protobuf)
-            exclude_list = ("X68000 HOST BRIDGE", "DaynaPort SCSI/Link", " (WRITEPROTECT)", "NO MEDIA")
-            for row in config_reader:
-                image_name = row[3]
-                for e in exclude_list:
-                    image_name = image_name.replace(e, "")
-                attach_image(row[0], image_name, row[2])
-        return True
+            devices = load(json_file)
+            for row in devices:
+                process = attach_image(row["id"], device_type=row["device_type"], image=row["image"], unit=int(row["un"]), \
+                        params=row["params"], vendor=row["vendor"], product=row["product"], \
+                        revision=row["revision"], block_size=row["block_size"])
+        if process["status"] == True:
+            return {"status": process["status"], "msg": f"Successfully read from file: {file_name}"}
+        else:
+            return {"status": process["status"], "msg": process["msg"]}
+    #TODO: more verbose error handling of file system errors
     except:
-        print ("Could not access file: ", file_name)
-        return False
+        logging.error(f"Could not read file: {file_name}")
+        return {"status": False, "msg": f"Could not read file: {file_name}"}
+
+
+def read_device_config(file_name):
+    from json import load
+    try:
+        with open(file_name) as json_file:
+            conf = load(json_file)
+            return {"status": True, "msg": f"Read data from file: {file_name}", "conf": conf}
+    #TODO: more verbose error handling of file system errors
+    except:
+        logging.error(f"Could not read file: {file_name}")
+        return {"status": False, "msg": f"Could not read file: {file_name}"}
