@@ -268,7 +268,7 @@ void CommandCopyImage(const string&hostname, int port, const string& image_param
 		command.add_params(image_params.substr(separatorPos + 1));
 	}
 	else {
-		cerr << "Error: Invalid file description '" << image_params << "', format is CURENT_NAME:NEW_NAME" << endl;
+		cerr << "Error: Invalid file description '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
 		exit(EXIT_FAILURE);
 	}
 
