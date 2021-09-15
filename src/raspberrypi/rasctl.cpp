@@ -216,6 +216,12 @@ void CommandCreateImage(const string&hostname, int port, const string& image_par
 		command.add_params(image_params.substr(0, separatorPos));
 		command.add_params(image_params.substr(separatorPos + 1));
 	}
+	else {
+		cerr << "Error: Invalid file description '" << image_params << "', format is NAME:SIZE" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	command.add_params("false");
 
     PbResult result;
     SendCommand(hostname.c_str(), port, command, result);
@@ -241,6 +247,10 @@ void CommandRenameImage(const string&hostname, int port, const string& image_par
 	if (separatorPos != string::npos) {
 		command.add_params(image_params.substr(0, separatorPos));
 		command.add_params(image_params.substr(separatorPos + 1));
+	}
+	else {
+		cerr << "Error: Invalid file description '" << image_params << "', format is OLD_NAME:NEW_NAME" << endl;
+		exit(EXIT_FAILURE);
 	}
 
     PbResult result;
