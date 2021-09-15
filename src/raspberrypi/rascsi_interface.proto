@@ -62,6 +62,7 @@ enum PbOperation {
     // Create an image file. The image file must not yet exist.
     // PbCommand.params(0) contains the filename, PbCommand.params(1) contains the file size in bytes.
     // The filename is relative to the default image folder and must not contain a slash.
+    // The file size must be a multiple of 512.
     CREATE_IMAGE = 15;
     // Delete an image file. PbCommand.params(0) contains the filename.
     // The filename is relative to the default image folder and must not contain a slash.
