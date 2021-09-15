@@ -753,6 +753,8 @@ bool CreateImage(int fd, const PbCommand& command)
 
 	close(image_fd);
 
+	LOGINFO("%s", string("Created image file '" + filename + "'").c_str());
+
 	return ReturnStatus(fd);
 }
 
@@ -772,6 +774,8 @@ bool DeleteImage(int fd, const PbCommand& command)
 	if (unlink(filename.c_str())) {
 		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
 	}
+
+	LOGINFO("%s", string("Deleted image file '" + filename + "'").c_str());
 
 	return ReturnStatus(fd);
 }
@@ -797,6 +801,8 @@ bool RenameImage(int fd, const PbCommand& command)
 	if (rename(src.c_str(), dst.c_str())) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + src + "' to '" + dst + "': " + string(strerror(errno)));
 	}
+
+	LOGINFO("%s", string("Renamed image file '" + src + "' to '" + dst + "'").c_str());
 
 	return ReturnStatus(fd);
 }
