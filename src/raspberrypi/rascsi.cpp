@@ -753,7 +753,9 @@ bool CreateImage(int fd, const PbCommand& command)
 
 	close(image_fd);
 
-	LOGINFO("%s", string("Created image file '" + filename + "'").c_str());
+	ostringstream msg;
+	msg << "Created image file '" << filename + "' with a size of " << len << " bytes";
+	LOGINFO("%s", msg.str().c_str());
 
 	return ReturnStatus(fd);
 }
