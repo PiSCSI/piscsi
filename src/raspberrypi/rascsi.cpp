@@ -785,6 +785,16 @@ bool DeleteImage(int fd, const PbCommand& command)
 
 	filename = default_image_folder + "/" + filename;
 
+	int id;
+	int unit;
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+		ostringstream msg;
+		msg << "Can't delete image file '" << filename << "', it is in use by device ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, msg.str());
+	}
+
 	if (unlink(filename.c_str())) {
 		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
 	}
@@ -945,7 +955,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 		int id;
 		int unit;
-		if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 			delete device;
 
 			error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
@@ -1049,8 +1059,7 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
 	string initial_filename = filepath.GetPath();
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-	if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 		ostringstream error;
 		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
@@ -1069,6 +1078,8 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 			return ReturnStatus(fd, false, "Block size is not configurable for device type " + device->GetType());
 		}
 	}
+
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 
 	try {
 		try {
