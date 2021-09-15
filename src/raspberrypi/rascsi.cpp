@@ -728,7 +728,7 @@ bool CreateImage(int fd, const PbCommand& command)
 	catch(const out_of_range& e) {
 		return ReturnStatus(fd, false, "Invalid image file size " + command.params().Get(1));
 	}
-	if (len < 256 || len & 0x1ff) {
+	if (len < 512 || len & 0x1ff) {
 		ostringstream error;
 		error << "Invalid image file size " << len;
 		return ReturnStatus(fd, false, error.str());
