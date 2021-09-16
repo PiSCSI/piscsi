@@ -234,6 +234,7 @@
     </table>
 
     <hr/>
+
     <h2>Create Empty Disk Image File</h2>
     <table style="border: none">
             <tr style="border: none">
@@ -255,6 +256,20 @@
                     <label for="size">Size(MB):</label>
                     <input type="number" placeholder="Size(MB)" name="size"/>
                     <input type="submit" value="Create" />
+                </form>
+            </td>
+        </tr>
+    </table>
+
+    <hr/>
+
+    <h2>Create Named Disk Image File With Sidecar</h2>
+    <p>Here you can create a named disk image and sidecar configuration file that mimics real-life drives</p>
+    <table style="border: none">
+            <tr style="border: none">
+                <td style="border: none; vertical-align:top;">
+                <form action="/files/sidecar" method="get">
+                    <input type="submit" value="Create (go to another page)" />
                 </form>
             </td>
         </tr>
