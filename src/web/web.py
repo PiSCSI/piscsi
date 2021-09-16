@@ -254,7 +254,7 @@ def device_info():
 
     # First check if any device at all was returned
     if devices["status"] == False:
-        flash(f"No device attached to SCSI id {scsi_id}!")
+        flash(f"No device attached to SCSI id {scsi_id}!", "error")
         return redirect(url_for("index"))
     # Looking at the 0th dictionary in list index 0 to get
     # the one and only device that should have been returned
