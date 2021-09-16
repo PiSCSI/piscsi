@@ -256,9 +256,10 @@ def device_info():
     if devices["status"] == False:
         flash(f"No device attached to SCSI id {scsi_id}!", "error")
         return redirect(url_for("index"))
-    # Looking at the 0th dictionary in list index 0 to get
+    # Looking at the 0th dictionary in list to get
     # the one and only device that should have been returned
-    elif str(devices["device_list"][0][0]["id"]) == scsi_id:
+    device = devices["device_list"][0]
+    if str(device["id"]) == scsi_id:
         flash("=== DEVICE INFO ===")
         flash(f"SCSI ID: {device['id']}")
         flash(f"Unit: {device['un']}")
