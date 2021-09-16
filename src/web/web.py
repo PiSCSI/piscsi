@@ -80,21 +80,35 @@ def disk_list():
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
-        #conf_file_size = conf["blocks"] * conf["block_size"]
     else:
         flash("Could not read Sidecar configurations " + str(sidecar_config), "error")
         return redirect(url_for("index"))
 
-    formatted_conf = []
+    hd_conf = []
+    cd_conf = []
+    rm_conf = []
+
     for d in conf:
-        d["size"] = "{:,.2f}".format(d["block_size"] * d["blocks"] / 1024 / 1024)
-        formatted_conf.append(d)
+        if d["device_type"] == "SCHD":
+            d["size"] = "{:,.2f}".format(d["block_size"] * d["blocks"] / 1024 / 1024)
+            hd_conf.append(d)
+        elif d["device_type"] == "SCCD":
+            d["size"] = "N/A"
+            cd_conf.append(d)
+        elif d["device_type"] == "SCRM":
+            d["size"] = "{:,.2f}".format(d["block_size"] * d["blocks"] / 1024 / 1024)
+            rm_conf.append(d)
 
     return render_template(
         "disk.html",
-        conf = formatted_conf,
+        files=list_files(),
+        base_dir=base_dir,
+        hd_conf=hd_conf,
+        cd_conf=cd_conf,
+        rm_conf=rm_conf,
         version=running_version(),
         server_info=server_info,
+        cdrom_file_suffix=CDROM_FILE_SUFFIX,
     )
 
 

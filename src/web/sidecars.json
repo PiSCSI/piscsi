@@ -22,5 +22,17 @@
     "file_extension": "hdr",
     "description": "Removable Iomega ZIP drive, 100MB capacity",
     "url": "https://www.win.tue.nl/~aeb/linux/zip/zip-1.html"
+},
+{
+    "device_type": "SCCD",
+    "vendor": "TOSHIBA",
+    "product": "CD-ROM XM-3401TA",
+    "revision": "0283",
+    "block_size": 512,
+    "blocks": null,
+    "name": "Toshiba XM-3401TA",
+    "file_extension": "",
+    "description": "Boots most SGI, Sun, HP, IBM, DEC etc.",
+    "url": ""
 }
 ]
