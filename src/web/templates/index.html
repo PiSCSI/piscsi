@@ -1,24 +1,5 @@
 {% extends "base.html" %}
 
-{% block header %}
-{% if server_info["status"] == True %}
-<span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Running</span>
-{% else %}
-<span style="display: inline-block; width: 100%; color: white; background-color: red; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Stopped</span>
-{% endif %}
-    <table width="100%">
-        <tbody>
-        <tr style="background-color: black;">
-            <td style="background-color: black;">
-                <a href="http://github.com/akuker/RASCSI">
-                    <h1>RaSCSI - 68kmla Edition</h1>
-                </a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-{% endblock %}
-
     {% block content %}
     <h2>Current RaSCSI Configuration</h2>
     <p>

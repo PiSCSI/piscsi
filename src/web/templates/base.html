@@ -24,7 +24,18 @@
 
 <div class="content">
     <div class="header">
-        {% block header %}{% endblock %}
+<span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Running</span>
+    <table width="100%">
+        <tbody>
+        <tr style="background-color: black;">
+            <td style="background-color: black;">
+                <a href="http://github.com/akuker/RASCSI">
+                    <h1>RaSCSI - 68kmla Edition</h1>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
     </div>
     <div class="flash">
         {% for category, message in get_flashed_messages(with_categories=true) %}
