@@ -1206,7 +1206,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 				s << ", ";
 			}
 			isFirst = false;
-			s << param.first << "=" << param.second;
+			s << "'" << param.first << "=" << param.second << "'";
 		}
 	}
 
@@ -1220,7 +1220,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 				s << ", ";
 			}
 			isFirst = false;
-			s << param.first << "=" << param.second;
+			s << "'" << param.first << "=" << param.second << "'";
 		}
 	}
 
