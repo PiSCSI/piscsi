@@ -38,7 +38,11 @@ def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
     invalid_ids = list(set(invalid_list + occupied_ids))
     valid_ids = list(range(8))
     for id in invalid_ids:
-        valid_ids.remove(int(id))
+        try:
+            valid_ids.remove(int(id))
+        except:
+            # May reach this state if RaSCSI Web UI thinks an ID is reserved but RaSCSI does not.
+            logging.warning(f"SCSI ID {id} flagged as both valid and invalid. RaSCSI and the Web UI may be out of sync.")
     valid_ids.reverse()
     return valid_ids
 
