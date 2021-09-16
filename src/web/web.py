@@ -10,7 +10,8 @@ from file_cmds import (
     download_image,
     write_config,
     read_config,
-    read_device_config,
+    write_sidecar,
+    read_sidecar,
 )
 from pi_cmds import (
     shutdown_pi, 
@@ -180,11 +181,12 @@ def attach():
     from pathlib import Path
     device_config = Path(base_dir + str(Path(file_name).stem) + ".rascsi")
     if device_config.is_file():
-        process = read_device_config(device_config)
+        process = read_sidecar(device_config)
         if process["status"] == False:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
-        conf = process["conf"]
+        # Grab the first dict in the list; there should be only one
+        conf = process["conf"][0]
         conf_file_size = conf["blocks"] * conf["block_size"]
         if conf_file_size != 0 and conf_file_size > int(file_size):
             flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
@@ -260,7 +262,7 @@ def device_info():
     if devices["status"] == False:
         flash(f"No device attached to SCSI id {scsi_id}!", "error")
         return redirect(url_for("index"))
-    # Looking at the 0th dictionary in list to get
+    # Looking at the first dict in list to get
     # the one and only device that should have been returned
     device = devices["device_list"][0]
     if str(device["id"]) == scsi_id:
