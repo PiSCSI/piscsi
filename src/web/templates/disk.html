@@ -15,17 +15,20 @@
         {% for hd in hd_conf %}
         <tr>
             <td style="text-align:center">{{hd.name}}</td>
-            <td style="text-align:center">{{hd.size}}</td>
+            <td style="text-align:center">{{hd.size_mb}}</td>
             <td style="text-align:left">{{hd.description}}</td>
 	    <td style="text-align:left"><a href="{{hd.url}}">Link</a></td>
             <td style="text-align:left">
-                <form action="/drive/create" method="post">
+                <form action="/disk/create" method="post">
                     <input type="hidden" name="vendor" value="{{hd.vendor}}">
-                    <input type="hidden" name="vendor" value="{{hd.product}}">
-                    <input type="hidden" name="vendor" value="{{hd.revision}}">
-                    <input type="hidden" name="vendor" value="{{hd.block_size}}">
+                    <input type="hidden" name="product" value="{{hd.product}}">
+                    <input type="hidden" name="revision" value="{{hd.revision}}">
+                    <input type="hidden" name="blocks" value="{{hd.blocks}}">
+                    <input type="hidden" name="block_size" value="{{hd.block_size}}">
+                    <input type="hidden" name="size" value="{{hd.size}}">
+		    <input type="hidden" name="file_type" value="{{hd.file_type}}">
 		    <label for="file_name">Save as:</label>
-		    <input type="text" name="file_name" placeholder="{{hd.name}}.{{hd.file_extension}}" />
+		    <input type="text" name="file_name" placeholder="{{hd.name}}" />.{{hd.file_type}}
                     <input type="submit" value="Create" />
                 </form>
             </td>
@@ -49,15 +52,15 @@
         {% for cd in cd_conf %}
         <tr>
             <td style="text-align:center">{{cd.name}}</td>
-            <td style="text-align:center">{{cd.size}}</td>
+            <td style="text-align:center">{{cd.size_mb}}</td>
             <td style="text-align:left">{{cd.description}}</td>
 	    <td style="text-align:left"><a href="{{cd.url}}">Link</a></td>
             <td style="text-align:left">
-                <form action="/drive/create" method="post">
+                <form action="/disk/cdrom" method="post">
                     <input type="hidden" name="vendor" value="{{cd.vendor}}">
-                    <input type="hidden" name="vendor" value="{{cd.product}}">
-                    <input type="hidden" name="vendor" value="{{cd.revision}}">
-                    <input type="hidden" name="vendor" value="{{cd.block_size}}">
+                    <input type="hidden" name="product" value="{{cd.product}}">
+                    <input type="hidden" name="revision" value="{{cd.revision}}">
+                    <input type="hidden" name="block_size" value="{{cd.block_size}}">
 		    <label for="file_name">Create for:</label>
 		    <select type="select" name="file_name">
                         {% for f in files %}
@@ -89,17 +92,20 @@
         {% for rm in rm_conf %}
         <tr>
             <td style="text-align:center">{{rm.name}}</td>
-            <td style="text-align:center">{{rm.size}}</td>
+            <td style="text-align:center">{{rm.size_mb}}</td>
             <td style="text-align:left">{{rm.description}}</td>
 	    <td style="text-align:left"><a href="{{rm.url}}">Link</a></td>
             <td style="text-align:left">
-                <form action="/drive/create" method="post">
+                <form action="/disk/create" method="post">
                     <input type="hidden" name="vendor" value="{{rm.vendor}}">
-                    <input type="hidden" name="vendor" value="{{rm.product}}">
-                    <input type="hidden" name="vendor" value="{{rm.revision}}">
-                    <input type="hidden" name="vendor" value="{{rm.block_size}}">
+                    <input type="hidden" name="product" value="{{rm.product}}">
+                    <input type="hidden" name="revision" value="{{rm.revision}}">
+                    <input type="hidden" name="blocks" value="{{rm.blocks}}">
+                    <input type="hidden" name="block_size" value="{{rm.block_size}}">
+                    <input type="hidden" name="size" value="{{rm.size}}">
+		    <input type="hidden" name="file_type" value="{{rm.file_type}}">
 		    <label for="file_name">Save as:</label>
-		    <input type="text" name="file_name" placeholder="{{rm.name}}.{{rm.file_extension}}" />
+		    <input type="text" name="file_name" placeholder="{{rm.name}}" />.{{rm.file_type}}
                     <input type="submit" value="Create" />
                 </form>
             </td>

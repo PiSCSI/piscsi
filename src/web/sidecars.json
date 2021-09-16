@@ -7,7 +7,7 @@
     "block_size": 512,
     "blocks": 660960,
     "name": "DEC RZ55",
-    "file_extension": "hds",
+    "file_type": "hds",
     "description": "Largest recognized drive on Ultrix 3.0",
     "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
 },
@@ -19,7 +19,7 @@
     "block_size": 512,
     "blocks": 196608,
     "name": "Iomega ZIP 100",
-    "file_extension": "hdr",
+    "file_type": "hdr",
     "description": "Removable Iomega ZIP drive, 100MB capacity",
     "url": "https://www.win.tue.nl/~aeb/linux/zip/zip-1.html"
 },
@@ -31,7 +31,7 @@
     "block_size": 512,
     "blocks": null,
     "name": "Toshiba XM-3401TA",
-    "file_extension": "",
+    "file_type": "",
     "description": "Boots most SGI, Sun, HP, IBM, DEC etc.",
     "url": ""
 }

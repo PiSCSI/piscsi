@@ -165,6 +165,7 @@ def read_config(file_name):
 def write_sidecar(file_name, conf):
     ''' Writes a sidecar configuration file to the images dir. Takes file name (str) and conf (list of dicts) as arguments '''
     from json import dump
+    file_name = file_name + ".rascsi"
     try:
         with open(file_name, "w") as json_file:
             dump(conf, json_file, indent=4)

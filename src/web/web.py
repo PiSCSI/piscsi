@@ -90,13 +90,15 @@ def disk_list():
 
     for d in conf:
         if d["device_type"] == "SCHD":
-            d["size"] = "{:,.2f}".format(d["block_size"] * d["blocks"] / 1024 / 1024)
+            d["size"] = d["block_size"] * d["blocks"]
+            d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             hd_conf.append(d)
         elif d["device_type"] == "SCCD":
-            d["size"] = "N/A"
+            d["size_mb"] = "N/A"
             cd_conf.append(d)
         elif d["device_type"] == "SCRM":
-            d["size"] = "{:,.2f}".format(d["block_size"] * d["blocks"] / 1024 / 1024)
+            d["size"] = d["block_size"] * d["blocks"]
+            d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             rm_conf.append(d)
 
     return render_template(
@@ -115,6 +117,39 @@ def disk_list():
 @app.route('/pwa/<path:path>')
 def send_pwa_files(path):
     return send_from_directory('pwa', path)
+
+
+@app.route("/disk/create", methods=["POST"])
+def disk_create():
+    vendor = request.form.get("vendor")
+    product = request.form.get("product")
+    revision = request.form.get("revision")
+    blocks = request.form.get("blocks")
+    block_size = request.form.get("block_size")
+    size = request.form.get("size")
+    file_type = request.form.get("file_type")
+    file_name = request.form.get("file_name")
+    file_path = f"{base_dir}{file_name}"
+    
+    # Creating the image file
+    process = create_new_image(file_name, file_type, size)
+    if process.returncode == 0:
+        flash(f"Drive image file {file_path}.{file_type} created")
+    else:
+        flash(f"Failed to create file {file_path}.{file_type}", "error")
+        flash(process.stdout, "stdout")
+        flash(process.stderr, "stderr")
+        return redirect(url_for("index"))
+
+    # Creating the sidecar file
+    sidecar = {"vendor": vendor, "product": product, "revision": revision, "blocks": blocks, "block_size": block_size}
+    process = write_sidecar(file_path, sidecar)
+    if process["status"] == True:
+        flash(f"Drive sidecar file {file_path}.rascsi created")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to create sidecar file {file_path}.rascsi", "error")
+        return redirect(url_for("index"))
 
 
 @app.route("/config/save", methods=["POST"])
@@ -229,20 +264,19 @@ def attach():
         if process["status"] == False:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
-        # Grab the first dict in the list; there should be only one
-        conf = process["conf"][0]
-        conf_file_size = conf["blocks"] * conf["block_size"]
+        conf = process["conf"]
+        conf_file_size = int(conf["blocks"]) * int(conf["block_size"])
         if conf_file_size != 0 and conf_file_size > int(file_size):
             flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
             flash(f"The file size {file_size} bytes needs to be at least {conf_file_size} bytes.", "error")
             return redirect(url_for("index"))
-        kwargs["device_type"] = conf["device_type"]
         kwargs["vendor"] = conf["vendor"]
         kwargs["product"] = conf["product"]
         kwargs["revision"] = conf["revision"]
         kwargs["block_size"] = conf["block_size"]
-    # Validate image type by file name suffix as fallback
-    elif file_name.lower().endswith(CDROM_FILE_SUFFIX):
+
+    # Validate image type by file name suffix
+    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
         kwargs["device_type"] = "SCCD"
     elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
         kwargs["device_type"] = "SCRM"
