@@ -68,6 +68,36 @@ def index():
     )
 
 
+@app.route("/disk/list", methods=["GET"])
+def disk_list():
+    server_info = get_server_info()
+
+    from pathlib import Path
+    sidecar_config = Path(home_dir + "/sidecars.json")
+    if sidecar_config.is_file():
+        process = read_sidecar(sidecar_config)
+        if process["status"] == False:
+            flash(process["msg"], "error")
+            return redirect(url_for("index"))
+        conf = process["conf"]
+        #conf_file_size = conf["blocks"] * conf["block_size"]
+    else:
+        flash("Could not read Sidecar configurations " + str(sidecar_config), "error")
+        return redirect(url_for("index"))
+
+    formatted_conf = []
+    for d in conf:
+        d["size"] = "{:,.2f}".format(d["block_size"] * d["blocks"] / 1024 / 1024)
+        formatted_conf.append(d)
+
+    return render_template(
+        "disk.html",
+        conf = formatted_conf,
+        version=running_version(),
+        server_info=server_info,
+    )
+
+
 @app.route('/pwa/<path:path>')
 def send_pwa_files(path):
     return send_from_directory('pwa', path)

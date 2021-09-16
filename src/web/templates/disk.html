@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+    {% block content %}
+    <h2>Hard Drives</h2>
+
+    <table cellpadding="3" border="black">
+        <tbody>
+        <tr>
+            <td><b>Name</b></td>
+            <td><b>Size (MB)</b></td>
+            <td><b>Description</b></td>
+            <td><b>URL</b></td>
+            <td><b>Action</b></td>
+        </tr>
+        {% for device in conf %}
+        <tr>
+            <td style="text-align:center">{{device.name}}</td>
+            <td style="text-align:center">{{device.size}}</td>
+            <td style="text-align:left">{{device.description}}</td>
+	    <td style="text-align:left"><a href="{{device.url}}">Link</a></td>
+            <td style="text-align:left">
+                <form action="/drive/create" method="post">
+                    <input type="hidden" name="vendor" value="{{device.vendor}}">
+                    <input type="hidden" name="vendor" value="{{device.product}}">
+                    <input type="hidden" name="vendor" value="{{device.revision}}">
+                    <input type="hidden" name="vendor" value="{{device.block_size}}">
+		    <label for="file_name">Save as:</label>
+		    <input type="text" name="file_name" placeholder="{{device.name}}.{{device.file_extension}}" />
+                    <input type="submit" value="Create" />
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <hr/>
+
+
+{% endblock %}
+
+{% block footer %}
+<center><tt>RaSCSI version: <strong>{{server_info["version"]}}</strong></tt></center>
+<center><tt>Server log level: <strong>{{server_info["current_log_level"]}}</strong></tt></center>
+<center><tt>{{version}}</tt></center>
+{% endblock %}

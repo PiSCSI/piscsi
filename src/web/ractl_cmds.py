@@ -85,7 +85,6 @@ def attach_image(scsi_id, **kwargs):
         devices = proto.PbDeviceDefinition()
         devices.id = int(scsi_id)
         if "device_type" in kwargs.keys():
-            logging.warning(kwargs["device_type"])
             devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
         if "unit" in kwargs.keys():
             devices.unit = kwargs["unit"]
@@ -263,7 +262,6 @@ def sort_and_format_devices(devices):
 
 def reserve_scsi_ids(reserved_scsi_ids):
     '''Sends a command to the server to reserve SCSI IDs. Takes a list of strings as argument.'''
-    logging.warning(reserved_scsi_ids)
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVE
     for i in reserved_scsi_ids:

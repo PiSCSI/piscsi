@@ -1,0 +1,26 @@
+[
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ55 (C) DEC",
+    "revision": "",
+    "block_size": 512,
+    "blocks": 660960,
+    "name": "DEC RZ55",
+    "file_extension": "hds",
+    "description": "Largest recognized drive on Ultrix 3.0",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCRM",
+    "vendor": "IOMEGA",
+    "product": "ZIP 100",
+    "revision": "D.13",
+    "block_size": 512,
+    "blocks": 196608,
+    "name": "Iomega ZIP 100",
+    "file_extension": "hdr",
+    "description": "Removable Iomega ZIP drive, 100MB capacity",
+    "url": "https://www.win.tue.nl/~aeb/linux/zip/zip-1.html"
+}
+]
