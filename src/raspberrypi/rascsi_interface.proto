@@ -27,52 +27,82 @@ enum PbDeviceType {
     SCDP = 7;
 }
 
-// rascsi remote operations, returns PbResult
+// rascsi remote operations, returning PbResult
 enum PbOperation {
     NONE = 0;
-    // Gets the server information
-    SERVER_INFO = 1;
-    // Gets information for a list of attached devices. Returns data for all attached devices if empty.
-    DEVICE_INFO = 2;
-    // Set the default folder for image files. PbCommand.params contains the folder name.
-    DEFAULT_FOLDER = 3;
-    // Set server log level. PbCommand.params contains the log level.
-    LOG_LEVEL = 4;
+
     // Attach devices
-    ATTACH = 5;
+    ATTACH = 1;
+
     // Detach devices
-    DETACH = 6;
+    DETACH = 2;
+
     // Detach all devices, does not require a device list
-    DETACH_ALL = 7;
+    DETACH_ALL = 3;
+
     // Start device
-    START = 8;
+    START = 4;
+
     // Stop device, e.g. park drive
-    STOP = 9;
+    STOP = 5;
+
     // Insert medium
-    INSERT = 10;
+    INSERT = 6;
+
     // Eject medium
-    EJECT = 11;
+    EJECT = 7;
+
     // Write-protect medium (not possible for read-only media)
-    PROTECT = 12;
+    PROTECT = 8;
+
     // Make medium writable (not possible for read-only media)
-    UNPROTECT = 13;
-    // IDs blocked from being used, usually the IDs of the initiators (computers) in the SCSI chain.
-    // PbCommand.params contains the list of IDs to reserve, or is empty in order not to reserve any ID.
+    UNPROTECT = 9;
+
+    // Gets the server information
+    SERVER_INFO = 10;
+
+    // Gets information for a list of attached devices. Returns data for all attached devices if empty.
+    DEVICE_INFO = 11;
+
+    // Set the default folder for image files.
+    // Parameters:
+    //   "folder": The default folder name.
+    DEFAULT_FOLDER = 12;
+
+    // Set server log level.
+    // Parameters:
+    //   "level": The new log level
+    LOG_LEVEL = 13;
+
+    // Block IDs from being used, usually the IDs of the initiators (computers) in the SCSI chain.
+    // Parameters:
+    //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
     RESERVE = 14;
+
     // Create an image file. The image file must not yet exist.
-    // PbCommand.params(0) contains the filename, PbCommand.params(1) contains the file size in bytes.
-    // PbCommand.params(2) controls the file permissions. If "true" (case-insensitive) a read-only file is created.
-    // The filename is relative to the default image folder and must not contain a slash.
-    // The file size must be a multiple of 512.
+    // Parameters:
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "size": The file size in bytes, must be a multiple of 512
+    //   "read_only": "true" (case-insensitive) in order to create a read-only file, otherwise "false"
     CREATE_IMAGE = 15;
-    // Delete an image file. PbCommand.params(0) contains the filename.
-    // The filename is relative to the default image folder and must not contain a slash.
+
+    // Delete an image file.
+    // Parameters:
+    //    "file": The filename, relative to the default image folder. It must not contain a slash.
     DELETE_IMAGE = 16;
-    // Rename an image file. PbCommand.params(0) contains the current filename, PbCommand.params(1) the new name.
-    // The filenames are relative to the default image folder and must not contain a slash.
+
+    // Rename an image file.
+    // Parameters:
+    //   "from": The old filename, relative to the default image folder. It must not contain a slash.
+    //   "to": The new filename, relative to the default image folder. It must not contain a slash.
+    // The new filename must not yet exist.
     RENAME_IMAGE = 17;
-    // Copy an image file. PbCommand.params(0) contains the source filename, PbCommand.params(1) the destination name.
-    // The filenames are relative to the default image folder and must not contain a slash.
+
+    // Copy an image file.
+    // Parameters:
+    //   "from": The source filename, relative to the default image folder. It must not contain a slash.
+    //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
+    // The destination filename must not yet exist.
     COPY_IMAGE = 18;
 }
 
@@ -92,8 +122,8 @@ message PbDeviceProperties {
     bool supports_file = 6;
     // Device supports parameters other than a filename
     bool supports_params = 7;
-    // Ordered list of default parameters, if any  (requires supports_params to be true)
-    repeated string default_params = 8;
+    // List of default parameters, if any (requires supports_params to be true)
+    map<string, string> default_params = 8;
     // Number of supported LUNs, at least 1 (for LUN 0)
     uint32 luns = 9;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
@@ -132,8 +162,8 @@ message PbDeviceDefinition {
     int32 id = 1;
     int32 unit = 2;
     PbDeviceType type = 3;
-    // Optional device specific parameters, e.g. the name of an image file
-    repeated string params = 4;
+    // Device specific named parameters, e.g. the name of an image file
+    map<string, string> params = 4;
     // The optional block size in bytes per sector, must be one of the supported block sizes for SASI/SCSI
     int32 block_size = 5;
     // The device name components
@@ -153,8 +183,8 @@ message PbDevice {
     PbDeviceStatus status = 5;
     // Image file information, if the device supports image files
     PbImageFile file = 6;
-    // Ordered list of effective parameters the device was created with
-    repeated string params = 7;
+    // Effective parameters the device was created with
+    map<string, string> params = 7;
     string vendor = 8;
     string product = 9;
     string revision = 10;
@@ -173,8 +203,8 @@ message PbCommand {
     PbOperation operation = 1;
     // The non-empty list of devices for this command
     repeated PbDeviceDefinition devices = 2;
-    // The optional parameters depending on the operation, e.g. a filename, or a network interface list
-    repeated string params = 3;
+    // The named parameters for the operation, e.g. a filename, or a network interface list
+    map<string, string> params = 3;
 }
 
 // The result of a command

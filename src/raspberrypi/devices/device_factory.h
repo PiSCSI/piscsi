@@ -36,7 +36,7 @@ public:
 	const set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const set<uint32_t>& GetSectorSizes(const string&);
 	const set<uint64_t> GetCapacities(PbDeviceType);
-	const list<string>& GetDefaultParams(PbDeviceType type) { return default_params[type]; }
+	const map<string, string>& GetDefaultParams(PbDeviceType type) { return default_params[type]; }
 
 	Device *CreateDevice(PbDeviceType type, const string& filename, const string& ext);
 
@@ -46,5 +46,5 @@ private:
 
 	map<PbDeviceType, map<uint64_t, Geometry>> geometries;
 
-	map<PbDeviceType, list<string>> default_params;
+	map<PbDeviceType, map<string, string>> default_params;
 };

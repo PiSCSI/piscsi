@@ -142,10 +142,8 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 		cout << "  ";
 	}
 
-	if (pb_device.params_size()) {
-		for (const string param : pb_device.params()) {
-			cout << param << "  ";
-		}
+	for (const auto& param : pb_device.params()) {
+		cout << param.first << "=" << param.second;
 	}
 
 	cout << endl;
@@ -184,7 +182,7 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 {
 	PbCommand command;
 	command.set_operation(LOG_LEVEL);
-	command.add_params(log_level);
+	AddParam(command, "level", log_level);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
@@ -194,13 +192,7 @@ void CommandReserve(const string&hostname, int port, const string& reserved_ids)
 {
 	PbCommand command;
 	command.set_operation(RESERVE);
-
-	stringstream ss(reserved_ids);
-    string reserved_id;
-
-    while (getline(ss, reserved_id, ',')) {
-		command.add_params(reserved_id);
-	}
+	AddParam(command, "ids", reserved_ids);
 
     PbResult result;
     SendCommand(hostname.c_str(), port, command, result);
@@ -213,15 +205,15 @@ void CommandCreateImage(const string&hostname, int port, const string& image_par
 
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
-		command.add_params(image_params.substr(0, separatorPos));
-		command.add_params(image_params.substr(separatorPos + 1));
+		AddParam(command, "file", image_params.substr(0, separatorPos));
+		AddParam(command, "size", image_params.substr(separatorPos + 1));
 	}
 	else {
-		cerr << "Error: Invalid file description '" << image_params << "', format is NAME:SIZE" << endl;
+		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
 		exit(EXIT_FAILURE);
 	}
 
-	command.add_params("false");
+	AddParam(command, "read_only", "false");
 
     PbResult result;
     SendCommand(hostname.c_str(), port, command, result);
@@ -231,8 +223,7 @@ void CommandDeleteImage(const string&hostname, int port, const string& filename)
 {
 	PbCommand command;
 	command.set_operation(DELETE_IMAGE);
-
-	command.add_params(filename);
+	AddParam(command, "file", filename);
 
     PbResult result;
     SendCommand(hostname.c_str(), port, command, result);
@@ -245,11 +236,11 @@ void CommandRenameImage(const string&hostname, int port, const string& image_par
 
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
-		command.add_params(image_params.substr(0, separatorPos));
-		command.add_params(image_params.substr(separatorPos + 1));
+		AddParam(command, "from", image_params.substr(0, separatorPos));
+		AddParam(command, "to", image_params.substr(separatorPos + 1));
 	}
 	else {
-		cerr << "Error: Invalid file description '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
+		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -264,11 +255,11 @@ void CommandCopyImage(const string&hostname, int port, const string& image_param
 
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
-		command.add_params(image_params.substr(0, separatorPos));
-		command.add_params(image_params.substr(separatorPos + 1));
+		AddParam(command, "from", image_params.substr(0, separatorPos));
+		AddParam(command, "to", image_params.substr(separatorPos + 1));
 	}
 	else {
-		cerr << "Error: Invalid file description '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
+		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
 		exit(EXIT_FAILURE);
 	}
 
@@ -280,7 +271,7 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 {
 	PbCommand command;
 	command.set_operation(DEFAULT_FOLDER);
-	command.add_params(folder);
+	AddParam(command, "folder", folder);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
@@ -387,8 +378,7 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 
 		if (properties.supports_params() && properties.default_params_size()) {
-			list<string> params = { properties.default_params().begin(), properties.default_params().end() };
-			params.sort([](const auto& a, const auto& b) { return a < b; });
+			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
 
 			cout << "        Default parameters: ";
 
@@ -397,7 +387,7 @@ void CommandServerInfo(const string& hostname, int port)
 				if (!isFirst) {
 					cout << ", ";
 				}
-				cout << param;
+				cout << param.first << "=" << param.second;
 
 				isFirst = false;
 			}
@@ -615,7 +605,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				device->add_params(optarg);
+				AddParam(*device, "folder", optarg);
 				break;
 
 			case 't':

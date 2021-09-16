@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include <list>
+#include <map>
 #include <string>
 
 using namespace std;
@@ -96,10 +96,10 @@ private:
 	string revision;
 
 	// The parameters the device was created with
-	list<string> params;
+	map<string, string> params;
 
 	// The default parameters
-	list<string> default_params;
+	map<string, string> default_params;
 
 	// Sense Key, ASC and ASCQ
 	int status_code;
@@ -110,7 +110,7 @@ public:
 	virtual ~Device() {};
 
 	// Override for device specific initializations, to be called after all device properties have been set
-	virtual bool Init(const list<string>&) { return true; };
+	virtual bool Init(const map<string, string>&) { return true; };
 
 	virtual bool Dispatch(SCSIDEV *) = 0;
 
@@ -163,13 +163,14 @@ public:
 
 	bool SupportsParams() const { return supports_params; }
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
-	const list<string> GetParams() const { return params; }
-	void SetParams(const list<string>& params) { this->params = params; }
-	const list<string> GetDefaultParams() const { return default_params; }
-	void SetDefaultParams(const list<string>& default_params) { this->default_params = default_params; }
+	const map<string, string> GetParams() const { return params; }
+	const string GetParam(const string&);
+	void SetParams(const map<string, string>& params) { this->params = params; }
+	const map<string, string> GetDefaultParams() const { return default_params; }
+	void SetDefaultParams(const map<string, string>& default_params) { this->default_params = default_params; }
 
 	int GetStatusCode() const { return status_code; }
-	void SetStatusCode(int status_code);
+	void SetStatusCode(int);
 
 	bool Start();
 	void Stop();
