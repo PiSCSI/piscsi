@@ -605,7 +605,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				AddParam(*device, "folder", optarg);
+				AddParam(*device, "file", optarg);
 				break;
 
 			case 't':
