@@ -118,7 +118,7 @@ def write_config(file_name):
     from json import dump
     try:
         with open(file_name, "w") as json_file:
-            devices = list_devices()[0]
+            devices = list_devices()[0]["device_list"]
             for device in devices:
                 # Remove keys that we don't want to store in the file
                 del device["status"]

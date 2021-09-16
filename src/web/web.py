@@ -41,9 +41,9 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
-    unsorted_devices, occupied_ids = list_devices()
-    devices = sort_and_format_devices(unsorted_devices, occupied_ids)
-    scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids), occupied_ids)
+    device_list = list_devices()
+    devices = sort_and_format_devices(device_list["device_list"], device_list["occupied_ids"])
+    scsi_ids = get_valid_scsi_ids(device_list["device_list"], list(reserved_scsi_ids), device_list["occupied_ids"])
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
@@ -249,9 +249,16 @@ def eject():
 @app.route("/scsi/info", methods=["POST"])
 def device_info():
     scsi_id = request.form.get("scsi_id")
-    # Extracting the 0th dictionary in list index 0
-    device = list_devices(scsi_id)[0][0]
-    if str(device["id"]) == scsi_id:
+
+    devices = list_devices(scsi_id)
+
+    # First check if any device at all was returned
+    if devices["status"] == False:
+        flash(f"No device attached to SCSI id {scsi_id}!")
+        return redirect(url_for("index"))
+    # Looking at the 0th dictionary in list index 0 to get
+    # the one and only device that should have been returned
+    elif str(devices["device_list"][0][0]["id"]) == scsi_id:
         flash("=== DEVICE INFO ===")
         flash(f"SCSI ID: {device['id']}")
         flash(f"Unit: {device['un']}")

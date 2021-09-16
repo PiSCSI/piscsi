@@ -202,6 +202,10 @@ def list_devices(scsi_id=None):
     device_list = []
     occupied_ids = []
     n = 0
+
+    if len(result.device_info.devices) == 0:
+        return {"status": False, "device_list": [], "occiped_ids": []}
+
     while n < len(result.device_info.devices):
         did = result.device_info.devices[n].id
         dun = result.device_info.devices[n].unit
@@ -234,7 +238,8 @@ def list_devices(scsi_id=None):
                 "vendor": dven, "product": dprod, "revision": drev, "block_size": dblock})
         occupied_ids.append(did)
         n += 1
-    return device_list, occupied_ids
+
+    return {"status": True, "device_list": device_list, "occupied_ids": occupied_ids}
 
 
 def sort_and_format_devices(device_list, occupied_ids):
