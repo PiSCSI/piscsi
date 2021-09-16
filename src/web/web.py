@@ -362,7 +362,7 @@ def upload_file(filename):
 @app.route("/files/create", methods=["POST"])
 def create_file():
     file_name = request.form.get("file_name")
-    size = request.form.get("size")
+    size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
 
     process = create_new_image(file_name, file_type, size)

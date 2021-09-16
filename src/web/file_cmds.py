@@ -54,7 +54,7 @@ def create_new_image(file_name, type, size):
         file_name = file_name + "." + type
 
     return subprocess.run(
-        ["truncate", "--size", f"{size}m", f"{base_dir}{file_name}"],
+        ["truncate", "--size", f"{size}", f"{base_dir}{file_name}"],
         capture_output=True,
     )
 
@@ -163,7 +163,7 @@ def read_config(file_name):
 
 
 def write_sidecar(file_name, conf):
-''' Writes a sidecar configuration file to the images dir. Takes file name (str) and conf (list of dicts) as arguments '''
+    ''' Writes a sidecar configuration file to the images dir. Takes file name (str) and conf (list of dicts) as arguments '''
     from json import dump
     try:
         with open(file_name, "w") as json_file:
@@ -177,7 +177,7 @@ def write_sidecar(file_name, conf):
 
 
 def read_sidecar(file_name):
-''' Reads sidecar configurations, either ones deployed to the images dir, or the canonical database. Takes file name (str) as argument '''
+    ''' Reads sidecar configurations, either ones deployed to the images dir, or the canonical database. Takes file name (str) as argument '''
     from json import load
     try:
         with open(file_name) as json_file:
