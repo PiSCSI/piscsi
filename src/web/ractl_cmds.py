@@ -16,7 +16,8 @@ def get_server_info():
               str(result.server_info.patch_version)
     log_levels = result.server_info.log_levels
     current_log_level = result.server_info.current_log_level
-    return {"status": result.status, "version": version, "log_levels": log_levels, "current_log_level": current_log_level}
+    reserved_ids = list(result.server_info.reserved_ids)
+    return {"status": result.status, "version": version, "log_levels": log_levels, "current_log_level": current_log_level, "reserved_ids": reserved_ids}
     
 
 def validate_scsi_id(scsi_id):
@@ -27,21 +28,22 @@ def validate_scsi_id(scsi_id):
         return {"status": False, "msg": "Invalid SCSI ID. Should be a number between 0-7"}
 
 
-def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
-    for device in devices:
+def get_valid_scsi_ids(devices, reserved_ids):
+    occupied_ids = []
+    for d in devices:
         # Make it possible to insert images on top of a 
         # removable media device currently without an image attached
-        if "No Media" in device["status"]:
-            occupied_ids.remove(device["id"])
+        if d["device_type"] != "-" and "No Media" not in d["status"]:
+            occupied_ids.append(d["id"])
 
     # Combine lists and remove duplicates
-    invalid_ids = list(set(invalid_list + occupied_ids))
+    invalid_ids = list(set(reserved_ids + occupied_ids))
     valid_ids = list(range(8))
     for id in invalid_ids:
         try:
             valid_ids.remove(int(id))
         except:
-            # May reach this state if RaSCSI Web UI thinks an ID i
+            # May reach this state if the RaSCSI Web UI thinks an ID
             # is reserved but RaSCSI has not actually reserved it.
             logging.warning(f"SCSI ID {id} flagged as both valid and invalid. Try restarting the RaSCSI Web UI.")
     valid_ids.reverse()
@@ -201,11 +203,10 @@ def list_devices(scsi_id=None):
     result.ParseFromString(data)
 
     device_list = []
-    occupied_ids = []
     n = 0
 
     if len(result.device_info.devices) == 0:
-        return {"status": False, "device_list": [], "occiped_ids": []}
+        return {"status": False, "device_list": []}
 
     while n < len(result.device_info.devices):
         did = result.device_info.devices[n].id
@@ -237,28 +238,36 @@ def list_devices(scsi_id=None):
         device_list.append({"id": did, "un": dun, "device_type": dtype, \
                 "status": ", ".join(dstat_msg), "image": dpath, "file": dfile, "params": dparam,\
                 "vendor": dven, "product": dprod, "revision": drev, "block_size": dblock})
-        occupied_ids.append(did)
         n += 1
 
-    return {"status": True, "device_list": device_list, "occupied_ids": occupied_ids}
+    return {"status": True, "device_list": device_list}
 
 
-def sort_and_format_devices(device_list, occupied_ids):
+def sort_and_format_devices(devices):
+    occupied_ids = []
+    for d in devices:
+        occupied_ids.append(d["id"])
+
+    formatted_devices = devices
+
     # Add padding devices and sort the list
     for id in range(8):
         if id not in occupied_ids:
-            device_list.append({"id": id, "type": "-", \
+            formatted_devices.append({"id": id, "device_type": "-", \
                     "status": "-", "file": "-", "product": "-"})
     # Sort list of devices by id
-    device_list.sort(key=lambda dic: str(dic["id"]))
+    formatted_devices.sort(key=lambda dic: str(dic["id"]))
 
-    return device_list
+    return formatted_devices
 
 
 def reserve_scsi_ids(reserved_scsi_ids):
+    '''Sends a command to the server to reserve SCSI IDs. Takes a list of strings as argument.'''
+    logging.warning(reserved_scsi_ids)
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVE
-    command.params.append(reserved_scsi_ids)
+    for i in reserved_scsi_ids:
+        command.params.append(i)
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -267,7 +276,7 @@ def reserve_scsi_ids(reserved_scsi_ids):
 
 
 def set_log_level(log_level):
-    '''Sends a command to the server to change the log level. Takes target log level as an argument'''
+    '''Sends a command to the server to change the log level. Takes target log level as an argument.'''
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL
     command.params.append(str(log_level))

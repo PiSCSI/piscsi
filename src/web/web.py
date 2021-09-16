@@ -40,22 +40,24 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
-    device_list = list_devices()
-    devices = sort_and_format_devices(device_list["device_list"], device_list["occupied_ids"])
-    scsi_ids = get_valid_scsi_ids(device_list["device_list"], list(reserved_scsi_ids), device_list["occupied_ids"])
+    server_info = get_server_info()
+    devices = list_devices()
+
+    reserved_scsi_ids = server_info["reserved_ids"]
+    formatted_devices = sort_and_format_devices(devices["device_list"])
+    scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
-        devices=devices,
+        devices=formatted_devices,
         files=list_files(),
         config_files=list_config_files(),
         base_dir=base_dir,
         scsi_ids=scsi_ids,
-        reserved_scsi_ids=[reserved_scsi_ids],
+        reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=MAX_FILE_SIZE,
         version=running_version(),
-        server_info=get_server_info(),
+        server_info=server_info,
         valid_file_suffix=VALID_FILE_SUFFIX,
         removable_device_types=REMOVABLE_DEVICE_TYPES,
         harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
@@ -64,9 +66,11 @@ def index():
         archive_file_suffix=ARCHIVE_FILE_SUFFIX,
     )
 
+
 @app.route('/pwa/<path:path>')
 def send_pwa_files(path):
     return send_from_directory('pwa', path)
+
 
 @app.route("/config/save", methods=["POST"])
 def config_save():
@@ -285,11 +289,11 @@ def restart():
 
 @app.route("/rascsi/restart", methods=["POST"])
 def rascsi_restart():
+    server_info = get_server_info()
     rascsi_service("restart")
     flash("Restarting RaSCSI Service...")
-    reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS") 
-    if reserved_scsi_ids != "":
-        reserve_scsi_ids(reserved_scsi_ids)
+    # Need to turn this into a list of strings from a list of ints
+    reserve_scsi_ids([str(e) for e in server_info["reserved_ids"]])
     return redirect(url_for("index"))
 
 
@@ -410,12 +414,9 @@ if __name__ == "__main__":
 
     from sys import argv
     if len(argv) >= 2:
-        # Reserved ids format is a string of digits such as '017'
-        app.config["RESERVED_SCSI_IDS"] = str(argv[1])
         # Reserve SCSI IDs on the backend side to prevent use
-        reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
-    else:
-        app.config["RESERVED_SCSI_IDS"] = ""
+        # Expecting argv as a string of digits such as '017'
+        reserve_scsi_ids(list(argv[1]))
 
     # Load the default configuration file, if found
     from pathlib import Path
