@@ -715,11 +715,20 @@ string SetReservedIds(const string& ids)
 	return "";
 }
 
+bool IsValidFilename(const string& filename)
+{
+	return filename != "." && filename != "..";
+}
+
 bool CreateImage(int fd, const PbCommand& command)
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Missing image filename");
+	}
+
+	if (!IsValidFilename(filename)) {
+		return ReturnStatus(fd, false, "Invalid filename '" + filename + "'");
 	}
 
 	string size = GetParam(command, "size");
@@ -794,6 +803,10 @@ bool DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
 
+	if (!IsValidFilename(filename)) {
+		return ReturnStatus(fd, false, "Invalid filename '" + filename + "'");
+	}
+
 	if (filename.find('/') != string::npos) {
 		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
 	}
@@ -831,11 +844,19 @@ bool RenameImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing destination filename");
 	}
 
+	if (!IsValidFilename(from)) {
+		return ReturnStatus(fd, false, "Invalid filename '" + from + "'");
+	}
+
+	if (!IsValidFilename(to)) {
+		return ReturnStatus(fd, false, "Invalid filename '" + to + "'");
+	}
+
 	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The current filename '" + from + "' must not contain a path");
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
 	}
 	if (to.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The new filename '" + to + "' must not contain a path");
+		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
 	}
 
 	from = default_image_folder + "/" + from;
@@ -867,11 +888,19 @@ bool CopyImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing destination filename");
 	}
 
+	if (!IsValidFilename(from)) {
+		return ReturnStatus(fd, false, "Invalid filename '" + from + "'");
+	}
+
+	if (!IsValidFilename(to)) {
+		return ReturnStatus(fd, false, "Invalid filename '" + to + "'");
+	}
+
 	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The current filename '" + from + "' must not contain a path");
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
 	}
 	if (to.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The new filename '" + to + "' must not contain a path");
+		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
 	}
 
 	from = default_image_folder + "/" + from;
@@ -919,6 +948,10 @@ bool SetImagePermissions(int fd, const PbCommand& command)
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Missing image filename");
+	}
+
+	if (!IsValidFilename(filename)) {
+		return ReturnStatus(fd, false, "Invalid filename '" + filename + "'");
 	}
 
 	if (filename.find('/') != string::npos) {
