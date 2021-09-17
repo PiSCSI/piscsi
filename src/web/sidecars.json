@@ -12,6 +12,30 @@
     "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
 },
 {
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ57 (C) DEC",
+    "revision": "5000",
+    "block_size": 512,
+    "blocks": 2050125,
+    "name": "DEC RZ57",
+    "file_type": "hds",
+    "description": "Largest recognized drive on Ultrix 3.1 - 4.3",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ74 (C) DEC",
+    "revision": "427H",
+    "block_size": 512,
+    "blocks": 6950125,
+    "name": "DEC RZ74",
+    "file_type": "hds",
+    "description": "Largest recognized drive on Ultrix 4.4 - 4.5",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
     "device_type": "SCRM",
     "vendor": "IOMEGA",
     "product": "ZIP 100",
@@ -24,6 +48,30 @@
     "url": "https://www.win.tue.nl/~aeb/linux/zip/zip-1.html"
 },
 {
+    "device_type": "SCRM",
+    "vendor": "IOMEGA",
+    "product": "ZIP 250",
+    "revision": "D.58",
+    "block_size": 512,
+    "blocks": 489532,
+    "name": "Iomega ZIP 250",
+    "file_type": "hdr",
+    "description": "Removable Iomega ZIP drive, 250MB capacity",
+    "url": "https://www.win.tue.nl/~aeb/linux/zip/zip-1.html"
+},
+{
+    "device_type": "SCRM",
+    "vendor": "SYQUEST",
+    "product": "SQ5110C",
+    "revision": "4AA0",
+    "block_size": 512,
+    "blocks": 173456,
+    "name": "SyQuest",
+    "file_type": "hdr",
+    "description": "SyQuest removable hard drive cartridges",
+    "url": ""
+},
+{
     "device_type": "SCCD",
     "vendor": "TOSHIBA",
     "product": "CD-ROM XM-3401TA",
@@ -31,8 +79,32 @@
     "block_size": 512,
     "blocks": null,
     "name": "Toshiba XM-3401TA",
-    "file_type": "",
+    "file_type": null,
     "description": "Boots most SGI, Sun, HP, IBM, DEC etc.",
+    "url": ""
+},
+{
+    "device_type": "SCCD",
+    "vendor": "SONY",
+    "product": "CD-ROM CDU-8012",
+    "revision": "3.1a",
+    "block_size": 512,
+    "blocks": null,
+    "name": "Sony CDU-8012",
+    "file_type": null,
+    "description": "Boots Sun3",
+    "url": ""
+},
+{
+    "device_type": "SCCD",
+    "vendor": "DEC",
+    "product": "RRD42   (C) DEC",
+    "revision": "4.5d",
+    "block_size": 512,
+    "blocks": null,
+    "name": "DEC RRD42",
+    "file_type": null,
+    "description": "Boots DECstations and VAXstations",
     "url": ""
 }
 ]
