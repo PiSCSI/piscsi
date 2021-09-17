@@ -104,6 +104,16 @@ enum PbOperation {
     //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
     // The destination filename must not yet exist.
     COPY_IMAGE = 18;
+    
+    // Write-protect an image file.
+    // Parameters:
+    //    "file": The filename, relative to the default image folder. It must not contain a slash.
+    PROTECT_IMAGE = 19;
+
+    // Make an image file writable.
+    // Parameters:
+    //    "file": The filename, relative to the default image folder. It must not contain a slash.
+    UNPROTECT_IMAGE = 20;
 }
 
 // The properties supported by a device

@@ -914,6 +914,39 @@ bool CopyImage(int fd, const PbCommand& command)
 	return ReturnStatus(fd);
 }
 
+bool SetImagePermissions(int fd, const PbCommand& command)
+{
+	string filename = GetParam(command, "file");
+	if (filename.empty()) {
+		return ReturnStatus(fd, false, "Missing image filename");
+	}
+
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
+	}
+
+	filename = default_image_folder + "/" + filename;
+
+	bool protect = command.operation() == PROTECT_IMAGE;
+
+	int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
+	if (chmod(filename.c_str(), permissions) == -1) {
+		ostringstream error;
+		error << "Can't " << (protect ? "protect" : "unprotect") << " image file '" << filename << "': " << strerror(errno);
+		return ReturnStatus(fd, false, error.str());
+	}
+
+	if (protect) {
+		LOGINFO("%s", string("Protected image file '" + filename + "'").c_str());
+	}
+	else {
+		LOGINFO("%s", string("Unprotected image file '" + filename + "'").c_str());
+	}
+
+	return ReturnStatus(fd);
+}
+
 void DetachAll()
 {
 	Device *map[devices.size()];
@@ -1380,6 +1413,10 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 		case COPY_IMAGE:
 			return CopyImage(fd, command);
+
+		case PROTECT_IMAGE:
+		case UNPROTECT_IMAGE:
+			return SetImagePermissions(fd, command);
 
 		default:
 			// This is a device-specific command handled below
