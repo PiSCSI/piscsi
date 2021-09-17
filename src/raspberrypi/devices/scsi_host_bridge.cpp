@@ -63,14 +63,14 @@ SCSIBR::~SCSIBR()
 	}
 }
 
-bool SCSIBR::Init(const list<string>& params)
+bool SCSIBR::Init(const map<string, string>& params)
 {
 	// Use default parameters if no parameters were provided
 	SetParams(params.empty() ? GetDefaultParams() : params);
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver(GetParams().front());
+	tap = new CTapDriver(GetParam("interfaces"));
 	m_bTapEnable = tap->Init();
 
 	// Generate MAC Address

@@ -8,13 +8,49 @@
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
-#include <sstream>
 #include "rascsi_interface.pb.h"
 #include "exceptions.h"
 #include "protobuf_util.h"
 
 using namespace std;
 using namespace rascsi_interface;
+
+
+const string GetParam(const PbCommand& command, const string& key)
+{
+	auto map = command.params();
+	return map[key];
+}
+
+const string GetParam(const PbDeviceDefinition& device, const string& key)
+{
+	auto map = device.params();
+	return map[key];
+}
+
+void AddParam(PbCommand& command, const string& key, const string& value)
+{
+	if (!key.empty() && !value.empty()) {
+		auto& map = *command.mutable_params();
+		map[key] = value;
+	}
+}
+
+void AddParam(PbDevice& device, const string& key, const string& value)
+{
+	if (!key.empty() && !value.empty()) {
+		auto& map = *device.mutable_params();
+		map[key] = value;
+	}
+}
+
+void AddParam(PbDeviceDefinition& device, const string& key, const string& value)
+{
+	if (!key.empty() && !value.empty()) {
+		auto& map = *device.mutable_params();
+		map[key] = value;
+	}
+}
 
 //---------------------------------------------------------------------------
 //

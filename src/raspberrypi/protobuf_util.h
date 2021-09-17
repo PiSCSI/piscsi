@@ -14,6 +14,13 @@
 #include "google/protobuf/message.h"
 #include "rascsi_interface.pb.h"
 
+using namespace rascsi_interface;
+
+const string GetParam(const PbCommand&, const string&);
+const string GetParam(const PbDeviceDefinition&, const string&);
+void AddParam(PbCommand&, const string&, const string&);
+void AddParam(PbDevice&, const string&, const string&);
+void AddParam(PbDeviceDefinition&, const string&, const string&);
 void SerializeMessage(int, const google::protobuf::Message&);
 void DeserializeMessage(int, google::protobuf::Message&);
 int ReadNBytes(int, uint8_t *, int);

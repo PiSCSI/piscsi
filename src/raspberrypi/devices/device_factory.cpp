@@ -53,8 +53,8 @@ DeviceFactory::DeviceFactory()
 	default_params[SCRM] = {};
 	default_params[SCMO] = {};
 	default_params[SCCD] = {};
-	default_params[SCBR] = { "eth0,wlan0" };
-	default_params[SCDP] = { "eth0,wlan0" };
+	default_params[SCBR]["interfaces"] = "eth0,wlan0";
+	default_params[SCDP]["interfaces"] = "eth0,wlan0";
 }
 
 DeviceFactory& DeviceFactory::instance()

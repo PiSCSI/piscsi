@@ -5,6 +5,7 @@ rasctl \- Sends management commands to the rascsi process
 .B rasctl
 \fB\-l\fR |
 \fB\-s\fR |
+[\fB\-d\fR \fIIMAGE_FOLDER\fR]
 [\fB\-g\fR \fILOG_LEVEL\fR]
 [\fB\-h\fR \fIHOST\fR]
 [\fB\-p\fR \fIPORT\fR]
@@ -12,7 +13,7 @@ rasctl \- Sends management commands to the rascsi process
 [\fB\-v\fR]
 \fB\-i\fR \fIID\fR
 [\fB\-c\fR \fICMD\fR]
-[\fB\-f\fR \fIFILE\fR]
+[\fB\-f\fR \fIFILE|PARAM\fR]
 [\fB\-n\fR \fINAME\fR]
 [\fB\-t\fR \fITYPE\fR]
 [\fB\-u\fR \fIUNIT\fR]
@@ -28,14 +29,23 @@ Note: The command and type arguments are case insensitive. Only the first letter
 
 .SH OPTIONS
 .TP
+.BR \-a\fI " "\fIFILENAME:FILESIZE
+Create an image file in the default image folder with the specified name and size in bytes.
+.TP
+.BR \-g\fI " "\fIIMAGE_FOLDER
+Set the default image folder.
+.TP
 .BR \-g\fI " "\fILOG_LEVEL
-The rascsi log level to set (trace, debug, info, warn, err, critical, off)
+Set the rascsi log level (trace, debug, info, warn, err, critical, off).
 .TP
 .BR \-h\fI " " \fIHOST
 The rascsi host to connect to, default is 'localhost'.
 .TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
+.TP
+.BR \-m\fI " "\fICURRENT_NAME:NEW_NAME
+Rename an image file in the default image folder.
 .TP
 .BR \-p\fI " " \fIPORT
 The rascsi port to connect to, default is 6868.
@@ -48,6 +58,12 @@ Display server-side settings like available images or supported device types.
 .TP
 .BR \-v\fI " " \fI
 Display the rascsi version.
+.TP
+.BR \-w\fI " "\fIFILENAME
+Delete an image file in the default image folder.
+.TP
+.BR \-x\fI " "\fICURRENT_NAME:NEW_NAME
+Copy an image file in the default image folder.
 .TP
 .BR \-i\fI " " \fIID
 ID is the SCSI ID that you want to control. (0-7)
@@ -67,8 +83,8 @@ eject, protect and unprotect are idempotent.
 .BR \-b\fI " " \fIBLOCK_SIZE
 The optional block size. For SCSI drives 512, 1024, 2048 or 4096 bytes, default size is 512 bytes. For SASI drives 256 or 1024 bytes, default is 256 bytes.
 .TP
-.BR \-f\fI " " \fIFILE
-Path to the disk image file. See the rascsi(1) man page for allowable file types.
+.BR \-f\fI " " \fIFILE|PARAM
+Device-specific: Either a path to a disk image file, or a parameter for a non-disk device. See the rascsi(1) man page for permitted file types.
 .TP 
 .BR \-t\fI " " \fITYPE
 Specifies the device type. This type overrides the type derived from the file extension of the specified image. See the rascsi(1) man page for the available device types. For some types there are shortcuts (only the first letter is required):
