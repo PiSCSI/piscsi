@@ -253,7 +253,8 @@ def daynaport_attach():
         flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
-    process = attach_daynaport(scsi_id)
+# TODO implement setttings in the web ui
+    process = attach_daynaport(scsi_id, "eth0")
     if process["status"] == True:
         flash(f"Attached DaynaPORT to SCSI id {scsi_id}!")
         return redirect(url_for("index"))

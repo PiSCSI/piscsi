@@ -90,10 +90,10 @@ def attach_image(scsi_id, **kwargs):
             devices.unit = kwargs["unit"]
         if "image" in kwargs.keys():
             if kwargs["image"] not in [None, ""]:
-                devices.params.append(kwargs["image"])
-        if "params" in kwargs.keys():
-            for p in kwargs["params"]:
-                devices.params.append(p)
+                devices.params["file"] = kwargs["image"]
+        if "interfaces" in kwargs.keys():
+            if kwargs["interfaces"] not in [None, ""]:
+                devices.params["interfaces"] = kwargs["interfaces"]
         if "vendor" in kwargs.keys():
             if kwargs["vendor"] not in [None, ""]:
                 devices.vendor = kwargs["vendor"]
@@ -158,7 +158,7 @@ def eject_by_id(scsi_id):
 def insert(scsi_id, image):
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
-    devices.params.append(image)
+    devices.params["file"] = image
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.INSERT
@@ -170,10 +170,11 @@ def insert(scsi_id, image):
     return {"status": result.status, "msg": result.msg}
 
 
-def attach_daynaport(scsi_id):
+def attach_daynaport(scsi_id, interfaces):
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
     devices.type = proto.PbDeviceType.SCDP
+    devices.params["interfaces"] = interfaces
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.ATTACH
@@ -264,8 +265,7 @@ def reserve_scsi_ids(reserved_scsi_ids):
     '''Sends a command to the server to reserve SCSI IDs. Takes a list of strings as argument.'''
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVE
-    for i in reserved_scsi_ids:
-        command.params.append(i)
+    command.params["ids"] = ",".join(reserved_scsi_ids)
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -277,7 +277,7 @@ def set_log_level(log_level):
     '''Sends a command to the server to change the log level. Takes target log level as an argument.'''
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL
-    command.params.append(str(log_level))
+    command.params["level"] = str(log_level)
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
