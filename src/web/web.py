@@ -152,6 +152,27 @@ def disk_create():
         return redirect(url_for("index"))
 
 
+@app.route("/disk/cdrom", methods=["POST"])
+def disk_cdrom():
+    vendor = request.form.get("vendor")
+    product = request.form.get("product")
+    revision = request.form.get("revision")
+    block_size = request.form.get("block_size")
+    file_name = request.form.get("file_name")
+    from pathlib import Path
+    file_name = base_dir + str(Path(file_name).stem)
+    
+    # Creating the sidecar file
+    sidecar = {"vendor": vendor, "product": product, "revision": revision, "block_size": block_size}
+    process = write_sidecar(file_name, sidecar)
+    if process["status"] == True:
+        flash(f"Drive sidecar file {file_name}.rascsi created")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to create sidecar file {file_name}.rascsi", "error")
+        return redirect(url_for("index"))
+
+
 @app.route("/config/save", methods=["POST"])
 def config_save():
     file_name = request.form.get("name") or "default"
@@ -255,6 +276,14 @@ def attach():
 
     kwargs = {"image": file_name}
 
+    # Validate image type by file name suffix
+    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
+        kwargs["device_type"] = "SCCD"
+    elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
+        kwargs["device_type"] = "SCRM"
+    elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
+        kwargs["device_type"] = "SCHD"
+ 
     # Attempt to load the device config sidecar file:
     # same base path but .rascsi instead of the original suffix.
     from pathlib import Path
@@ -265,24 +294,18 @@ def attach():
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
-        conf_file_size = int(conf["blocks"]) * int(conf["block_size"])
-        if conf_file_size != 0 and conf_file_size > int(file_size):
-            flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
-            flash(f"The file size {file_size} bytes needs to be at least {conf_file_size} bytes.", "error")
-            return redirect(url_for("index"))
+        # CD-ROM drives have no inherent size
+        if kwargs["device_type"] != "SCCD":
+            conf_file_size = int(conf["blocks"]) * int(conf["block_size"])
+            if conf_file_size != 0 and conf_file_size > int(file_size):
+                flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
+                flash(f"The file size {file_size} bytes needs to be at least {conf_file_size} bytes.", "error")
+                return redirect(url_for("index"))
         kwargs["vendor"] = conf["vendor"]
         kwargs["product"] = conf["product"]
         kwargs["revision"] = conf["revision"]
         kwargs["block_size"] = conf["block_size"]
 
-    # Validate image type by file name suffix
-    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
-        kwargs["device_type"] = "SCCD"
-    elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
-        kwargs["device_type"] = "SCRM"
-    elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
-        kwargs["device_type"] = "SCHD"
- 
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
@@ -462,6 +485,7 @@ def download():
 
 @app.route("/files/delete", methods=["POST"])
 def delete():
+    # TODO: delete sidecar file when deleting image
     image = request.form.get("image")
     if delete_file(base_dir + image):
         flash("File " + image + " deleted")
