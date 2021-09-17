@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 
     {% block content %}
-    <p><a href="javascript:history.back()">Cancel</a>
+    <p><a href="javascript:history.back()">Cancel</a></p>
+    <h2>Disclaimer</h2>
+    <p>These device profiles are provided as-is with no guarantee to work on the systems mentioned. You may need appropirate device drivers and/or configuration parameters. If you have improvement suggestions or success stories to share we would love to hear from you, so please connect with us at <a href="https://github.com/akuker/RASCSI">GitHub</a> or <a href="https://discord.gg/PyS58u6">Discord</a>!</p>
     <h2>Hard Drives</h2>
 
     <table cellpadding="3" border="black">
@@ -10,7 +12,7 @@
             <td><b>Name</b></td>
             <td><b>Size (MB)</b></td>
             <td><b>Description</b></td>
-            <td><b>URL</b></td>
+            <td><b>Ref.</b></td>
             <td><b>Action</b></td>
         </tr>
         {% for hd in hd_conf %}
@@ -47,7 +49,7 @@
             <td><b>Name</b></td>
             <td><b>Size (MB)</b></td>
             <td><b>Description</b></td>
-            <td><b>URL</b></td>
+            <td><b>Ref.</b></td>
             <td><b>Action</b></td>
         </tr>
         {% for cd in cd_conf %}
@@ -87,7 +89,7 @@
             <td><b>Name</b></td>
             <td><b>Size (MB)</b></td>
             <td><b>Description</b></td>
-            <td><b>URL</b></td>
+            <td><b>Ref.</b></td>
             <td><b>Action</b></td>
         </tr>
         {% for rm in rm_conf %}
