@@ -725,32 +725,32 @@ bool CreateImage(int fd, const PbCommand& command)
 {
 	string filename = GetParam(command, "file");
 	if (filename.empty()) {
-		return ReturnStatus(fd, false, "Missing image filename");
+		return ReturnStatus(fd, false, "Can't create image file: Missing image filename");
 	}
 
 	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Invalid filename '" + filename + "'");
+		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': Invalid filename");
 	}
 
 	string size = GetParam(command, "size");
 	if (size.empty()) {
-		return ReturnStatus(fd, false, "Missing image size");
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
 	}
 
 	string permission = GetParam(command, "read_only");
 	if (permission.empty()) {
-		return ReturnStatus(fd, false, "Missing read-only flag");
+		return ReturnStatus(fd, false, "Can't create image file'" + filename + "': Missing read-only flag");
 	}
 
 	if (strcasecmp(permission.c_str(), "true") && strcasecmp(permission.c_str(), "false")) {
-		return ReturnStatus(fd, false, "Invalid read-only flag '" + permission + "'");
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid read-only flag '" + permission + "'");
 	}
 
 	int permissions = !strcasecmp(permission.c_str(), "true") ?
 			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 
 	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
 	}
 
 	filename = default_image_folder + "/" + filename;
@@ -760,10 +760,10 @@ bool CreateImage(int fd, const PbCommand& command)
 		len = stoul(size);
 	}
 	catch(const invalid_argument& e) {
-		return ReturnStatus(fd, false, "Invalid image file size " + size);
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
 	}
 	catch(const out_of_range& e) {
-		return ReturnStatus(fd, false, "Invalid image file size " + size);
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
 	}
 	if (len < 512 || (len & 0x1ff)) {
 		ostringstream error;
@@ -773,7 +773,7 @@ bool CreateImage(int fd, const PbCommand& command)
 
 	struct stat st;
 	if (!stat(filename.c_str(), &st)) {
-		return ReturnStatus(fd, false, "Image file '" + filename + "' already exists");
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': File already exists");
 	}
 
 	// Since rascsi is running as root ensure that others can access the file
@@ -805,7 +805,7 @@ bool DeleteImage(int fd, const PbCommand& command)
 	}
 
 	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Invalid filename '" + filename + "'");
+		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': Invalid filename");
 	}
 
 	if (filename.find('/') != string::npos) {
@@ -837,20 +837,20 @@ bool RenameImage(int fd, const PbCommand& command)
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
-		return ReturnStatus(fd, false, "Missing source filename");
+		return ReturnStatus(fd, false, "Can't rename image file: Missing source filename");
 	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
-		return ReturnStatus(fd, false, "Missing destination filename");
+		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
 	}
 
 	if (!IsValidFilename(from)) {
-		return ReturnStatus(fd, false, "Invalid filename '" + from + "'");
+		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid filename");
 	}
 
 	if (!IsValidFilename(to)) {
-		return ReturnStatus(fd, false, "Invalid filename '" + to + "'");
+		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': Invalid filename");
 	}
 
 	if (from.find('/') != string::npos) {
@@ -881,20 +881,20 @@ bool CopyImage(int fd, const PbCommand& command)
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
-		return ReturnStatus(fd, false, "Missing source filename");
+		return ReturnStatus(fd, false, "Can't copy image file: Missing source filename");
 	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
-		return ReturnStatus(fd, false, "Missing destination filename");
+		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
 	}
 
 	if (!IsValidFilename(from)) {
-		return ReturnStatus(fd, false, "Invalid filename '" + from + "'");
+		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid filename");
 	}
 
 	if (!IsValidFilename(to)) {
-		return ReturnStatus(fd, false, "Invalid filename '" + to + "'");
+		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': Invalid filename");
 	}
 
 	if (from.find('/') != string::npos) {
@@ -952,7 +952,7 @@ bool SetImagePermissions(int fd, const PbCommand& command)
 	}
 
 	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Invalid filename '" + filename + "'");
+		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid filename");
 	}
 
 	if (filename.find('/') != string::npos) {
