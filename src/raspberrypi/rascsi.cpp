@@ -717,8 +717,12 @@ string SetReservedIds(const string& ids)
 
 bool IsValidFilename(const string& filename)
 {
+	if (filename == "." || filename == "..") {
+		return false;
+	}
+
 	struct stat st;
-	return !stat(filename.c_str(), &st) && S_ISREG(st.st_mode);
+	return stat(filename.c_str(), &st) || !S_ISREG(st.st_mode);
 }
 
 bool CreateImage(int fd, const PbCommand& command)
