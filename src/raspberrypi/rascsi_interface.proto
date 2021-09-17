@@ -32,6 +32,9 @@ enum PbOperation {
     NONE = 0;
 
     // Attach devices
+    // Parameters (mutually exclusive):
+    //   "file": The filename relative to the default image folder. It must not contain a slash.
+    //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
     ATTACH = 1;
 
     // Detach devices
@@ -47,6 +50,8 @@ enum PbOperation {
     STOP = 5;
 
     // Insert medium
+    // Parameters:
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
     INSERT = 6;
 
     // Eject medium
