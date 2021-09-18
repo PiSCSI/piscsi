@@ -415,19 +415,6 @@ function reserveScsiIds() {
 
 function runChoice() {
   case $1 in
-          0)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive"
-              stopOldWebInterface
-              updateRaScsiGit
-              createImagesDir
-              installPackages
-              installRaScsi
-              installRaScsiWebInterface
-              createDrive600MB
-              showRaScsiStatus
-              showRaScsiWebStatus
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface + 600MB Drive - Complete!"
-          ;;
           1)
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface"
               stopOldWebInterface
@@ -501,11 +488,11 @@ function showMenu() {
     echo ""
     echo "Choose among the following options:"
     echo "INSTALL/UPDATE RASCSI (${CONNECT_TYPE-FULLSPEC} version)"
-    echo "  0) install or update RaSCSI Service + web interface + 600MB Drive (recommended)"
-    echo "  1) install or update RaSCSI Service + web interface"
+    echo "  1) install or update RaSCSI Service + Web Interface"
     echo "  2) install or update RaSCSI Service"
-    echo "CREATE EMPTY DRIVE IMAGE FOR MACINTOSH (except Mac Plus)"
-    echo "  3) 600MB drive (recommended)"
+    echo "CREATE EMPTY DRIVE IMAGE FORMATTED FOR MACINTOSH"
+    echo "** For older Macs, it's better to create an image through the Web Interface **"
+    echo "  3) 600MB drive (recommended size)"
     echo "  4) custom drive size (up to 4000MB)"
     echo "NETWORK ASSISTANT"
     echo "  5) configure network forwarding over Ethernet (DHCP)"
@@ -531,7 +518,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7)
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7)
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
