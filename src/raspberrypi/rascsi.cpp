@@ -564,7 +564,7 @@ void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
 
 	while (tmp) {
 	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET && strcmp("lo", tmp->ifa_name)) {
-	        int fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
+	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
 	        struct ifreq ifr;
 	        memset(&ifr, 0, sizeof(ifr));
