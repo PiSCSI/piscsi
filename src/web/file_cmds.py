@@ -7,8 +7,10 @@ from ractl_cmds import (
     attach_image,
     detach_all,
     list_devices,
+    send_pb_command,
 )
 from settings import *
+import rascsi_interface_pb2 as proto
 
 
 def list_files():
@@ -47,16 +49,18 @@ def list_config_files():
     return files_list
 
 
-def create_new_image(file_name, type, size):
-    if file_name == "":
-        file_name = "new_image." + str(int(time.time())) + "." + type
-    else:
-        file_name = file_name + "." + type
+def create_new_image(file_name, file_type, size):
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.CREATE_IMAGE
 
-    return subprocess.run(
-        ["truncate", "--size", f"{size}", f"{base_dir}{file_name}"],
-        capture_output=True,
-    )
+    command.params["file"] = file_name + "." + file_type
+    command.params["size"] = str(size)
+    command.params["read_only"] = "false"
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def delete_file(file_name):

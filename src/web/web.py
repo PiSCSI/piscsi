@@ -419,6 +419,11 @@ def shutdown():
 @app.route("/files/download_to_iso", methods=["POST"])
 def download_file():
     scsi_id = request.form.get("scsi_id")
+    validate = validate_scsi_id(scsi_id)
+    if validate["status"] == False:
+        flash(validate["msg"], "error")
+        return redirect(url_for("index"))
+
     url = request.form.get("url")
     process = download_file_to_iso(scsi_id, url)
     if process["status"] == True:
@@ -476,13 +481,13 @@ def create_file():
     file_type = request.form.get("type")
 
     process = create_new_image(file_name, file_type, size)
-    if process.returncode == 0:
-        flash("Drive created")
+    if process["status"] == True:
+        flash(f"Drive image created as {file_name}.{file_type}")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash("Failed to create file", "error")
-        flash(process.stdout, "stdout")
-        flash(process.stderr, "stderr")
+        flash(f"Failed to create file {file_name}.{file_type}", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
 
 
