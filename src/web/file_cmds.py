@@ -1,6 +1,5 @@
 import os
 import subprocess
-import time
 import logging
 
 from ractl_cmds import (
@@ -64,11 +63,15 @@ def create_new_image(file_name, file_type, size):
 
 
 def delete_file(file_name):
-    if os.path.exists(file_name):
-        os.remove(file_name)
-        return True
-    else:
-        return False
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DELETE_IMAGE
+
+    command.params["file"] = file_name
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def unzip_file(file_name):
@@ -81,6 +84,7 @@ def unzip_file(file_name):
 
 def download_file_to_iso(scsi_id, url):
     import urllib.request
+    import time
 
     file_name = url.split("/")[-1]
     tmp_ts = int(time.time())
@@ -120,9 +124,10 @@ def download_image(url):
 
 def write_config(file_name):
     from json import dump
+    file_name = base_dir + file_name
     try:
         with open(file_name, "w") as json_file:
-            devices = list_devices()[0]["device_list"]
+            devices = list_devices()["device_list"]
             for device in devices:
                 # Remove keys that we don't want to store in the file
                 del device["status"]
@@ -142,12 +147,14 @@ def write_config(file_name):
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
     #TODO: more verbose error handling of file system errors
     except:
+        raise
         logging.error(f"Could not write to file: {file_name}")
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
 
 def read_config(file_name):
     from json import load
+    file_name = base_dir + file_name
     try:
         with open(file_name) as json_file:
             detach_all()
@@ -169,7 +176,7 @@ def read_config(file_name):
 def write_sidecar(file_name, conf):
     ''' Writes a sidecar configuration file to the images dir. Takes file name (str) and conf (list of dicts) as arguments '''
     from json import dump
-    file_name = file_name + ".rascsi"
+    file_name = base_dir + file_name + ".rascsi"
     try:
         with open(file_name, "w") as json_file:
             dump(conf, json_file, indent=4)
@@ -184,6 +191,7 @@ def write_sidecar(file_name, conf):
 def read_sidecar(file_name):
     ''' Reads sidecar configurations, either ones deployed to the images dir, or the canonical database. Takes file name (str) as argument '''
     from json import load
+    file_name = base_dir + file_name + ".rascsi"
     try:
         with open(file_name) as json_file:
             conf = load(json_file)

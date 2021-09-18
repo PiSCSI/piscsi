@@ -3,7 +3,7 @@ from os import getenv, getcwd
 base_dir = getenv("BASE_DIR", "/home/pi/images/")
 home_dir = getcwd()
 
-DEFAULT_CONFIG = base_dir + "default.json"
+DEFAULT_CONFIG = "default.json"
 MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", 1024 * 1024 * 1024 * 2)  # 2gb
 
 HARDDRIVE_FILE_SUFFIX = ("hda", "hdn", "hdi", "nhd", "hdf", "hds")

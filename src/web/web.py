@@ -128,7 +128,6 @@ def disk_create():
     size = request.form.get("size")
     file_type = request.form.get("file_type")
     file_name = request.form.get("file_name")
-    file_path = f"{base_dir}{file_name}"
     
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
@@ -141,13 +140,15 @@ def disk_create():
         return redirect(url_for("index"))
 
     # Creating the sidecar file
+    from pathlib import Path
+    file_name_base = str(Path(file_name).stem)
     sidecar = {"vendor": vendor, "product": product, "revision": revision, "blocks": blocks, "block_size": block_size}
-    process = write_sidecar(file_path, sidecar)
+    process = write_sidecar(file_name_base, sidecar)
     if process["status"] == True:
-        flash(f"Drive sidecar file {file_path}.rascsi created")
+        flash(f"Drive sidecar file {file_name_base}.rascsi created")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to create sidecar file {file_path}.rascsi", "error")
+        flash(f"Failed to create sidecar file {file_name_base}.rascsi", "error")
         return redirect(url_for("index"))
 
 
@@ -159,53 +160,59 @@ def disk_cdrom():
     block_size = request.form.get("block_size")
     file_name = request.form.get("file_name")
     from pathlib import Path
-    file_name = base_dir + str(Path(file_name).stem)
+    file_name_base = str(Path(file_name).stem)
     
     # Creating the sidecar file
     sidecar = {"vendor": vendor, "product": product, "revision": revision, "block_size": block_size}
-    process = write_sidecar(file_name, sidecar)
+    process = write_sidecar(file_name_base, sidecar)
     if process["status"] == True:
-        flash(f"Drive sidecar file {file_name}.rascsi created")
+        flash(f"Drive sidecar file {file_name_base}.rascsi created")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to create sidecar file {file_name}.rascsi", "error")
+        flash(f"Failed to create sidecar file {file_name_base}.rascsi", "error")
         return redirect(url_for("index"))
 
 
 @app.route("/config/save", methods=["POST"])
 def config_save():
     file_name = request.form.get("name") or "default"
-    file_name = f"{base_dir}{file_name}.json"
+    file_name = f"{file_name}.json"
 
     process = write_config(file_name)
     if process["status"] == True:
-        flash(f"Saved config to  {file_name}!")
+        flash(f"Saved config to {file_name}!")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to saved config to  {file_name}!", "error")
-        flash(f"{process['msg']}", "error")
-    return redirect(url_for("index"))
+        flash(f"Failed to saved config to {file_name}!", "error")
+        flash(process['msg'], "error")
+        return redirect(url_for("index"))
 
 
 @app.route("/config/load", methods=["POST"])
 def config_load():
     file_name = request.form.get("name")
-    file_name = f"{base_dir}{file_name}"
 
     if "load" in request.form:
         process = read_config(file_name)
         if process["status"] == True:
-            flash(f"Loaded config from  {file_name}!")
+            flash(f"Loaded config from {file_name}!")
+            flash(process["msg"])
+            return redirect(url_for("index"))
         else:
-            flash(f"Failed to load  {file_name}!", "error")
-            flash(f"{process['msg']}", "error")
+            flash(f"Failed to load {file_name}!", "error")
+            flash(process['msg'], "error")
+            return redirect(url_for("index"))
     elif "delete" in request.form:
-        if delete_file(file_name):
-            flash(f"Deleted config  {file_name}!")
+        process = delete_file(file_name)
+        if process["status"] == True:
+            flash(f"Deleted config {file_name}!")
+            flash(process["msg"])
+            return redirect(url_for("index"))
         else:
-            flash(f"Failed to delete  {file_name}!", "error")
-
-    return redirect(url_for("index"))
+            flash(f"Failed to delete {file_name}!", "error")
+            flash(process['msg'], "error")
+            return redirect(url_for("index"))
 
 
 @app.route("/logs/show", methods=["POST"])
@@ -296,9 +303,10 @@ def attach():
     # Attempt to load the device config sidecar file:
     # same base path but .rascsi instead of the original suffix.
     from pathlib import Path
-    device_config = Path(base_dir + str(Path(file_name).stem) + ".rascsi")
+    file_name_base = str(Path(file_name).stem)
+    device_config = Path(base_dir + file_name_base + ".rascsi")
     if device_config.is_file():
-        process = read_sidecar(device_config)
+        process = read_sidecar(file_name_base)
         if process["status"] == False:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
@@ -499,14 +507,34 @@ def download():
 
 @app.route("/files/delete", methods=["POST"])
 def delete():
-    # TODO: delete sidecar file when deleting image
-    image = request.form.get("image")
-    if delete_file(base_dir + image):
-        flash("File " + image + " deleted")
-        return redirect(url_for("index"))
+    file_name = request.form.get("image")
+
+    process = delete_file(file_name)
+    if process["status"] == True:
+        flash(f"File {file_name} deleted")
+        flash(process["msg"])
     else:
-        flash("Failed to Delete " + image, "error")
+        flash(f"Failed to delete file {file_name}", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
+
+    # Delete the sidecar file, if it exists
+    from pathlib import Path
+    file_name = str(Path(file_name).stem) + ".rascsi"
+    sidecar = Path(base_dir + file_name)
+    if sidecar.is_file():
+        process = delete_file(file_name)
+        if process["status"] == True:
+            flash(f"File {file_name} deleted")
+            flash(process["msg"])
+            return redirect(url_for("index"))
+        else:
+            flash(f"Failed to delete file {file_name}", "error")
+            flash(process["msg"], "error")
+            return redirect(url_for("index"))
+
+    return redirect(url_for("index"))
+
 
 
 @app.route("/files/unzip", methods=["POST"])
@@ -538,9 +566,9 @@ if __name__ == "__main__":
 
     # Load the default configuration file, if found
     from pathlib import Path
-    default_config = Path(DEFAULT_CONFIG)
-    if default_config.is_file():
-        read_config(default_config)
+    default_config_path = Path(base_dir + DEFAULT_CONFIG)
+    if default_config_path.is_file():
+        read_config(DEFAULT_CONFIG)
 
     import bjoern
     print("Serving rascsi-web...")
