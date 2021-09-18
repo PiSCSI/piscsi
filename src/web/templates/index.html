@@ -131,10 +131,17 @@
     <hr/>
     <h2>Attach Ethernet Adapter</h2>
     <p>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link">Host drivers required.</a></p>
+    <p>Leave Interface and Static IP blank for default settings, and input only Interface for DHCP setups.</p>
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
                 <form action="/daynaport/attach" method="post">
+		    <label for="if">Interface:</label>
+		    <input type="text" name="if" size="10" placeholder="eth0,wlan0" />
+		    <label for="ip">Static IP (optional):</label>
+		    <input type="text" name="ip" size="15" placeholder="10.10.20.1" />/
+		    <input type="text" name="mask" size="2" placeholder="24">
+		    <label for="scsi_id">ID:</label>
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
                         <option value="{{id}}">{{id}}</option>

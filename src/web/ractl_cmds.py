@@ -170,22 +170,6 @@ def insert(scsi_id, image):
     return {"status": result.status, "msg": result.msg}
 
 
-def attach_daynaport(scsi_id, interfaces):
-    devices = proto.PbDeviceDefinition()
-    devices.id = int(scsi_id)
-    devices.type = proto.PbDeviceType.SCDP
-    devices.params["interfaces"] = interfaces
-
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.ATTACH
-    command.devices.append(devices)
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    return {"status": result.status, "msg": result.msg}
-
-
 def list_devices(scsi_id=None):
     from os import path
     command = proto.PbCommand()

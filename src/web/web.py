@@ -27,7 +27,6 @@ from ractl_cmds import (
     detach_by_id,
     eject_by_id,
     get_valid_scsi_ids,
-    attach_daynaport,
     detach_all,
     reserve_scsi_ids,
     get_server_info,
@@ -247,14 +246,23 @@ def log_level():
 @app.route("/daynaport/attach", methods=["POST"])
 def daynaport_attach():
     scsi_id = request.form.get("scsi_id")
+    interface = request.form.get("if")
+    ip = request.form.get("ip")
+    mask = request.form.get("mask")
+
+    kwargs = {"device_type": "SCDP"}
+    if interface != "":
+        arg = interface
+        if "" not in (ip, mask):
+            arg += (":" + ip + "/" + mask)
+        kwargs["interfaces"] = arg
 
     validate = validate_scsi_id(scsi_id)
     if validate["status"] == False:
         flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
-# TODO implement setttings in the web ui
-    process = attach_daynaport(scsi_id, "eth0")
+    process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached DaynaPORT to SCSI id {scsi_id}!")
         return redirect(url_for("index"))
