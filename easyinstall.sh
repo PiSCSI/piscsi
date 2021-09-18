@@ -504,7 +504,7 @@ function showMenu() {
     echo "  0) install or update RaSCSI Service + web interface + 600MB Drive (recommended)"
     echo "  1) install or update RaSCSI Service + web interface"
     echo "  2) install or update RaSCSI Service"
-    echo "CREATE EMPTY DRIVE IMAGE"
+    echo "CREATE EMPTY DRIVE IMAGE FOR MACINTOSH (except Mac Plus)"
     echo "  3) 600MB drive (recommended)"
     echo "  4) custom drive size (up to 4000MB)"
     echo "NETWORK ASSISTANT"
