@@ -19,8 +19,8 @@ def shutdown_pi():
     return True
 
 
-def running_version():
-    ra_web_version = (
+def running_env():
+    ra_git_version = (
         subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True)
         .stdout.decode("utf-8")
         .strip()
@@ -30,7 +30,7 @@ def running_version():
         .stdout.decode("utf-8")
         .strip()
     )
-    return "RaSCSI git revision: " + ra_web_version[:7] + " - Environment: " + pi_version
+    return {"git": ra_git_version, "env": pi_version}
 
 
 def is_bridge_setup():

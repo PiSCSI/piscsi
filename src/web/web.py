@@ -14,9 +14,9 @@ from file_cmds import (
     read_sidecar,
 )
 from pi_cmds import (
-    shutdown_pi, 
-    reboot_pi, 
-    running_version, 
+    shutdown_pi,
+    reboot_pi,
+    running_env,
     rascsi_service,
     is_bridge_setup,
 )
@@ -56,7 +56,7 @@ def index():
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=MAX_FILE_SIZE,
-        version=running_version(),
+        running_env=running_env(),
         server_info=server_info,
         valid_file_suffix=VALID_FILE_SUFFIX,
         removable_device_types=REMOVABLE_DEVICE_TYPES,
