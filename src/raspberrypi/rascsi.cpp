@@ -688,6 +688,9 @@ void GetServerInfo(PbResult& result)
 	server_info->set_current_log_level(current_log_level);
 	GetAllDeviceTypeProperties(*server_info);
 	GetAvailableImages(*server_info);
+	PbNetworkInterfacesInfo * network_interfaces_info = new PbNetworkInterfacesInfo();
+	server_info->set_allocated_network_interfaces_info(network_interfaces_info);
+	GetNetworkInterfacesInfo(*network_interfaces_info);
 	GetDevices(*server_info);
 	for (int id : reserved_ids) {
 		server_info->add_reserved_ids(id);

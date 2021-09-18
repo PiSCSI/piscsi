@@ -176,6 +176,22 @@ void DisplayImageFiles(const list<PbImageFile> image_files, const string& defaul
 	}
 }
 
+void DisplayNetworkInterfaces(list<string> interfaces)
+{
+	interfaces.sort([](const auto& a, const auto& b) { return a < b; });
+
+	cout << "Available (up) network interfaces:" << endl;
+	bool isFirst = true;
+	for (const auto& interface : interfaces) {
+		if (!isFirst) {
+			cout << ", ";
+		}
+		isFirst = false;
+		cout << interface;
+	}
+	cout << endl;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command implementations
@@ -326,6 +342,10 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 		{ server_info.image_files_info().image_files().begin(), server_info.image_files_info().image_files().end() };
 	DisplayImageFiles(image_files, server_info.image_files_info().default_image_folder());
 
+	const list<string> network_interfaces =
+		{ server_info.network_interfaces_info().name().begin(), server_info.network_interfaces_info().name().end() };
+	DisplayNetworkInterfaces(network_interfaces);
+
 	cout << "Supported device types and their properties:" << endl;
 	for (auto it = server_info.types_properties().begin(); it != server_info.types_properties().end(); ++it) {
 		cout << "  " << PbDeviceType_Name(it->type());
@@ -459,20 +479,9 @@ void CommandNetworkInterfacesInfo(const PbCommand& command, const string&hostnam
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
-	list<string> interfaces =
+	list<string> network_interfaces =
 		{ result.network_interfaces_info().name().begin(), result.network_interfaces_info().name().end() };
-	interfaces.sort([](const auto& a, const auto& b) { return a < b; });
-
-	cout << "Available (up) network interfaces:" << endl;
-	bool isFirst = true;
-	for (const auto& interface : interfaces) {
-		if (!isFirst) {
-			cout << ", ";
-		}
-		isFirst = false;
-		cout << interface;
-	}
-	cout << endl;
+	DisplayNetworkInterfaces(network_interfaces);
 }
 
 PbOperation ParseOperation(const char *optarg)
