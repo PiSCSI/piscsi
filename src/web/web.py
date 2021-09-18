@@ -132,12 +132,12 @@ def disk_create():
     
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
-    if process.returncode == 0:
+    if process["status"] == True:
         flash(f"Drive image file {file_path}.{file_type} created")
+        flash(process["msg"])
     else:
-        flash(f"Failed to create file {file_path}.{file_type}", "error")
-        flash(process.stdout, "stdout")
-        flash(process.stderr, "stderr")
+        flash(f"Failed to create file {file_name}.{file_type}", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
 
     # Creating the sidecar file
