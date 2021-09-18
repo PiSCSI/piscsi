@@ -307,8 +307,9 @@ def attach():
     file_name_base = str(Path(file_name).stem)
     device_config = Path(base_dir + file_name_base + ".rascsi")
     if device_config.is_file():
-        process = read_sidecar(file_name_base)
+        process = read_sidecar(str(device_config))
         if process["status"] == False:
+            flash(f"Failed to load the sidecar file {file_name_base}.rascsi", "error")
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
