@@ -148,7 +148,7 @@ def drive_create():
 
     # Creating the drive properties file
     from pathlib import Path
-    file_name = str(Path(file_name).stem) + ".json"
+    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
     properties = {"vendor": vendor, "product": product, "revision": revision, \
             "blocks": blocks, "block_size": block_size}
     process = write_drive_properties(file_name, properties)
@@ -170,7 +170,7 @@ def drive_cdrom():
 
     # Creating the drive properties file
     from pathlib import Path
-    file_name = str(Path(file_name).stem).json
+    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
     properties = {"vendor": vendor, "product": product, "revision": revision, "block_size": block_size}
     process = write_drive_properties(file_name, properties)
     if process["status"] == True:
@@ -309,14 +309,14 @@ def attach():
         kwargs["device_type"] = "SCHD"
  
     # Attempt to load the device properties file:
-    # same base path but .json instead of the original suffix.
+    # same base path but PROPERTIES_SUFFIX instead of the original suffix.
     from pathlib import Path
     file_name_base = str(Path(file_name).stem)
-    device_config = Path(base_dir + file_name_base + ".json")
+    device_config = Path(base_dir + file_name_base + "." + PROPERTIES_SUFFIX)
     if device_config.is_file():
         process = read_drive_properties(str(device_config))
         if process["status"] == False:
-            flash(f"Failed to load the device properties file {file_name_base}.json", "error")
+            flash(f"Failed to load the device properties file {file_name_base}.{PROPERTIES_SUFFIX}", "error")
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
@@ -529,7 +529,7 @@ def delete():
 
     # Delete the drive properties file, if it exists
     from pathlib import Path
-    file_name = str(Path(file_name).stem) + ".json"
+    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
     file_path = Path(base_dir + file_name)
     if file_path.is_file():
         process = delete_file(file_name)

@@ -84,6 +84,7 @@ def unzip_file(file_name):
 
 def download_file_to_iso(scsi_id, url):
     import urllib.request
+    import urllib.error as error
     import time
 
     file_name = url.split("/")[-1]
@@ -95,8 +96,10 @@ def download_file_to_iso(scsi_id, url):
 
     try:
         urllib.request.urlretrieve(url, tmp_full_path)
+    except (error.URLError, error.HTTPError, error.ContentTooShortError) as e:
+        logging.error(str(e))
+        return {"status": False, "msg": str(e)}
     except:
-        # TODO: Capture a more descriptive error message
         return {"status": False, "msg": "Error loading the URL"}
 
     # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
@@ -110,6 +113,7 @@ def download_file_to_iso(scsi_id, url):
 
 def download_image(url):
     import urllib.request
+    import urllib.error as error
 
     file_name = url.split("/")[-1]
     full_path = base_dir + file_name
@@ -117,8 +121,10 @@ def download_image(url):
     try:
         urllib.request.urlretrieve(url, full_path)
         return {"status": True, "msg": "Downloaded the URL"}
+    except (error.URLError, error.HTTPError, error.ContentTooShortError) as e:
+        logging.error(str(e))
+        return {"status": False, "msg": str(e)}
     except:
-        # TODO: Capture a more descriptive error message
         return {"status": False, "msg": "Error loading the URL"}
 
 
@@ -145,9 +151,10 @@ def write_config(file_name):
                 device["params"] = list(device["params"])
             dump(devices, json_file, indent=4)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
-    #TODO: more verbose error handling of file system errors
+    except (IOError, ValueError, EOFError, TypeError) as e:
+        logging.error(str(e))
+        return {"status": False, "msg": str(e)}
     except:
-        raise
         logging.error(f"Could not write to file: {file_name}")
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
@@ -168,7 +175,9 @@ def read_config(file_name):
             return {"status": process["status"], "msg": f"Successfully read from file: {file_name}"}
         else:
             return {"status": process["status"], "msg": process["msg"]}
-    #TODO: more verbose error handling of file system errors
+    except (IOError, ValueError, EOFError, TypeError) as e:
+        logging.error(str(e))
+        return {"status": False, "msg": str(e)}
     except:
         logging.error(f"Could not read file: {file_name}")
         return {"status": False, "msg": f"Could not read file: {file_name}"}
@@ -184,7 +193,9 @@ def write_drive_properties(file_name, conf):
         with open(base_dir + file_name, "w") as json_file:
             dump(conf, json_file, indent=4)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
-    #TODO: more verbose error handling of file system errors
+    except (IOError, ValueError, EOFError, TypeError) as e:
+        logging.error(str(e))
+        return {"status": False, "msg": str(e)}
     except:
         logging.error(f"Could not write to file: {file_name}")
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
@@ -202,7 +213,9 @@ def read_drive_properties(path_name):
         with open(path_name) as json_file:
             conf = load(json_file)
             return {"status": True, "msg": f"Read data from file: {path_name}", "conf": conf}
-    #TODO: more verbose error handling of file system errors
+    except (IOError, ValueError, EOFError, TypeError) as e:
+        logging.error(str(e))
+        return {"status": False, "msg": str(e)}
     except:
         logging.error(f"Could not read file: {file_name}")
         return {"status": False, "msg": f"Could not read file: {path_name}"}
