@@ -38,8 +38,8 @@ public:
 	static void SetReservedFiles(const map<string, id_set>& files_in_use) { FileSupport::reserved_files = files_in_use; }
 	void ReserveFile(const Filepath&, int, int);
 	void UnreserveFile();
-	bool GetIdsForReservedFile(const Filepath&, int&, int&) const;
 
+	static bool GetIdsForReservedFile(const Filepath&, int&, int&);
 	static void UnreserveAll();
 
 	virtual void Open(const Filepath&) = 0;

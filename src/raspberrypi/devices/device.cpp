@@ -108,6 +108,11 @@ const string Device::GetPaddedName() const
 	return name;
 }
 
+const string Device::GetParam(const string& key)
+{
+	return params.find(key) != params.end() ? params[key] : "";
+}
+
 void Device::SetStatusCode(int status_code)
 {
 	if (status_code) {

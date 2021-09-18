@@ -142,10 +142,13 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 		cout << "  ";
 	}
 
-	if (pb_device.params_size()) {
-		for (const string param : pb_device.params()) {
-			cout << param << "  ";
+	bool isFirst = true;
+	for (const auto& param : pb_device.params()) {
+		if (!isFirst) {
+			cout << "  ";
 		}
+		isFirst = false;
+		cout << param.first << "=" << param.second;
 	}
 
 	cout << endl;
@@ -184,7 +187,7 @@ void CommandLogLevel(const string& hostname, int port, const string& log_level)
 {
 	PbCommand command;
 	command.set_operation(LOG_LEVEL);
-	command.add_params(log_level);
+	AddParam(command, "level", log_level);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
@@ -194,12 +197,75 @@ void CommandReserve(const string&hostname, int port, const string& reserved_ids)
 {
 	PbCommand command;
 	command.set_operation(RESERVE);
+	AddParam(command, "ids", reserved_ids);
 
-	stringstream ss(reserved_ids);
-    string reserved_id;
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
+}
 
-    while (getline(ss, reserved_id, ',')) {
-		command.add_params(reserved_id);
+void CommandCreateImage(const string&hostname, int port, const string& image_params)
+{
+	PbCommand command;
+	command.set_operation(CREATE_IMAGE);
+
+	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
+	if (separatorPos != string::npos) {
+		AddParam(command, "file", image_params.substr(0, separatorPos));
+		AddParam(command, "size", image_params.substr(separatorPos + 1));
+	}
+	else {
+		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+	AddParam(command, "read_only", "false");
+
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
+}
+
+void CommandDeleteImage(const string&hostname, int port, const string& filename)
+{
+	PbCommand command;
+	command.set_operation(DELETE_IMAGE);
+	AddParam(command, "file", filename);
+
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
+}
+
+void CommandRenameImage(const string&hostname, int port, const string& image_params)
+{
+	PbCommand command;
+	command.set_operation(RENAME_IMAGE);
+
+	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
+	if (separatorPos != string::npos) {
+		AddParam(command, "from", image_params.substr(0, separatorPos));
+		AddParam(command, "to", image_params.substr(separatorPos + 1));
+	}
+	else {
+		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
+		exit(EXIT_FAILURE);
+	}
+
+    PbResult result;
+    SendCommand(hostname.c_str(), port, command, result);
+}
+
+void CommandCopyImage(const string&hostname, int port, const string& image_params)
+{
+	PbCommand command;
+	command.set_operation(COPY_IMAGE);
+
+	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
+	if (separatorPos != string::npos) {
+		AddParam(command, "from", image_params.substr(0, separatorPos));
+		AddParam(command, "to", image_params.substr(separatorPos + 1));
+	}
+	else {
+		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
+		exit(EXIT_FAILURE);
 	}
 
     PbResult result;
@@ -210,7 +276,7 @@ void CommandDefaultImageFolder(const string& hostname, int port, const string& f
 {
 	PbCommand command;
 	command.set_operation(DEFAULT_FOLDER);
-	command.add_params(folder);
+	AddParam(command, "folder", folder);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
@@ -317,8 +383,7 @@ void CommandServerInfo(const string& hostname, int port)
 		}
 
 		if (properties.supports_params() && properties.default_params_size()) {
-			list<string> params = { properties.default_params().begin(), properties.default_params().end() };
-			params.sort([](const auto& a, const auto& b) { return a < b; });
+			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
 
 			cout << "        Default parameters: ";
 
@@ -327,7 +392,7 @@ void CommandServerInfo(const string& hostname, int port)
 				if (!isFirst) {
 					cout << ", ";
 				}
-				cout << param;
+				cout << param.first << "=" << param.second;
 
 				isFirst = false;
 			}
@@ -471,20 +536,22 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE] ";
-		cerr << "[-d DEFAULT_IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] [-l] [-v]" << endl;
-		cerr << " where  ID := {0|1|2|3|4|5|6|7}" << endl;
-		cerr << "        UNIT := {0|1}, default setting is 0." << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
+		cerr << "[-d IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
+		cerr << "[-a FILENAME:FILESIZE] [-w FILENAME] [-m CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
+		cerr << "[-l] [-v]" << endl;
+		cerr << " where  ID := {0-7}" << endl;
+		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
 		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        BLOCK_SIZE := {256|512|1024|2048|4096) bytes per hard disk drive block" << endl;
 		cerr << "        NAME := name of device to attach (VENDOR:PRODUCT:REVISION)" << endl;
-		cerr << "        FILE := image file path" << endl;
-		cerr << "        DEFAULT_IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
+		cerr << "        FILE|PARAM := image file path or device-specific parameter" << endl;
+		cerr << "        IMAGE_FOLDER := default location for image files, default is '~/images'" << endl;
 		cerr << "        HOST := rascsi host to connect to, default is 'localhost'" << endl;
 		cerr << "        PORT := rascsi port to connect to, default is 6868" << endl;
 		cerr << "        RESERVED_IDS := comma-separated list of IDs to reserve" << endl;
-		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'trace'" << endl;
+		cerr << "        LOG_LEVEL := log level {trace|debug|info|warn|err|critical|off}, default is 'info'" << endl;
 		cerr << " If CMD is 'attach' or 'insert' the FILE parameter is required." << endl;
 		cerr << "Usage: " << argv[0] << " -l" << endl;
 		cerr << "       Print device list." << endl;
@@ -499,14 +566,16 @@ int main(int argc, char* argv[])
 	device->set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
+	string param;
 	string log_level;
 	string default_folder;
 	string reserved_ids;
+	string image_params;
 	bool list = false;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "b:c:d:f:g:h:i:n:p:r:t:u:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:lsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -514,6 +583,11 @@ int main(int argc, char* argv[])
 
 			case 'u':
 				device->set_unit(optarg[0] - '0');
+				break;
+
+			case 'a':
+				command.set_operation(CREATE_IMAGE);
+				image_params = optarg;
 				break;
 
 			case 'b':
@@ -539,7 +613,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				device->add_params(optarg);
+				param = optarg;
 				break;
 
 			case 't':
@@ -561,6 +635,11 @@ int main(int argc, char* argv[])
 
 			case 'l':
 				list = true;
+				break;
+
+			case 'm':
+				command.set_operation(RENAME_IMAGE);
+				image_params = optarg;
 				break;
 
 			case 'n': {
@@ -612,6 +691,16 @@ int main(int argc, char* argv[])
 				cout << rascsi_get_version_string() << endl;
 				exit(EXIT_SUCCESS);
 				break;
+
+			case 'x':
+				command.set_operation(COPY_IMAGE);
+				image_params = optarg;
+				break;
+
+			case 'w':
+				command.set_operation(DELETE_IMAGE);
+				image_params = optarg;
+				break;
 		}
 	}
 
@@ -632,6 +721,22 @@ int main(int argc, char* argv[])
 			CommandReserve(hostname, port, reserved_ids);
 			exit(EXIT_SUCCESS);
 
+		case CREATE_IMAGE:
+			CommandCreateImage(hostname, port, image_params);
+			exit(EXIT_SUCCESS);
+
+		case DELETE_IMAGE:
+			CommandDeleteImage(hostname, port, image_params);
+			exit(EXIT_SUCCESS);
+
+		case RENAME_IMAGE:
+			CommandRenameImage(hostname, port, image_params);
+			exit(EXIT_SUCCESS);
+
+		case COPY_IMAGE:
+			CommandCopyImage(hostname, port, image_params);
+			exit(EXIT_SUCCESS);
+
 		case DEVICE_INFO:
 			CommandDeviceInfo(hostname, port, command);
 			exit(EXIT_SUCCESS);
@@ -647,6 +752,15 @@ int main(int argc, char* argv[])
 	if (list) {
 		CommandList(hostname, port);
 		exit(EXIT_SUCCESS);
+	}
+
+	if (!param.empty()) {
+		if (device->type() == SCBR || device->type() == SCDP) {
+			AddParam(*device, "interfaces", param);
+		}
+		else {
+			AddParam(*device, "file", param);
+		}
 	}
 
 	PbResult result;

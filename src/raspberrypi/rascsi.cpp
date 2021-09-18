@@ -31,11 +31,13 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
+#include <sys/sendfile.h>
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <list>
 #include <vector>
+#include <map>
 #include <filesystem>
 
 using namespace std;
@@ -132,7 +134,7 @@ bool InitService(int port)
 {
 	int result = pthread_mutex_init(&ctrl_mutex,NULL);
 	if (result != EXIT_SUCCESS){
-		LOGERROR("Unable to create a mutex. Err code: %d", result);
+		LOGERROR("Unable to create a mutex. Error code: %d", result);
 		return false;
 	}
 
@@ -155,7 +157,7 @@ bool InitService(int port)
 	// Bind
 	if (bind(monsocket, (struct sockaddr *)&server,
 		sizeof(struct sockaddr_in)) < 0) {
-		FPRT(stderr, "Error : Already running?\n");
+		FPRT(stderr, "Error: Already running?\n");
 		return false;
 	}
 
@@ -488,7 +490,8 @@ PbDeviceProperties *GetDeviceProperties(const Device *device)
 
 	if (device->SupportsParams()) {
 		for (const auto& param : device_factory.GetDefaultParams(t)) {
-			properties->add_default_params(param);
+			auto& map = *properties->mutable_default_params();
+			map[param.first] = param.second;
 		}
 	}
 
@@ -526,8 +529,8 @@ void GetAllDeviceTypeProperties(PbServerInfo& server_info)
 void GetAvailableImages(PbServerInfo& server_info)
 {
 	if (!access(default_image_folder.c_str(), F_OK)) {
-		for (const auto& entry : filesystem::directory_iterator(default_image_folder)) {
-			if (entry.is_regular_file()) {
+		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
+			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
 				GetImageFile(server_info.add_image_files(), entry.path().filename());
 			}
 		}
@@ -556,8 +559,8 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 	status->set_locked(device->IsLocked());
 
 	if (device->SupportsParams()) {
-		for (const string& param : device->GetParams()) {
-			pb_device->add_params(param);
+		for (const auto& param : device->GetParams()) {
+			AddParam(*pb_device, param.first, param.second);
 		}
 	}
 
@@ -669,9 +672,16 @@ bool SetDefaultImageFolder(const string& f)
 	return true;
 }
 
-string SetReservedIds(const list<string>& ids_to_reserve)
+string SetReservedIds(const string& ids)
 {
-    set<int> reserved;
+	list<string> ids_to_reserve;
+	stringstream ss(ids);
+    string id;
+    while (getline(ss, id, ',')) {
+    	ids_to_reserve.push_back(id);
+    }
+
+	set<int> reserved;
     for (string id_to_reserve : ids_to_reserve) {
     	int id;
  		if (!GetAsInt(id_to_reserve, id)) {
@@ -692,8 +702,8 @@ string SetReservedIds(const list<string>& ids_to_reserve)
     		if (!isFirst) {
     			s << ", ";
     		}
-    		s << id;
     		isFirst = false;
+    		s << id;
     	}
 
     	LOGINFO("Reserved IDs set to: %s", s.str().c_str());
@@ -703,6 +713,272 @@ string SetReservedIds(const list<string>& ids_to_reserve)
     }
 
 	return "";
+}
+
+bool IsValidFilename(const string& filename)
+{
+	struct stat st;
+	return stat(filename.c_str(), &st) || !S_ISREG(st.st_mode);
+}
+
+bool CreateImage(int fd, const PbCommand& command)
+{
+	string filename = GetParam(command, "file");
+	if (filename.empty()) {
+		return ReturnStatus(fd, false, "Can't create image file: Missing image filename");
+	}
+
+	if (!IsValidFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': Invalid filename");
+	}
+
+	string size = GetParam(command, "size");
+	if (size.empty()) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
+	}
+
+	string permission = GetParam(command, "read_only");
+	if (permission.empty()) {
+		return ReturnStatus(fd, false, "Can't create image file'" + filename + "': Missing read-only flag");
+	}
+
+	if (strcasecmp(permission.c_str(), "true") && strcasecmp(permission.c_str(), "false")) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid read-only flag '" + permission + "'");
+	}
+
+	int permissions = !strcasecmp(permission.c_str(), "true") ?
+			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
+	}
+
+	filename = default_image_folder + "/" + filename;
+
+	off_t len;
+	try {
+		len = stoul(size);
+	}
+	catch(const invalid_argument& e) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
+	}
+	catch(const out_of_range& e) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
+	}
+	if (len < 512 || (len & 0x1ff)) {
+		ostringstream error;
+		error << "Invalid image file size " << len;
+		return ReturnStatus(fd, false, error.str());
+	}
+
+	struct stat st;
+	if (!stat(filename.c_str(), &st)) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': File already exists");
+	}
+
+	// Since rascsi is running as root ensure that others can access the file
+	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, permissions);
+	if (image_fd == -1) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': " + string(strerror(errno)));
+	}
+
+	if (fallocate(image_fd, 0, 0, len) == -1) {
+		close(image_fd);
+
+		return ReturnStatus(fd, false, "Can't allocate space for image file '" + filename + "': " + string(strerror(errno)));
+	}
+
+	close(image_fd);
+
+	ostringstream msg;
+	msg << "Created " << (permissions & S_IWUSR ? "": "read-only ") << "image file '" << filename + "' with a size of " << len << " bytes";
+	LOGINFO("%s", msg.str().c_str());
+
+	return ReturnStatus(fd);
+}
+
+bool DeleteImage(int fd, const PbCommand& command)
+{
+	string filename = GetParam(command, "file");
+	if (filename.empty()) {
+		return ReturnStatus(fd, false, "Missing image filename");
+	}
+
+	if (!IsValidFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': Invalid filename");
+	}
+
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
+	}
+
+	filename = default_image_folder + "/" + filename;
+
+	int id;
+	int unit;
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+		ostringstream msg;
+		msg << "Can't delete image file '" << filename << "', it is used by device ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, msg.str());
+	}
+
+	if (unlink(filename.c_str())) {
+		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
+	}
+
+	LOGINFO("%s", string("Deleted image file '" + filename + "'").c_str());
+
+	return ReturnStatus(fd);
+}
+
+bool RenameImage(int fd, const PbCommand& command)
+{
+	string from = GetParam(command, "from");
+	if (from.empty()) {
+		return ReturnStatus(fd, false, "Can't rename image file: Missing source filename");
+	}
+
+	string to = GetParam(command, "to");
+	if (to.empty()) {
+		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
+	}
+
+	if (!IsValidFilename(from)) {
+		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid filename");
+	}
+
+	if (!IsValidFilename(to)) {
+		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': Invalid filename");
+	}
+
+	if (from.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
+	}
+	if (to.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
+	}
+
+	from = default_image_folder + "/" + from;
+	to = default_image_folder + "/" + to;
+
+	struct stat st;
+	if (!stat(to.c_str(), &st)) {
+		return ReturnStatus(fd, false, "Image file '" + to + "' already exists");
+	}
+
+	if (rename(from.c_str(), to.c_str())) {
+		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
+	}
+
+	LOGINFO("%s", string("Renamed image file '" + from + "' to '" + to + "'").c_str());
+
+	return ReturnStatus(fd);
+}
+
+bool CopyImage(int fd, const PbCommand& command)
+{
+	string from = GetParam(command, "from");
+	if (from.empty()) {
+		return ReturnStatus(fd, false, "Can't copy image file: Missing source filename");
+	}
+
+	string to = GetParam(command, "to");
+	if (to.empty()) {
+		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
+	}
+
+	if (!IsValidFilename(from)) {
+		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid filename");
+	}
+
+	if (!IsValidFilename(to)) {
+		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': Invalid filename");
+	}
+
+	if (from.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
+	}
+	if (to.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
+	}
+
+	from = default_image_folder + "/" + from;
+	to = default_image_folder + "/" + to;
+
+	struct stat st;
+	if (!stat(to.c_str(), &st)) {
+		return ReturnStatus(fd, false, "Image file '" + to + "' already exists");
+	}
+
+	int fd_src = open(from.c_str(), O_RDONLY, 0);
+	if (fd_src == -1) {
+		return ReturnStatus(fd, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
+	}
+
+	struct stat st_src;
+    if (fstat(fd_src, &st_src) == -1) {
+		return ReturnStatus(fd, false, "Can't read source image file '" + from + "': " + string(strerror(errno)));
+    }
+
+	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st_src.st_mode);
+	if (fd_dst == -1) {
+		close (fd_dst);
+
+		return ReturnStatus(fd, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
+	}
+
+    if (sendfile(fd_dst, fd_src, 0, st_src.st_size) == -1) {
+        close(fd_dst);
+        close(fd_src);
+
+        return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
+	}
+
+    close(fd_dst);
+    close(fd_src);
+
+	LOGINFO("%s", string("Copied image file '" + from + "' to '" + to + "'").c_str());
+
+	return ReturnStatus(fd);
+}
+
+bool SetImagePermissions(int fd, const PbCommand& command)
+{
+	string filename = GetParam(command, "file");
+	if (filename.empty()) {
+		return ReturnStatus(fd, false, "Missing image filename");
+	}
+
+	if (!IsValidFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid filename");
+	}
+
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
+	}
+
+	filename = default_image_folder + "/" + filename;
+
+	bool protect = command.operation() == PROTECT_IMAGE;
+
+	int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
+	if (chmod(filename.c_str(), permissions) == -1) {
+		ostringstream error;
+		error << "Can't " << (protect ? "protect" : "unprotect") << " image file '" << filename << "': " << strerror(errno);
+		return ReturnStatus(fd, false, error.str());
+	}
+
+	if (protect) {
+		LOGINFO("%s", string("Protected image file '" + filename + "'").c_str());
+	}
+	else {
+		LOGINFO("%s", string("Unprotected image file '" + filename + "'").c_str());
+	}
+
+	return ReturnStatus(fd);
 }
 
 void DetachAll()
@@ -731,7 +1007,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		return ReturnStatus(fd, false, error);
 	}
 
-	string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0) : "";
+	string filename = GetParam(pb_device, "file");
 	string ext;
 	size_t separator = filename.rfind('.');
 	if (separator != string::npos) {
@@ -824,7 +1100,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 		int id;
 		int unit;
-		if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 			delete device;
 
 			error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
@@ -841,7 +1117,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		return true;
 	}
 
-	const list<string> params = { pb_device.params().begin(), pb_device.params().end() };
+	std::map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	if (!device->Init(params)) {
 		error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
 
@@ -911,7 +1187,7 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		return ReturnStatus(fd, false, "Once set the device name cannot be changed anymore");
 	}
 
-	string filename = pb_device.params_size() > 0 ? pb_device.params().Get(0): "";
+	string filename = GetParam(pb_device, "file");
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Missing filename for " + PbOperation_Name(INSERT));
 	}
@@ -928,8 +1204,7 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
 	string initial_filename = filepath.GetPath();
-	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-	if (file_support->GetIdsForReservedFile(filepath, id, unit)) {
+	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 		ostringstream error;
 		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
@@ -948,6 +1223,8 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 			return ReturnStatus(fd, false, "Block size is not configurable for device type " + device->GetType());
 		}
 	}
+
+	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 
 	try {
 		try {
@@ -974,13 +1251,15 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 //
 //---------------------------------------------------------------------------
 
-bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation operation, const vector<string>& params, bool dryRun)
+bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& command, bool dryRun)
 {
 	ostringstream error;
 
 	const int id = pb_device.id();
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
+	const PbOperation operation = command.operation();
+	const map<string, string> params = { command.params().begin(), command.params().end() };
 
 	ostringstream s;
 	s << (dryRun ? "Validating: " : "Executing: ");
@@ -988,11 +1267,13 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 	if (!params.empty()) {
 		s << ", command params=";
-		for (size_t i = 0; i < params.size(); i++) {
-			if (i) {
+		bool isFirst = true;
+		for (const auto& param: params) {
+			if (!isFirst) {
 				s << ", ";
 			}
-			s << "'" << params[i] << "'";
+			isFirst = false;
+			s << "'" << param.first << "=" << param.second << "'";
 		}
 	}
 
@@ -1000,11 +1281,13 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 	if (pb_device.params_size()) {
 		s << ", device params=";
-		for (int i = 0; i < pb_device.params_size(); i++) {
-			if (i) {
+		bool isFirst = true;
+		for (const auto& param: pb_device.params()) {
+			if (!isFirst) {
 				s << ", ";
 			}
-			s << "'" << pb_device.params().Get(i) << "'";
+			isFirst = false;
+			s << "'" << param.first << "=" << param.second << "'";
 		}
 	}
 
@@ -1138,26 +1421,46 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbOperation o
 
 bool ProcessCmd(const int fd, const PbCommand& command)
 {
-	if (command.operation() == DETACH_ALL) {
-		DetachAll();
-		return ReturnStatus(fd);
-	}
-	else if (command.operation() == RESERVE) {
-		const list<string> ids = { command.params().begin(), command.params().end() };
-		string invalid_id = SetReservedIds(ids);
-		if (!invalid_id.empty()) {
-			return ReturnStatus(fd, false,"Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
+	switch (command.operation()) {
+		case DETACH_ALL:
+			DetachAll();
+			return ReturnStatus(fd);
+
+		case RESERVE: {
+			const string ids = GetParam(command, "ids");
+			string invalid_id = SetReservedIds(ids);
+			if (!invalid_id.empty()) {
+				return ReturnStatus(fd, false, "Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
+			}
+
+			return ReturnStatus(fd);
 		}
 
-		return ReturnStatus(fd);
-	}
+		case CREATE_IMAGE:
+			return CreateImage(fd, command);
 
-	const vector<string> params = { command.params().begin(), command.params().end() };
+		case DELETE_IMAGE:
+			return DeleteImage(fd, command);
+
+		case RENAME_IMAGE:
+			return RenameImage(fd, command);
+
+		case COPY_IMAGE:
+			return CopyImage(fd, command);
+
+		case PROTECT_IMAGE:
+		case UNPROTECT_IMAGE:
+			return SetImagePermissions(fd, command);
+
+		default:
+			// This is a device-specific command handled below
+			break;
+	}
 
 	// Remember the list of reserved files, than run the dry run
 	const auto reserved_files = FileSupport::GetReservedFiles();
 	for (const auto& device : command.devices()) {
-		if (!ProcessCmd(fd, device, command.operation(), params, true)) {
+		if (!ProcessCmd(fd, device, command, true)) {
 			// Dry run failed, restore the file list
 			FileSupport::SetReservedFiles(reserved_files);
 			return false;
@@ -1167,7 +1470,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	// Restore list of reserved files, then execute the command
 	FileSupport::SetReservedFiles(reserved_files);
 	for (const auto& device : command.devices()) {
-		if (!ProcessCmd(fd, device, command.operation(), params, false)) {
+		if (!ProcessCmd(fd, device, command, false)) {
 			return false;
 		}
 	}
@@ -1248,15 +1551,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'r': {
-					stringstream ss(optarg);
-					string id;
-
-					list<string> ids;
-					while (getline(ss, id, ',')) {
-						ids.push_back(id);
-					}
-
-					string invalid_id = SetReservedIds(ids);
+					string invalid_id = SetReservedIds(optarg);
 					if (!invalid_id.empty()) {
 						cerr << "Invalid ID " << invalid_id << " for " << PbOperation_Name(RESERVE);
 						return false;
@@ -1298,9 +1593,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_unit(unit);
 		device->set_type(type);
 		device->set_block_size(block_size);
-		if (strlen(optarg)) {
-			device->add_params(optarg);
-		}
+		AddParam(*device, "file", optarg);
 
 		size_t separatorPos = name.find(':');
 		if (separatorPos != string::npos) {
@@ -1412,7 +1705,7 @@ static void *MonThread(void *param)
 				case LOG_LEVEL: {
 					LOGTRACE(string("Received " + PbOperation_Name(LOG_LEVEL) + " command").c_str());
 
-					string log_level = command.params_size() > 0 ? command.params().Get(0) : "";
+					string log_level = GetParam(command, "level");
 					bool status = SetLogLevel(log_level);
 					if (!status) {
 						ReturnStatus(fd, false, "Invalid log level: " + log_level);
@@ -1426,7 +1719,7 @@ static void *MonThread(void *param)
 				case DEFAULT_FOLDER: {
 					LOGTRACE(string("Received " + PbOperation_Name(DEFAULT_FOLDER) + " command").c_str());
 
-					string folder = command.params_size() > 0 ? command.params().Get(0) : "";
+					string folder = GetParam(command, "folder");
 					if (folder.empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}

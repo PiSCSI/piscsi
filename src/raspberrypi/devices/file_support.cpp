@@ -25,7 +25,7 @@ void FileSupport::UnreserveFile()
 	reserved_files.erase(diskpath.GetPath());
 }
 
-bool FileSupport::GetIdsForReservedFile(const Filepath& path, int& id, int& unit) const
+bool FileSupport::GetIdsForReservedFile(const Filepath& path, int& id, int& unit)
 {
 	if (reserved_files.find(path.GetPath()) != reserved_files.end()) {
 		const id_set ids = reserved_files[path.GetPath()];
