@@ -142,7 +142,12 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 		cout << "  ";
 	}
 
+	bool isFirst = true;
 	for (const auto& param : pb_device.params()) {
+		if (!isFirst) {
+			cout << "  ";
+		}
+		isFirst = false;
 		cout << param.first << "=" << param.second;
 	}
 
@@ -561,6 +566,7 @@ int main(int argc, char* argv[])
 	device->set_id(-1);
 	const char *hostname = "localhost";
 	int port = 6868;
+	string param;
 	string log_level;
 	string default_folder;
 	string reserved_ids;
@@ -607,7 +613,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'f':
-				AddParam(*device, "file", optarg);
+				param = optarg;
 				break;
 
 			case 't':
@@ -746,6 +752,15 @@ int main(int argc, char* argv[])
 	if (list) {
 		CommandList(hostname, port);
 		exit(EXIT_SUCCESS);
+	}
+
+	if (!param.empty()) {
+		if (device->type() == SCBR || device->type() == SCDP) {
+			AddParam(*device, "interfaces", param);
+		}
+		else {
+			AddParam(*device, "file", param);
+		}
 	}
 
 	PbResult result;
