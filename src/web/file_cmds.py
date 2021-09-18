@@ -174,9 +174,8 @@ def read_config(file_name):
 
 
 def write_sidecar(file_name, conf):
-    ''' Writes a sidecar configuration file to the images dir. Takes file name (str) and conf (list of dicts) as arguments '''
+    ''' Writes a sidecar configuration file to the images dir. Takes file path (str) and conf (list of dicts) as arguments '''
     from json import dump
-    file_name = base_dir + file_name + ".rascsi"
     try:
         with open(file_name, "w") as json_file:
             dump(conf, json_file, indent=4)
@@ -189,9 +188,8 @@ def write_sidecar(file_name, conf):
 
 
 def read_sidecar(file_name):
-    ''' Reads sidecar configurations, either ones deployed to the images dir, or the canonical database. Takes file name (str) as argument '''
+    ''' Reads sidecar configurations, either ones deployed to the images dir, or the canonical database. Takes file path (str) as argument '''
     from json import load
-    file_name = base_dir + file_name + ".rascsi"
     try:
         with open(file_name) as json_file:
             conf = load(json_file)

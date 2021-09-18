@@ -72,9 +72,10 @@ def disk_list():
     server_info = get_server_info()
 
     from pathlib import Path
+    # TODO: Is this the right place to store sidecars.json?
     sidecar_config = Path(home_dir + "/sidecars.json")
     if sidecar_config.is_file():
-        process = read_sidecar(sidecar_config)
+        process = read_sidecar(str(sidecar_config))
         if process["status"] == False:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
@@ -132,7 +133,7 @@ def disk_create():
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
     if process["status"] == True:
-        flash(f"Drive image file {file_path}.{file_type} created")
+        flash(f"Drive image file {file_name}.{file_type} created")
         flash(process["msg"])
     else:
         flash(f"Failed to create file {file_name}.{file_type}", "error")
@@ -143,7 +144,7 @@ def disk_create():
     from pathlib import Path
     file_name_base = str(Path(file_name).stem)
     sidecar = {"vendor": vendor, "product": product, "revision": revision, "blocks": blocks, "block_size": block_size}
-    process = write_sidecar(file_name_base, sidecar)
+    process = write_sidecar(base_dir + file_name_base + ".rascsi", sidecar)
     if process["status"] == True:
         flash(f"Drive sidecar file {file_name_base}.rascsi created")
         return redirect(url_for("index"))
@@ -164,7 +165,7 @@ def disk_cdrom():
     
     # Creating the sidecar file
     sidecar = {"vendor": vendor, "product": product, "revision": revision, "block_size": block_size}
-    process = write_sidecar(file_name_base, sidecar)
+    process = write_sidecar(base_dir + file_name_base + ".rascsi", sidecar)
     if process["status"] == True:
         flash(f"Drive sidecar file {file_name_base}.rascsi created")
         return redirect(url_for("index"))
@@ -511,10 +512,10 @@ def delete():
 
     process = delete_file(file_name)
     if process["status"] == True:
-        flash(f"File {file_name} deleted")
+        flash(f"File {file_name} deleted!")
         flash(process["msg"])
     else:
-        flash(f"Failed to delete file {file_name}", "error")
+        flash(f"Failed to delete file {file_name}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -525,11 +526,11 @@ def delete():
     if sidecar.is_file():
         process = delete_file(file_name)
         if process["status"] == True:
-            flash(f"File {file_name} deleted")
+            flash(f"File {file_name} deleted!")
             flash(process["msg"])
             return redirect(url_for("index"))
         else:
-            flash(f"Failed to delete file {file_name}", "error")
+            flash(f"Failed to delete file {file_name}!", "error")
             flash(process["msg"], "error")
             return redirect(url_for("index"))
 
