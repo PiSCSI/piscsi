@@ -39,3 +39,13 @@ def is_bridge_setup():
     if "rascsi_bridge" in output:
         return True
     return False
+
+
+def net_interfaces():
+    from psutil import net_if_addrs
+    ifaddrs = net_if_addrs()
+    # Eliminates the lo and rascsi_bridge interfaces from the list, if present
+    ifaddrs.pop("lo")
+    ifaddrs.pop("rascsi_bridge")
+    ifs = list(ifaddrs.keys())
+    return ifs

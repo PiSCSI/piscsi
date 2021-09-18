@@ -137,7 +137,11 @@
             <td style="border: none; vertical-align:top;">
                 <form action="/daynaport/attach" method="post">
 		    <label for="if">Interface:</label>
-		    <input type="text" name="if" size="10" placeholder="eth0,wlan0" />
+		    <select name = "if">
+			{% for if in ifs %}
+			<option value="{{if}}">{{if}}</option>
+			{% endfor %}
+                    </select>
 		    <label for="ip">Static IP (optional):</label>
 		    <input type="text" name="ip" size="15" placeholder="10.10.20.1" />/
 		    <input type="text" name="mask" size="2" placeholder="24">

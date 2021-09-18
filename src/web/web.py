@@ -19,6 +19,7 @@ from pi_cmds import (
     running_env,
     rascsi_service,
     is_bridge_setup,
+    net_interfaces,
 )
 from ractl_cmds import (
     attach_image,
@@ -58,6 +59,7 @@ def index():
         max_file_size=MAX_FILE_SIZE,
         running_env=running_env(),
         server_info=server_info,
+        ifs = net_interfaces(),
         valid_file_suffix=VALID_FILE_SUFFIX,
         removable_device_types=REMOVABLE_DEVICE_TYPES,
         harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
