@@ -563,7 +563,7 @@ void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
 	struct ifaddrs *tmp = addrs;
 
 	while (tmp) {
-	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET) {
+	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET && strcmp("lo", tmp->ifa_name)) {
 	        int fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
 
 	        struct ifreq ifr;
