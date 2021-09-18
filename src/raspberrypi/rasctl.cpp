@@ -322,8 +322,9 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
 	}
 
-	const list<PbImageFile> image_files = { server_info.image_files().begin(), server_info.image_files().end() };
-	DisplayImageFiles(image_files, server_info.default_image_folder());
+	const list<PbImageFile> image_files =
+		{ server_info.image_files_info().image_files().begin(), server_info.image_files_info().image_files().end() };
+	DisplayImageFiles(image_files, server_info.image_files_info().default_image_folder());
 
 	cout << "Supported device types and their properties:" << endl;
 	for (auto it = server_info.types_properties().begin(); it != server_info.types_properties().end(); ++it) {
@@ -443,14 +444,14 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 	}
 }
 
-void CommandGetImageFiles(PbCommand& command, const string& hostname, int port)
+void CommandImageFilesInfo(PbCommand& command, const string& hostname, int port)
 {
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
 	const list<PbImageFile> image_files =
-		{ result.image_files().image_files().begin(),result.image_files().image_files().end() };
-	DisplayImageFiles(image_files, result.image_files().default_image_folder());
+		{ result.image_files_info().image_files().begin(),result.image_files_info().image_files().end() };
+	DisplayImageFiles(image_files, result.image_files_info().default_image_folder());
 }
 
 PbOperation ParseOperation(const char *optarg)
@@ -607,7 +608,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case'e':
-				command.set_operation(GET_IMAGE_FILES);
+				command.set_operation(IMAGE_FILES_INFO);
 				break;
 
 			case 'f':
@@ -743,8 +744,8 @@ int main(int argc, char* argv[])
 			CommandServerInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
-		case GET_IMAGE_FILES:
-			CommandGetImageFiles(command, hostname, port);
+		case IMAGE_FILES_INFO:
+			CommandImageFilesInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		default:

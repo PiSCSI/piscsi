@@ -66,27 +66,27 @@ enum PbOperation {
     // Gets the server information
     SERVER_INFO = 10;
 
-    // Gets information for a list of attached devices. Returns data for all attached devices if empty.
+    // Gets information on attached devices. Returns data for all attached devices if empty.
     DEVICE_INFO = 11;
+
+    // Gets information on available image files. A lightweight alternative to getting the complete server info.
+    IMAGE_FILES_INFO = 12;
 
     // Set the default folder for image files.
     // Parameters:
     //   "folder": The default folder name.
-    DEFAULT_FOLDER = 12;
+    DEFAULT_FOLDER = 13;
 
     // Set server log level.
     // Parameters:
     //   "level": The new log level
-    LOG_LEVEL = 13;
+    LOG_LEVEL = 14;
 
     // Block IDs from being used, usually the IDs of the initiators (computers) in the SCSI chain.
     // Parameters:
     //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
-    RESERVE = 14;
+    RESERVE = 15;
     
-    // Get list of available image files. A lightweight alternative to getting the complete server info.
-    GET_IMAGE_FILES = 15;
-
     // Create an image file. The image file must not yet exist.
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
@@ -175,7 +175,8 @@ message PbImageFile {
     int64 size = 3;
 }
 
-message PbImageFiles {
+// The default image folder and the image files it contains
+message PbImageFilesInfo {
     string default_image_folder = 1;
     repeated PbImageFile image_files = 2;
 }
@@ -242,8 +243,8 @@ message PbResult {
         PbServerInfo server_info = 3;
         // The result of a DEVICE_INFO command
         PbDevices device_info = 4;
-        // The result of an GET_IMAGE_FILES command
-        PbImageFiles image_files = 5;
+        // The result of an IMAGE_FILES_INFO command
+        PbImageFilesInfo image_files_info = 5;
     }
 }
 
@@ -257,13 +258,11 @@ message PbServerInfo {
     // List of available log levels, ordered by increasing by severity
     repeated string log_levels = 4;
     string current_log_level = 5;
-    string default_image_folder = 6;
     // Supported device types and their properties
-    repeated PbDeviceTypeProperties types_properties = 7;
-    // Unordered list of files in the default image folder
-    repeated PbImageFile image_files = 8;
+    repeated PbDeviceTypeProperties types_properties = 6;
+    PbImageFilesInfo image_files_info = 7;
     // The attached devices
-    repeated PbDevice devices = 9;
+    repeated PbDevice devices = 8;
     // The unsorted list of reserved IDs
-    repeated uint32 reserved_ids = 10;
+    repeated uint32 reserved_ids = 9;
 }
