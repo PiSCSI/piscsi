@@ -404,8 +404,8 @@ def device_info():
 
 @app.route("/pi/reboot", methods=["POST"])
 def restart():
+    flash("Restarting the Pi momentarily...")
     reboot_pi()
-    flash("Restarting...")
     return redirect(url_for("index"))
 
 
@@ -421,8 +421,8 @@ def rascsi_restart():
 
 @app.route("/pi/shutdown", methods=["POST"])
 def shutdown():
+    flash("Shutting down the Pi momentarily...")
     shutdown_pi()
-    flash("Shutting down...")
     return redirect(url_for("index"))
 
 
