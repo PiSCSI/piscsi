@@ -531,6 +531,8 @@ void GetAvailableImages(PbServerInfo& server_info)
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 	server_info.set_allocated_image_files_info(image_files_info);
 
+	image_files_info->set_default_image_folder(default_image_folder);
+
 	if (!access(default_image_folder.c_str(), F_OK)) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
 			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
@@ -1776,7 +1778,6 @@ static void *MonThread(void *param)
 					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
 
 					PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
-					image_files_info->set_default_image_folder(default_image_folder);
 					GetAvailableImages(*image_files_info);
 					PbResult result;
 					result.set_status(true);
