@@ -3,6 +3,7 @@
 rasctl \- Sends management commands to the rascsi process
 .SH SYNOPSIS
 .B rasctl
+\fB\-e\fR |
 \fB\-l\fR |
 \fB\-s\fR |
 [\fB\-d\fR \fIIMAGE_FOLDER\fR]
@@ -40,6 +41,9 @@ Set the rascsi log level (trace, debug, info, warn, err, critical, off).
 .TP
 .BR \-h\fI " " \fIHOST
 The rascsi host to connect to, default is 'localhost'.
+.TP
+.BR \-i\fI
+List all images files in the default image folder.
 .TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.

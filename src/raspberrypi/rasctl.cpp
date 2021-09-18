@@ -154,6 +154,26 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 	cout << endl;
 }
 
+void DisplayImageFiles(const list<PbImageFile> image_files)
+{
+	if (image_files.empty()) {
+		cout << "  No image files available" << endl;
+	}
+	else {
+		list<PbImageFile> files = { image_files.begin(), image_files.end() };
+		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+
+		cout << "Available image files:" << endl;
+		for (const auto& file : files) {
+			cout << "  " << file.name() << " (" << file.size() << " bytes)";
+			if (file.read_only()) {
+				cout << ", read-only";
+			}
+			cout << endl;
+		}
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command implementations
@@ -292,11 +312,8 @@ void CommandDeviceInfo(const string& hostname, int port, const PbCommand& comman
 	}
 }
 
-void CommandServerInfo(const string& hostname, int port)
+void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 {
-	PbCommand command;
-	command.set_operation(SERVER_INFO);
-
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
@@ -316,30 +333,17 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 	else {
 		cout << "rascsi log levels, sorted by severity:" << endl;
-		for (int i = 0; i < server_info.log_levels_size(); i++) {
-			cout << "  " << server_info.log_levels(i) << endl;
+		for (const auto& log_level : server_info.log_levels()) {
+			cout << "  " << log_level << endl;
 		}
 
 		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
 	}
 
 	cout << "Default image file folder: " << server_info.default_image_folder() << endl;
-	if (!server_info.image_files_size()) {
-		cout << "  No image files available" << endl;
-	}
-	else {
-		list<PbImageFile> files = { server_info.image_files().begin(), server_info.image_files().end() };
-		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
 
-		cout << "Available image files:" << endl;
-		for (const auto& file : files) {
-			cout << "  " << file.name() << " (" << file.size() << " bytes)";
-			if (file.read_only()) {
-				cout << ", read-only";
-			}
-			cout << endl;
-		}
-	}
+	const list<PbImageFile> image_files = { server_info.image_files().begin(), server_info.image_files().end() };
+	DisplayImageFiles(image_files);
 
 	cout << "Supported device types and their properties:" << endl;
 	for (auto it = server_info.types_properties().begin(); it != server_info.types_properties().end(); ++it) {
@@ -459,6 +463,16 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 }
 
+void CommandGetImageFiles(PbCommand& command, const string& hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	const list<PbImageFile> image_files =
+		{ result.image_files().image_files().begin(),result.image_files().image_files().end() };
+	DisplayImageFiles(image_files);
+}
+
 PbOperation ParseOperation(const char *optarg)
 {
 	switch (tolower(optarg[0])) {
@@ -575,7 +589,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:elsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -610,6 +624,10 @@ int main(int argc, char* argv[])
 			case 'd':
 				command.set_operation(DEFAULT_FOLDER);
 				default_folder = optarg;
+				break;
+
+			case'e':
+				command.set_operation(GET_IMAGE_FILES);
 				break;
 
 			case 'f':
@@ -742,7 +760,11 @@ int main(int argc, char* argv[])
 			exit(EXIT_SUCCESS);
 
 		case SERVER_INFO:
-			CommandServerInfo(hostname, port);
+			CommandServerInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case GET_IMAGE_FILES:
+			CommandGetImageFiles(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		default:

@@ -537,6 +537,16 @@ void GetAvailableImages(PbServerInfo& server_info)
 	}
 }
 
+void GetAvailableImages(PbImageFiles& image_files)
+{
+	if (!access(default_image_folder.c_str(), F_OK)) {
+		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
+			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
+				GetImageFile(image_files.add_image_files(), entry.path().filename());
+			}
+		}
+	}
+}
 void GetDevice(const Device *device, PbDevice *pb_device)
 {
 	pb_device->set_id(device->GetId());
@@ -1755,6 +1765,18 @@ static void *MonThread(void *param)
 					PbResult result;
 					result.set_status(true);
 					GetServerInfo(result);
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case GET_IMAGE_FILES: {
+					LOGTRACE(string("Received " + PbOperation_Name(GET_IMAGE_FILES) + " command").c_str());
+
+					PbImageFiles *image_files = new PbImageFiles();
+					GetAvailableImages(*image_files);
+					PbResult result;
+					result.set_status(true);
+					result.set_allocated_image_files(image_files);
 					SerializeMessage(fd, result);
 					break;
 				}
