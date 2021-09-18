@@ -444,7 +444,7 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 	}
 }
 
-void CommandImageFilesInfo(PbCommand& command, const string& hostname, int port)
+void CommandImageFilesInfo(const PbCommand& command, const string& hostname, int port)
 {
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
@@ -452,6 +452,27 @@ void CommandImageFilesInfo(PbCommand& command, const string& hostname, int port)
 	const list<PbImageFile> image_files =
 		{ result.image_files_info().image_files().begin(),result.image_files_info().image_files().end() };
 	DisplayImageFiles(image_files, result.image_files_info().default_image_folder());
+}
+
+void CommandNetworkInterfacesInfo(const PbCommand& command, const string&hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	list<string> interfaces =
+		{ result.network_interfaces_info().name().begin(), result.network_interfaces_info().name().end() };
+	interfaces.sort([](const auto& a, const auto& b) { return a < b; });
+
+	cout << "Available (up) network interfaces:" << endl;
+	bool isFirst = true;
+	for (const auto& interface : interfaces) {
+		if (!isFirst) {
+			cout << ", ";
+		}
+		isFirst = false;
+		cout << interface;
+	}
+	cout << endl;
 }
 
 PbOperation ParseOperation(const char *optarg)
@@ -534,7 +555,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-d IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-a FILENAME:FILESIZE] [-w FILENAME] [-m CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-l] [-v]" << endl;
+		cerr << "[-e] [-k] [-l] [-v]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -570,7 +591,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:elsv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:eklsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -613,6 +634,10 @@ int main(int argc, char* argv[])
 
 			case 'f':
 				param = optarg;
+				break;
+
+			case 'k':
+				command.set_operation(NETWORK_INTERFACES_INFO);
 				break;
 
 			case 't':
@@ -746,6 +771,10 @@ int main(int argc, char* argv[])
 
 		case IMAGE_FILES_INFO:
 			CommandImageFilesInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case NETWORK_INTERFACES_INFO:
+			CommandNetworkInterfacesInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		default:

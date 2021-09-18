@@ -32,6 +32,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
 #include <sys/sendfile.h>
+#include <ifaddrs.h>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -553,6 +554,39 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 			}
 		}
 	}
+}
+
+void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
+{
+	struct ifaddrs *addrs;
+	getifaddrs(&addrs);
+	struct ifaddrs *tmp = addrs;
+
+	while (tmp) {
+	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET) {
+	        int fd = socket(PF_INET6, SOCK_DGRAM, IPPROTO_IP);
+
+	        struct ifreq ifr;
+	        memset(&ifr, 0, sizeof(ifr));
+
+	        strcpy(ifr.ifr_name, tmp->ifa_name);
+	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr)) {
+	        	close(fd);
+
+	        	// Only list interfaces that are up
+	        	if (ifr.ifr_flags & IFF_UP) {
+	        		network_interfaces_info.add_name(tmp->ifa_name);
+	        	}
+	        }
+	        else {
+	        	close(fd);
+	        }
+	    }
+
+	    tmp = tmp->ifa_next;
+	}
+
+	freeifaddrs(addrs);
 }
 
 void GetDevice(const Device *device, PbDevice *pb_device)
@@ -1784,6 +1818,18 @@ static void *MonThread(void *param)
 					PbResult result;
 					result.set_status(true);
 					result.set_allocated_image_files_info(image_files_info);
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case NETWORK_INTERFACES_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+
+					PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
+					GetNetworkInterfacesInfo(*network_interfaces_info);
+					PbResult result;
+					result.set_status(true);
+					result.set_allocated_network_interfaces_info(network_interfaces_info);
 					SerializeMessage(fd, result);
 					break;
 				}
