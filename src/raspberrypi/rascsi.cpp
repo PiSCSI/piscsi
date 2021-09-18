@@ -32,6 +32,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
 #include <sys/sendfile.h>
+#include <ifaddrs.h>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -528,13 +529,64 @@ void GetAllDeviceTypeProperties(PbServerInfo& server_info)
 
 void GetAvailableImages(PbServerInfo& server_info)
 {
+	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
+	server_info.set_allocated_image_files_info(image_files_info);
+
+	image_files_info->set_default_image_folder(default_image_folder);
+
 	if (!access(default_image_folder.c_str(), F_OK)) {
 		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
 			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
-				GetImageFile(server_info.add_image_files(), entry.path().filename());
+				GetImageFile(image_files_info->add_image_files(), entry.path().filename());
 			}
 		}
 	}
+}
+
+void GetAvailableImages(PbImageFilesInfo& image_files_info)
+{
+	image_files_info.set_default_image_folder(default_image_folder);
+
+	if (!access(default_image_folder.c_str(), F_OK)) {
+		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
+			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
+				GetImageFile(image_files_info.add_image_files(), entry.path().filename());
+			}
+		}
+	}
+}
+
+void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
+{
+	struct ifaddrs *addrs;
+	getifaddrs(&addrs);
+	struct ifaddrs *tmp = addrs;
+
+	while (tmp) {
+	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET && strcmp("lo", tmp->ifa_name)) {
+	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+	        struct ifreq ifr;
+	        memset(&ifr, 0, sizeof(ifr));
+
+	        strcpy(ifr.ifr_name, tmp->ifa_name);
+	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr)) {
+	        	close(fd);
+
+	        	// Only list interfaces that are up
+	        	if (ifr.ifr_flags & IFF_UP) {
+	        		network_interfaces_info.add_name(tmp->ifa_name);
+	        	}
+	        }
+	        else {
+	        	close(fd);
+	        }
+	    }
+
+	    tmp = tmp->ifa_next;
+	}
+
+	freeifaddrs(addrs);
 }
 
 void GetDevice(const Device *device, PbDevice *pb_device)
@@ -634,9 +686,11 @@ void GetServerInfo(PbResult& result)
 	server_info->set_patch_version(rascsi_patch_version);
 	GetLogLevels(*server_info);
 	server_info->set_current_log_level(current_log_level);
-	server_info->set_default_image_folder(default_image_folder);
 	GetAllDeviceTypeProperties(*server_info);
 	GetAvailableImages(*server_info);
+	PbNetworkInterfacesInfo * network_interfaces_info = new PbNetworkInterfacesInfo();
+	server_info->set_allocated_network_interfaces_info(network_interfaces_info);
+	GetNetworkInterfacesInfo(*network_interfaces_info);
 	GetDevices(*server_info);
 	for (int id : reserved_ids) {
 		server_info->add_reserved_ids(id);
@@ -1703,7 +1757,7 @@ static void *MonThread(void *param)
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {
-					LOGTRACE(string("Received " + PbOperation_Name(LOG_LEVEL) + " command").c_str());
+					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
 
 					string log_level = GetParam(command, "level");
 					bool status = SetLogLevel(log_level);
@@ -1717,7 +1771,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					LOGTRACE(string("Received " + PbOperation_Name(DEFAULT_FOLDER) + " command").c_str());
+					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
 
 					string folder = GetParam(command, "folder");
 					if (folder.empty()) {
@@ -1734,7 +1788,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(DEVICE_INFO) + " command").c_str());
+					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
 
 					PbResult result;
 					result.set_status(true);
@@ -1750,11 +1804,35 @@ static void *MonThread(void *param)
 				}
 
 				case SERVER_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(SERVER_INFO) + " command").c_str());
+					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
 
 					PbResult result;
 					result.set_status(true);
 					GetServerInfo(result);
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case IMAGE_FILES_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+
+					PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
+					GetAvailableImages(*image_files_info);
+					PbResult result;
+					result.set_status(true);
+					result.set_allocated_image_files_info(image_files_info);
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case NETWORK_INTERFACES_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+
+					PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
+					GetNetworkInterfacesInfo(*network_interfaces_info);
+					PbResult result;
+					result.set_status(true);
+					result.set_allocated_network_interfaces_info(network_interfaces_info);
 					SerializeMessage(fd, result);
 					break;
 				}
