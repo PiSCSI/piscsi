@@ -176,7 +176,8 @@ message PbImageFile {
 }
 
 message PbImageFiles {
-    repeated PbImageFile image_files = 1;
+    string default_image_folder = 1;
+    repeated PbImageFile image_files = 2;
 }
 
 // The device definition, sent from the client to the server

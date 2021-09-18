@@ -1773,6 +1773,7 @@ static void *MonThread(void *param)
 					LOGTRACE(string("Received " + PbOperation_Name(GET_IMAGE_FILES) + " command").c_str());
 
 					PbImageFiles *image_files = new PbImageFiles();
+					image_files->set_default_image_folder(default_image_folder);
 					GetAvailableImages(*image_files);
 					PbResult result;
 					result.set_status(true);

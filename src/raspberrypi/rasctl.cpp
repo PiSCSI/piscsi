@@ -154,8 +154,10 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 	cout << endl;
 }
 
-void DisplayImageFiles(const list<PbImageFile> image_files)
+void DisplayImageFiles(const list<PbImageFile> image_files, const string& default_image_folder)
 {
+	cout << "Default image file folder: " << default_image_folder << endl;
+
 	if (image_files.empty()) {
 		cout << "  No image files available" << endl;
 	}
@@ -180,17 +182,6 @@ void DisplayImageFiles(const list<PbImageFile> image_files)
 //
 //---------------------------------------------------------------------------
 
-const PbServerInfo GetServerInfo(const string& hostname, int port)
-{
-	PbCommand command;
-	command.set_operation(SERVER_INFO);
-
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	return result.server_info();
-}
-
 void CommandList(const string& hostname, int port)
 {
 	PbCommand command;
@@ -203,31 +194,32 @@ void CommandList(const string& hostname, int port)
 	cout << ListDevices(devices) << endl;
 }
 
-void CommandLogLevel(const string& hostname, int port, const string& log_level)
+const PbServerInfo GetServerInfo(const PbCommand& command, const string& hostname, int port)
 {
-	PbCommand command;
-	command.set_operation(LOG_LEVEL);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	return result.server_info();
+}
+
+void CommandLogLevel(PbCommand& command, const string& hostname, int port, const string& log_level)
+{
 	AddParam(command, "level", log_level);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandReserve(const string&hostname, int port, const string& reserved_ids)
+void CommandReserve(PbCommand& command, const string&hostname, int port, const string& reserved_ids)
 {
-	PbCommand command;
-	command.set_operation(RESERVE);
 	AddParam(command, "ids", reserved_ids);
 
     PbResult result;
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandCreateImage(const string&hostname, int port, const string& image_params)
+void CommandCreateImage(PbCommand& command, const string&hostname, int port, const string& image_params)
 {
-	PbCommand command;
-	command.set_operation(CREATE_IMAGE);
-
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
 		AddParam(command, "file", image_params.substr(0, separatorPos));
@@ -244,21 +236,16 @@ void CommandCreateImage(const string&hostname, int port, const string& image_par
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandDeleteImage(const string&hostname, int port, const string& filename)
+void CommandDeleteImage(PbCommand& command, const string&hostname, int port, const string& filename)
 {
-	PbCommand command;
-	command.set_operation(DELETE_IMAGE);
 	AddParam(command, "file", filename);
 
     PbResult result;
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandRenameImage(const string&hostname, int port, const string& image_params)
+void CommandRenameImage(PbCommand& command, const string&hostname, int port, const string& image_params)
 {
-	PbCommand command;
-	command.set_operation(RENAME_IMAGE);
-
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
 		AddParam(command, "from", image_params.substr(0, separatorPos));
@@ -273,11 +260,8 @@ void CommandRenameImage(const string&hostname, int port, const string& image_par
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandCopyImage(const string&hostname, int port, const string& image_params)
+void CommandCopyImage(PbCommand& command, const string&hostname, int port, const string& image_params)
 {
-	PbCommand command;
-	command.set_operation(COPY_IMAGE);
-
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
 		AddParam(command, "from", image_params.substr(0, separatorPos));
@@ -292,17 +276,15 @@ void CommandCopyImage(const string&hostname, int port, const string& image_param
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
+void CommandDefaultImageFolder(PbCommand& command, const string& hostname, int port, const string& folder)
 {
-	PbCommand command;
-	command.set_operation(DEFAULT_FOLDER);
 	AddParam(command, "folder", folder);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandDeviceInfo(const string& hostname, int port, const PbCommand& command)
+void CommandDeviceInfo(const PbCommand& command, const string& hostname, int port)
 {
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
@@ -340,10 +322,8 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
 	}
 
-	cout << "Default image file folder: " << server_info.default_image_folder() << endl;
-
 	const list<PbImageFile> image_files = { server_info.image_files().begin(), server_info.image_files().end() };
-	DisplayImageFiles(image_files);
+	DisplayImageFiles(image_files, server_info.default_image_folder());
 
 	cout << "Supported device types and their properties:" << endl;
 	for (auto it = server_info.types_properties().begin(); it != server_info.types_properties().end(); ++it) {
@@ -470,7 +450,7 @@ void CommandGetImageFiles(PbCommand& command, const string& hostname, int port)
 
 	const list<PbImageFile> image_files =
 		{ result.image_files().image_files().begin(),result.image_files().image_files().end() };
-	DisplayImageFiles(image_files);
+	DisplayImageFiles(image_files, result.image_files().default_image_folder());
 }
 
 PbOperation ParseOperation(const char *optarg)
@@ -728,35 +708,35 @@ int main(int argc, char* argv[])
 
 	switch(command.operation()) {
 		case LOG_LEVEL:
-			CommandLogLevel(hostname, port, log_level);
+			CommandLogLevel(command, hostname, port, log_level);
 			exit(EXIT_SUCCESS);
 
 		case DEFAULT_FOLDER:
-			CommandDefaultImageFolder(hostname, port, default_folder);
+			CommandDefaultImageFolder(command, hostname, port, default_folder);
 			exit(EXIT_SUCCESS);
 
 		case RESERVE:
-			CommandReserve(hostname, port, reserved_ids);
+			CommandReserve(command, hostname, port, reserved_ids);
 			exit(EXIT_SUCCESS);
 
 		case CREATE_IMAGE:
-			CommandCreateImage(hostname, port, image_params);
+			CommandCreateImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case DELETE_IMAGE:
-			CommandDeleteImage(hostname, port, image_params);
+			CommandDeleteImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case RENAME_IMAGE:
-			CommandRenameImage(hostname, port, image_params);
+			CommandRenameImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case COPY_IMAGE:
-			CommandCopyImage(hostname, port, image_params);
+			CommandCopyImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case DEVICE_INFO:
-			CommandDeviceInfo(hostname, port, command);
+			CommandDeviceInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		case SERVER_INFO:
