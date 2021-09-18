@@ -28,7 +28,7 @@
 		    {% endif %}
 	    </td>
             <td style="text-align:left">
-                <form action="/disk/create" method="post">
+                <form action="/drive/create" method="post">
                     <input type="hidden" name="vendor" value="{{hd.vendor}}">
                     <input type="hidden" name="product" value="{{hd.product}}">
                     <input type="hidden" name="revision" value="{{hd.revision}}">
@@ -71,7 +71,7 @@
 		    {% endif %}
             </td>
             <td style="text-align:left">
-                <form action="/disk/cdrom" method="post">
+                <form action="/drive/cdrom" method="post">
                     <input type="hidden" name="vendor" value="{{cd.vendor}}">
                     <input type="hidden" name="product" value="{{cd.product}}">
                     <input type="hidden" name="revision" value="{{cd.revision}}">
@@ -117,7 +117,7 @@
 		    {% endif %}
             </td>
             <td style="text-align:left">
-                <form action="/disk/create" method="post">
+                <form action="/drive/create" method="post">
                     <input type="hidden" name="vendor" value="{{rm.vendor}}">
                     <input type="hidden" name="product" value="{{rm.product}}">
                     <input type="hidden" name="revision" value="{{rm.revision}}">

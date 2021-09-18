@@ -10,8 +10,8 @@ from file_cmds import (
     download_image,
     write_config,
     read_config,
-    write_sidecar,
-    read_sidecar,
+    write_drive_properties,
+    read_drive_properties,
 )
 from pi_cmds import (
     shutdown_pi,
@@ -69,21 +69,25 @@ def index():
     )
 
 
-@app.route("/disk/list", methods=["GET"])
-def disk_list():
+@app.route("/drive/list", methods=["GET"])
+def drive_list():
+    """
+    Sets up the data structures and kicks off the rendering of the drive list page
+    """
     server_info = get_server_info()
 
+    # Reads the canonical drive properties into a dict
+    # The file resides in the current dir of the web ui process
     from pathlib import Path
-    # TODO: Is this the right place to store sidecars.json?
-    sidecar_config = Path(home_dir + "/sidecars.json")
-    if sidecar_config.is_file():
-        process = read_sidecar(str(sidecar_config))
+    drive_properties = Path(home_dir + "/drive_properties.json")
+    if drive_properties.is_file():
+        process = read_drive_properties(str(drive_properties))
         if process["status"] == False:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
     else:
-        flash("Could not read Sidecar configurations " + str(sidecar_config), "error")
+        flash("Could not read drive properties from " + str(drive_properties), "error")
         return redirect(url_for("index"))
 
     hd_conf = []
@@ -104,13 +108,13 @@ def disk_list():
             rm_conf.append(d)
 
     return render_template(
-        "disk.html",
+        "drives.html",
         files=list_files(),
         base_dir=base_dir,
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
-        version=running_version(),
+        version=running_env(),
         server_info=server_info,
         cdrom_file_suffix=CDROM_FILE_SUFFIX,
     )
@@ -121,8 +125,8 @@ def send_pwa_files(path):
     return send_from_directory('pwa', path)
 
 
-@app.route("/disk/create", methods=["POST"])
-def disk_create():
+@app.route("/drive/create", methods=["POST"])
+def drive_create():
     vendor = request.form.get("vendor")
     product = request.form.get("product")
     revision = request.form.get("revision")
@@ -142,37 +146,38 @@ def disk_create():
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
-    # Creating the sidecar file
+    # Creating the drive properties file
     from pathlib import Path
-    file_name_base = str(Path(file_name).stem)
-    sidecar = {"vendor": vendor, "product": product, "revision": revision, "blocks": blocks, "block_size": block_size}
-    process = write_sidecar(base_dir + file_name_base + ".rascsi", sidecar)
+    file_name = str(Path(file_name).stem) + ".json"
+    properties = {"vendor": vendor, "product": product, "revision": revision, \
+            "blocks": blocks, "block_size": block_size}
+    process = write_drive_properties(file_name, properties)
     if process["status"] == True:
-        flash(f"Drive sidecar file {file_name_base}.rascsi created")
+        flash(f"Drive properties file {file_name} created")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to create sidecar file {file_name_base}.rascsi", "error")
+        flash(f"Failed to create drive properties file {file_name}", "error")
         return redirect(url_for("index"))
 
 
-@app.route("/disk/cdrom", methods=["POST"])
-def disk_cdrom():
+@app.route("/drive/cdrom", methods=["POST"])
+def drive_cdrom():
     vendor = request.form.get("vendor")
     product = request.form.get("product")
     revision = request.form.get("revision")
     block_size = request.form.get("block_size")
     file_name = request.form.get("file_name")
+
+    # Creating the drive properties file
     from pathlib import Path
-    file_name_base = str(Path(file_name).stem)
-    
-    # Creating the sidecar file
-    sidecar = {"vendor": vendor, "product": product, "revision": revision, "block_size": block_size}
-    process = write_sidecar(base_dir + file_name_base + ".rascsi", sidecar)
+    file_name = str(Path(file_name).stem).json
+    properties = {"vendor": vendor, "product": product, "revision": revision, "block_size": block_size}
+    process = write_drive_properties(file_name, properties)
     if process["status"] == True:
-        flash(f"Drive sidecar file {file_name_base}.rascsi created")
+        flash(f"Drive properties file {file_name} created")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to create sidecar file {file_name_base}.rascsi", "error")
+        flash(f"Failed to create drive properties file {file_name}", "error")
         return redirect(url_for("index"))
 
 
@@ -303,19 +308,19 @@ def attach():
     elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
         kwargs["device_type"] = "SCHD"
  
-    # Attempt to load the device config sidecar file:
-    # same base path but .rascsi instead of the original suffix.
+    # Attempt to load the device properties file:
+    # same base path but .json instead of the original suffix.
     from pathlib import Path
     file_name_base = str(Path(file_name).stem)
-    device_config = Path(base_dir + file_name_base + ".rascsi")
+    device_config = Path(base_dir + file_name_base + ".json")
     if device_config.is_file():
-        process = read_sidecar(str(device_config))
+        process = read_drive_properties(str(device_config))
         if process["status"] == False:
-            flash(f"Failed to load the sidecar file {file_name_base}.rascsi", "error")
+            flash(f"Failed to load the device properties file {file_name_base}.json", "error")
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
-        # CD-ROM drives have no inherent size
+        # CD-ROM drives have no inherent size, so bypass the size check
         if kwargs["device_type"] != "SCCD":
             conf_file_size = int(conf["blocks"]) * int(conf["block_size"])
             if conf_file_size != 0 and conf_file_size > int(file_size):
@@ -522,11 +527,11 @@ def delete():
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
-    # Delete the sidecar file, if it exists
+    # Delete the drive properties file, if it exists
     from pathlib import Path
-    file_name = str(Path(file_name).stem) + ".rascsi"
-    sidecar = Path(base_dir + file_name)
-    if sidecar.is_file():
+    file_name = str(Path(file_name).stem) + ".json"
+    file_path = Path(base_dir + file_name)
+    if file_path.is_file():
         process = delete_file(file_name)
         if process["status"] == True:
             flash(f"File {file_name} deleted!")

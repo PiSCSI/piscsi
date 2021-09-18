@@ -160,7 +160,8 @@ def read_config(file_name):
             detach_all()
             devices = load(json_file)
             for row in devices:
-                process = attach_image(row["id"], device_type=row["device_type"], image=row["image"], unit=int(row["un"]), \
+                process = attach_image(row["id"], device_type=row["device_type"], \
+                        image=row["image"], unit=int(row["un"]), \
                         params=row["params"], vendor=row["vendor"], product=row["product"], \
                         revision=row["revision"], block_size=row["block_size"])
         if process["status"] == True:
@@ -173,11 +174,14 @@ def read_config(file_name):
         return {"status": False, "msg": f"Could not read file: {file_name}"}
 
 
-def write_sidecar(file_name, conf):
-    ''' Writes a sidecar configuration file to the images dir. Takes file path (str) and conf (list of dicts) as arguments '''
+def write_drive_properties(file_name, conf):
+    """
+    Writes a drive property configuration file to the images dir.
+    Takes file name base (str) and conf (list of dicts) as arguments
+    """
     from json import dump
     try:
-        with open(file_name, "w") as json_file:
+        with open(base_dir + file_name, "w") as json_file:
             dump(conf, json_file, indent=4)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
     #TODO: more verbose error handling of file system errors
@@ -187,14 +191,18 @@ def write_sidecar(file_name, conf):
 
 
 
-def read_sidecar(file_name):
-    ''' Reads sidecar configurations, either ones deployed to the images dir, or the canonical database. Takes file path (str) as argument '''
+def read_drive_properties(path_name):
+    """ 
+    Reads drive properties to any dir.
+    Either ones deployed to the images dir, or the canonical database. 
+    Takes file path and bas (str) as argument
+    """
     from json import load
     try:
-        with open(file_name) as json_file:
+        with open(path_name) as json_file:
             conf = load(json_file)
-            return {"status": True, "msg": f"Read data from file: {file_name}", "conf": conf}
+            return {"status": True, "msg": f"Read data from file: {path_name}", "conf": conf}
     #TODO: more verbose error handling of file system errors
     except:
         logging.error(f"Could not read file: {file_name}")
-        return {"status": False, "msg": f"Could not read file: {file_name}"}
+        return {"status": False, "msg": f"Could not read file: {path_name}"}
