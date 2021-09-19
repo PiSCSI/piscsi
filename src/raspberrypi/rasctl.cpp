@@ -347,7 +347,7 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 	DisplayNetworkInterfaces(network_interfaces);
 
 	cout << "Supported device types and their properties:" << endl;
-	for (auto it = server_info.types_properties().begin(); it != server_info.types_properties().end(); ++it) {
+	for (auto it = server_info.device_types_info().properties().begin(); it != server_info.device_types_info().properties().end(); ++it) {
 		cout << "  " << PbDeviceType_Name(it->type());
 
 		const PbDeviceProperties& properties = it->properties();
