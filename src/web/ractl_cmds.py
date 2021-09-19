@@ -82,6 +82,16 @@ def get_type(scsi_id):
 
 def attach_image(scsi_id, **kwargs):
     command = proto.PbCommand()
+    devices = proto.PbDeviceDefinition()
+    devices.id = int(scsi_id)
+
+    if "device_type" in kwargs.keys():
+        devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
+    if "unit" in kwargs.keys():
+        devices.unit = kwargs["unit"]
+    if "image" in kwargs.keys():
+        if kwargs["image"] not in [None, ""]:
+            devices.params["file"] = kwargs["image"]
 
     # Handling the inserting of media into an attached removable type device
     currently_attached = get_type(scsi_id)["device_type"] 
@@ -95,31 +105,21 @@ def attach_image(scsi_id, **kwargs):
     # Handling attaching a new device
     else:
         command.operation = proto.PbOperation.ATTACH
-
-    devices = proto.PbDeviceDefinition()
-    devices.id = int(scsi_id)
-    if "device_type" in kwargs.keys():
-        devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
-    if "unit" in kwargs.keys():
-        devices.unit = kwargs["unit"]
-    if "image" in kwargs.keys():
-        if kwargs["image"] not in [None, ""]:
-            devices.params["file"] = kwargs["image"]
-    if "interfaces" in kwargs.keys():
-        if kwargs["interfaces"] not in [None, ""]:
-            devices.params["interfaces"] = kwargs["interfaces"]
-    if "vendor" in kwargs.keys():
-        if kwargs["vendor"] not in [None, ""]:
-            devices.vendor = kwargs["vendor"]
-    if "product" in kwargs.keys():
-        if kwargs["product"] not in [None, ""]:
-            devices.product = kwargs["product"]
-    if "revision" in kwargs.keys():
-        if kwargs["revision"] not in [None, ""]:
-            devices.revision = kwargs["revision"]
-    if "block_size" in kwargs.keys():
-        if kwargs["block_size"] not in [None, ""]:
-            devices.block_size = int(kwargs["block_size"])
+        if "interfaces" in kwargs.keys():
+            if kwargs["interfaces"] not in [None, ""]:
+                devices.params["interfaces"] = kwargs["interfaces"]
+        if "vendor" in kwargs.keys():
+            if kwargs["vendor"] not in [None, ""]:
+                devices.vendor = kwargs["vendor"]
+        if "product" in kwargs.keys():
+            if kwargs["product"] not in [None, ""]:
+                devices.product = kwargs["product"]
+        if "revision" in kwargs.keys():
+            if kwargs["revision"] not in [None, ""]:
+                devices.revision = kwargs["revision"]
+        if "block_size" in kwargs.keys():
+            if kwargs["block_size"] not in [None, ""]:
+                devices.block_size = int(kwargs["block_size"])
 
     command.devices.append(devices)
 
