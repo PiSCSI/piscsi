@@ -19,7 +19,6 @@ def list_files():
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
     result.ParseFromString(data)
-    logging.warning(result.image_files_info.image_files)
     files = []
     for f in result.image_files_info.image_files:
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)

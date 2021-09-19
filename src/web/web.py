@@ -314,9 +314,9 @@ def attach():
     # same base path but PROPERTIES_SUFFIX instead of the original suffix.
     from pathlib import Path
     file_name_base = str(Path(file_name).stem)
-    device_config = Path(base_dir + file_name_base + "." + PROPERTIES_SUFFIX)
-    if device_config.is_file():
-        process = read_drive_properties(str(device_config))
+    drive_properties = Path(base_dir + file_name_base + "." + PROPERTIES_SUFFIX)
+    if drive_properties.is_file():
+        process = read_drive_properties(str(drive_properties))
         if process["status"] == False:
             flash(f"Failed to load the device properties file {file_name_base}.{PROPERTIES_SUFFIX}", "error")
             flash(process["msg"], "error")

@@ -81,6 +81,7 @@ def get_type(scsi_id):
 
 
 def attach_image(scsi_id, **kwargs):
+    command = proto.PbCommand()
 
     # Handling the inserting of media into an attached removable type device
     currently_attached = get_type(scsi_id)["device_type"] 
@@ -90,42 +91,42 @@ def attach_image(scsi_id, **kwargs):
         if currently_attached != device_type:
             return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {currently_attached} device."}
         else:
-            return insert(scsi_id, kwargs.get("image", ""))
+            command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
     else:
-        devices = proto.PbDeviceDefinition()
-        devices.id = int(scsi_id)
-        if "device_type" in kwargs.keys():
-            devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
-        if "unit" in kwargs.keys():
-            devices.unit = kwargs["unit"]
-        if "image" in kwargs.keys():
-            if kwargs["image"] not in [None, ""]:
-                devices.params["file"] = kwargs["image"]
-        if "interfaces" in kwargs.keys():
-            if kwargs["interfaces"] not in [None, ""]:
-                devices.params["interfaces"] = kwargs["interfaces"]
-        if "vendor" in kwargs.keys():
-            if kwargs["vendor"] not in [None, ""]:
-                devices.vendor = kwargs["vendor"]
-        if "product" in kwargs.keys():
-            if kwargs["product"] not in [None, ""]:
-                devices.product = kwargs["product"]
-        if "revision" in kwargs.keys():
-            if kwargs["revision"] not in [None, ""]:
-                devices.revision = kwargs["revision"]
-        if "block_size" in kwargs.keys():
-            if kwargs["block_size"] not in [None, ""]:
-                devices.block_size = int(kwargs["block_size"])
-
-        command = proto.PbCommand()
         command.operation = proto.PbOperation.ATTACH
-        command.devices.append(devices)
 
-        data = send_pb_command(command.SerializeToString())
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
+    devices = proto.PbDeviceDefinition()
+    devices.id = int(scsi_id)
+    if "device_type" in kwargs.keys():
+        devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
+    if "unit" in kwargs.keys():
+        devices.unit = kwargs["unit"]
+    if "image" in kwargs.keys():
+        if kwargs["image"] not in [None, ""]:
+            devices.params["file"] = kwargs["image"]
+    if "interfaces" in kwargs.keys():
+        if kwargs["interfaces"] not in [None, ""]:
+            devices.params["interfaces"] = kwargs["interfaces"]
+    if "vendor" in kwargs.keys():
+        if kwargs["vendor"] not in [None, ""]:
+            devices.vendor = kwargs["vendor"]
+    if "product" in kwargs.keys():
+        if kwargs["product"] not in [None, ""]:
+            devices.product = kwargs["product"]
+    if "revision" in kwargs.keys():
+        if kwargs["revision"] not in [None, ""]:
+            devices.revision = kwargs["revision"]
+    if "block_size" in kwargs.keys():
+        if kwargs["block_size"] not in [None, ""]:
+            devices.block_size = int(kwargs["block_size"])
+
+    command.devices.append(devices)
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def detach_by_id(scsi_id):
@@ -158,21 +159,6 @@ def eject_by_id(scsi_id):
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.EJECT
-    command.devices.append(devices)
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    return {"status": result.status, "msg": result.msg}
-
-
-def insert(scsi_id, image):
-    devices = proto.PbDeviceDefinition()
-    devices.id = int(scsi_id)
-    devices.params["file"] = image
-
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.INSERT
     command.devices.append(devices)
 
     data = send_pb_command(command.SerializeToString())
