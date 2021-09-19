@@ -506,24 +506,24 @@ PbDeviceProperties *GetDeviceProperties(const Device *device)
 	return properties;
 }
 
-void GetDeviceTypeProperties(PbServerInfo& server_info, PbDeviceType type)
+void GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type)
 {
-	PbDeviceTypeProperties *types_properties = server_info.add_types_properties();
-	types_properties->set_type(type);
+	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
+	type_properties->set_type(type);
 	Device *device = device_factory.CreateDevice(type, "", "");
-	types_properties->set_allocated_properties(GetDeviceProperties(device));
+	type_properties->set_allocated_properties(GetDeviceProperties(device));
 	delete device;
 }
 
-void GetAllDeviceTypeProperties(PbServerInfo& server_info)
+void GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 {
-	GetDeviceTypeProperties(server_info, SAHD);
-	GetDeviceTypeProperties(server_info, SCHD);
-	GetDeviceTypeProperties(server_info, SCRM);
-	GetDeviceTypeProperties(server_info, SCMO);
-	GetDeviceTypeProperties(server_info, SCCD);
-	GetDeviceTypeProperties(server_info, SCBR);
-	GetDeviceTypeProperties(server_info, SCDP);
+	GetDeviceTypeProperties(device_types_info, SAHD);
+	GetDeviceTypeProperties(device_types_info, SCHD);
+	GetDeviceTypeProperties(device_types_info, SCRM);
+	GetDeviceTypeProperties(device_types_info, SCMO);
+	GetDeviceTypeProperties(device_types_info, SCCD);
+	GetDeviceTypeProperties(device_types_info, SCBR);
+	GetDeviceTypeProperties(device_types_info, SCDP);
 }
 
 void GetAvailableImages(PbServerInfo& server_info)
@@ -608,15 +608,15 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 void GetDevices(PbServerInfo& serverInfo)
 {
 	for (const Device *device : devices) {
-		// skip if unit does not exist or is not assigned
+		// Skip if unit does not exist or is not assigned
 		if (device) {
-			PbDevice *pb_device = serverInfo.add_devices();
+			PbDevice *pb_device = serverInfo.mutable_devices()->add_devices();
 			GetDevice(device, pb_device);
 		}
 	}
 }
 
-void GetDeviceInfo(const PbCommand& command, PbResult& result)
+void GetDevicesInfo(const PbCommand& command, PbResult& result)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
@@ -650,6 +650,14 @@ void GetDeviceInfo(const PbCommand& command, PbResult& result)
 	}
 }
 
+void GetDeviceTypesInfo(const PbCommand& command, PbResult& result)
+{
+	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
+	GetAllDeviceTypeProperties(*device_types_info);
+
+	result.set_allocated_device_types_info(device_types_info);
+}
+
 void GetServerInfo(PbResult& result)
 {
 	PbServerInfo *server_info = new PbServerInfo();
@@ -659,7 +667,7 @@ void GetServerInfo(PbResult& result)
 	server_info->set_patch_version(rascsi_patch_version);
 	GetLogLevels(*server_info);
 	server_info->set_current_log_level(current_log_level);
-	GetAllDeviceTypeProperties(*server_info);
+	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(*server_info);
 	PbNetworkInterfacesInfo * network_interfaces_info = new PbNetworkInterfacesInfo();
 	server_info->set_allocated_network_interfaces_info(network_interfaces_info);
@@ -1659,7 +1667,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Display and log the device list
 	PbServerInfo server_info;
 	GetDevices(server_info);
-	const list<PbDevice>& devices = { server_info.devices().begin(), server_info.devices().end() };
+	const list<PbDevice>& devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << endl;
@@ -1760,12 +1768,12 @@ static void *MonThread(void *param)
 					break;
 				}
 
-				case DEVICE_INFO: {
+				case DEVICES_INFO: {
 					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
 
 					PbResult result;
 					result.set_status(true);
-					GetDeviceInfo(command, result);
+					GetDevicesInfo(command, result);
 					SerializeMessage(fd, result);
 					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
 
@@ -1775,6 +1783,17 @@ static void *MonThread(void *param)
 					}
 					break;
 				}
+
+				case DEVICE_TYPES_INFO: {
+					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+
+					PbResult result;
+					result.set_status(true);
+					GetDeviceTypesInfo(command, result);
+					SerializeMessage(fd, result);
+					break;
+				}
+
 
 				case SERVER_INFO: {
 					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
