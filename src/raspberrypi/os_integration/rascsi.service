@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/local/bin/rascsi
+ExecStart=/usr/local/bin/rascsi -r 7
 # Example: If you want to automatically attach a hard disk at startup, change
 # the ExecStart line to:
 # ExecStart=/usr/local/bin/rascsi -ID1 /home/pi/images/harddisk.hda

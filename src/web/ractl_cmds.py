@@ -242,18 +242,6 @@ def sort_and_format_devices(devices):
     return formatted_devices
 
 
-def reserve_scsi_ids(reserved_scsi_ids):
-    '''Sends a command to the server to reserve SCSI IDs. Takes a list of strings as argument.'''
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.RESERVE
-    command.params["ids"] = ",".join(reserved_scsi_ids)
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    return {"status": result.status, "msg": result.msg}
-
-
 def set_log_level(log_level):
     '''Sends a command to the server to change the log level. Takes target log level as an argument.'''
     command = proto.PbCommand()
