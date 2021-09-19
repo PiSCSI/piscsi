@@ -452,8 +452,8 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 		cout <<endl;
 	}
 
-	if (server_info.devices_size()) {
-		list<PbDevice> sorted_devices = { server_info.devices().begin(), server_info.devices().end() };
+	if (server_info.devices().devices_size()) {
+		list<PbDevice> sorted_devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
 		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
 
 		cout << "Attached devices:" << endl;

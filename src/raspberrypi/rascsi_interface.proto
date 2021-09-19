@@ -270,10 +270,12 @@ message PbServerInfo {
     string current_log_level = 5;
     // Supported device types and their properties
     repeated PbDeviceTypeProperties types_properties = 6;
+    // The image files in the default folder
     PbImageFilesInfo image_files_info = 7;
+    // The available (up) network interfaces
     PbNetworkInterfacesInfo network_interfaces_info = 8;
     // The attached devices
-    repeated PbDevice devices = 9;
+    PbDevices devices = 9;
     // The unsorted list of reserved IDs
     repeated uint32 reserved_ids = 10;
 }

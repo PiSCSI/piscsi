@@ -608,9 +608,9 @@ void GetDevice(const Device *device, PbDevice *pb_device)
 void GetDevices(PbServerInfo& serverInfo)
 {
 	for (const Device *device : devices) {
-		// skip if unit does not exist or is not assigned
+		// Skip if unit does not exist or is not assigned
 		if (device) {
-			PbDevice *pb_device = serverInfo.add_devices();
+			PbDevice *pb_device = serverInfo.mutable_devices()->add_devices();
 			GetDevice(device, pb_device);
 		}
 	}
@@ -1659,7 +1659,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Display and log the device list
 	PbServerInfo server_info;
 	GetDevices(server_info);
-	const list<PbDevice>& devices = { server_info.devices().begin(), server_info.devices().end() };
+	const list<PbDevice>& devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << endl;
