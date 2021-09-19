@@ -164,7 +164,7 @@
     "blocks": 173456,
     "name": "SyQuest",
     "file_type": "hdr",
-    "description": "SyQuest removable hard drive cartridges",
+    "description": "SyQuest removable hard drive cartridges, 88MB capacity",
     "url": ""
 },
 {
@@ -198,7 +198,7 @@
     "revision": "",
     "block_size": 512,
     "blocks": null,
-    "name": "Sony CDU-8012",
+    "name": "HP A1448A",
     "file_type": null,
     "description": "Recognized by HP-UX",
     "url": ""
