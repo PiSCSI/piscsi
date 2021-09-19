@@ -10,12 +10,13 @@ from file_cmds import (
     download_image,
     write_config,
     read_config,
-    read_device_config,
+    write_drive_properties,
+    read_drive_properties,
 )
 from pi_cmds import (
-    shutdown_pi, 
-    reboot_pi, 
-    running_version, 
+    shutdown_pi,
+    reboot_pi,
+    running_env,
     rascsi_service,
     is_bridge_setup,
 )
@@ -26,10 +27,10 @@ from ractl_cmds import (
     detach_by_id,
     eject_by_id,
     get_valid_scsi_ids,
-    attach_daynaport,
     detach_all,
     reserve_scsi_ids,
     get_server_info,
+    get_network_info,
     validate_scsi_id,
     set_log_level,
 )
@@ -40,22 +41,30 @@ app = Flask(__name__)
 
 @app.route("/")
 def index():
-    reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS")
-    unsorted_devices, occupied_ids = list_devices()
-    devices = sort_and_format_devices(unsorted_devices, occupied_ids)
-    scsi_ids = get_valid_scsi_ids(devices, list(reserved_scsi_ids), occupied_ids)
+    server_info = get_server_info()
+    devices = list_devices()
+    files=list_files()
+    config_files=list_config_files()
+
+    sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
+    sorted_config_files = sorted(config_files, key = lambda x: x.lower())
+
+    reserved_scsi_ids = server_info["reserved_ids"]
+    formatted_devices = sort_and_format_devices(devices["device_list"])
+    scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
-        devices=devices,
-        files=list_files(),
-        config_files=list_config_files(),
+        devices=formatted_devices,
+        files=sorted_image_files,
+        config_files=sorted_config_files,
         base_dir=base_dir,
         scsi_ids=scsi_ids,
-        reserved_scsi_ids=[reserved_scsi_ids],
+        reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=MAX_FILE_SIZE,
-        version=running_version(),
-        server_info=get_server_info(),
+        running_env=running_env(),
+        server_info=server_info,
+        netinfo=get_network_info(),
         valid_file_suffix=VALID_FILE_SUFFIX,
         removable_device_types=REMOVABLE_DEVICE_TYPES,
         harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
@@ -64,44 +73,165 @@ def index():
         archive_file_suffix=ARCHIVE_FILE_SUFFIX,
     )
 
+
+@app.route("/drive/list", methods=["GET"])
+def drive_list():
+    """
+    Sets up the data structures and kicks off the rendering of the drive list page
+    """
+    server_info = get_server_info()
+
+    # Reads the canonical drive properties into a dict
+    # The file resides in the current dir of the web ui process
+    from pathlib import Path
+    drive_properties = Path(DRIVE_PROPERTIES_FILE)
+    if drive_properties.is_file():
+        process = read_drive_properties(str(drive_properties))
+        if process["status"] == False:
+            flash(process["msg"], "error")
+            return redirect(url_for("index"))
+        conf = process["conf"]
+    else:
+        flash("Could not read drive properties from " + str(drive_properties), "error")
+        return redirect(url_for("index"))
+
+    hd_conf = []
+    cd_conf = []
+    rm_conf = []
+
+    for d in conf:
+        if d["device_type"] == "SCHD":
+            d["size"] = d["block_size"] * d["blocks"]
+            d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
+            hd_conf.append(d)
+        elif d["device_type"] == "SCCD":
+            d["size_mb"] = "N/A"
+            cd_conf.append(d)
+        elif d["device_type"] == "SCRM":
+            d["size"] = d["block_size"] * d["blocks"]
+            d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
+            rm_conf.append(d)
+
+    files=list_files()
+    sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
+    hd_conf = sorted(hd_conf, key = lambda x: x["name"].lower())
+    cd_conf = sorted(cd_conf, key = lambda x: x["name"].lower())
+    rm_conf = sorted(rm_conf, key = lambda x: x["name"].lower())
+
+    return render_template(
+        "drives.html",
+        files=sorted_image_files,
+        base_dir=base_dir,
+        hd_conf=hd_conf,
+        cd_conf=cd_conf,
+        rm_conf=rm_conf,
+        running_env=running_env(),
+        server_info=server_info,
+        cdrom_file_suffix=CDROM_FILE_SUFFIX,
+    )
+
+
 @app.route('/pwa/<path:path>')
 def send_pwa_files(path):
     return send_from_directory('pwa', path)
 
+
+@app.route("/drive/create", methods=["POST"])
+def drive_create():
+    vendor = request.form.get("vendor")
+    product = request.form.get("product")
+    revision = request.form.get("revision")
+    blocks = request.form.get("blocks")
+    block_size = request.form.get("block_size")
+    size = request.form.get("size")
+    file_type = request.form.get("file_type")
+    file_name = request.form.get("file_name")
+    
+    # Creating the image file
+    process = create_new_image(file_name, file_type, size)
+    if process["status"] == True:
+        flash(f"Drive image file {file_name}.{file_type} created")
+        flash(process["msg"])
+    else:
+        flash(f"Failed to create file {file_name}.{file_type}", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+    # Creating the drive properties file
+    from pathlib import Path
+    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
+    properties = {"vendor": vendor, "product": product, "revision": revision, \
+            "blocks": blocks, "block_size": block_size}
+    process = write_drive_properties(file_name, properties)
+    if process["status"] == True:
+        flash(f"Drive properties file {file_name} created")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to create drive properties file {file_name}", "error")
+        return redirect(url_for("index"))
+
+
+@app.route("/drive/cdrom", methods=["POST"])
+def drive_cdrom():
+    vendor = request.form.get("vendor")
+    product = request.form.get("product")
+    revision = request.form.get("revision")
+    block_size = request.form.get("block_size")
+    file_name = request.form.get("file_name")
+
+    # Creating the drive properties file
+    from pathlib import Path
+    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
+    properties = {"vendor": vendor, "product": product, "revision": revision, "block_size": block_size}
+    process = write_drive_properties(file_name, properties)
+    if process["status"] == True:
+        flash(f"Drive properties file {file_name} created")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to create drive properties file {file_name}", "error")
+        return redirect(url_for("index"))
+
+
 @app.route("/config/save", methods=["POST"])
 def config_save():
     file_name = request.form.get("name") or "default"
-    file_name = f"{base_dir}{file_name}.json"
+    file_name = f"{file_name}.json"
 
     process = write_config(file_name)
     if process["status"] == True:
-        flash(f"Saved config to  {file_name}!")
+        flash(f"Saved config to {file_name}!")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to saved config to  {file_name}!", "error")
-        flash(f"{process['msg']}", "error")
-    return redirect(url_for("index"))
+        flash(f"Failed to saved config to {file_name}!", "error")
+        flash(process['msg'], "error")
+        return redirect(url_for("index"))
 
 
 @app.route("/config/load", methods=["POST"])
 def config_load():
     file_name = request.form.get("name")
-    file_name = f"{base_dir}{file_name}"
 
     if "load" in request.form:
         process = read_config(file_name)
         if process["status"] == True:
-            flash(f"Loaded config from  {file_name}!")
+            flash(f"Loaded config from {file_name}!")
+            flash(process["msg"])
+            return redirect(url_for("index"))
         else:
-            flash(f"Failed to load  {file_name}!", "error")
-            flash(f"{process['msg']}", "error")
+            flash(f"Failed to load {file_name}!", "error")
+            flash(process['msg'], "error")
+            return redirect(url_for("index"))
     elif "delete" in request.form:
-        if delete_file(file_name):
-            flash(f"Deleted config  {file_name}!")
+        process = delete_file(file_name)
+        if process["status"] == True:
+            flash(f"Deleted config {file_name}!")
+            flash(process["msg"])
+            return redirect(url_for("index"))
         else:
-            flash(f"Failed to delete  {file_name}!", "error")
-
-    return redirect(url_for("index"))
+            flash(f"Failed to delete {file_name}!", "error")
+            flash(process['msg'], "error")
+            return redirect(url_for("index"))
 
 
 @app.route("/logs/show", methods=["POST"])
@@ -142,13 +272,23 @@ def log_level():
 @app.route("/daynaport/attach", methods=["POST"])
 def daynaport_attach():
     scsi_id = request.form.get("scsi_id")
+    interface = request.form.get("if")
+    ip = request.form.get("ip")
+    mask = request.form.get("mask")
+
+    kwargs = {"device_type": "SCDP"}
+    if interface != "":
+        arg = interface
+        if "" not in (ip, mask):
+            arg += (":" + ip + "/" + mask)
+        kwargs["interfaces"] = arg
 
     validate = validate_scsi_id(scsi_id)
     if validate["status"] == False:
         flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
-    process = attach_daynaport(scsi_id)
+    process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached DaynaPORT to SCSI id {scsi_id}!")
         return redirect(url_for("index"))
@@ -171,34 +311,38 @@ def attach():
 
     kwargs = {"image": file_name}
 
-    # Attempt to load the device config sidecar file:
-    # same base path but .rascsi instead of the original suffix.
-    from pathlib import Path
-    device_config = Path(base_dir + str(Path(file_name).stem) + ".rascsi")
-    if device_config.is_file():
-        process = read_device_config(device_config)
-        if process["status"] == False:
-            flash(process["msg"], "error")
-            return redirect(url_for("index"))
-        conf = process["conf"]
-        conf_file_size = conf["blocks"] * conf["block_size"]
-        if conf_file_size != 0 and conf_file_size > int(file_size):
-            flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
-            flash(f"The file size {file_size} bytes needs to be at least {conf_file_size} bytes.", "error")
-            return redirect(url_for("index"))
-        kwargs["device_type"] = conf["device_type"]
-        kwargs["vendor"] = conf["vendor"]
-        kwargs["product"] = conf["product"]
-        kwargs["revision"] = conf["revision"]
-        kwargs["block_size"] = conf["block_size"]
-    # Validate image type by file name suffix as fallback
-    elif file_name.lower().endswith(CDROM_FILE_SUFFIX):
+    # Validate image type by file name suffix
+    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
         kwargs["device_type"] = "SCCD"
     elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
         kwargs["device_type"] = "SCRM"
     elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
         kwargs["device_type"] = "SCHD"
  
+    # Attempt to load the device properties file:
+    # same base path but PROPERTIES_SUFFIX instead of the original suffix.
+    from pathlib import Path
+    file_name_base = str(Path(file_name).stem)
+    drive_properties = Path(base_dir + file_name_base + "." + PROPERTIES_SUFFIX)
+    if drive_properties.is_file():
+        process = read_drive_properties(str(drive_properties))
+        if process["status"] == False:
+            flash(f"Failed to load the device properties file {file_name_base}.{PROPERTIES_SUFFIX}", "error")
+            flash(process["msg"], "error")
+            return redirect(url_for("index"))
+        conf = process["conf"]
+        # CD-ROM drives have no inherent size, so bypass the size check
+        if kwargs["device_type"] != "SCCD":
+            conf_file_size = int(conf["blocks"]) * int(conf["block_size"])
+            if conf_file_size != 0 and conf_file_size > int(file_size):
+                flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
+                flash(f"The file size {file_size} bytes needs to be at least {conf_file_size} bytes.", "error")
+                return redirect(url_for("index"))
+        kwargs["vendor"] = conf["vendor"]
+        kwargs["product"] = conf["product"]
+        kwargs["revision"] = conf["revision"]
+        kwargs["block_size"] = conf["block_size"]
+
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI id {scsi_id}!")
@@ -249,8 +393,16 @@ def eject():
 @app.route("/scsi/info", methods=["POST"])
 def device_info():
     scsi_id = request.form.get("scsi_id")
-    # Extracting the 0th dictionary in list index 0
-    device = list_devices(scsi_id)[0][0]
+
+    devices = list_devices(scsi_id)
+
+    # First check if any device at all was returned
+    if devices["status"] == False:
+        flash(f"No device attached to SCSI id {scsi_id}!", "error")
+        return redirect(url_for("index"))
+    # Looking at the first dict in list to get
+    # the one and only device that should have been returned
+    device = devices["device_list"][0]
     if str(device["id"]) == scsi_id:
         flash("=== DEVICE INFO ===")
         flash(f"SCSI ID: {device['id']}")
@@ -270,31 +422,36 @@ def device_info():
 
 @app.route("/pi/reboot", methods=["POST"])
 def restart():
+    flash("Restarting the Pi momentarily...")
     reboot_pi()
-    flash("Restarting...")
     return redirect(url_for("index"))
 
 
 @app.route("/rascsi/restart", methods=["POST"])
 def rascsi_restart():
+    server_info = get_server_info()
     rascsi_service("restart")
     flash("Restarting RaSCSI Service...")
-    reserved_scsi_ids = app.config.get("RESERVED_SCSI_IDS") 
-    if reserved_scsi_ids != "":
-        reserve_scsi_ids(reserved_scsi_ids)
+    # Need to turn this into a list of strings from a list of ints
+    reserve_scsi_ids([str(e) for e in server_info["reserved_ids"]])
     return redirect(url_for("index"))
 
 
 @app.route("/pi/shutdown", methods=["POST"])
 def shutdown():
+    flash("Shutting down the Pi momentarily...")
     shutdown_pi()
-    flash("Shutting down...")
     return redirect(url_for("index"))
 
 
 @app.route("/files/download_to_iso", methods=["POST"])
 def download_file():
     scsi_id = request.form.get("scsi_id")
+    validate = validate_scsi_id(scsi_id)
+    if validate["status"] == False:
+        flash(validate["msg"], "error")
+        return redirect(url_for("index"))
+
     url = request.form.get("url")
     process = download_file_to_iso(scsi_id, url)
     if process["status"] == True:
@@ -348,17 +505,17 @@ def upload_file(filename):
 @app.route("/files/create", methods=["POST"])
 def create_file():
     file_name = request.form.get("file_name")
-    size = request.form.get("size")
+    size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
 
     process = create_new_image(file_name, file_type, size)
-    if process.returncode == 0:
-        flash("Drive created")
+    if process["status"] == True:
+        flash(f"Drive image created as {file_name}.{file_type}")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash("Failed to create file", "error")
-        flash(process.stdout, "stdout")
-        flash(process.stderr, "stderr")
+        flash(f"Failed to create file {file_name}.{file_type}", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
 
 
@@ -370,13 +527,34 @@ def download():
 
 @app.route("/files/delete", methods=["POST"])
 def delete():
-    image = request.form.get("image")
-    if delete_file(base_dir + image):
-        flash("File " + image + " deleted")
-        return redirect(url_for("index"))
+    file_name = request.form.get("image")
+
+    process = delete_file(file_name)
+    if process["status"] == True:
+        flash(f"File {file_name} deleted!")
+        flash(process["msg"])
     else:
-        flash("Failed to Delete " + image, "error")
+        flash(f"Failed to delete file {file_name}!", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
+
+    # Delete the drive properties file, if it exists
+    from pathlib import Path
+    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
+    file_path = Path(base_dir + file_name)
+    if file_path.is_file():
+        process = delete_file(file_name)
+        if process["status"] == True:
+            flash(f"File {file_name} deleted!")
+            flash(process["msg"])
+            return redirect(url_for("index"))
+        else:
+            flash(f"Failed to delete file {file_name}!", "error")
+            flash(process["msg"], "error")
+            return redirect(url_for("index"))
+
+    return redirect(url_for("index"))
+
 
 
 @app.route("/files/unzip", methods=["POST"])
@@ -402,18 +580,15 @@ if __name__ == "__main__":
 
     from sys import argv
     if len(argv) >= 2:
-        # Reserved ids format is a string of digits such as '017'
-        app.config["RESERVED_SCSI_IDS"] = str(argv[1])
         # Reserve SCSI IDs on the backend side to prevent use
-        reserve_scsi_ids(app.config.get("RESERVED_SCSI_IDS"))
-    else:
-        app.config["RESERVED_SCSI_IDS"] = ""
+        # Expecting argv as a string of digits such as '017'
+        reserve_scsi_ids(list(argv[1]))
 
     # Load the default configuration file, if found
     from pathlib import Path
-    default_config = Path(DEFAULT_CONFIG)
-    if default_config.is_file():
-        read_config(default_config)
+    default_config_path = Path(base_dir + DEFAULT_CONFIG)
+    if default_config_path.is_file():
+        read_config(DEFAULT_CONFIG)
 
     import bjoern
     print("Serving rascsi-web...")

@@ -1,24 +1,5 @@
 {% extends "base.html" %}
 
-{% block header %}
-{% if server_info["status"] == True %}
-<span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Running</span>
-{% else %}
-<span style="display: inline-block; width: 100%; color: white; background-color: red; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Stopped</span>
-{% endif %}
-    <table width="100%">
-        <tbody>
-        <tr style="background-color: black;">
-            <td style="background-color: black;">
-                <a href="http://github.com/akuker/RASCSI">
-                    <h1>RaSCSI - 68kmla Edition</h1>
-                </a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-{% endblock %}
-
     {% block content %}
     <h2>Current RaSCSI Configuration</h2>
     <p>
@@ -55,7 +36,7 @@
         </tr>
         {% for device in devices %}
         <tr>
-            {% if device["id"]|string() not in reserved_scsi_ids %}
+            {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{device.id}}</td>
             <td style="text-align:center">{{device.device_type}}</td>
             <td style="text-align:center">{{device.status}}</td>
@@ -75,8 +56,6 @@
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Info" />
                 </form>
-                {% elif device.device_type in ["-"] %}
-		<div>-</div>
                 {% else %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
@@ -112,33 +91,33 @@
         </tr>
         {% for file in files %}
         <tr>
-            <td>{{file[0].replace(base_dir, '')}}</td>
+            <td>{{file["name"].replace(base_dir, '')}}</td>
             <td style="text-align:center">
                 <form action="/files/download" method="post">
-                    <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
-                    <input type="submit" value="{{file[1]}} MB &#8595;" />
+                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
+                    <input type="submit" value="{{file["size_mb"]}} MB &#8595;" />
                 </form>
             </td>
             <td>
                 <form action="/scsi/attach" method="post">
-                    <input type="hidden" name="file_name" value="{{file[0]}}">
-                    <input type="hidden" name="file_size" value="{{file[2]}}">
+                    <input type="hidden" name="file_name" value="{{file["name"]}}">
+                    <input type="hidden" name="file_size" value="{{file["size"]}}">
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
                         <option value="{{id}}">{{id}}</option>
                         {% endfor %}
                     </select>
-                    {% if not file[0].lower().endswith(archive_file_suffix) %}
+                    {% if not file["name"].lower().endswith(archive_file_suffix) %}
                     <input type="submit" value="Attach" />
 		    {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                    <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
+                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
                     <input type="submit" value="Delete" />
                 </form>
-                {% if file[0].lower().endswith(archive_file_suffix) %}
+                {% if file["name"].lower().endswith(archive_file_suffix) %}
                 <form action="/files/unzip" method="post">
-                    <input type="hidden" name="image" value="{{file[0].replace(base_dir, '')}}">
+                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
                     <input type="submit" value="Unzip" />
                 </form>
                 {% endif %}
@@ -151,11 +130,22 @@
 
     <hr/>
     <h2>Attach Ethernet Adapter</h2>
-    <p>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link">Host drivers required.</a></p>
+    <p>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers required.</a></p>
+    <p>Leave Interface and Static IP blank for default settings, and input only Interface for DHCP setups.</p>
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
                 <form action="/daynaport/attach" method="post">
+		    <label for="if">Interface:</label>
+		    <select name = "if">
+			{% for if in netinfo["ifs"] %}
+			<option value="{{if}}">{{if}}</option>
+			{% endfor %}
+                    </select>
+		    <label for="ip">Static IP (optional):</label>
+		    <input type="text" name="ip" size="15" placeholder="10.10.20.1" />/
+		    <input type="text" name="mask" size="2" placeholder="24">
+		    <label for="scsi_id">ID:</label>
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
                         <option value="{{id}}">{{id}}</option>
@@ -236,6 +226,7 @@
     </table>
 
     <hr/>
+
     <h2>Create Empty Disk Image File</h2>
     <table style="border: none">
             <tr style="border: none">
@@ -245,14 +236,13 @@
                     <input type="text" placeholder="File name" name="file_name"/>
                     <label for="type">Type:</label>
                     <select name="type">
-                        <option value="hda">SCSI Hard Disk image (APPLE GENUINE) [.hda]</option>
+                        <option value="hds">SCSI Hard Disk image (Generic - recommended for most systems) [.hds]</option>
                         <option value="hdn">SCSI Hard Disk image (NEC GENUINE) [.hdn]</option>
                         <!-- Disabling due to https://github.com/akuker/RASCSI/issues/232
 			<option value="hdi">SCSI Hard Disk image (Anex86 HD image) [.hdi]</option>
 			<option value="nhd">SCSI Hard Disk image (T98Next HD image) [.nhd]</option> -->
-                        <option value="hds">SCSI Hard Disk image (Generic - recommended for Atari computers) [.hds]</option>
                         <option value="hdr">SCSI Removable Media Disk image (Generic) [.hdr]</option>
-                        <option value="hdf">SASI Hard Disk image (XM6 SASI HD image - typically only used with X68000) [.hdf]</option>
+                        <option value="hdf">SASI Hard Disk image (legacy format) [.hdf]</option>
                     </select>
                     <label for="size">Size(MB):</label>
                     <input type="number" placeholder="Size(MB)" name="size"/>
@@ -261,6 +251,11 @@
             </td>
         </tr>
     </table>
+
+    <hr/>
+
+    <h2>Create Named Drive</h2>
+    <p><a href="/drive/list">Ceate a named disk image with a companion properties file that mimics real-life drives</a></p>
 
     <hr/>
 
@@ -326,10 +321,4 @@
         </tr>
     </table>
 
-{% endblock %}
-
-{% block footer %}
-<center><tt>RaSCSI version: <strong>{{server_info["version"]}}</strong></tt></center>
-<center><tt>Server log level: <strong>{{server_info["current_log_level"]}}</strong></tt></center>
-<center><tt>{{version}}</tt></center>
 {% endblock %}

@@ -32,6 +32,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
 #include <sys/sendfile.h>
+#include <ifaddrs.h>
 #include <string>
 #include <sstream>
 #include <iostream>

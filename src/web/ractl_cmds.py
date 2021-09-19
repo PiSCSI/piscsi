@@ -16,7 +16,19 @@ def get_server_info():
               str(result.server_info.patch_version)
     log_levels = result.server_info.log_levels
     current_log_level = result.server_info.current_log_level
-    return {"status": result.status, "version": version, "log_levels": log_levels, "current_log_level": current_log_level}
+    reserved_ids = list(result.server_info.reserved_ids)
+    return {"status": result.status, "version": version, "log_levels": log_levels, "current_log_level": current_log_level, "reserved_ids": reserved_ids}
+
+
+def get_network_info():
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.NETWORK_INTERFACES_INFO
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    ifs = result.network_interfaces_info.name
+    return {"status": result.status, "ifs": ifs}
     
 
 def validate_scsi_id(scsi_id):
@@ -27,18 +39,24 @@ def validate_scsi_id(scsi_id):
         return {"status": False, "msg": "Invalid SCSI ID. Should be a number between 0-7"}
 
 
-def get_valid_scsi_ids(devices, invalid_list, occupied_ids):
-    for device in devices:
+def get_valid_scsi_ids(devices, reserved_ids):
+    occupied_ids = []
+    for d in devices:
         # Make it possible to insert images on top of a 
         # removable media device currently without an image attached
-        if "No Media" in device["status"]:
-            occupied_ids.remove(device["id"])
+        if d["device_type"] != "-" and "No Media" not in d["status"]:
+            occupied_ids.append(d["id"])
 
     # Combine lists and remove duplicates
-    invalid_ids = list(set(invalid_list + occupied_ids))
+    invalid_ids = list(set(reserved_ids + occupied_ids))
     valid_ids = list(range(8))
     for id in invalid_ids:
-        valid_ids.remove(int(id))
+        try:
+            valid_ids.remove(int(id))
+        except:
+            # May reach this state if the RaSCSI Web UI thinks an ID
+            # is reserved but RaSCSI has not actually reserved it.
+            logging.warning(f"SCSI ID {id} flagged as both valid and invalid. Try restarting the RaSCSI Web UI.")
     valid_ids.reverse()
     return valid_ids
 
@@ -48,7 +66,7 @@ def get_type(scsi_id):
     device.id = int(scsi_id)
 
     command = proto.PbCommand()
-    command.operation = proto.PbOperation.DEVICE_INFO
+    command.operation = proto.PbOperation.DEVICES_INFO
     command.devices.append(device)
 
     data = send_pb_command(command.SerializeToString())
@@ -63,6 +81,17 @@ def get_type(scsi_id):
 
 
 def attach_image(scsi_id, **kwargs):
+    command = proto.PbCommand()
+    devices = proto.PbDeviceDefinition()
+    devices.id = int(scsi_id)
+
+    if "device_type" in kwargs.keys():
+        devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
+    if "unit" in kwargs.keys():
+        devices.unit = kwargs["unit"]
+    if "image" in kwargs.keys():
+        if kwargs["image"] not in [None, ""]:
+            devices.params["file"] = kwargs["image"]
 
     # Handling the inserting of media into an attached removable type device
     currently_attached = get_type(scsi_id)["device_type"] 
@@ -72,22 +101,13 @@ def attach_image(scsi_id, **kwargs):
         if currently_attached != device_type:
             return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {currently_attached} device."}
         else:
-            return insert(scsi_id, kwargs.get("image", ""))
+            command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
     else:
-        devices = proto.PbDeviceDefinition()
-        devices.id = int(scsi_id)
-        if "device_type" in kwargs.keys():
-            logging.warning(kwargs["device_type"])
-            devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
-        if "unit" in kwargs.keys():
-            devices.unit = kwargs["unit"]
-        if "image" in kwargs.keys():
-            if kwargs["image"] not in [None, ""]:
-                devices.params.append(kwargs["image"])
-        if "params" in kwargs.keys():
-            for p in kwargs["params"]:
-                devices.params.append(p)
+        command.operation = proto.PbOperation.ATTACH
+        if "interfaces" in kwargs.keys():
+            if kwargs["interfaces"] not in [None, ""]:
+                devices.params["interfaces"] = kwargs["interfaces"]
         if "vendor" in kwargs.keys():
             if kwargs["vendor"] not in [None, ""]:
                 devices.vendor = kwargs["vendor"]
@@ -101,14 +121,12 @@ def attach_image(scsi_id, **kwargs):
             if kwargs["block_size"] not in [None, ""]:
                 devices.block_size = int(kwargs["block_size"])
 
-        command = proto.PbCommand()
-        command.operation = proto.PbOperation.ATTACH
-        command.devices.append(devices)
+    command.devices.append(devices)
 
-        data = send_pb_command(command.SerializeToString())
-        result = proto.PbResult()
-        result.ParseFromString(data)
-        return {"status": result.status, "msg": result.msg}
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def detach_by_id(scsi_id):
@@ -149,40 +167,10 @@ def eject_by_id(scsi_id):
     return {"status": result.status, "msg": result.msg}
 
 
-def insert(scsi_id, image):
-    devices = proto.PbDeviceDefinition()
-    devices.id = int(scsi_id)
-    devices.params.append(image)
-
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.INSERT
-    command.devices.append(devices)
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    return {"status": result.status, "msg": result.msg}
-
-
-def attach_daynaport(scsi_id):
-    devices = proto.PbDeviceDefinition()
-    devices.id = int(scsi_id)
-    devices.type = proto.PbDeviceType.SCDP
-
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.ATTACH
-    command.devices.append(devices)
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    return {"status": result.status, "msg": result.msg}
-
-
 def list_devices(scsi_id=None):
     from os import path
     command = proto.PbCommand()
-    command.operation = proto.PbOperation.DEVICE_INFO
+    command.operation = proto.PbOperation.DEVICES_INFO
 
     # If method is called with scsi_id parameter, return the info on those devices
     # Otherwise, return the info on all attached devices
@@ -196,8 +184,11 @@ def list_devices(scsi_id=None):
     result.ParseFromString(data)
 
     device_list = []
-    occupied_ids = []
     n = 0
+
+    if len(result.device_info.devices) == 0:
+        return {"status": False, "device_list": []}
+
     while n < len(result.device_info.devices):
         did = result.device_info.devices[n].id
         dun = result.device_info.devices[n].unit
@@ -228,27 +219,34 @@ def list_devices(scsi_id=None):
         device_list.append({"id": did, "un": dun, "device_type": dtype, \
                 "status": ", ".join(dstat_msg), "image": dpath, "file": dfile, "params": dparam,\
                 "vendor": dven, "product": dprod, "revision": drev, "block_size": dblock})
-        occupied_ids.append(did)
         n += 1
-    return device_list, occupied_ids
+
+    return {"status": True, "device_list": device_list}
 
 
-def sort_and_format_devices(device_list, occupied_ids):
+def sort_and_format_devices(devices):
+    occupied_ids = []
+    for d in devices:
+        occupied_ids.append(d["id"])
+
+    formatted_devices = devices
+
     # Add padding devices and sort the list
     for id in range(8):
         if id not in occupied_ids:
-            device_list.append({"id": id, "type": "-", \
+            formatted_devices.append({"id": id, "device_type": "-", \
                     "status": "-", "file": "-", "product": "-"})
     # Sort list of devices by id
-    device_list.sort(key=lambda dic: str(dic["id"]))
+    formatted_devices.sort(key=lambda dic: str(dic["id"]))
 
-    return device_list
+    return formatted_devices
 
 
 def reserve_scsi_ids(reserved_scsi_ids):
+    '''Sends a command to the server to reserve SCSI IDs. Takes a list of strings as argument.'''
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVE
-    command.params.append(reserved_scsi_ids)
+    command.params["ids"] = ",".join(reserved_scsi_ids)
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -257,10 +255,10 @@ def reserve_scsi_ids(reserved_scsi_ids):
 
 
 def set_log_level(log_level):
-    '''Sends a command to the server to change the log level. Takes target log level as an argument'''
+    '''Sends a command to the server to change the log level. Takes target log level as an argument.'''
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL
-    command.params.append(str(log_level))
+    command.params["level"] = str(log_level)
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
