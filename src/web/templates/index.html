@@ -138,7 +138,7 @@
                 <form action="/daynaport/attach" method="post">
 		    <label for="if">Interface:</label>
 		    <select name = "if">
-			{% for if in ifs %}
+			{% for if in netinfo["ifs"] %}
 			<option value="{{if}}">{{if}}</option>
 			{% endfor %}
                     </select>

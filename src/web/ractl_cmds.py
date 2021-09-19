@@ -18,6 +18,17 @@ def get_server_info():
     current_log_level = result.server_info.current_log_level
     reserved_ids = list(result.server_info.reserved_ids)
     return {"status": result.status, "version": version, "log_levels": log_levels, "current_log_level": current_log_level, "reserved_ids": reserved_ids}
+
+
+def get_network_info():
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.NETWORK_INTERFACES_INFO
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    ifs = result.network_interfaces_info.name
+    return {"status": result.status, "ifs": ifs}
     
 
 def validate_scsi_id(scsi_id):
