@@ -563,7 +563,8 @@ void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
 	struct ifaddrs *tmp = addrs;
 
 	while (tmp) {
-	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET && strcmp("lo", tmp->ifa_name)) {
+	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
+	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "rascsi_bridge")) {
 	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
 
 	        struct ifreq ifr;
