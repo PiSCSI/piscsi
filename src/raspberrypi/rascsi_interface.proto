@@ -67,7 +67,7 @@ enum PbOperation {
     SERVER_INFO = 10;
 
     // Gets information on attached devices. Returns data for all attached devices if empty.
-    DEVICE_INFO = 11;
+    DEVICES_INFO = 11;
 
     // Gets information on available image files. A lightweight alternative to getting the complete server info.
     IMAGE_FILES_INFO = 12;

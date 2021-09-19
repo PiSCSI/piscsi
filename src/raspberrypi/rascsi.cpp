@@ -616,7 +616,7 @@ void GetDevices(PbServerInfo& serverInfo)
 	}
 }
 
-void GetDeviceInfo(const PbCommand& command, PbResult& result)
+void GetDevicesInfo(const PbCommand& command, PbResult& result)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
@@ -1760,12 +1760,12 @@ static void *MonThread(void *param)
 					break;
 				}
 
-				case DEVICE_INFO: {
+				case DEVICES_INFO: {
 					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
 
 					PbResult result;
 					result.set_status(true);
-					GetDeviceInfo(command, result);
+					GetDevicesInfo(command, result);
 					SerializeMessage(fd, result);
 					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
 

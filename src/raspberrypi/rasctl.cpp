@@ -201,7 +201,7 @@ void DisplayNetworkInterfaces(list<string> interfaces)
 void CommandList(const string& hostname, int port)
 {
 	PbCommand command;
-	command.set_operation(DEVICE_INFO);
+	command.set_operation(DEVICES_INFO);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
@@ -506,7 +506,7 @@ PbOperation ParseOperation(const char *optarg)
 			return UNPROTECT;
 
 		case 's':
-			return DEVICE_INFO;
+			return DEVICES_INFO;
 
 		default:
 			return NONE;
@@ -770,7 +770,7 @@ int main(int argc, char* argv[])
 			CommandCopyImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
-		case DEVICE_INFO:
+		case DEVICES_INFO:
 			CommandDeviceInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
