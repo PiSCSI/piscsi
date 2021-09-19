@@ -44,6 +44,10 @@ def index():
     server_info = get_server_info()
     devices = list_devices()
     files=list_files()
+    config_files=list_config_files()
+
+    sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
+    sorted_config_files = sorted(config_files, key = lambda x: x.lower())
 
     reserved_scsi_ids = server_info["reserved_ids"]
     formatted_devices = sort_and_format_devices(devices["device_list"])
@@ -52,8 +56,8 @@ def index():
         "index.html",
         bridge_configured=is_bridge_setup(),
         devices=formatted_devices,
-        files=files["files"],
-        config_files=list_config_files(),
+        files=sorted_image_files,
+        config_files=sorted_config_files,
         base_dir=base_dir,
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
