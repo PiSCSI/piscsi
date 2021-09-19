@@ -210,7 +210,7 @@
     "revision": "4AA0",
     "block_size": 512,
     "blocks": 173456,
-    "name": "SyQuest",
+    "name": "SyQuest 88MB",
     "file_type": "hdr",
     "description": "SyQuest removable hard drive cartridges, 88MB capacity",
     "url": ""
