@@ -113,9 +113,14 @@ def drive_list():
             rm_conf.append(d)
 
     files=list_files()
+    sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
+    hd_conf = sorted(hd_conf, key = lambda x: x["name"].lower())
+    cd_conf = sorted(cd_conf, key = lambda x: x["name"].lower())
+    rm_conf = sorted(rm_conf, key = lambda x: x["name"].lower())
+
     return render_template(
         "drives.html",
-        files=files["files"],
+        files=sorted_image_files,
         base_dir=base_dir,
         hd_conf=hd_conf,
         cd_conf=cd_conf,
