@@ -154,22 +154,49 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 	cout << endl;
 }
 
+void DisplayImageFiles(const list<PbImageFile> image_files, const string& default_image_folder)
+{
+	cout << "Default image file folder: " << default_image_folder << endl;
+
+	if (image_files.empty()) {
+		cout << "  No image files available" << endl;
+	}
+	else {
+		list<PbImageFile> files = { image_files.begin(), image_files.end() };
+		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+
+		cout << "Available image files:" << endl;
+		for (const auto& file : files) {
+			cout << "  " << file.name() << " (" << file.size() << " bytes)";
+			if (file.read_only()) {
+				cout << ", read-only";
+			}
+			cout << endl;
+		}
+	}
+}
+
+void DisplayNetworkInterfaces(list<string> interfaces)
+{
+	interfaces.sort([](const auto& a, const auto& b) { return a < b; });
+
+	cout << "Available (up) network interfaces:" << endl;
+	bool isFirst = true;
+	for (const auto& interface : interfaces) {
+		if (!isFirst) {
+			cout << ", ";
+		}
+		isFirst = false;
+		cout << interface;
+	}
+	cout << endl;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command implementations
 //
 //---------------------------------------------------------------------------
-
-const PbServerInfo GetServerInfo(const string& hostname, int port)
-{
-	PbCommand command;
-	command.set_operation(SERVER_INFO);
-
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	return result.server_info();
-}
 
 void CommandList(const string& hostname, int port)
 {
@@ -183,31 +210,32 @@ void CommandList(const string& hostname, int port)
 	cout << ListDevices(devices) << endl;
 }
 
-void CommandLogLevel(const string& hostname, int port, const string& log_level)
+const PbServerInfo GetServerInfo(const PbCommand& command, const string& hostname, int port)
 {
-	PbCommand command;
-	command.set_operation(LOG_LEVEL);
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	return result.server_info();
+}
+
+void CommandLogLevel(PbCommand& command, const string& hostname, int port, const string& log_level)
+{
 	AddParam(command, "level", log_level);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandReserve(const string&hostname, int port, const string& reserved_ids)
+void CommandReserve(PbCommand& command, const string&hostname, int port, const string& reserved_ids)
 {
-	PbCommand command;
-	command.set_operation(RESERVE);
 	AddParam(command, "ids", reserved_ids);
 
     PbResult result;
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandCreateImage(const string&hostname, int port, const string& image_params)
+void CommandCreateImage(PbCommand& command, const string&hostname, int port, const string& image_params)
 {
-	PbCommand command;
-	command.set_operation(CREATE_IMAGE);
-
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
 		AddParam(command, "file", image_params.substr(0, separatorPos));
@@ -224,21 +252,16 @@ void CommandCreateImage(const string&hostname, int port, const string& image_par
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandDeleteImage(const string&hostname, int port, const string& filename)
+void CommandDeleteImage(PbCommand& command, const string&hostname, int port, const string& filename)
 {
-	PbCommand command;
-	command.set_operation(DELETE_IMAGE);
 	AddParam(command, "file", filename);
 
     PbResult result;
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandRenameImage(const string&hostname, int port, const string& image_params)
+void CommandRenameImage(PbCommand& command, const string&hostname, int port, const string& image_params)
 {
-	PbCommand command;
-	command.set_operation(RENAME_IMAGE);
-
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
 		AddParam(command, "from", image_params.substr(0, separatorPos));
@@ -253,11 +276,8 @@ void CommandRenameImage(const string&hostname, int port, const string& image_par
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandCopyImage(const string&hostname, int port, const string& image_params)
+void CommandCopyImage(PbCommand& command, const string&hostname, int port, const string& image_params)
 {
-	PbCommand command;
-	command.set_operation(COPY_IMAGE);
-
 	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
 	if (separatorPos != string::npos) {
 		AddParam(command, "from", image_params.substr(0, separatorPos));
@@ -272,17 +292,15 @@ void CommandCopyImage(const string&hostname, int port, const string& image_param
     SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandDefaultImageFolder(const string& hostname, int port, const string& folder)
+void CommandDefaultImageFolder(PbCommand& command, const string& hostname, int port, const string& folder)
 {
-	PbCommand command;
-	command.set_operation(DEFAULT_FOLDER);
 	AddParam(command, "folder", folder);
 
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandDeviceInfo(const string& hostname, int port, const PbCommand& command)
+void CommandDeviceInfo(const PbCommand& command, const string& hostname, int port)
 {
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
@@ -292,11 +310,8 @@ void CommandDeviceInfo(const string& hostname, int port, const PbCommand& comman
 	}
 }
 
-void CommandServerInfo(const string& hostname, int port)
+void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 {
-	PbCommand command;
-	command.set_operation(SERVER_INFO);
-
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
@@ -316,30 +331,20 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 	else {
 		cout << "rascsi log levels, sorted by severity:" << endl;
-		for (int i = 0; i < server_info.log_levels_size(); i++) {
-			cout << "  " << server_info.log_levels(i) << endl;
+		for (const auto& log_level : server_info.log_levels()) {
+			cout << "  " << log_level << endl;
 		}
 
 		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
 	}
 
-	cout << "Default image file folder: " << server_info.default_image_folder() << endl;
-	if (!server_info.image_files_size()) {
-		cout << "  No image files available" << endl;
-	}
-	else {
-		list<PbImageFile> files = { server_info.image_files().begin(), server_info.image_files().end() };
-		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+	const list<PbImageFile> image_files =
+		{ server_info.image_files_info().image_files().begin(), server_info.image_files_info().image_files().end() };
+	DisplayImageFiles(image_files, server_info.image_files_info().default_image_folder());
 
-		cout << "Available image files:" << endl;
-		for (const auto& file : files) {
-			cout << "  " << file.name() << " (" << file.size() << " bytes)";
-			if (file.read_only()) {
-				cout << ", read-only";
-			}
-			cout << endl;
-		}
-	}
+	const list<string> network_interfaces =
+		{ server_info.network_interfaces_info().name().begin(), server_info.network_interfaces_info().name().end() };
+	DisplayNetworkInterfaces(network_interfaces);
 
 	cout << "Supported device types and their properties:" << endl;
 	for (auto it = server_info.types_properties().begin(); it != server_info.types_properties().end(); ++it) {
@@ -459,6 +464,26 @@ void CommandServerInfo(const string& hostname, int port)
 	}
 }
 
+void CommandImageFilesInfo(const PbCommand& command, const string& hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	const list<PbImageFile> image_files =
+		{ result.image_files_info().image_files().begin(),result.image_files_info().image_files().end() };
+	DisplayImageFiles(image_files, result.image_files_info().default_image_folder());
+}
+
+void CommandNetworkInterfacesInfo(const PbCommand& command, const string&hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	list<string> network_interfaces =
+		{ result.network_interfaces_info().name().begin(), result.network_interfaces_info().name().end() };
+	DisplayNetworkInterfaces(network_interfaces);
+}
+
 PbOperation ParseOperation(const char *optarg)
 {
 	switch (tolower(optarg[0])) {
@@ -539,7 +564,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-d IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-a FILENAME:FILESIZE] [-w FILENAME] [-m CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-l] [-v]" << endl;
+		cerr << "[-e] [-k] [-l] [-v]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -575,7 +600,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:lsv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:eklsv")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -612,8 +637,16 @@ int main(int argc, char* argv[])
 				default_folder = optarg;
 				break;
 
+			case'e':
+				command.set_operation(IMAGE_FILES_INFO);
+				break;
+
 			case 'f':
 				param = optarg;
+				break;
+
+			case 'k':
+				command.set_operation(NETWORK_INTERFACES_INFO);
 				break;
 
 			case 't':
@@ -710,39 +743,47 @@ int main(int argc, char* argv[])
 
 	switch(command.operation()) {
 		case LOG_LEVEL:
-			CommandLogLevel(hostname, port, log_level);
+			CommandLogLevel(command, hostname, port, log_level);
 			exit(EXIT_SUCCESS);
 
 		case DEFAULT_FOLDER:
-			CommandDefaultImageFolder(hostname, port, default_folder);
+			CommandDefaultImageFolder(command, hostname, port, default_folder);
 			exit(EXIT_SUCCESS);
 
 		case RESERVE:
-			CommandReserve(hostname, port, reserved_ids);
+			CommandReserve(command, hostname, port, reserved_ids);
 			exit(EXIT_SUCCESS);
 
 		case CREATE_IMAGE:
-			CommandCreateImage(hostname, port, image_params);
+			CommandCreateImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case DELETE_IMAGE:
-			CommandDeleteImage(hostname, port, image_params);
+			CommandDeleteImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case RENAME_IMAGE:
-			CommandRenameImage(hostname, port, image_params);
+			CommandRenameImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case COPY_IMAGE:
-			CommandCopyImage(hostname, port, image_params);
+			CommandCopyImage(command, hostname, port, image_params);
 			exit(EXIT_SUCCESS);
 
 		case DEVICE_INFO:
-			CommandDeviceInfo(hostname, port, command);
+			CommandDeviceInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		case SERVER_INFO:
-			CommandServerInfo(hostname, port);
+			CommandServerInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case IMAGE_FILES_INFO:
+			CommandImageFilesInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case NETWORK_INTERFACES_INFO:
+			CommandNetworkInterfacesInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		default:
