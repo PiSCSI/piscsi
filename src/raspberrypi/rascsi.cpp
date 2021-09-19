@@ -558,35 +558,9 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 
 void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
 {
-	struct ifaddrs *addrs;
-	getifaddrs(&addrs);
-	struct ifaddrs *tmp = addrs;
-
-	while (tmp) {
-	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET && strcmp("lo", tmp->ifa_name)) {
-	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
-
-	        struct ifreq ifr;
-	        memset(&ifr, 0, sizeof(ifr));
-
-	        strcpy(ifr.ifr_name, tmp->ifa_name);
-	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr)) {
-	        	close(fd);
-
-	        	// Only list interfaces that are up
-	        	if (ifr.ifr_flags & IFF_UP) {
-	        		network_interfaces_info.add_name(tmp->ifa_name);
-	        	}
-	        }
-	        else {
-	        	close(fd);
-	        }
-	    }
-
-	    tmp = tmp->ifa_next;
+	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
+		network_interfaces_info.add_name(network_interface);
 	}
-
-	freeifaddrs(addrs);
 }
 
 void GetDevice(const Device *device, PbDevice *pb_device)

@@ -16,6 +16,7 @@
 #include "scsi_daynaport.h"
 #include "exceptions.h"
 #include "device_factory.h"
+#include <ifaddrs.h>
 #include <set>
 #include <map>
 
@@ -48,13 +49,21 @@ DeviceFactory::DeviceFactory()
 	geometries[SCBR] = {};
 	geometries[SCDP] = {};
 
+	string network_interfaces;
+	for (const auto& network_interface : GetNetworkInterfaces()) {
+		if (!network_interfaces.empty()) {
+			network_interfaces += ",";
+		}
+		network_interfaces += network_interface;
+	}
+
 	default_params[SAHD] = {};
 	default_params[SCHD] = {};
 	default_params[SCRM] = {};
 	default_params[SCMO] = {};
 	default_params[SCCD] = {};
-	default_params[SCBR]["interfaces"] = "eth0,wlan0";
-	default_params[SCDP]["interfaces"] = "eth0,wlan0";
+	default_params[SCBR]["interfaces"] = network_interfaces;
+	default_params[SCDP]["interfaces"] = network_interfaces;
 }
 
 DeviceFactory& DeviceFactory::instance()
@@ -193,4 +202,42 @@ const set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type)
 	}
 
 	return keys;
+}
+
+const list<string> DeviceFactory::GetNetworkInterfaces() const
+{
+	list<string> network_interfaces;
+
+	struct ifaddrs *addrs;
+	getifaddrs(&addrs);
+	struct ifaddrs *tmp = addrs;
+
+	while (tmp) {
+	    if (tmp->ifa_addr && tmp->ifa_addr->sa_family == AF_PACKET &&
+	    		strcmp(tmp->ifa_name, "lo") && strcmp(tmp->ifa_name, "rascsi_bridge")) {
+	        int fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_IP);
+
+	        struct ifreq ifr;
+	        memset(&ifr, 0, sizeof(ifr));
+
+	        strcpy(ifr.ifr_name, tmp->ifa_name);
+	        if (!ioctl(fd, SIOCGIFFLAGS, &ifr)) {
+	        	close(fd);
+
+	        	// Only list interfaces that are up
+	        	if (ifr.ifr_flags & IFF_UP) {
+	        		network_interfaces.push_back(tmp->ifa_name);
+	        	}
+	        }
+	        else {
+	        	close(fd);
+	        }
+	    }
+
+	    tmp = tmp->ifa_next;
+	}
+
+	freeifaddrs(addrs);
+
+	return network_interfaces;
 }
