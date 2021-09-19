@@ -116,7 +116,7 @@ def drive_list():
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
-        version=running_env(),
+        running_env=running_env(),
         server_info=server_info,
         cdrom_file_suffix=CDROM_FILE_SUFFIX,
     )

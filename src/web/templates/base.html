@@ -50,6 +50,9 @@
         {% block content %}{% endblock %}
     </div>
     <div class="footer">
-        {% block footer %}{% endblock %}
+        <center><tt>RaSCSI version: <strong>{{server_info["version"]}}</strong></tt></center>
+        <center><tt>RaSCSI git revision: <strong><a href="https://github.com/akuker/RASCSI/commit/{{running_env["git"]}}">{{running_env["git"][:7]}}</a></strong></tt></center>
+        <center><tt>Server log level: <strong>{{server_info["current_log_level"]}}</strong></tt></center>
+        <center><tt>Pi environment: {{running_env["env"]}}</tt></center>
     </div>
 </div>
