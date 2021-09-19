@@ -154,6 +154,104 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 	cout << endl;
 }
 
+void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
+{
+	cout << "Supported device types and their properties:" << endl;
+	for (auto it = device_types_info.properties().begin(); it != device_types_info.properties().end(); ++it) {
+		cout << "  " << PbDeviceType_Name(it->type());
+
+		const PbDeviceProperties& properties = it->properties();
+
+		cout << "  Supported LUNs: " << properties.luns() << endl;
+
+		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.read_only()
+				|| properties.lockable()) {
+			cout << "        Properties: ";
+			bool has_property = false;
+			if (properties.read_only()) {
+				cout << "read-only";
+				has_property = true;
+			}
+			if (properties.protectable()) {
+				cout << (has_property ? ", " : "") << "protectable";
+				has_property = true;
+			}
+			if (properties.stoppable()) {
+				cout << (has_property ? ", " : "") << "stoppable";
+				has_property = true;
+			}
+			if (properties.removable()) {
+				cout << (has_property ? ", " : "") << "removable";
+				has_property = true;
+			}
+			if (properties.lockable()) {
+				cout << (has_property ? ", " : "") << "lockable";
+			}
+			cout << endl;
+		}
+
+		if (properties.supports_file()) {
+			cout << "        Image file support" << endl;
+		}
+		else if (properties.supports_params()) {
+			cout << "        Parameter support" << endl;
+		}
+
+		if (properties.supports_params() && properties.default_params_size()) {
+			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
+
+			cout << "        Default parameters: ";
+
+			bool isFirst = true;
+			for (const auto& param : params) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				cout << param.first << "=" << param.second;
+
+				isFirst = false;
+			}
+			cout << endl;
+		}
+
+		if (properties.block_sizes_size()) {
+			list<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
+			block_sizes.sort([](const auto& a, const auto& b) { return a < b; });
+
+			cout << "        Configurable block sizes in bytes: ";
+
+			bool isFirst = true;
+			for (const auto& block_size : block_sizes) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				cout << block_size;
+
+				isFirst = false;
+			}
+			cout << endl;
+		}
+
+		if (properties.capacities_size()) {
+			list<uint64_t> capacities = { properties.capacities().begin(), properties.capacities().end() };
+			capacities.sort([](const auto& a, const auto& b) { return a < b; });
+
+			cout << "        Media capacities in bytes: ";
+
+			bool isFirst = true;
+			for (const auto& capacity : capacities) {
+				if (!isFirst) {
+					cout << ", ";
+				}
+				cout << capacity;
+
+				isFirst = false;
+			}
+			cout << endl;
+		}
+	}
+}
+
 void DisplayImageFiles(const list<PbImageFile> image_files, const string& default_image_folder)
 {
 	cout << "Default image file folder: " << default_image_folder << endl;
@@ -310,6 +408,14 @@ void CommandDeviceInfo(const PbCommand& command, const string& hostname, int por
 	}
 }
 
+void CommandDeviceTypesInfo(const PbCommand& command, const string& hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	DisplayDeviceTypesInfo(result.device_types_info());
+}
+
 void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 {
 	PbResult result;
@@ -346,100 +452,7 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 		{ server_info.network_interfaces_info().name().begin(), server_info.network_interfaces_info().name().end() };
 	DisplayNetworkInterfaces(network_interfaces);
 
-	cout << "Supported device types and their properties:" << endl;
-	for (auto it = server_info.device_types_info().properties().begin(); it != server_info.device_types_info().properties().end(); ++it) {
-		cout << "  " << PbDeviceType_Name(it->type());
-
-		const PbDeviceProperties& properties = it->properties();
-
-		cout << "  Supported LUNs: " << properties.luns() << endl;
-
-		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.read_only()
-				|| properties.lockable()) {
-			cout << "        Properties: ";
-			bool has_property = false;
-			if (properties.read_only()) {
-				cout << "read-only";
-				has_property = true;
-			}
-			if (properties.protectable()) {
-				cout << (has_property ? ", " : "") << "protectable";
-				has_property = true;
-			}
-			if (properties.stoppable()) {
-				cout << (has_property ? ", " : "") << "stoppable";
-				has_property = true;
-			}
-			if (properties.removable()) {
-				cout << (has_property ? ", " : "") << "removable";
-				has_property = true;
-			}
-			if (properties.lockable()) {
-				cout << (has_property ? ", " : "") << "lockable";
-			}
-			cout << endl;
-		}
-
-		if (properties.supports_file()) {
-			cout << "        Image file support" << endl;
-		}
-		else if (properties.supports_params()) {
-			cout << "        Parameter support" << endl;
-		}
-
-		if (properties.supports_params() && properties.default_params_size()) {
-			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
-
-			cout << "        Default parameters: ";
-
-			bool isFirst = true;
-			for (const auto& param : params) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-				cout << param.first << "=" << param.second;
-
-				isFirst = false;
-			}
-			cout << endl;
-		}
-
-		if (properties.block_sizes_size()) {
-			list<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
-			block_sizes.sort([](const auto& a, const auto& b) { return a < b; });
-
-			cout << "        Configurable block sizes in bytes: ";
-
-			bool isFirst = true;
-			for (const auto& block_size : block_sizes) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-				cout << block_size;
-
-				isFirst = false;
-			}
-			cout << endl;
-		}
-
-		if (properties.capacities_size()) {
-			list<uint64_t> capacities = { properties.capacities().begin(), properties.capacities().end() };
-			capacities.sort([](const auto& a, const auto& b) { return a < b; });
-
-			cout << "        Media capacities in bytes: ";
-
-			bool isFirst = true;
-			for (const auto& capacity : capacities) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-				cout << capacity;
-
-				isFirst = false;
-			}
-			cout << endl;
-		}
-	}
+	DisplayDeviceTypesInfo(server_info.device_types_info());
 
 	if (server_info.reserved_ids_size()) {
 		cout << "Reserved device IDs: ";
@@ -600,7 +613,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:eklsv")) != -1) {
+	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:eklsvy")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -730,6 +743,10 @@ int main(int argc, char* argv[])
 				image_params = optarg;
 				break;
 
+			case 'y':
+				command.set_operation(DEVICE_TYPES_INFO);
+				break;
+
 			case 'w':
 				command.set_operation(DELETE_IMAGE);
 				image_params = optarg;
@@ -772,6 +789,10 @@ int main(int argc, char* argv[])
 
 		case DEVICES_INFO:
 			CommandDeviceInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case DEVICE_TYPES_INFO:
+			CommandDeviceTypesInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		case SERVER_INFO:
