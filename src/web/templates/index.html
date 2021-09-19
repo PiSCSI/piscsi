@@ -131,7 +131,7 @@
     <hr/>
     <h2>Attach Ethernet Adapter</h2>
     <p>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers required.</a></p>
-    <p>Leave Interface and Static IP blank for default settings, and input only Interface for DHCP setups.</p>
+    <p>If you have a DHCP setup, ignore the Static IP fields.</p>
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -145,7 +145,7 @@
 		    <label for="ip">Static IP (optional):</label>
 		    <input type="text" name="ip" size="15" placeholder="10.10.20.1" />/
 		    <input type="text" name="mask" size="2" placeholder="24">
-		    <label for="scsi_id">ID:</label>
+		    <label for="scsi_id">SCSI ID:</label>
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
                         <option value="{{id}}">{{id}}</option>
@@ -205,8 +205,8 @@
 
     <hr/>
 
-    <h2>Download File from web and create HFS CD</h2>
-    <p>Given a URL this will download a file, create a HFS iso, and mount it on the device id given.</p>
+    <h2>Download File from web and create HFS CD (Macintosh)</h2>
+    <p>Given a URL this will download a file, create a HFS iso, and mount it on the device id given. Requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a>.</p>
     <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
