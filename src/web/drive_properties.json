@@ -176,7 +176,7 @@
     "blocks": null,
     "name": "Toshiba XM-3401TA",
     "file_type": null,
-    "description": "Boots most SGI, Sun, HP, IBM, DEC etc.",
+    "description": "Boots most SGI, Sun, HP, IBM, DEC etc. Use only with Unix workstations of this vintage.",
     "url": ""
 },
 {
@@ -188,7 +188,7 @@
     "blocks": null,
     "name": "Sony CDU-8012",
     "file_type": null,
-    "description": "Boots Sun-3",
+    "description": "Boots Sun-3. Use only with Unix workstations of this vintage.",
     "url": ""
 },
 {
@@ -200,7 +200,7 @@
     "blocks": null,
     "name": "HP A1448A",
     "file_type": null,
-    "description": "Recognized by HP-UX",
+    "description": "Recognized by HP-UX. Use only with Unix workstations of this vintage.",
     "url": ""
 },
 {
@@ -212,7 +212,7 @@
     "blocks": null,
     "name": "DEC RRD42",
     "file_type": null,
-    "description": "Boots DECstations and VAXstations",
+    "description": "Boots DECstations and VAXstations. Use only with Unix workstations of this vintage.",
     "url": ""
 }
 ]
