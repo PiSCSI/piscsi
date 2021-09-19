@@ -121,12 +121,12 @@ enum PbOperation {
     
     // Write-protect an image file.
     // Parameters:
-    //    "file": The filename, relative to the default image folder. It must not contain a slash.
+    //  "file": The filename, relative to the default image folder. It must not contain a slash.
     PROTECT_IMAGE = 22;
 
     // Make an image file writable.
     // Parameters:
-    //    "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
     UNPROTECT_IMAGE = 23;
 }
 
@@ -277,13 +277,13 @@ message PbServerInfo {
     // List of available log levels, ordered by increasing by severity
     repeated string log_levels = 4;
     string current_log_level = 5;
-    // Supported device types and their properties
+    // Supported device types and their properties, also available separately
     PbDeviceTypesInfo device_types_info = 6;
-    // The image files in the default folder
+    // The image files in the default folder, also available separately
     PbImageFilesInfo image_files_info = 7;
-    // The available (up) network interfaces
+    // The available (up) network interfaces, also available separately
     PbNetworkInterfacesInfo network_interfaces_info = 8;
-    // The attached devices
+    // The attached devices, also available separately
     PbDevices devices = 9;
     // The unsorted list of reserved IDs
     repeated uint32 reserved_ids = 10;
