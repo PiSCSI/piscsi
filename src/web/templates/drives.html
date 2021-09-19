@@ -79,8 +79,8 @@
 		    <label for="file_name">Create for:</label>
 		    <select type="select" name="file_name">
                         {% for f in files %}
-			    {% if f[0].lower().endswith(cdrom_file_suffix) %}
-			    <option value="{{f[0]}}">{{f[0].replace(base_dir, '')}}</option>
+			    {% if f["name"].lower().endswith(cdrom_file_suffix) %}
+			    <option value="{{f["name"]}}">{{f["name"].replace(base_dir, '')}}</option>
 			    {% endif %}
 			{% endfor %}
 		    </select>

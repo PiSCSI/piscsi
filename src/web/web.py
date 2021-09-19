@@ -43,6 +43,7 @@ app = Flask(__name__)
 def index():
     server_info = get_server_info()
     devices = list_devices()
+    files=list_files()
 
     reserved_scsi_ids = server_info["reserved_ids"]
     formatted_devices = sort_and_format_devices(devices["device_list"])
@@ -51,7 +52,7 @@ def index():
         "index.html",
         bridge_configured=is_bridge_setup(),
         devices=formatted_devices,
-        files=list_files(),
+        files=files["files"],
         config_files=list_config_files(),
         base_dir=base_dir,
         scsi_ids=scsi_ids,
@@ -79,7 +80,7 @@ def drive_list():
     # Reads the canonical drive properties into a dict
     # The file resides in the current dir of the web ui process
     from pathlib import Path
-    drive_properties = Path(home_dir + "/drive_properties.json")
+    drive_properties = Path(DRIVE_PROPERTIES_FILE)
     if drive_properties.is_file():
         process = read_drive_properties(str(drive_properties))
         if process["status"] == False:
@@ -107,9 +108,10 @@ def drive_list():
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             rm_conf.append(d)
 
+    files=list_files()
     return render_template(
         "drives.html",
-        files=list_files(),
+        files=files["files"],
         base_dir=base_dir,
         hd_conf=hd_conf,
         cd_conf=cd_conf,

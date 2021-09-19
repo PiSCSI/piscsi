@@ -13,30 +13,19 @@ import rascsi_interface_pb2 as proto
 
 
 def list_files():
-    from fnmatch import translate
-    valid_file_types = list(VALID_FILE_SUFFIX)
-    valid_file_types = ["*." + s for s in valid_file_types]
-    valid_file_types = r"|".join([translate(x) for x in valid_file_types])
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.IMAGE_FILES_INFO
 
-    from re import match, IGNORECASE
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    logging.warning(result.image_files_info.image_files)
+    files = []
+    for f in result.image_files_info.image_files:
+        size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
+        files.append({"name": f.name, "size": f.size, "size_mb": size_mb})
 
-    files_list = []
-    for path, dirs, files in os.walk(base_dir):
-        # Only list valid file types
-        files = [f for f in files if match(valid_file_types, f, IGNORECASE)]
-        files_list.extend(
-            [
-                (
-                    os.path.join(path, file),
-                    "{:,.1f}".format(
-                        os.path.getsize(os.path.join(path, file)) / float(1 << 20),
-                    ),
-                    os.path.getsize(os.path.join(path, file)),
-                )
-                for file in files
-            ]
-        )
-    return files_list
+    return {"status": result.status, "msg": result.msg, "files": files}
 
 
 def list_config_files():
