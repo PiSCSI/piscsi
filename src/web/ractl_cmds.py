@@ -66,7 +66,7 @@ def get_type(scsi_id):
     device.id = int(scsi_id)
 
     command = proto.PbCommand()
-    command.operation = proto.PbOperation.DEVICE_INFO
+    command.operation = proto.PbOperation.DEVICES_INFO
     command.devices.append(device)
 
     data = send_pb_command(command.SerializeToString())
@@ -170,7 +170,7 @@ def eject_by_id(scsi_id):
 def list_devices(scsi_id=None):
     from os import path
     command = proto.PbCommand()
-    command.operation = proto.PbOperation.DEVICE_INFO
+    command.operation = proto.PbOperation.DEVICES_INFO
 
     # If method is called with scsi_id parameter, return the info on those devices
     # Otherwise, return the info on all attached devices
