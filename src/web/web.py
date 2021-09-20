@@ -73,7 +73,7 @@ def index():
         running_env=running_env(),
         server_info=server_info,
         netinfo=get_network_info(),
-        valid_file_suffix=", ".join(VALID_FILE_SUFFIX),
+        valid_file_suffix="."+", .".join(VALID_FILE_SUFFIX),
         removable_device_types=REMOVABLE_DEVICE_TYPES,
         harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
         cdrom_file_suffix=CDROM_FILE_SUFFIX,
