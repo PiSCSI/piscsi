@@ -1532,15 +1532,17 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:R:r:F:f:")) != -1) {
-		switch (tolower(opt)) {
+	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:")) != -1) {
+		switch (opt) {
 			case 'i':
+			case 'I':
 				is_sasi = false;
 				max_id = 7;
 				id = -1;
 				continue;
 
 			case 'h':
+			case 'H':
 				is_sasi = true;
 				max_id = 15;
 				id = -1;
@@ -1554,7 +1556,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'd': {
+			case 'd':
+			case 'D': {
 				char* end;
 				id = strtol(optarg, &end, 10);
 				if (*end || id < 0 || max_id < id) {
@@ -1564,14 +1567,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'f':
+			case 'F':
 				if (!SetDefaultImageFolder(optarg)) {
 					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
 					return false;
 				}
 				continue;
 
-			case 'g':
+			case 'L':
 				log_level = optarg;
 				continue;
 

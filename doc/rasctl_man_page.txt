@@ -6,7 +6,7 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -e  |  -k | -l | -s | -y | [-d IMAGE_FOLDER] [-g LOG_LEVEL] [-h
+       rasctl  -e  |  -k | -l | -s | -T | [-F IMAGE_FOLDER] [-g LOG_LEVEL] [-h
        HOST] [-p PORT] [-r RESERVED_IDS] [-v] -i ID [-c CMD]  [-f  FILE|PARAM]
        [-n NAME] [-t TYPE] [-u UNIT]
 
@@ -22,14 +22,14 @@ DESCRIPTION
        first letter of the command/type is evaluated by the tool.
 
 OPTIONS
-       -a FILENAME:FILESIZE
+       -C FILENAME:FILESIZE
               Create an image file in the default image folder with the speci‐
               fied name and size in bytes.
 
-       -d IMAGE_FOLDER
+       -F IMAGE_FOLDER
               Set the default image folder.
 
-       -g LOG_LEVEL
+       -L LOG_LEVEL
               Set the rascsi log level (trace, debug, info, warn, err,  criti‐
               cal, off).
 
@@ -38,13 +38,13 @@ OPTIONS
 
        -e     List all images files in the default image folder.
 
-       -k     Lists  all  available  network interfaces provided that they are
+       -N     Lists  all  available  network interfaces provided that they are
               up.
 
        -l     List all of the devices that are  currently  being  emulated  by
               RaSCSI, as well as their current status.
 
-       -m CURRENT_NAME:NEW_NAME
+       -R CURRENT_NAME:NEW_NAME
               Rename an image file in the default image folder.
 
        -p PORT
@@ -56,11 +56,11 @@ OPTIONS
        -s     Display  server-side settings like available images or supported
               device types.
 
-       -y     Display all device types and their properties.
+       -T     Display all device types and their properties.
 
        -v     Display the rascsi version.
 
-       -w FILENAME
+       -D FILENAME
               Delete an image file in the default image folder.
 
        -x CURRENT_NAME:NEW_NAME
