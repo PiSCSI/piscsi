@@ -419,7 +419,6 @@ def restart():
 
 @app.route("/rascsi/restart", methods=["POST"])
 def rascsi_restart():
-    server_info = get_server_info()
     rascsi_service("restart")
     flash("Restarting RaSCSI Service...")
     return redirect(url_for("index"))
