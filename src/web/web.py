@@ -309,11 +309,12 @@ def attach():
     kwargs = {"image": file_name}
 
     # Validate image type by file name suffix
+    # Supplementing file ending based image type detection on the backend side
     if file_name.lower().endswith(CDROM_FILE_SUFFIX):
         kwargs["device_type"] = "SCCD"
     elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
         kwargs["device_type"] = "SCRM"
-    elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
+    else:
         kwargs["device_type"] = "SCHD"
  
     # Attempt to load the device properties file:
