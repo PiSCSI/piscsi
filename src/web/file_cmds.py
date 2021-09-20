@@ -136,7 +136,7 @@ def write_config(file_name):
                 if device["block_size"] == 0:
                     device["block_size"] = None
                 # Convert to a data type that can be serialized
-                device["params"] = list(device["params"])
+                device["params"] = dict(device["params"])
             dump(devices, json_file, indent=4)
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as e:
@@ -155,10 +155,14 @@ def read_config(file_name):
             detach_all()
             devices = load(json_file)
             for row in devices:
-                process = attach_image(row["id"], device_type=row["device_type"], \
-                        image=row["image"], unit=int(row["un"]), \
-                        params=row["params"], vendor=row["vendor"], product=row["product"], \
-                        revision=row["revision"], block_size=row["block_size"])
+                kwargs = {"device_type": row["device_type"], \
+                        "image": row["image"], "unit": int(row["un"]), \
+                        "vendor": row["vendor"], "product": row["product"], \
+                        "revision": row["revision"], "block_size": row["block_size"]}
+                params = dict(row["params"])
+                for p in params.keys():
+                    kwargs[p] = params[p]
+                process = attach_image(row["id"], **kwargs)
         if process["status"] == True:
             return {"status": process["status"], "msg": f"Successfully read from file: {file_name}"}
         else:
