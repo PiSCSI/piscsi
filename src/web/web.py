@@ -100,14 +100,12 @@ def drive_list():
 
     for d in conf:
         if d["device_type"] == "SCHD":
-            d["size"] = d["block_size"] * d["blocks"]
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             hd_conf.append(d)
         elif d["device_type"] == "SCCD":
             d["size_mb"] = "N/A"
             cd_conf.append(d)
         elif d["device_type"] == "SCRM":
-            d["size"] = d["block_size"] * d["blocks"]
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             rm_conf.append(d)
 
@@ -330,13 +328,6 @@ def attach():
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
-        # CD-ROM drives have no inherent size, so bypass the size check
-        if kwargs["device_type"] != "SCCD":
-            conf_file_size = int(conf["blocks"]) * int(conf["block_size"])
-            if conf_file_size != 0 and conf_file_size > int(file_size):
-                flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
-                flash(f"The file size {file_size} bytes needs to be at least {conf_file_size} bytes.", "error")
-                return redirect(url_for("index"))
         kwargs["vendor"] = conf["vendor"]
         kwargs["product"] = conf["product"]
         kwargs["revision"] = conf["revision"]
