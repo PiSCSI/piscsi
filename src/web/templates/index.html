@@ -170,22 +170,16 @@
     <h2>Upload File</h2>
     <p>Uploads file to <tt>{{base_dir}}</tt>. Max file size is set to {{max_file_size / 1024 /1024 }}MB</p>
     <table style="border: none">
-            <tr style="border: none">
-                <td style="border: none; vertical-align:top;">
-                <form id="uploadForm" action="/files/upload/" onchange="fileSelect(event)" method="post" enctype="multipart/form-data">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+		<form action="/files/upload" method="post" enctype="multipart/form-data">
                     <label for="file">File:</label>
-                    <input type="file" name="file"/>
+                    <input type="file" name="file" />
                     <input type="submit" value="Upload" />
                 </form>
             </td>
         </tr>
     </table>
-<script>
-    function fileSelect(e) {
-        document.getElementById("uploadForm").setAttribute('action', "/files/upload/" + e.target.files[0].name)
-        console.log(e.target.files[0].name);
-    }
-</script>
 
     <hr/>
 

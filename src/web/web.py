@@ -1,4 +1,13 @@
-from flask import Flask, render_template, request, flash, url_for, redirect, send_file, send_from_directory
+from flask import (
+    Flask,
+    render_template,
+    request,
+    flash,
+    url_for,
+    redirect,
+    send_file,
+    send_from_directory,
+)
 
 from file_cmds import (
     list_files,
@@ -465,29 +474,34 @@ def download_img():
         return redirect(url_for("index"))
 
 
-@app.route("/files/upload/<filename>", methods=["POST"])
-def upload_file(filename):
-    if not filename:
-        flash("No file provided.", "error")
+@app.route("/files/upload", methods=["POST"])
+def upload_file():
+    if 'file' not in request.files:
+        flash("No file part in request.", "error")
+        return redirect(url_for("index"))
+    f = request.files["file"]
+    if f.filename == "":
+        flash("No file selected.", "error")
         return redirect(url_for("index"))
 
+    from werkzeug.utils import secure_filename
     from os import path
-    file_path = path.join(app.config["UPLOAD_FOLDER"], filename)
-    if path.isfile(file_path):
+    filename = secure_filename(f.filename)
+    filepath = path.join(app.config["UPLOAD_FOLDER"], filename)
+    if not filename.lower().endswith(VALID_FILE_SUFFIX):
+        flash("Not a file format RaSCSI recognizes. Needs to be one of:", "error")
+        flash(f"{VALID_FILE_SUFFIX}", "error")
+        return redirect(url_for("index"))
+    if path.isfile(filepath):
         flash(f"{filename} already exists.", "error")
         return redirect(url_for("index"))
-
-    from io import DEFAULT_BUFFER_SIZE
-    binary_new_file = "bx"
-    with open(file_path, binary_new_file, buffering=DEFAULT_BUFFER_SIZE) as f:
-        chunk_size = DEFAULT_BUFFER_SIZE
-        while True:
-            chunk = request.stream.read(chunk_size)
-            if len(chunk) == 0:
-                break
-            f.write(chunk)
-    # TODO: display an informative success message
-    return redirect(url_for("index", filename=filename))
+    try:
+        f.save(filepath)
+        flash(f"File {filename} successfully uploaded to {base_dir} !")
+        return redirect(url_for("index"))
+    except error as e:
+        flash(f"Failed to upload {filename}: {str(e)}")
+        return redirect(url_for("index"))
 
 
 @app.route("/files/create", methods=["POST"])
