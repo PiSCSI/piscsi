@@ -303,7 +303,7 @@ def send_over_socket(s, payload):
             chunk = s.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
                 from flask import abort
-                logging.error("Read an empty chunk from the socket. Socket connection may have dropped unexpectedly.")
+                logging.error("Read an empty chunk from the socket. Socket connection may have dropped unexpectedly. Check if RaSCSI has crashed.")
                 abort(503, "Lost connection to RaSCSI. Please go back and try again. If the issue persists, please report a bug.")
             chunks.append(chunk)
             bytes_recvd = bytes_recvd + len(chunk)
