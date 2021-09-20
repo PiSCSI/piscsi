@@ -397,20 +397,19 @@ function setupWirelessNetworking() {
 }
 
 function reserveScsiIds() {
-    if [ ! -f /etc/systemd/system/rascsi-web.service ]; then
-	echo "This feature depends on the RaSCSI Web UI being installed. Please install RaSCSI Web before continuing."
-	exit
-    fi
-
-    sudo systemctl stop rascsi-web
+    sudo systemctl stop rascsi
+    echo "WARNING: This will override any existing modifications to rascsi.service!"
     echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
-    echo "The input should be a string of digits without separators, e.g. \"017\" for IDs 0, 1, and 7."
+    echo "The input should be numbers between 0 and 7 separated by commas, e.g. \"0,1,7\" for IDs 0, 1, and 7."
     read -r RESERVED_IDS
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service 
-    sudo sed -i "8 i ExecStart=/home/pi/RASCSI/src/web/start.sh --reserved_ids=$RESERVED_IDS" /etc/systemd/system/rascsi-web.service 
+
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
+    sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
+
+    echo "Modified /etc/systemd/system/rascsi.service"
 
     sudo systemctl daemon-reload
-    sudo systemctl start rascsi-web
+    sudo systemctl start rascsi
 }
 
 function runChoice() {
