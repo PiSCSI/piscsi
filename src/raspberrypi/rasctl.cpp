@@ -575,9 +575,9 @@ int main(int argc, char* argv[])
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
-		cerr << "[-d IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
-		cerr << "[-a FILENAME:FILESIZE] [-w FILENAME] [-m CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-k] [-l] [-v] [-y]" << endl;
+		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
+		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
+		cerr << "[-L] [-k] [-l] [-v] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -613,7 +613,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elsvNTD:R:a:b:c:f:h:i:n:p:r:t:u:x:C:F:L:")) != -1) {
+	while ((opt = getopt(argc, argv, "elsvLNTD:R:a:b:c:f:h:i:n:p:r:t:u:x:C:F:L:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -650,7 +650,7 @@ int main(int argc, char* argv[])
 				default_folder = optarg;
 				break;
 
-			case'e':
+			case 'e':
 				command.set_operation(IMAGE_FILES_INFO);
 				break;
 
