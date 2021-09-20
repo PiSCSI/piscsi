@@ -69,7 +69,7 @@ def index():
         base_dir=base_dir,
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
-        max_file_size=MAX_FILE_SIZE,
+        max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
         running_env=running_env(),
         server_info=server_info,
         netinfo=get_network_info(),
