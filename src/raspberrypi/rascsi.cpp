@@ -1533,6 +1533,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	int opt;
 	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:")) != -1) {
 		switch (opt) {
+			// The three options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
 				is_sasi = false;
@@ -1547,20 +1548,20 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				id = -1;
 				continue;
 
-			case 'b': {
-				if (!GetAsInt(optarg, block_size)) {
-					cerr << "Invalid block size " << optarg << endl;
-					return false;
-				}
-				continue;
-			}
-
 			case 'd':
 			case 'D': {
 				char* end;
 				id = strtol(optarg, &end, 10);
 				if (*end || id < 0 || max_id < id) {
 					cerr << optarg << ": invalid " << (is_sasi ? "HD" : "ID") << " (0-" << max_id << ")" << endl;
+					return false;
+				}
+				continue;
+			}
+
+			case 'b': {
+				if (!GetAsInt(optarg, block_size)) {
+					cerr << "Invalid block size " << optarg << endl;
 					return false;
 				}
 				continue;
