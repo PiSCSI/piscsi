@@ -61,6 +61,7 @@ def get_valid_scsi_ids(devices, reserved_ids):
     return valid_ids
 
 
+# TODO: This can probably be deprecated and use list_devices instead
 def get_type(scsi_id):
     device = proto.PbDeviceDefinition()
     device.id = int(scsi_id)
