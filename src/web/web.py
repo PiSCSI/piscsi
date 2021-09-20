@@ -73,7 +73,7 @@ def index():
         running_env=running_env(),
         server_info=server_info,
         netinfo=get_network_info(),
-        valid_file_suffix=VALID_FILE_SUFFIX,
+        valid_file_suffix=", ".join(VALID_FILE_SUFFIX),
         removable_device_types=REMOVABLE_DEVICE_TYPES,
         harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
         cdrom_file_suffix=CDROM_FILE_SUFFIX,
@@ -488,20 +488,17 @@ def upload_file():
     from os import path
     filename = secure_filename(f.filename)
     filepath = path.join(app.config["UPLOAD_FOLDER"], filename)
-    if not filename.lower().endswith(VALID_FILE_SUFFIX):
-        flash("Not a file format RaSCSI recognizes. Needs to be one of:", "error")
-        flash(f"{VALID_FILE_SUFFIX}", "error")
-        return redirect(url_for("index"))
     if path.isfile(filepath):
         flash(f"{filename} already exists.", "error")
         return redirect(url_for("index"))
-    try:
-        f.save(filepath)
-        flash(f"File {filename} successfully uploaded to {base_dir} !")
-        return redirect(url_for("index"))
-    except error as e:
-        flash(f"Failed to upload {filename}: {str(e)}")
-        return redirect(url_for("index"))
+    else:
+        try:
+            f.save(filepath)
+            flash(f"File {filename} successfully uploaded to {base_dir} !")
+            return redirect(url_for("index"))
+        except:
+            flash(f"Failed to upload {filename} !")
+            return redirect(url_for("index"))
 
 
 @app.route("/files/create", methods=["POST"])
