@@ -107,14 +107,17 @@ def drive_list():
     cd_conf = []
     rm_conf = []
 
+    from werkzeug.utils import secure_filename
     for d in conf:
         if d["device_type"] == "SCHD":
+            d["secure_name"] = secure_filename(d["name"])
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             hd_conf.append(d)
         elif d["device_type"] == "SCCD":
             d["size_mb"] = "N/A"
             cd_conf.append(d)
         elif d["device_type"] == "SCRM":
+            d["secure_name"] = secure_filename(d["name"])
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             rm_conf.append(d)
 
