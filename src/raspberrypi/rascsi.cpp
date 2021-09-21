@@ -971,12 +971,13 @@ bool CopyImage(int fd, const PbCommand& command)
 
 	struct stat st_src;
     if (fstat(fd_src, &st_src) == -1) {
+    	close(fd_src);
 		return ReturnStatus(fd, false, "Can't read source image file '" + from + "': " + string(strerror(errno)));
     }
 
 	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st_src.st_mode);
 	if (fd_dst == -1) {
-		close (fd_dst);
+		close(fd_src);
 
 		return ReturnStatus(fd, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
