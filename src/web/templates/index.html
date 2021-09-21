@@ -172,7 +172,7 @@
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
-		<form action="/files/upload" method="post" enctype="multipart/form-data">
+		<form id="uploadForm" action="/files/upload/" onchange="fileSelect(event)" method="post" enctype="multipart/form-data">
                     <label for="file">File:</label>
                     <input type="file" name="file" accept="{{valid_file_suffix}}" />
                     <input type="submit" value="Upload" />
@@ -181,6 +181,13 @@
         </tr>
     </table>
     <p><small>Supported file types: {{valid_file_suffix}}</small></p>
+<script>
+    function fileSelect(e) {
+        document.getElementById("uploadForm").setAttribute('action', "/files/upload/" + e.target.files[0].name)
+        console.log(e.target.files[0].name);
+    }
+</script>
+
 
     <hr/>
 
