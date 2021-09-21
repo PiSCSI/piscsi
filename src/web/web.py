@@ -28,6 +28,7 @@ from pi_cmds import (
     running_env,
     rascsi_service,
     is_bridge_setup,
+    disk_space,
 )
 from ractl_cmds import (
     attach_image,
@@ -50,6 +51,7 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     server_info = get_server_info()
+    disk = disk_space()
     devices = list_devices()
     files=list_files()
     config_files=list_config_files()
@@ -60,6 +62,7 @@ def index():
     reserved_scsi_ids = server_info["reserved_ids"]
     formatted_devices = sort_and_format_devices(devices["device_list"])
     scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
+
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
@@ -73,6 +76,7 @@ def index():
         running_env=running_env(),
         server_info=server_info,
         netinfo=get_network_info(),
+        free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix="."+", .".join(VALID_FILE_SUFFIX),
         removable_device_types=REMOVABLE_DEVICE_TYPES,
         harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
@@ -88,6 +92,7 @@ def drive_list():
     Sets up the data structures and kicks off the rendering of the drive list page
     """
     server_info = get_server_info()
+    disk = disk_space()
 
     # Reads the canonical drive properties into a dict
     # The file resides in the current dir of the web ui process
@@ -136,6 +141,7 @@ def drive_list():
         rm_conf=rm_conf,
         running_env=running_env(),
         server_info=server_info,
+        free_disk=int(disk["free"] / 1024 / 1024),
         cdrom_file_suffix=CDROM_FILE_SUFFIX,
     )
 
