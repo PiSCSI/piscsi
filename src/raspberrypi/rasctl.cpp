@@ -613,7 +613,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elsvLNTD:R:a:b:c:f:h:i:n:p:r:t:u:x:C:F:L:")) != -1) {
+	while ((opt = getopt(argc, argv, "elsvNTD:L:R:a:b:c:f:h:i:n:p:r:t:u:x:C:F:L:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');

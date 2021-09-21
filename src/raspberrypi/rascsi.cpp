@@ -526,6 +526,31 @@ void GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 	GetDeviceTypeProperties(device_types_info, SCDP);
 }
 
+void GetAvailableImages(PbImageFilesInfo& image_files_info)
+{
+	image_files_info.set_default_image_folder(default_image_folder);
+
+	if (!access(default_image_folder.c_str(), F_OK)) {
+		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
+			if (entry.is_regular_file()) {
+				string filename = entry.path().filename();
+
+				if (!entry.file_size()) {
+					LOGTRACE(string("File in image folder '" + filename + "' has a size of 0 bytes").c_str());
+					continue;
+				}
+
+				if (entry.file_size() % 512) {
+					LOGTRACE(string("File in image folder '" + filename + "' size is not a multiple of 512").c_str());
+					continue;
+				}
+
+				GetImageFile(image_files_info.add_image_files(), entry.path().filename());
+			}
+		}
+	}
+}
+
 void GetAvailableImages(PbServerInfo& server_info)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
@@ -533,26 +558,7 @@ void GetAvailableImages(PbServerInfo& server_info)
 
 	image_files_info->set_default_image_folder(default_image_folder);
 
-	if (!access(default_image_folder.c_str(), F_OK)) {
-		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
-			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
-				GetImageFile(image_files_info->add_image_files(), entry.path().filename());
-			}
-		}
-	}
-}
-
-void GetAvailableImages(PbImageFilesInfo& image_files_info)
-{
-	image_files_info.set_default_image_folder(default_image_folder);
-
-	if (!access(default_image_folder.c_str(), F_OK)) {
-		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
-			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
-				GetImageFile(image_files_info.add_image_files(), entry.path().filename());
-			}
-		}
-	}
+	GetAvailableImages(*image_files_info);
 }
 
 void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
