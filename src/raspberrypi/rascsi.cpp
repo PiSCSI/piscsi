@@ -966,7 +966,7 @@ bool CopyImage(int fd, const PbCommand& command)
 	    	return ReturnStatus(fd, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
 		}
 
-		LOGINFO("%s", string("Copied link '" + from + "' to '" + to + "'").c_str());
+		LOGINFO("%s", string("Copied symlink '" + from + "' to '" + to + "'").c_str());
 
 		return ReturnStatus(fd);
 	}
