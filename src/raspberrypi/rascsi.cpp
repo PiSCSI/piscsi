@@ -532,16 +532,7 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 
 	if (!access(default_image_folder.c_str(), F_OK)) {
 		for (auto const& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
-			filesystem::directory_entry file;
-			if (entry.is_symlink()) {
-				// Follow symlinks
-				file = filesystem::directory_entry(entry.path());
-			}
-			else {
-				file = entry;
-			}
-
-			if (file.is_regular_file() || file.is_block_file()) {
+			if (entry.is_regular_file() || entry.is_block_file()) {
 				string filename = entry.path().filename();
 
 				if (entry.is_regular_file()) {
@@ -959,21 +950,31 @@ bool CopyImage(int fd, const PbCommand& command)
 	from = default_image_folder + "/" + from;
 	to = default_image_folder + "/" + to;
 
-	struct stat st;
-	if (!stat(to.c_str(), &st)) {
+	struct stat st_dst;
+	if (!stat(to.c_str(), &st_dst)) {
 		return ReturnStatus(fd, false, "Image file '" + to + "' already exists");
+	}
+
+	struct stat st_src;
+    if (lstat(from.c_str(), &st_src)) {
+    	return ReturnStatus(fd, false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
+    }
+
+    // Symbolic links need a special handling
+	if ((st_src.st_mode & S_IFMT) == S_IFLNK) {
+		if (symlink(filesystem::read_symlink(from).c_str(), to.c_str())) {
+	    	return ReturnStatus(fd, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
+		}
+
+		LOGINFO("%s", string("Copied link '" + from + "' to '" + to + "'").c_str());
+
+		return ReturnStatus(fd);
 	}
 
 	int fd_src = open(from.c_str(), O_RDONLY, 0);
 	if (fd_src == -1) {
 		return ReturnStatus(fd, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
 	}
-
-	struct stat st_src;
-    if (fstat(fd_src, &st_src) == -1) {
-    	close(fd_src);
-		return ReturnStatus(fd, false, "Can't read source image file '" + from + "': " + string(strerror(errno)));
-    }
 
 	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st_src.st_mode);
 	if (fd_dst == -1) {
