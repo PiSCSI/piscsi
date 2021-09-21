@@ -531,18 +531,28 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 	image_files_info.set_default_image_folder(default_image_folder);
 
 	if (!access(default_image_folder.c_str(), F_OK)) {
-		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
-			if (entry.is_regular_file()) {
-				string filename = entry.path().filename();
+		for (auto const& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
+			filesystem::directory_entry file;
+			if (entry.is_symlink()) {
+				file = filesystem::directory_entry(entry.path());
+			}
+			else {
+				file = entry;
+			}
 
-				if (!entry.file_size()) {
-					LOGTRACE(string("File in image folder '" + filename + "' has a size of 0 bytes").c_str());
-					continue;
-				}
+			if (entry.is_regular_file() || entry.is_block_file()) {
+				string filename = file.path().filename();
 
-				if (entry.file_size() % 512) {
-					LOGTRACE(string("File in image folder '" + filename + "' size is not a multiple of 512").c_str());
-					continue;
+				if (entry.is_regular_file()) {
+					if (!entry.file_size()) {
+						LOGTRACE(string("File in image folder '" + filename + "' has a size of 0 bytes").c_str());
+						continue;
+					}
+
+					if (entry.file_size() % 512 && !entry.is_block_file()) {
+						LOGTRACE(string("File in image folder '" + filename + "' size is not a multiple of 512").c_str());
+						continue;
+					}
 				}
 
 				GetImageFile(image_files_info.add_image_files(), entry.path().filename());

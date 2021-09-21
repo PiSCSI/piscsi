@@ -182,6 +182,7 @@ message PbDeviceTypesInfo {
 message PbImageFile {
     string name = 1;
     bool read_only = 2;
+    // The file size in bytes, 0 for block devices
     int64 size = 3;
 }
 
