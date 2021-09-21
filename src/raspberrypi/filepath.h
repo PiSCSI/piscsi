@@ -4,80 +4,49 @@
 //
 //	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2012-2020 GIMONS
-//	[ ファイルパス(サブセット) ]
+//	[ File path (subset) ]
 //
 //---------------------------------------------------------------------------
 
-#if !defined(filepath_h)
-#define filepath_h
+#pragma once
+
+#include "os.h"
 
 class Fileio;
 
 //---------------------------------------------------------------------------
 //
-//	定数定義
+//	Constant definition
 //
 //---------------------------------------------------------------------------
 #define FILEPATH_MAX		_MAX_PATH
 
 //===========================================================================
 //
-//	ファイルパス
-//	※代入演算子を用意すること
+//	File path
+//	Assignment operators are prepared here
 //
 //===========================================================================
 class Filepath
 {
 public:
 	Filepath();
-										// コンストラクタ
 	virtual ~Filepath();
-										// デストラクタ
 	Filepath& operator=(const Filepath& path);
-										// 代入
 
-	void FASTCALL Clear();
-										// クリア
-	void FASTCALL SetPath(LPCSTR path);
-										// ファイル設定(ユーザ) MBCS用
-	BOOL FASTCALL IsClear() const;
-										// クリアされているか
-	LPCTSTR FASTCALL GetPath() const	{ return m_szPath; }
-										// パス名取得
-	const char* FASTCALL GetShort() const;
-										// ショート名取得(const char*)
-	LPCTSTR FASTCALL GetFileExt() const;
-										// ショート名取得(LPCTSTR)
-	BOOL FASTCALL CmpPath(const Filepath& path) const;
-										// パス比較
-
-	BOOL FASTCALL Save(Fileio *fio, int ver);
-										// セーブ
-	BOOL FASTCALL Load(Fileio *fio, int ver);
-										// ロード
+	void Clear();
+	void SetPath(const char *path);		// File settings (user) for MBCS
+	const char *GetPath() const	{ return m_szPath; }	// Get path name
+	const char *GetFileExt() const;		// Get short name (LPCTSTR)
+	BOOL Save(Fileio *fio, int ver);
+	BOOL Load(Fileio *fio, int ver);
 
 private:
-	void FASTCALL Split();
-										// パス分割
-	void FASTCALL Make();
-										// パス合成
-	void FASTCALL SetCurDir();
-										// カレントディレクトリ設定
-	TCHAR m_szPath[_MAX_PATH];
-										// ファイルパス
-	TCHAR m_szDrive[_MAX_DRIVE];
-										// ドライブ
-	TCHAR m_szDir[_MAX_DIR];
-										// ディレクトリ
-	TCHAR m_szFile[_MAX_FNAME];
-										// ファイル
-	TCHAR m_szExt[_MAX_EXT];
-										// 拡張子
+	void Split();						// Split the path
+	TCHAR m_szPath[_MAX_PATH];			// File path
+	TCHAR m_szDir[_MAX_DIR];			// Directory
+	TCHAR m_szFile[_MAX_FNAME];			// File
+	TCHAR m_szExt[_MAX_EXT];			// Extension
 
-	static char ShortName[_MAX_FNAME + _MAX_DIR];
-										// ショート名(char)
-	static TCHAR FileExt[_MAX_FNAME + _MAX_DIR];
-										// ショート名(TCHAR)
+	static TCHAR FileExt[_MAX_FNAME + _MAX_DIR];	// Short name (TCHAR)
 };
-
-#endif	// filepath_h

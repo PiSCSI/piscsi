@@ -1,0 +1,290 @@
+//
+// Each rascsi remote interface message is preceded by a little endian 32 bit header,
+// which contains the protobuf message size.
+// Unless explicitly specified the order of repeated data returned is undefined.
+//
+
+syntax = "proto3";
+
+package rascsi_interface;
+
+// The available device types
+enum PbDeviceType {
+    UNDEFINED = 0;
+    // Non-removable SASI drive
+    SAHD = 1;
+    // Non-removable SCSI drive
+    SCHD = 2;
+    // Removable SCSI drive
+    SCRM = 3;
+    // Magnoto-Optical drive
+    SCMO = 4;
+    // CD-ROM drive
+    SCCD = 5;
+    // Network bridge
+    SCBR = 6;
+    // DaynaPort network adapter
+    SCDP = 7;
+}
+
+// rascsi remote operations, returning PbResult
+enum PbOperation {
+    NONE = 0;
+
+    // Attach devices
+    // Parameters (mutually exclusive):
+    //   "file": The filename relative to the default image folder. It must not contain a slash.
+    //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
+    ATTACH = 1;
+
+    // Detach devices
+    DETACH = 2;
+
+    // Detach all devices, does not require a device list
+    DETACH_ALL = 3;
+
+    // Start device
+    START = 4;
+
+    // Stop device, e.g. park drive
+    STOP = 5;
+
+    // Insert medium
+    // Parameters:
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    INSERT = 6;
+
+    // Eject medium
+    EJECT = 7;
+
+    // Write-protect medium (not possible for read-only media)
+    PROTECT = 8;
+
+    // Make medium writable (not possible for read-only media)
+    UNPROTECT = 9;
+
+    // Gets the server information
+    SERVER_INFO = 10;
+
+    // Gets information on attached devices. Returns data for all attached devices if empty.
+    DEVICES_INFO = 11;
+    
+    // Device properties by device type
+    DEVICE_TYPES_INFO = 12;
+
+    // Gets information on available image files. A lightweight alternative to getting the complete server info.
+    IMAGE_FILES_INFO = 13;
+    
+    // Gets the names of the available network interfaces. Only lists interfaces that are up.
+    NETWORK_INTERFACES_INFO = 14;
+
+    // Set the default folder for image files.
+    // Parameters:
+    //   "folder": The default folder name.
+    DEFAULT_FOLDER = 15;
+
+    // Set server log level.
+    // Parameters:
+    //   "level": The new log level
+    LOG_LEVEL = 16;
+
+    // Block IDs from being used, usually the IDs of the initiators (computers) in the SCSI chain.
+    // Parameters:
+    //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
+    RESERVE = 17;
+    
+    // Create an image file. The image file must not yet exist.
+    // Parameters:
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "size": The file size in bytes, must be a multiple of 512
+    //   "read_only": "true" (case-insensitive) in order to create a read-only file, otherwise "false"
+    CREATE_IMAGE = 18;
+
+    // Delete an image file.
+    // Parameters:
+    //    "file": The filename, relative to the default image folder. It must not contain a slash.
+    DELETE_IMAGE = 19;
+
+    // Rename an image file.
+    // Parameters:
+    //   "from": The old filename, relative to the default image folder. It must not contain a slash.
+    //   "to": The new filename, relative to the default image folder. It must not contain a slash.
+    // The new filename must not yet exist.
+    RENAME_IMAGE = 20;
+
+    // Copy an image file.
+    // Parameters:
+    //   "from": The source filename, relative to the default image folder. It must not contain a slash.
+    //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
+    // The destination filename must not yet exist.
+    COPY_IMAGE = 21;
+    
+    // Write-protect an image file.
+    // Parameters:
+    //  "file": The filename, relative to the default image folder. It must not contain a slash.
+    PROTECT_IMAGE = 22;
+
+    // Make an image file writable.
+    // Parameters:
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    UNPROTECT_IMAGE = 23;
+}
+
+// The properties supported by a device
+message PbDeviceProperties {
+     // Read-only media (e.g. CD-ROMs) are not protectable but permanently read-only
+    bool read_only = 1;
+    // Medium can be write-protected
+    bool protectable = 2;
+    // Device can be stopped, e.g. parked
+    bool stoppable = 3;
+    // Medium can be removed
+    bool removable = 4;
+    // Medium can be locked
+    bool lockable = 5;
+    // Device supports image file as a parameter
+    bool supports_file = 6;
+    // Device supports parameters other than a filename
+    bool supports_params = 7;
+    // List of default parameters, if any (requires supports_params to be true)
+    map<string, string> default_params = 8;
+    // Number of supported LUNs, at least 1 (for LUN 0)
+    uint32 luns = 9;
+    // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
+    repeated uint32 block_sizes = 10;
+    // Unordered list of permitted media capacities in bytes, empty if there is no capacity restriction
+    repeated uint64 capacities = 11;
+}
+
+// The status of a device, only meaningful if the respective feature is supported
+message PbDeviceStatus {
+    // Medium is write-protected
+    bool protected = 1;
+    // Device is stopped, e.g. parked
+    bool stopped = 2;
+    // Medium is removed
+    bool removed = 3;
+    // Medium is locked
+    bool locked = 4;
+}
+
+// Device properties by device type. (Note that a protobuf map cannot be used because enums cannot be map keys.)
+message PbDeviceTypeProperties {
+    PbDeviceType type = 1;
+    PbDeviceProperties properties = 2;
+}
+
+message PbDeviceTypesInfo {
+    repeated PbDeviceTypeProperties properties = 1;
+}
+
+// The image file data
+message PbImageFile {
+    string name = 1;
+    bool read_only = 2;
+    int64 size = 3;
+}
+
+// The default image folder and the image files it contains
+message PbImageFilesInfo {
+    string default_image_folder = 1;
+    repeated PbImageFile image_files = 2;
+}
+
+// The network interfaces information
+message PbNetworkInterfacesInfo {
+    repeated string name = 1;
+}
+
+// The device definition, sent from the client to the server
+message PbDeviceDefinition {
+    int32 id = 1;
+    int32 unit = 2;
+    PbDeviceType type = 3;
+    // Device specific named parameters, e.g. the name of an image file
+    map<string, string> params = 4;
+    // The optional block size in bytes per sector, must be one of the supported block sizes for SASI/SCSI
+    int32 block_size = 5;
+    // The device name components
+    string vendor = 6;
+    string product = 7;
+    string revision = 8;
+    // Create a write-protected device
+    bool protected = 9;
+}
+
+// The device data, sent from the server to the client
+message PbDevice {
+    int32 id = 1;
+    int32 unit = 2;
+    PbDeviceType type = 3;
+    PbDeviceProperties properties = 4;
+    PbDeviceStatus status = 5;
+    // Image file information, if the device supports image files
+    PbImageFile file = 6;
+    // Effective parameters the device was created with
+    map<string, string> params = 7;
+    string vendor = 8;
+    string product = 9;
+    string revision = 10;
+    // Block size in bytes
+    int32 block_size = 11;
+    // Number of blocks
+    int64 block_count = 12;
+}
+
+message PbDevices {
+    repeated PbDevice devices = 1;
+}
+
+// Commands rascsi can execute and their parameters
+message PbCommand {
+    PbOperation operation = 1;
+    // The non-empty list of devices for this command
+    repeated PbDeviceDefinition devices = 2;
+    // The named parameters for the operation, e.g. a filename, or a network interface list
+    map<string, string> params = 3;
+}
+
+// The result of a command
+message PbResult {
+    // false means that an error occurred
+    bool status = 1;
+    // An optional error or information message, depending on the status. A string without trailing CR/LF.
+    string msg = 2;
+    // Optional additional result data
+    oneof result {
+        // The result of a SERVER_INFO command
+        PbServerInfo server_info = 3;
+        // The result of a DEVICE_INFO command
+        PbDevices device_info = 4;
+        // The result of a DEVICE_TYPES_INFO command
+        PbDeviceTypesInfo device_types_info = 5;
+        // The result of an IMAGE_FILES_INFO command
+        PbImageFilesInfo image_files_info = 6;
+        // The result of a NETWORK_INTERFACES_INFO command
+        PbNetworkInterfacesInfo network_interfaces_info = 7;
+    }
+}
+
+// The rascsi server information
+message PbServerInfo {
+    // The rascsi server version
+    uint32 major_version = 1;
+    uint32 minor_version = 2;
+    // < 0 for a development version, = 0 if there is no patch yet
+    int32 patch_version = 3;
+    // List of available log levels, ordered by increasing by severity
+    repeated string log_levels = 4;
+    string current_log_level = 5;
+    // Supported device types and their properties, also available separately
+    PbDeviceTypesInfo device_types_info = 6;
+    // The image files in the default folder, also available separately
+    PbImageFilesInfo image_files_info = 7;
+    // The available (up) network interfaces, also available separately
+    PbNetworkInterfacesInfo network_interfaces_info = 8;
+    // The attached devices, also available separately
+    PbDevices devices = 9;
+    // The unsorted list of reserved IDs
+    repeated uint32 reserved_ids = 10;
+}

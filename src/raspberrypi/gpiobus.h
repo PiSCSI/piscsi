@@ -12,6 +12,7 @@
 #if !defined(gpiobus_h)
 #define gpiobus_h
 
+#include "rascsi.h"
 #include "scsi.h"
 
 //---------------------------------------------------------------------------
@@ -188,7 +189,7 @@
 
 #ifdef CONNECT_TYPE_AIBOM
 //
-// RaSCSI Adapter Aibomu version
+// RaSCSI Adapter Aibom version
 //
 
 #define CONNECT_DESC "AIBOM PRODUCTS version"		// Startup message
@@ -233,7 +234,7 @@
 
 #ifdef CONNECT_TYPE_GAMERNIUM
 //
-// RaSCSI Adapter GAMERnium.com版
+// RaSCSI Adapter GAMERnium.com version
 //
 
 #define CONNECT_DESC "GAMERnium.com version"// Startup message
@@ -298,7 +299,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GPIO)
+//	Constant declarations (GPIO)
 //
 //---------------------------------------------------------------------------
 #define SYST_OFFSET		0x00003000
@@ -375,7 +376,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GIC)
+//	Constant declarations (GIC)
 //
 //---------------------------------------------------------------------------
 #define ARM_GICD_BASE		0xFF841000
@@ -400,7 +401,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GIC IRQ)
+//	Constant declarations (GIC IRQ)
 //
 //---------------------------------------------------------------------------
 #define GIC_IRQLOCAL0		(16 + 14)
@@ -419,7 +420,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(SCSI)
+//	Constant declarations (SCSI)
 //
 //---------------------------------------------------------------------------
 #define IN		GPIO_INPUT
@@ -433,6 +434,35 @@
 //
 //---------------------------------------------------------------------------
 #define GPIO_DATA_SETTLING 100			// Data bus stabilization time (ns)
+// SCSI Bus timings taken from:
+//     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
+#define SCSI_DELAY_ARBITRATION_DELAY_NS          2400
+#define SCSI_DELAY_ASSERTION_PERIOD_NS             90 
+#define SCSI_DELAY_BUS_CLEAR_DELAY_NS             800 
+#define SCSI_DELAY_BUS_FREE_DELAY_NS              800 
+#define SCSI_DELAY_BUS_SET_DELAY_NS              1800 
+#define SCSI_DELAY_BUS_SETTLE_DELAY_NS            400 
+#define SCSI_DELAY_CABLE_SKEW_DELAY_NS             10 
+#define SCSI_DELAY_DATA_RELEASE_DELAY_NS          400 
+#define SCSI_DELAY_DESKEW_DELAY_NS                 45 
+#define SCSI_DELAY_DISCONNECTION_DELAY_US         200 
+#define SCSI_DELAY_HOLD_TIME_NS                    45 
+#define SCSI_DELAY_NEGATION_PERIOD_NS              90 
+#define SCSI_DELAY_POWER_ON_TO_SELECTION_TIME_S   10         // (recommended)
+#define SCSI_DELAY_RESET_TO_SELECTION_TIME_US     (250*1000) // (recommended)
+#define SCSI_DELAY_RESET_HOLD_TIME_US              25 
+#define SCSI_DELAY_SELECTION_ABORT_TIME_US        200 
+#define SCSI_DELAY_SELECTION_TIMEOUT_DELAY_NS    (250*1000) // (recommended)
+#define SCSI_DELAY_FAST_ASSERTION_PERIOD_NS        30
+#define SCSI_DELAY_FAST_CABLE_SKEW_DELAY_NS         5
+#define SCSI_DELAY_FAST_DESKEW_DELAY_NS            20
+#define SCSI_DELAY_FAST_HOLD_TIME_NS               10
+#define SCSI_DELAY_FAST_NEGATION_PERIOD_NS         30
+
+// The DaynaPort SCSI Link do a short delay in the middle of transfering
+// a packet. This is the number of uS that will be delayed between the
+// header and the actual data.
+#define SCSI_DELAY_SEND_DATA_DAYNAPORT_US          100
 
 //---------------------------------------------------------------------------
 //
@@ -447,11 +477,11 @@ public:
 										// Constructor
 	virtual ~GPIOBUS();
 										// Destructor
-	BOOL FASTCALL Init(mode_e mode = TARGET);
+	BOOL Init(mode_e mode = TARGET);
 										// Initialization
-	void FASTCALL Reset();
+	void Reset();
 										// Reset
-	void FASTCALL Cleanup();
+	void Cleanup();
 										// Cleanup
 
 	//---------------------------------------------------------------------------
@@ -477,111 +507,113 @@ public:
 	#endif // ifdef __x86_64__ || __X86__
 	}
 
-	void FASTCALL SetENB(BOOL ast);
+	void SetENB(BOOL ast);
 										// Set ENB signal
 
-	BOOL FASTCALL GetBSY();
+	bool GetBSY();
 										// Get BSY signal
-	void FASTCALL SetBSY(BOOL ast);
+	void SetBSY(bool ast);
 										// Set BSY signal
 
-	BOOL FASTCALL GetSEL();
+	BOOL GetSEL();
 										// Get SEL signal
-	void FASTCALL SetSEL(BOOL ast);
+	void SetSEL(BOOL ast);
 										// Set SEL signal
 
-	BOOL FASTCALL GetATN();
+	BOOL GetATN();
 										// Get ATN signal
-	void FASTCALL SetATN(BOOL ast);
+	void SetATN(BOOL ast);
 										// Set ATN signal
 
-	BOOL FASTCALL GetACK();
+	BOOL GetACK();
 										// Get ACK signal
-	void FASTCALL SetACK(BOOL ast);
+	void SetACK(BOOL ast);
 										// Set ACK signal
 
-	BOOL FASTCALL GetACT();
+	BOOL GetACT();
 										// Get ACT signal
-	void FASTCALL SetACT(BOOL ast);
+	void SetACT(BOOL ast);
 										// Set ACT signal
 
-	BOOL FASTCALL GetRST();
+	BOOL GetRST();
 										// Get RST signal
-	void FASTCALL SetRST(BOOL ast);
+	void SetRST(BOOL ast);
 										// Set RST signal
 
-	BOOL FASTCALL GetMSG();
+	BOOL GetMSG();
 										// Get MSG signal
-	void FASTCALL SetMSG(BOOL ast);
+	void SetMSG(BOOL ast);
 										// Set MSG signal
 
-	BOOL FASTCALL GetCD();
+	BOOL GetCD();
 										// Get CD signal
-	void FASTCALL SetCD(BOOL ast);
+	void SetCD(BOOL ast);
 										// Set CD signal
 
-	BOOL FASTCALL GetIO();
+	BOOL GetIO();
 										// Get IO signal
-	void FASTCALL SetIO(BOOL ast);
+	void SetIO(BOOL ast);
 										// Set IO signal
 
-	BOOL FASTCALL GetREQ();
+	BOOL GetREQ();
 										// Get REQ signal
-	void FASTCALL SetREQ(BOOL ast);
+	void SetREQ(BOOL ast);
 										// Set REQ signal
 
-	BYTE FASTCALL GetDAT();
+	BYTE GetDAT();
 										// Get DAT signal
-	void FASTCALL SetDAT(BYTE dat);
+	void SetDAT(BYTE dat);
 										// Set DAT signal
-	BOOL FASTCALL GetDP();
+	BOOL GetDP();
 										// Get Data parity signal
-	int FASTCALL CommandHandShake(BYTE *buf);
+	int CommandHandShake(BYTE *buf);
 										// Command receive handshake
-	int FASTCALL ReceiveHandShake(BYTE *buf, int count);
+	int ReceiveHandShake(BYTE *buf, int count);
 										// Data receive handshake
-	int FASTCALL SendHandShake(BYTE *buf, int count);
+	int SendHandShake(BYTE *buf, int count, int delay_after_bytes);
 										// Data transmission handshake
 
-	static BUS::phase_t FASTCALL GetPhaseRaw(DWORD raw_data);
-									// Get the phase based on raw data
+	static BUS::phase_t GetPhaseRaw(DWORD raw_data);
+										// Get the phase based on raw data
 
-#ifdef USE_SEL_EVENT_ENABLE
+	static int GetCommandByteCount(BYTE opcode);
+
+	#ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
-	int FASTCALL PollSelectEvent();
+	int PollSelectEvent();
 										// SEL signal event polling
-	void FASTCALL ClearSelectEvent();
+	void ClearSelectEvent();
 										// Clear SEL signal event
 #endif	// USE_SEL_EVENT_ENABLE
 
 private:
 	// SCSI I/O signal control
-	void FASTCALL MakeTable();
+	void MakeTable();
 										// Create work data
-	void FASTCALL SetControl(int pin, BOOL ast);
+	void SetControl(int pin, BOOL ast);
 										// Set Control Signal
-	void FASTCALL SetMode(int pin, int mode);
+	void SetMode(int pin, int mode);
 										// Set SCSI I/O mode
-	BOOL FASTCALL GetSignal(int pin);
+	BOOL GetSignal(int pin);
 										// Get SCSI input signal value
-	void FASTCALL SetSignal(int pin, BOOL ast);
+	void SetSignal(int pin, BOOL ast);
 										// Set SCSI output signal value
-	BOOL FASTCALL WaitSignal(int pin, BOOL ast);
+	BOOL WaitSignal(int pin, BOOL ast);
 										// Wait for a signal to change
 	// Interrupt control
-	void FASTCALL DisableIRQ();
+	void DisableIRQ();
 										// IRQ Disabled
-	void FASTCALL EnableIRQ();
+	void EnableIRQ();
 										// IRQ Enabled
 
 	//  GPIO pin functionality settings
-	void FASTCALL PinConfig(int pin, int mode);
+	void PinConfig(int pin, int mode);
 										// GPIO pin direction setting
-	void FASTCALL PullConfig(int pin, int mode);
+	void PullConfig(int pin, int mode);
 										// GPIO pin pull up/down resistor setting
-	void FASTCALL PinSetSignal(int pin, BOOL ast);
+	void PinSetSignal(int pin, BOOL ast);
 										// Set GPIO output signal
-	void FASTCALL DrvConfig(DWORD drive);
+	void DrvConfig(DWORD drive);
 										// Set GPIO drive strength
 
 
@@ -589,8 +621,7 @@ private:
 
 	DWORD baseaddr;						// Base address
 
-	int rpitype;
-										// Type of Raspberry Pi
+	int rpitype;						// Type of Raspberry Pi
 
 	volatile DWORD *gpio;				// GPIO register
 
@@ -600,7 +631,6 @@ private:
 
 	volatile DWORD *irpctl;				// Interrupt control register
 
-#ifndef BAREMETAL
 	volatile DWORD irptenb;				// Interrupt enabled state
 
 	volatile DWORD *qa7regs;			// QA7 register
@@ -610,7 +640,6 @@ private:
 	volatile DWORD tintctl;				// Interupt control
 
 	volatile DWORD giccpmr;				// GICC priority setting
-#endif	// BAREMETAL
 
 	volatile DWORD *gicd;				// GIC Interrupt distributor register
 
@@ -620,11 +649,11 @@ private:
 
 	DWORD signals;						// All bus signals
 
-#if defined(USE_SEL_EVENT_ENABLE) && !defined(BAREMETAL)
-	struct gpioevent_request selevreq;	// SEL signal event request
+#ifdef USE_SEL_EVENT_ENABLE
+	struct gpioevent_request selevreq = {};	// SEL signal event request
 
 	int epfd;							// epoll file descriptor
-#endif	// USE_SEL_EVENT_ENABLE && !BAREMETAL
+#endif	// USE_SEL_EVENT_ENABLE
 
 #if SIGNAL_CONTROL_MODE == 0
 	DWORD tblDatMsk[3][256];			// Data mask table
@@ -647,15 +676,15 @@ private:
 class SysTimer
 {
 public:
-	static void FASTCALL Init(DWORD *syst, DWORD *armt);
+	static void Init(DWORD *syst, DWORD *armt);
 										// Initialization
-	static DWORD FASTCALL GetTimerLow();
+	static DWORD GetTimerLow();
 										// Get system timer low byte
-	static DWORD FASTCALL GetTimerHigh();
+	static DWORD GetTimerHigh();
 										// Get system timer high byte
-	static void FASTCALL SleepNsec(DWORD nsec);
+	static void SleepNsec(DWORD nsec);
 										// Sleep for N nanoseconds
-	static void FASTCALL SleepUsec(DWORD usec);
+	static void SleepUsec(DWORD usec);
 										// Sleep for N microseconds
 
 private:

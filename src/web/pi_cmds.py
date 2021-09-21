@@ -10,15 +10,17 @@ def rascsi_service(action):
 
 
 def reboot_pi():
-    return subprocess.run(["sudo", "reboot"]).returncode == 0
+    subprocess.Popen(["sudo", "reboot"])
+    return True
 
 
 def shutdown_pi():
-    return subprocess.run(["sudo", "shutdown", "-h", "now"]).returncode == 0
+    subprocess.Popen(["sudo", "shutdown", "-h", "now"])
+    return True
 
 
-def running_version():
-    ra_web_version = (
+def running_env():
+    ra_git_version = (
         subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True)
         .stdout.decode("utf-8")
         .strip()
@@ -28,4 +30,12 @@ def running_version():
         .stdout.decode("utf-8")
         .strip()
     )
-    return ra_web_version + " " + pi_version
+    return {"git": ra_git_version, "env": pi_version}
+
+
+def is_bridge_setup():
+    process = subprocess.run(["brctl", "show"], capture_output=True)
+    output = process.stdout.decode("utf-8")
+    if "rascsi_bridge" in output:
+        return True
+    return False
