@@ -527,19 +527,20 @@ void GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 	GetDeviceTypeProperties(device_types_info, SCDP);
 }
 
-// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
 void GetAvailableImages(PbImageFilesInfo& image_files_info)
 {
 	image_files_info.set_default_image_folder(default_image_folder);
 
+	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
 	DIR *d = opendir(default_image_folder.c_str());
 	if (d) {
 		struct dirent *dir;
 		while ((dir = readdir(d))) {
-			if (dir->d_type == DT_REG || dir->d_type == DT_BLK) {
+			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
 				if (dir->d_type == DT_REG) {
+					string filename = default_image_folder + "/" + dir->d_name;
 					struct stat st;
-					if (!stat(dir->d_name, &st)) {
+					if (!lstat(filename.c_str(), &st)) {
 						if (!st.st_size) {
 							LOGTRACE("File in image folder '%s' has a size of 0 bytes", dir->d_name);
 							continue;
@@ -549,6 +550,9 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 							LOGTRACE("File in image folder '%s' size is not a multiple of 512", dir->d_name);
 							continue;
 						}
+					}
+					else {
+						continue;
 					}
 				}
 
