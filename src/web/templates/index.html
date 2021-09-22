@@ -172,30 +172,30 @@
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
-		<form id="uploadForm" action="/files/upload/" onchange="fileSelect(event)" method="post" enctype="multipart/form-data">
-                    <label for="file">File:</label>
-                    <input type="file" name="file" accept="{{valid_file_suffix}}" />
-                    <input type="submit" value="Upload" />
+                <form method="POST" action="/files/upload" class="dropzone dz-clickable" id="dropper" enctype="multipart/form-data">
                 </form>
             </td>
         </tr>
     </table>
-    <p><small>Supported file types: {{valid_file_suffix}}</small></p>
-<script>
-    function fileSelect(e) {
-        document.getElementById("uploadForm").setAttribute('action', "/files/upload/" + e.target.files[0].name)
-        console.log(e.target.files[0].name);
+    <script type="application/javascript">
+    Dropzone.options.dropper = {
+        paramName: 'file',
+        chunking: true,
+        forceChunking: true,
+        url: '/files/upload',
+        maxFilesize: 2049, // megabytes
+        chunkSize: 1000000 // bytes
     }
-</script>
-
+    </script>
+    <p><small>Recognized file types: {{valid_file_suffix}}</small></p>
 
     <hr/>
 
     <h2>Download File from Web</h2>
     <p>Given a URL, download that file to the <tt>{{base_dir}}</tt></p>
     <table style="border: none">
-            <tr style="border: none">
-                <td style="border: none; vertical-align:top;">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
                 <form action="/files/download_image" method="post">
                     <label for="url">URL:</label>
                     <input type="text" placeholder="URL" name="url" />
