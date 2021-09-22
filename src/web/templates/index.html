@@ -48,20 +48,20 @@
 	    {% endif %}
             <td style="text-align:left">
                 {% if device.device_type in removable_device_types and "No Media" not in device.status %}
-                <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
+                <form action="/scsi/eject" method="post" class="table" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Eject" />
                 </form>
-                <form action="/scsi/info" method="post">
+                <form action="/scsi/info" method="post" class="table">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Info" />
                 </form>
                 {% else %}
-                <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
+                <form action="/scsi/detach" method="post" class="table" onsubmit="return confirm('Detach Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Detach" />
                 </form>
-                <form action="/scsi/info" method="post">
+                <form action="/scsi/info" method="post" class="table">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
                     <input type="submit" value="Info" />
                 </form>
@@ -93,13 +93,13 @@
         <tr>
             <td>{{file["name"].replace(base_dir, '')}}</td>
             <td style="text-align:center">
-                <form action="/files/download" method="post">
+                <form action="/files/download" method="post" class="table">
                     <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
                     <input type="submit" value="{{file["size_mb"]}} MB &#8595;" />
                 </form>
             </td>
             <td>
-                <form action="/scsi/attach" method="post">
+                <form action="/scsi/attach" method="post" class="table">
                     <input type="hidden" name="file_name" value="{{file["name"]}}">
                     <input type="hidden" name="file_size" value="{{file["size"]}}">
                     <select name="scsi_id">
@@ -111,12 +111,12 @@
                     <input type="submit" value="Attach" />
 		    {% endif %}
                 </form>
-                <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
+                <form action="/files/delete" method="post" class="table" onsubmit="return confirm('Delete file?')">
                     <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
                     <input type="submit" value="Delete" />
                 </form>
                 {% if file["name"].lower().endswith(archive_file_suffix) %}
-                <form action="/files/unzip" method="post">
+                <form action="/files/unzip" method="post" class="table">
                     <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
                     <input type="submit" value="Unzip" />
                 </form>

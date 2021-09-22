@@ -21,7 +21,7 @@ a {
   text-decoration: none;
 }
 
-form {
+form.table {
   display: inline;
 }
 
@@ -29,6 +29,7 @@ table, tr, td {
   border: 1px solid black;
   border-collapse:collapse;
   margin: none;
+
 }
 
 .error {
