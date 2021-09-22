@@ -48,7 +48,6 @@ from ractl_cmds import (
 from settings import *
 
 app = Flask(__name__)
-log = logging.getLogger('pydrop')
 
 
 @app.route("/")
@@ -492,44 +491,42 @@ def upload_file():
     from os import path
     import pydrop
 
-    file = request.files['file']
+    log = logging.getLogger("pydrop")
+    file = request.files["file"]
 
     save_path = path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
     current_chunk = int(request.form['dzchunkindex'])
 
-    # If the file already exists it's ok if we are appending to it,
-    # but not if it's new file that would overwrite the existing one
+    # Makes sure not to overwrite an existing file, 
+    # but continues writing to a file transfer in progress 
     if path.exists(save_path) and current_chunk == 0:
-        # 400 and 500s will tell dropzone that an error occurred and show an error
-        return make_response(('File already exists', 400))
+        return make_response((f"The file {file.filename} already exists!", 400))
 
     try:
-        with open(save_path, 'ab') as f:
-            f.seek(int(request.form['dzchunkbyteoffset']))
+        with open(save_path, "ab") as f:
+            f.seek(int(request.form["dzchunkbyteoffset"]))
             f.write(file.stream.read())
     except OSError:
-        # log.exception will include the traceback so we can see what's wrong 
-        log.exception('Could not write to file')
-        return make_response(("Not sure why,"
-                              " but we couldn't write the file to disk", 500))
+        log.exception("Could not write to file")
+        return make_response(("Unable to write the file to disk!", 500))
 
-    total_chunks = int(request.form['dztotalchunkcount'])
+    total_chunks = int(request.form["dztotalchunkcount"])
 
     if current_chunk + 1 == total_chunks:
-        # This was the last chunk, the file should be complete and the size we expect
-        if path.getsize(save_path) != int(request.form['dztotalfilesize']):
-            log.error(f"File {file.filename} was completed, "
-                      f"but has a size mismatch."
-                      f"Was {path.getsize(save_path)} but we"
-                      f" expected {request.form['dztotalfilesize']} ")
-            return make_response(('Size mismatch', 500))
+        # Validate the resulting file size after writing the last chunk
+        if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
+            log.error(f"Finished transferring {file.filename}, "
+                      f"but it has a size mismatch with the original file."
+                      f"Got {path.getsize(save_path)} but we "
+                      f"expected {request.form['dztotalfilesize']}.")
+            return make_response(("Transferred file corrupted!", 500))
         else:
-            log.info(f'File {file.filename} has been uploaded successfully')
+            log.info(f"File {file.filename} has been uploaded successfully")
     else:
-        log.debug(f'Chunk {current_chunk + 1} of {total_chunks} '
-                  f'for file {file.filename} complete')
+        log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
+                  f"for file {file.filename} completed.")
 
-    return make_response(("Chunk upload successful", 200))
+    return make_response(("File upload successful!", 200))
 
 
 @app.route("/files/create", methods=["POST"])
