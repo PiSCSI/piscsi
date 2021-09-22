@@ -537,12 +537,12 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 
 				if (entry.is_regular_file()) {
 					if (!entry.file_size()) {
-						LOGTRACE(string("File in image folder '" + filename + "' has a size of 0 bytes").c_str());
+						LOGTRACE("File in image folder '%s' has a size of 0 bytes", filename.c_str());
 						continue;
 					}
 
 					if (entry.file_size() % 512) {
-						LOGTRACE(string("File in image folder '" + filename + "' size is not a multiple of 512").c_str());
+						LOGTRACE("File in image folder '%s' size is not a multiple of 512", filename.c_str());
 						continue;
 					}
 				}
@@ -871,7 +871,7 @@ bool DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
 	}
 
-	LOGINFO("%s", string("Deleted image file '" + filename + "'").c_str());
+	LOGINFO("Deleted image file '%s'", filename.c_str());
 
 	return ReturnStatus(fd);
 }
@@ -915,7 +915,7 @@ bool RenameImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
-	LOGINFO("%s", string("Renamed image file '" + from + "' to '" + to + "'").c_str());
+	LOGINFO("Renamed image file '%s' to '%s'", from.c_str(), to.c_str());
 
 	return ReturnStatus(fd);
 }
@@ -966,7 +966,7 @@ bool CopyImage(int fd, const PbCommand& command)
 	    	return ReturnStatus(fd, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
 		}
 
-		LOGINFO("%s", string("Copied symlink '" + from + "' to '" + to + "'").c_str());
+		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str());
 
 		return ReturnStatus(fd);
 	}
@@ -993,7 +993,7 @@ bool CopyImage(int fd, const PbCommand& command)
     close(fd_dst);
     close(fd_src);
 
-	LOGINFO("%s", string("Copied image file '" + from + "' to '" + to + "'").c_str());
+	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str());
 
 	return ReturnStatus(fd);
 }
@@ -1026,10 +1026,10 @@ bool SetImagePermissions(int fd, const PbCommand& command)
 	}
 
 	if (protect) {
-		LOGINFO("%s", string("Protected image file '" + filename + "'").c_str());
+		LOGINFO("Protected image file '%s'", filename.c_str());
 	}
 	else {
-		LOGINFO("%s", string("Unprotected image file '" + filename + "'").c_str());
+		LOGINFO("Unprotected image file '%s'", filename.c_str());
 	}
 
 	return ReturnStatus(fd);
@@ -1761,7 +1761,7 @@ static void *MonThread(void *param)
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					string log_level = GetParam(command, "level");
 					bool status = SetLogLevel(log_level);
@@ -1775,7 +1775,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					string folder = GetParam(command, "folder");
 					if (folder.empty()) {
@@ -1792,7 +1792,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICES_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_status(true);
@@ -1808,7 +1808,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_TYPES_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_status(true);
@@ -1819,7 +1819,7 @@ static void *MonThread(void *param)
 
 
 				case SERVER_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_status(true);
@@ -1829,7 +1829,7 @@ static void *MonThread(void *param)
 				}
 
 				case IMAGE_FILES_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 					GetAvailableImages(*image_files_info);
@@ -1841,7 +1841,7 @@ static void *MonThread(void *param)
 				}
 
 				case NETWORK_INTERFACES_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
 					GetNetworkInterfacesInfo(*network_interfaces_info);
@@ -1927,6 +1927,8 @@ int main(int argc, char* argv[])
 	else {
 		default_image_folder = "/home/pi/images";
 	}
+
+	LOGINFO("Default image folder is '%s'", default_image_folder.c_str());
 
 	int port = 6868;
 
