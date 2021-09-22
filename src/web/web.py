@@ -42,6 +42,7 @@ from ractl_cmds import (
     detach_all,
     get_server_info,
     get_network_info,
+    get_device_types,
     validate_scsi_id,
     set_log_level,
 )
@@ -55,6 +56,7 @@ def index():
     server_info = get_server_info()
     disk = disk_space()
     devices = list_devices()
+    device_types=get_device_types()
     files=list_files()
     config_files=list_config_files()
 
@@ -78,6 +80,7 @@ def index():
         running_env=running_env(),
         server_info=server_info,
         netinfo=get_network_info(),
+        device_types=device_types["device_types"],
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix="."+", .".join(VALID_FILE_SUFFIX),
         removable_device_types=REMOVABLE_DEVICE_TYPES,
@@ -320,6 +323,7 @@ def attach():
     file_name = request.form.get("file_name")
     file_size = request.form.get("file_size")
     scsi_id = request.form.get("scsi_id")
+    device_type = request.form.get("type")
 
     validate = validate_scsi_id(scsi_id)
     if validate["status"] == False:
@@ -328,14 +332,8 @@ def attach():
 
     kwargs = {"image": file_name}
 
-    # Validate image type by file name suffix
-    # Supplementing file ending based image type detection on the backend side
-    if file_name.lower().endswith(CDROM_FILE_SUFFIX):
-        kwargs["device_type"] = "SCCD"
-    elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
-        kwargs["device_type"] = "SCRM"
-    else:
-        kwargs["device_type"] = "SCHD"
+    if device_type != "":
+        kwargs["device_type"] = device_type
  
     # Attempt to load the device properties file:
     # same base path but PROPERTIES_SUFFIX instead of the original suffix.

@@ -22,7 +22,19 @@ def list_files():
     files = []
     for f in result.image_files_info.image_files:
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
-        files.append({"name": f.name, "size": f.size, "size_mb": size_mb})
+        if f.name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
+            dtype = "SCHD"
+        elif f.name.lower().endswith(CDROM_FILE_SUFFIX):
+            dtype = "SCCD"
+        elif f.name.lower().endswith(REMOVABLE_FILE_SUFFIX):
+            dtype = "SCRM"
+        elif f.name.lower().endswith(MO_FILE_SUFFIX):
+            dtype = "SCMO"
+        elif f.name.lower().endswith(SASI_FILE_SUFFIX):
+            dtype = "SAHD"
+        else:
+            dtype = ""
+        files.append({"name": f.name, "size": f.size, "size_mb": size_mb, "detected_type": dtype})
 
     return {"status": result.status, "msg": result.msg, "files": files}
 

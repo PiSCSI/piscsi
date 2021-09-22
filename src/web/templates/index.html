@@ -107,6 +107,12 @@
                         <option value="{{id}}">{{id}}</option>
                         {% endfor %}
                     </select>
+		    <select name="type">
+			    <option value="">Detect</option>
+			    {% for d in device_types %}
+			    <option value="{{d}}" {% if d == file["detected_type"] %}selected{% endif %}>{{d}}</option>
+			    {% endfor %}
+                    </select>
                     {% if not file["name"].lower().endswith(archive_file_suffix) %}
                     <input type="submit" value="Attach" />
 		    {% endif %}

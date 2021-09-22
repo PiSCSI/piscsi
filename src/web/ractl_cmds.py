@@ -29,6 +29,19 @@ def get_network_info():
     result.ParseFromString(data)
     ifs = result.network_interfaces_info.name
     return {"status": result.status, "ifs": ifs}
+
+
+def get_device_types():
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DEVICE_TYPES_INFO
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    device_types = []
+    for t in result.device_types_info.properties:
+        device_types.append(proto.PbDeviceType.Name(t.type))
+    return {"status": result.status, "device_types": device_types}
     
 
 def validate_scsi_id(scsi_id):
