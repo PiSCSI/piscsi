@@ -537,23 +537,28 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 		struct dirent *dir;
 		while ((dir = readdir(d))) {
 			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
-				if (dir->d_type == DT_REG) {
-					string filename = default_image_folder + "/" + dir->d_name;
-					struct stat st;
-					if (!stat(filename.c_str(), &st)) {
-						if (!st.st_size) {
-							LOGTRACE("File in image folder '%s' has a size of 0 bytes", dir->d_name);
-							continue;
-						}
+				string filename = default_image_folder + "/" + dir->d_name;
 
-						if (st.st_size % 512) {
-							LOGTRACE("File in image folder '%s' size is not a multiple of 512", dir->d_name);
-							continue;
-						}
+				struct stat st;
+				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
+					if (!st.st_size) {
+						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name,
+								default_image_folder.c_str());
+						continue;
+					}
+
+					if (st.st_size % 512) {
+						LOGTRACE("Size of file '%s' in image folder '%s' is not a multiple of 512", dir->d_name,
+								default_image_folder.c_str());
+						continue;
 					}
 					else {
 						continue;
 					}
+				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
+					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name,
+							default_image_folder.c_str());
+					continue;
 				}
 
 				GetImageFile(image_files_info.add_image_files(), dir->d_name);
