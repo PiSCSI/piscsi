@@ -707,7 +707,13 @@ bool SetDefaultImageFolder(const string& f)
 
 	// If a relative path is specified the path is assumed to be relative to the user's home directory
 	if (folder[0] != '/') {
-		const passwd *passwd = getpwuid(getuid());
+		int uid = getuid();
+		const char *sudo_user = getenv("SUDO_UID");
+		if (sudo_user) {
+			uid = stoi(sudo_user);
+		}
+
+		const passwd *passwd = getpwuid(uid);
 		if (passwd) {
 			folder = passwd->pw_dir;
 			folder += "/";
@@ -1929,8 +1935,13 @@ int main(int argc, char* argv[])
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
-	// ~/images is the default folder for device image file. For the root user /home/pi/images is the default.
-	const int uid = getuid();
+	// ~/images is the default folder for device image files
+	int uid = getuid();
+	const char *sudo_user = getenv("SUDO_UID");
+	if (sudo_user) {
+		uid = stoi(sudo_user);
+	}
+
 	const passwd *passwd = getpwuid(uid);
 	if (uid && passwd) {
 		string folder = passwd->pw_dir;
