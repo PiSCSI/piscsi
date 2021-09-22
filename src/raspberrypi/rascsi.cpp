@@ -32,6 +32,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
 #include <sys/sendfile.h>
+#include <dirent.h>
 #include <ifaddrs.h>
 #include <string>
 #include <sstream>
@@ -117,7 +118,6 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout,"  hdn : SCSI HD image (NEC GENUINE)\n");
 		FPRT(stdout,"  hdi : SCSI HD image (Anex86 HD image)\n");
 		FPRT(stdout,"  nhd : SCSI HD image (T98Next HD image)\n");
-		FPRT(stdout,"  hda : SCSI HD image (APPLE GENUINE)\n");
 		FPRT(stdout,"  mos : SCSI MO image (MO image)\n");
 		FPRT(stdout,"  iso : SCSI CD image (ISO 9660 image)\n");
 
@@ -527,6 +527,45 @@ void GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 	GetDeviceTypeProperties(device_types_info, SCDP);
 }
 
+void GetAvailableImages(PbImageFilesInfo& image_files_info)
+{
+	image_files_info.set_default_image_folder(default_image_folder);
+
+	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
+	DIR *d = opendir(default_image_folder.c_str());
+	if (d) {
+		struct dirent *dir;
+		while ((dir = readdir(d))) {
+			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
+				string filename = default_image_folder + "/" + dir->d_name;
+
+				struct stat st;
+				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
+					if (!st.st_size) {
+						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name,
+								default_image_folder.c_str());
+						continue;
+					}
+
+					if (st.st_size % 512) {
+						LOGTRACE("Size of file '%s' in image folder '%s' is not a multiple of 512", dir->d_name,
+								default_image_folder.c_str());
+						continue;
+					}
+				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
+					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name,
+							default_image_folder.c_str());
+					continue;
+				}
+
+				GetImageFile(image_files_info.add_image_files(), dir->d_name);
+			}
+		}
+
+	    closedir(d);
+	}
+}
+
 void GetAvailableImages(PbServerInfo& server_info)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
@@ -534,26 +573,7 @@ void GetAvailableImages(PbServerInfo& server_info)
 
 	image_files_info->set_default_image_folder(default_image_folder);
 
-	if (!access(default_image_folder.c_str(), F_OK)) {
-		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
-			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
-				GetImageFile(image_files_info->add_image_files(), entry.path().filename());
-			}
-		}
-	}
-}
-
-void GetAvailableImages(PbImageFilesInfo& image_files_info)
-{
-	image_files_info.set_default_image_folder(default_image_folder);
-
-	if (!access(default_image_folder.c_str(), F_OK)) {
-		for (const auto& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
-			if (entry.is_regular_file() && entry.file_size() && !(entry.file_size() & 0x1ff)) {
-				GetImageFile(image_files_info.add_image_files(), entry.path().filename());
-			}
-		}
-	}
+	GetAvailableImages(*image_files_info);
 }
 
 void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
@@ -687,7 +707,13 @@ bool SetDefaultImageFolder(const string& f)
 
 	// If a relative path is specified the path is assumed to be relative to the user's home directory
 	if (folder[0] != '/') {
-		const passwd *passwd = getpwuid(getuid());
+		int uid = getuid();
+		const char *sudo_user = getenv("SUDO_UID");
+		if (sudo_user) {
+			uid = stoi(sudo_user);
+		}
+
+		const passwd *passwd = getpwuid(uid);
 		if (passwd) {
 			folder = passwd->pw_dir;
 			folder += "/";
@@ -742,7 +768,7 @@ string SetReservedIds(const string& ids)
     		s << id;
     	}
 
-    	LOGINFO("Reserved IDs set to: %s", s.str().c_str());
+    	LOGINFO("Reserved ID(s) set to %s", s.str().c_str());
     }
     else {
     	LOGINFO("Cleared reserved IDs");
@@ -864,7 +890,7 @@ bool DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
 	}
 
-	LOGINFO("%s", string("Deleted image file '" + filename + "'").c_str());
+	LOGINFO("Deleted image file '%s'", filename.c_str());
 
 	return ReturnStatus(fd);
 }
@@ -908,7 +934,7 @@ bool RenameImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
-	LOGINFO("%s", string("Renamed image file '" + from + "' to '" + to + "'").c_str());
+	LOGINFO("Renamed image file '%s' to '%s'", from.c_str(), to.c_str());
 
 	return ReturnStatus(fd);
 }
@@ -943,9 +969,25 @@ bool CopyImage(int fd, const PbCommand& command)
 	from = default_image_folder + "/" + from;
 	to = default_image_folder + "/" + to;
 
-	struct stat st;
-	if (!stat(to.c_str(), &st)) {
+	struct stat st_dst;
+	if (!stat(to.c_str(), &st_dst)) {
 		return ReturnStatus(fd, false, "Image file '" + to + "' already exists");
+	}
+
+	struct stat st_src;
+    if (lstat(from.c_str(), &st_src)) {
+    	return ReturnStatus(fd, false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
+    }
+
+    // Symbolic links need a special handling
+	if ((st_src.st_mode & S_IFMT) == S_IFLNK) {
+		if (symlink(filesystem::read_symlink(from).c_str(), to.c_str())) {
+	    	return ReturnStatus(fd, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
+		}
+
+		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str());
+
+		return ReturnStatus(fd);
 	}
 
 	int fd_src = open(from.c_str(), O_RDONLY, 0);
@@ -953,14 +995,9 @@ bool CopyImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
 	}
 
-	struct stat st_src;
-    if (fstat(fd_src, &st_src) == -1) {
-		return ReturnStatus(fd, false, "Can't read source image file '" + from + "': " + string(strerror(errno)));
-    }
-
 	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st_src.st_mode);
 	if (fd_dst == -1) {
-		close (fd_dst);
+		close(fd_src);
 
 		return ReturnStatus(fd, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
@@ -975,7 +1012,7 @@ bool CopyImage(int fd, const PbCommand& command)
     close(fd_dst);
     close(fd_src);
 
-	LOGINFO("%s", string("Copied image file '" + from + "' to '" + to + "'").c_str());
+	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str());
 
 	return ReturnStatus(fd);
 }
@@ -1008,10 +1045,10 @@ bool SetImagePermissions(int fd, const PbCommand& command)
 	}
 
 	if (protect) {
-		LOGINFO("%s", string("Protected image file '" + filename + "'").c_str());
+		LOGINFO("Protected image file '%s'", filename.c_str());
 	}
 	else {
-		LOGINFO("%s", string("Unprotected image file '" + filename + "'").c_str());
+		LOGINFO("Unprotected image file '%s'", filename.c_str());
 	}
 
 	return ReturnStatus(fd);
@@ -1532,29 +1569,25 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhG:g:D:d:B:b:N:n:T:t:P:p:R:r:F:f:")) != -1) {
-		switch (tolower(opt)) {
+	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:")) != -1) {
+		switch (opt) {
+			// The three options below are kind of a compound option with two letters
 			case 'i':
+			case 'I':
 				is_sasi = false;
 				max_id = 7;
 				id = -1;
 				continue;
 
 			case 'h':
+			case 'H':
 				is_sasi = true;
 				max_id = 15;
 				id = -1;
 				continue;
 
-			case 'b': {
-				if (!GetAsInt(optarg, block_size)) {
-					cerr << "Invalid block size " << optarg << endl;
-					return false;
-				}
-				continue;
-			}
-
-			case 'd': {
+			case 'd':
+			case 'D': {
 				char* end;
 				id = strtol(optarg, &end, 10);
 				if (*end || id < 0 || max_id < id) {
@@ -1564,14 +1597,22 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'f':
+			case 'b': {
+				if (!GetAsInt(optarg, block_size)) {
+					cerr << "Invalid block size " << optarg << endl;
+					return false;
+				}
+				continue;
+			}
+
+			case 'F':
 				if (!SetDefaultImageFolder(optarg)) {
 					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
 					return false;
 				}
 				continue;
 
-			case 'g':
+			case 'L':
 				log_level = optarg;
 				continue;
 
@@ -1739,7 +1780,7 @@ static void *MonThread(void *param)
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					string log_level = GetParam(command, "level");
 					bool status = SetLogLevel(log_level);
@@ -1753,7 +1794,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					string folder = GetParam(command, "folder");
 					if (folder.empty()) {
@@ -1770,7 +1811,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICES_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_status(true);
@@ -1786,7 +1827,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_TYPES_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_status(true);
@@ -1797,7 +1838,7 @@ static void *MonThread(void *param)
 
 
 				case SERVER_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_status(true);
@@ -1807,7 +1848,7 @@ static void *MonThread(void *param)
 				}
 
 				case IMAGE_FILES_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 					GetAvailableImages(*image_files_info);
@@ -1819,7 +1860,7 @@ static void *MonThread(void *param)
 				}
 
 				case NETWORK_INTERFACES_INFO: {
-					LOGTRACE(string("Received " + PbOperation_Name(command.operation()) + " command").c_str());
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
 					GetNetworkInterfacesInfo(*network_interfaces_info);
@@ -1894,13 +1935,16 @@ int main(int argc, char* argv[])
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
 
-	// ~/images is the default folder for device image file. For the root user /home/pi/images is the default.
-	const int uid = getuid();
+	// ~/images is the default folder for device image files, for the root user it is /home/pi/images
+	int uid = getuid();
+	const char *sudo_user = getenv("SUDO_UID");
+	if (sudo_user) {
+		uid = stoi(sudo_user);
+	}
 	const passwd *passwd = getpwuid(uid);
 	if (uid && passwd) {
-		string folder = passwd->pw_dir;
-		folder += "/images";
-		default_image_folder = folder;
+		default_image_folder = passwd->pw_dir;
+		default_image_folder += "/images";
 	}
 	else {
 		default_image_folder = "/home/pi/images";

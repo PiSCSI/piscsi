@@ -26,8 +26,8 @@ else
 	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
-CFLAGS += -iquote . -MD -MP
-CXXFLAGS += -std=c++17 -Wno-psabi -iquote . -MD -MP
+CFLAGS += -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
+CXXFLAGS += -std=c++17 -Wno-psabi -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CFLAGS += $(EXTRA_FLAGS)
