@@ -526,6 +526,7 @@ void GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 	GetDeviceTypeProperties(device_types_info, SCDP);
 }
 
+// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
 void GetAvailableImages(PbImageFilesInfo& image_files_info)
 {
 	image_files_info.set_default_image_folder(default_image_folder);
