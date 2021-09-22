@@ -552,9 +552,6 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 								default_image_folder.c_str());
 						continue;
 					}
-					else {
-						continue;
-					}
 				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
 					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name,
 							default_image_folder.c_str());
