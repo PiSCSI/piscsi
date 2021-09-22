@@ -540,7 +540,7 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 				if (dir->d_type == DT_REG) {
 					string filename = default_image_folder + "/" + dir->d_name;
 					struct stat st;
-					if (!lstat(filename.c_str(), &st)) {
+					if (!stat(filename.c_str(), &st)) {
 						if (!st.st_size) {
 							LOGTRACE("File in image folder '%s' has a size of 0 bytes", dir->d_name);
 							continue;
