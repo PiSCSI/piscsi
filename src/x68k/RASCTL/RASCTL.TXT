@@ -1,0 +1,11 @@
+X68000 commands for the management tool (rasctl)
+
+Overview
+
+This is a program for using the RaSCSI management tool (rasctl) to interface with
+a real X68000 computer running Human68k over the RaSCSI bridge device.
+
+Description
+
+It has the exact same functionality as the management tool (rasctl) running on 
+the Raspberry Pi, so please refer to the RaSCSI documentation for instructions.
