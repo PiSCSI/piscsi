@@ -1939,8 +1939,6 @@ int main(int argc, char* argv[])
 		default_image_folder = "/home/pi/images";
 	}
 
-	LOGINFO("Default image folder is '%s'", default_image_folder.c_str());
-
 	int port = 6868;
 
 	if (!InitBus()) {
