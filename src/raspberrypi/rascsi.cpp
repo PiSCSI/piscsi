@@ -32,6 +32,7 @@
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
 #include <sys/sendfile.h>
+#include <dirent.h>
 #include <ifaddrs.h>
 #include <string>
 #include <sstream>
@@ -531,26 +532,31 @@ void GetAvailableImages(PbImageFilesInfo& image_files_info)
 {
 	image_files_info.set_default_image_folder(default_image_folder);
 
-	if (!access(default_image_folder.c_str(), F_OK)) {
-		for (auto const& entry : filesystem::directory_iterator(default_image_folder, filesystem::directory_options::skip_permission_denied)) {
-			if (entry.is_regular_file() || entry.is_block_file()) {
-				string filename = entry.path().filename();
+	DIR *d = opendir(default_image_folder.c_str());
+	if (d) {
+		struct dirent *dir;
+		while ((dir = readdir(d))) {
+			if (dir->d_type == DT_REG || dir->d_type == DT_BLK) {
+				if (dir->d_type == DT_REG) {
+					struct stat st;
+					if (!stat(dir->d_name, &st)) {
+						if (!st.st_size) {
+							LOGTRACE("File in image folder '%s' has a size of 0 bytes", dir->d_name);
+							continue;
+						}
 
-				if (entry.is_regular_file()) {
-					if (!entry.file_size()) {
-						LOGTRACE("File in image folder '%s' has a size of 0 bytes", filename.c_str());
-						continue;
-					}
-
-					if (entry.file_size() % 512) {
-						LOGTRACE("File in image folder '%s' size is not a multiple of 512", filename.c_str());
-						continue;
+						if (st.st_size % 512) {
+							LOGTRACE("File in image folder '%s' size is not a multiple of 512", dir->d_name);
+							continue;
+						}
 					}
 				}
 
-				GetImageFile(image_files_info.add_image_files(), filename);
+				GetImageFile(image_files_info.add_image_files(), dir->d_name);
 			}
 		}
+
+	    closedir(d);
 	}
 }
 
