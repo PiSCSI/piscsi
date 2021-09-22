@@ -1,3 +1,4 @@
+import logging
 from flask import (
     Flask,
     render_template,
@@ -7,6 +8,7 @@ from flask import (
     redirect,
     send_file,
     send_from_directory,
+    make_response,
 )
 
 from file_cmds import (
@@ -46,6 +48,7 @@ from ractl_cmds import (
 from settings import *
 
 app = Flask(__name__)
+log = logging.getLogger('pydrop')
 
 
 @app.route("/")
@@ -161,7 +164,7 @@ def drive_create():
     size = request.form.get("size")
     file_type = request.form.get("file_type")
     file_name = request.form.get("file_name")
-    
+
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
     if process["status"] == True:
@@ -483,30 +486,50 @@ def download_img():
         return redirect(url_for("index"))
 
 
-@app.route("/files/upload/<filename>", methods=["POST"])
-def upload_file(filename):
-    if not filename:
-        flash("No file provided.", "error")
-        return redirect(url_for("index"))
-
-    from os import path
+@app.route("/files/upload", methods=["POST"])
+def upload_file():
     from werkzeug.utils import secure_filename
-    file_path = path.join(app.config["UPLOAD_FOLDER"], secure_filename(filename))
-    if path.isfile(file_path):
-        flash(f"{filename} already exists.", "error")
-        return redirect(url_for("index"))
+    from os import path
+    import pydrop
 
-    from io import DEFAULT_BUFFER_SIZE
-    binary_new_file = "bx"
-    with open(file_path, binary_new_file, buffering=DEFAULT_BUFFER_SIZE) as f:
-        chunk_size = DEFAULT_BUFFER_SIZE
-        while True:
-            chunk = request.stream.read(chunk_size)
-            if len(chunk) == 0:
-                break
-            f.write(chunk)
-    # TODO: display an informative success message
-    return redirect(url_for("index", filename=filename))
+    file = request.files['file']
+
+    save_path = path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
+    current_chunk = int(request.form['dzchunkindex'])
+
+    # If the file already exists it's ok if we are appending to it,
+    # but not if it's new file that would overwrite the existing one
+    if path.exists(save_path) and current_chunk == 0:
+        # 400 and 500s will tell dropzone that an error occurred and show an error
+        return make_response(('File already exists', 400))
+
+    try:
+        with open(save_path, 'ab') as f:
+            f.seek(int(request.form['dzchunkbyteoffset']))
+            f.write(file.stream.read())
+    except OSError:
+        # log.exception will include the traceback so we can see what's wrong 
+        log.exception('Could not write to file')
+        return make_response(("Not sure why,"
+                              " but we couldn't write the file to disk", 500))
+
+    total_chunks = int(request.form['dztotalchunkcount'])
+
+    if current_chunk + 1 == total_chunks:
+        # This was the last chunk, the file should be complete and the size we expect
+        if path.getsize(save_path) != int(request.form['dztotalfilesize']):
+            log.error(f"File {file.filename} was completed, "
+                      f"but has a size mismatch."
+                      f"Was {path.getsize(save_path)} but we"
+                      f" expected {request.form['dztotalfilesize']} ")
+            return make_response(('Size mismatch', 500))
+        else:
+            log.info(f'File {file.filename} has been uploaded successfully')
+    else:
+        log.debug(f'Chunk {current_chunk + 1} of {total_chunks} '
+                  f'for file {file.filename} complete')
+
+    return make_response(("Chunk upload successful", 200))
 
 
 @app.route("/files/create", methods=["POST"])
