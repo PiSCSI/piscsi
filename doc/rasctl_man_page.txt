@@ -6,31 +6,32 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -e  |  -k | -l | -s | -y | [-d IMAGE_FOLDER] [-g LOG_LEVEL] [-h
-       HOST] [-p PORT] [-r RESERVED_IDS] [-v] -i ID [-c CMD]  [-f  FILE|PARAM]
-       [-n NAME] [-t TYPE] [-u UNIT]
+       rasctl  -L  |  -e  |  -k  |  -l | -s | -T | [-F IMAGE_FOLDER] [-C FILE‐
+       NAME:FILESIZE] [-x  CURRENT_NAME:NEW_NAME]  [-R  CURRENT_NAME:NEW_NAME]
+       [-g  LOG_LEVEL]  [-h  HOST]  [-p PORT] [-r RESERVED_IDS] [-v] -i ID [-c
+       CMD] [-f FILE|PARAM] [-n NAME] [-t TYPE] [-u UNIT]
 
 DESCRIPTION
-       rasctl  Sends  commands to the rascsi process to make configuration ad‐
+       rasctl Sends commands to the rascsi process to make  configuration  ad‐
        justments at runtime or to check the status of the devices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
        You do NOT need root privileges to use rasctl.
 
-       Note: The command and type arguments are  case  insensitive.  Only  the
+       Note:  The  command  and  type arguments are case insensitive. Only the
        first letter of the command/type is evaluated by the tool.
 
 OPTIONS
-       -a FILENAME:FILESIZE
+       -C FILENAME:FILESIZE
               Create an image file in the default image folder with the speci‐
               fied name and size in bytes.
 
-       -d IMAGE_FOLDER
+       -F IMAGE_FOLDER
               Set the default image folder.
 
-       -g LOG_LEVEL
-              Set the rascsi log level (trace, debug, info, warn, err,  criti‐
+       -L LOG_LEVEL
+              Set  the rascsi log level (trace, debug, info, warn, err, criti‐
               cal, off).
 
        -h HOST
@@ -38,13 +39,13 @@ OPTIONS
 
        -e     List all images files in the default image folder.
 
-       -k     Lists  all  available  network interfaces provided that they are
+       -N     Lists all available network interfaces provided  that  they  are
               up.
 
-       -l     List all of the devices that are  currently  being  emulated  by
+       -l     List  all  of  the  devices that are currently being emulated by
               RaSCSI, as well as their current status.
 
-       -m CURRENT_NAME:NEW_NAME
+       -R CURRENT_NAME:NEW_NAME
               Rename an image file in the default image folder.
 
        -p PORT
@@ -53,14 +54,14 @@ OPTIONS
        -r RESERVED_IDS
               Comma-separated list of IDs to reserve.
 
-       -s     Display  server-side settings like available images or supported
+       -s     Display server-side settings like available images or  supported
               device types.
 
-       -y     Display all device types and their properties.
+       -T     Display all device types and their properties.
 
        -v     Display the rascsi version.
 
-       -w FILENAME
+       -D FILENAME
               Delete an image file in the default image folder.
 
        -x CURRENT_NAME:NEW_NAME
@@ -73,7 +74,7 @@ OPTIONS
                  d(etach): Detach disk
                  i(nsert): Insert media (removable media devices only)
                  e(ject): Eject media (removable media devices only)
-                 p(rotect): Write protect the medium (not for  CD-ROMs,  which
+                 p(rotect):  Write  protect the medium (not for CD-ROMs, which
               are always read-only)
                  u(nprotect): Remove write protection from the medium (not for
               CD-ROMs, which are always read-only)
@@ -83,18 +84,18 @@ OPTIONS
 
        -b BLOCK_SIZE
               The optional block size. For SCSI drives 512, 1024, 2048 or 4096
-              bytes,  default  size  is 512 bytes. For SASI drives 256 or 1024
+              bytes, default size is 512 bytes. For SASI drives  256  or  1024
               bytes, default is 256 bytes.
 
        -f FILE|PARAM
               Device-specific: Either a path to a disk image file, or a param‐
-              eter  for a non-disk device. See the rascsi(1) man page for per‐
+              eter for a non-disk device. See the rascsi(1) man page for  per‐
               mitted file types.
 
        -t TYPE
-              Specifies the device type. This type overrides the type  derived
+              Specifies  the device type. This type overrides the type derived
               from  the  file  extension  of  the  specified  image.  See  the
-              rascsi(1) man page for the  available  device  types.  For  some
+              rascsi(1)  man  page  for  the  available device types. For some
               types there are shortcuts (only the first letter is required):
                  hd: SCSI hard disk drive
                  rm: SCSI removable media drive
@@ -104,16 +105,16 @@ OPTIONS
                  daynaport: DaynaPORT network adapter
 
        -n VENDOR:PRODUCT:REVISION
-              The  vendor, product and revision for the device, to be returned
+              The vendor, product and revision for the device, to be  returned
               with the INQUIRY data. A complete set of name components must be
               provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
               to 4 characters. Padding with blanks to the maxium length is au‐
-              tomatically  applied.  Once  set  the name of a device cannot be
+              tomatically applied. Once set the name of  a  device  cannot  be
               changed.
 
        -u UNIT
-              Unit number (0 or 1). This will default to  0.  This  option  is
-              only  used when there are multiple SCSI devices on a shared SCSI
+              Unit  number  (0  or  1). This will default to 0. This option is
+              only used when there are multiple SCSI devices on a shared  SCSI
               controller. (This is not common)
 
 EXAMPLES

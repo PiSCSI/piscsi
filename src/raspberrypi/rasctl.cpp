@@ -574,10 +574,10 @@ int main(int argc, char* argv[])
 	if (argc < 2) {
 		cerr << "SCSI Target Emulator RaSCSI Controller" << endl;
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
-		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
-		cerr << "[-d IMAGE_FOLDER] [-g LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
-		cerr << "[-a FILENAME:FILESIZE] [-w FILENAME] [-m CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-k] [-l] [-v] [-y]" << endl;
+		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
+		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
+		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
+		cerr << "[-L] [-k] [-l] [-v] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -613,7 +613,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "a:b:c:d:f:g:h:i:m:n:p:r:t:u:x:w:eklsvy")) != -1) {
+	while ((opt = getopt(argc, argv, "elsvNTD:L:R:a:b:c:f:h:i:n:p:r:t:u:x:C:F:L:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -623,7 +623,7 @@ int main(int argc, char* argv[])
 				device->set_unit(optarg[0] - '0');
 				break;
 
-			case 'a':
+			case 'C':
 				command.set_operation(CREATE_IMAGE);
 				image_params = optarg;
 				break;
@@ -645,12 +645,12 @@ int main(int argc, char* argv[])
 				}
 				break;
 
-			case 'd':
+			case 'F':
 				command.set_operation(DEFAULT_FOLDER);
 				default_folder = optarg;
 				break;
 
-			case'e':
+			case 'e':
 				command.set_operation(IMAGE_FILES_INFO);
 				break;
 
@@ -658,7 +658,7 @@ int main(int argc, char* argv[])
 				param = optarg;
 				break;
 
-			case 'k':
+			case 'N':
 				command.set_operation(NETWORK_INTERFACES_INFO);
 				break;
 
@@ -670,7 +670,7 @@ int main(int argc, char* argv[])
 				}
 				break;
 
-			case 'g':
+			case 'L':
 				command.set_operation(LOG_LEVEL);
 				log_level = optarg;
 				break;
@@ -683,7 +683,7 @@ int main(int argc, char* argv[])
 				list = true;
 				break;
 
-			case 'm':
+			case 'R':
 				command.set_operation(RENAME_IMAGE);
 				image_params = optarg;
 				break;
@@ -743,11 +743,11 @@ int main(int argc, char* argv[])
 				image_params = optarg;
 				break;
 
-			case 'y':
+			case 'T':
 				command.set_operation(DEVICE_TYPES_INFO);
 				break;
 
-			case 'w':
+			case 'D':
 				command.set_operation(DELETE_IMAGE);
 				image_params = optarg;
 				break;
