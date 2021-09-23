@@ -493,8 +493,9 @@ def upload_file():
 
     log = logging.getLogger("pydrop")
     file = request.files["file"]
+    filename = secure_filename(file.filename)
 
-    save_path = path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
+    save_path = path.join(app.config["UPLOAD_FOLDER"], filename)
     current_chunk = int(request.form['dzchunkindex'])
 
     # Makes sure not to overwrite an existing file, 
@@ -526,11 +527,11 @@ def upload_file():
         log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
                   f"for file {file.filename} completed.")
 
-    if file.filename.endswith("zip"):
-        from zipfile import ZipFile
-        with ZipFile(file_path, 'r') as zip:
-            zip.extractall()
-        delete_file(file_path)
+    from zipfile import ZipFile, is_zipfile
+    if is_zipfile(save_path):
+        with ZipFile(save_path, 'r') as z:
+            z.extractall(path=app.config["UPLOAD_FOLDER"])
+        delete_file(filename)
         return make_response(("File upload and unzip successful!", 200))
     else:
         return make_response(("File upload successful!", 200))
