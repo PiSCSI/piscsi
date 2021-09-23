@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// The DeviceFactory singleton creates devices based on their type and the extension of their image file
+// The DeviceFactory singleton creates devices based on their type and the image file extension
 //
 //---------------------------------------------------------------------------
 
@@ -33,7 +33,6 @@ public:
 
 	static DeviceFactory& instance();
 
-	static string GetExtension(const string&);
 	static PbDeviceType GetTypeForFile(const string&);
 
 	Device *CreateDevice(PbDeviceType, const string&);
@@ -51,4 +50,6 @@ private:
 	map<PbDeviceType, map<uint64_t, Geometry>> geometries;
 
 	map<PbDeviceType, map<string, string>> default_params;
+
+	static string GetExtension(const string&);
 };

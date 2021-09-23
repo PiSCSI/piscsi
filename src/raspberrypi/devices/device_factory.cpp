@@ -112,9 +112,7 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 
 Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 {
-	string ext = GetExtension(filename);
-
-	// If no type was specified try to derive the device type from the filename and extension
+	// If no type was specified try to derive the device type from the filename
 	if (type == UNDEFINED) {
 		type = GetTypeForFile(filename);
 		if (type == UNDEFINED) {
@@ -131,7 +129,8 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				((Disk *)device)->SetSectorSizes(sector_sizes[SAHD]);
 			break;
 
-			case SCHD:
+			case SCHD: {
+				string ext = GetExtension(filename);
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
 					device = new SCSIHD_NEC();
 					((Disk *)device)->SetSectorSizes({ 512 });
@@ -143,6 +142,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				break;
+			}
 
 			case SCRM:
 				device = new SCSIHD(true);
