@@ -30,12 +30,12 @@ public:
 
 	static ProtobufResponseHandler& instance();
 
-	void GetAvailableImages(PbImageFilesInfo&, const string&);
+	PbImageFilesInfo *GetAvailableImages(const string&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&, const string&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, const string&, int);
 	void GetDeviceTypesInfo(PbResult&, const PbCommand&);
 	void GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
-	void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo&);
+	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo();
 
 private:
 

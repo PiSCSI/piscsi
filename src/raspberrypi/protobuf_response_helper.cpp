@@ -152,9 +152,11 @@ void ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string
 	}
 }
 
-void ProtobufResponseHandler::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& image_folder)
+PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(const string& image_folder)
 {
-	image_files_info.set_default_image_folder(image_folder);
+	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
+
+	image_files_info->set_default_image_folder(image_folder);
 
 	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
 	DIR *d = opendir(image_folder.c_str());
@@ -180,22 +182,21 @@ void ProtobufResponseHandler::GetAvailableImages(PbImageFilesInfo& image_files_i
 					continue;
 				}
 
-				GetImageFile(image_files_info.add_image_files(), dir->d_name, image_folder);
+				GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
 			}
 		}
 
 	    closedir(d);
 	}
+
+	return image_files_info;
 }
 
 void ProtobufResponseHandler::GetAvailableImages(PbServerInfo& server_info, const string& image_folder)
 {
-	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
-	server_info.set_allocated_image_files_info(image_files_info);
-
+	PbImageFilesInfo *image_files_info = GetAvailableImages(image_folder);
 	image_files_info->set_default_image_folder(image_folder);
-
-	GetAvailableImages(*image_files_info, image_folder);
+	server_info.set_allocated_image_files_info(image_files_info);
 }
 
 void ProtobufResponseHandler::GetDevices(PbServerInfo& serverInfo, const vector<Device *>& devices, const string& image_folder)
@@ -242,20 +243,25 @@ void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& 
 		const Device *device = devices[id_set.first * unit_count + id_set.second];
 		GetDevice(device, pb_devices->add_devices(), image_folder);
 	}
+
+	result.set_status(true);
 }
 
 void ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
 {
 	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
+	result.set_allocated_device_types_info(device_types_info);
+
 	GetAllDeviceTypeProperties(*device_types_info);
 
-	result.set_allocated_device_types_info(device_types_info);
+	result.set_status(true);
 }
 
 void ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
 		const string& image_folder, const string& log_level)
 {
 	PbServerInfo *server_info = new PbServerInfo();
+	result.set_allocated_server_info(server_info);
 
 	server_info->set_major_version(rascsi_major_version);
 	server_info->set_minor_version(rascsi_minor_version);
@@ -264,15 +270,13 @@ void ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Devic
 	server_info->set_current_log_level(log_level);
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(*server_info, image_folder);
-	PbNetworkInterfacesInfo * network_interfaces_info = new PbNetworkInterfacesInfo();
-	server_info->set_allocated_network_interfaces_info(network_interfaces_info);
-	GetNetworkInterfacesInfo(*network_interfaces_info);
+	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo());
 	GetDevices(*server_info, devices, image_folder);
 	for (int id : reserved_ids) {
 		server_info->add_reserved_ids(id);
 	}
 
-	result.set_allocated_server_info(server_info);
+	result.set_status(true);
 }
 
 void ProtobufResponseHandler::GetLogLevels(PbServerInfo& server_info)
@@ -282,9 +286,13 @@ void ProtobufResponseHandler::GetLogLevels(PbServerInfo& server_info)
 	}
 }
 
-void ProtobufResponseHandler::GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
+PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo()
 {
+	PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
+
 	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
-		network_interfaces_info.add_name(network_interface);
+		network_interfaces_info->add_name(network_interface);
 	}
+
+	return network_interfaces_info;
 }

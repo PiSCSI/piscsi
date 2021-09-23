@@ -1543,7 +1543,6 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_status(true);
 					response_helper.GetDevicesInfo(result, command, devices, default_image_folder, UnitNum);
 					SerializeMessage(fd, result);
 					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
@@ -1559,7 +1558,6 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_status(true);
 					response_helper.GetDeviceTypesInfo(result, command);
 					SerializeMessage(fd, result);
 					break;
@@ -1570,7 +1568,6 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_status(true);
 					response_helper.GetServerInfo(result, devices, reserved_ids, default_image_folder, current_log_level);
 					SerializeMessage(fd, result);
 					break;
@@ -1579,8 +1576,7 @@ static void *MonThread(void *param)
 				case IMAGE_FILES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
-					PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
-					response_helper.GetAvailableImages(*image_files_info, default_image_folder);
+					PbImageFilesInfo *image_files_info = response_helper.GetAvailableImages(default_image_folder);
 					PbResult result;
 					result.set_status(true);
 					result.set_allocated_image_files_info(image_files_info);
@@ -1591,11 +1587,9 @@ static void *MonThread(void *param)
 				case NETWORK_INTERFACES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
-					PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
-					response_helper.GetNetworkInterfacesInfo(*network_interfaces_info);
 					PbResult result;
 					result.set_status(true);
-					result.set_allocated_network_interfaces_info(network_interfaces_info);
+					result.set_allocated_network_interfaces_info(response_helper.GetNetworkInterfacesInfo());
 					SerializeMessage(fd, result);
 					break;
 				}
