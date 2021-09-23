@@ -33,8 +33,8 @@ public:
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&, const string&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, const string&, int);
-	void GetDeviceTypesInfo(PbResult&, const PbCommand&);
-	void GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
+	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
+	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 
 private:
