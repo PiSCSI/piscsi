@@ -30,18 +30,11 @@ public:
 
 	static ProtobufResponseHandler& instance();
 
-	PbDeviceProperties *GetDeviceProperties(const Device *);
-	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
-	void GetDevice(const Device *, PbDevice *, const string&);
-	void GetImageFile(PbImageFile *, const string&, const string&);
 	void GetAvailableImages(PbImageFilesInfo&, const string&);
-	void GetAvailableImages(PbServerInfo&, const string&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&, const string&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, const string&, int);
 	void GetDeviceTypesInfo(PbResult&, const PbCommand&);
 	void GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
-	void GetLogLevels(PbServerInfo&);
 	void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo&);
 
 private:
@@ -49,4 +42,12 @@ private:
 	DeviceFactory device_factory;
 
 	vector<string> log_levels;
+
+	PbDeviceProperties *GetDeviceProperties(const Device *);
+	void GetDevice(const Device *, PbDevice *, const string&);
+	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
+	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
+	void GetAvailableImages(PbServerInfo&, const string&);
+	void GetImageFile(PbImageFile *, const string&, const string&);
+	void GetLogLevels(PbServerInfo&);
 };
