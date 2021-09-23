@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi.h"
-
 #include "os.h"
 #include "filepath.h"
 #include "fileio.h"
@@ -24,7 +23,7 @@
 #include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
-#include "protobuf_response_handler.h"
+#include "protobuf_response_helper.h"
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rasutil.h"

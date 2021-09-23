@@ -13,7 +13,7 @@
 #include "devices/device.h"
 #include "protobuf_util.h"
 #include "rascsi_interface.pb.h"
-#include "protobuf_response_handler.h"
+#include "protobuf_response_helper.h"
 
 using namespace rascsi_interface;
 
