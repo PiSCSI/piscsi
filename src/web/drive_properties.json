@@ -157,6 +157,18 @@
 },
 {
     "device_type": "SCHD",
+    "vendor": "MINSCRIB",
+    "product": "    M8425 - SCSI",
+    "revision": "209A",
+    "block_size": 512,
+    "size": 20994048,
+    "name": "Miniscribe M8425",
+    "file_type": "hds",
+    "description": "Recognized by unpatched Apple HD SC Setup.",
+    "url": ""
+},
+{
+    "device_type": "SCHD",
     "vendor": "QUANTUM",
     "product": "FIREBALL ST4.3S",
     "revision": "0F0C",
@@ -164,7 +176,19 @@
     "size": 4337270784,
     "name": "Quantum Fireball ST4.3S",
     "file_type": "hds",
-    "description": "Recommended for Macintosh System 6 or later.",
+    "description": "Recommended for MacOS 8.1 or later.",
+    "url": ""
+},
+{
+    "device_type": "SCHD",
+    "vendor": "SEAGATE",
+    "product": "ST32550N",
+    "revision": "0019",
+    "block_size": 512,
+    "size": 2147357696,
+    "name": "Seagate Barracuda 2GB",
+    "file_type": "hds",
+    "description": "2GB is the largest volume size of HFS on older Macs.",
     "url": ""
 },
 {
