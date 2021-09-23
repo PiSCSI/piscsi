@@ -676,11 +676,6 @@ bool RenameImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': File already exists");
 	}
 
-	struct stat st;
-	if (!stat(to.c_str(), &st)) {
-		return ReturnStatus(fd, false, "Image file '" + to + "' already exists");
-	}
-
 	if (rename(from.c_str(), to.c_str())) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
@@ -716,18 +711,13 @@ bool CopyImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
 	}
 
-	struct stat st_dst;
-	if (!stat(to.c_str(), &st_dst)) {
-		return ReturnStatus(fd, false, "Image file '" + to + "' already exists");
-	}
-
-	struct stat st_src;
-    if (lstat(from.c_str(), &st_src)) {
+	struct stat st;
+    if (lstat(from.c_str(), &st)) {
     	return ReturnStatus(fd, false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
     }
 
     // Symbolic links need a special handling
-	if ((st_src.st_mode & S_IFMT) == S_IFLNK) {
+	if ((st.st_mode & S_IFMT) == S_IFLNK) {
 		if (symlink(filesystem::read_symlink(from).c_str(), to.c_str())) {
 	    	return ReturnStatus(fd, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
 		}
@@ -742,14 +732,14 @@ bool CopyImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
 	}
 
-	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st_src.st_mode);
+	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st.st_mode);
 	if (fd_dst == -1) {
 		close(fd_src);
 
 		return ReturnStatus(fd, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
 
-    if (sendfile(fd_dst, fd_src, 0, st_src.st_size) == -1) {
+    if (sendfile(fd_dst, fd_src, 0, st.st_size) == -1) {
         close(fd_dst);
         close(fd_src);
 
