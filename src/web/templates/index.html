@@ -87,7 +87,6 @@
         <tr>
             <td><b>File</b></td>
             <td><b>Size</b></td>
-            <td><b>Type</b></td>
             <td><b>Actions</b></td>
         </tr>
         {% for file in files %}
@@ -100,13 +99,6 @@
                 </form>
             </td>
 	    <td>
-		{% if file["detected_type"] != "UNDEFINED" %}
-		{{file["detected_type"]}}
-	        {% else %}
-		????
-		{% endif %}
-            </td>
-            <td>
                 <form action="/scsi/attach" method="post">
                     <input type="hidden" name="file_name" value="{{file["name"]}}">
                     <input type="hidden" name="file_size" value="{{file["size"]}}">
@@ -115,9 +107,11 @@
                         <option value="{{id}}">{{id}}</option>
                         {% endfor %}
                     </select>
-		    {% if file["detected_type"] == "UNDEFINED" %}
+		    {% if file["detected_type"] != "UNDEFINED" %}
+		    {{file["detected_type"]}}
+	            {% else %}
 		    <select name="type">
-                        <option disabled>Choose</option>
+                        <option value="" Selected>????</option>
 			{% for d in device_types %}
 			<option value="{{d}}">{{d}}</option>
 			{% endfor %}
