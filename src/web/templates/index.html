@@ -116,7 +116,6 @@
                         {% endfor %}
                     </select>
 		    {% if file["detected_type"] == "UNDEFINED" %}
-		    <label for="type">Attach as:</label>
 		    <select name="type">
                         <option disabled>Choose</option>
 			{% for d in device_types %}
