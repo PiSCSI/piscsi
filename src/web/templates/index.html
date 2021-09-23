@@ -180,6 +180,7 @@
     <script type="application/javascript">
     Dropzone.options.dropper = {
         paramName: 'file',
+        acceptedFiles: '{{valid_file_suffix}}'
         chunking: true,
         forceChunking: true,
         url: '/files/upload',

@@ -526,7 +526,14 @@ def upload_file():
         log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
                   f"for file {file.filename} completed.")
 
-    return make_response(("File upload successful!", 200))
+    if file.filename.endswith("zip"):
+        from zipfile import ZipFile
+        with ZipFile(file_path, 'r') as zip:
+            zip.extractall()
+        delete_file(file_path)
+        return make_response(("File upload and unzip successful!", 200))
+    else:
+        return make_response(("File upload successful!", 200))
 
 
 @app.route("/files/create", methods=["POST"])
