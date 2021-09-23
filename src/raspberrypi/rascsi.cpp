@@ -268,6 +268,8 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 			image_file->set_size(st.st_size);
 		}
 	}
+
+	image_file->set_type(device_factory.GetTypeForFile(filename));
 }
 
 //---------------------------------------------------------------------------
@@ -511,7 +513,7 @@ void GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType 
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	Device *device = device_factory.CreateDevice(type, "", "");
+	Device *device = device_factory.CreateDevice(type, "");
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
 	delete device;
 }
@@ -1081,17 +1083,12 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	}
 
 	string filename = GetParam(pb_device, "file");
-	string ext;
-	size_t separator = filename.rfind('.');
-	if (separator != string::npos) {
-		ext = filename.substr(separator + 1);
-	}
 
 	// Create a new device, based upon the provided type or filename extension
-	Device *device = device_factory.CreateDevice(type, filename, ext);
+	Device *device = device_factory.CreateDevice(type, filename);
 	if (!device) {
 		if (type == UNDEFINED) {
-			return ReturnStatus(fd, false, "No device type provided for unknown file extension '" + ext + "'");
+			return ReturnStatus(fd, false, "No device type provided for unknown extension of file '" + filename + "'");
 		}
 		else {
 			return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));

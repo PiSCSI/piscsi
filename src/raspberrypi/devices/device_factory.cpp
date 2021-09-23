@@ -72,33 +72,52 @@ DeviceFactory& DeviceFactory::instance()
 	return instance;
 }
 
-Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, const string& extension)
+string DeviceFactory::GetExtension(const string& filename)
 {
-	string ext = extension;
+	string ext;
+	size_t separator = filename.rfind('.');
+	if (separator != string::npos) {
+		ext = filename.substr(separator + 1);
+	}
 	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
+
+	return ext;
+}
+
+PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
+{
+	string ext = GetExtension(filename);
+	if (ext == "hdf") {
+		return SAHD;
+	}
+	else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
+		return SCHD;
+	}
+	else if (ext == "hdr") {
+		return SCRM;
+	} else if (ext == "mos") {
+		return SCMO;
+	} else if (ext == "iso") {
+		return SCCD;
+	}
+	else if (filename == "bridge") {
+		return SCBR;
+	}
+	else if (filename == "daynaport") {
+		return SCDP;
+	}
+
+	return UNDEFINED;
+}
+
+Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
+{
+	string ext = GetExtension(filename);
 
 	// If no type was specified try to derive the device type from the filename and extension
 	if (type == UNDEFINED) {
-		if (ext == "hdf") {
-			type = SAHD;
-		}
-		else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
-			type = SCHD;
-		}
-		else if (ext == "hdr") {
-			type = SCRM;
-		} else if (ext == "mos") {
-			type = SCMO;
-		} else if (ext == "iso") {
-			type = SCCD;
-		}
-		else if (filename == "bridge") {
-			type = SCBR;
-		}
-		else if (filename == "daynaport") {
-			type = SCDP;
-		}
-		else {
+		type = GetTypeForFile(filename);
+		if (type == UNDEFINED) {
 			return NULL;
 		}
 	}

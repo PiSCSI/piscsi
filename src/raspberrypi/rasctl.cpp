@@ -265,9 +265,12 @@ void DisplayImageFiles(const list<PbImageFile> image_files, const string& defaul
 
 		cout << "Available image files:" << endl;
 		for (const auto& file : files) {
-			cout << "  " << file.name() << " (" << file.size() << " bytes)";
+			cout << "  " << file.name() << "  " << file.size() << " bytes";
 			if (file.read_only()) {
-				cout << ", read-only";
+				cout << "  read-only";
+			}
+			if (file.type() != UNDEFINED) {
+				cout << "  " << PbDeviceType_Name(file.type());
 			}
 			cout << endl;
 		}
