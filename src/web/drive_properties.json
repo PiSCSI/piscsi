@@ -74,6 +74,18 @@
 {
     "device_type": "SCHD",
     "vendor": "MICROP",
+    "product": "1528-15MD1066702",
+    "revision": "DD24",
+    "block_size": 512,
+    "size": 1342304256,
+    "name": "Micropolis 1528",
+    "file_type": "hds",
+    "description": "Largest recognized drive on HP-US 8.0",
+    "url": "https://parisc.wiki.kernel.org/images-parisc/0/06/980723ng.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "MICROP",
     "product": "1325",
     "revision": "",
     "block_size": 512,
@@ -89,7 +101,7 @@
     "product": "1588T",
     "revision": "",
     "block_size": 512,
-    "size": 333742080,
+    "size": 666324480,
     "name": "Micropolis 1588T",
     "file_type": "hds",
     "description": "Largest predefined on SunOS 3/4 (Sun-3)",
