@@ -72,8 +72,11 @@ DeviceFactory& DeviceFactory::instance()
 	return instance;
 }
 
-Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, const string& ext)
+Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename, const string& extension)
 {
+	string ext = extension;
+	std::transform(ext.begin(), ext.end(), ext.begin(), [](unsigned char c){ return std::tolower(c); });
+
 	// If no type was specified try to derive the device type from the filename and extension
 	if (type == UNDEFINED) {
 		if (ext == "hdf") {

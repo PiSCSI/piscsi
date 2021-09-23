@@ -3,12 +3,16 @@
 rasctl \- Sends management commands to the rascsi process
 .SH SYNOPSIS
 .B rasctl
+\fB\-L\fR |
 \fB\-e\fR |
 \fB\-k\fR |
 \fB\-l\fR |
 \fB\-s\fR |
-\fB\-y\fR |
-[\fB\-d\fR \fIIMAGE_FOLDER\fR]
+\fB\-T\fR |
+[\fB\-F\fR \fIIMAGE_FOLDER\fR]
+[\fB\-C\fR \fIFILENAME:FILESIZE\fR]
+[\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
+[\fB\-R\fR \fICURRENT_NAME:NEW_NAME\fR]
 [\fB\-g\fR \fILOG_LEVEL\fR]
 [\fB\-h\fR \fIHOST\fR]
 [\fB\-p\fR \fIPORT\fR]
@@ -32,13 +36,13 @@ Note: The command and type arguments are case insensitive. Only the first letter
 
 .SH OPTIONS
 .TP
-.BR \-a\fI " "\fIFILENAME:FILESIZE
+.BR \-C\fI " "\fIFILENAME:FILESIZE
 Create an image file in the default image folder with the specified name and size in bytes.
 .TP
-.BR \-d\fI " "\fIIMAGE_FOLDER
+.BR \-F\fI " "\fIIMAGE_FOLDER
 Set the default image folder.
 .TP
-.BR \-g\fI " "\fILOG_LEVEL
+.BR \-L\fI " "\fILOG_LEVEL
 Set the rascsi log level (trace, debug, info, warn, err, critical, off).
 .TP
 .BR \-h\fI " " \fIHOST
@@ -47,13 +51,13 @@ The rascsi host to connect to, default is 'localhost'.
 .BR \-e\fI
 List all images files in the default image folder.
 .TP
-.BR \-k\fI
+.BR \-N\fI
 Lists all available network interfaces provided that they are up.
 .TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
 .TP
-.BR \-m\fI " "\fICURRENT_NAME:NEW_NAME
+.BR \-R\fI " "\fICURRENT_NAME:NEW_NAME
 Rename an image file in the default image folder.
 .TP
 .BR \-p\fI " " \fIPORT
@@ -65,13 +69,13 @@ Comma-separated list of IDs to reserve.
 .BR \-s\fI
 Display server-side settings like available images or supported device types.
 .TP
-.BR \-y\fI
+.BR \-T\fI
 Display all device types and their properties.
 .TP
 .BR \-v\fI " " \fI
 Display the rascsi version.
 .TP
-.BR \-w\fI " "\fIFILENAME
+.BR \-D\fI " "\fIFILENAME
 Delete an image file in the default image folder.
 .TP
 .BR \-x\fI " "\fICURRENT_NAME:NEW_NAME

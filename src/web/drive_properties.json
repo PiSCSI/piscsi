@@ -77,10 +77,10 @@
     "product": "1325",
     "revision": "",
     "block_size": 512,
-    "size": 69206016,
+    "size": 138412032,
     "name": "Micropolis 1325",
     "file_type": "hds",
-    "description": "Largest predefined on SunOS 2.",
+    "description": "Largest predefined on SunOS 2; Microp 1325 is actually an ESDI disk on an adapter.",
     "url": "https://stason.org/TULARC/pc/hard-drives-hdd/micropolis/1325-69MB-5-25-FH-MFM-ST506.html"
 },
 {
@@ -89,7 +89,7 @@
     "product": "1588T",
     "revision": "",
     "block_size": 512,
-    "size": 166871040,
+    "size": 333742080,
     "name": "Micropolis 1588-15",
     "file_type": "hds",
     "description": "Largest predefined on SunOS 3/4 (Sun-3)",
@@ -152,7 +152,7 @@
     "size": 545400320,
     "name": "Quantum Fireball 540S",
     "file_type": "hds",
-    "description": "Recommended for older Macintosh systems.",
+    "description": "Recommended for older Macintosh systems. Recognized by Apple HD SC Setup.",
     "url": ""
 },
 {
@@ -164,7 +164,7 @@
     "size": 4337270784,
     "name": "Quantum Fireball ST4.3S",
     "file_type": "hds",
-    "description": "Recommended for Macintosh System 6 or later.",
+    "description": "Recommended for Macintosh System 6 or later. Recognized by Apple HD SC Setup.",
     "url": ""
 },
 {
