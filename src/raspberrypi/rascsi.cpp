@@ -10,7 +10,6 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi.h"
-
 #include "os.h"
 #include "filepath.h"
 #include "fileio.h"
@@ -24,6 +23,7 @@
 #include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
+#include "protobuf_response_helper.h"
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rasutil.h"
@@ -69,11 +69,11 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
+ProtobufResponseHandler& response_helper = ProtobufResponseHandler::instance();
 
 //---------------------------------------------------------------------------
 //
@@ -253,21 +253,6 @@ void Reset()
 
 	// Reset the bus
 	bus->Reset();
-}
-
-void GetImageFile(PbImageFile *image_file, const string& filename)
-{
-	image_file->set_name(filename);
-	if (!filename.empty()) {
-		string f = filename[0] == '/' ? filename : default_image_folder + "/" + filename;
-
-		image_file->set_read_only(access(f.c_str(), W_OK));
-
-		struct stat st;
-		if (!stat(f.c_str(), &st)) {
-			image_file->set_size(st.st_size);
-		}
-	}
 }
 
 //---------------------------------------------------------------------------
@@ -466,241 +451,6 @@ void LogDevices(const string& devices)
 	}
 }
 
-void GetLogLevels(PbServerInfo& server_info)
-{
-	for (const auto& log_level : log_levels) {
-		server_info.add_log_levels(log_level);
-	}
-}
-
-PbDeviceProperties *GetDeviceProperties(const Device *device)
-{
-	PbDeviceProperties *properties = new PbDeviceProperties();
-
-	properties->set_luns(device->GetSupportedLuns());
-	properties->set_read_only(device->IsReadOnly());
-	properties->set_protectable(device->IsProtectable());
-	properties->set_stoppable(device->IsStoppable());
-	properties->set_removable(device->IsRemovable());
-	properties->set_lockable(device->IsLockable());
-	properties->set_supports_file(dynamic_cast<const FileSupport *>(device));
-	properties->set_supports_params(device->SupportsParams());
-
-	PbDeviceType t = UNDEFINED;
-	PbDeviceType_Parse(device->GetType(), &t);
-
-	if (device->SupportsParams()) {
-		for (const auto& param : device_factory.GetDefaultParams(t)) {
-			auto& map = *properties->mutable_default_params();
-			map[param.first] = param.second;
-		}
-	}
-
-	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
-		properties->add_block_sizes(block_size);
-	}
-
-	for (const auto& capacity : device_factory.GetCapacities(t)) {
-		properties->add_capacities(capacity);
-	}
-
-	return properties;
-}
-
-void GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type)
-{
-	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
-	type_properties->set_type(type);
-	Device *device = device_factory.CreateDevice(type, "", "");
-	type_properties->set_allocated_properties(GetDeviceProperties(device));
-	delete device;
-}
-
-void GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
-{
-	GetDeviceTypeProperties(device_types_info, SAHD);
-	GetDeviceTypeProperties(device_types_info, SCHD);
-	GetDeviceTypeProperties(device_types_info, SCRM);
-	GetDeviceTypeProperties(device_types_info, SCMO);
-	GetDeviceTypeProperties(device_types_info, SCCD);
-	GetDeviceTypeProperties(device_types_info, SCBR);
-	GetDeviceTypeProperties(device_types_info, SCDP);
-}
-
-void GetAvailableImages(PbImageFilesInfo& image_files_info)
-{
-	image_files_info.set_default_image_folder(default_image_folder);
-
-	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
-	DIR *d = opendir(default_image_folder.c_str());
-	if (d) {
-		struct dirent *dir;
-		while ((dir = readdir(d))) {
-			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
-				string filename = default_image_folder + "/" + dir->d_name;
-
-				struct stat st;
-				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
-					if (!st.st_size) {
-						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name,
-								default_image_folder.c_str());
-						continue;
-					}
-
-					if (st.st_size % 512) {
-						LOGTRACE("Size of file '%s' in image folder '%s' is not a multiple of 512", dir->d_name,
-								default_image_folder.c_str());
-						continue;
-					}
-				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
-					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name,
-							default_image_folder.c_str());
-					continue;
-				}
-
-				GetImageFile(image_files_info.add_image_files(), dir->d_name);
-			}
-		}
-
-	    closedir(d);
-	}
-}
-
-void GetAvailableImages(PbServerInfo& server_info)
-{
-	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
-	server_info.set_allocated_image_files_info(image_files_info);
-
-	image_files_info->set_default_image_folder(default_image_folder);
-
-	GetAvailableImages(*image_files_info);
-}
-
-void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
-{
-	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
-		network_interfaces_info.add_name(network_interface);
-	}
-}
-
-void GetDevice(const Device *device, PbDevice *pb_device)
-{
-	pb_device->set_id(device->GetId());
-	pb_device->set_unit(device->GetLun());
-	pb_device->set_vendor(device->GetVendor());
-	pb_device->set_product(device->GetProduct());
-	pb_device->set_revision(device->GetRevision());
-
-	PbDeviceType type = UNDEFINED;
-	PbDeviceType_Parse(device->GetType(), &type);
-	pb_device->set_type(type);
-
-    pb_device->set_allocated_properties(GetDeviceProperties(device));
-
-    PbDeviceStatus *status = new PbDeviceStatus();
-	pb_device->set_allocated_status(status);
-	status->set_protected_(device->IsProtected());
-	status->set_stopped(device->IsStopped());
-	status->set_removed(device->IsRemoved());
-	status->set_locked(device->IsLocked());
-
-	if (device->SupportsParams()) {
-		for (const auto& param : device->GetParams()) {
-			AddParam(*pb_device, param.first, param.second);
-		}
-	}
-
-	const Disk *disk = dynamic_cast<const Disk*>(device);
-    if (disk) {
-    	pb_device->set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
-    	pb_device->set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
-    }
-
-    const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
-	if (file_support) {
-		Filepath filepath;
-		file_support->GetPath(filepath);
-		PbImageFile *image_file = new PbImageFile();
-		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
-		pb_device->set_allocated_file(image_file);
-	}
-}
-
-void GetDevices(PbServerInfo& serverInfo)
-{
-	for (const Device *device : devices) {
-		// Skip if unit does not exist or is not assigned
-		if (device) {
-			PbDevice *pb_device = serverInfo.mutable_devices()->add_devices();
-			GetDevice(device, pb_device);
-		}
-	}
-}
-
-void GetDevicesInfo(const PbCommand& command, PbResult& result)
-{
-	set<id_set> id_sets;
-	if (!command.devices_size()) {
-		for (const Device *device : devices) {
-			if (device) {
-				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
-			}
-		}
-	}
-	else {
-		for (const auto& device : command.devices()) {
-			if (devices[device.id() * UnitNum + device.unit()]) {
-				id_sets.insert(make_pair(device.id(), device.unit()));
-			}
-			else {
-				ostringstream error;
-				error << "No device for ID " << device.id() << ", unit " << device.unit();
-				result.set_status(false);
-				result.set_msg(error.str());
-				return;
-			}
-		}
-	}
-
-	PbDevices *pb_devices = new PbDevices();
-	result.set_allocated_device_info(pb_devices);
-
-	for (const auto& id_set : id_sets) {
-		Device *device = devices[id_set.first * UnitNum + id_set.second];
-		GetDevice(device, pb_devices->add_devices());
-	}
-}
-
-void GetDeviceTypesInfo(const PbCommand& command, PbResult& result)
-{
-	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
-	GetAllDeviceTypeProperties(*device_types_info);
-
-	result.set_allocated_device_types_info(device_types_info);
-}
-
-void GetServerInfo(PbResult& result)
-{
-	PbServerInfo *server_info = new PbServerInfo();
-
-	server_info->set_major_version(rascsi_major_version);
-	server_info->set_minor_version(rascsi_minor_version);
-	server_info->set_patch_version(rascsi_patch_version);
-	GetLogLevels(*server_info);
-	server_info->set_current_log_level(current_log_level);
-	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
-	GetAvailableImages(*server_info);
-	PbNetworkInterfacesInfo * network_interfaces_info = new PbNetworkInterfacesInfo();
-	server_info->set_allocated_network_interfaces_info(network_interfaces_info);
-	GetNetworkInterfacesInfo(*network_interfaces_info);
-	GetDevices(*server_info);
-	for (int id : reserved_ids) {
-		server_info->add_reserved_ids(id);
-	}
-
-	result.set_allocated_server_info(server_info);
-}
-
 bool SetDefaultImageFolder(const string& f)
 {
 	string folder = f;
@@ -777,10 +527,18 @@ string SetReservedIds(const string& ids)
 	return "";
 }
 
-bool IsValidFilename(const string& filename)
+bool IsValidSrcFilename(const string& filename)
 {
+	// Source file must exist and must be a regular file or a symlink
 	struct stat st;
-	return stat(filename.c_str(), &st) || !S_ISREG(st.st_mode);
+	return !stat(filename.c_str(), &st) && (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode));
+}
+
+bool IsValidDstFilename(const string& filename)
+{
+	// Destination file must not yet exist
+	struct stat st;
+	return stat(filename.c_str(), &st);
 }
 
 bool CreateImage(int fd, const PbCommand& command)
@@ -789,17 +547,20 @@ bool CreateImage(int fd, const PbCommand& command)
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Can't create image file: Missing image filename");
 	}
-
-	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': Invalid filename");
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
+	}
+	filename = default_image_folder + "/" + filename;
+	if (!IsValidDstFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': File already exists");
 	}
 
-	string size = GetParam(command, "size");
+	const string size = GetParam(command, "size");
 	if (size.empty()) {
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
 	}
 
-	string permission = GetParam(command, "read_only");
+	const string permission = GetParam(command, "read_only");
 	if (permission.empty()) {
 		return ReturnStatus(fd, false, "Can't create image file'" + filename + "': Missing read-only flag");
 	}
@@ -810,12 +571,6 @@ bool CreateImage(int fd, const PbCommand& command)
 
 	int permissions = !strcasecmp(permission.c_str(), "true") ?
 			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
-	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
-	}
-
-	filename = default_image_folder + "/" + filename;
 
 	off_t len;
 	try {
@@ -866,8 +621,8 @@ bool DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
 
-	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': Invalid filename");
+	if (!IsValidDstFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': File already exists");
 	}
 
 	if (filename.find('/') != string::npos) {
@@ -901,33 +656,24 @@ bool RenameImage(int fd, const PbCommand& command)
 	if (from.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file: Missing source filename");
 	}
+	if (from.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
+	}
+	from = default_image_folder + "/" + from;
+	if (!IsValidSrcFilename(from)) {
+		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid name or type");
+	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
 	}
-
-	if (!IsValidFilename(from)) {
-		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid filename");
-	}
-
-	if (!IsValidFilename(to)) {
-		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': Invalid filename");
-	}
-
-	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
-	}
 	if (to.find('/') != string::npos) {
 		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
 	}
-
-	from = default_image_folder + "/" + from;
 	to = default_image_folder + "/" + to;
-
-	struct stat st;
-	if (!stat(to.c_str(), &st)) {
-		return ReturnStatus(fd, false, "Image file '" + to + "' already exists");
+	if (!IsValidDstFilename(to)) {
+		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': File already exists");
 	}
 
 	if (rename(from.c_str(), to.c_str())) {
@@ -945,42 +691,33 @@ bool CopyImage(int fd, const PbCommand& command)
 	if (from.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file: Missing source filename");
 	}
+	if (from.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
+	}
+	from = default_image_folder + "/" + from;
+	if (!IsValidSrcFilename(from)) {
+		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid name or type");
+	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
 	}
-
-	if (!IsValidFilename(from)) {
-		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid filename");
-	}
-
-	if (!IsValidFilename(to)) {
-		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': Invalid filename");
-	}
-
-	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
-	}
 	if (to.find('/') != string::npos) {
 		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
 	}
-
-	from = default_image_folder + "/" + from;
 	to = default_image_folder + "/" + to;
-
-	struct stat st_dst;
-	if (!stat(to.c_str(), &st_dst)) {
-		return ReturnStatus(fd, false, "Image file '" + to + "' already exists");
+	if (!IsValidDstFilename(to)) {
+		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
 	}
 
-	struct stat st_src;
-    if (lstat(from.c_str(), &st_src)) {
+	struct stat st;
+    if (lstat(from.c_str(), &st)) {
     	return ReturnStatus(fd, false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
     }
 
     // Symbolic links need a special handling
-	if ((st_src.st_mode & S_IFMT) == S_IFLNK) {
+	if ((st.st_mode & S_IFMT) == S_IFLNK) {
 		if (symlink(filesystem::read_symlink(from).c_str(), to.c_str())) {
 	    	return ReturnStatus(fd, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
 		}
@@ -995,14 +732,14 @@ bool CopyImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
 	}
 
-	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st_src.st_mode);
+	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st.st_mode);
 	if (fd_dst == -1) {
 		close(fd_src);
 
 		return ReturnStatus(fd, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
 	}
 
-    if (sendfile(fd_dst, fd_src, 0, st_src.st_size) == -1) {
+    if (sendfile(fd_dst, fd_src, 0, st.st_size) == -1) {
         close(fd_dst);
         close(fd_src);
 
@@ -1023,16 +760,13 @@ bool SetImagePermissions(int fd, const PbCommand& command)
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
-
-	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid filename");
-	}
-
 	if (filename.find('/') != string::npos) {
 		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
 	}
-
 	filename = default_image_folder + "/" + filename;
+	if (!IsValidSrcFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid name or type");
+	}
 
 	bool protect = command.operation() == PROTECT_IMAGE;
 
@@ -1081,17 +815,12 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	}
 
 	string filename = GetParam(pb_device, "file");
-	string ext;
-	size_t separator = filename.rfind('.');
-	if (separator != string::npos) {
-		ext = filename.substr(separator + 1);
-	}
 
-	// Create a new device, based upon the provided type or filename extension
-	Device *device = device_factory.CreateDevice(type, filename, ext);
+	// Create a new device, based on the provided type or filename
+	Device *device = device_factory.CreateDevice(type, filename);
 	if (!device) {
 		if (type == UNDEFINED) {
-			return ReturnStatus(fd, false, "No device type provided for unknown file extension '" + ext + "'");
+			return ReturnStatus(fd, false, "Device type required for unknown extension of file '" + filename + "'");
 		}
 		else {
 			return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));
@@ -1708,7 +1437,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	GetDevices(server_info);
+	response_helper.GetDevices(server_info, devices, default_image_folder);
 	const list<PbDevice>& devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -1814,13 +1543,12 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_status(true);
-					GetDevicesInfo(command, result);
+					response_helper.GetDevicesInfo(result, command, devices, default_image_folder, UnitNum);
 					SerializeMessage(fd, result);
-					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
 
 					// For backwards compatibility: Log device list if information on all devices was requested.
-					if (command.devices_size() == 0) {
+					if (!command.devices_size()) {
+						const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
 						LogDevices(ListDevices(devices));
 					}
 					break;
@@ -1830,8 +1558,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_status(true);
-					GetDeviceTypesInfo(command, result);
+					response_helper.GetDeviceTypesInfo(result, command);
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1841,8 +1568,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_status(true);
-					GetServerInfo(result);
+					response_helper.GetServerInfo(result, devices, reserved_ids, default_image_folder, current_log_level);
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1850,11 +1576,8 @@ static void *MonThread(void *param)
 				case IMAGE_FILES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
-					PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
-					GetAvailableImages(*image_files_info);
 					PbResult result;
-					result.set_status(true);
-					result.set_allocated_image_files_info(image_files_info);
+					result.set_allocated_image_files_info(response_helper.GetAvailableImages(result, default_image_folder));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1862,11 +1585,8 @@ static void *MonThread(void *param)
 				case NETWORK_INTERFACES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
-					PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
-					GetNetworkInterfacesInfo(*network_interfaces_info);
 					PbResult result;
-					result.set_status(true);
-					result.set_allocated_network_interfaces_info(network_interfaces_info);
+					result.set_allocated_network_interfaces_info(response_helper.GetNetworkInterfacesInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1923,13 +1643,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	log_levels.push_back("trace");
-	log_levels.push_back("debug");
-	log_levels.push_back("info");
-	log_levels.push_back("warn");
-	log_levels.push_back("err");
-	log_levels.push_back("critical");
-	log_levels.push_back("off");
 	SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages
