@@ -491,8 +491,9 @@ def upload_file():
 
     log = logging.getLogger("pydrop")
     file = request.files["file"]
+    filename = secure_filename(file.filename)
 
-    save_path = path.join(app.config["UPLOAD_FOLDER"], secure_filename(file.filename))
+    save_path = path.join(app.config["UPLOAD_FOLDER"], filename)
     current_chunk = int(request.form['dzchunkindex'])
 
     # Makes sure not to overwrite an existing file, 
@@ -524,7 +525,10 @@ def upload_file():
         log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
                   f"for file {file.filename} completed.")
 
-    return make_response(("File upload successful!", 200))
+    if unzip_file(filename):
+        return make_response(("File upload and unzip successful!", 200))
+    else:
+        return make_response(("File upload successful!", 200))
 
 
 @app.route("/files/create", methods=["POST"])
@@ -582,19 +586,6 @@ def delete():
             return redirect(url_for("index"))
 
     return redirect(url_for("index"))
-
-
-
-@app.route("/files/unzip", methods=["POST"])
-def unzip():
-    image = request.form.get("image")
-
-    if unzip_file(image):
-        flash("Unzipped file " + image)
-        return redirect(url_for("index"))
-    else:
-        flash("Failed to unzip " + image, "error")
-        return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

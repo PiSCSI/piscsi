@@ -91,10 +91,10 @@
         </tr>
         {% for file in files %}
         <tr>
-            <td>{{file["name"].replace(base_dir, '')}}</td>
+            <td>{{file["name"]}}</td>
             <td style="text-align:center">
                 <form action="/files/download" method="post">
-                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
+                    <input type="hidden" name="image" value="{{file["name"]}}">
                     <input type="submit" value="{{file["size_mb"]}} MB &#8595;" />
                 </form>
             </td>
@@ -114,28 +114,20 @@
 			    <option value="{{d}}" {% if d == file["detected_type"] %}selected{% endif %}>{{d}}</option>
 			    {% endfor %}
                     </select>
-                    {% if not file["name"].lower().endswith(archive_file_suffix) %}
                     <input type="submit" value="Attach" />
-		    {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
+                    <input type="hidden" name="image" value="{{file["name"]}}">
                     <input type="submit" value="Delete" />
                 </form>
-                {% if file["name"].lower().endswith(archive_file_suffix) %}
-                <form action="/files/unzip" method="post">
-                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
-                    <input type="submit" value="Unzip" />
-                </form>
-                {% endif %}
             </td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
-    <p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
 
     <hr/>
+
     <h2>Attach Ethernet Adapter</h2>
     <p>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers required.</a></p>
     <p>If you have a DHCP setup, ignore the Static IP fields.</p>
@@ -174,8 +166,9 @@
     </table>
 
     <hr/>
+
     <h2>Upload File</h2>
-    <p>Uploads file to <tt>{{base_dir}}</tt>. The largest file size accepted is {{max_file_size}} MB</p>
+    <p>Uploads file to <tt>{{base_dir}}</tt>. The largest file size accepted is {{max_file_size}} MB. Zip files will be unzipped.</p>
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -187,6 +180,7 @@
     <script type="application/javascript">
     Dropzone.options.dropper = {
         paramName: 'file',
+        acceptedFiles: '{{valid_file_suffix}}',
         chunking: true,
         forceChunking: true,
         url: '/files/upload',
@@ -257,6 +251,7 @@
             </td>
         </tr>
     </table>
+    <p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
 
     <hr/>
 
