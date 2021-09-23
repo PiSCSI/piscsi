@@ -6,7 +6,7 @@ home_dir = getcwd()
 DEFAULT_CONFIG = "default.json"
 MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", 1024 * 1024 * 1024 * 2)  # 2gb
 
-HARDDRIVE_FILE_SUFFIX = ("hda", "hdn", "hdi", "nhd", "hdf", "hds", "dsk")
+HARDDRIVE_FILE_SUFFIX = ("hda", "hdn", "hdi", "nhd", "hdf", "hds")
 CDROM_FILE_SUFFIX = ("iso", "cdr", "toast", "img")
 REMOVABLE_FILE_SUFFIX = ("hdr",)
 ARCHIVE_FILE_SUFFIX = ("zip",)
