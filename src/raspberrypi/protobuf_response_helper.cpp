@@ -251,21 +251,21 @@ void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& 
 	result.set_status(true);
 }
 
-void ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
+PbDeviceTypesInfo *ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
 {
 	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
-	result.set_allocated_device_types_info(device_types_info);
 
 	GetAllDeviceTypeProperties(*device_types_info);
 
 	result.set_status(true);
+
+	return device_types_info;
 }
 
-void ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
+PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
 		const string& image_folder, const string& log_level)
 {
 	PbServerInfo *server_info = new PbServerInfo();
-	result.set_allocated_server_info(server_info);
 
 	server_info->set_major_version(rascsi_major_version);
 	server_info->set_minor_version(rascsi_minor_version);
@@ -281,6 +281,8 @@ void ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Devic
 	}
 
 	result.set_status(true);
+
+	return server_info;
 }
 
 void ProtobufResponseHandler::GetLogLevels(PbServerInfo& server_info)

@@ -1558,7 +1558,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					response_helper.GetDeviceTypesInfo(result, command);
+					result.set_allocated_device_types_info(response_helper.GetDeviceTypesInfo(result, command));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1568,7 +1568,8 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					response_helper.GetServerInfo(result, devices, reserved_ids, default_image_folder, current_log_level);
+					result.set_allocated_server_info(response_helper.GetServerInfo(
+							result, devices, reserved_ids, default_image_folder, current_log_level));
 					SerializeMessage(fd, result);
 					break;
 				}
