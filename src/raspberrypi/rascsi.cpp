@@ -261,6 +261,8 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 	if (!filename.empty()) {
 		string f = filename[0] == '/' ? filename : default_image_folder + "/" + filename;
 
+		image_file->set_type(DeviceFactory::GetTypeForFile(filename));
+
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
 		struct stat st;
@@ -268,8 +270,6 @@ void GetImageFile(PbImageFile *image_file, const string& filename)
 			image_file->set_size(st.st_size);
 		}
 	}
-
-	image_file->set_type(device_factory.GetTypeForFile(filename));
 }
 
 //---------------------------------------------------------------------------
@@ -1084,11 +1084,11 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 	string filename = GetParam(pb_device, "file");
 
-	// Create a new device, based upon the provided type or filename extension
+	// Create a new device, based on the provided type or filename
 	Device *device = device_factory.CreateDevice(type, filename);
 	if (!device) {
 		if (type == UNDEFINED) {
-			return ReturnStatus(fd, false, "No device type provided for unknown extension of file '" + filename + "'");
+			return ReturnStatus(fd, false, "Device type required for unknown extension of file '" + filename + "'");
 		}
 		else {
 			return ReturnStatus(fd, false, "Unknown device type " + PbDeviceType_Name(type));
