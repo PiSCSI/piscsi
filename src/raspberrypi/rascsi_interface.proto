@@ -181,6 +181,7 @@ message PbDeviceTypesInfo {
 // The image file data
 message PbImageFile {
     string name = 1;
+    // The assumed device type, based on the filename extension
     PbDeviceType type = 2;
     bool read_only = 3;
     // The file size in bytes, 0 for block devices
