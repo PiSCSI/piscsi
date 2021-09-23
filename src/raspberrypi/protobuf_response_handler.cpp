@@ -1,0 +1,200 @@
+//---------------------------------------------------------------------------
+//
+// SCSI Target Emulator RaSCSI (*^..^*)
+// for Raspberry Pi
+//
+// Copyright (C) 2021 Uwe Seimet
+//
+//---------------------------------------------------------------------------
+
+#include "devices/file_support.h"
+#include "devices/disk.h"
+#include "devices/device_factory.h"
+#include "devices/device.h"
+#include "protobuf_util.h"
+#include "rascsi_interface.pb.h"
+#include "protobuf_response_handler.h"
+
+using namespace rascsi_interface;
+
+ProtobufResponseHandler::ProtobufResponseHandler()
+{
+	device_factory = DeviceFactory::instance();
+}
+
+ProtobufResponseHandler& ProtobufResponseHandler::instance()
+{
+	static ProtobufResponseHandler instance;
+	return instance;
+}
+
+PbDeviceProperties *ProtobufResponseHandler::GetDeviceProperties(const Device *device)
+{
+	PbDeviceProperties *properties = new PbDeviceProperties();
+
+	properties->set_luns(device->GetSupportedLuns());
+	properties->set_read_only(device->IsReadOnly());
+	properties->set_protectable(device->IsProtectable());
+	properties->set_stoppable(device->IsStoppable());
+	properties->set_removable(device->IsRemovable());
+	properties->set_lockable(device->IsLockable());
+	properties->set_supports_file(dynamic_cast<const FileSupport *>(device));
+	properties->set_supports_params(device->SupportsParams());
+
+	PbDeviceType t = UNDEFINED;
+	PbDeviceType_Parse(device->GetType(), &t);
+
+	if (device->SupportsParams()) {
+		for (const auto& param : device_factory.GetDefaultParams(t)) {
+			auto& map = *properties->mutable_default_params();
+			map[param.first] = param.second;
+		}
+	}
+
+	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
+		properties->add_block_sizes(block_size);
+	}
+
+	for (const auto& capacity : device_factory.GetCapacities(t)) {
+		properties->add_capacities(capacity);
+	}
+
+	return properties;
+}
+
+void ProtobufResponseHandler::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type)
+{
+	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
+	type_properties->set_type(type);
+	Device *device = device_factory.CreateDevice(type, "");
+	type_properties->set_allocated_properties(GetDeviceProperties(device));
+	delete device;
+}
+
+void ProtobufResponseHandler::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
+{
+	GetDeviceTypeProperties(device_types_info, SAHD);
+	GetDeviceTypeProperties(device_types_info, SCHD);
+	GetDeviceTypeProperties(device_types_info, SCRM);
+	GetDeviceTypeProperties(device_types_info, SCMO);
+	GetDeviceTypeProperties(device_types_info, SCCD);
+	GetDeviceTypeProperties(device_types_info, SCBR);
+	GetDeviceTypeProperties(device_types_info, SCDP);
+}
+
+void ProtobufResponseHandler::GetDevice(const Device *device, PbDevice *pb_device, const string& image_folder)
+{
+	pb_device->set_id(device->GetId());
+	pb_device->set_unit(device->GetLun());
+	pb_device->set_vendor(device->GetVendor());
+	pb_device->set_product(device->GetProduct());
+	pb_device->set_revision(device->GetRevision());
+
+	PbDeviceType type = UNDEFINED;
+	PbDeviceType_Parse(device->GetType(), &type);
+	pb_device->set_type(type);
+
+    pb_device->set_allocated_properties(GetDeviceProperties(device));
+
+    PbDeviceStatus *status = new PbDeviceStatus();
+	pb_device->set_allocated_status(status);
+	status->set_protected_(device->IsProtected());
+	status->set_stopped(device->IsStopped());
+	status->set_removed(device->IsRemoved());
+	status->set_locked(device->IsLocked());
+
+	if (device->SupportsParams()) {
+		for (const auto& param : device->GetParams()) {
+			AddParam(*pb_device, param.first, param.second);
+		}
+	}
+
+	const Disk *disk = dynamic_cast<const Disk*>(device);
+    if (disk) {
+    	pb_device->set_block_size(device->IsRemoved()? 0 : disk->GetSectorSizeInBytes());
+    	pb_device->set_block_count(device->IsRemoved() ? 0: disk->GetBlockCount());
+    }
+
+    const FileSupport *file_support = dynamic_cast<const FileSupport *>(device);
+	if (file_support) {
+		Filepath filepath;
+		file_support->GetPath(filepath);
+		PbImageFile *image_file = new PbImageFile();
+		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath(), image_folder);
+		pb_device->set_allocated_file(image_file);
+	}
+}
+
+void ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
+{
+	image_file->set_name(filename);
+	if (!filename.empty()) {
+		image_file->set_type(DeviceFactory::GetTypeForFile(filename));
+
+		string f = filename[0] == '/' ? filename : image_folder + "/" + filename;
+
+		image_file->set_read_only(access(f.c_str(), W_OK));
+
+		struct stat st;
+		if (!stat(f.c_str(), &st)) {
+			image_file->set_size(st.st_size);
+		}
+	}
+}
+
+void ProtobufResponseHandler::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& image_folder)
+{
+	image_files_info.set_default_image_folder(image_folder);
+
+	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
+	DIR *d = opendir(image_folder.c_str());
+	if (d) {
+		struct dirent *dir;
+		while ((dir = readdir(d))) {
+			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
+				string filename = image_folder + "/" + dir->d_name;
+
+				struct stat st;
+				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
+					if (!st.st_size) {
+						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, image_folder.c_str());
+						continue;
+					}
+
+					if (st.st_size % 512) {
+						LOGTRACE("Size of file '%s' in image folder '%s' is not a multiple of 512", dir->d_name, image_folder.c_str());
+						continue;
+					}
+				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
+					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, image_folder.c_str());
+					continue;
+				}
+
+				GetImageFile(image_files_info.add_image_files(), dir->d_name, image_folder);
+			}
+		}
+
+	    closedir(d);
+	}
+}
+
+void ProtobufResponseHandler::GetAvailableImages(PbServerInfo& server_info, const string& image_folder)
+{
+	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
+	server_info.set_allocated_image_files_info(image_files_info);
+
+	image_files_info->set_default_image_folder(image_folder);
+
+	GetAvailableImages(*image_files_info, image_folder);
+}
+
+void ProtobufResponseHandler::GetDevices(PbServerInfo& serverInfo, const vector<Device *> devices, const string& image_folder)
+{
+	for (const Device *device : devices) {
+		// Skip if unit does not exist or is not assigned
+		if (device) {
+			PbDevice *pb_device = serverInfo.mutable_devices()->add_devices();
+			GetDevice(device, pb_device, image_folder);
+		}
+	}
+}
