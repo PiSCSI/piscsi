@@ -1545,10 +1545,10 @@ static void *MonThread(void *param)
 					PbResult result;
 					response_helper.GetDevicesInfo(result, command, devices, default_image_folder, UnitNum);
 					SerializeMessage(fd, result);
-					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
 
 					// For backwards compatibility: Log device list if information on all devices was requested.
-					if (command.devices_size() == 0) {
+					if (!command.devices_size()) {
+						const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
 						LogDevices(ListDevices(devices));
 					}
 					break;
@@ -1576,10 +1576,9 @@ static void *MonThread(void *param)
 				case IMAGE_FILES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
-					PbImageFilesInfo *image_files_info = response_helper.GetAvailableImages(default_image_folder);
 					PbResult result;
 					result.set_status(true);
-					result.set_allocated_image_files_info(image_files_info);
+					result.set_allocated_image_files_info(response_helper.GetAvailableImages(default_image_folder));
 					SerializeMessage(fd, result);
 					break;
 				}
