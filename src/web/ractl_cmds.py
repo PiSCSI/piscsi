@@ -123,13 +123,13 @@ def attach_image(scsi_id, **kwargs):
             if kwargs["interfaces"] not in [None, ""]:
                 devices.params["interfaces"] = kwargs["interfaces"]
         if "vendor" in kwargs.keys():
-            if kwargs["vendor"] not in [None, ""]:
+            if kwargs["vendor"] != None:
                 devices.vendor = kwargs["vendor"]
         if "product" in kwargs.keys():
-            if kwargs["product"] not in [None, ""]:
+            if kwargs["product"] != None:
                 devices.product = kwargs["product"]
         if "revision" in kwargs.keys():
-            if kwargs["revision"] not in [None, ""]:
+            if kwargs["revision"] != None:
                 devices.revision = kwargs["revision"]
         if "block_size" in kwargs.keys():
             if kwargs["block_size"] not in [None, ""]:
@@ -200,6 +200,7 @@ def list_devices(scsi_id=None):
     device_list = []
     n = 0
 
+    # Return an empty list if no devices are attached
     if len(result.device_info.devices) == 0:
         return {"status": False, "device_list": []}
 

@@ -22,18 +22,7 @@ def list_files():
     files = []
     for f in result.image_files_info.image_files:
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
-        if f.name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
-            dtype = "SCHD"
-        elif f.name.lower().endswith(CDROM_FILE_SUFFIX):
-            dtype = "SCCD"
-        elif f.name.lower().endswith(REMOVABLE_FILE_SUFFIX):
-            dtype = "SCRM"
-        elif f.name.lower().endswith(MO_FILE_SUFFIX):
-            dtype = "SCMO"
-        elif f.name.lower().endswith(SASI_FILE_SUFFIX):
-            dtype = "SAHD"
-        else:
-            dtype = ""
+        dtype = proto.PbDeviceType.Name(f.type)
         files.append({"name": f.name, "size": f.size, "size_mb": size_mb, "detected_type": dtype})
 
     return {"status": result.status, "msg": result.msg, "files": files}
@@ -78,7 +67,7 @@ def unzip_file(file_name):
     from zipfile import ZipFile, is_zipfile
 
     if is_zipfile(file_name):
-        with zipfile.ZipFile(base_dir + file_name, "r") as zip_ref:
+        with ZipFile(base_dir + file_name, "r") as zip_ref:
             zip_ref.extractall(base_dir)
         return {"status": True, "msg": f"{file_name} unzipped"}
     else:

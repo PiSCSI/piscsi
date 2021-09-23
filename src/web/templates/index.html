@@ -87,6 +87,7 @@
         <tr>
             <td><b>File</b></td>
             <td><b>Size</b></td>
+            <td><b>Type</b></td>
             <td><b>Actions</b></td>
         </tr>
         {% for file in files %}
@@ -98,6 +99,13 @@
                     <input type="submit" value="{{file["size_mb"]}} MB &#8595;" />
                 </form>
             </td>
+	    <td>
+		{% if file["detected_type"] != "UNDEFINED" %}
+		{{file["detected_type"]}}
+	        {% else %}
+		????
+		{% endif %}
+            </td>
             <td>
                 <form action="/scsi/attach" method="post">
                     <input type="hidden" name="file_name" value="{{file["name"]}}">
@@ -107,13 +115,15 @@
                         <option value="{{id}}">{{id}}</option>
                         {% endfor %}
                     </select>
+		    {% if file["detected_type"] == "UNDEFINED" %}
 		    <label for="type">Attach as:</label>
 		    <select name="type">
-			    <option value="">Detect</option>
-			    {% for d in device_types %}
-			    <option value="{{d}}" {% if d == file["detected_type"] %}selected{% endif %}>{{d}}</option>
-			    {% endfor %}
+                        <option disabled>Choose</option>
+			{% for d in device_types %}
+			<option value="{{d}}">{{d}}</option>
+			{% endfor %}
                     </select>
+		    {% endif %}
                     <input type="submit" value="Attach" />
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
