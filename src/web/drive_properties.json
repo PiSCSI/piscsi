@@ -5,7 +5,7 @@
     "product": "RZ55 (C) DEC",
     "revision": "",
     "block_size": 512,
-    "size": 338411520,
+    "size": 332308480,
     "name": "DEC RZ55",
     "file_type": "hds",
     "description": "Largest recognized drive on Ultrix 3.0",
@@ -17,7 +17,7 @@
     "product": "RZ57 (C) DEC",
     "revision": "5000",
     "block_size": 512,
-    "size": 1049664000,
+    "size": 1037203456,
     "name": "DEC RZ57",
     "file_type": "hds",
     "description": "Largest recognized drive on Ultrix 3.1 - 4.3",
@@ -33,7 +33,7 @@
     "name": "DEC RZ59",
     "file_type": "hds",
     "description": "Largest recognized drive on OSF/1 3.x - 5.x",
-    "url": ""
+    "url": "https://stason.org/TULARC/pc/hard-drives-hdd/dec/RZ74-3570MB-5-25-FH-SCSI2-FAST.html"
 },
 {
     "device_type": "SCHD",
@@ -41,7 +41,7 @@
     "product": "RZ74 (C) DEC",
     "revision": "427H",
     "block_size": 512,
-    "size": 3558464000,
+    "size": 3571904000,
     "name": "DEC RZ74",
     "file_type": "hds",
     "description": "Largest recognized drive on Ultrix 4.4 - 4.5",
@@ -49,15 +49,15 @@
 },
 {
     "device_type": "SCHD",
-    "vendor": "HP",
-    "product": "A2076",
-    "revision": "DD24",
+    "vendor": "CONNER",
+    "product": "CP3200",
+    "revision": "3.53233",
     "block_size": 512,
-    "size": 1342304256,
-    "name": "HP A2076",
+    "size": 212926464,
+    "name": "Conner CP3200",
     "file_type": "hds",
-    "description": "Largest recognized drive on HP-UX 8.0",
-    "url": "http://www.bitsavers.org/pdf/micropolis/105389b_1528_1991.pdf"
+    "description": "Very commonly used with Sun-4 systems",
+    "url": ""
 },
 {
     "device_type": "SCHD",
@@ -65,7 +65,7 @@
     "product": "C3010",
     "revision": "6.0",
     "block_size": 512,
-    "size": 1999765504,
+    "size": 2003032064,
     "name": "HP C3010",
     "file_type": "hds",
     "description": "Largest recognized drive on HP-UX 9.0",
@@ -74,13 +74,25 @@
 {
     "device_type": "SCHD",
     "vendor": "MICROP",
+    "product": "1528-15MD1066702",
+    "revision": "DD24",
+    "block_size": 512,
+    "size": 1342304256,
+    "name": "Micropolis 1528",
+    "file_type": "hds",
+    "description": "Largest recognized drive on HP-UX 8.0",
+    "url": "https://parisc.wiki.kernel.org/images-parisc/0/06/980723ng.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "MICROP",
     "product": "1325",
     "revision": "",
     "block_size": 512,
-    "size": 138412032,
+    "size": 70885376,
     "name": "Micropolis 1325",
     "file_type": "hds",
-    "description": "Largest predefined on SunOS 2; Microp 1325 is actually an ESDI disk on an adapter.",
+    "description": "Largest predefined on SunOS 2",
     "url": "https://stason.org/TULARC/pc/hard-drives-hdd/micropolis/1325-69MB-5-25-FH-MFM-ST506.html"
 },
 {
@@ -89,11 +101,11 @@
     "product": "1588T",
     "revision": "",
     "block_size": 512,
-    "size": 333742080,
-    "name": "Micropolis 1588-15",
+    "size": 666324480,
+    "name": "Micropolis 1588T",
     "file_type": "hds",
     "description": "Largest predefined on SunOS 3/4 (Sun-3)",
-    "url": ""
+    "url": "https://stason.org/TULARC/pc/hard-drives-hdd/micropolis/1588-667MB-5-25-FH-SCSI1-SE.html"
 },
 {
     "device_type": "SCHD",
@@ -125,7 +137,7 @@
     "product": "ST39173W SUN9.0G",
     "revision": "2815",
     "block_size": 512,
-    "size": 9056904704,
+    "size": 9056904192,
     "name": "Seagate SUN9.0G",
     "file_type": "hds",
     "description": "Recommended for Solaris 2.4+",
@@ -137,7 +149,7 @@
     "product": "ST914603SSUN146G",
     "revision": "0B70",
     "block_size": 512,
-    "size": 146810536448,
+    "size": 146789695488,
     "name": "Seagate SUN146G",
     "file_type": "hds",
     "description": "Recommended for Solaris 2.4+",
@@ -152,7 +164,19 @@
     "size": 545400320,
     "name": "Quantum Fireball 540S",
     "file_type": "hds",
-    "description": "Recommended for older Macintosh systems. Recognized by Apple HD SC Setup.",
+    "description": "Recommended for older Macintosh systems.",
+    "url": ""
+},
+{
+    "device_type": "SCHD",
+    "vendor": "MINSCRIB",
+    "product": "    M8425 - SCSI",
+    "revision": "209A",
+    "block_size": 512,
+    "size": 20994048,
+    "name": "Miniscribe M8425",
+    "file_type": "hds",
+    "description": "Recognized by unpatched Apple HD SC Setup.",
     "url": ""
 },
 {
@@ -164,7 +188,19 @@
     "size": 4337270784,
     "name": "Quantum Fireball ST4.3S",
     "file_type": "hds",
-    "description": "Recommended for Macintosh System 6 or later. Recognized by Apple HD SC Setup.",
+    "description": "Recommended for MacOS 8.1 or later.",
+    "url": ""
+},
+{
+    "device_type": "SCHD",
+    "vendor": "SEAGATE",
+    "product": "ST32550N",
+    "revision": "0019",
+    "block_size": 512,
+    "size": 2147357696,
+    "name": "Seagate Barracuda 2GB",
+    "file_type": "hds",
+    "description": "2GB is the largest volume size of HFS on older Macs.",
     "url": ""
 },
 {
