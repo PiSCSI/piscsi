@@ -3,8 +3,8 @@
 rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 .SH SYNOPSIS
 .B rascsi
-[\fB\-f\f® \fIFOLDER\fR]
-[\fB\-g\f® \fILOG_LEVEL\fR]
+[\fB\-F\f® \fIFOLDER\fR]
+[\fB\-L\f® \fILOG_LEVEL\fR]
 [\fB\-h\fR]
 [\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
 [\fB\-p\f® \fIPORT\fR]
@@ -46,10 +46,10 @@ To quit RaSCSI, press Control + C. If it is running in the background, you can k
 .BR \-b\fI " " \fIBLOCK_SIZE
 The optional block size. For SCSI drives 512, 1024, 2048 or 4096 bytes, default size is 512 bytes. For SASI drives 256 or 1024 bytes, default is 256 bytes.
 .TP
-.BR \-f\fI " " \fIFOLDER
+.BR \-F\fI " " \fIFOLDER
 The default folder for image files. For files in this folder no absolute path needs to be specified. The initial default folder is '~/images'.
 .TP
-.BR \-g\fI " " \fILOG_LEVEL
+.BR \-L\fI " " \fILOG_LEVEL
 The rascsi log level (trace, debug, info, warn, err, critical, off). The default log level is 'info'.
 .TP
 .BR \-h\fI " " \fI
