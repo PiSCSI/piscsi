@@ -30,12 +30,12 @@ public:
 
 	static ProtobufResponseHandler& instance();
 
-	PbImageFilesInfo *GetAvailableImages(const string&);
+	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&, const string&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, const string&, int);
 	void GetDeviceTypesInfo(PbResult&, const PbCommand&);
 	void GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
-	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo();
+	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 
 private:
 
@@ -47,7 +47,7 @@ private:
 	void GetDevice(const Device *, PbDevice *, const string&);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAvailableImages(PbServerInfo&, const string&);
+	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&);
 	void GetImageFile(PbImageFile *, const string&, const string&);
 	void GetLogLevels(PbServerInfo&);
 };

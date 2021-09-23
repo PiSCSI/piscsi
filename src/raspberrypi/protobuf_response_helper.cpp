@@ -152,7 +152,7 @@ void ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string
 	}
 }
 
-PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(const string& image_folder)
+PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, const string& image_folder)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 
@@ -189,14 +189,18 @@ PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(const string& imag
 	    closedir(d);
 	}
 
+	result.set_status(true);
+
 	return image_files_info;
 }
 
-void ProtobufResponseHandler::GetAvailableImages(PbServerInfo& server_info, const string& image_folder)
+void ProtobufResponseHandler::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& image_folder)
 {
-	PbImageFilesInfo *image_files_info = GetAvailableImages(image_folder);
+	PbImageFilesInfo *image_files_info = GetAvailableImages(result, image_folder);
 	image_files_info->set_default_image_folder(image_folder);
 	server_info.set_allocated_image_files_info(image_files_info);
+
+	result.set_status(true);
 }
 
 void ProtobufResponseHandler::GetDevices(PbServerInfo& serverInfo, const vector<Device *>& devices, const string& image_folder)
@@ -269,8 +273,8 @@ void ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Devic
 	GetLogLevels(*server_info);
 	server_info->set_current_log_level(log_level);
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
-	GetAvailableImages(*server_info, image_folder);
-	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo());
+	GetAvailableImages(result, *server_info, image_folder);
+	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	GetDevices(*server_info, devices, image_folder);
 	for (int id : reserved_ids) {
 		server_info->add_reserved_ids(id);
@@ -286,13 +290,15 @@ void ProtobufResponseHandler::GetLogLevels(PbServerInfo& server_info)
 	}
 }
 
-PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo()
+PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbResult& result)
 {
 	PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
 
 	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
 		network_interfaces_info->add_name(network_interface);
 	}
+
+	result.set_status(true);
 
 	return network_interfaces_info;
 }

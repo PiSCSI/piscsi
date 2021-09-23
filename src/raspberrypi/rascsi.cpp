@@ -1577,8 +1577,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_status(true);
-					result.set_allocated_image_files_info(response_helper.GetAvailableImages(default_image_folder));
+					result.set_allocated_image_files_info(response_helper.GetAvailableImages(result, default_image_folder));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1587,8 +1586,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_status(true);
-					result.set_allocated_network_interfaces_info(response_helper.GetNetworkInterfacesInfo());
+					result.set_allocated_network_interfaces_info(response_helper.GetNetworkInterfacesInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
