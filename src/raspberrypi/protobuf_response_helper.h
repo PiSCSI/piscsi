@@ -13,7 +13,10 @@
 
 #include "devices/device_factory.h"
 #include "rascsi_interface.pb.h"
+#include <vector>
+#include <string>
 
+using namespace std;
 using namespace rascsi_interface;
 
 class Device;
@@ -34,9 +37,16 @@ public:
 	void GetImageFile(PbImageFile *, const string&, const string&);
 	void GetAvailableImages(PbImageFilesInfo&, const string&);
 	void GetAvailableImages(PbServerInfo&, const string&);
-	void GetDevices(PbServerInfo&, const vector<Device *>, const string&);
+	void GetDevices(PbServerInfo&, const vector<Device *>&, const string&);
+	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, const string&, int);
+	void GetDeviceTypesInfo(PbResult&, const PbCommand&);
+	void GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
+	void GetLogLevels(PbServerInfo&);
+	void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo&);
 
 private:
 
 	DeviceFactory device_factory;
+
+	vector<string> log_levels;
 };

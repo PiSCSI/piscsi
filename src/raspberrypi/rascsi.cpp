@@ -69,12 +69,11 @@ int monsocket;						// Monitor Socket
 pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
-vector<string> log_levels;
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string default_image_folder;
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
-ProtobufResponseHandler& response_handler = ProtobufResponseHandler::instance();
+ProtobufResponseHandler& response_helper = ProtobufResponseHandler::instance();
 
 //---------------------------------------------------------------------------
 //
@@ -450,84 +449,6 @@ void LogDevices(const string& devices)
 	while (getline(ss, line, '\n')) {
 		LOGINFO("%s", line.c_str());
 	}
-}
-
-void GetLogLevels(PbServerInfo& server_info)
-{
-	for (const auto& log_level : log_levels) {
-		server_info.add_log_levels(log_level);
-	}
-}
-
-void GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
-{
-	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
-		network_interfaces_info.add_name(network_interface);
-	}
-}
-
-void GetDevicesInfo(const PbCommand& command, PbResult& result)
-{
-	set<id_set> id_sets;
-	if (!command.devices_size()) {
-		for (const Device *device : devices) {
-			if (device) {
-				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
-			}
-		}
-	}
-	else {
-		for (const auto& device : command.devices()) {
-			if (devices[device.id() * UnitNum + device.unit()]) {
-				id_sets.insert(make_pair(device.id(), device.unit()));
-			}
-			else {
-				ostringstream error;
-				error << "No device for ID " << device.id() << ", unit " << device.unit();
-				result.set_status(false);
-				result.set_msg(error.str());
-				return;
-			}
-		}
-	}
-
-	PbDevices *pb_devices = new PbDevices();
-	result.set_allocated_device_info(pb_devices);
-
-	for (const auto& id_set : id_sets) {
-		const Device *device = devices[id_set.first * UnitNum + id_set.second];
-		response_handler.GetDevice(device, pb_devices->add_devices(), default_image_folder);
-	}
-}
-
-void GetDeviceTypesInfo(const PbCommand& command, PbResult& result)
-{
-	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
-	response_handler.GetAllDeviceTypeProperties(*device_types_info);
-
-	result.set_allocated_device_types_info(device_types_info);
-}
-
-void GetServerInfo(PbResult& result)
-{
-	PbServerInfo *server_info = new PbServerInfo();
-
-	server_info->set_major_version(rascsi_major_version);
-	server_info->set_minor_version(rascsi_minor_version);
-	server_info->set_patch_version(rascsi_patch_version);
-	GetLogLevels(*server_info);
-	server_info->set_current_log_level(current_log_level);
-	response_handler.GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
-	response_handler.GetAvailableImages(*server_info, default_image_folder);
-	PbNetworkInterfacesInfo * network_interfaces_info = new PbNetworkInterfacesInfo();
-	server_info->set_allocated_network_interfaces_info(network_interfaces_info);
-	GetNetworkInterfacesInfo(*network_interfaces_info);
-	response_handler.GetDevices(*server_info, devices, default_image_folder);
-	for (int id : reserved_ids) {
-		server_info->add_reserved_ids(id);
-	}
-
-	result.set_allocated_server_info(server_info);
 }
 
 bool SetDefaultImageFolder(const string& f)
@@ -1532,7 +1453,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	response_handler.GetDevices(server_info, devices, default_image_folder);
+	response_helper.GetDevices(server_info, devices, default_image_folder);
 	const list<PbDevice>& devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -1639,7 +1560,7 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_status(true);
-					GetDevicesInfo(command, result);
+					response_helper.GetDevicesInfo(result, command, devices, default_image_folder, UnitNum);
 					SerializeMessage(fd, result);
 					const list<PbDevice>& devices ={ result.device_info().devices().begin(), result.device_info().devices().end() };
 
@@ -1655,7 +1576,7 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_status(true);
-					GetDeviceTypesInfo(command, result);
+					response_helper.GetDeviceTypesInfo(result, command);
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1666,7 +1587,7 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_status(true);
-					GetServerInfo(result);
+					response_helper.GetServerInfo(result, devices, reserved_ids, default_image_folder, current_log_level);
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1675,7 +1596,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
-					response_handler.GetAvailableImages(*image_files_info, default_image_folder);
+					response_helper.GetAvailableImages(*image_files_info, default_image_folder);
 					PbResult result;
 					result.set_status(true);
 					result.set_allocated_image_files_info(image_files_info);
@@ -1687,7 +1608,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
-					GetNetworkInterfacesInfo(*network_interfaces_info);
+					response_helper.GetNetworkInterfacesInfo(*network_interfaces_info);
 					PbResult result;
 					result.set_status(true);
 					result.set_allocated_network_interfaces_info(network_interfaces_info);
@@ -1747,13 +1668,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	log_levels.push_back("trace");
-	log_levels.push_back("debug");
-	log_levels.push_back("info");
-	log_levels.push_back("warn");
-	log_levels.push_back("err");
-	log_levels.push_back("critical");
-	log_levels.push_back("off");
 	SetLogLevel("info");
 
 	// Create a thread-safe stdout logger to process the log messages

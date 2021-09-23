@@ -12,14 +12,24 @@
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "protobuf_util.h"
+#include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
 #include "protobuf_response_helper.h"
+#include <sstream>
 
 using namespace rascsi_interface;
 
 ProtobufResponseHandler::ProtobufResponseHandler()
 {
 	device_factory = DeviceFactory::instance();
+
+	log_levels.push_back("trace");
+	log_levels.push_back("debug");
+	log_levels.push_back("info");
+	log_levels.push_back("warn");
+	log_levels.push_back("err");
+	log_levels.push_back("critical");
+	log_levels.push_back("off");
 }
 
 ProtobufResponseHandler& ProtobufResponseHandler::instance()
@@ -188,7 +198,7 @@ void ProtobufResponseHandler::GetAvailableImages(PbServerInfo& server_info, cons
 	GetAvailableImages(*image_files_info, image_folder);
 }
 
-void ProtobufResponseHandler::GetDevices(PbServerInfo& serverInfo, const vector<Device *> devices, const string& image_folder)
+void ProtobufResponseHandler::GetDevices(PbServerInfo& serverInfo, const vector<Device *>& devices, const string& image_folder)
 {
 	for (const Device *device : devices) {
 		// Skip if unit does not exist or is not assigned
@@ -196,5 +206,85 @@ void ProtobufResponseHandler::GetDevices(PbServerInfo& serverInfo, const vector<
 			PbDevice *pb_device = serverInfo.mutable_devices()->add_devices();
 			GetDevice(device, pb_device, image_folder);
 		}
+	}
+}
+
+void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices,
+		const string& image_folder, int unit_count)
+{
+	set<id_set> id_sets;
+	if (!command.devices_size()) {
+		for (const Device *device : devices) {
+			if (device) {
+				id_sets.insert(make_pair(device->GetId(), device->GetLun()));
+			}
+		}
+	}
+	else {
+		for (const auto& device : command.devices()) {
+			if (devices[device.id() * unit_count + device.unit()]) {
+				id_sets.insert(make_pair(device.id(), device.unit()));
+			}
+			else {
+				ostringstream error;
+				error << "No device for ID " << device.id() << ", unit " << device.unit();
+				result.set_status(false);
+				result.set_msg(error.str());
+				return;
+			}
+		}
+	}
+
+	PbDevices *pb_devices = new PbDevices();
+	result.set_allocated_device_info(pb_devices);
+
+	for (const auto& id_set : id_sets) {
+		const Device *device = devices[id_set.first * unit_count + id_set.second];
+		GetDevice(device, pb_devices->add_devices(), image_folder);
+	}
+}
+
+void ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
+{
+	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
+	GetAllDeviceTypeProperties(*device_types_info);
+
+	result.set_allocated_device_types_info(device_types_info);
+}
+
+void ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
+		const string& image_folder, const string& log_level)
+{
+	PbServerInfo *server_info = new PbServerInfo();
+
+	server_info->set_major_version(rascsi_major_version);
+	server_info->set_minor_version(rascsi_minor_version);
+	server_info->set_patch_version(rascsi_patch_version);
+	GetLogLevels(*server_info);
+	server_info->set_current_log_level(log_level);
+	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
+	GetAvailableImages(*server_info, image_folder);
+	PbNetworkInterfacesInfo * network_interfaces_info = new PbNetworkInterfacesInfo();
+	server_info->set_allocated_network_interfaces_info(network_interfaces_info);
+	GetNetworkInterfacesInfo(*network_interfaces_info);
+	GetDevices(*server_info, devices, image_folder);
+	for (int id : reserved_ids) {
+		server_info->add_reserved_ids(id);
+	}
+
+	result.set_allocated_server_info(server_info);
+}
+
+void ProtobufResponseHandler::GetLogLevels(PbServerInfo& server_info)
+{
+	for (const auto& log_level : log_levels) {
+		server_info.add_log_levels(log_level);
+	}
+}
+
+void ProtobufResponseHandler::GetNetworkInterfacesInfo(PbNetworkInterfacesInfo& network_interfaces_info)
+{
+	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
+		network_interfaces_info.add_name(network_interface);
 	}
 }
