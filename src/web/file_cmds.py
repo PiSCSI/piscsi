@@ -63,11 +63,14 @@ def delete_file(file_name):
 
 
 def unzip_file(file_name):
-    import zipfile
+    from zipfile import ZipFile, is_zipfile
 
-    with zipfile.ZipFile(base_dir + file_name, "r") as zip_ref:
-        zip_ref.extractall(base_dir)
-        return True
+    if is_zipfile(file_name):
+        with zipfile.ZipFile(base_dir + file_name, "r") as zip_ref:
+            zip_ref.extractall(base_dir)
+        return {"status": True, "msg": f"{file_name} unzipped"}
+    else:
+        return {"status": False, "msg": f"{file_name} is not a zip file"}
 
 
 def download_file_to_iso(scsi_id, url):

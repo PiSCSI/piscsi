@@ -12,4 +12,3 @@ zope.event==4.5.0
 zope.interface==5.1.2
 protobuf==3.17.3
 pydrop==0.0.6
-zipfile

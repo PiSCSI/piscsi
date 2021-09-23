@@ -527,11 +527,7 @@ def upload_file():
         log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
                   f"for file {file.filename} completed.")
 
-    from zipfile import ZipFile, is_zipfile
-    if is_zipfile(save_path):
-        with ZipFile(save_path, 'r') as z:
-            z.extractall(path=app.config["UPLOAD_FOLDER"])
-        delete_file(filename)
+    if unzip_file(filename):
         return make_response(("File upload and unzip successful!", 200))
     else:
         return make_response(("File upload successful!", 200))
@@ -592,19 +588,6 @@ def delete():
             return redirect(url_for("index"))
 
     return redirect(url_for("index"))
-
-
-
-@app.route("/files/unzip", methods=["POST"])
-def unzip():
-    image = request.form.get("image")
-
-    if unzip_file(image):
-        flash("Unzipped file " + image)
-        return redirect(url_for("index"))
-    else:
-        flash("Failed to unzip " + image, "error")
-        return redirect(url_for("index"))
 
 
 if __name__ == "__main__":
