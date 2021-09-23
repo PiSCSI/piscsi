@@ -527,10 +527,18 @@ string SetReservedIds(const string& ids)
 	return "";
 }
 
-bool IsValidFilename(const string& filename)
+bool IsValidSrcFilename(const string& filename)
 {
+	// Source file must exist and must be a regular file or a symlink
 	struct stat st;
-	return stat(filename.c_str(), &st) || !S_ISREG(st.st_mode);
+	return !stat(filename.c_str(), &st) && (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode));
+}
+
+bool IsValidDstFilename(const string& filename)
+{
+	// Destination file must not yet exist
+	struct stat st;
+	return stat(filename.c_str(), &st);
 }
 
 bool CreateImage(int fd, const PbCommand& command)
@@ -539,17 +547,20 @@ bool CreateImage(int fd, const PbCommand& command)
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Can't create image file: Missing image filename");
 	}
-
-	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': Invalid filename");
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
+	}
+	filename = default_image_folder + "/" + filename;
+	if (!IsValidDstFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': File already exists");
 	}
 
-	string size = GetParam(command, "size");
+	const string size = GetParam(command, "size");
 	if (size.empty()) {
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
 	}
 
-	string permission = GetParam(command, "read_only");
+	const string permission = GetParam(command, "read_only");
 	if (permission.empty()) {
 		return ReturnStatus(fd, false, "Can't create image file'" + filename + "': Missing read-only flag");
 	}
@@ -560,12 +571,6 @@ bool CreateImage(int fd, const PbCommand& command)
 
 	int permissions = !strcasecmp(permission.c_str(), "true") ?
 			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
-	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
-	}
-
-	filename = default_image_folder + "/" + filename;
 
 	off_t len;
 	try {
@@ -616,8 +621,8 @@ bool DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
 
-	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': Invalid filename");
+	if (!IsValidDstFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': File already exists");
 	}
 
 	if (filename.find('/') != string::npos) {
@@ -651,29 +656,25 @@ bool RenameImage(int fd, const PbCommand& command)
 	if (from.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file: Missing source filename");
 	}
+	if (from.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
+	}
+	from = default_image_folder + "/" + from;
+	if (!IsValidSrcFilename(from)) {
+		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid name or type");
+	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
 	}
-
-	if (!IsValidFilename(from)) {
-		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid filename");
-	}
-
-	if (!IsValidFilename(to)) {
-		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': Invalid filename");
-	}
-
-	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
-	}
 	if (to.find('/') != string::npos) {
 		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
 	}
-
-	from = default_image_folder + "/" + from;
 	to = default_image_folder + "/" + to;
+	if (!IsValidDstFilename(to)) {
+		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': File already exists");
+	}
 
 	struct stat st;
 	if (!stat(to.c_str(), &st)) {
@@ -695,29 +696,25 @@ bool CopyImage(int fd, const PbCommand& command)
 	if (from.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file: Missing source filename");
 	}
+	if (from.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
+	}
+	from = default_image_folder + "/" + from;
+	if (!IsValidSrcFilename(from)) {
+		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid name or type");
+	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
 	}
-
-	if (!IsValidFilename(from)) {
-		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid filename");
-	}
-
-	if (!IsValidFilename(to)) {
-		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': Invalid filename");
-	}
-
-	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
-	}
 	if (to.find('/') != string::npos) {
 		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
 	}
-
-	from = default_image_folder + "/" + from;
 	to = default_image_folder + "/" + to;
+	if (!IsValidDstFilename(to)) {
+		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
+	}
 
 	struct stat st_dst;
 	if (!stat(to.c_str(), &st_dst)) {
@@ -773,16 +770,13 @@ bool SetImagePermissions(int fd, const PbCommand& command)
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
-
-	if (!IsValidFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid filename");
-	}
-
 	if (filename.find('/') != string::npos) {
 		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
 	}
-
 	filename = default_image_folder + "/" + filename;
+	if (!IsValidSrcFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid name or type");
+	}
 
 	bool protect = command.operation() == PROTECT_IMAGE;
 
