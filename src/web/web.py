@@ -158,7 +158,6 @@ def drive_create():
     vendor = request.form.get("vendor")
     product = request.form.get("product")
     revision = request.form.get("revision")
-    blocks = request.form.get("blocks")
     block_size = request.form.get("block_size")
     size = request.form.get("size")
     file_type = request.form.get("file_type")
@@ -177,8 +176,8 @@ def drive_create():
     # Creating the drive properties file
     from pathlib import Path
     file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
-    properties = {"vendor": vendor, "product": product, "revision": revision, \
-            "blocks": blocks, "block_size": block_size}
+    properties = {"vendor": vendor, "product": product, \
+            "revision": revision, "block_size": block_size}
     process = write_drive_properties(file_name, properties)
     if process["status"] == True:
         flash(f"Drive properties file {file_name} created")
