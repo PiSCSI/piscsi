@@ -401,10 +401,16 @@ function reserveScsiIds() {
     echo "WARNING: This will override any existing modifications to rascsi.service!"
     echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
     echo "The input should be numbers between 0 and 7 separated by commas, e.g. \"0,1,7\" for IDs 0, 1, and 7."
+    echo "Leave empty to make all IDs available."
     read -r RESERVED_IDS
 
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-    sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
+    if [[ $RESERVED_IDS = "" ]]; then
+        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
+        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi" /etc/systemd/system/rascsi.service
+    else
+        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
+        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
+    fi
 
     echo "Modified /etc/systemd/system/rascsi.service"
 
