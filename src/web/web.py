@@ -520,14 +520,14 @@ def upload_file():
             return make_response(("Transferred file corrupted!", 500))
         else:
             log.info(f"File {file.filename} has been uploaded successfully")
+            if filename.lower().endswith(".zip"):
+                unzip_file(filename)
     else:
         log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
                   f"for file {file.filename} completed.")
 
-    if unzip_file(filename):
-        return make_response(("File upload and unzip successful!", 200))
-    else:
-        return make_response(("File upload successful!", 200))
+
+    return make_response(("File upload successful!", 200))
 
 
 @app.route("/files/create", methods=["POST"])

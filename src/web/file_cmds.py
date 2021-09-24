@@ -1,5 +1,4 @@
 import os
-import subprocess
 import logging
 
 from ractl_cmds import (
@@ -64,20 +63,23 @@ def delete_file(file_name):
 
 
 def unzip_file(file_name):
-    from zipfile import ZipFile, is_zipfile
+    from subprocess import run
 
-    if is_zipfile(file_name):
-        with ZipFile(base_dir + file_name, "r") as zip_ref:
-            zip_ref.extractall(base_dir)
-        return {"status": True, "msg": f"{file_name} unzipped"}
-    else:
-        return {"status": False, "msg": f"{file_name} is not a zip file"}
+    unzip_proc = run(
+        ["unzip", "-d", base_dir, "-o", "-j", base_dir + file_name], capture_output=True
+    )
+    if unzip_proc.returncode != 0:
+        logging.warning(f"Unzipping failed: {unzip_proc}")
+        return {"status": False, "msg": unzip_proc}
+
+    return {"status": True, "msg": f"{file_name} unzipped"}
 
 
 def download_file_to_iso(scsi_id, url):
     import urllib.request
     import urllib.error as error
     import time
+    from subprocess import run
 
     file_name = url.split("/")[-1]
     tmp_ts = int(time.time())
@@ -95,7 +97,7 @@ def download_file_to_iso(scsi_id, url):
         return {"status": False, "msg": "Error loading the URL"}
 
     # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
-    iso_proc = subprocess.run(
+    iso_proc = run(
         ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
     )
     if iso_proc.returncode != 0:
