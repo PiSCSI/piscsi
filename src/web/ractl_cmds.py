@@ -100,7 +100,8 @@ def attach_image(scsi_id, **kwargs):
     devices.id = int(scsi_id)
 
     if "device_type" in kwargs.keys():
-        devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
+        if kwargs["device_type"] not in [None, ""]:
+            devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
     if "unit" in kwargs.keys():
         devices.unit = kwargs["unit"]
     if "image" in kwargs.keys():
