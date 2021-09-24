@@ -4,7 +4,7 @@ base_dir = getenv("BASE_DIR", "/home/pi/images/")
 home_dir = getcwd()
 
 DEFAULT_CONFIG = "default.json"
-MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", 1024 * 1024 * 1024 * 2)  # 2gb
+MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", 1024 * 1024 * 1024 * 4)  # 4gb
 
 HARDDRIVE_FILE_SUFFIX = ("hda", "hdn", "hdi", "nhd", "hdf", "hds")
 CDROM_FILE_SUFFIX = ("iso", "cdr", "toast", "img")
