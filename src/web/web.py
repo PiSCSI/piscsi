@@ -28,7 +28,6 @@ from ractl_cmds import (
     eject_by_id,
     get_valid_scsi_ids,
     detach_all,
-    reserve_scsi_ids,
     get_server_info,
     get_network_info,
     validate_scsi_id,
@@ -101,14 +100,12 @@ def drive_list():
 
     for d in conf:
         if d["device_type"] == "SCHD":
-            d["size"] = d["block_size"] * d["blocks"]
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             hd_conf.append(d)
         elif d["device_type"] == "SCCD":
             d["size_mb"] = "N/A"
             cd_conf.append(d)
         elif d["device_type"] == "SCRM":
-            d["size"] = d["block_size"] * d["blocks"]
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             rm_conf.append(d)
 
@@ -141,7 +138,6 @@ def drive_create():
     vendor = request.form.get("vendor")
     product = request.form.get("product")
     revision = request.form.get("revision")
-    blocks = request.form.get("blocks")
     block_size = request.form.get("block_size")
     size = request.form.get("size")
     file_type = request.form.get("file_type")
@@ -160,8 +156,8 @@ def drive_create():
     # Creating the drive properties file
     from pathlib import Path
     file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
-    properties = {"vendor": vendor, "product": product, "revision": revision, \
-            "blocks": blocks, "block_size": block_size}
+    properties = {"vendor": vendor, "product": product, \
+            "revision": revision, "block_size": block_size}
     process = write_drive_properties(file_name, properties)
     if process["status"] == True:
         flash(f"Drive properties file {file_name} created")
@@ -312,11 +308,12 @@ def attach():
     kwargs = {"image": file_name}
 
     # Validate image type by file name suffix
+    # Supplementing file ending based image type detection on the backend side
     if file_name.lower().endswith(CDROM_FILE_SUFFIX):
         kwargs["device_type"] = "SCCD"
     elif file_name.lower().endswith(REMOVABLE_FILE_SUFFIX):
         kwargs["device_type"] = "SCRM"
-    elif file_name.lower().endswith(HARDDRIVE_FILE_SUFFIX):
+    else:
         kwargs["device_type"] = "SCHD"
  
     # Attempt to load the device properties file:
@@ -331,13 +328,6 @@ def attach():
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
-        # CD-ROM drives have no inherent size, so bypass the size check
-        if kwargs["device_type"] != "SCCD":
-            conf_file_size = int(conf["blocks"]) * int(conf["block_size"])
-            if conf_file_size != 0 and conf_file_size > int(file_size):
-                flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
-                flash(f"The file size {file_size} bytes needs to be at least {conf_file_size} bytes.", "error")
-                return redirect(url_for("index"))
         kwargs["vendor"] = conf["vendor"]
         kwargs["product"] = conf["product"]
         kwargs["revision"] = conf["revision"]
@@ -429,11 +419,8 @@ def restart():
 
 @app.route("/rascsi/restart", methods=["POST"])
 def rascsi_restart():
-    server_info = get_server_info()
     rascsi_service("restart")
     flash("Restarting RaSCSI Service...")
-    # Need to turn this into a list of strings from a list of ints
-    reserve_scsi_ids([str(e) for e in server_info["reserved_ids"]])
     return redirect(url_for("index"))
 
 
@@ -577,12 +564,6 @@ if __name__ == "__main__":
     from os import makedirs
     makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
-
-    from sys import argv
-    if len(argv) >= 2:
-        # Reserve SCSI IDs on the backend side to prevent use
-        # Expecting argv as a string of digits such as '017'
-        reserve_scsi_ids(list(argv[1]))
 
     # Load the default configuration file, if found
     from pathlib import Path

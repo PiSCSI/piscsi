@@ -61,6 +61,7 @@ def get_valid_scsi_ids(devices, reserved_ids):
     return valid_ids
 
 
+# TODO: This can probably be deprecated and use list_devices instead
 def get_type(scsi_id):
     device = proto.PbDeviceDefinition()
     device.id = int(scsi_id)
@@ -242,18 +243,6 @@ def sort_and_format_devices(devices):
     return formatted_devices
 
 
-def reserve_scsi_ids(reserved_scsi_ids):
-    '''Sends a command to the server to reserve SCSI IDs. Takes a list of strings as argument.'''
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.RESERVE
-    command.params["ids"] = ",".join(reserved_scsi_ids)
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    return {"status": result.status, "msg": result.msg}
-
-
 def set_log_level(log_level):
     '''Sends a command to the server to change the log level. Takes target log level as an argument.'''
     command = proto.PbCommand()
@@ -314,7 +303,7 @@ def send_over_socket(s, payload):
             chunk = s.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
                 from flask import abort
-                logging.error("Read an empty chunk from the socket. Socket connection may have dropped unexpectedly.")
+                logging.error("Read an empty chunk from the socket. Socket connection may have dropped unexpectedly. Check if RaSCSI has crashed.")
                 abort(503, "Lost connection to RaSCSI. Please go back and try again. If the issue persists, please report a bug.")
             chunks.append(chunk)
             bytes_recvd = bytes_recvd + len(chunk)
