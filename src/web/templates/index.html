@@ -91,10 +91,10 @@
         </tr>
         {% for file in files %}
         <tr>
-            <td>{{file["name"].replace(base_dir, '')}}</td>
+            <td>{{file["name"]}}</td>
             <td style="text-align:center">
                 <form action="/files/download" method="post">
-                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
+                    <input type="hidden" name="image" value="{{file["name"]}}">
                     <input type="submit" value="{{file["size_mb"]}} MB &#8595;" />
                 </form>
             </td>
@@ -107,28 +107,20 @@
                         <option value="{{id}}">{{id}}</option>
                         {% endfor %}
                     </select>
-                    {% if not file["name"].lower().endswith(archive_file_suffix) %}
                     <input type="submit" value="Attach" />
-		    {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
+                    <input type="hidden" name="image" value="{{file["name"]}}">
                     <input type="submit" value="Delete" />
                 </form>
-                {% if file["name"].lower().endswith(archive_file_suffix) %}
-                <form action="/files/unzip" method="post">
-                    <input type="hidden" name="image" value="{{file["name"].replace(base_dir, '')}}">
-                    <input type="submit" value="Unzip" />
-                </form>
-                {% endif %}
             </td>
         </tr>
         {% endfor %}
         </tbody>
     </table>
-    <p><small>Supported file types: {{valid_file_suffix|string()}}</small></p>
 
     <hr/>
+
     <h2>Attach Ethernet Adapter</h2>
     <p>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers required.</a></p>
     <p>If you have a DHCP setup, ignore the Static IP fields.</p>
@@ -167,33 +159,37 @@
     </table>
 
     <hr/>
+
     <h2>Upload File</h2>
-    <p>Uploads file to <tt>{{base_dir}}</tt>. Max file size is set to {{max_file_size / 1024 /1024 }}MB</p>
+    <p>Uploads file to <tt>{{base_dir}}</tt>. The largest file size accepted is {{max_file_size}} MB. Zip files will be unzipped.</p>
     <table style="border: none">
-            <tr style="border: none">
-                <td style="border: none; vertical-align:top;">
-                <form id="uploadForm" action="/files/upload/" onchange="fileSelect(event)" method="post" enctype="multipart/form-data">
-                    <label for="file">File:</label>
-                    <input type="file" name="file"/>
-                    <input type="submit" value="Upload" />
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+                <form method="POST" action="/files/upload" class="dropzone dz-clickable" id="dropper" enctype="multipart/form-data">
                 </form>
             </td>
         </tr>
     </table>
-<script>
-    function fileSelect(e) {
-        document.getElementById("uploadForm").setAttribute('action', "/files/upload/" + e.target.files[0].name)
-        console.log(e.target.files[0].name);
+    <script type="application/javascript">
+    Dropzone.options.dropper = {
+        paramName: 'file',
+        acceptedFiles: '{{valid_file_suffix}}',
+        chunking: true,
+        forceChunking: true,
+        url: '/files/upload',
+        maxFilesize: {{max_file_size}}, // MB
+        chunkSize: 1000000 // bytes
     }
-</script>
+    </script>
+    <p><small>Recognized file types: {{valid_file_suffix}}</small></p>
 
     <hr/>
 
     <h2>Download File from Web</h2>
     <p>Given a URL, download that file to the <tt>{{base_dir}}</tt></p>
     <table style="border: none">
-            <tr style="border: none">
-                <td style="border: none; vertical-align:top;">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
                 <form action="/files/download_image" method="post">
                     <label for="url">URL:</label>
                     <input type="text" placeholder="URL" name="url" />
@@ -206,7 +202,7 @@
     <hr/>
 
     <h2>Download File from web and create HFS CD (Macintosh)</h2>
-    <p>Given a URL this will download a file, create a HFS iso, and mount it on the device id given. Requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a>.</p>
+    <p>Given a URL this will download a file, create a HFS iso, and mount it on the SCSI ID given. Requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a>.</p>
     <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
@@ -251,6 +247,7 @@
             </td>
         </tr>
     </table>
+    <p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
 
     <hr/>
 

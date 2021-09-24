@@ -1,4 +1,15 @@
-from flask import Flask, render_template, request, flash, url_for, redirect, send_file, send_from_directory
+import logging
+from flask import (
+    Flask,
+    render_template,
+    request,
+    flash,
+    url_for,
+    redirect,
+    send_file,
+    send_from_directory,
+    make_response,
+)
 
 from file_cmds import (
     list_files,
@@ -19,6 +30,7 @@ from pi_cmds import (
     running_env,
     rascsi_service,
     is_bridge_setup,
+    disk_space,
 )
 from ractl_cmds import (
     attach_image,
@@ -41,6 +53,7 @@ app = Flask(__name__)
 @app.route("/")
 def index():
     server_info = get_server_info()
+    disk = disk_space()
     devices = list_devices()
     files=list_files()
     config_files=list_config_files()
@@ -51,6 +64,7 @@ def index():
     reserved_scsi_ids = server_info["reserved_ids"]
     formatted_devices = sort_and_format_devices(devices["device_list"])
     scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
+
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
@@ -60,11 +74,12 @@ def index():
         base_dir=base_dir,
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
-        max_file_size=MAX_FILE_SIZE,
+        max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
         running_env=running_env(),
         server_info=server_info,
         netinfo=get_network_info(),
-        valid_file_suffix=VALID_FILE_SUFFIX,
+        free_disk=int(disk["free"] / 1024 / 1024),
+        valid_file_suffix="."+", .".join(VALID_FILE_SUFFIX),
         removable_device_types=REMOVABLE_DEVICE_TYPES,
         harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
         cdrom_file_suffix=CDROM_FILE_SUFFIX,
@@ -79,6 +94,7 @@ def drive_list():
     Sets up the data structures and kicks off the rendering of the drive list page
     """
     server_info = get_server_info()
+    disk = disk_space()
 
     # Reads the canonical drive properties into a dict
     # The file resides in the current dir of the web ui process
@@ -98,14 +114,17 @@ def drive_list():
     cd_conf = []
     rm_conf = []
 
+    from werkzeug.utils import secure_filename
     for d in conf:
         if d["device_type"] == "SCHD":
+            d["secure_name"] = secure_filename(d["name"])
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             hd_conf.append(d)
         elif d["device_type"] == "SCCD":
             d["size_mb"] = "N/A"
             cd_conf.append(d)
         elif d["device_type"] == "SCRM":
+            d["secure_name"] = secure_filename(d["name"])
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             rm_conf.append(d)
 
@@ -124,6 +143,7 @@ def drive_list():
         rm_conf=rm_conf,
         running_env=running_env(),
         server_info=server_info,
+        free_disk=int(disk["free"] / 1024 / 1024),
         cdrom_file_suffix=CDROM_FILE_SUFFIX,
     )
 
@@ -142,7 +162,7 @@ def drive_create():
     size = request.form.get("size")
     file_type = request.form.get("file_type")
     file_name = request.form.get("file_name")
-    
+
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
     if process["status"] == True:
@@ -464,29 +484,52 @@ def download_img():
         return redirect(url_for("index"))
 
 
-@app.route("/files/upload/<filename>", methods=["POST"])
-def upload_file(filename):
-    if not filename:
-        flash("No file provided.", "error")
-        return redirect(url_for("index"))
-
+@app.route("/files/upload", methods=["POST"])
+def upload_file():
+    from werkzeug.utils import secure_filename
     from os import path
-    file_path = path.join(app.config["UPLOAD_FOLDER"], filename)
-    if path.isfile(file_path):
-        flash(f"{filename} already exists.", "error")
-        return redirect(url_for("index"))
+    import pydrop
 
-    from io import DEFAULT_BUFFER_SIZE
-    binary_new_file = "bx"
-    with open(file_path, binary_new_file, buffering=DEFAULT_BUFFER_SIZE) as f:
-        chunk_size = DEFAULT_BUFFER_SIZE
-        while True:
-            chunk = request.stream.read(chunk_size)
-            if len(chunk) == 0:
-                break
-            f.write(chunk)
-    # TODO: display an informative success message
-    return redirect(url_for("index", filename=filename))
+    log = logging.getLogger("pydrop")
+    file = request.files["file"]
+    filename = secure_filename(file.filename)
+
+    save_path = path.join(app.config["UPLOAD_FOLDER"], filename)
+    current_chunk = int(request.form['dzchunkindex'])
+
+    # Makes sure not to overwrite an existing file, 
+    # but continues writing to a file transfer in progress 
+    if path.exists(save_path) and current_chunk == 0:
+        return make_response((f"The file {file.filename} already exists!", 400))
+
+    try:
+        with open(save_path, "ab") as f:
+            f.seek(int(request.form["dzchunkbyteoffset"]))
+            f.write(file.stream.read())
+    except OSError:
+        log.exception("Could not write to file")
+        return make_response(("Unable to write the file to disk!", 500))
+
+    total_chunks = int(request.form["dztotalchunkcount"])
+
+    if current_chunk + 1 == total_chunks:
+        # Validate the resulting file size after writing the last chunk
+        if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
+            log.error(f"Finished transferring {file.filename}, "
+                      f"but it has a size mismatch with the original file."
+                      f"Got {path.getsize(save_path)} but we "
+                      f"expected {request.form['dztotalfilesize']}.")
+            return make_response(("Transferred file corrupted!", 500))
+        else:
+            log.info(f"File {file.filename} has been uploaded successfully")
+            if filename.lower().endswith(".zip"):
+                unzip_file(filename)
+    else:
+        log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
+                  f"for file {file.filename} completed.")
+
+
+    return make_response(("File upload successful!", 200))
 
 
 @app.route("/files/create", methods=["POST"])
@@ -494,6 +537,9 @@ def create_file():
     file_name = request.form.get("file_name")
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
+
+    from werkzeug.utils import secure_filename
+    file_name = secure_filename(file_name)
 
     process = create_new_image(file_name, file_type, size)
     if process["status"] == True:
@@ -541,19 +587,6 @@ def delete():
             return redirect(url_for("index"))
 
     return redirect(url_for("index"))
-
-
-
-@app.route("/files/unzip", methods=["POST"])
-def unzip():
-    image = request.form.get("image")
-
-    if unzip_file(image):
-        flash("Unzipped file " + image)
-        return redirect(url_for("index"))
-    else:
-        flash("Failed to unzip " + image, "error")
-        return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

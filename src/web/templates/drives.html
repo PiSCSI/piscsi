@@ -37,7 +37,7 @@
                     <input type="hidden" name="size" value="{{hd.size}}">
 		    <input type="hidden" name="file_type" value="{{hd.file_type}}">
 		    <label for="file_name">Save as:</label>
-		    <input type="text" name="file_name" value="{{hd.name}}" />.{{hd.file_type}}
+		    <input type="text" name="file_name" value="{{hd.secure_name}}" />.{{hd.file_type}}
                     <input type="submit" value="Create" />
                 </form>
             </td>
@@ -127,7 +127,7 @@
                     <input type="hidden" name="size" value="{{rm.size}}">
 		    <input type="hidden" name="file_type" value="{{rm.file_type}}">
 		    <label for="file_name">Save as:</label>
-		    <input type="text" name="file_name" value="{{rm.name}}" />.{{rm.file_type}}
+		    <input type="text" name="file_name" value="{{rm.secure_name}}" />.{{rm.file_type}}
                     <input type="submit" value="Create" />
                 </form>
             </td>
@@ -135,5 +135,7 @@
         {% endfor %}
         </tbody>
     </table>
+    <p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
+    <p><a href="javascript:history.back()">Cancel</a></p>
 
 {% endblock %}

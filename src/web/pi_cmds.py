@@ -39,3 +39,9 @@ def is_bridge_setup():
     if "rascsi_bridge" in output:
         return True
     return False
+
+
+def disk_space():
+    from shutil import disk_usage
+    total, used, free = disk_usage(__file__)
+    return {"total": total, "used": used, "free": free}
