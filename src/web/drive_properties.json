@@ -200,7 +200,7 @@
     "size": 2147357696,
     "name": "Seagate Barracuda 2GB",
     "file_type": "hds",
-    "description": "2GB is the largest volume size of HFS on older Macs.",
+    "description": "2GB is the largest partition size of HFS on older Macs.",
     "url": ""
 },
 {
