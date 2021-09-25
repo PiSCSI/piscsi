@@ -57,8 +57,10 @@ def index():
     server_info = get_server_info()
     disk = disk_space()
     devices = list_devices()
-    files=list_images()
-    config_files=list_config_files()
+    files = list_images()
+    config_files = list_config_files()
+    hdd_files = list_files(HARDDRIVE_FILE_SUFFIX)
+    cdrom_files = list_files(CDROM_FILE_SUFFIX)
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -73,6 +75,8 @@ def index():
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
+        hdd_files=hdd_files,
+        cdrom_files=cdrom_files,
         base_dir=base_dir,
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
@@ -550,6 +554,32 @@ def create_file():
         return redirect(url_for("index"))
     else:
         flash(f"Failed to create file {file_name}.{file_type}", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+
+@app.route("/files/pad", methods=["POST"])
+def image_padding():
+    image = request.form.get("image")
+    multiple = int(request.form.get("multiple"))
+    file, size = image.split(",")
+
+    if not int(size) % int(multiple):
+        flash(f"{file} does not need to be padded!", "error")
+        return redirect(url_for("index"))
+
+    from pathlib import PurePath
+    padded_image = str(PurePath(file).stem) + "_padded" + str(PurePath(file).suffix)
+    from shutil import copyfile
+    copyfile(base_dir + file, padded_image)
+
+    process = pad_image(padded_image, int(size), int(multiple))
+    if process["status"] == True:
+        flash(f"Image successfully padded!")
+        flash(process["msg"])
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to pad image!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 

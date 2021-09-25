@@ -11,15 +11,15 @@ from settings import *
 import rascsi_interface_pb2 as proto
 
 
-def list_files():
+def list_files(file_types):
     files_list = []
     for path, dirs, files in os.walk(base_dir):
-        # Only list valid file types
-        files = [f for f in files if re.match(valid_file_types, f)]
+        # Only list selected file types
+        files = [f for f in files if f.lower().endswith(file_types)]
         files_list.extend(
             [
                 (
-                    os.path.join(path, file),
+                    file,
                     os.path.getsize(os.path.join(path, file))
                 )
                 for file in files
@@ -146,13 +146,15 @@ def pad_image(file_name, file_size, multiple):
     from subprocess import run
 
     file_path = base_dir + file_name
+    if not file_size % multiple:
+        return {"status": False, "msg": f"{file_name} does not need padding!"}
     target_size = file_size - (file_size % multiple) + multiple
     dd_proc = run(
             ["dd", "if=/dev/null", f"of={file_path}", "bs=1", "count=1", f"seek={target_size}" ], capture_output=True
     )
     if dd_proc.returncode != 0:
-        return {"status": False, "msg": dd_proc}
-    return {"status": True, "msg": "Added " + str(target_size - file_size) + " to " + file_name }
+        return {"status": False, "msg": str(dd_proc)}
+    return {"status": True, "msg": "Added " + str(target_size - file_size) + " bytes to " + file_name }
 
 
 def write_config(file_name):
