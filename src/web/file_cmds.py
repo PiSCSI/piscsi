@@ -145,12 +145,11 @@ def pad_image(file_name, file_size, multiple):
     """
     from subprocess import run
 
-    file_path = base_dir + file_name
     if not file_size % multiple:
         return {"status": False, "msg": f"{file_name} does not need padding!"}
     target_size = file_size - (file_size % multiple) + multiple
     dd_proc = run(
-            ["dd", "if=/dev/null", f"of={file_path}", "bs=1", "count=1", f"seek={target_size}" ], capture_output=True
+            ["dd", "if=/dev/null", f"of={file_name}", "bs=1", "count=1", f"seek={target_size}" ], capture_output=True
     )
     if dd_proc.returncode != 0:
         return {"status": False, "msg": str(dd_proc)}

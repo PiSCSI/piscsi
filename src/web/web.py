@@ -569,7 +569,7 @@ def image_padding():
         return redirect(url_for("index"))
 
     from pathlib import PurePath
-    padded_image = str(PurePath(file).stem) + "_padded" + str(PurePath(file).suffix)
+    padded_image = base_dir + str(PurePath(file).stem) + "_padded" + str(PurePath(file).suffix)
     from shutil import copyfile
     copyfile(base_dir + file, padded_image)
 
