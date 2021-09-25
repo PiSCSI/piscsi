@@ -113,6 +113,12 @@
                     <input type="hidden" name="image" value="{{file["name"]}}">
                     <input type="submit" value="Delete" />
                 </form>
+		{% if file["prop"] %}
+		<form action="/files/prop" method="post">
+                    <input type="hidden" name="image" value="{{file["name"]}}">
+		    <input type="submit" value="Properties">
+		</form>
+		{% endif %}
             </td>
         </tr>
         {% endfor %}
