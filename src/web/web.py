@@ -562,6 +562,11 @@ def create_file():
 def image_padding():
     image = request.form.get("image")
     multiple = int(request.form.get("multiple"))
+
+    if not image:
+        flash(f"No file selected!", "error")
+        return redirect(url_for("index"))
+
     file, size = image.split(",")
 
     if not int(size) % int(multiple):

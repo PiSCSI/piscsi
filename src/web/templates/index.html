@@ -265,7 +265,9 @@
 		    <label for="image">CD images:</label>
 		    <select name="image">
 			{% for f in cdrom_files %}
+			{% if f[1] % 2048 %}
 			<option value="{{f[0]}},{{f[1]}}">{{f[0]}}</option>
+			{% endif %}
 			{% endfor %}
                     </select>
 		    <input type="hidden" name="multiple" value="2048" />
@@ -279,7 +281,9 @@
 		    <label for="image">HD images:</label>
 		    <select name="image">
 			{% for f in hdd_files %}
+			{% if f[1] % 512 %}
 			<option value="{{f[0]}},{{f[1]}}">{{f[0]}}</option>
+			{% endif %}
 			{% endfor %}
                     </select>
 		    <input type="hidden" name="multiple" value="512" />
