@@ -12,6 +12,32 @@ import rascsi_interface_pb2 as proto
 
 
 def list_files():
+    files_list = []
+    for path, dirs, files in os.walk(base_dir):
+        # Only list valid file types
+        files = [f for f in files if re.match(valid_file_types, f)]
+        files_list.extend(
+            [
+                (
+                    os.path.join(path, file),
+                    os.path.getsize(os.path.join(path, file))
+                )
+                for file in files
+            ]
+        )
+    return files_list
+
+
+def list_config_files():
+    files_list = []
+    for root, dirs, files in os.walk(base_dir):
+        for file in files:
+            if file.endswith(".json"):
+                files_list.append(file)
+    return files_list
+
+
+def list_images():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.IMAGE_FILES_INFO
 
@@ -24,15 +50,6 @@ def list_files():
         files.append({"name": f.name, "size": f.size, "size_mb": size_mb})
 
     return {"status": result.status, "msg": result.msg, "files": files}
-
-
-def list_config_files():
-    files_list = []
-    for root, dirs, files in os.walk(base_dir):
-        for file in files:
-            if file.endswith(".json"):
-                files_list.append(file)
-    return files_list
 
 
 def create_new_image(file_name, file_type, size):
@@ -135,7 +152,7 @@ def pad_image(file_name, file_size, multiple):
     )
     if dd_proc.returncode != 0:
         return {"status": False, "msg": dd_proc}
-    return {"status": True, "msg": "Added " str(target_size - file_size) + " to " + file_name }
+    return {"status": True, "msg": "Added " + str(target_size - file_size) + " to " + file_name }
 
 
 def write_config(file_name):

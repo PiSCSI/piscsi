@@ -14,11 +14,13 @@ from flask import (
 from file_cmds import (
     list_files,
     list_config_files,
+    list_images,
     create_new_image,
     download_file_to_iso,
     delete_file,
     unzip_file,
     download_image,
+    pad_image,
     write_config,
     read_config,
     write_drive_properties,
@@ -55,7 +57,7 @@ def index():
     server_info = get_server_info()
     disk = disk_space()
     devices = list_devices()
-    files=list_files()
+    files=list_images()
     config_files=list_config_files()
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
@@ -128,7 +130,7 @@ def drive_list():
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             rm_conf.append(d)
 
-    files=list_files()
+    files=list_images()
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     hd_conf = sorted(hd_conf, key = lambda x: x["name"].lower())
     cd_conf = sorted(cd_conf, key = lambda x: x["name"].lower())
