@@ -121,6 +121,23 @@ def download_image(url):
         return {"status": False, "msg": "Error loading the URL"}
 
 
+def pad_image(file_name, file_size, multiple):
+    """
+    Adds a number of bytes to the end of a file up to a size divisible by multiple
+    Takes str file_name, int file_size, and int multiple
+    """
+    from subprocess import run
+
+    file_path = base_dir + file_name
+    target_size = file_size - (file_size % multiple) + multiple
+    dd_proc = run(
+            ["dd", "if=/dev/null", f"of={file_path}", "bs=1", "count=1", f"seek={target_size}" ], capture_output=True
+    )
+    if dd_proc.returncode != 0:
+        return {"status": False, "msg": dd_proc}
+    return {"status": True, "msg": "Added " str(target_size - file_size) + " to " + file_name }
+
+
 def write_config(file_name):
     from json import dump
     file_name = base_dir + file_name
