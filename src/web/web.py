@@ -61,6 +61,7 @@ def index():
     config_files = list_config_files()
     hdd_files = list_files(HARDDRIVE_FILE_SUFFIX)
     cdrom_files = list_files(CDROM_FILE_SUFFIX)
+    mo_files = list_files(MO_FILE_SUFFIX)
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -77,6 +78,7 @@ def index():
         config_files=sorted_config_files,
         hdd_files=hdd_files,
         cdrom_files=cdrom_files,
+        mo_files=mo_files,
         base_dir=base_dir,
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
@@ -561,7 +563,7 @@ def create_file():
 @app.route("/files/pad", methods=["POST"])
 def image_padding():
     image = request.form.get("image")
-    multiple = int(request.form.get("multiple"))
+    multiple = request.form.get("multiple")
 
     if not image:
         flash(f"No file selected!", "error")
@@ -569,18 +571,32 @@ def image_padding():
 
     file, size = image.split(",")
 
-    if not int(size) % int(multiple):
+    if file.lower().endswith(MO_FILE_SUFFIX):
+        if int(size) >= 635600896:
+            flash("635,600,896 bytes is the largest an MO file can be", "error")
+            return redirect(url_for("index"))
+        elif int(size) < 127398912:
+            target_size = 127398912
+        elif int(size) < 228518400:
+            target_size = 228518400
+        elif int(size) < 533248000:
+            target_size = 533248000
+        else:
+            target_size = 635600896
+    elif not int(size) % int(multiple):
         flash(f"{file} does not need to be padded!", "error")
         return redirect(url_for("index"))
+    else:
+        target_size = int(size) - (int(size) % int(multiple)) + int(multiple)
 
     from pathlib import PurePath
     padded_image = base_dir + str(PurePath(file).stem) + "_padded" + str(PurePath(file).suffix)
     from shutil import copyfile
     copyfile(base_dir + file, padded_image)
 
-    process = pad_image(padded_image, int(size), int(multiple))
+    process = pad_image(padded_image, target_size)
     if process["status"] == True:
-        flash(f"Image successfully padded!")
+        flash(f"Added " + str(target_size - int(size)) + " bytes to " + padded_image + "!")
         flash(process["msg"])
         return redirect(url_for("index"))
     else:

@@ -257,7 +257,7 @@
     <hr/>
 
     <h2>Pad Image File</h2>
-    <p>If RaSCSI fails to attach an image with a 'multiple of' error, you can try to pad it here. Will create a "_padded" copy of the file.</p>
+    <p>If RaSCSI fails to attach an image with a size error, you can try to pad it here. This will create a "_padded" copy of the file.</p>
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -288,6 +288,19 @@
                     </select>
 		    <input type="hidden" name="multiple" value="512" />
 		    <input type="submit" value="Pad HD image" />
+		</form>
+            </td>
+        </tr>
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+		<form action="/files/pad" method="post">
+		    <label for="image">MO images:</label>
+		    <select name="image">
+			{% for f in mo_files %}
+			<option value="{{f[0]}},{{f[1]}}">{{f[0]}}</option>
+			{% endfor %}
+                    </select>
+		    <input type="submit" value="Pad MO image" />
 		</form>
             </td>
         </tr>
