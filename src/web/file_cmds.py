@@ -21,7 +21,8 @@ def list_files():
     files = []
     for f in result.image_files_info.image_files:
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
-        files.append({"name": f.name, "size": f.size, "size_mb": size_mb})
+        dtype = proto.PbDeviceType.Name(f.type)
+        files.append({"name": f.name, "size": f.size, "size_mb": size_mb, "detected_type": dtype})
 
     return {"status": result.status, "msg": result.msg, "files": files}
 
