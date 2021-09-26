@@ -412,7 +412,7 @@ int main(int argc, char* argv[])
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 
 	// Start execution
-	running = false;
+	running = true;
 	bus->SetACT(FALSE);
 
     (void)gettimeofday(&start_time, NULL);
