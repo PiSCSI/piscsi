@@ -481,7 +481,7 @@ int main(int argc, char* argv[])
     s << "Elapsed time: " << elapsed_us << " microseconds (" << elapsed_us / 1000000 << " seconds)";
     LOGINFO("%s", s.str().c_str());
     s.str("");
-    s << "Collected %lu changes" << data_idx;
+    s << "Collected " << data_idx << " changes";
     LOGINFO("%s", s.str().c_str());
 
     // Note: ns_per_loop is a global variable that is used by Cleanup() to printout the timestamps.    
