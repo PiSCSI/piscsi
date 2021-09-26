@@ -44,11 +44,22 @@ def list_images():
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
     result.ParseFromString(data)
+
+    # Get a list of all *.properties files in base_dir
+    from pathlib import PurePath
+    prop_data = list_files(PROPERTIES_SUFFIX)
+    prop_files = [PurePath(x[0]).stem for x in prop_data]
+
     files = []
     for f in result.image_files_info.image_files:
+        # Add flag for whether an image file has an associated *.properties file
+        if PurePath(f.name).stem in prop_files:
+            prop = True
+        else:
+            prop = False
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
         dtype = proto.PbDeviceType.Name(f.type)
-        files.append({"name": f.name, "size": f.size, "size_mb": size_mb, "detected_type": dtype})
+        files.append({"name": f.name, "size": f.size, "size_mb": size_mb, "detected_type": dtype, "prop": prop})
 
     return {"status": result.status, "msg": result.msg, "files": files}
 
