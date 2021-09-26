@@ -76,6 +76,10 @@ function installPackages() {
 function installRaScsi() {
     sudo systemctl stop rascsi
 
+    if [ -f /etc/systemd/system/rascsi.service ]; then
+        sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
+	echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
+    fi
     cd ~/RASCSI/src/raspberrypi
     make clean
     make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
@@ -93,6 +97,7 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 " >> /etc/sudoers'
     fi
 
+    sudo systemctl daemon-reload
     sudo systemctl restart rsyslog
     sudo systemctl enable rascsi # optional - start rascsi at boot
     sudo systemctl start rascsi
@@ -100,8 +105,11 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
-    echo "Compiling the Python protobuf library..."
-    [ -f ~/RASCSI/src/web/rascsi_interface.proto ] && rm ~/RASCSI/src/web/rascsi_interface.proto
+    if [ -f ~/RASCSI/src/web/rascsi_interface_pb2.py ]; then
+        rm ~/RASCSI/src/web/rascsi_interface_pb2.py
+	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
+    fi
+    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
     protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
 
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
