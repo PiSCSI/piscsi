@@ -29,6 +29,19 @@ def get_network_info():
     result.ParseFromString(data)
     ifs = result.network_interfaces_info.name
     return {"status": result.status, "ifs": ifs}
+
+
+def get_device_types():
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DEVICE_TYPES_INFO
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    device_types = []
+    for t in result.device_types_info.properties:
+        device_types.append(proto.PbDeviceType.Name(t.type))
+    return {"status": result.status, "device_types": device_types}
     
 
 def validate_scsi_id(scsi_id):
@@ -87,7 +100,8 @@ def attach_image(scsi_id, **kwargs):
     devices.id = int(scsi_id)
 
     if "device_type" in kwargs.keys():
-        devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
+        if kwargs["device_type"] not in [None, ""]:
+            devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
     if "unit" in kwargs.keys():
         devices.unit = kwargs["unit"]
     if "image" in kwargs.keys():
@@ -110,13 +124,13 @@ def attach_image(scsi_id, **kwargs):
             if kwargs["interfaces"] not in [None, ""]:
                 devices.params["interfaces"] = kwargs["interfaces"]
         if "vendor" in kwargs.keys():
-            if kwargs["vendor"] not in [None, ""]:
+            if kwargs["vendor"] != None:
                 devices.vendor = kwargs["vendor"]
         if "product" in kwargs.keys():
-            if kwargs["product"] not in [None, ""]:
+            if kwargs["product"] != None:
                 devices.product = kwargs["product"]
         if "revision" in kwargs.keys():
-            if kwargs["revision"] not in [None, ""]:
+            if kwargs["revision"] != None:
                 devices.revision = kwargs["revision"]
         if "block_size" in kwargs.keys():
             if kwargs["block_size"] not in [None, ""]:
@@ -187,6 +201,7 @@ def list_devices(scsi_id=None):
     device_list = []
     n = 0
 
+    # Return an empty list if no devices are attached
     if len(result.device_info.devices) == 0:
         return {"status": False, "device_list": []}
 
