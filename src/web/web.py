@@ -642,6 +642,28 @@ def delete():
     return redirect(url_for("index"))
 
 
+@app.route("/files/prop", methods=["POST"])
+def show_properties():
+    file_name = request.form.get("image")
+    from pathlib import PurePath
+    file_name = str(PurePath(file_name).stem) + "." + PROPERTIES_SUFFIX
+
+    process = read_drive_properties(base_dir + file_name)
+    prop = process["conf"]
+
+    if process["status"]:
+        flash("=== DRIVE PROPERTIES ===")
+        flash(f"File Name: {file_name}")
+        flash(f"Vendor: {prop['vendor']}")
+        flash(f"Product: {prop['product']}")
+        flash(f"Revision: {prop['revision']}")
+        flash(f"Block Size: {prop['block_size']}")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to get drive properties for {file_name}", "error")
+        return redirect(url_for("index"))
+
+
 if __name__ == "__main__":
     app.secret_key = "rascsi_is_awesome_insecure_secret_key"
     app.config["SESSION_TYPE"] = "filesystem"
