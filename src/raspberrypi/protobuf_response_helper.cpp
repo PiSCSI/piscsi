@@ -139,7 +139,7 @@ void ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string
 {
 	image_file->set_name(filename);
 	if (!filename.empty()) {
-		image_file->set_type(DeviceFactory::GetTypeForFile(filename));
+		image_file->set_type(device_factory.GetTypeForFile(filename));
 
 		string f = filename[0] == '/' ? filename : image_folder + "/" + filename;
 
@@ -275,6 +275,7 @@ PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vec
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(result, *server_info, image_folder);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
+	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices, image_folder);
 	for (int id : reserved_ids) {
 		server_info->add_reserved_ids(id);
@@ -303,4 +304,17 @@ PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbRes
 	result.set_status(true);
 
 	return network_interfaces_info;
+}
+
+PbMappingInfo *ProtobufResponseHandler::GetMappingInfo(PbResult& result)
+{
+	PbMappingInfo *mapping_info = new PbMappingInfo();
+
+	for (const auto& mapping : device_factory.GetExtensionMapping()) {
+		(*mapping_info->mutable_mapping())[mapping.first] = mapping.second;
+	}
+
+	result.set_status(true);
+
+	return mapping_info;
 }
