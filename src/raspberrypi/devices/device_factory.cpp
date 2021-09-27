@@ -138,6 +138,13 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				} else {
 					device = new SCSIHD(false);
 					((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);
+
+					// Some Apple tools require a particular drive identification
+					if (ext == "hda") {
+						device->SetVendor("SEAGATE");
+						device->SetProduct("ST255N");
+						device->SetRevision("0210");
+					}
 				}
 				device->SetSupportedLuns(1);
 				device->SetProtectable(true);
