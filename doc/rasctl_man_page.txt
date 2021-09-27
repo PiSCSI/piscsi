@@ -6,7 +6,7 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -L  | -e | -k | -l | -m | -s | -T | [-F IMAGE_FOLDER] [-C FILE‐
+       rasctl  -L  |  -e  |  -l  |  -m | -s | -T | [-F IMAGE_FOLDER] [-C FILE‐
        NAME:FILESIZE] [-x  CURRENT_NAME:NEW_NAME]  [-R  CURRENT_NAME:NEW_NAME]
        [-g  LOG_LEVEL]  [-h  HOST]  [-p PORT] [-r RESERVED_IDS] [-v] -i ID [-c
        CMD] [-f FILE|PARAM] [-n NAME] [-t TYPE] [-u UNIT]
