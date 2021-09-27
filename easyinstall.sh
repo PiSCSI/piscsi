@@ -53,6 +53,8 @@ LIDO_DRIVER=~/RASCSI/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
+set -e
+
 function initialChecks() {
     currentUser=$(whoami)
     if [ "pi" != "$currentUser" ]; then
