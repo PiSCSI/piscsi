@@ -64,6 +64,16 @@ DeviceFactory::DeviceFactory()
 	default_params[SCCD] = {};
 	default_params[SCBR]["interfaces"] = network_interfaces;
 	default_params[SCDP]["interfaces"] = network_interfaces;
+
+	extension_mapping["hdf"] = SAHD;
+	extension_mapping["hds"] = SCHD;
+	extension_mapping["hda"] = SCHD;
+	extension_mapping["hdn"] = SCHD;
+	extension_mapping["hdi"] = SCHD;
+	extension_mapping["nhd"] = SCHD;
+	extension_mapping["hdr"] = SCRM;
+	extension_mapping["mos"] = SCMO;
+	extension_mapping["iso"] = SCCD;
 }
 
 DeviceFactory& DeviceFactory::instance()
@@ -72,7 +82,7 @@ DeviceFactory& DeviceFactory::instance()
 	return instance;
 }
 
-string DeviceFactory::GetExtension(const string& filename)
+string DeviceFactory::GetExtension(const string& filename) const
 {
 	string ext;
 	size_t separator = filename.rfind('.');
@@ -87,18 +97,9 @@ string DeviceFactory::GetExtension(const string& filename)
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 {
 	string ext = GetExtension(filename);
-	if (ext == "hdf") {
-		return SAHD;
-	}
-	else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
-		return SCHD;
-	}
-	else if (ext == "hdr") {
-		return SCRM;
-	} else if (ext == "mos") {
-		return SCMO;
-	} else if (ext == "iso") {
-		return SCCD;
+
+	if (extension_mapping.find(ext) != extension_mapping.end()) {
+		return extension_mapping[ext];
 	}
 	else if (filename == "bridge") {
 		return SCBR;
@@ -137,6 +138,12 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				} else {
 					device = new SCSIHD(false);
 					((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);
+
+					// Some Apple tools require a particular drive identification
+					if (ext == "hda") {
+						device->SetVendor("QUANTUM");
+						device->SetProduct("FIREBALL");
+					}
 				}
 				device->SetSupportedLuns(1);
 				device->SetProtectable(true);

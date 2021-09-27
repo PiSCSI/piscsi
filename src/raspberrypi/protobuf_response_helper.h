@@ -36,6 +36,7 @@ public:
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
 	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
+	PbMappingInfo *GetMappingInfo(PbResult&);
 
 private:
 
