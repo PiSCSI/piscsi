@@ -141,8 +141,8 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 					// Some Apple tools require a particular drive identification
 					if (ext == "hda") {
-						device->SetVendor("SEAGATE");
-						device->SetProduct("ST255N");
+						device->SetVendor(" SEAGATE");
+						device->SetProduct(" ST255N");
 						device->SetRevision("0210");
 					}
 				}
