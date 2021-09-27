@@ -591,7 +591,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-L] [-k] [-l] [-v] [-y]" << endl;
+		cerr << "[-L] [-k] [-l] [-m] [-v] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
