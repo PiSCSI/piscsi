@@ -845,20 +845,20 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 			// Check LLBAA for short or long block descriptor
 			if ((cdb[1] & 0x10) == 0 || disk_blocks <= 0xFFFFFFFF) {
 				// Mode parameter header, block descriptor length
-				buf[3] = 0x08;
+				buf[7] = 0x08;
 
 				// Short LBA mode parameter block descriptor (number of blocks and block length)
 
-				buf[4] = disk_blocks >> 24;
-				buf[5] = disk_blocks >> 16;
-				buf[6] = disk_blocks >> 8;
-				buf[7] = disk_blocks;
+				buf[8] = disk_blocks >> 24;
+				buf[9] = disk_blocks >> 16;
+				buf[10] = disk_blocks >> 8;
+				buf[11] = disk_blocks;
 
-				buf[9] = disk_size >> 16;
-				buf[10] = disk_size >> 8;
-				buf[11] = disk_size;
+				buf[13] = disk_size >> 16;
+				buf[14] = disk_size >> 8;
+				buf[15] = disk_size;
 
-				size = 12;
+				size = 16;
 			}
 			else {
 				// Mode parameter header, LONGLBA
@@ -869,21 +869,21 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 				// Long LBA mode parameter block descriptor (number of blocks and block length)
 
-				buf[4] = disk_blocks >> 56;
-				buf[5] = disk_blocks >> 48;
-				buf[6] = disk_blocks >> 40;
-				buf[7] = disk_blocks >> 32;
-				buf[8] = disk_blocks >> 24;
-				buf[9] = disk_blocks >> 16;
-				buf[10] = disk_blocks >> 8;
-				buf[11] = disk_blocks;
+				buf[8] = disk_blocks >> 56;
+				buf[9] = disk_blocks >> 48;
+				buf[10] = disk_blocks >> 40;
+				buf[11] = disk_blocks >> 32;
+				buf[12] = disk_blocks >> 24;
+				buf[13] = disk_blocks >> 16;
+				buf[14] = disk_blocks >> 8;
+				buf[15] = disk_blocks;
 
-				buf[16] = disk_size >> 24;
-				buf[17] = disk_size >> 16;
-				buf[18] = disk_size >> 8;
-				buf[19] = disk_size;
+				buf[20] = disk_size >> 24;
+				buf[21] = disk_size >> 16;
+				buf[22] = disk_size >> 8;
+				buf[23] = disk_size;
 
-				size = 20;
+				size = 24;
 			}
 		}
 	}
