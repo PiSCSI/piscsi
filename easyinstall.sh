@@ -80,8 +80,12 @@ function installRaScsi() {
 
     if [ -f /etc/systemd/system/rascsi.service ]; then
         sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
-	echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
+        SYSTEMD_BACKUP=true
+        echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
+    else
+        SYSTEMD_BACKUP=false
     fi
+
     cd ~/RASCSI/src/raspberrypi
     make clean
     make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
@@ -428,6 +432,16 @@ function reserveScsiIds() {
     sudo systemctl start rascsi
 }
 
+function notifyBackup {
+    if $SYSTEMD_BACKUP; then
+        echo ""
+        echo "IMPORTANT: /etc/systemd/system/rascsi.service has been overwritten."
+        echo "A backup copy was saved as rascsi.service.old in the same directory."
+        echo "Please inspect the backup file and restore configurations that are important to your setup."
+        echo ""
+    fi
+}
+
 function runChoice() {
   case $1 in
           1)
@@ -440,6 +454,7 @@ function runChoice() {
               installRaScsiWebInterface
               showRaScsiStatus
               showRaScsiWebStatus
+              notifyBackup
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface - Complete!"
           ;;
           2)
@@ -449,6 +464,7 @@ function runChoice() {
               installPackages
               installRaScsi
               showRaScsiStatus
+              notifyBackup
 	      echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
 	  ;;
           3)
