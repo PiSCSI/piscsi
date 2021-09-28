@@ -42,6 +42,17 @@ jobs:
       - name: Configure the image name
         run: echo "IMG_NAME='rascsi_build'" > ./pi-gen/config
 
+      # Configure the build
+      - name: Configure the build
+        run: |
+          echo "IMG_NAME=RaSCSI" > ./pi-gen/config
+          echo "TARGET_HOSTNAME=rascsi" > ./pi-gen/config
+          echo "ENABLE_SSH=1" > ./pi-gen/config
+          echo "APT_PROXY=http://172.17.0.1:3142" > ./pi-gen/config
+          echo "LOCALE_DEFAULT=en_US.UTF-8" > ./pi-gen/config
+          echo "KEYBOARD_KEYMAP=us" > ./pi-gen/config
+          echo "KEYBOARD_LAYOUT='English (US)' > ./pi-gen/config
+
       # Runs a single command using the runners shell
       - name: List files
         run: ls -alh
@@ -53,5 +64,16 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          echo -----------------------------------------------------
+          ls -alh pi-gen/deploy/
+          echo -----------------------------------------------------
+          ls -alh pi-gen/
+          echo -----------------------------------------------------
+          
+      - name: Archive the build artifacts
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          # Artifact name
+          name: raspberry-pi-image
+          # A file, directory or wildcard pattern that describes what to upload
+          path: pi-gen/deploy/*
