@@ -784,6 +784,13 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
+	//check if size of data is more than size requested.
+	if (size > length) {
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+	//Set length returned to actual size of data
+	length = size;
 
 	return length;
 }
@@ -945,6 +952,13 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
+	//check if size of data is more than size requested.
+	if (size > length) {
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+	//Set length returned to actual size of data
+	length = size;
 
 	return length;
 }
