@@ -25,12 +25,15 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RaSCSI
         uses: actions/checkout@v2
+        with:
+          path: RASCSI
       
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Checkout RaSCSI
         uses: actions/checkout@v2
         with:
           repository: erichelgeson/pi-gen
+          path: pi-gen
       
       - name: Install cross compile toolchain
         run: sudo apt-get install gcc-8-arm-linux-gnueabihf g++-8-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev
