@@ -35,16 +35,20 @@ jobs:
           repository: erichelgeson/pi-gen
           path: pi-gen
       
-      - name: Install cross compile toolchain
-        run: sudo apt-get install gcc-8-arm-linux-gnueabihf g++-8-arm-linux-gnueabihf binutils-arm-linux-gnueabihf libspdlog-dev
+      - name: Install Raspberry Pi build toolchain
+        run: sudo apt-get install apt-get install coreutils quilt parted qemu-user-static debootstrap zerofree zip dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc qemu-utils kpartx
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-        
+      # Configure the build
+      - name: Configure the image name
+        run: echo "IMG_NAME='rascsi_build'" > ./pi-gen/config
+
       # Runs a single command using the runners shell
       - name: List files
         run: ls -alh
+
+      - name: Make a build
+        run: sudo ./build.sh
+        working-directory: pi-gen
 
       # Runs a set of commands using the runners shell
       - name: Run a multi-line script
