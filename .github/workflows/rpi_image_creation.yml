@@ -36,7 +36,7 @@ jobs:
           path: pi-gen
       
       - name: Install Raspberry Pi build toolchain
-        run: sudo apt-get install apt-get install coreutils quilt parted qemu-user-static debootstrap zerofree zip dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc qemu-utils kpartx
+        run: sudo apt-get install coreutils quilt parted qemu-user-static debootstrap zerofree zip dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc qemu-utils kpartx
 
       # Configure the build
       - name: Configure the image name
