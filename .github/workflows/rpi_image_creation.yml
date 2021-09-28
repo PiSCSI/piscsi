@@ -45,12 +45,12 @@ jobs:
       # Configure the build
       - name: Configure the build
         run: |
-          echo "IMG_NAME=RaSCSI" > ./pi-gen/config
-          echo "TARGET_HOSTNAME=rascsi" >> ./pi-gen/config
-          echo "ENABLE_SSH=1" >> ./pi-gen/config
-          echo "APT_PROXY=http://172.17.0.1:3142" >> ./pi-gen/config
-          echo "LOCALE_DEFAULT=en_US.UTF-8" >> ./pi-gen/config
-          echo "KEYBOARD_KEYMAP=us" >> ./pi-gen/config
+          echo "IMG_NAME=RaSCSI" > ./pi-gen/config &&
+          echo "TARGET_HOSTNAME=rascsi" >> ./pi-gen/config &&
+          echo "ENABLE_SSH=1" >> ./pi-gen/config &&
+          echo "APT_PROXY=http://172.17.0.1:3142" >> ./pi-gen/config &&
+          echo "LOCALE_DEFAULT=en_US.UTF-8" >> ./pi-gen/config &&
+          echo "KEYBOARD_KEYMAP=us" >> ./pi-gen/config &&
           echo "KEYBOARD_LAYOUT='English (US)' >> ./pi-gen/config
 
       # Runs a single command using the runners shell
