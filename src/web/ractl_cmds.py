@@ -74,26 +74,6 @@ def get_valid_scsi_ids(devices, reserved_ids):
     return valid_ids
 
 
-# TODO: This can probably be deprecated and use list_devices instead
-def get_type(scsi_id):
-    device = proto.PbDeviceDefinition()
-    device.id = int(scsi_id)
-
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.DEVICES_INFO
-    command.devices.append(device)
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    # Assuming that only one PbDevice object is present in the response
-    try:
-        result_type = proto.PbDeviceType.Name(result.device_info.devices[0].type)
-        return {"status": result.status, "msg": result.msg, "device_type": result_type}
-    except:
-        return {"status": result.status, "msg": result.msg, "device_type": None}
-
-
 def attach_image(scsi_id, **kwargs):
     command = proto.PbCommand()
     devices = proto.PbDeviceDefinition()
@@ -103,18 +83,23 @@ def attach_image(scsi_id, **kwargs):
         if kwargs["device_type"] not in [None, ""]:
             devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
     if "unit" in kwargs.keys():
-        devices.unit = kwargs["unit"]
+        if kwargs["unit"] not in [None, ""]:
+            devices.unit = kwargs["unit"]
     if "image" in kwargs.keys():
         if kwargs["image"] not in [None, ""]:
             devices.params["file"] = kwargs["image"]
 
     # Handling the inserting of media into an attached removable type device
-    currently_attached = get_type(scsi_id)["device_type"] 
     device_type = kwargs.get("device_type", None) 
+    currently_attached = list_devices(scsi_id)["device_list"]
+    if len(currently_attached) > 0:
+        current_type = currently_attached[0]["device_type"] 
+    else:
+        current_type = None
 
-    if device_type in REMOVABLE_DEVICE_TYPES and currently_attached in REMOVABLE_DEVICE_TYPES:
-        if currently_attached != device_type:
-            return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {currently_attached} device."}
+    if device_type in REMOVABLE_DEVICE_TYPES and current_type in REMOVABLE_DEVICE_TYPES:
+        if current_type != device_type:
+            return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {current_type} device."}
         else:
             command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
