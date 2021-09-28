@@ -1,7 +1,15 @@
 {% extends "base.html" %}
 
     {% block content %}
-    <h2>Current RaSCSI Configuration</h2>
+    <details>
+    <summary>Current RaSCSI Configuration</summary>
+    <ul>
+    <li>Displays the currently attached devices for each available SCSI ID.</li>
+    <li>Save and load device configurations into <tt>{{base_dir}}</tt></li>
+    <li>The <em>default</em> configuration will be loaded when the Web UI starts up, if available.</li>
+    </ul>
+    </details>
+
     <p>
     <form action="/config/load" method="post">
         <select name="name" >
@@ -22,7 +30,6 @@
         <input type="submit" value="Detach All" />
     </form>
     </p>
-    <p><small>The <em>default</em> configuration will be loaded when the Web UI starts up, if available.</small></p>
 
     <table cellpadding="3" border="black">
         <tbody>
@@ -79,11 +86,18 @@
         {% endfor %}
         </tbody>
     </table>
-    <p><tt>Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT</tt></p>
 
     <hr/>
 
-    <h2>Valid Image Files</h2>
+    <details>
+    <summary>Valid Image Files</summary>
+    <ul>
+    <li>A list of image files in <tt>{{base_dir}}</tt> that RaSCSI has identified as valid.</li>
+    <li>If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.</li>
+    <li>Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT</li>
+    </ul>
+    </details>
+
     <table cellpadding="3" border="black">
         <tbody>
         <tr>
@@ -133,9 +147,20 @@
 
     <hr/>
 
-    <h2>Attach Ethernet Adapter</h2>
-    <p>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers required.</a></p>
-    <p>If you have a DHCP setup, ignore the Static IP fields.</p>
+    <details>
+    <summary>Attach Ethernet Adapter</summary>
+    <ul>
+    <li>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers required.</a></li>
+    <li>If you have a DHCP setup, ignore the Static IP fields.</li>
+    <li>
+        {% if bridge_configured %}
+        Bridge is currently configured!
+        {% else %}
+        Bridge is automatically configured when a network adapter is attached.
+        {% endif %}
+    </li>
+    </ul>
+    </details>
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -159,22 +184,19 @@
                 </form>
             </td>
         </tr>
-        <tr style="border: none">
-            <td style="border: none; vertical-align:top;">
-                {% if bridge_configured %}
-                <small>Bridge is currently configured!</small>
-                {% else %}
-		<small>Bridge is automatically configured when a network adapter is attached.</small>
-                {% endif %}
-            </td>
-        </tr>
     </table>
 
     <hr/>
 
-    <h2>Upload File</h2>
-    <p>Uploads file to <tt>{{base_dir}}</tt>. The largest file size accepted is {{max_file_size}} MB. Zip files will be unzipped.</p>
-    <p>For unrecognized file types, try renaming hard drive images to '.hds' and CD-ROM images to '.iso' before uploading.</p>
+    <details>
+    <summary>Upload File</summary>
+    <ul>
+    <li>Uploads file to <tt>{{base_dir}}</tt>. The largest file size accepted is {{max_file_size}} MB. Zip files will be unzipped.</li>
+    <li>For unrecognized file types, try renaming hard drive images to '.hds' and CD-ROM images to '.iso' before uploading.</li>
+    <li>Recognized file types: {{valid_file_suffix}}</li>
+    </ul>
+    </details>
+
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -194,12 +216,16 @@
         chunkSize: 1000000 // bytes
     }
     </script>
-    <p><small>Recognized file types: {{valid_file_suffix}}</small></p>
 
     <hr/>
 
-    <h2>Download File from Web</h2>
-    <p>Given a URL, download that file to the <tt>{{base_dir}}</tt></p>
+    <details>
+    <summary>Download File from Web</summary>
+    <ul>
+    <li>Given a URL, download that file to the <tt>{{base_dir}}</tt> directory.</li>
+    </ul>
+    </details>
+
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -214,8 +240,14 @@
 
     <hr/>
 
-    <h2>Download File from web and create HFS CD (Macintosh)</h2>
-    <p>Given a URL this will download a file, create a HFS iso, and mount it on the SCSI ID given. Requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a>.</p>
+    <details>
+    <summary>Download File from web and create HFS CD (Macintosh)</summary>
+    <ul>
+    <li>Given a URL this will download a file, create a HFS iso, and mount it on the SCSI ID given.</li>
+    <li>Requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a> installed on the target system.</li>
+    </ul>
+    </details>
+
     <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
@@ -236,7 +268,15 @@
 
     <hr/>
 
-    <h2>Create Empty Disk Image File</h2>
+    <details>
+    <summary>Create Empty Disk Image File</summary>
+    <ul>
+    <li>The Generic image type is recommended for most systems</li>
+    <li>APPLE GENUINE and NEC GENUINE image types will make RaSCSI masquerade as a particular drive type that are recognized by Mac and PC98 systems, respectively.</li>
+    <li>SASI images should only be used on early X68000 or UNIX workstation systems that use this pre-SCSI standard.</li>
+    <li>Available disk space on the Pi: {{free_disk}} MB</li>
+    </ul>
+    </details>
     <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
@@ -258,16 +298,28 @@
             </td>
         </tr>
     </table>
-    <p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
 
     <hr/>
 
-    <h2>Create Named Drive</h2>
-    <p><a href="/drive/list">Ceate a named disk image with a companion properties file that mimics real-life drives</a></p>
+    <details>
+    <summary>Create Named Drive</summary>
+    <ul>
+    <li>Here you can create pairs of images and properties files from a list of real-life drives.</li>
+    <li>This will make RaSCSI use certain vendor strings and block sizes that may improve compatibility with certain systems</li>
+    </ul>
+    </details>
+
+    <p><a href="/drive/list">Ceate a named disk image that mimics real-life drives</a></p>
 
     <hr/>
 
-    <h2>Logging</h2>
+    <details>
+    <summary>Logging</summary>
+    <ul>
+    <li>Get a certain number of lines of service logs with the given scope.</li>
+    </ul>
+    </details>
+
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -288,7 +340,14 @@
 
     <hr/>
 
-    <h2>Server Log Level</h2>
+    <details>
+    <summary>Server Log Level</summary>
+    <ul>
+    <li>Change the log level of the RaSCSI backend service.</li>
+    <li>The dropdown will indicate the current log level.</li>
+    </ul>
+    </details>
+
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -307,7 +366,14 @@
 
     <hr/>
 
-    <h2>Raspberry Pi Operations</h2>
+    <details>
+    <summary>Raspberry Pi Operations</summary>
+    <ul>
+    <li>Issue reboot or shutdown commands to the Raspberr Pi.</li>
+    <li>You can also restart the RaSCSI backend service here.</li>
+    </ul>
+    </details>
+
     <table style="border: none">
             <tr style="border: none">
                 <td style="border: none; vertical-align:top;">
