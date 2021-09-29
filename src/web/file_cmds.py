@@ -154,6 +154,7 @@ def pad_image(file_name, file_size):
     """
     Adds a number of bytes to the end of a file up to a size
     Takes str file_name, int file_size
+    Returns a dict with boolean status and str msg
     """
     from subprocess import run
 

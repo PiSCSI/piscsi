@@ -61,9 +61,9 @@ def index():
     device_types=get_device_types()
     files = list_images()
     config_files = list_config_files()
-    hdd_files = list_files(HARDDRIVE_FILE_SUFFIX)
+    drive_files = list_files(HARDDRIVE_FILE_SUFFIX + \
+            SASI_FILE_SUFFIX + REMOVABLE_FILE_SUFFIX + MO_FILE_SUFFIX)
     cdrom_files = list_files(CDROM_FILE_SUFFIX)
-    mo_files = list_files(MO_FILE_SUFFIX)
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -78,9 +78,8 @@ def index():
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
-        hdd_files=hdd_files,
+        drive_files=drive_files,
         cdrom_files=cdrom_files,
-        mo_files=mo_files,
         base_dir=base_dir,
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
@@ -569,19 +568,7 @@ def image_padding():
 
     file, size = image.split(",")
 
-    if file.lower().endswith(MO_FILE_SUFFIX):
-        if int(size) >= 635600896:
-            flash("635,600,896 bytes is the largest an MO file can be", "error")
-            return redirect(url_for("index"))
-        elif int(size) < 127398912:
-            target_size = 127398912
-        elif int(size) < 228518400:
-            target_size = 228518400
-        elif int(size) < 533248000:
-            target_size = 533248000
-        else:
-            target_size = 635600896
-    elif not int(size) % int(multiple):
+    if not int(size) % int(multiple):
         flash(f"{file} does not need to be padded!", "error")
         return redirect(url_for("index"))
     else:
