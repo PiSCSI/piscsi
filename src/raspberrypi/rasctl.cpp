@@ -231,24 +231,6 @@ void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 			}
 			cout << endl;
 		}
-
-		if (properties.capacities_size()) {
-			list<uint64_t> capacities = { properties.capacities().begin(), properties.capacities().end() };
-			capacities.sort([](const auto& a, const auto& b) { return a < b; });
-
-			cout << "        Media capacities in bytes: ";
-
-			bool isFirst = true;
-			for (const auto& capacity : capacities) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-				cout << capacity;
-
-				isFirst = false;
-			}
-			cout << endl;
-		}
 	}
 }
 

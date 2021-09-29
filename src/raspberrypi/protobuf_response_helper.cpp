@@ -65,10 +65,6 @@ PbDeviceProperties *ProtobufResponseHandler::GetDeviceProperties(const Device *d
 		properties->add_block_sizes(block_size);
 	}
 
-	for (const auto& capacity : device_factory.GetCapacities(t)) {
-		properties->add_capacities(capacity);
-	}
-
 	return properties;
 }
 
