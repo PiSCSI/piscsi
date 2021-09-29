@@ -1693,12 +1693,16 @@ void Disk::SetGeometries(const map<uint64_t, Geometry>& geometries)
 	this->geometries = geometries;
 }
 
-void Disk::SetGeometryForCapacity(uint64_t capacity) {
+bool Disk::SetGeometryForCapacity(uint64_t capacity) {
 	const auto& geometry = geometries.find(capacity);
 	if (geometry != geometries.end()) {
 		SetSectorSizeInBytes(geometry->second.first, false);
 		SetBlockCount(geometry->second.second);
+
+		return true;
 	}
+
+	return false;
 }
 
 uint64_t Disk::GetBlockCount() const
