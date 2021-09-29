@@ -120,7 +120,7 @@ def attach_image(scsi_id, **kwargs):
     this sends a INJECT command to the server.
     If there is no currently attached device, this sends the ATTACH command to the server.
 
-    Returns boolean status and return message str msg
+    Returns boolean status and str msg
 
     """
     command = proto.PbCommand()
@@ -180,7 +180,7 @@ def attach_image(scsi_id, **kwargs):
 def detach_by_id(scsi_id):
     """
     Takes int scsi_id and sends a DETACH command to the server.
-    Returns boolean status and return message str msg.
+    Returns boolean status and str msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
@@ -198,7 +198,7 @@ def detach_by_id(scsi_id):
 def detach_all():
     """
     Sends a DETACH_ALL command to the server.
-    Returns boolean status and return message str msg.
+    Returns boolean status and str msg.
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH_ALL
@@ -212,7 +212,7 @@ def detach_all():
 def eject_by_id(scsi_id):
     """
     Takes int scsi_id and sends an EJECT command to the server.
-    Returns boolean status and return message str msg.
+    Returns boolean status and str msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
@@ -233,7 +233,7 @@ def list_devices(scsi_id=None):
     If no scsi_id is provided, returns a list of dicts of all attached devices.
     If scsi_id is is provided, returns a list of one dict for the given device.
     If no attached device is found, returns an empty list.
-    Returns bolean status, list of dicts device_list
+    Returns boolean status, list of dicts device_list
     """
     from os import path
     command = proto.PbCommand()
@@ -319,7 +319,7 @@ def set_log_level(log_level):
     """
     Sends a LOG_LEVEL command to the server.
     Takes str log_level as an argument.
-    Returns bolean status and str msg.
+    Returns boolean status and str msg.
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL

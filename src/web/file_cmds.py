@@ -37,6 +37,11 @@ def list_config_files():
 
 
 def create_new_image(file_name, file_type, size):
+    """
+    Takes str file_name, str file_type, and int size
+    Sends a CREATE_IMAGE command to the server
+    Returns dict with boolean status and str msg
+    """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.CREATE_IMAGE
 
@@ -51,6 +56,11 @@ def create_new_image(file_name, file_type, size):
 
 
 def delete_file(file_name):
+    """
+    Takes str file_name
+    Sends a DELETE_IMAGE command to the server
+    Returns dict with boolean status and str msg
+    """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DELETE_IMAGE
 
@@ -63,6 +73,10 @@ def delete_file(file_name):
 
 
 def unzip_file(file_name):
+    """
+    Takes str file_name
+    Returns dict with boolean status and str msg
+    """
     from subprocess import run
 
     unzip_proc = run(
@@ -76,6 +90,10 @@ def unzip_file(file_name):
 
 
 def download_file_to_iso(scsi_id, url):
+    """
+    Takes int scsi_id and str url
+    Returns dict with boolean status and str msg
+    """
     import urllib.request
     import urllib.error as error
     import time
@@ -102,10 +120,16 @@ def download_file_to_iso(scsi_id, url):
     )
     if iso_proc.returncode != 0:
         return {"status": False, "msg": iso_proc}
-    return attach_image(scsi_id, type="SCCD", image=iso_filename)
+
+    process = attach_image(scsi_id, type="SCCD", image=iso_filename)
+    return {"status": process["status"], "msg": process["msg"]}
 
 
 def download_image(url):
+    """
+    Takes str url
+    Returns dict with boolean status and str msg
+    """
     import urllib.request
     import urllib.error as error
 
@@ -123,6 +147,10 @@ def download_image(url):
 
 
 def write_config(file_name):
+    """
+    Takes str file_name
+    Returns dict with boolean status and str msg
+    """
     from json import dump
     file_name = base_dir + file_name
     try:
@@ -154,6 +182,10 @@ def write_config(file_name):
 
 
 def read_config(file_name):
+    """
+    Takes str file_name
+    Returns dict with boolean status and str msg
+    """
     from json import load
     file_name = base_dir + file_name
     try:
@@ -185,6 +217,7 @@ def write_drive_properties(file_name, conf):
     """
     Writes a drive property configuration file to the images dir.
     Takes file name base (str) and conf (list of dicts) as arguments
+    Returns dict with boolean status and str msg
     """
     from json import dump
     try:
@@ -205,6 +238,7 @@ def read_drive_properties(path_name):
     Reads drive properties to any dir.
     Either ones deployed to the images dir, or the canonical database. 
     Takes file path and bas (str) as argument
+    Returns dict with boolean status and str msg
     """
     from json import load
     try:
