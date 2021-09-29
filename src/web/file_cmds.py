@@ -12,6 +12,11 @@ import rascsi_interface_pb2 as proto
 
 
 def list_files(file_types):
+    """
+    Takes a list or tuple of str file_types - e.g. ('hda', 'hds')
+    Returns list of lists files_list:
+    index 0 is str file name and index 1 is int size in bytes
+    """
     files_list = []
     for path, dirs, files in os.walk(base_dir):
         # Only list selected file types
@@ -29,6 +34,10 @@ def list_files(file_types):
 
 
 def list_config_files():
+    """
+    Returns a list of RaSCSI config files in base_dir:
+    list of str files_list
+    """
     files_list = []
     for root, dirs, files in os.walk(base_dir):
         for file in files:
@@ -38,6 +47,11 @@ def list_config_files():
 
 
 def list_images():
+    """
+    Sends a IMAGE_FILES_INFO command to the server
+    Returns a dict with boolean status, str msg, and list of dicts files
+
+    """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.IMAGE_FILES_INFO
 
