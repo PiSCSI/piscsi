@@ -3,9 +3,9 @@
 **  SCSI Target Emulator RaSCSI (*^..^*)
 **  for Raspberry Pi
 **
-**  Powered by XM6 TypeG Technorogy.
+**  Powered by XM6 TypeG Technology.
 **  Copyright (C) 2016-2017 GIMONS
-**	[ RaSCSI イーサーネット ドライバ ]
+**	[ RaSCSI Ethernet Driver ]
 **
 **  Based on
 **    Neptune-X board driver for  Human-68k(ESP-X)   version 0.03

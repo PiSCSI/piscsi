@@ -3,9 +3,9 @@
 //  SCSI Target Emulator RaSCSI (*^..^*)
 //  for Raspberry Pi
 //
-//  Powered by XM6 TypeG Technorogy.
+//  Powered by XM6 TypeG Technology.
 //  Copyright (C) 2016-2017 GIMONS
-//	[ ホストファイルシステム ブリッジドライバ ]
+//	[ Host Filesystem Bridge Driver ]
 //
 //---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@
 
 //---------------------------------------------------------------------------
 //
-//  変数宣言
+//  Variable definitions
 //
 //---------------------------------------------------------------------------
 volatile BYTE *request;				// リクエストヘッダアドレス

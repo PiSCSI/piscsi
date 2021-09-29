@@ -3,9 +3,9 @@
 *  SCSI Target Emulator RaSCSI (*^..^*)
 *  for Raspberry Pi
 *
-*  Powered by XM6 TypeG Technorogy.
+*  Powered by XM6 TypeG Technology.
 *  Copyright (C) 2016-2019 GIMONS
-*	[ ホストファイルシステム ブリッジドライバ ]
+*	[ Host Filesystem Bridge Driver ]
 *
 * Based on
 *	X68k Emulator Host Filesystem Driver version 0.27
