@@ -46,6 +46,7 @@ private:
 
 	map<PbDeviceType, set<uint32_t>> sector_sizes;
 
+	// Optional mapping of drive capacities to drive geometries
 	map<PbDeviceType, map<uint64_t, Geometry>> geometries;
 
 	map<PbDeviceType, map<string, string>> default_params;

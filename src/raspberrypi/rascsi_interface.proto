@@ -160,8 +160,6 @@ message PbDeviceProperties {
     uint32 luns = 9;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 10;
-    // Unordered list of permitted media capacities in bytes, empty if there is no capacity restriction
-    repeated uint64 capacities = 11;
 }
 
 // The status of a device, only meaningful if the respective feature is supported

@@ -1690,33 +1690,15 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 
 void Disk::SetGeometries(const map<uint64_t, Geometry>& geometries)
 {
-	if (!IsMo()) {
-		throw illegal_argument_exception("Can't set geometry for");
-	}
-
 	this->geometries = geometries;
 }
 
 void Disk::SetGeometryForCapacity(uint64_t capacity) {
 	const auto& geometry = geometries.find(capacity);
-
-	if (geometry == geometries.end()) {
-		ostringstream error;
-		error << "Invalid file size of " << capacity << " bytes. Supported file sizes are ";
-		bool isFirst = true;
-		for (const auto& g : geometries) {
-			if (!isFirst) {
-				error << ", ";
-			}
-			error << g.first << " bytes";
-			isFirst = false;
-		}
-		error << ".";
-		throw io_exception(error.str());
+	if (geometry != geometries.end()) {
+		SetSectorSizeInBytes(geometry->second.first, false);
+		SetBlockCount(geometry->second.second);
 	}
-
-	SetSectorSizeInBytes(geometry->second.first, false);
-	SetBlockCount(geometry->second.second);
 }
 
 uint64_t Disk::GetBlockCount() const
