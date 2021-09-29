@@ -839,11 +839,6 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	device->SetId(id);
 	device->SetLun(unit);
 
-	// Only non read-only devices support protect/unprotect
-	if (!device->IsReadOnly()) {
-		device->SetProtected(pb_device.protected_());
-	}
-
 	try {
 		if (!pb_device.vendor().empty()) {
 			device->SetVendor(pb_device.vendor());
@@ -857,19 +852,6 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	}
 	catch(const illegal_argument_exception& e) {
 		return ReturnStatus(fd, false, e.getmsg());
-	}
-
-	if (pb_device.block_size()) {
-		Disk *disk = dynamic_cast<Disk *>(device);
-		if (disk && disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				error << "Invalid block size " << pb_device.block_size() << " bytes";
-				return ReturnStatus(fd, false, error);
-			}
-		}
-		else {
-			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
-		}
 	}
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
@@ -910,6 +892,26 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		}
 
 		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+	}
+
+	// The operations below must not be executed before Open() because Open() overrides some settings
+
+	if (pb_device.block_size()) {
+		Disk *disk = dynamic_cast<Disk *>(device);
+		if (disk && disk->IsSectorSizeConfigurable()) {
+			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				error << "Invalid block size " << pb_device.block_size() << " bytes";
+				return ReturnStatus(fd, false, error);
+			}
+		}
+		else {
+			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
+		}
+	}
+
+	// Only non read-only devices support protect/unprotect
+	if (device->IsProtectable() && !device->IsReadOnly()) {
+		device->SetProtected(pb_device.protected_());
 	}
 
 	// Stop the dry run here, before permanently modifying something
