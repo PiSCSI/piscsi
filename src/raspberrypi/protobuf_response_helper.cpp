@@ -144,6 +144,7 @@ bool ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string
 		struct stat st;
 		if (!stat(f.c_str(), &st)) {
 			image_file->set_size(st.st_size);
+			image_file->set_mode(st.st_mode);
 			return true;
 		}
 	}
