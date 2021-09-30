@@ -1580,12 +1580,35 @@ static void *MonThread(void *param)
 					break;
 				}
 
-				case IMAGE_FILES_INFO: {
+				case DEFAULT_IMAGE_FILES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_allocated_image_files_info(response_helper.GetAvailableImages(result, default_image_folder));
 					SerializeMessage(fd, result);
+					break;
+				}
+
+				case IMAGE_FILE_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					string filename = GetParam(command, "file");
+					if (filename.empty()) {
+						ReturnStatus(fd, false, "Can't get image file info: Missing filename");
+					}
+					else {
+						PbResult result;
+						PbImageFile* image_file = new PbImageFile();
+						bool status = response_helper.GetImageFile(image_file, filename, default_image_folder);
+						if (status) {
+							result.set_status(true);
+							result.set_allocated_image_file_info(image_file);
+							SerializeMessage(fd, result);
+						}
+						else {
+							ReturnStatus(fd, false, "Can't get image file info for '" + filename + "'");
+						}
+					}
 					break;
 				}
 

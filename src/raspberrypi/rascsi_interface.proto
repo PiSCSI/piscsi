@@ -72,65 +72,70 @@ enum PbOperation {
     // Device properties by device type
     DEVICE_TYPES_INFO = 12;
 
-    // Gets information on available image files. A lightweight alternative to getting the complete server info.
-    IMAGE_FILES_INFO = 13;
+    // Gets information on available image files in the default image folder.
+    DEFAULT_IMAGE_FILES_INFO = 13;
     
+    // Gets information on an image file (not necessarily in the default image folder) based on an absolute path.
+    // Parameters:
+    //   "file": The filename. Either an absolute path or a path relative to the default image folder.
+    IMAGE_FILE_INFO = 14;
+
     // Gets the names of the available network interfaces. Only lists interfaces that are up.
-    NETWORK_INTERFACES_INFO = 14;
+    NETWORK_INTERFACES_INFO = 15;
     
     // Gets the mapping of extensions to device types
-    MAPPING_INFO = 15;
+    MAPPING_INFO = 16;
 
     // Set the default folder for image files.
     // Parameters:
     //   "folder": The default folder name.
-    DEFAULT_FOLDER = 16;
+    DEFAULT_FOLDER = 17;
 
     // Set server log level.
     // Parameters:
     //   "level": The new log level
-    LOG_LEVEL = 17;
+    LOG_LEVEL = 18;
 
     // Block IDs from being used, usually the IDs of the initiators (computers) in the SCSI chain.
     // Parameters:
     //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
-    RESERVE = 18;
+    RESERVE = 19;
     
     // Create an image file. The image file must not yet exist.
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     //   "size": The file size in bytes, must be a multiple of 512
     //   "read_only": "true" (case-insensitive) in order to create a read-only file, otherwise "false"
-    CREATE_IMAGE = 19;
+    CREATE_IMAGE = 20;
 
     // Delete an image file.
     // Parameters:
     //    "file": The filename, relative to the default image folder. It must not contain a slash.
-    DELETE_IMAGE = 20;
+    DELETE_IMAGE = 21;
 
     // Rename an image file.
     // Parameters:
     //   "from": The old filename, relative to the default image folder. It must not contain a slash.
     //   "to": The new filename, relative to the default image folder. It must not contain a slash.
     // The new filename must not yet exist.
-    RENAME_IMAGE = 21;
+    RENAME_IMAGE = 22;
 
     // Copy an image file.
     // Parameters:
     //   "from": The source filename, relative to the default image folder. It must not contain a slash.
     //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
     // The destination filename must not yet exist.
-    COPY_IMAGE = 22;
+    COPY_IMAGE = 23;
     
     // Write-protect an image file.
     // Parameters:
     //  "file": The filename, relative to the default image folder. It must not contain a slash.
-    PROTECT_IMAGE = 23;
+    PROTECT_IMAGE = 24;
 
     // Make an image file writable.
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
-    UNPROTECT_IMAGE = 24;
+    UNPROTECT_IMAGE = 25;
 }
 
 // The supported file extensions mapped to their respective device types
@@ -269,12 +274,14 @@ message PbResult {
         PbDevices device_info = 4;
         // The result of a DEVICE_TYPES_INFO command
         PbDeviceTypesInfo device_types_info = 5;
-        // The result of an IMAGE_FILES_INFO command
+        // The result of a DEFAULT_IMAGE_FILES_INFO command
         PbImageFilesInfo image_files_info = 6;
+        // The result of an IMAGE_FILE_INFO command
+        PbImageFile image_file_info = 7;
         // The result of a NETWORK_INTERFACES_INFO command
-        PbNetworkInterfacesInfo network_interfaces_info = 7;
+        PbNetworkInterfacesInfo network_interfaces_info = 8;
         // The result of an MAPPING_INFO command
-        PbMappingInfo mapping_info = 8;
+        PbMappingInfo mapping_info = 9;
     }
 }
 
