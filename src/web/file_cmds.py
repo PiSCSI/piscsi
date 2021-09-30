@@ -13,7 +13,7 @@ import rascsi_interface_pb2 as proto
 
 def list_files():
     command = proto.PbCommand()
-    command.operation = proto.PbOperation.IMAGE_FILES_INFO
+    command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()

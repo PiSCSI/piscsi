@@ -234,6 +234,19 @@ void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 	}
 }
 
+void DisplayImageFile(const PbImageFile& image_file_info)
+{
+	cout << image_file_info.name() << "  " << image_file_info.size() << " bytes";
+	if (image_file_info.read_only()) {
+		cout << "  read-only";
+	}
+	if (image_file_info.type() != UNDEFINED) {
+		cout << "  " << PbDeviceType_Name(image_file_info.type());
+	}
+	cout << endl;
+
+}
+
 void DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 {
 	const list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
@@ -249,14 +262,8 @@ void DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 
 		cout << "Available image files:" << endl;
 		for (const auto& file : files) {
-			cout << "  " << file.name() << "  " << file.size() << " bytes";
-			if (file.read_only()) {
-				cout << "  read-only";
-			}
-			if (file.type() != UNDEFINED) {
-				cout << "  " << PbDeviceType_Name(file.type());
-			}
-			cout << endl;
+			cout << "  ";
+			DisplayImageFile(file);
 		}
 	}
 }
@@ -469,12 +476,22 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 	}
 }
 
-void CommandImageFilesInfo(const PbCommand& command, const string& hostname, int port)
+void CommandDefaultImageFilesInfo(const PbCommand& command, const string& hostname, int port)
 {
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
 	DisplayImageFiles(result.image_files_info());
+}
+
+void CommandImageFileInfo(PbCommand& command, const string& hostname, int port, const string& filename)
+{
+	AddParam(command, "file", filename);
+
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	DisplayImageFile(result.image_file_info());
 }
 
 void CommandNetworkInterfacesInfo(const PbCommand& command, const string&hostname, int port)
@@ -573,7 +590,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-L] [-l] [-m] [-s] [-v] [-y]" << endl;
+		cerr << "[-e] [-E FILENAME] [-l] [-L] [-m] [-s] [-v] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -605,11 +622,12 @@ int main(int argc, char* argv[])
 	string default_folder;
 	string reserved_ids;
 	string image_params;
+	string filename;
 	bool list = false;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvNTD:L:R:a:b:c:f:h:i:n:p:r:t:u:x:C:F:L:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvNTD:L:R:a:b:c:f:h:i:n:p:r:t:u:x:C:E:F:L:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -641,13 +659,18 @@ int main(int argc, char* argv[])
 				}
 				break;
 
-			case 'F':
-				command.set_operation(DEFAULT_FOLDER);
-				default_folder = optarg;
+			case 'E':
+				command.set_operation(IMAGE_FILE_INFO);
+				filename = optarg;
 				break;
 
 			case 'e':
-				command.set_operation(IMAGE_FILES_INFO);
+				command.set_operation(DEFAULT_IMAGE_FILES_INFO);
+				break;
+
+			case 'F':
+				command.set_operation(DEFAULT_FOLDER);
+				default_folder = optarg;
 				break;
 
 			case 'f':
@@ -799,8 +822,12 @@ int main(int argc, char* argv[])
 			CommandServerInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
-		case IMAGE_FILES_INFO:
-			CommandImageFilesInfo(command, hostname, port);
+		case DEFAULT_IMAGE_FILES_INFO:
+			CommandDefaultImageFilesInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case IMAGE_FILE_INFO:
+			CommandImageFileInfo(command, hostname, port, filename);
 			exit(EXIT_SUCCESS);
 
 		case NETWORK_INTERFACES_INFO:
