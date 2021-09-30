@@ -12,7 +12,6 @@ from flask import (
 )
 
 from file_cmds import (
-    list_files,
     list_config_files,
     list_images,
     create_new_image,
