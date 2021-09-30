@@ -236,7 +236,7 @@ void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 
 void DisplayImageFile(const PbImageFile& image_file_info)
 {
-	cout << "  " << image_file_info.name() << "  " << image_file_info.size() << " bytes";
+	cout << image_file_info.name() << "  " << image_file_info.size() << " bytes";
 	if (image_file_info.read_only()) {
 		cout << "  read-only";
 	}
@@ -262,6 +262,7 @@ void DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 
 		cout << "Available image files:" << endl;
 		for (const auto& file : files) {
+			cout << "  ";
 			DisplayImageFile(file);
 		}
 	}
