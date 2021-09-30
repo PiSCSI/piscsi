@@ -25,7 +25,7 @@ int trap_no;
 int num_of_prt;
 struct prt PRT_LIST[NPRT];
 
-// Multicase (not supported)
+// Multicast (not supported)
 #ifdef MULTICAST
 int num_of_multicast;
 struct eaddr multicast_array[NMULTICAST];

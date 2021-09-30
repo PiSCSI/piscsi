@@ -1712,7 +1712,7 @@ DWORD NFiles(void)
 //  $49 - Create file (Create)
 // 
 //	in	(offset	size)
-//		 1	1.b unit number
+//		 1	1.B unit number
 //		13	1.B	attribute
 //		14	1.L	NAMESTS struct address
 //		18	1.L	mode (0:_NEWFILE 1:_CREATE)
@@ -1760,7 +1760,7 @@ DWORD Create(void)
 //  $4A - File open
 // 
 //	in	(offset	size)
-//		 1	1.b unit number
+//		 1	1.B unit number
 //		14	1.L	NAMESTS struct address
 //		22	1.L	FCB struct address
 //				Most parameters are already set in FCB.
@@ -2079,7 +2079,7 @@ DWORD GetCapacity(void)
 //  $51 - Inspect/control drive status
 // 
 //	in	(offset	size)
-//		 1	1.b unit number
+//		 1	1.B unit number
 //		13	1.B	status	0: status inspection 1: eject
 //
 //---------------------------------------------------------------------------
@@ -2173,7 +2173,7 @@ DWORD GetDPB(void)
 //  $53 - Read sector
 // 
 //	in	(offset	size)
-//		 1	1.b unit number
+//		 1	1.B unit number
 //		14	1.L buffer address
 //		18	1.L number of sectors
 //		22	1.L sector number
@@ -2214,7 +2214,7 @@ DWORD DiskRead(void)
 //  $54 - Write sector
 // 
 //	in	(offset	size)
-//		 1	1.b unit number
+//		 1	1.B unit number
 //		14	1.L buffer address
 //		18	1.L number of sectors
 //		22	1.L sector number
@@ -2245,7 +2245,7 @@ DWORD DiskWrite(void)
 //  $55 - IOCTRL
 // 
 //	in	(offset	size)
-//		 1	1.b unit number
+//		 1	1.B unit number
 //		14	1.L	parameter
 //		18	1.W	feature number
 //
