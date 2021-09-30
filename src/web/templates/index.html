@@ -110,10 +110,11 @@
                         {% endfor %}
                     </select>
 		    {% if file["detected_type"] != "UNDEFINED" %}
+		    <input type="hidden" name="type" value="{{file["detected_type"]}}">
 		    {{file["detected_type"]}}
 	            {% else %}
 		    <select name="type">
-                        <option value="" Selected>????</option>
+                        <option value="" selected>????</option>
 			{% for d in device_types %}
 			<option value="{{d}}">{{d}}</option>
 			{% endfor %}
