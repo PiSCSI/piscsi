@@ -1029,7 +1029,6 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	}
 
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-
 	try {
 		try {
 			file_support->Open(filepath);
@@ -1043,8 +1042,13 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	catch(const io_exception& e) {
 		return ReturnStatus(fd, false, "Tried to open an invalid file '" + initial_filename + "': " + e.getmsg());
 	}
-
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+
+	// Only non read-only devices support protect/unprotect.
+	// This operation must not be executed before Open() because Open() overrides some settings.
+	if (device->IsProtectable() && !device->IsReadOnly()) {
+		device->SetProtected(pb_device.protected_());
+	}
 
 	return true;
 }
