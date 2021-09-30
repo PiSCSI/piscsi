@@ -25,7 +25,7 @@
 
 // number of multicast address we can handle		**EDIT this**
 #define NMULTICAST	(64)
-/* ただし、まだマルチキャストには対応していない */
+/* However, multicast is not yet supported */
 
 struct eaddr {
   unsigned char eaddr [6];
@@ -41,7 +41,7 @@ struct prt {
 };
 
 
-// グローバル変数
+// Global variables
 extern unsigned int scsiid;
 extern int trap_no;
 extern int num_of_prt;
@@ -53,7 +53,7 @@ extern struct eaddr multicast_array [NMULTICAST];
 #endif
 
 
-// プロトタイプ宣言
+// Prototype declarations
 extern int Initialize (void);
 extern int InitList (int);
 extern int AddList (int, int_handler);
@@ -69,7 +69,7 @@ extern void MakeMulticastTable (unsigned char*);
 #endif
 
 
-//  ne.s 内関数
+// Function within ne.s
 extern void trap_entry (void);
 
 
