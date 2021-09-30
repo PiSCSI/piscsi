@@ -272,52 +272,6 @@
 
     <hr/>
 
-    <details>
-    <summary>Pad Image File</summary>
-    <ul>
-    <li>If RaSCSI fails to attach an image with a size error, you can try to pad it here. This will create a "_padded" copy of the file.</li>
-    <li>This will pad the size of the file up to the nearest multiple of 512 bytes for drive images, and 2048 bytes for CD-ROM images.</li>
-    <li>For other usecases, pad your file manually using a tool like <tt>dd</tt> for Linux.</li>
-    </ul>
-    </details>
-
-    <table style="border: none">
-        <tr style="border: none">
-            <td style="border: none; vertical-align:top;">
-		<form action="/files/pad" method="post">
-		    <label for="image">Drive images:</label>
-		    <select name="image">
-			{% for f in drive_files %}
-			{% if f[1] % 512 %}
-			<option value="{{f[0]}},{{f[1]}}">{{f[0]}}</option>
-			{% endif %}
-			{% endfor %}
-                    </select>
-		    <input type="hidden" name="multiple" value="512" />
-		    <input type="submit" value="Pad HD image" />
-		</form>
-            </td>
-        </tr>
-        <tr style="border: none">
-            <td style="border: none; vertical-align:top;">
-		<form action="/files/pad" method="post">
-		    <label for="image">CD-ROM images:</label>
-		    <select name="image">
-			{% for f in cdrom_files %}
-			{% if f[1] % 2048 %}
-			<option value="{{f[0]}},{{f[1]}}">{{f[0]}}</option>
-			{% endif %}
-			{% endfor %}
-                    </select>
-		    <input type="hidden" name="multiple" value="2048" />
-		    <input type="submit" value="Pad CD image" />
-		</form>
-            </td>
-        </tr>
-    </table>
-
-    <hr/>
-
     <h2>Logging</h2>
     <table style="border: none">
         <tr style="border: none">
