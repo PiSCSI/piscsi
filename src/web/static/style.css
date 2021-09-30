@@ -48,6 +48,13 @@ td.inactive {
   background-color:tan;
 }
 
+summary {
+  color: black;
+  font-size: large;
+  font-weight: bold;
+  margin: 0px;
+}
+
 .dropzone, .dropzone * {
     box-sizing: border-box;
 }
