@@ -127,6 +127,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 			case SAHD:
 				device = new SASIHD();
 				device->SetSupportedLuns(2);
+				device->SetProduct("SASI HD");
 				((Disk *)device)->SetSectorSizes(sector_sizes[SAHD]);
 			break;
 
