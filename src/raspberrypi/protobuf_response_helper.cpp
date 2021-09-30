@@ -142,7 +142,7 @@ bool ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
 		struct stat st;
-		if (!stat(f.c_str(), &st)) {
+		if (!stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
 			image_file->set_size(st.st_size);
 			return true;
 		}
@@ -181,7 +181,11 @@ PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, 
 					continue;
 				}
 
-				GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
+				PbImageFile *image_file = new PbImageFile();
+				if (GetImageFile(image_file, dir->d_name, image_folder)) {
+					GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
+				}
+				delete image_file;
 			}
 		}
 
