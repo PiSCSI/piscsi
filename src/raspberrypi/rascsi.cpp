@@ -1592,6 +1592,15 @@ static void *MonThread(void *param)
 					break;
 				}
 
+				case MAPPING_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_mapping_info(response_helper.GetMappingInfo(result));
+					SerializeMessage(fd, result);
+					break;
+				}
+
 				default: {
 					// Wait until we become idle
 					while (active) {

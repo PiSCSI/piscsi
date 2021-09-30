@@ -231,30 +231,14 @@ void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 			}
 			cout << endl;
 		}
-
-		if (properties.capacities_size()) {
-			list<uint64_t> capacities = { properties.capacities().begin(), properties.capacities().end() };
-			capacities.sort([](const auto& a, const auto& b) { return a < b; });
-
-			cout << "        Media capacities in bytes: ";
-
-			bool isFirst = true;
-			for (const auto& capacity : capacities) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-				cout << capacity;
-
-				isFirst = false;
-			}
-			cout << endl;
-		}
 	}
 }
 
-void DisplayImageFiles(const list<PbImageFile> image_files, const string& default_image_folder)
+void DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 {
-	cout << "Default image file folder: " << default_image_folder << endl;
+	const list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
+
+	cout << "Default image file folder: " << image_files_info.default_image_folder() << endl;
 
 	if (image_files.empty()) {
 		cout << "  No image files available" << endl;
@@ -277,9 +261,9 @@ void DisplayImageFiles(const list<PbImageFile> image_files, const string& defaul
 	}
 }
 
-void DisplayNetworkInterfaces(list<string> interfaces)
+void DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info)
 {
-	interfaces.sort([](const auto& a, const auto& b) { return a < b; });
+	const list<string> interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
 
 	cout << "Available (up) network interfaces:" << endl;
 	bool isFirst = true;
@@ -291,6 +275,16 @@ void DisplayNetworkInterfaces(list<string> interfaces)
 		cout << interface;
 	}
 	cout << endl;
+}
+
+void DisplayMappingInfo(const PbMappingInfo& mapping_info)
+{
+	const map<string, PbDeviceType> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
+
+	cout << "Supported image file extension to device type mappings:" << endl;
+	for (const auto&  mapping : mappings) {
+		cout << "  " << mapping.first << "->" << PbDeviceType_Name(mapping.second) << endl;
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -447,14 +441,9 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
 	}
 
-	const list<PbImageFile> image_files =
-		{ server_info.image_files_info().image_files().begin(), server_info.image_files_info().image_files().end() };
-	DisplayImageFiles(image_files, server_info.image_files_info().default_image_folder());
-
-	const list<string> network_interfaces =
-		{ server_info.network_interfaces_info().name().begin(), server_info.network_interfaces_info().name().end() };
-	DisplayNetworkInterfaces(network_interfaces);
-
+	DisplayImageFiles(server_info.image_files_info());
+	DisplayMappingInfo(server_info.mapping_info());
+	DisplayNetworkInterfaces(server_info.network_interfaces_info());
 	DisplayDeviceTypesInfo(server_info.device_types_info());
 
 	if (server_info.reserved_ids_size()) {
@@ -485,9 +474,7 @@ void CommandImageFilesInfo(const PbCommand& command, const string& hostname, int
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
-	const list<PbImageFile> image_files =
-		{ result.image_files_info().image_files().begin(),result.image_files_info().image_files().end() };
-	DisplayImageFiles(image_files, result.image_files_info().default_image_folder());
+	DisplayImageFiles(result.image_files_info());
 }
 
 void CommandNetworkInterfacesInfo(const PbCommand& command, const string&hostname, int port)
@@ -495,9 +482,15 @@ void CommandNetworkInterfacesInfo(const PbCommand& command, const string&hostnam
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
-	list<string> network_interfaces =
-		{ result.network_interfaces_info().name().begin(), result.network_interfaces_info().name().end() };
-	DisplayNetworkInterfaces(network_interfaces);
+	DisplayNetworkInterfaces(result.network_interfaces_info());
+}
+
+void CommandMappingInfo(const PbCommand& command, const string&hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	DisplayMappingInfo(result.mapping_info());
 }
 
 PbOperation ParseOperation(const char *optarg)
@@ -580,7 +573,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-L] [-k] [-l] [-v] [-y]" << endl;
+		cerr << "[-L] [-l] [-m] [-s] [-v] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -616,7 +609,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elsvNTD:L:R:a:b:c:f:h:i:n:p:r:t:u:x:C:F:L:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvNTD:L:R:a:b:c:f:h:i:n:p:r:t:u:x:C:F:L:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -659,6 +652,10 @@ int main(int argc, char* argv[])
 
 			case 'f':
 				param = optarg;
+				break;
+
+			case 'm':
+				command.set_operation(MAPPING_INFO);
 				break;
 
 			case 'N':
@@ -808,6 +805,10 @@ int main(int argc, char* argv[])
 
 		case NETWORK_INTERFACES_INFO:
 			CommandNetworkInterfacesInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case MAPPING_INFO:
+			CommandMappingInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		default:

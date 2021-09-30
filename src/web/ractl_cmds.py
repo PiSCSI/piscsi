@@ -5,6 +5,15 @@ import rascsi_interface_pb2 as proto
 
 
 def get_server_info():
+    """
+    Sends a SERVER_INFO command to the server.
+    Returns a dict with:
+    - boolean status
+    - str version (RaSCSI version number)
+    - list of str log_levels (the log levels RaSCSI supports)
+    - str current_log_level
+    - list of int reserved_ids
+    """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.SERVER_INFO
 
@@ -17,10 +26,22 @@ def get_server_info():
     log_levels = result.server_info.log_levels
     current_log_level = result.server_info.current_log_level
     reserved_ids = list(result.server_info.reserved_ids)
-    return {"status": result.status, "version": version, "log_levels": log_levels, "current_log_level": current_log_level, "reserved_ids": reserved_ids}
+    return {
+            "status": result.status, 
+            "version": version, 
+            "log_levels": log_levels, 
+            "current_log_level": current_log_level, 
+            "reserved_ids": reserved_ids
+            }
 
 
 def get_network_info():
+    """
+    Sends a NETWORK_INTERFACES_INFO command to the server.
+    Returns a dict with:
+    - boolean status
+    - list of str ifs (network interfaces detected by RaSCSI)
+    """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.NETWORK_INTERFACES_INFO
 
@@ -32,6 +53,12 @@ def get_network_info():
 
 
 def get_device_types():
+    """
+    Sends a DEVICE_TYPES_INFO command to the server.
+    Returns a dict with:
+    - boolean status
+    - list of str device_types (device types that RaSCSI supports, ex. SCHD, SCCD, etc)
+    """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICE_TYPES_INFO
 
@@ -45,6 +72,12 @@ def get_device_types():
     
 
 def validate_scsi_id(scsi_id):
+    """
+    Checks that scsi_id is a valid SCSI ID, i.e. a number between 0 and 7.
+    Returns a dict with:
+    - boolean status
+    - str msg (result message)
+    """
     from re import match
     if match("[0-7]", str(scsi_id)) != None:
         return {"status": True, "msg": "Valid SCSI ID."}
@@ -53,6 +86,10 @@ def validate_scsi_id(scsi_id):
 
 
 def get_valid_scsi_ids(devices, reserved_ids):
+    """
+    Takes a list of dicts devices, and list of ints reserved_ids.
+    Returns a list of ints valid_ids, which are the SCSI ids where it is possible to attach a device.
+    """
     occupied_ids = []
     for d in devices:
         # Make it possible to insert images on top of a 
@@ -69,32 +106,23 @@ def get_valid_scsi_ids(devices, reserved_ids):
         except:
             # May reach this state if the RaSCSI Web UI thinks an ID
             # is reserved but RaSCSI has not actually reserved it.
-            logging.warning(f"SCSI ID {id} flagged as both valid and invalid. Try restarting the RaSCSI Web UI.")
+            logging.warning(f"SCSI ID {id} flagged as both valid and invalid. \
+                    Try restarting the RaSCSI Web UI.")
     valid_ids.reverse()
     return valid_ids
 
 
-# TODO: This can probably be deprecated and use list_devices instead
-def get_type(scsi_id):
-    device = proto.PbDeviceDefinition()
-    device.id = int(scsi_id)
-
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.DEVICES_INFO
-    command.devices.append(device)
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    # Assuming that only one PbDevice object is present in the response
-    try:
-        result_type = proto.PbDeviceType.Name(result.device_info.devices[0].type)
-        return {"status": result.status, "msg": result.msg, "device_type": result_type}
-    except:
-        return {"status": result.status, "msg": result.msg, "device_type": None}
-
-
 def attach_image(scsi_id, **kwargs):
+    """
+    Takes int scsi_id and kwargs containing 0 or more device properties
+
+    If the current attached device is a removable device wihout media inserted,
+    this sends a INJECT command to the server.
+    If there is no currently attached device, this sends the ATTACH command to the server.
+
+    Returns boolean status and str msg
+
+    """
     command = proto.PbCommand()
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
@@ -103,18 +131,23 @@ def attach_image(scsi_id, **kwargs):
         if kwargs["device_type"] not in [None, ""]:
             devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
     if "unit" in kwargs.keys():
-        devices.unit = kwargs["unit"]
+        if kwargs["unit"] not in [None, ""]:
+            devices.unit = kwargs["unit"]
     if "image" in kwargs.keys():
         if kwargs["image"] not in [None, ""]:
             devices.params["file"] = kwargs["image"]
 
     # Handling the inserting of media into an attached removable type device
-    currently_attached = get_type(scsi_id)["device_type"] 
     device_type = kwargs.get("device_type", None) 
+    currently_attached = list_devices(scsi_id)["device_list"]
+    if len(currently_attached) > 0:
+        current_type = currently_attached[0]["device_type"] 
+    else:
+        current_type = None
 
-    if device_type in REMOVABLE_DEVICE_TYPES and currently_attached in REMOVABLE_DEVICE_TYPES:
-        if currently_attached != device_type:
-            return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {currently_attached} device."}
+    if device_type in REMOVABLE_DEVICE_TYPES and current_type in REMOVABLE_DEVICE_TYPES:
+        if current_type != device_type:
+            return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {current_type} device."}
         else:
             command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
@@ -145,6 +178,10 @@ def attach_image(scsi_id, **kwargs):
 
 
 def detach_by_id(scsi_id):
+    """
+    Takes int scsi_id and sends a DETACH command to the server.
+    Returns boolean status and str msg.
+    """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
 
@@ -159,6 +196,10 @@ def detach_by_id(scsi_id):
 
 
 def detach_all():
+    """
+    Sends a DETACH_ALL command to the server.
+    Returns boolean status and str msg.
+    """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH_ALL
 
@@ -169,6 +210,10 @@ def detach_all():
 
 
 def eject_by_id(scsi_id):
+    """
+    Takes int scsi_id and sends an EJECT command to the server.
+    Returns boolean status and str msg.
+    """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
 
@@ -183,6 +228,13 @@ def eject_by_id(scsi_id):
 
 
 def list_devices(scsi_id=None):
+    """
+    Takes optional int scsi_id and sends a DEVICES_INFO command to the server.
+    If no scsi_id is provided, returns a list of dicts of all attached devices.
+    If scsi_id is is provided, returns a list of one dict for the given device.
+    If no attached device is found, returns an empty list.
+    Returns boolean status, list of dicts device_list
+    """
     from os import path
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICES_INFO
@@ -241,6 +293,11 @@ def list_devices(scsi_id=None):
 
 
 def sort_and_format_devices(devices):
+    """
+    Takes a list of dicts devices and returns a list of dicts.
+    Sorts by SCSI ID acending (0 to 7).
+    For SCSI IDs where no device is attached, inject a dict with placeholder text.
+    """
     occupied_ids = []
     for d in devices:
         occupied_ids.append(d["id"])
@@ -259,7 +316,11 @@ def sort_and_format_devices(devices):
 
 
 def set_log_level(log_level):
-    '''Sends a command to the server to change the log level. Takes target log level as an argument.'''
+    """
+    Sends a LOG_LEVEL command to the server.
+    Takes str log_level as an argument.
+    Returns boolean status and str msg.
+    """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL
     command.params["level"] = str(log_level)
@@ -271,6 +332,10 @@ def set_log_level(log_level):
 
 
 def send_pb_command(payload):
+    """
+    Takes a str containing a serialized protobuf as argument.
+    Establishes a socket connection with RaSCSI.
+    """
     # Host and port number where rascsi is listening for socket connections
     HOST = 'localhost'
     PORT = 6868
@@ -300,6 +365,13 @@ def send_pb_command(payload):
 
 
 def send_over_socket(s, payload):
+    """
+    Takes a socket object and str payload with serialized protobuf.
+    Sends payload to RaSCSI over socket and captures the response.
+    Tries to extract and interpret the protobuf header to get response size.
+    Reads data from socket in 2048 bytes chunks until all data is received.
+
+    """
     from struct import pack, unpack
 
     # Prepending a little endian 32bit header with the message size
@@ -318,13 +390,20 @@ def send_over_socket(s, payload):
             chunk = s.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
                 from flask import abort
-                logging.error("Read an empty chunk from the socket. Socket connection may have dropped unexpectedly. Check if RaSCSI has crashed.")
-                abort(503, "Lost connection to RaSCSI. Please go back and try again. If the issue persists, please report a bug.")
+                logging.error("Read an empty chunk from the socket. \
+                        Socket connection has dropped unexpectedly. \
+                        RaSCSI may have has crashed.")
+                abort(503, "Lost connection to RaSCSI. \
+                        Please go back and try again. \
+                        If the issue persists, please report a bug.")
             chunks.append(chunk)
             bytes_recvd = bytes_recvd + len(chunk)
         response_message = b''.join(chunks)
         return response_message
     else:
         from flask import abort
-        logging.error("The response from RaSCSI did not contain a protobuf header.")
-        abort(500, "Did not get a valid response from RaSCSI. Please go back and try again. If the issue persists, please report a bug.")
+        logging.error("The response from RaSCSI did not contain a protobuf header. \
+                RaSCSI may have crashed.")
+        abort(500, "Did not get a valid response from RaSCSI. \
+                Please go back and try again. \
+                If the issue persists, please report a bug.")

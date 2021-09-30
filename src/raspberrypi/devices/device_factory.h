@@ -33,23 +33,25 @@ public:
 
 	static DeviceFactory& instance();
 
-	static PbDeviceType GetTypeForFile(const string&);
-
 	Device *CreateDevice(PbDeviceType, const string&);
-
+	PbDeviceType GetTypeForFile(const string&);
 	const set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const set<uint32_t>& GetSectorSizes(const string&);
 	const set<uint64_t> GetCapacities(PbDeviceType);
 	const map<string, string>& GetDefaultParams(PbDeviceType type) { return default_params[type]; }
 	const list<string> GetNetworkInterfaces() const;
+	const map<string, PbDeviceType> GetExtensionMapping() const { return extension_mapping; }
 
 private:
 
 	map<PbDeviceType, set<uint32_t>> sector_sizes;
 
+	// Optional mapping of drive capacities to drive geometries
 	map<PbDeviceType, map<uint64_t, Geometry>> geometries;
 
 	map<PbDeviceType, map<string, string>> default_params;
 
-	static string GetExtension(const string&);
+	map<string, PbDeviceType> extension_mapping;
+
+	string GetExtension(const string&) const;
 };
