@@ -32,8 +32,9 @@ jobs:
       - name: Checkout RaSCSI
         uses: actions/checkout@v2
         with:
+           repository: erichelgeson/pi-gen
 #          repository: akuker/pi-gen
-          repository: RPi-Distro/pi-gen
+#          repository: RPi-Distro/pi-gen
           path: pi-gen
       
       - name: Install Raspberry Pi build toolchain
@@ -42,12 +43,17 @@ jobs:
       - name: Configure the build....
         run: |
           echo -----------------------------------------------------
-          echo "IMG_NAME='Raspbian'" > config
-          touch ./stage2/SKIP ./stage3/SKIP ./stage4/SKIP ./stage5/SKIP
-          touch ./stage3/SKIP_IMAGES ./stage4/SKIP_IMAGES ./stage5/SKIP_IMAGES
-          touch ./stage2/EXPORT_IMAGE ./stage2/EXPORT_NOOBS
-#          sudo ./build.sh
+          echo "IMG_NAME=RaSCSI" > config
+          echo "TARGET_HOSTNAME=rascsi" >> config
+          echo "ENABLE_SSH=1" >> config
+          echo "LOCALE_DEFAULT=en_US.UTF-8" >> config
+          echo "KEYBOARD_KEYMAP=us" >> config
+          echo "KEYBOARD_LAYOUT=\"English (US)\"" >> config
+          echo -----------------------------------------------------
+          cat config
         working-directory: pi-gen
+#          echo "IMG_NAME='Raspbian'" > config
+#          sudo ./build.sh
 
       # Configure the build
 #      - name: Configure the image name
