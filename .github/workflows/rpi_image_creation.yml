@@ -43,14 +43,18 @@ jobs:
         run: echo "IMG_NAME='rascsi_build'" > ./pi-gen/config
       - name: Configure the TARGET_HOSTNAME name
         run: echo "TARGET_HOSTNAME=rascsi" >> ./pi-gen/config
-      - name: Configure ENABLE_SSH 
-        run: echo "ENABLE_SSH=1" >> ./pi-gen/config
-      - name: Configure the locale
-        run: echo "LOCALE_DEFAULT=en_US.UTF-8" >> ./pi-gen/config
-      - name: Configure KEYBOARD_KEYMAP 
-        run: echo "KEYBOARD_KEYMAP=us" >> ./pi-gen/config
-      - name: Configure KEYBOARD_LAYOUT 
-        run: echo "KEYBOARD_LAYOUT='English (US)'" >> ./pi-gen/config
+#      - name: Configure ENABLE_SSH 
+#        run: echo "ENABLE_SSH=1" >> ./pi-gen/config
+#      - name: Configure the locale
+#        run: echo "LOCALE_DEFAULT=en_US.UTF-8" >> ./pi-gen/config
+#      - name: Configure KEYBOARD_KEYMAP 
+#        run: echo "KEYBOARD_KEYMAP=us" >> ./pi-gen/config
+#      - name: Configure KEYBOARD_LAYOUT 
+#        run: echo "KEYBOARD_LAYOUT='English (US)'" >> ./pi-gen/config
+
+      - name: Configure the build
+        run: ./rascsi_configure.sh
+        working-directory: pi-gen
 
       # Runs a single command using the runners shell
       - name: List files
