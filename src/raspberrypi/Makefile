@@ -64,8 +64,8 @@ OS_FILES = ./os_integration
 OBJDIR := ./obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 
-#BIN_ALL = $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
-# Temporarily remove the RASDUMP and RASDUMP tools, since they're not needed
+#BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL) $(BINDIR)/$(SCSIMON) $(BINDIR)/$(RASDUMP) $(BINDIR)/$(SASIDUMP)
+# Temporarily remove the RASDUMP and SASIDUMP tools, since they're not needed
 # for my specific use case. If you need them - add them back in!
 BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL) $(BINDIR)/$(SCSIMON)
 
