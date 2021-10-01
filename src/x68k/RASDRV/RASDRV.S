@@ -3,9 +3,9 @@
 *  SCSI Target Emulator RaSCSI (*^..^*)
 *  for Raspberry Pi
 *
-*  Powered by XM6 TypeG Technorogy.
+*  Powered by XM6 TypeG Technology.
 *  Copyright (C) 2016-2019 GIMONS
-*	[ ホストファイルシステム ブリッジドライバ ]
+*	[ Host Filesystem Bridge Driver ]
 *
 * Based on
 *	X68k Emulator Host Filesystem Driver version 0.27
@@ -20,19 +20,19 @@
 
 .XREF	_Init, _Process		;bridge.c  
 
-COMMAND	EQU	2	コマンド番号
-ERRLOW	EQU	3	エラーコード下位8ビット
-ERRHIGH	EQU	4	エラーコード上位8ビット
-MXUNIT	EQU	13	ユニット数
-DEVEND	EQU	14	ドライバ終了アドレス
-BDEVNO	EQU	22	ベースドライブ番号
+COMMAND	EQU	2	Command number
+ERRLOW	EQU	3	Error code lower 8 bits
+ERRHIGH	EQU	4	Error code upper 8 bits
+MXUNIT	EQU	13	Number of units
+DEVEND	EQU	14	Driver exit address
+BDEVNO	EQU	22	Base drive number
 
 DDHEADER:
-	DC.L	-1		+$00	リンクポインタ
-	DC.W	$2040		+$04	デバイス属性
+	DC.L	-1		+$00	Link pointer
+	DC.W	$2040		+$04	Device attribute
 	DC.L	DDSTRATEGY	+$06
 	DC.L	DDENTRY_FIRST	+$0A
-	DC.B	'*EMUHOST'	+$0E	デバイス名
+	DC.B	'*EMUHOST'	+$0E	Device name
 
 DDREQUEST:
 	DC.L	0
@@ -41,12 +41,12 @@ DDSTRATEGY:
 	MOVE.L	A5,DDREQUEST
 	RTS
 
-*デバイスドライバエントリ
+*Device driver entry
 DDENTRY:
 	MOVE.L	SP,(STACK_BUFF)
 	LEA	(DEF_STACK),SP
 	MOVEM.L	D1-D3/A0-A2,-(SP)
-	MOVEM.L	DDREQUEST(PC),D0	D0.L: リクエストヘッダアドレス
+	MOVEM.L	DDREQUEST(PC),D0	D0.L: Request header address
 	MOVE.L	D0,-(SP)
 	BSR		_Process
 	ADDQ.L	#4,SP
@@ -56,67 +56,67 @@ DDENTRY:
 
 KEEP_HERE:
 
-*初回のみのデバイスドライバエントリ
+*First time only device driver entry
 DDENTRY_FIRST:
 	MOVEM.L	D1-D3/A0-A2/A5,-(SP)
-	MOVEA.L	DDREQUEST(PC),A5	A5.L: リクエストヘッダアドレス
-*	CMPI.B	#$40,COMMAND(A5)	現行のHuman68kではチェック不要
-*	BNE	UNSUPPORTED		エラー:	未対応
+	MOVEA.L	DDREQUEST(PC),A5	A5.L: Request header address
+*	CMPI.B	#$40,COMMAND(A5)	No need to check when Human68k is running
+*	BNE	UNSUPPORTED		Error:	Not supported
 
-*タイトル表示
+*Show title
 	PEA	MESSAGE_TITLE(PC)
 	DOS	_PRINT
 	ADDQ.L	#4,SP
 
-*デバイスチェック
+*Device check
 DEVICE_CHECK:
 	BSR _Init
 
 	TST.L	D0
-	BEQ	NOTFOUND		エラー: デバイスが存在しません
+	BEQ	NOTFOUND		Error: Device not found
 
-*常駐開始
+*Resident program start
 	LEA	DDENTRY(PC),A1
 
 	LEA	DDHEADER+$0A(PC),A0
-	MOVE.L	A1,(A0)			ドライバエントリを設定
-	MOVE.L	#PROG_END,DEVEND(A5)		常駐終了アドレスを設定
+	MOVE.L	A1,(A0)			Configure driver entry
+	MOVE.L	#PROG_END,DEVEND(A5)		Configure resident exit address
 
-	ST.B	MXUNIT(A5)		ポート未実装の判定のため負の値を設定しておく
-	JSR	(A1)			ドライバエントリを実行
+	ST.B	MXUNIT(A5)		Set negative number since port is considered unimplemented
+	JSR	(A1)			Execute driver entry
 
-	TST.B	MXUNIT(A5)		ユニット数確認
-	BLE	NODRIVE			エラー: ドライブがありません
+	TST.B	MXUNIT(A5)		Verify number of units
+	BLE	NODRIVE			Error: No drive
 
 	MOVE.B	BDEVNO(A5),D0
 	MOVE.B	MXUNIT(A5),D1
 	LEA	FIRSTDRIVE(PC),A0
-	ADD.B	D0,(A0)			開始ドライブ名書き換え
-	ADD.B	D1,D0			終了ドライブ名書き換え
+	ADD.B	D0,(A0)			Overwrite start drive name
+	ADD.B	D1,D0			Overwrite stop drive name
 	ADD.B	D0,LASTDRIVE-FIRSTDRIVE(A0)
 
-	PEA	MESSAGE_DRIVENAME(PC)	正常: ドライブA:
+	PEA	MESSAGE_DRIVENAME(PC)	Normal:  Drive A:
 	DOS	_PRINT
 
-	PEA	MESSAGE_DRIVENAME2(PC)	正常: からZ:
+	PEA	MESSAGE_DRIVENAME2(PC)	Normal:  to Z:
 	SUBQ.B	#2,D1
 	BCS	@F
 	DOS	_PRINT
 @@	ADDQ.L	#8,SP
 
-	PEA	MESSAGE_DRIVENAME3(PC)	正常: を登録しました
+	PEA	MESSAGE_DRIVENAME3(PC)	Normal:  was registered
 	BRA	QUIT
 
 NOTFOUND:
-	PEA	MESSAGE_NOTFOUND(PC)	エラー: デバイスが存在しません
+	PEA	MESSAGE_NOTFOUND(PC)	Error:  Device not found
 	BRA	ABORT
 
 UNSUPPORTED:
-	PEA	MESSAGE_UNSUPPORTED(PC)	エラー: 未対応
+	PEA	MESSAGE_UNSUPPORTED(PC)	Error:  Not supported
 	BRA	ABORT
 
 NODRIVE:
-	PEA	MESSAGE_NODRIVE(PC)	エラー: ドライブがありません
+	PEA	MESSAGE_NODRIVE(PC)	Error:  No drive
 
 ABORT:
 	MOVE.B	#$0D,ERRLOW(A5)
@@ -139,41 +139,41 @@ SECRET:
 
 	DATA
 
-*エラーメッセージ
+*Error messages
 MESSAGE_NOTFOUND:
-	DC.B	'デバイスが存在しません',$0D,$0A,0
+	DC.B	'Device not found',$0D,$0A,0
 
 MESSAGE_UNSUPPORTED:
-	DC.B	'未対応',$0D,$0A,0
+	DC.B	'Not supported',$0D,$0A,0
 
 MESSAGE_NODRIVE:
-	DC.B	'ドライブがありません',$0D,$0A,0
+	DC.B	'No drive',$0D,$0A,0
 
-*登録メッセージ
+*Registration messages
 MESSAGE_DRIVENAME:
-	DC.B	'ドライブ'
+	DC.B	'Drive'
 FIRSTDRIVE:
 	DC.B	'A:',0
 MESSAGE_DRIVENAME2:
-	DC.B	'から'
+	DC.B	' to '
 LASTDRIVE:
 	DC.B	'@:',0
 MESSAGE_DRIVENAME3:
-	DC.B	'を登録しました',$0D,$0A,0
+	DC.B	' was registered',$0D,$0A,0
 
-*タイトル
+*Title
 MESSAGE_TITLE:
 	DC.B	$0D,$0A
 MESSAGE_TITLE2:
 	DC.B	'RaSCSI FileSystem Driver version 1.42',$0D,$0A,0
 
-*ありがとう！
+*Thanks!
 CREDIT:
 	DC.B	'Coded by GIMONS',$0D,$0A
 	DC.B	'Special thanks to',$0D,$0A
 	DC.B	9,'co',$0D,$0A
-	DC.B	9,'ＰＩ．',$0D,$0A
-	DC.B	9,'立花＠桑島技研',$0D,$0A
+	DC.B	9,'PI.',$0D,$0A
+	DC.B	9,'Tachibana@Kuwashima Giken',$0D,$0A
 	DC.B	0
 
 	BSS
