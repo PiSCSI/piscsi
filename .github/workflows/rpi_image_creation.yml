@@ -32,17 +32,27 @@ jobs:
       - name: Checkout RaSCSI
         uses: actions/checkout@v2
         with:
-          repository: akuker/pi-gen
+#          repository: akuker/pi-gen
+          repository: RPi-Distro/pi-gen
           path: pi-gen
       
       - name: Install Raspberry Pi build toolchain
         run: sudo apt-get install coreutils quilt parted qemu-user-static debootstrap zerofree zip dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc qemu-utils kpartx
 
+      - name: Configure the build....
+        run: |
+          echo -----------------------------------------------------
+          echo "IMG_NAME='Raspbian'" > config
+          touch ./stage2/SKIP ./stage3/SKIP ./stage4/SKIP ./stage5/SKIP
+          touch ./stage3/SKIP_IMAGES ./stage4/SKIP_IMAGES ./stage5/SKIP_IMAGES
+          sudo ./build.sh
+        working-directory: pi-gen
+
       # Configure the build
-      - name: Configure the image name
-        run: echo "IMG_NAME='rascsi_build'" > ./pi-gen/config
-      - name: Configure the TARGET_HOSTNAME name
-        run: echo "TARGET_HOSTNAME=rascsi" >> ./pi-gen/config
+#      - name: Configure the image name
+#        run: echo "IMG_NAME='rascsi_build'" > ./pi-gen/config
+#      - name: Configure the TARGET_HOSTNAME name
+#        run: echo "TARGET_HOSTNAME=rascsi" >> ./pi-gen/config
 #      - name: Configure ENABLE_SSH 
 #        run: echo "ENABLE_SSH=1" >> ./pi-gen/config
 #      - name: Configure the locale
