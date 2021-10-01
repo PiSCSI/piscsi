@@ -52,9 +52,9 @@ jobs:
 #      - name: Configure KEYBOARD_LAYOUT 
 #        run: echo "KEYBOARD_LAYOUT='English (US)'" >> ./pi-gen/config
 
-      - name: Configure the build
-        run: ./rascsi_configure.sh
-        working-directory: pi-gen
+#      - name: Configure the build
+#        run: ./rascsi_configure.sh
+#        working-directory: pi-gen
 
       # Runs a single command using the runners shell
       - name: List files
