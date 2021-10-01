@@ -210,6 +210,7 @@ install: \
 	$(MAN_PAGE_DIR)/rascsi.1 \
 	$(MAN_PAGE_DIR)/rasctl.1 \
 	$(MAN_PAGE_DIR)/scsimon.1 \
+	$(MAN_PAGE_DIR)/rasdump.1 \
 	$(USR_LOCAL_BIN)/$(RASCTL) \
 	$(USR_LOCAL_BIN)/$(RASCSI) \
 	$(USR_LOCAL_BIN)/$(SCSIMON) \
