@@ -32,7 +32,7 @@ jobs:
       - name: Checkout RaSCSI
         uses: actions/checkout@v2
         with:
-          repository: erichelgeson/pi-gen
+          repository: akuker/pi-gen
           path: pi-gen
       
       - name: Install Raspberry Pi build toolchain
