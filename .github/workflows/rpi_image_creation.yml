@@ -32,10 +32,10 @@ jobs:
       - name: Checkout RaSCSI
         uses: actions/checkout@v2
         with:
-           repository: erichelgeson/pi-gen
+          repository: erichelgeson/pi-gen
+          path: pi-gen
 #          repository: akuker/pi-gen
 #          repository: RPi-Distro/pi-gen
-          path: pi-gen
       
       - name: Install Raspberry Pi build toolchain
         run: sudo apt-get install coreutils quilt parted qemu-user-static debootstrap zerofree zip dosfstools libarchive-tools libcap2-bin grep rsync xz-utils file git curl bc qemu-utils kpartx
