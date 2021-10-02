@@ -839,11 +839,6 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	device->SetId(id);
 	device->SetLun(unit);
 
-	// Only non read-only devices support protect/unprotect
-	if (!device->IsReadOnly()) {
-		device->SetProtected(pb_device.protected_());
-	}
-
 	try {
 		if (!pb_device.vendor().empty()) {
 			device->SetVendor(pb_device.vendor());
@@ -857,19 +852,6 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	}
 	catch(const illegal_argument_exception& e) {
 		return ReturnStatus(fd, false, e.getmsg());
-	}
-
-	if (pb_device.block_size()) {
-		Disk *disk = dynamic_cast<Disk *>(device);
-		if (disk && disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				error << "Invalid block size " << pb_device.block_size() << " bytes";
-				return ReturnStatus(fd, false, error);
-			}
-		}
-		else {
-			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
-		}
 	}
 
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
@@ -910,6 +892,26 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		}
 
 		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+	}
+
+	// The operations below must not be executed before Open() because Open() overrides some settings
+
+	if (pb_device.block_size()) {
+		Disk *disk = dynamic_cast<Disk *>(device);
+		if (disk && disk->IsSectorSizeConfigurable()) {
+			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				error << "Invalid block size " << pb_device.block_size() << " bytes";
+				return ReturnStatus(fd, false, error);
+			}
+		}
+		else {
+			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
+		}
+	}
+
+	// Only non read-only devices support protect/unprotect
+	if (device->IsProtectable() && !device->IsReadOnly()) {
+		device->SetProtected(pb_device.protected_());
 	}
 
 	// Stop the dry run here, before permanently modifying something
@@ -1027,7 +1029,6 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	}
 
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-
 	try {
 		try {
 			file_support->Open(filepath);
@@ -1041,8 +1042,13 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	catch(const io_exception& e) {
 		return ReturnStatus(fd, false, "Tried to open an invalid file '" + initial_filename + "': " + e.getmsg());
 	}
-
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
+
+	// Only non read-only devices support protect/unprotect.
+	// This operation must not be executed before Open() because Open() overrides some settings.
+	if (device->IsProtectable() && !device->IsReadOnly()) {
+		device->SetProtected(pb_device.protected_());
+	}
 
 	return true;
 }
@@ -1574,7 +1580,7 @@ static void *MonThread(void *param)
 					break;
 				}
 
-				case IMAGE_FILES_INFO: {
+				case DEFAULT_IMAGE_FILES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
@@ -1583,11 +1589,43 @@ static void *MonThread(void *param)
 					break;
 				}
 
+				case IMAGE_FILE_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					string filename = GetParam(command, "file");
+					if (filename.empty()) {
+						ReturnStatus(fd, false, "Can't get image file info: Missing filename");
+					}
+					else {
+						PbResult result;
+						PbImageFile* image_file = new PbImageFile();
+						bool status = response_helper.GetImageFile(image_file, filename, default_image_folder);
+						if (status) {
+							result.set_status(true);
+							result.set_allocated_image_file_info(image_file);
+							SerializeMessage(fd, result);
+						}
+						else {
+							ReturnStatus(fd, false, "Can't get image file info for '" + filename + "'");
+						}
+					}
+					break;
+				}
+
 				case NETWORK_INTERFACES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_allocated_network_interfaces_info(response_helper.GetNetworkInterfacesInfo(result));
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case MAPPING_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_mapping_info(response_helper.GetMappingInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}

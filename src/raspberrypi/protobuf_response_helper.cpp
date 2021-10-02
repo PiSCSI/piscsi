@@ -65,10 +65,6 @@ PbDeviceProperties *ProtobufResponseHandler::GetDeviceProperties(const Device *d
 		properties->add_block_sizes(block_size);
 	}
 
-	for (const auto& capacity : device_factory.GetCapacities(t)) {
-		properties->add_capacities(capacity);
-	}
-
 	return properties;
 }
 
@@ -135,21 +131,24 @@ void ProtobufResponseHandler::GetDevice(const Device *device, PbDevice *pb_devic
 	}
 }
 
-void ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
+bool ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
 {
-	image_file->set_name(filename);
 	if (!filename.empty()) {
-		image_file->set_type(DeviceFactory::GetTypeForFile(filename));
+		image_file->set_name(filename);
+		image_file->set_type(device_factory.GetTypeForFile(filename));
 
 		string f = filename[0] == '/' ? filename : image_folder + "/" + filename;
 
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
 		struct stat st;
-		if (!stat(f.c_str(), &st)) {
+		if (!stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
 			image_file->set_size(st.st_size);
+			return true;
 		}
 	}
+
+	return false;
 }
 
 PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, const string& image_folder)
@@ -182,7 +181,11 @@ PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, 
 					continue;
 				}
 
-				GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
+				PbImageFile *image_file = new PbImageFile();
+				if (GetImageFile(image_file, dir->d_name, image_folder)) {
+					GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
+				}
+				delete image_file;
 			}
 		}
 
@@ -275,6 +278,7 @@ PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vec
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(result, *server_info, image_folder);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
+	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices, image_folder);
 	for (int id : reserved_ids) {
 		server_info->add_reserved_ids(id);
@@ -303,4 +307,17 @@ PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbRes
 	result.set_status(true);
 
 	return network_interfaces_info;
+}
+
+PbMappingInfo *ProtobufResponseHandler::GetMappingInfo(PbResult& result)
+{
+	PbMappingInfo *mapping_info = new PbMappingInfo();
+
+	for (const auto& mapping : device_factory.GetExtensionMapping()) {
+		(*mapping_info->mutable_mapping())[mapping.first] = mapping.second;
+	}
+
+	result.set_status(true);
+
+	return mapping_info;
 }

@@ -1,0 +1,35 @@
+.TH rasdump 1
+.SH NAME
+rasdump \- SCSI disk dumping tool for RaSCSI
+.SH SYNOPSIS
+.B rasdump
+\fB\-i\fR \fIID\fR
+[\fB\-b\fR \fIBID\fR]
+\fB\-f\fR \fIFILE\fR
+[\fB\-r\fR]
+.SH DESCRIPTION
+.B rasdump
+Samples the data on physical SCSI storage media, including hard drives and MO drives, and stores it to an image file. It can also restore from a dumped file onto physical SCSI storage media. Can be connected directly, through a STANDARD RaSCSI board, or a FULLSPEC RaSCSI board.
+
+Set its own ID with the BID option. Defaults to 7 if ommitted.
+
+.SH OPTIONS
+.TP
+.BR \-i\fI " "\fIID
+SCSI ID of the target device
+.TP
+.BR \-b\fI " "\fIBID
+SCSI ID of the RaSCSI device
+.TP
+.BR \-f\fI " "\fIFILE
+Path to the dump file
+.TP
+.BR \-r\fI
+Restoration mode
+
+.SH EXAMPLES
+
+.SH SEE ALSO
+rasctl(1), rascsi(1), scsimon(1), sasidump(1)
+ 
+Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>

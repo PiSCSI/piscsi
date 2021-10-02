@@ -28,7 +28,7 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SAHD] = { 256, 1024 };
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
-	sector_sizes[SCMO] = {};
+	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
 	// Some old Sun CD-ROM drives support 512 bytes per sector
 	sector_sizes[SCCD] = { 512, 2048};
 	sector_sizes[SCBR] = {};
@@ -64,6 +64,16 @@ DeviceFactory::DeviceFactory()
 	default_params[SCCD] = {};
 	default_params[SCBR]["interfaces"] = network_interfaces;
 	default_params[SCDP]["interfaces"] = network_interfaces;
+
+	extension_mapping["hdf"] = SAHD;
+	extension_mapping["hds"] = SCHD;
+	extension_mapping["hda"] = SCHD;
+	extension_mapping["hdn"] = SCHD;
+	extension_mapping["hdi"] = SCHD;
+	extension_mapping["nhd"] = SCHD;
+	extension_mapping["hdr"] = SCRM;
+	extension_mapping["mos"] = SCMO;
+	extension_mapping["iso"] = SCCD;
 }
 
 DeviceFactory& DeviceFactory::instance()
@@ -72,7 +82,7 @@ DeviceFactory& DeviceFactory::instance()
 	return instance;
 }
 
-string DeviceFactory::GetExtension(const string& filename)
+string DeviceFactory::GetExtension(const string& filename) const
 {
 	string ext;
 	size_t separator = filename.rfind('.');
@@ -87,18 +97,9 @@ string DeviceFactory::GetExtension(const string& filename)
 PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 {
 	string ext = GetExtension(filename);
-	if (ext == "hdf") {
-		return SAHD;
-	}
-	else if (ext == "hds" || ext == "hdn" || ext == "hdi" || ext == "nhd" || ext == "hda") {
-		return SCHD;
-	}
-	else if (ext == "hdr") {
-		return SCRM;
-	} else if (ext == "mos") {
-		return SCMO;
-	} else if (ext == "iso") {
-		return SCCD;
+
+	if (extension_mapping.find(ext) != extension_mapping.end()) {
+		return extension_mapping[ext];
 	}
 	else if (filename == "bridge") {
 		return SCBR;
@@ -126,6 +127,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 			case SAHD:
 				device = new SASIHD();
 				device->SetSupportedLuns(2);
+				device->SetProduct("SASI HD");
 				((Disk *)device)->SetSectorSizes(sector_sizes[SAHD]);
 			break;
 
@@ -137,6 +139,12 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				} else {
 					device = new SCSIHD(false);
 					((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);
+
+					// Some Apple tools require a particular drive identification
+					if (ext == "hda") {
+						device->SetVendor("QUANTUM");
+						device->SetProduct("FIREBALL");
+					}
 				}
 				device->SetSupportedLuns(1);
 				device->SetProtectable(true);
@@ -163,6 +171,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI MO");
+				((Disk *)device)->SetSectorSizes(sector_sizes[SCRM]);
 				((Disk *)device)->SetGeometries(geometries[SCMO]);
 				break;
 

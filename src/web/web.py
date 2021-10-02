@@ -12,7 +12,6 @@ from flask import (
 )
 
 from file_cmds import (
-    list_files,
     list_config_files,
     list_images,
     create_new_image,
@@ -61,9 +60,9 @@ def index():
     device_types=get_device_types()
     files = list_images()
     config_files = list_config_files()
-    drive_files = list_files(HARDDRIVE_FILE_SUFFIX + \
-            SASI_FILE_SUFFIX + REMOVABLE_FILE_SUFFIX + MO_FILE_SUFFIX)
-    cdrom_files = list_files(CDROM_FILE_SUFFIX)
+    drive_files = list_files(server_info["sahd"] + \
+            server_info["schd"] + server_info["scrm"] + server_info["scmo"])
+    cdrom_files = list_files(server_info["sccd"])
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -71,6 +70,16 @@ def index():
     reserved_scsi_ids = server_info["reserved_ids"]
     formatted_devices = sort_and_format_devices(devices["device_list"])
     scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
+
+    valid_file_suffix = "."+", .".join(
+            server_info["sahd"] +
+            server_info["schd"] +
+            server_info["scrm"] +
+            server_info["scmo"] +
+            server_info["sccd"] +
+            list(ARCHIVE_FILE_SUFFIX)
+            )
+
 
     return render_template(
         "index.html",
@@ -85,16 +94,14 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
         running_env=running_env(),
-        server_info=server_info,
+        version=server_info["version"],
+        log_levels=server_info["log_levels"],
+        current_log_level=server_info["current_log_level"],
         netinfo=get_network_info(),
         device_types=device_types["device_types"],
         free_disk=int(disk["free"] / 1024 / 1024),
-        valid_file_suffix="."+", .".join(VALID_FILE_SUFFIX),
+        valid_file_suffix=valid_file_suffix,
         removable_device_types=REMOVABLE_DEVICE_TYPES,
-        harddrive_file_suffix=HARDDRIVE_FILE_SUFFIX,
-        cdrom_file_suffix=CDROM_FILE_SUFFIX,
-        removable_file_suffix=REMOVABLE_FILE_SUFFIX,
-        archive_file_suffix=ARCHIVE_FILE_SUFFIX,
     )
 
 
@@ -152,9 +159,9 @@ def drive_list():
         cd_conf=cd_conf,
         rm_conf=rm_conf,
         running_env=running_env(),
-        server_info=server_info,
+        version=server_info["version"],
         free_disk=int(disk["free"] / 1024 / 1024),
-        cdrom_file_suffix=CDROM_FILE_SUFFIX,
+        cdrom_file_suffix=tuple(server_info["sccd"]),
     )
 
 

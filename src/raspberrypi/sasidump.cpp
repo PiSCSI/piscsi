@@ -18,6 +18,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include <errno.h>
 #include "os.h"
 #include "fileio.h"
 #include "filepath.h"
@@ -269,7 +270,7 @@ bool Command(BYTE *buf, int length)
 	}
 
 	// Send command
-	count = bus.SendHandShake(buf, length);
+	count = bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 
 	// Return true is send results match number of requests
 	if (count == length) {
@@ -309,7 +310,7 @@ int DataOut(BYTE *buf, int length)
 	}
 
 	// Receive data
-	return bus.SendHandShake(buf, length);
+	return bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 }
 
 //---------------------------------------------------------------------------

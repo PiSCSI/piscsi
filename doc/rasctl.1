@@ -5,10 +5,11 @@ rasctl \- Sends management commands to the rascsi process
 .B rasctl
 \fB\-L\fR |
 \fB\-e\fR |
-\fB\-k\fR |
 \fB\-l\fR |
+\fB\-m\fR |
 \fB\-s\fR |
 \fB\-T\fR |
+[\fB\-E\fR \fIFILENAME\fR]
 [\fB\-F\fR \fIIMAGE_FOLDER\fR]
 [\fB\-C\fR \fIFILENAME:FILESIZE\fR]
 [\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
@@ -39,6 +40,9 @@ Note: The command and type arguments are case insensitive. Only the first letter
 .BR \-C\fI " "\fIFILENAME:FILESIZE
 Create an image file in the default image folder with the specified name and size in bytes.
 .TP
+.BR \-E\fI " " \fIFILENAME
+Display information on an image file.
+.TP
 .BR \-F\fI " "\fIIMAGE_FOLDER
 Set the default image folder.
 .TP
@@ -56,6 +60,9 @@ Lists all available network interfaces provided that they are up.
 .TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
+.TP
+.BR \-m\fI
+List all file extensions recognized by RaSCSI and the device types they map to.
 .TP
 .BR \-R\fI " "\fICURRENT_NAME:NEW_NAME
 Rename an image file in the default image folder.
@@ -133,6 +140,6 @@ Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with the cont
    rasctl -i 0 -f HDIIMAGE0.HDS
 
 .SH SEE ALSO
-rascsi(1) scsimon(1)
+rascsi(1), scsimon(1), rasdump(1), sasidump(1)
 
 Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>

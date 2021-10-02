@@ -6,20 +6,21 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -L  |  -e  |  -k  |  -l | -s | -T | [-F IMAGE_FOLDER] [-C FILE‐
-       NAME:FILESIZE] [-x  CURRENT_NAME:NEW_NAME]  [-R  CURRENT_NAME:NEW_NAME]
-       [-g  LOG_LEVEL]  [-h  HOST]  [-p PORT] [-r RESERVED_IDS] [-v] -i ID [-c
-       CMD] [-f FILE|PARAM] [-n NAME] [-t TYPE] [-u UNIT]
+       rasctl  -L  |  -e | -l | -m | -s | -T | [-E FILENAME] [-F IMAGE_FOLDER]
+       [-C   FILENAME:FILESIZE]   [-x    CURRENT_NAME:NEW_NAME]    [-R    CUR‐
+       RENT_NAME:NEW_NAME]   [-g  LOG_LEVEL]  [-h  HOST]  [-p  PORT]  [-r  RE‐
+       SERVED_IDS] [-v] -i ID [-c CMD] [-f FILE|PARAM] [-n NAME] [-t TYPE] [-u
+       UNIT]
 
 DESCRIPTION
-       rasctl Sends commands to the rascsi process to make  configuration  ad‐
+       rasctl  Sends  commands to the rascsi process to make configuration ad‐
        justments at runtime or to check the status of the devices.
 
        Either the -i or -l option should be specified at one time. Not both.
 
        You do NOT need root privileges to use rasctl.
 
-       Note:  The  command  and  type arguments are case insensitive. Only the
+       Note: The command and type arguments are  case  insensitive.  Only  the
        first letter of the command/type is evaluated by the tool.
 
 OPTIONS
@@ -27,11 +28,14 @@ OPTIONS
               Create an image file in the default image folder with the speci‐
               fied name and size in bytes.
 
+       -E FILENAME
+              Display information on an image file.
+
        -F IMAGE_FOLDER
               Set the default image folder.
 
        -L LOG_LEVEL
-              Set  the rascsi log level (trace, debug, info, warn, err, criti‐
+              Set the rascsi log level (trace, debug, info, warn, err,  criti‐
               cal, off).
 
        -h HOST
@@ -39,11 +43,14 @@ OPTIONS
 
        -e     List all images files in the default image folder.
 
-       -N     Lists all available network interfaces provided  that  they  are
+       -N     Lists  all  available  network interfaces provided that they are
               up.
 
-       -l     List  all  of  the  devices that are currently being emulated by
+       -l     List all of the devices that are  currently  being  emulated  by
               RaSCSI, as well as their current status.
+
+       -m     List  all  file  extensions  recognized by RaSCSI and the device
+              types they map to.
 
        -R CURRENT_NAME:NEW_NAME
               Rename an image file in the default image folder.
