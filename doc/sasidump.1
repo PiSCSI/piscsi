@@ -1,0 +1,41 @@
+.TH sasidump 1
+.SH NAME
+sasidump \- SASI disk dumping tool for RaSCSI
+.SH SYNOPSIS
+.B sasidump
+\fB\-i\fR \fIID\fR
+[\fB\-u\fR \fIUT\fR]
+[\fB\-b\fR \fIBSIZE\fR]
+\fB\-c\fR \fICOUNT\fR
+\fB\-f\fR \fIFILE\fR
+[\fB\-r\fR]
+.SH DESCRIPTION
+.B sasidump
+Samples the data on physical SASI storage media, and stores it to an image file. It can also restore from a dumped file onto physical SASI storage media.
+
+.SH OPTIONS
+.TP
+.BR \-i\fI " "\fIID
+SASI ID of the target device
+.TP
+.BR \-u\fI " "\fIUD
+Unit ID of the target device
+.TP
+.BR \-b\fI " "\fIBSIZE
+Block size (default is 512)
+.TP
+.BR \-c\fI " "\fICOUNT
+Block count
+.TP
+.BR \-f\fI " "\fIFILE
+Path to the dump file
+.TP
+.BR \-r\fI
+Restoration mode
+
+.SH EXAMPLES
+
+.SH SEE ALSO
+rasctl(1), rascsi(1), scsimon(1), rasdump(1)
+ 
+Full documentation is available at: <https://www.github.com/akuker/RASCSI/wiki/>

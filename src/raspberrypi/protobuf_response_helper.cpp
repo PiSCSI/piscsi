@@ -131,10 +131,10 @@ void ProtobufResponseHandler::GetDevice(const Device *device, PbDevice *pb_devic
 	}
 }
 
-void ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
+bool ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
 {
-	image_file->set_name(filename);
 	if (!filename.empty()) {
+		image_file->set_name(filename);
 		image_file->set_type(device_factory.GetTypeForFile(filename));
 
 		string f = filename[0] == '/' ? filename : image_folder + "/" + filename;
@@ -142,10 +142,13 @@ void ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
 		struct stat st;
-		if (!stat(f.c_str(), &st)) {
+		if (!stat(f.c_str(), &st) && !S_ISDIR(st.st_mode)) {
 			image_file->set_size(st.st_size);
+			return true;
 		}
 	}
+
+	return false;
 }
 
 PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, const string& image_folder)
@@ -178,7 +181,11 @@ PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, 
 					continue;
 				}
 
-				GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
+				PbImageFile *image_file = new PbImageFile();
+				if (GetImageFile(image_file, dir->d_name, image_folder)) {
+					GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
+				}
+				delete image_file;
 			}
 		}
 

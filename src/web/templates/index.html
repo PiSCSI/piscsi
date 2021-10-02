@@ -361,8 +361,8 @@
 		<form action="/logs/level" method="post">
 		    <label for="level">Log Level:</label>
 		    <select name="level">
-			{% for level in server_info["log_levels"] %}
-			<option value="{{level}}"{% if level == server_info["current_log_level"] %} selected{% endif %}>{{level}}</option>
+			{% for level in log_levels %}
+			<option value="{{level}}"{% if level == current_log_level %} selected{% endif %}>{{level}}</option>
 			{% endfor %}
                     </select>
 		    <input type="submit" value="Set Log Level" />

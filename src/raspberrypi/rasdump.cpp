@@ -9,6 +9,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include <errno.h>
 #include "os.h"
 #include "fileio.h"
 #include "filepath.h"
@@ -282,7 +283,7 @@ bool Command(BYTE *buf, int length)
 	}
 
 	// Send Command
-	count = bus.SendHandShake(buf, length);
+	count = bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 
 	// Success if the transmission result is the same as the number 
 	// of requests
@@ -323,7 +324,7 @@ int DataOut(BYTE *buf, int length)
 	}
 
 	// Data transmission
-	return bus.SendHandShake(buf, length);
+	return bus.SendHandShake(buf, length, BUS::SEND_NO_DELAY);
 }
 
 //---------------------------------------------------------------------------
@@ -859,7 +860,7 @@ int main(int argc, char* argv[])
 
 	// Start dump
 	printf("TARGET ID               : %d\n", targetid);
-	printf("BORAD ID                : %d\n", boardid);
+	printf("BOARD ID                : %d\n", boardid);
 
 	// TEST UNIT READY
 	count = TestUnitReady(targetid);

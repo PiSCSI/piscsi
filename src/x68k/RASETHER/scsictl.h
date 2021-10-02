@@ -3,9 +3,9 @@
 //  SCSI Target Emulator RaSCSI (*^..^*)
 //  for Raspberry Pi
 //
-//  Powered by XM6 TypeG Technorogy.
+//  Powered by XM6 TypeG Technology.
 //  Copyright (C) 2016-2017 GIMONS
-//	[ RaSCSI イーサーネット SCSI制御部 ]
+//	[ RaSCSI Ethernet SCSI Control Department ]
 //
 //  Based on
 //    Neptune-X board driver for  Human-68k(ESP-X)   version 0.03
@@ -17,11 +17,11 @@
 #ifndef scsictl_h
 #define scsictl_h
 
-// グローバル変数
+// Global variables
 extern int intr_type;
 extern int poll_interval;
 
-// 送受信カウンタ
+// Transfer counter
 struct trans_counter {
 	unsigned int send_byte;
 	unsigned int recv_byte;
