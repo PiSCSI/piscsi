@@ -206,7 +206,20 @@ run:
 ##              *   sudo systemctl enable rascsi
 ##              *   sudo systemctl start rascsi
 .PHONY: install
-install: $(MAN_PAGE_DIR)/rascsi.1 $(MAN_PAGE_DIR)/rasctl.1 $(MAN_PAGE_DIR)/scsimon.1 $(USR_LOCAL_BIN)/$(RASCTL) $(USR_LOCAL_BIN)/$(RASCSI) $(USR_LOCAL_BIN)/$(SCSIMON) $(SYSTEMD_CONF) $(RSYSLOG_CONF) $(RSYSLOG_LOG)
+install: \
+	$(MAN_PAGE_DIR)/rascsi.1 \
+	$(MAN_PAGE_DIR)/rasctl.1 \
+	$(MAN_PAGE_DIR)/scsimon.1 \
+	$(MAN_PAGE_DIR)/rasdump.1 \
+	$(MAN_PAGE_DIR)/sasidump.1 \
+	$(USR_LOCAL_BIN)/$(RASCTL) \
+	$(USR_LOCAL_BIN)/$(RASCSI) \
+	$(USR_LOCAL_BIN)/$(SCSIMON) \
+	$(USR_LOCAL_BIN)/$(RASDUMP) \
+	$(USR_LOCAL_BIN)/$(SASIDUMP) \
+	$(SYSTEMD_CONF) \
+	$(RSYSLOG_CONF) \
+	$(RSYSLOG_LOG)
 	@echo "-- Done installing!"
 
 $(USR_LOCAL_BIN)% : $(BINDIR)/%

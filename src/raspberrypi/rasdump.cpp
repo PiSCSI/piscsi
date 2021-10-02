@@ -860,7 +860,7 @@ int main(int argc, char* argv[])
 
 	// Start dump
 	printf("TARGET ID               : %d\n", targetid);
-	printf("BORAD ID                : %d\n", boardid);
+	printf("BOARD ID                : %d\n", boardid);
 
 	// TEST UNIT READY
 	count = TestUnitReady(targetid);
