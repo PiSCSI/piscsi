@@ -13,6 +13,7 @@ def get_server_info():
     - list of str log_levels (the log levels RaSCSI supports)
     - str current_log_level
     - list of int reserved_ids
+    - 5 distinct lists of strs with file endings recognized by RaSCSI
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.SERVER_INFO
@@ -26,12 +27,37 @@ def get_server_info():
     log_levels = result.server_info.log_levels
     current_log_level = result.server_info.current_log_level
     reserved_ids = list(result.server_info.reserved_ids)
+
+    # Creates lists of file endings recognized by RaSCSI
+    mappings = result.server_info.mapping_info.mapping
+    sahd = []
+    schd = []
+    scrm = []
+    scmo = []
+    sccd = []
+    for m in mappings:
+        if mappings[m] == proto.PbDeviceType.SAHD:
+            sahd.append(m)
+        elif mappings[m] == proto.PbDeviceType.SCHD:
+            schd.append(m)
+        elif mappings[m] == proto.PbDeviceType.SCRM:
+            scrm.append(m)
+        elif mappings[m] == proto.PbDeviceType.SCMO:
+            scmo.append(m)
+        elif mappings[m] == proto.PbDeviceType.SCCD:
+            sccd.append(m)
+
     return {
             "status": result.status, 
             "version": version, 
             "log_levels": log_levels, 
             "current_log_level": current_log_level, 
-            "reserved_ids": reserved_ids
+            "reserved_ids": reserved_ids,
+            "sahd": sahd,
+            "schd": schd,
+            "scrm": scrm,
+            "scmo": scmo,
+            "sccd": sccd,
             }
 
 
