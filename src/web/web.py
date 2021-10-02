@@ -13,6 +13,7 @@ from flask import (
 
 from file_cmds import (
     list_config_files,
+    list_files,
     list_images,
     create_new_image,
     download_file_to_iso,
@@ -60,9 +61,9 @@ def index():
     device_types=get_device_types()
     files = list_images()
     config_files = list_config_files()
-    drive_files = list_files(server_info["sahd"] + \
-            server_info["schd"] + server_info["scrm"] + server_info["scmo"])
-    cdrom_files = list_files(server_info["sccd"])
+    drive_files = list_files(tuple(server_info["sahd"] + \
+            server_info["schd"] + server_info["scrm"] + server_info["scmo"]))
+    cdrom_files = list_files(tuple(server_info["sccd"]))
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
