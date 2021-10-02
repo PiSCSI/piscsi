@@ -12,8 +12,8 @@ from flask import (
 )
 
 from file_cmds import (
-    list_files,
     list_config_files,
+    list_images,
     create_new_image,
     download_file_to_iso,
     delete_file,
@@ -57,8 +57,8 @@ def index():
     disk = disk_space()
     devices = list_devices()
     device_types=get_device_types()
-    files=list_files()
-    config_files=list_config_files()
+    files = list_images()
+    config_files = list_config_files()
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -139,7 +139,7 @@ def drive_list():
             d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
             rm_conf.append(d)
 
-    files=list_files()
+    files=list_images()
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     hd_conf = sorted(hd_conf, key = lambda x: x["name"].lower())
     cd_conf = sorted(cd_conf, key = lambda x: x["name"].lower())
@@ -593,6 +593,28 @@ def delete():
             return redirect(url_for("index"))
 
     return redirect(url_for("index"))
+
+
+@app.route("/files/prop", methods=["POST"])
+def show_properties():
+    file_name = request.form.get("image")
+    from pathlib import PurePath
+    file_name = str(PurePath(file_name).stem) + "." + PROPERTIES_SUFFIX
+
+    process = read_drive_properties(base_dir + file_name)
+    prop = process["conf"]
+
+    if process["status"]:
+        flash("=== DRIVE PROPERTIES ===")
+        flash(f"File Name: {file_name}")
+        flash(f"Vendor: {prop['vendor']}")
+        flash(f"Product: {prop['product']}")
+        flash(f"Revision: {prop['revision']}")
+        flash(f"Block Size: {prop['block_size']}")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to get drive properties for {file_name}", "error")
+        return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

@@ -11,29 +11,71 @@ from settings import *
 import rascsi_interface_pb2 as proto
 
 
-def list_files():
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
-
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    files = []
-    for f in result.image_files_info.image_files:
-        size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
-        dtype = proto.PbDeviceType.Name(f.type)
-        files.append({"name": f.name, "size": f.size, "size_mb": size_mb, "detected_type": dtype})
-
-    return {"status": result.status, "msg": result.msg, "files": files}
+def list_files(file_types):
+    """
+    Takes a list or tuple of str file_types - e.g. ('hda', 'hds')
+    Returns list of lists files_list:
+    index 0 is str file name and index 1 is int size in bytes
+    """
+    files_list = []
+    for path, dirs, files in os.walk(base_dir):
+        # Only list selected file types
+        files = [f for f in files if f.lower().endswith(file_types)]
+        files_list.extend(
+            [
+                (
+                    file,
+                    os.path.getsize(os.path.join(path, file))
+                )
+                for file in files
+            ]
+        )
+    return files_list
 
 
 def list_config_files():
+    """
+    Returns a list of RaSCSI config files in base_dir:
+    list of str files_list
+    """
     files_list = []
     for root, dirs, files in os.walk(base_dir):
         for file in files:
             if file.endswith(".json"):
                 files_list.append(file)
     return files_list
+
+
+def list_images():
+    """
+    Sends a IMAGE_FILES_INFO command to the server
+    Returns a dict with boolean status, str msg, and list of dicts files
+
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+
+    # Get a list of all *.properties files in base_dir
+    from pathlib import PurePath
+    prop_data = list_files(PROPERTIES_SUFFIX)
+    prop_files = [PurePath(x[0]).stem for x in prop_data]
+
+    files = []
+    for f in result.image_files_info.image_files:
+        # Add flag for whether an image file has an associated *.properties file
+        if PurePath(f.name).stem in prop_files:
+            prop = True
+        else:
+            prop = False
+        size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
+        dtype = proto.PbDeviceType.Name(f.type)
+        files.append({"name": f.name, "size": f.size, "size_mb": size_mb, "detected_type": dtype, "prop": prop})
+
+    return {"status": result.status, "msg": result.msg, "files": files}
 
 
 def create_new_image(file_name, file_type, size):
