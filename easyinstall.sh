@@ -48,7 +48,7 @@ echo -e $logo
 
 BASE=$(dirname "$(readlink -f "${0}")")
 WEBINSTDIR=${WEBINSTDIR:-/opt/rascsi-web}
-VIRTUAL_DRIVER_PATH="$BASE/images"
+VIRTUAL_DRIVER_PATH="$HOME/images"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
