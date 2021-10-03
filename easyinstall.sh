@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # BSD 3-Clause License
 # Author @sonique6784
@@ -87,14 +87,15 @@ function installRaScsi() {
         SYSTEMD_BACKUP=false
     fi
 
-    cd ~/RASCSI/src/raspberrypi
+    cd ~/RASCSI/src/raspberrypi || exit 1
+
     make clean
-    make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
-    sudo make install CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
+    make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
+    sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
 
     sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
 
-    if [ $sudoIsReady = "0" ]; then
+    if [ "$sudoIsReady" = "0" ]; then
         sudo bash -c 'echo "
 # Allow the web server to restart the rascsi service
 www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
@@ -143,12 +144,12 @@ function createImagesDir() {
         chmod -R 775 $VIRTUAL_DRIVER_PATH
     fi
 
-    if [ -d $CFG_PATH ]; then
+    if [ -d "$CFG_PATH" ]; then
         echo "The $CFG_PATH directory already exists."
     else
         echo "The $CFG_PATH directory does not exist; creating..."
-        mkdir -p $CFG_PATH
-        chmod -R 775 $CFG_PATH
+        mkdir -p "$CFG_PATH"
+        chmod -R 775 "$CFG_PATH"
     fi
 }
 
@@ -164,7 +165,7 @@ function stopOldWebInterface() {
 
 function updateRaScsiGit() {
     echo "Updating checked out branch $GIT_REMOTE/$GIT_BRANCH"
-    cd ~/RASCSI
+    cd ~/RASCSI || exit 1
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
         echo 'There are local changes, we will stash and reapply them.'
@@ -217,7 +218,7 @@ function formatDrive() {
     if [ ! -x $HFDISK_BIN ]; then
         # Clone, compile and install 'hfdisk', partition tool
         git clone git://www.codesrc.com/git/hfdisk.git
-        cd hfdisk
+        cd hfdisk || exit 1
         make
 
         sudo cp hfdisk /usr/bin/hfdisk
@@ -286,9 +287,9 @@ function createDrive() {
     mkdir -p $VIRTUAL_DRIVER_PATH
     drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hds"
 
-    if [ ! -f $drivePath ]; then
+    if [ ! -f "$drivePath" ]; then
         echo "Creating a ${driveSize}MB Drive"
-        truncate --size ${driveSize}m $drivePath
+        truncate --size "${driveSize}m" "$drivePath"
 
         echo "Formatting drive with HFS"
         formatDrive "$drivePath" "$driveName"
@@ -319,13 +320,13 @@ function setupWiredNetworking() {
         LAN_INTERFACE=$SELECTED
     fi
 
-    if [ $(grep -c "^denyinterfaces" /etc/dhcpcd.conf) -ge 1 ]; then
+    if [ "$(grep -c "^denyinterfaces" /etc/dhcpcd.conf)" -ge 1 ]; then
         echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
 	sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
-    sudo echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf
+    sudo -c 'echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf'
     echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
@@ -378,7 +379,7 @@ function setupWirelessNetworking() {
     fi
 
 
-    if [ $(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf) -ge 1 ]; then
+    if [ "$(grep -c "^net.ipv4.ip_forward=1" /etc/sysctl.conf)" -ge 1 ]; then
         echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
@@ -394,11 +395,11 @@ function setupWirelessNetworking() {
     sudo iptables -P INPUT ACCEPT
     sudo iptables -P OUTPUT ACCEPT
     sudo iptables -P FORWARD ACCEPT
-    sudo iptables -t nat -A POSTROUTING -o $WLAN_INTERFACE -s $ROUTING_ADDRESS -j MASQUERADE
+    sudo iptables -t nat -A POSTROUTING -o "$WLAN_INTERFACE" -s "$ROUTING_ADDRESS" -j MASQUERADE
 
     # Check if iptables-persistent is installed
     IPTABLES_PERSISTENT=$(dpkg -s iptables-persistent | grep Status | grep -c "install ok")
-    if [ $IPTABLES_PERSISTENT -eq 0 ]; then
+    if [ "$IPTABLES_PERSISTENT" -eq 0 ]; then
         sudo apt-get install iptables-persistent --assume-yes
     else
         sudo iptables-save --file /etc/iptables/rules.v4
@@ -543,8 +544,8 @@ function showMenu() {
 
 # parse arguments
 while [ "$1" != "" ]; do
-    PARAM=`echo $1 | awk -F= '{print $1}'`
-    VALUE=`echo $1 | awk -F= '{print $2}'`
+    PARAM=$(echo "$1" | awk -F= '{print $1}')
+    VALUE=$(echo "$1" | awk -F= '{print $2}')
     case $PARAM in
         -c | --connect_type)
             CONNECT_TYPE=$VALUE
