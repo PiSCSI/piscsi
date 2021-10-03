@@ -64,11 +64,11 @@ function initialChecks() {
         exit 1
     fi
 
-    if [ ! -d "$BASE/RASCSI" ]; then
-        echo "You must checkout RASCSI repo into $BASE"
-        echo "$ git clone git@github.com:akuker/RASCSI.git"
-        exit 2
-    fi
+    # if [ ! -d "$BASE/RASCSI" ]; then
+    #     echo "You must checkout RASCSI repo into $BASE"
+    #     echo "$ git clone git@github.com:akuker/RASCSI.git"
+    #     exit 2
+    # fi
 }
 
 # install all dependency packages for RaSCSI Service
