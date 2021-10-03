@@ -324,8 +324,9 @@
     <summary>Pad Image File</summary>
     <ul>
     <li>If RaSCSI fails to attach an image with a size error, you can try to pad it here. This will create a "_padded" copy of the file.</li>
-    <li>This will pad the size of the file up to the nearest multiple of 512 bytes for drive images, and 2048 bytes for CD-ROM images.</li>
-    <li>For other usecases, pad your file manually using a tool like <tt>dd</tt> for Linux.</li>
+    <li>Drive images are padded to the nearest multiple of 512 bytes, CD-ROM images to multiples of 2048 bytes.</li>
+	<li>The UI only lists image files that may need padding based on their file sizes.</li>
+    <li>For other usecases, pad your file manually using a tool like <tt>dd</tt> on Linux.</li>
     </ul>
     </details>
 
@@ -342,7 +343,7 @@
 			{% endfor %}
                     </select>
 		    <input type="hidden" name="multiple" value="512" />
-		    <input type="submit" value="Pad HD image" />
+		    <input type="submit" value="Pad image" />
 		</form>
             </td>
         </tr>
@@ -358,7 +359,7 @@
 			{% endfor %}
                     </select>
 		    <input type="hidden" name="multiple" value="2048" />
-		    <input type="submit" value="Pad CD image" />
+		    <input type="submit" value="Pad image" />
 		</form>
             </td>
         </tr>
