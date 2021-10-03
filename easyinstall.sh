@@ -47,10 +47,11 @@ echo -e $logo
 }
 
 BASE=$(dirname "$(readlink -f "${0}")")
+WEBINSTDIR=${WEBINSTDIR:-/opt/rascsi-web}
 VIRTUAL_DRIVER_PATH="$BASE/images"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
-LIDO_DRIVER=~/RASCSI/lido-driver.img
+LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
@@ -79,6 +80,7 @@ function installPackages() {
 function installRaScsi() {
     sudo systemctl stop rascsi
 
+<<<<<<< HEAD
     if [ -f /etc/systemd/system/rascsi.service ]; then
         sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
         SYSTEMD_BACKUP=true
@@ -89,6 +91,9 @@ function installRaScsi() {
 
     cd ~/RASCSI/src/raspberrypi || exit 1
 
+=======
+    cd "$BASE/src/raspberrypi" || exit 1
+>>>>>>> 7a1c774 (Make RASCSI-web directory portable in easyinstall.sh)
     make clean
     make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
     sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
@@ -114,23 +119,24 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
 
-    if [ -f ~/RASCSI/src/web/rascsi_interface_pb2.py ]; then
-        rm ~/RASCSI/src/web/rascsi_interface_pb2.py
+    cp -r "$BASE/src/web" /opt/rascsi-web
+    if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
+        rm $WEBINSTDIR/rascsi_interface_pb2.py
 	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$BASE/src/web/" rascsi_interface.proto
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEBINSTDIR" rascsi_interface.proto
 
+    sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
+    sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
-    sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
-    sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
 
     sudo usermod -a -G pi www-data
 
     sudo systemctl reload nginx
 
     echo "Installing the rascsi-web.service configuration..."
-    sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
+    sudo -c 'cat $BASE/src/web/service-infra/rascsi-web.service" | sed "s/\/opt\/rascsi-web/$WEBINSTDIR/g" > /etc/systemd/system/rascsi-web.service'
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
@@ -159,7 +165,7 @@ function stopOldWebInterface() {
 
 function updateRaScsiGit() {
     echo "Updating checked out branch $GIT_REMOTE/$GIT_BRANCH"
-    cd ~/RASCSI || exit 1
+    cd "$BASE" || exit 1
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
         echo 'There are local changes, we will stash and reapply them.'
@@ -239,13 +245,13 @@ function formatDrive() {
     partitionOk=$?
 
     if [ $partitionOk -eq 0 ]; then
-        if [ ! -f $LIDO_DRIVER ];then
+        if [ ! -f "$LIDO_DRIVER" ];then
             echo "Lido driver couldn't be found. Make sure RaSCSI is up-to-date with git pull"
             return 1
         fi
 
         # Burn Lido driver to the disk
-        dd if=$LIDO_DRIVER of="$diskPath" seek=64 count=32 bs=512 conv=notrunc
+        dd if="$LIDO_DRIVER" of="$diskPath" seek=64 count=32 bs=512 conv=notrunc
 
         driverInstalled=$?
         if [ $driverInstalled -eq 0 ]; then

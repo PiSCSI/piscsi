@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/home/pi/RASCSI/src/web/start.sh
+ExecStart=/opt/rascsi-web/start.sh
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=RASCSIWEB
