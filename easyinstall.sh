@@ -115,7 +115,7 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
 
-    cp -r "$BASE/src/web" /opt/rascsi-web
+    sudo cp -r "$BASE/src/web" "$WEBINSTDIR"
     if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
         rm "$WEBINSTDIR/rascsi_interface_pb2.py"
 	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
