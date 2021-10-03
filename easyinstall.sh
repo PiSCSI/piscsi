@@ -46,8 +46,9 @@ logo="""
 echo -e $logo
 }
 
-VIRTUAL_DRIVER_PATH=/home/pi/images
+VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
+BASE=$(dirname "$(readlink -f "${0}")")
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=~/RASCSI/lido-driver.img
@@ -63,8 +64,8 @@ function initialChecks() {
         exit 1
     fi
 
-    if [ ! -d ~/RASCSI ]; then
-        echo "You must checkout RASCSI repo into /home/pi/RASCSI"
+    if [ ! -d "$BASE/RASCSI" ]; then
+        echo "You must checkout RASCSI repo into $BASE"
         echo "$ git clone git@github.com:akuker/RASCSI.git"
         exit 2
     fi
@@ -113,12 +114,14 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
+
     if [ -f ~/RASCSI/src/web/rascsi_interface_pb2.py ]; then
         rm ~/RASCSI/src/web/rascsi_interface_pb2.py
 	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$BASE/src/web/" rascsi_interface.proto
+
 
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
     sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
@@ -136,12 +139,12 @@ function installRaScsiWebInterface() {
 }
 
 function createImagesDir() {
-    if [ -d $VIRTUAL_DRIVER_PATH ]; then
+    if [ -d "$VIRTUAL_DRIVER_PATH" ]; then
         echo "The $VIRTUAL_DRIVER_PATH directory already exists."
     else
         echo "The $VIRTUAL_DRIVER_PATH directory does not exist; creating..."
-        mkdir -p $VIRTUAL_DRIVER_PATH
-        chmod -R 775 $VIRTUAL_DRIVER_PATH
+        mkdir -p "$VIRTUAL_DRIVER_PATH"
+        chmod -R 775 "$VIRTUAL_DRIVER_PATH"
     fi
 
     if [ -d "$CFG_PATH" ]; then
@@ -284,7 +287,7 @@ function createDrive() {
 
     driveSize=$1
     driveName=$2
-    mkdir -p $VIRTUAL_DRIVER_PATH
+    mkdir -p "$VIRTUAL_DRIVER_PATH"
     drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hds"
 
     if [ ! -f "$drivePath" ]; then
@@ -330,7 +333,7 @@ function setupWiredNetworking() {
     echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
-    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g /home/pi/RASCSI/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
+    sudo bash -c 'sed s/eth0/'"$LAN_INTERFACE"'/g '"$BASE"'/src/raspberrypi/os_integration/rascsi_bridge > /etc/network/interfaces.d/rascsi_bridge'
     echo "Modified /etc/network/interfaces.d/rascsi_bridge"
 
     echo "Configuration completed!"
