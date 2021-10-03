@@ -80,7 +80,6 @@ function installPackages() {
 function installRaScsi() {
     sudo systemctl stop rascsi
 
-<<<<<<< HEAD
     if [ -f /etc/systemd/system/rascsi.service ]; then
         sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
         SYSTEMD_BACKUP=true
@@ -89,11 +88,8 @@ function installRaScsi() {
         SYSTEMD_BACKUP=false
     fi
 
-    cd ~/RASCSI/src/raspberrypi || exit 1
-
-=======
     cd "$BASE/src/raspberrypi" || exit 1
->>>>>>> 7a1c774 (Make RASCSI-web directory portable in easyinstall.sh)
+
     make clean
     make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
     sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
@@ -121,7 +117,7 @@ function installRaScsiWebInterface() {
 
     cp -r "$BASE/src/web" /opt/rascsi-web
     if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
-        rm $WEBINSTDIR/rascsi_interface_pb2.py
+        rm "$WEBINSTDIR/rascsi_interface_pb2.py"
 	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
