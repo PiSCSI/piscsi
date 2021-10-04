@@ -147,7 +147,7 @@ function createImagesDir() {
         echo "The $CFG_PATH directory already exists."
     else
         echo "The $CFG_PATH directory does not exist; creating..."
-        mkdir -p $CFG__PATH
+        mkdir -p $CFG_PATH
         chmod -R 775 $CFG_PATH
     fi
 }
