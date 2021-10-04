@@ -78,7 +78,7 @@ function installRaScsi() {
 
     cd ~/RASCSI/src/raspberrypi
     make clean
-    make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
+    make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC} -j
     sudo make install CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
 
     sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
