@@ -74,7 +74,7 @@ function installPackages() {
 
 # compile and install RaSCSI Service
 function installRaScsi() {
-    sudo systemctl stop rascsi
+#    sudo systemctl stop rascsi
 
     cd ~/RASCSI/src/raspberrypi
     make clean
@@ -93,9 +93,9 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 " >> /etc/sudoers'
     fi
 
-    sudo systemctl restart rsyslog
-    sudo systemctl enable rascsi # optional - start rascsi at boot
-    sudo systemctl start rascsi
+#    sudo systemctl restart rsyslog
+#    sudo systemctl enable rascsi # optional - start rascsi at boot
+#    sudo systemctl start rascsi
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
@@ -109,14 +109,14 @@ function installRaScsiWebInterface() {
 
     sudo usermod -a -G pi www-data
 
-    sudo systemctl reload nginx
+#    sudo systemctl reload nginx
 
     echo "Installing the rascsi-web.service configuration..."
     sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable rascsi-web
-    sudo systemctl start rascsi-web
+#    sudo systemctl daemon-reload
+#    sudo systemctl enable rascsi-web
+#    sudo systemctl start rascsi-web
 }
 
 function createImagesDir() {
@@ -130,13 +130,13 @@ function createImagesDir() {
 }
 
 function stopOldWebInterface() {
-    sudo systemctl stop rascsi-web
-    APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
-    if [ "$APACHE_STATUS" -eq 0 ] ; then
+#    sudo systemctl stop rascsi-web
+#    APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
+#    if [ "$APACHE_STATUS" -eq 0 ] ; then
         echo "Stopping old Apache2 RaSCSI Web..."
-        sudo systemctl disable apache2
-        sudo systemctl stop apache2
-    fi
+#        sudo systemctl disable apache2
+#        sudo systemctl stop apache2
+#    fi
 }
 
 function updateRaScsiGit() {
@@ -158,11 +158,11 @@ function updateRaScsiGit() {
 }
 
 function showRaScsiStatus() {
-    sudo systemctl status rascsi | tee
+#    sudo systemctl status rascsi | tee
 }
 
 function showRaScsiWebStatus() {
-    sudo systemctl status rascsi-web | tee
+#    sudo systemctl status rascsi-web | tee
 }
 
 function createDrive600MB() {
@@ -393,29 +393,29 @@ function setupWirelessNetworking() {
 
     echo "Rebooting..."
     sleep 3
-    sudo reboot
+#    sudo reboot
 }
 
 function reserveScsiIds() {
-    sudo systemctl stop rascsi
-    echo "WARNING: This will override any existing modifications to rascsi.service!"
-    echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
-    echo "The input should be numbers between 0 and 7 separated by commas, e.g. \"0,1,7\" for IDs 0, 1, and 7."
-    echo "Leave empty to make all IDs available."
-    read -r RESERVED_IDS
-
-    if [[ $RESERVED_IDS = "" ]]; then
-        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi" /etc/systemd/system/rascsi.service
-    else
-        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
-    fi
+#    sudo systemctl stop rascsi
+#    echo "WARNING: This will override any existing modifications to rascsi.service!"
+#    echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
+#    echo "The input should be numbers between 0 and 7 separated by commas, e.g. \"0,1,7\" for IDs 0, 1, and 7."
+#    echo "Leave empty to make all IDs available."
+#    read -r RESERVED_IDS
+#
+#    if [[ $RESERVED_IDS = "" ]]; then
+#        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
+#        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi" /etc/systemd/system/rascsi.service
+#    else
+#        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
+#        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
+#    fi
 
     echo "Modified /etc/systemd/system/rascsi.service"
 
-    sudo systemctl daemon-reload
-    sudo systemctl start rascsi
+#    sudo systemctl daemon-reload
+#    sudo systemctl start rascsi
 }
 
 function runChoice() {
