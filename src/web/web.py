@@ -84,6 +84,7 @@ def index():
         files=sorted_image_files,
         config_files=sorted_config_files,
         base_dir=base_dir,
+        cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
@@ -346,7 +347,7 @@ def attach():
     # same base path but PROPERTIES_SUFFIX instead of the original suffix.
     from pathlib import Path
     file_name_base = str(Path(file_name).stem)
-    drive_properties = Path(base_dir + file_name_base + "." + PROPERTIES_SUFFIX)
+    drive_properties = Path(cfg_dir + file_name_base + "." + PROPERTIES_SUFFIX)
     if drive_properties.is_file():
         process = read_drive_properties(str(drive_properties))
         if process["status"] == False:
@@ -580,7 +581,7 @@ def delete():
     # Delete the drive properties file, if it exists
     from pathlib import Path
     file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
-    file_path = Path(base_dir + file_name)
+    file_path = Path(cfg_dir + file_name)
     if file_path.is_file():
         process = delete_file(file_name)
         if process["status"] == True:
@@ -601,7 +602,7 @@ def show_properties():
     from pathlib import PurePath
     file_name = str(PurePath(file_name).stem) + "." + PROPERTIES_SUFFIX
 
-    process = read_drive_properties(base_dir + file_name)
+    process = read_drive_properties(cfg_dir + file_name)
     prop = process["conf"]
 
     if process["status"]:
@@ -628,7 +629,7 @@ if __name__ == "__main__":
 
     # Load the default configuration file, if found
     from pathlib import Path
-    default_config_path = Path(base_dir + DEFAULT_CONFIG)
+    default_config_path = Path(cfg_dir + DEFAULT_CONFIG)
     if default_config_path.is_file():
         read_config(DEFAULT_CONFIG)
 
