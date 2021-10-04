@@ -15,7 +15,9 @@ $ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ python3 web.py
 
 ### Mocks for local development
 
-You may edit the files under `mock/bin` to simulate rascsi command responses.
+You may edit the files under `mock/bin` to simulate Linux command responses.
+TODO:  rascsi-web uses protobuf commands to send and receive data from rascsi.
+A separate mocking solusion will be needed for this interface.
 
 ## Pushing to the Pi via git
 
