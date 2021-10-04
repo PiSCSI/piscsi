@@ -97,7 +97,7 @@ def create_new_image(file_name, file_type, size):
     return {"status": result.status, "msg": result.msg}
 
 
-def delete_file(file_name):
+def delete_image(file_name):
     """
     Takes str file_name
     Sends a DELETE_IMAGE command to the server
@@ -112,6 +112,14 @@ def delete_file(file_name):
     result = proto.PbResult()
     result.ParseFromString(data)
     return {"status": result.status, "msg": result.msg}
+
+
+def delete_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return {"status": True, "msg": "File deleted"}
+    else:
+        return {"status": False, "msg": "Could not delete file"}
 
 
 def unzip_file(file_name):

@@ -16,6 +16,7 @@ from file_cmds import (
     list_images,
     create_new_image,
     download_file_to_iso,
+    delete_image,
     delete_file,
     unzip_file,
     download_image,
@@ -251,10 +252,9 @@ def config_load():
             flash(process['msg'], "error")
             return redirect(url_for("index"))
     elif "delete" in request.form:
-        process = delete_file(file_name)
+        process = delete_file(cfg_dir + file_name)
         if process["status"] == True:
             flash(f"Deleted config {file_name}!")
-            flash(process["msg"])
             return redirect(url_for("index"))
         else:
             flash(f"Failed to delete {file_name}!", "error")
@@ -569,7 +569,7 @@ def download():
 def delete():
     file_name = request.form.get("image")
 
-    process = delete_file(file_name)
+    process = delete_image(file_name)
     if process["status"] == True:
         flash(f"File {file_name} deleted!")
         flash(process["msg"])
@@ -583,10 +583,9 @@ def delete():
     file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
     file_path = Path(cfg_dir + file_name)
     if file_path.is_file():
-        process = delete_file(file_name)
+        process = delete_file(cfg_dir + file_name)
         if process["status"] == True:
             flash(f"File {file_name} deleted!")
-            flash(process["msg"])
             return redirect(url_for("index"))
         else:
             flash(f"Failed to delete file {file_name}!", "error")
