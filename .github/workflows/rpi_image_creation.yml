@@ -32,10 +32,10 @@ jobs:
       - name: Checkout RaSCSI
         uses: actions/checkout@v2
         with:
-          repository: akuker/pi-gen
+          repository: erichelgeson/pi-gen
           path: pi-gen
-          branch: debug1
-#          repository: erichelgeson/pi-gen
+#          branch: debug1
+#          repository: akuker/pi-gen
 #          repository: akuker/pi-gen
 #          repository: RPi-Distro/pi-gen
       
