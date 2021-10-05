@@ -115,6 +115,10 @@ def delete_image(file_name):
 
 
 def delete_file(file_path):
+    """
+    Takes str file_path with the full path to the file to delete
+    Returns dict with boolean status and str msg
+    """
     if os.path.exists(file_path):
         os.remove(file_path)
         return {"status": True, "msg": "File deleted"}
