@@ -48,7 +48,6 @@ jobs:
           echo "LOCALE_DEFAULT=en_US.UTF-8" >> config
           echo "KEYBOARD_KEYMAP=us" >> config
           echo "KEYBOARD_LAYOUT=\"English (US)\"" >> config
-          echo "APT_PROXY=http://127.0.0.1:3142" >> config
           echo -----------------------------------------------------
           cat config
         working-directory: pi-gen
