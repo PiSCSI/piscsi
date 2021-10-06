@@ -49,6 +49,7 @@ echo -e $logo
 BASE=/home/pi/RASCSI
 WEBINSTDIR="$BASE/src/web"
 VIRTUAL_DRIVER_PATH="$HOME/images"
+CFG_PATH="$HOME/.config/rascsi"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
@@ -144,6 +145,14 @@ function createImagesDir() {
         echo "The $VIRTUAL_DRIVER_PATH directory does not exist; creating..."
         mkdir -p "$VIRTUAL_DRIVER_PATH"
         chmod -R 775 "$VIRTUAL_DRIVER_PATH"
+    fi
+
+    if [ -d $CFG_PATH ]; then
+        echo "The $CFG_PATH directory already exists."
+    else
+        echo "The $CFG_PATH directory does not exist; creating..."
+        mkdir -p $CFG_PATH
+        chmod -R 775 $CFG_PATH
     fi
 }
 

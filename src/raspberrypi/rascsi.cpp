@@ -490,7 +490,9 @@ string SetReservedIds(const string& ids)
 	stringstream ss(ids);
     string id;
     while (getline(ss, id, ',')) {
-    	ids_to_reserve.push_back(id);
+    	if (!id.empty()) {
+    		ids_to_reserve.push_back(id);
+    	}
     }
 
 	set<int> reserved;
@@ -1110,7 +1112,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 		return ReturnStatus(fd, false, error);
 	}
 
-	if (reserved_ids.find(id) != reserved_ids.end()) {
+	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
 		error << "Device ID " << id << " is reserved";
 		return ReturnStatus(fd, false, error);
 	}

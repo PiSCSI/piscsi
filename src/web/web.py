@@ -13,12 +13,15 @@ from flask import (
 
 from file_cmds import (
     list_config_files,
+    list_files,
     list_images,
     create_new_image,
     download_file_to_iso,
+    delete_image,
     delete_file,
     unzip_file,
     download_image,
+    pad_image,
     write_config,
     read_config,
     write_drive_properties,
@@ -59,6 +62,10 @@ def index():
     device_types=get_device_types()
     files = list_images()
     config_files = list_config_files()
+    drive_files = list_files(tuple(server_info["sahd"] + \
+            server_info["schd"] + server_info["scrm"] + \
+            server_info["scmo"]), base_dir)
+    cdrom_files = list_files(tuple(server_info["sccd"]), base_dir)
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -83,7 +90,10 @@ def index():
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
+        drive_files=drive_files,
+        cdrom_files=cdrom_files,
         base_dir=base_dir,
+        cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
@@ -250,10 +260,9 @@ def config_load():
             flash(process['msg'], "error")
             return redirect(url_for("index"))
     elif "delete" in request.form:
-        process = delete_file(file_name)
+        process = delete_file(cfg_dir + file_name)
         if process["status"] == True:
             flash(f"Deleted config {file_name}!")
-            flash(process["msg"])
             return redirect(url_for("index"))
         else:
             flash(f"Failed to delete {file_name}!", "error")
@@ -346,7 +355,7 @@ def attach():
     # same base path but PROPERTIES_SUFFIX instead of the original suffix.
     from pathlib import Path
     file_name_base = str(Path(file_name).stem)
-    drive_properties = Path(base_dir + file_name_base + "." + PROPERTIES_SUFFIX)
+    drive_properties = Path(cfg_dir + file_name_base + "." + PROPERTIES_SUFFIX)
     if drive_properties.is_file():
         process = read_drive_properties(str(drive_properties))
         if process["status"] == False:
@@ -558,6 +567,39 @@ def create_file():
         return redirect(url_for("index"))
 
 
+@app.route("/files/pad", methods=["POST"])
+def image_padding():
+    image = request.form.get("image")
+    multiple = request.form.get("multiple")
+
+    if not image:
+        flash(f"No file selected!", "error")
+        return redirect(url_for("index"))
+
+    file, size = image.split(",")
+
+    if not int(size) % int(multiple):
+        flash(f"{file} does not need to be padded!", "error")
+        return redirect(url_for("index"))
+    else:
+        target_size = int(size) - (int(size) % int(multiple)) + int(multiple)
+
+    from pathlib import PurePath
+    padded_image = base_dir + str(PurePath(file).stem) + "_padded" + str(PurePath(file).suffix)
+    from shutil import copyfile
+    copyfile(base_dir + file, padded_image)
+
+    process = pad_image(padded_image, target_size)
+    if process["status"] == True:
+        flash(f"Added " + str(target_size - int(size)) + " bytes to " + padded_image + "!")
+        flash(process["msg"])
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to pad image!", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+
 @app.route("/files/download", methods=["POST"])
 def download():
     image = request.form.get("image")
@@ -568,7 +610,7 @@ def download():
 def delete():
     file_name = request.form.get("image")
 
-    process = delete_file(file_name)
+    process = delete_image(file_name)
     if process["status"] == True:
         flash(f"File {file_name} deleted!")
         flash(process["msg"])
@@ -580,12 +622,11 @@ def delete():
     # Delete the drive properties file, if it exists
     from pathlib import Path
     file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
-    file_path = Path(base_dir + file_name)
+    file_path = Path(cfg_dir + file_name)
     if file_path.is_file():
-        process = delete_file(file_name)
+        process = delete_file(cfg_dir + file_name)
         if process["status"] == True:
             flash(f"File {file_name} deleted!")
-            flash(process["msg"])
             return redirect(url_for("index"))
         else:
             flash(f"Failed to delete file {file_name}!", "error")
@@ -601,7 +642,7 @@ def show_properties():
     from pathlib import PurePath
     file_name = str(PurePath(file_name).stem) + "." + PROPERTIES_SUFFIX
 
-    process = read_drive_properties(base_dir + file_name)
+    process = read_drive_properties(cfg_dir + file_name)
     prop = process["conf"]
 
     if process["status"]:
@@ -628,7 +669,7 @@ if __name__ == "__main__":
 
     # Load the default configuration file, if found
     from pathlib import Path
-    default_config_path = Path(base_dir + DEFAULT_CONFIG)
+    default_config_path = Path(cfg_dir + DEFAULT_CONFIG)
     if default_config_path.is_file():
         read_config(DEFAULT_CONFIG)
 
