@@ -53,6 +53,8 @@ LIDO_DRIVER=~/RASCSI/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
+set -e
+
 function initialChecks() {
     currentUser=$(whoami)
     if [ "pi" != "$currentUser" ]; then
@@ -74,11 +76,19 @@ function installPackages() {
 
 # compile and install RaSCSI Service
 function installRaScsi() {
-#    sudo systemctl stop rascsi
+    sudo systemctl stop rascsi
+
+    if [ -f /etc/systemd/system/rascsi.service ]; then
+        sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
+        SYSTEMD_BACKUP=true
+        echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
+    else
+        SYSTEMD_BACKUP=false
+    fi
 
     cd ~/RASCSI/src/raspberrypi
     make clean
-    make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC} -j
+    make all CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
     sudo make install CONNECT_TYPE=${CONNECT_TYPE-FULLSPEC}
 
     sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
@@ -93,15 +103,19 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 " >> /etc/sudoers'
     fi
 
-#    sudo systemctl restart rsyslog
-#    sudo systemctl enable rascsi # optional - start rascsi at boot
-#    sudo systemctl start rascsi
+    sudo systemctl daemon-reload
+    sudo systemctl restart rsyslog
+    sudo systemctl enable rascsi # optional - start rascsi at boot
+    sudo systemctl start rascsi
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
-    echo "Compiling the Python protobuf library..."
-    [ -f ~/RASCSI/src/web/rascsi_interface.proto ] && rm ~/RASCSI/src/web/rascsi_interface.proto
+    if [ -f ~/RASCSI/src/web/rascsi_interface_pb2.py ]; then
+        rm ~/RASCSI/src/web/rascsi_interface_pb2.py
+	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
+    fi
+    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
     protoc -I=/home/pi/RASCSI/src/raspberrypi/ --python_out=/home/pi/RASCSI/src/web/ rascsi_interface.proto
 
     sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
@@ -109,14 +123,14 @@ function installRaScsiWebInterface() {
 
     sudo usermod -a -G pi www-data
 
-#    sudo systemctl reload nginx
+    sudo systemctl reload nginx
 
     echo "Installing the rascsi-web.service configuration..."
     sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
 
-#    sudo systemctl daemon-reload
-#    sudo systemctl enable rascsi-web
-#    sudo systemctl start rascsi-web
+    sudo systemctl daemon-reload
+    sudo systemctl enable rascsi-web
+    sudo systemctl start rascsi-web
 }
 
 function createImagesDir() {
@@ -130,13 +144,13 @@ function createImagesDir() {
 }
 
 function stopOldWebInterface() {
-#    sudo systemctl stop rascsi-web
-#    APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
-#    if [ "$APACHE_STATUS" -eq 0 ] ; then
+    sudo systemctl stop rascsi-web
+    APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
+    if [ "$APACHE_STATUS" -eq 0 ] ; then
         echo "Stopping old Apache2 RaSCSI Web..."
-#        sudo systemctl disable apache2
-#        sudo systemctl stop apache2
-#    fi
+        sudo systemctl disable apache2
+        sudo systemctl stop apache2
+    fi
 }
 
 function updateRaScsiGit() {
@@ -158,11 +172,11 @@ function updateRaScsiGit() {
 }
 
 function showRaScsiStatus() {
-#    sudo systemctl status rascsi | tee
+    sudo systemctl status rascsi | tee
 }
 
 function showRaScsiWebStatus() {
-#    sudo systemctl status rascsi-web | tee
+    sudo systemctl status rascsi-web | tee
 }
 
 function createDrive600MB() {
@@ -393,29 +407,39 @@ function setupWirelessNetworking() {
 
     echo "Rebooting..."
     sleep 3
-#    sudo reboot
+    sudo reboot
 }
 
 function reserveScsiIds() {
-#    sudo systemctl stop rascsi
-#    echo "WARNING: This will override any existing modifications to rascsi.service!"
-#    echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
-#    echo "The input should be numbers between 0 and 7 separated by commas, e.g. \"0,1,7\" for IDs 0, 1, and 7."
-#    echo "Leave empty to make all IDs available."
-#    read -r RESERVED_IDS
-#
-#    if [[ $RESERVED_IDS = "" ]]; then
-#        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-#        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi" /etc/systemd/system/rascsi.service
-#    else
-#        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-#        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
-#    fi
+    sudo systemctl stop rascsi
+    echo "WARNING: This will override any existing modifications to rascsi.service!"
+    echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
+    echo "The input should be numbers between 0 and 7 separated by commas, e.g. \"0,1,7\" for IDs 0, 1, and 7."
+    echo "Leave empty to make all IDs available."
+    read -r RESERVED_IDS
+
+    if [[ $RESERVED_IDS = "" ]]; then
+        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
+        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi" /etc/systemd/system/rascsi.service
+    else
+        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
+        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
+    fi
 
     echo "Modified /etc/systemd/system/rascsi.service"
 
-#    sudo systemctl daemon-reload
-#    sudo systemctl start rascsi
+    sudo systemctl daemon-reload
+    sudo systemctl start rascsi
+}
+
+function notifyBackup {
+    if $SYSTEMD_BACKUP; then
+        echo ""
+        echo "IMPORTANT: /etc/systemd/system/rascsi.service has been overwritten."
+        echo "A backup copy was saved as rascsi.service.old in the same directory."
+        echo "Please inspect the backup file and restore configurations that are important to your setup."
+        echo ""
+    fi
 }
 
 function runChoice() {
@@ -430,6 +454,7 @@ function runChoice() {
               installRaScsiWebInterface
               showRaScsiStatus
               showRaScsiWebStatus
+              notifyBackup
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface - Complete!"
           ;;
           2)
@@ -439,6 +464,7 @@ function runChoice() {
               installPackages
               installRaScsi
               showRaScsiStatus
+              notifyBackup
 	      echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
 	  ;;
           3)
