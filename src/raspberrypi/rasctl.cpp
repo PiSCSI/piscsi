@@ -11,12 +11,10 @@
 
 #include "os.h"
 #include "rascsi_version.h"
-#include "exceptions.h"
 #include "protobuf_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
-#include <sstream>
 #include <iostream>
 #include <list>
 
