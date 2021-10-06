@@ -317,7 +317,7 @@ function setupWiredNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wired interfaces on this system:"
-	echo `ip addr show scope link | awk '{split($0, a); print $2}' | grep eth`
+	echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
         echo "Please type the wired interface you want to use and press Enter:"
         read SELECTED
         LAN_INTERFACE=$SELECTED
@@ -370,7 +370,7 @@ function setupWirelessNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wireless interfaces on this system:"
-	echo `ip addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
+	echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r WLAN_INTERFACE
         echo "Base IP address (ex. 10.10.20):"
@@ -401,11 +401,11 @@ function setupWirelessNetworking() {
     sudo iptables -t nat -A POSTROUTING -o "$WLAN_INTERFACE" -s "$ROUTING_ADDRESS" -j MASQUERADE
 
     # Check if iptables-persistent is installed
-    IPTABLES_PERSISTENT=$(dpkg -s iptables-persistent | grep Status | grep -c "install ok")
-    if [ "$IPTABLES_PERSISTENT" -eq 0 ]; then
-        sudo apt-get install iptables-persistent --assume-yes
-    else
+    if [ `apt-cache policy iptables-persistent | grep Installed | grep -c "(none)"` -eq 0 ]; then
+        echo "iptables-persistent is already installed"
         sudo iptables-save --file /etc/iptables/rules.v4
+    else
+        sudo apt-get install iptables-persistent --assume-yes
     fi
     echo "Modified /etc/iptables/rules.v4"
 
