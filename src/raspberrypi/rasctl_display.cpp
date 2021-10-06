@@ -175,8 +175,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 		}
 
 		if (properties.block_sizes_size()) {
-			list<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
-			block_sizes.sort([](const auto& a, const auto& b) { return a < b; });
+			set<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
 
 			cout << "        Configurable block sizes in bytes: ";
 

@@ -498,8 +498,12 @@ string SetReservedIds(const string& ids)
 	set<int> reserved;
     for (string id_to_reserve : ids_to_reserve) {
     	int id;
- 		if (!GetAsInt(id_to_reserve, id)) {
- 			return id_to_reserve;
+ 		if (!GetAsInt(id_to_reserve, id) || id > 7) {
+ 			return "Invalid ID " + id_to_reserve;
+ 		}
+
+ 		if (devices[id * UnitNum]) {
+ 			return "ID " + id_to_reserve + " is currently in use";
  		}
 
  		reserved.insert(id);
@@ -508,16 +512,14 @@ string SetReservedIds(const string& ids)
     reserved_ids = reserved;
 
     if (!reserved_ids.empty()) {
-    	list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
-    	ids.sort([](const auto& a, const auto& b) { return a < b; });
     	ostringstream s;
     	bool isFirst = true;
-    	for (auto const& id : ids) {
+    	for (auto const& reserved_id : reserved_ids) {
     		if (!isFirst) {
     			s << ", ";
     		}
     		isFirst = false;
-    		s << id;
+    		s << reserved_id;
     	}
 
     	LOGINFO("Reserved ID(s) set to %s", s.str().c_str());
@@ -1238,9 +1240,9 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 		case RESERVE_IDS: {
 			const string ids = GetParam(command, "ids");
-			string invalid_id = SetReservedIds(ids);
-			if (!invalid_id.empty()) {
-				return ReturnStatus(fd, false, "Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE_IDS));
+			string error = SetReservedIds(ids);
+			if (!error.empty()) {
+				return ReturnStatus(fd, false, error);
 			}
 
 			return ReturnStatus(fd);
@@ -1365,9 +1367,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'r': {
-					string invalid_id = SetReservedIds(optarg);
-					if (!invalid_id.empty()) {
-						cerr << "Invalid ID " << invalid_id << " for " << PbOperation_Name(RESERVE_IDS);
+					string error = SetReservedIds(optarg);
+					if (!error.empty()) {
+						cerr << error << endl;
 						return false;
 					}
 				}
