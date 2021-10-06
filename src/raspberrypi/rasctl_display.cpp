@@ -7,13 +7,20 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rasctl_display.h"
 #include "rascsi_interface.pb.h"
+#include "rasutil.h"
+#include "rasctl_display.h"
 #include <iostream>
 #include <list>
 
 using namespace std;
 using namespace rascsi_interface;
+
+void RasctlDisplay::DisplayDevices(const PbDevicesInfo& devices_info)
+{
+	const list<PbDevice>& devices = { devices_info.devices().begin(), devices_info.devices().end() };
+	cout << ListDevices(devices) << endl;
+}
 
 void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device)
 {

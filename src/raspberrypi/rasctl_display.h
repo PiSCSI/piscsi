@@ -20,6 +20,7 @@ public:
 	RasctlDisplay() {};
 	~RasctlDisplay() {};
 
+	void DisplayDevices(const PbDevicesInfo&);
 	void DisplayDeviceInfo(const PbDevice&);
 	void DisplayVersionInfo(const PbVersionInfo&);
 	void DisplayLogLevelInfo(const PbLogLevelInfo&);

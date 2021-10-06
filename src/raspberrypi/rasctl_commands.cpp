@@ -98,8 +98,7 @@ void RasctlCommands::CommandDevicesInfo()
 {
 	SendCommand();
 
-	const list<PbDevice>& devices = { result.devices_info().devices().begin(), result.devices_info().devices().end() };
-	cout << ListDevices(devices) << endl;
+	rasctl_display.DisplayDevices(result.devices_info());
 }
 
 void RasctlCommands::CommandLogLevel(const string& log_level)
