@@ -88,14 +88,6 @@ void RasctlCommands::SendCommand(const string& hostname, int port, const PbComma
 	}
 }
 
-const PbServerInfo RasctlCommands::GetServerInfo(const PbCommand& command, const string& hostname, int port)
-{
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	return result.server_info();
-}
-
 void RasctlCommands::CommandList(const string& hostname, int port)
 {
 	PbCommand command;

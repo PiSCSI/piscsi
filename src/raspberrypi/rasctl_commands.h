@@ -24,7 +24,6 @@ public:
 	~RasctlCommands() {};
 
 	void SendCommand(const string&, int, const PbCommand&, PbResult&);
-	const PbServerInfo GetServerInfo(const PbCommand&, const string&, int);
 	void CommandList(const string&, int);
 	void CommandLogLevel(PbCommand&, const string&, int, const string&);
 	void CommandReserveIds(PbCommand&, const string&, int, const string&);
