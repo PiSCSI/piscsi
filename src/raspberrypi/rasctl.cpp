@@ -9,14 +9,12 @@
 //
 //---------------------------------------------------------------------------
 
-#include <netdb.h>
 #include "os.h"
 #include "rascsi_version.h"
-#include "exceptions.h"
 #include "protobuf_util.h"
 #include "rasutil.h"
+#include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
-#include <sstream>
 #include <iostream>
 #include <list>
 
@@ -25,490 +23,6 @@
 
 using namespace std;
 using namespace rascsi_interface;
-
-void SendCommand(const string& hostname, int port, const PbCommand& command, PbResult& result)
-{
-	// Send command
-	int fd = -1;
-	try {
-    	struct hostent *host = gethostbyname(hostname.c_str());
-    	if (!host) {
-    		throw io_exception("Can't resolve hostname '" + hostname + "'");
-    	}
-
-    	fd = socket(AF_INET, SOCK_STREAM, 0);
-    	if (fd < 0) {
-    		throw io_exception("Can't create socket");
-    	}
-
-    	struct sockaddr_in server;
-    	memset(&server, 0, sizeof(server));
-    	server.sin_family = AF_INET;
-    	server.sin_port = htons(port);
-    	server.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
-
-    	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-    		ostringstream error;
-    		error << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
-    		throw io_exception(error.str());
-    	}
-
-        SerializeMessage(fd, command);
-    }
-    catch(const io_exception& e) {
-    	cerr << "Error: " << e.getmsg() << endl;
-
-        if (fd >= 0) {
-        	close(fd);
-        }
-
-        exit(fd < 0 ? ENOTCONN : EXIT_FAILURE);
-    }
-
-    // Receive result
-    try {
-        DeserializeMessage(fd, result);
-
-    	if (!result.status()) {
-    		throw io_exception(result.msg());
-    	}
-    }
-    catch(const io_exception& e) {
-    	close(fd);
-
-    	cerr << "Error: " << e.getmsg() << endl;
-
-    	exit(EXIT_FAILURE);
-    }
-
-    close(fd);
-
-	if (!result.msg().empty()) {
-		cout << result.msg() << endl;
-	}
-}
-
-void DisplayDeviceInfo(const PbDevice& pb_device)
-{
-	cout << "  " << pb_device.id() << ":" << pb_device.unit() << "  " << PbDeviceType_Name(pb_device.type())
-			<< "  " << pb_device.vendor() << ":" << pb_device.product() << ":" << pb_device.revision();
-
-	if (pb_device.block_size()) {
-		cout << "  " << pb_device.block_size() << " bytes per sector";
-		if (pb_device.block_count()) {
-			cout << "  " << pb_device.block_size() * pb_device.block_count() << " bytes capacity";
-		}
-	}
-
-	if (pb_device.properties().supports_file() && !pb_device.file().name().empty()) {
-		cout << "  " << pb_device.file().name();
-	}
-
-	cout << "  ";
-	bool hasProperty = false;
-	if (pb_device.properties().read_only()) {
-		cout << "read-only";
-		hasProperty = true;
-	}
-	if (pb_device.properties().protectable() && pb_device.status().protected_()) {
-		if (hasProperty) {
-			cout << ", ";
-		}
-		cout << "protected";
-		hasProperty = true;
-	}
-	if (pb_device.properties().stoppable() && pb_device.status().stopped()) {
-		if (hasProperty) {
-			cout << ", ";
-		}
-		cout << "stopped";
-		hasProperty = true;
-	}
-	if (pb_device.properties().removable() && pb_device.status().removed()) {
-		if (hasProperty) {
-			cout << ", ";
-		}
-		cout << "removed";
-		hasProperty = true;
-	}
-	if (pb_device.properties().lockable() && pb_device.status().locked()) {
-		if (hasProperty) {
-			cout << ", ";
-		}
-		cout << "locked";
-	}
-	if (hasProperty) {
-		cout << "  ";
-	}
-
-	bool isFirst = true;
-	for (const auto& param : pb_device.params()) {
-		if (!isFirst) {
-			cout << "  ";
-		}
-		isFirst = false;
-		cout << param.first << "=" << param.second;
-	}
-
-	cout << endl;
-}
-
-void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
-{
-	cout << "Supported device types and their properties:" << endl;
-	for (auto it = device_types_info.properties().begin(); it != device_types_info.properties().end(); ++it) {
-		cout << "  " << PbDeviceType_Name(it->type());
-
-		const PbDeviceProperties& properties = it->properties();
-
-		cout << "  Supported LUNs: " << properties.luns() << endl;
-
-		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.read_only()
-				|| properties.lockable()) {
-			cout << "        Properties: ";
-			bool has_property = false;
-			if (properties.read_only()) {
-				cout << "read-only";
-				has_property = true;
-			}
-			if (properties.protectable()) {
-				cout << (has_property ? ", " : "") << "protectable";
-				has_property = true;
-			}
-			if (properties.stoppable()) {
-				cout << (has_property ? ", " : "") << "stoppable";
-				has_property = true;
-			}
-			if (properties.removable()) {
-				cout << (has_property ? ", " : "") << "removable";
-				has_property = true;
-			}
-			if (properties.lockable()) {
-				cout << (has_property ? ", " : "") << "lockable";
-			}
-			cout << endl;
-		}
-
-		if (properties.supports_file()) {
-			cout << "        Image file support" << endl;
-		}
-		else if (properties.supports_params()) {
-			cout << "        Parameter support" << endl;
-		}
-
-		if (properties.supports_params() && properties.default_params_size()) {
-			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
-
-			cout << "        Default parameters: ";
-
-			bool isFirst = true;
-			for (const auto& param : params) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-				cout << param.first << "=" << param.second;
-
-				isFirst = false;
-			}
-			cout << endl;
-		}
-
-		if (properties.block_sizes_size()) {
-			list<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
-			block_sizes.sort([](const auto& a, const auto& b) { return a < b; });
-
-			cout << "        Configurable block sizes in bytes: ";
-
-			bool isFirst = true;
-			for (const auto& block_size : block_sizes) {
-				if (!isFirst) {
-					cout << ", ";
-				}
-				cout << block_size;
-
-				isFirst = false;
-			}
-			cout << endl;
-		}
-	}
-}
-
-void DisplayImageFile(const PbImageFile& image_file_info)
-{
-	cout << image_file_info.name() << "  " << image_file_info.size() << " bytes";
-	if (image_file_info.read_only()) {
-		cout << "  read-only";
-	}
-	if (image_file_info.type() != UNDEFINED) {
-		cout << "  " << PbDeviceType_Name(image_file_info.type());
-	}
-	cout << endl;
-
-}
-
-void DisplayImageFiles(const PbImageFilesInfo& image_files_info)
-{
-	const list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
-
-	cout << "Default image file folder: " << image_files_info.default_image_folder() << endl;
-
-	if (image_files.empty()) {
-		cout << "  No image files available" << endl;
-	}
-	else {
-		list<PbImageFile> files = { image_files.begin(), image_files.end() };
-		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
-
-		cout << "Available image files:" << endl;
-		for (const auto& file : files) {
-			cout << "  ";
-			DisplayImageFile(file);
-		}
-	}
-}
-
-void DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info)
-{
-	const list<string> interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
-
-	cout << "Available (up) network interfaces:" << endl;
-	bool isFirst = true;
-	for (const auto& interface : interfaces) {
-		if (!isFirst) {
-			cout << ", ";
-		}
-		isFirst = false;
-		cout << interface;
-	}
-	cout << endl;
-}
-
-void DisplayMappingInfo(const PbMappingInfo& mapping_info)
-{
-	const map<string, PbDeviceType> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
-
-	cout << "Supported image file extension to device type mappings:" << endl;
-	for (const auto&  mapping : mappings) {
-		cout << "  " << mapping.first << "->" << PbDeviceType_Name(mapping.second) << endl;
-	}
-}
-
-//---------------------------------------------------------------------------
-//
-//	Command implementations
-//
-//---------------------------------------------------------------------------
-
-void CommandList(const string& hostname, int port)
-{
-	PbCommand command;
-	command.set_operation(DEVICES_INFO);
-
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
-	cout << ListDevices(devices) << endl;
-}
-
-const PbServerInfo GetServerInfo(const PbCommand& command, const string& hostname, int port)
-{
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	return result.server_info();
-}
-
-void CommandLogLevel(PbCommand& command, const string& hostname, int port, const string& log_level)
-{
-	AddParam(command, "level", log_level);
-
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-}
-
-void CommandReserve(PbCommand& command, const string&hostname, int port, const string& reserved_ids)
-{
-	AddParam(command, "ids", reserved_ids);
-
-    PbResult result;
-    SendCommand(hostname.c_str(), port, command, result);
-}
-
-void CommandCreateImage(PbCommand& command, const string&hostname, int port, const string& image_params)
-{
-	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
-	if (separatorPos != string::npos) {
-		AddParam(command, "file", image_params.substr(0, separatorPos));
-		AddParam(command, "size", image_params.substr(separatorPos + 1));
-	}
-	else {
-		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
-		exit(EXIT_FAILURE);
-	}
-
-	AddParam(command, "read_only", "false");
-
-    PbResult result;
-    SendCommand(hostname.c_str(), port, command, result);
-}
-
-void CommandDeleteImage(PbCommand& command, const string&hostname, int port, const string& filename)
-{
-	AddParam(command, "file", filename);
-
-    PbResult result;
-    SendCommand(hostname.c_str(), port, command, result);
-}
-
-void CommandRenameImage(PbCommand& command, const string&hostname, int port, const string& image_params)
-{
-	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
-	if (separatorPos != string::npos) {
-		AddParam(command, "from", image_params.substr(0, separatorPos));
-		AddParam(command, "to", image_params.substr(separatorPos + 1));
-	}
-	else {
-		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
-		exit(EXIT_FAILURE);
-	}
-
-    PbResult result;
-    SendCommand(hostname.c_str(), port, command, result);
-}
-
-void CommandCopyImage(PbCommand& command, const string&hostname, int port, const string& image_params)
-{
-	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
-	if (separatorPos != string::npos) {
-		AddParam(command, "from", image_params.substr(0, separatorPos));
-		AddParam(command, "to", image_params.substr(separatorPos + 1));
-	}
-	else {
-		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
-		exit(EXIT_FAILURE);
-	}
-
-    PbResult result;
-    SendCommand(hostname.c_str(), port, command, result);
-}
-
-void CommandDefaultImageFolder(PbCommand& command, const string& hostname, int port, const string& folder)
-{
-	AddParam(command, "folder", folder);
-
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-}
-
-void CommandDeviceInfo(const PbCommand& command, const string& hostname, int port)
-{
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	for (const auto& pb_device : result.device_info().devices()) {
-		DisplayDeviceInfo(pb_device);
-	}
-}
-
-void CommandDeviceTypesInfo(const PbCommand& command, const string& hostname, int port)
-{
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	DisplayDeviceTypesInfo(result.device_types_info());
-}
-
-void CommandServerInfo(PbCommand& command, const string& hostname, int port)
-{
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	PbServerInfo server_info = result.server_info();
-
-	cout << "rascsi server version: " << server_info.major_version() << "." << server_info.minor_version();
-	if (server_info.patch_version() > 0) {
-		cout << "." << server_info.patch_version();
-	}
-	else if (server_info.patch_version() < 0) {
-		cout << " (development version)";
-	}
-	cout << endl;
-
-	if (!server_info.log_levels_size()) {
-		cout << "  No log level settings available" << endl;
-	}
-	else {
-		cout << "rascsi log levels, sorted by severity:" << endl;
-		for (const auto& log_level : server_info.log_levels()) {
-			cout << "  " << log_level << endl;
-		}
-
-		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
-	}
-
-	DisplayImageFiles(server_info.image_files_info());
-	DisplayMappingInfo(server_info.mapping_info());
-	DisplayNetworkInterfaces(server_info.network_interfaces_info());
-	DisplayDeviceTypesInfo(server_info.device_types_info());
-
-	if (server_info.reserved_ids_size()) {
-		cout << "Reserved device IDs: ";
-		for (int i = 0; i < server_info.reserved_ids_size(); i++) {
-			if(i) {
-				cout << ", ";
-			}
-			cout << server_info.reserved_ids(i);
-		}
-		cout <<endl;
-	}
-
-	if (server_info.devices().devices_size()) {
-		list<PbDevice> sorted_devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
-		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
-
-		cout << "Attached devices:" << endl;
-
-		for (const auto& device : sorted_devices) {
-			DisplayDeviceInfo(device);
-		}
-	}
-}
-
-void CommandDefaultImageFilesInfo(const PbCommand& command, const string& hostname, int port)
-{
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	DisplayImageFiles(result.image_files_info());
-}
-
-void CommandImageFileInfo(PbCommand& command, const string& hostname, int port, const string& filename)
-{
-	AddParam(command, "file", filename);
-
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	DisplayImageFile(result.image_file_info());
-}
-
-void CommandNetworkInterfacesInfo(const PbCommand& command, const string&hostname, int port)
-{
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	DisplayNetworkInterfaces(result.network_interfaces_info());
-}
-
-void CommandMappingInfo(const PbCommand& command, const string&hostname, int port)
-{
-	PbResult result;
-	SendCommand(hostname.c_str(), port, command, result);
-
-	DisplayMappingInfo(result.mapping_info());
-}
 
 PbOperation ParseOperation(const char *optarg)
 {
@@ -549,7 +63,7 @@ PbDeviceType ParseType(const char *optarg)
 		return type;
 	}
 	else {
-		// Parse convenience types (shortcuts)
+		// Parse convenience device types (shortcuts)
 		switch (tolower(optarg[0])) {
 			case 'c':
 				return SCCD;
@@ -574,11 +88,6 @@ PbDeviceType ParseType(const char *optarg)
 	return UNDEFINED;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Main processing
-//
-//---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -590,7 +99,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-E FILENAME] [-l] [-L] [-m] [-s] [-v] [-y]" << endl;
+		cerr << "[-e] [-E FILENAME] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -610,7 +119,6 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	// Parse the arguments
 	PbCommand command;
 	list<PbDeviceDefinition> devices;
 	PbDeviceDefinition* device = command.add_devices();
@@ -627,7 +135,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvNTD:L:R:a:b:c:f:h:i:n:p:r:t:u:x:C:E:F:L:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvINOTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -677,12 +185,33 @@ int main(int argc, char* argv[])
 				param = optarg;
 				break;
 
+			case 'h':
+				hostname = optarg;
+				break;
+
+			case 'I':
+				command.set_operation(RESERVED_IDS_INFO);
+				break;
+
+			case 'L':
+				command.set_operation(LOG_LEVEL);
+				log_level = optarg;
+				break;
+
+			case 'l':
+				list = true;
+				break;
+
 			case 'm':
 				command.set_operation(MAPPING_INFO);
 				break;
 
 			case 'N':
 				command.set_operation(NETWORK_INTERFACES_INFO);
+				break;
+
+			case 'O':
+				command.set_operation(LOG_LEVEL_INFO);
 				break;
 
 			case 't':
@@ -693,17 +222,9 @@ int main(int argc, char* argv[])
 				}
 				break;
 
-			case 'L':
-				command.set_operation(LOG_LEVEL);
-				log_level = optarg;
-				break;
-
-			case 'h':
-				hostname = optarg;
-				break;
-
-			case 'l':
-				list = true;
+			case 'r':
+				command.set_operation(RESERVE_IDS);
+				reserved_ids = optarg;
 				break;
 
 			case 'R':
@@ -747,18 +268,17 @@ int main(int argc, char* argv[])
 				}
 				break;
 
-			case 'r':
-				command.set_operation(RESERVE);
-				reserved_ids = optarg;
-				break;
-
 			case 's':
 				command.set_operation(SERVER_INFO);
 				break;
 
 			case 'v':
-				cout << rascsi_get_version_string() << endl;
+				cout << "rasctl version: " << rascsi_get_version_string() << endl;
 				exit(EXIT_SUCCESS);
+				break;
+
+			case 'V':
+				command.set_operation(VERSION_INFO);
 				break;
 
 			case 'x':
@@ -781,83 +301,96 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	switch(command.operation()) {
-		case LOG_LEVEL:
-			CommandLogLevel(command, hostname, port, log_level);
-			exit(EXIT_SUCCESS);
-
-		case DEFAULT_FOLDER:
-			CommandDefaultImageFolder(command, hostname, port, default_folder);
-			exit(EXIT_SUCCESS);
-
-		case RESERVE:
-			CommandReserve(command, hostname, port, reserved_ids);
-			exit(EXIT_SUCCESS);
-
-		case CREATE_IMAGE:
-			CommandCreateImage(command, hostname, port, image_params);
-			exit(EXIT_SUCCESS);
-
-		case DELETE_IMAGE:
-			CommandDeleteImage(command, hostname, port, image_params);
-			exit(EXIT_SUCCESS);
-
-		case RENAME_IMAGE:
-			CommandRenameImage(command, hostname, port, image_params);
-			exit(EXIT_SUCCESS);
-
-		case COPY_IMAGE:
-			CommandCopyImage(command, hostname, port, image_params);
-			exit(EXIT_SUCCESS);
-
-		case DEVICES_INFO:
-			CommandDeviceInfo(command, hostname, port);
-			exit(EXIT_SUCCESS);
-
-		case DEVICE_TYPES_INFO:
-			CommandDeviceTypesInfo(command, hostname, port);
-			exit(EXIT_SUCCESS);
-
-		case SERVER_INFO:
-			CommandServerInfo(command, hostname, port);
-			exit(EXIT_SUCCESS);
-
-		case DEFAULT_IMAGE_FILES_INFO:
-			CommandDefaultImageFilesInfo(command, hostname, port);
-			exit(EXIT_SUCCESS);
-
-		case IMAGE_FILE_INFO:
-			CommandImageFileInfo(command, hostname, port, filename);
-			exit(EXIT_SUCCESS);
-
-		case NETWORK_INTERFACES_INFO:
-			CommandNetworkInterfacesInfo(command, hostname, port);
-			exit(EXIT_SUCCESS);
-
-		case MAPPING_INFO:
-			CommandMappingInfo(command, hostname, port);
-			exit(EXIT_SUCCESS);
-
-		default:
-			break;
-	}
-
+	// Listing devices is a special case (rasctl backwards compatibility)
 	if (list) {
-		CommandList(hostname, port);
+		PbCommand command_list;
+		command_list.set_operation(DEVICES_INFO);
+		RasctlCommands rasctl_commands(command_list, hostname, port);
+		rasctl_commands.CommandDevicesInfo();
 		exit(EXIT_SUCCESS);
 	}
 
 	if (!param.empty()) {
-		if (device->type() == SCBR || device->type() == SCDP) {
-			AddParam(*device, "interfaces", param);
-		}
-		else {
-			AddParam(*device, "file", param);
-		}
+		// Only one of these parameters will be used, depending on the device type
+		AddParam(*device, "interfaces", param);
+		AddParam(*device, "file", param);
 	}
 
-	PbResult result;
-	SendCommand(hostname, port, command, result);
+	RasctlCommands rasctl_commands(command, hostname, port);
+
+	switch(command.operation()) {
+		case LOG_LEVEL:
+			rasctl_commands.CommandLogLevel(log_level);
+			break;
+
+		case DEFAULT_FOLDER:
+			rasctl_commands.CommandDefaultImageFolder(default_folder);
+			break;
+
+		case RESERVE_IDS:
+			rasctl_commands.CommandReserveIds(reserved_ids);
+			break;
+
+		case CREATE_IMAGE:
+			rasctl_commands.CommandCreateImage(image_params);
+			break;
+
+		case DELETE_IMAGE:
+			rasctl_commands.CommandDeleteImage(image_params);
+			break;
+
+		case RENAME_IMAGE:
+			rasctl_commands.CommandRenameImage(image_params);
+			break;
+
+		case COPY_IMAGE:
+			rasctl_commands.CommandCopyImage(image_params);
+			break;
+
+		case DEVICES_INFO:
+			rasctl_commands.CommandDeviceInfo();
+			break;
+
+		case DEVICE_TYPES_INFO:
+			rasctl_commands.CommandDeviceTypesInfo();
+			break;
+
+		case VERSION_INFO:
+			rasctl_commands.CommandVersionInfo();
+			break;
+
+		case SERVER_INFO:
+			rasctl_commands.CommandServerInfo();
+			break;
+
+		case DEFAULT_IMAGE_FILES_INFO:
+			rasctl_commands.CommandDefaultImageFilesInfo();
+			break;
+
+		case IMAGE_FILE_INFO:
+			rasctl_commands.CommandImageFileInfo(hostname);
+			break;
+
+		case NETWORK_INTERFACES_INFO:
+			rasctl_commands.CommandNetworkInterfacesInfo();
+			break;
+
+		case LOG_LEVEL_INFO:
+			rasctl_commands.CommandLogLevelInfo();
+			break;
+
+		case RESERVED_IDS_INFO:
+			rasctl_commands.CommandReservedIdsInfo();
+			break;
+
+		case MAPPING_INFO:
+			rasctl_commands.CommandMappingInfo();
+			break;
+
+		default:
+			rasctl_commands.SendCommand();
+			break;
+	}
 
 	exit(EXIT_SUCCESS);
 }

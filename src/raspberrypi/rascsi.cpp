@@ -498,8 +498,12 @@ string SetReservedIds(const string& ids)
 	set<int> reserved;
     for (string id_to_reserve : ids_to_reserve) {
     	int id;
- 		if (!GetAsInt(id_to_reserve, id)) {
- 			return id_to_reserve;
+ 		if (!GetAsInt(id_to_reserve, id) || id > 7) {
+ 			return "Invalid ID " + id_to_reserve;
+ 		}
+
+ 		if (devices[id * UnitNum]) {
+ 			return "ID " + id_to_reserve + " is currently in use";
  		}
 
  		reserved.insert(id);
@@ -508,16 +512,14 @@ string SetReservedIds(const string& ids)
     reserved_ids = reserved;
 
     if (!reserved_ids.empty()) {
-    	list<int> ids = { reserved_ids.begin(), reserved_ids.end() };
-    	ids.sort([](const auto& a, const auto& b) { return a < b; });
     	ostringstream s;
     	bool isFirst = true;
-    	for (auto const& id : ids) {
+    	for (auto const& reserved_id : reserved_ids) {
     		if (!isFirst) {
     			s << ", ";
     		}
     		isFirst = false;
-    		s << id;
+    		s << reserved_id;
     	}
 
     	LOGINFO("Reserved ID(s) set to %s", s.str().c_str());
@@ -1236,11 +1238,11 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 			DetachAll();
 			return ReturnStatus(fd);
 
-		case RESERVE: {
+		case RESERVE_IDS: {
 			const string ids = GetParam(command, "ids");
-			string invalid_id = SetReservedIds(ids);
-			if (!invalid_id.empty()) {
-				return ReturnStatus(fd, false, "Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
+			string error = SetReservedIds(ids);
+			if (!error.empty()) {
+				return ReturnStatus(fd, false, error);
 			}
 
 			return ReturnStatus(fd);
@@ -1365,9 +1367,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'r': {
-					string invalid_id = SetReservedIds(optarg);
-					if (!invalid_id.empty()) {
-						cerr << "Invalid ID " << invalid_id << " for " << PbOperation_Name(RESERVE);
+					string error = SetReservedIds(optarg);
+					if (!error.empty()) {
+						cerr << error << endl;
 						return false;
 					}
 				}
@@ -1446,7 +1448,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Display and log the device list
 	PbServerInfo server_info;
 	response_helper.GetDevices(server_info, devices, default_image_folder);
-	const list<PbDevice>& devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
+	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << endl;
@@ -1556,7 +1558,7 @@ static void *MonThread(void *param)
 
 					// For backwards compatibility: Log device list if information on all devices was requested.
 					if (!command.devices_size()) {
-						const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
+						const list<PbDevice>& devices = { result.devices_info().devices().begin(), result.devices_info().devices().end() };
 						LogDevices(ListDevices(devices));
 					}
 					break;
@@ -1571,13 +1573,30 @@ static void *MonThread(void *param)
 					break;
 				}
 
-
 				case SERVER_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_allocated_server_info(response_helper.GetServerInfo(
 							result, devices, reserved_ids, default_image_folder, current_log_level));
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case VERSION_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_version_info(response_helper.GetVersionInfo(result));
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case LOG_LEVEL_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_log_level_info(response_helper.GetLogLevelInfo(result, current_log_level));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1628,6 +1647,15 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_allocated_mapping_info(response_helper.GetMappingInfo(result));
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case RESERVED_IDS_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_reserved_ids_info(response_helper.GetReservedIds(result, reserved_ids));
 					SerializeMessage(fd, result);
 					break;
 				}

@@ -101,6 +101,8 @@ SRC_SCSIMON = \
 
 SRC_RASCTL = \
 	rasctl.cpp\
+	rasctl_commands.cpp \
+	rasctl_display.cpp \
 	rascsi_version.cpp \
 	rasutil.cpp \
 	protobuf_util.cpp
