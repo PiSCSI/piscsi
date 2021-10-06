@@ -91,7 +91,7 @@ function installRaScsi() {
 
     cd "$BASE/src/raspberrypi" || exit 1
 
-    #make clean
+    make clean
     make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
     sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
 
