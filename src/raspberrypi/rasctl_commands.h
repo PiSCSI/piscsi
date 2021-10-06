@@ -24,7 +24,6 @@ public:
 	~RasctlCommands() {};
 
 	void SendCommand();
-	void SendCommandWithResult(PbResult&);
 	void CommandDevicesInfo();
 	void CommandLogLevel(const string&);
 	void CommandReserveIds(const string&);
@@ -49,6 +48,8 @@ private:
 	PbCommand command;
 	string hostname;
 	int port;
+
+	PbResult result;
 
 	RasctlDisplay rasctl_display;
 };

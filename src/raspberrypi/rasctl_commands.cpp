@@ -33,12 +33,6 @@ RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int p
 
 void RasctlCommands::SendCommand()
 {
-	PbResult result;
-	SendCommandWithResult(result);
-}
-
-void RasctlCommands::SendCommandWithResult(PbResult& result)
-{
 	// Send command
 	int fd = -1;
 	try {
@@ -102,8 +96,7 @@ void RasctlCommands::SendCommandWithResult(PbResult& result)
 
 void RasctlCommands::CommandDevicesInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	const list<PbDevice>& devices = { result.devices_info().devices().begin(), result.devices_info().devices().end() };
 	cout << ListDevices(devices) << endl;
@@ -186,8 +179,7 @@ void RasctlCommands::CommandDefaultImageFolder(const string& folder)
 
 void RasctlCommands::CommandDeviceInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	for (const auto& device : result.devices_info().devices()) {
 		rasctl_display.DisplayDeviceInfo(device);
@@ -196,24 +188,21 @@ void RasctlCommands::CommandDeviceInfo()
 
 void RasctlCommands::CommandDeviceTypesInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	rasctl_display.DisplayDeviceTypesInfo(result.device_types_info());
 }
 
 void RasctlCommands::CommandVersionInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	rasctl_display.DisplayVersionInfo(result.version_info());
 }
 
 void RasctlCommands::CommandServerInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	PbServerInfo server_info = result.server_info();
 
@@ -239,8 +228,7 @@ void RasctlCommands::CommandServerInfo()
 
 void RasctlCommands::CommandDefaultImageFilesInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	rasctl_display.DisplayImageFiles(result.image_files_info());
 }
@@ -249,40 +237,35 @@ void RasctlCommands::CommandImageFileInfo(const string& filename)
 {
 	AddParam(command, "file", filename);
 
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	rasctl_display.DisplayImageFile(result.image_file_info());
 }
 
 void RasctlCommands::CommandNetworkInterfacesInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	rasctl_display.DisplayNetworkInterfaces(result.network_interfaces_info());
 }
 
 void RasctlCommands::CommandLogLevelInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	rasctl_display.DisplayLogLevelInfo(result.log_level_info());
 }
 
 void RasctlCommands::CommandReservedIdsInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	rasctl_display.DisplayReservedIdsInfo(result.reserved_ids_info());
 }
 
 void RasctlCommands::CommandMappingInfo()
 {
-	PbResult result;
-	SendCommandWithResult(result);
+	SendCommand();
 
 	rasctl_display.DisplayMappingInfo(result.mapping_info());
 }
