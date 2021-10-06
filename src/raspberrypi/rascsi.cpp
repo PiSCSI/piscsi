@@ -1590,6 +1590,15 @@ static void *MonThread(void *param)
 					break;
 				}
 
+				case LOG_LEVEL_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_log_level_info(response_helper.GetLogLevelInfo(result, current_log_level));
+					SerializeMessage(fd, result);
+					break;
+				}
+
 				case DEFAULT_IMAGE_FILES_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 

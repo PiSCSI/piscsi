@@ -39,6 +39,7 @@ public:
 	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 	PbMappingInfo *GetMappingInfo(PbResult&);
+	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
 
 private:
 
@@ -51,5 +52,4 @@ private:
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&);
-	void GetLogLevels(PbServerInfo&);
 };

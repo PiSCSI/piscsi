@@ -266,13 +266,12 @@ PbDeviceTypesInfo *ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result,
 }
 
 PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& image_folder, const string& log_level)
+		const string& image_folder, const string& current_log_level)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
-	GetLogLevels(*server_info);
-	server_info->set_current_log_level(log_level);
+	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(result, *server_info, image_folder);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
@@ -300,11 +299,19 @@ PbVersionInfo *ProtobufResponseHandler::GetVersionInfo(PbResult& result)
 	return version_info;
 }
 
-void ProtobufResponseHandler::GetLogLevels(PbServerInfo& server_info)
+PbLogLevelInfo *ProtobufResponseHandler::GetLogLevelInfo(PbResult& result, const string& current_log_level)
 {
+	PbLogLevelInfo *log_level_info = new PbLogLevelInfo();
+
 	for (const auto& log_level : log_levels) {
-		server_info.add_log_levels(log_level);
+		log_level_info->add_log_levels(log_level);
 	}
+
+	log_level_info->set_current_log_level(current_log_level);
+
+	result.set_status(true);
+
+	return log_level_info;
 }
 
 PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbResult& result)

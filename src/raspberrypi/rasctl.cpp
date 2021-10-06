@@ -166,6 +166,21 @@ void DisplayVersionInfo(const PbVersionInfo& version_info)
 	cout << endl;
 }
 
+void DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info)
+{
+	if (!log_level_info.log_levels_size()) {
+		cout << "  No log level settings available" << endl;
+	}
+	else {
+		cout << "rascsi log levels, sorted by severity:" << endl;
+		for (const auto& log_level : log_level_info.log_levels()) {
+			cout << "  " << log_level << endl;
+		}
+	}
+
+	cout << "Current rascsi log level: " << log_level_info.current_log_level() << endl;
+}
+
 void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 {
 	cout << "Supported device types and their properties:" << endl;
@@ -447,20 +462,8 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 
 	PbServerInfo server_info = result.server_info();
 
-	DisplayVersionInfo(result.version_info());
-
-	if (!server_info.log_levels_size()) {
-		cout << "  No log level settings available" << endl;
-	}
-	else {
-		cout << "rascsi log levels, sorted by severity:" << endl;
-		for (const auto& log_level : server_info.log_levels()) {
-			cout << "  " << log_level << endl;
-		}
-
-		cout << "Current rascsi log level: " << server_info.current_log_level() << endl;
-	}
-
+	DisplayVersionInfo(server_info.version_info());
+	DisplayLogLevelInfo(server_info.log_level_info());
 	DisplayImageFiles(server_info.image_files_info());
 	DisplayMappingInfo(server_info.mapping_info());
 	DisplayNetworkInterfaces(server_info.network_interfaces_info());
@@ -513,6 +516,14 @@ void CommandNetworkInterfacesInfo(const PbCommand& command, const string&hostnam
 	SendCommand(hostname.c_str(), port, command, result);
 
 	DisplayNetworkInterfaces(result.network_interfaces_info());
+}
+
+void CommandLogLevelInfo(const PbCommand& command, const string&hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	DisplayLogLevelInfo(result.log_level_info());
 }
 
 void CommandMappingInfo(const PbCommand& command, const string&hostname, int port)
@@ -603,7 +614,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-E FILENAME] [-l] [-L] [-m] [-s] [-v] [-V] [-y]" << endl;
+		cerr << "[-e] [-E FILENAME] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -640,7 +651,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvNTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvLNOTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -690,6 +701,19 @@ int main(int argc, char* argv[])
 				param = optarg;
 				break;
 
+			case 'h':
+				hostname = optarg;
+				break;
+
+			case 'L':
+				command.set_operation(LOG_LEVEL);
+				log_level = optarg;
+				break;
+
+			case 'l':
+				list = true;
+				break;
+
 			case 'm':
 				command.set_operation(MAPPING_INFO);
 				break;
@@ -698,25 +722,16 @@ int main(int argc, char* argv[])
 				command.set_operation(NETWORK_INTERFACES_INFO);
 				break;
 
+			case 'O':
+				command.set_operation(LOG_LEVEL_INFO);
+				break;
+
 			case 't':
 				device->set_type(ParseType(optarg));
 				if (device->type() == UNDEFINED) {
 					cerr << "Error: Unknown device type '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);
 				}
-				break;
-
-			case 'L':
-				command.set_operation(LOG_LEVEL);
-				log_level = optarg;
-				break;
-
-			case 'h':
-				hostname = optarg;
-				break;
-
-			case 'l':
-				list = true;
 				break;
 
 			case 'R':
@@ -853,6 +868,10 @@ int main(int argc, char* argv[])
 
 		case NETWORK_INTERFACES_INFO:
 			CommandNetworkInterfacesInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case LOG_LEVEL_INFO:
+			CommandLogLevelInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		case MAPPING_INFO:
