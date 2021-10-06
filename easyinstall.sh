@@ -91,7 +91,7 @@ function installRaScsi() {
 
     cd "$BASE/src/raspberrypi" || exit 1
 
-    make clean
+    #make clean
     make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
     sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
 
@@ -151,8 +151,8 @@ function createImagesDir() {
         echo "The $CFG_PATH directory already exists."
     else
         echo "The $CFG_PATH directory does not exist; creating..."
-        mkdir -p $CFG_PATH
-        chmod -R 775 $CFG_PATH
+        mkdir -p "$CFG_PATH"
+        chmod -R 775 "$CFG_PATH"
     fi
 }
 
@@ -317,9 +317,9 @@ function setupWiredNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wired interfaces on this system:"
-	ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth
+	echo `ip addr show scope link | awk '{split($0, a); print $2}' | grep eth`
         echo "Please type the wired interface you want to use and press Enter:"
-        read -r SELECTED
+        read SELECTED
         LAN_INTERFACE=$SELECTED
     fi
 
@@ -329,7 +329,7 @@ function setupWiredNetworking() {
         read REPLY
 	sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
-    sudo -c 'echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf'
+    sudo bash -c 'echo "denyinterfaces '$LAN_INTERFACE'" >> /etc/dhcpcd.conf'
     echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
@@ -370,7 +370,7 @@ function setupWirelessNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wireless interfaces on this system:"
-	ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan
+	echo `ip addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r WLAN_INTERFACE
         echo "Base IP address (ex. 10.10.20):"
