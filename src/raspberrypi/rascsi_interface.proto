@@ -263,7 +263,7 @@ message PbDevice {
     uint64 block_count = 12;
 }
 
-message PbDevices {
+message PbDevicesInfo {
     repeated PbDevice devices = 1;
 }
 
@@ -304,8 +304,8 @@ message PbResult {
         PbVersionInfo version_info = 4;
         // The result of a LOG_LEVEL_INFO command
         PbLogLevelInfo log_level_info = 5;
-        // The result of a DEVICE_INFO command
-        PbDevices device_info = 6;
+        // The result of a DEVICES_INFO command
+        PbDevicesInfo devices_info = 6;
         // The result of a DEVICE_TYPES_INFO command
         PbDeviceTypesInfo device_types_info = 7;
         // The result of a DEFAULT_IMAGE_FILES_INFO command
@@ -338,5 +338,5 @@ message PbServerInfo {
     // The reserved device IDs
     PbReservedIdsInfo reserved_ids_info = 7;
     // The attached devices
-    PbDevices devices = 8;
+    PbDevicesInfo devices_info = 8;
 }

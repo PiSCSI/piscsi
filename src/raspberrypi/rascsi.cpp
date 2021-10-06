@@ -1446,7 +1446,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	// Display and log the device list
 	PbServerInfo server_info;
 	response_helper.GetDevices(server_info, devices, default_image_folder);
-	const list<PbDevice>& devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
+	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
 	cout << device_list << endl;
@@ -1556,7 +1556,7 @@ static void *MonThread(void *param)
 
 					// For backwards compatibility: Log device list if information on all devices was requested.
 					if (!command.devices_size()) {
-						const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
+						const list<PbDevice>& devices = { result.devices_info().devices().begin(), result.devices_info().devices().end() };
 						LogDevices(ListDevices(devices));
 					}
 					break;

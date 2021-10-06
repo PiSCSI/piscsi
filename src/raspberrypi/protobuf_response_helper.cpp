@@ -223,7 +223,7 @@ void ProtobufResponseHandler::GetDevices(PbServerInfo& server_info, const vector
 	for (const Device *device : devices) {
 		// Skip if unit does not exist or is not assigned
 		if (device) {
-			PbDevice *pb_device = server_info.mutable_devices()->add_devices();
+			PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
 			GetDevice(device, pb_device, image_folder);
 		}
 	}
@@ -255,12 +255,12 @@ void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& 
 		}
 	}
 
-	PbDevices *pb_devices = new PbDevices();
-	result.set_allocated_device_info(pb_devices);
+	PbDevicesInfo *devices_info = new PbDevicesInfo();
+	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& id_set : id_sets) {
 		const Device *device = devices[id_set.first * unit_count + id_set.second];
-		GetDevice(device, pb_devices->add_devices(), image_folder);
+		GetDevice(device, devices_info->add_devices(), image_folder);
 	}
 
 	result.set_status(true);

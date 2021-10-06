@@ -349,7 +349,7 @@ void CommandList(const string& hostname, int port)
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
-	const list<PbDevice>& devices = { result.device_info().devices().begin(), result.device_info().devices().end() };
+	const list<PbDevice>& devices = { result.devices_info().devices().begin(), result.devices_info().devices().end() };
 	cout << ListDevices(devices) << endl;
 }
 
@@ -448,8 +448,8 @@ void CommandDeviceInfo(const PbCommand& command, const string& hostname, int por
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
-	for (const auto& pb_device : result.device_info().devices()) {
-		DisplayDeviceInfo(pb_device);
+	for (const auto& device : result.devices_info().devices()) {
+		DisplayDeviceInfo(device);
 	}
 }
 
@@ -484,8 +484,8 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 	DisplayDeviceTypesInfo(server_info.device_types_info());
 	DisplayReservedIdsInfo(server_info.reserved_ids_info());
 
-	if (server_info.devices().devices_size()) {
-		list<PbDevice> sorted_devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
+	if (server_info.devices_info().devices_size()) {
+		list<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 		sorted_devices.sort([](const auto& a, const auto& b) { return a.id() < b.id(); });
 
 		cout << "Attached devices:" << endl;
