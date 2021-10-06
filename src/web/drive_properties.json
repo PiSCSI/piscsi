@@ -2,7 +2,7 @@
 {
     "device_type": "SCHD",
     "vendor": "DEC",
-    "product": "RZ55 (C) DEC",
+    "product": "RZ55     (C) DEC",
     "revision": "",
     "block_size": 512,
     "size": 332308480,
@@ -14,7 +14,7 @@
 {
     "device_type": "SCHD",
     "vendor": "DEC",
-    "product": "RZ57 (C) DEC",
+    "product": "RZ57     (C) DEC",
     "revision": "5000",
     "block_size": 512,
     "size": 1037203456,
@@ -26,7 +26,7 @@
 {
     "device_type": "SCHD",
     "vendor": "DEC",
-    "product": "RZ59 (C) DEC",
+    "product": "RZ59     (C) DEC",
     "revision": "2000",
     "block_size": 512,
     "size": 9090874368,
@@ -38,7 +38,7 @@
 {
     "device_type": "SCHD",
     "vendor": "DEC",
-    "product": "RZ74 (C) DEC",
+    "product": "RZ74     (C) DEC",
     "revision": "427H",
     "block_size": 512,
     "size": 3571904000,
@@ -290,7 +290,7 @@
 {
     "device_type": "SCCD",
     "vendor": "DEC",
-    "product": "RRD42   (C) DEC",
+    "product": "RRD42    (C) DEC",
     "revision": "4.5d",
     "block_size": 512,
     "size": null,

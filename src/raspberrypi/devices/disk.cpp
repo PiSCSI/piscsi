@@ -784,6 +784,13 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
+	//check if size of data is more than size requested.
+	if (size > length) {
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+	//Set length returned to actual size of data
+	length = size;
 
 	return length;
 }
@@ -838,20 +845,20 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 			// Check LLBAA for short or long block descriptor
 			if ((cdb[1] & 0x10) == 0 || disk_blocks <= 0xFFFFFFFF) {
 				// Mode parameter header, block descriptor length
-				buf[3] = 0x08;
+				buf[7] = 0x08;
 
 				// Short LBA mode parameter block descriptor (number of blocks and block length)
 
-				buf[4] = disk_blocks >> 24;
-				buf[5] = disk_blocks >> 16;
-				buf[6] = disk_blocks >> 8;
-				buf[7] = disk_blocks;
+				buf[8] = disk_blocks >> 24;
+				buf[9] = disk_blocks >> 16;
+				buf[10] = disk_blocks >> 8;
+				buf[11] = disk_blocks;
 
-				buf[9] = disk_size >> 16;
-				buf[10] = disk_size >> 8;
-				buf[11] = disk_size;
+				buf[13] = disk_size >> 16;
+				buf[14] = disk_size >> 8;
+				buf[15] = disk_size;
 
-				size = 12;
+				size = 16;
 			}
 			else {
 				// Mode parameter header, LONGLBA
@@ -862,21 +869,21 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 				// Long LBA mode parameter block descriptor (number of blocks and block length)
 
-				buf[4] = disk_blocks >> 56;
-				buf[5] = disk_blocks >> 48;
-				buf[6] = disk_blocks >> 40;
-				buf[7] = disk_blocks >> 32;
-				buf[8] = disk_blocks >> 24;
-				buf[9] = disk_blocks >> 16;
-				buf[10] = disk_blocks >> 8;
-				buf[11] = disk_blocks;
+				buf[8] = disk_blocks >> 56;
+				buf[9] = disk_blocks >> 48;
+				buf[10] = disk_blocks >> 40;
+				buf[11] = disk_blocks >> 32;
+				buf[12] = disk_blocks >> 24;
+				buf[13] = disk_blocks >> 16;
+				buf[14] = disk_blocks >> 8;
+				buf[15] = disk_blocks;
 
-				buf[16] = disk_size >> 24;
-				buf[17] = disk_size >> 16;
-				buf[18] = disk_size >> 8;
-				buf[19] = disk_size;
+				buf[20] = disk_size >> 24;
+				buf[21] = disk_size >> 16;
+				buf[22] = disk_size >> 8;
+				buf[23] = disk_size;
 
-				size = 20;
+				size = 24;
 			}
 		}
 	}
@@ -945,6 +952,13 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
+	//check if size of data is more than size requested.
+	if (size > length) {
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+	//Set length returned to actual size of data
+	length = size;
 
 	return length;
 }
@@ -1676,33 +1690,19 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 
 void Disk::SetGeometries(const map<uint64_t, Geometry>& geometries)
 {
-	if (!IsMo()) {
-		throw illegal_argument_exception("Can't set geometry for");
-	}
-
 	this->geometries = geometries;
 }
 
-void Disk::SetGeometryForCapacity(uint64_t capacity) {
+bool Disk::SetGeometryForCapacity(uint64_t capacity) {
 	const auto& geometry = geometries.find(capacity);
+	if (geometry != geometries.end()) {
+		SetSectorSizeInBytes(geometry->second.first, false);
+		SetBlockCount(geometry->second.second);
 
-	if (geometry == geometries.end()) {
-		ostringstream error;
-		error << "Invalid file size of " << capacity << " bytes. Supported file sizes are ";
-		bool isFirst = true;
-		for (const auto& g : geometries) {
-			if (!isFirst) {
-				error << ", ";
-			}
-			error << g.first << " bytes";
-			isFirst = false;
-		}
-		error << ".";
-		throw io_exception(error.str());
+		return true;
 	}
 
-	SetSectorSizeInBytes(geometry->second.first, false);
-	SetBlockCount(geometry->second.second);
+	return false;
 }
 
 uint64_t Disk::GetBlockCount() const

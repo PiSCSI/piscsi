@@ -3,9 +3,9 @@
 //  SCSI Target Emulator RaSCSI (*^..^*)
 //  for Raspberry Pi
 //
-//  Powered by XM6 TypeG Technorogy.
+//  Powered by XM6 TypeG Technology.
 //  Copyright (C) 2016-2017 GIMONS
-//	[ ホストファイルシステム ブリッジドライバ ]
+//	[ Host Filesystem Bridge Driver ]
 //
 //---------------------------------------------------------------------------
 
@@ -18,16 +18,16 @@
 
 //---------------------------------------------------------------------------
 //
-//  変数宣言
+//  Variable definitions
 //
 //---------------------------------------------------------------------------
-volatile BYTE *request;				// リクエストヘッダアドレス
-DWORD command;						// コマンド番号
-DWORD unit;							// ユニット番号
+volatile BYTE *request;				// Request header address
+DWORD command;						// Command number
+DWORD unit;							// Unit number
 
 //===========================================================================
 //
-/// ファイルシステム(SCSI連携)
+/// File system (SCSI integration)
 //
 //===========================================================================
 typedef struct
@@ -49,7 +49,7 @@ int scsiid;	// SCSI ID
 
 //---------------------------------------------------------------------------
 //
-// 初期化
+// Initialize
 //
 //---------------------------------------------------------------------------
 BOOL SCSI_Init(void)
@@ -57,7 +57,7 @@ BOOL SCSI_Init(void)
 	int i;
 	INQUIRY_T inq;
 
-	// SCSI ID未定
+	// SCSI ID not set
 	scsiid = -1;
 	
 	for (i = 0; i <= 7; i++) {
@@ -69,7 +69,7 @@ BOOL SCSI_Init(void)
 			continue;
 		}
 
-		// SCSI ID確定
+		// SCSI ID set
 		scsiid = i;
 		return TRUE;
 	}
@@ -79,7 +79,7 @@ BOOL SCSI_Init(void)
 
 //---------------------------------------------------------------------------
 //
-// コマンド送信
+// Send commands
 //
 //---------------------------------------------------------------------------
 int SCSI_SendCmd(BYTE *buf, int len)
@@ -103,7 +103,7 @@ int SCSI_SendCmd(BYTE *buf, int len)
 	cmdbuf[8] = (BYTE)len;
 	cmdbuf[9] = 0;
 
-	// セレクトがタイムアウトする時には再試行
+	// Retry when select times out
 	if (S_SELECT(scsiid) != 0) {
 		S_RESET();
 		if (S_SELECT(scsiid) != 0) {
@@ -138,7 +138,7 @@ int SCSI_SendCmd(BYTE *buf, int len)
 	cmdbuf[8] = 4;
 	cmdbuf[9] = 0;
 
-	// セレクトがタイムアウトする時には再試行
+	// Retry when select times out
 	if (S_SELECT(scsiid) != 0) {
 		S_RESET();
 		if (S_SELECT(scsiid) != 0) {
@@ -168,7 +168,7 @@ int SCSI_SendCmd(BYTE *buf, int len)
 
 //---------------------------------------------------------------------------
 //
-// コマンド呼び出し
+// Call commands
 //
 //---------------------------------------------------------------------------
 int SCSI_CalCmd(BYTE *buf, int len, BYTE *outbuf, int outlen)
@@ -192,7 +192,7 @@ int SCSI_CalCmd(BYTE *buf, int len, BYTE *outbuf, int outlen)
 	cmdbuf[8] = (BYTE)len;
 	cmdbuf[9] = 0;
 	
-	// セレクトがタイムアウトする時には再試行
+	// Retry when select times out
 	if (S_SELECT(scsiid) != 0) {
 		S_RESET();
 		if (S_SELECT(scsiid) != 0) {
@@ -227,7 +227,7 @@ int SCSI_CalCmd(BYTE *buf, int len, BYTE *outbuf, int outlen)
 	cmdbuf[8] = 4;
 	cmdbuf[9] = 0;
 
-	// セレクトがタイムアウトする時には再試行
+	// Retry when select times out
 	if (S_SELECT(scsiid) != 0) {
 		S_RESET();
 		if (S_SELECT(scsiid) != 0) {
@@ -251,7 +251,7 @@ int SCSI_CalCmd(BYTE *buf, int len, BYTE *outbuf, int outlen)
 		return ret;
 	}
 
-	// エラーなら返却データの受信を止める
+	// Stop receiving return data on error
 	ret = *(int*)retbuf;
 	if (ret < 0) {
 		return ret;
@@ -268,7 +268,7 @@ int SCSI_CalCmd(BYTE *buf, int len, BYTE *outbuf, int outlen)
 	cmdbuf[8] = (BYTE)outlen;
 	cmdbuf[9] = 1;
 
-	// セレクトがタイムアウトする時には再試行
+	// Retry when select times out
 	if (S_SELECT(scsiid) != 0) {
 		S_RESET();
 		if (S_SELECT(scsiid) != 0) {
@@ -298,7 +298,7 @@ int SCSI_CalCmd(BYTE *buf, int len, BYTE *outbuf, int outlen)
 
 //---------------------------------------------------------------------------
 //
-// オプションデータ取得
+// Get option data
 //
 //---------------------------------------------------------------------------
 BOOL SCSI_ReadOpt(BYTE *buf, int len)
@@ -318,7 +318,7 @@ BOOL SCSI_ReadOpt(BYTE *buf, int len)
 	cmdbuf[8] = (BYTE)len;
 	cmdbuf[9] = 2;
 
-	// セレクトがタイムアウトする時には再試行
+	// Retry when select times out
 	if (S_SELECT(scsiid) != 0) {
 		S_RESET();
 		if (S_SELECT(scsiid) != 0) {
@@ -347,7 +347,7 @@ BOOL SCSI_ReadOpt(BYTE *buf, int len)
 
 //---------------------------------------------------------------------------
 //
-// オプションデータ書き込み
+// Write option data
 //
 //---------------------------------------------------------------------------
 BOOL SCSI_WriteOpt(BYTE *buf, int len)
@@ -367,7 +367,7 @@ BOOL SCSI_WriteOpt(BYTE *buf, int len)
 	cmdbuf[8] = (BYTE)len;
 	cmdbuf[9] = 1;
 
-	// セレクトがタイムアウトする時には再試行
+	// Retry when select times out
 	if (S_SELECT(scsiid) != 0) {
 		S_RESET();
 		if (S_SELECT(scsiid) != 0) {
@@ -396,13 +396,13 @@ BOOL SCSI_WriteOpt(BYTE *buf, int len)
 
 //===========================================================================
 //
-/// ファイルシステム
+/// File System
 //
 //===========================================================================
 
 //---------------------------------------------------------------------------
 //
-//  $40 - デバイス起動
+//  $40 - Device startup
 //
 //---------------------------------------------------------------------------
 DWORD FS_InitDevice(const argument_t* pArgument)
@@ -412,7 +412,7 @@ DWORD FS_InitDevice(const argument_t* pArgument)
 
 //---------------------------------------------------------------------------
 //
-//  $41 - ディレクトリチェック
+//  $41 - Directory check
 //
 //---------------------------------------------------------------------------
 int FS_CheckDir(const namests_t* pNamests)
@@ -434,7 +434,7 @@ int FS_CheckDir(const namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-//  $42 - ディレクトリ作成
+//  $42 - Create directory
 //
 //---------------------------------------------------------------------------
 int FS_MakeDir(const namests_t* pNamests)
@@ -456,7 +456,7 @@ int FS_MakeDir(const namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-//  $43 - ディレクトリ削除
+//  $43 - Delete directory
 //
 //---------------------------------------------------------------------------
 int FS_RemoveDir(const namests_t* pNamests)
@@ -478,7 +478,7 @@ int FS_RemoveDir(const namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-//  $44 - ファイル名変更
+//  $44 - Change file name
 //
 //---------------------------------------------------------------------------
 int FS_Rename(const namests_t* pNamests, const namests_t* pNamestsNew)
@@ -503,7 +503,7 @@ int FS_Rename(const namests_t* pNamests, const namests_t* pNamestsNew)
 
 //---------------------------------------------------------------------------
 //
-//  $45 - ファイル削除
+//  $45 - Delete file
 //
 //---------------------------------------------------------------------------
 int FS_Delete(const namests_t* pNamests)
@@ -525,7 +525,7 @@ int FS_Delete(const namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-//  $46 - ファイル属性取得/設定
+//  $46 - Get/set file attribute
 //
 //---------------------------------------------------------------------------
 int FS_Attribute(const namests_t* pNamests, DWORD nHumanAttribute)
@@ -551,7 +551,7 @@ int FS_Attribute(const namests_t* pNamests, DWORD nHumanAttribute)
 
 //---------------------------------------------------------------------------
 //
-//  $47 - ファイル検索
+//  $47 - File search
 //
 //---------------------------------------------------------------------------
 int FS_Files(DWORD nKey,
@@ -581,7 +581,7 @@ int FS_Files(DWORD nKey,
 
 //---------------------------------------------------------------------------
 //
-//  $48 - ファイル次検索
+//  $48 - Search next file
 //
 //---------------------------------------------------------------------------
 int FS_NFiles(DWORD nKey, files_t* info)
@@ -607,7 +607,7 @@ int FS_NFiles(DWORD nKey, files_t* info)
 
 //---------------------------------------------------------------------------
 //
-//  $49 - ファイル作成
+//  $49 - Create new file
 //
 //---------------------------------------------------------------------------
 int FS_Create(DWORD nKey,
@@ -646,7 +646,7 @@ int FS_Create(DWORD nKey,
 
 //---------------------------------------------------------------------------
 //
-//  $4A - ファイルオープン
+//  $4A - File open
 //
 //---------------------------------------------------------------------------
 int FS_Open(DWORD nKey,
@@ -676,7 +676,7 @@ int FS_Open(DWORD nKey,
 
 //---------------------------------------------------------------------------
 //
-//  $4B - ファイルクローズ
+//  $4B - File close
 //
 //---------------------------------------------------------------------------
 int FS_Close(DWORD nKey, fcb_t* pFcb)
@@ -702,7 +702,7 @@ int FS_Close(DWORD nKey, fcb_t* pFcb)
 
 //---------------------------------------------------------------------------
 //
-//  $4C - ファイル読み込み
+//  $4C - Read file
 //
 //---------------------------------------------------------------------------
 int FS_Read(DWORD nKey, fcb_t* pFcb, BYTE* pAddress, DWORD nSize)
@@ -735,7 +735,7 @@ int FS_Read(DWORD nKey, fcb_t* pFcb, BYTE* pAddress, DWORD nSize)
 
 //---------------------------------------------------------------------------
 //
-//  $4D - ファイル書き込み
+//  $4D - Write file
 //
 //---------------------------------------------------------------------------
 int FS_Write(DWORD nKey, fcb_t* pFcb, BYTE* pAddress, DWORD nSize)
@@ -767,7 +767,7 @@ int FS_Write(DWORD nKey, fcb_t* pFcb, BYTE* pAddress, DWORD nSize)
 
 //---------------------------------------------------------------------------
 //
-//  $4E - ファイルシーク
+//  $4E - File seek
 //
 //---------------------------------------------------------------------------
 int FS_Seek(DWORD nKey, fcb_t* pFcb, DWORD nMode, int nOffset)
@@ -797,7 +797,7 @@ int FS_Seek(DWORD nKey, fcb_t* pFcb, DWORD nMode, int nOffset)
 
 //---------------------------------------------------------------------------
 //
-//  $4F - ファイル時刻取得/設定
+//  $4F - Get/set file time stamp
 //
 //---------------------------------------------------------------------------
 DWORD FS_TimeStamp(DWORD nKey,
@@ -828,7 +828,7 @@ DWORD FS_TimeStamp(DWORD nKey,
 
 //---------------------------------------------------------------------------
 //
-//  $50 - 容量取得
+//  $50 - Get capacity
 //
 //---------------------------------------------------------------------------
 int FS_GetCapacity(capacity_t* cap)
@@ -847,28 +847,28 @@ int FS_GetCapacity(capacity_t* cap)
 
 //---------------------------------------------------------------------------
 //
-//  $51 - ドライブ状態検査/制御
+//  $51 - Inspect/control drive status
 //
 //---------------------------------------------------------------------------
 int FS_CtrlDrive(ctrldrive_t* pCtrlDrive)
 {
 #if 1
-	// 負荷が高いのでここで暫定処理
+	// Do tentative processing here due to high load
 	switch (pCtrlDrive->status) {
-		case 0:		// 状態検査
-		case 9:		// 状態検査2
+		case 0:		// Inspect status
+		case 9:		// Inspect status 2
 			pCtrlDrive->status = 0x42;
 			return pCtrlDrive->status;
-		case 1:		// イジェクト
-		case 2:		// イジェクト禁止1 (未実装)
-		case 3:		// イジェクト許可1 (未実装)
-		case 4:		// メディア未挿入時にLED点滅 (未実装)
-		case 5:		// メディア未挿入時にLED消灯 (未実装)
-		case 6:		// イジェクト禁止2 (未実装)
-		case 7:		// イジェクト許可2 (未実装)
+		case 1:		// Eject
+		case 2:		// Eject forbidden 1 (not implemented)
+		case 3:		// Eject allowed 1 (not implemented)
+		case 4:		// Flash LED when media is not inserted (not implemented)
+		case 5:		// Turn off LED when media is not inserted (not implemented)
+		case 6:		// Eject forbidden 2 (not implemented)
+		case 7:		// Eject allowed 2 (not implemented)
 			return 0;
 
-		case 8:		// イジェクト検査
+		case 8:		// Eject inspection
 			return 1;
 	}
 
@@ -892,7 +892,7 @@ int FS_CtrlDrive(ctrldrive_t* pCtrlDrive)
 
 //---------------------------------------------------------------------------
 //
-//  $52 - DPB取得
+//  $52 - Get DPB
 //
 //---------------------------------------------------------------------------
 int FS_GetDPB(dpb_t* pDpb)
@@ -911,7 +911,7 @@ int FS_GetDPB(dpb_t* pDpb)
 
 //---------------------------------------------------------------------------
 //
-//  $53 - セクタ読み込み
+//  $53 - Read sector
 //
 //---------------------------------------------------------------------------
 int FS_DiskRead(BYTE* pBuffer, DWORD nSector, DWORD nSize)
@@ -938,7 +938,7 @@ int FS_DiskRead(BYTE* pBuffer, DWORD nSector, DWORD nSize)
 
 //---------------------------------------------------------------------------
 //
-//  $54 - セクタ書き込み
+//  $54 - Write sector
 //
 //---------------------------------------------------------------------------
 int FS_DiskWrite()
@@ -980,13 +980,13 @@ int FS_Ioctrl(DWORD nFunction, ioctrl_t* pIoctrl)
 
 //---------------------------------------------------------------------------
 //
-//  $56 - フラッシュ
+//  $56 - Flush
 //
 //---------------------------------------------------------------------------
 int FS_Flush()
 {
 #if 1
-	// 未サポート
+	// Not supported
 	return 0;
 #else
 	BYTE buf[256];
@@ -1001,13 +1001,13 @@ int FS_Flush()
 
 //---------------------------------------------------------------------------
 //
-//  $57 - メディア交換チェック
+//  $57 - Media change check
 //
 //---------------------------------------------------------------------------
 int FS_CheckMedia()
 {
 #if 1
-	// 負荷が高いので暫定処理
+	// Do tentative processing due to high load
 	return 0;
 #else
 	BYTE buf[256];
@@ -1022,13 +1022,13 @@ int FS_CheckMedia()
 
 //---------------------------------------------------------------------------
 //
-//  $58 - 排他制御
+//  $58 - Lock
 //
 //---------------------------------------------------------------------------
 int FS_Lock()
 {
 #if 1
-	// 未サポート
+	// Not supported
 	return 0;
 #else
 	BYTE buf[256];
@@ -1043,7 +1043,7 @@ int FS_Lock()
 
 //===========================================================================
 //
-//	コマンドハンドラ
+//	Command handlers
 //
 //===========================================================================
 #define GetReqByte(a) (request[a])
@@ -1056,7 +1056,7 @@ int FS_Lock()
 
 //---------------------------------------------------------------------------
 //
-//  NAMESTS読み込み
+//  Read NAMESTS
 //
 //---------------------------------------------------------------------------
 void GetNameStsPath(BYTE *addr, namests_t* pNamests)
@@ -1066,30 +1066,30 @@ void GetNameStsPath(BYTE *addr, namests_t* pNamests)
 	ASSERT(this);
 	ASSERT(pNamests);
 
-	// ワイルドカード情報
+	// Wildcard data
 	pNamests->wildcard = *addr;
 
-	// ドライブ番号
+	// Drive number
 	pNamests->drive = addr[1];
 
-	// パス名
+	// Pathname
 	for (i = 0; i < sizeof(pNamests->path); i++) {
 		pNamests->path[i] = addr[2 + i];
 	}
 
-	// ファイル名1
+	// Filename 1
 	memset(pNamests->name, 0x20, sizeof(pNamests->name));
 
-	// 拡張子
+	// File ending
 	memset(pNamests->ext, 0x20, sizeof(pNamests->ext));
 
-	// ファイル名2
+	// Filename 2
 	memset(pNamests->add, 0, sizeof(pNamests->add));
 }
 
 //---------------------------------------------------------------------------
 //
-//  NAMESTS読み込み
+//  Read NAMESTS
 //
 //---------------------------------------------------------------------------
 void GetNameSts(BYTE *addr, namests_t* pNamests)
@@ -1100,28 +1100,28 @@ void GetNameSts(BYTE *addr, namests_t* pNamests)
 	ASSERT(pNamests);
 	ASSERT(addr <= 0xFFFFFF);
 
-	// ワイルドカード情報
+	// Wildcard data
 	pNamests->wildcard = *addr;
 
-	// ドライブ番号
+	// Drive number
 	pNamests->drive = addr[1];
 
-	// パス名
+	// Pathname
 	for (i = 0; i < sizeof(pNamests->path); i++) {
 		pNamests->path[i] = addr[2 + i];
 	}
 
-	// ファイル名1
+	// Filename 1
 	for (i = 0; i < sizeof(pNamests->name); i++) {
 		pNamests->name[i] = addr[67 + i];
 	}
 
-	// 拡張子
+	// File ending
 	for (i = 0; i < sizeof(pNamests->ext); i++) {
 		pNamests->ext[i] = addr[75 + i];
 	}
 
-	// ファイル名2
+	// Filename 2
 	for (i = 0; i < sizeof(pNamests->add); i++) {
 		pNamests->add[i] = addr[78 + i];
 	}
@@ -1129,7 +1129,7 @@ void GetNameSts(BYTE *addr, namests_t* pNamests)
 
 //---------------------------------------------------------------------------
 //
-//  FILES読み込み
+//  Read FILES
 //
 //---------------------------------------------------------------------------
 void GetFiles(BYTE *addr, files_t* pFiles)
@@ -1138,7 +1138,7 @@ void GetFiles(BYTE *addr, files_t* pFiles)
 	ASSERT(pFiles);
 	ASSERT(addr <= 0xFFFFFF);
 
-	// 検索情報
+	// Search data
 	pFiles->fatr = *addr;
 	pFiles->sector = *((DWORD*)&addr[2]);
 	pFiles->offset = *((WORD*)&addr[8]);;
@@ -1152,7 +1152,7 @@ void GetFiles(BYTE *addr, files_t* pFiles)
 
 //---------------------------------------------------------------------------
 //
-//  FILES書き込み
+//  Write FILES
 //
 //---------------------------------------------------------------------------
 void SetFiles(BYTE *addr, const files_t* pFiles)
@@ -1165,13 +1165,13 @@ void SetFiles(BYTE *addr, const files_t* pFiles)
 	*((DWORD*)&addr[2]) = pFiles->sector;
 	*((WORD*)&addr[8]) = pFiles->offset;
 
-	// ファイル情報
+	// File data
 	addr[21] = pFiles->attr;
 	*((WORD*)&addr[22]) = pFiles->time;
 	*((WORD*)&addr[24]) = pFiles->date;
 	*((DWORD*)&addr[26]) = pFiles->size;
 
-	// フルファイル名
+	// Full filename
 	addr += 30;
 	for (i = 0; i < sizeof(pFiles->full); i++) {
 		*addr = pFiles->full[i];
@@ -1181,7 +1181,7 @@ void SetFiles(BYTE *addr, const files_t* pFiles)
 
 //---------------------------------------------------------------------------
 //
-//  FCB読み込み
+//  Read FCB
 //
 //---------------------------------------------------------------------------
 void GetFcb(BYTE *addr, fcb_t* pFcb)
@@ -1189,14 +1189,14 @@ void GetFcb(BYTE *addr, fcb_t* pFcb)
 	ASSERT(this);
 	ASSERT(pFcb);
 
-	// FCB情報
+	// FCB data
 	pFcb->fileptr = *((DWORD*)&addr[6]);
 	pFcb->mode = *((WORD*)&addr[14]);
 
-	// 属性
+	// Attribute
 	pFcb->attr = addr[47];
 
-	// FCB情報
+	// FCB data
 	pFcb->time = *((WORD*)&addr[58]);
 	pFcb->date = *((WORD*)&addr[60]);
 	pFcb->size = *((DWORD*)&addr[64]);
@@ -1204,7 +1204,7 @@ void GetFcb(BYTE *addr, fcb_t* pFcb)
 
 //---------------------------------------------------------------------------
 //
-//  FCB書き込み
+//  Write FCB
 //
 //---------------------------------------------------------------------------
 void SetFcb(BYTE *addr, const fcb_t* pFcb)
@@ -1212,14 +1212,14 @@ void SetFcb(BYTE *addr, const fcb_t* pFcb)
 	ASSERT(this);
 	ASSERT(pFcb);
 
-	// FCB情報
+	// FCB data
 	*((DWORD*)&addr[6]) = pFcb->fileptr;
 	*((WORD*)&addr[14]) = pFcb->mode;
 
-	// 属性
+	// Attribute
 	addr[47] = pFcb->attr;
 
-	// FCB情報
+	// FCB data
 	*((WORD*)&addr[58]) = pFcb->time;
 	*((WORD*)&addr[60]) = pFcb->date;
 	*((DWORD*)&addr[64]) = pFcb->size;
@@ -1227,7 +1227,7 @@ void SetFcb(BYTE *addr, const fcb_t* pFcb)
 
 //---------------------------------------------------------------------------
 //
-//  CAPACITY書き込み
+//  Write CAPACITY
 //
 //---------------------------------------------------------------------------
 void SetCapacity(BYTE *addr, const capacity_t* pCapacity)
@@ -1243,7 +1243,7 @@ void SetCapacity(BYTE *addr, const capacity_t* pCapacity)
 
 //---------------------------------------------------------------------------
 //
-//  DPB書き込み
+//  Write DPB
 //
 //---------------------------------------------------------------------------
 void SetDpb(BYTE *addr, const dpb_t* pDpb)
@@ -1251,7 +1251,7 @@ void SetDpb(BYTE *addr, const dpb_t* pDpb)
 	ASSERT(this);
 	ASSERT(pDpb);
 
-	// DPB情報
+	// DPB data
 	*((WORD*)&addr[0]) = pDpb->sector_size;
 	addr[2] = 	pDpb->cluster_size;
 	addr[3] = 	pDpb->shift;
@@ -1267,7 +1267,7 @@ void SetDpb(BYTE *addr, const dpb_t* pDpb)
 
 //---------------------------------------------------------------------------
 //
-//  IOCTRL読み込み
+//  Read IOCTRL
 //
 //---------------------------------------------------------------------------
 void GetIoctrl(DWORD param, DWORD func, ioctrl_t* pIoctrl)
@@ -1279,12 +1279,12 @@ void GetIoctrl(DWORD param, DWORD func, ioctrl_t* pIoctrl)
 
 	switch (func) {
 		case 2:
-			// メディア再認識
+			// Re-identify media
 			pIoctrl->param = param;
 			return;
 
 		case -2:
-			// オプション設定
+			// Configure options
 			lp = (DWORD*)param;
 			pIoctrl->param = *lp;
 			return;
@@ -1293,7 +1293,7 @@ void GetIoctrl(DWORD param, DWORD func, ioctrl_t* pIoctrl)
 
 //---------------------------------------------------------------------------
 //
-//  IOCTRL書き込み
+//  Write IOCTRL
 //
 //---------------------------------------------------------------------------
 void SetIoctrl(DWORD param, DWORD func, ioctrl_t* pIoctrl)
@@ -1308,19 +1308,19 @@ void SetIoctrl(DWORD param, DWORD func, ioctrl_t* pIoctrl)
 
 	switch (func) {
 		case 0:
-			// メディアIDの獲得
+			// Acquire media ID
 			wp = (WORD*)param;
 			*wp = pIoctrl->media;
 			return;
 
 		case 1:
-			// Human68k互換のためのダミー
+			// Dummy for Human68k compatibility
 			lp = (DWORD*)param;
 			*lp = pIoctrl->param;
 			return;
 
 		case -1:
-			// 常駐判定
+			// Resident evaluation
 			bp = (BYTE*)param;
 			for (i = 0; i < 8; i++) {
 				*bp = pIoctrl->buffer[i];
@@ -1329,7 +1329,7 @@ void SetIoctrl(DWORD param, DWORD func, ioctrl_t* pIoctrl)
 			return;
 
 		case -3:
-			// オプション獲得
+			// Acquire options
 			lp = (DWORD*)param;
 			*lp = pIoctrl->param;
 			return;
@@ -1338,9 +1338,9 @@ void SetIoctrl(DWORD param, DWORD func, ioctrl_t* pIoctrl)
 
 //---------------------------------------------------------------------------
 //
-//  ARGUMENT読み込み
+//  Read ARGUMENT
 // 
-//  バッファサイズよりも長い場合は転送を打ち切って必ず終端する。
+//  When this exceeds the buffer size, interrupt transfer and exit.
 //
 //---------------------------------------------------------------------------
 void GetArgument(BYTE *addr, argument_t* pArgument)
@@ -1374,7 +1374,7 @@ void GetArgument(BYTE *addr, argument_t* pArgument)
 
 //---------------------------------------------------------------------------
 //
-//  終了値書き込み
+//  Write return value
 //
 //---------------------------------------------------------------------------
 void SetResult(DWORD nResult)
@@ -1383,7 +1383,7 @@ void SetResult(DWORD nResult)
 
 	ASSERT(this);
 
-	// 致命的エラー判定
+	// Handle fatal errors
 	switch (nResult) {
 		case FS_FATAL_INVALIDUNIT:
 			code = 0x5001;
@@ -1399,8 +1399,8 @@ void SetResult(DWORD nResult)
 		fatal:
 			SetReqByte(3, (BYTE)code);
 			SetReqByte(4, code >> 8);
-			//  @note リトライ可能を返すときは、(a5 + 18)を書き換えてはいけない。
-			//  その後白帯で Retry を選択した場合、書き換えた値を読み込んで誤動作してしまう。
+			//  @note When returning retryability, never overwrite with (a5 + 18).
+			//  If you do that, the system will start behaving erratically if you hit Retry at the system error screen.
 			if (code & 0x2000)
 				break;
 			nResult = FS_INVALIDFUNC;
@@ -1412,23 +1412,23 @@ void SetResult(DWORD nResult)
 
 //---------------------------------------------------------------------------
 //
-//  $40 - デバイス起動
+//  $40 - Device startup
 // 
 //	in	(offset	size)
-//		 0	1.b	定数(22)
-//		 2	1.b	コマンド($40/$c0)
-//		18	1.l	パラメータアドレス
-//		22	1.b	ドライブ番号
+//		 0	1.b	constant (22)
+//		 2	1.b	command ($40/$c0)
+//		18	1.l	parameter address
+//		22	1.b	drive number
 //	out	(offset	size)
-//		 3	1.b	エラーコード(下位)
-//		 4	1.b	〃			(上位)
-//		13	1.b	ユニット数
-//		14	1.l	デバイスドライバの終了アドレス + 1
+//		 3	1.b	error code (lower)
+//		 4	1.b	''			(upper)
+//		13	1.b	number of units
+//		14	1.l	device driver exit address + 1
 //
-//    ローカルドライブのコマンド 0 と同様に組み込み時に呼ばれるが、BPB 及
-//  びそのポインタの配列を用意する必要はない.
-//  他のコマンドと違い、このコマンドだけa5 + 1には有効な値が入っていない
-//  (0初期化なども期待してはいけない)ので注意すること。
+//  This is called command 0 when the driver is loaded similarly to a local drive,
+//  but there is no need to prepare BPB or its pointer array.
+//  Unlike other commands, only this command does not include a valid a5 + 1,
+//  since it doesn't expect 0 initialization etc., so be careful.
 //
 //---------------------------------------------------------------------------
 DWORD InitDevice(void)
@@ -1439,13 +1439,13 @@ DWORD InitDevice(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// オプション内容を獲得
+	// Get option contents
 	GetArgument(GetReqAddr(18), &arg);
 
-	// Human68k側で利用可能なドライブ数の範囲で、ファイルシステムを構築
+	// Contstruct the filesystem to the extent Human68k can support number of drivers etc.
 	units = FS_InitDevice(&arg);
 
-	// ドライブ数を返信
+	// Return number of drives
 	SetReqByte(13, units);
 
 	return 0;
@@ -1453,10 +1453,10 @@ DWORD InitDevice(void)
 
 //---------------------------------------------------------------------------
 //
-//  $41 - ディレクトリチェック
+//  $41 - Directory check
 // 
 //	in	(offset	size)
-//		14	1.L	NAMESTS構造体アドレス
+//		14	1.L	NAMESTS struct address
 //
 //---------------------------------------------------------------------------
 DWORD CheckDir(void)
@@ -1467,10 +1467,10 @@ DWORD CheckDir(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 検索対象ファイル名獲得
+	// Get filename to search
 	GetNameStsPath(GetReqAddr(14), &ns);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_CheckDir(&ns);
 
 	return nResult;
@@ -1478,10 +1478,10 @@ DWORD CheckDir(void)
 
 //---------------------------------------------------------------------------
 //
-//  $42 - ディレクトリ作成
+//  $42 - Create directory
 // 
 //	in	(offset	size)
-//		14	1.L	NAMESTS構造体アドレス
+//		14	1.L	NAMESTS struct address
 //
 //---------------------------------------------------------------------------
 DWORD MakeDir(void)
@@ -1492,10 +1492,10 @@ DWORD MakeDir(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 検索対象ファイル名獲得
+	// Get filename to search
 	GetNameSts(GetReqAddr(14), &ns);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_MakeDir(&ns);
 
 	return nResult;
@@ -1503,10 +1503,10 @@ DWORD MakeDir(void)
 
 //---------------------------------------------------------------------------
 //
-//  $43 - ディレクトリ削除
+//  $43 - Delete directory
 // 
 //	in	(offset	size)
-//		14	1.L	NAMESTS構造体アドレス
+//		14	1.L	NAMESTS struct address
 //
 //---------------------------------------------------------------------------
 DWORD RemoveDir(void)
@@ -1517,10 +1517,10 @@ DWORD RemoveDir(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 検索対象ファイル名獲得
+	// Get filename to search
 	GetNameSts(GetReqAddr(14), &ns);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_RemoveDir(&ns);
 
 	return nResult;
@@ -1528,11 +1528,11 @@ DWORD RemoveDir(void)
 
 //---------------------------------------------------------------------------
 //
-//  $44 - ファイル名変更
+//  $44 - Change filename
 // 
 //	in	(offset	size)
-//		14	1.L	NAMESTS構造体アドレス 旧ファイル名
-//		18	1.L	NAMESTS構造体アドレス 新ファイル名
+//		14	1.L	NAMESTS struct address old filename
+//		18	1.L	NAMESTS struct address new filename
 //
 //---------------------------------------------------------------------------
 DWORD Rename(void)
@@ -1544,11 +1544,11 @@ DWORD Rename(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 検索対象ファイル名獲得
+	// Get filename to search
 	GetNameSts(GetReqAddr(14), &ns);
 	GetNameSts(GetReqAddr(18), &ns_new);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Rename(&ns, &ns_new);
 
 	return nResult;
@@ -1556,10 +1556,10 @@ DWORD Rename(void)
 
 //---------------------------------------------------------------------------
 //
-//  $45 - ファイル削除
+//  $45 - Delete file
 // 
 //	in	(offset	size)
-//		14	1.L	NAMESTS構造体アドレス
+//		14	1.L	NAMESTS struct address
 //
 //---------------------------------------------------------------------------
 DWORD Delete(void)
@@ -1570,10 +1570,10 @@ DWORD Delete(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 検索対象ファイル名獲得
+	// Get filename to search
 	GetNameSts(GetReqAddr(14), &ns);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Delete(&ns);
 
 	return nResult;
@@ -1581,12 +1581,12 @@ DWORD Delete(void)
 
 //---------------------------------------------------------------------------
 //
-//  $46 - ファイル属性取得/設定
+//  $46 - Get/set file attribute
 // 
 //	in	(offset	size)
-//		12	1.B	読み出し時に0x01になるので注意
-//		13	1.B	属性 $FFだと読み出し
-//		14	1.L	NAMESTS構造体アドレス
+//		12	1.B	Note that this becomes 0x01 when read from memory
+//		13	1.B	attribute; read from memory when $FF
+//		14	1.L	NAMESTS struct address
 //
 //---------------------------------------------------------------------------
 DWORD Attribute(void)
@@ -1598,13 +1598,13 @@ DWORD Attribute(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 検索対象ファイル名獲得
+	// Get filename to search
 	GetNameSts(GetReqAddr(14), &ns);
 
-	// 対象属性
+	// Target attribute
 	attr = GetReqByte(13);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Attribute(&ns, attr);
 
 	return nResult;
@@ -1612,39 +1612,39 @@ DWORD Attribute(void)
 
 //---------------------------------------------------------------------------
 //
-//  $47 - ファイル検索
+//  $47 - File search
 // 
 //	in	(offset	size)
-//		 0	1.b	定数(26)
-//		 1	1.b	ユニット番号
-//		 2	1.b	コマンド($47/$c7)
-//		13	1.b	検索属性 (WindrvXMでは未使用。検索バッファに値が書かれている)
-//		14	1.l	ファイル名バッファ(namests 形式)
-//		18	1.l	検索バッファ(files 形式) このバッファに検索途中情報と検索結果を書き込む
+//		 0	1.b	constant (26)
+//		 1	1.b unit number
+//		 2	1.b command ($47/$c7)
+//		13	1.b	search attribute (Unused in WindrvXM. Written directly to search buffer.)
+//		14	1.l	Filename buffer (namests format)
+//		18	1.l	Search buffer (files format) Search data in progress and search results are written to this buffer.
 //	out	(offset	size)
-//		 3	1.b	エラーコード(下位)
-//		 4	1.b	〃			(上位)
-//		18	1.l	リザルトステータス
+//		 3	1.b	error code (lower)
+//		 4	1.b	''			(upper)
+//		18	1.l result status
 //
-//    ディレクトリから指定ファイルを検索する. DOS _FILES から呼び出される.
-//    検索に失敗した場合、若しくは検索に成功してもワイルドカードが使われて
-//  いない場合は、次回検索時に必ず失敗させる為に検索バッファのオフセットに
-//  -1 を書き込む. 検索が成功した場合は見つかったファイルの情報を設定する
-//  と共に、次検索用の情報のセクタ番号、オフセット、ルートディレクトリの場
-//  合は更に残りセクタ数を設定する. 検索ドライブ・属性、パス名は DOS コー
-//  ル処理内で設定されるので書き込む必要はない.
+//  Search files from specified directory. Called from DOS _FILES.
+//  When a search fails, or succeeds but not using wildcards,
+//  we write -1 to the search buffer offset to make the next search fail.
+//  When a file is found, we set its data as well as the following data
+//  for the next search: sector number, offset, and in the case of the 
+//  root directory, also the remaining sectors. The search drive, attribute,
+//  and path name are set in the DOS call processing, so writing is not needed.
 //
-//	<NAMESTS構造体>
+//	<NAMESTS struct>
 //	(offset	size)
-//	0	 1.b	NAMWLD	0:ワイルドカードなし -1:ファイル指定なし
-//				(ワイルドカードの文字数)
-//	1	 1.b	NAMDRV	ドライブ番号(A=0,B=1,…,Z=25)
-//	2	65.b	NAMPTH	パス('\'＋あればサブディレクトリ名＋'\')
-//	67	 8.b	NAMNM1	ファイル名(先頭 8 文字)
-//	75	 3.b	NAMEXT	拡張子
-//	78	10.b	NAMNM2	ファイル名(残りの 10 文字)
+//	0	 1.b	NAMWLD	0: no wildcard -1:no specified file
+//				(number of chars of wildcard)
+//	1	 1.b	NAMDRV	drive number (A=0,B=1,...,Z=25)
+//	2	65.b	NAMPTH	path ('\' + optional subdirectory + '\')
+//	67	 8.b	NAMNM1	filename (first 8 chars)
+//	75	 3.b	NAMEXT	file ending
+//	78	10.b	NAMNM2	filename (remaining 10 chars)
 //
-//  パス区切り文字は0x2F(/)や0x5C(\)ではなく0x09(TAB)を使っているので注意。
+//  Note that 0x09 (TAB) is used for path separator, rather than 0x2F (/) or 0x5C (\)
 //
 //---------------------------------------------------------------------------
 DWORD Files(void)
@@ -1657,17 +1657,17 @@ DWORD Files(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 検索途中経過格納領域
+	// Memory for storing search in progress
 	files = GetReqAddr(18);
 	GetFiles(files, &info);
 
-	// 検索対象ファイル名獲得
+	// Get filename to search
 	GetNameSts(GetReqAddr(14), &ns);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Files((DWORD)files, &ns, &info);
 
-	// 検索結果の反映
+	// Apply search results
 	if (nResult >= 0) {
 		SetFiles(files, &info);
 	}
@@ -1677,10 +1677,10 @@ DWORD Files(void)
 
 //---------------------------------------------------------------------------
 //
-//  $48 - ファイル次検索
+//  $48 - Search next file
 // 
 //	in	(offset	size)
-//		18	1.L	FILES構造体アドレス
+//		18	1.L	FILES struct address
 //
 //---------------------------------------------------------------------------
 DWORD NFiles(void)
@@ -1692,14 +1692,14 @@ DWORD NFiles(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// ワーク領域の読み込み
+	// Read work memory
 	files = GetReqAddr(18);
 	GetFiles(files, &info);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_NFiles((DWORD)files, &info);
 
-	// 検索結果の反映
+	// Apply search results
 	if (nResult >= 0) {
 		SetFiles(files, &info);
 	}
@@ -1709,14 +1709,14 @@ DWORD NFiles(void)
 
 //---------------------------------------------------------------------------
 //
-//  $49 - ファイル作成(Create)
+//  $49 - Create file (Create)
 // 
 //	in	(offset	size)
-//		 1	1.B	ユニット番号
-//		13	1.B	属性
-//		14	1.L	NAMESTS構造体アドレス
-//		18	1.L	モード (0:_NEWFILE 1:_CREATE)
-//		22	1.L	FCB構造体アドレス
+//		 1	1.B unit number
+//		13	1.B	attribute
+//		14	1.L	NAMESTS struct address
+//		18	1.L	mode (0:_NEWFILE 1:_CREATE)
+//		22	1.L	FCB struct address
 //
 //---------------------------------------------------------------------------
 DWORD Create(void)
@@ -1731,23 +1731,23 @@ DWORD Create(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 対象ファイル名獲得
+	// Get target filename
 	GetNameSts(GetReqAddr(14), &ns);
 
-	// FCB獲得
+	// Get FCB
 	pFcb = GetReqAddr(22);
 	GetFcb(pFcb, &fcb);
 
-	// 属性
+	// Attribute
 	attr = GetReqByte(13);
 
-	// 強制上書きモード
+	// Forced overwrite mode
 	force = (BOOL)GetReqLong(18);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Create((DWORD)pFcb, &ns, &fcb, attr, force);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetFcb(pFcb, &fcb);
 	}
@@ -1757,15 +1757,15 @@ DWORD Create(void)
 
 //---------------------------------------------------------------------------
 //
-//  $4A - ファイルオープン
+//  $4A - File open
 // 
 //	in	(offset	size)
-//		 1	1.B	ユニット番号
-//		14	1.L	NAMESTS構造体アドレス
-//		22	1.L	FCB構造体アドレス
-//				既にFCBにはほとんどのパラメータが設定済み
-//				時刻・日付はオープンした瞬間のものになってるので上書き
-//				サイズは0になっているので上書き
+//		 1	1.B unit number
+//		14	1.L	NAMESTS struct address
+//		22	1.L	FCB struct address
+//				Most parameters are already set in FCB.
+//				Overwrite time and date at the moment of opening.
+//				Overwrite if size is 0.
 //
 //---------------------------------------------------------------------------
 DWORD Open(void)
@@ -1778,17 +1778,17 @@ DWORD Open(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// 対象ファイル名獲得
+	// Get target filename
 	GetNameSts(GetReqAddr(14), &ns);
 
-	// FCB獲得
+	// Get FCB
 	pFcb = GetReqAddr(22);
 	GetFcb(pFcb, &fcb);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Open((DWORD)pFcb, &ns, &fcb);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetFcb(pFcb, &fcb);
 	}
@@ -1798,10 +1798,10 @@ DWORD Open(void)
 
 //---------------------------------------------------------------------------
 //
-//  $4B - ファイルクローズ
+//  $4B - File close
 // 
 //	in	(offset	size)
-//		22	1.L	FCB構造体アドレス
+//		22	1.L	FCB struct address
 //
 //---------------------------------------------------------------------------
 DWORD Close(void)
@@ -1813,14 +1813,14 @@ DWORD Close(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// FCB獲得
+	// Get FCB
 	pFcb = GetReqAddr(22);
 	GetFcb(pFcb, &fcb);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Close((DWORD)pFcb, &fcb);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetFcb(pFcb, &fcb);
 	}
@@ -1830,21 +1830,21 @@ DWORD Close(void)
 
 //---------------------------------------------------------------------------
 //
-//  $4C - ファイル読み込み
+//  $4C - Read file
 // 
 //	in	(offset	size)
-//		14	1.L	読み込みバッファ ここにファイル内容を読み込む
-//		18	1.L	サイズ 16MBを超える値が指定される可能性もあり
-//		22	1.L	FCB構造体アドレス
+//		14	1.L	Reading buffer; Read the file contents here.
+//		18	1.L	Size; It may be set to values exceeding 16MB
+//		22	1.L	FCB struct address
 //
-//  バスエラーが発生するアドレスを指定した場合の動作は保証しない。
+//  No guarantee for behavior when passing address where bus error occurs.
 // 
-//  20世紀のアプリは「負の数だとファイルを全部読む」という作法で書かれている
-//  可能性が微レ存。あれれー？このファイル16MB超えてるよー？(CV.高山みなみ)
+//  In the 20th century, a small number of apps used a trick where reading a
+//  negative value meant "read all the files!" Wh, what? This file is over 16MB! 
 // 
-//  むしろ4～12MBくらいの当時のプログラマーから見た実質的な「∞」の値で
-//  クリップするような配慮こそが現代では必要なのではなかろうか。
-//  または、末尾が12MBと16MB位置を超えたらサイズをクリップすると良いかも。
+//  Back then, anything over 4~12MB was treated as "inifity" and often truncated
+//  out of helpfulness, which is not needed in this day and age.
+//  On the other hand, it might be a good idea to truncate at 12MB or 16MB.
 //
 //---------------------------------------------------------------------------
 DWORD Read(void)
@@ -1858,25 +1858,25 @@ DWORD Read(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// FCB獲得
+	// Get FCB
 	pFcb = GetReqAddr(22);
 	GetFcb(pFcb, &fcb);
 
-	// 読み込みバッファ
+	// Read buffer
 	pAddress = GetReqAddr(14);
 
-	// 読み込みサイズ
+	// Read size
 	nSize = GetReqLong(18);
 
-	// クリッピング
+	// Clipping
 	if (nSize >= WINDRV_CLIPSIZE_MAX) {
 		nSize = WINDRV_CLIPSIZE_MAX;
 	}
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Read((DWORD)pFcb, &fcb, pAddress, nSize);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetFcb(pFcb, &fcb);
 	}
@@ -1886,14 +1886,14 @@ DWORD Read(void)
 
 //---------------------------------------------------------------------------
 //
-//  $4D - ファイル書き込み
+//  $4D - Write file
 // 
 //	in	(offset	size)
-//		14	1.L	書き込みバッファ ここにファイル内容を書き込む
-//		18	1.L	サイズ 負の数ならファイルサイズを指定したのと同じ
-//		22	1.L	FCB構造体アドレス
+//		14	1.L	Write buffer; Write file contents here
+//		18	1.L	Size; If a negative number, treated the same as specifying file size
+//		22	1.L	FCB struct address
 //
-//  バスエラーが発生するアドレスを指定した場合の動作は保証しない。
+//  No guarantee for behavior when passing address where bus error occurs.
 //
 //---------------------------------------------------------------------------
 DWORD Write(void)
@@ -1907,25 +1907,25 @@ DWORD Write(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// FCB獲得
+	// Get FCB
 	pFcb = GetReqAddr(22);
 	GetFcb(pFcb, &fcb);
 
-	// 書き込みバッファ
+	// Write buffer
 	pAddress = GetReqAddr(14);
 
-	// 書き込みサイズ
+	// Write size
 	nSize = GetReqLong(18);
 
-	// クリッピング
+	// Clipping
 	if (nSize >= WINDRV_CLIPSIZE_MAX) {
 		nSize = WINDRV_CLIPSIZE_MAX;
 	}
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Write((DWORD)pFcb, &fcb, pAddress, nSize);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetFcb(pFcb, &fcb);
 	}
@@ -1935,13 +1935,13 @@ DWORD Write(void)
 
 //---------------------------------------------------------------------------
 //
-//  $4E - ファイルシーク
+//  $4E - File seek
 // 
 //	in	(offset	size)
-//		12	1.B	0x2B になってるときがある 0のときもある
-//		13	1.B	モード
-//		18	1.L	オフセット
-//		22	1.L	FCB構造体アドレス
+//		12	1.B	This becomes 0x2B sometimes, and 0 other times
+//		13	1.B	mode
+//		18	1.L	offset
+//		22	1.L	FCB struct address
 //
 //---------------------------------------------------------------------------
 DWORD Seek(void)
@@ -1955,20 +1955,20 @@ DWORD Seek(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// FCB獲得
+	// Get FCB
 	pFcb = GetReqAddr(22);
 	GetFcb(pFcb, &fcb);
 
-	// シークモード
+	// Seek mode
 	nMode = GetReqByte(13);
 
-	// シークオフセット
+	// Seek offset
 	nOffset = GetReqLong(18);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Seek((DWORD)pFcb, &fcb, nMode, nOffset);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetFcb(pFcb, &fcb);
 	}
@@ -1978,15 +1978,15 @@ DWORD Seek(void)
 
 //---------------------------------------------------------------------------
 //
-//  $4F - ファイル時刻取得/設定
+//  $4F - Get/set file timestamp
 // 
 //	in	(offset	size)
 //		18	1.W	DATE
 //		20	1.W	TIME
-//		22	1.L	FCB構造体アドレス
+//		22	1.L	FCB struct address
 //
-//  FCBが読み込みモードで開かれた状態でも設定変更が可能。
-//  FCBだけでは書き込み禁止の判定ができないので注意。
+//  Possible to change settings when FCB is opened in read mode too.
+//  Note: Cannot make the judgement of read-only with only FCB
 //
 //---------------------------------------------------------------------------
 DWORD TimeStamp(void)
@@ -1999,17 +1999,17 @@ DWORD TimeStamp(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// FCB獲得
+	// Get FCB
 	pFcb = GetReqAddr(22);
 	GetFcb(pFcb, &fcb);
 
-	// 時刻獲得
+	// Get timestamp
 	nTime = GetReqLong(18);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_TimeStamp((DWORD)pFcb, &fcb, nTime);
 
-	// 結果の反映
+	// Apply results
 	if (nResult < 0xFFFF0000) {
 		SetFcb(pFcb, &fcb);
 	}
@@ -2019,27 +2019,27 @@ DWORD TimeStamp(void)
 
 //---------------------------------------------------------------------------
 //
-//  $50 - 容量取得
+//  $50 - Get capacity
 // 
 //	in	(offset	size)
-//		 0	1.b	定数(26)
-//		 1	1.b	ユニット番号
-//		 2	1.b	コマンド($50/$d0)
-//		14	1.l	バッファアドレス
+//		 0	1.b	constant (26)
+//		 1	1.b unit number
+//		 2	1.b	command ($50/$d0)
+//		14	1.l	buffer address
 //	out	(offset	size)
-//		 3	1.b	エラーコード(下位)
-//		 4	1.b	〃			(上位)
-//		18	1.l	リザルトステータス
+//		 3	1.b	error code (lower)
+//		 4	1.b	''			(upper)
+//		18	1.l result status
 //
-//    メディアの総容量/空き容量、クラスタ/セクタサイズを収得する. バッファ
-//  に書き込む内容は以下の通り. リザルトステータスとして使用可能なバイト数
-//  を返すこと.
+//  Get the total and available media capacity, as well as cluster / sector size.
+//  The contents to write to buffer follows. Returns number of bytes that can be
+//  used for result status.
 //
 //	(offset	size)
-//	0	1.w	使用可能なクラスタ数
-//	2	1.w	総クラスタ数
-//	4	1.w	1 クラスタ当りのセクタ数
-//	6	1.w	1 セクタ当りのバイト数
+//	0	1.w	available number of clusters
+//	2	1.w	total number of clusters
+//	4	1.w	number of sectors per 1 cluster
+//	6	1.w	number of bytes per 1 sector
 //
 //---------------------------------------------------------------------------
 DWORD GetCapacity(void)
@@ -2051,14 +2051,14 @@ DWORD GetCapacity(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// バッファ取得
+	// Get buffer
 	pCapacity = GetReqAddr(14);
 
 #if 0
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_GetCapacity(&cap);
 #else
-	// いつも同じ内容が返ってくるのでスキップしてみる
+	// Try skipping since the contents are always returned
 	cap.freearea = 0xFFFF;
 	cap.clusters = 0xFFFF;
 	cap.sectors = 64;
@@ -2066,7 +2066,7 @@ DWORD GetCapacity(void)
 	nResult = 0x7FFF8000;
 #endif
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetCapacity(pCapacity, &cap);
 	}
@@ -2076,11 +2076,11 @@ DWORD GetCapacity(void)
 
 //---------------------------------------------------------------------------
 //
-//  $51 - ドライブ状態検査/制御
+//  $51 - Inspect/control drive status
 // 
 //	in	(offset	size)
-//		 1	1.B	ユニット番号
-//		13	1.B	状態	0: 状態検査 1: イジェクト
+//		 1	1.B unit number
+//		13	1.B	status	0: status inspection 1: eject
 //
 //---------------------------------------------------------------------------
 DWORD CtrlDrive(void)
@@ -2091,13 +2091,13 @@ DWORD CtrlDrive(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// ドライブ状態取得
+	// Get drive status
 	ctrl.status = GetReqByte(13);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_CtrlDrive(&ctrl);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetReqByte(13, ctrl.status);
 	}
@@ -2107,42 +2107,42 @@ DWORD CtrlDrive(void)
 
 //---------------------------------------------------------------------------
 //
-//  $52 - DPB取得
+//  $52 - Get DPB
 // 
 //	in	(offset	size)
-//		 0	1.b	定数(26)
-//		 1	1.b	ユニット番号
-//		 2	1.b	コマンド($52/$d2)
-//		14	1.l	バッファアドレス(先頭アドレス + 2 を指す)
+//		 0	1.b	constant (26)
+//		 1	1.b unit number
+//		 2	1.b	command ($52/$d2)
+//		14	1.l	buffer address (points at starting address + 2)
 //	out	(offset	size)
-//		 3	1.b	エラーコード(下位)
-//		 4	1.b	〃			(上位)
-//		18	1.l	リザルトステータス
+//		 3	1.b	error code (lower)
+//		 4	1.b	''			(upper)
+//		18	1.l result status
 //
-//    指定メディアの情報を v1 形式 DPB で返す. このコマンドで設定する必要
-//  がある情報は以下の通り(括弧内は DOS コールが設定する). ただし、バッフ
-//  ァアドレスはオフセット 2 を指したアドレスが渡されるので注意すること.
+//  Specified media data is returned as DPB v1. Data needed to be set
+//  for this command are as follows (parantheses indicate what's set by DOS calls.)
+//  Note that the buffer adress is what's pointed at by offset 2.
 //
 //	(offset	size)
-//	 0	1.b	(ドライブ番号)
-//	 1	1.b	(ユニット番号)
-//	 2	1.w	1 セクタ当りのバイト数
-//	 4	1.b	1 クラスタ当りのセクタ数 - 1
-//	 5	1.b	クラスタ→セクタのシフト数
-//			bit 7 = 1 で MS-DOS 形式 FAT(16bit Intel 配列)
-//	 6	1.w	FAT の先頭セクタ番号
-//	 8	1.b	FAT 領域の個数
-//	 9	1.b	FAT の占めるセクタ数(複写分を除く)
-//	10	1.w	ルートディレクトリに入るファイルの個数
-//	12	1.w	データ領域の先頭セクタ番号
-//	14	1.w	総クラスタ数 + 1
-//	16	1.w	ルートディレクトリの先頭セクタ番号
-//	18	1.l	(ドライバヘッダのアドレス)
-//	22	1.b	(小文字の物理ドライブ名)
-//	23	1.b	(DPB 使用フラグ:常に 0)
-//	24	1.l	(次の DPB のアドレス)
-//	28	1.w	(カレントディレクトリのクラスタ番号:常に 0)
-//	30	64.b	(カレントディレクトリ名)
+//	 0	1.b	(drive number)
+//	 1	1.b	(unit number)
+//	 2	1.w	number of bytes per 1 sector
+//	 4	1.b	number of sectors - 1 per 1 cluster
+//	 5	1.b	Number of cluster -> sector 
+//			bit 7 = 1 in MS-DOS format FAT (16bit Intel array)
+//	 6	1.w	FAT first sector number
+//	 8	1.b	Number of FAT allocations
+//	 9	1.b	Number of FAT controlled sectors (excluding duplicates)
+//	10	1.w	Number of files in the root directory
+//	12	1.w	First sector number of data memory
+//	14	1.w	Total number of clusters + 1
+//	16	1.w	First sector number of root directory
+//	18	1.l	(Driver head address)
+//	22	1.b	(Physical drive name in lower-case)
+//	23	1.b	(DPB usage flag: normally 0)
+//	24	1.l	(Next DPB address)
+//	28	1.w	(Cluster number of current directory: normally 0)
+//	30	64.b	(Current directory name)
 //
 //---------------------------------------------------------------------------
 DWORD GetDPB(void)
@@ -2154,13 +2154,13 @@ DWORD GetDPB(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// DPB取得
+	// Get DPB
 	pDpb = GetReqAddr(14);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_GetDPB(&dpb);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		SetDpb(pDpb, &dpb);
 	}
@@ -2170,13 +2170,13 @@ DWORD GetDPB(void)
 
 //---------------------------------------------------------------------------
 //
-//  $53 - セクタ読み込み
+//  $53 - Read sector
 // 
 //	in	(offset	size)
-//		 1	1.B	ユニット番号
-//		14	1.L	バッファアドレス
-//		18	1.L	セクタ数
-//		22	1.L	セクタ番号
+//		 1	1.B unit number
+//		14	1.L buffer address
+//		18	1.L number of sectors
+//		22	1.L sector number
 //
 //---------------------------------------------------------------------------
 DWORD DiskRead(void)
@@ -2191,14 +2191,14 @@ DWORD DiskRead(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	pAddress = GetReqAddr(14);	// アドレス (上位ビットが拡張フラグ)
-	nSize = GetReqLong(18);		// セクタ数
-	nSector = GetReqLong(22);	// セクタ番号
+	pAddress = GetReqAddr(14);	// Address (upper bit is extension flag)
+	nSize = GetReqLong(18);		// Number of sectors
+	nSector = GetReqLong(22);	// Sector number
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_DiskRead(buffer, nSector, nSize);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0) {
 		for (i = 0; i < sizeof(buffer); i++) {
 			*pAddress = buffer[i];
@@ -2211,13 +2211,13 @@ DWORD DiskRead(void)
 
 //---------------------------------------------------------------------------
 //
-//  $54 - セクタ書き込み
+//  $54 - Write sector
 // 
 //	in	(offset	size)
-//		 1	1.B	ユニット番号
-//		14	1.L	バッファアドレス
-//		18	1.L	セクタ数
-//		22	1.L	セクタ番号
+//		 1	1.B unit number
+//		14	1.L buffer address
+//		18	1.L number of sectors
+//		22	1.L sector number
 //
 //---------------------------------------------------------------------------
 DWORD DiskWrite(void)
@@ -2230,11 +2230,11 @@ DWORD DiskWrite(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	pAddress = GetReqAddr(14);	// アドレス(上位ビットが拡張フラグ)
-	nSize = GetReqLong(18);		// セクタ数
-	nSector = GetReqLong(22);	// セクタ番号
+	pAddress = GetReqAddr(14);	// Address (upper bit is extension flag)
+	nSize = GetReqLong(18);		// Number of sectors
+	nSector = GetReqLong(22);	// Sector number
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_DiskWrite();
 
 	return nResult;
@@ -2245,9 +2245,9 @@ DWORD DiskWrite(void)
 //  $55 - IOCTRL
 // 
 //	in	(offset	size)
-//		 1	1.B	ユニット番号
-//		14	1.L	パラメータ
-//		18	1.W	機能番号
+//		 1	1.B unit number
+//		14	1.L	parameter
+//		18	1.W	feature number
 //
 //---------------------------------------------------------------------------
 DWORD Ioctrl(void)
@@ -2260,15 +2260,15 @@ DWORD Ioctrl(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// IOCTRL取得
-	param = GetReqLong(14);		// パラメータ
-	func = GetReqWord(18);		// 機能番号
+	// Get IOCTRL
+	param = GetReqLong(14);		// Parameter
+	func = GetReqWord(18);		// Feature number
 	GetIoctrl(param, func, &ioctrl);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Ioctrl(func, &ioctrl);
 
-	// 結果の反映
+	// Apply results
 	if (nResult >= 0)
 		SetIoctrl(param, func, &ioctrl);
 
@@ -2277,10 +2277,10 @@ DWORD Ioctrl(void)
 
 //---------------------------------------------------------------------------
 //
-//  $56 - フラッシュ
+//  $56 - Flush
 // 
 //	in	(offset	size)
-//		 1	1.B	ユニット番号
+//		 1	1.b unit number
 //
 //---------------------------------------------------------------------------
 DWORD Flush(void)
@@ -2290,7 +2290,7 @@ DWORD Flush(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Flush();
 
 	return nResult;
@@ -2298,19 +2298,19 @@ DWORD Flush(void)
 
 //---------------------------------------------------------------------------
 //
-//  $57 - メディア交換チェック
+//  $57 - Media change check
 // 
 //	in	(offset	size)
-//		 0	1.b	定数(26)
-//		 1	1.b	ユニット番号
-//		 2	1.b	コマンド($57/$d7)
+//		 0	1.b	constant (26)
+//		 1	1.b unit number
+//		 2	1.b	Command ($57/$d7)
 //	out	(offset	size)
-//		 3	1.b	エラーコード(下位)
-//		 4	1.b	〃			(上位)
-//		18	1.l	リザルトステータス
+//		 3	1.b	error code (lower)
+//		 4	1.b	''			(upper)
+//		18	1.l result status
 //
-//    メディアが交換されたか否かを調べる. 交換されていた場合のフォーマット
-//  確認はこのコマンド内で行うこと.
+//  Checks if the media has been changed or not. Format if it has changed.
+//  The verification is done within this command.
 //
 //---------------------------------------------------------------------------
 DWORD CheckMedia(void)
@@ -2320,7 +2320,7 @@ DWORD CheckMedia(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_CheckMedia();
 
 	return nResult;
@@ -2328,10 +2328,10 @@ DWORD CheckMedia(void)
 
 //---------------------------------------------------------------------------
 //
-//  $58 - 排他制御
+//  $58 - Lock
 // 
 //	in	(offset	size)
-//		 1	1.B	ユニット番号
+//		 1	1.b unit number
 //
 //---------------------------------------------------------------------------
 DWORD Lock(void)
@@ -2341,7 +2341,7 @@ DWORD Lock(void)
 	ASSERT(this);
 	ASSERT(fs);
 
-	// ファイルシステム呼び出し
+	// Call filesystem
 	nResult = FS_Lock();
 
 	return nResult;
@@ -2349,50 +2349,50 @@ DWORD Lock(void)
 
 //---------------------------------------------------------------------------
 //
-//  コマンド実行
+//  Execute command
 //
 //---------------------------------------------------------------------------
 DWORD ExecuteCommand()
 {
 	ASSERT(this);
 
-	// エラー情報クリア
+	// Clear error data
 	SetReqByte(3, 0);
 	SetReqByte(4, 0);
 
-	// コマンド番号
-	command = (DWORD)GetReqByte(2);	// ビット7はベリファイフラグ
+	// Command number
+	command = (DWORD)GetReqByte(2);	// Bit 7 is verify flag
 
-	// ユニット番号
+	// Unit number
 	unit = GetReqByte(1);
 
-	// コマンド分岐
+	// Command branching
 	switch (command & 0x7F) {
-		case 0x40: return InitDevice();	// $40 - デバイス起動
-		case 0x41: return CheckDir();	// $41 - ディレクトリチェック
-		case 0x42: return MakeDir();	// $42 - ディレクトリ作成
-		case 0x43: return RemoveDir();	// $43 - ディレクトリ削除
-		case 0x44: return Rename();		// $44 - ファイル名変更
-		case 0x45: return Delete();		// $45 - ファイル削除
-		case 0x46: return Attribute();	// $46 - ファイル属性取得/設定
-		case 0x47: return Files();		// $47 - ファイル検索
-		case 0x48: return NFiles();		// $48 - ファイル次検索
-		case 0x49: return Create();		// $49 - ファイル作成
-		case 0x4A: return Open();		// $4A - ファイルオープン
-		case 0x4B: return Close();		// $4B - ファイルクローズ
-		case 0x4C: return Read();		// $4C - ファイル読み込み
-		case 0x4D: return Write();		// $4D - ファイル書き込み
-		case 0x4E: return Seek();		// $4E - ファイルシーク
-		case 0x4F: return TimeStamp();	// $4F - ファイル更新時刻の取得/設定
-		case 0x50: return GetCapacity();// $50 - 容量取得
-		case 0x51: return CtrlDrive();	// $51 - ドライブ制御/状態検査
-		case 0x52: return GetDPB();		// $52 - DPB取得
-		case 0x53: return DiskRead();	// $53 - セクタ読み込み
-		case 0x54: return DiskWrite();	// $54 - セクタ書き込み
+		case 0x40: return InitDevice();	// $40 - Device startup
+		case 0x41: return CheckDir();	// $41 - Directory check
+		case 0x42: return MakeDir();	// $42 - Create directory
+		case 0x43: return RemoveDir();	// $43 - Delete directory
+		case 0x44: return Rename();		// $44 - Change file name
+		case 0x45: return Delete();		// $45 - Delete file
+		case 0x46: return Attribute();	// $46 - Get / set file attribute
+		case 0x47: return Files();		// $47 - Find file
+		case 0x48: return NFiles();		// $48 - Find next file
+		case 0x49: return Create();		// $49 - Create file
+		case 0x4A: return Open();		// $4A - Open file
+		case 0x4B: return Close();		// $4B - Close file
+		case 0x4C: return Read();		// $4C - Read file
+		case 0x4D: return Write();		// $4D - Write file
+		case 0x4E: return Seek();		// $4E - Seek file
+		case 0x4F: return TimeStamp();	// $4F - Get / set file timestamp
+		case 0x50: return GetCapacity();// $50 - Get capacity
+		case 0x51: return CtrlDrive();	// $51 - Inspect / control drive status
+		case 0x52: return GetDPB();		// $52 - Get DPB
+		case 0x53: return DiskRead();	// $53 - Read sectors
+		case 0x54: return DiskWrite();	// $54 - Write sectors
 		case 0x55: return Ioctrl();		// $55 - IOCTRL
-		case 0x56: return Flush();		// $56 - フラッシュ
-		case 0x57: return CheckMedia();	// $57 - メディア交換チェック
-		case 0x58: return Lock();		// $58 - 排他制御
+		case 0x56: return Flush();		// $56 - Flush
+		case 0x57: return CheckMedia();	// $57 - Media change check
+		case 0x58: return Lock();		// $58 - Lock
 	}
 
 	return FS_FATAL_INVALIDCOMMAND;
@@ -2400,7 +2400,7 @@ DWORD ExecuteCommand()
 
 //---------------------------------------------------------------------------
 //
-//  初期化
+//  Initialization
 //
 //---------------------------------------------------------------------------
 BOOL Init()
@@ -2412,7 +2412,7 @@ BOOL Init()
 
 //---------------------------------------------------------------------------
 //
-//  実行
+//  Execution
 //
 //---------------------------------------------------------------------------
 void Process(DWORD nA5)
@@ -2422,9 +2422,9 @@ void Process(DWORD nA5)
 	ASSERT(m_bAlloc);
 	ASSERT(m_bFree);
 
-	// リクエストヘッダのアドレス
+	// Request header address
 	request = (BYTE*)nA5;
 
-	// コマンド実行
+	// Command execution
 	SetResult(ExecuteCommand());
 }

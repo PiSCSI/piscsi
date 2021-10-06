@@ -19,6 +19,7 @@
 #include "../rascsi.h"
 #include "fileio.h"
 #include "exceptions.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -55,7 +56,19 @@ void SCSIMO::Open(const Filepath& path)
 	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	SetGeometryForCapacity(size);
+	// For some priorities there are hard-coded, well-defined sector sizes and block counts
+	if (!SetGeometryForCapacity(size)) {
+		// Sector size (default 512 bytes) and number of blocks
+		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, true);
+		SetBlockCount(size >> GetSectorSize());
+	}
+
+	// File size must be a multiple of the sector size
+	if (size % GetSectorSizeInBytes()) {
+		stringstream error;
+		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
+		throw io_exception(error.str());
+	}
 
 	SetReadOnly(false);
 	SetProtectable(true);
