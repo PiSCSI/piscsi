@@ -312,6 +312,12 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
+	if (!param.empty()) {
+		// Only one of these parameters will be used, depending on the device type
+		AddParam(*device, "interfaces", param);
+		AddParam(*device, "file", param);
+	}
+
 	RasctlCommands rasctl_commands(command, hostname, port);
 
 	switch(command.operation()) {
@@ -384,17 +390,7 @@ int main(int argc, char* argv[])
 			break;
 
 		default:
-			if (!param.empty()) {
-				if (device->type() == SCBR || device->type() == SCDP) {
-					AddParam(*device, "interfaces", param);
-				}
-				else {
-					AddParam(*device, "file", param);
-				}
-			}
-
 			rasctl_commands.SendCommand();
-
 			break;
 	}
 
