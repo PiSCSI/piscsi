@@ -1,11 +1,9 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI (*^..^*)
-//	for Raspberry Pi
+// SCSI Target Emulator RaSCSI (*^..^*)
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
-//	[ Send Control Command ]
+// Copyright (C) 2021 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
@@ -13,9 +11,6 @@
 #include "rascsi_interface.pb.h"
 #include <iostream>
 #include <list>
-
-// Separator for the INQUIRY name components
-#define COMPONENT_SEPARATOR ':'
 
 using namespace std;
 using namespace rascsi_interface;
