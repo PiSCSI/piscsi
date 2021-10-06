@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvILNOTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvINOTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -224,6 +224,11 @@ int main(int argc, char* argv[])
 				}
 				break;
 
+			case 'r':
+				command.set_operation(RESERVE_IDS);
+				reserved_ids = optarg;
+				break;
+
 			case 'R':
 				command.set_operation(RENAME_IMAGE);
 				image_params = optarg;
@@ -265,11 +270,6 @@ int main(int argc, char* argv[])
 				}
 				break;
 
-			case 'r':
-				command.set_operation(RESERVE_IDS);
-				reserved_ids = optarg;
-				break;
-
 			case 's':
 				command.set_operation(SERVER_INFO);
 				break;
@@ -303,83 +303,87 @@ int main(int argc, char* argv[])
 		exit(EXIT_FAILURE);
 	}
 
-	RasctlCommands rasctl_commands;
+	// Listing devices is a special case (rasctl backwards compatibility)
+	if (list) {
+		PbCommand command_list;
+		command_list.set_operation(DEVICES_INFO);
+		RasctlCommands rasctl_commands(command_list, hostname, port);
+		rasctl_commands.CommandDevicesInfo();
+		exit(EXIT_SUCCESS);
+	}
+
+	RasctlCommands rasctl_commands(command, hostname, port);
 
 	switch(command.operation()) {
 		case LOG_LEVEL:
-			rasctl_commands.CommandLogLevel(command, hostname, port, log_level);
+			rasctl_commands.CommandLogLevel(log_level);
 			break;
 
 		case DEFAULT_FOLDER:
-			rasctl_commands.CommandDefaultImageFolder(command, hostname, port, default_folder);
+			rasctl_commands.CommandDefaultImageFolder(default_folder);
 			break;
 
 		case RESERVE_IDS:
-			rasctl_commands.CommandReserveIds(command, hostname, port, reserved_ids);
+			rasctl_commands.CommandReserveIds(reserved_ids);
 			break;
 
 		case CREATE_IMAGE:
-			rasctl_commands.CommandCreateImage(command, hostname, port, image_params);
+			rasctl_commands.CommandCreateImage(image_params);
 			break;
 
 		case DELETE_IMAGE:
-			rasctl_commands.CommandDeleteImage(command, hostname, port, image_params);
+			rasctl_commands.CommandDeleteImage(image_params);
 			break;
 
 		case RENAME_IMAGE:
-			rasctl_commands.CommandRenameImage(command, hostname, port, image_params);
+			rasctl_commands.CommandRenameImage(image_params);
 			break;
 
 		case COPY_IMAGE:
-			rasctl_commands.CommandCopyImage(command, hostname, port, image_params);
+			rasctl_commands.CommandCopyImage(image_params);
 			break;
 
 		case DEVICES_INFO:
-			rasctl_commands.CommandDeviceInfo(command, hostname, port);
+			rasctl_commands.CommandDeviceInfo();
 			break;
 
 		case DEVICE_TYPES_INFO:
-			rasctl_commands.CommandDeviceTypesInfo(command, hostname, port);
+			rasctl_commands.CommandDeviceTypesInfo();
 			break;
 
 		case VERSION_INFO:
-			rasctl_commands.CommandVersionInfo(command, hostname, port);
+			rasctl_commands.CommandVersionInfo();
 			break;
 
 		case SERVER_INFO:
-			rasctl_commands.CommandServerInfo(command, hostname, port);
+			rasctl_commands.CommandServerInfo();
 			break;
 
 		case DEFAULT_IMAGE_FILES_INFO:
-			rasctl_commands.CommandDefaultImageFilesInfo(command, hostname, port);
+			rasctl_commands.CommandDefaultImageFilesInfo();
 			break;
 
 		case IMAGE_FILE_INFO:
-			rasctl_commands.CommandImageFileInfo(command, hostname, port, filename);
+			rasctl_commands.CommandImageFileInfo(hostname);
 			break;
 
 		case NETWORK_INTERFACES_INFO:
-			rasctl_commands.CommandNetworkInterfacesInfo(command, hostname, port);
+			rasctl_commands.CommandNetworkInterfacesInfo();
 			break;
 
 		case LOG_LEVEL_INFO:
-			rasctl_commands.CommandLogLevelInfo(command, hostname, port);
+			rasctl_commands.CommandLogLevelInfo();
 			break;
 
 		case RESERVED_IDS_INFO:
-			rasctl_commands.CommandReservedIdsInfo(command, hostname, port);
+			rasctl_commands.CommandReservedIdsInfo();
 			break;
 
 		case MAPPING_INFO:
-			rasctl_commands.CommandMappingInfo(command, hostname, port);
+			rasctl_commands.CommandMappingInfo();
 			break;
 
 		default:
-			if (list) {
-				rasctl_commands.CommandList(hostname, port);
-				exit(EXIT_SUCCESS);
-			}
-
 			if (!param.empty()) {
 				if (device->type() == SCBR || device->type() == SCDP) {
 					AddParam(*device, "interfaces", param);
@@ -389,8 +393,7 @@ int main(int argc, char* argv[])
 				}
 			}
 
-			PbResult result;
-			rasctl_commands.SendCommand(hostname, port, command, result);
+			rasctl_commands.SendCommand();
 
 			break;
 	}

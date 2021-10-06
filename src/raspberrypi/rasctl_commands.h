@@ -20,30 +20,35 @@ class RasctlCommands
 {
 public:
 
-	RasctlCommands() {};
+	RasctlCommands(PbCommand&, const string&, int);
 	~RasctlCommands() {};
 
-	void SendCommand(const string&, int, const PbCommand&, PbResult&);
-	void CommandList(const string&, int);
-	void CommandLogLevel(PbCommand&, const string&, int, const string&);
-	void CommandReserveIds(PbCommand&, const string&, int, const string&);
-	void CommandCreateImage(PbCommand&, const string&, int, const string&);
-	void CommandDeleteImage(PbCommand&, const string&, int, const string&);
-	void CommandRenameImage(PbCommand&, const string&, int, const string&);
-	void CommandCopyImage(PbCommand&, const string&, int, const string&);
-	void CommandDefaultImageFolder(PbCommand&, const string&, int, const string&);
-	void CommandDeviceInfo(const PbCommand&, const string&, int);
-	void CommandDeviceTypesInfo(const PbCommand&, const string&, int);
-	void CommandVersionInfo(PbCommand&, const string&, int);
-	void CommandServerInfo(PbCommand&, const string&, int);
-	void CommandDefaultImageFilesInfo(const PbCommand&, const string&, int);
-	void CommandImageFileInfo(PbCommand&, const string&, int, const string&);
-	void CommandNetworkInterfacesInfo(const PbCommand&, const string&, int);
-	void CommandLogLevelInfo(const PbCommand&, const string&, int);
-	void CommandReservedIdsInfo(const PbCommand&, const string&, int);
-	void CommandMappingInfo(const PbCommand&, const string&, int);
+	void SendCommand();
+	void SendCommandWithResult(PbResult&);
+	void CommandDevicesInfo();
+	void CommandLogLevel(const string&);
+	void CommandReserveIds(const string&);
+	void CommandCreateImage(const string&);
+	void CommandDeleteImage(const string&);
+	void CommandRenameImage(const string&);
+	void CommandCopyImage(const string&);
+	void CommandDefaultImageFolder(const string&);
+	void CommandDeviceInfo();
+	void CommandDeviceTypesInfo();
+	void CommandVersionInfo();
+	void CommandServerInfo();
+	void CommandDefaultImageFilesInfo();
+	void CommandImageFileInfo(const string&);
+	void CommandNetworkInterfacesInfo();
+	void CommandLogLevelInfo();
+	void CommandReservedIdsInfo();
+	void CommandMappingInfo();
 
 private:
+
+	PbCommand command;
+	string hostname;
+	int port;
 
 	RasctlDisplay rasctl_display;
 };
