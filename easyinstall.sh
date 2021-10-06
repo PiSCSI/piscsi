@@ -46,8 +46,8 @@ logo="""
 echo -e $logo
 }
 
-BASE=$(dirname "$(readlink -f "${0}")")
-WEBINSTDIR=${WEBINSTDIR:-/opt/rascsi-web}
+BASE=/home/pi/RASCSI
+WEBINSTDIR="$BASE/src/web"
 VIRTUAL_DRIVER_PATH="$HOME/images"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
@@ -64,11 +64,11 @@ function initialChecks() {
         exit 1
     fi
 
-    # if [ ! -d "$BASE/RASCSI" ]; then
-    #     echo "You must checkout RASCSI repo into $BASE"
-    #     echo "$ git clone git@github.com:akuker/RASCSI.git"
-    #     exit 2
-    # fi
+     if [ ! -d "$BASE" ]; then
+         echo "You must checkout RASCSI repo into $BASE"
+         echo "$ git clone git@github.com:akuker/RASCSI.git"
+         exit 2
+     fi
 }
 
 # install all dependency packages for RaSCSI Service
@@ -114,8 +114,6 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
-
-    sudo cp -r "$BASE/src/web" "$WEBINSTDIR"
     if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
         rm "$WEBINSTDIR/rascsi_interface_pb2.py"
 	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
