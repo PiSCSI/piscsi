@@ -9,7 +9,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include <netdb.h>
 #include "os.h"
 #include "rascsi_version.h"
 #include "exceptions.h"
@@ -66,7 +65,7 @@ PbDeviceType ParseType(const char *optarg)
 		return type;
 	}
 	else {
-		// Parse convenience types (shortcuts)
+		// Parse convenience device types (shortcuts)
 		switch (tolower(optarg[0])) {
 			case 'c':
 				return SCCD;
@@ -91,11 +90,6 @@ PbDeviceType ParseType(const char *optarg)
 	return UNDEFINED;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Main processing
-//
-//---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
