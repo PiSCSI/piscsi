@@ -261,6 +261,20 @@ void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 	}
 }
 
+void DisplayReservedIdsInfo(const PbReservedIds& reserved_ids)
+{
+	if (reserved_ids.ids_size()) {
+		cout << "Reserved device IDs: ";
+		for (int i = 0; i < reserved_ids.ids_size(); i++) {
+			if(i) {
+				cout << ", ";
+			}
+			cout << reserved_ids.ids(i);
+		}
+		cout <<endl;
+	}
+}
+
 void DisplayImageFile(const PbImageFile& image_file_info)
 {
 	cout << image_file_info.name() << "  " << image_file_info.size() << " bytes";
@@ -355,7 +369,7 @@ void CommandLogLevel(PbCommand& command, const string& hostname, int port, const
 	SendCommand(hostname.c_str(), port, command, result);
 }
 
-void CommandReserve(PbCommand& command, const string&hostname, int port, const string& reserved_ids)
+void CommandReserveIds(PbCommand& command, const string&hostname, int port, const string& reserved_ids)
 {
 	AddParam(command, "ids", reserved_ids);
 
@@ -468,17 +482,7 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 	DisplayMappingInfo(server_info.mapping_info());
 	DisplayNetworkInterfaces(server_info.network_interfaces_info());
 	DisplayDeviceTypesInfo(server_info.device_types_info());
-
-	if (server_info.reserved_ids_size()) {
-		cout << "Reserved device IDs: ";
-		for (int i = 0; i < server_info.reserved_ids_size(); i++) {
-			if(i) {
-				cout << ", ";
-			}
-			cout << server_info.reserved_ids(i);
-		}
-		cout <<endl;
-	}
+	DisplayReservedIdsInfo(server_info.reserved_ids());
 
 	if (server_info.devices().devices_size()) {
 		list<PbDevice> sorted_devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
@@ -524,6 +528,14 @@ void CommandLogLevelInfo(const PbCommand& command, const string&hostname, int po
 	SendCommand(hostname.c_str(), port, command, result);
 
 	DisplayLogLevelInfo(result.log_level_info());
+}
+
+void CommandReservedIdsInfo(const PbCommand& command, const string&hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	DisplayReservedIdsInfo(result.reserved_ids());
 }
 
 void CommandMappingInfo(const PbCommand& command, const string&hostname, int port)
@@ -614,7 +626,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-E FILENAME] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y]" << endl;
+		cerr << "[-e] [-E FILENAME] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -651,7 +663,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvLNOTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvILNOTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -703,6 +715,10 @@ int main(int argc, char* argv[])
 
 			case 'h':
 				hostname = optarg;
+				break;
+
+			case 'I':
+				command.set_operation(RESERVED_IDS_INFO);
 				break;
 
 			case 'L':
@@ -776,7 +792,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'r':
-				command.set_operation(RESERVE);
+				command.set_operation(RESERVE_IDS);
 				reserved_ids = optarg;
 				break;
 
@@ -822,8 +838,8 @@ int main(int argc, char* argv[])
 			CommandDefaultImageFolder(command, hostname, port, default_folder);
 			exit(EXIT_SUCCESS);
 
-		case RESERVE:
-			CommandReserve(command, hostname, port, reserved_ids);
+		case RESERVE_IDS:
+			CommandReserveIds(command, hostname, port, reserved_ids);
 			exit(EXIT_SUCCESS);
 
 		case CREATE_IMAGE:
@@ -872,6 +888,10 @@ int main(int argc, char* argv[])
 
 		case LOG_LEVEL_INFO:
 			CommandLogLevelInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case RESERVED_IDS_INFO:
+			CommandReservedIdsInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		case MAPPING_INFO:

@@ -6,10 +6,10 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -L  |  -O | -e | -l | -m | -s | -T | -V | [-E FILENAME] [-F IM‐
-       AGE_FOLDER] [-C FILENAME:FILESIZE] [-x CURRENT_NAME:NEW_NAME] [-R  CUR‐
-       RENT_NAME:NEW_NAME]   [-g  LOG_LEVEL]  [-h  HOST]  [-p  PORT]  [-r  RE‐
-       SERVED_IDS] [-v] -i ID [-c CMD] [-f FILE|PARAM] [-n NAME] [-t TYPE] [-u
+       rasctl  -e | -l | -m | -s | -v | -I | -L | -O | -T | -V | [-E FILENAME]
+       [-F IMAGE_FOLDER] [-C FILENAME:FILESIZE] [-x CURRENT_NAME:NEW_NAME] [-R
+       CURRENT_NAME:NEW_NAME]  [-g  LOG_LEVEL]  [-h  HOST]  [-p  PORT] [-r RE‐
+       SERVED_IDS] [-i ID [-c CMD] [-f FILE|PARAM] [-n  NAME]  [-t  TYPE]  [-u
        UNIT]
 
 DESCRIPTION
@@ -33,6 +33,8 @@ OPTIONS
 
        -F IMAGE_FOLDER
               Set the default image folder.
+
+       -I     Gets the list of reserved device IDs.
 
        -L LOG_LEVEL
               Set the rascsi log level (trace, debug, info, warn, err,  criti‐

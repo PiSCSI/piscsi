@@ -1236,11 +1236,11 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 			DetachAll();
 			return ReturnStatus(fd);
 
-		case RESERVE: {
+		case RESERVE_IDS: {
 			const string ids = GetParam(command, "ids");
 			string invalid_id = SetReservedIds(ids);
 			if (!invalid_id.empty()) {
-				return ReturnStatus(fd, false, "Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE));
+				return ReturnStatus(fd, false, "Invalid ID " + invalid_id + " for " + PbOperation_Name(RESERVE_IDS));
 			}
 
 			return ReturnStatus(fd);
@@ -1367,7 +1367,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 'r': {
 					string invalid_id = SetReservedIds(optarg);
 					if (!invalid_id.empty()) {
-						cerr << "Invalid ID " << invalid_id << " for " << PbOperation_Name(RESERVE);
+						cerr << "Invalid ID " << invalid_id << " for " << PbOperation_Name(RESERVE_IDS);
 						return false;
 					}
 				}
@@ -1645,6 +1645,15 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_allocated_mapping_info(response_helper.GetMappingInfo(result));
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case RESERVED_IDS_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_reserved_ids(response_helper.GetReservedIds(result, reserved_ids));
 					SerializeMessage(fd, result);
 					break;
 				}
