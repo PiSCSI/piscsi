@@ -131,7 +131,7 @@ function installRaScsiWebInterface() {
     sudo systemctl reload nginx
 
     echo "Installing the rascsi-web.service configuration..."
-    sudo -c 'cat $BASE/src/web/service-infra/rascsi-web.service" | sed "s/\/opt\/rascsi-web/$WEBINSTDIR/g" > /etc/systemd/system/rascsi-web.service'
+    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
