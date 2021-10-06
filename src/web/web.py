@@ -13,6 +13,7 @@ from flask import (
 
 from file_cmds import (
     list_config_files,
+    list_files,
     list_images,
     create_new_image,
     download_file_to_iso,
@@ -20,6 +21,7 @@ from file_cmds import (
     delete_file,
     unzip_file,
     download_image,
+    pad_image,
     write_config,
     read_config,
     write_drive_properties,
@@ -60,6 +62,9 @@ def index():
     device_types=get_device_types()
     files = list_images()
     config_files = list_config_files()
+    drive_files = list_files(tuple(server_info["sahd"] + \
+            server_info["schd"] + server_info["scrm"] + server_info["scmo"]))
+    cdrom_files = list_files(tuple(server_info["sccd"]))
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -84,6 +89,8 @@ def index():
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
+        drive_files=drive_files,
+        cdrom_files=cdrom_files,
         base_dir=base_dir,
         cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
@@ -555,6 +562,39 @@ def create_file():
         return redirect(url_for("index"))
     else:
         flash(f"Failed to create file {file_name}.{file_type}", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+
+@app.route("/files/pad", methods=["POST"])
+def image_padding():
+    image = request.form.get("image")
+    multiple = request.form.get("multiple")
+
+    if not image:
+        flash(f"No file selected!", "error")
+        return redirect(url_for("index"))
+
+    file, size = image.split(",")
+
+    if not int(size) % int(multiple):
+        flash(f"{file} does not need to be padded!", "error")
+        return redirect(url_for("index"))
+    else:
+        target_size = int(size) - (int(size) % int(multiple)) + int(multiple)
+
+    from pathlib import PurePath
+    padded_image = base_dir + str(PurePath(file).stem) + "_padded" + str(PurePath(file).suffix)
+    from shutil import copyfile
+    copyfile(base_dir + file, padded_image)
+
+    process = pad_image(padded_image, target_size)
+    if process["status"] == True:
+        flash(f"Added " + str(target_size - int(size)) + " bytes to " + padded_image + "!")
+        flash(process["msg"])
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to pad image!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
