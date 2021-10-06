@@ -13,7 +13,6 @@
 #include "protobuf_util.h"
 #include "rasutil.h"
 #include "rasctl_commands.h"
-#include "rasctl_display.h"
 #include "rascsi_interface.pb.h"
 #include <sstream>
 #include <iostream>
