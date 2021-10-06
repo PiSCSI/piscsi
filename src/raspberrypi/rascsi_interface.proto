@@ -268,7 +268,7 @@ message PbDevices {
 }
 
 // The reserved device IDs
-message PbReservedIds {
+message PbReservedIdsInfo {
     repeated int32 ids = 1;
 }
 
@@ -317,7 +317,7 @@ message PbResult {
         // The result of an MAPPING_INFO command
         PbMappingInfo mapping_info = 11;
         // The result of a RESERVED_IDS_INFO command
-        PbReservedIds reserved_ids = 12;
+        PbReservedIdsInfo reserved_ids_info = 12;
     }
 }
 
@@ -335,8 +335,8 @@ message PbServerInfo {
     PbNetworkInterfacesInfo network_interfaces_info = 5;
     // The extensions to device types mapping
     PbMappingInfo mapping_info = 6;
-    // The attached devices
-    PbDevices devices = 7;
     // The reserved device IDs
-    PbReservedIds reserved_ids = 8;
+    PbReservedIdsInfo reserved_ids_info = 7;
+    // The attached devices
+    PbDevices devices = 8;
 }

@@ -1653,7 +1653,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_reserved_ids(response_helper.GetReservedIds(result, reserved_ids));
+					result.set_allocated_reserved_ids_info(response_helper.GetReservedIds(result, reserved_ids));
 					SerializeMessage(fd, result);
 					break;
 				}

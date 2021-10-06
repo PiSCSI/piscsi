@@ -261,15 +261,15 @@ void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 	}
 }
 
-void DisplayReservedIdsInfo(const PbReservedIds& reserved_ids)
+void DisplayReservedIdsInfo(const PbReservedIdsInfo& reserved_ids_info)
 {
-	if (reserved_ids.ids_size()) {
+	if (reserved_ids_info.ids_size()) {
 		cout << "Reserved device IDs: ";
-		for (int i = 0; i < reserved_ids.ids_size(); i++) {
+		for (int i = 0; i < reserved_ids_info.ids_size(); i++) {
 			if(i) {
 				cout << ", ";
 			}
-			cout << reserved_ids.ids(i);
+			cout << reserved_ids_info.ids(i);
 		}
 		cout <<endl;
 	}
@@ -482,7 +482,7 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 	DisplayMappingInfo(server_info.mapping_info());
 	DisplayNetworkInterfaces(server_info.network_interfaces_info());
 	DisplayDeviceTypesInfo(server_info.device_types_info());
-	DisplayReservedIdsInfo(server_info.reserved_ids());
+	DisplayReservedIdsInfo(server_info.reserved_ids_info());
 
 	if (server_info.devices().devices_size()) {
 		list<PbDevice> sorted_devices = { server_info.devices().devices().begin(), server_info.devices().devices().end() };
@@ -535,7 +535,7 @@ void CommandReservedIdsInfo(const PbCommand& command, const string&hostname, int
 	PbResult result;
 	SendCommand(hostname.c_str(), port, command, result);
 
-	DisplayReservedIdsInfo(result.reserved_ids());
+	DisplayReservedIdsInfo(result.reserved_ids_info());
 }
 
 void CommandMappingInfo(const PbCommand& command, const string&hostname, int port)

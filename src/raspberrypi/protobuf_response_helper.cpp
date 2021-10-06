@@ -206,16 +206,16 @@ void ProtobufResponseHandler::GetAvailableImages(PbResult& result, PbServerInfo&
 	result.set_status(true);
 }
 
-PbReservedIds *ProtobufResponseHandler::GetReservedIds(PbResult& result, const set<int>& ids)
+PbReservedIdsInfo *ProtobufResponseHandler::GetReservedIds(PbResult& result, const set<int>& ids)
 {
-	PbReservedIds *reserved_ids = new PbReservedIds();
+	PbReservedIdsInfo *reserved_ids_info = new PbReservedIdsInfo();
 	for (int id : ids) {
-		reserved_ids->add_ids(id);
+		reserved_ids_info->add_ids(id);
 	}
 
 	result.set_status(true);
 
-	return reserved_ids;
+	return reserved_ids_info;
 }
 
 void ProtobufResponseHandler::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices, const string& image_folder)
@@ -289,7 +289,7 @@ PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vec
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices, image_folder);
-	server_info->set_allocated_reserved_ids(GetReservedIds(result, reserved_ids));
+	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
 
 	result.set_status(true);
 
