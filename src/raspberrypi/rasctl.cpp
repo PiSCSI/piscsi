@@ -154,6 +154,18 @@ void DisplayDeviceInfo(const PbDevice& pb_device)
 	cout << endl;
 }
 
+void DisplayVersionInfo(const PbVersionInfo& version_info)
+{
+	cout << "rascsi server version: " << version_info.major_version() << "." << version_info.minor_version();
+	if (version_info.patch_version() > 0) {
+		cout << "." << version_info.patch_version();
+	}
+	else if (version_info.patch_version() < 0) {
+		cout << " (development version)";
+	}
+	cout << endl;
+}
+
 void DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 {
 	cout << "Supported device types and their properties:" << endl;
@@ -420,6 +432,14 @@ void CommandDeviceTypesInfo(const PbCommand& command, const string& hostname, in
 	DisplayDeviceTypesInfo(result.device_types_info());
 }
 
+void CommandVersionInfo(PbCommand& command, const string& hostname, int port)
+{
+	PbResult result;
+	SendCommand(hostname.c_str(), port, command, result);
+
+	DisplayVersionInfo(result.version_info());
+}
+
 void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 {
 	PbResult result;
@@ -427,14 +447,7 @@ void CommandServerInfo(PbCommand& command, const string& hostname, int port)
 
 	PbServerInfo server_info = result.server_info();
 
-	cout << "rascsi server version: " << server_info.major_version() << "." << server_info.minor_version();
-	if (server_info.patch_version() > 0) {
-		cout << "." << server_info.patch_version();
-	}
-	else if (server_info.patch_version() < 0) {
-		cout << " (development version)";
-	}
-	cout << endl;
+	DisplayVersionInfo(result.version_info());
 
 	if (!server_info.log_levels_size()) {
 		cout << "  No log level settings available" << endl;
@@ -590,7 +603,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-E FILENAME] [-l] [-L] [-m] [-s] [-v] [-y]" << endl;
+		cerr << "[-e] [-E FILENAME] [-l] [-L] [-m] [-s] [-v] [-V] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0|1}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -627,7 +640,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvNTD:L:R:a:b:c:f:h:i:n:p:r:t:u:x:C:E:F:L:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvNTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
 		switch (opt) {
 			case 'i':
 				device->set_id(optarg[0] - '0');
@@ -757,8 +770,12 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'v':
-				cout << rascsi_get_version_string() << endl;
+				cout << "rasctl version: " << rascsi_get_version_string() << endl;
 				exit(EXIT_SUCCESS);
+				break;
+
+			case 'V':
+				command.set_operation(VERSION_INFO);
 				break;
 
 			case 'x':
@@ -816,6 +833,10 @@ int main(int argc, char* argv[])
 
 		case DEVICE_TYPES_INFO:
 			CommandDeviceTypesInfo(command, hostname, port);
+			exit(EXIT_SUCCESS);
+
+		case VERSION_INFO:
+			CommandVersionInfo(command, hostname, port);
 			exit(EXIT_SUCCESS);
 
 		case SERVER_INFO:

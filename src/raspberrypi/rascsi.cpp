@@ -1571,13 +1571,21 @@ static void *MonThread(void *param)
 					break;
 				}
 
-
 				case SERVER_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
 					result.set_allocated_server_info(response_helper.GetServerInfo(
 							result, devices, reserved_ids, default_image_folder, current_log_level));
+					SerializeMessage(fd, result);
+					break;
+				}
+
+				case VERSION_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_version_info(response_helper.GetVersionInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}

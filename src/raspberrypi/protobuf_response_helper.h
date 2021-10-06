@@ -35,6 +35,7 @@ public:
 	void GetDevices(PbServerInfo&, const vector<Device *>&, const string&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, const string&, int);
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
+	PbVersionInfo *GetVersionInfo(PbResult&);
 	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 	PbMappingInfo *GetMappingInfo(PbResult&);

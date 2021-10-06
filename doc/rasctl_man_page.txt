@@ -6,8 +6,8 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -L  |  -e | -l | -m | -s | -T | [-E FILENAME] [-F IMAGE_FOLDER]
-       [-C   FILENAME:FILESIZE]   [-x    CURRENT_NAME:NEW_NAME]    [-R    CUR‐
+       rasctl  -L  |  -e  |  -l  |  -m  | -s | -T | -V | [-E FILENAME] [-F IM‐
+       AGE_FOLDER] [-C FILENAME:FILESIZE] [-x CURRENT_NAME:NEW_NAME] [-R  CUR‐
        RENT_NAME:NEW_NAME]   [-g  LOG_LEVEL]  [-h  HOST]  [-p  PORT]  [-r  RE‐
        SERVED_IDS] [-v] -i ID [-c CMD] [-f FILE|PARAM] [-n NAME] [-t TYPE] [-u
        UNIT]
@@ -66,7 +66,9 @@ OPTIONS
 
        -T     Display all device types and their properties.
 
-       -v     Display the rascsi version.
+       -v     Display the rascsi server version.
+
+       -V     Display the rasctl version.
 
        -D FILENAME
               Delete an image file in the default image folder.
@@ -140,7 +142,7 @@ EXAMPLES
           rasctl -i 0 -f HDIIMAGE0.HDS
 
 SEE ALSO
-       rascsi(1) scsimon(1)
+       rascsi(1), scsimon(1), rasdump(1), sasidump(1)
 
        Full          documentation          is          available          at:
        <https://www.github.com/akuker/RASCSI/wiki/>

@@ -270,9 +270,7 @@ PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vec
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
-	server_info->set_major_version(rascsi_major_version);
-	server_info->set_minor_version(rascsi_minor_version);
-	server_info->set_patch_version(rascsi_patch_version);
+	server_info->set_allocated_version_info(GetVersionInfo(result));
 	GetLogLevels(*server_info);
 	server_info->set_current_log_level(log_level);
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
@@ -287,6 +285,19 @@ PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vec
 	result.set_status(true);
 
 	return server_info;
+}
+
+PbVersionInfo *ProtobufResponseHandler::GetVersionInfo(PbResult& result)
+{
+	PbVersionInfo *version_info = new PbVersionInfo();
+
+	version_info->set_major_version(rascsi_major_version);
+	version_info->set_minor_version(rascsi_minor_version);
+	version_info->set_patch_version(rascsi_patch_version);
+
+	result.set_status(true);
+
+	return version_info;
 }
 
 void ProtobufResponseHandler::GetLogLevels(PbServerInfo& server_info)
