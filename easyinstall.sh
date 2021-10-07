@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bash -e
+#!/usr/bin/env bash
 
 # BSD 3-Clause License
 # Author @sonique6784
@@ -57,6 +57,7 @@ GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -x
+set -v
 
 function initialChecks() {
     currentUser=$(whoami)
