@@ -171,7 +171,7 @@ function updateRaScsiGit() {
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
         echo "There are local changes to the RaSCSI code; we will stash and reapply them."
-        git -c user.name=${GIT_COMMITTER_NAME-rascsi} -c user.email=${GIT_COMMITTER_EMAIL-rascsi@rascsi.com} stash
+        git -c user.name="${GIT_COMMITTER_NAME-rascsi}" -c user.email="${GIT_COMMITTER_EMAIL-rascsi@rascsi.com}" stash
         stashed=1
     fi
 
