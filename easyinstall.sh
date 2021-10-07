@@ -466,7 +466,7 @@ function runChoice() {
               updateRaScsiGit
               createImagesDir
               installPackages
-              installRaScsi
+              #installRaScsi
               installRaScsiWebInterface
               showRaScsiStatus
               showRaScsiWebStatus
