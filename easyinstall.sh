@@ -93,25 +93,25 @@ function installRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
     make clean
-    make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
-    sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
+    make -n all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
+    sudo -n make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
 
-    if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
-        sudo bash -c 'echo "
+    #if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
+    #    sudo bash -c 'echo "
 # Allow the web server to restart the rascsi service
-www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
-www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
+#www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
+#www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
 # Allow the web server to reboot the raspberry pi
-www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
-" >> /etc/sudoers'
-    else
-        echo "The sudoers file is already modified for rascsi-web."
-    fi
+#www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
+#" >> /etc/sudoers'
+#    else
+#        echo "The sudoers file is already modified for rascsi-web."
+#    fi
 
     sudo systemctl daemon-reload
     sudo systemctl restart rsyslog
-    sudo systemctl enable rascsi # optional - start rascsi at boot
-    sudo systemctl start rascsi
+    #sudo systemctl enable rascsi # optional - start rascsi at boot
+    #sudo systemctl start rascsi
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
