@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -e
 
 # BSD 3-Clause License
 # Author @sonique6784
@@ -56,7 +56,6 @@ LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
-set -e
 set -x
 
 function initialChecks() {
@@ -96,7 +95,7 @@ function installRaScsi() {
     make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
     sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
 
-    if [ `sudo grep -c "rascsi" /etc/sudoers` = "0" ]; then
+    if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
         sudo bash -c 'echo "
 # Allow the web server to restart the rascsi service
 www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
@@ -104,6 +103,8 @@ www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
 # Allow the web server to reboot the raspberry pi
 www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 " >> /etc/sudoers'
+    else
+        echo "The sudoers file is already modified for rascsi-web."
     fi
 
     sudo systemctl daemon-reload
