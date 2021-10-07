@@ -56,7 +56,6 @@ LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
-set -x
 set -e
 
 function initialChecks() {
@@ -466,7 +465,7 @@ function runChoice() {
               updateRaScsiGit
               createImagesDir
               installPackages
-              #installRaScsi
+              installRaScsi
               installRaScsiWebInterface
               showRaScsiStatus
               showRaScsiWebStatus
