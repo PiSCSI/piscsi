@@ -96,9 +96,7 @@ function installRaScsi() {
     make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
     sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
 
-    sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
-
-    if [ "$sudoIsReady" = "0" ]; then
+    if [ `sudo grep -c "rascsi" /etc/sudoers` = "0" ]; then
         sudo bash -c 'echo "
 # Allow the web server to restart the rascsi service
 www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
