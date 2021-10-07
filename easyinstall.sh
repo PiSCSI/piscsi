@@ -167,16 +167,18 @@ function stopOldWebInterface() {
 }
 
 function updateRaScsiGit() {
-    echo "Updating checked out branch $GIT_REMOTE/$GIT_BRANCH"
     cd "$BASE" || exit 1
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
-        echo 'There are local changes, we will stash and reapply them.'
+        echo "There are local changes to the RaSCSI code; we will stash and reapply them."
         git stash
         stashed=1
     fi
 
-    git pull --ff-only
+    if [[ `git for-each-ref --format='%(upstream:short)' "$(git symbolic-ref -q HEAD)"` != "" ]]; then
+        echo "Updating checked out branch $GIT_REMOTE/$GIT_BRANCH"
+        git pull --ff-only
+    fi
 
     if [ $stashed -eq 1 ]; then
         echo "Reapplying local changes..."
