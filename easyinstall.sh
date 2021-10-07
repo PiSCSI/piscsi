@@ -80,7 +80,7 @@ function installPackages() {
 
 # compile and install RaSCSI Service
 function installRaScsi() {
-    sudo systemctl stop rascsi
+    #sudo systemctl stop rascsi
 
     if [ -f /etc/systemd/system/rascsi.service ]; then
         sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
@@ -94,7 +94,7 @@ function installRaScsi() {
 
     make clean
     make -n all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
-    sudo -n make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
+    sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
 
     #if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
     #    sudo bash -c 'echo "
