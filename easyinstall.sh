@@ -57,6 +57,7 @@ GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -e
+set -x
 
 function initialChecks() {
     currentUser=$(whoami)
