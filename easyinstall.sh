@@ -92,9 +92,7 @@ function installRaScsi() {
 
     cd "$BASE/src/raspberrypi" || exit 1
 
-    make clean </dev/null
-    make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" </dev/null
-    sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" </dev/null
+    ( make clean && make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
 
     if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
         sudo bash -c 'echo "
