@@ -858,6 +858,19 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		return ReturnStatus(fd, false, e.getmsg());
 	}
 
+	if (pb_device.block_size()) {
+		Disk *disk = dynamic_cast<Disk *>(device);
+		if (disk && disk->IsSectorSizeConfigurable()) {
+			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				error << "Invalid block size " << pb_device.block_size() << " bytes";
+				return ReturnStatus(fd, false, error);
+			}
+		}
+		else {
+			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
+		}
+	}
+
 	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
 	if (file_support && !device->IsRemovable() && filename.empty()) {
 		delete device;
@@ -898,22 +911,8 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
 	}
 
-	// The operations below must not be executed before Open() because Open() overrides some settings
-
-	if (pb_device.block_size()) {
-		Disk *disk = dynamic_cast<Disk *>(device);
-		if (disk && disk->IsSectorSizeConfigurable()) {
-			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				error << "Invalid block size " << pb_device.block_size() << " bytes";
-				return ReturnStatus(fd, false, error);
-			}
-		}
-		else {
-			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
-		}
-	}
-
 	// Only non read-only devices support protect/unprotect
+	// This operation must not be executed before Open() because Open() overrides some settings.
 	if (device->IsProtectable() && !device->IsReadOnly()) {
 		device->SetProtected(pb_device.protected_());
 	}
