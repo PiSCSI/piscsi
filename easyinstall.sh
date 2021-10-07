@@ -75,7 +75,7 @@ function initialChecks() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt update && sudo apt install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
+    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
 }
 
 # compile and install RaSCSI Service
@@ -220,7 +220,7 @@ function formatDrive() {
 
     if [ ! -x $HFS_FORMAT ]; then
         # Install hfsutils to have hformat to format HFS
-        sudo apt-get install hfsutils
+        sudo apt-get install hfsutils --assume-yes </dev/null
     fi
 
     if [ ! -x $HFDISK_BIN ]; then
@@ -410,7 +410,7 @@ function setupWirelessNetworking() {
         echo "iptables-persistent is already installed"
         sudo iptables-save --file /etc/iptables/rules.v4
     else
-        sudo apt-get install iptables-persistent --assume-yes
+        sudo apt-get install iptables-persistent --assume-yes </dev/null
     fi
     echo "Modified /etc/iptables/rules.v4"
 
