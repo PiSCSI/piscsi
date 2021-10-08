@@ -451,7 +451,7 @@ void LogDevices(const string& devices)
 	}
 }
 
-bool SetDefaultImageFolder(const string& f)
+const char *SetDefaultImageFolder(const string& f)
 {
 	string folder = f;
 
@@ -470,18 +470,23 @@ bool SetDefaultImageFolder(const string& f)
 			folder += f;
 		}
 	}
+	else {
+		if (folder.find("/home/") != 0) {
+			return "Default image folder must be located in '/home/'";
+		}
+	}
 
 	struct stat info;
 	stat(folder.c_str(), &info);
 	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
-		return false;
+		return string("Folder '" + f + "' does not exist or is not accessible").c_str();
 	}
 
 	default_image_folder = folder;
 
 	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
 
-	return true;
+	return NULL;
 }
 
 string SetReservedIds(const string& ids)
@@ -1340,12 +1345,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'F':
-				if (!SetDefaultImageFolder(optarg)) {
-					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
+			case 'F': {
+				const char *result = SetDefaultImageFolder(optarg);
+				if (result) {
+					cerr << result << endl;
 					return false;
 				}
 				continue;
+			}
 
 			case 'L':
 				log_level = optarg;
@@ -1536,8 +1543,9 @@ static void *MonThread(void *param)
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					if (!SetDefaultImageFolder(folder)) {
-						ReturnStatus(fd, false, "Folder '" + folder + "' does not exist or is not accessible");
+					const char *result = SetDefaultImageFolder(folder);
+					if (result) {
+						ReturnStatus(fd, false, result);
 					}
 					else {
 						ReturnStatus(fd);
