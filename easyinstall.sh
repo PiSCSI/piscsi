@@ -48,7 +48,7 @@ echo -e $logo
 
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
-BASE=$(dirname "$(readlink -f "${0}")")
+BASE="$HOME/RASCSI"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=~/RASCSI/lido-driver.img
@@ -64,11 +64,11 @@ function initialChecks() {
         exit 1
     fi
 
-    # if [ ! -d "$BASE/RASCSI" ]; then
-    #     echo "You must checkout RASCSI repo into $BASE"
-    #     echo "$ git clone git@github.com:akuker/RASCSI.git"
-    #     exit 2
-    # fi
+    if [ ! -d "$BASE" ]; then
+        echo "You must checkout RASCSI repo into $BASE"
+        echo "$ git clone git@github.com:akuker/RASCSI.git"
+        exit 2
+    fi
 }
 
 # install all dependency packages for RaSCSI Service
