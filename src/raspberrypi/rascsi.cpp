@@ -750,6 +750,11 @@ bool CopyImage(int fd, const PbCommand& command)
         return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
+    // Replicate read-only status
+    if (access(from.c_str(), W_OK)) {
+    	chmod(to.c_str(), S_IRUSR | S_IRGRP | S_IROTH);
+    }
+
     close(fd_dst);
     close(fd_src);
 
