@@ -27,6 +27,7 @@ def get_server_info():
     log_levels = result.server_info.log_level_info.log_levels
     current_log_level = result.server_info.log_level_info.current_log_level
     reserved_ids = list(result.server_info.reserved_ids_info.ids)
+    image_dir = result.server_info.image_files_info.default_image_folder
 
     # Creates lists of file endings recognized by RaSCSI
     mappings = result.server_info.mapping_info.mapping
@@ -53,6 +54,7 @@ def get_server_info():
             "log_levels": log_levels, 
             "current_log_level": current_log_level, 
             "reserved_ids": reserved_ids,
+            "image_dir": image_dir,
             "sahd": sahd,
             "schd": schd,
             "scrm": scrm,
