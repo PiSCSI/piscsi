@@ -564,18 +564,6 @@ bool CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
 	}
 
-	const string permission = GetParam(command, "read_only");
-	if (permission.empty()) {
-		return ReturnStatus(fd, false, "Can't create image file'" + filename + "': Missing read-only flag");
-	}
-
-	if (strcasecmp(permission.c_str(), "true") && strcasecmp(permission.c_str(), "false")) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid read-only flag '" + permission + "'");
-	}
-
-	int permissions = !strcasecmp(permission.c_str(), "true") ?
-			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
 	off_t len;
 	try {
 		len = stoul(size);
@@ -597,7 +585,11 @@ bool CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': File already exists");
 	}
 
+	string permission = GetParam(command, "read_only");
 	// Since rascsi is running as root ensure that others can access the file
+	int permissions = !strcasecmp(permission.c_str(), "true") ?
+			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
 	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, permissions);
 	if (image_fd == -1) {
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': " + string(strerror(errno)));
@@ -736,7 +728,12 @@ bool CopyImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
 	}
 
-	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st.st_mode);
+	string permission = GetParam(command, "read_only");
+	// Since rascsi is running as root ensure that others can access the file
+	int permissions = !strcasecmp(permission.c_str(), "true") ?
+			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
+	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, permissions);
 	if (fd_dst == -1) {
 		close(fd_src);
 
@@ -752,11 +749,6 @@ bool CopyImage(int fd, const PbCommand& command)
 
     close(fd_dst);
     close(fd_src);
-
-    // Replicate read-only status
-    if (access(from.c_str(), W_OK)) {
-    	chmod(to.c_str(), S_IRUSR | S_IRGRP | S_IROTH);
-    }
 
 	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str());
 
