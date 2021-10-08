@@ -451,7 +451,7 @@ void LogDevices(const string& devices)
 	}
 }
 
-bool SetDefaultImageFolder(const string& f)
+const char *SetDefaultImageFolder(const string& f)
 {
 	string folder = f;
 
@@ -470,18 +470,23 @@ bool SetDefaultImageFolder(const string& f)
 			folder += f;
 		}
 	}
+	else {
+		if (folder.find("/home/") != 0) {
+			return "Default image folder must be located in '/home/'";
+		}
+	}
 
 	struct stat info;
 	stat(folder.c_str(), &info);
 	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
-		return false;
+		return string("Folder '" + f + "' does not exist or is not accessible").c_str();
 	}
 
 	default_image_folder = folder;
 
 	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
 
-	return true;
+	return NULL;
 }
 
 string SetReservedIds(const string& ids)
@@ -564,18 +569,6 @@ bool CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
 	}
 
-	const string permission = GetParam(command, "read_only");
-	if (permission.empty()) {
-		return ReturnStatus(fd, false, "Can't create image file'" + filename + "': Missing read-only flag");
-	}
-
-	if (strcasecmp(permission.c_str(), "true") && strcasecmp(permission.c_str(), "false")) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid read-only flag '" + permission + "'");
-	}
-
-	int permissions = !strcasecmp(permission.c_str(), "true") ?
-			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
 	off_t len;
 	try {
 		len = stoul(size);
@@ -597,7 +590,11 @@ bool CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': File already exists");
 	}
 
+	string permission = GetParam(command, "read_only");
 	// Since rascsi is running as root ensure that others can access the file
+	int permissions = !strcasecmp(permission.c_str(), "true") ?
+			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
 	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, permissions);
 	if (image_fd == -1) {
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': " + string(strerror(errno)));
@@ -736,7 +733,12 @@ bool CopyImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
 	}
 
-	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, st.st_mode);
+	string permission = GetParam(command, "read_only");
+	// Since rascsi is running as root ensure that others can access the file
+	int permissions = !strcasecmp(permission.c_str(), "true") ?
+			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+
+	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, permissions);
 	if (fd_dst == -1) {
 		close(fd_src);
 
@@ -896,7 +898,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		catch(const io_exception& e) {
 			delete device;
 
-			return ReturnStatus(fd, false, "Tried to open an invalid file '" + initial_filename + "': " + e.getmsg());
+			return ReturnStatus(fd, false, "Tried to open an invalid or non-existing file '" + initial_filename + "': " + e.getmsg());
 		}
 
 		int id;
@@ -1043,7 +1045,7 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		}
 	}
 	catch(const io_exception& e) {
-		return ReturnStatus(fd, false, "Tried to open an invalid file '" + initial_filename + "': " + e.getmsg());
+		return ReturnStatus(fd, false, "Tried to open an invalid or non-existing file '" + initial_filename + "': " + e.getmsg());
 	}
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
 
@@ -1343,12 +1345,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 			}
 
-			case 'F':
-				if (!SetDefaultImageFolder(optarg)) {
-					cerr << "Folder '" << optarg << "' does not exist or is not accessible";
+			case 'F': {
+				const char *result = SetDefaultImageFolder(optarg);
+				if (result) {
+					cerr << result << endl;
 					return false;
 				}
 				continue;
+			}
 
 			case 'L':
 				log_level = optarg;
@@ -1539,8 +1543,9 @@ static void *MonThread(void *param)
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					if (!SetDefaultImageFolder(folder)) {
-						ReturnStatus(fd, false, "Folder '" + folder + "' does not exist or is not accessible");
+					const char *result = SetDefaultImageFolder(folder);
+					if (result) {
+						ReturnStatus(fd, false, result);
 					}
 					else {
 						ReturnStatus(fd);

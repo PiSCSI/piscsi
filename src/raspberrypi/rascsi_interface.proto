@@ -95,9 +95,9 @@ enum PbOperation {
     // Get the list of reserved device IDs
     RESERVED_IDS_INFO = 19;
 
-    // Set the default folder for image files.
+    // Set the default folder for image files. This folder must be located in /home.
     // Parameters:
-    //   "folder": The default folder name.
+    //   "folder": The path of the default folder, relative to the user's home folder if relative.
     DEFAULT_FOLDER = 20;
 
     // Set a new log level.
@@ -114,7 +114,7 @@ enum PbOperation {
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     //   "size": The file size in bytes, must be a multiple of 512
-    //   "read_only": "true" (case-insensitive) in order to create a read-only file, otherwise "false"
+    //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     CREATE_IMAGE = 23;
 
     // Delete an image file.
@@ -133,6 +133,7 @@ enum PbOperation {
     // Parameters:
     //   "from": The source filename, relative to the default image folder. It must not contain a slash.
     //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
+    //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     // The destination filename must not yet exist.
     COPY_IMAGE = 26;
     
