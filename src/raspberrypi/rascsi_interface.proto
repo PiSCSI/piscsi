@@ -95,9 +95,9 @@ enum PbOperation {
     // Get the list of reserved device IDs
     RESERVED_IDS_INFO = 19;
 
-    // Set the default folder for image files.
+    // Set the default folder for image files. This folder must be located in /home.
     // Parameters:
-    //   "folder": The default folder name.
+    //   "folder": The path of the default folder, relative to the user's home folder if relative.
     DEFAULT_FOLDER = 20;
 
     // Set a new log level.
