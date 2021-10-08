@@ -206,12 +206,24 @@ void ProtobufResponseHandler::GetAvailableImages(PbResult& result, PbServerInfo&
 	result.set_status(true);
 }
 
-void ProtobufResponseHandler::GetDevices(PbServerInfo& serverInfo, const vector<Device *>& devices, const string& image_folder)
+PbReservedIdsInfo *ProtobufResponseHandler::GetReservedIds(PbResult& result, const set<int>& ids)
+{
+	PbReservedIdsInfo *reserved_ids_info = new PbReservedIdsInfo();
+	for (int id : ids) {
+		reserved_ids_info->add_ids(id);
+	}
+
+	result.set_status(true);
+
+	return reserved_ids_info;
+}
+
+void ProtobufResponseHandler::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices, const string& image_folder)
 {
 	for (const Device *device : devices) {
 		// Skip if unit does not exist or is not assigned
 		if (device) {
-			PbDevice *pb_device = serverInfo.mutable_devices()->add_devices();
+			PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
 			GetDevice(device, pb_device, image_folder);
 		}
 	}
@@ -243,12 +255,12 @@ void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& 
 		}
 	}
 
-	PbDevices *pb_devices = new PbDevices();
-	result.set_allocated_device_info(pb_devices);
+	PbDevicesInfo *devices_info = new PbDevicesInfo();
+	result.set_allocated_devices_info(devices_info);
 
 	for (const auto& id_set : id_sets) {
 		const Device *device = devices[id_set.first * unit_count + id_set.second];
-		GetDevice(device, pb_devices->add_devices(), image_folder);
+		GetDevice(device, devices_info->add_devices(), image_folder);
 	}
 
 	result.set_status(true);
@@ -266,34 +278,50 @@ PbDeviceTypesInfo *ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result,
 }
 
 PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& image_folder, const string& log_level)
+		const string& image_folder, const string& current_log_level)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
-	server_info->set_major_version(rascsi_major_version);
-	server_info->set_minor_version(rascsi_minor_version);
-	server_info->set_patch_version(rascsi_patch_version);
-	GetLogLevels(*server_info);
-	server_info->set_current_log_level(log_level);
+	server_info->set_allocated_version_info(GetVersionInfo(result));
+	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
 	GetAvailableImages(result, *server_info, image_folder);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices, image_folder);
-	for (int id : reserved_ids) {
-		server_info->add_reserved_ids(id);
-	}
+	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
 
 	result.set_status(true);
 
 	return server_info;
 }
 
-void ProtobufResponseHandler::GetLogLevels(PbServerInfo& server_info)
+PbVersionInfo *ProtobufResponseHandler::GetVersionInfo(PbResult& result)
 {
+	PbVersionInfo *version_info = new PbVersionInfo();
+
+	version_info->set_major_version(rascsi_major_version);
+	version_info->set_minor_version(rascsi_minor_version);
+	version_info->set_patch_version(rascsi_patch_version);
+
+	result.set_status(true);
+
+	return version_info;
+}
+
+PbLogLevelInfo *ProtobufResponseHandler::GetLogLevelInfo(PbResult& result, const string& current_log_level)
+{
+	PbLogLevelInfo *log_level_info = new PbLogLevelInfo();
+
 	for (const auto& log_level : log_levels) {
-		server_info.add_log_levels(log_level);
+		log_level_info->add_log_levels(log_level);
 	}
+
+	log_level_info->set_current_log_level(current_log_level);
+
+	result.set_status(true);
+
+	return log_level_info;
 }
 
 PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbResult& result)

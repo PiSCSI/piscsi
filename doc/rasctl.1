@@ -3,12 +3,16 @@
 rasctl \- Sends management commands to the rascsi process
 .SH SYNOPSIS
 .B rasctl
-\fB\-L\fR |
 \fB\-e\fR |
 \fB\-l\fR |
 \fB\-m\fR |
 \fB\-s\fR |
+\fB\-v\fR |
+\fB\-I\fR |
+\fB\-L\fR |
+\fB\-O\fR |
 \fB\-T\fR |
+\fB\-V\fR |
 [\fB\-E\fR \fIFILENAME\fR]
 [\fB\-F\fR \fIIMAGE_FOLDER\fR]
 [\fB\-C\fR \fIFILENAME:FILESIZE\fR]
@@ -18,8 +22,7 @@ rasctl \- Sends management commands to the rascsi process
 [\fB\-h\fR \fIHOST\fR]
 [\fB\-p\fR \fIPORT\fR]
 [\fB\-r\fR \fIRESERVED_IDS\fR]
-[\fB\-v\fR]
-\fB\-i\fR \fIID\fR
+[\fB\-i\fR \fIID\fR
 [\fB\-c\fR \fICMD\fR]
 [\fB\-f\fR \fIFILE|PARAM\fR]
 [\fB\-n\fR \fINAME\fR]
@@ -46,6 +49,9 @@ Display information on an image file.
 .BR \-F\fI " "\fIIMAGE_FOLDER
 Set the default image folder.
 .TP
+.BR \-I\fI
+Gets the list of reserved device IDs.
+.TP
 .BR \-L\fI " "\fILOG_LEVEL
 Set the rascsi log level (trace, debug, info, warn, err, critical, off).
 .TP
@@ -57,6 +63,9 @@ List all images files in the default image folder.
 .TP
 .BR \-N\fI
 Lists all available network interfaces provided that they are up.
+.TP
+.BR \-O\fI
+Display the available rascsi server log levels and the current log level.
 .TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
@@ -80,7 +89,10 @@ Display server-side settings like available images or supported device types.
 Display all device types and their properties.
 .TP
 .BR \-v\fI " " \fI
-Display the rascsi version.
+Display the rascsi server version.
+.TP
+.BR \-V\fI " " \fI
+Display the rasctl version.
 .TP
 .BR \-D\fI " "\fIFILENAME
 Delete an image file in the default image folder.

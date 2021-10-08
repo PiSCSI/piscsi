@@ -66,76 +66,85 @@ enum PbOperation {
     // Gets the server information
     SERVER_INFO = 10;
 
-    // Gets information on attached devices. Returns data for all attached devices if empty.
-    DEVICES_INFO = 11;
-    
-    // Device properties by device type
-    DEVICE_TYPES_INFO = 12;
+    // Get rascsi version information
+    VERSION_INFO = 11;
 
-    // Gets information on available image files in the default image folder.
-    DEFAULT_IMAGE_FILES_INFO = 13;
+    // Get information on attached devices. Returns data for all attached devices if the device list is empty.
+    DEVICES_INFO = 12;
+
+    // Get device properties by device type
+    DEVICE_TYPES_INFO = 13;
+
+    // Get information on available image files in the default image folder.
+    DEFAULT_IMAGE_FILES_INFO = 14;
     
-    // Gets information on an image file (not necessarily in the default image folder) based on an absolute path.
+    // Get information on an image file (not necessarily in the default image folder) based on an absolute path.
     // Parameters:
     //   "file": The filename. Either an absolute path or a path relative to the default image folder.
-    IMAGE_FILE_INFO = 14;
+    IMAGE_FILE_INFO = 15;
 
-    // Gets the names of the available network interfaces. Only lists interfaces that are up.
-    NETWORK_INTERFACES_INFO = 15;
+    // Get information on the available log levels and the current log level
+    LOG_LEVEL_INFO = 16;
+
+    // Get the names of the available network interfaces. Only lists interfaces that are up.
+    NETWORK_INTERFACES_INFO = 17;
     
-    // Gets the mapping of extensions to device types
-    MAPPING_INFO = 16;
+    // Get the mapping of extensions to device types
+    MAPPING_INFO = 18;
+    
+    // Get the list of reserved device IDs
+    RESERVED_IDS_INFO = 19;
 
     // Set the default folder for image files.
     // Parameters:
     //   "folder": The default folder name.
-    DEFAULT_FOLDER = 17;
+    DEFAULT_FOLDER = 20;
 
-    // Set server log level.
+    // Set a new log level.
     // Parameters:
     //   "level": The new log level
-    LOG_LEVEL = 18;
+    LOG_LEVEL = 21;
 
     // Block IDs from being used, usually the IDs of the initiators (computers) in the SCSI chain.
     // Parameters:
     //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
-    RESERVE = 19;
-    
+    RESERVE_IDS = 22;
+
     // Create an image file. The image file must not yet exist.
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     //   "size": The file size in bytes, must be a multiple of 512
     //   "read_only": "true" (case-insensitive) in order to create a read-only file, otherwise "false"
-    CREATE_IMAGE = 20;
+    CREATE_IMAGE = 23;
 
     // Delete an image file.
     // Parameters:
     //    "file": The filename, relative to the default image folder. It must not contain a slash.
-    DELETE_IMAGE = 21;
+    DELETE_IMAGE = 24;
 
     // Rename an image file.
     // Parameters:
     //   "from": The old filename, relative to the default image folder. It must not contain a slash.
     //   "to": The new filename, relative to the default image folder. It must not contain a slash.
     // The new filename must not yet exist.
-    RENAME_IMAGE = 22;
+    RENAME_IMAGE = 25;
 
     // Copy an image file.
     // Parameters:
     //   "from": The source filename, relative to the default image folder. It must not contain a slash.
     //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
     // The destination filename must not yet exist.
-    COPY_IMAGE = 23;
+    COPY_IMAGE = 26;
     
     // Write-protect an image file.
     // Parameters:
     //  "file": The filename, relative to the default image folder. It must not contain a slash.
-    PROTECT_IMAGE = 24;
+    PROTECT_IMAGE = 27;
 
     // Make an image file writable.
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
-    UNPROTECT_IMAGE = 25;
+    UNPROTECT_IMAGE = 28;
 }
 
 // The supported file extensions mapped to their respective device types
@@ -162,7 +171,7 @@ message PbDeviceProperties {
     // List of default parameters, if any (requires supports_params to be true)
     map<string, string> default_params = 8;
     // Number of supported LUNs, at least 1 (for LUN 0)
-    uint32 luns = 9;
+    int32 luns = 9;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 10;
 }
@@ -205,6 +214,13 @@ message PbImageFilesInfo {
     repeated PbImageFile image_files = 2;
 }
 
+// Log level information
+message PbLogLevelInfo {
+    // List of available log levels, ordered by increasing by severity
+    repeated string log_levels = 2;
+    string current_log_level = 3;
+}
+
 // The network interfaces information
 message PbNetworkInterfacesInfo {
     repeated string name = 1;
@@ -244,11 +260,25 @@ message PbDevice {
     // Block size in bytes
     int32 block_size = 11;
     // Number of blocks
-    int64 block_count = 12;
+    uint64 block_count = 12;
 }
 
-message PbDevices {
+message PbDevicesInfo {
     repeated PbDevice devices = 1;
+}
+
+// The reserved device IDs
+message PbReservedIdsInfo {
+    repeated int32 ids = 1;
+}
+
+// Rascsi server version information
+message PbVersionInfo {
+    // The rascsi version
+    int32 major_version = 1;
+    int32 minor_version = 2;
+    // < 0 for a development version, = 0 if there is no patch yet
+    int32 patch_version = 3;
 }
 
 // Commands rascsi can execute and their parameters
@@ -270,41 +300,43 @@ message PbResult {
     oneof result {
         // The result of a SERVER_INFO command
         PbServerInfo server_info = 3;
-        // The result of a DEVICE_INFO command
-        PbDevices device_info = 4;
+        // The result of a VERSION_INFO command
+        PbVersionInfo version_info = 4;
+        // The result of a LOG_LEVEL_INFO command
+        PbLogLevelInfo log_level_info = 5;
+        // The result of a DEVICES_INFO command
+        PbDevicesInfo devices_info = 6;
         // The result of a DEVICE_TYPES_INFO command
-        PbDeviceTypesInfo device_types_info = 5;
+        PbDeviceTypesInfo device_types_info = 7;
         // The result of a DEFAULT_IMAGE_FILES_INFO command
-        PbImageFilesInfo image_files_info = 6;
+        PbImageFilesInfo image_files_info = 8;
         // The result of an IMAGE_FILE_INFO command
-        PbImageFile image_file_info = 7;
+        PbImageFile image_file_info = 9;
         // The result of a NETWORK_INTERFACES_INFO command
-        PbNetworkInterfacesInfo network_interfaces_info = 8;
+        PbNetworkInterfacesInfo network_interfaces_info = 10;
         // The result of an MAPPING_INFO command
-        PbMappingInfo mapping_info = 9;
+        PbMappingInfo mapping_info = 11;
+        // The result of a RESERVED_IDS_INFO command
+        PbReservedIdsInfo reserved_ids_info = 12;
     }
 }
 
-// The rascsi server information
+// The rascsi server information. All data can also be requested with individual commands.
 message PbServerInfo {
-    // The rascsi server version
-    uint32 major_version = 1;
-    uint32 minor_version = 2;
-    // < 0 for a development version, = 0 if there is no patch yet
-    int32 patch_version = 3;
-    // List of available log levels, ordered by increasing by severity
-    repeated string log_levels = 4;
-    string current_log_level = 5;
-    // Supported device types and their properties, also available separately
-    PbDeviceTypesInfo device_types_info = 6;
-    // The image files in the default folder, also available separately
-    PbImageFilesInfo image_files_info = 7;
-    // The available (up) network interfaces, also available separately
-    PbNetworkInterfacesInfo network_interfaces_info = 8;
+    // The rascsi server version data
+    PbVersionInfo version_info = 1;
+    // The available log levels and the current log level
+    PbLogLevelInfo log_level_info = 2;
+    // Supported device types and their properties
+    PbDeviceTypesInfo device_types_info = 3;
+    // The image files in the default folder
+    PbImageFilesInfo image_files_info = 4;
+    // The available (up) network interfaces
+    PbNetworkInterfacesInfo network_interfaces_info = 5;
     // The extensions to device types mapping
-    PbMappingInfo mapping_info = 9;
-    // The attached devices, also available separately
-    PbDevices devices = 10;
-    // The unsorted list of reserved IDs
-    repeated uint32 reserved_ids = 11;
+    PbMappingInfo mapping_info = 6;
+    // The reserved device IDs
+    PbReservedIdsInfo reserved_ids_info = 7;
+    // The attached devices
+    PbDevicesInfo devices_info = 8;
 }

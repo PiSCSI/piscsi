@@ -32,12 +32,15 @@ public:
 
 	bool GetImageFile(PbImageFile *, const string&, const string&);
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&);
+	PbReservedIdsInfo *GetReservedIds(PbResult&, const set<int>&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&, const string&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, const string&, int);
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
+	PbVersionInfo *GetVersionInfo(PbResult&);
 	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 	PbMappingInfo *GetMappingInfo(PbResult&);
+	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
 
 private:
 
@@ -50,5 +53,4 @@ private:
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&);
-	void GetLogLevels(PbServerInfo&);
 };

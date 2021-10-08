@@ -21,12 +21,12 @@ def get_server_info():
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
     result.ParseFromString(data)
-    version = str(result.server_info.major_version) + "." +\
-              str(result.server_info.minor_version) + "." +\
-              str(result.server_info.patch_version)
-    log_levels = result.server_info.log_levels
-    current_log_level = result.server_info.current_log_level
-    reserved_ids = list(result.server_info.reserved_ids)
+    version = str(result.server_info.version_info.major_version) + "." +\
+              str(result.server_info.version_info.minor_version) + "." +\
+              str(result.server_info.version_info.patch_version)
+    log_levels = result.server_info.log_level_info.log_levels
+    current_log_level = result.server_info.log_level_info.current_log_level
+    reserved_ids = list(result.server_info.reserved_ids_info.ids)
 
     # Creates lists of file endings recognized by RaSCSI
     mappings = result.server_info.mapping_info.mapping
@@ -280,15 +280,15 @@ def list_devices(scsi_id=None):
     n = 0
 
     # Return an empty list if no devices are attached
-    if len(result.device_info.devices) == 0:
+    if len(result.devices_info.devices) == 0:
         return {"status": False, "device_list": []}
 
-    while n < len(result.device_info.devices):
-        did = result.device_info.devices[n].id
-        dun = result.device_info.devices[n].unit
-        dtype = proto.PbDeviceType.Name(result.device_info.devices[n].type) 
-        dstat = result.device_info.devices[n].status
-        dprop = result.device_info.devices[n].properties
+    while n < len(result.devices_info.devices):
+        did = result.devices_info.devices[n].id
+        dun = result.devices_info.devices[n].unit
+        dtype = proto.PbDeviceType.Name(result.devices_info.devices[n].type) 
+        dstat = result.devices_info.devices[n].status
+        dprop = result.devices_info.devices[n].properties
 
         # Building the status string
         # TODO: This formatting should probably be moved elsewhere
@@ -302,13 +302,13 @@ def list_devices(scsi_id=None):
         if dstat.locked == True and dprop.lockable == True:
             dstat_msg.append("Locked")
 
-        dpath = result.device_info.devices[n].file.name
+        dpath = result.devices_info.devices[n].file.name
         dfile = path.basename(dpath)
-        dparam = result.device_info.devices[n].params
-        dven = result.device_info.devices[n].vendor
-        dprod = result.device_info.devices[n].product
-        drev = result.device_info.devices[n].revision
-        dblock = result.device_info.devices[n].block_size
+        dparam = result.devices_info.devices[n].params
+        dven = result.devices_info.devices[n].vendor
+        dprod = result.devices_info.devices[n].product
+        drev = result.devices_info.devices[n].revision
+        dblock = result.devices_info.devices[n].block_size
 
         device_list.append({"id": did, "un": dun, "device_type": dtype, \
                 "status": ", ".join(dstat_msg), "image": dpath, "file": dfile, "params": dparam,\

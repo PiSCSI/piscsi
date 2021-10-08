@@ -46,10 +46,10 @@ logo="""
 echo -e $logo
 }
 
-BASE=/home/pi/RASCSI
-WEBINSTDIR="$BASE/src/web"
+BASE="$HOME/RASCSI"
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
+WEBINSTDIR="$BASE/src/web"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
@@ -123,7 +123,6 @@ function installRaScsiWebInterface() {
     sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
-
     sudo usermod -a -G pi www-data
 
     sudo systemctl reload nginx
@@ -145,7 +144,7 @@ function createImagesDir() {
         chmod -R 775 "$VIRTUAL_DRIVER_PATH"
     fi
 
-    if [ -d $CFG_PATH ]; then
+    if [ -d "$CFG_PATH" ]; then
         echo "The $CFG_PATH directory already exists."
     else
         echo "The $CFG_PATH directory does not exist; creating..."

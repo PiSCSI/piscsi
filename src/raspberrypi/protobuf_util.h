@@ -13,7 +13,9 @@
 
 #include "google/protobuf/message.h"
 #include "rascsi_interface.pb.h"
+#include <string>
 
+using namespace std;
 using namespace rascsi_interface;
 
 const string GetParam(const PbCommand&, const string&);
