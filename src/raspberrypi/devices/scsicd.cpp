@@ -433,10 +433,6 @@ void SCSICD::OpenIso(const Filepath& path)
 		// Set the number of blocks
 		SetBlockCount((DWORD)(size / 0x930));
 	} else {
-		// Size must be a multiple of 2048 and less than 700MB
-		if (size % 2048) {
-			throw io_exception("ISO CD-ROM file size must be a multiple of 2048 bytes");
-		}
 		if (size > 0x2bed5000) {
 			throw io_exception("ISO CD-ROM file size must not exceed 700 MB");
 		}
