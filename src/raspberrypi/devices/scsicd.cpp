@@ -466,12 +466,9 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	// Close
 	fio.Close();
 
-	// Size must be a multiple of 2048 and less than 700MB
-	if (size & 0x7ff) {
-		throw io_exception("CD-ROM file size must be a multiple of 2048 bytes");
-	}
-	if (size > 0x2bed5000) {
-		throw io_exception("CD-ROM file size must not exceed 700 MB");
+	// Size must be a multiple of 512
+	if (size & 0x1ff) {
+		throw io_exception("CD-ROM file size must be a multiple of 512 bytes");
 	}
 
 	// Set the number of blocks
