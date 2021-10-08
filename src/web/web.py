@@ -62,10 +62,9 @@ def index():
     device_types=get_device_types()
     files = list_images()
     config_files = list_config_files()
-    drive_files = list_files(tuple(server_info["sahd"] + \
+    image_files = list_files(tuple(server_info["sahd"] + \
             server_info["schd"] + server_info["scrm"] + \
-            server_info["scmo"]), base_dir)
-    cdrom_files = list_files(tuple(server_info["sccd"]), base_dir)
+            server_info["scmo"] + server_info["sccd"]), base_dir)
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -90,8 +89,7 @@ def index():
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
-        drive_files=drive_files,
-        cdrom_files=cdrom_files,
+        image_files=image_files,
         base_dir=base_dir,
         cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
