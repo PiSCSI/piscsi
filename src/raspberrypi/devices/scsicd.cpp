@@ -420,7 +420,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	fio.Close();
 
 	if (rawfile) {
-		// Size must be a multiple of 2536 and less than 700MB
+		// Size must be a multiple of 2536
 		if (size % 2536) {
 			stringstream error;
 			error << "Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is " << size << " bytes";
