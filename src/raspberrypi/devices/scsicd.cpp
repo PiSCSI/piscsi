@@ -431,7 +431,7 @@ void SCSICD::OpenIso(const Filepath& path)
 		SetBlockCount((DWORD)(size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size >> 11));
+		SetBlockCount((DWORD)(size >> GetSectorSize()));
 	}
 
 	// Create only one data track
@@ -472,7 +472,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	}
 
 	// Set the number of blocks
-	SetBlockCount((DWORD)(size >> 11));
+	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
 	// Create only one data track
 	ASSERT(!track[0]);
