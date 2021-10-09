@@ -307,6 +307,9 @@ void SCSICD::Open(const Filepath& path)
 		throw file_not_found_exception("Can't open CD-ROM file");
 	}
 
+	// Default sector size is 2048 bytes
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048, false);
+
 	// Close and transfer for physical CD access
 	if (path.GetPath()[0] == _T('\\')) {
 		// Close
@@ -340,9 +343,6 @@ void SCSICD::Open(const Filepath& path)
 
 	// Successful opening
 	ASSERT(GetBlockCount() > 0);
-
-	// Default sector size is 2048 bytes
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048, false);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
