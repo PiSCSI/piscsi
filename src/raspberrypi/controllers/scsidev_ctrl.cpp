@@ -247,7 +247,7 @@ void SCSIDEV::Execute()
 		lun = (ctrl.cmd[1] >> 5) & 0x07;
 
 		if (!ctrl.unit[lun]) {
-			LOGINFO("Invalid LUN %d for ID %d", lun, GetSCSIID());
+			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 			return;

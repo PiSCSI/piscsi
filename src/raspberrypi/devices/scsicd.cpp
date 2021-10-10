@@ -307,6 +307,9 @@ void SCSICD::Open(const Filepath& path)
 		throw file_not_found_exception("Can't open CD-ROM file");
 	}
 
+	// Default sector size is 2048 bytes
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048, false);
+
 	// Close and transfer for physical CD access
 	if (path.GetPath()[0] == _T('\\')) {
 		// Close
@@ -340,9 +343,6 @@ void SCSICD::Open(const Filepath& path)
 
 	// Successful opening
 	ASSERT(GetBlockCount() > 0);
-
-	// Default sector size is 2048 bytes
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048, false);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
@@ -420,7 +420,7 @@ void SCSICD::OpenIso(const Filepath& path)
 	fio.Close();
 
 	if (rawfile) {
-		// Size must be a multiple of 2536 and less than 700MB
+		// Size must be a multiple of 2536
 		if (size % 2536) {
 			stringstream error;
 			error << "Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is " << size << " bytes";
@@ -431,7 +431,7 @@ void SCSICD::OpenIso(const Filepath& path)
 		SetBlockCount((DWORD)(size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size >> 11));
+		SetBlockCount((DWORD)(size >> GetSectorSize()));
 	}
 
 	// Create only one data track
@@ -472,7 +472,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	}
 
 	// Set the number of blocks
-	SetBlockCount((DWORD)(size >> 11));
+	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
 	// Create only one data track
 	ASSERT(!track[0]);
