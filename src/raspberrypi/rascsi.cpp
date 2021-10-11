@@ -52,7 +52,7 @@ using namespace rascsi_interface;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	2					// Number of units around controller
+#define UnitNum	SASIDEV::UnitMax	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 //---------------------------------------------------------------------------
@@ -1295,24 +1295,26 @@ bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
 {
 	size_t separator_pos = id_spec.find(':');
 	if (separator_pos == string::npos) {
-		int max_id = type == SAHD ? 15 : 7;
+		int max_id = type == SAHD ? 16 : 8;
 
-		if (!GetAsInt(id_spec, id) || id < 0 || id > max_id) {
-			cerr << optarg << ": Invalid device ID (0-" << max_id << ")" << endl;
+		if (!GetAsInt(id_spec, id) || id < 0 || id >= max_id) {
+			cerr << optarg << ": Invalid device ID (0-" << (max_id - 1) << ")" << endl;
 			return false;
 		}
 
 		// Required for SASI ID/LUN handling backwards compatibility
 		unit = 0;
 		if (type == SAHD) {
-			unit = id % UnitNum;
-			id /= UnitNum;
+			unit = id % 2;
+			id /= 2;
 		}
 	}
 	else {
+		int max_unit = type == SAHD ? 2 : UnitNum;
+
 		if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
-				!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit > 1) {
-			cerr << optarg << ": Invalid unit (0-1)" << endl;
+				!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= max_unit) {
+			cerr << optarg << ": Invalid unit (0-" << (max_unit - 1) << ")" << endl;
 			return false;
 		}
 	}
