@@ -1291,6 +1291,35 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	return ReturnStatus(fd);
 }
 
+bool ProcessId(const string id_spec, bool is_sasi, int& id, int& unit)
+{
+	int max_id = is_sasi ? 15 : 7;
+
+	size_t separator_pos = id_spec.find(':');
+	if (separator_pos == string::npos) {
+		if (!GetAsInt(id_spec, id) || id < 0 || max_id < id) {
+			cerr << optarg << ": Invalid device device ID (0-" << max_id << ")" << endl;
+			return false;
+		}
+
+		// Required for SASI ID/LUN handling backwards compatibility
+		unit = 0;
+		if (is_sasi) {
+			unit = id % UnitNum;
+			id /= UnitNum;
+		}
+	}
+	else {
+		if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || max_id < id ||
+				!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit > 1) {
+			cerr << optarg << ": Invalid unit (0-1)" << endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Argument Parsing
@@ -1300,8 +1329,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 {
 	PbCommand command;
 	int id = -1;
+	int unit = -1;
 	bool is_sasi = false;
-	int max_id = 7;
 	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
@@ -1315,23 +1344,18 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 'i':
 			case 'I':
 				is_sasi = false;
-				max_id = 7;
 				id = -1;
 				continue;
 
 			case 'h':
 			case 'H':
 				is_sasi = true;
-				max_id = 15;
 				id = -1;
 				continue;
 
 			case 'd':
 			case 'D': {
-				char* end;
-				id = strtol(optarg, &end, 10);
-				if (*end || id < 0 || max_id < id) {
-					cerr << optarg << ": invalid " << (is_sasi ? "HD" : "ID") << " (0-" << max_id << ")" << endl;
+				if (!ProcessId(optarg, is_sasi, id, unit)) {
 					return false;
 				}
 				continue;
@@ -1400,12 +1424,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			return false;
 		}
 
-		int unit = 0;
-		if (is_sasi) {
-			unit = id % UnitNum;
-			id /= UnitNum;
-		}
-
 		// Set up the device data
 		PbDeviceDefinition *device = command.add_devices();
 		device->set_id(id);
@@ -1414,14 +1432,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_block_size(block_size);
 		AddParam(*device, "file", optarg);
 
-		size_t separatorPos = name.find(':');
-		if (separatorPos != string::npos) {
-			device->set_vendor(name.substr(0, separatorPos));
-			name = name.substr(separatorPos + 1);
-			separatorPos = name.find(':');
-			if (separatorPos != string::npos) {
-				device->set_product(name.substr(0, separatorPos));
-				device->set_revision(name.substr(separatorPos + 1));
+		size_t separator_pos = name.find(':');
+		if (separator_pos != string::npos) {
+			device->set_vendor(name.substr(0, separator_pos));
+			name = name.substr(separator_pos + 1);
+			separator_pos = name.find(':');
+			if (separator_pos != string::npos) {
+				device->set_product(name.substr(0, separator_pos));
+				device->set_revision(name.substr(separator_pos + 1));
 			}
 			else {
 				device->set_product(name);

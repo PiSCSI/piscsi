@@ -238,14 +238,14 @@ int main(int argc, char* argv[])
 					string revision;
 
 					string s = optarg;
-					size_t separatorPos = s.find(COMPONENT_SEPARATOR);
-					if (separatorPos != string::npos) {
-						vendor = s.substr(0, separatorPos);
-						s = s.substr(separatorPos + 1);
-						separatorPos = s.find(COMPONENT_SEPARATOR);
-						if (separatorPos != string::npos) {
-							product = s.substr(0, separatorPos);
-							revision = s.substr(separatorPos + 1);
+					size_t separator_pos = s.find(COMPONENT_SEPARATOR);
+					if (separator_pos != string::npos) {
+						vendor = s.substr(0, separator_pos);
+						s = s.substr(separator_pos + 1);
+						separator_pos = s.find(COMPONENT_SEPARATOR);
+						if (separator_pos != string::npos) {
+							product = s.substr(0, separator_pos);
+							revision = s.substr(separator_pos + 1);
 						}
 						else {
 							product = s;
