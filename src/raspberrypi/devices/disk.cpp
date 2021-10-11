@@ -366,8 +366,11 @@ void Disk::Verify16(SASIDEV *controller)
 
 void Disk::Inquiry(SASIDEV *controller)
 {
+	ScsiPrimaryCommands *device = NULL;
 	int lun = (ctrl->cmd[1] >> 5) & 0x07;
-	ScsiPrimaryCommands *device = ctrl->unit[lun];
+	if (lun < SASIDEV::UnitMax) {
+		device = ctrl->unit[lun];
+	}
 
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
