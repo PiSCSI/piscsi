@@ -366,14 +366,18 @@ void Disk::Verify16(SASIDEV *controller)
 
 void Disk::Inquiry(SASIDEV *controller)
 {
+	int lun = (ctrl->cmd[1] >> 5) & 0x07;
+	ScsiPrimaryCommands *device = ctrl->unit[lun];
+
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	ScsiPrimaryCommands *device = NULL;
-	for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
-		if (ctrl->unit[valid_lun]) {
-			device = ctrl->unit[valid_lun];
-			break;
+	if (!device) {
+		for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
+			if (ctrl->unit[valid_lun]) {
+				device = ctrl->unit[valid_lun];
+				break;
+			}
 		}
 	}
 
@@ -389,7 +393,6 @@ void Disk::Inquiry(SASIDEV *controller)
 	}
 
 	// Report if the device does not support the requested LUN
-	int lun = (ctrl->cmd[1] >> 5) & 0x07;
 	if (!ctrl->unit[lun]) {
 		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
 
