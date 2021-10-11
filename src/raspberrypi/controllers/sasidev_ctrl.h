@@ -123,7 +123,11 @@ public:
 		// Logical unit
 		Disk *unit[UnitMax];
 
+		// The current device
 		Disk *device;
+
+		// The LUN from the IDENTIFY message
+		int lun;
 	} ctrl_t;
 
 public:

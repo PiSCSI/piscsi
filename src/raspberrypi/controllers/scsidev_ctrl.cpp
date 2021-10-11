@@ -166,6 +166,9 @@ void SCSIDEV::BusFree()
 
 		// Initialize ATN message reception status
 		scsi.atnmsg = false;
+
+		ctrl.lun = 0;
+
 		return;
 	}
 
@@ -606,7 +609,8 @@ void SCSIDEV::Receive()
 
 					// IDENTIFY
 					if (data >= 0x80) {
-						LOGTRACE("Message code IDENTIFY $%02X", (int)data);
+						ctrl.lun = data & 0x1F;
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, ctrl.lun);
 					}
 
 					// Extended Message
