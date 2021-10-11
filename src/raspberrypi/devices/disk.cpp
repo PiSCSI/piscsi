@@ -1463,9 +1463,10 @@ void Disk::ReportLuns(SASIDEV *controller)
 
 	ASSERT(buf);
 
-	int luns = controller->GetCtrl()->device->GetSupportedLuns();
+	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
+	memset(buf, 0, allocation_length);
 
-	memset(buf, 0, 8 + luns * 8);
+	int luns = controller->GetCtrl()->device->GetSupportedLuns();
 
 	if (!CheckReady()) {
 		controller->Error();
@@ -1473,11 +1474,10 @@ void Disk::ReportLuns(SASIDEV *controller)
 	}
 
 	// LUN list length, 8 bytes per LUN
-	buf[3] =luns * 8;
+	// SCSI standard: The contents of the LUN LIST LENGTH field	are not altered based on the allocation length
+	buf[3] = luns * 8;
 
-	// As long as there is no proper support for more than one SCSI LUN no other fields must be set => 1 LUN
-
-	ctrl->length = 8 + luns * 8;
+	ctrl->length = allocation_length < 8 + luns * 8 ? allocation_length : 8 + luns * 8;
 
 	controller->DataIn();
 }
