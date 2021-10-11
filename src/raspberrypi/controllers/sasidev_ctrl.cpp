@@ -426,7 +426,7 @@ void SASIDEV::Execute()
 	LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (ctrl.unit[lun]) {
 		// Command processing on drive
 		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
@@ -636,7 +636,7 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 	}
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;
@@ -1065,7 +1065,7 @@ bool SASIDEV::XferIn(BYTE *buf)
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
@@ -1110,7 +1110,7 @@ bool SASIDEV::XferOut(bool cont)
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
@@ -1207,7 +1207,7 @@ void SASIDEV::FlushUnit()
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return;
 	}
@@ -1258,3 +1258,9 @@ void SASIDEV::FlushUnit()
 			break;
 	}
 }
+
+int SASIDEV::GetEffectiveLun() const
+{
+	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
+}
+

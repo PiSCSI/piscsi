@@ -167,7 +167,7 @@ void SCSIDEV::BusFree()
 		// Initialize ATN message reception status
 		scsi.atnmsg = false;
 
-		ctrl.lun = 0;
+		ctrl.lun = -1;
 
 		return;
 	}
@@ -243,7 +243,7 @@ void SCSIDEV::Execute()
 
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
-	int lun =(ctrl.cmd[1] >> 5) & 0x07;
+	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
@@ -270,7 +270,7 @@ void SCSIDEV::Execute()
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
 	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry && !ctrl.unit[lun]) {
-		lun = (ctrl.cmd[1] >> 5) & 0x07;
+		lun = GetEffectiveLun();
 
 		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
 
@@ -696,4 +696,3 @@ bool SCSIDEV::XferMsg(DWORD msg)
 
 	return true;
 }
-

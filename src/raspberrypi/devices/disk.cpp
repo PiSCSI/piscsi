@@ -166,7 +166,7 @@ void Disk::Rezero(SASIDEV *controller)
 
 void Disk::RequestSense(SASIDEV *controller)
 {
-	int lun = (ctrl->cmd[1] >> 5) & 0x07;
+	int lun = controller->GetEffectiveLun();
 
     // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
 	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
@@ -367,7 +367,7 @@ void Disk::Verify16(SASIDEV *controller)
 void Disk::Inquiry(SASIDEV *controller)
 {
 	ScsiPrimaryCommands *device = NULL;
-	int lun = (ctrl->cmd[1] >> 5) & 0x07;
+	int lun = controller->GetEffectiveLun();
 	device = ctrl->unit[lun];
 
 	// Find a valid unit
