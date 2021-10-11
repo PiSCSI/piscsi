@@ -265,15 +265,13 @@ void SCSIDEV::Execute()
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 	}
 
-	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
+	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry && !ctrl.unit[lun]) {
 		lun = (ctrl.cmd[1] >> 5) & 0x07;
 
-		// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-		if (!ctrl.unit[lun]) {
-			LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
+		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
 
-			ctrl.buffer[0] = 0x7f;
-		}
+		ctrl.buffer[0] = 0x7f;
 	}
 }
 
