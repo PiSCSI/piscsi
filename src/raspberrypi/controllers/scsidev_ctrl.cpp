@@ -265,7 +265,7 @@ void SCSIDEV::Execute()
 	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
 		// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
 		if (((ctrl.cmd[1] >> 5) & 0x07) != (DWORD)ctrl.device->GetLun()) {
-			LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
+			LOGDEBUG("Reporting LUN %d for device ID %d as not supported", (ctrl.cmd[1] >> 5) & 0x07, ctrl.device->GetId());
 
 			ctrl.buffer[0] = 0x7f;
 		}
