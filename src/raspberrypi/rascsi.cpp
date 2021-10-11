@@ -1291,20 +1291,20 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	return ReturnStatus(fd);
 }
 
-bool ProcessId(const string id_spec, bool is_sasi, int& id, int& unit)
+bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
 {
 	size_t separator_pos = id_spec.find(':');
 	if (separator_pos == string::npos) {
-		int max_id = is_sasi ? 15 : 7;
+		int max_id = type == SAHD ? 15 : 7;
 
 		if (!GetAsInt(id_spec, id) || id < 0 || id > max_id) {
-			cerr << optarg << ": Invalid device device ID (0-" << max_id << ")" << endl;
+			cerr << optarg << ": Invalid device ID (0-" << max_id << ")" << endl;
 			return false;
 		}
 
 		// Required for SASI ID/LUN handling backwards compatibility
 		unit = 0;
-		if (is_sasi) {
+		if (type == SAHD) {
 			unit = id % UnitNum;
 			id /= UnitNum;
 		}
@@ -1330,7 +1330,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	PbCommand command;
 	int id = -1;
 	int unit = -1;
-	bool is_sasi = false;
 	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
@@ -1343,20 +1342,18 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			// The three options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
-				is_sasi = false;
 				id = -1;
 				continue;
 
 			case 'h':
 			case 'H':
-				is_sasi = true;
 				id = -1;
 				type = SAHD;
 				continue;
 
 			case 'd':
 			case 'D': {
-				if (!ProcessId(optarg, is_sasi, id, unit)) {
+				if (!ProcessId(optarg, type, id, unit)) {
 					return false;
 				}
 				continue;
