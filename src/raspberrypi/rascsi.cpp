@@ -1299,15 +1299,19 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 	// LUNs must be consecutive
 	for (auto const& [id, lun]: luns) {
-		if (lun != 0x01 && lun != 0x03 && lun != 0x07 && lun != 0x0f &&
-				lun != 0x1f && lun != 0x3f && lun != 0x7f && lun != 0xff &&
-				lun != 0x1ff && lun != 0x3ff && lun != 0x7ff && lun != 0xfff &&
-				lun != 0x1fff && lun != 0x3fff && lun != 0x7fff && lun != 0xffff &&
-				lun != 0x1ffff && lun != 0x3ffff && lun != 0x7ffff && lun != 0xfffff &&
-				lun != 0x1fffff && lun != 0x3fffff && lun != 0x7fffff && lun != 0xffffff &&
-				lun != 0x1ffffff && lun != 0x3ffffff && lun != 0x7ffffff && lun != 0xfffffff &&
-				lun != 0x1fffffff && lun != 0x3fffffff && lun != 0x7fffffff && lun != 0xffffffff) {
+		bool is_consecutive = false;
 
+		uint32_t lun_vector = 0;
+		for (int i = 0; i < 32; i++) {
+			lun_vector |= 1 << i;
+
+			if (lun == lun_vector) {
+				is_consecutive = true;
+				break;
+			}
+		}
+
+		if (!is_consecutive) {
 			ostringstream error;
 			error << "LUNs for device ID " << id << " are not consecutive";
 			return ReturnStatus(fd, false, error);
