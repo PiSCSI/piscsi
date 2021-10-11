@@ -1481,6 +1481,9 @@ void Disk::ReportLuns(SASIDEV *controller)
 
 	// LUN list length, 8 bytes per LUN
 	// SCSI standard: The contents of the LUN LIST LENGTH field	are not altered based on the allocation length
+	buf[0] = (luns * 8) >> 24;
+	buf[1] = (luns * 8) >> 16;
+	buf[2] = (luns * 8) >> 8;
 	buf[3] = luns * 8;
 
 	ctrl->length = allocation_length < 8 + luns * 8 ? allocation_length : 8 + luns * 8;
