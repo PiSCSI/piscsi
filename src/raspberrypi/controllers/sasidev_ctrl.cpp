@@ -50,6 +50,7 @@ SASIDEV::SASIDEV()
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
+	ctrl.lun = -1;
 
 	// Logical unit initialization
 	for (int i = 0; i < UnitMax; i++) {
@@ -235,6 +236,9 @@ void SASIDEV::BusFree()
 		// Initialize status and message
 		ctrl.status = 0x00;
 		ctrl.message = 0x00;
+
+		ctrl.lun = -1;
+
 		return;
 	}
 
