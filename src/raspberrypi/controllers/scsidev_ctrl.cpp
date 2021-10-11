@@ -609,7 +609,8 @@ void SCSIDEV::Receive()
 
 					// IDENTIFY
 					if (data >= 0x80) {
-						ctrl.lun = data & 0x1F;
+						// Currently only 8 LUns are supported, but this can probably be extended to 31 (0x1F)
+						ctrl.lun = data & 0x07;
 						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, ctrl.lun);
 					}
 
