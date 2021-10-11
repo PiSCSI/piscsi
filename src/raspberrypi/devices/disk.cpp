@@ -368,13 +368,12 @@ void Disk::Inquiry(SASIDEV *controller)
 {
 	ScsiPrimaryCommands *device = NULL;
 	int lun = (ctrl->cmd[1] >> 5) & 0x07;
-	if (lun < SASIDEV::UnitMax) {
-		device = ctrl->unit[lun];
-	}
+	device = ctrl->unit[lun];
 
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
+	// In addition, it supports gaps in the LUN list, which is not correct.
 	if (!device) {
 		for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
 			if (ctrl->unit[valid_lun]) {
