@@ -559,7 +559,7 @@ void SCSIDEV::Receive()
 
 			for (int i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
-				LOGTRACE("%s Command Byte $%02X",__PRETTY_FUNCTION__, ctrl.cmd[i]);
+				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
 
 			// Execution Phase
