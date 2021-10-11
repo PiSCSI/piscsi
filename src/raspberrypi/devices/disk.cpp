@@ -1463,19 +1463,21 @@ void Disk::ReportLuns(SASIDEV *controller)
 
 	ASSERT(buf);
 
-	memset(buf, 0, 16);
+	int luns = controller->GetCtrl()->device->GetSupportedLuns();
+
+	memset(buf, 0, 8 + luns * 8);
 
 	if (!CheckReady()) {
 		controller->Error();
 		return;
 	}
 
-	// LUN list length
-	buf[3] = 8;
+	// LUN list length, 8 bytes per LUN
+	buf[3] =luns * 8;
 
 	// As long as there is no proper support for more than one SCSI LUN no other fields must be set => 1 LUN
 
-	ctrl->length = 16;
+	ctrl->length = 8 + luns * 8;
 
 	controller->DataIn();
 }
