@@ -1351,6 +1351,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 'H':
 				is_sasi = true;
 				id = -1;
+				type = SAHD;
 				continue;
 
 			case 'd':
