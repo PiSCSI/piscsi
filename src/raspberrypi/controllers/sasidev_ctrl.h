@@ -83,7 +83,7 @@ private:
 
 public:
 	enum {
-		UnitMax = 8					// Maximum number of logical units		
+		UnitMax = 32					// Maximum number of logical units
 	};
 
 	const int UNKNOWN_SCSI_ID = -1;
