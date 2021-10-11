@@ -304,11 +304,9 @@ void SASIDEV::Command()
 		ctrl.length = 6;
 		ctrl.blocks = 1;
 
-		// Command reception handshake (10 bytes are automatically received at the first command)
-		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
-
 		// If no byte can be received move to the status phase
-		if (count == 0) {
+		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
+		if (!count) {
 			Error();
 			return;
 		}
@@ -324,6 +322,7 @@ void SASIDEV::Command()
 		// Command data transfer
 		for (int i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
+			LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 		}
 
 		// Clear length and block
