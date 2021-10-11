@@ -171,7 +171,7 @@ message PbDeviceProperties {
     bool supports_params = 7;
     // List of default parameters, if any (requires supports_params to be true)
     map<string, string> default_params = 8;
-    // Number of supported LUNs, at least 1 (for LUN 0)
+    // LUN numbers this device can represent. At least 1 (for LUN 0 only). Maxium is 32, for LUNs 0-31.
     int32 luns = 9;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 10;
