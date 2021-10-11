@@ -1270,6 +1270,20 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 			break;
 	}
 
+	// LUNs must be consecutive
+	map<int, int> luns;
+	for (const auto& device : command.devices()) {
+		luns[device.id()] |= (1 << device.unit());
+	}
+	for (auto const& [id, lun]: luns) {
+		if (lun != 0x01 && lun != 0x03 && lun != 0x07 && lun != 0x0f &&
+				lun != 0x1f && lun != 0x3f && lun != 0x7f && lun != 0xff) {
+			ostringstream error;
+			error << "LUNs for device ID " << id << " are not consecutive";
+			return ReturnStatus(fd, false, error);
+		}
+	}
+
 	// Remember the list of reserved files, than run the dry run
 	const auto reserved_files = FileSupport::GetReservedFiles();
 	for (const auto& device : command.devices()) {
