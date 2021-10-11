@@ -1293,11 +1293,11 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 bool ProcessId(const string id_spec, bool is_sasi, int& id, int& unit)
 {
-	int max_id = is_sasi ? 15 : 7;
-
 	size_t separator_pos = id_spec.find(':');
 	if (separator_pos == string::npos) {
-		if (!GetAsInt(id_spec, id) || id < 0 || max_id < id) {
+		int max_id = is_sasi ? 15 : 7;
+
+		if (!GetAsInt(id_spec, id) || id < 0 || id > max_id) {
 			cerr << optarg << ": Invalid device device ID (0-" << max_id << ")" << endl;
 			return false;
 		}
@@ -1310,7 +1310,7 @@ bool ProcessId(const string id_spec, bool is_sasi, int& id, int& unit)
 		}
 	}
 	else {
-		if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || max_id < id ||
+		if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
 				!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit > 1) {
 			cerr << optarg << ": Invalid unit (0-1)" << endl;
 			return false;
