@@ -240,17 +240,20 @@ void SCSIDEV::Execute()
 
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
-	// Use LUN0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
-	// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
-	int lun = 0;
-	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
-		lun = (ctrl.cmd[1] >> 5) & 0x07;
-
-		if (!ctrl.unit[lun]) {
+	int lun =(ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun]) {
+		if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 			return;
+		}
+		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
+		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
+		else {
+			assert(ctrl.unit[0]);
+
+			lun = 0;
 		}
 	}
 
@@ -267,7 +270,7 @@ void SCSIDEV::Execute()
 
 		// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
 		if (!ctrl.unit[lun]) {
-			LOGDEBUG("Reporting LUN %d for device ID %d as not supported", (ctrl.cmd[1] >> 5) & 0x07, ctrl.device->GetId());
+			LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
 
 			ctrl.buffer[0] = 0x7f;
 		}
