@@ -391,7 +391,7 @@ void Disk::Inquiry(SASIDEV *controller)
 	// Report if the device does not support the requested LUN
 	int lun = (ctrl->cmd[1] >> 5) & 0x07;
 	if (!ctrl->unit[lun]) {
-		LOGDEBUG("Reporting LUN %d for ID %d as not supported", lun, ctrl->device->GetId());
+		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
 
 		ctrl->buffer[0] |= 0x7f;
 	}
