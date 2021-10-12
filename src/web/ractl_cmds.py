@@ -111,20 +111,11 @@ def validate_scsi_id(scsi_id):
         return {"status": False, "msg": "Invalid SCSI ID. Should be a number between 0-7"}
 
 
-def get_valid_scsi_ids(devices, reserved_ids):
+def get_valid_scsi_ids(invalid_ids):
     """
     Takes a list of dicts devices, and list of ints reserved_ids.
     Returns a list of ints valid_ids, which are the SCSI ids where it is possible to attach a device.
     """
-    occupied_ids = []
-    for d in devices:
-        # Make it possible to insert images on top of a 
-        # removable media device currently without an image attached
-        if d["device_type"] != "-" and "No Media" not in d["status"]:
-            occupied_ids.append(d["id"])
-
-    # Combine lists and remove duplicates
-    invalid_ids = list(set(reserved_ids + occupied_ids))
     valid_ids = list(range(8))
     for id in invalid_ids:
         try:
@@ -173,7 +164,8 @@ def attach_image(scsi_id, **kwargs):
 
     if device_type in REMOVABLE_DEVICE_TYPES and current_type in REMOVABLE_DEVICE_TYPES:
         if current_type != device_type:
-            return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {current_type} device."}
+            return {"status": False, "msg": f"Cannot insert an image for \
+                    {device_type} into a {current_type} device."}
         else:
             command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device

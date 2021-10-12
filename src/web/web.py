@@ -77,7 +77,7 @@ def index():
 
     reserved_scsi_ids = server_info["reserved_ids"]
     formatted_devices = sort_and_format_devices(devices["device_list"])
-    scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
+    scsi_ids = get_valid_scsi_ids(reserved_scsi_ids)
 
     valid_file_suffix = "."+", .".join(
             server_info["sahd"] +
@@ -332,10 +332,10 @@ def daynaport_attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
-        flash(f"Attached DaynaPORT to SCSI id {scsi_id}!")
+        flash(f"Attached DaynaPORT to SCSI ID {scsi_id}!")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to attach DaynaPORT to SCSI id {scsi_id}!", "error")
+        flash(f"Failed to attach DaynaPORT to SCSI ID {scsi_id}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -345,6 +345,7 @@ def attach():
     file_name = request.form.get("file_name")
     file_size = request.form.get("file_size")
     scsi_id = request.form.get("scsi_id")
+    un = request.form.get("un")
     device_type = request.form.get("type")
 
     validate = validate_scsi_id(scsi_id)
@@ -352,7 +353,7 @@ def attach():
         flash(validate["msg"], "error")
         return redirect(url_for("index"))
 
-    kwargs = {"image": file_name}
+    kwargs = {"unit": int(un), "image": file_name}
 
     if device_type != "":
         kwargs["device_type"] = device_type
@@ -365,7 +366,8 @@ def attach():
     if drive_properties.is_file():
         process = read_drive_properties(str(drive_properties))
         if process["status"] == False:
-            flash(f"Failed to load the device properties file {file_name_base}.{PROPERTIES_SUFFIX}", "error")
+            flash(f"Failed to load the device properties \
+                    file {file_name_base}.{PROPERTIES_SUFFIX}", "error")
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
@@ -376,10 +378,10 @@ def attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
-        flash(f"Attached {file_name} to SCSI id {scsi_id}!")
+        flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {un}!")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to attach {file_name} to SCSI id {scsi_id}!", "error")
+        flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {un}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -433,7 +435,7 @@ def device_info():
 
     # First check if any device at all was returned
     if devices["status"] == False:
-        flash(f"No device attached to SCSI id {scsi_id}!", "error")
+        flash(f"No device attached to SCSI ID {scsi_id} LUN {un}!", "error")
         return redirect(url_for("index"))
     # Looking at the first dict in list to get
     # the one and only device that should have been returned
@@ -452,7 +454,7 @@ def device_info():
         flash(f"Block Size: {device['block_size']}")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to get device info for SCSI id {scsi_id}!", "error")
+        flash(f"Failed to get device info for SCSI ID {scsi_id} LUN {un}!", "error")
         return redirect(url_for("index"))
 
 @app.route("/pi/reboot", methods=["POST"])
@@ -487,7 +489,7 @@ def download_file():
     url = request.form.get("url")
     process = download_file_to_iso(scsi_id, url)
     if process["status"] == True:
-        flash(f"File Downloaded and Attached to SCSI id {scsi_id}")
+        flash(f"File Downloaded and Attached to SCSI ID {scsi_id}")
         flash(process["msg"])
         return redirect(url_for("index"))
     else:
