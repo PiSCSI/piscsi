@@ -375,27 +375,26 @@ bool MapController(Device **map)
 	return status;
 }
 
-string ValidateLunSetup(const PbCommand& command)
+string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existing_devices)
 {
 	// Mapping of available LUNs (bit vector) to devices
 	map<uint32_t, uint32_t> luns;
 
-	// Collect LUNs of new devices, if any
+	// Collect LUN vectors of new devices
 	for (const auto& device : command.devices()) {
 		luns[device.id()] |= 1 << device.unit();
 	}
 
-	// Collect LUNs of existing devices
-	for (size_t i = 0; i < controllers.size(); i++) {
-		for (int j = 0; j < UnitNum; j++) {
-			if (devices[i * UnitNum + j]) {
-				luns[i] |= 1 << j;
-			}
+	// Collect LUN vectors of existing devices
+	for (auto const& device : existing_devices) {
+		if (device) {
+			luns[device->GetId()] |= 1 << device->GetLun();
 		}
 	}
 
 	// LUNs must be consecutive
 	for (auto const& [id, lun]: luns) {
+		cerr << "AAA " << id << "  " << lun << endl;
 		bool is_consecutive = false;
 
 		uint32_t lun_vector = 0;
@@ -1019,15 +1018,23 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 }
 
-bool Detach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dryRun)
+bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 {
+	// Check how the LUN list would look like if the specified device were removed
+	vector<Device *> list_to_check;
+	for (auto const& d : devices) {
+		if (d && d->GetId() != device->GetId() && d->GetLun() != device->GetLun()) {
+			list_to_check.push_back(d);
+		}
+	}
+	PbCommand command;
+	string result = ValidateLunSetup(command, list_to_check);
+	if (!result.empty()) {
+		return ReturnStatus(fd, false, result);
+	}
+
 	if (!dryRun) {
-		const int id = pb_device.id();
-		const int unit = pb_device.unit();
-
-		Device *device = map[id * UnitNum + unit];
-
-		map[id * UnitNum + unit] = NULL;
+		map[device->GetId() * UnitNum + device->GetLun()] = NULL;
 
 		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 		if (file_support) {
@@ -1038,7 +1045,7 @@ bool Detach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
 		bool status = MapController(map);
 		if (status) {
-			LOGINFO("Detached %s device with ID %d, unit %d", device_type.c_str(), id, unit);
+			LOGINFO("Detached %s device with ID %d, unit %d", device_type.c_str(), device->GetId(), device->GetLun());
 			return true;
 		}
 
@@ -1207,12 +1214,12 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 	// Does the unit exist?
 	Device *device = devices[id * UnitNum + unit];
 	if (!device) {
-		error << "Received a command for a non-existing device, ID " << id << ", unit " << unit;
+		error << "Received a command for a non-existing device or unit, ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
 	}
 
 	if (operation == DETACH) {
-		return Detach(fd, pb_device, map, dryRun);
+		return Detach(fd, device, map, dryRun);
 	}
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
@@ -1345,7 +1352,7 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
 
-	string lun_validation_result = ValidateLunSetup(command);
+	string lun_validation_result = ValidateLunSetup(command, devices);
 	if (!lun_validation_result.empty()) {
 		return ReturnStatus(fd, false, lun_validation_result);
 	}
