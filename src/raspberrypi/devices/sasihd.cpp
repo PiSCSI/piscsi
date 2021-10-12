@@ -71,7 +71,7 @@ void SASIHD::Open(const Filepath& path)
 
 	// Sector size (default 256 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 256, true);
-	SetBlockCount((DWORD)(size >> GetSectorSize()));
+	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Effective size must be a multiple of the sector size

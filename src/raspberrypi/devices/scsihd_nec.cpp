@@ -127,7 +127,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	if (size <= 0 || size > 16) {
 		throw io_exception("Invalid NEC disk size");
 	}
-	SetSize(size);
+	SetSectorSizeShiftCount(size);
 
 	// Number of blocks
 	SetBlockCount(image_size >> disk.size);

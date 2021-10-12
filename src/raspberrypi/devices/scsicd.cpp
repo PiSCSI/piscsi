@@ -431,7 +431,7 @@ void SCSICD::OpenIso(const Filepath& path)
 		SetBlockCount((DWORD)(size / 0x930));
 	} else {
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size >> GetSectorSize()));
+		SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 	}
 
 	// Create only one data track
@@ -470,7 +470,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	size = (size / 512) * 512;
 
 	// Set the number of blocks
-	SetBlockCount((DWORD)(size >> GetSectorSize()));
+	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
 	ASSERT(!track[0]);
@@ -599,7 +599,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		track[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, GetSectorSize(), GetBlockCount());
+		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index
