@@ -137,13 +137,25 @@ int main(int argc, char* argv[])
 	int opt;
 	while ((opt = getopt(argc, argv, "elmsvINOTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
 		switch (opt) {
-			case 'i':
-				device->set_id(optarg[0] - '0');
+			case 'i': {
+				int id;
+				if (!GetAsInt(optarg, id)) {
+					cerr << "Error: Invalid device ID " << optarg;
+					exit(EXIT_FAILURE);
+				}
+				device->set_id(id);
 				break;
+			}
 
-			case 'u':
-				device->set_unit(optarg[0] - '0');
+			case 'u': {
+				int unit;
+				if (!GetAsInt(optarg, unit)) {
+					cerr << "Error: Invalid unit " << optarg;
+					exit(EXIT_FAILURE);
+				}
+				device->set_unit(unit);
 				break;
+			}
 
 			case 'C':
 				command.set_operation(CREATE_IMAGE);
