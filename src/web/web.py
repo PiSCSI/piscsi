@@ -393,12 +393,13 @@ def detach_all_devices():
 @app.route("/scsi/detach", methods=["POST"])
 def detach():
     scsi_id = request.form.get("scsi_id")
-    process = detach_by_id(scsi_id)
+    un = request.form.get("un")
+    process = detach_by_id(scsi_id, un)
     if process["status"] == True:
-        flash(f"Detached SCSI id {scsi_id}!")
+        flash(f"Detached SCSI ID {scsi_id} LUN {un}!")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to detach SCSI id {scsi_id}!", "error")
+        flash(f"Failed to detach SCSI ID {scsi_id} LUN {un}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -406,12 +407,14 @@ def detach():
 @app.route("/scsi/eject", methods=["POST"])
 def eject():
     scsi_id = request.form.get("scsi_id")
-    process = eject_by_id(scsi_id)
+    un = request.form.get("un")
+
+    process = eject_by_id(scsi_id, un)
     if process["status"] == True:
-        flash(f"Ejected scsi id {scsi_id}!")
+        flash(f"Ejected SCSI ID {scsi_id} LUN {un}!")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to eject SCSI id {scsi_id}!", "error")
+        flash(f"Failed to eject SCSI ID {scsi_id} LUN {un}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -432,7 +435,7 @@ def device_info():
     if str(device["id"]) == scsi_id:
         flash("=== DEVICE INFO ===")
         flash(f"SCSI ID: {device['id']}")
-        flash(f"Unit: {device['un']}")
+        flash(f"LUN: {device['un']}")
         flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
         flash(f"File: {device['image']}")

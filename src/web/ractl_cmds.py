@@ -203,13 +203,16 @@ def attach_image(scsi_id, **kwargs):
     return {"status": result.status, "msg": result.msg}
 
 
-def detach_by_id(scsi_id):
+def detach_by_id(scsi_id, un=None):
     """
-    Takes int scsi_id and sends a DETACH command to the server.
+    Takes int scsi_id and optional int un
+    Sends a DETACH command to the server.
     Returns boolean status and str msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
+    if un != None:
+        devices.unit = int(un)
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH
@@ -235,13 +238,16 @@ def detach_all():
     return {"status": result.status, "msg": result.msg}
 
 
-def eject_by_id(scsi_id):
+def eject_by_id(scsi_id, un=None):
     """
-    Takes int scsi_id and sends an EJECT command to the server.
+    Takes int scsi_id and optional int un.
+    Sends an EJECT command to the server.
     Returns boolean status and str msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
+    if un != None:
+        devices.unit = int(un)
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.EJECT
@@ -255,7 +261,8 @@ def eject_by_id(scsi_id):
 
 def list_devices(scsi_id=None, un=None):
     """
-    Takes optional int scsi_id and sends a DEVICES_INFO command to the server.
+    Takes optional int scsi_id and optional int un.
+    Sends a DEVICES_INFO command to the server.
     If no scsi_id is provided, returns a list of dicts of all attached devices.
     If scsi_id is is provided, returns a list of one dict for the given device.
     If no attached device is found, returns an empty list.
