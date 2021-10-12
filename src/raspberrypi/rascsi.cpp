@@ -1021,14 +1021,14 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 {
 	// Check how the LUN list would look like if the specified device were removed
-	vector<Device *> list_to_check;
+	vector<Device *> devices_to_validate;
 	for (auto const& d : devices) {
 		if (d && d->GetId() != device->GetId() && d->GetLun() != device->GetLun()) {
-			list_to_check.push_back(d);
+			devices_to_validate.push_back(d);
 		}
 	}
 	PbCommand command;
-	string result = ValidateLunSetup(command, list_to_check);
+	string result = ValidateLunSetup(command, devices_to_validate);
 	if (!result.empty()) {
 		return ReturnStatus(fd, false, result);
 	}
@@ -1041,11 +1041,13 @@ bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 			file_support->UnreserveFile();
 		}
 
-		// Re-map the controller, remember the device type because the device gets lost when re-mapping
-		const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
+		// Re-map the controller, remember the device data because they get lost when re-mapping
+		int id = device->GetId();
+		int unit = device->GetLun();
+		const string device_type = device->GetType();
 		bool status = MapController(map);
 		if (status) {
-			LOGINFO("Detached %s device with ID %d, unit %d", device_type.c_str(), device->GetId(), device->GetLun());
+			LOGINFO("Detached %s device with ID %d, unit %d", device_type.c_str(), id, unit);
 			return true;
 		}
 
