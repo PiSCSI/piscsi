@@ -833,6 +833,20 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		}
 	}
 
+	int supported_luns = device->GetSupportedLuns();
+	if (unit >= supported_luns) {
+		delete device;
+
+		error << "Invalid unit " << unit << " for device type " << PbDeviceType_Name(type);
+		if (supported_luns == 1) {
+			error << " (0)";
+		}
+		else {
+			error << " (0-" << (supported_luns -1) << ")";
+		}
+		return ReturnStatus(fd, false, error.str());
+	}
+
 	// If no filename was provided the medium is considered removed
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 	if (file_support) {
@@ -864,11 +878,15 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		Disk *disk = dynamic_cast<Disk *>(device);
 		if (disk && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				delete device;
+
 				error << "Invalid block size " << pb_device.block_size() << " bytes";
 				return ReturnStatus(fd, false, error);
 			}
 		}
 		else {
+			delete device;
+
 			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
 		}
 	}
