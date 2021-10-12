@@ -37,7 +37,7 @@ enum PbOperation {
     //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
     ATTACH = 1;
 
-    // Detach devices
+    // Detach a device. Detaches all LUNs of that device which are equal to or higher than the LUN specified.
     DETACH = 2;
 
     // Detach all devices, does not require a device list

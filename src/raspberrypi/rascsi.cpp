@@ -1019,39 +1019,24 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 {
-	// Check how the LUN list would look like if the specified device were removed
-	vector<Device *> devices_to_validate;
-	for (size_t i = 0; i < devices.size(); i++) {
-		Device *d = map[i];
-		if (d && (d->GetId() != device->GetId() || d->GetLun() != device->GetLun())) {
-			devices_to_validate.push_back(d);
-		}
-	}
-	PbCommand command;
-	string result = ValidateLunSetup(command, devices_to_validate);
-	if (!result.empty()) {
-		return ReturnStatus(fd, false, result);
-	}
-
 	if (!dryRun) {
-		map[device->GetId() * UnitNum + device->GetLun()] = NULL;
+		for (size_t i = devices.size() - 1; i > 0; i--) {
+			Device *d = map[i];
+			// Detach all LUNs equal to or higher than the LUN specified
+			if (d && d->GetId() == device->GetId() && d->GetLun() >= device->GetLun()) {
+				map[d->GetId() * UnitNum + d->GetLun()] = NULL;
 
-		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-		if (file_support) {
-			file_support->UnreserveFile();
+				FileSupport *file_support = dynamic_cast<FileSupport *>(d);
+				if (file_support) {
+					file_support->UnreserveFile();
+				}
+
+				LOGINFO("Detached %s device with ID %d, unit %d", d->GetType().c_str(), d->GetId(), d->GetLun());
+			}
+
+			// Re-map the controller
+			MapController(map);
 		}
-
-		// Re-map the controller, remember the device data because they get lost when re-mapping
-		int id = device->GetId();
-		int unit = device->GetLun();
-		const string device_type = device->GetType();
-		bool status = MapController(map);
-		if (status) {
-			LOGINFO("Detached %s device with ID %d, unit %d", device_type.c_str(), id, unit);
-			return true;
-		}
-
-		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 	}
 
 	return true;
