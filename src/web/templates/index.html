@@ -68,10 +68,12 @@
                 {% else %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
+                    <input type="hidden" name="un" value="{{device.un}}">
                     <input type="submit" value="Detach" />
                 </form>
                 <form action="/scsi/info" method="post">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
+                    <input type="hidden" name="un" value="{{device.un}}">
                     <input type="submit" value="Info" />
                 </form>
                 {% endif %}

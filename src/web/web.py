@@ -418,8 +418,9 @@ def eject():
 @app.route("/scsi/info", methods=["POST"])
 def device_info():
     scsi_id = request.form.get("scsi_id")
+    un = request.form.get("un")
 
-    devices = list_devices(scsi_id)
+    devices = list_devices(scsi_id, un)
 
     # First check if any device at all was returned
     if devices["status"] == False:

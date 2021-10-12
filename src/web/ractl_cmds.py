@@ -253,7 +253,7 @@ def eject_by_id(scsi_id):
     return {"status": result.status, "msg": result.msg}
 
 
-def list_devices(scsi_id=None):
+def list_devices(scsi_id=None, un=None):
     """
     Takes optional int scsi_id and sends a DEVICES_INFO command to the server.
     If no scsi_id is provided, returns a list of dicts of all attached devices.
@@ -270,6 +270,8 @@ def list_devices(scsi_id=None):
     if scsi_id != None:
         device = proto.PbDeviceDefinition()
         device.id = int(scsi_id)
+        if un != None:
+            device.unit = int(un)
         command.devices.append(device)
 
     data = send_pb_command(command.SerializeToString())
