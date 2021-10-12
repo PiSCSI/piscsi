@@ -375,6 +375,50 @@ bool MapController(Device **map)
 	return status;
 }
 
+string ValidateLunSetup(const PbCommand& command)
+{
+	// Mapping of available LUNs (bit vector) to devices
+	map<uint32_t, uint32_t> luns;
+
+	// Collect LUNs of new devices, if any
+	for (const auto& device : command.devices()) {
+		luns[device.id()] |= 1 << device.unit();
+	}
+
+	// Collect LUNs of existing devices
+	for (size_t i = 0; i < controllers.size(); i++) {
+		for (int j = 0; j < UnitNum; j++) {
+			if (devices[i * UnitNum + j]) {
+				luns[i] |= 1 << j;
+			}
+		}
+	}
+
+	// LUNs must be consecutive
+	for (auto const& [id, lun]: luns) {
+		bool is_consecutive = false;
+
+		uint32_t lun_vector = 0;
+		for (int i = 0; i < 32; i++) {
+			lun_vector |= 1 << i;
+
+			if (lun == lun_vector) {
+				is_consecutive = true;
+				break;
+			}
+		}
+
+		if (!is_consecutive) {
+			ostringstream error;
+			error << "LUNs for device ID " << id << " are not consecutive";
+
+			return error.str();
+		}
+	}
+
+	return "";
+}
+
 bool ReturnStatus(int fd, bool status = true, const string msg = "")
 {
 	if (!status && !msg.empty()) {
@@ -451,7 +495,7 @@ void LogDevices(const string& devices)
 	}
 }
 
-const char *SetDefaultImageFolder(const string& f)
+string SetDefaultImageFolder(const string& f)
 {
 	string folder = f;
 
@@ -479,14 +523,14 @@ const char *SetDefaultImageFolder(const string& f)
 	struct stat info;
 	stat(folder.c_str(), &info);
 	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
-		return string("Folder '" + f + "' does not exist or is not accessible").c_str();
+		return string("Folder '" + f + "' does not exist or is not accessible");
 	}
 
 	default_image_folder = folder;
 
 	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
 
-	return NULL;
+	return "";
 }
 
 string SetReservedIds(const string& ids)
@@ -1298,46 +1342,14 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		}
 	}
 
-	// Mapping of available LUNs (bit vector) to devices
-	map<uint32_t, uint32_t> luns;
-
-	// Collect luns of new devices
-	for (const auto& device : command.devices()) {
-		luns[device.id()] |= 1 << device.unit();
-	}
-
-	// Collect LUNs of existing devices
-	for (size_t i = 0; i < controllers.size(); i++) {
-		for (int j = 0; j < UnitNum; j++) {
-			if (devices[i * UnitNum + j]) {
-				luns[i] |= 1 << j;
-			}
-		}
-	}
-
-	// LUNs must be consecutive
-	for (auto const& [id, lun]: luns) {
-		bool is_consecutive = false;
-
-		uint32_t lun_vector = 0;
-		for (int i = 0; i < 32; i++) {
-			lun_vector |= 1 << i;
-
-			if (lun == lun_vector) {
-				is_consecutive = true;
-				break;
-			}
-		}
-
-		if (!is_consecutive) {
-			ostringstream error;
-			error << "LUNs for device ID " << id << " are not consecutive";
-			return ReturnStatus(fd, false, error);
-		}
-	}
-
-	// Restore list of reserved files, then execute the command
+	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
+
+	string lun_validation_result = ValidateLunSetup(command);
+	if (!lun_validation_result.empty()) {
+		return ReturnStatus(fd, false, lun_validation_result);
+	}
+
 	for (const auto& device : command.devices()) {
 		if (!ProcessCmd(fd, device, command, false)) {
 			return false;
@@ -1428,8 +1440,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			}
 
 			case 'F': {
-				const char *result = SetDefaultImageFolder(optarg);
-				if (result) {
+				string result = SetDefaultImageFolder(optarg);
+				if (!result.empty()) {
 					cerr << result << endl;
 					return false;
 				}
@@ -1619,8 +1631,8 @@ static void *MonThread(void *param)
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					const char *result = SetDefaultImageFolder(folder);
-					if (result) {
+					string result = SetDefaultImageFolder(folder);
+					if (!result.empty()) {
 						ReturnStatus(fd, false, result);
 					}
 					else {
