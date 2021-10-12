@@ -466,10 +466,8 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	// Close
 	fio.Close();
 
-	// Size must be a multiple of 512
-	if (size & 0x1ff) {
-		throw io_exception("CD-ROM file size must be a multiple of 512 bytes");
-	}
+	// Effective size must be a multiple of 512
+	size = (size / 512) * 512;
 
 	// Set the number of blocks
 	SetBlockCount((DWORD)(size >> GetSectorSize()));

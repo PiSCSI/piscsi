@@ -107,12 +107,8 @@ void SCSIHD::Open(const Filepath& path)
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, false);
 	SetBlockCount((DWORD)(size >> GetSectorSize()));
 
-	// File size must be a multiple of the sector size
-	if (size % GetSectorSizeInBytes()) {
-		stringstream error;
-		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
-		throw io_exception(error.str());
-	}
+	// Effective size must be a multiple of the sector size
+	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 
 	FinalizeSetup(path, size);
 }
