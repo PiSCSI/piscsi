@@ -1383,11 +1383,13 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 'i':
 			case 'I':
 				id = -1;
+				unit = -1;
 				continue;
 
 			case 'h':
 			case 'H':
 				id = -1;
+				unit = -1;
 				type = SAHD;
 				continue;
 
