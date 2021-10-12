@@ -1354,9 +1354,9 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
 
-	string lun_validation_result = ValidateLunSetup(command, devices);
-	if (!lun_validation_result.empty()) {
-		return ReturnStatus(fd, false, lun_validation_result);
+	string result = ValidateLunSetup(command, devices);
+	if (!result.empty()) {
+		return ReturnStatus(fd, false, result);
 	}
 
 	for (const auto& device : command.devices()) {
