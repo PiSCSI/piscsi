@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
 		cerr << "[-e] [-E FILENAME] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
-		cerr << "        UNIT := {0|1}, default is 0" << endl;
+		cerr << "        UNIT := {0-31}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
 		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        BLOCK_SIZE := {256|512|1024|2048|4096) bytes per hard disk drive block" << endl;
