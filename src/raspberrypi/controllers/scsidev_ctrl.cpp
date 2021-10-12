@@ -263,7 +263,7 @@ void SCSIDEV::Execute()
 	ctrl.device = ctrl.unit[lun];
 
 	if (!ctrl.device->Dispatch(this)) {
-		LOGWARN("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
+		LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 	}

@@ -427,7 +427,7 @@ void SASIDEV::Execute()
 	}
 
 	// Unsupported command
-	LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
+	LOGTRACE("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
 	// Logical Unit
 	DWORD lun = GetEffectiveLun();
