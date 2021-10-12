@@ -156,7 +156,7 @@ def attach_image(scsi_id, **kwargs):
 
     # Handling the inserting of media into an attached removable type device
     device_type = kwargs.get("device_type", None) 
-    currently_attached = list_devices(scsi_id)["device_list"]
+    currently_attached = list_devices(scsi_id, kwargs.get("unit"))["device_list"]
     if len(currently_attached) > 0:
         current_type = currently_attached[0]["device_type"] 
     else:
