@@ -70,6 +70,11 @@ def index():
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
 
+    luns = 0
+    for d in devices["device_list"]:
+        logging.warning(d)
+        luns += int(d["un"])
+
     reserved_scsi_ids = server_info["reserved_ids"]
     formatted_devices = sort_and_format_devices(devices["device_list"])
     scsi_ids = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
@@ -95,6 +100,7 @@ def index():
         base_dir=base_dir,
         cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
+        luns=luns,
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
         running_env=running_env(),

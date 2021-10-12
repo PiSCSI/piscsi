@@ -35,7 +35,9 @@
         <tbody>
         <tr>
             <td><b>ID</b></td>
+	    {% if luns %}
             <td><b>UN</b></td>
+	    {% endif %}
             <td><b>Type</b></td>
             <td><b>Status</b></td>
             <td><b>File</b></td>
@@ -46,7 +48,9 @@
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{device.id}}</td>
+	    {% if luns %}
             <td style="text-align:center">{{device.un}}</td>
+	    {% endif %}
             <td style="text-align:center">{{device.device_type}}</td>
             <td style="text-align:center">{{device.status}}</td>
             <td style="text-align:left">{{device.file}}</td>
@@ -82,7 +86,9 @@
             </td>
             {% else %}
             <td class="inactive">{{device.id}}</td>
+	    {% if luns %}
             <td class="inactive"></td>
+	    {% endif %}
             <td class="inactive"></td>
             <td class="inactive">Reserved ID</td>
             <td class="inactive"></td>
