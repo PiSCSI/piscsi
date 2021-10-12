@@ -651,7 +651,7 @@ def show_properties():
 
     if process["status"]:
         flash("=== DRIVE PROPERTIES ===")
-        flash(f"File Name: {file_name}")
+        flash(f"File Name: {cfg_dir}{file_name}")
         flash(f"Vendor: {prop['vendor']}")
         flash(f"Product: {prop['product']}")
         flash(f"Revision: {prop['revision']}")
