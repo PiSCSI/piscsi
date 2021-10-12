@@ -394,7 +394,6 @@ string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existi
 
 	// LUNs must be consecutive
 	for (auto const& [id, lun]: luns) {
-		cerr << "AAA " << id << "  " << lun << endl;
 		bool is_consecutive = false;
 
 		uint32_t lun_vector = 0;
@@ -1022,8 +1021,9 @@ bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 {
 	// Check how the LUN list would look like if the specified device were removed
 	vector<Device *> devices_to_validate;
-	for (auto const& d : devices) {
-		if (d && d->GetId() != device->GetId() && d->GetLun() != device->GetLun()) {
+	for (size_t i = 0; i < devices.size(); i++) {
+		Device *d = map[i];
+		if (d && (d->GetId() != device->GetId() || d->GetLun() != device->GetLun())) {
 			devices_to_validate.push_back(d);
 		}
 	}
