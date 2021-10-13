@@ -97,20 +97,6 @@ def get_device_types():
     return {"status": result.status, "device_types": device_types}
     
 
-def validate_scsi_id(scsi_id):
-    """
-    Checks that scsi_id is a valid SCSI ID, i.e. a number between 0 and 7.
-    Returns a dict with:
-    - boolean status
-    - str msg (result message)
-    """
-    from re import match
-    if match("[0-7]", str(scsi_id)) != None:
-        return {"status": True, "msg": "Valid SCSI ID."}
-    else:
-        return {"status": False, "msg": "Invalid SCSI ID. Should be a number between 0-7"}
-
-
 def get_valid_scsi_ids(devices, reserved_ids):
     """
     Takes a list of dicts devices, and list of ints reserved_ids.

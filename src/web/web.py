@@ -46,7 +46,6 @@ from ractl_cmds import (
     get_server_info,
     get_network_info,
     get_device_types,
-    validate_scsi_id,
     set_log_level,
 )
 from settings import *
@@ -325,11 +324,6 @@ def daynaport_attach():
             arg += (":" + ip + "/" + mask)
         kwargs["interfaces"] = arg
 
-    validate = validate_scsi_id(scsi_id)
-    if validate["status"] == False:
-        flash(validate["msg"], "error")
-        return redirect(url_for("index"))
-
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached DaynaPORT to SCSI ID {scsi_id}!")
@@ -347,11 +341,6 @@ def attach():
     scsi_id = request.form.get("scsi_id")
     un = request.form.get("un")
     device_type = request.form.get("type")
-
-    validate = validate_scsi_id(scsi_id)
-    if validate["status"] == False:
-        flash(validate["msg"], "error")
-        return redirect(url_for("index"))
 
     kwargs = {"unit": int(un), "image": file_name}
 
@@ -481,10 +470,6 @@ def shutdown():
 @app.route("/files/download_to_iso", methods=["POST"])
 def download_file():
     scsi_id = request.form.get("scsi_id")
-    validate = validate_scsi_id(scsi_id)
-    if validate["status"] == False:
-        flash(validate["msg"], "error")
-        return redirect(url_for("index"))
 
     url = request.form.get("url")
     process = download_file_to_iso(scsi_id, url)
