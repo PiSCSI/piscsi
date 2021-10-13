@@ -344,8 +344,15 @@ def attach():
 
     kwargs = {"unit": int(un), "image": file_name}
 
+    # The most common block size is 512 bytes
+    expected_block_size = 512
+
     if device_type != "":
         kwargs["device_type"] = device_type
+        if device_type == "SCCD":
+            expected_block_size = 2048
+        elif device_type == "SAHD":
+            expected_block_size = 256
  
     # Attempt to load the device properties file:
     # same base path but PROPERTIES_SUFFIX instead of the original suffix.
@@ -364,10 +371,15 @@ def attach():
         kwargs["product"] = conf["product"]
         kwargs["revision"] = conf["revision"]
         kwargs["block_size"] = conf["block_size"]
+        expected_block_size = conf["block_size"]
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {un}!")
+        if int(file_size) % int(expected_block_size):
+            flash(f"The image file size {file_size} bytes is not a multiple of \
+                    {expected_block_size}. The image may be corrupted \
+                    so proceed with caution.", "error")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {un}!", "error")
