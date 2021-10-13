@@ -146,7 +146,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 						device->SetProduct("FIREBALL");
 					}
 				}
-				device->SetSupportedLuns(1);
+				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				break;
@@ -154,7 +154,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCRM:
 				device = new SCSIHD(true);
-				device->SetSupportedLuns(1);
+				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -165,7 +165,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCMO:
 				device = new SCSIMO();
-				device->SetSupportedLuns(1);
+				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -177,7 +177,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCCD:
 				device = new SCSICD();
-				device->SetSupportedLuns(1);
+				device->SetSupportedLuns(32);
 				device->SetReadOnly(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);

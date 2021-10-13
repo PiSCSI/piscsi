@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 		cerr << "[-C FILENAME:FILESIZE] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
 		cerr << "[-e] [-E FILENAME] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
-		cerr << "        UNIT := {0|1}, default is 0" << endl;
+		cerr << "        UNIT := {0-31}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
 		cerr << "        TYPE := {sahd|schd|scrm|sccd|scmo|scbr|scdp} or convenience type {hd|rm|mo|cd|bridge|daynaport}" << endl;
 		cerr << "        BLOCK_SIZE := {256|512|1024|2048|4096) bytes per hard disk drive block" << endl;
@@ -137,13 +137,25 @@ int main(int argc, char* argv[])
 	int opt;
 	while ((opt = getopt(argc, argv, "elmsvINOTVa:b:c:f:h:i:n:p:r:t:u:x:C:D:E:F:L:R:")) != -1) {
 		switch (opt) {
-			case 'i':
-				device->set_id(optarg[0] - '0');
+			case 'i': {
+				int id;
+				if (!GetAsInt(optarg, id)) {
+					cerr << "Error: Invalid device ID " << optarg;
+					exit(EXIT_FAILURE);
+				}
+				device->set_id(id);
 				break;
+			}
 
-			case 'u':
-				device->set_unit(optarg[0] - '0');
+			case 'u': {
+				int unit;
+				if (!GetAsInt(optarg, unit)) {
+					cerr << "Error: Invalid unit " << optarg;
+					exit(EXIT_FAILURE);
+				}
+				device->set_unit(unit);
 				break;
+			}
 
 			case 'C':
 				command.set_operation(CREATE_IMAGE);
@@ -238,14 +250,14 @@ int main(int argc, char* argv[])
 					string revision;
 
 					string s = optarg;
-					size_t separatorPos = s.find(COMPONENT_SEPARATOR);
-					if (separatorPos != string::npos) {
-						vendor = s.substr(0, separatorPos);
-						s = s.substr(separatorPos + 1);
-						separatorPos = s.find(COMPONENT_SEPARATOR);
-						if (separatorPos != string::npos) {
-							product = s.substr(0, separatorPos);
-							revision = s.substr(separatorPos + 1);
+					size_t separator_pos = s.find(COMPONENT_SEPARATOR);
+					if (separator_pos != string::npos) {
+						vendor = s.substr(0, separator_pos);
+						s = s.substr(separator_pos + 1);
+						separator_pos = s.find(COMPONENT_SEPARATOR);
+						if (separator_pos != string::npos) {
+							product = s.substr(0, separator_pos);
+							revision = s.substr(separator_pos + 1);
 						}
 						else {
 							product = s;

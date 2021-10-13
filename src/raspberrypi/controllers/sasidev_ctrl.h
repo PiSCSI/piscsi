@@ -83,7 +83,7 @@ private:
 
 public:
 	enum {
-		UnitMax = 8					// Maximum number of logical units		
+		UnitMax = 32					// Maximum number of logical units
 	};
 
 	const int UNKNOWN_SCSI_ID = -1;
@@ -123,7 +123,11 @@ public:
 		// Logical unit
 		Disk *unit[UnitMax];
 
+		// The current device
 		Disk *device;
+
+		// The LUN from the IDENTIFY message
+		int lun;
 	} ctrl_t;
 
 public:
@@ -154,6 +158,8 @@ public:
 	void Status();							// Status phase
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
+
+	int GetEffectiveLun() const;
 
 	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
@@ -189,6 +195,5 @@ protected:
 	// Special operations
 	void FlushUnit();						// Flush the logical unit
 
-protected:
 	ctrl_t ctrl;								// Internal data
 };
