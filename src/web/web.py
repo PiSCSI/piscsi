@@ -449,7 +449,8 @@ def device_info():
 @app.route("/pi/reboot", methods=["POST"])
 def restart():
     detach_all()
-    flash("Restarting the Pi momentarily...")
+    flash("Safely detached all devices.")
+    flash("Rebooting the Pi momentarily...")
     reboot_pi()
     return redirect(url_for("index"))
 
@@ -457,14 +458,16 @@ def restart():
 @app.route("/rascsi/restart", methods=["POST"])
 def rascsi_restart():
     detach_all()
-    rascsi_service("restart")
+    flash("Safely detached all devices.")
     flash("Restarting RaSCSI Service...")
+    rascsi_service("restart")
     return redirect(url_for("index"))
 
 
 @app.route("/pi/shutdown", methods=["POST"])
 def shutdown():
     detach_all()
+    flash("Safely detached all devices.")
     flash("Shutting down the Pi momentarily...")
     shutdown_pi()
     return redirect(url_for("index"))
