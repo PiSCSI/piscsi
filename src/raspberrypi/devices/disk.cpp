@@ -166,7 +166,7 @@ void Disk::Rezero(SASIDEV *controller)
 
 void Disk::RequestSense(SASIDEV *controller)
 {
-	int lun = (ctrl->cmd[1] >> 5) & 0x07;
+	int lun = controller->GetEffectiveLun();
 
     // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
 	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
@@ -366,14 +366,20 @@ void Disk::Verify16(SASIDEV *controller)
 
 void Disk::Inquiry(SASIDEV *controller)
 {
+	ScsiPrimaryCommands *device = NULL;
+	int lun = controller->GetEffectiveLun();
+	device = ctrl->unit[lun];
+
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	ScsiPrimaryCommands *device = NULL;
-	for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
-		if (ctrl->unit[valid_lun]) {
-			device = ctrl->unit[valid_lun];
-			break;
+	// In addition, it supports gaps in the LUN list, which is not correct.
+	if (!device) {
+		for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
+			if (ctrl->unit[valid_lun]) {
+				device = ctrl->unit[valid_lun];
+				break;
+			}
 		}
 	}
 
@@ -389,8 +395,9 @@ void Disk::Inquiry(SASIDEV *controller)
 	}
 
 	// Report if the device does not support the requested LUN
-	int lun = (ctrl->cmd[1] >> 5) & 0x07;
 	if (!ctrl->unit[lun]) {
+		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
+
 		ctrl->buffer[0] |= 0x7f;
 	}
 
@@ -1456,19 +1463,30 @@ void Disk::ReportLuns(SASIDEV *controller)
 
 	ASSERT(buf);
 
-	memset(buf, 0, 16);
-
 	if (!CheckReady()) {
 		controller->Error();
 		return;
 	}
 
-	// LUN list length
-	buf[3] = 8;
+	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
+	memset(buf, 0, allocation_length);
 
-	// As long as there is no proper support for more than one SCSI LUN no other fields must be set => 1 LUN
+	// Count number of available LUNs for the current device
+	int luns;
+	for (luns = 0; luns < controller->GetCtrl()->device->GetSupportedLuns(); luns++) {
+		if (!controller->GetCtrl()->unit[luns]) {
+			break;
+		}
+	}
 
-	ctrl->length = 16;
+	// LUN list length, 8 bytes per LUN
+	// SCSI standard: The contents of the LUN LIST LENGTH field	are not altered based on the allocation length
+	buf[0] = (luns * 8) >> 24;
+	buf[1] = (luns * 8) >> 16;
+	buf[2] = (luns * 8) >> 8;
+	buf[3] = luns * 8;
+
+	ctrl->length = allocation_length < 8 + luns * 8 ? allocation_length : 8 + luns * 8;
 
 	controller->DataIn();
 }
@@ -1608,11 +1626,6 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	return true;
 }
 
-void Disk::SetSize(uint32_t size)
-{
-	disk.size = size;
-}
-
 uint32_t Disk::GetSectorSizeInBytes() const
 {
 	return disk.size ? 1 << disk.size : 0;
@@ -1654,9 +1667,14 @@ void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 	}
 }
 
-uint32_t Disk::GetSectorSize() const
+uint32_t Disk::GetSectorSizeShiftCount() const
 {
 	return disk.size;
+}
+
+void Disk::SetSectorSizeShiftCount(uint32_t size)
+{
+	disk.size = size;
 }
 
 bool Disk::IsSectorSizeConfigurable() const

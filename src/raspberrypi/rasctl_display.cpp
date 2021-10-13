@@ -122,7 +122,11 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 
 		const PbDeviceProperties& properties = it->properties();
 
-		cout << "  Supported LUNs: " << properties.luns() << endl;
+		cout << "  Supported LUN numbers: 0";
+		if (properties.luns() > 1) {
+			cout << "-" << (properties.luns() - 1);
+		}
+		cout << endl;
 
 		if (properties.read_only() || properties.protectable() || properties.stoppable() || properties.read_only()
 				|| properties.lockable()) {

@@ -52,7 +52,7 @@ using namespace rascsi_interface;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	2					// Number of units around controller
+#define UnitNum	SASIDEV::UnitMax	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 //---------------------------------------------------------------------------
@@ -375,6 +375,48 @@ bool MapController(Device **map)
 	return status;
 }
 
+string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existing_devices)
+{
+	// Mapping of available LUNs (bit vector) to devices
+	map<uint32_t, uint32_t> luns;
+
+	// Collect LUN vectors of new devices
+	for (const auto& device : command.devices()) {
+		luns[device.id()] |= 1 << device.unit();
+	}
+
+	// Collect LUN vectors of existing devices
+	for (auto const& device : existing_devices) {
+		if (device) {
+			luns[device->GetId()] |= 1 << device->GetLun();
+		}
+	}
+
+	// LUNs must be consecutive
+	for (auto const& [id, lun]: luns) {
+		bool is_consecutive = false;
+
+		uint32_t lun_vector = 0;
+		for (int i = 0; i < 32; i++) {
+			lun_vector |= 1 << i;
+
+			if (lun == lun_vector) {
+				is_consecutive = true;
+				break;
+			}
+		}
+
+		if (!is_consecutive) {
+			ostringstream error;
+			error << "LUNs for device ID " << id << " are not consecutive";
+
+			return error.str();
+		}
+	}
+
+	return "";
+}
+
 bool ReturnStatus(int fd, bool status = true, const string msg = "")
 {
 	if (!status && !msg.empty()) {
@@ -451,7 +493,7 @@ void LogDevices(const string& devices)
 	}
 }
 
-const char *SetDefaultImageFolder(const string& f)
+string SetDefaultImageFolder(const string& f)
 {
 	string folder = f;
 
@@ -479,14 +521,14 @@ const char *SetDefaultImageFolder(const string& f)
 	struct stat info;
 	stat(folder.c_str(), &info);
 	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
-		return string("Folder '" + f + "' does not exist or is not accessible").c_str();
+		return string("Folder '" + f + "' does not exist or is not accessible");
 	}
 
 	default_image_folder = folder;
 
 	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
 
-	return NULL;
+	return "";
 }
 
 string SetReservedIds(const string& ids)
@@ -833,6 +875,20 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		}
 	}
 
+	int supported_luns = device->GetSupportedLuns();
+	if (unit >= supported_luns) {
+		delete device;
+
+		error << "Invalid unit " << unit << " for device type " << PbDeviceType_Name(type);
+		if (supported_luns == 1) {
+			error << " (0)";
+		}
+		else {
+			error << " (0-" << (supported_luns -1) << ")";
+		}
+		return ReturnStatus(fd, false, error.str());
+	}
+
 	// If no filename was provided the medium is considered removed
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 	if (file_support) {
@@ -864,11 +920,15 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		Disk *disk = dynamic_cast<Disk *>(device);
 		if (disk && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
+				delete device;
+
 				error << "Invalid block size " << pb_device.block_size() << " bytes";
 				return ReturnStatus(fd, false, error);
 			}
 		}
 		else {
+			delete device;
+
 			return ReturnStatus(fd, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
 		}
 	}
@@ -957,30 +1017,26 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 	return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 }
 
-bool Detach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dryRun)
+bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 {
 	if (!dryRun) {
-		const int id = pb_device.id();
-		const int unit = pb_device.unit();
+		for (size_t i = devices.size() - 1; i > 0; i--) {
+			Device *d = map[i];
+			// Detach all LUNs equal to or higher than the LUN specified
+			if (d && d->GetId() == device->GetId() && d->GetLun() >= device->GetLun()) {
+				map[d->GetId() * UnitNum + d->GetLun()] = NULL;
 
-		Device *device = map[id * UnitNum + unit];
+				FileSupport *file_support = dynamic_cast<FileSupport *>(d);
+				if (file_support) {
+					file_support->UnreserveFile();
+				}
 
-		map[id * UnitNum + unit] = NULL;
+				LOGINFO("Detached %s device with ID %d, unit %d", d->GetType().c_str(), d->GetId(), d->GetLun());
+			}
 
-		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
-		if (file_support) {
-			file_support->UnreserveFile();
+			// Re-map the controller
+			MapController(map);
 		}
-
-		// Re-map the controller, remember the device type because the device gets lost when re-mapping
-		const string device_type = device ? device->GetType() : PbDeviceType_Name(UNDEFINED);
-		bool status = MapController(map);
-		if (status) {
-			LOGINFO("Detached %s device with ID %d, unit %d", device_type.c_str(), id, unit);
-			return true;
-		}
-
-		return ReturnStatus(fd, false, "SASI and SCSI can't be mixed");
 	}
 
 	return true;
@@ -1145,12 +1201,12 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 	// Does the unit exist?
 	Device *device = devices[id * UnitNum + unit];
 	if (!device) {
-		error << "Received a command for a non-existing device, ID " << id << ", unit " << unit;
+		error << "Received a command for a non-existing device or unit, ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, error);
 	}
 
 	if (operation == DETACH) {
-		return Detach(fd, pb_device, map, dryRun);
+		return Detach(fd, device, map, dryRun);
 	}
 
 	if ((operation == START || operation == STOP) && !device->IsStoppable()) {
@@ -1280,8 +1336,14 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		}
 	}
 
-	// Restore list of reserved files, then execute the command
+	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
+
+	string result = ValidateLunSetup(command, devices);
+	if (!result.empty()) {
+		return ReturnStatus(fd, false, result);
+	}
+
 	for (const auto& device : command.devices()) {
 		if (!ProcessCmd(fd, device, command, false)) {
 			return false;
@@ -1289,6 +1351,37 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 	}
 
 	return ReturnStatus(fd);
+}
+
+bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
+{
+	size_t separator_pos = id_spec.find(':');
+	if (separator_pos == string::npos) {
+		int max_id = type == SAHD ? 16 : 8;
+
+		if (!GetAsInt(id_spec, id) || id < 0 || id >= max_id) {
+			cerr << optarg << ": Invalid device ID (0-" << (max_id - 1) << ")" << endl;
+			return false;
+		}
+
+		// Required for SASI ID/LUN handling backwards compatibility
+		unit = 0;
+		if (type == SAHD) {
+			unit = id % 2;
+			id /= 2;
+		}
+	}
+	else {
+		int max_unit = type == SAHD ? 2 : UnitNum;
+
+		if (!GetAsInt(id_spec.substr(0, separator_pos), id) || id < 0 || id > 7 ||
+				!GetAsInt(id_spec.substr(separator_pos + 1), unit) || unit < 0 || unit >= max_unit) {
+			cerr << optarg << ": Invalid unit (0-" << (max_unit - 1) << ")" << endl;
+			return false;
+		}
+	}
+
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1300,8 +1393,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 {
 	PbCommand command;
 	int id = -1;
-	bool is_sasi = false;
-	int max_id = 7;
+	int unit = -1;
 	PbDeviceType type = UNDEFINED;
 	int block_size = 0;
 	string name;
@@ -1314,24 +1406,20 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			// The three options below are kind of a compound option with two letters
 			case 'i':
 			case 'I':
-				is_sasi = false;
-				max_id = 7;
 				id = -1;
+				unit = -1;
 				continue;
 
 			case 'h':
 			case 'H':
-				is_sasi = true;
-				max_id = 15;
 				id = -1;
+				unit = -1;
+				type = SAHD;
 				continue;
 
 			case 'd':
 			case 'D': {
-				char* end;
-				id = strtol(optarg, &end, 10);
-				if (*end || id < 0 || max_id < id) {
-					cerr << optarg << ": invalid " << (is_sasi ? "HD" : "ID") << " (0-" << max_id << ")" << endl;
+				if (!ProcessId(optarg, type, id, unit)) {
 					return false;
 				}
 				continue;
@@ -1346,8 +1434,8 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			}
 
 			case 'F': {
-				const char *result = SetDefaultImageFolder(optarg);
-				if (result) {
+				string result = SetDefaultImageFolder(optarg);
+				if (!result.empty()) {
 					cerr << result << endl;
 					return false;
 				}
@@ -1400,12 +1488,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			return false;
 		}
 
-		int unit = 0;
-		if (is_sasi) {
-			unit = id % UnitNum;
-			id /= UnitNum;
-		}
-
 		// Set up the device data
 		PbDeviceDefinition *device = command.add_devices();
 		device->set_id(id);
@@ -1414,14 +1496,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_block_size(block_size);
 		AddParam(*device, "file", optarg);
 
-		size_t separatorPos = name.find(':');
-		if (separatorPos != string::npos) {
-			device->set_vendor(name.substr(0, separatorPos));
-			name = name.substr(separatorPos + 1);
-			separatorPos = name.find(':');
-			if (separatorPos != string::npos) {
-				device->set_product(name.substr(0, separatorPos));
-				device->set_revision(name.substr(separatorPos + 1));
+		size_t separator_pos = name.find(':');
+		if (separator_pos != string::npos) {
+			device->set_vendor(name.substr(0, separator_pos));
+			name = name.substr(separator_pos + 1);
+			separator_pos = name.find(':');
+			if (separator_pos != string::npos) {
+				device->set_product(name.substr(0, separator_pos));
+				device->set_revision(name.substr(separator_pos + 1));
 			}
 			else {
 				device->set_product(name);
@@ -1543,8 +1625,8 @@ static void *MonThread(void *param)
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					const char *result = SetDefaultImageFolder(folder);
-					if (result) {
+					string result = SetDefaultImageFolder(folder);
+					if (!result.empty()) {
 						ReturnStatus(fd, false, result);
 					}
 					else {

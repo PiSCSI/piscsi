@@ -35,6 +35,9 @@
         <tbody>
         <tr>
             <td><b>ID</b></td>
+	    {% if luns %}
+            <td><b>LUN</b></td>
+	    {% endif %}
             <td><b>Type</b></td>
             <td><b>Status</b></td>
             <td><b>File</b></td>
@@ -45,6 +48,9 @@
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{device.id}}</td>
+	    {% if luns %}
+            <td style="text-align:center">{{device.un}}</td>
+	    {% endif %}
             <td style="text-align:center">{{device.device_type}}</td>
             <td style="text-align:center">{{device.status}}</td>
             <td style="text-align:left">{{device.file}}</td>
@@ -57,25 +63,32 @@
                 {% if device.device_type in removable_device_types and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
+                    <input type="hidden" name="un" value="{{device.un}}">
                     <input type="submit" value="Eject" />
                 </form>
                 <form action="/scsi/info" method="post">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
+                    <input type="hidden" name="un" value="{{device.un}}">
                     <input type="submit" value="Info" />
                 </form>
                 {% else %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
+                    <input type="hidden" name="un" value="{{device.un}}">
                     <input type="submit" value="Detach" />
                 </form>
                 <form action="/scsi/info" method="post">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
+                    <input type="hidden" name="un" value="{{device.un}}">
                     <input type="submit" value="Info" />
                 </form>
                 {% endif %}
             </td>
             {% else %}
             <td class="inactive">{{device.id}}</td>
+	    {% if luns %}
+            <td class="inactive"></td>
+	    {% endif %}
             <td class="inactive"></td>
             <td class="inactive">Reserved ID</td>
             <td class="inactive"></td>
@@ -93,6 +106,7 @@
     <summary>Valid Image Files</summary>
     <ul>
     <li>A list of image files in <tt>{{base_dir}}</tt> that RaSCSI has identified as valid.</li>
+    <li>Select a valid SCSI ID and <a href="https://en.wikipedia.org/wiki/Logical_unit_number">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.</li>
     <li>If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.</li>
     <li>Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT</li>
     </ul>
@@ -118,17 +132,20 @@
                 <form action="/scsi/attach" method="post">
                     <input type="hidden" name="file_name" value="{{file["name"]}}">
                     <input type="hidden" name="file_size" value="{{file["size"]}}">
+                    <label for="id">ID</label>
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
-                        <option value="{{id}}">{{id}}</option>
+			<option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
                     </select>
+		    <label for="un">LUN</label>
+		    <input type="text" name="un" size="1" value="0" />
 		    {% if file["detected_type"] != "UNDEFINED" %}
 		    <input type="hidden" name="type" value="{{file["detected_type"]}}">
 		    {{file["detected_type"]}}
 	            {% else %}
 		    <select name="type">
-                        <option value="" selected>????</option>
+                        <option value="" selected>Type</option>
 			{% for d in device_types %}
 			<option value="{{d}}">{{d}}</option>
 			{% endfor %}
@@ -184,7 +201,7 @@
 		    <label for="scsi_id">SCSI ID:</label>
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
-                        <option value="{{id}}">{{id}}</option>
+                        <option value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
                     </select>
                     <input type="submit" value="Attach" />
@@ -262,7 +279,7 @@
                 <form action="/files/download_to_iso" method="post">
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
-                        <option value="{{id}}">{{id}}</option>
+                        <option value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
                     </select>
                     <label for="url">URL:</label>
