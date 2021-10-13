@@ -171,11 +171,6 @@ PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, 
 						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, image_folder.c_str());
 						continue;
 					}
-
-					if (st.st_size % 512) {
-						LOGTRACE("Size of file '%s' in image folder '%s' is not a multiple of 512", dir->d_name, image_folder.c_str());
-						continue;
-					}
 				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
 					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, image_folder.c_str());
 					continue;

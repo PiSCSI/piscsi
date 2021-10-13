@@ -134,7 +134,7 @@ Specifies the device type. This type overrides the type derived from the file ex
 The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.
 .TP 
 .BR \-u\fI " " \fIUNIT
-Unit number (0 or 1). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
+Unit number (0-31). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
 
 .SH EXAMPLES
 Show a listing of all of the SCSI devices and their current status.

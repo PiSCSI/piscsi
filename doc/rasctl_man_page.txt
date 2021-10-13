@@ -127,9 +127,9 @@ OPTIONS
               changed.
 
        -u UNIT
-              Unit number (0 or 1). This will default to  0.  This  option  is
-              only  used when there are multiple SCSI devices on a shared SCSI
-              controller. (This is not common)
+              Unit number (0-31). This will default to 0. This option is  only
+              used  when there are multiple SCSI devices on a shared SCSI con‐
+              troller. (This is not common)
 
 EXAMPLES
        Show a listing of all of the SCSI devices and their current status.

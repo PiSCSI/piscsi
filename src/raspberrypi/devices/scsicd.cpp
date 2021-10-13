@@ -307,6 +307,9 @@ void SCSICD::Open(const Filepath& path)
 		throw file_not_found_exception("Can't open CD-ROM file");
 	}
 
+	// Default sector size is 2048 bytes
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048, false);
+
 	// Close and transfer for physical CD access
 	if (path.GetPath()[0] == _T('\\')) {
 		// Close
@@ -340,9 +343,6 @@ void SCSICD::Open(const Filepath& path)
 
 	// Successful opening
 	ASSERT(GetBlockCount() > 0);
-
-	// Default sector size is 2048 bytes
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048, false);
 
 	Disk::Open(path);
 	FileSupport::SetPath(path);
@@ -420,29 +420,18 @@ void SCSICD::OpenIso(const Filepath& path)
 	fio.Close();
 
 	if (rawfile) {
-		// Size must be a multiple of 2536 and less than 700MB
+		// Size must be a multiple of 2536
 		if (size % 2536) {
 			stringstream error;
 			error << "Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is " << size << " bytes";
 			throw io_exception(error.str());
 		}
-		if (size > 912579600) {
-			throw io_exception("Raw ISO CD-ROM file size must not exceed 700 MB");
-		}
 
 		// Set the number of blocks
 		SetBlockCount((DWORD)(size / 0x930));
 	} else {
-		// Size must be a multiple of 2048 and less than 700MB
-		if (size % 2048) {
-			throw io_exception("ISO CD-ROM file size must be a multiple of 2048 bytes");
-		}
-		if (size > 0x2bed5000) {
-			throw io_exception("ISO CD-ROM file size must not exceed 700 MB");
-		}
-
 		// Set the number of blocks
-		SetBlockCount((DWORD)(size >> 11));
+		SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 	}
 
 	// Create only one data track
@@ -477,16 +466,11 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	// Close
 	fio.Close();
 
-	// Size must be a multiple of 2048 and less than 700MB
-	if (size & 0x7ff) {
-		throw io_exception("CD-ROM file size must be a multiple of 2048 bytes");
-	}
-	if (size > 0x2bed5000) {
-		throw io_exception("CD-ROM file size must not exceed 700 MB");
-	}
+	// Effective size must be a multiple of 512
+	size = (size / 512) * 512;
 
 	// Set the number of blocks
-	SetBlockCount((DWORD)(size >> 11));
+	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	// Create only one data track
 	ASSERT(!track[0]);
@@ -615,7 +599,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		track[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, GetSectorSize(), GetBlockCount());
+		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index

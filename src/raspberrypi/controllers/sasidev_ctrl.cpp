@@ -50,6 +50,7 @@ SASIDEV::SASIDEV()
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
+	ctrl.lun = -1;
 
 	// Logical unit initialization
 	for (int i = 0; i < UnitMax; i++) {
@@ -235,6 +236,9 @@ void SASIDEV::BusFree()
 		// Initialize status and message
 		ctrl.status = 0x00;
 		ctrl.message = 0x00;
+
+		ctrl.lun = -1;
+
 		return;
 	}
 
@@ -304,11 +308,9 @@ void SASIDEV::Command()
 		ctrl.length = 6;
 		ctrl.blocks = 1;
 
-		// Command reception handshake (10 bytes are automatically received at the first command)
-		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
-
 		// If no byte can be received move to the status phase
-		if (count == 0) {
+		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
+		if (!count) {
 			Error();
 			return;
 		}
@@ -324,6 +326,7 @@ void SASIDEV::Command()
 		// Command data transfer
 		for (int i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
+			LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 		}
 
 		// Clear length and block
@@ -424,10 +427,10 @@ void SASIDEV::Execute()
 	}
 
 	// Unsupported command
-	LOGWARN("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
+	LOGTRACE("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (ctrl.unit[lun]) {
 		// Command processing on drive
 		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
@@ -637,7 +640,7 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 	}
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;
@@ -1066,7 +1069,7 @@ bool SASIDEV::XferIn(BYTE *buf)
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
@@ -1111,7 +1114,7 @@ bool SASIDEV::XferOut(bool cont)
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
@@ -1208,7 +1211,7 @@ void SASIDEV::FlushUnit()
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return;
 	}
@@ -1259,3 +1262,9 @@ void SASIDEV::FlushUnit()
 			break;
 	}
 }
+
+int SASIDEV::GetEffectiveLun() const
+{
+	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
+}
+

@@ -37,7 +37,7 @@ enum PbOperation {
     //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
     ATTACH = 1;
 
-    // Detach devices
+    // Detach a device. Detaches all LUNs of that device which are equal to or higher than the LUN specified.
     DETACH = 2;
 
     // Detach all devices, does not require a device list
@@ -95,9 +95,9 @@ enum PbOperation {
     // Get the list of reserved device IDs
     RESERVED_IDS_INFO = 19;
 
-    // Set the default folder for image files.
+    // Set the default folder for image files. This folder must be located in /home.
     // Parameters:
-    //   "folder": The default folder name.
+    //   "folder": The path of the default folder, relative to the user's home folder if relative.
     DEFAULT_FOLDER = 20;
 
     // Set a new log level.
@@ -114,7 +114,7 @@ enum PbOperation {
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     //   "size": The file size in bytes, must be a multiple of 512
-    //   "read_only": "true" (case-insensitive) in order to create a read-only file, otherwise "false"
+    //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     CREATE_IMAGE = 23;
 
     // Delete an image file.
@@ -133,6 +133,7 @@ enum PbOperation {
     // Parameters:
     //   "from": The source filename, relative to the default image folder. It must not contain a slash.
     //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
+    //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     // The destination filename must not yet exist.
     COPY_IMAGE = 26;
     
@@ -170,7 +171,7 @@ message PbDeviceProperties {
     bool supports_params = 7;
     // List of default parameters, if any (requires supports_params to be true)
     map<string, string> default_params = 8;
-    // Number of supported LUNs, at least 1 (for LUN 0)
+    // LUN numbers this device can represent. At least 1 (for LUN 0 only). Maxium is 32, for LUNs 0-31.
     int32 luns = 9;
     // Unordered list of permitted block sizes in bytes, empty if the block size is not configurable
     repeated uint32 block_sizes = 10;
