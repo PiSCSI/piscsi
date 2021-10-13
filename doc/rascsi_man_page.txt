@@ -7,18 +7,20 @@ NAME
 
 SYNOPSIS
        rascsi  [-F[u00AE]  FOLDER] [-L[u00AE] LOG_LEVEL] [-h] [-n VENDOR:PROD‐
-       UCT:REVISION] [-p[u00AE] PORT] [-r RESERVED_IDS] [-n TYPE]  [-v]  [-IDn
-       FILE] [-HDn FILE]...
+       UCT:REVISION]  [-p[u00AE]  PORT]  [-r  RESERVED_IDS]  [-n  TYPE]   [-v]
+       [-IDn:[u] FILE] [-HDn[:u] FILE]...
 
 DESCRIPTION
        rascsi Emulates SCSI devices using the Raspberry Pi GPIO pins.
 
-       In  the arguments to RaSCSI, one or more SCSI (-IDn) or SASI (-HDn) de‐
-       vices can be specified.  The number (n) after the ID or  HD  identifier
-       specifies  the  ID number for that device.  For SCSI: The ID is limited
-       from 0-7. However, typically SCSI ID 7 is reserved for the  "initiator"
-       (the host computer). Note that SASI is considered rare and only used on
-       very early Sharp X68000 computers.
+       In  the  arguments  to  RaSCSI,  one  or  more  SCSI (-IDn[:u]) or SASI
+       (-HDn[:u]) devices can be specified.  The number (n) after the ID or HD
+       identifier specifies the ID number for that device. The optional number
+       (u) specifies the LUN (logical unit) for that device. The  default  LUN
+       is 0.  For SCSI: The ID is limited from 0-7. However, typically SCSI ID
+       7 is reserved for the "initiator" (the host computer). The LUN is  lim‐
+       ited from 0-31. Note that SASI is considered rare and only used on very
+       early Sharp X68000 computers.
 
        RaSCSI will determine the type of device based upon the file  extension
        of the FILE argument.
@@ -85,15 +87,19 @@ OPTIONS
 
        -v     Display the rascsi version.
 
-       -IDn FILE
-              n is the SCSI ID number (0-7)
+       -IDn[:u] FILE
+              n is the SCSI ID number (0-7). u  (0-31)  is  the  optional  LUN
+              (logical unit). The default LUN is 0.
 
-              FILE is the name of the image file to use for the  SCSI  device.
-              For  devices  that  do  not support an image file (SCBR, SCDP) a
+              FILE  is  the name of the image file to use for the SCSI device.
+              For devices that do not support an image  file  (SCBR,  SCDP)  a
               dummy name must be provided.
 
-       -HDn FILE
-              n is the SASI ID number (0-15)
+       -HDn[:u] FILE
+              n  is the SASI ID number (0-15). The effective SASI ID is calcu‐
+              lated as n/2, the effective SASI LUN is calculated  is  the  re‐
+              mainder  of n/2. Alternatively the n:u syntax can be used, where
+              ns is the SASI ID (0-7) and u the LUN (0-1).
 
               FILE is the name of the image file to use for the SASI device.
 
@@ -121,7 +127,7 @@ EXAMPLES
           fallocate -l 104857600 /path/to/newimage.hda
 
 SEE ALSO
-       rasctl(1), scsimon(1)
+       rasctl(1), scsimon(1), rasdump(1), sasidump(1)
 
        Full          documentation          is          available          at:
        <https://www.github.com/akuker/RASCSI/wiki/>

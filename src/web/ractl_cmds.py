@@ -99,45 +99,28 @@ def get_device_types():
     return {"status": result.status, "device_types": device_types}
     
 
-def validate_scsi_id(scsi_id):
-    """
-    Checks that scsi_id is a valid SCSI ID, i.e. a number between 0 and 7.
-    Returns a dict with:
-    - boolean status
-    - str msg (result message)
-    """
-    from re import match
-    if match("[0-7]", str(scsi_id)) != None:
-        return {"status": True, "msg": "Valid SCSI ID."}
-    else:
-        return {"status": False, "msg": "Invalid SCSI ID. Should be a number between 0-7"}
-
-
 def get_valid_scsi_ids(devices, reserved_ids):
     """
     Takes a list of dicts devices, and list of ints reserved_ids.
-    Returns a list of ints valid_ids, which are the SCSI ids where it is possible to attach a device.
+    Returns:
+    - list of ints valid_ids, which are the SCSI ids that are not reserved
+    - int recommended_id, which is the id that the Web UI should default to recommend
     """
     occupied_ids = []
     for d in devices:
-        # Make it possible to insert images on top of a 
-        # removable media device currently without an image attached
-        if d["device_type"] != "-" and "No Media" not in d["status"]:
-            occupied_ids.append(d["id"])
+        occupied_ids.append(d["id"])
 
-    # Combine lists and remove duplicates
-    invalid_ids = list(set(reserved_ids + occupied_ids))
-    valid_ids = list(range(8))
-    for id in invalid_ids:
-        try:
-            valid_ids.remove(int(id))
-        except:
-            # May reach this state if the RaSCSI Web UI thinks an ID
-            # is reserved but RaSCSI has not actually reserved it.
-            logging.warning(f"SCSI ID {id} flagged as both valid and invalid. \
-                    Try restarting the RaSCSI Web UI.")
-    valid_ids.reverse()
-    return valid_ids
+    unoccupied_ids = [i for i in list(range(8)) if i not in reserved_ids + occupied_ids]
+    unoccupied_ids.sort()
+    valid_ids = [i for i in list(range(8)) if i not in reserved_ids]
+    valid_ids.sort(reverse=True)
+
+    if len(unoccupied_ids) > 0:
+        recommended_id = unoccupied_ids[-1]
+    else:
+        recommended_id = occupied_ids.pop(0)
+
+    return valid_ids, recommended_id
 
 
 def attach_image(scsi_id, **kwargs):
@@ -167,7 +150,7 @@ def attach_image(scsi_id, **kwargs):
 
     # Handling the inserting of media into an attached removable type device
     device_type = kwargs.get("device_type", None) 
-    currently_attached = list_devices(scsi_id)["device_list"]
+    currently_attached = list_devices(scsi_id, kwargs.get("unit"))["device_list"]
     if len(currently_attached) > 0:
         current_type = currently_attached[0]["device_type"] 
     else:
@@ -175,7 +158,8 @@ def attach_image(scsi_id, **kwargs):
 
     if device_type in REMOVABLE_DEVICE_TYPES and current_type in REMOVABLE_DEVICE_TYPES:
         if current_type != device_type:
-            return {"status": False, "msg": f"Cannot insert an image for {device_type} into a {current_type} device."}
+            return {"status": False, "msg": f"Cannot insert an image for \
+                    {device_type} into a {current_type} device."}
         else:
             command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
@@ -205,13 +189,16 @@ def attach_image(scsi_id, **kwargs):
     return {"status": result.status, "msg": result.msg}
 
 
-def detach_by_id(scsi_id):
+def detach_by_id(scsi_id, un=None):
     """
-    Takes int scsi_id and sends a DETACH command to the server.
+    Takes int scsi_id and optional int un
+    Sends a DETACH command to the server.
     Returns boolean status and str msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
+    if un != None:
+        devices.unit = int(un)
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH
@@ -237,13 +224,16 @@ def detach_all():
     return {"status": result.status, "msg": result.msg}
 
 
-def eject_by_id(scsi_id):
+def eject_by_id(scsi_id, un=None):
     """
-    Takes int scsi_id and sends an EJECT command to the server.
+    Takes int scsi_id and optional int un.
+    Sends an EJECT command to the server.
     Returns boolean status and str msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
+    if un != None:
+        devices.unit = int(un)
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.EJECT
@@ -255,9 +245,10 @@ def eject_by_id(scsi_id):
     return {"status": result.status, "msg": result.msg}
 
 
-def list_devices(scsi_id=None):
+def list_devices(scsi_id=None, un=None):
     """
-    Takes optional int scsi_id and sends a DEVICES_INFO command to the server.
+    Takes optional int scsi_id and optional int un.
+    Sends a DEVICES_INFO command to the server.
     If no scsi_id is provided, returns a list of dicts of all attached devices.
     If scsi_id is is provided, returns a list of one dict for the given device.
     If no attached device is found, returns an empty list.
@@ -272,6 +263,8 @@ def list_devices(scsi_id=None):
     if scsi_id != None:
         device = proto.PbDeviceDefinition()
         device.id = int(scsi_id)
+        if un != None:
+            device.unit = int(un)
         command.devices.append(device)
 
     data = send_pb_command(command.SerializeToString())

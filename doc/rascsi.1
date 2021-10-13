@@ -11,15 +11,15 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 [\fB\-r\fR \fIRESERVED_IDS\fR]
 [\fB\-n\fR \fITYPE\fR]
 [\fB\-v\fR]
-[\fB\-IDn\fR \fIFILE\fR]
-[\fB\-HDn\fR \fIFILE\fR]...
+[\fB\-IDn:[u]\fR \fIFILE\fR]
+[\fB\-HDn[:u]\fR \fIFILE\fR]...
 .SH DESCRIPTION
 .B rascsi
 Emulates SCSI devices using the Raspberry Pi GPIO pins.
 .PP
-In the arguments to RaSCSI, one or more SCSI (-IDn) or SASI (-HDn) devices can be specified.
-The number (n) after the ID or HD identifier specifies the ID number for that device.
-For SCSI: The ID is limited from 0-7. However, typically SCSI ID 7 is reserved for the "initiator" (the host computer). Note that SASI is considered rare and only used on very early Sharp X68000 computers.
+In the arguments to RaSCSI, one or more SCSI (-IDn[:u]) or SASI (-HDn[:u]) devices can be specified.
+The number (n) after the ID or HD identifier specifies the ID number for that device. The optional number (u) specifies the LUN (logical unit) for that device. The default LUN is 0.
+For SCSI: The ID is limited from 0-7. However, typically SCSI ID 7 is reserved for the "initiator" (the host computer). The LUN is limited from 0-31. Note that SASI is considered rare and only used on very early Sharp X68000 computers.
 .PP
 RaSCSI will determine the type of device based upon the file extension of the FILE argument.
     hdf: SASI Hard Disk image (XM6 SASI HD image - typically only used with X68000)
@@ -69,13 +69,13 @@ The optional case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, S
 .BR \-v\fI " " \fI
 Display the rascsi version.
 .TP
-.BR \-ID\fIn " " \fIFILE
-n is the SCSI ID number (0-7)
+.BR \-ID\fIn[:u] " " \fIFILE
+n is the SCSI ID number (0-7). u (0-31) is the optional LUN (logical unit). The default LUN is 0.
 .IP
 FILE is the name of the image file to use for the SCSI device. For devices that do not support an image file (SCBR, SCDP) a dummy name must be provided.
 .TP 
-.BR \-HD\fIn " " \fIFILE
-n is the SASI ID number (0-15)
+.BR \-HD\fIn[:u] " " \fIFILE
+n is the SASI ID number (0-15). The effective SASI ID is calculated as n/2, the effective SASI LUN is calculated is the remainder of n/2. Alternatively the n:u syntax can be used, where ns is the SASI ID (0-7) and u the LUN (0-1).
 .IP
 FILE is the name of the image file to use for the SASI device.
 .IP
