@@ -135,7 +135,7 @@
                     <label for="id">ID</label>
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
-                        <option name="id" value="{{id}}">{{id}}</option>
+			<option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
                     </select>
 		    <label for="un">LUN</label>

@@ -111,22 +111,28 @@ def validate_scsi_id(scsi_id):
         return {"status": False, "msg": "Invalid SCSI ID. Should be a number between 0-7"}
 
 
-def get_valid_scsi_ids(invalid_ids):
+def get_valid_scsi_ids(devices, reserved_ids):
     """
     Takes a list of dicts devices, and list of ints reserved_ids.
-    Returns a list of ints valid_ids, which are the SCSI ids where it is possible to attach a device.
+    Returns:
+    - list of ints valid_ids, which are the SCSI ids where it is possible to attach a device
+    - recommended_id, which is the id that the UI should default to
     """
-    valid_ids = list(range(8))
-    for id in invalid_ids:
-        try:
-            valid_ids.remove(int(id))
-        except:
-            # May reach this state if the RaSCSI Web UI thinks an ID
-            # is reserved but RaSCSI has not actually reserved it.
-            logging.warning(f"SCSI ID {id} flagged as both valid and invalid. \
-                    Try restarting the RaSCSI Web UI.")
-    valid_ids.reverse()
-    return valid_ids
+    occupied_ids = []
+    for d in devices:
+        occupied_ids.append(d["id"])
+
+    unoccupied_ids = [i for i in list(range(8)) if i not in reserved_ids + occupied_ids]
+    unoccupied_ids.sort()
+    valid_ids = [i for i in list(range(8)) if i not in reserved_ids]
+    valid_ids.sort(reverse=True)
+
+    if len(unoccupied_ids) > 0:
+        recommended_id = unoccupied_ids[-1]
+    else:
+        recommended_id = occupied_ids.pop(0)
+
+    return valid_ids, recommended_id
 
 
 def attach_image(scsi_id, **kwargs):

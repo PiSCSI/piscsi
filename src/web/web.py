@@ -72,12 +72,11 @@ def index():
 
     luns = 0
     for d in devices["device_list"]:
-        logging.warning(d)
         luns += int(d["un"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
+    scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     formatted_devices = sort_and_format_devices(devices["device_list"])
-    scsi_ids = get_valid_scsi_ids(reserved_scsi_ids)
 
     valid_file_suffix = "."+", .".join(
             server_info["sahd"] +
@@ -100,6 +99,7 @@ def index():
         base_dir=base_dir,
         cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
+        recommended_id=recommended_id,
         luns=luns,
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
@@ -493,7 +493,7 @@ def download_file():
         flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to download and attach file {url}", "error")
+        flash(f"Failed to download and/or attach file {url}", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
