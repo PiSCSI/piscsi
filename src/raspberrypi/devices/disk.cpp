@@ -1626,11 +1626,6 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	return true;
 }
 
-void Disk::SetSize(uint32_t size)
-{
-	disk.size = size;
-}
-
 uint32_t Disk::GetSectorSizeInBytes() const
 {
 	return disk.size ? 1 << disk.size : 0;
@@ -1672,9 +1667,14 @@ void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 	}
 }
 
-uint32_t Disk::GetSectorSize() const
+uint32_t Disk::GetSectorSizeShiftCount() const
 {
 	return disk.size;
+}
+
+void Disk::SetSectorSizeShiftCount(uint32_t size)
+{
+	disk.size = size;
 }
 
 bool Disk::IsSectorSizeConfigurable() const

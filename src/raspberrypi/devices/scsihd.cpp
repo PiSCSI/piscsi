@@ -105,14 +105,10 @@ void SCSIHD::Open(const Filepath& path)
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, false);
-	SetBlockCount((DWORD)(size >> GetSectorSize()));
+	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
-	// File size must be a multiple of the sector size
-	if (size % GetSectorSizeInBytes()) {
-		stringstream error;
-		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
-		throw io_exception(error.str());
-	}
+	// Effective size must be a multiple of the sector size
+	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 
 	FinalizeSetup(path, size);
 }
@@ -182,7 +178,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Mode Parameter header
 		if (length >= 12) {
 			// Check the block length bytes
-			size = 1 << GetSectorSize();
+			size = 1 << GetSectorSizeShiftCount();
 			if (buf[9] != (BYTE)(size >> 16) ||
 				buf[10] != (BYTE)(size >> 8) ||
 				buf[11] != (BYTE)size) {
@@ -203,7 +199,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				// format device
 				case 0x03:
 					// check the number of bytes in the physical sector
-					size = 1 << GetSectorSize();
+					size = 1 << GetSectorSizeShiftCount();
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length

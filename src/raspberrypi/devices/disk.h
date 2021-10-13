@@ -124,10 +124,10 @@ public:
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
 	int ReadDefectData10(const DWORD *cdb, BYTE *buf);
 
-	void SetSize(uint32_t);
 	uint32_t GetSectorSizeInBytes() const;
 	void SetSectorSizeInBytes(uint32_t, bool);
-	uint32_t GetSectorSize() const;
+	uint32_t GetSectorSizeShiftCount() const;
+	void SetSectorSizeShiftCount(uint32_t);
 	bool IsSectorSizeConfigurable() const;
 	set<uint32_t> GetSectorSizes() const;
 	void SetSectorSizes(const set<uint32_t>&);
