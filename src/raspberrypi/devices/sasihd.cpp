@@ -71,24 +71,11 @@ void SASIHD::Open(const Filepath& path)
 
 	// Sector size (default 256 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 256, true);
-	SetBlockCount((DWORD)(size >> GetSectorSize()));
+	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
-	if (size % GetSectorSizeInBytes()) {
-		stringstream error;
-		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
-		throw io_exception(error.str());
-	}
-
-	// 10MB or more
-	if (size < 0x9f5400) {
-		throw io_exception("File size must be at least 10 MB");
-	}
-
-	// Limit to about 512MB
-	if (size > 512 * 1024 * 1024) {
-		throw io_exception("File size must not exceed 512 MB");
-	}
+	// Effective size must be a multiple of the sector size
+	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 	#else
 	// 10MB, 20MB, 40MBのみ
 	switch (size) {

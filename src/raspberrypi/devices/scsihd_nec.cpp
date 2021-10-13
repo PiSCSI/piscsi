@@ -69,10 +69,8 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	}
 	fio.Close();
 
-	// Must be in 512 byte units
-	if (size & 0x1ff) {
-		throw io_exception("File size must be a multiple of 512 bytes");
-	}
+	// Effective size must be a multiple of 512
+	size = (size / 512) * 512;
 
 	int image_size = 0;
 	int sector_size = 0;
@@ -129,7 +127,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	if (size <= 0 || size > 16) {
 		throw io_exception("Invalid NEC disk size");
 	}
-	SetSize(size);
+	SetSectorSizeShiftCount(size);
 
 	// Number of blocks
 	SetBlockCount(image_size >> disk.size);
