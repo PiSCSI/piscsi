@@ -201,7 +201,7 @@
 		    <label for="scsi_id">SCSI ID:</label>
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
-                        <option value="{{id}}">{{id}}</option>
+                        <option value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
                     </select>
                     <input type="submit" value="Attach" />
@@ -279,7 +279,7 @@
                 <form action="/files/download_to_iso" method="post">
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
-                        <option value="{{id}}">{{id}}</option>
+                        <option value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
                     </select>
                     <label for="url">URL:</label>
