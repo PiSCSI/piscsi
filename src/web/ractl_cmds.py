@@ -101,8 +101,8 @@ def get_valid_scsi_ids(devices, reserved_ids):
     """
     Takes a list of dicts devices, and list of ints reserved_ids.
     Returns:
-    - list of ints valid_ids, which are the SCSI ids where it is possible to attach a device
-    - recommended_id, which is the id that the UI should default to
+    - list of ints valid_ids, which are the SCSI ids that are not reserved
+    - int recommended_id, which is the id that the Web UI should default to recommend
     """
     occupied_ids = []
     for d in devices:
