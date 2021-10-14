@@ -225,6 +225,8 @@ def write_config(file_name):
     try:
         with open(file_name, "w") as json_file:
             devices = list_devices()["device_list"]
+            if len(devices) == 0:
+                return {"status": False, "msg": "No attached devices."}
             for device in devices:
                 # Remove keys that we don't want to store in the file
                 del device["status"]
