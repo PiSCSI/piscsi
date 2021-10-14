@@ -192,16 +192,15 @@ def drive_create():
         return redirect(url_for("index"))
 
     # Creating the drive properties file
-    from pathlib import Path
-    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
+    prop_file_name = f"{file_name}.{file_type}.{PROPERTIES_SUFFIX}"
     properties = {"vendor": vendor, "product": product, \
             "revision": revision, "block_size": block_size}
-    process = write_drive_properties(file_name, properties)
+    process = write_drive_properties(prop_file_name, properties)
     if process["status"] == True:
-        flash(f"Drive properties file {file_name} created")
+        flash(f"Drive properties file {prop_file_name} created")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to create drive properties file {file_name}", "error")
+        flash(f"Failed to create drive properties file {prop_file_name}", "error")
         return redirect(url_for("index"))
 
 
@@ -347,12 +346,11 @@ def attach():
             expected_block_size = 256
  
     # Attempt to load the device properties file:
-    # same base path but PROPERTIES_SUFFIX instead of the original suffix.
+    # same base path but with PROPERTIES_SUFFIX appended
     from pathlib import Path
-    file_name_base = str(Path(file_name).stem)
-    drive_properties = Path(cfg_dir + file_name_base + "." + PROPERTIES_SUFFIX)
-    if drive_properties.is_file():
-        process = read_drive_properties(str(drive_properties))
+    drive_properties = f"{cfg_dir}{file_name}.{PROPERTIES_SUFFIX}"
+    if Path(drive_properties).is_file():
+        process = read_drive_properties(drive_properties)
         if process["status"] == False:
             flash(f"Failed to load the device properties \
                     file {file_name_base}.{PROPERTIES_SUFFIX}", "error")
@@ -577,42 +575,6 @@ def create_file():
         return redirect(url_for("index"))
 
 
-@app.route("/files/pad", methods=["POST"])
-def image_padding():
-    image = request.form.get("image")
-    multiple = request.form.get("multiple")
-
-    if not image:
-        flash(f"No file selected!", "error")
-        return redirect(url_for("index"))
-
-    file, size = image.split(",")
-
-    if not int(size) % int(multiple):
-        flash(f"{file} does not need to be padded!", "error")
-        return redirect(url_for("index"))
-    else:
-        target_size = int(size) - (int(size) % int(multiple)) + int(multiple)
-
-    server_info = get_server_info()
-
-    from pathlib import PurePath
-    padded_image = server_info["image_dir"] + str(PurePath(file).stem) + \
-            "_padded" + str(PurePath(file).suffix)
-    from shutil import copyfile
-    copyfile(server_info["image_dir"] + file, padded_image)
-
-    process = pad_image(padded_image, target_size)
-    if process["status"] == True:
-        flash(f"Added " + str(target_size - int(size)) + " bytes to " + padded_image + "!")
-        flash(process["msg"])
-        return redirect(url_for("index"))
-    else:
-        flash(f"Failed to pad image!", "error")
-        flash(process["msg"], "error")
-        return redirect(url_for("index"))
-
-
 @app.route("/files/download", methods=["POST"])
 def download():
     image = request.form.get("image")
@@ -653,10 +615,9 @@ def delete():
 @app.route("/files/prop", methods=["POST"])
 def show_properties():
     file_name = request.form.get("image")
-    from pathlib import PurePath
-    file_name = str(PurePath(file_name).stem) + "." + PROPERTIES_SUFFIX
+    file_path = f"{cfg_dir}{file_name}.{PROPERTIES_SUFFIX}"
 
-    process = read_drive_properties(cfg_dir + file_name)
+    process = read_drive_properties(file_path)
     prop = process["conf"]
 
     if process["status"]:
