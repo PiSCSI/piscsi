@@ -1840,6 +1840,7 @@ int main(int argc, char* argv[])
 		return EPERM;
 	}
 
+	// Signal handler to detach all devices on a KILL signal
 	struct sigaction sigIntHandler;
 	sigIntHandler.sa_handler = SigIntHandler;
 	sigemptyset(&sigIntHandler.sa_mask);
