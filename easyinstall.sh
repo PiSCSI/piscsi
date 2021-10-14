@@ -46,12 +46,13 @@ logo="""
 echo -e $logo
 }
 
+BASE="$HOME/RASCSI"
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
-BASE="$HOME/RASCSI"
+WEBINSTDIR="$BASE/src/web"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
-LIDO_DRIVER=~/RASCSI/lido-driver.img
+LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
@@ -73,7 +74,7 @@ function initialChecks() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y
+    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
 }
 
 # compile and install RaSCSI Service
@@ -88,15 +89,11 @@ function installRaScsi() {
         SYSTEMD_BACKUP=false
     fi
 
-    cd ~/RASCSI/src/raspberrypi || exit 1
+    cd "$BASE/src/raspberrypi" || exit 1
 
-    make clean
-    make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
-    sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}"
+    ( make clean && make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
 
-    sudoIsReady=$(sudo grep -c "rascsi" /etc/sudoers)
-
-    if [ "$sudoIsReady" = "0" ]; then
+    if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
         sudo bash -c 'echo "
 # Allow the web server to restart the rascsi service
 www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
@@ -104,6 +101,8 @@ www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
 # Allow the web server to reboot the raspberry pi
 www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 " >> /etc/sudoers'
+    else
+        echo "The sudoers file is already modified for rascsi-web."
     fi
 
     sudo systemctl daemon-reload
@@ -114,24 +113,22 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
-
-    if [ -f ~/RASCSI/src/web/rascsi_interface_pb2.py ]; then
-        rm ~/RASCSI/src/web/rascsi_interface_pb2.py
+    if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
+        rm "$WEBINSTDIR/rascsi_interface_pb2.py"
 	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$BASE/src/web/" rascsi_interface.proto
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEBINSTDIR" rascsi_interface.proto
 
-
-    sudo cp -f ~/RASCSI/src/web/service-infra/nginx-default.conf /etc/nginx/sites-available/default
-    sudo cp -f ~/RASCSI/src/web/service-infra/502.html /var/www/html/502.html
+    sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
+    sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
     sudo usermod -a -G pi www-data
 
     sudo systemctl reload nginx
 
     echo "Installing the rascsi-web.service configuration..."
-    sudo cp ~/RASCSI/src/web/service-infra/rascsi-web.service /etc/systemd/system/rascsi-web.service
+    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
@@ -167,16 +164,20 @@ function stopOldWebInterface() {
 }
 
 function updateRaScsiGit() {
-    echo "Updating checked out branch $GIT_REMOTE/$GIT_BRANCH"
-    cd ~/RASCSI || exit 1
+    cd "$BASE" || exit 1
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
-        echo 'There are local changes, we will stash and reapply them.'
-        git stash
+        echo "There are local changes to the RaSCSI code; we will stash and reapply them."
+        git -c user.name="${GIT_COMMITTER_NAME-rascsi}" -c user.email="${GIT_COMMITTER_EMAIL-rascsi@rascsi.com}" stash
         stashed=1
     fi
 
-    git pull --ff-only
+    if [[ `git for-each-ref --format='%(upstream:short)' "$(git symbolic-ref -q HEAD)"` != "" ]]; then
+        echo "Updating checked out git branch $GIT_REMOTE/$GIT_BRANCH"
+        git pull --ff-only
+    else
+        echo "Detected a local git working branch; skipping the remote update step."
+    fi
 
     if [ $stashed -eq 1 ]; then
         echo "Reapplying local changes..."
@@ -215,7 +216,7 @@ function formatDrive() {
 
     if [ ! -x $HFS_FORMAT ]; then
         # Install hfsutils to have hformat to format HFS
-        sudo apt-get install hfsutils
+        sudo apt-get install hfsutils --assume-yes </dev/null
     fi
 
     if [ ! -x $HFDISK_BIN ]; then
@@ -248,13 +249,13 @@ function formatDrive() {
     partitionOk=$?
 
     if [ $partitionOk -eq 0 ]; then
-        if [ ! -f $LIDO_DRIVER ];then
+        if [ ! -f "$LIDO_DRIVER" ];then
             echo "Lido driver couldn't be found. Make sure RaSCSI is up-to-date with git pull"
             return 1
         fi
 
         # Burn Lido driver to the disk
-        dd if=$LIDO_DRIVER of="$diskPath" seek=64 count=32 bs=512 conv=notrunc
+        dd if="$LIDO_DRIVER" of="$diskPath" seek=64 count=32 bs=512 conv=notrunc
 
         driverInstalled=$?
         if [ $driverInstalled -eq 0 ]; then
@@ -317,9 +318,9 @@ function setupWiredNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wired interfaces on this system:"
-	ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth
+	echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
         echo "Please type the wired interface you want to use and press Enter:"
-        read -r SELECTED
+        read SELECTED
         LAN_INTERFACE=$SELECTED
     fi
 
@@ -329,7 +330,7 @@ function setupWiredNetworking() {
         read REPLY
 	sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
-    sudo -c 'echo "denyinterfaces $LAN_INTERFACE" >> /etc/dhcpcd.conf'
+    sudo bash -c 'echo "denyinterfaces '$LAN_INTERFACE'" >> /etc/dhcpcd.conf'
     echo "Modified /etc/dhcpcd.conf"
 
     # default config file is made for eth0, this will set the right net interface
@@ -370,7 +371,7 @@ function setupWirelessNetworking() {
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wireless interfaces on this system:"
-	ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan
+	echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r WLAN_INTERFACE
         echo "Base IP address (ex. 10.10.20):"
@@ -401,11 +402,11 @@ function setupWirelessNetworking() {
     sudo iptables -t nat -A POSTROUTING -o "$WLAN_INTERFACE" -s "$ROUTING_ADDRESS" -j MASQUERADE
 
     # Check if iptables-persistent is installed
-    IPTABLES_PERSISTENT=$(dpkg -s iptables-persistent | grep Status | grep -c "install ok")
-    if [ "$IPTABLES_PERSISTENT" -eq 0 ]; then
-        sudo apt-get install iptables-persistent --assume-yes
-    else
+    if [ `apt-cache policy iptables-persistent | grep Installed | grep -c "(none)"` -eq 0 ]; then
+        echo "iptables-persistent is already installed"
         sudo iptables-save --file /etc/iptables/rules.v4
+    else
+        sudo apt-get install iptables-persistent --assume-yes </dev/null
     fi
     echo "Modified /etc/iptables/rules.v4"
 
