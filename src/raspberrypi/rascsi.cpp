@@ -1771,6 +1771,13 @@ static void *MonThread(void *param)
 	return NULL;
 }
 
+void TerminationHandler(int signum)
+{
+	DetachAll();
+
+	exit(signum);
+}
+
 //---------------------------------------------------------------------------
 //
 //	Main processing
@@ -1832,6 +1839,14 @@ int main(int argc, char* argv[])
 	if (!InitService(port)) {
 		return EPERM;
 	}
+
+	// Signal handler to detach all devices on a KILL or TERM signal
+	struct sigaction termination_handler;
+	termination_handler.sa_handler = TerminationHandler;
+	sigemptyset(&termination_handler.sa_mask);
+	termination_handler.sa_flags = 0;
+	sigaction(SIGINT, &termination_handler, NULL);
+	sigaction(SIGTERM, &termination_handler, NULL);
 
 	// Reset
 	Reset();
