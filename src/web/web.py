@@ -87,7 +87,7 @@ def index():
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
-        base_dir=base_dir,
+        base_dir=server_info["image_dir"],
         cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
         recommended_id=recommended_id,
@@ -155,7 +155,7 @@ def drive_list():
     return render_template(
         "drives.html",
         files=sorted_image_files,
-        base_dir=base_dir,
+        base_dir=server_info["image_dir"],
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
@@ -428,6 +428,7 @@ def device_info():
         flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
         flash(f"File: {device['image']}")
+        flash(f"File Size: {device['size']} bytes")
         flash(f"Parameters: {device['params']}")
         flash(f"Vendor: {device['vendor']}")
         flash(f"Product: {device['product']}")
@@ -440,20 +441,26 @@ def device_info():
 
 @app.route("/pi/reboot", methods=["POST"])
 def restart():
-    flash("Restarting the Pi momentarily...")
+    detach_all()
+    flash("Safely detached all devices.")
+    flash("Rebooting the Pi momentarily...")
     reboot_pi()
     return redirect(url_for("index"))
 
 
 @app.route("/rascsi/restart", methods=["POST"])
 def rascsi_restart():
-    rascsi_service("restart")
+    detach_all()
+    flash("Safely detached all devices.")
     flash("Restarting RaSCSI Service...")
+    rascsi_service("restart")
     return redirect(url_for("index"))
 
 
 @app.route("/pi/shutdown", methods=["POST"])
 def shutdown():
+    detach_all()
+    flash("Safely detached all devices.")
     flash("Shutting down the Pi momentarily...")
     shutdown_pi()
     return redirect(url_for("index"))
@@ -498,7 +505,9 @@ def upload_file():
     file = request.files["file"]
     filename = secure_filename(file.filename)
 
-    save_path = path.join(app.config["UPLOAD_FOLDER"], filename)
+    server_info = get_server_info()
+
+    save_path = path.join(server_info["image_dir"], filename)
     current_chunk = int(request.form['dzchunkindex'])
 
     # Makes sure not to overwrite an existing file, 
@@ -573,10 +582,13 @@ def image_padding():
     else:
         target_size = int(size) - (int(size) % int(multiple)) + int(multiple)
 
+    server_info = get_server_info()
+
     from pathlib import PurePath
-    padded_image = base_dir + str(PurePath(file).stem) + "_padded" + str(PurePath(file).suffix)
+    padded_image = server_info["image_dir"] + str(PurePath(file).stem) + \
+            "_padded" + str(PurePath(file).suffix)
     from shutil import copyfile
-    copyfile(base_dir + file, padded_image)
+    copyfile(server_info["image_dir"] + file, padded_image)
 
     process = pad_image(padded_image, target_size)
     if process["status"] == True:
@@ -592,7 +604,8 @@ def image_padding():
 @app.route("/files/download", methods=["POST"])
 def download():
     image = request.form.get("image")
-    return send_file(base_dir + image, as_attachment=True)
+    server_info = get_server_info()
+    return send_file(server_info["image_dir"] + image, as_attachment=True)
 
 
 @app.route("/files/delete", methods=["POST"])
@@ -650,7 +663,9 @@ def show_properties():
 if __name__ == "__main__":
     app.secret_key = "rascsi_is_awesome_insecure_secret_key"
     app.config["SESSION_TYPE"] = "filesystem"
-    app.config["UPLOAD_FOLDER"] = base_dir
+
+    server_info = get_server_info()
+    app.config["UPLOAD_FOLDER"] = server_info["image_dir"]
 
     from os import makedirs
     makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
