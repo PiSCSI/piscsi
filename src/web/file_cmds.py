@@ -68,13 +68,21 @@ def list_images():
     files = []
     for f in result.image_files_info.image_files:
         # Add flag for whether an image file has an associated *.properties file
-        if PurePath(f.name).stem in prop_files:
+        if f.name in prop_files:
             prop = True
         else:
             prop = False
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
         dtype = proto.PbDeviceType.Name(f.type)
-        files.append({"name": f.name, "size": f.size, "size_mb": size_mb, "detected_type": dtype, "prop": prop})
+        files.append(
+                        {
+                            "name": f.name,
+                            "size": f.size,
+                            "size_mb": size_mb,
+                            "detected_type": dtype,
+                            "prop": prop,
+                        }
+                    )
 
     return {"status": result.status, "msg": result.msg, "files": files}
 
