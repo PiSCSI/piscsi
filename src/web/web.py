@@ -436,6 +436,7 @@ def device_info():
         flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
         flash(f"File: {device['image']}")
+        flash(f"File Size: {device['size']} bytes")
         flash(f"Parameters: {device['params']}")
         flash(f"Vendor: {device['vendor']}")
         flash(f"Product: {device['product']}")

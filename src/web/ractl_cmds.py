@@ -304,10 +304,24 @@ def list_devices(scsi_id=None, un=None):
         dprod = result.devices_info.devices[n].product
         drev = result.devices_info.devices[n].revision
         dblock = result.devices_info.devices[n].block_size
+        dsize = int(result.devices_info.devices[n].block_count) * int(dblock)
 
-        device_list.append({"id": did, "un": dun, "device_type": dtype, \
-                "status": ", ".join(dstat_msg), "image": dpath, "file": dfile, "params": dparam,\
-                "vendor": dven, "product": dprod, "revision": drev, "block_size": dblock})
+        device_list.append(
+                {
+                    "id": did,
+                    "un": dun,
+                    "device_type": dtype,
+                    "status": ", ".join(dstat_msg),
+                    "image": dpath,
+                    "file": dfile,
+                    "params": dparam,
+                    "vendor": dven,
+                    "product": dprod,
+                    "revision": drev,
+                    "block_size": dblock,
+                    "size": dsize,
+                }
+            )
         n += 1
 
     return {"status": True, "device_list": device_list}
