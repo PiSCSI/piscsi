@@ -171,7 +171,7 @@ def download_file_to_iso(scsi_id, url):
     tmp_dir = "/tmp/" + str(tmp_ts) + "/"
     os.mkdir(tmp_dir)
     tmp_full_path = tmp_dir + file_name
-    iso_filename = server_info["image_dir"] + file_name + ".iso"
+    iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
     try:
         urllib.request.urlretrieve(url, tmp_full_path)
@@ -203,7 +203,7 @@ def download_image(url):
     server_info = get_server_info()
 
     file_name = url.split("/")[-1]
-    full_path = server_info["image_dir"] + file_name
+    full_path = f"{server_info['image_dir']}/{file_name}"
 
     try:
         urllib.request.urlretrieve(url, full_path)
