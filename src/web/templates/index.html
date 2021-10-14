@@ -12,7 +12,7 @@
 
     <p>
     <form action="/config/load" method="post">
-        <select name="name" >
+        <select name="name" required>
             {% for config in config_files %}
                 <option value="{{config}}">{{config.replace(".json", '')}}</option>
             {% endfor %}
