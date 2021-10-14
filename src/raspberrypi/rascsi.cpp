@@ -1771,6 +1771,13 @@ static void *MonThread(void *param)
 	return NULL;
 }
 
+void SigIntHandler(int)
+{
+	DetachAll();
+
+	exit(SIGKILL);
+}
+
 //---------------------------------------------------------------------------
 //
 //	Main processing
@@ -1832,6 +1839,12 @@ int main(int argc, char* argv[])
 	if (!InitService(port)) {
 		return EPERM;
 	}
+
+	struct sigaction sigIntHandler;
+	sigIntHandler.sa_handler = SigIntHandler;
+	sigemptyset(&sigIntHandler.sa_mask);
+	sigIntHandler.sa_flags = 0;
+	sigaction(SIGINT, &sigIntHandler, NULL);
 
 	// Reset
 	Reset();
