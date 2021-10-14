@@ -6,11 +6,11 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -e | -l | -m | -s | -v | -I | -L | -O | -T | -V | [-E FILENAME]
-       [-F IMAGE_FOLDER] [-C FILENAME:FILESIZE] [-x CURRENT_NAME:NEW_NAME] [-R
-       CURRENT_NAME:NEW_NAME]  [-g  LOG_LEVEL]  [-h  HOST]  [-p  PORT] [-r RE‐
-       SERVED_IDS] [-i ID [-c CMD] [-f FILE|PARAM] [-n  NAME]  [-t  TYPE]  [-u
-       UNIT]
+       rasctl -e | -l | -m | -s | -v | -D | -I | -L | -O | -T | -V | [-C FILE‐
+       NAME:FILESIZE]   [-E   FILENAME]    [-F    IMAGE_FOLDER]    [-R    CUR‐
+       RENT_NAME:NEW_NAME]  [-c  CMD] [-f FILE|PARAM] [-g LOG_LEVEL] [-h HOST]
+       [-i ID [-n NAME] [-p PORT] [-r RESERVED_IDS] [-t TYPE]  [-u  UNIT]  [-x
+       CURRENT_NAME:NEW_NAME]
 
 DESCRIPTION
        rasctl  Sends  commands to the rascsi process to make configuration ad‐
@@ -27,6 +27,8 @@ OPTIONS
        -C FILENAME:FILESIZE
               Create an image file in the default image folder with the speci‐
               fied name and size in bytes.
+
+       -D     Detach all devices.
 
        -E FILENAME
               Display information on an image file.
@@ -75,7 +77,7 @@ OPTIONS
 
        -V     Display the rasctl version.
 
-       -D FILENAME
+       -d FILENAME
               Delete an image file in the default image folder.
 
        -x CURRENT_NAME:NEW_NAME

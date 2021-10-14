@@ -8,26 +8,27 @@ rasctl \- Sends management commands to the rascsi process
 \fB\-m\fR |
 \fB\-s\fR |
 \fB\-v\fR |
+\fB\-D\fR |
 \fB\-I\fR |
 \fB\-L\fR |
 \fB\-O\fR |
 \fB\-T\fR |
 \fB\-V\fR |
+[\fB\-C\fR \fIFILENAME:FILESIZE\fR]
 [\fB\-E\fR \fIFILENAME\fR]
 [\fB\-F\fR \fIIMAGE_FOLDER\fR]
-[\fB\-C\fR \fIFILENAME:FILESIZE\fR]
-[\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
 [\fB\-R\fR \fICURRENT_NAME:NEW_NAME\fR]
-[\fB\-g\fR \fILOG_LEVEL\fR]
-[\fB\-h\fR \fIHOST\fR]
-[\fB\-p\fR \fIPORT\fR]
-[\fB\-r\fR \fIRESERVED_IDS\fR]
-[\fB\-i\fR \fIID\fR
 [\fB\-c\fR \fICMD\fR]
 [\fB\-f\fR \fIFILE|PARAM\fR]
+[\fB\-g\fR \fILOG_LEVEL\fR]
+[\fB\-h\fR \fIHOST\fR]
+[\fB\-i\fR \fIID\fR
 [\fB\-n\fR \fINAME\fR]
+[\fB\-p\fR \fIPORT\fR]
+[\fB\-r\fR \fIRESERVED_IDS\fR]
 [\fB\-t\fR \fITYPE\fR]
 [\fB\-u\fR \fIUNIT\fR]
+[\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
 .SH DESCRIPTION
 .B rasctl
 Sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the devices.
@@ -42,6 +43,9 @@ Note: The command and type arguments are case insensitive. Only the first letter
 .TP
 .BR \-C\fI " "\fIFILENAME:FILESIZE
 Create an image file in the default image folder with the specified name and size in bytes.
+.TP
+.BR \-D\fI
+Detach all devices.
 .TP
 .BR \-E\fI " " \fIFILENAME
 Display information on an image file.
@@ -94,7 +98,7 @@ Display the rascsi server version.
 .BR \-V\fI " " \fI
 Display the rasctl version.
 .TP
-.BR \-D\fI " "\fIFILENAME
+.BR \-d\fI " "\fIFILENAME
 Delete an image file in the default image folder.
 .TP
 .BR \-x\fI " "\fICURRENT_NAME:NEW_NAME
