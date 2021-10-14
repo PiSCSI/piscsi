@@ -213,9 +213,13 @@ def drive_cdrom():
     file_name = request.form.get("file_name")
 
     # Creating the drive properties file
-    from pathlib import Path
-    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
-    properties = {"vendor": vendor, "product": product, "revision": revision, "block_size": block_size}
+    file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
+    properties = {
+                "vendor": vendor,
+                "product": product,
+                "revision": revision,
+                "block_size": block_size,
+            }
     process = write_drive_properties(file_name, properties)
     if process["status"] == True:
         flash(f"Drive properties file {file_name} created")
@@ -597,15 +601,14 @@ def delete():
 
     # Delete the drive properties file, if it exists
     from pathlib import Path
-    file_name = str(Path(file_name).stem) + "." + PROPERTIES_SUFFIX
-    file_path = Path(cfg_dir + file_name)
-    if file_path.is_file():
-        process = delete_file(cfg_dir + file_name)
+    prop_file_path = f"{cfg_dir}{file_name}.{PROPERTIES_SUFFIX}"
+    if Path(prop_file_path).is_file():
+        process = delete_file(prop_file_path)
         if process["status"] == True:
-            flash(f"File {file_name} deleted!")
+            flash(f"File {prop_file_path} deleted!")
             return redirect(url_for("index"))
         else:
-            flash(f"Failed to delete file {file_name}!", "error")
+            flash(f"Failed to delete file {prop_file_path}!", "error")
             flash(process["msg"], "error")
             return redirect(url_for("index"))
 
