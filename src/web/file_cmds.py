@@ -207,22 +207,6 @@ def download_image(url):
         return {"status": False, "msg": "Error loading the URL"}
 
 
-def pad_image(file_name, file_size):
-    """
-    Adds a number of bytes to the end of a file up to a size
-    Takes str file_name, int file_size
-    Returns a dict with boolean status and str msg
-    """
-    from subprocess import run
-
-    dd_proc = run(
-            ["dd", "if=/dev/null", f"of={file_name}", "bs=1", "count=1", f"seek={file_size}" ], capture_output=True
-    )
-    if dd_proc.returncode != 0:
-        return {"status": False, "msg": str(dd_proc)}
-    return {"status": True, "msg": "File padding successful" }
-
-
 def write_config(file_name):
     """
     Takes str file_name
