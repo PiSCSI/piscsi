@@ -579,7 +579,7 @@ def create_file():
 def download():
     image = request.form.get("image")
     server_info = get_server_info()
-    return send_file(server_info["image_dir"] + image, as_attachment=True)
+    return send_file(f"{server_info['image_dir']}/{image}", as_attachment=True)
 
 
 @app.route("/files/delete", methods=["POST"])
