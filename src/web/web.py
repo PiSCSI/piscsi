@@ -13,7 +13,6 @@ from flask import (
 
 from file_cmds import (
     list_config_files,
-    list_files,
     list_images,
     create_new_image,
     download_file_to_iso,
@@ -21,7 +20,6 @@ from file_cmds import (
     delete_file,
     unzip_file,
     download_image,
-    pad_image,
     write_config,
     read_config,
     write_drive_properties,
@@ -61,10 +59,6 @@ def index():
     device_types=get_device_types()
     files = list_images()
     config_files = list_config_files()
-    drive_files = list_files(tuple(server_info["sahd"] + \
-            server_info["schd"] + server_info["scrm"] + \
-            server_info["scmo"]), base_dir)
-    cdrom_files = list_files(tuple(server_info["sccd"]), base_dir)
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -93,9 +87,7 @@ def index():
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
-        drive_files=drive_files,
-        cdrom_files=cdrom_files,
-        base_dir=base_dir,
+        base_dir=server_info["image_dir"],
         cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
         recommended_id=recommended_id,
@@ -163,7 +155,7 @@ def drive_list():
     return render_template(
         "drives.html",
         files=sorted_image_files,
-        base_dir=base_dir,
+        base_dir=server_info["image_dir"],
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
@@ -344,8 +336,15 @@ def attach():
 
     kwargs = {"unit": int(un), "image": file_name}
 
+    # The most common block size is 512 bytes
+    expected_block_size = 512
+
     if device_type != "":
         kwargs["device_type"] = device_type
+        if device_type == "SCCD":
+            expected_block_size = 2048
+        elif device_type == "SAHD":
+            expected_block_size = 256
  
     # Attempt to load the device properties file:
     # same base path but PROPERTIES_SUFFIX instead of the original suffix.
@@ -364,10 +363,15 @@ def attach():
         kwargs["product"] = conf["product"]
         kwargs["revision"] = conf["revision"]
         kwargs["block_size"] = conf["block_size"]
+        expected_block_size = conf["block_size"]
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {un}!")
+        if int(file_size) % int(expected_block_size):
+            flash(f"The image file size {file_size} bytes is not a multiple of \
+                    {expected_block_size}. The image may be corrupted \
+                    so proceed with caution.", "error")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {un}!", "error")
@@ -436,6 +440,7 @@ def device_info():
         flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
         flash(f"File: {device['image']}")
+        flash(f"File Size: {device['size']} bytes")
         flash(f"Parameters: {device['params']}")
         flash(f"Vendor: {device['vendor']}")
         flash(f"Product: {device['product']}")
@@ -448,20 +453,26 @@ def device_info():
 
 @app.route("/pi/reboot", methods=["POST"])
 def restart():
-    flash("Restarting the Pi momentarily...")
+    detach_all()
+    flash("Safely detached all devices.")
+    flash("Rebooting the Pi momentarily...")
     reboot_pi()
     return redirect(url_for("index"))
 
 
 @app.route("/rascsi/restart", methods=["POST"])
 def rascsi_restart():
-    rascsi_service("restart")
+    detach_all()
+    flash("Safely detached all devices.")
     flash("Restarting RaSCSI Service...")
+    rascsi_service("restart")
     return redirect(url_for("index"))
 
 
 @app.route("/pi/shutdown", methods=["POST"])
 def shutdown():
+    detach_all()
+    flash("Safely detached all devices.")
     flash("Shutting down the Pi momentarily...")
     shutdown_pi()
     return redirect(url_for("index"))
@@ -506,7 +517,9 @@ def upload_file():
     file = request.files["file"]
     filename = secure_filename(file.filename)
 
-    save_path = path.join(app.config["UPLOAD_FOLDER"], filename)
+    server_info = get_server_info()
+
+    save_path = path.join(server_info["image_dir"], filename)
     current_chunk = int(request.form['dzchunkindex'])
 
     # Makes sure not to overwrite an existing file, 
@@ -581,10 +594,13 @@ def image_padding():
     else:
         target_size = int(size) - (int(size) % int(multiple)) + int(multiple)
 
+    server_info = get_server_info()
+
     from pathlib import PurePath
-    padded_image = base_dir + str(PurePath(file).stem) + "_padded" + str(PurePath(file).suffix)
+    padded_image = server_info["image_dir"] + str(PurePath(file).stem) + \
+            "_padded" + str(PurePath(file).suffix)
     from shutil import copyfile
-    copyfile(base_dir + file, padded_image)
+    copyfile(server_info["image_dir"] + file, padded_image)
 
     process = pad_image(padded_image, target_size)
     if process["status"] == True:
@@ -600,7 +616,8 @@ def image_padding():
 @app.route("/files/download", methods=["POST"])
 def download():
     image = request.form.get("image")
-    return send_file(base_dir + image, as_attachment=True)
+    server_info = get_server_info()
+    return send_file(server_info["image_dir"] + image, as_attachment=True)
 
 
 @app.route("/files/delete", methods=["POST"])
@@ -658,7 +675,9 @@ def show_properties():
 if __name__ == "__main__":
     app.secret_key = "rascsi_is_awesome_insecure_secret_key"
     app.config["SESSION_TYPE"] = "filesystem"
-    app.config["UPLOAD_FOLDER"] = base_dir
+
+    server_info = get_server_info()
+    app.config["UPLOAD_FOLDER"] = server_info["image_dir"]
 
     from os import makedirs
     makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)

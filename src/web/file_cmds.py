@@ -2,6 +2,7 @@ import os
 import logging
 
 from ractl_cmds import (
+    get_server_info,
     attach_image,
     detach_all,
     list_devices,
@@ -132,9 +133,11 @@ def unzip_file(file_name):
     Returns dict with boolean status and str msg
     """
     from subprocess import run
+    server_info = get_server_info()
 
     unzip_proc = run(
-        ["unzip", "-d", base_dir, "-o", "-j", base_dir + file_name], capture_output=True
+        ["unzip", "-d", server_info["image_dir"], "-o", "-j", \
+                server_info["image_dir"] + file_name], capture_output=True
     )
     if unzip_proc.returncode != 0:
         logging.warning(f"Unzipping failed: {unzip_proc}")
@@ -153,12 +156,14 @@ def download_file_to_iso(scsi_id, url):
     import time
     from subprocess import run
 
+    server_info = get_server_info()
+
     file_name = url.split("/")[-1]
     tmp_ts = int(time.time())
     tmp_dir = "/tmp/" + str(tmp_ts) + "/"
     os.mkdir(tmp_dir)
     tmp_full_path = tmp_dir + file_name
-    iso_filename = base_dir + file_name + ".iso"
+    iso_filename = server_info["image_dir"] + file_name + ".iso"
 
     try:
         urllib.request.urlretrieve(url, tmp_full_path)
@@ -187,8 +192,10 @@ def download_image(url):
     import urllib.request
     import urllib.error as error
 
+    server_info = get_server_info()
+
     file_name = url.split("/")[-1]
-    full_path = base_dir + file_name
+    full_path = server_info["image_dir"] + file_name
 
     try:
         urllib.request.urlretrieve(url, full_path)
@@ -198,22 +205,6 @@ def download_image(url):
         return {"status": False, "msg": str(e)}
     except:
         return {"status": False, "msg": "Error loading the URL"}
-
-
-def pad_image(file_name, file_size):
-    """
-    Adds a number of bytes to the end of a file up to a size
-    Takes str file_name, int file_size
-    Returns a dict with boolean status and str msg
-    """
-    from subprocess import run
-
-    dd_proc = run(
-            ["dd", "if=/dev/null", f"of={file_name}", "bs=1", "count=1", f"seek={file_size}" ], capture_output=True
-    )
-    if dd_proc.returncode != 0:
-        return {"status": False, "msg": str(dd_proc)}
-    return {"status": True, "msg": "File padding successful" }
 
 
 def write_config(file_name):

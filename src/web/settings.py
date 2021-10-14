@@ -1,6 +1,5 @@
 from os import getenv, getcwd
 
-base_dir = getenv("BASE_DIR", "/home/pi/images/")
 cfg_dir = getenv("HOME", "/home/pi/") + ".config/rascsi/"
 home_dir = getcwd()
 
