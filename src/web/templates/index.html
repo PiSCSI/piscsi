@@ -129,6 +129,9 @@
                 </form>
             </td>
 	    <td>
+		{% if file["name"] in attached_images %}
+		<center>Attached!</center>
+		{% else %}
                 <form action="/scsi/attach" method="post">
                     <input type="hidden" name="file_name" value="{{file["name"]}}">
                     <input type="hidden" name="file_size" value="{{file["size"]}}">
@@ -162,6 +165,7 @@
                     <input type="hidden" name="image" value="{{file["name"]}}">
 		    <input type="submit" value="Properties">
 		</form>
+		{% endif %}
 		{% endif %}
             </td>
         </tr>
