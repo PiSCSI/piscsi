@@ -63,12 +63,8 @@ void SCSIMO::Open(const Filepath& path)
 		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
-	// File size must be a multiple of the sector size
-	if (size % GetSectorSizeInBytes()) {
-		stringstream error;
-		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
-		throw io_exception(error.str());
-	}
+	// Effective size must be a multiple of the sector size
+	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 
 	SetReadOnly(false);
 	SetProtectable(true);
