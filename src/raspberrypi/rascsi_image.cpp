@@ -27,6 +27,25 @@ using namespace protobuf_util;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
+RascsiImage::RascsiImage()
+{
+	// ~/images is the default folder for device image files, for the root user it is /home/pi/images
+	int uid = getuid();
+	const char *sudo_user = getenv("SUDO_UID");
+	if (sudo_user) {
+		uid = stoi(sudo_user);
+	}
+
+	const passwd *passwd = getpwuid(uid);
+	if (uid && passwd) {
+		default_image_folder = passwd->pw_dir;
+		default_image_folder += "/images";
+	}
+	else {
+		default_image_folder = "/home/pi/images";
+	}
+}
+
 string RascsiImage::SetDefaultImageFolder(const string& f)
 {
 	string folder = f;

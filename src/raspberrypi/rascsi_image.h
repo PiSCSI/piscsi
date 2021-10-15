@@ -19,7 +19,7 @@ class RascsiImage
 {
 public:
 
-	RascsiImage() {};
+	RascsiImage();
 	~RascsiImage() {};
 
 	string GetDefaultImageFolder() const { return default_image_folder; }
