@@ -22,8 +22,6 @@ using namespace protobuf_util;
 
 ProtobufResponseHandler::ProtobufResponseHandler()
 {
-	device_factory = DeviceFactory::instance();
-
 	log_levels.push_back("trace");
 	log_levels.push_back("debug");
 	log_levels.push_back("info");
@@ -31,12 +29,6 @@ ProtobufResponseHandler::ProtobufResponseHandler()
 	log_levels.push_back("err");
 	log_levels.push_back("critical");
 	log_levels.push_back("off");
-}
-
-ProtobufResponseHandler& ProtobufResponseHandler::instance()
-{
-	static ProtobufResponseHandler instance;
-	return instance;
 }
 
 PbDeviceProperties *ProtobufResponseHandler::GetDeviceProperties(const Device *device)

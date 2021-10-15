@@ -5,8 +5,6 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// A singleton that creates responses for protobuf interface requests
-//
 //---------------------------------------------------------------------------
 
 #pragma once
@@ -27,8 +25,6 @@ public:
 
 	ProtobufResponseHandler();
 	~ProtobufResponseHandler() {};
-
-	static ProtobufResponseHandler& instance();
 
 	bool GetImageFile(PbImageFile *, const string&, const string&);
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&);
