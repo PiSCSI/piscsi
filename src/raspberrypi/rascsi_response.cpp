@@ -14,14 +14,17 @@
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
+#include "rascsi_image.h"
 #include "rascsi_response.h"
 #include <sstream>
 
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RascsiResponse::RascsiResponse()
+RascsiResponse::RascsiResponse(const RascsiImage *rascsi_image)
 {
+	this->rascsi_image = rascsi_image;
+
 	log_levels.push_back("trace");
 	log_levels.push_back("debug");
 	log_levels.push_back("info");
@@ -81,7 +84,7 @@ void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_
 	GetDeviceTypeProperties(device_types_info, SCDP);
 }
 
-void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device, const string& image_folder)
+void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 {
 	pb_device->set_id(device->GetId());
 	pb_device->set_unit(device->GetLun());
@@ -119,18 +122,18 @@ void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device, const 
 		Filepath filepath;
 		file_support->GetPath(filepath);
 		PbImageFile *image_file = new PbImageFile();
-		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath(), image_folder);
+		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
 }
 
-bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
+bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename)
 {
 	if (!filename.empty()) {
 		image_file->set_name(filename);
 		image_file->set_type(device_factory.GetTypeForFile(filename));
 
-		string f = filename[0] == '/' ? filename : image_folder + "/" + filename;
+		string f = filename[0] == '/' ? filename : rascsi_image->GetDefaultImageFolder() + "/" + filename;
 
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
@@ -144,34 +147,35 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 	return false;
 }
 
-PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& image_folder)
+PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 
-	image_files_info->set_default_image_folder(image_folder);
+	string default_image_folder = rascsi_image->GetDefaultImageFolder();
+	image_files_info->set_default_image_folder(default_image_folder);
 
 	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
-	DIR *d = opendir(image_folder.c_str());
+	DIR *d = opendir(default_image_folder.c_str());
 	if (d) {
 		struct dirent *dir;
 		while ((dir = readdir(d))) {
 			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
-				string filename = image_folder + "/" + dir->d_name;
+				string filename = default_image_folder + "/" + dir->d_name;
 
 				struct stat st;
 				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 					if (!st.st_size) {
-						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, image_folder.c_str());
+						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, default_image_folder.c_str());
 						continue;
 					}
 				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
-					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, image_folder.c_str());
+					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, default_image_folder.c_str());
 					continue;
 				}
 
 				PbImageFile *image_file = new PbImageFile();
-				if (GetImageFile(image_file, dir->d_name, image_folder)) {
-					GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
+				if (GetImageFile(image_file, dir->d_name)) {
+					GetImageFile(image_files_info->add_image_files(), dir->d_name);
 				}
 				delete image_file;
 			}
@@ -185,10 +189,10 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const str
 	return image_files_info;
 }
 
-void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& image_folder)
+void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info)
 {
-	PbImageFilesInfo *image_files_info = GetAvailableImages(result, image_folder);
-	image_files_info->set_default_image_folder(image_folder);
+	PbImageFilesInfo *image_files_info = GetAvailableImages(result);
+	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
 	result.set_status(true);
@@ -206,19 +210,19 @@ PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const set<in
 	return reserved_ids_info;
 }
 
-void RascsiResponse::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices, const string& image_folder)
+void RascsiResponse::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices)
 {
 	for (const Device *device : devices) {
 		// Skip if unit does not exist or is not assigned
 		if (device) {
 			PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
-			GetDevice(device, pb_device, image_folder);
+			GetDevice(device, pb_device);
 		}
 	}
 }
 
 void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices,
-		const string& image_folder, int unit_count)
+		int unit_count)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
@@ -248,7 +252,7 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 
 	for (const auto& id_set : id_sets) {
 		const Device *device = devices[id_set.first * unit_count + id_set.second];
-		GetDevice(device, devices_info->add_devices(), image_folder);
+		GetDevice(device, devices_info->add_devices());
 	}
 
 	result.set_status(true);
@@ -266,17 +270,17 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const Pb
 }
 
 PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& image_folder, const string& current_log_level)
+		const string& current_log_level)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
 	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
-	GetAvailableImages(result, *server_info, image_folder);
+	GetAvailableImages(result, *server_info);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
-	GetDevices(*server_info, devices, image_folder);
+	GetDevices(*server_info, devices);
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
 
 	result.set_status(true);

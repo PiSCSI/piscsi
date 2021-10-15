@@ -74,8 +74,8 @@ static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
-RascsiResponse rascsi_response;
 RascsiImage rascsi_image;
+RascsiResponse rascsi_response(&rascsi_image);
 
 //---------------------------------------------------------------------------
 //
@@ -1211,7 +1211,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	rascsi_response.GetDevices(server_info, devices, rascsi_image.GetDefaultImageFolder());
+	rascsi_response.GetDevices(server_info, devices);
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -1318,7 +1318,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					rascsi_response.GetDevicesInfo(result, command, devices, rascsi_image.GetDefaultImageFolder(), UnitNum);
+					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
 					SerializeMessage(fd, result);
 
 					// For backwards compatibility: Log device list if information on all devices was requested.
@@ -1343,7 +1343,7 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, devices, reserved_ids, rascsi_image.GetDefaultImageFolder(), current_log_level));
+							result, devices, reserved_ids, current_log_level));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1370,8 +1370,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							rascsi_image.GetDefaultImageFolder()));
+					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1386,7 +1385,7 @@ static void *MonThread(void *param)
 					else {
 						PbResult result;
 						PbImageFile* image_file = new PbImageFile();
-						bool status = rascsi_response.GetImageFile(image_file, filename, rascsi_image.GetDefaultImageFolder());
+						bool status = rascsi_response.GetImageFile(image_file, filename);
 						if (status) {
 							result.set_status(true);
 							result.set_allocated_image_file_info(image_file);

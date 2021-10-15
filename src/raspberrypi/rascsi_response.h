@@ -17,36 +17,39 @@
 using namespace std;
 using namespace rascsi_interface;
 
+class RascsiImage;
 class Device;
 
 class RascsiResponse
 {
 public:
 
-	RascsiResponse();
+	RascsiResponse(const RascsiImage *);
 	~RascsiResponse() {};
 
-	bool GetImageFile(PbImageFile *, const string&, const string&);
-	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&);
+	bool GetImageFile(PbImageFile *, const string&);
+	PbImageFilesInfo *GetAvailableImages(PbResult&);
 	PbReservedIdsInfo *GetReservedIds(PbResult&, const set<int>&);
-	void GetDevices(PbServerInfo&, const vector<Device *>&, const string&);
-	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, const string&, int);
+	void GetDevices(PbServerInfo&, const vector<Device *>&);
+	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, int);
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
 	PbVersionInfo *GetVersionInfo(PbResult&);
-	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&);
+	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 	PbMappingInfo *GetMappingInfo(PbResult&);
 	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
 
 private:
 
+	const RascsiImage *rascsi_image;
+
 	DeviceFactory device_factory;
 
 	vector<string> log_levels;
 
 	PbDeviceProperties *GetDeviceProperties(const Device *);
-	void GetDevice(const Device *, PbDevice *, const string&);
+	void GetDevice(const Device *, PbDevice *);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&);
+	void GetAvailableImages(PbResult& result, PbServerInfo&);
 };
