@@ -14,13 +14,13 @@
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
-#include "protobuf_response_handler.h"
+#include "rascsi_response.h"
 #include <sstream>
 
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-ProtobufResponseHandler::ProtobufResponseHandler()
+RascsiResponse::RascsiResponse()
 {
 	log_levels.push_back("trace");
 	log_levels.push_back("debug");
@@ -31,7 +31,7 @@ ProtobufResponseHandler::ProtobufResponseHandler()
 	log_levels.push_back("off");
 }
 
-PbDeviceProperties *ProtobufResponseHandler::GetDeviceProperties(const Device *device)
+PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	PbDeviceProperties *properties = new PbDeviceProperties();
 
@@ -61,7 +61,7 @@ PbDeviceProperties *ProtobufResponseHandler::GetDeviceProperties(const Device *d
 	return properties;
 }
 
-void ProtobufResponseHandler::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type)
+void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type)
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
@@ -70,7 +70,7 @@ void ProtobufResponseHandler::GetDeviceTypeProperties(PbDeviceTypesInfo& device_
 	delete device;
 }
 
-void ProtobufResponseHandler::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
+void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 {
 	GetDeviceTypeProperties(device_types_info, SAHD);
 	GetDeviceTypeProperties(device_types_info, SCHD);
@@ -81,7 +81,7 @@ void ProtobufResponseHandler::GetAllDeviceTypeProperties(PbDeviceTypesInfo& devi
 	GetDeviceTypeProperties(device_types_info, SCDP);
 }
 
-void ProtobufResponseHandler::GetDevice(const Device *device, PbDevice *pb_device, const string& image_folder)
+void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device, const string& image_folder)
 {
 	pb_device->set_id(device->GetId());
 	pb_device->set_unit(device->GetLun());
@@ -124,7 +124,7 @@ void ProtobufResponseHandler::GetDevice(const Device *device, PbDevice *pb_devic
 	}
 }
 
-bool ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
+bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
 {
 	if (!filename.empty()) {
 		image_file->set_name(filename);
@@ -144,7 +144,7 @@ bool ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string
 	return false;
 }
 
-PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, const string& image_folder)
+PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& image_folder)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 
@@ -185,7 +185,7 @@ PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, 
 	return image_files_info;
 }
 
-void ProtobufResponseHandler::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& image_folder)
+void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& image_folder)
 {
 	PbImageFilesInfo *image_files_info = GetAvailableImages(result, image_folder);
 	image_files_info->set_default_image_folder(image_folder);
@@ -194,7 +194,7 @@ void ProtobufResponseHandler::GetAvailableImages(PbResult& result, PbServerInfo&
 	result.set_status(true);
 }
 
-PbReservedIdsInfo *ProtobufResponseHandler::GetReservedIds(PbResult& result, const set<int>& ids)
+PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const set<int>& ids)
 {
 	PbReservedIdsInfo *reserved_ids_info = new PbReservedIdsInfo();
 	for (int id : ids) {
@@ -206,7 +206,7 @@ PbReservedIdsInfo *ProtobufResponseHandler::GetReservedIds(PbResult& result, con
 	return reserved_ids_info;
 }
 
-void ProtobufResponseHandler::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices, const string& image_folder)
+void RascsiResponse::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices, const string& image_folder)
 {
 	for (const Device *device : devices) {
 		// Skip if unit does not exist or is not assigned
@@ -217,7 +217,7 @@ void ProtobufResponseHandler::GetDevices(PbServerInfo& server_info, const vector
 	}
 }
 
-void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices,
+void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices,
 		const string& image_folder, int unit_count)
 {
 	set<id_set> id_sets;
@@ -254,7 +254,7 @@ void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& 
 	result.set_status(true);
 }
 
-PbDeviceTypesInfo *ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
+PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
 {
 	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
 
@@ -265,7 +265,7 @@ PbDeviceTypesInfo *ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result,
 	return device_types_info;
 }
 
-PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
+PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
 		const string& image_folder, const string& current_log_level)
 {
 	PbServerInfo *server_info = new PbServerInfo();
@@ -284,7 +284,7 @@ PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vec
 	return server_info;
 }
 
-PbVersionInfo *ProtobufResponseHandler::GetVersionInfo(PbResult& result)
+PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result)
 {
 	PbVersionInfo *version_info = new PbVersionInfo();
 
@@ -297,7 +297,7 @@ PbVersionInfo *ProtobufResponseHandler::GetVersionInfo(PbResult& result)
 	return version_info;
 }
 
-PbLogLevelInfo *ProtobufResponseHandler::GetLogLevelInfo(PbResult& result, const string& current_log_level)
+PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& current_log_level)
 {
 	PbLogLevelInfo *log_level_info = new PbLogLevelInfo();
 
@@ -312,7 +312,7 @@ PbLogLevelInfo *ProtobufResponseHandler::GetLogLevelInfo(PbResult& result, const
 	return log_level_info;
 }
 
-PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbResult& result)
+PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& result)
 {
 	PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
 
@@ -325,7 +325,7 @@ PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbRes
 	return network_interfaces_info;
 }
 
-PbMappingInfo *ProtobufResponseHandler::GetMappingInfo(PbResult& result)
+PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 {
 	PbMappingInfo *mapping_info = new PbMappingInfo();
 

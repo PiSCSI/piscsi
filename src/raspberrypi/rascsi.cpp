@@ -25,9 +25,9 @@
 #include "exceptions.h"
 #include "protobuf_util.h"
 #include "rascsi_version.h"
+#include "rascsi_response.h"
 #include "rasutil.h"
 #include "rascsi_image.h"
-#include "protobuf_response_handler.h"
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
@@ -74,7 +74,7 @@ static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
-ProtobufResponseHandler response_handler;
+RascsiResponse response_handler;
 RascsiImage rascsi_image;
 
 //---------------------------------------------------------------------------

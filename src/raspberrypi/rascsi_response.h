@@ -19,12 +19,12 @@ using namespace rascsi_interface;
 
 class Device;
 
-class ProtobufResponseHandler
+class RascsiResponse
 {
 public:
 
-	ProtobufResponseHandler();
-	~ProtobufResponseHandler() {};
+	RascsiResponse();
+	~RascsiResponse() {};
 
 	bool GetImageFile(PbImageFile *, const string&, const string&);
 	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&);
