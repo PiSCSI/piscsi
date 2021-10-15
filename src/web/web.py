@@ -31,6 +31,7 @@ from pi_cmds import (
     running_env,
     rascsi_service,
     is_bridge_setup,
+    is_netatalk_setup,
     disk_space,
 )
 from ractl_cmds import (
@@ -86,11 +87,13 @@ def index():
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
+        netatalk_configured=is_netatalk_setup(),
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
         base_dir=server_info["image_dir"],
         cfg_dir=cfg_dir,
+        afp_dir=afp_dir,
         scsi_ids=scsi_ids,
         recommended_id=recommended_id,
         attached_images=attached_images,

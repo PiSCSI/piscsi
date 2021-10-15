@@ -250,7 +250,7 @@
     <hr/>
 
     <details>
-    <summary>Download File from Web</summary>
+    <summary>Download File to Images</summary>
     <ul>
     <li>Given a URL, download that file to the <tt>{{base_dir}}</tt> directory.</li>
     </ul>
@@ -269,6 +269,29 @@
     </table>
 
     <hr/>
+
+    {% if netatalk_configured %}
+    <details>
+    <summary>Download File to AppleTalk Share</summary>
+    <ul>
+    <li>Given a URL, download that file to the <tt>{{afp_dir}}</tt> directory.</li>
+    </ul>
+    </details>
+
+    <table style="border: none">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+                <form action="/files/download_to_afp" method="post">
+                    <label for="url">URL:</label>
+                    <input type="url" placeholder="URL" name="url" />
+                    <input type="submit" value="Download" />
+                </form>
+            </td>
+        </tr>
+    </table>
+
+    <hr/>
+    {% endif %}
 
     <details>
     <summary>Download File from Web and Create HFS CD (Macintosh)</summary>

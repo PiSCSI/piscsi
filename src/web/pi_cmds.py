@@ -41,6 +41,14 @@ def is_bridge_setup():
     return False
 
 
+def is_netatalk_setup():
+    process = subprocess.run(["ps", "aux"], capture_output=True)
+    output = process.stdout.decode("utf-8")
+    if "afpd" in output:
+        return True
+    return False
+
+
 def disk_space():
     from shutil import disk_usage
     total, used, free = disk_usage(__file__)
