@@ -19,7 +19,7 @@ from file_cmds import (
     delete_image,
     delete_file,
     unzip_file,
-    download_image,
+    download_to_dir,
     write_config,
     read_config,
     write_drive_properties,
@@ -499,12 +499,26 @@ def download_file():
         return redirect(url_for("index"))
 
 
-@app.route("/files/download_image", methods=["POST"])
+@app.route("/files/download_to_images", methods=["POST"])
 def download_img():
     url = request.form.get("url")
-    process = download_image(url)
+    server_info = get_server_info()
+    process = download_to_dir(url, server_info["image_dir"])
     if process["status"] == True:
-        flash(f"File Downloaded from {url}")
+        flash(f"File Downloaded from {url} to {server_info['image_dir']}")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to download file {url}", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+
+@app.route("/files/download_to_afp", methods=["POST"])
+def download_afp():
+    url = request.form.get("url")
+    process = download_to_dir(url, afp_dir)
+    if process["status"] == True:
+        flash(f"File Downloaded from {url} to {afp_dir}")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to download file {url}", "error")

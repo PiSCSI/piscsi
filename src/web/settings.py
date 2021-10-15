@@ -4,7 +4,7 @@ from os import getenv, getcwd
 # as a service, since the HOME env variable doesn't get set then.
 home_dir = getenv("HOME", "/home/pi")
 cfg_dir = f"{home_dir}/.config/rascsi/"
-afp_dir = f"{home_dir}/afpshare/"
+afp_dir = f"{home_dir}/afpshare"
 web_dir = getcwd()
 
 DEFAULT_CONFIG = "default.json"

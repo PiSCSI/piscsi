@@ -192,18 +192,16 @@ def download_file_to_iso(scsi_id, url):
     return {"status": process["status"], "msg": process["msg"]}
 
 
-def download_image(url):
+def download_to_dir(url, save_dir):
     """
-    Takes str url
+    Takes str url, str save_dir
     Returns dict with boolean status and str msg
     """
     import urllib.request
     import urllib.error as error
 
-    server_info = get_server_info()
-
     file_name = url.split("/")[-1]
-    full_path = f"{server_info['image_dir']}/{file_name}"
+    full_path = f"{save_dir}/{file_name}"
 
     try:
         urllib.request.urlretrieve(url, full_path)
