@@ -14,7 +14,7 @@
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
-#include "protobuf_response_helper.h"
+#include "protobuf_response_handler.h"
 #include <sstream>
 
 using namespace rascsi_interface;
