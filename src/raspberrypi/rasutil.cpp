@@ -15,7 +15,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
-bool GetAsInt(const string& value, int& result)
+bool ras_util::GetAsInt(const string& value, int& result)
 {
 	if (value.find_first_not_of("0123456789") != string::npos) {
 		return false;
@@ -34,7 +34,7 @@ bool GetAsInt(const string& value, int& result)
 	return true;
 }
 
-string ListDevices(const list<PbDevice>& pb_devices)
+string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 {
 	if (pb_devices.empty()) {
 		return "No images currently attached.";

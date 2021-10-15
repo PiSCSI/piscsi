@@ -23,6 +23,7 @@
 
 using namespace std;
 using namespace rascsi_interface;
+using namespace ras_util;
 
 PbOperation ParseOperation(const char *optarg)
 {
