@@ -74,7 +74,7 @@ static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
-RascsiResponse response_handler;
+RascsiResponse rascsi_response;
 RascsiImage rascsi_image;
 
 //---------------------------------------------------------------------------
@@ -1249,7 +1249,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	response_handler.GetDevices(server_info, devices, rascsi_image.GetDefaultImageFolder());
+	rascsi_response.GetDevices(server_info, devices, rascsi_image.GetDefaultImageFolder());
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -1356,7 +1356,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					response_handler.GetDevicesInfo(result, command, devices, rascsi_image.GetDefaultImageFolder(), UnitNum);
+					rascsi_response.GetDevicesInfo(result, command, devices, rascsi_image.GetDefaultImageFolder(), UnitNum);
 					SerializeMessage(fd, result);
 
 					// For backwards compatibility: Log device list if information on all devices was requested.
@@ -1371,7 +1371,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_device_types_info(response_handler.GetDeviceTypesInfo(result, command));
+					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result, command));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1380,7 +1380,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_server_info(response_handler.GetServerInfo(
+					result.set_allocated_server_info(rascsi_response.GetServerInfo(
 							result, devices, reserved_ids, rascsi_image.GetDefaultImageFolder(), current_log_level));
 					SerializeMessage(fd, result);
 					break;
@@ -1390,7 +1390,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_version_info(response_handler.GetVersionInfo(result));
+					result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1399,7 +1399,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_log_level_info(response_handler.GetLogLevelInfo(result, current_log_level));
+					result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1408,7 +1408,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_image_files_info(response_handler.GetAvailableImages(result,
+					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
 							rascsi_image.GetDefaultImageFolder()));
 					SerializeMessage(fd, result);
 					break;
@@ -1424,7 +1424,7 @@ static void *MonThread(void *param)
 					else {
 						PbResult result;
 						PbImageFile* image_file = new PbImageFile();
-						bool status = response_handler.GetImageFile(image_file, filename, rascsi_image.GetDefaultImageFolder());
+						bool status = rascsi_response.GetImageFile(image_file, filename, rascsi_image.GetDefaultImageFolder());
 						if (status) {
 							result.set_status(true);
 							result.set_allocated_image_file_info(image_file);
@@ -1441,7 +1441,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_network_interfaces_info(response_handler.GetNetworkInterfacesInfo(result));
+					result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1450,7 +1450,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_mapping_info(response_handler.GetMappingInfo(result));
+					result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1459,7 +1459,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_reserved_ids_info(response_handler.GetReservedIds(result, reserved_ids));
+					result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
 					SerializeMessage(fd, result);
 					break;
 				}
