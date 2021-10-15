@@ -18,6 +18,7 @@
 #include <sstream>
 
 using namespace rascsi_interface;
+using namespace protobuf_util;
 
 ProtobufResponseHandler::ProtobufResponseHandler()
 {

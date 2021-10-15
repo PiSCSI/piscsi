@@ -46,6 +46,7 @@ using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
 using namespace ras_util;
+using namespace protobuf_util;
 
 //---------------------------------------------------------------------------
 //
