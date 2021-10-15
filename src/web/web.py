@@ -63,8 +63,11 @@ def index():
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
 
+    from pathlib import Path
+    attached_images = []
     luns = 0
     for d in devices["device_list"]:
+        attached_images.append(Path(d["image"]).name)
         luns += int(d["un"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
@@ -80,7 +83,6 @@ def index():
             list(ARCHIVE_FILE_SUFFIX)
             )
 
-
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
@@ -91,6 +93,7 @@ def index():
         cfg_dir=cfg_dir,
         scsi_ids=scsi_ids,
         recommended_id=recommended_id,
+        attached_images=attached_images,
         luns=luns,
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),

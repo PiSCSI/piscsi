@@ -60,6 +60,7 @@
             <td style="text-align:center">{{device.vendor}} {{device.product}}</td>
 	    {% endif %}
             <td style="text-align:left">
+		{% if device.device_type != "-" %}
                 {% if device.device_type in removable_device_types and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
@@ -82,6 +83,7 @@
                     <input type="hidden" name="un" value="{{device.un}}">
                     <input type="submit" value="Info" />
                 </form>
+                {% endif %}
                 {% endif %}
             </td>
             {% else %}
@@ -129,6 +131,9 @@
                 </form>
             </td>
 	    <td>
+		{% if file["name"] in attached_images %}
+		<center>Attached!</center>
+		{% else %}
                 <form action="/scsi/attach" method="post">
                     <input type="hidden" name="file_name" value="{{file["name"]}}">
                     <input type="hidden" name="file_size" value="{{file["size"]}}">
@@ -162,6 +167,7 @@
                     <input type="hidden" name="image" value="{{file["name"]}}">
 		    <input type="submit" value="Properties">
 		</form>
+		{% endif %}
 		{% endif %}
             </td>
         </tr>
