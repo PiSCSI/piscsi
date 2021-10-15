@@ -236,7 +236,7 @@ def config_save():
         flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to saved config to {file_name}!", "error")
+        flash(f"Failed to save config to {file_name}!", "error")
         flash(process['msg'], "error")
         return redirect(url_for("index"))
 

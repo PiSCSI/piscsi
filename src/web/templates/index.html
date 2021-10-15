@@ -12,7 +12,7 @@
 
     <p>
     <form action="/config/load" method="post">
-        <select name="name" >
+        <select name="name" required>
             {% for config in config_files %}
                 <option value="{{config}}">{{config.replace(".json", '')}}</option>
             {% endfor %}
@@ -103,9 +103,9 @@
     <hr/>
 
     <details>
-    <summary>Valid Image Files</summary>
+    <summary>Image File Management</summary>
     <ul>
-    <li>A list of image files in <tt>{{base_dir}}</tt> that RaSCSI has identified as valid.</li>
+    <li>Manage image files in the active RaSCSI image directory: <tt>{{base_dir}}</tt></li>
     <li>Select a valid SCSI ID and <a href="https://en.wikipedia.org/wiki/Logical_unit_number">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.</li>
     <li>If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.</li>
     <li>Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT</li>
@@ -265,7 +265,7 @@
     <hr/>
 
     <details>
-    <summary>Download File from web and create HFS CD (Macintosh)</summary>
+    <summary>Download File from Web and Create HFS CD (Macintosh)</summary>
     <ul>
     <li>Given a URL this will download a file, create a HFS iso, and mount it on the SCSI ID given.</li>
     <li>Requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a> installed on the target system.</li>
