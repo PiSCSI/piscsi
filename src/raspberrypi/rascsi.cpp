@@ -75,7 +75,7 @@ string current_log_level;			// Some versions of spdlog do not support get_log_le
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
-RascsiResponse rascsi_response(&rascsi_image);
+RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 
 //---------------------------------------------------------------------------
 //

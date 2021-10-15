@@ -21,8 +21,9 @@
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RascsiResponse::RascsiResponse(const RascsiImage *rascsi_image)
+RascsiResponse::RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
 {
+	this->device_factory = device_factory;
 	this->rascsi_image = rascsi_image;
 
 	log_levels.push_back("trace");
@@ -51,13 +52,13 @@ PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 	PbDeviceType_Parse(device->GetType(), &t);
 
 	if (device->SupportsParams()) {
-		for (const auto& param : device_factory.GetDefaultParams(t)) {
+		for (const auto& param : device_factory->GetDefaultParams(t)) {
 			auto& map = *properties->mutable_default_params();
 			map[param.first] = param.second;
 		}
 	}
 
-	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
+	for (const auto& block_size : device_factory->GetSectorSizes(t)) {
 		properties->add_block_sizes(block_size);
 	}
 
@@ -68,7 +69,7 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	Device *device = device_factory.CreateDevice(type, "");
+	Device *device = device_factory->CreateDevice(type, "");
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
 	delete device;
 }
@@ -131,7 +132,7 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 {
 	if (!filename.empty()) {
 		image_file->set_name(filename);
-		image_file->set_type(device_factory.GetTypeForFile(filename));
+		image_file->set_type(device_factory->GetTypeForFile(filename));
 
 		string f = filename[0] == '/' ? filename : rascsi_image->GetDefaultImageFolder() + "/" + filename;
 
@@ -320,7 +321,7 @@ PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& resu
 {
 	PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
 
-	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
+	for (const auto& network_interface : device_factory->GetNetworkInterfaces()) {
 		network_interfaces_info->add_name(network_interface);
 	}
 
@@ -333,7 +334,7 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 {
 	PbMappingInfo *mapping_info = new PbMappingInfo();
 
-	for (const auto& mapping : device_factory.GetExtensionMapping()) {
+	for (const auto& mapping : device_factory->GetExtensionMapping()) {
 		(*mapping_info->mutable_mapping())[mapping.first] = mapping.second;
 	}
 

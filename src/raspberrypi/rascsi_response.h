@@ -17,6 +17,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
+class DeviceFactory;
 class RascsiImage;
 class Device;
 
@@ -24,7 +25,7 @@ class RascsiResponse
 {
 public:
 
-	RascsiResponse(const RascsiImage *);
+	RascsiResponse(DeviceFactory *, const RascsiImage *);
 	~RascsiResponse() {};
 
 	bool GetImageFile(PbImageFile *, const string&);
@@ -41,9 +42,8 @@ public:
 
 private:
 
+	DeviceFactory *device_factory;
 	const RascsiImage *rascsi_image;
-
-	DeviceFactory device_factory;
 
 	vector<string> log_levels;
 
