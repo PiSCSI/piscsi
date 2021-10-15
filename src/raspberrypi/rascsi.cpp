@@ -1114,6 +1114,13 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	return true;
 }
 
+void TerminationHandler(int signum)
+{
+	DetachAll();
+
+	exit(signum);
+}
+
 //---------------------------------------------------------------------------
 //
 //	Command Processing
@@ -1746,6 +1753,17 @@ static void *MonThread(void *param)
 					break;
 				}
 
+				case TERMINATE: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_status(true);
+					SerializeMessage(fd, result);
+
+					TerminationHandler(0);
+					break;
+				}
+
 				default: {
 					// Wait until we become idle
 					while (active) {
@@ -1769,13 +1787,6 @@ static void *MonThread(void *param)
 	}
 
 	return NULL;
-}
-
-void TerminationHandler(int signum)
-{
-	DetachAll();
-
-	exit(signum);
 }
 
 //---------------------------------------------------------------------------

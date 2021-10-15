@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvDINOTVa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -309,6 +309,10 @@ int main(int argc, char* argv[])
 
 			case 'T':
 				command.set_operation(DEVICE_TYPES_INFO);
+				break;
+
+			case 'X':
+				command.set_operation(TERMINATE);
 				break;
 		}
 	}

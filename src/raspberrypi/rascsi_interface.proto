@@ -109,25 +109,28 @@ enum PbOperation {
     // Parameters:
     //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
     RESERVE_IDS = 22;
+    
+    // Terminate the rascsi process
+    TERMINATE = 23;
 
     // Create an image file. The image file must not yet exist.
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     //   "size": The file size in bytes, must be a multiple of 512
     //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
-    CREATE_IMAGE = 23;
+    CREATE_IMAGE = 24;
 
     // Delete an image file.
     // Parameters:
     //    "file": The filename, relative to the default image folder. It must not contain a slash.
-    DELETE_IMAGE = 24;
+    DELETE_IMAGE = 25;
 
     // Rename an image file.
     // Parameters:
     //   "from": The old filename, relative to the default image folder. It must not contain a slash.
     //   "to": The new filename, relative to the default image folder. It must not contain a slash.
     // The new filename must not yet exist.
-    RENAME_IMAGE = 25;
+    RENAME_IMAGE = 26;
 
     // Copy an image file.
     // Parameters:
@@ -135,17 +138,17 @@ enum PbOperation {
     //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
     //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     // The destination filename must not yet exist.
-    COPY_IMAGE = 26;
+    COPY_IMAGE = 27;
     
     // Write-protect an image file.
     // Parameters:
     //  "file": The filename, relative to the default image folder. It must not contain a slash.
-    PROTECT_IMAGE = 27;
+    PROTECT_IMAGE = 28;
 
     // Make an image file writable.
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
-    UNPROTECT_IMAGE = 28;
+    UNPROTECT_IMAGE = 29;
 }
 
 // The supported file extensions mapped to their respective device types
