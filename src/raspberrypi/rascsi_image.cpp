@@ -27,6 +27,44 @@ using namespace protobuf_util;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
+string RascsiImage::SetDefaultImageFolder(const string& f)
+{
+	string folder = f;
+
+	// If a relative path is specified the path is assumed to be relative to the user's home directory
+	if (folder[0] != '/') {
+		int uid = getuid();
+		const char *sudo_user = getenv("SUDO_UID");
+		if (sudo_user) {
+			uid = stoi(sudo_user);
+		}
+
+		const passwd *passwd = getpwuid(uid);
+		if (passwd) {
+			folder = passwd->pw_dir;
+			folder += "/";
+			folder += f;
+		}
+	}
+	else {
+		if (folder.find("/home/") != 0) {
+			return "Default image folder must be located in '/home/'";
+		}
+	}
+
+	struct stat info;
+	stat(folder.c_str(), &info);
+	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
+		return "Folder '" + f + "' does not exist or is not accessible";
+	}
+
+	default_image_folder = folder;
+
+	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
+
+	return "";
+}
+
 bool RascsiImage::IsValidSrcFilename(const string& filename)
 {
 	// Source file must exist and must be a regular file or a symlink

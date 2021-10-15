@@ -22,8 +22,8 @@ public:
 	RascsiImage() {};
 	~RascsiImage() {};
 
-	const string& GetDefaultImageFolder() const { return default_image_folder; }
-	void SetDefaultImageFolder(const string& default_image_folder) { this->default_image_folder = default_image_folder; }
+	string GetDefaultImageFolder() const { return default_image_folder; }
+	string SetDefaultImageFolder(const string&);
 	bool IsValidSrcFilename(const string&);
 	bool IsValidDstFilename(const string&);
 	bool CreateImage(int, const PbCommand&);

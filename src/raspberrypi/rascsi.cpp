@@ -461,44 +461,6 @@ void LogDevices(const string& devices)
 	}
 }
 
-string SetDefaultImageFolder(const string& f)
-{
-	string folder = f;
-
-	// If a relative path is specified the path is assumed to be relative to the user's home directory
-	if (folder[0] != '/') {
-		int uid = getuid();
-		const char *sudo_user = getenv("SUDO_UID");
-		if (sudo_user) {
-			uid = stoi(sudo_user);
-		}
-
-		const passwd *passwd = getpwuid(uid);
-		if (passwd) {
-			folder = passwd->pw_dir;
-			folder += "/";
-			folder += f;
-		}
-	}
-	else {
-		if (folder.find("/home/") != 0) {
-			return "Default image folder must be located in '/home/'";
-		}
-	}
-
-	struct stat info;
-	stat(folder.c_str(), &info);
-	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
-		return string("Folder '" + f + "' does not exist or is not accessible");
-	}
-
-	rascsi_image.SetDefaultImageFolder(folder);
-
-	LOGINFO("Default image folder set to '%s'", folder.c_str());
-
-	return "";
-}
-
 string SetReservedIds(const string& ids)
 {
 	list<string> ids_to_reserve;
@@ -1151,7 +1113,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			}
 
 			case 'F': {
-				string result = SetDefaultImageFolder(optarg);
+				string result = rascsi_image.SetDefaultImageFolder(optarg);
 				if (!result.empty()) {
 					cerr << result << endl;
 					return false;
@@ -1342,7 +1304,7 @@ static void *MonThread(void *param)
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					string result = SetDefaultImageFolder(folder);
+					string result = rascsi_image.SetDefaultImageFolder(folder);
 					if (!result.empty()) {
 						ReturnStatus(fd, false, result);
 					}
