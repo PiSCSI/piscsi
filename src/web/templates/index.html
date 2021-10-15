@@ -261,7 +261,7 @@
             <td style="border: none; vertical-align:top;">
                 <form action="/files/download_image" method="post">
                     <label for="url">URL:</label>
-                    <input type="url" placeholder="URL" name="url" />
+                    <input type="url" placeholder="URL" name="url" required />
                     <input type="submit" value="Download" />
                 </form>
             </td>
@@ -289,7 +289,7 @@
                         {% endfor %}
                     </select>
                     <label for="url">URL:</label>
-                    <input type="url" placeholder="URL" name="url" />
+                    <input type="url" placeholder="URL" name="url" required />
                     <input type="submit" value="Download and Mount ISO" />
                 </form>
             </td>
@@ -312,7 +312,7 @@
                 <td style="border: none; vertical-align:top;">
                 <form action="/files/create" method="post">
                     <label for="file_name">File Name:</label>
-                    <input type="text" placeholder="File name" name="file_name"/>
+                    <input type="text" placeholder="File name" name="file_name" required />
                     <label for="type">Type:</label>
                     <select name="type">
                         <option value="hds">SCSI Hard Disk image (Generic) [.hds]</option>
@@ -322,7 +322,7 @@
                         <option value="hdf">SASI Hard Disk image (use with X68000) [.hdf]</option>
                     </select>
                     <label for="size">Size(MB):</label>
-                    <input type="number" placeholder="Size(MB)" name="size" min="1" />
+                    <input type="number" placeholder="Size(MB)" name="size" min="1" required />
                     <input type="submit" value="Create" />
                 </form>
             </td>
@@ -355,7 +355,7 @@
             <td style="border: none; vertical-align:top;">
                 <form action="/logs/show" method="post">
                     <label for="lines">Log Lines:</label>
-                    <input type="number" placeholder="200" name="lines" min="1"/>
+                    <input type="number" placeholder="200" name="lines" min="1" size="4" />
                     <label for="scope">Scope:</label>
                     <select name="scope">
                         <option value="default">default</option>
