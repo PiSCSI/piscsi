@@ -8,6 +8,8 @@
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
+#include "os.h"
+#include "log.h"
 #include "rascsi_interface.pb.h"
 #include "exceptions.h"
 #include "protobuf_util.h"
@@ -15,6 +17,7 @@
 using namespace std;
 using namespace rascsi_interface;
 
+#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 const string protobuf_util::GetParam(const PbCommand& command, const string& key)
 {
@@ -111,4 +114,39 @@ int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
 	}
 
 	return offset;
+}
+
+
+bool protobuf_util::ReturnStatus(int fd, bool status, const string msg)
+{
+	if (!status && !msg.empty()) {
+		LOGERROR("%s", msg.c_str());
+	}
+
+	if (fd == -1) {
+		if (!msg.empty()) {
+			if (status) {
+				FPRT(stderr, "Error: ");
+				FPRT(stderr, "%s", msg.c_str());
+				FPRT(stderr, "\n");
+			}
+			else {
+				FPRT(stdout, "%s", msg.c_str());
+				FPRT(stderr, "\n");
+			}
+		}
+	}
+	else {
+		PbResult result;
+		result.set_status(status);
+		result.set_msg(msg);
+		SerializeMessage(fd, result);
+	}
+
+	return status;
+}
+
+bool protobuf_util::ReturnStatus(int fd, bool status, const ostringstream& msg)
+{
+	return ReturnStatus(fd, status, msg.str());
 }

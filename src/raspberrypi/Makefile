@@ -84,6 +84,7 @@ SRC_RASCSI = \
 	filepath.cpp \
 	fileio.cpp\
 	rascsi_version.cpp \
+	rascsi_image.cpp \
 	rasutil.cpp \
 	protobuf_response_helper.cpp \
 	protobuf_util.cpp
