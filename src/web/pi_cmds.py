@@ -33,18 +33,21 @@ def running_env():
     return {"git": ra_git_version, "env": pi_version}
 
 
+def running_netatalk():
+    """
+    Returns int afpd, which is the number of afpd processes currently running
+    """
+    process = subprocess.run(["ps", "aux"], capture_output=True)
+    output = process.stdout.decode("utf-8")
+    from re import findall
+    afpd = findall("afpd", output)
+    return len(afpd)
+
+
 def is_bridge_setup():
     process = subprocess.run(["brctl", "show"], capture_output=True)
     output = process.stdout.decode("utf-8")
     if "rascsi_bridge" in output:
-        return True
-    return False
-
-
-def is_netatalk_setup():
-    process = subprocess.run(["ps", "aux"], capture_output=True)
-    output = process.stdout.decode("utf-8")
-    if "afpd" in output:
         return True
     return False
 
