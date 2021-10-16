@@ -314,7 +314,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'X':
-				command.set_operation(TERMINATE);
+				command.set_operation(SHUT_DOWN);
 				break;
 		}
 	}

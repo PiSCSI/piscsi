@@ -77,7 +77,7 @@ OPTIONS
 
        -V     Display the rasctl version.
 
-       -X     Terminate the rascsi process.
+       -X     Shut down the rascsi process.
 
        -d FILENAME
               Delete an image file in the default image folder.

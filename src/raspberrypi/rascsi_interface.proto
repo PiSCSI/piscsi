@@ -110,8 +110,8 @@ enum PbOperation {
     //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
     RESERVE_IDS = 22;
     
-    // Terminate the rascsi process
-    TERMINATE = 23;
+    // Shut down the rascsi process
+    SHUT_DOWN = 23;
 
     // Create an image file. The image file must not yet exist.
     // Parameters:

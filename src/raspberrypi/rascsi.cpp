@@ -1425,7 +1425,7 @@ static void *MonThread(void *param)
 					break;
 				}
 
-				case TERMINATE: {
+				case SHUT_DOWN: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
