@@ -496,9 +496,9 @@ function installNetatalk() {
     if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
         echo ""
         echo "Your system may not have support for AppleTalk networking."
-	echo "Use TCP to connect to your AppleShare server via the IP address of the network interface that is connected to the rest of your network:"
+        echo "Use TCP to connect to your AppleShare server via the IP address of the network interface that is connected to the rest of your network:"
         echo `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
-	echo "See wiki for information on how to compile support for AppleTalk into your Linux kernel."
+        echo "See wiki for information on how to compile support for AppleTalk into your Linux kernel."
     fi
 
     echo ""
