@@ -553,9 +553,9 @@ function runChoice() {
               echo "Reserving SCSI IDs - Complete!"
           ;;
           8)
-              echo "Installing AppleTalk File Server"
+              echo "Installing AppleShare File Server"
               installNetatalk
-              echo "Installing AppleTalk File Server - Complete!"
+              echo "Installing AppleShare File Server - Complete!"
           ;;
           -h|--help|h|help)
               showMenu
@@ -592,7 +592,7 @@ function showMenu() {
     echo "  6) configure network forwarding over WiFi (static IP)" 
     echo "MISCELLANEOUS"
     echo "  7) reserve SCSI IDs"
-    echo "  8) install AppleTalk File Server (Netatalk)"
+    echo "  8) install AppleShare File Server (Netatalk)"
 }
 
 # parse arguments
