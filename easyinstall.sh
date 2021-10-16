@@ -447,32 +447,34 @@ function reserveScsiIds() {
 }
 
 function installNetatalk() {
-    NETATALK_VERSION = "20200806"
-    AFP_SHARE_PATH = "$HOME/afpshare"
+    NETATALK_VERSION="20200806"
+    AFP_SHARE_PATH="$HOME/afpshare"
 	
-	sudo /etc/init.d/netatalk stop || true
+    sudo /etc/init.d/netatalk stop || true
 	
-	if [ -f "$HOME/netatalk-classic-$NETATALK_VERSION" ]; then
-	    echo "Deleting existing version of $HOME/netatalk-classic-$NETATALK_VERSION."
-		sudo rm -rf "$HOME/netatalk-classic-$NETATALK_VERSION"
-	echo "Downloading netatalk-classic-$NETATALK_VERSION to $HOME"
+    if [ -f "$HOME/netatalk-classic-$NETATALK_VERSION" ]; then
+        echo "Deleting existing version of $HOME/netatalk-classic-$NETATALK_VERSION."
+        sudo rm -rf "$HOME/netatalk-classic-$NETATALK_VERSION"
+    fi
+
+    echo "Downloading netatalk-classic-$NETATALK_VERSION to $HOME"
+    cd $HOME || exit 1
+    wget "https://github.com/christopherkobayashi/netatalk-classic/archive/refs/tags/$NETATALK_VERSION.tar.gz" </dev/null
+    tar -xzvf $NETATALK_VERSION.tar.gz
 	
-	wget "https://github.com/christopherkobayashi/netatalk-classic/archive/refs/tags/$NETATALK_VERSION.tar.gz" </dev/null
-	tar -xzvf $NETATALK_VERSION.tar.gz
+    cd "netatalk-classic-$NETATALK_VERSION" || exit 1
+    sed -i /^~/d ./config/AppleVolumes.default.tmpl
+    echo "/home/pi/afpshare 'Pi File Server' adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default
 	
-	cd "netatalk-classic-$NETATALK_VERSION" || exit 1
-	sed -i /^~/d ./config/AppleVolumes.default
-	echo "/home/pi/afpshare 'Pi File Server' adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default
+    echo "ATALKD_RUN=yes" >> ./config/netatalk.conf
+    echo "'RaSCSI-Pi' -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname 'nobody' -setuplog 'default log_maxdebug /var/log/afpd.log'" >> ./config/atalkd.conf
 	
-	echo "ATALKD_RUN=yes" >> ./config/netatalk.conf
-	echo "'RaSCSI-Pi' -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname 'nobody' -setuplog 'default log_maxdebug /var/log/afpd.log'" >> ./config/atalkd.conf
+    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool ) </dev/null
+    ./bootstrap
+    ./configure --enable-debian --enable-cups --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk
+    ( make && sudo make install ) </dev/null
 	
-	sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool </dev/null
-	./bootstrap
-	./configure --enable-debian --enable-cups --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk
-	( make && sudo make install ) </dev/null
-	
-	if [ -d "$AFP_SHARE_PATH" ]; then
+    if [ -d "$AFP_SHARE_PATH" ]; then
         echo "The $AFP_SHARE_PATH directory already exists."
     else
         echo "The $AFP_SHARE_PATH directory does not exist; creating..."
@@ -480,11 +482,11 @@ function installNetatalk() {
         chmod -R 2775 "$AFP_SHARE_PATH"
     fi
 	
-	echo "Netatalk is now installed on your system. To start the File Server, do:"
-	echo "sudo /etc/init.d/netatalk start"
-	echo "If your Pi does not have the 'appletalk' kernel module installed, you need to use the Pi's IP address to connect from your vintage Mac."
-	echo "Make sure that the user running Netatalk has a password of 8 chars or less."
-	echo "For more information, see wiki: https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
+    echo "Netatalk is now installed on your system. To start the File Server, do:"
+    echo "sudo /etc/init.d/netatalk start"
+    echo "If your Pi does not have the 'appletalk' kernel module installed, you need to use the Pi's IP address to connect from your vintage Mac."
+    echo "Make sure that the user running Netatalk has a password of 8 chars or less."
+    echo "For more information, see wiki: https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
 }
 
 function notifyBackup {
@@ -567,8 +569,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-       echo -n "Enter your choice (0-7) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "8" ]; do
+       echo -n "Enter your choice (0-8) or CTRL-C to exit: "
        read -r choice
    done
 
