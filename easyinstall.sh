@@ -485,10 +485,11 @@ function installNetatalk() {
     if [[ `grep -c netatalk /etc/rc.local` -eq 0 ]]
         sudo sed -i "/^exit 0/i sudo /etc/init.d/netatalk start" /etc/rc.local
         echo "Modified /etc/rc.local"
+    fi
 
     sudo /etc/init.d/netatalk start
 
-    if [[ `lsmod | grep -c appletalk` -eq 0]]; then
+    if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
         echo ""
         echo "Your system may not have support for AppleTalk networking."
 	echo "Use TCP to connect to your AppleShare server via the IP address of the network interface that is connected to the rest of your network:"
