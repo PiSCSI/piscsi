@@ -31,13 +31,14 @@ enum PbDeviceType {
 enum PbOperation {
     NONE = 0;
 
-    // Attach devices
+    // Attach devices and return the new device list (PbDevicesInfo)
     // Parameters (mutually exclusive):
     //   "file": The filename relative to the default image folder. It must not contain a slash.
     //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
     ATTACH = 1;
 
-    // Detach a device. Detaches all LUNs of that device which are equal to or higher than the LUN specified.
+    // Detach a device and return the new device list (PbDevicesInfo)
+    // Detaches all LUNs of that device which are equal to or higher than the LUN specified.
     DETACH = 2;
 
     // Detach all devices, does not require a device list
