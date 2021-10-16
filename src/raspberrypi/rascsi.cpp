@@ -683,6 +683,11 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		msg << device->GetType() << " device, ID " << id << ", unit " << unit;
 		LOGINFO("%s", msg.str().c_str());
 
+		PbResult result;
+		PbCommand command;
+		rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
+		SerializeMessage(fd, result);
+
 		return true;
 	}
 
@@ -708,6 +713,11 @@ bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 
 			// Re-map the controller
 			MapController(map);
+
+			PbResult result;
+			PbCommand command;
+			rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
+			SerializeMessage(fd, result);
 		}
 	}
 
