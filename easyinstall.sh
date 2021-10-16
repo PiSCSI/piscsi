@@ -463,14 +463,14 @@ function installNetatalk() {
     cd $HOME || exit 1
     wget "https://github.com/christopherkobayashi/netatalk-classic/archive/refs/tags/$NETATALK_VERSION.tar.gz" </dev/null
     tar -xzvf $NETATALK_VERSION.tar.gz
-	
+
     cd "netatalk-classic-$NETATALK_VERSION" || exit 1
     sed -i /^~/d ./config/AppleVolumes.default.tmpl
     echo "/home/pi/afpshare \"Pi File Server\" adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default.tmpl
-	
+
     echo "ATALKD_RUN=yes" >> ./config/netatalk.conf
     echo "\"RaSCSI-Pi\" -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname \"nobody\" -setuplog \"default log_maxdebug /var/log/afpd.log\"" >> ./config/afpd.conf.tmpl
-	
+
     ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool --assume-yes ) </dev/null
 
     echo "Compiling and installing Netatalk..."
