@@ -482,7 +482,7 @@ function installNetatalk() {
         chmod -R 2775 "$AFP_SHARE_PATH"
     fi
 
-    if [[ `grep -c netatalk /etc/rc.local` -eq 0 ]]
+    if [[ `grep -c netatalk /etc/rc.local` -eq 0 ]]; then
         sudo sed -i "/^exit 0/i sudo /etc/init.d/netatalk start" /etc/rc.local
         echo "Modified /etc/rc.local"
     fi
