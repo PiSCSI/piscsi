@@ -270,14 +270,14 @@
 
     <hr/>
 
-    {% if netatalk_configured %}
     <details>
     <summary>Download File to AppleTalk Share</summary>
     <ul>
-    <li>Given a URL, download that file to the <tt>{{afp_dir}}</tt> directory.</li>
+    <li>Given a URL, download that file to the <tt>{{afp_dir}}</tt> directory and share it.</li>
+    <li>Requires <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to be installed and configured correctly for your network.</li>
     </ul>
     </details>
-
+    {% if netatalk_configured %}
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
@@ -289,9 +289,11 @@
             </td>
         </tr>
     </table>
+    {% else %}
+    <p>Install <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to use the AppleTalk File Server.
+    {% endif %}
 
     <hr/>
-    {% endif %}
 
     <details>
     <summary>Download File from Web and Create HFS CD (Macintosh)</summary>
