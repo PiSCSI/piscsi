@@ -210,7 +210,7 @@ def download_to_dir(url, save_dir):
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
     except:
-        return {"status": False, "msg": "Uknown error occurred."}
+        return {"status": False, "msg": "Unknown error occurred."}
 
 
 def write_config(file_name):
