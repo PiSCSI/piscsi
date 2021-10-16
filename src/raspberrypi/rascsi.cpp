@@ -692,8 +692,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 {
 	if (!dryRun) {
-		for (size_t i = devices.size() - 1; i > 0; i--) {
-			Device *d = map[i];
+		for (auto const& d : devices) {
 			// Detach all LUNs equal to or higher than the LUN specified
 			if (d && d->GetId() == device->GetId() && d->GetLun() >= device->GetLun()) {
 				map[d->GetId() * UnitNum + d->GetLun()] = NULL;
@@ -705,10 +704,10 @@ bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 
 				LOGINFO("Detached %s device with ID %d, unit %d", d->GetType().c_str(), d->GetId(), d->GetLun());
 			}
-
-			// Re-map the controller
-			MapController(map);
 		}
+
+		// Re-map the controller
+		MapController(map);
 	}
 
 	return true;
@@ -1031,6 +1030,8 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 
 	// ATTACH and DETACH return the device list
 	if (fd != -1 && (command.operation() == ATTACH || command.operation() == DETACH)) {
+		// A new command with an empty device list is required here in order to return data for all devices
+		PbCommand command;
 		PbResult result;
 		rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
 		SerializeMessage(fd, result);
