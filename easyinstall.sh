@@ -481,12 +481,29 @@ function installNetatalk() {
         mkdir -p "$AFP_SHARE_PATH"
         chmod -R 2775 "$AFP_SHARE_PATH"
     fi
-	
-    echo "Netatalk is now installed on your system. To start the File Server, do:"
+
+    if [[ `grep -c netatalk /etc/rc.local` -eq 0 ]]
+        sudo sed -i "/^exit 0/i sudo /etc/init.d/netatalk start" /etc/rc.local
+        echo "Modified /etc/rc.local"
+
+    sudo /etc/init.d/netatalk start
+
+    if [[ `lsmod | grep -c appletalk` -eq 0]]; then
+        echo ""
+        echo "Your system may not have support for AppleTalk networking."
+	echo "Use TCP to connect to your AppleShare server via the IP address of the network interface that is connected to the rest of your network:"
+        echo `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
+	echo "See wiki for information on how to compile support for AppleTalk into your Linux kernel."
+    fi
+
+    echo ""
+    echo "Netatalk is now installed and running on your system. To start or stop the File Server, do:"
     echo "sudo /etc/init.d/netatalk start"
-    echo "If your Pi does not have the 'appletalk' kernel module installed, you need to use the Pi's IP address to connect from your vintage Mac."
-    echo "Make sure that the user running Netatalk has a password of 8 chars or less."
-    echo "For more information, see wiki: https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
+    echo "sudo /etc/init.d/netatalk stop"
+    echo ""
+    echo "Make sure that the user running Netatalk has a password of 8 chars or less. Type 'passwd' to change password of the current user."
+    echo "For more information on configuring Netatalk and accessing AppleShare from your vintage Macs, see wiki: https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
+    echo ""
 }
 
 function notifyBackup {
