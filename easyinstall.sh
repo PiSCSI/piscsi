@@ -449,9 +449,11 @@ function reserveScsiIds() {
 function installNetatalk() {
     NETATALK_VERSION="20200806"
     AFP_SHARE_PATH="$HOME/afpshare"
-	
+
+    echo "Cleaning up existing Netatalk installation, if it exists..."
     sudo /etc/init.d/netatalk stop || true
-	
+    sudo rm -rf /etc/default/netatalk.conf /etc/netatalk || true
+
     if [ -f "$HOME/netatalk-classic-$NETATALK_VERSION" ]; then
         echo "Deleting existing version of $HOME/netatalk-classic-$NETATALK_VERSION."
         sudo rm -rf "$HOME/netatalk-classic-$NETATALK_VERSION"
@@ -475,7 +477,7 @@ function installNetatalk() {
     ./bootstrap
     ./configure --enable-debian --enable-cups --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk
     ( make && sudo make install ) </dev/null
-	
+
     if [ -d "$AFP_SHARE_PATH" ]; then
         echo "The $AFP_SHARE_PATH directory already exists."
     else
