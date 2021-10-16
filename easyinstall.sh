@@ -470,6 +470,8 @@ function installNetatalk() {
     echo "'RaSCSI-Pi' -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname 'nobody' -setuplog 'default log_maxdebug /var/log/afpd.log'" >> ./config/afpd.conf.tmpl
 	
     ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool --assume-yes ) </dev/null
+
+    echo "Compiling and installing Netatalk..."
     ./bootstrap
     ./configure --enable-debian --enable-cups --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk
     ( make && sudo make install ) </dev/null
