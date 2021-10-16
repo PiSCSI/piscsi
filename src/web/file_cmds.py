@@ -175,11 +175,11 @@ def download_file_to_iso(scsi_id, url):
 
     try:
         urllib.request.urlretrieve(url, tmp_full_path)
-    except (error.URLError, error.HTTPError, error.ContentTooShortError) as e:
+    except (error.URLError, error.HTTPError, error.ContentTooShortError, FileNotFoundError) as e:
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
     except:
-        return {"status": False, "msg": "Error loading the URL"}
+        return {"status": False, "msg": "Unknown error occurred."}
 
     # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
     iso_proc = run(
@@ -206,11 +206,11 @@ def download_to_dir(url, save_dir):
     try:
         urllib.request.urlretrieve(url, full_path)
         return {"status": True, "msg": "Downloaded the URL"}
-    except (error.URLError, error.HTTPError, error.ContentTooShortError) as e:
+    except (error.URLError, error.HTTPError, error.ContentTooShortError, FileNotFoundError) as e:
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
     except:
-        return {"status": False, "msg": "Error loading the URL"}
+        return {"status": False, "msg": "Uknown error occurred."}
 
 
 def write_config(file_name):
