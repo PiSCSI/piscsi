@@ -8,6 +8,8 @@
 //---------------------------------------------------------------------------
 
 #include <unistd.h>
+#include "os.h"
+#include "log.h"
 #include "rascsi_interface.pb.h"
 #include "exceptions.h"
 #include "protobuf_util.h"
@@ -15,20 +17,21 @@
 using namespace std;
 using namespace rascsi_interface;
 
+#define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
-const string GetParam(const PbCommand& command, const string& key)
+const string protobuf_util::GetParam(const PbCommand& command, const string& key)
 {
 	auto map = command.params();
 	return map[key];
 }
 
-const string GetParam(const PbDeviceDefinition& device, const string& key)
+const string protobuf_util::GetParam(const PbDeviceDefinition& device, const string& key)
 {
 	auto map = device.params();
 	return map[key];
 }
 
-void AddParam(PbCommand& command, const string& key, const string& value)
+void protobuf_util::AddParam(PbCommand& command, const string& key, const string& value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *command.mutable_params();
@@ -36,7 +39,7 @@ void AddParam(PbCommand& command, const string& key, const string& value)
 	}
 }
 
-void AddParam(PbDevice& device, const string& key, const string& value)
+void protobuf_util::AddParam(PbDevice& device, const string& key, const string& value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
@@ -44,7 +47,7 @@ void AddParam(PbDevice& device, const string& key, const string& value)
 	}
 }
 
-void AddParam(PbDeviceDefinition& device, const string& key, const string& value)
+void protobuf_util::AddParam(PbDeviceDefinition& device, const string& key, const string& value)
 {
 	if (!key.empty() && !value.empty()) {
 		auto& map = *device.mutable_params();
@@ -59,7 +62,7 @@ void AddParam(PbDeviceDefinition& device, const string& key, const string& value
 //
 //---------------------------------------------------------------------------
 
-void SerializeMessage(int fd, const google::protobuf::Message& message)
+void protobuf_util::SerializeMessage(int fd, const google::protobuf::Message& message)
 {
 	string data;
 	message.SerializeToString(&data);
@@ -76,7 +79,7 @@ void SerializeMessage(int fd, const google::protobuf::Message& message)
     }
 }
 
-void DeserializeMessage(int fd, google::protobuf::Message& message)
+void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& message)
 {
 	// Read the header with the size of the protobuf data
 	uint8_t header_buf[4];
@@ -98,7 +101,7 @@ void DeserializeMessage(int fd, google::protobuf::Message& message)
 	message.ParseFromString(data);
 }
 
-int ReadNBytes(int fd, uint8_t *buf, int n)
+int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
 {
 	int offset = 0;
 	while (offset < n) {
@@ -111,4 +114,39 @@ int ReadNBytes(int fd, uint8_t *buf, int n)
 	}
 
 	return offset;
+}
+
+
+bool protobuf_util::ReturnStatus(int fd, bool status, const string msg)
+{
+	if (!status && !msg.empty()) {
+		LOGERROR("%s", msg.c_str());
+	}
+
+	if (fd == -1) {
+		if (!msg.empty()) {
+			if (status) {
+				FPRT(stderr, "Error: ");
+				FPRT(stderr, "%s", msg.c_str());
+				FPRT(stderr, "\n");
+			}
+			else {
+				FPRT(stdout, "%s", msg.c_str());
+				FPRT(stderr, "\n");
+			}
+		}
+	}
+	else {
+		PbResult result;
+		result.set_status(status);
+		result.set_msg(msg);
+		SerializeMessage(fd, result);
+	}
+
+	return status;
+}
+
+bool protobuf_util::ReturnStatus(int fd, bool status, const ostringstream& msg)
+{
+	return ReturnStatus(fd, status, msg.str());
 }

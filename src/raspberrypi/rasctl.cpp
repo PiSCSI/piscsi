@@ -23,6 +23,8 @@
 
 using namespace std;
 using namespace rascsi_interface;
+using namespace ras_util;
+using namespace protobuf_util;
 
 PbOperation ParseOperation(const char *optarg)
 {
@@ -99,7 +101,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y]" << endl;
+		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0-31}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -135,7 +137,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvDINOTVa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -309,6 +311,10 @@ int main(int argc, char* argv[])
 
 			case 'T':
 				command.set_operation(DEVICE_TYPES_INFO);
+				break;
+
+			case 'X':
+				command.set_operation(SHUT_DOWN);
 				break;
 		}
 	}

@@ -14,14 +14,17 @@
 #include "protobuf_util.h"
 #include "rascsi_version.h"
 #include "rascsi_interface.pb.h"
-#include "protobuf_response_helper.h"
+#include "rascsi_image.h"
+#include "rascsi_response.h"
 #include <sstream>
 
 using namespace rascsi_interface;
+using namespace protobuf_util;
 
-ProtobufResponseHandler::ProtobufResponseHandler()
+RascsiResponse::RascsiResponse(DeviceFactory *device_factory, const RascsiImage *rascsi_image)
 {
-	device_factory = DeviceFactory::instance();
+	this->device_factory = device_factory;
+	this->rascsi_image = rascsi_image;
 
 	log_levels.push_back("trace");
 	log_levels.push_back("debug");
@@ -32,13 +35,7 @@ ProtobufResponseHandler::ProtobufResponseHandler()
 	log_levels.push_back("off");
 }
 
-ProtobufResponseHandler& ProtobufResponseHandler::instance()
-{
-	static ProtobufResponseHandler instance;
-	return instance;
-}
-
-PbDeviceProperties *ProtobufResponseHandler::GetDeviceProperties(const Device *device)
+PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
 {
 	PbDeviceProperties *properties = new PbDeviceProperties();
 
@@ -55,29 +52,29 @@ PbDeviceProperties *ProtobufResponseHandler::GetDeviceProperties(const Device *d
 	PbDeviceType_Parse(device->GetType(), &t);
 
 	if (device->SupportsParams()) {
-		for (const auto& param : device_factory.GetDefaultParams(t)) {
+		for (const auto& param : device_factory->GetDefaultParams(t)) {
 			auto& map = *properties->mutable_default_params();
 			map[param.first] = param.second;
 		}
 	}
 
-	for (const auto& block_size : device_factory.GetSectorSizes(t)) {
+	for (const auto& block_size : device_factory->GetSectorSizes(t)) {
 		properties->add_block_sizes(block_size);
 	}
 
 	return properties;
 }
 
-void ProtobufResponseHandler::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type)
+void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_info, PbDeviceType type)
 {
 	PbDeviceTypeProperties *type_properties = device_types_info.add_properties();
 	type_properties->set_type(type);
-	Device *device = device_factory.CreateDevice(type, "");
+	Device *device = device_factory->CreateDevice(type, "");
 	type_properties->set_allocated_properties(GetDeviceProperties(device));
 	delete device;
 }
 
-void ProtobufResponseHandler::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
+void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 {
 	GetDeviceTypeProperties(device_types_info, SAHD);
 	GetDeviceTypeProperties(device_types_info, SCHD);
@@ -88,7 +85,7 @@ void ProtobufResponseHandler::GetAllDeviceTypeProperties(PbDeviceTypesInfo& devi
 	GetDeviceTypeProperties(device_types_info, SCDP);
 }
 
-void ProtobufResponseHandler::GetDevice(const Device *device, PbDevice *pb_device, const string& image_folder)
+void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
 {
 	pb_device->set_id(device->GetId());
 	pb_device->set_unit(device->GetLun());
@@ -126,18 +123,18 @@ void ProtobufResponseHandler::GetDevice(const Device *device, PbDevice *pb_devic
 		Filepath filepath;
 		file_support->GetPath(filepath);
 		PbImageFile *image_file = new PbImageFile();
-		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath(), image_folder);
+		GetImageFile(image_file, device->IsRemovable() && !device->IsReady() ? "" : filepath.GetPath());
 		pb_device->set_allocated_file(image_file);
 	}
 }
 
-bool ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string& filename, const string& image_folder)
+bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filename)
 {
 	if (!filename.empty()) {
 		image_file->set_name(filename);
-		image_file->set_type(device_factory.GetTypeForFile(filename));
+		image_file->set_type(device_factory->GetTypeForFile(filename));
 
-		string f = filename[0] == '/' ? filename : image_folder + "/" + filename;
+		string f = filename[0] == '/' ? filename : rascsi_image->GetDefaultImageFolder() + "/" + filename;
 
 		image_file->set_read_only(access(f.c_str(), W_OK));
 
@@ -151,34 +148,35 @@ bool ProtobufResponseHandler::GetImageFile(PbImageFile *image_file, const string
 	return false;
 }
 
-PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, const string& image_folder)
+PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 
-	image_files_info->set_default_image_folder(image_folder);
+	string default_image_folder = rascsi_image->GetDefaultImageFolder();
+	image_files_info->set_default_image_folder(default_image_folder);
 
 	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
-	DIR *d = opendir(image_folder.c_str());
+	DIR *d = opendir(default_image_folder.c_str());
 	if (d) {
 		struct dirent *dir;
 		while ((dir = readdir(d))) {
 			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
-				string filename = image_folder + "/" + dir->d_name;
+				string filename = default_image_folder + "/" + dir->d_name;
 
 				struct stat st;
 				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 					if (!st.st_size) {
-						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, image_folder.c_str());
+						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, default_image_folder.c_str());
 						continue;
 					}
 				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
-					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, image_folder.c_str());
+					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, default_image_folder.c_str());
 					continue;
 				}
 
 				PbImageFile *image_file = new PbImageFile();
-				if (GetImageFile(image_file, dir->d_name, image_folder)) {
-					GetImageFile(image_files_info->add_image_files(), dir->d_name, image_folder);
+				if (GetImageFile(image_file, dir->d_name)) {
+					GetImageFile(image_files_info->add_image_files(), dir->d_name);
 				}
 				delete image_file;
 			}
@@ -192,16 +190,16 @@ PbImageFilesInfo *ProtobufResponseHandler::GetAvailableImages(PbResult& result, 
 	return image_files_info;
 }
 
-void ProtobufResponseHandler::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& image_folder)
+void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info)
 {
-	PbImageFilesInfo *image_files_info = GetAvailableImages(result, image_folder);
-	image_files_info->set_default_image_folder(image_folder);
+	PbImageFilesInfo *image_files_info = GetAvailableImages(result);
+	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
 	result.set_status(true);
 }
 
-PbReservedIdsInfo *ProtobufResponseHandler::GetReservedIds(PbResult& result, const set<int>& ids)
+PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const set<int>& ids)
 {
 	PbReservedIdsInfo *reserved_ids_info = new PbReservedIdsInfo();
 	for (int id : ids) {
@@ -213,19 +211,19 @@ PbReservedIdsInfo *ProtobufResponseHandler::GetReservedIds(PbResult& result, con
 	return reserved_ids_info;
 }
 
-void ProtobufResponseHandler::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices, const string& image_folder)
+void RascsiResponse::GetDevices(PbServerInfo& server_info, const vector<Device *>& devices)
 {
 	for (const Device *device : devices) {
 		// Skip if unit does not exist or is not assigned
 		if (device) {
 			PbDevice *pb_device = server_info.mutable_devices_info()->add_devices();
-			GetDevice(device, pb_device, image_folder);
+			GetDevice(device, pb_device);
 		}
 	}
 }
 
-void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices,
-		const string& image_folder, int unit_count)
+void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, const vector<Device *>& devices,
+		int unit_count)
 {
 	set<id_set> id_sets;
 	if (!command.devices_size()) {
@@ -255,13 +253,13 @@ void ProtobufResponseHandler::GetDevicesInfo(PbResult& result, const PbCommand& 
 
 	for (const auto& id_set : id_sets) {
 		const Device *device = devices[id_set.first * unit_count + id_set.second];
-		GetDevice(device, devices_info->add_devices(), image_folder);
+		GetDevice(device, devices_info->add_devices());
 	}
 
 	result.set_status(true);
 }
 
-PbDeviceTypesInfo *ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
+PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const PbCommand& command)
 {
 	PbDeviceTypesInfo *device_types_info = new PbDeviceTypesInfo();
 
@@ -272,18 +270,18 @@ PbDeviceTypesInfo *ProtobufResponseHandler::GetDeviceTypesInfo(PbResult& result,
 	return device_types_info;
 }
 
-PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& image_folder, const string& current_log_level)
+PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
+		const string& current_log_level)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
 	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
-	GetAvailableImages(result, *server_info, image_folder);
+	GetAvailableImages(result, *server_info);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
-	GetDevices(*server_info, devices, image_folder);
+	GetDevices(*server_info, devices);
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
 
 	result.set_status(true);
@@ -291,7 +289,7 @@ PbServerInfo *ProtobufResponseHandler::GetServerInfo(PbResult& result, const vec
 	return server_info;
 }
 
-PbVersionInfo *ProtobufResponseHandler::GetVersionInfo(PbResult& result)
+PbVersionInfo *RascsiResponse::GetVersionInfo(PbResult& result)
 {
 	PbVersionInfo *version_info = new PbVersionInfo();
 
@@ -304,7 +302,7 @@ PbVersionInfo *ProtobufResponseHandler::GetVersionInfo(PbResult& result)
 	return version_info;
 }
 
-PbLogLevelInfo *ProtobufResponseHandler::GetLogLevelInfo(PbResult& result, const string& current_log_level)
+PbLogLevelInfo *RascsiResponse::GetLogLevelInfo(PbResult& result, const string& current_log_level)
 {
 	PbLogLevelInfo *log_level_info = new PbLogLevelInfo();
 
@@ -319,11 +317,11 @@ PbLogLevelInfo *ProtobufResponseHandler::GetLogLevelInfo(PbResult& result, const
 	return log_level_info;
 }
 
-PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbResult& result)
+PbNetworkInterfacesInfo *RascsiResponse::GetNetworkInterfacesInfo(PbResult& result)
 {
 	PbNetworkInterfacesInfo *network_interfaces_info = new PbNetworkInterfacesInfo();
 
-	for (const auto& network_interface : device_factory.GetNetworkInterfaces()) {
+	for (const auto& network_interface : device_factory->GetNetworkInterfaces()) {
 		network_interfaces_info->add_name(network_interface);
 	}
 
@@ -332,11 +330,11 @@ PbNetworkInterfacesInfo *ProtobufResponseHandler::GetNetworkInterfacesInfo(PbRes
 	return network_interfaces_info;
 }
 
-PbMappingInfo *ProtobufResponseHandler::GetMappingInfo(PbResult& result)
+PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 {
 	PbMappingInfo *mapping_info = new PbMappingInfo();
 
-	for (const auto& mapping : device_factory.GetExtensionMapping()) {
+	for (const auto& mapping : device_factory->GetExtensionMapping()) {
 		(*mapping_info->mutable_mapping())[mapping.first] = mapping.second;
 	}
 

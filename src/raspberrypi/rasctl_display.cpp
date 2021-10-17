@@ -15,6 +15,7 @@
 
 using namespace std;
 using namespace rascsi_interface;
+using namespace ras_util;
 
 void RasctlDisplay::DisplayDevices(const PbDevicesInfo& devices_info)
 {

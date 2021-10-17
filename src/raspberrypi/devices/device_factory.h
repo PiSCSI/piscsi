@@ -26,10 +26,11 @@ class Device;
 
 class DeviceFactory
 {
-public:
-
+private:
 	DeviceFactory();
 	~DeviceFactory() {};
+
+public:
 
 	static DeviceFactory& instance();
 
