@@ -64,19 +64,20 @@ enum PbOperation {
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 9;
 
-    // Gets the server information
+    // Gets the server information (PbServerInfo)
     SERVER_INFO = 10;
 
-    // Get rascsi version information
+    // Get rascsi version information (PbVersionInfo)
     VERSION_INFO = 11;
 
-    // Get information on attached devices. Returns data for all attached devices if the device list is empty.
+    // Get information on attached devices (PbDevicesInfo)
+    // Returns data for all attached devices if the device list is empty.
     DEVICES_INFO = 12;
 
-    // Get device properties by device type
+    // Get device properties by device type (PbDeviceTypesInfo)
     DEVICE_TYPES_INFO = 13;
 
-    // Get information on available image files in the default image folder.
+    // Get information on available image files in the default image folder (PbImageFilesInfo)
     DEFAULT_IMAGE_FILES_INFO = 14;
     
     // Get information on an image file (not necessarily in the default image folder) based on an absolute path.
@@ -84,16 +85,17 @@ enum PbOperation {
     //   "file": The filename. Either an absolute path or a path relative to the default image folder.
     IMAGE_FILE_INFO = 15;
 
-    // Get information on the available log levels and the current log level
+    // Get information on the available log levels and the current log level (PbLogLevelInfo)
     LOG_LEVEL_INFO = 16;
 
-    // Get the names of the available network interfaces. Only lists interfaces that are up.
+    // Get the names of the available network interfaces (PbNetworkInterfacesInfo)
+    // Only lists interfaces that are up.
     NETWORK_INTERFACES_INFO = 17;
     
-    // Get the mapping of extensions to device types
+    // Get the mapping of extensions to device types (PbMappingInfo)
     MAPPING_INFO = 18;
     
-    // Get the list of reserved device IDs
+    // Get the list of reserved device IDs (PbReservedIdsInfo)
     RESERVED_IDS_INFO = 19;
 
     // Set the default folder for image files. This folder must be located in /home.
@@ -309,7 +311,7 @@ message PbResult {
         PbVersionInfo version_info = 4;
         // The result of a LOG_LEVEL_INFO command
         PbLogLevelInfo log_level_info = 5;
-        // The result of a DEVICES_INFO command
+        // The result of a DEVICES_INFO, ATTACH or DETACH command
         PbDevicesInfo devices_info = 6;
         // The result of a DEVICE_TYPES_INFO command
         PbDeviceTypesInfo device_types_info = 7;
