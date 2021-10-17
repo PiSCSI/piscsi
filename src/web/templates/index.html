@@ -181,8 +181,12 @@
     <details>
     <summary>Attach Ethernet Adapter</summary>
     <ul>
-    <li>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers required.</a></li>
-    <li>If you have a DHCP setup, ignore the Static IP fields.</li>
+    <li>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers and configuration required</a>.</li>
+    <li>If you have a DHCP setup, choose only the interface, and ignore the Static IP fields when attaching.</li>
+    <li>Configure network forwarding by running easyinstall.sh, or follow the <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#manual-setup">manual steps in the wiki</a>.</li>
+    {% if bridge_configured %}
+    <li>The <tt>rascsi_bridge</tt> interface is active and ready to be used by DaynaPORT!</li>
+    {% endif %}
     </ul>
     </details>
     <table style="border: none">
@@ -209,11 +213,6 @@
             </td>
         </tr>
     </table>
-    {% if bridge_configured %}
-    <p><small>The rascsi_bridge interface is active!</small></p>
-    {% else %}
-    <p><small>The rascsi_bridge interface will be enabled when an emulated network adapter is attached.</small></p>
-    {% endif %}
 
     <hr/>
 
