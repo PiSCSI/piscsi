@@ -339,7 +339,7 @@ function setupWiredNetworking() {
 
     echo "Configuration completed!"
     echo "Please make sure you attach a DaynaPORT network adapter to the RaSCSI configuration."
-    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6): \"rascsi -ID 6 -t scdp $LAN_INTERFACE\""
+    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6): \"rasctl -i 6 -t scdp -f $LAN_INTERFACE\""
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
@@ -413,7 +413,7 @@ function setupWirelessNetworking() {
     echo "Configuration completed!"
     echo ""
     echo "Please make sure you attach a DaynaPORT network adapter to the RaSCSI configuration"
-    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6): \"rascsi -ID 6 -t scdp $WLAN_INTERFACE:$ROUTER_IP/$CIDR\""
+    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6): \"rasctl -i 6 -t scdp -f $WLAN_INTERFACE:$ROUTER_IP/$CIDR\""
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
