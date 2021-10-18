@@ -502,12 +502,14 @@ function installNetatalk() {
     fi
 
     echo ""
-    echo "Netatalk is now installed and running on your system. To start or stop the File Server, do:"
+    echo "Netatalk is now installed and configured to run on system boot."
+    echo "To start or stop the File Server manually, do:"
     echo "sudo /etc/init.d/netatalk start"
     echo "sudo /etc/init.d/netatalk stop"
     echo ""
-    echo "Make sure that the user running Netatalk has a password of 8 chars or less. Type 'passwd' to change password of the current user."
-    echo "For more information on configuring Netatalk and accessing AppleShare from your vintage Macs, see wiki: https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
+    echo "Make sure that the user running Netatalk has a password of 8 chars or less. You may execute the 'passwd' command to change the password of the current user."
+    echo "For more information on configuring Netatalk and accessing AppleShare from your vintage Macs, see wiki:"
+    echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
     echo ""
 }
 
