@@ -79,7 +79,7 @@ function installPackages() {
 
 # compile and install RaSCSI Service
 function installRaScsi() {
-    sudo systemctl stop rascsi
+    sudo systemctl stop rascsi || true
 
     if [ -f /etc/systemd/system/rascsi.service ]; then
         sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
@@ -125,7 +125,7 @@ function installRaScsiWebInterface() {
 
     sudo usermod -a -G pi www-data
 
-    sudo systemctl reload nginx
+    sudo systemctl reload nginx || true
 
     echo "Installing the rascsi-web.service configuration..."
     sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
@@ -154,7 +154,7 @@ function createImagesDir() {
 }
 
 function stopOldWebInterface() {
-    sudo systemctl stop rascsi-web
+    sudo systemctl stop rascsi-web || true
     APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
     if [ "$APACHE_STATUS" -eq 0 ] ; then
         echo "Stopping old Apache2 RaSCSI Web..."
