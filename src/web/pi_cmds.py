@@ -1,10 +1,10 @@
 import subprocess
 
 
-def rascsi_service(action):
+def systemd_service(service, action):
     # start/stop/restart
     return (
-        subprocess.run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode
+        subprocess.run(["sudo", "/bin/systemctl", action, service]).returncode
         == 0
     )
 

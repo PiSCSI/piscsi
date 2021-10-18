@@ -30,7 +30,7 @@ from pi_cmds import (
     reboot_pi,
     running_env,
     running_netatalk,
-    rascsi_service,
+    systemd_service,
     is_bridge_setup,
     disk_space,
 )
@@ -473,7 +473,8 @@ def rascsi_restart():
     detach_all()
     flash("Safely detached all devices.")
     flash("Restarting RaSCSI Service...")
-    rascsi_service("restart")
+    systemd_service("rascsi.service", "restart")
+    systemd_service("monitor_rascsi.service", "restart")
     return redirect(url_for("index"))
 
 
