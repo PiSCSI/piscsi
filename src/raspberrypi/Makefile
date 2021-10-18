@@ -84,8 +84,9 @@ SRC_RASCSI = \
 	filepath.cpp \
 	fileio.cpp\
 	rascsi_version.cpp \
+	rascsi_image.cpp \
+	rascsi_response.cpp \
 	rasutil.cpp \
-	protobuf_response_helper.cpp \
 	protobuf_util.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')

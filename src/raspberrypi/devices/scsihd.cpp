@@ -45,14 +45,13 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 
 	// For non-removable media drives set the default product name based on the drive capacity
 	if (!IsRemovable()) {
-		int capacity;
+		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
-		if (GetBlockCount() >> 11 >= 1) {
-			capacity = GetBlockCount() >> 11;
+		if (capacity >= 1000000) {
+			capacity /= 1000000;
 			unit = "MB";
 		}
 		else {
-			capacity = GetBlockCount() >> 1;
 			unit = "KB";
 		}
 		stringstream product;

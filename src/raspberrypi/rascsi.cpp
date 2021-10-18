@@ -23,15 +23,15 @@
 #include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
-#include "protobuf_response_helper.h"
 #include "protobuf_util.h"
 #include "rascsi_version.h"
+#include "rascsi_response.h"
 #include "rasutil.h"
+#include "rascsi_image.h"
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <spdlog/async.h>
-#include <sys/sendfile.h>
 #include <dirent.h>
 #include <ifaddrs.h>
 #include <string>
@@ -45,6 +45,8 @@
 using namespace std;
 using namespace spdlog;
 using namespace rascsi_interface;
+using namespace ras_util;
+using namespace protobuf_util;
 
 //---------------------------------------------------------------------------
 //
@@ -70,10 +72,10 @@ pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
-string default_image_folder;
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
-ProtobufResponseHandler& response_helper = ProtobufResponseHandler::instance();
+RascsiImage rascsi_image;
+RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 
 //---------------------------------------------------------------------------
 //
@@ -417,40 +419,6 @@ string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existi
 	return "";
 }
 
-bool ReturnStatus(int fd, bool status = true, const string msg = "")
-{
-	if (!status && !msg.empty()) {
-		LOGERROR("%s", msg.c_str());
-	}
-
-	if (fd == -1) {
-		if (!msg.empty()) {
-			if (status) {
-				FPRT(stderr, "Error: ");
-				FPRT(stderr, "%s", msg.c_str());
-				FPRT(stderr, "\n");
-			}
-			else {
-				FPRT(stdout, "%s", msg.c_str());
-				FPRT(stderr, "\n");
-			}
-		}
-	}
-	else {
-		PbResult result;
-		result.set_status(status);
-		result.set_msg(msg);
-		SerializeMessage(fd, result);
-	}
-
-	return status;
-}
-
-bool ReturnStatus(int fd, bool status, const ostringstream& msg)
-{
-	return ReturnStatus(fd, status, msg.str());
-}
-
 bool SetLogLevel(const string& log_level)
 {
 	if (log_level == "trace") {
@@ -491,44 +459,6 @@ void LogDevices(const string& devices)
 	while (getline(ss, line, '\n')) {
 		LOGINFO("%s", line.c_str());
 	}
-}
-
-string SetDefaultImageFolder(const string& f)
-{
-	string folder = f;
-
-	// If a relative path is specified the path is assumed to be relative to the user's home directory
-	if (folder[0] != '/') {
-		int uid = getuid();
-		const char *sudo_user = getenv("SUDO_UID");
-		if (sudo_user) {
-			uid = stoi(sudo_user);
-		}
-
-		const passwd *passwd = getpwuid(uid);
-		if (passwd) {
-			folder = passwd->pw_dir;
-			folder += "/";
-			folder += f;
-		}
-	}
-	else {
-		if (folder.find("/home/") != 0) {
-			return "Default image folder must be located in '/home/'";
-		}
-	}
-
-	struct stat info;
-	stat(folder.c_str(), &info);
-	if (!S_ISDIR(info.st_mode) || access(folder.c_str(), F_OK) == -1) {
-		return string("Folder '" + f + "' does not exist or is not accessible");
-	}
-
-	default_image_folder = folder;
-
-	LOGINFO("Default image folder set to '%s'", default_image_folder.c_str());
-
-	return "";
 }
 
 string SetReservedIds(const string& ids)
@@ -576,264 +506,6 @@ string SetReservedIds(const string& ids)
     }
 
 	return "";
-}
-
-bool IsValidSrcFilename(const string& filename)
-{
-	// Source file must exist and must be a regular file or a symlink
-	struct stat st;
-	return !stat(filename.c_str(), &st) && (S_ISREG(st.st_mode) || S_ISLNK(st.st_mode));
-}
-
-bool IsValidDstFilename(const string& filename)
-{
-	// Destination file must not yet exist
-	struct stat st;
-	return stat(filename.c_str(), &st);
-}
-
-bool CreateImage(int fd, const PbCommand& command)
-{
-	string filename = GetParam(command, "file");
-	if (filename.empty()) {
-		return ReturnStatus(fd, false, "Can't create image file: Missing image filename");
-	}
-	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
-	}
-	filename = default_image_folder + "/" + filename;
-	if (!IsValidDstFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': File already exists");
-	}
-
-	const string size = GetParam(command, "size");
-	if (size.empty()) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
-	}
-
-	off_t len;
-	try {
-		len = stoul(size);
-	}
-	catch(const invalid_argument& e) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
-	}
-	catch(const out_of_range& e) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
-	}
-	if (len < 512 || (len & 0x1ff)) {
-		ostringstream error;
-		error << "Invalid image file size " << len;
-		return ReturnStatus(fd, false, error.str());
-	}
-
-	struct stat st;
-	if (!stat(filename.c_str(), &st)) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': File already exists");
-	}
-
-	string permission = GetParam(command, "read_only");
-	// Since rascsi is running as root ensure that others can access the file
-	int permissions = !strcasecmp(permission.c_str(), "true") ?
-			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
-	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, permissions);
-	if (image_fd == -1) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': " + string(strerror(errno)));
-	}
-
-	if (fallocate(image_fd, 0, 0, len) == -1) {
-		close(image_fd);
-
-		return ReturnStatus(fd, false, "Can't allocate space for image file '" + filename + "': " + string(strerror(errno)));
-	}
-
-	close(image_fd);
-
-	ostringstream msg;
-	msg << "Created " << (permissions & S_IWUSR ? "": "read-only ") << "image file '" << filename + "' with a size of " << len << " bytes";
-	LOGINFO("%s", msg.str().c_str());
-
-	return ReturnStatus(fd);
-}
-
-bool DeleteImage(int fd, const PbCommand& command)
-{
-	string filename = GetParam(command, "file");
-	if (filename.empty()) {
-		return ReturnStatus(fd, false, "Missing image filename");
-	}
-
-	if (!IsValidDstFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': File already exists");
-	}
-
-	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
-	}
-
-	filename = default_image_folder + "/" + filename;
-
-	int id;
-	int unit;
-	Filepath filepath;
-	filepath.SetPath(filename.c_str());
-	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		ostringstream msg;
-		msg << "Can't delete image file '" << filename << "', it is used by device ID " << id << ", unit " << unit;
-		return ReturnStatus(fd, false, msg.str());
-	}
-
-	if (unlink(filename.c_str())) {
-		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
-	}
-
-	LOGINFO("Deleted image file '%s'", filename.c_str());
-
-	return ReturnStatus(fd);
-}
-
-bool RenameImage(int fd, const PbCommand& command)
-{
-	string from = GetParam(command, "from");
-	if (from.empty()) {
-		return ReturnStatus(fd, false, "Can't rename image file: Missing source filename");
-	}
-	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
-	}
-	from = default_image_folder + "/" + from;
-	if (!IsValidSrcFilename(from)) {
-		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid name or type");
-	}
-
-	string to = GetParam(command, "to");
-	if (to.empty()) {
-		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
-	}
-	if (to.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
-	}
-	to = default_image_folder + "/" + to;
-	if (!IsValidDstFilename(to)) {
-		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': File already exists");
-	}
-
-	if (rename(from.c_str(), to.c_str())) {
-		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
-	}
-
-	LOGINFO("Renamed image file '%s' to '%s'", from.c_str(), to.c_str());
-
-	return ReturnStatus(fd);
-}
-
-bool CopyImage(int fd, const PbCommand& command)
-{
-	string from = GetParam(command, "from");
-	if (from.empty()) {
-		return ReturnStatus(fd, false, "Can't copy image file: Missing source filename");
-	}
-	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
-	}
-	from = default_image_folder + "/" + from;
-	if (!IsValidSrcFilename(from)) {
-		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid name or type");
-	}
-
-	string to = GetParam(command, "to");
-	if (to.empty()) {
-		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
-	}
-	if (to.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
-	}
-	to = default_image_folder + "/" + to;
-	if (!IsValidDstFilename(to)) {
-		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
-	}
-
-	struct stat st;
-    if (lstat(from.c_str(), &st)) {
-    	return ReturnStatus(fd, false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
-    }
-
-    // Symbolic links need a special handling
-	if ((st.st_mode & S_IFMT) == S_IFLNK) {
-		if (symlink(filesystem::read_symlink(from).c_str(), to.c_str())) {
-	    	return ReturnStatus(fd, false, "Can't copy symlink '" + from + "': " + string(strerror(errno)));
-		}
-
-		LOGINFO("Copied symlink '%s' to '%s'", from.c_str(), to.c_str());
-
-		return ReturnStatus(fd);
-	}
-
-	int fd_src = open(from.c_str(), O_RDONLY, 0);
-	if (fd_src == -1) {
-		return ReturnStatus(fd, false, "Can't open source image file '" + from + "': " + string(strerror(errno)));
-	}
-
-	string permission = GetParam(command, "read_only");
-	// Since rascsi is running as root ensure that others can access the file
-	int permissions = !strcasecmp(permission.c_str(), "true") ?
-			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
-	int fd_dst = open(to.c_str(), O_WRONLY | O_CREAT, permissions);
-	if (fd_dst == -1) {
-		close(fd_src);
-
-		return ReturnStatus(fd, false, "Can't open destination image file '" + to + "': " + string(strerror(errno)));
-	}
-
-    if (sendfile(fd_dst, fd_src, 0, st.st_size) == -1) {
-        close(fd_dst);
-        close(fd_src);
-
-        return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
-	}
-
-    close(fd_dst);
-    close(fd_src);
-
-	LOGINFO("Copied image file '%s' to '%s'", from.c_str(), to.c_str());
-
-	return ReturnStatus(fd);
-}
-
-bool SetImagePermissions(int fd, const PbCommand& command)
-{
-	string filename = GetParam(command, "file");
-	if (filename.empty()) {
-		return ReturnStatus(fd, false, "Missing image filename");
-	}
-	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
-	}
-	filename = default_image_folder + "/" + filename;
-	if (!IsValidSrcFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid name or type");
-	}
-
-	bool protect = command.operation() == PROTECT_IMAGE;
-
-	int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
-
-	if (chmod(filename.c_str(), permissions) == -1) {
-		ostringstream error;
-		error << "Can't " << (protect ? "protect" : "unprotect") << " image file '" << filename << "': " << strerror(errno);
-		return ReturnStatus(fd, false, error.str());
-	}
-
-	if (protect) {
-		LOGINFO("Protected image file '%s'", filename.c_str());
-	}
-	else {
-		LOGINFO("Unprotected image file '%s'", filename.c_str());
-	}
-
-	return ReturnStatus(fd);
 }
 
 void DetachAll()
@@ -951,7 +623,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 			}
 			catch(const file_not_found_exception&) {
 				// If the file does not exist search for it in the default image folder
-				filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
+				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 				file_support->Open(filepath);
 			}
 		}
@@ -1020,8 +692,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 {
 	if (!dryRun) {
-		for (size_t i = devices.size() - 1; i > 0; i--) {
-			Device *d = map[i];
+		for (auto const& d : devices) {
 			// Detach all LUNs equal to or higher than the LUN specified
 			if (d && d->GetId() == device->GetId() && d->GetLun() >= device->GetLun()) {
 				map[d->GetId() * UnitNum + d->GetLun()] = NULL;
@@ -1033,10 +704,10 @@ bool Detach(int fd, Device *device, Device *map[], bool dryRun)
 
 				LOGINFO("Detached %s device with ID %d, unit %d", d->GetType().c_str(), d->GetId(), d->GetLun());
 			}
-
-			// Re-map the controller
-			MapController(map);
 		}
+
+		// Re-map the controller
+		MapController(map);
 	}
 
 	return true;
@@ -1096,7 +767,7 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		}
 		catch(const file_not_found_exception&) {
 			// If the file does not exist search for it in the default image folder
-			filepath.SetPath(string(default_image_folder + "/" + filename).c_str());
+			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 			file_support->Open(filepath);
 		}
 	}
@@ -1112,6 +783,13 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	}
 
 	return true;
+}
+
+void TerminationHandler(int signum)
+{
+	DetachAll();
+
+	exit(signum);
 }
 
 //---------------------------------------------------------------------------
@@ -1306,20 +984,20 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		}
 
 		case CREATE_IMAGE:
-			return CreateImage(fd, command);
+			return rascsi_image.CreateImage(fd, command);
 
 		case DELETE_IMAGE:
-			return DeleteImage(fd, command);
+			return rascsi_image.DeleteImage(fd, command);
 
 		case RENAME_IMAGE:
-			return RenameImage(fd, command);
+			return rascsi_image.RenameImage(fd, command);
 
 		case COPY_IMAGE:
-			return CopyImage(fd, command);
+			return rascsi_image.CopyImage(fd, command);
 
 		case PROTECT_IMAGE:
 		case UNPROTECT_IMAGE:
-			return SetImagePermissions(fd, command);
+			return rascsi_image.SetImagePermissions(fd, command);
 
 		default:
 			// This is a device-specific command handled below
@@ -1348,6 +1026,16 @@ bool ProcessCmd(const int fd, const PbCommand& command)
 		if (!ProcessCmd(fd, device, command, false)) {
 			return false;
 		}
+	}
+
+	// ATTACH and DETACH return the device list
+	if (fd != -1 && (command.operation() == ATTACH || command.operation() == DETACH)) {
+		// A new command with an empty device list is required here in order to return data for all devices
+		PbCommand command;
+		PbResult result;
+		rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
+		SerializeMessage(fd, result);
+		return true;
 	}
 
 	return ReturnStatus(fd);
@@ -1434,7 +1122,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			}
 
 			case 'F': {
-				string result = SetDefaultImageFolder(optarg);
+				string result = rascsi_image.SetDefaultImageFolder(optarg);
 				if (!result.empty()) {
 					cerr << result << endl;
 					return false;
@@ -1532,7 +1220,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	// Display and log the device list
 	PbServerInfo server_info;
-	response_helper.GetDevices(server_info, devices, default_image_folder);
+	rascsi_response.GetDevices(server_info, devices);
 	const list<PbDevice>& devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
 	const string device_list = ListDevices(devices);
 	LogDevices(device_list);
@@ -1625,7 +1313,7 @@ static void *MonThread(void *param)
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
 					}
 
-					string result = SetDefaultImageFolder(folder);
+					string result = rascsi_image.SetDefaultImageFolder(folder);
 					if (!result.empty()) {
 						ReturnStatus(fd, false, result);
 					}
@@ -1639,7 +1327,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					response_helper.GetDevicesInfo(result, command, devices, default_image_folder, UnitNum);
+					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
 					SerializeMessage(fd, result);
 
 					// For backwards compatibility: Log device list if information on all devices was requested.
@@ -1654,7 +1342,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_device_types_info(response_helper.GetDeviceTypesInfo(result, command));
+					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result, command));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1663,8 +1351,8 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_server_info(response_helper.GetServerInfo(
-							result, devices, reserved_ids, default_image_folder, current_log_level));
+					result.set_allocated_server_info(rascsi_response.GetServerInfo(
+							result, devices, reserved_ids, current_log_level));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1673,7 +1361,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_version_info(response_helper.GetVersionInfo(result));
+					result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1682,7 +1370,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_log_level_info(response_helper.GetLogLevelInfo(result, current_log_level));
+					result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1691,7 +1379,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_image_files_info(response_helper.GetAvailableImages(result, default_image_folder));
+					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1706,7 +1394,7 @@ static void *MonThread(void *param)
 					else {
 						PbResult result;
 						PbImageFile* image_file = new PbImageFile();
-						bool status = response_helper.GetImageFile(image_file, filename, default_image_folder);
+						bool status = rascsi_response.GetImageFile(image_file, filename);
 						if (status) {
 							result.set_status(true);
 							result.set_allocated_image_file_info(image_file);
@@ -1723,7 +1411,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_network_interfaces_info(response_helper.GetNetworkInterfacesInfo(result));
+					result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1732,7 +1420,7 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_mapping_info(response_helper.GetMappingInfo(result));
+					result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1741,8 +1429,19 @@ static void *MonThread(void *param)
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
 					PbResult result;
-					result.set_allocated_reserved_ids_info(response_helper.GetReservedIds(result, reserved_ids));
+					result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
 					SerializeMessage(fd, result);
+					break;
+				}
+
+				case SHUT_DOWN: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_status(true);
+					SerializeMessage(fd, result);
+
+					TerminationHandler(0);
 					break;
 				}
 
@@ -1769,13 +1468,6 @@ static void *MonThread(void *param)
 	}
 
 	return NULL;
-}
-
-void TerminationHandler(int signum)
-{
-	DetachAll();
-
-	exit(signum);
 }
 
 //---------------------------------------------------------------------------
@@ -1809,21 +1501,6 @@ int main(int argc, char* argv[])
 
 	// Create a thread-safe stdout logger to process the log messages
 	auto logger = stdout_color_mt("rascsi stdout logger");
-
-	// ~/images is the default folder for device image files, for the root user it is /home/pi/images
-	int uid = getuid();
-	const char *sudo_user = getenv("SUDO_UID");
-	if (sudo_user) {
-		uid = stoi(sudo_user);
-	}
-	const passwd *passwd = getpwuid(uid);
-	if (uid && passwd) {
-		default_image_folder = passwd->pw_dir;
-		default_image_folder += "/images";
-	}
-	else {
-		default_image_folder = "/home/pi/images";
-	}
 
 	int port = 6868;
 
