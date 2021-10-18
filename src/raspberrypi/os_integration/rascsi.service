@@ -16,7 +16,7 @@ ExecStart=/usr/local/bin/rascsi -r 7
 #
 # ExecStart=/usr/local/bin/rascsi -r 0,7
 #
-# This functionality isn't implmented yet: ExecStop=/usr/local/bin/rasctl -stop
+ExecStop=/usr/local/bin/rasctl -X
 StandardOutput=syslog
 StandardError=syslog
 SyslogIdentifier=RASCSI
