@@ -79,7 +79,7 @@ function installPackages() {
 
 # compile and install RaSCSI Service
 function installRaScsi() {
-    sudo systemctl stop rascsi
+    sudo systemctl stop rascsi || true
 
     if [ -f /etc/systemd/system/rascsi.service ]; then
         sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
@@ -125,7 +125,7 @@ function installRaScsiWebInterface() {
 
     sudo usermod -a -G pi www-data
 
-    sudo systemctl reload nginx
+    sudo systemctl reload nginx || true
 
     echo "Installing the rascsi-web.service configuration..."
     sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
@@ -154,7 +154,7 @@ function createImagesDir() {
 }
 
 function stopOldWebInterface() {
-    sudo systemctl stop rascsi-web
+    sudo systemctl stop rascsi-web || true
     APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
     if [ "$APACHE_STATUS" -eq 0 ] ; then
         echo "Stopping old Apache2 RaSCSI Web..."
@@ -338,8 +338,9 @@ function setupWiredNetworking() {
     echo "Modified /etc/network/interfaces.d/rascsi_bridge"
 
     echo "Configuration completed!"
-    echo "Please make sure you attach a DaynaPORT network adapter to the RaSCSI configuration."
-    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6): \"rascsi -ID 6 -t scdp $LAN_INTERFACE\""
+    echo "Please make sure you attach a DaynaPORT network adapter to your RaSCSI configuration."
+    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6):"
+    echo "rasctl -i 6 -c attach -t scdp -f $LAN_INTERFACE"
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
@@ -412,8 +413,9 @@ function setupWirelessNetworking() {
 
     echo "Configuration completed!"
     echo ""
-    echo "Please make sure you attach a DaynaPORT network adapter to the RaSCSI configuration"
-    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6): \"rascsi -ID 6 -t scdp $WLAN_INTERFACE:$ROUTER_IP/$CIDR\""
+    echo "Please make sure you attach a DaynaPORT network adapter to your RaSCSI configuration"
+    echo "Either use the Web UI, or do this on the command line (assuming SCSI ID 6):"
+    echo "rasctl -i 6 -c attach -t scdp -f $WLAN_INTERFACE:$ROUTER_IP/$CIDR"
     echo ""
     echo "We need to reboot your Pi"
     echo "Press Enter to reboot or CTRL-C to exit"
@@ -444,6 +446,73 @@ function reserveScsiIds() {
 
     sudo systemctl daemon-reload
     sudo systemctl start rascsi
+}
+
+function installNetatalk() {
+    NETATALK_VERSION="20200806"
+    AFP_SHARE_PATH="$HOME/afpshare"
+
+    echo "Cleaning up existing Netatalk installation, if it exists..."
+    sudo /etc/init.d/netatalk stop || true
+    sudo rm -rf /etc/default/netatalk.conf /etc/netatalk || true
+
+    if [ -f "$HOME/netatalk-classic-$NETATALK_VERSION" ]; then
+        echo "Deleting existing version of $HOME/netatalk-classic-$NETATALK_VERSION."
+        sudo rm -rf "$HOME/netatalk-classic-$NETATALK_VERSION"
+    fi
+
+    echo "Downloading netatalk-classic-$NETATALK_VERSION to $HOME"
+    cd $HOME || exit 1
+    wget "https://github.com/christopherkobayashi/netatalk-classic/archive/refs/tags/$NETATALK_VERSION.tar.gz" </dev/null
+    tar -xzvf $NETATALK_VERSION.tar.gz
+
+    cd "netatalk-classic-$NETATALK_VERSION" || exit 1
+    sed -i /^~/d ./config/AppleVolumes.default.tmpl
+    echo "/home/pi/afpshare \"Pi File Server\" adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default.tmpl
+
+    echo "ATALKD_RUN=yes" >> ./config/netatalk.conf
+    echo "\"RaSCSI-Pi\" -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname \"nobody\" -setuplog \"default log_maxdebug /var/log/afpd.log\"" >> ./config/afpd.conf.tmpl
+
+    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool --assume-yes ) </dev/null
+
+    echo "Compiling and installing Netatalk..."
+    ./bootstrap
+    ./configure --enable-debian --enable-cups --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk
+    ( make && sudo make install ) </dev/null
+
+    if [ -d "$AFP_SHARE_PATH" ]; then
+        echo "The $AFP_SHARE_PATH directory already exists."
+    else
+        echo "The $AFP_SHARE_PATH directory does not exist; creating..."
+        mkdir -p "$AFP_SHARE_PATH"
+        chmod -R 2775 "$AFP_SHARE_PATH"
+    fi
+
+    if [[ `grep -c netatalk /etc/rc.local` -eq 0 ]]; then
+        sudo sed -i "/^exit 0/i sudo /etc/init.d/netatalk start" /etc/rc.local
+        echo "Modified /etc/rc.local"
+    fi
+
+    sudo /etc/init.d/netatalk start
+
+    if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
+        echo ""
+        echo "Your system may not have support for AppleTalk networking."
+        echo "Use TCP to connect to your AppleShare server via the IP address of the network interface that is connected to the rest of your network:"
+        echo `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
+        echo "See wiki for information on how to compile support for AppleTalk into your Linux kernel."
+    fi
+
+    echo ""
+    echo "Netatalk is now installed and configured to run on system boot."
+    echo "To start or stop the File Server manually, do:"
+    echo "sudo /etc/init.d/netatalk start"
+    echo "sudo /etc/init.d/netatalk stop"
+    echo ""
+    echo "Make sure that the user running Netatalk has a password of 8 chars or less. You may execute the 'passwd' command to change the password of the current user."
+    echo "For more information on configuring Netatalk and accessing AppleShare from your vintage Macs, see wiki:"
+    echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
+    echo ""
 }
 
 function notifyBackup {
@@ -509,6 +578,11 @@ function runChoice() {
               showRaScsiWebStatus
               echo "Reserving SCSI IDs - Complete!"
           ;;
+          8)
+              echo "Installing AppleShare File Server"
+              installNetatalk
+              echo "Installing AppleShare File Server - Complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -521,8 +595,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "7" ]; do
-       echo -n "Enter your choice (0-7) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "8" ]; do
+       echo -n "Enter your choice (0-8) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -544,6 +618,7 @@ function showMenu() {
     echo "  6) configure network forwarding over WiFi (static IP)" 
     echo "MISCELLANEOUS"
     echo "  7) reserve SCSI IDs"
+    echo "  8) install AppleShare File Server (Netatalk)"
 }
 
 # parse arguments
@@ -563,7 +638,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7)
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
