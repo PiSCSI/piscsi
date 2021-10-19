@@ -135,6 +135,41 @@ function installRaScsiWebInterface() {
     sudo systemctl start rascsi-web
 }
 
+function installRaScsiScreen() {
+    echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your RaSCSI board."
+    echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/OLED-Status-Display-(Optional)"
+    echo ""
+    echo "Press enter to continue or CTRL-C to exit"
+    read REPLY
+
+    updateRaScsiGit
+
+    sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools -y </dev/null
+
+    if [ "$(grep -c "^dtparam=i2c_arm" /boot/config.txt)" -ge 1 ]; then
+        echo "NOTE: I2C support seems to have been configured already; We will override that configuration."
+	    sudo sed -i /^dtparam=i2c_arm/d /boot/config.txt
+    fi
+    sudo bash -c 'echo "dtparam=i2c_arm=on" >> /boot/config.txt'
+    echo "Modified /boot/config.txt"
+
+    echo "Installing the monitor_rascsi.service configuration..."
+    sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" /etc/systemd/system/monitor_rascsi.service
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable monitor_rascsi
+    sudo systemctl start monitor_rascsi
+
+    echo ""
+    echo "We need to reboot your Pi"
+    echo "Press Enter to reboot or CTRL-C to exit"
+    read
+
+    echo "Rebooting..."
+    sleep 3
+    sudo reboot
+}
+
 function createImagesDir() {
     if [ -d "$VIRTUAL_DRIVER_PATH" ]; then
         echo "The $VIRTUAL_DRIVER_PATH directory already exists."
@@ -191,6 +226,10 @@ function showRaScsiStatus() {
 
 function showRaScsiWebStatus() {
     sudo systemctl status rascsi-web | tee
+}
+
+function showRaScsiScreenStatus() {
+    sudo systemctl status monitor_rascsi | tee
 }
 
 function createDrive600MB() {
@@ -328,7 +367,7 @@ function setupWiredNetworking() {
         echo "WARNING: Network forwarding may already have been configured. Proceeding will overwrite the configuration."
         echo "Press enter to continue or CTRL-C to exit"
         read REPLY
-	sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
+        sudo sed -i /^denyinterfaces/d /etc/dhcpcd.conf
     fi
     sudo bash -c 'echo "denyinterfaces '$LAN_INTERFACE'" >> /etc/dhcpcd.conf'
     echo "Modified /etc/dhcpcd.conf"
@@ -541,44 +580,50 @@ function runChoice() {
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface - Complete!"
           ;;
           2)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC})" 
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC})"
               updateRaScsiGit
               createImagesDir
               installPackages
               installRaScsi
               showRaScsiStatus
               notifyBackup
-	      echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
-	  ;;
+	          echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
+          ;;
           3)
+              echo "Installing / Updating RaSCSI OLED Screen"
+              installRaScsiScreen
+              showRaScsiScreenStatus
+	          echo "Installing / Updating RaSCSI OLED Screen - Complete!"
+          ;;
+          4)
               echo "Creating a 600MB drive"
               createDrive600MB
               echo "Creating a 600MB drive - Complete!"
           ;;
-          4)
+          5)
               echo "Creating a custom drive"
               createDriveCustom
               echo "Creating a custom drive - Complete!"
           ;;
-          5)
+          6)
               echo "Configuring wired network bridge"
               showMacNetworkWired
 	      setupWiredNetworking
               echo "Configuring wired network bridge - Complete!"
           ;;
-          6)
+          7)
               echo "Configuring wifi network bridge"
 	      showMacNetworkWireless
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
           ;;
-          7)
+          8)
               echo "Reserving SCSI IDs"
 	      reserveScsiIds
               showRaScsiWebStatus
               echo "Reserving SCSI IDs - Complete!"
           ;;
-          8)
+          9)
               echo "Installing AppleShare File Server"
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
@@ -595,8 +640,8 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "8" ]; do
-       echo -n "Enter your choice (0-8) or CTRL-C to exit: "
+   until [ $choice -ge "0" ] && [ $choice -le "9" ]; do
+       echo -n "Enter your choice (0-9) or CTRL-C to exit: "
        read -r choice
    done
 
@@ -609,16 +654,17 @@ function showMenu() {
     echo "INSTALL/UPDATE RASCSI (${CONNECT_TYPE-FULLSPEC} version)"
     echo "  1) install or update RaSCSI Service + Web Interface"
     echo "  2) install or update RaSCSI Service"
+    echo "  3) install or update RaSCSI OLED Screen (requires hardware)"
     echo "CREATE HFS FORMATTED (MAC) IMAGE WITH LIDO DRIVERS"
     echo "** For the Mac Plus, it's better to create an image through the Web Interface **"
-    echo "  3) 600MB drive (suggested size)"
-    echo "  4) custom drive size (up to 4000MB)"
+    echo "  4) 600MB drive (suggested size)"
+    echo "  5) custom drive size (up to 4000MB)"
     echo "NETWORK ASSISTANT"
-    echo "  5) configure network forwarding over Ethernet (DHCP)"
-    echo "  6) configure network forwarding over WiFi (static IP)" 
+    echo "  6) configure network forwarding over Ethernet (DHCP)"
+    echo "  7) configure network forwarding over WiFi (static IP)" 
     echo "MISCELLANEOUS"
-    echo "  7) reserve SCSI IDs"
-    echo "  8) install AppleShare File Server (Netatalk)"
+    echo "  8) reserve SCSI IDs"
+    echo "  9) install AppleShare File Server (Netatalk)"
 }
 
 # parse arguments
@@ -638,7 +684,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8)
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 )
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
