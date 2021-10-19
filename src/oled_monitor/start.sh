@@ -47,7 +47,7 @@ if ! i2cdetect -y 1 &> /dev/null ; then
     exit 2
 fi
 if ! test -e venv; then
-  echo "Creating python venv for OLED monitor"
+  echo "Creating python venv for OLED Screen"
   python3 -m venv venv
   echo "Activating venv"
   source venv/bin/activate
