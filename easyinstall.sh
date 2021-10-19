@@ -142,6 +142,7 @@ function installRaScsiScreen() {
     echo "Press enter to continue or CTRL-C to exit"
     read REPLY
 
+    sudo systemctl stop monitor_rascsi || true
     updateRaScsiGit
 
     sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools -y </dev/null
@@ -158,10 +159,9 @@ function installRaScsiScreen() {
 
     sudo systemctl daemon-reload
     sudo systemctl enable monitor_rascsi
-    sudo systemctl start monitor_rascsi
 
     echo ""
-    echo "We need to reboot your Pi"
+    echo "The monitor_rascsi service will start on the next Pi boot."
     echo "Press Enter to reboot or CTRL-C to exit"
     read
 
@@ -226,10 +226,6 @@ function showRaScsiStatus() {
 
 function showRaScsiWebStatus() {
     sudo systemctl status rascsi-web | tee
-}
-
-function showRaScsiScreenStatus() {
-    sudo systemctl status monitor_rascsi | tee
 }
 
 function createDrive600MB() {
@@ -592,8 +588,7 @@ function runChoice() {
           3)
               echo "Installing / Updating RaSCSI OLED Screen"
               installRaScsiScreen
-              showRaScsiScreenStatus
-	          echo "Installing / Updating RaSCSI OLED Screen - Complete!"
+              echo "Installing / Updating RaSCSI OLED Screen - Complete!"
           ;;
           4)
               echo "Creating a 600MB drive"
