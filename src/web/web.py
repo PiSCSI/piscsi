@@ -375,8 +375,8 @@ def attach():
         flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {un}!")
         if int(file_size) % int(expected_block_size):
             flash(f"The image file size {file_size} bytes is not a multiple of \
-                    {expected_block_size}. The image may be corrupted \
-                    so proceed with caution.", "error")
+                    {expected_block_size} and RaSCSI will ignore the trailing data. \
+                    The image may be corrupted so proceed with caution.", "error")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {un}!", "error")
@@ -445,12 +445,12 @@ def device_info():
         flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
         flash(f"File: {device['image']}")
-        flash(f"File Size: {device['size']} bytes")
         flash(f"Parameters: {device['params']}")
         flash(f"Vendor: {device['vendor']}")
         flash(f"Product: {device['product']}")
         flash(f"Revision: {device['revision']}")
-        flash(f"Block Size: {device['block_size']}")
+        flash(f"Block Size: {device['block_size']} bytes")
+        flash(f"Image Size: {device['size']} bytes")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to get device info for SCSI ID {scsi_id} LUN {un}!", "error")
