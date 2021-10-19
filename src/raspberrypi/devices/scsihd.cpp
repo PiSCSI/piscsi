@@ -52,6 +52,7 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 			unit = "MB";
 		}
 		else {
+			capacity /= 1000;
 			unit = "KB";
 		}
 		stringstream product;
