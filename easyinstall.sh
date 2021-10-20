@@ -147,6 +147,13 @@ function installRaScsiScreen() {
 
     sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools -y </dev/null
 
+    if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
+        rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
+	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
+    fi
+    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$BASE/src/oled_monitor" rascsi_interface.proto
+
     if [ "$(grep -c "^dtparam=i2c_arm" /boot/config.txt)" -ge 1 ]; then
         echo "NOTE: I2C support seems to have been configured already; We will override that configuration."
 	    sudo sed -i /^dtparam=i2c_arm/d /boot/config.txt
