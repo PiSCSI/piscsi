@@ -224,7 +224,7 @@ while True:
     y_pos = top
     if len(rascsi_list):
         for line in rascsi_list:
-            output = f"{line['id']} {line['device_type']} {line['file']}"
+            output = f"{line['id']} {line['device_type'][2:4]} {line['file']}"
             draw.text((x, y_pos), output, font=font, fill=255)
             y_pos += 8
     else:
