@@ -2,7 +2,7 @@
 set -e
 # set -x # Uncomment to Debug
 
-cd $(dirname $0)
+cd "$(dirname "$0")"
 # verify packages installed
 ERROR=0
 if ! command -v dpkg -l i2c-tools &> /dev/null ; then
@@ -31,7 +31,6 @@ if ! dpkg -l libpng-dev &> /dev/null; then
     echo "Run 'sudo apt install libpng-dev' to fix."
     ERROR=1
 fi
-# Dep to build Pollow
 if ! python3 -m venv --help &> /dev/null ; then
     echo "venv could not be found"
     echo "Run 'sudo apt install python3-venv' to fix."
@@ -53,6 +52,7 @@ if ! test -e venv; then
   echo "Activating venv"
   source venv/bin/activate
   echo "Installing requirements.txt"
+  pip install wheel
   pip install -r requirements.txt
   git rev-parse HEAD > current
 fi
@@ -65,8 +65,6 @@ if ! test -e current; then
 else
   if [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
       echo "New version detected, updating requirements.txt"
-      echo " This may take some time..."
-      pip install wheel
       pip install -r requirements.txt
       git rev-parse HEAD > current
   fi

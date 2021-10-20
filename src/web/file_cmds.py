@@ -175,44 +175,42 @@ def download_file_to_iso(scsi_id, url):
 
     try:
         urllib.request.urlretrieve(url, tmp_full_path)
-    except (error.URLError, error.HTTPError, error.ContentTooShortError) as e:
+    except (error.URLError, error.HTTPError, error.ContentTooShortError, FileNotFoundError) as e:
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
     except:
-        return {"status": False, "msg": "Error loading the URL"}
+        return {"status": False, "msg": "Unknown error occurred."}
 
     # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
     iso_proc = run(
         ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
     )
     if iso_proc.returncode != 0:
-        return {"status": False, "msg": iso_proc}
+        return {"status": False, "msg": str(iso_proc)}
 
     process = attach_image(scsi_id, type="SCCD", image=iso_filename)
     return {"status": process["status"], "msg": process["msg"]}
 
 
-def download_image(url):
+def download_to_dir(url, save_dir):
     """
-    Takes str url
+    Takes str url, str save_dir
     Returns dict with boolean status and str msg
     """
     import urllib.request
     import urllib.error as error
 
-    server_info = get_server_info()
-
     file_name = url.split("/")[-1]
-    full_path = f"{server_info['image_dir']}/{file_name}"
+    full_path = f"{save_dir}/{file_name}"
 
     try:
         urllib.request.urlretrieve(url, full_path)
         return {"status": True, "msg": "Downloaded the URL"}
-    except (error.URLError, error.HTTPError, error.ContentTooShortError) as e:
+    except (error.URLError, error.HTTPError, error.ContentTooShortError, FileNotFoundError) as e:
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
     except:
-        return {"status": False, "msg": "Error loading the URL"}
+        return {"status": False, "msg": "Unknown error occurred."}
 
 
 def write_config(file_name):

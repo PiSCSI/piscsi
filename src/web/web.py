@@ -19,7 +19,7 @@ from file_cmds import (
     delete_image,
     delete_file,
     unzip_file,
-    download_image,
+    download_to_dir,
     write_config,
     read_config,
     write_drive_properties,
@@ -29,7 +29,8 @@ from pi_cmds import (
     shutdown_pi,
     reboot_pi,
     running_env,
-    rascsi_service,
+    systemd_service,
+    running_netatalk,
     is_bridge_setup,
     disk_space,
 )
@@ -86,11 +87,13 @@ def index():
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
+        netatalk_configured=running_netatalk(),
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
         base_dir=server_info["image_dir"],
         cfg_dir=cfg_dir,
+        afp_dir=afp_dir,
         scsi_ids=scsi_ids,
         recommended_id=recommended_id,
         attached_images=attached_images,
@@ -375,8 +378,8 @@ def attach():
         flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {un}!")
         if int(file_size) % int(expected_block_size):
             flash(f"The image file size {file_size} bytes is not a multiple of \
-                    {expected_block_size}. The image may be corrupted \
-                    so proceed with caution.", "error")
+                    {expected_block_size} and RaSCSI will ignore the trailing data. \
+                    The image may be corrupted so proceed with caution.", "error")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {un}!", "error")
@@ -445,12 +448,12 @@ def device_info():
         flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
         flash(f"File: {device['image']}")
-        flash(f"File Size: {device['size']} bytes")
         flash(f"Parameters: {device['params']}")
         flash(f"Vendor: {device['vendor']}")
         flash(f"Product: {device['product']}")
         flash(f"Revision: {device['revision']}")
-        flash(f"Block Size: {device['block_size']}")
+        flash(f"Block Size: {device['block_size']} bytes")
+        flash(f"Image Size: {device['size']} bytes")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to get device info for SCSI ID {scsi_id} LUN {un}!", "error")
@@ -470,7 +473,8 @@ def rascsi_restart():
     detach_all()
     flash("Safely detached all devices.")
     flash("Restarting RaSCSI Service...")
-    rascsi_service("restart")
+    systemd_service("rascsi.service", "restart")
+    systemd_service("monitor_rascsi.service", "restart")
     return redirect(url_for("index"))
 
 
@@ -499,12 +503,26 @@ def download_file():
         return redirect(url_for("index"))
 
 
-@app.route("/files/download_image", methods=["POST"])
+@app.route("/files/download_to_images", methods=["POST"])
 def download_img():
     url = request.form.get("url")
-    process = download_image(url)
+    server_info = get_server_info()
+    process = download_to_dir(url, server_info["image_dir"])
     if process["status"] == True:
-        flash(f"File Downloaded from {url}")
+        flash(f"File Downloaded from {url} to {server_info['image_dir']}")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to download file {url}", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+
+@app.route("/files/download_to_afp", methods=["POST"])
+def download_afp():
+    url = request.form.get("url")
+    process = download_to_dir(url, afp_dir)
+    if process["status"] == True:
+        flash(f"File Downloaded from {url} to {afp_dir}")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to download file {url}", "error")
