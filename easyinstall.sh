@@ -149,17 +149,24 @@ function installRaScsiScreen() {
 
     if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
         rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
-	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
+        echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
     protoc -I="$BASE/src/raspberrypi/" --python_out="$BASE/src/oled_monitor" rascsi_interface.proto
 
-    if [ "$(grep -c "^dtparam=i2c_arm" /boot/config.txt)" -ge 1 ]; then
-        echo "NOTE: I2C support seems to have been configured already; We will override that configuration."
-	    sudo sed -i /^dtparam=i2c_arm/d /boot/config.txt
+    if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
+        echo "NOTE: I2C support seems to have been configured already."
+        REBOOT=0
+    elif [[ $(grep -c "^dtparam=i2c_arm=off" /boot/config.txt) -ge 1 ]]; then
+        echo "NOTE: I2C support seems to have been disabled; We will override that configuration in /boot/config.txt"
+        sudo sed -i /^dtparam=i2c_arm/d /boot/config.txt
+        sudo bash -c 'echo "dtparam=i2c_arm=on" >> /boot/config.txt'
+        REBOOT=1
+    else
+        sudo bash -c 'echo "dtparam=i2c_arm=on" >> /boot/config.txt'
+        echo "Modified /boot/config.txt"
+        REBOOT=1
     fi
-    sudo bash -c 'echo "dtparam=i2c_arm=on" >> /boot/config.txt'
-    echo "Modified /boot/config.txt"
 
     echo "Installing the monitor_rascsi.service configuration..."
     sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" /etc/systemd/system/monitor_rascsi.service
@@ -167,14 +174,18 @@ function installRaScsiScreen() {
     sudo systemctl daemon-reload
     sudo systemctl enable monitor_rascsi
 
-    echo ""
-    echo "The monitor_rascsi service will start on the next Pi boot."
-    echo "Press Enter to reboot or CTRL-C to exit"
-    read
+    if [ $REBOOT -eq 1 ]; then
+        echo ""
+        echo "The monitor_rascsi service will start on the next Pi boot."
+        echo "Press Enter to reboot or CTRL-C to exit"
+        read
 
-    echo "Rebooting..."
-    sleep 3
-    sudo reboot
+        echo "Rebooting..."
+        sleep 3
+        sudo reboot
+    fi
+
+    sudo systemctl start monitor_rascsi
 }
 
 function createImagesDir() {
@@ -233,6 +244,10 @@ function showRaScsiStatus() {
 
 function showRaScsiWebStatus() {
     sudo systemctl status rascsi-web | tee
+}
+
+function showRaScsiScreenStatus() {
+    sudo systemctl status monitor_rascsi | tee
 }
 
 function createDrive600MB() {
@@ -595,6 +610,7 @@ function runChoice() {
           3)
               echo "Installing / Updating RaSCSI OLED Screen"
               installRaScsiScreen
+              showRaScsiScreenStatus
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
           ;;
           4)
