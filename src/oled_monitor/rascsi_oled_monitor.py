@@ -89,6 +89,7 @@ font = ImageFont.load_default()
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 # font = ImageFont.truetype('Minecraftia.ttf', 8)
 
+
 def device_list():
     """
     Sends a DEVICES_INFO command to the server.
@@ -150,6 +151,21 @@ def device_list():
         n += 1
 
     return device_list
+
+def rascsi_version():
+    """
+    Sends a VERSION_INFO command to the server.
+    Returns a str containing the version info.
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.VERSION_INFO
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    version = str(result.version_info.major_version) + "." +\
+              str(result.version_info.minor_version) + "." +\
+              str(result.version_info.patch_version)
+    return version
 
 def send_pb_command(payload):
     """
@@ -214,6 +230,8 @@ def send_over_socket(s, payload):
         logging.error("The response from RaSCSI did not contain a protobuf header. \
                 RaSCSI may have crashed.")
 
+version = rascsi_version()
+
 while True:
 
     # Draw a black filled box to clear the image.
@@ -232,7 +250,10 @@ while True:
         draw.text((x, y_pos), output, font=font, fill=255)
         y_pos += 8
 
-    # If there is still room on the screen, we'll display the time. If there's not room it will just be clipped
+    # If there is still room on the screen, we'll display the RaSCSI version and system time.
+    # If there's not room it will just be clipped.
+    draw.text((x, y_pos), "RaSCSI v" + version, font=font, fill=255)
+    y_pos += 8
     draw.text((x, y_pos), datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), font=font, fill=255)
 
     # Display image.
