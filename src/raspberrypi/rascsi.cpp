@@ -1330,11 +1330,6 @@ static void *MonThread(void *param)
 					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
 					SerializeMessage(fd, result);
 
-					// For backwards compatibility: Log device list if information on all devices was requested.
-					if (!command.devices_size()) {
-						const list<PbDevice>& devices = { result.devices_info().devices().begin(), result.devices_info().devices().end() };
-						LogDevices(ListDevices(devices));
-					}
 					break;
 				}
 
