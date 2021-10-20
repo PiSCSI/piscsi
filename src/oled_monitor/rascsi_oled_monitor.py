@@ -226,7 +226,7 @@ while True:
     if len(rascsi_list):
         for line in rascsi_list:
             output = ""
-            if line["device_type"] in ("SCCD", "SCRM"):
+            if line["device_type"] in ("SCCD", "SCRM", "SCMO"):
                 if len(line["file"]):
                     output = f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['status']}"
                 else:
