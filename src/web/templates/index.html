@@ -174,21 +174,19 @@
         {% endfor %}
         </tbody>
     </table>
+    <p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
 
     <hr/>
 
     <details>
     <summary>Attach Ethernet Adapter</summary>
     <ul>
-    <li>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers required.</a></li>
-    <li>If you have a DHCP setup, ignore the Static IP fields.</li>
-    <li>
-        {% if bridge_configured %}
-        Bridge is currently configured!
-        {% else %}
-        Bridge is automatically configured when a network adapter is attached.
-        {% endif %}
-    </li>
+    <li>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers and configuration required</a>.</li>
+    <li>If you have a DHCP setup, choose only the interface, and ignore the Static IP fields when attaching.</li>
+    <li>Configure network forwarding by running easyinstall.sh, or follow the <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#manual-setup">manual steps in the wiki</a>.</li>
+    {% if bridge_configured %}
+    <li>The <tt>rascsi_bridge</tt> interface is active and ready to be used by DaynaPORT!</li>
+    {% endif %}
     </ul>
     </details>
     <table style="border: none">
@@ -250,7 +248,7 @@
     <hr/>
 
     <details>
-    <summary>Download File from Web</summary>
+    <summary>Download File to Images</summary>
     <ul>
     <li>Given a URL, download that file to the <tt>{{base_dir}}</tt> directory.</li>
     </ul>
@@ -259,7 +257,7 @@
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
-                <form action="/files/download_image" method="post">
+                <form action="/files/download_to_images" method="post">
                     <label for="url">URL:</label>
                     <input type="url" placeholder="URL" name="url" required />
                     <input type="submit" value="Download" />
@@ -267,6 +265,33 @@
             </td>
         </tr>
     </table>
+
+    <hr/>
+
+    <details>
+    <summary>Download File to AppleShare</summary>
+    <ul>
+    <li>Given a URL, download that file to the <tt>{{afp_dir}}</tt> directory and share it over AFP.</li>
+    <li>Manage the files you download here through AppleShare on your vintage Mac.</li>
+    <li>Requires <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to be installed and configured correctly for your network.</li>
+    </ul>
+    </details>
+    {% if netatalk_configured %}
+    <table style="border: none">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+                <form action="/files/download_to_afp" method="post">
+                    <label for="url">URL:</label>
+                    <input type="url" placeholder="URL" name="url" required />
+                    <input type="submit" value="Download" />
+                </form>
+            </td>
+        </tr>
+    </table>
+    <p><small>{{netatalk_configured}} active connections (including the server)</small></p>
+    {% else %}
+    <p>Install <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to use the AppleTalk File Server.
+    {% endif %}
 
     <hr/>
 
@@ -304,7 +329,6 @@
     <li>The Generic image type is recommended for most systems</li>
     <li>APPLE GENUINE and NEC GENUINE image types will make RaSCSI masquerade as a particular drive type that are recognized by Mac and PC98 systems, respectively.</li>
     <li>SASI images should only be used on early X68000 or UNIX workstation systems that use this pre-SCSI standard.</li>
-    <li>Available disk space on the Pi: {{free_disk}} MB</li>
     </ul>
     </details>
     <table style="border: none">
