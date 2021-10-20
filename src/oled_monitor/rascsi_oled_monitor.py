@@ -29,12 +29,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 from time import sleep
-from datetime import datetime
 import logging
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
 from os import path
+from collections import deque
 from struct import pack, unpack
 import socket
 import rascsi_interface_pb2 as proto
@@ -44,7 +44,7 @@ HEIGHT = 32  # Change to 64 if needed
 BORDER = 5
 
 # How long to delay between each update
-delay_time_ms = 250
+delay_time_ms = 1000
 
 # Define the Reset Pin
 oled_reset = None 
@@ -213,44 +213,57 @@ def send_over_socket(s, payload):
         logging.error("The response from RaSCSI did not contain a protobuf header. \
                 RaSCSI may have crashed.")
 
+
+def formatted_output():
+    """
+    Formats the strings to be displayed on the Screen
+    Returns a list of str output
+    """
+    rascsi_list = device_list()
+    output = []
+
+    if len(rascsi_list):
+        for line in rascsi_list:
+            if line["device_type"] in ("SCCD", "SCRM", "SCMO"):
+                if len(line["file"]):
+                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['status']}")
+                else:
+                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['status']}")
+            elif line["device_type"] in ("SCDP"):
+                output.append(f"{line['id']} {line['device_type'][2:4]} {line['vendor']} {line['product']}")
+            elif line["device_type"] in ("SCBR"):
+                output.append(f"{line['id']} {line['device_type'][2:4]} {line['product']}")
+            else:
+                output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['vendor']} {line['product']} {line['status']}")
+    else:
+        output.append("No image mounted!")
+
+    output.append(f"~~RaSCSI v{version}~~")
+    return output
+
 version = rascsi_version()
 
 while True:
 
-    # Draw a black filled box to clear the image.
-    draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
-    
-    rascsi_list = device_list()
+    snapshot = deque(formatted_output())
+    output = snapshot
 
-    y_pos = top
-    if len(rascsi_list):
-        for line in rascsi_list:
-            output = ""
-            if line["device_type"] in ("SCCD", "SCRM", "SCMO"):
-                if len(line["file"]):
-                    output = f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['status']}"
-                else:
-                    output = f"{line['id']} {line['device_type'][2:4]} {line['status']}"
-            elif line["device_type"] in ("SCDP"):
-                output = f"{line['id']} {line['device_type'][2:4]} {line['vendor']} {line['product']}"
-            elif line["device_type"] in ("SCBR"):
-                output = f"{line['id']} {line['device_type'][2:4]} {line['product']}"
-            else:
-                output = f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['vendor']} {line['product']} {line['status']}"
-            draw.text((x, y_pos), output, font=font, fill=255)
+    while len(snapshot) == len(output):
+        # Draw a black filled box to clear the image.
+        draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
+        y_pos = top
+        for line in output:
+            draw.text((x, y_pos), line, font=font, fill=255)
             y_pos += 8
-    else:
-        output = "No image mounted!"
-        draw.text((x, y_pos), output, font=font, fill=255)
-        y_pos += 8
 
-    # If there is still room on the screen, we'll display the RaSCSI version and system time.
-    # If there's not room it will just be clipped.
-    draw.text((x, y_pos), f"~~RaSCSI v{version}~~", font=font, fill=255)
-    y_pos += 8
-    draw.text((x, y_pos), datetime.now().strftime("%d/%m/%Y %H:%M:%S"), font=font, fill=255)
+        #if len(snapshot) > 4:
+        output.rotate(-1)
 
-    # Display image.
-    oled.image(image)
-    oled.show()
-    sleep(1/delay_time_ms)
+        # Display image.
+        oled.image(image)
+        oled.show()
+        sleep(1000/delay_time_ms)
+
+        snapshot = deque(formatted_output())
+        if len(snapshot) < 5:
+            break
