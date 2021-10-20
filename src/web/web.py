@@ -19,7 +19,7 @@ from file_cmds import (
     delete_image,
     delete_file,
     unzip_file,
-    download_image,
+    download_to_dir,
     write_config,
     read_config,
     write_drive_properties,
@@ -29,6 +29,7 @@ from pi_cmds import (
     shutdown_pi,
     reboot_pi,
     running_env,
+    running_netatalk,
     rascsi_service,
     is_bridge_setup,
     disk_space,
@@ -86,11 +87,13 @@ def index():
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
+        netatalk_configured=running_netatalk(),
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,
         base_dir=server_info["image_dir"],
         cfg_dir=cfg_dir,
+        afp_dir=afp_dir,
         scsi_ids=scsi_ids,
         recommended_id=recommended_id,
         attached_images=attached_images,
@@ -499,12 +502,26 @@ def download_file():
         return redirect(url_for("index"))
 
 
-@app.route("/files/download_image", methods=["POST"])
+@app.route("/files/download_to_images", methods=["POST"])
 def download_img():
     url = request.form.get("url")
-    process = download_image(url)
+    server_info = get_server_info()
+    process = download_to_dir(url, server_info["image_dir"])
     if process["status"] == True:
-        flash(f"File Downloaded from {url}")
+        flash(f"File Downloaded from {url} to {server_info['image_dir']}")
+        return redirect(url_for("index"))
+    else:
+        flash(f"Failed to download file {url}", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+
+@app.route("/files/download_to_afp", methods=["POST"])
+def download_afp():
+    url = request.form.get("url")
+    process = download_to_dir(url, afp_dir)
+    if process["status"] == True:
+        flash(f"File Downloaded from {url} to {afp_dir}")
         return redirect(url_for("index"))
     else:
         flash(f"Failed to download file {url}", "error")

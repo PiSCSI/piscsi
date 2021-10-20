@@ -250,7 +250,7 @@
     <hr/>
 
     <details>
-    <summary>Download File from Web</summary>
+    <summary>Download File to Images</summary>
     <ul>
     <li>Given a URL, download that file to the <tt>{{base_dir}}</tt> directory.</li>
     </ul>
@@ -259,7 +259,7 @@
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
-                <form action="/files/download_image" method="post">
+                <form action="/files/download_to_images" method="post">
                     <label for="url">URL:</label>
                     <input type="url" placeholder="URL" name="url" required />
                     <input type="submit" value="Download" />
@@ -267,6 +267,33 @@
             </td>
         </tr>
     </table>
+
+    <hr/>
+
+    <details>
+    <summary>Download File to AppleShare</summary>
+    <ul>
+    <li>Given a URL, download that file to the <tt>{{afp_dir}}</tt> directory and share it over AFP.</li>
+    <li>Manage the files you download here through AppleShare on your vintage Mac.</li>
+    <li>Requires <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to be installed and configured correctly for your network.</li>
+    </ul>
+    </details>
+    {% if netatalk_configured %}
+    <table style="border: none">
+        <tr style="border: none">
+            <td style="border: none; vertical-align:top;">
+                <form action="/files/download_to_afp" method="post">
+                    <label for="url">URL:</label>
+                    <input type="url" placeholder="URL" name="url" required />
+                    <input type="submit" value="Download" />
+                </form>
+            </td>
+        </tr>
+    </table>
+    <p><small>{{netatalk_configured}} active connections (including the server)</small></p>
+    {% else %}
+    <p>Install <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to use the AppleTalk File Server.
+    {% endif %}
 
     <hr/>
 
