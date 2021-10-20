@@ -1,0 +1,14 @@
+[Unit]
+Description=Monitor RaSCSI service
+After=network.target rascsi.service
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/home/pi/RASCSI/src/oled_monitor/start.sh
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=RASCSIMON
+
+[Install]
+WantedBy=multi-user.target
