@@ -4,7 +4,8 @@
 #   Updates to output rascsi status to an OLED display
 #   Copyright (C) 2020 Tony Kuker
 #   Author: Tony Kuker
-# Developed for: https://www.amazon.com/MakerFocus-Display-SSD1306-3-3V-5V-Arduino/dp/B079BN2J8V
+# Developed for:
+#   https://www.makerfocus.com/collections/oled/products/2pcs-i2c-oled-display-module-0-91-inch-i2c-ssd1306-oled-display-module-1
 #
 # All other code: 
 #    Copyright (c) 2017 Adafruit Industries
