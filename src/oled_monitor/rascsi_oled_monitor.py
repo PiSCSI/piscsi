@@ -28,15 +28,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-import time
-import os
-import sys
-import datetime
-import board
-import busio
-import adafruit_ssd1306
+from time import sleep
+from datetime import datetime
+import logging
+from board import I2C
+from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
-import subprocess
+from os import path
+from struct import pack, unpack
+import socket
 import rascsi_interface_pb2 as proto
 
 WIDTH = 128
@@ -50,10 +50,10 @@ delay_time_ms = 250
 oled_reset = None 
 
 # init i2c
-i2c = board.I2C()
+i2c = I2C()
 
 # 128x32 display with hardware I2C:
-oled = adafruit_ssd1306.SSD1306_I2C(WIDTH, HEIGHT, i2c, addr=0x3C, reset=oled_reset)
+oled = SSD1306_I2C(WIDTH, HEIGHT, i2c, addr=0x3C, reset=oled_reset)
 
 print ("Running with the following display:")
 print (oled)
@@ -106,15 +106,12 @@ def device_list():
 
     while n < len(result.devices_info.devices):
         did = result.devices_info.devices[n].id
-        dun = result.devices_info.devices[n].unit
         dtype = proto.PbDeviceType.Name(result.devices_info.devices[n].type) 
         dstat = result.devices_info.devices[n].status
         dprop = result.devices_info.devices[n].properties
 
         # Building the status string
         dstat_msg = []
-        if dprop.read_only == True:
-            dstat_msg.append("Read-Only")
         if dstat.protected == True and dprop.protectable == True:
             dstat_msg.append("Write-Protected")
         if dstat.removed == True and dprop.removable == True:
@@ -122,30 +119,18 @@ def device_list():
         if dstat.locked == True and dprop.lockable == True:
             dstat_msg.append("Locked")
 
-        from os import path
-        dpath = result.devices_info.devices[n].file.name
-        dfile = path.basename(dpath)
-        dparam = result.devices_info.devices[n].params
+        dfile = path.basename(result.devices_info.devices[n].file.name)
         dven = result.devices_info.devices[n].vendor
         dprod = result.devices_info.devices[n].product
-        drev = result.devices_info.devices[n].revision
-        dblock = result.devices_info.devices[n].block_size
-        dsize = int(result.devices_info.devices[n].block_count) * int(dblock)
 
         device_list.append(
                 {
                     "id": did,
-                    "un": dun,
                     "device_type": dtype,
                     "status": ", ".join(dstat_msg),
-                    "path": dpath,
                     "file": dfile,
-                    "params": dparam,
                     "vendor": dven,
                     "product": dprod,
-                    "revision": drev,
-                    "block_size": dblock,
-                    "size": dsize,
                 }
             )
         n += 1
@@ -180,7 +165,6 @@ def send_pb_command(payload):
     tries = 100
     error_msg = ""
 
-    import socket
     while counter < tries:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -202,7 +186,6 @@ def send_over_socket(s, payload):
     Tries to extract and interpret the protobuf header to get response size.
     Reads data from socket in 2048 bytes chunks until all data is received.
     """
-    from struct import pack, unpack
 
     # Prepending a little endian 32bit header with the message size
     s.send(pack("<i", len(payload)))
@@ -242,7 +225,16 @@ while True:
     y_pos = top
     if len(rascsi_list):
         for line in rascsi_list:
-            output = f"{line['id']} {line['device_type'][2:4]} {line['file']}"
+            output = ""
+            if line["device_type"] in ("SCCD", "SCRM"):
+                if len(line["file"]):
+                    output = f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['status']}"
+                else:
+                    output = f"{line['id']} {line['device_type'][2:4]} {line['status']}"
+            elif line["device_type"] in ("SCBR", "SCDP"):
+                output = f"{line['id']} {line['device_type'][2:4]} {line['vendor']} {line['product']}"
+            else:
+                output = f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['vendor']} {line['product']} {line['status']}"
             draw.text((x, y_pos), output, font=font, fill=255)
             y_pos += 8
     else:
@@ -252,11 +244,11 @@ while True:
 
     # If there is still room on the screen, we'll display the RaSCSI version and system time.
     # If there's not room it will just be clipped.
-    draw.text((x, y_pos), "RaSCSI v" + version, font=font, fill=255)
+    draw.text((x, y_pos), f"~~RaSCSI v{version}~~", font=font, fill=255)
     y_pos += 8
-    draw.text((x, y_pos), datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), font=font, fill=255)
+    draw.text((x, y_pos), datetime.now().strftime("%d/%m/%Y %H:%M:%S"), font=font, fill=255)
 
     # Display image.
     oled.image(image)
     oled.show()
-    time.sleep(1/delay_time_ms)
+    sleep(1/delay_time_ms)
