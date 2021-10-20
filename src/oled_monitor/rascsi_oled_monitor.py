@@ -231,8 +231,10 @@ while True:
                     output = f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['status']}"
                 else:
                     output = f"{line['id']} {line['device_type'][2:4]} {line['status']}"
-            elif line["device_type"] in ("SCBR", "SCDP"):
+            elif line["device_type"] in ("SCDP"):
                 output = f"{line['id']} {line['device_type'][2:4]} {line['vendor']} {line['product']}"
+            elif line["device_type"] in ("SCBR"):
+                output = f"{line['id']} {line['device_type'][2:4]} {line['product']}"
             else:
                 output = f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['vendor']} {line['product']} {line['status']}"
             draw.text((x, y_pos), output, font=font, fill=255)
