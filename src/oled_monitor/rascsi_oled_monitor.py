@@ -91,7 +91,7 @@ font = ImageFont.load_default()
 def device_list():
     """
     Sends a DEVICES_INFO command to the server.
-    Returns a list of str with info on all attached devices.
+    Returns a list of dicts with info on all attached devices.
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICES_INFO
