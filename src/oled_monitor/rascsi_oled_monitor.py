@@ -255,10 +255,10 @@ def formatted_output():
     return output
 
 version = rascsi_version()
+snapshot = deque(formatted_output())
 
 while True:
 
-    snapshot = deque(formatted_output())
     output = snapshot
 
     while len(snapshot) == len(output):
@@ -269,7 +269,7 @@ while True:
             draw.text((x, y_pos), line, font=font, fill=255)
             y_pos += 8
 
-        #if len(snapshot) > 4:
+        # Shift the index of the array by one to get a scrolling effect
         output.rotate(-1)
 
         # Display image.
@@ -278,5 +278,7 @@ while True:
         sleep(1000/delay_time_ms)
 
         snapshot = deque(formatted_output())
-        if len(snapshot) < 5:
+
+        # Break out of the loop to avoid scrolling less than 5 items (including the version string)
+        if len(snapshot) < 6:
             break
