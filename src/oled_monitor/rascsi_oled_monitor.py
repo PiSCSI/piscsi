@@ -28,15 +28,15 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-import time
-import os
-import sys
-import datetime
-import board
-import busio
-import adafruit_ssd1306
+from time import sleep
+import logging
+from board import I2C
+from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
-import subprocess
+from os import path
+from collections import deque
+from struct import pack, unpack
+import socket
 import rascsi_interface_pb2 as proto
 
 WIDTH = 128
@@ -44,16 +44,16 @@ HEIGHT = 32  # Change to 64 if needed
 BORDER = 5
 
 # How long to delay between each update
-delay_time_ms = 250
+delay_time_ms = 1000
 
 # Define the Reset Pin
 oled_reset = None 
 
 # init i2c
-i2c = board.I2C()
+i2c = I2C()
 
 # 128x32 display with hardware I2C:
-oled = adafruit_ssd1306.SSD1306_I2C(WIDTH, HEIGHT, i2c, addr=0x3C, reset=oled_reset)
+oled = SSD1306_I2C(WIDTH, HEIGHT, i2c, addr=0x3C, reset=oled_reset)
 
 print ("Running with the following display:")
 print (oled)
@@ -89,6 +89,7 @@ font = ImageFont.load_default()
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 # font = ImageFont.truetype('Minecraftia.ttf', 8)
 
+
 def device_list():
     """
     Sends a DEVICES_INFO command to the server.
@@ -105,15 +106,12 @@ def device_list():
 
     while n < len(result.devices_info.devices):
         did = result.devices_info.devices[n].id
-        dun = result.devices_info.devices[n].unit
         dtype = proto.PbDeviceType.Name(result.devices_info.devices[n].type) 
         dstat = result.devices_info.devices[n].status
         dprop = result.devices_info.devices[n].properties
 
         # Building the status string
         dstat_msg = []
-        if dprop.read_only == True:
-            dstat_msg.append("Read-Only")
         if dstat.protected == True and dprop.protectable == True:
             dstat_msg.append("Write-Protected")
         if dstat.removed == True and dprop.removable == True:
@@ -121,35 +119,38 @@ def device_list():
         if dstat.locked == True and dprop.lockable == True:
             dstat_msg.append("Locked")
 
-        from os import path
-        dpath = result.devices_info.devices[n].file.name
-        dfile = path.basename(dpath)
-        dparam = result.devices_info.devices[n].params
+        dfile = path.basename(result.devices_info.devices[n].file.name)
         dven = result.devices_info.devices[n].vendor
         dprod = result.devices_info.devices[n].product
-        drev = result.devices_info.devices[n].revision
-        dblock = result.devices_info.devices[n].block_size
-        dsize = int(result.devices_info.devices[n].block_count) * int(dblock)
 
         device_list.append(
                 {
                     "id": did,
-                    "un": dun,
                     "device_type": dtype,
                     "status": ", ".join(dstat_msg),
-                    "path": dpath,
                     "file": dfile,
-                    "params": dparam,
                     "vendor": dven,
                     "product": dprod,
-                    "revision": drev,
-                    "block_size": dblock,
-                    "size": dsize,
                 }
             )
         n += 1
 
     return device_list
+
+def rascsi_version():
+    """
+    Sends a VERSION_INFO command to the server.
+    Returns a str containing the version info.
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.VERSION_INFO
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    version = str(result.version_info.major_version) + "." +\
+              str(result.version_info.minor_version) + "." +\
+              str(result.version_info.patch_version)
+    return version
 
 def send_pb_command(payload):
     """
@@ -164,7 +165,6 @@ def send_pb_command(payload):
     tries = 100
     error_msg = ""
 
-    import socket
     while counter < tries:
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -186,7 +186,6 @@ def send_over_socket(s, payload):
     Tries to extract and interpret the protobuf header to get response size.
     Reads data from socket in 2048 bytes chunks until all data is received.
     """
-    from struct import pack, unpack
 
     # Prepending a little endian 32bit header with the message size
     s.send(pack("<i", len(payload)))
@@ -214,28 +213,57 @@ def send_over_socket(s, payload):
         logging.error("The response from RaSCSI did not contain a protobuf header. \
                 RaSCSI may have crashed.")
 
-while True:
 
-    # Draw a black filled box to clear the image.
-    draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
-    
+def formatted_output():
+    """
+    Formats the strings to be displayed on the Screen
+    Returns a list of str output
+    """
     rascsi_list = device_list()
+    output = []
 
-    y_pos = top
     if len(rascsi_list):
         for line in rascsi_list:
-            output = f"{line['id']} {line['device_type']} {line['file']}"
-            draw.text((x, y_pos), output, font=font, fill=255)
-            y_pos += 8
+            if line["device_type"] in ("SCCD", "SCRM", "SCMO"):
+                if len(line["file"]):
+                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['status']}")
+                else:
+                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['status']}")
+            elif line["device_type"] in ("SCDP"):
+                output.append(f"{line['id']} {line['device_type'][2:4]} {line['vendor']} {line['product']}")
+            elif line["device_type"] in ("SCBR"):
+                output.append(f"{line['id']} {line['device_type'][2:4]} {line['product']}")
+            else:
+                output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} {line['vendor']} {line['product']} {line['status']}")
     else:
-        output = "No image mounted!"
-        draw.text((x, y_pos), output, font=font, fill=255)
-        y_pos += 8
+        output.append("No image mounted!")
 
-    # If there is still room on the screen, we'll display the time. If there's not room it will just be clipped
-    draw.text((x, y_pos), datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S"), font=font, fill=255)
+    output.append(f"~~RaSCSI v{version}~~")
+    return output
 
-    # Display image.
-    oled.image(image)
-    oled.show()
-    time.sleep(1/delay_time_ms)
+version = rascsi_version()
+
+while True:
+
+    snapshot = deque(formatted_output())
+    output = snapshot
+
+    while len(snapshot) == len(output):
+        # Draw a black filled box to clear the image.
+        draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
+        y_pos = top
+        for line in output:
+            draw.text((x, y_pos), line, font=font, fill=255)
+            y_pos += 8
+
+        #if len(snapshot) > 4:
+        output.rotate(-1)
+
+        # Display image.
+        oled.image(image)
+        oled.show()
+        sleep(1000/delay_time_ms)
+
+        snapshot = deque(formatted_output())
+        if len(snapshot) < 5:
+            break
