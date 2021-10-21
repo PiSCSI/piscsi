@@ -36,8 +36,42 @@ from PIL import Image, ImageDraw, ImageFont
 from os import path
 from collections import deque
 from struct import pack, unpack
+import signal
 import socket
 import rascsi_interface_pb2 as proto
+
+class GracefulInterruptHandler(object):
+    def __init__(self, signals=(signal.SIGINT, signal.SIGTERM)):
+        self.signals = signals
+        self.original_handlers = {}
+
+    def __enter__(self):
+        self.interrupted = False
+        self.released = False
+
+        for sig in self.signals:
+            self.original_handlers[sig] = signal.getsignal(sig)
+            signal.signal(sig, self.handler)
+
+        return self
+
+    def handler(self, signum, frame):
+        self.release()
+        self.interrupted = True
+
+    def __exit__(self, type, value, tb):
+        self.release()
+
+    def release(self):
+        if self.released:
+            return False
+
+        for sig in self.signals:
+            signal.signal(sig, self.original_handlers[sig])
+
+        self.released = True
+        return True
+
 
 WIDTH = 128
 HEIGHT = 32  # Change to 64 if needed
@@ -254,29 +288,48 @@ def formatted_output():
     output.append(f"~~RaSCSI v{version}~~")
     return output
 
+def start_splash():
+    draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
+    y_pos = top
+    draw.text((x, y_pos), "WELCOME TO RaSCSI", font=font, fill=255)
+    oled.image(image)
+    oled.show()
+    sleep(6)
+
+start_splash()
+
 version = rascsi_version()
 
-while True:
+with GracefulInterruptHandler() as h:
+    while True:
 
-    ref_snapshot = formatted_output()
-    snapshot = ref_snapshot
-    output = deque(snapshot)
+        ref_snapshot = formatted_output()
+        snapshot = ref_snapshot
+        output = deque(snapshot)
 
-    while snapshot == ref_snapshot:
-        # Draw a black filled box to clear the image.
-        draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
-        y_pos = top
-        for line in output:
-            draw.text((x, y_pos), line, font=font, fill=255)
-            y_pos += 8
+        while snapshot == ref_snapshot:
+            # Draw a black filled box to clear the image.
+            draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
+            y_pos = top
+            for line in output:
+                draw.text((x, y_pos), line, font=font, fill=255)
+                y_pos += 8
 
-        # Shift the index of the array by one to get a scrolling effect
-        if len(output) > 5:
-            output.rotate(-1)
+            # Shift the index of the array by one to get a scrolling effect
+            if len(output) > 5:
+                output.rotate(-1)
 
-        # Display image.
-        oled.image(image)
-        oled.show()
-        sleep(1000/delay_time_ms)
+            # Display image.
+            oled.image(image)
+            oled.show()
+            sleep(1000/delay_time_ms)
 
-        snapshot = formatted_output()
+            snapshot = formatted_output()
+
+            if h.interrupted:
+                draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
+                y_pos = top
+                draw.text((x, y_pos), "GOODBYE", font=font, fill=255)
+                oled.image(image)
+                oled.show()
+                exit("Shutting down the OLED display...")
