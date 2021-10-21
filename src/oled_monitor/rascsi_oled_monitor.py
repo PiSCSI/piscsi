@@ -30,7 +30,6 @@
 # THE SOFTWARE.
 from time import sleep
 from sys import argv, exit
-import logging
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
@@ -186,11 +185,11 @@ def send_pb_command(payload):
                 return send_over_socket(s, payload)
         except socket.error as error:
             counter += 1
-            logging.warning("The RaSCSI service is not responding - attempt " + \
+            print("The RaSCSI service is not responding - attempt " + \
                     str(counter) + "/" + str(tries))
             error_msg = str(error)
 
-    logging.error(error_msg)
+    exit(error_msg)
 
 
 def send_over_socket(s, payload):
@@ -216,7 +215,7 @@ def send_over_socket(s, payload):
         while bytes_recvd < response_length:
             chunk = s.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
-                logging.error("Read an empty chunk from the socket. \
+                exit("Read an empty chunk from the socket. \
                         Socket connection has dropped unexpectedly. \
                         RaSCSI may have has crashed.")
             chunks.append(chunk)
@@ -224,7 +223,7 @@ def send_over_socket(s, payload):
         response_message = b''.join(chunks)
         return response_message
     else:
-        logging.error("The response from RaSCSI did not contain a protobuf header. \
+        exit("The response from RaSCSI did not contain a protobuf header. \
                 RaSCSI may have crashed.")
 
 
