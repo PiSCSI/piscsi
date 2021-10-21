@@ -255,13 +255,14 @@ def formatted_output():
     return output
 
 version = rascsi_version()
-snapshot = deque(formatted_output())
 
 while True:
 
-    output = snapshot
+    ref_snapshot = formatted_output()
+    snapshot = ref_snapshot
+    output = deque(snapshot)
 
-    while len(snapshot) == len(output):
+    while snapshot == ref_snapshot:
         # Draw a black filled box to clear the image.
         draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
         y_pos = top
@@ -270,15 +271,12 @@ while True:
             y_pos += 8
 
         # Shift the index of the array by one to get a scrolling effect
-        output.rotate(-1)
+        if len(output) > 5:
+            output.rotate(-1)
 
         # Display image.
         oled.image(image)
         oled.show()
         sleep(1000/delay_time_ms)
 
-        snapshot = deque(formatted_output())
-
-        # Break out of the loop to avoid scrolling less than 5 items (including the version string)
-        if len(snapshot) < 6:
-            break
+        snapshot = formatted_output()
