@@ -29,6 +29,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 from time import sleep
+from sys import argv, exit
 import logging
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
@@ -60,7 +61,20 @@ print (oled)
 print ()
 print ("Will update the OLED display every " + str(delay_time_ms) + "ms (approximately)")
 
+# Attempt to read the first argument to the script; fall back to 2 (180 degrees)
+if len(argv) > 1:
+    if str(argv[1]) == "0":
+        rotation = 0
+    elif str(argv[1]) == "180":
+        rotation = 2
+    else:
+        exit("Only 0 and 180 are valid arguments for screen rotation.")
+else:
+    print("Defaulting to 180 degrees screen rotation.")
+    rotation = 2
+
 # Clear display.
+oled.rotation = rotation
 oled.fill(0)
 oled.show()
 
