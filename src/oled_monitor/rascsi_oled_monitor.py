@@ -33,7 +33,7 @@ from sys import argv, exit
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
-from os import path
+from os import path, getcwd
 from collections import deque
 from struct import pack, unpack
 import signal
@@ -289,10 +289,10 @@ def formatted_output():
     return output
 
 def start_splash():
-    draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
-    y_pos = top
-    draw.text((x, y_pos), "WELCOME TO RaSCSI", font=font, fill=255)
-    oled.image(image)
+    cwd = getcwd()
+    splash = Image.open(f"{cwd}/splash.bmp").convert("1")
+    draw.bitmap((0, 0), splash)
+    oled.image(splash)
     oled.show()
     sleep(6)
 
