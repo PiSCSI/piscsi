@@ -151,6 +151,8 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 	if (fallocate(image_fd, 0, 0, len) == -1) {
 		close(image_fd);
 
+		unlink(filename.c_str());
+
 		return ReturnStatus(fd, false, "Can't allocate space for image file '" + filename + "': " + string(strerror(errno)));
 	}
 
