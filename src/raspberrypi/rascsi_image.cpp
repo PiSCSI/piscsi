@@ -299,6 +299,8 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
         close(fd_dst);
         close(fd_src);
 
+		unlink(to.c_str());
+
         return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
