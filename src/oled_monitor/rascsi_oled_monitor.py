@@ -63,8 +63,6 @@ print ("Will update the OLED display every " + str(delay_time_ms) + "ms (approxi
 
 # Attempt to read the first argument to the script; fall back to 2 (180 degrees)
 if len(argv) > 1:
-    logging.warning(argv[1])
-    logging.warning(type(argv[1]))
     if str(argv[1]) == "0":
         rotation = 0
     elif str(argv[1]) == "180":
