@@ -41,9 +41,9 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 	}
 
 	ostringstream s;
-	s << "+----+----+------+-------------------------------------" << endl
-			<< "| ID | UN | TYPE | DEVICE STATUS" << endl
-			<< "+----+----+------+-------------------------------------" << endl;
+	s << "+----+-----+------+-------------------------------------" << endl
+			<< "| ID | LUN | TYPE | IMAGE FILE" << endl
+			<< "+----+-----+------+-------------------------------------" << endl;
 
 	list<PbDevice> devices = pb_devices;
 	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() && a.unit() < b.unit(); });
@@ -64,13 +64,13 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 				break;
 		}
 
-		s << "|  " << device.id() << " |  " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
+		s << "|  " << device.id() << " |   " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
 				<< (filename.empty() ? "NO MEDIA" : filename)
-				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (WRITEPROTECT)" : "")
+				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (READ-ONLY)" : "")
 				<< endl;
 	}
 
-	s << "+----+----+------+-------------------------------------";
+	s << "+----+-----+------+-------------------------------------";
 
 	return s.str();
 }
