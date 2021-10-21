@@ -2,21 +2,6 @@
 set -e
 # set -x # Uncomment to Debug
 
-# parse arguments
-while [ "$1" != "" ]; do
-    PARAM=$(echo "$1" | awk -F= '{print $1}')
-    case $PARAM in
-	-r | --rotation)
-	    ROTATION=$VALUE
-	    ;;
-        *)
-            echo "ERROR: unknown parameter \"$PARAM\""
-            exit 1
-            ;;
-    esac
-    shift
-done
-
 cd "$(dirname "$0")"
 # verify packages installed
 ERROR=0
@@ -85,5 +70,29 @@ else
   fi
 fi
 
-echo "Starting OLED Screen..."
+# parse arguments
+while [ "$1" != "" ]; do
+    PARAM=$(echo "$1" | awk -F= '{print $1}')
+    VALUE=$(echo "$1" | awk -F= '{print $2}')
+    case $PARAM in
+	-r | --rotation)
+	    ROTATION=$VALUE
+	    ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            exit 1
+            ;;
+    esac
+    case $VALUE in
+        0 | 180 )
+            ;;
+        *)
+            echo "ERROR: invalid option \"$VALUE\""
+	    exit 1
+            ;;
+    esac
+    shift
+done
+
+echo "Starting OLED Screen with $ROTATION degrees rotation..."
 python3 rascsi_oled_monitor.py "${ROTATION}"

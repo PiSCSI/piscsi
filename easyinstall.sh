@@ -148,7 +148,7 @@ function installRaScsiScreen() {
         ROTATION="0"
     else
         echo "Proceeding with 180 degrees rotation."
-        ROTATION="2"
+        ROTATION="180"
     fi
 
     sudo systemctl stop monitor_rascsi || true
@@ -180,7 +180,7 @@ function installRaScsiScreen() {
     echo "Installing the monitor_rascsi.service configuration..."
     sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" /etc/systemd/system/monitor_rascsi.service
     sudo sed -i /^ExecStart=/d /etc/systemd/system/monitor_rascsi.service
-    sudo sed -i "7 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION" /etc/systemd/system/monitor_rascsi.service
+    sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION" /etc/systemd/system/monitor_rascsi.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable monitor_rascsi
