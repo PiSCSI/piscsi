@@ -289,12 +289,20 @@ def formatted_output():
     return output
 
 def start_splash():
-    cwd = getcwd()
-    splash = Image.open(f"{cwd}/splash.bmp").convert("1")
+    splash = Image.open(f"{cwd}/splash_start.bmp").convert("1")
     draw.bitmap((0, 0), splash)
     oled.image(splash)
     oled.show()
     sleep(6)
+
+def stop_splash():
+    draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
+    splash = Image.open(f"{cwd}/splash_stop.bmp").convert("1")
+    draw.bitmap((0, 0), splash)
+    oled.image(splash)
+    oled.show()
+
+cwd = getcwd()
 
 start_splash()
 
@@ -327,9 +335,5 @@ with GracefulInterruptHandler() as h:
             snapshot = formatted_output()
 
             if h.interrupted:
-                draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
-                y_pos = top
-                draw.text((x, y_pos), "GOODBYE", font=font, fill=255)
-                oled.image(image)
-                oled.show()
+                stop_splash()
                 exit("Shutting down the OLED display...")
