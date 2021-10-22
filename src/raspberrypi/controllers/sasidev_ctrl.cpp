@@ -355,6 +355,12 @@ void SASIDEV::Execute()
 	ctrl.blocks = 1;
 	ctrl.execstart = SysTimer::GetTimerLow();
 
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if(SASIDEV::eCmdRequestSense != (SASIDEV::sasi_command)ctrl.cmd[0]) {
+		ctrl.status = 0;
+		ctrl.device->SetStatusCode(0);
+	}
+
 	// Process by command
 	// TODO This code does not belong here. Each device type needs such a dispatcher, which the controller has to call.
 	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
