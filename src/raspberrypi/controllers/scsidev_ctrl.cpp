@@ -262,7 +262,7 @@ void SCSIDEV::Execute()
 
 	ctrl.device = ctrl.unit[lun];
 
-	// Discard pending sense data from the previous command
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
 		ctrl.device->SetStatusCode(0);
 	}
