@@ -151,6 +151,8 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 	if (fallocate(image_fd, 0, 0, len) == -1) {
 		close(image_fd);
 
+		unlink(filename.c_str());
+
 		return ReturnStatus(fd, false, "Can't allocate space for image file '" + filename + "': " + string(strerror(errno)));
 	}
 
@@ -296,6 +298,8 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
     if (sendfile(fd_dst, fd_src, 0, st.st_size) == -1) {
         close(fd_dst);
         close(fd_src);
+
+		unlink(to.c_str());
 
         return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
