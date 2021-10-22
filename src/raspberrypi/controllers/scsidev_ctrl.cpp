@@ -262,6 +262,11 @@ void SCSIDEV::Execute()
 
 	ctrl.device = ctrl.unit[lun];
 
+	// Discard pending sense data from the previous command
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.device->SetStatusCode(0);
+	}
+	
 	if (!ctrl.device->Dispatch(this)) {
 		LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
