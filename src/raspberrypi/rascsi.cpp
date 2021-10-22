@@ -961,7 +961,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 
 		case NONE:
 			// Do nothing, just log
-			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str());
 			break;
 
 		default:
