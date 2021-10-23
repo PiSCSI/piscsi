@@ -15,6 +15,11 @@ if ! command -v python3 &> /dev/null ; then
     echo "Run 'sudo apt install python3' to fix."
     ERROR=1
 fi
+if ! python3 -m venv --help &> /dev/null ; then
+    echo "venv could not be found"
+    echo "Run 'sudo apt install python3-venv' to fix."
+    ERROR=1
+fi
 # Dep to build Pillow
 if ! dpkg -l python3-dev &> /dev/null; then
     echo "python3-dev could not be found"
@@ -31,9 +36,9 @@ if ! dpkg -l libpng-dev &> /dev/null; then
     echo "Run 'sudo apt install libpng-dev' to fix."
     ERROR=1
 fi
-if ! python3 -m venv --help &> /dev/null ; then
-    echo "venv could not be found"
-    echo "Run 'sudo apt install python3-venv' to fix."
+if ! dpkg -l libopenjp2-7-dev &> /dev/null; then
+    echo "libopenjp2-7-dev could not be found"
+    echo "Run 'sudo apt install libopenjp2-7-dev' to fix."
     ERROR=1
 fi
 if [ $ERROR = 1 ] ; then
