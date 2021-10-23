@@ -2,6 +2,78 @@
 {
     "device_type": "SCHD",
     "vendor": "DEC",
+    "product": "RZ22     (C) DEC",
+    "revision": "0A18",
+    "block_size": 512,
+    "size": 52445184,
+    "name": "DEC RZ22",
+    "file_type": "hds",
+    "description": "Page/Swap drive for satellite workstations",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ23     (C) DEC",
+    "revision": "0A18",
+    "block_size": 512,
+    "size": 104890368,
+    "name": "DEC RZ23",
+    "file_type": "hds",
+    "description": "Smallest usable drive for OpenVMS/VAX",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ24     (C) DEC",
+    "revision": "1D18",
+    "block_size": 512,
+    "size": 209813504,
+    "name": "DEC RZ24",
+    "file_type": "hds",
+    "description": "Smallest usable drive for OpenVMS/VAX + Motif",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ26L    (C) DEC",
+    "revision": "440C",
+    "block_size": 512,
+    "size": 1050040320,
+    "name": "DEC RZ26L",
+    "file_type": "hds",
+    "description": "Largest bootable drive on VAXstation 3100",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ28M    (C) DEC",
+    "revision": "0568",
+    "block_size": 512,
+    "size": 2104565760,
+    "name": "DEC RZ28M",
+    "file_type": "hds",
+    "description": "Typical 2GB data drive",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ29B    (C) DEC",
+    "revision": "0014",
+    "block_size": 512,
+    "size": 4290600960,
+    "name": "DEC RZ29B",
+    "file_type": "hds",
+    "description": "Common Alpha server/workstation drive",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
     "product": "RZ55     (C) DEC",
     "revision": "",
     "block_size": 512,
@@ -9,6 +81,18 @@
     "name": "DEC RZ55",
     "file_type": "hds",
     "description": "Largest recognized drive on Ultrix 3.0",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ56     (C) DEC",
+    "revision": "0400",
+    "block_size": 512,
+    "size": 665177088,
+    "name": "DEC RZ56",
+    "file_type": "hds",
+    "description": "Expansion 5.25 Drive",
     "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
 },
 {
