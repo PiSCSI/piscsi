@@ -638,11 +638,13 @@ def delete():
 def unzip():
     image = request.form.get("image")
 
-    if unzip_file(image):
-        flash("Unzipped file " + image)
+    process = unzip_file(image)
+    if process["status"]:
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
         flash("Failed to unzip " + image, "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
 
 
