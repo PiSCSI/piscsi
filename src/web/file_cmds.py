@@ -146,13 +146,13 @@ def unzip_file(file_name):
 
     unzip_proc = run(
         ["unzip", "-d", server_info["image_dir"], "-o", "-j", \
-                server_info["image_dir"] + file_name], capture_output=True
+                f"{server_info['image_dir']}/{file_name}"], capture_output=True
     )
     if unzip_proc.returncode != 0:
         logging.warning(f"Unzipping failed: {unzip_proc}")
-        return {"status": False, "msg": unzip_proc}
+        return {"status": False, "msg": str(unzip_proc)}
 
-    return {"status": True, "msg": f"{file_name} unzipped"}
+    return {"status": True, "msg": f"Unzipped {file_name} to {server_info['image_dir']}"}
 
 
 def download_file_to_iso(scsi_id, url):
