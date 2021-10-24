@@ -67,9 +67,10 @@ def list_images():
 
     files = []
     for f in result.image_files_info.image_files:
-        # Add flag for whether an image file has an associated *.properties file
+        # Add properties meta data for the image, if applicable
         if f.name in prop_files:
-            prop = True
+            process = read_drive_properties(f"{cfg_dir}/{f.name}.{PROPERTIES_SUFFIX}")
+            prop = process["conf"]
         else:
             prop = False
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
@@ -309,10 +310,9 @@ def write_drive_properties(file_name, conf):
 
 def read_drive_properties(path_name):
     """ 
-    Reads drive properties to any dir.
-    Either ones deployed to the images dir, or the canonical database. 
-    Takes file path and bas (str) as argument
-    Returns dict with boolean status and str msg
+    Reads drive properties from json formatted file.
+    Takes (str) path_name as argument.
+    Returns dict with boolean status, str msg, dict conf
     """
     from json import load
     try:
