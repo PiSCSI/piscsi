@@ -147,42 +147,39 @@
 		{% if file["name"] in attached_images %}
 		<center>Attached!</center>
 		{% else %}
-                {% if file["name"].lower().endswith(archive_file_suffix) %}
-                <form action="/files/unzip" method="post">
-                    <input type="hidden" name="image" value="{{file["name"]}}">
-                    <input type="submit" value="Unzip" />
-                </form>
-                <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                    <input type="hidden" name="image" value="{{file["name"]}}">
-                    <input type="submit" value="Delete" />
-                </form>
-		{% else %}
-                <form action="/scsi/attach" method="post">
-                    <input type="hidden" name="file_name" value="{{file["name"]}}">
-                    <input type="hidden" name="file_size" value="{{file["size"]}}">
-                    <label for="id">ID</label>
-                    <select name="scsi_id">
+                    {% if file["name"].lower().endswith(archive_file_suffix) %}
+                    <form action="/files/unzip" method="post">
+                        <input type="hidden" name="image" value="{{file["name"]}}">
+                        <input type="submit" value="Unzip" />
+                    </form>
+		    {% else %}
+                    <form action="/scsi/attach" method="post">
+                        <input type="hidden" name="file_name" value="{{file["name"]}}">
+                        <input type="hidden" name="file_size" value="{{file["size"]}}">
+                        <label for="id">ID</label>
+                        <select name="scsi_id">
                         {% for id in scsi_ids %}
-			<option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
+			    <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
-                    </select>
-		    <label for="un">LUN</label>
-		    <input type="number" name="un" size="2" value="0" min="0" max="31" />
-		    {% if file["detected_type"] != "UNDEFINED" %}
-		    <input type="hidden" name="type" value="{{file["detected_type"]}}">
-		    {{file["detected_type"]}}
-	            {% else %}
-		    <select name="type">
-                        <option value="" selected>Type</option>
+                        </select>
+		        <label for="un">LUN</label>
+		        <input type="number" name="un" size="2" value="0" min="0" max="31" />
+		        {% if file["detected_type"] != "UNDEFINED" %}
+		            <input type="hidden" name="type" value="{{file["detected_type"]}}">
+			    {{file["detected_type"]}}
+	                {% else %}
+		            <select name="type">
+                            <option value="" selected>Type</option>
 			{% for d in device_types %}
-			<option value="{{d}}">{{d}}</option>
+			    <option value="{{d}}">{{d}}</option>
 			{% endfor %}
+			{% endif %}
                     </select>
-		    {% endif %}
                     <input type="submit" value="Attach" />
+		    {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                    <input type="hidden" name="image" value="{{file["name"]}}">
+                    <input type="hidden" name="image" value="{{file['name']}}">
                     <input type="submit" value="Delete" />
                 </form>
 		{% endif %}
