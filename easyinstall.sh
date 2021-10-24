@@ -79,7 +79,8 @@ function installPackages() {
 
 # compile and install RaSCSI Service
 function installRaScsi() {
-    sudo systemctl stop rascsi || true
+    stopRaScsiScreen
+    stopRaScsi
 
     if [ -f /etc/systemd/system/rascsi.service ]; then
         sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
@@ -109,6 +110,8 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
     sudo systemctl restart rsyslog
     sudo systemctl enable rascsi # optional - start rascsi at boot
     sudo systemctl start rascsi
+
+    startRaScsiScreen
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
@@ -151,7 +154,7 @@ function installRaScsiScreen() {
         ROTATION="180"
     fi
 
-    sudo systemctl stop monitor_rascsi || true
+    stopRaScsiScreen
     updateRaScsiGit
 
     sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools -y </dev/null
@@ -218,7 +221,8 @@ function createImagesDir() {
 }
 
 function stopOldWebInterface() {
-    sudo systemctl stop rascsi-web || true
+    stopRaScsiWeb
+
     APACHE_STATUS=$(sudo systemctl status apache2 &> /dev/null; echo $?)
     if [ "$APACHE_STATUS" -eq 0 ] ; then
         echo "Stopping old Apache2 RaSCSI Web..."
@@ -246,6 +250,31 @@ function updateRaScsiGit() {
     if [ $stashed -eq 1 ]; then
         echo "Reapplying local changes..."
         git stash apply
+    fi
+}
+
+function stopRaScsi() {
+    if [[ `systemctl list-units | grep -c rascsi.service` -ge 1 ]]; then
+        sudo systemctl stop rascsi.service
+    fi
+}
+
+function stopRaScsiWeb() {
+    if [[ `systemctl list-units | grep -c rascsi-web.service` -ge 1 ]]; then
+        sudo systemctl stop rascsi-web.service
+    fi
+}
+
+function stopRaScsiScreen() {
+    if [[ `systemctl list-units | grep -c monitor_rascsi.service` -ge 1 ]]; then
+        sudo systemctl stop monitor_rascsi.service
+    fi
+}
+
+function startRaScsiScreen() {
+    if [[ -f "/etc/systemd/system/monitor_rascsi.service" ]]; then
+        sudo systemctl start monitor_rascsi.service
+	showRaScsiScreenStatus
     fi
 }
 

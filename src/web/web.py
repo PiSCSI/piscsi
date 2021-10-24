@@ -108,6 +108,7 @@ def index():
         device_types=device_types["device_types"],
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
+        archive_file_suffix=ARCHIVE_FILE_SUFFIX,
         removable_device_types=REMOVABLE_DEVICE_TYPES,
     )
 
@@ -570,12 +571,9 @@ def upload_file():
             return make_response(("Transferred file corrupted!", 500))
         else:
             log.info(f"File {file.filename} has been uploaded successfully")
-            if filename.lower().endswith(".zip"):
-                unzip_file(filename)
     else:
         log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
                   f"for file {file.filename} completed.")
-
 
     return make_response(("File upload successful!", 200))
 
@@ -636,24 +634,17 @@ def delete():
     return redirect(url_for("index"))
 
 
-@app.route("/files/prop", methods=["POST"])
-def show_properties():
-    file_name = request.form.get("image")
-    file_path = f"{cfg_dir}{file_name}.{PROPERTIES_SUFFIX}"
+@app.route("/files/unzip", methods=["POST"])
+def unzip():
+    image = request.form.get("image")
 
-    process = read_drive_properties(file_path)
-    prop = process["conf"]
-
+    process = unzip_file(image)
     if process["status"]:
-        flash("=== DRIVE PROPERTIES ===")
-        flash(f"File Name: {cfg_dir}{file_name}")
-        flash(f"Vendor: {prop['vendor']}")
-        flash(f"Product: {prop['product']}")
-        flash(f"Revision: {prop['revision']}")
-        flash(f"Block Size: {prop['block_size']}")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to get drive properties for {file_name}", "error")
+        flash("Failed to unzip " + image, "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
 
 

@@ -2,7 +2,7 @@
 
     {% block content %}
     <details>
-    <summary>Current RaSCSI Configuration</summary>
+    <summary class="heading">Current RaSCSI Configuration</summary>
     <ul>
     <li>Displays the currently attached devices for each available SCSI ID.</li>
     <li>Save and load device configurations into <tt>{{cfg_dir}}</tt></li>
@@ -113,7 +113,7 @@
     <hr/>
 
     <details>
-    <summary>Image File Management</summary>
+    <summary class="heading">Image File Management</summary>
     <ul>
     <li>Manage image files in the active RaSCSI image directory: <tt>{{base_dir}}</tt></li>
     <li>Select a valid SCSI ID and <a href="https://en.wikipedia.org/wiki/Logical_unit_number">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.</li>
@@ -131,7 +131,20 @@
         </tr>
         {% for file in files %}
         <tr>
-            <td>{{file["name"]}}</td>
+            {% if file["prop"] %}
+            <td>
+                <details>
+                    <summary>{{file["name"]}}</summary>
+                    <ul>
+                    {% for key in file["prop"] %}
+                        <li>{{key}}: {{file['prop'][key]}}</li>
+                    {% endfor %}
+                    </ul>
+	        </details>
+            </td>
+	    {% else %}
+	    <td>{{file["name"]}}</td>
+	    {% endif %}
             <td style="text-align:center">
                 <form action="/files/download" method="post">
                     <input type="hidden" name="image" value="{{file["name"]}}">
@@ -142,40 +155,41 @@
 		{% if file["name"] in attached_images %}
 		<center>Attached!</center>
 		{% else %}
-                <form action="/scsi/attach" method="post">
-                    <input type="hidden" name="file_name" value="{{file["name"]}}">
-                    <input type="hidden" name="file_size" value="{{file["size"]}}">
-                    <label for="id">ID</label>
-                    <select name="scsi_id">
+                    {% if file["name"].lower().endswith(archive_file_suffix) %}
+                    <form action="/files/unzip" method="post">
+                        <input type="hidden" name="image" value="{{file["name"]}}">
+                        <input type="submit" value="Unzip" />
+                    </form>
+		    {% else %}
+                    <form action="/scsi/attach" method="post">
+                        <input type="hidden" name="file_name" value="{{file["name"]}}">
+                        <input type="hidden" name="file_size" value="{{file["size"]}}">
+                        <label for="id">ID</label>
+                        <select name="scsi_id">
                         {% for id in scsi_ids %}
-			<option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
+			    <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
-                    </select>
-		    <label for="un">LUN</label>
-		    <input type="number" name="un" size="2" value="0" min="0" max="31" />
-		    {% if file["detected_type"] != "UNDEFINED" %}
-		    <input type="hidden" name="type" value="{{file["detected_type"]}}">
-		    {{file["detected_type"]}}
-	            {% else %}
-		    <select name="type">
-                        <option value="" selected>Type</option>
+                        </select>
+		        <label for="un">LUN</label>
+		        <input type="number" name="un" size="2" value="0" min="0" max="31" />
+		        {% if file["detected_type"] != "UNDEFINED" %}
+		            <input type="hidden" name="type" value="{{file["detected_type"]}}">
+			    {{file["detected_type"]}}
+	                {% else %}
+		            <select name="type">
+                            <option value="" selected>Type</option>
 			{% for d in device_types %}
-			<option value="{{d}}">{{d}}</option>
+			    <option value="{{d}}">{{d}}</option>
 			{% endfor %}
+			{% endif %}
                     </select>
-		    {% endif %}
                     <input type="submit" value="Attach" />
+		    {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                    <input type="hidden" name="image" value="{{file["name"]}}">
+                    <input type="hidden" name="image" value="{{file['name']}}">
                     <input type="submit" value="Delete" />
                 </form>
-		{% if file["prop"] %}
-		<form action="/files/prop" method="post">
-                    <input type="hidden" name="image" value="{{file["name"]}}">
-		    <input type="submit" value="Properties">
-		</form>
-		{% endif %}
 		{% endif %}
             </td>
         </tr>
@@ -187,7 +201,7 @@
     <hr/>
 
     <details>
-    <summary>Attach Ethernet Adapter</summary>
+    <summary class="heading">Attach Ethernet Adapter</summary>
     <ul>
     <li>Emulates a SCSI DaynaPORT Ethernet Adapter. <a href="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#-macintosh-setup-instructions">Host drivers and configuration required</a>.</li>
     <li>If you have a DHCP setup, choose only the interface, and ignore the Static IP fields when attaching.</li>
@@ -225,9 +239,9 @@
     <hr/>
 
     <details>
-    <summary>Upload File</summary>
+    <summary class="heading">Upload File</summary>
     <ul>
-    <li>Uploads file to <tt>{{base_dir}}</tt>. The largest file size accepted is {{max_file_size}} MB. Zip files will be unzipped.</li>
+    <li>Uploads file to <tt>{{base_dir}}</tt>. The largest file size accepted is {{max_file_size}} MB.</li>
     <li>For unrecognized file types, try renaming hard drive images to '.hds' and CD-ROM images to '.iso' before uploading.</li>
     <li>Recognized file types: {{valid_file_suffix}}</li>
     </ul>
@@ -256,7 +270,7 @@
     <hr/>
 
     <details>
-    <summary>Download File to Images</summary>
+    <summary class="heading">Download File to Images</summary>
     <ul>
     <li>Given a URL, download that file to the <tt>{{base_dir}}</tt> directory.</li>
     </ul>
@@ -277,7 +291,7 @@
     <hr/>
 
     <details>
-    <summary>Download File to AppleShare</summary>
+    <summary class="heading">Download File to AppleShare</summary>
     <ul>
     <li>Given a URL, download that file to the <tt>{{afp_dir}}</tt> directory and share it over AFP.</li>
     <li>Manage the files you download here through AppleShare on your vintage Mac.</li>
@@ -304,7 +318,7 @@
     <hr/>
 
     <details>
-    <summary>Download File from Web and Create HFS CD (Macintosh)</summary>
+    <summary class="heading">Download File from Web and Create HFS CD (Macintosh)</summary>
     <ul>
     <li>Given a URL this will download a file, create a HFS iso, and mount it on the SCSI ID given.</li>
     <li>Requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a> installed on the target system.</li>
@@ -332,7 +346,7 @@
     <hr/>
 
     <details>
-    <summary>Create Empty Disk Image File</summary>
+    <summary class="heading">Create Empty Disk Image File</summary>
     <ul>
     <li>The Generic image type is recommended for most systems</li>
     <li>APPLE GENUINE and NEC GENUINE image types will make RaSCSI masquerade as a particular drive type that are recognized by Mac and PC98 systems, respectively.</li>
@@ -364,7 +378,7 @@
     <hr/>
 
     <details>
-    <summary>Create Named Drive</summary>
+    <summary class="heading">Create Named Drive</summary>
     <ul>
     <li>Here you can create pairs of images and properties files from a list of real-life drives.</li>
     <li>This will make RaSCSI use certain vendor strings and block sizes that may improve compatibility with certain systems</li>
@@ -376,7 +390,7 @@
     <hr/>
 
     <details>
-    <summary>Logging</summary>
+    <summary class="heading">Logging</summary>
     <ul>
     <li>Get a certain number of lines of service logs with the given scope.</li>
     </ul>
@@ -403,7 +417,7 @@
     <hr/>
 
     <details>
-    <summary>Server Log Level</summary>
+    <summary class="heading">Server Log Level</summary>
     <ul>
     <li>Change the log level of the RaSCSI backend service.</li>
     <li>The dropdown will indicate the current log level.</li>
@@ -429,7 +443,7 @@
     <hr/>
 
     <details>
-    <summary>Raspberry Pi Operations</summary>
+    <summary class="heading">Raspberry Pi Operations</summary>
     <ul>
     <li>Issue reboot or shutdown commands to the Raspberr Pi.</li>
     <li>You can also restart the RaSCSI backend service here.</li>

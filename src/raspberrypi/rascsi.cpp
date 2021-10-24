@@ -959,6 +959,11 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 			assert(dryRun);
 			break;
 
+		case NONE:
+			// Do nothing, just log
+			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str());
+			break;
+
 		default:
 			return ReturnStatus(fd, false, "Unknown operation");
 	}

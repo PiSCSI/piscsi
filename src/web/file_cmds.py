@@ -67,9 +67,10 @@ def list_images():
 
     files = []
     for f in result.image_files_info.image_files:
-        # Add flag for whether an image file has an associated *.properties file
+        # Add properties meta data for the image, if applicable
         if f.name in prop_files:
-            prop = True
+            process = read_drive_properties(f"{cfg_dir}/{f.name}.{PROPERTIES_SUFFIX}")
+            prop = process["conf"]
         else:
             prop = False
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
@@ -145,13 +146,13 @@ def unzip_file(file_name):
 
     unzip_proc = run(
         ["unzip", "-d", server_info["image_dir"], "-o", "-j", \
-                server_info["image_dir"] + file_name], capture_output=True
+                f"{server_info['image_dir']}/{file_name}"], capture_output=True
     )
     if unzip_proc.returncode != 0:
         logging.warning(f"Unzipping failed: {unzip_proc}")
-        return {"status": False, "msg": unzip_proc}
+        return {"status": False, "msg": str(unzip_proc)}
 
-    return {"status": True, "msg": f"{file_name} unzipped"}
+    return {"status": True, "msg": f"Unzipped {file_name} to {server_info['image_dir']}"}
 
 
 def download_file_to_iso(scsi_id, url):
@@ -244,9 +245,11 @@ def write_config(file_name):
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as e:
         logging.error(str(e))
+        delete_file(file_name)
         return {"status": False, "msg": str(e)}
     except:
         logging.error(f"Could not write to file: {file_name}")
+        delete_file(file_name)
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
 
@@ -284,30 +287,32 @@ def read_config(file_name):
 
 def write_drive_properties(file_name, conf):
     """
-    Writes a drive property configuration file to the images dir.
+    Writes a drive property configuration file to the config dir.
     Takes file name base (str) and conf (list of dicts) as arguments
     Returns dict with boolean status and str msg
     """
     from json import dump
+    file_path = cfg_dir + file_name
     try:
-        with open(cfg_dir + file_name, "w") as json_file:
+        with open(file_path, "w") as json_file:
             dump(conf, json_file, indent=4)
-        return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
+        return {"status": True, "msg": f"Successfully wrote to file: {file_path}"}
     except (IOError, ValueError, EOFError, TypeError) as e:
         logging.error(str(e))
+        delete_file(file_path)
         return {"status": False, "msg": str(e)}
     except:
-        logging.error(f"Could not write to file: {file_name}")
-        return {"status": False, "msg": f"Could not write to file: {file_name}"}
+        logging.error(f"Could not write to file: {file_path}")
+        delete_file(file_path)
+        return {"status": False, "msg": f"Could not write to file: {file_path}"}
 
 
 
 def read_drive_properties(path_name):
     """ 
-    Reads drive properties to any dir.
-    Either ones deployed to the images dir, or the canonical database. 
-    Takes file path and bas (str) as argument
-    Returns dict with boolean status and str msg
+    Reads drive properties from json formatted file.
+    Takes (str) path_name as argument.
+    Returns dict with boolean status, str msg, dict conf
     """
     from json import load
     try:
