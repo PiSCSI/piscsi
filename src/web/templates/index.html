@@ -152,10 +152,6 @@
                         <input type="hidden" name="image" value="{{file["name"]}}">
                         <input type="submit" value="Unzip" />
                     </form>
-                    <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                        <input type="hidden" name="image" value="{{file["name"]}}">
-                        <input type="submit" value="Delete" />
-                    </form>
 		    {% else %}
                     <form action="/scsi/attach" method="post">
                         <input type="hidden" name="file_name" value="{{file["name"]}}">
@@ -179,11 +175,11 @@
 			{% endfor %}
 			{% endif %}
                     </select>
-		    {% endif %}
                     <input type="submit" value="Attach" />
+		    {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                    <input type="hidden" name="image" value="{{file["name"]}}">
+                    <input type="hidden" name="image" value="{{file['name']}}">
                     <input type="submit" value="Delete" />
                 </form>
 		{% endif %}
