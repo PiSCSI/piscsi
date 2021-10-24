@@ -245,9 +245,11 @@ def write_config(file_name):
         return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as e:
         logging.error(str(e))
+        delete_file(file_name)
         return {"status": False, "msg": str(e)}
     except:
         logging.error(f"Could not write to file: {file_name}")
+        delete_file(file_name)
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
 
@@ -285,21 +287,24 @@ def read_config(file_name):
 
 def write_drive_properties(file_name, conf):
     """
-    Writes a drive property configuration file to the images dir.
+    Writes a drive property configuration file to the config dir.
     Takes file name base (str) and conf (list of dicts) as arguments
     Returns dict with boolean status and str msg
     """
     from json import dump
+    file_path = cfg_dir + file_name
     try:
-        with open(cfg_dir + file_name, "w") as json_file:
+        with open(file_path, "w") as json_file:
             dump(conf, json_file, indent=4)
-        return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
+        return {"status": True, "msg": f"Successfully wrote to file: {file_path}"}
     except (IOError, ValueError, EOFError, TypeError) as e:
         logging.error(str(e))
+        delete_file(file_path)
         return {"status": False, "msg": str(e)}
     except:
-        logging.error(f"Could not write to file: {file_name}")
-        return {"status": False, "msg": f"Could not write to file: {file_name}"}
+        logging.error(f"Could not write to file: {file_path}")
+        delete_file(file_path)
+        return {"status": False, "msg": f"Could not write to file: {file_path}"}
 
 
 
