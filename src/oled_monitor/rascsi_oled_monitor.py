@@ -249,16 +249,17 @@ def send_over_socket(s, payload):
         while bytes_recvd < response_length:
             chunk = s.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
-                exit("Read an empty chunk from the socket. \
-                        Socket connection has dropped unexpectedly. \
-                        RaSCSI may have has crashed.")
+                exit("Socket connection has dropped unexpectedly. "
+                     "RaSCSI may have crashed."
+                    )
             chunks.append(chunk)
             bytes_recvd = bytes_recvd + len(chunk)
         response_message = b''.join(chunks)
         return response_message
     else:
-        exit("The response from RaSCSI did not contain a protobuf header. \
-                RaSCSI may have crashed.")
+        exit("The response from RaSCSI did not contain a protobuf header. "
+             "RaSCSI may have crashed."
+            )
 
 
 def formatted_output():
