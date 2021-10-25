@@ -88,6 +88,9 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 		return;
 	}
 	int32_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
+	if (size <= 0) {
+		throw io_exception("Communication error");
+	}
 
 	// Read the binary protobuf data
 	uint8_t data_buf[size];
