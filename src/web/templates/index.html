@@ -21,8 +21,8 @@
                 <option disabled>No saved configs</option>
             {% endif %}
         </select>
-        <input type="submit" name="load" value="Load" />
-        <input type="submit" name="delete" value="Delete" />
+        <input type="submit" name="load" value="Load" onclick="return confirm('Detach all current device and Load config?')" />
+        <input type="submit" name="delete" value="Delete" onclick="return confirm('Delete config file?')" />
     </form>
     </p>
     <p>
