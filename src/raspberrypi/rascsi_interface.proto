@@ -1,6 +1,6 @@
 //
-// Each rascsi remote interface message is preceded by the magic string "RASCSI",
-// followed by a little endian 32 bit header which contains the protobuf message size.
+// Each rascsi message sent to the rascsi server is preceded by the magic string "RASCSI".
+// A message starts with a little endian 32 bit header which contains the protobuf message size.
 // Unless explicitly specified the order of repeated data returned is undefined.
 //
 
