@@ -12,7 +12,6 @@
 
     <p>
     <form action="/config/load" method="post">
-        <label for="name">Saved Configs:</label>
         <select name="name" width="14" required>
             {% if config_files %}
             {% for config in config_files %}
@@ -28,8 +27,7 @@
     </p>
     <p>
     <form action="/config/save" method="post">
-        <label for="name">Config Name:</label>
-        <input name="name" placeholder="default" size="14">
+        <input name="name" placeholder="default" size="20">
         <input type="submit" value="Save" />
     </form>
     </p>
