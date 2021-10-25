@@ -234,6 +234,8 @@ def send_over_socket(s, payload):
     Reads data from socket in 2048 bytes chunks until all data is received.
     """
 
+    # Sending the magic word "RASCSI" to authenticate with the server
+    s.send(b"RASCSI")
     # Prepending a little endian 32bit header with the message size
     s.send(pack("<i", len(payload)))
     s.send(payload)
