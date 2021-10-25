@@ -60,7 +60,11 @@ void RasctlCommands::SendCommand()
     		throw io_exception(error.str());
     	}
 
-        SerializeMessage(fd, command);
+    	if (write(fd, "RASCSI", 6) != 6) {
+    		throw io_exception("Can't write magic");
+    	}
+
+    	SerializeMessage(fd, command);
     }
     catch(const io_exception& e) {
     	cerr << "Error: " << e.getmsg() << endl;

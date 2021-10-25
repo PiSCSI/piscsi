@@ -70,12 +70,12 @@ void protobuf_util::SerializeMessage(int fd, const google::protobuf::Message& me
 	// Write the size of the protobuf data as a header
     int32_t size = data.length();
     if (write(fd, &size, sizeof(size)) != sizeof(size)) {
-    	throw io_exception("Can't write protobuf header");
+    	throw io_exception("Can't write protobuf message header");
     }
 
     // Write the actual protobuf data
     if (write(fd, data.data(), size) != size) {
-    	throw io_exception("Can't write protobuf data");
+    	throw io_exception("Can't write protobuf message data");
     }
 }
 
@@ -83,20 +83,20 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 {
 	// Read the header with the size of the protobuf data
 	uint8_t header_buf[4];
-	int bytes_read = ReadNBytes(fd, header_buf, 4);
-	if (bytes_read < 4) {
+	int bytes_read = ReadNBytes(fd, header_buf, sizeof(header_buf));
+	if (bytes_read < (int)sizeof(header_buf)) {
 		return;
 	}
 	int32_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
 	if (size <= 0) {
-		throw io_exception("Communication error");
+		throw io_exception("Broken protobuf message header");
 	}
 
 	// Read the binary protobuf data
 	uint8_t data_buf[size];
 	bytes_read = ReadNBytes(fd, data_buf, size);
 	if (bytes_read < size) {
-		throw io_exception("Missing protobuf data");
+		throw io_exception("Missing protobuf message data");
 	}
 
 	// Create protobuf message

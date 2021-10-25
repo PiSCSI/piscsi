@@ -1291,6 +1291,16 @@ static void *MonThread(void *param)
 				throw io_exception("accept() failed");
 			}
 
+			// Read magic string
+			char magic[6];
+			int bytes_read = ReadNBytes(fd, (uint8_t *)magic, sizeof(magic));
+			if (!bytes_read) {
+				continue;
+			}
+			if (bytes_read != sizeof(magic) || strncmp(magic, "RASCSI", sizeof(magic))) {
+				throw io_exception("Invalid magic");
+			}
+
 			// Fetch the command
 			PbCommand command;
 			DeserializeMessage(fd, command);
