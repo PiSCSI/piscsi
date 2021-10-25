@@ -12,22 +12,23 @@
 
     <p>
     <form action="/config/load" method="post">
-        <select name="name" required>
+        <select name="name" width="14" required>
+            {% if config_files %}
             {% for config in config_files %}
                 <option value="{{config}}">{{config.replace(".json", '')}}</option>
             {% endfor %}
+            {% else %}
+                <option disabled>No saved configs</option>
+            {% endif %}
         </select>
-        <input type="submit" name="load" value="Load" />
-        <input type="submit" name="delete" value="Delete" />
+        <input type="submit" name="load" value="Load" onclick="return confirm('Detach all current device and Load config?')" />
+        <input type="submit" name="delete" value="Delete" onclick="return confirm('Delete config file?')" />
     </form>
     </p>
     <p>
     <form action="/config/save" method="post">
-        <input name="name" placeholder="default">
+        <input name="name" placeholder="default" size="20">
         <input type="submit" value="Save" />
-    </form>
-    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('Detach all SCSI Devices?')">
-        <input type="submit" value="Detach All" />
     </form>
     </p>
 
@@ -101,6 +102,11 @@
         {% endfor %}
         </tbody>
     </table>
+    <p>
+    <form action="/scsi/detach_all" method="post" onsubmit="return confirm('Detach all SCSI Devices?')">
+        <input type="submit" value="Detach All Devices" />
+    </form>
+    </p>
 
     <hr/>
 
