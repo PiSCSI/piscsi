@@ -123,18 +123,19 @@ draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
 
 # Draw some shapes.
 # First define some constants to allow easy resizing of shapes.
-padding = -2
+padding = 0
 top = padding
 bottom = HEIGHT-padding
 # Move left to right keeping track of the current x position for drawing shapes.
 x = 0
 
 # Load default font.
-font = ImageFont.load_default()
+#font = ImageFont.load_default()
 
 # Alternatively load a TTF font.  Make sure the .ttf font file is in the same directory as the python script!
+# When using other fonds, you may need to adjust padding, font size, and line spacing
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
-# font = ImageFont.truetype('Minecraftia.ttf', 8)
+font = ImageFont.truetype('type_writer.ttf', 8)
 
 
 def device_list():
