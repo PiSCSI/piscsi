@@ -30,15 +30,48 @@
 # THE SOFTWARE.
 from time import sleep
 from sys import argv, exit
-import logging
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
-from os import path
+from os import path, getcwd
 from collections import deque
 from struct import pack, unpack
+import signal
 import socket
 import rascsi_interface_pb2 as proto
+
+class GracefulInterruptHandler(object):
+    def __init__(self, signals=(signal.SIGINT, signal.SIGTERM)):
+        self.signals = signals
+        self.original_handlers = {}
+
+    def __enter__(self):
+        self.interrupted = False
+        self.released = False
+
+        for sig in self.signals:
+            self.original_handlers[sig] = signal.getsignal(sig)
+            signal.signal(sig, self.handler)
+
+        return self
+
+    def handler(self, signum, frame):
+        self.release()
+        self.interrupted = True
+
+    def __exit__(self, type, value, tb):
+        self.release()
+
+    def release(self):
+        if self.released:
+            return False
+
+        for sig in self.signals:
+            signal.signal(sig, self.original_handlers[sig])
+
+        self.released = True
+        return True
+
 
 WIDTH = 128
 HEIGHT = 32  # Change to 64 if needed
@@ -186,11 +219,11 @@ def send_pb_command(payload):
                 return send_over_socket(s, payload)
         except socket.error as error:
             counter += 1
-            logging.warning("The RaSCSI service is not responding - attempt " + \
+            print("The RaSCSI service is not responding - attempt " + \
                     str(counter) + "/" + str(tries))
             error_msg = str(error)
 
-    logging.error(error_msg)
+    exit(error_msg)
 
 
 def send_over_socket(s, payload):
@@ -216,7 +249,7 @@ def send_over_socket(s, payload):
         while bytes_recvd < response_length:
             chunk = s.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
-                logging.error("Read an empty chunk from the socket. \
+                exit("Read an empty chunk from the socket. \
                         Socket connection has dropped unexpectedly. \
                         RaSCSI may have has crashed.")
             chunks.append(chunk)
@@ -224,7 +257,7 @@ def send_over_socket(s, payload):
         response_message = b''.join(chunks)
         return response_message
     else:
-        logging.error("The response from RaSCSI did not contain a protobuf header. \
+        exit("The response from RaSCSI did not contain a protobuf header. \
                 RaSCSI may have crashed.")
 
 
@@ -255,29 +288,52 @@ def formatted_output():
     output.append(f"~~RaSCSI v{version}~~")
     return output
 
+def start_splash():
+    splash = Image.open(f"{cwd}/splash_start.bmp").convert("1")
+    draw.bitmap((0, 0), splash)
+    oled.image(splash)
+    oled.show()
+    sleep(6)
+
+def stop_splash():
+    draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
+    splash = Image.open(f"{cwd}/splash_stop.bmp").convert("1")
+    draw.bitmap((0, 0), splash)
+    oled.image(splash)
+    oled.show()
+
+cwd = getcwd()
+
+start_splash()
+
 version = rascsi_version()
 
-while True:
+with GracefulInterruptHandler() as h:
+    while True:
 
-    snapshot = deque(formatted_output())
-    output = snapshot
+        ref_snapshot = formatted_output()
+        snapshot = ref_snapshot
+        output = deque(snapshot)
 
-    while len(snapshot) == len(output):
-        # Draw a black filled box to clear the image.
-        draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
-        y_pos = top
-        for line in output:
-            draw.text((x, y_pos), line, font=font, fill=255)
-            y_pos += 8
+        while snapshot == ref_snapshot:
+            # Draw a black filled box to clear the image.
+            draw.rectangle((0,0,WIDTH,HEIGHT), outline=0, fill=0)
+            y_pos = top
+            for line in output:
+                draw.text((x, y_pos), line, font=font, fill=255)
+                y_pos += 8
 
-        #if len(snapshot) > 4:
-        output.rotate(-1)
+            # Shift the index of the array by one to get a scrolling effect
+            if len(output) > 5:
+                output.rotate(-1)
 
-        # Display image.
-        oled.image(image)
-        oled.show()
-        sleep(1000/delay_time_ms)
+            # Display image.
+            oled.image(image)
+            oled.show()
+            sleep(1000/delay_time_ms)
 
-        snapshot = deque(formatted_output())
-        if len(snapshot) < 5:
-            break
+            snapshot = formatted_output()
+
+            if h.interrupted:
+                stop_splash()
+                exit("Shutting down the OLED display...")
