@@ -489,18 +489,26 @@ def shutdown():
 
 
 @app.route("/files/download_to_iso", methods=["POST"])
-def download_file():
+def download_to_iso():
     scsi_id = request.form.get("scsi_id")
 
     url = request.form.get("url")
     process = download_file_to_iso(scsi_id, url)
     if process["status"] == True:
-        flash(f"File Downloaded and Attached to SCSI ID {scsi_id}")
+        flash(f"Created CD-ROM image {process['file_name']}")
         flash(process["msg"])
+    else:
+        flash(f"Failed to create CD-ROM image from {url}", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+    process_attach = attach_image(scsi_id, type="SCCD", image=process["file_name"])
+    if process_attach["status"] == True:
+        flash(f"Attached to SCSI ID {scsi_id}")
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to download and/or attach file {url}", "error")
-        flash(process["msg"], "error")
+        flash(f"Failed to attach to SCSI ID {scsi_id}. Try attaching it manually.", "error")
+        flash(process_attach["msg"], "error")
         return redirect(url_for("index"))
 
 

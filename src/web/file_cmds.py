@@ -190,10 +190,9 @@ def download_file_to_iso(scsi_id, url):
         ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
     )
     if iso_proc.returncode != 0:
-        return {"status": False, "msg": str(iso_proc)}
+        return {"status": False, "msg": iso_proc.stderr.decode("utf-8")}
 
-    process = attach_image(scsi_id, type="SCCD", image=iso_filename)
-    return {"status": process["status"], "msg": process["msg"]}
+    return {"status": True, "msg": iso_proc.stdout.decode("utf-8"), "file_name": iso_filename}
 
 
 def download_to_dir(url, save_dir):
