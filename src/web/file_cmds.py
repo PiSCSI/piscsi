@@ -138,21 +138,24 @@ def delete_file(file_path):
 
 def unzip_file(file_name):
     """
-    Takes str file_name
-    Returns dict with boolean status and str msg
+    Takes (str) file_name
+    Returns dict with (boolean) status and (list of str) msg
     """
     from subprocess import run
     server_info = get_server_info()
 
     unzip_proc = run(
-        ["unzip", "-d", server_info["image_dir"], "-o", "-j", \
+        ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
                 f"{server_info['image_dir']}/{file_name}"], capture_output=True
     )
     if unzip_proc.returncode != 0:
-        logging.warning(f"Unzipping failed: {unzip_proc}")
-        return {"status": False, "msg": str(unzip_proc)}
+        stderr = unzip_proc.stderr.decode("utf-8") 
+        logging.warning(f"Unzipping failed: {stderr}")
+        return {"status": False, "msg": stderr}
 
-    return {"status": True, "msg": f"Unzipped {file_name} to {server_info['image_dir']}"}
+    from re import findall
+    unzipped = findall("inflating:(.+)\n", unzip_proc.stdout.decode("utf-8"))
+    return {"status": True, "msg": unzipped}
 
 
 def download_file_to_iso(scsi_id, url):
