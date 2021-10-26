@@ -140,6 +140,24 @@
                     </ul>
 	        </details>
             </td>
+	    {% elif file["zip"] %}
+            <td>
+                <details>
+                    <summary>{{file["name"]}}</summary>
+                    <ul>
+                    {% for member in file["zip"] %}
+		    <li>
+			<label for="member">{{member}}</label>
+			<form action="/files/unzip" method="post">
+                        <input type="hidden" name="image" value="{{file['name']}}">
+			<input type="hidden" name="member" value="{{member}}">
+                        <input type="submit" value="Unzip" />
+                        </form>
+                    </li>
+                    {% endfor %}
+                    </ul>
+	        </details>
+            </td>
 	    {% else %}
 	    <td>{{file["name"]}}</td>
 	    {% endif %}
@@ -156,7 +174,7 @@
                     {% if file["name"].lower().endswith(archive_file_suffix) %}
                     <form action="/files/unzip" method="post">
                         <input type="hidden" name="image" value="{{file["name"]}}">
-                        <input type="submit" value="Unzip" />
+                        <input type="submit" value="Unzip All" />
                     </form>
 		    {% else %}
                     <form action="/scsi/attach" method="post">
