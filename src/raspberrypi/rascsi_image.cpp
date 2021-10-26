@@ -119,7 +119,7 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 
 	off_t len;
 	try {
-		len = stoul(size);
+		len = stoull(size);
 	}
 	catch(const invalid_argument& e) {
 		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
