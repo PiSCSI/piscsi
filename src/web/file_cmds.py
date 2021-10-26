@@ -154,7 +154,7 @@ def unzip_file(file_name):
         return {"status": False, "msg": stderr}
 
     from re import findall
-    unzipped = findall("inflating:(.+)\n", unzip_proc.stdout.decode("utf-8"))
+    unzipped = findall("(?:inflating|extracting):(.+)\n", unzip_proc.stdout.decode("utf-8"))
     return {"status": True, "msg": unzipped}
 
 
