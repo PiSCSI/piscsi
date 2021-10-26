@@ -645,8 +645,9 @@ def delete():
 @app.route("/files/unzip", methods=["POST"])
 def unzip():
     image = request.form.get("image")
+    member = request.form.get("member") or False
 
-    process = unzip_file(image)
+    process = unzip_file(image, member)
     if process["status"]:
         if len(process["msg"]) < 1:
             flash("Aborted unzip: File(s) with the same name already exists.", "error")

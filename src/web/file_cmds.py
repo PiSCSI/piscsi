@@ -65,6 +65,8 @@ def list_images():
     prop_data = list_files(PROPERTIES_SUFFIX, cfg_dir)
     prop_files = [PurePath(x[0]).stem for x in prop_data]
 
+    from zipfile import ZipFile, is_zipfile
+    server_info = get_server_info()
     files = []
     for f in result.image_files_info.image_files:
         # Add properties meta data for the image, if applicable
@@ -73,6 +75,22 @@ def list_images():
             prop = process["conf"]
         else:
             prop = False
+        if f.name.lower().endswith(".zip"):
+            zip_path = f"{server_info['image_dir']}/{f.name}"
+            if is_zipfile(zip_path):
+                zip = ZipFile(zip_path)
+                # Get a list of str containing all zipfile members
+                zip_members = zip.namelist()
+                # Strip out directories from the list
+                zip_members = [x for x in zip_members if not x.endswith("/")]
+                # Reduce members to file names only (strip out full path)
+                zip_members = [PurePath(x).name for x in zip_members]
+            else:
+                logging.warning(f"{zip_path} is an invalid zip file")
+                zip_members = False
+        else:
+            zip_members = False
+
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
         dtype = proto.PbDeviceType.Name(f.type)
         files.append(
@@ -82,6 +100,7 @@ def list_images():
                             "size_mb": size_mb,
                             "detected_type": dtype,
                             "prop": prop,
+                            "zip": zip_members,
                         }
                     )
 
@@ -136,18 +155,24 @@ def delete_file(file_path):
         return {"status": False, "msg": "Could not delete file"}
 
 
-def unzip_file(file_name):
+def unzip_file(file_name, member=False):
     """
-    Takes (str) file_name
+    Takes (str) file_name, optional (str) member
     Returns dict with (boolean) status and (list of str) msg
     """
     from subprocess import run
     server_info = get_server_info()
 
-    unzip_proc = run(
-        ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
+    if member == False:
+        unzip_proc = run(
+            ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
                 f"{server_info['image_dir']}/{file_name}"], capture_output=True
-    )
+            )
+    else:
+        unzip_proc = run(
+            ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
+                f"{server_info['image_dir']}/{file_name}", member], capture_output=True
+            )
     if unzip_proc.returncode != 0:
         stderr = unzip_proc.stderr.decode("utf-8") 
         logging.warning(f"Unzipping failed: {stderr}")
