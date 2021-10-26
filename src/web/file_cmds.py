@@ -79,8 +79,11 @@ def list_images():
             zip_path = f"{server_info['image_dir']}/{f.name}"
             if is_zipfile(zip_path):
                 zip = ZipFile(zip_path)
+                # Get a list of str containing all zipfile members
                 zip_members = zip.namelist()
+                # Strip out directories from the list
                 zip_members = [x for x in zip_members if not x.endswith("/")]
+                # Reduce members to file names only (strip out full path)
                 zip_members = [PurePath(x).name for x in zip_members]
             else:
                 logging.warning(f"{zip_path} is an invalid zip file")
