@@ -640,7 +640,12 @@ def unzip():
 
     process = unzip_file(image)
     if process["status"]:
-        flash(process["msg"])
+        if len(process["msg"]) < 1:
+            flash("Aborted unzip: File(s) with the same name already exists.", "error")
+            return redirect(url_for("index"))
+        flash("Unzipped the following files:")
+        for m in process["msg"]:
+            flash(m)
         return redirect(url_for("index"))
     else:
         flash("Failed to unzip " + image, "error")
