@@ -83,8 +83,6 @@ def list_images():
                 zip_members = zip.namelist()
                 # Strip out directories from the list
                 zip_members = [x for x in zip_members if not x.endswith("/")]
-                # Reduce members to file names only (strip out full path)
-                zip_members = [PurePath(x).name for x in zip_members]
             else:
                 logging.warning(f"{zip_path} is an invalid zip file")
                 zip_members = False
