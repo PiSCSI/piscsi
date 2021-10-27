@@ -200,10 +200,10 @@ def download_file_to_iso(scsi_id, url):
     tmp_full_path = tmp_dir + file_name
     iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
-    wget_proc = download_to_dir(url, tmp_dir)
+    req_proc = download_to_dir(url, tmp_dir)
 
-    if wget_proc["status"] == False:
-        return {"status": False, "msg": wget_proc["msg"]}
+    if req_proc["status"] == False:
+        return {"status": False, "msg": req_proc["msg"]}
 
     iso_proc = run(
         ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
