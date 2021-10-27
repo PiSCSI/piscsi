@@ -186,29 +186,23 @@ def download_file_to_iso(scsi_id, url):
     Takes int scsi_id and str url
     Returns dict with boolean status and str msg
     """
-    import urllib.request
-    import urllib.error as error
-    import time
+    from time import time
     from subprocess import run
 
     server_info = get_server_info()
 
     file_name = url.split("/")[-1]
-    tmp_ts = int(time.time())
+    tmp_ts = int(time())
     tmp_dir = "/tmp/" + str(tmp_ts) + "/"
     os.mkdir(tmp_dir)
     tmp_full_path = tmp_dir + file_name
     iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
-    try:
-        urllib.request.urlretrieve(url, tmp_full_path)
-    except (error.URLError, error.HTTPError, error.ContentTooShortError, FileNotFoundError) as e:
-        logging.error(str(e))
-        return {"status": False, "msg": str(e)}
-    except:
-        return {"status": False, "msg": "Unknown error occurred."}
+    req_proc = download_to_dir(url, tmp_dir)
 
-    # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
+    if req_proc["status"] == False:
+        return {"status": False, "msg": req_proc["msg"]}
+
     iso_proc = run(
         ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
     )
@@ -223,20 +217,25 @@ def download_to_dir(url, save_dir):
     Takes str url, str save_dir
     Returns dict with boolean status and str msg
     """
-    import urllib.request
-    import urllib.error as error
-
-    file_name = url.split("/")[-1]
-    full_path = f"{save_dir}/{file_name}"
+    import requests
+    from pathlib import PurePath
+    file_name = PurePath(url).name
+    logging.info(f"Making a request to download {url}")
 
     try:
-        urllib.request.urlretrieve(url, full_path)
-        return {"status": True, "msg": "Downloaded the URL"}
-    except (error.URLError, error.HTTPError, error.ContentTooShortError, FileNotFoundError) as e:
-        logging.error(str(e))
+        req = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"Request failed: {str(e)}")
         return {"status": False, "msg": str(e)}
-    except:
-        return {"status": False, "msg": "Unknown error occurred."}
+
+    with open(f"{save_dir}/{file_name}", "wb") as download:
+        download.write(req.content)
+
+    logging.info(f"Response encoding: {req.encoding}")
+    logging.info(f"Response content-type: {req.headers['content-type']}")
+    logging.info(f"Response status code: {req.status_code}")
+
+    return {"status": True, "msg": f"{url} downloaded to {save_dir}"}
 
 
 def write_config(file_name):

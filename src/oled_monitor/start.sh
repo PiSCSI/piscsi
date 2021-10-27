@@ -47,6 +47,12 @@ if [ $ERROR = 1 ] ; then
   exit 1
 fi
 
+if pgrep -f "python3 rascsi_oled_monitor.py" &> /dev/null; then
+    echo "Detected active rascsi_oled_monitor.py process"
+    echo "Terminating before launching a new one."
+    sudo pkill -f "python3 rascsi_oled_monitor.py"
+fi
+
 if ! i2cdetect -y 1 &> /dev/null ; then
     echo "i2cdetect -y 1 did not find a screen."
     exit 2
