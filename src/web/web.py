@@ -502,7 +502,7 @@ def download_to_iso():
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
-    process_attach = attach_image(scsi_id, type="SCCD", image=process["file_name"])
+    process_attach = attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
     if process_attach["status"] == True:
         flash(f"Attached to SCSI ID {scsi_id}")
         return redirect(url_for("index"))
