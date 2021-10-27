@@ -219,15 +219,23 @@ def download_to_dir(url, save_dir):
     Takes str url, str save_dir
     Returns dict with boolean status and str msg
     """
-    from subprocess import run
+    import requests
+    from pathlib import PurePath
+    file_name = PurePath(url).name
+    logging.info(f"Making a request to download {url}")
 
-    wget_proc = run(
-        ["wget", url, "-P", save_dir], capture_output=True
-        )
-    if wget_proc.returncode != 0:
-        stderr = wget_proc.stderr.decode("utf-8") 
-        logging.warning(f"Downloading failed: {stderr}")
-        return {"status": False, "msg": stderr}
+    try:
+        req = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+    except requests.exceptions.RequestException as e:
+        logging.warning(f"Request failed: {str(e)}")
+        return {"status": False, "msg": str(e)}
+
+    with open(f"{save_dir}/{file_name}", "wb") as download:
+        download.write(req.content)
+
+    logging.info(f"Response encoding: {req.encoding}")
+    logging.info(f"Response content-type: {req.headers['content-type']}")
+    logging.info(f"Response status code: {req.status_code}")
 
     return {"status": True, "msg": f"{url} downloaded to {save_dir}"}
 
