@@ -188,29 +188,23 @@ def download_file_to_iso(scsi_id, url):
     Takes int scsi_id and str url
     Returns dict with boolean status and str msg
     """
-    import urllib.request
-    import urllib.error as error
-    import time
+    from time import time
     from subprocess import run
 
     server_info = get_server_info()
 
     file_name = url.split("/")[-1]
-    tmp_ts = int(time.time())
+    tmp_ts = int(time())
     tmp_dir = "/tmp/" + str(tmp_ts) + "/"
     os.mkdir(tmp_dir)
     tmp_full_path = tmp_dir + file_name
     iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
-    try:
-        urllib.request.urlretrieve(url, tmp_full_path)
-    except (error.URLError, error.HTTPError, error.ContentTooShortError, FileNotFoundError) as e:
-        logging.error(str(e))
-        return {"status": False, "msg": str(e)}
-    except:
-        return {"status": False, "msg": "Unknown error occurred."}
+    wget_proc = download_to_dir(url, tmp_dir)
 
-    # iso_filename = make_cd(tmp_full_path, None, None) # not working yet
+    if wget_proc["status"] == False:
+        return {"status": False, "msg": wget_proc["msg"]}
+
     iso_proc = run(
         ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
     )
@@ -225,20 +219,17 @@ def download_to_dir(url, save_dir):
     Takes str url, str save_dir
     Returns dict with boolean status and str msg
     """
-    import urllib.request
-    import urllib.error as error
+    from subprocess import run
 
-    file_name = url.split("/")[-1]
-    full_path = f"{save_dir}/{file_name}"
+    wget_proc = run(
+        ["wget", url, "-P", save_dir], capture_output=True
+        )
+    if wget_proc.returncode != 0:
+        stderr = wget_proc.stderr.decode("utf-8") 
+        logging.warning(f"Downloading failed: {stderr}")
+        return {"status": False, "msg": stderr}
 
-    try:
-        urllib.request.urlretrieve(url, full_path)
-        return {"status": True, "msg": "Downloaded the URL"}
-    except (error.URLError, error.HTTPError, error.ContentTooShortError, FileNotFoundError) as e:
-        logging.error(str(e))
-        return {"status": False, "msg": str(e)}
-    except:
-        return {"status": False, "msg": "Unknown error occurred."}
+    return {"status": True, "msg": f"{url} downloaded to {save_dir}"}
 
 
 def write_config(file_name):
