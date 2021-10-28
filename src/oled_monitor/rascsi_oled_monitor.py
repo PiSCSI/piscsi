@@ -185,7 +185,8 @@ def device_list():
 
     return device_list
 
-def get_ip():
+def get_ip_and_host():
+    host = socket.gethostname()
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
         # mock ip address; doesn't have to be reachable
@@ -195,7 +196,7 @@ def get_ip():
         ip = '127.0.0.1'
     finally:
         s.close()
-    return ip
+    return ip, host
 
 def send_pb_command(payload):
     """
@@ -286,7 +287,7 @@ def formatted_output():
     else:
         output.append("No image mounted!")
 
-    output.append(f"RaSCSI IP {ip}")
+    output.append(f"{host}:{ip}")
     return output
 
 def start_splash():
@@ -307,7 +308,7 @@ cwd = getcwd()
 
 start_splash()
 
-ip = get_ip()
+ip, host = get_ip_and_host()
 
 with GracefulInterruptHandler() as h:
     while True:
