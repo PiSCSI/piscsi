@@ -169,14 +169,10 @@ function installRaScsiScreen() {
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
         echo "NOTE: I2C support seems to have been configured already."
         REBOOT=0
-    elif [[ $(grep -c "^dtparam=i2c_arm=off" /boot/config.txt) -ge 1 ]]; then
-        echo "NOTE: I2C support seems to have been disabled; We will override that configuration in /boot/config.txt"
-        sudo sed -i /^dtparam=i2c_arm/d /boot/config.txt
-        sudo bash -c 'echo "dtparam=i2c_arm=on" >> /boot/config.txt'
-        REBOOT=1
     else
-        sudo bash -c 'echo "dtparam=i2c_arm=on" >> /boot/config.txt'
-        echo "Modified /boot/config.txt"
+	sudo raspi-config nonint do_i2c 0 </dev/null
+        echo "Modified the Raspberry Pi boot configuration to enable I2C."
+	echo "A reboot will be required for the change to take effect."
         REBOOT=1
     fi
 
