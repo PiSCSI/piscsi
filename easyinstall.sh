@@ -157,7 +157,7 @@ function installRaScsiScreen() {
     stopRaScsiScreen
     updateRaScsiGit
 
-    sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools -y </dev/null
+    sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
     if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
         rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
