@@ -326,7 +326,13 @@
             </td>
         </tr>
     </table>
-    <p><small>{{netatalk_configured}} active connections (including the server)</small></p>
+    {% if netatalk_configured == 1 %}
+    <p><small>The AppleShare server is running. No active connections</small></p>
+    {% elif netatalk_configured == 2 %}
+    <p><small>{{netatalk_configured - 1}} active AFP connection</small></p>
+    {% elif netatalk_configured > 2 %}
+    <p><small>{{netatalk_configured - 1}} active AFP connections</small></p>
+    {% endif %}
     {% else %}
     <p>Install <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to use the AppleTalk File Server.
     {% endif %}
