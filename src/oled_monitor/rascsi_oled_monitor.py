@@ -287,7 +287,7 @@ def formatted_output():
     else:
         output.append("No image mounted!")
 
-    output.append(f"{host}:{ip}")
+    output.append(f"IP {ip} ~ {host}")
     return output
 
 def start_splash():
