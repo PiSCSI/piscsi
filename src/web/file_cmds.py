@@ -224,13 +224,15 @@ def download_to_dir(url, save_dir):
     logging.info(f"Making a request to download {url}")
 
     try:
-        req = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        with requests.get(url, stream=True, headers={"User-Agent": "Mozilla/5.0"}) as req:
+            req.raise_for_status()
+            with open(f"{save_dir}/{file_name}", "wb") as download:
+                for chunk in req.iter_content(chunk_size=8192):
+                    download.write(chunk)
     except requests.exceptions.RequestException as e:
         logging.warning(f"Request failed: {str(e)}")
         return {"status": False, "msg": str(e)}
 
-    with open(f"{save_dir}/{file_name}", "wb") as download:
-        download.write(req.content)
 
     logging.info(f"Response encoding: {req.encoding}")
     logging.info(f"Response content-type: {req.headers['content-type']}")
