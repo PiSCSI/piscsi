@@ -172,7 +172,7 @@ function installRaScsiScreen() {
     else
         sudo raspi-config nonint do_i2c 0 </dev/null
         echo "Modified the Raspberry Pi boot configuration to enable I2C."
-	echo "A reboot will be required for the change to take effect."
+        echo "A reboot will be required for the change to take effect."
         REBOOT=1
     fi
 
