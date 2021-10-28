@@ -83,8 +83,6 @@ def list_images():
                 zip_members = zip.namelist()
                 # Strip out directories from the list
                 zip_members = [x for x in zip_members if not x.endswith("/")]
-                # Reduce members to file names only (strip out full path)
-                zip_members = [PurePath(x).name for x in zip_members]
             else:
                 logging.warning(f"{zip_path} is an invalid zip file")
                 zip_members = False
@@ -161,6 +159,7 @@ def unzip_file(file_name, member=False):
     Returns dict with (boolean) status and (list of str) msg
     """
     from subprocess import run
+    from re import escape
     server_info = get_server_info()
 
     if member == False:
@@ -171,7 +170,7 @@ def unzip_file(file_name, member=False):
     else:
         unzip_proc = run(
             ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
-                f"{server_info['image_dir']}/{file_name}", member], capture_output=True
+                f"{server_info['image_dir']}/{file_name}", escape(member)], capture_output=True
             )
     if unzip_proc.returncode != 0:
         stderr = unzip_proc.stderr.decode("utf-8") 
