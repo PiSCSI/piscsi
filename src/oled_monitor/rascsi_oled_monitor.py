@@ -185,20 +185,18 @@ def device_list():
 
     return device_list
 
-def rascsi_version():
-    """
-    Sends a VERSION_INFO command to the server.
-    Returns a str containing the version info.
-    """
-    command = proto.PbCommand()
-    command.operation = proto.PbOperation.VERSION_INFO
-    data = send_pb_command(command.SerializeToString())
-    result = proto.PbResult()
-    result.ParseFromString(data)
-    version = str(result.version_info.major_version) + "." +\
-              str(result.version_info.minor_version) + "." +\
-              str(result.version_info.patch_version)
-    return version
+def get_ip_and_host():
+    host = socket.gethostname()
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # mock ip address; doesn't have to be reachable
+        s.connect(('10.255.255.255', 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip, host
 
 def send_pb_command(payload):
     """
@@ -289,7 +287,7 @@ def formatted_output():
     else:
         output.append("No image mounted!")
 
-    output.append(f"~~RaSCSI v{version}~~")
+    output.append(f"IP {ip} - {host}")
     return output
 
 def start_splash():
@@ -310,7 +308,7 @@ cwd = getcwd()
 
 start_splash()
 
-version = rascsi_version()
+ip, host = get_ip_and_host()
 
 with GracefulInterruptHandler() as h:
     while True:
