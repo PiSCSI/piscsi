@@ -200,6 +200,18 @@ def rascsi_version():
               str(result.version_info.patch_version)
     return version
 
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # mock ip address; doesn't have to be reachable
+        s.connect(('10.255.255.255', 1))
+        ip = s.getsockname()[0]
+    except Exception:
+        ip = '127.0.0.1'
+    finally:
+        s.close()
+    return ip
+
 def send_pb_command(payload):
     """
     Takes a str containing a serialized protobuf as argument.
@@ -290,6 +302,7 @@ def formatted_output():
         output.append("No image mounted!")
 
     output.append(f"~~RaSCSI v{version}~~")
+    output.append(f"IP: {ip}")
     return output
 
 def start_splash():
@@ -311,6 +324,7 @@ cwd = getcwd()
 start_splash()
 
 version = rascsi_version()
+ip = get_ip()
 
 with GracefulInterruptHandler() as h:
     while True:
