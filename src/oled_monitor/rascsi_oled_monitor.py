@@ -301,8 +301,8 @@ def formatted_output():
     else:
         output.append("No image mounted!")
 
-    output.append(f"~~RaSCSI v{version}~~")
     output.append(f"IP: {ip}")
+    output.append(f"~~RaSCSI v{version}~~")
     return output
 
 def start_splash():
