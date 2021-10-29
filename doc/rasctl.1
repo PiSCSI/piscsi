@@ -150,11 +150,11 @@ Show a listing of all of the SCSI devices and their current status.
 
 
 Example output:
-   +----+----+------+-------------------------------------
-   | ID | UN | TYPE | DEVICE STATUS
-   +----+----+------+-------------------------------------
-   |  0 |  1 | SCHD | /home/pi/harddisk.hda
-   +----+----+------+-------------------------------------
+   +----+-----+------+-------------------------------------
+   | ID | LUN | TYPE | IMAGE FILE
+   +----+-----+------+-------------------------------------
+   |  0 |   1 | SCHD | /home/pi/harddisk.hda
+   +----+-----+------+-------------------------------------
 
 Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
    rasctl -i 0 -f HDIIMAGE0.HDS
