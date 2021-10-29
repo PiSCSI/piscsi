@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
 			case 'i': {
 				int id;
 				if (!GetAsInt(optarg, id)) {
-					cerr << "Error: Invalid device ID " << optarg;
+					cerr << "Error: Invalid device ID " << optarg << endl;
 					exit(EXIT_FAILURE);
 				}
 				device->set_id(id);
@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 			case 'u': {
 				int unit;
 				if (!GetAsInt(optarg, unit)) {
-					cerr << "Error: Invalid unit " << optarg;
+					cerr << "Error: Invalid unit " << optarg << endl;
 					exit(EXIT_FAILURE);
 				}
 				device->set_unit(unit);
