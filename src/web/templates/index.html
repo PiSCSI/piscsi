@@ -36,9 +36,9 @@
         <tbody>
         <tr>
             <td><b>ID</b></td>
-	    {% if luns %}
+        {% if luns %}
             <td><b>LUN</b></td>
-	    {% endif %}
+        {% endif %}
             <td><b>Type</b></td>
             <td><b>Status</b></td>
             <td><b>File</b></td>
@@ -49,19 +49,19 @@
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{device.id}}</td>
-	    {% if luns %}
+        {% if luns %}
             <td style="text-align:center">{{device.un}}</td>
-	    {% endif %}
+        {% endif %}
             <td style="text-align:center">{{device.device_type}}</td>
             <td style="text-align:center">{{device.status}}</td>
             <td style="text-align:left">{{device.file}}</td>
-	    {% if device.vendor == "RaSCSI" %}
+        {% if device.vendor == "RaSCSI" %}
             <td style="text-align:center">{{device.product}}</td>
-	    {% else %}
+        {% else %}
             <td style="text-align:center">{{device.vendor}} {{device.product}}</td>
-	    {% endif %}
+        {% endif %}
             <td style="text-align:left">
-		{% if device.device_type != "-" %}
+        {% if device.device_type != "-" %}
                 {% if device.device_type in removable_device_types and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
@@ -89,9 +89,9 @@
             </td>
             {% else %}
             <td class="inactive">{{device.id}}</td>
-	    {% if luns %}
+        {% if luns %}
             <td class="inactive"></td>
-	    {% endif %}
+        {% endif %}
             <td class="inactive"></td>
             <td class="inactive">Reserved ID</td>
             <td class="inactive"></td>
@@ -138,75 +138,75 @@
                         <li>{{key}}: {{file['prop'][key]}}</li>
                     {% endfor %}
                     </ul>
-	        </details>
+            </details>
             </td>
-	    {% elif file["zip"] %}
+        {% elif file["zip"] %}
             <td>
                 <details>
                     <summary>{{file["name"]}}</summary>
                     <ul>
                     {% for member in file["zip"] %}
-		    <li>
-			<label for="member">{{member}}</label>
-			<form action="/files/unzip" method="post">
+            <li>
+            <label for="member">{{member}}</label>
+            <form action="/files/unzip" method="post">
                         <input type="hidden" name="image" value="{{file['name']}}">
-			<input type="hidden" name="member" value="{{member}}">
+            <input type="hidden" name="member" value="{{member}}">
                         <input type="submit" value="Unzip" />
                         </form>
                     </li>
                     {% endfor %}
                     </ul>
-	        </details>
+            </details>
             </td>
-	    {% else %}
-	    <td>{{file["name"]}}</td>
-	    {% endif %}
+        {% else %}
+        <td>{{file["name"]}}</td>
+        {% endif %}
             <td style="text-align:center">
                 <form action="/files/download" method="post">
                     <input type="hidden" name="image" value="{{file["name"]}}">
                     <input type="submit" value="{{file["size_mb"]}} MB &#8595;" />
                 </form>
             </td>
-	    <td>
-		{% if file["name"] in attached_images %}
-		<center>Attached!</center>
-		{% else %}
+        <td>
+        {% if file["name"] in attached_images %}
+        <center>Attached!</center>
+        {% else %}
                     {% if file["name"].lower().endswith(archive_file_suffix) %}
                     <form action="/files/unzip" method="post">
                         <input type="hidden" name="image" value="{{file["name"]}}">
                         <input type="submit" value="Unzip All" />
                     </form>
-		    {% else %}
+            {% else %}
                     <form action="/scsi/attach" method="post">
                         <input type="hidden" name="file_name" value="{{file["name"]}}">
                         <input type="hidden" name="file_size" value="{{file["size"]}}">
                         <label for="id">ID</label>
                         <select name="scsi_id">
                         {% for id in scsi_ids %}
-			    <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
+                <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
                         </select>
-		        <label for="un">LUN</label>
-		        <input type="number" name="un" size="2" value="0" min="0" max="31" />
-		        {% if file["detected_type"] != "UNDEFINED" %}
-		            <input type="hidden" name="type" value="{{file["detected_type"]}}">
-			    {{file["detected_type"]}}
-	                {% else %}
-		            <select name="type">
+                <label for="un">LUN</label>
+                <input type="number" name="un" size="2" value="0" min="0" max="31" />
+                {% if file["detected_type"] != "UNDEFINED" %}
+                    <input type="hidden" name="type" value="{{file["detected_type"]}}">
+                {{file["detected_type"]}}
+                    {% else %}
+                    <select name="type">
                             <option value="" selected>Type</option>
-			{% for d in device_types %}
-			    <option value="{{d}}">{{d}}</option>
-			{% endfor %}
-			{% endif %}
+            {% for d in device_types %}
+                <option value="{{d}}">{{d}}</option>
+            {% endfor %}
+            {% endif %}
                     </select>
                     <input type="submit" value="Attach" />
-		    {% endif %}
+            {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
                     <input type="hidden" name="image" value="{{file['name']}}">
                     <input type="submit" value="Delete" />
                 </form>
-		{% endif %}
+        {% endif %}
             </td>
         </tr>
         {% endfor %}
@@ -231,16 +231,16 @@
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
                 <form action="/daynaport/attach" method="post">
-		    <label for="if">Interface:</label>
-		    <select name = "if">
-			{% for if in netinfo["ifs"] %}
-			<option value="{{if}}">{{if}}</option>
-			{% endfor %}
+            <label for="if">Interface:</label>
+            <select name = "if">
+            {% for if in netinfo["ifs"] %}
+            <option value="{{if}}">{{if}}</option>
+            {% endfor %}
                     </select>
-		    <label for="ip">Static IP (optional):</label>
-		    <input type="text" name="ip" size="15" placeholder="10.10.20.1" minlength="7" maxlength="15" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" />
-		    <input type="number" name="mask" size="2" placeholder="24" min="16" max="30" />
-		    <label for="scsi_id">SCSI ID:</label>
+            <label for="ip">Static IP (optional):</label>
+            <input type="text" name="ip" size="15" placeholder="10.10.20.1" minlength="7" maxlength="15" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$" />
+            <input type="number" name="mask" size="2" placeholder="24" min="16" max="30" />
+            <label for="scsi_id">SCSI ID:</label>
                     <select name="scsi_id">
                         {% for id in scsi_ids %}
                         <option value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
@@ -433,7 +433,7 @@
                     <input type="submit" value="Show Logs" />
                 </form>
             </td>
-	</tr>
+    </tr>
     </table>
 
     <hr/>
@@ -449,15 +449,15 @@
     <table style="border: none">
         <tr style="border: none">
             <td style="border: none; vertical-align:top;">
-		<form action="/logs/level" method="post">
-		    <label for="level">Log Level:</label>
-		    <select name="level">
-			{% for level in log_levels %}
-			<option value="{{level}}"{% if level == current_log_level %} selected{% endif %}>{{level}}</option>
-			{% endfor %}
+        <form action="/logs/level" method="post">
+            <label for="level">Log Level:</label>
+            <select name="level">
+            {% for level in log_levels %}
+            <option value="{{level}}"{% if level == current_log_level %} selected{% endif %}>{{level}}</option>
+            {% endfor %}
                     </select>
-		    <input type="submit" value="Set Log Level" />
-		</form>
+            <input type="submit" value="Set Log Level" />
+        </form>
             </td>
         </tr>
     </table>
