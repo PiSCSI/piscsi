@@ -3,9 +3,9 @@
 //  SCSI Target Emulator RaSCSI (*^..^*)
 //  for Raspberry Pi
 //
-//  Powered by XM6 TypeG Technorogy.
+//  Powered by XM6 TypeG Technology.
 //  Copyright (C) 2016-2017 GIMONS
-//	[ RaSCSI イーサーネット SCSI制御部 ]
+//	[ RaSCSI Ethernet SCSI Control Department ]
 //
 //  Based on
 //    Neptune-X board driver for  Human-68k(ESP-X)   version 0.03
@@ -47,24 +47,24 @@ typedef struct
 #define MFP_IERB	0xe88009
 #define MFP_IMRB	0xe88015
 
-// asmsub.s 内のサブルーチン
+// Subroutine in asmsub.s
 extern void DI();
 extern void EI();
 
-volatile short* iocsexec = (short*)0xa0e;	// IOCS実行中ワーク
-struct trans_counter trans_counter;			// 送受信カウンタ
-unsigned char rx_buff[2048];				// 受信バッファ
-int imr;									// 割り込み許可フラグ
-int scsistop;								// SCSI停止中フラグ
-int intr_type;								// 割り込み種別(0:V-DISP 1:TimerA)
-int poll_interval;							// ポーリング間隔(設定)
-int poll_current;							// ポーリング間隔(現在)
-int idle;									// アイドルカウンタ
+volatile short* iocsexec = (short*)0xa0e;	// Work when executin IOCS
+struct trans_counter trans_counter;			// Transfer counter
+unsigned char rx_buff[2048];				// Receive buffer
+int imr;									// Interrupt permission flag
+int scsistop;								// SCSI stopped flag
+int intr_type;								// Interrupt type (0:V-DISP 1:TimerA)
+int poll_interval;							// Polling interval (configure)
+int poll_current;							// Polling interval (current)
+int idle;									// Idle counter
 
 #define POLLING_SLEEP	255	// 4-5s
 
 /************************************************
- *   MACアドレス取得命令発行                    *
+ *   Execute command to get MAC address         *
  ************************************************/
 int SCSI_GETMACADDR(unsigned char *mac)
 {
@@ -105,7 +105,7 @@ int SCSI_GETMACADDR(unsigned char *mac)
 }
 
 /************************************************
- *   MACアドレス設定命令発行                    *
+ *   Execute command to configure MAC address   *
  ************************************************/
 int SCSI_SETMACADDR(const unsigned char *mac)
 {
@@ -144,7 +144,7 @@ int SCSI_SETMACADDR(const unsigned char *mac)
 }
 
 /************************************************
- *   パケット受信サイズ取得命令発行             *
+ *   Execute command to get received packet size*
  ************************************************/
 int SCSI_GETPACKETLEN(int *len)
 {
@@ -188,7 +188,7 @@ int SCSI_GETPACKETLEN(int *len)
 }
 
 /************************************************
- *   パケット受信命令発行                       *
+ *   Execute receive packet command             *
  ************************************************/
 int SCSI_GETPACKETBUF(unsigned char *buf, int len)
 {
@@ -229,7 +229,7 @@ int SCSI_GETPACKETBUF(unsigned char *buf, int len)
 }
 
 /************************************************
- *   パケット送信命令発行                       *
+ *   Execute packet send command                *
  ************************************************/
 int SCSI_SENDPACKET(const unsigned char *buf, int len)
 {
@@ -267,7 +267,7 @@ int SCSI_SENDPACKET(const unsigned char *buf, int len)
 }
 
 /************************************************
- *   MACアドレス取得                            *
+ *   Get MAC address                            *
  ************************************************/
 int GetMacAddr(struct eaddr* buf)
 {
@@ -279,7 +279,7 @@ int GetMacAddr(struct eaddr* buf)
 }
 
 /************************************************
- *   MACアドレス設定                            *
+ *   Set MAC address                            *
  ************************************************/
 int SetMacAddr(const struct eaddr* data)
 {
@@ -291,7 +291,7 @@ int SetMacAddr(const struct eaddr* data)
 }
 
 /************************************************
- *  RaSCSI検索                                  *
+ *  Search RaSCSI                               *
  ************************************************/
 int SearchRaSCSI()
 {
@@ -299,7 +299,7 @@ int SearchRaSCSI()
 	INQUIRYOPT_T inq;
 
 	for (i = 0; i <= 7; i++) {
-		// BRIDGEデバイス検索
+		// Search for BRIDGE device
 		if (S_INQUIRY(sizeof(INQUIRY_T) , i, (struct INQUIRY*)&inq) < 0) {
 			continue;
 		}
@@ -308,7 +308,7 @@ int SearchRaSCSI()
 			continue;
 		}
 
-		// TAP初期化状態を取得
+		// Get TAP initialization status
 		if (S_INQUIRY(sizeof(INQUIRYOPT_T) , i, (struct INQUIRY*)&inq) < 0) {
 			continue;
 		}
@@ -317,7 +317,7 @@ int SearchRaSCSI()
 			continue;
 		}
 
-		// SCSI ID確定
+		// Configure SCSI ID
 		scsiid = i;
 		return 0;
 	}
@@ -326,7 +326,7 @@ int SearchRaSCSI()
 }
 
 /************************************************
- *  RaSCSI初期化 関数                           *
+ *  Init RaSCSI method                          *
  ************************************************/
 int InitRaSCSI(void)
 {
@@ -343,7 +343,7 @@ int InitRaSCSI(void)
 }
 
 /************************************************
- *  RaSCSI 割り込み処理 関数(ポーリング)        *
+ *  RaSCSI interrupt handler function (polling) *
  ************************************************/
 void interrupt IntProcess(void)
 {
@@ -353,78 +353,78 @@ void interrupt IntProcess(void)
 	int_handler func;
 	int i;
 
-	// V-DISP GPIP割り込みはアイドルカウンタで制御
+	// V-DISP GPIP interrupt idle count control
 	if (intr_type == 0) {
-		// アイドル加算
+		// Increment idle
 		idle++;
 		
-		// 次回の処理予定に到達していないならスキップ
+		// Skip if not yet next scheduled processing
 		if (idle < poll_current) {
 			return;
 		}
 
-		// アイドルカウンタをクリア
+		// Clear idle counter
 		idle = 0;
 	}
 	
-	// 割り込み開始
+	// Start interrupt
 
-	// 割り込み許可の時だけ
+	// Only when interrupt is permitted
 	if (imr == 0) {
 		return;
 	}
 
-	// IOCS実行中ならばスキップ
+	// Skip if executing IOCS
 	if (*iocsexec != -1) {
 		return;
 	}
 
-	// 受信処理中は割り込み禁止
+	// Interrupt forbidden if receiving data
 	DI ();
 
-	// バスフリーの時だけ
+	// Only in bus free phase
 	phase = S_PHASE();
 	if (phase != 0) {
-		// 終了
+		// Exit
 		goto ei_exit;
 	}	
 
-	// 受信処理
+	// Receive data
 	if (SCSI_GETPACKETLEN(&len) == 0) {
-		// RaSCSI停止中
+		// RaSCSI is stopped
 		scsistop = 1;
 
-		// ポーリング間隔の再設定(寝る)
+		// Reset polling interval (sleep)
 		UpdateIntProcess(POLLING_SLEEP);
 
-		// 終了
+		// Exit
 		goto ei_exit;
 	}
 	
-	// RaSCSIは動作中
+	// RaSCSI is stopped
 	if (scsistop) {
 		scsistop = 0;
 
-		// ポーリング間隔の再設定(急ぐ)
+		// Reset polling interval (hurry)
 		UpdateIntProcess(poll_interval);
 	}
 	
-	// パケットは到着してなかった
+	// Packets did not arrive
 	if (len == 0) {
-		// 終了
+		// Exit
 		goto ei_exit;
 	}
 
-	// 受信バッファメモリへパケット転送
+	// Tranfer packets to receive buffer memory
 	if (SCSI_GETPACKETBUF(rx_buff, len) == 0) {
-		// 失敗
+		// Fail
 		goto ei_exit;
 	}
 
-	// 割り込み許可
+	// Interrupt permitted
 	EI ();
 	
-	// パケットタイプでデータ分別
+	// Split data by packet type
 	type = rx_buff[12] * 256 + rx_buff[13];
 	i = 0;
 	while ((func = SearchList2(type, i))) {
@@ -435,12 +435,12 @@ void interrupt IntProcess(void)
 	return;
 
 ei_exit:
-	// 割り込み許可
+	// Interrupt permitted
 	EI ();
 }
 
 /************************************************
- *  RaSCSI パケット送信 関数 (ne.sから)         *
+ *  RaSCSI Send Packets Function (from ne.s)    *
  ************************************************/
 int SendPacket(int len, const unsigned char* data)
 {
@@ -449,35 +449,35 @@ int SendPacket(int len, const unsigned char* data)
 	}
 	
 	if (len > 1514)	{		// 6 + 6 + 2 + 1500
-		return -1;			// エラー
+		return -1;			// Error
 	}
 	
-	// RaSCSI停止中のようならエラー
+	// If RaSCSI seems to be stopped, throw an error
 	if (scsistop) {
 		return -1;
 	}
 
-	// 送信処理中は割り込み禁止
+	// Interrupt is not permitted during sending
 	DI ();
 
-	// 送信処理と送信フラグアップ
+	// Send processing and raise send flag
 	if (SCSI_SENDPACKET(data, len) == 0) {
-		// 割り込み許可
+		// Interrupt permitted
 		EI ();
 		return -1;
 	}
 
-	// 割り込み許可
+	// Interrupt permitted
 	EI ();
 
-	// 送信依頼済み
+	// Finished requesting send
 	trans_counter.send_byte += len;
 	
 	return 0;
 }
 
 /************************************************
- *  RaSCSI 割り込み許可、不許可設定 関数        *
+ *  RaSCSI Interrupt Permission Setting Function*
  ************************************************/
 int SetPacketReception(int i)
 {
@@ -486,19 +486,19 @@ int SetPacketReception(int i)
 }
 
 /************************************************
- * RaSCSI 割り込み処理登録                      *
+ * RaSCSI Interrupt Processing Registration     *
  ************************************************/
 void RegisterIntProcess(int n)
 {
 	volatile unsigned char *p;
 
-	// ポーリング間隔(現在)の更新とアイドルカウンタクリア
+	// Update polling interval (current) and clear idle counter
 	poll_current = n;
 	idle = 0;
 	
 	if (intr_type == 0) {
-		// V-DISP GPIP割り込みベクタを書き換えて
-		// 割り込みを有効にする
+		// Overwrite V-DISP GPIP interrupt vectors
+		// and enable interrupt
 		B_INTVCS(0x46, (int)IntProcess);
 		p = (unsigned char *)MFP_AEB;
 		*p = *p | 0x10;
@@ -507,28 +507,28 @@ void RegisterIntProcess(int n)
 		p = (unsigned char *)MFP_IMRB;
 		*p = *p | 0x40;
 	} else if (intr_type == 1) {
-		// TimerAはカウントモードを設定
+		// Set TimerA counter mode
 		VDISPST(NULL, 0, 0);
 		VDISPST(IntProcess, 0, poll_current);
 	}
 }
 
 /************************************************
- * RaSCSI 割り込み処理変更                      *
+ * RaSCSI Interrupt Processing Update           *
  ************************************************/
 void UpdateIntProcess(int n)
 {
-	// ポーリング間隔(現在)と同じなら更新しない
+	// Do not update if polling interval (current) is the same
 	if (n == poll_current) {
 		return;
 	}
 	
-	// ポーリング間隔(現在)の更新とアイドルカウンタクリア
+	// Update polling interval (current) and clear idle counter
 	poll_current = n;
 	idle = 0;
 	
 	if (intr_type == 1) {
-		// TimerAは再登録必要
+		// TimerA requires re-registering
 		VDISPST(NULL, 0, 0);
 		VDISPST(IntProcess, 0, poll_current);
 	}

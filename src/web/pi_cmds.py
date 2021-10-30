@@ -1,24 +1,26 @@
 import subprocess
 
 
-def rascsi_service(action):
+def systemd_service(service, action):
     # start/stop/restart
     return (
-        subprocess.run(["sudo", "/bin/systemctl", action, "rascsi.service"]).returncode
+        subprocess.run(["sudo", "/bin/systemctl", action, service]).returncode
         == 0
     )
 
 
 def reboot_pi():
-    return subprocess.run(["sudo", "reboot"]).returncode == 0
+    subprocess.Popen(["sudo", "reboot"])
+    return True
 
 
 def shutdown_pi():
-    return subprocess.run(["sudo", "shutdown", "-h", "now"]).returncode == 0
+    subprocess.Popen(["sudo", "shutdown", "-h", "now"])
+    return True
 
 
-def running_version():
-    ra_web_version = (
+def running_env():
+    ra_git_version = (
         subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True)
         .stdout.decode("utf-8")
         .strip()
@@ -28,4 +30,29 @@ def running_version():
         .stdout.decode("utf-8")
         .strip()
     )
-    return ra_web_version + " " + pi_version
+    return {"git": ra_git_version, "env": pi_version}
+
+
+def running_netatalk():
+    """
+    Returns int afpd, which is the number of afpd processes currently running
+    """
+    process = subprocess.run(["ps", "aux"], capture_output=True)
+    output = process.stdout.decode("utf-8")
+    from re import findall
+    afpd = findall("afpd", output)
+    return len(afpd)
+
+
+def is_bridge_setup():
+    process = subprocess.run(["brctl", "show"], capture_output=True)
+    output = process.stdout.decode("utf-8")
+    if "rascsi_bridge" in output:
+        return True
+    return False
+
+
+def disk_space():
+    from shutil import disk_usage
+    total, used, free = disk_usage(__file__)
+    return {"total": total, "used": used, "free": free}

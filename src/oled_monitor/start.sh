@@ -2,7 +2,7 @@
 set -e
 # set -x # Uncomment to Debug
 
-cd $(dirname $0)
+cd "$(dirname "$0")"
 # verify packages installed
 ERROR=0
 if ! command -v dpkg -l i2c-tools &> /dev/null ; then
@@ -13,6 +13,11 @@ fi
 if ! command -v python3 &> /dev/null ; then
     echo "python3 could not be found"
     echo "Run 'sudo apt install python3' to fix."
+    ERROR=1
+fi
+if ! python3 -m venv --help &> /dev/null ; then
+    echo "venv could not be found"
+    echo "Run 'sudo apt install python3-venv' to fix."
     ERROR=1
 fi
 # Dep to build Pillow
@@ -31,16 +36,21 @@ if ! dpkg -l libpng-dev &> /dev/null; then
     echo "Run 'sudo apt install libpng-dev' to fix."
     ERROR=1
 fi
-# Dep to build Pollow
-if ! python3 -m venv --help &> /dev/null ; then
-    echo "venv could not be found"
-    echo "Run 'sudo apt install python3-venv' to fix."
+if ! dpkg -l libopenjp2-7-dev &> /dev/null; then
+    echo "libopenjp2-7-dev could not be found"
+    echo "Run 'sudo apt install libopenjp2-7-dev' to fix."
     ERROR=1
 fi
 if [ $ERROR = 1 ] ; then
   echo
   echo "Fix errors and re-run ./start.sh"
   exit 1
+fi
+
+if pgrep -f "python3 rascsi_oled_monitor.py" &> /dev/null; then
+    echo "Detected active rascsi_oled_monitor.py process"
+    echo "Terminating before launching a new one."
+    sudo pkill -f "python3 rascsi_oled_monitor.py"
 fi
 
 if ! i2cdetect -y 1 &> /dev/null ; then
@@ -53,6 +63,7 @@ if ! test -e venv; then
   echo "Activating venv"
   source venv/bin/activate
   echo "Installing requirements.txt"
+  pip install wheel
   pip install -r requirements.txt
   git rev-parse HEAD > current
 fi
@@ -65,12 +76,34 @@ if ! test -e current; then
 else
   if [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
       echo "New version detected, updating requirements.txt"
-      echo " This may take some time..."
-      pip install wheel
       pip install -r requirements.txt
       git rev-parse HEAD > current
   fi
 fi
 
-echo "Starting OLED Screen..."
-python3 rascsi_oled_monitor.py
+# parse arguments
+while [ "$1" != "" ]; do
+    PARAM=$(echo "$1" | awk -F= '{print $1}')
+    VALUE=$(echo "$1" | awk -F= '{print $2}')
+    case $PARAM in
+	-r | --rotation)
+	    ROTATION=$VALUE
+	    ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            exit 1
+            ;;
+    esac
+    case $VALUE in
+        0 | 180 )
+            ;;
+        *)
+            echo "ERROR: invalid option \"$VALUE\""
+	    exit 1
+            ;;
+    esac
+    shift
+done
+
+echo "Starting OLED Screen with $ROTATION degrees rotation..."
+python3 rascsi_oled_monitor.py "${ROTATION}"

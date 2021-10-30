@@ -1,0 +1,17 @@
+[Unit]
+Description=Monitor RaSCSI service
+After=network.target rascsi.service
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/home/pi/RASCSI/src/oled_monitor/start.sh
+ExecStop=/bin/echo "Shutting down the OLED Monitor gracefully..."
+ExecStop=/bin/pkill --signal 2 -f "python3 rascsi_oled_monitor.py"
+ExecStop=/bin/sleep 2
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=RASCSIMON
+
+[Install]
+WantedBy=multi-user.target

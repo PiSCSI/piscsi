@@ -9,8 +9,45 @@
 //
 //---------------------------------------------------------------------------
 
-#if !defined(scsi_h)
-#define scsi_h
+#pragma once
+
+//===========================================================================
+//
+//	Sense Keys and Additional Sense Codes
+//  (See https://www.t10.org/lists/1spc-lst.htm)
+//
+//===========================================================================
+class ERROR_CODES
+{
+public:
+	enum sense_key : int {
+		NO_SENSE = 0x00,
+		RECOVERED_ERROR = 0x01,
+		NOT_READY = 0x02,
+		MEDIUM_ERROR = 0x03,
+		HARDWARE_ERROR = 0x04,
+		ILLEGAL_REQUEST = 0x05,
+		UNIT_ATTENTION = 0x06,
+		DATA_PROTECT = 0x07,
+		BLANK_CHECK = 0x08,
+		VENDOR_SPECIFIC = 0x09,
+		COPY_ABORTED = 0x0a,
+		ABORTED_COMMAND = 0x0b,
+		VOLUME_OVERFLOW = 0x0d,
+		MISCOMPARE = 0x0e,
+		COMPLETED = 0x0f
+	};
+
+	enum asc : int {
+		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
+		INVALID_COMMAND_OPERATION_CODE = 0x20,
+		LBA_OUT_OF_RANGE = 0x21,
+		INVALID_FIELD_IN_CDB = 0x24,
+		INVALID_LUN = 0x25,
+		WRITE_PROTECTED = 0x27,
+		MEDIUM_NOT_PRESENT = 0x3a
+	};
+};
 
 //===========================================================================
 //
@@ -27,40 +64,37 @@ public:
 		MONITOR = 2,
 	};
 
-	//	Phase definition
-	enum phase_t {
-		busfree,						// バスフリーフェーズ
-		arbitration,					// アービトレーションフェーズ
-		selection,						// セレクションフェーズ
-		reselection,					// リセレクションフェーズ
-		command,						// コマンドフェーズ
-		execute,						// 実行フェーズ
-		datain,							// データイン
-		dataout,						// データアウト
-		status,							// ステータスフェーズ
-		msgin,							// メッセージフェーズ
-		msgout,							// メッセージアウトフェーズ
-		reserved						// 未使用/リザーブ
+	//	Phase definitions
+	enum phase_t : BYTE {
+		busfree,
+		arbitration,
+		selection,
+		reselection,
+		command,
+		execute,						// Execute phase is an extension of the command phase
+		datain,
+		dataout,
+		status,
+		msgin,
+		msgout,
+		reserved						// Unused
 	};
 
-    // Basic Functions
-	// 基本ファンクション
-	virtual BOOL FASTCALL Init(mode_e mode) = 0;
-										// 初期化
-	virtual void FASTCALL Reset() = 0;
-										// リセット
-	virtual void FASTCALL Cleanup() = 0;
-										// クリーンアップ
-	phase_t FASTCALL GetPhase();
-										// フェーズ取得
+	BUS() { };
+	virtual ~BUS() { };
 
-	static phase_t FASTCALL GetPhase(DWORD mci)
+	// Basic Functions
+	virtual BOOL Init(mode_e mode) = 0;
+	virtual void Reset() = 0;
+	virtual void Cleanup() = 0;
+	phase_t GetPhase();
+
+	static phase_t GetPhase(DWORD mci)
 	{
 		return phase_table[mci];
 	}
-										// フェーズ取得
 
-	static const char* FASTCALL GetPhaseStrRaw(phase_t current_phase);
+	static const char* GetPhaseStrRaw(phase_t current_phase);
 										// Get the string phase name, based upon the raw data
 
 	// Extract as specific pin field from a raw data capture
@@ -69,70 +103,52 @@ public:
 		return ((raw_data >> pin_num) & 1);
 	}
 
-	virtual BOOL FASTCALL GetBSY() = 0;
-										// BSYシグナル取得
-	virtual void FASTCALL SetBSY(BOOL ast) = 0;
-										// BSYシグナル設定
+	virtual bool GetBSY() = 0;
+	virtual void SetBSY(bool ast) = 0;
 
-	virtual BOOL FASTCALL GetSEL() = 0;
-										// SELシグナル取得
-	virtual void FASTCALL SetSEL(BOOL ast) = 0;
-										// SELシグナル設定
+	virtual BOOL GetSEL() = 0;
+	virtual void SetSEL(BOOL ast) = 0;
 
-	virtual BOOL FASTCALL GetATN() = 0;
-										// ATNシグナル取得
-	virtual void FASTCALL SetATN(BOOL ast) = 0;
-										// ATNシグナル設定
+	virtual BOOL GetATN() = 0;
+	virtual void SetATN(BOOL ast) = 0;
 
-	virtual BOOL FASTCALL GetACK() = 0;
-										// ACKシグナル取得
-	virtual void FASTCALL SetACK(BOOL ast) = 0;
-										// ACKシグナル設定
+	virtual BOOL GetACK() = 0;
+	virtual void SetACK(BOOL ast) = 0;
 
-	virtual BOOL FASTCALL GetRST() = 0;
-										// RSTシグナル取得
-	virtual void FASTCALL SetRST(BOOL ast) = 0;
-										// RSTシグナル設定
+	virtual BOOL GetRST() = 0;
+	virtual void SetRST(BOOL ast) = 0;
 
-	virtual BOOL FASTCALL GetMSG() = 0;
-										// MSGシグナル取得
-	virtual void FASTCALL SetMSG(BOOL ast) = 0;
-										// MSGシグナル設定
+	virtual BOOL GetMSG() = 0;
+	virtual void SetMSG(BOOL ast) = 0;
 
-	virtual BOOL FASTCALL GetCD() = 0;
-										// CDシグナル取得
-	virtual void FASTCALL SetCD(BOOL ast) = 0;
-										// CDシグナル設定
+	virtual BOOL GetCD() = 0;
+	virtual void SetCD(BOOL ast) = 0;
 
-	virtual BOOL FASTCALL GetIO() = 0;
-										// IOシグナル取得
-	virtual void FASTCALL SetIO(BOOL ast) = 0;
-										// IOシグナル設定
+	virtual BOOL GetIO() = 0;
+	virtual void SetIO(BOOL ast) = 0;
 
-	virtual BOOL FASTCALL GetREQ() = 0;
-										// REQシグナル取得
-	virtual void FASTCALL SetREQ(BOOL ast) = 0;
-										// REQシグナル設定
+	virtual BOOL GetREQ() = 0;
+	virtual void SetREQ(BOOL ast) = 0;
 
-	virtual BYTE FASTCALL GetDAT() = 0;
-										// データシグナル取得
-	virtual void FASTCALL SetDAT(BYTE dat) = 0;
-										// データシグナル設定
-	virtual BOOL FASTCALL GetDP() = 0;
-										// パリティシグナル取得
+	virtual BYTE GetDAT() = 0;
+	virtual void SetDAT(BYTE dat) = 0;
+	virtual BOOL GetDP() = 0;			// Get parity signal
 
-	virtual int FASTCALL CommandHandShake(BYTE *buf) = 0;
-										// コマンド受信ハンドシェイク
-	virtual int FASTCALL ReceiveHandShake(BYTE *buf, int count) = 0;
-										// データ受信ハンドシェイク
-	virtual int FASTCALL SendHandShake(BYTE *buf, int count) = 0;
-										// データ送信ハンドシェイク
+	virtual int CommandHandShake(BYTE *buf) = 0;
+	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
+	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
+
+	virtual BOOL GetSignal(int pin) = 0;
+										// Get SCSI input signal value
+	virtual void SetSignal(int pin, BOOL ast) = 0;
+										// Set SCSI output signal value
+	static const int SEND_NO_DELAY = -1;
+										// Passed into SendHandShake when we don't want to delay
+protected:
+	phase_t m_current_phase = phase_t::reserved;
 
 private:
 	static const phase_t phase_table[8];
-										// フェーズテーブル
 
 	static const char* phase_str_table[];
 };
-
-#endif	// scsi_h

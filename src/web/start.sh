@@ -2,7 +2,7 @@
 set -e
 # set -x # Uncomment to Debug
 
-cd $(dirname $0)
+cd "$(dirname "$0")"
 # verify packages installed
 ERROR=0
 if ! command -v genisoimage &> /dev/null ; then
@@ -37,6 +37,7 @@ if ! test -e venv; then
   echo "Activating venv"
   source venv/bin/activate
   echo "Installing requirements.txt"
+  pip install wheel
   pip install -r requirements.txt
   git rev-parse HEAD > current
 fi

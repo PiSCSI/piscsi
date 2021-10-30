@@ -13,10 +13,11 @@
 //  	[ SCSI device controller ]
 //
 //---------------------------------------------------------------------------
+#include "log.h"
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
-#include "devices/scsi_host_bridge.h"
-#include "rascsi_version.h"
+#include "devices/scsi_daynaport.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -29,19 +30,19 @@
 //	Constructor
 //
 //---------------------------------------------------------------------------
-#ifdef RASCSI
 SCSIDEV::SCSIDEV() : SASIDEV()
-#else
-SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
-#endif
 {
 	// Synchronous transfer work initialization
 	scsi.syncenable = FALSE;
 	scsi.syncperiod = 50;
 	scsi.syncoffset = 0;
-	scsi.atnmsg = FALSE;
+	scsi.atnmsg = false;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
+}
+
+SCSIDEV::~SCSIDEV()
+{
 }
 
 //---------------------------------------------------------------------------
@@ -49,12 +50,10 @@ SCSIDEV::SCSIDEV(Device *dev) : SASIDEV(dev)
 //	Device reset
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Reset()
+void SCSIDEV::Reset()
 {
-	ASSERT(this);
-
 	// Work initialization
-	scsi.atnmsg = FALSE;
+	scsi.atnmsg = false;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
@@ -67,23 +66,19 @@ void FASTCALL SCSIDEV::Reset()
 //	Process
 //
 //---------------------------------------------------------------------------
-BUS::phase_t FASTCALL SCSIDEV::Process()
+BUS::phase_t SCSIDEV::Process()
 {
-	ASSERT(this);
-
 	// Do nothing if not connected
-	if (ctrl.id < 0 || ctrl.bus == NULL) {
+	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
 		return ctrl.phase;
 	}
 
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
 
-	// Reset
+	// Check to see if the reset signal was asserted
 	if (ctrl.bus->GetRST()) {
-		#if defined(DISK_LOG)
-		Log(Log::Normal, "SCSI - RESET信号受信");
-		#endif	// DISK_LOG
+		LOGWARN("RESET signal received!");
 
 		// Reset the controller
 		Reset();
@@ -100,7 +95,7 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 			BusFree();
 			break;
 
-		// Selection phase
+		// Selection
 		case BUS::selection:
 			Selection();
 			break;
@@ -146,42 +141,34 @@ BUS::phase_t FASTCALL SCSIDEV::Process()
 
 //---------------------------------------------------------------------------
 //
-//	Phaes
-//
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-//
 //	Bus free phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::BusFree()
+void SCSIDEV::BusFree()
 {
-	ASSERT(this);
-
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
-
-		#if defined(DISK_LOG)
-		Log(Log::Normal, "SCSI - Bus free phase");
-		#endif	// DISK_LOG
+		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
 
 		// Phase setting
 		ctrl.phase = BUS::busfree;
 
-		// Signal line
+		// Set Signal lines
 		ctrl.bus->SetREQ(FALSE);
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+		ctrl.bus->SetBSY(false);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
 		ctrl.message = 0x00;
 
 		// Initialize ATN message reception status
-		scsi.atnmsg = FALSE;
+		scsi.atnmsg = false;
+
+		ctrl.lun = -1;
+
 		return;
 	}
 
@@ -196,34 +183,28 @@ void FASTCALL SCSIDEV::BusFree()
 //	Selection Phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Selection()
+void SCSIDEV::Selection()
 {
-	DWORD id;
-
-	ASSERT(this);
-
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
 		// invalid if IDs do not match
-		id = 1 << ctrl.id;
+		DWORD id = 1 << ctrl.m_scsi_id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
 			return;
 		}
 
-		// End if there is no valid unit
+		// Return if there is no valid LUN
 		if (!HasUnit()) {
 			return;
 		}
 
-		#if defined(DISK_LOG)
-		Log(Log::Normal,"SCSI - Selection Phase ID=%d (with device)", ctrl.id);
-		#endif	// DISK_LOG
+		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, (int)ctrl.m_scsi_id);
 
 		// Phase setting
 		ctrl.phase = BUS::selection;
 
 		// Raise BSY and respond
-		ctrl.bus->SetBSY(TRUE);
+		ctrl.bus->SetBSY(true);
 		return;
 	}
 
@@ -243,13 +224,9 @@ void FASTCALL SCSIDEV::Selection()
 //	Execution Phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Execute()
+void SCSIDEV::Execute()
 {
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - Execution phase command $%02X", ctrl.cmd[0]);
-	#endif	// DISK_LOG
+	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	// Phase Setting
 	ctrl.phase = BUS::execute;
@@ -257,182 +234,53 @@ void FASTCALL SCSIDEV::Execute()
 	// Initialization for data transfer
 	ctrl.offset = 0;
 	ctrl.blocks = 1;
-	#ifdef RASCSI
 	ctrl.execstart = SysTimer::GetTimerLow();
-	#endif	// RASCSI
 
-	// Process by command
-	switch (ctrl.cmd[0]) {
-		// TEST UNIT READY
-		case 0x00:
-			CmdTestUnitReady();
-			return;
-
-		// REZERO
-		case 0x01:
-			CmdRezero();
-			return;
-
-		// REQUEST SENSE
-		case 0x03:
-			CmdRequestSense();
-			return;
-
-		// FORMAT UNIT
-		case 0x04:
-			CmdFormat();
-			return;
-
-		// REASSIGN BLOCKS
-		case 0x07:
-			CmdReassign();
-			return;
-
-		// READ(6)
-		case 0x08:
-			CmdRead6();
-			return;
-
-		// WRITE(6)
-		case 0x0a:
-			CmdWrite6();
-			return;
-
-		// SEEK(6)
-		case 0x0b:
-			CmdSeek6();
-			return;
-
-		// INQUIRY
-		case 0x12:
-			CmdInquiry();
-			return;
-
-		// MODE SELECT
-		case 0x15:
-			CmdModeSelect();
-			return;
-
-		// RESERVE(6) 
-		case 0x16:
-			CmdReserve6();
-			return;
-		
-		// RESERVE(10)
-		case 0x56:
-			CmdReserve10();
-			return;
-
-		// RELEASE(6)
-		case 0x17:
-			CmdRelease6();
-			return;
-		
-		// RELEASE(10)
-		case 0x57:
-			CmdRelease10();
-			return;
-
-		// MDOE SENSE
-		case 0x1a:
-			CmdModeSense();
-			return;
-
-		// START STOP UNIT
-		case 0x1b:
-			CmdStartStop();
-			return;
-
-		// SEND DIAGNOSTIC
-		case 0x1d:
-			CmdSendDiag();
-			return;
-
-		// PREVENT/ALLOW MEDIUM REMOVAL
-		case 0x1e:
-			CmdRemoval();
-			return;
-
-		// READ CAPACITY
-		case 0x25:
-			CmdReadCapacity();
-			return;
-
-		// READ(10)
-		case 0x28:
-			CmdRead10();
-			return;
-
-		// WRITE(10)
-		case 0x2a:
-			CmdWrite10();
-			return;
-
-		// SEEK(10)
-		case 0x2b:
-			CmdSeek10();
-			return;
-
-		// WRITE and VERIFY
-		case 0x2e:
-			CmdWrite10();
-			return;
-
-		// VERIFY
-		case 0x2f:
-			CmdVerify();
-			return;
-
-		// SYNCHRONIZE CACHE
-		case 0x35:
-			CmdSynchronizeCache();
-			return;
-
-		// READ DEFECT DATA(10)
-		case 0x37:
-			CmdReadDefectData10();
-			return;
-
-		// READ TOC
-		case 0x43:
-			CmdReadToc();
-			return;
-
-		// PLAY AUDIO(10)
-		case 0x45:
-			CmdPlayAudio10();
-			return;
-
-		// PLAY AUDIO MSF
-		case 0x47:
-			CmdPlayAudioMSF();
-			return;
-
-		// PLAY AUDIO TRACK
-		case 0x48:
-			CmdPlayAudioTrack();
-			return;
-
-		// MODE SELECT(10)
-		case 0x55:
-			CmdModeSelect10();
-			return;
-
-		// MDOE SENSE(10)
-		case 0x5a:
-			CmdModeSense10();
-			return;
-
-		// SPECIFY (SASI only/Suppress warning when using SxSI)
-		case 0xc2:
-			CmdInvalid();
-			return;
-
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.status = 0;
 	}
 
-	// No other support
-	Log(Log::Normal, "SCSI - Unsupported command received: $%02X", ctrl.cmd[0]);
-	CmdInvalid();
+	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
+
+	int lun = GetEffectiveLun();
+	if (!ctrl.unit[lun]) {
+		if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
+
+			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+			return;
+		}
+		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
+		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
+		else {
+			assert(ctrl.unit[0]);
+
+			lun = 0;
+		}
+	}
+
+	ctrl.device = ctrl.unit[lun];
+
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.device->SetStatusCode(0);
+	}
+	
+	if (!ctrl.device->Dispatch(this)) {
+		LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
+
+		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
+	}
+
+	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry && !ctrl.unit[lun]) {
+		lun = GetEffectiveLun();
+
+		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
+
+		ctrl.buffer[0] = 0x7f;
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -440,20 +288,17 @@ void FASTCALL SCSIDEV::Execute()
 //	Message out phase
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::MsgOut()
+void SCSIDEV::MsgOut()
 {
-	ASSERT(this);
+	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetSCSIID());
 
 	// Phase change
 	if (ctrl.phase != BUS::msgout) {
+		LOGTRACE("Message Out Phase");
 
-		#if defined(DISK_LOG)
-		Log(Log::Normal, "SCSI - Message Out Phase");	// Message out phase after selection
-		#endif	// DISK_LOG
-
-	        // process the IDENTIFY message
+	    // process the IDENTIFY message
 		if (ctrl.phase == BUS::selection) {
-			scsi.atnmsg = TRUE;
+			scsi.atnmsg = true;
 			scsi.msc = 0;
 			memset(scsi.msb, 0x00, sizeof(scsi.msb));
 		}
@@ -471,31 +316,11 @@ void FASTCALL SCSIDEV::MsgOut()
 		ctrl.length = 1;
 		ctrl.blocks = 1;
 
-		#ifndef RASCSI
-		// Request message
-		ctrl.bus->SetREQ(TRUE);
-		#endif	// RASCSI
 		return;
 	}
 
-	#ifdef RASCSI
 	// Receive
 	Receive();
-	#else
-
-	// Requesting
-	if (ctrl.bus->GetREQ()) {
-		// Sent by the initiator
-		if (ctrl.bus->GetACK()) {
-			Receive();
-		}
-	} else {
-		// Request the initator to
-		if (!ctrl.bus->GetACK()) {
-			ReceiveNext();
-		}
-	}
-	#endif	// RASCSI
 }
 
 //---------------------------------------------------------------------------
@@ -503,10 +328,8 @@ void FASTCALL SCSIDEV::MsgOut()
 //	Common Error Handling
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Error()
+void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 {
-	ASSERT(this);
-
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
 
@@ -526,970 +349,53 @@ void FASTCALL SCSIDEV::Error()
 		return;
 	}
 
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - Error (to status phase)");
-	#endif	// DISK_LOG
+	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
+		lun = 0;
+	}
 
-	// Set status and message(CHECK CONDITION)
+	if (sense_key || asc) {
+		// Set Sense Key and ASC for a subsequent REQUEST SENSE
+		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
+	}
+
 	ctrl.status = 0x02;
 	ctrl.message = 0x00;
 
-	// status phase
+	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
+
 	Status();
 }
-
-//---------------------------------------------------------------------------
-//
-//	Command
-//
-//---------------------------------------------------------------------------
-
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdInquiry()
-{
-	Disk *disk;
-	int lun;
-	DWORD major;
-	DWORD minor;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - INQUIRY Command");
-	#endif	// DISK_LOG
-
-	// Find a valid unit
-	disk = NULL;
-	for (lun = 0; lun < UnitMax; lun++) {
-		if (ctrl.unit[lun]) {
-			disk = ctrl.unit[lun];
-			break;
-		}
-	}
-
-	// Processed on the disk side (it is originally processed by the controller)
-	if (disk) {
-		major = (DWORD)rascsi_major_version;
-		minor = (DWORD)rascsi_minor_version;
-		ctrl.length =
-			ctrl.unit[lun]->Inquiry(ctrl.cmd, ctrl.buffer, major, minor);
-	} else {
-		ctrl.length = 0;
-	}
-
-	if (ctrl.length <= 0) {
-		// failure (error)
-		Error();
-		return;
-	}
-
-	// Add synchronous transfer support information
-	if (scsi.syncenable) {
-		ctrl.buffer[7] |= (1 << 4);
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdModeSelect()
-{
-	DWORD lun;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - MODE SELECT Command");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->SelectCheck(ctrl.cmd);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data out phase
-	DataOut();
-}
-
-// The following commands RESERVE(6), RESERVE(10), RELEASE(6) and RELEASE(10)
-// are not properly implemented. These commands are used in multi-initator environments
-// which this project is not targeted at.  For now, we simply reply with an OK.
-// -phrax 2021-03-06
-
-//---------------------------------------------------------------------------
-//
-//	RESERVE(6)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReserve6()
-{
-	ASSERT(this);
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - RESERVE(6) Command");
-	#endif	// DISK_LOG
-
-	// status phase
-        Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RESERVE(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReserve10()
-{
-	ASSERT(this);
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - RESERVE(10) Command");
-	#endif	// DISK_LOG
-
-	// status phase
-        Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RELEASE(6)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRelease6()
-{
-	ASSERT(this);
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - RELEASE(6) Command");
-	#endif	// DISK_LOG
-
-	// status phase
-        Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RELEASE(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRelease10()
-{
-	ASSERT(this);
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - RELEASE(10) Command");
-	#endif	// DISK_LOG
-
-	// status phase
-        Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdModeSense()
-{
-	DWORD lun;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - MODE SENSE Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->ModeSense(ctrl.cmd, ctrl.buffer);
-	ASSERT(ctrl.length >= 0);
-	if (ctrl.length == 0) {
-		Log(Log::Warning,"SCSI - Not supported MODE SENSE page $%02X", ctrl.cmd[2]);
-
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	START STOP UNIT
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdStartStop()
-{
-	DWORD lun;
-	BOOL status;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - START STOP UNIT Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	status = ctrl.unit[lun]->StartStop(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SEND DIAGNOSTIC
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSendDiag()
-{
-	DWORD lun;
-	BOOL status;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - SEND DIAGNOSTIC Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	status = ctrl.unit[lun]->SendDiag(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	PREVENT/ALLOW MEDIUM REMOVAL
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRemoval()
-{
-	DWORD lun;
-	BOOL status;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - PREVENT/ALLOW MEDIUM REMOVAL Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	status = ctrl.unit[lun]->Removal(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ CAPACITY
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReadCapacity()
-{
-	DWORD lun;
-	int length;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - READ CAPACITY Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	length = ctrl.unit[lun]->ReadCapacity(ctrl.cmd, ctrl.buffer);
-	ASSERT(length >= 0);
-	if (length <= 0) {
-		Error();
-		return;
-	}
-
-	// Length setting
-	ctrl.length = length;
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdRead10()
-{
-	DWORD lun;
-	DWORD record;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Receive message if host bridge
-	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
-		CmdGetMessage10();
-		return;
-	}
-
-	// Get record number and block number
-	record = ctrl.cmd[2];
-	record <<= 8;
-	record |= ctrl.cmd[3];
-	record <<= 8;
-	record |= ctrl.cmd[4];
-	record <<= 8;
-	record |= ctrl.cmd[5];
-	ctrl.blocks = ctrl.cmd[7];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[8];
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - READ(10) command record=%08X block=%d", record, ctrl.blocks);
-	#endif	// DISK_LOG
-
-	// Do not process 0 blocks
-	if (ctrl.blocks == 0) {
-		Status();
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->Read(ctrl.buffer, record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	WRITE(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdWrite10()
-{
-	DWORD lun;
-	DWORD record;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Receive message with host bridge
-	if (ctrl.unit[lun]->GetID() == MAKEID('S', 'C', 'B', 'R')) {
-		CmdSendMessage10();
-		return;
-	}
-
-	// Get record number and block number
-	record = ctrl.cmd[2];
-	record <<= 8;
-	record |= ctrl.cmd[3];
-	record <<= 8;
-	record |= ctrl.cmd[4];
-	record <<= 8;
-	record |= ctrl.cmd[5];
-	ctrl.blocks = ctrl.cmd[7];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[8];
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal,"SCSI - WRTIE(10) command record=%08X blocks=%d", record, ctrl.blocks);
-	#endif	// DISK_LOG
-
-	// Do not process 0 blocks
-	if (ctrl.blocks == 0) {
-		Status();
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Data out phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SEEK(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSeek10()
-{
-	DWORD lun;
-	BOOL status;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - SEEK(10) Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	status = ctrl.unit[lun]->Seek(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	VERIFY
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdVerify()
-{
-	DWORD lun;
-	BOOL status;
-	DWORD record;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Get record number and block number
-	record = ctrl.cmd[2];
-	record <<= 8;
-	record |= ctrl.cmd[3];
-	record <<= 8;
-	record |= ctrl.cmd[4];
-	record <<= 8;
-	record |= ctrl.cmd[5];
-	ctrl.blocks = ctrl.cmd[7];
-	ctrl.blocks <<= 8;
-	ctrl.blocks |= ctrl.cmd[8];
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal,"SCSI - VERIFY command record=%08X blocks=%d", record, ctrl.blocks);
-	#endif	// DISK_LOG
-
-	// Do not process 0 blocks
-	if (ctrl.blocks == 0) {
-		Status();
-		return;
-	}
-
-	// if BytChk=0
-	if ((ctrl.cmd[1] & 0x02) == 0) {
-		// Command processing on drive
-		status = ctrl.unit[lun]->Seek(ctrl.cmd);
-		if (!status) {
-			// Failure (Error)
-			Error();
-			return;
-		}
-
-		// status phase
-		Status();
-		return;
-	}
-
-	// Test loading
-	ctrl.length = ctrl.unit[lun]->Read(ctrl.buffer, record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Data out phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SYNCHRONIZE CACHE
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSynchronizeCache()
-{
-	DWORD lun;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Make it do something (not implemented)...
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ DEFECT DATA(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReadDefectData10()
-{
-	DWORD lun;
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - READ DEFECT DATA(10) Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->ReadDefectData10(ctrl.cmd, ctrl.buffer);
-	ASSERT(ctrl.length >= 0);
-
-	if (ctrl.length <= 4) {
-		Error();
-		return;
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ TOC
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdReadToc()
-{
-	DWORD lun;
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->ReadToc(ctrl.cmd, ctrl.buffer);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdPlayAudio10()
-{
-	DWORD lun;
-	BOOL status;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	status = ctrl.unit[lun]->PlayAudio(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO MSF
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdPlayAudioMSF()
-{
-	DWORD lun;
-	BOOL status;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	status = ctrl.unit[lun]->PlayAudioMSF(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	PLAY AUDIO TRACK
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdPlayAudioTrack()
-{
-	DWORD lun;
-	BOOL status;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	status = ctrl.unit[lun]->PlayAudioTrack(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT10
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdModeSelect10()
-{
-	DWORD lun;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - MODE SELECT10 Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->SelectCheck10(ctrl.cmd);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data out phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdModeSense10()
-{
-	DWORD lun;
-
-	ASSERT(this);
-
-	#if defined(DISK_LOG)
-	Log(Log::Normal, "SCSI - MODE SENSE(10) Command ");
-	#endif	// DISK_LOG
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->ModeSense10(ctrl.cmd, ctrl.buffer);
-	ASSERT(ctrl.length >= 0);
-	if (ctrl.length == 0) {
-		Log(Log::Warning,"SCSI - Not supported MODE SENSE(10) page $%02X", ctrl.cmd[2]);
-
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Data-in Phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	GET MESSAGE(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdGetMessage10()
-{
-	DWORD lun;
-	SCSIBR *bridge;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Error if not a host bridge
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
-		Error();
-		return;
-	}
-
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl.bufsize < 0x1000000) {
-		free(ctrl.buffer);
-		ctrl.bufsize = 0x1000000;
-		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
-	}
-
-	// Process with drive
-	bridge = (SCSIBR*)ctrl.unit[lun];
-	ctrl.length = bridge->GetMessage10(ctrl.cmd, ctrl.buffer);
-
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.blocks = 1;
-	ctrl.next = 1;
-
-	// Data in phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SEND MESSAGE(10)
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::CmdSendMessage10()
-{
-	DWORD lun;
-
-	ASSERT(this);
-
-	// Logical Unit
-	lun = (ctrl.cmd[1] >> 5) & 0x07;
-	if (!ctrl.unit[lun]) {
-		Error();
-		return;
-	}
-
-	// Error if not a host bridge
-	if (ctrl.unit[lun]->GetID() != MAKEID('S', 'C', 'B', 'R')) {
-		Error();
-		return;
-	}
-
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl.bufsize < 0x1000000) {
-		free(ctrl.buffer);
-		ctrl.bufsize = 0x1000000;
-		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
-	}
-
-	// Set transfer amount
-	ctrl.length = ctrl.cmd[6];
-	ctrl.length <<= 8;
-	ctrl.length |= ctrl.cmd[7];
-	ctrl.length <<= 8;
-	ctrl.length |= ctrl.cmd[8];
-
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.blocks = 1;
-	ctrl.next = 1;
-
-	// Light phase
-	DataOut();
-}
-
-//===========================================================================
-//
-//	Data Transfer
-//
-//===========================================================================
 
 //---------------------------------------------------------------------------
 //
 //	Send data
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Send()
+void SCSIDEV::Send()
 {
-	#ifdef RASCSI
-	int len;
-	#endif	// RASCSI
-	BOOL result;
-
-	ASSERT(this);
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-	#ifdef RASCSI
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
-		len = ctrl.bus->SendHandShake(
-			&ctrl.buffer[ctrl.offset], ctrl.length);
+		ostringstream s;
+		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
+		LOGTRACE("%s", s.str().c_str());
+
+		// TODO Get rid of Daynaport specific code in this class
+		// The Daynaport needs to have a delay after the size/flags field
+		// of the read response. In the MacOS driver, it looks like the
+		// driver is doing two "READ" system calls.
+		int len;
+		if (ctrl.unit[0] && ctrl.unit[0]->IsDaynaPort()) {
+			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
+					&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
+		}
+		else
+		{
+			len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
+		}
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -1502,33 +408,19 @@ void FASTCALL SCSIDEV::Send()
 		ctrl.length = 0;
 		return;
 	}
-	#else
-	// offset and length
-	ASSERT(ctrl.length >= 1);
-	ctrl.offset++;
-	ctrl.length--;
-
-	// Immediately after ACK is asserted, if the data has been
-	// set by SendNext, raise the request
-    	if (ctrl.length != 0) {
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-		return;
-	}
-	#endif	// RASCSI
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	result = TRUE;
+	bool result = true;
 
 	// Processing after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
 		if (ctrl.blocks != 0) {
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			#ifndef RASCSI
-			ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset]);
-			#endif	// RASCSI
+			ostringstream s;
+			s << __PRETTY_FUNCTION__ << " Processing after data collection. Blocks: " << ctrl.blocks;
+			LOGTRACE("%s", s.str().c_str());
 		}
 	}
 
@@ -1540,23 +432,23 @@ void FASTCALL SCSIDEV::Send()
 
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
+		ostringstream s;
+		s << __PRETTY_FUNCTION__ << " Continuing to send. Blocks: " << ctrl.blocks;
+		LOGTRACE("%s", s.str().c_str());
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-		#ifndef RASCSI
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-		#endif	// RASCSI
 		return;
 	}
 
 	// Move to next phase
+	LOGTRACE("%s Move to next phase %s (%d)", __PRETTY_FUNCTION__, BUS::GetPhaseStrRaw(ctrl.phase), ctrl.phase);
 	switch (ctrl.phase) {
 		// Message in phase
 		case BUS::msgin:
 			// Completed sending response to extended message of IDENTIFY message
 			if (scsi.atnmsg) {
 				// flag off
-				scsi.atnmsg = FALSE;
+				scsi.atnmsg = false;
 
 				// command phase
 				Command();
@@ -1588,167 +480,57 @@ void FASTCALL SCSIDEV::Send()
 	}
 }
 
-#ifndef RASCSI
-//---------------------------------------------------------------------------
-//
-//	Continue data transmission.....
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::SendNext()
-{
-	ASSERT(this);
-
-	// REQ is up
-	ASSERT(ctrl.bus->GetREQ());
-	ASSERT(ctrl.bus->GetIO());
-
-	// Signal line operated by the target
-	ctrl.bus->SetREQ(FALSE);
-
-	// If there is data in the buffer, set it first
-	if (ctrl.length > 1) {
-		ctrl.bus->SetDAT(ctrl.buffer[ctrl.offset + 1]);
-	}
-}
-#endif	// RASCSI
-
-#ifndef RASCSI
-//---------------------------------------------------------------------------
-//
-//	Receive data
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Receive()
-{
-	DWORD data;
-
-	ASSERT(this);
-
-	// Req is up
-	ASSERT(ctrl.bus->GetREQ());
-	ASSERT(!ctrl.bus->GetIO());
-
-	// Get data
-	data = (DWORD)ctrl.bus->GetDAT();
-
-	// Signal line operated by the target
-	ctrl.bus->SetREQ(FALSE);
-
-	switch (ctrl.phase) {
-		// Command phase
-		case BUS::command:
-			ctrl.cmd[ctrl.offset] = data;
-			#if defined(DISK_LOG)
-			Log(Log::Normal, "SCSI - Command phase $%02X", data);
-			#endif	// DISK_LOG
-
-			// Set the length again with the first data (offset 0)
-			if (ctrl.offset == 0) {
-				if (ctrl.cmd[0] >= 0x20) {
-					// 10バイトCDB
-					ctrl.length = 10;
-				}
-			}
-			break;
-
-		// Message out phase
-		case BUS::msgout:
-			ctrl.message = data;
-			#if defined(DISK_LOG)
-			Log(Log::Normal, "SCSI - Message out phase $%02X", data);
-			#endif	// DISK_LOG
-			break;
-
-		// Data out phase
-		case BUS::dataout:
-			ctrl.buffer[ctrl.offset] = (BYTE)data;
-			break;
-
-		// Other (impossible)
-		default:
-			ASSERT(FALSE);
-			break;
-	}
-}
-#endif	// RASCSI
-
-#ifdef RASCSI
 //---------------------------------------------------------------------------
 //
 //  Receive Data
 //
 //---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::Receive()
-#else
-
-//---------------------------------------------------------------------------
-//
-//	Continue receiving data
-//
-//---------------------------------------------------------------------------
-void FASTCALL SCSIDEV::ReceiveNext()
-#endif	// RASCSI
+void SCSIDEV::Receive()
 {
-	#ifdef RASCSI
 	int len;
-	#endif	// RASCSI
-	BOOL result;
-	int i;
 	BYTE data;
 
-	ASSERT(this);
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
-	#ifdef RASCSI
 	// Length != 0 if received
 	if (ctrl.length != 0) {
+		LOGTRACE("%s length was != 0", __PRETTY_FUNCTION__);
 		// Receive
-		len = ctrl.bus->ReceiveHandShake(
-			&ctrl.buffer[ctrl.offset], ctrl.length);
+		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
+			LOGERROR("%s Not able to receive all data. Going to error",__PRETTY_FUNCTION__);
 			Error();
 			return;
 		}
 
 		// Offset and Length
 		ctrl.offset += ctrl.length;
-		ctrl.length = 0;;
+		ctrl.length = 0;
 		return;
 	}
-	#else
-	// Offset and Length
-	ASSERT(ctrl.length >= 1);
-	ctrl.offset++;
-	ctrl.length--;
-
-	// If length!=0, set req again
-	if (ctrl.length != 0) {
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-		return;
-	}
-	#endif	// RASCSI
 
 	// Block subtraction, result initialization
 	ctrl.blocks--;
-	result = TRUE;
+	bool result = true;
 
 	// Processing after receiving data (by phase)
+	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
 	switch (ctrl.phase) {
 
 		// Data out phase
 		case BUS::dataout:
 			if (ctrl.blocks == 0) {
 				// End with this buffer
-				result = XferOut(FALSE);
+				result = XferOut(false);
 			} else {
 				// Continue to next buffer (set offset, length)
-				result = XferOut(TRUE);
+				result = XferOut(true);
 			}
 			break;
 
@@ -1779,10 +561,6 @@ void FASTCALL SCSIDEV::ReceiveNext()
 	if (ctrl.blocks != 0){
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
-		#ifndef RASCSI
-		// Signal line operated by the target
-		ctrl.bus->SetREQ(TRUE);
-		#endif	// RASCSI
 		return;
 	}
 
@@ -1790,20 +568,12 @@ void FASTCALL SCSIDEV::ReceiveNext()
 	switch (ctrl.phase) {
 		// Command phase
 		case BUS::command:
-		#ifdef RASCSI
-			// Command data transfer
-			len = 6;
-			if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
-				// 10 byte CDB
-				len = 10;
-			}
-			for (i = 0; i < len; i++) {
+			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+
+			for (int i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
-				#if defined(DISK_LOG)
-				Log(Log::Normal, "SCSI - Command $%02X", ctrl.cmd[i]);
-				#endif	// DISK_LOG
+				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
-			#endif	// RASCSI
 
 			// Execution Phase
 			Execute();
@@ -1817,34 +587,26 @@ void FASTCALL SCSIDEV::ReceiveNext()
 				ctrl.offset = 0;
 				ctrl.length = 1;
 				ctrl.blocks = 1;
-				#ifndef RASCSI
-				// Request message
-				ctrl.bus->SetREQ(TRUE);
-				#endif	// RASCSI
 				return;
 			}
 
 			// Parsing messages sent by ATN
 			if (scsi.atnmsg) {
-				i = 0;
+				int i = 0;
 				while (i < scsi.msc) {
 					// Message type
 					data = scsi.msb[i];
 
 					// ABORT
 					if (data == 0x06) {
-					#if defined(DISK_LOG)
-						Log(Log::Normal,"SCSI - Message code ABORT $%02X", data);
-						#endif	// DISK_LOG
+						LOGTRACE("Message code ABORT $%02X", (int)data);
 						BusFree();
 						return;
 					}
 
 					// BUS DEVICE RESET
 					if (data == 0x0C) {
-						#if defined(DISK_LOG)
-						Log(Log::Normal,"SCSI - Message code BUS DEVICE RESET $%02X", data);
-						#endif	// DISK_LOG
+						LOGTRACE("Message code BUS DEVICE RESET $%02X", (int)data);
 						scsi.syncoffset = 0;
 						BusFree();
 						return;
@@ -1852,16 +614,13 @@ void FASTCALL SCSIDEV::ReceiveNext()
 
 					// IDENTIFY
 					if (data >= 0x80) {
-						#if defined(DISK_LOG)
-						Log(Log::Normal,"SCSI - Message code IDENTIFY $%02X", data);
-						#endif	// DISK_LOG
+						ctrl.lun = data & 0x1F;
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, ctrl.lun);
 					}
 
 					// Extended Message
 					if (data == 0x01) {
-						#if defined(DISK_LOG)
-						Log(Log::Normal,"SCSI - Message code EXTENDED MESSAGE $%02X", data);
-						#endif	// DISK_LOG
+						LOGTRACE("Message code EXTENDED MESSAGE $%02X", (int)data);
 
 						// Check only when synchronous transfer is possible
 						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
@@ -1902,7 +661,7 @@ void FASTCALL SCSIDEV::ReceiveNext()
 			}
 
 			// Initialize ATN message reception status
-			scsi.atnmsg = FALSE;
+			scsi.atnmsg = false;
 
 			// Command phase
 			Command();
@@ -1929,9 +688,8 @@ void FASTCALL SCSIDEV::ReceiveNext()
 //	Transfer MSG
 //
 //---------------------------------------------------------------------------
-BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
+bool SCSIDEV::XferMsg(DWORD msg)
 {
-	ASSERT(this);
 	ASSERT(ctrl.phase == BUS::msgout);
 
 	// Save message out data
@@ -1941,5 +699,5 @@ BOOL FASTCALL SCSIDEV::XferMsg(DWORD msg)
 		scsi.msc %= 256;
 	}
 
-	return TRUE;
+	return true;
 }
