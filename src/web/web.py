@@ -12,7 +12,6 @@ from flask import (
 )
 
 from file_cmds import (
-    list_config_files,
     list_images,
     create_new_image,
     download_file_to_iso,
@@ -37,15 +36,17 @@ from pi_cmds import (
 from ractl_cmds import (
     attach_image,
     list_devices,
-    sort_and_format_devices,
     detach_by_id,
     eject_by_id,
-    get_valid_scsi_ids,
     detach_all,
     get_server_info,
     get_network_info,
     get_device_types,
     set_log_level,
+)
+from device_utils import (
+    sort_and_format_devices,
+    get_valid_scsi_ids,
 )
 from settings import *
 
@@ -59,7 +60,7 @@ def index():
     devices = list_devices()
     device_types=get_device_types()
     files = list_images()
-    config_files = list_config_files()
+    config_files = list_files((CONFIG_FILE_SUFFIX,), cfg_dir)
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
@@ -81,7 +82,7 @@ def index():
             server_info["scrm"] +
             server_info["scmo"] +
             server_info["sccd"] +
-            list(ARCHIVE_FILE_SUFFIX)
+            [ARCHIVE_FILE_SUFFIX]
             )
 
     return render_template(
@@ -239,7 +240,7 @@ def drive_cdrom():
 @app.route("/config/save", methods=["POST"])
 def config_save():
     file_name = request.form.get("name") or "default"
-    file_name = f"{file_name}.json"
+    file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
 
     process = write_config(file_name)
     if process["status"] == True:

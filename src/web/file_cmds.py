@@ -34,19 +34,6 @@ def list_files(file_types, dir_path):
     return files_list
 
 
-def list_config_files():
-    """
-    Returns a list of RaSCSI config files in cfg_dir:
-    list of str files_list
-    """
-    files_list = []
-    for root, dirs, files in os.walk(cfg_dir):
-        for file in files:
-            if file.endswith(".json"):
-                files_list.append(file)
-    return files_list
-
-
 def list_images():
     """
     Sends a IMAGE_FILES_INFO command to the server
@@ -148,9 +135,8 @@ def delete_file(file_path):
     """
     if os.path.exists(file_path):
         os.remove(file_path)
-        return {"status": True, "msg": "File deleted"}
-    else:
-        return {"status": False, "msg": "Could not delete file"}
+        return {"status": True, "msg": f"File deleted: {file_path}"}
+    return {"status": False, "msg": f"File to delete not found: {file_path}"}
 
 
 def unzip_file(file_name, member=False):
@@ -178,7 +164,10 @@ def unzip_file(file_name, member=False):
         return {"status": False, "msg": stderr}
 
     from re import findall
-    unzipped = findall("(?:inflating|extracting):(.+)\n", unzip_proc.stdout.decode("utf-8"))
+    unzipped = findall(
+            "(?:inflating|extracting):(.+)\n", 
+            unzip_proc.stdout.decode("utf-8")
+            )
     return {"status": True, "msg": unzipped}
 
 
@@ -189,10 +178,11 @@ def download_file_to_iso(scsi_id, url):
     """
     from time import time
     from subprocess import run
+    from pathlib import PurePath
 
     server_info = get_server_info()
 
-    file_name = url.split("/")[-1]
+    file_name = PurePath(url).name
     tmp_ts = int(time())
     tmp_dir = "/tmp/" + str(tmp_ts) + "/"
     os.mkdir(tmp_dir)
@@ -232,7 +222,6 @@ def download_to_dir(url, save_dir):
     except requests.exceptions.RequestException as e:
         logging.warning(f"Request failed: {str(e)}")
         return {"status": False, "msg": str(e)}
-
 
     logging.info(f"Response encoding: {req.encoding}")
     logging.info(f"Response content-type: {req.headers['content-type']}")

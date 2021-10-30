@@ -1,6 +1,7 @@
 import logging
 
 from settings import *
+from socket_cmds import send_pb_command
 import rascsi_interface_pb2 as proto
 
 
@@ -97,30 +98,6 @@ def get_device_types():
     for t in result.device_types_info.properties:
         device_types.append(proto.PbDeviceType.Name(t.type))
     return {"status": result.status, "device_types": device_types}
-    
-
-def get_valid_scsi_ids(devices, reserved_ids):
-    """
-    Takes a list of dicts devices, and list of ints reserved_ids.
-    Returns:
-    - list of ints valid_ids, which are the SCSI ids that are not reserved
-    - int recommended_id, which is the id that the Web UI should default to recommend
-    """
-    occupied_ids = []
-    for d in devices:
-        occupied_ids.append(d["id"])
-
-    unoccupied_ids = [i for i in list(range(8)) if i not in reserved_ids + occupied_ids]
-    unoccupied_ids.sort()
-    valid_ids = [i for i in list(range(8)) if i not in reserved_ids]
-    valid_ids.sort(reverse=True)
-
-    if len(unoccupied_ids) > 0:
-        recommended_id = unoccupied_ids[-1]
-    else:
-        recommended_id = occupied_ids.pop(0)
-
-    return valid_ids, recommended_id
 
 
 def attach_image(scsi_id, **kwargs):
@@ -330,29 +307,6 @@ def list_devices(scsi_id=None, un=None):
     return {"status": True, "device_list": device_list}
 
 
-def sort_and_format_devices(devices):
-    """
-    Takes a list of dicts devices and returns a list of dicts.
-    Sorts by SCSI ID acending (0 to 7).
-    For SCSI IDs where no device is attached, inject a dict with placeholder text.
-    """
-    occupied_ids = []
-    for d in devices:
-        occupied_ids.append(d["id"])
-
-    formatted_devices = devices
-
-    # Add padding devices and sort the list
-    for id in range(8):
-        if id not in occupied_ids:
-            formatted_devices.append({"id": id, "device_type": "-", \
-                    "status": "-", "file": "-", "product": "-"})
-    # Sort list of devices by id
-    formatted_devices.sort(key=lambda dic: str(dic["id"]))
-
-    return formatted_devices
-
-
 def set_log_level(log_level):
     """
     Sends a LOG_LEVEL command to the server.
@@ -367,89 +321,3 @@ def set_log_level(log_level):
     result = proto.PbResult()
     result.ParseFromString(data)
     return {"status": result.status, "msg": result.msg}
-
-
-def send_pb_command(payload):
-    """
-    Takes a str containing a serialized protobuf as argument.
-    Establishes a socket connection with RaSCSI.
-    """
-    # Host and port number where rascsi is listening for socket connections
-    HOST = 'localhost'
-    PORT = 6868
-
-    counter = 0
-    tries = 100
-    error_msg = ""
-
-    import socket
-    while counter < tries:
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((HOST, PORT))
-                return send_over_socket(s, payload)
-        except socket.error as error:
-            counter += 1
-            logging.warning("The RaSCSI service is not responding - attempt " + \
-                    str(counter) + "/" + str(tries))
-            error_msg = str(error)
-
-    logging.error(error_msg)
-
-    # After failing all attempts, throw a 404 error
-    from flask import abort
-    abort(404, "Failed to connect to RaSCSI at " + str(HOST) + ":" + str(PORT) + \
-            " with error: " + error_msg + ". Is the RaSCSI service running?")
-
-
-def send_over_socket(s, payload):
-    """
-    Takes a socket object and str payload with serialized protobuf.
-    Sends payload to RaSCSI over socket and captures the response.
-    Tries to extract and interpret the protobuf header to get response size.
-    Reads data from socket in 2048 bytes chunks until all data is received.
-
-    """
-    from struct import pack, unpack
-
-    # Sending the magic word "RASCSI" to authenticate with the server
-    s.send(b"RASCSI")
-    # Prepending a little endian 32bit header with the message size
-    s.send(pack("<i", len(payload)))
-    s.send(payload)
-
-    # Receive the first 4 bytes to get the response header
-    response = s.recv(4)
-    if len(response) >= 4:
-        # Extracting the response header to get the length of the response message
-        response_length = unpack("<i", response)[0]
-        # Reading in chunks, to handle a case where the response message is very large
-        chunks = []
-        bytes_recvd = 0
-        while bytes_recvd < response_length:
-            chunk = s.recv(min(response_length - bytes_recvd, 2048))
-            if chunk == b'':
-                from flask import abort
-                logging.error(
-                        "Read an empty chunk from the socket. "
-                        "Socket connection has dropped unexpectedly. "
-                        "RaSCSI may have crashed."
-                        )
-                abort(503, "Lost connection to RaSCSI. "
-                           "Please go back and try again. "
-                           "If the issue persists, please report a bug."
-                           )
-            chunks.append(chunk)
-            bytes_recvd = bytes_recvd + len(chunk)
-        response_message = b''.join(chunks)
-        return response_message
-    else:
-        from flask import abort
-        logging.error(
-                      "The response from RaSCSI did not contain a protobuf header. "
-                      "RaSCSI may have crashed."
-                     )
-        abort(500, "Did not get a valid response from RaSCSI. "
-                   "Please go back and try again. "
-                   "If the issue persists, please report a bug."
-                   )
