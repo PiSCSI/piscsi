@@ -158,8 +158,11 @@ def attach_image(scsi_id, **kwargs):
 
     if device_type in REMOVABLE_DEVICE_TYPES and current_type in REMOVABLE_DEVICE_TYPES:
         if current_type != device_type:
-            return {"status": False, "msg": f"Cannot insert an image for \
-                    {device_type} into a {current_type} device."}
+            return {
+                    "status": False,
+                    "msg": "Cannot insert an image for " + {device_type} + \
+                    "into a " + current_type + " device."
+                   }
         else:
             command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
@@ -280,7 +283,7 @@ def list_devices(scsi_id=None, un=None):
 
     while n < len(result.devices_info.devices):
         did = result.devices_info.devices[n].id
-        dun = result.devices_info.devices[n].unit
+        dunit = result.devices_info.devices[n].unit
         dtype = proto.PbDeviceType.Name(result.devices_info.devices[n].type) 
         dstat = result.devices_info.devices[n].status
         dprop = result.devices_info.devices[n].properties
@@ -309,7 +312,7 @@ def list_devices(scsi_id=None, un=None):
         device_list.append(
                 {
                     "id": did,
-                    "un": dun,
+                    "un": dunit,
                     "device_type": dtype,
                     "status": ", ".join(dstat_msg),
                     "image": dpath,
