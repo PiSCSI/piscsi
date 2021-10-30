@@ -5,6 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
+//	Copyright (C) 2020-2021 Contributors to the RaSCSI project
 //	[ RaSCSI main ]
 //
 //---------------------------------------------------------------------------
@@ -102,6 +103,7 @@ void Banner(int argc, char* argv[])
 		__TIME__);
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
+	FPRT(stdout,"Copyright (C) 2020-2021 Contributors to the RaSCSI project\n");
 	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||

@@ -95,7 +95,7 @@ void Banner(int argc, char* argv[])
 		__TIME__);
 	LOGINFO("Powered by XM6 TypeG Technology ");
 	LOGINFO("Copyright (C) 2016-2020 GIMONS");
-	LOGINFO("Copyright (C) 2020 akuker");
+	LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project");
 	LOGINFO("Connect type : %s", CONNECT_DESC);
 	LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", log_file_name);
 

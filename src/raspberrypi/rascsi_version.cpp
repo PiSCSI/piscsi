@@ -14,8 +14,8 @@
 
 // The following should be updated for each release
 const int rascsi_major_version = 21; // Last two digits of year
-const int rascsi_minor_version = 99; // Month
-const int rascsi_patch_version = -1;  // Patch number - increment for each update
+const int rascsi_minor_version = 10; // Month
+const int rascsi_patch_version = 1;  // Patch number - increment for each update
 
 static char rascsi_version_string[30]; // Allow for string up to "XX.XX.XXX" + null character + "development build"
 

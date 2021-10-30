@@ -5,6 +5,7 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
+//	Copyright (C) 2020-2021 Contributors to the RaSCSI project
 //	[ Send Control Command ]
 //
 //---------------------------------------------------------------------------
