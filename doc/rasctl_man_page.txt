@@ -1,5 +1,7 @@
 !!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
-!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating\n\n
+!!   ------ The native file is rasctl.1. Re-run 'make docs' after updating
+
+
 rascsi(1)                   General Commands Manual                  rascsi(1)
 
 NAME
@@ -140,11 +142,11 @@ EXAMPLES
           rasctl -l
 
        Example output:
-          +----+----+------+-------------------------------------
-          | ID | UN | TYPE | DEVICE STATUS
-          +----+----+------+-------------------------------------
-          |  0 |  1 | SCHD | /home/pi/harddisk.hda
-          +----+----+------+-------------------------------------
+          +----+-----+------+-------------------------------------
+          | ID | LUN | TYPE | IMAGE FILE
+          +----+-----+------+-------------------------------------
+          |  0 |   1 | SCHD | /home/pi/harddisk.hda
+          +----+-----+------+-------------------------------------
 
        Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with
        the contents of the file system image "HDIIMAGE0.HDS".
