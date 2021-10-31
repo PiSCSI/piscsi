@@ -1,5 +1,6 @@
 import os
 import logging
+from pathlib import PurePath
 
 from ractl_cmds import (
     get_server_info,
@@ -61,7 +62,6 @@ def list_images():
     result.ParseFromString(data)
 
     # Get a list of all *.properties files in cfg_dir
-    from pathlib import PurePath
     prop_data = list_files(PROPERTIES_SUFFIX, cfg_dir)
     prop_files = [PurePath(x[0]).stem for x in prop_data]
 
@@ -191,7 +191,6 @@ def download_file_to_iso(scsi_id, url):
     """
     from time import time
     from subprocess import run
-    from pathlib import PurePath
 
     server_info = get_server_info()
 
@@ -222,7 +221,6 @@ def download_to_dir(url, save_dir):
     Returns dict with boolean status and str msg
     """
     import requests
-    from pathlib import PurePath
     file_name = PurePath(url).name
     logging.info(f"Making a request to download {url}")
 
