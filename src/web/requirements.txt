@@ -5,4 +5,3 @@ itsdangerous==2.0.1
 Jinja2==3.0.1
 MarkupSafe==2.0.1
 protobuf==3.17.3
-pydrop==0.0.6
