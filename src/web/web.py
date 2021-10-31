@@ -105,7 +105,7 @@ def index():
         attached_images=attached_images,
         luns=luns,
         reserved_scsi_ids=reserved_scsi_ids,
-        max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
+        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         running_env=running_env(),
         version=server_info["version"],
         log_levels=server_info["log_levels"],
