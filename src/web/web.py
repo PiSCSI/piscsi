@@ -726,15 +726,15 @@ def unzip():
 
 
 if __name__ == "__main__":
-    app.secret_key = "rascsi_is_awesome_insecure_secret_key"
-    app.config["SESSION_TYPE"] = "filesystem"
+    APP.secret_key = "rascsi_is_awesome_insecure_secret_key"
+    APP.config["SESSION_TYPE"] = "filesystem"
 
     server_info = get_server_info()
-    app.config["UPLOAD_FOLDER"] = server_info["image_dir"]
+    APP.config["UPLOAD_FOLDER"] = server_info["image_dir"]
 
     from os import makedirs
-    makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
-    app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
+    makedirs(APP.config["UPLOAD_FOLDER"], exist_ok=True)
+    APP.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
     # Load the default configuration file, if found
     default_config_path = Path(CFG_DIR + DEFAULT_CONFIG)
@@ -743,4 +743,4 @@ if __name__ == "__main__":
 
     import bjoern
     print("Serving rascsi-web...")
-    bjoern.run(app, "0.0.0.0", 8080)
+    bjoern.run(APP, "0.0.0.0", 8080)
