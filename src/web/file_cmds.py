@@ -34,6 +34,19 @@ def list_files(file_types, dir_path):
     return files_list
 
 
+def list_config_files():
+    """
+    Returns a list of RaSCSI config files in cfg_dir:
+    list of str files_list
+    """
+    files_list = []
+    for root, dirs, files in os.walk(cfg_dir):
+        for file in files:
+            if file.endswith(".json"):
+                files_list.append(file)
+    return files_list
+
+
 def list_images():
     """
     Sends a IMAGE_FILES_INFO command to the server

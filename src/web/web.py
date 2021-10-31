@@ -13,6 +13,7 @@ from flask import (
 
 from file_cmds import (
     list_images,
+    list_config_files,
     create_new_image,
     download_file_to_iso,
     delete_image,
@@ -60,7 +61,7 @@ def index():
     devices = list_devices()
     device_types=get_device_types()
     files = list_images()
-    config_files = list_files((CONFIG_FILE_SUFFIX,), cfg_dir)
+    config_files = list_config_files()
 
     sorted_image_files = sorted(files["files"], key = lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key = lambda x: x.lower())
