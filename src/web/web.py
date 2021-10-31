@@ -598,6 +598,7 @@ def download_afp():
 def upload_file():
     """
     Uploads a file from the local computer to the images dir on the Pi
+    Depending on the Dropzone.js JavaScript library
     """
     from werkzeug.utils import secure_filename
     from os import path
@@ -629,16 +630,15 @@ def upload_file():
     if current_chunk + 1 == total_chunks:
         # Validate the resulting file size after writing the last chunk
         if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-            log.error(f"Finished transferring {file.filename}, "
-                      f"but it has a size mismatch with the original file."
-                      f"Got {path.getsize(save_path)} but we "
-                      f"expected {request.form['dztotalfilesize']}.")
+            log.error("Finished transferring %s, "
+                      "but it has a size mismatch with the original file."
+                      "Got %s but we expected %s.",
+                      file.filename, path.getsize(save_path), request.form['dztotalfilesize'])
             return make_response(("Transferred file corrupted!", 500))
 
-        log.info(f"File {file.filename} has been uploaded successfully")
+        log.info(f"File %s has been uploaded successfully", file.filename)
 
-    log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
-              f"for file {file.filename} completed.")
+    log.debug("Chunk %s of %s for file %s completed.", current_chunk + 1, total_chunks, file.filename) 
 
     return make_response(("File upload successful!", 200))
 

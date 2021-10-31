@@ -84,7 +84,7 @@ def list_images():
                 # Strip out directories from the list
                 zip_members = [x for x in zip_members if not x.endswith("/")]
             else:
-                logging.warning(f"{zip_path} is an invalid zip file")
+                logging.warning("%s is an invalid zip file", zip_path)
                 zip_members = False
         else:
             zip_members = False
@@ -171,7 +171,7 @@ def unzip_file(file_name, member=False):
             )
     if unzip_proc.returncode != 0:
         stderr = unzip_proc.stderr.decode("utf-8")
-        logging.warning(f"Unzipping failed: {stderr}")
+        logging.warning("Unzipping failed: %s", stderr)
         return {"status": False, "msg": stderr}
 
     from re import findall
@@ -220,7 +220,7 @@ def download_to_dir(url, save_dir):
     """
     import requests
     file_name = PurePath(url).name
-    logging.info(f"Making a request to download {url}")
+    logging.info("Making a request to download %s", url)
 
     try:
         with requests.get(url, stream=True, headers={"User-Agent": "Mozilla/5.0"}) as req:
@@ -229,12 +229,12 @@ def download_to_dir(url, save_dir):
                 for chunk in req.iter_content(chunk_size=8192):
                     download.write(chunk)
     except requests.exceptions.RequestException as e:
-        logging.warning(f"Request failed: {str(e)}")
+        logging.warning("Request failed: %s", str(e))
         return {"status": False, "msg": str(e)}
 
-    logging.info(f"Response encoding: {req.encoding}")
-    logging.info(f"Response content-type: {req.headers['content-type']}")
-    logging.info(f"Response status code: {req.status_code}")
+    logging.info("Response encoding: %s", req.encoding)
+    logging.info("Response content-type: %s", req.headers["content-type"])
+    logging.info("Response status code: %s", req.status_code)
 
     return {"status": True, "msg": f"File downloaded from {url} to {save_dir}"}
 
@@ -273,7 +273,7 @@ def write_config(file_name):
         delete_file(file_name)
         return {"status": False, "msg": str(e)}
     except:
-        logging.error(f"Could not write to file: {file_name}")
+        logging.error("Could not write to file: %s", file_name)
         delete_file(file_name)
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
@@ -306,7 +306,7 @@ def read_config(file_name):
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
     except:
-        logging.error(f"Could not read file: {file_name}")
+        logging.error("Could not read file: %s", file_name)
         return {"status": False, "msg": f"Could not read file: {file_name}"}
 
 
@@ -327,7 +327,7 @@ def write_drive_properties(file_name, conf):
         delete_file(file_path)
         return {"status": False, "msg": str(e)}
     except:
-        logging.error(f"Could not write to file: {file_path}")
+        logging.error("Could not write to file: %s", file_path)
         delete_file(file_path)
         return {"status": False, "msg": f"Could not write to file: {file_path}"}
 
@@ -348,5 +348,5 @@ def read_drive_properties(path_name):
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
     except:
-        logging.error(f"Could not read file: {file_name}")
+        logging.error("Could not read file: %s", file_name)
         return {"status": False, "msg": f"Could not read file: {path_name}"}

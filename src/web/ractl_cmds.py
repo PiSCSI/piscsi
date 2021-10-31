@@ -1,5 +1,3 @@
-import logging
-
 from settings import *
 from socket_cmds import send_pb_command
 import rascsi_interface_pb2 as proto
