@@ -92,13 +92,13 @@ def list_images():
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
         dtype = proto.PbDeviceType.Name(f.type)
         files.append({
-                    "name": f.name,
-                    "size": f.size,
-                    "size_mb": size_mb,
-                    "detected_type": dtype,
-                    "prop": prop,
-                    "zip": zip_members,
-                    })
+            "name": f.name,
+            "size": f.size,
+            "size_mb": size_mb,
+            "detected_type": dtype,
+            "prop": prop,
+            "zip": zip_members,
+            })
 
     return {"status": result.status, "msg": result.msg, "files": files}
 
@@ -176,7 +176,7 @@ def unzip_file(file_name, member=False):
 
     from re import findall
     unzipped = findall(
-        "(?:inflating|extracting):(.+)\n", 
+        "(?:inflating|extracting):(.+)\n",
         unzip_proc.stdout.decode("utf-8")
         )
     return {"status": True, "msg": unzipped}
@@ -298,10 +298,9 @@ def read_config(file_name):
                 for p in params.keys():
                     kwargs[p] = params[p]
                 process = attach_image(row["id"], **kwargs)
-        if process["status"] == True:
+        if process["status"]:
             return {"status": process["status"], "msg": f"Loaded config from: {file_name}"}
-        else:
-            return {"status": process["status"], "msg": process["msg"]}
+        return {"status": process["status"], "msg": process["msg"]}
     except (IOError, ValueError, EOFError, TypeError) as e:
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
@@ -348,5 +347,5 @@ def read_drive_properties(path_name):
         logging.error(str(e))
         return {"status": False, "msg": str(e)}
     except:
-        logging.error("Could not read file: %s", file_name)
+        logging.error("Could not read file: %s", path_name)
         return {"status": False, "msg": f"Could not read file: {path_name}"}
