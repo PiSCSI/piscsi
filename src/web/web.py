@@ -703,10 +703,8 @@ def delete():
 
     process = delete_image(file_name)
     if process["status"]:
-        flash(f"File {file_name} deleted!")
-        flash(process["msg"])
+        flash(f"Image file deleted: {file_name}")
     else:
-        flash(f"Failed to delete file {file_name}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -715,7 +713,6 @@ def delete():
     if Path(prop_file_path).is_file():
         process = delete_file(prop_file_path)
         if process["status"]:
-            flash(f"File {prop_file_path} deleted!")
             flash(process["msg"])
             return redirect(url_for("index"))
 
