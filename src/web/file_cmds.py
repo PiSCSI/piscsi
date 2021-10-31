@@ -236,7 +236,7 @@ def download_to_dir(url, save_dir):
     logging.info(f"Response content-type: {req.headers['content-type']}")
     logging.info(f"Response status code: {req.status_code}")
 
-    return {"status": True, "msg": f"{url} downloaded to {save_dir}"}
+    return {"status": True, "msg": f"File downloaded from {url} to {save_dir}"}
 
 
 def write_config(file_name):
@@ -299,7 +299,7 @@ def read_config(file_name):
                     kwargs[p] = params[p]
                 process = attach_image(row["id"], **kwargs)
         if process["status"] == True:
-            return {"status": process["status"], "msg": f"Loaded config from {file_name}"}
+            return {"status": process["status"], "msg": f"Loaded config from: {file_name}"}
         else:
             return {"status": process["status"], "msg": process["msg"]}
     except (IOError, ValueError, EOFError, TypeError) as e:
