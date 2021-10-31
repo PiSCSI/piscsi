@@ -304,7 +304,7 @@ def list_devices(scsi_id=None, un=None):
             )
         n += 1
 
-    return {"status": True, "device_list": device_list}
+    return {"status": result.status, "msg": result.msg, "device_list": device_list}
 
 
 def set_log_level(log_level):

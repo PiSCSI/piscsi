@@ -296,6 +296,9 @@ def config_load():
         flash(process['msg'], "error")
         return redirect(url_for("index"))
 
+    flash("Got an unhandled request (needs to be either load or delete)", "error")
+    return redirect(url_for("index"))
+
 
 @app.route("/logs/show", methods=["POST"])
 def show_logs():
@@ -394,7 +397,7 @@ def attach():
     drive_properties = f"{cfg_dir}{file_name}.{PROPERTIES_SUFFIX}"
     if Path(drive_properties).is_file():
         process = read_drive_properties(drive_properties)
-        if process["status"] == False:
+        if not process["status"]:
             flash("Failed to load the device properties file " + \
                   file_name + "." + PROPERTIES_SUFFIX, "error")
             flash(process["msg"], "error")
@@ -486,7 +489,7 @@ def device_info():
     # First check if any device at all was returned
     if not devices["status"]:
         flash(f"No device attached to SCSI ID {scsi_id} LUN {un}!", "error")
-        flash(process["msg"], "error")
+        flash(devices["msg"], "error")
         return redirect(url_for("index"))
     # Looking at the first dict in list to get
     # the one and only device that should have been returned
@@ -507,7 +510,7 @@ def device_info():
         return redirect(url_for("index"))
 
     flash(f"Failed to get device info for SCSI ID {scsi_id} LUN {un}!", "error")
-    flash(process["msg"], "error")
+    flash(devices["msg"], "error")
     return redirect(url_for("index"))
 
 @app.route("/pi/reboot", methods=["POST"])
@@ -617,7 +620,6 @@ def upload_file():
     """
     from werkzeug.utils import secure_filename
     from os import path
-    import pydrop
 
     log = logging.getLogger("pydrop")
     file = request.files["file"]
@@ -651,11 +653,11 @@ def upload_file():
                       f"Got {path.getsize(save_path)} but we "
                       f"expected {request.form['dztotalfilesize']}.")
             return make_response(("Transferred file corrupted!", 500))
-        else:
-            log.info(f"File {file.filename} has been uploaded successfully")
-    else:
-        log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
-                  f"for file {file.filename} completed.")
+
+        log.info(f"File {file.filename} has been uploaded successfully")
+
+    log.debug(f"Chunk {current_chunk + 1} of {total_chunks} "
+              f"for file {file.filename} completed.")
 
     return make_response(("File upload successful!", 200))
 
@@ -716,10 +718,10 @@ def delete():
             flash(f"File {prop_file_path} deleted!")
             flash(process["msg"])
             return redirect(url_for("index"))
-        else:
-            flash(f"Failed to delete file {prop_file_path}!", "error")
-            flash(process["msg"], "error")
-            return redirect(url_for("index"))
+
+        flash(f"Failed to delete file {prop_file_path}!", "error")
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
 
     return redirect(url_for("index"))
 
