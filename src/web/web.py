@@ -542,7 +542,7 @@ def download_to_iso():
     """
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
- 
+
     process = download_file_to_iso(url)
     if process["status"]:
         flash(f"Created CD-ROM image: {process['file_name']}")
@@ -636,9 +636,9 @@ def upload_file():
                       file.filename, path.getsize(save_path), request.form['dztotalfilesize'])
             return make_response(("Transferred file corrupted!", 500))
 
-        log.info(f"File %s has been uploaded successfully", file.filename)
-
-    log.debug("Chunk %s of %s for file %s completed.", current_chunk + 1, total_chunks, file.filename) 
+        log.info("File %s has been uploaded successfully", file.filename)
+    log.debug("Chunk %s of %s for file %s completed.",
+              current_chunk + 1, total_chunks, file.filename)
 
     return make_response(("File upload successful!", 200))
 

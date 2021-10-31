@@ -48,18 +48,18 @@ def get_server_info():
             sccd.append(m)
 
     return {
-            "status": result.status, 
-            "version": version, 
-            "log_levels": log_levels, 
-            "current_log_level": current_log_level, 
-            "reserved_ids": reserved_ids,
-            "image_dir": image_dir,
-            "sahd": sahd,
-            "schd": schd,
-            "scrm": scrm,
-            "scmo": scmo,
-            "sccd": sccd,
-            }
+        "status": result.status,
+        "version": version,
+        "log_levels": log_levels,
+        "current_log_level": current_log_level,
+        "reserved_ids": reserved_ids,
+        "image_dir": image_dir,
+        "sahd": sahd,
+        "schd": schd,
+        "scrm": scrm,
+        "scmo": scmo,
+        "sccd": sccd,
+        }
 
 
 def get_network_info():
@@ -124,22 +124,21 @@ def attach_image(scsi_id, **kwargs):
             devices.params["file"] = kwargs["image"]
 
     # Handling the inserting of media into an attached removable type device
-    device_type = kwargs.get("device_type", None) 
+    device_type = kwargs.get("device_type", None)
     currently_attached = list_devices(scsi_id, kwargs.get("unit"))["device_list"]
     if len(currently_attached) > 0:
-        current_type = currently_attached[0]["device_type"] 
+        current_type = currently_attached[0]["device_type"]
     else:
         current_type = None
 
     if device_type in REMOVABLE_DEVICE_TYPES and current_type in REMOVABLE_DEVICE_TYPES:
         if current_type != device_type:
             return {
-                    "status": False,
-                    "msg": "Cannot insert an image for " + device_type + \
-                    " into a " + current_type + " device."
-                   }
-        else:
-            command.operation = proto.PbOperation.INSERT
+                "status": False,
+                "msg": "Cannot insert an image for " + device_type + \
+                " into a " + current_type + " device."
+                }
+        command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
     else:
         command.operation = proto.PbOperation.ATTACH
@@ -175,7 +174,7 @@ def detach_by_id(scsi_id, un=None):
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
-    if un != None:
+    if un is not None:
         devices.unit = int(un)
 
     command = proto.PbCommand()
@@ -210,7 +209,7 @@ def eject_by_id(scsi_id, un=None):
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
-    if un != None:
+    if un is not None:
         devices.unit = int(un)
 
     command = proto.PbCommand()
@@ -238,10 +237,10 @@ def list_devices(scsi_id=None, un=None):
 
     # If method is called with scsi_id parameter, return the info on those devices
     # Otherwise, return the info on all attached devices
-    if scsi_id != None:
+    if scsi_id is not None:
         device = proto.PbDeviceDefinition()
         device.id = int(scsi_id)
-        if un != None:
+        if un is not None:
             device.unit = int(un)
         command.devices.append(device)
 
@@ -259,20 +258,19 @@ def list_devices(scsi_id=None, un=None):
     while n < len(result.devices_info.devices):
         did = result.devices_info.devices[n].id
         dunit = result.devices_info.devices[n].unit
-        dtype = proto.PbDeviceType.Name(result.devices_info.devices[n].type) 
+        dtype = proto.PbDeviceType.Name(result.devices_info.devices[n].type)
         dstat = result.devices_info.devices[n].status
         dprop = result.devices_info.devices[n].properties
 
         # Building the status string
-        # TODO: This formatting should probably be moved elsewhere
         dstat_msg = []
-        if dprop.read_only == True:
+        if dprop.read_only:
             dstat_msg.append("Read-Only")
-        if dstat.protected == True and dprop.protectable == True:
+        if dstat.protected and dprop.protectable:
             dstat_msg.append("Write-Protected")
-        if dstat.removed == True and dprop.removable == True:
+        if dstat.removed and dprop.removable:
             dstat_msg.append("No Media")
-        if dstat.locked == True and dprop.lockable == True:
+        if dstat.locked and dprop.lockable:
             dstat_msg.append("Locked")
 
         dpath = result.devices_info.devices[n].file.name
@@ -284,22 +282,20 @@ def list_devices(scsi_id=None, un=None):
         dblock = result.devices_info.devices[n].block_size
         dsize = int(result.devices_info.devices[n].block_count) * int(dblock)
 
-        device_list.append(
-                {
-                    "id": did,
-                    "un": dunit,
-                    "device_type": dtype,
-                    "status": ", ".join(dstat_msg),
-                    "image": dpath,
-                    "file": dfile,
-                    "params": dparam,
-                    "vendor": dven,
-                    "product": dprod,
-                    "revision": drev,
-                    "block_size": dblock,
-                    "size": dsize,
-                }
-            )
+        device_list.append({
+            "id": did,
+            "un": dunit,
+            "device_type": dtype,
+            "status": ", ".join(dstat_msg),
+            "image": dpath,
+            "file": dfile,
+            "params": dparam,
+            "vendor": dven,
+            "product": dprod,
+            "revision": drev,
+            "block_size": dblock,
+            "size": dsize,
+            })
         n += 1
 
     return {"status": result.status, "msg": result.msg, "device_list": device_list}
