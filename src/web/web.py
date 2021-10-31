@@ -202,8 +202,12 @@ def drive_create():
 
     # Creating the drive properties file
     prop_file_name = f"{file_name}.{file_type}.{PROPERTIES_SUFFIX}"
-    properties = {"vendor": vendor, "product": product, \
-            "revision": revision, "block_size": block_size}
+    properties = {
+                "vendor": vendor,
+                "product": product,
+                "revision": revision,
+                "block_size": block_size,
+                }
     process = write_drive_properties(prop_file_name, properties)
     if process["status"] == True:
         flash(f"Drive properties file {prop_file_name} created")
@@ -359,14 +363,14 @@ def attach():
             expected_block_size = 256
  
     # Attempt to load the device properties file:
-    # same base path but with PROPERTIES_SUFFIX appended
+    # same file name with PROPERTIES_SUFFIX appended
     from pathlib import Path
     drive_properties = f"{cfg_dir}{file_name}.{PROPERTIES_SUFFIX}"
     if Path(drive_properties).is_file():
         process = read_drive_properties(drive_properties)
         if process["status"] == False:
-            flash(f"Failed to load the device properties \
-                    file {file_name_base}.{PROPERTIES_SUFFIX}", "error")
+            flash("Failed to load the device properties file " + \
+                  file_name + "." + PROPERTIES_SUFFIX, "error")
             flash(process["msg"], "error")
             return redirect(url_for("index"))
         conf = process["conf"]
