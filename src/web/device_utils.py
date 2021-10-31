@@ -6,8 +6,8 @@ def get_valid_scsi_ids(devices, reserved_ids):
     - (int) recommended_id, which is the id that the Web UI should default to recommend
     """
     occupied_ids = []
-    for d in devices:
-        occupied_ids.append(d["id"])
+    for device in devices:
+        occupied_ids.append(device["id"])
 
     unoccupied_ids = [i for i in list(range(8)) if i not in reserved_ids + occupied_ids]
     unoccupied_ids.sort()
@@ -29,8 +29,8 @@ def sort_and_format_devices(devices):
     For SCSI IDs where no device is attached, inject a dict with placeholder text.
     """
     occupied_ids = []
-    for d in devices:
-        occupied_ids.append(d["id"])
+    for device in devices:
+        occupied_ids.append(device["id"])
 
     formatted_devices = devices
 

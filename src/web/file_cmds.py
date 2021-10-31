@@ -68,15 +68,15 @@ def list_images():
     from zipfile import ZipFile, is_zipfile
     server_info = get_server_info()
     files = []
-    for f in result.image_files_info.image_files:
+    for file in result.image_files_info.image_files:
         # Add properties meta data for the image, if applicable
-        if f.name in prop_files:
-            process = read_drive_properties(f"{CFG_DIR}/{f.name}.{PROPERTIES_SUFFIX}")
+        if file.name in prop_files:
+            process = read_drive_properties(f"{CFG_DIR}/{file.name}.{PROPERTIES_SUFFIX}")
             prop = process["conf"]
         else:
             prop = False
-        if f.name.lower().endswith(".zip"):
-            zip_path = f"{server_info['image_dir']}/{f.name}"
+        if file.name.lower().endswith(".zip"):
+            zip_path = f"{server_info['image_dir']}/{file.name}"
             if is_zipfile(zip_path):
                 zipfile = ZipFile(zip_path)
                 # Get a list of str containing all zipfile members
@@ -228,9 +228,9 @@ def download_to_dir(url, save_dir):
             with open(f"{save_dir}/{file_name}", "wb") as download:
                 for chunk in req.iter_content(chunk_size=8192):
                     download.write(chunk)
-    except requests.exceptions.RequestException as e:
-        logging.warning("Request failed: %s", str(e))
-        return {"status": False, "msg": str(e)}
+    except requests.exceptions.RequestException as error:
+        logging.warning("Request failed: %s", str(error))
+        return {"status": False, "msg": str(error)}
 
     logging.info("Response encoding: %s", req.encoding)
     logging.info("Response content-type: %s", req.headers["content-type"])
@@ -268,10 +268,10 @@ def write_config(file_name):
                 device["params"] = dict(device["params"])
             dump(devices, json_file, indent=4)
         return {"status": True, "msg": f"Saved config to {file_name}"}
-    except (IOError, ValueError, EOFError, TypeError) as e:
-        logging.error(str(e))
+    except (IOError, ValueError, EOFError, TypeError) as error:
+        logging.error(str(error))
         delete_file(file_name)
-        return {"status": False, "msg": str(e)}
+        return {"status": False, "msg": str(error)}
     except:
         logging.error("Could not write to file: %s", file_name)
         delete_file(file_name)
@@ -295,15 +295,15 @@ def read_config(file_name):
                         "vendor": row["vendor"], "product": row["product"], \
                         "revision": row["revision"], "block_size": row["block_size"]}
                 params = dict(row["params"])
-                for p in params.keys():
-                    kwargs[p] = params[p]
+                for param in params.keys():
+                    kwargs[param] = params[param]
                 process = attach_image(row["id"], **kwargs)
         if process["status"]:
             return {"status": process["status"], "msg": f"Loaded config from: {file_name}"}
         return {"status": process["status"], "msg": process["msg"]}
-    except (IOError, ValueError, EOFError, TypeError) as e:
-        logging.error(str(e))
-        return {"status": False, "msg": str(e)}
+    except (IOError, ValueError, EOFError, TypeError) as error:
+        logging.error(str(error))
+        return {"status": False, "msg": str(error)}
     except:
         logging.error("Could not read file: %s", file_name)
         return {"status": False, "msg": f"Could not read file: {file_name}"}
@@ -321,10 +321,10 @@ def write_drive_properties(file_name, conf):
         with open(file_path, "w") as json_file:
             dump(conf, json_file, indent=4)
         return {"status": True, "msg": f"Created file: {file_path}"}
-    except (IOError, ValueError, EOFError, TypeError) as e:
-        logging.error(str(e))
+    except (IOError, ValueError, EOFError, TypeError) as error:
+        logging.error(str(error))
         delete_file(file_path)
-        return {"status": False, "msg": str(e)}
+        return {"status": False, "msg": str(error)}
     except:
         logging.error("Could not write to file: %s", file_path)
         delete_file(file_path)
@@ -343,9 +343,9 @@ def read_drive_properties(path_name):
         with open(path_name) as json_file:
             conf = load(json_file)
             return {"status": True, "msg": f"Read from file: {path_name}", "conf": conf}
-    except (IOError, ValueError, EOFError, TypeError) as e:
-        logging.error(str(e))
-        return {"status": False, "msg": str(e)}
+    except (IOError, ValueError, EOFError, TypeError) as error:
+        logging.error(str(error))
+        return {"status": False, "msg": str(error)}
     except:
         logging.error("Could not read file: %s", path_name)
         return {"status": False, "msg": f"Could not read file: {path_name}"}
