@@ -53,10 +53,10 @@ from device_utils import (
 )
 from settings import *
 
-app = Flask(__name__)
+APP = Flask(__name__)
 
 
-@app.route("/")
+@APP.route("/")
 def index():
     """
     Sets up data structures for and renders the index page
@@ -98,8 +98,8 @@ def index():
         files=sorted_image_files,
         config_files=sorted_config_files,
         base_dir=server_info["image_dir"],
-        cfg_dir=cfg_dir,
-        afp_dir=afp_dir,
+        CFG_DIR=CFG_DIR,
+        AFP_DIR=AFP_DIR,
         scsi_ids=scsi_ids,
         recommended_id=recommended_id,
         attached_images=attached_images,
@@ -119,7 +119,7 @@ def index():
     )
 
 
-@app.route("/drive/list", methods=["GET"])
+@APP.route("/drive/list", methods=["GET"])
 def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
@@ -178,7 +178,7 @@ def drive_list():
     )
 
 
-@app.route('/pwa/<path:path>')
+@APP.route('/pwa/<path:path>')
 def send_pwa_files(path):
     """
     Sets up mobile web resources
@@ -186,7 +186,7 @@ def send_pwa_files(path):
     return send_from_directory('pwa', path)
 
 
-@app.route("/drive/create", methods=["POST"])
+@APP.route("/drive/create", methods=["POST"])
 def drive_create():
     """
     Creates the image and properties file pair
@@ -224,7 +224,7 @@ def drive_create():
     return redirect(url_for("index"))
 
 
-@app.route("/drive/cdrom", methods=["POST"])
+@APP.route("/drive/cdrom", methods=["POST"])
 def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
@@ -252,7 +252,7 @@ def drive_cdrom():
     return redirect(url_for("index"))
 
 
-@app.route("/config/save", methods=["POST"])
+@APP.route("/config/save", methods=["POST"])
 def config_save():
     """
     Saves a config file to disk
@@ -269,7 +269,7 @@ def config_save():
     return redirect(url_for("index"))
 
 
-@app.route("/config/load", methods=["POST"])
+@APP.route("/config/load", methods=["POST"])
 def config_load():
     """
     Loads a config file from disk
@@ -285,7 +285,7 @@ def config_load():
         flash(process['msg'], "error")
         return redirect(url_for("index"))
     elif "delete" in request.form:
-        process = delete_file(cfg_dir + file_name)
+        process = delete_file(CFG_DIR + file_name)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -297,7 +297,7 @@ def config_load():
     return redirect(url_for("index"))
 
 
-@app.route("/logs/show", methods=["POST"])
+@APP.route("/logs/show", methods=["POST"])
 def show_logs():
     """
     Displays system logs
@@ -321,7 +321,7 @@ def show_logs():
     return redirect(url_for("index"))
 
 
-@app.route("/logs/level", methods=["POST"])
+@APP.route("/logs/level", methods=["POST"])
 def log_level():
     """
     Sets RaSCSI backend log level
@@ -337,7 +337,7 @@ def log_level():
     return redirect(url_for("index"))
 
 
-@app.route("/daynaport/attach", methods=["POST"])
+@APP.route("/daynaport/attach", methods=["POST"])
 def daynaport_attach():
     """
     Attaches a DaynaPORT ethernet adapter device
@@ -363,7 +363,7 @@ def daynaport_attach():
     return redirect(url_for("index"))
 
 
-@app.route("/scsi/attach", methods=["POST"])
+@APP.route("/scsi/attach", methods=["POST"])
 def attach():
     """
     Attaches a file image as a device
@@ -388,7 +388,7 @@ def attach():
 
     # Attempt to load the device properties file:
     # same file name with PROPERTIES_SUFFIX appended
-    drive_properties = f"{cfg_dir}{file_name}.{PROPERTIES_SUFFIX}"
+    drive_properties = f"{CFG_DIR}{file_name}.{PROPERTIES_SUFFIX}"
     if Path(drive_properties).is_file():
         process = read_drive_properties(drive_properties)
         if not process["status"]:
@@ -415,7 +415,7 @@ def attach():
     return redirect(url_for("index"))
 
 
-@app.route("/scsi/detach_all", methods=["POST"])
+@APP.route("/scsi/detach_all", methods=["POST"])
 def detach_all_devices():
     """
     Detaches all currently attached devices
@@ -429,7 +429,7 @@ def detach_all_devices():
     return redirect(url_for("index"))
 
 
-@app.route("/scsi/detach", methods=["POST"])
+@APP.route("/scsi/detach", methods=["POST"])
 def detach():
     """
     Detaches a specified device
@@ -446,7 +446,7 @@ def detach():
     return redirect(url_for("index"))
 
 
-@app.route("/scsi/eject", methods=["POST"])
+@APP.route("/scsi/eject", methods=["POST"])
 def eject():
     """
     Ejects a specified removable device image, but keeps the device attached
@@ -463,7 +463,7 @@ def eject():
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
-@app.route("/scsi/info", methods=["POST"])
+@APP.route("/scsi/info", methods=["POST"])
 def device_info():
     """
     Displays detailed info for a specific device
@@ -498,7 +498,7 @@ def device_info():
     flash(devices["msg"], "error")
     return redirect(url_for("index"))
 
-@app.route("/pi/reboot", methods=["POST"])
+@APP.route("/pi/reboot", methods=["POST"])
 def restart():
     """
     Restarts the Pi
@@ -510,7 +510,7 @@ def restart():
     return redirect(url_for("index"))
 
 
-@app.route("/rascsi/restart", methods=["POST"])
+@APP.route("/rascsi/restart", methods=["POST"])
 def rascsi_restart():
     """
     Restarts the RaSCSI backend service
@@ -523,7 +523,7 @@ def rascsi_restart():
     return redirect(url_for("index"))
 
 
-@app.route("/pi/shutdown", methods=["POST"])
+@APP.route("/pi/shutdown", methods=["POST"])
 def shutdown():
     """
     Shuts down the Pi
@@ -535,7 +535,7 @@ def shutdown():
     return redirect(url_for("index"))
 
 
-@app.route("/files/download_to_iso", methods=["POST"])
+@APP.route("/files/download_to_iso", methods=["POST"])
 def download_to_iso():
     """
     Downloads a remote file and creates a CD-ROM image formatted with HFS that contains the file
@@ -561,7 +561,7 @@ def download_to_iso():
     return redirect(url_for("index"))
 
 
-@app.route("/files/download_to_images", methods=["POST"])
+@APP.route("/files/download_to_images", methods=["POST"])
 def download_img():
     """
     Downloads a remote file onto the images dir on the Pi
@@ -578,13 +578,13 @@ def download_img():
     return redirect(url_for("index"))
 
 
-@app.route("/files/download_to_afp", methods=["POST"])
+@APP.route("/files/download_to_afp", methods=["POST"])
 def download_afp():
     """
     Downloads a remote file onto the AFP shared dir on the Pi
     """
     url = request.form.get("url")
-    process = download_to_dir(url, afp_dir)
+    process = download_to_dir(url, AFP_DIR)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -594,7 +594,7 @@ def download_afp():
     return redirect(url_for("index"))
 
 
-@app.route("/files/upload", methods=["POST"])
+@APP.route("/files/upload", methods=["POST"])
 def upload_file():
     """
     Uploads a file from the local computer to the images dir on the Pi
@@ -643,7 +643,7 @@ def upload_file():
     return make_response(("File upload successful!", 200))
 
 
-@app.route("/files/create", methods=["POST"])
+@APP.route("/files/create", methods=["POST"])
 def create_file():
     """
     Creates an empty image file in the images dir
@@ -664,7 +664,7 @@ def create_file():
     return redirect(url_for("index"))
 
 
-@app.route("/files/download", methods=["POST"])
+@APP.route("/files/download", methods=["POST"])
 def download():
     """
     Downloads a file from the Pi to the local computer
@@ -674,7 +674,7 @@ def download():
     return send_file(f"{server_info['image_dir']}/{image}", as_attachment=True)
 
 
-@app.route("/files/delete", methods=["POST"])
+@APP.route("/files/delete", methods=["POST"])
 def delete():
     """
     Deletes a specified file in the images dir
@@ -689,7 +689,7 @@ def delete():
         return redirect(url_for("index"))
 
     # Delete the drive properties file, if it exists
-    prop_file_path = f"{cfg_dir}{file_name}.{PROPERTIES_SUFFIX}"
+    prop_file_path = f"{CFG_DIR}{file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
         process = delete_file(prop_file_path)
         if process["status"]:
@@ -702,7 +702,7 @@ def delete():
     return redirect(url_for("index"))
 
 
-@app.route("/files/unzip", methods=["POST"])
+@APP.route("/files/unzip", methods=["POST"])
 def unzip():
     """
     Unzips a specified zip file
@@ -737,7 +737,7 @@ if __name__ == "__main__":
     app.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
     # Load the default configuration file, if found
-    default_config_path = Path(cfg_dir + DEFAULT_CONFIG)
+    default_config_path = Path(CFG_DIR + DEFAULT_CONFIG)
     if default_config_path.is_file():
         read_config(DEFAULT_CONFIG)
 

@@ -37,11 +37,11 @@ def list_files(file_types, dir_path):
 
 def list_config_files():
     """
-    Returns a list of RaSCSI config files in cfg_dir:
+    Returns a list of RaSCSI config files in CFG_DIR:
     list of str files_list
     """
     files_list = []
-    for root, dirs, files in os.walk(cfg_dir):
+    for root, dirs, files in os.walk(CFG_DIR):
         for file in files:
             if file.endswith(".json"):
                 files_list.append(file)
@@ -61,8 +61,8 @@ def list_images():
     result = proto.PbResult()
     result.ParseFromString(data)
 
-    # Get a list of all *.properties files in cfg_dir
-    prop_data = list_files(PROPERTIES_SUFFIX, cfg_dir)
+    # Get a list of all *.properties files in CFG_DIR
+    prop_data = list_files(PROPERTIES_SUFFIX, CFG_DIR)
     prop_files = [PurePath(x[0]).stem for x in prop_data]
 
     from zipfile import ZipFile, is_zipfile
@@ -71,7 +71,7 @@ def list_images():
     for f in result.image_files_info.image_files:
         # Add properties meta data for the image, if applicable
         if f.name in prop_files:
-            process = read_drive_properties(f"{cfg_dir}/{f.name}.{PROPERTIES_SUFFIX}")
+            process = read_drive_properties(f"{CFG_DIR}/{f.name}.{PROPERTIES_SUFFIX}")
             prop = process["conf"]
         else:
             prop = False
@@ -245,7 +245,7 @@ def write_config(file_name):
     Returns dict with boolean status and str msg
     """
     from json import dump
-    file_name = cfg_dir + file_name
+    file_name = CFG_DIR + file_name
     try:
         with open(file_name, "w") as json_file:
             devices = list_devices()["device_list"]
@@ -284,7 +284,7 @@ def read_config(file_name):
     Returns dict with boolean status and str msg
     """
     from json import load
-    file_name = cfg_dir + file_name
+    file_name = CFG_DIR + file_name
     try:
         with open(file_name) as json_file:
             detach_all()
@@ -316,7 +316,7 @@ def write_drive_properties(file_name, conf):
     Returns dict with boolean status and str msg
     """
     from json import dump
-    file_path = cfg_dir + file_name
+    file_path = CFG_DIR + file_name
     try:
         with open(file_path, "w") as json_file:
             dump(conf, json_file, indent=4)
