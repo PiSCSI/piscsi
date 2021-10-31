@@ -78,9 +78,9 @@ def list_images():
         if f.name.lower().endswith(".zip"):
             zip_path = f"{server_info['image_dir']}/{f.name}"
             if is_zipfile(zip_path):
-                zip = ZipFile(zip_path)
+                zipfile = ZipFile(zip_path)
                 # Get a list of str containing all zipfile members
-                zip_members = zip.namelist()
+                zip_members = zipfile.namelist()
                 # Strip out directories from the list
                 zip_members = [x for x in zip_members if not x.endswith("/")]
             else:
@@ -91,16 +91,14 @@ def list_images():
 
         size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
         dtype = proto.PbDeviceType.Name(f.type)
-        files.append(
-                        {
-                            "name": f.name,
-                            "size": f.size,
-                            "size_mb": size_mb,
-                            "detected_type": dtype,
-                            "prop": prop,
-                            "zip": zip_members,
-                        }
-                    )
+        files.append({
+                    "name": f.name,
+                    "size": f.size,
+                    "size_mb": size_mb,
+                    "detected_type": dtype,
+                    "prop": prop,
+                    "zip": zip_members,
+                    })
 
     return {"status": result.status, "msg": result.msg, "files": files}
 
@@ -161,7 +159,7 @@ def unzip_file(file_name, member=False):
     from re import escape
     server_info = get_server_info()
 
-    if member == False:
+    if not member:
         unzip_proc = run(
             ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
                 f"{server_info['image_dir']}/{file_name}"], capture_output=True
@@ -172,19 +170,19 @@ def unzip_file(file_name, member=False):
                 f"{server_info['image_dir']}/{file_name}", escape(member)], capture_output=True
             )
     if unzip_proc.returncode != 0:
-        stderr = unzip_proc.stderr.decode("utf-8") 
+        stderr = unzip_proc.stderr.decode("utf-8")
         logging.warning(f"Unzipping failed: {stderr}")
         return {"status": False, "msg": stderr}
 
     from re import findall
     unzipped = findall(
-            "(?:inflating|extracting):(.+)\n", 
-            unzip_proc.stdout.decode("utf-8")
-            )
+        "(?:inflating|extracting):(.+)\n", 
+        unzip_proc.stdout.decode("utf-8")
+        )
     return {"status": True, "msg": unzipped}
 
 
-def download_file_to_iso(scsi_id, url):
+def download_file_to_iso(url):
     """
     Takes int scsi_id and str url
     Returns dict with boolean status and str msg
@@ -203,7 +201,7 @@ def download_file_to_iso(scsi_id, url):
 
     req_proc = download_to_dir(url, tmp_dir)
 
-    if req_proc["status"] == False:
+    if not req_proc["status"]:
         return {"status": False, "msg": req_proc["msg"]}
 
     iso_proc = run(
@@ -336,7 +334,7 @@ def write_drive_properties(file_name, conf):
 
 
 def read_drive_properties(path_name):
-    """ 
+    """
     Reads drive properties from json formatted file.
     Takes (str) path_name as argument.
     Returns dict with boolean status, str msg, dict conf

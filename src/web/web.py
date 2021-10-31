@@ -556,9 +556,9 @@ def download_to_iso():
     Downloads a remote file and creates a CD-ROM image formatted with HFS that contains the file
     """
     scsi_id = request.form.get("scsi_id")
-
     url = request.form.get("url")
-    process = download_file_to_iso(scsi_id, url)
+ 
+    process = download_file_to_iso(url)
     if process["status"]:
         flash(f"Created CD-ROM image {process['file_name']}")
         flash(process["msg"])

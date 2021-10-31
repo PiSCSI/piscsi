@@ -35,9 +35,9 @@ def sort_and_format_devices(devices):
     formatted_devices = devices
 
     # Add padding devices and sort the list
-    for id in range(8):
-        if id not in occupied_ids:
-            formatted_devices.append({"id": id, "device_type": "-", \
+    for i in range(8):
+        if i not in occupied_ids:
+            formatted_devices.append({"id": i, "device_type": "-", \
                     "status": "-", "file": "-", "product": "-"})
     # Sort list of devices by id
     formatted_devices.sort(key=lambda dic: str(dic["id"]))
