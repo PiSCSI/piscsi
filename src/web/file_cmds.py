@@ -271,7 +271,7 @@ def write_config(file_name):
                 # Convert to a data type that can be serialized
                 device["params"] = dict(device["params"])
             dump(devices, json_file, indent=4)
-        return {"status": True, "msg": f"Successfully wrote to file: {file_name}"}
+        return {"status": True, "msg": f"Saved config to {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as e:
         logging.error(str(e))
         delete_file(file_name)
@@ -303,7 +303,7 @@ def read_config(file_name):
                     kwargs[p] = params[p]
                 process = attach_image(row["id"], **kwargs)
         if process["status"] == True:
-            return {"status": process["status"], "msg": f"Successfully read from file: {file_name}"}
+            return {"status": process["status"], "msg": f"Loaded config from {file_name}"}
         else:
             return {"status": process["status"], "msg": process["msg"]}
     except (IOError, ValueError, EOFError, TypeError) as e:
@@ -325,7 +325,7 @@ def write_drive_properties(file_name, conf):
     try:
         with open(file_path, "w") as json_file:
             dump(conf, json_file, indent=4)
-        return {"status": True, "msg": f"Successfully wrote to file: {file_path}"}
+        return {"status": True, "msg": f"Created file: {file_path}"}
     except (IOError, ValueError, EOFError, TypeError) as e:
         logging.error(str(e))
         delete_file(file_path)
@@ -347,7 +347,7 @@ def read_drive_properties(path_name):
     try:
         with open(path_name) as json_file:
             conf = load(json_file)
-            return {"status": True, "msg": f"Read data from file: {path_name}", "conf": conf}
+            return {"status": True, "msg": f"Read from file: {path_name}", "conf": conf}
     except (IOError, ValueError, EOFError, TypeError) as e:
         logging.error(str(e))
         return {"status": False, "msg": str(e)}

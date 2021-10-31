@@ -194,6 +194,7 @@ def drive_create():
     process = create_new_image(file_name, file_type, size)
     if process["status"] == True:
         flash(f"Drive image file {file_name}.{file_type} created")
+        # TODO Revisit after resolving issue#410 (more instances below)
         flash(process["msg"])
     else:
         flash(f"Failed to create file {file_name}.{file_type}", "error")
@@ -210,10 +211,10 @@ def drive_create():
                 }
     process = write_drive_properties(prop_file_name, properties)
     if process["status"] == True:
-        flash(f"Drive properties file {prop_file_name} created")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to create drive properties file {prop_file_name}", "error")
+        flash(process['msg'], "error")
         return redirect(url_for("index"))
 
 
@@ -235,10 +236,10 @@ def drive_cdrom():
             }
     process = write_drive_properties(file_name, properties)
     if process["status"] == True:
-        flash(f"Drive properties file {file_name} created")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to create drive properties file {file_name}", "error")
+        flash(process['msg'], "error")
         return redirect(url_for("index"))
 
 
@@ -249,11 +250,9 @@ def config_save():
 
     process = write_config(file_name)
     if process["status"] == True:
-        flash(f"Saved config to {file_name}!")
         flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to save config to {file_name}!", "error")
         flash(process['msg'], "error")
         return redirect(url_for("index"))
 
@@ -265,20 +264,17 @@ def config_load():
     if "load" in request.form:
         process = read_config(file_name)
         if process["status"] == True:
-            flash(f"Loaded config from {file_name}!")
             flash(process["msg"])
             return redirect(url_for("index"))
         else:
-            flash(f"Failed to load {file_name}!", "error")
             flash(process['msg'], "error")
             return redirect(url_for("index"))
     elif "delete" in request.form:
         process = delete_file(cfg_dir + file_name)
         if process["status"] == True:
-            flash(f"Deleted config {file_name}!")
+            flash(process["msg"])
             return redirect(url_for("index"))
         else:
-            flash(f"Failed to delete {file_name}!", "error")
             flash(process['msg'], "error")
             return redirect(url_for("index"))
 
@@ -311,6 +307,7 @@ def log_level():
     process = set_log_level(level)
     if process["status"] == True:
         flash(f"Log level set to {level}!")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
         flash(f"Failed to set log level to {level}!", "error")
@@ -335,9 +332,9 @@ def daynaport_attach():
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached DaynaPORT to SCSI ID {scsi_id}!")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to attach DaynaPORT to SCSI ID {scsi_id}!", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -383,6 +380,7 @@ def attach():
     process = attach_image(scsi_id, **kwargs)
     if process["status"] == True:
         flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {un}!")
+        flash(process["msg"])
         if int(file_size) % int(expected_block_size):
             flash(f"The image file size {file_size} bytes is not a multiple of \
                     {expected_block_size} and RaSCSI will ignore the trailing data. \
@@ -399,6 +397,7 @@ def detach_all_devices():
     process = detach_all()
     if process["status"] == True:
         flash("Detached all SCSI devices!")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
         flash("Failed to detach all SCSI devices!", "error")
@@ -413,6 +412,7 @@ def detach():
     process = detach_by_id(scsi_id, un)
     if process["status"] == True:
         flash(f"Detached SCSI ID {scsi_id} LUN {un}!")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
         flash(f"Failed to detach SCSI ID {scsi_id} LUN {un}!", "error")
@@ -428,6 +428,7 @@ def eject():
     process = eject_by_id(scsi_id, un)
     if process["status"] == True:
         flash(f"Ejected SCSI ID {scsi_id} LUN {un}!")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
         flash(f"Failed to eject SCSI ID {scsi_id} LUN {un}!", "error")
@@ -444,6 +445,7 @@ def device_info():
     # First check if any device at all was returned
     if devices["status"] == False:
         flash(f"No device attached to SCSI ID {scsi_id} LUN {un}!", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
     # Looking at the first dict in list to get
     # the one and only device that should have been returned
@@ -464,6 +466,7 @@ def device_info():
         return redirect(url_for("index"))
     else:
         flash(f"Failed to get device info for SCSI ID {scsi_id} LUN {un}!", "error")
+        flash(process["msg"], "error")
         return redirect(url_for("index"))
 
 @app.route("/pi/reboot", methods=["POST"])
@@ -511,6 +514,7 @@ def download_to_iso():
     process_attach = attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
     if process_attach["status"] == True:
         flash(f"Attached to SCSI ID {scsi_id}")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
         flash(f"Failed to attach to SCSI ID {scsi_id}. Try attaching it manually.", "error")
@@ -525,6 +529,7 @@ def download_img():
     process = download_to_dir(url, server_info["image_dir"])
     if process["status"] == True:
         flash(f"File Downloaded from {url} to {server_info['image_dir']}")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
         flash(f"Failed to download file {url}", "error")
@@ -538,6 +543,7 @@ def download_afp():
     process = download_to_dir(url, afp_dir)
     if process["status"] == True:
         flash(f"File Downloaded from {url} to {afp_dir}")
+        flash(process["msg"])
         return redirect(url_for("index"))
     else:
         flash(f"Failed to download file {url}", "error")
@@ -607,7 +613,6 @@ def create_file():
         flash(process["msg"])
         return redirect(url_for("index"))
     else:
-        flash(f"Failed to create file {file_name}.{file_type}", "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -639,6 +644,7 @@ def delete():
         process = delete_file(prop_file_path)
         if process["status"] == True:
             flash(f"File {prop_file_path} deleted!")
+            flash(process["msg"])
             return redirect(url_for("index"))
         else:
             flash(f"Failed to delete file {prop_file_path}!", "error")

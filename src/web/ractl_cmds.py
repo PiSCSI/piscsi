@@ -137,8 +137,8 @@ def attach_image(scsi_id, **kwargs):
         if current_type != device_type:
             return {
                     "status": False,
-                    "msg": "Cannot insert an image for " + {device_type} + \
-                    "into a " + current_type + " device."
+                    "msg": "Cannot insert an image for " + device_type + \
+                    " into a " + current_type + " device."
                    }
         else:
             command.operation = proto.PbOperation.INSERT
