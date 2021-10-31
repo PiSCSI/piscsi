@@ -7,7 +7,7 @@ CFG_DIR = f"{HOME_DIR}/.config/rascsi/"
 AFP_DIR = f"{HOME_DIR}/afpshare"
 WEB_DIR = getcwd()
 
-MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", str(1024 * 1024 * 1024 * 4))  # 4gb
+MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", 1024 * 1024 * 1024 * 4)  # 4gb
 
 ARCHIVE_FILE_SUFFIX = "zip"
 CONFIG_FILE_SUFFIX = "json"
@@ -15,7 +15,7 @@ CONFIG_FILE_SUFFIX = "json"
 PROPERTIES_SUFFIX = "properties"
 
 # The file name of the default config file that loads when rascsi-web starts
-DEFAULT_CONFIG = f"default.{CONFIG_FILE_SUFFIX}"
+DEFAULT_CONFIG = f"{CFG_DIR}/default.{CONFIG_FILE_SUFFIX}"
 # File containing canonical drive properties
 DRIVE_PROPERTIES_FILE = WEB_DIR + "/drive_properties.json"
 

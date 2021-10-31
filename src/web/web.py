@@ -73,9 +73,9 @@ def index():
 
     attached_images = []
     luns = 0
-    for d in devices["device_list"]:
-        attached_images.append(Path(d["image"]).name)
-        luns += int(d["un"])
+    for device in devices["device_list"]:
+        attached_images.append(Path(device["image"]).name)
+        luns += int(device["un"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
     scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
@@ -105,7 +105,7 @@ def index():
         attached_images=attached_images,
         luns=luns,
         reserved_scsi_ids=reserved_scsi_ids,
-        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
+        max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
         running_env=running_env(),
         version=server_info["version"],
         log_levels=server_info["log_levels"],
@@ -145,18 +145,18 @@ def drive_list():
     rm_conf = []
 
     from werkzeug.utils import secure_filename
-    for d in conf:
-        if d["device_type"] == "SCHD":
-            d["secure_name"] = secure_filename(d["name"])
-            d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
-            hd_conf.append(d)
-        elif d["device_type"] == "SCCD":
-            d["size_mb"] = "N/A"
-            cd_conf.append(d)
-        elif d["device_type"] == "SCRM":
-            d["secure_name"] = secure_filename(d["name"])
-            d["size_mb"] = "{:,.2f}".format(d["size"] / 1024 / 1024)
-            rm_conf.append(d)
+    for device in conf:
+        if device["device_type"] == "SCHD":
+            device["secure_name"] = secure_filename(device["name"])
+            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
+            hd_conf.append(device)
+        elif device["device_type"] == "SCCD":
+            device["size_mb"] = "N/A"
+            cd_conf.append(device)
+        elif device["device_type"] == "SCRM":
+            device["secure_name"] = secure_filename(device["name"])
+            device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
+            rm_conf.append(device)
 
     files = list_images()
     sorted_image_files = sorted(files["files"], key=lambda x: x["name"].lower())
@@ -618,9 +618,9 @@ def upload_file():
         return make_response((f"The file {file.filename} already exists!", 400))
 
     try:
-        with open(save_path, "ab") as f:
-            f.seek(int(request.form["dzchunkbyteoffset"]))
-            f.write(file.stream.read())
+        with open(save_path, "ab") as save:
+            save.seek(int(request.form["dzchunkbyteoffset"]))
+            save.write(file.stream.read())
     except OSError:
         log.exception("Could not write to file")
         return make_response(("Unable to write the file to disk!", 500))
@@ -716,8 +716,8 @@ def unzip():
             flash("Aborted unzip: File(s) with the same name already exists.", "error")
             return redirect(url_for("index"))
         flash("Unzipped the following files:")
-        for m in process["msg"]:
-            flash(m)
+        for msg in process["msg"]:
+            flash(msg)
         return redirect(url_for("index"))
 
     flash("Failed to unzip " + image, "error")
@@ -737,8 +737,7 @@ if __name__ == "__main__":
     APP.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
 
     # Load the default configuration file, if found
-    default_config_path = Path(CFG_DIR + DEFAULT_CONFIG)
-    if default_config_path.is_file():
+    if Path(DEFAULT_CONFIG).is_file():
         read_config(DEFAULT_CONFIG)
 
     import bjoern

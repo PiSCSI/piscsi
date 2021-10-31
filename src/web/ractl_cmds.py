@@ -35,17 +35,17 @@ def get_server_info():
     scrm = []
     scmo = []
     sccd = []
-    for m in mappings:
-        if mappings[m] == proto.PbDeviceType.SAHD:
-            sahd.append(m)
-        elif mappings[m] == proto.PbDeviceType.SCHD:
-            schd.append(m)
-        elif mappings[m] == proto.PbDeviceType.SCRM:
-            scrm.append(m)
-        elif mappings[m] == proto.PbDeviceType.SCMO:
-            scmo.append(m)
-        elif mappings[m] == proto.PbDeviceType.SCCD:
-            sccd.append(m)
+    for type in mappings:
+        if mappings[type] == proto.PbDeviceType.SAHD:
+            sahd.append(type)
+        elif mappings[type] == proto.PbDeviceType.SCHD:
+            schd.append(type)
+        elif mappings[type] == proto.PbDeviceType.SCRM:
+            scrm.append(type)
+        elif mappings[type] == proto.PbDeviceType.SCMO:
+            scmo.append(type)
+        elif mappings[type] == proto.PbDeviceType.SCCD:
+            sccd.append(type)
 
     return {
         "status": result.status,
@@ -93,8 +93,8 @@ def get_device_types():
     result = proto.PbResult()
     result.ParseFromString(data)
     device_types = []
-    for t in result.device_types_info.properties:
-        device_types.append(proto.PbDeviceType.Name(t.type))
+    for prop in result.device_types_info.properties:
+        device_types.append(proto.PbDeviceType.Name(prop.type))
     return {"status": result.status, "device_types": device_types}
 
 

@@ -89,11 +89,11 @@ def list_images():
         else:
             zip_members = False
 
-        size_mb = "{:,.1f}".format(f.size / 1024 / 1024)
-        dtype = proto.PbDeviceType.Name(f.type)
+        size_mb = "{:,.1f}".format(file.size / 1024 / 1024)
+        dtype = proto.PbDeviceType.Name(file.type)
         files.append({
-            "name": f.name,
-            "size": f.size,
+            "name": file.name,
+            "size": file.size,
             "size_mb": size_mb,
             "detected_type": dtype,
             "prop": prop,
