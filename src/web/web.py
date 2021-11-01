@@ -345,14 +345,14 @@ def daynaport_attach():
     """
     scsi_id = request.form.get("scsi_id")
     interface = request.form.get("if")
-    ip = request.form.get("ip")
+    ip_addr = request.form.get("ip")
     mask = request.form.get("mask")
 
     kwargs = {"device_type": "SCDP"}
     if interface != "":
         arg = interface
-        if "" not in (ip, mask):
-            arg += (":" + ip + "/" + mask)
+        if "" not in (ip_addr, mask):
+            arg += (":" + ip_addr + "/" + mask)
         kwargs["interfaces"] = arg
 
     process = attach_image(scsi_id, **kwargs)
