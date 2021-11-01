@@ -106,7 +106,7 @@ def index():
         attached_images=attached_images,
         units=units,
         reserved_scsi_ids=reserved_scsi_ids,
-        max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
+        max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         running_env=running_env(),
         version=server_info["version"],
         log_levels=server_info["log_levels"],
@@ -729,13 +729,7 @@ def unzip():
 if __name__ == "__main__":
     APP.secret_key = "rascsi_is_awesome_insecure_secret_key"
     APP.config["SESSION_TYPE"] = "filesystem"
-
-    server_info = get_server_info()
-    APP.config["UPLOAD_FOLDER"] = server_info["image_dir"]
-
-    from os import makedirs
-    makedirs(APP.config["UPLOAD_FOLDER"], exist_ok=True)
-    APP.config["MAX_CONTENT_LENGTH"] = MAX_FILE_SIZE
+    APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
     # Load the default configuration file, if found
     if Path(DEFAULT_CONFIG).is_file():
