@@ -455,7 +455,7 @@ def eject():
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
 
-    process = eject_by_id(scsi_id, un)
+    process = eject_by_id(scsi_id, unit)
     if process["status"]:
         flash(f"Ejected SCSI ID {scsi_id} LUN {unit}")
         return redirect(url_for("index"))
