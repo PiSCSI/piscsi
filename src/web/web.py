@@ -437,7 +437,7 @@ def detach():
     """
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
-    process = detach_by_id(scsi_id, un)
+    process = detach_by_id(scsi_id, unit)
     if process["status"]:
         flash(f"Detached SCSI ID {scsi_id} LUN {unit}")
         return redirect(url_for("index"))
@@ -457,10 +457,10 @@ def eject():
 
     process = eject_by_id(scsi_id, un)
     if process["status"]:
-        flash(f"Ejected SCSI ID {scsi_id} LUN {un}")
+        flash(f"Ejected SCSI ID {scsi_id} LUN {unit}")
         return redirect(url_for("index"))
 
-    flash(f"Failed to eject SCSI ID {scsi_id} LUN {un}", "error")
+    flash(f"Failed to eject SCSI ID {scsi_id} LUN {unit}", "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
