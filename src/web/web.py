@@ -51,7 +51,17 @@ from device_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
 )
-from settings import *
+from settings import (
+    CFG_DIR,
+    AFP_DIR,
+    MAX_FILE_SIZE,
+    ARCHIVE_FILE_SUFFIX,
+    CONFIG_FILE_SUFFIX,
+    PROPERTIES_SUFFIX,
+    DEFAULT_CONFIG,
+    DRIVE_PROPERTIES_FILE,
+    REMOVABLE_DEVICE_TYPES,
+)
 
 APP = Flask(__name__)
 

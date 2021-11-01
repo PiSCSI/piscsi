@@ -1,4 +1,4 @@
-from settings import *
+from settings import REMOVABLE_DEVICE_TYPES
 from socket_cmds import send_pb_command
 import rascsi_interface_pb2 as proto
 
@@ -35,17 +35,17 @@ def get_server_info():
     scrm = []
     scmo = []
     sccd = []
-    for type in mappings:
-        if mappings[type] == proto.PbDeviceType.SAHD:
-            sahd.append(type)
-        elif mappings[type] == proto.PbDeviceType.SCHD:
-            schd.append(type)
-        elif mappings[type] == proto.PbDeviceType.SCRM:
-            scrm.append(type)
-        elif mappings[type] == proto.PbDeviceType.SCMO:
-            scmo.append(type)
-        elif mappings[type] == proto.PbDeviceType.SCCD:
-            sccd.append(type)
+    for dtype in mappings:
+        if mappings[dtype] == proto.PbDeviceType.SAHD:
+            sahd.append(dtype)
+        elif mappings[dtype] == proto.PbDeviceType.SCHD:
+            schd.append(dtype)
+        elif mappings[dtype] == proto.PbDeviceType.SCRM:
+            scrm.append(dtype)
+        elif mappings[dtype] == proto.PbDeviceType.SCMO:
+            scmo.append(dtype)
+        elif mappings[dtype] == proto.PbDeviceType.SCCD:
+            sccd.append(dtype)
 
     return {
         "status": result.status,
@@ -249,18 +249,18 @@ def list_devices(scsi_id=None, unit=None):
     result.ParseFromString(data)
 
     device_list = []
-    n = 0
+    counter = 0
 
     # Return an empty list if no devices are attached
     if len(result.devices_info.devices) == 0:
         return {"status": False, "device_list": []}
 
-    while n < len(result.devices_info.devices):
-        did = result.devices_info.devices[n].id
-        dunit = result.devices_info.devices[n].unit
-        dtype = proto.PbDeviceType.Name(result.devices_info.devices[n].type)
-        dstat = result.devices_info.devices[n].status
-        dprop = result.devices_info.devices[n].properties
+    while counter < len(result.devices_info.devices):
+        did = result.devices_info.devices[counter].id
+        dunit = result.devices_info.devices[counter].unit
+        dtype = proto.PbDeviceType.Name(result.devices_info.devices[counter].type)
+        dstat = result.devices_info.devices[counter].status
+        dprop = result.devices_info.devices[counter].properties
 
         # Building the status string
         dstat_msg = []
@@ -273,14 +273,14 @@ def list_devices(scsi_id=None, unit=None):
         if dstat.locked and dprop.lockable:
             dstat_msg.append("Locked")
 
-        dpath = result.devices_info.devices[n].file.name
+        dpath = result.devices_info.devices[counter].file.name
         dfile = path.basename(dpath)
-        dparam = result.devices_info.devices[n].params
-        dven = result.devices_info.devices[n].vendor
-        dprod = result.devices_info.devices[n].product
-        drev = result.devices_info.devices[n].revision
-        dblock = result.devices_info.devices[n].block_size
-        dsize = int(result.devices_info.devices[n].block_count) * int(dblock)
+        dparam = result.devices_info.devices[counter].params
+        dven = result.devices_info.devices[counter].vendor
+        dprod = result.devices_info.devices[counter].product
+        drev = result.devices_info.devices[counter].revision
+        dblock = result.devices_info.devices[counter].block_size
+        dsize = int(result.devices_info.devices[counter].block_count) * int(dblock)
 
         device_list.append({
             "id": did,
@@ -296,7 +296,7 @@ def list_devices(scsi_id=None, unit=None):
             "block_size": dblock,
             "size": dsize,
             })
-        n += 1
+        counter += 1
 
     return {"status": result.status, "msg": result.msg, "device_list": device_list}
 
