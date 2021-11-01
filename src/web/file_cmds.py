@@ -9,7 +9,7 @@ from ractl_cmds import (
     list_devices,
     send_pb_command,
 )
-from settings import CFG_DIR, PROPERTIES_SUFFIX, DEFAULT_CONFIG
+from settings import CFG_DIR, PROPERTIES_SUFFIX
 import rascsi_interface_pb2 as proto
 
 
@@ -249,7 +249,7 @@ def write_config(file_name):
     try:
         with open(file_name, "w") as json_file:
             devices = list_devices()["device_list"]
-            if len(devices) == 0:
+            if not devices:
                 return {"status": False, "msg": "No attached devices."}
             for device in devices:
                 # Remove keys that we don't want to store in the file

@@ -723,7 +723,7 @@ def unzip():
 
     process = unzip_file(image, member)
     if process["status"]:
-        if len(process["msg"]) < 1:
+        if not process["msg"]:
             flash("Aborted unzip: File(s) with the same name already exists.", "error")
             return redirect(url_for("index"))
         flash("Unzipped the following files:")

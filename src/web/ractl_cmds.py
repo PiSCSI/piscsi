@@ -126,7 +126,7 @@ def attach_image(scsi_id, **kwargs):
     # Handling the inserting of media into an attached removable type device
     device_type = kwargs.get("device_type", None)
     currently_attached = list_devices(scsi_id, kwargs.get("unit"))["device_list"]
-    if len(currently_attached) > 0:
+    if currently_attached:
         current_type = currently_attached[0]["device_type"]
     else:
         current_type = None
@@ -252,7 +252,7 @@ def list_devices(scsi_id=None, unit=None):
     counter = 0
 
     # Return an empty list if no devices are attached
-    if len(result.devices_info.devices) == 0:
+    if not result.devices_info.devices:
         return {"status": False, "device_list": []}
 
     while counter < len(result.devices_info.devices):
