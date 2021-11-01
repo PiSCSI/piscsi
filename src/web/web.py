@@ -72,10 +72,11 @@ def index():
     sorted_config_files = sorted(config_files, key=lambda x: x.lower())
 
     attached_images = []
-    luns = 0
+    units = 0
+    # If there are more than 0 logical unit numbers, display in the Web UI
     for device in devices["device_list"]:
         attached_images.append(Path(device["image"]).name)
-        luns += int(device["un"])
+        units += int(device["un"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
     scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
@@ -103,7 +104,7 @@ def index():
         scsi_ids=scsi_ids,
         recommended_id=recommended_id,
         attached_images=attached_images,
-        luns=luns,
+        units=units,
         reserved_scsi_ids=reserved_scsi_ids,
         max_file_size=int(MAX_FILE_SIZE / 1024 / 1024),
         running_env=running_env(),
@@ -371,10 +372,10 @@ def attach():
     file_name = request.form.get("file_name")
     file_size = request.form.get("file_size")
     scsi_id = request.form.get("scsi_id")
-    un = request.form.get("un")
+    unit = request.form.get("unit")
     device_type = request.form.get("type")
 
-    kwargs = {"unit": int(un), "image": file_name}
+    kwargs = {"unit": int(unit), "image": file_name}
 
     # The most common block size is 512 bytes
     expected_block_size = 512
@@ -403,14 +404,14 @@ def attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
-        flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {un}")
+        flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {unit}")
         if int(file_size) % int(expected_block_size):
             flash(f"The image file size {file_size} bytes is not a multiple of "
                   f"{expected_block_size} and RaSCSI will ignore the trailing data. "
                   f"The image may be corrupted so proceed with caution.", "error")
         return redirect(url_for("index"))
 
-    flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {un}", "error")
+    flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {unit}", "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -435,13 +436,13 @@ def detach():
     Detaches a specified device
     """
     scsi_id = request.form.get("scsi_id")
-    un = request.form.get("un")
+    unit = request.form.get("unit")
     process = detach_by_id(scsi_id, un)
     if process["status"]:
-        flash(f"Detached SCSI ID {scsi_id} LUN {un}")
+        flash(f"Detached SCSI ID {scsi_id} LUN {unit}")
         return redirect(url_for("index"))
 
-    flash(f"Failed to detach SCSI ID {scsi_id} LUN {un}", "error")
+    flash(f"Failed to detach SCSI ID {scsi_id} LUN {unit}", "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -452,7 +453,7 @@ def eject():
     Ejects a specified removable device image, but keeps the device attached
     """
     scsi_id = request.form.get("scsi_id")
-    un = request.form.get("un")
+    unit = request.form.get("unit")
 
     process = eject_by_id(scsi_id, un)
     if process["status"]:
@@ -469,9 +470,9 @@ def device_info():
     Displays detailed info for a specific device
     """
     scsi_id = request.form.get("scsi_id")
-    un = request.form.get("un")
+    unit = request.form.get("unit")
 
-    devices = list_devices(scsi_id, un)
+    devices = list_devices(scsi_id, unit)
 
     # First check if any device at all was returned
     if not devices["status"]:

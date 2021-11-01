@@ -36,7 +36,7 @@
         <tbody>
         <tr>
             <td><b>ID</b></td>
-        {% if luns %}
+        {% if units %}
             <td><b>LUN</b></td>
         {% endif %}
             <td><b>Type</b></td>
@@ -49,7 +49,7 @@
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{device.id}}</td>
-        {% if luns %}
+        {% if units %}
             <td style="text-align:center">{{device.un}}</td>
         {% endif %}
             <td style="text-align:center">{{device.device_type}}</td>
@@ -65,23 +65,23 @@
                 {% if device.device_type in removable_device_types and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
-                    <input type="hidden" name="un" value="{{device.un}}">
+                    <input type="hidden" name="unit" value="{{device.un}}">
                     <input type="submit" value="Eject" />
                 </form>
                 <form action="/scsi/info" method="post">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
-                    <input type="hidden" name="un" value="{{device.un}}">
+                    <input type="hidden" name="unit" value="{{device.un}}">
                     <input type="submit" value="Info" />
                 </form>
                 {% else %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
-                    <input type="hidden" name="un" value="{{device.un}}">
+                    <input type="hidden" name="unit" value="{{device.un}}">
                     <input type="submit" value="Detach" />
                 </form>
                 <form action="/scsi/info" method="post">
                     <input type="hidden" name="scsi_id" value="{{device.id}}">
-                    <input type="hidden" name="un" value="{{device.un}}">
+                    <input type="hidden" name="unit" value="{{device.un}}">
                     <input type="submit" value="Info" />
                 </form>
                 {% endif %}
@@ -89,7 +89,7 @@
             </td>
             {% else %}
             <td class="inactive">{{device.id}}</td>
-        {% if luns %}
+        {% if units %}
             <td class="inactive"></td>
         {% endif %}
             <td class="inactive"></td>
@@ -186,8 +186,8 @@
                 <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>{{id}}</option>
                         {% endfor %}
                         </select>
-                <label for="un">LUN</label>
-                <input type="number" name="un" size="2" value="0" min="0" max="31" />
+                <label for="unit">LUN</label>
+                <input type="number" name="unit" size="2" value="0" min="0" max="31" />
                 {% if file["detected_type"] != "UNDEFINED" %}
                     <input type="hidden" name="type" value="{{file["detected_type"]}}">
                 {{file["detected_type"]}}

@@ -166,16 +166,16 @@ def attach_image(scsi_id, **kwargs):
     return {"status": result.status, "msg": result.msg}
 
 
-def detach_by_id(scsi_id, un=None):
+def detach_by_id(scsi_id, unit=None):
     """
-    Takes int scsi_id and optional int un
+    Takes int scsi_id and optional int unit.
     Sends a DETACH command to the server.
     Returns boolean status and str msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
-    if un is not None:
-        devices.unit = int(un)
+    if unit is not None:
+        devices.unit = int(unit)
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH
@@ -201,16 +201,16 @@ def detach_all():
     return {"status": result.status, "msg": result.msg}
 
 
-def eject_by_id(scsi_id, un=None):
+def eject_by_id(scsi_id, unit=None):
     """
-    Takes int scsi_id and optional int un.
+    Takes int scsi_id and optional int unit.
     Sends an EJECT command to the server.
     Returns boolean status and str msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
-    if un is not None:
-        devices.unit = int(un)
+    if unit is not None:
+        devices.unit = int(unit)
 
     command = proto.PbCommand()
     command.operation = proto.PbOperation.EJECT
@@ -222,9 +222,9 @@ def eject_by_id(scsi_id, un=None):
     return {"status": result.status, "msg": result.msg}
 
 
-def list_devices(scsi_id=None, un=None):
+def list_devices(scsi_id=None, unit=None):
     """
-    Takes optional int scsi_id and optional int un.
+    Takes optional int scsi_id and optional int unit.
     Sends a DEVICES_INFO command to the server.
     If no scsi_id is provided, returns a list of dicts of all attached devices.
     If scsi_id is is provided, returns a list of one dict for the given device.
@@ -240,8 +240,8 @@ def list_devices(scsi_id=None, un=None):
     if scsi_id is not None:
         device = proto.PbDeviceDefinition()
         device.id = int(scsi_id)
-        if un is not None:
-            device.unit = int(un)
+        if unit is not None:
+            device.unit = int(unit)
         command.devices.append(device)
 
     data = send_pb_command(command.SerializeToString())
