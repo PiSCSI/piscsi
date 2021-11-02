@@ -1,17 +1,19 @@
 """
-Class for handling Linux signal interrupts
+Linux interrupt handling module
 """
 import signal
 
-class GracefulInterruptHandler(object):
+class GracefulInterruptHandler():
+    """
+    Class for handling Linux signal interrupts
+    """
     def __init__(self, signals=(signal.SIGINT, signal.SIGTERM)):
         self.signals = signals
         self.original_handlers = {}
-
-    def __enter__(self):
         self.interrupted = False
         self.released = False
 
+    def __enter__(self):
         for sig in self.signals:
             self.original_handlers[sig] = signal.getsignal(sig)
             signal.signal(sig, self.handler)
@@ -22,7 +24,7 @@ class GracefulInterruptHandler(object):
         self.release()
         self.interrupted = True
 
-    def __exit__(self, type, value, tb):
+    def __exit__(self, exception_type, exception_value, traceback):
         self.release()
 
     def release(self):
