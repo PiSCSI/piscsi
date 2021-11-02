@@ -13,7 +13,7 @@ from ractl_cmds import (
     list_devices,
     send_pb_command,
 )
-from settings import CFG_DIR, PROPERTIES_SUFFIX
+from settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX
 import rascsi_interface_pb2 as proto
 
 
