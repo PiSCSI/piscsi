@@ -1,3 +1,7 @@
+"""
+Module for RaSCSI device management utility methods
+"""
+
 def get_valid_scsi_ids(devices, reserved_ids):
     """
     Takes a list of (dict)s devices, and list of (int)s reserved_ids.
@@ -14,7 +18,7 @@ def get_valid_scsi_ids(devices, reserved_ids):
     valid_ids = [i for i in list(range(8)) if i not in reserved_ids]
     valid_ids.sort(reverse=True)
 
-    if len(unoccupied_ids) > 0:
+    if unoccupied_ids:
         recommended_id = unoccupied_ids[-1]
     else:
         recommended_id = occupied_ids.pop(0)

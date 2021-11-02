@@ -1,3 +1,7 @@
+"""
+Module for the Flask app rendering and endpoints
+"""
+
 import logging
 from pathlib import Path
 

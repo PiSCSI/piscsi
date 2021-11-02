@@ -1,3 +1,7 @@
+"""
+Constant definitions used by other modules
+"""
+
 from os import getenv, getcwd
 
 # TODO: Make HOME_DIR portable when running rascsi-web

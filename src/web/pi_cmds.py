@@ -1,3 +1,7 @@
+"""
+Module for methods controlling and getting information about the Pi's Linux system
+"""
+
 import subprocess
 
 

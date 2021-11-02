@@ -1,3 +1,7 @@
+"""
+Module for commands sent to the RaSCSI backend service.
+"""
+
 from settings import REMOVABLE_DEVICE_TYPES
 from socket_cmds import send_pb_command
 import rascsi_interface_pb2 as proto
@@ -146,13 +150,13 @@ def attach_image(scsi_id, **kwargs):
             if kwargs["interfaces"] not in [None, ""]:
                 devices.params["interfaces"] = kwargs["interfaces"]
         if "vendor" in kwargs.keys():
-            if kwargs["vendor"] != None:
+            if kwargs["vendor"] is not None:
                 devices.vendor = kwargs["vendor"]
         if "product" in kwargs.keys():
-            if kwargs["product"] != None:
+            if kwargs["product"] is not None:
                 devices.product = kwargs["product"]
         if "revision" in kwargs.keys():
-            if kwargs["revision"] != None:
+            if kwargs["revision"] is not None:
                 devices.revision = kwargs["revision"]
         if "block_size" in kwargs.keys():
             if kwargs["block_size"] not in [None, ""]:

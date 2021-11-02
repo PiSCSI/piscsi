@@ -1,3 +1,7 @@
+"""
+Module for methods reading from and writing to the file system
+"""
+
 import os
 import logging
 from pathlib import PurePath

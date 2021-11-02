@@ -1,3 +1,7 @@
+"""
+Module for sending and receiving data over a socket connection with the RaSCSI backend
+"""
+
 import logging
 
 def send_pb_command(payload):
