@@ -253,18 +253,18 @@ def list_devices(scsi_id=None, unit=None):
     result.ParseFromString(data)
 
     device_list = []
-    counter = 0
 
     # Return an empty (list) if no devices are attached
     if not result.devices_info.devices:
         return {"status": False, "device_list": []}
 
-    while counter < len(result.devices_info.devices):
-        did = result.devices_info.devices[counter].id
-        dunit = result.devices_info.devices[counter].unit
-        dtype = proto.PbDeviceType.Name(result.devices_info.devices[counter].type)
-        dstat = result.devices_info.devices[counter].status
-        dprop = result.devices_info.devices[counter].properties
+    i = 0
+    while i < len(result.devices_info.devices):
+        did = result.devices_info.devices[i].id
+        dunit = result.devices_info.devices[i].unit
+        dtype = proto.PbDeviceType.Name(result.devices_info.devices[i].type)
+        dstat = result.devices_info.devices[i].status
+        dprop = result.devices_info.devices[i].properties
 
         # Building the status string
         dstat_msg = []
@@ -277,14 +277,14 @@ def list_devices(scsi_id=None, unit=None):
         if dstat.locked and dprop.lockable:
             dstat_msg.append("Locked")
 
-        dpath = result.devices_info.devices[counter].file.name
+        dpath = result.devices_info.devices[i].file.name
         dfile = path.basename(dpath)
-        dparam = result.devices_info.devices[counter].params
-        dven = result.devices_info.devices[counter].vendor
-        dprod = result.devices_info.devices[counter].product
-        drev = result.devices_info.devices[counter].revision
-        dblock = result.devices_info.devices[counter].block_size
-        dsize = int(result.devices_info.devices[counter].block_count) * int(dblock)
+        dparam = result.devices_info.devices[i].params
+        dven = result.devices_info.devices[i].vendor
+        dprod = result.devices_info.devices[i].product
+        drev = result.devices_info.devices[i].revision
+        dblock = result.devices_info.devices[i].block_size
+        dsize = int(result.devices_info.devices[i].block_count) * int(dblock)
 
         device_list.append({
             "id": did,
@@ -300,7 +300,7 @@ def list_devices(scsi_id=None, unit=None):
             "block_size": dblock,
             "size": dsize,
             })
-        counter += 1
+        i += 1
 
     return {"status": result.status, "msg": result.msg, "device_list": device_list}
 
