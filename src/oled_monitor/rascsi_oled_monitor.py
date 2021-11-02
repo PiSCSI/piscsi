@@ -35,43 +35,9 @@ from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
 from os import path, getcwd
 from collections import deque
-from struct import pack, unpack
-import signal
-import socket
 import rascsi_interface_pb2 as proto
-
-class GracefulInterruptHandler(object):
-    def __init__(self, signals=(signal.SIGINT, signal.SIGTERM)):
-        self.signals = signals
-        self.original_handlers = {}
-
-    def __enter__(self):
-        self.interrupted = False
-        self.released = False
-
-        for sig in self.signals:
-            self.original_handlers[sig] = signal.getsignal(sig)
-            signal.signal(sig, self.handler)
-
-        return self
-
-    def handler(self, signum, frame):
-        self.release()
-        self.interrupted = True
-
-    def __exit__(self, type, value, tb):
-        self.release()
-
-    def release(self):
-        if self.released:
-            return False
-
-        for sig in self.signals:
-            signal.signal(sig, self.original_handlers[sig])
-
-        self.released = True
-        return True
-
+from interrupt_handler import GracefulInterruptHandler
+from socket_cmds import send_pb_command
 
 WIDTH = 128
 HEIGHT = 32  # Change to 64 if needed
@@ -186,81 +152,18 @@ def device_list():
     return device_list
 
 def get_ip_and_host():
-    host = socket.gethostname()
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    from socket import socket, gethostname, AF_INET, SOCK_DGRAM
+    host = gethostname()
+    sock = socket(AF_INET, SOCK_DGRAM)
     try:
         # mock ip address; doesn't have to be reachable
-        s.connect(('10.255.255.255', 1))
-        ip = s.getsockname()[0]
+        sock.connect(('10.255.255.255', 1))
+        ip_addr = sock.getsockname()[0]
     except Exception:
-        ip = '127.0.0.1'
+        ip_addr = '127.0.0.1'
     finally:
-        s.close()
-    return ip, host
-
-def send_pb_command(payload):
-    """
-    Takes a str containing a serialized protobuf as argument.
-    Establishes a socket connection with RaSCSI.
-    """
-    # Host and port number where rascsi is listening for socket connections
-    HOST = 'localhost'
-    PORT = 6868
-
-    counter = 0
-    tries = 100
-    error_msg = ""
-
-    while counter < tries:
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                s.connect((HOST, PORT))
-                return send_over_socket(s, payload)
-        except socket.error as error:
-            counter += 1
-            print("The RaSCSI service is not responding - attempt " + \
-                    str(counter) + "/" + str(tries))
-            error_msg = str(error)
-
-    exit(error_msg)
-
-
-def send_over_socket(s, payload):
-    """
-    Takes a socket object and str payload with serialized protobuf.
-    Sends payload to RaSCSI over socket and captures the response.
-    Tries to extract and interpret the protobuf header to get response size.
-    Reads data from socket in 2048 bytes chunks until all data is received.
-    """
-
-    # Sending the magic word "RASCSI" to authenticate with the server
-    s.send(b"RASCSI")
-    # Prepending a little endian 32bit header with the message size
-    s.send(pack("<i", len(payload)))
-    s.send(payload)
-
-    # Receive the first 4 bytes to get the response header
-    response = s.recv(4)
-    if len(response) >= 4:
-        # Extracting the response header to get the length of the response message
-        response_length = unpack("<i", response)[0]
-        # Reading in chunks, to handle a case where the response message is very large
-        chunks = []
-        bytes_recvd = 0
-        while bytes_recvd < response_length:
-            chunk = s.recv(min(response_length - bytes_recvd, 2048))
-            if chunk == b'':
-                exit("Socket connection has dropped unexpectedly. "
-                     "RaSCSI may have crashed."
-                    )
-            chunks.append(chunk)
-            bytes_recvd = bytes_recvd + len(chunk)
-        response_message = b''.join(chunks)
-        return response_message
-    else:
-        exit("The response from RaSCSI did not contain a protobuf header. "
-             "RaSCSI may have crashed."
-            )
+        sock.close()
+    return ip_addr, host
 
 
 def formatted_output():
@@ -310,7 +213,7 @@ start_splash()
 
 ip, host = get_ip_and_host()
 
-with GracefulInterruptHandler() as h:
+with GracefulInterruptHandler() as handler:
     while True:
 
         ref_snapshot = formatted_output()
@@ -336,6 +239,6 @@ with GracefulInterruptHandler() as h:
 
             snapshot = formatted_output()
 
-            if h.interrupted:
+            if handler.interrupted:
                 stop_splash()
                 exit("Shutting down the OLED display...")
