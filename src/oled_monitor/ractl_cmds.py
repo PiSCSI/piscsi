@@ -1,6 +1,8 @@
 """
 Module for commands sent to the RaSCSI backend service.
 """
+from os import path
+from socket_cmds import send_pb_command
 import rascsi_interface_pb2 as proto
 
 def device_list():
@@ -14,7 +16,7 @@ def device_list():
     result = proto.PbResult()
     result.ParseFromString(data)
 
-    device_list = []
+    dlist = []
     i = 0
 
     while i < len(result.devices_info.devices):
@@ -25,18 +27,18 @@ def device_list():
 
         # Building the status string
         dstat_msg = []
-        if dstat.protected == True and dprop.protectable == True:
+        if dstat.protected and dprop.protectable:
             dstat_msg.append("Write-Protected")
-        if dstat.removed == True and dprop.removable == True:
+        if dstat.removed and dprop.removable:
             dstat_msg.append("No Media")
-        if dstat.locked == True and dprop.lockable == True:
+        if dstat.locked and dprop.lockable:
             dstat_msg.append("Locked")
 
         dfile = path.basename(result.devices_info.devices[i].file.name)
         dven = result.devices_info.devices[i].vendor
         dprod = result.devices_info.devices[i].product
 
-        device_list.append({
+        dlist.append({
             "id": did,
             "device_type": dtype,
             "status": ", ".join(dstat_msg),
@@ -46,4 +48,4 @@ def device_list():
             })
         i += 1
 
-    return device_list
+    return dlist
