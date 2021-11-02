@@ -64,7 +64,7 @@ def running_netatalk():
 
 def is_bridge_setup():
     """
-    Returns True if the rascsi_bridge network interface exists
+    Returns (bool) True if the rascsi_bridge network interface exists
     """
     process = subprocess.run(["brctl", "show"], capture_output=True)
     output = process.stdout.decode("utf-8")
@@ -75,7 +75,7 @@ def is_bridge_setup():
 
 def disk_space():
     """
-    Returns a dict with (int) total (int) used (int) free
+    Returns a (dict) with (int) total (int) used (int) free
     This is the disk space information of the volume where this app is running
     """
     from shutil import disk_usage

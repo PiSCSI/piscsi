@@ -28,9 +28,9 @@ def get_valid_scsi_ids(devices, reserved_ids):
 
 def sort_and_format_devices(devices):
     """
-    Takes a (list) of (dict)s devices and returns a list of dicts.
+    Takes a (list) of (dict)s devices and returns a (list) of (dict)s.
     Sorts by SCSI ID acending (0 to 7).
-    For SCSI IDs where no device is attached, inject a dict with placeholder text.
+    For SCSI IDs where no device is attached, inject a (dict) with placeholder text.
     """
     occupied_ids = []
     for device in devices:

@@ -11,12 +11,12 @@ def get_server_info():
     """
     Sends a SERVER_INFO command to the server.
     Returns a dict with:
-    - boolean status
-    - str version (RaSCSI version number)
-    - list of str log_levels (the log levels RaSCSI supports)
-    - str current_log_level
-    - list of int reserved_ids
-    - 5 distinct lists of strs with file endings recognized by RaSCSI
+    - (bool) status
+    - (str) version (RaSCSI version number)
+    - (list) of (str) log_levels (the log levels RaSCSI supports)
+    - (str) current_log_level
+    - (list) of (int) reserved_ids
+    - 5 distinct (list)s of (str)s with file endings recognized by RaSCSI
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.SERVER_INFO
@@ -70,8 +70,8 @@ def get_network_info():
     """
     Sends a NETWORK_INTERFACES_INFO command to the server.
     Returns a dict with:
-    - boolean status
-    - list of str ifs (network interfaces detected by RaSCSI)
+    - (bool) status
+    - (list) of (str) ifs (network interfaces detected by RaSCSI)
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.NETWORK_INTERFACES_INFO
@@ -87,8 +87,8 @@ def get_device_types():
     """
     Sends a DEVICE_TYPES_INFO command to the server.
     Returns a dict with:
-    - boolean status
-    - list of str device_types (device types that RaSCSI supports, ex. SCHD, SCCD, etc)
+    - (bool) status
+    - (list) of (str) device_types (device types that RaSCSI supports, ex. SCHD, SCCD, etc)
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICE_TYPES_INFO
@@ -104,13 +104,13 @@ def get_device_types():
 
 def attach_image(scsi_id, **kwargs):
     """
-    Takes int scsi_id and kwargs containing 0 or more device properties
+    Takes (int) scsi_id and kwargs containing 0 or more device properties
 
     If the current attached device is a removable device wihout media inserted,
     this sends a INJECT command to the server.
     If there is no currently attached device, this sends the ATTACH command to the server.
 
-    Returns boolean status and str msg
+    Returns (bool) status and (str) msg
 
     """
     command = proto.PbCommand()
@@ -172,9 +172,9 @@ def attach_image(scsi_id, **kwargs):
 
 def detach_by_id(scsi_id, unit=None):
     """
-    Takes int scsi_id and optional int unit.
+    Takes (int) scsi_id and optional (int) unit.
     Sends a DETACH command to the server.
-    Returns boolean status and str msg.
+    Returns (bool) status and (str) msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
@@ -194,7 +194,7 @@ def detach_by_id(scsi_id, unit=None):
 def detach_all():
     """
     Sends a DETACH_ALL command to the server.
-    Returns boolean status and str msg.
+    Returns (bool) status and (str) msg.
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH_ALL
@@ -207,9 +207,9 @@ def detach_all():
 
 def eject_by_id(scsi_id, unit=None):
     """
-    Takes int scsi_id and optional int unit.
+    Takes (int) scsi_id and optional (int) unit.
     Sends an EJECT command to the server.
-    Returns boolean status and str msg.
+    Returns (bool) status and (str) msg.
     """
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
@@ -228,12 +228,12 @@ def eject_by_id(scsi_id, unit=None):
 
 def list_devices(scsi_id=None, unit=None):
     """
-    Takes optional int scsi_id and optional int unit.
+    Takes optional (int) scsi_id and optional (int) unit.
     Sends a DEVICES_INFO command to the server.
-    If no scsi_id is provided, returns a list of dicts of all attached devices.
-    If scsi_id is is provided, returns a list of one dict for the given device.
-    If no attached device is found, returns an empty list.
-    Returns boolean status, list of dicts device_list
+    If no scsi_id is provided, returns a (list) of (dict)s of all attached devices.
+    If scsi_id is is provided, returns a (list) of one (dict) for the given device.
+    If no attached device is found, returns an empty (list).
+    Returns (bool) status, (list) of dicts device_list
     """
     from os import path
     command = proto.PbCommand()
@@ -255,7 +255,7 @@ def list_devices(scsi_id=None, unit=None):
     device_list = []
     counter = 0
 
-    # Return an empty list if no devices are attached
+    # Return an empty (list) if no devices are attached
     if not result.devices_info.devices:
         return {"status": False, "device_list": []}
 
@@ -308,8 +308,8 @@ def list_devices(scsi_id=None, unit=None):
 def set_log_level(log_level):
     """
     Sends a LOG_LEVEL command to the server.
-    Takes str log_level as an argument.
-    Returns boolean status and str msg.
+    Takes (str) log_level as an argument.
+    Returns (bool) status and (str) msg.
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL

@@ -19,9 +19,9 @@ import rascsi_interface_pb2 as proto
 
 def list_files(file_types, dir_path):
     """
-    Takes a list or tuple of str file_types - e.g. ('hda', 'hds')
-    Returns list of lists files_list:
-    index 0 is str file name and index 1 is int size in bytes
+    Takes a (list) or (tuple) of (str) file_types - e.g. ('hda', 'hds')
+    Returns (list) of (list)s files_list:
+    index 0 is (str) file name and index 1 is (int) size in bytes
     """
     files_list = []
     for path, dirs, files in os.walk(dir_path):
@@ -41,13 +41,13 @@ def list_files(file_types, dir_path):
 
 def list_config_files():
     """
-    Returns a list of RaSCSI config files in CFG_DIR:
-    list of str files_list
+    Finds fils with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
+    Returns a (list) of (str) files_list
     """
     files_list = []
     for root, dirs, files in os.walk(CFG_DIR):
         for file in files:
-            if file.endswith(".json"):
+            if file.endswith("." + CONFIG_FILE_SUFFIX):
                 files_list.append(file)
     return files_list
 
@@ -55,7 +55,7 @@ def list_config_files():
 def list_images():
     """
     Sends a IMAGE_FILES_INFO command to the server
-    Returns a dict with boolean status, str msg, and list of dicts files
+    Returns a (dict) with (bool) status, (str) msg, and (list) of (dict)s files
 
     """
     command = proto.PbCommand()
@@ -83,7 +83,7 @@ def list_images():
             zip_path = f"{server_info['image_dir']}/{file.name}"
             if is_zipfile(zip_path):
                 zipfile = ZipFile(zip_path)
-                # Get a list of str containing all zipfile members
+                # Get a list of (str) containing all zipfile members
                 zip_members = zipfile.namelist()
                 # Strip out directories from the list
                 zip_members = [x for x in zip_members if not x.endswith("/")]
@@ -109,9 +109,9 @@ def list_images():
 
 def create_new_image(file_name, file_type, size):
     """
-    Takes str file_name, str file_type, and int size
+    Takes (str) file_name, (str) file_type, and (int) size
     Sends a CREATE_IMAGE command to the server
-    Returns dict with boolean status and str msg
+    Returns (dict) with (bool) status and (str) msg
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.CREATE_IMAGE
@@ -128,9 +128,9 @@ def create_new_image(file_name, file_type, size):
 
 def delete_image(file_name):
     """
-    Takes str file_name
+    Takes (str) file_name
     Sends a DELETE_IMAGE command to the server
-    Returns dict with boolean status and str msg
+    Returns (dict) with (bool) status and (str) msg
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DELETE_IMAGE
@@ -145,8 +145,8 @@ def delete_image(file_name):
 
 def delete_file(file_path):
     """
-    Takes str file_path with the full path to the file to delete
-    Returns dict with boolean status and str msg
+    Takes (str) file_path with the full path to the file to delete
+    Returns (dict) with (bool) status and (str) msg
     """
     if os.path.exists(file_path):
         os.remove(file_path)
@@ -157,7 +157,7 @@ def delete_file(file_path):
 def unzip_file(file_name, member=False):
     """
     Takes (str) file_name, optional (str) member
-    Returns dict with (boolean) status and (list of str) msg
+    Returns (dict) with (boolean) status and (list of str) msg
     """
     from subprocess import run
     from re import escape
@@ -188,8 +188,8 @@ def unzip_file(file_name, member=False):
 
 def download_file_to_iso(url):
     """
-    Takes int scsi_id and str url
-    Returns dict with boolean status and str msg
+    Takes (int) scsi_id and (str) url
+    Returns (dict) with (bool) status and (str) msg
     """
     from time import time
     from subprocess import run
@@ -219,8 +219,8 @@ def download_file_to_iso(url):
 
 def download_to_dir(url, save_dir):
     """
-    Takes str url, str save_dir
-    Returns dict with boolean status and str msg
+    Takes (str) url, (str) save_dir
+    Returns (dict) with (bool) status and (str) msg
     """
     import requests
     file_name = PurePath(url).name
@@ -245,8 +245,8 @@ def download_to_dir(url, save_dir):
 
 def write_config(file_name):
     """
-    Takes str file_name
-    Returns dict with boolean status and str msg
+    Takes (str) file_name
+    Returns (dict) with (bool) status and (str) msg
     """
     from json import dump
     file_name = CFG_DIR + file_name
@@ -284,8 +284,8 @@ def write_config(file_name):
 
 def read_config(file_name):
     """
-    Takes str file_name
-    Returns dict with boolean status and str msg
+    Takes (str) file_name
+    Returns (dict) with (bool) status and (str) msg
     """
     from json import load
     file_name = CFG_DIR + file_name
@@ -316,8 +316,8 @@ def read_config(file_name):
 def write_drive_properties(file_name, conf):
     """
     Writes a drive property configuration file to the config dir.
-    Takes file name base (str) and conf (list of dicts) as arguments
-    Returns dict with boolean status and str msg
+    Takes file name base (str) and (list of dicts) conf as arguments
+    Returns (dict) with (bool) status and (str) msg
     """
     from json import dump
     file_path = CFG_DIR + file_name
@@ -340,7 +340,7 @@ def read_drive_properties(path_name):
     """
     Reads drive properties from json formatted file.
     Takes (str) path_name as argument.
-    Returns dict with boolean status, str msg, dict conf
+    Returns (dict) with (bool) status, (str) msg, (dict) conf
     """
     from json import load
     try:
