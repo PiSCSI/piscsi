@@ -8,7 +8,7 @@ from struct import pack, unpack
 
 def send_pb_command(payload):
     """
-    Takes a str containing a serialized protobuf as argument.
+    Takes a (str) containing a serialized protobuf as argument.
     Establishes a socket connection with RaSCSI.
     """
     # Host and port number where rascsi is listening for socket connections
@@ -35,7 +35,7 @@ def send_pb_command(payload):
 
 def send_over_socket(sock, payload):
     """
-    Takes a socket object and str payload with serialized protobuf.
+    Takes a socket object and (str) payload with serialized protobuf.
     Sends payload to RaSCSI over socket and captures the response.
     Tries to extract and interpret the protobuf header to get response size.
     Reads data from socket in 2048 bytes chunks until all data is received.
