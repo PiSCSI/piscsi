@@ -12,7 +12,7 @@
     </ul>
 </details>
 
-<form action="/config/load" method="post">
+<p><form action="/config/load" method="post">
     <select name="name" required="" width="14">
         {% if config_files %}
         {% for config in config_files %}
@@ -28,26 +28,13 @@
     </select>
     <input name="load" onclick="return confirm('Detach all current device and Load config?')" type="submit" value="Load">
     <input name="delete" onclick="return confirm('Delete config file?')" type="submit" value="Delete">
-</form>
+</form></p>
 
-<form action="/config/save" method="post">
+<p><form action="/config/save" method="post">
     <input name="name" placeholder="default" size="20">
     <input type="submit" value="Save">
-</form>
+</form></p>
 
-<table cellpadding="3" border="black">
-        <tbody>
-        <tr>
-            <td><b>ID</b></td>
-        {% if units %}
-            <td><b>LUN</b></td>
-        {% endif %}
-            <td><b>Type</b></td>
-            <td><b>Status</b></td>
-            <td><b>File</b></td>
-            <td><b>Product</b></td>
-            <td><b>Actions</b></td>
-        </tr>
 <table border="black" cellpadding="3">
     <tbody>
         <tr>
@@ -78,7 +65,7 @@
             {% endif %}
             <td style="text-align:left">
             {% if device.device_type != "-" %}
-                {% if device.device_type in removable_device_types and "No Media" not in device.status %}
+                {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input name="scsi_id" type="hidden" value="{{device.id}}"> <input name="unit" type="hidden" value="{{device.un}}"> <input type="submit" value="Eject">
                 </form>
@@ -111,9 +98,9 @@
     </tbody>
 </table>
 
-<form action="/scsi/detach_all" method="post" onsubmit="return confirm('Detach all SCSI Devices?')">
+<p><form action="/scsi/detach_all" method="post" onsubmit="return confirm('Detach all SCSI Devices?')">
     <input type="submit" value="Detach All Devices">
-</form>
+</form></p>
 
 <hr/>
 
@@ -164,7 +151,9 @@
                         <li>
                             <label for="member">{{member}}</label>
                             <form action="/files/unzip" method="post">
-                                <input name="image" type="hidden" value="{{file['name']}}"> <input name="member" type="hidden" value="{{member}}"> <input type="submit" value="Unzip">
+                                <input name="image" type="hidden" value="{{file['name']}}">
+                                <input name="member" type="hidden" value="{{member}}">
+                                <input type="submit" value="Unzip">
                             </form>
                         </li>
                     {% endfor %}
@@ -176,7 +165,8 @@
             {% endif %}
             <td style="text-align:center">
                 <form action="/files/download" method="post">
-                    <input name="image" type="hidden" value="{{file["> <input mb="" type="submit" value="{{file[">
+                        <input type="hidden" name="image" value="{{file['name']}}">
+                        <input type="submit" value="{{file["size_mb"]}} MB &#8595;">
                 </form>
             </td>
             <td>
@@ -187,13 +177,13 @@
                 {% else %}
                 {% if file["name"].lower().endswith(archive_file_suffix) %}
                 <form action="/files/unzip" method="post">
-                    <input name="image" type="hidden" value="{{file[">
+                    <input type="hidden" name="image" value="{{file['name']}}">
                     <input type="submit" value="Unzip All">
                 </form>
                 {% else %}
                 <form action="/scsi/attach" method="post">
-                    <input name="file_name" type="hidden" value="{{file[">
-                    <input name="file_size" type="hidden" value="{{file[">
+                    <input type="hidden" name="file_name" value="{{file['name']}}">
+                    <input type="hidden" name="file_size" value="{{file['size']}}">
                     <label for="id">ID</label>
                         <select name="scsi_id">
                         {% for id in scsi_ids %}
@@ -205,7 +195,8 @@
                     <label for="unit">LUN</label>
                     <input max="31" min="0" name="unit" size="2" type="number" value="0">
                     {% if file["detected_type"] != "UNDEFINED" %}
-                        <input name="type" type="hidden" value="{{file['detected_type']"> {{file["detected_type"]}}
+		    <input name="type" type="hidden" value="{{file['detected_type']}}">
+                        {{file["detected_type"]}}
                     {% else %}
                         <select name="type">
                         <option selected value="">
@@ -216,9 +207,10 @@
                             {{d}}
                         </option>
                         {% endfor %}
-                        {% endif %}
-                    </select> <input type="submit" value="Attach">
                     {% endif %}
+                    </select>
+                    <input type="submit" value="Attach">
+                {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
                     <input name="image" type="hidden" value="{{file['name']}}">
@@ -227,6 +219,7 @@
                 {% endif %}
             </td>
         </tr>
+        {% endfor %}
     </tbody>
 </table>
 <p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
@@ -493,7 +486,7 @@
                 <label for="level">Log Level:</label>
                 <select name="level">
                 {% for level in log_levels %}
-                    <option value="{{level}}"{% if level == current_log_level %} selected{% endif %}>{
+                    <option value="{{level}}"{% if level == current_log_level %} selected{% endif %}>
                         {{level}}
                     </option>
                 {% endfor %}
