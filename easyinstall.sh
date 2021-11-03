@@ -556,7 +556,7 @@ function installNetatalk() {
 
     echo "Downloading netatalk-classic-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
-    wget "https://github.com/christopherkobayashi/netatalk-classic/archive/refs/tags/$NETATALK_VERSION.tar.gz" </dev/null
+    wget -O "$NETATALK_VERSION.tar.gz" "https://github.com/christopherkobayashi/netatalk-classic/archive/refs/tags/$NETATALK_VERSION.tar.gz" </dev/null
     tar -xzvf $NETATALK_VERSION.tar.gz
 
     cd "netatalk-classic-$NETATALK_VERSION" || exit 1
