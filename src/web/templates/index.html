@@ -195,7 +195,7 @@
                     <label for="unit">LUN</label>
                     <input max="31" min="0" name="unit" size="2" type="number" value="0">
                     {% if file["detected_type"] != "UNDEFINED" %}
-		    <input name="type" type="hidden" value="{{ file['detected_type'] }}">
+                        <input name="type" type="hidden" value="{{ file['detected_type'] }}">
                         {{ file["detected_type"] }}
                     {% else %}
                         <select name="type">
