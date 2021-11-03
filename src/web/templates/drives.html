@@ -1,141 +1,141 @@
 {% extends "base.html" %}
 
-    {% block content %}
-    <p><a href="/">Cancel</a></p>
-    <h2>Disclaimer</h2>
-    <p>These device profiles are provided as-is with no guarantee to work on the systems mentioned. You may need appropirate device drivers and/or configuration parameters. If you have improvement suggestions or success stories to share we would love to hear from you, so please connect with us at <a href="https://github.com/akuker/RASCSI">GitHub</a> or <a href="https://discord.gg/PyS58u6">Discord</a>!</p>
-    <h2>Hard Drives</h2>
+{% block content %}
+<p><a href="/">Cancel</a></p>
+<h2>Disclaimer</h2>
+<p>These device profiles are provided as-is with no guarantee to work on the systems mentioned. You may need appropirate device drivers and/or configuration parameters. If you have improvement suggestions or success stories to share we would love to hear from you, so please connect with us at <a href="https://github.com/akuker/RASCSI">GitHub</a> or <a href="https://discord.gg/PyS58u6">Discord</a>!</p>
+<h2>Hard Drives</h2>
 
-    <table cellpadding="3" border="black">
-        <tbody>
-        <tr>
-            <td><b>Name</b></td>
-            <td><b>Size (MB)</b></td>
-            <td><b>Description</b></td>
-            <td><b>Ref.</b></td>
-            <td><b>Action</b></td>
-        </tr>
-        {% for hd in hd_conf %}
-        <tr>
-            <td style="text-align:center">{{hd.name}}</td>
-            <td style="text-align:center">{{hd.size_mb}}</td>
-            <td style="text-align:left">{{hd.description}}</td>
-        <td style="text-align:left">
-            {% if hd.url != "" %}
-            <a href="{{hd.url}}">Link</a>
-            {% else %}
-            -
-            {% endif %}
-        </td>
-            <td style="text-align:left">
-                <form action="/drive/create" method="post">
-                    <input type="hidden" name="vendor" value="{{hd.vendor}}">
-                    <input type="hidden" name="product" value="{{hd.product}}">
-                    <input type="hidden" name="revision" value="{{hd.revision}}">
-                    <input type="hidden" name="blocks" value="{{hd.blocks}}">
-                    <input type="hidden" name="block_size" value="{{hd.block_size}}">
-                    <input type="hidden" name="size" value="{{hd.size}}">
-            <input type="hidden" name="file_type" value="{{hd.file_type}}">
-            <label for="file_name">Save as:</label>
-            <input type="text" name="file_name" value="{{hd.secure_name}}" required />.{{hd.file_type}}
-                    <input type="submit" value="Create" />
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<table cellpadding="3" border="black">
+<tbody>
+<tr>
+    <td><b>Name</b></td>
+    <td><b>Size (MB)</b></td>
+    <td><b>Description</b></td>
+    <td><b>Ref.</b></td>
+    <td><b>Action</b></td>
+</tr>
+{% for hd in hd_conf %}
+<tr>
+    <td style="text-align:center">{{ hd.name }}</td>
+    <td style="text-align:center">{{ hd.size_mb }}</td>
+    <td style="text-align:left">{{ hd.description }}</td>
+<td style="text-align:left">
+    {% if hd.url != "" %}
+    <a href="{{ hd.url }}">Link</a>
+    {% else %}
+    -
+    {% endif %}
+</td>
+    <td style="text-align:left">
+	<form action="/drive/create" method="post">
+	    <input type="hidden" name="vendor" value="{{ hd.vendor }}">
+	    <input type="hidden" name="product" value="{{ hd.product }}">
+	    <input type="hidden" name="revision" value="{{ hd.revision }}">
+	    <input type="hidden" name="blocks" value="{{ hd.blocks }}">
+	    <input type="hidden" name="block_size" value="{{ hd.block_size }}">
+	    <input type="hidden" name="size" value="{{ hd.size }}">
+    <input type="hidden" name="file_type" value="{{ hd.file_type }}">
+    <label for="file_name">Save as:</label>
+    <input type="text" name="file_name" value="{{ hd.secure_name }}" required />.{{ hd.file_type }}
+	    <input type="submit" value="Create" />
+	</form>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
 
-    <hr/>
+<hr/>
 
-    <h2>CD-ROM Drives</h2>
-    <p><em>This will create a properties file for the given CD-ROM image. No new image file will be created.</em></p>
-    <table cellpadding="3" border="black">
-        <tbody>
-        <tr>
-            <td><b>Name</b></td>
-            <td><b>Size (MB)</b></td>
-            <td><b>Description</b></td>
-            <td><b>Ref.</b></td>
-            <td><b>Action</b></td>
-        </tr>
-        {% for cd in cd_conf %}
-        <tr>
-            <td style="text-align:center">{{cd.name}}</td>
-            <td style="text-align:center">{{cd.size_mb}}</td>
-            <td style="text-align:left">{{cd.description}}</td>
-        <td style="text-align:left">
-            {% if cd.url != "" %}
-            <a href="{{cd.url}}">Link</a>
-            {% else %}
-            -
-            {% endif %}
-            </td>
-            <td style="text-align:left">
-                <form action="/drive/cdrom" method="post">
-                    <input type="hidden" name="vendor" value="{{cd.vendor}}">
-                    <input type="hidden" name="product" value="{{cd.product}}">
-                    <input type="hidden" name="revision" value="{{cd.revision}}">
-                    <input type="hidden" name="block_size" value="{{cd.block_size}}">
-            <label for="file_name">Create for:</label>
-            <select type="select" name="file_name">
-                        {% for f in files %}
-                {% if f["name"].lower().endswith(cdrom_file_suffix) %}
-                <option value="{{f["name"]}}">{{f["name"].replace(base_dir, '')}}</option>
-                {% endif %}
-            {% endfor %}
-            </select>
-                    <input type="submit" value="Create" />
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+<h2>CD-ROM Drives</h2>
+<p><em>This will create a properties file for the given CD-ROM image. No new image file will be created.</em></p>
+<table cellpadding="3" border="black">
+<tbody>
+<tr>
+    <td><b>Name</b></td>
+    <td><b>Size (MB)</b></td>
+    <td><b>Description</b></td>
+    <td><b>Ref.</b></td>
+    <td><b>Action</b></td>
+</tr>
+{% for cd in cd_conf %}
+<tr>
+    <td style="text-align:center">{{ cd.name }}</td>
+    <td style="text-align:center">{{ cd.size_mb }}</td>
+    <td style="text-align:left">{{ cd.description }}</td>
+<td style="text-align:left">
+    {% if cd.url != "" %}
+    <a href="{{ cd.url }}">Link</a>
+    {% else %}
+    -
+    {% endif %}
+    </td>
+    <td style="text-align:left">
+	<form action="/drive/cdrom" method="post">
+	    <input type="hidden" name="vendor" value="{{ cd.vendor }}">
+	    <input type="hidden" name="product" value="{{ cd.product }}">
+	    <input type="hidden" name="revision" value="{{ cd.revision }}">
+	    <input type="hidden" name="block_size" value="{{ cd.block_size }}">
+    <label for="file_name">Create for:</label>
+    <select type="select" name="file_name">
+		{% for f in files %}
+	{% if f["name"].lower().endswith(cdrom_file_suffix) %}
+	<option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+	{% endif %}
+    {% endfor %}
+    </select>
+	    <input type="submit" value="Create" />
+	</form>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
 
-    <hr/>
+<hr/>
 
-    <h2>Removable Drives</h2>
-    <table cellpadding="3" border="black">
-        <tbody>
-        <tr>
-            <td><b>Name</b></td>
-            <td><b>Size (MB)</b></td>
-            <td><b>Description</b></td>
-            <td><b>Ref.</b></td>
-            <td><b>Action</b></td>
-        </tr>
-        {% for rm in rm_conf %}
-        <tr>
-            <td style="text-align:center">{{rm.name}}</td>
-            <td style="text-align:center">{{rm.size_mb}}</td>
-            <td style="text-align:left">{{rm.description}}</td>
-        <td style="text-align:left">
-            {% if rm.url != "" %}
-            <a href="{{rm.url}}">Link</a>
-            {% else %}
-            -
-            {% endif %}
-            </td>
-            <td style="text-align:left">
-                <form action="/drive/create" method="post">
-                    <input type="hidden" name="vendor" value="{{rm.vendor}}">
-                    <input type="hidden" name="product" value="{{rm.product}}">
-                    <input type="hidden" name="revision" value="{{rm.revision}}">
-                    <input type="hidden" name="blocks" value="{{rm.blocks}}">
-                    <input type="hidden" name="block_size" value="{{rm.block_size}}">
-                    <input type="hidden" name="size" value="{{rm.size}}">
-            <input type="hidden" name="file_type" value="{{rm.file_type}}">
-            <label for="file_name">Save as:</label>
-            <input type="text" name="file_name" value="{{rm.secure_name}}" required />.{{rm.file_type}}
-                    <input type="submit" value="Create" />
-                </form>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
-    <p><a href="/">Cancel</a></p>
+<h2>Removable Drives</h2>
+<table cellpadding="3" border="black">
+<tbody>
+<tr>
+    <td><b>Name</b></td>
+    <td><b>Size (MB)</b></td>
+    <td><b>Description</b></td>
+    <td><b>Ref.</b></td>
+    <td><b>Action</b></td>
+</tr>
+{% for rm in rm_conf %}
+<tr>
+    <td style="text-align:center">{{ rm.name }}</td>
+    <td style="text-align:center">{{ rm.size_mb }}</td>
+    <td style="text-align:left">{{ rm.description }}</td>
+    <td style="text-align:left">
+    {% if rm.url != "" %}
+    <a href="{{ rm.url }}">Link</a>
+    {% else %}
+    -
+    {% endif %}
+    </td>
+    <td style="text-align:left">
+	<form action="/drive/create" method="post">
+	    <input type="hidden" name="vendor" value="{{ rm.vendor }}">
+	    <input type="hidden" name="product" value="{{ rm.product }}">
+	    <input type="hidden" name="revision" value="{{ rm.revision }}">
+	    <input type="hidden" name="blocks" value="{{ rm.blocks }}">
+	    <input type="hidden" name="block_size" value="{{ rm.block_size }}">
+	    <input type="hidden" name="size" value="{{ rm.size }}">
+	    <input type="hidden" name="file_type" value="{{ rm.file_type }}">
+	    <label for="file_name">Save as:</label>
+	    <input type="text" name="file_name" value="{{ rm.secure_name }}" required />.{{ rm.file_type }}
+	    <input type="submit" value="Create" />
+	</form>
+    </td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<p><small>Available disk space on the Pi: {{ free_disk }} MB</small></p>
+<p><a href="/">Cancel</a></p>
 
-{% endblock %}
+{% endblock content %}

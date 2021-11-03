@@ -130,7 +130,7 @@ def index():
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         archive_file_suffix=ARCHIVE_FILE_SUFFIX,
-        removable_device_types=REMOVABLE_DEVICE_TYPES,
+        REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
     )
 
 

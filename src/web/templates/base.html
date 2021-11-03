@@ -47,18 +47,18 @@
     <div class="flash">
         {% for category, message in get_flashed_messages(with_categories=true) %}
         {% if category == "stdout" or category == "stderr" %}
-        <pre>{{message}}</pre>
+        <pre>{{ message }}</pre>
         {% else %}
-        <div class="{{category}}">{{ message }}</div>
+        <div class="{{ category }}">{{ message }}</div>
         {% endif %}
         {% endfor %}
     </div>
     <div class="content">
-        {% block content %}{% endblock %}
+        {% block content %}{% endblock content %}
     </div>
     <div class="footer">
-        <center><tt>RaSCSI version: <strong>{{version}} <a href="https://github.com/akuker/RASCSI/commit/{{running_env["git"]}}">{{running_env["git"][:7]}}</a></strong></tt></center>
-        <center><tt>Pi environment: {{running_env["env"]}}</tt></center>
+        <center><tt>RaSCSI version: <strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}">{{ running_env["git"][:7] }}</a></strong></tt></center>
+        <center><tt>Pi environment: {{ running_env["env"] }}</tt></center>
     </div>
 </div>
 </body>

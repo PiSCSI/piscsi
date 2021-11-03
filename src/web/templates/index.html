@@ -7,7 +7,7 @@
     </summary>
     <ul>
         <li>Displays the currently attached devices for each available SCSI ID.</li>
-        <li>Save and load device configurations into <tt>{{CFG_DIR}}</tt></li>
+        <li>Save and load device configurations into <tt>{{ CFG_DIR }}</tt></li>
         <li>The <em>default</em> configuration will be loaded when the Web UI starts up, if available.</li>
     </ul>
 </details>
@@ -16,8 +16,8 @@
     <select name="name" required="" width="14">
         {% if config_files %}
         {% for config in config_files %}
-        <option value="{{config}}">
-            {{config.replace(".json", '')}}
+        <option value="{{ config }}">
+            {{ config.replace(".json", '') }}
         </option>
         {% endfor %}
         {% else %}
@@ -51,39 +51,39 @@
         {% for device in devices %}
         <tr>
             {% if device["id"] not in reserved_scsi_ids %}
-            <td style="text-align:center">{{device.id}}</td>
+            <td style="text-align:center">{{ device.id }}</td>
             {% if units %}
-            <td style="text-align:center">{{device.un}}</td>
+            <td style="text-align:center">{{ device.un }}</td>
             {% endif %}
-            <td style="text-align:center">{{device.device_type}}</td>
-            <td style="text-align:center">{{device.status}}</td>
-            <td style="text-align:left">{{device.file}}</td>
+            <td style="text-align:center">{{ device.device_type }}</td>
+            <td style="text-align:center">{{ device.status }}</td>
+            <td style="text-align:left">{{ device.file }}</td>
             {% if device.vendor == "RaSCSI" %}
-            <td style="text-align:center">{{device.product}}</td>
+            <td style="text-align:center">{{ device.product }}</td>
             {% else %}
-            <td style="text-align:center">{{device.vendor}} {{device.product}}</td>
+            <td style="text-align:center">{{ device.vendor }} {{ device.product }}</td>
             {% endif %}
             <td style="text-align:left">
             {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
-                    <input name="scsi_id" type="hidden" value="{{device.id}}"> <input name="unit" type="hidden" value="{{device.un}}"> <input type="submit" value="Eject">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}"> <input name="unit" type="hidden" value="{{ device.un }}"> <input type="submit" value="Eject">
                 </form>
                 <form action="/scsi/info" method="post">
-                    <input name="scsi_id" type="hidden" value="{{device.id}}"> <input name="unit" type="hidden" value="{{device.un}}"> <input type="submit" value="Info">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}"> <input name="unit" type="hidden" value="{{ device.un }}"> <input type="submit" value="Info">
                 </form>
                 {% else %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
-                    <input name="scsi_id" type="hidden" value="{{device.id}}"> <input name="unit" type="hidden" value="{{device.un}}"> <input type="submit" value="Detach">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}"> <input name="unit" type="hidden" value="{{ device.un }}"> <input type="submit" value="Detach">
                 </form>
                 <form action="/scsi/info" method="post">
-                    <input name="scsi_id" type="hidden" value="{{device.id}}"> <input name="unit" type="hidden" value="{{device.un}}"> <input type="submit" value="Info">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}"> <input name="unit" type="hidden" value="{{ device.un }}"> <input type="submit" value="Info">
                 </form>
                 {% endif %}
                 {% endif %}
             </td>
             {% else %}
-            <td class="inactive">{{device.id}}</td>
+            <td class="inactive">{{ device.id }}</td>
             {% if units %}
             <td class="inactive"></td>
             {% endif %}
@@ -109,7 +109,7 @@
         Image File Management
     </summary>
     <ul>
-        <li>Manage image files in the active RaSCSI image directory: <tt>{{base_dir}}</tt></li>
+        <li>Manage image files in the active RaSCSI image directory: <tt>{{ base_dir }}</tt></li>
         <li>Select a valid SCSI ID and <a href="https://en.wikipedia.org/wiki/Logical_unit_number">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.
         </li>
         <li>If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.</li>
@@ -130,11 +130,11 @@
             <td>
                 <details>
                     <summary>
-                        {{file["name"]}}
+                        {{ file["name"] }}
                     </summary>
                     <ul>
                     {% for key in file["prop"] %}
-                        <li>{{key}}: {{file['prop'][key]}}</li>
+                        <li>{{ key }}: {{ file['prop'][key] }}</li>
                     {% endfor %}
                     </ul>
                 </details>
@@ -143,16 +143,16 @@
             <td>
                 <details>
                     <summary>
-                        {{file["name"]}}
+                        {{ file["name"] }}
                     </summary>
                     <ul>
                     {% for member in file["zip"] %}
                     </li>
                         <li>
-                            <label for="member">{{member}}</label>
+                            <label for="member">{{ member }}</label>
                             <form action="/files/unzip" method="post">
-                                <input name="image" type="hidden" value="{{file['name']}}">
-                                <input name="member" type="hidden" value="{{member}}">
+                                <input name="image" type="hidden" value="{{ file['name'] }}">
+                                <input name="member" type="hidden" value="{{ member }}">
                                 <input type="submit" value="Unzip">
                             </form>
                         </li>
@@ -161,12 +161,12 @@
                 </details>
             </td>
             {% else %}
-            <td>{{file["name"]}}</td>
+            <td>{{ file["name"] }}</td>
             {% endif %}
             <td style="text-align:center">
                 <form action="/files/download" method="post">
-                        <input type="hidden" name="image" value="{{file['name']}}">
-                        <input type="submit" value="{{file["size_mb"]}} MB &#8595;">
+                        <input type="hidden" name="image" value="{{ file['name'] }}">
+                        <input type="submit" value="{{ file["size_mb"] }} MB &#8595;">
                 </form>
             </td>
             <td>
@@ -177,34 +177,34 @@
                 {% else %}
                 {% if file["name"].lower().endswith(archive_file_suffix) %}
                 <form action="/files/unzip" method="post">
-                    <input type="hidden" name="image" value="{{file['name']}}">
+                    <input type="hidden" name="image" value="{{ file['name'] }}">
                     <input type="submit" value="Unzip All">
                 </form>
                 {% else %}
                 <form action="/scsi/attach" method="post">
-                    <input type="hidden" name="file_name" value="{{file['name']}}">
-                    <input type="hidden" name="file_size" value="{{file['size']}}">
+                    <input type="hidden" name="file_name" value="{{ file['name'] }}">
+                    <input type="hidden" name="file_size" value="{{ file['size'] }}">
                     <label for="id">ID</label>
                         <select name="scsi_id">
                         {% for id in scsi_ids %}
-                        <option endif="" id="=" if="" name="id" recommended_id="" value="{{id}}">
-                            {{id}}
+                        <option endif="" id="=" if="" name="id" recommended_id="" value="{{ id }}">
+                            {{ id }}
                         </option>
                         {% endfor %}
                     </select>
                     <label for="unit">LUN</label>
                     <input max="31" min="0" name="unit" size="2" type="number" value="0">
                     {% if file["detected_type"] != "UNDEFINED" %}
-		    <input name="type" type="hidden" value="{{file['detected_type']}}">
-                        {{file["detected_type"]}}
+		    <input name="type" type="hidden" value="{{ file['detected_type'] }}">
+                        {{ file["detected_type"] }}
                     {% else %}
                         <select name="type">
                         <option selected value="">
                             Type
                         </option>
                         {% for d in device_types %}
-                        <option value="{{d}}">
-                            {{d}}
+                        <option value="{{ d }}">
+                            {{ d }}
                         </option>
                         {% endfor %}
                     {% endif %}
@@ -213,7 +213,7 @@
                 {% endif %}
                 </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
-                    <input name="image" type="hidden" value="{{file['name']}}">
+                    <input name="image" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="Delete">
                 </form>
                 {% endif %}
@@ -222,7 +222,7 @@
         {% endfor %}
     </tbody>
 </table>
-<p><small>Available disk space on the Pi: {{free_disk}} MB</small></p>
+<p><small>Available disk space on the Pi: {{ free_disk }} MB</small></p>
 
 <hr/>
 
@@ -248,8 +248,8 @@
                 <label for="if">Interface:</label>
                 <select name="if">
                 {% for if in netinfo["ifs"] %}
-                    <option value="{{if}}">
-                        {{if}}
+                    <option value="{{ if }}">
+                        {{ if }}
                     </option>
                 {% endfor %}
                 </select>
@@ -259,8 +259,8 @@
                 <label for="scsi_id">SCSI ID:</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids %}
-                    <option value="{{id}}"{% if id == recommended_id %} selected{% endif %}>
-                        {{id}}
+                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                        {{ id }}
                     </option>
                 {% endfor %}
                 </select>
@@ -276,9 +276,9 @@
         Upload File
     </summary>
     <ul>
-        <li>Uploads file to <tt>{{base_dir}}</tt>. The largest file size accepted is {{max_file_size}} MB.</li>
+        <li>Uploads file to <tt>{{ base_dir }}</tt>. The largest file size accepted is {{ max_file_size }} MB.</li>
         <li>For unrecognized file types, try renaming hard drive images to '.hds' and CD-ROM images to '.iso' before uploading.</li>
-        <li>Recognized file types: {{valid_file_suffix}}</li>
+        <li>Recognized file types: {{ valid_file_suffix }}</li>
     </ul>
 </details>
 
@@ -292,11 +292,11 @@
 <script type="application/javascript">
     Dropzone.options.dropper = {
         paramName: 'file',
-        acceptedFiles: '{{valid_file_suffix}}',
+        acceptedFiles: '{{ valid_file_suffix }}',
         chunking: true,
         forceChunking: true,
         url: '/files/upload',
-        maxFilesize: {{max_file_size}}, // MB
+        maxFilesize: {{ max_file_size }}, // MB
         chunkSize: 1000000 // bytes
     }
 </script>
@@ -308,7 +308,7 @@
         Download File to Images
     </summary>
     <ul>
-        <li>Given a URL, download that file to the <tt>{{base_dir}}</tt> directory.</li>
+        <li>Given a URL, download that file to the <tt>{{ base_dir }}</tt> directory.</li>
     </ul>
 </details>
 
@@ -329,7 +329,7 @@
         Download File to AppleShare
     </summary>
     <ul>
-        <li>Given a URL, download that file to the <tt>{{AFP_DIR}}</tt> directory and share it over AFP.</li>
+        <li>Given a URL, download that file to the <tt>{{ AFP_DIR }}</tt> directory and share it over AFP.</li>
         <li>Manage the files you download here through AppleShare on your vintage Mac.</li>
         <li>Requires <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to be installed and configured correctly for your network.
         </li>
@@ -350,9 +350,9 @@
 {% if netatalk_configured == 1 %}
 <p><small>The AppleShare server is running. No active connections</small></p>
 {% elif netatalk_configured == 2 %}
-<p><small>{{netatalk_configured - 1}} active AFP connection</small></p>
+<p><small>{{ netatalk_configured - 1 }} active AFP connection</small></p>
 {% elif netatalk_configured > 2 %}
-<p><small>{{netatalk_configured - 1}} active AFP connections</small></p>
+<p><small>{{ netatalk_configured - 1 }} active AFP connections</small></p>
 {% endif %}
 {% else %}
 <p>Install <a href="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing">Netatalk</a> to use the AppleTalk File Server.</p>
@@ -377,8 +377,8 @@
             <form action="/files/download_to_iso" method="post">
                 <select name="scsi_id">
                     {% for id in scsi_ids %}
-                    <option value="{{id}}"{% if id == recommended_id %} selected{% endif %}>
-                        {{id}}
+                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                        {{ id }}
                     </option>
                     {% endfor %}
                 </select> <label for="url">URL:</label> <input name="url" placeholder="URL" required="" type="url"> <input type="submit" value="Download and Mount ISO">
@@ -486,8 +486,8 @@
                 <label for="level">Log Level:</label>
                 <select name="level">
                 {% for level in log_levels %}
-                    <option value="{{level}}"{% if level == current_log_level %} selected{% endif %}>
-                        {{level}}
+                    <option value="{{ level }}"{% if level == current_log_level %} selected{% endif %}>
+                        {{ level }}
                     </option>
                 {% endfor %}
                 </select>
@@ -528,4 +528,4 @@
     </tr>
 </table>
 
-{% endblock %}
+{% endblock content %}
