@@ -67,24 +67,23 @@
             {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
-                    <input name="scsi_id" type="hidden" value="{{ device.id }}"> <input name="unit" type="hidden" value="{{ device.un }}">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input name="unit" type="hidden" value="{{ device.un }}">
                     <input type="submit" value="Eject">
                 </form>
-                <form action="/scsi/info" method="post">
-                    <input name="scsi_id" type="hidden" value="{{ device.id }}"> <input name="unit" type="hidden" value="{{ device.un }}">
-                    <input type="submit" value="Info">
-                </form>
                 {% else %}
-                <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Disk?')">
-                    <input name="scsi_id" type="hidden" value="{{ device.id }}"> <input name="unit" type="hidden" value="{{ device.un }}">
+                <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Device?')">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input name="unit" type="hidden" value="{{ device.un }}">
                     <input type="submit" value="Detach">
                 </form>
+                {% endif %}
                 <form action="/scsi/info" method="post">
-                    <input name="scsi_id" type="hidden" value="{{ device.id }}"> <input name="unit" type="hidden" value="{{ device.un }}">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input name="unit" type="hidden" value="{{ device.un }}">
                     <input type="submit" value="Info">
                 </form>
-                {% endif %}
-                {% endif %}
+            {% endif %}
             </td>
             {% else %}
             <td class="inactive">{{ device.id }}</td>
@@ -197,7 +196,7 @@
                         {% endfor %}
                     </select>
                     <label for="unit">LUN</label>
-                    <input name="un" type="number" size="2" value="0" min="0" max="31">
+                    <input name="unit" type="number" size="2" value="0" min="0" max="31">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
                         {{ file["detected_type"] }}
