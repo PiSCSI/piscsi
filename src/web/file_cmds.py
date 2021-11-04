@@ -287,6 +287,7 @@ def read_config(file_name):
     """
     Takes (str) file_name
     Returns (dict) with (bool) status and (str) msg
+    TODO: Backwards compatibility with v21.10 config files
     """
     from json import load
     file_name = CFG_DIR + file_name
