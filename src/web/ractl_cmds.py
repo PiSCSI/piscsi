@@ -309,7 +309,7 @@ def list_devices(scsi_id=None, unit=None):
 
         device_list.append({
             "id": did,
-            "un": dunit,
+            "unit": dunit,
             "device_type": dtype,
             "status": ", ".join(dstat_msg),
             "image": dpath,

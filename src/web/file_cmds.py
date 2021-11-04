@@ -254,6 +254,7 @@ def write_config(file_name):
     file_name = CFG_DIR + file_name
     try:
         with open(file_name, "w") as json_file:
+            version = get_server_info()["version"]
             devices = list_devices()["device_list"]
             for device in devices:
                 # Remove keys that we don't want to store in the file
@@ -271,7 +272,11 @@ def write_config(file_name):
                 # Convert to a data type that can be serialized
                 device["params"] = dict(device["params"])
             reserved_ids = get_reserved_ids()["ids"]
-            dump({"devices": devices, "reserved_ids": reserved_ids}, json_file, indent=4)
+            dump(
+                {"version": version, "devices": devices, "reserved_ids": reserved_ids},
+                json_file,
+                indent=4
+                )
         return {"status": True, "msg": f"Saved config to {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as error:
         logging.error(str(error))
@@ -293,23 +298,48 @@ def read_config(file_name):
     file_name = CFG_DIR + file_name
     try:
         with open(file_name) as json_file:
-            detach_all()
             config = load(json_file)
-            reserve_scsi_ids(config["reserved_ids"])
-            for row in config["devices"]:
-                kwargs = {
-                    "device_type": row["device_type"],
-                    "image": row["image"],
-                    "unit": int(row["un"]),
-                    "vendor": row["vendor"],
-                    "product": row["product"],
-                    "revision": row["revision"],
-                    "block_size": row["block_size"],
-                    }
-                params = dict(row["params"])
-                for param in params.keys():
-                    kwargs[param] = params[param]
-                process = attach_image(row["id"], **kwargs)
+            # If the config file format changes again in the future,
+            # introduce more sophisticated format detection here.
+            if type(config) == dict:
+                detach_all()
+                reserve_scsi_ids(config["reserved_ids"])
+                for row in config["devices"]:
+                    kwargs = {
+                        "device_type": row["device_type"],
+                        "image": row["image"],
+                        "unit": int(row["unit"]),
+                        "vendor": row["vendor"],
+                        "product": row["product"],
+                        "revision": row["revision"],
+                        "block_size": row["block_size"],
+                        }
+                    params = dict(row["params"])
+                    for param in params.keys():
+                        kwargs[param] = params[param]
+                    process = attach_image(row["id"], **kwargs)
+            # The config file format in RaSCSI 21.10 is using a list data type at the top level.
+            # If future config file formats return to the list data type,
+            # introduce more sophisticated format detection here.
+            elif type(config) == list:
+                detach_all()
+                for row in config:
+                    kwargs = {
+                        "device_type": row["device_type"],
+                        "image": row["image"],
+                        # "un" for backwards compatibility
+                        "unit": int(row["un"]),
+                        "vendor": row["vendor"],
+                        "product": row["product"],
+                        "revision": row["revision"],
+                        "block_size": row["block_size"],
+                        }
+                    params = dict(row["params"])
+                    for param in params.keys():
+                        kwargs[param] = params[param]
+                    process = attach_image(row["id"], **kwargs)
+            else:
+                return {"status": False, "msg": "Invalid config file format."}
         if process["status"]:
             return {"status": process["status"], "msg": f"Loaded config from: {file_name}"}
         return {"status": process["status"], "msg": process["msg"]}
