@@ -292,7 +292,6 @@ def read_config(file_name):
     """
     Takes (str) file_name
     Returns (dict) with (bool) status and (str) msg
-    TODO: Backwards compatibility with v21.10 config files
     """
     from json import load
     file_name = CFG_DIR + file_name
@@ -300,7 +299,7 @@ def read_config(file_name):
         with open(file_name) as json_file:
             config = load(json_file)
             # If the config file format changes again in the future,
-            # introduce more sophisticated format detection here.
+            # introduce more sophisticated format detection logic here.
             if type(config) == dict:
                 detach_all()
                 reserve_scsi_ids(config["reserved_ids"])
@@ -320,7 +319,7 @@ def read_config(file_name):
                     process = attach_image(row["id"], **kwargs)
             # The config file format in RaSCSI 21.10 is using a list data type at the top level.
             # If future config file formats return to the list data type,
-            # introduce more sophisticated format detection here.
+            # introduce more sophisticated format detection logic here.
             elif type(config) == list:
                 detach_all()
                 for row in config:
