@@ -105,5 +105,10 @@ while [ "$1" != "" ]; do
     shift
 done
 
-echo "Starting OLED Screen with $ROTATION degrees rotation..."
-python3 rascsi_oled_monitor.py "${ROTATION}"
+echo "Starting OLED Screen..."
+if [ -z ${ROTATION+x} ]; then
+    echo "No screen rotation parameter given; falling back to the default."
+else
+    echo "Screen rotation set to $ROTATION degrees."
+fi
+python3 rascsi_oled_monitor.py ${ROTATION}
