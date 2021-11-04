@@ -47,8 +47,10 @@ from ractl_cmds import (
     eject_by_id,
     detach_all,
     get_server_info,
+    get_reserved_ids,
     get_network_info,
     get_device_types,
+    reserve_scsi_ids,
     set_log_level,
 )
 from device_utils import (
@@ -511,6 +513,38 @@ def device_info():
         return redirect(url_for("index"))
 
     flash(devices["msg"], "error")
+    return redirect(url_for("index"))
+
+@APP.route("/scsi/reserve", methods=["POST"])
+def reserve_id():
+    """
+    Reserves a SCSI ID
+    """
+    scsi_id = request.form.get("scsi_id")
+    reserved_ids = get_reserved_ids()["ids"]
+    reserved_ids.extend(scsi_id)
+    process = reserve_scsi_ids(reserved_ids)
+    if process["status"]:
+        flash(f"Reserved SCSI ID {scsi_id}")
+        return redirect(url_for("index"))
+
+    flash(process["msg"], "error")
+    return redirect(url_for("index"))
+
+@APP.route("/scsi/unreserve", methods=["POST"])
+def unreserve_id():
+    """
+    Removes the reservation of a SCSI ID
+    """
+    scsi_id = request.form.get("scsi_id")
+    reserved_ids = get_reserved_ids()["ids"]
+    reserved_ids.remove(scsi_id)
+    process = reserve_scsi_ids(reserved_ids)
+    if process["status"]:
+        flash(f"Released the reservation for SCSI ID {scsi_id}")
+        return redirect(url_for("index"))
+
+    flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 @APP.route("/pi/reboot", methods=["POST"])

@@ -63,7 +63,7 @@
             {% else %}
             <td style="text-align:center">{{ device.vendor }} {{ device.product }}</td>
             {% endif %}
-            <td style="text-align:left">
+            <td style="text-align:center">
             {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
@@ -83,6 +83,11 @@
                     <input name="unit" type="hidden" value="{{ device.un }}">
                     <input type="submit" value="Info">
                 </form>
+            {% else %}
+                <form action="/scsi/reserve" method="post">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input type="submit" value="Reserve">
+                </form>
             {% endif %}
             </td>
             {% else %}
@@ -94,7 +99,12 @@
             <td class="inactive">Reserved ID</td>
             <td class="inactive"></td>
             <td class="inactive"></td>
-            <td class="inactive"></td>
+            <td class="inactive">
+                <form action="/scsi/unreserve" method="post">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input type="submit" value="Unreserve">
+                </form>
+            </td>
             {% endif %}
         </tr>
         {% endfor %}
