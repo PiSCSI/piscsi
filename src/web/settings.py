@@ -19,7 +19,7 @@ CONFIG_FILE_SUFFIX = "json"
 PROPERTIES_SUFFIX = "properties"
 
 # The file name of the default config file that loads when rascsi-web starts
-DEFAULT_CONFIG = f"{CFG_DIR}/default.{CONFIG_FILE_SUFFIX}"
+DEFAULT_CONFIG = f"default.{CONFIG_FILE_SUFFIX}"
 # File containing canonical drive properties
 DRIVE_PROPERTIES_FILE = WEB_DIR + "/drive_properties.json"
 

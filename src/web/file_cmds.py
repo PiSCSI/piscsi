@@ -294,10 +294,15 @@ def read_config(file_name):
             detach_all()
             devices = load(json_file)
             for row in devices:
-                kwargs = {"device_type": row["device_type"], \
-                        "image": row["image"], "unit": int(row["un"]), \
-                        "vendor": row["vendor"], "product": row["product"], \
-                        "revision": row["revision"], "block_size": row["block_size"]}
+                kwargs = {
+                    "device_type": row["device_type"],
+                    "image": row["image"],
+                    "unit": int(row["un"]),
+                    "vendor": row["vendor"],
+                    "product": row["product"],
+                    "revision": row["revision"],
+                    "block_size": row["block_size"],
+                    }
                 params = dict(row["params"])
                 for param in params.keys():
                     kwargs[param] = params[param]
