@@ -8,11 +8,13 @@ from pathlib import PurePath
 
 from ractl_cmds import (
     get_server_info,
+    get_reserved_ids,
     attach_image,
     detach_all,
     list_devices,
-    send_pb_command,
+    reserve_scsi_ids,
 )
+from socket_cmds import send_pb_command
 from settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX
 import rascsi_interface_pb2 as proto
 
@@ -253,8 +255,6 @@ def write_config(file_name):
     try:
         with open(file_name, "w") as json_file:
             devices = list_devices()["device_list"]
-            if not devices:
-                return {"status": False, "msg": "No attached devices."}
             for device in devices:
                 # Remove keys that we don't want to store in the file
                 del device["status"]
@@ -270,7 +270,8 @@ def write_config(file_name):
                     device["block_size"] = None
                 # Convert to a data type that can be serialized
                 device["params"] = dict(device["params"])
-            dump(devices, json_file, indent=4)
+            reserved_ids = get_reserved_ids()["ids"]
+            dump({"devices": devices, "reserved_ids": reserved_ids}, json_file, indent=4)
         return {"status": True, "msg": f"Saved config to {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as error:
         logging.error(str(error))
@@ -292,8 +293,9 @@ def read_config(file_name):
     try:
         with open(file_name) as json_file:
             detach_all()
-            devices = load(json_file)
-            for row in devices:
+            config = load(json_file)
+            reserve_scsi_ids(config["reserved_ids"])
+            for row in config["devices"]:
                 kwargs = {
                     "device_type": row["device_type"],
                     "image": row["image"],

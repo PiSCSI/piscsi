@@ -66,6 +66,27 @@ def get_server_info():
         }
 
 
+def get_reserved_ids():
+    """
+    Sends a RESERVED_IDS_INFO command to the server.
+    Returns a dict with:
+    - (bool) status
+    - (list) of (int) ids -- currently reserved SCSI IDs
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.RESERVED_IDS_INFO
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    #ids = list(result.reserved_ids_info.ids)
+    ids = []
+    for id in result.reserved_ids_info.ids:
+        ids.append(str(id))
+
+    return {"status": result.status, "ids": ids}
+
+
 def get_network_info():
     """
     Sends a NETWORK_INTERFACES_INFO command to the server.
@@ -303,6 +324,21 @@ def list_devices(scsi_id=None, unit=None):
         i += 1
 
     return {"status": result.status, "msg": result.msg, "device_list": device_list}
+
+
+def reserve_scsi_ids(reserved_scsi_ids):
+    """
+    Sends the RESERVE_IDS command to the server to reserve SCSI IDs.
+    Takes a (list) of (str) as argument.
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.RESERVE_IDS
+    command.params["ids"] = ",".join(reserved_scsi_ids)
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
 
 
 def set_log_level(log_level):
