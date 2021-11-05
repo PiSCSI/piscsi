@@ -291,7 +291,7 @@ def write_config(file_name):
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
 
-def read_config(file_names):
+def read_config(file_name):
     """
     Takes (str) file_name and (list) of (str) RESERVATIONS
     Returns (dict) with (bool) status and (str) msg
