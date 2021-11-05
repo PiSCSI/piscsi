@@ -520,10 +520,12 @@ def device_info():
 @APP.route("/scsi/reserve", methods=["POST"])
 def reserve_id():
     """
-    Reserves a SCSI ID
+    Reserves a SCSI ID and stores the memo for that reservation
     """
     scsi_id = request.form.get("scsi_id")
     memo = request.form.get("memo")
+    logging.warning(memo)
+    logging.warning(RESERVATIONS)
     reserved_ids = get_reserved_ids()["ids"]
     reserved_ids.extend(scsi_id)
     process = reserve_scsi_ids(reserved_ids)
@@ -538,7 +540,7 @@ def reserve_id():
 @APP.route("/scsi/unreserve", methods=["POST"])
 def unreserve_id():
     """
-    Removes the reservation of a SCSI ID
+    Removes the reservation of a SCSI ID as well as the memo for the reservation
     """
     scsi_id = request.form.get("scsi_id")
     reserved_ids = get_reserved_ids()["ids"]

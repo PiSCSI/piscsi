@@ -84,9 +84,9 @@
                     <input type="submit" value="Info">
                 </form>
             {% else %}
-                <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('Enter a memo for this reservation'); document.getElementById('memo').value = memo;">
+            <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('Enter a memo for this reservation'); document.getElementById('memo_{{ device.id }}').value = memo;">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input name="memo" id="memo" type="hidden" value="">
+                    <input name="memo" id="memo_{{ device.id }}" type="hidden" value="">
                     <input type="submit" value="Reserve">
                 </form>
             {% endif %}
