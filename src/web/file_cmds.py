@@ -346,9 +346,7 @@ def read_config(file_name):
                     process = attach_image(row["id"], **kwargs)
             else:
                 return {"status": False, "msg": "Invalid config file format."}
-        if process["status"]:
-            return {"status": process["status"], "msg": f"Loaded config from: {file_name}"}
-        return {"status": process["status"], "msg": process["msg"]}
+            return {"status": True, "msg": f"Loaded config from: {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as error:
         logging.error(str(error))
         return {"status": False, "msg": str(error)}
