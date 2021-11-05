@@ -286,7 +286,6 @@ def write_config(file_name, reservations):
         delete_file(file_name)
         return {"status": False, "msg": str(error)}
     except:
-        raise
         logging.error("Could not write to file: %s", file_name)
         delete_file(file_name)
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
