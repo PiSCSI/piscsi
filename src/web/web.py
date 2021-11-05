@@ -502,7 +502,7 @@ def device_info():
     if str(device["id"]) == scsi_id:
         flash("=== DEVICE INFO ===")
         flash(f"SCSI ID: {device['id']}")
-        flash(f"LUN: {device['un']}")
+        flash(f"LUN: {device['unit']}")
         flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
         flash(f"File: {device['image']}")
