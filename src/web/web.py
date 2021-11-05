@@ -524,8 +524,6 @@ def reserve_id():
     """
     scsi_id = request.form.get("scsi_id")
     memo = request.form.get("memo")
-    logging.warning(memo)
-    logging.warning(RESERVATIONS)
     reserved_ids = get_reserved_ids()["ids"]
     reserved_ids.extend(scsi_id)
     process = reserve_scsi_ids(reserved_ids)
