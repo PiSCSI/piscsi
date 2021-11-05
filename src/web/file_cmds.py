@@ -245,9 +245,9 @@ def download_to_dir(url, save_dir):
     return {"status": True, "msg": f"File downloaded from {url} to {save_dir}"}
 
 
-def write_config(file_name):
+def write_config(file_name, reservations):
     """
-    Takes (str) file_name
+    Takes (str) file_name and (list) of (str) reservations
     Returns (dict) with (bool) status and (str) msg
     """
     from json import dump
@@ -271,9 +271,12 @@ def write_config(file_name):
                     device["block_size"] = None
                 # Convert to a data type that can be serialized
                 device["params"] = dict(device["params"])
+            reserved_ids_and_memos = []
             reserved_ids = get_reserved_ids()["ids"]
+            for scsi_id in reserved_ids:
+                reserved_ids_and_memos.append({"id": scsi_id, "memo": reservations[int(scsi_id)]})
             dump(
-                {"version": version, "devices": devices, "reserved_ids": reserved_ids},
+                {"version": version, "devices": devices, "reserved_ids": reserved_ids_and_memos},
                 json_file,
                 indent=4
                 )
@@ -283,14 +286,15 @@ def write_config(file_name):
         delete_file(file_name)
         return {"status": False, "msg": str(error)}
     except:
+        raise
         logging.error("Could not write to file: %s", file_name)
         delete_file(file_name)
         return {"status": False, "msg": f"Could not write to file: {file_name}"}
 
 
-def read_config(file_name):
+def read_config(file_name, reservations):
     """
-    Takes (str) file_name
+    Takes (str) file_name and (list) of (str) reservations
     Returns (dict) with (bool) status and (str) msg
     """
     from json import load
@@ -302,7 +306,11 @@ def read_config(file_name):
             # introduce more sophisticated format detection logic here.
             if type(config) == dict:
                 detach_all()
-                reserve_scsi_ids(config["reserved_ids"])
+                ids_to_reserve = []
+                for item in config["reserved_ids"]:
+                    ids_to_reserve.append(item["id"])
+                    reservations[int(item["id"])] = item["memo"]
+                reserve_scsi_ids(ids_to_reserve)
                 for row in config["devices"]:
                     kwargs = {
                         "device_type": row["device_type"],

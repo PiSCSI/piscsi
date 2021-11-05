@@ -84,8 +84,9 @@
                     <input type="submit" value="Info">
                 </form>
             {% else %}
-                <form action="/scsi/reserve" method="post">
+                <form action="/scsi/reserve" method="post" onsubmit="var memo = prompt('Enter a memo for this reservation'); document.getElementById('memo').value = memo;">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input name="memo" id="memo" type="hidden" value="">
                     <input type="submit" value="Reserve">
                 </form>
             {% endif %}
@@ -97,7 +98,7 @@
             {% endif %}
             <td class="inactive"></td>
             <td class="inactive">Reserved ID</td>
-            <td class="inactive"></td>
+            <td class="inactive">{{ reservations[device.id] }}</td>
             <td class="inactive"></td>
             <td class="inactive">
                 <form action="/scsi/unreserve" method="post">
