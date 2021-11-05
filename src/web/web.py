@@ -67,6 +67,7 @@ from settings import (
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
     REMOVABLE_DEVICE_TYPES,
+    RESERVATIONS,
 )
 
 APP = Flask(__name__)
@@ -122,7 +123,7 @@ def index():
         attached_images=attached_images,
         units=units,
         reserved_scsi_ids=reserved_scsi_ids,
-        reservations=reservations,
+        RESERVATIONS=RESERVATIONS,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         running_env=running_env(),
         version=server_info["version"],
@@ -278,7 +279,7 @@ def config_save():
     file_name = request.form.get("name") or "default"
     file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
 
-    process = write_config(file_name, reservations)
+    process = write_config(file_name)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -295,7 +296,7 @@ def config_load():
     file_name = request.form.get("name")
 
     if "load" in request.form:
-        process = read_config(file_name, reservations)
+        process = read_config(file_name)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -527,7 +528,7 @@ def reserve_id():
     reserved_ids.extend(scsi_id)
     process = reserve_scsi_ids(reserved_ids)
     if process["status"]:
-        reservations[int(scsi_id)] = memo
+        RESERVATIONS[int(scsi_id)] = memo
         flash(f"Reserved SCSI ID {scsi_id}")
         return redirect(url_for("index"))
 
@@ -544,7 +545,7 @@ def unreserve_id():
     reserved_ids.remove(scsi_id)
     process = reserve_scsi_ids(reserved_ids)
     if process["status"]:
-        reservations[int(scsi_id)] = ""
+        RESERVATIONS[int(scsi_id)] = ""
         flash(f"Released the reservation for SCSI ID {scsi_id}")
         return redirect(url_for("index"))
 
@@ -786,11 +787,6 @@ if __name__ == "__main__":
     # Load the default configuration file, if found
     if Path(DEFAULT_CONFIG).is_file():
         read_config(DEFAULT_CONFIG)
-
-    # The reservations list is used to keep track of reserved SCSI IDs and their memos
-    reservations = []
-    for i in range(0, 8):
-        reservations.append("")
 
     import bjoern
     print("Serving rascsi-web...")

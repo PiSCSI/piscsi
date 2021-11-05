@@ -53,7 +53,7 @@
             {% if device["id"] not in reserved_scsi_ids %}
             <td style="text-align:center">{{ device.id }}</td>
             {% if units %}
-            <td style="text-align:center">{{ device.un }}</td>
+            <td style="text-align:center">{{ device.unit }}</td>
             {% endif %}
             <td style="text-align:center">{{ device.device_type }}</td>
             <td style="text-align:center">{{ device.status }}</td>
@@ -68,19 +68,19 @@
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
                 <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input name="unit" type="hidden" value="{{ device.un }}">
+                    <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="Eject">
                 </form>
                 {% else %}
                 <form action="/scsi/detach" method="post" onsubmit="return confirm('Detach Device?')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input name="unit" type="hidden" value="{{ device.un }}">
+                    <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="Detach">
                 </form>
                 {% endif %}
                 <form action="/scsi/info" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input name="unit" type="hidden" value="{{ device.un }}">
+                    <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="Info">
                 </form>
             {% else %}
@@ -98,7 +98,7 @@
             {% endif %}
             <td class="inactive"></td>
             <td class="inactive">Reserved ID</td>
-            <td class="inactive">{{ reservations[device.id] }}</td>
+            <td class="inactive">{{ RESERVATIONS[device.id] }}</td>
             <td class="inactive"></td>
             <td class="inactive">
                 <form action="/scsi/unreserve" method="post">

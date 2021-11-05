@@ -24,3 +24,8 @@ DEFAULT_CONFIG = f"default.{CONFIG_FILE_SUFFIX}"
 DRIVE_PROPERTIES_FILE = WEB_DIR + "/drive_properties.json"
 
 REMOVABLE_DEVICE_TYPES = ("SCCD", "SCRM", "SCMO")
+
+# The reservations list is used to keep track of reserved SCSI IDs and their memos
+RESERVATIONS = []
+for i in range(0, 8):
+    RESERVATIONS.append("")
