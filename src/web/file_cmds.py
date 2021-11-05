@@ -303,7 +303,7 @@ def read_config(file_name, reservations):
             config = load(json_file)
             # If the config file format changes again in the future,
             # introduce more sophisticated format detection logic here.
-            if type(config) == dict:
+            if isinstance(config, dict):
                 detach_all()
                 ids_to_reserve = []
                 for item in config["reserved_ids"]:
@@ -327,7 +327,7 @@ def read_config(file_name, reservations):
             # The config file format in RaSCSI 21.10 is using a list data type at the top level.
             # If future config file formats return to the list data type,
             # introduce more sophisticated format detection logic here.
-            elif type(config) == list:
+            elif isinstance(config, list):
                 detach_all()
                 for row in config:
                     kwargs = {

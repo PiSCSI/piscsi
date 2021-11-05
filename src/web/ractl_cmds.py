@@ -79,12 +79,11 @@ def get_reserved_ids():
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
     result.ParseFromString(data)
-    #ids = list(result.reserved_ids_info.ids)
-    ids = []
-    for id in result.reserved_ids_info.ids:
-        ids.append(str(id))
+    scsi_ids = []
+    for scsi_id in result.reserved_ids_info.ids:
+        scsi_ids.append(str(scsi_id))
 
-    return {"status": result.status, "ids": ids}
+    return {"status": result.status, "ids": scsi_ids}
 
 
 def get_network_info():

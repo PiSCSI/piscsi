@@ -789,7 +789,7 @@ if __name__ == "__main__":
 
     # The reservations list is used to keep track of reserved SCSI IDs and their memos
     reservations = []
-    for i in range(0,8):
+    for i in range(0, 8):
         reservations.append("")
 
     import bjoern
