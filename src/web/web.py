@@ -785,7 +785,7 @@ if __name__ == "__main__":
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
     # Load the default configuration file, if found
-    if Path(DEFAULT_CONFIG).is_file():
+    if Path(CFG_DIR + DEFAULT_CONFIG).is_file():
         read_config(DEFAULT_CONFIG)
 
     import bjoern

@@ -323,7 +323,7 @@ def read_config(file_name):
                     params = dict(row["params"])
                     for param in params.keys():
                         kwargs[param] = params[param]
-                    process = attach_image(row["id"], **kwargs)
+                    attach_image(row["id"], **kwargs)
             # The config file format in RaSCSI 21.10 is using a list data type at the top level.
             # If future config file formats return to the list data type,
             # introduce more sophisticated format detection logic here.
@@ -343,7 +343,7 @@ def read_config(file_name):
                     params = dict(row["params"])
                     for param in params.keys():
                         kwargs[param] = params[param]
-                    process = attach_image(row["id"], **kwargs)
+                    attach_image(row["id"], **kwargs)
             else:
                 return {"status": False, "msg": "Invalid config file format."}
             return {"status": True, "msg": f"Loaded config from: {file_name}"}
