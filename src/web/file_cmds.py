@@ -247,7 +247,7 @@ def download_to_dir(url, save_dir):
 
 def write_config(file_name):
     """
-    Takes (str) file_name and (list) of (str) RESERVATIONS
+    Takes (str) file_name
     Returns (dict) with (bool) status and (str) msg
     """
     from json import dump
@@ -293,7 +293,7 @@ def write_config(file_name):
 
 def read_config(file_name):
     """
-    Takes (str) file_name and (list) of (str) RESERVATIONS
+    Takes (str) file_name
     Returns (dict) with (bool) status and (str) msg
     """
     from json import load
