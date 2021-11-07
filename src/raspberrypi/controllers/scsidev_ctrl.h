@@ -88,14 +88,14 @@ public:
 	SCSIDEV();
 	~SCSIDEV();
 
-	void Reset();							// Device Reset
+	void Reset() override;
 
 	// External API
-	BUS::phase_t Process();					// Run
+	BUS::phase_t Process() override;
 
 	// Other
-	bool IsSASI() const { return false; }			// SASI Check
-	bool IsSCSI() const { return true; }			// SCSI check
+	bool IsSASI() const override { return false; }
+	bool IsSCSI() const override { return true; }
 
 	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION) override;	// Common error handling
@@ -103,20 +103,20 @@ public:
 private:
 
 	// Phase
-	void BusFree();						// Bus free phase
-	void Selection();						// Selection phase
-	void Execute();						// Execution phase
+	void BusFree() override;						// Bus free phase
+	void Selection() override;						// Selection phase
+	void Execute() override;						// Execution phase
 	void MsgOut();							// Message out phase
 
 	// commands
 	void CmdGetEventStatusNotification();
-	void CmdModeSelect10();					// MODE SELECT(10) command
-	void CmdModeSense10();						// MODE SENSE(10) command
+	void CmdModeSelect10();
+	void CmdModeSense10();
 
 	// Data transfer
-	void Send();							// Send data
-	void Receive();						// Receive data
-	bool XferMsg(DWORD msg);					// Data transfer message
+	void Send() override;
+	void Receive() override;
+	bool XferMsg(DWORD msg);
 
 	scsi_t scsi;								// Internal data
 };

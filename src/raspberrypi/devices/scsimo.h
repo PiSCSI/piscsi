@@ -25,7 +25,7 @@ public:
 	SCSIMO();
 	~SCSIMO() {};
 
-	void Open(const Filepath& path);
+	void Open(const Filepath& path) override;
 
 	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;

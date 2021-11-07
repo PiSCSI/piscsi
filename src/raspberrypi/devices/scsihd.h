@@ -28,7 +28,7 @@ public:
 	void FinalizeSetup(const Filepath&, off_t);
 
 	void Reset();
-	virtual void Open(const Filepath&);
+	virtual void Open(const Filepath&) override;
 
 	// Commands
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override;
