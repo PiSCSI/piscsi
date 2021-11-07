@@ -3,12 +3,6 @@ click==7.1.2
 Flask==2.0.1
 itsdangerous==2.0.1
 Jinja2==3.0.1
-machfs==1.2.4
-macresources==1.2
 MarkupSafe==2.0.1
-rsrcfork==1.8.0
-waitress==1.4.4
-zope.event==4.5.0
-zope.interface==5.1.2
 protobuf==3.17.3
-pydrop==0.0.6
+requests==2.26.0

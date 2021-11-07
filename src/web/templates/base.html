@@ -1,4 +1,6 @@
 <!doctype html>
+<html>
+<head>
 <title>RaSCSI Control Page</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
@@ -24,7 +26,9 @@
 
 <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js">
 </script>
+</head>
 
+<body>
 <div class="content">
     <div class="header">
 <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Running</span>
@@ -43,17 +47,18 @@
     <div class="flash">
         {% for category, message in get_flashed_messages(with_categories=true) %}
         {% if category == "stdout" or category == "stderr" %}
-        <pre>{{message}}</pre>
+        <pre>{{ message }}</pre>
         {% else %}
-        <div class="{{category}}">{{ message }}</div>
+        <div class="{{ category }}">{{ message }}</div>
         {% endif %}
         {% endfor %}
     </div>
     <div class="content">
-        {% block content %}{% endblock %}
+        {% block content %}{% endblock content %}
     </div>
     <div class="footer">
-        <center><tt>RaSCSI version: <strong>{{version}} <a href="https://github.com/akuker/RASCSI/commit/{{running_env["git"]}}">{{running_env["git"][:7]}}</a></strong></tt></center>
-        <center><tt>Pi environment: {{running_env["env"]}}</tt></center>
+        <center><tt>RaSCSI version: <strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}">{{ running_env["git"][:7] }}</a></strong></tt></center>
+        <center><tt>Pi environment: {{ running_env["env"] }}</tt></center>
     </div>
 </div>
+</body>
