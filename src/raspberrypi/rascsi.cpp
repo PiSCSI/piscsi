@@ -751,9 +751,18 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		}
 	}
 
+	int id;
+	int unit;
 	Filepath filepath;
 	filepath.SetPath(filename.c_str());
 	string initial_filename = filepath.GetPath();
+
+	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+		ostringstream error;
+		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, error);
+	}
+
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 	try {
 		try {
@@ -762,19 +771,18 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		catch(const file_not_found_exception&) {
 			// If the file does not exist search for it in the default image folder
 			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
+
+			if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+				ostringstream error;
+				error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+				return ReturnStatus(fd, false, error);
+			}
+
 			file_support->Open(filepath);
 		}
 	}
 	catch(const io_exception& e) {
 		return ReturnStatus(fd, false, "Tried to open an invalid or non-existing file '" + initial_filename + "': " + e.getmsg());
-	}
-
-	int id;
-	int unit;
-	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		ostringstream error;
-		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
-		return ReturnStatus(fd, false, error);
 	}
 
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
