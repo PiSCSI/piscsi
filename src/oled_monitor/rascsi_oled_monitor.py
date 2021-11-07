@@ -65,8 +65,10 @@ print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approxim
 if len(argv) > 1:
     if str(argv[1]) == "0":
         ROTATION = 0
+        print("Using 0 degrees screen rotation.")
     elif str(argv[1]) == "180":
         ROTATION = 2
+        print("Using 180 degrees screen rotation.")
     else:
         exit("Only 0 and 180 are valid arguments for screen rotation.")
 else:
