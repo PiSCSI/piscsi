@@ -8,8 +8,8 @@
 ##                 ARM=x86_64 CROSS_COMPILE=x86_64-linux-gnu-cpp
 CROSS_COMPILE ?= arm-linux-gnueabihf-
 
-CC = $(CROSS_COMPILE)gcc
-CXX = $(CROSS_COMPILE)g++
+CC = $(CROSS_COMPILE)clang
+CXX = $(CROSS_COMPILE)clang++
 
 ##   DEBUG=1  : A Debug build includes the debugger symbols
 ##              and disables compiler optimization. Typically,
