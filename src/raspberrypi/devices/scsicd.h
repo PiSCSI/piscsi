@@ -108,8 +108,8 @@ private:
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
 
-	void ReadToc(SASIDEV *);
-	void GetEventStatusNotification(SASIDEV *);
+	void ReadToc(SASIDEV *) override;
+	void GetEventStatusNotification(SASIDEV *) override;
 
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
 

@@ -83,7 +83,7 @@ public:
 	void SetMcastAddr(SASIDEV *);
 	void EnableInterface(SASIDEV *);
 
-	bool Dispatch(SCSIDEV *);
+	bool Dispatch(SCSIDEV *) override;
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
