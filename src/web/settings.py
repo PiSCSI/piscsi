@@ -24,3 +24,7 @@ DEFAULT_CONFIG = f"default.{CONFIG_FILE_SUFFIX}"
 DRIVE_PROPERTIES_FILE = WEB_DIR + "/drive_properties.json"
 
 REMOVABLE_DEVICE_TYPES = ("SCCD", "SCRM", "SCMO")
+
+# The RESERVATIONS list is used to keep track of the reserved ID memos.
+# Initialize with a list of 8 empty strings.
+RESERVATIONS = ["" for x in range(0, 8)]

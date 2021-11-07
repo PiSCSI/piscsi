@@ -8,12 +8,14 @@ from pathlib import PurePath
 
 from ractl_cmds import (
     get_server_info,
+    get_reserved_ids,
     attach_image,
     detach_all,
     list_devices,
-    send_pb_command,
+    reserve_scsi_ids,
 )
-from settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX
+from socket_cmds import send_pb_command
+from settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
 import rascsi_interface_pb2 as proto
 
 
@@ -252,9 +254,8 @@ def write_config(file_name):
     file_name = CFG_DIR + file_name
     try:
         with open(file_name, "w") as json_file:
+            version = get_server_info()["version"]
             devices = list_devices()["device_list"]
-            if not devices:
-                return {"status": False, "msg": "No attached devices."}
             for device in devices:
                 # Remove keys that we don't want to store in the file
                 del device["status"]
@@ -270,7 +271,15 @@ def write_config(file_name):
                     device["block_size"] = None
                 # Convert to a data type that can be serialized
                 device["params"] = dict(device["params"])
-            dump(devices, json_file, indent=4)
+            reserved_ids_and_memos = []
+            reserved_ids = get_reserved_ids()["ids"]
+            for scsi_id in reserved_ids:
+                reserved_ids_and_memos.append({"id": scsi_id, "memo": RESERVATIONS[int(scsi_id)]})
+            dump(
+                {"version": version, "devices": devices, "reserved_ids": reserved_ids_and_memos},
+                json_file,
+                indent=4
+                )
         return {"status": True, "msg": f"Saved config to {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as error:
         logging.error(str(error))
@@ -291,25 +300,53 @@ def read_config(file_name):
     file_name = CFG_DIR + file_name
     try:
         with open(file_name) as json_file:
-            detach_all()
-            devices = load(json_file)
-            for row in devices:
-                kwargs = {
-                    "device_type": row["device_type"],
-                    "image": row["image"],
-                    "unit": int(row["un"]),
-                    "vendor": row["vendor"],
-                    "product": row["product"],
-                    "revision": row["revision"],
-                    "block_size": row["block_size"],
-                    }
-                params = dict(row["params"])
-                for param in params.keys():
-                    kwargs[param] = params[param]
-                process = attach_image(row["id"], **kwargs)
-        if process["status"]:
-            return {"status": process["status"], "msg": f"Loaded config from: {file_name}"}
-        return {"status": process["status"], "msg": process["msg"]}
+            config = load(json_file)
+            # If the config file format changes again in the future,
+            # introduce more sophisticated format detection logic here.
+            if isinstance(config, dict):
+                detach_all()
+                ids_to_reserve = []
+                for item in config["reserved_ids"]:
+                    ids_to_reserve.append(item["id"])
+                    RESERVATIONS[int(item["id"])] = item["memo"]
+                reserve_scsi_ids(ids_to_reserve)
+                for row in config["devices"]:
+                    kwargs = {
+                        "device_type": row["device_type"],
+                        "image": row["image"],
+                        "unit": int(row["unit"]),
+                        "vendor": row["vendor"],
+                        "product": row["product"],
+                        "revision": row["revision"],
+                        "block_size": row["block_size"],
+                        }
+                    params = dict(row["params"])
+                    for param in params.keys():
+                        kwargs[param] = params[param]
+                    attach_image(row["id"], **kwargs)
+            # The config file format in RaSCSI 21.10 is using a list data type at the top level.
+            # If future config file formats return to the list data type,
+            # introduce more sophisticated format detection logic here.
+            elif isinstance(config, list):
+                detach_all()
+                for row in config:
+                    kwargs = {
+                        "device_type": row["device_type"],
+                        "image": row["image"],
+                        # "un" for backwards compatibility
+                        "unit": int(row["un"]),
+                        "vendor": row["vendor"],
+                        "product": row["product"],
+                        "revision": row["revision"],
+                        "block_size": row["block_size"],
+                        }
+                    params = dict(row["params"])
+                    for param in params.keys():
+                        kwargs[param] = params[param]
+                    attach_image(row["id"], **kwargs)
+            else:
+                return {"status": False, "msg": "Invalid config file format."}
+            return {"status": True, "msg": f"Loaded config from: {file_name}"}
     except (IOError, ValueError, EOFError, TypeError) as error:
         logging.error(str(error))
         return {"status": False, "msg": str(error)}

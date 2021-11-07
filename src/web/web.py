@@ -47,8 +47,10 @@ from ractl_cmds import (
     eject_by_id,
     detach_all,
     get_server_info,
+    get_reserved_ids,
     get_network_info,
     get_device_types,
+    reserve_scsi_ids,
     set_log_level,
 )
 from device_utils import (
@@ -65,6 +67,7 @@ from settings import (
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
     REMOVABLE_DEVICE_TYPES,
+    RESERVATIONS,
 )
 
 APP = Flask(__name__)
@@ -90,7 +93,7 @@ def index():
     # If there are more than 0 logical unit numbers, display in the Web UI
     for device in devices["device_list"]:
         attached_images.append(Path(device["image"]).name)
-        units += int(device["un"])
+        units += int(device["unit"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
     scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
@@ -120,6 +123,7 @@ def index():
         attached_images=attached_images,
         units=units,
         reserved_scsi_ids=reserved_scsi_ids,
+        RESERVATIONS=RESERVATIONS,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
         running_env=running_env(),
         version=server_info["version"],
@@ -498,7 +502,7 @@ def device_info():
     if str(device["id"]) == scsi_id:
         flash("=== DEVICE INFO ===")
         flash(f"SCSI ID: {device['id']}")
-        flash(f"LUN: {device['un']}")
+        flash(f"LUN: {device['unit']}")
         flash(f"Type: {device['device_type']}")
         flash(f"Status: {device['status']}")
         flash(f"File: {device['image']}")
@@ -511,6 +515,41 @@ def device_info():
         return redirect(url_for("index"))
 
     flash(devices["msg"], "error")
+    return redirect(url_for("index"))
+
+@APP.route("/scsi/reserve", methods=["POST"])
+def reserve_id():
+    """
+    Reserves a SCSI ID and stores the memo for that reservation
+    """
+    scsi_id = request.form.get("scsi_id")
+    memo = request.form.get("memo")
+    reserved_ids = get_reserved_ids()["ids"]
+    reserved_ids.extend(scsi_id)
+    process = reserve_scsi_ids(reserved_ids)
+    if process["status"]:
+        RESERVATIONS[int(scsi_id)] = memo
+        flash(f"Reserved SCSI ID {scsi_id}")
+        return redirect(url_for("index"))
+
+    flash(process["msg"], "error")
+    return redirect(url_for("index"))
+
+@APP.route("/scsi/unreserve", methods=["POST"])
+def unreserve_id():
+    """
+    Removes the reservation of a SCSI ID as well as the memo for the reservation
+    """
+    scsi_id = request.form.get("scsi_id")
+    reserved_ids = get_reserved_ids()["ids"]
+    reserved_ids.remove(scsi_id)
+    process = reserve_scsi_ids(reserved_ids)
+    if process["status"]:
+        RESERVATIONS[int(scsi_id)] = ""
+        flash(f"Released the reservation for SCSI ID {scsi_id}")
+        return redirect(url_for("index"))
+
+    flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 @APP.route("/pi/reboot", methods=["POST"])
@@ -746,7 +785,7 @@ if __name__ == "__main__":
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
     # Load the default configuration file, if found
-    if Path(DEFAULT_CONFIG).is_file():
+    if Path(CFG_DIR + DEFAULT_CONFIG).is_file():
         read_config(DEFAULT_CONFIG)
 
     import bjoern
