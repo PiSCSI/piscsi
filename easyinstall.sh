@@ -46,7 +46,7 @@ logo="""
 echo -e $logo
 }
 
-BASE="$HOME/RASCSI"
+BASE=$(dirname "$(readlink -f "${0}")")
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
 WEBINSTDIR="$BASE/src/web"
@@ -57,20 +57,6 @@ GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -e
-
-function initialChecks() {
-    currentUser=$(whoami)
-    if [ "pi" != "$currentUser" ]; then
-        echo "You must use 'pi' user (current: $currentUser)"
-        exit 1
-    fi
-
-    if [ ! -d "$BASE" ]; then
-        echo "You must checkout RASCSI repo into $BASE"
-        echo "$ git clone git@github.com:akuker/RASCSI.git"
-        exit 2
-    fi
-}
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
