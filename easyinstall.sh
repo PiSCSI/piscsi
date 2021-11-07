@@ -46,6 +46,7 @@ logo="""
 echo -e $logo
 }
 
+USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
@@ -112,7 +113,7 @@ function installRaScsiWebInterface() {
     sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
-    sudo usermod -a -G pi www-data
+    sudo usermod -a -G $USER www-data
 
     sudo systemctl reload nginx || true
 
