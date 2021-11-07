@@ -737,7 +737,6 @@ while [ "$1" != "" ]; do
 done
 
 showRaSCSILogo
-initialChecks
 
 if [ -z "${RUN_CHOICE}" ]; then # RUN_CHOICE is unset, show menu
     showMenu
