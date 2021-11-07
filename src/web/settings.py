@@ -3,7 +3,6 @@ Constant definitions used by other modules
 """
 
 from os import getenv, getcwd, path
-#from pathlib import PurePath
 
 WEB_DIR = getcwd()
 # There may be a more elegant way to get the HOME dir of the user that installed RaSCSI
