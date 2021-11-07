@@ -619,22 +619,6 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		filepath.SetPath(filename.c_str());
 		string initial_filename = filepath.GetPath();
 
-		try {
-			try {
-				file_support->Open(filepath);
-			}
-			catch(const file_not_found_exception&) {
-				// If the file does not exist search for it in the default image folder
-				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
-				file_support->Open(filepath);
-			}
-		}
-		catch(const io_exception& e) {
-			delete device;
-
-			return ReturnStatus(fd, false, "Tried to open an invalid or non-existing file '" + initial_filename + "': " + e.getmsg());
-		}
-
 		int id;
 		int unit;
 		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
@@ -642,6 +626,30 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 
 			error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
 			return ReturnStatus(fd, false, error);
+		}
+
+		try {
+			try {
+				file_support->Open(filepath);
+			}
+			catch(const file_not_found_exception&) {
+				// If the file does not exist search for it in the default image folder
+				filepath.SetPath(string(rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
+
+				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+					delete device;
+
+					error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+					return ReturnStatus(fd, false, error);
+				}
+
+				file_support->Open(filepath);
+			}
+		}
+		catch(const io_exception& e) {
+			delete device;
+
+			return ReturnStatus(fd, false, "Tried to open an invalid or non-existing file '" + initial_filename + "': " + e.getmsg());
 		}
 
 		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
@@ -737,17 +745,6 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
 			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit());
 
-	int id;
-	int unit;
-	Filepath filepath;
-	filepath.SetPath(filename.c_str());
-	string initial_filename = filepath.GetPath();
-	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		ostringstream error;
-		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
-		return ReturnStatus(fd, false, error);
-	}
-
 	if (pb_device.block_size()) {
 		Disk *disk = dynamic_cast<Disk *>(device);
 		if (disk && disk->IsSectorSizeConfigurable()) {
@@ -762,6 +759,18 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		}
 	}
 
+	int id;
+	int unit;
+	Filepath filepath;
+	filepath.SetPath(filename.c_str());
+	string initial_filename = filepath.GetPath();
+
+	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+		ostringstream error;
+		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+		return ReturnStatus(fd, false, error);
+	}
+
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
 	try {
 		try {
@@ -770,12 +779,20 @@ bool Insert(int fd, const PbDeviceDefinition& pb_device, Device *device, bool dr
 		catch(const file_not_found_exception&) {
 			// If the file does not exist search for it in the default image folder
 			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
+
+			if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
+				ostringstream error;
+				error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
+				return ReturnStatus(fd, false, error);
+			}
+
 			file_support->Open(filepath);
 		}
 	}
 	catch(const io_exception& e) {
 		return ReturnStatus(fd, false, "Tried to open an invalid or non-existing file '" + initial_filename + "': " + e.getmsg());
 	}
+
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
 
 	// Only non read-only devices support protect/unprotect.
