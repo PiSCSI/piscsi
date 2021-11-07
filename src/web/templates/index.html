@@ -57,7 +57,36 @@
             {% endif %}
             <td style="text-align:center">{{ device.device_type }}</td>
             <td style="text-align:center">{{ device.status }}</td>
-            <td style="text-align:left">{{ device.file }}</td>
+            <td style="text-align:left">
+                {% if "No Media" in device.status %}
+                <form action="/scsi/attach" method="post">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input name="unit" type="hidden" value="{{ device.unit }}">
+                    <input name="type" type="hidden" value="{{ device.device_type }}">
+                    <input name="file_size" type="hidden" value="{{ device.size }}">
+                    <select type="select" name="file_name">
+                    {% for f in files %}
+                    {% if device.device_type == "SCCD" %}
+                    {% if f["name"].lower().endswith(cdrom_file_suffix) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% endif %}
+                    {% elif device.device_type == "SCRM" %}
+                    {% if f["name"].lower().endswith(removable_file_suffix) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% endif %}
+                    {% elif device.device_type == "SCMO" %}
+                    {% if f["name"].lower().endswith(mo_file_suffix) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% endif %}
+                    {% endif %}
+                    {% endfor %}
+                    </select>
+                    <input type="submit" value="Attach">
+                </form>
+            {% else %}
+            {{ device.file }}
+            </td>
+            {% endif %}
             {% if device.vendor == "RaSCSI" %}
             <td style="text-align:center">{{ device.product }}</td>
             {% else %}
