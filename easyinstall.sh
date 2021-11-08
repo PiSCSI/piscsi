@@ -589,17 +589,23 @@ function installNetatalk() {
 function installMacproxy {
     MACPROXY_DIR="$HOME/macproxy"
     if [ -d "$MACPROXY_DIR" ]; then
-        echo "The $MACPROXY directory already exists. Delete it to proceed with the installation."
+        echo "The $MACPROXY_DIR directory already exists. Delete it to proceed with the installation."
         exit 1
     fi
     cd "$HOME" || exit 1
     git clone https://github.com/rdmark/macproxy.git </dev/null
     cd "$MACPROXY_DIR" || exit 1
-    sed -i /^ExecStart=/d "$MACPROXY_DIR/macproxy.service"
-    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" /etc/systemd/system/rascsi.service
+    sudo cp "$MACPROXY_DIR/macproxy.service" /etc/systemd/system/
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/macproxy.service
+    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" /etc/systemd/system/macproxy.service
     sudo systemctl daemon-reload
     sudo systemctl enable macproxy
     sudo systemctl start macproxy
+    sudo systemctl status macproxy
+
+    echo "The macproxy server is now running on port 5000."
+    echo "Configure your browser to use the Pi's IP address and this port as http proxy."
+    echo ""
 }
 
 function notifyBackup {
