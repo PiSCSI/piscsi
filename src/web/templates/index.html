@@ -157,20 +157,20 @@
                     </ul>
                 </details>
             </td>
-            {% elif file["zip"] %}
+            {% elif file["zip_members"] %}
             <td>
                 <details>
                     <summary>
                         {{ file["name"] }}
                     </summary>
                     <ul>
-                    {% for member in file["zip"] %}
+                    {% for member in file["zip_members"] %}
                     </li>
                         <li>
-                            <label for="member">{{ member }}</label>
+                            <label for="zip_member">{{ member }}</label>
                             <form action="/files/unzip" method="post">
-                                <input name="image" type="hidden" value="{{ file['name'] }}">
-                                <input name="member" type="hidden" value="{{ member }}">
+                                <input name="zip_file" type="hidden" value="{{ file['name'] }}">
+                                <input name="zip_member" type="hidden" value="{{ member }}">
                                 <input type="submit" value="Unzip">
                             </form>
                         </li>
@@ -195,7 +195,8 @@
                 {% else %}
                 {% if file["name"].lower().endswith(ARCHIVE_FILE_SUFFIX) %}
                 <form action="/files/unzip" method="post">
-                    <input name="image" type="hidden" value="{{ file['name'] }}">
+                    <input name="zip_file" type="hidden" value="{{ file['name'] }}">
+                    <input name="zip_members" type="hidden" value="{{ file['zip_members'] }}">
                     <input type="submit" value="Unzip All">
                 </form>
                 {% else %}

@@ -7,7 +7,7 @@ from os import getenv, getcwd
 # TODO: Make HOME_DIR portable when running rascsi-web
 # as a service, since the HOME env variable doesn't get set then.
 HOME_DIR = getenv("HOME", "/home/pi")
-CFG_DIR = f"{HOME_DIR}/.config/rascsi/"
+CFG_DIR = f"{HOME_DIR}/.config/rascsi"
 AFP_DIR = f"{HOME_DIR}/afpshare"
 WEB_DIR = getcwd()
 
