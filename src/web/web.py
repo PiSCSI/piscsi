@@ -36,7 +36,7 @@ from pi_cmds import (
     reboot_pi,
     running_env,
     systemd_service,
-    running_netatalk,
+    running_proc,
     is_bridge_setup,
     disk_space,
 )
@@ -111,7 +111,7 @@ def index():
     return render_template(
         "index.html",
         bridge_configured=is_bridge_setup(),
-        netatalk_configured=running_netatalk(),
+        netatalk_configured=running_proc("afpd"),
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,

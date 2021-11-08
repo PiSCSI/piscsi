@@ -51,15 +51,16 @@ def running_env():
     return {"git": ra_git_version, "env": pi_version}
 
 
-def running_netatalk():
+def running_proc(daemon):
     """
-    Returns (int) afpd, which is the number of afpd processes currently running
+    Takes (str) daemon
+    Returns (int) proc, which is the number of processes currently running
     """
     process = subprocess.run(["ps", "aux"], capture_output=True)
     output = process.stdout.decode("utf-8")
     from re import findall
-    afpd = findall("afpd", output)
-    return len(afpd)
+    proc = findall(daemon, output)
+    return len(proc)
 
 
 def is_bridge_setup():
