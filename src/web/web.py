@@ -136,7 +136,7 @@ def index():
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
         mo_file_suffix=tuple(server_info["scmo"]),
-        ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
+        archive_file_suffix=ARCHIVE_FILE_SUFFIX,
         REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
     )
 

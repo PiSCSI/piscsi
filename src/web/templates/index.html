@@ -218,7 +218,7 @@
                     Attached!
                 </center>
                 {% else %}
-                {% if file["name"].lower().endswith(ARCHIVE_FILE_SUFFIX) %}
+                {% if file["name"].lower().endswith(archive_file_suffix) %}
                 <form action="/files/unzip" method="post">
                     <input name="image" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="Unzip All">
