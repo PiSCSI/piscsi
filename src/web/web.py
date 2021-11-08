@@ -779,7 +779,7 @@ def unzip():
         for msg in process["msg"]:
             flash(msg)
         if process["prop_flag"]:
-            flash(f"Properties file(s) have been unzipped to {CFG_DIR}")
+            flash(f"Properties file(s) have been moved to {CFG_DIR}")
         return redirect(url_for("index"))
 
     flash("Failed to unzip " + zip_file, "error")
