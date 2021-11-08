@@ -624,6 +624,10 @@ function installMacproxy {
     sudo systemctl enable macproxy
     sudo systemctl start macproxy
     sudo systemctl status macproxy
+
+    echo "The macproxy server is now running on port 5000."
+    echo "Configure your browser to use the Pi's IP address and this port as http proxy."
+    echo ""
 }
 
 function notifyBackup {
