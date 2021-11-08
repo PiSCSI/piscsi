@@ -773,6 +773,8 @@ def unzip():
         flash("Unzipped the following files:")
         for msg in process["msg"]:
             flash(msg)
+        if member.endswith(PROPERTIES_SUFFIX):
+            flash(f"Properties file has been unzipped to {CFG_DIR}")
         return redirect(url_for("index"))
 
     flash("Failed to unzip " + image, "error")
