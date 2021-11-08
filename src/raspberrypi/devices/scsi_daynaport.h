@@ -151,11 +151,3 @@ private:
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
 };
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE lba_msb_bits_4_0;
-	uint16_t logical_block_address;
-	BYTE transfer_length;
-	BYTE control;
-} scsi_cmd_read_6_t;
