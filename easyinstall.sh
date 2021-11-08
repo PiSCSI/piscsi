@@ -608,6 +608,22 @@ function installNetatalk() {
     echo ""
 }
 
+function installMacproxy {
+    MACPROXY_DIR="$HOME/macproxy"
+    if [ -d "$MACPROXY_DIR" ]; then
+        echo "The $MACPROXY directory already exists. Delete it to proceed with the installation."
+        exit 1
+    fi
+    cd "$HOME" || exit 1
+    git clone https://github.com/rdmark/macproxy.git </dev/null
+    cd "$MACPROXY_DIR" || exit 1
+    sed -i /^ExecStart=/d "$MACPROXY_DIR/macproxy.service"
+    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" /etc/systemd/system/rascsi.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable macproxy
+    sudo systemctl start macproxy
+}
+
 function notifyBackup {
     if $SYSTEMD_BACKUP; then
         echo ""
@@ -682,6 +698,11 @@ function runChoice() {
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
+          10)
+              echo "Installing Web Proxy Server"
+              installMacproxy
+              echo "Installing Web Proxy Server - Complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -694,7 +715,7 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "9" ]; do
+   until [ $choice -ge "0" ] && [ $choice -le "10" ]; do
        echo -n "Enter your choice (0-9) or CTRL-C to exit: "
        read -r choice
    done
@@ -719,6 +740,7 @@ function showMenu() {
     echo "MISCELLANEOUS"
     echo "  8) reserve SCSI IDs"
     echo "  9) install AppleShare File Server (Netatalk)"
+    echo " 10) install Web Proxy Server (macproxy)"
 }
 
 # parse arguments
@@ -738,7 +760,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 )
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 )
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
