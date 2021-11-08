@@ -81,6 +81,9 @@ function installRaScsi() {
 
     ( make clean && make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
 
+    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
+    echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
+
     if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
         sudo bash -c 'echo "
 # Allow the web server to restart the rascsi service
