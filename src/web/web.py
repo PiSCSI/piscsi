@@ -39,6 +39,7 @@ from pi_cmds import (
     running_proc,
     is_bridge_setup,
     disk_space,
+    get_ip_address,
 )
 from ractl_cmds import (
     attach_image,
@@ -112,6 +113,8 @@ def index():
         "index.html",
         bridge_configured=is_bridge_setup(),
         netatalk_configured=running_proc("afpd"),
+        macproxy_configured=running_proc("macproxy"),
+        ip_addr=get_ip_address(),
         devices=formatted_devices,
         files=sorted_image_files,
         config_files=sorted_config_files,

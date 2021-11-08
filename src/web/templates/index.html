@@ -288,6 +288,11 @@
         </td>
     </tr>
 </table>
+{% if macproxy_configured %}
+<p><small>macproxy is running at {{ ip_addr }} port 5000</small></p>
+{% else %}
+<p><small>Install <a href="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy">macproxy</a> to browse the Web with your vintage browser.</small></p>
+{% endif %}
 
 <hr/>
 <details>
