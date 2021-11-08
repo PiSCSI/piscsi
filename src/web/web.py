@@ -39,6 +39,7 @@ from pi_cmds import (
     running_netatalk,
     is_bridge_setup,
     disk_space,
+    introspect_file,
 )
 from ractl_cmds import (
     attach_image,
@@ -365,6 +366,24 @@ def daynaport_attach():
     interface = request.form.get("if")
     ip_addr = request.form.get("ip")
     mask = request.form.get("mask")
+
+    error_msg = ("Please follow the instructions at "
+        "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link")
+
+    if interface.startswith("wlan"):
+        if not introspect_file("/etc/sysctl.conf", "^net\.ipv4\.ip_forward=1$"):
+            flash("IPv4 forwarding is not enabled. " + error_msg, "error")
+            return redirect(url_for("index"))
+        if not Path("/etc/iptables/rules.v4").is_file():
+            flash("NAT has not been configured. " + error_msg, "error")
+            return redirect(url_for("index"))
+    else:
+        if not introspect_file("/etc/dhcpcd.conf", "^denyinterfaces " + interface + "$"):
+            flash("The network bridge hasn't been configured. " + error_msg, "error")
+            return redirect(url_for("index"))
+        if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
+            flash(f"The network bridge hasn't been configured. " + error_msg, "error")
+            return redirect(url_for("index"))
 
     kwargs = {"device_type": "SCDP"}
     if interface != "":
