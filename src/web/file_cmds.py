@@ -159,6 +159,8 @@ def delete_file(file_path):
 def unzip_file(file_name, member=False):
     """
     Takes (str) file_name, optional (str) member
+    file_name is the name of the zip file to unzip
+    member is the full path to the particular file in the zip file to unzip
     Returns (dict) with (boolean) status and (list of str) msg
     """
     from subprocess import run
@@ -169,6 +171,11 @@ def unzip_file(file_name, member=False):
         unzip_proc = run(
             ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
                 f"{server_info['image_dir']}/{file_name}"], capture_output=True
+            )
+    elif member.endswith(PROPERTIES_SUFFIX):
+        unzip_proc = run(
+            ["unzip", "-d", CFG_DIR, "-n", "-j", \
+                f"{server_info['image_dir']}/{file_name}", escape(member)], capture_output=True
             )
     else:
         unzip_proc = run(
