@@ -161,8 +161,6 @@ def rename_file(file_path, target_path):
     Takes (str) file_path and (str) target_path
     Returns (dict) with (bool) status and (str) msg
     """
-    logging.warning(file_path)
-    logging.warning(target_path)
     if os.path.exists(PurePath(target_path).parent):
         os.rename(file_path, target_path)
         return {"status": True, "msg": f"File moved to: {target_path}"}
