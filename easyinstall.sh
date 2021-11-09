@@ -46,7 +46,8 @@ logo="""
 echo -e $logo
 }
 
-BASE="$HOME/RASCSI"
+USER=$(whoami)
+BASE=$(dirname "$(readlink -f "${0}")")
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
 WEBINSTDIR="$BASE/src/web"
@@ -57,20 +58,6 @@ GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -e
-
-function initialChecks() {
-    currentUser=$(whoami)
-    if [ "pi" != "$currentUser" ]; then
-        echo "You must use 'pi' user (current: $currentUser)"
-        exit 1
-    fi
-
-    if [ ! -d "$BASE" ]; then
-        echo "You must checkout RASCSI repo into $BASE"
-        echo "$ git clone git@github.com:akuker/RASCSI.git"
-        exit 2
-    fi
-}
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
@@ -93,6 +80,9 @@ function installRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
     ( make clean && make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
+
+    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
+    echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 
     if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
         sudo bash -c 'echo "
@@ -126,12 +116,14 @@ function installRaScsiWebInterface() {
     sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
-    sudo usermod -a -G pi www-data
+    sudo usermod -a -G $USER www-data
 
     sudo systemctl reload nginx || true
 
     echo "Installing the rascsi-web.service configuration..."
     sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
+    sudo sed -i "8 i ExecStart=$WEBINSTDIR/start.sh" /etc/systemd/system/rascsi-web.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
@@ -519,28 +511,6 @@ function setupWirelessNetworking() {
     sudo reboot
 }
 
-function reserveScsiIds() {
-    sudo systemctl stop rascsi
-    echo "WARNING: This will override any existing modifications to rascsi.service!"
-    echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
-    echo "The input should be numbers between 0 and 7 separated by commas, e.g. \"0,1,7\" for IDs 0, 1, and 7."
-    echo "Leave empty to make all IDs available."
-    read -r RESERVED_IDS
-
-    if [[ $RESERVED_IDS = "" ]]; then
-        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi" /etc/systemd/system/rascsi.service
-    else
-        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
-    fi
-
-    echo "Modified /etc/systemd/system/rascsi.service"
-
-    sudo systemctl daemon-reload
-    sudo systemctl start rascsi
-}
-
 function installNetatalk() {
     NETATALK_VERSION="20200806"
     AFP_SHARE_PATH="$HOME/afpshare"
@@ -561,7 +531,7 @@ function installNetatalk() {
 
     cd "netatalk-classic-$NETATALK_VERSION" || exit 1
     sed -i /^~/d ./config/AppleVolumes.default.tmpl
-    echo "/home/pi/afpshare \"Pi File Server\" adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default.tmpl
+    echo "$AFP_SHARE_PATH \"Pi File Server\" adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default.tmpl
 
     echo "ATALKD_RUN=yes" >> ./config/netatalk.conf
     echo "\"RaSCSI-Pi\" -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname \"nobody\" -setuplog \"default log_maxdebug /var/log/afpd.log\"" >> ./config/afpd.conf.tmpl
@@ -605,6 +575,28 @@ function installNetatalk() {
     echo "Make sure that the user running Netatalk has a password of 8 chars or less. You may execute the 'passwd' command to change the password of the current user."
     echo "For more information on configuring Netatalk and accessing AppleShare from your vintage Macs, see wiki:"
     echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
+    echo ""
+}
+
+function installMacproxy {
+    MACPROXY_DIR="$HOME/macproxy"
+    if [ -d "$MACPROXY_DIR" ]; then
+        echo "The $MACPROXY_DIR directory already exists. Delete it to proceed with the installation."
+        exit 1
+    fi
+    cd "$HOME" || exit 1
+    git clone https://github.com/rdmark/macproxy.git </dev/null
+    cd "$MACPROXY_DIR" || exit 1
+    sudo cp "$MACPROXY_DIR/macproxy.service" /etc/systemd/system/
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/macproxy.service
+    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" /etc/systemd/system/macproxy.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable macproxy
+    sudo systemctl start macproxy
+    sudo systemctl status macproxy
+
+    echo "The macproxy server is now running on port 5000."
+    echo "Configure your browser to use the Pi's IP address and this port as http proxy."
     echo ""
 }
 
@@ -672,15 +664,14 @@ function runChoice() {
               echo "Configuring wifi network bridge - Complete!"
           ;;
           8)
-              echo "Reserving SCSI IDs"
-	      reserveScsiIds
-              showRaScsiWebStatus
-              echo "Reserving SCSI IDs - Complete!"
-          ;;
-          9)
               echo "Installing AppleShare File Server"
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
+          ;;
+          9)
+              echo "Installing Web Proxy Server"
+              installMacproxy
+              echo "Installing Web Proxy Server - Complete!"
           ;;
           -h|--help|h|help)
               showMenu
@@ -713,12 +704,12 @@ function showMenu() {
     echo "** For the Mac Plus, it's better to create an image through the Web Interface **"
     echo "  4) 600MB drive (suggested size)"
     echo "  5) custom drive size (up to 4000MB)"
-    echo "NETWORK ASSISTANT"
-    echo "  6) configure network forwarding over Ethernet (DHCP)"
-    echo "  7) configure network forwarding over WiFi (static IP)" 
-    echo "MISCELLANEOUS"
-    echo "  8) reserve SCSI IDs"
-    echo "  9) install AppleShare File Server (Netatalk)"
+    echo "NETWORK BRIDGE ASSISTANT"
+    echo "  6) configure network bridge for Ethernet (DHCP)"
+    echo "  7) configure network bridge for WiFi (static IP + NAT)" 
+    echo "INSTALL COMPANION APPS"
+    echo "  8) install AppleShare File Server (Netatalk)"
+    echo "  9) install Web Proxy Server (macproxy)"
 }
 
 # parse arguments
@@ -749,7 +740,6 @@ while [ "$1" != "" ]; do
 done
 
 showRaSCSILogo
-initialChecks
 
 if [ -z "${RUN_CHOICE}" ]; then # RUN_CHOICE is unset, show menu
     showMenu
