@@ -137,7 +137,8 @@ def index():
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
         mo_file_suffix=tuple(server_info["scmo"]),
-        archive_file_suffix=ARCHIVE_FILE_SUFFIX,
+        ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
+        PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
     )
 
@@ -308,7 +309,7 @@ def config_load():
         flash(process['msg'], "error")
         return redirect(url_for("index"))
     elif "delete" in request.form:
-        process = delete_file(CFG_DIR + file_name)
+        process = delete_file(f"{CFG_DIR}/{file_name}")
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -429,7 +430,7 @@ def attach():
 
     # Attempt to load the device properties file:
     # same file name with PROPERTIES_SUFFIX appended
-    drive_properties = f"{CFG_DIR}{file_name}.{PROPERTIES_SUFFIX}"
+    drive_properties = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
     if Path(drive_properties).is_file():
         process = read_drive_properties(drive_properties)
         if not process["status"]:
@@ -745,9 +746,8 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    image = request.form.get("image")
-    server_info = get_server_info()
-    return send_file(f"{server_info['image_dir']}/{image}", as_attachment=True)
+    image = request.form.get("file")
+    return send_file(image, as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
@@ -765,7 +765,7 @@ def delete():
         return redirect(url_for("index"))
 
     # Delete the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}{file_name}.{PROPERTIES_SUFFIX}"
+    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
         process = delete_file(prop_file_path)
         if process["status"]:
@@ -783,10 +783,15 @@ def unzip():
     """
     Unzips a specified zip file
     """
-    image = request.form.get("image")
-    member = request.form.get("member") or False
+    zip_file = request.form.get("zip_file")
+    zip_member = request.form.get("zip_member") or False
+    zip_members = request.form.get("zip_members") or False
 
-    process = unzip_file(image, member)
+    from ast import literal_eval
+    if zip_members:
+        zip_members = literal_eval(zip_members)
+
+    process = unzip_file(zip_file, zip_member, zip_members)
     if process["status"]:
         if not process["msg"]:
             flash("Aborted unzip: File(s) with the same name already exists.", "error")
@@ -794,9 +799,11 @@ def unzip():
         flash("Unzipped the following files:")
         for msg in process["msg"]:
             flash(msg)
+        if process["prop_flag"]:
+            flash(f"Properties file(s) have been moved to {CFG_DIR}")
         return redirect(url_for("index"))
 
-    flash("Failed to unzip " + image, "error")
+    flash("Failed to unzip " + zip_file, "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -807,7 +814,7 @@ if __name__ == "__main__":
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
     # Load the default configuration file, if found
-    if Path(CFG_DIR + DEFAULT_CONFIG).is_file():
+    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         read_config(DEFAULT_CONFIG)
 
     import bjoern

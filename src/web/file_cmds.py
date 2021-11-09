@@ -103,7 +103,7 @@ def list_images():
             "size_mb": size_mb,
             "detected_type": dtype,
             "prop": prop,
-            "zip": zip_members,
+            "zip_members": zip_members,
             })
 
     return {"status": result.status, "msg": result.msg, "files": files}
@@ -156,20 +156,46 @@ def delete_file(file_path):
     return {"status": False, "msg": f"File to delete not found: {file_path}"}
 
 
-def unzip_file(file_name, member=False):
+def rename_file(file_path, target_path):
     """
-    Takes (str) file_name, optional (str) member
+    Takes (str) file_path and (str) target_path
+    Returns (dict) with (bool) status and (str) msg
+    """
+    if os.path.exists(PurePath(target_path).parent):
+        os.rename(file_path, target_path)
+        return {"status": True, "msg": f"File moved to: {target_path}"}
+    return {"status": False, "msg": f"Unable to move to: {target_path}"}
+
+
+def unzip_file(file_name, member=False, members=False):
+    """
+    Takes (str) file_name, optional (str) member, optional (list) of (str) members
+    file_name is the name of the zip file to unzip
+    member is the full path to the particular file in the zip file to unzip
+    members contains all of the full paths to each of the zip archive members
     Returns (dict) with (boolean) status and (list of str) msg
     """
     from subprocess import run
     from re import escape
     server_info = get_server_info()
+    prop_flag = False
 
     if not member:
         unzip_proc = run(
             ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
                 f"{server_info['image_dir']}/{file_name}"], capture_output=True
             )
+        for path in members:
+            if path.endswith(PROPERTIES_SUFFIX):
+                name = PurePath(path).name
+                rename_file(f"{server_info['image_dir']}/{name}", f"{CFG_DIR}/{name}")
+                prop_flag = True
+    elif member.endswith(PROPERTIES_SUFFIX):
+        unzip_proc = run(
+            ["unzip", "-d", CFG_DIR, "-n", "-j", \
+                f"{server_info['image_dir']}/{file_name}", escape(member)], capture_output=True
+            )
+        prop_flag = True
     else:
         unzip_proc = run(
             ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
@@ -185,7 +211,7 @@ def unzip_file(file_name, member=False):
         "(?:inflating|extracting):(.+)\n",
         unzip_proc.stdout.decode("utf-8")
         )
-    return {"status": True, "msg": unzipped}
+    return {"status": True, "msg": unzipped, "prop_flag": prop_flag}
 
 
 def download_file_to_iso(url):
@@ -251,7 +277,7 @@ def write_config(file_name):
     Returns (dict) with (bool) status and (str) msg
     """
     from json import dump
-    file_name = CFG_DIR + file_name
+    file_name = f"{CFG_DIR}/{file_name}"
     try:
         with open(file_name, "w") as json_file:
             version = get_server_info()["version"]
@@ -297,7 +323,7 @@ def read_config(file_name):
     Returns (dict) with (bool) status and (str) msg
     """
     from json import load
-    file_name = CFG_DIR + file_name
+    file_name = f"{CFG_DIR}/{file_name}"
     try:
         with open(file_name) as json_file:
             config = load(json_file)
@@ -362,7 +388,7 @@ def write_drive_properties(file_name, conf):
     Returns (dict) with (bool) status and (str) msg
     """
     from json import dump
-    file_path = CFG_DIR + file_name
+    file_path = f"{CFG_DIR}/{file_name}"
     try:
         with open(file_path, "w") as json_file:
             dump(conf, json_file, indent=4)
