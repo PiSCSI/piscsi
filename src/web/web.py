@@ -134,6 +134,9 @@ def index():
         device_types=device_types["device_types"],
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
+        cdrom_file_suffix=tuple(server_info["sccd"]),
+        removable_file_suffix=tuple(server_info["scrm"]),
+        mo_file_suffix=tuple(server_info["scmo"]),
         archive_file_suffix=ARCHIVE_FILE_SUFFIX,
         REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
     )
