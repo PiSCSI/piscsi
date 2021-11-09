@@ -511,28 +511,6 @@ function setupWirelessNetworking() {
     sudo reboot
 }
 
-function reserveScsiIds() {
-    sudo systemctl stop rascsi
-    echo "WARNING: This will override any existing modifications to rascsi.service!"
-    echo "Please type the SCSI ID(s) that you want to reserve and press Enter:"
-    echo "The input should be numbers between 0 and 7 separated by commas, e.g. \"0,1,7\" for IDs 0, 1, and 7."
-    echo "Leave empty to make all IDs available."
-    read -r RESERVED_IDS
-
-    if [[ $RESERVED_IDS = "" ]]; then
-        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi" /etc/systemd/system/rascsi.service
-    else
-        sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi.service
-        sudo sed -i "8 i ExecStart=/usr/local/bin/rascsi -r $RESERVED_IDS" /etc/systemd/system/rascsi.service
-    fi
-
-    echo "Modified /etc/systemd/system/rascsi.service"
-
-    sudo systemctl daemon-reload
-    sudo systemctl start rascsi
-}
-
 function installNetatalk() {
     NETATALK_VERSION="20200806"
     AFP_SHARE_PATH="$HOME/afpshare"
@@ -600,6 +578,28 @@ function installNetatalk() {
     echo ""
 }
 
+function installMacproxy {
+    MACPROXY_DIR="$HOME/macproxy"
+    if [ -d "$MACPROXY_DIR" ]; then
+        echo "The $MACPROXY_DIR directory already exists. Delete it to proceed with the installation."
+        exit 1
+    fi
+    cd "$HOME" || exit 1
+    git clone https://github.com/rdmark/macproxy.git </dev/null
+    cd "$MACPROXY_DIR" || exit 1
+    sudo cp "$MACPROXY_DIR/macproxy.service" /etc/systemd/system/
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/macproxy.service
+    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" /etc/systemd/system/macproxy.service
+    sudo systemctl daemon-reload
+    sudo systemctl enable macproxy
+    sudo systemctl start macproxy
+    sudo systemctl status macproxy
+
+    echo "The macproxy server is now running on port 5000."
+    echo "Configure your browser to use the Pi's IP address and this port as http proxy."
+    echo ""
+}
+
 function notifyBackup {
     if $SYSTEMD_BACKUP; then
         echo ""
@@ -664,15 +664,14 @@ function runChoice() {
               echo "Configuring wifi network bridge - Complete!"
           ;;
           8)
-              echo "Reserving SCSI IDs"
-	      reserveScsiIds
-              showRaScsiWebStatus
-              echo "Reserving SCSI IDs - Complete!"
-          ;;
-          9)
               echo "Installing AppleShare File Server"
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
+          ;;
+          9)
+              echo "Installing Web Proxy Server"
+              installMacproxy
+              echo "Installing Web Proxy Server - Complete!"
           ;;
           -h|--help|h|help)
               showMenu
@@ -705,12 +704,12 @@ function showMenu() {
     echo "** For the Mac Plus, it's better to create an image through the Web Interface **"
     echo "  4) 600MB drive (suggested size)"
     echo "  5) custom drive size (up to 4000MB)"
-    echo "NETWORK ASSISTANT"
-    echo "  6) configure network forwarding over Ethernet (DHCP)"
-    echo "  7) configure network forwarding over WiFi (static IP)" 
-    echo "MISCELLANEOUS"
-    echo "  8) reserve SCSI IDs"
-    echo "  9) install AppleShare File Server (Netatalk)"
+    echo "NETWORK BRIDGE ASSISTANT"
+    echo "  6) configure network bridge for Ethernet (DHCP)"
+    echo "  7) configure network bridge for WiFi (static IP + NAT)" 
+    echo "INSTALL COMPANION APPS"
+    echo "  8) install AppleShare File Server (Netatalk)"
+    echo "  9) install Web Proxy Server (macproxy)"
 }
 
 # parse arguments
