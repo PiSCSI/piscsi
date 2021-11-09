@@ -200,7 +200,9 @@
                             <form action="/files/unzip" method="post">
                                 <input name="zip_file" type="hidden" value="{{ file['name'] }}">
                                 <input name="zip_member" type="hidden" value="{{ member }}">
+                                {% if not member.lower().endswith(PROPERTIES_SUFFIX) %}
                                 <input type="submit" value="Unzip">
+                                {% endif %}
                             </form>
                         </li>
                     {% endfor %}
