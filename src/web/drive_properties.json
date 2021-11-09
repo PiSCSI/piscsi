@@ -416,7 +416,7 @@
     "size": null,
     "name": "DEC RRD42",
     "file_type": null,
-    "description": "Boots DECstations and VAXstations. Use only with Unix workstations of this vintage.",
+    "description": "Boots DECstations and VAXstations. Use only with workstations of this vintage.",
     "url": ""
 }
 ]
