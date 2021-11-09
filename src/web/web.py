@@ -724,9 +724,8 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    image = request.form.get("image")
-    server_info = get_server_info()
-    return send_file(f"{server_info['image_dir']}/{image}", as_attachment=True)
+    image = request.form.get("file")
+    return send_file(image, as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
