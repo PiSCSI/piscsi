@@ -40,40 +40,27 @@ from interrupt_handler import GracefulInterruptHandler
 from pi_cmds import get_ip_and_host
 from ractl_cmds import device_list
 
-# Attempt to read the first positional argument
-if len(argv) > 1:
-    if str(argv[1]) == "0":
+# Read positional arguments; expecting exactly two, or none
+# Arg 1 is the rotation in degrees, arg 2 is the screen height in pixels
+# Valid values are 0/180 for ROTATION, 32/64 for HEIGHT
+if len(argv) == 3:
+    if int(argv[1]) == 0:
         ROTATION = 0
-        print("Using 0 degrees screen rotation.")
-    elif str(argv[1]) == "180":
-        ROTATION = 2
-        print("Using 180 degrees screen rotation.")
     else:
+        # 2 means 180 degrees
         ROTATION = 2
-        print("Invalid argument; Defaulting to 180 degrees screen rotation.")
-    # Attempt to read the second positional argument
-    if len(argv) == 3:
-        if str(argv[2]) == "32":
-            HEIGHT = 32
-            LINES = 4
-            print("Using 32 px screen height.")
-        elif str(argv[2]) == "64":
-            HEIGHT = 64
-            LINES = 8
-            print("Using 64 px screen height.")
-        else:
-            HEIGHT = 32
-            LINES = 4
-            print("Invalid argument; Defaulting to 32 px screen height.")
+    if int(argv[2]) > 32:
+        HEIGHT = 64
+        LINES = 8
     else:
         HEIGHT = 32
-        LINES = 4
-        print("No argument specified; Defaulting to 32 px screen height.")
+        LINES = 3
 else:
-    ROTATION = 180
+    # Default settings
+    ROTATION = 2
     HEIGHT = 32
     LINES = 4
-    print("No arguments specified; Defaulting to 180 degrees rotation and 32 px height")
+    print("No valid parameters detected; defaulting to 32 px height, 180 degrees rotation.")
 
 WIDTH = 128
 BORDER = 5
