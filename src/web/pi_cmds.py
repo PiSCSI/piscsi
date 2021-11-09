@@ -81,3 +81,19 @@ def disk_space():
     from shutil import disk_usage
     total, used, free = disk_usage(__file__)
     return {"total": total, "used": used, "free": free}
+
+def introspect_file(file_path, re_term):
+    """
+    Takes a (str) file_path and (str) re_term in regex format
+    Will introspect file_path for the existance of re_term
+    and return True if found, False if not found
+    """
+    from re import match
+    try:
+        ifile = open(file_path, "r")
+    except:
+        return False
+    for line in ifile:
+        if match(re_term, line):
+            return True
+    return False
