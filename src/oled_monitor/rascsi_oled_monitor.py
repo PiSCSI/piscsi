@@ -40,8 +40,38 @@ from interrupt_handler import GracefulInterruptHandler
 from pi_cmds import get_ip_and_host
 from ractl_cmds import device_list
 
+# Attempt to read the first positional argument
+if len(argv) > 1:
+    if str(argv[1]) == "0":
+        ROTATION = 0
+        print("Using 0 degrees screen rotation.")
+    elif str(argv[1]) == "180":
+        ROTATION = 2
+        print("Using 180 degrees screen rotation.")
+    else:
+        ROTATION = 2
+        print("Invalid argument; Defaulting to 180 degrees screen rotation.")
+    # Attempt to read the second positional argument
+    if len(argv) == 3:
+        if str(argv[2]) == "32":
+            HEIGHT = 32
+            LINES = 4
+            print("Using 32 px screen height.")
+        elif str(argv[2]) == "64":
+            HEIGHT = 64
+            LINES = 8
+            print("Using 64 px screen height.")
+        else:
+            HEIGHT = 32
+            LINES = 4
+            print("Invalid argument; Defaulting to 32 px screen height.")
+else:
+    ROTATION = 180
+    HEIGHT = 32
+    LINES = 4
+    print("No arguments specified; Defaulting to 180 degrees rotation and 32 px height")
+
 WIDTH = 128
-HEIGHT = 32  # Change to 64 if needed
 BORDER = 5
 
 # How long to delay between each update
@@ -60,20 +90,6 @@ print("Running with the following display:")
 print(OLED)
 print()
 print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approximately)")
-
-# Attempt to read the first argument to the script; fall back to 2 (180 degrees)
-if len(argv) > 1:
-    if str(argv[1]) == "0":
-        ROTATION = 0
-        print("Using 0 degrees screen rotation.")
-    elif str(argv[1]) == "180":
-        ROTATION = 2
-        print("Using 180 degrees screen rotation.")
-    else:
-        exit("Only 0 and 180 are valid arguments for screen rotation.")
-else:
-    print("Defaulting to 180 degrees screen rotation.")
-    ROTATION = 2
 
 # Clear display.
 OLED.rotation = ROTATION
@@ -151,7 +167,7 @@ def start_splash():
     Displays a splash screen for the startup sequence
     Make sure the splash bitmap image is in the same dir as this script
     """
-    splash = Image.open("splash_start.bmp").convert("1")
+    splash = Image.open(f"splash_start_{HEIGHT}.bmp").convert("1")
     DRAW.bitmap((0, 0), splash)
     OLED.image(splash)
     OLED.show()
@@ -163,7 +179,7 @@ def stop_splash():
     Make sure the splash bitmap image is in the same dir as this script
     """
     DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
-    splash = Image.open("splash_stop.bmp").convert("1")
+    splash = Image.open(f"splash_stop_{HEIGHT}.bmp").convert("1")
     DRAW.bitmap((0, 0), splash)
     OLED.image(splash)
     OLED.show()
@@ -194,7 +210,7 @@ with GracefulInterruptHandler() as handler:
                 y_pos += 8
 
             # Shift the index of the array by one to get a scrolling effect
-            if len(active_output) > 5:
+            if len(active_output) > LINES:
                 active_output.rotate(-1)
 
             # Display image.
