@@ -46,7 +46,8 @@ logo="""
 echo -e $logo
 }
 
-BASE="$HOME/RASCSI"
+USER=$(whoami)
+BASE=$(dirname "$(readlink -f "${0}")")
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
 WEBINSTDIR="$BASE/src/web"
@@ -57,20 +58,6 @@ GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -e
-
-function initialChecks() {
-    currentUser=$(whoami)
-    if [ "pi" != "$currentUser" ]; then
-        echo "You must use 'pi' user (current: $currentUser)"
-        exit 1
-    fi
-
-    if [ ! -d "$BASE" ]; then
-        echo "You must checkout RASCSI repo into $BASE"
-        echo "$ git clone git@github.com:akuker/RASCSI.git"
-        exit 2
-    fi
-}
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
@@ -93,6 +80,9 @@ function installRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
     ( make clean && make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
+
+    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
+    echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 
     if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
         sudo bash -c 'echo "
@@ -126,12 +116,14 @@ function installRaScsiWebInterface() {
     sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
-    sudo usermod -a -G pi www-data
+    sudo usermod -a -G $USER www-data
 
     sudo systemctl reload nginx || true
 
     echo "Installing the rascsi-web.service configuration..."
     sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
+    sudo sed -i "8 i ExecStart=$WEBINSTDIR/start.sh" /etc/systemd/system/rascsi-web.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
@@ -561,7 +553,7 @@ function installNetatalk() {
 
     cd "netatalk-classic-$NETATALK_VERSION" || exit 1
     sed -i /^~/d ./config/AppleVolumes.default.tmpl
-    echo "/home/pi/afpshare \"Pi File Server\" adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default.tmpl
+    echo "$AFP_SHARE_PATH \"Pi File Server\" adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default.tmpl
 
     echo "ATALKD_RUN=yes" >> ./config/netatalk.conf
     echo "\"RaSCSI-Pi\" -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname \"nobody\" -setuplog \"default log_maxdebug /var/log/afpd.log\"" >> ./config/afpd.conf.tmpl
@@ -749,7 +741,6 @@ while [ "$1" != "" ]; do
 done
 
 showRaSCSILogo
-initialChecks
 
 if [ -z "${RUN_CHOICE}" ]; then # RUN_CHOICE is unset, show menu
     showMenu
