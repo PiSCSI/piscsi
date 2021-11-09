@@ -65,6 +65,10 @@ if len(argv) > 1:
             HEIGHT = 32
             LINES = 4
             print("Invalid argument; Defaulting to 32 px screen height.")
+    else:
+        HEIGHT = 32
+        LINES = 4
+        print("No argument specified; Defaulting to 32 px screen height.")
 else:
     ROTATION = 180
     HEIGHT = 32
