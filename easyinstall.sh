@@ -79,7 +79,7 @@ function installRaScsi() {
 
     cd "$BASE/src/raspberrypi" || exit 1
 
-    ( make clean && make all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
+    ( make clean && make $(nproc) all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
 
     sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
     echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
