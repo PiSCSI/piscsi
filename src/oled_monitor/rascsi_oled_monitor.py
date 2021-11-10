@@ -49,12 +49,12 @@ if len(argv) == 3:
     else:
         # 2 means 180 degrees
         ROTATION = 2
-    if int(argv[2]) > 32:
+    if int(argv[2]) == 64:
         HEIGHT = 64
         LINES = 8
     else:
         HEIGHT = 32
-        LINES = 3
+        LINES = 4
 else:
     # Default settings
     ROTATION = 2
