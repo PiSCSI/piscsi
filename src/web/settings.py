@@ -7,7 +7,7 @@ from os import getenv, getcwd
 WEB_DIR = getcwd()
 # There may be a more elegant way to get the HOME dir of the user that installed RaSCSI
 HOME_DIR = "/".join(WEB_DIR.split("/")[0:3])
-CFG_DIR = f"{HOME_DIR}/.config/rascsi/"
+CFG_DIR = f"{HOME_DIR}/.config/rascsi"
 AFP_DIR = f"{HOME_DIR}/afpshare"
 
 MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", str(1024 * 1024 * 1024 * 4))  # 4gb
