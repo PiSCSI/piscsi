@@ -175,7 +175,7 @@
                     <summary>
                         {{ file["name"] }}
                     </summary>
-                    <ul>
+                    <ul style="list-style: none;">
                     {% for key in file["prop"] %}
                         <li>{{ key }}: {{ file['prop'][key] }}</li>
                     {% endfor %}
@@ -192,7 +192,7 @@
                     <summary>
                         {{ file["name"] }}
                     </summary>
-                    <ul>
+                    <ul style="list-style: none;">
                     {% for member in file["zip_members"] %}
                     {% if not member.lower().endswith(PROPERTIES_SUFFIX) %}
                         <li>
