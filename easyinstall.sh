@@ -134,16 +134,31 @@ function installRaScsiScreen() {
     echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your RaSCSI board."
     echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/OLED-Status-Display-(Optional)"
     echo ""
-    echo "Do you want to use the recommended screen rotation (180 degrees)?"
-    echo "Press Y/n and Enter, or CTRL-C to exit"
+    echo "Choose screen rotation:"
+    echo "  1) 0 degrees"
+    echo "  2) 180 degrees (default)"
     read REPLY
 
-    if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
+    if [ "$REPLY" == "1" ]; then
         echo "Proceeding with 0 degrees rotation."
         ROTATION="0"
     else
         echo "Proceeding with 180 degrees rotation."
         ROTATION="180"
+    fi
+
+    echo ""
+    echo "Choose screen resolution:"
+    echo "  1) 128x32 pixels (default)"
+    echo "  2) 128x64 pixels"
+    read REPLY
+
+    if [ "$REPLY" == "2" ]; then
+        echo "Proceeding with 128x64 pixel resolution."
+        SCREEN_HEIGHT="64"
+    else
+        echo "Proceeding with 128x32 pixel resolution."
+        SCREEN_HEIGHT="32"
     fi
 
     stopRaScsiScreen
@@ -171,7 +186,7 @@ function installRaScsiScreen() {
     echo "Installing the monitor_rascsi.service configuration..."
     sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" /etc/systemd/system/monitor_rascsi.service
     sudo sed -i /^ExecStart=/d /etc/systemd/system/monitor_rascsi.service
-    sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION" /etc/systemd/system/monitor_rascsi.service
+    sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" /etc/systemd/system/monitor_rascsi.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable monitor_rascsi
