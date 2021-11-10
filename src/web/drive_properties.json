@@ -289,6 +289,42 @@
 },
 {
     "device_type": "SCRM",
+    "vendor": "DEC",
+    "product": "RX23     (C) DEC",
+    "revision": "0054",
+    "block_size": 512,
+    "size": 1474560,
+    "name": "DEC RX23",
+    "file_type": "hdr",
+    "description": "SCSI Floppy Drive 1.44MB",
+    "url": "https://www.netbsd.org/docs/Hardware/Machines/DEC/vax/storage.html#storage:rx23"
+},
+{
+    "device_type": "SCRM",
+    "vendor": "DEC",
+    "product": "RX26     (C) DEC",
+    "revision": "0054",
+    "block_size": 512,
+    "size": 2949120,
+    "name": "DEC RX26",
+    "file_type": "hdr",
+    "description": "SCSI Floppy Drive 2.88MB",
+    "url": "https://www.netbsd.org/docs/Hardware/Machines/DEC/vax/storage.html#storage:rx26"
+},
+{
+    "device_type": "SCRM",
+    "vendor": "DEC",
+    "product": "RX33     (C) DEC",
+    "revision": "0054",
+    "block_size": 512,
+    "size": 1228800,
+    "name": "DEC RX33",
+    "file_type": "hdr",
+    "description": "SCSI Floppy Drive 1.2MB",
+    "url": "https://www.netbsd.org/docs/Hardware/Machines/DEC/vax/storage.html#storage:rx33"
+},
+{
+    "device_type": "SCRM",
     "vendor": "IOMEGA",
     "product": "ZIP 100",
     "revision": "D.13",
@@ -380,7 +416,7 @@
     "size": null,
     "name": "DEC RRD42",
     "file_type": null,
-    "description": "Boots DECstations and VAXstations. Use only with Unix workstations of this vintage.",
+    "description": "Boots DECstations and VAXstations. Use only with workstations of this vintage.",
     "url": ""
 }
 ]

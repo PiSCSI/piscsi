@@ -4,12 +4,11 @@ Constant definitions used by other modules
 
 from os import getenv, getcwd
 
-# TODO: Make HOME_DIR portable when running rascsi-web
-# as a service, since the HOME env variable doesn't get set then.
-HOME_DIR = getenv("HOME", "/home/pi")
+WEB_DIR = getcwd()
+# There may be a more elegant way to get the HOME dir of the user that installed RaSCSI
+HOME_DIR = "/".join(WEB_DIR.split("/")[0:3])
 CFG_DIR = f"{HOME_DIR}/.config/rascsi/"
 AFP_DIR = f"{HOME_DIR}/afpshare"
-WEB_DIR = getcwd()
 
 MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", str(1024 * 1024 * 1024 * 4))  # 4gb
 

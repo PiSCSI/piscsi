@@ -57,7 +57,36 @@
             {% endif %}
             <td style="text-align:center">{{ device.device_type }}</td>
             <td style="text-align:center">{{ device.status }}</td>
-            <td style="text-align:left">{{ device.file }}</td>
+            <td style="text-align:left">
+                {% if "No Media" in device.status %}
+                <form action="/scsi/attach" method="post">
+                    <input name="scsi_id" type="hidden" value="{{ device.id }}">
+                    <input name="unit" type="hidden" value="{{ device.unit }}">
+                    <input name="type" type="hidden" value="{{ device.device_type }}">
+                    <input name="file_size" type="hidden" value="{{ device.size }}">
+                    <select type="select" name="file_name">
+                    {% for f in files %}
+                    {% if device.device_type == "SCCD" %}
+                    {% if f["name"].lower().endswith(cdrom_file_suffix) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% endif %}
+                    {% elif device.device_type == "SCRM" %}
+                    {% if f["name"].lower().endswith(removable_file_suffix) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% endif %}
+                    {% elif device.device_type == "SCMO" %}
+                    {% if f["name"].lower().endswith(mo_file_suffix) %}
+                    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+                    {% endif %}
+                    {% endif %}
+                    {% endfor %}
+                    </select>
+                    <input type="submit" value="Attach">
+                </form>
+            {% else %}
+            {{ device.file }}
+            </td>
+            {% endif %}
             {% if device.vendor == "RaSCSI" %}
             <td style="text-align:center">{{ device.product }}</td>
             {% else %}
@@ -150,23 +179,27 @@
                     {% for key in file["prop"] %}
                         <li>{{ key }}: {{ file['prop'][key] }}</li>
                     {% endfor %}
+                    <form action="/files/download" method="post">
+                        <input name="file" type="hidden" value="{{ CFG_DIR }}/{{ file["name"].replace(base_dir, '') }}.{{ PROPERTIES_SUFFIX }}">
+                        <input type="submit" value="Properties File &#8595;">
+                    </form>
                     </ul>
                 </details>
             </td>
-            {% elif file["zip"] %}
+            {% elif file["zip_members"] %}
             <td>
                 <details>
                     <summary>
                         {{ file["name"] }}
                     </summary>
                     <ul>
-                    {% for member in file["zip"] %}
+                    {% for member in file["zip_members"] %}
                     </li>
                         <li>
-                            <label for="member">{{ member }}</label>
+                            <label for="zip_member">{{ member }}</label>
                             <form action="/files/unzip" method="post">
-                                <input name="image" type="hidden" value="{{ file['name'] }}">
-                                <input name="member" type="hidden" value="{{ member }}">
+                                <input name="zip_file" type="hidden" value="{{ file['name'] }}">
+                                <input name="zip_member" type="hidden" value="{{ member }}">
                                 <input type="submit" value="Unzip">
                             </form>
                         </li>
@@ -179,8 +212,8 @@
             {% endif %}
             <td style="text-align:center">
                 <form action="/files/download" method="post">
-                        <input name="image" type="hidden" value="{{ file['name'] }}">
-                        <input type="submit" value="{{ file["size_mb"] }} MB &#8595;">
+                    <input name="file" type="hidden" value="{{ base_dir }}/{{ file['name'] }}">
+                    <input type="submit" value="{{ file["size_mb"] }} MB &#8595;">
                 </form>
             </td>
             <td>
@@ -189,9 +222,10 @@
                     Attached!
                 </center>
                 {% else %}
-                {% if file["name"].lower().endswith(archive_file_suffix) %}
+                {% if file["name"].lower().endswith(ARCHIVE_FILE_SUFFIX) %}
                 <form action="/files/unzip" method="post">
-                    <input name="image" type="hidden" value="{{ file['name'] }}">
+                    <input name="zip_file" type="hidden" value="{{ file['name'] }}">
+                    <input name="zip_members" type="hidden" value="{{ file['zip_members'] }}">
                     <input type="submit" value="Unzip All">
                 </form>
                 {% else %}
@@ -283,6 +317,11 @@
         </td>
     </tr>
 </table>
+{% if macproxy_configured %}
+<p><small>macproxy is running at {{ ip_addr }} port 5000</small></p>
+{% else %}
+<p><small>Install <a href="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy">macproxy</a> to browse the Web with your vintage browser.</small></p>
+{% endif %}
 
 <hr/>
 <details>

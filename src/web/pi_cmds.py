@@ -51,15 +51,16 @@ def running_env():
     return {"git": ra_git_version, "env": pi_version}
 
 
-def running_netatalk():
+def running_proc(daemon):
     """
-    Returns (int) afpd, which is the number of afpd processes currently running
+    Takes (str) daemon
+    Returns (int) proc, which is the number of processes currently running
     """
     process = subprocess.run(["ps", "aux"], capture_output=True)
     output = process.stdout.decode("utf-8")
     from re import findall
-    afpd = findall("afpd", output)
-    return len(afpd)
+    proc = findall(daemon, output)
+    return len(proc)
 
 
 def is_bridge_setup():
@@ -81,3 +82,37 @@ def disk_space():
     from shutil import disk_usage
     total, used, free = disk_usage(__file__)
     return {"total": total, "used": used, "free": free}
+
+
+def get_ip_address():
+    """
+    Use a mock socket connection to identify the Pi's IP address
+    """
+    from socket import socket, AF_INET, SOCK_DGRAM
+    sock = socket(AF_INET, SOCK_DGRAM)
+    try:
+        # mock ip address; doesn't have to be reachable
+        sock.connect(('10.255.255.255', 1))
+        ip_addr = sock.getsockname()[0]
+    except Exception:
+        ip_addr = '127.0.0.1'
+    finally:
+        sock.close()
+    return ip_addr
+
+
+def introspect_file(file_path, re_term):
+    """
+    Takes a (str) file_path and (str) re_term in regex format
+    Will introspect file_path for the existance of re_term
+    and return True if found, False if not found
+    """
+    from re import match
+    try:
+        ifile = open(file_path, "r")
+    except:
+        return False
+    for line in ifile:
+        if match(re_term, line):
+            return True
+    return False
