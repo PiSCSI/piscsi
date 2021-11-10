@@ -196,12 +196,24 @@
                     {% for member in file["zip_members"] %}
                     {% if not member.lower().endswith(PROPERTIES_SUFFIX) %}
                         <li>
-                            <label for="zip_member">{{ member }}{% if member + "." + PROPERTIES_SUFFIX in file["zip_members"] %} *{% endif %}</label>
+                            {% if member + "." + PROPERTIES_SUFFIX in file["zip_members"] %}
+                            <details><summary>{{ member }}
                             <form action="/files/unzip" method="post">
                                 <input name="zip_file" type="hidden" value="{{ file['name'] }}">
                                 <input name="zip_member" type="hidden" value="{{ member }}">
                                 <input type="submit" value="Unzip">
                             </form>
+                            </summary>
+                                {{ member + "." + PROPERTIES_SUFFIX }}
+                            </details>
+                            {% else %}
+                            <label for="zip_member">{{ member }}</label>
+                            <form action="/files/unzip" method="post">
+                                <input name="zip_file" type="hidden" value="{{ file['name'] }}">
+                                <input name="zip_member" type="hidden" value="{{ member }}">
+                                <input type="submit" value="Unzip">
+                            </form>
+                            {% endif %}
                         </li>
                     {% endif %}
                     {% endfor %}
