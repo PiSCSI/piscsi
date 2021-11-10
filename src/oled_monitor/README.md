@@ -30,7 +30,7 @@ _Note:_ Both parameters must be passed for the script to read them. Ordering is 
 The start.sh script can also be run standalone, and will handle the venv creation/updating for you. It takes the same command line parameters in the following format:
 
 ```
-./start.sh --rotation=180 --height=64
+$ ./start.sh --rotation=180 --height=64
 ```
 
 ## Static analysis with pylint
