@@ -106,11 +106,13 @@ BOTTOM = HEIGHT - PADDING
 # Move left to right keeping track of the current x position for drawing shapes.
 X_POS = 0
 
-# Alternatively load a TTF font.  Make sure the .ttf font file
-# is in the same directory as the python script!
+# Load a TTF font for rendering glyphs on the screen.
+# Make sure the .ttf font file is in the same directory as the python script!
 # When using other fonts, you may need to adjust padding, font size, and line spacing.
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 FONT = ImageFont.truetype('type_writer.ttf', 8)
+# Vertical spacing between each line of text. Adjust in accordance with font size.
+LINE_SPACING = 8
 
 IP_ADDR, HOSTNAME = get_ip_and_host()
 
@@ -198,7 +200,7 @@ with GracefulInterruptHandler() as handler:
             y_pos = TOP
             for output_line in active_output:
                 DRAW.text((X_POS, y_pos), output_line, font=FONT, fill=255)
-                y_pos += 8
+                y_pos += LINE_SPACING
 
             # Shift the index of the array by one to get a scrolling effect
             if len(active_output) > LINES:
