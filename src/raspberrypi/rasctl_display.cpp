@@ -163,10 +163,13 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 		}
 
 		if (properties.supports_params() && properties.default_params_size()) {
+			// Creates a sorted map
+			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
+
 			cout << "        Default parameters: ";
 
 			bool isFirst = true;
-			for (const auto& param : properties.default_params()) {
+			for (const auto& param : params) {
 				if (!isFirst) {
 					cout << ", ";
 				}
@@ -178,10 +181,13 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 		}
 
 		if (properties.block_sizes_size()) {
+			// Creates a sorted set
+			set<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
+
 			cout << "        Configurable block sizes in bytes: ";
 
 			bool isFirst = true;
-			for (const auto& block_size : properties.block_sizes()) {
+			for (const auto& block_size : block_sizes) {
 				if (!isFirst) {
 					cout << ", ";
 				}
