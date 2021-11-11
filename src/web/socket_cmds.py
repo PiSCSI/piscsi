@@ -1,4 +1,4 @@
-"""
+""
 Module for sending and receiving data over a socket connection with the RaSCSI backend
 """
 
