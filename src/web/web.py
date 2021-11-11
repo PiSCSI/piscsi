@@ -4,7 +4,7 @@ Module for the Flask app rendering and endpoints
 
 import logging
 from pathlib import Path
-
+from google.protobuf.pyext._message import RepeatedScalarContainer, ScalarMapContainer
 from flask import (
     Flask,
     render_template,
@@ -15,6 +15,7 @@ from flask import (
     send_file,
     send_from_directory,
     make_response,
+    jsonify, get_flashed_messages
 )
 
 from file_cmds import (
@@ -108,7 +109,7 @@ def index():
         [ARCHIVE_FILE_SUFFIX]
         )
 
-    return render_template(
+    return content_aware_response(
         "index.html",
         bridge_configured=is_bridge_setup(),
         netatalk_configured=running_netatalk(),
@@ -153,11 +154,11 @@ def drive_list():
         process = read_drive_properties(str(drive_properties))
         if not process["status"]:
             flash(process["msg"], "error")
-            return redirect(url_for("index"))
+            return content_aware_redirect("index")
         conf = process["conf"]
     else:
         flash("Could not read drive properties from " + str(drive_properties), "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     hd_conf = []
     cd_conf = []
@@ -210,13 +211,13 @@ def drive_create():
     """
     Creates the image and properties file pair
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
-    size = request.form.get("size")
-    file_type = request.form.get("file_type")
-    file_name = request.form.get("file_name")
+    vendor = get_param("vendor")
+    product = get_param("product")
+    revision = get_param("revision")
+    block_size = get_param("block_size")
+    size = get_param("size")
+    file_type = get_param("file_type")
+    file_name = get_param("file_name")
 
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
@@ -224,7 +225,7 @@ def drive_create():
         flash(f"Created drive image file: {file_name}.{file_type}")
     else:
         flash(process["msg"], "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     # Creating the drive properties file
     prop_file_name = f"{file_name}.{file_type}.{PROPERTIES_SUFFIX}"
@@ -237,10 +238,10 @@ def drive_create():
     process = write_drive_properties(prop_file_name, properties)
     if process["status"]:
         flash(process["msg"])
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(process['msg'], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/drive/cdrom", methods=["POST"])
@@ -248,11 +249,11 @@ def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
     """
-    vendor = request.form.get("vendor")
-    product = request.form.get("product")
-    revision = request.form.get("revision")
-    block_size = request.form.get("block_size")
-    file_name = request.form.get("file_name")
+    vendor = get_param("vendor")
+    product = get_param("product")
+    revision = get_param("revision")
+    block_size = get_param("block_size")
+    file_name = get_param("file_name")
 
     # Creating the drive properties file
     file_name = f"{file_name}.{PROPERTIES_SUFFIX}"
@@ -265,10 +266,10 @@ def drive_cdrom():
     process = write_drive_properties(file_name, properties)
     if process["status"]:
         flash(process["msg"])
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(process['msg'], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/config/save", methods=["POST"])
@@ -276,16 +277,16 @@ def config_save():
     """
     Saves a config file to disk
     """
-    file_name = request.form.get("name") or "default"
+    file_name = get_param("name", "default")
     file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
 
     process = write_config(file_name)
     if process["status"]:
         flash(process["msg"])
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(process['msg'], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/config/load", methods=["POST"])
@@ -293,27 +294,27 @@ def config_load():
     """
     Loads a config file from disk
     """
-    file_name = request.form.get("name")
+    file_name = get_param("name")
 
     if "load" in request.form:
         process = read_config(file_name)
         if process["status"]:
             flash(process["msg"])
-            return redirect(url_for("index"))
+            return content_aware_redirect("index")
 
         flash(process['msg'], "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
     elif "delete" in request.form:
         process = delete_file(CFG_DIR + file_name)
         if process["status"]:
             flash(process["msg"])
-            return redirect(url_for("index"))
+            return content_aware_redirect("index")
 
         flash(process['msg'], "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash("Got an unhandled request (needs to be either load or delete)", "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/logs/show", methods=["POST"])
@@ -321,8 +322,8 @@ def show_logs():
     """
     Displays system logs
     """
-    lines = request.form.get("lines") or "200"
-    scope = request.form.get("scope") or "default"
+    lines = get_param("lines", "200")
+    scope = get_param("scope", "default")
 
     from subprocess import run
     if scope != "default":
@@ -337,7 +338,7 @@ def show_logs():
     flash("Failed to get logs")
     flash(process.stdout.decode("utf-8"), "stdout")
     flash(process.stderr.decode("utf-8"), "stderr")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/logs/level", methods=["POST"])
@@ -345,15 +346,15 @@ def log_level():
     """
     Sets RaSCSI backend log level
     """
-    level = request.form.get("level") or "info"
+    level = get_param("level", "info")
 
     process = set_log_level(level)
     if process["status"]:
         flash(f"Log level set to {level}")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(f"Failed to set log level to {level}!", "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/daynaport/attach", methods=["POST"])
@@ -361,10 +362,10 @@ def daynaport_attach():
     """
     Attaches a DaynaPORT ethernet adapter device
     """
-    scsi_id = request.form.get("scsi_id")
-    interface = request.form.get("if")
-    ip_addr = request.form.get("ip")
-    mask = request.form.get("mask")
+    scsi_id = get_param("scsi_id")
+    interface = get_param("if")
+    ip_addr = get_param("ip")
+    mask = get_param("mask")
 
     kwargs = {"device_type": "SCDP"}
     if interface != "":
@@ -376,10 +377,10 @@ def daynaport_attach():
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
         flash(f"Attached DaynaPORT to SCSI ID {scsi_id}!")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/scsi/attach", methods=["POST"])
@@ -387,11 +388,11 @@ def attach():
     """
     Attaches a file image as a device
     """
-    file_name = request.form.get("file_name")
-    file_size = request.form.get("file_size")
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
-    device_type = request.form.get("type")
+    file_name = get_param("name")
+    file_size = get_param("size")
+    scsi_id = get_param("scsi_id")
+    unit = get_param("unit", 0)
+    device_type = get_param("detected_type")
 
     kwargs = {"unit": int(unit), "image": file_name}
 
@@ -412,7 +413,7 @@ def attach():
         process = read_drive_properties(drive_properties)
         if not process["status"]:
             flash(process["msg"], "error")
-            return redirect(url_for("index"))
+            return content_aware_redirect("index")
         conf = process["conf"]
         kwargs["vendor"] = conf["vendor"]
         kwargs["product"] = conf["product"]
@@ -427,11 +428,11 @@ def attach():
             flash(f"The image file size {file_size} bytes is not a multiple of "
                   f"{expected_block_size} and RaSCSI will ignore the trailing data. "
                   f"The image may be corrupted so proceed with caution.", "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {unit}", "error")
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/scsi/detach_all", methods=["POST"])
@@ -442,10 +443,12 @@ def detach_all_devices():
     process = detach_all()
     if process["status"]:
         flash("Detached all SCSI devices")
-        return redirect(url_for("index"))
+        flash("A second message class flash")
+        flash("oh an error too!", "error")
+        return content_aware_redirect("index")
 
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/scsi/detach", methods=["POST"])
@@ -453,16 +456,16 @@ def detach():
     """
     Detaches a specified device
     """
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
+    scsi_id = get_param("scsi_id")
+    unit = get_param("unit")
     process = detach_by_id(scsi_id, unit)
     if process["status"]:
         flash(f"Detached SCSI ID {scsi_id} LUN {unit}")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(f"Failed to detach SCSI ID {scsi_id} LUN {unit}", "error")
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/scsi/eject", methods=["POST"])
@@ -470,32 +473,32 @@ def eject():
     """
     Ejects a specified removable device image, but keeps the device attached
     """
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
+    scsi_id = get_param("scsi_id")
+    unit = get_param("unit")
 
     process = eject_by_id(scsi_id, unit)
     if process["status"]:
         flash(f"Ejected SCSI ID {scsi_id} LUN {unit}")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(f"Failed to eject SCSI ID {scsi_id} LUN {unit}", "error")
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 @APP.route("/scsi/info", methods=["POST"])
 def device_info():
     """
     Displays detailed info for a specific device
     """
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
+    scsi_id = get_param("scsi_id")
+    unit = get_param("unit")
 
     devices = list_devices(scsi_id, unit)
 
     # First check if any device at all was returned
     if not devices["status"]:
         flash(devices["msg"], "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
     # Looking at the first dict in list to get
     # the one and only device that should have been returned
     device = devices["device_list"][0]
@@ -512,45 +515,46 @@ def device_info():
         flash(f"Revision: {device['revision']}")
         flash(f"Block Size: {device['block_size']} bytes")
         flash(f"Image Size: {device['size']} bytes")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(devices["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 @APP.route("/scsi/reserve", methods=["POST"])
 def reserve_id():
     """
     Reserves a SCSI ID and stores the memo for that reservation
     """
-    scsi_id = request.form.get("scsi_id")
-    memo = request.form.get("memo")
+    scsi_id = get_param("scsi_id")
+    memo = get_param("memo")
     reserved_ids = get_reserved_ids()["ids"]
     reserved_ids.extend(scsi_id)
     process = reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = memo
         flash(f"Reserved SCSI ID {scsi_id}")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 @APP.route("/scsi/unreserve", methods=["POST"])
 def unreserve_id():
     """
     Removes the reservation of a SCSI ID as well as the memo for the reservation
     """
-    scsi_id = request.form.get("scsi_id")
+    scsi_id = get_param("scsi_id")
     reserved_ids = get_reserved_ids()["ids"]
     reserved_ids.remove(scsi_id)
     process = reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = ""
         flash(f"Released the reservation for SCSI ID {scsi_id}")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
+
 
 @APP.route("/pi/reboot", methods=["POST"])
 def restart():
@@ -561,7 +565,7 @@ def restart():
     flash("Safely detached all devices.")
     flash("Rebooting the Pi momentarily...")
     reboot_pi()
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/rascsi/restart", methods=["POST"])
@@ -574,7 +578,7 @@ def rascsi_restart():
     flash("Restarting RaSCSI Service...")
     systemd_service("rascsi.service", "restart")
     systemd_service("monitor_rascsi.service", "restart")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/pi/shutdown", methods=["POST"])
@@ -586,7 +590,7 @@ def shutdown():
     flash("Safely detached all devices.")
     flash("Shutting down the Pi momentarily...")
     shutdown_pi()
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/files/download_to_iso", methods=["POST"])
@@ -594,8 +598,8 @@ def download_to_iso():
     """
     Downloads a remote file and creates a CD-ROM image formatted with HFS that contains the file
     """
-    scsi_id = request.form.get("scsi_id")
-    url = request.form.get("url")
+    scsi_id = get_param("scsi_id")
+    url = get_param("url")
 
     process = download_file_to_iso(url)
     if process["status"]:
@@ -603,16 +607,16 @@ def download_to_iso():
     else:
         flash(f"Failed to create CD-ROM image from {url}", "error")
         flash(process["msg"], "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     process_attach = attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
     if process_attach["status"]:
         flash(f"Attached to SCSI ID {scsi_id}")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(f"Failed to attach image to SCSI ID {scsi_id}. Try attaching it manually.", "error")
     flash(process_attach["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/files/download_to_images", methods=["POST"])
@@ -620,16 +624,16 @@ def download_img():
     """
     Downloads a remote file onto the images dir on the Pi
     """
-    url = request.form.get("url")
+    url = get_param("url")
     server_info = get_server_info()
     process = download_to_dir(url, server_info["image_dir"])
     if process["status"]:
         flash(process["msg"])
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(f"Failed to download file {url}", "error")
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/files/download_to_afp", methods=["POST"])
@@ -637,15 +641,15 @@ def download_afp():
     """
     Downloads a remote file onto the AFP shared dir on the Pi
     """
-    url = request.form.get("url")
+    url = get_param("url")
     process = download_to_dir(url, AFP_DIR)
     if process["status"]:
         flash(process["msg"])
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(f"Failed to download file {url}", "error")
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/files/upload", methods=["POST"])
@@ -702,9 +706,9 @@ def create_file():
     """
     Creates an empty image file in the images dir
     """
-    file_name = request.form.get("file_name")
-    size = (int(request.form.get("size")) * 1024 * 1024)
-    file_type = request.form.get("type")
+    file_name = get_param("file_name")
+    size = (get_param("size", 0, int) * 1024 * 1024)
+    file_type = get_param("type")
 
     from werkzeug.utils import secure_filename
     file_name = secure_filename(file_name)
@@ -712,10 +716,10 @@ def create_file():
     process = create_new_image(file_name, file_type, size)
     if process["status"]:
         flash(f"Drive image created: {file_name}.{file_type}")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/files/download", methods=["POST"])
@@ -723,7 +727,7 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    image = request.form.get("image")
+    image = get_param("image")
     server_info = get_server_info()
     return send_file(f"{server_info['image_dir']}/{image}", as_attachment=True)
 
@@ -733,14 +737,14 @@ def delete():
     """
     Deletes a specified file in the images dir
     """
-    file_name = request.form.get("image")
+    file_name = get_param("image")
 
     process = delete_image(file_name)
     if process["status"]:
         flash(f"Image file deleted: {file_name}")
     else:
         flash(process["msg"], "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     # Delete the drive properties file, if it exists
     prop_file_path = f"{CFG_DIR}{file_name}.{PROPERTIES_SUFFIX}"
@@ -748,12 +752,12 @@ def delete():
         process = delete_file(prop_file_path)
         if process["status"]:
             flash(process["msg"])
-            return redirect(url_for("index"))
+            return content_aware_redirect("index")
 
         flash(process["msg"], "error")
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
 
 
 @APP.route("/files/unzip", methods=["POST"])
@@ -761,22 +765,114 @@ def unzip():
     """
     Unzips a specified zip file
     """
-    image = request.form.get("image")
-    member = request.form.get("member") or False
+    image = get_param("image")
+    member = get_param("member", False)
 
     process = unzip_file(image, member)
     if process["status"]:
         if not process["msg"]:
             flash("Aborted unzip: File(s) with the same name already exists.", "error")
-            return redirect(url_for("index"))
+            return content_aware_redirect("index")
         flash("Unzipped the following files:")
         for msg in process["msg"]:
             flash(msg)
-        return redirect(url_for("index"))
+        return content_aware_redirect("index")
 
     flash("Failed to unzip " + image, "error")
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
+    return content_aware_redirect("index")
+
+
+def get_param(param, default=None, cast_to=None):
+    """
+    Get a param from the form or json object. If both exist, the form takes precedence.
+    Matches API of request.form.get and request.json.get.
+    :param param: name of the parameter to get
+    :param default: default if it doesnt exist.
+    :param cast_to: type of the parameter to be cast to.
+    :return: the value of the parameter or default, typed.
+    """
+    rv = request.form.get(param, request.json.get(param, default))
+
+    if rv is not None and cast_to is not None:
+        try:
+            rv = cast_to(rv)
+        except ValueError:
+            rv = default
+    return rv
+
+
+def is_json(req):
+    """
+    Checks if the request should be served back json or html
+    :param req: http request
+    :return: boolean
+    """
+    return req.headers.get('Accept').lower() in 'application/json'
+
+
+def content_aware_redirect(url):
+    """
+    Renders a redirect or a json response based on the request's Accept header
+    :param url:
+    :return:
+    """
+    if is_json(request):
+        return jsonify({"flash": _flashed_messages_to_json(), "redirect": url})
+    else:
+        return redirect(url_for(url))
+
+
+def content_aware_response(template, **kwargs):
+    """
+    Renders a template or a json response based on the request's Accept header
+    :param template: name of the template to render
+    :param kwargs: data to render to the template or json object.
+    :return:
+    """
+    if is_json(request):
+        json = _protobuf_to_python(kwargs)
+        return jsonify({"flash": _flashed_messages_to_json(), "template": template, "data": json})
+    else:
+        return render_template(template, **kwargs)
+
+
+def _flashed_messages_to_json():
+    """
+    Converts the flashed messages to a json list with categories.
+    :return: json list of messages
+    """
+    flashed = get_flashed_messages(with_categories=True)
+    messages = {"error": [], "message": []}
+    for category, message in flashed:
+        if category not in messages:
+            messages[category] = []
+        messages[category].append(message)
+    return messages
+
+
+def _protobuf_to_python(message):
+    """
+    Converts a dict with Protobuf messages into a dict that can be serialized to json.
+    :param message: A mixed dict with Protobuf messages
+    :return: dict with no Protobuf types
+    """
+    json = {}
+    if not isinstance(message, dict) and not isinstance(message, list) and not isinstance(message, RepeatedScalarContainer) and not isinstance(message, ScalarMapContainer):
+        # Not something we are interested in converting.
+        return message
+    for key, value in message.items():
+        new_value = value
+        if isinstance(value, dict):
+            new_value = _protobuf_to_python(value)
+        if isinstance(value, list):
+            new_value = [_protobuf_to_python(item) for item in value]
+        if isinstance(value, RepeatedScalarContainer):
+            new_value = list(value)
+        if isinstance(value, ScalarMapContainer):
+            new_value = dict(value)
+        json[key] = new_value
+    return json
 
 
 if __name__ == "__main__":
