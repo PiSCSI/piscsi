@@ -133,31 +133,31 @@ C-I_O
 $Comp
 L power:+5V #PWR021
 U 1 1 60874435
-P 4000 1500
-F 0 "#PWR021" H 4000 1350 50  0001 C CNN
-F 1 "+5V" H 4000 1650 50  0000 C CNN
-F 2 "" H 4000 1500 50  0001 C CNN
-F 3 "" H 4000 1500 50  0001 C CNN
-	1    4000 1500
+P 4950 1350
+F 0 "#PWR021" H 4950 1200 50  0001 C CNN
+F 1 "+5V" H 4950 1500 50  0000 C CNN
+F 2 "" H 4950 1350 50  0001 C CNN
+F 3 "" H 4950 1350 50  0001 C CNN
+	1    4950 1350
 	0    1    1    0   
 $EndComp
 $Comp
 L Device:Fuse_Small FUSE1
 U 1 1 60874FC5
-P 3550 1500
-F 0 "FUSE1" H 3450 1300 59  0000 L BNN
-F 1 "1A" H 3500 1400 59  0000 L BNN
-F 2 "Fuse:Fuse_1206_3216Metric" H 3550 1500 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/1808301742_Shenzhen-lanson-Elec-12B1100B_C182974.pdf" H 3550 1500 50  0001 C CNN
-F 4 "C182974" H 3550 1500 50  0001 C CNN "LCSC"
-F 5 "SMD Fuse Fast Blow 1A 50A 0.0062 SMD1206 Surface Mount Fuses" H 3550 1500 50  0001 C CNN "Description"
-F 6 "Shenzhen lanson Elec" H 3550 1500 50  0001 C CNN "Manufacturer_Name"
-F 7 "12B1100B" H 3550 1500 50  0001 C CNN "Manufacturer_Part_Number"
-	1    3550 1500
+P 4500 1350
+F 0 "FUSE1" H 4400 1150 59  0000 L BNN
+F 1 "1A" H 4450 1250 59  0000 L BNN
+F 2 "Fuse:Fuse_1206_3216Metric" H 4500 1350 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1808301742_Shenzhen-lanson-Elec-12B1100B_C182974.pdf" H 4500 1350 50  0001 C CNN
+F 4 "C182974" H 4500 1350 50  0001 C CNN "LCSC"
+F 5 "SMD Fuse Fast Blow 1A 50A 0.0062 SMD1206 Surface Mount Fuses" H 4500 1350 50  0001 C CNN "Description"
+F 6 "Shenzhen lanson Elec" H 4500 1350 50  0001 C CNN "Manufacturer_Name"
+F 7 "12B1100B" H 4500 1350 50  0001 C CNN "Manufacturer_Part_Number"
+	1    4500 1350
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	4000 1500 3950 1500
+	4950 1350 4900 1350
 Text GLabel 6300 2250 2    50   BiDi ~ 0
 PI-D0
 Text GLabel 6300 2150 2    50   BiDi ~ 0
@@ -604,7 +604,7 @@ Wire Notes Line
 	8100 6400 8100 2650
 Wire Notes Line
 	8100 2650 3500 2650
-Text Notes 3000 1750 0    50   ~ 0
+Text Notes 2900 1500 0    50   ~ 0
 Terminating Resistor Power
 Text Notes 3550 6350 0    50   ~ 0
 SCSI Bus Transceivers
@@ -751,12 +751,12 @@ F 3 "" H 9200 2850 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H1
+L Mechanical:MountingHole H1
 U 1 1 5EF88248
 P 8600 5000
 F 0 "H1" H 8700 5049 50  0000 L CNN
 F 1 "Hole1" H 8700 4958 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 8600 5000 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad" H 8600 5000 50  0001 C CNN
 F 3 "DNP" H 8600 5000 50  0001 C CNN
 F 4 "DNP" H 8600 5000 50  0001 C CNN "Description"
 F 5 "" H 8600 5000 50  0001 C CNN "Height"
@@ -769,12 +769,12 @@ F 10 "" H 8600 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H3
+L Mechanical:MountingHole H3
 U 1 1 5EF89564
 P 9400 5000
 F 0 "H3" H 9500 5049 50  0000 L CNN
 F 1 "Hole3" H 9500 4958 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9400 5000 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad" H 9400 5000 50  0001 C CNN
 F 3 "DNP" H 9400 5000 50  0001 C CNN
 F 4 "DNP" H 9400 5000 50  0001 C CNN "Description"
 F 5 "" H 9400 5000 50  0001 C CNN "Height"
@@ -787,12 +787,12 @@ F 10 "" H 9400 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H4
+L Mechanical:MountingHole H4
 U 1 1 5EF896FC
 P 9400 5500
 F 0 "H4" H 9500 5549 50  0000 L CNN
 F 1 "Hole5" H 9500 5458 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9400 5500 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad" H 9400 5500 50  0001 C CNN
 F 3 "DNP" H 9400 5500 50  0001 C CNN
 F 4 "DNP" H 9400 5500 50  0001 C CNN "Description"
 F 5 "" H 9400 5500 50  0001 C CNN "Height"
@@ -805,12 +805,12 @@ F 10 "" H 9400 5500 50  0001 C CNN "Mouser Price/Stock"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H2
+L Mechanical:MountingHole H2
 U 1 1 5EF89881
 P 9000 5000
 F 0 "H2" H 9100 5049 50  0000 L CNN
 F 1 "Hole2" H 9100 4958 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9000 5000 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad" H 9000 5000 50  0001 C CNN
 F 3 "DNP" H 9000 5000 50  0001 C CNN
 F 4 "DNP" H 9000 5000 50  0001 C CNN "Description"
 F 5 "" H 9000 5000 50  0001 C CNN "Height"
@@ -820,24 +820,6 @@ F 8 "DNP" H 9000 5000 50  0001 C CNN "Manufacturer_Part_Number"
 F 9 "" H 9000 5000 50  0001 C CNN "Mouser Part Number"
 F 10 "" H 9000 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    9000 5000
-	1    0    0    -1  
-$EndComp
-$Comp
-L SamacSys_Parts:Logo X1
-U 1 1 5EFCC51E
-P 8550 5500
-F 0 "X1" H 8400 5600 50  0000 L CNN
-F 1 "Mac" H 8600 5600 50  0000 L CNN
-F 2 "SamacSys_Parts:mac_happy_small" H 8550 5500 50  0001 C CNN
-F 3 "N/A - Silkscreen" H 8550 5500 50  0001 C CNN
-F 4 "" H 8550 5500 50  0001 C CNN "Height"
-F 5 "N/A" H 8550 5500 50  0001 C CNN "LCSC"
-F 6 "N/A" H 8550 5500 50  0001 C CNN "Manufacturer_Name"
-F 7 "N/A" H 8550 5500 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "" H 8550 5500 50  0001 C CNN "Mouser Part Number"
-F 9 "" H 8550 5500 50  0001 C CNN "Mouser Price/Stock"
-F 10 "N/A - Silkscreen" H 8550 5500 50  0001 C CNN "Description"
-	1    8550 5500
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -856,24 +838,6 @@ F 8 "" H 8900 5700 50  0001 C CNN "Mouser Part Number"
 F 9 "" H 8900 5700 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8900 5700 50  0001 C CNN "Description"
 	1    8900 5700
-	1    0    0    -1  
-$EndComp
-$Comp
-L SamacSys_Parts:Logo X3
-U 1 1 5EFCD8D2
-P 8550 5600
-F 0 "X3" H 8400 5700 50  0000 L CNN
-F 1 "Mac" H 8600 5700 50  0000 L CNN
-F 2 "SamacSys_Parts:mac_happy_small" H 8550 5600 50  0001 C CNN
-F 3 "N/A - Silkscreen" H 8550 5600 50  0001 C CNN
-F 4 "" H 8550 5600 50  0001 C CNN "Height"
-F 5 "N/A" H 8550 5600 50  0001 C CNN "LCSC"
-F 6 "N/A" H 8550 5600 50  0001 C CNN "Manufacturer_Name"
-F 7 "N/A" H 8550 5600 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "" H 8550 5600 50  0001 C CNN "Mouser Part Number"
-F 9 "" H 8550 5600 50  0001 C CNN "Mouser Price/Stock"
-F 10 "N/A - Silkscreen" H 8550 5600 50  0001 C CNN "Description"
-	1    8550 5600
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -910,50 +874,6 @@ F 8 "" H 8900 5600 50  0001 C CNN "Mouser Part Number"
 F 9 "" H 8900 5600 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8900 5600 50  0001 C CNN "Description"
 	1    8900 5600
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR034
-U 1 1 5EFE78A6
-P 8600 5100
-F 0 "#PWR034" H 8600 4850 50  0001 C CNN
-F 1 "GND" H 8605 4927 50  0000 C CNN
-F 2 "" H 8600 5100 50  0001 C CNN
-F 3 "" H 8600 5100 50  0001 C CNN
-	1    8600 5100
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR040
-U 1 1 5EFE8543
-P 9400 5100
-F 0 "#PWR040" H 9400 4850 50  0001 C CNN
-F 1 "GND" H 9405 4927 50  0000 C CNN
-F 2 "" H 9400 5100 50  0001 C CNN
-F 3 "" H 9400 5100 50  0001 C CNN
-	1    9400 5100
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR041
-U 1 1 5EFE8860
-P 9400 5600
-F 0 "#PWR041" H 9400 5350 50  0001 C CNN
-F 1 "GND" H 9405 5427 50  0000 C CNN
-F 2 "" H 9400 5600 50  0001 C CNN
-F 3 "" H 9400 5600 50  0001 C CNN
-	1    9400 5600
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR037
-U 1 1 5EFE8FE4
-P 9000 5100
-F 0 "#PWR037" H 9000 4850 50  0001 C CNN
-F 1 "GND" H 9005 4927 50  0000 C CNN
-F 2 "" H 9000 5100 50  0001 C CNN
-F 3 "" H 9000 5100 50  0001 C CNN
-	1    9000 5100
 	1    0    0    -1  
 $EndComp
 Wire Notes Line
@@ -1063,7 +983,7 @@ $EndComp
 Text Label 7550 2150 2    50   ~ 0
 TERM_5v
 Wire Notes Line
-	2900 1100 5300 1100
+	2900 1050 5300 1050
 Wire Notes Line
 	2900 550  5300 550 
 Wire Wire Line
@@ -2537,7 +2457,7 @@ Wire Wire Line
 	8950 750  8950 850 
 Wire Wire Line
 	7200 2150 7600 2150
-Text GLabel 3350 1500 0    50   BiDi ~ 0
+Text GLabel 4300 1350 0    50   BiDi ~ 0
 TERMPOW
 $Comp
 L Device:R_Small R3
@@ -2654,27 +2574,9 @@ Connection ~ 5800 2250
 Wire Wire Line
 	5750 2050 5800 2050
 Wire Wire Line
-	3750 1500 3650 1500
+	4700 1350 4600 1350
 Wire Wire Line
-	3450 1500 3350 1500
-$Comp
-L SamacSys_Parts:Logo X8
-U 1 1 5FB668EF
-P 8550 5550
-F 0 "X8" H 8700 5600 50  0000 R CNN
-F 1 "Pi" H 8500 5600 50  0000 R CNN
-F 2 "SamacSys_Parts:scsi_logo" H 8550 5550 50  0001 C CNN
-F 3 "N/A - Silkscreen" H 8550 5550 50  0001 C CNN
-F 4 "" H 8550 5550 50  0001 C CNN "Height"
-F 5 "N/A" H 8550 5550 50  0001 C CNN "LCSC"
-F 6 "N/A" H 8550 5550 50  0001 C CNN "Manufacturer_Name"
-F 7 "N/A" H 8550 5550 50  0001 C CNN "Manufacturer_Part_Number"
-F 8 "" H 8550 5550 50  0001 C CNN "Mouser Part Number"
-F 9 "" H 8550 5550 50  0001 C CNN "Mouser Price/Stock"
-F 10 "N/A - Silkscreen" H 8550 5550 50  0001 C CNN "Description"
-	1    8550 5550
-	-1   0    0    1   
-$EndComp
+	4400 1350 4300 1350
 Wire Notes Line
 	5450 550  10200 550 
 Wire Notes Line
@@ -2696,11 +2598,11 @@ Wire Notes Line
 Wire Notes Line
 	2700 550  2700 2450
 Text Notes 6750 7760 0    87   ~ 17
-RaSCSI - 68kmla Edition
+RaSCSI Reloaded - Zero
 Text Notes 9900 7890 0    79   ~ 16
-2.4
+1.0
 Text Notes 7450 7870 0    59   ~ 12
-28-Dec-2020
+10-Nov-2021
 Wire Wire Line
 	2850 6050 2950 6050
 Wire Wire Line
@@ -2747,27 +2649,23 @@ F 3 "" H 950 3050 50  0001 C CNN
 	1    950  3050
 	0    -1   -1   0   
 $EndComp
-Wire Notes Line
-	4250 2450 4250 1100
-Text Notes 4350 2350 0    50   ~ 0
-Aux 5v Power Connector
+Text Notes 2900 2450 0    50   ~ 0
+5v Power Connector
 $Comp
 L Device:D_Small D5
 U 1 1 60874AD6
-P 3850 1500
-F 0 "D5" H 3800 1550 59  0000 L BNN
-F 1 "SM4007PL" H 3700 1650 59  0000 L BNN
-F 2 "Diode_SMD:D_SOD-123F" H 3850 1500 50  0001 C CNN
-F 3 "https://datasheet.lcsc.com/szlcsc/1809301215_MDD-Microdiode-Electronics-SM4007PL_C64898.pdf" H 3850 1500 50  0001 C CNN
-F 4 "C64898" H 3850 1500 50  0001 C CNN "LCSC"
-F 5 "1kV 1A 1.1V @ 1A SOD-123FL Diodes - General Purpose RoHS" H 3850 1500 50  0001 C CNN "Description"
-F 6 "	MDD(Microdiode Electronics)" H 3850 1500 50  0001 C CNN "Manufacturer_Name"
-F 7 "SM4007PL" H 3850 1500 50  0001 C CNN "Manufacturer_Part_Number"
-	1    3850 1500
+P 4800 1350
+F 0 "D5" H 4750 1400 59  0000 L BNN
+F 1 "SM4007PL" H 4650 1500 59  0000 L BNN
+F 2 "Diode_SMD:D_SOD-123F" H 4800 1350 50  0001 C CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/1809301215_MDD-Microdiode-Electronics-SM4007PL_C64898.pdf" H 4800 1350 50  0001 C CNN
+F 4 "C64898" H 4800 1350 50  0001 C CNN "LCSC"
+F 5 "1kV 1A 1.1V @ 1A SOD-123FL Diodes - General Purpose RoHS" H 4800 1350 50  0001 C CNN "Description"
+F 6 "	MDD(Microdiode Electronics)" H 4800 1350 50  0001 C CNN "Manufacturer_Name"
+F 7 "SM4007PL" H 4800 1350 50  0001 C CNN "Manufacturer_Part_Number"
+	1    4800 1350
 	1    0    0    -1  
 $EndComp
-Text Notes 2950 1300 0    39   ~ 0
-NOTE: This diode was originally a 1N4004, \nhowever JLCPCB has a higher rated diode \nfor a lower price
 Wire Wire Line
 	750  1700 1450 1700
 Connection ~ 1800 1700
@@ -2818,17 +2716,6 @@ NoConn ~ 2750 3550
 NoConn ~ 2750 3650
 NoConn ~ 2750 4750
 $Comp
-L power:+5V #PWR0101
-U 1 1 61712282
-P 1200 6800
-F 0 "#PWR0101" H 1200 6650 50  0001 C CNN
-F 1 "+5V" H 1200 6950 50  0000 C CNN
-F 2 "" H 1200 6800 50  0001 C CNN
-F 3 "" H 1200 6800 50  0001 C CNN
-	1    1200 6800
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:+3V3 #PWR0102
 U 1 1 6171228E
 P 1400 6800
@@ -2840,28 +2727,6 @@ F 3 "" H 1400 6800 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 $Comp
-L power:GND #PWR0103
-U 1 1 61722BDB
-P 1600 6800
-F 0 "#PWR0103" H 1600 6550 50  0001 C CNN
-F 1 "GND" H 1600 6650 50  0000 C CNN
-F 2 "" H 1600 6800 50  0001 C CNN
-F 3 "" H 1600 6800 50  0001 C CNN
-	1    1600 6800
-	-1   0    0    1   
-$EndComp
-$Comp
-L power:PWR_FLAG #FLG0101
-U 1 1 6173391C
-P 1600 6800
-F 0 "#FLG0101" H 1600 6875 50  0001 C CNN
-F 1 "PWR_FLAG" V 1600 7100 50  0000 C CNN
-F 2 "" H 1600 6800 50  0001 C CNN
-F 3 "~" H 1600 6800 50  0001 C CNN
-	1    1600 6800
-	-1   0    0    1   
-$EndComp
-$Comp
 L power:PWR_FLAG #FLG0102
 U 1 1 6178682C
 P 1400 6800
@@ -2870,17 +2735,6 @@ F 1 "PWR_FLAG" V 1400 7100 50  0000 C CNN
 F 2 "" H 1400 6800 50  0001 C CNN
 F 3 "~" H 1400 6800 50  0001 C CNN
 	1    1400 6800
-	-1   0    0    1   
-$EndComp
-$Comp
-L power:PWR_FLAG #FLG0103
-U 1 1 61796A6D
-P 1200 6800
-F 0 "#FLG0103" H 1200 6875 50  0001 C CNN
-F 1 "PWR_FLAG" V 1200 7100 50  0000 C CNN
-F 2 "" H 1200 6800 50  0001 C CNN
-F 3 "~" H 1200 6800 50  0001 C CNN
-	1    1200 6800
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
@@ -2940,23 +2794,96 @@ F 3 "" H 4250 950 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L TYPE-C-31-M-17:TYPE-C-31-M-17 J?
+L TYPE-C-31-M-17:TYPE-C-31-M-17 J3
 U 1 1 618FD321
-P 2200 7300
-F 0 "J?" H 2850 7567 50  0000 C CNN
-F 1 "TYPE-C-31-M-17" H 2850 7476 50  0000 C CNN
-F 2 "TYPEC31M17" H 2200 7300 50  0001 L BNN
-F 3 "" H 2200 7300 50  0001 L BNN
-F 4 "3.26mm" H 2200 7300 50  0001 L BNN "HEIGHT"
-F 5 "" H 2200 7300 50  0001 L BNN "MOUSER_PART_NUMBER"
-F 6 "" H 2200 7300 50  0001 L BNN "RS_PRICE-STOCK"
-F 7 "USB Connectors 6 Receptacle 1 RoHS" H 2200 7300 50  0001 L BNN "DESCRIPTION"
-F 8 "Korean Hroparts Elec" H 2200 7300 50  0001 L BNN "MANUFACTURER_NAME"
-F 9 "TYPE-C-31-M-17" H 2200 7300 50  0001 L BNN "MANUFACTURER_PART_NUMBER"
-F 10 "" H 2200 7300 50  0001 L BNN "RS_PART_NUMBER"
-F 11 "" H 2200 7300 50  0001 L BNN "MOUSER_PRICE-STOCK"
-F 12 "C283540" H 2200 7300 50  0001 C CNN "LCSC"
-	1    2200 7300
+P 3300 1850
+F 0 "J3" H 3950 2117 50  0000 C CNN
+F 1 "TYPE-C-31-M-17" H 3950 2026 50  0000 C CNN
+F 2 "TYPEC31M17" H 3300 1850 50  0001 L BNN
+F 3 "" H 3300 1850 50  0001 L BNN
+F 4 "3.26mm" H 3300 1850 50  0001 L BNN "HEIGHT"
+F 5 "" H 3300 1850 50  0001 L BNN "MOUSER_PART_NUMBER"
+F 6 "" H 3300 1850 50  0001 L BNN "RS_PRICE-STOCK"
+F 7 "USB Connectors 6 Receptacle 1 RoHS" H 3300 1850 50  0001 L BNN "DESCRIPTION"
+F 8 "Korean Hroparts Elec" H 3300 1850 50  0001 L BNN "MANUFACTURER_NAME"
+F 9 "TYPE-C-31-M-17" H 3300 1850 50  0001 L BNN "MANUFACTURER_PART_NUMBER"
+F 10 "" H 3300 1850 50  0001 L BNN "RS_PART_NUMBER"
+F 11 "" H 3300 1850 50  0001 L BNN "MOUSER_PRICE-STOCK"
+F 12 "C283540" H 3300 1850 50  0001 C CNN "LCSC"
+	1    3300 1850
 	1    0    0    -1  
 $EndComp
+Text Notes 2950 1300 0    39   ~ 0
+NOTE: This diode was originally a 1N4004, \nhowever JLCPCB has a higher rated diode \nfor a lower price
+Wire Notes Line
+	2900 1500 5300 1500
+$Comp
+L power:+5V #PWR013
+U 1 1 6195FDC1
+P 3250 1950
+F 0 "#PWR013" H 3250 1800 50  0001 C CNN
+F 1 "+5V" V 3250 2150 50  0000 C CNN
+F 2 "" H 3250 1950 50  0001 C CNN
+F 3 "" H 3250 1950 50  0001 C CNN
+	1    3250 1950
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR022
+U 1 1 6195FDC7
+P 4750 1950
+F 0 "#PWR022" H 4750 1700 50  0001 C CNN
+F 1 "GND" V 4755 1822 50  0000 R CNN
+F 2 "" H 4750 1950 50  0001 C CNN
+F 3 "" H 4750 1950 50  0001 C CNN
+	1    4750 1950
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:+5V #PWR015
+U 1 1 61982243
+P 3250 2250
+F 0 "#PWR015" H 3250 2100 50  0001 C CNN
+F 1 "+5V" V 3250 2450 50  0000 C CNN
+F 2 "" H 3250 2250 50  0001 C CNN
+F 3 "" H 3250 2250 50  0001 C CNN
+	1    3250 2250
+	0    -1   -1   0   
+$EndComp
+NoConn ~ 3300 2150
+NoConn ~ 3300 1850
+$Comp
+L power:GND #PWR014
+U 1 1 619E6836
+P 3250 2050
+F 0 "#PWR014" H 3250 1800 50  0001 C CNN
+F 1 "GND" V 3255 1922 50  0000 R CNN
+F 2 "" H 3250 2050 50  0001 C CNN
+F 3 "" H 3250 2050 50  0001 C CNN
+	1    3250 2050
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4600 1850 4600 1950
+Connection ~ 4600 1950
+Wire Wire Line
+	4600 1950 4600 2050
+Connection ~ 4600 2050
+Wire Wire Line
+	4600 2050 4600 2150
+Connection ~ 4600 2150
+Wire Wire Line
+	4600 2150 4600 2250
+Wire Wire Line
+	4750 1950 4600 1950
+Wire Wire Line
+	3250 1950 3300 1950
+Wire Wire Line
+	3300 2050 3250 2050
+Wire Wire Line
+	3250 2250 3300 2250
+Wire Wire Line
+	7850 7700 7850 7750
+Wire Wire Line
+	7550 7700 7850 7700
 $EndSCHEMATC
