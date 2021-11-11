@@ -28,11 +28,12 @@
             </span>
             <template v-slot:action="{ attrs }">
                 <v-btn
-                    text
+                    icon
+                    rounded
                     v-bind="attrs"
                     @click="flash.error = []"
                 >
-                    Close
+                    <v-icon>mdi-close</v-icon>
                 </v-btn>
             </template>
         </v-snackbar>
@@ -47,7 +48,7 @@
                     v-bind="attrs"
                     @click="flash.message = []"
                 >
-                    X
+                    <v-icon>mdi-close</v-icon>
                 </v-btn>
             </template>
         </v-snackbar>
@@ -56,7 +57,7 @@
             <v-card-title class="pb-0 ">
                 Devices
             </v-card-title>
-            <v-data-table dense item-key="id" hide-default-footer sort-icon="false"
+            <v-data-table dense item-key="id" hide-default-footer
                 :headers="deviceHeaders"
                 :items="index.devices"/>
             <v-card-subtitle>
@@ -99,6 +100,13 @@
                 </template>
             </v-data-table>
         </v-card>
+        <v-card>
+            <v-select @change="updateLogLevel()"
+                      v-model="index.current_log_level"
+                      :items="index.log_levels"
+                      hint="Select log level"
+                      persistent-hint></v-select>
+        </v-card>
 <!--        <router-view/>-->
     </v-main>
       <v-footer>
@@ -106,6 +114,7 @@
               <small>
                   <pre class="text-center">{{index.running_env.env}}</pre>
                   <pre class="text-center">{{index.running_env.git}} - {{index.version}}</pre>
+<!--                  <pre>{{index}}</pre>-->
               </small>
           </v-flex>
       </v-footer>
@@ -124,6 +133,8 @@ export default {
           message: []
       },
       index: {
+          current_log_level: "",
+          log_levels: [],
           devices: [{id: 0}, {id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}, {id: 7}],
           files: [],
           RESERVATIONS: [],
@@ -147,7 +158,7 @@ export default {
               text: 'Type',
               align: 'start',
               sortable: false,
-              value: 'type',
+              value: 'device_type',
           },
           {
               text: 'File',
@@ -189,41 +200,55 @@ export default {
       ]
   }),
   methods: {
-      // TODO: Helper method for api calls (url, method, body)
-      detachAll: function () {
-          fetch('http://localhost:8080/scsi/detach_all', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          }).then(() => {
-              this.loadIndex();
-              this.flash.message = ["All devices detached"];
+      callAPI: function (path, method = "GET", body = null) {
+          if(body !== null) {
+              body = JSON.stringify(body);
+          }
+          return fetch("http://localhost:8080" + path, {
+              method: method,
+              body: body,
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+              },
+          }).then(response => {
+              return response.json();
+          }).then(data => {
+              return data;
           }).catch(error => {
-              this.flash.error.push(error);
+              this.flash.error = [error];
+          }).finally(() => {
+              if(path !== '/')
+                this.loadIndex();
+          });
+      },
+      updateLogLevel: function () {
+          this.callAPI('/logs/level', 'POST', {
+              level: this.index.current_log_level
+          }).then(() => {
+              this.flash.message = ["Log level updated"];
+          })
+      },
+      detachAll: function () {
+          this.callAPI("/scsi/detach_all", "POST")
+          .then(() => {
+              this.flash.message = ["All devices detached"];
           });
       },
       deleteItem: function (item) {
-          console.alert("delete " + item.id);
+          alert("delete " + item.id);
       },
       downloadItem: function (item) {
-          console.alert("download " + item.id);
+          alert("download " + item.id);
       },
       attach: function(item) {
-          fetch('http://localhost:8080/scsi/attach', {
-              headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-              method: "POST",
-              body: JSON.stringify({...item, scsi_id: this.recommendedSCSIId})
-          }).then(response => response.json())
+          this.callAPI("/scsi/attach", "POST", {...item, scsi_id: this.recommendedSCSIId})
           .then((data) => {
-              this.loadIndex();
               this.flash = data.flash
           });
       },
       loadIndex() {
-          fetch('http://localhost:8080/', {
-              headers: { 'Accept': 'application/json' },
-              method: "GET",
-          }).then(response => response.json())
-          .then(data => {
+          this.callAPI("/").then(data => {
               this.index = data.data
           });
      },
