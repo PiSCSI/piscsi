@@ -178,7 +178,7 @@
             <td>{{ file["name"] }}</td>
             {% endif %}
             <td style="text-align:center">
-                <form action="/files/download" method="post">
+                <form action="/files/download" method="get">
                         <input name="image" type="hidden" value="{{ file['name'] }}">
                         <input type="submit" value="{{ file["size_mb"] }} MB &#8595;">
                 </form>

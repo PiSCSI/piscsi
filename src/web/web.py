@@ -722,12 +722,12 @@ def create_file():
     return content_aware_redirect("index")
 
 
-@APP.route("/files/download", methods=["POST"])
+@APP.route("/files/download", methods=["GET"])
 def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    image = get_param("image")
+    image = request.args.get('image')
     server_info = get_server_info()
     return send_file(f"{server_info['image_dir']}/{image}", as_attachment=True)
 

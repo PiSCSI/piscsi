@@ -236,10 +236,16 @@ export default {
           });
       },
       deleteItem: function (item) {
-          alert("delete " + item.id);
+          const result = confirm(`Delete ${item.name}?`);
+          if(result) {
+              this.callAPI("/files/delete", "POST", {image: item.name})
+              .then(() => {
+                  this.flash.message = [`${item.name} deleted.`];
+              });
+          }
       },
       downloadItem: function (item) {
-          alert("download " + item.id);
+          window.location.href = "http://localhost:8080/files/download?image=" + item.name;
       },
       attach: function(item) {
           this.callAPI("/scsi/attach", "POST", {...item, scsi_id: this.recommendedSCSIId})

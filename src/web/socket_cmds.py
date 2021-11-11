@@ -1,4 +1,4 @@
-""
+"""
 Module for sending and receiving data over a socket connection with the RaSCSI backend
 """
 
@@ -10,7 +10,7 @@ def send_pb_command(payload):
     Establishes a socket connection with RaSCSI.
     """
     # Host and port number where rascsi is listening for socket connections
-    host = 'localhost'
+    host = '192.168.1.148'
     port = 6868
 
     counter = 0
