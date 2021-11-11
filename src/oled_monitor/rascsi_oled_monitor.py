@@ -106,13 +106,18 @@ BOTTOM = HEIGHT - PADDING
 # Move left to right keeping track of the current x position for drawing shapes.
 X_POS = 0
 
+# Font size in pixels. Not all TTF fonts have bitmap representations for all sizes.
+FONT_SIZE = 8
+# Vertical spacing between each line of text. Adjust in accordance with font size.
+# Depending on the design of the font glyphs, this may be larger than FONT_SIZE.
+LINE_SPACING = 8
+
 # Load a TTF font for rendering glyphs on the screen.
 # Make sure the .ttf font file is in the same directory as the python script!
-# When using other fonts, you may need to adjust padding, font size, and line spacing.
+# When using other fonts, you may need to adjust PADDING, FONT_SIZE,
+# LINE_SPACING, and LINES.
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
-FONT = ImageFont.truetype('type_writer.ttf', 8)
-# Vertical spacing between each line of text. Adjust in accordance with font size.
-LINE_SPACING = 8
+FONT = ImageFont.truetype('type_writer.ttf', FONT_SIZE)
 
 IP_ADDR, HOSTNAME = get_ip_and_host()
 
