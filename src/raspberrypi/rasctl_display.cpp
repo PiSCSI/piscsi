@@ -243,9 +243,12 @@ void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 
 void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info)
 {
+	// Creates a sorted list
+	const list<string> interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
+
 	cout << "Available (up) network interfaces:" << endl;
 	bool isFirst = true;
-	for (const auto& interface : network_interfaces_info.name()) {
+	for (const auto& interface : interfaces) {
 		if (!isFirst) {
 			cout << ", ";
 		}
@@ -257,8 +260,11 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 
 void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info)
 {
+	// Creates a sorted map
+	const map<string, PbDeviceType> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
+
 	cout << "Supported image file extension to device type mappings:" << endl;
-	for (const auto&  mapping : mapping_info.mapping()) {
+	for (const auto&  mapping : mappings) {
 		cout << "  " << mapping.first << "->" << PbDeviceType_Name(mapping.second) << endl;
 	}
 }
