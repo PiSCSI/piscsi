@@ -163,12 +163,10 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 		}
 
 		if (properties.supports_params() && properties.default_params_size()) {
-			map<string, string> params = { properties.default_params().begin(), properties.default_params().end() };
-
 			cout << "        Default parameters: ";
 
 			bool isFirst = true;
-			for (const auto& param : params) {
+			for (const auto& param : properties.default_params()) {
 				if (!isFirst) {
 					cout << ", ";
 				}
@@ -180,12 +178,10 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 		}
 
 		if (properties.block_sizes_size()) {
-			set<uint32_t> block_sizes = { properties.block_sizes().begin(), properties.block_sizes().end() };
-
 			cout << "        Configurable block sizes in bytes: ";
 
 			bool isFirst = true;
-			for (const auto& block_size : block_sizes) {
+			for (const auto& block_size : properties.block_sizes()) {
 				if (!isFirst) {
 					cout << ", ";
 				}
@@ -227,15 +223,14 @@ void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info)
 
 void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 {
-	const list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
-
 	cout << "Default image file folder: " << image_files_info.default_image_folder() << endl;
 
-	if (image_files.empty()) {
+	if (image_files_info.image_files().empty()) {
 		cout << "  No image files available" << endl;
 	}
 	else {
-		list<PbImageFile> files = { image_files.begin(), image_files.end() };
+		const list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
+		list<PbImageFile> files(image_files);
 		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 		cout << "Available image files:" << endl;
@@ -248,11 +243,9 @@ void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 
 void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& network_interfaces_info)
 {
-	const list<string> interfaces = { network_interfaces_info.name().begin(), network_interfaces_info.name().end() };
-
 	cout << "Available (up) network interfaces:" << endl;
 	bool isFirst = true;
-	for (const auto& interface : interfaces) {
+	for (const auto& interface : network_interfaces_info.name()) {
 		if (!isFirst) {
 			cout << ", ";
 		}
@@ -264,10 +257,8 @@ void RasctlDisplay::DisplayNetworkInterfaces(const PbNetworkInterfacesInfo& netw
 
 void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info)
 {
-	const map<string, PbDeviceType> mappings = { mapping_info.mapping().begin(), mapping_info.mapping().end() };
-
 	cout << "Supported image file extension to device type mappings:" << endl;
-	for (const auto&  mapping : mappings) {
+	for (const auto&  mapping : mapping_info.mapping()) {
 		cout << "  " << mapping.first << "->" << PbDeviceType_Name(mapping.second) << endl;
 	}
 }
