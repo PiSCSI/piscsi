@@ -361,6 +361,30 @@
 },
 {
     "device_type": "SCRM",
+    "vendor": "IOMEGA",
+    "product": "Io20S         *F",
+    "revision": "PP33",
+    "block_size": 512,
+    "size": 1474048,
+    "name": "Iomega Floptical 1.44MB",
+    "file_type": "hdr",
+    "description": "Iomega Floptical 21MB/1.44MB SCSI drive",
+    "url": "https://github.com/akuker/RASCSI/wiki/Iomega-Floptical"
+},
+{
+    "device_type": "SCRM",
+    "vendor": "IOMEGA",
+    "product": "Io20S         *F",
+    "revision": "PP33",
+    "block_size": 512,
+    "size": 20874240,
+    "name": "Iomega Floptical 21MB",
+    "file_type": "hdr",
+    "description": "Iomega Floptical 21MB/1.44MB SCSI drive",
+    "url": "https://github.com/akuker/RASCSI/wiki/Iomega-Floptical"
+},
+{
+    "device_type": "SCRM",
     "vendor": "SYQUEST",
     "product": "SQ5110C",
     "revision": "4AA0",
