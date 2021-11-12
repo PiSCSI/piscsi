@@ -391,7 +391,7 @@ int main(int argc, char* argv[])
 			break;
 
 		case IMAGE_FILE_INFO:
-			rasctl_commands.CommandImageFileInfo(hostname);
+			rasctl_commands.CommandImageFileInfo(filename);
 			break;
 
 		case NETWORK_INTERFACES_INFO:
