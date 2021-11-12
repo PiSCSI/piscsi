@@ -118,10 +118,10 @@ void RasctlDisplay::DisplayLogLevelInfo(const PbLogLevelInfo& log_level_info)
 void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types_info)
 {
 	cout << "Supported device types and their properties:" << endl;
-	for (auto it = device_types_info.properties().begin(); it != device_types_info.properties().end(); ++it) {
-		cout << "  " << PbDeviceType_Name(it->type());
+	for (const auto& device_type_info : device_types_info.properties()) {
+		cout << "  " << PbDeviceType_Name(device_type_info.type());
 
-		const PbDeviceProperties& properties = it->properties();
+		const PbDeviceProperties& properties = device_type_info.properties();
 
 		cout << "  Supported LUN numbers: 0";
 		if (properties.luns() > 1) {
@@ -235,14 +235,13 @@ void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 		cout << "  No image files available" << endl;
 	}
 	else {
-		const list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
-		list<PbImageFile> files(image_files);
-		files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+		list<PbImageFile> image_files = { image_files_info.image_files().begin(), image_files_info.image_files().end() };
+		image_files.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
 
 		cout << "Available image files:" << endl;
-		for (const auto& file : files) {
+		for (const auto& image_file : image_files) {
 			cout << "  ";
-			DisplayImageFile(file);
+			DisplayImageFile(image_file);
 		}
 	}
 }
