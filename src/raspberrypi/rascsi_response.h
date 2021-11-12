@@ -45,7 +45,7 @@ private:
 	DeviceFactory *device_factory;
 	const RascsiImage *rascsi_image;
 
-	vector<string> log_levels { "trace", "debug", "info", "warn", "erro", "critical", "off" };
+	vector<string> log_levels { "trace", "debug", "info", "warn", "error", "critical", "off" };
 
 	PbDeviceProperties *GetDeviceProperties(const Device *);
 	void GetDevice(const Device *, PbDevice *);
