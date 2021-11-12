@@ -49,8 +49,8 @@ public:
 	bool Save(const Filepath& path);
 
 	// Read / Write
-	bool Read(BYTE *buf, int sec) const;				// Sector Read
-	bool Write(const BYTE *buf, int sec);				// Sector Write
+	bool ReadSector(BYTE *buf, int sec) const;				// Sector Read
+	bool WriteSector(const BYTE *buf, int sec);				// Sector Write
 
 	int GetTrack() const		{ return dt.track; }		// Get track
 };
@@ -72,8 +72,8 @@ public:
 
 	// Access
 	bool Save();							// Save and release all
-	bool Read(BYTE *buf, int block);				// Sector Read
-	bool Write(const BYTE *buf, int block);			// Sector Write
+	bool ReadSector(BYTE *buf, int block);				// Sector Read
+	bool WriteSector(const BYTE *buf, int block);			// Sector Write
 	bool GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
 
 private:
@@ -81,7 +81,7 @@ private:
 	void Clear();							// Clear all tracks
 	DiskTrack* Assign(int track);					// Load track
 	bool Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
-	void Update();							// Update serial number
+	void UpdateSerialNumber();							// Update serial number
 
 	// Internal data
 	cache_t cache[CacheMax];						// Cache management

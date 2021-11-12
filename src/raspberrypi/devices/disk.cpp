@@ -1149,7 +1149,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	}
 
 	// leave it to the cache
-	if (!disk.dcache->Read(buf, block)) {
+	if (!disk.dcache->ReadSector(buf, block)) {
 		SetStatusCode(STATUS_READFAULT);
 		return 0;
 	}
@@ -1219,7 +1219,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	}
 
 	// Leave it to the cache
-	if (!disk.dcache->Write(buf, block)) {
+	if (!disk.dcache->WriteSector(buf, block)) {
 		SetStatusCode(STATUS_WRITEFAULT);
 		return false;
 	}
