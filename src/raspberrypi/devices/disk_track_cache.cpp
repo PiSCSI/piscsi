@@ -438,8 +438,8 @@ bool DiskCache::ReadSector(BYTE *buf, int block)
 		return false;
 	}
 
-	// ReadSector the track data to the cache
-	return disktrk->ReadSector(buf, (BYTE)block);
+	// Read the track data to the cache
+	return disktrk->ReadSector(buf, block & 0xff);
 }
 
 bool DiskCache::WriteSector(const BYTE *buf, int block)
@@ -459,7 +459,7 @@ bool DiskCache::WriteSector(const BYTE *buf, int block)
 	}
 
 	// Write the data to the cache
-	return disktrk->WriteSector(buf, (BYTE)block);
+	return disktrk->WriteSector(buf, block & 0xff);
 }
 
 //---------------------------------------------------------------------------
