@@ -366,9 +366,8 @@ void Disk::Verify16(SASIDEV *controller)
 
 void Disk::Inquiry(SASIDEV *controller)
 {
-	ScsiPrimaryCommands *device = NULL;
 	int lun = controller->GetEffectiveLun();
-	device = ctrl->unit[lun];
+	const ScsiPrimaryCommands *device = ctrl->unit[lun];
 
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
@@ -507,8 +506,6 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
 	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer);
-	ASSERT(ctrl->length >= 0);
-
 	if (ctrl->length <= 4) {
 		controller->Error();
 		return;
@@ -517,11 +514,6 @@ void Disk::ReadDefectData10(SASIDEV *controller)
 	controller->DataIn();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Eject
-//
-//---------------------------------------------------------------------------
 bool Disk::Eject(bool force)
 {
 	bool status = Device::Eject(force);
@@ -541,11 +533,6 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Check Ready
-//
-//---------------------------------------------------------------------------
 bool Disk::CheckReady()
 {
 	// Not ready if reset
@@ -651,11 +638,6 @@ int Disk::ModeSelectCheck10(const DWORD *cdb)
 	return ModeSelectCheck(cdb, length);
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT
-//
-//---------------------------------------------------------------------------
 bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 {
 	ASSERT(buf);
@@ -667,16 +649,8 @@ bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 	return false;
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE(6)
-//
-//---------------------------------------------------------------------------
 int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// Get length, clear buffer
 	int length = (int)cdb[4];
 	ASSERT((length >= 0) && (length < 0x100));
@@ -802,16 +776,8 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	return length;
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE(10)
-//
-//---------------------------------------------------------------------------
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// Get length, clear buffer
 	int length = cdb[7];
 	length <<= 8;
@@ -972,8 +938,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 int Disk::AddErrorPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x0a;
@@ -984,8 +948,6 @@ int Disk::AddErrorPage(bool change, BYTE *buf)
 
 int Disk::AddFormatPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x80 | 0x03;
 	buf[1] = 0x16;
@@ -1022,8 +984,6 @@ int Disk::AddFormatPage(bool change, BYTE *buf)
 
 int Disk::AddDrivePage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x04;
 	buf[1] = 0x16;
@@ -1052,8 +1012,6 @@ int Disk::AddDrivePage(bool change, BYTE *buf)
 
 int Disk::AddOptionPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x06;
 	buf[1] = 0x02;
@@ -1064,8 +1022,6 @@ int Disk::AddOptionPage(bool change, BYTE *buf)
 
 int Disk::AddCachePage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x08;
 	buf[1] = 0x0a;
@@ -1076,8 +1032,6 @@ int Disk::AddCachePage(bool change, BYTE *buf)
 
 int Disk::AddCDROMPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x0d;
 	buf[1] = 0x06;
@@ -1099,8 +1053,6 @@ int Disk::AddCDROMPage(bool change, BYTE *buf)
 
 int Disk::AddCDDAPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x0e;
 	buf[1] = 0x0e;
@@ -1296,25 +1248,13 @@ void Disk::Seek6(SASIDEV *controller)
 	Seek(controller);
 }
 
-//---------------------------------------------------------------------------
-//
-//	SEEK(10)
-//
-//---------------------------------------------------------------------------
 void Disk::Seek10(SASIDEV *controller)
 {
 	Seek(controller);
 }
 
-//---------------------------------------------------------------------------
-//
-//	START STOP UNIT
-//
-//---------------------------------------------------------------------------
 bool Disk::StartStop(const DWORD *cdb)
 {
-	ASSERT(cdb);
-
 	bool start = cdb[4] & 0x01;
 	bool load = cdb[4] & 0x02;
 
@@ -1342,15 +1282,8 @@ bool Disk::StartStop(const DWORD *cdb)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	SEND DIAGNOSTIC
-//
-//---------------------------------------------------------------------------
 bool Disk::SendDiag(const DWORD *cdb)
 {
-	ASSERT(cdb);
-
 	// Do not support PF bit
 	if (cdb[1] & 0x10) {
 		SetStatusCode(STATUS_INVALIDCDB);
@@ -1366,16 +1299,9 @@ bool Disk::SendDiag(const DWORD *cdb)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ CAPACITY
-//
-//---------------------------------------------------------------------------
 void Disk::ReadCapacity10(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
-
-	ASSERT(buf);
 
 	memset(buf, 0, 8);
 
@@ -1416,8 +1342,6 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
 
-	ASSERT(buf);
-
 	memset(buf, 0, 14);
 
 	if (!CheckReady() || disk.blocks <= 0) {
@@ -1452,16 +1376,9 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 	controller->DataIn();
 }
 
-//---------------------------------------------------------------------------
-//
-//	REPORT LUNS
-//
-//---------------------------------------------------------------------------
 void Disk::ReportLuns(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
-
-	ASSERT(buf);
 
 	if (!CheckReady()) {
 		controller->Error();
