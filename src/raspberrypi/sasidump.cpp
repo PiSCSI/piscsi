@@ -18,7 +18,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include <errno.h>
+#include <cerrno>
 #include "os.h"
 #include "fileio.h"
 #include "filepath.h"
