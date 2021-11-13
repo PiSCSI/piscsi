@@ -599,7 +599,7 @@ bool Attach(int fd, const PbDeviceDefinition& pb_device, Device *map[], bool dry
 		}
 	}
 
-	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later)
+	// File check (type is HD, for removable media drives, CD and MO the medium (=file) may be inserted later
 	if (file_support && !device->IsRemovable() && filename.empty()) {
 		delete device;
 
