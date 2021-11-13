@@ -65,30 +65,30 @@ PbDeviceType ParseType(const char *optarg)
 	if (PbDeviceType_Parse(t, &type)) {
 		return type;
 	}
-	else {
-		// Parse convenience device types (shortcuts)
-		switch (tolower(optarg[0])) {
-			case 'c':
-				return SCCD;
 
-			case 'b':
-				return SCBR;
+	// Parse convenience device types (shortcuts)
+	switch (tolower(optarg[0])) {
+	case 'c':
+		return SCCD;
 
-			case 'd':
-				return SCDP;
+	case 'b':
+		return SCBR;
 
-			case 'h':
-				return SCHD;
+	case 'd':
+		return SCDP;
 
-			case 'm':
-				return SCMO;
+	case 'h':
+		return SCHD;
 
-			case 'r':
-				return SCRM;
-		}
+	case 'm':
+		return SCMO;
+
+	case 'r':
+		return SCRM;
+
+	default:
+		return UNDEFINED;
 	}
-
-	return UNDEFINED;
 }
 
 int main(int argc, char* argv[])
