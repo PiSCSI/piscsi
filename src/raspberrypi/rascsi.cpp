@@ -12,15 +12,11 @@
 
 #include "rascsi.h"
 #include "os.h"
-#include "filepath.h"
-#include "fileio.h"
 #include "controllers/scsidev_ctrl.h"
 #include "controllers/sasidev_ctrl.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"
-#include "devices/scsi_host_bridge.h"
-#include "devices/scsi_daynaport.h"
 #include "devices/file_support.h"
 #include "gpiobus.h"
 #include "exceptions.h"
@@ -32,16 +28,12 @@
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-#include <spdlog/async.h>
-#include <dirent.h>
-#include <ifaddrs.h>
 #include <string>
 #include <sstream>
 #include <iostream>
 #include <list>
 #include <vector>
 #include <map>
-#include <filesystem>
 
 using namespace std;
 using namespace spdlog;
