@@ -189,13 +189,6 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 clean:
 	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF)
 
-##   run      : Launches RaSCSI using some pre-defined drive 
-##              images. Useful for debugging when you're building 
-##              and re-launching over and over.
-.PHONY: run
-run:
-	sudo $(BINDIR)/$(RASCSI) -ID1 /home/pi/HARDDISK2.hda -ID6 /home/pi/marathon.iso
-
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location
 ##              Configures the Systemd and RSyslog services to auto-run RaSCSI
