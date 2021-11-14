@@ -917,8 +917,8 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// final setting of mode data length
-	buf[0] = (size - 1) >> 8;
-	buf[1] = size - 1;
+	buf[0] = (size - 2) >> 8;
+	buf[1] = size - 2;
 
 	// Unsupported page
 	if (!valid) {
