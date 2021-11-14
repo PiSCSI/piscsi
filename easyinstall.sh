@@ -594,13 +594,29 @@ function installNetatalk() {
 }
 
 function installMacproxy {
-    MACPROXY_DIR="$HOME/macproxy"
+    PORT=5000
+
+    echo "Macproxy is a Web Proxy for all vintage Web Browsers -- not only for Macs!"
+    echo ""
+    echo "By default, Macproxy listens to port $PORT, but you can choose any other available port."
+    echo -n "Enter a port number 1024 - 65535, or press Enter to use the default port: "
+
+    read -r CHOICE
+    if [ $CHOICE -ge "1024" ] && [ $CHOICE -le "65535" ]; then
+        PORT=$CHOICE
+    else
+        echo "Using the default port $PORT"
+    fi
+
+    MACPROXY_VER="21.11"
+    MACPROXY_DIR="$HOME/macproxy-$MACPROXY_VER"
     if [ -d "$MACPROXY_DIR" ]; then
         echo "The $MACPROXY_DIR directory already exists. Delete it to proceed with the installation."
         exit 1
     fi
     cd "$HOME" || exit 1
-    git clone https://github.com/rdmark/macproxy.git </dev/null
+    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
+    tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
     cd "$MACPROXY_DIR" || exit 1
     sudo cp "$MACPROXY_DIR/macproxy.service" /etc/systemd/system/
     sudo sed -i /^ExecStart=/d /etc/systemd/system/macproxy.service
@@ -610,8 +626,10 @@ function installMacproxy {
     sudo systemctl start macproxy
     sudo systemctl status macproxy
 
-    echo "The macproxy server is now running on port 5000."
-    echo "Configure your browser to use the Pi's IP address and this port as http proxy."
+    echo -n "Macproxy is now running on IP "
+    echo -n `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
+    echo " port $PORT"
+    echo "Configure your browser to use the above as http (and https) proxy."
     echo ""
 }
 
@@ -724,7 +742,7 @@ function showMenu() {
     echo "  7) configure network bridge for WiFi (static IP + NAT)" 
     echo "INSTALL COMPANION APPS"
     echo "  8) install AppleShare File Server (Netatalk)"
-    echo "  9) install Web Proxy Server (macproxy)"
+    echo "  9) install Web Proxy Server (Macproxy)"
 }
 
 # parse arguments
