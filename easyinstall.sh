@@ -59,6 +59,13 @@ GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -e
 
+function initialChecks() {
+    if [ "root" == "$USER" ]; then
+        echo "Do not run this script as $USER or with 'sudo'."
+        exit 1
+    fi
+}
+
 # install all dependency packages for RaSCSI Service
 function installPackages() {
     sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
@@ -107,7 +114,7 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
     if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
-        rm "$WEBINSTDIR/rascsi_interface_pb2.py"
+        sudo rm "$WEBINSTDIR/rascsi_interface_pb2.py"
 	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
@@ -773,6 +780,7 @@ while [ "$1" != "" ]; do
 done
 
 showRaSCSILogo
+initialChecks
 
 if [ -z "${RUN_CHOICE}" ]; then # RUN_CHOICE is unset, show menu
     showMenu
