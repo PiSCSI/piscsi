@@ -33,8 +33,9 @@ def send_pb_command(payload):
 
     # After failing all attempts, throw a 404 error
     from flask import abort
-    abort(404, "Failed to connect to RaSCSI at " + str(host) + ":" + str(port) + \
-            " with error: " + error_msg + ". Is the RaSCSI service running?")
+    abort(404, "The RaSCSI Web Interface failed to connect to RaSCSI at " + str(host) + \
+            ":" + str(port) + " with error: " + error_msg + \
+            ". The RaSCSI service is not running or may have crashed.")
 
 
 def send_over_socket(sock, payload):
@@ -70,7 +71,7 @@ def send_over_socket(sock, payload):
                     "RaSCSI may have crashed."
                     )
                 abort(
-                    503, "Lost connection to RaSCSI. "
+                    503, "The RaSCSI Web Interface lost connection to RaSCSI. "
                     "Please go back and try again. "
                     "If the issue persists, please report a bug."
                     )
@@ -86,7 +87,7 @@ def send_over_socket(sock, payload):
         )
     abort(
         500,
-        "Did not get a valid response from RaSCSI. "
+        "The RaSCSI Web Interface did not get a valid response from RaSCSI. "
         "Please go back and try again. "
         "If the issue persists, please report a bug."
         )
