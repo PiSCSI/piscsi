@@ -83,7 +83,7 @@ function installRaScsi() {
     if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
         echo "gcc 10 or later detected. Will compile with the appropriate flags."
         COMPILER_FLAGS="-DSPDLOG_FMT_EXTERNAL -DFMT_HEADER_ONLY"
-	echo $COMPILER_FLAGS
+        echo $COMPILER_FLAGS
     fi
 
     echo "Compiling with ${CORES-1} simultaneous cores..."
