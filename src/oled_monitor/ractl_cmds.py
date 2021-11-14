@@ -2,6 +2,7 @@
 Module for commands sent to the RaSCSI backend service.
 """
 from os import path
+from unidecode import unidecode
 from socket_cmds import send_pb_command
 import rascsi_interface_pb2 as proto
 
@@ -34,7 +35,8 @@ def device_list():
         if dstat.locked and dprop.lockable:
             dstat_msg.append("Locked")
 
-        dfile = path.basename(result.devices_info.devices[i].file.name)
+        # Transliterate non-ASCII chars in the file name to ASCII
+        dfile = unidecode(path.basename(result.devices_info.devices[i].file.name))
         dven = result.devices_info.devices[i].vendor
         dprod = result.devices_info.devices[i].product
 
