@@ -175,7 +175,7 @@ function installRaScsiScreen() {
     sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
     if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
-        rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
+        sudo rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
         echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
@@ -290,15 +290,15 @@ function startRaScsiScreen() {
 }
 
 function showRaScsiStatus() {
-    sudo systemctl status rascsi | tee
+    systemctl status rascsi | tee
 }
 
 function showRaScsiWebStatus() {
-    sudo systemctl status rascsi-web | tee
+    systemctl status rascsi-web | tee
 }
 
 function showRaScsiScreenStatus() {
-    sudo systemctl status monitor_rascsi | tee
+    systemctl status monitor_rascsi | tee
 }
 
 function createDrive600MB() {
