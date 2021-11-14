@@ -57,6 +57,14 @@ if ! i2cdetect -y 1 &> /dev/null ; then
     echo "i2cdetect -y 1 did not find a screen."
     exit 2
 fi
+
+# Compiler flags needed for gcc v10 and up
+if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
+    echo -n "gcc 10 or later detected. Will compile with the following flags: "
+    COMPILER_FLAGS="-fcommon"
+    echo $COMPILER_FLAGS
+fi
+
 if ! test -e venv; then
   echo "Creating python venv for OLED Screen"
   python3 -m venv venv
@@ -64,7 +72,7 @@ if ! test -e venv; then
   source venv/bin/activate
   echo "Installing requirements.txt"
   pip install wheel
-  pip install -r requirements.txt
+  CFLAGS="$COMPILER_FLAGS" pip install -r requirements.txt
   git rev-parse HEAD > current
 fi
 
@@ -76,7 +84,7 @@ if ! test -e current; then
 else
   if [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
       echo "New version detected, updating requirements.txt"
-      pip install -r requirements.txt
+      CFLAGS="$COMPILER_FLAGS" pip install -r requirements.txt
       git rev-parse HEAD > current
   fi
 fi
