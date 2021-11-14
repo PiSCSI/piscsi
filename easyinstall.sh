@@ -59,6 +59,13 @@ GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -e
 
+function initialChecks() {
+    if [ "root" == "$USER" ]; then
+        echo "Do not run this script as $USER or with 'sudo'."
+        exit 1
+    fi
+}
+
 # install all dependency packages for RaSCSI Service
 function installPackages() {
     sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
@@ -70,7 +77,7 @@ function installRaScsi() {
     stopRaScsi
 
     if [ -f /etc/systemd/system/rascsi.service ]; then
-        sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
+        sudo mv /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
         SYSTEMD_BACKUP=true
         echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
     else
@@ -115,7 +122,7 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
     if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
-        rm "$WEBINSTDIR/rascsi_interface_pb2.py"
+        sudo rm "$WEBINSTDIR/rascsi_interface_pb2.py"
 	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
@@ -175,7 +182,7 @@ function installRaScsiScreen() {
     sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
     if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
-        rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
+        sudo rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
         echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
@@ -290,15 +297,15 @@ function startRaScsiScreen() {
 }
 
 function showRaScsiStatus() {
-    sudo systemctl status rascsi | tee
+    systemctl status rascsi | tee
 }
 
 function showRaScsiWebStatus() {
-    sudo systemctl status rascsi-web | tee
+    systemctl status rascsi-web | tee
 }
 
 function showRaScsiScreenStatus() {
-    sudo systemctl status monitor_rascsi | tee
+    systemctl status monitor_rascsi | tee
 }
 
 function createDrive600MB() {
@@ -784,6 +791,7 @@ while [ "$1" != "" ]; do
 done
 
 showRaSCSILogo
+initialChecks
 
 if [ -z "${RUN_CHOICE}" ]; then # RUN_CHOICE is unset, show menu
     showMenu
