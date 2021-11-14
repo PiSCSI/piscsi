@@ -9,8 +9,7 @@
 //---------------------------------------------------------------------------
 
 #include "rascsi_version.h"
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
 
 // The following should be updated for each release
 const int rascsi_major_version = 21; // Last two digits of year

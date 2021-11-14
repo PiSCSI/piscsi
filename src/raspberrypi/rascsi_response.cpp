@@ -25,14 +25,6 @@ RascsiResponse::RascsiResponse(DeviceFactory *device_factory, const RascsiImage 
 {
 	this->device_factory = device_factory;
 	this->rascsi_image = rascsi_image;
-
-	log_levels.push_back("trace");
-	log_levels.push_back("debug");
-	log_levels.push_back("info");
-	log_levels.push_back("warn");
-	log_levels.push_back("err");
-	log_levels.push_back("critical");
-	log_levels.push_back("off");
 }
 
 PbDeviceProperties *RascsiResponse::GetDeviceProperties(const Device *device)
