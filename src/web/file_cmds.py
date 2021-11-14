@@ -190,17 +190,18 @@ def unzip_file(file_name, member=False, members=False):
                 name = PurePath(path).name
                 rename_file(f"{server_info['image_dir']}/{name}", f"{CFG_DIR}/{name}")
                 prop_flag = True
-    elif member.endswith(PROPERTIES_SUFFIX):
-        unzip_proc = run(
-            ["unzip", "-d", CFG_DIR, "-n", "-j", \
-                f"{server_info['image_dir']}/{file_name}", escape(member)], capture_output=True
-            )
-        prop_flag = True
     else:
         unzip_proc = run(
             ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
                 f"{server_info['image_dir']}/{file_name}", escape(member)], capture_output=True
             )
+        # Attempt to unzip a properties file in the same archive dir
+        unzip_prop = run(
+            ["unzip", "-d", CFG_DIR, "-n", "-j", \
+                f"{server_info['image_dir']}/{file_name}", escape(member) + "." + PROPERTIES_SUFFIX], capture_output=False
+            )
+        if unzip_prop.returncode == 0:
+            prop_flag = True
     if unzip_proc.returncode != 0:
         stderr = unzip_proc.stderr.decode("utf-8")
         logging.warning("Unzipping failed: %s", stderr)
