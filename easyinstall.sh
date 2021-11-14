@@ -77,7 +77,7 @@ function installRaScsi() {
     stopRaScsi
 
     if [ -f /etc/systemd/system/rascsi.service ]; then
-        sudo cp /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
+        sudo mv /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
         SYSTEMD_BACKUP=true
         echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
     else
