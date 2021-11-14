@@ -79,8 +79,15 @@ function installRaScsi() {
 
     cd "$BASE/src/raspberrypi" || exit 1
 
+    # Compiler flags needed for gcc v10 and up
+    if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
+        echo -n "gcc 10 or later detected. Will compile with the following flags: "
+        COMPILER_FLAGS="-DSPDLOG_FMT_EXTERNAL -DFMT_HEADER_ONLY"
+        echo $COMPILER_FLAGS
+    fi
+
     echo "Compiling with ${CORES-1} simultaneous cores..."
-    ( make clean && make -j "${CORES-1}" all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
+    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES-1}" all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
 
     sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
     echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
