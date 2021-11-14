@@ -40,8 +40,29 @@ from interrupt_handler import GracefulInterruptHandler
 from pi_cmds import get_ip_and_host
 from ractl_cmds import device_list
 
+# Read positional arguments; expecting exactly two, or none
+# Arg 1 is the rotation in degrees, arg 2 is the screen height in pixels
+# Valid values are 0/180 for ROTATION, 32/64 for HEIGHT
+if len(argv) == 3:
+    if int(argv[1]) == 0:
+        ROTATION = 0
+    else:
+        # 2 means 180 degrees
+        ROTATION = 2
+    if int(argv[2]) == 64:
+        HEIGHT = 64
+        LINES = 8
+    else:
+        HEIGHT = 32
+        LINES = 4
+else:
+    # Default settings
+    ROTATION = 2
+    HEIGHT = 32
+    LINES = 4
+    print("No valid parameters detected; defaulting to 32 px height, 180 degrees rotation.")
+
 WIDTH = 128
-HEIGHT = 32  # Change to 64 if needed
 BORDER = 5
 
 # How long to delay between each update
@@ -60,20 +81,6 @@ print("Running with the following display:")
 print(OLED)
 print()
 print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approximately)")
-
-# Attempt to read the first argument to the script; fall back to 2 (180 degrees)
-if len(argv) > 1:
-    if str(argv[1]) == "0":
-        ROTATION = 0
-        print("Using 0 degrees screen rotation.")
-    elif str(argv[1]) == "180":
-        ROTATION = 2
-        print("Using 180 degrees screen rotation.")
-    else:
-        exit("Only 0 and 180 are valid arguments for screen rotation.")
-else:
-    print("Defaulting to 180 degrees screen rotation.")
-    ROTATION = 2
 
 # Clear display.
 OLED.rotation = ROTATION
@@ -99,11 +106,18 @@ BOTTOM = HEIGHT - PADDING
 # Move left to right keeping track of the current x position for drawing shapes.
 X_POS = 0
 
-# Alternatively load a TTF font.  Make sure the .ttf font file
-# is in the same directory as the python script!
-# When using other fonts, you may need to adjust padding, font size, and line spacing.
+# Font size in pixels. Not all TTF fonts have bitmap representations for all sizes.
+FONT_SIZE = 8
+# Vertical spacing between each line of text. Adjust in accordance with font size.
+# Depending on the design of the font glyphs, this may be larger than FONT_SIZE.
+LINE_SPACING = 8
+
+# Load a TTF font for rendering glyphs on the screen.
+# Make sure the .ttf font file is in the same directory as the python script!
+# When using other fonts, you may need to adjust PADDING, FONT_SIZE,
+# LINE_SPACING, and LINES.
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
-FONT = ImageFont.truetype('type_writer.ttf', 8)
+FONT = ImageFont.truetype('type_writer.ttf', FONT_SIZE)
 
 IP_ADDR, HOSTNAME = get_ip_and_host()
 
@@ -151,7 +165,7 @@ def start_splash():
     Displays a splash screen for the startup sequence
     Make sure the splash bitmap image is in the same dir as this script
     """
-    splash = Image.open("splash_start.bmp").convert("1")
+    splash = Image.open(f"splash_start_{HEIGHT}.bmp").convert("1")
     DRAW.bitmap((0, 0), splash)
     OLED.image(splash)
     OLED.show()
@@ -163,7 +177,7 @@ def stop_splash():
     Make sure the splash bitmap image is in the same dir as this script
     """
     DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
-    splash = Image.open("splash_stop.bmp").convert("1")
+    splash = Image.open(f"splash_stop_{HEIGHT}.bmp").convert("1")
     DRAW.bitmap((0, 0), splash)
     OLED.image(splash)
     OLED.show()
@@ -191,10 +205,10 @@ with GracefulInterruptHandler() as handler:
             y_pos = TOP
             for output_line in active_output:
                 DRAW.text((X_POS, y_pos), output_line, font=FONT, fill=255)
-                y_pos += 8
+                y_pos += LINE_SPACING
 
             # Shift the index of the array by one to get a scrolling effect
-            if len(active_output) > 5:
+            if len(active_output) > LINES:
                 active_output.rotate(-1)
 
             # Display image.
