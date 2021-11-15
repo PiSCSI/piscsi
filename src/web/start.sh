@@ -55,5 +55,21 @@ else
     fi
 fi
 
-echo "Starting web server..."
-python3 web.py
+# parse arguments
+while [ "$1" != "" ]; do
+    PARAM=$(echo "$1" | awk -F= '{print $1}')
+    VALUE=$(echo "$1" | awk -F= '{print $2}')
+    case $PARAM in
+	-p | --port)
+	    PORT=$VALUE
+	    ;;
+        *)
+            echo "ERROR: unknown parameter \"$PARAM\""
+            exit 1
+            ;;
+    esac
+    shift
+done
+
+echo "Starting web server on port ${PORT-8080}..."
+python3 web.py ${PORT}
