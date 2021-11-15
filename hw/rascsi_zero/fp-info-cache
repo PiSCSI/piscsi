@@ -1,1163 +1,400 @@
-265825952972241
-MountingHole
-MountingHole_2.1mm
-Mounting Hole 2.1mm, no annular
-mounting hole 2.1mm no annular
+91394589336938
+TestPoint
+TestPoint_2Pads_Pitch2.54mm_Drill0.8mm
+Test point with 2 pins, pitch 2.54mm, drill diameter 0.8mm
+CONN DEV
 0
+2
+2
+TestPoint
+TestPoint_2Pads_Pitch5.08mm_Drill1.3mm
+Test point with 2 pads, pitch 5.08mm, hole diameter 1.3mm, wire diameter 1.0mm
+CONN DEV
 0
-0
-MountingHole
-MountingHole_2.2mm_M2
-Mounting Hole 2.2mm, no annular, M2
-mounting hole 2.2mm no annular m2
-0
-0
-0
-MountingHole
-MountingHole_2.2mm_M2_DIN965
-Mounting Hole 2.2mm, no annular, M2, DIN965
-mounting hole 2.2mm no annular m2 din965
-0
-0
-0
-MountingHole
-MountingHole_2.2mm_M2_DIN965_Pad
-Mounting Hole 2.2mm, M2, DIN965
-mounting hole 2.2mm m2 din965
-0
-1
-1
-MountingHole
-MountingHole_2.2mm_M2_DIN965_Pad_TopBottom
-Mounting Hole 2.2mm, M2, DIN965
-mounting hole 2.2mm m2 din965
-0
-3
-1
-MountingHole
-MountingHole_2.2mm_M2_DIN965_Pad_TopOnly
-Mounting Hole 2.2mm, M2, DIN965
-mounting hole 2.2mm m2 din965
+2
+2
+TestPoint
+TestPoint_Bridge_Pitch2.0mm_Drill0.7mm
+wire loop as test point, pitch 2.0mm, hole diameter 0.7mm, wire diameter 0.5mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.2mm_M2_ISO7380
-Mounting Hole 2.2mm, no annular, M2, ISO7380
-mounting hole 2.2mm no annular m2 iso7380
-0
-0
-0
-MountingHole
-MountingHole_2.2mm_M2_ISO7380_Pad
-Mounting Hole 2.2mm, M2, ISO7380
-mounting hole 2.2mm m2 iso7380
-0
-1
-1
-MountingHole
-MountingHole_2.2mm_M2_ISO7380_Pad_TopBottom
-Mounting Hole 2.2mm, M2, ISO7380
-mounting hole 2.2mm m2 iso7380
-0
-3
-1
-MountingHole
-MountingHole_2.2mm_M2_ISO7380_Pad_TopOnly
-Mounting Hole 2.2mm, M2, ISO7380
-mounting hole 2.2mm m2 iso7380
+TestPoint
+TestPoint_Bridge_Pitch2.54mm_Drill0.7mm
+wire loop as test point, pitch 2.0mm, hole diameter 0.7mm, wire diameter 0.5mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.2mm_M2_ISO14580
-Mounting Hole 2.2mm, no annular, M2, ISO14580
-mounting hole 2.2mm no annular m2 iso14580
-0
-0
-0
-MountingHole
-MountingHole_2.2mm_M2_ISO14580_Pad
-Mounting Hole 2.2mm, M2, ISO14580
-mounting hole 2.2mm m2 iso14580
-0
-1
-1
-MountingHole
-MountingHole_2.2mm_M2_ISO14580_Pad_TopBottom
-Mounting Hole 2.2mm, M2, ISO14580
-mounting hole 2.2mm m2 iso14580
-0
-3
-1
-MountingHole
-MountingHole_2.2mm_M2_ISO14580_Pad_TopOnly
-Mounting Hole 2.2mm, M2, ISO14580
-mounting hole 2.2mm m2 iso14580
+TestPoint
+TestPoint_Bridge_Pitch2.54mm_Drill1.0mm
+wire loop as test point, pitch 2.54mm, hole diameter 1.0mm, wire diameter 0.8mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.2mm_M2_Pad
-Mounting Hole 2.2mm, M2
-mounting hole 2.2mm m2
-0
-1
-1
-MountingHole
-MountingHole_2.2mm_M2_Pad_TopBottom
-Mounting Hole 2.2mm, M2
-mounting hole 2.2mm m2
-0
-3
-1
-MountingHole
-MountingHole_2.2mm_M2_Pad_TopOnly
-Mounting Hole 2.2mm, M2
-mounting hole 2.2mm m2
+TestPoint
+TestPoint_Bridge_Pitch2.54mm_Drill1.3mm
+wire loop as test point, pitch 2.54mm, hole diameter 1.3mm, wire diameter 1.0mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.2mm_M2_Pad_Via
-Mounting Hole 2.2mm, M2
-mounting hole 2.2mm m2
-0
-9
-1
-MountingHole
-MountingHole_2.5mm
-Mounting Hole 2.5mm, no annular
-mounting hole 2.5mm no annular
-0
-0
-0
-MountingHole
-MountingHole_2.5mm_Pad
-Mounting Hole 2.5mm
-mounting hole 2.5mm
-0
-1
-1
-MountingHole
-MountingHole_2.5mm_Pad_TopBottom
-Mounting Hole 2.5mm
-mounting hole 2.5mm
-0
-3
-1
-MountingHole
-MountingHole_2.5mm_Pad_TopOnly
-Mounting Hole 2.5mm
-mounting hole 2.5mm
+TestPoint
+TestPoint_Bridge_Pitch3.81mm_Drill1.3mm
+wire loop as test point, pitch 3.81mm, hole diameter 1.3mm, wire diameter 1.0mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.5mm_Pad_Via
-Mounting Hole 2.5mm
-mounting hole 2.5mm
-0
-9
-1
-MountingHole
-MountingHole_2.7mm
-Mounting Hole 2.7mm, no annular
-mounting hole 2.7mm no annular
-0
-0
-0
-MountingHole
-MountingHole_2.7mm_M2.5
-Mounting Hole 2.7mm, no annular, M2.5
-mounting hole 2.7mm no annular m2.5
-0
-0
-0
-MountingHole
-MountingHole_2.7mm_M2.5_DIN965
-Mounting Hole 2.7mm, no annular, M2.5, DIN965
-mounting hole 2.7mm no annular m2.5 din965
-0
-0
-0
-MountingHole
-MountingHole_2.7mm_M2.5_DIN965_Pad
-Mounting Hole 2.7mm, M2.5, DIN965
-mounting hole 2.7mm m2.5 din965
-0
-1
-1
-MountingHole
-MountingHole_2.7mm_M2.5_DIN965_Pad_TopBottom
-Mounting Hole 2.7mm, M2.5, DIN965
-mounting hole 2.7mm m2.5 din965
-0
-3
-1
-MountingHole
-MountingHole_2.7mm_M2.5_DIN965_Pad_TopOnly
-Mounting Hole 2.7mm, M2.5, DIN965
-mounting hole 2.7mm m2.5 din965
+TestPoint
+TestPoint_Bridge_Pitch5.08mm_Drill0.7mm
+wire loop as test point, pitch 5.08mm, hole diameter 0.7mm, wire diameter 1.0mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.7mm_M2.5_ISO7380
-Mounting Hole 2.7mm, no annular, M2.5, ISO7380
-mounting hole 2.7mm no annular m2.5 iso7380
-0
-0
-0
-MountingHole
-MountingHole_2.7mm_M2.5_ISO7380_Pad
-Mounting Hole 2.7mm, M2.5, ISO7380
-mounting hole 2.7mm m2.5 iso7380
-0
-1
-1
-MountingHole
-MountingHole_2.7mm_M2.5_ISO7380_Pad_TopBottom
-Mounting Hole 2.7mm, M2.5, ISO7380
-mounting hole 2.7mm m2.5 iso7380
-0
-3
-1
-MountingHole
-MountingHole_2.7mm_M2.5_ISO7380_Pad_TopOnly
-Mounting Hole 2.7mm, M2.5, ISO7380
-mounting hole 2.7mm m2.5 iso7380
+TestPoint
+TestPoint_Bridge_Pitch5.08mm_Drill1.3mm
+wire loop as test point, pitch 5.08mm, hole diameter 1.3mm, wire diameter 1.0mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.7mm_M2.5_ISO14580
-Mounting Hole 2.7mm, no annular, M2.5, ISO14580
-mounting hole 2.7mm no annular m2.5 iso14580
-0
-0
-0
-MountingHole
-MountingHole_2.7mm_M2.5_ISO14580_Pad
-Mounting Hole 2.7mm, M2.5, ISO14580
-mounting hole 2.7mm m2.5 iso14580
-0
-1
-1
-MountingHole
-MountingHole_2.7mm_M2.5_ISO14580_Pad_TopBottom
-Mounting Hole 2.7mm, M2.5, ISO14580
-mounting hole 2.7mm m2.5 iso14580
-0
-3
-1
-MountingHole
-MountingHole_2.7mm_M2.5_ISO14580_Pad_TopOnly
-Mounting Hole 2.7mm, M2.5, ISO14580
-mounting hole 2.7mm m2.5 iso14580
+TestPoint
+TestPoint_Bridge_Pitch6.35mm_Drill1.3mm
+wire loop as test point, pitch 6.35mm, hole diameter 1.3mm, wire diameter 1.0mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.7mm_M2.5_Pad
-Mounting Hole 2.7mm, M2.5
-mounting hole 2.7mm m2.5
-0
-1
-1
-MountingHole
-MountingHole_2.7mm_M2.5_Pad_TopBottom
-Mounting Hole 2.7mm, M2.5
-mounting hole 2.7mm m2.5
-0
-3
-1
-MountingHole
-MountingHole_2.7mm_M2.5_Pad_TopOnly
-Mounting Hole 2.7mm, M2.5
-mounting hole 2.7mm m2.5
+TestPoint
+TestPoint_Bridge_Pitch7.62mm_Drill1.3mm
+wire loop as test point, pitch 7.62mm, hole diameter 1.3mm, wire diameter 1.0mm
+test point wire loop
 0
 2
 1
-MountingHole
-MountingHole_2.7mm_M2.5_Pad_Via
-Mounting Hole 2.7mm
-mounting hole 2.7mm
+TestPoint
+TestPoint_Keystone_5000-5004_Miniature
+Keystone Miniature THM Test Point 5000-5004, http://www.keyelco.com/product-pdf.cfm?p=1309
+Through Hole Mount Test Points
 0
-9
 1
-MountingHole
-MountingHole_2.7mm_Pad
-Mounting Hole 2.7mm
-mounting hole 2.7mm
-0
-1
-1
-MountingHole
-MountingHole_2.7mm_Pad_TopBottom
-Mounting Hole 2.7mm
-mounting hole 2.7mm
-0
-3
-1
-MountingHole
-MountingHole_2.7mm_Pad_TopOnly
-Mounting Hole 2.7mm
-mounting hole 2.7mm
-0
-2
-1
-MountingHole
-MountingHole_2.7mm_Pad_Via
-Mounting Hole 2.7mm
-mounting hole 2.7mm
-0
-9
-1
-MountingHole
-MountingHole_2mm
-Mounting Hole 2mm, no annular
-mounting hole 2mm no annular
-0
-0
-0
-MountingHole
-MountingHole_3.2mm_M3
-Mounting Hole 3.2mm, no annular, M3
-mounting hole 3.2mm no annular m3
-0
-0
-0
-MountingHole
-MountingHole_3.2mm_M3_DIN965
-Mounting Hole 3.2mm, no annular, M3, DIN965
-mounting hole 3.2mm no annular m3 din965
-0
-0
-0
-MountingHole
-MountingHole_3.2mm_M3_DIN965_Pad
-Mounting Hole 3.2mm, M3, DIN965
-mounting hole 3.2mm m3 din965
-0
-1
-1
-MountingHole
-MountingHole_3.2mm_M3_DIN965_Pad_TopBottom
-Mounting Hole 3.2mm, M3, DIN965
-mounting hole 3.2mm m3 din965
-0
-3
-1
-MountingHole
-MountingHole_3.2mm_M3_DIN965_Pad_TopOnly
-Mounting Hole 3.2mm, M3, DIN965
-mounting hole 3.2mm m3 din965
-0
-2
-1
-MountingHole
-MountingHole_3.2mm_M3_ISO7380
-Mounting Hole 3.2mm, no annular, M3, ISO7380
-mounting hole 3.2mm no annular m3 iso7380
-0
-0
-0
-MountingHole
-MountingHole_3.2mm_M3_ISO7380_Pad
-Mounting Hole 3.2mm, M3, ISO7380
-mounting hole 3.2mm m3 iso7380
-0
-1
-1
-MountingHole
-MountingHole_3.2mm_M3_ISO7380_Pad_TopBottom
-Mounting Hole 3.2mm, M3, ISO7380
-mounting hole 3.2mm m3 iso7380
-0
-3
-1
-MountingHole
-MountingHole_3.2mm_M3_ISO7380_Pad_TopOnly
-Mounting Hole 3.2mm, M3, ISO7380
-mounting hole 3.2mm m3 iso7380
-0
-2
-1
-MountingHole
-MountingHole_3.2mm_M3_ISO14580
-Mounting Hole 3.2mm, no annular, M3, ISO14580
-mounting hole 3.2mm no annular m3 iso14580
-0
-0
-0
-MountingHole
-MountingHole_3.2mm_M3_ISO14580_Pad
-Mounting Hole 3.2mm, M3, ISO14580
-mounting hole 3.2mm m3 iso14580
-0
-1
-1
-MountingHole
-MountingHole_3.2mm_M3_ISO14580_Pad_TopBottom
-Mounting Hole 3.2mm, M3, ISO14580
-mounting hole 3.2mm m3 iso14580
-0
-3
 1
-MountingHole
-MountingHole_3.2mm_M3_ISO14580_Pad_TopOnly
-Mounting Hole 3.2mm, M3, ISO14580
-mounting hole 3.2mm m3 iso14580
+TestPoint
+TestPoint_Keystone_5005-5009_Compact
+Keystone Miniature THM Test Point 5005-5009, http://www.keyelco.com/product-pdf.cfm?p=1314
+Through Hole Mount Test Points
 0
-2
 1
-MountingHole
-MountingHole_3.2mm_M3_Pad
-Mounting Hole 3.2mm, M3
-mounting hole 3.2mm m3
-0
-1
-1
-MountingHole
-MountingHole_3.2mm_M3_Pad_TopBottom
-Mounting Hole 3.2mm, M3
-mounting hole 3.2mm m3
-0
-3
-1
-MountingHole
-MountingHole_3.2mm_M3_Pad_TopOnly
-Mounting Hole 3.2mm, M3
-mounting hole 3.2mm m3
-0
-2
-1
-MountingHole
-MountingHole_3.2mm_M3_Pad_Via
-Mounting Hole 3.2mm, M3
-mounting hole 3.2mm m3
-0
-9
-1
-MountingHole
-MountingHole_3.5mm
-Mounting Hole 3.5mm, no annular
-mounting hole 3.5mm no annular
-0
-0
-0
-MountingHole
-MountingHole_3.5mm_Pad
-Mounting Hole 3.5mm
-mounting hole 3.5mm
-0
-1
-1
-MountingHole
-MountingHole_3.5mm_Pad_TopBottom
-Mounting Hole 3.5mm
-mounting hole 3.5mm
-0
-3
 1
-MountingHole
-MountingHole_3.5mm_Pad_TopOnly
-Mounting Hole 3.5mm
-mounting hole 3.5mm
+TestPoint
+TestPoint_Keystone_5010-5014_Multipurpose
+Keystone Miniature THM Test Point 5010-5014, http://www.keyelco.com/product-pdf.cfm?p=1319
+Through Hole Mount Test Points
 0
-2
 1
-MountingHole
-MountingHole_3.5mm_Pad_Via
-Mounting Hole 3.5mm
-mounting hole 3.5mm
-0
-9
 1
-MountingHole
-MountingHole_3.7mm
-Mounting Hole 3.7mm, no annular
-mounting hole 3.7mm no annular
-0
+TestPoint
+TestPoint_Keystone_5015_Micro-Minature
+SMT Test Point- Micro Miniature 5015, http://www.keyelco.com/product-pdf.cfm?p=1353
+Test Point
 0
-0
-MountingHole
-MountingHole_3.7mm_Pad
-Mounting Hole 3.7mm
-mounting hole 3.7mm
-0
-1
 1
-MountingHole
-MountingHole_3.7mm_Pad_TopBottom
-Mounting Hole 3.7mm
-mounting hole 3.7mm
-0
-3
 1
-MountingHole
-MountingHole_3.7mm_Pad_TopOnly
-Mounting Hole 3.7mm
-mounting hole 3.7mm
+TestPoint
+TestPoint_Keystone_5019_Minature
+SMT Test Point- Micro Miniature 5019, http://www.keyelco.com/product-pdf.cfm?p=1357
+Test Point
 0
-2
 1
-MountingHole
-MountingHole_3.7mm_Pad_Via
-Mounting Hole 3.7mm
-mounting hole 3.7mm
-0
-9
 1
-MountingHole
-MountingHole_3mm
-Mounting Hole 3mm, no annular
-mounting hole 3mm no annular
-0
-0
-0
-MountingHole
-MountingHole_3mm_Pad
-Mounting Hole 3mm
-mounting hole 3mm
+TestPoint
+TestPoint_Loop_D1.80mm_Drill1.0mm_Beaded
+wire loop with bead as test point, loop diameter 1.8mm, hole diameter 1.0mm
+test point wire loop bead
 0
 1
 1
-MountingHole
-MountingHole_3mm_Pad_TopBottom
-Mounting Hole 3mm
-mounting hole 3mm
+TestPoint
+TestPoint_Loop_D2.50mm_Drill1.0mm
+wire loop as test point, loop diameter 2.5mm, hole diameter 1.0mm
+test point wire loop bead
 0
-3
 1
-MountingHole
-MountingHole_3mm_Pad_TopOnly
-Mounting Hole 3mm
-mounting hole 3mm
-0
-2
-1
-MountingHole
-MountingHole_3mm_Pad_Via
-Mounting Hole 3mm
-mounting hole 3mm
-0
-9
 1
-MountingHole
-MountingHole_4.3mm_M4
-Mounting Hole 4.3mm, no annular, M4
-mounting hole 4.3mm no annular m4
-0
-0
+TestPoint
+TestPoint_Loop_D2.50mm_Drill1.0mm_LowProfile
+low profile wire loop as test point, loop diameter 2.5mm, hole diameter 1.0mm
+test point wire loop bead
 0
-MountingHole
-MountingHole_4.3mm_M4_DIN965
-Mounting Hole 4.3mm, no annular, M4, DIN965
-mounting hole 4.3mm no annular m4 din965
-0
-0
-0
-MountingHole
-MountingHole_4.3mm_M4_DIN965_Pad
-Mounting Hole 4.3mm, M4, DIN965
-mounting hole 4.3mm m4 din965
-0
 1
 1
-MountingHole
-MountingHole_4.3mm_M4_DIN965_Pad_TopBottom
-Mounting Hole 4.3mm, M4, DIN965
-mounting hole 4.3mm m4 din965
+TestPoint
+TestPoint_Loop_D2.50mm_Drill1.85mm
+wire loop as test point, loop diameter 2.5mm, hole diameter 1.85mm
+test point wire loop bead
 0
-3
 1
-MountingHole
-MountingHole_4.3mm_M4_DIN965_Pad_TopOnly
-Mounting Hole 4.3mm, M4, DIN965
-mounting hole 4.3mm m4 din965
-0
-2
 1
-MountingHole
-MountingHole_4.3mm_M4_ISO7380
-Mounting Hole 4.3mm, no annular, M4, ISO7380
-mounting hole 4.3mm no annular m4 iso7380
+TestPoint
+TestPoint_Loop_D2.54mm_Drill1.5mm_Beaded
+wire loop with bead as test point, loop diameter2.548mm, hole diameter 1.5mm
+test point wire loop bead
 0
-0
-0
-MountingHole
-MountingHole_4.3mm_M4_ISO7380_Pad
-Mounting Hole 4.3mm, M4, ISO7380
-mounting hole 4.3mm m4 iso7380
-0
 1
 1
-MountingHole
-MountingHole_4.3mm_M4_ISO7380_Pad_TopBottom
-Mounting Hole 4.3mm, M4, ISO7380
-mounting hole 4.3mm m4 iso7380
+TestPoint
+TestPoint_Loop_D2.60mm_Drill0.9mm_Beaded
+wire loop with bead as test point, loop diameter2.6mm, hole diameter 0.9mm
+test point wire loop bead
 0
-3
 1
-MountingHole
-MountingHole_4.3mm_M4_ISO7380_Pad_TopOnly
-Mounting Hole 4.3mm, M4, ISO7380
-mounting hole 4.3mm m4 iso7380
-0
-2
 1
-MountingHole
-MountingHole_4.3mm_M4_ISO14580
-Mounting Hole 4.3mm, no annular, M4, ISO14580
-mounting hole 4.3mm no annular m4 iso14580
-0
-0
+TestPoint
+TestPoint_Loop_D2.60mm_Drill1.4mm_Beaded
+wire loop with bead as test point, loop diameter2.6mm, hole diameter 1.4mm
+test point wire loop bead
 0
-MountingHole
-MountingHole_4.3mm_M4_ISO14580_Pad
-Mounting Hole 4.3mm, M4, ISO14580
-mounting hole 4.3mm m4 iso14580
-0
 1
 1
-MountingHole
-MountingHole_4.3mm_M4_ISO14580_Pad_TopBottom
-Mounting Hole 4.3mm, M4, ISO14580
-mounting hole 4.3mm m4 iso14580
+TestPoint
+TestPoint_Loop_D2.60mm_Drill1.6mm_Beaded
+wire loop with bead as test point, loop diameter2.6mm, hole diameter 1.6mm
+test point wire loop bead
 0
-3
 1
-MountingHole
-MountingHole_4.3mm_M4_ISO14580_Pad_TopOnly
-Mounting Hole 4.3mm, M4, ISO14580
-mounting hole 4.3mm m4 iso14580
-0
-2
 1
-MountingHole
-MountingHole_4.3mm_M4_Pad
-Mounting Hole 4.3mm, M4
-mounting hole 4.3mm m4
+TestPoint
+TestPoint_Loop_D3.50mm_Drill0.9mm_Beaded
+wire loop with bead as test point, loop diameter2.6mm, hole diameter 0.9mm
+test point wire loop bead
 0
 1
 1
-MountingHole
-MountingHole_4.3mm_M4_Pad_TopBottom
-Mounting Hole 4.3mm, M4
-mounting hole 4.3mm m4
+TestPoint
+TestPoint_Loop_D3.50mm_Drill1.4mm_Beaded
+wire loop with bead as test point, loop diameter 3.5mm, hole diameter 1.4mm
+test point wire loop bead
 0
-3
 1
-MountingHole
-MountingHole_4.3mm_M4_Pad_TopOnly
-Mounting Hole 4.3mm, M4
-mounting hole 4.3mm m4
-0
-2
-1
-MountingHole
-MountingHole_4.3mm_M4_Pad_Via
-Mounting Hole 4.3mm, M4
-mounting hole 4.3mm m4
-0
-9
 1
-MountingHole
-MountingHole_4.3x6.2mm_M4_Pad
-Mounting Hole 4.3x6.2mm, M4
-mounting hole 4.3x6.2mm m4
+TestPoint
+TestPoint_Loop_D3.80mm_Drill2.0mm
+wire loop as test point, loop diameter 3.8mm, hole diameter 2.0mm
+test point wire loop bead
 0
 1
 1
-MountingHole
-MountingHole_4.3x6.2mm_M4_Pad_Via
-Mounting Hole 4.3x6.2mm, M4
-mounting hole 4.3x6.2mm m4
-0
-17
-1
-MountingHole
-MountingHole_4.5mm
-Mounting Hole 4.5mm, no annular
-mounting hole 4.5mm no annular
-0
-0
-0
-MountingHole
-MountingHole_4.5mm_Pad
-Mounting Hole 4.5mm
-mounting hole 4.5mm
+TestPoint
+TestPoint_Loop_D3.80mm_Drill2.5mm
+wire loop as test point, loop diameter 3.8mm, hole diameter 2.5mm
+test point wire loop bead
 0
 1
 1
-MountingHole
-MountingHole_4.5mm_Pad_TopBottom
-Mounting Hole 4.5mm
-mounting hole 4.5mm
+TestPoint
+TestPoint_Loop_D3.80mm_Drill2.8mm
+wire loop as test point, loop diameter 3.8mm, hole diameter 2.8mm
+test point wire loop bead
 0
-3
 1
-MountingHole
-MountingHole_4.5mm_Pad_TopOnly
-Mounting Hole 4.5mm
-mounting hole 4.5mm
-0
-2
-1
-MountingHole
-MountingHole_4.5mm_Pad_Via
-Mounting Hole 4.5mm
-mounting hole 4.5mm
-0
-9
 1
-MountingHole
-MountingHole_4mm
-Mounting Hole 4mm, no annular
-mounting hole 4mm no annular
-0
-0
+TestPoint
+TestPoint_Pad_1.0x1.0mm
+SMD rectangular pad as test Point, square 1.0mm side length
+test point SMD pad rectangle square
 0
-MountingHole
-MountingHole_4mm_Pad
-Mounting Hole 4mm
-mounting hole 4mm
-0
 1
-1
-MountingHole
-MountingHole_4mm_Pad_TopBottom
-Mounting Hole 4mm
-mounting hole 4mm
-0
-3
 1
-MountingHole
-MountingHole_4mm_Pad_TopOnly
-Mounting Hole 4mm
-mounting hole 4mm
+TestPoint
+TestPoint_Pad_1.5x1.5mm
+SMD rectangular pad as test Point, square 1.5mm side length
+test point SMD pad rectangle square
 0
-2
 1
-MountingHole
-MountingHole_4mm_Pad_Via
-Mounting Hole 4mm
-mounting hole 4mm
-0
-9
 1
-MountingHole
-MountingHole_5.3mm_M5
-Mounting Hole 5.3mm, no annular, M5
-mounting hole 5.3mm no annular m5
-0
-0
+TestPoint
+TestPoint_Pad_2.0x2.0mm
+SMD rectangular pad as test Point, square 2.0mm side length
+test point SMD pad rectangle square
 0
-MountingHole
-MountingHole_5.3mm_M5_DIN965
-Mounting Hole 5.3mm, no annular, M5, DIN965
-mounting hole 5.3mm no annular m5 din965
-0
-0
-0
-MountingHole
-MountingHole_5.3mm_M5_DIN965_Pad
-Mounting Hole 5.3mm, M5, DIN965
-mounting hole 5.3mm m5 din965
-0
 1
 1
-MountingHole
-MountingHole_5.3mm_M5_DIN965_Pad_TopBottom
-Mounting Hole 5.3mm, M5, DIN965
-mounting hole 5.3mm m5 din965
+TestPoint
+TestPoint_Pad_2.5x2.5mm
+SMD rectangular pad as test Point, square 2.5mm side length
+test point SMD pad rectangle square
 0
-3
 1
-MountingHole
-MountingHole_5.3mm_M5_DIN965_Pad_TopOnly
-Mounting Hole 5.3mm, M5, DIN965
-mounting hole 5.3mm m5 din965
-0
-2
 1
-MountingHole
-MountingHole_5.3mm_M5_ISO7380
-Mounting Hole 5.3mm, no annular, M5, ISO7380
-mounting hole 5.3mm no annular m5 iso7380
+TestPoint
+TestPoint_Pad_3.0x3.0mm
+SMD rectangular pad as test Point, square 3.0mm side length
+test point SMD pad rectangle square
 0
-0
-0
-MountingHole
-MountingHole_5.3mm_M5_ISO7380_Pad
-Mounting Hole 5.3mm, M5, ISO7380
-mounting hole 5.3mm m5 iso7380
-0
 1
 1
-MountingHole
-MountingHole_5.3mm_M5_ISO7380_Pad_TopBottom
-Mounting Hole 5.3mm, M5, ISO7380
-mounting hole 5.3mm m5 iso7380
+TestPoint
+TestPoint_Pad_4.0x4.0mm
+SMD rectangular pad as test Point, square 4.0mm side length
+test point SMD pad rectangle square
 0
-3
 1
-MountingHole
-MountingHole_5.3mm_M5_ISO7380_Pad_TopOnly
-Mounting Hole 5.3mm, M5, ISO7380
-mounting hole 5.3mm m5 iso7380
-0
-2
 1
-MountingHole
-MountingHole_5.3mm_M5_ISO14580
-Mounting Hole 5.3mm, no annular, M5, ISO14580
-mounting hole 5.3mm no annular m5 iso14580
-0
+TestPoint
+TestPoint_Pad_D1.0mm
+SMD pad as test Point, diameter 1.0mm
+test point SMD pad
 0
-0
-MountingHole
-MountingHole_5.3mm_M5_ISO14580_Pad
-Mounting Hole 5.3mm, M5, ISO14580
-mounting hole 5.3mm m5 iso14580
-0
 1
 1
-MountingHole
-MountingHole_5.3mm_M5_ISO14580_Pad_TopBottom
-Mounting Hole 5.3mm, M5, ISO14580
-mounting hole 5.3mm m5 iso14580
+TestPoint
+TestPoint_Pad_D1.5mm
+SMD pad as test Point, diameter 1.5mm
+test point SMD pad
 0
-3
 1
-MountingHole
-MountingHole_5.3mm_M5_ISO14580_Pad_TopOnly
-Mounting Hole 5.3mm, M5, ISO14580
-mounting hole 5.3mm m5 iso14580
-0
-2
 1
-MountingHole
-MountingHole_5.3mm_M5_Pad
-Mounting Hole 5.3mm, M5
-mounting hole 5.3mm m5
+TestPoint
+TestPoint_Pad_D2.0mm
+SMD pad as test Point, diameter 2.0mm
+test point SMD pad
 0
 1
-1
-MountingHole
-MountingHole_5.3mm_M5_Pad_TopBottom
-Mounting Hole 5.3mm, M5
-mounting hole 5.3mm m5
-0
-3
 1
-MountingHole
-MountingHole_5.3mm_M5_Pad_TopOnly
-Mounting Hole 5.3mm, M5
-mounting hole 5.3mm m5
+TestPoint
+TestPoint_Pad_D2.5mm
+SMD pad as test Point, diameter 2.5mm
+test point SMD pad
 0
-2
 1
-MountingHole
-MountingHole_5.3mm_M5_Pad_Via
-Mounting Hole 5.3mm, M5
-mounting hole 5.3mm m5
-0
-9
 1
-MountingHole
-MountingHole_5.5mm
-Mounting Hole 5.5mm, no annular
-mounting hole 5.5mm no annular
-0
-0
+TestPoint
+TestPoint_Pad_D3.0mm
+SMD pad as test Point, diameter 3.0mm
+test point SMD pad
 0
-MountingHole
-MountingHole_5.5mm_Pad
-Mounting Hole 5.5mm
-mounting hole 5.5mm
-0
 1
-1
-MountingHole
-MountingHole_5.5mm_Pad_TopBottom
-Mounting Hole 5.5mm
-mounting hole 5.5mm
-0
-3
 1
-MountingHole
-MountingHole_5.5mm_Pad_TopOnly
-Mounting Hole 5.5mm
-mounting hole 5.5mm
+TestPoint
+TestPoint_Pad_D4.0mm
+SMD pad as test Point, diameter 4.0mm
+test point SMD pad
 0
-2
 1
-MountingHole
-MountingHole_5.5mm_Pad_Via
-Mounting Hole 5.5mm
-mounting hole 5.5mm
-0
-9
 1
-MountingHole
-MountingHole_5mm
-Mounting Hole 5mm, no annular
-mounting hole 5mm no annular
-0
+TestPoint
+TestPoint_Plated_Hole_D2.0mm
+Plated Hole as test Point, diameter 2.0mm
+test point plated hole
 0
-0
-MountingHole
-MountingHole_5mm_Pad
-Mounting Hole 5mm
-mounting hole 5mm
-0
-1
 1
-MountingHole
-MountingHole_5mm_Pad_TopBottom
-Mounting Hole 5mm
-mounting hole 5mm
-0
-3
 1
-MountingHole
-MountingHole_5mm_Pad_TopOnly
-Mounting Hole 5mm
-mounting hole 5mm
+TestPoint
+TestPoint_Plated_Hole_D3.0mm
+Plated Hole as test Point, diameter 3.0mm
+test point plated hole
 0
-2
 1
-MountingHole
-MountingHole_5mm_Pad_Via
-Mounting Hole 5mm
-mounting hole 5mm
-0
-9
 1
-MountingHole
-MountingHole_6.4mm_M6
-Mounting Hole 6.4mm, no annular, M6
-mounting hole 6.4mm no annular m6
-0
-0
-0
-MountingHole
-MountingHole_6.4mm_M6_DIN965
-Mounting Hole 6.4mm, no annular, M6, DIN965
-mounting hole 6.4mm no annular m6 din965
+TestPoint
+TestPoint_Plated_Hole_D4.0mm
+Plated Hole as test Point, diameter 4.0mm
+test point plated hole
 0
-0
-0
-MountingHole
-MountingHole_6.4mm_M6_DIN965_Pad
-Mounting Hole 6.4mm, M6, DIN965
-mounting hole 6.4mm m6 din965
-0
 1
 1
-MountingHole
-MountingHole_6.4mm_M6_DIN965_Pad_TopBottom
-Mounting Hole 6.4mm, M6, DIN965
-mounting hole 6.4mm m6 din965
+TestPoint
+TestPoint_Plated_Hole_D5.0mm
+Plated Hole as test Point, diameter 5.0mm
+test point plated hole
 0
-3
 1
-MountingHole
-MountingHole_6.4mm_M6_DIN965_Pad_TopOnly
-Mounting Hole 6.4mm, M6, DIN965
-mounting hole 6.4mm m6 din965
-0
-2
 1
-MountingHole
-MountingHole_6.4mm_M6_ISO7380
-Mounting Hole 6.4mm, no annular, M6, ISO7380
-mounting hole 6.4mm no annular m6 iso7380
-0
+TestPoint
+TestPoint_THTPad_1.0x1.0mm_Drill0.5mm
+THT rectangular pad as test Point, square 1.0mm side length, hole diameter 0.5mm
+test point THT pad rectangle square
 0
-0
-MountingHole
-MountingHole_6.4mm_M6_ISO7380_Pad
-Mounting Hole 6.4mm, M6, ISO7380
-mounting hole 6.4mm m6 iso7380
-0
 1
 1
-MountingHole
-MountingHole_6.4mm_M6_ISO7380_Pad_TopBottom
-Mounting Hole 6.4mm, M6, ISO7380
-mounting hole 6.4mm m6 iso7380
+TestPoint
+TestPoint_THTPad_1.5x1.5mm_Drill0.7mm
+THT rectangular pad as test Point, square 1.5mm side length, hole diameter 0.7mm
+test point THT pad rectangle square
 0
-3
 1
-MountingHole
-MountingHole_6.4mm_M6_ISO7380_Pad_TopOnly
-Mounting Hole 6.4mm, M6, ISO7380
-mounting hole 6.4mm m6 iso7380
-0
-2
 1
-MountingHole
-MountingHole_6.4mm_M6_ISO14580
-Mounting Hole 6.4mm, no annular, M6, ISO14580
-mounting hole 6.4mm no annular m6 iso14580
-0
-0
-0
-MountingHole
-MountingHole_6.4mm_M6_ISO14580_Pad
-Mounting Hole 6.4mm, M6, ISO14580
-mounting hole 6.4mm m6 iso14580
+TestPoint
+TestPoint_THTPad_2.0x2.0mm_Drill1.0mm
+THT rectangular pad as test Point, square 2.0mm_Drill1.0mm  side length, hole diameter 1.0mm
+test point THT pad rectangle square
 0
 1
 1
-MountingHole
-MountingHole_6.4mm_M6_ISO14580_Pad_TopBottom
-Mounting Hole 6.4mm, M6, ISO14580
-mounting hole 6.4mm m6 iso14580
+TestPoint
+TestPoint_THTPad_2.5x2.5mm_Drill1.2mm
+THT rectangular pad as test Point, square 2.5mm side length, hole diameter 1.2mm
+test point THT pad rectangle square
 0
-3
 1
-MountingHole
-MountingHole_6.4mm_M6_ISO14580_Pad_TopOnly
-Mounting Hole 6.4mm, M6, ISO14580
-mounting hole 6.4mm m6 iso14580
-0
-2
 1
-MountingHole
-MountingHole_6.4mm_M6_Pad
-Mounting Hole 6.4mm, M6
-mounting hole 6.4mm m6
+TestPoint
+TestPoint_THTPad_3.0x3.0mm_Drill1.5mm
+THT rectangular pad as test Point, square 3.0mm side length, hole diameter 1.5mm
+test point THT pad rectangle square
 0
-1
 1
-MountingHole
-MountingHole_6.4mm_M6_Pad_TopBottom
-Mounting Hole 6.4mm, M6
-mounting hole 6.4mm m6
-0
-3
 1
-MountingHole
-MountingHole_6.4mm_M6_Pad_TopOnly
-Mounting Hole 6.4mm, M6
-mounting hole 6.4mm m6
+TestPoint
+TestPoint_THTPad_4.0x4.0mm_Drill2.0mm
+THT rectangular pad as test Point, square 4.0mm  side length, hole diameter 2.0mm
+test point THT pad rectangle square
 0
-2
 1
-MountingHole
-MountingHole_6.4mm_M6_Pad_Via
-Mounting Hole 6.4mm, M6
-mounting hole 6.4mm m6
-0
-9
 1
-MountingHole
-MountingHole_6.5mm
-Mounting Hole 6.5mm, no annular
-mounting hole 6.5mm no annular
-0
+TestPoint
+TestPoint_THTPad_D1.0mm_Drill0.5mm
+THT pad as test Point, diameter 1.0mm, hole diameter 0.5mm
+test point THT pad
 0
-0
-MountingHole
-MountingHole_6.5mm_Pad
-Mounting Hole 6.5mm
-mounting hole 6.5mm
-0
-1
 1
-MountingHole
-MountingHole_6.5mm_Pad_TopBottom
-Mounting Hole 6.5mm
-mounting hole 6.5mm
-0
-3
 1
-MountingHole
-MountingHole_6.5mm_Pad_TopOnly
-Mounting Hole 6.5mm
-mounting hole 6.5mm
+TestPoint
+TestPoint_THTPad_D1.5mm_Drill0.7mm
+THT pad as test Point, diameter 1.5mm, hole diameter 0.7mm
+test point THT pad
 0
-2
 1
-MountingHole
-MountingHole_6.5mm_Pad_Via
-Mounting Hole 6.5mm
-mounting hole 6.5mm
-0
-9
 1
-MountingHole
-MountingHole_6mm
-Mounting Hole 6mm, no annular
-mounting hole 6mm no annular
-0
+TestPoint
+TestPoint_THTPad_D2.0mm_Drill1.0mm
+THT pad as test Point, diameter 2.0mm, hole diameter 1.0mm
+test point THT pad
 0
-0
-MountingHole
-MountingHole_6mm_Pad
-Mounting Hole 6mm
-mounting hole 6mm
-0
 1
 1
-MountingHole
-MountingHole_6mm_Pad_TopBottom
-Mounting Hole 6mm
-mounting hole 6mm
+TestPoint
+TestPoint_THTPad_D2.5mm_Drill1.2mm
+THT pad as test Point, diameter 2.5mm, hole diameter 1.2mm 
+test point THT pad
 0
-3
 1
-MountingHole
-MountingHole_6mm_Pad_TopOnly
-Mounting Hole 6mm
-mounting hole 6mm
-0
-2
-1
-MountingHole
-MountingHole_6mm_Pad_Via
-Mounting Hole 6mm
-mounting hole 6mm
-0
-9
 1
-MountingHole
-MountingHole_8.4mm_M8
-Mounting Hole 8.4mm, no annular, M8
-mounting hole 8.4mm no annular m8
+TestPoint
+TestPoint_THTPad_D3.0mm_Drill1.5mm
+THT pad as test Point, diameter 3.0mm, hole diameter 1.5mm
+test point THT pad
 0
-0
-0
-MountingHole
-MountingHole_8.4mm_M8_Pad
-Mounting Hole 8.4mm, M8
-mounting hole 8.4mm m8
-0
 1
 1
-MountingHole
-MountingHole_8.4mm_M8_Pad_TopBottom
-Mounting Hole 8.4mm, M8
-mounting hole 8.4mm m8
+TestPoint
+TestPoint_THTPad_D4.0mm_Drill2.0mm
+THT pad as test Point, diameter 4.0mm, hole diameter 2.0mm
+test point THT pad
 0
-3
 1
-MountingHole
-MountingHole_8.4mm_M8_Pad_TopOnly
-Mounting Hole 8.4mm, M8
-mounting hole 8.4mm m8
-0
-2
-1
-MountingHole
-MountingHole_8.4mm_M8_Pad_Via
-Mounting Hole 8.4mm, M8
-mounting hole 8.4mm m8
-0
-9
 1

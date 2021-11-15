@@ -751,12 +751,12 @@ F 3 "" H 9200 2850 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H1
+L Mechanical:MountingHole H1
 U 1 1 5EF88248
 P 8600 5000
 F 0 "H1" H 8700 5049 50  0000 L CNN
 F 1 "Hole1" H 8700 4958 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 8600 5000 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad" H 8600 5000 50  0001 C CNN
 F 3 "DNP" H 8600 5000 50  0001 C CNN
 F 4 "DNP" H 8600 5000 50  0001 C CNN "Description"
 F 5 "" H 8600 5000 50  0001 C CNN "Height"
@@ -769,12 +769,12 @@ F 10 "" H 8600 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H3
+L Mechanical:MountingHole H3
 U 1 1 5EF89564
 P 9400 5000
 F 0 "H3" H 9500 5049 50  0000 L CNN
 F 1 "Hole3" H 9500 4958 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9400 5000 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad" H 9400 5000 50  0001 C CNN
 F 3 "DNP" H 9400 5000 50  0001 C CNN
 F 4 "DNP" H 9400 5000 50  0001 C CNN "Description"
 F 5 "" H 9400 5000 50  0001 C CNN "Height"
@@ -787,12 +787,12 @@ F 10 "" H 9400 5000 50  0001 C CNN "Mouser Price/Stock"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H4
+L Mechanical:MountingHole H4
 U 1 1 5EF896FC
 P 9400 5500
 F 0 "H4" H 9500 5549 50  0000 L CNN
 F 1 "Hole5" H 9500 5458 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9400 5500 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad" H 9400 5500 50  0001 C CNN
 F 3 "DNP" H 9400 5500 50  0001 C CNN
 F 4 "DNP" H 9400 5500 50  0001 C CNN "Description"
 F 5 "" H 9400 5500 50  0001 C CNN "Height"
@@ -805,12 +805,12 @@ F 10 "" H 9400 5500 50  0001 C CNN "Mouser Price/Stock"
 	1    0    0    -1  
 $EndComp
 $Comp
-L Mechanical:MountingHole_Pad H2
+L Mechanical:MountingHole H2
 U 1 1 5EF89881
 P 9000 5000
 F 0 "H2" H 9100 5049 50  0000 L CNN
 F 1 "Hole2" H 9100 4958 50  0000 L CNN
-F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad_Via" H 9000 5000 50  0001 C CNN
+F 2 "MountingHole:MountingHole_2.7mm_M2.5_Pad" H 9000 5000 50  0001 C CNN
 F 3 "DNP" H 9000 5000 50  0001 C CNN
 F 4 "DNP" H 9000 5000 50  0001 C CNN "Description"
 F 5 "" H 9000 5000 50  0001 C CNN "Height"
@@ -874,50 +874,6 @@ F 8 "" H 8900 5600 50  0001 C CNN "Mouser Part Number"
 F 9 "" H 8900 5600 50  0001 C CNN "Mouser Price/Stock"
 F 10 "N/A - Silkscreen" H 8900 5600 50  0001 C CNN "Description"
 	1    8900 5600
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR034
-U 1 1 5EFE78A6
-P 8600 5100
-F 0 "#PWR034" H 8600 4850 50  0001 C CNN
-F 1 "GND" H 8605 4927 50  0000 C CNN
-F 2 "" H 8600 5100 50  0001 C CNN
-F 3 "" H 8600 5100 50  0001 C CNN
-	1    8600 5100
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR040
-U 1 1 5EFE8543
-P 9400 5100
-F 0 "#PWR040" H 9400 4850 50  0001 C CNN
-F 1 "GND" H 9405 4927 50  0000 C CNN
-F 2 "" H 9400 5100 50  0001 C CNN
-F 3 "" H 9400 5100 50  0001 C CNN
-	1    9400 5100
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR041
-U 1 1 5EFE8860
-P 9400 5600
-F 0 "#PWR041" H 9400 5350 50  0001 C CNN
-F 1 "GND" H 9405 5427 50  0000 C CNN
-F 2 "" H 9400 5600 50  0001 C CNN
-F 3 "" H 9400 5600 50  0001 C CNN
-	1    9400 5600
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:GND #PWR037
-U 1 1 5EFE8FE4
-P 9000 5100
-F 0 "#PWR037" H 9000 4850 50  0001 C CNN
-F 1 "GND" H 9005 4927 50  0000 C CNN
-F 2 "" H 9000 5100 50  0001 C CNN
-F 3 "" H 9000 5100 50  0001 C CNN
-	1    9000 5100
 	1    0    0    -1  
 $EndComp
 Wire Notes Line
@@ -2837,26 +2793,6 @@ F 3 "" H 4250 950 50  0001 C CNN
 	1    4250 950 
 	0    -1   -1   0   
 $EndComp
-$Comp
-L TYPE-C-31-M-17:TYPE-C-31-M-17 J3
-U 1 1 618FD321
-P 3300 1850
-F 0 "J3" H 3950 2117 50  0000 C CNN
-F 1 "TYPE-C-31-M-17" H 3950 2026 50  0000 C CNN
-F 2 "TYPEC31M17" H 3300 1850 50  0001 L BNN
-F 3 "" H 3300 1850 50  0001 L BNN
-F 4 "3.26mm" H 3300 1850 50  0001 L BNN "HEIGHT"
-F 5 "" H 3300 1850 50  0001 L BNN "MOUSER_PART_NUMBER"
-F 6 "" H 3300 1850 50  0001 L BNN "RS_PRICE-STOCK"
-F 7 "USB Connectors 6 Receptacle 1 RoHS" H 3300 1850 50  0001 L BNN "DESCRIPTION"
-F 8 "Korean Hroparts Elec" H 3300 1850 50  0001 L BNN "MANUFACTURER_NAME"
-F 9 "TYPE-C-31-M-17" H 3300 1850 50  0001 L BNN "MANUFACTURER_PART_NUMBER"
-F 10 "" H 3300 1850 50  0001 L BNN "RS_PART_NUMBER"
-F 11 "" H 3300 1850 50  0001 L BNN "MOUSER_PRICE-STOCK"
-F 12 "C283540" H 3300 1850 50  0001 C CNN "LCSC"
-	1    3300 1850
-	1    0    0    -1  
-$EndComp
 Text Notes 2950 1300 0    39   ~ 0
 NOTE: This diode was originally a 1N4004, \nhowever JLCPCB has a higher rated diode \nfor a lower price
 Wire Notes Line
@@ -2864,12 +2800,12 @@ Wire Notes Line
 $Comp
 L power:+5V #PWR013
 U 1 1 6195FDC1
-P 3250 1950
-F 0 "#PWR013" H 3250 1800 50  0001 C CNN
-F 1 "+5V" V 3250 2150 50  0000 C CNN
-F 2 "" H 3250 1950 50  0001 C CNN
-F 3 "" H 3250 1950 50  0001 C CNN
-	1    3250 1950
+P 3650 1850
+F 0 "#PWR013" H 3650 1700 50  0001 C CNN
+F 1 "+5V" V 3650 2050 50  0000 C CNN
+F 2 "" H 3650 1850 50  0001 C CNN
+F 3 "" H 3650 1850 50  0001 C CNN
+	1    3650 1850
 	0    -1   -1   0   
 $EndComp
 $Comp
@@ -2884,50 +2820,82 @@ F 3 "" H 4750 1950 50  0001 C CNN
 	0    -1   -1   0   
 $EndComp
 $Comp
-L power:+5V #PWR015
-U 1 1 61982243
-P 3250 2250
-F 0 "#PWR015" H 3250 2100 50  0001 C CNN
-F 1 "+5V" V 3250 2450 50  0000 C CNN
-F 2 "" H 3250 2250 50  0001 C CNN
-F 3 "" H 3250 2250 50  0001 C CNN
-	1    3250 2250
-	0    -1   -1   0   
-$EndComp
-NoConn ~ 3300 2150
-NoConn ~ 3300 1850
-$Comp
 L power:GND #PWR014
 U 1 1 619E6836
-P 3250 2050
-F 0 "#PWR014" H 3250 1800 50  0001 C CNN
-F 1 "GND" V 3255 1922 50  0000 R CNN
-F 2 "" H 3250 2050 50  0001 C CNN
-F 3 "" H 3250 2050 50  0001 C CNN
-	1    3250 2050
+P 3700 2250
+F 0 "#PWR014" H 3700 2000 50  0001 C CNN
+F 1 "GND" V 3705 2122 50  0000 R CNN
+F 2 "" H 3700 2250 50  0001 C CNN
+F 3 "" H 3700 2250 50  0001 C CNN
+	1    3700 2250
 	0    1    1    0   
 $EndComp
 Wire Wire Line
 	4600 1850 4600 1950
 Connection ~ 4600 1950
 Wire Wire Line
-	4600 1950 4600 2050
-Connection ~ 4600 2050
-Wire Wire Line
-	4600 2050 4600 2150
-Connection ~ 4600 2150
-Wire Wire Line
-	4600 2150 4600 2250
-Wire Wire Line
 	4750 1950 4600 1950
 Wire Wire Line
-	3250 1950 3300 1950
-Wire Wire Line
-	3300 2050 3250 2050
-Wire Wire Line
-	3250 2250 3300 2250
+	3650 1850 3700 1850
 Wire Wire Line
 	7850 7700 7850 7750
 Wire Wire Line
 	7550 7700 7850 7700
+$Comp
+L Connector:TestPoint_Small TP1
+U 1 1 619F9EC9
+P 3700 1950
+F 0 "TP1" H 3500 1950 50  0000 L CNN
+F 1 "TestPoint_Small" H 3652 1995 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 3900 1950 50  0001 C CNN
+F 3 "~" H 3900 1950 50  0001 C CNN
+	1    3700 1950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4600 2050 4600 2150
+Wire Wire Line
+	4600 1950 4600 2050
+Connection ~ 4600 2050
+$Comp
+L SamacSys_Parts:U254-051N-4BH806 J3
+U 1 1 61943FE1
+P 3700 1850
+F 0 "J3" H 4150 2115 50  0000 C CNN
+F 1 "U254-051N-4BH806" H 4150 2024 50  0000 C CNN
+F 2 "U254051N4BH806" H 4450 1950 50  0001 L CNN
+F 3 "https://datasheet.lcsc.com/szlcsc/XKB-U254-051N-4BH806_C319170.pdf" H 4450 1850 50  0001 L CNN
+F 4 "USB Connectors SMD RoHS" H 4450 1750 50  0001 L CNN "Description"
+F 5 "3" H 4450 1650 50  0001 L CNN "Height"
+F 6 "XKB Enterprise" H 4450 1550 50  0001 L CNN "Manufacturer_Name"
+F 7 "U254-051N-4BH806" H 4450 1450 50  0001 L CNN "Manufacturer_Part_Number"
+F 8 "U254-051N-4BH806" H 4450 1350 50  0001 L CNN "Arrow Part Number"
+F 9 "" H 4450 1250 50  0001 L CNN "Arrow Price/Stock"
+F 10 "" H 4450 1150 50  0001 L CNN "Mouser Part Number"
+F 11 "" H 4450 1050 50  0001 L CNN "Mouser Price/Stock"
+	1    3700 1850
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint_Small TP2
+U 1 1 61A21563
+P 3700 2050
+F 0 "TP2" H 3500 2050 50  0000 L CNN
+F 1 "TestPoint_Small" H 3652 2095 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 3900 2050 50  0001 C CNN
+F 3 "~" H 3900 2050 50  0001 C CNN
+	1    3700 2050
+	1    0    0    -1  
+$EndComp
+$Comp
+L Connector:TestPoint_Small TP3
+U 1 1 61A2241A
+P 3700 2150
+F 0 "TP3" H 3500 2150 50  0000 L CNN
+F 1 "TestPoint_Small" H 3652 2195 50  0001 R CNN
+F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 3900 2150 50  0001 C CNN
+F 3 "~" H 3900 2150 50  0001 C CNN
+	1    3700 2150
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC
