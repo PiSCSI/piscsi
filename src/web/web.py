@@ -3,6 +3,7 @@ Module for the Flask app rendering and endpoints
 """
 
 import logging
+from sys import argv
 from pathlib import Path
 
 from flask import (
@@ -820,6 +821,11 @@ if __name__ == "__main__":
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         read_config(DEFAULT_CONFIG)
 
+    if len(argv) > 1:
+        port = int(argv[1])
+    else:
+        port = 8080
+
     import bjoern
     print("Serving rascsi-web...")
-    bjoern.run(APP, "0.0.0.0", 8080)
+    bjoern.run(APP, "0.0.0.0", port)
