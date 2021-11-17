@@ -804,6 +804,7 @@ function runChoice() {
               echo "- Install additional packages with apt-get"
               echo "- Create directories and change permissions"
               echo "- Install binaries to /usr/local/sbin"
+              echo "- Install manpages to /usr/local/share/man/"
               echo "- Install configuration files to /etc"
               echo "- Modify /etc/rc.local to start Netatalk daemons on system startup"
               echo ""
