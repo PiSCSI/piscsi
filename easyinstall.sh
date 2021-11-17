@@ -750,6 +750,7 @@ function runChoice() {
               compileRaScsi
               installRaScsi
               echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE-FULLSPEC}) - Complete!"
+              echo "Use 'rascsi' to launch RaSCSI, and 'rasctl' to control the running process."
           ;;
           11)
               echo "Configuring RaSCSI Web Interface stand-alone"
@@ -757,6 +758,7 @@ function runChoice() {
               installPackages
               installRaScsiWebInterface
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
+              echo "Launch the Web Interface with the 'start.sh' script."
           ;;
           -h|--help|h|help)
               showMenu
