@@ -708,6 +708,7 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
+              echo "- Modify and enable Apache2 and Nginx web service"
               echo "- Create directories and change permissions"
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
@@ -839,6 +840,7 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
+              echo "- Modify and enable Apache2 and Nginx web service"
               echo "- Create directories and change permissions"
               echo "- Modify user groups and permissions"
               sudoCheck
