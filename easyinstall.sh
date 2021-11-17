@@ -219,6 +219,7 @@ function createCfgDir() {
     fi
 }
 
+# Stops the rascsi-web and apache2 processes
 function stopOldWebInterface() {
     stopRaScsiWeb
 
@@ -230,17 +231,7 @@ function stopOldWebInterface() {
     fi
 }
 
-function installWebInterfaceService() {
-    echo "Installing the rascsi-web.service configuration..."
-    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
-    sudo sed -i "8 i ExecStart=$WEBINSTDIR/start.sh" /etc/systemd/system/rascsi-web.service
-
-    sudo systemctl daemon-reload
-    sudo systemctl enable rascsi-web
-    sudo systemctl start rascsi-web
-}
-
+# Checks for upstream changes to the git repo and fast-forwards changes if needed
 function updateRaScsiGit() {
     cd "$BASE" || exit 1
     stashed=0
@@ -263,6 +254,7 @@ function updateRaScsiGit() {
     fi
 }
 
+# Takes a backup copy of the rascsi.service file if it exists
 function backupRaScsiService() {
     if [ -f /etc/systemd/system/rascsi.service ]; then
         sudo mv /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
@@ -273,6 +265,7 @@ function backupRaScsiService() {
     fi
 }
 
+# Modifies and installs the rascsi service
 function enableRaScsiService() {
     sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
     echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
@@ -284,47 +277,68 @@ function enableRaScsiService() {
 
 }
 
+# Modifies and installs the rascsi-web service
+function installWebInterfaceService() {
+    echo "Installing the rascsi-web.service configuration..."
+    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
+    sudo sed -i "8 i ExecStart=$WEBINSTDIR/start.sh" /etc/systemd/system/rascsi-web.service
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable rascsi-web
+    sudo systemctl start rascsi-web
+}
+
+# Stops the rascsi service if it is running
 function stopRaScsi() {
     if [[ `systemctl list-units | grep -c rascsi.service` -ge 1 ]]; then
         sudo systemctl stop rascsi.service
     fi
 }
 
+# Stops the rascsi-web service if it is running
 function stopRaScsiWeb() {
     if [[ `systemctl list-units | grep -c rascsi-web.service` -ge 1 ]]; then
         sudo systemctl stop rascsi-web.service
     fi
 }
 
+# Stops the monitor_rascsi service if it is running
 function stopRaScsiScreen() {
     if [[ `systemctl list-units | grep -c monitor_rascsi.service` -ge 1 ]]; then
         sudo systemctl stop monitor_rascsi.service
     fi
 }
 
+# Starts the monitor_rascsi service if installed
 function startRaScsiScreen() {
     if [[ -f "/etc/systemd/system/monitor_rascsi.service" ]]; then
         sudo systemctl start monitor_rascsi.service
-	showRaScsiScreenStatus
+        showRaScsiScreenStatus
     fi
 }
 
+# Shows status for the rascsi service
 function showRaScsiStatus() {
     systemctl status rascsi | tee
 }
 
+# Shows status for the rascsi-web service
 function showRaScsiWebStatus() {
     systemctl status rascsi-web | tee
 }
 
+# Shows status for the monitor_rascsi service
 function showRaScsiScreenStatus() {
     systemctl status monitor_rascsi | tee
 }
 
+# Creates a drive image file with specific parameters
 function createDrive600MB() {
     createDrive 600 "HD600"
 }
 
+# Creates a drive image file and prompts for parameters
 function createDriveCustom() {
     driveSize=-1
     until [ $driveSize -ge "10" ] && [ $driveSize -le "4000" ]; do
@@ -338,6 +352,7 @@ function createDriveCustom() {
     createDrive "$driveSize" "$driveName"
 }
 
+# Creates an HFS file system
 function formatDrive() {
     diskPath="$1"
     volumeName="$2"
@@ -406,6 +421,7 @@ function formatDrive() {
     fi
 }
 
+# Creates an image file
 function createDrive() {
     if [ $# -ne 2 ]; then
         echo "To create a Drive, volume size and volume name must be provided"
@@ -431,6 +447,7 @@ function createDrive() {
     fi
 }
 
+# Modifies system configurations for a wired network bridge
 function setupWiredNetworking() {
     echo "Setting up wired network..."
 
@@ -479,6 +496,7 @@ function setupWiredNetworking() {
     sudo reboot
 }
 
+# Modifies system configurations for a wireless network bridge with NAT
 function setupWirelessNetworking() {
     NETWORK="10.10.20"
     IP=$NETWORK.2 # Macintosh or Device IP
@@ -554,6 +572,7 @@ function setupWirelessNetworking() {
     sudo reboot
 }
 
+# Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
     NETATALK_VERSION="20200806"
     AFP_SHARE_PATH="$HOME/afpshare"
@@ -621,6 +640,7 @@ function installNetatalk() {
     echo ""
 }
 
+# Downloads, compiles, and installs Macproxy (web proxy)
 function installMacproxy {
     PORT=5000
 
@@ -661,6 +681,7 @@ function installMacproxy {
     echo ""
 }
 
+# Prints a notification if the rascsi.service file was backed up
 function notifyBackup {
     if $SYSTEMD_BACKUP; then
         echo ""
@@ -671,6 +692,7 @@ function notifyBackup {
     fi
 }
 
+# Executes the keyword driven scripts for a particular action in the main menu
 function runChoice() {
   case $1 in
           1)
@@ -777,6 +799,7 @@ function runChoice() {
       esac
 }
 
+# Reads and validates the main menu choice
 function readChoice() {
    choice=-1
 
@@ -788,6 +811,7 @@ function readChoice() {
    runChoice "$choice"
 }
 
+# Shows the interactive main menu of the script
 function showMenu() {
     echo ""
     echo "Choose among the following options:"
@@ -810,7 +834,7 @@ function showMenu() {
     echo " 11) configure the RaSCSI Web Interface stand-alone"
 }
 
-# parse arguments
+# parse arguments passed to the script
 while [ "$1" != "" ]; do
     PARAM=$(echo "$1" | awk -F= '{print $1}')
     VALUE=$(echo "$1" | awk -F= '{print $2}')
