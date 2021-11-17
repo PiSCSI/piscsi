@@ -59,6 +59,7 @@ GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -e
 
+# checks to run before entering the script main menu
 function initialChecks() {
     if [ "root" == "$USER" ]; then
         echo "Do not run this script as $USER or with 'sudo'."
@@ -120,6 +121,7 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
     sudo systemctl reload nginx || true
 }
 
+# updates configuration files and installs packages needed for the OLED screen script
 function installRaScsiScreen() {
     echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your RaSCSI board."
     echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/OLED-Status-Display-(Optional)"
@@ -195,6 +197,7 @@ function installRaScsiScreen() {
     sudo systemctl start monitor_rascsi
 }
 
+# Creates the dir that RaSCSI uses to store image files
 function createImagesDir() {
     if [ -d "$VIRTUAL_DRIVER_PATH" ]; then
         echo "The $VIRTUAL_DRIVER_PATH directory already exists."
@@ -798,8 +801,8 @@ function showMenu() {
     echo "  8) install AppleShare File Server (Netatalk)"
     echo "  9) install Web Proxy Server (Macproxy)"
     echo "ADVANCED OPTIONS"
-    echo " 10) configure and compile RaSCSI stand-alone"
-    echo " 11) configure RaSCSI Web Interface stand-alone"
+    echo " 10) compile and install RaSCSI stand-alone"
+    echo " 11) configure the RaSCSI Web Interface stand-alone"
 }
 
 # parse arguments
