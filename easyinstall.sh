@@ -69,7 +69,7 @@ function initialChecks() {
 
 # checks that the current user has sudoers privileges
 function sudoCheck() {
-    echo "Input your password to allow this script to make changes to the system configuration."
+    echo "Input your password to allow this script to make the above changes."
     sudo -v
 }
 
@@ -662,6 +662,8 @@ function installMacproxy {
         echo "Using the default port $PORT"
     fi
 
+    ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
+
     MACPROXY_VER="21.11"
     MACPROXY_DIR="$HOME/macproxy-$MACPROXY_VER"
     if [ -d "$MACPROXY_DIR" ]; then
@@ -703,6 +705,12 @@ function runChoice() {
   case $1 in
           1)
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web Interface"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Create directories and change permissions"
+              echo "- Modify user groups and permissions"
+              echo "- Install binaries to /usr/local/bin"
               sudoCheck
               stopOldWebInterface
               updateRaScsiGit
@@ -725,6 +733,12 @@ function runChoice() {
           ;;
           2)
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC})"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Create directories and change permissions"
+              echo "- Modify user groups and permissions"
+              echo "- Install binaries to /usr/local/bin"
               sudoCheck
               updateRaScsiGit
               createImagesDir
@@ -738,10 +752,14 @@ function runChoice() {
               startRaScsiScreen
               showRaScsiStatus
               notifyBackup
-	          echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
           ;;
           3)
               echo "Installing / Updating RaSCSI OLED Screen"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
               installRaScsiScreen
               showRaScsiScreenStatus
@@ -759,6 +777,9 @@ function runChoice() {
           ;;
           6)
               echo "Configuring wired network bridge"
+              echo "This script will make the following changes to your system:"
+              echo "- Create a virtual network bridge interface in /etc/network/interfaces.d"
+              echo "- Modify /etc/dhcpcd.conf to bridge the Ethernet interface (may change the IP address; requires a reboot)"
               sudoCheck
               showMacNetworkWired
               setupWiredNetworking
@@ -766,6 +787,10 @@ function runChoice() {
           ;;
           7)
               echo "Configuring wifi network bridge"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Modify /etc/sysctl.conf to enable IPv4 forwarding"
+              echo "- Add NAT rules for the wlan interface (requires a reboot)"
               sudoCheck
               showMacNetworkWireless
               setupWirelessNetworking
@@ -773,18 +798,32 @@ function runChoice() {
           ;;
           8)
               echo "Installing AppleShare File Server"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Create directories and change permissions"
+              echo "- Install binaries to /usr/local/sbin"
+              echo "- Install configuration files to /etc"
+              echo "- Modify /etc/rc.local to start Netatalk daemons on system startup"
+              echo ""
               sudoCheck
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
           9)
               echo "Installing Web Proxy Server"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
               sudoCheck
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
           10)
               echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE-FULLSPEC})"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Create directories and change permissions"
+              echo "- Install binaries to /usr/local/bin"
               sudoCheck
               updateRaScsiGit
               createImagesDir
@@ -797,6 +836,11 @@ function runChoice() {
           ;;
           11)
               echo "Configuring RaSCSI Web Interface stand-alone"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Create directories and change permissions"
+              echo "- Modify user groups and permissions"
               sudoCheck
               updateRaScsiGit
               createCfgDir
