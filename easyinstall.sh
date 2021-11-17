@@ -67,6 +67,12 @@ function initialChecks() {
     fi
 }
 
+# checks that the current user has sudoers privileges
+function sudoCheck() {
+    echo "Input your password to allow this script to make changes to the system configuration."
+    sudo -v
+}
+
 # install all dependency packages for RaSCSI Service
 function installPackages() {
     sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
@@ -697,6 +703,7 @@ function runChoice() {
   case $1 in
           1)
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web Interface"
+              sudoCheck
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
@@ -718,6 +725,7 @@ function runChoice() {
           ;;
           2)
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC})"
+              sudoCheck
               updateRaScsiGit
               createImagesDir
               installPackages
@@ -734,6 +742,7 @@ function runChoice() {
           ;;
           3)
               echo "Installing / Updating RaSCSI OLED Screen"
+              sudoCheck
               installRaScsiScreen
               showRaScsiScreenStatus
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
@@ -750,28 +759,33 @@ function runChoice() {
           ;;
           6)
               echo "Configuring wired network bridge"
+              sudoCheck
               showMacNetworkWired
               setupWiredNetworking
               echo "Configuring wired network bridge - Complete!"
           ;;
           7)
               echo "Configuring wifi network bridge"
+              sudoCheck
               showMacNetworkWireless
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
           ;;
           8)
               echo "Installing AppleShare File Server"
+              sudoCheck
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
           9)
               echo "Installing Web Proxy Server"
+              sudoCheck
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
           ;;
           10)
               echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE-FULLSPEC})"
+              sudoCheck
               updateRaScsiGit
               createImagesDir
               installPackages
@@ -783,6 +797,7 @@ function runChoice() {
           ;;
           11)
               echo "Configuring RaSCSI Web Interface stand-alone"
+              sudoCheck
               updateRaScsiGit
               createCfgDir
               installPackages
