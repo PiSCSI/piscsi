@@ -788,7 +788,7 @@ function runChoice() {
               installPackages
               installRaScsiWebInterface
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
-              echo "Launch the Web Interface with the 'start.sh' script."
+              echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --port=8081"
           ;;
           -h|--help|h|help)
               showMenu
