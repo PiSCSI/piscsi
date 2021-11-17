@@ -206,7 +206,10 @@ function createImagesDir() {
         mkdir -p "$VIRTUAL_DRIVER_PATH"
         chmod -R 775 "$VIRTUAL_DRIVER_PATH"
     fi
+}
 
+# Creates the dir that the Web Interface uses to store configuration files
+function createCfgDir() {
     if [ -d "$CFG_PATH" ]; then
         echo "The $CFG_PATH directory already exists."
     else
@@ -675,6 +678,7 @@ function runChoice() {
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
+              createCfgDir
               installPackages
               stopRaScsiScreen
               stopRaScsi
@@ -758,6 +762,7 @@ function runChoice() {
           11)
               echo "Configuring RaSCSI Web Interface stand-alone"
               updateRaScsiGit
+              createCfgDir
               installPackages
               installRaScsiWebInterface
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
