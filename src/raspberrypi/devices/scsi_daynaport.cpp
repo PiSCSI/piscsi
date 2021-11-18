@@ -428,10 +428,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	// frames_lost = htonl(0);
 	// memcpy(&(buffer[14]),&frames_lost,sizeof(frames_lost));
 
-	for (int i = 0; i < 6; i++) {
-		LOGTRACE("%s CDB byte %d: %02X",__PRETTY_FUNCTION__, i, (unsigned int)cdb[i]);
-	}
-
 	int response_size = sizeof(m_scsi_link_stats);
 	memcpy(buffer, &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
