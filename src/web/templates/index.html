@@ -277,7 +277,7 @@
                     <input type="submit" value="Attach">
                 {% endif %}
                 </form>
-                <form action="/files/delete" method="post" onsubmit="return confirm('Delete file?')">
+                <form action="/files/delete" method="post" onsubmit="return confirm('Delete file \'{{ file["name"] }}\'?')">
                     <input name="image" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="Delete">
                 </form>
