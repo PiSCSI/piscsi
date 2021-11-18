@@ -409,10 +409,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 	LOGTRACE("%s Retrieve Stats buffer size is %d", __PRETTY_FUNCTION__, (int)allocation_length);
 
-	// if(cdb[4] != 0x12)
-	// {
-	// 	LOGWARN("%s cdb[4] was not 0x12, as I expected. It was %02X.", __PRETTY_FUNCTION__, (unsigned int)cdb[4]);
-	// }
 	// memset(buffer,0,18);
 	// memcpy(&buffer[0],m_mac_addr,sizeof(m_mac_addr));
 	// uint32_t frame_alignment_errors;
