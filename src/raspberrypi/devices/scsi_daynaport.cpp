@@ -432,7 +432,6 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	memcpy(buffer, &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
 	if (response_size > allocation_length) {
-		LOGTRACE("%s Truncating the INQUIRY response from %d to %d bytes", __PRETTY_FUNCTION__, response_size, allocation_length);
 		response_size = allocation_length;
 	}
 
