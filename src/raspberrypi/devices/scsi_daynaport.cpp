@@ -648,10 +648,6 @@ void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
 void SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
 {
 	LOGTRACE("%s Setting mode", __PRETTY_FUNCTION__);
-
-	for (int i = 0; i < 6; i++) {
-		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, (unsigned int)i, (int)cdb[i]);
-	}	
 }
 
 
