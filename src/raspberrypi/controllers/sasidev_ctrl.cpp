@@ -326,7 +326,7 @@ void SASIDEV::Command()
 		// Command data transfer
 		for (int i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
-			LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
+			LOGTRACE("%s CDB[%d]=$%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 		}
 
 		// Clear length and block
