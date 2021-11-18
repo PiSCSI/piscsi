@@ -109,7 +109,6 @@ bool SCSIDaynaPort::Init(const map<string, string>& params)
 	SetReset(false);
 
 	// Generate MAC Address
-	LOGTRACE("%s memset(m_mac_addr, 0x00, 6);", __PRETTY_FUNCTION__);
 	memset(m_mac_addr, 0x00, 6);
 
 	// if (m_bTapEnable) {
@@ -118,7 +117,6 @@ bool SCSIDaynaPort::Init(const map<string, string>& params)
 	// }
 	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
 	// TODO: Remove this hard-coded address
-	LOGTRACE("%s m_mac_addr[0]=0x00;", __PRETTY_FUNCTION__);
 	m_mac_addr[0]=0x00;
 	m_mac_addr[1]=0x80;
 	m_mac_addr[2]=0x19;
@@ -143,9 +141,6 @@ void SCSIDaynaPort::Open(const Filepath& path)
 int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-
-	LOGTRACE("%s Inquiry, allocation length: %d",__PRETTY_FUNCTION__, allocation_length);
-
 	if (allocation_length > 4) {
 		if (allocation_length > 44) {
 			allocation_length = 44;
