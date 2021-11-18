@@ -434,8 +434,8 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	LOGTRACE("%s response size is %d", __PRETTY_FUNCTION__, (int)response_size);
 
 	if (response_size > allocation_length) {
+		LOGINFO("%s Truncating the inquiry response from %d to %d bytes", __PRETTY_FUNCTION__, response_size, allocation_length);
 		response_size = allocation_length;
-		LOGINFO("%s Truncating the inquiry response", __PRETTY_FUNCTION__)
 	}
 
 	// Success
