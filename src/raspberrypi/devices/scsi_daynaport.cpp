@@ -592,10 +592,9 @@ void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
 	switch(ctrl->cmd[5]){
 		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
-			SetMode(ctrl->cmd, ctrl->buffer);
+			// TODO Not implemented, do nothing
 			controller->Status();
 			break;
-		break;
 
 		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
 			ctrl->length = 6;
@@ -633,15 +632,3 @@ void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
 
 	controller->Status();
 }
-
-//---------------------------------------------------------------------------
-//
-//	Set Mode - enable broadcast messages
-//
-//---------------------------------------------------------------------------
-void SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
-{
-	LOGTRACE("%s Setting mode", __PRETTY_FUNCTION__);
-}
-
-
