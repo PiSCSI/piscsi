@@ -1199,7 +1199,6 @@ bool SASIDEV::XferOut(bool cont)
 
 		default:
 			LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
-			ASSERT(FALSE);
 			break;
 	}
 
@@ -1262,9 +1261,6 @@ void SASIDEV::FlushUnit()
 
 		default:
 			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0]);
-			// The following statement makes debugging a huge pain. You can un-comment it
-			// if you're not trying to add new devices....
-			// ASSERT(FALSE);
 			break;
 	}
 }
