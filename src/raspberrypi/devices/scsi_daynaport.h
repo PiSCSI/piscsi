@@ -73,7 +73,6 @@ public:
 	bool EnableInterface(const DWORD *cdb);
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
-	void SetMode(const DWORD *cdb, BYTE *buffer);	// Set the mode: whether broadcast traffic is enabled or not
 
 	void TestUnitReady(SASIDEV *) override;
 	void Read6(SASIDEV *) override;

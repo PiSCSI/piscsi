@@ -326,7 +326,7 @@ void SASIDEV::Command()
 		// Command data transfer
 		for (int i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
-			LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
+			LOGTRACE("%s CDB[%d]=$%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 		}
 
 		// Clear length and block
@@ -1198,8 +1198,7 @@ bool SASIDEV::XferOut(bool cont)
 			break;
 
 		default:
-			LOGWARN("Received an unexpected command (%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
-			ASSERT(FALSE);
+			LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
 			break;
 	}
 
@@ -1261,10 +1260,7 @@ void SASIDEV::FlushUnit()
 			break;
 
 		default:
-			LOGWARN("Received an unexpected flush command %02X!!!!!\n",(WORD)ctrl.cmd[0]);
-			// The following statement makes debugging a huge pain. You can un-comment it
-			// if you're not trying to add new devices....
-			// ASSERT(FALSE);
+			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0]);
 			break;
 	}
 }

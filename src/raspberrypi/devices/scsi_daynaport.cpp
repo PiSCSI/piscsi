@@ -109,7 +109,6 @@ bool SCSIDaynaPort::Init(const map<string, string>& params)
 	SetReset(false);
 
 	// Generate MAC Address
-	LOGTRACE("%s memset(m_mac_addr, 0x00, 6);", __PRETTY_FUNCTION__);
 	memset(m_mac_addr, 0x00, 6);
 
 	// if (m_bTapEnable) {
@@ -118,7 +117,6 @@ bool SCSIDaynaPort::Init(const map<string, string>& params)
 	// }
 	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
 	// TODO: Remove this hard-coded address
-	LOGTRACE("%s m_mac_addr[0]=0x00;", __PRETTY_FUNCTION__);
 	m_mac_addr[0]=0x00;
 	m_mac_addr[1]=0x80;
 	m_mac_addr[2]=0x19;
@@ -143,9 +141,6 @@ void SCSIDaynaPort::Open(const Filepath& path)
 int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-
-	LOGTRACE("%s Inquiry, allocation length: %d",__PRETTY_FUNCTION__, allocation_length);
-
 	if (allocation_length > 4) {
 		if (allocation_length > 44) {
 			allocation_length = 44;
@@ -407,12 +402,7 @@ bool SCSIDaynaPort::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-	LOGTRACE("%s Retrieve Stats buffer size is %d", __PRETTY_FUNCTION__, (int)allocation_length);
 
-	// if(cdb[4] != 0x12)
-	// {
-	// 	LOGWARN("%s cdb[4] was not 0x12, as I expected. It was %02X.", __PRETTY_FUNCTION__, (unsigned int)cdb[4]);
-	// }
 	// memset(buffer,0,18);
 	// memcpy(&buffer[0],m_mac_addr,sizeof(m_mac_addr));
 	// uint32_t frame_alignment_errors;
@@ -428,18 +418,11 @@ int SCSIDaynaPort::RetrieveStats(const DWORD *cdb, BYTE *buffer)
 	// frames_lost = htonl(0);
 	// memcpy(&(buffer[14]),&frames_lost,sizeof(frames_lost));
 
-	for (int i = 0; i < 6; i++) {
-		LOGTRACE("%s CDB byte %d: %02X",__PRETTY_FUNCTION__, i, (unsigned int)cdb[i]);
-	}
-
 	int response_size = sizeof(m_scsi_link_stats);
 	memcpy(buffer, &m_scsi_link_stats, sizeof(m_scsi_link_stats));
 
-	LOGTRACE("%s response size is %d", __PRETTY_FUNCTION__, (int)response_size);
-
 	if (response_size > allocation_length) {
 		response_size = allocation_length;
-		LOGINFO("%s Truncating the inquiry response", __PRETTY_FUNCTION__)
 	}
 
 	// Success
@@ -604,10 +587,9 @@ void SCSIDaynaPort::SetInterfaceMode(SASIDEV *controller)
 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
 	switch(ctrl->cmd[5]){
 		case SCSIDaynaPort::CMD_SCSILINK_SETMODE:
-			SetMode(ctrl->cmd, ctrl->buffer);
+			// TODO Not implemented, do nothing
 			controller->Status();
 			break;
-		break;
 
 		case SCSIDaynaPort::CMD_SCSILINK_SETMAC:
 			ctrl->length = 6;
@@ -645,19 +627,3 @@ void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
 
 	controller->Status();
 }
-
-//---------------------------------------------------------------------------
-//
-//	Set Mode - enable broadcast messages
-//
-//---------------------------------------------------------------------------
-void SCSIDaynaPort::SetMode(const DWORD *cdb, BYTE *buffer)
-{
-	LOGTRACE("%s Setting mode", __PRETTY_FUNCTION__);
-
-	for (int i = 0; i < 6; i++) {
-		LOGTRACE("%s %d: %02X",__PRETTY_FUNCTION__, (unsigned int)i, (int)cdb[i]);
-	}	
-}
-
-
