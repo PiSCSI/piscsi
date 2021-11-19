@@ -59,6 +59,7 @@ GIT_REMOTE=${GIT_REMOTE:-origin}
 
 set -e
 
+# checks to run before entering the script main menu
 function initialChecks() {
     if [ "root" == "$USER" ]; then
         echo "Do not run this script as $USER or with 'sudo'."
@@ -66,24 +67,19 @@ function initialChecks() {
     fi
 }
 
+# checks that the current user has sudoers privileges
+function sudoCheck() {
+    echo "Input your password to allow this script to make the above changes."
+    sudo -v
+}
+
 # install all dependency packages for RaSCSI Service
 function installPackages() {
     sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
 }
 
-# compile and install RaSCSI Service
-function installRaScsi() {
-    stopRaScsiScreen
-    stopRaScsi
-
-    if [ -f /etc/systemd/system/rascsi.service ]; then
-        sudo mv /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
-        SYSTEMD_BACKUP=true
-        echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
-    else
-        SYSTEMD_BACKUP=false
-    fi
-
+# compile the RaSCSI binaries
+function compileRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
     # Compiler flags needed for gcc v10 and up
@@ -93,11 +89,28 @@ function installRaScsi() {
         echo $COMPILER_FLAGS
     fi
 
-    echo "Compiling with ${CORES-1} simultaneous cores..."
-    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES-1}" all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" && sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
+    echo "Compiling with ${CORES:-1} simultaneous cores..."
+    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+}
 
-    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
-    echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
+# install the RaSCSI binaries and modify the service configuration
+function installRaScsi() {
+    sudo make install CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
+}
+
+# install everything required to run an HTTP server (Nginx + Python Flask App)
+function installRaScsiWebInterface() {
+    if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
+        sudo rm "$WEBINSTDIR/rascsi_interface_pb2.py"
+        echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
+    fi
+    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEBINSTDIR" rascsi_interface.proto
+
+    sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
+    sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
+
+    sudo usermod -a -G $USER www-data
 
     if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
         sudo bash -c 'echo "
@@ -111,40 +124,10 @@ www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
         echo "The sudoers file is already modified for rascsi-web."
     fi
 
-    sudo systemctl daemon-reload
-    sudo systemctl restart rsyslog
-    sudo systemctl enable rascsi # optional - start rascsi at boot
-    sudo systemctl start rascsi
-
-    startRaScsiScreen
-}
-
-# install everything required to run an HTTP server (Nginx + Python Flask App)
-function installRaScsiWebInterface() {
-    if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
-        sudo rm "$WEBINSTDIR/rascsi_interface_pb2.py"
-	echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
-    fi
-    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEBINSTDIR" rascsi_interface.proto
-
-    sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
-    sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
-
-    sudo usermod -a -G $USER www-data
-
     sudo systemctl reload nginx || true
-
-    echo "Installing the rascsi-web.service configuration..."
-    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
-    sudo sed -i "8 i ExecStart=$WEBINSTDIR/start.sh" /etc/systemd/system/rascsi-web.service
-
-    sudo systemctl daemon-reload
-    sudo systemctl enable rascsi-web
-    sudo systemctl start rascsi-web
 }
 
+# updates configuration files and installs packages needed for the OLED screen script
 function installRaScsiScreen() {
     echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your RaSCSI board."
     echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/OLED-Status-Display-(Optional)"
@@ -220,6 +203,7 @@ function installRaScsiScreen() {
     sudo systemctl start monitor_rascsi
 }
 
+# Creates the dir that RaSCSI uses to store image files
 function createImagesDir() {
     if [ -d "$VIRTUAL_DRIVER_PATH" ]; then
         echo "The $VIRTUAL_DRIVER_PATH directory already exists."
@@ -228,7 +212,10 @@ function createImagesDir() {
         mkdir -p "$VIRTUAL_DRIVER_PATH"
         chmod -R 775 "$VIRTUAL_DRIVER_PATH"
     fi
+}
 
+# Creates the dir that the Web Interface uses to store configuration files
+function createCfgDir() {
     if [ -d "$CFG_PATH" ]; then
         echo "The $CFG_PATH directory already exists."
     else
@@ -238,6 +225,7 @@ function createImagesDir() {
     fi
 }
 
+# Stops the rascsi-web and apache2 processes
 function stopOldWebInterface() {
     stopRaScsiWeb
 
@@ -249,6 +237,7 @@ function stopOldWebInterface() {
     fi
 }
 
+# Checks for upstream changes to the git repo and fast-forwards changes if needed
 function updateRaScsiGit() {
     cd "$BASE" || exit 1
     stashed=0
@@ -271,47 +260,91 @@ function updateRaScsiGit() {
     fi
 }
 
+# Takes a backup copy of the rascsi.service file if it exists
+function backupRaScsiService() {
+    if [ -f /etc/systemd/system/rascsi.service ]; then
+        sudo mv /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
+        SYSTEMD_BACKUP=true
+        echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
+    else
+        SYSTEMD_BACKUP=false
+    fi
+}
+
+# Modifies and installs the rascsi service
+function enableRaScsiService() {
+    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
+    echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
+
+    sudo systemctl daemon-reload
+    sudo systemctl restart rsyslog
+    sudo systemctl enable rascsi # optional - start rascsi at boot
+    sudo systemctl start rascsi
+
+}
+
+# Modifies and installs the rascsi-web service
+function installWebInterfaceService() {
+    echo "Installing the rascsi-web.service configuration..."
+    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
+    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
+    sudo sed -i "8 i ExecStart=$WEBINSTDIR/start.sh" /etc/systemd/system/rascsi-web.service
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable rascsi-web
+    sudo systemctl start rascsi-web
+}
+
+# Stops the rascsi service if it is running
 function stopRaScsi() {
     if [[ `systemctl list-units | grep -c rascsi.service` -ge 1 ]]; then
         sudo systemctl stop rascsi.service
     fi
 }
 
+# Stops the rascsi-web service if it is running
 function stopRaScsiWeb() {
     if [[ `systemctl list-units | grep -c rascsi-web.service` -ge 1 ]]; then
         sudo systemctl stop rascsi-web.service
     fi
 }
 
+# Stops the monitor_rascsi service if it is running
 function stopRaScsiScreen() {
     if [[ `systemctl list-units | grep -c monitor_rascsi.service` -ge 1 ]]; then
         sudo systemctl stop monitor_rascsi.service
     fi
 }
 
+# Starts the monitor_rascsi service if installed
 function startRaScsiScreen() {
     if [[ -f "/etc/systemd/system/monitor_rascsi.service" ]]; then
         sudo systemctl start monitor_rascsi.service
-	showRaScsiScreenStatus
+        showRaScsiScreenStatus
     fi
 }
 
+# Shows status for the rascsi service
 function showRaScsiStatus() {
     systemctl status rascsi | tee
 }
 
+# Shows status for the rascsi-web service
 function showRaScsiWebStatus() {
     systemctl status rascsi-web | tee
 }
 
+# Shows status for the monitor_rascsi service
 function showRaScsiScreenStatus() {
     systemctl status monitor_rascsi | tee
 }
 
+# Creates a drive image file with specific parameters
 function createDrive600MB() {
     createDrive 600 "HD600"
 }
 
+# Creates a drive image file and prompts for parameters
 function createDriveCustom() {
     driveSize=-1
     until [ $driveSize -ge "10" ] && [ $driveSize -le "4000" ]; do
@@ -325,6 +358,7 @@ function createDriveCustom() {
     createDrive "$driveSize" "$driveName"
 }
 
+# Creates an HFS file system
 function formatDrive() {
     diskPath="$1"
     volumeName="$2"
@@ -393,6 +427,7 @@ function formatDrive() {
     fi
 }
 
+# Creates an image file
 function createDrive() {
     if [ $# -ne 2 ]; then
         echo "To create a Drive, volume size and volume name must be provided"
@@ -418,6 +453,7 @@ function createDrive() {
     fi
 }
 
+# Modifies system configurations for a wired network bridge
 function setupWiredNetworking() {
     echo "Setting up wired network..."
 
@@ -466,6 +502,7 @@ function setupWiredNetworking() {
     sudo reboot
 }
 
+# Modifies system configurations for a wireless network bridge with NAT
 function setupWirelessNetworking() {
     NETWORK="10.10.20"
     IP=$NETWORK.2 # Macintosh or Device IP
@@ -541,6 +578,7 @@ function setupWirelessNetworking() {
     sudo reboot
 }
 
+# Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
     NETATALK_VERSION="20200806"
     AFP_SHARE_PATH="$HOME/afpshare"
@@ -608,6 +646,7 @@ function installNetatalk() {
     echo ""
 }
 
+# Downloads, compiles, and installs Macproxy (web proxy)
 function installMacproxy {
     PORT=5000
 
@@ -622,6 +661,8 @@ function installMacproxy {
     else
         echo "Using the default port $PORT"
     fi
+
+    ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
     MACPROXY_VER="21.11"
     MACPROXY_DIR="$HOME/macproxy-$MACPROXY_VER"
@@ -648,6 +689,7 @@ function installMacproxy {
     echo ""
 }
 
+# Prints a notification if the rascsi.service file was backed up
 function notifyBackup {
     if $SYSTEMD_BACKUP; then
         echo ""
@@ -658,33 +700,70 @@ function notifyBackup {
     fi
 }
 
+# Executes the keyword driven scripts for a particular action in the main menu
 function runChoice() {
   case $1 in
           1)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) + Web Interface"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Modify and enable Apache2 and Nginx web service"
+              echo "- Create directories and change permissions"
+              echo "- Modify user groups and permissions"
+              echo "- Install binaries to /usr/local/bin"
+              echo "- Install manpages to /usr/local/man"
+              sudoCheck
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
+              createCfgDir
               installPackages
+              stopRaScsiScreen
+              stopRaScsi
+              backupRaScsiService
+              compileRaScsi
               installRaScsi
+              enableRaScsiService
+              startRaScsiScreen
               installRaScsiWebInterface
+              installWebInterfaceService
               showRaScsiStatus
               showRaScsiWebStatus
               notifyBackup
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web interface - Complete!"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) + Web Interface - Complete!"
           ;;
           2)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC})"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC})"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Create directories and change permissions"
+              echo "- Modify user groups and permissions"
+              echo "- Install binaries to /usr/local/bin"
+              echo "- Install manpages to /usr/local/man"
+              sudoCheck
               updateRaScsiGit
               createImagesDir
               installPackages
+              stopRaScsiScreen
+              stopRaScsi
+              backupRaScsiService
+              compileRaScsi
               installRaScsi
+              enableRaScsiService
+              startRaScsiScreen
               showRaScsiStatus
               notifyBackup
-	          echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
           ;;
           3)
               echo "Installing / Updating RaSCSI OLED Screen"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
+              sudoCheck
               installRaScsiScreen
               showRaScsiScreenStatus
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
@@ -701,25 +780,80 @@ function runChoice() {
           ;;
           6)
               echo "Configuring wired network bridge"
+              echo "This script will make the following changes to your system:"
+              echo "- Create a virtual network bridge interface in /etc/network/interfaces.d"
+              echo "- Modify /etc/dhcpcd.conf to bridge the Ethernet interface (may change the IP address; requires a reboot)"
+              sudoCheck
               showMacNetworkWired
-	      setupWiredNetworking
+              setupWiredNetworking
               echo "Configuring wired network bridge - Complete!"
           ;;
           7)
               echo "Configuring wifi network bridge"
-	      showMacNetworkWireless
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Modify /etc/sysctl.conf to enable IPv4 forwarding"
+              echo "- Add NAT rules for the wlan interface (requires a reboot)"
+              sudoCheck
+              showMacNetworkWireless
               setupWirelessNetworking
               echo "Configuring wifi network bridge - Complete!"
           ;;
           8)
               echo "Installing AppleShare File Server"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Create directories and change permissions"
+              echo "- Install binaries to /usr/local/sbin"
+              echo "- Install manpages to /usr/local/share/man/"
+              echo "- Install configuration files to /etc"
+              echo "- Modify /etc/rc.local to start Netatalk daemons on system startup"
+              echo ""
+              sudoCheck
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
           9)
               echo "Installing Web Proxy Server"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              sudoCheck
               installMacproxy
               echo "Installing Web Proxy Server - Complete!"
+          ;;
+          10)
+              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC})"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Create directories and change permissions"
+              echo "- Install binaries to /usr/local/bin"
+              echo "- Install manpages to /usr/local/man"
+              sudoCheck
+              updateRaScsiGit
+              createImagesDir
+              installPackages
+              stopRaScsi
+              compileRaScsi
+              installRaScsi
+              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
+              echo "Use 'rascsi' to launch RaSCSI, and 'rasctl' to control the running process."
+          ;;
+          11)
+              echo "Configuring RaSCSI Web Interface stand-alone"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Modify and enable Apache2 and Nginx web service"
+              echo "- Create directories and change permissions"
+              echo "- Modify user groups and permissions"
+              sudoCheck
+              updateRaScsiGit
+              createCfgDir
+              installPackages
+              installRaScsiWebInterface
+              echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
+              echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --port=8081"
           ;;
           -h|--help|h|help)
               showMenu
@@ -730,10 +864,11 @@ function runChoice() {
       esac
 }
 
+# Reads and validates the main menu choice
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "9" ]; do
+   until [ $choice -ge "0" ] && [ $choice -le "11" ]; do
        echo -n "Enter your choice (0-9) or CTRL-C to exit: "
        read -r choice
    done
@@ -741,6 +876,7 @@ function readChoice() {
    runChoice "$choice"
 }
 
+# Shows the interactive main menu of the script
 function showMenu() {
     echo ""
     echo "Choose among the following options:"
@@ -758,9 +894,12 @@ function showMenu() {
     echo "INSTALL COMPANION APPS"
     echo "  8) install AppleShare File Server (Netatalk)"
     echo "  9) install Web Proxy Server (Macproxy)"
+    echo "ADVANCED OPTIONS"
+    echo " 10) compile and install RaSCSI stand-alone"
+    echo " 11) configure the RaSCSI Web Interface stand-alone"
 }
 
-# parse arguments
+# parse arguments passed to the script
 while [ "$1" != "" ]; do
     PARAM=$(echo "$1" | awk -F= '{print $1}')
     VALUE=$(echo "$1" | awk -F= '{print $2}')
@@ -780,7 +919,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 )
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11)
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
