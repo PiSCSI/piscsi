@@ -57,7 +57,7 @@ RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
 RSYSLOG_LOG  = /var/log/rascsi.log
 
 USR_LOCAL_BIN = /usr/local/bin
-MAN_PAGE_DIR  = /usr/share/man/man1
+MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../../doc
 OS_FILES = ./os_integration
 
