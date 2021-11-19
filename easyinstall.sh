@@ -712,7 +712,7 @@ function runChoice() {
               echo "- Create directories and change permissions"
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
-              echo "- Install manpages to /usr/share/man"
+              echo "- Install manpages to /usr/local/man"
               sudoCheck
               stopOldWebInterface
               updateRaScsiGit
@@ -741,6 +741,7 @@ function runChoice() {
               echo "- Create directories and change permissions"
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
+              echo "- Install manpages to /usr/local/man"
               sudoCheck
               updateRaScsiGit
               createImagesDir
@@ -827,7 +828,7 @@ function runChoice() {
               echo "- Install additional packages with apt-get"
               echo "- Create directories and change permissions"
               echo "- Install binaries to /usr/local/bin"
-              echo "- Install manpages to /usr/share/man"
+              echo "- Install manpages to /usr/local/man"
               sudoCheck
               updateRaScsiGit
               createImagesDir
