@@ -89,13 +89,13 @@ function compileRaScsi() {
         echo $COMPILER_FLAGS
     fi
 
-    echo "Compiling with ${CORES-1} simultaneous cores..."
-    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES-1}" all CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" ) </dev/null
+    echo "Compiling with ${CORES:-1} simultaneous cores..."
+    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
 }
 
 # install the RaSCSI binaries and modify the service configuration
 function installRaScsi() {
-    sudo make install CONNECT_TYPE="${CONNECT_TYPE-FULLSPEC}" </dev/null
+    sudo make install CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
@@ -704,7 +704,7 @@ function notifyBackup {
 function runChoice() {
   case $1 in
           1)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web Interface"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) + Web Interface"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
@@ -731,10 +731,10 @@ function runChoice() {
               showRaScsiStatus
               showRaScsiWebStatus
               notifyBackup
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) + Web Interface - Complete!"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) + Web Interface - Complete!"
           ;;
           2)
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC})"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC})"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
@@ -755,7 +755,7 @@ function runChoice() {
               startRaScsiScreen
               showRaScsiStatus
               notifyBackup
-              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE-FULLSPEC}) - Complete!"
+              echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
           ;;
           3)
               echo "Installing / Updating RaSCSI OLED Screen"
@@ -823,7 +823,7 @@ function runChoice() {
               echo "Installing Web Proxy Server - Complete!"
           ;;
           10)
-              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE-FULLSPEC})"
+              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC})"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Create directories and change permissions"
@@ -836,7 +836,7 @@ function runChoice() {
               stopRaScsi
               compileRaScsi
               installRaScsi
-              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE-FULLSPEC}) - Complete!"
+              echo "Configuring RaSCSI stand-alone (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
               echo "Use 'rascsi' to launch RaSCSI, and 'rasctl' to control the running process."
           ;;
           11)
