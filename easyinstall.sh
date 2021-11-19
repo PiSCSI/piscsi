@@ -90,7 +90,7 @@ function compileRaScsi() {
     fi
 
     echo "Compiling with ${CORES:-1} simultaneous cores..."
-    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
 }
 
 # install the RaSCSI binaries and modify the service configuration
