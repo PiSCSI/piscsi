@@ -141,6 +141,7 @@ public:
 	bool SetGeometryForCapacity(uint64_t);
 	uint64_t GetBlockCount() const;
 	void SetBlockCount(uint32_t);
+	bool CheckBlockAddress(SASIDEV *, access_mode);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 	bool CheckReady();
 

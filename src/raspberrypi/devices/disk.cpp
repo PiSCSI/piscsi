@@ -227,34 +227,31 @@ void Disk::Read(SASIDEV *controller, uint64_t record)
 
 void Disk::Read6(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
-		LOGDEBUG("%s READ(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
+		LOGDEBUG("%s READ(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
 void Disk::Read10(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
 void Disk::Read16(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s READ(16) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s READ(16) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
@@ -263,8 +260,10 @@ void Disk::ReadWriteLong10(SASIDEV *controller)
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[7] || ctrl->cmd[8]) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
 	}
-	else {
+
+	if (CheckBlockAddress(controller, RW10)) {
 		controller->Status();
 	}
 }
@@ -279,8 +278,10 @@ void Disk::ReadWriteLong16(SASIDEV *controller)
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[12] || ctrl->cmd[13]) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
 	}
-	else {
+
+	if (CheckBlockAddress(controller, RW16)) {
 		controller->Status();
 	}
 }
@@ -310,34 +311,31 @@ void Disk::Write(SASIDEV *controller, uint64_t record)
 
 void Disk::Write6(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
-		LOGDEBUG("%s WRITE(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
+		LOGDEBUG("%s WRITE(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
 void Disk::Write10(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s WRITE(10) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s WRITE(10) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
 void Disk::Write16(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s WRITE(16) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s WRITE(16) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
@@ -1518,9 +1516,44 @@ void Disk::Release10(SASIDEV *controller)
 
 //---------------------------------------------------------------------------
 //
-//	Get start sector and sector count for a READ/WRITE operation
+//	Check/Get start sector and sector count for a READ/WRITE or READ/WRITE LONG operation
 //
 //---------------------------------------------------------------------------
+
+bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
+{
+	uint64_t address = ctrl->cmd[2];
+	address <<= 8;
+	address |= ctrl->cmd[3];
+	address <<= 8;
+	address |= ctrl->cmd[4];
+	address <<= 8;
+	address |= ctrl->cmd[5];
+
+	if (mode == RW16) {
+		address <<= 8;
+		address |= ctrl->cmd[6];
+		address <<= 8;
+		address |= ctrl->cmd[7];
+		address <<= 8;
+		address |= ctrl->cmd[8];
+		address <<= 8;
+		address |= ctrl->cmd[9];
+	}
+
+	uint64_t capacity = GetBlockCount();
+	if (address > capacity) {
+		ostringstream s;
+		s << "Capacity of " << capacity << " blocks exceeded: "
+				<< "Trying to access block " << address;
+		LOGTRACE("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return false;
+	}
+
+	return true;
+}
+
 bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, access_mode mode)
 {
 	if (mode == RW6) {
@@ -1543,6 +1576,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		start |= ctrl->cmd[4];
 		start <<= 8;
 		start |= ctrl->cmd[5];
+
 		if (mode == RW16) {
 			start <<= 8;
 			start |= ctrl->cmd[6];
@@ -1576,7 +1610,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		ostringstream s;
 		s << "Capacity of " << capacity << " blocks exceeded: "
 				<< "Trying to read block " << start << ", block count " << ctrl->blocks;
-		LOGDEBUG("%s", s.str().c_str());
+		LOGTRACE("%s", s.str().c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
