@@ -34,6 +34,8 @@ public:
 	virtual void RequestSense(SASIDEV *) = 0;
 
 	// Implemented optional commands
+	virtual void ReadLong10(SASIDEV *) = 0;
+	virtual void WriteLong10(SASIDEV *) = 0;
 	virtual void Verify10(SASIDEV *) = 0;
 	virtual void Verify16(SASIDEV *) = 0;
 	virtual void ModeSense6(SASIDEV *) = 0;

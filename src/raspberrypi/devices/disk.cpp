@@ -51,6 +51,8 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
 	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
 	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdReadLong10, "ReadLong10", &Disk::ReadWriteLong10);
+	AddCommand(SCSIDEV::eCmdWriteLong10, "WriteLong10", &Disk::ReadWriteLong10);
 	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
 	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
 	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
@@ -206,11 +208,6 @@ void Disk::ReassignBlocks(SASIDEV *controller)
 	controller->Status();
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ
-//
-//---------------------------------------------------------------------------
 void Disk::Read(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
@@ -260,11 +257,22 @@ void Disk::Read16(SASIDEV *controller)
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	WRITE
-//
-//---------------------------------------------------------------------------
+void Disk::ReadWriteLong10(SASIDEV *controller)
+{
+	// Only partially supported by not considering a 0 length transfer an error
+	if (ctrl->cmd[7] || ctrl->cmd[8]) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+	}
+	else {
+		controller->Status();
+	}
+}
+
+void Disk::ReadLong10(SASIDEV *controller)
+{
+	ReadWriteLong10(controller);
+}
+
 void Disk::Write(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
@@ -316,11 +324,11 @@ void Disk::Write16(SASIDEV *controller)
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	VERIFY
-//
-//---------------------------------------------------------------------------
+void Disk::WriteLong10(SASIDEV *controller)
+{
+	ReadWriteLong10(controller);
+}
+
 void Disk::Verify(SASIDEV *controller, uint64_t record)
 {
 	// if BytChk=0
