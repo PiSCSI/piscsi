@@ -78,7 +78,7 @@ private:
 		eCmdWrite16 = 0x8A,
 		eCmdVerify16 = 0x8F,
 		eCmdWriteLong10 = 0x3F,
-		ecmdWriteLong16 = 0x9F,
+		eCmdWriteLong16 = 0x9F,
 		eCmdInvalid = 0xC2,
 		eCmdSasiCmdAssign = 0x0E
 	};
