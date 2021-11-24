@@ -65,7 +65,7 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
 	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
 	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(SCSIDEV::eCmdReadCapacity16, "ReadCapacity16", &Disk::ReadCapacity16);
+	AddCommand(SCSIDEV::eCmdReadCapacity16_ReadLong16, "ReadCapacity16_ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
 }
 
@@ -273,6 +273,22 @@ void Disk::ReadLong10(SASIDEV *controller)
 	ReadWriteLong10(controller);
 }
 
+void Disk::ReadWriteLong16(SASIDEV *controller)
+{
+	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
+	if (ctrl->cmd[12] || ctrl->cmd[13]) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+	}
+	else {
+		controller->Status();
+	}
+}
+
+void Disk::ReadLong16(SASIDEV *controller)
+{
+	ReadWriteLong16(controller);
+}
+
 void Disk::Write(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
@@ -327,6 +343,11 @@ void Disk::Write16(SASIDEV *controller)
 void Disk::WriteLong10(SASIDEV *controller)
 {
 	ReadWriteLong10(controller);
+}
+
+void Disk::WriteLong16(SASIDEV *controller)
+{
+	ReadWriteLong16(controller);
 }
 
 void Disk::Verify(SASIDEV *controller, uint64_t record)
@@ -1382,6 +1403,24 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 	ctrl->length = 14;
 
 	controller->DataIn();
+}
+
+void Disk::ReadCapacity16_ReadLong16(SASIDEV *controller)
+{
+	// The service action determines the actual command
+	switch (ctrl->cmd[1] & 0x1f) {
+	case 0x10:
+		ReadCapacity16(controller);
+		break;
+
+	case 0x11:
+		ReadLong16(controller);
+		break;
+
+	default:
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		break;
+	}
 }
 
 void Disk::ReportLuns(SASIDEV *controller)

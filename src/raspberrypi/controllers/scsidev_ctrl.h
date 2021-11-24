@@ -67,7 +67,8 @@ public:
 		eCmdWrite16 = 0x8A,
 		eCmdVerify16 = 0x8F,
 		eCmdSynchronizeCache16 = 0x91,
-		eCmdReadCapacity16 = 0x9E,
+		eCmdReadCapacity16_ReadLong16 = 0x9E,
+		eCmdWriteLong16 = 0x9F,
 		eCmdReportLuns = 0xA0
 	};
 

@@ -102,7 +102,9 @@ public:
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
 	void ReadLong10(SASIDEV *) override;
+	void ReadLong16(SASIDEV *) override;
 	void WriteLong10(SASIDEV *) override;
+	void WriteLong16(SASIDEV *) override;
 	void Verify10(SASIDEV *) override;
 	void Verify16(SASIDEV *) override;
 	void Seek(SASIDEV *);
@@ -165,6 +167,8 @@ private:
 	void Write(SASIDEV *, uint64_t);
 	void Verify(SASIDEV *, uint64_t);
 	void ReadWriteLong10(SASIDEV *);
+	void ReadWriteLong16(SASIDEV *);
+	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);
