@@ -259,7 +259,7 @@ void Disk::Read16(SASIDEV *controller)
 
 void Disk::ReadWriteLong10(SASIDEV *controller)
 {
-	// Other lengths than 0 are not supported, which is compliant with the SCSI standard
+	// Tranfser lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[7] || ctrl->cmd[8]) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 	}
