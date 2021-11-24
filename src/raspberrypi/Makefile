@@ -224,6 +224,7 @@ $(USR_LOCAL_BIN)% : $(BINDIR)/%
 
 $(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
 	@echo "-- Copying $@"
+	mkdir -p $@
 	cp $< $@
 
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
