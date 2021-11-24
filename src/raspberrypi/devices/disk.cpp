@@ -1522,30 +1522,29 @@ void Disk::Release10(SASIDEV *controller)
 
 bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
 {
-	uint64_t address = ctrl->cmd[2];
-	address <<= 8;
-	address |= ctrl->cmd[3];
-	address <<= 8;
-	address |= ctrl->cmd[4];
-	address <<= 8;
-	address |= ctrl->cmd[5];
+	uint64_t block = ctrl->cmd[2];
+	block <<= 8;
+	block |= ctrl->cmd[3];
+	block <<= 8;
+	block |= ctrl->cmd[4];
+	block <<= 8;
+	block |= ctrl->cmd[5];
 
 	if (mode == RW16) {
-		address <<= 8;
-		address |= ctrl->cmd[6];
-		address <<= 8;
-		address |= ctrl->cmd[7];
-		address <<= 8;
-		address |= ctrl->cmd[8];
-		address <<= 8;
-		address |= ctrl->cmd[9];
+		block <<= 8;
+		block |= ctrl->cmd[6];
+		block <<= 8;
+		block |= ctrl->cmd[7];
+		block <<= 8;
+		block |= ctrl->cmd[8];
+		block <<= 8;
+		block |= ctrl->cmd[9];
 	}
 
 	uint64_t capacity = GetBlockCount();
-	if (address > capacity) {
+	if (block > capacity) {
 		ostringstream s;
-		s << "Capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to access block " << address;
+		s << "Capacity of " << capacity << " blocks exceeded: " << "Trying to access block " << block;
 		LOGTRACE("%s", s.str().c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
