@@ -66,7 +66,7 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
 	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
 	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(SCSIDEV::eCmdReadCapacity16_ReadLong16, "ReadCapacity16_ReadLong16", &Disk::ReadCapacity16_ReadLong16);
+	AddCommand(SCSIDEV::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
 }
 
