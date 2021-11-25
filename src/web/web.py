@@ -44,6 +44,7 @@ from pi_cmds import (
     disk_space,
     get_ip_address,
     introspect_file,
+    auth_active,
 )
 from ractl_cmds import (
     attach_image,
@@ -149,6 +150,7 @@ def index():
         removable_file_suffix=tuple(server_info["scrm"]),
         mo_file_suffix=tuple(server_info["scmo"]),
         username=username,
+        auth_active=auth_active()["status"],
         ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
@@ -217,6 +219,7 @@ def drive_list():
         free_disk=int(disk["free"] / 1024 / 1024),
         cdrom_file_suffix=tuple(server_info["sccd"]),
         username=username,
+        auth_active=auth_active()["status"],
     )
 
 
@@ -231,11 +234,11 @@ def login():
     from grp import getgrall
 
     groups = [g.gr_name for g in getgrall() if username in g.gr_mem]
-    if "sudo" in groups:
+    if "rascsi" in groups:
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
             return redirect(url_for("index"))
-    flash("You must log in with credentials for a user with sudoers privileges!", "error")
+    flash("You must log in with credentials for a user in the 'rascsi' group!", "error")
     return redirect(url_for("index"))
 
 
@@ -261,8 +264,9 @@ def drive_create():
     """
     Creates the image and properties file pair
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     vendor = request.form.get("vendor")
@@ -303,8 +307,9 @@ def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     vendor = request.form.get("vendor")
@@ -335,8 +340,9 @@ def config_save():
     """
     Saves a config file to disk
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     file_name = request.form.get("name") or "default"
@@ -356,8 +362,9 @@ def config_load():
     """
     Loads a config file from disk
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     file_name = request.form.get("name")
@@ -412,8 +419,9 @@ def log_level():
     """
     Sets RaSCSI backend log level
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     level = request.form.get("level") or "info"
@@ -432,8 +440,9 @@ def daynaport_attach():
     """
     Attaches a DaynaPORT ethernet adapter device
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     scsi_id = request.form.get("scsi_id")
@@ -480,8 +489,9 @@ def attach():
     """
     Attaches a file image as a device
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     file_name = request.form.get("file_name")
@@ -536,8 +546,9 @@ def detach_all_devices():
     """
     Detaches all currently attached devices
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     process = detach_all()
@@ -554,8 +565,9 @@ def detach():
     """
     Detaches a specified device
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     scsi_id = request.form.get("scsi_id")
@@ -575,8 +587,9 @@ def eject():
     """
     Ejects a specified removable device image, but keeps the device attached
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     scsi_id = request.form.get("scsi_id")
@@ -631,8 +644,9 @@ def reserve_id():
     """
     Reserves a SCSI ID and stores the memo for that reservation
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     scsi_id = request.form.get("scsi_id")
@@ -653,8 +667,9 @@ def unreserve_id():
     """
     Removes the reservation of a SCSI ID as well as the memo for the reservation
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     scsi_id = request.form.get("scsi_id")
@@ -674,8 +689,9 @@ def restart():
     """
     Restarts the Pi
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     detach_all()
@@ -690,8 +706,9 @@ def rascsi_restart():
     """
     Restarts the RaSCSI backend service
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     detach_all()
@@ -707,8 +724,9 @@ def shutdown():
     """
     Shuts down the Pi
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     detach_all()
@@ -723,8 +741,9 @@ def download_to_iso():
     """
     Downloads a remote file and creates a CD-ROM image formatted with HFS that contains the file
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     scsi_id = request.form.get("scsi_id")
@@ -753,8 +772,9 @@ def download_img():
     """
     Downloads a remote file onto the images dir on the Pi
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     url = request.form.get("url")
@@ -774,8 +794,9 @@ def download_afp():
     """
     Downloads a remote file onto the AFP shared dir on the Pi
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     url = request.form.get("url")
@@ -795,8 +816,9 @@ def upload_file():
     Uploads a file from the local computer to the images dir on the Pi
     Depending on the Dropzone.js JavaScript library
     """
-    if "username" not in session:
-        return make_response(("You must log in to use this function!", 403))
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        return make_response(auth["msg"], 403)
 
     from werkzeug.utils import secure_filename
     from os import path
@@ -846,8 +868,9 @@ def create_file():
     """
     Creates an empty image file in the images dir
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     file_name = request.form.get("file_name")
@@ -871,8 +894,9 @@ def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     image = request.form.get("file")
@@ -884,8 +908,9 @@ def delete():
     """
     Deletes a specified file in the images dir
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     file_name = request.form.get("image")
@@ -916,8 +941,9 @@ def unzip():
     """
     Unzips a specified zip file
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
     zip_file = request.form.get("zip_file")

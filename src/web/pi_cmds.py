@@ -116,3 +116,18 @@ def introspect_file(file_path, re_term):
         if match(re_term, line):
             return True
     return False
+
+
+def auth_active():
+    """
+    Inspects if the 'rascsi' group exists on the system.
+    If it exists, tell the webapp to enable authentication.
+    """
+    from grp import getgrall
+    groups = [g.gr_name for g in getgrall()]
+    if "rascsi" in groups:
+        return {
+                "status": True,
+                "msg": "You must log in to use this function!",
+                }
+    return {"status": False, "msg": ""}
