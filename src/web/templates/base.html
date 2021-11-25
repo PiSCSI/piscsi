@@ -33,7 +33,7 @@
     <div class="header">
         {% if auth_active %}
         {% if username %}
-        <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Logged in as {{ username }} &#8211; <a href="/logout">Log Out</a></span>
+        <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Logged in as <em>{{ username }}</em> &#8211; <a href="/logout">Log Out</a></span>
         {% else %}
         <span style="display: inline-block; width: 100%; color: white; background-color: red; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
             <form method="POST" action="/login">

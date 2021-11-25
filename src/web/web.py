@@ -5,7 +5,6 @@ Module for the Flask app rendering and endpoints
 import logging
 from sys import argv
 from pathlib import Path
-from simplepam import authenticate
 
 from flask import (
     Flask,
@@ -74,6 +73,7 @@ from settings import (
     DRIVE_PROPERTIES_FILE,
     REMOVABLE_DEVICE_TYPES,
     RESERVATIONS,
+    AUTH_GROUP,
 )
 
 APP = Flask(__name__)
@@ -231,14 +231,15 @@ def login():
     username = request.form["username"]
     password = request.form["password"]
 
+    from simplepam import authenticate
     from grp import getgrall
 
     groups = [g.gr_name for g in getgrall() if username in g.gr_mem]
-    if "rascsi" in groups:
+    if AUTH_GROUP in groups:
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
             return redirect(url_for("index"))
-    flash("You must log in with credentials for a user in the 'rascsi' group!", "error")
+    flash(f"You must log in with credentials for a user in the '{AUTH_GROUP}' group!", "error")
     return redirect(url_for("index"))
 
 

@@ -3,6 +3,7 @@ Module for methods controlling and getting information about the Pi's Linux syst
 """
 
 import subprocess
+from settings import AUTH_GROUP
 
 
 def systemd_service(service, action):
@@ -120,12 +121,13 @@ def introspect_file(file_path, re_term):
 
 def auth_active():
     """
-    Inspects if the 'rascsi' group exists on the system.
+    Inspects if the group defined in AUTH_GROUP exists on the system.
     If it exists, tell the webapp to enable authentication.
+    Returns a (dict) with (bool) status and (str) msg
     """
     from grp import getgrall
     groups = [g.gr_name for g in getgrall()]
-    if "rascsi" in groups:
+    if AUTH_GROUP in groups:
         return {
                 "status": True,
                 "msg": "You must log in to use this function!",
