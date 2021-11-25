@@ -873,7 +873,7 @@ function runChoice() {
           12)
               echo "Enabling authentication for the RaSCSI Web Interface"
               echo "This script will make the following changes to your system:"
-              echo "- Modify user groups"
+              echo "- Modify users and user groups"
               sudoCheck
               enableWebInterfaceAuth
               echo "Enabling authentication for the RaSCSI Web Interface - Complete!"
