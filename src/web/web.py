@@ -235,7 +235,7 @@ def login():
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
             return redirect(url_for("index"))
-    flash("Must log in with credentials for a user with sudoers privileges!", "error")
+    flash("You must log in with credentials for a user with sudoers privileges!", "error")
     return redirect(url_for("index"))
 
 
