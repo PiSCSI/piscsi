@@ -795,10 +795,6 @@ def upload_file():
     Uploads a file from the local computer to the images dir on the Pi
     Depending on the Dropzone.js JavaScript library
     """
-    if "username" not in session:
-        flash("You must log in to use this function!", "error")
-        return redirect(url_for("index"))
-
     from werkzeug.utils import secure_filename
     from os import path
 
