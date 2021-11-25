@@ -227,10 +227,15 @@ def login():
     """
     username = request.form["username"]
     password = request.form["password"]
-    if authenticate(str(username), str(password)):
-        session["username"] = request.form["username"]
-        return redirect(url_for("index"))
-    flash("Invalid username/password", "error")
+
+    from grp import getgrall
+
+    groups = [g.gr_name for g in getgrall() if username in g.gr_mem]
+    if "sudo" in groups:
+        if authenticate(str(username), str(password)):
+            session["username"] = request.form["username"]
+            return redirect(url_for("index"))
+    flash("Must log in with credentials for a user with sudoers privileges!", "error")
     return redirect(url_for("index"))
 
 
