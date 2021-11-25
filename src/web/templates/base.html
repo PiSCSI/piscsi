@@ -68,7 +68,7 @@
         {% block content %}{% endblock content %}
     </div>
     <div class="footer">
-        <center><tt>RaSCSI version: <strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}">{{ running_env["git"][:7] }}</a></strong></tt></center>
+        <center><tt>RaSCSI version: <strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}" target="_blank">{{ running_env["git"][:7] }}</a></strong></tt></center>
         <center><tt>Pi environment: {{ running_env["env"] }}</tt></center>
     </div>
 </div>
