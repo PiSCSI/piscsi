@@ -700,6 +700,19 @@ function notifyBackup {
     fi
 }
 
+# Creates the group and modifies current user for Web Interface auth
+function enableWebInterfaceAuth {
+    if [ $(getent group rascsi) ]; then
+        echo "The 'rascsi' group already exists."
+    else
+        echo "Creating the 'rascsi' group."
+        sudo groupadd rascsi
+    fi
+
+    echo "Adding user '$USER' to the 'rascsi' group."
+    sudo usermod -a -G rascsi "$USER"
+}
+
 # Executes the keyword driven scripts for a particular action in the main menu
 function runChoice() {
   case $1 in
@@ -855,6 +868,15 @@ function runChoice() {
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --port=8081"
           ;;
+          12)
+              echo "Enabling authentication for the RaSCSI Web Interface"
+              echo "This script will make the following changes to your system:"
+              echo "- Modify user groups"
+              sudoCheck
+              enableWebInterfaceAuth
+              echo "Enabling authentication for the RaSCSI Web Interface - Complete!"
+              echo "Use the credentials for user '$USER' to log in to the Web Interface."
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -868,7 +890,7 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "11" ]; do
+   until [ $choice -ge "0" ] && [ $choice -le "12" ]; do
        echo -n "Enter your choice (0-9) or CTRL-C to exit: "
        read -r choice
    done
@@ -897,6 +919,7 @@ function showMenu() {
     echo "ADVANCED OPTIONS"
     echo " 10) compile and install RaSCSI stand-alone"
     echo " 11) configure the RaSCSI Web Interface stand-alone"
+    echo " 12) enable authentication for the RaSCSI Web Interface"
 }
 
 # parse arguments passed to the script
@@ -919,7 +942,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11)
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
