@@ -702,15 +702,17 @@ function notifyBackup {
 
 # Creates the group and modifies current user for Web Interface auth
 function enableWebInterfaceAuth {
-    if [ $(getent group rascsi) ]; then
-        echo "The 'rascsi' group already exists."
+    AUTH_GROUP="rascsi"
+
+    if [ $(getent group "$AUTH_GROUP") ]; then
+        echo "The '$AUTH_GROUP' group already exists."
     else
-        echo "Creating the 'rascsi' group."
-        sudo groupadd rascsi
+        echo "Creating the '$AUTH_GROUP' group."
+        sudo groupadd "$AUTH_GROUP"
     fi
 
-    echo "Adding user '$USER' to the 'rascsi' group."
-    sudo usermod -a -G rascsi "$USER"
+    echo "Adding user '$USER' to the '$AUTH_GROUP' group."
+    sudo usermod -a -G "$AUTH_GROUP" "$USER"
 }
 
 # Executes the keyword driven scripts for a particular action in the main menu
