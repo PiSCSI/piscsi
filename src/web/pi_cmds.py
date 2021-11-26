@@ -116,3 +116,20 @@ def introspect_file(file_path, re_term):
         if match(re_term, line):
             return True
     return False
+
+
+async def run_async(cmd):
+    import asyncio
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE)
+
+    stdout, stderr = await proc.communicate()
+
+    if stdout:
+        stdout = stdout.decode()
+    if stderr:
+        stderr = stderr.decode()
+
+    return {"returncode": proc.returncode, "stdout": stdout, "stderr": stderr}
