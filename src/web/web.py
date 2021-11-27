@@ -584,9 +584,6 @@ def restart():
     """
     Restarts the Pi
     """
-    detach_all()
-    flash("Safely detached all devices.")
-    flash("Rebooting the Pi momentarily...")
     reboot_pi()
     return redirect(url_for("index"))
 
@@ -609,9 +606,6 @@ def shutdown():
     """
     Shuts down the Pi
     """
-    detach_all()
-    flash("Safely detached all devices.")
-    flash("Shutting down the Pi momentarily...")
     shutdown_pi()
     return redirect(url_for("index"))
 
@@ -785,7 +779,7 @@ def delete():
 @APP.route("/files/unzip", methods=["POST"])
 def unzip():
     """
-    Unzips a specified zip file
+    Unzips all files in a specified zip archive, or a single file in the zip archive
     """
     zip_file = request.form.get("zip_file")
     zip_member = request.form.get("zip_member") or False
