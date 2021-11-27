@@ -14,6 +14,7 @@ from ractl_cmds import (
     list_devices,
     reserve_scsi_ids,
 )
+from pi_cmds import run_async
 from socket_cmds import send_pb_command
 from settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
 import rascsi_interface_pb2 as proto
@@ -175,42 +176,42 @@ def unzip_file(file_name, member=False, members=False):
     members contains all of the full paths to each of the zip archive members
     Returns (dict) with (boolean) status and (list of str) msg
     """
-    from subprocess import run
-    from re import escape
+    from asyncio import run
     server_info = get_server_info()
     prop_flag = False
 
     if not member:
-        unzip_proc = run(
-            ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
-                f"{server_info['image_dir']}/{file_name}"], capture_output=True
-            )
+        unzip_proc = run(run_async(
+            f"unzip -d {server_info['image_dir']} -n -j "
+            f"{server_info['image_dir']}/{file_name}"
+            ))
         for path in members:
             if path.endswith(PROPERTIES_SUFFIX):
                 name = PurePath(path).name
                 rename_file(f"{server_info['image_dir']}/{name}", f"{CFG_DIR}/{name}")
                 prop_flag = True
     else:
-        unzip_proc = run(
-            ["unzip", "-d", server_info["image_dir"], "-n", "-j", \
-                f"{server_info['image_dir']}/{file_name}", escape(member)], capture_output=True
-            )
+        from re import escape
+        member = escape(member)
+        unzip_proc = run(run_async(
+            f"unzip -d {server_info['image_dir']} -n -j "
+            f"{server_info['image_dir']}/{file_name} {member}"
+            ))
         # Attempt to unzip a properties file in the same archive dir
-        unzip_prop = run(
-            ["unzip", "-d", CFG_DIR, "-n", "-j", \
-                f"{server_info['image_dir']}/{file_name}", escape(member) + "." + PROPERTIES_SUFFIX], capture_output=False
-            )
-        if unzip_prop.returncode == 0:
+        unzip_prop = run(run_async(
+            f"unzip -d {CFG_DIR} -n -j "
+            f"{server_info['image_dir']}/{file_name} {member}.{PROPERTIES_SUFFIX}"
+            ))
+        if unzip_prop["returncode"] == 0:
             prop_flag = True
-    if unzip_proc.returncode != 0:
-        stderr = unzip_proc.stderr.decode("utf-8")
-        logging.warning("Unzipping failed: %s", stderr)
-        return {"status": False, "msg": stderr}
+    if unzip_proc["returncode"] != 0:
+        logging.warning("Unzipping failed: %s", unzip_proc["stderr"])
+        return {"status": False, "msg": unzip_proc["stderr"]}
 
     from re import findall
     unzipped = findall(
         "(?:inflating|extracting):(.+)\n",
-        unzip_proc.stdout.decode("utf-8")
+        unzip_proc["stdout"]
         )
     return {"status": True, "msg": unzipped, "prop_flag": prop_flag}
 
@@ -402,7 +403,6 @@ def write_drive_properties(file_name, conf):
         logging.error("Could not write to file: %s", file_path)
         delete_file(file_path)
         return {"status": False, "msg": f"Could not write to file: {file_path}"}
-
 
 
 def read_drive_properties(path_name):

@@ -59,7 +59,7 @@
         </tbody>
     </table>
     </div>
-    <div class="flash">
+    <div class="flash" id="flash">
         {% for category, message in get_flashed_messages(with_categories=true) %}
         {% if category == "stdout" or category == "stderr" %}
         <pre>{{ message }}</pre>

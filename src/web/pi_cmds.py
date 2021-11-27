@@ -3,6 +3,8 @@ Module for methods controlling and getting information about the Pi's Linux syst
 """
 
 import subprocess
+import asyncio
+import logging
 from settings import AUTH_GROUP
 
 
@@ -11,10 +13,8 @@ def systemd_service(service, action):
     Takes (str) service and (str) action
     Action can be one of start/stop/restart
     """
-    return (
-        subprocess.run(["sudo", "/bin/systemctl", action, service]).returncode
-        == 0
-    )
+    proc = asyncio.run(run_async("sudo /bin/systemctl {action} {service}"))
+    return proc["returncode"] == 0
 
 
 def reboot_pi():
@@ -117,6 +117,30 @@ def introspect_file(file_path, re_term):
         if match(re_term, line):
             return True
     return False
+
+
+async def run_async(cmd):
+    """
+    Takes (str) cmd with the shell command to execute
+    Executes shell command and captures output
+    Returns (dict) with (int) returncode, (str) stdout, (str) stderr
+    """
+    proc = await asyncio.create_subprocess_shell(
+        cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE)
+
+    stdout, stderr = await proc.communicate()
+
+    logging.info("Executed command \"%s\" with status code %d", cmd, proc.returncode)
+    if stdout:
+        stdout = stdout.decode()
+        logging.info("stdout: %s", stdout)
+    if stderr:
+        stderr = stderr.decode()
+        logging.info("stderr: %s", stderr)
+
+    return {"returncode": proc.returncode, "stdout": stdout, "stderr": stderr}
 
 
 def auth_active():

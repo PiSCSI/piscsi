@@ -695,9 +695,6 @@ def restart():
         flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
-    detach_all()
-    flash("Safely detached all devices.")
-    flash("Rebooting the Pi momentarily...")
     reboot_pi()
     return redirect(url_for("index"))
 
@@ -730,9 +727,6 @@ def shutdown():
         flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
-    detach_all()
-    flash("Safely detached all devices.")
-    flash("Shutting down the Pi momentarily...")
     shutdown_pi()
     return redirect(url_for("index"))
 
@@ -940,7 +934,7 @@ def delete():
 @APP.route("/files/unzip", methods=["POST"])
 def unzip():
     """
-    Unzips a specified zip file
+    Unzips all files in a specified zip archive, or a single file in the zip archive
     """
     auth = auth_active()
     if auth["status"] and "username" not in session:
