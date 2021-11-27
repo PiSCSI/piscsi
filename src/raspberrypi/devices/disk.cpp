@@ -51,6 +51,9 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
 	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
 	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
+	AddCommand(SCSIDEV::eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
+	AddCommand(SCSIDEV::eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
 	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
 	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
 	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
@@ -63,7 +66,7 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
 	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
 	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(SCSIDEV::eCmdReadCapacity16, "ReadCapacity16", &Disk::ReadCapacity16);
+	AddCommand(SCSIDEV::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
 }
 
@@ -206,11 +209,6 @@ void Disk::ReassignBlocks(SASIDEV *controller)
 	controller->Status();
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ
-//
-//---------------------------------------------------------------------------
 void Disk::Read(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
@@ -229,42 +227,70 @@ void Disk::Read(SASIDEV *controller, uint64_t record)
 
 void Disk::Read6(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
-		LOGDEBUG("%s READ(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
+		LOGDEBUG("%s READ(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
 void Disk::Read10(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
 void Disk::Read16(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s READ(16) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s READ(16) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	WRITE
-//
-//---------------------------------------------------------------------------
+void Disk::ReadWriteLong10(SASIDEV *controller)
+{
+	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
+	if (ctrl->cmd[7] || ctrl->cmd[8]) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
+	}
+
+	if (CheckBlockAddress(controller, RW10)) {
+		controller->Status();
+	}
+}
+
+void Disk::ReadLong10(SASIDEV *controller)
+{
+	ReadWriteLong10(controller);
+}
+
+void Disk::ReadWriteLong16(SASIDEV *controller)
+{
+	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
+	if (ctrl->cmd[12] || ctrl->cmd[13]) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
+	}
+
+	if (CheckBlockAddress(controller, RW16)) {
+		controller->Status();
+	}
+}
+
+void Disk::ReadLong16(SASIDEV *controller)
+{
+	ReadWriteLong16(controller);
+}
+
 void Disk::Write(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
@@ -285,42 +311,44 @@ void Disk::Write(SASIDEV *controller, uint64_t record)
 
 void Disk::Write6(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
-		LOGDEBUG("%s WRITE(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
+		LOGDEBUG("%s WRITE(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
 void Disk::Write10(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s WRITE(10) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s WRITE(10) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
 void Disk::Write16(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s WRITE(16) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s WRITE(16) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	VERIFY
-//
-//---------------------------------------------------------------------------
+void Disk::WriteLong10(SASIDEV *controller)
+{
+	ReadWriteLong10(controller);
+}
+
+void Disk::WriteLong16(SASIDEV *controller)
+{
+	ReadWriteLong16(controller);
+}
+
 void Disk::Verify(SASIDEV *controller, uint64_t record)
 {
 	// if BytChk=0
@@ -1376,6 +1404,24 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 	controller->DataIn();
 }
 
+void Disk::ReadCapacity16_ReadLong16(SASIDEV *controller)
+{
+	// The service action determines the actual command
+	switch (ctrl->cmd[1] & 0x1f) {
+	case 0x10:
+		ReadCapacity16(controller);
+		break;
+
+	case 0x11:
+		ReadLong16(controller);
+		break;
+
+	default:
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		break;
+	}
+}
+
 void Disk::ReportLuns(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
@@ -1470,9 +1516,43 @@ void Disk::Release10(SASIDEV *controller)
 
 //---------------------------------------------------------------------------
 //
-//	Get start sector and sector count for a READ/WRITE operation
+//	Check/Get start sector and sector count for a READ/WRITE or READ/WRITE LONG operation
 //
 //---------------------------------------------------------------------------
+
+bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
+{
+	uint64_t block = ctrl->cmd[2];
+	block <<= 8;
+	block |= ctrl->cmd[3];
+	block <<= 8;
+	block |= ctrl->cmd[4];
+	block <<= 8;
+	block |= ctrl->cmd[5];
+
+	if (mode == RW16) {
+		block <<= 8;
+		block |= ctrl->cmd[6];
+		block <<= 8;
+		block |= ctrl->cmd[7];
+		block <<= 8;
+		block |= ctrl->cmd[8];
+		block <<= 8;
+		block |= ctrl->cmd[9];
+	}
+
+	uint64_t capacity = GetBlockCount();
+	if (block > capacity) {
+		ostringstream s;
+		s << "Capacity of " << capacity << " blocks exceeded: " << "Trying to access block " << block;
+		LOGTRACE("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return false;
+	}
+
+	return true;
+}
+
 bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, access_mode mode)
 {
 	if (mode == RW6) {
@@ -1495,6 +1575,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		start |= ctrl->cmd[4];
 		start <<= 8;
 		start |= ctrl->cmd[5];
+
 		if (mode == RW16) {
 			start <<= 8;
 			start |= ctrl->cmd[6];
@@ -1528,7 +1609,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		ostringstream s;
 		s << "Capacity of " << capacity << " blocks exceeded: "
 				<< "Trying to read block " << start << ", block count " << ctrl->blocks;
-		LOGDEBUG("%s", s.str().c_str());
+		LOGTRACE("%s", s.str().c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
 	}

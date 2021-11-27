@@ -1551,7 +1551,7 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 //
 //---------------------------------------------------------------------------
 int GPIOBUS::GetCommandByteCount(BYTE opcode) {
-	if (opcode == 0x88 || opcode == 0x8A || opcode == 0x8F || opcode == 0x91 || opcode == 0x9E) {
+	if (opcode == 0x88 || opcode == 0x8A || opcode == 0x8F || opcode == 0x91 || opcode == 0x9E || opcode == 0x9F) {
 		return 16;
 	}
 	else if (opcode == 0xA0) {
