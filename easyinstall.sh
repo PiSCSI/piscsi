@@ -893,7 +893,7 @@ function readChoice() {
    choice=-1
 
    until [ $choice -ge "0" ] && [ $choice -le "12" ]; do
-       echo -n "Enter your choice (0-9) or CTRL-C to exit: "
+       echo -n "Enter your choice (0-12) or CTRL-C to exit: "
        read -r choice
    done
 
