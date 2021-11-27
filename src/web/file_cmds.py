@@ -239,7 +239,9 @@ def download_file_to_iso(url):
         return {"status": False, "msg": req_proc["msg"]}
 
     iso_proc = run(
-        ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path], capture_output=True
+        ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path],
+        capture_output=True,
+        check=True,
     )
     if iso_proc.returncode != 0:
         return {"status": False, "msg": iso_proc.stderr.decode("utf-8")}

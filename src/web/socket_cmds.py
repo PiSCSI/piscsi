@@ -3,6 +3,7 @@ Module for sending and receiving data over a socket connection with the RaSCSI b
 """
 
 import logging
+from flask import abort
 
 def send_pb_command(payload):
     """
@@ -32,7 +33,6 @@ def send_pb_command(payload):
     logging.error(error_msg)
 
     # After failing all attempts, throw a 404 error
-    from flask import abort
     abort(404, "The RaSCSI Web Interface failed to connect to RaSCSI at " + str(host) + \
             ":" + str(port) + " with error: " + error_msg + \
             ". The RaSCSI service is not running or may have crashed.")
@@ -64,7 +64,6 @@ def send_over_socket(sock, payload):
         while bytes_recvd < response_length:
             chunk = sock.recv(min(response_length - bytes_recvd, 2048))
             if chunk == b'':
-                from flask import abort
                 logging.error(
                     "Read an empty chunk from the socket. "
                     "Socket connection has dropped unexpectedly. "
@@ -80,7 +79,6 @@ def send_over_socket(sock, payload):
         response_message = b''.join(chunks)
         return response_message
 
-    from flask import abort
     logging.error(
         "The response from RaSCSI did not contain a protobuf header. "
         "RaSCSI may have crashed."
