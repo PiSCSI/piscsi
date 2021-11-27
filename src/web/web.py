@@ -720,7 +720,6 @@ def rascsi_restart():
         return redirect(url_for("index"))
 
     monitor_status = systemd_service(monitor_service, "show")
-
     restart_proc = systemd_service(service, "restart")
     if restart_proc["status"]:
         flash(f"Restarted {service}")
@@ -730,7 +729,6 @@ def rascsi_restart():
         elif not restart_monitor["status"] and "ActiveState=active" in monitor_status["msg"]:
             flash(f"Failed to restart {monitor_service}:", "error")
         return redirect(url_for("index"))
-
 
     restart_monitor = systemd_service("monitor_rascsi.service", "restart")
     flash(f"Failed to restart {service}:", "error")
