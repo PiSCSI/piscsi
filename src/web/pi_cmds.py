@@ -40,12 +40,20 @@ def running_env():
     env is the various system information where this app is running
     """
     ra_git_version = (
-        subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True)
+        subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            capture_output=True,
+            check=True,
+            )
         .stdout.decode("utf-8")
         .strip()
     )
     pi_version = (
-        subprocess.run(["uname", "-a"], capture_output=True)
+        subprocess.run(
+            ["uname", "-a"],
+            capture_output=True,
+            check=True,
+            )
         .stdout.decode("utf-8")
         .strip()
     )
@@ -57,7 +65,11 @@ def running_proc(daemon):
     Takes (str) daemon
     Returns (int) proc, which is the number of processes currently running
     """
-    process = subprocess.run(["ps", "aux"], capture_output=True)
+    process = subprocess.run(
+            ["ps", "aux"],
+            capture_output=True,
+            check=True,
+            )
     output = process.stdout.decode("utf-8")
     from re import findall
     proc = findall(daemon, output)
@@ -68,7 +80,11 @@ def is_bridge_setup():
     """
     Returns (bool) True if the rascsi_bridge network interface exists
     """
-    process = subprocess.run(["brctl", "show"], capture_output=True)
+    process = subprocess.run(
+            ["brctl", "show"],
+            capture_output=True,
+            check=True,
+            )
     output = process.stdout.decode("utf-8")
     if "rascsi_bridge" in output:
         return True
