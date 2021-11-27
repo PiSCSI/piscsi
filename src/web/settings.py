@@ -27,3 +27,6 @@ REMOVABLE_DEVICE_TYPES = ("SCCD", "SCRM", "SCMO")
 # The RESERVATIONS list is used to keep track of the reserved ID memos.
 # Initialize with a list of 8 empty strings.
 RESERVATIONS = ["" for x in range(0, 8)]
+
+# The user group that is used for webapp authentication
+AUTH_GROUP = "rascsi"

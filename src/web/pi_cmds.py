@@ -5,6 +5,7 @@ Module for methods controlling and getting information about the Pi's Linux syst
 import subprocess
 import asyncio
 import logging
+from settings import AUTH_GROUP
 
 
 def systemd_service(service, action):
@@ -140,3 +141,19 @@ async def run_async(cmd):
         logging.info("stderr: %s", stderr)
 
     return {"returncode": proc.returncode, "stdout": stdout, "stderr": stderr}
+
+
+def auth_active():
+    """
+    Inspects if the group defined in AUTH_GROUP exists on the system.
+    If it exists, tell the webapp to enable authentication.
+    Returns a (dict) with (bool) status and (str) msg
+    """
+    from grp import getgrall
+    groups = [g.gr_name for g in getgrall()]
+    if AUTH_GROUP in groups:
+        return {
+                "status": True,
+                "msg": "You must log in to use this function!",
+                }
+    return {"status": False, "msg": ""}

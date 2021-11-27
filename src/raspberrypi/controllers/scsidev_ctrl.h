@@ -55,8 +55,10 @@ public:
 		eCmdVerify10 = 0x2F,
 		eCmdSynchronizeCache10 = 0x35,
 		eCmdReadDefectData10 = 0x37,
+		eCmdReadLong10 = 0x3E,
+		eCmdWriteLong10 = 0x3F,
 		eCmdReadToc = 0x43,
-		eCmdGetEventStatusNotification = 0x4a,
+		eCmdGetEventStatusNotification = 0x4A,
 		eCmdModeSelect10 = 0x55,
 		eCmdReserve10 = 0x56,
 		eCmdRelease10 = 0x57,
@@ -65,7 +67,8 @@ public:
 		eCmdWrite16 = 0x8A,
 		eCmdVerify16 = 0x8F,
 		eCmdSynchronizeCache16 = 0x91,
-		eCmdReadCapacity16 = 0x9E,
+		eCmdReadCapacity16_ReadLong16 = 0x9E,
+		eCmdWriteLong16 = 0x9F,
 		eCmdReportLuns = 0xA0
 	};
 

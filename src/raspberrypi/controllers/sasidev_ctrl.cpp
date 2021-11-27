@@ -1227,6 +1227,7 @@ void SASIDEV::FlushUnit()
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
 		case SASIDEV::eCmdWrite16:
+		case SASIDEV::eCmdWriteLong16:
 		case SASIDEV::eCmdVerify10:
 		case SASIDEV::eCmdVerify16:
 			break;
