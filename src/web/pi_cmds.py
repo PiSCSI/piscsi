@@ -119,6 +119,11 @@ def introspect_file(file_path, re_term):
 
 
 async def run_async(cmd):
+    """
+    Takes (str) cmd with the shell command to execute
+    Executes shell command and captures output
+    Returns (dict) with (int) returncode, (str) stdout, (str) stderr
+    """
     proc = await asyncio.create_subprocess_shell(
         cmd,
         stdout=asyncio.subprocess.PIPE,
