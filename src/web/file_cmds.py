@@ -185,11 +185,12 @@ def unzip_file(file_name, member=False, members=False):
             f"unzip -d {server_info['image_dir']} -n -j "
             f"{server_info['image_dir']}/{file_name}"
             ))
-        for path in members:
-            if path.endswith(PROPERTIES_SUFFIX):
-                name = PurePath(path).name
-                rename_file(f"{server_info['image_dir']}/{name}", f"{CFG_DIR}/{name}")
-                prop_flag = True
+        if members:
+            for path in members:
+                if path.endswith(PROPERTIES_SUFFIX):
+                    name = PurePath(path).name
+                    rename_file(f"{server_info['image_dir']}/{name}", f"{CFG_DIR}/{name}")
+                    prop_flag = True
     else:
         from re import escape
         member = escape(member)
