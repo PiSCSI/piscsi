@@ -24,7 +24,7 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-<script>
+<script type="application/javascript">
     var processNotify = function(Notification) {
         document.getElementById("flash").innerHTML = "<div class='message'>" + Notification + " This process may take a while, and will continue in the background if you navigate away from this page.</div>";
         window.scrollTo(0,0);
