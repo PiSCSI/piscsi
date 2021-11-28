@@ -24,6 +24,13 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
+<script type="application/javascript">
+    var processNotify = function(Notification) {
+        document.getElementById("flash").innerHTML = "<div class='message'>" + Notification + " This process may take a while, and will continue in the background if you navigate away from this page.</div>";
+        window.scrollTo(0,0);
+    }
+</script>
+
 <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js">
 </script>
 </head>
