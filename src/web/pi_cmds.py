@@ -11,10 +11,15 @@ from settings import AUTH_GROUP
 def systemd_service(service, action):
     """
     Takes (str) service and (str) action
-    Action can be one of start/stop/restart
+    Action can be any that systemctl supports, ex. start/stop/restart/show
+    Returns (dict) with (bool) status, (str) msg, (str) err
     """
-    proc = asyncio.run(run_async("sudo /bin/systemctl {action} {service}"))
-    return proc["returncode"] == 0
+    proc = asyncio.run(run_async(f"sudo /bin/systemctl {action} {service}"))
+    return {
+            "status": proc["returncode"] == 0,
+            "msg": proc["stdout"],
+            "err": proc["stderr"],
+            }
 
 
 def reboot_pi():
