@@ -201,7 +201,7 @@
                             <form action="/files/unzip" method="post">
                                 <input name="zip_file" type="hidden" value="{{ file['name'] }}">
                                 <input name="zip_member" type="hidden" value="{{ member }}">
-                                <input type="submit" value="Unzip" onclick='document.getElementById("flash").innerHTML = "<div class=\"message\">Unzipping single file...</div>"'>
+                                <input type="submit" value="Unzip" onclick="processNotify('Unzipping a single file...')">
                             </form>
                             </summary>
                             <ul style="list-style: none;">
@@ -215,7 +215,7 @@
                             <form action="/files/unzip" method="post">
                                 <input name="zip_file" type="hidden" value="{{ file['name'] }}">
                                 <input name="zip_member" type="hidden" value="{{ member }}">
-                                <input type="submit" value="Unzip" onclick='document.getElementById("flash").innerHTML = "<div class=\"message\">Unzipping single file...</div>"'>
+                                <input type="submit" value="Unzip" onclick="processNotify('Unzipping a single file...')">
                             </form>
                             {% endif %}
                         </li>
@@ -243,7 +243,7 @@
                 <form action="/files/unzip" method="post">
                     <input name="zip_file" type="hidden" value="{{ file['name'] }}">
                     <input name="zip_members" type="hidden" value="{{ file['zip_members'] }}">
-                    <input type="submit" value="Unzip All" onclick='document.getElementById("flash").innerHTML = "<div class=\"message\">Unzipping all files...</div>"'>
+                    <input type="submit" value="Unzip All" onclick="processNotify('Unzipping all files...')">
                 </form>
                 {% else %}
                 <form action="/scsi/attach" method="post">
@@ -388,7 +388,7 @@
             <form action="/files/download_to_images" method="post">
                 <label for="url">URL:</label>
                 <input name="url" placeholder="URL" required="" type="url">
-                <input type="submit" value="Download" onclick='document.getElementById("flash").innerHTML = "<div class=\"message\">Downloading File to Images...</div>"'>
+                <input type="submit" value="Download" onclick="processNotify('Downloading File to Images...')">
             </form>
         </td>
     </tr>
@@ -415,7 +415,7 @@
             <form action="/files/download_to_afp" method="post">
                 <label for="url">URL:</label>
                 <input name="url" placeholder="URL" required="" type="url">
-                <input type="submit" value="Download" onclick='document.getElementById("flash").innerHTML = "<div class=\"message\">Downloading File to AppleShare...</div>"'>
+                <input type="submit" value="Download" onclick="processNotify('Downloading File to AppleShare...')">
             </form>
         </td>
     </tr>
@@ -458,7 +458,7 @@
                 </select>
                 <label for="url">URL:</label>
                 <input name="url" placeholder="URL" required="" type="url">
-                <input type="submit" value="Download and Mount ISO" onclick='document.getElementById("flash").innerHTML = "<div class=\"message\">Downloading File as ISO...</div>"'>
+                <input type="submit" value="Download and Mount ISO" onclick="processNotify('Downloading File as ISO...')">
             </form>
         </td>
     </tr>
