@@ -6,8 +6,6 @@ After=network.target
 Type=simple
 Restart=always
 ExecStart=/home/pi/RASCSI/src/web/start.sh
-StandardOutput=syslog
-StandardError=syslog
 SyslogIdentifier=RASCSIWEB
 
 [Install]

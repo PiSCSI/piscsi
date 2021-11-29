@@ -1066,10 +1066,8 @@ void SCSIBR::FS_GetCapacity(BYTE *buf)
 	ASSERT(fs);
 	ASSERT(buf);
 
-	int i = 0;
 	DWORD *dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	Human68k::capacity_t cap;
 	fsresult = fs->GetCapacity(nUnit, &cap);
@@ -1099,7 +1097,6 @@ void SCSIBR::FS_CtrlDrive(BYTE *buf)
 	i += sizeof(DWORD);
 
 	Human68k::ctrldrive_t *pCtrlDrive = (Human68k::ctrldrive_t*)&buf[i];
-	i += sizeof(Human68k::ctrldrive_t);
 
 	fsresult = fs->CtrlDrive(nUnit, pCtrlDrive);
 
@@ -1117,10 +1114,8 @@ void SCSIBR::FS_GetDPB(BYTE *buf)
 	ASSERT(fs);
 	ASSERT(buf);
 
-	int i = 0;
 	DWORD *dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	Human68k::dpb_t dpb;
 	fsresult = fs->GetDPB(nUnit, &dpb);
@@ -1173,10 +1168,8 @@ void SCSIBR::FS_DiskWrite(BYTE *buf)
 	ASSERT(fs);
 	ASSERT(buf);
 
-	int i = 0;
 	DWORD *dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	fsresult = fs->DiskWrite(nUnit);
 }
@@ -1238,10 +1231,8 @@ void SCSIBR::FS_Flush(BYTE *buf)
 	ASSERT(fs);
 	ASSERT(buf);
 
-	int i = 0;
 	DWORD *dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	fsresult = fs->Flush(nUnit);
 }
@@ -1256,10 +1247,8 @@ void SCSIBR::FS_CheckMedia(BYTE *buf)
 	ASSERT(fs);
 	ASSERT(buf);
 
-	int i = 0;
 	DWORD *dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	fsresult = fs->CheckMedia(nUnit);
 }
@@ -1274,10 +1263,8 @@ void SCSIBR::FS_Lock(BYTE *buf)
 	ASSERT(fs);
 	ASSERT(buf);
 
-	int i = 0;
 	DWORD *dp = (DWORD*)buf;
 	DWORD nUnit = ntohl(*dp);
-	i += sizeof(DWORD);
 
 	fsresult = fs->Lock(nUnit);
 }

@@ -73,7 +73,6 @@ public:
 	bool EnableInterface(const DWORD *cdb);
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
-	void SetMode(const DWORD *cdb, BYTE *buffer);	// Set the mode: whether broadcast traffic is enabled or not
 
 	void TestUnitReady(SASIDEV *) override;
 	void Read6(SASIDEV *) override;
@@ -83,7 +82,7 @@ public:
 	void SetMcastAddr(SASIDEV *);
 	void EnableInterface(SASIDEV *);
 
-	bool Dispatch(SCSIDEV *);
+	bool Dispatch(SCSIDEV *) override;
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
@@ -151,11 +150,3 @@ private:
 	static const BYTE m_bcast_addr[6];
 	static const BYTE m_apple_talk_addr[6];
 };
-
-typedef struct __attribute__((packed)) {
-	BYTE operation_code;
-	BYTE lba_msb_bits_4_0;
-	uint16_t logical_block_address;
-	BYTE transfer_length;
-	BYTE control;
-} scsi_cmd_read_6_t;

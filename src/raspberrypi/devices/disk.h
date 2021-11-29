@@ -82,18 +82,18 @@ public:
 	virtual void TestUnitReady(SASIDEV *) override;
 	void Inquiry(SASIDEV *) override;
 	void RequestSense(SASIDEV *) override;
-	void ModeSelect6(SASIDEV *);
-	void ModeSelect10(SASIDEV *);
-	void ModeSense6(SASIDEV *);
-	void ModeSense10(SASIDEV *);
+	void ModeSelect6(SASIDEV *) override;
+	void ModeSelect10(SASIDEV *) override;
+	void ModeSense6(SASIDEV *) override;
+	void ModeSense10(SASIDEV *) override;
 	void Rezero(SASIDEV *);
 	void FormatUnit(SASIDEV *) override;
-	void ReassignBlocks(SASIDEV *);
-	void StartStopUnit(SASIDEV *);
-	void SendDiagnostic(SASIDEV *);
+	void ReassignBlocks(SASIDEV *) override;
+	void StartStopUnit(SASIDEV *) override;
+	void SendDiagnostic(SASIDEV *) override;
 	void PreventAllowMediumRemoval(SASIDEV *);
-	void SynchronizeCache10(SASIDEV *);
-	void SynchronizeCache16(SASIDEV *);
+	void SynchronizeCache10(SASIDEV *) override;
+	void SynchronizeCache16(SASIDEV *) override;
 	void ReadDefectData10(SASIDEV *);
 	virtual void Read6(SASIDEV *);
 	void Read10(SASIDEV *) override;
@@ -101,6 +101,10 @@ public:
 	virtual void Write6(SASIDEV *);
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
+	void ReadLong10(SASIDEV *) override;
+	void ReadLong16(SASIDEV *) override;
+	void WriteLong10(SASIDEV *) override;
+	void WriteLong16(SASIDEV *) override;
 	void Verify10(SASIDEV *) override;
 	void Verify16(SASIDEV *) override;
 	void Seek(SASIDEV *);
@@ -137,6 +141,7 @@ public:
 	bool SetGeometryForCapacity(uint64_t);
 	uint64_t GetBlockCount() const;
 	void SetBlockCount(uint32_t);
+	bool CheckBlockAddress(SASIDEV *, access_mode);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 	bool CheckReady();
 
@@ -162,6 +167,9 @@ private:
 	void Read(SASIDEV *, uint64_t);
 	void Write(SASIDEV *, uint64_t);
 	void Verify(SASIDEV *, uint64_t);
+	void ReadWriteLong10(SASIDEV *);
+	void ReadWriteLong16(SASIDEV *);
+	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);

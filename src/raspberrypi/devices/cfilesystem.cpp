@@ -280,7 +280,7 @@ void CHostDrv::Init(const TCHAR* szBase, DWORD nFlag)
 		} else {
 			pClear = NULL;
 		}
-		if ((0x80 <= c && c <= 0x9F) || 0xE0 <= c) {	// To be precise: 0x81~0x9F 0xE0~0xEF
+		if (((TCHAR)0x80 <= c && c <= (TCHAR)0x9F) || (TCHAR)0xE0 <= c) {	// To be precise: 0x81~0x9F 0xE0~0xEF
 			p++;
 			if (*p == _T('\0'))
 				break;

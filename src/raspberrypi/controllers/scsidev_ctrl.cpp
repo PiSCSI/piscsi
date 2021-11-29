@@ -25,11 +25,6 @@
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
 	// Synchronous transfer work initialization
@@ -45,11 +40,6 @@ SCSIDEV::~SCSIDEV()
 {
 }
 
-//---------------------------------------------------------------------------
-//
-//	Device reset
-//
-//---------------------------------------------------------------------------
 void SCSIDEV::Reset()
 {
 	// Work initialization
@@ -61,11 +51,6 @@ void SCSIDEV::Reset()
 	SASIDEV::Reset();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Process
-//
-//---------------------------------------------------------------------------
 BUS::phase_t SCSIDEV::Process()
 {
 	// Do nothing if not connected
@@ -130,9 +115,8 @@ BUS::phase_t SCSIDEV::Process()
 			MsgIn();
 			break;
 
-		// Other
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 
@@ -319,7 +303,6 @@ void SCSIDEV::MsgOut()
 		return;
 	}
 
-	// Receive
 	Receive();
 }
 
@@ -473,9 +456,8 @@ void SCSIDEV::Send()
 			MsgIn();
 			break;
 
-		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 }
@@ -599,14 +581,14 @@ void SCSIDEV::Receive()
 
 					// ABORT
 					if (data == 0x06) {
-						LOGTRACE("Message code ABORT $%02X", (int)data);
+						LOGTRACE("Message code ABORT $%02X", data);
 						BusFree();
 						return;
 					}
 
 					// BUS DEVICE RESET
 					if (data == 0x0C) {
-						LOGTRACE("Message code BUS DEVICE RESET $%02X", (int)data);
+						LOGTRACE("Message code BUS DEVICE RESET $%02X", data);
 						scsi.syncoffset = 0;
 						BusFree();
 						return;
@@ -620,7 +602,7 @@ void SCSIDEV::Receive()
 
 					// Extended Message
 					if (data == 0x01) {
-						LOGTRACE("Message code EXTENDED MESSAGE $%02X", (int)data);
+						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data);
 
 						// Check only when synchronous transfer is possible
 						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
@@ -669,16 +651,14 @@ void SCSIDEV::Receive()
 
 		// Data out phase
 		case BUS::dataout:
-			// Flush unit
 			FlushUnit();
 
 			// status phase
 			Status();
 			break;
 
-		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 }

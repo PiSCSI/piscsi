@@ -57,7 +57,7 @@ RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
 RSYSLOG_LOG  = /var/log/rascsi.log
 
 USR_LOCAL_BIN = /usr/local/bin
-MAN_PAGE_DIR  = /usr/share/man/man1
+MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../../doc
 OS_FILES = ./os_integration
 
@@ -189,13 +189,6 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 clean:
 	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF)
 
-##   run      : Launches RaSCSI using some pre-defined drive 
-##              images. Useful for debugging when you're building 
-##              and re-launching over and over.
-.PHONY: run
-run:
-	sudo $(BINDIR)/$(RASCSI) -ID1 /home/pi/HARDDISK2.hda -ID6 /home/pi/marathon.iso
-
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location
 ##              Configures the Systemd and RSyslog services to auto-run RaSCSI
@@ -231,6 +224,7 @@ $(USR_LOCAL_BIN)% : $(BINDIR)/%
 
 $(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
 	@echo "-- Copying $@"
+	mkdir -p $@
 	cp $< $@
 
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1

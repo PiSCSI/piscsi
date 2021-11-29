@@ -57,6 +57,14 @@ if ! i2cdetect -y 1 &> /dev/null ; then
     echo "i2cdetect -y 1 did not find a screen."
     exit 2
 fi
+
+# Compiler flags needed for gcc v10 and up
+if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
+    echo -n "gcc 10 or later detected. Will compile with the following flags: "
+    COMPILER_FLAGS="-fcommon"
+    echo $COMPILER_FLAGS
+fi
+
 if ! test -e venv; then
   echo "Creating python venv for OLED Screen"
   python3 -m venv venv
@@ -64,7 +72,7 @@ if ! test -e venv; then
   source venv/bin/activate
   echo "Installing requirements.txt"
   pip install wheel
-  pip install -r requirements.txt
+  CFLAGS="$COMPILER_FLAGS" pip install -r requirements.txt
   git rev-parse HEAD > current
 fi
 
@@ -76,7 +84,7 @@ if ! test -e current; then
 else
   if [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
       echo "New version detected, updating requirements.txt"
-      pip install -r requirements.txt
+      CFLAGS="$COMPILER_FLAGS" pip install -r requirements.txt
       git rev-parse HEAD > current
   fi
 fi
@@ -89,13 +97,16 @@ while [ "$1" != "" ]; do
 	-r | --rotation)
 	    ROTATION=$VALUE
 	    ;;
+	-h | --height)
+	    HEIGHT=$VALUE
+	    ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
             exit 1
             ;;
     esac
     case $VALUE in
-        0 | 180 )
+        0 | 180 | 32 | 64 )
             ;;
         *)
             echo "ERROR: invalid option \"$VALUE\""
@@ -105,5 +116,15 @@ while [ "$1" != "" ]; do
     shift
 done
 
-echo "Starting OLED Screen with $ROTATION degrees rotation..."
-python3 rascsi_oled_monitor.py "${ROTATION}"
+echo "Starting OLED Screen..."
+if [ -z ${ROTATION+x} ]; then
+    echo "No screen rotation parameter given; falling back to the default."
+else
+    echo "Screen rotation set to $ROTATION degrees."
+fi
+if [ -z ${HEIGHT+x} ]; then
+    echo "No screen height parameter given; falling back to the default."
+else
+    echo "Screen height set to $HEIGHT px."
+fi
+python3 rascsi_oled_monitor.py ${ROTATION} ${HEIGHT}
