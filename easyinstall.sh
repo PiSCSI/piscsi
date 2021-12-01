@@ -666,18 +666,18 @@ function installMacproxy {
     ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
     MACPROXY_VER="21.11"
-    MACPROXY_DIR="$HOME/macproxy-$MACPROXY_VER"
-    if [ -d "$MACPROXY_DIR" ]; then
-        echo "The $MACPROXY_DIR directory already exists. Delete it to proceed with the installation."
+    MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
+    if [ -d "$MACPROXY_PATH" ]; then
+        echo "The $MACPROXY_PATH directory already exists. Delete it to proceed with the installation."
         exit 1
     fi
     cd "$HOME" || exit 1
     wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
-    cd "$MACPROXY_DIR" || exit 1
-    sudo cp "$MACPROXY_DIR/macproxy.service" "$SYSTEMD_PATH"
+    cd "$MACPROXY_PATH" || exit 1
+    sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
-    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" "$SYSTEMD_PATH/macproxy.service"
+    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start.sh" "$SYSTEMD_PATH/macproxy.service"
     sudo systemctl daemon-reload
     sudo systemctl enable macproxy
     sudo systemctl start macproxy
