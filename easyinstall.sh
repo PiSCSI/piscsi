@@ -298,28 +298,28 @@ function installWebInterfaceService() {
 
 # Stops the rascsi service if it is running
 function stopRaScsi() {
-    if [[ `systemctl list-units | grep -c rascsi.service` -ge 1 ]]; then
+    if [ -f "$SYSTEMD_PATH/rascsi.service" ]; then
         sudo systemctl stop rascsi.service
     fi
 }
 
 # Stops the rascsi-web service if it is running
 function stopRaScsiWeb() {
-    if [[ `systemctl list-units | grep -c rascsi-web.service` -ge 1 ]]; then
+    if [ -f "$SYSTEMD_PATH/rascsi-web.service" ]; then
         sudo systemctl stop rascsi-web.service
     fi
 }
 
 # Stops the monitor_rascsi service if it is running
 function stopRaScsiScreen() {
-    if [[ `systemctl list-units | grep -c monitor_rascsi.service` -ge 1 ]]; then
+    if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
         sudo systemctl stop monitor_rascsi.service
     fi
 }
 
 # Starts the monitor_rascsi service if installed
 function startRaScsiScreen() {
-    if [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
+    if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
         sudo systemctl start monitor_rascsi.service
         showRaScsiScreenStatus
     fi
