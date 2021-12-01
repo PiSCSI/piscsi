@@ -51,6 +51,7 @@ BASE=$(dirname "$(readlink -f "${0}")")
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
 WEB_INSTALL_PATH="$BASE/src/web"
+SYSTEMD_PATH="/etc/systemd/system"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
@@ -182,9 +183,9 @@ function installRaScsiScreen() {
     fi
 
     echo "Installing the monitor_rascsi.service configuration..."
-    sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" /etc/systemd/system/monitor_rascsi.service
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/monitor_rascsi.service
-    sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" /etc/systemd/system/monitor_rascsi.service
+    sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" "$SYSTEMD_PATH/monitor_rascsi.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/monitor_rascsi.service"
+    sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/monitor_rascsi.service"
 
     sudo systemctl daemon-reload
     sudo systemctl enable monitor_rascsi
@@ -262,8 +263,8 @@ function updateRaScsiGit() {
 
 # Takes a backup copy of the rascsi.service file if it exists
 function backupRaScsiService() {
-    if [ -f /etc/systemd/system/rascsi.service ]; then
-        sudo mv /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
+    if [ -f "$SYSTEMD_PATH/rascsi.service" ]; then
+        sudo mv "$SYSTEMD_PATH/rascsi.service" "$SYSTEMD_PATH/rascsi.service.old"
         SYSTEMD_BACKUP=true
         echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
     else
@@ -273,7 +274,7 @@ function backupRaScsiService() {
 
 # Modifies and installs the rascsi service
 function enableRaScsiService() {
-    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
+    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
     echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 
     sudo systemctl daemon-reload
@@ -286,9 +287,9 @@ function enableRaScsiService() {
 # Modifies and installs the rascsi-web service
 function installWebInterfaceService() {
     echo "Installing the rascsi-web.service configuration..."
-    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
-    sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" /etc/systemd/system/rascsi-web.service
+    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" "$SYSTEMD_PATH/rascsi-web.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-web.service"
+    sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/rascsi-web.service"
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
@@ -318,7 +319,7 @@ function stopRaScsiScreen() {
 
 # Starts the monitor_rascsi service if installed
 function startRaScsiScreen() {
-    if [[ -f "/etc/systemd/system/monitor_rascsi.service" ]]; then
+    if [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
         sudo systemctl start monitor_rascsi.service
         showRaScsiScreenStatus
     fi
@@ -674,9 +675,9 @@ function installMacproxy {
     wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
     cd "$MACPROXY_DIR" || exit 1
-    sudo cp "$MACPROXY_DIR/macproxy.service" /etc/systemd/system/
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/macproxy.service
-    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" /etc/systemd/system/macproxy.service
+    sudo cp "$MACPROXY_DIR/macproxy.service" "$SYSTEMD_PATH"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
+    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" "$SYSTEMD_PATH/macproxy.service"
     sudo systemctl daemon-reload
     sudo systemctl enable macproxy
     sudo systemctl start macproxy
@@ -691,9 +692,9 @@ function installMacproxy {
 
 # Prints a notification if the rascsi.service file was backed up
 function notifyBackup {
-    if $SYSTEMD_BACKUP; then
+    if "$SYSTEMD_BACKUP"; then
         echo ""
-        echo "IMPORTANT: /etc/systemd/system/rascsi.service has been overwritten."
+        echo "IMPORTANT: $SYSTEMD_PATH/rascsi.service has been overwritten."
         echo "A backup copy was saved as rascsi.service.old in the same directory."
         echo "Please inspect the backup file and restore configurations that are important to your setup."
         echo ""
