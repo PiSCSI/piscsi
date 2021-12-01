@@ -50,7 +50,7 @@ USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
-WEBINSTDIR="$BASE/src/web"
+WEB_INSTALL_PATH="$BASE/src/web"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
@@ -100,12 +100,12 @@ function installRaScsi() {
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
-    if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
-        sudo rm "$WEBINSTDIR/rascsi_interface_pb2.py"
+    if [ -f "$WEB_INSTALL_PATH/rascsi_interface_pb2.py" ]; then
+        sudo rm "$WEB_INSTALL_PATH/rascsi_interface_pb2.py"
         echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEBINSTDIR" rascsi_interface.proto
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEB_INSTALL_PATH" rascsi_interface.proto
 
     sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
@@ -288,7 +288,7 @@ function installWebInterfaceService() {
     echo "Installing the rascsi-web.service configuration..."
     sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
     sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
-    sudo sed -i "8 i ExecStart=$WEBINSTDIR/start.sh" /etc/systemd/system/rascsi-web.service
+    sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" /etc/systemd/system/rascsi-web.service
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
