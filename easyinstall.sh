@@ -85,7 +85,7 @@ function compileRaScsi() {
     # Compiler flags needed for gcc v10 and up
     if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
         echo -n "gcc 10 or later detected. Will compile with the following flags: "
-        COMPILER_FLAGS="-DSPDLOG_FMT_EXTERNAL -DFMT_HEADER_ONLY"
+        COMPILER_FLAGS="-DFMT_HEADER_ONLY"
         echo $COMPILER_FLAGS
     fi
 
