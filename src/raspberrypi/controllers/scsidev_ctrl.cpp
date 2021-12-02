@@ -480,13 +480,13 @@ void SCSIDEV::Receive()
 
 	// Length != 0 if received
 	if (ctrl.length != 0) {
-		LOGTRACE("%s length was != 0", __PRETTY_FUNCTION__);
+		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 		// Receive
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
-			LOGERROR("%s Not able to receive all data. Going to error",__PRETTY_FUNCTION__);
+			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
 			Error();
 			return;
 		}
