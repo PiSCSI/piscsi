@@ -546,6 +546,13 @@ function setupWirelessNetworking() {
 	echo "Modified /etc/sysctl.conf"
     fi
 
+    # Check if iptables is installed
+    if [ `apt-cache policy iptables | grep Installed | grep -c "(none)"` -eq 0 ]; then
+        echo "iptables is already installed"
+    else
+        sudo apt-get install iptables --assume-yes </dev/null
+    fi
+
     sudo iptables --flush
     sudo iptables -t nat -F
     sudo iptables -X
