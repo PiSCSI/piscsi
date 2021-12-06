@@ -31,6 +31,19 @@ if [ $ERROR = 1 ] ; then
     exit 1
 fi
 
+# Test for two known broken venv states
+if test -e venv; then
+    GOOD_VENV=true
+    test -e venv/bin/activate && GOOD_VENV=false
+    pip list &> /dev/null
+    test $? -eq 0 && GOOD_VENV=false
+    if ! "$GOOD_VENV"; then
+        echo "Deleting bad python venv"
+        sudo rm -rf venv
+    fi
+fi
+
+# Create the venv if it doesn't exist
 if ! test -e venv; then
     echo "Creating python venv for web server"
     python3 -m venv venv
