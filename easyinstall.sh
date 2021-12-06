@@ -333,7 +333,7 @@ function startRaScsiScreen() {
 }
 
 # Starts the macproxy service if installed
-function startRaScsiScreen() {
+function startMacproxy() {
     if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
         sudo systemctl start macproxy.service
         showMacproxyStatus
@@ -356,7 +356,7 @@ function showRaScsiScreenStatus() {
 }
 
 # Shows status for the macproxy service
-function showRaScsiScreenStatus() {
+function showMacproxyStatus() {
     systemctl status macproxy | tee
 }
 
