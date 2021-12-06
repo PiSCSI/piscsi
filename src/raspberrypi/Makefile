@@ -1,12 +1,10 @@
 .DEFAULT_GOAL: all
 
 ## Optional build flags:
-##   CROSS_COMPILE=arm-linux-gnueabihf- : Specify which compiler
-##              toolchain to use. This will default to arm-linux-
-##              gnueabihf-, which is typical on a Raspberry Pi.
-##              To cross compile on a x86_64 system set these to:
-##                 ARM=x86_64 CROSS_COMPILE=x86_64-linux-gnu-cpp
-CROSS_COMPILE ?= arm-linux-gnueabihf-
+##   CROSS_COMPILE : Specify which compiler toolchain to use.
+##                   To cross compile set this accordingly, e.g. to:
+##                   arm-linux-gnueabihf-
+CROSS_COMPILE =
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
@@ -172,7 +170,7 @@ $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
