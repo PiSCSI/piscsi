@@ -699,9 +699,8 @@ function installMacproxy {
         exit 1
     fi
     cd "$HOME" || exit 1
-    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
+    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
-    cd "$MACPROXY_PATH" || exit 1
 
     stopMacproxy
     sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
