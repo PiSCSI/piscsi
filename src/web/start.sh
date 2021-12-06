@@ -84,5 +84,5 @@ while [ "$1" != "" ]; do
     shift
 done
 
-echo "Starting web server on port ${PORT-8080}..."
+echo "Starting web server on port ${PORT:-8080}..."
 python3 web.py ${PORT}
