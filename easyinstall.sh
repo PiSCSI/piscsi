@@ -317,11 +317,26 @@ function stopRaScsiScreen() {
     fi
 }
 
+# Stops the macproxy service if it is running
+function stopMacproxy() {
+    if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
+        sudo systemctl stop macproxy.service
+    fi
+}
+
 # Starts the monitor_rascsi service if installed
 function startRaScsiScreen() {
     if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
         sudo systemctl start monitor_rascsi.service
         showRaScsiScreenStatus
+    fi
+}
+
+# Starts the macproxy service if installed
+function startMacproxy() {
+    if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
+        sudo systemctl start macproxy.service
+        showMacproxyStatus
     fi
 }
 
@@ -338,6 +353,11 @@ function showRaScsiWebStatus() {
 # Shows status for the monitor_rascsi service
 function showRaScsiScreenStatus() {
     systemctl status monitor_rascsi | tee
+}
+
+# Shows status for the macproxy service
+function showMacproxyStatus() {
+    systemctl status macproxy | tee
 }
 
 # Creates a drive image file with specific parameters
@@ -672,23 +692,23 @@ function installMacproxy {
 
     ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
-    MACPROXY_VER="21.11"
+    MACPROXY_VER="21.12.1"
     MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
     if [ -d "$MACPROXY_PATH" ]; then
         echo "The $MACPROXY_PATH directory already exists. Delete it to proceed with the installation."
         exit 1
     fi
     cd "$HOME" || exit 1
-    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
+    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
-    cd "$MACPROXY_PATH" || exit 1
+
+    stopMacproxy
     sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
-    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start.sh" "$SYSTEMD_PATH/macproxy.service"
+    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start_macproxy.sh" "$SYSTEMD_PATH/macproxy.service"
     sudo systemctl daemon-reload
     sudo systemctl enable macproxy
-    sudo systemctl start macproxy
-    sudo systemctl status macproxy
+    startMacproxy
 
     echo -n "Macproxy is now running on IP "
     echo -n `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
