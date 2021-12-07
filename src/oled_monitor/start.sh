@@ -65,6 +65,19 @@ if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{prin
     echo $COMPILER_FLAGS
 fi
 
+# Test for two known broken venv states
+if test -e venv; then
+    GOOD_VENV=true
+    test -e venv/bin/activate && GOOD_VENV=false
+    pip list &> /dev/null
+    test $? -eq 0 && GOOD_VENV=false
+    if ! "$GOOD_VENV"; then
+        echo "Deleting bad python venv"
+        sudo rm -rf venv
+    fi
+fi
+
+# Create the venv if it doesn't exist
 if ! test -e venv; then
   echo "Creating python venv for OLED Screen"
   python3 -m venv venv
