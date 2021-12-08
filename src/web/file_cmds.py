@@ -146,6 +146,24 @@ def delete_image(file_name):
     return {"status": result.status, "msg": result.msg}
 
 
+def rename_image(file_name, new_file_name):
+    """
+    Takes (str) file_name, (str) new_file_name
+    Sends a RENAME_IMAGE command to the server
+    Returns (dict) with (bool) status and (str) msg
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.RENAME_IMAGE
+
+    command.params["from"] = file_name
+    command.params["to"] = new_file_name
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
+
+
 def delete_file(file_path):
     """
     Takes (str) file_path with the full path to the file to delete
