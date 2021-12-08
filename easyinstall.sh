@@ -812,14 +812,14 @@ function runChoice() {
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
           ;;
           4)
-              echo "Creating a 600MB drive"
+              echo "Creating an HFS formatted 600MB drive image with LIDO driver"
               createDrive600MB
-              echo "Creating a 600MB drive - Complete!"
+              echo "Creating an HFS formatted 600MB drive image with LIDO driver - Complete!"
           ;;
           5)
-              echo "Creating a custom drive"
+              echo "Creating an HFS formatted drive image with LIDO driver"
               createDriveCustom
-              echo "Creating a custom drive - Complete!"
+              echo "Creating an HFS formatted drive image with LIDO driver - Complete!"
           ;;
           6)
               echo "Configuring wired network bridge"
