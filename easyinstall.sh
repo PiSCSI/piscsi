@@ -460,7 +460,7 @@ function createDrive() {
     driveSize=$1
     driveName=$2
     mkdir -p "$VIRTUAL_DRIVER_PATH"
-    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hds"
+    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hda"
 
     if [ ! -f "$drivePath" ]; then
         echo "Creating a ${driveSize}MB Drive"
