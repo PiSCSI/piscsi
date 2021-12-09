@@ -69,7 +69,7 @@ fi
 if test -e venv; then
     GOOD_VENV=true
     ! test -e venv/bin/activate && GOOD_VENV=false
-    pip list &> /dev/null
+    pip3 list &> /dev/null
     test $? -eq 1 && GOOD_VENV=false
     if ! "$GOOD_VENV"; then
         echo "Deleting bad python venv"
@@ -84,20 +84,20 @@ if ! test -e venv; then
   echo "Activating venv"
   source venv/bin/activate
   echo "Installing requirements.txt"
-  pip install wheel
-  CFLAGS="$COMPILER_FLAGS" pip install -r requirements.txt
+  pip3 install wheel
+  CFLAGS="$COMPILER_FLAGS" pip3 install -r requirements.txt
   git rev-parse HEAD > current
 fi
 
 source venv/bin/activate
 
-# Detect if someone updates - we need to re-run pip install.
+# Detect if someone updates - we need to re-run pip3 install.
 if ! test -e current; then
   git rev-parse > current
 else
   if [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
       echo "New version detected, updating requirements.txt"
-      CFLAGS="$COMPILER_FLAGS" pip install -r requirements.txt
+      CFLAGS="$COMPILER_FLAGS" pip3 install -r requirements.txt
       git rev-parse HEAD > current
   fi
 fi
