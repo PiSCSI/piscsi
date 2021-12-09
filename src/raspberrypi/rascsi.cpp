@@ -1108,7 +1108,7 @@ void ShutDown(int fd, const string& mode) {
 	}
 
 	if (getuid()) {
-		ReturnStatus(fd, false, "Can't shut down: Missing root permissions");
+		ReturnStatus(fd, false, "Can't shut down or reboot system: Missing root permissions");
 		return;
 	}
 
