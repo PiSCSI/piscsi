@@ -115,7 +115,7 @@ enum PbOperation {
     
     // Shut down the rascsi process
     // Parameters:
-    //   "mode": The shutdown mode, one of "rascsi", "all", "reboot"
+    //   "mode": The shutdown mode, one of "rascsi", "system", "reboot"
     SHUT_DOWN = 23;
 
     // Create an image file. The image file must not yet exist.
