@@ -1131,7 +1131,7 @@ void ShutDown(int fd, const string& mode) {
 		}
 	}
 	else {
-		ReturnStatus(fd, false, "Illegal shutdown mode '" + mode + "'hi");
+		ReturnStatus(fd, false, "Invalid shutdown mode '" + mode + "'hi");
 	}
 }
 
