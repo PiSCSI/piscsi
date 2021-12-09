@@ -28,6 +28,7 @@
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include <linux/reboot.h>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -1462,7 +1463,27 @@ static void *MonThread(void *param)
 					result.set_status(true);
 					SerializeMessage(fd, result);
 
-					TerminationHandler(0);
+					string mode = GetParam(command, "mode");
+					if (mode.empty()) {
+						ReturnStatus(fd, false, "Can't shut down: Missing shutdown mode");
+					}
+
+					if (mode == "rascsi") {
+						TerminationHandler(0);
+					}
+					else if (mode == "all") {
+						DetachAll();
+						sync();
+						syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_HALT, 0);
+					}
+					else if (mode == "reboot") {
+						DetachAll();
+						sync();
+						syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART, 0);
+					}
+					else {
+						ReturnStatus(fd, false, "Illegal shutdown mode '" + mode + "*");
+					}
 					break;
 				}
 
