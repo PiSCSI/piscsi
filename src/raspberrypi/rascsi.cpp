@@ -1106,7 +1106,7 @@ void ShutDown(int fd, const string& mode) {
 
 		TerminationHandler(0);
 	}
-	else if (mode == "all") {
+	else if (mode == "system") {
 		LOGINFO("System shutdown requested");
 
 		SerializeMessage(fd, result);
