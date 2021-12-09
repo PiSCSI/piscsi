@@ -1117,7 +1117,7 @@ void ShutDown(int fd, const string& mode) {
 		syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART, 0);
 	}
 	else {
-		ReturnStatus(fd, false, "Illegal shutdown mode '" + mode + "*");
+		ReturnStatus(fd, false, "Illegal shutdown mode '" + mode + "'");
 	}
 }
 
