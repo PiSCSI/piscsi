@@ -1089,6 +1089,38 @@ bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
 	return true;
 }
 
+void ShutDown(int fd, const string& mode) {
+	if (mode.empty()) {
+		ReturnStatus(fd, false, "Can't shut down: Missing shutdown mode");
+	}
+
+	PbResult result;
+	result.set_status(true);
+
+	if (mode == "rascsi") {
+		SerializeMessage(fd, result);
+
+		TerminationHandler(0);
+	}
+	else if (mode == "all") {
+		SerializeMessage(fd, result);
+
+		DetachAll();
+		sync();
+		syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_HALT, 0);
+	}
+	else if (mode == "reboot") {
+		SerializeMessage(fd, result);
+
+		DetachAll();
+		sync();
+		syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART, 0);
+	}
+	else {
+		ReturnStatus(fd, false, "Illegal shutdown mode '" + mode + "*");
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 //	Argument Parsing
@@ -1459,31 +1491,7 @@ static void *MonThread(void *param)
 				case SHUT_DOWN: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
-					PbResult result;
-					result.set_status(true);
-					SerializeMessage(fd, result);
-
-					string mode = GetParam(command, "mode");
-					if (mode.empty()) {
-						ReturnStatus(fd, false, "Can't shut down: Missing shutdown mode");
-					}
-
-					if (mode == "rascsi") {
-						TerminationHandler(0);
-					}
-					else if (mode == "all") {
-						DetachAll();
-						sync();
-						syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_HALT, 0);
-					}
-					else if (mode == "reboot") {
-						DetachAll();
-						sync();
-						syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART, 0);
-					}
-					else {
-						ReturnStatus(fd, false, "Illegal shutdown mode '" + mode + "*");
-					}
+					ShutDown(fd, GetParam(command, "mode"));
 					break;
 				}
 
