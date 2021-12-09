@@ -1106,7 +1106,13 @@ void ShutDown(int fd, const string& mode) {
 
 		TerminationHandler(0);
 	}
-	else if (mode == "system") {
+
+	if (getuid()) {
+		ReturnStatus(fd, false, "Can't shut down: Missing root permissions");
+		return;
+	}
+
+	if (mode == "system") {
 		LOGINFO("System shutdown requested");
 
 		SerializeMessage(fd, result);
