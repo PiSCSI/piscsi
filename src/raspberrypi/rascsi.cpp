@@ -28,6 +28,7 @@
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include <sys/reboot.h>
 #include <linux/reboot.h>
 #include <string>
 #include <sstream>
@@ -1099,23 +1100,35 @@ void ShutDown(int fd, const string& mode) {
 	result.set_status(true);
 
 	if (mode == "rascsi") {
+		LOGINFO("RaSCSI shutdown requested");
+
 		SerializeMessage(fd, result);
 
 		TerminationHandler(0);
 	}
 	else if (mode == "all") {
+		LOGINFO("System shutdown requested");
+
 		SerializeMessage(fd, result);
 
 		DetachAll();
 		sync();
-		syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_HALT, 0);
+
+		if (reboot(LINUX_REBOOT_CMD_HALT) == -1) {
+			LOGERROR("System shutdown failed: %s", strerror(errno));
+		}
 	}
 	else if (mode == "reboot") {
+		LOGINFO("System reboot requested");
+
 		SerializeMessage(fd, result);
 
 		DetachAll();
 		sync();
-		syscall(LINUX_REBOOT_MAGIC1, LINUX_REBOOT_MAGIC2, LINUX_REBOOT_CMD_RESTART, 0);
+
+		if (reboot(LINUX_REBOOT_CMD_RESTART) == -1) {
+			LOGERROR("System reboot failed: %s", strerror(errno));
+		}
 	}
 	else {
 		ReturnStatus(fd, false, "Illegal shutdown mode '" + mode + "'hi");

@@ -316,7 +316,7 @@ int main(int argc, char* argv[])
 
 			case 'X':
 				command.set_operation(SHUT_DOWN);
-				AddParam(command, "mode", "rascsi");
+				AddParam(command, "mode", "all");
 				break;
 		}
 	}
