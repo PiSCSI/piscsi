@@ -1107,6 +1107,7 @@ void ShutDown(int fd, const string& mode) {
 		TerminationHandler(0);
 	}
 
+	// The root user has UID 0
 	if (getuid()) {
 		ReturnStatus(fd, false, "Can't shut down or reboot system: Missing root permissions");
 		return;
