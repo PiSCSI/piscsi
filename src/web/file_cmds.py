@@ -223,7 +223,7 @@ def download_file_to_iso(url):
     Returns (dict) with (bool) status and (str) msg
     """
     from time import time
-    from subprocess import run
+    from subprocess import run, CalledProcessError
 
     server_info = get_server_info()
 
@@ -239,12 +239,17 @@ def download_file_to_iso(url):
     if not req_proc["status"]:
         return {"status": False, "msg": req_proc["msg"]}
 
-    iso_proc = run(
-        ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path],
-        capture_output=True,
-        check=True,
-    )
-    if iso_proc.returncode != 0:
+    try:
+        iso_proc = (
+            run(
+                ["genisoimage", "-hfs", "-o", iso_filename, tmp_full_path],
+                capture_output=True,
+                check=True,
+            )
+        )
+    except subprocess.CalledProcessError as error:
+        logging.warning("Executed shell command: %s", " ".join(error.cmd))
+        logging.warning("Got error: %s", error.stderr.decode("utf-8"))
         return {"status": False, "msg": iso_proc.stderr.decode("utf-8")}
 
     return {"status": True, "msg": iso_proc.stdout.decode("utf-8"), "file_name": iso_filename}
