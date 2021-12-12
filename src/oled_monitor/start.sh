@@ -69,7 +69,7 @@ fi
 if test -e venv; then
     GOOD_VENV=true
     ! test -e venv/bin/activate && GOOD_VENV=false
-    pip3 list &> /dev/null
+    pip3 list 1> /dev/null
     test $? -eq 1 && GOOD_VENV=false
     if ! "$GOOD_VENV"; then
         echo "Deleting bad python venv"
