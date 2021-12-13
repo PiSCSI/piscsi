@@ -903,7 +903,7 @@ def rename():
         flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
-    file_name = request.form.get("image")
+    file_name = request.form.get("file_name")
     new_file_name = request.form.get("new_file_name")
 
     process = rename_image(file_name, new_file_name)
