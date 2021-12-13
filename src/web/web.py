@@ -900,11 +900,6 @@ def rename():
     """
     Renames a specified file in the images dir
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("file_name")
     new_file_name = request.form.get("new_file_name")
 
