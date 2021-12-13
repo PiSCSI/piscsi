@@ -770,10 +770,12 @@ def download_to_iso():
 
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
+    iso_args = request.form.get("type").split()
 
-    process = download_file_to_iso(url)
+    process = download_file_to_iso(url, *iso_args)
     if process["status"]:
-        flash(f"Created CD-ROM image: {process['file_name']}")
+        flash(process["msg"])
+        flash(f"Saved image as: {process['file_name']}")
     else:
         flash(f"Failed to create CD-ROM image from {url}", "error")
         flash(process["msg"], "error")

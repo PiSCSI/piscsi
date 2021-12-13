@@ -436,11 +436,12 @@
 
 <details>
     <summary class="heading">
-        Download File and Create HFS CD (Macintosh)
+        Download File and Create CD-ROM ISO image
     </summary>
     <ul>
-        <li>Given a URL this will download a file, create a HFS iso, and mount it on the SCSI ID given.</li>
-        <li>Requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a> installed on the target system.
+        <li>Given a URL this will download a file, create a CD-ROM image with the selected file system, and mount it on the SCSI ID given.</li>
+        <li>HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.</li>
+        <li>On Mac OS, requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a> installed on the target system.
         </li>
     </ul>
 </details>
@@ -458,6 +459,27 @@
                 </select>
                 <label for="url">URL:</label>
                 <input name="url" placeholder="URL" required="" type="url">
+                <label for="type">Type:</label>
+                <select name="type">
+                    <option value="-hfs">
+                        HFS
+                    </option>
+                    <option value="-iso-level 1">
+                        ISO-9660 Level 1
+                    </option>
+                    <option value="-iso-level 2">
+                        ISO-9660 Level 2
+                    </option>
+                    <option value="-iso-level 3">
+                        ISO-9660 Level 3
+                    </option>
+                    <option value="-J">
+                        Joliet
+                    </option>
+                    <option value="-r">
+                        Rock Ridge
+                    </option>
+                </select>
                 <input type="submit" value="Download and Mount ISO" onclick="processNotify('Downloading File as ISO...')">
             </form>
         </td>
