@@ -895,6 +895,7 @@ def delete():
 
 
 @APP.route("/files/rename", methods=["POST"])
+@login_required
 def rename():
     """
     Renames a specified file in the images dir
