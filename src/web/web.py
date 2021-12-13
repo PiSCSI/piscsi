@@ -28,6 +28,7 @@ from file_cmds import (
     delete_image,
     rename_image,
     delete_file,
+    rename_file,
     unzip_file,
     download_to_dir,
     write_config,
@@ -914,9 +915,10 @@ def rename():
         return redirect(url_for("index"))
 
     # Rename the drive properties file, if it exists
-    prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
+    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
-        process = delete_file(prop_file_path)
+        process = rename_file(prop_file_path, new_prop_file_path)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
