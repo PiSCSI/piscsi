@@ -28,6 +28,8 @@
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
+#include <sys/reboot.h>
+#include <linux/reboot.h>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -1088,6 +1090,58 @@ bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
 	return true;
 }
 
+void ShutDown(int fd, const string& mode) {
+	if (mode.empty()) {
+		ReturnStatus(fd, false, "Can't shut down: Missing shutdown mode");
+		return;
+	}
+
+	PbResult result;
+	result.set_status(true);
+
+	if (mode == "rascsi") {
+		LOGINFO("RaSCSI shutdown requested");
+
+		SerializeMessage(fd, result);
+
+		TerminationHandler(0);
+	}
+
+	// The root user has UID 0
+	if (getuid()) {
+		ReturnStatus(fd, false, "Can't shut down or reboot system: Missing root permissions");
+		return;
+	}
+
+	if (mode == "system") {
+		LOGINFO("System shutdown requested");
+
+		SerializeMessage(fd, result);
+
+		DetachAll();
+		sync();
+
+		if (reboot(LINUX_REBOOT_CMD_HALT) == -1) {
+			LOGERROR("System shutdown failed: %s", strerror(errno));
+		}
+	}
+	else if (mode == "reboot") {
+		LOGINFO("System reboot requested");
+
+		SerializeMessage(fd, result);
+
+		DetachAll();
+		sync();
+
+		if (reboot(LINUX_REBOOT_CMD_RESTART) == -1) {
+			LOGERROR("System reboot failed: %s", strerror(errno));
+		}
+	}
+	else {
+		ReturnStatus(fd, false, "Invalid shutdown mode '" + mode + "'hi");
+	}
+}
+
 //---------------------------------------------------------------------------
 //
 //	Argument Parsing
@@ -1458,11 +1512,7 @@ static void *MonThread(void *param)
 				case SHUT_DOWN: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
-					PbResult result;
-					result.set_status(true);
-					SerializeMessage(fd, result);
-
-					TerminationHandler(0);
+					ShutDown(fd, GetParam(command, "mode"));
 					break;
 				}
 
