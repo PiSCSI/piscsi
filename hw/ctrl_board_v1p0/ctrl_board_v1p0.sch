@@ -806,39 +806,6 @@ Wire Wire Line
 	6550 3100 7050 3100
 Wire Wire Line
 	6550 3200 7050 3200
-$Comp
-L Connector:TestPoint_Small TP1
-U 1 1 61C8D834
-P 8600 2900
-F 0 "TP1" H 8450 2850 50  0000 L CNN
-F 1 "TestPoint_Small" H 8648 2855 50  0001 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 8800 2900 50  0001 C CNN
-F 3 "~" H 8800 2900 50  0001 C CNN
-	1    8600 2900
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector:TestPoint_Small TP2
-U 1 1 61C8D83A
-P 8900 3700
-F 0 "TP2" H 8948 3700 50  0000 L CNN
-F 1 "TestPoint_Small" H 8948 3655 50  0001 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 9100 3700 50  0001 C CNN
-F 3 "~" H 9100 3700 50  0001 C CNN
-	1    8900 3700
-	1    0    0    -1  
-$EndComp
-$Comp
-L Connector:TestPoint_Small TP3
-U 1 1 61C8D840
-P 8900 3800
-F 0 "TP3" H 8948 3800 50  0000 L CNN
-F 1 "TestPoint_Small" H 8948 3755 50  0001 L CNN
-F 2 "TestPoint:TestPoint_Pad_D1.0mm" H 9100 3800 50  0001 C CNN
-F 3 "~" H 9100 3800 50  0001 C CNN
-	1    8900 3800
-	1    0    0    -1  
-$EndComp
 Text Label 8500 3300 0    50   ~ 0
 BUTTON_1
 Text Label 8500 3400 0    50   ~ 0
@@ -864,10 +831,6 @@ ROTARY_ENC_B
 Text Label 8500 3600 0    50   ~ 0
 BUTTON_4
 Wire Wire Line
-	8450 3800 8900 3800
-Wire Wire Line
-	8450 3700 8900 3700
-Wire Wire Line
 	8450 3600 8900 3600
 Wire Wire Line
 	8450 3500 8900 3500
@@ -890,11 +853,6 @@ F 3 "~" H 8900 2900 50  0001 C CNN
 	1    8900 2900
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	8450 2900 8600 2900
-Connection ~ 8600 2900
-Wire Wire Line
-	8600 2900 8750 2900
 Wire Wire Line
 	1250 2100 2400 2100
 Text Label 9050 2900 0    50   ~ 0
@@ -1154,4 +1112,126 @@ Wire Wire Line
 	6450 2900 6550 2900
 Wire Wire Line
 	6550 2900 6550 2850
+Wire Wire Line
+	8450 2900 8750 2900
+$Comp
+L Connector:Conn_01x04_Male J3
+U 1 1 61B9A469
+P 10200 3500
+F 0 "J3" H 10172 3382 50  0000 R CNN
+F 1 "Conn_01x04_Male" H 10172 3473 50  0000 R CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x04_P2.54mm_Vertical" H 10200 3500 50  0001 C CNN
+F 3 "~" H 10200 3500 50  0001 C CNN
+	1    10200 3500
+	-1   0    0    1   
+$EndComp
+Text Label 9950 3600 2    50   ~ 0
+BUTTON_1
+Text Label 9950 3500 2    50   ~ 0
+BUTTON_2
+Text Label 9950 3400 2    50   ~ 0
+BUTTON_3
+Wire Wire Line
+	10000 3400 9550 3400
+Wire Wire Line
+	10000 3500 9550 3500
+Wire Wire Line
+	10000 3600 9550 3600
+$Comp
+L power:GND #PWR032
+U 1 1 61BA62FA
+P 9750 3300
+F 0 "#PWR032" H 9750 3050 50  0001 C CNN
+F 1 "GND" V 9750 3100 50  0000 C CNN
+F 2 "" H 9750 3300 50  0000 C CNN
+F 3 "" H 9750 3300 50  0000 C CNN
+	1    9750 3300
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	10000 3300 9750 3300
+$Comp
+L Device:R_Small R13
+U 1 1 61BB2381
+P 9000 4100
+F 0 "R13" V 8900 4050 50  0000 L CNN
+F 1 "10k" V 8800 4050 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric" H 9000 4100 50  0001 C CNN
+F 3 "~" H 9000 4100 50  0001 C CNN
+F 4 "C17414" H 9000 4100 50  0001 C CNN "LCSC"
+	1    9000 4100
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:R_Small R12
+U 1 1 61BB79CE
+P 9000 3950
+F 0 "R12" V 9200 3950 50  0000 L CNN
+F 1 "10k" V 9100 3900 50  0000 L CNN
+F 2 "Resistor_SMD:R_0805_2012Metric" H 9000 3950 50  0001 C CNN
+F 3 "~" H 9000 3950 50  0001 C CNN
+F 4 "C17414" H 9000 3950 50  0001 C CNN "LCSC"
+	1    9000 3950
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Device:LED_Small D1
+U 1 1 61BBD9AF
+P 9300 3950
+F 0 "D1" H 9300 4185 50  0000 C CNN
+F 1 "Green" H 9300 4094 50  0000 C CNN
+F 2 "LED_SMD:LED_0805_2012Metric" V 9300 3950 50  0001 C CNN
+F 3 "~" V 9300 3950 50  0001 C CNN
+F 4 "C2297" H 9300 3950 50  0001 C CNN "LCSC"
+	1    9300 3950
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:LED_Small D2
+U 1 1 61BBEAAE
+P 9300 4100
+F 0 "D2" H 9300 3900 50  0000 C CNN
+F 1 "Green" H 9300 4000 50  0000 C CNN
+F 2 "LED_SMD:LED_0805_2012Metric" V 9300 4100 50  0001 C CNN
+F 3 "~" V 9300 4100 50  0001 C CNN
+F 4 "C2297" H 9300 4100 50  0001 C CNN "LCSC"
+	1    9300 4100
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8450 3700 8750 3700
+Wire Wire Line
+	8750 3700 8750 3950
+Wire Wire Line
+	8750 3950 8900 3950
+Wire Wire Line
+	8900 4100 8600 4100
+Wire Wire Line
+	8600 4100 8600 3800
+Wire Wire Line
+	8600 3800 8450 3800
+Wire Wire Line
+	9100 3950 9200 3950
+Wire Wire Line
+	9200 4100 9100 4100
+$Comp
+L power:+3.3V #PWR031
+U 1 1 61BF0BCF
+P 9600 3950
+F 0 "#PWR031" H 9600 3800 50  0001 C CNN
+F 1 "+3.3V" V 9600 4200 50  0000 C CNN
+F 2 "" H 9600 3950 50  0000 C CNN
+F 3 "" H 9600 3950 50  0000 C CNN
+	1    9600 3950
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	9400 3950 9550 3950
+Wire Wire Line
+	9400 4100 9550 4100
+Wire Wire Line
+	9550 4100 9550 3950
+Connection ~ 9550 3950
+Wire Wire Line
+	9550 3950 9600 3950
 $EndSCHEMATC
