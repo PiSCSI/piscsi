@@ -58,6 +58,7 @@ from ractl_cmds import (
     get_device_types,
     reserve_scsi_ids,
     set_log_level,
+    send_shutdown,
 )
 from device_utils import (
     sort_and_format_devices,
@@ -660,16 +661,6 @@ def unreserve_id():
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
-@APP.route("/pi/reboot", methods=["POST"])
-@login_required
-def restart():
-    """
-    Restarts the Pi
-    """
-    reboot_pi()
-    return redirect(url_for("index"))
-
-
 @APP.route("/rascsi/restart", methods=["POST"])
 @login_required
 def rascsi_restart():
@@ -703,13 +694,23 @@ def rascsi_restart():
     return redirect(url_for("index"))
 
 
+@APP.route("/pi/reboot", methods=["POST"])
+@login_required
+def restart():
+    """
+    Restarts the Pi
+    """
+    send_shutdown("reboot")
+    return redirect(url_for("index"))
+
+
 @APP.route("/pi/shutdown", methods=["POST"])
 @login_required
 def shutdown():
     """
     Shuts down the Pi
     """
-    shutdown_pi()
+    send_shutdown("system")
     return redirect(url_for("index"))
 
 
