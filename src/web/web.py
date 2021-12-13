@@ -5,6 +5,7 @@ Module for the Flask app rendering and endpoints
 import logging
 from sys import argv
 from pathlib import Path
+from functools import wraps
 
 from flask import (
     Flask,
@@ -260,16 +261,26 @@ def send_pwa_files(path):
     return send_from_directory("pwa", path)
 
 
+def login_required(func):
+    """
+    Wrapper method for enabling authentication for an endpoint
+    """
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        auth = auth_active()
+        if auth["status"] and "username" not in session:
+            flash(auth["msg"], "error")
+            return redirect(url_for("index"))
+        return func(*args, **kwargs)
+    return decorated_function
+
+
 @APP.route("/drive/create", methods=["POST"])
+@login_required
 def drive_create():
     """
     Creates the image and properties file pair
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     vendor = request.form.get("vendor")
     product = request.form.get("product")
     revision = request.form.get("revision")
@@ -304,15 +315,11 @@ def drive_create():
 
 
 @APP.route("/drive/cdrom", methods=["POST"])
+@login_required
 def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     vendor = request.form.get("vendor")
     product = request.form.get("product")
     revision = request.form.get("revision")
@@ -337,15 +344,11 @@ def drive_cdrom():
 
 
 @APP.route("/config/save", methods=["POST"])
+@login_required
 def config_save():
     """
     Saves a config file to disk
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("name") or "default"
     file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
 
@@ -359,15 +362,11 @@ def config_save():
 
 
 @APP.route("/config/load", methods=["POST"])
+@login_required
 def config_load():
     """
     Loads a config file from disk
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("name")
 
     if "load" in request.form:
@@ -424,15 +423,11 @@ def show_logs():
 
 
 @APP.route("/logs/level", methods=["POST"])
+@login_required
 def log_level():
     """
     Sets RaSCSI backend log level
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     level = request.form.get("level") or "info"
 
     process = set_log_level(level)
@@ -445,15 +440,11 @@ def log_level():
 
 
 @APP.route("/daynaport/attach", methods=["POST"])
+@login_required
 def daynaport_attach():
     """
     Attaches a DaynaPORT ethernet adapter device
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     interface = request.form.get("if")
     ip_addr = request.form.get("ip")
@@ -494,15 +485,11 @@ def daynaport_attach():
 
 
 @APP.route("/scsi/attach", methods=["POST"])
+@login_required
 def attach():
     """
     Attaches a file image as a device
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("file_name")
     file_size = request.form.get("file_size")
     scsi_id = request.form.get("scsi_id")
@@ -551,15 +538,11 @@ def attach():
 
 
 @APP.route("/scsi/detach_all", methods=["POST"])
+@login_required
 def detach_all_devices():
     """
     Detaches all currently attached devices
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     process = detach_all()
     if process["status"]:
         flash("Detached all SCSI devices")
@@ -570,15 +553,11 @@ def detach_all_devices():
 
 
 @APP.route("/scsi/detach", methods=["POST"])
+@login_required
 def detach():
     """
     Detaches a specified device
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
     process = detach_by_id(scsi_id, unit)
@@ -592,15 +571,11 @@ def detach():
 
 
 @APP.route("/scsi/eject", methods=["POST"])
+@login_required
 def eject():
     """
     Ejects a specified removable device image, but keeps the device attached
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
 
@@ -649,15 +624,11 @@ def device_info():
     return redirect(url_for("index"))
 
 @APP.route("/scsi/reserve", methods=["POST"])
+@login_required
 def reserve_id():
     """
     Reserves a SCSI ID and stores the memo for that reservation
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     memo = request.form.get("memo")
     reserved_ids = get_reserved_ids()["ids"]
@@ -672,15 +643,11 @@ def reserve_id():
     return redirect(url_for("index"))
 
 @APP.route("/scsi/unreserve", methods=["POST"])
+@login_required
 def unreserve_id():
     """
     Removes the reservation of a SCSI ID as well as the memo for the reservation
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     reserved_ids = get_reserved_ids()["ids"]
     reserved_ids.remove(scsi_id)
@@ -694,29 +661,21 @@ def unreserve_id():
     return redirect(url_for("index"))
 
 @APP.route("/pi/reboot", methods=["POST"])
+@login_required
 def restart():
     """
     Restarts the Pi
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     reboot_pi()
     return redirect(url_for("index"))
 
 
 @APP.route("/rascsi/restart", methods=["POST"])
+@login_required
 def rascsi_restart():
     """
     Restarts the RaSCSI backend service
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     service = "rascsi.service"
     monitor_service = "monitor_rascsi.service"
     rascsi_status = systemd_service(service, "show")
@@ -745,29 +704,21 @@ def rascsi_restart():
 
 
 @APP.route("/pi/shutdown", methods=["POST"])
+@login_required
 def shutdown():
     """
     Shuts down the Pi
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     shutdown_pi()
     return redirect(url_for("index"))
 
 
 @APP.route("/files/download_to_iso", methods=["POST"])
+@login_required
 def download_to_iso():
     """
     Downloads a remote file and creates a CD-ROM image formatted with HFS that contains the file
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
     iso_args = request.form.get("type").split()
@@ -792,15 +743,11 @@ def download_to_iso():
 
 
 @APP.route("/files/download_to_images", methods=["POST"])
+@login_required
 def download_img():
     """
     Downloads a remote file onto the images dir on the Pi
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     url = request.form.get("url")
     server_info = get_server_info()
     process = download_to_dir(url, server_info["image_dir"])
@@ -814,15 +761,11 @@ def download_img():
 
 
 @APP.route("/files/download_to_afp", methods=["POST"])
+@login_required
 def download_afp():
     """
     Downloads a remote file onto the AFP shared dir on the Pi
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     url = request.form.get("url")
     process = download_to_dir(url, AFP_DIR)
     if process["status"]:
@@ -840,6 +783,7 @@ def upload_file():
     Uploads a file from the local computer to the images dir on the Pi
     Depending on the Dropzone.js JavaScript library
     """
+    # Due to the embedded javascript library, we cannot use the @login_required decorator
     auth = auth_active()
     if auth["status"] and "username" not in session:
         return make_response(auth["msg"], 403)
@@ -888,15 +832,11 @@ def upload_file():
 
 
 @APP.route("/files/create", methods=["POST"])
+@login_required
 def create_file():
     """
     Creates an empty image file in the images dir
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("file_name")
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
@@ -914,29 +854,21 @@ def create_file():
 
 
 @APP.route("/files/download", methods=["POST"])
+@login_required
 def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     image = request.form.get("file")
     return send_file(image, as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
+@login_required
 def delete():
     """
     Deletes a specified file in the images dir
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("image")
 
     process = delete_image(file_name)
@@ -961,15 +893,11 @@ def delete():
 
 
 @APP.route("/files/unzip", methods=["POST"])
+@login_required
 def unzip():
     """
     Unzips all files in a specified zip archive, or a single file in the zip archive
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     zip_file = request.form.get("zip_file")
     zip_member = request.form.get("zip_member") or False
     zip_members = request.form.get("zip_members") or False
