@@ -25,6 +25,7 @@ from file_cmds import (
     create_new_image,
     download_file_to_iso,
     delete_image,
+    rename_image,
     delete_file,
     unzip_file,
     download_to_dir,
@@ -935,7 +936,7 @@ def delete():
         flash(auth["msg"], "error")
         return redirect(url_for("index"))
 
-    file_name = request.form.get("image")
+    file_name = request.form.get("file_name")
 
     process = delete_image(file_name)
     if process["status"]:
@@ -946,6 +947,40 @@ def delete():
 
     # Delete the drive properties file, if it exists
     prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
+    if Path(prop_file_path).is_file():
+        process = delete_file(prop_file_path)
+        if process["status"]:
+            flash(process["msg"])
+            return redirect(url_for("index"))
+
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+    return redirect(url_for("index"))
+
+
+@APP.route("/files/rename", methods=["POST"])
+def rename():
+    """
+    Renames a specified file in the images dir
+    """
+    auth = auth_active()
+    if auth["status"] and "username" not in session:
+        flash(auth["msg"], "error")
+        return redirect(url_for("index"))
+
+    file_name = request.form.get("image")
+    new_file_name = request.form.get("new_file_name")
+
+    process = rename_image(file_name, new_file_name)
+    if process["status"]:
+        flash(f"Image file renamed to: {new_file_name}")
+    else:
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+    # Rename the drive properties file, if it exists
+    prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
         process = delete_file(prop_file_path)
         if process["status"]:
