@@ -243,7 +243,7 @@ function updateRaScsiGit() {
     cd "$BASE" || exit 1
 
     if [ ! -d .git ]; then
-        echo "This does not seem to be a clone of a git repository. Will not attempt to pull upstream changes."
+        echo "Warning: This does not seem to be a valid clone of a git repository. I will not be able to pull the latest code."
         return 0
     fi
 
