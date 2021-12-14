@@ -3,6 +3,7 @@ Module for commands sent to the RaSCSI backend service.
 """
 
 from settings import REMOVABLE_DEVICE_TYPES
+from pi_cmds import systemd_service
 from socket_cmds import send_pb_command
 import rascsi_interface_pb2 as proto
 
@@ -349,6 +350,29 @@ def set_log_level(log_level):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL
     command.params["level"] = str(log_level)
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
+
+
+def shutdown_pi(mode):
+    """
+    Sends a SHUT_DOWN command to the server.
+    Takes (str) mode as an argument.
+    Returns (bool) status and (str) msg.
+    """
+    # This section proactively stops the monitor_rascsi systemd service, if running
+    # Otherwise, the monitor_rascsi script's interrupt handler won't take effect
+    monitor_service = "monitor_rascsi.service"
+    monitor_status = systemd_service(monitor_service, "show")
+    if "ActiveState=active" in monitor_status["msg"]:
+        systemd_service(monitor_service, "stop")
+
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.SHUT_DOWN
+    command.params["mode"] = str(mode)
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
