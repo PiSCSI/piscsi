@@ -76,7 +76,7 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
+    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev python3-pip libev-dev libevdev2 -y </dev/null
 }
 
 # compile the RaSCSI binaries
@@ -163,7 +163,7 @@ function installRaScsiScreen() {
     stopRaScsiScreen
     updateRaScsiGit
 
-    sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
     if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
         sudo rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
