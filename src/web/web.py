@@ -56,7 +56,7 @@ from ractl_cmds import (
     get_device_types,
     reserve_scsi_ids,
     set_log_level,
-    do_shutdown,
+    shutdown_pi,
 )
 from device_utils import (
     sort_and_format_devices,
@@ -698,7 +698,7 @@ def restart():
     """
     Restarts the Pi
     """
-    do_shutdown("reboot")
+    shutdown_pi("reboot")
     return redirect(url_for("index"))
 
 
@@ -708,7 +708,7 @@ def shutdown():
     """
     Shuts down the Pi
     """
-    do_shutdown("system")
+    shutdown_pi("system")
     return redirect(url_for("index"))
 
 
