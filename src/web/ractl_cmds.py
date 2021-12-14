@@ -356,7 +356,7 @@ def set_log_level(log_level):
     return {"status": result.status, "msg": result.msg}
 
 
-def send_shutdown(mode):
+def do_shutdown(mode):
     """
     Sends a SHUT_DOWN command to the server.
     Takes (str) mode as an argument.

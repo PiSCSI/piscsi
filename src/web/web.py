@@ -35,8 +35,6 @@ from file_cmds import (
     read_drive_properties,
 )
 from pi_cmds import (
-    shutdown_pi,
-    reboot_pi,
     running_env,
     systemd_service,
     running_proc,
@@ -58,7 +56,7 @@ from ractl_cmds import (
     get_device_types,
     reserve_scsi_ids,
     set_log_level,
-    send_shutdown,
+    do_shutdown,
 )
 from device_utils import (
     sort_and_format_devices,
@@ -700,7 +698,7 @@ def restart():
     """
     Restarts the Pi
     """
-    send_shutdown("reboot")
+    do_shutdown("reboot")
     return redirect(url_for("index"))
 
 
@@ -710,7 +708,7 @@ def shutdown():
     """
     Shuts down the Pi
     """
-    send_shutdown("system")
+    do_shutdown("system")
     return redirect(url_for("index"))
 
 

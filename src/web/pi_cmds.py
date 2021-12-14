@@ -22,22 +22,6 @@ def systemd_service(service, action):
             }
 
 
-def reboot_pi():
-    """
-    Reboots the Pi system
-    """
-    subprocess.Popen(["sudo", "reboot"])
-    return True
-
-
-def shutdown_pi():
-    """
-    Shuts down the Pi system
-    """
-    subprocess.Popen(["sudo", "shutdown", "-h", "now"])
-    return True
-
-
 def running_env():
     """
     Returns (str) git and (str) env

@@ -613,19 +613,19 @@
         Raspberry Pi Operations
     </summary>
     <ul>
-        <li>Issue reboot or shutdown commands to the Raspberr Pi.</li>
+        <li>Issue reboot or shutdown commands to the Raspberry Pi.</li>
         <li>You can also restart the RaSCSI backend service here.</li>
     </ul>
 </details>
 <table style="border: none">
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
-            <form action="/pi/reboot" method="post" onsubmit="return confirm('Reboot Pi?')">
+            <form action="/pi/reboot" method="post" onclick="if (confirm('Reboot the Raspberry Pi?')) shutdownNotify('Rebooting the Raspberry Pi...'); else event.preventDefault();">
                 <input type="submit" value="Reboot Raspberry Pi">
             </form>
         </td>
         <td style="border: none; vertical-align:top;">
-            <form action="/pi/shutdown" method="post" onsubmit="return confirm('Shutdown Pi?')">
+            <form action="/pi/reboot" method="post" onclick="if (confirm('Shut down the Raspberry Pi?')) shutdownNotify('Shutting down the Raspberry Pi...'); else event.preventDefault();">
                 <input type="submit" value="Shut Down Raspberry Pi">
             </form>
         </td>
