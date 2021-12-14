@@ -241,6 +241,12 @@ function stopOldWebInterface() {
 # Checks for upstream changes to the git repo and fast-forwards changes if needed
 function updateRaScsiGit() {
     cd "$BASE" || exit 1
+
+    if [ ! -d .git ]; then
+        echo "This does not seem to be a clone of a git repository. Will not attempt to pull upstream changes."
+        return 0
+    fi
+
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
         echo "There are local changes to the RaSCSI code; we will stash and reapply them."
