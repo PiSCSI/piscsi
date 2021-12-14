@@ -242,6 +242,7 @@ def download_file_to_iso(url, *iso_args):
     """
     from time import time
     from subprocess import run, CalledProcessError
+    import asyncio
 
     server_info = get_server_info()
 
@@ -257,6 +258,19 @@ def download_file_to_iso(url, *iso_args):
     if not req_proc["status"]:
         return {"status": False, "msg": req_proc["msg"]}
 
+    from zipfile import is_zipfile
+    if is_zipfile(tmp_full_path):
+        logging.info(
+            f"%s is a zipfile! Will attempt to unzip and store the resulting files.",
+            tmp_full_path,
+            )
+        unzip_proc = asyncio.run(run_async(
+            f"unzip -d {tmp_dir} -n {tmp_full_path}"
+            ))
+        if not unzip_proc["returncode"]:
+            logging.info("%s was successfully unzipped. Deleting the zipfile.", tmp_full_path)
+            delete_file(tmp_full_path)
+
     try:
         iso_proc = (
             run(
@@ -265,7 +279,7 @@ def download_file_to_iso(url, *iso_args):
                     *iso_args,
                     "-o",
                     iso_filename,
-                    tmp_full_path,
+                    tmp_dir,
                 ],
                 capture_output=True,
                 check=True,
