@@ -58,15 +58,13 @@ fi
 source venv/bin/activate
 
 # Detect if someone updates the git repo - we need to re-run pip3 install.
-if test -d "../../.git"; then
+if [ -d "../../.git" ]; then
     if ! test -e current; then
         git rev-parse > current
-    else
-        if [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
-            echo "New version detected, updating requirements.txt"
-            pip3 install -r requirements.txt
-            git rev-parse HEAD > current
-        fi
+    elif [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
+        echo "New version detected, updating libraries from requirements.txt"
+        pip3 install -r requirements.txt
+        git rev-parse HEAD > current
     fi
 fi
 
