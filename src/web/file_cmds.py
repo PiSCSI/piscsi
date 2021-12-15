@@ -258,18 +258,21 @@ def download_file_to_iso(url, *iso_args):
     if not req_proc["status"]:
         return {"status": False, "msg": req_proc["msg"]}
 
-    from zipfile import is_zipfile
+    from zipfile import is_zipfile, ZipFile
     if is_zipfile(tmp_full_path):
-        logging.info(
-            f"%s is a zipfile! Will attempt to unzip and store the resulting files.",
-            tmp_full_path,
-            )
-        unzip_proc = asyncio.run(run_async(
-            f"unzip -d {tmp_dir} -n {tmp_full_path}"
-            ))
-        if not unzip_proc["returncode"]:
-            logging.info("%s was successfully unzipped. Deleting the zipfile.", tmp_full_path)
-            delete_file(tmp_full_path)
+        if "XtraStuf.mac" in str(ZipFile(tmp_full_path).namelist()):
+            logging.info("MacZip file format detected. Will not unzip to retain resource fork.")
+        else:
+            logging.info(
+                f"%s is a zipfile! Will attempt to unzip and store the resulting files.",
+                tmp_full_path,
+                )
+            unzip_proc = asyncio.run(run_async(
+                f"unzip -d {tmp_dir} -n {tmp_full_path}"
+                ))
+            if not unzip_proc["returncode"]:
+                logging.info("%s was successfully unzipped. Deleting the zipfile.", tmp_full_path)
+                delete_file(tmp_full_path)
 
     try:
         iso_proc = (
