@@ -264,14 +264,17 @@ def download_file_to_iso(url, *iso_args):
             logging.info("MacZip file format detected. Will not unzip to retain resource fork.")
         else:
             logging.info(
-                f"%s is a zipfile! Will attempt to unzip and store the resulting files.",
+                "%s is a zipfile! Will attempt to unzip and store the resulting files.",
                 tmp_full_path,
                 )
             unzip_proc = asyncio.run(run_async(
                 f"unzip -d {tmp_dir} -n {tmp_full_path}"
                 ))
             if not unzip_proc["returncode"]:
-                logging.info("%s was successfully unzipped. Deleting the zipfile.", tmp_full_path)
+                logging.info(
+                    "%s was successfully unzipped. Deleting the zipfile.",
+                    tmp_full_path,
+                    )
                 delete_file(tmp_full_path)
 
     try:
