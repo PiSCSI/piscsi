@@ -33,6 +33,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <list>
 #include <vector>
 #include <map>
@@ -67,6 +68,7 @@ pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
+string access_token;
 set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
@@ -371,6 +373,43 @@ bool MapController(Device **map)
 	pthread_mutex_unlock(&ctrl_mutex);
 
 	return status;
+}
+
+bool ReadAccessToken(const char *filename)
+{
+	struct stat st;
+	if (stat(filename, &st) || !S_ISREG(st.st_mode)) {
+		cerr << "Can't access token file '" << optarg << "'" << endl;
+		return false;
+	}
+
+	if (st.st_uid || st.st_gid || (st.st_mode & (S_IROTH | S_IWOTH | S_IRGRP | S_IWGRP))) {
+		cerr << "Access token file '" << optarg << "' must be owned by root and readable by root only" << endl;
+		return false;
+	}
+
+	ifstream token_file(filename, ifstream::in);
+	if (token_file.fail()) {
+		cerr << "Can't open access token file '" << optarg << "'" << endl;
+		return false;
+	}
+
+	getline(token_file, access_token);
+	if (token_file.fail()) {
+		token_file.close();
+		cerr << "Can't read access token file '" << optarg << "'" << endl;
+		return false;
+	}
+
+	if (access_token.empty()) {
+		token_file.close();
+		cerr << "Access token file '" << optarg << "' must not be empty" << endl;
+		return false;
+	}
+
+	token_file.close();
+
+	return true;
 }
 
 string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existing_devices)
@@ -1159,7 +1198,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:P:")) != -1) {
 		switch (opt) {
 			// The three options below are kind of a compound option with two letters
 			case 'i':
@@ -1211,6 +1250,12 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 'p':
 				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+					return false;
+				}
+				continue;
+
+			case 'P':
+				if (!ReadAccessToken(optarg)) {
 					return false;
 				}
 				continue;
@@ -1369,6 +1414,13 @@ static void *MonThread(void *param)
 			// Fetch the command
 			PbCommand command;
 			DeserializeMessage(fd, command);
+
+			if (!access_token.empty()) {
+				if (access_token != GetParam(command, "token")) {
+					ReturnStatus(fd, false, "Authentication failed");
+					continue;
+				}
+			}
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {

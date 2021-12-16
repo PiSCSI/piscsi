@@ -5,6 +5,7 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 .B rascsi
 [\fB\-F\f® \fIFOLDER\fR]
 [\fB\-L\f® \fILOG_LEVEL\fR]
+[\fB\-P\f® \fIACCESS_TOKEN_FILE\fR]
 [\fB\-h\fR]
 [\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
 [\fB\-p\f® \fIPORT\fR]
@@ -51,6 +52,9 @@ The default folder for image files. For files in this folder no absolute path ne
 .TP
 .BR \-L\fI " " \fILOG_LEVEL
 The rascsi log level (trace, debug, info, warn, err, critical, off). The default log level is 'info'.
+.TP
+.BR \-P\fI " " \fIACCESS_TOKEN_FILE
+Enable authentication and read the access token from the specified file.
 .TP
 .BR \-h\fI " " \fI
 Show a help page.
