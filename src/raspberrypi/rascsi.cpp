@@ -1415,7 +1415,7 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
-			if (!access_token.empty()) {
+			if (command.operation() != VERSION_INFO && !access_token.empty()) {
 				if (access_token != GetParam(command, "token")) {
 					ReturnStatus(fd, false, "Authentication failed");
 					continue;
