@@ -158,7 +158,8 @@ enum PbOperation {
     UNPROTECT_IMAGE = 29;
     
     // Check whether an authentication token is valid. A client can use this in operation  in order
-    // to use rascsi authentication for securing client-internal operations.
+    // find out whether rascsi authentication is enable or to use rascsi authentication for securing
+    // client-internal operations.
     CHECK_AUTHENTICATION = 30;
 }
 
