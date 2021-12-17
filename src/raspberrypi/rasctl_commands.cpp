@@ -273,3 +273,10 @@ void RasctlCommands::CommandMappingInfo()
 
 	rasctl_display.DisplayMappingInfo(result.mapping_info());
 }
+
+void RasctlCommands::CommandOperationInfo()
+{
+	SendCommand();
+
+	rasctl_display.DisplayOperationInfo(result.operation_info());
+}

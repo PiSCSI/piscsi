@@ -334,3 +334,30 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 
 	return mapping_info;
 }
+
+PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
+{
+	PbOperationInfo *operation_info = new PbOperationInfo();
+
+	PbOperationParameters *parameters;
+	PbOperationParameter *parameter;
+
+	parameters = operation_info->add_operations();
+	parameters->set_operation(PbOperation_Name(ATTACH));
+	parameters->set_description("Attach device, one of the parameters below is required");
+	parameter = parameters->add_parameters();
+	parameter->set_name("name");
+	parameter->set_description("Image file name");
+	parameter->set_type("string");
+	parameter = parameters->add_parameters();
+	parameter->set_name("interfaces");
+	parameter->set_description("Comma-separated list of network interfaces");
+	parameter->set_type("string");
+
+	parameters = operation_info->add_operations();
+	parameters->set_operation(PbOperation_Name(OPERATION_INFO));
+
+	result.set_status(true);
+
+	return operation_info;
+}

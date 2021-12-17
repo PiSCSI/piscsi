@@ -1500,6 +1500,15 @@ static void *MonThread(void *param)
 					break;
 				}
 
+				case OPERATION_INFO: {
+					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+					PbResult result;
+					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result));
+					SerializeMessage(fd, result);
+					break;
+				}
+
 				case RESERVED_IDS_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 

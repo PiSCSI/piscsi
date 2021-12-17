@@ -30,4 +30,5 @@ public:
 	void DisplayImageFiles(const PbImageFilesInfo&);
 	void DisplayNetworkInterfaces(const PbNetworkInterfacesInfo&);
 	void DisplayMappingInfo(const PbMappingInfo&);
+	void DisplayOperationInfo(const PbOperationInfo&);
 };

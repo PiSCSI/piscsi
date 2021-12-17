@@ -30,15 +30,16 @@ public:
 
 	bool GetImageFile(PbImageFile *, const string&);
 	PbImageFilesInfo *GetAvailableImages(PbResult&);
-	PbReservedIdsInfo *GetReservedIds(PbResult&, const set<int>&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, int);
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
 	PbVersionInfo *GetVersionInfo(PbResult&);
 	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
-	PbMappingInfo *GetMappingInfo(PbResult&);
 	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
+	PbReservedIdsInfo *GetReservedIds(PbResult&, const set<int>&);
+	PbMappingInfo *GetMappingInfo(PbResult&);
+	PbOperationInfo *GetOperationInfo(PbResult&);
 
 private:
 

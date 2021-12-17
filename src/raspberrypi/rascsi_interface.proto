@@ -162,17 +162,21 @@ enum PbOperation {
 // The operation parameter meta data
 message PbOperationParameter {
     string name = 1;
+    // Optional description
+    string description = 2;
     // "int" or "string"
-    string type = 2;
-    // Any value of the specified type is permitted if empty
-    repeated string values = 3;
-    bool is_mandatory = 4;
+    string type = 3;
+    // There is no specific set of values if empty
+    repeated string values = 4;
+    bool is_mandatory = 5;
 }
 
 // The list of parameters supported by an operation
 message PbOperationParameters {
-    PbOperation operation = 1;
-    repeated PbOperationParameter parameters = 2;
+    string operation = 1;
+    // Optional description
+    string description = 2;
+    repeated PbOperationParameter parameters = 3;
 }
 
 message PbOperationInfo {
