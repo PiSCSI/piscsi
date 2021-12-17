@@ -64,10 +64,10 @@ enum PbOperation {
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 9;
 
-    // Gets the server information (PbServerInfo)
+    // Gets rascsi server information (PbServerInfo)
     SERVER_INFO = 10;
 
-    // Get rascsi version information (PbVersionInfo)
+    // Get rascsi server version (PbVersionInfo)
     VERSION_INFO = 11;
 
     // Get information on attached devices (PbDevicesInfo)
@@ -103,7 +103,7 @@ enum PbOperation {
     //   "folder": The path of the default folder, relative to the user's home folder if relative.
     DEFAULT_FOLDER = 20;
 
-    // Set a new log level.
+    // Set the log level.
     // Parameters:
     //   "level": The new log level
     LOG_LEVEL = 21;
@@ -113,7 +113,7 @@ enum PbOperation {
     //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
     RESERVE_IDS = 22;
     
-    // Shut down the rascsi process
+    // Shut down the rascsi process or shut down/reboot the Raspberry Pi
     // Parameters:
     //   "mode": The shutdown mode, one of "rascsi", "system", "reboot"
     SHUT_DOWN = 23;
@@ -155,7 +155,7 @@ enum PbOperation {
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     UNPROTECT_IMAGE = 29;
 
-    // Get operation meta data
+    // Get operation meta data (PbOperationParameters)
     OPERATION_INFO = 30;
 }
 

@@ -351,7 +351,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameter->set_type("string");
 	parameter = parameters->add_parameters();
 	parameter->set_name("interfaces");
-	(*parameter->mutable_description())["en"] = "Comma-separated list of network interfaces";
+	(*parameter->mutable_description())["en"] = "A comma-separated list of network interfaces";
 	parameter->set_type("string");
 
 	parameters = operation_info->add_operations();
@@ -376,6 +376,8 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameter = parameters->add_parameters();
 	parameter->set_name("file");
 	(*parameter->mutable_description())["en"] = "Image file name";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(EJECT));
@@ -390,7 +392,167 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	(*parameters->mutable_description())["en"] = "Unprotect medium";
 
 	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(SERVER_INFO));
+	(*parameters->mutable_description())["en"] = "Get rascsi server information";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(VERSION_INFO));
+	(*parameters->mutable_description())["en"] = "Get rascsi server version";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(DEVICES_INFO));
+	(*parameters->mutable_description())["en"] = "Get information on attached devices";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(DEVICE_TYPES_INFO));
+	(*parameters->mutable_description())["en"] = "Get device properties by device type";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(DEFAULT_IMAGE_FILES_INFO));
+	(*parameters->mutable_description())["en"] = "Get information on available image files";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(IMAGE_FILE_INFO));
+	(*parameters->mutable_description())["en"] = "Get information on an image file";
+	parameter = parameters->add_parameters();
+	parameter->set_name("file");
+	(*parameter->mutable_description())["en"] = "Image file name";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(LOG_LEVEL_INFO));
+	(*parameters->mutable_description())["en"] = "Get log level information";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(NETWORK_INTERFACES_INFO));
+	(*parameters->mutable_description())["en"] = "Get the names of the available network interfaces";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(MAPPING_INFO));
+	(*parameters->mutable_description())["en"] = "Get the mapping of extensions to device types";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(RESERVED_IDS_INFO));
+	(*parameters->mutable_description())["en"] = "Get the list of reserved device IDs";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(DEFAULT_FOLDER));
+	(*parameters->mutable_description())["en"] = "Set the default image file folder";
+	parameter = parameters->add_parameters();
+	parameter->set_name("folder");
+	(*parameter->mutable_description())["en"] = "Default image file folder name";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(LOG_LEVEL));
+	(*parameters->mutable_description())["en"] = "Set the log level";
+	parameter = parameters->add_parameters();
+	parameter->set_name("level");
+	(*parameter->mutable_description())["en"] = "The log level";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(RESERVE_IDS));
+	(*parameters->mutable_description())["en"] = "Set the list of reserved device IDs";
+	parameter = parameters->add_parameters();
+	parameter->set_name("ids");
+	(*parameter->mutable_description())["en"] = "A comma-separated list of device IDs";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(SHUT_DOWN));
+	(*parameters->mutable_description())["en"] = "Shut down or reboot";
+	parameter = parameters->add_parameters();
+	parameter->set_name("mode");
+	(*parameter->mutable_description())["en"] = "The shutdown mode";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(CREATE_IMAGE));
+	(*parameters->mutable_description())["en"] = "Create an image file";
+	parameter = parameters->add_parameters();
+	parameter->set_name("file");
+	(*parameter->mutable_description())["en"] = "The filename";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+	parameter = parameters->add_parameters();
+	parameter->set_name("size");
+	(*parameter->mutable_description())["en"] = "The file size in bytes";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+	parameter = parameters->add_parameters();
+	parameter->set_name("read_only");
+	(*parameter->mutable_description())["en"] = "The read-only flag, true if missing";
+	parameter->set_type("string");
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(DELETE_IMAGE));
+	(*parameters->mutable_description())["en"] = "Delete an image file";
+	parameter = parameters->add_parameters();
+	parameter->set_name("file");
+	(*parameter->mutable_description())["en"] = "The filename";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(RENAME_IMAGE));
+	(*parameters->mutable_description())["en"] = "Rename an image file";
+	parameter = parameters->add_parameters();
+	parameter->set_name("from");
+	(*parameter->mutable_description())["en"] = "The source filename";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+	parameter = parameters->add_parameters();
+	parameter->set_name("to");
+	(*parameter->mutable_description())["en"] = "The destination filename";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(COPY_IMAGE));
+	(*parameters->mutable_description())["en"] = "Copy an image file";
+	parameter->set_name("from");
+	(*parameter->mutable_description())["en"] = "The source filename";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+	parameter = parameters->add_parameters();
+	parameter->set_name("to");
+	(*parameter->mutable_description())["en"] = "The destination filename";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+	parameter = parameters->add_parameters();
+	parameter->set_name("read_only");
+	(*parameter->mutable_description())["en"] = "The read-only flag, true if missing";
+	parameter->set_type("string");
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(PROTECT_IMAGE));
+	(*parameters->mutable_description())["en"] = "Write-protect an image file";
+	parameter = parameters->add_parameters();
+	parameter->set_name("file");
+	(*parameter->mutable_description())["en"] = "Image file name";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(UNPROTECT_IMAGE));
+	(*parameters->mutable_description())["en"] = "Make an image file writable";
+	parameter = parameters->add_parameters();
+	parameter->set_name("file");
+	(*parameter->mutable_description())["en"] = "Image file name";
+	parameter->set_type("string");
+	parameter->set_is_mandatory(true);
+
+	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(OPERATION_INFO));
+	(*parameters->mutable_description())["en"] = "Get operation meta data";
+
+	assert(operation_info->operations_size() == 30);
 
 	result.set_status(true);
 
