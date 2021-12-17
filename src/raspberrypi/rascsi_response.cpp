@@ -341,6 +341,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	PbOperationInfo *operation_info = new PbOperationInfo();
 
 	PbOperationParameters *parameters;
+	PbOperationParameter *parameter;
 
 	parameters = AddOperation(*operation_info, ATTACH, "Attach device, a device-specific parameter is required");
 	AddOperationParameter(*parameters, "name", "Image file name for a mass storage device", "string", false);
@@ -394,7 +395,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	AddOperationParameter(*parameters, "ids", "Comma-separated device ID list");
 
 	parameters = AddOperation(*operation_info, SHUT_DOWN, "Shut down or reboot");
-	PbOperationParameter *parameter = AddOperationParameter(*parameters, "mode", "Shutdown mode");
+	parameter = AddOperationParameter(*parameters, "mode", "Shutdown mode");
 	parameter->add_values("rascsi");
 	parameter->add_values("system");
 	parameter->add_values("reboot");
@@ -402,7 +403,9 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameters = AddOperation(*operation_info, CREATE_IMAGE, "Create an image file");
 	AddOperationParameter(*parameters, "file", "Image file name");
 	AddOperationParameter(*parameters, "size", "Image file size in bytes", "int");
-	AddOperationParameter(*parameters, "read_only",  "Read-only flag, true if missing", "boolean", false);
+	parameter = AddOperationParameter(*parameters, "read_only",  "Read-only flag, true if missing", "boolean", false);
+	parameter->add_values("true");
+	parameter->add_values("false");
 
 	parameters = AddOperation(*operation_info, DELETE_IMAGE, "Delete image file");
 	AddOperationParameter(*parameters, "file", "Image file name");
@@ -414,7 +417,9 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameters = AddOperation(*operation_info, COPY_IMAGE, "Copy image file");
 	AddOperationParameter(*parameters, "from", "Source image file name image file name");
 	AddOperationParameter(*parameters, "to", "Destination image file name");
-	AddOperationParameter(*parameters, "read_only", "Read-only flag, true if missing", "boolean", false);
+	parameter = AddOperationParameter(*parameters, "read_only", "Read-only flag, true if missing", "boolean", false);
+	parameter->add_values("true");
+	parameter->add_values("false");
 
 	parameters = AddOperation(*operation_info, PROTECT_IMAGE, "Write-protect an image file");
 	AddOperationParameter(*parameters, "file", "Image file name");
