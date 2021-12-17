@@ -52,7 +52,7 @@ PbOperation ParseOperation(const char *optarg)
 			return DEVICES_INFO;
 
 		default:
-			return NONE;
+			return NO_OPERATION;
 	}
 }
 
@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
 
 			case 'c':
 				command.set_operation(ParseOperation(optarg));
-				if (command.operation() == NONE) {
+				if (command.operation() == NO_OPERATION) {
 					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);
 				}
