@@ -667,30 +667,16 @@ def rascsi_restart():
     """
     Restarts the RaSCSI backend service
     """
-    service = "rascsi.service"
-    monitor_service = "monitor_rascsi.service"
-    rascsi_status = systemd_service(service, "show")
+    rascsi_status = systemd_service("rascsi.service", "show")
     if rascsi_status["status"] and "ActiveState=active" not in rascsi_status["msg"]:
         flash(
-                f"Failed to restart {service} because it is inactive. "
+                "Failed to restart the RaSCSI service because it is not running. "
                 "You are probably running RaSCSI as a regular process.", "error"
                 )
         return redirect(url_for("index"))
 
-    monitor_status = systemd_service(monitor_service, "show")
-    restart_proc = systemd_service(service, "restart")
-    if restart_proc["status"]:
-        flash(f"Restarted {service}")
-        restart_monitor = systemd_service(monitor_service, "restart")
-        if restart_monitor["status"] and "ActiveState=active" in monitor_status["msg"]:
-            flash(f"Restarted {monitor_service}")
-        elif not restart_monitor["status"] and "ActiveState=active" in monitor_status["msg"]:
-            flash(f"Failed to restart {monitor_service}:", "error")
-        return redirect(url_for("index"))
-
-    restart_monitor = systemd_service("monitor_rascsi.service", "restart")
-    flash(f"Failed to restart {service}:", "error")
-    flash(restart_proc["err"], "error")
+    shutdown_pi("rascsi")
+    flash(f"Restarted the RaSCSI service!")
     return redirect(url_for("index"))
 
 
