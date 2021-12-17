@@ -421,6 +421,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	AddOperation(*operation_info, OPERATION_INFO, "Get operation meta data");
 
+	// Ensure that all operations are covered
 	assert(operation_info->operations_size() == 30);
 
 	result.set_status(true);
