@@ -68,7 +68,7 @@ pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 set<int> reserved_ids;
-bool recursive_image_file_scan = false;
+int scan_depth = 0;
 DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
@@ -1160,7 +1160,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHRhb:d:n:p:r:t:D:F:L:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:R:")) != -1) {
 		switch (opt) {
 			// The three options below are kind of a compound option with two letters
 			case 'i':
@@ -1206,7 +1206,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'R':
-				recursive_image_file_scan = true;
+				if (!GetAsInt(optarg, scan_depth) || scan_depth < 0) {
+					cerr << "Invalid image file scan depth " << optarg << endl;
+					return false;
+				}
 				continue;
 
 			case 'n':
@@ -1433,7 +1436,7 @@ static void *MonThread(void *param)
 					PbResult result;
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
 							result, devices, reserved_ids, current_log_level, GetParam(command, "filename_pattern"),
-							recursive_image_file_scan));
+							scan_depth));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1461,7 +1464,7 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							GetParam(command, "filename_pattern"), recursive_image_file_scan));
+							GetParam(command, "filename_pattern"), scan_depth));
 					SerializeMessage(fd, result);
 					break;
 				}
