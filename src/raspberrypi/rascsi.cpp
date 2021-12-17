@@ -1011,6 +1011,7 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 			assert(dryRun);
 			break;
 
+		case CHECK_AUTHENTICATION:
 		case NO_OPERATION:
 			// Do nothing, just log
 			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str());
