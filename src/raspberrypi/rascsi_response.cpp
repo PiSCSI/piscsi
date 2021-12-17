@@ -344,15 +344,32 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	parameters = operation_info->add_operations();
 	parameters->set_operation(PbOperation_Name(ATTACH));
-	parameters->set_description("Attach device, one of the parameters below is required");
+	(*parameters->mutable_description())["en"] = "Attach device, one of the parameters below is required";
 	parameter = parameters->add_parameters();
 	parameter->set_name("name");
-	parameter->set_description("Image file name");
+	(*parameter->mutable_description())["en"] = "Image file name";
 	parameter->set_type("string");
 	parameter = parameters->add_parameters();
 	parameter->set_name("interfaces");
-	parameter->set_description("Comma-separated list of network interfaces");
+	(*parameter->mutable_description())["en"] = "Comma-separated list of network interfaces";
 	parameter->set_type("string");
+
+	parameters = operation_info->add_operations();
+	parameters->set_operation(PbOperation_Name(DETACH));
+	(*parameters->mutable_description())["en"] = "Detach device";
+
+	parameters = operation_info->add_operations();
+	parameters->set_operation(PbOperation_Name(DETACH_ALL));
+	(*parameters->mutable_description())["en"] = "Detach all devices";
+
+	parameters = operation_info->add_operations();
+	parameters->set_operation(PbOperation_Name(START));
+	(*parameters->mutable_description())["en"] = "Start device";
+
+	parameters = operation_info->add_operations();
+	parameters->set_operation(PbOperation_Name(STOP));
+	(*parameters->mutable_description())["en"] = "Stop device";
+
 
 	parameters = operation_info->add_operations();
 	parameters->set_operation(PbOperation_Name(OPERATION_INFO));

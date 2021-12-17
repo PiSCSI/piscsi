@@ -277,18 +277,18 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info)
 void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 {
 	cout << "Remote operations supported by rascsi and their parameters:" << endl;
-	for (const auto& operation : operation_info.operations()) {
+	for (auto& operation : operation_info.operations()) {
 		cout << "  " << operation.operation();
 		if (!operation.description().empty()) {
-			cout << " (" << operation.description() << ")";
+			cout << " (" << operation.description().at("en") << ")";
 		}
 		cout << endl;
 
-		for (const auto& parameter : operation.parameters()) {
+		for (auto& parameter : operation.parameters()) {
 			cout << "    " << parameter.name() << ": " << parameter.type()
 				<< (parameter.is_mandatory() ? ", mandatory" : ", optional");
 			if (!parameter.description().empty()) {
-				cout << " (" << parameter.description() << ")";
+				cout << " (" << parameter.description().at("en") << ")";
 			}
 			cout << endl;
 		}
