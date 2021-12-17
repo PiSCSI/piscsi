@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvDINOPTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmsvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:P::")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -303,7 +303,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'P':
-				token = getpass("Password: ");
+				token = optarg ? optarg : getpass("Password: ");
 				break;
 
 			case 'V':
