@@ -157,10 +157,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 			}
 
 			bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
-			bool is_supported_name = dir->d_name[0] != '.'
-					&& (pattern.empty() || name_lower.find(pattern_lower) != string::npos);
-
-			if (is_supported_type && is_supported_name) {
+			if (is_supported_type && dir->d_name[0] != '.') {
 				struct stat st;
 				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 					if (!st.st_size) {
@@ -175,11 +172,13 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 		            continue;
 				}
 
-				PbImageFile *image_file = new PbImageFile();
-				if (GetImageFile(image_file, filename)) {
-					GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
+				if (pattern.empty() || name_lower.find(pattern_lower) != string::npos) {
+					PbImageFile *image_file = new PbImageFile();
+					if (GetImageFile(image_file, filename)) {
+						GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
+					}
+					delete image_file;
 				}
-				delete image_file;
 			}
 		}
 
