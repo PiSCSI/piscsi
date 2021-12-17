@@ -53,5 +53,6 @@ private:
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
 	void GetAvailableImages(PbResult& result, PbServerInfo&);
+	PbOperationParameters *AddOperation(PbOperationInfo&, const PbOperation&, const string&);
 	void AddOperationParameter(PbOperationParameters&, const string&, const string&, const string&, bool = false);
 };
