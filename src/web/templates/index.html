@@ -635,7 +635,7 @@
             </form>
         </td>
         <td style="border: none; vertical-align:top;">
-            <form action="/rascsi/restart" method="post" onsubmit="return confirm('Restart RaSCSI?')">
+            <form action="/rascsi/restart" method="post" onclick="if (confirm('Restart the RaSCSI Service?')) shutdownNotify('Restarting the RaSCSI Service...'); else event.preventDefault();">
                 <input type="submit" value="Restart RaSCSI Service">
             </form>
         </td>
