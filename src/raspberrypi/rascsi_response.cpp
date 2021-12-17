@@ -343,8 +343,8 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	PbOperationParameters *parameters;
 
 	parameters = AddOperation(*operation_info, ATTACH, "Attach device, a device-specific parameter is required");
-	AddOperationParameter(*parameters, "name", "Image file name for a mass storage device", "string");
-	AddOperationParameter(*parameters, "interfaces", "Comma-separated prioritized network interface list", "string");
+	AddOperationParameter(*parameters, "name", "Image file name for a mass storage device", "string", false);
+	AddOperationParameter(*parameters, "interfaces", "Comma-separated prioritized network interface list", "string", false);
 
 	AddOperation(*operation_info, DETACH, "Detach device");
 
@@ -355,7 +355,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	AddOperation(*operation_info,STOP, "Stop device");
 
 	parameters = AddOperation(*operation_info, INSERT, "Insert medium");
-	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
+	AddOperationParameter(*parameters, "file", "Image file name");
 
 	AddOperation(*operation_info, EJECT, "Eject medium");
 
@@ -374,7 +374,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	AddOperation(*operation_info, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
 
 	parameters = AddOperation(*operation_info, IMAGE_FILE_INFO, "Get information on image file");
-	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
+	AddOperationParameter(*parameters, "file", "Image file name");
 
 	AddOperation(*operation_info, LOG_LEVEL_INFO, "Get log level information");
 
@@ -385,39 +385,39 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	AddOperation(*operation_info, RESERVED_IDS_INFO, "Get list of reserved device IDs");
 
 	parameters = AddOperation(*operation_info,DEFAULT_FOLDER, "Set default image file folder");
-	AddOperationParameter(*parameters, "folder", "Default image file folder name", "string", true);
+	AddOperationParameter(*parameters, "folder", "Default image file folder name");
 
 	parameters = AddOperation(*operation_info, LOG_LEVEL, "Set log level");
-	AddOperationParameter(*parameters, "level", "The log level", "string", true);
+	AddOperationParameter(*parameters, "level", "The log level");
 
 	parameters = AddOperation(*operation_info,RESERVE_IDS, "Reserve device IDs");
-	AddOperationParameter(*parameters, "ids", "Comma-separated device ID list", "string", true);
+	AddOperationParameter(*parameters, "ids", "Comma-separated device ID list");
 
 	parameters = AddOperation(*operation_info, SHUT_DOWN, "Shut down or reboot");
-	AddOperationParameter(*parameters, "mode", "Shutdown mode", "string", true);
+	AddOperationParameter(*parameters, "mode", "Shutdown mode");
 
 	parameters = AddOperation(*operation_info, CREATE_IMAGE, "Create an image file");
-	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
-	AddOperationParameter(*parameters, "size", "Image file size in bytes", "int", true);
-	AddOperationParameter(*parameters, "read_only",  "Read-only flag, true if missing", "boolean");
+	AddOperationParameter(*parameters, "file", "Image file name");
+	AddOperationParameter(*parameters, "size", "Image file size in bytes", "int");
+	AddOperationParameter(*parameters, "read_only",  "Read-only flag, true if missing", "boolean", false);
 
 	parameters = AddOperation(*operation_info, DELETE_IMAGE, "Delete image file");
-	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
+	AddOperationParameter(*parameters, "file", "Image file name");
 
 	parameters = AddOperation(*operation_info, RENAME_IMAGE, "Rename image file");
-	AddOperationParameter(*parameters, "from", "Source image file name", "string", true);
-	AddOperationParameter(*parameters, "to", "Destination image file name", "string", true);
+	AddOperationParameter(*parameters, "from", "Source image file name");
+	AddOperationParameter(*parameters, "to", "Destination image file name");
 
 	parameters = AddOperation(*operation_info, COPY_IMAGE, "Copy image file");
-	AddOperationParameter(*parameters, "from", "Source image file name image file name", "string", true);
-	AddOperationParameter(*parameters, "to", "Destination image file name", "string", true);
-	AddOperationParameter(*parameters, "read_only", "Read-only flag, true if missing", "boolean");
+	AddOperationParameter(*parameters, "from", "Source image file name image file name");
+	AddOperationParameter(*parameters, "to", "Destination image file name");
+	AddOperationParameter(*parameters, "read_only", "Read-only flag, true if missing", "boolean", false);
 
 	parameters = AddOperation(*operation_info, PROTECT_IMAGE, "Write-protect an image file");
-	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
+	AddOperationParameter(*parameters, "file", "Image file name");
 
 	parameters = AddOperation(*operation_info, UNPROTECT_IMAGE, "Make image file writable");
-	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
+	AddOperationParameter(*parameters, "file", "Image file name");
 
 	AddOperation(*operation_info, OPERATION_INFO, "Get operation meta data");
 
