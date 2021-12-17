@@ -489,7 +489,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameter = parameters->add_parameters();
 	parameter->set_name("read_only");
 	(*parameter->mutable_description())["en"] = "The read-only flag, true if missing";
-	parameter->set_type("string");
+	parameter->set_type("boolean");
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(DELETE_IMAGE));
@@ -529,7 +529,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameter = parameters->add_parameters();
 	parameter->set_name("read_only");
 	(*parameter->mutable_description())["en"] = "The read-only flag, true if missing";
-	parameter->set_type("string");
+	parameter->set_type("boolean");
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(PROTECT_IMAGE));

@@ -164,7 +164,7 @@ message PbOperationParameter {
     string name = 1;
     // Optional short localized description, key is the lower case locale (e.g. en, de)
     map<string, string> description = 2;
-    // "int" or "string"
+    // "string", "int", or "boolean". Parameters are always strings but must be convertible to these types.
     string type = 3;
     // There is no specific set of values if empty
     repeated string values = 4;
