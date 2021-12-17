@@ -343,7 +343,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	PbOperationParameters *parameters;
 	PbOperationParameter *parameter;
 
-	parameters = AddOperation(*operation_info, ATTACH, "Attach device, a device-specific parameter is required");
+	parameters = AddOperation(*operation_info, ATTACH, "Attach device, one of the device-specific parameters is required");
 	AddOperationParameter(*parameters, "name", "Image file name for a mass storage device", "string");
 	AddOperationParameter(*parameters, "interfaces", "Comma-separated prioritized network interface list", "string");
 
