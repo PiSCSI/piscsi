@@ -173,7 +173,7 @@ message PbOperationParameter {
 
 // The list of parameters supported by an operation
 message PbOperationParameters {
-    string operation = 1;
+    string name = 1;
     // Optional short localized description, key is the lower case locale (e.g. en, de)
     map<string, string> description = 2;
     repeated PbOperationParameter parameters = 3;

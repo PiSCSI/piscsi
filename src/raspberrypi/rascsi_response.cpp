@@ -343,7 +343,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	PbOperationParameter *parameter;
 
 	parameters = operation_info->add_operations();
-	parameters->set_operation(PbOperation_Name(ATTACH));
+	parameters->set_name(PbOperation_Name(ATTACH));
 	(*parameters->mutable_description())["en"] = "Attach device, one of the parameters below is required";
 	parameter = parameters->add_parameters();
 	parameter->set_name("name");
@@ -355,24 +355,42 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameter->set_type("string");
 
 	parameters = operation_info->add_operations();
-	parameters->set_operation(PbOperation_Name(DETACH));
+	parameters->set_name(PbOperation_Name(DETACH));
 	(*parameters->mutable_description())["en"] = "Detach device";
 
 	parameters = operation_info->add_operations();
-	parameters->set_operation(PbOperation_Name(DETACH_ALL));
+	parameters->set_name(PbOperation_Name(DETACH_ALL));
 	(*parameters->mutable_description())["en"] = "Detach all devices";
 
 	parameters = operation_info->add_operations();
-	parameters->set_operation(PbOperation_Name(START));
+	parameters->set_name(PbOperation_Name(START));
 	(*parameters->mutable_description())["en"] = "Start device";
 
 	parameters = operation_info->add_operations();
-	parameters->set_operation(PbOperation_Name(STOP));
+	parameters->set_name(PbOperation_Name(STOP));
 	(*parameters->mutable_description())["en"] = "Stop device";
 
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(INSERT));
+	(*parameters->mutable_description())["en"] = "Insert medium";
+	parameter = parameters->add_parameters();
+	parameter->set_name("file");
+	(*parameter->mutable_description())["en"] = "Image file name";
 
 	parameters = operation_info->add_operations();
-	parameters->set_operation(PbOperation_Name(OPERATION_INFO));
+	parameters->set_name(PbOperation_Name(EJECT));
+	(*parameters->mutable_description())["en"] = "Eject medium";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(PROTECT));
+	(*parameters->mutable_description())["en"] = "Protect medium";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(UNPROTECT));
+	(*parameters->mutable_description())["en"] = "Unprotect medium";
+
+	parameters = operation_info->add_operations();
+	parameters->set_name(PbOperation_Name(OPERATION_INFO));
 
 	result.set_status(true);
 
