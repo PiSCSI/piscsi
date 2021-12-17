@@ -154,6 +154,29 @@ enum PbOperation {
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     UNPROTECT_IMAGE = 29;
+
+    // Get operation meta data
+    OPERATION_INFO = 30;
+}
+
+// The operation parameter meta data
+message PbOperationParameter {
+    string name = 1;
+    // "int" or "string"
+    string type = 2;
+    // Any value is permitted if empty
+    repeated string values = 3;
+    bool is_mandatory = 4;
+}
+
+// The list of parameters supported by an operation
+message PbOperationParameters {
+    PbOperation operation = 1;
+    repeated PbOperationParameter parameters = 2;
+}
+
+message PbOperationInfo {
+    repeated PbOperationParameters operations = 1;
 }
 
 // The supported file extensions mapped to their respective device types
@@ -327,6 +350,8 @@ message PbResult {
         PbMappingInfo mapping_info = 11;
         // The result of a RESERVED_IDS_INFO command
         PbReservedIdsInfo reserved_ids_info = 12;
+        // The result of an OPERATION_INFO command
+        PbOperationInfo operation_info = 13;
     }
 }
 
