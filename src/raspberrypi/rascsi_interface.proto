@@ -31,7 +31,7 @@ enum PbDeviceType {
 
 // rascsi remote operations, returning PbResult
 enum PbOperation {
-    NONE = 0;
+    NO_OPERATION = 0;
 
     // Attach devices and return the new device list (PbDevicesInfo)
     // Parameters (mutually exclusive):
@@ -163,7 +163,7 @@ enum PbErrorCode {
     // No error code available
     NO_ERROR_CODE = 0;
     // Authentication/Authorization error
-    UNAUTHORIZED = 403;
+    UNAUTHORIZED = 1;
 }
 
 // The supported file extensions mapped to their respective device types
