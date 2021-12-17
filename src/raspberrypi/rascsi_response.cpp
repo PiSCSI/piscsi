@@ -345,7 +345,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(ATTACH));
-	(*parameters->mutable_description())["en"] = "Attach device, one of the parameters below is required";
+	(*parameters->mutable_description())["en"] = "Attach device, a device-specific parameter is required";
 	parameter = parameters->add_parameters();
 	parameter->set_name("name");
 	(*parameter->mutable_description())["en"] = "Image file name";
