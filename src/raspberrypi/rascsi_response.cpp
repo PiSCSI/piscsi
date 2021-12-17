@@ -341,19 +341,12 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	PbOperationInfo *operation_info = new PbOperationInfo();
 
 	PbOperationParameters *parameters;
-	PbOperationParameter *parameter;
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(ATTACH));
 	(*parameters->mutable_description())["en"] = "Attach device, a device-specific parameter is required";
-	parameter = parameters->add_parameters();
-	parameter->set_name("name");
-	(*parameter->mutable_description())["en"] = "Image file name";
-	parameter->set_type("string");
-	parameter = parameters->add_parameters();
-	parameter->set_name("interfaces");
-	(*parameter->mutable_description())["en"] = "Comma-separated prioritized list of network interfaces";
-	parameter->set_type("string");
+	AddOperationParameter(*parameters, "name", "Image file name for a mass storage device", "string");
+	AddOperationParameter(*parameters, "interfaces", "Comma-separated prioritized network interface list", "string");
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(DETACH));
@@ -374,11 +367,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(INSERT));
 	(*parameters->mutable_description())["en"] = "Insert medium";
-	parameter = parameters->add_parameters();
-	parameter->set_name("file");
-	(*parameter->mutable_description())["en"] = "Image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(EJECT));
@@ -415,11 +404,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(IMAGE_FILE_INFO));
 	(*parameters->mutable_description())["en"] = "Get information on image file";
-	parameter = parameters->add_parameters();
-	parameter->set_name("file");
-	(*parameter->mutable_description())["en"] = "Image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(LOG_LEVEL_INFO));
@@ -440,114 +425,56 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(DEFAULT_FOLDER));
 	(*parameters->mutable_description())["en"] = "Set default image file folder";
-	parameter = parameters->add_parameters();
-	parameter->set_name("folder");
-	(*parameter->mutable_description())["en"] = "Default image file folder name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "folder", "Default image file folder name", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(LOG_LEVEL));
 	(*parameters->mutable_description())["en"] = "Set log level";
-	parameter = parameters->add_parameters();
-	parameter->set_name("level");
-	(*parameter->mutable_description())["en"] = "The log level";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "level", "The log level", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(RESERVE_IDS));
-	(*parameters->mutable_description())["en"] = "Set list of reserved device IDs";
-	parameter = parameters->add_parameters();
-	parameter->set_name("ids");
-	(*parameter->mutable_description())["en"] = "Comma-separated list of device IDs";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "ids", "Comma-separated device ID list", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(SHUT_DOWN));
 	(*parameters->mutable_description())["en"] = "Shut down or reboot";
-	parameter = parameters->add_parameters();
-	parameter->set_name("mode");
-	(*parameter->mutable_description())["en"] = "Shutdown mode";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "mode", "Shutdown mode", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(CREATE_IMAGE));
 	(*parameters->mutable_description())["en"] = "Create an image file";
-	parameter = parameters->add_parameters();
-	parameter->set_name("file");
-	(*parameter->mutable_description())["en"] = "Image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
-	parameter = parameters->add_parameters();
-	parameter->set_name("size");
-	(*parameter->mutable_description())["en"] = "File size in bytes";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
-	parameter = parameters->add_parameters();
-	parameter->set_name("read_only");
-	(*parameter->mutable_description())["en"] = "Read-only flag, true if missing";
-	parameter->set_type("boolean");
+	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
+	AddOperationParameter(*parameters, "size", "Image file size in bytes", "int", true);
+	AddOperationParameter(*parameters, "read_only",  "Read-only flag, true if missing", "boolean");
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(DELETE_IMAGE));
 	(*parameters->mutable_description())["en"] = "Delete image file";
-	parameter = parameters->add_parameters();
-	parameter->set_name("file");
-	(*parameter->mutable_description())["en"] = "Image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(RENAME_IMAGE));
 	(*parameters->mutable_description())["en"] = "Rename image file";
-	parameter = parameters->add_parameters();
-	parameter->set_name("from");
-	(*parameter->mutable_description())["en"] = "Source image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
-	parameter = parameters->add_parameters();
-	parameter->set_name("to");
-	(*parameter->mutable_description())["en"] = "Destination image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "from", "Source image file name", "string", true);
+	AddOperationParameter(*parameters, "to", "Destination image file name", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(COPY_IMAGE));
 	(*parameters->mutable_description())["en"] = "Copy image file";
-	parameter->set_name("from");
-	(*parameter->mutable_description())["en"] = "Source image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
-	parameter = parameters->add_parameters();
-	parameter->set_name("to");
-	(*parameter->mutable_description())["en"] = "Destination image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
-	parameter = parameters->add_parameters();
-	parameter->set_name("read_only");
-	(*parameter->mutable_description())["en"] = "Read-only flag, true if missing";
-	parameter->set_type("boolean");
+	AddOperationParameter(*parameters, "from", "Source image file name image file name", "string", true);
+	AddOperationParameter(*parameters, "to", "Destination image file name", "string", true);
+	AddOperationParameter(*parameters, "read_only", "Read-only flag, true if missing", "boolean");
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(PROTECT_IMAGE));
 	(*parameters->mutable_description())["en"] = "Write-protect an image file";
-	parameter = parameters->add_parameters();
-	parameter->set_name("file");
-	(*parameter->mutable_description())["en"] = "Image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(UNPROTECT_IMAGE));
 	(*parameters->mutable_description())["en"] = "Make image file writable";
-	parameter = parameters->add_parameters();
-	parameter->set_name("file");
-	(*parameter->mutable_description())["en"] = "Image file name";
-	parameter->set_type("string");
-	parameter->set_is_mandatory(true);
+	AddOperationParameter(*parameters, "file", "Image file name", "string", true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(OPERATION_INFO));
@@ -558,4 +485,14 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	result.set_status(true);
 
 	return operation_info;
+}
+
+void RascsiResponse::AddOperationParameter(PbOperationParameters& parameters, const string& name, const string& description,
+		const string& type, bool is_mandatory)
+{
+	PbOperationParameter *parameter = parameters.add_parameters();
+	parameter->set_name(name);
+	(*parameter->mutable_description())["en"] = description;
+	parameter->set_type(type);
+	parameter->set_is_mandatory(is_mandatory);
 }
