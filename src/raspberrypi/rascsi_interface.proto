@@ -169,7 +169,9 @@ message PbOperationParameter {
     string type = 3;
     // There is no specific set of values if empty
     repeated string values = 4;
-    bool is_mandatory = 5;
+    // Optional default value
+    string default_value = 5;
+    bool is_mandatory = 6;
 }
 
 // The list of parameters supported by an operation

@@ -308,6 +308,10 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 				}
 				cout << endl;
 			}
+
+			if (!parameter.default_value().empty()) {
+				cout << "      Default value: " << parameter.default_value() << endl;
+			}
 		}
 	}
 }

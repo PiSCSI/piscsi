@@ -344,8 +344,8 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	PbOperationParameter *parameter;
 
 	parameters = AddOperation(*operation_info, ATTACH, "Attach device, a device-specific parameter is required");
-	AddOperationParameter(*parameters, "name", "Image file name for a mass storage device", "string", false);
-	AddOperationParameter(*parameters, "interfaces", "Comma-separated prioritized network interface list", "string", false);
+	AddOperationParameter(*parameters, "name", "Image file name for a mass storage device", "string");
+	AddOperationParameter(*parameters, "interfaces", "Comma-separated prioritized network interface list", "string");
 
 	AddOperation(*operation_info, DETACH, "Detach device");
 
@@ -403,7 +403,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameters = AddOperation(*operation_info, CREATE_IMAGE, "Create an image file");
 	AddOperationParameter(*parameters, "file", "Image file name");
 	AddOperationParameter(*parameters, "size", "Image file size in bytes", "int");
-	parameter = AddOperationParameter(*parameters, "read_only",  "Read-only flag, true if missing", "boolean", false);
+	parameter = AddOperationParameter(*parameters, "read_only",  "Read-only flag", "boolean", "false");
 	parameter->add_values("true");
 	parameter->add_values("false");
 
@@ -417,7 +417,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameters = AddOperation(*operation_info, COPY_IMAGE, "Copy image file");
 	AddOperationParameter(*parameters, "from", "Source image file name image file name");
 	AddOperationParameter(*parameters, "to", "Destination image file name");
-	parameter = AddOperationParameter(*parameters, "read_only", "Read-only flag, true if missing", "boolean", false);
+	parameter = AddOperationParameter(*parameters, "read_only", "Read-only flag", "boolean", "false");
 	parameter->add_values("true");
 	parameter->add_values("false");
 
@@ -448,13 +448,16 @@ PbOperationParameters *RascsiResponse::AddOperation(PbOperationInfo& operation_i
 }
 
 PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationParameters& parameters, const string& name,
-		const string& description, const string& type, bool is_mandatory)
+		const string& description, const string& type, const string& default_value)
 {
 	PbOperationParameter *parameter = parameters.add_parameters();
 	parameter->set_name(name);
 	(*parameter->mutable_description())["en"] = description;
 	parameter->set_type(type);
-	parameter->set_is_mandatory(is_mandatory);
+	if (!default_value.empty()) {
+		parameter->set_default_value(default_value);
+	}
+	parameter->set_is_mandatory(default_value.empty());
 
 	return parameter;
 }
