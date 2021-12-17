@@ -141,15 +141,26 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 }
 
 void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_image_folder,
-		const string& folder, bool recursive) {
+		const string& folder, const string& pattern, bool recursive) {
+	string pattern_lower = pattern;
+	transform(pattern_lower.begin(), pattern_lower.end(), pattern_lower.begin(), ::tolower);
+
 	DIR *d = opendir(folder.c_str());
 	if (d) {
 		struct dirent *dir;
 		while ((dir = readdir(d))) {
-			if ((dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK)
-					&& dir->d_name[0] != '.') {
-				string filename = folder + "/" + dir->d_name;
+			string filename = folder + "/" + dir->d_name;
 
+			string name_lower = filename;
+			if (!pattern.empty()) {
+				transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+			}
+
+			bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
+			bool is_supported_name = dir->d_name[0] != '.'
+					&& (pattern.empty() || name_lower.find(pattern_lower) != string::npos);
+
+			if (is_supported_type && is_supported_name) {
 				struct stat st;
 				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 					if (!st.st_size) {
@@ -160,7 +171,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str());
 					continue;
 				} else if (dir->d_type == DT_DIR && recursive) {
-					GetAvailableImages(image_files_info, default_image_folder, filename, recursive);
+					GetAvailableImages(image_files_info, default_image_folder, filename, pattern, recursive);
 		            continue;
 				}
 
@@ -176,23 +187,23 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	}
 }
 
-PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, bool recursive)
+PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& pattern, bool recursive)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 
 	string default_image_folder = rascsi_image->GetDefaultImageFolder();
 	image_files_info->set_default_image_folder(default_image_folder);
 
-	GetAvailableImages(*image_files_info, default_image_folder, default_image_folder, recursive);
+	GetAvailableImages(*image_files_info, default_image_folder, default_image_folder, pattern, recursive);
 
 	result.set_status(true);
 
 	return image_files_info;
 }
 
-void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, bool recursive)
+void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& pattern, bool recursive)
 {
-	PbImageFilesInfo *image_files_info = GetAvailableImages(result, recursive);
+	PbImageFilesInfo *image_files_info = GetAvailableImages(result, pattern, recursive);
 	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
@@ -271,14 +282,14 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const Pb
 }
 
 PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& current_log_level, bool recursive)
+		const string& current_log_level, const string& filename_pattern, bool recursive)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
 	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
-	GetAvailableImages(result, *server_info, recursive);
+	GetAvailableImages(result, *server_info, filename_pattern, recursive);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices);
