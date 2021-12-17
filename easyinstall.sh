@@ -113,18 +113,6 @@ function installRaScsiWebInterface() {
 
     sudo usermod -a -G $USER www-data
 
-    if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
-        sudo bash -c 'echo "
-# Allow the web server to restart the rascsi service
-www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
-www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
-# Allow the web server to reboot the raspberry pi
-www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
-" >> /etc/sudoers'
-    else
-        echo "The sudoers file is already modified for rascsi-web."
-    fi
-
     sudo systemctl reload nginx || true
 }
 
