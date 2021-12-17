@@ -377,4 +377,6 @@ message PbServerInfo {
     PbReservedIdsInfo reserved_ids_info = 7;
     // The attached devices
     PbDevicesInfo devices_info = 8;
+    // The operation meta data
+    PbOperationInfo operation_info = 9;
 }

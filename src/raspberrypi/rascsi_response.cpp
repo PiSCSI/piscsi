@@ -275,6 +275,7 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Devic
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices);
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
+	server_info->set_allocated_operation_info(GetOperationInfo(result));
 
 	result.set_status(true);
 
