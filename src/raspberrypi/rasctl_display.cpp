@@ -295,6 +295,19 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 				cout << " (" << parameter.description().at("en") << ")";
 			}
 			cout << endl;
+
+			if (parameter.values_size()) {
+				cout << "      Permitted values: ";
+				bool isFirst = true;
+				for (const auto& value : parameter.values()) {
+					if (!isFirst) {
+						cout << ", ";
+					}
+					isFirst = false;
+					cout << value;
+				}
+				cout << endl;
+			}
 		}
 	}
 }

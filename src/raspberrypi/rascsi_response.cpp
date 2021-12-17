@@ -394,7 +394,10 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	AddOperationParameter(*parameters, "ids", "Comma-separated device ID list");
 
 	parameters = AddOperation(*operation_info, SHUT_DOWN, "Shut down or reboot");
-	AddOperationParameter(*parameters, "mode", "Shutdown mode");
+	PbOperationParameter *parameter = AddOperationParameter(*parameters, "mode", "Shutdown mode");
+	parameter->add_values("rascsi");
+	parameter->add_values("system");
+	parameter->add_values("reboot");
 
 	parameters = AddOperation(*operation_info, CREATE_IMAGE, "Create an image file");
 	AddOperationParameter(*parameters, "file", "Image file name");
@@ -439,12 +442,14 @@ PbOperationParameters *RascsiResponse::AddOperation(PbOperationInfo& operation_i
 	return parameters;
 }
 
-void RascsiResponse::AddOperationParameter(PbOperationParameters& parameters, const string& name, const string& description,
-		const string& type, bool is_mandatory)
+PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationParameters& parameters, const string& name,
+		const string& description, const string& type, bool is_mandatory)
 {
 	PbOperationParameter *parameter = parameters.add_parameters();
 	parameter->set_name(name);
 	(*parameter->mutable_description())["en"] = description;
 	parameter->set_type(type);
 	parameter->set_is_mandatory(is_mandatory);
+
+	return parameter;
 }
