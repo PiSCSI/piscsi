@@ -164,7 +164,7 @@ message PbOperationParameter {
     string name = 1;
     // "int" or "string"
     string type = 2;
-    // Any value is permitted if empty
+    // Any value of the specified type is permitted if empty
     repeated string values = 3;
     bool is_mandatory = 4;
 }
