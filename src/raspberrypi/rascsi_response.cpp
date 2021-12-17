@@ -457,7 +457,6 @@ PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationParameter
 	if (!default_value.empty()) {
 		parameter->set_default_value(default_value);
 	}
-	parameter->set_is_mandatory(default_value.empty());
 
 	return parameter;
 }
