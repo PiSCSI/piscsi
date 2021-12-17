@@ -1416,8 +1416,7 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
-			// VERSION_INFO is the only operation that never requires authentication
-			if (command.operation() != VERSION_INFO && !access_token.empty()) {
+			if (!access_token.empty()) {
 				if (access_token != GetParam(command, "token")) {
 					ReturnStatus(fd, false, "Authentication failed", PbErrorCode::UNAUTHORIZED);
 					continue;
