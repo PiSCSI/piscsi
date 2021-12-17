@@ -51,5 +51,6 @@ private:
 	void GetDevice(const Device *, PbDevice *);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
+	void GetAvailableImages(PbImageFilesInfo&, const string&);
 	void GetAvailableImages(PbResult& result, PbServerInfo&);
 };

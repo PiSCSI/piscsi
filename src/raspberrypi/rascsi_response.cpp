@@ -140,35 +140,29 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 	return false;
 }
 
-PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result)
-{
-	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
-
-	string default_image_folder = rascsi_image->GetDefaultImageFolder();
-	image_files_info->set_default_image_folder(default_image_folder);
-
+void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& folder) {
 	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
-	DIR *d = opendir(default_image_folder.c_str());
+	DIR *d = opendir(folder.c_str());
 	if (d) {
 		struct dirent *dir;
 		while ((dir = readdir(d))) {
 			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
-				string filename = default_image_folder + "/" + dir->d_name;
+				string filename = folder + "/" + dir->d_name;
 
 				struct stat st;
 				if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 					if (!st.st_size) {
-						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, default_image_folder.c_str());
+						LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str());
 						continue;
 					}
 				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
-					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, default_image_folder.c_str());
+					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str());
 					continue;
 				}
 
 				PbImageFile *image_file = new PbImageFile();
 				if (GetImageFile(image_file, dir->d_name)) {
-					GetImageFile(image_files_info->add_image_files(), dir->d_name);
+					GetImageFile(image_files_info.add_image_files(), dir->d_name);
 				}
 				delete image_file;
 			}
@@ -176,6 +170,16 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result)
 
 	    closedir(d);
 	}
+}
+
+PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result)
+{
+	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
+
+	string default_image_folder = rascsi_image->GetDefaultImageFolder();
+	image_files_info->set_default_image_folder(default_image_folder);
+
+	GetAvailableImages(*image_files_info, default_image_folder);
 
 	result.set_status(true);
 
