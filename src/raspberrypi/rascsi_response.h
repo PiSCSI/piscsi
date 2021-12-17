@@ -29,13 +29,13 @@ public:
 	~RascsiResponse() {};
 
 	bool GetImageFile(PbImageFile *, const string&);
-	PbImageFilesInfo *GetAvailableImages(PbResult&);
+	PbImageFilesInfo *GetAvailableImages(PbResult&, bool);
 	PbReservedIdsInfo *GetReservedIds(PbResult&, const set<int>&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, int);
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
 	PbVersionInfo *GetVersionInfo(PbResult&);
-	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&);
+	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, bool);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 	PbMappingInfo *GetMappingInfo(PbResult&);
 	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
@@ -51,6 +51,6 @@ private:
 	void GetDevice(const Device *, PbDevice *);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAvailableImages(PbImageFilesInfo&, const string&);
-	void GetAvailableImages(PbResult& result, PbServerInfo&);
+	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, bool);
+	void GetAvailableImages(PbResult& result, PbServerInfo&, bool);
 };

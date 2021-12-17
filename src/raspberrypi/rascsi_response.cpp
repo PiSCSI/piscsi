@@ -140,13 +140,14 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 	return false;
 }
 
-void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& folder) {
-	// filesystem::directory_iterator cannot be used because libstdc++ 8.3.0 does not support big files
+void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_image_folder,
+		const string& folder, bool recursive) {
 	DIR *d = opendir(folder.c_str());
 	if (d) {
 		struct dirent *dir;
 		while ((dir = readdir(d))) {
-			if (dir->d_type == DT_REG || dir->d_type == DT_LNK || dir->d_type == DT_BLK) {
+			if ((dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK)
+					&& dir->d_name[0] != '.') {
 				string filename = folder + "/" + dir->d_name;
 
 				struct stat st;
@@ -158,11 +159,14 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 				} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
 					LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str());
 					continue;
+				} else if (dir->d_type == DT_DIR && recursive) {
+					GetAvailableImages(image_files_info, default_image_folder, filename, recursive);
+		            continue;
 				}
 
 				PbImageFile *image_file = new PbImageFile();
-				if (GetImageFile(image_file, dir->d_name)) {
-					GetImageFile(image_files_info.add_image_files(), dir->d_name);
+				if (GetImageFile(image_file, filename)) {
+					GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
 				}
 				delete image_file;
 			}
@@ -172,23 +176,23 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	}
 }
 
-PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result)
+PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, bool recursive)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 
 	string default_image_folder = rascsi_image->GetDefaultImageFolder();
 	image_files_info->set_default_image_folder(default_image_folder);
 
-	GetAvailableImages(*image_files_info, default_image_folder);
+	GetAvailableImages(*image_files_info, default_image_folder, default_image_folder, recursive);
 
 	result.set_status(true);
 
 	return image_files_info;
 }
 
-void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info)
+void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, bool recursive)
 {
-	PbImageFilesInfo *image_files_info = GetAvailableImages(result);
+	PbImageFilesInfo *image_files_info = GetAvailableImages(result, recursive);
 	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
@@ -267,14 +271,14 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const Pb
 }
 
 PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& current_log_level)
+		const string& current_log_level, bool recursive)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
 	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
-	GetAvailableImages(result, *server_info);
+	GetAvailableImages(result, *server_info, recursive);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices);
