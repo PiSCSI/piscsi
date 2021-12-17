@@ -352,7 +352,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	parameter->set_type("string");
 	parameter = parameters->add_parameters();
 	parameter->set_name("interfaces");
-	(*parameter->mutable_description())["en"] = "A comma-separated list of network interfaces";
+	(*parameter->mutable_description())["en"] = "Comma-separated prioritized list of network interfaces";
 	parameter->set_type("string");
 
 	parameters = operation_info->add_operations();
@@ -414,7 +414,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(IMAGE_FILE_INFO));
-	(*parameters->mutable_description())["en"] = "Get information on an image file";
+	(*parameters->mutable_description())["en"] = "Get information on image file";
 	parameter = parameters->add_parameters();
 	parameter->set_name("file");
 	(*parameter->mutable_description())["en"] = "Image file name";
@@ -427,19 +427,19 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(NETWORK_INTERFACES_INFO));
-	(*parameters->mutable_description())["en"] = "Get the names of the available network interfaces";
+	(*parameters->mutable_description())["en"] = "Get the available network interfaces";
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(MAPPING_INFO));
-	(*parameters->mutable_description())["en"] = "Get the mapping of extensions to device types";
+	(*parameters->mutable_description())["en"] = "Get mapping of extensions to device types";
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(RESERVED_IDS_INFO));
-	(*parameters->mutable_description())["en"] = "Get the list of reserved device IDs";
+	(*parameters->mutable_description())["en"] = "Get list of reserved device IDs";
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(DEFAULT_FOLDER));
-	(*parameters->mutable_description())["en"] = "Set the default image file folder";
+	(*parameters->mutable_description())["en"] = "Set default image file folder";
 	parameter = parameters->add_parameters();
 	parameter->set_name("folder");
 	(*parameter->mutable_description())["en"] = "Default image file folder name";
@@ -448,7 +448,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(LOG_LEVEL));
-	(*parameters->mutable_description())["en"] = "Set the log level";
+	(*parameters->mutable_description())["en"] = "Set log level";
 	parameter = parameters->add_parameters();
 	parameter->set_name("level");
 	(*parameter->mutable_description())["en"] = "The log level";
@@ -457,10 +457,10 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(RESERVE_IDS));
-	(*parameters->mutable_description())["en"] = "Set the list of reserved device IDs";
+	(*parameters->mutable_description())["en"] = "Set list of reserved device IDs";
 	parameter = parameters->add_parameters();
 	parameter->set_name("ids");
-	(*parameter->mutable_description())["en"] = "A comma-separated list of device IDs";
+	(*parameter->mutable_description())["en"] = "Comma-separated list of device IDs";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 
@@ -469,7 +469,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	(*parameters->mutable_description())["en"] = "Shut down or reboot";
 	parameter = parameters->add_parameters();
 	parameter->set_name("mode");
-	(*parameter->mutable_description())["en"] = "The shutdown mode";
+	(*parameter->mutable_description())["en"] = "Shutdown mode";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 
@@ -478,57 +478,57 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	(*parameters->mutable_description())["en"] = "Create an image file";
 	parameter = parameters->add_parameters();
 	parameter->set_name("file");
-	(*parameter->mutable_description())["en"] = "The filename";
+	(*parameter->mutable_description())["en"] = "Image file name";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 	parameter = parameters->add_parameters();
 	parameter->set_name("size");
-	(*parameter->mutable_description())["en"] = "The file size in bytes";
+	(*parameter->mutable_description())["en"] = "File size in bytes";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 	parameter = parameters->add_parameters();
 	parameter->set_name("read_only");
-	(*parameter->mutable_description())["en"] = "The read-only flag, true if missing";
+	(*parameter->mutable_description())["en"] = "Read-only flag, true if missing";
 	parameter->set_type("boolean");
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(DELETE_IMAGE));
-	(*parameters->mutable_description())["en"] = "Delete an image file";
+	(*parameters->mutable_description())["en"] = "Delete image file";
 	parameter = parameters->add_parameters();
 	parameter->set_name("file");
-	(*parameter->mutable_description())["en"] = "The filename";
+	(*parameter->mutable_description())["en"] = "Image file name";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(RENAME_IMAGE));
-	(*parameters->mutable_description())["en"] = "Rename an image file";
+	(*parameters->mutable_description())["en"] = "Rename image file";
 	parameter = parameters->add_parameters();
 	parameter->set_name("from");
-	(*parameter->mutable_description())["en"] = "The source filename";
+	(*parameter->mutable_description())["en"] = "Source image file name";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 	parameter = parameters->add_parameters();
 	parameter->set_name("to");
-	(*parameter->mutable_description())["en"] = "The destination filename";
+	(*parameter->mutable_description())["en"] = "Destination image file name";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(COPY_IMAGE));
-	(*parameters->mutable_description())["en"] = "Copy an image file";
+	(*parameters->mutable_description())["en"] = "Copy image file";
 	parameter->set_name("from");
-	(*parameter->mutable_description())["en"] = "The source filename";
+	(*parameter->mutable_description())["en"] = "Source image file name";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 	parameter = parameters->add_parameters();
 	parameter->set_name("to");
-	(*parameter->mutable_description())["en"] = "The destination filename";
+	(*parameter->mutable_description())["en"] = "Destination image file name";
 	parameter->set_type("string");
 	parameter->set_is_mandatory(true);
 	parameter = parameters->add_parameters();
 	parameter->set_name("read_only");
-	(*parameter->mutable_description())["en"] = "The read-only flag, true if missing";
+	(*parameter->mutable_description())["en"] = "Read-only flag, true if missing";
 	parameter->set_type("boolean");
 
 	parameters = operation_info->add_operations();
@@ -542,7 +542,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	parameters = operation_info->add_operations();
 	parameters->set_name(PbOperation_Name(UNPROTECT_IMAGE));
-	(*parameters->mutable_description())["en"] = "Make an image file writable";
+	(*parameters->mutable_description())["en"] = "Make image file writable";
 	parameter = parameters->add_parameters();
 	parameter->set_name("file");
 	(*parameter->mutable_description())["en"] = "Image file name";
