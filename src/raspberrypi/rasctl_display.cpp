@@ -281,7 +281,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 
 	cout << "Remote operations supported by rascsi and their parameters:" << endl;
 	for (const auto& operation : operations) {
-		if (PbOperation_IsValid(operation.first)) {
+		if (PbOperation_IsValid(static_cast<PbOperation>(operation.first))) {
 			cout << "  " << PbOperation_Name(static_cast<PbOperation>(operation.first));
 			if (!operation.second.description().empty()) {
 				cout << " (" << operation.second.description().at("en") << ")";
