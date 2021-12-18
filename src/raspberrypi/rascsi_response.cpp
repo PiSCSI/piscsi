@@ -341,8 +341,8 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	PbOperationInfo *operation_info = new PbOperationInfo();
 
 	PbOperationMetaData *meta_data = new PbOperationMetaData();
-	AddOperationParameter(meta_data, "name", "Image file name in case of a mass storage device", "string");
-	AddOperationParameter(meta_data, "interfaces", "Comma-separated prioritized network interface list", "string");
+	AddOperationParameter(meta_data, "name", "Image file name in case of a mass storage device");
+	AddOperationParameter(meta_data, "interfaces", "Comma-separated prioritized network interface list");
 	CreateOperation(operation_info, meta_data, ATTACH, "Attach device, one of the device-specific parameters is required");
 
 	meta_data = new PbOperationMetaData();
@@ -422,7 +422,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "file", "Image file name");
-	AddOperationParameter(meta_data, "size", "Image file size in bytes", "int");
+	AddOperationParameter(meta_data, "size", "Image file size in bytes");
 	parameter = AddOperationParameter(meta_data, "read_only",  "Read-only flag", "false");
 	parameter->add_permitted_values("true");
 	parameter->add_permitted_values("false");
