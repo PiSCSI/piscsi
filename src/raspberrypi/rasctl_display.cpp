@@ -276,13 +276,26 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info)
 
 void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 {
-	// Creates a sorted map
 	const map<int, PbOperationMetaData> operations = { operation_info.operations().begin(), operation_info.operations().end() };
 
+	// Copies result into a map sorted by operation name
+	PbOperationMetaData *empty_operation = new PbOperationMetaData();
+	map<string, PbOperationMetaData> sorted_operations;
+	auto iter = operations.begin();
+	while (iter != operations.end()) {
+		if (PbOperation_IsValid(static_cast<PbOperation>(iter->first))) {
+			sorted_operations[PbOperation_Name(static_cast<PbOperation>(iter->first))] = iter->second;
+		}
+		else {
+			sorted_operations[iter->second.name()] = *empty_operation;
+		}
+		iter++;
+	}
+
 	cout << "Remote operations supported by rascsi and their parameters:" << endl;
-	for (const auto& operation : operations) {
-		if (PbOperation_IsValid(static_cast<PbOperation>(operation.first))) {
-			cout << "  " << PbOperation_Name(static_cast<PbOperation>(operation.first));
+	for (const auto& operation : sorted_operations) {
+		if (!operation.second.name().empty()) {
+			cout << "  " << operation.first;
 			if (!operation.second.description().empty()) {
 				cout << " (" << operation.second.description().at("en") << ")";
 			}
@@ -315,7 +328,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 			}
 		}
 		else {
-			cout << "  " << operation.second.name() << " (Unknown server-side operation)" << endl;
+			cout << "  " << operation.first << " (Unknown server-side operation)" << endl;
 		}
 	}
 }
