@@ -468,7 +468,8 @@ void RascsiResponse::CreateOperation(PbOperationInfo *operation_info, PbOperatio
 		const PbOperation& operation, const string& description)
 {
 	(*meta_data->mutable_description())["en"] = description;
-	(*operation_info->mutable_operations())[PbOperation_Name(operation)] = *meta_data;
+	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
+	(*operation_info->mutable_operations())[ordinal] = *meta_data;
 }
 
 PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData *meta_data, const string& name,

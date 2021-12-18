@@ -179,10 +179,9 @@ message PbOperationMetaData {
     repeated PbOperationParameter parameters = 2;
 }
 
-// Mapping of operation names to their meta data.
-// The names are the names at the time the server-side protobuf data were generated from the .proto interface file.
+// Mapping of operations to their ordinals
 message PbOperationInfo {
-    map<string, PbOperationMetaData> operations = 1;
+    map<int32, PbOperationMetaData> operations = 1;
 }
 
 // The supported file extensions mapped to their respective device types

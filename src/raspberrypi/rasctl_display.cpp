@@ -277,11 +277,11 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info)
 void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 {
 	// Creates a sorted map
-	const map<string, PbOperationMetaData> operations = { operation_info.operations().begin(), operation_info.operations().end() };
+	const map<int32_t, PbOperationMetaData> operations = { operation_info.operations().begin(), operation_info.operations().end() };
 
 	cout << "Remote operations supported by rascsi and their parameters:" << endl;
 	for (const auto& operation : operations) {
-		cout << "  " << operation.first;
+		cout << "  " << PbOperation_Name(operation.first);
 		if (!operation.second.description().empty()) {
 			cout << " (" << operation.second.description().at("en") << ")";
 		}
