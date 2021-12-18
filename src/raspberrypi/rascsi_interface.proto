@@ -161,6 +161,7 @@ enum PbOperation {
 
 // The operation parameter meta data. The parameter data type is provided by the protobuf API.
 message PbOperationParameter {
+    // The operation name at the time the protobuf data were generated from the .proto interface file
     string name = 1;
     // Optional short localized description, key is the lower case locale (e.g. en, de).
     // Falling back to "en" is recommended if a description for a particular language is missing.
