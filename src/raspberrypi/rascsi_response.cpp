@@ -343,32 +343,32 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	PbOperationMetaData *meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "name", "Image file name in case of a mass storage device");
 	AddOperationParameter(meta_data, "interfaces", "Comma-separated prioritized network interface list");
-	CreateOperation(operation_info, meta_data, ATTACH, "Attach device, one of the device-specific parameters is required");
+	CreateOperation(operation_info, meta_data, ATTACH, "Attach device, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
-	CreateOperation(operation_info, meta_data, DETACH, "Detach device");
+	CreateOperation(operation_info, meta_data, DETACH, "Detach device, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
 	CreateOperation(operation_info, meta_data, DETACH_ALL, "Detach all devices");
 
 	meta_data = new PbOperationMetaData();
-	CreateOperation(operation_info, meta_data, START, "Start device");
+	CreateOperation(operation_info, meta_data, START, "Start device, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
-	CreateOperation(operation_info, meta_data, STOP, "Stop device");
+	CreateOperation(operation_info, meta_data, STOP, "Stop device, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "file", "Image file name");
-	CreateOperation(operation_info, meta_data, INSERT, "Insert medium");
+	CreateOperation(operation_info, meta_data, INSERT, "Insert medium, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
-	CreateOperation(operation_info, meta_data, EJECT, "Eject medium");
+	CreateOperation(operation_info, meta_data, EJECT, "Eject medium, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
-	CreateOperation(operation_info, meta_data, PROTECT, "Protect medium");
+	CreateOperation(operation_info, meta_data, PROTECT, "Protect medium, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
-	CreateOperation(operation_info, meta_data, UNPROTECT, "Unprotect medium");
+	CreateOperation(operation_info, meta_data, UNPROTECT, "Unprotect medium, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
 	CreateOperation(operation_info, meta_data, SERVER_INFO, "Get rascsi server information");
