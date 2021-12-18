@@ -467,7 +467,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 void RascsiResponse::CreateOperation(PbOperationInfo *operation_info, PbOperationMetaData *meta_data,
 		const PbOperation& operation, const string& description)
 {
-	meta_data->set_name(PbOperation_Name(operation));
+	meta_data->set_server_side_name(PbOperation_Name(operation));
 	(*meta_data->mutable_description())["en"] = description;
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
 	(*operation_info->mutable_operations())[ordinal] = *meta_data;
