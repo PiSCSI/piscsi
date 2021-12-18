@@ -279,7 +279,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 	const map<int, PbOperationMetaData> operations = { operation_info.operations().begin(), operation_info.operations().end() };
 
 	// Copies result into a map sorted by operation name
-	PbOperationMetaData *empty_operation = new PbOperationMetaData();
+	PbOperationMetaData *unknown_operation = new PbOperationMetaData();
 	map<string, PbOperationMetaData> sorted_operations;
 	auto iter = operations.begin();
 	while (iter != operations.end()) {
@@ -287,7 +287,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 			sorted_operations[PbOperation_Name(static_cast<PbOperation>(iter->first))] = iter->second;
 		}
 		else {
-			sorted_operations[iter->second.name()] = *empty_operation;
+			sorted_operations[iter->second.name()] = *unknown_operation;
 		}
 		iter++;
 	}
