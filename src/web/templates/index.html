@@ -618,8 +618,8 @@
         Raspberry Pi Operations
     </summary>
     <ul>
-        <li>Issue reboot or shutdown commands to the Raspberry Pi.</li>
-        <li>You can also restart the RaSCSI backend service here.</li>
+        <li>Reboot or shut down the Raspberry Pi that RaSCSI is running on.</li>
+        <li>IMPORTANT: Always shut down the Pi before turning off the power. Failing to do so may lead to data corruption.</li>
     </ul>
 </details>
 <table style="border: none">
@@ -632,11 +632,6 @@
         <td style="border: none; vertical-align:top;">
             <form action="/pi/shutdown" method="post" onclick="if (confirm('Shut down the Raspberry Pi?')) shutdownNotify('Shutting down the Raspberry Pi...'); else event.preventDefault();">
                 <input type="submit" value="Shut Down Raspberry Pi">
-            </form>
-        </td>
-        <td style="border: none; vertical-align:top;">
-            <form action="/rascsi/restart" method="post" onclick="if (confirm('Restart the RaSCSI Service?')) shutdownNotify('Restarting the RaSCSI Service...'); else event.preventDefault();">
-                <input type="submit" value="Restart RaSCSI Service">
             </form>
         </td>
     </tr>

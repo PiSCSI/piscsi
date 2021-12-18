@@ -38,7 +38,6 @@ from file_cmds import (
 )
 from pi_cmds import (
     running_env,
-    systemd_service,
     running_proc,
     is_bridge_setup,
     disk_space,
@@ -659,24 +658,6 @@ def unreserve_id():
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
-    return redirect(url_for("index"))
-
-@APP.route("/rascsi/restart", methods=["POST"])
-@login_required
-def rascsi_restart():
-    """
-    Restarts the RaSCSI backend service
-    """
-    rascsi_status = systemd_service("rascsi.service", "show")
-    if rascsi_status["status"] and "ActiveState=active" not in rascsi_status["msg"]:
-        flash(
-                "Failed to restart the RaSCSI service because it is not running. "
-                "You are probably running RaSCSI as a regular process.", "error"
-                )
-        return redirect(url_for("index"))
-
-    shutdown_pi("rascsi")
-    flash(f"Restarted the RaSCSI service!")
     return redirect(url_for("index"))
 
 
