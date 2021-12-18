@@ -281,36 +281,41 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 
 	cout << "Remote operations supported by rascsi and their parameters:" << endl;
 	for (const auto& operation : operations) {
-		cout << "  " << PbOperation_Name(operation.first);
-		if (!operation.second.description().empty()) {
-			cout << " (" << operation.second.description().at("en") << ")";
-		}
-		cout << endl;
-
-		for (const auto& parameter : operation.second.parameters()) {
-			cout << "    " << parameter.name() << ": "
-				<< (parameter.default_value().empty() ? "mandatory" : "optional");
-			if (!parameter.description().empty()) {
-				cout << " (" << parameter.description().at("en") << ")";
+		if (PbOperation_IsValid(operation.first)) {
+			cout << "  " << PbOperation_Name(static_cast<PbOperation>(operation.first));
+			if (!operation.second.description().empty()) {
+				cout << " (" << operation.second.description().at("en") << ")";
 			}
 			cout << endl;
 
-			if (parameter.permitted_values_size()) {
-				cout << "      Permitted values: ";
-				bool isFirst = true;
-				for (const auto& permitted_value : parameter.permitted_values()) {
-					if (!isFirst) {
-						cout << ", ";
-					}
-					isFirst = false;
-					cout << permitted_value;
+			for (const auto& parameter : operation.second.parameters()) {
+				cout << "    " << parameter.name() << ": "
+					<< (parameter.default_value().empty() ? "mandatory" : "optional");
+				if (!parameter.description().empty()) {
+					cout << " (" << parameter.description().at("en") << ")";
 				}
 				cout << endl;
-			}
 
-			if (!parameter.default_value().empty()) {
-				cout << "      Default value: " << parameter.default_value() << endl;
+				if (parameter.permitted_values_size()) {
+					cout << "      Permitted values: ";
+					bool isFirst = true;
+					for (const auto& permitted_value : parameter.permitted_values()) {
+						if (!isFirst) {
+							cout << ", ";
+						}
+						isFirst = false;
+						cout << permitted_value;
+					}
+					cout << endl;
+				}
+
+				if (!parameter.default_value().empty()) {
+					cout << "      Default value: " << parameter.default_value() << endl;
+				}
 			}
+		}
+		else {
+			cout << "  " << operation.second.name() << " (Unknown server-side operation)" << endl;
 		}
 	}
 }

@@ -173,10 +173,12 @@ message PbOperationParameter {
 
 // The list of parameters supported by an operation
 message PbOperationMetaData {
+    // The operation name at the time the server-side protobuf code was generated.
+    string name = 1;
     // Optional short localized description, key is the lower case locale (e.g. en, de).
     // Falling back to "en" is recommended if a description for a particular language is missing.
-    map<string, string> description = 1;
-    repeated PbOperationParameter parameters = 2;
+    map<string, string> description = 2;
+    repeated PbOperationParameter parameters = 3;
 }
 
 // Mapping of operations to their ordinals
