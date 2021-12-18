@@ -281,15 +281,13 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 	// Copies result into a map sorted by operation name
 	PbOperationMetaData *unknown_operation = new PbOperationMetaData();
 	map<string, PbOperationMetaData> sorted_operations;
-	auto iter = operations.begin();
-	while (iter != operations.end()) {
-		if (PbOperation_IsValid(static_cast<PbOperation>(iter->first))) {
-			sorted_operations[PbOperation_Name(static_cast<PbOperation>(iter->first))] = iter->second;
+	for (const auto& operation : operations) {
+		if (PbOperation_IsValid(static_cast<PbOperation>(operation.first))) {
+			sorted_operations[PbOperation_Name(static_cast<PbOperation>(operation.first))] = operation.second;
 		}
 		else {
-			sorted_operations[iter->second.name()] = *unknown_operation;
+			sorted_operations[operation.second.name()] = *unknown_operation;
 		}
-		iter++;
 	}
 
 	cout << "Remote operations supported by rascsi and their parameters:" << endl;
