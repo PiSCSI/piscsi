@@ -287,6 +287,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 		}
 		else {
 			// If the server-side operation is unknown for the client use the server-provided operation name
+			// No further operation information is available in this case
 			sorted_operations[operation.second.server_side_name()] = *unknown_operation;
 		}
 	}
