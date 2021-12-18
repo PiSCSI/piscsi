@@ -276,35 +276,34 @@ void RasctlDisplay::DisplayMappingInfo(const PbMappingInfo& mapping_info)
 
 void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 {
-	// Creates a sorted list
-	list<PbOperationParameters> operations = { operation_info.operations().begin(), operation_info.operations().end() };
-	operations.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+	// Creates a sorted map
+	const map<string, PbOperationMetaData> operations = { operation_info.operations().begin(), operation_info.operations().end() };
 
 	cout << "Remote operations supported by rascsi and their parameters:" << endl;
 	for (const auto& operation : operations) {
-		cout << "  " << operation.name();
-		if (!operation.description().empty()) {
-			cout << " (" << operation.description().at("en") << ")";
+		cout << "  " << operation.first;
+		if (!operation.second.description().empty()) {
+			cout << " (" << operation.second.description().at("en") << ")";
 		}
 		cout << endl;
 
-		for (const auto& parameter : operation.parameters()) {
-			cout << "    " << parameter.name() << ": " << parameter.type()
-				<< (parameter.default_value().empty() ? ", mandatory" : ", optional");
+		for (const auto& parameter : operation.second.parameters()) {
+			cout << "    " << parameter.name() << ": "
+				<< (parameter.default_value().empty() ? "mandatory" : "optional");
 			if (!parameter.description().empty()) {
 				cout << " (" << parameter.description().at("en") << ")";
 			}
 			cout << endl;
 
-			if (parameter.values_size()) {
+			if (parameter.permitted_values_size()) {
 				cout << "      Permitted values: ";
 				bool isFirst = true;
-				for (const auto& value : parameter.values()) {
+				for (const auto& permitted_value : parameter.permitted_values()) {
 					if (!isFirst) {
 						cout << ", ";
 					}
 					isFirst = false;
-					cout << value;
+					cout << permitted_value;
 				}
 				cout << endl;
 			}
