@@ -75,6 +75,10 @@ DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 
+// Set up the operation info data early, in order to trigger an assertion on startup if the operation list is incomplete
+PbResult pb_operation_info_result;
+PbOperationInfo *pb_operation_info = rascsi_response.GetOperationInfo(pb_operation_info_result);
+
 //---------------------------------------------------------------------------
 //
 //	Signal Processing
@@ -1566,9 +1570,8 @@ static void *MonThread(void *param)
 				case OPERATION_INFO: {
 					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
 
-					PbResult result;
-					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result));
-					SerializeMessage(fd, result);
+					pb_operation_info_result.set_allocated_operation_info(pb_operation_info);
+					SerializeMessage(fd, pb_operation_info_result);
 					break;
 				}
 
