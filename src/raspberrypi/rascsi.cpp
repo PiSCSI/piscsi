@@ -75,10 +75,6 @@ DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
 
-// Set up the operation info data early, in order to trigger an assertion on startup if the operation list is incomplete
-PbResult pb_operation_info_result;
-PbOperationInfo *pb_operation_info = rascsi_response.GetOperationInfo(pb_operation_info_result);
-
 //---------------------------------------------------------------------------
 //
 //	Signal Processing
@@ -1437,13 +1433,19 @@ static void *MonThread(void *param)
 				}
 			}
 
-			const char *operation_name = PbOperation_IsValid(command.operation()) ?
-					PbOperation_Name(command.operation()).c_str() : "Unknown operation";
+			if (!PbOperation_IsValid(command.operation())) {
+				LOGTRACE("Received unknown command %d", command.operation());
+
+				ReturnStatus(fd, false, "Unknown command", UNKNOWN_OPERATION);
+				continue;
+			}
+
+			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+			PbResult result;
 
 			switch(command.operation()) {
 				case LOG_LEVEL: {
-					LOGTRACE("Received %s command", operation_name);
-
 					string log_level = GetParam(command, "level");
 					bool status = SetLogLevel(log_level);
 					if (!status) {
@@ -1456,8 +1458,6 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					LOGTRACE("Received %s command", operation_name);
-
 					string folder = GetParam(command, "folder");
 					if (folder.empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
@@ -1474,9 +1474,6 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICES_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
 					SerializeMessage(fd, result);
 
@@ -1484,18 +1481,12 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_TYPES_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result, command));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case SERVER_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
 							result, devices, reserved_ids, current_log_level, GetParam(command, "filename_pattern"),
 							scan_depth));
@@ -1504,27 +1495,18 @@ static void *MonThread(void *param)
 				}
 
 				case VERSION_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case LOG_LEVEL_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case DEFAULT_IMAGE_FILES_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
 							GetParam(command, "filename_pattern"), scan_depth));
 					SerializeMessage(fd, result);
@@ -1532,14 +1514,11 @@ static void *MonThread(void *param)
 				}
 
 				case IMAGE_FILE_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
 					string filename = GetParam(command, "file");
 					if (filename.empty()) {
 						ReturnStatus(fd, false, "Can't get image file info: Missing filename");
 					}
 					else {
-						PbResult result;
 						PbImageFile* image_file = new PbImageFile();
 						bool status = rascsi_response.GetImageFile(image_file, filename);
 						if (status) {
@@ -1555,54 +1534,35 @@ static void *MonThread(void *param)
 				}
 
 				case NETWORK_INTERFACES_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case MAPPING_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case OPERATION_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					pb_operation_info_result.set_allocated_operation_info(pb_operation_info);
-					SerializeMessage(fd, pb_operation_info_result);
+					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result));
+					SerializeMessage(fd, result);
 					break;
 				}
 
 				case RESERVED_IDS_INFO: {
-					LOGTRACE("Received %s command", operation_name);
-
-					PbResult result;
 					result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case SHUT_DOWN: {
-					LOGTRACE("Received %s command", operation_name);
-
 					ShutDown(fd, GetParam(command, "mode"));
 					break;
 				}
 
 				default: {
-					if (!PbOperation_IsValid(command.operation())) {
-						LOGTRACE("Received unknown command %d", command.operation());
-
-						ReturnStatus(fd, false, "Unknown command", UNKNOWN_OPERATION);
-					}
-
 					// Wait until we become idle
 					while (active) {
 						usleep(500 * 1000);
@@ -1635,6 +1595,10 @@ static void *MonThread(void *param)
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
+	PbResult pb_operation_info_result;
+	rascsi_response.GetOperationInfo(pb_operation_info_result);
 
 	int actid;
 	BUS::phase_t phase;
