@@ -28,8 +28,6 @@
 #include "rascsi_interface.pb.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
-#include <sys/reboot.h>
-#include <linux/reboot.h>
 #include <string>
 #include <sstream>
 #include <iostream>
