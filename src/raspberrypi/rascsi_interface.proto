@@ -198,7 +198,7 @@ message PbOperationInfo {
 }
 
 // rascsi special purpose error codes for cases where a textual error message may not be not sufficient.
-/// The client may react on this code, e.g. by prompting the user for an authentication token.
+// The client may react on this code, e.g. by prompting the user for an authentication token.
 enum PbErrorCode {
     // No error code available
     NO_ERROR_CODE = 0;
