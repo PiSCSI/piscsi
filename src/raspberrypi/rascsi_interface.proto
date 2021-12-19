@@ -2,6 +2,8 @@
 // Each rascsi message sent to the rascsi server is preceded by the magic string "RASCSI".
 // A message starts with a little endian 32 bit header which contains the protobuf message size.
 // Unless explicitly specified the order of repeated data returned is undefined.
+// All operations accept an optional access token, specified by the "token" parameter.
+// Only the VERSION_INFO operation never requires authentication.
 //
 
 syntax = "proto3";
@@ -29,7 +31,7 @@ enum PbDeviceType {
 
 // rascsi remote operations, returning PbResult
 enum PbOperation {
-    NONE = 0;
+    NO_OPERATION = 0;
 
     // Attach devices and return the new device list (PbDevicesInfo)
     // Parameters (mutually exclusive):
@@ -158,6 +160,19 @@ enum PbOperation {
     // Parameters:
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     UNPROTECT_IMAGE = 29;
+    
+    // Check whether an authentication token is valid. A client can use this in operation  in order to
+    // find out whether rascsi authentication is enable or to use rascsi authentication for securing
+    // client-internal operations.
+    CHECK_AUTHENTICATION = 30;
+}
+
+// rascsi special purpose error codes for cases where a textual error message is not sufficient
+enum PbErrorCode {
+    // No error code available
+    NO_ERROR_CODE = 0;
+    // Authentication/Authorization error
+    UNAUTHORIZED = 1;
 }
 
 // The supported file extensions mapped to their respective device types
@@ -309,6 +324,8 @@ message PbResult {
     bool status = 1;
     // An optional error or information message, depending on the status. A string without trailing CR/LF.
     string msg = 2;
+    // An optional error code. Only to be used in cases where textual information is not sufficient.
+    PbErrorCode error_code = 13;
     // Optional additional result data
     oneof result {
         // The result of a SERVER_INFO command
