@@ -426,7 +426,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	CreateOperation(operation_info, meta_data, DEFAULT_FOLDER, "Set default image file folder");
 
 	meta_data = new PbOperationMetaData();
-	AddOperationParameter(meta_data, "level", "The log level");
+	AddOperationParameter(meta_data, "level", "New log level");
 	CreateOperation(operation_info, meta_data, LOG_LEVEL, "Set log level");
 
 	meta_data = new PbOperationMetaData();
@@ -472,6 +472,10 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "file", "Image file name");
 	CreateOperation(operation_info, meta_data, UNPROTECT_IMAGE, "Make image file writable");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "token", "Authentication token to be checked");
+	CreateOperation(operation_info, meta_data, CHECK_AUTHENTICATION, "Check whether an authentication token is valid");
 
 	meta_data = new PbOperationMetaData();
 	CreateOperation(operation_info, meta_data, OPERATION_INFO, "Get operation meta data");
