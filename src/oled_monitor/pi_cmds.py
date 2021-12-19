@@ -14,7 +14,7 @@ def get_ip_and_host():
         sock.connect(('10.255.255.255', 1))
         ip_addr = sock.getsockname()[0]
     except Exception:
-        ip_addr = '127.0.0.1'
+        ip_addr = False
     finally:
         sock.close()
     return ip_addr, host
