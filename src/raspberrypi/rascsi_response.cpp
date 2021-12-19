@@ -155,7 +155,7 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 			while ((dir = readdir(d))) {
 				string filename = folder + "/" + dir->d_name;
 
-				string name_lower = filename;
+				string name_lower = dir->d_name;
 				if (!file_pattern.empty()) {
 					transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
 				}
