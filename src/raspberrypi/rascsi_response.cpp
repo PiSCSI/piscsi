@@ -505,12 +505,8 @@ PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData 
 	PbOperationParameter *parameter = meta_data->add_parameters();
 	parameter->set_name(name);
 	(*parameter->mutable_description())["en"] = description;
-	if (!default_value.empty()) {
-		parameter->set_default_value(default_value);
-	}
-	else {
-		parameter->set_is_mandatory(is_mandatory);
-	}
+	parameter->set_default_value(default_value);
+	parameter->set_is_mandatory(is_mandatory);
 
 	return parameter;
 }
