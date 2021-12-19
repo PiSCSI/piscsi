@@ -326,7 +326,7 @@ def download_to_dir(url, save_dir):
     logging.info("Response content-type: %s", req.headers["content-type"])
     logging.info("Response status code: %s", req.status_code)
 
-    return {"status": True, "msg": f"File downloaded from {url} to {save_dir}"}
+    return {"status": True, "msg": f"{file_name} downloaded to {save_dir}"}
 
 
 def write_config(file_name):
