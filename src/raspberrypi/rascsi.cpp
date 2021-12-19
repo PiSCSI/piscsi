@@ -1476,7 +1476,6 @@ static void *MonThread(void *param)
 				case DEVICES_INFO: {
 					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
 					SerializeMessage(fd, result);
-
 					break;
 				}
 
