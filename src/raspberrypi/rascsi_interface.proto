@@ -161,7 +161,7 @@ enum PbOperation {
     //   "file": The filename, relative to the default image folder. It must not contain a slash.
     UNPROTECT_IMAGE = 29;
 
-    // Check whether an authentication token is valid. A client can use this in operationin order to
+    // Check whether an authentication token is valid. A client can use this operation in order to
     // find out whether rascsi authentication is enable or to use rascsi authentication for securing
     // client-internal operations.
     CHECK_AUTHENTICATION = 30;
