@@ -156,7 +156,11 @@ def formatted_output():
     else:
         output.append("No image mounted!")
 
-    output.append(f"IP {IP_ADDR} - {HOSTNAME}")
+    if IP_ADDR:
+        output.append(f"IP {IP_ADDR} - {HOSTNAME}")
+    else:
+        output.append("IP address unavailable")
+        output.append("Try restarting RaSCSI")
     return output
 
 
