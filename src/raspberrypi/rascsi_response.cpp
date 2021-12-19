@@ -391,6 +391,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	CreateOperation(operation_info, meta_data, UNPROTECT, "Unprotect medium, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
 	CreateOperation(operation_info, meta_data, SERVER_INFO, "Get rascsi server information");
 
 	meta_data = new PbOperationMetaData();
@@ -403,6 +404,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	CreateOperation(operation_info, meta_data, DEVICE_TYPES_INFO, "Get device properties by device type");
 
 	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
 	CreateOperation(operation_info, meta_data, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
 
 	meta_data = new PbOperationMetaData();
