@@ -1,16 +1,14 @@
 !!   ------ THIS FILE IS AUTO_GENERATED! DO NOT MANUALLY UPDATE!!!
-!!   ------ The native file is rascsi.1. Re-run 'make docs' after updating
-
-
+!!   ------ The native file is rascsi.1. Re-run 'make docs' after updating\n\n
 rascsi(1)                   General Commands Manual                  rascsi(1)
 
 NAME
        rascsi - Emulates SCSI devices using the Raspberry Pi GPIO pins
 
 SYNOPSIS
-       rascsi  [-F[u00AE]  FOLDER] [-L[u00AE] LOG_LEVEL] [-h] [-n VENDOR:PROD‐
-       UCT:REVISION]  [-p[u00AE]  PORT]  [-r  RESERVED_IDS]  [-n  TYPE]   [-v]
-       [-IDn:[u] FILE] [-HDn[:u] FILE]...
+       rascsi  [-F[u00AE]  FOLDER]  [-L[u00AE] LOG_LEVEL] [-R SCAN_DEPTH] [-h]
+       [-n VENDOR:PRODUCT:REVISION] [-p[u00AE]  PORT]  [-r  RESERVED_IDS]  [-n
+       TYPE] [-v] [-IDn:[u] FILE] [-HDn[:u] FILE]...
 
 DESCRIPTION
        rascsi Emulates SCSI devices using the Raspberry Pi GPIO pins.
@@ -66,6 +64,11 @@ OPTIONS
        -L LOG_LEVEL
               The rascsi log level (trace, debug, info, warn,  err,  critical,
               off). The default log level is 'info'.
+
+       -R SCAN_DEPTH
+              Scan  for  image files recursively, up to a depth -f SCAN_DEPTH.
+              Be careful when using this option with many sub-folders  in  the
+              default image folder.
 
        -h     Show a help page.
 

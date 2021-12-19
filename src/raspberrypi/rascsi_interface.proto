@@ -64,7 +64,9 @@ enum PbOperation {
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 9;
 
-    // Gets the server information (PbServerInfo)
+    // Gets the server information (PbServerInfo). Calling this operation should be avoided because it
+    // may return a lot of data. More specific other operations should be used instead.
+    // "filename_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     SERVER_INFO = 10;
 
     // Get rascsi version information (PbVersionInfo)
@@ -78,6 +80,8 @@ enum PbOperation {
     DEVICE_TYPES_INFO = 13;
 
     // Get information on available image files in the default image folder (PbImageFilesInfo)
+    // Parameters:
+    // "filename_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     DEFAULT_IMAGE_FILES_INFO = 14;
     
     // Get information on an image file (not necessarily in the default image folder) based on an absolute path.
