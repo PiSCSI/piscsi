@@ -1160,9 +1160,8 @@ void ShutDown(int fd, const string& mode) {
 		SerializeMessage(fd, result);
 
 		DetachAll();
-		sync();
 
-		if (reboot(LINUX_REBOOT_CMD_HALT) == -1) {
+		if (system("init 0") == -1) {
 			LOGERROR("System shutdown failed: %s", strerror(errno));
 		}
 	}
@@ -1172,9 +1171,8 @@ void ShutDown(int fd, const string& mode) {
 		SerializeMessage(fd, result);
 
 		DetachAll();
-		sync();
 
-		if (reboot(LINUX_REBOOT_CMD_RESTART) == -1) {
+		if (system("init 6") == -1) {
 			LOGERROR("System reboot failed: %s", strerror(errno));
 		}
 	}
