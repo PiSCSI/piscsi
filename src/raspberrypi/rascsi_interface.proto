@@ -201,8 +201,10 @@ message PbOperationInfo {
 enum PbErrorCode {
     // No error code available
     NO_ERROR_CODE = 0;
+    // The client sent an operation code not supported by this server
+    UNKNOWN_OPERATION = 1;
     // Authentication/Authorization error
-    UNAUTHORIZED = 1;
+    UNAUTHORIZED = 2;
 }
 
 // The supported file extensions mapped to their respective device types
