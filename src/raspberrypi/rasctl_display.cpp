@@ -303,7 +303,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 
 			for (const auto& parameter : operation.second.parameters()) {
 				cout << "    " << parameter.name() << ": "
-					<< (parameter.default_value().empty() ? "mandatory" : "optional");
+					<< (parameter.is_mandatory() ? "mandatory" : "optional");
 				if (!parameter.description().empty()) {
 					cout << " (" << parameter.description().at("en") << ")";
 				}

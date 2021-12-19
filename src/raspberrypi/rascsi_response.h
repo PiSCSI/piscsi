@@ -56,5 +56,5 @@ private:
 	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, int);
 	void CreateOperation(PbOperationInfo *, PbOperationMetaData *, const PbOperation&, const string&);
 	PbOperationParameter *AddOperationParameter(PbOperationMetaData *, const string&, const string&,
-			const string& = "");
+			const string& = "", bool = false);
 };

@@ -178,8 +178,10 @@ message PbOperationParameter {
     map<string, string> description = 2;
     // There is no specific set of permitted values if empty
     repeated string permitted_values = 3;
-    // Optional default value. If there is no default the value is mandatory.
+    // Optional default value
     string default_value = 4;
+    // True if this parameter is mandatory
+    bool is_mandatory = 5;
 }
 
 // The list of parameters supported by an operation
