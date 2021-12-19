@@ -1435,9 +1435,12 @@ static void *MonThread(void *param)
 				}
 			}
 
+			const char *operation_name = PbOperation_IsValid(command.operation()) ?
+					PbOperation_Name(command.operation()).c_str() : "Unknown operation";
+
 			switch(command.operation()) {
 				case LOG_LEVEL: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					string log_level = GetParam(command, "level");
 					bool status = SetLogLevel(log_level);
@@ -1451,7 +1454,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					string folder = GetParam(command, "folder");
 					if (folder.empty()) {
@@ -1469,7 +1472,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICES_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
@@ -1479,7 +1482,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICE_TYPES_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result, command));
@@ -1488,7 +1491,7 @@ static void *MonThread(void *param)
 				}
 
 				case SERVER_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
@@ -1499,7 +1502,7 @@ static void *MonThread(void *param)
 				}
 
 				case VERSION_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
@@ -1508,7 +1511,7 @@ static void *MonThread(void *param)
 				}
 
 				case LOG_LEVEL_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
@@ -1517,7 +1520,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_IMAGE_FILES_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
@@ -1527,7 +1530,7 @@ static void *MonThread(void *param)
 				}
 
 				case IMAGE_FILE_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					string filename = GetParam(command, "file");
 					if (filename.empty()) {
@@ -1550,7 +1553,7 @@ static void *MonThread(void *param)
 				}
 
 				case NETWORK_INTERFACES_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
@@ -1559,7 +1562,7 @@ static void *MonThread(void *param)
 				}
 
 				case MAPPING_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
@@ -1568,7 +1571,7 @@ static void *MonThread(void *param)
 				}
 
 				case OPERATION_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					pb_operation_info_result.set_allocated_operation_info(pb_operation_info);
 					SerializeMessage(fd, pb_operation_info_result);
@@ -1576,7 +1579,7 @@ static void *MonThread(void *param)
 				}
 
 				case RESERVED_IDS_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					PbResult result;
 					result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
@@ -1585,7 +1588,7 @@ static void *MonThread(void *param)
 				}
 
 				case SHUT_DOWN: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+					LOGTRACE("Received %s command", operation_name);
 
 					ShutDown(fd, GetParam(command, "mode"));
 					break;
