@@ -95,7 +95,7 @@
             <td style="text-align:center">
             {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
-                <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
+                <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?  WARNING: On Mac OS, eject the Disk in Finder instead!')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="Eject">
