@@ -52,7 +52,7 @@ PbOperation ParseOperation(const char *optarg)
 			return DEVICES_INFO;
 
 		default:
-			return NONE;
+			return NO_OPERATION;
 	}
 }
 
@@ -134,11 +134,12 @@ int main(int argc, char* argv[])
 	string reserved_ids;
 	string image_params;
 	string filename;
+	string token;
 	bool list = false;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmosvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmosvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:P::")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -176,7 +177,7 @@ int main(int argc, char* argv[])
 
 			case 'c':
 				command.set_operation(ParseOperation(optarg));
-				if (command.operation() == NONE) {
+				if (command.operation() == NO_OPERATION) {
 					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);
 				}
@@ -305,6 +306,10 @@ int main(int argc, char* argv[])
 				exit(EXIT_SUCCESS);
 				break;
 
+			case 'P':
+				token = optarg ? optarg : getpass("Password: ");
+				break;
+
 			case 'V':
 				command.set_operation(VERSION_INFO);
 				break;
@@ -333,7 +338,7 @@ int main(int argc, char* argv[])
 	if (list) {
 		PbCommand command_list;
 		command_list.set_operation(DEVICES_INFO);
-		RasctlCommands rasctl_commands(command_list, hostname, port);
+		RasctlCommands rasctl_commands(command_list, hostname, port, token);
 		rasctl_commands.CommandDevicesInfo();
 		exit(EXIT_SUCCESS);
 	}
@@ -344,7 +349,7 @@ int main(int argc, char* argv[])
 		AddParam(*device, "file", param);
 	}
 
-	RasctlCommands rasctl_commands(command, hostname, port);
+	RasctlCommands rasctl_commands(command, hostname, port, token);
 
 	switch(command.operation()) {
 		case LOG_LEVEL:
