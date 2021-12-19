@@ -1488,8 +1488,8 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, devices, reserved_ids, current_log_level, GetParam(command, "filename_pattern"),
-							scan_depth));
+							result, devices, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
+							GetParam(command, "file_pattern"), scan_depth));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1517,7 +1517,7 @@ static void *MonThread(void *param)
 
 					PbResult result;
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							GetParam(command, "filename_pattern"), scan_depth));
+							GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), scan_depth));
 					SerializeMessage(fd, result);
 					break;
 				}
