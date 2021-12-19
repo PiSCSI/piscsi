@@ -1592,9 +1592,11 @@ static void *MonThread(void *param)
 				}
 
 				default: {
-					LOGTRACE("Received unknown command %d", command.operation());
+					if (!PbOperation_IsValid(command.operation())) {
+						LOGTRACE("Received unknown command %d", command.operation());
 
-					ReturnStatus(fd, false, "Unknown command", UNKNOWN_OPERATION);
+						ReturnStatus(fd, false, "Unknown command", UNKNOWN_OPERATION);
+					}
 
 					// Wait until we become idle
 					while (active) {
