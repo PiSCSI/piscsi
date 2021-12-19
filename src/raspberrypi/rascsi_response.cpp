@@ -153,15 +153,15 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 		if (d) {
 			struct dirent *dir;
 			while ((dir = readdir(d))) {
-				string filename = folder + "/" + dir->d_name;
-
-				string name_lower = dir->d_name;
-				if (!file_pattern.empty()) {
-					transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
-				}
-
 				bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
 				if (is_supported_type && dir->d_name[0] != '.') {
+					string name_lower = dir->d_name;
+					if (!file_pattern.empty()) {
+						transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+					}
+
+					string filename = folder + "/" + dir->d_name;
+
 					struct stat st;
 					if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 						if (!st.st_size) {
