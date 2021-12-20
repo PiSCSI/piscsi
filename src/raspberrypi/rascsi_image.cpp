@@ -48,9 +48,9 @@ RascsiImage::RascsiImage()
 	depth = 0;
 }
 
-bool RascsiImage::CheckDepth(const string& folder)
+bool RascsiImage::CheckDepth(const string& filename)
 {
-	return count(folder.begin(), folder.end(), '/') <= depth;
+	return count(filename.begin(), filename.end(), '/') <= depth;
 }
 
 bool RascsiImage::CreateImageFolder(int fd, const string& filename)
