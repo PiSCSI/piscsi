@@ -35,7 +35,7 @@ enum PbOperation {
 
     // Attach devices and return the new device list (PbDevicesInfo)
     // Parameters (mutually exclusive):
-    //   "file": The filename relative to the default image folder. It must not contain a slash.
+    //   "file": The filename relative to the default image folder
     //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
     ATTACH = 1;
 
@@ -54,7 +54,7 @@ enum PbOperation {
 
     // Insert medium
     // Parameters:
-    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "file": The filename, relative to the default image folder
     INSERT = 6;
 
     // Eject medium
@@ -126,39 +126,39 @@ enum PbOperation {
 
     // Create an image file. The image file must not yet exist.
     // Parameters:
-    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "file": The filename, relative to the default image folder
     //   "size": The file size in bytes, must be a multiple of 512
     //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     CREATE_IMAGE = 24;
 
     // Delete an image file.
     // Parameters:
-    //    "file": The filename, relative to the default image folder. It must not contain a slash.
+    //    "file": The filename, relative to the default image folder.
     DELETE_IMAGE = 25;
 
-    // Rename an image file.
+    // Rename/Move an image file.
     // Parameters:
-    //   "from": The old filename, relative to the default image folder. It must not contain a slash.
-    //   "to": The new filename, relative to the default image folder. It must not contain a slash.
+    //   "from": The old filename, relative to the default image folder
+    //   "to": The new filename, relative to the default image folder
     // The new filename must not yet exist.
     RENAME_IMAGE = 26;
 
     // Copy an image file.
     // Parameters:
-    //   "from": The source filename, relative to the default image folder. It must not contain a slash.
-    //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
+    //   "from": The source filename, relative to the default image folder
+    //   "to": The destination filename, relative to the default image folder
     //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     // The destination filename must not yet exist.
     COPY_IMAGE = 27;
     
     // Write-protect an image file.
     // Parameters:
-    //  "file": The filename, relative to the default image folder. It must not contain a slash.
+    //  "file": The filename, relative to the default image folder
     PROTECT_IMAGE = 28;
 
     // Make an image file writable.
     // Parameters:
-    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "file": The filename, relative to the default image folder
     UNPROTECT_IMAGE = 29;
     
     // Check whether an authentication token is valid. A client can use this in operation  in order to
