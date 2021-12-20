@@ -134,8 +134,12 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 	size_t slash_position = filename.find('/');
 	if (slash_position != string::npos) {
 		string folder = default_image_folder + "/" + filename.substr(0, slash_position);
-		if (mkdir(folder.c_str(), 0777) == -1) {
-			return ReturnStatus(fd, false, "Can't create folder '" + folder + "': " + strerror(errno));
+
+		struct stat st;
+		if (stat(folder.c_str(), &st)) {
+			if (mkdir(folder.c_str(), 0777) == -1) {
+				return ReturnStatus(fd, false, "Can't create folder '" + folder + "': " + strerror(errno));
+			}
 		}
 	}
 
