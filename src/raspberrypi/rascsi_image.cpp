@@ -104,17 +104,15 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Can't create image file: Missing image filename");
 	}
-	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
-	}
-	filename = default_image_folder + "/" + filename;
-	if (!IsValidDstFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': File already exists");
+
+	string full_filename = default_image_folder + "/" + filename;
+	if (!IsValidDstFilename(full_filename)) {
+		return ReturnStatus(fd, false, "Can't create image file: '" + full_filename + "': File already exists");
 	}
 
 	const string size = GetParam(command, "size");
 	if (size.empty()) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
+		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': Missing image size");
 	}
 
 	off_t len;
@@ -122,10 +120,10 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 		len = stoull(size);
 	}
 	catch(const invalid_argument& e) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
+		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
 	catch(const out_of_range& e) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
+		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
 	if (len < 512 || (len & 0x1ff)) {
 		ostringstream error;
@@ -133,9 +131,12 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, error.str());
 	}
 
-	struct stat st;
-	if (!stat(filename.c_str(), &st)) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': File already exists");
+	size_t slash_position = filename.find('/');
+	if (slash_position != string::npos) {
+		string folder = default_image_folder + "/" + filename.substr(0, slash_position);
+		if (mkdir(folder.c_str(), 0777) == -1) {
+			return ReturnStatus(fd, false, "Can't create folder '" + folder + "': " + strerror(errno));
+		}
 	}
 
 	string permission = GetParam(command, "read_only");
@@ -143,23 +144,23 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 	int permissions = !strcasecmp(permission.c_str(), "true") ?
 			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 
-	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, permissions);
+	int image_fd = open(full_filename.c_str(), O_CREAT|O_WRONLY, permissions);
 	if (image_fd == -1) {
-		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': " + string(strerror(errno)));
+		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
 	if (fallocate(image_fd, 0, 0, len) == -1) {
 		close(image_fd);
 
-		unlink(filename.c_str());
+		unlink(full_filename.c_str());
 
-		return ReturnStatus(fd, false, "Can't allocate space for image file '" + filename + "': " + string(strerror(errno)));
+		return ReturnStatus(fd, false, "Can't allocate space for image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
 	close(image_fd);
 
 	ostringstream msg;
-	msg << "Created " << (permissions & S_IWUSR ? "": "read-only ") << "image file '" << filename + "' with a size of " << len << " bytes";
+	msg << "Created " << (permissions & S_IWUSR ? "": "read-only ") << "image file '" << full_filename + "' with a size of " << len << " bytes";
 	LOGINFO("%s", msg.str().c_str());
 
 	return ReturnStatus(fd);
