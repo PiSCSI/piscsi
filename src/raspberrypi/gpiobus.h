@@ -433,7 +433,6 @@
 //	Constant declarations (bus control timing)
 //
 //---------------------------------------------------------------------------
-#define GPIO_DATA_SETTLING 100			// Data bus stabilization time (ns)
 // SCSI Bus timings taken from:
 //     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
 #define SCSI_DELAY_ARBITRATION_DELAY_NS          2400
