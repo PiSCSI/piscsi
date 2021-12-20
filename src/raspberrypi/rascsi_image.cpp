@@ -214,7 +214,7 @@ bool RascsiImage::DeleteImage(int fd, const PbCommand& command)
 		}
 
 		if (remove(full_folder.c_str())) {
-			return ReturnStatus(fd, false, "Can't delete empty image folder '" + full_folder +"'");
+			return ReturnStatus(fd, false, "Can't delete empty image folder '" + full_folder + "'");
 		}
 
 		last_slash = folder.rfind('/');
