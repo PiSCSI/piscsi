@@ -435,17 +435,15 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	AddOperationParameter(meta_data, "ids", "Comma-separated device ID list", "", true);
 	CreateOperation(operation_info, meta_data, RESERVE_IDS, "Reserve device IDs");
 
-	PbOperationParameter *parameter;
-
-	// Shutdown/reboot requires root permissions
+	meta_data = new PbOperationMetaData();
+	PbOperationParameter *parameter = AddOperationParameter(meta_data, "mode", "Shutdown mode", "", true);
+	parameter->add_permitted_values("rascsi");
+	// System shutdown/reboot requires root permissions
 	if (!getuid()) {
-		meta_data = new PbOperationMetaData();
-		parameter = AddOperationParameter(meta_data, "mode", "Shutdown mode", "", true);
-		parameter->add_permitted_values("rascsi");
 		parameter->add_permitted_values("system");
 		parameter->add_permitted_values("reboot");
-		CreateOperation(operation_info, meta_data, SHUT_DOWN, "Shut down or reboot");
 	}
+	CreateOperation(operation_info, meta_data, SHUT_DOWN, "Shut down or reboot");
 
 	meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "file", "Image file name", "", true);
