@@ -206,14 +206,15 @@ bool RascsiImage::DeleteImage(int fd, const PbCommand& command)
 	size_t last_slash = filename.rfind('/');
 	while (last_slash != string::npos) {
 		string folder = filename.substr(0, last_slash);
+		string full_folder = default_image_folder + "/" + folder;
 
 		std::error_code error;
-		if (!filesystem::is_empty(default_image_folder + "/" + folder, error) || error) {
+		if (!filesystem::is_empty(full_folder, error) || error) {
 			break;
 		}
 
-		if (remove((default_image_folder + "/" + folder).c_str())) {
-			return ReturnStatus(fd, false, "Can't delete empty image folder '" + default_image_folder + "/" + folder +"'");
+		if (remove(full_folder.c_str())) {
+			return ReturnStatus(fd, false, "Can't delete empty image folder '" + full_folder +"'");
 		}
 
 		last_slash = folder.rfind('/');
