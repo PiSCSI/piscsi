@@ -435,12 +435,17 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	AddOperationParameter(meta_data, "ids", "Comma-separated device ID list", "", true);
 	CreateOperation(operation_info, meta_data, RESERVE_IDS, "Reserve device IDs");
 
-	meta_data = new PbOperationMetaData();
-	PbOperationParameter *parameter = AddOperationParameter(meta_data, "mode", "Shutdown mode", "", true);
-	parameter->add_permitted_values("rascsi");
-	parameter->add_permitted_values("system");
-	parameter->add_permitted_values("reboot");
-	CreateOperation(operation_info, meta_data, SHUT_DOWN, "Shut down or reboot");
+	PbOperationParameter *parameter;
+
+	// Shutdown/reboot requires root permissions
+	if (!getuid()) {
+		meta_data = new PbOperationMetaData();
+		parameter = AddOperationParameter(meta_data, "mode", "Shutdown mode", "", true);
+		parameter->add_permitted_values("rascsi");
+		parameter->add_permitted_values("system");
+		parameter->add_permitted_values("reboot");
+		CreateOperation(operation_info, meta_data, SHUT_DOWN, "Shut down or reboot");
+	}
 
 	meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "file", "Image file name", "", true);
@@ -483,7 +488,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	CreateOperation(operation_info, meta_data, OPERATION_INFO, "Get operation meta data");
 
 	// Ensure that the complete set of operations is covered
-	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
+	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - (getuid() ? 2 : 1));
 
 	result.set_status(true);
 
