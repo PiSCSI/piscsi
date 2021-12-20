@@ -59,11 +59,15 @@ bool RascsiImage::CreateImageFolder(int fd, const string& filename)
 	if (filename_start != string::npos) {
 		string folder = filename.substr(0, filename_start);
 
-		std::error_code error;
-		filesystem::create_directories(folder, error);
-		if (error) {
-			ReturnStatus(fd, false, "Can't create image folder '" + folder + "': " + strerror(errno));
-			return false;
+		// Checking for existence first prevents an error if the top-level folder is a softlink
+		struct stat st;
+		if (stat(folder.c_str(), &st)) {
+			std::error_code error;
+			filesystem::create_directories(folder, error);
+			if (error) {
+				ReturnStatus(fd, false, "Can't create image folder '" + folder + "': " + strerror(errno));
+				return false;
+			}
 		}
 	}
 
