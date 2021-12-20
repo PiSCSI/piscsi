@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<export version="D">
+  <design>
+    <source>C:\Users\theto\Downloads\RASCSI\hw\loopback_tester\loopback_tester.sch</source>
+    <date>6/2/2021 3:54:09 PM</date>
+    <tool>Eeschema (5.1.9-16-g1737927814)-1</tool>
+    <sheet number="1" name="/" tstamps="/">
+      <title_block>
+        <title/>
+        <company/>
+        <rev/>
+        <date/>
+        <source>loopback_tester.sch</source>
+        <comment number="1" value=""/>
+        <comment number="2" value=""/>
+        <comment number="3" value=""/>
+        <comment number="4" value=""/>
+      </title_block>
+    </sheet>
+  </design>
+  <components>
+    <comp ref="J2">
+      <value>Conn_02x25_Odd_Even</value>
+      <footprint>Connector_PinSocket_2.54mm:PinSocket_2x25_P2.54mm_Vertical</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C40024</field>
+      </fields>
+      <libsource lib="Connector_Generic" part="Conn_02x25_Odd_Even" description="Generic connector, double row, 02x25, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EF63F70</tstamp>
+    </comp>
+    <comp ref="X1">
+      <value>Mac</value>
+      <footprint>SamacSys_Parts:mac_happy_small</footprint>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFCC51E</tstamp>
+    </comp>
+    <comp ref="X2">
+      <value>Dogcow</value>
+      <footprint>SamacSys_Parts:dogcow</footprint>
+      <libsource lib="SamacSys_Parts" part="Logo" description=""/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5EFCD6CA</tstamp>
+    </comp>
+    <comp ref="J1">
+      <value>CONFLY DB25</value>
+      <footprint>L717SDB25PA4CH4F</footprint>
+      <datasheet>https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf</datasheet>
+      <fields>
+        <field name="Description">D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD</field>
+        <field name="Height">12.55</field>
+        <field name="LCSC">C77838</field>
+        <field name="Manufacturer_Name">Amphenol</field>
+        <field name="Manufacturer_Part_Number">L717SDB25PA4CH4F</field>
+        <field name="Mouser Part Number">523-L717SDB25PA4CH4F</field>
+        <field name="Mouser Price/Stock">https://www.mouser.com/Search/Refine.aspx?Keyword=523-L717SDB25PA4CH4F</field>
+      </fields>
+      <libsource lib="SamacSys_Parts" part="L717SDB25PA4CH4F" description="D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>5FA017A4</tstamp>
+    </comp>
+    <comp ref="R1">
+      <value>1k</value>
+      <footprint>Resistor_SMD:R_0805_2012Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C17513</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60ABA354</tstamp>
+    </comp>
+    <comp ref="D1">
+      <value>Green</value>
+      <footprint>LED_SMD:LED_0805_2012Metric</footprint>
+      <datasheet>~</datasheet>
+      <fields>
+        <field name="LCSC">C2297</field>
+      </fields>
+      <libsource lib="Device" part="LED_Small" description="Light emitting diode, small symbol"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60ABA82D</tstamp>
+    </comp>
+    <comp ref="JP1">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AAED79</tstamp>
+    </comp>
+    <comp ref="JP2">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AB214C</tstamp>
+    </comp>
+    <comp ref="JP3">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AB2D71</tstamp>
+    </comp>
+    <comp ref="JP4">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AB396E</tstamp>
+    </comp>
+    <comp ref="JP5">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AB4643</tstamp>
+    </comp>
+    <comp ref="JP6">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AB5236</tstamp>
+    </comp>
+    <comp ref="JP7">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AB5E2E</tstamp>
+    </comp>
+    <comp ref="JP8">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AB6A41</tstamp>
+    </comp>
+    <comp ref="JP9">
+      <value>Jumper</value>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <datasheet>~</datasheet>
+      <libsource lib="Device" part="Jumper" description="Jumper, normally closed"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamp>60AB7793</tstamp>
+    </comp>
+  </components>
+  <libparts>
+    <libpart lib="Connector_Generic" part="Conn_02x25_Odd_Even">
+      <description>Generic connector, double row, 02x25, odd/even pin numbering scheme (row 1 odd numbers, row 2 even numbers), script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_2x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_02x25_Odd_Even</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+        <pin num="3" name="Pin_3" type="passive"/>
+        <pin num="4" name="Pin_4" type="passive"/>
+        <pin num="5" name="Pin_5" type="passive"/>
+        <pin num="6" name="Pin_6" type="passive"/>
+        <pin num="7" name="Pin_7" type="passive"/>
+        <pin num="8" name="Pin_8" type="passive"/>
+        <pin num="9" name="Pin_9" type="passive"/>
+        <pin num="10" name="Pin_10" type="passive"/>
+        <pin num="11" name="Pin_11" type="passive"/>
+        <pin num="12" name="Pin_12" type="passive"/>
+        <pin num="13" name="Pin_13" type="passive"/>
+        <pin num="14" name="Pin_14" type="passive"/>
+        <pin num="15" name="Pin_15" type="passive"/>
+        <pin num="16" name="Pin_16" type="passive"/>
+        <pin num="17" name="Pin_17" type="passive"/>
+        <pin num="18" name="Pin_18" type="passive"/>
+        <pin num="19" name="Pin_19" type="passive"/>
+        <pin num="20" name="Pin_20" type="passive"/>
+        <pin num="21" name="Pin_21" type="passive"/>
+        <pin num="22" name="Pin_22" type="passive"/>
+        <pin num="23" name="Pin_23" type="passive"/>
+        <pin num="24" name="Pin_24" type="passive"/>
+        <pin num="25" name="Pin_25" type="passive"/>
+        <pin num="26" name="Pin_26" type="passive"/>
+        <pin num="27" name="Pin_27" type="passive"/>
+        <pin num="28" name="Pin_28" type="passive"/>
+        <pin num="29" name="Pin_29" type="passive"/>
+        <pin num="30" name="Pin_30" type="passive"/>
+        <pin num="31" name="Pin_31" type="passive"/>
+        <pin num="32" name="Pin_32" type="passive"/>
+        <pin num="33" name="Pin_33" type="passive"/>
+        <pin num="34" name="Pin_34" type="passive"/>
+        <pin num="35" name="Pin_35" type="passive"/>
+        <pin num="36" name="Pin_36" type="passive"/>
+        <pin num="37" name="Pin_37" type="passive"/>
+        <pin num="38" name="Pin_38" type="passive"/>
+        <pin num="39" name="Pin_39" type="passive"/>
+        <pin num="40" name="Pin_40" type="passive"/>
+        <pin num="41" name="Pin_41" type="passive"/>
+        <pin num="42" name="Pin_42" type="passive"/>
+        <pin num="43" name="Pin_43" type="passive"/>
+        <pin num="44" name="Pin_44" type="passive"/>
+        <pin num="45" name="Pin_45" type="passive"/>
+        <pin num="46" name="Pin_46" type="passive"/>
+        <pin num="47" name="Pin_47" type="passive"/>
+        <pin num="48" name="Pin_48" type="passive"/>
+        <pin num="49" name="Pin_49" type="passive"/>
+        <pin num="50" name="Pin_50" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="Jumper">
+      <description>Jumper, normally closed</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>SolderJumper*</fp>
+        <fp>Jumper*</fp>
+        <fp>TestPoint*2Pads*</fp>
+        <fp>TestPoint*Bridge*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">JP</field>
+        <field name="Value">Jumper</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="LED_Small">
+      <description>Light emitting diode, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>LED*</fp>
+        <fp>LED_SMD:*</fp>
+        <fp>LED_THT:*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">D</field>
+        <field name="Value">LED_Small</field>
+      </fields>
+      <pins>
+        <pin num="1" name="K" type="passive"/>
+        <pin num="2" name="A" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="Device" part="R_Small">
+      <description>Resistor, small symbol</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>R_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">R</field>
+        <field name="Value">R_Small</field>
+      </fields>
+      <pins>
+        <pin num="1" name="~" type="passive"/>
+        <pin num="2" name="~" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="SamacSys_Parts" part="L717SDB25PA4CH4F">
+      <description>D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD</description>
+      <docs>https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf</docs>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">L717SDB25PA4CH4F</field>
+        <field name="Footprint">L717SDB25PA4CH4F</field>
+        <field name="Datasheet">https://componentsearchengine.com/Datasheets/1/L717SDB25PA4CH4F.pdf</field>
+        <field name="Description">D-Sub Standard Connectors 25P Size B Stamped Male DSub Contact SD</field>
+        <field name="Height">12.55</field>
+        <field name="Mouser Part Number">523-L717SDB25PA4CH4F</field>
+        <field name="Mouser Price/Stock">https://www.mouser.com/Search/Refine.aspx?Keyword=523-L717SDB25PA4CH4F</field>
+        <field name="Manufacturer_Name">Amphenol</field>
+        <field name="Manufacturer_Part_Number">L717SDB25PA4CH4F</field>
+      </fields>
+      <pins>
+        <pin num="1" name="1" type="passive"/>
+        <pin num="2" name="2" type="passive"/>
+        <pin num="3" name="3" type="passive"/>
+        <pin num="4" name="4" type="passive"/>
+        <pin num="5" name="5" type="passive"/>
+        <pin num="6" name="6" type="passive"/>
+        <pin num="7" name="7" type="passive"/>
+        <pin num="8" name="8" type="passive"/>
+        <pin num="9" name="9" type="passive"/>
+        <pin num="10" name="10" type="passive"/>
+        <pin num="11" name="11" type="passive"/>
+        <pin num="12" name="12" type="passive"/>
+        <pin num="13" name="13" type="passive"/>
+        <pin num="14" name="14" type="passive"/>
+        <pin num="15" name="15" type="passive"/>
+        <pin num="16" name="16" type="passive"/>
+        <pin num="17" name="17" type="passive"/>
+        <pin num="18" name="18" type="passive"/>
+        <pin num="19" name="19" type="passive"/>
+        <pin num="20" name="20" type="passive"/>
+        <pin num="21" name="21" type="passive"/>
+        <pin num="22" name="22" type="passive"/>
+        <pin num="23" name="23" type="passive"/>
+        <pin num="24" name="24" type="passive"/>
+        <pin num="25" name="25" type="passive"/>
+        <pin num="MH1" name="MH1" type="passive"/>
+        <pin num="MH2" name="MH2" type="passive"/>
+      </pins>
+    </libpart>
+    <libpart lib="SamacSys_Parts" part="Logo">
+      <fields>
+        <field name="Reference">X</field>
+        <field name="Value">Logo</field>
+      </fields>
+    </libpart>
+  </libparts>
+  <libraries>
+    <library logical="Connector_Generic">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Connector_Generic.lib</uri>
+    </library>
+    <library logical="Device">
+      <uri>C:\Program Files\KiCad\share\kicad\library/Device.lib</uri>
+    </library>
+    <library logical="SamacSys_Parts">
+      <uri>C:\Users\theto\Downloads\RASCSI\hw\loopback_tester/SamacSys_Parts.lib</uri>
+    </library>
+  </libraries>
+  <nets>
+    <net code="1" name="GND">
+      <node ref="J2" pin="39"/>
+      <node ref="J2" pin="17"/>
+      <node ref="J2" pin="24"/>
+      <node ref="J2" pin="23"/>
+      <node ref="J2" pin="22"/>
+      <node ref="J2" pin="21"/>
+      <node ref="J2" pin="20"/>
+      <node ref="J2" pin="19"/>
+      <node ref="J2" pin="15"/>
+      <node ref="J2" pin="13"/>
+      <node ref="J2" pin="11"/>
+      <node ref="J2" pin="37"/>
+      <node ref="J2" pin="35"/>
+      <node ref="J2" pin="33"/>
+      <node ref="J2" pin="31"/>
+      <node ref="J2" pin="30"/>
+      <node ref="J2" pin="3"/>
+      <node ref="J2" pin="29"/>
+      <node ref="J2" pin="28"/>
+      <node ref="J2" pin="27"/>
+      <node ref="J2" pin="41"/>
+      <node ref="J1" pin="MH2"/>
+      <node ref="J1" pin="MH1"/>
+      <node ref="D1" pin="1"/>
+      <node ref="J2" pin="9"/>
+      <node ref="J2" pin="7"/>
+      <node ref="J2" pin="5"/>
+      <node ref="J2" pin="47"/>
+      <node ref="J2" pin="45"/>
+      <node ref="J2" pin="43"/>
+      <node ref="J2" pin="1"/>
+      <node ref="J2" pin="49"/>
+      <node ref="J1" pin="24"/>
+      <node ref="J1" pin="16"/>
+      <node ref="J1" pin="7"/>
+      <node ref="J1" pin="14"/>
+      <node ref="J1" pin="18"/>
+      <node ref="J1" pin="9"/>
+    </net>
+    <net code="2" name="C-D7">
+      <node ref="J1" pin="13"/>
+      <node ref="J2" pin="16"/>
+      <node ref="JP9" pin="1"/>
+    </net>
+    <net code="3" name="C-D6">
+      <node ref="J2" pin="14"/>
+      <node ref="J1" pin="12"/>
+      <node ref="JP8" pin="1"/>
+    </net>
+    <net code="4" name="C-D5">
+      <node ref="JP7" pin="1"/>
+      <node ref="J2" pin="12"/>
+      <node ref="J1" pin="11"/>
+    </net>
+    <net code="5" name="C-D3">
+      <node ref="J2" pin="8"/>
+      <node ref="J1" pin="10"/>
+      <node ref="JP5" pin="1"/>
+    </net>
+    <net code="6" name="C-D4">
+      <node ref="J2" pin="10"/>
+      <node ref="JP6" pin="1"/>
+      <node ref="J1" pin="23"/>
+    </net>
+    <net code="7" name="C-D0">
+      <node ref="J1" pin="8"/>
+      <node ref="JP2" pin="1"/>
+      <node ref="J2" pin="2"/>
+    </net>
+    <net code="8" name="C-BSY">
+      <node ref="J2" pin="36"/>
+      <node ref="J1" pin="6"/>
+      <node ref="JP1" pin="2"/>
+    </net>
+    <net code="9" name="C-ACK">
+      <node ref="J1" pin="5"/>
+      <node ref="JP2" pin="2"/>
+      <node ref="J2" pin="38"/>
+    </net>
+    <net code="10" name="C-RST">
+      <node ref="J1" pin="4"/>
+      <node ref="J2" pin="40"/>
+      <node ref="JP5" pin="2"/>
+    </net>
+    <net code="11" name="TERMPOW">
+      <node ref="R1" pin="1"/>
+      <node ref="J1" pin="25"/>
+      <node ref="J2" pin="26"/>
+    </net>
+    <net code="12" name="C-D2">
+      <node ref="J2" pin="6"/>
+      <node ref="J1" pin="22"/>
+      <node ref="JP4" pin="1"/>
+    </net>
+    <net code="13" name="C-D1">
+      <node ref="J2" pin="4"/>
+      <node ref="JP3" pin="1"/>
+      <node ref="J1" pin="21"/>
+    </net>
+    <net code="14" name="C-DP">
+      <node ref="J2" pin="18"/>
+      <node ref="JP1" pin="1"/>
+      <node ref="J1" pin="20"/>
+    </net>
+    <net code="15" name="C-MSG">
+      <node ref="J1" pin="2"/>
+      <node ref="J2" pin="42"/>
+      <node ref="JP8" pin="2"/>
+    </net>
+    <net code="16" name="C-ATN">
+      <node ref="JP4" pin="2"/>
+      <node ref="J2" pin="32"/>
+      <node ref="J1" pin="17"/>
+    </net>
+    <net code="17" name="Net-(J2-Pad34)">
+      <node ref="J2" pin="34"/>
+    </net>
+    <net code="18" name="Net-(J2-Pad25)">
+      <node ref="J2" pin="25"/>
+    </net>
+    <net code="19" name="Net-(D1-Pad2)">
+      <node ref="R1" pin="2"/>
+      <node ref="D1" pin="2"/>
+    </net>
+    <net code="20" name="C-I_O">
+      <node ref="J2" pin="50"/>
+      <node ref="JP7" pin="2"/>
+      <node ref="J1" pin="3"/>
+    </net>
+    <net code="21" name="C-REQ">
+      <node ref="J1" pin="1"/>
+      <node ref="JP9" pin="2"/>
+      <node ref="J2" pin="48"/>
+    </net>
+    <net code="22" name="C-C_D">
+      <node ref="J2" pin="46"/>
+      <node ref="JP6" pin="2"/>
+      <node ref="J1" pin="15"/>
+    </net>
+    <net code="23" name="C-SEL">
+      <node ref="J2" pin="44"/>
+      <node ref="J1" pin="19"/>
+      <node ref="JP3" pin="2"/>
+    </net>
+  </nets>
+</export>

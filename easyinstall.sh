@@ -76,7 +76,7 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
+    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv python3-dev python3-pip nginx libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 -y </dev/null
 }
 
 # compile the RaSCSI binaries
@@ -112,18 +112,6 @@ function installRaScsiWebInterface() {
     sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
     sudo usermod -a -G $USER www-data
-
-    if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
-        sudo bash -c 'echo "
-# Allow the web server to restart the rascsi service
-www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
-www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
-# Allow the web server to reboot the raspberry pi
-www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
-" >> /etc/sudoers'
-    else
-        echo "The sudoers file is already modified for rascsi-web."
-    fi
 
     sudo systemctl reload nginx || true
 }
@@ -163,7 +151,7 @@ function installRaScsiScreen() {
     stopRaScsiScreen
     updateRaScsiGit
 
-    sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
     if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
         sudo rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"

@@ -1,0 +1,8 @@
+Comment,Designator,Footprint,LCSC
+"Green","D1","LED_SMD:LED_0805_2012Metric","C2297"
+"CONFLY DB25","J1","L717SDB25PA4CH4F","C77838"
+"Conn_02x25_Odd_Even","J2","Connector_PinSocket_2.54mm:PinSocket_2x25_P2.54mm_Vertical","C40024"
+"Jumper","JP1,JP2,JP3,JP4,JP5,JP6,JP7,JP8,JP9","Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm",""
+"1k","R1","Resistor_SMD:R_0805_2012Metric","C17513"
+"Mac","X1","SamacSys_Parts:mac_happy_small",""
+"Dogcow","X2","SamacSys_Parts:dogcow",""

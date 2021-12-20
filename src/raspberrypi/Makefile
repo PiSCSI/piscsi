@@ -220,9 +220,8 @@ $(USR_LOCAL_BIN)% : $(BINDIR)/%
 	@echo "-- Copying $@"
 	cp $< $@
 
-$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
+$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1 | $(MAN_PAGE_DIR)/
 	@echo "-- Copying $@"
-	mkdir -p $@
 	cp $< $@
 
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
@@ -242,6 +241,10 @@ $(RSYSLOG_LOG) :
 	@echo "-- Creating $@"
 	touch /var/log/rascsi.log
 	chown root:adm /var/log/rascsi.log
+
+$(MAN_PAGE_DIR)/:
+	echo "-- Creating directory $@"
+	mkdir -p $@
 
 ##   help     : Lists information about how to use the makefile
 # The help rule is based upon the approach from:

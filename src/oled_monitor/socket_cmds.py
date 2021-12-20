@@ -5,6 +5,7 @@ and receiving results from the RaSCSI backend
 
 import socket
 from struct import pack, unpack
+from time import sleep
 
 def send_pb_command(payload):
     """
@@ -16,7 +17,7 @@ def send_pb_command(payload):
     port = 6868
 
     counter = 0
-    tries = 100
+    tries = 20
     error_msg = ""
 
     while counter < tries:
@@ -29,6 +30,7 @@ def send_pb_command(payload):
             print("The RaSCSI service is not responding - attempt %s/%s",
                   str(counter), str(tries))
             error_msg = str(error)
+            sleep(0.2)
 
     exit(error_msg)
 
