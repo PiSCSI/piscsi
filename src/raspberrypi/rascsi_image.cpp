@@ -159,7 +159,7 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 	}
 	if (len < 512 || (len & 0x1ff)) {
 		ostringstream error;
-		error << "Invalid image file size " << len;
+		error << "Invalid image file size " << len << " (not a multiple of 512)";
 		return ReturnStatus(fd, false, error.str());
 	}
 
