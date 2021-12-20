@@ -673,7 +673,7 @@ function installMacproxy {
 
     ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
-    MACPROXY_VER="21.12.1"
+    MACPROXY_VER="21.12.2"
     MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
     if [ -d "$MACPROXY_PATH" ]; then
         echo "The $MACPROXY_PATH directory already exists. Delete it to proceed with the installation."
