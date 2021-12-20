@@ -251,6 +251,10 @@ bool RascsiImage::RenameImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't rename image file: Missing source filename");
 	}
 
+	if (!CheckDepth(from)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+	}
+
 	from = default_image_folder + "/" + from;
 	if (!IsValidSrcFilename(from)) {
 		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid name or type");
@@ -259,10 +263,6 @@ bool RascsiImage::RenameImage(int fd, const PbCommand& command)
 	string to = GetParam(command, "to");
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
-	}
-
-	if (!CheckDepth(from)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
 	}
 
 	if (!CheckDepth(to)) {
@@ -294,6 +294,10 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't copy image file: Missing source filename");
 	}
 
+	if (!CheckDepth(from)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+	}
+
 	from = default_image_folder + "/" + from;
 	if (!IsValidSrcFilename(from)) {
 		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid name or type");
@@ -302,10 +306,6 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
 	string to = GetParam(command, "to");
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
-	}
-
-	if (!CheckDepth(from)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
 	}
 
 	if (!CheckDepth(to)) {
