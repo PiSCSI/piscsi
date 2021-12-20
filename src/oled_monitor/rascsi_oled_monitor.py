@@ -159,8 +159,8 @@ def formatted_output():
     if IP_ADDR:
         output.append(f"IP {IP_ADDR} - {HOSTNAME}")
     else:
-        output.append("IP address unavailable")
-        output.append("Try restarting RaSCSI")
+        output.append("RaSCSI has no IP address")
+        output.append("Check network connection")
     return output
 
 
