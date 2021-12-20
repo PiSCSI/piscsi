@@ -186,23 +186,40 @@ bool RascsiImage::DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
 
-	filename = default_image_folder + "/" + filename;
+	string full_filename = default_image_folder + "/" + filename;
 
 	int id;
 	int unit;
 	Filepath filepath;
-	filepath.SetPath(filename.c_str());
+	filepath.SetPath(full_filename.c_str());
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 		ostringstream msg;
-		msg << "Can't delete image file '" << filename << "', it is used by device ID " << id << ", unit " << unit;
+		msg << "Can't delete image file '" << full_filename << "', it is used by device ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, msg.str());
 	}
 
-	if (unlink(filename.c_str())) {
-		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
+	if (remove(full_filename.c_str())) {
+		return ReturnStatus(fd, false, "Can't delete image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
-	LOGINFO("Deleted image file '%s'", filename.c_str());
+	// Delete empty subfolders
+	size_t last_slash = filename.rfind('/');
+	while (last_slash != string::npos) {
+		string folder = filename.substr(0, last_slash);
+
+		std::error_code error;
+		if (!filesystem::is_empty(default_image_folder + "/" + folder, error) || error) {
+			break;
+		}
+
+		if (remove((default_image_folder + "/" + folder).c_str())) {
+			return ReturnStatus(fd, false, "Can't delete empty image folder '" + default_image_folder + "/" + folder +"'");
+		}
+
+		last_slash = folder.rfind('/');
+	}
+
+	LOGINFO("Deleted image file '%s'", full_filename.c_str());
 
 	return ReturnStatus(fd);
 }
