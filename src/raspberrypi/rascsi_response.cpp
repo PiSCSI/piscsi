@@ -486,7 +486,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	CreateOperation(operation_info, meta_data, OPERATION_INFO, "Get operation meta data");
 
 	// Ensure that the complete set of operations is covered
-	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - (getuid() ? 2 : 1));
+	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
 
 	result.set_status(true);
 
