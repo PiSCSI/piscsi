@@ -186,14 +186,6 @@ bool RascsiImage::DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
 
-	if (!IsValidDstFilename(filename)) {
-		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': File already exists");
-	}
-
-	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
-	}
-
 	filename = default_image_folder + "/" + filename;
 
 	int id;
