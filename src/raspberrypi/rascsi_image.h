@@ -22,6 +22,7 @@ public:
 	RascsiImage();
 	~RascsiImage() {};
 
+	bool CreateImageFolder(int, const string&);
 	string GetDefaultImageFolder() const { return default_image_folder; }
 	string SetDefaultImageFolder(const string&);
 	bool IsValidSrcFilename(const string&);

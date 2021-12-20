@@ -46,6 +46,23 @@ RascsiImage::RascsiImage()
 	}
 }
 
+bool RascsiImage::CreateImageFolder(int fd, const string& filename)
+{
+	size_t filename_start = filename.rfind('/');
+	if (filename_start != string::npos) {
+		string folder = filename.substr(0, filename_start);
+
+		std::error_code error;
+		filesystem::create_directories(folder, error);
+		if (error) {
+			ReturnStatus(fd, false, "Can't create image folder '" + folder + "': " + strerror(errno));
+			return false;
+		}
+	}
+
+	return true;
+}
+
 string RascsiImage::SetDefaultImageFolder(const string& f)
 {
 	string folder = f;
@@ -131,14 +148,8 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, error.str());
 	}
 
-	size_t slash_position = filename.find('/');
-	if (slash_position != string::npos) {
-		string folder = default_image_folder + "/" + filename.substr(0, slash_position);
-
-		struct stat st;
-		if (stat(folder.c_str(), &st) && mkdir(folder.c_str(), 0777)) {
-			return ReturnStatus(fd, false, "Can't create folder '" + folder + "': " + strerror(errno));
-		}
+	if (!CreateImageFolder(fd, full_filename)) {
+		return false;
 	}
 
 	string permission = GetParam(command, "read_only");
@@ -210,9 +221,7 @@ bool RascsiImage::RenameImage(int fd, const PbCommand& command)
 	if (from.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file: Missing source filename");
 	}
-	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
-	}
+
 	from = default_image_folder + "/" + from;
 	if (!IsValidSrcFilename(from)) {
 		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid name or type");
@@ -222,12 +231,14 @@ bool RascsiImage::RenameImage(int fd, const PbCommand& command)
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
 	}
-	if (to.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
-	}
+
 	to = default_image_folder + "/" + to;
 	if (!IsValidDstFilename(to)) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': File already exists");
+	}
+
+	if (!CreateImageFolder(fd, to)) {
+		return false;
 	}
 
 	if (rename(from.c_str(), to.c_str())) {
@@ -245,9 +256,7 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
 	if (from.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file: Missing source filename");
 	}
-	if (from.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
-	}
+
 	from = default_image_folder + "/" + from;
 	if (!IsValidSrcFilename(from)) {
 		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid name or type");
@@ -257,9 +266,7 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
 	}
-	if (to.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
-	}
+
 	to = default_image_folder + "/" + to;
 	if (!IsValidDstFilename(to)) {
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
@@ -269,6 +276,10 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
     if (lstat(from.c_str(), &st)) {
     	return ReturnStatus(fd, false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
     }
+
+	if (!CreateImageFolder(fd, to)) {
+		return false;
+	}
 
     // Symbolic links need a special handling
 	if ((st.st_mode & S_IFMT) == S_IFLNK) {
