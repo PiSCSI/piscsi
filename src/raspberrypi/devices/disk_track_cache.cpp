@@ -57,11 +57,6 @@ DiskTrack::~DiskTrack()
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Initialization
-//
-//---------------------------------------------------------------------------
 void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off_t imgoff)
 {
 	ASSERT(track >= 0);
@@ -84,15 +79,8 @@ void DiskTrack::Init(int track, int size, int sectors, BOOL raw, off_t imgoff)
 	dt.imgoffset = imgoff;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Load
-//
-//---------------------------------------------------------------------------
 bool DiskTrack::Load(const Filepath& path)
 {
-	Fileio fio;
-
 	// Not needed if already loaded
 	if (dt.init) {
 		ASSERT(dt.buffer);
@@ -160,6 +148,7 @@ bool DiskTrack::Load(const Filepath& path)
 	memset(dt.changemap, 0x00, dt.sectors * sizeof(BOOL));
 
 	// Read from File
+	Fileio fio;
 	if (!fio.OpenDIO(path, Fileio::ReadOnly)) {
 		return false;
 	}
@@ -200,11 +189,6 @@ bool DiskTrack::Load(const Filepath& path)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Save
-//
-//---------------------------------------------------------------------------
 bool DiskTrack::Save(const Filepath& path)
 {
 	// Not needed if not initialized
@@ -290,12 +274,7 @@ bool DiskTrack::Save(const Filepath& path)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Read Sector
-//
-//---------------------------------------------------------------------------
-bool DiskTrack::Read(BYTE *buf, int sec) const
+bool DiskTrack::ReadSector(BYTE *buf, int sec) const
 {
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
@@ -320,12 +299,7 @@ bool DiskTrack::Read(BYTE *buf, int sec) const
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Write Sector
-//
-//---------------------------------------------------------------------------
-bool DiskTrack::Write(const BYTE *buf, int sec)
+bool DiskTrack::WriteSector(const BYTE *buf, int sec)
 {
 	ASSERT(buf);
 	ASSERT((sec >= 0) & (sec < 0x100));
@@ -368,11 +342,6 @@ bool DiskTrack::Write(const BYTE *buf, int sec)
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff)
 {
 	ASSERT(blocks > 0);
@@ -393,33 +362,18 @@ DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgo
 	imgoffset = imgoff;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 DiskCache::~DiskCache()
 {
 	// Clear the track
 	Clear();
 }
 
-//---------------------------------------------------------------------------
-//
-//	RAW Mode Setting
-//
-//---------------------------------------------------------------------------
 void DiskCache::SetRawMode(BOOL raw)
 {
 	// Configuration
 	cd_raw = raw;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Save
-//
-//---------------------------------------------------------------------------
 bool DiskCache::Save()
 {
 	// Save track
@@ -457,11 +411,6 @@ bool DiskCache::GetCache(int index, int& track, DWORD& aserial) const
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Clear
-//
-//---------------------------------------------------------------------------
 void DiskCache::Clear()
 {
 	// Free the cache
@@ -473,17 +422,12 @@ void DiskCache::Clear()
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Sector Read
-//
-//---------------------------------------------------------------------------
-bool DiskCache::Read(BYTE *buf, int block)
+bool DiskCache::ReadSector(BYTE *buf, int block)
 {
 	ASSERT(sec_size != 0);
 
 	// Update first
-	Update();
+	UpdateSerialNumber();
 
 	// Calculate track (fixed to 256 sectors/track)
 	int track = block >> 8;
@@ -495,20 +439,15 @@ bool DiskCache::Read(BYTE *buf, int block)
 	}
 
 	// Read the track data to the cache
-	return disktrk->Read(buf, (BYTE)block);
+	return disktrk->ReadSector(buf, block & 0xff);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Sector write
-//
-//---------------------------------------------------------------------------
-bool DiskCache::Write(const BYTE *buf, int block)
+bool DiskCache::WriteSector(const BYTE *buf, int block)
 {
 	ASSERT(sec_size != 0);
 
 	// Update first
-	Update();
+	UpdateSerialNumber();
 
 	// Calculate track (fixed to 256 sectors/track)
 	int track = block >> 8;
@@ -520,7 +459,7 @@ bool DiskCache::Write(const BYTE *buf, int block)
 	}
 
 	// Write the data to the cache
-	return disktrk->Write(buf, (BYTE)block);
+	return disktrk->WriteSector(buf, block & 0xff);
 }
 
 //---------------------------------------------------------------------------
@@ -585,7 +524,6 @@ DiskTrack* DiskCache::Assign(int track)
 	DiskTrack *disktrk = cache[c].disktrk;
 	cache[c].disktrk = NULL;
 
-	// Load
 	if (Load(c, track, disktrk)) {
 		// Successful loading
 		cache[c].serial = serial;
@@ -635,12 +573,7 @@ bool DiskCache::Load(int index, int track, DiskTrack *disktrk)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Update serial number
-//
-//---------------------------------------------------------------------------
-void DiskCache::Update()
+void DiskCache::UpdateSerialNumber()
 {
 	// Update and do nothing except 0
 	serial++;

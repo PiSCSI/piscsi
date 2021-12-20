@@ -48,7 +48,7 @@ td.inactive {
   background-color:tan;
 }
 
-summary {
+summary.heading {
   color: black;
   font-size: large;
   font-weight: bold;

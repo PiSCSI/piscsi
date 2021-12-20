@@ -1,12 +1,10 @@
 .DEFAULT_GOAL: all
 
 ## Optional build flags:
-##   CROSS_COMPILE=arm-linux-gnueabihf- : Specify which compiler
-##              toolchain to use. This will default to arm-linux-
-##              gnueabihf-, which is typical on a Raspberry Pi.
-##              To cross compile on a x86_64 system set these to:
-##                 ARM=x86_64 CROSS_COMPILE=x86_64-linux-gnu-cpp
-CROSS_COMPILE ?= arm-linux-gnueabihf-
+##   CROSS_COMPILE : Specify which compiler toolchain to use.
+##                   To cross compile set this accordingly, e.g. to:
+##                   arm-linux-gnueabihf-
+CROSS_COMPILE =
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
@@ -57,7 +55,7 @@ RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
 RSYSLOG_LOG  = /var/log/rascsi.log
 
 USR_LOCAL_BIN = /usr/local/bin
-MAN_PAGE_DIR  = /usr/share/man/man1
+MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../../doc
 OS_FILES = ./os_integration
 
@@ -84,8 +82,9 @@ SRC_RASCSI = \
 	filepath.cpp \
 	fileio.cpp\
 	rascsi_version.cpp \
+	rascsi_image.cpp \
+	rascsi_response.cpp \
 	rasutil.cpp \
-	protobuf_response_helper.cpp \
 	protobuf_util.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
@@ -101,6 +100,8 @@ SRC_SCSIMON = \
 
 SRC_RASCTL = \
 	rasctl.cpp\
+	rasctl_commands.cpp \
+	rasctl_display.cpp \
 	rascsi_version.cpp \
 	rasutil.cpp \
 	protobuf_util.cpp
@@ -169,7 +170,7 @@ $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
@@ -185,13 +186,6 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 .PHONY: clean
 clean:
 	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF)
-
-##   run      : Launches RaSCSI using some pre-defined drive 
-##              images. Useful for debugging when you're building 
-##              and re-launching over and over.
-.PHONY: run
-run:
-	sudo $(BINDIR)/$(RASCSI) -ID1 /home/pi/HARDDISK2.hda -ID6 /home/pi/marathon.iso
 
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location
@@ -226,7 +220,7 @@ $(USR_LOCAL_BIN)% : $(BINDIR)/%
 	@echo "-- Copying $@"
 	cp $< $@
 
-$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
+$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1 | $(MAN_PAGE_DIR)/
 	@echo "-- Copying $@"
 	cp $< $@
 
@@ -247,6 +241,10 @@ $(RSYSLOG_LOG) :
 	@echo "-- Creating $@"
 	touch /var/log/rascsi.log
 	chown root:adm /var/log/rascsi.log
+
+$(MAN_PAGE_DIR)/:
+	echo "-- Creating directory $@"
+	mkdir -p $@
 
 ##   help     : Lists information about how to use the makefile
 # The help rule is based upon the approach from:

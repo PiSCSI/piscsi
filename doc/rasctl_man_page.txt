@@ -6,11 +6,11 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-       rasctl  -L  |  -e | -l | -m | -s | -T | [-E FILENAME] [-F IMAGE_FOLDER]
-       [-C   FILENAME:FILESIZE]   [-x    CURRENT_NAME:NEW_NAME]    [-R    CUR‐
-       RENT_NAME:NEW_NAME]   [-g  LOG_LEVEL]  [-h  HOST]  [-p  PORT]  [-r  RE‐
-       SERVED_IDS] [-v] -i ID [-c CMD] [-f FILE|PARAM] [-n NAME] [-t TYPE] [-u
-       UNIT]
+       rasctl -e | -l | -m | -s | -v | -D | -I | -L | -O | -P | -T | -V | -X |
+       [-C  FILENAME:FILESIZE]  [-E  FILENAME]  [-F  IMAGE_FOLDER]  [-R   CUR‐
+       RENT_NAME:NEW_NAME]  [-c  CMD] [-f FILE|PARAM] [-g LOG_LEVEL] [-h HOST]
+       [-i ID [-n NAME] [-p PORT] [-r RESERVED_IDS] [-t TYPE]  [-u  UNIT]  [-x
+       CURRENT_NAME:NEW_NAME]
 
 DESCRIPTION
        rasctl  Sends  commands to the rascsi process to make configuration ad‐
@@ -28,11 +28,15 @@ OPTIONS
               Create an image file in the default image folder with the speci‐
               fied name and size in bytes.
 
+       -D     Detach all devices.
+
        -E FILENAME
               Display information on an image file.
 
        -F IMAGE_FOLDER
               Set the default image folder.
+
+       -I     Gets the list of reserved device IDs.
 
        -L LOG_LEVEL
               Set the rascsi log level (trace, debug, info, warn, err,  criti‐
@@ -45,6 +49,12 @@ OPTIONS
 
        -N     Lists  all  available  network interfaces provided that they are
               up.
+
+       -O     Display the available rascsi server log levels and  the  current
+              log level.
+
+       -P     Prompt  for the access token in case rascsi requires authentica‐
+              tion.
 
        -l     List all of the devices that are  currently  being  emulated  by
               RaSCSI, as well as their current status.
@@ -66,9 +76,13 @@ OPTIONS
 
        -T     Display all device types and their properties.
 
-       -v     Display the rascsi version.
+       -v     Display the rascsi server version.
 
-       -D FILENAME
+       -V     Display the rasctl version.
+
+       -X     Shut down the rascsi process.
+
+       -d FILENAME
               Delete an image file in the default image folder.
 
        -x CURRENT_NAME:NEW_NAME
@@ -120,27 +134,27 @@ OPTIONS
               changed.
 
        -u UNIT
-              Unit  number  (0  or  1). This will default to 0. This option is
-              only used when there are multiple SCSI devices on a shared  SCSI
-              controller. (This is not common)
+              Unit  number (0-31). This will default to 0. This option is only
+              used when there are multiple SCSI devices on a shared SCSI  con‐
+              troller. (This is not common)
 
 EXAMPLES
        Show a listing of all of the SCSI devices and their current status.
           rasctl -l
 
        Example output:
-          +----+----+------+-------------------------------------
-          | ID | UN | TYPE | DEVICE STATUS
-          +----+----+------+-------------------------------------
-          |  0 |  1 | SCHD | /home/pi/harddisk.hda
-          +----+----+------+-------------------------------------
+          +----+-----+------+-------------------------------------
+          | ID | LUN | TYPE | IMAGE FILE
+          +----+-----+------+-------------------------------------
+          |  0 |   1 | SCHD | /home/pi/harddisk.hda
+          +----+-----+------+-------------------------------------
 
        Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with
        the contents of the file system image "HDIIMAGE0.HDS".
           rasctl -i 0 -f HDIIMAGE0.HDS
 
 SEE ALSO
-       rascsi(1) scsimon(1)
+       rascsi(1), scsimon(1), rasdump(1), sasidump(1)
 
        Full          documentation          is          available          at:
        <https://www.github.com/akuker/RASCSI/wiki/>

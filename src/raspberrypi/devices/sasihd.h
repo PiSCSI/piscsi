@@ -31,7 +31,7 @@ public:
 	~SASIHD() {};
 
 	void Reset();
-	void Open(const Filepath& path);
+	void Open(const Filepath& path) override;
 
 	// Commands
 	int RequestSense(const DWORD *cdb, BYTE *buf) override;

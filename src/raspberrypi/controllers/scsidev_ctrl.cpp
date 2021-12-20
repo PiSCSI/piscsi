@@ -25,11 +25,6 @@
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
 	// Synchronous transfer work initialization
@@ -45,11 +40,6 @@ SCSIDEV::~SCSIDEV()
 {
 }
 
-//---------------------------------------------------------------------------
-//
-//	Device reset
-//
-//---------------------------------------------------------------------------
 void SCSIDEV::Reset()
 {
 	// Work initialization
@@ -61,11 +51,6 @@ void SCSIDEV::Reset()
 	SASIDEV::Reset();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Process
-//
-//---------------------------------------------------------------------------
 BUS::phase_t SCSIDEV::Process()
 {
 	// Do nothing if not connected
@@ -130,9 +115,8 @@ BUS::phase_t SCSIDEV::Process()
 			MsgIn();
 			break;
 
-		// Other
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 
@@ -166,6 +150,9 @@ void SCSIDEV::BusFree()
 
 		// Initialize ATN message reception status
 		scsi.atnmsg = false;
+
+		ctrl.lun = -1;
+
 		return;
 	}
 
@@ -240,33 +227,43 @@ void SCSIDEV::Execute()
 
 	LOGDEBUG("++++ CMD ++++ %s Executing command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
-	// Use LUN0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
-	// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
-	int lun = 0;
-	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
-		lun = (ctrl.cmd[1] >> 5) & 0x07;
-
-		if (!ctrl.unit[lun]) {
-			LOGINFO("Invalid LUN %d for ID %d", lun, GetSCSIID());
+	int lun = GetEffectiveLun();
+	if (!ctrl.unit[lun]) {
+		if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
 			return;
+		}
+		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
+		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
+		else {
+			assert(ctrl.unit[0]);
+
+			lun = 0;
 		}
 	}
 
 	ctrl.device = ctrl.unit[lun];
 
+	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		ctrl.device->SetStatusCode(0);
+	}
+	
 	if (!ctrl.device->Dispatch(this)) {
-		LOGWARN("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
+		LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
 		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 	}
 
-	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry) {
-		// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-		if (((ctrl.cmd[1] >> 5) & 0x07) != (DWORD)ctrl.device->GetLun()) {
-			ctrl.buffer[0] = 0x7f;
-		}
+	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
+	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry && !ctrl.unit[lun]) {
+		lun = GetEffectiveLun();
+
+		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
+
+		ctrl.buffer[0] = 0x7f;
 	}
 }
 
@@ -306,7 +303,6 @@ void SCSIDEV::MsgOut()
 		return;
 	}
 
-	// Receive
 	Receive();
 }
 
@@ -460,9 +456,8 @@ void SCSIDEV::Send()
 			MsgIn();
 			break;
 
-		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 }
@@ -485,13 +480,13 @@ void SCSIDEV::Receive()
 
 	// Length != 0 if received
 	if (ctrl.length != 0) {
-		LOGTRACE("%s length was != 0", __PRETTY_FUNCTION__);
+		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 		// Receive
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
-			LOGERROR("%s Not able to receive all data. Going to error",__PRETTY_FUNCTION__);
+			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
 			Error();
 			return;
 		}
@@ -559,7 +554,7 @@ void SCSIDEV::Receive()
 
 			for (int i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
-				LOGTRACE("%s Command $%02X",__PRETTY_FUNCTION__, ctrl.cmd[i]);
+				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
 
 			// Execution Phase
@@ -586,14 +581,14 @@ void SCSIDEV::Receive()
 
 					// ABORT
 					if (data == 0x06) {
-						LOGTRACE("Message code ABORT $%02X", (int)data);
+						LOGTRACE("Message code ABORT $%02X", data);
 						BusFree();
 						return;
 					}
 
 					// BUS DEVICE RESET
 					if (data == 0x0C) {
-						LOGTRACE("Message code BUS DEVICE RESET $%02X", (int)data);
+						LOGTRACE("Message code BUS DEVICE RESET $%02X", data);
 						scsi.syncoffset = 0;
 						BusFree();
 						return;
@@ -601,12 +596,13 @@ void SCSIDEV::Receive()
 
 					// IDENTIFY
 					if (data >= 0x80) {
-						LOGTRACE("Message code IDENTIFY $%02X", (int)data);
+						ctrl.lun = data & 0x1F;
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, ctrl.lun);
 					}
 
 					// Extended Message
 					if (data == 0x01) {
-						LOGTRACE("Message code EXTENDED MESSAGE $%02X", (int)data);
+						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data);
 
 						// Check only when synchronous transfer is possible
 						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
@@ -655,16 +651,14 @@ void SCSIDEV::Receive()
 
 		// Data out phase
 		case BUS::dataout:
-			// Flush unit
 			FlushUnit();
 
 			// status phase
 			Status();
 			break;
 
-		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			break;
 	}
 }
@@ -687,4 +681,3 @@ bool SCSIDEV::XferMsg(DWORD msg)
 
 	return true;
 }
-

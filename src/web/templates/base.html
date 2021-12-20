@@ -1,4 +1,6 @@
 <!doctype html>
+<html>
+<head>
 <title>RaSCSI Control Page</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
@@ -22,17 +24,46 @@
 
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
-<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js">
+<script type="application/javascript">
+    var processNotify = function(Notification) {
+        document.getElementById("flash").innerHTML = "<div class='message'>" + Notification + " This process may take a while, and will continue in the background if you navigate away from this page.</div>";
+        window.scrollTo(0,0);
+    }
+
+    var shutdownNotify = function(Notification) {
+        document.getElementById("flash").innerHTML = "<div class='message'>" + Notification + " The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.</div>";
+        window.scrollTo(0,0);
+    }
 </script>
 
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js">
+</script>
+</head>
+
+<body>
 <div class="content">
     <div class="header">
-<span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Service Running</span>
+        {% if auth_active %}
+        {% if username %}
+        <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Logged in as <em>{{ username }}</em> &#8211; <a href="/logout">Log Out</a></span>
+        {% else %}
+        <span style="display: inline-block; width: 100%; color: white; background-color: red; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
+            <form method="POST" action="/login">
+            <div>Log In to Use Web Interface</div>
+            <input type="text" name="username" placeholder="Username">
+            <input type="password" name="password" placeholder="Password">
+            <input type="submit" value="Login">
+            </form>
+        </span>
+        {% endif %}
+        {% else %}
+        <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">Web Interface Authentication Disabled &#8211; See <a href="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication" target="_blank">Wiki</a> for more information</span>
+        {% endif %}
     <table width="100%">
         <tbody>
         <tr style="background-color: black;">
             <td style="background-color: black;">
-                <a href="http://github.com/akuker/RASCSI">
+                <a href="http://github.com/akuker/RASCSI" target="_blank">
                     <h1>RaSCSI - 68kmla Edition</h1>
                 </a>
             </td>
@@ -40,20 +71,21 @@
         </tbody>
     </table>
     </div>
-    <div class="flash">
+    <div class="flash" id="flash">
         {% for category, message in get_flashed_messages(with_categories=true) %}
         {% if category == "stdout" or category == "stderr" %}
-        <pre>{{message}}</pre>
+        <pre>{{ message }}</pre>
         {% else %}
-        <div class="{{category}}">{{ message }}</div>
+        <div class="{{ category }}">{{ message }}</div>
         {% endif %}
         {% endfor %}
     </div>
     <div class="content">
-        {% block content %}{% endblock %}
+        {% block content %}{% endblock content %}
     </div>
     <div class="footer">
-        <center><tt>RaSCSI version: <strong>{{version}} <a href="https://github.com/akuker/RASCSI/commit/{{running_env["git"]}}">{{running_env["git"][:7]}}</a></strong></tt></center>
-        <center><tt>Pi environment: {{running_env["env"]}}</tt></center>
+        <center><tt>RaSCSI version: <strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}" target="_blank">{{ running_env["git"][:7] }}</a></strong></tt></center>
+        <center><tt>Pi environment: {{ running_env["env"] }}</tt></center>
     </div>
 </div>
+</body>

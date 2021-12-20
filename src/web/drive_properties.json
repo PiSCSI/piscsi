@@ -2,6 +2,78 @@
 {
     "device_type": "SCHD",
     "vendor": "DEC",
+    "product": "RZ22     (C) DEC",
+    "revision": "0A18",
+    "block_size": 512,
+    "size": 52445184,
+    "name": "DEC RZ22",
+    "file_type": "hds",
+    "description": "Page/Swap drive for satellite workstations",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ23     (C) DEC",
+    "revision": "0A18",
+    "block_size": 512,
+    "size": 104890368,
+    "name": "DEC RZ23",
+    "file_type": "hds",
+    "description": "Smallest usable drive for OpenVMS/VAX",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ24     (C) DEC",
+    "revision": "1D18",
+    "block_size": 512,
+    "size": 209813504,
+    "name": "DEC RZ24",
+    "file_type": "hds",
+    "description": "Smallest usable drive for OpenVMS/VAX + Motif",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ26L    (C) DEC",
+    "revision": "440C",
+    "block_size": 512,
+    "size": 1050040320,
+    "name": "DEC RZ26L",
+    "file_type": "hds",
+    "description": "Largest bootable drive on VAXstation 3100",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ28M    (C) DEC",
+    "revision": "0568",
+    "block_size": 512,
+    "size": 2104565760,
+    "name": "DEC RZ28M",
+    "file_type": "hds",
+    "description": "Typical 2GB data drive",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ29B    (C) DEC",
+    "revision": "0014",
+    "block_size": 512,
+    "size": 4290600960,
+    "name": "DEC RZ29B",
+    "file_type": "hds",
+    "description": "Common Alpha server/workstation drive",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
     "product": "RZ55     (C) DEC",
     "revision": "",
     "block_size": 512,
@@ -9,6 +81,18 @@
     "name": "DEC RZ55",
     "file_type": "hds",
     "description": "Largest recognized drive on Ultrix 3.0",
+    "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
+},
+{
+    "device_type": "SCHD",
+    "vendor": "DEC",
+    "product": "RZ56     (C) DEC",
+    "revision": "0400",
+    "block_size": 512,
+    "size": 665177088,
+    "name": "DEC RZ56",
+    "file_type": "hds",
+    "description": "Expansion 5.25 Drive",
     "url": "http://lastin.dti.supsi.ch/VET/disks/EK-RZXXD-PS.pdf"
 },
 {
@@ -205,6 +289,42 @@
 },
 {
     "device_type": "SCRM",
+    "vendor": "DEC",
+    "product": "RX23     (C) DEC",
+    "revision": "0054",
+    "block_size": 512,
+    "size": 1474560,
+    "name": "DEC RX23",
+    "file_type": "hdr",
+    "description": "SCSI Floppy Drive 1.44MB",
+    "url": "https://www.netbsd.org/docs/Hardware/Machines/DEC/vax/storage.html#storage:rx23"
+},
+{
+    "device_type": "SCRM",
+    "vendor": "DEC",
+    "product": "RX26     (C) DEC",
+    "revision": "0054",
+    "block_size": 512,
+    "size": 2949120,
+    "name": "DEC RX26",
+    "file_type": "hdr",
+    "description": "SCSI Floppy Drive 2.88MB",
+    "url": "https://www.netbsd.org/docs/Hardware/Machines/DEC/vax/storage.html#storage:rx26"
+},
+{
+    "device_type": "SCRM",
+    "vendor": "DEC",
+    "product": "RX33     (C) DEC",
+    "revision": "0054",
+    "block_size": 512,
+    "size": 1228800,
+    "name": "DEC RX33",
+    "file_type": "hdr",
+    "description": "SCSI Floppy Drive 1.2MB",
+    "url": "https://www.netbsd.org/docs/Hardware/Machines/DEC/vax/storage.html#storage:rx33"
+},
+{
+    "device_type": "SCRM",
     "vendor": "IOMEGA",
     "product": "ZIP 100",
     "revision": "D.13",
@@ -238,6 +358,18 @@
     "file_type": "hdr",
     "description": "Removable Iomega Jaz drive, 2GB capacity",
     "url": "https://archive.eol.ucar.edu/docs/isf/facilities/iss/manual/creating-data-disks.html"
+},
+{
+    "device_type": "SCRM",
+    "vendor": "IOMEGA",
+    "product": "Io20S         *F",
+    "revision": "PP33",
+    "block_size": 512,
+    "size": 1474560,
+    "name": "Iomega Floptical 1.44MB",
+    "file_type": "hdr",
+    "description": "Iomega Floptical 1.44MB SCSI drive",
+    "url": "https://github.com/akuker/RASCSI/wiki/Iomega-Floptical"
 },
 {
     "device_type": "SCRM",
@@ -296,7 +428,7 @@
     "size": null,
     "name": "DEC RRD42",
     "file_type": null,
-    "description": "Boots DECstations and VAXstations. Use only with Unix workstations of this vintage.",
+    "description": "Boots DECstations and VAXstations. Use only with workstations of this vintage.",
     "url": ""
 }
 ]

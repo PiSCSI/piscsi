@@ -51,6 +51,9 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
 	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
 	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
+	AddCommand(SCSIDEV::eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
+	AddCommand(SCSIDEV::eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
+	AddCommand(SCSIDEV::eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
 	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
 	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
 	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
@@ -63,7 +66,7 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
 	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
 	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(SCSIDEV::eCmdReadCapacity16, "ReadCapacity16", &Disk::ReadCapacity16);
+	AddCommand(SCSIDEV::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
 }
 
@@ -166,7 +169,7 @@ void Disk::Rezero(SASIDEV *controller)
 
 void Disk::RequestSense(SASIDEV *controller)
 {
-	int lun = (ctrl->cmd[1] >> 5) & 0x07;
+	int lun = controller->GetEffectiveLun();
 
     // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
 	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
@@ -206,11 +209,6 @@ void Disk::ReassignBlocks(SASIDEV *controller)
 	controller->Status();
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ
-//
-//---------------------------------------------------------------------------
 void Disk::Read(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
@@ -229,42 +227,70 @@ void Disk::Read(SASIDEV *controller, uint64_t record)
 
 void Disk::Read6(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
-		LOGDEBUG("%s READ(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
+		LOGDEBUG("%s READ(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
 void Disk::Read10(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
 void Disk::Read16(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s READ(16) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s READ(16) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Read(controller, record);
+		Read(controller, start);
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	WRITE
-//
-//---------------------------------------------------------------------------
+void Disk::ReadWriteLong10(SASIDEV *controller)
+{
+	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
+	if (ctrl->cmd[7] || ctrl->cmd[8]) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
+	}
+
+	if (CheckBlockAddress(controller, RW10)) {
+		controller->Status();
+	}
+}
+
+void Disk::ReadLong10(SASIDEV *controller)
+{
+	ReadWriteLong10(controller);
+}
+
+void Disk::ReadWriteLong16(SASIDEV *controller)
+{
+	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
+	if (ctrl->cmd[12] || ctrl->cmd[13]) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
+	}
+
+	if (CheckBlockAddress(controller, RW16)) {
+		controller->Status();
+	}
+}
+
+void Disk::ReadLong16(SASIDEV *controller)
+{
+	ReadWriteLong16(controller);
+}
+
 void Disk::Write(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
@@ -285,42 +311,44 @@ void Disk::Write(SASIDEV *controller, uint64_t record)
 
 void Disk::Write6(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW6)) {
-		LOGDEBUG("%s WRITE(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
+		LOGDEBUG("%s WRITE(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
 void Disk::Write10(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s WRITE(10) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
+		LOGDEBUG("%s WRITE(10) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
 void Disk::Write16(SASIDEV *controller)
 {
-	// Get record number and block number
-	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s WRITE(16) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
+	uint64_t start;
+	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
+		LOGDEBUG("%s WRITE(16) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
 
-		Write(controller, record);
+		Write(controller, start);
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	VERIFY
-//
-//---------------------------------------------------------------------------
+void Disk::WriteLong10(SASIDEV *controller)
+{
+	ReadWriteLong10(controller);
+}
+
+void Disk::WriteLong16(SASIDEV *controller)
+{
+	ReadWriteLong16(controller);
+}
+
 void Disk::Verify(SASIDEV *controller, uint64_t record)
 {
 	// if BytChk=0
@@ -366,14 +394,19 @@ void Disk::Verify16(SASIDEV *controller)
 
 void Disk::Inquiry(SASIDEV *controller)
 {
+	int lun = controller->GetEffectiveLun();
+	const ScsiPrimaryCommands *device = ctrl->unit[lun];
+
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
 	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	ScsiPrimaryCommands *device = NULL;
-	for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
-		if (ctrl->unit[valid_lun]) {
-			device = ctrl->unit[valid_lun];
-			break;
+	// In addition, it supports gaps in the LUN list, which is not correct.
+	if (!device) {
+		for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
+			if (ctrl->unit[valid_lun]) {
+				device = ctrl->unit[valid_lun];
+				break;
+			}
 		}
 	}
 
@@ -389,8 +422,9 @@ void Disk::Inquiry(SASIDEV *controller)
 	}
 
 	// Report if the device does not support the requested LUN
-	int lun = (ctrl->cmd[1] >> 5) & 0x07;
 	if (!ctrl->unit[lun]) {
+		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
+
 		ctrl->buffer[0] |= 0x7f;
 	}
 
@@ -500,8 +534,6 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
 	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer);
-	ASSERT(ctrl->length >= 0);
-
 	if (ctrl->length <= 4) {
 		controller->Error();
 		return;
@@ -510,11 +542,6 @@ void Disk::ReadDefectData10(SASIDEV *controller)
 	controller->DataIn();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Eject
-//
-//---------------------------------------------------------------------------
 bool Disk::Eject(bool force)
 {
 	bool status = Device::Eject(force);
@@ -534,11 +561,6 @@ bool Disk::Eject(bool force)
 	return status;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Check Ready
-//
-//---------------------------------------------------------------------------
 bool Disk::CheckReady()
 {
 	// Not ready if reset
@@ -644,11 +666,6 @@ int Disk::ModeSelectCheck10(const DWORD *cdb)
 	return ModeSelectCheck(cdb, length);
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT
-//
-//---------------------------------------------------------------------------
 bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 {
 	ASSERT(buf);
@@ -660,16 +677,8 @@ bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 	return false;
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE(6)
-//
-//---------------------------------------------------------------------------
 int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// Get length, clear buffer
 	int length = (int)cdb[4];
 	ASSERT((length >= 0) && (length < 0x100));
@@ -795,16 +804,8 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	return length;
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SENSE(10)
-//
-//---------------------------------------------------------------------------
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// Get length, clear buffer
 	int length = cdb[7];
 	length <<= 8;
@@ -944,8 +945,8 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// final setting of mode data length
-	buf[0] = (size - 1) >> 8;
-	buf[1] = size - 1;
+	buf[0] = (size - 2) >> 8;
+	buf[1] = size - 2;
 
 	// Unsupported page
 	if (!valid) {
@@ -965,8 +966,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 int Disk::AddErrorPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x0a;
@@ -977,8 +976,6 @@ int Disk::AddErrorPage(bool change, BYTE *buf)
 
 int Disk::AddFormatPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x80 | 0x03;
 	buf[1] = 0x16;
@@ -1015,8 +1012,6 @@ int Disk::AddFormatPage(bool change, BYTE *buf)
 
 int Disk::AddDrivePage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x04;
 	buf[1] = 0x16;
@@ -1045,8 +1040,6 @@ int Disk::AddDrivePage(bool change, BYTE *buf)
 
 int Disk::AddOptionPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x06;
 	buf[1] = 0x02;
@@ -1057,8 +1050,6 @@ int Disk::AddOptionPage(bool change, BYTE *buf)
 
 int Disk::AddCachePage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x08;
 	buf[1] = 0x0a;
@@ -1069,8 +1060,6 @@ int Disk::AddCachePage(bool change, BYTE *buf)
 
 int Disk::AddCDROMPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x0d;
 	buf[1] = 0x06;
@@ -1092,8 +1081,6 @@ int Disk::AddCDROMPage(bool change, BYTE *buf)
 
 int Disk::AddCDDAPage(bool change, BYTE *buf)
 {
-	ASSERT(buf);
-
 	// Set the message length
 	buf[0] = 0x0e;
 	buf[1] = 0x0e;
@@ -1190,7 +1177,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	}
 
 	// leave it to the cache
-	if (!disk.dcache->Read(buf, block)) {
+	if (!disk.dcache->ReadSector(buf, block)) {
 		SetStatusCode(STATUS_READFAULT);
 		return 0;
 	}
@@ -1260,7 +1247,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	}
 
 	// Leave it to the cache
-	if (!disk.dcache->Write(buf, block)) {
+	if (!disk.dcache->WriteSector(buf, block)) {
 		SetStatusCode(STATUS_WRITEFAULT);
 		return false;
 	}
@@ -1289,25 +1276,13 @@ void Disk::Seek6(SASIDEV *controller)
 	Seek(controller);
 }
 
-//---------------------------------------------------------------------------
-//
-//	SEEK(10)
-//
-//---------------------------------------------------------------------------
 void Disk::Seek10(SASIDEV *controller)
 {
 	Seek(controller);
 }
 
-//---------------------------------------------------------------------------
-//
-//	START STOP UNIT
-//
-//---------------------------------------------------------------------------
 bool Disk::StartStop(const DWORD *cdb)
 {
-	ASSERT(cdb);
-
 	bool start = cdb[4] & 0x01;
 	bool load = cdb[4] & 0x02;
 
@@ -1335,15 +1310,8 @@ bool Disk::StartStop(const DWORD *cdb)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	SEND DIAGNOSTIC
-//
-//---------------------------------------------------------------------------
 bool Disk::SendDiag(const DWORD *cdb)
 {
-	ASSERT(cdb);
-
 	// Do not support PF bit
 	if (cdb[1] & 0x10) {
 		SetStatusCode(STATUS_INVALIDCDB);
@@ -1359,16 +1327,9 @@ bool Disk::SendDiag(const DWORD *cdb)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ CAPACITY
-//
-//---------------------------------------------------------------------------
 void Disk::ReadCapacity10(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
-
-	ASSERT(buf);
 
 	memset(buf, 0, 8);
 
@@ -1409,8 +1370,6 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
 
-	ASSERT(buf);
-
 	memset(buf, 0, 14);
 
 	if (!CheckReady() || disk.blocks <= 0) {
@@ -1445,30 +1404,52 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 	controller->DataIn();
 }
 
-//---------------------------------------------------------------------------
-//
-//	REPORT LUNS
-//
-//---------------------------------------------------------------------------
+void Disk::ReadCapacity16_ReadLong16(SASIDEV *controller)
+{
+	// The service action determines the actual command
+	switch (ctrl->cmd[1] & 0x1f) {
+	case 0x10:
+		ReadCapacity16(controller);
+		break;
+
+	case 0x11:
+		ReadLong16(controller);
+		break;
+
+	default:
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		break;
+	}
+}
+
 void Disk::ReportLuns(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
-
-	ASSERT(buf);
-
-	memset(buf, 0, 16);
 
 	if (!CheckReady()) {
 		controller->Error();
 		return;
 	}
 
-	// LUN list length
-	buf[3] = 8;
+	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
+	memset(buf, 0, allocation_length);
 
-	// As long as there is no proper support for more than one SCSI LUN no other fields must be set => 1 LUN
+	// Count number of available LUNs for the current device
+	int luns;
+	for (luns = 0; luns < controller->GetCtrl()->device->GetSupportedLuns(); luns++) {
+		if (!controller->GetCtrl()->unit[luns]) {
+			break;
+		}
+	}
 
-	ctrl->length = 16;
+	// LUN list length, 8 bytes per LUN
+	// SCSI standard: The contents of the LUN LIST LENGTH field	are not altered based on the allocation length
+	buf[0] = (luns * 8) >> 24;
+	buf[1] = (luns * 8) >> 16;
+	buf[2] = (luns * 8) >> 8;
+	buf[3] = luns * 8;
+
+	ctrl->length = allocation_length < 8 + luns * 8 ? allocation_length : 8 + luns * 8;
 
 	controller->DataIn();
 }
@@ -1535,9 +1516,43 @@ void Disk::Release10(SASIDEV *controller)
 
 //---------------------------------------------------------------------------
 //
-//	Get start sector and sector count for a READ/WRITE operation
+//	Check/Get start sector and sector count for a READ/WRITE or READ/WRITE LONG operation
 //
 //---------------------------------------------------------------------------
+
+bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
+{
+	uint64_t block = ctrl->cmd[2];
+	block <<= 8;
+	block |= ctrl->cmd[3];
+	block <<= 8;
+	block |= ctrl->cmd[4];
+	block <<= 8;
+	block |= ctrl->cmd[5];
+
+	if (mode == RW16) {
+		block <<= 8;
+		block |= ctrl->cmd[6];
+		block <<= 8;
+		block |= ctrl->cmd[7];
+		block <<= 8;
+		block |= ctrl->cmd[8];
+		block <<= 8;
+		block |= ctrl->cmd[9];
+	}
+
+	uint64_t capacity = GetBlockCount();
+	if (block > capacity) {
+		ostringstream s;
+		s << "Capacity of " << capacity << " blocks exceeded: " << "Trying to access block " << block;
+		LOGTRACE("%s", s.str().c_str());
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		return false;
+	}
+
+	return true;
+}
+
 bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& count, access_mode mode)
 {
 	if (mode == RW6) {
@@ -1560,6 +1575,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		start |= ctrl->cmd[4];
 		start <<= 8;
 		start |= ctrl->cmd[5];
+
 		if (mode == RW16) {
 			start <<= 8;
 			start |= ctrl->cmd[6];
@@ -1593,7 +1609,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		ostringstream s;
 		s << "Capacity of " << capacity << " blocks exceeded: "
 				<< "Trying to read block " << start << ", block count " << ctrl->blocks;
-		LOGDEBUG("%s", s.str().c_str());
+		LOGTRACE("%s", s.str().c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
@@ -1606,11 +1622,6 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	}
 
 	return true;
-}
-
-void Disk::SetSize(uint32_t size)
-{
-	disk.size = size;
 }
 
 uint32_t Disk::GetSectorSizeInBytes() const
@@ -1654,9 +1665,14 @@ void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 	}
 }
 
-uint32_t Disk::GetSectorSize() const
+uint32_t Disk::GetSectorSizeShiftCount() const
 {
 	return disk.size;
+}
+
+void Disk::SetSectorSizeShiftCount(uint32_t size)
+{
+	disk.size = size;
 }
 
 bool Disk::IsSectorSizeConfigurable() const

@@ -15,5 +15,8 @@
 #include <string>
 #include "rascsi_interface.pb.h"
 
-bool GetAsInt(const std::string&, int&);
-std::string ListDevices(const std::list<rascsi_interface::PbDevice>&);
+namespace ras_util
+{
+	bool GetAsInt(const std::string&, int&);
+	std::string ListDevices(const std::list<rascsi_interface::PbDevice>&);
+}

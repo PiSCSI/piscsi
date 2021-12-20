@@ -15,7 +15,20 @@ $ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ python3 web.py
 
 ### Mocks for local development
 
-You may edit the files under `mock/bin` to simulate rascsi command responses.
+You may edit the files under `mock/bin` to simulate Linux command responses.
+TODO:  rascsi-web uses protobuf commands to send and receive data from rascsi.
+A separate mocking solution will be needed for this interface.
+
+### Static analysis with pylint
+
+It is recommended to run pylint against new code to protect against bugs
+and keep the code readable and maintainable.
+The local pylint configuration lives in .pylintrc
+
+```
+sudo apt install pylint3
+pylint3 python_source_file.py
+```
 
 ## Pushing to the Pi via git
 

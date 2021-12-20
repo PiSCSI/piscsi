@@ -3,28 +3,34 @@
 rasctl \- Sends management commands to the rascsi process
 .SH SYNOPSIS
 .B rasctl
-\fB\-L\fR |
 \fB\-e\fR |
 \fB\-l\fR |
 \fB\-m\fR |
 \fB\-s\fR |
+\fB\-v\fR |
+\fB\-D\fR |
+\fB\-I\fR |
+\fB\-L\fR |
+\fB\-O\fR |
+\fB\-P\fR |
 \fB\-T\fR |
+\fB\-V\fR |
+\fB\-X\fR |
+[\fB\-C\fR \fIFILENAME:FILESIZE\fR]
 [\fB\-E\fR \fIFILENAME\fR]
 [\fB\-F\fR \fIIMAGE_FOLDER\fR]
-[\fB\-C\fR \fIFILENAME:FILESIZE\fR]
-[\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
 [\fB\-R\fR \fICURRENT_NAME:NEW_NAME\fR]
-[\fB\-g\fR \fILOG_LEVEL\fR]
-[\fB\-h\fR \fIHOST\fR]
-[\fB\-p\fR \fIPORT\fR]
-[\fB\-r\fR \fIRESERVED_IDS\fR]
-[\fB\-v\fR]
-\fB\-i\fR \fIID\fR
 [\fB\-c\fR \fICMD\fR]
 [\fB\-f\fR \fIFILE|PARAM\fR]
+[\fB\-g\fR \fILOG_LEVEL\fR]
+[\fB\-h\fR \fIHOST\fR]
+[\fB\-i\fR \fIID\fR
 [\fB\-n\fR \fINAME\fR]
+[\fB\-p\fR \fIPORT\fR]
+[\fB\-r\fR \fIRESERVED_IDS\fR]
 [\fB\-t\fR \fITYPE\fR]
 [\fB\-u\fR \fIUNIT\fR]
+[\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
 .SH DESCRIPTION
 .B rasctl
 Sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the devices.
@@ -40,11 +46,17 @@ Note: The command and type arguments are case insensitive. Only the first letter
 .BR \-C\fI " "\fIFILENAME:FILESIZE
 Create an image file in the default image folder with the specified name and size in bytes.
 .TP
+.BR \-D\fI
+Detach all devices.
+.TP
 .BR \-E\fI " " \fIFILENAME
 Display information on an image file.
 .TP
 .BR \-F\fI " "\fIIMAGE_FOLDER
 Set the default image folder.
+.TP
+.BR \-I\fI
+Gets the list of reserved device IDs.
 .TP
 .BR \-L\fI " "\fILOG_LEVEL
 Set the rascsi log level (trace, debug, info, warn, err, critical, off).
@@ -57,6 +69,12 @@ List all images files in the default image folder.
 .TP
 .BR \-N\fI
 Lists all available network interfaces provided that they are up.
+.TP
+.BR \-O\fI
+Display the available rascsi server log levels and the current log level.
+.TP
+.BR \-P\fI
+Prompt for the access token in case rascsi requires authentication.
 .TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
@@ -80,9 +98,15 @@ Display server-side settings like available images or supported device types.
 Display all device types and their properties.
 .TP
 .BR \-v\fI " " \fI
-Display the rascsi version.
+Display the rascsi server version.
 .TP
-.BR \-D\fI " "\fIFILENAME
+.BR \-V\fI " " \fI
+Display the rasctl version.
+.TP
+.BR \-X\fI " " \fI
+Shut down the rascsi process.
+.TP
+.BR \-d\fI " "\fIFILENAME
 Delete an image file in the default image folder.
 .TP
 .BR \-x\fI " "\fICURRENT_NAME:NEW_NAME
@@ -122,7 +146,7 @@ Specifies the device type. This type overrides the type derived from the file ex
 The vendor, product and revision for the device, to be returned with the INQUIRY data. A complete set of name components must be provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up to 4 characters. Padding with blanks to the maxium length is automatically applied. Once set the name of a device cannot be changed.
 .TP 
 .BR \-u\fI " " \fIUNIT
-Unit number (0 or 1). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
+Unit number (0-31). This will default to 0. This option is only used when there are multiple SCSI devices on a shared SCSI controller. (This is not common)
 
 .SH EXAMPLES
 Show a listing of all of the SCSI devices and their current status.
@@ -130,11 +154,11 @@ Show a listing of all of the SCSI devices and their current status.
 
 
 Example output:
-   +----+----+------+-------------------------------------
-   | ID | UN | TYPE | DEVICE STATUS
-   +----+----+------+-------------------------------------
-   |  0 |  1 | SCHD | /home/pi/harddisk.hda
-   +----+----+------+-------------------------------------
+   +----+-----+------+-------------------------------------
+   | ID | LUN | TYPE | IMAGE FILE
+   +----+-----+------+-------------------------------------
+   |  0 |   1 | SCHD | /home/pi/harddisk.hda
+   +----+-----+------+-------------------------------------
 
 Request the RaSCSI process to attach a disk (assumed) to SCSI ID 0 with the contents of the file system image "HDIIMAGE0.HDS".
    rasctl -i 0 -f HDIIMAGE0.HDS

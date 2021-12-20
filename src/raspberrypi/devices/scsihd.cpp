@@ -45,14 +45,14 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 
 	// For non-removable media drives set the default product name based on the drive capacity
 	if (!IsRemovable()) {
-		int capacity;
+		uint64_t capacity = GetBlockCount() * GetSectorSizeInBytes();
 		string unit;
-		if (GetBlockCount() >> 11 >= 1) {
-			capacity = GetBlockCount() >> 11;
+		if (capacity >= 1000000) {
+			capacity /= 1000000;
 			unit = "MB";
 		}
 		else {
-			capacity = GetBlockCount() >> 1;
+			capacity /= 1000;
 			unit = "KB";
 		}
 		stringstream product;
@@ -105,14 +105,10 @@ void SCSIHD::Open(const Filepath& path)
 
 	// Sector size (default 512 bytes) and number of blocks
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, false);
-	SetBlockCount((DWORD)(size >> GetSectorSize()));
+	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
-	// File size must be a multiple of the sector size
-	if (size % GetSectorSizeInBytes()) {
-		stringstream error;
-		error << "File size must be a multiple of " << GetSectorSizeInBytes() << " bytes but is " << size << " bytes";
-		throw io_exception(error.str());
-	}
+	// Effective size must be a multiple of the sector size
+	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
 
 	FinalizeSetup(path, size);
 }
@@ -149,7 +145,7 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[1] = IsRemovable() ? 0x80 : 0x00;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 122 + 3;	// Value close to real HDD
+	buf[4] = 28 + 3;	// Value close to real HDD
 
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
@@ -182,7 +178,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Mode Parameter header
 		if (length >= 12) {
 			// Check the block length bytes
-			size = 1 << GetSectorSize();
+			size = 1 << GetSectorSizeShiftCount();
 			if (buf[9] != (BYTE)(size >> 16) ||
 				buf[10] != (BYTE)(size >> 8) ||
 				buf[11] != (BYTE)size) {
@@ -203,7 +199,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 				// format device
 				case 0x03:
 					// check the number of bytes in the physical sector
-					size = 1 << GetSectorSize();
+					size = 1 << GetSectorSizeShiftCount();
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// currently does not allow changing sector length

@@ -4,9 +4,9 @@ name: Generate a RaSCSI OS image, based upon the official Rapsberry Pi OS
 on:
   # Triggers the workflow on push or pull request events but only for the rpi_image_creation branch
   push:
-    branches: [ rpi_image_creation, develop, master ]
+    branches: [ rpi_image_creation ]
   pull_request:
-    branches: [ rpi_image_creation, develop, master ]
+    branches: [ rpi_image_creation ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
