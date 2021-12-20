@@ -44,6 +44,13 @@ RascsiImage::RascsiImage()
 	else {
 		default_image_folder = "/home/pi/images";
 	}
+
+	depth = 0;
+}
+
+bool RascsiImage::CheckDepth(const string& folder)
+{
+	return count(folder.begin(), folder.end(), '/') <= depth;
 }
 
 bool RascsiImage::CreateImageFolder(int fd, const string& filename)
@@ -122,6 +129,10 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't create image file: Missing image filename");
 	}
 
+	if (!CheckDepth(filename)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
+	}
+
 	string full_filename = default_image_folder + "/" + filename;
 	if (!IsValidDstFilename(full_filename)) {
 		return ReturnStatus(fd, false, "Can't create image file: '" + full_filename + "': File already exists");
@@ -186,6 +197,10 @@ bool RascsiImage::DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
 
+	if (!CheckDepth(filename)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
+	}
+
 	string full_filename = default_image_folder + "/" + filename;
 
 	int id;
@@ -242,6 +257,14 @@ bool RascsiImage::RenameImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
 	}
 
+	if (!CheckDepth(from)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+	}
+
+	if (!CheckDepth(to)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
+	}
+
 	to = default_image_folder + "/" + to;
 	if (!IsValidDstFilename(to)) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': File already exists");
@@ -275,6 +298,14 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
 	string to = GetParam(command, "to");
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
+	}
+
+	if (!CheckDepth(from)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+	}
+
+	if (!CheckDepth(to)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
 	}
 
 	to = default_image_folder + "/" + to;
@@ -342,9 +373,11 @@ bool RascsiImage::SetImagePermissions(int fd, const PbCommand& command)
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
-	if (filename.find('/') != string::npos) {
-		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
+
+	if (!CheckDepth(filename)) {
+		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
 	}
+
 	filename = default_image_folder + "/" + filename;
 	if (!IsValidSrcFilename(filename)) {
 		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid name or type");
