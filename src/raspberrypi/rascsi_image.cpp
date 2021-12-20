@@ -136,7 +136,7 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 		string folder = default_image_folder + "/" + filename.substr(0, slash_position);
 
 		struct stat st;
-		if (stat(folder.c_str(), &st) && mkdir(folder.c_str(), 0777) == -1) {
+		if (stat(folder.c_str(), &st) && mkdir(folder.c_str(), 0777)) {
 			return ReturnStatus(fd, false, "Can't create folder '" + folder + "': " + strerror(errno));
 		}
 	}
@@ -151,7 +151,7 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
-	if (fallocate(image_fd, 0, 0, len) == -1) {
+	if (fallocate(image_fd, 0, 0, len)) {
 		close(image_fd);
 
 		unlink(full_filename.c_str());
