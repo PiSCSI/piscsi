@@ -5,20 +5,23 @@
 //
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
-//	[ RaSCSI main ]
 //
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "xm6.h"
 #include "filepath.h"
 #include "fileio.h"
-#include "devices/disk.h"
 #include "log.h"
 #include "gpiobus.h"
 #include "rascsi_version.h"
 #include "spdlog/spdlog.h"
 #include <sys/time.h>
+#include <climits>
+#include <sstream>
+#include <iostream>
+#include "rascsi.h"
+
+using namespace std;
 
 //---------------------------------------------------------------------------
 //
@@ -51,12 +54,11 @@
 //
 //---------------------------------------------------------------------------
 static BYTE prev_value[32] = {0xFF};
-static volatile BOOL running;		// Running flag
-static volatile BOOL active;		// Processing flag
+static volatile bool running;		// Running flag
 GPIOBUS *bus;						// GPIO Bus
 typedef struct data_capture{
     DWORD data;
-    QWORD timestamp;
+    uint64_t timestamp;
 } data_capture_t;
 
 data_capture data_buffer[MAX_BUFF_SIZE];
@@ -77,7 +79,7 @@ char log_file_name[_MAX_FNAME/2] = "log.vcd";
 void KillHandler(int sig)
 {
 	// Stop instruction
-	running = FALSE;
+	running = false;
 }
 
 //---------------------------------------------------------------------------
@@ -94,7 +96,7 @@ void Banner(int argc, char* argv[])
 		__TIME__);
 	LOGINFO("Powered by XM6 TypeG Technology ");
 	LOGINFO("Copyright (C) 2016-2020 GIMONS");
-	LOGINFO("Copyright (C) 2020 akuker");
+	LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project");
 	LOGINFO("Connect type : %s", CONNECT_DESC);
 	LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", log_file_name);
 
@@ -116,7 +118,7 @@ void Banner(int argc, char* argv[])
 //	Initialization
 //
 //---------------------------------------------------------------------------
-BOOL Init()
+bool Init()
 {
 	// Interrupt handler settings
 	if (signal(SIGINT, KillHandler) == SIG_ERR) {
@@ -129,34 +131,30 @@ BOOL Init()
 		return FALSE;
 	}
 
-	// GPIOBUS creation
-	bus = new GPIOBUS();
-
 	// GPIO Initialization
+	bus = new GPIOBUS();
 	if (!bus->Init()) {
         LOGERROR("Unable to intiailize the GPIO bus. Exiting....");
-		return FALSE;
+		return false;
 	}
 
 	// Bus Reset
 	bus->Reset();
 
 	// Other
-	running = FALSE;
-	active = FALSE;
+	running = false;
 
-	return TRUE;
+	return true;
 }
 
 BOOL get_pin_value(DWORD data, int pin)
 {
-	return  (data >> pin) & 1;
+	return (data >> pin) & 1;
 }
 
 BYTE get_data_field(DWORD data)
 {
-	DWORD data_out;
-	data_out =
+	DWORD data_out =
 		((data >> (PIN_DT0 - 0)) & (1 << 7)) |
 		((data >> (PIN_DT1 - 1)) & (1 << 6)) |
 		((data >> (PIN_DT2 - 2)) & (1 << 5)) |
@@ -172,7 +170,7 @@ BYTE get_data_field(DWORD data)
 void vcd_output_if_changed_phase(FILE *fp, DWORD data, int pin, char symbol)
 {
     BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
-    if(prev_value[pin] != new_value)
+    if (prev_value[pin] != new_value)
     {
         prev_value[pin] = new_value;
         fprintf(fp, "s%s %c\n", GPIOBUS::GetPhaseStrRaw(new_value), symbol);
@@ -182,7 +180,7 @@ void vcd_output_if_changed_phase(FILE *fp, DWORD data, int pin, char symbol)
 void vcd_output_if_changed_bool(FILE *fp, DWORD data, int pin, char symbol)
 {
     BOOL new_value = get_pin_value(data,pin);
-    if(prev_value[pin] != new_value)
+    if (prev_value[pin] != new_value)
     {
         prev_value[pin] = new_value;
         fprintf(fp, "%d%c\n", new_value, symbol);
@@ -207,21 +205,16 @@ void vcd_output_if_changed_byte(FILE *fp, DWORD data, int pin, char symbol)
     }
 }
 
-
-
 void create_value_change_dump()
 {
-    time_t rawtime;
-    struct tm * timeinfo;
-    DWORD i = 0;
-    char timestamp[256];
-    FILE *fp;
     LOGINFO("Creating Value Change Dump file (%s)", log_file_name);
-    fp = fopen(log_file_name,"w");
+    FILE *fp = fopen(log_file_name,"w");
 
     // Get the current time
-    time (&rawtime);
-    timeinfo = localtime(&rawtime);
+    time_t rawtime;
+    time(&rawtime);
+    struct tm *timeinfo = localtime(&rawtime);
+    char timestamp[256];
     strftime (timestamp,sizeof(timestamp),"%d-%m-%Y %H-%M-%S",timeinfo);
 
     fprintf(fp, "$date\n");
@@ -263,9 +256,12 @@ void create_value_change_dump()
     fprintf(fp, "b00000000 %c\n", SYMBOL_PIN_DAT);
     fprintf(fp, "$end\n");
 
-    while(i < data_idx)
+    DWORD i = 0;
+    while (i < data_idx)
     {
-        fprintf(fp, "#%llu\n",(QWORD)(data_buffer[i].timestamp*ns_per_loop));
+    	ostringstream s;
+    	s << (uint64_t)(data_buffer[i].timestamp*ns_per_loop);
+        fprintf(fp, "#%s\n",s.str().c_str());
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_BSY, SYMBOL_PIN_BSY);
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_SEL, SYMBOL_PIN_SEL);
         vcd_output_if_changed_bool(fp, data_buffer[i].data, PIN_CD,  SYMBOL_PIN_CD);
@@ -282,32 +278,17 @@ void create_value_change_dump()
     fclose(fp);
 }
 
-
-
-//---------------------------------------------------------------------------
-//
-//	Cleanup
-//
-//---------------------------------------------------------------------------
 void Cleanup()
 {
-
     LOGINFO("Stopping data collection....");
     create_value_change_dump();
 
 	// Cleanup the Bus
 	bus->Cleanup();
 
-	// Discard the GPIOBUS object
 	delete bus;
-
 }
 
-//---------------------------------------------------------------------------
-//
-//	Reset
-//
-//---------------------------------------------------------------------------
 void Reset()
 {
 	// Reset the bus
@@ -321,13 +302,11 @@ void Reset()
 //---------------------------------------------------------------------------
 void FixCpu(int cpu)
 {
-	cpu_set_t cpuset;
-	int cpus;
-
 	// Get the number of CPUs
+	cpu_set_t cpuset;
 	CPU_ZERO(&cpuset);
 	sched_getaffinity(0, sizeof(cpu_set_t), &cpuset);
-	cpus = CPU_COUNT(&cpuset);
+	int cpus = CPU_COUNT(&cpuset);
 
 	// Set the thread affinity
 	if (cpu < cpus) {
@@ -349,18 +328,19 @@ static DWORD low_bits = 0xFFFFFFFF;
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-#ifdef DEBUG
+    ostringstream s;
+
+    #ifdef DEBUG
     DWORD prev_high = high_bits;
     DWORD prev_low = low_bits;
 #endif
     DWORD prev_sample = 0xFFFFFFFF;
     DWORD this_sample = 0;
-	int ret;
     struct sched_param schparam;
     timeval start_time, stop_time;
-    QWORD loop_count = 0;
+    uint64_t loop_count = 0;
     timeval time_diff;
-    QWORD elapsed_us;
+    uint64_t elapsed_us;
     int str_len;
 
     // If there is an argument specified and it is NOT -h or --help
@@ -391,7 +371,7 @@ int main(int argc, char* argv[])
     memset(data_buffer,0,sizeof(data_buffer));
 
 	// Initialize
-	ret = 0;
+	int ret = 0;
 	if (!Init()) {
 		ret = EPERM;
 		goto init_exit;
@@ -408,29 +388,30 @@ int main(int argc, char* argv[])
 	sched_setscheduler(0, SCHED_FIFO, &schparam);
 
 	// Start execution
-	running = TRUE;
+	running = true;
 	bus->SetACT(FALSE);
 
     (void)gettimeofday(&start_time, NULL);
 
     LOGDEBUG("ALL_SCSI_PINS %08X\n",ALL_SCSI_PINS);
-	// Main Loop
+
+    // Main Loop
 	while (running) {
 		// Work initialization
 		this_sample = (bus->Aquire() & ALL_SCSI_PINS);
         loop_count++;
-        if(loop_count > LLONG_MAX -1)
+        if (loop_count > LLONG_MAX -1)
         {
             LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.");
             running=false;
         }
-        if(data_idx >= (MAX_BUFF_SIZE-2))
+        if (data_idx >= (MAX_BUFF_SIZE-2))
         {
             LOGINFO("Internal data buffer is full. SCSIMON is terminating.");
             running=false;
         }
 
-		if(this_sample != prev_sample)
+		if (this_sample != prev_sample)
 		{
 
 #ifdef DEBUG
@@ -440,12 +421,14 @@ int main(int argc, char* argv[])
             low_bits &= this_sample;
             if ((high_bits != prev_high) || (low_bits != prev_low))
             {
-                LOGDEBUG("   %08lX    %08lX\n",high_bits, low_bits);
+                LOGDEBUG("   %08X    %08X\n",high_bits, low_bits);
             }
             prev_high = high_bits;
             prev_low = low_bits;
             if((data_idx % 1000) == 0){
-                LOGDEBUG("Collected %lu samples...", data_idx);
+            	s.str("");
+            	s << "Collected " << data_idx << " samples...";
+            	LOGDEBUG("%s", s.str().c_str());
             }
 #endif
             data_buffer[data_idx].data = this_sample;
@@ -458,7 +441,7 @@ int main(int argc, char* argv[])
 	}
 
     // Collect one last sample, otherwise it looks like the end of the data was cut off
-    if(data_idx < MAX_BUFF_SIZE)
+    if (data_idx < MAX_BUFF_SIZE)
     {
         data_buffer[data_idx].data = this_sample;
         data_buffer[data_idx].timestamp = loop_count;
@@ -470,14 +453,19 @@ int main(int argc, char* argv[])
     timersub(&stop_time, &start_time, &time_diff);
 
     elapsed_us = ((time_diff.tv_sec*1000000) + time_diff.tv_usec);
-    LOGINFO("Elapsed time: %llu microseconds (%lf seconds)",elapsed_us, ((double)elapsed_us)/1000000);
-    LOGINFO("Collected %lu changes", data_idx);
+    s.str("");
+    s << "Elapsed time: " << elapsed_us << " microseconds (" << elapsed_us / 1000000 << " seconds)";
+    LOGINFO("%s", s.str().c_str());
+    s.str("");
+    s << "Collected " << data_idx << " changes";
+    LOGINFO("%s", s.str().c_str());
 
     // Note: ns_per_loop is a global variable that is used by Cleanup() to printout the timestamps.    
     ns_per_loop = (elapsed_us * 1000) / (double)loop_count;
-    LOGINFO("Read the SCSI bus %llu times with an average of %lu ns for each read", loop_count, (DWORD)ns_per_loop);
+    s.str("");
+    s << "Read the SCSI bus " << loop_count << " times with an average of " << ns_per_loop << " ns for each read";
+    LOGINFO("%s", s.str().c_str());
 
-	// Cleanup
 	Cleanup();
 
 init_exit:

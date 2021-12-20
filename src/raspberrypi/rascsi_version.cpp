@@ -4,17 +4,16 @@
 //	for Raspberry Pi
 //
 //	Copyright (C) 2020 akuker
-//	[ Define the version string]
+//	[ Define the version string ]
 //
 //---------------------------------------------------------------------------
 
 #include "rascsi_version.h"
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
 
 // The following should be updated for each release
 const int rascsi_major_version = 21; // Last two digits of year
-const int rascsi_minor_version = 99; // Month
+const int rascsi_minor_version = 12; // Month
 const int rascsi_patch_version = -1;  // Patch number - increment for each update
 
 static char rascsi_version_string[30]; // Allow for string up to "XX.XX.XXX" + null character + "development build"
@@ -24,7 +23,7 @@ static char rascsi_version_string[30]; // Allow for string up to "XX.XX.XXX" + n
 //	Get the RaSCSI version string
 //
 //---------------------------------------------------------------------------
-char* rascsi_get_version_string()
+const char* rascsi_get_version_string()
 {
     if(rascsi_patch_version < 0)
     {
@@ -42,3 +41,5 @@ char* rascsi_get_version_string()
     }
     return rascsi_version_string;
 }
+
+

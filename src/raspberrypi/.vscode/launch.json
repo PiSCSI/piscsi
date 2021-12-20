@@ -8,13 +8,15 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/bin/rascsi",
+            "program": "${workspaceFolder}/bin/fullspec/rascsi",
             "args": [],
             "stopAtEntry": true,
             "cwd": "${workspaceFolder}",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            "targetArchitecture": "arm",
+            "miDebuggerPath": "${workspaceFolder}/launch_sudo.sh",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

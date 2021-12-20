@@ -10,7 +10,7 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI Hard Disk for Apple Macintosh ]
+//	[ SCSI CD-ROM for Apple Macintosh ]
 //
 //---------------------------------------------------------------------------
 #pragma once
@@ -18,6 +18,8 @@
 #include "os.h"
 #include "disk.h"
 #include "filepath.h"
+#include "interfaces/scsi_mmc_commands.h"
+#include "interfaces/scsi_primary_commands.h"
 
 
 //---------------------------------------------------------------------------
@@ -35,66 +37,31 @@ class SCSICD;
 class CDTrack
 {
 public:
-	// Basic Functions
-	CDTrack(SCSICD *scsicd);						// Constructor
-	virtual ~CDTrack();							// Destructor
-	BOOL FASTCALL Init(int track, DWORD first, DWORD last);			// Initialization
+	CDTrack(SCSICD *scsicd);
+	virtual ~CDTrack();
+
+	void Init(int track, DWORD first, DWORD last);
 
 	// Properties
-	void FASTCALL SetPath(BOOL cdda, const Filepath& path);			// Set the path
-	void FASTCALL GetPath(Filepath& path) const;				// Get the path
-	void FASTCALL AddIndex(int index, DWORD lba);				// Add index
-	DWORD FASTCALL GetFirst() const;					// Get the start LBA
-	DWORD FASTCALL GetLast() const;						// Get the last LBA
-	DWORD FASTCALL GetBlocks() const;					// Get the number of blocks
-	int FASTCALL GetTrackNo() const;					// Get the track number
-	BOOL FASTCALL IsValid(DWORD lba) const;					// Is this a valid LBA?
-	BOOL FASTCALL IsAudio() const;						// Is this an audio track?
+	void SetPath(bool cdda, const Filepath& path);			// Set the path
+	void GetPath(Filepath& path) const;				// Get the path
+	void AddIndex(int index, DWORD lba);				// Add index
+	DWORD GetFirst() const;					// Get the start LBA
+	DWORD GetLast() const;						// Get the last LBA
+	DWORD GetBlocks() const;					// Get the number of blocks
+	int GetTrackNo() const;					// Get the track number
+	bool IsValid(DWORD lba) const;					// Is this a valid LBA?
+	bool IsAudio() const;						// Is this an audio track?
 
 private:
 	SCSICD *cdrom;								// Parent device
-	BOOL valid;								// Valid track
+	bool valid;								// Valid track
 	int track_no;								// Track number
 	DWORD first_lba;							// First LBA
 	DWORD last_lba;								// Last LBA
-	BOOL audio;								// Audio track flag
-	BOOL raw;								// RAW data flag
+	bool audio;								// Audio track flag
+	bool raw;								// RAW data flag
 	Filepath imgpath;							// Image file path
-};
-
-//===========================================================================
-//
-//	CD-DA Buffer
-//
-//===========================================================================
-class CDDABuf
-{
-public:
-	// Basic Functions
-	CDDABuf();								// Constructor
-	virtual ~CDDABuf();							// Destructor
-	#if 0
-	BOOL Init();								// Initialization
-	BOOL FASTCALL Load(const Filepath& path);				// Load
-	BOOL FASTCALL Save(const Filepath& path);				// Save
-
-	// API
-	void FASTCALL Clear();							// Clear the buffer
-	BOOL FASTCALL Open(Filepath& path);					// File specification
-	BOOL FASTCALL GetBuf(DWORD *buffer, int frames);			// Get the buffer
-	BOOL FASTCALL IsValid();						// Check if Valid
-	BOOL FASTCALL ReadReq();						// Read Request
-	BOOL FASTCALL IsEnd() const;						// Finish check
-
-private:
-	Filepath wavepath;							// Wave path
-	BOOL valid;								// Open result (is it valid?)
-	DWORD *buf;								// Data buffer
-	DWORD read;								// Read pointer
-	DWORD write;								// Write pointer
-	DWORD num;								// Valid number of data
-	DWORD rest;								// Remaining file size
-#endif
 };
 
 //===========================================================================
@@ -102,61 +69,59 @@ private:
 //	SCSI CD-ROM
 //
 //===========================================================================
-class SCSICD : public Disk
+class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
+private:
+	typedef struct _command_t {
+		const char* name;
+		void (SCSICD::*execute)(SASIDEV *);
+
+		_command_t(const char* _name, void (SCSICD::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+	} command_t;
+	std::map<SCSIDEV::scsi_command, command_t*> commands;
+
+	SASIDEV::ctrl_t *ctrl;
+
+	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
+
 public:
-	// Number of tracks
 	enum {
 		TrackMax = 96							// Maximum number of tracks
 	};
 
 public:
-	// Basic Functions
-	SCSICD();								// Constructor
-	virtual ~SCSICD();							// Destructor
-	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);		// Open
-	#ifndef	RASCSI
-	BOOL FASTCALL Load(Fileio *fio, int ver);				// Load
-	#endif	// RASCSI
+	SCSICD();
+	~SCSICD();
 
-	// commands
-	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	int FASTCALL Read(BYTE *buf, DWORD block);				// READ command
-	int FASTCALL ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
-	BOOL FASTCALL PlayAudio(const DWORD *cdb);				// PLAY AUDIO command
-	BOOL FASTCALL PlayAudioMSF(const DWORD *cdb);				// PLAY AUDIO MSF command
-	BOOL FASTCALL PlayAudioTrack(const DWORD *cdb);				// PLAY AUDIO TRACK command
+	bool Dispatch(SCSIDEV *) override;
 
-	// CD-DA
-	BOOL FASTCALL NextFrame();						// Frame notification
-	void FASTCALL GetBuf(DWORD *buffer, int samples, DWORD rate);		// Get CD-DA buffer
+	void Open(const Filepath& path) override;
 
-	// LBA-MSF変換
-	void FASTCALL LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
-	DWORD FASTCALL MSFtoLBA(const BYTE *msf) const;				// MSF→LBA conversion
+	// Commands
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
+	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;		// READ command
+	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 
 private:
 	// Open
-	BOOL FASTCALL OpenCue(const Filepath& path);				// Open(CUE)
-	BOOL FASTCALL OpenIso(const Filepath& path);				// Open(ISO)
-	BOOL FASTCALL OpenPhysical(const Filepath& path);			// Open(Physical)
-	BOOL rawfile;								// RAW flag
+	void OpenCue(const Filepath& path);				// Open(CUE)
+	void OpenIso(const Filepath& path);				// Open(ISO)
+	void OpenPhysical(const Filepath& path);			// Open(Physical)
+
+	void ReadToc(SASIDEV *) override;
+	void GetEventStatusNotification(SASIDEV *) override;
+
+	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
+
+	bool rawfile;								// RAW flag
 
 	// Track management
-	void FASTCALL ClearTrack();						// Clear the track
-	int FASTCALL SearchTrack(DWORD lba) const;				// Track search
+	void ClearTrack();						// Clear the track
+	int SearchTrack(DWORD lba) const;				// Track search
 	CDTrack* track[TrackMax];						// Track opbject references
 	int tracks;								// Effective number of track objects
 	int dataindex;								// Current data track
 	int audioindex;								// Current audio track
 
 	int frame;								// Frame number
-
-	#if 0
-	CDDABuf da_buf;								// CD-DA buffer
-	int da_num;								// Number of CD-DA tracks
-	int da_cur;								// CD-DA current track
-	int da_next;								// CD-DA next track
-	BOOL da_req;								// CD-DA data request
-	#endif
 };

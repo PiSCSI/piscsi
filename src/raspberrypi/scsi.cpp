@@ -10,20 +10,16 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "xm6.h"
 #include "scsi.h"
+#include "rascsi.h"
 
 //---------------------------------------------------------------------------
 //
 //	Phase Acquisition
 //
 //---------------------------------------------------------------------------
-BUS::phase_t FASTCALL BUS::GetPhase()
+BUS::phase_t BUS::GetPhase()
 {
-	DWORD mci;
-
-	ASSERT(this);
-
 	// Selection Phase
 	if (GetSEL()) {
 		return selection;
@@ -35,7 +31,7 @@ BUS::phase_t FASTCALL BUS::GetPhase()
 	}
 
 	// Get target phase from bus signal line
-	mci = GetMSG() ? 0x04 : 0x00;
+	DWORD mci = GetMSG() ? 0x04 : 0x00;
 	mci |= GetCD() ? 0x02 : 0x00;
 	mci |= GetIO() ? 0x01 : 0x00;
 	return GetPhase(mci);
@@ -46,7 +42,7 @@ BUS::phase_t FASTCALL BUS::GetPhase()
 //	Determine Phase String phase enum
 //
 //---------------------------------------------------------------------------
-const char* FASTCALL BUS::GetPhaseStrRaw(phase_t current_phase){
+const char* BUS::GetPhaseStrRaw(phase_t current_phase){
 	if(current_phase <= phase_t::reserved){
 		return phase_str_table[current_phase];
 	}

@@ -19,25 +19,18 @@
 #include "disk.h"
 #include "filepath.h"
 
-//===========================================================================
-//
-//	SCSI magneto-optical disk
-//
-//===========================================================================
-class SCSIMO : public Disk
+class SCSIMO : public Disk, public FileSupport
 {
 public:
-	// Basic Functions
-	SCSIMO();									// Constructor
-	BOOL FASTCALL Open(const Filepath& path, BOOL attn = TRUE);			// Open
-	#ifndef RASCSI
-	BOOL FASTCALL Load(Fileio *fio, int ver);					// Load
-	#endif	// RASCSI
+	SCSIMO();
+	~SCSIMO() {};
 
-	// commands
-	int FASTCALL Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	BOOL FASTCALL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+	void Open(const Filepath& path) override;
+
+	// Commands
+	int Inquiry(const DWORD *cdb, BYTE *buf) override;
+	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 	// Internal processing
-	int FASTCALL AddVendor(int page, BOOL change, BYTE *buf);			// Add vendor special page
+	int AddVendor(int page, BOOL change, BYTE *buf);			// Add vendor special page
 };

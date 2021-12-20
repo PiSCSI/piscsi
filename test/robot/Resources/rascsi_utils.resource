@@ -122,3 +122,35 @@ Get checksum of ${filename} from ISO ${image_name} on the RaSCSI Host
     Execute Command  rm -rf /tmp/${temp_dirname}  sudo=True  sudo_password=${Rascsi_Password}
     [Return]  ${checksum}
 
+The RaSCSI service is configured to use port ${port_number}
+    [Documentation]  Modifies the rascsi.service systemd configuration file to use the specified port
+    ...              instead of the default. This will erase any other options that have been previously
+    ...              set in your rascsi.service file.
+    Execute command  sed -i 's/^ExecStart=.*/ExecStart=\\\/usr\\\/local\\\/bin\\\/rascsi -p ${port_number}/' /etc/systemd/system/rascsi.service  sudo=True  sudo_password=${Rascsi_Password}
+    Execute command  systemctl daemon-reload  sudo=True  sudo_password=${Rascsi_Password}
+    ${service_file}=  Execute command  cat /etc/systemd/system/rascsi.service
+    log  ${service_file}
+
+The RaSCSI service is configured to use default port
+    [Documentation]  Restore the rascsi.service systemd configuration file to use the default rascsi
+    ...              launch command
+    Execute command  sed -i 's/^ExecStart=.*/ExecStart=\\\/usr\\\/local\\\/bin\\\/rascsi/' /etc/systemd/system/rascsi.service  sudo=True  sudo_password=${Rascsi_Password}
+    Execute command  systemctl daemon-reload  sudo=True  sudo_password=${Rascsi_Password}
+    ${service_file}=  Execute command  cat /etc/systemd/system/rascsi.service
+    log  ${service_file}
+
+RASCTL should connect on port ${port_number}
+    ${stdout_out}  ${stderr_out}=  Execute Command  rasctl -l -p ${port_number}  return_stderr=True
+    log  ${stdout_out}
+    log  ${stderr_out}
+    Should Contain  ${stdout_out}  No images currently attached
+
+RASCTL should not connect on port ${port_number}
+    ${stdout_out}  ${stderr_out}=  Execute Command  rasctl -l -p ${port_number}  return_stderr=True
+    log  ${stdout_out}
+    log  ${stderr_out}
+    Should Contain  ${stderr_out}  Error: Can't connect to rascsi process on host
+
+Kill all rascsi processes
+    ${result}=  Execute command  killall -9 rascsi  sudo=True  sudo_password=${Rascsi_Password}
+    log  ${result}

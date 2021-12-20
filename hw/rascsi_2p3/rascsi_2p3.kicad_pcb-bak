@@ -34,7 +34,7 @@
   )
 
   (setup
-    (last_trace_width 0.5)
+    (last_trace_width 0.25)
     (user_trace_width 0.15)
     (user_trace_width 0.2)
     (user_trace_width 0.25)
@@ -66,6 +66,7 @@
     (pad_drill 0)
     (pad_to_mask_clearance 0.05)
     (aux_axis_origin 94.2 52.8)
+    (grid_origin 154.01 126)
     (visible_elements 7FFFFF3F)
     (pcbplotparams
       (layerselection 0x010f0_ffffffff)
@@ -5385,7 +5386,6 @@
   (via (at 201.23005 70.0405) (size 0.5) (drill 0.25) (layers Top Bottom) (net 1))
   (via (at 204.15146 70.0405) (size 0.5) (drill 0.25) (layers Top Bottom) (net 1))
   (via (at 193.926525 70.0405) (size 0.5) (drill 0.25) (layers Top Bottom) (net 1))
-  (via (at 192.46582 70.0405) (size 0.5) (drill 0.25) (layers Top Bottom) (net 12))
   (via (at 182.626 70.0405) (size 0.5) (drill 0.25) (layers Top Bottom) (net 1))
   (via (at 222.296178 70.0405) (size 0.5) (drill 0.25) (layers Top Bottom) (net 1))
   (segment (start 221.1705 70.0405) (end 222.631 70.0405) (width 0.25) (layer Top) (net 1))
@@ -6009,6 +6009,7 @@
   (segment (start 196.44 78.040877) (end 196.44 80.108) (width 0.25) (layer Top) (net 11))
   (segment (start 196.46951 69.675963) (end 196.345934 69.799539) (width 0.25) (layer Top) (net 11))
   (segment (start 196.345934 69.799539) (end 196.345934 70.281461) (width 0.25) (layer Top) (net 11))
+  (via (at 192.46582 70.0405) (size 0.5) (drill 0.25) (layers Top Bottom) (net 12))
   (segment (start 191.77 65.763) (end 191.77 67.1425) (width 0.25) (layer Top) (net 12) (status 30))
   (via (at 192.4685 71.1835) (size 0.5) (drill 0.25) (layers Top Bottom) (net 12))
   (segment (start 191.77 67.1425) (end 192.434001 67.806501) (width 0.2) (layer Top) (net 12) (status 10))
@@ -7031,7 +7032,7 @@
   (segment (start 235.64 62.12) (end 237.77799 62.12) (width 0.4) (layer Bottom) (net 62))
   (segment (start 237.76799 62.11) (end 237.77799 62.12) (width 0.4) (layer Top) (net 62))
 
-  (zone (net 1) (net_name GND) (layer Bottom) (tstamp 5F6234DC) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer Bottom) (tstamp 5F618D30) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
@@ -8022,7 +8023,7 @@
       )
     )
   )
-  (zone (net 1) (net_name GND) (layer Top) (tstamp 5F6234D9) (hatch edge 0.508)
+  (zone (net 1) (net_name GND) (layer Top) (tstamp 5F618D2D) (hatch edge 0.508)
     (connect_pads (clearance 0.508))
     (min_thickness 0.254)
     (fill yes (arc_segments 32) (thermal_gap 0.508) (thermal_bridge_width 0.508))
