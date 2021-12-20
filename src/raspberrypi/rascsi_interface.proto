@@ -240,6 +240,8 @@ message PbImageFile {
 message PbImageFilesInfo {
     string default_image_folder = 1;
     repeated PbImageFile image_files = 2;
+    // The maximum nesting depth, configured with the -R option
+    int32 depth = 3;
 }
 
 // Log level information

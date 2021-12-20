@@ -194,6 +194,7 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const str
 
 	string default_image_folder = rascsi_image->GetDefaultImageFolder();
 	image_files_info->set_default_image_folder(default_image_folder);
+	image_files_info->set_depth(scan_depth);
 
 	GetAvailableImages(*image_files_info, default_image_folder, default_image_folder, pattern, scan_depth);
 
