@@ -169,7 +169,6 @@ def start_splash():
     """
     Displays a splash screen for the startup sequence
     """
-    DRAW.bitmap((0, 0), SPLASH_START, fill=0)
     OLED.image(SPLASH_START)
     OLED.show()
     sleep(4)
@@ -178,7 +177,6 @@ def stop_splash():
     """
     Displays a splash screen for the shutdown sequence
     """
-    DRAW.bitmap((0, 0), SPLASH_STOP, fill=0)
     OLED.image(SPLASH_STOP)
     OLED.show()
 
