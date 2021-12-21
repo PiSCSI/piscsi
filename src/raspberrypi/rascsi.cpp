@@ -1508,7 +1508,7 @@ static void *MonThread(void *param)
 
 				case DEFAULT_IMAGE_FILES_INFO: {
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							GetParam(command, "folder_pattern"), GetParam(command, "filename_pattern"),
+							GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
 							rascsi_image.GetDepth()));
 					SerializeMessage(fd, result);
 					break;
