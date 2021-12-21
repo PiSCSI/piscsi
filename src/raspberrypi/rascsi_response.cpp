@@ -479,7 +479,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	CreateOperation(operation_info, meta_data, RENAME_IMAGE, "Rename image file");
 
 	meta_data = new PbOperationMetaData();
-	AddOperationParameter(meta_data, "from", "Source image file name image file name", "", true);
+	AddOperationParameter(meta_data, "from", "Source image file name", "", true);
 	AddOperationParameter(meta_data, "to", "Destination image file name", "", true);
 	parameter = AddOperationParameter(meta_data, "read_only", "Read-only flag", "false");
 	parameter->add_permitted_values("true");
