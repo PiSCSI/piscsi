@@ -85,6 +85,7 @@ enum PbOperation {
     // Get information on available image files in the default image folder (PbImageFilesInfo)
     // Parameters:
     // "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
+    // "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     DEFAULT_IMAGE_FILES_INFO = 14;
     
     // Get information on an image file (not necessarily in the default image folder) based on an absolute path.
@@ -137,7 +138,7 @@ enum PbOperation {
     //    "file": The filename, relative to the default image folder.
     DELETE_IMAGE = 25;
 
-    // Rename an image file.
+    // Rename/Move an image file.
     // Parameters:
     //   "from": The old filename, relative to the default image folder.
     //   "to": The new filename, relative to the default image folder.
@@ -276,6 +277,8 @@ message PbImageFile {
 message PbImageFilesInfo {
     string default_image_folder = 1;
     repeated PbImageFile image_files = 2;
+    // The maximum nesting depth, configured with the -R option
+    int32 depth = 3;
 }
 
 // Log level information

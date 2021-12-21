@@ -337,7 +337,8 @@ int main(int argc, char* argv[])
     DWORD prev_sample = 0xFFFFFFFF;
     DWORD this_sample = 0;
     struct sched_param schparam;
-    timeval start_time, stop_time;
+    timeval start_time;
+    timeval stop_time;
     uint64_t loop_count = 0;
     timeval time_diff;
     uint64_t elapsed_us;
