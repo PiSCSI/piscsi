@@ -1252,7 +1252,6 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					cerr << "Invalid image file scan depth " << optarg << endl;
 					return false;
 				}
-				rascsi_image.SetDepth(scan_depth);
 				continue;
 
 			case 'n':
@@ -1488,8 +1487,8 @@ static void *MonThread(void *param)
 
 				case SERVER_INFO: {
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, devices, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
-							GetParam(command, "file_pattern"), scan_depth));
+							result, devices, reserved_ids, current_log_level, GetParam(command, "filename_pattern"),
+							scan_depth));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1508,7 +1507,7 @@ static void *MonThread(void *param)
 
 				case DEFAULT_IMAGE_FILES_INFO: {
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"), scan_depth));
+							GetParam(command, "filename_pattern"), scan_depth));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1546,7 +1545,7 @@ static void *MonThread(void *param)
 				}
 
 				case OPERATION_INFO: {
-					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result, scan_depth));
+					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1598,7 +1597,7 @@ int main(int argc, char* argv[])
 
 	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
 	PbResult pb_operation_info_result;
-	rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
+	rascsi_response.GetOperationInfo(pb_operation_info_result);
 
 	int actid;
 	BUS::phase_t phase;

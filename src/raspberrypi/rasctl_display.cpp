@@ -230,7 +230,6 @@ void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info)
 void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 {
 	cout << "Default image file folder: " << image_files_info.default_image_folder() << endl;
-	cout << "Supported folder depth: " << image_files_info.depth() << endl;
 
 	if (image_files_info.image_files().empty()) {
 		cout << "  No image files available" << endl;

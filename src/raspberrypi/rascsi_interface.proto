@@ -35,7 +35,7 @@ enum PbOperation {
 
     // Attach devices and return the new device list (PbDevicesInfo)
     // Parameters (mutually exclusive):
-    //   "file": The filename relative to the default image folder.
+    //   "file": The filename relative to the default image folder. It must not contain a slash.
     //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
     ATTACH = 1;
 
@@ -54,7 +54,7 @@ enum PbOperation {
 
     // Insert medium
     // Parameters:
-    //   "file": The filename, relative to the default image folder.
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
     INSERT = 6;
 
     // Eject medium
@@ -68,8 +68,7 @@ enum PbOperation {
 
     // Gets the server information (PbServerInfo). Calling this operation should be avoided because it
     // may return a lot of data. More specific other operations should be used instead.
-    // "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
-    // "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
+    // "filename_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     SERVER_INFO = 10;
 
     // Get rascsi server version (PbVersionInfo)
@@ -84,8 +83,7 @@ enum PbOperation {
 
     // Get information on available image files in the default image folder (PbImageFilesInfo)
     // Parameters:
-    // "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
-    // "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
+    // "filename_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     DEFAULT_IMAGE_FILES_INFO = 14;
     
     // Get information on an image file (not necessarily in the default image folder) based on an absolute path.
@@ -128,39 +126,39 @@ enum PbOperation {
 
     // Create an image file. The image file must not yet exist.
     // Parameters:
-    //   "file": The filename, relative to the default image folder.
-    //   "size": The file size in bytes, must be a multiple of 512.
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "size": The file size in bytes, must be a multiple of 512
     //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     CREATE_IMAGE = 24;
 
     // Delete an image file.
     // Parameters:
-    //    "file": The filename, relative to the default image folder.
+    //    "file": The filename, relative to the default image folder. It must not contain a slash.
     DELETE_IMAGE = 25;
 
-    // Rename/Move an image file.
+    // Rename an image file.
     // Parameters:
-    //   "from": The old filename, relative to the default image folder.
-    //   "to": The new filename, relative to the default image folder.
+    //   "from": The old filename, relative to the default image folder. It must not contain a slash.
+    //   "to": The new filename, relative to the default image folder. It must not contain a slash.
     // The new filename must not yet exist.
     RENAME_IMAGE = 26;
 
     // Copy an image file.
     // Parameters:
-    //   "from": The source filename, relative to the default image folder.
-    //   "to": The destination filename, relative to the default image folder.
+    //   "from": The source filename, relative to the default image folder. It must not contain a slash.
+    //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
     //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     // The destination filename must not yet exist.
     COPY_IMAGE = 27;
     
     // Write-protect an image file.
     // Parameters:
-    //  "file": The filename, relative to the default image folder.
+    //  "file": The filename, relative to the default image folder. It must not contain a slash.
     PROTECT_IMAGE = 28;
 
     // Make an image file writable.
     // Parameters:
-    //   "file": The filename, relative to the default image folder.
+    //   "file": The filename, relative to the default image folder. It must not contain a slash.
     UNPROTECT_IMAGE = 29;
 
     // Check whether an authentication token is valid. A client can use this operation in order to
@@ -277,8 +275,6 @@ message PbImageFile {
 message PbImageFilesInfo {
     string default_image_folder = 1;
     repeated PbImageFile image_files = 2;
-    // The maximum nesting depth, configured with the -R option
-    int32 depth = 3;
 }
 
 // Log level information

@@ -91,23 +91,6 @@ PbDeviceType ParseType(const char *optarg)
 	}
 }
 
-void SetPatternParams(PbCommand& command, const string& patterns)
-{
-	string folder_pattern;
-	string file_pattern;
-	size_t separator_pos = patterns.find(COMPONENT_SEPARATOR);
-	if (separator_pos != string::npos) {
-		folder_pattern = patterns.substr(0, separator_pos);
-		file_pattern = patterns.substr(separator_pos + 1);
-	}
-	else {
-		file_pattern = patterns;
-	}
-
-	AddParam(command, "folder_pattern", folder_pattern);
-	AddParam(command, "file_pattern", file_pattern);
-}
-
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -156,7 +139,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "e::lmosvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:P::R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmosvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:P::")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -216,9 +199,6 @@ int main(int argc, char* argv[])
 
 			case 'e':
 				command.set_operation(DEFAULT_IMAGE_FILES_INFO);
-				if (optarg) {
-					SetPatternParams(command, optarg);
-				}
 				break;
 
 			case 'F':

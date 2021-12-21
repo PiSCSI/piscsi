@@ -44,34 +44,6 @@ RascsiImage::RascsiImage()
 	else {
 		default_image_folder = "/home/pi/images";
 	}
-
-	depth = 0;
-}
-
-bool RascsiImage::CheckDepth(const string& filename)
-{
-	return count(filename.begin(), filename.end(), '/') <= depth;
-}
-
-bool RascsiImage::CreateImageFolder(int fd, const string& filename)
-{
-	size_t filename_start = filename.rfind('/');
-	if (filename_start != string::npos) {
-		string folder = filename.substr(0, filename_start);
-
-		// Checking for existence first prevents an error if the top-level folder is a softlink
-		struct stat st;
-		if (stat(folder.c_str(), &st)) {
-			std::error_code error;
-			filesystem::create_directories(folder, error);
-			if (error) {
-				ReturnStatus(fd, false, "Can't create image folder '" + folder + "': " + strerror(errno));
-				return false;
-			}
-		}
-	}
-
-	return true;
 }
 
 string RascsiImage::SetDefaultImageFolder(const string& f)
@@ -132,19 +104,17 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Can't create image file: Missing image filename");
 	}
-
-	if (!CheckDepth(filename)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Filename must not contain a path");
 	}
-
-	string full_filename = default_image_folder + "/" + filename;
-	if (!IsValidDstFilename(full_filename)) {
-		return ReturnStatus(fd, false, "Can't create image file: '" + full_filename + "': File already exists");
+	filename = default_image_folder + "/" + filename;
+	if (!IsValidDstFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't create image file: '" + filename + "': File already exists");
 	}
 
 	const string size = GetParam(command, "size");
 	if (size.empty()) {
-		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': Missing image size");
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Missing image size");
 	}
 
 	off_t len;
@@ -152,19 +122,20 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 		len = stoull(size);
 	}
 	catch(const invalid_argument& e) {
-		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
 	}
 	catch(const out_of_range& e) {
-		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': Invalid file size " + size);
 	}
 	if (len < 512 || (len & 0x1ff)) {
 		ostringstream error;
-		error << "Invalid image file size " << len << " (not a multiple of 512)";
+		error << "Invalid image file size " << len;
 		return ReturnStatus(fd, false, error.str());
 	}
 
-	if (!CreateImageFolder(fd, full_filename)) {
-		return false;
+	struct stat st;
+	if (!stat(filename.c_str(), &st)) {
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': File already exists");
 	}
 
 	string permission = GetParam(command, "read_only");
@@ -172,23 +143,23 @@ bool RascsiImage::CreateImage(int fd, const PbCommand& command)
 	int permissions = !strcasecmp(permission.c_str(), "true") ?
 			S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 
-	int image_fd = open(full_filename.c_str(), O_CREAT|O_WRONLY, permissions);
+	int image_fd = open(filename.c_str(), O_CREAT|O_WRONLY, permissions);
 	if (image_fd == -1) {
-		return ReturnStatus(fd, false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
+		return ReturnStatus(fd, false, "Can't create image file '" + filename + "': " + string(strerror(errno)));
 	}
 
-	if (fallocate(image_fd, 0, 0, len)) {
+	if (fallocate(image_fd, 0, 0, len) == -1) {
 		close(image_fd);
 
-		unlink(full_filename.c_str());
+		unlink(filename.c_str());
 
-		return ReturnStatus(fd, false, "Can't allocate space for image file '" + full_filename + "': " + string(strerror(errno)));
+		return ReturnStatus(fd, false, "Can't allocate space for image file '" + filename + "': " + string(strerror(errno)));
 	}
 
 	close(image_fd);
 
 	ostringstream msg;
-	msg << "Created " << (permissions & S_IWUSR ? "": "read-only ") << "image file '" << full_filename + "' with a size of " << len << " bytes";
+	msg << "Created " << (permissions & S_IWUSR ? "": "read-only ") << "image file '" << filename + "' with a size of " << len << " bytes";
 	LOGINFO("%s", msg.str().c_str());
 
 	return ReturnStatus(fd);
@@ -201,45 +172,31 @@ bool RascsiImage::DeleteImage(int fd, const PbCommand& command)
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
 
-	if (!CheckDepth(filename)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
+	if (!IsValidDstFilename(filename)) {
+		return ReturnStatus(fd, false, "Can't delete image  file '" + filename + "': File already exists");
 	}
 
-	string full_filename = default_image_folder + "/" + filename;
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
+	}
+
+	filename = default_image_folder + "/" + filename;
 
 	int id;
 	int unit;
 	Filepath filepath;
-	filepath.SetPath(full_filename.c_str());
+	filepath.SetPath(filename.c_str());
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 		ostringstream msg;
-		msg << "Can't delete image file '" << full_filename << "', it is used by device ID " << id << ", unit " << unit;
+		msg << "Can't delete image file '" << filename << "', it is used by device ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, msg.str());
 	}
 
-	if (remove(full_filename.c_str())) {
-		return ReturnStatus(fd, false, "Can't delete image file '" + full_filename + "': " + string(strerror(errno)));
+	if (unlink(filename.c_str())) {
+		return ReturnStatus(fd, false, "Can't delete image file '" + filename + "': " + string(strerror(errno)));
 	}
 
-	// Delete empty subfolders
-	size_t last_slash = filename.rfind('/');
-	while (last_slash != string::npos) {
-		string folder = filename.substr(0, last_slash);
-		string full_folder = default_image_folder + "/" + folder;
-
-		std::error_code error;
-		if (!filesystem::is_empty(full_folder, error) || error) {
-			break;
-		}
-
-		if (remove(full_folder.c_str())) {
-			return ReturnStatus(fd, false, "Can't delete empty image folder '" + full_folder + "'");
-		}
-
-		last_slash = folder.rfind('/');
-	}
-
-	LOGINFO("Deleted image file '%s'", full_filename.c_str());
+	LOGINFO("Deleted image file '%s'", filename.c_str());
 
 	return ReturnStatus(fd);
 }
@@ -250,11 +207,9 @@ bool RascsiImage::RenameImage(int fd, const PbCommand& command)
 	if (from.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file: Missing source filename");
 	}
-
-	if (!CheckDepth(from)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+	if (from.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
 	}
-
 	from = default_image_folder + "/" + from;
 	if (!IsValidSrcFilename(from)) {
 		return ReturnStatus(fd, false, "Can't rename image file: '" + from + "': Invalid name or type");
@@ -264,18 +219,12 @@ bool RascsiImage::RenameImage(int fd, const PbCommand& command)
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "': Missing destination filename");
 	}
-
-	if (!CheckDepth(to)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
+	if (to.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
 	}
-
 	to = default_image_folder + "/" + to;
 	if (!IsValidDstFilename(to)) {
 		return ReturnStatus(fd, false, "Can't rename image file '" + from + "' to '" + to + "': File already exists");
-	}
-
-	if (!CreateImageFolder(fd, to)) {
-		return false;
 	}
 
 	if (rename(from.c_str(), to.c_str())) {
@@ -293,11 +242,9 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
 	if (from.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file: Missing source filename");
 	}
-
-	if (!CheckDepth(from)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + from + "'").c_str());
+	if (from.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The source filename '" + from + "' must not contain a path");
 	}
-
 	from = default_image_folder + "/" + from;
 	if (!IsValidSrcFilename(from)) {
 		return ReturnStatus(fd, false, "Can't copy image file: '" + from + "': Invalid name or type");
@@ -307,11 +254,9 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
 	if (to.empty()) {
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "': Missing destination filename");
 	}
-
-	if (!CheckDepth(to)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + to + "'").c_str());
+	if (to.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The destination filename '" + to + "' must not contain a path");
 	}
-
 	to = default_image_folder + "/" + to;
 	if (!IsValidDstFilename(to)) {
 		return ReturnStatus(fd, false, "Can't copy image file '" + from + "' to '" + to + "': File already exists");
@@ -321,10 +266,6 @@ bool RascsiImage::CopyImage(int fd, const PbCommand& command)
     if (lstat(from.c_str(), &st)) {
     	return ReturnStatus(fd, false, "Can't access source image file '" + from + "': " + string(strerror(errno)));
     }
-
-	if (!CreateImageFolder(fd, to)) {
-		return false;
-	}
 
     // Symbolic links need a special handling
 	if ((st.st_mode & S_IFMT) == S_IFLNK) {
@@ -377,11 +318,9 @@ bool RascsiImage::SetImagePermissions(int fd, const PbCommand& command)
 	if (filename.empty()) {
 		return ReturnStatus(fd, false, "Missing image filename");
 	}
-
-	if (!CheckDepth(filename)) {
-		return ReturnStatus(fd, false, ("Invalid folder hierarchy depth '" + filename + "'").c_str());
+	if (filename.find('/') != string::npos) {
+		return ReturnStatus(fd, false, "The image filename '" + filename + "' must not contain a path");
 	}
-
 	filename = default_image_folder + "/" + filename;
 	if (!IsValidSrcFilename(filename)) {
 		return ReturnStatus(fd, false, "Can't modify image file '" + filename + "': Invalid name or type");
