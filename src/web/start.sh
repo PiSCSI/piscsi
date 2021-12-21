@@ -74,7 +74,10 @@ while [ "$1" != "" ]; do
     VALUE=$(echo "$1" | awk -F= '{print $2}')
     case $PARAM in
 	-p | --port)
-	    PORT=$VALUE
+	    PORT="--port $VALUE"
+	    ;;
+	-P | --password)
+	    PASSWORD="--password $VALUE"
 	    ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
@@ -84,5 +87,5 @@ while [ "$1" != "" ]; do
     shift
 done
 
-echo "Starting web server on port ${PORT:-8080}..."
-python3 web.py ${PORT}
+echo "Starting web server for RaSCSI Web Interface..."
+python3 web.py ${PORT} ${PASSWORD}
