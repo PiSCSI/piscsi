@@ -941,9 +941,8 @@ if __name__ == "__main__":
     APP.config["SESSION_TYPE"] = "filesystem"
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
-    parser = argparse.ArgumentParser(description="RaSCSI Web Interface command line arguments.")
+    parser = argparse.ArgumentParser(description="RaSCSI Web Interface arguments")
     parser.add_argument(
-        "-p",
         "--port",
         type=int,
         default=8080,
@@ -951,7 +950,6 @@ if __name__ == "__main__":
         help="Port number the web server will run on",
         )
     parser.add_argument(
-        "-P",
         "--password",
         type=str,
         default="",
