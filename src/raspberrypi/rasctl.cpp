@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "e::lmosvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:P::R:")) != -1) {
+	while ((opt = getopt(argc, argv, "e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -319,7 +319,10 @@ int main(int argc, char* argv[])
 
 			case 's':
 				command.set_operation(SERVER_INFO);
-				break;
+                if (optarg) {
+                	SetPatternParams(command, optarg);
+                }
+                break;
 
 			case 'v':
 				cout << "rasctl version: " << rascsi_get_version_string() << endl;
