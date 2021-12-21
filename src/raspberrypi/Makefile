@@ -31,6 +31,16 @@ CXXFLAGS += -std=c++17 -Wno-psabi -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 CFLAGS += $(EXTRA_FLAGS)
 CXXFLAGS += $(EXTRA_FLAGS)
 
+# If we're using GCC version 10 or later, we need to add the FMT_HEADER_ONLY definition
+GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
+
+ifeq "$(GCCVERSION10)" "1"
+	CFLAGS += -DFMT_HEADER_ONLY
+	CXXFLAGS += -DFMT_HEADER_ONLY
+endif
+
+
+
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
 ##              that you are using. The typical options are 
 ##              STANDARD or FULLSPEC. The default is FULLSPEC
@@ -220,9 +230,8 @@ $(USR_LOCAL_BIN)% : $(BINDIR)/%
 	@echo "-- Copying $@"
 	cp $< $@
 
-$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
+$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1 | $(MAN_PAGE_DIR)/
 	@echo "-- Copying $@"
-	mkdir -p $@
 	cp $< $@
 
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
@@ -242,6 +251,10 @@ $(RSYSLOG_LOG) :
 	@echo "-- Creating $@"
 	touch /var/log/rascsi.log
 	chown root:adm /var/log/rascsi.log
+
+$(MAN_PAGE_DIR)/:
+	echo "-- Creating directory $@"
+	mkdir -p $@
 
 ##   help     : Lists information about how to use the makefile
 # The help rule is based upon the approach from:

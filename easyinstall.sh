@@ -76,22 +76,15 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
+    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv python3-dev python3-pip nginx libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 -y </dev/null
 }
 
 # compile the RaSCSI binaries
 function compileRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
-    # Compiler flags needed for gcc v10 and up
-    if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
-        echo -n "gcc 10 or later detected. Will compile with the following flags: "
-        COMPILER_FLAGS="-DFMT_HEADER_ONLY"
-        echo $COMPILER_FLAGS
-    fi
-
     echo "Compiling with ${CORES:-1} simultaneous cores..."
-    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+    ( make clean && make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
 }
 
 # install the RaSCSI binaries and modify the service configuration
@@ -112,18 +105,6 @@ function installRaScsiWebInterface() {
     sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
     sudo usermod -a -G $USER www-data
-
-    if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
-        sudo bash -c 'echo "
-# Allow the web server to restart the rascsi service
-www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
-www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
-# Allow the web server to reboot the raspberry pi
-www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
-" >> /etc/sudoers'
-    else
-        echo "The sudoers file is already modified for rascsi-web."
-    fi
 
     sudo systemctl reload nginx || true
 }
@@ -163,7 +144,7 @@ function installRaScsiScreen() {
     stopRaScsiScreen
     updateRaScsiGit
 
-    sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
     if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
         sudo rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
@@ -692,7 +673,7 @@ function installMacproxy {
 
     ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
-    MACPROXY_VER="21.12.1"
+    MACPROXY_VER="21.12.2"
     MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
     if [ -d "$MACPROXY_PATH" ]; then
         echo "The $MACPROXY_PATH directory already exists. Delete it to proceed with the installation."

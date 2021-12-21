@@ -52,7 +52,7 @@ PbOperation ParseOperation(const char *optarg)
 			return DEVICES_INFO;
 
 		default:
-			return NONE;
+			return NO_OPERATION;
 	}
 }
 
@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
+		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0-31}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -134,11 +134,12 @@ int main(int argc, char* argv[])
 	string reserved_ids;
 	string image_params;
 	string filename;
+	string token;
 	bool list = false;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "elmosvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:P::")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -176,7 +177,7 @@ int main(int argc, char* argv[])
 
 			case 'c':
 				command.set_operation(ParseOperation(optarg));
-				if (command.operation() == NONE) {
+				if (command.operation() == NO_OPERATION) {
 					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);
 				}
@@ -236,6 +237,10 @@ int main(int argc, char* argv[])
 
 			case 'O':
 				command.set_operation(LOG_LEVEL_INFO);
+				break;
+
+			case 'o':
+				command.set_operation(OPERATION_INFO);
 				break;
 
 			case 't':
@@ -301,6 +306,10 @@ int main(int argc, char* argv[])
 				exit(EXIT_SUCCESS);
 				break;
 
+			case 'P':
+				token = optarg ? optarg : getpass("Password: ");
+				break;
+
 			case 'V':
 				command.set_operation(VERSION_INFO);
 				break;
@@ -329,7 +338,7 @@ int main(int argc, char* argv[])
 	if (list) {
 		PbCommand command_list;
 		command_list.set_operation(DEVICES_INFO);
-		RasctlCommands rasctl_commands(command_list, hostname, port);
+		RasctlCommands rasctl_commands(command_list, hostname, port, token);
 		rasctl_commands.CommandDevicesInfo();
 		exit(EXIT_SUCCESS);
 	}
@@ -340,7 +349,7 @@ int main(int argc, char* argv[])
 		AddParam(*device, "file", param);
 	}
 
-	RasctlCommands rasctl_commands(command, hostname, port);
+	RasctlCommands rasctl_commands(command, hostname, port, token);
 
 	switch(command.operation()) {
 		case LOG_LEVEL:
@@ -409,6 +418,10 @@ int main(int argc, char* argv[])
 
 		case MAPPING_INFO:
 			rasctl_commands.CommandMappingInfo();
+			break;
+
+		case OPERATION_INFO:
+			rasctl_commands.CommandOperationInfo();
 			break;
 
 		default:

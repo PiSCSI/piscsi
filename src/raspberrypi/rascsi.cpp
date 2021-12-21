@@ -33,6 +33,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include <list>
 #include <vector>
 #include <map>
@@ -67,6 +68,7 @@ pthread_t monthread;				// Monitor Thread
 pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
+string access_token;
 set<int> reserved_ids;
 int scan_depth = 0;
 DeviceFactory& device_factory = DeviceFactory::instance();
@@ -374,6 +376,43 @@ bool MapController(Device **map)
 	return status;
 }
 
+bool ReadAccessToken(const char *filename)
+{
+	struct stat st;
+	if (stat(filename, &st) || !S_ISREG(st.st_mode)) {
+		cerr << "Can't access token file '" << optarg << "'" << endl;
+		return false;
+	}
+
+	if (st.st_uid || st.st_gid || (st.st_mode & (S_IROTH | S_IWOTH | S_IRGRP | S_IWGRP))) {
+		cerr << "Access token file '" << optarg << "' must be owned by root and readable by root only" << endl;
+		return false;
+	}
+
+	ifstream token_file(filename, ifstream::in);
+	if (token_file.fail()) {
+		cerr << "Can't open access token file '" << optarg << "'" << endl;
+		return false;
+	}
+
+	getline(token_file, access_token);
+	if (token_file.fail()) {
+		token_file.close();
+		cerr << "Can't read access token file '" << optarg << "'" << endl;
+		return false;
+	}
+
+	if (access_token.empty()) {
+		token_file.close();
+		cerr << "Access token file '" << optarg << "' must not be empty" << endl;
+		return false;
+	}
+
+	token_file.close();
+
+	return true;
+}
+
 string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existing_devices)
 {
 	// Mapping of available LUNs (bit vector) to devices
@@ -444,6 +483,8 @@ bool SetLogLevel(const string& log_level)
 	}
 
 	current_log_level = log_level;
+
+	LOGINFO("Set log level to '%s'", current_log_level.c_str());
 
 	return true;
 }
@@ -973,7 +1014,8 @@ bool ProcessCmd(int fd, const PbDeviceDefinition& pb_device, const PbCommand& co
 			assert(dryRun);
 			break;
 
-		case NONE:
+		case CHECK_AUTHENTICATION:
+		case NO_OPERATION:
 			// Do nothing, just log
 			LOGTRACE("Received %s command", PbOperation_Name(operation).c_str());
 			break;
@@ -1160,7 +1202,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:P:R:")) != -1) {
 		switch (opt) {
 			// The three options below are kind of a compound option with two letters
 			case 'i':
@@ -1219,6 +1261,12 @@ bool ParseArgument(int argc, char* argv[], int& port)
 			case 'p':
 				if (!GetAsInt(optarg, port) || port <= 0 || port > 65535) {
 					cerr << "Invalid port " << optarg << ", port must be between 1 and 65535" << endl;
+					return false;
+				}
+				continue;
+
+			case 'P':
+				if (!ReadAccessToken(optarg)) {
 					return false;
 				}
 				continue;
@@ -1378,10 +1426,26 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(fd, command);
 
+			if (!access_token.empty()) {
+				if (access_token != GetParam(command, "token")) {
+					ReturnStatus(fd, false, "Authentication failed", PbErrorCode::UNAUTHORIZED);
+					continue;
+				}
+			}
+
+			if (!PbOperation_IsValid(command.operation())) {
+				LOGTRACE("Received unknown command %d", command.operation());
+
+				ReturnStatus(fd, false, "Unknown command", UNKNOWN_OPERATION);
+				continue;
+			}
+
+			LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+
+			PbResult result;
+
 			switch(command.operation()) {
 				case LOG_LEVEL: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
 					string log_level = GetParam(command, "level");
 					bool status = SetLogLevel(log_level);
 					if (!status) {
@@ -1394,8 +1458,6 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
 					string folder = GetParam(command, "folder");
 					if (folder.empty()) {
 						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
@@ -1412,28 +1474,18 @@ static void *MonThread(void *param)
 				}
 
 				case DEVICES_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
-					PbResult result;
 					rascsi_response.GetDevicesInfo(result, command, devices, UnitNum);
 					SerializeMessage(fd, result);
-
 					break;
 				}
 
 				case DEVICE_TYPES_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
-					PbResult result;
 					result.set_allocated_device_types_info(rascsi_response.GetDeviceTypesInfo(result, command));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case SERVER_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
-					PbResult result;
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
 							result, devices, reserved_ids, current_log_level, GetParam(command, "filename_pattern"),
 							scan_depth));
@@ -1442,27 +1494,18 @@ static void *MonThread(void *param)
 				}
 
 				case VERSION_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
-					PbResult result;
 					result.set_allocated_version_info(rascsi_response.GetVersionInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case LOG_LEVEL_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
-					PbResult result;
 					result.set_allocated_log_level_info(rascsi_response.GetLogLevelInfo(result, current_log_level));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case DEFAULT_IMAGE_FILES_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
-					PbResult result;
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
 							GetParam(command, "filename_pattern"), scan_depth));
 					SerializeMessage(fd, result);
@@ -1470,14 +1513,11 @@ static void *MonThread(void *param)
 				}
 
 				case IMAGE_FILE_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
 					string filename = GetParam(command, "file");
 					if (filename.empty()) {
 						ReturnStatus(fd, false, "Can't get image file info: Missing filename");
 					}
 					else {
-						PbResult result;
 						PbImageFile* image_file = new PbImageFile();
 						bool status = rascsi_response.GetImageFile(image_file, filename);
 						if (status) {
@@ -1493,35 +1533,30 @@ static void *MonThread(void *param)
 				}
 
 				case NETWORK_INTERFACES_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
-					PbResult result;
 					result.set_allocated_network_interfaces_info(rascsi_response.GetNetworkInterfacesInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case MAPPING_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
-					PbResult result;
 					result.set_allocated_mapping_info(rascsi_response.GetMappingInfo(result));
 					SerializeMessage(fd, result);
 					break;
 				}
 
-				case RESERVED_IDS_INFO: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
+				case OPERATION_INFO: {
+					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result));
+					SerializeMessage(fd, result);
+					break;
+				}
 
-					PbResult result;
+				case RESERVED_IDS_INFO: {
 					result.set_allocated_reserved_ids_info(rascsi_response.GetReservedIds(result, reserved_ids));
 					SerializeMessage(fd, result);
 					break;
 				}
 
 				case SHUT_DOWN: {
-					LOGTRACE("Received %s command", PbOperation_Name(command.operation()).c_str());
-
 					ShutDown(fd, GetParam(command, "mode"));
 					break;
 				}
@@ -1559,6 +1594,10 @@ static void *MonThread(void *param)
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
+	PbResult pb_operation_info_result;
+	rascsi_response.GetOperationInfo(pb_operation_info_result);
 
 	int actid;
 	BUS::phase_t phase;

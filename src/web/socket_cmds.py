@@ -4,6 +4,7 @@ Module for sending and receiving data over a socket connection with the RaSCSI b
 
 import logging
 from flask import abort
+from time import sleep
 
 def send_pb_command(payload):
     """
@@ -15,7 +16,7 @@ def send_pb_command(payload):
     port = 6868
 
     counter = 0
-    tries = 100
+    tries = 20
     error_msg = ""
 
     import socket
@@ -29,6 +30,7 @@ def send_pb_command(payload):
             logging.warning("The RaSCSI service is not responding - attempt %s/%s",
                             str(counter), str(tries))
             error_msg = str(error)
+            sleep(0.2)
 
     logging.error(error_msg)
 

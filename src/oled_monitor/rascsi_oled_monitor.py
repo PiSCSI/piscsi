@@ -119,6 +119,11 @@ LINE_SPACING = 8
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 FONT = ImageFont.truetype('type_writer.ttf', FONT_SIZE)
 
+# Load a bitmap image for start and stop splash screens and convert to monocrome
+# Make sure the splash bitmap image is in the same dir as this script
+SPLASH_START = Image.open(f"splash_start_{HEIGHT}.bmp").convert("1")
+SPLASH_STOP = Image.open(f"splash_stop_{HEIGHT}.bmp").convert("1")
+
 IP_ADDR, HOSTNAME = get_ip_and_host()
 
 
@@ -156,30 +161,27 @@ def formatted_output():
     else:
         output.append("No image mounted!")
 
-    output.append(f"IP {IP_ADDR} - {HOSTNAME}")
+    if IP_ADDR:
+        output.append(f"IP {IP_ADDR} - {HOSTNAME}")
+    else:
+        output.append("RaSCSI has no IP address")
+        output.append("Check network connection")
     return output
 
 
 def start_splash():
     """
     Displays a splash screen for the startup sequence
-    Make sure the splash bitmap image is in the same dir as this script
     """
-    splash = Image.open(f"splash_start_{HEIGHT}.bmp").convert("1")
-    DRAW.bitmap((0, 0), splash)
-    OLED.image(splash)
+    OLED.image(SPLASH_START)
     OLED.show()
-    sleep(6)
+    sleep(4)
 
 def stop_splash():
     """
     Displays a splash screen for the shutdown sequence
-    Make sure the splash bitmap image is in the same dir as this script
     """
-    DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
-    splash = Image.open(f"splash_stop_{HEIGHT}.bmp").convert("1")
-    DRAW.bitmap((0, 0), splash)
-    OLED.image(splash)
+    OLED.image(SPLASH_STOP)
     OLED.show()
 
 # Show a startup splash bitmap image before starting the main loop

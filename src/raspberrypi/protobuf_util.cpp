@@ -120,7 +120,7 @@ int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
 }
 
 
-bool protobuf_util::ReturnStatus(int fd, bool status, const string msg)
+bool protobuf_util::ReturnStatus(int fd, bool status, const string msg, const PbErrorCode error_code)
 {
 	if (!status && !msg.empty()) {
 		LOGERROR("%s", msg.c_str());
@@ -142,6 +142,7 @@ bool protobuf_util::ReturnStatus(int fd, bool status, const string msg)
 	else {
 		PbResult result;
 		result.set_status(status);
+		result.set_error_code(error_code);
 		result.set_msg(msg);
 		SerializeMessage(fd, result);
 	}

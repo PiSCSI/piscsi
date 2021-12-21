@@ -60,9 +60,7 @@ fi
 
 # Compiler flags needed for gcc v10 and up
 if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
-    echo -n "gcc 10 or later detected. Will compile with the following flags: "
     COMPILER_FLAGS="-fcommon"
-    echo $COMPILER_FLAGS
 fi
 
 # Test for two known broken venv states

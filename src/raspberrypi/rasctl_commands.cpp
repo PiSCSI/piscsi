@@ -25,15 +25,20 @@ using namespace std;
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port)
+RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port, const string& token)
 {
 	this->command = command;
 	this->hostname = hostname;
 	this->port = port;
+	this->token = token;
 }
 
 void RasctlCommands::SendCommand()
 {
+	if (!token.empty()) {
+		AddParam(command, "token", token);
+	}
+
 	// Send command
 	int fd = -1;
 	try {
@@ -217,6 +222,7 @@ void RasctlCommands::CommandServerInfo()
 	rasctl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
 	rasctl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
 	rasctl_display.DisplayReservedIdsInfo(server_info.reserved_ids_info());
+	rasctl_display.DisplayOperationInfo(server_info.operation_info());
 
 	if (server_info.devices_info().devices_size()) {
 		list<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
@@ -272,4 +278,11 @@ void RasctlCommands::CommandMappingInfo()
 	SendCommand();
 
 	rasctl_display.DisplayMappingInfo(result.mapping_info());
+}
+
+void RasctlCommands::CommandOperationInfo()
+{
+	SendCommand();
+
+	rasctl_display.DisplayOperationInfo(result.operation_info());
 }
