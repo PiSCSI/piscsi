@@ -42,6 +42,7 @@ public:
 	void CommandLogLevelInfo();
 	void CommandReservedIdsInfo();
 	void CommandMappingInfo();
+	void CommandOperationInfo();
 
 private:
 

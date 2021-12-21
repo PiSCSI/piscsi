@@ -295,6 +295,7 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Devic
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices);
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
+	server_info->set_allocated_operation_info(GetOperationInfo(result));
 
 	result.set_status(true);
 
@@ -353,4 +354,162 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 	result.set_status(true);
 
 	return mapping_info;
+}
+
+PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
+{
+	PbOperationInfo *operation_info = new PbOperationInfo();
+
+	PbOperationMetaData *meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "name", "Image file name in case of a mass storage device");
+	AddOperationParameter(meta_data, "interfaces", "Comma-separated prioritized network interface list");
+	CreateOperation(operation_info, meta_data, ATTACH, "Attach device, device-specific parameters are required");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, DETACH, "Detach device, device-specific parameters are required");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, DETACH_ALL, "Detach all devices");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, START, "Start device, device-specific parameters are required");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, STOP, "Stop device, device-specific parameters are required");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "file", "Image file name", "", true);
+	CreateOperation(operation_info, meta_data, INSERT, "Insert medium, device-specific parameters are required");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, EJECT, "Eject medium, device-specific parameters are required");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, PROTECT, "Protect medium, device-specific parameters are required");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, UNPROTECT, "Unprotect medium, device-specific parameters are required");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
+	CreateOperation(operation_info, meta_data, SERVER_INFO, "Get rascsi server information");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, VERSION_INFO, "Get rascsi server version");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, DEVICES_INFO, "Get information on attached devices");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, DEVICE_TYPES_INFO, "Get device properties by device type");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
+	CreateOperation(operation_info, meta_data, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "file", "Image file name", "", true);
+	CreateOperation(operation_info, meta_data, IMAGE_FILE_INFO, "Get information on image file");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, LOG_LEVEL_INFO, "Get log level information");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, NETWORK_INTERFACES_INFO, "Get the available network interfaces");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, MAPPING_INFO, "Get mapping of extensions to device types");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, RESERVED_IDS_INFO, "Get list of reserved device IDs");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "folder", "Default image file folder name", "", true);
+	CreateOperation(operation_info, meta_data, DEFAULT_FOLDER, "Set default image file folder");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "level", "New log level", "", true);
+	CreateOperation(operation_info, meta_data, LOG_LEVEL, "Set log level");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "ids", "Comma-separated device ID list", "", true);
+	CreateOperation(operation_info, meta_data, RESERVE_IDS, "Reserve device IDs");
+
+	meta_data = new PbOperationMetaData();
+	PbOperationParameter *parameter = AddOperationParameter(meta_data, "mode", "Shutdown mode", "", true);
+	parameter->add_permitted_values("rascsi");
+	// System shutdown/reboot requires root permissions
+	if (!getuid()) {
+		parameter->add_permitted_values("system");
+		parameter->add_permitted_values("reboot");
+	}
+	CreateOperation(operation_info, meta_data, SHUT_DOWN, "Shut down or reboot");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "file", "Image file name", "", true);
+	AddOperationParameter(meta_data, "size", "Image file size in bytes", "", true);
+	parameter = AddOperationParameter(meta_data, "read_only",  "Read-only flag", "false");
+	parameter->add_permitted_values("true");
+	parameter->add_permitted_values("false");
+	CreateOperation(operation_info, meta_data, CREATE_IMAGE, "Create an image file");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "file", "Image file name", "", true);
+	CreateOperation(operation_info, meta_data, DELETE_IMAGE, "Delete image file");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "from", "Source image file name", "", true);
+	AddOperationParameter(meta_data, "to", "Destination image file name", "", true);
+	CreateOperation(operation_info, meta_data, RENAME_IMAGE, "Rename image file");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "from", "Source image file name image file name", "", true);
+	AddOperationParameter(meta_data, "to", "Destination image file name", "", true);
+	parameter = AddOperationParameter(meta_data, "read_only", "Read-only flag", "false");
+	parameter->add_permitted_values("true");
+	parameter->add_permitted_values("false");
+	CreateOperation(operation_info, meta_data, COPY_IMAGE, "Copy image file");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "file", "Image file name", "", true);
+	CreateOperation(operation_info, meta_data, PROTECT_IMAGE, "Write-protect image file");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "file", "Image file name", "", true);
+	CreateOperation(operation_info, meta_data, UNPROTECT_IMAGE, "Make image file writable");
+
+	meta_data = new PbOperationMetaData();
+	AddOperationParameter(meta_data, "token", "Authentication token to be checked", "", true);
+	CreateOperation(operation_info, meta_data, CHECK_AUTHENTICATION, "Check whether an authentication token is valid");
+
+	meta_data = new PbOperationMetaData();
+	CreateOperation(operation_info, meta_data, OPERATION_INFO, "Get operation meta data");
+
+	// Ensure that the complete set of operations is covered
+	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
+
+	result.set_status(true);
+
+	return operation_info;
+}
+
+void RascsiResponse::CreateOperation(PbOperationInfo *operation_info, PbOperationMetaData *meta_data,
+		const PbOperation& operation, const string& description)
+{
+	meta_data->set_server_side_name(PbOperation_Name(operation));
+	(*meta_data->mutable_description())["en"] = description;
+	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
+	(*operation_info->mutable_operations())[ordinal] = *meta_data;
+}
+
+PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData *meta_data, const string& name,
+		const string& description, const string& default_value, bool is_mandatory)
+{
+	PbOperationParameter *parameter = meta_data->add_parameters();
+	parameter->set_name(name);
+	(*parameter->mutable_description())["en"] = description;
+	parameter->set_default_value(default_value);
+	parameter->set_is_mandatory(is_mandatory);
+
+	return parameter;
 }

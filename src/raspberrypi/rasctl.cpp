@@ -101,8 +101,8 @@ int main(int argc, char* argv[])
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
-		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-P TOKEN] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
+		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
+		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0-31}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -139,7 +139,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:P::")) != -1) {
+	while ((opt = getopt(argc, argv, "elmosvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:P::")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -237,6 +237,10 @@ int main(int argc, char* argv[])
 
 			case 'O':
 				command.set_operation(LOG_LEVEL_INFO);
+				break;
+
+			case 'o':
+				command.set_operation(OPERATION_INFO);
 				break;
 
 			case 't':
@@ -414,6 +418,10 @@ int main(int argc, char* argv[])
 
 		case MAPPING_INFO:
 			rasctl_commands.CommandMappingInfo();
+			break;
+
+		case OPERATION_INFO:
+			rasctl_commands.CommandOperationInfo();
 			break;
 
 		default:
