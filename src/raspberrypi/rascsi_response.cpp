@@ -141,24 +141,27 @@ bool RascsiResponse::GetImageFile(PbImageFile *image_file, const string& filenam
 }
 
 void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, const string& default_image_folder,
-		const string& folder, const string& pattern, int scan_depth) {
-	string pattern_lower = pattern;
-	transform(pattern_lower.begin(), pattern_lower.end(), pattern_lower.begin(), ::tolower);
+		const string& folder, const string& folder_pattern, const string& file_pattern, int scan_depth) {
+	string folder_pattern_lower = folder_pattern;
+	transform(folder_pattern_lower.begin(), folder_pattern_lower.end(), folder_pattern_lower.begin(), ::tolower);
+
+	string file_pattern_lower = file_pattern;
+	transform(file_pattern_lower.begin(), file_pattern_lower.end(), file_pattern_lower.begin(), ::tolower);
 
 	if (scan_depth-- >= 0) {
 		DIR *d = opendir(folder.c_str());
 		if (d) {
 			struct dirent *dir;
 			while ((dir = readdir(d))) {
-				string filename = folder + "/" + dir->d_name;
-
-				string name_lower = filename;
-				if (!pattern.empty()) {
-					transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
-				}
-
 				bool is_supported_type = dir->d_type == DT_REG || dir->d_type == DT_DIR || dir->d_type == DT_LNK || dir->d_type == DT_BLK;
 				if (is_supported_type && dir->d_name[0] != '.') {
+					string name_lower = dir->d_name;
+					if (!file_pattern.empty()) {
+						transform(name_lower.begin(), name_lower.end(), name_lower.begin(), ::tolower);
+					}
+
+					string filename = folder + "/" + dir->d_name;
+
 					struct stat st;
 					if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 						if (!st.st_size) {
@@ -169,11 +172,14 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 						LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str());
 						continue;
 					} else if (dir->d_type == DT_DIR) {
-						GetAvailableImages(image_files_info, default_image_folder, filename, pattern, scan_depth);
+						if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
+							GetAvailableImages(image_files_info, default_image_folder, filename, folder_pattern,
+									file_pattern, scan_depth);
+						}
 						continue;
 					}
 
-					if (pattern.empty() || name_lower.find(pattern_lower) != string::npos) {
+					if (file_pattern_lower.empty() || name_lower.find(file_pattern_lower) != string::npos) {
 						PbImageFile *image_file = new PbImageFile();
 						if (GetImageFile(image_file, filename)) {
 							GetImageFile(image_files_info.add_image_files(), filename.substr(default_image_folder.length() + 1));
@@ -188,7 +194,8 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 	}
 }
 
-PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& pattern, int scan_depth)
+PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const string& folder_pattern,
+		const string& file_pattern, int scan_depth)
 {
 	PbImageFilesInfo *image_files_info = new PbImageFilesInfo();
 
@@ -196,16 +203,18 @@ PbImageFilesInfo *RascsiResponse::GetAvailableImages(PbResult& result, const str
 	image_files_info->set_default_image_folder(default_image_folder);
 	image_files_info->set_depth(scan_depth);
 
-	GetAvailableImages(*image_files_info, default_image_folder, default_image_folder, pattern, scan_depth);
+	GetAvailableImages(*image_files_info, default_image_folder, default_image_folder, folder_pattern,
+			file_pattern, scan_depth);
 
 	result.set_status(true);
 
 	return image_files_info;
 }
 
-void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& pattern, int scan_depth)
+void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_info, const string& folder_pattern,
+		const string& file_pattern, int scan_depth)
 {
-	PbImageFilesInfo *image_files_info = GetAvailableImages(result, pattern, scan_depth);
+	PbImageFilesInfo *image_files_info = GetAvailableImages(result, folder_pattern, file_pattern, scan_depth);
 	image_files_info->set_default_image_folder(rascsi_image->GetDefaultImageFolder());
 	server_info.set_allocated_image_files_info(image_files_info);
 
@@ -284,19 +293,19 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const Pb
 }
 
 PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& current_log_level, const string& filename_pattern, int scan_depth)
+		const string& current_log_level, const string& folder_pattern, const string& file_pattern, int scan_depth)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
 	server_info->set_allocated_version_info(GetVersionInfo(result));
 	server_info->set_allocated_log_level_info(GetLogLevelInfo(result, current_log_level));
 	GetAllDeviceTypeProperties(*server_info->mutable_device_types_info());
-	GetAvailableImages(result, *server_info, filename_pattern, scan_depth);
+	GetAvailableImages(result, *server_info, folder_pattern, file_pattern, scan_depth);
 	server_info->set_allocated_network_interfaces_info(GetNetworkInterfacesInfo(result));
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices);
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
-	server_info->set_allocated_operation_info(GetOperationInfo(result));
+	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
 
 	result.set_status(true);
 
@@ -357,7 +366,7 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 	return mapping_info;
 }
 
-PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
+PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 {
 	PbOperationInfo *operation_info = new PbOperationInfo();
 
@@ -392,7 +401,10 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	CreateOperation(operation_info, meta_data, UNPROTECT, "Unprotect medium, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
-	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
+	if (depth) {
+		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering folder names");
+	}
+	AddOperationParameter(meta_data, "file_pattern", "Pattern for filtering image file names");
 	CreateOperation(operation_info, meta_data, SERVER_INFO, "Get rascsi server information");
 
 	meta_data = new PbOperationMetaData();
@@ -405,7 +417,10 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	CreateOperation(operation_info, meta_data, DEVICE_TYPES_INFO, "Get device properties by device type");
 
 	meta_data = new PbOperationMetaData();
-	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
+	if (depth) {
+		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering folder names");
+	}
+	AddOperationParameter(meta_data, "file_pattern", "Pattern for filtering image file names");
 	CreateOperation(operation_info, meta_data, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
 
 	meta_data = new PbOperationMetaData();
