@@ -17,6 +17,7 @@ using namespace std;
 
 Localizer::Localizer()
 {
+	// TODO Consider generating C++ code for these messages based on checked in property files
 	Add("en", "ERROR_AUTHENTICATION", "Authentication failed");
 	Add("de", "ERROR_AUTHENTICATION", "Authentifizierung fehlgeschlagen");
 }
