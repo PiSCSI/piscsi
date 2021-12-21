@@ -120,13 +120,14 @@ int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
 }
 
 
-bool protobuf_util::ReturnStatus(int fd, bool status, const string msg, const PbErrorCode error_code)
+bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const string msg,
+		const PbErrorCode error_code)
 {
 	if (!status && !msg.empty()) {
 		LOGERROR("%s", msg.c_str());
 	}
 
-	if (fd == -1) {
+	if (context.fd == -1) {
 		if (!msg.empty()) {
 			if (status) {
 				FPRT(stderr, "Error: ");
@@ -144,13 +145,13 @@ bool protobuf_util::ReturnStatus(int fd, bool status, const string msg, const Pb
 		result.set_status(status);
 		result.set_error_code(error_code);
 		result.set_msg(msg);
-		SerializeMessage(fd, result);
+		SerializeMessage(context.fd, result);
 	}
 
 	return status;
 }
 
-bool protobuf_util::ReturnStatus(int fd, bool status, const ostringstream& msg)
+bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const ostringstream& msg)
 {
-	return ReturnStatus(fd, status, msg.str());
+	return ReturnStatus(context, status, msg.str());
 }

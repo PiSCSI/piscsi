@@ -13,6 +13,7 @@
 
 #include "google/protobuf/message.h"
 #include "rascsi_interface.pb.h"
+#include "command_context.h"
 #include <sstream>
 #include <string>
 
@@ -29,6 +30,6 @@ namespace protobuf_util
 	void SerializeMessage(int, const google::protobuf::Message&);
 	void DeserializeMessage(int, google::protobuf::Message&);
 	int ReadNBytes(int, uint8_t *, int);
-	bool ReturnStatus(int, bool = true, const string = "", const PbErrorCode error_code = PbErrorCode::NO_ERROR_CODE);
-	bool ReturnStatus(int, bool, const ostringstream&);
+	bool ReturnStatus(const CommandContext&, bool = true, const string = "", const PbErrorCode error_code = PbErrorCode::NO_ERROR_CODE);
+	bool ReturnStatus(const CommandContext&, bool, const ostringstream&);
 }
