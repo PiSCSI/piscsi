@@ -11,6 +11,7 @@
 #include "os.h"
 #include "log.h"
 #include "rascsi_interface.pb.h"
+#include "localizer.h"
 #include "exceptions.h"
 #include "protobuf_util.h"
 
@@ -18,6 +19,8 @@ using namespace std;
 using namespace rascsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
+
+Localizer localizer;
 
 const string protobuf_util::GetParam(const PbCommand& command, const string& key)
 {
