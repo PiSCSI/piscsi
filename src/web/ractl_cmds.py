@@ -370,3 +370,18 @@ def shutdown_pi(mode):
     result = proto.PbResult()
     result.ParseFromString(data)
     return {"status": result.status, "msg": result.msg}
+
+
+def is_token_auth():
+    """
+    Sends a CHECK_AUTHENTICATION command to the server.
+    Tells you whether RaSCSI backend is protected by a token password or not.
+    Returns (bool) status and (str) msg.
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.CHECK_AUTHENTICATION
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}

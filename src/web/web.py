@@ -18,6 +18,7 @@ from flask import (
     send_from_directory,
     make_response,
     session,
+    abort,
 )
 
 from file_cmds import (
@@ -58,6 +59,7 @@ from ractl_cmds import (
     reserve_scsi_ids,
     set_log_level,
     shutdown_pi,
+    is_token_auth,
 )
 from device_utils import (
     sort_and_format_devices,
@@ -85,6 +87,9 @@ def index():
     """
     Sets up data structures for and renders the index page
     """
+    if not is_token_auth()["status"]:
+        abort(403, "RaSCSI is password protected. Start the Web Interface with the --password parameter.")
+
     server_info = get_server_info()
     disk = disk_space()
     devices = list_devices()
