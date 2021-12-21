@@ -165,11 +165,11 @@ void RascsiResponse::GetAvailableImages(PbImageFilesInfo& image_files_info, cons
 					struct stat st;
 					if (dir->d_type == DT_REG && !stat(filename.c_str(), &st)) {
 						if (!st.st_size) {
-							LOGTRACE("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str());
+							LOGWARN("File '%s' in image folder '%s' has a size of 0 bytes", dir->d_name, folder.c_str());
 							continue;
 						}
 					} else if (dir->d_type == DT_LNK && stat(filename.c_str(), &st)) {
-						LOGTRACE("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str());
+						LOGWARN("Symlink '%s' in image folder '%s' is broken", dir->d_name, folder.c_str());
 						continue;
 					} else if (dir->d_type == DT_DIR) {
 						if (folder_pattern_lower.empty() || name_lower.find(folder_pattern_lower) != string::npos) {
