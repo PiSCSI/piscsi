@@ -1435,7 +1435,7 @@ static void *MonThread(void *param)
 			}
 
 			if (!PbOperation_IsValid(command.operation())) {
-				LOGTRACE("Received unknown command %d", command.operation());
+				LOGERROR("Received unknown command %d", command.operation());
 
 				ReturnStatus(fd, false, "Unknown command", UNKNOWN_OPERATION);
 				continue;
