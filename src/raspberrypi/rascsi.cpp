@@ -1252,6 +1252,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					cerr << "Invalid image file scan depth " << optarg << endl;
 					return false;
 				}
+				rascsi_image.SetDepth(scan_depth);
 				continue;
 
 			case 'n':
