@@ -402,7 +402,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 
 	meta_data = new PbOperationMetaData();
 	if (depth) {
-		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering folder names");
+		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering image folder names");
 	}
 	AddOperationParameter(meta_data, "file_pattern", "Pattern for filtering image file names");
 	CreateOperation(operation_info, meta_data, SERVER_INFO, "Get rascsi server information");
@@ -418,7 +418,7 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 
 	meta_data = new PbOperationMetaData();
 	if (depth) {
-		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering folder names");
+		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering image folder names");
 	}
 	AddOperationParameter(meta_data, "file_pattern", "Pattern for filtering image file names");
 	CreateOperation(operation_info, meta_data, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
