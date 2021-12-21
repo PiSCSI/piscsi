@@ -122,8 +122,13 @@ int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
 	return offset;
 }
 
+bool protobuf_util::ReturnLocalizedStatus(const CommandContext& context, const string& key, bool status,
+		const PbErrorCode error_code)
+{
+	return ReturnStatus(context, status, localizer.Localize(context.locale, key), error_code);
+}
 
-bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const string msg,
+bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const string& msg,
 		const PbErrorCode error_code)
 {
 	if (!status && !msg.empty()) {

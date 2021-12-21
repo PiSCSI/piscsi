@@ -30,6 +30,7 @@ namespace protobuf_util
 	void SerializeMessage(int, const google::protobuf::Message&);
 	void DeserializeMessage(int, google::protobuf::Message&);
 	int ReadNBytes(int, uint8_t *, int);
-	bool ReturnStatus(const CommandContext&, bool = true, const string = "", const PbErrorCode error_code = PbErrorCode::NO_ERROR_CODE);
+	bool ReturnLocalizedStatus(const CommandContext&, const string&, bool = true, const PbErrorCode = PbErrorCode::NO_ERROR_CODE);
+	bool ReturnStatus(const CommandContext&, bool = true, const string& = "", const PbErrorCode = PbErrorCode::NO_ERROR_CODE);
 	bool ReturnStatus(const CommandContext&, bool, const ostringstream&);
 }

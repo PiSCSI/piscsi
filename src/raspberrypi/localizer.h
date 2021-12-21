@@ -25,5 +25,6 @@ public:
 
 private:
 
+	void Add(const string&, const string&, const string&);
 	map<string, map<string, string>> localized_messages;
 };

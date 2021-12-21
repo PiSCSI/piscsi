@@ -1437,7 +1437,7 @@ static void *MonThread(void *param)
 
 			if (!access_token.empty()) {
 				if (access_token != GetParam(command, "token")) {
-					ReturnStatus(context, false, "Authentication failed", PbErrorCode::UNAUTHORIZED);
+					ReturnLocalizedStatus(context, "ERROR_AUTHENTICATION", false, PbErrorCode::UNAUTHORIZED);
 					continue;
 				}
 			}
