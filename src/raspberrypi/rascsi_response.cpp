@@ -416,7 +416,6 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int scan_dep
 	CreateOperation(operation_info, meta_data, DEVICE_TYPES_INFO, "Get device properties by device type");
 
 	meta_data = new PbOperationMetaData();
-	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
 	if (scan_depth) {
 		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering folder names");
 	}
