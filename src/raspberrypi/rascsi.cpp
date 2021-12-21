@@ -70,7 +70,6 @@ static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
 set<int> reserved_ids;
-int scan_depth = 0;
 DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
@@ -1248,11 +1247,12 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'R':
-				if (!GetAsInt(optarg, scan_depth) || scan_depth < 0) {
+				int depth;
+				if (!GetAsInt(optarg, depth) || depth < 0) {
 					cerr << "Invalid image file scan depth " << optarg << endl;
 					return false;
 				}
-				rascsi_image.SetDepth(scan_depth);
+				rascsi_image.SetDepth(depth);
 				continue;
 
 			case 'n':
@@ -1489,7 +1489,7 @@ static void *MonThread(void *param)
 				case SERVER_INFO: {
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
 							result, devices, reserved_ids, current_log_level, GetParam(command, "filename_pattern"),
-							scan_depth));
+							rascsi_image.GetDepth()));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1508,7 +1508,7 @@ static void *MonThread(void *param)
 
 				case DEFAULT_IMAGE_FILES_INFO: {
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							GetParam(command, "filename_pattern"), scan_depth));
+							GetParam(command, "filename_pattern"), rascsi_image.GetDepth()));
 					SerializeMessage(fd, result);
 					break;
 				}
