@@ -216,7 +216,10 @@ int main(int argc, char* argv[])
 
 			case 'e':
 				command.set_operation(DEFAULT_IMAGE_FILES_INFO);
-				break;
+                if (optarg) {
+                	SetPatternParams(command, optarg);
+                }
+                break;
 
 			case 'F':
 				command.set_operation(DEFAULT_FOLDER);
