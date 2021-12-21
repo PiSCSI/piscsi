@@ -217,7 +217,7 @@ bool RascsiImage::DeleteImage(int fd, const PbCommand& command)
 	filepath.SetPath(full_filename.c_str());
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 		ostringstream msg;
-		msg << "Can't delete image file '" << full_filename << "', it is used by device ID " << id << ", unit " << unit;
+		msg << "Can't delete image file '" << full_filename << "', it is currently being used by device ID " << id << ", unit " << unit;
 		return ReturnStatus(fd, false, msg.str());
 	}
 
