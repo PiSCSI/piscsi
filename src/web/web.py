@@ -927,6 +927,15 @@ def unzip():
     return redirect(url_for("index"))
 
 
+@APP.before_first_request
+def load_default_config():
+    """
+    Load the default configuration file, if found
+    """
+    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
+        read_config(DEFAULT_CONFIG)
+
+
 if __name__ == "__main__":
     APP.secret_key = "rascsi_is_awesome_insecure_secret_key"
     APP.config["SESSION_TYPE"] = "filesystem"
@@ -951,10 +960,6 @@ if __name__ == "__main__":
         )
     args = parser.parse_args()
     APP.config["TOKEN"] = args.password
-
-    # Load the default configuration file, if found
-    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
-        read_config(DEFAULT_CONFIG)
 
     import bjoern
     print("Serving rascsi-web...")
