@@ -1430,6 +1430,11 @@ static void *MonThread(void *param)
 			PbCommand command;
 			DeserializeMessage(context.fd, command);
 
+			context.locale = GetParam(command, "locale");
+			if (context.locale.empty()) {
+				context.locale = "en";
+			}
+
 			if (!access_token.empty()) {
 				if (access_token != GetParam(command, "token")) {
 					ReturnStatus(context, false, "Authentication failed", PbErrorCode::UNAUTHORIZED);
