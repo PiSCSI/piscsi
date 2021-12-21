@@ -175,9 +175,8 @@ enum PbOperation {
 // The operation parameter meta data. The parameter data type is provided by the protobuf API.
 message PbOperationParameter {
     string name = 1;
-    // Optional short localized description, key is the lower case locale (e.g. en, de).
-    // Falling back to "en" is recommended if a description for a particular language is missing.
-    map<string, string> description = 2;
+    // Optional short description
+    string description = 2;
     // There is no specific set of permitted values if empty
     repeated string permitted_values = 3;
     // Optional default value
@@ -190,9 +189,8 @@ message PbOperationParameter {
 message PbOperationMetaData {
     // The operation name at the time the server-side protobuf code was generated.
     string server_side_name = 1;
-    // Optional short localized description, key is the lower case locale (e.g. en, de).
-    // Falling back to "en" is recommended if a description for a particular language is missing.
-    map<string, string> description = 2;
+    // Optional short description
+    string description = 2;
     repeated PbOperationParameter parameters = 3;
 }
 

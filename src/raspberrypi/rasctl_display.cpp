@@ -298,7 +298,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 		if (!operation.second.server_side_name().empty()) {
 			cout << "  " << operation.first;
 			if (!operation.second.description().empty()) {
-				cout << " (" << operation.second.description().at("en") << ")";
+				cout << " (" << operation.second.description() << ")";
 			}
 			cout << endl;
 
@@ -306,7 +306,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 				cout << "    " << parameter.name() << ": "
 					<< (parameter.is_mandatory() ? "mandatory" : "optional");
 				if (!parameter.description().empty()) {
-					cout << " (" << parameter.description().at("en") << ")";
+					cout << " (" << parameter.description() << ")";
 				}
 				cout << endl;
 

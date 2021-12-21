@@ -513,7 +513,7 @@ void RascsiResponse::CreateOperation(PbOperationInfo *operation_info, PbOperatio
 		const PbOperation& operation, const string& description)
 {
 	meta_data->set_server_side_name(PbOperation_Name(operation));
-	(*meta_data->mutable_description())["en"] = description;
+	meta_data->set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
 	(*operation_info->mutable_operations())[ordinal] = *meta_data;
 }
@@ -523,7 +523,7 @@ PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData 
 {
 	PbOperationParameter *parameter = meta_data->add_parameters();
 	parameter->set_name(name);
-	(*parameter->mutable_description())["en"] = description;
+	parameter->set_description(description);
 	parameter->set_default_value(default_value);
 	parameter->set_is_mandatory(is_mandatory);
 
