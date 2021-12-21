@@ -293,7 +293,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 		}
 	}
 
-	cout << "Remote operations supported by rascsi and their parameters:" << endl;
+	cout << "Operations supported by rascsi server and their parameters:" << endl;
 	for (const auto& operation : sorted_operations) {
 		if (!operation.second.server_side_name().empty()) {
 			cout << "  " << operation.first;
