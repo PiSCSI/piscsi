@@ -40,7 +40,7 @@ public:
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 	PbMappingInfo *GetMappingInfo(PbResult&);
 	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
-	PbOperationInfo *GetOperationInfo(PbResult&);
+	PbOperationInfo *GetOperationInfo(PbResult&, int);
 
 private:
 

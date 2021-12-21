@@ -304,7 +304,7 @@ PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Devic
 	server_info->set_allocated_mapping_info(GetMappingInfo(result));
 	GetDevices(*server_info, devices);
 	server_info->set_allocated_reserved_ids_info(GetReservedIds(result, reserved_ids));
-	server_info->set_allocated_operation_info(GetOperationInfo(result));
+	server_info->set_allocated_operation_info(GetOperationInfo(result, scan_depth));
 
 	result.set_status(true);
 
@@ -365,7 +365,7 @@ PbMappingInfo *RascsiResponse::GetMappingInfo(PbResult& result)
 	return mapping_info;
 }
 
-PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
+PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int scan_depth)
 {
 	PbOperationInfo *operation_info = new PbOperationInfo();
 
@@ -400,7 +400,10 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 	CreateOperation(operation_info, meta_data, UNPROTECT, "Unprotect medium, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
-	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
+	if (scan_depth) {
+		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering folder names");
+	}
+	AddOperationParameter(meta_data, "file_pattern", "Pattern for filtering image file names");
 	CreateOperation(operation_info, meta_data, SERVER_INFO, "Get rascsi server information");
 
 	meta_data = new PbOperationMetaData();
@@ -414,6 +417,10 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result)
 
 	meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "filename_pattern", "Pattern for filtering image file names");
+	if (scan_depth) {
+		AddOperationParameter(meta_data, "folder_pattern", "Pattern for filtering folder names");
+	}
+	AddOperationParameter(meta_data, "file_pattern", "Pattern for filtering image file names");
 	CreateOperation(operation_info, meta_data, DEFAULT_IMAGE_FILES_INFO, "Get information on available image files");
 
 	meta_data = new PbOperationMetaData();

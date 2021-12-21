@@ -1545,7 +1545,7 @@ static void *MonThread(void *param)
 				}
 
 				case OPERATION_INFO: {
-					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result));
+					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result, scan_depth));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1597,7 +1597,7 @@ int main(int argc, char* argv[])
 
 	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
 	PbResult pb_operation_info_result;
-	rascsi_response.GetOperationInfo(pb_operation_info_result);
+	rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
 
 	int actid;
 	BUS::phase_t phase;

@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "e::lmsvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:P::R:")) != -1) {
+	while ((opt = getopt(argc, argv, "e::lmosvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
