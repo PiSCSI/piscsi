@@ -83,15 +83,8 @@ function installPackages() {
 function compileRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
-    # Compiler flags needed for gcc v10 and up
-    if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
-        echo -n "gcc 10 or later detected. Will compile with the following flags: "
-        COMPILER_FLAGS="-DFMT_HEADER_ONLY"
-        echo $COMPILER_FLAGS
-    fi
-
     echo "Compiling with ${CORES:-1} simultaneous cores..."
-    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+    ( make clean && make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
 }
 
 # install the RaSCSI binaries and modify the service configuration
@@ -680,7 +673,7 @@ function installMacproxy {
 
     ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
-    MACPROXY_VER="21.12.1"
+    MACPROXY_VER="21.12.2"
     MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
     if [ -d "$MACPROXY_PATH" ]; then
         echo "The $MACPROXY_PATH directory already exists. Delete it to proceed with the installation."

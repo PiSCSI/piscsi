@@ -62,6 +62,8 @@ OPTIONS
        -m     List  all  file  extensions  recognized by RaSCSI and the device
               types they map to.
 
+       -o     Display operation meta data information.
+
        -R CURRENT_NAME:NEW_NAME
               Rename an image file in the default image folder.
 

@@ -840,7 +840,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	BOOL ret = WaitSignal(PIN_ACK, TRUE);
 
 	// Wait until the signal line stabilizes
-	SysTimer::SleepNsec(GPIO_DATA_SETTLING);
+	SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 	// Get data
 	*buf = GetDAT();
@@ -874,7 +874,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		ret = WaitSignal(PIN_ACK, TRUE);
 
 		// Wait until the signal line stabilizes
-		SysTimer::SleepNsec(GPIO_DATA_SETTLING);
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 		// Get data
 		*buf = GetDAT();
@@ -930,7 +930,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			ret = WaitSignal(PIN_ACK, TRUE);
 
 			// Wait until the signal line stabilizes
-			SysTimer::SleepNsec(GPIO_DATA_SETTLING);
+			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 			// Get data
 			*buf = GetDAT();
@@ -973,7 +973,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			}
 
 			// Wait until the signal line stabilizes
-			SysTimer::SleepNsec(GPIO_DATA_SETTLING);
+			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 			// Get data
 			*buf = GetDAT();
