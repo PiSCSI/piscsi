@@ -76,6 +76,10 @@ bool RascsiImage::CreateImageFolder(int fd, const string& filename)
 
 string RascsiImage::SetDefaultImageFolder(const string& f)
 {
+	if (f.empty()) {
+		return "Can't set default image folder: Missing folder name";
+	}
+
 	string folder = f;
 
 	// If a relative path is specified the path is assumed to be relative to the user's home directory

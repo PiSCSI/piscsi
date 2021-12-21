@@ -1459,13 +1459,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					string folder = GetParam(command, "folder");
-					if (folder.empty()) {
-						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
-						break;
-					}
-
-					string result = rascsi_image.SetDefaultImageFolder(folder);
+					string result = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder"));
 					if (!result.empty()) {
 						ReturnStatus(fd, false, result);
 					}
