@@ -19,7 +19,8 @@ using namespace std;
 
 enum LocalizationKey {
 	ERROR_AUTHENTICATION,
-	ERROR_OPERATION
+	ERROR_OPERATION,
+	ERROR_LOG_LEVEL
 };
 
 class Localizer

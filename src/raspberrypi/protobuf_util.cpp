@@ -123,6 +123,12 @@ int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
 }
 
 bool protobuf_util::ReturnLocalizedError(const CommandContext& context, LocalizationKey key,
+		const string& arg1, const string& arg2, const string& arg3)
+{
+	return ReturnLocalizedError(context, key, NO_ERROR_CODE, arg1, arg2, arg3);
+}
+
+bool protobuf_util::ReturnLocalizedError(const CommandContext& context, LocalizationKey key,
 		const PbErrorCode error_code, const string& arg1, const string& arg2, const string& arg3)
 {
 	// For the logfile always use English

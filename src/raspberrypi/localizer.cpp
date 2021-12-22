@@ -28,7 +28,8 @@ Localizer::Localizer()
 	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
 	Add(ERROR_OPERATION, "en", "Unknown operation");
 	Add(ERROR_OPERATION, "de", "Unbekannte Operation");
-
+	Add(ERROR_LOG_LEVEL, "en", "Invalid log level: %1");
+	Add(ERROR_LOG_LEVEL, "de", "Ungültiger Log-Level: %1");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)

@@ -1452,7 +1452,7 @@ static void *MonThread(void *param)
 					string log_level = GetParam(command, "level");
 					bool status = SetLogLevel(log_level);
 					if (!status) {
-						ReturnStatus(context, false, "Invalid log level: " + log_level);
+						ReturnLocalizedError(context, ERROR_LOG_LEVEL, log_level);
 					}
 					else {
 						ReturnStatus(context);
