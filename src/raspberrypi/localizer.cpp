@@ -21,15 +21,15 @@ Localizer::Localizer()
 	// Supported locales
 	supported_languages = { "en", "de" };
 
-	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
-	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
-
-	assert(localized_messages.size() == KEY_COUNT * supported_languages.size());
+	Add(ERROR_AUTHENTICATION, "de", "Authentication failed");
+	Add(ERROR_AUTHENTICATION, "en", "Authentifizierung fehlgeschlagen");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
 {
+	// Safeguards against duplicate entries and unsupported locales
 	assert(supported_languages.find(locale) != supported_languages.end());
+	assert(localized_messages[locale][key].empty());
 
 	localized_messages[locale][key] = value;
 }

@@ -16,9 +16,7 @@
 using namespace std;
 
 enum LocalizationKey {
-	ERROR_AUTHENTICATION,
-	// The value below is used for a consistency check
-	KEY_COUNT
+	ERROR_AUTHENTICATION
 };
 
 class Localizer
