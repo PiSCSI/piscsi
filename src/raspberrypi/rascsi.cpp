@@ -896,7 +896,10 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	LOGINFO("%s", s.str().c_str());
 
 	// Check the Controller Number
-	if (id < 0 || id >= CtrlMax) {
+	if (id < 0) {
+		return ReturnStatus(context, false, "Missing device ID");
+	}
+	if (id >= CtrlMax) {
 		error << "Invalid device ID " << id << " (0-" << CtrlMax - 1 << ")";
 		return ReturnStatus(context, false, error);
 	}
