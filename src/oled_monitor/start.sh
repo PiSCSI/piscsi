@@ -90,7 +90,10 @@ fi
 source venv/bin/activate
 
 # Detect if someone updates the git repo - we need to re-run pip3 install.
-if [ -d "../../.git" ]; then
+set +e
+git rev-parse --is-inside-work-tree &> /dev/null
+if [[ $? -eq 0 ]]; then
+    set -e
     if ! test -e current; then
         git rev-parse > current
     elif [ "$(cat current)" != "$(git rev-parse HEAD)" ]; then
@@ -98,7 +101,10 @@ if [ -d "../../.git" ]; then
         CFLAGS="$COMPILER_FLAGS" pip3 install -r requirements.txt
         git rev-parse HEAD > current
     fi
+else
+    echo "Warning: Not running from a valid git repository. Will not be able to update the code."
 fi
+set -e
 
 # parse arguments
 while [ "$1" != "" ]; do
