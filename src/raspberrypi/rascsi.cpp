@@ -625,13 +625,13 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
 				delete device;
 
-				return ReturnStatus(context, false, "Invalid block size "+ to_string(pb_device.block_size()) + " bytes");
+				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
 			delete device;
 
-			return ReturnStatus(context, false, "Block size is not configurable for device type " + PbDeviceType_Name(type));
+			return ReturnLocalizedError(context, ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, PbDeviceType_Name(type));
 		}
 	}
 
@@ -652,8 +652,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 			delete device;
 
-			return ReturnStatus(context, false, "Image file '" + filename + "' is already being used by ID " +
-					to_string(id) + ", unit " + to_string(unit));
+			return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 		}
 
 		try {
@@ -667,8 +666,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 					delete device;
 
-					return ReturnStatus(context, false, "Image file '" + filename + "' is already being used by ID "
-							+ to_string(id) + ", unit " + to_string(unit));
+					return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 				}
 
 				file_support->Open(filepath);
@@ -791,8 +789,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	string initial_filename = filepath.GetPath();
 
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		return ReturnStatus(context, false, "Image file '" + filename + "' is already being used by ID " + to_string(id) + ", unit " +
-				to_string(unit));
+		return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 	}
 
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
@@ -805,15 +802,14 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
 			if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-				return ReturnStatus(context, false, "Image file '" + filename + "' is already being used by ID " +
-						to_string(id) + ", unit " + to_string(unit));
+				return ReturnLocalizedError(context, ERROR_IMAGE_IN_USE, filename, to_string(id), to_string(unit));
 			}
 
 			file_support->Open(filepath);
 		}
 	}
 	catch(const io_exception& e) {
-		return ReturnStatus(context, false, "Tried to open an invalid or non-existing file '" + initial_filename + "': " + e.getmsg());
+		return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.getmsg());
 	}
 
 	file_support->ReserveFile(filepath, device->GetId(), device->GetLun());

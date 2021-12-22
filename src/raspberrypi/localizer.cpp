@@ -32,6 +32,8 @@ Localizer::Localizer()
 	Add(ERROR_MISSING_DEVICE_ID, "de", "Fehlende Geräte-ID");
 	Add(ERROR_MISSING_FILENAME, "en", "Missing filename");
 	Add(ERROR_MISSING_FILENAME, "de", "Fehlender Dateiname");
+	Add(ERROR_IMAGE_IN_USE, "en", "Image file '%1' is already being used by ID %2, unit %3");
+	Add(ERROR_IMAGE_IN_USE, "de", "Image-Datei '%1' wird bereits von ID %2, Einheit %3 benutzt");
 	Add(ERROR_RESERVED_ID, "en", "Device ID %1 is reserved");
 	Add(ERROR_RESERVED_ID, "de", "Geräte-ID %1 ist reserviert");
 	Add(ERROR_NON_EXISTING_DEVICE, "en", "Command for non-existing ID %1");
