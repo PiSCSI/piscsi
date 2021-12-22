@@ -36,5 +36,5 @@ namespace protobuf_util
 	bool ReturnLocalizedError(const CommandContext&, LocalizationKey, const PbErrorCode, const string& = "",
 			const string& = "", const string& = "");
 	bool ReturnStatus(const CommandContext&, bool = true, const string& = "",
-			const PbErrorCode = PbErrorCode::NO_ERROR_CODE);
+			const PbErrorCode = PbErrorCode::NO_ERROR_CODE, bool = true);
 }

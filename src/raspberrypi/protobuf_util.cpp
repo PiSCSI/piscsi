@@ -136,17 +136,18 @@ bool protobuf_util::ReturnLocalizedError(const CommandContext& context, Localiza
 
 	// For the rascsi console (no remote interface) always use English
 	if (context.fd == -1) {
-		return ReturnStatus(context, false, localizer.Localize(key, "en", arg1, arg2, arg3), error_code);
+		return ReturnStatus(context, false, localizer.Localize(key, "en", arg1, arg2, arg3), error_code, false);
 	}
 	else {
-		return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code);
+		return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code, false);
 	}
 }
 
 bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const string& msg,
-		const PbErrorCode error_code)
+		const PbErrorCode error_code, bool log)
 {
-	if (!status && !msg.empty()) {
+	// Do not log twice if logging has already been done in the localized error handling above
+	if (log && !status && !msg.empty()) {
 		LOGERROR("%s", msg.c_str());
 	}
 
