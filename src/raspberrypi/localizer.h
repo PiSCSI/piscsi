@@ -10,12 +10,15 @@
 #pragma once
 
 #include <string>
+#include <set>
 #include <map>
 
 using namespace std;
 
 enum LocalizationKey {
-	ERROR_AUTHENTICATION
+	ERROR_AUTHENTICATION,
+	// The value below is used for a consistency check
+	KEY_COUNT
 };
 
 class Localizer
@@ -29,6 +32,8 @@ public:
 
 private:
 
-	void Add(const LocalizationKey, const string&, const string&);
-	map<LocalizationKey, map<string, string>> localized_messages;
+	void Add(LocalizationKey, const string&, const string&);
+	map<string, map<LocalizationKey, string>> localized_messages;
+
+	set<string> supported_languages;
 };

@@ -18,23 +18,37 @@ using namespace std;
 
 Localizer::Localizer()
 {
+	// Supported locales
+	supported_languages = { "en", "de" };
+
 	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
 	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
+
+	assert(localized_messages.size() == KEY_COUNT * supported_languages.size());
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
 {
-	localized_messages[key][locale] = value;
+	assert(supported_languages.find(locale) != supported_languages.end());
+
+	localized_messages[locale][key] = value;
 }
 
 string Localizer::Localize(LocalizationKey key, const string& locale)
 {
-	map<string, string> messages = localized_messages[key];
+	map<LocalizationKey, string> messages = localized_messages[locale];
+	if (messages.empty()) {
+		messages = localized_messages["en"];
+	}
+
+	assert(!messages.empty());
+
+	string message = messages[key];
 	if (messages.empty()) {
 		stringstream s;
 		s << "Missing localization for enum value " << key;
 		return s.str();
 	}
 
-	return messages[locale];
+	return message;
 }
