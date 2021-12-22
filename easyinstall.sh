@@ -57,6 +57,7 @@ HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
+TOKEN=""
 
 set -e
 
@@ -84,7 +85,7 @@ function compileRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
     echo "Compiling with ${CORES:-1} simultaneous cores..."
-    ( make clean && make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+    #( make clean && make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
 }
 
 # install the RaSCSI binaries and modify the service configuration
@@ -255,7 +256,27 @@ function backupRaScsiService() {
 
 # Modifies and installs the rascsi service
 function enableRaScsiService() {
-    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
+    echo ""
+    echo "Do you want to enable token-based access control for RaSCSI? [y/N]"
+    read REPLY
+
+    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+        echo -n "Enter the passphrase that you want to use: "
+        read -r TOKEN
+        if [ -f "$HOME/.rascsi_secret" ]; then
+            sudo rm "$HOME/.rascsi_secret"
+            echo "Removed old RaSCSI token file"
+        fi
+        echo "$TOKEN" > "$HOME/.rascsi_secret"
+        sudo chown root:root "$HOME/.rascsi_secret"
+        sudo chmod 700 "$HOME/.rascsi_secret"
+        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH -P $HOME/.rascsi_secret@" "$SYSTEMD_PATH/rascsi.service"
+        sudo chmod 700 "$SYSTEMD_PATH/rascsi.service"
+        echo "Configured to use $HOME/.rascsi_secret to secure RaSCSI. This file is readable by root only."
+        echo "Make note of your passphrase; you will need it to use rasctl, and other RaSCSI clients."
+    else
+        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
+    fi
     echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 
     sudo systemctl daemon-reload
@@ -270,7 +291,14 @@ function installWebInterfaceService() {
     echo "Installing the rascsi-web.service configuration..."
     sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" "$SYSTEMD_PATH/rascsi-web.service"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-web.service"
-    sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/rascsi-web.service"
+    echo "$TOKEN"
+    if [ ! -z "$TOKEN" ]; then
+        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/rascsi-web.service"
+        sudo chmod 700 "$SYSTEMD_PATH/rascsi-web.service"
+        echo "Granted access to the Web Interface with the token passphrase that you configured for RaSCSI."
+    else
+        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/rascsi-web.service"
+    fi
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
