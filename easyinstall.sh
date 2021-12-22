@@ -177,7 +177,7 @@ function installRaScsiScreen() {
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/monitor_rascsi.service"
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/monitor_rascsi.service"
-        sudo chmod 700 "$SYSTEMD_PATH/monitor_rascsi.service"
+        sudo chmod 600 "$SYSTEMD_PATH/monitor_rascsi.service"
         echo "Granted access to the OLED Monitor with the token passphrase that you configured for RaSCSI."
     else
         sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/monitor_rascsi.service"
@@ -283,9 +283,9 @@ function enableRaScsiService() {
         fi
         echo "$TOKEN" > "$HOME/.rascsi_secret"
         sudo chown root:root "$HOME/.rascsi_secret"
-        sudo chmod 700 "$HOME/.rascsi_secret"
+        sudo chmod 600 "$HOME/.rascsi_secret"
         sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH -P $HOME/.rascsi_secret@" "$SYSTEMD_PATH/rascsi.service"
-        sudo chmod 700 "$SYSTEMD_PATH/rascsi.service"
+        sudo chmod 600 "$SYSTEMD_PATH/rascsi.service"
         echo "Configured to use $HOME/.rascsi_secret to secure RaSCSI. This file is readable by root only."
         echo "Make note of your passphrase; you will need it to use rasctl, and other RaSCSI clients."
     else
@@ -308,7 +308,7 @@ function installWebInterfaceService() {
     echo "$TOKEN"
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/rascsi-web.service"
-        sudo chmod 700 "$SYSTEMD_PATH/rascsi-web.service"
+        sudo chmod 600 "$SYSTEMD_PATH/rascsi-web.service"
         echo "Granted access to the Web Interface with the token passphrase that you configured for RaSCSI."
     else
         sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/rascsi-web.service"
