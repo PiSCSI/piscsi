@@ -28,8 +28,12 @@ Localizer::Localizer()
 	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
 	Add(ERROR_OPERATION, "en", "Unknown operation");
 	Add(ERROR_OPERATION, "de", "Unbekannte Operation");
-	Add(ERROR_LOG_LEVEL, "en", "Invalid log level: %1");
-	Add(ERROR_LOG_LEVEL, "de", "Ungültiger Log-Level: %1");
+	Add(ERROR_LOG_LEVEL, "en", "Invalid log level %1");
+	Add(ERROR_LOG_LEVEL, "de", "Ungültiger Log-Level %1");
+	Add(ERROR_UNKNOWN_DEVICE_TYPE, "en", "Unknown device type %1");
+	Add(ERROR_UNKNOWN_DEVICE_TYPE, "de", "Unbekannter Gerätetyp %1");
+	Add(ERROR_MISSING_DEVICE_TYPE, "en", "Device type required for unknown extension of file '%1'");
+	Add(ERROR_MISSING_DEVICE_TYPE, "de", "Gerätetyp erforderlich für unbekannte Extension der Datei '%1'");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)

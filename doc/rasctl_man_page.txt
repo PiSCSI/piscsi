@@ -6,21 +6,11 @@ NAME
        rasctl - Sends management commands to the rascsi process
 
 SYNOPSIS
-<<<<<<< HEAD
-<<<<<<< HEAD
        rasctl -e | -l | -m | -o | -s | -v | -D | -I | -L | -O | -P | -T | -V |
        -X | [-C FILENAME:FILESIZE] [-E FILENAME] [-F  IMAGE_FOLDER]  [-R  CUR‐
-=======
-       rasctl -e | -l | -m | -s | -v | -D | -I | -L | -O | -P | -T | -V | -X |
-       [-C  FILENAME:FILESIZE]  [-E  FILENAME]  [-F  IMAGE_FOLDER]  [-R   CUR‐
->>>>>>> feature_file_operations_with_folders
-=======
-       rasctl -e | -l | -m | -o | -s | -v | -D | -I | -L | -O | -P | -T | -V |
-       -X | [-C FILENAME:FILESIZE] [-E FILENAME] [-F  IMAGE_FOLDER]  [-R  CUR‐
->>>>>>> develop
        RENT_NAME:NEW_NAME]  [-c  CMD] [-f FILE|PARAM] [-g LOG_LEVEL] [-h HOST]
        [-i ID [-n NAME] [-p PORT] [-r RESERVED_IDS] [-t TYPE]  [-u  UNIT]  [-x
-       CURRENT_NAME:NEW_NAME]
+       CURRENT_NAME:NEW_NAME] [-z LOCALE]
 
 DESCRIPTION
        rasctl  Sends  commands to the rascsi process to make configuration ad‐
@@ -99,6 +89,9 @@ OPTIONS
 
        -x CURRENT_NAME:NEW_NAME
               Copy an image file in the default image folder.
+
+       -z LOCALE
+              The locale for error messages.
 
        -i ID  ID is the SCSI ID that you want to control. (0-7)
 

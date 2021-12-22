@@ -575,10 +575,10 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	Device *device = device_factory.CreateDevice(type, filename);
 	if (!device) {
 		if (type == UNDEFINED) {
-			return ReturnStatus(context, false, "Device type required for unknown extension of file '" + filename + "'");
+			return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_TYPE, filename);
 		}
 		else {
-			return ReturnStatus(context, false, "Unknown device type " + PbDeviceType_Name(type));
+			return ReturnLocalizedError(context, ERROR_UNKNOWN_DEVICE_TYPE, PbDeviceType_Name(type));
 		}
 	}
 

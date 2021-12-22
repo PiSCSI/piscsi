@@ -152,11 +152,12 @@ int main(int argc, char* argv[])
 	string image_params;
 	string filename;
 	string token;
+	string locale;
 	bool list = false;
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:P::R:")) != -1) {
+	while ((opt = getopt(argc, argv, "e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:z:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -350,6 +351,10 @@ int main(int argc, char* argv[])
 				command.set_operation(SHUT_DOWN);
 				AddParam(command, "mode", "rascsi");
 				break;
+
+			case 'z':
+				locale = optarg;
+				break;
 		}
 	}
 
@@ -361,7 +366,7 @@ int main(int argc, char* argv[])
 	if (list) {
 		PbCommand command_list;
 		command_list.set_operation(DEVICES_INFO);
-		RasctlCommands rasctl_commands(command_list, hostname, port, token);
+		RasctlCommands rasctl_commands(command_list, hostname, port, token, locale);
 		rasctl_commands.CommandDevicesInfo();
 		exit(EXIT_SUCCESS);
 	}
@@ -372,7 +377,7 @@ int main(int argc, char* argv[])
 		AddParam(*device, "file", param);
 	}
 
-	RasctlCommands rasctl_commands(command, hostname, port, token);
+	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
 
 	switch(command.operation()) {
 		case LOG_LEVEL:

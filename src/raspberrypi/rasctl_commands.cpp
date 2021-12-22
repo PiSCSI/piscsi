@@ -25,18 +25,24 @@ using namespace std;
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port, const string& token)
+RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port, const string& token,
+		const string& locale)
 {
 	this->command = command;
 	this->hostname = hostname;
 	this->port = port;
 	this->token = token;
+	this->locale = locale;
 }
 
 void RasctlCommands::SendCommand()
 {
 	if (!token.empty()) {
 		AddParam(command, "token", token);
+	}
+
+	if (!locale.empty()) {
+		AddParam(command, "locale", locale);
 	}
 
 	// Send command
