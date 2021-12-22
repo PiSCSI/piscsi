@@ -36,6 +36,8 @@ Localizer::Localizer()
 	Add(ERROR_UNKNOWN_DEVICE_TYPE, "de", "Unbekannter Gerätetyp %1");
 	Add(ERROR_MISSING_DEVICE_TYPE, "en", "Device type required for unknown extension of file '%1'");
 	Add(ERROR_MISSING_DEVICE_TYPE, "de", "Gerätetyp erforderlich für unbekannte Extension der Datei '%1'");
+	Add(ERROR_DUPLICATE_ID, "en", "Duplicate ID %1, unit %2");
+	Add(ERROR_DUPLICATE_ID, "de", "Doppelte ID %1, Einheit %2");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)

@@ -442,10 +442,7 @@ string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existi
 		}
 
 		if (!is_consecutive) {
-			ostringstream error;
-			error << "LUNs for device ID " << id << " are not consecutive";
-
-			return error.str();
+			return "LUNs for device ID " + to_string(id) + " are not consecutive";
 		}
 	}
 
@@ -562,11 +559,9 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	const int id = pb_device.id();
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
-	ostringstream error;
 
 	if (map[id * UnitNum + unit]) {
-		error << "Duplicate ID " << id << ", unit " << unit;
-		return ReturnStatus(context, false, error);
+		return ReturnLocalizedError(context, ERROR_DUPLICATE_ID, to_string(id), to_string(unit));
 	}
 
 	string filename = GetParam(pb_device, "file");
@@ -586,6 +581,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (unit >= supported_luns) {
 		delete device;
 
+		ostringstream error;
 		error << "Invalid unit " << unit << " for device type " << PbDeviceType_Name(type);
 		if (supported_luns == 1) {
 			error << " (0)";
@@ -629,8 +625,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
 				delete device;
 
-				error << "Invalid block size " << pb_device.block_size() << " bytes";
-				return ReturnStatus(context, false, error);
+				return ReturnStatus(context, false, "Invalid block size "+ to_string(pb_device.block_size()) + " bytes");
 			}
 		}
 		else {
@@ -657,8 +652,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 			delete device;
 
-			error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
-			return ReturnStatus(context, false, error);
+			return ReturnStatus(context, false, "Image file '" + filename + "' is already being used by ID " +
+					to_string(id) + ", unit " + to_string(unit));
 		}
 
 		try {
@@ -672,8 +667,8 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 				if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
 					delete device;
 
-					error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
-					return ReturnStatus(context, false, error);
+					return ReturnStatus(context, false, "Image file '" + filename + "' is already being used by ID "
+							+ to_string(id) + ", unit " + to_string(unit));
 				}
 
 				file_support->Open(filepath);
@@ -703,11 +698,10 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	std::map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	if (!device->Init(params)) {
-		error << "Initialization of " << device->GetType() << " device, ID " << id << ", unit " << unit << " failed";
-
 		delete device;
 
-		return ReturnStatus(context, false, error);
+		return ReturnStatus(context, false, "Initialization of " + device->GetType() + " device, ID " +to_string(id) +
+				", unit " +to_string(unit) + " failed");
 	}
 
 	// Replace with the newly created unit
@@ -782,9 +776,8 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		Disk *disk = dynamic_cast<Disk *>(device);
 		if (disk && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				ostringstream error;
-				error << "Invalid block size " << pb_device.block_size() << " bytes";
-				return ReturnStatus(context, false, error);
+				return ReturnStatus(context, false, "Invalid block size " + to_string(pb_device.block_size()) +
+						" bytes");
 			}
 		}
 		else {
@@ -799,9 +792,8 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	string initial_filename = filepath.GetPath();
 
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		ostringstream error;
-		error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
-		return ReturnStatus(context, false, error);
+		return ReturnStatus(context, false, "Image file '" + filename + "' is already being used by ID " + to_string(id) + ", unit " +
+				to_string(unit));
 	}
 
 	FileSupport *file_support = dynamic_cast<FileSupport *>(device);
@@ -814,9 +806,8 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 			filepath.SetPath((rascsi_image.GetDefaultImageFolder() + "/" + filename).c_str());
 
 			if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-				ostringstream error;
-				error << "Image file '" << filename << "' is already used by ID " << id << ", unit " << unit;
-				return ReturnStatus(context, false, error);
+				return ReturnStatus(context, false, "Image file '" + filename + "' is already being used by ID " +
+						to_string(id) + ", unit " + to_string(unit));
 			}
 
 			file_support->Open(filepath);
@@ -900,19 +891,16 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		return ReturnStatus(context, false, "Missing device ID");
 	}
 	if (id >= CtrlMax) {
-		error << "Invalid device ID " << id << " (0-" << CtrlMax - 1 << ")";
-		return ReturnStatus(context, false, error);
+		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-" + to_string(CtrlMax - 1) + ")");
 	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
-		error << "Device ID " << id << " is reserved";
-		return ReturnStatus(context, false, error);
+		return ReturnStatus(context, false, "Device ID " + to_string(id) + " is reserved");
 	}
 
 	// Check the Unit Number
 	if (unit < 0 || unit >= UnitNum) {
-		error << "Invalid unit " << unit << " (0-" << UnitNum - 1 << ")";
-		return ReturnStatus(context, false, error);
+		return ReturnStatus(context, false, "Invalid unit " + to_string(unit) + " (0-" + to_string(UnitNum - 1) + ")");
 	}
 
 	// Copy the devices
@@ -927,15 +915,14 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 	// Does the controller exist?
 	if (!dryRun && !controllers[id]) {
-		error << "Received a command for non-existing ID " << id;
-		return ReturnStatus(context, false, error);
+		return ReturnStatus(context, false, "Received a command for non-existing ID " + to_string(id));
 	}
 
 	// Does the unit exist?
 	Device *device = devices[id * UnitNum + unit];
 	if (!device) {
-		error << "Received a command for a non-existing device or unit, ID " << id << ", unit " << unit;
-		return ReturnStatus(context, false, error);
+		return ReturnStatus(context, false, "Received a command for a non-existing device or unit, ID " + to_string(id) +
+				", unit " + to_string(unit));
 	}
 
 	if (operation == DETACH) {
