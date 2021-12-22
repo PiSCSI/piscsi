@@ -91,7 +91,7 @@ OPTIONS
               Copy an image file in the default image folder.
 
        -z LOCALE
-              The locale for error messages.
+              Overrides the default locale for error messages.
 
        -i ID  ID is the SCSI ID that you want to control. (0-7)
 
