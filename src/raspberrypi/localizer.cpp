@@ -54,8 +54,10 @@ Localizer::Localizer()
 	Add(ERROR_SHUTDOWN_MODE_MISSING, "de", "Fehlender Shutdown-Modus");
 	Add(ERROR_SHUTDOWN_MODE_INVALID, "en", "Invalid shutdown mode '%1'");
 	Add(ERROR_SHUTDOWN_MODE_INVALID, "de", "Ungültiger Shutdown-Modus '%1'");
-	Add(ERROR_SHUTDOWN_PERMISSION, "en", "Missing root permissions for shutdown or reboot");
+	Add(ERROR_SHUTDOWN_PERMISSION, "en", "Missing root permission for shutdown or reboot");
 	Add(ERROR_SHUTDOWN_PERMISSION, "de", "Fehlende Root-Berechtigung für Shutdown oder Neustart");
+	Add(ERROR_FILE_OPEN, "en", "Invalid or non-existing file '%1': %2");
+	Add(ERROR_FILE_OPEN, "de", "Ungültige oder fehlende Datei '%1': %2");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)

@@ -677,7 +677,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		catch(const io_exception& e) {
 			delete device;
 
-			return ReturnStatus(context, false, "Tried to open an invalid or non-existing file '" + initial_filename + "': " + e.getmsg());
+			return ReturnLocalizedError(context, ERROR_FILE_OPEN, initial_filename, e.getmsg());
 		}
 
 		file_support->ReserveFile(filepath, device->GetId(), device->GetLun());
