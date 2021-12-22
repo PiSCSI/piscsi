@@ -45,7 +45,7 @@ RascsiImage::RascsiImage()
 		default_image_folder = "/home/pi/images";
 	}
 
-	depth = 0;
+	depth = 1;
 }
 
 bool RascsiImage::CheckDepth(const string& filename)
@@ -181,7 +181,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': " + string(strerror(errno)));
 	}
 
-	if (fallocate(context.fd, 0, 0, len)) {
+	if (fallocate(image_fd, 0, 0, len)) {
 		close(image_fd);
 
 		unlink(full_filename.c_str());
@@ -252,7 +252,7 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 {
 	string from = GetParam(command, "from");
 	if (from.empty()) {
-		return ReturnStatus(context, false, "Can't rename image file: Missing source filename");
+		return ReturnStatus(context, false, "Can't rename/move image file: Missing source filename");
 	}
 
 	if (!CheckDepth(from)) {
@@ -261,12 +261,12 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 
 	from = default_image_folder + "/" + from;
 	if (!IsValidSrcFilename(from)) {
-		return ReturnStatus(context, false, "Can't rename image file: '" + from + "': Invalid name or type");
+		return ReturnStatus(context, false, "Can't rename/move image file: '" + from + "': Invalid name or type");
 	}
 
 	string to = GetParam(command, "to");
 	if (to.empty()) {
-		return ReturnStatus(context, false, "Can't rename image file '" + from + "': Missing destination filename");
+		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "': Missing destination filename");
 	}
 
 	if (!CheckDepth(to)) {
@@ -275,7 +275,7 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 
 	to = default_image_folder + "/" + to;
 	if (!IsValidDstFilename(to)) {
-		return ReturnStatus(context, false, "Can't rename image file '" + from + "' to '" + to + "': File already exists");
+		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "' to '" + to + "': File already exists");
 	}
 
 	if (!CreateImageFolder(context, to)) {
@@ -283,10 +283,10 @@ bool RascsiImage::RenameImage(const CommandContext& context, const PbCommand& co
 	}
 
 	if (rename(from.c_str(), to.c_str())) {
-		return ReturnStatus(context, false, "Can't rename image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
+		return ReturnStatus(context, false, "Can't rename/move image file '" + from + "' to '" + to + "': " + string(strerror(errno)));
 	}
 
-	LOGINFO("Renamed image file '%s' to '%s'", from.c_str(), to.c_str());
+	LOGINFO("Renamed/Moved image file '%s' to '%s'", from.c_str(), to.c_str());
 
 	return ReturnStatus(context);
 }
