@@ -161,7 +161,6 @@ int main(int argc, char* argv[])
 		locale = "en";
 	}
 
-	cerr << locale << endl;
 	opterr = 1;
 	int opt;
 	while ((opt = getopt(argc, argv, "e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:z:C:E:F:L:P::R:")) != -1) {
