@@ -16,7 +16,6 @@
 #include "devices/file_support.h"
 #include "protobuf_util.h"
 #include "rascsi_image.h"
-#include <sstream>
 #include <string>
 #include <filesystem>
 
@@ -162,9 +161,7 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 		return ReturnStatus(context, false, "Can't create image file '" + full_filename + "': Invalid file size " + size);
 	}
 	if (len < 512 || (len & 0x1ff)) {
-		ostringstream error;
-		error << "Invalid image file size " << len << " (not a multiple of 512)";
-		return ReturnStatus(context, false, error.str());
+		return ReturnStatus(context, false, "Invalid image file size " + to_string(len) + " (not a multiple of 512)");
 	}
 
 	if (!CreateImageFolder(context, full_filename)) {
@@ -191,9 +188,8 @@ bool RascsiImage::CreateImage(const CommandContext& context, const PbCommand& co
 
 	close(image_fd);
 
-	ostringstream msg;
-	msg << "Created " << (permissions & S_IWUSR ? "": "read-only ") << "image file '" << full_filename + "' with a size of " << len << " bytes";
-	LOGINFO("%s", msg.str().c_str());
+	LOGINFO("%s", string("Created " + string(permissions & S_IWUSR ? "": "read-only ") + "image file '" + full_filename +
+			"' with a size of " + to_string(len) + " bytes").c_str());
 
 	return ReturnStatus(context);
 }
@@ -216,9 +212,8 @@ bool RascsiImage::DeleteImage(const CommandContext& context, const PbCommand& co
 	Filepath filepath;
 	filepath.SetPath(full_filename.c_str());
 	if (FileSupport::GetIdsForReservedFile(filepath, id, unit)) {
-		ostringstream msg;
-		msg << "Can't delete image file '" << full_filename << "', it is currently being used by device ID " << id << ", unit " << unit;
-		return ReturnStatus(context, false, msg.str());
+		return ReturnStatus(context, false, "Can't delete image file '" + full_filename +
+				"', it is currently being used by device ID " + to_string(id) + ", unit " + to_string(unit));
 	}
 
 	if (remove(full_filename.c_str())) {
@@ -396,9 +391,8 @@ bool RascsiImage::SetImagePermissions(const CommandContext& context, const PbCom
 	int permissions = protect ? S_IRUSR | S_IRGRP | S_IROTH : S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
 
 	if (chmod(filename.c_str(), permissions) == -1) {
-		ostringstream error;
-		error << "Can't " << (protect ? "protect" : "unprotect") << " image file '" << filename << "': " << strerror(errno);
-		return ReturnStatus(context, false, error.str());
+		return ReturnStatus(context, false, "Can't " + string(protect ? "protect" : "unprotect") + " image file '" + filename + "': " +
+				strerror(errno));
 	}
 
 	if (protect) {
