@@ -13,12 +13,13 @@
 #include <map>
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
 Localizer::Localizer()
 {
-	// Supported locales
+	// Supported locales, always lower case
 	supported_languages = { "en", "de" };
 
 	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
@@ -39,11 +40,14 @@ void Localizer::Add(LocalizationKey key, const string& locale, const string& val
 
 string Localizer::Localize(LocalizationKey key, const string& locale)
 {
-	map<LocalizationKey, string> messages = localized_messages[locale];
+	string locale_lower = locale;
+	transform(locale_lower.begin(), locale_lower.end(), locale_lower.begin(), ::tolower);
+
+	map<LocalizationKey, string> messages = localized_messages[locale_lower];
 	if (messages.empty()) {
 		// Try to fall back to country-indepedent locale (e.g. "en" instead of "en_US")
-		if (locale.length() > 2) {
-			messages = localized_messages[locale.substr(0, 2)];
+		if (locale_lower.length() > 2) {
+			messages = localized_messages[locale_lower.substr(0, 2)];
 		}
 		if (messages.empty()) {
 			messages = localized_messages["en"];
