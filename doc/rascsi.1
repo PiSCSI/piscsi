@@ -58,7 +58,7 @@ The rascsi log level (trace, debug, info, warn, err, critical, off). The default
 Enable authentication and read the access token from the specified file. The access token file must be owned by root and must be readable by root only.
 .TP
 .BR \-R\fI " " \fISCAN_DEPTH
-Scan for image files recursively, up to a depth of SCAN_DEPTH. Be careful when using this option with many sub-folders in the default image folder.
+Scan for image files recursively, up to a depth of SCAN_DEPTH. Depth 0 means to ignore any folders within the default image filder. Be careful when using this option with many sub-folders in the default image folder. The default depth is 1.
 .TP
 .BR \-h\fI " " \fI
 Show a help page.
