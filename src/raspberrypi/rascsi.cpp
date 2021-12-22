@@ -1007,7 +1007,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 			break;
 
 		default:
-			return ReturnStatus(context, false, "Unknown operation");
+			return ReturnLocalizedError(context, ERROR_OPERATION);
 	}
 
 	return true;
@@ -1121,7 +1121,7 @@ bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
 
 void ShutDown(const CommandContext& context, const string& mode) {
 	if (mode.empty()) {
-		ReturnStatus(context, false, "Can't shut down: Missing shutdown mode");
+		ReturnLocalizedError(context, ERROR_SHUTDOWN_MODE_MISSING);
 		return;
 	}
 
@@ -1138,7 +1138,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 
 	// The root user has UID 0
 	if (getuid()) {
-		ReturnStatus(context, false, "Can't shut down or reboot system: Missing root permissions");
+		ReturnLocalizedError(context, ERROR_SHUTDOWN_PERMISSION);
 		return;
 	}
 
@@ -1165,7 +1165,7 @@ void ShutDown(const CommandContext& context, const string& mode) {
 		}
 	}
 	else {
-		ReturnStatus(context, false, "Invalid shutdown mode '" + mode + "'hi");
+		ReturnLocalizedError(context, ERROR_SHUTDOWN_MODE_INVALID);
 	}
 }
 

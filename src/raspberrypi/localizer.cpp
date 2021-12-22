@@ -36,7 +36,7 @@ Localizer::Localizer()
 	Add(ERROR_RESERVED_ID, "de", "Geräte-ID %1 ist reserviert");
 	Add(ERROR_NON_EXISTING_DEVICE, "en", "Command for non-existing ID %1");
 	Add(ERROR_NON_EXISTING_DEVICE, "de", "Kommando für nicht existente ID %1");
-	Add(ERROR_NON_EXISTING_UNIT, "en", "Command for a non-existing device ID %1, unit %2");
+	Add(ERROR_NON_EXISTING_UNIT, "en", "Command for non-existing ID %1, unit %2");
 	Add(ERROR_NON_EXISTING_UNIT, "de", "Kommando für nicht existente ID %1, Einheit %2");
 	Add(ERROR_UNKNOWN_DEVICE_TYPE, "en", "Unknown device type %1");
 	Add(ERROR_UNKNOWN_DEVICE_TYPE, "de", "Unbekannter Gerätetyp %1");
@@ -50,6 +50,12 @@ Localizer::Localizer()
 	Add(ERROR_EJECT_REQUIRED, "de", "Das vorhandene Medium muss erst ausgeworfen werden");
 	Add(ERROR_DEVICE_NAME_UPDATE, "en", "Once set the device name cannot be changed anymore");
 	Add(ERROR_DEVICE_NAME_UPDATE, "de", "Ein bereits gesetzter Gerätename kann nicht mehr geändert werden");
+	Add(ERROR_SHUTDOWN_MODE_MISSING, "en", "Missing shutdown mode");
+	Add(ERROR_SHUTDOWN_MODE_MISSING, "de", "Fehlender Shutdown-Modus");
+	Add(ERROR_SHUTDOWN_MODE_INVALID, "en", "Invalid shutdown mode '%1'");
+	Add(ERROR_SHUTDOWN_MODE_INVALID, "de", "Ungültiger Shutdown-Modus '%1'");
+	Add(ERROR_SHUTDOWN_PERMISSION, "en", "Missing root permissions for shutdown or reboot");
+	Add(ERROR_SHUTDOWN_PERMISSION, "de", "Missing Root-Berechtigung für Shutdown oder Reboot");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
