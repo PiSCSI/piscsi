@@ -776,12 +776,11 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		Disk *disk = dynamic_cast<Disk *>(device);
 		if (disk && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
-				return ReturnStatus(context, false, "Invalid block size " + to_string(pb_device.block_size()) +
-						" bytes");
+				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
 			}
 		}
 		else {
-			return ReturnStatus(context, false, "Block size is not configurable for device type " + device->GetType());
+			return ReturnLocalizedError(context, ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, device->GetType());
 		}
 	}
 

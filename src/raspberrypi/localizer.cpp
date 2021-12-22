@@ -58,6 +58,10 @@ Localizer::Localizer()
 	Add(ERROR_SHUTDOWN_PERMISSION, "de", "Fehlende Root-Berechtigung für Shutdown oder Neustart");
 	Add(ERROR_FILE_OPEN, "en", "Invalid or non-existing file '%1': %2");
 	Add(ERROR_FILE_OPEN, "de", "Ungültige oder fehlende Datei '%1': %2");
+	Add(ERROR_BLOCK_SIZE, "en", "Invalid block size %1 bytes");
+	Add(ERROR_BLOCK_SIZE, "de", "Ungültige Blockgröße %1 Bytes");
+	Add(ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "en", "Block size for device type %1 is not configurable");
+	Add(ERROR_BLOCK_SIZE_NOT_CONFIGURABLE, "de", "Blockgröße für Gerätetyp %1 ist nicht konfigurierbar");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
