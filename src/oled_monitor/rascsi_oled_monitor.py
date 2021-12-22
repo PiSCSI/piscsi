@@ -155,7 +155,7 @@ def formatted_output():
     output = []
 
     if not TOKEN and not is_token_auth(TOKEN)["status"]:
-        output.append("RaSCSI needs password!")
+        output.append("Permission denied!")
     elif rascsi_list:
         for line in rascsi_list:
             if line["device_type"] in ("SCCD", "SCRM", "SCMO"):

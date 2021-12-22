@@ -112,7 +112,7 @@ while [ "$1" != "" ]; do
 	    HEIGHT="--height $VALUE"
 	    ;;
 	-P | --password)
-	    PASSWORD=:"--password $VALUE"
+	    PASSWORD="--password $VALUE"
 	    ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
