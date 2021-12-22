@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 	string token;
 	bool list = false;
 
-	string locale = setlocale(LC_MESSAGES, NULL);
+	string locale = setlocale(LC_MESSAGES, "");
 	if (locale == "C") {
 		locale = "en";
 	}
