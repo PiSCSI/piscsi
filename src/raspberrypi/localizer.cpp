@@ -14,6 +14,7 @@
 #include <sstream>
 #include <iostream>
 #include <algorithm>
+#include <regex>
 
 using namespace std;
 
@@ -22,6 +23,7 @@ Localizer::Localizer()
 	// Supported locales, always lower case
 	supported_languages = { "en", "de" };
 
+	// Positional arguments are %1, %2, %3
 	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
 	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
 	Add(ERROR_OPERATION, "en", "Unknown operation");
@@ -38,7 +40,8 @@ void Localizer::Add(LocalizationKey key, const string& locale, const string& val
 	localized_messages[locale][key] = value;
 }
 
-string Localizer::Localize(LocalizationKey key, const string& locale)
+string Localizer::Localize(LocalizationKey key, const string& locale, const string& arg1, const string& arg2,
+		const string &arg3)
 {
 	string locale_lower = locale;
 	transform(locale_lower.begin(), locale_lower.end(), locale_lower.begin(), ::tolower);
@@ -61,6 +64,16 @@ string Localizer::Localize(LocalizationKey key, const string& locale)
 		stringstream s;
 		s << "Missing localization for enum value " << key;
 		return s.str();
+	}
+
+	if (!arg1.empty()) {
+		message = regex_replace(message, regex("%1"), arg1);
+	}
+	if (!arg2.empty()) {
+		message = regex_replace(message, regex("%2"), arg2);
+	}
+	if (!arg3.empty()) {
+		message = regex_replace(message, regex("%3"), arg3);
 	}
 
 	return message;

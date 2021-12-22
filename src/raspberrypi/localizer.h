@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
-// Message localization support. Currently for non parameterized messages only.
+// Message localization support. Currently only for messages with up to 3 string parameters.
 //
 //---------------------------------------------------------------------------
 
@@ -29,7 +29,7 @@ public:
 	Localizer();
 	~Localizer() {};
 
-	string Localize(LocalizationKey, const string&);
+	string Localize(LocalizationKey, const string&, const string& = "", const string& = "", const string& = "");
 
 private:
 
