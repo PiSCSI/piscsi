@@ -77,15 +77,9 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 		return s.str();
 	}
 
-	if (!arg1.empty()) {
-		message = regex_replace(message, regex("%1"), arg1);
-	}
-	if (!arg2.empty()) {
-		message = regex_replace(message, regex("%2"), arg2);
-	}
-	if (!arg3.empty()) {
-		message = regex_replace(message, regex("%3"), arg3);
-	}
+	message = regex_replace(message, regex("%1"), arg1);
+	message = regex_replace(message, regex("%2"), arg2);
+	message = regex_replace(message, regex("%3"), arg3);
 
 	return message;
 }
