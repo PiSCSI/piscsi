@@ -762,7 +762,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	string filename = GetParam(pb_device, "file");
 	if (filename.empty()) {
-		return ReturnLocalizedError(context, ERROR_MISSING_FILENAME, PbOperation_Name(INSERT));
+		return ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
 	}
 
 	if (dryRun) {
@@ -1504,7 +1504,7 @@ static void *MonThread(void *param)
 				case IMAGE_FILE_INFO: {
 					string filename = GetParam(command, "file");
 					if (filename.empty()) {
-						ReturnStatus(context, false, "Can't get image file info: Missing filename");
+						ReturnLocalizedError(context, ERROR_MISSING_FILENAME);
 					}
 					else {
 						PbImageFile* image_file = new PbImageFile();
