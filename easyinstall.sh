@@ -142,6 +142,14 @@ function installRaScsiScreen() {
         SCREEN_HEIGHT="32"
     fi
 
+    echo ""
+    echo "Is RaSCSI using token-based authentication? [y/N]"
+    read -r REPLY
+    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+        echo -n "Enter the passphrase that you configured: "
+        read -r TOKEN
+    fi
+
     stopRaScsiScreen
     updateRaScsiGit
 
@@ -167,7 +175,13 @@ function installRaScsiScreen() {
     echo "Installing the monitor_rascsi.service configuration..."
     sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" "$SYSTEMD_PATH/monitor_rascsi.service"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/monitor_rascsi.service"
-    sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/monitor_rascsi.service"
+    if [ ! -z "$TOKEN" ]; then
+        sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/monitor_rascsi.service"
+        sudo chmod 700 "$SYSTEMD_PATH/monitor_rascsi.service"
+        echo "Granted access to the OLED Monitor with the token passphrase that you configured for RaSCSI."
+    else
+        sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/monitor_rascsi.service"
+    fi
 
     sudo systemctl daemon-reload
     sudo systemctl enable monitor_rascsi
@@ -494,12 +508,12 @@ function setupWiredNetworking() {
     echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
     echo ""
-    echo "Do you want to proceed with network configuration using the default settings? Y/n"
+    echo "Do you want to proceed with network configuration using the default settings? [Y/n]"
     read REPLY
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wired interfaces on this system:"
-	echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
+        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
         echo "Please type the wired interface you want to use and press Enter:"
         read SELECTED
         LAN_INTERFACE=$SELECTED
@@ -549,12 +563,12 @@ function setupWirelessNetworking() {
     echo "Subnet Mask: $NETWORK_MASK"
     echo "DNS Server: Any public DNS server"
     echo ""
-    echo "Do you want to proceed with network configuration using the default settings? Y/n"
+    echo "Do you want to proceed with network configuration using the default settings? [Y/n]"
     read REPLY
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wireless interfaces on this system:"
-	echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
+        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r WLAN_INTERFACE
         echo "Base IP address (ex. 10.10.20):"
@@ -572,7 +586,7 @@ function setupWirelessNetworking() {
         read REPLY
     else
         sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
-	echo "Modified /etc/sysctl.conf"
+        echo "Modified /etc/sysctl.conf"
     fi
 
     # Check if iptables is installed
@@ -985,7 +999,7 @@ while [ "$1" != "" ]; do
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
-	    exit 1
+            exit 1
             ;;
     esac
     shift
