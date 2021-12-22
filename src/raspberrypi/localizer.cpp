@@ -23,7 +23,7 @@ Localizer::Localizer()
 	// Supported locales, always lower case
 	supported_languages = { "en", "de" };
 
-	// Positional arguments are %1, %2, %3
+	// Positional string arguments are %1, %2, %3
 	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
 	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
 	Add(ERROR_OPERATION, "en", "Unknown operation");
