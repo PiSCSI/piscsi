@@ -37,5 +37,4 @@ namespace protobuf_util
 			const string& = "", const string& = "");
 	bool ReturnStatus(const CommandContext&, bool = true, const string& = "",
 			const PbErrorCode = PbErrorCode::NO_ERROR_CODE);
-	bool ReturnStatus(const CommandContext&, bool, const ostringstream&);
 }

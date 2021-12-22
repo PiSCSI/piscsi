@@ -146,6 +146,10 @@ bool protobuf_util::ReturnLocalizedError(const CommandContext& context, Localiza
 bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const string& msg,
 		const PbErrorCode error_code)
 {
+	if (!status && !msg.empty()) {
+		LOGERROR("%s", msg.c_str());
+	}
+
 	if (context.fd == -1) {
 		if (!msg.empty()) {
 			if (status) {
@@ -168,15 +172,4 @@ bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, con
 	}
 
 	return status;
-}
-
-bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const ostringstream& s)
-{
-	const string msg = s.str();
-
-	if (!status && !msg.empty()) {
-		LOGERROR("%s", msg.c_str());
-	}
-
-	return ReturnStatus(context, status, msg);
 }
