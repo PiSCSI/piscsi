@@ -1179,9 +1179,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 	string name;
 	string log_level;
 
+	string locale = setlocale(LC_MESSAGES, "");
+	if (locale == "C") {
+		locale = "en";
+	}
+
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:D:F:L:P:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
 		switch (opt) {
 			// The three options below are kind of a compound option with two letters
 			case 'i':
@@ -1212,6 +1217,10 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				}
 				continue;
 			}
+
+			case 'z':
+				locale = optarg;
+				continue;
 
 			case 'F': {
 				string result = rascsi_image.SetDefaultImageFolder(optarg);
@@ -1323,6 +1332,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	CommandContext context;
 	context.fd = -1;
+	context.locale = locale;
 	if (!ProcessCmd(context, command)) {
 		return false;
 	}

@@ -134,10 +134,7 @@ bool protobuf_util::ReturnLocalizedError(const CommandContext& context, const Lo
 	// For the logfile always use English
 	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str());
 
-	// For the rascsi console (no remote interface) always use English
-	string locale = context.fd == -1 ? "en" : context.locale;
-
-	return ReturnStatus(context, false, localizer.Localize(key, locale, arg1, arg2, arg3), error_code, false);
+	return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code, false);
 }
 
 bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const string& msg,

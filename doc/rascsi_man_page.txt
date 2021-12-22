@@ -8,8 +8,8 @@ NAME
 SYNOPSIS
        rascsi  [-F[u00AE]  FOLDER] [-L[u00AE] LOG_LEVEL] [-P[u00AE] ACCESS_TO‐
        KEN_FILE] [-R SCAN_DEPTH] [-h] [-n VENDOR:PRODUCT:REVISION]  [-p[u00AE]
-       PORT]  [-r  RESERVED_IDS]  [-n  TYPE]  [-v]  [-IDn:[u]  FILE] [-HDn[:u]
-       FILE]...
+       PORT]  [-r  RESERVED_IDS]  [-n  TYPE]  [-v] [-z LOCALE] [-IDn:[u] FILE]
+       [-HDn[:u] FILE]...
 
 DESCRIPTION
        rascsi Emulates SCSI devices using the Raspberry Pi GPIO pins.
@@ -99,18 +99,22 @@ OPTIONS
 
        -v     Display the rascsi version.
 
+       -z LOCALE
+              Overrides the default locale for error messages. The client  can
+              override the locale.
+
        -IDn[:u] FILE
-              n is the SCSI ID number (0-7). u  (0-31)  is  the  optional  LUN
+              n  is  the  SCSI  ID  number (0-7). u (0-31) is the optional LUN
               (logical unit). The default LUN is 0.
 
-              FILE  is  the name of the image file to use for the SCSI device.
-              For devices that do not support an image  file  (SCBR,  SCDP)  a
+              FILE is the name of the image file to use for the  SCSI  device.
+              For  devices  that  do  not support an image file (SCBR, SCDP) a
               dummy name must be provided.
 
        -HDn[:u] FILE
-              n  is the SASI ID number (0-15). The effective SASI ID is calcu‐
-              lated as n/2, the effective SASI LUN is calculated  is  the  re‐
-              mainder  of n/2. Alternatively the n:u syntax can be used, where
+              n is the SASI ID number (0-15). The effective SASI ID is  calcu‐
+              lated  as  n/2,  the effective SASI LUN is calculated is the re‐
+              mainder of n/2. Alternatively the n:u syntax can be used,  where
               ns is the SASI ID (0-7) and u the LUN (0-1).
 
               FILE is the name of the image file to use for the SASI device.
@@ -127,7 +131,7 @@ EXAMPLES
           rascsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
 
        Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw de‐
-       vice  file  /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter
+       vice file /dev/hdb (e.g. a USB stick) and a DaynaPort  network  adapter
        as ID 6:
           rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp DUMMY_FILENAME
 
