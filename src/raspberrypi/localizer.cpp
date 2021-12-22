@@ -11,8 +11,6 @@
 #include <cassert>
 #include <string>
 #include <map>
-#include <sstream>
-#include <iostream>
 #include <algorithm>
 #include <regex>
 
@@ -72,9 +70,7 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 
 	string message = messages[key];
 	if (messages.empty()) {
-		stringstream s;
-		s << "Missing localization for enum value " << key;
-		return s.str();
+		return "Missing localization for enum value " + to_string(key);
 	}
 
 	message = regex_replace(message, regex("%1"), arg1);
