@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2021 Uwe Seimet
 //
+// Message localization support. Currently for non parameterized messages only.
+//
 //---------------------------------------------------------------------------
 
 #pragma once
@@ -16,7 +18,8 @@
 using namespace std;
 
 enum LocalizationKey {
-	ERROR_AUTHENTICATION
+	ERROR_AUTHENTICATION,
+	ERROR_OPERATION
 };
 
 class Localizer

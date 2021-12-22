@@ -23,6 +23,9 @@ Localizer::Localizer()
 
 	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
 	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
+	Add(ERROR_OPERATION, "en", "Unknown operation");
+	Add(ERROR_OPERATION, "de", "Unbekannte Operation");
+
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
@@ -38,7 +41,13 @@ string Localizer::Localize(LocalizationKey key, const string& locale)
 {
 	map<LocalizationKey, string> messages = localized_messages[locale];
 	if (messages.empty()) {
-		messages = localized_messages["en"];
+		// Try to fall back to country-indepedent locale (e.g. "en" instead of "en_US")
+		if (locale.length() > 2) {
+			messages = localized_messages[locale.substr(0, 2)];
+		}
+		if (messages.empty()) {
+			messages = localized_messages["en"];
+		}
 	}
 
 	assert(!messages.empty());

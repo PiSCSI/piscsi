@@ -1432,14 +1432,14 @@ static void *MonThread(void *param)
 			}
 
 			if (!access_token.empty() && access_token != GetParam(command, "token")) {
-				ReturnLocalizedError(context, ERROR_AUTHENTICATION, PbErrorCode::UNAUTHORIZED);
+				ReturnLocalizedError(context, ERROR_AUTHENTICATION, UNAUTHORIZED);
 				continue;
 			}
 
 			if (!PbOperation_IsValid(command.operation())) {
 				LOGERROR("Received unknown command with operation opcode %d", command.operation());
 
-				ReturnStatus(context, false, "Unknown command", UNKNOWN_OPERATION);
+				ReturnLocalizedError(context, ERROR_OPERATION, UNKNOWN_OPERATION);
 				continue;
 			}
 
