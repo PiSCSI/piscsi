@@ -30,6 +30,8 @@ Localizer::Localizer()
 	Add(ERROR_OPERATION, "de", "Unbekannte Operation");
 	Add(ERROR_LOG_LEVEL, "en", "Invalid log level %1");
 	Add(ERROR_LOG_LEVEL, "de", "Ungültiger Log-Level %1");
+	Add(ERROR_MISSING_FILENAME, "en", "Missing filename for operation %1");
+	Add(ERROR_MISSING_FILENAME, "de", "Fehlender Dateiname für Operation %1");
 	Add(ERROR_UNKNOWN_DEVICE_TYPE, "en", "Unknown device type %1");
 	Add(ERROR_UNKNOWN_DEVICE_TYPE, "de", "Unbekannter Gerätetyp %1");
 	Add(ERROR_MISSING_DEVICE_TYPE, "en", "Device type required for unknown extension of file '%1'");

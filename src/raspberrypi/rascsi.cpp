@@ -570,9 +570,6 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	string filename = GetParam(pb_device, "file");
-	if (filename.empty()) {
-		ReturnStatus(context, false, "Missing filename for " + PbOperation_Name(ATTACH));
-	}
 
 	// Create a new device, based on the provided type or filename
 	Device *device = device_factory.CreateDevice(type, filename);
@@ -771,7 +768,7 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	string filename = GetParam(pb_device, "file");
 	if (filename.empty()) {
-		return ReturnStatus(context, false, "Missing filename for " + PbOperation_Name(INSERT));
+		return ReturnLocalizedError(context, ERROR_MISSING_FILENAME, PbOperation_Name(INSERT));
 	}
 
 	if (dryRun) {
