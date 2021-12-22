@@ -16,7 +16,6 @@
 #include "rascsi_interface.pb.h"
 #include "rascsi_image.h"
 #include "rascsi_response.h"
-#include <sstream>
 
 using namespace rascsi_interface;
 using namespace protobuf_util;
@@ -261,10 +260,8 @@ void RascsiResponse::GetDevicesInfo(PbResult& result, const PbCommand& command, 
 				id_sets.insert(make_pair(device.id(), device.unit()));
 			}
 			else {
-				ostringstream error;
-				error << "No device for ID " << device.id() << ", unit " << device.unit();
 				result.set_status(false);
-				result.set_msg(error.str());
+				result.set_msg("No device for ID " + to_string(device.id()) + ", unit " + to_string(device.unit()));
 				return;
 			}
 		}
