@@ -21,8 +21,8 @@ Localizer::Localizer()
 	// Supported locales
 	supported_languages = { "en", "de" };
 
-	Add(ERROR_AUTHENTICATION, "de", "Authentication failed");
-	Add(ERROR_AUTHENTICATION, "en", "Authentifizierung fehlgeschlagen");
+	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
+	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
