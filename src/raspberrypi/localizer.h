@@ -14,6 +14,10 @@
 
 using namespace std;
 
+enum LocalizationKey {
+	ERROR_AUTHENTICATION
+};
+
 class Localizer
 {
 public:
@@ -21,10 +25,10 @@ public:
 	Localizer();
 	~Localizer() {};
 
-	string Localize(const string&, const string&);
+	string Localize(LocalizationKey, const string&);
 
 private:
 
-	void Add(const string&, const string&, const string&);
-	map<string, map<string, string>> localized_messages;
+	void Add(const LocalizationKey, const string&, const string&);
+	map<LocalizationKey, map<string, string>> localized_messages;
 };

@@ -122,20 +122,18 @@ int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
 	return offset;
 }
 
-bool protobuf_util::ReturnLocalizedStatus(const CommandContext& context, const string& key, bool status,
+bool protobuf_util::ReturnLocalizedError(const CommandContext& context, LocalizationKey key,
 		const PbErrorCode error_code)
 {
 	// For the logfile always use English
-	if (!status) {
-		LOGERROR("%s", localizer.Localize("en", key).c_str());
-	}
+	LOGERROR("%s", localizer.Localize(key, "en").c_str());
 
 	// For the rascsi console (no remote interface) always use English
 	if (context.fd == -1) {
-		return ReturnStatus(context, status, localizer.Localize("en", key), error_code);
+		return ReturnStatus(context, false, localizer.Localize(key, "en"), error_code);
 	}
 	else {
-		return ReturnStatus(context, status, localizer.Localize(context.locale, key), error_code);
+		return ReturnStatus(context, false, localizer.Localize(key, context.locale), error_code);
 	}
 }
 

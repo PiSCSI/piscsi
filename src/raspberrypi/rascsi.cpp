@@ -1431,11 +1431,9 @@ static void *MonThread(void *param)
 				context.locale = "en";
 			}
 
-			if (!access_token.empty()) {
-				if (access_token != GetParam(command, "token")) {
-					ReturnLocalizedStatus(context, "ERROR_AUTHENTICATION", false, PbErrorCode::UNAUTHORIZED);
-					continue;
-				}
+			if (!access_token.empty() && access_token != GetParam(command, "token")) {
+				ReturnLocalizedError(context, ERROR_AUTHENTICATION, PbErrorCode::UNAUTHORIZED);
+				continue;
 			}
 
 			if (!PbOperation_IsValid(command.operation())) {

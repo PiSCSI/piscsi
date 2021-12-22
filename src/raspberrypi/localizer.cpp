@@ -11,33 +11,30 @@
 #include <cassert>
 #include <string>
 #include <map>
+#include <sstream>
 #include <iostream>
 
 using namespace std;
 
 Localizer::Localizer()
 {
-	Add("en", "ERROR_AUTHENTICATION", "Authentication failed");
-	Add("de", "ERROR_AUTHENTICATION", "Authentifizierung fehlgeschlagen");
+	Add(ERROR_AUTHENTICATION, "en", "Authentication failed");
+	Add(ERROR_AUTHENTICATION, "de", "Authentifizierung fehlgeschlagen");
 }
 
-void Localizer::Add(const string& locale, const string& key, const string& value)
+void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
 {
-	localized_messages[locale][key] = value;
+	localized_messages[key][locale] = value;
 }
 
-string Localizer::Localize(const string& locale, const string& key)
+string Localizer::Localize(LocalizationKey key, const string& locale)
 {
-	map<string, string> messages = localized_messages[locale];
+	map<string, string> messages = localized_messages[key];
 	if (messages.empty()) {
-		messages = localized_messages["en"];
-	}
-	assert(!messages.empty());
-
-	string message = messages[key];
-	if (messages.empty()) {
-		return "Missing localization for key '" + key + "'";
+		stringstream s;
+		s << "Missing localization for enum value " << key;
+		return s.str();
 	}
 
-	return message;
+	return messages[locale];
 }
