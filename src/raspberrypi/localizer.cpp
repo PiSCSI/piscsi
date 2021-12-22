@@ -57,7 +57,7 @@ Localizer::Localizer()
 	Add(ERROR_MISSING_DEVICE_TYPE, "sv", "Man måste ange enhetstyp för obekant filändelse '%1'");
 	Add(ERROR_DUPLICATE_ID, "en", "Duplicate ID %1, unit %2");
 	Add(ERROR_DUPLICATE_ID, "de", "Doppelte ID %1, Einheit %2");
-	Add(ERROR_DUPLICATE_ID, "sv", "Duplikat ID %1, enhet %2");
+	Add(ERROR_DUPLICATE_ID, "sv", "Duplikat ID %1, LUN %2");
 	Add(ERROR_SASI_SCSI, "en", "SASI and SCSI can't be used at the same time");
 	Add(ERROR_SASI_SCSI, "de", "SASI und SCSI können nicht gleichzeitig verwendet werden");
 	Add(ERROR_SASI_SCSI, "sv", "SASI och SCSI kan ej användas samtidigt");
