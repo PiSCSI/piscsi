@@ -68,7 +68,6 @@ static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
 set<int> reserved_ids;
-int scan_depth = 0;
 DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
@@ -1244,10 +1243,12 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				continue;
 
 			case 'R':
-				if (!GetAsInt(optarg, scan_depth) || scan_depth < 0) {
+				int depth;
+				if (!GetAsInt(optarg, depth) || depth < 0) {
 					cerr << "Invalid image file scan depth " << optarg << endl;
 					return false;
 				}
+				rascsi_image.SetDepth(depth);
 				continue;
 
 			case 'n':
@@ -1430,7 +1431,7 @@ static void *MonThread(void *param)
 			}
 
 			if (!PbOperation_IsValid(command.operation())) {
-				LOGTRACE("Received unknown command %d", command.operation());
+				LOGERROR("Received unknown command with operation opcode %d", command.operation());
 
 				ReturnStatus(fd, false, "Unknown command", UNKNOWN_OPERATION);
 				continue;
@@ -1454,12 +1455,7 @@ static void *MonThread(void *param)
 				}
 
 				case DEFAULT_FOLDER: {
-					string folder = GetParam(command, "folder");
-					if (folder.empty()) {
-						ReturnStatus(fd, false, "Can't set default image folder: Missing folder name");
-					}
-
-					string result = rascsi_image.SetDefaultImageFolder(folder);
+					string result = rascsi_image.SetDefaultImageFolder(GetParam(command, "folder"));
 					if (!result.empty()) {
 						ReturnStatus(fd, false, result);
 					}
@@ -1483,8 +1479,8 @@ static void *MonThread(void *param)
 
 				case SERVER_INFO: {
 					result.set_allocated_server_info(rascsi_response.GetServerInfo(
-							result, devices, reserved_ids, current_log_level, GetParam(command, "filename_pattern"),
-							scan_depth));
+							result, devices, reserved_ids, current_log_level, GetParam(command, "folder_pattern"),
+							GetParam(command, "file_pattern"), rascsi_image.GetDepth()));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1503,7 +1499,8 @@ static void *MonThread(void *param)
 
 				case DEFAULT_IMAGE_FILES_INFO: {
 					result.set_allocated_image_files_info(rascsi_response.GetAvailableImages(result,
-							GetParam(command, "filename_pattern"), scan_depth));
+							GetParam(command, "folder_pattern"), GetParam(command, "file_pattern"),
+							rascsi_image.GetDepth()));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1541,7 +1538,8 @@ static void *MonThread(void *param)
 				}
 
 				case OPERATION_INFO: {
-					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result));
+					result.set_allocated_operation_info(rascsi_response.GetOperationInfo(result,
+							rascsi_image.GetDepth()));
 					SerializeMessage(fd, result);
 					break;
 				}
@@ -1593,7 +1591,7 @@ int main(int argc, char* argv[])
 
 	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
 	PbResult pb_operation_info_result;
-	rascsi_response.GetOperationInfo(pb_operation_info_result);
+	rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
 
 	int actid;
 	BUS::phase_t phase;

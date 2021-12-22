@@ -29,17 +29,18 @@ public:
 	~RascsiResponse() {};
 
 	bool GetImageFile(PbImageFile *, const string&);
-	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, int);
+	PbImageFilesInfo *GetAvailableImages(PbResult&, const string&, const string&, int);
 	PbReservedIdsInfo *GetReservedIds(PbResult&, const set<int>&);
 	void GetDevices(PbServerInfo&, const vector<Device *>&);
 	void GetDevicesInfo(PbResult&, const PbCommand&, const vector<Device *>&, int);
 	PbDeviceTypesInfo *GetDeviceTypesInfo(PbResult&, const PbCommand&);
 	PbVersionInfo *GetVersionInfo(PbResult&);
-	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&, int);
+	PbServerInfo *GetServerInfo(PbResult&, const vector<Device *>&, const set<int>&, const string&, const string&,
+			const string&, int);
 	PbNetworkInterfacesInfo *GetNetworkInterfacesInfo(PbResult&);
 	PbMappingInfo *GetMappingInfo(PbResult&);
 	PbLogLevelInfo *GetLogLevelInfo(PbResult&, const string&);
-	PbOperationInfo *GetOperationInfo(PbResult&);
+	PbOperationInfo *GetOperationInfo(PbResult&, int);
 
 private:
 
@@ -52,8 +53,8 @@ private:
 	void GetDevice(const Device *, PbDevice *);
 	void GetAllDeviceTypeProperties(PbDeviceTypesInfo&);
 	void GetDeviceTypeProperties(PbDeviceTypesInfo&, PbDeviceType);
-	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, int);
-	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, int);
+	void GetAvailableImages(PbImageFilesInfo&, const string&, const string&, const string&, const string&, int);
+	void GetAvailableImages(PbResult& result, PbServerInfo&, const string&, const string&, int);
 	void CreateOperation(PbOperationInfo *, PbOperationMetaData *, const PbOperation&, const string&);
 	PbOperationParameter *AddOperationParameter(PbOperationMetaData *, const string&, const string&,
 			const string& = "", bool = false);

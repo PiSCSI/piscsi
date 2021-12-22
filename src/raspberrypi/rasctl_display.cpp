@@ -230,6 +230,7 @@ void RasctlDisplay::DisplayImageFile(const PbImageFile& image_file_info)
 void RasctlDisplay::DisplayImageFiles(const PbImageFilesInfo& image_files_info)
 {
 	cout << "Default image file folder: " << image_files_info.default_image_folder() << endl;
+	cout << "Supported folder depth: " << image_files_info.depth() << endl;
 
 	if (image_files_info.image_files().empty()) {
 		cout << "  No image files available" << endl;
@@ -292,12 +293,12 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 		}
 	}
 
-	cout << "Remote operations supported by rascsi and their parameters:" << endl;
+	cout << "Operations supported by rascsi server and their parameters:" << endl;
 	for (const auto& operation : sorted_operations) {
 		if (!operation.second.server_side_name().empty()) {
 			cout << "  " << operation.first;
 			if (!operation.second.description().empty()) {
-				cout << " (" << operation.second.description().at("en") << ")";
+				cout << " (" << operation.second.description() << ")";
 			}
 			cout << endl;
 
@@ -305,7 +306,7 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 				cout << "    " << parameter.name() << ": "
 					<< (parameter.is_mandatory() ? "mandatory" : "optional");
 				if (!parameter.description().empty()) {
-					cout << " (" << parameter.description().at("en") << ")";
+					cout << " (" << parameter.description() << ")";
 				}
 				cout << endl;
 
