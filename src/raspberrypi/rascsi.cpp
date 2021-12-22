@@ -723,7 +723,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return true;
 	}
 
-	return ReturnStatus(context, false, "SASI and SCSI can't be mixed");
+	return ReturnLocalizedError(context, ERROR_SASI_SCSI);
 }
 
 bool Detach(const CommandContext& context, Device *device, Device *map[], bool dryRun)
@@ -753,11 +753,11 @@ bool Detach(const CommandContext& context, Device *device, Device *map[], bool d
 bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, Device *device, bool dryRun)
 {
 	if (!device->IsRemoved()) {
-		return ReturnStatus(context, false, "Existing medium must first be ejected");
+		return ReturnLocalizedError(context, ERROR_EJECT_REQUIRED);
 	}
 
 	if (!pb_device.vendor().empty() || !pb_device.product().empty() || !pb_device.revision().empty()) {
-		return ReturnStatus(context, false, "Once set the device name cannot be changed anymore");
+		return ReturnLocalizedError(context, ERROR_DEVICE_NAME_UPDATE);
 	}
 
 	string filename = GetParam(pb_device, "file");
@@ -888,14 +888,14 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 	// Check the Controller Number
 	if (id < 0) {
-		return ReturnStatus(context, false, "Missing device ID");
+		return ReturnLocalizedError(context, ERROR_MISSING_DEVICE_ID);
 	}
 	if (id >= CtrlMax) {
 		return ReturnStatus(context, false, "Invalid device ID " + to_string(id) + " (0-" + to_string(CtrlMax - 1) + ")");
 	}
 
 	if (operation == ATTACH && reserved_ids.find(id) != reserved_ids.end()) {
-		return ReturnStatus(context, false, "Device ID " + to_string(id) + " is reserved");
+		return ReturnLocalizedError(context, ERROR_RESERVED_ID, to_string(id));
 	}
 
 	// Check the Unit Number
@@ -915,14 +915,13 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 
 	// Does the controller exist?
 	if (!dryRun && !controllers[id]) {
-		return ReturnStatus(context, false, "Received a command for non-existing ID " + to_string(id));
+		return ReturnLocalizedError(context, ERROR_NON_EXISTING_DEVICE, to_string(id));
 	}
 
 	// Does the unit exist?
 	Device *device = devices[id * UnitNum + unit];
 	if (!device) {
-		return ReturnStatus(context, false, "Received a command for a non-existing device or unit, ID " + to_string(id) +
-				", unit " + to_string(unit));
+		return ReturnLocalizedError(context, ERROR_NON_EXISTING_UNIT, to_string(id), to_string(unit));
 	}
 
 	if (operation == DETACH) {

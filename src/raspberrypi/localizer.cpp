@@ -28,14 +28,28 @@ Localizer::Localizer()
 	Add(ERROR_OPERATION, "de", "Unbekannte Operation");
 	Add(ERROR_LOG_LEVEL, "en", "Invalid log level %1");
 	Add(ERROR_LOG_LEVEL, "de", "Ungültiger Log-Level %1");
+	Add(ERROR_MISSING_DEVICE_ID, "en", "Missing device ID");
+	Add(ERROR_MISSING_DEVICE_ID, "de", "Fehlende Geräte-ID");
 	Add(ERROR_MISSING_FILENAME, "en", "Missing filename");
 	Add(ERROR_MISSING_FILENAME, "de", "Fehlender Dateiname");
+	Add(ERROR_RESERVED_ID, "en", "Device ID %1 is reserved");
+	Add(ERROR_RESERVED_ID, "de", "Geräte-ID %1 ist reserviert");
+	Add(ERROR_NON_EXISTING_DEVICE, "en", "Command for non-existing ID %1");
+	Add(ERROR_NON_EXISTING_DEVICE, "de", "Kommando für nicht existente ID %1");
+	Add(ERROR_NON_EXISTING_UNIT, "en", "Command for a non-existing device ID %1, unit %2");
+	Add(ERROR_NON_EXISTING_UNIT, "de", "Kommando für nicht existente ID %1, Einheit %2");
 	Add(ERROR_UNKNOWN_DEVICE_TYPE, "en", "Unknown device type %1");
 	Add(ERROR_UNKNOWN_DEVICE_TYPE, "de", "Unbekannter Gerätetyp %1");
 	Add(ERROR_MISSING_DEVICE_TYPE, "en", "Device type required for unknown extension of file '%1'");
 	Add(ERROR_MISSING_DEVICE_TYPE, "de", "Gerätetyp erforderlich für unbekannte Extension der Datei '%1'");
 	Add(ERROR_DUPLICATE_ID, "en", "Duplicate ID %1, unit %2");
 	Add(ERROR_DUPLICATE_ID, "de", "Doppelte ID %1, Einheit %2");
+	Add(ERROR_SASI_SCSI, "en", "SASI and SCSI can't be used at the same time");
+	Add(ERROR_SASI_SCSI, "de", "SASI und SCSI können nicht gleichzeitig verwendet werden");
+	Add(ERROR_EJECT_REQUIRED, "en", "Existing medium must first be ejected");
+	Add(ERROR_EJECT_REQUIRED, "de", "Das vorhandene Medium muss erst ausgeworfen werden");
+	Add(ERROR_DEVICE_NAME_UPDATE, "en", "Once set the device name cannot be changed anymore");
+	Add(ERROR_DEVICE_NAME_UPDATE, "de", "Ein bereits gesetzter Gerätename kann nicht mehr geändert werden");
 }
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
