@@ -354,3 +354,19 @@ def set_log_level(log_level):
     result = proto.PbResult()
     result.ParseFromString(data)
     return {"status": result.status, "msg": result.msg}
+
+
+def shutdown_pi(mode):
+    """
+    Sends a SHUT_DOWN command to the server.
+    Takes (str) mode as an argument.
+    Returns (bool) status and (str) msg.
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.SHUT_DOWN
+    command.params["mode"] = str(mode)
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}

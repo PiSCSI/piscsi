@@ -14,3 +14,11 @@ RaSCSI is using the <a href="https://datasift.github.io/gitflow/IntroducingGitFl
 Typically, releases will only be planned every few months.
 
 <a href="https://www.tindie.com/stores/landogriffin/?ref=offsite_badges&utm_source=sellers_akuker&utm_medium=badges&utm_campaign=badge_large"><img src="https://d2ss6ovg47m0r5.cloudfront.net/badges/tindie-larges.png" alt="I sell on Tindie" width="200" height="104"></a>
+
+# Github Sponsors
+Thank you to all of the Github sponsors who support the development community!
+  
+Special thank you to the Silver level sponsors!
+  - <a href="https://github.com/stinkerton18">@stinkerton18</a>
+  - <a href="https://github.com/hsiboy">@hsiboy</a>
+  - Private sponsor ;]

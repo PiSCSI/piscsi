@@ -8,36 +8,6 @@ import logging
 from settings import AUTH_GROUP
 
 
-def systemd_service(service, action):
-    """
-    Takes (str) service and (str) action
-    Action can be any that systemctl supports, ex. start/stop/restart/show
-    Returns (dict) with (bool) status, (str) msg, (str) err
-    """
-    proc = asyncio.run(run_async(f"sudo /bin/systemctl {action} {service}"))
-    return {
-            "status": proc["returncode"] == 0,
-            "msg": proc["stdout"],
-            "err": proc["stderr"],
-            }
-
-
-def reboot_pi():
-    """
-    Reboots the Pi system
-    """
-    subprocess.Popen(["sudo", "reboot"])
-    return True
-
-
-def shutdown_pi():
-    """
-    Shuts down the Pi system
-    """
-    subprocess.Popen(["sudo", "shutdown", "-h", "now"])
-    return True
-
-
 def running_env():
     """
     Returns (str) git and (str) env

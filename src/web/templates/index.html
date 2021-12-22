@@ -95,7 +95,7 @@
             <td style="text-align:center">
             {% if device.device_type != "-" %}
                 {% if device.device_type in REMOVABLE_DEVICE_TYPES and "No Media" not in device.status %}
-                <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?')">
+                <form action="/scsi/eject" method="post" onsubmit="return confirm('Eject Disk?  WARNING: On Mac OS, eject the Disk in Finder instead!')">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
                     <input name="unit" type="hidden" value="{{ device.unit }}">
                     <input type="submit" value="Eject">
@@ -448,6 +448,7 @@
         <li>HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX.</li>
         <li>On Mac OS, requires a <a href="https://github.com/akuker/RASCSI/wiki/Drive-Setup#Mounting_CD_ISO_or_MO_images">compatible CD-ROM driver</a> installed on the target system.
         </li>
+        <li>If the target file is a zip archive, we will attempt to unzip it and store the resulting files only.</li>
     </ul>
 </details>
 <table style="border: none">
@@ -618,25 +619,20 @@
         Raspberry Pi Operations
     </summary>
     <ul>
-        <li>Issue reboot or shutdown commands to the Raspberr Pi.</li>
-        <li>You can also restart the RaSCSI backend service here.</li>
+        <li>Reboot or shut down the Raspberry Pi that RaSCSI is running on.</li>
+        <li>IMPORTANT: Always shut down the Pi before turning off the power. Failing to do so may lead to data corruption.</li>
     </ul>
 </details>
 <table style="border: none">
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
-            <form action="/pi/reboot" method="post" onsubmit="return confirm('Reboot Pi?')">
+            <form action="/pi/reboot" method="post" onclick="if (confirm('Reboot the Raspberry Pi?')) shutdownNotify('Rebooting the Raspberry Pi...'); else event.preventDefault();">
                 <input type="submit" value="Reboot Raspberry Pi">
             </form>
         </td>
         <td style="border: none; vertical-align:top;">
-            <form action="/pi/shutdown" method="post" onsubmit="return confirm('Shutdown Pi?')">
+            <form action="/pi/shutdown" method="post" onclick="if (confirm('Shut down the Raspberry Pi?')) shutdownNotify('Shutting down the Raspberry Pi...'); else event.preventDefault();">
                 <input type="submit" value="Shut Down Raspberry Pi">
-            </form>
-        </td>
-        <td style="border: none; vertical-align:top;">
-            <form action="/rascsi/restart" method="post" onsubmit="return confirm('Restart RaSCSI?')">
-                <input type="submit" value="Restart RaSCSI Service">
             </form>
         </td>
     </tr>
