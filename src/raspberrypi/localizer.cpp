@@ -42,7 +42,9 @@ Localizer::Localizer()
 
 void Localizer::Add(LocalizationKey key, const string& locale, const string& value)
 {
-	// Safeguards against duplicate entries and unsupported locales
+	// Safeguards against empty messages, duplicate entries and unsupported locales
+	assert(locale.size());
+	assert(value.size());
 	assert(supported_languages.find(locale) != supported_languages.end());
 	assert(localized_messages[locale][key].empty());
 
