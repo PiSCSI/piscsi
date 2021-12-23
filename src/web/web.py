@@ -99,7 +99,7 @@ def index():
     units = 0
     # If there are more than 0 logical unit numbers, display in the Web UI
     for device in devices["device_list"]:
-        attached_images.append(Path(device["image"]).name)
+        attached_images.append(device["image"].replace(server_info["image_dir"] + "/", ""))
         units += int(device["unit"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
