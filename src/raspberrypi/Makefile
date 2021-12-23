@@ -95,7 +95,8 @@ SRC_RASCSI = \
 	rascsi_image.cpp \
 	rascsi_response.cpp \
 	rasutil.cpp \
-	protobuf_util.cpp
+	protobuf_util.cpp \
+	localizer.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI += $(SRC_PROTOBUF)
@@ -114,7 +115,8 @@ SRC_RASCTL = \
 	rasctl_display.cpp \
 	rascsi_version.cpp \
 	rasutil.cpp \
-	protobuf_util.cpp
+	protobuf_util.cpp \
+	localizer.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 
 SRC_RASDUMP = \

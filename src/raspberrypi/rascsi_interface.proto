@@ -3,7 +3,8 @@
 // A message starts with a little endian 32 bit header which contains the protobuf message size.
 // Unless explicitly specified the order of repeated data returned is undefined.
 // All operations accept an optional access token, specified by the "token" parameter.
-// Only the VERSION_INFO operation never requires authentication.
+// All operations also accept an optional locale, specified with the "locale" parameter. If there is
+// a localized error message rascsi returns it, with English being the fallback language.
 //
 
 syntax = "proto3";

@@ -16,6 +16,7 @@
 #include "rasutil.h"
 #include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
+#include <clocale>
 #include <iostream>
 #include <list>
 
@@ -118,7 +119,8 @@ int main(int argc, char* argv[])
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
-		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
+		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] ";
+		cerr <<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] ";
 		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0-31}, default is 0" << endl;
@@ -154,9 +156,14 @@ int main(int argc, char* argv[])
 	string token;
 	bool list = false;
 
+	string locale = setlocale(LC_MESSAGES, "");
+	if (locale == "C") {
+		locale = "en";
+	}
+
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:P::R:")) != -1) {
+	while ((opt = getopt(argc, argv, "e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:z:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -350,6 +357,10 @@ int main(int argc, char* argv[])
 				command.set_operation(SHUT_DOWN);
 				AddParam(command, "mode", "rascsi");
 				break;
+
+			case 'z':
+				locale = optarg;
+				break;
 		}
 	}
 
@@ -361,7 +372,7 @@ int main(int argc, char* argv[])
 	if (list) {
 		PbCommand command_list;
 		command_list.set_operation(DEVICES_INFO);
-		RasctlCommands rasctl_commands(command_list, hostname, port, token);
+		RasctlCommands rasctl_commands(command_list, hostname, port, token, locale);
 		rasctl_commands.CommandDevicesInfo();
 		exit(EXIT_SUCCESS);
 	}
@@ -372,7 +383,7 @@ int main(int argc, char* argv[])
 		AddParam(*device, "file", param);
 	}
 
-	RasctlCommands rasctl_commands(command, hostname, port, token);
+	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
 
 	switch(command.operation()) {
 		case LOG_LEVEL:

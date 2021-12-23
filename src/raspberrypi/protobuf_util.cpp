@@ -11,6 +11,7 @@
 #include "os.h"
 #include "log.h"
 #include "rascsi_interface.pb.h"
+#include "localizer.h"
 #include "exceptions.h"
 #include "protobuf_util.h"
 
@@ -18,6 +19,8 @@ using namespace std;
 using namespace rascsi_interface;
 
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
+
+Localizer localizer;
 
 const string protobuf_util::GetParam(const PbCommand& command, const string& key)
 {
@@ -119,14 +122,30 @@ int protobuf_util::ReadNBytes(int fd, uint8_t *buf, int n)
 	return offset;
 }
 
-
-bool protobuf_util::ReturnStatus(int fd, bool status, const string msg, const PbErrorCode error_code)
+bool protobuf_util::ReturnLocalizedError(const CommandContext& context, const LocalizationKey key,
+		const string& arg1, const string& arg2, const string& arg3)
 {
-	if (!status && !msg.empty()) {
+	return ReturnLocalizedError(context, key, NO_ERROR_CODE, arg1, arg2, arg3);
+}
+
+bool protobuf_util::ReturnLocalizedError(const CommandContext& context, const LocalizationKey key,
+		const PbErrorCode error_code, const string& arg1, const string& arg2, const string& arg3)
+{
+	// For the logfile always use English
+	LOGERROR("%s", localizer.Localize(key, "en", arg1, arg2, arg3).c_str());
+
+	return ReturnStatus(context, false, localizer.Localize(key, context.locale, arg1, arg2, arg3), error_code, false);
+}
+
+bool protobuf_util::ReturnStatus(const CommandContext& context, bool status, const string& msg,
+		const PbErrorCode error_code, bool log)
+{
+	// Do not log twice if logging has already been done in the localized error handling above
+	if (log && !status && !msg.empty()) {
 		LOGERROR("%s", msg.c_str());
 	}
 
-	if (fd == -1) {
+	if (context.fd == -1) {
 		if (!msg.empty()) {
 			if (status) {
 				FPRT(stderr, "Error: ");
@@ -144,13 +163,8 @@ bool protobuf_util::ReturnStatus(int fd, bool status, const string msg, const Pb
 		result.set_status(status);
 		result.set_error_code(error_code);
 		result.set_msg(msg);
-		SerializeMessage(fd, result);
+		SerializeMessage(context.fd, result);
 	}
 
 	return status;
-}
-
-bool protobuf_util::ReturnStatus(int fd, bool status, const ostringstream& msg)
-{
-	return ReturnStatus(fd, status, msg.str());
 }

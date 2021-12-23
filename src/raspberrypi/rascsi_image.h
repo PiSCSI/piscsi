@@ -10,6 +10,7 @@
 #pragma once
 
 #include "rascsi_interface.pb.h"
+#include "command_context.h"
 #include <string>
 
 using namespace std;
@@ -25,16 +26,16 @@ public:
 	void SetDepth(int depth) { this->depth = depth; }
 	int GetDepth() { return depth; }
 	bool CheckDepth(const string&);
-	bool CreateImageFolder(int, const string&);
+	bool CreateImageFolder(const CommandContext&, const string&);
 	string GetDefaultImageFolder() const { return default_image_folder; }
 	string SetDefaultImageFolder(const string&);
 	bool IsValidSrcFilename(const string&);
 	bool IsValidDstFilename(const string&);
-	bool CreateImage(int, const PbCommand&);
-	bool DeleteImage(int, const PbCommand&);
-	bool RenameImage(int, const PbCommand&);
-	bool CopyImage(int, const PbCommand&);
-	bool SetImagePermissions(int, const PbCommand&);
+	bool CreateImage(const CommandContext&, const PbCommand&);
+	bool DeleteImage(const CommandContext&, const PbCommand&);
+	bool RenameImage(const CommandContext&, const PbCommand&);
+	bool CopyImage(const CommandContext&, const PbCommand&);
+	bool SetImagePermissions(const CommandContext&, const PbCommand&);
 
 private:
 
