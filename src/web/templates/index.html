@@ -85,8 +85,8 @@
                 </form>
             {% else %}
             {{ device.file }}
-            </td>
             {% endif %}
+            </td>
             {% if device.vendor == "RaSCSI" %}
             <td style="text-align:center">{{ device.product }}</td>
             {% else %}
@@ -152,7 +152,7 @@
         Image File Management
     </summary>
     <ul>
-        <li>Manage image files in the active RaSCSI image directory: <tt>{{ base_dir }}</tt></li>
+        <li>Manage image files in the active RaSCSI image directory: <tt>{{ base_dir }}</tt> with a scan depth of {{ scan_depth }}.</li>
         <li>Select a valid SCSI ID and <a href="https://en.wikipedia.org/wiki/Logical_unit_number">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.
         </li>
         <li>If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.</li>

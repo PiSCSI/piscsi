@@ -94,17 +94,17 @@ def index():
     disk = disk_space()
     devices = list_devices()
     device_types = get_device_types()
-    files = list_images()
+    image_files = list_images()
     config_files = list_config_files()
 
-    sorted_image_files = sorted(files["files"], key=lambda x: x["name"].lower())
+    sorted_image_files = sorted(image_files["files"], key=lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key=lambda x: x.lower())
 
     attached_images = []
     units = 0
     # If there are more than 0 logical unit numbers, display in the Web UI
     for device in devices["device_list"]:
-        attached_images.append(Path(device["image"]).name)
+        attached_images.append(device["image"].replace(server_info["image_dir"] + "/", ""))
         units += int(device["unit"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
@@ -135,6 +135,7 @@ def index():
         files=sorted_image_files,
         config_files=sorted_config_files,
         base_dir=server_info["image_dir"],
+        scan_depth=server_info["scan_depth"],
         CFG_DIR=CFG_DIR,
         AFP_DIR=AFP_DIR,
         scsi_ids=scsi_ids,
@@ -813,9 +814,6 @@ def create_file():
     file_name = request.form.get("file_name")
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
-
-    from werkzeug.utils import secure_filename
-    file_name = secure_filename(file_name)
 
     process = create_new_image(file_name, file_type, size)
     if process["status"]:

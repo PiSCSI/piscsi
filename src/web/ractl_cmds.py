@@ -17,6 +17,8 @@ def get_server_info():
     - (list) of (str) log_levels (the log levels RaSCSI supports)
     - (str) current_log_level
     - (list) of (int) reserved_ids
+    - (str) image_dir, path to the default images directory
+    - (int) scan_depth, the current images directory scan depth
     - 5 distinct (list)s of (str)s with file endings recognized by RaSCSI
     """
     command = proto.PbCommand()
@@ -33,6 +35,7 @@ def get_server_info():
     current_log_level = result.server_info.log_level_info.current_log_level
     reserved_ids = list(result.server_info.reserved_ids_info.ids)
     image_dir = result.server_info.image_files_info.default_image_folder
+    scan_depth = result.server_info.image_files_info.depth
 
     # Creates lists of file endings recognized by RaSCSI
     mappings = result.server_info.mapping_info.mapping
@@ -60,6 +63,7 @@ def get_server_info():
         "current_log_level": current_log_level,
         "reserved_ids": reserved_ids,
         "image_dir": image_dir,
+        "scan_depth": scan_depth,
         "sahd": sahd,
         "schd": schd,
         "scrm": scrm,
@@ -125,6 +129,32 @@ def get_device_types():
     for prop in result.device_types_info.properties:
         device_types.append(proto.PbDeviceType.Name(prop.type))
     return {"status": result.status, "device_types": device_types}
+
+
+def get_image_files_info():
+    """
+    Sends a DEFAULT_IMAGE_FILES_INFO command to the server.
+    Returns a dict with:
+    - (bool) status
+    - (str) images_dir, path to images dir
+    - (list) of (str) image_files
+    - (int) scan_depth, the current scan depth
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    images_dir = result.image_files_info.default_image_folder
+    image_files = result.image_files_info.image_files
+    scan_depth = result.image_files_info.depth
+    return {
+        "status": result.status,
+        "images_dir": images_dir,
+        "image_files": image_files,
+        "scan_depth": scan_depth,
+        }
 
 
 def attach_image(scsi_id, **kwargs):
@@ -264,7 +294,6 @@ def list_devices(scsi_id=None, unit=None):
     If no attached device is found, returns an empty (list).
     Returns (bool) status, (list) of dicts device_list
     """
-    from os import path
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICES_INFO
     command.params["token"] = current_app.config["TOKEN"]
@@ -288,6 +317,7 @@ def list_devices(scsi_id=None, unit=None):
     if not result.devices_info.devices:
         return {"status": False, "device_list": []}
 
+    image_files_info = get_image_files_info()
     i = 0
     while i < len(result.devices_info.devices):
         did = result.devices_info.devices[i].id
@@ -308,7 +338,7 @@ def list_devices(scsi_id=None, unit=None):
             dstat_msg.append("Locked")
 
         dpath = result.devices_info.devices[i].file.name
-        dfile = path.basename(dpath)
+        dfile = dpath.replace(image_files_info["images_dir"] + "/", "")
         dparam = result.devices_info.devices[i].params
         dven = result.devices_info.devices[i].vendor
         dprod = result.devices_info.devices[i].product
