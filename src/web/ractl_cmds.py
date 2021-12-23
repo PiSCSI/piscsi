@@ -122,6 +122,32 @@ def get_device_types():
     return {"status": result.status, "device_types": device_types}
 
 
+def get_image_files_info():
+    """
+    Sends a DEFAULT_IMAGE_FILES_INFO command to the server.
+    Returns a dict with:
+    - (bool) status
+    - (str) images_dir, path to images dir
+    - (list) of (str) image_files
+    - (int) scan_depth, the current scan depth
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    images_dir = result.image_files_info.default_image_folder
+    image_files = result.image_files_info.image_files
+    scan_depth = result.image_files_info.depth
+    return {
+        "status": result.status,
+        "images_dir": images_dir,
+        "image_files": image_files,
+        "scan_depth": scan_depth,
+        }
+
+
 def attach_image(scsi_id, **kwargs):
     """
     Takes (int) scsi_id and kwargs containing 0 or more device properties
@@ -255,7 +281,6 @@ def list_devices(scsi_id=None, unit=None):
     If no attached device is found, returns an empty (list).
     Returns (bool) status, (list) of dicts device_list
     """
-    from os import path
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICES_INFO
 
@@ -278,6 +303,7 @@ def list_devices(scsi_id=None, unit=None):
     if not result.devices_info.devices:
         return {"status": False, "device_list": []}
 
+    image_files_info = get_image_files_info()
     i = 0
     while i < len(result.devices_info.devices):
         did = result.devices_info.devices[i].id
@@ -298,7 +324,7 @@ def list_devices(scsi_id=None, unit=None):
             dstat_msg.append("Locked")
 
         dpath = result.devices_info.devices[i].file.name
-        dfile = path.basename(dpath)
+        dfile = dpath.replace(image_files_info["images_dir"] + "/", "")
         dparam = result.devices_info.devices[i].params
         dven = result.devices_info.devices[i].vendor
         dprod = result.devices_info.devices[i].product
