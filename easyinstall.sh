@@ -222,6 +222,15 @@ function stopOldWebInterface() {
 # Checks for upstream changes to the git repo and fast-forwards changes if needed
 function updateRaScsiGit() {
     cd "$BASE" || exit 1
+
+    set +e
+    git rev-parse --is-inside-work-tree &> /dev/null
+    if [[ $? -ge 1 ]]; then
+        echo "Warning: This does not seem to be a valid clone of a git repository. I will not be able to pull the latest code."
+        return 0
+    fi
+    set -e
+
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
         echo "There are local changes to the RaSCSI code; we will stash and reapply them."
