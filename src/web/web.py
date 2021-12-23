@@ -809,9 +809,6 @@ def create_file():
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
 
-    from werkzeug.utils import secure_filename
-    file_name = secure_filename(file_name)
-
     process = create_new_image(file_name, file_type, size)
     if process["status"]:
         flash(f"Drive image created: {file_name}.{file_type}")
