@@ -89,10 +89,10 @@ def index():
     disk = disk_space()
     devices = list_devices()
     device_types = get_device_types()
-    files = list_images()
+    image_files = list_images()
     config_files = list_config_files()
 
-    sorted_image_files = sorted(files["files"], key=lambda x: x["name"].lower())
+    sorted_image_files = sorted(image_files["files"], key=lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key=lambda x: x.lower())
 
     attached_images = []
