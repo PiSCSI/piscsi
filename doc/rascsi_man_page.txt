@@ -100,8 +100,8 @@ OPTIONS
        -v     Display the rascsi version.
 
        -z LOCALE
-              Overrides the default locale for error messages. The client  can
-              override the locale.
+              Overrides the default locale for  client-faces  error  messages.
+              The client can override the locale.
 
        -IDn[:u] FILE
               n  is  the  SCSI  ID  number (0-7). u (0-31) is the optional LUN
