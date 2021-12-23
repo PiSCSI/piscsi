@@ -16,6 +16,8 @@ def get_server_info():
     - (list) of (str) log_levels (the log levels RaSCSI supports)
     - (str) current_log_level
     - (list) of (int) reserved_ids
+    - (str) image_dir, path to the default images directory
+    - (int) scan_depth, the current images directory scan depth
     - 5 distinct (list)s of (str)s with file endings recognized by RaSCSI
     """
     command = proto.PbCommand()
@@ -31,6 +33,7 @@ def get_server_info():
     current_log_level = result.server_info.log_level_info.current_log_level
     reserved_ids = list(result.server_info.reserved_ids_info.ids)
     image_dir = result.server_info.image_files_info.default_image_folder
+    scan_depth = result.server_info.image_files_info.depth
 
     # Creates lists of file endings recognized by RaSCSI
     mappings = result.server_info.mapping_info.mapping
@@ -58,6 +61,7 @@ def get_server_info():
         "current_log_level": current_log_level,
         "reserved_ids": reserved_ids,
         "image_dir": image_dir,
+        "scan_depth": scan_depth,
         "sahd": sahd,
         "schd": schd,
         "scrm": scrm,

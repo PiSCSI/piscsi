@@ -130,6 +130,7 @@ def index():
         files=sorted_image_files,
         config_files=sorted_config_files,
         base_dir=server_info["image_dir"],
+        scan_depth=server_info["scan_depth"],
         CFG_DIR=CFG_DIR,
         AFP_DIR=AFP_DIR,
         scsi_ids=scsi_ids,
