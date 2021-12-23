@@ -5,6 +5,7 @@ Module for methods reading from and writing to the file system
 import os
 import logging
 from pathlib import PurePath
+from flask import current_app
 
 from ractl_cmds import (
     get_server_info,
@@ -63,6 +64,7 @@ def list_images():
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
+    command.params["token"] = current_app.config["TOKEN"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -118,6 +120,7 @@ def create_new_image(file_name, file_type, size):
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.CREATE_IMAGE
+    command.params["token"] = current_app.config["TOKEN"]
 
     command.params["file"] = file_name + "." + file_type
     command.params["size"] = str(size)
@@ -137,6 +140,7 @@ def delete_image(file_name):
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DELETE_IMAGE
+    command.params["token"] = current_app.config["TOKEN"]
 
     command.params["file"] = file_name
 
@@ -154,6 +158,7 @@ def rename_image(file_name, new_file_name):
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RENAME_IMAGE
+    command.params["token"] = current_app.config["TOKEN"]
 
     command.params["from"] = file_name
     command.params["to"] = new_file_name

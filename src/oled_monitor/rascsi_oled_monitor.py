@@ -30,6 +30,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 """
+import argparse
 from time import sleep
 from sys import argv
 from collections import deque
@@ -38,29 +39,47 @@ from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
 from interrupt_handler import GracefulInterruptHandler
 from pi_cmds import get_ip_and_host
-from ractl_cmds import device_list
+from ractl_cmds import device_list, is_token_auth
 
-# Read positional arguments; expecting exactly two, or none
-# Arg 1 is the rotation in degrees, arg 2 is the screen height in pixels
-# Valid values are 0/180 for ROTATION, 32/64 for HEIGHT
-if len(argv) == 3:
-    if int(argv[1]) == 0:
-        ROTATION = 0
-    else:
-        # 2 means 180 degrees
-        ROTATION = 2
-    if int(argv[2]) == 64:
-        HEIGHT = 64
-        LINES = 8
-    else:
-        HEIGHT = 32
-        LINES = 4
-else:
-    # Default settings
+parser = argparse.ArgumentParser(description="RaSCSI OLED Monitor script")
+parser.add_argument(
+    "--rotation",
+    type=int,
+    choices=[0, 180],
+    default=180,
+    action="store",
+    help="The rotation of the screen buffer in degrees",
+    )
+parser.add_argument(
+    "--height",
+    type=int,
+    choices=[32, 64],
+    default=32,
+    action="store",
+    help="The pixel height of the screen buffer",
+    )
+parser.add_argument(
+    "--password",
+    type=str,
+    default="",
+    action="store",
+    help="Token password string for authenticating with RaSCSI",
+    )
+args = parser.parse_args()
+
+if args.rotation == 0:
+    ROTATION = 0
+elif args.rotation == 180:
     ROTATION = 2
+
+if args.height == 64:
+    HEIGHT = 64
+    LINES = 8
+elif args.height == 32:
     HEIGHT = 32
     LINES = 4
-    print("No valid parameters detected; defaulting to 32 px height, 180 degrees rotation.")
+
+TOKEN = args.password
 
 WIDTH = 128
 BORDER = 5
@@ -132,10 +151,12 @@ def formatted_output():
     Formats the strings to be displayed on the Screen
     Returns a (list) of (str) output
     """
-    rascsi_list = device_list()
+    rascsi_list = device_list(TOKEN)
     output = []
 
-    if rascsi_list:
+    if not TOKEN and not is_token_auth(TOKEN)["status"]:
+        output.append("Permission denied!")
+    elif rascsi_list:
         for line in rascsi_list:
             if line["device_type"] in ("SCCD", "SCRM", "SCMO"):
                 # Print image file name only when there is an image attached

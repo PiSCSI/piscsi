@@ -112,22 +112,17 @@ while [ "$1" != "" ]; do
     VALUE=$(echo "$1" | awk -F= '{print $2}')
     case $PARAM in
 	-r | --rotation)
-	    ROTATION=$VALUE
+	    ROTATION="--rotation $VALUE"
 	    ;;
 	-h | --height)
-	    HEIGHT=$VALUE
+	    HEIGHT="--height $VALUE"
+	    ;;
+	-P | --password)
+	    PASSWORD="--password $VALUE"
 	    ;;
         *)
             echo "ERROR: unknown parameter \"$PARAM\""
             exit 1
-            ;;
-    esac
-    case $VALUE in
-        0 | 180 | 32 | 64 )
-            ;;
-        *)
-            echo "ERROR: invalid option \"$VALUE\""
-	    exit 1
             ;;
     esac
     shift
@@ -137,11 +132,11 @@ echo "Starting OLED Screen..."
 if [ -z ${ROTATION+x} ]; then
     echo "No screen rotation parameter given; falling back to the default."
 else
-    echo "Screen rotation set to $ROTATION degrees."
+    echo "Starting with parameter $ROTATION"
 fi
 if [ -z ${HEIGHT+x} ]; then
     echo "No screen height parameter given; falling back to the default."
 else
-    echo "Screen height set to $HEIGHT px."
+    echo "Starting with parameter $HEIGHT"
 fi
-python3 rascsi_oled_monitor.py ${ROTATION} ${HEIGHT}
+python3 rascsi_oled_monitor.py ${ROTATION} ${HEIGHT} ${PASSWORD}

@@ -3,6 +3,7 @@ Module for the Flask app rendering and endpoints
 """
 
 import logging
+import argparse
 from sys import argv
 from pathlib import Path
 from functools import wraps
@@ -18,6 +19,7 @@ from flask import (
     send_from_directory,
     make_response,
     session,
+    abort,
 )
 
 from file_cmds import (
@@ -58,6 +60,7 @@ from ractl_cmds import (
     reserve_scsi_ids,
     set_log_level,
     shutdown_pi,
+    is_token_auth,
 )
 from device_utils import (
     sort_and_format_devices,
@@ -79,12 +82,14 @@ from settings import (
 
 APP = Flask(__name__)
 
-
 @APP.route("/")
 def index():
     """
     Sets up data structures for and renders the index page
     """
+    if not is_token_auth()["status"] and not APP.config["TOKEN"]:
+        abort(403, "RaSCSI is password protected. Start the Web Interface with the --password parameter.")
+
     server_info = get_server_info()
     disk = disk_space()
     devices = list_devices()
@@ -922,20 +927,38 @@ def unzip():
     return redirect(url_for("index"))
 
 
+@APP.before_first_request
+def load_default_config():
+    """
+    Load the default configuration file, if found
+    """
+    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
+        read_config(DEFAULT_CONFIG)
+
+
 if __name__ == "__main__":
     APP.secret_key = "rascsi_is_awesome_insecure_secret_key"
     APP.config["SESSION_TYPE"] = "filesystem"
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
-    # Load the default configuration file, if found
-    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
-        read_config(DEFAULT_CONFIG)
-
-    if len(argv) > 1:
-        PORT = int(argv[1])
-    else:
-        PORT = 8080
+    parser = argparse.ArgumentParser(description="RaSCSI Web Interface arguments")
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        action="store",
+        help="Port number the web server will run on",
+        )
+    parser.add_argument(
+        "--password",
+        type=str,
+        default="",
+        action="store",
+        help="Token password string for authenticating with RaSCSI",
+        )
+    args = parser.parse_args()
+    APP.config["TOKEN"] = args.password
 
     import bjoern
     print("Serving rascsi-web...")
-    bjoern.run(APP, "0.0.0.0", PORT)
+    bjoern.run(APP, "0.0.0.0", args.port)
