@@ -21,6 +21,7 @@ from flask import (
     session,
     abort,
 )
+from flask_babel import Babel, gettext, ngettext, _
 
 from file_cmds import (
     list_images,
@@ -81,6 +82,11 @@ from settings import (
 )
 
 APP = Flask(__name__)
+BABEL = Babel(APP)
+
+@BABEL.localeselector
+def get_locale():
+    return request.accept_languages.best_match(["en", "de", "sv"])
 
 @APP.route("/")
 def index():
@@ -88,7 +94,7 @@ def index():
     Sets up data structures for and renders the index page
     """
     if not is_token_auth()["status"] and not APP.config["TOKEN"]:
-        abort(403, "RaSCSI is password protected. Start the Web Interface with the --password parameter.")
+        abort(403, _(u"RaSCSI is password protected. Start the Web Interface with the --password parameter."))
 
     server_info = get_server_info()
     disk = disk_space()
@@ -182,7 +188,7 @@ def drive_list():
             return redirect(url_for("index"))
         conf = process["conf"]
     else:
-        flash("Could not read drive properties from " + str(drive_properties), "error")
+        flash(_("Could not read drive properties from %(file)s", drive_properties), "error")
         return redirect(url_for("index"))
 
     hd_conf = []
@@ -246,7 +252,7 @@ def login():
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
             return redirect(url_for("index"))
-    flash(f"You must log in with credentials for a user in the '{AUTH_GROUP}' group!", "error")
+    flash(_(u"You must log in with credentials for a user in the '%(group)s' group!", AUTH_GROUP), "error")
     return redirect(url_for("index"))
 
 
@@ -298,7 +304,7 @@ def drive_create():
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
     if process["status"]:
-        flash(f"Created drive image file: {file_name}.{file_type}")
+        flash(_(u"Created drive image file: %(name)s.%(ending)s", file_name, file_type))
     else:
         flash(process["msg"], "error")
         return redirect(url_for("index"))
@@ -392,6 +398,7 @@ def config_load():
         flash(process['msg'], "error")
         return redirect(url_for("index"))
 
+    # The only reason we would reach here would be a Web UI bug. Will not localize.
     flash("Got an unhandled request (needs to be either load or delete)", "error")
     return redirect(url_for("index"))
 
@@ -422,8 +429,7 @@ def show_logs():
         headers = {"content-type": "text/plain"}
         return process.stdout.decode("utf-8"), int(lines), headers
 
-    flash("Failed to get logs")
-    flash(process.stdout.decode("utf-8"), "stdout")
+    flash(_(u"Error occurred when fetching logs."))
     flash(process.stderr.decode("utf-8"), "stderr")
     return redirect(url_for("index"))
 
@@ -438,10 +444,10 @@ def log_level():
 
     process = set_log_level(level)
     if process["status"]:
-        flash(f"Log level set to {level}")
+        flash(_(u"Log level set to %(level)s", level))
         return redirect(url_for("index"))
 
-    flash(f"Failed to set log level to {level}!", "error")
+    flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 
@@ -456,22 +462,26 @@ def daynaport_attach():
     ip_addr = request.form.get("ip")
     mask = request.form.get("mask")
 
-    error_msg = ("Please follow the instructions at "
-        "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link")
+    error_msg = (_(u"Please follow the instructions at "
+        u"https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"))
 
     if interface.startswith("wlan"):
         if not introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            flash("IPv4 forwarding is not enabled. " + error_msg, "error")
+            flash(_(u"IPv4 forwarding is not enabled."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
         if not Path("/etc/iptables/rules.v4").is_file():
-            flash("NAT has not been configured. " + error_msg, "error")
+            flash(_(u"NAT has not been configured."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
     else:
         if not introspect_file("/etc/dhcpcd.conf", r"^denyinterfaces " + interface + r"$"):
-            flash("The network bridge hasn't been configured. " + error_msg, "error")
+            flash(_(u"The network bridge hasn't been configured."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
         if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            flash("The network bridge hasn't been configured. " + error_msg, "error")
+            flash(_(u"The network bridge hasn't been configured."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
 
     kwargs = {"device_type": "SCDP"}
@@ -483,7 +493,7 @@ def daynaport_attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
-        flash(f"Attached DaynaPORT to SCSI ID {scsi_id}!")
+        flash(_(u"Attached DaynaPORT to SCSI ID %(number)!", scsi_id))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
