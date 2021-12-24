@@ -21,7 +21,7 @@ from flask import (
     session,
     abort,
 )
-from flask_babel import Babel, gettext, ngettext, _
+from flask_babel import Babel, _
 
 from file_cmds import (
     list_images,
@@ -188,7 +188,7 @@ def drive_list():
             return redirect(url_for("index"))
         conf = process["conf"]
     else:
-        flash(_("Could not read drive properties from %(file)s", drive_properties), "error")
+        flash(_("Could not read drive properties from %(pfile)s", pfile=drive_properties), "error")
         return redirect(url_for("index"))
 
     hd_conf = []
@@ -252,7 +252,10 @@ def login():
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
             return redirect(url_for("index"))
-    flash(_(u"You must log in with credentials for a user in the '%(group)s' group!", AUTH_GROUP), "error")
+    flash( _(
+            u"You must log in with credentials for a user in the '%(group)s' group!",
+            group=AUTH_GROUP
+        ), "error")
     return redirect(url_for("index"))
 
 
@@ -304,7 +307,7 @@ def drive_create():
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
     if process["status"]:
-        flash(_(u"Created drive image file: %(name)s.%(ending)s", file_name, file_type))
+        flash(_(u"Created drive image file: %(name)s.%(ending)s", name=file_name, ending=file_type))
     else:
         flash(process["msg"], "error")
         return redirect(url_for("index"))
@@ -942,6 +945,9 @@ def load_default_config():
     """
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         read_config(DEFAULT_CONFIG)
+
+    APP.config["LOCALE"] = get_locale()
+    logging.info("Detected locale: " + APP.config["LOCALE"])
 
 
 if __name__ == "__main__":
