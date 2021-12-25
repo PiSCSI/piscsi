@@ -3,12 +3,12 @@
 
 <details>
     <summary class="heading">
-        Current RaSCSI Configuration
+        {{ _("Current RaSCSI Configuration") }}
     </summary>
     <ul>
-        <li>Displays the currently attached devices for each available SCSI ID.</li>
-        <li>Save and load device configurations into <tt>{{ CFG_DIR }}</tt></li>
-        <li>The <em>default</em> configuration will be loaded when the Web UI starts up, if available.</li>
+        <li>{{ _("Displays the currently attached devices for each available SCSI ID.") }}</li>
+        <li>{{ _("Save and load device configurations into ") }}<tt>{{ CFG_DIR }}</tt></li>
+        <li>{{ _("The <em>default</em> configuration will be loaded when the Web UI starts up, if available.") }}</li>
     </ul>
 </details>
 
@@ -22,17 +22,17 @@
         {% endfor %}
         {% else %}
         <option disabled>
-            No saved configs
+        {{ _("No saved configs") }}
         </option>
         {% endif %}
     </select>
-    <input name="load" type="submit" value="Load" onclick="return confirm('Detach all current device and Load config?')">
-    <input name="delete" type="submit" value="Delete" onclick="return confirm('Delete config file?')">
+    <input name="load" type="submit" value="{{ _("Load") }}" onclick="return confirm('{{ _("Detach all current device and Load config?") }}')">
+    <input name="delete" type="submit" value="{{ _("Delete") }}" onclick="return confirm('{{ _("Delete config file?") }}')">
 </form></p>
 
 <p><form action="/config/save" method="post">
     <input name="name" placeholder="default" size="20">
-    <input type="submit" value="Save">
+    <input type="submit" value="{{ _("Save") }}">
 </form></p>
 
 <table border="black" cellpadding="3">
