@@ -5,6 +5,7 @@ Module for commands sent to the RaSCSI backend service.
 from settings import REMOVABLE_DEVICE_TYPES
 from socket_cmds import send_pb_command
 from flask import current_app
+from flask_babel import _
 import rascsi_interface_pb2 as proto
 
 
@@ -202,8 +203,12 @@ def attach_image(scsi_id, **kwargs):
         if current_type != device_type:
             return {
                 "status": False,
-                "msg": "Cannot insert an image for " + device_type + \
-                " into a " + current_type + " device."
+                "msg": _(
+                    u"Cannot insert an image for %(device_type)s into a "
+                    u"%(current_device_type)s device",
+                    device_type=device_type,
+                    current_device_type=current_type
+                    ),
                 }
         command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
