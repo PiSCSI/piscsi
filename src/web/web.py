@@ -494,7 +494,7 @@ def daynaport_attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
-        flash(_(u"Attached DaynaPORT to SCSI ID %s", value=scsi_id))
+        flash(_(u"Attached DaynaPORT to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
@@ -729,7 +729,7 @@ def download_to_iso():
 
     process_attach = attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
     if process_attach["status"]:
-        flash(_(u"Attached to SCSI ID %s", scsi_id))
+        flash(_(u"Attached to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
     flash(_(u"Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually.",
