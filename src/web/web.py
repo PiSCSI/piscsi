@@ -468,20 +468,20 @@ def daynaport_attach():
 
     if interface.startswith("wlan"):
         if not introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            flash(_(u"IPv4 forwarding is not enabled."), "error")
+            flash(_(u"Configure IPv4 forwarding before using a wireless network device."), "error")
             flash(error_msg, "error")
             return redirect(url_for("index"))
         if not Path("/etc/iptables/rules.v4").is_file():
-            flash(_(u"NAT has not been configured."), "error")
+            flash(_(u"Configure NAT before using a wireless network device."), "error")
             flash(error_msg, "error")
             return redirect(url_for("index"))
     else:
         if not introspect_file("/etc/dhcpcd.conf", r"^denyinterfaces " + interface + r"$"):
-            flash(_(u"The network bridge has not been configured."), "error")
+            flash(_(u"Configure the network bridge before using a wired network device."), "error")
             flash(error_msg, "error")
             return redirect(url_for("index"))
         if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            flash(_(u"The network bridge has not been configured."), "error")
+            flash(_(u"Configure the network bridge before using a wired network device."), "error")
             flash(error_msg, "error")
             return redirect(url_for("index"))
 

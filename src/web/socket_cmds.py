@@ -38,7 +38,7 @@ def send_pb_command(payload):
     # After failing all attempts, throw a 404 error
     abort(404, _(
             u"The RaSCSI Web Interface failed to connect to RaSCSI at %(host)s:%(port)s "
-            u"with error: %(error_msg)s. The RaSCSI service is not running or may have crashed.",
+            u"with error: %(error_msg)s. The RaSCSI process is not running or may have crashed.",
             host=host, port=port, error_msg=error_msg,
             )
         )
