@@ -867,7 +867,7 @@ def delete():
 
     process = delete_image(file_name)
     if process["status"]:
-        flash(_(u"Image file deleted: %(file_name)s", file_name))
+        flash(_(u"Image file deleted: %(file_name)s", file_name=file_name))
     else:
         flash(process["msg"], "error")
         return redirect(url_for("index"))
