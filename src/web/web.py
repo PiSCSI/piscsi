@@ -21,6 +21,7 @@ from flask import (
     session,
     abort,
 )
+from flask_babel import Babel, _
 
 from file_cmds import (
     list_images,
@@ -81,6 +82,11 @@ from settings import (
 )
 
 APP = Flask(__name__)
+BABEL = Babel(APP)
+
+@BABEL.localeselector
+def get_locale():
+    return request.accept_languages.best_match(["en", "de", "sv"])
 
 @APP.route("/")
 def index():
@@ -88,7 +94,7 @@ def index():
     Sets up data structures for and renders the index page
     """
     if not is_token_auth()["status"] and not APP.config["TOKEN"]:
-        abort(403, "RaSCSI is password protected. Start the Web Interface with the --password parameter.")
+        abort(403, _(u"RaSCSI is password protected. Start the Web Interface with the --password parameter."))
 
     server_info = get_server_info()
     disk = disk_space()
@@ -182,7 +188,7 @@ def drive_list():
             return redirect(url_for("index"))
         conf = process["conf"]
     else:
-        flash("Could not read drive properties from " + str(drive_properties), "error")
+        flash(_("Could not read drive properties from %(properties_file)s", properties_file=drive_properties), "error")
         return redirect(url_for("index"))
 
     hd_conf = []
@@ -246,7 +252,7 @@ def login():
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
             return redirect(url_for("index"))
-    flash(f"You must log in with credentials for a user in the '{AUTH_GROUP}' group!", "error")
+    flash(_(u"You must log in with credentials for a user in the '%(group)s' group", group=AUTH_GROUP), "error")
     return redirect(url_for("index"))
 
 
@@ -294,11 +300,12 @@ def drive_create():
     size = request.form.get("size")
     file_type = request.form.get("file_type")
     file_name = request.form.get("file_name")
+    full_file_name = file_name + "." + file_type
 
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
     if process["status"]:
-        flash(f"Created drive image file: {file_name}.{file_type}")
+        flash(_(u"Image file created: %(file_name)s", file_name=full_file_name))
     else:
         flash(process["msg"], "error")
         return redirect(url_for("index"))
@@ -392,6 +399,7 @@ def config_load():
         flash(process['msg'], "error")
         return redirect(url_for("index"))
 
+    # The only reason we would reach here would be a Web UI bug. Will not localize.
     flash("Got an unhandled request (needs to be either load or delete)", "error")
     return redirect(url_for("index"))
 
@@ -422,8 +430,7 @@ def show_logs():
         headers = {"content-type": "text/plain"}
         return process.stdout.decode("utf-8"), int(lines), headers
 
-    flash("Failed to get logs")
-    flash(process.stdout.decode("utf-8"), "stdout")
+    flash(_(u"An error occurred when fetching logs."))
     flash(process.stderr.decode("utf-8"), "stderr")
     return redirect(url_for("index"))
 
@@ -438,10 +445,10 @@ def log_level():
 
     process = set_log_level(level)
     if process["status"]:
-        flash(f"Log level set to {level}")
+        flash(_(u"Log level set to %(value)s", value=level))
         return redirect(url_for("index"))
 
-    flash(f"Failed to set log level to {level}!", "error")
+    flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 
@@ -456,22 +463,26 @@ def daynaport_attach():
     ip_addr = request.form.get("ip")
     mask = request.form.get("mask")
 
-    error_msg = ("Please follow the instructions at "
-        "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link")
+    error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
+    error_msg = _(u"Please follow the instructions at %(url)s", url=error_url)
 
     if interface.startswith("wlan"):
         if not introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            flash("IPv4 forwarding is not enabled. " + error_msg, "error")
+            flash(_(u"Configure IPv4 forwarding before using a wireless network device."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
         if not Path("/etc/iptables/rules.v4").is_file():
-            flash("NAT has not been configured. " + error_msg, "error")
+            flash(_(u"Configure NAT before using a wireless network device."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
     else:
         if not introspect_file("/etc/dhcpcd.conf", r"^denyinterfaces " + interface + r"$"):
-            flash("The network bridge hasn't been configured. " + error_msg, "error")
+            flash(_(u"Configure the network bridge before using a wired network device."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
         if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            flash("The network bridge hasn't been configured. " + error_msg, "error")
+            flash(_(u"Configure the network bridge before using a wired network device."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
 
     kwargs = {"device_type": "SCDP"}
@@ -483,7 +494,7 @@ def daynaport_attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
-        flash(f"Attached DaynaPORT to SCSI ID {scsi_id}!")
+        flash(_(u"Attached DaynaPORT to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
@@ -531,14 +542,17 @@ def attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
-        flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {unit}")
+        flash(_(u"Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+            file_name=file_name, id_number=scsi_id, unit_number=unit))
         if int(file_size) % int(expected_block_size):
-            flash(f"The image file size {file_size} bytes is not a multiple of "
-                  f"{expected_block_size} and RaSCSI will ignore the trailing data. "
-                  f"The image may be corrupted so proceed with caution.", "error")
+            flash(_(u"The image file size %(file_size)s bytes is not a multiple of "
+                  u"%(block_size)s. RaSCSI will ignore the trailing data. "
+                  u"The image may be corrupted, so proceed with caution.",
+                  file_size=file_size, block_size=expected_block_size), "error")
         return redirect(url_for("index"))
 
-    flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {unit}", "error")
+    flash(_(u"Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+        file_name=file_name, id_number=scsi_id, unit_number=unit), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -551,7 +565,7 @@ def detach_all_devices():
     """
     process = detach_all()
     if process["status"]:
-        flash("Detached all SCSI devices")
+        flash(_(u"Detached all SCSI devices"))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
@@ -568,10 +582,12 @@ def detach():
     unit = request.form.get("unit")
     process = detach_by_id(scsi_id, unit)
     if process["status"]:
-        flash(f"Detached SCSI ID {scsi_id} LUN {unit}")
+        flash(_(u"Detached SCSI ID %(id_number)s LUN %(unit_number)s",
+            id_number=scsi_id, unit_number=unit))
         return redirect(url_for("index"))
 
-    flash(f"Failed to detach SCSI ID {scsi_id} LUN {unit}", "error")
+    flash(_(u"Failed to detach %(file_name)s from SCSI ID %(id_number)s LUN %(unit_number)s",
+        file_name=file_name, id_number=scsi_id, unit_number=unit), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -587,10 +603,12 @@ def eject():
 
     process = eject_by_id(scsi_id, unit)
     if process["status"]:
-        flash(f"Ejected SCSI ID {scsi_id} LUN {unit}")
+        flash(_(u"Ejected SCSI ID %(id_number)s LUN %(unit_number)s",
+            id_number=scsi_id, unit_number=unit))
         return redirect(url_for("index"))
 
-    flash(f"Failed to eject SCSI ID {scsi_id} LUN {unit}", "error")
+    flash(_(u"Failed to eject %(file_name)s from SCSI ID %(id_number)s LUN %(unit_number)s",
+        file_name=file_name, id_number=scsi_id, unit_number=unit), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -612,18 +630,19 @@ def device_info():
     # the one and only device that should have been returned
     device = devices["device_list"][0]
     if str(device["id"]) == scsi_id:
-        flash("=== DEVICE INFO ===")
-        flash(f"SCSI ID: {device['id']}")
-        flash(f"LUN: {device['unit']}")
-        flash(f"Type: {device['device_type']}")
-        flash(f"Status: {device['status']}")
-        flash(f"File: {device['image']}")
-        flash(f"Parameters: {device['params']}")
-        flash(f"Vendor: {device['vendor']}")
-        flash(f"Product: {device['product']}")
-        flash(f"Revision: {device['revision']}")
-        flash(f"Block Size: {device['block_size']} bytes")
-        flash(f"Image Size: {device['size']} bytes")
+        flash(_(u"DEVICE INFO"))
+        flash("===========")
+        flash(_(u"SCSI ID: %(id_number)s", id_number=device["id"]))
+        flash(_(u"LUN: %(unit_number)s", unit_number=device["unit"]))
+        flash(_(u"Type: %(device_type)s", device_type=device["device_type"]))
+        flash(_(u"Status: %(device_status)s", device_status=device["status"]))
+        flash(_(u"File: %(image_file)s", image_file=device["image"]))
+        flash(_(u"Parameters: %(value)s", value=device["params"]))
+        flash(_(u"Vendor: %(value)s", value=device["vendor"]))
+        flash(_(u"Product: %(value)s", value=device["product"]))
+        flash(_(u"Revision: %(revision_number)s", revision_number=device["revision"]))
+        flash(_(u"Block Size: %(value)s bytes", value=device["block_size"]))
+        flash(_(u"Image Size: %(value)s bytes", value=device["size"]))
         return redirect(url_for("index"))
 
     flash(devices["msg"], "error")
@@ -642,9 +661,10 @@ def reserve_id():
     process = reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = memo
-        flash(f"Reserved SCSI ID {scsi_id}")
+        flash(_(u"Reserved SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
+    flash(_(u"Failed to reserve SCSI ID %(id_number)s", id_number=scsi_id))
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -660,9 +680,10 @@ def unreserve_id():
     process = reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = ""
-        flash(f"Released the reservation for SCSI ID {scsi_id}")
+        flash(_(u"Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
+    flash(_(u"Failed to release the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -700,18 +721,19 @@ def download_to_iso():
     process = download_file_to_iso(url, *iso_args)
     if process["status"]:
         flash(process["msg"])
-        flash(f"Saved image as: {process['file_name']}")
+        flash(_(u"Saved image as: %(file_name)s", file_name=process['file_name']))
     else:
-        flash(f"Failed to create CD-ROM image from {url}", "error")
+        flash(_(u"Failed to create CD-ROM image from %(url)s", url), "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
     process_attach = attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
     if process_attach["status"]:
-        flash(f"Attached to SCSI ID {scsi_id}")
+        flash(_(u"Attached to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
-    flash(f"Failed to attach image to SCSI ID {scsi_id}. Try attaching it manually.", "error")
+    flash(_(u"Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually.",
+        id_number=scsi_id), "error")
     flash(process_attach["msg"], "error")
     return redirect(url_for("index"))
 
@@ -729,7 +751,7 @@ def download_img():
         flash(process["msg"])
         return redirect(url_for("index"))
 
-    flash(f"Failed to download file {url}", "error")
+    flash(_(u"Failed to download file from %(url)s", url), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -746,7 +768,7 @@ def download_afp():
         flash(process["msg"])
         return redirect(url_for("index"))
 
-    flash(f"Failed to download file {url}", "error")
+    flash(_(u"Failed to download file from %(url)s", url), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -766,26 +788,26 @@ def upload_file():
     from os import path
 
     log = logging.getLogger("pydrop")
-    file = request.files["file"]
-    filename = secure_filename(file.filename)
+    file_object = request.files["file"]
+    file_name = secure_filename(file_object.filename)
 
     server_info = get_server_info()
 
-    save_path = path.join(server_info["image_dir"], filename)
+    save_path = path.join(server_info["image_dir"], file_name)
     current_chunk = int(request.form['dzchunkindex'])
 
     # Makes sure not to overwrite an existing file,
     # but continues writing to a file transfer in progress
     if path.exists(save_path) and current_chunk == 0:
-        return make_response((f"The file {file.filename} already exists!", 400))
+        return make_response(_(u"The file already exists!"), 400)
 
     try:
         with open(save_path, "ab") as save:
             save.seek(int(request.form["dzchunkbyteoffset"]))
-            save.write(file.stream.read())
+            save.write(file_object.stream.read())
     except OSError:
         log.exception("Could not write to file")
-        return make_response(("Unable to write the file to disk!", 500))
+        return make_response(_(u"Unable to write the file to disk!"), 500)
 
     total_chunks = int(request.form["dztotalchunkcount"])
 
@@ -795,14 +817,14 @@ def upload_file():
             log.error("Finished transferring %s, "
                       "but it has a size mismatch with the original file."
                       "Got %s but we expected %s.",
-                      file.filename, path.getsize(save_path), request.form['dztotalfilesize'])
-            return make_response(("Transferred file corrupted!", 500))
+                      file_object.filename, path.getsize(save_path), request.form['dztotalfilesize'])
+            return make_response(_(u"Transferred file corrupted!"), 500)
 
-        log.info("File %s has been uploaded successfully", file.filename)
+        log.info("File %s has been uploaded successfully", file_object.filename)
     log.debug("Chunk %s of %s for file %s completed.",
-              current_chunk + 1, total_chunks, file.filename)
+              current_chunk + 1, total_chunks, file_object.filename)
 
-    return make_response(("File upload successful!", 200))
+    return make_response(_(u"File upload successful!"), 200)
 
 
 @APP.route("/files/create", methods=["POST"])
@@ -814,10 +836,11 @@ def create_file():
     file_name = request.form.get("file_name")
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
+    full_file_name = file_name + "." + file_type
 
     process = create_new_image(file_name, file_type, size)
     if process["status"]:
-        flash(f"Drive image created: {file_name}.{file_type}")
+        flash(_(u"Image file created: %(file_name)s", file_name=full_file_name))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
@@ -844,7 +867,7 @@ def delete():
 
     process = delete_image(file_name)
     if process["status"]:
-        flash(f"Image file deleted: {file_name}")
+        flash(_(u"Image file deleted: %(file_name)s", file_name=file_name))
     else:
         flash(process["msg"], "error")
         return redirect(url_for("index"))
@@ -874,7 +897,7 @@ def rename():
 
     process = rename_image(file_name, new_file_name)
     if process["status"]:
-        flash(f"Image file renamed to: {new_file_name}")
+        flash(_(u"Image file renamed to: %(file_name)s", file_name=new_file_name))
     else:
         flash(process["msg"], "error")
         return redirect(url_for("index"))
@@ -911,16 +934,16 @@ def unzip():
     process = unzip_file(zip_file, zip_member, zip_members)
     if process["status"]:
         if not process["msg"]:
-            flash("Aborted unzip: File(s) with the same name already exists.", "error")
+            flash(_(u"Aborted unzip: File(s) with the same name already exists."), "error")
             return redirect(url_for("index"))
-        flash("Unzipped the following files:")
+        flash(_(u"Unzipped the following files:"))
         for msg in process["msg"]:
             flash(msg)
         if process["prop_flag"]:
-            flash(f"Properties file(s) have been moved to {CFG_DIR}")
+            flash(_(u"Properties file(s) have been moved to %(directory)s", directory=CFG_DIR))
         return redirect(url_for("index"))
 
-    flash("Failed to unzip " + zip_file, "error")
+    flash(_(u"Failed to unzip %(zip_file)s", zip_file=zip_file), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -928,8 +951,12 @@ def unzip():
 @APP.before_first_request
 def load_default_config():
     """
-    Load the default configuration file, if found
+    Webapp initialization steps that require the Flask app to have started:
+    - Get the detected locale to use for localizations
+    - Load the default configuration file, if found
     """
+    APP.config["LOCALE"] = get_locale()
+    logging.info("Detected locale: " + APP.config["LOCALE"])
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         read_config(DEFAULT_CONFIG)
 
@@ -939,7 +966,7 @@ if __name__ == "__main__":
     APP.config["SESSION_TYPE"] = "filesystem"
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
-    parser = argparse.ArgumentParser(description="RaSCSI Web Interface arguments")
+    parser = argparse.ArgumentParser(description="RaSCSI Web Interface command line arguments")
     parser.add_argument(
         "--port",
         type=int,

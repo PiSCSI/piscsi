@@ -74,6 +74,8 @@ else
 fi
 set -e
 
+pybabel compile -d translations
+
 # parse arguments
 while [ "$1" != "" ]; do
     PARAM=$(echo "$1" | awk -F= '{print $1}')

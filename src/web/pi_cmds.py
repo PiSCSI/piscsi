@@ -5,6 +5,7 @@ Module for methods controlling and getting information about the Pi's Linux syst
 import subprocess
 import asyncio
 import logging
+from flask_babel import _
 from settings import AUTH_GROUP
 
 
@@ -175,6 +176,6 @@ def auth_active():
     if AUTH_GROUP in groups:
         return {
                 "status": True,
-                "msg": "You must log in to use this function!",
+                "msg": _(u"You must log in to use this function"),
                 }
     return {"status": False, "msg": ""}

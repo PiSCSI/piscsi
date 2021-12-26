@@ -46,3 +46,15 @@ $ cd ~/source/RASCSI
 $ git remote add pi ssh://pi@rascsi/home/pi/dev.git
 $ git push pi master
 ```
+
+## Localizing the Web Interface
+
+We use the Flask-Babel library and Flask/Jinja2 extension for i18n.
+
+To create a new localization, it needs to be added to accept_languages in
+the get_locale() method, and also to localizer.cpp in the RaSCSI C++ code.
+
+Once this is done, follow the steps in the [Flask-Babel documentation](https://flask-babel.tkte.ch/#translating-applications)
+to generate the messages.po for the new language.
+
+Updating an existing messages.po is also covered above.
