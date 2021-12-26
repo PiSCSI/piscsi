@@ -57,6 +57,13 @@ fi
 
 source venv/bin/activate
 
+if ! test -f messages.pot; then
+    echo "Generating localizations for the Web Interface"
+    pybabel extract -F babel.cfg -o messages.pot .
+    pybabel update -i messages.pot -d translations
+    pybabel compile -d translations
+fi
+
 # Detect if someone updates the git repo - we need to re-run pip3 install.
 set +e
 git rev-parse --is-inside-work-tree &> /dev/null
