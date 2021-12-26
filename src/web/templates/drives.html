@@ -3,7 +3,7 @@
 {% block content %}
 <p><a href="/">{{ _("Cancel") }}</a></p>
 <h2>{{ _("Disclaimer") }}</h2>
-<p>{{ _("These device profiles are provided as-is with no guarantee to work on the systems mentioned. You may need appropirate device drivers and/or configuration parameters. If you have improvement suggestions or success stories to share we would love to hear from you, so please connect with us at <a href=\"%(github_url)s\">GitHub</a> or <a href=\"%(discord_url)s\">Discord</a>", github_url="https://github.com/akuker/RASCSI", discord_url="https://discord.gg/PyS58u6") }}</p>
+<p>{{ _("These device profiles are provided as-is with no guarantee to work equally to the actual physical device they are named after. You may need to provide appropirate device drivers and/or configuration parameters for them to function properly. If you would like to see data modified, or have additional devices to add to the list, please raise an issue ticket at <a href=\"%(url)s\">GitHub</a>.", url="https://github.com/akuker/RASCSI/issues") }}</p>
 <h2>{{ _("Hard Drives") }}</h2>
 
 <table cellpadding="3" border="black">
@@ -135,7 +135,7 @@
 {% endfor %}
 </tbody>
 </table>
-<p><small>{{ _("Available disk space on the Pi: %(disk_space)s MB", disk_space=free_disk) }}</small></p>
+    <p><small>{{ _("%(disk_space)s MB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
 <p><a href="/">{{ _("Cancel") }}</a></p>
 
 {% endblock content %}

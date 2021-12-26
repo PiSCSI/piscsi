@@ -22,12 +22,12 @@
         {% endfor %}
         {% else %}
         <option disabled>
-        {{ _("No saved configs") }}
+        {{ _("No saved configurations") }}
         </option>
         {% endif %}
     </select>
-    <input name="load" type="submit" value="{{ _("Load") }}" onclick="return confirm('{{ _("Detach all current device and Load config?") }}')">
-    <input name="delete" type="submit" value="{{ _("Delete") }}" onclick="return confirm('{{ _("Delete config file?") }}')">
+    <input name="load" type="submit" value="{{ _("Load") }}" onclick="return confirm('{{ _("Detach all current device and Load configuration?") }}')">
+    <input name="delete" type="submit" value="{{ _("Delete") }}" onclick="return confirm('{{ _("Delete configuration file?") }}')">
 </form></p>
 
 <p><form action="/config/save" method="post">
@@ -152,7 +152,7 @@
         {{ _("Image File Management") }}
     </summary>
     <ul>
-        <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(base_dir)s</tt> with a scan depth of %(scan_depth)s.", base_dir=base_dir, scan_depth=scan_depth) }}</li>
+        <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=base_dir, scan_depth=scan_depth) }}</li>
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>{{ _("If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.") }}</li>
@@ -265,7 +265,7 @@
                     {% else %}
                         <select name="type">
                         <option selected value="">
-                            Type
+                        {{ _("Type") }}
                         </option>
                         {% for d in device_types %}
                         <option value="{{ d }}">
@@ -292,7 +292,7 @@
         {% endfor %}
     </tbody>
 </table>
-<p><small>{{ _("Available disk space on the Pi: %(disk_space)s MB", disk_space=free_disk) }}</small></p>
+<p><small>{{ _("%(disk_space)s MB disk space remaining on the Pi", disk_space=free_disk) }}</small></p>
 
 <hr/>
 
@@ -351,7 +351,7 @@
         {{ _("Upload File") }}
     </summary>
     <ul>
-        <li>{{ _("Uploads file to <tt>%(base_dir)s</tt>. The largest file size accepted is %(max_file_size)s MB.", base_dir=base_dir, max_file_size=max_file_size) }}</li>
+        <li>{{ _("Uploads file to <tt>%(directory)s</tt>. The largest file size accepted is %(max_file_size)s MB.", directory=base_dir, max_file_size=max_file_size) }}</li>
         <li>{{ _("For unrecognized file types, try renaming hard drive images to '.hds', CD-ROM images to '.iso', and removable drive images to '.hdr' before uploading.") }}</li>
         <li>{{ _("Recognized file types: %(valid_file_suffix)s", valid_file_suffix=valid_file_suffix) }}</li>
     </ul>
@@ -383,7 +383,7 @@
         {{ _("Download File to Images") }}
     </summary>
     <ul>
-        <li>{{ _("Given a URL, download that file to the <tt>%(base_dir)s</tt> directory.", base_dir=base_dir) }}</li>
+        <li>{{ _("Given a URL, download that file to the <tt>%(directory)s</tt> directory.", directory=base_dir) }}</li>
     </ul>
 </details>
 
@@ -428,9 +428,9 @@
 {% if netatalk_configured == 1 %}
 <p><small>{{ _("The AppleShare server is running. No active connections.") }}</small></p>
 {% elif netatalk_configured == 2 %}
-<p><small>{{ _("%(value)d active AFP connection.", value=(netatalk_configured - 1)) }}</small></p>
+<p><small>{{ _("%(value)d active AFP connection", value=(netatalk_configured - 1)) }}</small></p>
 {% elif netatalk_configured > 2 %}
-<p><small>{{ _("%(value)d active AFP connections.", value=(netatalk_configured - 1)) }}</small></p>
+<p><small>{{ _("%(value)d active AFP connections", value=(netatalk_configured - 1)) }}</small></p>
 {% endif %}
 {% else %}
 <p>{{ _("Install <a href=\"%(url)s\">Netatalk</a> to use the AppleShare File Server.", url="https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing") }}</p>
@@ -507,7 +507,7 @@
         <td style="border: none; vertical-align:top;">
             <form action="/files/create" method="post">
                 <label for="file_name">{{ _("File Name:") }}</label>
-                <input name="file_name" placeholder="{{ _("File name") }}" required="" type="text">
+                <input name="file_name" placeholder="{{ _("File Name") }}" required="" type="text">
                 <label for="type">{{ _("Type:") }}</label>
                 <select name="type">
                     <option value="hds">
@@ -554,7 +554,7 @@
         {{ _("Logging") }}
     </summary>
     <ul>
-        <li>{{ _("Get a certain number of lines of service logs with the given scope.") }}</li>
+        <li>{{ _("Fetch a certain number of lines of system logs with the given scope.") }}</li>
     </ul>
 </details>
 <table style="border: none">

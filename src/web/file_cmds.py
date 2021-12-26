@@ -393,7 +393,7 @@ def write_config(file_name):
                 json_file,
                 indent=4
                 )
-        return {"status": True, "msg": f"Saved config to {file_name}"}
+        return {"status": True, "msg": _(u"Saved configuration file to %(file_name)s", file_name=file_name)}
     except (IOError, ValueError, EOFError, TypeError) as error:
         logging.error(str(error))
         delete_file(file_name)

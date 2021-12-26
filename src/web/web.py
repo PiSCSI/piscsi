@@ -542,7 +542,7 @@ def attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
-        flash(_(u"Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)",
+        flash(_(u"Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
             file_name=file_name, id_number=scsi_id, unit_number=unit))
         if int(file_size) % int(expected_block_size):
             flash(_(u"The image file size %(file_size)s bytes is not a multiple of "
