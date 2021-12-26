@@ -66,6 +66,8 @@ to generate the messages.po for the new language.
 
 Updating an existing messages.po is also covered above.
 
+When you are ready to contribute new or updated localizations, use the same Gitflow Workflow as used for any code contributions to submit PRs against the develop branch.
+
 ### (Optional) See translation stats for a localization
 Install the gettext package and use msgfmt to see the translation progress.
 
