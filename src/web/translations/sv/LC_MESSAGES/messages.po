@@ -690,7 +690,7 @@ msgid ""
 "If RaSCSI was unable to detect the device type associated with the image,"
 " you can choose the type from the dropdown."
 msgstr ""
-"Om RaSCSI inte kunde detektera enhetstypen för en skivbild, kan du välja "
+"Om RaSCSI inte känner igen enhetstypen för en skivbild kan du välja "
 "en enhetstyp från rullgardinsmenyn."
 
 #: templates/index.html:159
@@ -699,7 +699,7 @@ msgid ""
 "Magneto-Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
 msgstr ""
 "Typer: SAHD = SASI-hårddisk | SCHD = SCSI-hårddisk | SCRM = utmatsbar | "
-"SCMO = magnet optisk | SCCD = cd-rom | SCBR = Host Bridge | SCDP = "
+"SCMO = magnet-optisk | SCCD = cd-rom | SCBR = Host Bridge | SCDP = "
 "DaynaPORT"
 
 #: templates/index.html:167
@@ -831,8 +831,8 @@ msgid ""
 "CD-ROM images to '.iso', and removable drive images to '.hdr' before "
 "uploading."
 msgstr ""
-"Om en fil inte känns igen, du kan försöka döpa om hårddiskbildfiler till "
-"'.hds', cd-bildfiler till '.iso', och uttagbara bildfiler till '.hdr' "
+"Om RaSCSI inte känner igen in filtyp kan du försöka döpa om hårddiskbildfiler till "
+"'.hds', cd-bildfiler till '.iso', och utmatbara bildfiler till '.hdr' "
 "innan du laddar upp den."
 
 #: templates/index.html:356
@@ -842,7 +842,7 @@ msgstr "Kända filtyper: %(valid_file_suffix)s"
 
 #: templates/index.html:383
 msgid "Download File to Images"
-msgstr "Ladda ner fil till Images"
+msgstr "Ladda ner fil till skivbildsfilskatalogen"
 
 #: templates/index.html:386
 #, python-format
@@ -863,7 +863,7 @@ msgstr "Ladda ner"
 
 #: templates/index.html:396
 msgid "Downloading File to Images..."
-msgstr "Laddar ner filen till Images..."
+msgstr "Laddar ner filen till skivbildsfilskatalogen..."
 
 #: templates/index.html:406
 msgid "Download File to AppleShare"
