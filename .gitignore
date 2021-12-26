@@ -12,3 +12,4 @@ src/oled_monitor/rascsi_interface_pb2.py
 src/raspberrypi/hfdisk/
 *~
 messages.pot
+messages.mo
