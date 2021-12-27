@@ -21,7 +21,7 @@ from flask import (
     session,
     abort,
 )
-from flask_babel import Babel, _
+from flask_babel import Babel, Locale, refresh, _
 
 from file_cmds import (
     list_images,
@@ -79,6 +79,7 @@ from settings import (
     REMOVABLE_DEVICE_TYPES,
     RESERVATIONS,
     AUTH_GROUP,
+    LANGUAGES,
 )
 
 APP = Flask(__name__)
@@ -86,7 +87,27 @@ BABEL = Babel(APP)
 
 @BABEL.localeselector
 def get_locale():
-    return request.accept_languages.best_match(["en", "de", "sv"])
+    """
+    Uses the session language, or tries to detect based on accept-languages header
+    """
+    try:
+        language = session["language"]
+    except KeyError:
+        language = None
+    if language is not None:
+        return language
+    return request.accept_languages.best_match(LANGUAGES)
+
+
+def get_supported_locales():
+    """
+    Returns a list of Locale objects that the Web Interfaces supports
+    """
+    locales = BABEL.list_translations()
+    locales.append(Locale("en"))
+    sorted_locales = sorted(locales, key=lambda x: x.language)
+    return sorted_locales
+
 
 @APP.route("/")
 def index():
@@ -96,6 +117,7 @@ def index():
     if not is_token_auth()["status"] and not APP.config["TOKEN"]:
         abort(403, _(u"RaSCSI is password protected. Start the Web Interface with the --password parameter."))
 
+    locales = get_supported_locales()
     server_info = get_server_info()
     disk = disk_space()
     devices = list_devices()
@@ -133,6 +155,7 @@ def index():
 
     return render_template(
         "index.html",
+        locales=locales,
         bridge_configured=is_bridge_setup(),
         netatalk_configured=running_proc("afpd"),
         macproxy_configured=running_proc("macproxy"),
@@ -948,6 +971,16 @@ def unzip():
     return redirect(url_for("index"))
 
 
+@APP.route("/language", methods=["POST"])
+def change_language():
+    locale = request.form.get("locale")
+    session["language"] = locale
+    refresh()
+
+    flash(_(u"Changed Web Interface language to %(locale)s", locale=locale))
+    return redirect(url_for("index"))
+
+
 @APP.before_first_request
 def load_default_config():
     """
@@ -955,8 +988,7 @@ def load_default_config():
     - Get the detected locale to use for localizations
     - Load the default configuration file, if found
     """
-    APP.config["LOCALE"] = get_locale()
-    logging.info("Detected locale: " + APP.config["LOCALE"])
+    session["language"] = get_locale()
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         read_config(DEFAULT_CONFIG)
 

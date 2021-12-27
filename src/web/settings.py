@@ -30,3 +30,6 @@ RESERVATIONS = ["" for x in range(0, 8)]
 
 # The user group that is used for webapp authentication
 AUTH_GROUP = "rascsi"
+
+# The language locales supported by RaSCSI
+LANGUAGES = ["en", "de", "sv"]
