@@ -614,6 +614,34 @@
 
 <details>
     <summary class="heading">
+        {{ _("Language") }}
+    </summary>
+    <ul>
+        <li>{{ _("Change the Web Interface language.") }}</li>
+    </ul>
+</details>
+<table style="border: none">
+    <tr style="border: none">
+        <td style="border: none; vertical-align:top;">
+            <form action="/language" method="post">
+                <label for="language">{{ _("Language:") }}</label>
+                <select name="locale">
+                {% for locale in locales %}
+                    <option value="{{ locale.language }}">
+                    {{ locale.language }} - {{ locale.display_name }}
+                    </option>
+                {% endfor %}
+                </select>
+                <input type="submit" value="{{ _("Change Language") }}">
+            </form>
+        </td>
+    </tr>
+</table>
+
+<hr/>
+
+<details>
+    <summary class="heading">
         {{ _("Raspberry Pi Operations") }}
     </summary>
     <ul>
