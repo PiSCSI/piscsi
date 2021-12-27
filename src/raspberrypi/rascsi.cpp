@@ -858,7 +858,8 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 				s << ", ";
 			}
 			isFirst = false;
-			s << "'" << param.first << "=" << param.second << "'";
+			string value = param.first != "token" ? param.second : "???";
+			s << "'" << param.first << "=" << value << "'";
 		}
 	}
 
