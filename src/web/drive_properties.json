@@ -133,18 +133,6 @@
 },
 {
     "device_type": "SCHD",
-    "vendor": "CONNER",
-    "product": "CP3200",
-    "revision": "3.53233",
-    "block_size": 512,
-    "size": 212926464,
-    "name": "Conner CP3200",
-    "file_type": "hds",
-    "description": "Very commonly used with Sun-4 systems",
-    "url": ""
-},
-{
-    "device_type": "SCHD",
     "vendor": "HP",
     "product": "C3010",
     "revision": "6.0",
