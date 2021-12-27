@@ -84,8 +84,8 @@ struct fb_var_screeninfo fbinfo;
 	if (ioctl(this->fbfd, FBIOGET_FSCREENINFO, &fbfixinfo))
 		err(1, "ioctl FBIOGET_FSCREENINFO");
 
-	if (fbinfo.bits_per_pixel != 32)
-		errx(1, "TODO: support %d bpp", fbinfo.bits_per_pixel);
+	// if (fbinfo.bits_per_pixel != 32)
+	// 	errx(1, "TODO: support %d bpp", fbinfo.bits_per_pixel);
 
 	this->fbwidth = fbinfo.xres;
 	this->fbheight = fbinfo.yres;
