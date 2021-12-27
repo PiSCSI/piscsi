@@ -14,6 +14,7 @@
 #include "scsicd.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
+#include "scsi_powerview.h"
 #include "exceptions.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
@@ -33,6 +34,7 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCCD] = { 512, 2048};
 	sector_sizes[SCBR] = {};
 	sector_sizes[SCDP] = {};
+	sector_sizes[SCPV] = {};
 
 	// 128 MB, 512 bytes per sector, 248826 sectors
 	geometries[SCMO][0x797f400] = make_pair(512, 248826);
@@ -48,6 +50,7 @@ DeviceFactory::DeviceFactory()
 	geometries[SCCD] = {};
 	geometries[SCBR] = {};
 	geometries[SCDP] = {};
+	geometries[SCPV] = {};
 
 	string network_interfaces;
 	for (const auto& network_interface : GetNetworkInterfaces()) {
@@ -64,6 +67,7 @@ DeviceFactory::DeviceFactory()
 	default_params[SCCD] = {};
 	default_params[SCBR]["interfaces"] = network_interfaces;
 	default_params[SCDP]["interfaces"] = network_interfaces;
+	default_params[SCPV] = {};
 
 	extension_mapping["hdf"] = SAHD;
 	extension_mapping["hds"] = SCHD;
@@ -106,6 +110,9 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 	}
 	else if (filename == "daynaport") {
 		return SCDP;
+	}
+	else if (filename == "powerview"){
+		return SCPV;
 	}
 
 	return UNDEFINED;
@@ -203,6 +210,17 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				device->SetRevision("1.4a");
 				device->SupportsParams(true);
 				device->SetDefaultParams(default_params[SCDP]);
+				break;
+
+			case SCPV:
+				device = new SCSIPowerView();
+				device->SetSupportedLuns(1);
+				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+				device->SetVendor("RADIUS");
+				device->SetProduct("PowerView");
+				device->SetRevision("v1.0");
+				device->SupportsParams(true);
+				device->SetDefaultParams(default_params[SCPV]);
 				break;
 
 			default:
