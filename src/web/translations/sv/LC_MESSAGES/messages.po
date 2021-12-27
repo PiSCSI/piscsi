@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RaSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
-"POT-Creation-Date: 2021-12-25 23:33-0800\n"
+"POT-Creation-Date: 2021-12-26 21:59-0800\n"
 "PO-Revision-Date: 2021-12-24 16:16-0800\n"
 "Last-Translator: Daniel Markstedt <markstedt@gmail.com>\n"
 "Language: sv\n"
@@ -397,6 +397,10 @@ msgstr "En eller flera egenskapsfiler har blivit flyttade till %(directory)s"
 msgid "Failed to unzip %(zip_file)s"
 msgstr "Kunde ej packa up %(zip_file)s"
 
+#: templates/base.html:4
+msgid "RaSCSI Control Page"
+msgstr "RaSCSI kontrollsida"
+
 #: templates/base.html:29
 msgid ""
 " This process may take a while, and will continue in the background if "
@@ -439,9 +443,10 @@ msgid "Web Interface Authentication Disabled"
 msgstr "Webbgränssnittets autensisering är avstängt"
 
 #: templates/base.html:60
-msgid "See <a href=\"%(url)\" target=\"_blank\">Wiki</a> for more information"
+#, python-format
+msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
 msgstr ""
-"Referera till <a href=\"%(url)\" target=\"_blank\">wikin</a> för vidare "
+"Referera till <a href=\"%(url)s\" target=\"_blank\">wikin</a> för vidare "
 "information"
 
 #: templates/base.html:87
@@ -690,8 +695,8 @@ msgid ""
 "If RaSCSI was unable to detect the device type associated with the image,"
 " you can choose the type from the dropdown."
 msgstr ""
-"Om RaSCSI inte känner igen enhetstypen för en skivbild kan du välja "
-"en enhetstyp från rullgardinsmenyn."
+"Om RaSCSI inte känner igen enhetstypen för en skivbild kan du välja en "
+"enhetstyp från rullgardinsmenyn."
 
 #: templates/index.html:159
 msgid ""
@@ -831,9 +836,9 @@ msgid ""
 "CD-ROM images to '.iso', and removable drive images to '.hdr' before "
 "uploading."
 msgstr ""
-"Om RaSCSI inte känner igen in filtyp kan du försöka döpa om hårddiskbildfiler till "
-"'.hds', cd-bildfiler till '.iso', och utmatbara bildfiler till '.hdr' "
-"innan du laddar upp den."
+"Om RaSCSI inte känner igen en filtyp kan du försöka döpa om "
+"hårddiskbildfiler till '.hds', cd-bildfiler till '.iso', och utmatbara "
+"bildfiler till '.hdr' innan du laddar upp den."
 
 #: templates/index.html:356
 #, python-format
@@ -1121,7 +1126,3 @@ msgstr "Stänger av Raspberry Pi..."
 #: templates/index.html:633
 msgid "Shut Down Raspberry Pi"
 msgstr "Stäng av Raspberry Pi"
-
-#~ msgid "Saved config to %(file_name)"
-#~ msgstr "Sparade konfigurationsfilen som %(file_name)s"
-
