@@ -36,7 +36,13 @@
     }
 
 /*
-dropzone.min.js 5.9.3
+dropzone.min.js v5.9.3
+
+Slightly modified for the RaSCSI project to work with jinja2 templatization and pybabel:
+   - Placeholder symbols changed to avoid interfering with the jinja2 template syntax
+       - {{filesize}} -> FILE_SIZE
+       - {{maxFilesize}} -> MAX_FILE_SIZE
+   - UI strings tagged with {{ _(...) }} and slightly reformatted to be easier to translate
 
 LICENSE
 
