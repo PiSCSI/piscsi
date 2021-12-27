@@ -74,4 +74,4 @@ Install the gettext package and use msgfmt to see the translation progress.
 $ sudo apt install gettext
 $ cd src/web/
 $ msgfmt --statistics translations/sv/LC_MESSAGES/messages.po
-215 translated messages.
+215 translated messages, 1 untranslated message.
