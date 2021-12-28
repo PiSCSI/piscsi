@@ -418,5 +418,17 @@
     "file_type": null,
     "description": "Boots DECstations and VAXstations. Use only with workstations of this vintage.",
     "url": ""
+},
+{
+    "device_type": "SCCD",
+    "vendor": "MATSHITA",
+    "product": "CD-ROM CR-8005 ",
+    "revision": "1.0k",
+    "block_size": 512,
+    "size": null,
+    "name": "Apple CD 600e",
+    "file_type": null,
+    "description": "Emulates Apple CD ROM drive for use with Macintosh computers.",
+    "url": ""
 }
 ]
