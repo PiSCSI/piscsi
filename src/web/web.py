@@ -4,7 +4,6 @@ Module for the Flask app rendering and endpoints
 
 import logging
 import argparse
-from sys import argv
 from pathlib import Path
 from functools import wraps
 
@@ -115,7 +114,13 @@ def index():
     Sets up data structures for and renders the index page
     """
     if not is_token_auth()["status"] and not APP.config["TOKEN"]:
-        abort(403, _(u"RaSCSI is password protected. Start the Web Interface with the --password parameter."))
+        abort(
+            403,
+            _(
+                u"RaSCSI is password protected. "
+                u"Start the Web Interface with the --password parameter."
+                ),
+            )
 
     locales = get_supported_locales()
     server_info = get_server_info()
@@ -211,7 +216,13 @@ def drive_list():
             return redirect(url_for("index"))
         conf = process["conf"]
     else:
-        flash(_("Could not read drive properties from %(properties_file)s", properties_file=drive_properties), "error")
+        flash(
+                _(
+                    "Could not read drive properties from %(properties_file)s",
+                    properties_file=drive_properties,
+                    ),
+                "error",
+                )
         return redirect(url_for("index"))
 
     hd_conf = []
@@ -275,7 +286,13 @@ def login():
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
             return redirect(url_for("index"))
-    flash(_(u"You must log in with credentials for a user in the '%(group)s' group", group=AUTH_GROUP), "error")
+    flash(
+            _(
+                u"You must log in with credentials for a user in the '%(group)s' group",
+                group=AUTH_GROUP,
+                ),
+            "error",
+            )
     return redirect(url_for("index"))
 
 
@@ -413,7 +430,7 @@ def config_load():
 
         flash(process['msg'], "error")
         return redirect(url_for("index"))
-    elif "delete" in request.form:
+    if "delete" in request.form:
         process = delete_file(f"{CFG_DIR}/{file_name}")
         if process["status"]:
             flash(process["msg"])
@@ -609,8 +626,8 @@ def detach():
             id_number=scsi_id, unit_number=unit))
         return redirect(url_for("index"))
 
-    flash(_(u"Failed to detach %(file_name)s from SCSI ID %(id_number)s LUN %(unit_number)s",
-        file_name=file_name, id_number=scsi_id, unit_number=unit), "error")
+    flash(_(u"Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s",
+        id_number=scsi_id, unit_number=unit), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -630,8 +647,8 @@ def eject():
             id_number=scsi_id, unit_number=unit))
         return redirect(url_for("index"))
 
-    flash(_(u"Failed to eject %(file_name)s from SCSI ID %(id_number)s LUN %(unit_number)s",
-        file_name=file_name, id_number=scsi_id, unit_number=unit), "error")
+    flash(_(u"Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s",
+        id_number=scsi_id, unit_number=unit), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -837,10 +854,14 @@ def upload_file():
     if current_chunk + 1 == total_chunks:
         # Validate the resulting file size after writing the last chunk
         if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-            log.error("Finished transferring %s, "
-                      "but it has a size mismatch with the original file."
-                      "Got %s but we expected %s.",
-                      file_object.filename, path.getsize(save_path), request.form['dztotalfilesize'])
+            log.error(
+                    "Finished transferring %s, "
+                    "but it has a size mismatch with the original file. "
+                    "Got %s but we expected %s.",
+                    file_object.filename,
+                    path.getsize(save_path),
+                    request.form['dztotalfilesize'],
+                    )
             return make_response(_(u"Transferred file corrupted!"), 500)
 
         log.info("File %s has been uploaded successfully", file_object.filename)
@@ -973,6 +994,9 @@ def unzip():
 
 @APP.route("/language", methods=["POST"])
 def change_language():
+    """
+    Changes the session language locale and refreshes the Flask app context
+    """
     locale = request.form.get("locale")
     session["language"] = locale
     refresh()
@@ -1013,9 +1037,9 @@ if __name__ == "__main__":
         action="store",
         help="Token password string for authenticating with RaSCSI",
         )
-    args = parser.parse_args()
-    APP.config["TOKEN"] = args.password
+    arguments = parser.parse_args()
+    APP.config["TOKEN"] = arguments.password
 
     import bjoern
     print("Serving rascsi-web...")
-    bjoern.run(APP, "0.0.0.0", args.port)
+    bjoern.run(APP, "0.0.0.0", arguments.port)

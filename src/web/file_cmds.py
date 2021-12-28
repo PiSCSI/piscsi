@@ -300,18 +300,16 @@ def download_file_to_iso(url, *iso_args):
                 delete_file(tmp_full_path)
 
     try:
-        iso_proc = (
-            run(
-                [
-                    "genisoimage",
-                    *iso_args,
-                    "-o",
-                    iso_filename,
-                    tmp_dir,
-                ],
-                capture_output=True,
-                check=True,
-            )
+        run(
+            [
+                "genisoimage",
+                *iso_args,
+                "-o",
+                iso_filename,
+                tmp_dir,
+            ],
+            capture_output=True,
+            check=True,
         )
     except CalledProcessError as error:
         logging.warning("Executed shell command: %s", " ".join(error.cmd))
@@ -320,7 +318,10 @@ def download_file_to_iso(url, *iso_args):
 
     return {
         "status": True,
-        "msg": _(u"Created CD-ROM ISO image with arguments \"%(value)s\"", value=" ".join(iso_args)),
+        "msg": _(
+            u"Created CD-ROM ISO image with arguments \"%(value)s\"",
+            value=" ".join(iso_args),
+            ),
         "file_name": iso_filename,
     }
 
@@ -393,7 +394,10 @@ def write_config(file_name):
                 json_file,
                 indent=4
                 )
-        return {"status": True, "msg": _(u"Saved configuration file to %(file_name)s", file_name=file_name)}
+        return {
+            "status": True,
+            "msg": _(u"Saved configuration file to %(file_name)s", file_name=file_name),
+            }
     except (IOError, ValueError, EOFError, TypeError) as error:
         logging.error(str(error))
         delete_file(file_name)
