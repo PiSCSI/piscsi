@@ -372,7 +372,25 @@
         forceChunking: true,
         url: '/files/upload',
         maxFilesize: {{ max_file_size }}, // MB
-        chunkSize: 1000000 // bytes
+        chunkSize: 1000000, // bytes
+        dictDefaultMessage: "{{ _("Drop files here to upload") }}",
+        dictFallbackMessage: "{{ _("Your browser does not support drag'n'drop file uploads.") }}",
+        dictFallbackText: "{{ _("Please use the fallback form below to upload your files like in the olden days.") }}",
+        dictFileTooBig: "{{ _("File is too big: {{filesize}}MB. Max filesize: {{maxFilesize}}MB.") }}",
+        dictInvalidFileType: "{{ _("You can't upload files of this type.") }}",
+        dictResponseError: "{{ _("Server responded with code: {{statusCode}}") }}",
+        dictCancelUpload:" {{ _("Cancel upload") }}",
+        dictUploadCanceled: "{{ _("Upload canceled.") }}",
+        dictCancelUploadConfirmation: "{{ _("Are you sure you want to cancel this upload?") }}",
+        dictRemoveFile: "{{ _("Remove file") }}",
+        dictMaxFilesExceeded: "{{ _("You can not upload any more files.") }}",
+        dictFileSizeUnits: {
+            tb: "{{ _("TB") }}",
+            gb: "{{ _("GB") }}",
+            mb: "{{ _("MB") }}",
+            kb: "{{ _("KB") }}",
+            b: "{{ _("b") }}"
+        }
     }
 </script>
 
