@@ -95,14 +95,12 @@ I2C = I2C()
 
 # 128x32 display with hardware I2C:
 OLED = SSD1306_I2C(WIDTH, HEIGHT, I2C, addr=0x3C, reset=OLED_RESET)
+OLED.rotation = ROTATION
 
 print("Running with the following display:")
 print(OLED)
 print()
 print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approximately)")
-
-# Clear display.
-OLED.rotation = ROTATION
 
 # Show a startup splash bitmap image before starting the main loop
 # Convert the image to mode '1' for 1-bit color (monochrome)
@@ -141,9 +139,6 @@ LINE_SPACING = 8
 # LINE_SPACING, and LINES.
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 FONT = ImageFont.truetype('type_writer.ttf', FONT_SIZE)
-
-# Load a bitmap image for start and stop splash screens and convert to monocrome
-SPLASH_STOP = Image.open(f"splash_stop_{HEIGHT}.bmp").convert("1")
 
 IP_ADDR, HOSTNAME = get_ip_and_host()
 
