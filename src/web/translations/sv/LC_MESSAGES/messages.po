@@ -1172,7 +1172,7 @@ msgstr "Språk:"
 
 #: templates/index.html:653
 msgid "Change Language"
-msgstr "Byt Språk"
+msgstr "Byt språk"
 
 #: templates/index.html:663
 msgid "Raspberry Pi Operations"
