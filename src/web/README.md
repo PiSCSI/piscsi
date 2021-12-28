@@ -27,6 +27,7 @@ The local pylint configuration lives in .pylintrc
 
 ```
 sudo apt install pylint3
+sudo pip install pylint-venv
 pylint3 python_source_file.py
 ```
 
