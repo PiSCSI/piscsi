@@ -31,8 +31,8 @@
  THE SOFTWARE.
 """
 import argparse
+import sys
 from time import sleep
-from sys import argv
 from collections import deque
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
@@ -188,9 +188,6 @@ def formatted_output():
 
 
 with GracefulInterruptHandler() as handler:
-    """
-    The main loop of displaying attached device info, and other info
-    """
     while True:
 
         # The reference snapshot of attached devices that will be compared against each cycle
@@ -204,10 +201,10 @@ with GracefulInterruptHandler() as handler:
         while snapshot == ref_snapshot:
             # Draw a black filled box to clear the image.
             DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
-            y_pos = TOP
+            Y_POS = TOP
             for output_line in active_output:
-                DRAW.text((X_POS, y_pos), output_line, font=FONT, fill=255)
-                y_pos += LINE_SPACING
+                DRAW.text((X_POS, Y_POS), output_line, font=FONT, fill=255)
+                Y_POS += LINE_SPACING
 
             # Shift the index of the array by one to get a scrolling effect
             if len(active_output) > LINES:
@@ -225,4 +222,4 @@ with GracefulInterruptHandler() as handler:
                 DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
                 OLED.image(IMAGE)
                 OLED.show()
-                exit("Shutting down the OLED display...")
+                sys.exit("Shutting down the OLED display...")
