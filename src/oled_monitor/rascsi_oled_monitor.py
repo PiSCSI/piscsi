@@ -103,12 +103,16 @@ print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approxim
 
 # Clear display.
 OLED.rotation = ROTATION
-OLED.fill(0)
+
+# Show a startup splash bitmap image before starting the main loop
+# Convert the image to mode '1' for 1-bit color (monochrome)
+# Make sure the splash bitmap image is in the same dir as this script
+IMAGE = Image.open(f"splash_start_{HEIGHT}.bmp").convert("1")
+OLED.image(IMAGE)
 OLED.show()
 
-# Create blank image for drawing.
-# Make sure to create image with mode '1' for 1-bit color.
-IMAGE = Image.new("1", (OLED.width, OLED.height))
+# Keep the pretty splash on screen for a number of seconds
+sleep(4)
 
 # Get drawing object to draw on image.
 DRAW = ImageDraw.Draw(IMAGE)
@@ -139,8 +143,6 @@ LINE_SPACING = 8
 FONT = ImageFont.truetype('type_writer.ttf', FONT_SIZE)
 
 # Load a bitmap image for start and stop splash screens and convert to monocrome
-# Make sure the splash bitmap image is in the same dir as this script
-SPLASH_START = Image.open(f"splash_start_{HEIGHT}.bmp").convert("1")
 SPLASH_STOP = Image.open(f"splash_stop_{HEIGHT}.bmp").convert("1")
 
 IP_ADDR, HOSTNAME = get_ip_and_host()
@@ -190,24 +192,6 @@ def formatted_output():
     return output
 
 
-def start_splash():
-    """
-    Displays a splash screen for the startup sequence
-    """
-    OLED.image(SPLASH_START)
-    OLED.show()
-    sleep(4)
-
-def stop_splash():
-    """
-    Displays a splash screen for the shutdown sequence
-    """
-    OLED.image(SPLASH_STOP)
-    OLED.show()
-
-# Show a startup splash bitmap image before starting the main loop
-start_splash()
-
 with GracefulInterruptHandler() as handler:
     """
     The main loop of displaying attached device info, and other info
@@ -242,6 +226,8 @@ with GracefulInterruptHandler() as handler:
             snapshot = formatted_output()
 
             if handler.interrupted:
-                # Catch interrupt signals and show a shutdown splash bitmap image
-                stop_splash()
+                # Catch interrupt signals and blank out the screen
+                DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
+                OLED.image(IMAGE)
+                OLED.show()
                 exit("Shutting down the OLED display...")
