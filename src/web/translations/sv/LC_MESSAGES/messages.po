@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RaSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
-"POT-Creation-Date: 2021-12-27 15:44-0800\n"
+"POT-Creation-Date: 2021-12-27 18:04-0800\n"
 "PO-Revision-Date: 2021-12-24 16:16-0800\n"
 "Last-Translator: Daniel Markstedt <markstedt@gmail.com>\n"
 "Language: sv\n"
@@ -400,7 +400,7 @@ msgstr "Kunde ej packa up %(zip_file)s"
 #: web.py:980
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
-msgstr ""
+msgstr "Bytte språk för webbgränssnittet till %(locale)s"
 
 #: templates/base.html:4
 msgid "RaSCSI Control Page"
@@ -868,7 +868,9 @@ msgstr ""
 
 #: templates/index.html:379
 msgid "File is too big: {{filesize}}MB. Max filesize: {{maxFilesize}}MB."
-msgstr "Filen är för stor: {{filesize}}MB. Största möjliga storlek: {{maxFilesize}}MB."
+msgstr ""
+"Filen är för stor: {{filesize}}MB. Största möjliga storlek: "
+"{{maxFilesize}}MB."
 
 #: templates/index.html:380
 msgid "You can't upload files of this type."
@@ -1185,8 +1187,8 @@ msgid ""
 "IMPORTANT: Always shut down the Pi before turning off the power. Failing "
 "to do so may lead to data loss."
 msgstr ""
-"VIKTIGT: Stäng alltid av Pi-systemet innan du kopplar från strömmen. På så "
-"vis undviker du risken att förlora data."
+"VIKTIGT: Stäng alltid av Pi-systemet innan du kopplar från strömmen. På "
+"så vis undviker du risken att förlora data."
 
 #: templates/index.html:673
 msgid "Reboot the Raspberry Pi?"
@@ -1211,3 +1213,4 @@ msgstr "Stänger av Raspberry Pi..."
 #: templates/index.html:679
 msgid "Shut Down Raspberry Pi"
 msgstr "Stäng av Raspberry Pi"
+
