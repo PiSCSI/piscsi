@@ -424,7 +424,7 @@
     "vendor": "MATSHITA",
     "product": "CD-ROM CR-8005 ",
     "revision": "1.0k",
-    "block_size": 512,
+    "block_size": 2048,
     "size": null,
     "name": "Apple CD 600e",
     "file_type": null,
