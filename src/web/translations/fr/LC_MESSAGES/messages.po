@@ -41,7 +41,7 @@ msgstr "Echec lors du déplacement du fichier vers : %(target_path)s"
 #: file_cmds.py:323
 #, python-format
 msgid "Created CD-ROM ISO image with arguments \"%(value)s\""
-msgstr "Créer une image ISO CD-ROM avec les arguments \"%(value)s\""
+msgstr "Image ISO CD-ROM créée avec les arguments \"%(value)s\""
 
 #: file_cmds.py:354
 #, python-format
