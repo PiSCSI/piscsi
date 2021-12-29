@@ -945,7 +945,7 @@ msgid ""
 "share it over AFP."
 msgstr ""
 "A partir d'une URL, télécharger ce fichier dans le répertoire <tt>"
-"%(directory)s</tt> et la partager via AFP."
+"%(directory)s</tt> et le partager via AFP."
 
 #: templates/index.html:428
 msgid "Manage the files you download here through AppleShare on your vintage Mac."
@@ -985,7 +985,7 @@ msgstr "%(value)d connexions AFP actives"
 msgid ""
 "Install <a href=\"%(url)s\">Netatalk</a> to use the AppleShare File Server."
 msgstr ""
-"Installer <a href=\"%(url)s\">Netatalk</a> pour utiliser le serveur de fichiers "
+"Installez <a href=\"%(url)s\">Netatalk</a> pour utiliser le serveur de fichiers "
 "AppleShare."
 
 #: templates/index.html:461
@@ -1104,8 +1104,8 @@ msgid ""
 "This will make RaSCSI use certain vendor strings and block sizes that may "
 "improve compatibility with certain systems."
 msgstr ""
-"RaSCSI utilisera certains noms de vendeurs et tailles de blocs qui peuvent "
-"améliorer la compatibilité avec certains systèmes."
+"RaSCSI utilisera certains noms de vendeurs et tailles de blocs afin "
+"d'améliorer la compatibilité avec certains systèmes."
 
 #: templates/index.html:566
 msgid "Create a named disk image that mimics real-life drives"
@@ -1139,11 +1139,11 @@ msgstr "Niveau de journalisation du serveur"
 
 #: templates/index.html:609
 msgid "Change the log level of the RaSCSI backend process."
-msgstr "Change le niveau de journalisation des processus principaux RaSCSI."
+msgstr "Changer le niveau de journalisation des processus principaux RaSCSI."
 
 #: templates/index.html:610
 msgid "The current dropdown selection indicates the active log level."
-msgstr "Ce menu déroulant indique le niveau de journalisation."
+msgstr "Le menu déroulant indique le niveau de journalisation."
 
 #: templates/index.html:617
 msgid "Log Level:"
