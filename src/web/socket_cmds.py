@@ -3,9 +3,9 @@ Module for sending and receiving data over a socket connection with the RaSCSI b
 """
 
 import logging
+from time import sleep
 from flask import abort
 from flask_babel import _
-from time import sleep
 
 def send_pb_command(payload):
     """
