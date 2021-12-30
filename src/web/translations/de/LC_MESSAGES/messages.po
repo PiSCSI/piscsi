@@ -1,16 +1,16 @@
-# German translations for PROJECT.
-# Copyright (C) 2021 ORGANIZATION
-# This file is distributed under the same license as the PROJECT project.
-# FIRST AUTHOR <EMAIL@ADDRESS>, 2021.
+# German translations for RaSCSI.
+# Copyright (C) 2021 akuker
+# This file is distributed under the same license as the RaSCSI project.
+# Christian Victor <christian.victor@gmail.com>, 2021.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: PROJECT VERSION\n"
-"Report-Msgid-Bugs-To: EMAIL@ADDRESS\n"
+"Project-Id-Version: RaSCSI 68kmla Edition\n"
+"Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
 "POT-Creation-Date: 2021-12-29 08:38+0100\n"
 "PO-Revision-Date: 2021-12-30 22:11+0100\n"
-"Last-Translator: \n"
-"Language-Team: de <LL@li.org>\n"
+"Last-Translator: Christian Victor <christian.victor@gmail.com>\n"
+"Language-Team: de N/A\n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
