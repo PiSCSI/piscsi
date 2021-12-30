@@ -19,6 +19,7 @@
 #include <climits>
 #include <sstream>
 #include <iostream>
+#include <getopt.h>
 #include "rascsi.h"
 
 using namespace std;
@@ -28,7 +29,6 @@ using namespace std;
 //  Constant declarations
 //
 //---------------------------------------------------------------------------
-#define MAX_BUFF_SIZE 1000000
 
 // Symbol definition for the VCD file
 // These are just arbitrary symbols. They can be anything allowed by the VCD file format,
@@ -61,15 +61,20 @@ typedef struct data_capture{
     uint64_t timestamp;
 } data_capture_t;
 
-data_capture data_buffer[MAX_BUFF_SIZE];
+DWORD buff_size = 1000000;
+data_capture *data_buffer;
 DWORD data_idx = 0;
 
 double ns_per_loop;
 
+bool print_help = false;
+
 // We don't really need to support 256 character file names - this causes
 // all kinds of compiler warnings when the log filename can be up to 256
 // characters. _MAX_FNAME/2 is just an arbitrary value.
-char log_file_name[_MAX_FNAME/2] = "log.vcd";
+char file_base_name[_MAX_FNAME/2] = "log";
+char vcd_file_name[_MAX_FNAME/2];
+char json_file_name[_MAX_FNAME/2];
 
 //---------------------------------------------------------------------------
 //
@@ -98,10 +103,12 @@ void Banner(int argc, char* argv[])
 	LOGINFO("Copyright (C) 2016-2020 GIMONS");
 	LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project");
 	LOGINFO("Connect type : %s", CONNECT_DESC);
-	LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", log_file_name);
+	LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", vcd_file_name);
+	LOGINFO("   %s - JSON file with raw data", json_file_name);
 
-	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
-		(argc > 1 && strcmp(argv[1], "--help") == 0)){
+    LOGINFO("Data buffer size: %u", buff_size);
+
+	if (print_help){
 		LOGINFO("Usage: %s [log filename]...", argv[0]);
 		exit(0);
 	}
@@ -207,8 +214,8 @@ void vcd_output_if_changed_byte(FILE *fp, DWORD data, int pin, char symbol)
 
 void create_value_change_dump()
 {
-    LOGINFO("Creating Value Change Dump file (%s)", log_file_name);
-    FILE *fp = fopen(log_file_name,"w");
+    LOGINFO("Creating Value Change Dump file (%s)", vcd_file_name);
+    FILE *fp = fopen(vcd_file_name,"w");
 
     // Get the current time
     time_t rawtime;
@@ -278,10 +285,37 @@ void create_value_change_dump()
     fclose(fp);
 }
 
+
+
+void create_json_file(){
+
+    LOGINFO("Creating JSON file (%s)", json_file_name);
+    FILE *fp = fopen(json_file_name,"w");
+    fprintf(fp, "[\n");
+
+    DWORD i = 0;
+    while (i < data_idx)
+    {
+        fprintf(fp, "   {\"id\":\"%d\", \"timestamp\":\"0x%016llX\", \"data\":\"0x%08X\" }",i, data_buffer[i].timestamp, data_buffer[i].data);
+        if(i != (data_idx-1)){
+            fprintf(fp, ",\n");
+        }
+        else{
+            fprintf(fp, "\n");
+        }
+        i++;
+    }
+    fprintf(fp, "]\n");
+    fclose(fp);
+
+}
+
+
 void Cleanup()
 {
     LOGINFO("Stopping data collection....");
     create_value_change_dump();
+    create_json_file();
 
 	// Cleanup the Bus
 	bus->Cleanup();
@@ -342,24 +376,27 @@ int main(int argc, char* argv[])
     uint64_t loop_count = 0;
     timeval time_diff;
     uint64_t elapsed_us;
-    int str_len;
+    int opt;
 
-    // If there is an argument specified and it is NOT -h or --help
-    if((argc > 1) && (strcmp(argv[1], "-h")) && (strcmp(argv[1], "--help"))){
-        str_len = strlen(argv[1]);
-        if ((str_len >= 1) && (str_len < _MAX_FNAME))
-        {
-            strncpy(log_file_name, argv[1], sizeof(log_file_name));
-            // Append .vcd if its not already there
-            if((str_len < 4) || strcasecmp(log_file_name + (str_len - 4), ".vcd")) {
-                strcat(log_file_name, ".vcd");
-            }
-        }
-        else
-        {
-            printf("Invalid log name specified. Using log.vcd");
+    while ((opt = getopt(argc, argv, "-Hhb:f:")) != -1) {
+		switch (opt) {
+			// The three options below are kind of a compound option with two letters
+			case 'h':
+			case 'H':
+				print_help = true;
+				continue;
+			case 'b':
+                buff_size = atoi(optarg);
+                continue;
+            default:
+                strncpy(file_base_name, optarg, sizeof(file_base_name)-5);
         }
     }
+
+    strncpy(vcd_file_name, argv[1], sizeof(file_base_name)-4);
+    strcat(vcd_file_name, ".vcd");
+    strncpy(json_file_name, argv[1], sizeof(file_base_name)-5);
+    strcat(json_file_name, ".json");
 
 #ifdef DEBUG
     spdlog::set_level(spdlog::level::trace);
@@ -369,7 +406,8 @@ int main(int argc, char* argv[])
     spdlog::set_pattern("%^[%l]%$ %v");
 	// Output the Banner
 	Banner(argc, argv);
-    memset(data_buffer,0,sizeof(data_buffer));
+    data_buffer = (data_capture*)malloc(sizeof(data_capture_t) * buff_size);
+    bzero(data_buffer,sizeof(data_capture_t) * buff_size);
 
 	// Initialize
 	int ret = 0;
@@ -406,7 +444,7 @@ int main(int argc, char* argv[])
             LOGINFO("Maximum amount of time has elapsed. SCSIMON is terminating.");
             running=false;
         }
-        if (data_idx >= (MAX_BUFF_SIZE-2))
+        if (data_idx >= (buff_size-2))
         {
             LOGINFO("Internal data buffer is full. SCSIMON is terminating.");
             running=false;
@@ -442,7 +480,7 @@ int main(int argc, char* argv[])
 	}
 
     // Collect one last sample, otherwise it looks like the end of the data was cut off
-    if (data_idx < MAX_BUFF_SIZE)
+    if (data_idx < buff_size)
     {
         data_buffer[data_idx].data = this_sample;
         data_buffer[data_idx].timestamp = loop_count;
