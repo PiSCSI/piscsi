@@ -57,7 +57,7 @@ msgstr "Konfigurationsdatei nach %(file_name)s gespeichert"
 #: file_cmds.py:410
 #, python-format
 msgid "Could not write to file: %(file_name)s"
-msgstr "Konnte nicht nach Detai %(file_name)s schreiben"
+msgstr "Konnte nicht nach Datei %(file_name)s schreiben"
 
 #: file_cmds.py:468
 msgid "Invalid configuration file format"
