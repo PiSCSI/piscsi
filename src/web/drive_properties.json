@@ -133,18 +133,6 @@
 },
 {
     "device_type": "SCHD",
-    "vendor": "CONNER",
-    "product": "CP3200",
-    "revision": "3.53233",
-    "block_size": 512,
-    "size": 212926464,
-    "name": "Conner CP3200",
-    "file_type": "hds",
-    "description": "Very commonly used with Sun-4 systems",
-    "url": ""
-},
-{
-    "device_type": "SCHD",
     "vendor": "HP",
     "product": "C3010",
     "revision": "6.0",
@@ -429,6 +417,18 @@
     "name": "DEC RRD42",
     "file_type": null,
     "description": "Boots DECstations and VAXstations. Use only with workstations of this vintage.",
+    "url": ""
+},
+{
+    "device_type": "SCCD",
+    "vendor": "MATSHITA",
+    "product": "CD-ROM CR-8005 ",
+    "revision": "1.0k",
+    "block_size": 2048,
+    "size": null,
+    "name": "Apple CD 600e",
+    "file_type": null,
+    "description": "Emulates Apple CD ROM drive for use with Macintosh computers.",
     "url": ""
 }
 ]

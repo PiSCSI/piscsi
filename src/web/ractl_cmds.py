@@ -2,9 +2,11 @@
 Module for commands sent to the RaSCSI backend service.
 """
 
+from flask import current_app, session
+from flask_babel import _
+import rascsi_interface_pb2 as proto
 from settings import REMOVABLE_DEVICE_TYPES
 from socket_cmds import send_pb_command
-import rascsi_interface_pb2 as proto
 
 
 def get_server_info():
@@ -16,10 +18,15 @@ def get_server_info():
     - (list) of (str) log_levels (the log levels RaSCSI supports)
     - (str) current_log_level
     - (list) of (int) reserved_ids
+    - (str) image_dir, path to the default images directory
+    - (int) scan_depth, the current images directory scan depth
     - 5 distinct (list)s of (str)s with file endings recognized by RaSCSI
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.SERVER_INFO
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -31,6 +38,7 @@ def get_server_info():
     current_log_level = result.server_info.log_level_info.current_log_level
     reserved_ids = list(result.server_info.reserved_ids_info.ids)
     image_dir = result.server_info.image_files_info.default_image_folder
+    scan_depth = result.server_info.image_files_info.depth
 
     # Creates lists of file endings recognized by RaSCSI
     mappings = result.server_info.mapping_info.mapping
@@ -58,6 +66,7 @@ def get_server_info():
         "current_log_level": current_log_level,
         "reserved_ids": reserved_ids,
         "image_dir": image_dir,
+        "scan_depth": scan_depth,
         "sahd": sahd,
         "schd": schd,
         "scrm": scrm,
@@ -75,6 +84,9 @@ def get_reserved_ids():
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVED_IDS_INFO
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -95,6 +107,9 @@ def get_network_info():
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.NETWORK_INTERFACES_INFO
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -112,6 +127,9 @@ def get_device_types():
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICE_TYPES_INFO
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -120,6 +138,35 @@ def get_device_types():
     for prop in result.device_types_info.properties:
         device_types.append(proto.PbDeviceType.Name(prop.type))
     return {"status": result.status, "device_types": device_types}
+
+
+def get_image_files_info():
+    """
+    Sends a DEFAULT_IMAGE_FILES_INFO command to the server.
+    Returns a dict with:
+    - (bool) status
+    - (str) images_dir, path to images dir
+    - (list) of (str) image_files
+    - (int) scan_depth, the current scan depth
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    images_dir = result.image_files_info.default_image_folder
+    image_files = result.image_files_info.image_files
+    scan_depth = result.image_files_info.depth
+    return {
+        "status": result.status,
+        "images_dir": images_dir,
+        "image_files": image_files,
+        "scan_depth": scan_depth,
+        }
 
 
 def attach_image(scsi_id, **kwargs):
@@ -134,6 +181,9 @@ def attach_image(scsi_id, **kwargs):
 
     """
     command = proto.PbCommand()
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
 
@@ -159,8 +209,12 @@ def attach_image(scsi_id, **kwargs):
         if current_type != device_type:
             return {
                 "status": False,
-                "msg": "Cannot insert an image for " + device_type + \
-                " into a " + current_type + " device."
+                "msg": _(
+                    u"Cannot insert an image for %(device_type)s into a "
+                    u"%(current_device_type)s device",
+                    device_type=device_type,
+                    current_device_type=current_type
+                    ),
                 }
         command.operation = proto.PbOperation.INSERT
     # Handling attaching a new device
@@ -204,6 +258,9 @@ def detach_by_id(scsi_id, unit=None):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH
     command.devices.append(devices)
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -218,6 +275,9 @@ def detach_all():
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH_ALL
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -239,6 +299,9 @@ def eject_by_id(scsi_id, unit=None):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.EJECT
     command.devices.append(devices)
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -255,9 +318,11 @@ def list_devices(scsi_id=None, unit=None):
     If no attached device is found, returns an empty (list).
     Returns (bool) status, (list) of dicts device_list
     """
-    from os import path
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICES_INFO
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     # If method is called with scsi_id parameter, return the info on those devices
     # Otherwise, return the info on all attached devices
@@ -278,6 +343,7 @@ def list_devices(scsi_id=None, unit=None):
     if not result.devices_info.devices:
         return {"status": False, "device_list": []}
 
+    image_files_info = get_image_files_info()
     i = 0
     while i < len(result.devices_info.devices):
         did = result.devices_info.devices[i].id
@@ -298,7 +364,7 @@ def list_devices(scsi_id=None, unit=None):
             dstat_msg.append("Locked")
 
         dpath = result.devices_info.devices[i].file.name
-        dfile = path.basename(dpath)
+        dfile = dpath.replace(image_files_info["images_dir"] + "/", "")
         dparam = result.devices_info.devices[i].params
         dven = result.devices_info.devices[i].vendor
         dprod = result.devices_info.devices[i].product
@@ -333,6 +399,9 @@ def reserve_scsi_ids(reserved_scsi_ids):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVE_IDS
     command.params["ids"] = ",".join(reserved_scsi_ids)
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -349,6 +418,46 @@ def set_log_level(log_level):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.LOG_LEVEL
     command.params["level"] = str(log_level)
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
+
+
+def shutdown_pi(mode):
+    """
+    Sends a SHUT_DOWN command to the server.
+    Takes (str) mode as an argument.
+    Returns (bool) status and (str) msg.
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.SHUT_DOWN
+    command.params["mode"] = str(mode)
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}
+
+
+def is_token_auth():
+    """
+    Sends a CHECK_AUTHENTICATION command to the server.
+    Tells you whether RaSCSI backend is protected by a token password or not.
+    Returns (bool) status and (str) msg.
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.CHECK_AUTHENTICATION
+    command.params["token"] = current_app.config["TOKEN"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()

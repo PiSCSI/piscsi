@@ -6,13 +6,14 @@ from unidecode import unidecode
 from socket_cmds import send_pb_command
 import rascsi_interface_pb2 as proto
 
-def device_list():
+def device_list(token):
     """
     Sends a DEVICES_INFO command to the server.
     Returns a list of dicts with info on all attached devices.
     """
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICES_INFO
+    command.params["token"] = token
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
     result.ParseFromString(data)
@@ -51,3 +52,19 @@ def device_list():
         i += 1
 
     return dlist
+
+
+def is_token_auth(token):
+    """
+    Sends a CHECK_AUTHENTICATION command to the server.
+    Tells you whether RaSCSI backend is protected by a token password or not.
+    Returns (bool) status and (str) msg.
+    """
+    command = proto.PbCommand()
+    command.operation = proto.PbOperation.CHECK_AUTHENTICATION
+    command.params["token"] = token
+
+    data = send_pb_command(command.SerializeToString())
+    result = proto.PbResult()
+    result.ParseFromString(data)
+    return {"status": result.status, "msg": result.msg}

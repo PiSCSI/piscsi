@@ -6,12 +6,14 @@ rasctl \- Sends management commands to the rascsi process
 \fB\-e\fR |
 \fB\-l\fR |
 \fB\-m\fR |
+\fB\-o\fR |
 \fB\-s\fR |
 \fB\-v\fR |
 \fB\-D\fR |
 \fB\-I\fR |
 \fB\-L\fR |
 \fB\-O\fR |
+\fB\-P\fR |
 \fB\-T\fR |
 \fB\-V\fR |
 \fB\-X\fR |
@@ -30,6 +32,7 @@ rasctl \- Sends management commands to the rascsi process
 [\fB\-t\fR \fITYPE\fR]
 [\fB\-u\fR \fIUNIT\fR]
 [\fB\-x\fR \fICURRENT_NAME:NEW_NAME\fR]
+[\fB\-z\fR \fILOCALE\fR]
 .SH DESCRIPTION
 .B rasctl
 Sends commands to the rascsi process to make configuration adjustments at runtime or to check the status of the devices.
@@ -72,11 +75,17 @@ Lists all available network interfaces provided that they are up.
 .BR \-O\fI
 Display the available rascsi server log levels and the current log level.
 .TP
+.BR \-P\fI
+Prompt for the access token in case rascsi requires authentication.
+.TP
 .BR \-l\fI
 List all of the devices that are currently being emulated by RaSCSI, as well as their current status.
 .TP
 .BR \-m\fI
 List all file extensions recognized by RaSCSI and the device types they map to.
+.TP
+.BR \-o\fI
+Display operation meta data information.
 .TP
 .BR \-R\fI " "\fICURRENT_NAME:NEW_NAME
 Rename an image file in the default image folder.
@@ -107,6 +116,9 @@ Delete an image file in the default image folder.
 .TP
 .BR \-x\fI " "\fICURRENT_NAME:NEW_NAME
 Copy an image file in the default image folder.
+.TP
+.BR \-z\fI " "\fILOCALE
+Overrides the default locale for client-facing error messages.
 .TP
 .BR \-i\fI " " \fIID
 ID is the SCSI ID that you want to control. (0-7)

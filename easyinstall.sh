@@ -50,12 +50,14 @@ USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
-WEBINSTDIR="$BASE/src/web"
+WEB_INSTALL_PATH="$BASE/src/web"
+SYSTEMD_PATH="/etc/systemd/system"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 GIT_REMOTE=${GIT_REMOTE:-origin}
+TOKEN=""
 
 set -e
 
@@ -75,22 +77,15 @@ function sudoCheck() {
 
 # install all dependency packages for RaSCSI Service
 function installPackages() {
-    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv nginx libpcap-dev protobuf-compiler bridge-utils python3-dev libev-dev libevdev2 -y </dev/null
+    sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv python3-dev python3-pip nginx libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 -y </dev/null
 }
 
 # compile the RaSCSI binaries
 function compileRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
-    # Compiler flags needed for gcc v10 and up
-    if [[ `gcc --version | awk '/gcc/' | awk -F ' ' '{print $3}' | awk -F '.' '{print $1}'` -ge 10 ]]; then
-        echo -n "gcc 10 or later detected. Will compile with the following flags: "
-        COMPILER_FLAGS="-DSPDLOG_FMT_EXTERNAL -DFMT_HEADER_ONLY"
-        echo $COMPILER_FLAGS
-    fi
-
     echo "Compiling with ${CORES:-1} simultaneous cores..."
-    ( make clean && EXTRA_FLAGS="$COMPILER_FLAGS" make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+    ( make clean && make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
 }
 
 # install the RaSCSI binaries and modify the service configuration
@@ -100,29 +95,17 @@ function installRaScsi() {
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
-    if [ -f "$WEBINSTDIR/rascsi_interface_pb2.py" ]; then
-        sudo rm "$WEBINSTDIR/rascsi_interface_pb2.py"
+    if [ -f "$WEB_INSTALL_PATH/rascsi_interface_pb2.py" ]; then
+        sudo rm "$WEB_INSTALL_PATH/rascsi_interface_pb2.py"
         echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEBINSTDIR" rascsi_interface.proto
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEB_INSTALL_PATH" rascsi_interface.proto
 
     sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
 
     sudo usermod -a -G $USER www-data
-
-    if [[ `sudo grep -c "rascsi" /etc/sudoers` -eq 0 ]]; then
-        sudo bash -c 'echo "
-# Allow the web server to restart the rascsi service
-www-data ALL=NOPASSWD: /bin/systemctl restart rascsi.service
-www-data ALL=NOPASSWD: /bin/systemctl stop rascsi.service
-# Allow the web server to reboot the raspberry pi
-www-data ALL=NOPASSWD: /sbin/shutdown, /sbin/reboot
-" >> /etc/sudoers'
-    else
-        echo "The sudoers file is already modified for rascsi-web."
-    fi
 
     sudo systemctl reload nginx || true
 }
@@ -159,10 +142,20 @@ function installRaScsiScreen() {
         SCREEN_HEIGHT="32"
     fi
 
+    if [ -z "$TOKEN" ]; then
+        echo ""
+        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
+            read -r TOKEN
+        fi
+    fi
+
     stopRaScsiScreen
     updateRaScsiGit
 
-    sudo apt-get update && sudo apt-get install python3-dev python3-pip python3-venv libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
     if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
         sudo rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
@@ -182,9 +175,15 @@ function installRaScsiScreen() {
     fi
 
     echo "Installing the monitor_rascsi.service configuration..."
-    sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" /etc/systemd/system/monitor_rascsi.service
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/monitor_rascsi.service
-    sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" /etc/systemd/system/monitor_rascsi.service
+    sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" "$SYSTEMD_PATH/monitor_rascsi.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/monitor_rascsi.service"
+    if [ ! -z "$TOKEN" ]; then
+        sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/monitor_rascsi.service"
+        sudo chmod 600 "$SYSTEMD_PATH/monitor_rascsi.service"
+        echo "Granted access to the OLED Monitor with the password that you configured for RaSCSI."
+    else
+        sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/monitor_rascsi.service"
+    fi
 
     sudo systemctl daemon-reload
     sudo systemctl enable monitor_rascsi
@@ -240,6 +239,15 @@ function stopOldWebInterface() {
 # Checks for upstream changes to the git repo and fast-forwards changes if needed
 function updateRaScsiGit() {
     cd "$BASE" || exit 1
+
+    set +e
+    git rev-parse --is-inside-work-tree &> /dev/null
+    if [[ $? -ge 1 ]]; then
+        echo "Warning: This does not seem to be a valid clone of a git repository. I will not be able to pull the latest code."
+        return 0
+    fi
+    set -e
+
     stashed=0
     if [[ $(git diff --stat) != '' ]]; then
         echo "There are local changes to the RaSCSI code; we will stash and reapply them."
@@ -262,8 +270,8 @@ function updateRaScsiGit() {
 
 # Takes a backup copy of the rascsi.service file if it exists
 function backupRaScsiService() {
-    if [ -f /etc/systemd/system/rascsi.service ]; then
-        sudo mv /etc/systemd/system/rascsi.service /etc/systemd/system/rascsi.service.old
+    if [ -f "$SYSTEMD_PATH/rascsi.service" ]; then
+        sudo mv "$SYSTEMD_PATH/rascsi.service" "$SYSTEMD_PATH/rascsi.service.old"
         SYSTEMD_BACKUP=true
         echo "Existing version of rascsi.service detected; Backing up to rascsi.service.old"
     else
@@ -271,9 +279,36 @@ function backupRaScsiService() {
     fi
 }
 
+# Offers the choice of enabling token-based authentication for RaSCSI
+function configureTokenAuth() {
+    echo ""
+    echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
+    read REPLY
+
+    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+        echo -n "Enter the password that you want to use: "
+        read -r TOKEN
+        if [ -f "$HOME/.rascsi_secret" ]; then
+            sudo rm "$HOME/.rascsi_secret"
+            echo "Removed old RaSCSI token file"
+        fi
+        echo "$TOKEN" > "$HOME/.rascsi_secret"
+        sudo chown root:root "$HOME/.rascsi_secret"
+        sudo chmod 600 "$HOME/.rascsi_secret"
+        echo ""
+        echo "Configured RaSCSI to use $HOME/.rascsi_secret for authentication. This file is readable by root only."
+        echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
+    fi
+}
+
 # Modifies and installs the rascsi service
 function enableRaScsiService() {
-    sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" /etc/systemd/system/rascsi.service
+    if [ ! -z "$TOKEN" ]; then
+        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH -P $HOME/.rascsi_secret@" "$SYSTEMD_PATH/rascsi.service"
+        sudo chmod 600 "$SYSTEMD_PATH/rascsi.service"
+    else
+        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
+    fi
     echo "Configured rascsi.service to use $VIRTUAL_DRIVER_PATH as default image dir."
 
     sudo systemctl daemon-reload
@@ -286,9 +321,16 @@ function enableRaScsiService() {
 # Modifies and installs the rascsi-web service
 function installWebInterfaceService() {
     echo "Installing the rascsi-web.service configuration..."
-    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" /etc/systemd/system/rascsi-web.service
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/rascsi-web.service
-    sudo sed -i "8 i ExecStart=$WEBINSTDIR/start.sh" /etc/systemd/system/rascsi-web.service
+    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" "$SYSTEMD_PATH/rascsi-web.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-web.service"
+    echo "$TOKEN"
+    if [ ! -z "$TOKEN" ]; then
+        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/rascsi-web.service"
+        sudo chmod 600 "$SYSTEMD_PATH/rascsi-web.service"
+        echo "Granted access to the Web Interface with the token password that you configured for RaSCSI."
+    else
+        sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/rascsi-web.service"
+    fi
 
     sudo systemctl daemon-reload
     sudo systemctl enable rascsi-web
@@ -297,30 +339,45 @@ function installWebInterfaceService() {
 
 # Stops the rascsi service if it is running
 function stopRaScsi() {
-    if [[ `systemctl list-units | grep -c rascsi.service` -ge 1 ]]; then
+    if [ -f "$SYSTEMD_PATH/rascsi.service" ]; then
         sudo systemctl stop rascsi.service
     fi
 }
 
 # Stops the rascsi-web service if it is running
 function stopRaScsiWeb() {
-    if [[ `systemctl list-units | grep -c rascsi-web.service` -ge 1 ]]; then
+    if [ -f "$SYSTEMD_PATH/rascsi-web.service" ]; then
         sudo systemctl stop rascsi-web.service
     fi
 }
 
 # Stops the monitor_rascsi service if it is running
 function stopRaScsiScreen() {
-    if [[ `systemctl list-units | grep -c monitor_rascsi.service` -ge 1 ]]; then
+    if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
         sudo systemctl stop monitor_rascsi.service
+    fi
+}
+
+# Stops the macproxy service if it is running
+function stopMacproxy() {
+    if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
+        sudo systemctl stop macproxy.service
     fi
 }
 
 # Starts the monitor_rascsi service if installed
 function startRaScsiScreen() {
-    if [[ -f "/etc/systemd/system/monitor_rascsi.service" ]]; then
+    if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
         sudo systemctl start monitor_rascsi.service
         showRaScsiScreenStatus
+    fi
+}
+
+# Starts the macproxy service if installed
+function startMacproxy() {
+    if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
+        sudo systemctl start macproxy.service
+        showMacproxyStatus
     fi
 }
 
@@ -337,6 +394,11 @@ function showRaScsiWebStatus() {
 # Shows status for the monitor_rascsi service
 function showRaScsiScreenStatus() {
     systemctl status monitor_rascsi | tee
+}
+
+# Shows status for the macproxy service
+function showMacproxyStatus() {
+    systemctl status macproxy | tee
 }
 
 # Creates a drive image file with specific parameters
@@ -439,7 +501,7 @@ function createDrive() {
     driveSize=$1
     driveName=$2
     mkdir -p "$VIRTUAL_DRIVER_PATH"
-    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hds"
+    drivePath="${VIRTUAL_DRIVER_PATH}/${driveSize}MB.hda"
 
     if [ ! -f "$drivePath" ]; then
         echo "Creating a ${driveSize}MB Drive"
@@ -464,12 +526,12 @@ function setupWiredNetworking() {
     echo "WARNING: If you continue, the IP address of your Pi may change upon reboot."
     echo "Please make sure you will not lose access to the Pi system."
     echo ""
-    echo "Do you want to proceed with network configuration using the default settings? Y/n"
+    echo "Do you want to proceed with network configuration using the default settings? [Y/n]"
     read REPLY
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wired interfaces on this system:"
-	echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
+        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep eth`
         echo "Please type the wired interface you want to use and press Enter:"
         read SELECTED
         LAN_INTERFACE=$SELECTED
@@ -519,12 +581,12 @@ function setupWirelessNetworking() {
     echo "Subnet Mask: $NETWORK_MASK"
     echo "DNS Server: Any public DNS server"
     echo ""
-    echo "Do you want to proceed with network configuration using the default settings? Y/n"
+    echo "Do you want to proceed with network configuration using the default settings? [Y/n]"
     read REPLY
 
     if [ "$REPLY" == "N" ] || [ "$REPLY" == "n" ]; then
         echo "Available wireless interfaces on this system:"
-	echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
+        echo `ip -o addr show scope link | awk '{split($0, a); print $2}' | grep wlan`
         echo "Please type the wireless interface you want to use and press Enter:"
         read -r WLAN_INTERFACE
         echo "Base IP address (ex. 10.10.20):"
@@ -542,7 +604,14 @@ function setupWirelessNetworking() {
         read REPLY
     else
         sudo bash -c 'echo "net.ipv4.ip_forward=1" >> /etc/sysctl.conf'
-	echo "Modified /etc/sysctl.conf"
+        echo "Modified /etc/sysctl.conf"
+    fi
+
+    # Check if iptables is installed
+    if [ `apt-cache policy iptables | grep Installed | grep -c "(none)"` -eq 0 ]; then
+        echo "iptables is already installed"
+    else
+        sudo apt-get install iptables --assume-yes </dev/null
     fi
 
     sudo iptables --flush
@@ -664,23 +733,23 @@ function installMacproxy {
 
     ( sudo apt-get update && sudo apt-get install python3 python3-venv --assume-yes ) </dev/null
 
-    MACPROXY_VER="21.11"
-    MACPROXY_DIR="$HOME/macproxy-$MACPROXY_VER"
-    if [ -d "$MACPROXY_DIR" ]; then
-        echo "The $MACPROXY_DIR directory already exists. Delete it to proceed with the installation."
+    MACPROXY_VER="21.12.3"
+    MACPROXY_PATH="$HOME/macproxy-$MACPROXY_VER"
+    if [ -d "$MACPROXY_PATH" ]; then
+        echo "The $MACPROXY_PATH directory already exists. Delete it to proceed with the installation."
         exit 1
     fi
     cd "$HOME" || exit 1
-    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/v$MACPROXY_VER.tar.gz" </dev/null
+    wget -O "macproxy-$MACPROXY_VER.tar.gz" "https://github.com/rdmark/macproxy/archive/refs/tags/$MACPROXY_VER.tar.gz" </dev/null
     tar -xzvf "macproxy-$MACPROXY_VER.tar.gz"
-    cd "$MACPROXY_DIR" || exit 1
-    sudo cp "$MACPROXY_DIR/macproxy.service" /etc/systemd/system/
-    sudo sed -i /^ExecStart=/d /etc/systemd/system/macproxy.service
-    sudo sed -i "8 i ExecStart=$MACPROXY_DIR/start.sh" /etc/systemd/system/macproxy.service
+
+    stopMacproxy
+    sudo cp "$MACPROXY_PATH/macproxy.service" "$SYSTEMD_PATH"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/macproxy.service"
+    sudo sed -i "8 i ExecStart=$MACPROXY_PATH/start_macproxy.sh" "$SYSTEMD_PATH/macproxy.service"
     sudo systemctl daemon-reload
     sudo systemctl enable macproxy
-    sudo systemctl start macproxy
-    sudo systemctl status macproxy
+    startMacproxy
 
     echo -n "Macproxy is now running on IP "
     echo -n `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
@@ -691,9 +760,9 @@ function installMacproxy {
 
 # Prints a notification if the rascsi.service file was backed up
 function notifyBackup {
-    if $SYSTEMD_BACKUP; then
+    if "$SYSTEMD_BACKUP"; then
         echo ""
-        echo "IMPORTANT: /etc/systemd/system/rascsi.service has been overwritten."
+        echo "IMPORTANT: $SYSTEMD_PATH/rascsi.service has been overwritten."
         echo "A backup copy was saved as rascsi.service.old in the same directory."
         echo "Please inspect the backup file and restore configurations that are important to your setup."
         echo ""
@@ -723,12 +792,14 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
-              echo "- Modify and enable Apache2 and Nginx web service"
-              echo "- Create directories and change permissions"
+              echo "- Modify and enable Apache2 and Nginx web services"
+              echo "- Create files and directories"
+              echo "- Change permissions of files and directories"
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
+              configureTokenAuth
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
@@ -736,13 +807,17 @@ function runChoice() {
               installPackages
               stopRaScsiScreen
               stopRaScsi
-              backupRaScsiService
               compileRaScsi
+              backupRaScsiService
               installRaScsi
               enableRaScsiService
-              startRaScsiScreen
+              if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
+                  echo "Detected monitor_rascsi.service; will run the installation steps for the OLED monitor."
+                  installRaScsiScreen
+              fi
               installRaScsiWebInterface
               installWebInterfaceService
+              showRaScsiScreenStatus
               showRaScsiStatus
               showRaScsiWebStatus
               notifyBackup
@@ -753,21 +828,27 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
-              echo "- Create directories and change permissions"
+              echo "- Create files ans directories"
+              echo "- Change permissions of files and directories"
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
+              configureTokenAuth
               updateRaScsiGit
               createImagesDir
               installPackages
               stopRaScsiScreen
               stopRaScsi
-              backupRaScsiService
               compileRaScsi
+              backupRaScsiService
               installRaScsi
               enableRaScsiService
-              startRaScsiScreen
+              if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
+                  echo "Detected monitor_rascsi.service; will run the installation steps for the OLED monitor."
+                  installRaScsiScreen
+              fi
+              showRaScsiScreenStatus
               showRaScsiStatus
               notifyBackup
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
@@ -784,14 +865,14 @@ function runChoice() {
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
           ;;
           4)
-              echo "Creating a 600MB drive"
+              echo "Creating an HFS formatted 600MB drive image with LIDO driver"
               createDrive600MB
-              echo "Creating a 600MB drive - Complete!"
+              echo "Creating an HFS formatted 600MB drive image with LIDO driver - Complete!"
           ;;
           5)
-              echo "Creating a custom drive"
+              echo "Creating an HFS formatted drive image with LIDO driver"
               createDriveCustom
-              echo "Creating a custom drive - Complete!"
+              echo "Creating an HFS formatted drive image with LIDO driver - Complete!"
           ;;
           6)
               echo "Configuring wired network bridge"
@@ -948,7 +1029,7 @@ while [ "$1" != "" ]; do
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
-	    exit 1
+            exit 1
             ;;
     esac
     shift

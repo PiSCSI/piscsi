@@ -1,12 +1,10 @@
 .DEFAULT_GOAL: all
 
 ## Optional build flags:
-##   CROSS_COMPILE=arm-linux-gnueabihf- : Specify which compiler
-##              toolchain to use. This will default to arm-linux-
-##              gnueabihf-, which is typical on a Raspberry Pi.
-##              To cross compile on a x86_64 system set these to:
-##                 ARM=x86_64 CROSS_COMPILE=x86_64-linux-gnu-cpp
-CROSS_COMPILE ?= arm-linux-gnueabihf-
+##   CROSS_COMPILE : Specify which compiler toolchain to use.
+##                   To cross compile set this accordingly, e.g. to:
+##                   arm-linux-gnueabihf-
+CROSS_COMPILE =
 
 CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
@@ -32,6 +30,16 @@ CXXFLAGS += -std=c++17 -Wno-psabi -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CFLAGS += $(EXTRA_FLAGS)
 CXXFLAGS += $(EXTRA_FLAGS)
+
+# If we're using GCC version 10 or later, we need to add the FMT_HEADER_ONLY definition
+GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
+
+ifeq "$(GCCVERSION10)" "1"
+	CFLAGS += -DFMT_HEADER_ONLY
+	CXXFLAGS += -DFMT_HEADER_ONLY
+endif
+
+
 
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
 ##              that you are using. The typical options are 
@@ -87,7 +95,8 @@ SRC_RASCSI = \
 	rascsi_image.cpp \
 	rascsi_response.cpp \
 	rasutil.cpp \
-	protobuf_util.cpp
+	protobuf_util.cpp \
+	localizer.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI += $(SRC_PROTOBUF)
@@ -106,7 +115,8 @@ SRC_RASCTL = \
 	rasctl_display.cpp \
 	rascsi_version.cpp \
 	rasutil.cpp \
-	protobuf_util.cpp
+	protobuf_util.cpp \
+	localizer.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 
 SRC_RASDUMP = \
@@ -172,7 +182,7 @@ $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
@@ -222,9 +232,8 @@ $(USR_LOCAL_BIN)% : $(BINDIR)/%
 	@echo "-- Copying $@"
 	cp $< $@
 
-$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
+$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1 | $(MAN_PAGE_DIR)/
 	@echo "-- Copying $@"
-	mkdir -p $@
 	cp $< $@
 
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
@@ -244,6 +253,10 @@ $(RSYSLOG_LOG) :
 	@echo "-- Creating $@"
 	touch /var/log/rascsi.log
 	chown root:adm /var/log/rascsi.log
+
+$(MAN_PAGE_DIR)/:
+	echo "-- Creating directory $@"
+	mkdir -p $@
 
 ##   help     : Lists information about how to use the makefile
 # The help rule is based upon the approach from:

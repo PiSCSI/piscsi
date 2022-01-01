@@ -1,0 +1,4 @@
+(sym_lib_table
+  (lib (name SamacSys_Parts)(type Legacy)(uri ${KIPRJMOD}/SamacSys_Parts.lib)(options "")(descr ""))
+  (lib (name TYPE-C-31-M-17)(type Legacy)(uri ${KIPRJMOD}/TYPE-C-31-M-17/TYPE-C-31-M-17.lib)(options "")(descr ""))
+)

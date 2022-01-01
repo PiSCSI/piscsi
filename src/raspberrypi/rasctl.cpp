@@ -16,6 +16,7 @@
 #include "rasutil.h"
 #include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
+#include <clocale>
 #include <iostream>
 #include <list>
 
@@ -52,7 +53,7 @@ PbOperation ParseOperation(const char *optarg)
 			return DEVICES_INFO;
 
 		default:
-			return NONE;
+			return NO_OPERATION;
 	}
 }
 
@@ -91,6 +92,23 @@ PbDeviceType ParseType(const char *optarg)
 	}
 }
 
+void SetPatternParams(PbCommand& command, const string& patterns)
+{
+	string folder_pattern;
+	string file_pattern;
+	size_t separator_pos = patterns.find(COMPONENT_SEPARATOR);
+	if (separator_pos != string::npos) {
+		folder_pattern = patterns.substr(0, separator_pos);
+		file_pattern = patterns.substr(separator_pos + 1);
+	}
+	else {
+		file_pattern = patterns;
+	}
+
+	AddParam(command, "folder_pattern", folder_pattern);
+	AddParam(command, "file_pattern", file_pattern);
+}
+
 int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -101,8 +119,9 @@ int main(int argc, char* argv[])
 		cerr << "version " << rascsi_get_version_string() << " (" << __DATE__ << ", " << __TIME__ << ")" << endl;
 		cerr << "Usage: " << argv[0] << " -i ID [-u UNIT] [-c CMD] [-C FILE] [-t TYPE] [-b BLOCK_SIZE] [-n NAME] [-f FILE|PARAM] ";
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
-		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] [-x CURRENT_NAME:NEW_NAME] ";
-		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
+		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] ";
+		cerr <<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] ";
+		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0-31}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
@@ -134,11 +153,17 @@ int main(int argc, char* argv[])
 	string reserved_ids;
 	string image_params;
 	string filename;
+	string token;
 	bool list = false;
+
+	string locale = setlocale(LC_MESSAGES, "");
+	if (locale == "C") {
+		locale = "en";
+	}
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "elmsvDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:C:E:F:L:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "e::lmos::vDINOTVXa:b:c:d:f:h:i:n:p:r:t:u:x:z:C:E:F:L:P::R:")) != -1) {
 		switch (opt) {
 			case 'i': {
 				int id;
@@ -176,7 +201,7 @@ int main(int argc, char* argv[])
 
 			case 'c':
 				command.set_operation(ParseOperation(optarg));
-				if (command.operation() == NONE) {
+				if (command.operation() == NO_OPERATION) {
 					cerr << "Error: Unknown operation '" << optarg << "'" << endl;
 					exit(EXIT_FAILURE);
 				}
@@ -198,7 +223,10 @@ int main(int argc, char* argv[])
 
 			case 'e':
 				command.set_operation(DEFAULT_IMAGE_FILES_INFO);
-				break;
+                if (optarg) {
+                	SetPatternParams(command, optarg);
+                }
+                break;
 
 			case 'F':
 				command.set_operation(DEFAULT_FOLDER);
@@ -236,6 +264,10 @@ int main(int argc, char* argv[])
 
 			case 'O':
 				command.set_operation(LOG_LEVEL_INFO);
+				break;
+
+			case 'o':
+				command.set_operation(OPERATION_INFO);
 				break;
 
 			case 't':
@@ -294,11 +326,18 @@ int main(int argc, char* argv[])
 
 			case 's':
 				command.set_operation(SERVER_INFO);
-				break;
+                if (optarg) {
+                	SetPatternParams(command, optarg);
+                }
+                break;
 
 			case 'v':
 				cout << "rasctl version: " << rascsi_get_version_string() << endl;
 				exit(EXIT_SUCCESS);
+				break;
+
+			case 'P':
+				token = optarg ? optarg : getpass("Password: ");
 				break;
 
 			case 'V':
@@ -316,6 +355,11 @@ int main(int argc, char* argv[])
 
 			case 'X':
 				command.set_operation(SHUT_DOWN);
+				AddParam(command, "mode", "rascsi");
+				break;
+
+			case 'z':
+				locale = optarg;
 				break;
 		}
 	}
@@ -328,7 +372,7 @@ int main(int argc, char* argv[])
 	if (list) {
 		PbCommand command_list;
 		command_list.set_operation(DEVICES_INFO);
-		RasctlCommands rasctl_commands(command_list, hostname, port);
+		RasctlCommands rasctl_commands(command_list, hostname, port, token, locale);
 		rasctl_commands.CommandDevicesInfo();
 		exit(EXIT_SUCCESS);
 	}
@@ -339,7 +383,7 @@ int main(int argc, char* argv[])
 		AddParam(*device, "file", param);
 	}
 
-	RasctlCommands rasctl_commands(command, hostname, port);
+	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
 
 	switch(command.operation()) {
 		case LOG_LEVEL:
@@ -408,6 +452,10 @@ int main(int argc, char* argv[])
 
 		case MAPPING_INFO:
 			rasctl_commands.CommandMappingInfo();
+			break;
+
+		case OPERATION_INFO:
+			rasctl_commands.CommandOperationInfo();
 			break;
 
 		default:

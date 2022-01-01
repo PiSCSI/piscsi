@@ -5,37 +5,8 @@ Module for methods controlling and getting information about the Pi's Linux syst
 import subprocess
 import asyncio
 import logging
+from flask_babel import _
 from settings import AUTH_GROUP
-
-
-def systemd_service(service, action):
-    """
-    Takes (str) service and (str) action
-    Action can be any that systemctl supports, ex. start/stop/restart/show
-    Returns (dict) with (bool) status, (str) msg, (str) err
-    """
-    proc = asyncio.run(run_async(f"sudo /bin/systemctl {action} {service}"))
-    return {
-            "status": proc["returncode"] == 0,
-            "msg": proc["stdout"],
-            "err": proc["stderr"],
-            }
-
-
-def reboot_pi():
-    """
-    Reboots the Pi system
-    """
-    subprocess.Popen(["sudo", "reboot"])
-    return True
-
-
-def shutdown_pi():
-    """
-    Shuts down the Pi system
-    """
-    subprocess.Popen(["sudo", "shutdown", "-h", "now"])
-    return True
 
 
 def running_env():
@@ -44,24 +15,36 @@ def running_env():
     git contains the git hash of the checked out code
     env is the various system information where this app is running
     """
-    ra_git_version = (
-        subprocess.run(
-            ["git", "rev-parse", "HEAD"],
-            capture_output=True,
-            check=True,
-            )
-        .stdout.decode("utf-8")
-        .strip()
-    )
-    pi_version = (
-        subprocess.run(
-            ["uname", "-a"],
-            capture_output=True,
-            check=True,
-            )
-        .stdout.decode("utf-8")
-        .strip()
-    )
+    try:
+        ra_git_version = (
+            subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                capture_output=True,
+                check=True,
+                )
+            .stdout.decode("utf-8")
+            .strip()
+        )
+    except subprocess.CalledProcessError as error:
+        logging.warning("Executed shell command: %s", " ".join(error.cmd))
+        logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+        ra_git_version = ""
+
+    try:
+        pi_version = (
+            subprocess.run(
+                ["uname", "-a"],
+                capture_output=True,
+                check=True,
+                )
+            .stdout.decode("utf-8")
+            .strip()
+        )
+    except subprocess.CalledProcessError as error:
+        logging.warning("Executed shell command: %s", " ".join(error.cmd))
+        logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+        pi_version = "Unknown"
+
     return {"git": ra_git_version, "env": pi_version}
 
 
@@ -70,28 +53,46 @@ def running_proc(daemon):
     Takes (str) daemon
     Returns (int) proc, which is the number of processes currently running
     """
-    process = subprocess.run(
-            ["ps", "aux"],
-            capture_output=True,
-            check=True,
-            )
-    output = process.stdout.decode("utf-8")
+    try:
+        processes = (
+            subprocess.run(
+                ["ps", "aux"],
+                capture_output=True,
+                check=True,
+                )
+            .stdout.decode("utf-8")
+            .strip()
+        )
+    except subprocess.CalledProcessError as error:
+        logging.warning("Executed shell command: %s", " ".join(error.cmd))
+        logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+        processes = ""
+
     from re import findall
-    proc = findall(daemon, output)
-    return len(proc)
+    matching_processes = findall(daemon, processes)
+    return len(matching_processes)
 
 
 def is_bridge_setup():
     """
     Returns (bool) True if the rascsi_bridge network interface exists
     """
-    process = subprocess.run(
-            ["brctl", "show"],
-            capture_output=True,
-            check=True,
-            )
-    output = process.stdout.decode("utf-8")
-    if "rascsi_bridge" in output:
+    try:
+        bridges = (
+            subprocess.run(
+                ["brctl", "show"],
+                capture_output=True,
+                check=True,
+                )
+            .stdout.decode("utf-8")
+            .strip()
+        )
+    except subprocess.CalledProcessError as error:
+        logging.warning("Executed shell command: %s", " ".join(error.cmd))
+        logging.warning("Got error: %s", error.stderr.decode("utf-8"))
+        bridges = ""
+
+    if "rascsi_bridge" in bridges:
         return True
     return False
 
@@ -175,6 +176,6 @@ def auth_active():
     if AUTH_GROUP in groups:
         return {
                 "status": True,
-                "msg": "You must log in to use this function!",
+                "msg": _(u"You must log in to use this function"),
                 }
     return {"status": False, "msg": ""}

@@ -3,8 +3,9 @@ Module for the Flask app rendering and endpoints
 """
 
 import logging
-from sys import argv
+import argparse
 from pathlib import Path
+from functools import wraps
 
 from flask import (
     Flask,
@@ -17,7 +18,9 @@ from flask import (
     send_from_directory,
     make_response,
     session,
+    abort,
 )
+from flask_babel import Babel, Locale, refresh, _
 
 from file_cmds import (
     list_images,
@@ -25,7 +28,9 @@ from file_cmds import (
     create_new_image,
     download_file_to_iso,
     delete_image,
+    rename_image,
     delete_file,
+    rename_file,
     unzip_file,
     download_to_dir,
     write_config,
@@ -34,10 +39,7 @@ from file_cmds import (
     read_drive_properties,
 )
 from pi_cmds import (
-    shutdown_pi,
-    reboot_pi,
     running_env,
-    systemd_service,
     running_proc,
     is_bridge_setup,
     disk_space,
@@ -57,6 +59,8 @@ from ractl_cmds import (
     get_device_types,
     reserve_scsi_ids,
     set_log_level,
+    shutdown_pi,
+    is_token_auth,
 )
 from device_utils import (
     sort_and_format_devices,
@@ -74,9 +78,37 @@ from settings import (
     REMOVABLE_DEVICE_TYPES,
     RESERVATIONS,
     AUTH_GROUP,
+    LANGUAGES,
 )
 
 APP = Flask(__name__)
+BABEL = Babel(APP)
+
+@BABEL.localeselector
+def get_locale():
+    """
+    Uses the session language, or tries to detect based on accept-languages header
+    """
+    try:
+        language = session["language"]
+    except KeyError:
+        language = ""
+        logging.warning("The default locale could not be detected. Falling back to English.")
+    if language:
+        return language
+    # Hardcoded fallback to "en" when the user agent does not send an accept-language header
+    language = request.accept_languages.best_match(LANGUAGES) or "en"
+    return language
+
+
+def get_supported_locales():
+    """
+    Returns a list of Locale objects that the Web Interfaces supports
+    """
+    locales = BABEL.list_translations()
+    locales.append(Locale("en"))
+    sorted_locales = sorted(locales, key=lambda x: x.language)
+    return sorted_locales
 
 
 @APP.route("/")
@@ -84,21 +116,31 @@ def index():
     """
     Sets up data structures for and renders the index page
     """
+    if not is_token_auth()["status"] and not APP.config["TOKEN"]:
+        abort(
+            403,
+            _(
+                u"RaSCSI is password protected. "
+                u"Start the Web Interface with the --password parameter."
+                ),
+            )
+
+    locales = get_supported_locales()
     server_info = get_server_info()
     disk = disk_space()
     devices = list_devices()
     device_types = get_device_types()
-    files = list_images()
+    image_files = list_images()
     config_files = list_config_files()
 
-    sorted_image_files = sorted(files["files"], key=lambda x: x["name"].lower())
+    sorted_image_files = sorted(image_files["files"], key=lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key=lambda x: x.lower())
 
     attached_images = []
     units = 0
     # If there are more than 0 logical unit numbers, display in the Web UI
     for device in devices["device_list"]:
-        attached_images.append(Path(device["image"]).name)
+        attached_images.append(device["image"].replace(server_info["image_dir"] + "/", ""))
         units += int(device["unit"])
 
     reserved_scsi_ids = server_info["reserved_ids"]
@@ -121,6 +163,7 @@ def index():
 
     return render_template(
         "index.html",
+        locales=locales,
         bridge_configured=is_bridge_setup(),
         netatalk_configured=running_proc("afpd"),
         macproxy_configured=running_proc("macproxy"),
@@ -129,6 +172,7 @@ def index():
         files=sorted_image_files,
         config_files=sorted_config_files,
         base_dir=server_info["image_dir"],
+        scan_depth=server_info["scan_depth"],
         CFG_DIR=CFG_DIR,
         AFP_DIR=AFP_DIR,
         scsi_ids=scsi_ids,
@@ -175,7 +219,13 @@ def drive_list():
             return redirect(url_for("index"))
         conf = process["conf"]
     else:
-        flash("Could not read drive properties from " + str(drive_properties), "error")
+        flash(
+                _(
+                    "Could not read drive properties from %(properties_file)s",
+                    properties_file=drive_properties,
+                    ),
+                "error",
+                )
         return redirect(url_for("index"))
 
     hd_conf = []
@@ -239,7 +289,13 @@ def login():
         if authenticate(str(username), str(password)):
             session["username"] = request.form["username"]
             return redirect(url_for("index"))
-    flash(f"You must log in with credentials for a user in the '{AUTH_GROUP}' group!", "error")
+    flash(
+            _(
+                u"You must log in with credentials for a user in the '%(group)s' group",
+                group=AUTH_GROUP,
+                ),
+            "error",
+            )
     return redirect(url_for("index"))
 
 
@@ -260,16 +316,26 @@ def send_pwa_files(path):
     return send_from_directory("pwa", path)
 
 
+def login_required(func):
+    """
+    Wrapper method for enabling authentication for an endpoint
+    """
+    @wraps(func)
+    def decorated_function(*args, **kwargs):
+        auth = auth_active()
+        if auth["status"] and "username" not in session:
+            flash(auth["msg"], "error")
+            return redirect(url_for("index"))
+        return func(*args, **kwargs)
+    return decorated_function
+
+
 @APP.route("/drive/create", methods=["POST"])
+@login_required
 def drive_create():
     """
     Creates the image and properties file pair
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     vendor = request.form.get("vendor")
     product = request.form.get("product")
     revision = request.form.get("revision")
@@ -277,11 +343,12 @@ def drive_create():
     size = request.form.get("size")
     file_type = request.form.get("file_type")
     file_name = request.form.get("file_name")
+    full_file_name = file_name + "." + file_type
 
     # Creating the image file
     process = create_new_image(file_name, file_type, size)
     if process["status"]:
-        flash(f"Created drive image file: {file_name}.{file_type}")
+        flash(_(u"Image file created: %(file_name)s", file_name=full_file_name))
     else:
         flash(process["msg"], "error")
         return redirect(url_for("index"))
@@ -304,15 +371,11 @@ def drive_create():
 
 
 @APP.route("/drive/cdrom", methods=["POST"])
+@login_required
 def drive_cdrom():
     """
     Creates a properties file for a CD-ROM image
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     vendor = request.form.get("vendor")
     product = request.form.get("product")
     revision = request.form.get("revision")
@@ -337,15 +400,11 @@ def drive_cdrom():
 
 
 @APP.route("/config/save", methods=["POST"])
+@login_required
 def config_save():
     """
     Saves a config file to disk
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("name") or "default"
     file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
 
@@ -359,15 +418,11 @@ def config_save():
 
 
 @APP.route("/config/load", methods=["POST"])
+@login_required
 def config_load():
     """
     Loads a config file from disk
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("name")
 
     if "load" in request.form:
@@ -378,7 +433,7 @@ def config_load():
 
         flash(process['msg'], "error")
         return redirect(url_for("index"))
-    elif "delete" in request.form:
+    if "delete" in request.form:
         process = delete_file(f"{CFG_DIR}/{file_name}")
         if process["status"]:
             flash(process["msg"])
@@ -387,6 +442,7 @@ def config_load():
         flash(process['msg'], "error")
         return redirect(url_for("index"))
 
+    # The only reason we would reach here would be a Web UI bug. Will not localize.
     flash("Got an unhandled request (needs to be either load or delete)", "error")
     return redirect(url_for("index"))
 
@@ -417,64 +473,59 @@ def show_logs():
         headers = {"content-type": "text/plain"}
         return process.stdout.decode("utf-8"), int(lines), headers
 
-    flash("Failed to get logs")
-    flash(process.stdout.decode("utf-8"), "stdout")
+    flash(_(u"An error occurred when fetching logs."))
     flash(process.stderr.decode("utf-8"), "stderr")
     return redirect(url_for("index"))
 
 
 @APP.route("/logs/level", methods=["POST"])
+@login_required
 def log_level():
     """
     Sets RaSCSI backend log level
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     level = request.form.get("level") or "info"
 
     process = set_log_level(level)
     if process["status"]:
-        flash(f"Log level set to {level}")
+        flash(_(u"Log level set to %(value)s", value=level))
         return redirect(url_for("index"))
 
-    flash(f"Failed to set log level to {level}!", "error")
+    flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 
 @APP.route("/daynaport/attach", methods=["POST"])
+@login_required
 def daynaport_attach():
     """
     Attaches a DaynaPORT ethernet adapter device
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     interface = request.form.get("if")
     ip_addr = request.form.get("ip")
     mask = request.form.get("mask")
 
-    error_msg = ("Please follow the instructions at "
-        "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link")
+    error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
+    error_msg = _(u"Please follow the instructions at %(url)s", url=error_url)
 
     if interface.startswith("wlan"):
         if not introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            flash("IPv4 forwarding is not enabled. " + error_msg, "error")
+            flash(_(u"Configure IPv4 forwarding before using a wireless network device."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
         if not Path("/etc/iptables/rules.v4").is_file():
-            flash("NAT has not been configured. " + error_msg, "error")
+            flash(_(u"Configure NAT before using a wireless network device."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
     else:
         if not introspect_file("/etc/dhcpcd.conf", r"^denyinterfaces " + interface + r"$"):
-            flash("The network bridge hasn't been configured. " + error_msg, "error")
+            flash(_(u"Configure the network bridge before using a wired network device."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
         if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            flash("The network bridge hasn't been configured. " + error_msg, "error")
+            flash(_(u"Configure the network bridge before using a wired network device."), "error")
+            flash(error_msg, "error")
             return redirect(url_for("index"))
 
     kwargs = {"device_type": "SCDP"}
@@ -486,7 +537,7 @@ def daynaport_attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
-        flash(f"Attached DaynaPORT to SCSI ID {scsi_id}!")
+        flash(_(u"Attached DaynaPORT to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
@@ -494,15 +545,11 @@ def daynaport_attach():
 
 
 @APP.route("/scsi/attach", methods=["POST"])
+@login_required
 def attach():
     """
     Attaches a file image as a device
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("file_name")
     file_size = request.form.get("file_size")
     scsi_id = request.form.get("scsi_id")
@@ -538,31 +585,30 @@ def attach():
 
     process = attach_image(scsi_id, **kwargs)
     if process["status"]:
-        flash(f"Attached {file_name} to SCSI ID {scsi_id} LUN {unit}")
+        flash(_(u"Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+            file_name=file_name, id_number=scsi_id, unit_number=unit))
         if int(file_size) % int(expected_block_size):
-            flash(f"The image file size {file_size} bytes is not a multiple of "
-                  f"{expected_block_size} and RaSCSI will ignore the trailing data. "
-                  f"The image may be corrupted so proceed with caution.", "error")
+            flash(_(u"The image file size %(file_size)s bytes is not a multiple of "
+                  u"%(block_size)s. RaSCSI will ignore the trailing data. "
+                  u"The image may be corrupted, so proceed with caution.",
+                  file_size=file_size, block_size=expected_block_size), "error")
         return redirect(url_for("index"))
 
-    flash(f"Failed to attach {file_name} to SCSI ID {scsi_id} LUN {unit}", "error")
+    flash(_(u"Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+        file_name=file_name, id_number=scsi_id, unit_number=unit), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 
 @APP.route("/scsi/detach_all", methods=["POST"])
+@login_required
 def detach_all_devices():
     """
     Detaches all currently attached devices
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     process = detach_all()
     if process["status"]:
-        flash("Detached all SCSI devices")
+        flash(_(u"Detached all SCSI devices"))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
@@ -570,46 +616,42 @@ def detach_all_devices():
 
 
 @APP.route("/scsi/detach", methods=["POST"])
+@login_required
 def detach():
     """
     Detaches a specified device
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
     process = detach_by_id(scsi_id, unit)
     if process["status"]:
-        flash(f"Detached SCSI ID {scsi_id} LUN {unit}")
+        flash(_(u"Detached SCSI ID %(id_number)s LUN %(unit_number)s",
+            id_number=scsi_id, unit_number=unit))
         return redirect(url_for("index"))
 
-    flash(f"Failed to detach SCSI ID {scsi_id} LUN {unit}", "error")
+    flash(_(u"Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s",
+        id_number=scsi_id, unit_number=unit), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 
 @APP.route("/scsi/eject", methods=["POST"])
+@login_required
 def eject():
     """
     Ejects a specified removable device image, but keeps the device attached
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
 
     process = eject_by_id(scsi_id, unit)
     if process["status"]:
-        flash(f"Ejected SCSI ID {scsi_id} LUN {unit}")
+        flash(_(u"Ejected SCSI ID %(id_number)s LUN %(unit_number)s",
+            id_number=scsi_id, unit_number=unit))
         return redirect(url_for("index"))
 
-    flash(f"Failed to eject SCSI ID {scsi_id} LUN {unit}", "error")
+    flash(_(u"Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s",
+        id_number=scsi_id, unit_number=unit), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -631,33 +673,30 @@ def device_info():
     # the one and only device that should have been returned
     device = devices["device_list"][0]
     if str(device["id"]) == scsi_id:
-        flash("=== DEVICE INFO ===")
-        flash(f"SCSI ID: {device['id']}")
-        flash(f"LUN: {device['unit']}")
-        flash(f"Type: {device['device_type']}")
-        flash(f"Status: {device['status']}")
-        flash(f"File: {device['image']}")
-        flash(f"Parameters: {device['params']}")
-        flash(f"Vendor: {device['vendor']}")
-        flash(f"Product: {device['product']}")
-        flash(f"Revision: {device['revision']}")
-        flash(f"Block Size: {device['block_size']} bytes")
-        flash(f"Image Size: {device['size']} bytes")
+        flash(_(u"DEVICE INFO"))
+        flash("===========")
+        flash(_(u"SCSI ID: %(id_number)s", id_number=device["id"]))
+        flash(_(u"LUN: %(unit_number)s", unit_number=device["unit"]))
+        flash(_(u"Type: %(device_type)s", device_type=device["device_type"]))
+        flash(_(u"Status: %(device_status)s", device_status=device["status"]))
+        flash(_(u"File: %(image_file)s", image_file=device["image"]))
+        flash(_(u"Parameters: %(value)s", value=device["params"]))
+        flash(_(u"Vendor: %(value)s", value=device["vendor"]))
+        flash(_(u"Product: %(value)s", value=device["product"]))
+        flash(_(u"Revision: %(revision_number)s", revision_number=device["revision"]))
+        flash(_(u"Block Size: %(value)s bytes", value=device["block_size"]))
+        flash(_(u"Image Size: %(value)s bytes", value=device["size"]))
         return redirect(url_for("index"))
 
     flash(devices["msg"], "error")
     return redirect(url_for("index"))
 
 @APP.route("/scsi/reserve", methods=["POST"])
+@login_required
 def reserve_id():
     """
     Reserves a SCSI ID and stores the memo for that reservation
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     memo = request.form.get("memo")
     reserved_ids = get_reserved_ids()["ids"]
@@ -665,140 +704,89 @@ def reserve_id():
     process = reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = memo
-        flash(f"Reserved SCSI ID {scsi_id}")
+        flash(_(u"Reserved SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
+    flash(_(u"Failed to reserve SCSI ID %(id_number)s", id_number=scsi_id))
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 @APP.route("/scsi/unreserve", methods=["POST"])
+@login_required
 def unreserve_id():
     """
     Removes the reservation of a SCSI ID as well as the memo for the reservation
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     reserved_ids = get_reserved_ids()["ids"]
     reserved_ids.remove(scsi_id)
     process = reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = ""
-        flash(f"Released the reservation for SCSI ID {scsi_id}")
+        flash(_(u"Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
+    flash(_(u"Failed to release the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
+
 @APP.route("/pi/reboot", methods=["POST"])
+@login_required
 def restart():
     """
     Restarts the Pi
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
-    reboot_pi()
-    return redirect(url_for("index"))
-
-
-@APP.route("/rascsi/restart", methods=["POST"])
-def rascsi_restart():
-    """
-    Restarts the RaSCSI backend service
-    """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
-    service = "rascsi.service"
-    monitor_service = "monitor_rascsi.service"
-    rascsi_status = systemd_service(service, "show")
-    if rascsi_status["status"] and "ActiveState=active" not in rascsi_status["msg"]:
-        flash(
-                f"Failed to restart {service} because it is inactive. "
-                "You are probably running RaSCSI as a regular process.", "error"
-                )
-        return redirect(url_for("index"))
-
-    monitor_status = systemd_service(monitor_service, "show")
-    restart_proc = systemd_service(service, "restart")
-    if restart_proc["status"]:
-        flash(f"Restarted {service}")
-        restart_monitor = systemd_service(monitor_service, "restart")
-        if restart_monitor["status"] and "ActiveState=active" in monitor_status["msg"]:
-            flash(f"Restarted {monitor_service}")
-        elif not restart_monitor["status"] and "ActiveState=active" in monitor_status["msg"]:
-            flash(f"Failed to restart {monitor_service}:", "error")
-        return redirect(url_for("index"))
-
-    restart_monitor = systemd_service("monitor_rascsi.service", "restart")
-    flash(f"Failed to restart {service}:", "error")
-    flash(restart_proc["err"], "error")
+    shutdown_pi("reboot")
     return redirect(url_for("index"))
 
 
 @APP.route("/pi/shutdown", methods=["POST"])
+@login_required
 def shutdown():
     """
     Shuts down the Pi
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
-    shutdown_pi()
+    shutdown_pi("system")
     return redirect(url_for("index"))
 
 
 @APP.route("/files/download_to_iso", methods=["POST"])
+@login_required
 def download_to_iso():
     """
     Downloads a remote file and creates a CD-ROM image formatted with HFS that contains the file
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     scsi_id = request.form.get("scsi_id")
     url = request.form.get("url")
+    iso_args = request.form.get("type").split()
 
-    process = download_file_to_iso(url)
+    process = download_file_to_iso(url, *iso_args)
     if process["status"]:
-        flash(f"Created CD-ROM image: {process['file_name']}")
+        flash(process["msg"])
+        flash(_(u"Saved image as: %(file_name)s", file_name=process['file_name']))
     else:
-        flash(f"Failed to create CD-ROM image from {url}", "error")
+        flash(_(u"Failed to create CD-ROM image from %(url)s", url), "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
     process_attach = attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
     if process_attach["status"]:
-        flash(f"Attached to SCSI ID {scsi_id}")
+        flash(_(u"Attached to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
 
-    flash(f"Failed to attach image to SCSI ID {scsi_id}. Try attaching it manually.", "error")
+    flash(_(u"Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually.",
+        id_number=scsi_id), "error")
     flash(process_attach["msg"], "error")
     return redirect(url_for("index"))
 
 
 @APP.route("/files/download_to_images", methods=["POST"])
+@login_required
 def download_img():
     """
     Downloads a remote file onto the images dir on the Pi
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     url = request.form.get("url")
     server_info = get_server_info()
     process = download_to_dir(url, server_info["image_dir"])
@@ -806,28 +794,24 @@ def download_img():
         flash(process["msg"])
         return redirect(url_for("index"))
 
-    flash(f"Failed to download file {url}", "error")
+    flash(_(u"Failed to download file from %(url)s", url), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
 
 @APP.route("/files/download_to_afp", methods=["POST"])
+@login_required
 def download_afp():
     """
     Downloads a remote file onto the AFP shared dir on the Pi
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     url = request.form.get("url")
     process = download_to_dir(url, AFP_DIR)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
 
-    flash(f"Failed to download file {url}", "error")
+    flash(_(u"Failed to download file from %(url)s", url), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -838,6 +822,7 @@ def upload_file():
     Uploads a file from the local computer to the images dir on the Pi
     Depending on the Dropzone.js JavaScript library
     """
+    # Due to the embedded javascript library, we cannot use the @login_required decorator
     auth = auth_active()
     if auth["status"] and "username" not in session:
         return make_response(auth["msg"], 403)
@@ -846,65 +831,63 @@ def upload_file():
     from os import path
 
     log = logging.getLogger("pydrop")
-    file = request.files["file"]
-    filename = secure_filename(file.filename)
+    file_object = request.files["file"]
+    file_name = secure_filename(file_object.filename)
 
     server_info = get_server_info()
 
-    save_path = path.join(server_info["image_dir"], filename)
+    save_path = path.join(server_info["image_dir"], file_name)
     current_chunk = int(request.form['dzchunkindex'])
 
     # Makes sure not to overwrite an existing file,
     # but continues writing to a file transfer in progress
     if path.exists(save_path) and current_chunk == 0:
-        return make_response((f"The file {file.filename} already exists!", 400))
+        return make_response(_(u"The file already exists!"), 400)
 
     try:
         with open(save_path, "ab") as save:
             save.seek(int(request.form["dzchunkbyteoffset"]))
-            save.write(file.stream.read())
+            save.write(file_object.stream.read())
     except OSError:
         log.exception("Could not write to file")
-        return make_response(("Unable to write the file to disk!", 500))
+        return make_response(_(u"Unable to write the file to disk!"), 500)
 
     total_chunks = int(request.form["dztotalchunkcount"])
 
     if current_chunk + 1 == total_chunks:
         # Validate the resulting file size after writing the last chunk
         if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
-            log.error("Finished transferring %s, "
-                      "but it has a size mismatch with the original file."
-                      "Got %s but we expected %s.",
-                      file.filename, path.getsize(save_path), request.form['dztotalfilesize'])
-            return make_response(("Transferred file corrupted!", 500))
+            log.error(
+                    "Finished transferring %s, "
+                    "but it has a size mismatch with the original file. "
+                    "Got %s but we expected %s.",
+                    file_object.filename,
+                    path.getsize(save_path),
+                    request.form['dztotalfilesize'],
+                    )
+            return make_response(_(u"Transferred file corrupted!"), 500)
 
-        log.info("File %s has been uploaded successfully", file.filename)
+        log.info("File %s has been uploaded successfully", file_object.filename)
     log.debug("Chunk %s of %s for file %s completed.",
-              current_chunk + 1, total_chunks, file.filename)
+              current_chunk + 1, total_chunks, file_object.filename)
 
-    return make_response(("File upload successful!", 200))
+    return make_response(_(u"File upload successful!"), 200)
 
 
 @APP.route("/files/create", methods=["POST"])
+@login_required
 def create_file():
     """
     Creates an empty image file in the images dir
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     file_name = request.form.get("file_name")
     size = (int(request.form.get("size")) * 1024 * 1024)
     file_type = request.form.get("type")
-
-    from werkzeug.utils import secure_filename
-    file_name = secure_filename(file_name)
+    full_file_name = file_name + "." + file_type
 
     process = create_new_image(file_name, file_type, size)
     if process["status"]:
-        flash(f"Drive image created: {file_name}.{file_type}")
+        flash(_(u"Image file created: %(file_name)s", file_name=full_file_name))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
@@ -912,34 +895,26 @@ def create_file():
 
 
 @APP.route("/files/download", methods=["POST"])
+@login_required
 def download():
     """
     Downloads a file from the Pi to the local computer
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     image = request.form.get("file")
     return send_file(image, as_attachment=True)
 
 
 @APP.route("/files/delete", methods=["POST"])
+@login_required
 def delete():
     """
     Deletes a specified file in the images dir
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
-    file_name = request.form.get("image")
+    file_name = request.form.get("file_name")
 
     process = delete_image(file_name)
     if process["status"]:
-        flash(f"Image file deleted: {file_name}")
+        flash(_(u"Image file deleted: %(file_name)s", file_name=file_name))
     else:
         flash(process["msg"], "error")
         return redirect(url_for("index"))
@@ -958,16 +933,43 @@ def delete():
     return redirect(url_for("index"))
 
 
+@APP.route("/files/rename", methods=["POST"])
+@login_required
+def rename():
+    """
+    Renames a specified file in the images dir
+    """
+    file_name = request.form.get("file_name")
+    new_file_name = request.form.get("new_file_name")
+
+    process = rename_image(file_name, new_file_name)
+    if process["status"]:
+        flash(_(u"Image file renamed to: %(file_name)s", file_name=new_file_name))
+    else:
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+    # Rename the drive properties file, if it exists
+    prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
+    new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
+    if Path(prop_file_path).is_file():
+        process = rename_file(prop_file_path, new_prop_file_path)
+        if process["status"]:
+            flash(process["msg"])
+            return redirect(url_for("index"))
+
+        flash(process["msg"], "error")
+        return redirect(url_for("index"))
+
+    return redirect(url_for("index"))
+
+
 @APP.route("/files/unzip", methods=["POST"])
+@login_required
 def unzip():
     """
     Unzips all files in a specified zip archive, or a single file in the zip archive
     """
-    auth = auth_active()
-    if auth["status"] and "username" not in session:
-        flash(auth["msg"], "error")
-        return redirect(url_for("index"))
-
     zip_file = request.form.get("zip_file")
     zip_member = request.form.get("zip_member") or False
     zip_members = request.form.get("zip_members") or False
@@ -979,18 +981,43 @@ def unzip():
     process = unzip_file(zip_file, zip_member, zip_members)
     if process["status"]:
         if not process["msg"]:
-            flash("Aborted unzip: File(s) with the same name already exists.", "error")
+            flash(_(u"Aborted unzip: File(s) with the same name already exists."), "error")
             return redirect(url_for("index"))
-        flash("Unzipped the following files:")
+        flash(_(u"Unzipped the following files:"))
         for msg in process["msg"]:
             flash(msg)
         if process["prop_flag"]:
-            flash(f"Properties file(s) have been moved to {CFG_DIR}")
+            flash(_(u"Properties file(s) have been moved to %(directory)s", directory=CFG_DIR))
         return redirect(url_for("index"))
 
-    flash("Failed to unzip " + zip_file, "error")
+    flash(_(u"Failed to unzip %(zip_file)s", zip_file=zip_file), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
+
+
+@APP.route("/language", methods=["POST"])
+def change_language():
+    """
+    Changes the session language locale and refreshes the Flask app context
+    """
+    locale = request.form.get("locale")
+    session["language"] = locale
+    refresh()
+
+    flash(_(u"Changed Web Interface language to %(locale)s", locale=locale))
+    return redirect(url_for("index"))
+
+
+@APP.before_first_request
+def load_default_config():
+    """
+    Webapp initialization steps that require the Flask app to have started:
+    - Get the detected locale to use for localizations
+    - Load the default configuration file, if found
+    """
+    session["language"] = get_locale()
+    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
+        read_config(DEFAULT_CONFIG)
 
 
 if __name__ == "__main__":
@@ -998,15 +1025,24 @@ if __name__ == "__main__":
     APP.config["SESSION_TYPE"] = "filesystem"
     APP.config["MAX_CONTENT_LENGTH"] = int(MAX_FILE_SIZE)
 
-    # Load the default configuration file, if found
-    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
-        read_config(DEFAULT_CONFIG)
-
-    if len(argv) > 1:
-        PORT = int(argv[1])
-    else:
-        PORT = 8080
+    parser = argparse.ArgumentParser(description="RaSCSI Web Interface command line arguments")
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        action="store",
+        help="Port number the web server will run on",
+        )
+    parser.add_argument(
+        "--password",
+        type=str,
+        default="",
+        action="store",
+        help="Token password string for authenticating with RaSCSI",
+        )
+    arguments = parser.parse_args()
+    APP.config["TOKEN"] = arguments.password
 
     import bjoern
     print("Serving rascsi-web...")
-    bjoern.run(APP, "0.0.0.0", PORT)
+    bjoern.run(APP, "0.0.0.0", arguments.port)

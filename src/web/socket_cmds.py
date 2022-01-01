@@ -3,7 +3,9 @@ Module for sending and receiving data over a socket connection with the RaSCSI b
 """
 
 import logging
+from time import sleep
 from flask import abort
+from flask_babel import _
 
 def send_pb_command(payload):
     """
@@ -15,7 +17,7 @@ def send_pb_command(payload):
     port = 6868
 
     counter = 0
-    tries = 100
+    tries = 20
     error_msg = ""
 
     import socket
@@ -29,13 +31,17 @@ def send_pb_command(payload):
             logging.warning("The RaSCSI service is not responding - attempt %s/%s",
                             str(counter), str(tries))
             error_msg = str(error)
+            sleep(0.2)
 
     logging.error(error_msg)
 
     # After failing all attempts, throw a 404 error
-    abort(404, "The RaSCSI Web Interface failed to connect to RaSCSI at " + str(host) + \
-            ":" + str(port) + " with error: " + error_msg + \
-            ". The RaSCSI service is not running or may have crashed.")
+    abort(404, _(
+            u"The RaSCSI Web Interface failed to connect to RaSCSI at %(host)s:%(port)s "
+            u"with error: %(error_msg)s. The RaSCSI process is not running or may have crashed.",
+            host=host, port=port, error_msg=error_msg,
+            )
+        )
 
 
 def send_over_socket(sock, payload):
@@ -70,9 +76,11 @@ def send_over_socket(sock, payload):
                     "RaSCSI may have crashed."
                     )
                 abort(
-                    503, "The RaSCSI Web Interface lost connection to RaSCSI. "
-                    "Please go back and try again. "
-                    "If the issue persists, please report a bug."
+                    503, _(
+                        u"The RaSCSI Web Interface lost connection to RaSCSI. "
+                        u"Please go back and try again. "
+                        u"If the issue persists, please report a bug."
+                        )
                     )
             chunks.append(chunk)
             bytes_recvd = bytes_recvd + len(chunk)
@@ -84,8 +92,9 @@ def send_over_socket(sock, payload):
         "RaSCSI may have crashed."
         )
     abort(
-        500,
-        "The RaSCSI Web Interface did not get a valid response from RaSCSI. "
-        "Please go back and try again. "
-        "If the issue persists, please report a bug."
+        500, _(
+            u"The RaSCSI Web Interface did not get a valid response from RaSCSI. "
+            u"Please go back and try again. "
+            u"If the issue persists, please report a bug."
+            )
         )

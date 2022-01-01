@@ -5,12 +5,15 @@ rascsi \- Emulates SCSI devices using the Raspberry Pi GPIO pins
 .B rascsi
 [\fB\-F\f® \fIFOLDER\fR]
 [\fB\-L\f® \fILOG_LEVEL\fR]
+[\fB\-P\f® \fIACCESS_TOKEN_FILE\fR]
+[\fB\-R\fR \fISCAN_DEPTH\fR]
 [\fB\-h\fR]
 [\fB\-n\fR \fIVENDOR:PRODUCT:REVISION\fR]
 [\fB\-p\f® \fIPORT\fR]
 [\fB\-r\fR \fIRESERVED_IDS\fR]
 [\fB\-n\fR \fITYPE\fR]
 [\fB\-v\fR]
+[\fB\-z\fR \fILOCALE\fR]
 [\fB\-IDn:[u]\fR \fIFILE\fR]
 [\fB\-HDn[:u]\fR \fIFILE\fR]...
 .SH DESCRIPTION
@@ -52,6 +55,12 @@ The default folder for image files. For files in this folder no absolute path ne
 .BR \-L\fI " " \fILOG_LEVEL
 The rascsi log level (trace, debug, info, warn, err, critical, off). The default log level is 'info'.
 .TP
+.BR \-P\fI " " \fIACCESS_TOKEN_FILE
+Enable authentication and read the access token from the specified file. The access token file must be owned by root and must be readable by root only.
+.TP
+.BR \-R\fI " " \fISCAN_DEPTH
+Scan for image files recursively, up to a depth of SCAN_DEPTH. Depth 0 means to ignore any folders within the default image filder. Be careful when using this option with many sub-folders in the default image folder. The default depth is 1.
+.TP
 .BR \-h\fI " " \fI
 Show a help page.
 .TP
@@ -68,6 +77,9 @@ The optional case-insensitive device type (SAHD, SCHD, SCRM, SCCD, SCMO, SCBR, S
 .TP
 .BR \-v\fI " " \fI
 Display the rascsi version.
+.TP
+.BR \-z\fI " "\fILOCALE
+Overrides the default locale for client-faces error messages. The client can override the locale.
 .TP
 .BR \-ID\fIn[:u] " " \fIFILE
 n is the SCSI ID number (0-7). u (0-31) is the optional LUN (logical unit). The default LUN is 0.

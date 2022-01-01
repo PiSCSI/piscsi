@@ -30,37 +30,56 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 """
+import argparse
+import sys
 from time import sleep
-from sys import argv
 from collections import deque
 from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
 from interrupt_handler import GracefulInterruptHandler
 from pi_cmds import get_ip_and_host
-from ractl_cmds import device_list
+from ractl_cmds import device_list, is_token_auth
 
-# Read positional arguments; expecting exactly two, or none
-# Arg 1 is the rotation in degrees, arg 2 is the screen height in pixels
-# Valid values are 0/180 for ROTATION, 32/64 for HEIGHT
-if len(argv) == 3:
-    if int(argv[1]) == 0:
-        ROTATION = 0
-    else:
-        # 2 means 180 degrees
-        ROTATION = 2
-    if int(argv[2]) == 64:
-        HEIGHT = 64
-        LINES = 8
-    else:
-        HEIGHT = 32
-        LINES = 4
-else:
-    # Default settings
+parser = argparse.ArgumentParser(description="RaSCSI OLED Monitor script")
+parser.add_argument(
+    "--rotation",
+    type=int,
+    choices=[0, 180],
+    default=180,
+    action="store",
+    help="The rotation of the screen buffer in degrees",
+    )
+parser.add_argument(
+    "--height",
+    type=int,
+    choices=[32, 64],
+    default=32,
+    action="store",
+    help="The pixel height of the screen buffer",
+    )
+parser.add_argument(
+    "--password",
+    type=str,
+    default="",
+    action="store",
+    help="Token password string for authenticating with RaSCSI",
+    )
+args = parser.parse_args()
+
+if args.rotation == 0:
+    ROTATION = 0
+elif args.rotation == 180:
     ROTATION = 2
+
+if args.height == 64:
+    HEIGHT = 64
+    LINES = 8
+elif args.height == 32:
     HEIGHT = 32
     LINES = 4
-    print("No valid parameters detected; defaulting to 32 px height, 180 degrees rotation.")
+
+TOKEN = args.password
 
 WIDTH = 128
 BORDER = 5
@@ -76,20 +95,22 @@ I2C = I2C()
 
 # 128x32 display with hardware I2C:
 OLED = SSD1306_I2C(WIDTH, HEIGHT, I2C, addr=0x3C, reset=OLED_RESET)
+OLED.rotation = ROTATION
 
 print("Running with the following display:")
 print(OLED)
 print()
 print("Will update the OLED display every " + str(DELAY_TIME_MS) + "ms (approximately)")
 
-# Clear display.
-OLED.rotation = ROTATION
-OLED.fill(0)
+# Show a startup splash bitmap image before starting the main loop
+# Convert the image to mode '1' for 1-bit color (monochrome)
+# Make sure the splash bitmap image is in the same dir as this script
+IMAGE = Image.open(f"splash_start_{HEIGHT}.bmp").convert("1")
+OLED.image(IMAGE)
 OLED.show()
 
-# Create blank image for drawing.
-# Make sure to create image with mode '1' for 1-bit color.
-IMAGE = Image.new("1", (OLED.width, OLED.height))
+# Keep the pretty splash on screen for a number of seconds
+sleep(4)
 
 # Get drawing object to draw on image.
 DRAW = ImageDraw.Draw(IMAGE)
@@ -127,10 +148,12 @@ def formatted_output():
     Formats the strings to be displayed on the Screen
     Returns a (list) of (str) output
     """
-    rascsi_list = device_list()
+    rascsi_list = device_list(TOKEN)
     output = []
 
-    if rascsi_list:
+    if not TOKEN and not is_token_auth(TOKEN)["status"]:
+        output.append("Permission denied!")
+    elif rascsi_list:
         for line in rascsi_list:
             if line["device_type"] in ("SCCD", "SCRM", "SCMO"):
                 # Print image file name only when there is an image attached
@@ -156,39 +179,15 @@ def formatted_output():
     else:
         output.append("No image mounted!")
 
-    output.append(f"IP {IP_ADDR} - {HOSTNAME}")
+    if IP_ADDR:
+        output.append(f"IP {IP_ADDR} - {HOSTNAME}")
+    else:
+        output.append("RaSCSI has no IP address")
+        output.append("Check network connection")
     return output
 
 
-def start_splash():
-    """
-    Displays a splash screen for the startup sequence
-    Make sure the splash bitmap image is in the same dir as this script
-    """
-    splash = Image.open(f"splash_start_{HEIGHT}.bmp").convert("1")
-    DRAW.bitmap((0, 0), splash)
-    OLED.image(splash)
-    OLED.show()
-    sleep(6)
-
-def stop_splash():
-    """
-    Displays a splash screen for the shutdown sequence
-    Make sure the splash bitmap image is in the same dir as this script
-    """
-    DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
-    splash = Image.open(f"splash_stop_{HEIGHT}.bmp").convert("1")
-    DRAW.bitmap((0, 0), splash)
-    OLED.image(splash)
-    OLED.show()
-
-# Show a startup splash bitmap image before starting the main loop
-start_splash()
-
 with GracefulInterruptHandler() as handler:
-    """
-    The main loop of displaying attached device info, and other info
-    """
     while True:
 
         # The reference snapshot of attached devices that will be compared against each cycle
@@ -202,10 +201,10 @@ with GracefulInterruptHandler() as handler:
         while snapshot == ref_snapshot:
             # Draw a black filled box to clear the image.
             DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
-            y_pos = TOP
+            Y_POS = TOP
             for output_line in active_output:
-                DRAW.text((X_POS, y_pos), output_line, font=FONT, fill=255)
-                y_pos += LINE_SPACING
+                DRAW.text((X_POS, Y_POS), output_line, font=FONT, fill=255)
+                Y_POS += LINE_SPACING
 
             # Shift the index of the array by one to get a scrolling effect
             if len(active_output) > LINES:
@@ -219,6 +218,8 @@ with GracefulInterruptHandler() as handler:
             snapshot = formatted_output()
 
             if handler.interrupted:
-                # Catch interrupt signals and show a shutdown splash bitmap image
-                stop_splash()
-                exit("Shutting down the OLED display...")
+                # Catch interrupt signals and blank out the screen
+                DRAW.rectangle((0, 0, WIDTH, HEIGHT), outline=0, fill=0)
+                OLED.image(IMAGE)
+                OLED.show()
+                sys.exit("Shutting down the OLED display...")

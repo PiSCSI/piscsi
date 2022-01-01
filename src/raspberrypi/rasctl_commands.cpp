@@ -25,15 +25,26 @@ using namespace std;
 using namespace rascsi_interface;
 using namespace protobuf_util;
 
-RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port)
+RasctlCommands::RasctlCommands(PbCommand& command, const string& hostname, int port, const string& token,
+		const string& locale)
 {
 	this->command = command;
 	this->hostname = hostname;
 	this->port = port;
+	this->token = token;
+	this->locale = locale;
 }
 
 void RasctlCommands::SendCommand()
 {
+	if (!token.empty()) {
+		AddParam(command, "token", token);
+	}
+
+	if (!locale.empty()) {
+		AddParam(command, "locale", locale);
+	}
+
 	// Send command
 	int fd = -1;
 	try {
@@ -122,10 +133,10 @@ void RasctlCommands::CommandReserveIds(const string& reserved_ids)
 
 void RasctlCommands::CommandCreateImage(const string& image_params)
 {
-	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
-	if (separatorPos != string::npos) {
-		AddParam(command, "file", image_params.substr(0, separatorPos));
-		AddParam(command, "size", image_params.substr(separatorPos + 1));
+	size_t separator_pos = image_params.find(COMPONENT_SEPARATOR);
+	if (separator_pos != string::npos) {
+		AddParam(command, "file", image_params.substr(0, separator_pos));
+		AddParam(command, "size", image_params.substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is NAME:SIZE" << endl;
@@ -146,10 +157,10 @@ void RasctlCommands::CommandDeleteImage(const string& filename)
 
 void RasctlCommands::CommandRenameImage(const string& image_params)
 {
-	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
-	if (separatorPos != string::npos) {
-		AddParam(command, "from", image_params.substr(0, separatorPos));
-		AddParam(command, "to", image_params.substr(separatorPos + 1));
+	size_t separator_pos = image_params.find(COMPONENT_SEPARATOR);
+	if (separator_pos != string::npos) {
+		AddParam(command, "from", image_params.substr(0, separator_pos));
+		AddParam(command, "to", image_params.substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
@@ -161,10 +172,10 @@ void RasctlCommands::CommandRenameImage(const string& image_params)
 
 void RasctlCommands::CommandCopyImage(const string& image_params)
 {
-	size_t separatorPos = image_params.find(COMPONENT_SEPARATOR);
-	if (separatorPos != string::npos) {
-		AddParam(command, "from", image_params.substr(0, separatorPos));
-		AddParam(command, "to", image_params.substr(separatorPos + 1));
+	size_t separator_pos = image_params.find(COMPONENT_SEPARATOR);
+	if (separator_pos != string::npos) {
+		AddParam(command, "from", image_params.substr(0, separator_pos));
+		AddParam(command, "to", image_params.substr(separator_pos + 1));
 	}
 	else {
 		cerr << "Error: Invalid file descriptor '" << image_params << "', format is CURRENT_NAME:NEW_NAME" << endl;
@@ -217,6 +228,7 @@ void RasctlCommands::CommandServerInfo()
 	rasctl_display.DisplayNetworkInterfaces(server_info.network_interfaces_info());
 	rasctl_display.DisplayDeviceTypesInfo(server_info.device_types_info());
 	rasctl_display.DisplayReservedIdsInfo(server_info.reserved_ids_info());
+	rasctl_display.DisplayOperationInfo(server_info.operation_info());
 
 	if (server_info.devices_info().devices_size()) {
 		list<PbDevice> sorted_devices = { server_info.devices_info().devices().begin(), server_info.devices_info().devices().end() };
@@ -272,4 +284,11 @@ void RasctlCommands::CommandMappingInfo()
 	SendCommand();
 
 	rasctl_display.DisplayMappingInfo(result.mapping_info());
+}
+
+void RasctlCommands::CommandOperationInfo()
+{
+	SendCommand();
+
+	rasctl_display.DisplayOperationInfo(result.operation_info());
 }
