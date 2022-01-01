@@ -142,12 +142,14 @@ function installRaScsiScreen() {
         SCREEN_HEIGHT="32"
     fi
 
-    echo ""
-    echo "Is RaSCSI using token-based authentication? [y/N]"
-    read -r REPLY
-    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-        echo -n "Enter the passphrase that you configured: "
-        read -r TOKEN
+    if [ -z "$TOKEN" ]; then
+        echo ""
+        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
+            read -r TOKEN
+        fi
     fi
 
     stopRaScsiScreen
@@ -178,7 +180,7 @@ function installRaScsiScreen() {
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/monitor_rascsi.service"
         sudo chmod 600 "$SYSTEMD_PATH/monitor_rascsi.service"
-        echo "Granted access to the OLED Monitor with the token passphrase that you configured for RaSCSI."
+        echo "Granted access to the OLED Monitor with the password that you configured for RaSCSI."
     else
         sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/monitor_rascsi.service"
     fi
@@ -277,14 +279,14 @@ function backupRaScsiService() {
     fi
 }
 
-# Modifies and installs the rascsi service
-function enableRaScsiService() {
+# Offers the choice of enabling token-based authentication for RaSCSI
+function configureTokenAuth() {
     echo ""
-    echo "Do you want to enable token-based access control for RaSCSI? [y/N]"
+    echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
     read REPLY
 
     if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-        echo -n "Enter the passphrase that you want to use: "
+        echo -n "Enter the password that you want to use: "
         read -r TOKEN
         if [ -f "$HOME/.rascsi_secret" ]; then
             sudo rm "$HOME/.rascsi_secret"
@@ -293,10 +295,17 @@ function enableRaScsiService() {
         echo "$TOKEN" > "$HOME/.rascsi_secret"
         sudo chown root:root "$HOME/.rascsi_secret"
         sudo chmod 600 "$HOME/.rascsi_secret"
+        echo ""
+        echo "Configured RaSCSI to use $HOME/.rascsi_secret for authentication. This file is readable by root only."
+        echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
+    fi
+}
+
+# Modifies and installs the rascsi service
+function enableRaScsiService() {
+    if [ ! -z "$TOKEN" ]; then
         sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH -P $HOME/.rascsi_secret@" "$SYSTEMD_PATH/rascsi.service"
         sudo chmod 600 "$SYSTEMD_PATH/rascsi.service"
-        echo "Configured to use $HOME/.rascsi_secret to secure RaSCSI. This file is readable by root only."
-        echo "Make note of your passphrase; you will need it to use rasctl, and other RaSCSI clients."
     else
         sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
     fi
@@ -318,7 +327,7 @@ function installWebInterfaceService() {
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/rascsi-web.service"
         sudo chmod 600 "$SYSTEMD_PATH/rascsi-web.service"
-        echo "Granted access to the Web Interface with the token passphrase that you configured for RaSCSI."
+        echo "Granted access to the Web Interface with the token password that you configured for RaSCSI."
     else
         sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh" "$SYSTEMD_PATH/rascsi-web.service"
     fi
@@ -784,11 +793,13 @@ function runChoice() {
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
               echo "- Modify and enable Apache2 and Nginx web services"
-              echo "- Create directories and change permissions"
+              echo "- Create files and directories"
+              echo "- Change permissions of files and directories"
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
+              configureTokenAuth
               stopOldWebInterface
               updateRaScsiGit
               createImagesDir
@@ -800,9 +811,13 @@ function runChoice() {
               backupRaScsiService
               installRaScsi
               enableRaScsiService
-              startRaScsiScreen
+              if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
+                  echo "Detected monitor_rascsi.service; will run the installation steps for the OLED monitor."
+                  installRaScsiScreen
+              fi
               installRaScsiWebInterface
               installWebInterfaceService
+              showRaScsiScreenStatus
               showRaScsiStatus
               showRaScsiWebStatus
               notifyBackup
@@ -813,11 +828,13 @@ function runChoice() {
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
-              echo "- Create directories and change permissions"
+              echo "- Create files ans directories"
+              echo "- Change permissions of files and directories"
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
               sudoCheck
+              configureTokenAuth
               updateRaScsiGit
               createImagesDir
               installPackages
@@ -827,7 +844,11 @@ function runChoice() {
               backupRaScsiService
               installRaScsi
               enableRaScsiService
-              startRaScsiScreen
+              if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
+                  echo "Detected monitor_rascsi.service; will run the installation steps for the OLED monitor."
+                  installRaScsiScreen
+              fi
+              showRaScsiScreenStatus
               showRaScsiStatus
               notifyBackup
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
