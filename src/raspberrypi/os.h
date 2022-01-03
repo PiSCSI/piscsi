@@ -58,7 +58,9 @@
 #include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#if defined(__linux__)
 #include <sys/epoll.h>
+#endif
 #include <netinet/in.h>
 
 #if defined(__linux__)
