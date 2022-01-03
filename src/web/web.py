@@ -6,6 +6,7 @@ import logging
 import argparse
 from pathlib import Path
 from functools import wraps
+from hashlib import md5
 
 from flask import (
     Flask,
@@ -789,7 +790,7 @@ def download_img():
     """
     url = request.form.get("url")
     server_info = get_server_info()
-    process = download_to_dir(url, server_info["image_dir"])
+    process = download_to_dir(url, server_info["image_dir"], Path(url).name)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -806,7 +807,19 @@ def download_afp():
     Downloads a remote file onto the AFP shared dir on the Pi
     """
     url = request.form.get("url")
-    process = download_to_dir(url, AFP_DIR)
+    file_name = Path(url).name
+    # Shorten file names longer than 31 chars, the HFS upper limit
+    # Append a hash of the removed piece of the file name to make it unique
+    # The format of the hash is a # followed by the first four symbols of the md4 hash
+    if len(file_name) > 31:
+        chars_to_cut = len(file_name) - 31
+        file_name_stem = Path(file_name).stem
+        file_name_suffix = Path(file_name).suffix
+        discarded_portion = file_name_stem[:-abs(chars_to_cut)]
+        stem_remainder = file_name_stem[:(26 - len(file_name_suffix))]
+        appendix_hash = (md5(discarded_portion.encode("utf-8"))).hexdigest().upper()
+        file_name = stem_remainder + "#" + appendix_hash[:4] + file_name_suffix
+    process = download_to_dir(url, AFP_DIR, file_name)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
