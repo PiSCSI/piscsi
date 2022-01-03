@@ -737,6 +737,9 @@ def restart():
     """
     Restarts the Pi
     """
+    # Extra safeguard to avoid potential data loss.
+    # See https://github.com/akuker/RASCSI/issues/538
+    detach_all()
     shutdown_pi("reboot")
     return redirect(url_for("index"))
 
@@ -747,6 +750,8 @@ def shutdown():
     """
     Shuts down the Pi
     """
+    # Same as above
+    detach_all()
     shutdown_pi("system")
     return redirect(url_for("index"))
 
