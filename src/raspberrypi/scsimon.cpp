@@ -285,8 +285,6 @@ void create_value_change_dump()
     fclose(fp);
 }
 
-
-
 void create_json_file(){
 
     LOGINFO("Creating JSON file (%s)", json_file_name);
@@ -309,7 +307,6 @@ void create_json_file(){
     fclose(fp);
 
 }
-
 
 void Cleanup()
 {
@@ -378,18 +375,19 @@ int main(int argc, char* argv[])
     uint64_t elapsed_us;
     int opt;
 
-    while ((opt = getopt(argc, argv, "-Hhb:f:")) != -1) {
+    while ((opt = getopt(argc, argv, "-Hhb:")) != -1) {
 		switch (opt) {
 			// The three options below are kind of a compound option with two letters
 			case 'h':
 			case 'H':
 				print_help = true;
-				continue;
+				break;
 			case 'b':
                 buff_size = atoi(optarg);
-                continue;
-            default:
+                break;
+            case 1:
                 strncpy(file_base_name, optarg, sizeof(file_base_name)-5);
+                break;
         }
     }
 
