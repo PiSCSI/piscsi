@@ -59,7 +59,6 @@ RASCTL = rasctl
 RASDUMP = rasdump
 SASIDUMP = sasidump
 SCSIMON = scsimon
-SCSIPARSE = scsiparse
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
@@ -78,8 +77,7 @@ BIN_ALL = \
 	$(BINDIR)/$(RASCTL) \
 	$(BINDIR)/$(SCSIMON) \
 	$(BINDIR)/$(RASDUMP) \
-	$(BINDIR)/$(SASIDUMP) \
-	$(BINDIR)/$(SCSIPARSE)
+	$(BINDIR)/$(SASIDUMP)
 
 SRC_PROTOC = \
 	rascsi_interface.proto
@@ -107,9 +105,8 @@ SRC_SCSIMON = \
 	scsimon.cpp \
 	scsi.cpp \
 	gpiobus.cpp \
-	filepath.cpp \
-	fileio.cpp \
 	rascsi_version.cpp
+SRC_SCSIMON += $(shell find ./scsimon -name '*.cpp')
 
 SRC_RASCTL = \
 	rasctl.cpp\
@@ -137,14 +134,8 @@ SRC_SASIDUMP = \
 	fileio.cpp\
 	rascsi_version.cpp
 
-SRC_SCSIPARSE = \
-	scsiparse.cpp \
-	scsi.cpp \
-	gpio_sim.cpp
-
-
-vpath %.h ./ ./controllers ./devices
-vpath %.cpp ./ ./controllers ./devices
+vpath %.h ./ ./controllers ./devices ./scsimon
+vpath %.cpp ./ ./controllers ./devices ./scsimon
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -154,14 +145,13 @@ OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
-OBJ_SCSIPARSE := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIPARSE:%.cpp=%.o)))
 
 GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_SCSIPARSE))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -187,10 +177,6 @@ ALL: all
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
-
-.PHONY: $(SCSIPARSE)
-$(SCSIPARSE): $(BINDIR)/$(SCSIPARSE)
-
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap -lprotobuf -lstdc++fs
 
@@ -206,8 +192,15 @@ $(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
-$(BINDIR)/$(SCSIPARSE): $(OBJ_SCSIPARSE) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIPARSE) -lpthread
+
+# Phony rules for building individual utilities
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
+$(RASCSI)  : $(BINDIR)/$(RASCSI) 
+$(RASCTL)  : $(BINDIR)/$(RASCTL) 
+$(RASDUMP) : $(BINDIR)/$(RASDUMP) 
+$(SASIDUMP): $(BINDIR)/$(SASIDUMP) 
+$(SCSIMON) : $(BINDIR)/$(SCSIMON)
+
 
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 
