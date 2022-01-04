@@ -88,7 +88,7 @@ void protobuf_util::DeserializeMessage(int fd, google::protobuf::Message& messag
 	uint8_t header_buf[4];
 	int bytes_read = ReadNBytes(fd, header_buf, sizeof(header_buf));
 	if (bytes_read < (int)sizeof(header_buf)) {
-		return;
+		throw io_exception("Invalid protobuf header (size) recevied");
 	}
 	int32_t size = (header_buf[3] << 24) + (header_buf[2] << 16) + (header_buf[1] << 8) + header_buf[0];
 	if (size <= 0) {
