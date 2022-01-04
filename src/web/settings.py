@@ -32,4 +32,4 @@ RESERVATIONS = ["" for x in range(0, 8)]
 AUTH_GROUP = "rascsi"
 
 # The language locales supported by RaSCSI
-LANGUAGES = ["en", "de", "sv", "fr"]
+LANGUAGES = ["en", "de", "sv", "fr", "es"]
