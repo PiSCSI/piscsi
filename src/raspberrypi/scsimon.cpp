@@ -72,6 +72,7 @@ char file_base_name[_MAX_FNAME/2] = "log";
 char vcd_file_name[_MAX_FNAME/2];
 char json_file_name[_MAX_FNAME/2];
 char html_file_name[_MAX_FNAME/2];
+char input_file_name[_MAX_FNAME/2];
 
 //---------------------------------------------------------------------------
 //
@@ -110,12 +111,6 @@ void Banner(int argc, char* argv[])
 		LOGINFO("Usage: %s [log filename]...", argv[0]);
 		exit(0);
 	}
-    else
-    {
-        LOGINFO(" ");
-        LOGINFO("Now collecting data.... Press CTRL-C to stop.")
-        LOGINFO(" ");
-    }
 }
 
 //---------------------------------------------------------------------------
@@ -162,10 +157,11 @@ void Cleanup()
     LOGINFO("Generating %s", html_file_name);
     scsimon_generate_html(html_file_name, data_buffer, data_idx);
 
-	// Cleanup the Bus
-	bus->Cleanup();
-
-	delete bus;
+    if(bus){
+        // Cleanup the Bus
+        bus->Cleanup();
+       delete bus;
+    }
 }
 
 void Reset()
@@ -223,8 +219,9 @@ int main(int argc, char* argv[])
     timeval time_diff;
     uint64_t elapsed_us;
     int opt;
+    bool import_data = false;
 
-    while ((opt = getopt(argc, argv, "-Hhb:")) != -1) {
+    while ((opt = getopt(argc, argv, "-Hhb:i:")) != -1) {
 		switch (opt) {
 			// The three options below are kind of a compound option with two letters
 			case 'h':
@@ -234,6 +231,9 @@ int main(int argc, char* argv[])
 			case 'b':
                 buff_size = atoi(optarg);
                 break;
+            case 'i':
+                strncpy(input_file_name, optarg, sizeof(input_file_name));
+                import_data = true;
             case 1:
                 strncpy(file_base_name, optarg, sizeof(file_base_name)-5);
                 break;
@@ -255,8 +255,24 @@ int main(int argc, char* argv[])
     spdlog::set_pattern("%^[%l]%$ %v");
 	// Output the Banner
 	Banner(argc, argv);
+
     data_buffer = (data_capture*)malloc(sizeof(data_capture_t) * buff_size);
     bzero(data_buffer,sizeof(data_capture_t) * buff_size);
+
+
+    if(import_data){
+        data_idx = scsimon_read_json(input_file_name, data_buffer, buff_size);
+        if(data_idx > 0){
+            LOGINFO("Read %d samples from %s", data_idx, input_file_name);
+            Cleanup();
+        }
+        exit(0);
+    }
+
+    LOGINFO(" ");
+    LOGINFO("Now collecting data.... Press CTRL-C to stop.")
+    LOGINFO(" ");
+
 
 	// Initialize
 	int ret = 0;
