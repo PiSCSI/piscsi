@@ -107,6 +107,8 @@ private:
 	int fblinelen;
 	int fbsize;
 	int fbbpp;
+
+	static const BYTE m_inquiry_response[];
 	// typedef struct __attribute__((packed)) {
 	// 	BYTE operation_code;
 	// 	BYTE misc_cdb_information;

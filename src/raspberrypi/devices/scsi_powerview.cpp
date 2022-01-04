@@ -43,6 +43,14 @@ static unsigned char reverse_table[256];
 // const BYTE SCSIPowerView::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 // const BYTE SCSIPowerView::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
+const BYTE SCSIPowerView::m_inquiry_response[] = {
+0x03, 0x00, 0x01, 0x01, 0x46, 0x00, 0x00, 0x00, 0x52, 0x41, 0x44, 0x49, 0x55, 0x53, 0x20, 0x20,
+0x50, 0x6F, 0x77, 0x65, 0x72, 0x56, 0x69, 0x65, 0x77, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
+0x56, 0x31, 0x2E, 0x30, 0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x20, 0x00, 0x01, 0x00, 0x00, 0x00,
+0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x03, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00,
+0x05, 0x00, 0x00, 0x00, 0x00, 0x06, 0x43, 0xF9, 0x00, 0x00, 0xFF,
+};
+
 SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 {
 	// m_tap = NULL;
@@ -202,31 +210,86 @@ void SCSIPowerView::Open(const Filepath& path)
 int SCSIPowerView::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-	if (allocation_length > 4) {
-		if (allocation_length > 44) {
-			allocation_length = 44;
+	if (allocation_length > 0) {
+		if ((unsigned int)allocation_length > sizeof(m_inquiry_response)) {
+			allocation_length = (int)sizeof(m_inquiry_response);
 		}
 
-		// Basic data
-		// buf[0] ... Processor Device
-		// buf[1] ... Not removable
-		// buf[2] ... SCSI-2 compliant command system
-		// buf[3] ... SCSI-2 compliant Inquiry response
-		// buf[4] ... Inquiry additional data
-		// http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
-		memset(buf, 0, allocation_length);
-		buf[0] = 0x03;
-		buf[2] = 0x01;
-		buf[4] = 0x1F;
+		memcpy(buf, m_inquiry_response, allocation_length);
 
-		// Padded vendor, product, revision
-		memcpy(&buf[8], GetPaddedName().c_str(), 28);
+		// // Basic data
+		// // buf[0] ... Processor Device
+		// // buf[1] ... Not removable
+		// // buf[2] ... SCSI-2 compliant command system
+		// // buf[3] ... SCSI-2 compliant Inquiry response
+		// // buf[4] ... Inquiry additional data
+		// // http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
+		// memset(buf, 0, allocation_length);
+		// buf[0] = 0x03;
+		// buf[2] = 0x01;
+		// buf[4] = 0x1F;
+
+		// // Padded vendor, product, revision
+		// memcpy(&buf[8], GetPaddedName().c_str(), 28);
 	}
 
 	LOGTRACE("response size is %d", allocation_length);
 
 	return allocation_length;
 }
+
+
+
+// //---------------------------------------------------------------------------
+// //
+// //	INQUIRY
+// //
+// //---------------------------------------------------------------------------
+// int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
+// {
+// 	ASSERT(cdb);
+// 	ASSERT(buf);
+
+// 	// EVPD check
+// 	if (cdb[1] & 0x01) {
+// 		SetStatusCode(STATUS_INVALIDCDB);
+// 		return 0;
+// 	}
+
+// 	// Ready check (Error if no image file)
+// 	if (!IsReady()) {
+// 		SetStatusCode(STATUS_NOTREADY);
+// 		return 0;
+// 	}
+
+// 	// Basic data
+// 	// buf[0] ... Direct Access Device
+// 	// buf[1] ... Bit 7 set means removable
+// 	// buf[2] ... SCSI-2 compliant command system
+// 	// buf[3] ... SCSI-2 compliant Inquiry response
+// 	// buf[4] ... Inquiry additional data
+// 	memset(buf, 0, 8);
+// 	buf[1] = IsRemovable() ? 0x80 : 0x00;
+// 	buf[2] = 0x02;
+// 	buf[3] = 0x02;
+// 	buf[4] = 28 + 3;	// Value close to real HDD
+
+// 	// Padded vendor, product, revision
+// 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
+
+// 	// Size of data that can be returned
+// 	int size = (buf[4] + 5);
+
+// 	// Limit if the other buffer is small
+// 	if (size > (int)cdb[4]) {
+// 		size = (int)cdb[4];
+// 	}
+
+// 	return size;
+// }
+
+
+
 
 //---------------------------------------------------------------------------
 //
