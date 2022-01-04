@@ -29,10 +29,10 @@ using namespace std;
 // GPIOBUS *bus;						// GPIO Bus
 
 data_capture *data_capture_array;
-DWORD max_samples = 1000000;
+DWORD max_samples = 100000000;
 int actual_samples = 0;
 
-const char* json_filename = "./radius_boot.json";
+const char* json_filename = "./radius_big3.json";
 
 const char timestamp_label[] = "\"timestamp\":\"0x";
 const char data_label[] = "\"data\":\"0x";
@@ -185,6 +185,7 @@ void print_html_data(){
     bool close_row = false;
     int data_space_count = 0;
     bool collapsible_div_active = false;
+    bool button_active = false;
 
     for(int idx=0; idx<actual_samples; idx++){
         data = &data_capture_array[idx];
@@ -196,19 +197,36 @@ void print_html_data(){
         if(prev_phase != phase){
             if(close_row){
                 if(collapsible_div_active){
-                    fprintf(html_fp,"</div>\n");
+                    fprintf(html_fp,"</code></div>\n");
                 }
-                fprintf(html_fp, "</code></td>\n");
+                else if(button_active){
+                    fprintf(html_fp, "</code></button>");
+                }
+                fprintf(html_fp, "</td>");
+                if(data_space_count < 1){
+                    fprintf(html_fp, "<td>--</td>");
+                }else{
+                    fprintf(html_fp, "<td>wc: %d (0x%X)</td>", data_space_count, data_space_count);
+                }
                 fprintf(html_fp, "</tr>\n");
                 data_space_count = 0;
             }
             fprintf(html_fp, "<tr>");
             close_row = true; // Close the row the next time around
+            fprintf(html_fp, "<td>%f</td>", (double)data->timestamp/100000);
             fprintf(html_fp, "<td>%s</td>", GetPhaseStr(data));
             fprintf(html_fp, "<td>%02X</td>", selected_id);
-            fprintf(html_fp, "<td><button type=\"button\" class=\"collapsible\"><code>00: ");
+            fprintf(html_fp, "<td>");
         }
         if(curr_data_valid && !prev_data_valid){
+            if (data_space_count == 0){
+                button_active = true;
+                fprintf(html_fp, "<button type=\"button\" class=\"collapsible\"><code>");
+            }
+            if((data_space_count % 16) == 0){
+                fprintf(html_fp,"%02X: ", data_space_count);
+            }
+
             fprintf(html_fp, "%02X", GetData(data));
 
             data_space_count++;
@@ -216,22 +234,16 @@ void print_html_data(){
                 fprintf(html_fp, " ");
             }
             if(data_space_count == 16){
-                fprintf(html_fp, "</button><div class=\"content\">\n");
+                fprintf(html_fp, "</code></button><div class=\"content\"><code>\n");
                 collapsible_div_active = true;
+                button_active = false;
             }
-            if((data_space_count % 16) == 0){
-                fprintf(html_fp,"<p>\n%02X: ", data_space_count);
+            if(((data_space_count % 16) == 0) && (data_space_count > 17)){
+                fprintf(html_fp,"<br>\n");
             }
         }
-
-        // if(curr_data_valid && !prev_data_valid){
-        //     printf("[%02X] Time: %lf Data Sample: %02X Phase: %s\n", selected_id, ((double)data->timestamp/10)/1000, GetData(data), GetPhaseStr(data));
-        // }
         prev_data_valid = curr_data_valid;
         prev_phase = phase;
-
-        //     prev_data_valid
-        // printf(" BSY:%d MSG:%d IO:%d CD:%d DATA:%02X\n",GetBsy(data),GetMsg(data),GetIo(data),GetCd(data),GetData(data));
     }
 
 }
