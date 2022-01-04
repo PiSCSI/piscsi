@@ -104,9 +104,6 @@ void decode_data(){
             printf("[%02X] Time: %lf Data Sample: %02X Phase: %s\n", selected_id, ((double)data->timestamp/10)/1000, GetData(data), GetPhaseStr(data));
         }
         prev_data_valid = curr_data_valid;
-
-        //     prev_data_valid
-        // printf(" BSY:%d MSG:%d IO:%d CD:%d DATA:%02X\n",GetBsy(data),GetMsg(data),GetIo(data),GetCd(data),GetData(data));
     }
 
 

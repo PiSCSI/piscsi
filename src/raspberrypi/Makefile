@@ -106,7 +106,7 @@ SRC_SCSIMON = \
 	scsi.cpp \
 	gpiobus.cpp \
 	rascsi_version.cpp
-SRC_SCSIMON += $(shell find ./scsimon -name '*.cpp')
+SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 
 SRC_RASCTL = \
 	rasctl.cpp\
@@ -134,8 +134,8 @@ SRC_SASIDUMP = \
 	fileio.cpp\
 	rascsi_version.cpp
 
-vpath %.h ./ ./controllers ./devices ./scsimon
-vpath %.cpp ./ ./controllers ./devices ./scsimon
+vpath %.h ./ ./controllers ./devices ./monitor
+vpath %.cpp ./ ./controllers ./devices ./monitor
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 

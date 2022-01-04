@@ -1,10 +1,10 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI (*^..^*) for Raspberry Pi
+//	SCSI Target Emulator RaSCSI (*^..^*)
+//	for Raspberry Pi
 //
-//	Copyright (C) 2020-2021 akuker
-//
-//	[ SCSI Bus Monitor ]
+//	Powered by XM6 TypeG Technology.
+//	Copyright (C) 2016-2020 GIMONS
 //
 //---------------------------------------------------------------------------
 

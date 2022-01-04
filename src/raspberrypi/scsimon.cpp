@@ -22,8 +22,8 @@
 #include <getopt.h>
 #include "rascsi.h"
 #include <sched.h>
-#include "scsimon/sm_reports.h"
-#include "scsimon/data_sample.h"
+#include "monitor/sm_reports.h"
+#include "monitor/data_sample.h"
 
 using namespace std;
 
