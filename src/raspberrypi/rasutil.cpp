@@ -58,6 +58,10 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 			case SCDP:
 				filename = "DaynaPort SCSI/Link";
 				break;
+				
+			case SCPV:
+				filename = "Radius PowerView";
+				break;
 
 			default:
 				filename = device.file().name();
