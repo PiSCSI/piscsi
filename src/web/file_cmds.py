@@ -279,7 +279,7 @@ def download_file_to_iso(url, *iso_args):
     tmp_full_path = tmp_dir + file_name
     iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
-    req_proc = download_to_dir(url, tmp_dir)
+    req_proc = download_to_dir(url, tmp_dir, file_name)
 
     if not req_proc["status"]:
         return {"status": False, "msg": req_proc["msg"]}
@@ -330,13 +330,12 @@ def download_file_to_iso(url, *iso_args):
     }
 
 
-def download_to_dir(url, save_dir):
+def download_to_dir(url, save_dir, file_name):
     """
-    Takes (str) url, (str) save_dir
+    Takes (str) url, (str) save_dir, (str) file_name
     Returns (dict) with (bool) status and (str) msg
     """
     import requests
-    file_name = PurePath(url).name
     logging.info("Making a request to download %s", url)
 
     try:
