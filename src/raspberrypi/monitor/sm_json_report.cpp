@@ -54,8 +54,9 @@ int scsimon_read_json(const char *json_filename, data_capture *data_capture_arra
         data_capture_array[sample_count].timestamp = timestamp_uint;
         data_capture_array[sample_count].data = data_uint;
         sample_count++;
-        if(sample_count > max_sz){
-            LOGINFO("File exceeds maximum buffer size. Some data may be missing.")
+        if(sample_count >= max_sz){
+            LOGWARN("File exceeds maximum buffer size. Some data may be missing.");
+            LOGWARN("Try re-running the tool with a larger buffer size");
             break;
         }
     }
@@ -72,7 +73,7 @@ int scsimon_read_json(const char *json_filename, data_capture *data_capture_arra
 //---------------------------------------------------------------------------
 void scsimon_generate_json(const char* filename, const  data_capture *data_capture_array, int capture_count)
 {
-    LOGINFO("Creating JSON file (%s)", filename);
+    LOGTRACE("Creating JSON file (%s)", filename);
     FILE *fp = fopen(filename,"w");
     fprintf(fp, "[\n");
 

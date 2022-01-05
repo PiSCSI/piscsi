@@ -8,10 +8,11 @@
 //
 //---------------------------------------------------------------------------
 
+#include <stdio.h>
 #include "os.h"
 #include "log.h"
-using namespace std;
 #include "sm_reports.h"
+#include "rascsi_version.h"
 
 static void print_html_header(FILE *html_fp, const char *html_filename){
     fprintf(html_fp, "<html>\n");
@@ -21,6 +22,21 @@ static void print_html_header(FILE *html_fp, const char *html_filename){
     fprintf(html_fp, "table, th, td {\n");
     fprintf(html_fp, "  border: 1px solid black;\n");
     fprintf(html_fp, "  border-collapse: collapse;\n");
+    fprintf(html_fp, "}\n");
+
+    fprintf(html_fp, "h1 {\n");
+    fprintf(html_fp, "  text-align: center;\n");
+    fprintf(html_fp, "}\n");
+    fprintf(html_fp, "\n");
+    fprintf(html_fp, "h2 {\n");
+    fprintf(html_fp, "  text-align: center;\n");
+    fprintf(html_fp, "}\n");
+    fprintf(html_fp, "\n");
+    fprintf(html_fp, "h3 {\n");
+    fprintf(html_fp, "  text-align: center;\n");
+    fprintf(html_fp, "}\n");
+    fprintf(html_fp, "pre {\n");
+    fprintf(html_fp, "  text-align: center;\n");
     fprintf(html_fp, "}\n");
 
     fprintf(html_fp, ".collapsible {\n");
@@ -49,7 +65,17 @@ static void print_html_header(FILE *html_fp, const char *html_filename){
     fprintf(html_fp, "</style>\n");
     fprintf(html_fp, "</head>\n");
 
-    fprintf(html_fp, "<h1>%s</h1>\n", html_filename);
+    fprintf(html_fp, "<table>");
+    fprintf(html_fp, "<h1>RaSCSI scsimon Capture Tool</h1>\n");
+    fprintf(html_fp, "<pre>Version %s (%s, %s)\n",
+		rascsi_get_version_string(),
+		__DATE__,
+		__TIME__);
+	fprintf(html_fp, "Copyright (C) 2016-2020 GIMONS\n");
+	fprintf(html_fp, "Copyright (C) 2020-2021 Contributors to the RaSCSI project\n");
+    fprintf(html_fp, "</pre></table>\n");
+    fprintf(html_fp, "<br>\n");
+
     fprintf(html_fp, "<table>\n");
 }
 
@@ -150,6 +176,8 @@ static void print_html_data(FILE *html_fp, const  data_capture *data_capture_arr
 }
 
 void scsimon_generate_html(const char* filename, const  data_capture *data_capture_array, int capture_count){
+    LOGINFO("Creating HTML report file (%s)", filename);
+ 
     FILE *html_fp = fopen(filename, "w");
 
     print_html_header(html_fp, filename);

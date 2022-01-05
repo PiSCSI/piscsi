@@ -9,19 +9,12 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "filepath.h"
-#include "fileio.h"
 #include "log.h"
-#include "gpiobus.h"
-#include "rascsi_version.h"
 #include "spdlog/spdlog.h"
-#include <sys/time.h>
-#include <climits>
 #include <sstream>
 #include <iostream>
-#include <getopt.h>
-#include "rascsi.h"
 #include "data_sample.h"
+#include "sm_reports.h"
 
 using namespace std;
 
@@ -119,7 +112,7 @@ static void vcd_output_if_changed_byte(FILE *fp, DWORD data, int pin, char symbo
 
 void scsimon_generate_value_change_dump(const char* filename, const  data_capture *data_capture_array, int capture_count)
 {
-    LOGINFO("Creating Value Change Dump file (%s)", filename);
+    LOGTRACE("Creating Value Change Dump file (%s)", filename);
     FILE *fp = fopen(filename,"w");
 
     // Get the current time

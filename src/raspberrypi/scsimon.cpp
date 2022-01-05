@@ -64,6 +64,7 @@ DWORD data_idx = 0;
 double ns_per_loop;
 
 bool print_help = false;
+bool import_data = false;
 
 // We don't really need to support 256 character file names - this causes
 // all kinds of compiler warnings when the log filename can be up to 256
@@ -85,6 +86,82 @@ void KillHandler(int sig)
 	running = false;
 }
 
+void parse_arguments(int argc, char* argv[]){
+int opt;
+
+        while ((opt = getopt(argc, argv, "-Hhb:i:")) != -1) {
+		switch (opt) {
+			// The three options below are kind of a compound option with two letters
+			case 'h':
+			case 'H':
+				print_help = true;
+				break;
+			case 'b':
+                buff_size = atoi(optarg);
+                break;
+            case 'i':
+                strncpy(input_file_name, optarg, sizeof(input_file_name));
+                import_data = true;
+                break;
+            case 1:
+                strncpy(file_base_name, optarg, sizeof(file_base_name)-5);
+                break;
+            default:
+                cout << "default: " << optarg << endl;
+                break;
+        }
+    }
+
+    /* Process any remaining command line arguments (not options). */
+    if (optind < argc)
+    {
+      while (optind < argc)
+        strncpy(file_base_name, argv[optind++], sizeof(file_base_name));
+    }
+
+    strncpy(vcd_file_name, file_base_name, sizeof(file_base_name)-4);
+    strcat(vcd_file_name, ".vcd");
+    strncpy(json_file_name, file_base_name, sizeof(file_base_name)-5);
+    strcat(json_file_name, ".json");
+    strncpy(html_file_name, file_base_name, sizeof(file_base_name)-5);
+    strcat(html_file_name, ".html");
+
+}
+//---------------------------------------------------------------------------
+//
+//	Copyright text
+//
+//---------------------------------------------------------------------------
+void print_copyright_text(int argc, char* argv[])
+{
+	LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ");
+	LOGINFO("version %s (%s, %s)",
+		rascsi_get_version_string(),
+		__DATE__,
+		__TIME__);
+	LOGINFO("Powered by XM6 TypeG Technology ");
+	LOGINFO("Copyright (C) 2016-2020 GIMONS");
+	LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project");
+    LOGINFO("");
+}
+
+//---------------------------------------------------------------------------
+//
+//	Help text
+//
+//---------------------------------------------------------------------------
+void print_help_text(int argc, char* argv[])
+{
+    LOGINFO("%s -i [input file json] -b [buffer size] [output file]", argv[0]);
+    LOGINFO("       -i [input file json] - scsimon will parse the json file instead of capturing new data");
+    LOGINFO("                              If -i option is not specified, scsimon will read the gpio pins");
+    LOGINFO("       -b [buffer size]     - Override the default buffer size of %d.",buff_size);
+    LOGINFO("       [output file]        - Base name of the output files. The file extension (ex: .json)");
+    LOGINFO("                              will be appended to this file name");
+}
+
+
+
 //---------------------------------------------------------------------------
 //
 //	Banner Output
@@ -92,25 +169,20 @@ void KillHandler(int sig)
 //---------------------------------------------------------------------------
 void Banner(int argc, char* argv[])
 {
-	LOGINFO("SCSI Monitor Capture Tool - part of RaSCSI(*^..^*) ");
-	LOGINFO("version %s (%s, %s)\n",
-		rascsi_get_version_string(),
-		__DATE__,
-		__TIME__);
-	LOGINFO("Powered by XM6 TypeG Technology ");
-	LOGINFO("Copyright (C) 2016-2020 GIMONS");
-	LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project");
-	LOGINFO("Connect type : %s", CONNECT_DESC);
+    if(import_data){
+        LOGINFO("Reading input file: %s", input_file_name);
+    }
+    else{
+        LOGINFO("Reading live data from the GPIO pins");
+    	LOGINFO("    Connection type : %s", CONNECT_DESC);
+    }
+    LOGINFO("    Data buffer size: %u", buff_size);
+    LOGINFO("");
+    LOGINFO("Generating output files:");
 	LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", vcd_file_name);
 	LOGINFO("   %s - JSON file with raw data", json_file_name);
 	LOGINFO("   %s - HTML file with summary of commands", html_file_name);
 
-    LOGINFO("Data buffer size: %u", buff_size);
-
-	if (print_help){
-		LOGINFO("Usage: %s [log filename]...", argv[0]);
-		exit(0);
-	}
 }
 
 //---------------------------------------------------------------------------
@@ -149,12 +221,15 @@ bool Init()
 
 void Cleanup()
 {
-    LOGINFO("Stopping data collection....");
-    LOGINFO("Generating %s", vcd_file_name);
+    if(!import_data){
+        LOGINFO("Stopping data collection....");
+    }
+    LOGINFO("");
+    LOGINFO("Generating %s...", vcd_file_name);
     scsimon_generate_value_change_dump(vcd_file_name, data_buffer, data_idx);
-    LOGINFO("Generating %s", json_file_name);
+    LOGINFO("Generating %s...", json_file_name);
     scsimon_generate_json(json_file_name, data_buffer, data_idx);
-    LOGINFO("Generating %s", html_file_name);
+    LOGINFO("Generating %s...", html_file_name);
     scsimon_generate_html(html_file_name, data_buffer, data_idx);
 
     if(bus){
@@ -205,47 +280,6 @@ static DWORD low_bits = 0xFFFFFFFF;
 //---------------------------------------------------------------------------
 int main(int argc, char* argv[])
 {
-    ostringstream s;
-
-#ifdef DEBUG
-    DWORD prev_high = high_bits;
-    DWORD prev_low = low_bits;
-#endif
-    DWORD prev_sample = 0xFFFFFFFF;
-    DWORD this_sample = 0;
-    timeval start_time;
-    timeval stop_time;
-    uint64_t loop_count = 0;
-    timeval time_diff;
-    uint64_t elapsed_us;
-    int opt;
-    bool import_data = false;
-
-    while ((opt = getopt(argc, argv, "-Hhb:i:")) != -1) {
-		switch (opt) {
-			// The three options below are kind of a compound option with two letters
-			case 'h':
-			case 'H':
-				print_help = true;
-				break;
-			case 'b':
-                buff_size = atoi(optarg);
-                break;
-            case 'i':
-                strncpy(input_file_name, optarg, sizeof(input_file_name));
-                import_data = true;
-            case 1:
-                strncpy(file_base_name, optarg, sizeof(file_base_name)-5);
-                break;
-        }
-    }
-
-    strncpy(vcd_file_name, argv[1], sizeof(file_base_name)-4);
-    strcat(vcd_file_name, ".vcd");
-    strncpy(json_file_name, argv[1], sizeof(file_base_name)-5);
-    strcat(json_file_name, ".json");
-    strncpy(html_file_name, argv[1], sizeof(file_base_name)-5);
-    strcat(html_file_name, ".html");
 
 #ifdef DEBUG
     spdlog::set_level(spdlog::level::trace);
@@ -253,6 +287,28 @@ int main(int argc, char* argv[])
     spdlog::set_level(spdlog::level::info);
 #endif
     spdlog::set_pattern("%^[%l]%$ %v");
+
+    print_copyright_text(argc, argv);
+    parse_arguments(argc, argv);
+
+#ifdef DEBUG
+    DWORD prev_high = high_bits;
+    DWORD prev_low = low_bits;
+#endif
+    ostringstream s;
+    DWORD prev_sample = 0xFFFFFFFF;
+    DWORD this_sample = 0;
+    timeval start_time;
+    timeval stop_time;
+    uint64_t loop_count = 0;
+    timeval time_diff;
+    uint64_t elapsed_us;
+
+    if(print_help){
+        print_help_text(argc, argv);
+        exit(0);
+    }
+
 	// Output the Banner
 	Banner(argc, argv);
 
@@ -263,7 +319,7 @@ int main(int argc, char* argv[])
     if(import_data){
         data_idx = scsimon_read_json(input_file_name, data_buffer, buff_size);
         if(data_idx > 0){
-            LOGINFO("Read %d samples from %s", data_idx, input_file_name);
+            LOGDEBUG("Read %d samples from %s", data_idx, input_file_name);
             Cleanup();
         }
         exit(0);
@@ -272,7 +328,6 @@ int main(int argc, char* argv[])
     LOGINFO(" ");
     LOGINFO("Now collecting data.... Press CTRL-C to stop.")
     LOGINFO(" ");
-
 
 	// Initialize
 	int ret = 0;
