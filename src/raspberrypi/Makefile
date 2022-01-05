@@ -24,6 +24,11 @@ else
 	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
+ifeq ("$(shell uname -s)","Linux")
+	# -Wno-psabi might not work on non-Linux platforms
+	CXXFLAGS += -Wno-psabi
+endif
+
 CFLAGS += -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 
