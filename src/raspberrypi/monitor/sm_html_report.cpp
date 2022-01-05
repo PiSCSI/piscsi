@@ -14,7 +14,8 @@
 #include "sm_reports.h"
 #include "rascsi_version.h"
 
-static void print_html_header(FILE *html_fp, const char *html_filename){
+static void print_html_header(FILE *html_fp, const char *html_filename)
+{
     fprintf(html_fp, "<html>\n");
 
     fprintf(html_fp, "<head>\n");
@@ -68,18 +69,19 @@ static void print_html_header(FILE *html_fp, const char *html_filename){
     fprintf(html_fp, "<table>");
     fprintf(html_fp, "<h1>RaSCSI scsimon Capture Tool</h1>\n");
     fprintf(html_fp, "<pre>Version %s (%s, %s)\n",
-		rascsi_get_version_string(),
-		__DATE__,
-		__TIME__);
-	fprintf(html_fp, "Copyright (C) 2016-2020 GIMONS\n");
-	fprintf(html_fp, "Copyright (C) 2020-2021 Contributors to the RaSCSI project\n");
+            rascsi_get_version_string(),
+            __DATE__,
+            __TIME__);
+    fprintf(html_fp, "Copyright (C) 2016-2020 GIMONS\n");
+    fprintf(html_fp, "Copyright (C) 2020-2021 Contributors to the RaSCSI project\n");
     fprintf(html_fp, "</pre></table>\n");
     fprintf(html_fp, "<br>\n");
 
     fprintf(html_fp, "<table>\n");
 }
 
-static void print_html_footer(FILE *html_fp){
+static void print_html_footer(FILE *html_fp)
+{
     fprintf(html_fp, "</table>\n\n");
 
     fprintf(html_fp, "<script>\n");
@@ -99,11 +101,11 @@ static void print_html_footer(FILE *html_fp){
     fprintf(html_fp, "}\n");
     fprintf(html_fp, "</script>\n\n");
 
-
     fprintf(html_fp, "</html>\n");
 }
 
-static void print_html_data(FILE *html_fp, const  data_capture *data_capture_array, int capture_count){
+static void print_html_data(FILE *html_fp, const data_capture *data_capture_array, int capture_count)
+{
     const data_capture *data;
     bool prev_data_valid = false;
     bool curr_data_valid;
@@ -114,25 +116,34 @@ static void print_html_data(FILE *html_fp, const  data_capture *data_capture_arr
     bool collapsible_div_active = false;
     bool button_active = false;
 
-    for(int idx=0; idx<capture_count; idx++){
+    for (int idx = 0; idx < capture_count; idx++)
+    {
         data = &data_capture_array[idx];
         curr_data_valid = GetAck(data) && GetReq(data);
         BUS::phase_t phase = GetPhase(data);
-        if(phase == BUS::selection && !GetBsy(data)){
+        if (phase == BUS::selection && !GetBsy(data))
+        {
             selected_id = GetData(data);
         }
-        if(prev_phase != phase){
-            if(close_row){
-                if(collapsible_div_active){
-                    fprintf(html_fp,"</code></div>\n");
+        if (prev_phase != phase)
+        {
+            if (close_row)
+            {
+                if (collapsible_div_active)
+                {
+                    fprintf(html_fp, "</code></div>\n");
                 }
-                else if(button_active){
+                else if (button_active)
+                {
                     fprintf(html_fp, "</code></button>");
                 }
                 fprintf(html_fp, "</td>");
-                if(data_space_count < 1){
+                if (data_space_count < 1)
+                {
                     fprintf(html_fp, "<td>--</td>");
-                }else{
+                }
+                else
+                {
                     fprintf(html_fp, "<td>wc: %d (0x%X)</td>", data_space_count, data_space_count);
                 }
                 fprintf(html_fp, "</tr>\n");
@@ -140,44 +151,50 @@ static void print_html_data(FILE *html_fp, const  data_capture *data_capture_arr
             }
             fprintf(html_fp, "<tr>");
             close_row = true; // Close the row the next time around
-            fprintf(html_fp, "<td>%f</td>", (double)data->timestamp/100000);
+            fprintf(html_fp, "<td>%f</td>", (double)data->timestamp / 100000);
             fprintf(html_fp, "<td>%s</td>", GetPhaseStr(data));
             fprintf(html_fp, "<td>%02X</td>", selected_id);
             fprintf(html_fp, "<td>");
         }
-        if(curr_data_valid && !prev_data_valid){
-            if (data_space_count == 0){
+        if (curr_data_valid && !prev_data_valid)
+        {
+            if (data_space_count == 0)
+            {
                 button_active = true;
                 fprintf(html_fp, "<button type=\"button\" class=\"collapsible\"><code>");
             }
-            if((data_space_count % 16) == 0){
-                fprintf(html_fp,"%02X: ", data_space_count);
+            if ((data_space_count % 16) == 0)
+            {
+                fprintf(html_fp, "%02X: ", data_space_count);
             }
 
             fprintf(html_fp, "%02X", GetData(data));
 
             data_space_count++;
-            if((data_space_count % 4) == 0){
+            if ((data_space_count % 4) == 0)
+            {
                 fprintf(html_fp, " ");
             }
-            if(data_space_count == 16){
+            if (data_space_count == 16)
+            {
                 fprintf(html_fp, "</code></button><div class=\"content\"><code>\n");
                 collapsible_div_active = true;
                 button_active = false;
             }
-            if(((data_space_count % 16) == 0) && (data_space_count > 17)){
-                fprintf(html_fp,"<br>\n");
+            if (((data_space_count % 16) == 0) && (data_space_count > 17))
+            {
+                fprintf(html_fp, "<br>\n");
             }
         }
         prev_data_valid = curr_data_valid;
         prev_phase = phase;
     }
-
 }
 
-void scsimon_generate_html(const char* filename, const  data_capture *data_capture_array, int capture_count){
+void scsimon_generate_html(const char *filename, const data_capture *data_capture_array, int capture_count)
+{
     LOGINFO("Creating HTML report file (%s)", filename);
- 
+
     FILE *html_fp = fopen(filename, "w");
 
     print_html_header(html_fp, filename);
@@ -186,4 +203,3 @@ void scsimon_generate_html(const char* filename, const  data_capture *data_captu
 
     fclose(html_fp);
 }
-

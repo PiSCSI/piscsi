@@ -11,19 +11,22 @@
 #include "scsi.h"
 #include "data_sample.h"
 
-const char* GetPhaseStr(const data_capture *sample){
-    return BUS::GetPhaseStrRaw(GetPhase(sample));
+const char *GetPhaseStr(const data_capture *sample)
+{
+	return BUS::GetPhaseStrRaw(GetPhase(sample));
 }
 
 BUS::phase_t GetPhase(const data_capture *sample)
 {
 	// Selection Phase
-	if (GetSel(sample)) {
+	if (GetSel(sample))
+	{
 		return BUS::selection;
 	}
 
 	// Bus busy phase
-	if (!GetBsy(sample)) {
+	if (!GetBsy(sample))
+	{
 		return BUS::busfree;
 	}
 
@@ -33,5 +36,3 @@ BUS::phase_t GetPhase(const data_capture *sample)
 	mci |= GetIo(sample) ? 0x01 : 0x00;
 	return BUS::GetPhase(mci);
 }
-
-
