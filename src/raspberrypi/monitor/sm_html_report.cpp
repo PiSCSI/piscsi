@@ -9,102 +9,96 @@
 //---------------------------------------------------------------------------
 
 #include <stdio.h>
+#include <iostream>
+#include <fstream>
 #include "os.h"
 #include "log.h"
 #include "sm_reports.h"
 #include "rascsi_version.h"
 
-static void print_html_header(FILE *html_fp, const char *html_filename)
-{
-    fprintf(html_fp, "<html>\n");
+using namespace std;
 
-    fprintf(html_fp, "<head>\n");
-    fprintf(html_fp, "<style>\n");
-    fprintf(html_fp, "table, th, td {\n");
-    fprintf(html_fp, "  border: 1px solid black;\n");
-    fprintf(html_fp, "  border-collapse: collapse;\n");
-    fprintf(html_fp, "}\n");
-
-    fprintf(html_fp, "h1 {\n");
-    fprintf(html_fp, "  text-align: center;\n");
-    fprintf(html_fp, "}\n");
-    fprintf(html_fp, "\n");
-    fprintf(html_fp, "h2 {\n");
-    fprintf(html_fp, "  text-align: center;\n");
-    fprintf(html_fp, "}\n");
-    fprintf(html_fp, "\n");
-    fprintf(html_fp, "h3 {\n");
-    fprintf(html_fp, "  text-align: center;\n");
-    fprintf(html_fp, "}\n");
-    fprintf(html_fp, "pre {\n");
-    fprintf(html_fp, "  text-align: center;\n");
-    fprintf(html_fp, "}\n");
-
-    fprintf(html_fp, ".collapsible {\n");
-    fprintf(html_fp, "  background-color: #777;\n");
-    fprintf(html_fp, "  color: white;\n");
-    fprintf(html_fp, "  cursor: pointer;\n");
-    // fprintf(html_fp, "  padding: 18px;\n");
-    fprintf(html_fp, "  width: 100%%;\n");
-    fprintf(html_fp, "  border: none;\n");
-    fprintf(html_fp, "  text-align: left;\n");
-    fprintf(html_fp, "  outline: none;\n");
-    // fprintf(html_fp, "  font-size: 15px;\n");
-    fprintf(html_fp, "}\n");
-    fprintf(html_fp, "\n");
-    fprintf(html_fp, ".active, .collapsible:hover {\n");
-    fprintf(html_fp, "  background-color: #555;\n");
-    fprintf(html_fp, "}\n");
-    fprintf(html_fp, "\n");
-    fprintf(html_fp, ".content {\n");
-    fprintf(html_fp, "  padding: 0;\n");
-    fprintf(html_fp, "  display: none;\n");
-    fprintf(html_fp, "  overflow: hidden;\n");
-    fprintf(html_fp, "  background-color: #f1f1f1;\n");
-    fprintf(html_fp, "}\n");
-
-    fprintf(html_fp, "</style>\n");
-    fprintf(html_fp, "</head>\n");
-
-    fprintf(html_fp, "<table>");
-    fprintf(html_fp, "<h1>RaSCSI scsimon Capture Tool</h1>\n");
-    fprintf(html_fp, "<pre>Version %s (%s, %s)\n",
-            rascsi_get_version_string(),
-            __DATE__,
-            __TIME__);
-    fprintf(html_fp, "Copyright (C) 2016-2020 GIMONS\n");
-    fprintf(html_fp, "Copyright (C) 2020-2021 Contributors to the RaSCSI project\n");
-    fprintf(html_fp, "</pre></table>\n");
-    fprintf(html_fp, "<br>\n");
-
-    fprintf(html_fp, "<table>\n");
+const static string html_header = R"(
+<html>
+<head>
+<style>
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+h1 {
+  text-align: center;
 }
 
-static void print_html_footer(FILE *html_fp)
-{
-    fprintf(html_fp, "</table>\n\n");
-
-    fprintf(html_fp, "<script>\n");
-    fprintf(html_fp, "var coll = document.getElementsByClassName(\"collapsible\");\n");
-    fprintf(html_fp, "var i;\n");
-    fprintf(html_fp, "\n");
-    fprintf(html_fp, "for (i = 0; i < coll.length; i++) {\n");
-    fprintf(html_fp, "  coll[i].addEventListener(\"click\", function() {\n");
-    fprintf(html_fp, "    this.classList.toggle(\"active\");\n");
-    fprintf(html_fp, "    var content = this.nextElementSibling;\n");
-    fprintf(html_fp, "    if (content.style.display === \"block\") {\n");
-    fprintf(html_fp, "      content.style.display = \"none\";\n");
-    fprintf(html_fp, "    } else {\n");
-    fprintf(html_fp, "      content.style.display = \"block\";\n");
-    fprintf(html_fp, "    }\n");
-    fprintf(html_fp, "  });\n");
-    fprintf(html_fp, "}\n");
-    fprintf(html_fp, "</script>\n\n");
-
-    fprintf(html_fp, "</html>\n");
+h2 {
+  text-align: center;
 }
 
-static void print_html_data(FILE *html_fp, const data_capture *data_capture_array, int capture_count)
+h3 {
+  text-align: center;
+}
+pre {
+  text-align: center;
+}
+.collapsible {
+  background-color: #777;
+  color: white;
+  cursor: pointer;
+  width: 100%%;
+  border: none;
+  text-align: left;
+  outline: none;
+}
+
+.active, .collapsible:hover {
+  background-color: #555;
+}
+
+.content {
+  padding: 0;
+  display: none;
+  overflow: hidden;
+  background-color: #f1f1f1;
+}
+</style>
+</head>
+)";
+
+static void print_copyright_info(ofstream& html_fp)
+{
+    html_fp << "<table>" << endl \
+            << "<h1>RaSCSI scsimon Capture Tool</h1>" << endl \
+            << "<pre>Version " << rascsi_get_version_string() \
+            << __DATE__ << " " << __TIME__ << endl \
+            << "Copyright (C) 2016-2020 GIMONS" << endl \
+            << "Copyright (C) 2020-2021 Contributors to the RaSCSI project" << endl \
+            << "</pre></table>" << endl \
+            << "<br>" << endl;
+}
+
+static const string html_footer = R"(
+</table>
+<script>
+var coll = document.getElementsByClassName(\"collapsible\");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener(\"click\", function() {
+    this.classList.toggle(\"active\");
+    var content = this.nextElementSibling;
+    if (content.style.display === \"block\") {
+      content.style.display = \"none\";
+    } else {
+      content.style.display = \"block\";
+    }
+  });
+}
+</script>
+</html>
+)";
+
+
+static void print_html_data(ofstream& html_fp, const data_capture *data_capture_array, DWORD capture_count)
 {
     const data_capture *data;
     bool prev_data_valid = false;
@@ -116,7 +110,9 @@ static void print_html_data(FILE *html_fp, const data_capture *data_capture_arra
     bool collapsible_div_active = false;
     bool button_active = false;
 
-    for (int idx = 0; idx < capture_count; idx++)
+    html_fp << "<table>" << endl;
+
+    for (DWORD idx = 0; idx < capture_count; idx++)
     {
         data = &data_capture_array[idx];
         curr_data_valid = GetAck(data) && GetReq(data);
@@ -131,59 +127,59 @@ static void print_html_data(FILE *html_fp, const data_capture *data_capture_arra
             {
                 if (collapsible_div_active)
                 {
-                    fprintf(html_fp, "</code></div>\n");
+                    html_fp << "</code></div>";
                 }
                 else if (button_active)
                 {
-                    fprintf(html_fp, "</code></button>");
+                    html_fp << "</code></button>";
                 }
-                fprintf(html_fp, "</td>");
+                html_fp <<  "</td>";
                 if (data_space_count < 1)
                 {
-                    fprintf(html_fp, "<td>--</td>");
+                    html_fp << "<td>--</td>";
                 }
                 else
                 {
-                    fprintf(html_fp, "<td>wc: %d (0x%X)</td>", data_space_count, data_space_count);
+                    html_fp << "<td>wc: " << std::dec << "(0x" << std::hex << data_space_count << ")</td>";
                 }
-                fprintf(html_fp, "</tr>\n");
+                html_fp << "</tr>" << endl;
                 data_space_count = 0;
             }
-            fprintf(html_fp, "<tr>");
+            html_fp << "<tr>";
             close_row = true; // Close the row the next time around
-            fprintf(html_fp, "<td>%f</td>", (double)data->timestamp / 100000);
-            fprintf(html_fp, "<td>%s</td>", GetPhaseStr(data));
-            fprintf(html_fp, "<td>%02X</td>", selected_id);
-            fprintf(html_fp, "<td>");
+            html_fp << "<td>" << (double)data->timestamp / 100000 << "</td>";
+            html_fp << "<td>" << GetPhaseStr(data) << "</td>";
+            html_fp << "<td>" << std::hex << selected_id << "</td>";
+            html_fp << "<td>";
         }
         if (curr_data_valid && !prev_data_valid)
         {
             if (data_space_count == 0)
             {
                 button_active = true;
-                fprintf(html_fp, "<button type=\"button\" class=\"collapsible\"><code>");
+                html_fp << "<button type=\"button\" class=\"collapsible\"><code>";
             }
             if ((data_space_count % 16) == 0)
             {
-                fprintf(html_fp, "%02X: ", data_space_count);
+                html_fp << std::hex << data_space_count << ": ";
             }
 
-            fprintf(html_fp, "%02X", GetData(data));
+            html_fp << fmt::format("{0:02X}", GetData(data));
 
             data_space_count++;
             if ((data_space_count % 4) == 0)
             {
-                fprintf(html_fp, " ");
+                html_fp <<  " ";
             }
             if (data_space_count == 16)
             {
-                fprintf(html_fp, "</code></button><div class=\"content\"><code>\n");
+                html_fp << "</code></button><div class=\"content\"><code>" << endl;
                 collapsible_div_active = true;
                 button_active = false;
             }
             if (((data_space_count % 16) == 0) && (data_space_count > 17))
             {
-                fprintf(html_fp, "<br>\n");
+                html_fp << "<br>" << endl;
             }
         }
         prev_data_valid = curr_data_valid;
@@ -191,15 +187,19 @@ static void print_html_data(FILE *html_fp, const data_capture *data_capture_arra
     }
 }
 
-void scsimon_generate_html(const char *filename, const data_capture *data_capture_array, int capture_count)
+void scsimon_generate_html(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
 {
     LOGINFO("Creating HTML report file (%s)", filename);
 
-    FILE *html_fp = fopen(filename, "w");
+    ofstream html_ofstream;
 
-    print_html_header(html_fp, filename);
-    print_html_data(html_fp, data_capture_array, capture_count);
-    print_html_footer(html_fp);
+    html_ofstream.open(filename, ios::out);
 
-    fclose(html_fp);
+    html_ofstream << html_header;
+    print_copyright_info(html_ofstream);
+    print_html_data(html_ofstream, data_capture_array, capture_count);
+
+    html_ofstream << html_footer;
+
+    html_ofstream.close();
 }

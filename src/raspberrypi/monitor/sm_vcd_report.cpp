@@ -109,7 +109,7 @@ static void vcd_output_if_changed_byte(FILE *fp, DWORD data, int pin, char symbo
     }
 }
 
-void scsimon_generate_value_change_dump(const char *filename, const data_capture *data_capture_array, int capture_count)
+void scsimon_generate_value_change_dump(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
 {
     LOGTRACE("Creating Value Change Dump file (%s)", filename);
     FILE *fp = fopen(filename, "w");

@@ -11,19 +11,19 @@
 #include "sm_reports.h"
 #include "log.h"
 #include "spdlog/spdlog.h"
-
+#include "string.h"
+#include <iostream>
+#include <fstream>
 using namespace std;
 
 const char timestamp_label[] = "\"timestamp\":\"0x";
 const char data_label[] = "\"data\":\"0x";
 
-FILE *html_fp;
-
-int scsimon_read_json(const char *json_filename, data_capture *data_capture_array, int max_sz)
+DWORD scsimon_read_json(const char *json_filename, data_capture *data_capture_array, DWORD max_sz)
 {
     char str_buf[1024];
     FILE *fp = fopen(json_filename, "r");
-    int sample_count = 0;
+    DWORD sample_count = 0;
 
     while (fgets(str_buf, sizeof(str_buf), fp))
     {
@@ -36,14 +36,14 @@ int scsimon_read_json(const char *json_filename, data_capture *data_capture_arra
 
         char *timestamp_str;
         char *data_str;
-        timestamp_str = strnstr(str_buf, timestamp_label, sizeof(str_buf));
+        timestamp_str = strstr(str_buf, timestamp_label);
         if (!timestamp_str)
             continue;
         strncpy(timestamp, &timestamp_str[strlen(timestamp_label)], 16);
         timestamp[16] = '\0';
         timestamp_uint = strtoull(timestamp, &ptr, 16);
 
-        data_str = strnstr(str_buf, data_label, sizeof(str_buf));
+        data_str = strstr(str_buf, data_label);
         if (!data_str)
             continue;
         strncpy(data, &data_str[strlen(data_label)], 8);
@@ -72,26 +72,27 @@ int scsimon_read_json(const char *json_filename, data_capture *data_capture_arra
 //	Generate JSON Output File
 //
 //---------------------------------------------------------------------------
-void scsimon_generate_json(const char *filename, const data_capture *data_capture_array, int capture_count)
+void scsimon_generate_json(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
 {
     LOGTRACE("Creating JSON file (%s)", filename);
-    FILE *fp = fopen(filename, "w");
-    fprintf(fp, "[\n");
+    ofstream json_ofstream;
+    json_ofstream.open(filename, ios::out);
+
+    json_ofstream << "[" << endl;
 
     DWORD i = 0;
     while (i < capture_count)
     {
-        fprintf(fp, "   {\"id\":\"%d\", \"timestamp\":\"0x%016llX\", \"data\":\"0x%08X\" }", i, data_capture_array[i].timestamp, data_capture_array[i].data);
+        json_ofstream << fmt::format("{{\"id\": \"{0:d}\", \"timestamp\":\"{1:#016x}\", \"data\":\"{2:#08x}\"}}", i, data_capture_array[i].timestamp, data_capture_array[i].data);
+
         if (i != (capture_count - 1))
         {
-            fprintf(fp, ",\n");
+            json_ofstream << ",";
         }
-        else
-        {
-            fprintf(fp, "\n");
-        }
+        json_ofstream << endl;
         i++;
     }
-    fprintf(fp, "]\n");
-    fclose(fp);
+    json_ofstream << "]" << endl;
+    json_ofstream.close();
+
 }
