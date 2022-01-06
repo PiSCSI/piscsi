@@ -13,8 +13,10 @@
 #include "spdlog/spdlog.h"
 #include <sstream>
 #include <iostream>
+#include <fstream>
 #include "data_sample.h"
 #include "sm_reports.h"
+#include "gpiobus.h"
 
 using namespace std;
 
@@ -27,17 +29,17 @@ using namespace std;
 // Symbol definition for the VCD file
 // These are just arbitrary symbols. They can be anything allowed by the VCD file format,
 // as long as they're consistently used.
-#define SYMBOL_PIN_DAT '#'
-#define SYMBOL_PIN_ATN '+'
-#define SYMBOL_PIN_RST '$'
-#define SYMBOL_PIN_ACK '%'
-#define SYMBOL_PIN_REQ '^'
-#define SYMBOL_PIN_MSG '&'
-#define SYMBOL_PIN_CD '*'
-#define SYMBOL_PIN_IO '('
-#define SYMBOL_PIN_BSY ')'
-#define SYMBOL_PIN_SEL '-'
-#define SYMBOL_PIN_PHASE '='
+const char SYMBOL_PIN_DAT  = '#';
+const char SYMBOL_PIN_ATN  = '+';
+const char SYMBOL_PIN_RST  = '$';
+const char SYMBOL_PIN_ACK  = '%';
+const char SYMBOL_PIN_REQ  = '^';
+const char SYMBOL_PIN_MSG  = '&';
+const char SYMBOL_PIN_CD   = '*';
+const char SYMBOL_PIN_IO   = '(';
+const char SYMBOL_PIN_BSY  = ')';
+const char SYMBOL_PIN_SEL  = '-';
+const char SYMBOL_PIN_PHASE  = '=';
 
 // We'll use position 0 in the prev_value array to store the previous phase
 #define PIN_PHASE 0
@@ -71,48 +73,50 @@ static BYTE get_data_field(DWORD data)
     return (BYTE)data_out;
 }
 
-static void vcd_output_if_changed_phase(FILE *fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_phase(ofstream& fp, DWORD data, int pin, char symbol)
 {
     BUS::phase_t new_value = GPIOBUS::GetPhaseRaw(data);
     if (prev_value[pin] != new_value)
     {
         prev_value[pin] = new_value;
-        fprintf(fp, "s%s %c\n", GPIOBUS::GetPhaseStrRaw(new_value), symbol);
+        fp << "s" << GPIOBUS::GetPhaseStrRaw(new_value) << " " << symbol << endl;
     }
 }
 
-static void vcd_output_if_changed_bool(FILE *fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_bool(ofstream& fp, DWORD data, int pin, char symbol)
 {
     BOOL new_value = get_pin_value(data, pin);
     if (prev_value[pin] != new_value)
     {
         prev_value[pin] = new_value;
-        fprintf(fp, "%d%c\n", new_value, symbol);
+        fp << new_value << symbol << endl;
     }
 }
 
-static void vcd_output_if_changed_byte(FILE *fp, DWORD data, int pin, char symbol)
+static void vcd_output_if_changed_byte(ofstream& fp, DWORD data, int pin, char symbol)
 {
     BYTE new_value = get_data_field(data);
     if (prev_value[pin] != new_value)
     {
         prev_value[pin] = new_value;
-        fprintf(fp, "b%d%d%d%d%d%d%d%d %c\n",
-                get_pin_value(data, PIN_DT7),
-                get_pin_value(data, PIN_DT6),
-                get_pin_value(data, PIN_DT5),
-                get_pin_value(data, PIN_DT4),
-                get_pin_value(data, PIN_DT3),
-                get_pin_value(data, PIN_DT2),
-                get_pin_value(data, PIN_DT1),
-                get_pin_value(data, PIN_DT0), symbol);
+        fp << "b"
+            << fmt::format("{0:b}", get_pin_value(data, PIN_DT7))
+            << fmt::format("{0:b}", get_pin_value(data, PIN_DT6))
+            << fmt::format("{0:b}", get_pin_value(data, PIN_DT5))
+            << fmt::format("{0:b}", get_pin_value(data, PIN_DT4))
+            << fmt::format("{0:b}", get_pin_value(data, PIN_DT3))
+            << fmt::format("{0:b}", get_pin_value(data, PIN_DT2))
+            << fmt::format("{0:b}", get_pin_value(data, PIN_DT1))
+            << fmt::format("{0:b}", get_pin_value(data, PIN_DT0))
+            << " " << symbol << endl;
     }
 }
 
 void scsimon_generate_value_change_dump(const char *filename, const data_capture *data_capture_array, DWORD capture_count)
 {
     LOGTRACE("Creating Value Change Dump file (%s)", filename);
-    FILE *fp = fopen(filename, "w");
+    ofstream vcd_ofstream;
+    vcd_ofstream.open(filename, ios::out);
 
     // Get the current time
     time_t rawtime;
@@ -121,63 +125,63 @@ void scsimon_generate_value_change_dump(const char *filename, const data_capture
     char timestamp[256];
     strftime(timestamp, sizeof(timestamp), "%d-%m-%Y %H-%M-%S", timeinfo);
 
-    fprintf(fp, "$date\n");
-    fprintf(fp, "%s\n", timestamp);
-    fprintf(fp, "$end\n");
-    fprintf(fp, "$version\n");
-    fprintf(fp, "   VCD generator tool version info text.\n");
-    fprintf(fp, "$end\n");
-    fprintf(fp, "$comment\n");
-    fprintf(fp, "   Tool build date:%s\n", __TIMESTAMP__);
-    fprintf(fp, "$end\n");
-    fprintf(fp, "$timescale 1 ns $end\n");
-    fprintf(fp, "$scope module logic $end\n");
-    fprintf(fp, "$var wire 1 %c BSY $end\n", SYMBOL_PIN_BSY);
-    fprintf(fp, "$var wire 1 %c SEL $end\n", SYMBOL_PIN_SEL);
-    fprintf(fp, "$var wire 1 %c CD $end\n", SYMBOL_PIN_CD);
-    fprintf(fp, "$var wire 1 %c IO $end\n", SYMBOL_PIN_IO);
-    fprintf(fp, "$var wire 1 %c MSG $end\n", SYMBOL_PIN_MSG);
-    fprintf(fp, "$var wire 1 %c REQ $end\n", SYMBOL_PIN_REQ);
-    fprintf(fp, "$var wire 1 %c ACK $end\n", SYMBOL_PIN_ACK);
-    fprintf(fp, "$var wire 1 %c ATN $end\n", SYMBOL_PIN_ATN);
-    fprintf(fp, "$var wire 1 %c RST $end\n", SYMBOL_PIN_RST);
-    fprintf(fp, "$var wire 8 %c data $end\n", SYMBOL_PIN_DAT);
-    fprintf(fp, "$var string 1 %c phase $end\n", SYMBOL_PIN_PHASE);
-    fprintf(fp, "$upscope $end\n");
-    fprintf(fp, "$enddefinitions $end\n");
+    vcd_ofstream 
+        << "$date" << endl
+        << timestamp << endl
+        << "$end" << endl
+        << "$version" << endl
+        << "   VCD generator tool version info text." << endl
+        << "$end" << endl
+        << "$comment" << endl
+        << "   Tool build date:" << __TIMESTAMP__ << endl
+        << "$end" << endl
+        << "$timescale 1 ns $end" << endl
+        << "$scope module logic $end" << endl
+        << "$var wire 1 " << SYMBOL_PIN_BSY << " BSY $end" << endl
+        << "$var wire 1 " << SYMBOL_PIN_SEL << " SEL $end" << endl
+        << "$var wire 1 " << SYMBOL_PIN_CD  << " CD $end" << endl
+        << "$var wire 1 " << SYMBOL_PIN_IO  << " IO $end"<< endl
+        << "$var wire 1 " << SYMBOL_PIN_MSG << " MSG $end"<< endl
+        << "$var wire 1 " << SYMBOL_PIN_REQ << " REQ $end" << endl
+        << "$var wire 1 " << SYMBOL_PIN_ACK << " ACK $end" << endl
+        << "$var wire 1 " << SYMBOL_PIN_ATN << " ATN $end" << endl
+        << "$var wire 1 " << SYMBOL_PIN_RST << " RST $end" << endl
+        << "$var wire 8 " << SYMBOL_PIN_DAT << " data $end" << endl
+        << "$var string 1 " << SYMBOL_PIN_PHASE  << " phase $end" << endl
+        << "$upscope $end" << endl
+        << "$enddefinitions $end" << endl;
 
     // Initial values - default to zeros
-    fprintf(fp, "$dumpvars\n");
-    fprintf(fp, "0%c\n", SYMBOL_PIN_BSY);
-    fprintf(fp, "0%c\n", SYMBOL_PIN_SEL);
-    fprintf(fp, "0%c\n", SYMBOL_PIN_CD);
-    fprintf(fp, "0%c\n", SYMBOL_PIN_IO);
-    fprintf(fp, "0%c\n", SYMBOL_PIN_MSG);
-    fprintf(fp, "0%c\n", SYMBOL_PIN_REQ);
-    fprintf(fp, "0%c\n", SYMBOL_PIN_ACK);
-    fprintf(fp, "0%c\n", SYMBOL_PIN_ATN);
-    fprintf(fp, "0%c\n", SYMBOL_PIN_RST);
-    fprintf(fp, "b00000000 %c\n", SYMBOL_PIN_DAT);
-    fprintf(fp, "$end\n");
+    vcd_ofstream
+        << "$dumpvars" << endl
+        << "0" << SYMBOL_PIN_BSY << endl
+        << "0" << SYMBOL_PIN_SEL << endl
+        << "0" << SYMBOL_PIN_CD << endl
+        << "0" << SYMBOL_PIN_IO << endl
+        << "0" << SYMBOL_PIN_MSG << endl
+        << "0" << SYMBOL_PIN_REQ << endl
+        << "0" << SYMBOL_PIN_ACK << endl
+        << "0" << SYMBOL_PIN_ATN << endl
+        << "0" << SYMBOL_PIN_RST << endl
+        << "b00000000 " << SYMBOL_PIN_DAT << endl
+        << "$end" << endl;
 
     DWORD i = 0;
     while (i < capture_count)
     {
-        ostringstream s;
-        s << (uint64_t)(data_capture_array[i].timestamp * ns_per_loop);
-        fprintf(fp, "#%s\n", s.str().c_str());
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_BSY, SYMBOL_PIN_BSY);
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_SEL, SYMBOL_PIN_SEL);
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_CD, SYMBOL_PIN_CD);
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_IO, SYMBOL_PIN_IO);
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_MSG, SYMBOL_PIN_MSG);
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_REQ, SYMBOL_PIN_REQ);
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_ACK, SYMBOL_PIN_ACK);
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_ATN, SYMBOL_PIN_ATN);
-        vcd_output_if_changed_bool(fp, data_capture_array[i].data, PIN_RST, SYMBOL_PIN_RST);
-        vcd_output_if_changed_byte(fp, data_capture_array[i].data, PIN_DT0, SYMBOL_PIN_DAT);
-        vcd_output_if_changed_phase(fp, data_capture_array[i].data, PIN_PHASE, SYMBOL_PIN_PHASE);
+        vcd_ofstream << "#" << (uint64_t)(data_capture_array[i].timestamp * ns_per_loop) << endl;
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_BSY, SYMBOL_PIN_BSY);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_SEL, SYMBOL_PIN_SEL);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_CD, SYMBOL_PIN_CD);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_IO, SYMBOL_PIN_IO);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_MSG, SYMBOL_PIN_MSG);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_REQ, SYMBOL_PIN_REQ);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_ACK, SYMBOL_PIN_ACK);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_ATN, SYMBOL_PIN_ATN);
+        vcd_output_if_changed_bool(vcd_ofstream, data_capture_array[i].data, PIN_RST, SYMBOL_PIN_RST);
+        vcd_output_if_changed_byte(vcd_ofstream, data_capture_array[i].data, PIN_DT0, SYMBOL_PIN_DAT);
+        vcd_output_if_changed_phase(vcd_ofstream, data_capture_array[i].data, PIN_PHASE, SYMBOL_PIN_PHASE);
         i++;
     }
-    fclose(fp);
+    vcd_ofstream.close();
 }
