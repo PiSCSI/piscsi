@@ -67,10 +67,10 @@ bool import_data = false;
 // all kinds of compiler warnings when the log filename can be up to 256
 // characters. _MAX_FNAME/2 is just an arbitrary value.
 char file_base_name[_MAX_FNAME / 2] = "log";
-char vcd_file_name[_MAX_FNAME / 2];
-char json_file_name[_MAX_FNAME / 2];
-char html_file_name[_MAX_FNAME / 2];
-char input_file_name[_MAX_FNAME / 2];
+char vcd_file_name[_MAX_FNAME];
+char json_file_name[_MAX_FNAME];
+char html_file_name[_MAX_FNAME];
+char input_file_name[_MAX_FNAME];
 
 //---------------------------------------------------------------------------
 //
@@ -100,7 +100,7 @@ void parse_arguments(int argc, char *argv[])
             buff_size = atoi(optarg);
             break;
         case 'i':
-            strncpy(input_file_name, optarg, sizeof(input_file_name));
+            strncpy(input_file_name, optarg, sizeof(input_file_name)-1);
             import_data = true;
             break;
         case 1:
@@ -116,14 +116,14 @@ void parse_arguments(int argc, char *argv[])
     if (optind < argc)
     {
         while (optind < argc)
-            strncpy(file_base_name, argv[optind++], sizeof(file_base_name));
+            strncpy(file_base_name, argv[optind++], sizeof(file_base_name)-1);
     }
 
-    strncpy(vcd_file_name, file_base_name, sizeof(file_base_name) - 4);
+    strcpy(vcd_file_name, file_base_name);
     strcat(vcd_file_name, ".vcd");
-    strncpy(json_file_name, file_base_name, sizeof(file_base_name) - 5);
+    strcpy(json_file_name, file_base_name);
     strcat(json_file_name, ".json");
-    strncpy(html_file_name, file_base_name, sizeof(file_base_name) - 5);
+    strcpy(html_file_name, file_base_name);
     strcat(html_file_name, ".html");
 }
 //---------------------------------------------------------------------------
@@ -141,7 +141,7 @@ void print_copyright_text(int argc, char *argv[])
     LOGINFO("Powered by XM6 TypeG Technology ");
     LOGINFO("Copyright (C) 2016-2020 GIMONS");
     LOGINFO("Copyright (C) 2020-2021 Contributors to the RaSCSI project");
-    LOGINFO("");
+    LOGINFO(" ");
 }
 
 //---------------------------------------------------------------------------
@@ -176,7 +176,7 @@ void Banner(int argc, char *argv[])
         LOGINFO("    Connection type : %s", CONNECT_DESC);
     }
     LOGINFO("    Data buffer size: %u", buff_size);
-    LOGINFO("");
+    LOGINFO(" ");
     LOGINFO("Generating output files:");
     LOGINFO("   %s - Value Change Dump file that can be opened with GTKWave", vcd_file_name);
     LOGINFO("   %s - JSON file with raw data", json_file_name);
@@ -227,7 +227,7 @@ void Cleanup()
     {
         LOGINFO("Stopping data collection....");
     }
-    LOGINFO("");
+    LOGINFO(" ");
     LOGINFO("Generating %s...", vcd_file_name);
     scsimon_generate_value_change_dump(vcd_file_name, data_buffer, data_idx);
     LOGINFO("Generating %s...", json_file_name);
