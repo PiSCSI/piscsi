@@ -70,6 +70,11 @@ public:
 		eCmdReadCapacity16_ReadLong16 = 0x9E,
 		eCmdWriteLong16 = 0x9F,
 		eCmdReportLuns = 0xA0
+		eCmdUnknownPowerViewC8 = 0xC8,
+		eCmdUnknownPowerviewC9 = 0xC9,
+		eCmdUnknownPowerviewCA = 0xCA,
+		eCmdUnknownPowerviewCB = 0xCB,
+		eCmdUnknownPowerviewCC = 0xCC,
 	};
 
 	// Internal data definition

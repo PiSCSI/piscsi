@@ -65,6 +65,13 @@ public:
 
 	// void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
 
+
+	void UnknownCommandC8(SASIDEV *controller);
+	void UnknownCommandC9(SASIDEV *controller);
+	void UnknownCommandCA(SASIDEV *controller);
+	void UnknownCommandCB(SASIDEV *controller);
+	void UnknownCommandCC(SASIDEV *controller);
+	
 	// void TestUnitReady(SASIDEV *) override;
 	// void Read6(SASIDEV *) override;
 	// void Write6(SASIDEV *) override;
