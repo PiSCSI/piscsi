@@ -69,12 +69,12 @@ public:
 		eCmdSynchronizeCache16 = 0x91,
 		eCmdReadCapacity16_ReadLong16 = 0x9E,
 		eCmdWriteLong16 = 0x9F,
-		eCmdReportLuns = 0xA0
+		eCmdReportLuns = 0xA0,
 		eCmdUnknownPowerViewC8 = 0xC8,
-		eCmdUnknownPowerviewC9 = 0xC9,
-		eCmdUnknownPowerviewCA = 0xCA,
-		eCmdUnknownPowerviewCB = 0xCB,
-		eCmdUnknownPowerviewCC = 0xCC,
+		eCmdUnknownPowerViewC9 = 0xC9,
+		eCmdUnknownPowerViewCA = 0xCA,
+		eCmdUnknownPowerViewCB = 0xCB,
+		eCmdUnknownPowerViewCC = 0xCC,
 	};
 
 	// Internal data definition

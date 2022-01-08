@@ -37,6 +37,7 @@
 #include "os.h"
 #include "disk.h"
 #include <sys/mman.h>
+#include "log.h"
 
 static unsigned char reverse_table[256];
 
@@ -53,20 +54,11 @@ const BYTE SCSIPowerView::m_inquiry_response[] = {
 
 SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 {
-	// m_tap = NULL;
-	// m_bTapEnable = false;
-
-	// AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &SCSIPowerView::TestUnitReady);
-	// AddCommand(SCSIDEV::eCmdRead6, "Read6", &SCSIPowerView::Read6);
-	// AddCommand(SCSIDEV::eCmdWrite6, "Write6", &SCSIPowerView::Write6);
-	// AddCommand(SCSIDEV::eCmdRetrieveStats, "RetrieveStats", &SCSIPowerView::RetrieveStatistics);
-	// AddCommand(SCSIDEV::eCmdSetIfaceMode, "SetIfaceMode", &SCSIPowerView::SetInterfaceMode);
-	// AddCommand(SCSIDEV::eCmdSetMcastAddr, "SetMcastAddr", &SCSIPowerView::SetMcastAddr);
-	AddCommand(SCSIDEV::eCmdUnknownPowerviewC8, "EnableInterface", &SCSIPowerView::UnknownCommandC8);
-	AddCommand(SCSIDEV::eCmdUnknownPowerviewC9, "EnableInterface", &SCSIPowerView::UnknownCommandC9);
-	AddCommand(SCSIDEV::eCmdUnknownPowerviewCA, "EnableInterface", &SCSIPowerView::UnknownCommandCA);
-	AddCommand(SCSIDEV::eCmdUnknownPowerviewCB, "EnableInterface", &SCSIPowerView::UnknownCommandCB);
-	AddCommand(SCSIDEV::eCmdUnknownPowerviewCC, "EnableInterface", &SCSIPowerView::UnknownCommandCC);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewC8, "Unknown PowerViewC8", &SCSIPowerView::UnknownCommandC9);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewC9, "Unknown PowerViewC9", &SCSIPowerView::UnknownCommandC9);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewCA, "Unknown PowerViewCA", &SCSIPowerView::UnknownCommandC9);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewCB, "Unknown PowerViewCB", &SCSIPowerView::UnknownCommandC9);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewCC, "Unknown PowerViewCC", &SCSIPowerView::UnknownCommandC9);
 
 struct fb_var_screeninfo fbinfo;
 	struct fb_fix_screeninfo fbfixinfo;
@@ -139,31 +131,50 @@ void SCSIPowerView::AddCommand(SCSIDEV::scsi_command opcode, const char* name, v
 }
 
 
+void SCSIPowerView::dump_command(SASIDEV *controller){
 
+            LOGWARN("                %02X %02X %02X %02X %02X %02X %02X %02X [%02X] \n",
+				ctrl->cmd[0],
+				ctrl->cmd[1],
+				ctrl->cmd[2],
+				ctrl->cmd[3],
+				ctrl->cmd[4],
+				ctrl->cmd[5],
+				ctrl->cmd[6],
+				ctrl->cmd[7],
+				ctrl->cmd[8]);
 
-//---------------------------------------------------------------------------
-//
-//	Unknown Command C8
-//
-//---------------------------------------------------------------------------
-void SCSIPowerView::UnknownCommandC8(SASIDEV *controller)
-{
+	// for(int i=0; i<8; i++){
+    //         LOGWARN("   [%d]: %08X\n",i, ctrl->cmd[i]);	
+	// }
 
-	// Set transfer amount
-	ctrl->length = ctrl->cmd[6];
-
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
-	}
-
-	// Set next block
-	ctrl->blocks = 1;
-	ctrl->next = 1;
-
-	controller->DataOut();
 }
+
+// //---------------------------------------------------------------------------
+// //
+// //	Unknown Command C8
+// //
+// //---------------------------------------------------------------------------
+// void SCSIPowerView::UnknownCommandC8(SASIDEV *controller)
+// {
+
+// 	// Set transfer amount
+// 	ctrl->length = ctrl->cmd[6];
+// 	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+// 	dump_command(controller);
+
+// 	if (ctrl->length <= 0) {
+// 		// Failure (Error)
+// 		controller->Error();
+// 		return;
+// 	}
+
+// 	// Set next block
+// 	ctrl->blocks = 1;
+// 	ctrl->next = 1;
+
+// 	controller->DataOut();
+// }
 
 
 //---------------------------------------------------------------------------
@@ -176,18 +187,26 @@ void SCSIPowerView::UnknownCommandC9(SASIDEV *controller)
 
 	// Set transfer amount
 	ctrl->length = ctrl->cmd[6];
+	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+	dump_command(controller);
+	LOGWARN("Controller: %08X ctrl: %08X", (DWORD)controller->GetCtrl(), (DWORD)ctrl);
+	// if (ctrl->length <= 0) {
+	// 	// Failure (Error)
+	// 	controller->Error();
+	// 	return;
+	// }
 
-	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
+	if (ctrl->length == 0){
+		controller->Status();
 	}
+	else
+	{
+		// Set next block
+		ctrl->blocks = 1;
+		ctrl->next = 1;
 
-	// Set next block
-	ctrl->blocks = 1;
-	ctrl->next = 1;
-
-	controller->DataOut();
+		controller->DataOut();
+	}
 }
 
 
@@ -202,7 +221,8 @@ void SCSIPowerView::UnknownCommandCA(SASIDEV *controller)
 
 	// Set transfer amount
 	ctrl->length = ctrl->cmd[6];
-
+	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+dump_command(controller);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
@@ -227,7 +247,8 @@ void SCSIPowerView::UnknownCommandCB(SASIDEV *controller)
 
 	// Set transfer amount
 	ctrl->length = ctrl->cmd[6];
-
+	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+dump_command(controller);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
@@ -252,7 +273,8 @@ void SCSIPowerView::UnknownCommandCC(SASIDEV *controller)
 
 	// Set transfer amount
 	ctrl->length = ctrl->cmd[6];
-
+	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+dump_command(controller);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();

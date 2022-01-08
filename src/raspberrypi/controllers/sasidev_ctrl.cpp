@@ -578,7 +578,7 @@ void SASIDEV::DataIn()
 //---------------------------------------------------------------------------
 void SASIDEV::DataOut()
 {
-	ASSERT(ctrl.length >= 0);
+	// ASSERT(ctrl.length >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
@@ -609,8 +609,8 @@ void SASIDEV::DataOut()
 		ctrl.bus->SetIO(FALSE);
 
 		// length, blocks are already calculated
-		ASSERT(ctrl.length > 0);
-		ASSERT(ctrl.blocks > 0);
+		// ASSERT(ctrl.length > 0);
+		// ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 		return;
 	}
@@ -1193,6 +1193,13 @@ bool SASIDEV::XferOut(bool cont)
 		case SASIDEV::eCmdInvalid:
 			break;
 
+		case SASIDEV::eCmdUnknownPowerViewC8:
+		case SASIDEV::eCmdUnknownPowerViewC9:
+		case SASIDEV::eCmdUnknownPowerViewCA:
+		case SASIDEV::eCmdUnknownPowerViewCB:
+		case SASIDEV::eCmdUnknownPowerViewCC:
+			LOGWARN("Finished receiving a Powerview Command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
+			break;
 		case SASIDEV::eCmdSetMcastAddr:
 			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__);
 			break;

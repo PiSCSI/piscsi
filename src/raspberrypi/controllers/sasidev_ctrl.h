@@ -80,7 +80,12 @@ private:
 		eCmdWriteLong10 = 0x3F,
 		eCmdWriteLong16 = 0x9F,
 		eCmdInvalid = 0xC2,
-		eCmdSasiCmdAssign = 0x0E
+		eCmdSasiCmdAssign = 0x0E,
+		eCmdUnknownPowerViewC8 = 0xC8,
+		eCmdUnknownPowerViewC9 = 0xC9,
+		eCmdUnknownPowerViewCA = 0xCA,
+		eCmdUnknownPowerViewCB = 0xCB,
+		eCmdUnknownPowerViewCC = 0xCC
 	};
 
 public:

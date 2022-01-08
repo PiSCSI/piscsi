@@ -47,6 +47,8 @@ private:
 
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIPowerView::*)(SASIDEV *));
 
+	void dump_command(SASIDEV *controller);
+
 public:
 	SCSIPowerView();
 	~SCSIPowerView();
