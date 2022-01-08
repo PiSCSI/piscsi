@@ -1385,6 +1385,7 @@ BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
 //---------------------------------------------------------------------------
 void GPIOBUS::DisableIRQ()
 {
+#ifdef __linux__
 	if (rpitype == 4) {
 		// RPI4 is disabled by GICC
 		giccpmr = gicc[GICC_PMR];
@@ -1399,6 +1400,9 @@ void GPIOBUS::DisableIRQ()
 		irptenb = irpctl[IRPT_ENB_IRQ_1];
 		irpctl[IRPT_DIS_IRQ_1] = irptenb & 0xf;
 	}
+#else
+	(void)0;
+#endif
 }
 
 //---------------------------------------------------------------------------

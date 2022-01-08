@@ -24,8 +24,13 @@ else
 	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
+ifeq ("$(shell uname -s)","Linux")
+	# -Wno-psabi might not work on non-Linux platforms
+	CXXFLAGS += -Wno-psabi
+endif
+
 CFLAGS += -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
-CXXFLAGS += -std=c++17 -Wno-psabi -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
+CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CFLAGS += $(EXTRA_FLAGS)
@@ -105,9 +110,8 @@ SRC_SCSIMON = \
 	scsimon.cpp \
 	scsi.cpp \
 	gpiobus.cpp \
-	filepath.cpp \
-	fileio.cpp \
 	rascsi_version.cpp
+SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 
 SRC_RASCTL = \
 	rasctl.cpp\
@@ -135,8 +139,8 @@ SRC_SASIDUMP = \
 	fileio.cpp\
 	rascsi_version.cpp
 
-vpath %.h ./ ./controllers ./devices
-vpath %.cpp ./ ./controllers ./devices
+vpath %.h ./ ./controllers ./devices ./monitor
+vpath %.cpp ./ ./controllers ./devices ./monitor
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -192,6 +196,16 @@ $(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
+
+
+# Phony rules for building individual utilities
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
+$(RASCSI)  : $(BINDIR)/$(RASCSI) 
+$(RASCTL)  : $(BINDIR)/$(RASCTL) 
+$(RASDUMP) : $(BINDIR)/$(RASDUMP) 
+$(SASIDUMP): $(BINDIR)/$(SASIDUMP) 
+$(SCSIMON) : $(BINDIR)/$(SCSIMON)
+
 
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 

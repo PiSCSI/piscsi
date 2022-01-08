@@ -66,7 +66,8 @@ def list_images():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -123,7 +124,8 @@ def create_new_image(file_name, file_type, size):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.CREATE_IMAGE
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     command.params["file"] = file_name + "." + file_type
     command.params["size"] = str(size)
@@ -144,7 +146,8 @@ def delete_image(file_name):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DELETE_IMAGE
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     command.params["file"] = file_name
 
@@ -163,7 +166,8 @@ def rename_image(file_name, new_file_name):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RENAME_IMAGE
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     command.params["from"] = file_name
     command.params["to"] = new_file_name
@@ -275,7 +279,7 @@ def download_file_to_iso(url, *iso_args):
     tmp_full_path = tmp_dir + file_name
     iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
-    req_proc = download_to_dir(url, tmp_dir)
+    req_proc = download_to_dir(url, tmp_dir, file_name)
 
     if not req_proc["status"]:
         return {"status": False, "msg": req_proc["msg"]}
@@ -300,18 +304,16 @@ def download_file_to_iso(url, *iso_args):
                 delete_file(tmp_full_path)
 
     try:
-        iso_proc = (
-            run(
-                [
-                    "genisoimage",
-                    *iso_args,
-                    "-o",
-                    iso_filename,
-                    tmp_dir,
-                ],
-                capture_output=True,
-                check=True,
-            )
+        run(
+            [
+                "genisoimage",
+                *iso_args,
+                "-o",
+                iso_filename,
+                tmp_dir,
+            ],
+            capture_output=True,
+            check=True,
         )
     except CalledProcessError as error:
         logging.warning("Executed shell command: %s", " ".join(error.cmd))
@@ -320,18 +322,20 @@ def download_file_to_iso(url, *iso_args):
 
     return {
         "status": True,
-        "msg": _(u"Created CD-ROM ISO image with arguments \"%(value)s\"", value=" ".join(iso_args)),
+        "msg": _(
+            u"Created CD-ROM ISO image with arguments \"%(value)s\"",
+            value=" ".join(iso_args),
+            ),
         "file_name": iso_filename,
     }
 
 
-def download_to_dir(url, save_dir):
+def download_to_dir(url, save_dir, file_name):
     """
-    Takes (str) url, (str) save_dir
+    Takes (str) url, (str) save_dir, (str) file_name
     Returns (dict) with (bool) status and (str) msg
     """
     import requests
-    file_name = PurePath(url).name
     logging.info("Making a request to download %s", url)
 
     try:
@@ -393,7 +397,10 @@ def write_config(file_name):
                 json_file,
                 indent=4
                 )
-        return {"status": True, "msg": _(u"Saved configuration file to %(file_name)s", file_name=file_name)}
+        return {
+            "status": True,
+            "msg": _(u"Saved configuration file to %(file_name)s", file_name=file_name),
+            }
     except (IOError, ValueError, EOFError, TypeError) as error:
         logging.error(str(error))
         delete_file(file_name)

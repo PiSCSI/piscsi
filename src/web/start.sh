@@ -34,9 +34,13 @@ fi
 # Test for two known broken venv states
 if test -e venv; then
     GOOD_VENV=true
-    ! test -e venv/bin/activate && GOOD_VENV=false
-    pip3 list 1> /dev/null
-    test $? -eq 1 && GOOD_VENV=false
+    if ! test -e venv/bin/activate; then
+        GOOD_VENV=false
+    else
+        source venv/bin/activate
+        pip3 list 1> /dev/null
+        test $? -eq 1 && GOOD_VENV=false
+    fi
     if ! "$GOOD_VENV"; then
         echo "Deleting bad python venv"
         sudo rm -rf venv

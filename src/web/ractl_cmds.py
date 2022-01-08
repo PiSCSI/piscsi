@@ -2,11 +2,11 @@
 Module for commands sent to the RaSCSI backend service.
 """
 
-from settings import REMOVABLE_DEVICE_TYPES
-from socket_cmds import send_pb_command
 from flask import current_app, session
 from flask_babel import _
 import rascsi_interface_pb2 as proto
+from settings import REMOVABLE_DEVICE_TYPES
+from socket_cmds import send_pb_command
 
 
 def get_server_info():
@@ -25,7 +25,8 @@ def get_server_info():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.SERVER_INFO
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -84,7 +85,8 @@ def get_reserved_ids():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.RESERVED_IDS_INFO
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -106,7 +108,8 @@ def get_network_info():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.NETWORK_INTERFACES_INFO
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -125,7 +128,8 @@ def get_device_types():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICE_TYPES_INFO
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -148,7 +152,8 @@ def get_image_files_info():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -177,7 +182,8 @@ def attach_image(scsi_id, **kwargs):
     """
     command = proto.PbCommand()
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
     devices = proto.PbDeviceDefinition()
     devices.id = int(scsi_id)
 
@@ -253,7 +259,8 @@ def detach_by_id(scsi_id, unit=None):
     command.operation = proto.PbOperation.DETACH
     command.devices.append(devices)
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -269,7 +276,8 @@ def detach_all():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DETACH_ALL
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -292,7 +300,8 @@ def eject_by_id(scsi_id, unit=None):
     command.operation = proto.PbOperation.EJECT
     command.devices.append(devices)
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -312,7 +321,8 @@ def list_devices(scsi_id=None, unit=None):
     command = proto.PbCommand()
     command.operation = proto.PbOperation.DEVICES_INFO
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     # If method is called with scsi_id parameter, return the info on those devices
     # Otherwise, return the info on all attached devices
@@ -390,7 +400,8 @@ def reserve_scsi_ids(reserved_scsi_ids):
     command.operation = proto.PbOperation.RESERVE_IDS
     command.params["ids"] = ",".join(reserved_scsi_ids)
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -408,7 +419,8 @@ def set_log_level(log_level):
     command.operation = proto.PbOperation.LOG_LEVEL
     command.params["level"] = str(log_level)
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -426,7 +438,8 @@ def shutdown_pi(mode):
     command.operation = proto.PbOperation.SHUT_DOWN
     command.params["mode"] = str(mode)
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()
@@ -443,7 +456,8 @@ def is_token_auth():
     command = proto.PbCommand()
     command.operation = proto.PbOperation.CHECK_AUTHENTICATION
     command.params["token"] = current_app.config["TOKEN"]
-    command.params["locale"] = session["language"]
+    if "language" in session.keys():
+        command.params["locale"] = session["language"]
 
     data = send_pb_command(command.SerializeToString())
     result = proto.PbResult()

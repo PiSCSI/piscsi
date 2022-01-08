@@ -5,11 +5,14 @@
 *.layout
 *.log
 *.vcd
+*.json
+*.html
 rascsi
 scsimon
 rasctl
 sasidump
 rasdump
+scisparse
 obj
 bin
 /rascsi_interface.pb.cpp
