@@ -1563,7 +1563,23 @@ int GPIOBUS::GetCommandByteCount(BYTE opcode) {
 	}
 	else if (opcode >= 0x20 && opcode <= 0x7D) {
 		return 10;
-	} else {
+	}
+	else if(opcode == 0xC8){
+		return 8;
+	}
+	else if(opcode == 0xC9){
+		return 8;
+	}
+	else if(opcode == 0xCA){
+		return 11;
+	}
+	else if(opcode == 0xCB){
+		return 6;
+	}
+	else if(opcode == 0xCC){
+		return 4;
+	}
+	else {
 		return 6;
 	}
 }

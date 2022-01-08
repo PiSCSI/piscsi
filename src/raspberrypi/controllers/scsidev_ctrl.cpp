@@ -229,7 +229,8 @@ void SCSIDEV::Execute()
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdUnknownPowerViewCC) 
+		{
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);

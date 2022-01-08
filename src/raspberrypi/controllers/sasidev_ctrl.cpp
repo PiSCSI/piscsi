@@ -1033,6 +1033,7 @@ void SASIDEV::Receive()
 
 	// If result is false, move to the status phase
 	if (!result) {
+		LOGWARN("%s invalid result received", __PRETTY_FUNCTION__);
 		Error();
 		return;
 	}
@@ -1119,9 +1120,16 @@ bool SASIDEV::XferOut(bool cont)
 {
 	ASSERT(ctrl.phase == BUS::dataout);
 
+
+
 	// Logical Unit
 	DWORD lun = GetEffectiveLun();
+	if(ctrl.cmd[0] == SASIDEV::eCmdUnknownPowerViewCC)
+	{
+		lun = 0;
+	}
 	if (!ctrl.unit[lun]) {
+		LOGWARN("%s Invalid LUN %d - %02X", __PRETTY_FUNCTION__, (int)lun, ctrl.cmd[0]);
 		return false;
 	}
 	Disk *device = ctrl.unit[lun];
@@ -1199,6 +1207,7 @@ bool SASIDEV::XferOut(bool cont)
 		case SASIDEV::eCmdUnknownPowerViewCB:
 		case SASIDEV::eCmdUnknownPowerViewCC:
 			LOGWARN("Finished receiving a Powerview Command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
+			return true;
 			break;
 		case SASIDEV::eCmdSetMcastAddr:
 			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__);

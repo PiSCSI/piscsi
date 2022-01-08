@@ -54,16 +54,14 @@ const BYTE SCSIPowerView::m_inquiry_response[] = {
 
 SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 {
-	AddCommand(SCSIDEV::eCmdUnknownPowerViewC8, "Unknown PowerViewC8", &SCSIPowerView::UnknownCommandC9);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewC8, "Unknown PowerViewC8", &SCSIPowerView::UnknownCommandC8);
 	AddCommand(SCSIDEV::eCmdUnknownPowerViewC9, "Unknown PowerViewC9", &SCSIPowerView::UnknownCommandC9);
-	AddCommand(SCSIDEV::eCmdUnknownPowerViewCA, "Unknown PowerViewCA", &SCSIPowerView::UnknownCommandC9);
-	AddCommand(SCSIDEV::eCmdUnknownPowerViewCB, "Unknown PowerViewCB", &SCSIPowerView::UnknownCommandC9);
-	AddCommand(SCSIDEV::eCmdUnknownPowerViewCC, "Unknown PowerViewCC", &SCSIPowerView::UnknownCommandC9);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewCA, "Unknown PowerViewCA", &SCSIPowerView::UnknownCommandCA);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewCB, "Unknown PowerViewCB", &SCSIPowerView::UnknownCommandCB);
+	AddCommand(SCSIDEV::eCmdUnknownPowerViewCC, "Unknown PowerViewCC", &SCSIPowerView::UnknownCommandCC);
 
-struct fb_var_screeninfo fbinfo;
+	struct fb_var_screeninfo fbinfo;
 	struct fb_fix_screeninfo fbfixinfo;
-
-	// disk.id = MAKEID('S', 'C', 'V', 'D');
 
 	// create lookup table
 	for (int i = 0; i < 256; i++) {
@@ -150,31 +148,35 @@ void SCSIPowerView::dump_command(SASIDEV *controller){
 
 }
 
-// //---------------------------------------------------------------------------
-// //
-// //	Unknown Command C8
-// //
-// //---------------------------------------------------------------------------
-// void SCSIPowerView::UnknownCommandC8(SASIDEV *controller)
-// {
+//---------------------------------------------------------------------------
+//
+//	Unknown Command C8
+//
+//---------------------------------------------------------------------------
+void SCSIPowerView::UnknownCommandC8(SASIDEV *controller)
+{
 
-// 	// Set transfer amount
-// 	ctrl->length = ctrl->cmd[6];
-// 	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-// 	dump_command(controller);
+	// Set transfer amount
+	ctrl->length = ctrl->cmd[6];
+	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+	dump_command(controller);
 
-// 	if (ctrl->length <= 0) {
-// 		// Failure (Error)
-// 		controller->Error();
-// 		return;
-// 	}
+	if (ctrl->length <= 0) {
+		// Failure (Error)
+		controller->Error();
+		return;
+	}
 
-// 	// Set next block
-// 	ctrl->blocks = 1;
-// 	ctrl->next = 1;
+	ctrl->buffer[0] = 0x01;
+	ctrl->buffer[1] = 0x09;
+	ctrl->buffer[2] = 0x08;
 
-// 	controller->DataOut();
-// }
+	// Set next block
+	ctrl->blocks = 1;
+	ctrl->next = 1;
+
+	controller->DataIn();
+}
 
 
 //---------------------------------------------------------------------------
@@ -189,7 +191,7 @@ void SCSIPowerView::UnknownCommandC9(SASIDEV *controller)
 	ctrl->length = ctrl->cmd[6];
 	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 	dump_command(controller);
-	LOGWARN("Controller: %08X ctrl: %08X", (DWORD)controller->GetCtrl(), (DWORD)ctrl);
+	// LOGWARN("Controller: %08X ctrl: %08X", (DWORD)controller->GetCtrl(), (DWORD)ctrl);
 	// if (ctrl->length <= 0) {
 	// 	// Failure (Error)
 	// 	controller->Error();
@@ -222,7 +224,7 @@ void SCSIPowerView::UnknownCommandCA(SASIDEV *controller)
 	// Set transfer amount
 	ctrl->length = ctrl->cmd[6];
 	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-dump_command(controller);
+	dump_command(controller);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
@@ -247,8 +249,9 @@ void SCSIPowerView::UnknownCommandCB(SASIDEV *controller)
 
 	// Set transfer amount
 	ctrl->length = ctrl->cmd[6];
+	ctrl->length = ctrl->length * 4;
 	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-dump_command(controller);
+	dump_command(controller);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
@@ -272,9 +275,10 @@ void SCSIPowerView::UnknownCommandCC(SASIDEV *controller)
 {
 
 	// Set transfer amount
-	ctrl->length = ctrl->cmd[6];
+	// ctrl->length = ctrl->cmd[6];
+	ctrl->length = 0x8bb;
 	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-dump_command(controller);
+	dump_command(controller);
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
