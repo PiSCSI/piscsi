@@ -1206,7 +1206,7 @@ bool SASIDEV::XferOut(bool cont)
 		case SASIDEV::eCmdUnknownPowerViewCA:
 		case SASIDEV::eCmdUnknownPowerViewCB:
 		case SASIDEV::eCmdUnknownPowerViewCC:
-			LOGWARN("Finished receiving a Powerview Command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
+			LOGWARN("Finished receiving a Powerview Command ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.length, ctrl.length);
 			return true;
 			break;
 		case SASIDEV::eCmdSetMcastAddr:

@@ -222,9 +222,34 @@ void SCSIPowerView::UnknownCommandCA(SASIDEV *controller)
 {
 
 	// Set transfer amount
-	ctrl->length = ctrl->cmd[6];
+	// ctrl->length = ctrl->cmd[6];
+	uint16_t width_x = ctrl->cmd[5] + (ctrl->cmd[4] << 8);
+	uint16_t height_y = ctrl->cmd[7] + (ctrl->cmd[6] << 8);
+
+	ctrl->length = width_x * height_y;
+	// if(ctrl->cmd[9] == 0){
+	// 	ctrl->length = 0x9600;
+	// }
+	// else {
+	// 	ctrl->length = ctrl->cmd[7] * 2;
+	// }
 	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-	dump_command(controller);
+	LOGWARN("                %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X [%02X %02X]\n",
+				ctrl->cmd[0],
+				ctrl->cmd[1],
+				ctrl->cmd[2],
+				ctrl->cmd[3],
+				ctrl->cmd[4],
+				ctrl->cmd[5],
+				ctrl->cmd[6],
+				ctrl->cmd[7],
+				ctrl->cmd[8],
+				ctrl->cmd[9],
+				ctrl->cmd[10],
+				ctrl->cmd[11],
+				ctrl->cmd[12]);
+
+
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
