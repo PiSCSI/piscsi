@@ -5,10 +5,10 @@ core
 .DS_Store
 *.swp
 __pycache__
-src/web/current
-src/web/rascsi_interface_pb2.py
-src/oled_monitor/current
-src/oled_monitor/rascsi_interface_pb2.py
+python/web/current
+python/web/src/rascsi_interface_pb2.py
+python/oled/current
+python/oled/src/rascsi_interface_pb2.py
 src/raspberrypi/hfdisk/
 *~
 messages.pot

@@ -9,7 +9,7 @@ $ python3 -m venv venv
 $ source venv/bin/activate
 # Install requirements
 $ pip3 install -r requirements.txt
-$ python3 rascsi_oled_monitor.py
+$ python3 src/rascsi_oled_monitor.py
 ```
 
 ### Parameters
