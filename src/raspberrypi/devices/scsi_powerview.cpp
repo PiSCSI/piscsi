@@ -87,7 +87,7 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 	this->fblinelen = fbfixinfo.line_length;
 	this->fbsize = fbfixinfo.smem_len;
 
-	LOGWARN("SCSIVideo drawing on %dx%d %d bpp framebuffer\n",
+	LOGINFO("SCSIVideo drawing on %dx%d %d bpp framebuffer\n",
 	    this->fbwidth, this->fbheight, this->fbbpp);
 
 	this->fb = (char *)mmap(0, this->fbsize, PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -233,8 +233,8 @@ void SCSIPowerView::CmdWriteFramebuffer(SASIDEV *controller)
 	// else {
 	// 	ctrl->length = ctrl->cmd[7] * 2;
 	// }
-	LOGWARN("%s Message Length %d [%08X]", __PRETTY_FUNCTION__, (int)ctrl->length, (unsigned int)ctrl->length);
-	LOGWARN("                %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X [%02X %02X]\n",
+	LOGDEBUG("%s Message Length %d [%08X]", __PRETTY_FUNCTION__, (int)ctrl->length, (unsigned int)ctrl->length);
+	LOGDEBUG("                %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X [%02X %02X]\n",
 				ctrl->cmd[0],
 				ctrl->cmd[1],
 				ctrl->cmd[2],
@@ -457,7 +457,7 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 		LOGDEBUG("%s act length %ul offset:%06X (%f) wid:%06X height:%06X", __PRETTY_FUNCTION__, length, offset, ((float)offset/(screen_width*screen_height)), update_width_x_bytes, update_height_y_bytes);
 
 		uint32_t offset_row = (uint32_t)((offset*8) / this->screen_width)/2;
-		uint32_t offset_col = (uint32_t)((offset*8) % this->screen_width);
+		uint32_t offset_col = (uint32_t)(((offset*8)/2) % this->screen_width);
  
 		LOGDEBUG("WriteFrameBuffer: Update x:%06X y:%06X width:%06X height:%06X", offset_col, offset_row, update_width_x_bytes * 8, update_height_y_bytes )
 		
@@ -474,7 +474,7 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 				// BYTE pixel_byte =buf[pixel_byte_idx];
 				DWORD pixel_bit = idx_col_x % 8;
 
-				BYTE pixel = (pixel_byte & (1 << pixel_bit) ? 255 : 0);
+				BYTE pixel = (pixel_byte & (1 << pixel_bit) ? 0 : 255);
 
 			// int loc = (col * (this->fbbpp / 8)) + (row * this->fblinelen);
 		 		uint32_t loc = ((idx_col_x + offset_col) * (this->fbbpp / 8)) + ((idx_row_y + offset_row) * fblinelen);
