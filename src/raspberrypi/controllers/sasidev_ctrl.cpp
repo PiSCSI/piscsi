@@ -18,6 +18,7 @@
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
+#include "devices/scsi_powerview.h"
 #include <sstream>
 
 //===========================================================================
@@ -1201,12 +1202,43 @@ bool SASIDEV::XferOut(bool cont)
 		case SASIDEV::eCmdInvalid:
 			break;
 
+		case SASIDEV::eCmdWriteFrameBuffer:
+			LOGDEBUG("Writing Frame Buffer ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.offset, ctrl.offset);
+			LOGDEBUG("   %02X%02X%02X%02X %02X%02X%02X%02X", ctrl.buffer[0],ctrl.buffer[1],ctrl.buffer[2],ctrl.buffer[3],ctrl.buffer[4],ctrl.buffer[5],ctrl.buffer[6],ctrl.buffer[7]);
+
+			if (device->IsPowerView()) {
+				if (!((SCSIPowerView*)device)->WriteFrameBuffer(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+					// write failed
+					return false;
+				}
+
+				// If normal, work setting
+				ctrl.offset = 0;
+				break;
+			}
+
+			return true;
+			break;
+
+
 		case SASIDEV::eCmdUnknownPowerViewC8:
 		case SASIDEV::eCmdUnknownPowerViewC9:
-		case SASIDEV::eCmdUnknownPowerViewCA:
 		case SASIDEV::eCmdUnknownPowerViewCB:
 		case SASIDEV::eCmdUnknownPowerViewCC:
-			LOGWARN("Finished receiving a Powerview Command ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.length, ctrl.length);
+			LOGDEBUG("Finished receiving a Powerview Command ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.offset, ctrl.offset);
+			LOGDEBUG("   %02X%02X%02X%02X %02X%02X%02X%02X", ctrl.buffer[0],ctrl.buffer[1],ctrl.buffer[2],ctrl.buffer[3],ctrl.buffer[4],ctrl.buffer[5],ctrl.buffer[6],ctrl.buffer[7]);
+
+			if (device->IsPowerView()) {
+				if (!((SCSIPowerView*)device)->Write(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+					// write failed
+					return false;
+				}
+
+				// If normal, work setting
+				ctrl.offset = 0;
+				break;
+			}
+
 			return true;
 			break;
 		case SASIDEV::eCmdSetMcastAddr:
@@ -1271,6 +1303,14 @@ void SASIDEV::FlushUnit()
 				return;
 			}
             break;
+
+		case SASIDEV::eCmdUnknownPowerViewC8:
+		case SASIDEV::eCmdUnknownPowerViewC9:
+		case SASIDEV::eCmdWriteFrameBuffer:
+		case SASIDEV::eCmdUnknownPowerViewCB:
+		case SASIDEV::eCmdUnknownPowerViewCC:
+			LOGDEBUG("%s Received PowerView flush %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
+			break;
 
 		case SASIDEV::eCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...

@@ -72,7 +72,7 @@ public:
 		eCmdReportLuns = 0xA0,
 		eCmdUnknownPowerViewC8 = 0xC8,
 		eCmdUnknownPowerViewC9 = 0xC9,
-		eCmdUnknownPowerViewCA = 0xCA,
+		eCmdWriteFrameBuffer = 0xCA,
 		eCmdUnknownPowerViewCB = 0xCB,
 		eCmdUnknownPowerViewCC = 0xCC,
 	};

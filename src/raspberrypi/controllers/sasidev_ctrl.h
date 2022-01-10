@@ -83,7 +83,7 @@ private:
 		eCmdSasiCmdAssign = 0x0E,
 		eCmdUnknownPowerViewC8 = 0xC8,
 		eCmdUnknownPowerViewC9 = 0xC9,
-		eCmdUnknownPowerViewCA = 0xCA,
+		eCmdWriteFrameBuffer = 0xCA,
 		eCmdUnknownPowerViewCB = 0xCB,
 		eCmdUnknownPowerViewCC = 0xCC
 	};
@@ -95,8 +95,6 @@ public:
 
 	const int UNKNOWN_SCSI_ID = -1;
 	const int DEFAULT_BUFFER_SIZE = 0x1000;
-	// TODO Remove this duplicate
-	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
 	// For timing adjustments
 	enum {			

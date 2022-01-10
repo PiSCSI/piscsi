@@ -3,34 +3,25 @@
 //	SCSI Target Emulator RaSCSI (*^..^*)
 //	for Raspberry Pi
 //
-//  Copyright (C) 2020 akuker
-//	Copyright (C) 2014-2020 GIMONS
-//	Copyright (C) 2001-2006 ＰＩ．(ytanaka@ipc-tokai.or.jp)
+//  Copyright (C) 2020-2021 akuker
+//  Copyright (C) 2020 joshua stein <jcs@jcs.org>
 //
 //  Licensed under the BSD 3-Clause License. 
 //  See LICENSE file in the project root folder.
 //
-//  [ Emulation of the DaynaPort SCSI Link Ethernet interface ]
+//  [ Emulation of the Radius PowerView SCSI Display Adapter ]
 //
-//  This design is derived from the SLINKCMD.TXT file, as well as David Kuder's 
-//  Tiny SCSI Emulator
-//    - SLINKCMD: http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/SLINKCMD.TXT
-//    - Tiny SCSI : https://hackaday.io/project/18974-tiny-scsi-emulator
+//  Note: This requires the Radius RadiusWare driver.
 //
-//  Additional documentation and clarification is available at the 
-//  following link:
-//    - https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link
+//  Framebuffer integration originally done by Joshua Stein:
+//     https://github.com/jcs/RASCSI/commit/6da9e9f3ffcd38eb89413cd445f7407739c54bca
 //
-//  This does NOT include the file system functionality that is present
-//  in the Sharp X68000 host bridge.
-//
-//  Note: This requires a DaynaPort SCSI Link driver.
 //---------------------------------------------------------------------------
 
 #include "scsi_powerview.h"
 #include <sstream>
 
-
+#include "exceptions.h"
 #include <err.h>
 #include <fcntl.h>
 #include <linux/fb.h>
@@ -40,9 +31,6 @@
 #include "log.h"
 
 static unsigned char reverse_table[256];
-
-// const BYTE SCSIPowerView::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
-// const BYTE SCSIPowerView::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
 const BYTE SCSIPowerView::m_inquiry_response[] = {
 0x03, 0x00, 0x01, 0x01, 0x46, 0x00, 0x00, 0x00, 0x52, 0x41, 0x44, 0x49, 0x55, 0x53, 0x20, 0x20,
@@ -56,7 +44,7 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 {
 	AddCommand(SCSIDEV::eCmdUnknownPowerViewC8, "Unknown PowerViewC8", &SCSIPowerView::UnknownCommandC8);
 	AddCommand(SCSIDEV::eCmdUnknownPowerViewC9, "Unknown PowerViewC9", &SCSIPowerView::UnknownCommandC9);
-	AddCommand(SCSIDEV::eCmdUnknownPowerViewCA, "Unknown PowerViewCA", &SCSIPowerView::UnknownCommandCA);
+	AddCommand(SCSIDEV::eCmdWriteFrameBuffer, "Unknown PowerViewCA", &SCSIPowerView::CmdWriteFramebuffer);
 	AddCommand(SCSIDEV::eCmdUnknownPowerViewCB, "Unknown PowerViewCB", &SCSIPowerView::UnknownCommandCB);
 	AddCommand(SCSIDEV::eCmdUnknownPowerViewCC, "Unknown PowerViewCC", &SCSIPowerView::UnknownCommandCC);
 
@@ -72,9 +60,13 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 		reverse_table[i] = b;
 	}
 
+	for(int i=0; i < (256/8); i++){
+		LOGINFO("%02X %02X %02X %02X %02X %02X %02X %02X ", reverse_table[(i*8)],reverse_table[(i*8)+1],reverse_table[(i*8)+2],reverse_table[(i*8)+3], reverse_table[(i*8)+4], reverse_table[(i*8)+5], reverse_table[(i*8)+6], reverse_table[(i*7)] );
+	}
+
 	// TODO: receive these through a SCSI message sent by the remote
-	this->screen_width = 512;
-	this->screen_height = 342;
+	this->screen_width = 624;
+	this->screen_height = 840;
 
 	this->fbfd = open("/dev/fb0", O_RDWR);
 	if (this->fbfd == -1)
@@ -95,7 +87,7 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 	this->fblinelen = fbfixinfo.line_length;
 	this->fbsize = fbfixinfo.smem_len;
 
-	printf("SCSIVideo drawing on %dx%d %d bpp framebuffer\n",
+	LOGWARN("SCSIVideo drawing on %dx%d %d bpp framebuffer\n",
 	    this->fbwidth, this->fbheight, this->fbbpp);
 
 	this->fb = (char *)mmap(0, this->fbsize, PROT_READ | PROT_WRITE, MAP_SHARED,
@@ -104,6 +96,9 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 		err(1, "mmap");
 
 	memset(this->fb, 0, this->fbsize);
+
+	this->m_powerview_resolution_x = 624;
+	this->m_powerview_resolution_y = 840;
 
 }
 
@@ -218,11 +213,16 @@ void SCSIPowerView::UnknownCommandC9(SASIDEV *controller)
 //	Unknown Command CA
 //
 //---------------------------------------------------------------------------
-void SCSIPowerView::UnknownCommandCA(SASIDEV *controller)
+void SCSIPowerView::CmdWriteFramebuffer(SASIDEV *controller)
 {
+	// Make sure the receive buffer is big enough
+	if (ctrl->bufsize < POWERVIEW_BUFFER_SIZE) {
+		free(ctrl->buffer);
+		ctrl->bufsize = POWERVIEW_BUFFER_SIZE;
+		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
+	}
 
 	// Set transfer amount
-	// ctrl->length = ctrl->cmd[6];
 	uint16_t width_x = ctrl->cmd[5] + (ctrl->cmd[4] << 8);
 	uint16_t height_y = ctrl->cmd[7] + (ctrl->cmd[6] << 8);
 
@@ -233,7 +233,7 @@ void SCSIPowerView::UnknownCommandCA(SASIDEV *controller)
 	// else {
 	// 	ctrl->length = ctrl->cmd[7] * 2;
 	// }
-	LOGWARN("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+	LOGWARN("%s Message Length %d [%08X]", __PRETTY_FUNCTION__, (int)ctrl->length, (unsigned int)ctrl->length);
 	LOGWARN("                %02X%02X%02X%02X %02X%02X%02X%02X %02X%02X%02X [%02X %02X]\n",
 				ctrl->cmd[0],
 				ctrl->cmd[1],
@@ -341,48 +341,12 @@ bool SCSIPowerView::Init(const map<string, string>& params)
 {
 	SetParams(params.empty() ? GetDefaultParams() : params);
 
-// #ifdef __linux__
-// 	// TAP Driver Generation
-// 	m_tap = new CTapDriver(GetParam("interfaces"));
-// 	m_bTapEnable = m_tap->Init();
-// 	if(!m_bTapEnable){
-// 		LOGERROR("Unable to open the TAP interface");
-
-// // Not terminating on regular Linux PCs is helpful for testing
-// #if !defined(__x86_64__) && !defined(__X86__)
-// 		return false;
-// #endif
-// 	} else {
-// 		LOGDEBUG("Tap interface created");
-// 	}
-
-// 	this->Reset();
-// 	SetReady(true);
-// 	SetReset(false);
-
-// 	// Generate MAC Address
-// 	memset(m_mac_addr, 0x00, 6);
-
-// 	// if (m_bTapEnable) {
-// 	// 	tap->GetMacAddr(m_mac_addr);
-// 	// 	m_mac_addr[5]++;
-// 	// }
-// 	// !!!!!!!!!!!!!!!!! For now, hard code the MAC address. Its annoying when it keeps changing during development!
-// 	// TODO: Remove this hard-coded address
-// 	m_mac_addr[0]=0x00;
-// 	m_mac_addr[1]=0x80;
-// 	m_mac_addr[2]=0x19;
-// 	m_mac_addr[3]=0x10;
-// 	m_mac_addr[4]=0x98;
-// 	m_mac_addr[5]=0xE3;
-// #endif	// linux
-
 	return true;
 }
 
 void SCSIPowerView::Open(const Filepath& path)
 {
-	// m_tap->OpenDump(path);
+
 }
 
 //---------------------------------------------------------------------------
@@ -423,56 +387,6 @@ int SCSIPowerView::Inquiry(const DWORD *cdb, BYTE *buf)
 
 
 
-// //---------------------------------------------------------------------------
-// //
-// //	INQUIRY
-// //
-// //---------------------------------------------------------------------------
-// int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
-// {
-// 	ASSERT(cdb);
-// 	ASSERT(buf);
-
-// 	// EVPD check
-// 	if (cdb[1] & 0x01) {
-// 		SetStatusCode(STATUS_INVALIDCDB);
-// 		return 0;
-// 	}
-
-// 	// Ready check (Error if no image file)
-// 	if (!IsReady()) {
-// 		SetStatusCode(STATUS_NOTREADY);
-// 		return 0;
-// 	}
-
-// 	// Basic data
-// 	// buf[0] ... Direct Access Device
-// 	// buf[1] ... Bit 7 set means removable
-// 	// buf[2] ... SCSI-2 compliant command system
-// 	// buf[3] ... SCSI-2 compliant Inquiry response
-// 	// buf[4] ... Inquiry additional data
-// 	memset(buf, 0, 8);
-// 	buf[1] = IsRemovable() ? 0x80 : 0x00;
-// 	buf[2] = 0x02;
-// 	buf[3] = 0x02;
-// 	buf[4] = 28 + 3;	// Value close to real HDD
-
-// 	// Padded vendor, product, revision
-// 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
-
-// 	// Size of data that can be returned
-// 	int size = (buf[4] + 5);
-
-// 	// Limit if the other buffer is small
-// 	if (size > (int)cdb[4]) {
-// 		size = (int)cdb[4];
-// 	}
-
-// 	return size;
-// }
-
-
-
 
 //---------------------------------------------------------------------------
 //
@@ -509,145 +423,124 @@ int SCSIPowerView::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	int rx_packet_size = 0;
     return rx_packet_size;
-	// scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
 
-	// ostringstream s;
-	// s << __PRETTY_FUNCTION__ << " reading DaynaPort block " << block;
-	// LOGTRACE("%s", s.str().c_str());
-
-	// int requested_length = cdb[4];
-	// LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length);
-
-
-	// // At host startup, it will send a READ(6) command with a length of 1. We should 
-	// // respond by going into the status mode with a code of 0x02
-	// if (requested_length == 1) {
-	// 	return 0;
-	// }
-
-	// // Some of the packets we receive will not be for us. So, we'll keep pulling messages
-	// // until the buffer is empty, or we've read X times. (X is just a made up number)
-	// bool send_message_to_host;
-	// int read_count = 0;
-	// while (read_count < MAX_READ_RETRIES) {
-	// 	read_count++;
-
-	// 	// The first 2 bytes are reserved for the length of the packet
-	// 	// The next 4 bytes are reserved for a flag field
-	// 	//rx_packet_size = m_tap->Rx(response->data);
-	// 	rx_packet_size = m_tap->Rx(&buf[DAYNAPORT_READ_HEADER_SZ]);
-
-	// 	// If we didn't receive anything, return size of 0
-	// 	if (rx_packet_size <= 0) {
-	// 		LOGTRACE("%s No packet received", __PRETTY_FUNCTION__);
-	// 		response->length = 0;
-	// 		response->flags = e_no_more_data;
-	// 		return DAYNAPORT_READ_HEADER_SZ;
-	// 	}
-
-	// 	LOGTRACE("%s Packet Sz %d (%08X) read: %d", __PRETTY_FUNCTION__, (unsigned int) rx_packet_size, (unsigned int) rx_packet_size, read_count);
-
-	// 	// This is a very basic filter to prevent unnecessary packets from
-	// 	// being sent to the SCSI initiator. 
-	// 	send_message_to_host = false;
-
-	// // The following doesn't seem to work with unicast messages. Temporarily removing the filtering
-	// // functionality.
-	// ///////	// Check if received packet destination MAC address matches the
-	// ///////	// DaynaPort MAC. For IP packets, the mac_address will be the first 6 bytes
-	// ///////	// of the data.
-	// ///////	if (memcmp(response->data, m_mac_addr, 6) == 0) {
-	// ///////		send_message_to_host = true;
-	// ///////	}
-
-	// ///////	// Check to see if this is a broadcast message
-	// ///////	if (memcmp(response->data, m_bcast_addr, 6) == 0) {
-	// ///////		send_message_to_host = true;
-	// ///////	}
-
-	// ///////	// Check to see if this is an AppleTalk Message
-	// ///////	if (memcmp(response->data, m_apple_talk_addr, 6) == 0) {
-	// ///////		send_message_to_host = true;
-	// ///////	}
-	// 	send_message_to_host = true;
-
-	// 	// TODO: We should check to see if this message is in the multicast 
-	// 	// configuration from SCSI command 0x0D
-
-	// 	if (!send_message_to_host) {
-	// 		LOGDEBUG("%s Received a packet that's not for me: %02X %02X %02X %02X %02X %02X", 
-	// 			__PRETTY_FUNCTION__,
-	// 			(int)response->data[0],
-	// 			(int)response->data[1],
-	// 			(int)response->data[2],
-	// 			(int)response->data[3],
-	// 			(int)response->data[4],
-	// 			(int)response->data[5]);
-
-	// 		// If there are pending packets to be processed, we'll tell the host that the read
-	// 		// length was 0.
-	// 		if (!m_tap->PendingPackets())
-	// 		{
-	// 			response->length = 0;
-	// 			response->flags = e_no_more_data;
-	// 			return DAYNAPORT_READ_HEADER_SZ;
-	// 		}
-	// 	}
-	// 	else {
-	// 		// TODO: Need to do some sort of size checking. The buffer can easily overflow, probably.
-
-	// 		// response->length = rx_packet_size;
-	// 		// if(m_tap->PendingPackets()){
-	// 		// 	response->flags = e_more_data_available;
-	// 		// } else {
-	// 		// 	response->flags = e_no_more_data;
-	// 		// }
-	// 		buf[0] = (BYTE)((rx_packet_size >> 8) & 0xFF);
-	// 		buf[1] = (BYTE)(rx_packet_size & 0xFF);
-
-	// 		buf[2] = 0;
-	// 		buf[3] = 0;
-	// 		buf[4] = 0;
-	// 		if(m_tap->PendingPackets()){
-	// 			buf[5] = 0x10;
-	// 		} else {
-	// 			buf[5] = 0;
-	// 		}
-
-	// 		// Return the packet size + 2 for the length + 4 for the flag field
-	// 		// The CRC was already appended by the ctapdriver
-	// 		return rx_packet_size + DAYNAPORT_READ_HEADER_SZ;
-	// 	}
-	// 	// If we got to this point, there are still messages in the queue, so 
-	// 	// we should loop back and get the next one.
-	// } // end while
-
-	// response->length = 0;
-	// response->flags = e_no_more_data;
-	// return DAYNAPORT_READ_HEADER_SZ;
 }
 
-// //---------------------------------------------------------------------------
-// //
-// // WRITE check
-// //
-// //---------------------------------------------------------------------------
-// int SCSIPowerView::WriteCheck(DWORD block)
-// {
-// 	// // Status check
-// 	// if (!CheckReady()) {
-// 	// 	return 0;
-// 	// }
 
-// 	// if (!m_bTapEnable){
-// 	// 	SetStatusCode(STATUS_NOTREADY);
-// 	// 	return 0;
-// 	// }
+bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DWORD length)
+{
 
-// 	// Success
-// 	return 1;
-// }
-	
+
+	// try {
+
+		// Apple portrait display resolution
+		// 624 by 840
+
+		// const int bits_per_pixel = 1;
+
+		// BYTE pixel_value = 0;
+
+
+	// this->screen_width = 624;
+	// this->screen_height = 840;
+
+	// // TODO: receive these through a SCSI message sent by the remote
+	// this->screen_width = 624;
+	// this->screen_height = 840;
+
+		// Set transfer amount
+		uint32_t update_width_x_bytes = ctrl->cmd[5] + (ctrl->cmd[4] << 8);
+		uint32_t update_height_y_bytes = ctrl->cmd[7] + (ctrl->cmd[6] << 8);
+
+		uint32_t offset = (uint32_t)ctrl->cmd[3] + ((uint32_t)ctrl->cmd[2] << 8) + ((uint32_t)ctrl->cmd[1] << 16);
+
+		LOGDEBUG("%s act length %ul offset:%06X (%f) wid:%06X height:%06X", __PRETTY_FUNCTION__, length, offset, ((float)offset/(screen_width*screen_height)), update_width_x_bytes, update_height_y_bytes);
+
+		uint32_t offset_row = (uint32_t)((offset*8) / this->screen_width)/2;
+		uint32_t offset_col = (uint32_t)((offset*8) % this->screen_width);
+ 
+		LOGDEBUG("WriteFrameBuffer: Update x:%06X y:%06X width:%06X height:%06X", offset_col, offset_row, update_width_x_bytes * 8, update_height_y_bytes )
+		
+
+		// For each row
+		for (DWORD idx_row_y = 0; idx_row_y < (update_height_y_bytes); idx_row_y++){
+
+
+			// For each column
+			for (DWORD idx_col_x = 0; idx_col_x < (update_width_x_bytes*8); idx_col_x++){
+
+				DWORD pixel_byte_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x / 8);
+				BYTE pixel_byte = reverse_table[buf[pixel_byte_idx]];
+				// BYTE pixel_byte =buf[pixel_byte_idx];
+				DWORD pixel_bit = idx_col_x % 8;
+
+				BYTE pixel = (pixel_byte & (1 << pixel_bit) ? 255 : 0);
+
+			// int loc = (col * (this->fbbpp / 8)) + (row * this->fblinelen);
+		 		uint32_t loc = ((idx_col_x + offset_col) * (this->fbbpp / 8)) + ((idx_row_y + offset_row) * fblinelen);
+				
+				// LOGDEBUG("!!! x:%d y:%d !! pix_idx:%06X pix_byte:%04X pix_bit:%02X pixel: %02X, loc:%08X",idx_col_x, idx_row_y, pixel_byte_idx, pixel_byte, pixel_bit, pixel, loc);
+
+				for(int i=0 ; i< (this->fbbpp/8); i++){
+					*(this->fb + loc + i) = pixel;
+				}
+			}
+		}
+
+		
+		// LOGWARN("%s start row: %06X col: %06X", __PRETTY_FUNCTION__, (unsigned int)offset_row, (unsigned int)offset_col);
+
+		// for (DWORD pixel_x = offset_col; pixel_x < (offset_col + (update_width_x_bytes * 8)); offset_col++){
+		// 	for (DWORD pixel_y = offset_row; pixel_y < offset_row + (update_height_y_bytes); offset_row++){
+
+		// 		BYTE pixel_byte = (pixel_y * update_height_y_bytes) + (pixel_x/8);
+		// 		int pixel_bit = (pixel_x % 8);
+		// 		pixel_value = ((buf[pixel_byte]) << pixel_bit) != 0;
+
+		// 		int loc = (pixel_x * (this->fbbpp / 8)) + (pixel_y * m_powerview_resolution_x);
+
+		// 		// int idx = (pixel_y * update_width_x_bytes * 8);
+		// 		// pixel_value = buf[]
+
+		// 		*(this->fb + loc) = (pixel_bit) ? 0 : 255;
+		// 		*(this->fb + loc + 1) = (pixel_bit) ? 0 : 255;
+		// 		// *(this->fb + loc + 2) = (j & (1 << bit)) ? 0 : 255;
+
+
+		// 	}
+
+
+		// }
+
+
+
+
+		// for (DWORD i = 0; i < length; i++) {
+		// 	unsigned char j = reverse_table[buf[i]];
+
+		// 	for (int bit = 0; bit < 8; bit++) {
+		// 		int loc = (offset_col * (this->fbbpp / 8)) + (offset_row * this->fblinelen);
+		// 		offset_col++;
+		// 		// if (col % this->screen_width == 0) {
+		// 		if (offset_col % update_width_x == 0) {
+		// 			offset_col = 0;
+		// 			offset_row++;
+		// 		}
+
+		// 		*(this->fb + loc) = (j & (1 << bit)) ? 0 : 255;
+		// 		*(this->fb + loc + 1) = (j & (1 << bit)) ? 0 : 255;
+		// 		*(this->fb + loc + 2) = (j & (1 << bit)) ? 0 : 255;
+		// 	}
+		// }
+	// }
+
+	// catch(const exception& e) {
+	// 	LOGWARN("Exception!!!!!!!!!");
+	// }
+
+	return true;
+}
+
 //---------------------------------------------------------------------------
 //
 //  Write
@@ -666,7 +559,7 @@ int SCSIPowerView::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 //               XX XX ... is the actual packet
 //
 //---------------------------------------------------------------------------
-bool SCSIPowerView::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
+bool SCSIPowerView::Write(const DWORD *cdb, const BYTE *buf, const DWORD length)
 {
 	BYTE data_format = cdb[5];
 	// WORD data_length = (WORD)cdb[4] + ((WORD)cdb[3] << 8);
@@ -691,250 +584,6 @@ bool SCSIPowerView::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	}
 }
 	
-// //---------------------------------------------------------------------------
-// //
-// //	RetrieveStats
-// //
-// //   Command:  09 00 00 00 12 00
-// //   Function: Retrieve MAC address and device statistics
-// //   Type:     Input; returns 18 (decimal) bytes of data as follows:
-// //              - bytes 0-5:  the current hardware ethernet (MAC) address
-// //              - bytes 6-17: three long word (4-byte) counters (little-endian).
-// //   Notes:    The contents of the three longs are typically zero, and their
-// //             usage is unclear; they are suspected to be:
-// //              - long #1: frame alignment errors
-// //              - long #2: CRC errors
-// //              - long #3: frames lost
-// //
-// //---------------------------------------------------------------------------
-// int SCSIPowerView::RetrieveStats(const DWORD *cdb, BYTE *buffer)
-// {
-// 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-
-// 	// memset(buffer,0,18);
-// 	// memcpy(&buffer[0],m_mac_addr,sizeof(m_mac_addr));
-// 	// uint32_t frame_alignment_errors;
-// 	// uint32_t crc_errors;
-// 	// uint32_t frames_lost;
-// 	// // frame alignment errors
-// 	// frame_alignment_errors = htonl(0);
-// 	// memcpy(&(buffer[6]),&frame_alignment_errors,sizeof(frame_alignment_errors));
-// 	// // CRC errors
-// 	// crc_errors = htonl(0);
-// 	// memcpy(&(buffer[10]),&crc_errors,sizeof(crc_errors));
-// 	// // frames lost
-// 	// frames_lost = htonl(0);
-// 	// memcpy(&(buffer[14]),&frames_lost,sizeof(frames_lost));
-
-// 	int response_size = sizeof(m_scsi_link_stats);
-// 	memcpy(buffer, &m_scsi_link_stats, sizeof(m_scsi_link_stats));
-
-// 	if (response_size > allocation_length) {
-// 		response_size = allocation_length;
-// 	}
-
-// 	// Success
-// 	return response_size;
-// }
-
-// //---------------------------------------------------------------------------
-// //
-// //	Enable or Disable the interface
-// //
-// //  Command:  0e 00 00 00 00 XX (XX = 80 or 00)
-// //  Function: Enable (80) / disable (00) Ethernet interface
-// //  Type:     No data transferred
-// //  Notes:    After issuing an Enable, the initiator should avoid sending
-// //            any subsequent commands to the device for approximately 0.5
-// //            seconds
-// //
-// //---------------------------------------------------------------------------
-// bool SCSIPowerView::EnableInterface(const DWORD *cdb)
-// {
-// 	bool result;
-// 	if (cdb[5] & 0x80) {
-// 		result = m_tap->Enable();
-// 		if (result) {
-// 			LOGINFO("The DaynaPort interface has been ENABLED.");
-// 		}
-// 		else{
-// 			LOGWARN("Unable to enable the DaynaPort Interface");
-// 		}
-// 		m_tap->Flush();
-// 	}
-// 	else {
-// 		result = m_tap->Disable();
-// 		if (result) {
-// 			LOGINFO("The DaynaPort interface has been DISABLED.");
-// 		}
-// 		else{
-// 			LOGWARN("Unable to disable the DaynaPort Interface");
-// 		}
-// 	}
-
-// 	return result;
-// }
-
-// void SCSIPowerView::TestUnitReady(SASIDEV *controller)
-// {
-// 	// TEST UNIT READY Success
-
-// 	controller->Status();
-// }
-
-// void SCSIPowerView::Read6(SASIDEV *controller)
-// {
-// 	// Get record number and block number
-// 	uint32_t record = ctrl->cmd[1] & 0x1f;
-// 	record <<= 8;
-// 	record |= ctrl->cmd[2];
-// 	record <<= 8;
-// 	record |= ctrl->cmd[3];
-// 	ctrl->blocks=1;
-
-// 	// If any commands have a bogus control value, they were probably not
-// 	// generated by the DaynaPort driver so ignore them
-// 	if (ctrl->cmd[5] != 0xc0 && ctrl->cmd[5] != 0x80) {
-// 		LOGTRACE("%s Control value %d, (%04X), returning invalid CDB", __PRETTY_FUNCTION__, ctrl->cmd[5], ctrl->cmd[5]);
-// 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
-// 		return;
-// 	}
-
-// 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl->blocks);
-
-// 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
-// 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-
-// 	// Set next block
-// 	ctrl->next = record + 1;
-
-// 	controller->DataIn();
-// }
-
-// void SCSIPowerView::Write6(SASIDEV *controller)
-// {
-// 	// Reallocate buffer (because it is not transfer for each block)
-// 	if (ctrl->bufsize < DAYNAPORT_BUFFER_SIZE) {
-// 		free(ctrl->buffer);
-// 		ctrl->bufsize = DAYNAPORT_BUFFER_SIZE;
-// 		ctrl->buffer = (BYTE *)malloc(ctrl->bufsize);
-// 	}
-
-// 	DWORD data_format = ctrl->cmd[5];
-
-// 	if(data_format == 0x00) {
-// 		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8);
-// 	}
-// 	else if (data_format == 0x80) {
-// 		ctrl->length = (WORD)ctrl->cmd[4] + ((WORD)ctrl->cmd[3] << 8) + 8;
-// 	}
-// 	else {
-// 		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-// 	}
-// 	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->length, (int)ctrl->length, (unsigned int)data_format);
-
-// 	if (ctrl->length <= 0) {
-// 		// Failure (Error)
-// 		controller->Error();
-// 		return;
-// 	}
-
-// 	// Set next block
-// 	ctrl->blocks = 1;
-// 	ctrl->next = 1;
-
-// 	controller->DataOut();
-// }
-
-// void SCSIPowerView::RetrieveStatistics(SASIDEV *controller)
-// {
-// 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
-// 	if (ctrl->length <= 0) {
-// 		// Failure (Error)
-// 		controller->Error();
-// 		return;
-// 	}
-
-// 	// Set next block
-// 	ctrl->blocks = 1;
-// 	ctrl->next = 1;
-
-// 	controller->DataIn();
-// }
-
-// //---------------------------------------------------------------------------
-// //
-// //	Set interface mode/Set MAC address
-// //
-// //   Set Interface Mode (0c)
-// //   -----------------------
-// //   Command:  0c 00 00 00 FF 80 (FF = 08 or 04)
-// //   Function: Allow interface to receive broadcast messages (FF = 04); the
-// //             function of (FF = 08) is currently unknown.
-// //   Type:     No data transferred
-// //   Notes:    This command is accepted by firmware 1.4a & 2.0f, but has no
-// //             effect on 2.0f, which is always capable of receiving broadcast
-// //             messages.  In 1.4a, once broadcast mode is set, it remains set
-// //             until the interface is disabled.
-// //
-// //   Set MAC Address (0c)
-// //   --------------------
-// //   Command:  0c 00 00 00 FF 40 (FF = 08 or 04)
-// //   Function: Set MAC address
-// //   Type:     Output; overrides built-in MAC address with user-specified
-// //             6-byte value
-// //   Notes:    This command is intended primarily for debugging/test purposes.
-// //             Disabling the interface resets the MAC address to the built-in
-// //             value.
-// //
-// //---------------------------------------------------------------------------
-// void SCSIPowerView::SetInterfaceMode(SASIDEV *controller)
-// {
-// 	// Check whether this command is telling us to "Set Interface Mode" or "Set MAC Address"
-
-// 	ctrl->length = RetrieveStats(ctrl->cmd, ctrl->buffer);
-// 	switch(ctrl->cmd[5]){
-// 		case SCSIPowerView::CMD_SCSILINK_SETMODE:
-// 			// TODO Not implemented, do nothing
-// 			controller->Status();
-// 			break;
-
-// 		case SCSIPowerView::CMD_SCSILINK_SETMAC:
-// 			ctrl->length = 6;
-// 			controller->DataOut();
-// 			break;
-
-// 		default:
-// 			LOGWARN("%s Unknown SetInterface command received: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[5]);
-// 			break;
-// 	}
-// }
-
-// void SCSIPowerView::SetMcastAddr(SASIDEV *controller)
-// {
-// 	ctrl->length = (DWORD)ctrl->cmd[4];
-// 	if (ctrl->length == 0) {
-// 		LOGWARN("%s Not supported SetMcastAddr Command %02X", __PRETTY_FUNCTION__, (WORD)ctrl->cmd[2]);
-
-// 		// Failure (Error)
-// 		controller->Error();
-// 		return;
-// 	}
-
-// 	controller->DataOut();
-// }
-
-// void SCSIPowerView::EnableInterface(SASIDEV *controller)
-// {
-// 	bool status = EnableInterface(ctrl->cmd);
-// 	if (!status) {
-// 		// Failure (Error)
-// 		controller->Error();
-// 		return;
-// 	}
-
-// 	controller->Status();
-// }
 
 bool SCSIPowerView::ReceiveBuffer(int len, BYTE *buffer)
 {

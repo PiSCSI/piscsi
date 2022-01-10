@@ -49,6 +49,12 @@ private:
 
 	void dump_command(SASIDEV *controller);
 
+	// Largest framebuffer supported by the Radius PowerView is 800x600 at 16-bit color (2 bytes per pixel)
+	const int POWERVIEW_BUFFER_SIZE = (800 * 600 * 2); 
+
+	DWORD m_powerview_resolution_x;
+	DWORD m_powerview_resolution_y;
+
 public:
 	SCSIPowerView();
 	~SCSIPowerView();
@@ -59,7 +65,8 @@ public:
 	// // Commands
 	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
-	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
+	bool Write(const DWORD *cdb, const BYTE *buf, const DWORD length);
+	bool WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DWORD length);
 	// int WriteCheck(DWORD block) override;	// WRITE check
 
 	// int RetrieveStats(const DWORD *cdb, BYTE *buffer);
@@ -70,7 +77,7 @@ public:
 
 	void UnknownCommandC8(SASIDEV *controller);
 	void UnknownCommandC9(SASIDEV *controller);
-	void UnknownCommandCA(SASIDEV *controller);
+	void CmdWriteFramebuffer(SASIDEV *controller);
 	void UnknownCommandCB(SASIDEV *controller);
 	void UnknownCommandCC(SASIDEV *controller);
 	
@@ -106,8 +113,8 @@ public:
 
 private:
 
-    int screen_width;
-	int screen_height;
+    uint32_t screen_width;
+	uint32_t screen_height;
 
 	int fbfd;
 	char *fb;

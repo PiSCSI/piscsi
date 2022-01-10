@@ -182,4 +182,5 @@ public:
 	bool IsMo() const { return type == "SCMO"; }
 	bool IsBridge() const { return type == "SCBR"; }
 	bool IsDaynaPort() const { return type == "SCDP"; }
+	bool IsPowerView() const { return type == "SCPV"; }
 };
