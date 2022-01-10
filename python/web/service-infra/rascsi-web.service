@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/home/pi/RASCSI/src/web/start.sh
+ExecStart=/home/pi/RASCSI/python/web/start.sh
 SyslogIdentifier=RASCSIWEB
 
 [Install]
