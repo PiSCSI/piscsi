@@ -4,9 +4,9 @@ Module for commands sent to the RaSCSI backend service.
 
 from flask import current_app, session
 from flask_babel import _
-import rascsi_interface_pb2 as proto
-from settings import REMOVABLE_DEVICE_TYPES
-from socket_cmds import send_pb_command
+import rascsi.rascsi_interface_pb2 as proto
+from rascsi.common_settings import REMOVABLE_DEVICE_TYPES
+from rascsi.socket_cmds import send_pb_command
 
 
 def get_server_info():

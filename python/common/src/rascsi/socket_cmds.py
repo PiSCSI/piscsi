@@ -7,6 +7,7 @@ from time import sleep
 from flask import abort
 from flask_babel import _
 
+
 def send_pb_command(payload):
     """
     Takes a (str) containing a serialized protobuf as argument.

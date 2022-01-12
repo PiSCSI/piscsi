@@ -23,7 +23,7 @@ from flask import (
 )
 from flask_babel import Babel, Locale, refresh, _
 
-from file_cmds import (
+from rascsi.file_cmds import (
     list_images,
     list_config_files,
     create_new_image,
@@ -39,7 +39,7 @@ from file_cmds import (
     write_drive_properties,
     read_drive_properties,
 )
-from pi_cmds import (
+from rascsi.pi_cmds import (
     running_env,
     running_proc,
     is_bridge_setup,
@@ -48,7 +48,7 @@ from pi_cmds import (
     introspect_file,
     auth_active,
 )
-from ractl_cmds import (
+from rascsi.ractl_cmds import (
     attach_image,
     list_devices,
     detach_by_id,
@@ -68,18 +68,21 @@ from device_utils import (
     get_valid_scsi_ids,
 )
 from settings import (
-    CFG_DIR,
     AFP_DIR,
     MAX_FILE_SIZE,
     ARCHIVE_FILE_SUFFIX,
-    CONFIG_FILE_SUFFIX,
-    PROPERTIES_SUFFIX,
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
+    LANGUAGES,
+)
+
+from rascsi.common_settings import (
+    CFG_DIR,
+    CONFIG_FILE_SUFFIX,
+    PROPERTIES_SUFFIX,
     REMOVABLE_DEVICE_TYPES,
     RESERVATIONS,
     AUTH_GROUP,
-    LANGUAGES,
 )
 
 APP = Flask(__name__)

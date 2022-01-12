@@ -6,7 +6,7 @@ import subprocess
 import asyncio
 import logging
 from flask_babel import _
-from settings import AUTH_GROUP
+from rascsi.common_settings import AUTH_GROUP
 
 
 def running_env():

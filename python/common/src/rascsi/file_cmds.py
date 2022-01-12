@@ -8,7 +8,7 @@ from pathlib import PurePath
 from flask import current_app, session
 from flask_babel import _
 
-from ractl_cmds import (
+from rascsi.ractl_cmds import (
     get_server_info,
     get_reserved_ids,
     attach_image,
@@ -16,10 +16,10 @@ from ractl_cmds import (
     list_devices,
     reserve_scsi_ids,
 )
-from pi_cmds import run_async
-from socket_cmds import send_pb_command
-from settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
-import rascsi_interface_pb2 as proto
+from rascsi.pi_cmds import run_async
+from rascsi.socket_cmds import send_pb_command
+from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
+import rascsi.rascsi_interface_pb2 as proto
 
 
 def list_files(file_types, dir_path):
