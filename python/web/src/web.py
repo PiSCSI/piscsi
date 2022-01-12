@@ -39,7 +39,7 @@ from rascsi.file_cmds import (
     write_drive_properties,
     read_drive_properties,
 )
-from rascsi.pi_cmds import (
+from pi_cmds import (
     running_env,
     running_proc,
     is_bridge_setup,
