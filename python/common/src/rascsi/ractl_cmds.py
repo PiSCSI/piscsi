@@ -2,8 +2,7 @@
 Module for commands sent to the RaSCSI backend service.
 """
 
-# from flask import current_app, session
-# from flask_babel import _
+from flask_babel import _
 import rascsi.rascsi_interface_pb2 as proto
 from rascsi.common_settings import REMOVABLE_DEVICE_TYPES
 from rascsi.socket_cmds import SocketCmds
@@ -438,8 +437,6 @@ class RaCtlCmds:
         """
         command = proto.PbCommand()
         command.operation = proto.PbOperation.CHECK_AUTHENTICATION
-        command.params["token"] = self.token
-        command.params["locale"] = self.locale
 
         data = self.sock_cmd.send_pb_command(command.SerializeToString())
         result = proto.PbResult()

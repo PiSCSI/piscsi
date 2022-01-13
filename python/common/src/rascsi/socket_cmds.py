@@ -28,13 +28,18 @@ class SocketCmds:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     sock.connect((self.host, self.port))
-                    return self.send_over_socket(sock, payload)
+                    response = self.send_over_socket(sock, payload)
+                return response
             except socket.error as error:
                 counter += 1
                 logging.warning("The RaSCSI service is not responding - attempt %s/%s",
                                 str(counter), str(tries))
                 error_msg = str(error)
                 sleep(0.2)
+            except EmptySocketChunkException as e:
+                raise e
+            except InvalidProtobufResponse as e:
+                raise e
 
         logging.error(error_msg)
         raise FailedSocketConnectionException(error_msg)
@@ -67,7 +72,6 @@ class SocketCmds:
                 if chunk == b'':
                     error_message = "Read an empty chunk from the socket. Socket connection has " \
                                     "dropped unexpectedly. RaSCSI may have crashed."
-
                     logging.error(error_message)
                     raise EmptySocketChunkException(error_message)
                 chunks.append(chunk)

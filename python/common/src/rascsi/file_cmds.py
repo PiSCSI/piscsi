@@ -1,14 +1,13 @@
 """
 Module for methods reading from and writing to the file system
 """
-
 import os
 import logging
 from pathlib import PurePath
 from flask import current_app, session
 from flask_babel import _
+import asyncio
 
-from python.web.src.pi_cmds import run_async
 from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
 import rascsi.rascsi_interface_pb2 as proto
 from rascsi.ractl_cmds import RaCtlCmds
@@ -21,6 +20,7 @@ class FileCmds:
         self.sock_cmd = sock_cmd
         self.ractl = ractl
 
+    # noinspection PyMethodMayBeStatic
     def list_files(self, file_types, dir_path):
         """
         Takes a (list) or (tuple) of (str) file_types - e.g. ('hda', 'hds')
@@ -42,6 +42,7 @@ class FileCmds:
             )
         return files_list
 
+    # noinspection PyMethodMayBeStatic
     def list_config_files(self):
         """
         Finds fils with file ending CONFIG_FILE_SUFFIX in CFG_DIR.
@@ -111,7 +112,6 @@ class FileCmds:
 
         return {"status": result.status, "msg": result.msg, "files": files}
 
-
     def create_new_image(self, file_name, file_type, size):
         """
         Takes (str) file_name, (str) file_type, and (int) size
@@ -170,6 +170,7 @@ class FileCmds:
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
 
+    # noinspection PyMethodMayBeStatic
     def delete_file(self, file_path):
         """
         Takes (str) file_path with the full path to the file to delete
@@ -186,6 +187,7 @@ class FileCmds:
                 "msg": _(u"File to delete not found: %(file_path)s", file_path=file_path),
             }
 
+    # noinspection PyMethodMayBeStatic
     def rename_file(self, file_path, target_path):
         """
         Takes (str) file_path and (str) target_path
@@ -215,7 +217,7 @@ class FileCmds:
         prop_flag = False
 
         if not member:
-            unzip_proc = run(run_async(
+            unzip_proc = run(self.run_async(
                 f"unzip -d {server_info['image_dir']} -n -j "
                 f"{server_info['image_dir']}/{file_name}"
                 ))
@@ -228,12 +230,12 @@ class FileCmds:
         else:
             from re import escape
             member = escape(member)
-            unzip_proc = run(run_async(
+            unzip_proc = run(self.run_async(
                 f"unzip -d {server_info['image_dir']} -n -j "
                 f"{server_info['image_dir']}/{file_name} {member}"
                 ))
             # Attempt to unzip a properties file in the same archive dir
-            unzip_prop = run(run_async(
+            unzip_prop = run(self.run_async(
                 f"unzip -d {CFG_DIR} -n -j "
                 f"{server_info['image_dir']}/{file_name} {member}.{PROPERTIES_SUFFIX}"
                 ))
@@ -249,7 +251,6 @@ class FileCmds:
             unzip_proc["stdout"]
             )
         return {"status": True, "msg": unzipped, "prop_flag": prop_flag}
-
 
     def download_file_to_iso(self, url, *iso_args):
         """
@@ -269,7 +270,7 @@ class FileCmds:
         tmp_full_path = tmp_dir + file_name
         iso_filename = f"{server_info['image_dir']}/{file_name}.iso"
 
-        req_proc = download_to_dir(url, tmp_dir, file_name)
+        req_proc = self.download_to_dir(url, tmp_dir, file_name)
 
         if not req_proc["status"]:
             return {"status": False, "msg": req_proc["msg"]}
@@ -283,7 +284,7 @@ class FileCmds:
                     "%s is a zipfile! Will attempt to unzip and store the resulting files.",
                     tmp_full_path,
                     )
-                unzip_proc = asyncio.run(run_async(
+                unzip_proc = asyncio.run(self.run_async(
                     f"unzip -d {tmp_dir} -n {tmp_full_path}"
                     ))
                 if not unzip_proc["returncode"]:
@@ -319,6 +320,7 @@ class FileCmds:
             "file_name": iso_filename,
         }
 
+    # noinspection PyMethodMayBeStatic
     def download_to_dir(self, url, save_dir, file_name):
         """
         Takes (str) url, (str) save_dir, (str) file_name
@@ -497,6 +499,7 @@ class FileCmds:
                 "msg": _(u"Could not write to properties file: %(file_path)s", file_path=file_path),
                 }
 
+    # noinspection PyMethodMayBeStatic
     def read_drive_properties(self, file_path):
         """
         Reads drive properties from json formatted file.
@@ -521,3 +524,27 @@ class FileCmds:
                 "status": False,
                 "msg": _(u"Could not read properties from file: %(file_path)s", file_path=file_path),
                 }
+
+    # noinspection PyMethodMayBeStatic
+    async def run_async(self, cmd):
+        """
+        Takes (str) cmd with the shell command to execute
+        Executes shell command and captures output
+        Returns (dict) with (int) returncode, (str) stdout, (str) stderr
+        """
+        proc = await asyncio.create_subprocess_shell(
+            cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE)
+
+        stdout, stderr = await proc.communicate()
+
+        logging.info("Executed command \"%s\" with status code %d", cmd, proc.returncode)
+        if stdout:
+            stdout = stdout.decode()
+            logging.info("stdout: %s", stdout)
+        if stderr:
+            stderr = stderr.decode()
+            logging.info("stderr: %s", stderr)
+
+        return {"returncode": proc.returncode, "stdout": stdout, "stderr": stderr}

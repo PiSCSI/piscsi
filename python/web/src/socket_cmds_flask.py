@@ -20,7 +20,7 @@ class SocketCmdsFlask(SocketCmds):
         Establishes a socket connection with RaSCSI.
         """
         try:
-            super(SocketCmdsFlask, self).send_pb_command(payload)
+            return super(SocketCmdsFlask, self).send_pb_command(payload)
         except FailedSocketConnectionException as err:
             # After failing all attempts, throw a 404 error
             abort(404, _(
@@ -32,7 +32,7 @@ class SocketCmdsFlask(SocketCmds):
 
     def send_over_socket(self, sock, payload):
         try:
-            super(SocketCmdsFlask, self).send_over_socket(sock, payload)
+            return super(SocketCmdsFlask, self).send_over_socket(sock, payload)
         except EmptySocketChunkException as err:
             abort(
                 503, _(
