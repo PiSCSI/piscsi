@@ -81,10 +81,14 @@ private:
 		eCmdWriteLong16 = 0x9F,
 		eCmdInvalid = 0xC2,
 		eCmdSasiCmdAssign = 0x0E,
-		eCmdUnknownPowerViewC8 = 0xC8,
-		eCmdUnknownPowerViewC9 = 0xC9,
-		eCmdWriteFrameBuffer = 0xCA,
-		eCmdUnknownPowerViewCB = 0xCB,
+		eCmdPvReadConfig = 0xC8,
+		eCmdPvWriteConfig = 0xC9,
+		eCmdPvWriteFrameBuffer = 0xCA,
+		eCmdPvWriteColorPalette = 0xCB,
+		// eCmdPvReadConfig = 0xC8,
+		// eCmdPvWriteConfig = 0xC9,
+		// eCmdPvWriteFrameBuffer = 0xCA,
+		// eCmdPvWriteColorPalette = 0xCB,
 		eCmdUnknownPowerViewCC = 0xCC
 	};
 

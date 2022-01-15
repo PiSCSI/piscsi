@@ -1202,7 +1202,7 @@ bool SASIDEV::XferOut(bool cont)
 		case SASIDEV::eCmdInvalid:
 			break;
 
-		case SASIDEV::eCmdWriteFrameBuffer:
+		case SASIDEV::eCmdPvWriteFrameBuffer:
 			LOGDEBUG("Writing Frame Buffer ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.offset, ctrl.offset);
 			LOGDEBUG("   %02X%02X%02X%02X %02X%02X%02X%02X", ctrl.buffer[0],ctrl.buffer[1],ctrl.buffer[2],ctrl.buffer[3],ctrl.buffer[4],ctrl.buffer[5],ctrl.buffer[6],ctrl.buffer[7]);
 
@@ -1220,11 +1220,65 @@ bool SASIDEV::XferOut(bool cont)
 			return true;
 			break;
 
+		case SASIDEV::eCmdPvWriteColorPalette:
+			LOGDEBUG("Writing Color Palette ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.offset, ctrl.offset);
+			LOGDEBUG("   %02X%02X%02X%02X %02X%02X%02X%02X", ctrl.buffer[0],ctrl.buffer[1],ctrl.buffer[2],ctrl.buffer[3],ctrl.buffer[4],ctrl.buffer[5],ctrl.buffer[6],ctrl.buffer[7]);
 
-		case SASIDEV::eCmdUnknownPowerViewC8:
-		case SASIDEV::eCmdUnknownPowerViewC9:
-		case SASIDEV::eCmdUnknownPowerViewCB:
+			if (device->IsPowerView()) {
+				if (!((SCSIPowerView*)device)->WriteColorPalette(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+					// write failed
+					return false;
+				}
+
+				// If normal, work setting
+				ctrl.offset = 0;
+				break;
+			}
+
+			return true;
+			break;
+
+
+
+
+		case SASIDEV::eCmdPvWriteConfig:
+			LOGDEBUG("Writing Configuration ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.offset, ctrl.offset);
+			LOGDEBUG("   %02X%02X%02X%02X %02X%02X%02X%02X", ctrl.buffer[0],ctrl.buffer[1],ctrl.buffer[2],ctrl.buffer[3],ctrl.buffer[4],ctrl.buffer[5],ctrl.buffer[6],ctrl.buffer[7]);
+
+			if (device->IsPowerView()) {
+				if (!((SCSIPowerView*)device)->WriteConfiguration(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+					// write failed
+					return false;
+				}
+
+				// If normal, work setting
+				ctrl.offset = 0;
+				break;
+			}
+
+			return true;
+			break;
+
 		case SASIDEV::eCmdUnknownPowerViewCC:
+			LOGDEBUG("Writing Unknown CC ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.offset, ctrl.offset);
+			LOGDEBUG("   %02X%02X%02X%02X %02X%02X%02X%02X", ctrl.buffer[0],ctrl.buffer[1],ctrl.buffer[2],ctrl.buffer[3],ctrl.buffer[4],ctrl.buffer[5],ctrl.buffer[6],ctrl.buffer[7]);
+
+			if (device->IsPowerView()) {
+				if (!((SCSIPowerView*)device)->WriteUnknownCC(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+					// write failed
+					return false;
+				}
+
+				// If normal, work setting
+				ctrl.offset = 0;
+				break;
+			}
+
+			return true;
+			break;
+
+
+		case SASIDEV::eCmdPvReadConfig:
 			LOGDEBUG("Finished receiving a Powerview Command ($%02X) in %s. Length: %08X (%d)", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__, ctrl.offset, ctrl.offset);
 			LOGDEBUG("   %02X%02X%02X%02X %02X%02X%02X%02X", ctrl.buffer[0],ctrl.buffer[1],ctrl.buffer[2],ctrl.buffer[3],ctrl.buffer[4],ctrl.buffer[5],ctrl.buffer[6],ctrl.buffer[7]);
 
@@ -1304,10 +1358,10 @@ void SASIDEV::FlushUnit()
 			}
             break;
 
-		case SASIDEV::eCmdUnknownPowerViewC8:
-		case SASIDEV::eCmdUnknownPowerViewC9:
-		case SASIDEV::eCmdWriteFrameBuffer:
-		case SASIDEV::eCmdUnknownPowerViewCB:
+		case SASIDEV::eCmdPvReadConfig:
+		case SASIDEV::eCmdPvWriteConfig:
+		case SASIDEV::eCmdPvWriteFrameBuffer:
+		case SASIDEV::eCmdPvWriteColorPalette:
 		case SASIDEV::eCmdUnknownPowerViewCC:
 			LOGDEBUG("%s Received PowerView flush %02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
 			break;

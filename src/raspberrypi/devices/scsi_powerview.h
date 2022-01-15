@@ -67,54 +67,34 @@ public:
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
 	bool Write(const DWORD *cdb, const BYTE *buf, const DWORD length);
 	bool WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DWORD length);
-	// int WriteCheck(DWORD block) override;	// WRITE check
-
-	// int RetrieveStats(const DWORD *cdb, BYTE *buffer);
-	// bool EnableInterface(const DWORD *cdb);
-
-	// void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
-
-
-	void UnknownCommandC8(SASIDEV *controller);
-	void UnknownCommandC9(SASIDEV *controller);
+	bool WriteColorPalette(const DWORD *cdb, const BYTE *buf, const DWORD length);
+	bool WriteConfiguration(const DWORD *cdb, const BYTE *buf, const DWORD length);
+	bool WriteUnknownCC(const DWORD *cdb, const BYTE *buf, const DWORD length);
+	
+	void CmdReadConfig(SASIDEV *controller);
+	void CmdWriteConfig(SASIDEV *controller);
 	void CmdWriteFramebuffer(SASIDEV *controller);
-	void UnknownCommandCB(SASIDEV *controller);
+	void CmdWriteColorPalette(SASIDEV *controller);
 	void UnknownCommandCC(SASIDEV *controller);
 	
-	// void TestUnitReady(SASIDEV *) override;
-	// void Read6(SASIDEV *) override;
-	// void Write6(SASIDEV *) override;
-	// void RetrieveStatistics(SASIDEV *);
-	// void SetInterfaceMode(SASIDEV *);
-	// void SetMcastAddr(SASIDEV *);
-	// void EnableInterface(SASIDEV *);
-
 	bool Dispatch(SCSIDEV *) override;
 
     bool ReceiveBuffer(int len, BYTE *buffer);
-	// const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
-	// static const BYTE CMD_SCSILINK_STATS        = 0x09;
-	// static const BYTE CMD_SCSILINK_ENABLE       = 0x0E;
-	// static const BYTE CMD_SCSILINK_SET          = 0x0C;
-	// static const BYTE CMD_SCSILINK_SETMODE      = 0x80;
-	// static const BYTE CMD_SCSILINK_SETMAC       = 0x40;
-
-	// // When we're reading the Linux tap device, most of the messages will not be for us, so we
-	// // need to filter through those. However, we don't want to keep re-reading the packets
-	// // indefinitely. So, we'll pick a large-ish number that will cause the emulated DaynaPort
-	// // to respond with "no data" after MAX_READ_RETRIES tries.
-	// static const int MAX_READ_RETRIES               = 50;
-
-	// // The READ response has a header which consists of:
-	// //   2 bytes - payload size
-	// //   4 bytes - status flags
-	// static const DWORD DAYNAPORT_READ_HEADER_SZ = 2 + 4;
+	void ClearFrameBuffer();
 
 private:
 
     uint32_t screen_width;
 	uint32_t screen_height;
+
+	// The maximum color depth is 16 bits
+	BYTE color_palette[0x10000];
+	int color_palette_length = 0;
+
+	BYTE unknown_cc_data[0x10000];
+	int unknown_cc_data_length = 0;
+
 
 	int fbfd;
 	char *fb;
@@ -125,49 +105,4 @@ private:
 	int fbbpp;
 
 	static const BYTE m_inquiry_response[];
-	// typedef struct __attribute__((packed)) {
-	// 	BYTE operation_code;
-	// 	BYTE misc_cdb_information;
-	// 	BYTE logical_block_address;
-	// 	uint16_t length;
-	// 	BYTE format;
-	// } scsi_cmd_daynaport_write_t;
-
-	// enum read_data_flags_t : uint32_t {
-	// 	e_no_more_data = 0x00000000,
-	// 	e_more_data_available = 0x00000001,
-	// 	e_dropped_packets = 0xFFFFFFFF,
-	// };
-
-	// typedef struct __attribute__((packed)) {
-	// 	uint32_t length;
-	// 	read_data_flags_t flags;
-	// 	BYTE pad;
-	// 	BYTE data[ETH_FRAME_LEN + sizeof(uint32_t)]; // Frame length + 4 byte CRC
-	// } scsi_resp_read_t;
-
-	// typedef struct __attribute__((packed)) {
-	// 	BYTE mac_address[6];
-	// 	uint32_t frame_alignment_errors;
-	// 	uint32_t crc_errors;
-	// 	uint32_t frames_lost;
-	// } scsi_resp_link_stats_t;
-
-	// scsi_resp_link_stats_t m_scsi_link_stats = {
-	// 	.mac_address = { 0x00, 0x80, 0x19, 0x10, 0x98, 0xE3 },//MAC address of @PotatoFi's DayanPort
-	// 	.frame_alignment_errors = 0,
-	// 	.crc_errors = 0,
-	// 	.frames_lost = 0,
-	// };
-
-	// const BYTE m_daynacom_mac_prefix[3] = { 0x00, 0x80, 0x19 };
-
-	// CTapDriver *m_tap;
-	// 									// TAP driver
-	// bool m_bTapEnable;
-	// 									// TAP valid flag
-	// BYTE m_mac_addr[6];
-	// 									// MAC Address
-	// static const BYTE m_bcast_addr[6];
-	// static const BYTE m_apple_talk_addr[6];
 };
