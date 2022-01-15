@@ -10,7 +10,7 @@ $ source venv/bin/activate
 # Install requirements
 $ pip install -r requirements.txt
 # Use mocks and a temp dir - start the web server
-$ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ python3 web.py
+$ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ cd src && python3 web.py
 ```
 
 ### Mocks for local development

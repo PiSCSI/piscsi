@@ -767,7 +767,7 @@ def download_to_iso():
         flash(process["msg"])
         flash(_(u"Saved image as: %(file_name)s", file_name=process['file_name']))
     else:
-        flash(_(u"Failed to create CD-ROM image from %(url)s", url), "error")
+        flash(_(u"Failed to create CD-ROM image from %(url)s", url=url), "error")
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
@@ -795,7 +795,7 @@ def download_img():
         flash(process["msg"])
         return redirect(url_for("index"))
 
-    flash(_(u"Failed to download file from %(url)s", url), "error")
+    flash(_(u"Failed to download file from %(url)s", url=url), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
@@ -824,7 +824,7 @@ def download_afp():
         flash(process["msg"])
         return redirect(url_for("index"))
 
-    flash(_(u"Failed to download file from %(url)s", url), "error")
+    flash(_(u"Failed to download file from %(url)s", url=url), "error")
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 

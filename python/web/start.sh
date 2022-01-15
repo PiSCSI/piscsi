@@ -56,13 +56,18 @@ if ! test -e venv; then
     echo "Installing requirements.txt"
     pip3 install wheel
     pip3 install -r requirements.txt
-    git rev-parse HEAD > current
+
+    git rev-parse --is-inside-work-tree &> /dev/null
+    if [[ $? -eq 0 ]]; then
+      git rev-parse HEAD > current
+    fi
 fi
 
 source venv/bin/activate
 
 # Detect if someone updates the git repo - we need to re-run pip3 install.
 set +e
+
 git rev-parse --is-inside-work-tree &> /dev/null
 if [[ $? -eq 0 ]]; then
     set -e
@@ -78,7 +83,7 @@ else
 fi
 set -e
 
-pybabel compile -d translations
+pybabel compile -d src/translations
 
 # parse arguments
 while [ "$1" != "" ]; do
@@ -100,4 +105,5 @@ while [ "$1" != "" ]; do
 done
 
 echo "Starting web server for RaSCSI Web Interface..."
+cd src
 python3 web.py ${PORT} ${PASSWORD}

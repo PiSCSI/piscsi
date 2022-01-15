@@ -17,6 +17,9 @@ Typically, releases will only be planned every few months.
 
 # Github Sponsors
 Thank you to all of the Github sponsors who support the development community!
+
+ Special thank you to the Gold level sponsors!
+  - <a href="https://github.com/mikelord68">@mikelord68</a>
   
 Special thank you to the Silver level sponsors!
   - <a href="https://github.com/stinkerton18">@stinkerton18</a>
