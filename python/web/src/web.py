@@ -37,12 +37,15 @@ from device_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
 )
+from return_code_messages import ReturnCodeMapper
+
 from settings import (
     AFP_DIR,
     MAX_FILE_SIZE,
     ARCHIVE_FILE_SUFFIX,
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
+    AUTH_GROUP,
     LANGUAGES,
 )
 
@@ -52,7 +55,6 @@ from rascsi.common_settings import (
     PROPERTIES_SUFFIX,
     REMOVABLE_DEVICE_TYPES,
     RESERVATIONS,
-    AUTH_GROUP,
 )
 
 import rascsi.ractl_cmds
@@ -415,6 +417,7 @@ def config_load():
         return redirect(url_for("index"))
     if "delete" in request.form:
         process = file_cmds.delete_file(f"{CFG_DIR}/{file_name}")
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -742,6 +745,7 @@ def download_to_iso():
     iso_args = request.form.get("type").split()
 
     process = file_cmds.download_file_to_iso(url, *iso_args)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         flash(_(u"Saved image as: %(file_name)s", file_name=process['file_name']))
@@ -770,6 +774,7 @@ def download_img():
     url = request.form.get("url")
     server_info = ractl.get_server_info()
     process = file_cmds.download_to_dir(url, server_info["image_dir"], Path(url).name)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -799,6 +804,7 @@ def download_afp():
         appendix_hash = (md5(discarded_portion.encode("utf-8"))).hexdigest().upper()
         file_name = stem_remainder + "#" + appendix_hash[:4] + file_name_suffix
     process = file_cmds.download_to_dir(url, AFP_DIR, file_name)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -915,6 +921,8 @@ def delete():
     prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
         process = file_cmds.delete_file(prop_file_path)
+        process = ReturnCodeMapper.add_msg(process)
+
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -946,6 +954,7 @@ def rename():
     new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
         process = file_cmds.rename_file(prop_file_path, new_prop_file_path)
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -995,6 +1004,7 @@ def change_language():
     locale = request.form.get("locale")
     session["language"] = locale
     ractl.locale = session["language"]
+    file_cmds.locale = session["language"]
     refresh()
 
     flash(_(u"Changed Web Interface language to %(locale)s", locale=locale))
@@ -1010,6 +1020,7 @@ def load_default_config():
     """
     session["language"] = get_locale()
     ractl.locale = session["language"]
+    file_cmds.locale = session["language"]
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmds.read_config(DEFAULT_CONFIG)
 
@@ -1042,6 +1053,7 @@ if __name__ == "__main__":
     file_cmds = FileCmds(sock_cmd=sock_cmd, ractl=ractl)
 
     ractl.token = APP.config["TOKEN"]
+    file_cmds.token = APP.config["TOKEN"]
 
     import bjoern
     print("Serving rascsi-web...")

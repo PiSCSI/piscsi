@@ -4,21 +4,22 @@ Module for methods reading from and writing to the file system
 import os
 import logging
 from pathlib import PurePath
-from flask import current_app, session
 from flask_babel import _
 import asyncio
-
 from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
 import rascsi.rascsi_interface_pb2 as proto
 from rascsi.ractl_cmds import RaCtlCmds
+from rascsi.return_codes import ReturnCodes
 from rascsi.socket_cmds import SocketCmds
 
 
 class FileCmds:
 
-    def __init__(self, sock_cmd: SocketCmds, ractl: RaCtlCmds):
+    def __init__(self, sock_cmd: SocketCmds, ractl: RaCtlCmds, token=None, locale=None):
         self.sock_cmd = sock_cmd
         self.ractl = ractl
+        self.token = token
+        self.locale = locale
 
     # noinspection PyMethodMayBeStatic
     def list_files(self, file_types, dir_path):
@@ -63,9 +64,8 @@ class FileCmds:
         """
         command = proto.PbCommand()
         command.operation = proto.PbOperation.DEFAULT_IMAGE_FILES_INFO
-        command.params["token"] = current_app.config["TOKEN"]
-        if "language" in session.keys():
-            command.params["locale"] = session["language"]
+        command.params["token"] = self.token
+        command.params["locale"] = self.locale
 
         data = self.sock_cmd.send_pb_command(command.SerializeToString())
         result = proto.PbResult()
@@ -120,9 +120,8 @@ class FileCmds:
         """
         command = proto.PbCommand()
         command.operation = proto.PbOperation.CREATE_IMAGE
-        command.params["token"] = current_app.config["TOKEN"]
-        if "language" in session.keys():
-            command.params["locale"] = session["language"]
+        command.params["token"] = self.token
+        command.params["locale"] = self.locale
 
         command.params["file"] = file_name + "." + file_type
         command.params["size"] = str(size)
@@ -176,15 +175,20 @@ class FileCmds:
         Takes (str) file_path with the full path to the file to delete
         Returns (dict) with (bool) status and (str) msg
         """
+        parameters = {
+            "file_path": file_path
+        }
         if os.path.exists(file_path):
             os.remove(file_path)
             return {
                     "status": True,
-                    "msg": _(u"File deleted: %(file_path)s", file_path=file_path),
+                    "return_code": ReturnCodes.DELETEFILE_SUCCESS,
+                    "parameters": parameters,
                 }
         return {
                 "status": False,
-                "msg": _(u"File to delete not found: %(file_path)s", file_path=file_path),
+                "return_code": ReturnCodes.DELETEFILE_FILE_NOT_FOUND,
+                "parameters": parameters,
             }
 
     # noinspection PyMethodMayBeStatic
@@ -193,15 +197,20 @@ class FileCmds:
         Takes (str) file_path and (str) target_path
         Returns (dict) with (bool) status and (str) msg
         """
+        parameters = {
+            "target_path": target_path
+        }
         if os.path.exists(PurePath(target_path).parent):
             os.rename(file_path, target_path)
             return {
                 "status": True,
-                "msg": _(u"File moved to: %(target_path)s", target_path=target_path),
+                "return_code": ReturnCodes.RENAMEFILE_SUCCESS,
+                "parameters": parameters,
                 }
         return {
             "status": False,
-            "msg": _(u"Unable to move file to: %(target_path)s", target_path=target_path),
+            "return_code": ReturnCodes.RENAMEFILE_UNABLE_TO_MOVE,
+            "parameters": parameters,
             }
 
     def unzip_file(self, file_name, member=False, members=False):
@@ -311,12 +320,13 @@ class FileCmds:
             logging.warning("Got error: %s", error.stderr.decode("utf-8"))
             return {"status": False, "msg": error.stderr.decode("utf-8")}
 
+        parameters = {
+            "value": " ".join(iso_args)
+        }
         return {
             "status": True,
-            "msg": _(
-                u"Created CD-ROM ISO image with arguments \"%(value)s\"",
-                value=" ".join(iso_args),
-                ),
+            "return_code": ReturnCodes.DOWNLOADFILETOISO_SUCCESS,
+            "parameters": parameters,
             "file_name": iso_filename,
         }
 
@@ -343,14 +353,15 @@ class FileCmds:
         logging.info("Response content-type: %s", req.headers["content-type"])
         logging.info("Response status code: %s", req.status_code)
 
+        parameters = {
+            "file_name": file_name,
+            "save_dir": save_dir
+        }
         return {
             "status": True,
-            "msg": _(
-                u"%(file_name)s downloaded to %(save_dir)s",
-                file_name=file_name,
-                save_dir=save_dir,
-                ),
-            }
+            "return_code": ReturnCodes.DOWNLOADTODIR_SUCCESS,
+            "parameters": parameters,
+        }
 
     def write_config(self, file_name):
         """

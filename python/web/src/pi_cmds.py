@@ -5,7 +5,7 @@ Module for methods controlling and getting information about the Pi's Linux syst
 import subprocess
 import logging
 from flask_babel import _
-from rascsi.common_settings import AUTH_GROUP
+from settings import AUTH_GROUP
 
 
 def running_env():

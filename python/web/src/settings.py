@@ -19,6 +19,8 @@ DEFAULT_CONFIG = f"default.{rascsi.common_settings.CONFIG_FILE_SUFFIX}"
 # File containing canonical drive properties
 DRIVE_PROPERTIES_FILE = WEB_DIR + "/drive_properties.json"
 
+# The user group that is used for webapp authentication
+AUTH_GROUP = "rascsi"
 
 # The language locales supported by RaSCSI
 LANGUAGES = ["en", "de", "sv", "fr", "es"]
