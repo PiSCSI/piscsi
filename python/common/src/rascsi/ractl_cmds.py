@@ -10,9 +10,7 @@ from rascsi.socket_cmds import SocketCmds
 
 class RaCtlCmds:
 
-    def __init__(self, sock_cmd: SocketCmds, host="localhost", port=6868, token=None, locale=None):
-        self.host = host
-        self.port = port
+    def __init__(self, sock_cmd: SocketCmds, token=None, locale="en"):
         self.sock_cmd = sock_cmd
         self.token = token
         self.locale = locale

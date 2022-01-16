@@ -1054,15 +1054,26 @@ if __name__ == "__main__":
         action="store",
         help="Token password string for authenticating with RaSCSI",
         )
+    parser.add_argument(
+        "--rascsi-host",
+        type=str,
+        default="localhost",
+        action="store",
+        help="RaSCSI host. Default: localhost",
+    )
+    parser.add_argument(
+        "--rascsi-port",
+        type=str,
+        default=6868,
+        action="store",
+        help="RaSCSI port. Default: 6868",
+    )
     arguments = parser.parse_args()
     APP.config["TOKEN"] = arguments.password
 
-    sock_cmd = SocketCmdsFlask()
-    ractl = RaCtlCmds(sock_cmd=sock_cmd, host="localhost", port=6868)
-    file_cmds = FileCmds(sock_cmd=sock_cmd, ractl=ractl)
-
-    ractl.token = APP.config["TOKEN"]
-    file_cmds.token = APP.config["TOKEN"]
+    sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
+    ractl = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["TOKEN"])
+    file_cmds = FileCmds(sock_cmd=sock_cmd, ractl=ractl, token=APP.config["TOKEN"])
 
     import bjoern
     print("Serving rascsi-web...")
