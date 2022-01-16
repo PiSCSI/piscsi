@@ -55,6 +55,9 @@ private:
 	DWORD m_powerview_resolution_x;
 	DWORD m_powerview_resolution_y;
 
+	void fbcon_cursor(bool blank);
+	void fbcon_blank(bool blank);
+
 public:
 	SCSIPowerView();
 	~SCSIPowerView();

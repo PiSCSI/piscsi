@@ -106,17 +106,52 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 	this->m_powerview_resolution_x = 624;
 	this->m_powerview_resolution_y = 840;
 
+	fbcon_cursor(false);
+	fbcon_blank(false);
 	ClearFrameBuffer();
 
 }
 
+//---------------------------------------------------------------------------
+//
+//	Enable/Disable the framebuffer flashing cursor
+//      From: https://linux-arm-kernel.infradead.narkive.com/XL0ylAHW/turn-off-framebuffer-cursor
+//
+//---------------------------------------------------------------------------
+void SCSIPowerView::fbcon_cursor(bool blank)
+{
+	int fd = open("/dev/tty1", O_RDWR);
+	if (0 < fd)
+	{
+		write(fd, "\033[?25", 5);
+		write(fd, blank ? "h" : "l", 1);
+	}
+	else
+	{
+		LOGWARN("%s Unable to open /dev/tty1", __PRETTY_FUNCTION__);
+	}
+	close(fd);
+}
+
+//---------------------------------------------------------------------------
+//
+//	Enable/disable the framebuffer blanking
+//      From: https://linux-arm-kernel.infradead.narkive.com/XL0ylAHW/turn-off-framebuffer-cursor
+//
+//---------------------------------------------------------------------------
+void SCSIPowerView::fbcon_blank(bool blank)
+{
+	int ret = ioctl(fbfd, FBIOBLANK, blank ? VESA_POWERDOWN : VESA_NO_BLANKING);
+	if(ret < 0){
+		LOGWARN("%s Unable to disable blanking", __PRETTY_FUNCTION__);
+	}
+	return;
+}
+
 SCSIPowerView::~SCSIPowerView()
 {
-	// // TAP driver release
-	// if (m_tap) {
-	// 	m_tap->Cleanup();
-	// 	delete m_tap;
-	// }
+	// Re-enable the cursor
+	fbcon_cursor(true);
 
 	munmap(this->fb, this->fbsize);
 	close(this->fbfd);
