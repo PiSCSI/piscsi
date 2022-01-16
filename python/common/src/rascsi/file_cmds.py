@@ -4,7 +4,6 @@ Module for methods reading from and writing to the file system
 import os
 import logging
 from pathlib import PurePath
-from flask_babel import _
 import asyncio
 from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
 import rascsi.rascsi_interface_pb2 as proto
@@ -398,9 +397,13 @@ class FileCmds:
                     json_file,
                     indent=4
                     )
+            parameters = {
+                "file_name": file_name
+            }
             return {
                 "status": True,
-                "msg": _(u"Saved configuration file to %(file_name)s", file_name=file_name),
+                "return_code": ReturnCodes.WRITECONFIG_SUCCESS,
+                "parameters": parameters,
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
@@ -409,9 +412,13 @@ class FileCmds:
         except:
             logging.error("Could not write to file: %s", file_name)
             self.delete_file(file_name)
+            parameters = {
+                "file_name": file_name
+            }
             return {
                 "status": False,
-                "msg": _(u"Could not write to file: %(file_name)s", file_name=file_name),
+                "return_code": ReturnCodes.WRITECONFIG_COULD_NOT_WRITE,
+                "parameters": parameters,
                 }
 
     def read_config(self, file_name):
@@ -468,19 +475,28 @@ class FileCmds:
                             kwargs[param] = params[param]
                         self.ractl.attach_image(row["id"], **kwargs)
                 else:
-                    return {"status": False, "msg": _(u"Invalid configuration file format")}
+                    return {"status": False, "return_code": ReturnCodes.READCONFIG_INVALID_CONFIG_FILE_FORMAT}
+
+                parameters = {
+                    "file_name": file_name
+                }
                 return {
                     "status": True,
-                    "msg": _(u"Loaded configurations from: %(file_name)s", file_name=file_name),
+                    "return_code": ReturnCodes.READCONFIG_SUCCESS,
+                    "parameters": parameters
                     }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
             return {"status": False, "msg": str(error)}
         except:
             logging.error("Could not read file: %s", file_name)
+            parameters = {
+                "file_name": file_name
+            }
             return {
                 "status": False,
-                "msg": _(u"Could not read configuration file: %(file_name)s", file_name=file_name),
+                "return_code": ReturnCodes.READCONFIG_COULD_NOT_READ,
+                "parameters": parameters
                 }
 
     def write_drive_properties(self, file_name, conf):
@@ -494,9 +510,13 @@ class FileCmds:
         try:
             with open(file_path, "w") as json_file:
                 dump(conf, json_file, indent=4)
+            parameters = {
+                "file_path": file_path
+            }
             return {
                 "status": True,
-                "msg": _(u"Created properties file: %(file_path)s", file_path=file_path),
+                "return_code": ReturnCodes.WRITEDRIVEPROPS_SUCCESS,
+                "parameters": parameters,
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
             logging.error(str(error))
@@ -505,9 +525,13 @@ class FileCmds:
         except:
             logging.error("Could not write to file: %s", file_path)
             self.delete_file(file_path)
+            parameters = {
+                "file_path": file_path
+            }
             return {
                 "status": False,
-                "msg": _(u"Could not write to properties file: %(file_path)s", file_path=file_path),
+                "return_code": ReturnCodes.WRITEDRIVEPROPS_COULD_NOT_WRITE,
+                "parameters": parameters,
                 }
 
     # noinspection PyMethodMayBeStatic
@@ -521,9 +545,13 @@ class FileCmds:
         try:
             with open(file_path) as json_file:
                 conf = load(json_file)
+                parameters = {
+                    "file_path": file_path
+                }
                 return {
                     "status": True,
-                    "msg": _(u"Read properties from file: %(file_path)s", file_path=file_path),
+                    "return_codes": ReturnCodes.READDRIVEPROPS_SUCCESS,
+                    "parameters": parameters,
                     "conf": conf,
                     }
         except (IOError, ValueError, EOFError, TypeError) as error:
@@ -531,9 +559,13 @@ class FileCmds:
             return {"status": False, "msg": str(error)}
         except:
             logging.error("Could not read file: %s", file_path)
+            parameters = {
+                "file_path": file_path
+            }
             return {
                 "status": False,
-                "msg": _(u"Could not read properties from file: %(file_path)s", file_path=file_path),
+                "return_codes": ReturnCodes.READDRIVEPROPS_COULD_NOT_READ,
+                "parameters": parameters,
                 }
 
     # noinspection PyMethodMayBeStatic

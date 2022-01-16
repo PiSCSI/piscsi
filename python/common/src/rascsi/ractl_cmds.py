@@ -2,9 +2,9 @@
 Module for commands sent to the RaSCSI backend service.
 """
 
-from flask_babel import _
 import rascsi.rascsi_interface_pb2 as proto
 from rascsi.common_settings import REMOVABLE_DEVICE_TYPES
+from rascsi.return_codes import ReturnCodes
 from rascsi.socket_cmds import SocketCmds
 
 
@@ -204,14 +204,14 @@ class RaCtlCmds:
 
         if device_type in REMOVABLE_DEVICE_TYPES and current_type in REMOVABLE_DEVICE_TYPES:
             if current_type != device_type:
+                parameters = {
+                    "device_type": device_type,
+                    "current_device_type": current_type
+                }
                 return {
                     "status": False,
-                    "msg": _(
-                        u"Cannot insert an image for %(device_type)s into a "
-                        u"%(current_device_type)s device",
-                        device_type=device_type,
-                        current_device_type=current_type
-                        ),
+                    "return_code": ReturnCodes.ATTACHIMAGE_COULD_NOT_ATTACH,
+                    "parameters": parameters,
                     }
             command.operation = proto.PbOperation.INSERT
         # Handling attaching a new device

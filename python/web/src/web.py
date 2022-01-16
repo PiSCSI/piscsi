@@ -196,6 +196,7 @@ def drive_list():
     drive_properties = Path(DRIVE_PROPERTIES_FILE)
     if drive_properties.is_file():
         process = file_cmds.read_drive_properties(str(drive_properties))
+        process = ReturnCodeMapper.add_msg(process)
         if not process["status"]:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
@@ -344,6 +345,7 @@ def drive_create():
                 "block_size": block_size,
                 }
     process = file_cmds.write_drive_properties(prop_file_name, properties)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -373,6 +375,7 @@ def drive_cdrom():
         "block_size": block_size,
         }
     process = file_cmds.write_drive_properties(file_name, properties)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -391,6 +394,7 @@ def config_save():
     file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
 
     process = file_cmds.write_config(file_name)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -409,6 +413,7 @@ def config_load():
 
     if "load" in request.form:
         process = file_cmds.read_config(file_name)
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -519,6 +524,7 @@ def daynaport_attach():
         kwargs["interfaces"] = arg
 
     process = ractl.attach_image(scsi_id, **kwargs)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_(u"Attached DaynaPORT to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
@@ -556,6 +562,7 @@ def attach():
     drive_properties = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
     if Path(drive_properties).is_file():
         process = file_cmds.read_drive_properties(drive_properties)
+        process = ReturnCodeMapper.add_msg(process)
         if not process["status"]:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
@@ -567,6 +574,7 @@ def attach():
         expected_block_size = conf["block_size"]
 
     process = ractl.attach_image(scsi_id, **kwargs)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_(u"Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
             file_name=file_name, id_number=scsi_id, unit_number=unit))
@@ -755,6 +763,7 @@ def download_to_iso():
         return redirect(url_for("index"))
 
     process_attach = ractl.attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
+    process_attach = ReturnCodeMapper.add_msg(process_attach)
     if process_attach["status"]:
         flash(_(u"Attached to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
