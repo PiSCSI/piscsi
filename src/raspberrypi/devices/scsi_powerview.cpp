@@ -197,7 +197,7 @@ void SCSIPowerView::ClearFrameBuffer(DWORD blank_color){
 			// int loc = (col * (this->fbbpp / 8)) + (row * this->fblinelen);
 		 		uint32_t loc = ((idx_col_x) * (this->fbbpp / 8)) + ((idx_row_y) * fblinelen);
 				
-				// LOGDEBUG("!!! x:%d y:%d !! pix_idx:%06X pix_byte:%04X pix_bit:%02X pixel: %02X, loc:%08X",idx_col_x, idx_row_y, pixel_byte_idx, pixel_byte, pixel_bit, pixel, loc);
+				// LOGDEBUG("!!! x:%d y:%d !! pix_idx:%06X pix_byte:%04X pix_bit:%02X pixel: %02X, loc:%08X",idx_col_x, idx_row_y, pixel_byte_idx, pixel_byte, pixel_bit_number, pixel, loc);
 
 				*(this->fb + loc + 0) = (blank_color & 0xFF); 
 				*(this->fb + loc + 1) = (blank_color >> 8) & 0xFF; 
@@ -547,7 +547,7 @@ bool SCSIPowerView::WriteUnknownCC(const DWORD *cdb, const BYTE *buf, const DWOR
 bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const DWORD length)
 {
 
-	char newstring[1024];
+	// char newstring[1024];
 	if(length <= 1){
 		LOGDEBUG("%s Received Color Palette with depth of %u", __PRETTY_FUNCTION__, length);
 		// This is still a valid condition.
@@ -567,28 +567,13 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 
 	color_depth = (eColorDepth_t)((uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8));
 
-	switch(color_depth){
-		case eColorDepth_t::eOneBitColor:
-			sprintf(newstring, "  1-bit color %04X", color_depth);
-			break;
-		case eColorDepth_t::eEightBitColor:
-			sprintf(newstring, "  8-bit color %04X", color_depth);
-			break;
-		case eColorDepth_t::eSixteenBitColor:
-			sprintf(newstring, "  16-bit color %04X", color_depth);
-			break;
-		default:
-			sprintf(newstring, "  UNKNOWN COLOR DEPTH!! %04X", color_depth);
-			break;
-	}
-	fbcon_text(newstring);
 	return true;
 }
 
 
 bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DWORD length)
 {
-	// char newstring[1024];
+	char newstring[1024];
     // uint32_t new_screen_width_px =0;
 	// uint32_t new_screen_height_px=0;
 	uint32_t update_width_px=0;
@@ -664,30 +649,29 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 
 
 	if(full_framebuffer_refresh){
+		ClearFrameBuffer(framebuffer_red);
 		screen_width_px = update_width_px;
 		screen_height_px = update_height_px;
+
+		switch(color_depth){
+			case eColorDepth_t::eOneBitColor:
+				sprintf(newstring, "  1-bit color %04X - %u x %u       \r", color_depth, screen_width_px, screen_height_px);
+				break;
+			case eColorDepth_t::eEightBitColor:
+				sprintf(newstring, "  8-bit color %04X - %u x %u       \r", color_depth, screen_width_px,screen_height_px );
+				break;
+			case eColorDepth_t::eSixteenBitColor:
+				sprintf(newstring, "  16-bit color %04X - %u x %u      \r", color_depth, screen_width_px, screen_height_px);
+				break;
+			default:
+				sprintf(newstring, "  UNKNOWN COLOR DEPTH!! %04X - %u x %u      \r", color_depth, screen_width_px, screen_height_px);
+				break;
+		}
+		fbcon_text(newstring);
+
 	}
 
-	// try {
-
-		// Apple portrait display resolution
-		// 624 by 840
-
-		// const int bits_per_pixel = 1;
-
-		// BYTE pixel_value = 0;
-
-
-	// this->screen_width_px = 624;
-	// this->screen_height_px = 840;
-
-	// // TODO: receive these through a SCSI message sent by the remote
-	// this->screen_width_px = 624;
-	// this->screen_height_px = 840;
-
-
-
-		LOGWARN("Calculate Offset: %u (%08X) Screen width: %u height: %u Update X: %u (%06X) Y: %u (%06X)", offset, offset, screen_width_px, screen_height_px, offset_row_px, offset_row_px);
+	LOGWARN("Calculate Offset: %u (%08X) Screen width: %u height: %u Update X: %u (%06X) Y: %u (%06X)", offset, offset, screen_width_px, screen_height_px, offset_row_px, offset_row_px, offset_col_px, offset_col_px);
 		
 
 		// LOGDEBUG("%s act length %u offset:%06X (%f) wid:%06X height:%06X", __PRETTY_FUNCTION__, length, offset, ((float)offset/(screen_width_px*screen_height_px)), update_width_x_bytes, update_height_y_bytes);
@@ -698,27 +682,55 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 		
 
 		// For each row
-		for (DWORD idx_row_y = 0; idx_row_y < (update_height_y_bytes); idx_row_y++){
+		for (DWORD idx_row_y = 0; idx_row_y < (update_height_px); idx_row_y++){
 
 
 			// For each column
-			for (DWORD idx_col_x = 0; idx_col_x < (update_width_x_bytes*8); idx_col_x++){
+			for (DWORD idx_col_x = 0; idx_col_x < (update_width_px); idx_col_x++){
+				DWORD pixel_buffer_idx;
+				BYTE pixel_buffer_byte;
+				DWORD pixel_bit_number;
+				DWORD pixel;
+				uint32_t loc;
+	
+				switch(color_depth){
+					case eColorDepth_t::eOneBitColor:
+						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x / 8);
+						pixel_buffer_byte = reverse_table[buf[pixel_buffer_idx]];
+						pixel_bit_number = idx_col_x % 8;
+						pixel = (pixel_buffer_byte & (1 << pixel_bit_number) ? 0 : 0x00FFFFFF);
+						// pixel = color_palette[pixel] & 0x00FFFFFF;
+						loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
+						break;
 
-				DWORD pixel_byte_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x / 8);
-				BYTE pixel_byte = reverse_table[buf[pixel_byte_idx]];
-				// BYTE pixel_byte =buf[pixel_byte_idx];
-				DWORD pixel_bit = idx_col_x % 8;
-
-				BYTE pixel = (pixel_byte & (1 << pixel_bit) ? 0 : 255);
-
-			// int loc = (col * (this->fbbpp / 8)) + (row * this->fblinelen);
-		 		uint32_t loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
-				
-				// LOGDEBUG("!!! x:%d y:%d !! pix_idx:%06X pix_byte:%04X pix_bit:%02X pixel: %02X, loc:%08X",idx_col_x, idx_row_y, pixel_byte_idx, pixel_byte, pixel_bit, pixel, loc);
-
-				for(int i=0 ; i< (this->fbbpp/8); i++){
-					*(this->fb + loc + i) = pixel;
+					case eColorDepth_t::eEightBitColor:
+						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x/2);
+						if(idx_col_x % 2){
+							pixel_buffer_byte = buf[pixel_buffer_idx] & 0x0F;
+						}
+						else{
+							pixel_buffer_byte = buf[pixel_buffer_idx] >> 4;
+						}
+						pixel = color_palette[pixel_buffer_byte];
+						loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
+						break;
+					case eColorDepth_t::eSixteenBitColor:
+						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x);
+						pixel_buffer_byte = buf[pixel_buffer_idx];
+						pixel = color_palette[pixel_buffer_byte];
+						loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
+						break;
+					default:
+						break;
 				}
+				// for(int i=0 ; i< (this->fbbpp/8); i++){
+				// 	*(this->fb + loc + i) = pixel;
+				// }
+				*(this->fb + loc + 0) = (BYTE)((pixel >> 16) & 0xFF);
+				*(this->fb + loc + 1) = (BYTE)((pixel >> 8) & 0xFF);
+				*(this->fb + loc + 2) = (BYTE)((pixel) & 0xFF);
+
+
 			}
 		}
 

@@ -99,7 +99,7 @@ private:
 	uint32_t screen_height_px;
 
 	// The maximum color depth is 16 bits
-	BYTE color_palette[0x10000];
+	DWORD color_palette[0x10000];
 	int color_palette_length = 0;
 
 	BYTE unknown_cc_data[0x10000];
@@ -119,5 +119,5 @@ private:
 	const DWORD framebuffer_black = 0x000000;
 	const DWORD framebuffer_blue = 0xFF0000;
 	const DWORD framebuffer_yellow = 0x00FF00;
-		const DWORD framebuffer_red = 0x0000FF;
+		const DWORD framebuffer_red = 0xCCCC00;
 };
