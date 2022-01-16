@@ -45,6 +45,10 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
+	enum eColorDepth_t : uint16_t {eOneBitColor=0x0001, eEightBitColor=0x0010, eSixteenBitColor=0x0100};
+
+	eColorDepth_t color_depth;
+
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIPowerView::*)(SASIDEV *));
 
 	void dump_command(SASIDEV *controller);
@@ -55,8 +59,11 @@ private:
 	DWORD m_powerview_resolution_x;
 	DWORD m_powerview_resolution_y;
 
+	
+
 	void fbcon_cursor(bool blank);
 	void fbcon_blank(bool blank);
+	void fbcon_text(char* message);
 
 public:
 	SCSIPowerView();
@@ -84,12 +91,12 @@ public:
 
     bool ReceiveBuffer(int len, BYTE *buffer);
 
-	void ClearFrameBuffer();
+	void ClearFrameBuffer(DWORD blank_color);
 
 private:
 
-    uint32_t screen_width;
-	uint32_t screen_height;
+    uint32_t screen_width_px;
+	uint32_t screen_height_px;
 
 	// The maximum color depth is 16 bits
 	BYTE color_palette[0x10000];
@@ -108,4 +115,9 @@ private:
 	int fbbpp;
 
 	static const BYTE m_inquiry_response[];
+
+	const DWORD framebuffer_black = 0x000000;
+	const DWORD framebuffer_blue = 0xFF0000;
+	const DWORD framebuffer_yellow = 0x00FF00;
+		const DWORD framebuffer_red = 0x0000FF;
 };

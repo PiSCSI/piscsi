@@ -71,8 +71,8 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 	}
 
 	// TODO: receive these through a SCSI message sent by the remote
-	this->screen_width = 624;
-	this->screen_height = 840;
+	this->screen_width_px = 624;
+	this->screen_height_px = 840;
 
 	this->fbfd = open("/dev/fb0", O_RDWR);
 	if (this->fbfd == -1)
@@ -108,8 +108,25 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 
 	fbcon_cursor(false);
 	fbcon_blank(false);
-	ClearFrameBuffer();
+	ClearFrameBuffer(framebuffer_blue);
 
+	// Default to one bit color (black & white) if we don't know any better
+	color_depth = eOneBitColor;
+}
+
+
+void SCSIPowerView::fbcon_text(char* message)
+{
+	int fd = open("/dev/tty1", O_RDWR);
+	if (0 < fd)
+	{
+		write(fd, message, strlen(message));
+	}
+	else
+	{
+		LOGWARN("%s Unable to open /dev/tty1", __PRETTY_FUNCTION__);
+	}
+	close(fd);
 }
 
 //---------------------------------------------------------------------------
@@ -167,7 +184,7 @@ void SCSIPowerView::AddCommand(SCSIDEV::scsi_command opcode, const char* name, v
 }
 
 
-void SCSIPowerView::ClearFrameBuffer(){
+void SCSIPowerView::ClearFrameBuffer(DWORD blank_color){
 
 
 		// For each row
@@ -182,9 +199,9 @@ void SCSIPowerView::ClearFrameBuffer(){
 				
 				// LOGDEBUG("!!! x:%d y:%d !! pix_idx:%06X pix_byte:%04X pix_bit:%02X pixel: %02X, loc:%08X",idx_col_x, idx_row_y, pixel_byte_idx, pixel_byte, pixel_bit, pixel, loc);
 
-				*(this->fb + loc + 0) = 0xFF; 
-				*(this->fb + loc + 1) = 0x00; 
-				*(this->fb + loc + 2) = 0x00; 
+				*(this->fb + loc + 0) = (blank_color & 0xFF); 
+				*(this->fb + loc + 1) = (blank_color >> 8) & 0xFF; 
+				*(this->fb + loc + 2) = (blank_color >> 16) & 0xFF; 
 
 				// for(int i=0 ; i< (this->fbbpp/8); i++){
 				// 	*(this->fb + loc + i) = 0xFF;
@@ -529,21 +546,127 @@ bool SCSIPowerView::WriteUnknownCC(const DWORD *cdb, const BYTE *buf, const DWOR
 
 bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const DWORD length)
 {
+
+	char newstring[1024];
+	if(length <= 1){
+		LOGDEBUG("%s Received Color Palette with depth of %u", __PRETTY_FUNCTION__, length);
+		// This is still a valid condition.
+		return true;
+	}
 	if(length > sizeof(color_palette)){
 		LOGERROR("%s Received Color Palette that is larger (%d bytes) than allocated size (%d bytes)", __PRETTY_FUNCTION__, length, sizeof(color_palette));
 		return false;
 	}
 
+
+	
+	ClearFrameBuffer(framebuffer_red);
 	LOGINFO("%s Color Palette of size %ul received", __PRETTY_FUNCTION__, length);
 	memcpy(color_palette, buf, length);
 	color_palette_length = length;
+
+	color_depth = (eColorDepth_t)((uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8));
+
+	switch(color_depth){
+		case eColorDepth_t::eOneBitColor:
+			sprintf(newstring, "  1-bit color %04X", color_depth);
+			break;
+		case eColorDepth_t::eEightBitColor:
+			sprintf(newstring, "  8-bit color %04X", color_depth);
+			break;
+		case eColorDepth_t::eSixteenBitColor:
+			sprintf(newstring, "  16-bit color %04X", color_depth);
+			break;
+		default:
+			sprintf(newstring, "  UNKNOWN COLOR DEPTH!! %04X", color_depth);
+			break;
+	}
+	fbcon_text(newstring);
 	return true;
 }
 
 
 bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DWORD length)
 {
+	// char newstring[1024];
+    // uint32_t new_screen_width_px =0;
+	// uint32_t new_screen_height_px=0;
+	uint32_t update_width_px=0;
+	uint32_t update_height_px=0;
+	uint32_t offset_row_px = 0;
+	uint32_t offset_col_px = 0;
 
+		// Set transfer amount
+	uint32_t update_width_x_bytes = ctrl->cmd[5] + (ctrl->cmd[4] << 8);
+	uint32_t update_height_y_bytes = ctrl->cmd[7] + (ctrl->cmd[6] << 8);
+	uint32_t offset = (uint32_t)ctrl->cmd[3] + ((uint32_t)ctrl->cmd[2] << 8) + ((uint32_t)ctrl->cmd[1] << 16);
+
+	bool full_framebuffer_refresh = (offset == 0) && (cdb[9] == 0x00);
+
+	// if(full_framebuffer_refresh){
+	// 	// sprintf(newstring, "New Framebuffer refresh\n");
+	// 	// fbcon_text(newstring);
+	// 	switch(color_depth){
+	// 		case(eOneBitColor):
+	// 			// One bit per pixel
+	// 			new_screen_width_px = update_width_x_bytes * 8;
+	// 			break;
+	// 		case(eEightBitColor):
+	// 			// One byte per pixel
+	// 			new_screen_width_px = update_width_x_bytes * 2;
+	// 			break;
+	// 		case(eSixteenBitColor):
+	// 			// Two Bytes per pixel
+	// 			new_screen_width_px = update_width_x_bytes;
+	// 			break;
+	// 		default:
+	// 			new_screen_width_px = 0;
+	// 			break;
+	// 	}
+	// 	new_screen_height_px = update_height_y_bytes;
+	// 	update_width_px = new_screen_width_px;
+	// 	update_height_px = new_screen_height_px;
+
+	// 	sprintf(newstring, "%04X New Resolution: %u x %u (bytes: %u x %u)\n", color_depth, new_screen_width_px, new_screen_height_px, update_width_x_bytes, update_height_y_bytes);
+	// 	fbcon_text(newstring);
+	// }
+	// else { //partial screen update
+
+	// }
+
+
+	switch(color_depth){
+		case(eOneBitColor):
+			// One bit per pixel
+			update_width_px = update_width_x_bytes * 8;
+			offset_row_px = (uint32_t)((offset*8) / screen_width_px)/2;
+			offset_col_px = (uint32_t)(((offset*8)/2) % screen_width_px);
+			break;
+		case(eEightBitColor):
+			// One byte per pixel
+			update_width_px = update_width_x_bytes * 2;
+			offset_row_px = (uint32_t)((offset*2) / screen_width_px)/2;
+			offset_col_px = (uint32_t)(((offset*2)/2) % screen_width_px);
+			break;
+		case(eSixteenBitColor):
+			// Two Bytes per pixel
+			update_width_px = update_width_x_bytes;
+			offset_row_px = (uint32_t)((offset) / screen_width_px)/2;
+			offset_col_px = (uint32_t)(((offset)/2) % screen_width_px);
+			break;
+		default:
+			update_width_px = 0;
+			offset_row_px = 0;
+			offset_col_px = 0;
+			break;
+	}
+	update_height_px = update_height_y_bytes;
+
+
+	if(full_framebuffer_refresh){
+		screen_width_px = update_width_px;
+		screen_height_px = update_height_px;
+	}
 
 	// try {
 
@@ -555,25 +678,23 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 		// BYTE pixel_value = 0;
 
 
-	// this->screen_width = 624;
-	// this->screen_height = 840;
+	// this->screen_width_px = 624;
+	// this->screen_height_px = 840;
 
 	// // TODO: receive these through a SCSI message sent by the remote
-	// this->screen_width = 624;
-	// this->screen_height = 840;
+	// this->screen_width_px = 624;
+	// this->screen_height_px = 840;
 
-		// Set transfer amount
-		uint32_t update_width_x_bytes = ctrl->cmd[5] + (ctrl->cmd[4] << 8);
-		uint32_t update_height_y_bytes = ctrl->cmd[7] + (ctrl->cmd[6] << 8);
 
-		uint32_t offset = (uint32_t)ctrl->cmd[3] + ((uint32_t)ctrl->cmd[2] << 8) + ((uint32_t)ctrl->cmd[1] << 16);
 
-		LOGDEBUG("%s act length %u offset:%06X (%f) wid:%06X height:%06X", __PRETTY_FUNCTION__, length, offset, ((float)offset/(screen_width*screen_height)), update_width_x_bytes, update_height_y_bytes);
+		LOGWARN("Calculate Offset: %u (%08X) Screen width: %u height: %u Update X: %u (%06X) Y: %u (%06X)", offset, offset, screen_width_px, screen_height_px, offset_row_px, offset_row_px);
+		
 
-		uint32_t offset_row = (uint32_t)((offset*8) / this->screen_width)/2;
-		uint32_t offset_col = (uint32_t)(((offset*8)/2) % this->screen_width);
+		// LOGDEBUG("%s act length %u offset:%06X (%f) wid:%06X height:%06X", __PRETTY_FUNCTION__, length, offset, ((float)offset/(screen_width_px*screen_height_px)), update_width_x_bytes, update_height_y_bytes);
+
+
  
-		LOGDEBUG("WriteFrameBuffer: Update x:%06X y:%06X width:%06X height:%06X", offset_col, offset_row, update_width_x_bytes * 8, update_height_y_bytes )
+		// LOGWARN("WriteFrameBuffer: Update x:%06X y:%06X width:%06X height:%06X [ New width: %u (%06X) height: %u (%06X)]", offset_col_px, offset_row_px, update_width_x_bytes * 8, update_height_y_bytes, update_width_px, update_width_px, update_height_px, update_height_px )
 		
 
 		// For each row
@@ -591,7 +712,7 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 				BYTE pixel = (pixel_byte & (1 << pixel_bit) ? 0 : 255);
 
 			// int loc = (col * (this->fbbpp / 8)) + (row * this->fblinelen);
-		 		uint32_t loc = ((idx_col_x + offset_col) * (this->fbbpp / 8)) + ((idx_row_y + offset_row) * fblinelen);
+		 		uint32_t loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
 				
 				// LOGDEBUG("!!! x:%d y:%d !! pix_idx:%06X pix_byte:%04X pix_bit:%02X pixel: %02X, loc:%08X",idx_col_x, idx_row_y, pixel_byte_idx, pixel_byte, pixel_bit, pixel, loc);
 
@@ -660,7 +781,7 @@ bool SCSIPowerView::ReceiveBuffer(int len, BYTE *buffer)
 		for (int bit = 0; bit < 8; bit++) {
 			int loc = (col * (this->fbbpp / 8)) + (row * this->fblinelen);
 			col++;
-			if (col % this->screen_width == 0) {
+			if (col % this->screen_width_px == 0) {
 				col = 0;
 				row++;
 			}
