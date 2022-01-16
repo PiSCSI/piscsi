@@ -23,22 +23,6 @@ from flask import (
 )
 from flask_babel import Babel, Locale, refresh, _
 
-from file_cmds import (
-    list_images,
-    list_config_files,
-    create_new_image,
-    download_file_to_iso,
-    delete_image,
-    rename_image,
-    delete_file,
-    rename_file,
-    unzip_file,
-    download_to_dir,
-    write_config,
-    read_config,
-    write_drive_properties,
-    read_drive_properties,
-)
 from pi_cmds import (
     running_env,
     running_proc,
@@ -48,42 +32,38 @@ from pi_cmds import (
     introspect_file,
     auth_active,
 )
-from ractl_cmds import (
-    attach_image,
-    list_devices,
-    detach_by_id,
-    eject_by_id,
-    detach_all,
-    get_server_info,
-    get_reserved_ids,
-    get_network_info,
-    get_device_types,
-    reserve_scsi_ids,
-    set_log_level,
-    shutdown_pi,
-    is_token_auth,
-)
+
 from device_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
 )
+from return_code_mapper import ReturnCodeMapper
+
 from settings import (
-    CFG_DIR,
     AFP_DIR,
     MAX_FILE_SIZE,
     ARCHIVE_FILE_SUFFIX,
-    CONFIG_FILE_SUFFIX,
-    PROPERTIES_SUFFIX,
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
-    REMOVABLE_DEVICE_TYPES,
-    RESERVATIONS,
     AUTH_GROUP,
     LANGUAGES,
 )
 
+from rascsi.common_settings import (
+    CFG_DIR,
+    CONFIG_FILE_SUFFIX,
+    PROPERTIES_SUFFIX,
+    REMOVABLE_DEVICE_TYPES,
+    RESERVATIONS,
+)
+
+from socket_cmds_flask import SocketCmdsFlask
+from rascsi.ractl_cmds import RaCtlCmds
+from rascsi.file_cmds import FileCmds
+
 APP = Flask(__name__)
 BABEL = Babel(APP)
+
 
 @BABEL.localeselector
 def get_locale():
@@ -117,7 +97,7 @@ def index():
     """
     Sets up data structures for and renders the index page
     """
-    if not is_token_auth()["status"] and not APP.config["TOKEN"]:
+    if not ractl.is_token_auth()["status"] and not APP.config["TOKEN"]:
         abort(
             403,
             _(
@@ -127,12 +107,12 @@ def index():
             )
 
     locales = get_supported_locales()
-    server_info = get_server_info()
+    server_info = ractl.get_server_info()
     disk = disk_space()
-    devices = list_devices()
-    device_types = get_device_types()
-    image_files = list_images()
-    config_files = list_config_files()
+    devices = ractl.list_devices()
+    device_types = ractl.get_device_types()
+    image_files = file_cmds.list_images()
+    config_files = file_cmds.list_config_files()
 
     sorted_image_files = sorted(image_files["files"], key=lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key=lambda x: x.lower())
@@ -187,7 +167,7 @@ def index():
         version=server_info["version"],
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
-        netinfo=get_network_info(),
+        netinfo=ractl.get_network_info(),
         device_types=device_types["device_types"],
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
@@ -207,14 +187,15 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    server_info = get_server_info()
+    server_info = ractl.get_server_info()
     disk = disk_space()
 
     # Reads the canonical drive properties into a dict
     # The file resides in the current dir of the web ui process
     drive_properties = Path(DRIVE_PROPERTIES_FILE)
     if drive_properties.is_file():
-        process = read_drive_properties(str(drive_properties))
+        process = file_cmds.read_drive_properties(str(drive_properties))
+        process = ReturnCodeMapper.add_msg(process)
         if not process["status"]:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
@@ -247,7 +228,7 @@ def drive_list():
             device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
             rm_conf.append(device)
 
-    files = list_images()
+    files = file_cmds.list_images()
     sorted_image_files = sorted(files["files"], key=lambda x: x["name"].lower())
     hd_conf = sorted(hd_conf, key=lambda x: x["name"].lower())
     cd_conf = sorted(cd_conf, key=lambda x: x["name"].lower())
@@ -347,7 +328,7 @@ def drive_create():
     full_file_name = file_name + "." + file_type
 
     # Creating the image file
-    process = create_new_image(file_name, file_type, size)
+    process = file_cmds.create_new_image(file_name, file_type, size)
     if process["status"]:
         flash(_(u"Image file created: %(file_name)s", file_name=full_file_name))
     else:
@@ -362,7 +343,8 @@ def drive_create():
                 "revision": revision,
                 "block_size": block_size,
                 }
-    process = write_drive_properties(prop_file_name, properties)
+    process = file_cmds.write_drive_properties(prop_file_name, properties)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -391,7 +373,8 @@ def drive_cdrom():
         "revision": revision,
         "block_size": block_size,
         }
-    process = write_drive_properties(file_name, properties)
+    process = file_cmds.write_drive_properties(file_name, properties)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -409,7 +392,8 @@ def config_save():
     file_name = request.form.get("name") or "default"
     file_name = f"{file_name}.{CONFIG_FILE_SUFFIX}"
 
-    process = write_config(file_name)
+    process = file_cmds.write_config(file_name)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -427,7 +411,8 @@ def config_load():
     file_name = request.form.get("name")
 
     if "load" in request.form:
-        process = read_config(file_name)
+        process = file_cmds.read_config(file_name)
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -435,7 +420,8 @@ def config_load():
         flash(process['msg'], "error")
         return redirect(url_for("index"))
     if "delete" in request.form:
-        process = delete_file(f"{CFG_DIR}/{file_name}")
+        process = file_cmds.delete_file(f"{CFG_DIR}/{file_name}")
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -487,7 +473,7 @@ def log_level():
     """
     level = request.form.get("level") or "info"
 
-    process = set_log_level(level)
+    process = ractl.set_log_level(level)
     if process["status"]:
         flash(_(u"Log level set to %(value)s", value=level))
         return redirect(url_for("index"))
@@ -536,7 +522,8 @@ def daynaport_attach():
             arg += (":" + ip_addr + "/" + mask)
         kwargs["interfaces"] = arg
 
-    process = attach_image(scsi_id, **kwargs)
+    process = ractl.attach_image(scsi_id, **kwargs)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_(u"Attached DaynaPORT to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
@@ -573,7 +560,8 @@ def attach():
     # same file name with PROPERTIES_SUFFIX appended
     drive_properties = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
     if Path(drive_properties).is_file():
-        process = read_drive_properties(drive_properties)
+        process = file_cmds.read_drive_properties(drive_properties)
+        process = ReturnCodeMapper.add_msg(process)
         if not process["status"]:
             flash(process["msg"], "error")
             return redirect(url_for("index"))
@@ -584,7 +572,8 @@ def attach():
         kwargs["block_size"] = conf["block_size"]
         expected_block_size = conf["block_size"]
 
-    process = attach_image(scsi_id, **kwargs)
+    process = ractl.attach_image(scsi_id, **kwargs)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_(u"Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
             file_name=file_name, id_number=scsi_id, unit_number=unit))
@@ -607,7 +596,7 @@ def detach_all_devices():
     """
     Detaches all currently attached devices
     """
-    process = detach_all()
+    process = ractl.detach_all()
     if process["status"]:
         flash(_(u"Detached all SCSI devices"))
         return redirect(url_for("index"))
@@ -624,7 +613,7 @@ def detach():
     """
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
-    process = detach_by_id(scsi_id, unit)
+    process = ractl.detach_by_id(scsi_id, unit)
     if process["status"]:
         flash(_(u"Detached SCSI ID %(id_number)s LUN %(unit_number)s",
             id_number=scsi_id, unit_number=unit))
@@ -645,7 +634,7 @@ def eject():
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
 
-    process = eject_by_id(scsi_id, unit)
+    process = ractl.eject_by_id(scsi_id, unit)
     if process["status"]:
         flash(_(u"Ejected SCSI ID %(id_number)s LUN %(unit_number)s",
             id_number=scsi_id, unit_number=unit))
@@ -664,7 +653,7 @@ def device_info():
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
 
-    devices = list_devices(scsi_id, unit)
+    devices = ractl.list_devices(scsi_id, unit)
 
     # First check if any device at all was returned
     if not devices["status"]:
@@ -700,9 +689,9 @@ def reserve_id():
     """
     scsi_id = request.form.get("scsi_id")
     memo = request.form.get("memo")
-    reserved_ids = get_reserved_ids()["ids"]
+    reserved_ids = ractl.get_reserved_ids()["ids"]
     reserved_ids.extend(scsi_id)
-    process = reserve_scsi_ids(reserved_ids)
+    process = ractl.reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = memo
         flash(_(u"Reserved SCSI ID %(id_number)s", id_number=scsi_id))
@@ -719,9 +708,9 @@ def unreserve_id():
     Removes the reservation of a SCSI ID as well as the memo for the reservation
     """
     scsi_id = request.form.get("scsi_id")
-    reserved_ids = get_reserved_ids()["ids"]
+    reserved_ids = ractl.get_reserved_ids()["ids"]
     reserved_ids.remove(scsi_id)
-    process = reserve_scsi_ids(reserved_ids)
+    process = ractl.reserve_scsi_ids(reserved_ids)
     if process["status"]:
         RESERVATIONS[int(scsi_id)] = ""
         flash(_(u"Released the reservation for SCSI ID %(id_number)s", id_number=scsi_id))
@@ -738,7 +727,7 @@ def restart():
     """
     Restarts the Pi
     """
-    shutdown_pi("reboot")
+    ractl.shutdown_pi("reboot")
     return redirect(url_for("index"))
 
 
@@ -748,7 +737,7 @@ def shutdown():
     """
     Shuts down the Pi
     """
-    shutdown_pi("system")
+    ractl.shutdown_pi("system")
     return redirect(url_for("index"))
 
 
@@ -762,7 +751,8 @@ def download_to_iso():
     url = request.form.get("url")
     iso_args = request.form.get("type").split()
 
-    process = download_file_to_iso(url, *iso_args)
+    process = file_cmds.download_file_to_iso(url, *iso_args)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         flash(_(u"Saved image as: %(file_name)s", file_name=process['file_name']))
@@ -771,7 +761,8 @@ def download_to_iso():
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
-    process_attach = attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
+    process_attach = ractl.attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
+    process_attach = ReturnCodeMapper.add_msg(process_attach)
     if process_attach["status"]:
         flash(_(u"Attached to SCSI ID %(id_number)s", id_number=scsi_id))
         return redirect(url_for("index"))
@@ -789,8 +780,9 @@ def download_img():
     Downloads a remote file onto the images dir on the Pi
     """
     url = request.form.get("url")
-    server_info = get_server_info()
-    process = download_to_dir(url, server_info["image_dir"], Path(url).name)
+    server_info = ractl.get_server_info()
+    process = file_cmds.download_to_dir(url, server_info["image_dir"], Path(url).name)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -819,7 +811,8 @@ def download_afp():
         stem_remainder = file_name_stem[:(26 - len(file_name_suffix))]
         appendix_hash = (md5(discarded_portion.encode("utf-8"))).hexdigest().upper()
         file_name = stem_remainder + "#" + appendix_hash[:4] + file_name_suffix
-    process = download_to_dir(url, AFP_DIR, file_name)
+    process = file_cmds.download_to_dir(url, AFP_DIR, file_name)
+    process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(process["msg"])
         return redirect(url_for("index"))
@@ -847,7 +840,7 @@ def upload_file():
     file_object = request.files["file"]
     file_name = secure_filename(file_object.filename)
 
-    server_info = get_server_info()
+    server_info = ractl.get_server_info()
 
     save_path = path.join(server_info["image_dir"], file_name)
     current_chunk = int(request.form['dzchunkindex'])
@@ -898,7 +891,7 @@ def create_file():
     file_type = request.form.get("type")
     full_file_name = file_name + "." + file_type
 
-    process = create_new_image(file_name, file_type, size)
+    process = file_cmds.create_new_image(file_name, file_type, size)
     if process["status"]:
         flash(_(u"Image file created: %(file_name)s", file_name=full_file_name))
         return redirect(url_for("index"))
@@ -925,7 +918,7 @@ def delete():
     """
     file_name = request.form.get("file_name")
 
-    process = delete_image(file_name)
+    process = file_cmds.delete_image(file_name)
     if process["status"]:
         flash(_(u"Image file deleted: %(file_name)s", file_name=file_name))
     else:
@@ -935,7 +928,9 @@ def delete():
     # Delete the drive properties file, if it exists
     prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
-        process = delete_file(prop_file_path)
+        process = file_cmds.delete_file(prop_file_path)
+        process = ReturnCodeMapper.add_msg(process)
+
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -955,7 +950,7 @@ def rename():
     file_name = request.form.get("file_name")
     new_file_name = request.form.get("new_file_name")
 
-    process = rename_image(file_name, new_file_name)
+    process = file_cmds.rename_image(file_name, new_file_name)
     if process["status"]:
         flash(_(u"Image file renamed to: %(file_name)s", file_name=new_file_name))
     else:
@@ -966,7 +961,8 @@ def rename():
     prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
     new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
-        process = rename_file(prop_file_path, new_prop_file_path)
+        process = file_cmds.rename_file(prop_file_path, new_prop_file_path)
+        process = ReturnCodeMapper.add_msg(process)
         if process["status"]:
             flash(process["msg"])
             return redirect(url_for("index"))
@@ -991,7 +987,7 @@ def unzip():
     if zip_members:
         zip_members = literal_eval(zip_members)
 
-    process = unzip_file(zip_file, zip_member, zip_members)
+    process = file_cmds.unzip_file(zip_file, zip_member, zip_members)
     if process["status"]:
         if not process["msg"]:
             flash(_(u"Aborted unzip: File(s) with the same name already exists."), "error")
@@ -1015,6 +1011,8 @@ def change_language():
     """
     locale = request.form.get("locale")
     session["language"] = locale
+    ractl.locale = session["language"]
+    file_cmds.locale = session["language"]
     refresh()
 
     flash(_(u"Changed Web Interface language to %(locale)s", locale=locale))
@@ -1029,8 +1027,10 @@ def load_default_config():
     - Load the default configuration file, if found
     """
     session["language"] = get_locale()
+    ractl.locale = session["language"]
+    file_cmds.locale = session["language"]
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
-        read_config(DEFAULT_CONFIG)
+        file_cmds.read_config(DEFAULT_CONFIG)
 
 
 if __name__ == "__main__":
@@ -1053,8 +1053,26 @@ if __name__ == "__main__":
         action="store",
         help="Token password string for authenticating with RaSCSI",
         )
+    parser.add_argument(
+        "--rascsi-host",
+        type=str,
+        default="localhost",
+        action="store",
+        help="RaSCSI host. Default: localhost",
+    )
+    parser.add_argument(
+        "--rascsi-port",
+        type=str,
+        default=6868,
+        action="store",
+        help="RaSCSI port. Default: 6868",
+    )
     arguments = parser.parse_args()
     APP.config["TOKEN"] = arguments.password
+
+    sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
+    ractl = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["TOKEN"])
+    file_cmds = FileCmds(sock_cmd=sock_cmd, ractl=ractl, token=APP.config["TOKEN"])
 
     import bjoern
     print("Serving rascsi-web...")

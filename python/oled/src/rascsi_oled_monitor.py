@@ -39,7 +39,8 @@ from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
 from interrupt_handler import GracefulInterruptHandler
 from pi_cmds import get_ip_and_host
-from ractl_cmds import device_list, is_token_auth
+from rascsi.ractl_cmds import RaCtlCmds
+from rascsi.socket_cmds import SocketCmds
 
 parser = argparse.ArgumentParser(description="RaSCSI OLED Monitor script")
 parser.add_argument(
@@ -65,6 +66,20 @@ parser.add_argument(
     action="store",
     help="Token password string for authenticating with RaSCSI",
     )
+parser.add_argument(
+    "--rascsi-host",
+    type=str,
+    default="localhost",
+    action="store",
+    help="RaSCSI host. Default: localhost",
+)
+parser.add_argument(
+    "--rascsi-port",
+    type=str,
+    default=6868,
+    action="store",
+    help="RaSCSI port. Default: 6868",
+)
 args = parser.parse_args()
 
 if args.rotation == 0:
@@ -80,6 +95,9 @@ elif args.height == 32:
     LINES = 4
 
 TOKEN = args.password
+
+sock_cmd = SocketCmds(host=args.rascsi_host, port=args.rascsi_port)
+ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=TOKEN)
 
 WIDTH = 128
 BORDER = 5
@@ -148,10 +166,10 @@ def formatted_output():
     Formats the strings to be displayed on the Screen
     Returns a (list) of (str) output
     """
-    rascsi_list = device_list(TOKEN)
+    rascsi_list = ractl_cmd.list_devices()['device_list']
     output = []
 
-    if not TOKEN and not is_token_auth(TOKEN)["status"]:
+    if not TOKEN and not ractl_cmd.is_token_auth()["status"]:
         output.append("Permission denied!")
     elif rascsi_list:
         for line in rascsi_list:

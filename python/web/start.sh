@@ -104,6 +104,8 @@ while [ "$1" != "" ]; do
     shift
 done
 
+PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
 echo "Starting web server for RaSCSI Web Interface..."
+export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
 cd src
 python3 web.py ${PORT} ${PASSWORD}
