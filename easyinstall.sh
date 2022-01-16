@@ -318,6 +318,8 @@ function isRaScsiScreenInstalled() {
         sudo systemctl is-enabled --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_ENABLED=$?
     elif [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
         sudo systemctl is-enabled --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_ENABLED=$?
+    else
+        SERVICE_RASCSI_OLED_ENABLED=1
     fi
 
     echo $SERVICE_RASCSI_OLED_ENABLED
@@ -330,6 +332,8 @@ function isRaScsiScreenRunning() {
         sudo systemctl is-active --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
     elif [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
         sudo systemctl is-active --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
+    else
+        SERVICE_RASCSI_OLED_RUNNING=1
     fi
 
     echo $SERVICE_RASCSI_OLED_RUNNING
