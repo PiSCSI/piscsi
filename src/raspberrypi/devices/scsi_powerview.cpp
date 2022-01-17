@@ -687,11 +687,11 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 
 			// For each column
 			for (DWORD idx_col_x = 0; idx_col_x < (update_width_px); idx_col_x++){
-				DWORD pixel_buffer_idx;
-				BYTE pixel_buffer_byte;
-				DWORD pixel_bit_number;
-				DWORD pixel;
-				uint32_t loc;
+				DWORD pixel_buffer_idx = 0;
+				BYTE pixel_buffer_byte = 0;
+				DWORD pixel_bit_number = 0;
+				DWORD pixel = 0;
+				uint32_t loc = 0;
 	
 				switch(color_depth){
 					case eColorDepth_t::eOneBitColor:
