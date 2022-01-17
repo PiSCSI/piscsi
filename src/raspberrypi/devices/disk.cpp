@@ -781,15 +781,16 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		valid = true;
 	}
 
-	// final setting of mode data length
-	buf[0] = size - 1;
-
 	// Unsupported page
 	if (!valid) {
 		LOGTRACE("%s Unsupported mode page $%02X",__PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
+
+	// final setting of mode data length
+	buf[0] = size - 1;
+
 	//check if size of data is more than size requested.
 	if (size > length) {
 		LOGTRACE("%s Mode page size %d exceeds requested size %d",__PRETTY_FUNCTION__, size, length);
@@ -942,16 +943,17 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		valid = true;
 	}
 
-	// final setting of mode data length
-	buf[0] = (size - 2) >> 8;
-	buf[1] = size - 2;
-
 	// Unsupported page
 	if (!valid) {
 		LOGTRACE("%s Unsupported mode page $%02X",__PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
+
+	// final setting of mode data length
+	buf[0] = (size - 2) >> 8;
+	buf[1] = size - 2;
+
 	//check if size of data is more than size requested.
 	if (size > length) {
 		LOGTRACE("%s Mode page size %d exceeds requested size %d",__PRETTY_FUNCTION__, size, length);
