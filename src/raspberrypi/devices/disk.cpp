@@ -786,6 +786,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		return 0;
 	}
 
+	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
 		size = length;
 	}
@@ -942,6 +943,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		return 0;
 	}
 
+	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
 		size = length;
 	}
