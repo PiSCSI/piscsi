@@ -733,40 +733,40 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 1(read-write error recovery)
-	if ((page == 0x01) || (page == 0x3f)) {
+	if (page == 0x01 || page == 0x3f) {
 		size += AddErrorPage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 3(format device)
-	if ((page == 0x03) || (page == 0x3f)) {
+	if (page == 0x03 || page == 0x3f) {
 		size += AddFormatPage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 4(drive parameter)
-	if ((page == 0x04) || (page == 0x3f)) {
+	if (page == 0x04 || page == 0x3f) {
 		size += AddDrivePage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 6(optical)
 	if (IsMo()) {
-		if ((page == 0x06) || (page == 0x3f)) {
+		if (page == 0x06 || page == 0x3f) {
 			size += AddOptionPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
 	// Page code 8(caching)
-	if ((page == 0x08) || (page == 0x3f)) {
+	if (page == 0x08 || page == 0x3f) {
 		size += AddCachePage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 13(CD-ROM)
 	if (IsCdRom()) {
-		if ((page == 0x0d) || (page == 0x3f)) {
+		if (page == 0x0d || page == 0x3f) {
 			size += AddCDROMPage(change, &buf[size]);
 			valid = true;
 		}
@@ -774,7 +774,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	// Page code 14(CD-DA)
 	if (IsCdRom()) {
-		if ((page == 0x0e) || (page == 0x3f)) {
+		if (page == 0x0e || page == 0x3f) {
 			size += AddCDDAPage(change, &buf[size]);
 			valid = true;
 		}
@@ -892,40 +892,40 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 1(read-write error recovery)
-	if ((page == 0x01) || (page == 0x3f)) {
+	if (page == 0x01 || page == 0x3f) {
 		size += AddErrorPage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 3(format device)
-	if ((page == 0x03) || (page == 0x3f)) {
+	if (page == 0x03 || page == 0x3f) {
 		size += AddFormatPage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 4(drive parameter)
-	if ((page == 0x04) || (page == 0x3f)) {
+	if (page == 0x04 || page == 0x3f) {
 		size += AddDrivePage(change, &buf[size]);
 		valid = true;
 	}
 
 	// ペPage code 6(optical)
 	if (IsMo()) {
-		if ((page == 0x06) || (page == 0x3f)) {
+		if (page == 0x06 || page == 0x3f) {
 			size += AddOptionPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
 	// Page code 8(caching)
-	if ((page == 0x08) || (page == 0x3f)) {
+	if (page == 0x08 || page == 0x3f) {
 		size += AddCachePage(change, &buf[size]);
 		valid = true;
 	}
 
 	// Page code 13(CD-ROM)
 	if (IsCdRom()) {
-		if ((page == 0x0d) || (page == 0x3f)) {
+		if (page == 0x0d || page == 0x3f) {
 			size += AddCDROMPage(change, &buf[size]);
 			valid = true;
 		}
@@ -933,7 +933,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 	// Page code 14(CD-DA)
 	if (IsCdRom()) {
-		if ((page == 0x0e) || (page == 0x3f)) {
+		if (page == 0x0e || page == 0x3f) {
 			size += AddCDDAPage(change, &buf[size]);
 			valid = true;
 		}
