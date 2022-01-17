@@ -1,18 +1,22 @@
 """
 Module for methods reading from and writing to the file system
 """
+# pylint: disable=import-error
 import os
 import logging
 from pathlib import PurePath
 import asyncio
-from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
 import rascsi_interface_pb2 as proto
+from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.return_codes import ReturnCodes
 from rascsi.socket_cmds import SocketCmds
 
 
 class FileCmds:
+    """
+    class for methods reading from and writing to the file system
+    """
 
     def __init__(self, sock_cmd: SocketCmds, ractl: RaCtlCmds, token=None, locale=None):
         self.sock_cmd = sock_cmd
@@ -21,6 +25,7 @@ class FileCmds:
         self.locale = locale
 
     # noinspection PyMethodMayBeStatic
+    # pylint: disable=no-self-use
     def list_files(self, file_types, dir_path):
         """
         Takes a (list) or (tuple) of (str) file_types - e.g. ('hda', 'hds')
@@ -28,7 +33,7 @@ class FileCmds:
         index 0 is (str) file name and index 1 is (int) size in bytes
         """
         files_list = []
-        for path, dirs, files in os.walk(dir_path):
+        for path, _dirs, files in os.walk(dir_path):
             # Only list selected file types
             files = [f for f in files if f.lower().endswith(file_types)]
             files_list.extend(
@@ -49,7 +54,7 @@ class FileCmds:
         Returns a (list) of (str) files_list
         """
         files_list = []
-        for root, dirs, files in os.walk(CFG_DIR):
+        for _root, _dirs, files in os.walk(CFG_DIR):
             for file in files:
                 if file.endswith("." + CONFIG_FILE_SUFFIX):
                     files_list.append(file)
@@ -267,7 +272,6 @@ class FileCmds:
         """
         from time import time
         from subprocess import run, CalledProcessError
-        import asyncio
 
         server_info = self.ractl.get_server_info()
 
@@ -370,7 +374,7 @@ class FileCmds:
         from json import dump
         file_name = f"{CFG_DIR}/{file_name}"
         try:
-            with open(file_name, "w") as json_file:
+            with open(file_name, "w", encoding="ISO-8859-1") as json_file:
                 version = self.ractl.get_server_info()["version"]
                 devices = self.ractl.list_devices()["device_list"]
                 for device in devices:
@@ -391,9 +395,12 @@ class FileCmds:
                 reserved_ids_and_memos = []
                 reserved_ids = self.ractl.get_reserved_ids()["ids"]
                 for scsi_id in reserved_ids:
-                    reserved_ids_and_memos.append({"id": scsi_id, "memo": RESERVATIONS[int(scsi_id)]})
+                    reserved_ids_and_memos.append({"id": scsi_id,
+                                                   "memo": RESERVATIONS[int(scsi_id)]})
                 dump(
-                    {"version": version, "devices": devices, "reserved_ids": reserved_ids_and_memos},
+                    {"version": version,
+                     "devices": devices,
+                     "reserved_ids": reserved_ids_and_memos},
                     json_file,
                     indent=4
                     )
@@ -429,7 +436,7 @@ class FileCmds:
         from json import load
         file_name = f"{CFG_DIR}/{file_name}"
         try:
-            with open(file_name) as json_file:
+            with open(file_name, encoding="ISO-8859-1") as json_file:
                 config = load(json_file)
                 # If the config file format changes again in the future,
                 # introduce more sophisticated format detection logic here.
@@ -475,7 +482,8 @@ class FileCmds:
                             kwargs[param] = params[param]
                         self.ractl.attach_image(row["id"], **kwargs)
                 else:
-                    return {"status": False, "return_code": ReturnCodes.READCONFIG_INVALID_CONFIG_FILE_FORMAT}
+                    return {"status": False,
+                            "return_code": ReturnCodes.READCONFIG_INVALID_CONFIG_FILE_FORMAT}
 
                 parameters = {
                     "file_name": file_name

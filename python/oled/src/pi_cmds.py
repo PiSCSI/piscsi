@@ -2,6 +2,7 @@
 Module with methods that interact with the Pi's Linux system
 """
 
+
 def get_ip_and_host():
     """
     Use a mock socket connection to identify the Pi's hostname and IP address

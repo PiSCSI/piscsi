@@ -2,6 +2,7 @@
 Module for methods controlling and getting information about the Pi's Linux system
 """
 
+# pylint: disable=import-error
 import subprocess
 import logging
 from flask_babel import _
@@ -131,7 +132,7 @@ def introspect_file(file_path, re_term):
     """
     from re import match
     try:
-        ifile = open(file_path, "r")
+        ifile = open(file_path, "r", encoding="ISO-8859-1")
     except:
         return False
     for line in ifile:
@@ -151,6 +152,6 @@ def auth_active():
     if AUTH_GROUP in groups:
         return {
                 "status": True,
-                "msg": _(u"You must log in to use this function"),
+                "msg": _("You must log in to use this function"),
                 }
     return {"status": False, "msg": ""}

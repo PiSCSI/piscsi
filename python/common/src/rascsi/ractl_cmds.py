@@ -2,6 +2,7 @@
 Module for commands sent to the RaSCSI backend service.
 """
 
+# pylint: disable=import-error
 import rascsi_interface_pb2 as proto
 from rascsi.common_settings import REMOVABLE_DEVICE_TYPES
 from rascsi.return_codes import ReturnCodes
@@ -9,7 +10,9 @@ from rascsi.socket_cmds import SocketCmds
 
 
 class RaCtlCmds:
-
+    """
+    Class for commands sent to the RaSCSI backend service.
+    """
     def __init__(self, sock_cmd: SocketCmds, token=None, locale="en"):
         self.sock_cmd = sock_cmd
         self.token = token

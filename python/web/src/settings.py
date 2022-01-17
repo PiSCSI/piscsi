@@ -2,6 +2,7 @@
 Constant definitions used by other modules
 """
 
+# pylint: disable=import-error
 from os import getenv, getcwd
 import rascsi.common_settings
 

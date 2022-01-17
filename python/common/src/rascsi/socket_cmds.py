@@ -2,13 +2,18 @@
 Module for sending and receiving data over a socket connection with the RaSCSI backend
 """
 
+# pylint: disable=import-error
 import logging
 from time import sleep
-from rascsi.exceptions import EmptySocketChunkException, InvalidProtobufResponse, FailedSocketConnectionException
+from rascsi.exceptions import (EmptySocketChunkException,
+                               InvalidProtobufResponse,
+                               FailedSocketConnectionException)
 
 
 class SocketCmds:
-
+    """
+    Class for sending and receiving data over a socket connection with the RaSCSI backend
+    """
     def __init__(self, host="localhost", port=6868):
         self.host = host
         self.port = port
@@ -36,14 +41,15 @@ class SocketCmds:
                                 str(counter), str(tries))
                 error_msg = str(error)
                 sleep(0.2)
-            except EmptySocketChunkException as e:
-                raise e
-            except InvalidProtobufResponse as e:
-                raise e
+            except EmptySocketChunkException as ex:
+                raise ex
+            except InvalidProtobufResponse as ex:
+                raise ex
 
         logging.error(error_msg)
         raise FailedSocketConnectionException(error_msg)
 
+    # pylint: disable=no-self-use
     def send_over_socket(self, sock, payload):
         """
         Takes a socket object and (str) payload with serialized protobuf.
@@ -79,7 +85,8 @@ class SocketCmds:
             response_message = b''.join(chunks)
             return response_message
 
-        error_message = "The response from RaSCSI did not contain a protobuf header. RaSCSI may have crashed."
+        error_message = "The response from RaSCSI did not contain a protobuf header. " \
+                        "RaSCSI may have crashed."
 
         logging.error(error_message)
         raise InvalidProtobufResponse(error_message)

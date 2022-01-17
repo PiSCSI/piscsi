@@ -1,4 +1,8 @@
-from os import getenv, getcwd
+"""
+Module for general settings used in the rascsi module
+"""
+
+from os import getcwd
 
 WORK_DIR = getcwd()
 

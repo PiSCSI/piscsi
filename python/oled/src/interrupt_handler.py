@@ -3,7 +3,8 @@ Linux interrupt handling module
 """
 import signal
 
-class GracefulInterruptHandler():
+
+class GracefulInterruptHandler:
     """
     Class for handling Linux signal interrupts
     """
