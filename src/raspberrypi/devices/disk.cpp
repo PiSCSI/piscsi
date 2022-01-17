@@ -677,7 +677,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
 	// Get length, clear buffer
 	int length = (int)cdb[4];
-	ASSERT((length >= 0) && (length < 0x100));
 	memset(buf, 0, length);
 
 	// Get changeable flag
@@ -806,7 +805,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	if (length > 0x800) {
 		length = 0x800;
 	}
-	ASSERT((length >= 0) && (length < 0x800));
 	memset(buf, 0, length);
 
 	// Get changeable flag
