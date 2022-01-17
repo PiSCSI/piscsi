@@ -461,9 +461,6 @@ void Disk::ModeSense6(SASIDEV *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		unsigned int code = (unsigned int)ctrl->cmd[2];
-		LOGTRACE("%s Unsupported mode page $%02X, PCF $%02X",__PRETTY_FUNCTION__, code & 0x3f, code >> 6);
-
 		controller->Error();
 		return;
 	}
@@ -475,9 +472,6 @@ void Disk::ModeSense10(SASIDEV *controller)
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		unsigned int code = (unsigned int)ctrl->cmd[2];
-		LOGTRACE("%s Unsupported mode page $%02X, PCF $%02X",__PRETTY_FUNCTION__, code & 0x3f, code >> 6);
-
 		controller->Error();
 		return;
 	}
@@ -792,11 +786,13 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	// Unsupported page
 	if (!valid) {
+		LOGTRACE("%s Unsupported mode page $%02X",__PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 	//check if size of data is more than size requested.
 	if (size > length) {
+		LOGTRACE("%s Mode page size %d exceeds requested size %d",__PRETTY_FUNCTION__, size, length);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
@@ -952,11 +948,13 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 	// Unsupported page
 	if (!valid) {
+		LOGTRACE("%s Unsupported mode page $%02X",__PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 	//check if size of data is more than size requested.
 	if (size > length) {
+		LOGTRACE("%s Mode page size %d exceeds requested size %d",__PRETTY_FUNCTION__, size, length);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
