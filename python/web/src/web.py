@@ -8,7 +8,6 @@ from pathlib import Path
 from functools import wraps
 from hashlib import md5
 
-# pylint: disable=import-error
 from flask import (
     Flask,
     render_template,

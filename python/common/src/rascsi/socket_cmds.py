@@ -2,7 +2,6 @@
 Module for sending and receiving data over a socket connection with the RaSCSI backend
 """
 
-# pylint: disable=import-error
 import logging
 from time import sleep
 from rascsi.exceptions import (EmptySocketChunkException,
@@ -76,8 +75,8 @@ class SocketCmds:
             while bytes_recvd < response_length:
                 chunk = sock.recv(min(response_length - bytes_recvd, 2048))
                 if chunk == b'':
-                    error_message = "Read an empty chunk from the socket. Socket connection has " \
-                                    "dropped unexpectedly. RaSCSI may have crashed."
+                    error_message = ("Read an empty chunk from the socket. Socket connection has "
+                                     "dropped unexpectedly. RaSCSI may have crashed.")
                     logging.error(error_message)
                     raise EmptySocketChunkException(error_message)
                 chunks.append(chunk)
@@ -85,8 +84,8 @@ class SocketCmds:
             response_message = b''.join(chunks)
             return response_message
 
-        error_message = "The response from RaSCSI did not contain a protobuf header. " \
-                        "RaSCSI may have crashed."
+        error_message = ("The response from RaSCSI did not contain a protobuf header. "
+                         "RaSCSI may have crashed.")
 
         logging.error(error_message)
         raise InvalidProtobufResponse(error_message)

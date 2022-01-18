@@ -11,4 +11,6 @@ src/raspberrypi/hfdisk/
 *~
 messages.pot
 messages.mo
+
+# temporary user files
 s.sh

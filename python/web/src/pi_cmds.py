@@ -2,7 +2,6 @@
 Module for methods controlling and getting information about the Pi's Linux system
 """
 
-# pylint: disable=import-error
 import subprocess
 import logging
 from flask_babel import _

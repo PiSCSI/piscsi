@@ -2,7 +2,6 @@
 Module for commands sent to the RaSCSI backend service.
 """
 
-# pylint: disable=import-error
 import rascsi_interface_pb2 as proto
 from rascsi.common_settings import REMOVABLE_DEVICE_TYPES
 from rascsi.return_codes import ReturnCodes
@@ -39,9 +38,9 @@ class RaCtlCmds:
         data = self.sock_cmd.send_pb_command(command.SerializeToString())
         result = proto.PbResult()
         result.ParseFromString(data)
-        version = str(result.server_info.version_info.major_version) + "." +\
-                  str(result.server_info.version_info.minor_version) + "." +\
-                  str(result.server_info.version_info.patch_version)
+        version = (str(result.server_info.version_info.major_version) + "." +
+                   str(result.server_info.version_info.minor_version) + "." +
+                   str(result.server_info.version_info.patch_version))
         log_levels = result.server_info.log_level_info.log_levels
         current_log_level = result.server_info.log_level_info.current_log_level
         reserved_ids = list(result.server_info.reserved_ids_info.ids)

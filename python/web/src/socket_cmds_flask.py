@@ -2,7 +2,6 @@
 Module for sending and receiving data over a socket connection with the RaSCSI backend
 """
 
-# pylint: disable=import-error
 from flask import abort
 from flask_babel import _
 

@@ -1,5 +1,5 @@
 """Module for mapping between rascsi return codes and translated strings"""
-# pylint: disable=import-error
+
 from rascsi.return_codes import ReturnCodes
 from flask_babel import _
 

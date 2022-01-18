@@ -30,7 +30,7 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
 """
-# pylint: disable=import-error
+
 import argparse
 import sys
 from time import sleep

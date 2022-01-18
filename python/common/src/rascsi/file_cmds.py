@@ -1,7 +1,7 @@
 """
 Module for methods reading from and writing to the file system
 """
-# pylint: disable=import-error
+
 import os
 import logging
 from pathlib import PurePath
