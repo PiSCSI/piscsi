@@ -714,14 +714,7 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 
 	}
 
-	LOGWARN("Calculate Offset: %u (%08X) Screen width: %u height: %u Update X: %u (%06X) Y: %u (%06X)", offset, offset, screen_width_px, screen_height_px, offset_row_px, offset_row_px, offset_col_px, offset_col_px);
-		
-
-		// LOGDEBUG("%s act length %u offset:%06X (%f) wid:%06X height:%06X", __PRETTY_FUNCTION__, length, offset, ((float)offset/(screen_width_px*screen_height_px)), update_width_x_bytes, update_height_y_bytes);
-
-
- 
-		// LOGWARN("WriteFrameBuffer: Update x:%06X y:%06X width:%06X height:%06X [ New width: %u (%06X) height: %u (%06X)]", offset_col_px, offset_row_px, update_width_x_bytes * 8, update_height_y_bytes, update_width_px, update_width_px, update_height_px, update_height_px )
+	LOGTRACE("Calculate Offset: %u (%08X) Screen width: %u height: %u Update X: %u (%06X) Y: %u (%06X)", offset, offset, screen_width_px, screen_height_px, offset_row_px, offset_row_px, offset_col_px, offset_col_px);
 		
 
 		// For each row
@@ -753,8 +746,6 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 						else{
 							pixel_color_idx = buf[pixel_buffer_idx] >> 4;
 						}
-						pixel = color_palette[pixel_buffer_byte];
-						loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
 						break;
 					case eColorDepth_t::eSixteenBitColor:
 						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x);
@@ -763,8 +754,15 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 					default:
 						break;
 				}
-				
+
+				if(pixel > (sizeof(color_palette) / sizeof (color_palette[0]))){
+					LOGWARN("Calculated pixel color that is out of bounds: %04X", pixel_buffer_idx);
+					return false;
+				}
 				pixel = color_palette[pixel_color_idx];
+				loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
+
+				// pixel = color_palette[pixel_color_idx];
 				// for(int i=0 ; i< (this->fbbpp/8); i++){
 				// 	*(this->fb + loc + i) = pixel;
 				// }
