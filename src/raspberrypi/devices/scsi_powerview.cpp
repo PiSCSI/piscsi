@@ -103,6 +103,23 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 
 	memset(this->fb, 0, this->fbsize);
 
+
+	framebuffer_black = 0;
+	framebuffer_blue =  (/*red*/ 0 << fbinfo.red.offset) |
+						(/*green*/ 0 << fbinfo.green.offset)|
+						(/*blue*/ 0xFF << fbinfo.blue.offset) |
+						(/*alpha*/ 0xFF << fbinfo.transp.offset);
+	framebuffer_yellow =  (/*red*/ 0 << fbinfo.red.offset) |
+						(/*green*/ 0xFF << fbinfo.green.offset)|
+						(/*blue*/ 0x0 << fbinfo.blue.offset) |
+						(/*alpha*/ 0xFF << fbinfo.transp.offset);
+	framebuffer_red =  (/*red*/ 0xFF << fbinfo.red.offset) |
+						(/*green*/ 0 << fbinfo.green.offset)|
+						(/*blue*/ 0 << fbinfo.blue.offset) |
+						(/*alpha*/ 0xFF << fbinfo.transp.offset);
+
+
+
 	this->m_powerview_resolution_x = 624;
 	this->m_powerview_resolution_y = 840;
 
@@ -567,6 +584,32 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 
 	color_depth = (eColorDepth_t)((uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8));
 
+	if(color_depth == eColorDepth_t::eOneBitColor){
+		LOGWARN("One Bit Color Palette %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X ",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9],buf[10]);
+		// Something is dorked up with the one bit color palette getting loaded.
+		// TODO: Remove this workaround!!
+		color_palette[0] = 0x01FFFFFF;
+		color_palette[1] = 0;
+	}
+
+	// FILE *fp;
+
+	// sprintf(newstring, "/tmp/%llu.txt",(std::chrono::system_clock::now().time_since_epoch()).count());
+	// LOGWARN(newstring);
+	// fp = fopen(newstring,"w");
+
+	// sprintf(newstring, "length: %u\n", length);
+
+	// fputs(newstring, fp);
+
+	// for(DWORD i = 0; i <= length; i+=8){
+
+	// 	sprintf(newstring, "%u: %02X %02X %02X %02X %02X %02X %02X %02X\n", i, buf[i+0],buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],buf[i+7]);
+	// 	fputs(newstring, fp);
+	// }
+	// fclose(fp);
+
+
 	return true;
 }
 
@@ -687,6 +730,7 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 
 			// For each column
 			for (DWORD idx_col_x = 0; idx_col_x < (update_width_px); idx_col_x++){
+				BYTE pixel_color_idx=0;
 				DWORD pixel_buffer_idx = 0;
 				BYTE pixel_buffer_byte = 0;
 				DWORD pixel_bit_number = 0;
@@ -698,31 +742,29 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x / 8);
 						pixel_buffer_byte = reverse_table[buf[pixel_buffer_idx]];
 						pixel_bit_number = idx_col_x % 8;
-						pixel = (pixel_buffer_byte & (1 << pixel_bit_number) ? 0 : 0x00FFFFFF);
-						// pixel = color_palette[pixel] & 0x00FFFFFF;
-						loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
+						pixel_color_idx = (pixel_buffer_byte >> pixel_bit_number) & 0x1;
 						break;
 
 					case eColorDepth_t::eEightBitColor:
 						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x/2);
 						if(idx_col_x % 2){
-							pixel_buffer_byte = buf[pixel_buffer_idx] & 0x0F;
+							pixel_color_idx = buf[pixel_buffer_idx] & 0x0F;
 						}
 						else{
-							pixel_buffer_byte = buf[pixel_buffer_idx] >> 4;
+							pixel_color_idx = buf[pixel_buffer_idx] >> 4;
 						}
 						pixel = color_palette[pixel_buffer_byte];
 						loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
 						break;
 					case eColorDepth_t::eSixteenBitColor:
 						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x);
-						pixel_buffer_byte = buf[pixel_buffer_idx];
-						pixel = color_palette[pixel_buffer_byte];
-						loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
+						pixel_color_idx = buf[pixel_buffer_idx];
 						break;
 					default:
 						break;
 				}
+				
+				pixel = color_palette[pixel_color_idx];
 				// for(int i=0 ; i< (this->fbbpp/8); i++){
 				// 	*(this->fb + loc + i) = pixel;
 				// }

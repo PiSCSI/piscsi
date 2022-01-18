@@ -24,7 +24,7 @@
 #include <map>
 #include <string>
 #include "../rascsi.h"
-
+#include <linux/fb.h>
 
 //===========================================================================
 //
@@ -98,6 +98,10 @@ private:
     uint32_t screen_width_px;
 	uint32_t screen_height_px;
 
+	
+	struct fb_var_screeninfo fbinfo;
+	struct fb_fix_screeninfo fbfixinfo;
+
 	// The maximum color depth is 16 bits
 	DWORD color_palette[0x10000];
 	int color_palette_length = 0;
@@ -116,8 +120,8 @@ private:
 
 	static const BYTE m_inquiry_response[];
 
-	const DWORD framebuffer_black = 0x000000;
-	const DWORD framebuffer_blue = 0xFF0000;
-	const DWORD framebuffer_yellow = 0x00FF00;
-		const DWORD framebuffer_red = 0xCCCC00;
+	DWORD framebuffer_black;
+	DWORD framebuffer_blue;
+	DWORD framebuffer_yellow;
+	DWORD framebuffer_red;
 };
