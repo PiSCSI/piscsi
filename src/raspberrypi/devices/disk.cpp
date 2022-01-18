@@ -686,6 +686,8 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int page = cdb[2] & 0x3f;
 	bool valid = page == 0x00;
 
+	LOGTRACE("%s Requesting mode page $%02X",__PRETTY_FUNCTION__, page);
+
 	// Basic information
 	int size = 4;
 
@@ -813,6 +815,8 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	// Get page code (0x00 is valid from the beginning)
 	int page = cdb[2] & 0x3f;
 	bool valid = page == 0x00;
+
+	LOGTRACE("%s Requesting mode page $%02X",__PRETTY_FUNCTION__, page);
 
 	// Basic Information
 	int size = 8;
