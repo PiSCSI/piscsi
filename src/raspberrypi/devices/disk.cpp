@@ -693,7 +693,8 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	// MEDIUM TYPE
 	if (IsMo()) {
-		buf[1] = 0x03; // optical reversible or erasable
+		// Optical reversible or erasable
+		buf[1] = 0x03;
 	}
 
 	// DEVICE SPECIFIC PARAMETER
