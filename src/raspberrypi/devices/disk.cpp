@@ -701,7 +701,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		buf[2] = 0x80;
 	}
 
-	// add block descriptor if DBD is 0
+	// Add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
 		// Mode parameter header, block descriptor length
 		buf[3] = 0x08;
@@ -726,25 +726,25 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	// Page code 1(read-write error recovery)
+	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
 		size += AddErrorPage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 3(format device)
+	// Page code 3 (format device)
 	if (page == 0x03 || page == 0x3f) {
 		size += AddFormatPage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 4(drive parameter)
+	// Page code 4 (drive parameter)
 	if (page == 0x04 || page == 0x3f) {
 		size += AddDrivePage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 6(optical)
+	// Page code 6 (optical)
 	if (IsMo()) {
 		if (page == 0x06 || page == 0x3f) {
 			size += AddOptionPage(change, &buf[size]);
@@ -752,13 +752,13 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// Page code 8(caching)
+	// Page code 8 (caching)
 	if (page == 0x08 || page == 0x3f) {
 		size += AddCachePage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 13(CD-ROM)
+	// Page code 13 (CD-ROM)
 	if (IsCdRom()) {
 		if (page == 0x0d || page == 0x3f) {
 			size += AddCDROMPage(change, &buf[size]);
@@ -766,7 +766,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// Page code 14(CD-DA)
+	// Page code 14 (CD-DA)
 	if (IsCdRom()) {
 		if (page == 0x0e || page == 0x3f) {
 			size += AddCDDAPage(change, &buf[size]);
@@ -792,7 +792,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = length;
 	}
 
-	// final setting of mode data length
+	// Final setting of mode data length
 	buf[0] = size;
 
 	return size;
@@ -823,7 +823,8 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 	// MEDIUM TYPE
 	if (IsMo()) {
-		buf[2] = 0x03; // optical reversible or erasable
+		// Optical reversible or erasable
+		buf[2] = 0x03;
 	}
 
 	// DEVICE SPECIFIC PARAMETER
@@ -831,7 +832,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		buf[3] = 0x80;
 	}
 
-	// add block descriptor if DBD is 0
+	// Add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
 		// Only if ready
 		if (IsReady()) {
@@ -884,25 +885,25 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// Page code 1(read-write error recovery)
+	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
 		size += AddErrorPage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 3(format device)
+	// Page code 3 (format device)
 	if (page == 0x03 || page == 0x3f) {
 		size += AddFormatPage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 4(drive parameter)
+	// Page code 4 (drive parameter)
 	if (page == 0x04 || page == 0x3f) {
 		size += AddDrivePage(change, &buf[size]);
 		valid = true;
 	}
 
-	// ペPage code 6(optical)
+	// Page code 6 (optical)
 	if (IsMo()) {
 		if (page == 0x06 || page == 0x3f) {
 			size += AddOptionPage(change, &buf[size]);
@@ -910,13 +911,13 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// Page code 8(caching)
+	// Page code 8 (caching)
 	if (page == 0x08 || page == 0x3f) {
 		size += AddCachePage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 13(CD-ROM)
+	// Page code 13 (CD-ROM)
 	if (IsCdRom()) {
 		if (page == 0x0d || page == 0x3f) {
 			size += AddCDROMPage(change, &buf[size]);
@@ -924,7 +925,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// Page code 14(CD-DA)
+	// Page code 14 (CD-DA)
 	if (IsCdRom()) {
 		if (page == 0x0e || page == 0x3f) {
 			size += AddCDDAPage(change, &buf[size]);
@@ -950,7 +951,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		size = length;
 	}
 
-	// final setting of mode data length
+	// Final setting of mode data length
 	buf[0] = size >> 8;
 	buf[1] = size;
 
