@@ -686,7 +686,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int page = cdb[2] & 0x3f;
 	bool valid = page == 0x00;
 
-	LOGTRACE("%s Requesting mode page $%02X",__PRETTY_FUNCTION__, page);
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
 	// Basic information
 	int size = 4;
@@ -782,14 +782,14 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 
 	if (!valid) {
-		LOGTRACE("%s Unsupported mode page $%02X",__PRETTY_FUNCTION__, page);
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
-		LOGTRACE("%s %d bytes available, %d bytes requested",__PRETTY_FUNCTION__, size, length);
+		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
 		size = length;
 	}
 
@@ -817,7 +817,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	int page = cdb[2] & 0x3f;
 	bool valid = page == 0x00;
 
-	LOGTRACE("%s Requesting mode page $%02X",__PRETTY_FUNCTION__, page);
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
 	// Basic Information
 	int size = 8;
@@ -942,14 +942,14 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	if (!valid) {
-		LOGTRACE("%s Unsupported mode page $%02X",__PRETTY_FUNCTION__, page);
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
-		LOGTRACE("%s %d bytes available, %d bytes requested",__PRETTY_FUNCTION__, size, length);
+		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
 		size = length;
 	}
 
