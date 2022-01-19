@@ -111,6 +111,9 @@ private:
 	BYTE unknown_cc_data[0x10000];
 	int unknown_cc_data_length = 0;
 
+	static const BYTE default_color_palette_bw[8];
+	static const BYTE default_color_palette_16[64];
+	static const BYTE default_color_palette_256[1024];
 
 	int fbfd;
 	char *fb;

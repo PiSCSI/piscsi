@@ -34,9 +34,6 @@
 
 static unsigned char reverse_table[256];
 
-static int dump_idx = 0;
-static int dumpfb_idx = 0;
-
 // #define DUMP_COLOR_PALETTE
 // #define DUMP_FRAME_BUFFER
 
@@ -60,8 +57,8 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 	AddCommand(SCSIDEV::eCmdPvWriteColorPalette, "Unknown PowerViewCB", &SCSIPowerView::CmdWriteColorPalette);
 	AddCommand(SCSIDEV::eCmdUnknownPowerViewCC, "Unknown PowerViewCC", &SCSIPowerView::UnknownCommandCC);
 
-	struct fb_var_screeninfo fbinfo;
-	struct fb_fix_screeninfo fbfixinfo;
+	// struct fb_var_screeninfo fbinfo;
+	// struct fb_fix_screeninfo fbfixinfo;
 
 	// create lookup table
 	for (int i = 0; i < 256; i++) {
@@ -614,6 +611,7 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 #ifdef DUMP_COLOR_PALETTE
 	FILE *fp;
 	char newstring[1024];
+	static int dump_idx = 0;
 
 	switch(color_depth){
 		case(eColorsBW):
@@ -659,7 +657,7 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 
 bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DWORD length)
 {
-
+	char newstring[1024];
     // uint32_t new_screen_width_px =0;
 	// uint32_t new_screen_height_px=0;
 	uint32_t update_width_px=0;
@@ -829,14 +827,40 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 				loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
 
 
-				*(this->fb + loc + 0) = (BYTE)((pixel >> 8) & 0xFF);
-				*(this->fb + loc + 1) = (BYTE)((pixel) & 0xFF);
+
+
+				uint32_t red, green, blue;
+				// uint32_t pixel_x_pos, pixel_y_pos;
+// r:11 g:5 b:0 a:0
+				// pixel_x_pos = (idx_col_x + offset_col_px);
+				// pixel_y_pos = (idx_row_y + offset_row_px);
+
+				red = ((pixel & 0xFF000000) >> 24);
+				red >>= (8 - fbinfo.red.length);
+				green = ((pixel & 0xFF0000) >> 16);
+				green >>= (8 - fbinfo.green.length);
+				blue = ((pixel & 0xFF00) >> 8);
+				blue >>= (8 - fbinfo.blue.length);
+
+				uint32_t fb_pixel = (red << fbinfo.red.offset) |
+									(green << fbinfo.green.offset)|
+									(blue << fbinfo.blue.offset);
+
+
+		// static uint32_t prev_pix = 0xFFFFFFFF;
+		// if(pixel != prev_pix){
+		// 		LOGWARN("pixel: %08X red:%02X Green:%02X Blue:%02X Length r:%d g:%d b:%d Offset r:%d g:%d b:%d", pixel, red, green, blue, fbinfo.red.length, fbinfo.green.length, fbinfo.blue.length, fbinfo.red.offset, fbinfo.green.offset, fbinfo.blue.offset)
+		// 		prev_pix = pixel;
+		// }
+
+				*(this->fb + loc + 0) = (BYTE)((fb_pixel >> 8) & 0xFF);
+				*(this->fb + loc + 1) = (BYTE)((fb_pixel) & 0xFF);
 
 
 				// // // https://www.i-programmer.info/programming/cc/12839-applying-c-framebuffer-graphics.html?start=1
 				// uint32_t red, green, blue;
 				// uint32_t pixel_x_pos, pixel_y_pos;
-
+// r:11 g:5 b:0 a:0
 				// pixel_x_pos = (idx_col_x + offset_col_px);
 				// pixel_y_pos = (idx_row_y + offset_row_px);
 
@@ -873,7 +897,9 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 #ifdef DUMP_FRAME_BUFFER
 	//******************************************************************************
 	FILE *fp;
-	char newstring[1024];
+
+	static int dumpfb_idx = 0;
+
 	switch(color_depth){
 		case(eColorsBW):
 			sprintf(newstring, "/tmp/fb_eColorsBW_%04X_%ux%u.txt",dumpfb_idx++, update_width_x_bytes, update_height_y_bytes);
