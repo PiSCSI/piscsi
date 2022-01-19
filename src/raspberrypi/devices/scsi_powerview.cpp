@@ -34,6 +34,12 @@
 
 static unsigned char reverse_table[256];
 
+static int dump_idx = 0;
+static int dumpfb_idx = 0;
+
+// #define DUMP_COLOR_PALETTE
+// #define DUMP_FRAME_BUFFER
+
 const BYTE SCSIPowerView::m_inquiry_response[] = {
 0x03, 0x00, 0x01, 0x01, 0x46, 0x00, 0x00, 0x00, 0x52, 0x41, 0x44, 0x49, 0x55, 0x53, 0x20, 0x20,
 0x50, 0x6F, 0x77, 0x65, 0x72, 0x56, 0x69, 0x65, 0x77, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20,
@@ -408,6 +414,12 @@ void SCSIPowerView::CmdWriteColorPalette(SASIDEV *controller)
 	ctrl->length = (uint16_t)received_color_depth * 4;
 	LOGINFO("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
+	// The driver sends "1" for black and white, which is really 
+	// TWO colors: Black and White
+	if(received_color_depth == eColorsBW){
+		ctrl->length = 8;
+	}
+
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
@@ -565,7 +577,6 @@ bool SCSIPowerView::WriteUnknownCC(const DWORD *cdb, const BYTE *buf, const DWOR
 bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const DWORD length)
 {
 
-	// char newstring[1024];
 	if(length <= 1){
 		LOGDEBUG("%s Received Color Palette with depth of %u", __PRETTY_FUNCTION__, length);
 		// This is still a valid condition.
@@ -600,23 +611,47 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 	// 	color_palette[1] = 0;
 	// }
 
-	// FILE *fp;
+#ifdef DUMP_COLOR_PALETTE
+	FILE *fp;
+	char newstring[1024];
 
-	// sprintf(newstring, "/tmp/%llu.txt",(std::chrono::system_clock::now().time_since_epoch()).count());
-	// LOGWARN(newstring);
-	// fp = fopen(newstring,"w");
+	switch(color_depth){
+		case(eColorsBW):
+			sprintf(newstring, "/tmp/eColorsBW_%04X.txt",dump_idx++);
+			break;
+		case(eColors16):
+			sprintf(newstring, "/tmp/eColors16_%04X.txt",dump_idx++);
+			break;
+		case(eColors256):
+			sprintf(newstring, "/tmp/eColors256_%04X.txt",dump_idx++);
+			break;
+		default:
+			return false;
+			break;
+	}
+	//LOGWARN(newstring);
+	fp = fopen(newstring,"w");
 
-	// sprintf(newstring, "length: %u\n", length);
+	sprintf(newstring, "length: %u\n", length);
 
-	// fputs(newstring, fp);
+	fputs(newstring, fp);
 
-	// for(DWORD i = 0; i <= length; i+=8){
+	for(DWORD i = 0; i < length; i+=4){
+		if(i % 16 == 0){
+			sprintf(newstring, "%u: ", i);
+			fputs(newstring,fp);
+		}
 
-	// 	sprintf(newstring, "%u: %02X %02X %02X %02X %02X %02X %02X %02X\n", i, buf[i+0],buf[i+1],buf[i+2],buf[i+3],buf[i+4],buf[i+5],buf[i+6],buf[i+7]);
-	// 	fputs(newstring, fp);
-	// }
-	// fclose(fp);
+		sprintf(newstring, "[%02X %02X%02X%02X]  ", buf[i+0],buf[i+1],buf[i+2],buf[i+3]);
+		fputs(newstring, fp);
 
+		if(i % 16 == 12){
+
+			fputs("\n", fp);
+		}
+	}
+	fclose(fp);
+#endif
 
 	return true;
 }
@@ -624,7 +659,7 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 
 bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DWORD length)
 {
-	char newstring[1024];
+
     // uint32_t new_screen_width_px =0;
 	// uint32_t new_screen_height_px=0;
 	uint32_t update_width_px=0;
@@ -835,6 +870,50 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 			}
 		}
 
+#ifdef DUMP_FRAME_BUFFER
+	//******************************************************************************
+	FILE *fp;
+	char newstring[1024];
+	switch(color_depth){
+		case(eColorsBW):
+			sprintf(newstring, "/tmp/fb_eColorsBW_%04X_%ux%u.txt",dumpfb_idx++, update_width_x_bytes, update_height_y_bytes);
+			break;
+		case(eColors16):
+			sprintf(newstring, "/tmp/fb_eColors16_%04X_%ux%u.txt",dumpfb_idx++, update_width_x_bytes, update_height_y_bytes);
+			break;
+		case(eColors256):
+			sprintf(newstring, "/tmp/fb_eColors256_%04X_%ux%u.txt",dumpfb_idx++, update_width_x_bytes, update_height_y_bytes);
+			break;
+		default:
+			return false;
+			break;
+	}
+	//LOGWARN(newstring);
+	fp = fopen(newstring,"w");
+
+	sprintf(newstring, "length: %u\n", length);
+
+	fputs(newstring, fp);
+
+	for(DWORD i = 0; i < length; i+=4){
+		if(i % 16 == 0){
+			sprintf(newstring, "%u: ", i);
+			fputs(newstring,fp);
+		}
+
+		sprintf(newstring, "[%02X %02X %02X %02X] ", buf[i+0],buf[i+1],buf[i+2],buf[i+3]);
+		fputs(newstring, fp);
+
+		if(i % 16 == 12){
+
+			fputs("\n", fp);
+		}
+	}
+	fclose(fp);
+#endif
+
+
+	//******************************************************************************
 
 	return true;
 }
