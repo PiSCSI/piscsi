@@ -687,8 +687,8 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 		case(eColors256):
 			// Two Bytes per pixel
 			update_width_px = update_width_x_bytes;
-			offset_row_px = (uint32_t)((offset) / screen_width_px)/2;
-			offset_col_px = (uint32_t)(((offset)/2) % screen_width_px);
+			offset_row_px = (uint32_t)(offset / screen_width_px);
+			offset_col_px = (uint32_t)(offset % screen_width_px);
 			break;
 		default:
 			update_width_px = 0;
@@ -723,7 +723,6 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 	}
 
 	LOGTRACE("Calculate Offset: %u (%08X) Screen width: %u height: %u Update X: %u (%06X) Y: %u (%06X)", offset, offset, screen_width_px, screen_height_px, offset_row_px, offset_row_px, offset_col_px, offset_col_px);
-	LOGINFO("Update Width px: %d:%d (bytes: %d, %d)", update_width_px, update_height_px, update_width_x_bytes, update_height_y_bytes);
 
 	if(update_width_px == 0){
 		// This is some weird error condition. For now, just return.
@@ -739,6 +738,14 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 		LOGWARN("%s width: (%d + %d) = %d is larger than the limit", __PRETTY_FUNCTION__, update_width_px, offset_col_px, update_width_px + offset_col_px);
 		return true;
 	}
+
+
+			// offset_row_px = (uint32_t)((offset) / screen_width_px)/2;
+			// offset_col_px = (uint32_t)(((offset)/2) % screen_width_px);
+	LOGDEBUG("Update Position: %d:%d Offset: %d Screen Width: %d Width px: %d:%d (bytes: %d, %d)", offset_col_px, offset_row_px, offset, screen_width_px, update_width_px, update_height_px, update_width_x_bytes, update_height_y_bytes);
+
+
+
 
 		// For each row
 		for (DWORD idx_row_y = 0; idx_row_y < (update_height_px); idx_row_y++){

@@ -45,7 +45,7 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
-	enum eColorDepth_t : uint16_t {eColorsNone=0x0001, eColorsBW=0x0002, eColors16=0x0010, eColors256=0x0100};
+	enum eColorDepth_t : uint16_t {eColorsNone=0x0000, eColorsBW=0x0001, eColors16=0x0010, eColors256=0x0100};
 
 	eColorDepth_t color_depth;
 
