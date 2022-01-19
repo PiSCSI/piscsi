@@ -47,10 +47,6 @@ const BYTE SCSIPowerView::m_inquiry_response[] = {
 
 SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 {
-	// AddCommand(SCSIDEV::eCmdPvReadConfig, "Read PowerView Config", &SCSIPowerView::CmdPvReadConfig);
-	// AddCommand(SCSIDEV::eCmdPvWriteConfig, "Write PowerView Config", &SCSIPowerView::CmdPvWriteConfig);
-	// AddCommand(SCSIDEV::eCmdPvWriteFrameBuffer, "Write Framebuffer", &SCSIPowerView::CmdWriteFramebuffer);
-	// AddCommand(SCSIDEV::eCmdPvWriteColorPalette, "Write Color Palette", &SCSIPowerView::CmdWriteColorPalette);
 	AddCommand(SCSIDEV::eCmdPvReadConfig, "Unknown PowerViewC8", &SCSIPowerView::CmdReadConfig);
 	AddCommand(SCSIDEV::eCmdPvWriteConfig, "Unknown PowerViewC9", &SCSIPowerView::CmdWriteConfig);
 	AddCommand(SCSIDEV::eCmdPvWriteFrameBuffer, "Unknown PowerViewCA", &SCSIPowerView::CmdWriteFramebuffer);
@@ -246,11 +242,6 @@ void SCSIPowerView::dump_command(SASIDEV *controller){
 				ctrl->cmd[6],
 				ctrl->cmd[7],
 				ctrl->cmd[8]);
-
-	// for(int i=0; i<8; i++){
-    //         LOGWARN("   [%d]: %08X\n",i, ctrl->cmd[i]);	
-	// }
-
 }
 
 //---------------------------------------------------------------------------
@@ -320,13 +311,7 @@ void SCSIPowerView::CmdWriteConfig(SASIDEV *controller)
 	// Set transfer amount
 	ctrl->length = ctrl->cmd[6];
 	LOGTRACE("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-	// dump_command(controller);
-	// LOGWARN("Controller: %08X ctrl: %08X", (DWORD)controller->GetCtrl(), (DWORD)ctrl);
-	// if (ctrl->length <= 0) {
-	// 	// Failure (Error)
-	// 	controller->Error(); 
-	// 	return;
-	// }
+
 
 	if (ctrl->length == 0){
 		controller->Status();
@@ -600,14 +585,6 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 	color_depth = new_color;
 	LOGINFO("%s Color Palette of size %ul received", __PRETTY_FUNCTION__, length);
 
-	// if(color_depth == eColorDepth_t::eColorsBW){
-	// 	LOGWARN("One Bit Color Palette %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X ",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9],buf[10]);
-	// 	// Something is dorked up with the one bit color palette getting loaded.
-	// 	// TODO: Remove this workaround!!
-	// 	color_palette[0] = 0x01FFFFFF;
-	// 	color_palette[1] = 0;
-	// }
-
 #ifdef DUMP_COLOR_PALETTE
 	FILE *fp;
 	char newstring[1024];
@@ -778,6 +755,7 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 	LOGDEBUG("Update Position: %d:%d Offset: %d Screen Width: %d Width px: %d:%d (bytes: %d, %d)", offset_col_px, offset_row_px, offset, screen_width_px, update_width_px, update_height_px, update_width_x_bytes, update_height_y_bytes);
 
 
+				DWORD random_print = rand() % (update_height_px * update_width_px);
 
 
 		// For each row
@@ -798,7 +776,7 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x / 8);
 						pixel_buffer_byte = reverse_table[buf[pixel_buffer_idx]];
 						pixel_bit_number = idx_col_x % 8;
-						pixel_color_idx = (pixel_buffer_byte >> pixel_bit_number) & 0x1;
+						pixel_color_idx = ((pixel_buffer_byte >> pixel_bit_number) & 0x1) ? 0 : 1;
 						break;
 
 					case eColorDepth_t::eColors16:
@@ -826,32 +804,22 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 				pixel = color_palette[pixel_color_idx];
 				loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
 
-
-
-
 				uint32_t red, green, blue;
-				// uint32_t pixel_x_pos, pixel_y_pos;
-// r:11 g:5 b:0 a:0
-				// pixel_x_pos = (idx_col_x + offset_col_px);
-				// pixel_y_pos = (idx_row_y + offset_row_px);
 
-				red = ((pixel & 0xFF000000) >> 24);
-				red >>= (8 - fbinfo.red.length);
+				blue = ((pixel & 0xFF000000) >> 24);
+				blue >>= (8 - fbinfo.red.length);
 				green = ((pixel & 0xFF0000) >> 16);
 				green >>= (8 - fbinfo.green.length);
-				blue = ((pixel & 0xFF00) >> 8);
-				blue >>= (8 - fbinfo.blue.length);
+				red = ((pixel & 0xFF00) >> 8);
+				red >>= (8 - fbinfo.blue.length);
 
 				uint32_t fb_pixel = (red << fbinfo.red.offset) |
 									(green << fbinfo.green.offset)|
 									(blue << fbinfo.blue.offset);
 
-
-		// static uint32_t prev_pix = 0xFFFFFFFF;
-		// if(pixel != prev_pix){
-		// 		LOGWARN("pixel: %08X red:%02X Green:%02X Blue:%02X Length r:%d g:%d b:%d Offset r:%d g:%d b:%d", pixel, red, green, blue, fbinfo.red.length, fbinfo.green.length, fbinfo.blue.length, fbinfo.red.offset, fbinfo.green.offset, fbinfo.blue.offset)
-		// 		prev_pix = pixel;
-		// }
+			if(random_print == (idx_col_x * idx_row_y)){
+				LOGDEBUG("idx:%d pixel:%08X fb_pixel:%08X red:%02X Green:%02X Blue:%02X Length r:%d g:%d b:%d Offset r:%d g:%d b:%d", pixel_color_idx, pixel, fb_pixel, red, green, blue, fbinfo.red.length, fbinfo.green.length, fbinfo.blue.length, fbinfo.red.offset, fbinfo.green.offset, fbinfo.blue.offset)
+			}
 
 				*(this->fb + loc + 0) = (BYTE)((fb_pixel >> 8) & 0xFF);
 				*(this->fb + loc + 1) = (BYTE)((fb_pixel) & 0xFF);
