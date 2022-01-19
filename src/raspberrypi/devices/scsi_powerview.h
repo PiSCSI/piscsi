@@ -45,7 +45,7 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
-	enum eColorDepth_t : uint16_t {eOneBitColor=0x0001, eEightBitColor=0x0010, eSixteenBitColor=0x0100};
+	enum eColorDepth_t : uint16_t {eColorsNone=0x0001, eColorsBW=0x0002, eColors16=0x0010, eColors256=0x0100};
 
 	eColorDepth_t color_depth;
 
@@ -64,6 +64,8 @@ private:
 	void fbcon_cursor(bool blank);
 	void fbcon_blank(bool blank);
 	void fbcon_text(char* message);
+	void SetPixel(uint32_t x, uint32_t y, uint32_t r, uint32_t g, uint32_t b);
+
 
 public:
 	SCSIPowerView();

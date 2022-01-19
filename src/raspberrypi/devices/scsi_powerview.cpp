@@ -108,15 +108,15 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 	framebuffer_blue =  (/*red*/ 0 << fbinfo.red.offset) |
 						(/*green*/ 0 << fbinfo.green.offset)|
 						(/*blue*/ 0xFF << fbinfo.blue.offset) |
-						(/*alpha*/ 0xFF << fbinfo.transp.offset);
+						(/*alpha*/ 0 << fbinfo.transp.offset);
 	framebuffer_yellow =  (/*red*/ 0 << fbinfo.red.offset) |
 						(/*green*/ 0xFF << fbinfo.green.offset)|
 						(/*blue*/ 0x0 << fbinfo.blue.offset) |
-						(/*alpha*/ 0xFF << fbinfo.transp.offset);
+						(/*alpha*/ 0 << fbinfo.transp.offset);
 	framebuffer_red =  (/*red*/ 0xFF << fbinfo.red.offset) |
 						(/*green*/ 0 << fbinfo.green.offset)|
 						(/*blue*/ 0 << fbinfo.blue.offset) |
-						(/*alpha*/ 0xFF << fbinfo.transp.offset);
+						(/*alpha*/ 0 << fbinfo.transp.offset);
 
 
 
@@ -128,7 +128,9 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 	ClearFrameBuffer(framebuffer_blue);
 
 	// Default to one bit color (black & white) if we don't know any better
-	color_depth = eOneBitColor;
+	color_depth = eColorsBW;
+
+	LOGINFO("offsets - r:%d g:%d b:%d a:%d", fbinfo.red.offset, fbinfo.green.offset, fbinfo.blue.offset, fbinfo.transp.offset);
 }
 
 
@@ -205,11 +207,11 @@ void SCSIPowerView::ClearFrameBuffer(DWORD blank_color){
 
 
 		// For each row
-		for (DWORD idx_row_y = 0; idx_row_y < 800; idx_row_y++){
+		for (DWORD idx_row_y = 0; idx_row_y < 768; idx_row_y++){
 
 
 			// For each column
-			for (DWORD idx_col_x = 0; idx_col_x < 800; idx_col_x++){
+			for (DWORD idx_col_x = 0; idx_col_x < 1024; idx_col_x++){
 
 			// int loc = (col * (this->fbbpp / 8)) + (row * this->fblinelen);
 		 		uint32_t loc = ((idx_col_x) * (this->fbbpp / 8)) + ((idx_row_y) * fblinelen);
@@ -402,11 +404,10 @@ void SCSIPowerView::CmdWriteFramebuffer(SASIDEV *controller)
 void SCSIPowerView::CmdWriteColorPalette(SASIDEV *controller)
 {
 
-	// Set transfer amount
-	ctrl->length = ctrl->cmd[6];
-	ctrl->length = ctrl->length * 4;
-	LOGTRACE("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
-	// dump_command(controller);
+	eColorDepth_t received_color_depth = (eColorDepth_t)((uint16_t)ctrl->cmd[4] + ((uint16_t)ctrl->cmd[3] << 8));
+	ctrl->length = (uint16_t)received_color_depth * 4;
+	LOGINFO("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+
 	if (ctrl->length <= 0) {
 		// Failure (Error)
 		controller->Error();
@@ -575,22 +576,29 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 		return false;
 	}
 
+	eColorDepth_t new_color = (eColorDepth_t)((uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8));
+	LOGINFO("%s Color type: %04x", __PRETTY_FUNCTION__, (uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8));
 
+	if(new_color == eColorDepth_t::eColorsNone){
+		// This is currently unknown functionality. So, just ignore it.
+		return true;
+	}
 	
 	ClearFrameBuffer(framebuffer_red);
-	LOGINFO("%s Color Palette of size %ul received", __PRETTY_FUNCTION__, length);
 	memcpy(color_palette, buf, length);
 	color_palette_length = length;
 
-	color_depth = (eColorDepth_t)((uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8));
 
-	if(color_depth == eColorDepth_t::eOneBitColor){
-		LOGWARN("One Bit Color Palette %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X ",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9],buf[10]);
-		// Something is dorked up with the one bit color palette getting loaded.
-		// TODO: Remove this workaround!!
-		color_palette[0] = 0x01FFFFFF;
-		color_palette[1] = 0;
-	}
+	color_depth = new_color;
+	LOGINFO("%s Color Palette of size %ul received", __PRETTY_FUNCTION__, length);
+
+	// if(color_depth == eColorDepth_t::eColorsBW){
+	// 	LOGWARN("One Bit Color Palette %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X %02X ",buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],buf[8],buf[9],buf[10]);
+	// 	// Something is dorked up with the one bit color palette getting loaded.
+	// 	// TODO: Remove this workaround!!
+	// 	color_palette[0] = 0x01FFFFFF;
+	// 	color_palette[1] = 0;
+	// }
 
 	// FILE *fp;
 
@@ -664,19 +672,19 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 
 
 	switch(color_depth){
-		case(eOneBitColor):
+		case(eColorsBW):
 			// One bit per pixel
 			update_width_px = update_width_x_bytes * 8;
 			offset_row_px = (uint32_t)((offset*8) / screen_width_px)/2;
 			offset_col_px = (uint32_t)(((offset*8)/2) % screen_width_px);
 			break;
-		case(eEightBitColor):
+		case(eColors16):
 			// One byte per pixel
 			update_width_px = update_width_x_bytes * 2;
 			offset_row_px = (uint32_t)((offset*2) / screen_width_px)/2;
 			offset_col_px = (uint32_t)(((offset*2)/2) % screen_width_px);
 			break;
-		case(eSixteenBitColor):
+		case(eColors256):
 			// Two Bytes per pixel
 			update_width_px = update_width_x_bytes;
 			offset_row_px = (uint32_t)((offset) / screen_width_px)/2;
@@ -686,25 +694,25 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 			update_width_px = 0;
 			offset_row_px = 0;
 			offset_col_px = 0;
+			LOGINFO("No color depth available! %04X", color_depth);
 			break;
 	}
 	update_height_px = update_height_y_bytes;
 
 
 	if(full_framebuffer_refresh){
-		ClearFrameBuffer(framebuffer_red);
 		screen_width_px = update_width_px;
 		screen_height_px = update_height_px;
 
 		switch(color_depth){
-			case eColorDepth_t::eOneBitColor:
-				sprintf(newstring, "  1-bit color %04X - %u x %u       \r", color_depth, screen_width_px, screen_height_px);
+			case eColorDepth_t::eColorsBW:
+				sprintf(newstring, "  Black & White %04X - %u x %u       \r", color_depth, screen_width_px, screen_height_px);
 				break;
-			case eColorDepth_t::eEightBitColor:
-				sprintf(newstring, "  8-bit color %04X - %u x %u       \r", color_depth, screen_width_px,screen_height_px );
+			case eColorDepth_t::eColors16:
+				sprintf(newstring, "  16 colors/grays %04X - %u x %u      \r", color_depth, screen_width_px,screen_height_px );
 				break;
-			case eColorDepth_t::eSixteenBitColor:
-				sprintf(newstring, "  16-bit color %04X - %u x %u      \r", color_depth, screen_width_px, screen_height_px);
+			case eColorDepth_t::eColors256:
+				sprintf(newstring, "  256 colors/grays %04X - %u x %u      \r", color_depth, screen_width_px, screen_height_px);
 				break;
 			default:
 				sprintf(newstring, "  UNKNOWN COLOR DEPTH!! %04X - %u x %u      \r", color_depth, screen_width_px, screen_height_px);
@@ -715,7 +723,22 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 	}
 
 	LOGTRACE("Calculate Offset: %u (%08X) Screen width: %u height: %u Update X: %u (%06X) Y: %u (%06X)", offset, offset, screen_width_px, screen_height_px, offset_row_px, offset_row_px, offset_col_px, offset_col_px);
-		
+	LOGINFO("Update Width px: %d:%d (bytes: %d, %d)", update_width_px, update_height_px, update_width_x_bytes, update_height_y_bytes);
+
+	if(update_width_px == 0){
+		// This is some weird error condition. For now, just return.
+		LOGWARN("update of size 0 received, or there is no color depth");
+		return true;
+	}
+
+	if(update_height_px + offset_row_px > 800){
+		LOGWARN("%s Height: (%d + %d) = %d is larger than the limit", __PRETTY_FUNCTION__, update_height_px, offset_row_px, update_height_px + offset_row_px);
+		return true;
+	}
+	if(update_width_px + offset_col_px > 800){
+		LOGWARN("%s width: (%d + %d) = %d is larger than the limit", __PRETTY_FUNCTION__, update_width_px, offset_col_px, update_width_px + offset_col_px);
+		return true;
+	}
 
 		// For each row
 		for (DWORD idx_row_y = 0; idx_row_y < (update_height_px); idx_row_y++){
@@ -731,14 +754,14 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 				uint32_t loc = 0;
 	
 				switch(color_depth){
-					case eColorDepth_t::eOneBitColor:
+					case eColorDepth_t::eColorsBW:
 						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x / 8);
 						pixel_buffer_byte = reverse_table[buf[pixel_buffer_idx]];
 						pixel_bit_number = idx_col_x % 8;
 						pixel_color_idx = (pixel_buffer_byte >> pixel_bit_number) & 0x1;
 						break;
 
-					case eColorDepth_t::eEightBitColor:
+					case eColorDepth_t::eColors16:
 						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x/2);
 						if(idx_col_x % 2){
 							pixel_color_idx = buf[pixel_buffer_idx] & 0x0F;
@@ -747,7 +770,7 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 							pixel_color_idx = buf[pixel_buffer_idx] >> 4;
 						}
 						break;
-					case eColorDepth_t::eSixteenBitColor:
+					case eColorDepth_t::eColors256:
 						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x);
 						pixel_color_idx = buf[pixel_buffer_idx];
 						break;
@@ -755,20 +778,51 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 						break;
 				}
 
-				if(pixel > (sizeof(color_palette) / sizeof (color_palette[0]))){
+				if(pixel_color_idx > (sizeof(color_palette) / sizeof (color_palette[0]))){
 					LOGWARN("Calculated pixel color that is out of bounds: %04X", pixel_buffer_idx);
 					return false;
 				}
+
 				pixel = color_palette[pixel_color_idx];
 				loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
 
-				// pixel = color_palette[pixel_color_idx];
-				// for(int i=0 ; i< (this->fbbpp/8); i++){
-				// 	*(this->fb + loc + i) = pixel;
-				// }
-				*(this->fb + loc + 0) = (BYTE)((pixel >> 16) & 0xFF);
-				*(this->fb + loc + 1) = (BYTE)((pixel >> 8) & 0xFF);
-				*(this->fb + loc + 2) = (BYTE)((pixel) & 0xFF);
+
+				*(this->fb + loc + 0) = (BYTE)((pixel >> 8) & 0xFF);
+				*(this->fb + loc + 1) = (BYTE)((pixel) & 0xFF);
+
+
+				// // // https://www.i-programmer.info/programming/cc/12839-applying-c-framebuffer-graphics.html?start=1
+				// uint32_t red, green, blue;
+				// uint32_t pixel_x_pos, pixel_y_pos;
+
+				// pixel_x_pos = (idx_col_x + offset_col_px);
+				// pixel_y_pos = (idx_row_y + offset_row_px);
+
+				// red = ((pixel & 0xFF0000) >> 16);
+				// green = ((pixel & 0xFF00) >> 8);
+				// blue = ((pixel & 0xFF));
+				// // alpha = 0x55;
+
+				// SetPixel(idx_col_x + offset_col_px, idx_row_y + offset_row_px, red, green, blue);
+
+				// uint32_t fb_pixel = (red << fbinfo.red.offset) |
+				// 					(green << fbinfo.green.offset)|
+				// 					(blue << fbinfo.blue.offset) |
+				// 					(alpha << fbinfo.transp.offset);
+
+				// // uint32_t location = (pixel_x_pos * fbinfo.bits_per_pixel/8) + (pixel_y_pos * fbfixinfo.line_length);
+				// // *((uint32_t*) (fb + location)) = fb_pixel;
+
+
+				// // pixel = color_palette[pixel_color_idx];
+				// // for(int i=0 ; i< (this->fbbpp/8); i++){
+				// // 	*(this->fb + loc + i) = pixel;
+				// // }
+				// // *(this->fb + loc + 0) = (BYTE)((pixel >> 16) & 0xFF);
+				// // *(this->fb + loc + 1) = (BYTE)((pixel >> 8) & 0xFF);
+				// // *(this->fb + loc + 2) = (BYTE)((pixel) & 0xFF);
+				// *(this->fb + loc + 0) = (BYTE)((pixel >> 8) & 0xFF);
+				// *(this->fb + loc + 1) = (BYTE)((pixel) & 0xFF);
 
 
 			}
@@ -776,6 +830,26 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 
 
 	return true;
+}
+
+//https://www.i-programmer.info/programming/cc/12839-applying-c-framebuffer-graphics.html?start=1
+void SCSIPowerView::SetPixel(uint32_t x, uint32_t y, uint32_t r,
+                uint32_t g, uint32_t b) {
+					// char newstr[1024];
+ uint32_t pixel = (r << fbinfo.red.offset)|
+                   (g << fbinfo.green.offset)|
+                    (b << fbinfo.blue.offset);
+// 	this->fbbpp = fbinfo.bits_per_pixel;
+// this->fblinelen = fbfixinfo.line_length;
+// loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
+
+	uint32_t location = x*fbinfo.bits_per_pixel/8 + 
+							y*fbfixinfo.line_length;
+	// sprintf(newstr, "%d:%d,", x, y);
+	// fbcon_text(newstr);
+	*(fb + location) = pixel & 0xFF;
+		*(fb + location) = (pixel >> 8) & 0xFF;
+
 }
 
 //---------------------------------------------------------------------------
