@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <export version="E">
   <design>
-    <source>/Users/akuker/Downloads/RASCSI/hw/ctrl_board_v1p5/ctrl_board.kicad_sch</source>
-    <date>Monday, January 03, 2022 at 01:35:33 PM</date>
-    <tool>Eeschema (6.0.0-0)</tool>
+    <source>C:\Users\theto\Downloads\RASCSI\hw\ctrl_board_v1p5\ctrl_board.kicad_sch</source>
+    <date>1/20/2022 5:12:06 PM</date>
+    <tool>Eeschema (6.0.0)</tool>
     <sheet number="1" name="/" tstamps="/">
       <title_block>
         <title/>
@@ -64,6 +64,15 @@
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-000061c08a8b</tstamps>
     </comp>
+    <comp ref="J4">
+      <value>Aux GPIO Connector</value>
+      <footprint>Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical</footprint>
+      <libsource lib="Connector_Generic" part="Conn_01x02" description="Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ctrl_board.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>e1110524-9d88-4fa9-afec-1859834e2f21</tstamps>
+    </comp>
     <comp ref="JP1">
       <value>SolderJumper_3_Bridged12</value>
       <footprint>Jumper:SolderJumper-3_P1.3mm_Bridged12_RoundedPad1.0x1.5mm</footprint>
@@ -93,8 +102,8 @@
     </comp>
     <comp ref="JP4">
       <value>SolderJumper_2_Open</value>
-      <footprint>Jumper:SolderJumper-2_P1.3mm_Open_RoundedPad1.0x1.5mm</footprint>
-      <libsource lib="Jumper" part="SolderJumper_2_Open" description="Solder Jumper, 2-pole, open"/>
+      <footprint>Jumper:SolderJumper-2_P1.3mm_Bridged_RoundedPad1.0x1.5mm</footprint>
+      <libsource lib="Jumper" part="SolderJumper_2_Bridged" description="Solder Jumper, 2-pole, closed/bridged"/>
       <property name="Sheetname" value=""/>
       <property name="Sheetfile" value="ctrl_board.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
@@ -196,6 +205,19 @@
       <property name="Sheetfile" value="ctrl_board.kicad_sch"/>
       <sheetpath names="/" tstamps="/"/>
       <tstamps>00000000-0000-0000-0000-000061b68cc5</tstamps>
+    </comp>
+    <comp ref="R5">
+      <value>10k</value>
+      <footprint>Resistor_SMD:R_0805_2012Metric</footprint>
+      <fields>
+        <field name="LCSC">C17414</field>
+      </fields>
+      <libsource lib="Device" part="R_Small" description="Resistor, small symbol"/>
+      <property name="LCSC" value="C17414"/>
+      <property name="Sheetname" value=""/>
+      <property name="Sheetfile" value="ctrl_board.kicad_sch"/>
+      <sheetpath names="/" tstamps="/"/>
+      <tstamps>8dd785d1-511d-4538-964b-312a69d957a7</tstamps>
     </comp>
     <comp ref="R6">
       <value>10k</value>
@@ -400,6 +422,22 @@
         <pin num="5" name="Pin_5" type="passive"/>
       </pins>
     </libpart>
+    <libpart lib="Connector_Generic" part="Conn_01x02">
+      <description>Generic connector, single row, 01x02, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
+      <docs>~</docs>
+      <footprints>
+        <fp>Connector*:*_1x??_*</fp>
+      </footprints>
+      <fields>
+        <field name="Reference">J</field>
+        <field name="Value">Conn_01x02</field>
+        <field name="Datasheet">~</field>
+      </fields>
+      <pins>
+        <pin num="1" name="Pin_1" type="passive"/>
+        <pin num="2" name="Pin_2" type="passive"/>
+      </pins>
+    </libpart>
     <libpart lib="Connector_Generic" part="Conn_01x06">
       <description>Generic connector, single row, 01x06, script generated (kicad-library-utils/schlib/autogen/connector/)</description>
       <docs>~</docs>
@@ -525,15 +563,15 @@
         <pin num="S2" name="S2" type="passive"/>
       </pins>
     </libpart>
-    <libpart lib="Jumper" part="SolderJumper_2_Open">
-      <description>Solder Jumper, 2-pole, open</description>
+    <libpart lib="Jumper" part="SolderJumper_2_Bridged">
+      <description>Solder Jumper, 2-pole, closed/bridged</description>
       <docs>~</docs>
       <footprints>
-        <fp>SolderJumper*Open*</fp>
+        <fp>SolderJumper*Bridged*</fp>
       </footprints>
       <fields>
         <field name="Reference">JP</field>
-        <field name="Value">SolderJumper_2_Open</field>
+        <field name="Value">SolderJumper_2_Bridged</field>
         <field name="Datasheet">~</field>
       </fields>
       <pins>
@@ -613,28 +651,37 @@
         <pin num="2" name="B" type="passive"/>
       </pins>
     </libpart>
+    <libpart lib="graphics" part="Generic_Graphic">
+      <fields>
+        <field name="Reference">G?</field>
+        <field name="Value">Generic_Graphic</field>
+      </fields>
+    </libpart>
   </libparts>
   <libraries>
     <library logical="Connector">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Connector.kicad_sym</uri>
+      <uri>C:\Program Files\KiCad\6.0\share\kicad\symbols\/Connector.kicad_sym</uri>
     </library>
     <library logical="Connector_Generic">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Connector_Generic.kicad_sym</uri>
+      <uri>C:\Program Files\KiCad\6.0\share\kicad\symbols\/Connector_Generic.kicad_sym</uri>
     </library>
     <library logical="Device">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Device.kicad_sym</uri>
+      <uri>C:\Program Files\KiCad\6.0\share\kicad\symbols\/Device.kicad_sym</uri>
     </library>
     <library logical="Jumper">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Jumper.kicad_sym</uri>
+      <uri>C:\Program Files\KiCad\6.0\share\kicad\symbols\/Jumper.kicad_sym</uri>
     </library>
     <library logical="Mechanical">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Mechanical.kicad_sym</uri>
+      <uri>C:\Program Files\KiCad\6.0\share\kicad\symbols\/Mechanical.kicad_sym</uri>
     </library>
     <library logical="PCA9554APW_118">
-      <uri>/Users/akuker/Downloads/RASCSI/hw/ctrl_board_v1p5/PCA9554APW_118/PCA9554APW_118.lib</uri>
+      <uri>C:\Users\theto\Downloads\RASCSI\hw\ctrl_board_v1p5/PCA9554APW_118/PCA9554APW_118.lib</uri>
     </library>
     <library logical="Switch">
-      <uri>/Applications/KiCad/KiCad.app/Contents/SharedSupport/symbols//Switch.kicad_sym</uri>
+      <uri>C:\Program Files\KiCad\6.0\share\kicad\symbols\/Switch.kicad_sym</uri>
+    </library>
+    <library logical="graphics">
+      <uri>C:\Users\theto\Downloads\RASCSI\hw\ctrl_board_v1p5/graphics.kicad_sym</uri>
     </library>
   </libraries>
   <nets>
@@ -655,6 +702,7 @@
       <node ref="R2" pin="1" pintype="passive"/>
       <node ref="R3" pin="1" pintype="passive"/>
       <node ref="R4" pin="1" pintype="passive"/>
+      <node ref="R5" pin="2" pintype="passive"/>
       <node ref="R6" pin="1" pintype="passive"/>
       <node ref="U1" pin="16" pinfunction="VDD" pintype="power_in"/>
     </net>
@@ -682,14 +730,14 @@
       <node ref="U1" pin="10" pinfunction="IO5" pintype="bidirectional"/>
     </net>
     <net code="7" name="/GPIO2(SDA1)">
-      <node ref="J1" pin="4" pinfunction="Pin_4" pintype="passive"/>
+      <node ref="J1" pin="5" pinfunction="Pin_5" pintype="passive"/>
       <node ref="J2" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="P1" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="R11" pin="2" pintype="passive"/>
       <node ref="U1" pin="15" pinfunction="SDA" pintype="bidirectional"/>
     </net>
     <net code="8" name="/GPIO3(SCL1)">
-      <node ref="J1" pin="5" pinfunction="Pin_5" pintype="passive"/>
+      <node ref="J1" pin="4" pinfunction="Pin_4" pintype="passive"/>
       <node ref="J2" pin="3" pinfunction="Pin_3" pintype="passive"/>
       <node ref="P1" pin="5" pinfunction="Pin_5" pintype="passive"/>
       <node ref="R10" pin="1" pintype="passive"/>
@@ -711,6 +759,7 @@
       <node ref="P1" pin="24" pinfunction="Pin_24" pintype="passive"/>
     </net>
     <net code="14" name="/GPIO9(SPI0_MISO)">
+      <node ref="J4" pin="2" pinfunction="Pin_2" pintype="passive"/>
       <node ref="JP4" pin="2" pinfunction="B" pintype="passive"/>
       <node ref="P1" pin="21" pinfunction="Pin_21" pintype="passive"/>
     </net>
@@ -836,6 +885,7 @@
     </net>
     <net code="45" name="Net-(JP4-Pad1)">
       <node ref="JP4" pin="1" pinfunction="A" pintype="passive"/>
+      <node ref="R5" pin="1" pintype="passive"/>
       <node ref="U1" pin="13" pinfunction="~{INT}" pintype="output"/>
     </net>
     <net code="46" name="Net-(R7-Pad2)">
@@ -852,6 +902,9 @@
     </net>
     <net code="49" name="unconnected-(J1-Pad1)">
       <node ref="J1" pin="1" pinfunction="Pin_1" pintype="passive+no_connect"/>
+    </net>
+    <net code="50" name="unconnected-(J4-Pad1)">
+      <node ref="J4" pin="1" pinfunction="Pin_1" pintype="passive+no_connect"/>
     </net>
   </nets>
 </export>
