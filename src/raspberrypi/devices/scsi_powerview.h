@@ -105,7 +105,7 @@ private:
 	struct fb_fix_screeninfo fbfixinfo;
 
 	// The maximum color depth is 16 bits
-	DWORD color_palette[0x10000];
+	BYTE color_palette[0x10000];
 	int color_palette_length = 0;
 
 	BYTE unknown_cc_data[0x10000];

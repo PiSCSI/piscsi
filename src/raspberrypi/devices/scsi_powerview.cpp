@@ -394,7 +394,7 @@ void SCSIPowerView::CmdWriteColorPalette(SASIDEV *controller)
 
 	eColorDepth_t received_color_depth = (eColorDepth_t)((uint16_t)ctrl->cmd[4] + ((uint16_t)ctrl->cmd[3] << 8));
 	ctrl->length = (uint16_t)received_color_depth * 4;
-	LOGINFO("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
+	LOGTRACE("%s Message Length %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
 	// The driver sends "1" for black and white, which is really 
 	// TWO colors: Black and White
@@ -570,7 +570,6 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 	}
 
 	eColorDepth_t new_color = (eColorDepth_t)((uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8));
-	LOGINFO("%s Color type: %04x", __PRETTY_FUNCTION__, (uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8));
 
 	if(new_color == eColorDepth_t::eColorsNone){
 		// This is currently unknown functionality. So, just ignore it.
@@ -578,12 +577,29 @@ bool SCSIPowerView::WriteColorPalette(const DWORD *cdb, const BYTE *buf, const D
 	}
 	
 	ClearFrameBuffer(framebuffer_red);
-	memcpy(color_palette, buf, length);
-	color_palette_length = length;
-
 
 	color_depth = new_color;
-	LOGINFO("%s Color Palette of size %ul received", __PRETTY_FUNCTION__, length);
+
+	switch(color_depth){
+		case eColorsBW:
+	memcpy(color_palette, default_color_palette_bw, sizeof(default_color_palette_bw));
+		break;
+		case eColors16:
+	memcpy(color_palette, default_color_palette_16, sizeof(default_color_palette_16));
+		break;
+		case eColors256:
+	memcpy(color_palette, default_color_palette_256, sizeof(default_color_palette_256));
+		break;
+		default:
+		LOGWARN("UNHANDLED COLOR DEPTH: %04X", color_depth);
+		break;
+	}
+
+	// memcpy(color_palette, buf, length);
+	// color_palette_length = length;
+	// memcpy(color_palette, default_color_palette_256, sizeof(default_color_palette_256));
+
+	LOGINFO("%s Color type: %04x Palette of size %ul received", __PRETTY_FUNCTION__, (uint16_t)cdb[4] + ((uint16_t)cdb[3] << 8), length);
 
 #ifdef DUMP_COLOR_PALETTE
 	FILE *fp;
@@ -648,37 +664,6 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 	uint32_t offset = (uint32_t)ctrl->cmd[3] + ((uint32_t)ctrl->cmd[2] << 8) + ((uint32_t)ctrl->cmd[1] << 16);
 
 	bool full_framebuffer_refresh = (offset == 0) && (cdb[9] == 0x00);
-
-	// if(full_framebuffer_refresh){
-	// 	// sprintf(newstring, "New Framebuffer refresh\n");
-	// 	// fbcon_text(newstring);
-	// 	switch(color_depth){
-	// 		case(eOneBitColor):
-	// 			// One bit per pixel
-	// 			new_screen_width_px = update_width_x_bytes * 8;
-	// 			break;
-	// 		case(eEightBitColor):
-	// 			// One byte per pixel
-	// 			new_screen_width_px = update_width_x_bytes * 2;
-	// 			break;
-	// 		case(eSixteenBitColor):
-	// 			// Two Bytes per pixel
-	// 			new_screen_width_px = update_width_x_bytes;
-	// 			break;
-	// 		default:
-	// 			new_screen_width_px = 0;
-	// 			break;
-	// 	}
-	// 	new_screen_height_px = update_height_y_bytes;
-	// 	update_width_px = new_screen_width_px;
-	// 	update_height_px = new_screen_height_px;
-
-	// 	sprintf(newstring, "%04X New Resolution: %u x %u (bytes: %u x %u)\n", color_depth, new_screen_width_px, new_screen_height_px, update_width_x_bytes, update_height_y_bytes);
-	// 	fbcon_text(newstring);
-	// }
-	// else { //partial screen update
-
-	// }
 
 
 	switch(color_depth){
@@ -768,7 +753,6 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 				DWORD pixel_buffer_idx = 0;
 				BYTE pixel_buffer_byte = 0;
 				DWORD pixel_bit_number = 0;
-				DWORD pixel = 0;
 				uint32_t loc = 0;
 	
 				switch(color_depth){
@@ -801,16 +785,17 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 					return false;
 				}
 
-				pixel = color_palette[pixel_color_idx];
 				loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
 
-				uint32_t red, green, blue;
+				uint32_t data_idx, red, green, blue;
 
-				blue = ((pixel & 0xFF000000) >> 24);
+				data_idx = (uint32_t)color_palette[(pixel_color_idx*4)];
+				red = (uint32_t)color_palette[(pixel_color_idx*4)+1];
+				green = (uint32_t)color_palette[(pixel_color_idx*4)+2];
+				blue = (uint32_t)color_palette[(pixel_color_idx*4)+3];
+
 				blue >>= (8 - fbinfo.red.length);
-				green = ((pixel & 0xFF0000) >> 16);
 				green >>= (8 - fbinfo.green.length);
-				red = ((pixel & 0xFF00) >> 8);
 				red >>= (8 - fbinfo.blue.length);
 
 				uint32_t fb_pixel = (red << fbinfo.red.offset) |
@@ -818,45 +803,11 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 									(blue << fbinfo.blue.offset);
 
 			if(random_print == (idx_col_x * idx_row_y)){
-				LOGDEBUG("idx:%d pixel:%08X fb_pixel:%08X red:%02X Green:%02X Blue:%02X Length r:%d g:%d b:%d Offset r:%d g:%d b:%d", pixel_color_idx, pixel, fb_pixel, red, green, blue, fbinfo.red.length, fbinfo.green.length, fbinfo.blue.length, fbinfo.red.offset, fbinfo.green.offset, fbinfo.blue.offset)
+				LOGDEBUG("idx:%d (%02X) [%02X %02X %02X %02X] fb_pixel:%08X ", pixel_color_idx, pixel_color_idx, data_idx, red, green, blue, fb_pixel);
 			}
 
-				*(this->fb + loc + 0) = (BYTE)((fb_pixel >> 8) & 0xFF);
-				*(this->fb + loc + 1) = (BYTE)((fb_pixel) & 0xFF);
-
-
-				// // // https://www.i-programmer.info/programming/cc/12839-applying-c-framebuffer-graphics.html?start=1
-				// uint32_t red, green, blue;
-				// uint32_t pixel_x_pos, pixel_y_pos;
-// r:11 g:5 b:0 a:0
-				// pixel_x_pos = (idx_col_x + offset_col_px);
-				// pixel_y_pos = (idx_row_y + offset_row_px);
-
-				// red = ((pixel & 0xFF0000) >> 16);
-				// green = ((pixel & 0xFF00) >> 8);
-				// blue = ((pixel & 0xFF));
-				// // alpha = 0x55;
-
-				// SetPixel(idx_col_x + offset_col_px, idx_row_y + offset_row_px, red, green, blue);
-
-				// uint32_t fb_pixel = (red << fbinfo.red.offset) |
-				// 					(green << fbinfo.green.offset)|
-				// 					(blue << fbinfo.blue.offset) |
-				// 					(alpha << fbinfo.transp.offset);
-
-				// // uint32_t location = (pixel_x_pos * fbinfo.bits_per_pixel/8) + (pixel_y_pos * fbfixinfo.line_length);
-				// // *((uint32_t*) (fb + location)) = fb_pixel;
-
-
-				// // pixel = color_palette[pixel_color_idx];
-				// // for(int i=0 ; i< (this->fbbpp/8); i++){
-				// // 	*(this->fb + loc + i) = pixel;
-				// // }
-				// // *(this->fb + loc + 0) = (BYTE)((pixel >> 16) & 0xFF);
-				// // *(this->fb + loc + 1) = (BYTE)((pixel >> 8) & 0xFF);
-				// // *(this->fb + loc + 2) = (BYTE)((pixel) & 0xFF);
-				// *(this->fb + loc + 0) = (BYTE)((pixel >> 8) & 0xFF);
-				// *(this->fb + loc + 1) = (BYTE)((pixel) & 0xFF);
+			*(this->fb + loc + 1) = (BYTE)((fb_pixel >> 8) & 0xFF);
+			*(this->fb + loc + 0) = (BYTE)((fb_pixel) & 0xFF);
 
 
 			}
