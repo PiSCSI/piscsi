@@ -667,77 +667,92 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 		return true;
 	}
 	if(update_width_px + offset_col_px > 800){
+		// We can get into this condition when the color depth has not been set by the host. We can try
+		// to derive it based upon the screen width
+		if(color_depth == eColorsBW){
+			if((update_width_px == (800 * 8)) || (update_width_px == (640 * 8)) || (update_width_px == (600 * 8))){
+				color_depth = eColors256;
+				// We don't know if we're 256 grays or 256 colors. So, this could be goofy looking
+				// We're down in an error condition anyway.
+				LOGINFO("Based upon size of screen update, switching to 256 colors. This may be incorrect if the screen is supposed to be 256 grays");
+				memcpy(color_palette, default_color_palette_256, sizeof(default_color_palette_256));
+				// Try it again.... (Re-call this function)
+				return WriteFrameBuffer(cdb, buf, length);
+			}
+			if((update_width_px == (800 * 2)) || (update_width_px == (640 * 2)) || (update_width_px == (600 * 2))){
+				color_depth = eColors16;
+				LOGINFO("Based upon size of screen update, switching to 16 colors. This may be incorrect if the screen is supposed to be 16 grays");
+				memcpy(color_palette, default_color_palette_16, sizeof(default_color_palette_16));
+				// Try it again.... (Re-call this function)
+				return WriteFrameBuffer(cdb, buf, length);
+			}
+		}
+
 		LOGWARN("%s width: (%d + %d) = %d is larger than the limit", __PRETTY_FUNCTION__, update_width_px, offset_col_px, update_width_px + offset_col_px);
 		return true;
 	}
 
-
-			// offset_row_px = (uint32_t)((offset) / screen_width_px)/2;
-			// offset_col_px = (uint32_t)(((offset)/2) % screen_width_px);
 	LOGDEBUG("Update Position: %d:%d Offset: %d Screen Width: %d Width px: %d:%d (bytes: %d, %d)", offset_col_px, offset_row_px, offset, screen_width_px, update_width_px, update_height_px, update_width_x_bytes, update_height_y_bytes);
 
+	DWORD random_print = rand() % (update_height_px * update_width_px);
 
-				DWORD random_print = rand() % (update_height_px * update_width_px);
+	// For each row
+	for (DWORD idx_row_y = 0; idx_row_y < (update_height_px); idx_row_y++){
 
+		// For each column
+		for (DWORD idx_col_x = 0; idx_col_x < (update_width_px); idx_col_x++){
+			BYTE pixel_color_idx=0;
+			DWORD pixel_buffer_idx = 0;
+			BYTE pixel_buffer_byte = 0;
+			DWORD pixel_bit_number = 0;
+			uint32_t loc = 0;
 
-		// For each row
-		for (DWORD idx_row_y = 0; idx_row_y < (update_height_px); idx_row_y++){
+			switch(color_depth){
+				case eColorDepth_t::eColorsBW:
+					pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x / 8);
+					pixel_buffer_byte = reverse_table[buf[pixel_buffer_idx]];
+					pixel_bit_number = idx_col_x % 8;
+					pixel_color_idx = ((pixel_buffer_byte >> pixel_bit_number) & 0x1) ? 0 : 1;
+					break;
 
+				case eColorDepth_t::eColors16:
+					pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x/2);
+					if(idx_col_x % 2){
+						pixel_color_idx = buf[pixel_buffer_idx] & 0x0F;
+					}
+					else{
+						pixel_color_idx = buf[pixel_buffer_idx] >> 4;
+					}
+					break;
+				case eColorDepth_t::eColors256:
+					pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x);
+					pixel_color_idx = buf[pixel_buffer_idx];
+					break;
+				default:
+					break;
+			}
 
-			// For each column
-			for (DWORD idx_col_x = 0; idx_col_x < (update_width_px); idx_col_x++){
-				BYTE pixel_color_idx=0;
-				DWORD pixel_buffer_idx = 0;
-				BYTE pixel_buffer_byte = 0;
-				DWORD pixel_bit_number = 0;
-				uint32_t loc = 0;
-	
-				switch(color_depth){
-					case eColorDepth_t::eColorsBW:
-						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x / 8);
-						pixel_buffer_byte = reverse_table[buf[pixel_buffer_idx]];
-						pixel_bit_number = idx_col_x % 8;
-						pixel_color_idx = ((pixel_buffer_byte >> pixel_bit_number) & 0x1) ? 0 : 1;
-						break;
+			if(pixel_color_idx > (sizeof(color_palette) / sizeof (color_palette[0]))){
+				LOGWARN("Calculated pixel color that is out of bounds: %04X", pixel_buffer_idx);
+				return false;
+			}
 
-					case eColorDepth_t::eColors16:
-						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x/2);
-						if(idx_col_x % 2){
-							pixel_color_idx = buf[pixel_buffer_idx] & 0x0F;
-						}
-						else{
-							pixel_color_idx = buf[pixel_buffer_idx] >> 4;
-						}
-						break;
-					case eColorDepth_t::eColors256:
-						pixel_buffer_idx = (idx_row_y * update_width_x_bytes) + (idx_col_x);
-						pixel_color_idx = buf[pixel_buffer_idx];
-						break;
-					default:
-						break;
-				}
+			loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
 
-				if(pixel_color_idx > (sizeof(color_palette) / sizeof (color_palette[0]))){
-					LOGWARN("Calculated pixel color that is out of bounds: %04X", pixel_buffer_idx);
-					return false;
-				}
+			uint32_t data_idx, red, green, blue;
 
-				loc = ((idx_col_x + offset_col_px) * (this->fbbpp / 8)) + ((idx_row_y + offset_row_px) * fblinelen);
+			data_idx = (uint32_t)color_palette[(pixel_color_idx*4)];
+			red = (uint32_t)color_palette[(pixel_color_idx*4)+1];
+			green = (uint32_t)color_palette[(pixel_color_idx*4)+2];
+			blue = (uint32_t)color_palette[(pixel_color_idx*4)+3];
 
-				uint32_t data_idx, red, green, blue;
+			blue >>= (8 - fbinfo.red.length);
+			green >>= (8 - fbinfo.green.length);
+			red >>= (8 - fbinfo.blue.length);
 
-				data_idx = (uint32_t)color_palette[(pixel_color_idx*4)];
-				red = (uint32_t)color_palette[(pixel_color_idx*4)+1];
-				green = (uint32_t)color_palette[(pixel_color_idx*4)+2];
-				blue = (uint32_t)color_palette[(pixel_color_idx*4)+3];
-
-				blue >>= (8 - fbinfo.red.length);
-				green >>= (8 - fbinfo.green.length);
-				red >>= (8 - fbinfo.blue.length);
-
-				uint32_t fb_pixel = (red << fbinfo.red.offset) |
-									(green << fbinfo.green.offset)|
-									(blue << fbinfo.blue.offset);
+			uint32_t fb_pixel = (red << fbinfo.red.offset) |
+								(green << fbinfo.green.offset)|
+								(blue << fbinfo.blue.offset);
 
 			if(random_print == (idx_col_x * idx_row_y)){
 				LOGDEBUG("idx:%d (%02X) [%02X %02X %02X %02X] fb_pixel:%08X ", pixel_color_idx, pixel_color_idx, data_idx, red, green, blue, fb_pixel);
@@ -745,7 +760,6 @@ bool SCSIPowerView::WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DW
 
 			*(this->fb + loc + 1) = (BYTE)((fb_pixel >> 8) & 0xFF);
 			*(this->fb + loc + 0) = (BYTE)((fb_pixel) & 0xFF);
-
 
 			}
 		}
