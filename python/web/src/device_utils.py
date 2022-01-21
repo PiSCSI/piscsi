@@ -2,6 +2,7 @@
 Module for RaSCSI device management utility methods
 """
 
+
 def get_valid_scsi_ids(devices, reserved_ids):
     """
     Takes a list of (dict)s devices, and list of (int)s reserved_ids.

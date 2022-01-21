@@ -19,20 +19,6 @@ You may edit the files under `mock/bin` to simulate Linux command responses.
 TODO:  rascsi-web uses protobuf commands to send and receive data from rascsi.
 A separate mocking solution will be needed for this interface.
 
-### Static analysis with pylint
-
-It is recommended to run pylint against new code to protect against bugs
-and keep the code readable and maintainable.
-The local pylint configuration lives in .pylintrc
-In order for pylint to recognize venv libraries, the pylint-venv package is required.
-
-```
-sudo apt install pylint3
-sudo pip install pylint-venv
-source venv/bin/activate
-pylint3 python_source_file.py
-```
-
 ## Pushing to the Pi via git
 
 Setup a bare repo on the rascsi

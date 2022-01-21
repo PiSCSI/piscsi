@@ -33,17 +33,6 @@ The start.sh script can also be run standalone, and will handle the venv creatio
 $ ./start.sh --rotation=180 --height=64
 ```
 
-## Static analysis with pylint
-
-It is recommended to run pylint against new code to protect against bugs
-and keep the code readable and maintainable.
-The local pylint configuration lives in .pylintrc (symlink to ../.pylintrc)
-
-```
-$ sudo apt install pylint3
-$ pylint3 python_source_file.py
-```
-
 ## Credits
 ### type_writer.ttf
 * _Type Writer_ TrueType font by Mandy Smith

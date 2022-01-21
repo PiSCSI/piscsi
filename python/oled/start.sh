@@ -149,4 +149,7 @@ if [ -z ${HEIGHT+x} ]; then
 else
     echo "Starting with parameter $HEIGHT"
 fi
+
+PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
+export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
 python3 src/rascsi_oled_monitor.py ${ROTATION} ${HEIGHT} ${PASSWORD}

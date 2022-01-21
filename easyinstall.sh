@@ -52,6 +52,7 @@ VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
 WEB_INSTALL_PATH="$BASE/python/web"
 OLED_INSTALL_PATH="$BASE/python/oled"
+PYTHON_COMMON_PATH="$BASE/python/common"
 SYSTEMD_PATH="/etc/systemd/system"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
@@ -94,15 +95,17 @@ function installRaScsi() {
     sudo make install CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
 }
 
-# install everything required to run an HTTP server (Nginx + Python Flask App)
-function installRaScsiWebInterface() {
-    if [ -f "$WEB_INSTALL_PATH/rascsi_interface_pb2.py" ]; then
-        sudo rm "$WEB_INSTALL_PATH/rascsi_interface_pb2.py"
+function preparePythonCommon() {
+    if [ -f "$PYTHON_COMMON_PATH/rascsi_interface_pb2.py" ]; then
+        sudo rm "$PYTHON_COMMON_PATH/rascsi_interface_pb2.py"
         echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEB_INSTALL_PATH/src" rascsi_interface.proto
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$PYTHON_COMMON_PATH/src" rascsi_interface.proto
+}
 
+# install everything required to run an HTTP server (Nginx + Python Flask App)
+function installRaScsiWebInterface() {
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
@@ -779,13 +782,6 @@ function installRaScsiScreen() {
 
     sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
-    if [ -f "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py" ]; then
-        sudo rm "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
-    fi
-    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$OLED_INSTALL_PATH/src" rascsi_interface.proto
-
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
         echo "NOTE: I2C support seems to have been configured already."
         REBOOT=0
@@ -882,6 +878,7 @@ function runChoice() {
               backupRaScsiService
               installRaScsi
               enableRaScsiService
+              preparePythonCommon
               if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected rascsi oled service; will run the installation steps for the OLED monitor."
                   installRaScsiScreen
@@ -913,6 +910,7 @@ function runChoice() {
               stopRaScsi
               compileRaScsi
               backupRaScsiService
+              preparePythonCommon
               installRaScsi
               enableRaScsiService
               if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
@@ -931,6 +929,7 @@ function runChoice() {
               echo "- Add and modify systemd services"
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
+              preparePythonCommon
               installRaScsiScreen
               showRaScsiScreenStatus
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
@@ -1018,6 +1017,7 @@ function runChoice() {
               updateRaScsiGit
               createCfgDir
               installPackages
+              preparePythonCommon
               installRaScsiWebInterface
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --port=8081"
