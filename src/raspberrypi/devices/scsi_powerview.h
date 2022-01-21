@@ -47,37 +47,26 @@ private:
 
 	enum eColorDepth_t : uint16_t {eColorsNone=0x0000, eColorsBW=0x0001, eColors16=0x0010, eColors256=0x0100};
 
-	eColorDepth_t color_depth;
 
 	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIPowerView::*)(SASIDEV *));
 
-	void dump_command(SASIDEV *controller);
-
-	// Largest framebuffer supported by the Radius PowerView is 800x600 at 16-bit color (2 bytes per pixel)
+	// Largest framebuffer supported by the Radius PowerView is 800x600 at 256 colors (1 bytes per pixel)
+	// Double it for now, because memory is cheap.... 
+	// TODO: Remove the "*2" from this
 	const int POWERVIEW_BUFFER_SIZE = (800 * 600 * 2); 
-
-	DWORD m_powerview_resolution_x;
-	DWORD m_powerview_resolution_y;
-
-	
 
 	void fbcon_cursor(bool blank);
 	void fbcon_blank(bool blank);
 	void fbcon_text(char* message);
-	void SetPixel(uint32_t x, uint32_t y, uint32_t r, uint32_t g, uint32_t b);
-
 
 public:
 	SCSIPowerView();
 	~SCSIPowerView();
 
 	bool Init(const map<string, string>&) override;
-	void Open(const Filepath& path) override;
 
 	// // Commands
 	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
-	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
-	bool Write(const DWORD *cdb, const BYTE *buf, const DWORD length);
 	bool WriteFrameBuffer(const DWORD *cdb, const BYTE *buf, const DWORD length);
 	bool WriteColorPalette(const DWORD *cdb, const BYTE *buf, const DWORD length);
 	bool WriteConfiguration(const DWORD *cdb, const BYTE *buf, const DWORD length);
@@ -91,15 +80,14 @@ public:
 	
 	bool Dispatch(SCSIDEV *) override;
 
-    bool ReceiveBuffer(int len, BYTE *buffer);
+private:
 
 	void ClearFrameBuffer(DWORD blank_color);
 
-private:
-
-    uint32_t screen_width_px;
-	uint32_t screen_height_px;
-
+	// Default to the lowest resolution supported by the PowerView (640x400)
+    uint32_t screen_width_px = 640;
+	uint32_t screen_height_px = 400;
+	eColorDepth_t color_depth = eColorsNone;
 	
 	struct fb_var_screeninfo fbinfo;
 	struct fb_fix_screeninfo fbfixinfo;
@@ -117,13 +105,13 @@ private:
 
 	int fbfd;
 	char *fb;
-	int fbwidth;
-	int fbheight;
 	int fblinelen;
-	int fbsize;
 	int fbbpp;
 
+	// Hard-coded inquiry response to match the real PowerView
 	static const BYTE m_inquiry_response[];
+
+	static unsigned char reverse_table[256];
 
 	DWORD framebuffer_black;
 	DWORD framebuffer_blue;
