@@ -44,11 +44,14 @@ const BYTE SCSIPowerView::m_inquiry_response[] = {
 
 SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 {
+	LOGTRACE("Entering %s", __PRETTY_FUNCTION__);
 	AddCommand(SCSIDEV::eCmdPvReadConfig, "Unknown PowerViewC8", &SCSIPowerView::CmdReadConfig);
 	AddCommand(SCSIDEV::eCmdPvWriteConfig, "Unknown PowerViewC9", &SCSIPowerView::CmdWriteConfig);
 	AddCommand(SCSIDEV::eCmdPvWriteFrameBuffer, "Unknown PowerViewCA", &SCSIPowerView::CmdWriteFramebuffer);
 	AddCommand(SCSIDEV::eCmdPvWriteColorPalette, "Unknown PowerViewCB", &SCSIPowerView::CmdWriteColorPalette);
 	AddCommand(SCSIDEV::eCmdUnknownPowerViewCC, "Unknown PowerViewCC", &SCSIPowerView::UnknownCommandCC);
+	
+	LOGTRACE("%s - creating lookup table", __PRETTY_FUNCTION__);
 
 	// create lookup table
 	for (int i = 0; i < 256; i++) {
@@ -58,7 +61,6 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 		b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
 		reverse_table[i] = b;
 	}
-
 
 	framebuffer_black = 0;
 	framebuffer_blue =  (/*red*/ 0 << fbinfo.red.offset) |
@@ -74,10 +76,9 @@ SCSIPowerView::SCSIPowerView() : Disk("SCPV")
 						(/*blue*/ 0 << fbinfo.blue.offset) |
 						(/*alpha*/ 0 << fbinfo.transp.offset);
 
-
 	// Default to one bit color (black & white) if we don't know any better
 	color_depth = eColorsBW;
-
+	LOGTRACE("Done with %s", __PRETTY_FUNCTION__);
 }
 
 //---------------------------------------------------------------------------
@@ -371,6 +372,7 @@ bool SCSIPowerView::Dispatch(SCSIDEV *controller)
 
 bool SCSIPowerView::Init(const map<string, string>& params)
 {
+	LOGTRACE("Entering %s", __PRETTY_FUNCTION__);
 	SetParams(params.empty() ? GetDefaultParams() : params);
 
 	this->fbfd = open("/dev/fb0", O_RDWR);
@@ -378,6 +380,7 @@ bool SCSIPowerView::Init(const map<string, string>& params)
 		LOGWARN("Unable to open /dev/fb0. Do you have a monitor connected?");
 		return false;
 	}
+	LOGTRACE("%s - /dev/fb0 opened", __PRETTY_FUNCTION__);
 
 	if (ioctl(this->fbfd, FBIOGET_VSCREENINFO, &fbinfo)){
 		LOGERROR("Unable to retrieve framebuffer v screen info. Are you running as root?");
@@ -391,8 +394,11 @@ bool SCSIPowerView::Init(const map<string, string>& params)
 
 	if (fbinfo.bits_per_pixel != 16){
 		LOGERROR("PowerView emulation only supports 16 bits per pixel framebuffer. Currently set to %d", fbinfo.bits_per_pixel);
+		LOGERROR("Try running \"fbset -depth 16\"");
 		return false;
 	}
+
+	LOGTRACE("%s Done capturing FB info", __PRETTY_FUNCTION__);
 
 	fbbpp = fbinfo.bits_per_pixel;
 	fblinelen = fbfixinfo.line_length;
@@ -402,15 +408,18 @@ bool SCSIPowerView::Init(const map<string, string>& params)
 		LOGERROR("Unable to mmap the framebuffer memory. Are you running as root?");
 		return false;
 	}
+	LOGTRACE("%s mmap complete", __PRETTY_FUNCTION__);
 
 	// Clear the framebuffer
 	memset(this->fb, 0, fbfixinfo.smem_len);
+	LOGTRACE("%s done clearing framebuffer", __PRETTY_FUNCTION__);
 
 	// Hide the flashing cursor on the screen
 	fbcon_cursor(false);
 
 	// Disable the automatic screen blanking (screen saver)
 	fbcon_blank(false);
+	LOGTRACE("%s Done disable blanking", __PRETTY_FUNCTION__);
 
 	// Draw a blue frame around the display area
 	// This indicates that the PowerView simulation is running
