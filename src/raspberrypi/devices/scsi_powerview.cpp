@@ -157,21 +157,18 @@ void SCSIPowerView::AddCommand(SCSIDEV::scsi_command opcode, const char* name, v
 
 void SCSIPowerView::ClearFrameBuffer(DWORD blank_color){
 
-
 		// For each row
-		for (DWORD idx_row_y = 0; idx_row_y < 768; idx_row_y++){
-
+		for (DWORD idx_row_y = 0; idx_row_y < fbinfo.yres-1; idx_row_y++){
 
 			// For each column
-			for (DWORD idx_col_x = 0; idx_col_x < 1024; idx_col_x++){
+			for (DWORD idx_col_x = 0; idx_col_x < fbinfo.xres-1; idx_col_x++){
 		 		uint32_t loc = ((idx_col_x) * (this->fbbpp / 8)) + ((idx_row_y) * fblinelen);
+				 uint8_t temp_color = blank_color;
 
-				*(this->fb + loc + 0) = (blank_color & 0xFF); 
-				*(this->fb + loc + 1) = (blank_color >> 8) & 0xFF; 
-				// TODO: This should dynamically set the framebuffer memory, based upon the 
-				// color depth. 
-				*(this->fb + loc + 2) = (blank_color >> 16) & 0xFF; 
-
+				for(uint32_t i=0; i < fbinfo.bits_per_pixel/8; i++){
+					temp_color = (blank_color >> 8*i) & 0xFF;
+					*(this->fb + loc + i) = temp_color;
+				}
 			}
 		}
 
