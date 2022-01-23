@@ -59,7 +59,6 @@ class CtrlBoardMenuBuilder(MenuBuilder):
             file = "-"
             device_type = ""
 
-            #        check_id = str(scsi_id)
             if str(scsi_id) in reserved_ids["ids"]:
                 file = "[Reserved]"
             elif device is not None:
@@ -67,12 +66,18 @@ class CtrlBoardMenuBuilder(MenuBuilder):
                 device_type = str(device["device_type"])
 
             menu_str = str(scsi_id) + ":"
-            if file == "":
-                menu_str += "(empty)"
+
+            if device_type == "SCDP":
+                menu_str += "Daynaport"
+            elif device_type == "SCBR":
+                menu_str += "Host Bridge"
             else:
-                menu_str += file
-            if device_type != "":
-                menu_str += " [" + device_type + "]"
+                if file == "":
+                    menu_str += "(empty)"
+                else:
+                    menu_str += file
+                if device_type != "":
+                    menu_str += " [" + device_type + "]"
 
             menu.add_entry(menu_str, {"context": self.SCSI_ID_MENU,
                                       "action": self.ACTION_OPENACTIONMENU,

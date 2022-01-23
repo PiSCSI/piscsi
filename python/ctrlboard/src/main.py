@@ -9,6 +9,7 @@ from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.menu_controller import MenuController
 from menu.menu_renderer_config import MenuRendererConfig
 from menu.menu_renderer_luma_oled import MenuRendererLumaOled
+from rascsi.exceptions import EmptySocketChunkException, InvalidProtobufResponse, FailedSocketConnectionException
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.socket_cmds import SocketCmds
 import logging
@@ -82,6 +83,19 @@ def parse_config():
     return config
 
 
+def check_rascsi_connection(ractl_cmd):
+    try:
+        devices = ractl_cmd.list_devices()
+        if devices["status"] is True:
+            return True
+        else:
+            return False
+    except FailedSocketConnectionException:
+        log = logging.getLogger(__name__)
+        log.error("Could not establish connection. Stopping service")
+        exit(1)
+
+
 def main():
     config = parse_config()
 
@@ -101,8 +115,22 @@ def main():
         log.error("Ctrlboard hardware not detected. Stopping service")
         exit(1)
 
-    sock_cmd = SocketCmds(host=config.RASCSI_HOST, port=config.RASCSI_PORT)
-    ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=config.TOKEN)
+    sock_cmd = None
+    ractl_cmd = None
+    try:
+        sock_cmd = SocketCmds(host=config.RASCSI_HOST, port=config.RASCSI_PORT)
+        ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=config.TOKEN)
+    except EmptySocketChunkException:
+        log.error("Retrieved empty data from RaSCSI. Stopping service")
+        exit(1)
+    except InvalidProtobufResponse:
+        log.error("Retrieved unexpected data from RaSCSI. Stopping service")
+        exit(1)
+
+    if check_rascsi_connection(ractl_cmd) is False:
+        log.error("Communication with RaSCSI failed. Please check if password token must be set "
+                  "and whether is set correctly.")
+        exit(1)
 
     menu_renderer_config = MenuRendererConfig()
     menu_renderer_config.i2c_address = CtrlBoardHardwareConstants.DISPLAY_I2C_ADDRESS
