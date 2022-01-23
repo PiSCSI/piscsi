@@ -5,7 +5,6 @@ from menu.menu_builder import MenuBuilder
 from menu.menu_renderer import MenuRenderer
 from menu.menu_renderer_config import MenuRendererConfig
 import importlib
-
 from menu.transition import Transition
 
 
@@ -38,11 +37,6 @@ class MenuController:
         except ImportError:
             print("transition module does not exist. Falling back to default.")
             self._transition = None
-
-        # TODO: disabled. transitions don't work currently.
-        # self._transition_menu_renderer = deepcopy(self)
-        # self._transition_menu_renderer = MenuRenderer(config=self._menu_renderer_config)
-        # self._transition_menu_renderer = MenuRendererAdafruitSSD1306(config=self._menu_renderer_config)
 
     def add(self, name: str, context_object=None):
         self._menus[name] = self._menu_builder.build(name)
@@ -83,11 +77,12 @@ class MenuController:
         self.refresh(name, context_object)
 
         if self._transition is not None:
-            self._transition_menu_renderer.set_menu(self.get_menu(name))
-            self._transition_menu_renderer.render(display_on_device=False)
-            target_image = self._transition_menu_renderer.image
+            source_image = self._menu_renderer.image.copy()
+            transition_menu = self.get_menu(name)
+            self._menu_renderer.set_menu(transition_menu)
+            target_image = self._menu_renderer.render(display_on_device=False)
             transition_attributes["transition_speed"] = self._menu_renderer_config.transition_speed
-            self._transition.perform(self._menu_renderer.image, target_image, transition_attributes)
+            self._transition.perform(source_image, target_image, transition_attributes)
 
         self.set_active_menu(name)
 

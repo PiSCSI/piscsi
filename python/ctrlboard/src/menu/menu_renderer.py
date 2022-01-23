@@ -1,5 +1,4 @@
 import time
-from abc import abstractmethod
 from typing import Optional
 from PIL import Image
 from PIL import ImageDraw
@@ -187,9 +186,8 @@ class MenuRenderer(ABC):
         else:
             self.draw_menu()
 
-        self.update_display_image(self.image)
-
         if display_on_device is True:
+            self.update_display_image(self.image)
             self.update_display()
 
         self.render_timestamp = int(time.time())

@@ -19,3 +19,8 @@ class Menu:
     def get_current_info_object(self):
         return self.entries[self.item_selection]['data_object']
 
+    def __repr__(self):
+        print("entries: " + str(self.entries))
+        print("item_selection: " + str(self.item_selection))
+        print("name: " + self.name)
+        print("context object: " + str(self.context_object))
