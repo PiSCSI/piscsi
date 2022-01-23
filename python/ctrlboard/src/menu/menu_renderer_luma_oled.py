@@ -18,11 +18,12 @@ class MenuRendererLumaOled(MenuRenderer):
         return self.disp
 
     def update_display_image(self, image):
-        self.disp.display(self.image)
-        self.disp.show()
+        self.disp.display(image)
+        # self.disp.show()
 
     def update_display(self):
-        self.disp.show()
+        self.disp.display(self.image)
+        #self.disp.show()
 
     def display_clear(self):
         pass

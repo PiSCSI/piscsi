@@ -20,8 +20,8 @@ class MenuRendererConfig:
         self.row_selection_pixel_extension = 2
         self.scroll_behavior = "page"  # "extend" or "page"
         #    self.scroll_behavior = "extend"  # "extend" or "page"
-#        self.transition = "PushTransition"
-        self.transition = "None"
+        self.transition = "PushTransition"
+#        self.transition = "None"
         self.transition_attributes_left = {"direction": "push_left"}
         self.transition_attributes_right = {"direction": "push_right"}
         self.transition_speed = 20

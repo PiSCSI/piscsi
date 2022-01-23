@@ -77,9 +77,10 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
     # noinspection PyUnusedLocal
     def handle_action_menu_slot_detacheject(self, info_object):
+        context_object = self._menu_controller.get_active_menu().context_object
         self.detach_eject_scsi_id()
-        self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes={})
+        self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU, context_object=context_object,
+                                    transition_attributes=self._menu_renderer_config.transition_attributes_left)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_slot_info(self, info_object):
@@ -92,7 +93,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
     def handle_device_info_menu_return(self, info_object):
         context_object = self._menu_controller.get_active_menu().context_object
         self._menu_controller.segue(CtrlBoardMenuBuilder.ACTION_MENU,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_right, context_object=context_object)
+                                    transition_attributes=self._menu_renderer_config.transition_attributes_right,
+                                    context_object=context_object)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_loadprofile(self, info_object):
@@ -123,9 +125,10 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                                     transition_attributes=self._menu_renderer_config.transition_attributes_right)
 
     def handle_images_menu_image_attachinsert(self, info_object):
+        context_object = self._menu_controller.get_active_menu().context_object
         self.attach_insert_scsi_id(info_object)
-        self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes={})
+        self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU, context_object=context_object,
+                                    transition_attributes=self._menu_renderer_config.transition_attributes_left)
 
     def attach_insert_scsi_id(self, info_object):
         image_name = info_object["name"]

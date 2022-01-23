@@ -43,10 +43,8 @@ class PushTransition(Transition):
             right_region = end_image.crop((0, 0, x, 64))
             transition_image.paste(left_region, (0, 0, 128 - x, 64))
             transition_image.paste(right_region, (128 - x, 0, 128, 64))
-            self.disp.image(transition_image)
-            self.disp.show()
-        self.disp.image(end_image)
-        self.disp.show()
+            self.disp.display(transition_image)
+        self.disp.display(end_image)
 
     def perform_push_right(self, end_image, start_image, transition_image):
         for x in range(0, 128, self.transition_attributes["transition_speed"]):
@@ -54,7 +52,5 @@ class PushTransition(Transition):
             right_region = end_image.crop((128-x, 0, 128, 64))
             transition_image.paste(left_region, (x, 0, 128, 64))
             transition_image.paste(right_region, (0, 0, x, 64))
-            self.disp.image(transition_image)
-            self.disp.show()
-        self.disp.image(end_image)
-        self.disp.show()
+            self.disp.display(transition_image)
+        self.disp.display(end_image)
