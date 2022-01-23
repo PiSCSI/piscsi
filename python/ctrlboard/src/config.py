@@ -1,3 +1,6 @@
+from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
+
+
 class CtrlboardConfig:
     ROTATION = 0
     WIDTH = 128
@@ -5,6 +8,10 @@ class CtrlboardConfig:
     LINES = 8
     TOKEN = ""
     BORDER = 5
+    DISPLAY_I2C_ADDRESS = CtrlBoardHardwareConstants.DISPLAY_I2C_ADDRESS
+    PCA9554_I2C_ADDRESS = CtrlBoardHardwareConstants.PCA9554_I2C_ADDRESS
+    LOG_LEVEL = 30  # Warning
+
     RASCSI_HOST = "localhost"
     RASCSI_PORT = "6868"
 

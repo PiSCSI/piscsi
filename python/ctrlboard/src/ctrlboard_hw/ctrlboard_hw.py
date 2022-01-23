@@ -6,13 +6,27 @@ from observable import Observable
 # noinspection PyUnresolvedReferences
 import RPi.GPIO as GPIO
 import numpy
+import smbus
+import logging
 
 
 class CtrlBoardHardware(Observable):
 
-    def __init__(self):
+    def __init__(self, display_i2c_address, pca9554_i2c_address):
+        self.display_i2c_address = display_i2c_address
+        self.pca9554_i2c_address = pca9554_i2c_address
+        self.rascsi_controlboard_detected = self.detect_rascsi_controlboard()
+        log = logging.getLogger(__name__)
+        log.info("RaSCSI Control Board detected: " + str(self.rascsi_controlboard_detected))
+        self.display_detected = self.detect_display()
+        log.info("Display detected: " + str(self.display_detected))
+
+        if self.rascsi_controlboard_detected is False:
+            return
+
         self.pos = 0
-        self.pca_driver = pca9554.Pca9554(CtrlBoardHardwareConstants.PCA9554_I2C_ADDRESS)
+        self.pca_driver = pca9554.Pca9554(self.pca9554_i2c_address)
+
         # setup pca9554
         self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_ENC_A, pca9554.INPUT)
         self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_ENC_B, pca9554.INPUT)
@@ -157,6 +171,35 @@ class CtrlBoardHardware(Observable):
 
         self.rotary.state = 0b11
         self.input_register_buffer = 0
+
+    @staticmethod
+    def detect_i2c_devices(_bus):
+        detected_i2c_addresses = []
+
+        for _address in range(128):
+            if 2 < _address < 120:
+                try:
+                    _bus.read_byte(_address)
+                    address = '%02x' % _address
+                    detected_i2c_addresses.append(int(address, base=16))
+                except IOError as ex:  # simply skip unsuccessful i2c probes
+                    pass
+
+        return detected_i2c_addresses
+
+    def detect_rascsi_controlboard(self):
+        i2c_addresses = self.detect_i2c_devices(smbus.SMBus(1))
+        if int(self.display_i2c_address) in i2c_addresses and int(self.pca9554_i2c_address) in i2c_addresses:
+            return True
+        else:
+            return False
+
+    def detect_display(self):
+        i2c_addresses = self.detect_i2c_devices(smbus.SMBus(1))
+        if int(self.display_i2c_address) in i2c_addresses:
+            return True
+        else:
+            return False
 
     @staticmethod
     def cleanup():
