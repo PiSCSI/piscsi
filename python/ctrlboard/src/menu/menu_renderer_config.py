@@ -24,11 +24,12 @@ class MenuRendererConfig:
 #        self.transition = "None"
         self.transition_attributes_left = {"direction": "push_left"}
         self.transition_attributes_right = {"direction": "push_right"}
-        self.transition_speed = 20
+        self.transition_speed = 10
         self.scroll_line = True
         self.scroll_delay = 3
         self.scroll_line_end_delay = 2
-        self.screensaver_delay = 60
+        self.screensaver = "BlankScreenSaver"
+        self.screensaver_delay = 25
         self.rotation = 180  # degrees. Options: 0, 180
 
     def get_mapped_rotation(self):
