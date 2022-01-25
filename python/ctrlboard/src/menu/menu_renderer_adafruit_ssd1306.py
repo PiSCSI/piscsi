@@ -25,3 +25,7 @@ class MenuRendererAdafruitSSD1306(MenuRenderer):
 
     def display_clear(self):
         self.disp.fill(0)
+
+    def blank_screen(self):
+        self.disp.fill(0)
+        self.disp.show()

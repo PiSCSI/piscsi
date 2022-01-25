@@ -1,8 +1,12 @@
+import sys
 import time
 from typing import Optional
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
+
+from menu import menu
+from menu.blank_screensaver import BlankScreenSaver
 from menu.menu import Menu
 from menu.menu_renderer_config import MenuRendererConfig
 import math
@@ -30,6 +34,10 @@ class MenuRenderer(ABC):
         self._x_scrolling = 0
         self._current_line_horizontal_overlap = None
         self._stage_timestamp: Optional[int] = None
+        this_module = sys.modules[__name__]
+        screensaver = getattr(this_module, self._config.screensaver)
+
+        self.screensaver = screensaver(self._config.screensaver_delay, self)
 
     @abstractmethod
     def display_init(self):
@@ -37,6 +45,10 @@ class MenuRenderer(ABC):
 
     @abstractmethod
     def display_clear(self):
+        pass
+
+    @abstractmethod
+    def blank_screen(self):
         pass
 
     @abstractmethod
@@ -167,6 +179,8 @@ class MenuRenderer(ABC):
                 break
 
     def render(self, display_on_device=True):
+        if display_on_device is True:
+            self.screensaver.reset_timer()
         self._perform_scrolling_stage = 0
         self._current_line_horizontal_overlap = None
         self._x_scrolling = 0
@@ -200,6 +214,12 @@ class MenuRenderer(ABC):
 
     def update(self):
         if self._config.scroll_line is False:
+            return
+
+        self.screensaver.check_timer()
+
+        if self.screensaver.enabled is True:
+            self.screensaver.draw()
             return
 
         current_time = int(time.time())
