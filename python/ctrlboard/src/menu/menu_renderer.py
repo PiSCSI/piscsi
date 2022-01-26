@@ -10,6 +10,8 @@ import itertools
 from abc import ABC, abstractmethod
 from pydoc import locate
 
+from menu.screensaver import ScreenSaver
+
 
 class MenuRenderer(ABC):
 
@@ -33,7 +35,7 @@ class MenuRenderer(ABC):
 
         screensaver = locate(self._config.screensaver)
         # noinspection PyCallingNonCallable
-        self.screensaver = screensaver(self._config.screensaver_delay, self)
+        self.screensaver: ScreenSaver = screensaver(self._config.screensaver_delay, self)
 
     @abstractmethod
     def display_init(self):

@@ -1,5 +1,5 @@
-import time
 from abc import abstractmethod
+from menu.timer_flag import TimerFlag
 
 
 class ScreenSaver:
@@ -8,7 +8,7 @@ class ScreenSaver:
         self.enabled = False
         self.menu_renderer = menu_renderer
         self.screensaver_activation_delay = activation_delay
-        self.start_timestamp = int(time.time())
+        self.timer_flag = TimerFlag(self.screensaver_activation_delay)
 
     def draw(self):
         if self.enabled is True:
@@ -19,12 +19,9 @@ class ScreenSaver:
         pass
 
     def check_timer(self):
-        current_timestamp = int(time.time())
-        timestamp_diff = current_timestamp - self.start_timestamp
-
-        if timestamp_diff >= self.screensaver_activation_delay:
-            self.enabled = True
+        self.timer_flag.check_timer()
+        self.enabled = self.timer_flag.enabled
 
     def reset_timer(self):
-        self.start_timestamp = int(time.time())
-        self.enabled = False
+        self.timer_flag.reset_timer()
+        self.enabled = self.timer_flag.enabled

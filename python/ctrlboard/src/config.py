@@ -10,6 +10,7 @@ class CtrlboardConfig:
     BORDER = 5
     DISPLAY_I2C_ADDRESS = CtrlBoardHardwareConstants.DISPLAY_I2C_ADDRESS
     PCA9554_I2C_ADDRESS = CtrlBoardHardwareConstants.PCA9554_I2C_ADDRESS
+    MENU_REFRESH_INTERVAL = 6
     LOG_LEVEL = 30  # Warning
 
     RASCSI_HOST = "localhost"
