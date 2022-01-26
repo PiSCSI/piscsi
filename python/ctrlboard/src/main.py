@@ -21,7 +21,7 @@ def parse_config():
     cmdline_args_parser.add_argument(
         "--rotation",
         type=int,
-        choices=[0, 180],
+        choices=[0, 90, 180, 270],
         default=0,
         action="store",
         help="The rotation of the screen buffer in degrees. Default: 0",

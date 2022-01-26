@@ -1,17 +1,14 @@
-import sys
 import time
 from typing import Optional
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-
-from menu import menu
-from menu.blank_screensaver import BlankScreenSaver
 from menu.menu import Menu
 from menu.menu_renderer_config import MenuRendererConfig
 import math
 import itertools
 from abc import ABC, abstractmethod
+from pydoc import locate
 
 
 class MenuRenderer(ABC):
@@ -20,7 +17,6 @@ class MenuRenderer(ABC):
         self.message = ""
         self._menu = None
         self._config = config
-
         self.disp = self.display_init()
 
         self.image = Image.new('1', (self.disp.width, self.disp.height))
@@ -34,9 +30,9 @@ class MenuRenderer(ABC):
         self._x_scrolling = 0
         self._current_line_horizontal_overlap = None
         self._stage_timestamp: Optional[int] = None
-        this_module = sys.modules[__name__]
-        screensaver = getattr(this_module, self._config.screensaver)
 
+        screensaver = locate(self._config.screensaver)
+        # noinspection PyCallingNonCallable
         self.screensaver = screensaver(self._config.screensaver_delay, self)
 
     @abstractmethod
