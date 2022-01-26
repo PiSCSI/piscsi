@@ -6,13 +6,14 @@ from ctrlboard_hw.ctrlboard_hw import CtrlBoardHardware
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 from ctrlboard_event_handler.ctrlboard_menu_update_event_handler import CtrlBoardMenuUpdateEventHandler
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
-from menu.menu_controller import MenuController
 from menu.menu_renderer_config import MenuRendererConfig
 from menu.menu_renderer_luma_oled import MenuRendererLumaOled
 from rascsi.exceptions import EmptySocketChunkException, InvalidProtobufResponse, FailedSocketConnectionException
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.socket_cmds import SocketCmds
 import logging
+
+from rascsi_menu_controller import RascsiMenuController
 
 
 def parse_config():
@@ -137,9 +138,9 @@ def main():
     menu_renderer_config.rotation = config.ROTATION
 
     menu_builder = CtrlBoardMenuBuilder(ractl_cmd)
-    menu_controller = MenuController(menu_builder=menu_builder,
-                                     menu_renderer=MenuRendererLumaOled(menu_renderer_config),
-                                     menu_renderer_config=menu_renderer_config)
+    menu_controller = RascsiMenuController(config.MENU_REFRESH_INTERVAL, menu_builder=menu_builder,
+                                           menu_renderer=MenuRendererLumaOled(menu_renderer_config),
+                                           menu_renderer_config=menu_renderer_config)
     menu_controller.add(CtrlBoardMenuBuilder.SCSI_ID_MENU)
     menu_controller.add(CtrlBoardMenuBuilder.ACTION_MENU)
 

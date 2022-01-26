@@ -40,8 +40,8 @@ class CtrlBoardMenuBuilder(MenuBuilder):
             print("Provided menu name [" + name + "] cannot be built!")
 
     def create_scsi_id_list_menu(self, context_object=None):
-        devices = self._rascsi_client .list_devices()
-        reserved_ids = self._rascsi_client .get_reserved_ids()
+        devices = self._rascsi_client.list_devices()
+        reserved_ids = self._rascsi_client.get_reserved_ids()
 
         devices_by_id = {}
         for device in devices["device_list"]:

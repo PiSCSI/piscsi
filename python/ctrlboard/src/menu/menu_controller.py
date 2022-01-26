@@ -43,10 +43,10 @@ class MenuController:
         if context_object is not None:
             self._menus[name].context_object = context_object
 
-    def set_active_menu(self, name: str):
+    def set_active_menu(self, name: str, display_on_device=True):
         self._active_menu = self._menus[name]
         self._menu_renderer.set_menu(self._active_menu)
-        self._menu_renderer.render()
+        self._menu_renderer.render(display_on_device)
 
     def refresh(self, name: str, context_object=None):
         item_selection = None
