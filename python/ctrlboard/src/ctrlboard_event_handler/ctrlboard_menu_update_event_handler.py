@@ -87,7 +87,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self.detach_eject_scsi_id()
         self.context_stack = []
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU, context_object=context_object,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_slot_info(self, info_object):
@@ -124,7 +124,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
         self.context_stack = []
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_shutdown(self, info_object):
@@ -146,7 +146,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self.attach_insert_scsi_id(info_object)
         self.context_stack = []
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU, context_object=context_object,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
 
     def attach_insert_scsi_id(self, info_object):
         image_name = info_object["name"]

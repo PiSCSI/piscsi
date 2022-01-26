@@ -28,9 +28,9 @@ class MenuRendererConfig:
         self.scroll_line = True
         self.scroll_delay = 3
         self.scroll_line_end_delay = 2
-        self.screensaver = "BlankScreenSaver"
+        self.screensaver = "menu.blank_screensaver.BlankScreenSaver"
         self.screensaver_delay = 25
-        self.rotation = 180  # degrees. Options: 0, 180
+        self.rotation = 0  # degrees. Options: 0, 180
 
     def get_mapped_rotation(self):
         return self._rotation_mapper[self.rotation]
