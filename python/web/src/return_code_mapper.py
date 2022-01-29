@@ -41,5 +41,5 @@ class ReturnCodeMapper:
 
         parameters = payload["parameters"]
 
-        payload["msg"] = _(ReturnCodeMapper.MESSAGES[payload["return_code"]], **parameters)
+        payload["msg"] = ReturnCodeMapper.MESSAGES[payload["return_code"]] % parameters
         return payload
