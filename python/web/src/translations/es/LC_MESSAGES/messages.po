@@ -238,7 +238,6 @@ msgid "Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Fallo en la expulsión de SCSI ID %(id_number)s LUN %(unit_number)s"
 
 #: web.py:676
-#, fuzzy
 msgid "DEVICE INFO"
 msgstr "INFORMACIÓN SOBRE EL DISPOSITIVO"
 
