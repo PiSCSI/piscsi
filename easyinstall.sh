@@ -90,8 +90,22 @@ function compileRaScsi() {
     ( make clean && make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
 }
 
+function cleanupOutdatedManPage() {
+    OUTDATED_MAN_PAGE_DIR=/usr/share/man/man1/
+    if [ -f "${OUTDATED_MAN_PAGE_DIR}/$1" ]; then
+      sudo rm "${OUTDATED_MAN_PAGE_DIR}/$1"
+    fi
+}
+
 # install the RaSCSI binaries and modify the service configuration
 function installRaScsi() {
+    # clean up outdated man pages if they exist
+    cleanupOutdatedManPage "rascsi.1"
+    cleanupOutdatedManPage "rasctl.1"
+    cleanupOutdatedManPage "scsimon.1"
+    cleanupOutdatedManPage "rasdump.1"
+    cleanupOutdatedManPage "sasidump.1"
+    # install
     sudo make install CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
 }
 
