@@ -1016,7 +1016,9 @@ def change_language():
     file_cmds.locale = session["language"]
     refresh()
 
-    flash(_("Changed Web Interface language to %(locale)s", locale=locale))
+    language = Locale.parse(locale)
+    language_name = language.get_language_name(locale)
+    flash(_("Changed Web Interface language to %(locale)s", locale=language_name))
     return redirect(url_for("index"))
 
 
