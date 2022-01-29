@@ -1021,17 +1021,14 @@ def change_language():
 
 
 @APP.before_first_request
-def load_default_config():
+def detect_locale():
     """
-    Webapp initialization steps that require the Flask app to have started:
-    - Get the detected locale to use for localizations
-    - Load the default configuration file, if found
+    Get the detected locale to use for UI string translations.
+    This requires the Flask app to have started first.
     """
     session["language"] = get_locale()
     ractl.locale = session["language"]
     file_cmds.locale = session["language"]
-    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
-        file_cmds.read_config(DEFAULT_CONFIG)
 
 
 if __name__ == "__main__":
@@ -1074,6 +1071,9 @@ if __name__ == "__main__":
     sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
     ractl = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["TOKEN"])
     file_cmds = FileCmds(sock_cmd=sock_cmd, ractl=ractl, token=APP.config["TOKEN"])
+
+    if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
+        file_cmds.read_config(DEFAULT_CONFIG)
 
     import bjoern
     print("Serving rascsi-web...")
