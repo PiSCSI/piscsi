@@ -1,7 +1,7 @@
 """Module for mapping between rascsi return codes and translated strings"""
 
 from rascsi.return_codes import ReturnCodes
-from flask_babel import _
+from flask_babel import _, lazy_gettext
 
 
 # pylint: disable=too-few-public-methods
@@ -41,5 +41,5 @@ class ReturnCodeMapper:
 
         parameters = payload["parameters"]
 
-        payload["msg"] = _(ReturnCodeMapper.MESSAGES[payload["return_code"]], **parameters)
+        payload["msg"] = lazy_gettext(ReturnCodeMapper.MESSAGES[payload["return_code"]], **parameters)
         return payload
