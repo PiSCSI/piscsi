@@ -121,7 +121,7 @@ int main(int argc, char* argv[])
 		cerr << "[-F IMAGE_FOLDER] [-L LOG_LEVEL] [-h HOST] [-p PORT] [-r RESERVED_IDS] ";
 		cerr << "[-C FILENAME:FILESIZE] [-d FILENAME] [-w FILENAME] [-R CURRENT_NAME:NEW_NAME] ";
 		cerr <<	"[-x CURRENT_NAME:NEW_NAME] [-z LOCALE] ";
-		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-s] [-v] [-V] [-y] [-X]" << endl;
+		cerr << "[-e] [-E FILENAME] [-D] [-I] [-l] [-L] [-m] [o] [-O] [-P] [-s] [-v] [-V] [-y] [-X]" << endl;
 		cerr << " where  ID := {0-7}" << endl;
 		cerr << "        UNIT := {0-31}, default is 0" << endl;
 		cerr << "        CMD := {attach|detach|insert|eject|protect|unprotect|show}" << endl;
