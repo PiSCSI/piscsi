@@ -671,7 +671,7 @@ function installNetatalk() {
 
     echo "- -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx2.so -nosavepassword -noicon\"" >> ./config/afpd.conf.tmpl
 
-    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool libgcrypt20-dev --assume-yes ) </dev/null
+    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev libavahi-client-dev autotools-dev automake libtool libgcrypt20-dev --assume-yes ) </dev/null
 
     echo "Compiling and installing Netatalk..."
     ./bootstrap </dev/null
