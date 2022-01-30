@@ -640,36 +640,45 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="20200806"
+    NETATALK_VERSION="2-220101"
     AFP_SHARE_PATH="$HOME/afpshare"
 
     echo "Cleaning up existing Netatalk installation, if it exists..."
-    sudo /etc/init.d/netatalk stop || true
-    sudo rm -rf /etc/default/netatalk.conf /etc/netatalk || true
+    sudo systemctl stop atalkd afpd || true
 
-    if [ -f "$HOME/netatalk-classic-$NETATALK_VERSION" ]; then
-        echo "Deleting existing version of $HOME/netatalk-classic-$NETATALK_VERSION."
-        sudo rm -rf "$HOME/netatalk-classic-$NETATALK_VERSION"
+    if [ -f /etc/init.d/netatalk ]; then
+        sudo /etc/init.d/netatalk stop || true
     fi
 
-    echo "Downloading netatalk-classic-$NETATALK_VERSION to $HOME"
+    if [[ `grep -c netatalk /etc/rc.local` -eq 1 ]]; then
+        sudo sed -i "/netatalk/d" /etc/rc.local
+        echo "Removed Netatalk from /etc/rc.local"
+    fi
+
+    if [ -f "$HOME/netatalk-$NETATALK_VERSION" ]; then
+        echo "Deleting existing version of $HOME/netatalk-$NETATALK_VERSION."
+        sudo rm -rf "$HOME/netatalk-$NETATALK_VERSION"
+    fi
+
+    echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
-    wget -O "$NETATALK_VERSION.tar.gz" "https://github.com/christopherkobayashi/netatalk-classic/archive/refs/tags/$NETATALK_VERSION.tar.gz" </dev/null
-    tar -xzvf $NETATALK_VERSION.tar.gz
+    wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
+    tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
 
-    cd "netatalk-classic-$NETATALK_VERSION" || exit 1
+    cd "Netatalk-2.x-netatalk-$NETATALK_VERSION" || exit 1
     sed -i /^~/d ./config/AppleVolumes.default.tmpl
-    echo "$AFP_SHARE_PATH \"Pi File Server\" adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default.tmpl
+    echo "$AFP_SHARE_PATH \"Pi File Server\"" >> ./config/AppleVolumes.default.tmpl
 
-    echo "ATALKD_RUN=yes" >> ./config/netatalk.conf
-    echo "\"RaSCSI-Pi\" -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname \"nobody\" -setuplog \"default log_maxdebug /var/log/afpd.log\"" >> ./config/afpd.conf.tmpl
+    echo "- -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx2.so -nosavepassword -noicon\"" >> ./config/afpd.conf.tmpl
 
-    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool --assume-yes ) </dev/null
+    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool libgcrypt20-dev --assume-yes ) </dev/null
 
     echo "Compiling and installing Netatalk..."
-    ./bootstrap
-    ./configure --enable-debian --enable-cups --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk
-    ( make && sudo make install ) </dev/null
+    ./bootstrap </dev/null
+    ./configure --enable-systemd --enable-ddp --enable-cups --enable-timelord --enable-zeroconf --disable-quota --enable-overwrite --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk </dev/null
+
+    echo "Compiling with ${CORES:-1} simultaneous cores..."
+    ( make all -j "${CORES:-1}" && sudo make install ) </dev/null
 
     if [ -d "$AFP_SHARE_PATH" ]; then
         echo "The $AFP_SHARE_PATH directory already exists."
@@ -679,12 +688,8 @@ function installNetatalk() {
         chmod -R 2775 "$AFP_SHARE_PATH"
     fi
 
-    if [[ `grep -c netatalk /etc/rc.local` -eq 0 ]]; then
-        sudo sed -i "/^exit 0/i sudo /etc/init.d/netatalk start" /etc/rc.local
-        echo "Modified /etc/rc.local"
-    fi
-
-    sudo /etc/init.d/netatalk start
+    echo "Starting Netatalk. This may take a minute..."
+    sudo systemctl start atalkd afpd papd timelord
 
     if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
         echo ""
@@ -695,13 +700,17 @@ function installNetatalk() {
     fi
 
     echo ""
-    echo "Netatalk is now installed and configured to run on system boot."
-    echo "To start or stop the File Server manually, do:"
-    echo "sudo /etc/init.d/netatalk start"
-    echo "sudo /etc/init.d/netatalk stop"
+    echo "Netatalk daemons are now installed and enabled as systemd services."
+    echo "Log in to the server using the current Pi username and password."
     echo ""
-    echo "Make sure that the user running Netatalk has a password of 8 chars or less. You may execute the 'passwd' command to change the password of the current user."
-    echo "For more information on configuring Netatalk and accessing AppleShare from your vintage Macs, see wiki:"
+    echo "IMPORTANT: Your user needs to have a password of 8 chars or less."
+    echo "Do you want to change your password now? [y/N]"
+    read -r REPLY
+    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+        passwd
+    fi
+    echo "As a bonus, an AppleTalk printer server called 'papd', and time server called 'timelord' have also been installed."
+    echo "For more information on accessing AppleShare from your vintage Macs, as well as using papd and timelord, see the wiki:"
     echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
     echo ""
 }
