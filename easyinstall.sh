@@ -655,9 +655,9 @@ function installNetatalk() {
         echo "Removed Netatalk from /etc/rc.local"
     fi
 
-    if [ -f "$HOME/netatalk-$NETATALK_VERSION" ]; then
-        echo "Deleting existing version of $HOME/netatalk-$NETATALK_VERSION."
-        sudo rm -rf "$HOME/netatalk-$NETATALK_VERSION"
+    if [ -f "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION" ]; then
+        echo "Deleting existing copy of $HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION."
+        sudo rm -rf "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION"
     fi
 
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
