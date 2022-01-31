@@ -1,7 +1,7 @@
 # Spanish translations for RaSCSI.
 # Copyright (C) 2022 akuker
 # This file is distributed under the same license as the PROJECT project.
-# Nemanja Lukic AUTHOR <nemluk@pm.me>, 2022.
+# Nemanja Lukic <nemluk@pm.me>, 2022.
 #
 msgid ""
 msgstr ""
@@ -10,7 +10,7 @@ msgstr ""
 "POT-Creation-Date: 2022-01-04 09:01+0100\n"
 "PO-Revision-Date: 2022-01-04 13:21+0100\n"
 "Last-Translator: Nemanja Lukic <nemluk@pm.me>\n"
-"Language-Team: de N/A\n"
+"Language-Team: es N/A\n"
 "Language: es\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
