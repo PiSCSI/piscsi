@@ -643,19 +643,26 @@ function installNetatalk() {
     NETATALK_VERSION="2-220101"
     AFP_SHARE_PATH="$HOME/afpshare"
 
-    echo "Cleaning up existing Netatalk installation, if it exists..."
     sudo systemctl stop atalkd afpd || true
 
     if [ -f /etc/init.d/netatalk ]; then
+        echo ""
+        echo "WARNING: An old version of Netatalk was detected. It is recommended to back up you configuration files and shared files before proceeding. Press CTRL-C to exit, or any other key to proceed."
+        read
         sudo /etc/init.d/netatalk stop || true
+    fi
+
+    if [ -f /var/log/afpd.log ]; then
+        echo "Removing /var/log/afpd.log created by an old version of Netatalk..."
+        sudo rm /var/log/afpd.log
     fi
 
     if [[ `grep -c netatalk /etc/rc.local` -eq 1 ]]; then
         sudo sed -i "/netatalk/d" /etc/rc.local
-        echo "Removed Netatalk from /etc/rc.local"
+        echo "Removed Netatalk from /etc/rc.local -- use systemctl to control Netatalk from now on."
     fi
 
-    if [ -f "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION" ]; then
+    if [ -d "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION" ]; then
         echo "Deleting existing copy of $HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION."
         sudo rm -rf "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION"
     fi
@@ -681,14 +688,14 @@ function installNetatalk() {
     ( make all -j "${CORES:-1}" && sudo make install ) </dev/null
 
     if [ -d "$AFP_SHARE_PATH" ]; then
-        echo "The $AFP_SHARE_PATH directory already exists."
+        echo "Will use the existing $AFP_SHARE_PATH directory for file sharing."
     else
         echo "The $AFP_SHARE_PATH directory does not exist; creating..."
         mkdir -p "$AFP_SHARE_PATH"
         chmod -R 2775 "$AFP_SHARE_PATH"
     fi
 
-    echo "Starting Netatalk. This may take a minute..."
+    echo "Starting Netatalk services. This may take a minute..."
     sudo systemctl start atalkd afpd papd timelord
 
     if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
@@ -701,15 +708,16 @@ function installNetatalk() {
 
     echo ""
     echo "Netatalk daemons are now installed and enabled as systemd services."
-    echo "Log in to the server using the current Pi username and password."
+    echo "Log in to the server using the current username ("$USER") and password."
     echo ""
-    echo "IMPORTANT: Your user needs to have a password of 8 chars or less."
+    echo "IMPORTANT: "$USER" needs to have a password of 8 chars or less."
     echo "Do you want to change your password now? [y/N]"
     read -r REPLY
     if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
         passwd
     fi
-    echo "As a bonus, an AppleTalk printer server called 'papd', and time server called 'timelord' have also been installed."
+    echo ""
+    echo "Additionally, an AppleTalk printer server called 'papd', as well as a time server called 'timelord' have also been installed."
     echo "For more information on accessing AppleShare from your vintage Macs, as well as using papd and timelord, see the wiki:"
     echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
     echo ""
