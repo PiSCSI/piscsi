@@ -4,7 +4,7 @@
 
 ```bash
 # Change to python/web/src
-$ cd python/web/src
+$ cd python/web
 # Make a virtual env named venv
 $ python3 -m venv venv
 # Use that virtual env in this shell
@@ -12,7 +12,7 @@ $ source venv/bin/activate
 # Install requirements
 $ pip install -r requirements.txt
 # Use mocks and a temp dir - start the web server
-$ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ cd python/web/src && python3 web.py
+$ BASE_DIR=/tmp/images/ PATH=$PATH:`pwd`/mock/bin/ cd python/web && PYTHON_COMMON_PATH=$(dirname $PWD)/common/src PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH} python3 src/web.py
 ```
 
 ### Mocks for local development
@@ -45,7 +45,7 @@ We use the Flask-Babel library and Flask/Jinja2 extension for i18n.
 It uses the 'pybabel' command line tool for extracting and compiling localizations.
 Activate the Python venv in src/web/ to use it:
 ```
-$ cd python/web/src
+$ cd python/web
 $ source venv/bin/activate
 $ pybabel --help
 ```
