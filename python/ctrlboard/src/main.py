@@ -86,8 +86,8 @@ def parse_config():
 
 def check_rascsi_connection(ractl_cmd):
     try:
-        devices = ractl_cmd.list_devices()
-        if devices["status"] is True:
+        info = ractl_cmd.get_server_info()
+        if info["status"] is True:
             return True
         else:
             return False
