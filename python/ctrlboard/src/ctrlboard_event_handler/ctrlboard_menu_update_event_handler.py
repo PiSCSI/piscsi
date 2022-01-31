@@ -1,5 +1,7 @@
 import logging
+from typing import Optional
 
+from ctrlboard_event_handler.rascsi_profile_cycler import RascsiProfileCycler
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.menu_controller import MenuController
@@ -20,6 +22,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self.sock_cmd = sock_cmd
         self.ractl_cmd = ractl_cmd
         self.context_stack = []
+        self.rascsi_profile_cycler: Optional[RascsiProfileCycler] = None
 
     def update(self, updated_object):
         if isinstance(updated_object, HardwareButton):
@@ -30,9 +33,11 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                 self.route_rotary_button_handler(info_object)
 
                 self._menu_controller.get_menu_renderer().render()
-            else:
-                self._menu_controller.show_message(updated_object.name + " pressed!")
-                self._menu_controller.get_menu_renderer().render()
+            else:  # Button pressed
+                if updated_object.name == "Bt1":
+                    self.handle_button1(updated_object)
+                elif updated_object.name == "Bt2":
+                    self.handle_button2(updated_object)
         if isinstance(updated_object, Encoder):
             # print(updatedObject.direction)
             active_menu = self._menu_controller.get_active_menu()
@@ -45,6 +50,26 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                 else:
                     active_menu.item_selection = 0
             self._menu_controller.get_menu_renderer().render()
+
+    def update_events(self):
+        if self.rascsi_profile_cycler is not None:
+            result = self.rascsi_profile_cycler.update()
+            if result is not None:
+                self.rascsi_profile_cycler = None
+                self.context_stack = None
+#                self._menu_controller.segue(result)
+                self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU)
+
+    def handle_button1(self, updated_object):
+        if self.rascsi_profile_cycler is None:
+            self.rascsi_profile_cycler = RascsiProfileCycler(self._menu_controller, self.sock_cmd, self.ractl_cmd)
+        else:
+            self.rascsi_profile_cycler.cycle()
+
+    def handle_button2(self, updated_object):
+        print(updated_object.name)
+        # self._menu_controller.show_mini_message(updated_object.name + " pressed!", True)
+        # self._menu_controller.get_menu_renderer().render()
 
     def route_rotary_button_handler(self, info_object):
         if info_object is None:

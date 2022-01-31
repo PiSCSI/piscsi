@@ -10,7 +10,7 @@ class RascsiMenuController(MenuController):
     def __init__(self, refresh_interval, menu_builder: MenuBuilder, menu_renderer=None, menu_renderer_config=None):
         super().__init__(menu_builder, menu_renderer, menu_renderer_config)
         self._refresh_interval = refresh_interval
-        self._menu_renderer:MenuRenderer = menu_renderer
+        self._menu_renderer: MenuRenderer = menu_renderer
         self._scsi_list_refresh_timer_flag = TimerFlag(self._refresh_interval)
 
     def segue(self, name, context_object=None, transition_attributes=None):
