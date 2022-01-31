@@ -697,6 +697,7 @@ function installNetatalk() {
 
     echo "Starting Netatalk services. This may take a minute..."
     sudo systemctl start atalkd afpd papd timelord
+    systemctl status afpd atalkd papd timelord
 
     if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
         echo ""
@@ -718,7 +719,7 @@ function installNetatalk() {
     fi
     echo ""
     echo "Additionally, an AppleTalk printer server called 'papd', as well as a time server called 'timelord' have also been installed."
-    echo "For more information on accessing AppleShare from your vintage Macs, as well as using papd and timelord, see the wiki:"
+    echo "For more information on how to use Netatalk with your vintage Mac, including papd and timelord, see the wiki:"
     echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
     echo ""
 }
@@ -1000,11 +1001,11 @@ function runChoice() {
               echo "Installing AppleShare File Server"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
               echo "- Create directories and change permissions"
               echo "- Install binaries to /usr/local/sbin"
               echo "- Install manpages to /usr/local/share/man/"
               echo "- Install configuration files to /etc"
-              echo "- Modify /etc/rc.local to start Netatalk daemons on system startup"
               echo ""
               sudoCheck
               installNetatalk
