@@ -17,6 +17,7 @@ class MenuRenderer(ABC):
 
     def __init__(self, config: MenuRendererConfig):
         self.message = ""
+        self.mini_message = ""
         self._menu = None
         self._config = config
         self.disp = self.display_init()
@@ -139,6 +140,15 @@ class MenuRenderer(ABC):
         self.draw.text((centered_width, centered_height), text, align="center", font=self.font,
                        stroke_fill=0, fill=0, textsize=20)
 
+    def draw_mini_message(self, text: str):
+        font_width, font_height = self.font.getsize(text)
+        centered_width = (self.disp.width - font_width) / 2
+        centered_height = (self.disp.height - font_height) / 2
+
+        self.draw.rectangle((0, centered_height-4, self.disp.width, centered_height+font_height+4), outline=0, fill=255)
+        self.draw.text((centered_width, centered_height), text, align="center", font=self.font,
+                       stroke_fill=0, fill=0, textsize=20)
+
     def draw_menu(self):
         if self._menu.item_selection >= self.frame_start_row + self.rows_per_screen():
             if self._config.scroll_behavior == "page":
@@ -195,6 +205,8 @@ class MenuRenderer(ABC):
 
         if self.message != "":
             self.draw_fullsceen_message(self.message)
+        elif self.mini_message != "":
+            self.draw_mini_message(self.mini_message)
         else:
             self.draw_menu()
 

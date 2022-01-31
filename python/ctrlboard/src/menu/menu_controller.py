@@ -66,6 +66,9 @@ class MenuController:
     def get_active_menu(self):
         return self._active_menu
 
+    def get_menu_renderer_config(self):
+        return self._menu_renderer_config
+
     def get_menu_renderer(self):
         return self._menu_renderer
 
@@ -76,7 +79,7 @@ class MenuController:
         self.get_active_menu().context_object = None
         self.refresh(name, context_object)
 
-        if self._transition is not None:
+        if self._transition is not None and transition_attributes is not None:
             source_image = self._menu_renderer.image.copy()
             transition_menu = self.get_menu(name)
             self._menu_renderer.set_menu(transition_menu)
@@ -89,8 +92,19 @@ class MenuController:
     def show_message(self, message: str, sleep=1):
         self.get_menu_renderer().message = message
         self.get_menu_renderer().render()
-        time.sleep(1)
+        time.sleep(sleep)
         self.get_menu_renderer().message = ""
+
+    def show_mini_message(self, message: str, sleep=1):
+        self.get_menu_renderer().mini_message = message
+        self.get_menu_renderer().render()
+        time.sleep(sleep)
+        self.get_menu_renderer().mini_message = ""
+
+    def show_timed_mini_message(self, message: str):
+        self.get_menu_renderer().mini_message = message
+        self.get_menu_renderer().render()
+        #self.get_menu_renderer().mini_message = ""
 
     def update(self):
         self._menu_renderer.update()

@@ -153,6 +153,7 @@ def main():
     while True:
         try:
             ctrlboard_hw.process_events()
+            menu_update_event_handler.update_events()
             menu_controller.update()
         except KeyboardInterrupt:
             ctrlboard_hw.cleanup()
