@@ -1299,7 +1299,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_unit(unit);
 		device->set_type(type);
 		device->set_block_size(block_size);
-		AddParam(*device, "file", optarg);
+
+		// Either interface or file parameters are supported
+		if (device_factory.GetDefaultParams(type).count("interfaces")) {
+			AddParam(*device, "interfaces", optarg);
+		}
+		else {
+			AddParam(*device, "file", optarg);
+		}
 
 		size_t separator_pos = name.find(':');
 		if (separator_pos != string::npos) {
