@@ -2,7 +2,7 @@ from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.menu_builder import MenuBuilder
 from menu.menu_controller import MenuController
 from menu.menu_renderer import MenuRenderer
-from menu.timer_flag import TimerFlag
+from menu.timer import Timer
 
 
 class RascsiMenuController(MenuController):
@@ -11,7 +11,7 @@ class RascsiMenuController(MenuController):
         super().__init__(menu_builder, menu_renderer, menu_renderer_config)
         self._refresh_interval = refresh_interval
         self._menu_renderer: MenuRenderer = menu_renderer
-        self._scsi_list_refresh_timer_flag = TimerFlag(self._refresh_interval)
+        self._scsi_list_refresh_timer_flag = Timer(self._refresh_interval)
 
     def segue(self, name, context_object=None, transition_attributes=None):
         super().segue(name, context_object, transition_attributes)

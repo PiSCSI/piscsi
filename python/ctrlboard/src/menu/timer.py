@@ -1,7 +1,7 @@
 import time
 
 
-class TimerFlag:
+class Timer:
 
     def __init__(self, activation_delay):
         self.start_timestamp = int(time.time())

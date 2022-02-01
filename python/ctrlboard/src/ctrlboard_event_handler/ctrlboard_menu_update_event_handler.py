@@ -2,6 +2,7 @@ import logging
 from typing import Optional
 
 from ctrlboard_event_handler.rascsi_profile_cycler import RascsiProfileCycler
+from ctrlboard_event_handler.rascsi_shutdown_cycler import RascsiShutdownCycler
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.menu_controller import MenuController
@@ -23,6 +24,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self.ractl_cmd = ractl_cmd
         self.context_stack = []
         self.rascsi_profile_cycler: Optional[RascsiProfileCycler] = None
+        self.rascsi_shutdown_cycler: Optional[RascsiShutdownCycler] = None
 
     def update(self, updated_object):
         if isinstance(updated_object, HardwareButton):
@@ -58,16 +60,27 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                 self.rascsi_profile_cycler = None
                 self.context_stack = None
 #                self._menu_controller.segue(result)
-                self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU)
+                self._menu_controller.segue(result)
+        if self.rascsi_shutdown_cycler is not None:
+            self.rascsi_shutdown_cycler.empty_messages = False
+            result = self.rascsi_shutdown_cycler.update()
+            if result == "return":
+                self.rascsi_shutdown_cycler = None
 
     def handle_button1(self, updated_object):
         if self.rascsi_profile_cycler is None:
-            self.rascsi_profile_cycler = RascsiProfileCycler(self._menu_controller, self.sock_cmd, self.ractl_cmd)
+            self.rascsi_profile_cycler = RascsiProfileCycler(self._menu_controller, self.sock_cmd,
+                                                             self.ractl_cmd, return_entry=True)
         else:
             self.rascsi_profile_cycler.cycle()
 
     def handle_button2(self, updated_object):
-        print(updated_object.name)
+        if self.rascsi_shutdown_cycler is None:
+            self.rascsi_shutdown_cycler = RascsiShutdownCycler(self._menu_controller, self.sock_cmd,
+                                                               self.ractl_cmd)
+        else:
+            self.rascsi_shutdown_cycler.cycle()
+
         # self._menu_controller.show_mini_message(updated_object.name + " pressed!", True)
         # self._menu_controller.get_menu_renderer().render()
 
