@@ -87,7 +87,10 @@ function compileRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
     echo "Compiling with ${CORES:-1} simultaneous cores..."
-    ( make clean && make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+    make clean </dev/null
+    sudo -v
+    make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+    sudo -v
 }
 
 function cleanupOutdatedManPage() {
