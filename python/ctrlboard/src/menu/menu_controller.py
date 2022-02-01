@@ -95,6 +95,10 @@ class MenuController:
         time.sleep(sleep)
         self.get_menu_renderer().message = ""
 
+    def show_timed_message(self, message: str):
+        self.get_menu_renderer().message = message
+        self.get_menu_renderer().render()
+
     def show_mini_message(self, message: str, sleep=1):
         self.get_menu_renderer().mini_message = message
         self.get_menu_renderer().render()
@@ -104,7 +108,6 @@ class MenuController:
     def show_timed_mini_message(self, message: str):
         self.get_menu_renderer().mini_message = message
         self.get_menu_renderer().render()
-        #self.get_menu_renderer().mini_message = ""
 
     def update(self):
         self._menu_renderer.update()
