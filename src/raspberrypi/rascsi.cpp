@@ -97,7 +97,7 @@ void Banner(int argc, char* argv[])
 		__TIME__);
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
-	FPRT(stdout,"Copyright (C) 2020-2021 Contributors to the RaSCSI project\n");
+	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI project\n");
 	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||
@@ -108,7 +108,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout," FILE is disk image file.\n\n");
 		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", or \"bridge\".\n\n");
+		FPRT(stdout," FILE is disk image file, \"daynaport\", \"bridge\" or \"rtc\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
 		FPRT(stdout,"  hdf : SASI HD image (XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");

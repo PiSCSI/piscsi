@@ -111,6 +111,9 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 	else if (filename == "daynaport") {
 		return SCDP;
 	}
+	else if (filename == "rtc") {
+		return SCRT;
+	}
 
 	return UNDEFINED;
 }
