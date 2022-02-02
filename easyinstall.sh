@@ -642,6 +642,7 @@ function setupWirelessNetworking() {
 function installNetatalk() {
     NETATALK_VERSION="2-220101"
     AFP_SHARE_PATH="$HOME/afpshare"
+    SYSCONFDIR="/etc"
 
     sudo systemctl stop atalkd afpd || true
 
@@ -677,12 +678,13 @@ function installNetatalk() {
     echo "$AFP_SHARE_PATH \"Pi File Server\"" >> ./config/AppleVolumes.default.tmpl
 
     echo "- -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx2.so -nosavepassword -noicon\"" >> ./config/afpd.conf.tmpl
+    echo "cupsautoadd:op=root:" >> ./config/papd.conf
 
-    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev libavahi-client-dev autotools-dev automake libtool libgcrypt20-dev --assume-yes ) </dev/null
+    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev cups libavahi-client-dev autotools-dev automake libtool libgcrypt20-dev --assume-yes ) </dev/null
 
     echo "Compiling and installing Netatalk..."
     ./bootstrap </dev/null
-    ./configure --enable-systemd --enable-ddp --enable-cups --enable-timelord --enable-zeroconf --disable-quota --enable-overwrite --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk </dev/null
+    ./configure --enable-systemd --enable-ddp --enable-cups --enable-timelord --enable-zeroconf --disable-quota --enable-overwrite --sysconfdir="$SYSCONFDIR" --with-uams-path=/usr/lib/netatalk </dev/null
 
     echo "Compiling with ${CORES:-1} simultaneous cores..."
     ( make all -j "${CORES:-1}" && sudo make install ) </dev/null
@@ -707,6 +709,12 @@ function installNetatalk() {
         echo "See wiki for information on how to compile support for AppleTalk into your Linux kernel."
     fi
 
+    sudo usermod -a -G lpadmin $USER
+    sudo cupsctl --remote-admin WebInterface=yes
+    if [[ `sudo grep "PreserveJobHistory No" /etc/cups/cupsd.conf` -eq 0 ]]; then
+        sudo sed -i "/MaxLogSize/a PreserveJobHistory No" /etc/cups/cupsd.conf
+    fi
+
     echo ""
     echo "Netatalk daemons are now installed and enabled as systemd services."
     echo "Log in to the server using the current username ("$USER") and password."
@@ -718,8 +726,7 @@ function installNetatalk() {
         passwd
     fi
     echo ""
-    echo "Additionally, an AppleTalk printer server called 'papd', as well as a time server called 'timelord' have also been installed."
-    echo "For more information on how to use Netatalk with your vintage Mac, including papd and timelord, see the wiki:"
+    echo "For more information on how to use the various Netatalk features, see the wiki:"
     echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
     echo ""
 }
@@ -1000,6 +1007,8 @@ function runChoice() {
           8)
               echo "Installing AppleShare File Server"
               echo "This script will make the following changes to your system:"
+              echo "- Install the CUPS printing system and configure its web interface"
+              echo "- Modify user groups and permissions"
               echo "- Install additional packages with apt-get"
               echo "- Add and modify systemd services"
               echo "- Create directories and change permissions"
