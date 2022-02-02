@@ -9,14 +9,6 @@
 
 #include "scsi_rtc.h"
 
-SCSIRtc::SCSIRtc() : Disk("SCRT")
-{
-}
-
-SCSIRtc::~SCSIRtc()
-{
-}
-
 bool SCSIRtc::Dispatch(SCSIDEV *controller)
 {
 	unsigned int cmd = controller->GetCtrl()->cmd[0];

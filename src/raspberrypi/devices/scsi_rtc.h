@@ -15,8 +15,8 @@
 class SCSIRtc: public Disk
 {
 public:
-	SCSIRtc();
-	~SCSIRtc();
+	SCSIRtc() : Disk("SCRT") {};
+	~SCSIRtc() {};
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
