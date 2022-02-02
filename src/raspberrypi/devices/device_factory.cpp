@@ -215,7 +215,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 				device->SetVendor("RaSCSI");
 				device->SetProduct("RTC");
-				device->SetRevision("0100");
 				break;
 
 			default:
