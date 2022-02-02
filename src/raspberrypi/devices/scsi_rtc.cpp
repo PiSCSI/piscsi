@@ -11,7 +11,6 @@
 
 SCSIRtc::SCSIRtc() : Disk("SCRT")
 {
-	ctrl = 0;
 }
 
 SCSIRtc::~SCSIRtc()
@@ -20,13 +19,13 @@ SCSIRtc::~SCSIRtc()
 
 bool SCSIRtc::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
+	unsigned int cmd = controller->GetCtrl()->cmd[0];
 
 	// Only certain commands are supported
-	if (ctrl->cmd[0] == SCSIDEV::eCmdTestUnitReady || ctrl->cmd[0] == SCSIDEV::eCmdRequestSense
-			|| ctrl->cmd[0] == SCSIDEV::eCmdInquiry || ctrl->cmd[0] == SCSIDEV::eCmdReportLuns
-			|| ctrl->cmd[0] == SCSIDEV::eCmdModeSense6 || ctrl->cmd[0] == SCSIDEV::eCmdModeSense10) {
-		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+	if (cmd == SCSIDEV::eCmdTestUnitReady || cmd == SCSIDEV::eCmdRequestSense
+			|| cmd == SCSIDEV::eCmdInquiry || cmd == SCSIDEV::eCmdReportLuns
+			|| cmd == SCSIDEV::eCmdModeSense6 || cmd == SCSIDEV::eCmdModeSense10) {
+		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, cmd);
 
 		return Disk::Dispatch(controller);
 	}
