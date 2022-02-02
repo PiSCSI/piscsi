@@ -11,11 +11,6 @@
 
 SCSIRtc::SCSIRtc() : Disk("SCRT")
 {
-	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
-	AddCommand(SCSIDEV::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
-	AddCommand(SCSIDEV::eCmdInquiry, "Inquiry", &Disk::Inquiry);
-	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
-
 	AddCommand(SCSIDEV::eCmdModeSense6, "ModeSense6", &SCSIRtc::ModeSense6);
 	AddCommand(SCSIDEV::eCmdModeSense10, "ModeSense10", &SCSIRtc::ModeSense10);
 }
@@ -41,6 +36,15 @@ bool SCSIRtc::Dispatch(SCSIDEV *controller)
 		(this->*command->execute)(controller);
 
 		return true;
+	}
+
+	// Only the mandatory primary commands are supported
+	if (ctrl->cmd[0] == SCSIDEV::eCmdTestUnitReady || ctrl->cmd[0] == SCSIDEV::eCmdRequestSense
+			|| ctrl->cmd[0] == SCSIDEV::eCmdInquiry || ctrl->cmd[0] == SCSIDEV::eCmdReportLuns) {
+		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
+		// The base class handles the less specific commands
+		return Disk::Dispatch(controller);
 	}
 
 	return false;
