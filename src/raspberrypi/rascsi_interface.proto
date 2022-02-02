@@ -28,6 +28,8 @@ enum PbDeviceType {
     SCBR = 6;
     // DaynaPort network adapter
     SCDP = 7;
+    // RTC/NVRAM
+    SCRT = 8;
 }
 
 // rascsi remote operations, returning PbResult

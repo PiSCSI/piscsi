@@ -162,8 +162,6 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 		memcpy(&buf[8], GetPaddedName().c_str(), 28);
 	}
 
-	LOGTRACE("response size is %d", allocation_length);
-
 	return allocation_length;
 }
 

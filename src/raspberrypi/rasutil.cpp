@@ -59,6 +59,10 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 				filename = "DaynaPort SCSI/Link";
 				break;
 
+			case SCRT:
+				filename = "Realtime Clock";
+				break;
+
 			default:
 				filename = device.file().name();
 				break;

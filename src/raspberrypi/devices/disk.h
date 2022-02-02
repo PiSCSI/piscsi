@@ -149,6 +149,8 @@ public:
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
 
 protected:
+	int ModeSense6(const DWORD *cdb, BYTE *buf);
+	int ModeSense10(const DWORD *cdb, BYTE *buf);
 	virtual int AddErrorPage(bool change, BYTE *buf);
 	virtual int AddFormatPage(bool change, BYTE *buf);
 	virtual int AddDrivePage(bool change, BYTE *buf);
@@ -171,8 +173,6 @@ private:
 	void ReadWriteLong16(SASIDEV *);
 	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
-	int ModeSense6(const DWORD *cdb, BYTE *buf);
-	int ModeSense10(const DWORD *cdb, BYTE *buf);
 	int ModeSelectCheck(const DWORD *cdb, int length);
 	int ModeSelectCheck6(const DWORD *cdb);
 	int ModeSelectCheck10(const DWORD *cdb);
