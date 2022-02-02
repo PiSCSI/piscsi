@@ -60,17 +60,21 @@ int SCSIRtc::Inquiry(const DWORD *cdb, BYTE *buf)
 int SCSIRtc::AddVendorPage(int page, bool, BYTE *buf)
 {
 	if (page == 0x20) {
+		// Data structure version 1.0
+		buf[0] = 0x01;
+		buf[1] = 0x00;
+
 		std::time_t t = std::time(NULL);
 		std::tm tm = *std::localtime(&t);
-		buf[0] = tm.tm_year;
-		buf[1] = tm.tm_mon;
-		buf[2] = tm.tm_mday;
-		buf[3] = tm.tm_hour;
-		buf[4] = tm.tm_min;
+		buf[2] = tm.tm_year;
+		buf[3] = tm.tm_mon;
+		buf[4] = tm.tm_mday;
+		buf[5] = tm.tm_hour;
+		buf[6] = tm.tm_min;
 		// Ignore leap second for simplicity
-		buf[5] = tm.tm_sec < 60 ? tm.tm_sec : 59;
+		buf[7] = tm.tm_sec < 60 ? tm.tm_sec : 59;
 
-		return 6;
+		return 8;
 	}
 
 	return 0;
