@@ -46,6 +46,12 @@ bool SCSIRtc::Dispatch(SCSIDEV *controller)
 	return false;
 }
 
+void SCSIRtc::TestUnitReady(SASIDEV *controller)
+{
+	// Always successful
+	controller->Status();
+}
+
 int SCSIRtc::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);

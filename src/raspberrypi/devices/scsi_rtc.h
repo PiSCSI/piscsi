@@ -35,6 +35,7 @@ public:
 	virtual bool Dispatch(SCSIDEV *) override;
 
 	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
+	void TestUnitReady(SASIDEV *) override;
 	void ModeSense6(SASIDEV *) override;
 	void ModeSense10(SASIDEV *) override;
 };
