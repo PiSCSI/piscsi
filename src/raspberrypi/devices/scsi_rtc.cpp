@@ -11,36 +11,21 @@
 
 SCSIRtc::SCSIRtc() : Disk("SCRT")
 {
-	AddCommand(SCSIDEV::eCmdModeSense6, "ModeSense6", &SCSIRtc::ModeSense6);
-	AddCommand(SCSIDEV::eCmdModeSense10, "ModeSense10", &SCSIRtc::ModeSense10);
+	ctrl = 0;
 }
 
 SCSIRtc::~SCSIRtc()
 {
 }
 
-void SCSIRtc::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIRtc::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
-}
-
 bool SCSIRtc::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	// Only the mandatory primary commands are supported
+	// Only certain commands are supported
 	if (ctrl->cmd[0] == SCSIDEV::eCmdTestUnitReady || ctrl->cmd[0] == SCSIDEV::eCmdRequestSense
-			|| ctrl->cmd[0] == SCSIDEV::eCmdInquiry || ctrl->cmd[0] == SCSIDEV::eCmdReportLuns) {
+			|| ctrl->cmd[0] == SCSIDEV::eCmdInquiry || ctrl->cmd[0] == SCSIDEV::eCmdReportLuns
+			|| ctrl->cmd[0] == SCSIDEV::eCmdModeSense6 || ctrl->cmd[0] == SCSIDEV::eCmdModeSense10) {
 		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
 
 		// The base class handles the less specific commands
@@ -82,24 +67,18 @@ int SCSIRtc::Inquiry(const DWORD *cdb, BYTE *buf)
 	return allocation_length;
 }
 
-void SCSIRtc::ModeSense6(SASIDEV *controller)
+int SCSIRtc::AddVendorPage(int page, bool, BYTE *buf)
 {
-	ctrl->length = Disk::ModeSense6(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
+	if (page == 0x20) {
+		time_t t = time(NULL);
+		buf[0] = t >> 24;
+		buf[1] = t >> 16;
+		buf[2] = t >> 8;
+		buf[3] = t;
+
+		return 4;
 	}
 
-	controller->DataIn();
+	return 0;
 }
 
-void SCSIRtc::ModeSense10(SASIDEV *controller)
-{
-	ctrl->length = Disk::ModeSense10(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataIn();
-}

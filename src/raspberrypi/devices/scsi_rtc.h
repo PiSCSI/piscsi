@@ -26,16 +26,13 @@ private:
 
 	SASIDEV::ctrl_t *ctrl;
 
-	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIRtc::*)(SASIDEV *));
-
 public:
 	SCSIRtc();
 	~SCSIRtc();
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
-	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
+	int Inquiry(const DWORD *, BYTE *) override;
 	void TestUnitReady(SASIDEV *) override;
-	void ModeSense6(SASIDEV *) override;
-	void ModeSense10(SASIDEV *) override;
+	int AddVendorPage(int, bool, BYTE *) override;
 };
