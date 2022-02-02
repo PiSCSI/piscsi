@@ -28,7 +28,6 @@ bool SCSIRtc::Dispatch(SCSIDEV *controller)
 			|| ctrl->cmd[0] == SCSIDEV::eCmdModeSense6 || ctrl->cmd[0] == SCSIDEV::eCmdModeSense10) {
 		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
 
-		// The base class handles the less specific commands
 		return Disk::Dispatch(controller);
 	}
 
