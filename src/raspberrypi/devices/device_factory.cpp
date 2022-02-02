@@ -214,7 +214,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCRT:
 				device = new SCSIRtc();
-				device->SetSupportedLuns(31);
+				device->SetSupportedLuns(32);
 				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 				device->SetVendor("RaSCSI");
 				device->SetProduct("RTC");
