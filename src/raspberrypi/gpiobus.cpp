@@ -861,6 +861,30 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		goto irq_enable_exit;
 	}
 
+	// If this is a command for an ICD compatible host adapter (Atari ACSI bus) skip the custom command $1F
+	if (*buf == 0x1F) {
+		SetSignal(PIN_REQ, ON);
+
+		ret = WaitSignal(PIN_ACK, TRUE);
+
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+
+		// Get the actual SCSI command
+		*buf = GetDAT();
+
+		SetSignal(PIN_REQ, OFF);
+
+		if (!ret) {
+			goto irq_enable_exit;
+		}
+
+		WaitSignal(PIN_ACK, FALSE);
+
+		if (!ret) {
+			goto irq_enable_exit;
+		}
+	}
+
 	count = GetCommandByteCount(*buf);
 
 	// Increment buffer pointer
