@@ -14,12 +14,12 @@
 #include "scsicd.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
-#include "scsi_rtc.h"
 #include "exceptions.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
 #include <set>
 #include <map>
+#include "scsi_rascsi.h"
 
 using namespace std;
 using namespace rascsi_interface;
@@ -34,7 +34,7 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCCD] = { 512, 2048};
 	sector_sizes[SCBR] = {};
 	sector_sizes[SCDP] = {};
-	sector_sizes[SCRT] = {};
+	sector_sizes[SCRA] = {};
 
 	// 128 MB, 512 bytes per sector, 248826 sectors
 	geometries[SCMO][0x797f400] = make_pair(512, 248826);
@@ -50,7 +50,7 @@ DeviceFactory::DeviceFactory()
 	geometries[SCCD] = {};
 	geometries[SCBR] = {};
 	geometries[SCDP] = {};
-	geometries[SCRT] = {};
+	geometries[SCRA] = {};
 
 	string network_interfaces;
 	for (const auto& network_interface : GetNetworkInterfaces()) {
@@ -67,7 +67,7 @@ DeviceFactory::DeviceFactory()
 	default_params[SCCD] = {};
 	default_params[SCBR]["interfaces"] = network_interfaces;
 	default_params[SCDP]["interfaces"] = network_interfaces;
-	default_params[SCRT] = {};
+	default_params[SCRA] = {};
 
 	extension_mapping["hdf"] = SAHD;
 	extension_mapping["hds"] = SCHD;
@@ -111,8 +111,8 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 	else if (filename == "daynaport") {
 		return SCDP;
 	}
-	else if (filename == "rtc") {
-		return SCRT;
+	else if (filename == "rascsi") {
+		return SCRA;
 	}
 
 	return UNDEFINED;
@@ -212,12 +212,12 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				device->SetDefaultParams(default_params[SCDP]);
 				break;
 
-			case SCRT:
-				device = new SCSIRtc();
+			case SCRA:
+				device = new SCSIRascsi();
 				device->SetSupportedLuns(32);
 				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 				device->SetVendor("RaSCSI");
-				device->SetProduct("RTC");
+				device->SetProduct("Service Device");
 				break;
 
 			default:

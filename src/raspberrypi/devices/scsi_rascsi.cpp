@@ -7,9 +7,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsi_rtc.h"
+#include "scsi_rascsi.h"
 
-bool SCSIRtc::Dispatch(SCSIDEV *controller)
+bool SCSIRascsi::Dispatch(SCSIDEV *controller)
 {
 	unsigned int cmd = controller->GetCtrl()->cmd[0];
 
@@ -25,13 +25,13 @@ bool SCSIRtc::Dispatch(SCSIDEV *controller)
 	return false;
 }
 
-void SCSIRtc::TestUnitReady(SASIDEV *controller)
+void SCSIRascsi::TestUnitReady(SASIDEV *controller)
 {
 	// Always successful
 	controller->Status();
 }
 
-int SCSIRtc::Inquiry(const DWORD *cdb, BYTE *buf)
+int SCSIRascsi::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 	if (allocation_length > 4) {
@@ -57,7 +57,7 @@ int SCSIRtc::Inquiry(const DWORD *cdb, BYTE *buf)
 	return allocation_length;
 }
 
-int SCSIRtc::AddVendorPage(int page, bool, BYTE *buf)
+int SCSIRascsi::AddVendorPage(int page, bool, BYTE *buf)
 {
 	if (page == 0x20) {
 		// Data structure version 1.0
