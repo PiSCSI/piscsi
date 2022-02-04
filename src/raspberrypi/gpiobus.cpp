@@ -862,12 +862,12 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	}
 
 	// The ICD AdSCSI ST, AdSCSI Plus ST and AdSCSI Micro ST host adapters allow SCSI devices to be connected
-	// to the ACSI bus of Atari ST/TT computers. ICD-aware drivers prepend a $1F byte in front of the CDB
-	// in order to get access to the full SCSI command set. Native ACSI is limited to the low SCSI command
-	// classes with command bytes < $20.
+	// to the ACSI bus of Atari ST/TT computers and some clones. ICD-aware drivers prepend a $1F byte in front
+	// of the CDB (effectively resulting in a custom SCSI command) in order to get access to the full SCSI
+	// command set. Native ACSI is limited to the low SCSI command classes with command bytes < $20.
 	// Most other host adapters and also several devices that can directly be connected to the Atari's
 	// ACSI port also support ICD semantics. I fact, these semantics have become a standard in the Atari world.
-	//
+
 	// RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
 	if (*buf == 0x1F) {
 		SetSignal(PIN_REQ, ON);
