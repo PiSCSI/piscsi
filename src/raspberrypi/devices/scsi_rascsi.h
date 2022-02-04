@@ -15,7 +15,7 @@
 class SCSIRascsi: public Disk
 {
 public:
-	SCSIRascsi() : Disk("SCRT") {};
+	SCSIRascsi() : Disk("SCRA") {};
 	~SCSIRascsi() {};
 
 	virtual bool Dispatch(SCSIDEV *) override;
