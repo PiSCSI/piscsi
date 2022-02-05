@@ -861,6 +861,38 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		goto irq_enable_exit;
 	}
 
+	// The ICD AdSCSI ST, AdSCSI Plus ST and AdSCSI Micro ST host adapters allow SCSI devices to be connected
+	// to the ACSI bus of Atari ST/TT computers and some clones. ICD-aware drivers prepend a $1F byte in front
+	// of the CDB (effectively resulting in a custom SCSI command) in order to get access to the full SCSI
+	// command set. Native ACSI is limited to the low SCSI command classes with command bytes < $20.
+	// Most other host adapters (e.g. LINK96/97 and the one by Inventronik) and also several devices (e.g.
+	// UltraSatan or GigaFile) that can directly be connected to the Atari's ACSI port also support ICD
+	// semantics. I fact, these semantics have become a standard in the Atari world.
+
+	// RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
+	if (*buf == 0x1F) {
+		SetSignal(PIN_REQ, ON);
+
+		ret = WaitSignal(PIN_ACK, TRUE);
+
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+
+		// Get the actual SCSI command
+		*buf = GetDAT();
+
+		SetSignal(PIN_REQ, OFF);
+
+		if (!ret) {
+			goto irq_enable_exit;
+		}
+
+		WaitSignal(PIN_ACK, FALSE);
+
+		if (!ret) {
+			goto irq_enable_exit;
+		}
+	}
+
 	count = GetCommandByteCount(*buf);
 
 	// Increment buffer pointer
