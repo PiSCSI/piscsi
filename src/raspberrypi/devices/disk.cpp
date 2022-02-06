@@ -517,7 +517,8 @@ void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 
 void Disk::SynchronizeCache10(SASIDEV *controller)
 {
-	// Nothing to do
+	// Flush the RaSCSI cache
+	disk.dcache->Save();
 
 	controller->Status();
 }
