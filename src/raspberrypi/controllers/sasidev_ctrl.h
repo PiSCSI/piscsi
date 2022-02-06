@@ -160,6 +160,7 @@ public:
 	void Status();							// Status phase
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
+	virtual void BusFree();					// Bus free phase
 
 	int GetEffectiveLun() const;
 
@@ -168,7 +169,6 @@ public:
 
 protected:
 	// Phase processing
-	virtual void BusFree();					// Bus free phase
 	virtual void Selection();					// Selection phase
 	virtual void Command();					// Command phase
 	virtual void Execute();					// Execution phase

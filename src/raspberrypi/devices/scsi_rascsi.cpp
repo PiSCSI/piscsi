@@ -67,22 +67,25 @@ void SCSIRascsi::StartStopUnit(SASIDEV *controller)
 
 	if (!start) {
 		// Delete all regular disk devices. This also flushes their caches.
-		for (auto it = disks.begin(); it != disks.end(); ++it) {
-			if (*it && *it != this) {
-				delete *it;
+		for (auto disk : disks) {
+			if (disk && disk != this) {
+				delete disk;
 			}
 		}
 
 		// Any bus handling must be done now, i.e. before the shutdown
 		controller->Status();
+		controller->BusFree();
 
 		if (load) {
-			// Shut down the Pi
+			LOGTRACE("Raspberry Pi shutdown requested");
+
 			//system("init 0");
 			exit(0);
 		}
 		else {
-			// Shut down RaSCSI
+			LOGTRACE("RaSCSI shutdown requested");
+
 			exit(0);
 		}
 	}
