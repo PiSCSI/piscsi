@@ -148,6 +148,7 @@ public:
 
 protected:
 	SASIDEV::ctrl_t *ctrl;
+	SASIDEV *controller;
 
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);

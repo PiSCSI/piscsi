@@ -98,6 +98,7 @@ void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
+	this->controller = controller;
 	ctrl = controller->GetCtrl();
 
 	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
