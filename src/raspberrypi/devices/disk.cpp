@@ -1292,16 +1292,21 @@ bool Disk::StartStop(const DWORD *cdb)
 		SetStopped(!start);
 	}
 
-	// Look at the eject bit and eject if necessary
-	if (load && !start) {
-		if (IsLocked()) {
-			// Cannot be ejected because it is locked
-			SetStatusCode(STATUS_PREVENT);
-			return false;
-		}
+	if (!start) {
+		// Flush the cache when stopping
+		disk.dcache->Save();
 
-		// Eject
-		return Eject(false);
+		// Look at the eject bit and eject if necessary
+		if (load) {
+			if (IsLocked()) {
+				// Cannot be ejected because it is locked
+				SetStatusCode(STATUS_PREVENT);
+				return false;
+			}
+
+			// Eject
+			return Eject(false);
+		}
 	}
 
 	return true;
