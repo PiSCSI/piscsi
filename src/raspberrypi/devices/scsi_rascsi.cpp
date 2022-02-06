@@ -14,6 +14,7 @@ bool SCSIRascsi::Dispatch(SCSIDEV *controller)
 	unsigned int cmd = controller->GetCtrl()->cmd[0];
 
 	// Only certain commands are supported
+	// TODO Do not inherit from Disk, mode page handling should be moved from Disk to a superclass of Disk
 	if (cmd == SCSIDEV::eCmdTestUnitReady || cmd == SCSIDEV::eCmdRequestSense
 			|| cmd == SCSIDEV::eCmdInquiry || cmd == SCSIDEV::eCmdReportLuns
 			|| cmd == SCSIDEV::eCmdModeSense6 || cmd == SCSIDEV::eCmdModeSense10
@@ -65,8 +66,7 @@ void SCSIRascsi::StartStopUnit(SASIDEV *controller)
 	bool load = ctrl->cmd[4] & 0x02;
 
 	if (!start) {
-		// Flush caches
-		disk.dcache->Save();
+		// TODO Flush caches of all Disk devices
 
 		// Any bus handling must be done now, i.e. before the shutdown
 		controller->Status();
