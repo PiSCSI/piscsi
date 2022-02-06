@@ -680,7 +680,7 @@ function installNetatalk() {
     sed -i /^~/d ./config/AppleVolumes.default.tmpl
     echo "$AFP_SHARE_PATH \"Pi File Server\"" >> ./config/AppleVolumes.default.tmpl
 
-    echo "- -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx2.so -nosavepassword -noicon\"" >> ./config/afpd.conf.tmpl
+    echo "- -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx2.so -nosavepassword -noicon" >> ./config/afpd.conf.tmpl
     echo "cupsautoadd:op=root:" >> ./config/papd.conf
 
     ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev cups libavahi-client-dev autotools-dev automake libtool libgcrypt20-dev --assume-yes ) </dev/null
