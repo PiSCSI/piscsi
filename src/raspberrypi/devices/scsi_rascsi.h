@@ -22,5 +22,6 @@ public:
 
 	int Inquiry(const DWORD *, BYTE *) override;
 	void TestUnitReady(SASIDEV *) override;
+	void StartStopUnit(SASIDEV *) override;
 	int AddVendorPage(int, bool, BYTE *) override;
 };

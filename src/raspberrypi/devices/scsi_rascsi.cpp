@@ -57,6 +57,31 @@ int SCSIRascsi::Inquiry(const DWORD *cdb, BYTE *buf)
 	return allocation_length;
 }
 
+void SCSIRascsi::StartStopUnit(SASIDEV *controller)
+{
+	bool start = ctrl->cmd[4] & 0x01;
+	bool load = ctrl->cmd[4] & 0x02;
+
+	if (!start) {
+		// Flush caches
+		disk.dcache->Save();
+
+		// Any bus handling must be done now, i.e. before the shutdown
+		controller->Status();
+
+		if (load) {
+			// Shut down the Pi
+			system("init 0");
+		}
+		else {
+			// Shut down RaSCSI
+			exit(0);
+		}
+	}
+
+	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+}
+
 int SCSIRascsi::AddVendorPage(int page, bool, BYTE *buf)
 {
 	if (page == 0x20) {

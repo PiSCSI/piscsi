@@ -45,8 +45,6 @@ private:
 	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
 	map<uint64_t, Geometry> geometries;
 
-	SASIDEV::ctrl_t *ctrl;
-
 	typedef struct {
 		uint32_t size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		// TODO blocks should be a 64 bit value in order to support higher capacities
@@ -149,6 +147,8 @@ public:
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
 
 protected:
+	SASIDEV::ctrl_t *ctrl;
+
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);
 	virtual int AddErrorPage(bool change, BYTE *buf);
