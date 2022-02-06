@@ -10,24 +10,24 @@
 //
 // Features of the RaSCSI service device:
 //
-// 1. Mode page 0x20 returns the current date and time:
+// 1. Vendor-specific mode page 0x20 returns the current date and time
 //
 //  typedef struct {
-//   // Major and minor version of this data structure
-//   uint8_t major_version;
-//   uint8_t minor_version;
-//   // Current date and time, with daylight savings time adjustment applied
-//   uint8_t year; // year - 1900
-//   uint8_t month; // 0-11
-//   uint8_t day; // 1-31
-//   uint8_t hour; // 0-23
-//   uint8_t minute; // 0-59
-//   uint8_t second; // 0-59
-// } datetime;
+//    // Major and minor version of this data structure
+//    uint8_t major_version;
+//    uint8_t minor_version;
+//    // Current date and time, with daylight savings time adjustment applied
+//    uint8_t year; // year - 1900
+//    uint8_t month; // 0-11
+//    uint8_t day; // 1-31
+//    uint8_t hour; // 0-23
+//    uint8_t minute; // 0-59
+//    uint8_t second; // 0-59
+//  } mode_page_datetime;
 //
 // 2. STOP UNIT shuts down RaSCSI or the Raspberry Pi
-// a) !start && !load (STOP): Shut down RaSCSI
-// b) !start && load (EJECT): Shut down the Raspberry Pi
+//   a) !start && !load (STOP): Shut down RaSCSI
+//   b) !start && load (EJECT): Shut down the Raspberry Pi
 //
 
 #include "scsi_rascsi.h"
