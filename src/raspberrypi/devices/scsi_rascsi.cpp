@@ -43,13 +43,12 @@ int SCSIRascsi::Inquiry(const DWORD *cdb, BYTE *buf)
 
 		// Basic data
 		// buf[0] ... Processor Device
-		// buf[1] ... Removable
+		// buf[1] ... Not removable
 		// buf[2] ... SCSI-2 compliant command system
 		// buf[3] ... SCSI-2 compliant Inquiry response
 		// buf[4] ... Inquiry additional data
 		memset(buf, 0, allocation_length);
 		buf[0] = 0x03;
-		buf[1] = 0x80;
 		buf[2] = 0x01;
 		buf[4] = 0x1F;
 
