@@ -73,21 +73,19 @@ void SCSIRascsi::StartStopUnit(SASIDEV *controller)
 			}
 		}
 
-		// Any bus handling must be done now, i.e. before the shutdown
-		controller->Status();
-		controller->BusFree();
-
 		if (load) {
 			LOGTRACE("Raspberry Pi shutdown requested");
 
-			//system("init 0");
-			exit(0);
+			((SCSIDEV *)controller)->ShutDown(SCSIDEV::rascsi_shutdown_mode::PI);
 		}
 		else {
 			LOGTRACE("RaSCSI shutdown requested");
 
-			exit(0);
+			((SCSIDEV *)controller)->ShutDown(SCSIDEV::rascsi_shutdown_mode::RASCSI);
 		}
+
+		controller->Status();
+		return;
 	}
 
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);

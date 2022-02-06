@@ -27,6 +27,8 @@
 
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
+	shutdown_mode = NONE;
+
 	// Synchronous transfer work initialization
 	scsi.syncenable = FALSE;
 	scsi.syncperiod = 50;
@@ -264,6 +266,19 @@ void SCSIDEV::Execute()
 		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
 
 		ctrl.buffer[0] = 0x7f;
+	}
+
+	switch(shutdown_mode) {
+	case RASCSI:
+		exit(0);
+		break;
+
+	case PI:
+		exit(0);
+		break;
+
+	default:
+		break;
 	}
 }
 

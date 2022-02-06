@@ -72,6 +72,12 @@ public:
 		eCmdReportLuns = 0xA0
 	};
 
+	enum rascsi_shutdown_mode {
+		NONE,
+		RASCSI,
+		PI
+	};
+
 	// Internal data definition
 	typedef struct {
 		// Synchronous transfer
@@ -103,6 +109,8 @@ public:
 	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION) override;	// Common error handling
 
+	void ShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+
 private:
 
 	// Phase
@@ -122,5 +130,7 @@ private:
 	bool XferMsg(DWORD msg);
 
 	scsi_t scsi;								// Internal data
+
+	rascsi_shutdown_mode shutdown_mode;
 };
 
