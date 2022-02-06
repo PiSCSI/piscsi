@@ -155,13 +155,14 @@ void SCSIDEV::BusFree()
 
 		ctrl.lun = -1;
 
+		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
 		case RASCSI:
 			exit(0);
 			break;
 
 		case PI:
-			exit(0);
+			system("init 0");
 			break;
 
 		default:
