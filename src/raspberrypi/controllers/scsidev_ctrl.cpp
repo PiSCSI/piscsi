@@ -162,6 +162,19 @@ void SCSIDEV::BusFree()
 	if (ctrl.bus->GetSEL() && !ctrl.bus->GetBSY()) {
 		Selection();
 	}
+
+	switch(shutdown_mode) {
+	case RASCSI:
+		exit(0);
+		break;
+
+	case PI:
+		exit(0);
+		break;
+
+	default:
+		break;
+	}
 }
 
 //---------------------------------------------------------------------------
@@ -266,19 +279,6 @@ void SCSIDEV::Execute()
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
 
 		ctrl.buffer[0] = 0x7f;
-	}
-
-	switch(shutdown_mode) {
-	case RASCSI:
-		exit(0);
-		break;
-
-	case PI:
-		exit(0);
-		break;
-
-	default:
-		break;
 	}
 }
 
