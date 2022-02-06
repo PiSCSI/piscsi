@@ -155,25 +155,25 @@ void SCSIDEV::BusFree()
 
 		ctrl.lun = -1;
 
+		switch(shutdown_mode) {
+		case RASCSI:
+			exit(0);
+			break;
+
+		case PI:
+			exit(0);
+			break;
+
+		default:
+			break;
+		}
+
 		return;
 	}
 
 	// Move to selection phase
 	if (ctrl.bus->GetSEL() && !ctrl.bus->GetBSY()) {
 		Selection();
-	}
-
-	switch(shutdown_mode) {
-	case RASCSI:
-		exit(0);
-		break;
-
-	case PI:
-		exit(0);
-		break;
-
-	default:
-		break;
 	}
 }
 
