@@ -263,7 +263,7 @@ void SCSIDEV::Execute()
 	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry && !ctrl.unit[lun]) {
 		lun = GetEffectiveLun();
 
-		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
 
 		ctrl.buffer[0] = 0x7f;
 	}
