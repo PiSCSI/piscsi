@@ -50,7 +50,9 @@ USER=$(whoami)
 BASE=$(dirname "$(readlink -f "${0}")")
 VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
-WEB_INSTALL_PATH="$BASE/src/web"
+WEB_INSTALL_PATH="$BASE/python/web"
+OLED_INSTALL_PATH="$BASE/python/oled"
+PYTHON_COMMON_PATH="$BASE/python/common"
 SYSTEMD_PATH="/etc/systemd/system"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
@@ -85,121 +87,48 @@ function compileRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
 
     echo "Compiling with ${CORES:-1} simultaneous cores..."
-    ( make clean && make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" ) </dev/null
+    make clean </dev/null
+    sudo -v
+    make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
+    sudo -v
+}
+
+function cleanupOutdatedManPage() {
+    OUTDATED_MAN_PAGE_DIR=/usr/share/man/man1/
+    if [ -f "${OUTDATED_MAN_PAGE_DIR}/$1" ]; then
+      sudo rm "${OUTDATED_MAN_PAGE_DIR}/$1"
+    fi
 }
 
 # install the RaSCSI binaries and modify the service configuration
 function installRaScsi() {
+    # clean up outdated man pages if they exist
+    cleanupOutdatedManPage "rascsi.1"
+    cleanupOutdatedManPage "rasctl.1"
+    cleanupOutdatedManPage "scsimon.1"
+    cleanupOutdatedManPage "rasdump.1"
+    cleanupOutdatedManPage "sasidump.1"
+    # install
     sudo make install CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
+}
+
+function preparePythonCommon() {
+    if [ -f "$PYTHON_COMMON_PATH/rascsi_interface_pb2.py" ]; then
+        sudo rm "$PYTHON_COMMON_PATH/rascsi_interface_pb2.py"
+        echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
+    fi
+    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
+    protoc -I="$BASE/src/raspberrypi/" --python_out="$PYTHON_COMMON_PATH/src" rascsi_interface.proto
 }
 
 # install everything required to run an HTTP server (Nginx + Python Flask App)
 function installRaScsiWebInterface() {
-    if [ -f "$WEB_INSTALL_PATH/rascsi_interface_pb2.py" ]; then
-        sudo rm "$WEB_INSTALL_PATH/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
-    fi
-    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$WEB_INSTALL_PATH" rascsi_interface.proto
-
-    sudo cp -f "$BASE/src/web/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
-    sudo cp -f "$BASE/src/web/service-infra/502.html" /var/www/html/502.html
+    sudo cp -f "$WEB_INSTALL_PATH/service-infra/nginx-default.conf" /etc/nginx/sites-available/default
+    sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
     sudo usermod -a -G $USER www-data
 
     sudo systemctl reload nginx || true
-}
-
-# updates configuration files and installs packages needed for the OLED screen script
-function installRaScsiScreen() {
-    echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your RaSCSI board."
-    echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/OLED-Status-Display-(Optional)"
-    echo ""
-    echo "Choose screen rotation:"
-    echo "  1) 0 degrees"
-    echo "  2) 180 degrees (default)"
-    read REPLY
-
-    if [ "$REPLY" == "1" ]; then
-        echo "Proceeding with 0 degrees rotation."
-        ROTATION="0"
-    else
-        echo "Proceeding with 180 degrees rotation."
-        ROTATION="180"
-    fi
-
-    echo ""
-    echo "Choose screen resolution:"
-    echo "  1) 128x32 pixels (default)"
-    echo "  2) 128x64 pixels"
-    read REPLY
-
-    if [ "$REPLY" == "2" ]; then
-        echo "Proceeding with 128x64 pixel resolution."
-        SCREEN_HEIGHT="64"
-    else
-        echo "Proceeding with 128x32 pixel resolution."
-        SCREEN_HEIGHT="32"
-    fi
-
-    if [ -z "$TOKEN" ]; then
-        echo ""
-        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
-        read -r REPLY
-        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
-            read -r TOKEN
-        fi
-    fi
-
-    stopRaScsiScreen
-    updateRaScsiGit
-
-    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
-
-    if [ -f "$BASE/src/oled_monitor/rascsi_interface_pb2.py" ]; then
-        sudo rm "$BASE/src/oled_monitor/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
-    fi
-    echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
-    protoc -I="$BASE/src/raspberrypi/" --python_out="$BASE/src/oled_monitor" rascsi_interface.proto
-
-    if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
-        echo "NOTE: I2C support seems to have been configured already."
-        REBOOT=0
-    else
-        sudo raspi-config nonint do_i2c 0 </dev/null
-        echo "Modified the Raspberry Pi boot configuration to enable I2C."
-        echo "A reboot will be required for the change to take effect."
-        REBOOT=1
-    fi
-
-    echo "Installing the monitor_rascsi.service configuration..."
-    sudo cp -f "$BASE/src/oled_monitor/monitor_rascsi.service" "$SYSTEMD_PATH/monitor_rascsi.service"
-    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/monitor_rascsi.service"
-    if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/monitor_rascsi.service"
-        sudo chmod 600 "$SYSTEMD_PATH/monitor_rascsi.service"
-        echo "Granted access to the OLED Monitor with the password that you configured for RaSCSI."
-    else
-        sudo sed -i "8 i ExecStart=$BASE/src/oled_monitor/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/monitor_rascsi.service"
-    fi
-
-    sudo systemctl daemon-reload
-    sudo systemctl enable monitor_rascsi
-
-    if [ $REBOOT -eq 1 ]; then
-        echo ""
-        echo "The monitor_rascsi service will start on the next Pi boot."
-        echo "Press Enter to reboot or CTRL-C to exit"
-        read
-
-        echo "Rebooting..."
-        sleep 3
-        sudo reboot
-    fi
-
-    sudo systemctl start monitor_rascsi
 }
 
 # Creates the dir that RaSCSI uses to store image files
@@ -321,7 +250,7 @@ function enableRaScsiService() {
 # Modifies and installs the rascsi-web service
 function installWebInterfaceService() {
     echo "Installing the rascsi-web.service configuration..."
-    sudo cp -f "$BASE/src/web/service-infra/rascsi-web.service" "$SYSTEMD_PATH/rascsi-web.service"
+    sudo cp -f "$WEB_INSTALL_PATH/service-infra/rascsi-web.service" "$SYSTEMD_PATH/rascsi-web.service"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-web.service"
     echo "$TOKEN"
     if [ ! -z "$TOKEN" ]; then
@@ -339,22 +268,59 @@ function installWebInterfaceService() {
 
 # Stops the rascsi service if it is running
 function stopRaScsi() {
-    if [ -f "$SYSTEMD_PATH/rascsi.service" ]; then
-        sudo systemctl stop rascsi.service
+    if [[ -f "$SYSTEMD_PATH/rascsi.service" ]]; then
+        SERVICE_RASCSI_RUNNING=0
+        sudo systemctl is-active --quiet rascsi.service >/dev/null 2>&1 || SERVICE_RASCSI_RUNNING=$?
+        if [[ $SERVICE_RASCSI_RUNNING -eq 0 ]]; then
+            sudo systemctl stop rascsi.service
+        fi
     fi
 }
 
 # Stops the rascsi-web service if it is running
 function stopRaScsiWeb() {
-    if [ -f "$SYSTEMD_PATH/rascsi-web.service" ]; then
-        sudo systemctl stop rascsi-web.service
+    if [[ -f "$SYSTEMD_PATH/rascsi-web.service" ]]; then
+        SERVICE_RASCSI_WEB_RUNNING=0
+        sudo systemctl is-active --quiet rascsi-web.service >/dev/null 2>&1 || SERVICE_RASCSI_WEB_RUNNING=$?
+        if [[ $SERVICE_RASCSI_WEB_RUNNING -eq 0 ]]; then
+            sudo systemctl stop rascsi-web.service
+        fi
     fi
 }
 
-# Stops the monitor_rascsi service if it is running
+# Stops the rascsi-oled service if it is running
 function stopRaScsiScreen() {
+    if [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
+        SERVICE_MONITOR_RASCSI_RUNNING=0
+        sudo systemctl is-active --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_MONITOR_RASCSI_RUNNING=$?
+        if [[ $SERVICE_MONITOR_RASCSI_RUNNING -eq 0 ]]; then
+          sudo systemctl stop monitor_rascsi.service
+        fi
+    fi
+    if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
+        SERVICE_RASCSI_OLED_RUNNING=0
+        sudo systemctl is-active --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
+        if  [[ $SERVICE_RASCSI_OLED_RUNNING -eq 0 ]]; then
+          sudo systemctl stop rascsi-oled.service
+        fi
+    fi
+}
+
+# disables and removes the old monitor_rascsi service
+function disableOldRaScsiMonitorService() {
     if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
-        sudo systemctl stop monitor_rascsi.service
+        SERVICE_MONITOR_RASCSI_RUNNING=0
+        sudo systemctl is-active --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_MONITOR_RASCSI_RUNNING=$?
+        if [[ $SERVICE_MONITOR_RASCSI_RUNNING -eq 0 ]]; then
+          sudo systemctl stop monitor_rascsi.service
+        fi
+
+        SERVICE_MONITOR_RASCSI_ENABLED=0
+        sudo systemctl is-enabled --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_MONITOR_RASCSI_ENABLED=$?
+        if [[ $SERVICE_MONITOR_RASCSI_ENABLED -eq 0 ]]; then
+          sudo systemctl disable monitor_rascsi.service
+        fi
+        sudo rm $SYSTEMD_PATH/monitor_rascsi.service
     fi
 }
 
@@ -365,10 +331,38 @@ function stopMacproxy() {
     fi
 }
 
-# Starts the monitor_rascsi service if installed
+# Starts the rascsi-oled service if installed
+function isRaScsiScreenInstalled() {
+    SERVICE_RASCSI_OLED_ENABLED=0
+    if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
+        sudo systemctl is-enabled --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_ENABLED=$?
+    elif [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
+        sudo systemctl is-enabled --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_ENABLED=$?
+    else
+        SERVICE_RASCSI_OLED_ENABLED=1
+    fi
+
+    echo $SERVICE_RASCSI_OLED_ENABLED
+}
+
+# Starts the rascsi-oled service if installed
+function isRaScsiScreenRunning() {
+    SERVICE_RASCSI_OLED_RUNNING=0
+    if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
+        sudo systemctl is-active --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
+    elif [[ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]]; then
+        sudo systemctl is-active --quiet monitor_rascsi.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
+    else
+        SERVICE_RASCSI_OLED_RUNNING=1
+    fi
+
+    echo $SERVICE_RASCSI_OLED_RUNNING
+}
+
+# Starts the rascsi-oled service if installed
 function startRaScsiScreen() {
-    if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
-        sudo systemctl start monitor_rascsi.service
+    if [[ $(isRaScsiScreenInstalled) -eq 0 ]] && [[ $(isRaScsiScreenRunning) -ne 1 ]]; then
+        sudo systemctl start rascsi-oled.service
         showRaScsiScreenStatus
     fi
 }
@@ -391,9 +385,9 @@ function showRaScsiWebStatus() {
     systemctl status rascsi-web | tee
 }
 
-# Shows status for the monitor_rascsi service
+# Shows status for the rascsi-oled service
 function showRaScsiScreenStatus() {
-    systemctl status monitor_rascsi | tee
+    systemctl status rascsi-oled | tee
 }
 
 # Shows status for the macproxy service
@@ -649,51 +643,66 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="20200806"
+    NETATALK_VERSION="2-220101"
     AFP_SHARE_PATH="$HOME/afpshare"
+    SYSCONFDIR="/etc"
 
-    echo "Cleaning up existing Netatalk installation, if it exists..."
-    sudo /etc/init.d/netatalk stop || true
-    sudo rm -rf /etc/default/netatalk.conf /etc/netatalk || true
+    sudo systemctl stop atalkd afpd || true
 
-    if [ -f "$HOME/netatalk-classic-$NETATALK_VERSION" ]; then
-        echo "Deleting existing version of $HOME/netatalk-classic-$NETATALK_VERSION."
-        sudo rm -rf "$HOME/netatalk-classic-$NETATALK_VERSION"
+    if [ -f /etc/init.d/netatalk ]; then
+        echo ""
+        echo "WARNING: An old version of Netatalk was detected. It is recommended to back up you configuration files and shared files before proceeding. Press CTRL-C to exit, or any other key to proceed."
+        read
+        sudo /etc/init.d/netatalk stop || true
     fi
 
-    echo "Downloading netatalk-classic-$NETATALK_VERSION to $HOME"
+    if [ -f /var/log/afpd.log ]; then
+        echo "Removing /var/log/afpd.log created by an old version of Netatalk..."
+        sudo rm /var/log/afpd.log
+    fi
+
+    if [[ `grep -c netatalk /etc/rc.local` -eq 1 ]]; then
+        sudo sed -i "/netatalk/d" /etc/rc.local
+        echo "Removed Netatalk from /etc/rc.local -- use systemctl to control Netatalk from now on."
+    fi
+
+    if [ -d "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION" ]; then
+        echo "Deleting existing copy of $HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION."
+        sudo rm -rf "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION"
+    fi
+
+    echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
-    wget -O "$NETATALK_VERSION.tar.gz" "https://github.com/christopherkobayashi/netatalk-classic/archive/refs/tags/$NETATALK_VERSION.tar.gz" </dev/null
-    tar -xzvf $NETATALK_VERSION.tar.gz
+    wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
+    tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
 
-    cd "netatalk-classic-$NETATALK_VERSION" || exit 1
+    cd "Netatalk-2.x-netatalk-$NETATALK_VERSION" || exit 1
     sed -i /^~/d ./config/AppleVolumes.default.tmpl
-    echo "$AFP_SHARE_PATH \"Pi File Server\" adouble:v1 volcharset:ASCII" >> ./config/AppleVolumes.default.tmpl
+    echo "$AFP_SHARE_PATH \"Pi File Server\"" >> ./config/AppleVolumes.default.tmpl
 
-    echo "ATALKD_RUN=yes" >> ./config/netatalk.conf
-    echo "\"RaSCSI-Pi\" -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx.so -defaultvol /etc/netatalk/AppleVolumes.default -systemvol /etc/netatalk/AppleVolumes.system -nosavepassword -nouservol -guestname \"nobody\" -setuplog \"default log_maxdebug /var/log/afpd.log\"" >> ./config/afpd.conf.tmpl
+    echo "- -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx2.so -nosavepassword -noicon" >> ./config/afpd.conf.tmpl
+    echo "cupsautoadd:op=root:" >> ./config/papd.conf
 
-    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev autotools-dev automake libtool --assume-yes ) </dev/null
+    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev cups libavahi-client-dev autotools-dev automake libtool libgcrypt20-dev --assume-yes ) </dev/null
 
     echo "Compiling and installing Netatalk..."
-    ./bootstrap
-    ./configure --enable-debian --enable-cups --sysconfdir=/etc --with-uams-path=/usr/lib/netatalk
-    ( make && sudo make install ) </dev/null
+    ./bootstrap </dev/null
+    ./configure --enable-systemd --enable-ddp --enable-cups --enable-timelord --enable-zeroconf --disable-quota --enable-overwrite --sysconfdir="$SYSCONFDIR" --with-uams-path=/usr/lib/netatalk </dev/null
+
+    echo "Compiling with ${CORES:-1} simultaneous cores..."
+    ( make all -j "${CORES:-1}" && sudo make install ) </dev/null
 
     if [ -d "$AFP_SHARE_PATH" ]; then
-        echo "The $AFP_SHARE_PATH directory already exists."
+        echo "Will use the existing $AFP_SHARE_PATH directory for file sharing."
     else
         echo "The $AFP_SHARE_PATH directory does not exist; creating..."
         mkdir -p "$AFP_SHARE_PATH"
         chmod -R 2775 "$AFP_SHARE_PATH"
     fi
 
-    if [[ `grep -c netatalk /etc/rc.local` -eq 0 ]]; then
-        sudo sed -i "/^exit 0/i sudo /etc/init.d/netatalk start" /etc/rc.local
-        echo "Modified /etc/rc.local"
-    fi
-
-    sudo /etc/init.d/netatalk start
+    echo "Starting Netatalk services. This may take a minute..."
+    sudo systemctl start atalkd afpd papd timelord
+    systemctl status afpd atalkd papd timelord
 
     if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
         echo ""
@@ -703,14 +712,24 @@ function installNetatalk() {
         echo "See wiki for information on how to compile support for AppleTalk into your Linux kernel."
     fi
 
+    sudo usermod -a -G lpadmin $USER
+    sudo cupsctl --remote-admin WebInterface=yes
+    if [[ `sudo grep "PreserveJobHistory No" /etc/cups/cupsd.conf` -eq 0 ]]; then
+        sudo sed -i "/MaxLogSize/a PreserveJobHistory No" /etc/cups/cupsd.conf
+    fi
+
     echo ""
-    echo "Netatalk is now installed and configured to run on system boot."
-    echo "To start or stop the File Server manually, do:"
-    echo "sudo /etc/init.d/netatalk start"
-    echo "sudo /etc/init.d/netatalk stop"
+    echo "Netatalk daemons are now installed and enabled as systemd services."
+    echo "Log in to the server using the current username ("$USER") and password."
     echo ""
-    echo "Make sure that the user running Netatalk has a password of 8 chars or less. You may execute the 'passwd' command to change the password of the current user."
-    echo "For more information on configuring Netatalk and accessing AppleShare from your vintage Macs, see wiki:"
+    echo "IMPORTANT: "$USER" needs to have a password of 8 chars or less."
+    echo "Do you want to change your password now? [y/N]"
+    read -r REPLY
+    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+        passwd
+    fi
+    echo ""
+    echo "For more information on how to use the various Netatalk features, see the wiki:"
     echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
     echo ""
 }
@@ -756,6 +775,96 @@ function installMacproxy {
     echo " port $PORT"
     echo "Configure your browser to use the above as http (and https) proxy."
     echo ""
+}
+
+# updates configuration files and installs packages needed for the OLED screen script
+function installRaScsiScreen() {
+    echo "IMPORTANT: This configuration requires a OLED screen to be installed onto your RaSCSI board."
+    echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/OLED-Status-Display-(Optional)"
+    echo ""
+    echo "Choose screen rotation:"
+    echo "  1) 0 degrees"
+    echo "  2) 180 degrees (default)"
+    read REPLY
+
+    if [ "$REPLY" == "1" ]; then
+        echo "Proceeding with 0 degrees rotation."
+        ROTATION="0"
+    else
+        echo "Proceeding with 180 degrees rotation."
+        ROTATION="180"
+    fi
+
+    echo ""
+    echo "Choose screen resolution:"
+    echo "  1) 128x32 pixels (default)"
+    echo "  2) 128x64 pixels"
+    read REPLY
+
+    if [ "$REPLY" == "2" ]; then
+        echo "Proceeding with 128x64 pixel resolution."
+        SCREEN_HEIGHT="64"
+    else
+        echo "Proceeding with 128x32 pixel resolution."
+        SCREEN_HEIGHT="32"
+    fi
+
+    if [ -z "$TOKEN" ]; then
+        echo ""
+        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
+            read -r TOKEN
+        fi
+    fi
+
+    stopRaScsiScreen
+    updateRaScsiGit
+
+    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+
+    if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
+        echo "NOTE: I2C support seems to have been configured already."
+        REBOOT=0
+    else
+        sudo raspi-config nonint do_i2c 0 </dev/null
+        echo "Modified the Raspberry Pi boot configuration to enable I2C."
+        echo "A reboot will be required for the change to take effect."
+        REBOOT=1
+    fi
+
+    echo "Installing the rascsi-oled.service configuration..."
+    sudo cp -f "$OLED_INSTALL_PATH/service-infra/rascsi-oled.service" "$SYSTEMD_PATH/rascsi-oled.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-oled.service"
+    if [ ! -z "$TOKEN" ]; then
+        sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/rascsi-oled.service"
+        sudo chmod 600 "$SYSTEMD_PATH/rascsi-oled.service"
+        echo "Granted access to the OLED Monitor with the password that you configured for RaSCSI."
+    else
+        sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT" "$SYSTEMD_PATH/rascsi-oled.service"
+    fi
+
+    sudo systemctl daemon-reload
+
+    # ensure that the old monitor_rascsi service is disabled and removed before the new one is installed
+    disableOldRaScsiMonitorService
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable rascsi-oled
+
+    if [ $REBOOT -eq 1 ]; then
+        echo ""
+        echo "The rascsi-oled service will start on the next Pi boot."
+        echo "Press Enter to reboot or CTRL-C to exit"
+        read
+
+        echo "Rebooting..."
+        sleep 3
+        sudo reboot
+    fi
+
+    sudo systemctl start rascsi-oled
 }
 
 # Prints a notification if the rascsi.service file was backed up
@@ -811,8 +920,9 @@ function runChoice() {
               backupRaScsiService
               installRaScsi
               enableRaScsiService
-              if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
-                  echo "Detected monitor_rascsi.service; will run the installation steps for the OLED monitor."
+              preparePythonCommon
+              if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
+                  echo "Detected rascsi oled service; will run the installation steps for the OLED monitor."
                   installRaScsiScreen
               fi
               installRaScsiWebInterface
@@ -842,10 +952,11 @@ function runChoice() {
               stopRaScsi
               compileRaScsi
               backupRaScsiService
+              preparePythonCommon
               installRaScsi
               enableRaScsiService
-              if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
-                  echo "Detected monitor_rascsi.service; will run the installation steps for the OLED monitor."
+              if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
+                  echo "Detected rascsi oled service; will run the installation steps for the OLED monitor."
                   installRaScsiScreen
               fi
               showRaScsiScreenStatus
@@ -860,6 +971,7 @@ function runChoice() {
               echo "- Add and modify systemd services"
               echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
               sudoCheck
+              preparePythonCommon
               installRaScsiScreen
               showRaScsiScreenStatus
               echo "Installing / Updating RaSCSI OLED Screen - Complete!"
@@ -898,12 +1010,14 @@ function runChoice() {
           8)
               echo "Installing AppleShare File Server"
               echo "This script will make the following changes to your system:"
+              echo "- Install the CUPS printing system and configure its web interface"
+              echo "- Modify user groups and permissions"
               echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
               echo "- Create directories and change permissions"
               echo "- Install binaries to /usr/local/sbin"
               echo "- Install manpages to /usr/local/share/man/"
               echo "- Install configuration files to /etc"
-              echo "- Modify /etc/rc.local to start Netatalk daemons on system startup"
               echo ""
               sudoCheck
               installNetatalk
@@ -947,6 +1061,7 @@ function runChoice() {
               updateRaScsiGit
               createCfgDir
               installPackages
+              preparePythonCommon
               installRaScsiWebInterface
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --port=8081"

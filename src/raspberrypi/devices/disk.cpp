@@ -461,8 +461,6 @@ void Disk::ModeSense6(SASIDEV *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		LOGTRACE("%s Unsupported mode page $%02X",__PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
-
 		controller->Error();
 		return;
 	}
@@ -474,8 +472,6 @@ void Disk::ModeSense10(SASIDEV *controller)
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[2]);
-
 		controller->Error();
 		return;
 	}
@@ -521,7 +517,8 @@ void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 
 void Disk::SynchronizeCache10(SASIDEV *controller)
 {
-	// Nothing to do
+	// Flush the RaSCSI cache
+	disk.dcache->Save();
 
 	controller->Status();
 }
@@ -681,7 +678,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
 	// Get length, clear buffer
 	int length = (int)cdb[4];
-	ASSERT((length >= 0) && (length < 0x100));
 	memset(buf, 0, length);
 
 	// Get changeable flag
@@ -691,12 +687,15 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int page = cdb[2] & 0x3f;
 	bool valid = page == 0x00;
 
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
 	// Basic information
 	int size = 4;
 
 	// MEDIUM TYPE
 	if (IsMo()) {
-		buf[1] = 0x03; // optical reversible or erasable
+		// Optical reversible or erasable
+		buf[1] = 0x03;
 	}
 
 	// DEVICE SPECIFIC PARAMETER
@@ -704,7 +703,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		buf[2] = 0x80;
 	}
 
-	// add block descriptor if DBD is 0
+	// Add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
 		// Mode parameter header, block descriptor length
 		buf[3] = 0x08;
@@ -726,53 +725,52 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 			buf[11] = disk_size;
 		}
 
-		// size
 		size = 12;
 	}
 
-	// Page code 1(read-write error recovery)
-	if ((page == 0x01) || (page == 0x3f)) {
+	// Page code 1 (read-write error recovery)
+	if (page == 0x01 || page == 0x3f) {
 		size += AddErrorPage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 3(format device)
-	if ((page == 0x03) || (page == 0x3f)) {
+	// Page code 3 (format device)
+	if (page == 0x03 || page == 0x3f) {
 		size += AddFormatPage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 4(drive parameter)
-	if ((page == 0x04) || (page == 0x3f)) {
+	// Page code 4 (drive parameter)
+	if (page == 0x04 || page == 0x3f) {
 		size += AddDrivePage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 6(optical)
+	// Page code 6 (optical)
 	if (IsMo()) {
-		if ((page == 0x06) || (page == 0x3f)) {
+		if (page == 0x06 || page == 0x3f) {
 			size += AddOptionPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
-	// Page code 8(caching)
-	if ((page == 0x08) || (page == 0x3f)) {
+	// Page code 8 (caching)
+	if (page == 0x08 || page == 0x3f) {
 		size += AddCachePage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 13(CD-ROM)
+	// Page code 13 (CD-ROM)
 	if (IsCdRom()) {
-		if ((page == 0x0d) || (page == 0x3f)) {
+		if (page == 0x0d || page == 0x3f) {
 			size += AddCDROMPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
-	// Page code 14(CD-DA)
+	// Page code 14 (CD-DA)
 	if (IsCdRom()) {
-		if ((page == 0x0e) || (page == 0x3f)) {
+		if (page == 0x0e || page == 0x3f) {
 			size += AddCDDAPage(change, &buf[size]);
 			valid = true;
 		}
@@ -785,23 +783,22 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		valid = true;
 	}
 
-	// final setting of mode data length
-	buf[0] = size - 1;
-
-	// Unsupported page
 	if (!valid) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
-	//check if size of data is more than size requested.
-	if (size > length) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-	//Set length returned to actual size of data
-	length = size;
 
-	return length;
+	// Do not return more than ALLOCATION LENGTH bytes
+	if (size > length) {
+		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
+		size = length;
+	}
+
+	// Final setting of mode data length
+	buf[0] = size;
+
+	return size;
 }
 
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
@@ -813,7 +810,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	if (length > 0x800) {
 		length = 0x800;
 	}
-	ASSERT((length >= 0) && (length < 0x800));
 	memset(buf, 0, length);
 
 	// Get changeable flag
@@ -823,12 +819,15 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	int page = cdb[2] & 0x3f;
 	bool valid = page == 0x00;
 
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
 	// Basic Information
 	int size = 8;
 
 	// MEDIUM TYPE
 	if (IsMo()) {
-		buf[2] = 0x03; // optical reversible or erasable
+		// Optical reversible or erasable
+		buf[2] = 0x03;
 	}
 
 	// DEVICE SPECIFIC PARAMETER
@@ -836,7 +835,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		buf[3] = 0x80;
 	}
 
-	// add block descriptor if DBD is 0
+	// Add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
 		// Only if ready
 		if (IsReady()) {
@@ -889,49 +888,49 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// Page code 1(read-write error recovery)
-	if ((page == 0x01) || (page == 0x3f)) {
+	// Page code 1 (read-write error recovery)
+	if (page == 0x01 || page == 0x3f) {
 		size += AddErrorPage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 3(format device)
-	if ((page == 0x03) || (page == 0x3f)) {
+	// Page code 3 (format device)
+	if (page == 0x03 || page == 0x3f) {
 		size += AddFormatPage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 4(drive parameter)
-	if ((page == 0x04) || (page == 0x3f)) {
+	// Page code 4 (drive parameter)
+	if (page == 0x04 || page == 0x3f) {
 		size += AddDrivePage(change, &buf[size]);
 		valid = true;
 	}
 
-	// ペPage code 6(optical)
+	// Page code 6 (optical)
 	if (IsMo()) {
-		if ((page == 0x06) || (page == 0x3f)) {
+		if (page == 0x06 || page == 0x3f) {
 			size += AddOptionPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
-	// Page code 8(caching)
-	if ((page == 0x08) || (page == 0x3f)) {
+	// Page code 8 (caching)
+	if (page == 0x08 || page == 0x3f) {
 		size += AddCachePage(change, &buf[size]);
 		valid = true;
 	}
 
-	// Page code 13(CD-ROM)
+	// Page code 13 (CD-ROM)
 	if (IsCdRom()) {
-		if ((page == 0x0d) || (page == 0x3f)) {
+		if (page == 0x0d || page == 0x3f) {
 			size += AddCDROMPage(change, &buf[size]);
 			valid = true;
 		}
 	}
 
-	// Page code 14(CD-DA)
+	// Page code 14 (CD-DA)
 	if (IsCdRom()) {
-		if ((page == 0x0e) || (page == 0x3f)) {
+		if (page == 0x0e || page == 0x3f) {
 			size += AddCDDAPage(change, &buf[size]);
 			valid = true;
 		}
@@ -944,24 +943,23 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		valid = true;
 	}
 
-	// final setting of mode data length
-	buf[0] = (size - 2) >> 8;
-	buf[1] = size - 2;
-
-	// Unsupported page
 	if (!valid) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
-	//check if size of data is more than size requested.
-	if (size > length) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-	//Set length returned to actual size of data
-	length = size;
 
-	return length;
+	// Do not return more than ALLOCATION LENGTH bytes
+	if (size > length) {
+		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
+		size = length;
+	}
+
+	// Final setting of mode data length
+	buf[0] = size >> 8;
+	buf[1] = size;
+
+	return size;
 }
 
 int Disk::AddErrorPage(bool change, BYTE *buf)
@@ -1295,16 +1293,21 @@ bool Disk::StartStop(const DWORD *cdb)
 		SetStopped(!start);
 	}
 
-	// Look at the eject bit and eject if necessary
-	if (load && !start) {
-		if (IsLocked()) {
-			// Cannot be ejected because it is locked
-			SetStatusCode(STATUS_PREVENT);
-			return false;
-		}
+	if (!start) {
+		// Flush the cache when stopping
+		disk.dcache->Save();
 
-		// Eject
-		return Eject(false);
+		// Look at the eject bit and eject if necessary
+		if (load) {
+			if (IsLocked()) {
+				// Cannot be ejected because it is locked
+				SetStatusCode(STATUS_PREVENT);
+				return false;
+			}
+
+			// Eject
+			return Eject(false);
+		}
 	}
 
 	return true;
