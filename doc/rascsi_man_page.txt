@@ -93,7 +93,7 @@ OPTIONS
        -r RESERVED_IDS
               Comma-separated list of IDs to reserve.  -p  TYPE  The  optional
               case-insensitive  device  type  (SAHD,  SCHD,  SCRM, SCCD, SCMO,
-              SCBR, SCDP, SCRT). If no type is specified for devices that sup‐
+              SCBR, SCDP, SCRA). If no type is specified for devices that sup‐
               port  an  image  file,  rascsi tries to derive the type from the
               file extension.
 
@@ -108,7 +108,7 @@ OPTIONS
               (logical unit). The default LUN is 0.
 
               FILE is the name of the image file to use for the  SCSI  device.
-              For devices that do not support an image file (SCBR, SCDP, SCRT)
+              For devices that do not support an image file (SCBR, SCDP, SCRA)
               a dummy name must be provided.
 
        -HDn[:u] FILE
@@ -133,7 +133,7 @@ EXAMPLES
        Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw de‐
        vice file /dev/hdb (e.g. a USB stick) and a DaynaPort  network  adapter
        as ID 6:
-          rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp DUMMY_FILENAME
+          rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp daynaport
 
        To create an empty, 100MB HD image, use the following command:
           dd if=/dev/zero of=/path/to/newimage.hda bs=512 count=204800

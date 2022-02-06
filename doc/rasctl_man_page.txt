@@ -128,7 +128,8 @@ OPTIONS
                  cd: CD-ROM
                  mo: Magneto-Optical disk
                  bridge: Bridge device (Only applicable to the Sharp X68000)
-                 daynaport: DaynaPORT network adapter
+                 daynaport: DaynaPort network adapter
+                 rascsi: RaSCSI control device
 
        -n VENDOR:PRODUCT:REVISION
               The vendor, product and revision for the device, to be  returned
