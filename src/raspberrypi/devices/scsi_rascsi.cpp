@@ -16,7 +16,8 @@ bool SCSIRascsi::Dispatch(SCSIDEV *controller)
 	// Only certain commands are supported
 	if (cmd == SCSIDEV::eCmdTestUnitReady || cmd == SCSIDEV::eCmdRequestSense
 			|| cmd == SCSIDEV::eCmdInquiry || cmd == SCSIDEV::eCmdReportLuns
-			|| cmd == SCSIDEV::eCmdModeSense6 || cmd == SCSIDEV::eCmdModeSense10) {
+			|| cmd == SCSIDEV::eCmdModeSense6 || cmd == SCSIDEV::eCmdModeSense10
+			|| cmd == SCSIDEV::eCmdStartStop) {
 		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, cmd);
 
 		return Disk::Dispatch(controller);
