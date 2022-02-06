@@ -158,10 +158,12 @@ void SCSIDEV::BusFree()
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
 		case RASCSI:
+			LOGINFO("RaSCSI shutdown requested");
 			exit(0);
 			break;
 
 		case PI:
+			LOGINFO("Raspberry Pi shutdown requested");
 			system("init 0");
 			break;
 

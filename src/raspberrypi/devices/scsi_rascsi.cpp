@@ -74,13 +74,9 @@ void SCSIRascsi::StartStopUnit(SASIDEV *controller)
 		}
 
 		if (load) {
-			LOGTRACE("Raspberry Pi shutdown requested");
-
 			((SCSIDEV *)controller)->ShutDown(SCSIDEV::rascsi_shutdown_mode::PI);
 		}
 		else {
-			LOGTRACE("RaSCSI shutdown requested");
-
 			((SCSIDEV *)controller)->ShutDown(SCSIDEV::rascsi_shutdown_mode::RASCSI);
 		}
 
