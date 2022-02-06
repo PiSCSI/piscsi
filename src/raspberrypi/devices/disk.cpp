@@ -25,6 +25,8 @@
 
 Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockCommands()
 {
+	disks.insert(this);
+
 	// Work initialization
 	configured_sector_size = 0;
 	disk.size = 0;
@@ -89,6 +91,8 @@ Disk::~Disk()
 	for (auto const& command : commands) {
 		delete command.second;
 	}
+
+	disks.erase(this);
 }
 
 void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
