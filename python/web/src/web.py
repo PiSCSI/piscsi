@@ -482,13 +482,15 @@ def log_level():
     return redirect(url_for("index"))
 
 
-@APP.route("/daynaport/attach", methods=["POST"])
+@APP.route("/scsi/attach_network", methods=["POST"])
 @login_required
-def daynaport_attach():
+def attach_network_adapter():
     """
-    Attaches a DaynaPORT ethernet adapter device
+    Attaches a network adapter device
     """
     scsi_id = request.form.get("scsi_id")
+    unit = request.form.get("unit")
+    device_type = request.form.get("type")
     interface = request.form.get("if")
     ip_addr = request.form.get("ip")
     mask = request.form.get("mask")
@@ -515,7 +517,7 @@ def daynaport_attach():
             flash(error_msg, "error")
             return redirect(url_for("index"))
 
-    kwargs = {"device_type": "SCDP"}
+    kwargs = {"unit": int(unit), "device_type": device_type}
     if interface != "":
         arg = interface
         if "" not in (ip_addr, mask):
@@ -525,7 +527,15 @@ def daynaport_attach():
     process = ractl.attach_image(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(_("Attached DaynaPORT to SCSI ID %(id_number)s", id_number=scsi_id))
+        flash(_(
+            (
+                "Attached network device of type %(device_type)s "
+                "to SCSI ID %(id_number)s LUN %(unit_number)s"
+            ),
+            device_type=device_type,
+            id_number=scsi_id,
+            unit_number=unit,
+            ))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")
