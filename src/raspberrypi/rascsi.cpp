@@ -698,7 +698,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (!device->Init(params)) {
 		delete device;
 
-		return ReturnStatus(context, false, "Initialization of " + device->GetType() + " device, ID " +to_string(id) +
+		return ReturnStatus(context, false, "Initialization of " + PbDeviceType_Name(type) + " device, ID " +to_string(id) +
 				", unit " +to_string(unit) + " failed");
 	}
 
