@@ -269,12 +269,12 @@
                         {% endfor %}
                     {% else %}
                         <select name="type">
-                        <option selected value="">
-                        {{ _("Type") }}
+                        <option selected disabled value="">
+                        {{ _("Select device type") }}
                         </option>
                         {% for device in device_types %}
                         {% for key, value in device.items() %}
-                        {% if key not in ("SCBR", "SCDP") %}
+                        {% if key not in STANDALONE_DEVICE_TYPES %}
                         <option value="{{ key }}">
                             {{ value }}
                         </option>
