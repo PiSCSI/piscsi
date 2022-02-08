@@ -8,7 +8,7 @@
 //---------------------------------------------------------------------------
 
 //
-// Features of the RaSCSI service device:
+// Features of the host services device:
 //
 // 1. Vendor-specific mode page 0x20 returns the current date and time
 //
