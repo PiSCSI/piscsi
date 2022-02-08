@@ -260,26 +260,18 @@
                     <input name="unit" type="number" size="2" value="0" min="0" max="31">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
-                        {% for device in device_types %}
-                        {% for key, value in device.items() %}
-                        {% if file["detected_type"] == key %}
-                        {{ value }}
-                        {% endif %}
-                        {% endfor %}
-                        {% endfor %}
+                        {{ file['detected_type_name'] }}
                     {% else %}
                         <select name="type">
                         <option selected disabled value="">
                         {{ _("Select device type") }}
                         </option>
-                        {% for device in device_types %}
-                        {% for key, value in device.items() %}
+                        {% for key, value in device_types.items() %}
                         {% if key not in STANDALONE_DEVICE_TYPES %}
                         <option value="{{ key }}">
                             {{ value }}
                         </option>
                         {% endif %}
-                        {% endfor %}
                         {% endfor %}
                         </select>
                     {% endif %}
