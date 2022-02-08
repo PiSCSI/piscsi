@@ -45,7 +45,7 @@ from rascsi.socket_cmds import SocketCmds
 
 from rascsi.common_settings import (
     REMOVABLE_DEVICE_TYPES,
-    STANDALONE_DEVICE_TYPES,
+    NETWORK_DEVICE_TYPES,
 )
 
 parser = argparse.ArgumentParser(description="RaSCSI OLED Monitor script")
