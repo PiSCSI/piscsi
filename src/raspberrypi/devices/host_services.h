@@ -12,11 +12,11 @@
 #include "disk.h"
 #include "../rascsi.h"
 
-class SCSIRascsi: public Disk
+class HostServices: public Disk
 {
 public:
-	SCSIRascsi() : Disk("SCRA") {};
-	~SCSIRascsi() {};
+	HostServices() : Disk("SCHS") {};
+	~HostServices() {};
 
 	virtual bool Dispatch(SCSIDEV *) override;
 

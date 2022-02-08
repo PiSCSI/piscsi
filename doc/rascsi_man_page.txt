@@ -93,7 +93,7 @@ OPTIONS
        -r RESERVED_IDS
               Comma-separated list of IDs to reserve.  -p  TYPE  The  optional
               case-insensitive  device  type  (SAHD,  SCHD,  SCRM, SCCD, SCMO,
-              SCBR, SCDP, SCRA). If no type is specified for devices that sup‐
+              SCBR, SCDP, SCHS). If no type is specified for devices that sup‐
               port  an  image  file,  rascsi tries to derive the type from the
               file extension.
 
@@ -108,7 +108,7 @@ OPTIONS
               (logical unit). The default LUN is 0.
 
               FILE is the name of the image file to use for the  SCSI  device.
-              For devices that do not support an image file (SCBR, SCDP, SCRA)
+              For devices that do not support an image file (SCBR, SCDP, SCHS)
               a dummy name must be provided.
 
        -HDn[:u] FILE

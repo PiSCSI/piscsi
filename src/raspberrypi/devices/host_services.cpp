@@ -30,9 +30,9 @@
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
 //
 
-#include "scsi_rascsi.h"
+#include "host_services.h"
 
-bool SCSIRascsi::Dispatch(SCSIDEV *controller)
+bool HostServices::Dispatch(SCSIDEV *controller)
 {
 	unsigned int cmd = controller->GetCtrl()->cmd[0];
 
@@ -50,13 +50,13 @@ bool SCSIRascsi::Dispatch(SCSIDEV *controller)
 	return false;
 }
 
-void SCSIRascsi::TestUnitReady(SASIDEV *controller)
+void HostServices::TestUnitReady(SASIDEV *controller)
 {
 	// Always successful
 	controller->Status();
 }
 
-int SCSIRascsi::Inquiry(const DWORD *cdb, BYTE *buf)
+int HostServices::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 	if (allocation_length > 4) {
@@ -82,7 +82,7 @@ int SCSIRascsi::Inquiry(const DWORD *cdb, BYTE *buf)
 	return allocation_length;
 }
 
-void SCSIRascsi::StartStopUnit(SASIDEV *controller)
+void HostServices::StartStopUnit(SASIDEV *controller)
 {
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;
@@ -109,7 +109,7 @@ void SCSIRascsi::StartStopUnit(SASIDEV *controller)
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
-int SCSIRascsi::AddVendorPage(int page, bool, BYTE *buf)
+int HostServices::AddVendorPage(int page, bool, BYTE *buf)
 {
 	if (page == 0x20) {
 		// Data structure version 1.0

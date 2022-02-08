@@ -59,8 +59,8 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 				filename = "DaynaPort SCSI/Link";
 				break;
 
-			case SCRA:
-				filename = "RaSCSI Service Device";
+			case SCHS:
+				filename = "Host Services";
 				break;
 
 			default:

@@ -129,7 +129,7 @@ OPTIONS
                  mo: Magneto-Optical disk
                  bridge: Bridge device (Only applicable to the Sharp X68000)
                  daynaport: DaynaPort network adapter
-                 rascsi: RaSCSI control device
+                 services: Host services device
 
        -n VENDOR:PRODUCT:REVISION
               The vendor, product and revision for the device, to be  returned

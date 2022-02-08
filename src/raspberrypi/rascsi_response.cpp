@@ -74,7 +74,7 @@ void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_
 	GetDeviceTypeProperties(device_types_info, SCCD);
 	GetDeviceTypeProperties(device_types_info, SCBR);
 	GetDeviceTypeProperties(device_types_info, SCDP);
-	GetDeviceTypeProperties(device_types_info, SCRA);
+	GetDeviceTypeProperties(device_types_info, SCHS);
 }
 
 void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)

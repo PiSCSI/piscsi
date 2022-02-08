@@ -88,7 +88,7 @@ PbDeviceType ParseType(const char *optarg)
 		return SCRM;
 
 	case 's':
-		return SCRA;
+		return SCHS;
 
 	default:
 		return UNDEFINED;
