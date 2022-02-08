@@ -330,7 +330,7 @@
                 <label for="type">{{ _("Type:") }}</label>
                 <select name="type">
                     {% for type in NETWORK_DEVICE_TYPES %}
-                    <option svalue="{{ type }}">
+                    <option value="{{ type }}">
                     {% for key, value in device_types.items() %}
                     {% if key == type %}
                     {{ value }}
