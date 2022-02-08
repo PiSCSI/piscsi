@@ -35,6 +35,7 @@ from pi_cmds import (
 from device_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
+    extend_device_names,
 )
 from return_code_mapper import ReturnCodeMapper
 
@@ -116,6 +117,7 @@ def index():
 
     sorted_image_files = sorted(image_files["files"], key=lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key=lambda x: x.lower())
+    mapped_device_types = extend_device_names(device_types["device_types"])
 
     attached_images = []
     units = 0
@@ -168,7 +170,7 @@ def index():
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
         netinfo=ractl.get_network_info(),
-        device_types=device_types["device_types"],
+        device_types=mapped_device_types,
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         cdrom_file_suffix=tuple(server_info["sccd"]),

@@ -2,6 +2,8 @@
 Module for RaSCSI device management utility methods
 """
 
+from flask_babel import _
+
 
 def get_valid_scsi_ids(devices, reserved_ids):
     """
@@ -48,3 +50,31 @@ def sort_and_format_devices(devices):
     formatted_devices.sort(key=lambda dic: str(dic["id"]))
 
     return formatted_devices
+
+
+def extend_device_names(device_types):
+    """
+    Takes a (list) of (str) device_types with the four letter device acronyms
+    Returns a (dict) of device_type:device_name mappings of localized device names
+    """
+    mapped_device_types = []
+    for device_type in device_types:
+        if device_type is "SAHD":
+            device_name = _("SASI Hard Drive")
+        elif device_type is "SCHD":
+            device_name = _("SCSI Hard Drive")
+        elif device_type is "SCRM":
+            device_name = _("Removable Drive")
+        elif device_type is "SCMO":
+            device_name = _("Magneto-Optical Drive")
+        elif device_type is "SCCD":
+            device_name = _("CD-ROM Drive")
+        elif device_type is "SCBR":
+            device_name = _("X68000 Host Bridge")
+        elif device_type is "SCDP":
+            device_name = _("DaynaPORT SCSI/Link")
+        else:
+            device_name = _("Unknown Device")
+        mapped_device_types.append({device_type: device_name})
+
+    return mapped_device_types

@@ -156,7 +156,6 @@
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>{{ _("If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.") }}</li>
-        <li>{{ _("Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT") }}</li>
     </ul>
 </details>
 
@@ -250,7 +249,7 @@
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input name="file_size" type="hidden" value="{{ file['size'] }}">
                     <label for="id">{{ _("ID") }}</label>
-                        <select name="scsi_id">
+                    <select name="scsi_id">
                         {% for id in scsi_ids %}
                         <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>
                             {{ id }}
@@ -261,19 +260,29 @@
                     <input name="unit" type="number" size="2" value="0" min="0" max="31">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
-                        {{ file["detected_type"] }}
+                        {% for device in device_types %}
+                        {% for key, value in device.items() %}
+                        {% if file["detected_type"] == key %}
+                        {{ value }}
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
                     {% else %}
                         <select name="type">
                         <option selected value="">
                         {{ _("Type") }}
                         </option>
-                        {% for d in device_types %}
-                        <option value="{{ d }}">
-                            {{ d }}
+                        {% for device in device_types %}
+                        {% for key, value in device.items() %}
+                        {% if key not in ("SCBR", "SCDP") %}
+                        <option value="{{ key }}">
+                            {{ value }}
                         </option>
+                        {% endif %}
                         {% endfor %}
+                        {% endfor %}
+                        </select>
                     {% endif %}
-                    </select>
                     <input type="submit" value="{{ _("Attach") }}">
                 {% endif %}
                 </form>
