@@ -10,7 +10,7 @@
 //
 // Features of the host services device:
 //
-// 1. Vendor-specific mode page 0x20 returns the current date and time
+// 1. Vendor-specific mode page 0x20 returns the current date and time (realtime clock)
 //
 //  typedef struct {
 //    // Major and minor version of this data structure
