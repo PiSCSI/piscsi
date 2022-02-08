@@ -35,6 +35,7 @@ from pi_cmds import (
 from device_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
+    extend_device_names,
 )
 from return_code_mapper import ReturnCodeMapper
 
@@ -116,6 +117,7 @@ def index():
 
     sorted_image_files = sorted(image_files["files"], key=lambda x: x["name"].lower())
     sorted_config_files = sorted(config_files, key=lambda x: x.lower())
+    mapped_device_types = extend_device_names(device_types["device_types"])
 
     attached_images = []
     units = 0
@@ -168,7 +170,7 @@ def index():
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
         netinfo=ractl.get_network_info(),
-        device_types=device_types["device_types"],
+        device_types=mapped_device_types,
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         cdrom_file_suffix=tuple(server_info["sccd"]),
@@ -482,13 +484,15 @@ def log_level():
     return redirect(url_for("index"))
 
 
-@APP.route("/daynaport/attach", methods=["POST"])
+@APP.route("/scsi/attach_network", methods=["POST"])
 @login_required
-def daynaport_attach():
+def attach_network_adapter():
     """
-    Attaches a DaynaPORT ethernet adapter device
+    Attaches a network adapter device
     """
     scsi_id = request.form.get("scsi_id")
+    unit = request.form.get("unit")
+    device_type = request.form.get("type")
     interface = request.form.get("if")
     ip_addr = request.form.get("ip")
     mask = request.form.get("mask")
@@ -515,7 +519,7 @@ def daynaport_attach():
             flash(error_msg, "error")
             return redirect(url_for("index"))
 
-    kwargs = {"device_type": "SCDP"}
+    kwargs = {"unit": int(unit), "device_type": device_type}
     if interface != "":
         arg = interface
         if "" not in (ip_addr, mask):
@@ -525,7 +529,15 @@ def daynaport_attach():
     process = ractl.attach_image(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(_("Attached DaynaPORT to SCSI ID %(id_number)s", id_number=scsi_id))
+        flash(_(
+            (
+                "Attached network device of type %(device_type)s "
+                "to SCSI ID %(id_number)s LUN %(unit_number)s"
+            ),
+            device_type=device_type,
+            id_number=scsi_id,
+            unit_number=unit,
+            ))
         return redirect(url_for("index"))
 
     flash(process["msg"], "error")

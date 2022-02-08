@@ -156,7 +156,6 @@
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
         <li>{{ _("If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.") }}</li>
-        <li>{{ _("Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT") }}</li>
     </ul>
 </details>
 
@@ -250,7 +249,7 @@
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input name="file_size" type="hidden" value="{{ file['size'] }}">
                     <label for="id">{{ _("ID") }}</label>
-                        <select name="scsi_id">
+                    <select name="scsi_id">
                         {% for id in scsi_ids %}
                         <option name="id" value="{{id}}"{% if id == recommended_id %} selected{% endif %}>
                             {{ id }}
@@ -261,19 +260,29 @@
                     <input name="unit" type="number" size="2" value="0" min="0" max="31">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
-                        {{ file["detected_type"] }}
+                        {% for device in device_types %}
+                        {% for key, value in device.items() %}
+                        {% if file["detected_type"] == key %}
+                        {{ value }}
+                        {% endif %}
+                        {% endfor %}
+                        {% endfor %}
                     {% else %}
                         <select name="type">
                         <option selected value="">
                         {{ _("Type") }}
                         </option>
-                        {% for d in device_types %}
-                        <option value="{{ d }}">
-                            {{ d }}
+                        {% for device in device_types %}
+                        {% for key, value in device.items() %}
+                        {% if key not in ("SCBR", "SCDP") %}
+                        <option value="{{ key }}">
+                            {{ value }}
                         </option>
+                        {% endif %}
                         {% endfor %}
+                        {% endfor %}
+                        </select>
                     {% endif %}
-                    </select>
                     <input type="submit" value="{{ _("Attach") }}">
                 {% endif %}
                 </form>
@@ -298,23 +307,23 @@
 
 <details>
     <summary class="heading">
-        {{ _("Attach Ethernet Adapter") }}
+        {{ _("Attach Network Adapter") }}
     </summary>
     <ul>
-        <li>{{ _("Emulates a SCSI DaynaPORT Ethernet Adapter. <a href=\"%(url)s\">Host drivers and configuration required</a>.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link") }}
+        <li>{{ _("Emulates either a <a href=\"%(url1)s\">SCSI DaynaPORT Ethernet Adapter</a>, or an <a href=\"%(url2)s\">X68000 Host Bridge</a>.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
         </li>
         <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the Static IP fields when attaching.") }}</li>
         <li>{{ _("Configure the network bridge by running easyinstall.sh, or follow the <a href=\"%(url)s\">manual steps in the wiki</a>.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#manual-setup") }}
         </li>
         <li style="list-style: none">{% if bridge_configured %}</li>
-        <li>{{ _("The <tt>rascsi_bridge</tt> interface is active and ready to be used by DaynaPORT!") }}</li>
+        <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by the emulated network adapter!") }}</li>
         <li style="list-style: none">{% endif %}</li>
     </ul>
 </details>
 <table style="border: none">
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
-            <form action="/daynaport/attach" method="post">
+            <form action="/scsi/attach_network" method="post">
                 <label for="if">{{ _("Interface:") }}</label>
                 <select name="if">
                 {% for if in netinfo["ifs"] %}
@@ -326,6 +335,15 @@
                 <label for="ip">{{ _("Static IP (optional):") }}</label>
                 <input name="ip" type="text" size="15" placeholder="10.10.20.1" minlength="7" maxlength="15" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
                 <input name="mask" type="number" size="2" placeholder="24" min="16" max="30">
+                <label for="type">{{ _("Type:") }}</label>
+                <select name="type">
+                    <option selected value="SCDP">
+                    {{ _("DaynaPORT") }}
+                    </option>
+                    <option value="SCBR">
+                    {{ _("Host Bridge") }}
+                    </option>
+                </select>
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids %}
@@ -334,6 +352,8 @@
                     </option>
                 {% endfor %}
                 </select>
+                <label for="unit">{{ _("LUN") }}</label>
+                <input name="unit" type="number" size="2" value="0" min="0" max="31">
                 <input type="submit" value="{{ _("Attach") }}">
             </form>
         </td>
