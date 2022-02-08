@@ -72,6 +72,10 @@ bool SCSIBR::Init(const map<string, string>& params)
 	// TAP Driver Generation
 	tap = new CTapDriver(GetParam("interfaces"));
 	m_bTapEnable = tap->Init();
+	if (!m_bTapEnable){
+		LOGERROR("Unable to open the TAP interface");
+		return false;
+	}
 
 	// Generate MAC Address
 	memset(mac_addr, 0x00, 6);
