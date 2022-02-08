@@ -108,7 +108,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout," FILE is disk image file.\n\n");
 		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", \"bridge\" or \"rtc\".\n\n");
+		FPRT(stdout," FILE is disk image file, \"daynaport\", \"bridge\" or \"services\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
 		FPRT(stdout,"  hdf : SASI HD image (XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
