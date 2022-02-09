@@ -9,7 +9,7 @@ $ python3 -m venv venv
 $ source venv/bin/activate
 # Install requirements
 $ pip3 install -r requirements.txt
-$ PYTHON_COMMON_PATH=$(dirname $PWD)/common/src PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH} python3 src/rascsi_oled_monitor.py
+$ PYTHONPATH=$PWD/src:$(dirname $PWD)/common/src python3 src/rascsi_oled_monitor.py
 ```
 
 ### Parameters
