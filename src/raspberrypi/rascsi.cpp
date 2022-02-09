@@ -695,6 +695,9 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	}
 
 	std::map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
+	if (!device->SupportsFile()) {
+		params.erase("file");
+	}
 	if (!device->Init(params)) {
 		delete device;
 
