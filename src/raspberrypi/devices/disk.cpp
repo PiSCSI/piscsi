@@ -76,7 +76,7 @@ Disk::~Disk()
 	if (IsReady()) {
 		// Only if ready...
 		if (disk.dcache) {
-			disk.dcache->Save();
+			// disk.dcache->Save();
 		}
 	}
 
@@ -518,7 +518,7 @@ void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 void Disk::SynchronizeCache10(SASIDEV *controller)
 {
 	// Flush the RaSCSI cache
-	disk.dcache->Save();
+	// disk.dcache->Save();
 
 	controller->Status();
 }
@@ -544,7 +544,7 @@ bool Disk::Eject(bool force)
 	bool status = Device::Eject(force);
 	if (status) {
 		// Remove disk cache
-		disk.dcache->Save();
+		// disk.dcache->Save();
 		delete disk.dcache;
 		disk.dcache = NULL;
 
@@ -1295,7 +1295,7 @@ bool Disk::StartStop(const DWORD *cdb)
 
 	if (!start) {
 		// Flush the cache when stopping
-		disk.dcache->Save();
+		// disk.dcache->Save();
 
 		// Look at the eject bit and eject if necessary
 		if (load) {
