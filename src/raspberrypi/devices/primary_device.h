@@ -23,6 +23,10 @@ public:
 	PrimaryDevice(const string);
 	virtual ~PrimaryDevice() {};
 
+	virtual void TestUnitReady(SASIDEV *) = 0;
+	virtual void Inquiry(SASIDEV *) = 0;
+	virtual void ReportLuns(SASIDEV *) = 0;
+
 protected:
 
 	SASIDEV::ctrl_t *ctrl;

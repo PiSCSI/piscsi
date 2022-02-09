@@ -123,6 +123,8 @@ public:
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
 
+		// TODO The controller should only know Device, not Disk
+
 		// Logical unit
 		Disk *unit[UnitMax];
 
