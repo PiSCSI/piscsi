@@ -51,6 +51,8 @@ private:
 	BOOL cd_raw;								// CD-ROM RAW mode
 	off_t imgoffset;							// Offset to actual data
 
+	bool initialized;
+
 	const char *memory_block;
     struct stat sb;
 	int fd;

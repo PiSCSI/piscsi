@@ -35,6 +35,8 @@ DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgo
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
 
+	initialized = false;
+
 	// Other
 	serial = 0;
 	sec_path = path;
@@ -63,9 +65,8 @@ DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgo
 	   errno_val = EACCES;
    }
 
-   if(sb.st_size != (sec_size * sec_blocks)){
-	   LOGWARN("Opened file with size %llu bytes, but expected %llu [sector: %d blocks: %d]", sb.st_size, (uint64_t)(sec_size * sec_blocks), sec_size, sec_blocks);
-   }
+
+	initialized = true;
 
 }
 
@@ -91,80 +92,43 @@ bool DiskCache::ReadSector(BYTE *buf, int block)
 	ASSERT(block < sec_blocks);
 	ASSERT(memory_block);
 
+	if(!initialized){
+		return false;
+	}
+
 	int sector_size_bytes = (off_t)1 << sec_size;
 
 	// Calculate offset into the image file
 	off_t offset = GetTrackOffset(block);
 	offset += GetSectorOffset(block);
+	LOGWARN("%s track:%d sector:%d offset:%llu block:%d size:%d", __PRETTY_FUNCTION__, (block >>8), (block & 0xff), offset, block, sector_size_bytes);
 
 	// LOGINFO("Reading data track:%d sec_size:%d  block:%d offset: %lld imgoffset: %lld", track, sec_size, block, offset, imgoffset);
 
-// 	memcpy(buf, &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
 	memcpy(buf, &memory_block[offset], sector_size_bytes);
 
 	return true;
 
-
-	// // Calculate track (fixed to 256 sectors/track)
-	// int track = block >> 8;
-
-	// // Get the track data
-	// DiskTrack *disktrk = Assign(track);
-	// if (!disktrk) {
-	// 	return false;
-	// }
-
-	// Read the track data to the cache
-	// return disktrk->ReadSector(buf, block & 0xff);
 }
 
 bool DiskCache::WriteSector(const BYTE *buf, int block)
 {
-	// ASSERT(sec_size != 0);
-
-	// // Update first
-	// // UpdateSerialNumber();
-
-	// // Calculate track (fixed to 256 sectors/track)
-	// int track = block >> 8;
-
-	// // Get that track data
-	// DiskTrack *disktrk = Assign(track);
-	// if (!disktrk) {
-	// 	return false;
-	// }
-
-	// // Write the data to the cache
-	// return disktrk->WriteSector(buf, block & 0xff);
-
-
-	// ASSERT(sec_size != 0);
-
-	// Update first
-	// UpdateSerialNumber();
-
-
-	// // Other
-	// serial = 0;
-	// sec_path = path;
-	// sec_size = size;
-	// sec_blocks = blocks;
-	// cd_raw = FALSE;
-	// imgoffset = imgoff;
-
-// 	ASSERT(dt.buffer);
-// 	ASSERT((dt.sectors > 0) && (dt.sectors <= 0x100));
-// 	memcpy(buf, &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
-
-
 	ASSERT(buf);
 	ASSERT(block < sec_blocks);
 	ASSERT(memory_block);
 
-	ASSERT((block * sec_size) <= (sb.st_size + sec_size));
+	if(!initialized){
+		return false;
+	}
 
-// 	memcpy(buf, &dt.buffer[(off_t)sec << dt.size], (off_t)1 << dt.size);
-	memcpy((void*)&memory_block[(block * sec_size)], buf, sec_size);
+	int sector_size_bytes = (off_t)1 << sec_size;
+
+	// Calculate offset into the image file
+	off_t offset = GetTrackOffset(block);
+	offset += GetSectorOffset(block);
+	LOGWARN("%s track:%d sector:%d offset:%llu block:%d size:%d", __PRETTY_FUNCTION__, (block >>8), (block & 0xff), offset, block, sector_size_bytes);
+
+	memcpy((void*)&memory_block[offset], buf, sector_size_bytes);
 
 	return true;
 }
