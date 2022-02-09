@@ -25,15 +25,14 @@
 #include "disk_track_cache.h"
 #include "file_support.h"
 #include "filepath.h"
+#include "interfaces/scsi_block_commands.h"
+#include "interfaces/scsi_primary_commands.h"
+#include "primary_device.h"
 #include <string>
 #include <set>
 #include <map>
 
-#include "../rascsi.h"
-#include "interfaces/scsi_block_commands.h"
-#include "interfaces/scsi_primary_commands.h"
-
-class Disk : public Device, ScsiPrimaryCommands, ScsiBlockCommands
+class Disk : public PrimaryDevice, ScsiBlockCommands
 {
 private:
 	enum access_mode { RW6, RW10, RW16 };

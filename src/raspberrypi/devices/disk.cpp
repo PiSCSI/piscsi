@@ -20,10 +20,10 @@
 #include "device_factory.h"
 #include "exceptions.h"
 #include "disk.h"
+#include "primary_device.h"
 #include <sstream>
-#include "../rascsi.h"
 
-Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockCommands()
+Disk::Disk(const std::string id) : PrimaryDevice(id), ScsiBlockCommands()
 {
 	disks.insert(this);
 
