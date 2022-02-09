@@ -67,14 +67,13 @@ void RascsiResponse::GetDeviceTypeProperties(PbDeviceTypesInfo& device_types_inf
 
 void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_info)
 {
-	GetDeviceTypeProperties(device_types_info, SAHD);
-	GetDeviceTypeProperties(device_types_info, SCHD);
-	GetDeviceTypeProperties(device_types_info, SCRM);
-	GetDeviceTypeProperties(device_types_info, SCMO);
-	GetDeviceTypeProperties(device_types_info, SCCD);
-	GetDeviceTypeProperties(device_types_info, SCBR);
-	GetDeviceTypeProperties(device_types_info, SCDP);
-	GetDeviceTypeProperties(device_types_info, SCHS);
+	int ordinal = 1;
+	while (PbDeviceType_IsValid(ordinal)) {
+		PbDeviceType type;
+		PbDeviceType_Parse(PbDeviceType_Name(ordinal), &type);
+		GetDeviceTypeProperties(device_types_info, type);
+		ordinal++;
+	}
 }
 
 void RascsiResponse::GetDevice(const Device *device, PbDevice *pb_device)
