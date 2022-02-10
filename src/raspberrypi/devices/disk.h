@@ -142,8 +142,6 @@ public:
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
 
 protected:
-	SASIDEV::ctrl_t *ctrl;
-
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);
 	virtual int AddErrorPage(bool change, BYTE *buf);
