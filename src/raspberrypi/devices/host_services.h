@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "os.h"
 #include "disk.h"
 
 class HostServices: public Disk
