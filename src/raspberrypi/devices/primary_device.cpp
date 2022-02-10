@@ -17,6 +17,38 @@ PrimaryDevice::PrimaryDevice(const string id) : Device(id), ScsiPrimaryCommands(
 	ctrl = NULL;
 }
 
+void PrimaryDevice::ReportLuns(SASIDEV *controller)
+{
+	BYTE *buf = ctrl->buffer;
+
+	if (!CheckReady()) {
+		controller->Error();
+		return;
+	}
+
+	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
+	memset(buf, 0, allocation_length);
+
+	// Count number of available LUNs for the current device
+	int luns;
+	for (luns = 0; luns < controller->GetCtrl()->device->GetSupportedLuns(); luns++) {
+		if (!controller->GetCtrl()->unit[luns]) {
+			break;
+		}
+	}
+
+	// LUN list length, 8 bytes per LUN
+	// SCSI standard: The contents of the LUN LIST LENGTH field	are not altered based on the allocation length
+	buf[0] = (luns * 8) >> 24;
+	buf[1] = (luns * 8) >> 16;
+	buf[2] = (luns * 8) >> 8;
+	buf[3] = luns * 8;
+
+	ctrl->length = allocation_length < 8 + luns * 8 ? allocation_length : 8 + luns * 8;
+
+	controller->DataIn();
+}
+
 bool PrimaryDevice::CheckReady()
 {
 	// Not ready if reset

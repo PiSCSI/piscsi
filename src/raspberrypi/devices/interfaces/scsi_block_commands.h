@@ -17,8 +17,8 @@ class ScsiBlockCommands
 {
 public:
 
-	ScsiBlockCommands() {};
-	virtual ~ScsiBlockCommands() {};
+	ScsiBlockCommands() {}
+	virtual ~ScsiBlockCommands() {}
 
 	// Mandatory commands
 	virtual void TestUnitReady(SASIDEV *) = 0;

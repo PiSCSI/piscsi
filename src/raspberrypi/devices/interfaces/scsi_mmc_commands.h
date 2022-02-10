@@ -17,8 +17,8 @@ class ScsiMmcCommands
 {
 public:
 
-	ScsiMmcCommands() {};
-	virtual ~ScsiMmcCommands() {};
+	ScsiMmcCommands() {}
+	virtual ~ScsiMmcCommands() {}
 
 	virtual void ReadToc(SASIDEV *) = 0;
 	virtual void GetEventStatusNotification(SASIDEV *) = 0;
