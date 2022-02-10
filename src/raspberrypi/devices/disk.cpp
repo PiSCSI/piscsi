@@ -34,7 +34,6 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	disk.image_offset = 0;
 
 	AddCommand(ScsiDefs::eCmdRezero, "Rezero", &Disk::Rezero);
-	AddCommand(ScsiDefs::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
 	AddCommand(ScsiDefs::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
 	AddCommand(ScsiDefs::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
 	AddCommand(ScsiDefs::eCmdRead6, "Read6", &Disk::Read6);
@@ -157,28 +156,6 @@ void Disk::Rezero(SASIDEV *controller)
 	}
 
 	controller->Status();
-}
-
-void Disk::RequestSense(SASIDEV *controller)
-{
-	int lun = controller->GetEffectiveLun();
-
-    // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
-	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
-	if (!ctrl->unit[lun]) {
-        // LUN 0 can be assumed to be present (required to call RequestSense() below)
-		lun = 0;
-
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-		ctrl->status = 0x00;
-	}
-
-    ctrl->length = ((Disk *)ctrl->unit[lun])->RequestSense(ctrl->cmd, ctrl->buffer);
-	ASSERT(ctrl->length > 0);
-
-    LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
-
-    controller->DataIn();
 }
 
 void Disk::FormatUnit(SASIDEV *controller)
@@ -509,50 +486,6 @@ bool Disk::Eject(bool force)
 	}
 
 	return status;
-}
-
-//---------------------------------------------------------------------------
-//
-//	REQUEST SENSE
-//	*SASI is a separate process
-//
-//---------------------------------------------------------------------------
-int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
-{
-	ASSERT(cdb);
-	ASSERT(buf);
-
-	// Return not ready only if there are no errors
-	if (GetStatusCode() == STATUS_NOERROR) {
-		if (!IsReady()) {
-			SetStatusCode(STATUS_NOTREADY);
-		}
-	}
-
-	// Size determination (according to allocation length)
-	int size = (int)cdb[4];
-	ASSERT((size >= 0) && (size < 0x100));
-
-	// For SCSI-1, transfer 4 bytes when the size is 0
-    // (Deleted this specification for SCSI-2)
-	if (size == 0) {
-		size = 4;
-	}
-
-	// Clear the buffer
-	memset(buf, 0, size);
-
-	// Set 18 bytes including extended sense data
-
-	// Current error
-	buf[0] = 0x70;
-
-	buf[2] = (BYTE)(GetStatusCode() >> 16);
-	buf[7] = 10;
-	buf[12] = (BYTE)(GetStatusCode() >> 8);
-	buf[13] = (BYTE)GetStatusCode();
-
-	return size;
 }
 
 int Disk::ModeSelectCheck(const DWORD *cdb, int length)

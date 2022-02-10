@@ -29,11 +29,11 @@ public:
 	virtual bool Dispatch(SCSIDEV *) override;
 
 	void TestUnitReady(SASIDEV *);
-	void Inquiry(SASIDEV *);
-	void ReportLuns(SASIDEV *);
+	void RequestSense(SASIDEV *);
 
 	bool CheckReady();
 	virtual int Inquiry(const DWORD *, BYTE *) = 0;
+	virtual int RequestSense(const DWORD *, BYTE *);
 
 protected:
 
@@ -51,4 +51,6 @@ private:
 
 	void AddCommand(ScsiDefs::scsi_command, const char*, void (PrimaryDevice::*)(SASIDEV *));
 
+	void Inquiry(SASIDEV *);
+	void ReportLuns(SASIDEV *);
 };

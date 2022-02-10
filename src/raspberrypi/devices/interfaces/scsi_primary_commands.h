@@ -24,4 +24,7 @@ public:
 	virtual void TestUnitReady(SASIDEV *) = 0;
 	virtual void Inquiry(SASIDEV *) = 0;
 	virtual void ReportLuns(SASIDEV *) = 0;
+
+	// Optional commands
+	virtual void RequestSense(SASIDEV *) = 0;
 };

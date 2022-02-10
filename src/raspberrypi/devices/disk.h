@@ -75,15 +75,13 @@ public:
 	void GetPath(Filepath& path) const;
 	bool Eject(bool) override;
 
+private:
+
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void RequestSense(SASIDEV *) override;
 	void ModeSelect6(SASIDEV *) override;
 	void ModeSelect10(SASIDEV *) override;
 	void ModeSense6(SASIDEV *) override;
 	void ModeSense10(SASIDEV *) override;
-	void Rezero(SASIDEV *);
-	void FormatUnit(SASIDEV *) override;
-	void ReassignBlocks(SASIDEV *) override;
 	void StartStopUnit(SASIDEV *) override;
 	void SendDiagnostic(SASIDEV *) override;
 	void PreventAllowMediumRemoval(SASIDEV *);
@@ -103,7 +101,6 @@ public:
 	void Verify10(SASIDEV *) override;
 	void Verify16(SASIDEV *) override;
 	void Seek(SASIDEV *);
-	void Seek6(SASIDEV *);
 	void Seek10(SASIDEV *);
 	void ReadCapacity10(SASIDEV *) override;
 	void ReadCapacity16(SASIDEV *) override;
@@ -111,6 +108,14 @@ public:
 	void Reserve10(SASIDEV *);
 	void Release6(SASIDEV *);
 	void Release10(SASIDEV *);
+
+public:
+
+	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
+	void Rezero(SASIDEV *);
+	void FormatUnit(SASIDEV *) override;
+	void ReassignBlocks(SASIDEV *) override;
+	void Seek6(SASIDEV *);
 
 	// Command helpers
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
@@ -152,8 +157,6 @@ protected:
 	int AddCachePage(bool change, BYTE *buf);
 	int AddCDROMPage(bool change, BYTE *buf);
 	int AddCDDAPage(bool, BYTE *buf);
-
-	virtual int RequestSense(const DWORD *cdb, BYTE *buf);
 
 	// Internal disk data
 	disk_t disk;

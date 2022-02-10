@@ -17,9 +17,13 @@ PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id
 {
 	ctrl = NULL;
 
+	// Mandatory SCSI primary commands
 	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
 	AddCommand(ScsiDefs::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
 	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+
+	// Optional commands used by all RaSCSI devices
+	AddCommand(ScsiDefs::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
 }
 
 void PrimaryDevice::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (PrimaryDevice::*execute)(SASIDEV *))
@@ -126,6 +130,28 @@ void PrimaryDevice::ReportLuns(SASIDEV *controller)
 	controller->DataIn();
 }
 
+void PrimaryDevice::RequestSense(SASIDEV *controller)
+{
+	int lun = controller->GetEffectiveLun();
+
+    // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
+	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
+	if (!ctrl->unit[lun]) {
+        // LUN 0 can be assumed to be present (required to call RequestSense() below)
+		lun = 0;
+
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+		ctrl->status = 0x00;
+	}
+
+    ctrl->length = ((PrimaryDevice *)ctrl->unit[lun])->RequestSense(ctrl->cmd, ctrl->buffer);
+	ASSERT(ctrl->length > 0);
+
+    LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
+
+    controller->DataIn();
+}
+
 bool PrimaryDevice::CheckReady()
 {
 	// Not ready if reset
@@ -156,3 +182,42 @@ bool PrimaryDevice::CheckReady()
 
 	return true;
 }
+
+int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
+{
+	ASSERT(cdb);
+	ASSERT(buf);
+
+	// Return not ready only if there are no errors
+	if (GetStatusCode() == STATUS_NOERROR) {
+		if (!IsReady()) {
+			SetStatusCode(STATUS_NOTREADY);
+		}
+	}
+
+	// Size determination (according to allocation length)
+	int size = (int)cdb[4];
+	ASSERT((size >= 0) && (size < 0x100));
+
+	// For SCSI-1, transfer 4 bytes when the size is 0
+    // (Deleted this specification for SCSI-2)
+	if (size == 0) {
+		size = 4;
+	}
+
+	// Clear the buffer
+	memset(buf, 0, size);
+
+	// Set 18 bytes including extended sense data
+
+	// Current error
+	buf[0] = 0x70;
+
+	buf[2] = (BYTE)(GetStatusCode() >> 16);
+	buf[7] = 10;
+	buf[12] = (BYTE)(GetStatusCode() >> 8);
+	buf[13] = (BYTE)GetStatusCode();
+
+	return size;
+}
+

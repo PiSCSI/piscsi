@@ -30,7 +30,6 @@ public:
 	virtual void Read16(SASIDEV *) = 0;
 	virtual void Write10(SASIDEV *) = 0;
 	virtual void Write16(SASIDEV *) = 0;
-	virtual void RequestSense(SASIDEV *) = 0;
 
 	// Implemented optional commands
 	virtual void ReadLong10(SASIDEV *) = 0;
