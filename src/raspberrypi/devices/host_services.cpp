@@ -57,8 +57,10 @@ bool HostServices::Dispatch(SCSIDEV *controller)
 		return true;
 	}
 
-	// Unknown command
-	return false;
+	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
+	// The base class handles the less specific commands
+	return ModePageDevice::Dispatch(controller);
 }
 
 void HostServices::TestUnitReady(SASIDEV *controller)
@@ -226,4 +228,3 @@ int HostServices::AddRealtimeClockPage(int page, BYTE *buf)
 
 	return 0;
 }
-
