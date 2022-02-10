@@ -153,7 +153,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 						device->SetProduct("FIREBALL");
 					}
 				}
-				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				break;
@@ -161,7 +160,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCRM:
 				device = new SCSIHD(true);
-				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -172,7 +170,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCMO:
 				device = new SCSIMO();
-				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -184,7 +181,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCCD:
 				device = new SCSICD();
-				device->SetSupportedLuns(32);
 				device->SetReadOnly(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -195,7 +191,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCBR:
 				device = new SCSIBR();
-				device->SetSupportedLuns(32);
 				device->SetProduct("SCSI HOST BRIDGE");
 				device->SupportsParams(true);
 				device->SetDefaultParams(default_params[SCBR]);
@@ -203,7 +198,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCDP:
 				device = new SCSIDaynaPort();
-				device->SetSupportedLuns(32);
 				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 				device->SetVendor("Dayna");
 				device->SetProduct("SCSI/Link");
@@ -214,7 +208,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCHS:
 				device = new HostServices();
-				device->SetSupportedLuns(32);
 				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 				device->SetVendor("RaSCSI");
 				device->SetProduct("Host Services");
