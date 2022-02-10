@@ -15,6 +15,8 @@ using namespace std;
 
 PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id)
 {
+	devices.insert(this);
+
 	ctrl = NULL;
 
 	// Mandatory SCSI primary commands
@@ -24,6 +26,11 @@ PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id
 
 	// Optional commands used by all RaSCSI devices
 	AddCommand(ScsiDefs::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
+}
+
+PrimaryDevice::~PrimaryDevice()
+{
+	devices.erase(this);
 }
 
 void PrimaryDevice::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (PrimaryDevice::*execute)(SASIDEV *))

@@ -154,8 +154,6 @@ protected:
 	// Internal disk data
 	disk_t disk;
 
-	set<Disk *> disks;
-
 private:
 	void Read(SASIDEV *, uint64_t);
 	void Write(SASIDEV *, uint64_t);

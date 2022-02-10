@@ -30,23 +30,34 @@
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
 //
 
+#include "controllers/scsidev_ctrl.h"
 #include "host_services.h"
+
+HostServices::HostServices() : ModePageDevice("SCHS")
+{
+	AddCommand(ScsiDefs::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+}
+
+void HostServices::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (HostServices::*execute)(SASIDEV *))
+{
+	commands[opcode] = new command_t(name, execute);
+}
 
 bool HostServices::Dispatch(SCSIDEV *controller)
 {
-	unsigned int cmd = controller->GetCtrl()->cmd[0];
+	ctrl = controller->GetCtrl();
 
-	// Only certain commands are supported
-	// TODO Do not inherit from Disk, mode page handling should be moved to ModePageDevice
-	if (cmd == ScsiDefs::eCmdTestUnitReady || cmd == ScsiDefs::eCmdRequestSense
-			|| cmd == ScsiDefs::eCmdInquiry || cmd == ScsiDefs::eCmdReportLuns
-			|| cmd == ScsiDefs::eCmdModeSense6 || cmd == ScsiDefs::eCmdModeSense10
-			|| cmd == ScsiDefs::eCmdStartStop) {
-		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, cmd);
+	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
 
-		return Disk::Dispatch(controller);
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
 	}
 
+	// Unknown command
 	return false;
 }
 
@@ -88,10 +99,10 @@ void HostServices::StartStopUnit(SASIDEV *controller)
 	bool load = ctrl->cmd[4] & 0x02;
 
 	if (!start) {
-		// Delete all regular disk devices. This also flushes their caches.
-		for (auto disk : disks) {
-			if (disk && disk != this) {
-				delete disk;
+		// Delete all other devices
+		for (auto device : devices) {
+			if (device && device != this) {
+				delete device;
 			}
 		}
 
@@ -109,7 +120,91 @@ void HostServices::StartStopUnit(SASIDEV *controller)
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
-int HostServices::AddVendorPage(int page, bool, BYTE *buf)
+int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
+{
+	// Get length, clear buffer
+	int length = (int)cdb[4];
+	memset(buf, 0, length);
+
+	// Get page code (0x00 is valid from the beginning)
+	int page = cdb[2] & 0x3f;
+	bool valid = page == 0x00;
+
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
+	// Basic information
+	int size = 4;
+
+	int ret = AddRealtimeClockPage(page, &buf[size]);
+	if (ret > 0) {
+		size += ret;
+		valid = true;
+	}
+
+	if (!valid) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+
+	// Do not return more than ALLOCATION LENGTH bytes
+	if (size > length) {
+		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
+		size = length;
+	}
+
+	// Final setting of mode data length
+	buf[0] = size;
+
+	return size;
+}
+
+int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
+{
+	// Get length, clear buffer
+	int length = cdb[7];
+	length <<= 8;
+	length |= cdb[8];
+	if (length > 0x800) {
+		length = 0x800;
+	}
+	memset(buf, 0, length);
+
+	// Get page code (0x00 is valid from the beginning)
+	int page = cdb[2] & 0x3f;
+	bool valid = page == 0x00;
+
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
+	// Basic Information
+	int size = 8;
+
+	int ret = AddRealtimeClockPage(page, &buf[size]);
+	if (ret > 0) {
+		size += ret;
+		valid = true;
+	}
+
+	if (!valid) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+
+	// Do not return more than ALLOCATION LENGTH bytes
+	if (size > length) {
+		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
+		size = length;
+	}
+
+	// Final setting of mode data length
+	buf[0] = size >> 8;
+	buf[1] = size;
+
+	return size;
+}
+
+int HostServices::AddRealtimeClockPage(int page, BYTE *buf)
 {
 	if (page == 0x20) {
 		// Data structure version 1.0

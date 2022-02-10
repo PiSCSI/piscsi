@@ -15,6 +15,7 @@
 #include "interfaces/scsi_primary_commands.h"
 #include "device.h"
 #include <string>
+#include <set>
 #include <map>
 
 using namespace std;
@@ -24,7 +25,7 @@ class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
 public:
 
 	PrimaryDevice(const string);
-	virtual ~PrimaryDevice() {}
+	virtual ~PrimaryDevice();
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
@@ -38,6 +39,8 @@ public:
 protected:
 
 	SASIDEV::ctrl_t *ctrl;
+
+	set<PrimaryDevice *> devices;
 
 private:
 
