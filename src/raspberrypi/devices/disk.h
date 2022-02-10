@@ -109,7 +109,6 @@ public:
 	void Seek10(SASIDEV *);
 	void ReadCapacity10(SASIDEV *) override;
 	void ReadCapacity16(SASIDEV *) override;
-	void ReportLuns(SASIDEV *) override;
 	void Reserve6(SASIDEV *);
 	void Reserve10(SASIDEV *);
 	void Release6(SASIDEV *);

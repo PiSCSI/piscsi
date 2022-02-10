@@ -12,7 +12,7 @@
 
 using namespace std;
 
-PrimaryDevice::PrimaryDevice(const string id) : Device(id), ScsiPrimaryCommands()
+PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id)
 {
 	ctrl = NULL;
 }

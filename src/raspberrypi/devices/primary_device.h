@@ -18,7 +18,7 @@
 
 using namespace std;
 
-class PrimaryDevice: public Device, public ScsiPrimaryCommands
+class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
 {
 public:
 

@@ -68,7 +68,7 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	AddCommand(ScsiDefs::eCmdWrite16, "Write16", &Disk::Write16);
 	AddCommand(ScsiDefs::eCmdVerify16, "Verify16", &Disk::Verify16);
 	AddCommand(ScsiDefs::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
-	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
+	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 }
 
 Disk::~Disk()
@@ -1395,38 +1395,6 @@ void Disk::ReadCapacity16_ReadLong16(SASIDEV *controller)
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 		break;
 	}
-}
-
-void Disk::ReportLuns(SASIDEV *controller)
-{
-	BYTE *buf = ctrl->buffer;
-
-	if (!CheckReady()) {
-		controller->Error();
-		return;
-	}
-
-	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
-	memset(buf, 0, allocation_length);
-
-	// Count number of available LUNs for the current device
-	int luns;
-	for (luns = 0; luns < controller->GetCtrl()->device->GetSupportedLuns(); luns++) {
-		if (!controller->GetCtrl()->unit[luns]) {
-			break;
-		}
-	}
-
-	// LUN list length, 8 bytes per LUN
-	// SCSI standard: The contents of the LUN LIST LENGTH field	are not altered based on the allocation length
-	buf[0] = (luns * 8) >> 24;
-	buf[1] = (luns * 8) >> 16;
-	buf[2] = (luns * 8) >> 8;
-	buf[3] = luns * 8;
-
-	ctrl->length = allocation_length < 8 + luns * 8 ? allocation_length : 8 + luns * 8;
-
-	controller->DataIn();
 }
 
 //---------------------------------------------------------------------------
