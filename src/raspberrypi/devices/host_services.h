@@ -11,7 +11,6 @@
 #pragma once
 
 #include "mode_page_device.h"
-#include <string>
 #include <map>
 
 using namespace std;
@@ -19,6 +18,7 @@ using namespace std;
 class HostServices: public ModePageDevice
 {
 public:
+
 	HostServices();
 	~HostServices() {}
 
