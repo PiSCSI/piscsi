@@ -16,7 +16,6 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "controllers/sasidev_ctrl.h"
 #include "device_factory.h"
 #include "exceptions.h"
 #include "disk.h"
