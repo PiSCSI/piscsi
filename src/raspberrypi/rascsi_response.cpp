@@ -70,7 +70,7 @@ void RascsiResponse::GetAllDeviceTypeProperties(PbDeviceTypesInfo& device_types_
 	int ordinal = 1;
 	while (PbDeviceType_IsValid(ordinal)) {
 		PbDeviceType type = UNDEFINED;
-		PbDeviceType_Parse(PbDeviceType_Name(ordinal), &type);
+		PbDeviceType_Parse(PbDeviceType_Name((PbDeviceType)ordinal), &type);
 		GetDeviceTypeProperties(device_types_info, type);
 		ordinal++;
 	}
