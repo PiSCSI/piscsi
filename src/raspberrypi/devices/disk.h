@@ -27,12 +27,12 @@
 #include "filepath.h"
 #include "interfaces/scsi_block_commands.h"
 #include "interfaces/scsi_primary_commands.h"
-#include "primary_device.h"
+#include "mode_page_device.h"
 #include <string>
 #include <set>
 #include <map>
 
-class Disk : public PrimaryDevice, ScsiBlockCommands
+class Disk : public ModePageDevice, ScsiBlockCommands
 {
 private:
 	enum access_mode { RW6, RW10, RW16 };

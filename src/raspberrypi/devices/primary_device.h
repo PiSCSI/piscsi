@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// A base device implementing mandatory SCSI primary commands
+//
 //---------------------------------------------------------------------------
 
 #pragma once

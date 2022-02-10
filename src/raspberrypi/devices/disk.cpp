@@ -20,10 +20,10 @@
 #include "device_factory.h"
 #include "exceptions.h"
 #include "disk.h"
-#include "primary_device.h"
+#include "mode_page_device.h"
 #include <sstream>
 
-Disk::Disk(const std::string id) : PrimaryDevice(id), ScsiBlockCommands()
+Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 {
 	disks.insert(this);
 
