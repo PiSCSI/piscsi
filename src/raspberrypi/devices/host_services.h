@@ -27,7 +27,6 @@ public:
 	int Inquiry(const DWORD *, BYTE *) override;
 	void TestUnitReady(SASIDEV *) override;
 	void StartStopUnit(SASIDEV *);
-	int AddRealtimeClockPage(int, BYTE *);
 
 	int ModeSense6(const DWORD *, BYTE *);
 	int ModeSense10(const DWORD *, BYTE *);
@@ -43,4 +42,6 @@ private:
 	std::map<ScsiDefs::scsi_command, command_t*> commands;
 
 	void AddCommand(ScsiDefs::scsi_command, const char*, void (HostServices::*)(SASIDEV *));
+
+	int AddRealtimeClockPage(int, BYTE *);
 };
