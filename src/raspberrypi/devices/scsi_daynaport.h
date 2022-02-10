@@ -33,7 +33,6 @@
 #include "ctapdriver.h"
 #include <map>
 #include <string>
-#include "../rascsi.h"
 
 //===========================================================================
 //

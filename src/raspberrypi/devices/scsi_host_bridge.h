@@ -20,7 +20,6 @@
 #include "os.h"
 #include "disk.h"
 #include <string>
-#include "../rascsi.h"
 
 //===========================================================================
 //

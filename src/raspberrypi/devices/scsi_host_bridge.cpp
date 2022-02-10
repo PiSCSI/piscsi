@@ -17,8 +17,6 @@
 //---------------------------------------------------------------------------
 
 #include "scsi_host_bridge.h"
-
-#include "../rascsi.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include <sstream>
