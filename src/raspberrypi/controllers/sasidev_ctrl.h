@@ -21,7 +21,7 @@
 #include "fileio.h"
 #include "log.h"
 
-class Disk;
+class Device;
 
 //===========================================================================
 //
@@ -123,13 +123,11 @@ public:
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
 
-		// TODO The controller should only know Device, not Disk
-
 		// Logical unit
-		Disk *unit[UnitMax];
+		Device *unit[UnitMax];
 
 		// The current device
-		Disk *device;
+		Device *device;
 
 		// The LUN from the IDENTIFY message
 		int lun;
@@ -146,8 +144,8 @@ public:
 
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
-	Disk* GetUnit(int no);							// Get logical unit
-	void SetUnit(int no, Disk *dev);				// Logical unit setting
+	Device* GetUnit(int no);							// Get logical unit
+	void SetUnit(int no, Device *dev);				// Logical unit setting
 	bool HasUnit();						// Has a valid logical unit
 
 	// Other

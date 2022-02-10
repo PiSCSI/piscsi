@@ -184,7 +184,7 @@ void Disk::RequestSense(SASIDEV *controller)
 		ctrl->status = 0x00;
 	}
 
-    ctrl->length = ctrl->unit[lun]->RequestSense(ctrl->cmd, ctrl->buffer);
+    ctrl->length = ((Disk *)ctrl->unit[lun])->RequestSense(ctrl->cmd, ctrl->buffer);
 	ASSERT(ctrl->length > 0);
 
     LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
@@ -398,7 +398,7 @@ void Disk::Verify16(SASIDEV *controller)
 void Disk::Inquiry(SASIDEV *controller)
 {
 	int lun = controller->GetEffectiveLun();
-	const ScsiPrimaryCommands *device = ctrl->unit[lun];
+	const Device *device = ctrl->unit[lun];
 
 	// Find a valid unit
 	// TODO The code below is probably wrong. It results in the same INQUIRY data being
