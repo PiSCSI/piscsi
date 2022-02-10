@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
+#include "controllers/scsidev_ctrl.h"
 #include "primary_device.h"
 
 using namespace std;
@@ -15,6 +16,32 @@ using namespace std;
 PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id)
 {
 	ctrl = NULL;
+
+	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
+	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+}
+
+void PrimaryDevice::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (PrimaryDevice::*execute)(SASIDEV *))
+{
+	commands[opcode] = new command_t(name, execute);
+}
+
+bool PrimaryDevice::Dispatch(SCSIDEV *controller)
+{
+	ctrl = controller->GetCtrl();
+
+	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
+
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
+
+		(this->*command->execute)(controller);
+
+		return true;
+	}
+
+	// Unknown command
+	return false;
 }
 
 void PrimaryDevice::TestUnitReady(SASIDEV *controller)

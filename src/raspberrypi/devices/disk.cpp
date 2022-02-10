@@ -33,7 +33,6 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	disk.dcache = NULL;
 	disk.image_offset = 0;
 
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
 	AddCommand(ScsiDefs::eCmdRezero, "Rezero", &Disk::Rezero);
 	AddCommand(ScsiDefs::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
 	AddCommand(ScsiDefs::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
@@ -68,7 +67,6 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	AddCommand(ScsiDefs::eCmdWrite16, "Write16", &Disk::Write16);
 	AddCommand(ScsiDefs::eCmdVerify16, "Verify16", &Disk::Verify16);
 	AddCommand(ScsiDefs::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
-	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 }
 
 Disk::~Disk()
@@ -113,8 +111,10 @@ bool Disk::Dispatch(SCSIDEV *controller)
 		return true;
 	}
 
-	// Unknown command
-	return false;
+	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
+	// The base class handles the less specific commands
+	return ModePageDevice::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------
