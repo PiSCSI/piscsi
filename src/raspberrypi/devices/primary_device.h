@@ -25,11 +25,12 @@ public:
 	PrimaryDevice(const string);
 	virtual ~PrimaryDevice() {}
 
-	virtual void TestUnitReady(SASIDEV *) = 0;
-	virtual void Inquiry(SASIDEV *) = 0;
+	virtual void TestUnitReady(SASIDEV *);
+	virtual void Inquiry(SASIDEV *);
 	void ReportLuns(SASIDEV *);
 
 	bool CheckReady();
+	virtual int Inquiry(const DWORD *, BYTE *) = 0;
 
 protected:
 

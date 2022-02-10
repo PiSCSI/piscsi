@@ -33,7 +33,7 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	disk.dcache = NULL;
 	disk.image_offset = 0;
 
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
+	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
 	AddCommand(ScsiDefs::eCmdRezero, "Rezero", &Disk::Rezero);
 	AddCommand(ScsiDefs::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
 	AddCommand(ScsiDefs::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
@@ -41,7 +41,7 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	AddCommand(ScsiDefs::eCmdRead6, "Read6", &Disk::Read6);
 	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &Disk::Write6);
 	AddCommand(ScsiDefs::eCmdSeek6, "Seek6", &Disk::Seek6);
-	AddCommand(ScsiDefs::eCmdInquiry, "Inquiry", &Disk::Inquiry);
+	AddCommand(ScsiDefs::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
 	AddCommand(ScsiDefs::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect6);
 	AddCommand(ScsiDefs::eCmdReserve6, "Reserve6", &Disk::Reserve6);
 	AddCommand(ScsiDefs::eCmdRelease6, "Release6", &Disk::Release6);
@@ -148,16 +148,6 @@ void Disk::Open(const Filepath& path)
 	SetStopped(false);
 	SetRemoved(false);
 	SetLocked(false);
-}
-
-void Disk::TestUnitReady(SASIDEV *controller)
-{
-	if (!CheckReady()) {
-		controller->Error();
-		return;
-	}
-
-	controller->Status();
 }
 
 void Disk::Rezero(SASIDEV *controller)
@@ -393,45 +383,6 @@ void Disk::Verify16(SASIDEV *controller)
 
 		Verify(controller, record);
 	}
-}
-
-void Disk::Inquiry(SASIDEV *controller)
-{
-	int lun = controller->GetEffectiveLun();
-	const Device *device = ctrl->unit[lun];
-
-	// Find a valid unit
-	// TODO The code below is probably wrong. It results in the same INQUIRY data being
-	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	// In addition, it supports gaps in the LUN list, which is not correct.
-	if (!device) {
-		for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
-			if (ctrl->unit[valid_lun]) {
-				device = ctrl->unit[valid_lun];
-				break;
-			}
-		}
-	}
-
-	if (device) {
-		ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
-	} else {
-		ctrl->length = 0;
-	}
-
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	// Report if the device does not support the requested LUN
-	if (!ctrl->unit[lun]) {
-		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
-
-		ctrl->buffer[0] |= 0x7f;
-	}
-
-	controller->DataIn();
 }
 
 void Disk::ModeSelect6(SASIDEV *controller)

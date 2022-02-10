@@ -76,8 +76,6 @@ public:
 	bool Eject(bool) override;
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	virtual void TestUnitReady(SASIDEV *) override;
-	void Inquiry(SASIDEV *) override;
 	void RequestSense(SASIDEV *) override;
 	void ModeSelect6(SASIDEV *) override;
 	void ModeSelect10(SASIDEV *) override;
