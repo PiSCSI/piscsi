@@ -25,8 +25,8 @@ public:
 	PrimaryDevice(const string);
 	virtual ~PrimaryDevice() {}
 
-	virtual void TestUnitReady(SASIDEV *);
-	virtual void Inquiry(SASIDEV *);
+	void TestUnitReady(SASIDEV *);
+	void Inquiry(SASIDEV *);
 	void ReportLuns(SASIDEV *);
 
 	bool CheckReady();
