@@ -38,13 +38,13 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	m_tap = NULL;
 	m_bTapEnable = false;
 
-	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	AddCommand(SCSIDEV::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	AddCommand(SCSIDEV::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	AddCommand(SCSIDEV::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	AddCommand(SCSIDEV::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	AddCommand(SCSIDEV::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	AddCommand(ScsiDefs::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	AddCommand(ScsiDefs::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	AddCommand(ScsiDefs::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	AddCommand(ScsiDefs::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	AddCommand(ScsiDefs::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
 SCSIDaynaPort::~SCSIDaynaPort()
@@ -60,7 +60,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-void SCSIDaynaPort::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
+void SCSIDaynaPort::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -69,8 +69,8 @@ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
 
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 
@@ -161,8 +161,6 @@ int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 		// Padded vendor, product, revision
 		memcpy(&buf[8], GetPaddedName().c_str(), 28);
 	}
-
-	LOGTRACE("response size is %d", allocation_length);
 
 	return allocation_length;
 }

@@ -27,6 +27,8 @@
 
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
+	shutdown_mode = NONE;
+
 	// Synchronous transfer work initialization
 	scsi.syncenable = FALSE;
 	scsi.syncperiod = 50;
@@ -153,6 +155,22 @@ void SCSIDEV::BusFree()
 
 		ctrl.lun = -1;
 
+		// When the bus is free RaSCSI or the Pi may be shut down
+		switch(shutdown_mode) {
+		case RASCSI:
+			LOGINFO("RaSCSI shutdown requested");
+			exit(0);
+			break;
+
+		case PI:
+			LOGINFO("Raspberry Pi shutdown requested");
+			system("init 0");
+			break;
+
+		default:
+			break;
+		}
+
 		return;
 	}
 
@@ -221,7 +239,7 @@ void SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+	if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
 		ctrl.status = 0;
 	}
 
@@ -229,7 +247,8 @@ void SCSIDEV::Execute()
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdInquiry && (SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+		if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdInquiry &&
+				(ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
@@ -247,7 +266,7 @@ void SCSIDEV::Execute()
 	ctrl.device = ctrl.unit[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((SCSIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
+	if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
 		ctrl.device->SetStatusCode(0);
 	}
 	
@@ -258,10 +277,10 @@ void SCSIDEV::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((SCSIDEV::scsi_command)ctrl.cmd[0] == eCmdInquiry && !ctrl.unit[lun]) {
+	if ((ScsiDefs::scsi_command)ctrl.cmd[0] == ScsiDefs::eCmdInquiry && !ctrl.unit[lun]) {
 		lun = GetEffectiveLun();
 
-		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
 
 		ctrl.buffer[0] = 0x7f;
 	}

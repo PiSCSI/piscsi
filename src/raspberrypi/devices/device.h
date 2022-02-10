@@ -162,6 +162,7 @@ public:
 	const string GetPaddedName() const;
 
 	bool SupportsParams() const { return supports_params; }
+	bool SupportsFile() const { return !supports_params; }
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
 	const map<string, string> GetParams() const { return params; }
 	const string GetParam(const string&);

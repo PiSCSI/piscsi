@@ -24,14 +24,3 @@
 #if defined(__x86_64__) || defined(__X86__)
 #undef USE_SEL_EVENT_ENABLE
 #endif
-
-//---------------------------------------------------------------------------
-//
-//	Class Declarations
-//
-//---------------------------------------------------------------------------
-class Fileio;
-										// File I/O
-class Disk;
-										// SASI/SCSI Disk
-class Filepath;

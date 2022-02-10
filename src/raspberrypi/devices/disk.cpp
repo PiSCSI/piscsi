@@ -16,15 +16,16 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "controllers/sasidev_ctrl.h"
 #include "device_factory.h"
 #include "exceptions.h"
 #include "disk.h"
+#include "mode_page_device.h"
 #include <sstream>
-#include "../rascsi.h"
 
-Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockCommands()
+Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 {
+	disks.insert(this);
+
 	// Work initialization
 	configured_sector_size = 0;
 	disk.size = 0;
@@ -32,42 +33,34 @@ Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockC
 	disk.dcache = NULL;
 	disk.image_offset = 0;
 
-	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
-	AddCommand(SCSIDEV::eCmdRezero, "Rezero", &Disk::Rezero);
-	AddCommand(SCSIDEV::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
-	AddCommand(SCSIDEV::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	AddCommand(SCSIDEV::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
-	AddCommand(SCSIDEV::eCmdRead6, "Read6", &Disk::Read6);
-	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &Disk::Write6);
-	AddCommand(SCSIDEV::eCmdSeek6, "Seek6", &Disk::Seek6);
-	AddCommand(SCSIDEV::eCmdInquiry, "Inquiry", &Disk::Inquiry);
-	AddCommand(SCSIDEV::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect6);
-	AddCommand(SCSIDEV::eCmdReserve6, "Reserve6", &Disk::Reserve6);
-	AddCommand(SCSIDEV::eCmdRelease6, "Release6", &Disk::Release6);
-	AddCommand(SCSIDEV::eCmdModeSense6, "ModeSense6", &Disk::ModeSense6);
-	AddCommand(SCSIDEV::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
-	AddCommand(SCSIDEV::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
-	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
-	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
-	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
-	AddCommand(SCSIDEV::eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
-	AddCommand(SCSIDEV::eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
-	AddCommand(SCSIDEV::eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
-	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
-	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
-	AddCommand(SCSIDEV::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	AddCommand(SCSIDEV::eCmdModeSelect10, "ModeSelect10", &Disk::ModeSelect10);
-	AddCommand(SCSIDEV::eCmdReserve10, "Reserve10", &Disk::Reserve10);
-	AddCommand(SCSIDEV::eCmdRelease10, "Release10", &Disk::Release10);
-	AddCommand(SCSIDEV::eCmdModeSense10, "ModeSense10", &Disk::ModeSense10);
-	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
-	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
-	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(SCSIDEV::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
-	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
+	AddCommand(ScsiDefs::eCmdRezero, "Rezero", &Disk::Rezero);
+	AddCommand(ScsiDefs::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
+	AddCommand(ScsiDefs::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
+	AddCommand(ScsiDefs::eCmdRead6, "Read6", &Disk::Read6);
+	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &Disk::Write6);
+	AddCommand(ScsiDefs::eCmdSeek6, "Seek6", &Disk::Seek6);
+	AddCommand(ScsiDefs::eCmdReserve6, "Reserve6", &Disk::Reserve6);
+	AddCommand(ScsiDefs::eCmdRelease6, "Release6", &Disk::Release6);
+	AddCommand(ScsiDefs::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
+	AddCommand(ScsiDefs::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
+	AddCommand(ScsiDefs::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
+	AddCommand(ScsiDefs::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
+	AddCommand(ScsiDefs::eCmdRead10, "Read10", &Disk::Read10);
+	AddCommand(ScsiDefs::eCmdWrite10, "Write10", &Disk::Write10);
+	AddCommand(ScsiDefs::eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
+	AddCommand(ScsiDefs::eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
+	AddCommand(ScsiDefs::eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
+	AddCommand(ScsiDefs::eCmdSeek10, "Seek10", &Disk::Seek10);
+	AddCommand(ScsiDefs::eCmdVerify10, "Verify10", &Disk::Verify10);
+	AddCommand(ScsiDefs::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
+	AddCommand(ScsiDefs::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	AddCommand(ScsiDefs::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
+	AddCommand(ScsiDefs::eCmdReserve10, "Reserve10", &Disk::Reserve10);
+	AddCommand(ScsiDefs::eCmdRelease10, "Release10", &Disk::Release10);
+	AddCommand(ScsiDefs::eCmdRead16, "Read16", &Disk::Read16);
+	AddCommand(ScsiDefs::eCmdWrite16, "Write16", &Disk::Write16);
+	AddCommand(ScsiDefs::eCmdVerify16, "Verify16", &Disk::Verify16);
+	AddCommand(ScsiDefs::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 }
 
 Disk::~Disk()
@@ -89,9 +82,11 @@ Disk::~Disk()
 	for (auto const& command : commands) {
 		delete command.second;
 	}
+
+	disks.erase(this);
 }
 
-void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
+void Disk::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -100,8 +95,8 @@ bool Disk::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
 
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 
@@ -110,8 +105,10 @@ bool Disk::Dispatch(SCSIDEV *controller)
 		return true;
 	}
 
-	// Unknown command
-	return false;
+	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
+	// The base class handles the less specific commands
+	return ModePageDevice::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -147,16 +144,6 @@ void Disk::Open(const Filepath& path)
 	SetLocked(false);
 }
 
-void Disk::TestUnitReady(SASIDEV *controller)
-{
-	if (!CheckReady()) {
-		controller->Error();
-		return;
-	}
-
-	controller->Status();
-}
-
 void Disk::Rezero(SASIDEV *controller)
 {
 	if (!CheckReady()) {
@@ -165,28 +152,6 @@ void Disk::Rezero(SASIDEV *controller)
 	}
 
 	controller->Status();
-}
-
-void Disk::RequestSense(SASIDEV *controller)
-{
-	int lun = controller->GetEffectiveLun();
-
-    // Note: According to the SCSI specs the LUN handling for REQUEST SENSE non-existing LUNs do *not* result
-	// in CHECK CONDITION. Only the Sense Key and ASC are set in order to signal the non-existing LUN.
-	if (!ctrl->unit[lun]) {
-        // LUN 0 can be assumed to be present (required to call RequestSense() below)
-		lun = 0;
-
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-		ctrl->status = 0x00;
-	}
-
-    ctrl->length = ctrl->unit[lun]->RequestSense(ctrl->cmd, ctrl->buffer);
-	ASSERT(ctrl->length > 0);
-
-    LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
-
-    controller->DataIn();
 }
 
 void Disk::FormatUnit(SASIDEV *controller)
@@ -392,93 +357,6 @@ void Disk::Verify16(SASIDEV *controller)
 	}
 }
 
-void Disk::Inquiry(SASIDEV *controller)
-{
-	int lun = controller->GetEffectiveLun();
-	const ScsiPrimaryCommands *device = ctrl->unit[lun];
-
-	// Find a valid unit
-	// TODO The code below is probably wrong. It results in the same INQUIRY data being
-	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	// In addition, it supports gaps in the LUN list, which is not correct.
-	if (!device) {
-		for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
-			if (ctrl->unit[valid_lun]) {
-				device = ctrl->unit[valid_lun];
-				break;
-			}
-		}
-	}
-
-	if (device) {
-		ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
-	} else {
-		ctrl->length = 0;
-	}
-
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	// Report if the device does not support the requested LUN
-	if (!ctrl->unit[lun]) {
-		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
-
-		ctrl->buffer[0] |= 0x7f;
-	}
-
-	controller->DataIn();
-}
-
-void Disk::ModeSelect6(SASIDEV *controller)
-{
-	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
-
-	ctrl->length = ModeSelectCheck6(ctrl->cmd);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataOut();
-}
-
-void Disk::ModeSelect10(SASIDEV *controller)
-{
-	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
-
-	ctrl->length = ModeSelectCheck10(ctrl->cmd);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataOut();
-}
-
-void Disk::ModeSense6(SASIDEV *controller)
-{
-	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataIn();
-}
-
-void Disk::ModeSense10(SASIDEV *controller)
-{
-	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataIn();
-}
-
 void Disk::StartStopUnit(SASIDEV *controller)
 {
 	if (!StartStop(ctrl->cmd)) {
@@ -556,122 +434,6 @@ bool Disk::Eject(bool force)
 	}
 
 	return status;
-}
-
-bool Disk::CheckReady()
-{
-	// Not ready if reset
-	if (IsReset()) {
-		SetStatusCode(STATUS_DEVRESET);
-		SetReset(false);
-		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
-		return false;
-	}
-
-	// Not ready if it needs attention
-	if (IsAttn()) {
-		SetStatusCode(STATUS_ATTENTION);
-		SetAttn(false);
-		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
-		return false;
-	}
-
-	// Return status if not ready
-	if (!IsReady()) {
-		SetStatusCode(STATUS_NOTREADY);
-		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
-		return false;
-	}
-
-	// Initialization with no error
-	LOGTRACE("%s Disk is ready", __PRETTY_FUNCTION__);
-
-	return true;
-}
-
-//---------------------------------------------------------------------------
-//
-//	REQUEST SENSE
-//	*SASI is a separate process
-//
-//---------------------------------------------------------------------------
-int Disk::RequestSense(const DWORD *cdb, BYTE *buf)
-{
-	ASSERT(cdb);
-	ASSERT(buf);
-
-	// Return not ready only if there are no errors
-	if (GetStatusCode() == STATUS_NOERROR) {
-		if (!IsReady()) {
-			SetStatusCode(STATUS_NOTREADY);
-		}
-	}
-
-	// Size determination (according to allocation length)
-	int size = (int)cdb[4];
-	ASSERT((size >= 0) && (size < 0x100));
-
-	// For SCSI-1, transfer 4 bytes when the size is 0
-    // (Deleted this specification for SCSI-2)
-	if (size == 0) {
-		size = 4;
-	}
-
-	// Clear the buffer
-	memset(buf, 0, size);
-
-	// Set 18 bytes including extended sense data
-
-	// Current error
-	buf[0] = 0x70;
-
-	buf[2] = (BYTE)(GetStatusCode() >> 16);
-	buf[7] = 10;
-	buf[12] = (BYTE)(GetStatusCode() >> 8);
-	buf[13] = (BYTE)GetStatusCode();
-
-	return size;
-}
-
-int Disk::ModeSelectCheck(const DWORD *cdb, int length)
-{
-	// Error if save parameters are set for other types than of SCHD or SCRM
-	if (!IsSCSIHD() && (cdb[1] & 0x01)) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	return length;
-}
-
-int Disk::ModeSelectCheck6(const DWORD *cdb)
-{
-	// Receive the data specified by the parameter length
-	return ModeSelectCheck(cdb, cdb[4]);
-}
-
-int Disk::ModeSelectCheck10(const DWORD *cdb)
-{
-	// Receive the data specified by the parameter length
-	int length = cdb[7];
-	length <<= 8;
-	length |= cdb[8];
-	if (length > 0x800) {
-		length = 0x800;
-	}
-
-	return ModeSelectCheck(cdb, length);
-}
-
-bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
-{
-	ASSERT(buf);
-	ASSERT(length >= 0);
-
-	// cannot be set
-	SetStatusCode(STATUS_INVALIDPRM);
-
-	return false;
 }
 
 int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
@@ -1423,38 +1185,6 @@ void Disk::ReadCapacity16_ReadLong16(SASIDEV *controller)
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 		break;
 	}
-}
-
-void Disk::ReportLuns(SASIDEV *controller)
-{
-	BYTE *buf = ctrl->buffer;
-
-	if (!CheckReady()) {
-		controller->Error();
-		return;
-	}
-
-	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
-	memset(buf, 0, allocation_length);
-
-	// Count number of available LUNs for the current device
-	int luns;
-	for (luns = 0; luns < controller->GetCtrl()->device->GetSupportedLuns(); luns++) {
-		if (!controller->GetCtrl()->unit[luns]) {
-			break;
-		}
-	}
-
-	// LUN list length, 8 bytes per LUN
-	// SCSI standard: The contents of the LUN LIST LENGTH field	are not altered based on the allocation length
-	buf[0] = (luns * 8) >> 24;
-	buf[1] = (luns * 8) >> 16;
-	buf[2] = (luns * 8) >> 8;
-	buf[3] = luns * 8;
-
-	ctrl->length = allocation_length < 8 + luns * 8 ? allocation_length : 8 + luns * 8;
-
-	controller->DataIn();
 }
 
 //---------------------------------------------------------------------------

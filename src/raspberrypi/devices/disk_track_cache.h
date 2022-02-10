@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "../rascsi.h"
 #include "filepath.h"
 
 // Number of tracks to cache

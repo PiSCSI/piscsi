@@ -17,15 +17,15 @@ class ScsiPrimaryCommands
 {
 public:
 
-	ScsiPrimaryCommands() {};
-	virtual ~ScsiPrimaryCommands() {};
+	ScsiPrimaryCommands() {}
+	virtual ~ScsiPrimaryCommands() {}
 
 	// Mandatory commands
 	virtual void TestUnitReady(SASIDEV *) = 0;
 	virtual void Inquiry(SASIDEV *) = 0;
 	virtual void ReportLuns(SASIDEV *) = 0;
 
-	// Implemented optional commands
+	// Optional commands
 	virtual void RequestSense(SASIDEV *) = 0;
 	virtual void ModeSense6(SASIDEV *) = 0;
 	virtual void ModeSense10(SASIDEV *) = 0;
