@@ -11,9 +11,11 @@
 
 #pragma once
 
+#include "scsi_primary_commands.h"
+
 class SASIDEV;
 
-class ScsiMmcCommands
+class ScsiMmcCommands : virtual public ScsiPrimaryCommands
 {
 public:
 

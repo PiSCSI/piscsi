@@ -11,9 +11,11 @@
 
 #pragma once
 
+#include "scsi_primary_commands.h"
+
 class SASIDEV;
 
-class ScsiBlockCommands
+class ScsiBlockCommands : virtual public ScsiPrimaryCommands
 {
 public:
 
@@ -21,9 +23,6 @@ public:
 	virtual ~ScsiBlockCommands() {}
 
 	// Mandatory commands
-	virtual void TestUnitReady(SASIDEV *) = 0;
-	virtual void Inquiry(SASIDEV *) = 0;
-	virtual void ReportLuns(SASIDEV *) = 0;
 	virtual void FormatUnit(SASIDEV *) = 0;
 	virtual void ReadCapacity10(SASIDEV *) = 0;
 	virtual void ReadCapacity16(SASIDEV *) = 0;
