@@ -42,8 +42,10 @@ bool ModePageDevice::Dispatch(SCSIDEV *controller)
 		return true;
 	}
 
-	// Unknown command
-	return false;
+	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
+
+	// The base class handles the less specific commands
+	return PrimaryDevice::Dispatch(controller);
 }
 
 void ModePageDevice::ModeSense6(SASIDEV *controller)
