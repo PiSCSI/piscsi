@@ -27,6 +27,8 @@ public:
 	virtual void Inquiry(SASIDEV *) = 0;
 	virtual void ReportLuns(SASIDEV *) = 0;
 
+	bool CheckReady();
+
 protected:
 
 	SASIDEV::ctrl_t *ctrl;

@@ -21,6 +21,7 @@
 #include "fileio.h"
 #include "log.h"
 
+class Device;
 class Disk;
 
 //===========================================================================

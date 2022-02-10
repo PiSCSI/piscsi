@@ -140,7 +140,6 @@ public:
 	void SetBlockCount(uint32_t);
 	bool CheckBlockAddress(SASIDEV *, access_mode);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
-	bool CheckReady();
 
 	// TODO This method should not be called by SASIDEV
 	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
