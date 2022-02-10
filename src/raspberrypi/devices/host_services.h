@@ -10,7 +10,6 @@
 
 #include "os.h"
 #include "disk.h"
-#include "../rascsi.h"
 
 class HostServices: public Disk
 {
