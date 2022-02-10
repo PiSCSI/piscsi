@@ -34,42 +34,42 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	disk.dcache = NULL;
 	disk.image_offset = 0;
 
-	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
-	AddCommand(SCSIDEV::eCmdRezero, "Rezero", &Disk::Rezero);
-	AddCommand(SCSIDEV::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
-	AddCommand(SCSIDEV::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	AddCommand(SCSIDEV::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
-	AddCommand(SCSIDEV::eCmdRead6, "Read6", &Disk::Read6);
-	AddCommand(SCSIDEV::eCmdWrite6, "Write6", &Disk::Write6);
-	AddCommand(SCSIDEV::eCmdSeek6, "Seek6", &Disk::Seek6);
-	AddCommand(SCSIDEV::eCmdInquiry, "Inquiry", &Disk::Inquiry);
-	AddCommand(SCSIDEV::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect6);
-	AddCommand(SCSIDEV::eCmdReserve6, "Reserve6", &Disk::Reserve6);
-	AddCommand(SCSIDEV::eCmdRelease6, "Release6", &Disk::Release6);
-	AddCommand(SCSIDEV::eCmdModeSense6, "ModeSense6", &Disk::ModeSense6);
-	AddCommand(SCSIDEV::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	AddCommand(SCSIDEV::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
-	AddCommand(SCSIDEV::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
-	AddCommand(SCSIDEV::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
-	AddCommand(SCSIDEV::eCmdRead10, "Read10", &Disk::Read10);
-	AddCommand(SCSIDEV::eCmdWrite10, "Write10", &Disk::Write10);
-	AddCommand(SCSIDEV::eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
-	AddCommand(SCSIDEV::eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
-	AddCommand(SCSIDEV::eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
-	AddCommand(SCSIDEV::eCmdSeek10, "Seek10", &Disk::Seek10);
-	AddCommand(SCSIDEV::eCmdVerify10, "Verify10", &Disk::Verify10);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
-	AddCommand(SCSIDEV::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
-	AddCommand(SCSIDEV::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	AddCommand(SCSIDEV::eCmdModeSelect10, "ModeSelect10", &Disk::ModeSelect10);
-	AddCommand(SCSIDEV::eCmdReserve10, "Reserve10", &Disk::Reserve10);
-	AddCommand(SCSIDEV::eCmdRelease10, "Release10", &Disk::Release10);
-	AddCommand(SCSIDEV::eCmdModeSense10, "ModeSense10", &Disk::ModeSense10);
-	AddCommand(SCSIDEV::eCmdRead16, "Read16", &Disk::Read16);
-	AddCommand(SCSIDEV::eCmdWrite16, "Write16", &Disk::Write16);
-	AddCommand(SCSIDEV::eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(SCSIDEV::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
-	AddCommand(SCSIDEV::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
+	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &Disk::TestUnitReady);
+	AddCommand(ScsiDefs::eCmdRezero, "Rezero", &Disk::Rezero);
+	AddCommand(ScsiDefs::eCmdRequestSense, "RequestSense", &Disk::RequestSense);
+	AddCommand(ScsiDefs::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
+	AddCommand(ScsiDefs::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
+	AddCommand(ScsiDefs::eCmdRead6, "Read6", &Disk::Read6);
+	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &Disk::Write6);
+	AddCommand(ScsiDefs::eCmdSeek6, "Seek6", &Disk::Seek6);
+	AddCommand(ScsiDefs::eCmdInquiry, "Inquiry", &Disk::Inquiry);
+	AddCommand(ScsiDefs::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect6);
+	AddCommand(ScsiDefs::eCmdReserve6, "Reserve6", &Disk::Reserve6);
+	AddCommand(ScsiDefs::eCmdRelease6, "Release6", &Disk::Release6);
+	AddCommand(ScsiDefs::eCmdModeSense6, "ModeSense6", &Disk::ModeSense6);
+	AddCommand(ScsiDefs::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
+	AddCommand(ScsiDefs::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
+	AddCommand(ScsiDefs::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
+	AddCommand(ScsiDefs::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
+	AddCommand(ScsiDefs::eCmdRead10, "Read10", &Disk::Read10);
+	AddCommand(ScsiDefs::eCmdWrite10, "Write10", &Disk::Write10);
+	AddCommand(ScsiDefs::eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
+	AddCommand(ScsiDefs::eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
+	AddCommand(ScsiDefs::eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
+	AddCommand(ScsiDefs::eCmdSeek10, "Seek10", &Disk::Seek10);
+	AddCommand(ScsiDefs::eCmdVerify10, "Verify10", &Disk::Verify10);
+	AddCommand(ScsiDefs::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
+	AddCommand(ScsiDefs::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	AddCommand(ScsiDefs::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
+	AddCommand(ScsiDefs::eCmdModeSelect10, "ModeSelect10", &Disk::ModeSelect10);
+	AddCommand(ScsiDefs::eCmdReserve10, "Reserve10", &Disk::Reserve10);
+	AddCommand(ScsiDefs::eCmdRelease10, "Release10", &Disk::Release10);
+	AddCommand(ScsiDefs::eCmdModeSense10, "ModeSense10", &Disk::ModeSense10);
+	AddCommand(ScsiDefs::eCmdRead16, "Read16", &Disk::Read16);
+	AddCommand(ScsiDefs::eCmdWrite16, "Write16", &Disk::Write16);
+	AddCommand(ScsiDefs::eCmdVerify16, "Verify16", &Disk::Verify16);
+	AddCommand(ScsiDefs::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
+	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &Disk::ReportLuns);
 }
 
 Disk::~Disk()
@@ -95,7 +95,7 @@ Disk::~Disk()
 	disks.erase(this);
 }
 
-void Disk::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
+void Disk::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -104,8 +104,8 @@ bool Disk::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
 
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 
