@@ -18,6 +18,7 @@ PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id
 	ctrl = NULL;
 
 	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
+	AddCommand(ScsiDefs::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
 	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 }
 

@@ -40,7 +40,6 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	AddCommand(ScsiDefs::eCmdRead6, "Read6", &Disk::Read6);
 	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &Disk::Write6);
 	AddCommand(ScsiDefs::eCmdSeek6, "Seek6", &Disk::Seek6);
-	AddCommand(ScsiDefs::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
 	AddCommand(ScsiDefs::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect6);
 	AddCommand(ScsiDefs::eCmdReserve6, "Reserve6", &Disk::Reserve6);
 	AddCommand(ScsiDefs::eCmdRelease6, "Release6", &Disk::Release6);
