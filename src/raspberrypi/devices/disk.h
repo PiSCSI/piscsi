@@ -78,10 +78,6 @@ public:
 private:
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void ModeSelect6(SASIDEV *) override;
-	void ModeSelect10(SASIDEV *) override;
-	void ModeSense6(SASIDEV *) override;
-	void ModeSense10(SASIDEV *) override;
 	void StartStopUnit(SASIDEV *) override;
 	void SendDiagnostic(SASIDEV *) override;
 	void PreventAllowMediumRemoval(SASIDEV *);
@@ -143,9 +139,6 @@ public:
 	bool CheckBlockAddress(SASIDEV *, access_mode);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 
-	// TODO This method should not be called by SASIDEV
-	virtual bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length);
-
 protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);
@@ -171,7 +164,4 @@ private:
 	void ReadWriteLong16(SASIDEV *);
 	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
-	int ModeSelectCheck(const DWORD *cdb, int length);
-	int ModeSelectCheck6(const DWORD *cdb);
-	int ModeSelectCheck10(const DWORD *cdb);
 };

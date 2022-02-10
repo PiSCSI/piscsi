@@ -38,10 +38,6 @@ public:
 	virtual void ReadLong16(SASIDEV *) = 0;
 	virtual void WriteLong16(SASIDEV *) = 0;
 	virtual void Verify16(SASIDEV *) = 0;
-	virtual void ModeSense6(SASIDEV *) = 0;
-	virtual void ModeSense10(SASIDEV *) = 0;
-	virtual void ModeSelect6(SASIDEV *) = 0;
-	virtual void ModeSelect10(SASIDEV *) = 0;
 	virtual void ReassignBlocks(SASIDEV *) = 0;
 	virtual void SendDiagnostic(SASIDEV *) = 0;
 	virtual void StartStopUnit(SASIDEV *) = 0;

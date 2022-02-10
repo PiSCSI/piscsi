@@ -39,10 +39,8 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	AddCommand(ScsiDefs::eCmdRead6, "Read6", &Disk::Read6);
 	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &Disk::Write6);
 	AddCommand(ScsiDefs::eCmdSeek6, "Seek6", &Disk::Seek6);
-	AddCommand(ScsiDefs::eCmdModeSelect6, "ModeSelect6", &Disk::ModeSelect6);
 	AddCommand(ScsiDefs::eCmdReserve6, "Reserve6", &Disk::Reserve6);
 	AddCommand(ScsiDefs::eCmdRelease6, "Release6", &Disk::Release6);
-	AddCommand(ScsiDefs::eCmdModeSense6, "ModeSense6", &Disk::ModeSense6);
 	AddCommand(ScsiDefs::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
 	AddCommand(ScsiDefs::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
 	AddCommand(ScsiDefs::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
@@ -57,10 +55,8 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	AddCommand(ScsiDefs::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
 	AddCommand(ScsiDefs::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
 	AddCommand(ScsiDefs::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	AddCommand(ScsiDefs::eCmdModeSelect10, "ModeSelect10", &Disk::ModeSelect10);
 	AddCommand(ScsiDefs::eCmdReserve10, "Reserve10", &Disk::Reserve10);
 	AddCommand(ScsiDefs::eCmdRelease10, "Release10", &Disk::Release10);
-	AddCommand(ScsiDefs::eCmdModeSense10, "ModeSense10", &Disk::ModeSense10);
 	AddCommand(ScsiDefs::eCmdRead16, "Read16", &Disk::Read16);
 	AddCommand(ScsiDefs::eCmdWrite16, "Write16", &Disk::Write16);
 	AddCommand(ScsiDefs::eCmdVerify16, "Verify16", &Disk::Verify16);
@@ -361,54 +357,6 @@ void Disk::Verify16(SASIDEV *controller)
 	}
 }
 
-void Disk::ModeSelect6(SASIDEV *controller)
-{
-	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
-
-	ctrl->length = ModeSelectCheck6(ctrl->cmd);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataOut();
-}
-
-void Disk::ModeSelect10(SASIDEV *controller)
-{
-	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
-
-	ctrl->length = ModeSelectCheck10(ctrl->cmd);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataOut();
-}
-
-void Disk::ModeSense6(SASIDEV *controller)
-{
-	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataIn();
-}
-
-void Disk::ModeSense10(SASIDEV *controller)
-{
-	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
-	}
-
-	controller->DataIn();
-}
-
 void Disk::StartStopUnit(SASIDEV *controller)
 {
 	if (!StartStop(ctrl->cmd)) {
@@ -486,47 +434,6 @@ bool Disk::Eject(bool force)
 	}
 
 	return status;
-}
-
-int Disk::ModeSelectCheck(const DWORD *cdb, int length)
-{
-	// Error if save parameters are set for other types than of SCHD or SCRM
-	if (!IsSCSIHD() && (cdb[1] & 0x01)) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	return length;
-}
-
-int Disk::ModeSelectCheck6(const DWORD *cdb)
-{
-	// Receive the data specified by the parameter length
-	return ModeSelectCheck(cdb, cdb[4]);
-}
-
-int Disk::ModeSelectCheck10(const DWORD *cdb)
-{
-	// Receive the data specified by the parameter length
-	int length = cdb[7];
-	length <<= 8;
-	length |= cdb[8];
-	if (length > 0x800) {
-		length = 0x800;
-	}
-
-	return ModeSelectCheck(cdb, length);
-}
-
-bool Disk::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
-{
-	ASSERT(buf);
-	ASSERT(length >= 0);
-
-	// cannot be set
-	SetStatusCode(STATUS_INVALIDPRM);
-
-	return false;
 }
 
 int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
