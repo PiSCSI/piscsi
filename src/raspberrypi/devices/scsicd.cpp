@@ -19,6 +19,8 @@
 #include "exceptions.h"
 #include <sstream>
 
+using namespace ScsiDefs;
+
 //===========================================================================
 //
 //	CD Track
@@ -240,8 +242,8 @@ SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 	dataindex = -1;
 	audioindex = -1;
 
-	AddCommand(ScsiDefs::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	AddCommand(ScsiDefs::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+	AddCommand(eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 //---------------------------------------------------------------------------
@@ -259,7 +261,7 @@ SCSICD::~SCSICD()
 	}
 }
 
-void SCSICD::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSICD::*execute)(SASIDEV *))
+void SCSICD::AddCommand(scsi_command opcode, const char* name, void (SCSICD::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -268,7 +270,7 @@ bool SCSICD::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	auto it = commands.find(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]));
+	auto it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
 	if (it != commands.end()) {
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
 

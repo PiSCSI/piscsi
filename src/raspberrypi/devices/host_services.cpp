@@ -33,12 +33,14 @@
 #include "controllers/scsidev_ctrl.h"
 #include "host_services.h"
 
+using namespace ScsiDefs;
+
 HostServices::HostServices() : ModePageDevice("SCHS")
 {
-	AddCommand(ScsiDefs::eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+	AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
-void HostServices::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (HostServices::*execute)(SASIDEV *))
+void HostServices::AddCommand(scsi_command opcode, const char* name, void (HostServices::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -47,7 +49,7 @@ bool HostServices::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	auto it = commands.find(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]));
+	auto it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
 	if (it != commands.end()) {
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
 

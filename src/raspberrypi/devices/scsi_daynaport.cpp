@@ -30,6 +30,8 @@
 #include "scsi_daynaport.h"
 #include <sstream>
 
+using namespace ScsiDefs;
+
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
@@ -38,13 +40,13 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	m_tap = NULL;
 	m_bTapEnable = false;
 
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	AddCommand(ScsiDefs::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	AddCommand(ScsiDefs::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	AddCommand(ScsiDefs::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	AddCommand(ScsiDefs::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	AddCommand(ScsiDefs::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	AddCommand(eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	AddCommand(eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	AddCommand(eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	AddCommand(eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	AddCommand(eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
 SCSIDaynaPort::~SCSIDaynaPort()
@@ -60,7 +62,7 @@ SCSIDaynaPort::~SCSIDaynaPort()
 	}
 }
 
-void SCSIDaynaPort::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
+void SCSIDaynaPort::AddCommand(scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -69,7 +71,7 @@ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	auto it = commands.find(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]));
+	auto it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
 	if (it != commands.end()) {
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
 

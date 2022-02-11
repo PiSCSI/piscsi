@@ -22,6 +22,7 @@
 #include <sstream>
 
 using namespace std;
+using namespace ScsiDefs;
 
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
@@ -37,9 +38,9 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	fs = new CFileSys();
 	fs->Reset();
 
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	AddCommand(ScsiDefs::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	AddCommand(ScsiDefs::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	AddCommand(eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	AddCommand(eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
 SCSIBR::~SCSIBR()
@@ -96,7 +97,7 @@ bool SCSIBR::Init(const map<string, string>& params)
 #endif
 }
 
-void SCSIBR::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
+void SCSIBR::AddCommand(scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -105,7 +106,7 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	auto it = commands.find(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]));
+	auto it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
 	if (it != commands.end()) {
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
 
