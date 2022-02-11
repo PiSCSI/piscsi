@@ -478,13 +478,10 @@ void SCSICD::ReadToc(SASIDEV *controller)
 //---------------------------------------------------------------------------
 int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+		return 0;
 	}
 
 	// Basic data

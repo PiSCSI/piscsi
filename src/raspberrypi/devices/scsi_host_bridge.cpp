@@ -108,14 +108,10 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 //---------------------------------------------------------------------------
 int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-	ASSERT(cdb[0] == 0x12);
-
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+		return 0;
 	}
 
 	// Basic data

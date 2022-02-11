@@ -174,6 +174,33 @@ bool PrimaryDevice::CheckReady()
 	return true;
 }
 
+int PrimaryDevice::Inquiry(int type, bool is_removable, const DWORD *cdb, BYTE *buf)
+{
+	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	if (allocation_length > 4) {
+		if (allocation_length > 44) {
+			allocation_length = 44;
+		}
+
+		// Basic data
+		// buf[0] ... SCSI Device type
+		// buf[1] ... Bit 7: Removable/not removable
+		// buf[2] ... SCSI-2 compliant command system
+		// buf[3] ... SCSI-2 compliant Inquiry response
+		// buf[4] ... Inquiry additional data
+		memset(buf, 0, allocation_length);
+		buf[0] = type;
+		buf[1] = is_removable ? 0x80 : 0x00;
+		buf[2] = 0x01;
+		buf[4] = 0x1F;
+
+		// Padded vendor, product, revision
+		memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	}
+
+	return allocation_length;
+}
+
 int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
