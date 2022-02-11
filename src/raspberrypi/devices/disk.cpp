@@ -101,8 +101,6 @@ bool Disk::Dispatch(SCSIDEV *controller)
 		return true;
 	}
 
-	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
-
 	// The base class handles the less specific commands
 	return ModePageDevice::Dispatch(controller);
 }
