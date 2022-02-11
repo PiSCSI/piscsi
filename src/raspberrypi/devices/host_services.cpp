@@ -65,7 +65,7 @@ void HostServices::StartStopUnit(SASIDEV *controller)
 
 	if (!start) {
 		// Delete all other devices. This will also flush any caches.
-		for (auto device : devices) {
+		for (const Device *device : devices) {
 			if (device != this) {
 				delete device;
 			}
