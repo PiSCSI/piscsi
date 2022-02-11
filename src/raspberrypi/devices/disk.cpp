@@ -91,12 +91,11 @@ bool Disk::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
+	auto it = commands.find(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]));
+	if (it != commands.end()) {
+		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
 
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
+		(this->*it->second->execute)(controller);
 
 		return true;
 	}
