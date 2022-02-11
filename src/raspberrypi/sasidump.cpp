@@ -23,7 +23,6 @@
 #include "fileio.h"
 #include "filepath.h"
 #include "gpiobus.h"
-#include "rascsi.h"
 #include "rascsi_version.h"
 
 #define BUFSIZE 1024 * 64			// Maybe around 64KB?

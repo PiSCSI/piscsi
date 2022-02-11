@@ -10,7 +10,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi.h"
 #include "os.h"
 #include "controllers/sasidev_ctrl.h"
 #include "devices/device_factory.h"
@@ -34,6 +33,7 @@
 #include <list>
 #include <vector>
 #include <map>
+#include "config.h"
 
 using namespace std;
 using namespace spdlog;

@@ -12,7 +12,7 @@
 #if !defined(gpiobus_h)
 #define gpiobus_h
 
-#include "rascsi.h"
+#include "config.h"
 #include "scsi.h"
 
 //---------------------------------------------------------------------------

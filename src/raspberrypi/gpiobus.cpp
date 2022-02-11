@@ -16,8 +16,9 @@
 
 #include "os.h"
 #include "gpiobus.h"
+
+#include "config.h"
 #include "log.h"
-#include "rascsi.h"
 
 #ifdef __linux__
 //---------------------------------------------------------------------------
