@@ -20,7 +20,6 @@
 #include "exceptions.h"
 #include "disk.h"
 #include "mode_page_device.h"
-#include <sstream>
 
 using namespace scsi_defs;
 
@@ -1251,9 +1250,8 @@ bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
 
 	uint64_t capacity = GetBlockCount();
 	if (block > capacity) {
-		ostringstream s;
-		s << "Capacity of " << capacity << " blocks exceeded: " << "Trying to access block " << block;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
+				+ to_string(block)).c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
@@ -1314,10 +1312,8 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	// Check capacity
 	uint64_t capacity = GetBlockCount();
 	if (start > capacity || start + count > capacity) {
-		ostringstream s;
-		s << "Capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to read block " << start << ", block count " << ctrl->blocks;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
+				+ to_string(start) + ", block count " + to_string(ctrl->blocks)).c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
@@ -1341,9 +1337,7 @@ void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 {
 	set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
 	if (!sector_sizes.empty() && sector_sizes.find(size) == sector_sizes.end()) {
-		stringstream error;
-		error << "Invalid block size of " << size << " bytes";
-		throw io_exception(error.str());
+		throw io_exception("Invalid block size of " + to_string(size) + " bytes");
 	}
 
 	switch (size) {
