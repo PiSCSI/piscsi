@@ -28,6 +28,7 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	tap = NULL;
 	m_bTapEnable = false;
+	packet_enable = false;
 
 	fsoptlen = 0;
 	fsoutlen = 0;
