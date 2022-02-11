@@ -15,7 +15,7 @@
 using namespace std;
 using namespace scsi_defs;
 
-PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id)
+PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
 	ctrl = NULL;
 

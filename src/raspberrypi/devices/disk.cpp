@@ -24,7 +24,7 @@
 
 using namespace scsi_defs;
 
-Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
+Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 {
 	// Work initialization
 	configured_sector_size = 0;

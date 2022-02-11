@@ -32,6 +32,8 @@
 #include <set>
 #include <map>
 
+using namespace std;
+
 class Disk : public ModePageDevice, ScsiBlockCommands
 {
 private:
@@ -55,7 +57,7 @@ private:
 	Dispatcher<Disk> dispatcher;
 
 public:
-	Disk(std::string);
+	Disk(const string&);
 	virtual ~Disk();
 
 	virtual bool Dispatch(SCSIDEV *) override;

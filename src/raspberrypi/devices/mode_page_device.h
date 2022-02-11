@@ -18,7 +18,7 @@ class ModePageDevice: public PrimaryDevice
 {
 public:
 
-	ModePageDevice(const string);
+	ModePageDevice(const string&);
 	virtual ~ModePageDevice() {}
 
 	virtual bool Dispatch(SCSIDEV *) override;
