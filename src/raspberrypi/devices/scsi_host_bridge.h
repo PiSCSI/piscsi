@@ -29,7 +29,7 @@
 class CTapDriver;
 class CFileSys;
 
-class SCSIBR : public Disk
+class SCSIBR : public PrimaryDevice
 {
 
 public:
@@ -48,7 +48,7 @@ public:
 	void SendMessage10(SASIDEV *);
 
 private:
-	typedef Disk super;
+	typedef PrimaryDevice super;
 
 	Dispatcher<SCSIBR> dispatcher;
 

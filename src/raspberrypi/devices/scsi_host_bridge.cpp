@@ -24,8 +24,7 @@
 using namespace std;
 using namespace scsi_defs;
 
-// TODO Disk should not be the superclass
-SCSIBR::SCSIBR() : Disk("SCBR")
+SCSIBR::SCSIBR() : PrimaryDevice("SCBR")
 {
 	tap = NULL;
 	m_bTapEnable = false;
@@ -151,15 +150,9 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	TEST UNIT READY
-//
-//---------------------------------------------------------------------------
 void SCSIBR::TestUnitReady(SASIDEV *controller)
 {
-	// TEST UNIT READY Success
-
+	// Always successful
 	controller->Status();}
 
 //---------------------------------------------------------------------------
