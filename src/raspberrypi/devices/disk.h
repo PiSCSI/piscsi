@@ -26,7 +26,6 @@
 #include "file_support.h"
 #include "filepath.h"
 #include "interfaces/scsi_block_commands.h"
-#include "interfaces/scsi_primary_commands.h"
 #include "mode_page_device.h"
 #include <string>
 #include <set>
