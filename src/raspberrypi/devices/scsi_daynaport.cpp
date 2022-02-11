@@ -115,6 +115,7 @@ void SCSIDaynaPort::Open(const Filepath& path)
 
 int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 {
+	// Processor device, not removable
 	return PrimaryDevice::Inquiry(3, false, cdb, buf);
 }
 

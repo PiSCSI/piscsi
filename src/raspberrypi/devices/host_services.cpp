@@ -54,6 +54,7 @@ void HostServices::TestUnitReady(SASIDEV *controller)
 
 int HostServices::Inquiry(const DWORD *cdb, BYTE *buf)
 {
+	// Processor device, not removable
 	return PrimaryDevice::Inquiry(3, false, cdb, buf);
 }
 
@@ -65,7 +66,7 @@ void HostServices::StartStopUnit(SASIDEV *controller)
 	if (!start) {
 		// Delete all other devices. This will also flush any caches.
 		for (auto device : devices) {
-			if (device && device != this) {
+			if (device != this) {
 				delete device;
 			}
 		}
