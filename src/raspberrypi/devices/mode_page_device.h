@@ -35,10 +35,10 @@ private:
 
 	Dispatcher<ModePageDevice> dispatcher;
 
-	void ModeSense6(SASIDEV *) override;
-	void ModeSense10(SASIDEV *) override;
-	void ModeSelect6(SASIDEV *) override;
-	void ModeSelect10(SASIDEV *) override;
+	void ModeSense6(SASIDEV *);
+	void ModeSense10(SASIDEV *);
+	void ModeSelect6(SASIDEV *);
+	void ModeSelect10(SASIDEV *);
 
 	int ModeSelectCheck(const DWORD *, int);
 	int ModeSelectCheck6(const DWORD *);
