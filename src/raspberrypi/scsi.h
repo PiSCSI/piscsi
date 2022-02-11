@@ -154,7 +154,7 @@ private:
 	static const char* phase_str_table[];
 };
 
-namespace ScsiDefs {
+namespace scsi_defs {
 	enum scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,

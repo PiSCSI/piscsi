@@ -22,7 +22,7 @@
 #include <sstream>
 
 using namespace std;
-using namespace ScsiDefs;
+using namespace scsi_defs;
 
 SCSIBR::SCSIBR() : Disk("SCBR")
 {

@@ -14,7 +14,7 @@
 #include "mode_page_device.h"
 
 using namespace std;
-using namespace ScsiDefs;
+using namespace scsi_defs;
 
 ModePageDevice::ModePageDevice(const string id) : PrimaryDevice(id)
 {

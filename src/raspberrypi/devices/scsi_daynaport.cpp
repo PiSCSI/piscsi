@@ -30,7 +30,7 @@
 #include "scsi_daynaport.h"
 #include <sstream>
 
-using namespace ScsiDefs;
+using namespace scsi_defs;
 
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };

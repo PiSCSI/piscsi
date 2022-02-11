@@ -12,7 +12,7 @@
 #include "primary_device.h"
 
 using namespace std;
-using namespace ScsiDefs;
+using namespace scsi_defs;
 
 PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id)
 {

@@ -19,7 +19,7 @@
 #include "exceptions.h"
 #include <sstream>
 
-using namespace ScsiDefs;
+using namespace scsi_defs;
 
 //===========================================================================
 //

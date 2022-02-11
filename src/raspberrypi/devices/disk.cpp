@@ -22,7 +22,7 @@
 #include "mode_page_device.h"
 #include <sstream>
 
-using namespace ScsiDefs;
+using namespace scsi_defs;
 
 Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 {

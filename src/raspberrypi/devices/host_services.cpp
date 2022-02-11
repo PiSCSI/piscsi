@@ -33,7 +33,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "host_services.h"
 
-using namespace ScsiDefs;
+using namespace scsi_defs;
 
 HostServices::HostServices() : ModePageDevice("SCHS")
 {

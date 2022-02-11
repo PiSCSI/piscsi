@@ -37,9 +37,9 @@ private:
 
 		_command_t(const char* _name, void (ModePageDevice::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
 	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
+	std::map<scsi_defs::scsi_command, command_t*> commands;
 
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (ModePageDevice::*)(SASIDEV *));
+	void AddCommand(scsi_defs::scsi_command, const char*, void (ModePageDevice::*)(SASIDEV *));
 
 	void ModeSense6(SASIDEV *) override;
 	void ModeSense10(SASIDEV *) override;
