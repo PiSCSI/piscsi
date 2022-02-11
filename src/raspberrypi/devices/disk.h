@@ -73,11 +73,11 @@ private:
 	typedef ModePageDevice super;
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void StartStopUnit(SASIDEV *) override;
-	void SendDiagnostic(SASIDEV *) override;
+	void StartStopUnit(SASIDEV *);
+	void SendDiagnostic(SASIDEV *);
 	void PreventAllowMediumRemoval(SASIDEV *);
-	void SynchronizeCache10(SASIDEV *) override;
-	void SynchronizeCache16(SASIDEV *) override;
+	void SynchronizeCache10(SASIDEV *);
+	void SynchronizeCache16(SASIDEV *);
 	void ReadDefectData10(SASIDEV *);
 	virtual void Read6(SASIDEV *);
 	void Read10(SASIDEV *) override;
@@ -85,12 +85,12 @@ private:
 	virtual void Write6(SASIDEV *);
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
-	void ReadLong10(SASIDEV *) override;
-	void ReadLong16(SASIDEV *) override;
-	void WriteLong10(SASIDEV *) override;
-	void WriteLong16(SASIDEV *) override;
-	void Verify10(SASIDEV *) override;
-	void Verify16(SASIDEV *) override;
+	void ReadLong10(SASIDEV *);
+	void ReadLong16(SASIDEV *);
+	void WriteLong10(SASIDEV *);
+	void WriteLong16(SASIDEV *);
+	void Verify10(SASIDEV *);
+	void Verify16(SASIDEV *);
 	void Seek(SASIDEV *);
 	void Seek10(SASIDEV *);
 	void ReadCapacity10(SASIDEV *) override;
@@ -105,7 +105,7 @@ public:
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
 	void Rezero(SASIDEV *);
 	void FormatUnit(SASIDEV *) override;
-	void ReassignBlocks(SASIDEV *) override;
+	void ReassignBlocks(SASIDEV *);
 	void Seek6(SASIDEV *);
 
 	// Command helpers
