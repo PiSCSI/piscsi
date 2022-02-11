@@ -28,7 +28,7 @@ public:
 	PrimaryDevice(const string&);
 	virtual ~PrimaryDevice() {}
 
-	virtual bool Dispatch(SCSIDEV *) override;
+	virtual bool Dispatch(SCSIDEV *);
 
 	void TestUnitReady(SASIDEV *);
 	void RequestSense(SASIDEV *);
