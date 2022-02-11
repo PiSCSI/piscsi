@@ -74,7 +74,7 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 
 	// Report if the device does not support the requested LUN
 	if (!ctrl->unit[lun]) {
-		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
 
 		ctrl->buffer[0] |= 0x7f;
 	}
