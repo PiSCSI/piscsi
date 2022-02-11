@@ -21,7 +21,7 @@ class SCSIDEV;
 using namespace std;
 using namespace scsi_defs;
 
-template<typename T>
+template<class T>
 class Dispatcher
 {
 public:
