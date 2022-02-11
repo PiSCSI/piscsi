@@ -17,7 +17,6 @@
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
 #include "devices/scsi_daynaport.h"
-#include <sstream>
 
 //===========================================================================
 //
@@ -381,9 +380,8 @@ void SCSIDEV::Send()
 
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
-		ostringstream s;
-		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
+				+ to_string(ctrl.length)).c_str());
 
 		// TODO Get rid of Daynaport specific code in this class
 		// The Daynaport needs to have a delay after the size/flags field
@@ -420,9 +418,7 @@ void SCSIDEV::Send()
 		if (ctrl.blocks != 0) {
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			ostringstream s;
-			s << __PRETTY_FUNCTION__ << " Processing after data collection. Blocks: " << ctrl.blocks;
-			LOGTRACE("%s", s.str().c_str());
+			LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str());
 		}
 	}
 
@@ -434,9 +430,7 @@ void SCSIDEV::Send()
 
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
-		ostringstream s;
-		s << __PRETTY_FUNCTION__ << " Continuing to send. Blocks: " << ctrl.blocks;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(ctrl.blocks)).c_str());
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 		return;

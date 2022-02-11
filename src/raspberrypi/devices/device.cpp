@@ -8,7 +8,6 @@
 //---------------------------------------------------------------------------
 
 #include <cassert>
-#include <sstream>
 #include "rascsi_version.h"
 #include "os.h"
 #include "log.h"

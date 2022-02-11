@@ -28,7 +28,6 @@
 //---------------------------------------------------------------------------
 
 #include "scsi_daynaport.h"
-#include <sstream>
 
 using namespace scsi_defs;
 
@@ -154,10 +153,6 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	int rx_packet_size = 0;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
-
-	ostringstream s;
-	s << __PRETTY_FUNCTION__ << " reading DaynaPort block " << block;
-	LOGTRACE("%s", s.str().c_str());
 
 	int requested_length = cdb[4];
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length);

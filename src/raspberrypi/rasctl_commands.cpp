@@ -14,7 +14,6 @@
 #include "rasutil.h"
 #include "rasctl_commands.h"
 #include "rascsi_interface.pb.h"
-#include <sstream>
 #include <iostream>
 #include <list>
 
@@ -66,9 +65,8 @@ void RasctlCommands::SendCommand()
     	memcpy(&server.sin_addr.s_addr, host->h_addr, host->h_length);
 
     	if (connect(fd, (struct sockaddr *)&server, sizeof(struct sockaddr_in)) < 0) {
-    		ostringstream error;
-    		error << "Can't connect to rascsi process on host '" << hostname << "', port " << port;
-    		throw io_exception(error.str());
+    		throw io_exception("Can't connect to rascsi process on host '" + hostname + "', port "
+    				+ to_string(port));
     	}
 
     	if (write(fd, "RASCSI", 6) != 6) {

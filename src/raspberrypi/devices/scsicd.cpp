@@ -10,14 +10,13 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM for Apple Macintosh ]
+//	[ SCSI CD-ROM ]
 //
 //---------------------------------------------------------------------------
 
 #include "scsicd.h"
 #include "fileio.h"
 #include "exceptions.h"
-#include <sstream>
 
 using namespace scsi_defs;
 
@@ -400,9 +399,8 @@ void SCSICD::OpenIso(const Filepath& path)
 	if (rawfile) {
 		// Size must be a multiple of 2536
 		if (size % 2536) {
-			stringstream error;
-			error << "Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is " << size << " bytes";
-			throw io_exception(error.str());
+			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is "
+					+ to_string(size) + " bytes");
 		}
 
 		// Set the number of blocks
