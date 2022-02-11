@@ -26,7 +26,7 @@ class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
 public:
 
 	PrimaryDevice(const string);
-	virtual ~PrimaryDevice();
+	virtual ~PrimaryDevice() {}
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
@@ -44,8 +44,6 @@ protected:
 	int Inquiry(int, bool, const DWORD *, BYTE *);
 
 	SASIDEV::ctrl_t *ctrl;
-
-	set<PrimaryDevice *> devices;
 
 private:
 

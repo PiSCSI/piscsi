@@ -63,7 +63,7 @@ void HostServices::StartStopUnit(SASIDEV *controller)
 	bool load = ctrl->cmd[4] & 0x02;
 
 	if (!start) {
-		// Delete all other devices
+		// Delete all other devices. This will also flush any caches.
 		for (auto device : devices) {
 			if (device && device != this) {
 				delete device;

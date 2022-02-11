@@ -9,6 +9,7 @@
 
 #pragma once
 
+#include <set>
 #include <map>
 #include <string>
 
@@ -104,10 +105,14 @@ private:
 	// Sense Key, ASC and ASCQ
 	int status_code;
 
+protected:
+
+	static set<Device *> devices;
+
 public:
 
 	Device(const string&);
-	virtual ~Device() {};
+	virtual ~Device();
 
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const map<string, string>&) { return true; };

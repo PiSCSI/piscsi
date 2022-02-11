@@ -17,8 +17,6 @@ using namespace scsi_defs;
 
 PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id)
 {
-	devices.insert(this);
-
 	ctrl = NULL;
 
 	// Mandatory SCSI primary commands
@@ -28,11 +26,6 @@ PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id
 
 	// Optional commands used by all RaSCSI devices
 	dispatcher.AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
-}
-
-PrimaryDevice::~PrimaryDevice()
-{
-	devices.erase(this);
 }
 
 bool PrimaryDevice::Dispatch(SCSIDEV *controller)
