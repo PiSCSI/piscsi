@@ -26,6 +26,14 @@ class Dispatcher
 {
 public:
 
+	Dispatcher() {}
+	~Dispatcher()
+	{
+		for (auto const& command : commands) {
+			delete command.second;
+		}
+	}
+
 	typedef struct _command_t {
 		const char* name;
 		void (T::*execute)(SASIDEV *);
