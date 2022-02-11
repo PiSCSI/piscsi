@@ -82,8 +82,8 @@ Disk::~Disk()
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
-	// The base class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : ModePageDevice::Dispatch(controller);
+	// The superclass handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------

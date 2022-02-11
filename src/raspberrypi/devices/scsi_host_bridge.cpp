@@ -24,6 +24,7 @@
 using namespace std;
 using namespace scsi_defs;
 
+// TODO Disk should not be the superclass
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	tap = NULL;
@@ -96,9 +97,8 @@ bool SCSIBR::Init(const map<string, string>& params)
 
 bool SCSIBR::Dispatch(SCSIDEV *controller)
 {
-	// The base class handles the less specific commands
-	// TODO Disk should not be the superclass
-	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------

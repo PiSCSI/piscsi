@@ -32,9 +32,6 @@ class CFileSys;
 class SCSIBR : public Disk
 {
 
-private:
-	Dispatcher<SCSIBR> dispatcher;
-
 public:
 	SCSIBR();
 	~SCSIBR();
@@ -51,6 +48,10 @@ public:
 	void SendMessage10(SASIDEV *);
 
 private:
+	typedef Disk super;
+
+	Dispatcher<SCSIBR> dispatcher;
+
 	int GetMacAddr(BYTE *buf);					// Get MAC address
 	void SetMacAddr(BYTE *buf);					// Set MAC address
 	void ReceivePacket();						// Receive a packet

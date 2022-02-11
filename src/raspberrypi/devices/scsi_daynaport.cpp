@@ -35,6 +35,7 @@ using namespace scsi_defs;
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
+// TODO Disk should not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	m_tap = NULL;
@@ -60,9 +61,8 @@ SCSIDaynaPort::~SCSIDaynaPort()
 
 bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
-	// The base class handles the less specific commands
-	// TODO Disk should not be the superclass
-	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 bool SCSIDaynaPort::Init(const map<string, string>& params)

@@ -71,15 +71,12 @@ private:
 //===========================================================================
 class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
-private:
-	Dispatcher<SCSICD> dispatcher;
 
 public:
 	enum {
 		TrackMax = 96							// Maximum number of tracks
 	};
 
-public:
 	SCSICD();
 	~SCSICD();
 
@@ -93,6 +90,10 @@ public:
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 
 private:
+	typedef Disk super;
+
+	Dispatcher<SCSICD> dispatcher;
+
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)
 	void OpenIso(const Filepath& path);				// Open(ISO)

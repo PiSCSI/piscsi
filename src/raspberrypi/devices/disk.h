@@ -68,6 +68,7 @@ public:
 	bool Eject(bool) override;
 
 private:
+	typedef ModePageDevice super;
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
 	void StartStopUnit(SASIDEV *) override;

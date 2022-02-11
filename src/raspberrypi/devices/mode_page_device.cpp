@@ -26,8 +26,8 @@ ModePageDevice::ModePageDevice(const string id) : PrimaryDevice(id)
 
 bool ModePageDevice::Dispatch(SCSIDEV *controller)
 {
-	// The base class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : PrimaryDevice::Dispatch(controller);
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 void ModePageDevice::ModeSense6(SASIDEV *controller)

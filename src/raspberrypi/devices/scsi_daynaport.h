@@ -42,9 +42,6 @@
 class SCSIDaynaPort: public Disk
 {
 
-private:
-	Dispatcher<SCSIDaynaPort> dispatcher;
-
 public:
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
@@ -93,6 +90,10 @@ public:
 	static const DWORD DAYNAPORT_READ_HEADER_SZ = 2 + 4;
 
 private:
+	typedef Disk super;
+
+	Dispatcher<SCSIDaynaPort> dispatcher;
+
 	typedef struct __attribute__((packed)) {
 		BYTE operation_code;
 		BYTE misc_cdb_information;

@@ -31,6 +31,8 @@ public:
 
 private:
 
+	typedef PrimaryDevice super;
+
 	Dispatcher<ModePageDevice> dispatcher;
 
 	void ModeSense6(SASIDEV *) override;

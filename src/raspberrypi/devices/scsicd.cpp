@@ -259,8 +259,8 @@ SCSICD::~SCSICD()
 
 bool SCSICD::Dispatch(SCSIDEV *controller)
 {
-	// The base class handles the less specific commands
-	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------

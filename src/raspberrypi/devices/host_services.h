@@ -17,6 +17,7 @@ using namespace std;
 
 class HostServices: public ModePageDevice
 {
+
 public:
 
 	HostServices();
@@ -32,6 +33,8 @@ public:
 	int ModeSense10(const DWORD *, BYTE *);
 
 private:
+
+	typedef ModePageDevice super;
 
 	Dispatcher<HostServices> dispatcher;
 
