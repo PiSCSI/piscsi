@@ -16,8 +16,6 @@
 #include "device.h"
 #include "dispatcher.h"
 #include <string>
-#include <set>
-#include <map>
 
 using namespace std;
 
