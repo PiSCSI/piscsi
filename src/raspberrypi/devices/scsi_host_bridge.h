@@ -18,7 +18,7 @@
 #pragma once
 
 #include "os.h"
-#include "disk.h"
+#include "primary_device.h"
 #include <string>
 
 //===========================================================================

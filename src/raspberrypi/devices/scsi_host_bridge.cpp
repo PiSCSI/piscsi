@@ -16,6 +16,7 @@
 //        work with the Sharp X68000 operating system.
 //---------------------------------------------------------------------------
 
+#include "controllers/scsidev_ctrl.h"
 #include "scsi_host_bridge.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
