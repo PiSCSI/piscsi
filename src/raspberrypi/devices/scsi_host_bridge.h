@@ -33,17 +33,7 @@ class SCSIBR : public Disk
 {
 
 private:
-	typedef struct _command_t {
-		const char* name;
-		void (SCSIBR::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (SCSIBR::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<scsi_defs::scsi_command, command_t*> commands;
-
-	SASIDEV::ctrl_t *ctrl;
-
-	void AddCommand(scsi_defs::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
+	Dispatcher<SCSIBR> dispatcher;
 
 public:
 	SCSIBR();

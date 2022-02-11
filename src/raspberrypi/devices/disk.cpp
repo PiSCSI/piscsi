@@ -33,34 +33,34 @@ Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
 	disk.dcache = NULL;
 	disk.image_offset = 0;
 
-	AddCommand(eCmdRezero, "Rezero", &Disk::Rezero);
-	AddCommand(eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	AddCommand(eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
-	AddCommand(eCmdRead6, "Read6", &Disk::Read6);
-	AddCommand(eCmdWrite6, "Write6", &Disk::Write6);
-	AddCommand(eCmdSeek6, "Seek6", &Disk::Seek6);
-	AddCommand(eCmdReserve6, "Reserve6", &Disk::Reserve6);
-	AddCommand(eCmdRelease6, "Release6", &Disk::Release6);
-	AddCommand(eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	AddCommand(eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
-	AddCommand(eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
-	AddCommand(eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
-	AddCommand(eCmdRead10, "Read10", &Disk::Read10);
-	AddCommand(eCmdWrite10, "Write10", &Disk::Write10);
-	AddCommand(eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
-	AddCommand(eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
-	AddCommand(eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
-	AddCommand(eCmdSeek10, "Seek10", &Disk::Seek10);
-	AddCommand(eCmdVerify10, "Verify10", &Disk::Verify10);
-	AddCommand(eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
-	AddCommand(eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
-	AddCommand(eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	AddCommand(eCmdReserve10, "Reserve10", &Disk::Reserve10);
-	AddCommand(eCmdRelease10, "Release10", &Disk::Release10);
-	AddCommand(eCmdRead16, "Read16", &Disk::Read16);
-	AddCommand(eCmdWrite16, "Write16", &Disk::Write16);
-	AddCommand(eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
+	dispatcher.AddCommand(eCmdRezero, "Rezero", &Disk::Rezero);
+	dispatcher.AddCommand(eCmdFormat, "FormatUnit", &Disk::FormatUnit);
+	dispatcher.AddCommand(eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
+	dispatcher.AddCommand(eCmdRead6, "Read6", &Disk::Read6);
+	dispatcher.AddCommand(eCmdWrite6, "Write6", &Disk::Write6);
+	dispatcher.AddCommand(eCmdSeek6, "Seek6", &Disk::Seek6);
+	dispatcher.AddCommand(eCmdReserve6, "Reserve6", &Disk::Reserve6);
+	dispatcher.AddCommand(eCmdRelease6, "Release6", &Disk::Release6);
+	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
+	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
+	dispatcher.AddCommand(eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
+	dispatcher.AddCommand(eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
+	dispatcher.AddCommand(eCmdRead10, "Read10", &Disk::Read10);
+	dispatcher.AddCommand(eCmdWrite10, "Write10", &Disk::Write10);
+	dispatcher.AddCommand(eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
+	dispatcher.AddCommand(eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
+	dispatcher.AddCommand(eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
+	dispatcher.AddCommand(eCmdSeek10, "Seek10", &Disk::Seek10);
+	dispatcher.AddCommand(eCmdVerify10, "Verify10", &Disk::Verify10);
+	dispatcher.AddCommand(eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
+	dispatcher.AddCommand(eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	dispatcher.AddCommand(eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
+	dispatcher.AddCommand(eCmdReserve10, "Reserve10", &Disk::Reserve10);
+	dispatcher.AddCommand(eCmdRelease10, "Release10", &Disk::Release10);
+	dispatcher.AddCommand(eCmdRead16, "Read16", &Disk::Read16);
+	dispatcher.AddCommand(eCmdWrite16, "Write16", &Disk::Write16);
+	dispatcher.AddCommand(eCmdVerify16, "Verify16", &Disk::Verify16);
+	dispatcher.AddCommand(eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 }
 
 Disk::~Disk()
@@ -78,32 +78,14 @@ Disk::~Disk()
 		delete disk.dcache;
 		disk.dcache = NULL;
 	}
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
-}
-
-void Disk::AddCommand(scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
 }
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
-	if (it != commands.end()) {
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*it->second->execute)(controller);
-
-		return true;
-	}
-
 	// The base class handles the less specific commands
-	return ModePageDevice::Dispatch(controller);
+	return dispatcher.Dispatch(this, controller) ? true : ModePageDevice::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------

@@ -33,15 +33,7 @@ public:
 
 private:
 
-	typedef struct _command_t {
-		const char* name;
-		void (HostServices::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (HostServices::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<scsi_defs::scsi_command, command_t*> commands;
-
-	void AddCommand(scsi_defs::scsi_command, const char*, void (HostServices::*)(SASIDEV *));
+	Dispatcher<HostServices> dispatcher;
 
 	int AddRealtimeClockPage(int, BYTE *);
 };

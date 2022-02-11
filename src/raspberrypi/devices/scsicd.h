@@ -72,17 +72,7 @@ private:
 class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
 private:
-	typedef struct _command_t {
-		const char* name;
-		void (SCSICD::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (SCSICD::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<scsi_defs::scsi_command, command_t*> commands;
-
-	SASIDEV::ctrl_t *ctrl;
-
-	void AddCommand(scsi_defs::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
+	Dispatcher<SCSICD> dispatcher;
 
 public:
 	enum {

@@ -242,8 +242,8 @@ SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 	dataindex = -1;
 	audioindex = -1;
 
-	AddCommand(eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+	dispatcher.AddCommand(eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	dispatcher.AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 //---------------------------------------------------------------------------
@@ -255,32 +255,14 @@ SCSICD::~SCSICD()
 {
 	// Clear track
 	ClearTrack();
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
-}
-
-void SCSICD::AddCommand(scsi_command opcode, const char* name, void (SCSICD::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
 }
 
 bool SCSICD::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
-	if (it != commands.end()) {
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*it->second->execute)(controller);
-
-		return true;
-	}
-
 	// The base class handles the less specific commands
-	return Disk::Dispatch(controller);
+	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------

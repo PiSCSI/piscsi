@@ -52,15 +52,7 @@ private:
 		off_t image_offset;						// Offset to actual data
 	} disk_t;
 
-	typedef struct _command_t {
-		const char* name;
-		void (Disk::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<scsi_defs::scsi_command, command_t*> commands;
-
-	void AddCommand(scsi_defs::scsi_command, const char*, void (Disk::*)(SASIDEV *));
+	Dispatcher<Disk> dispatcher;
 
 public:
 	Disk(std::string);

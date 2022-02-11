@@ -40,13 +40,13 @@ SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 	m_tap = NULL;
 	m_bTapEnable = false;
 
-	AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	AddCommand(eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	AddCommand(eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	AddCommand(eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	AddCommand(eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	AddCommand(eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	dispatcher.AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	dispatcher.AddCommand(eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	dispatcher.AddCommand(eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	dispatcher.AddCommand(eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	dispatcher.AddCommand(eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	dispatcher.AddCommand(eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
 SCSIDaynaPort::~SCSIDaynaPort()
@@ -56,33 +56,15 @@ SCSIDaynaPort::~SCSIDaynaPort()
 		m_tap->Cleanup();
 		delete m_tap;
 	}
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
-}
-
-void SCSIDaynaPort::AddCommand(scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
 }
 
 bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
-	if (it != commands.end()) {
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*it->second->execute)(controller);
-
-		return true;
-	}
-
 	// The base class handles the less specific commands
 	// TODO Disk should not be the superclass
-	return Disk::Dispatch(controller);
+	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);
 }
 
 bool SCSIDaynaPort::Init(const map<string, string>& params)

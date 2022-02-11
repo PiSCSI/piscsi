@@ -38,9 +38,9 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	fs = new CFileSys();
 	fs->Reset();
 
-	AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	AddCommand(eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	AddCommand(eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	dispatcher.AddCommand(eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	dispatcher.AddCommand(eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
 SCSIBR::~SCSIBR()
@@ -55,10 +55,6 @@ SCSIBR::~SCSIBR()
 	if (fs) {
 		fs->Reset();
 		delete fs;
-	}
-
-	for (auto const& command : commands) {
-		delete command.second;
 	}
 }
 
@@ -97,26 +93,13 @@ bool SCSIBR::Init(const map<string, string>& params)
 #endif
 }
 
-void SCSIBR::AddCommand(scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
-}
-
 bool SCSIBR::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
-	if (it != commands.end()) {
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*it->second->execute)(controller);
-
-		return true;
-	}
-
 	// The base class handles the less specific commands
 	// TODO Disk should not be the superclass
+	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);
 	return Disk::Dispatch(controller);
 }
 

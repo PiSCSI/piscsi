@@ -37,29 +37,15 @@ using namespace scsi_defs;
 
 HostServices::HostServices() : ModePageDevice("SCHS")
 {
-	AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
-}
-
-void HostServices::AddCommand(scsi_command opcode, const char* name, void (HostServices::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
+	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
 bool HostServices::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
-	if (it != commands.end()) {
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*it->second->execute)(controller);
-
-		return true;
-	}
-
 	// The base class handles the less specific commands
-	return ModePageDevice::Dispatch(controller);
+	return dispatcher.Dispatch(this, controller) ? true : ModePageDevice::Dispatch(controller);
 }
 
 void HostServices::TestUnitReady(SASIDEV *controller)
