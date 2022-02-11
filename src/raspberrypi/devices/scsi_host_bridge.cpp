@@ -20,7 +20,6 @@
 #include "scsi_host_bridge.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
-#include <sstream>
 
 using namespace std;
 using namespace scsi_defs;
