@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "controllers/sasidev_ctrl.h"
+#include "controllers/scsidev_ctrl.h"
 #include "interfaces/scsi_primary_commands.h"
 #include "device.h"
 #include "dispatcher.h"
