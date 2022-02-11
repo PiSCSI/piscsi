@@ -42,8 +42,6 @@ HostServices::HostServices() : ModePageDevice("SCHS")
 
 bool HostServices::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
 	// The base class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : ModePageDevice::Dispatch(controller);
 }

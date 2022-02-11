@@ -49,7 +49,8 @@ public:
 
 	bool Dispatch(T *instance, SCSIDEV *controller)
 	{
-		const SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
+		SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
+		instance->SetCtrl(ctrl);
 
 		const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
 		if (it != commands.end()) {

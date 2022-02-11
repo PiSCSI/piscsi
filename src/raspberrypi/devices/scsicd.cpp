@@ -259,8 +259,6 @@ SCSICD::~SCSICD()
 
 bool SCSICD::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
 	// The base class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);
 }

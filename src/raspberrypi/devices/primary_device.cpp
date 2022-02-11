@@ -37,8 +37,6 @@ PrimaryDevice::~PrimaryDevice()
 
 bool PrimaryDevice::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
 	return dispatcher.Dispatch(this, controller);
 }
 

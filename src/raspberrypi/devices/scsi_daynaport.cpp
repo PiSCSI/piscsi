@@ -60,8 +60,6 @@ SCSIDaynaPort::~SCSIDaynaPort()
 
 bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
 	// The base class handles the less specific commands
 	// TODO Disk should not be the superclass
 	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);

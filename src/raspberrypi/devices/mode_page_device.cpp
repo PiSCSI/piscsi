@@ -26,8 +26,6 @@ ModePageDevice::ModePageDevice(const string id) : PrimaryDevice(id)
 
 bool ModePageDevice::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
 	// The base class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : PrimaryDevice::Dispatch(controller);
 }

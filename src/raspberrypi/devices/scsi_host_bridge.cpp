@@ -95,8 +95,6 @@ bool SCSIBR::Init(const map<string, string>& params)
 
 bool SCSIBR::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
 	// The base class handles the less specific commands
 	// TODO Disk should not be the superclass
 	return dispatcher.Dispatch(this, controller) ? true : Disk::Dispatch(controller);

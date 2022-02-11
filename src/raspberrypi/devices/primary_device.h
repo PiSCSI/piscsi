@@ -33,6 +33,8 @@ public:
 	void TestUnitReady(SASIDEV *);
 	void RequestSense(SASIDEV *);
 
+	void SetCtrl(SASIDEV::ctrl_t *ctrl) { this->ctrl = ctrl; }
+
 	bool CheckReady();
 	virtual int Inquiry(const DWORD *, BYTE *) = 0;
 	virtual int RequestSense(const DWORD *, BYTE *);
