@@ -9,6 +9,7 @@
 
 #include "log.h"
 #include "controllers/scsidev_ctrl.h"
+#include "dispatcher.h"
 #include "primary_device.h"
 
 using namespace std;
@@ -21,12 +22,12 @@ PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id
 	ctrl = NULL;
 
 	// Mandatory SCSI primary commands
-	AddCommand(eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
-	AddCommand(eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
-	AddCommand(eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
+	dispatcher.AddCommand(eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
+	dispatcher.AddCommand(eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 
 	// Optional commands used by all RaSCSI devices
-	AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
+	dispatcher.AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
 }
 
 PrimaryDevice::~PrimaryDevice()
@@ -34,26 +35,11 @@ PrimaryDevice::~PrimaryDevice()
 	devices.erase(this);
 }
 
-void PrimaryDevice::AddCommand(scsi_command opcode, const char* name, void (PrimaryDevice::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
-}
-
 bool PrimaryDevice::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
-	if (it != commands.end()) {
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*it->second->execute)(controller);
-
-		return true;
-	}
-
-	// Unknown command
-	return false;
+	return dispatcher.Dispatch(this, controller);
 }
 
 void PrimaryDevice::TestUnitReady(SASIDEV *controller)

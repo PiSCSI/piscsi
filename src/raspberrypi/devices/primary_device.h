@@ -14,6 +14,7 @@
 #include "controllers/sasidev_ctrl.h"
 #include "interfaces/scsi_primary_commands.h"
 #include "device.h"
+#include "dispatcher.h"
 #include <string>
 #include <set>
 #include <map>
@@ -44,15 +45,7 @@ protected:
 
 private:
 
-	typedef struct _command_t {
-		const char* name;
-		void (PrimaryDevice::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (PrimaryDevice::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<scsi_defs::scsi_command, command_t*> commands;
-
-	void AddCommand(scsi_defs::scsi_command, const char*, void (PrimaryDevice::*)(SASIDEV *));
+	Dispatcher<PrimaryDevice> dispatcher;
 
 	void Inquiry(SASIDEV *);
 	void ReportLuns(SASIDEV *);

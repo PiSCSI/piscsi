@@ -31,15 +31,7 @@ public:
 
 private:
 
-	typedef struct _command_t {
-		const char* name;
-		void (ModePageDevice::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (ModePageDevice::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<scsi_defs::scsi_command, command_t*> commands;
-
-	void AddCommand(scsi_defs::scsi_command, const char*, void (ModePageDevice::*)(SASIDEV *));
+	Dispatcher<ModePageDevice> dispatcher;
 
 	void ModeSense6(SASIDEV *) override;
 	void ModeSense10(SASIDEV *) override;
