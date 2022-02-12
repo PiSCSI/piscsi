@@ -19,20 +19,21 @@
 #include "disk.h"
 #include "filepath.h"
 
-//===========================================================================
-//
-//	SCSI Hard Disk
-//
-//===========================================================================
-class SCSIHD : public Disk
+class SCSIHD : public Disk, public FileSupport
 {
 public:
-	// Basic Functions
-	SCSIHD();								// Constructor
-	void Reset();							// Reset
-	BOOL Open(const Filepath& path, BOOL attn = TRUE);		// Open
+	SCSIHD(bool);
+	virtual ~SCSIHD() {};
 
-	// commands
-	int Inquiry(const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor);	// INQUIRY command
-	BOOL ModeSelect(const DWORD *cdb, const BYTE *buf, int length);	// MODE SELECT(6) command
+	void FinalizeSetup(const Filepath&, off_t);
+
+	void Reset();
+	virtual void Open(const Filepath&) override;
+
+	// Commands
+	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override;
+	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
+
+	// Add vendor special page
+	int AddVendorPage(int page, bool change, BYTE *buf) override;
 };

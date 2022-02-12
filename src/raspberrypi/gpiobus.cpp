@@ -12,10 +12,12 @@
 //
 //---------------------------------------------------------------------------
 
+#include <sys/mman.h>
+
 #include "os.h"
-#include "xm6.h"
 #include "gpiobus.h"
 #include "log.h"
+#include "rascsi.h"
 
 #ifdef __linux__
 //---------------------------------------------------------------------------
@@ -25,14 +27,11 @@
 //---------------------------------------------------------------------------
 static DWORD get_dt_ranges(const char *filename, DWORD offset)
 {
-	DWORD address;
-	FILE *fp;
-	BYTE buf[4];
-
-	address = ~0;
-	fp = fopen(filename, "rb");
+	DWORD address = ~0;
+	FILE *fp = fopen(filename, "rb");
 	if (fp) {
 		fseek(fp, offset, SEEK_SET);
+		BYTE buf[4];
 		if (fread(buf, 1, sizeof buf, fp) == sizeof buf) {
 			address =
 				buf[0] << 24 | buf[1] << 16 | buf[2] << 8 | buf[3] << 0;
@@ -44,9 +43,7 @@ static DWORD get_dt_ranges(const char *filename, DWORD offset)
 
 DWORD bcm_host_get_peripheral_address(void)
 {
-	DWORD address;
-
-	address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);
+	DWORD address = get_dt_ranges("/proc/device-tree/soc/ranges", 4);
 	if (address == 0) {
 		address = get_dt_ranges("/proc/device-tree/soc/ranges", 8);
 	}
@@ -80,29 +77,25 @@ DWORD bcm_host_get_peripheral_address(void)
 }
 #endif	// __NetBSD__
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 GPIOBUS::GPIOBUS()
 {
+	actmode = TARGET;
+	baseaddr = 0;
+	gicc = 0;
+	gicd = 0;
+	gpio = 0;
+	level = 0;
+	pads = 0;
+	irpctl = 0;
+	qa7regs = 0;
+	signals = 0;
+	rpitype = 0;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 GPIOBUS::~GPIOBUS()
 {
 }
 
-//---------------------------------------------------------------------------
-//
-//	初期化
-//
-//---------------------------------------------------------------------------
 BOOL GPIOBUS::Init(mode_e mode)
 {
 #if defined(__x86_64__) || defined(__X86__)
@@ -326,11 +319,6 @@ BOOL GPIOBUS::Init(mode_e mode)
 
 }
 
-//---------------------------------------------------------------------------
-//
-//	Cleanup
-//
-//---------------------------------------------------------------------------
 void GPIOBUS::Cleanup()
 {
 #if defined(__x86_64__) || defined(__X86__)
@@ -368,11 +356,6 @@ void GPIOBUS::Cleanup()
 #endif // ifdef __x86_64__ || __X86__
 }
 
-//---------------------------------------------------------------------------
-//
-//	Reset
-//
-//---------------------------------------------------------------------------
 void GPIOBUS::Reset()
 {
 #if defined(__x86_64__) || defined(__X86__)
@@ -441,7 +424,7 @@ void GPIOBUS::Reset()
 		SetMode(PIN_ACK, OUT);
 		SetMode(PIN_RST, OUT);
 
-		// Set the data bus signals to outpu
+		// Set the data bus signals to output
 		SetControl(PIN_DTD, DTD_OUT);
 		SetMode(PIN_DT0, OUT);
 		SetMode(PIN_DT1, OUT);
@@ -474,7 +457,7 @@ void GPIOBUS::SetENB(BOOL ast)
 //	Get BSY signal
 //
 //---------------------------------------------------------------------------
-BOOL GPIOBUS::GetBSY()
+bool GPIOBUS::GetBSY()
 {
 	return GetSignal(PIN_BSY);
 }
@@ -484,7 +467,7 @@ BOOL GPIOBUS::GetBSY()
 //	Set BSY signal
 //
 //---------------------------------------------------------------------------
-void GPIOBUS::SetBSY(BOOL ast)
+void GPIOBUS::SetBSY(bool ast)
 {
 	// Set BSY signal
 	SetSignal(PIN_BSY, ast);
@@ -671,8 +654,7 @@ void GPIOBUS::SetCD(BOOL ast)
 //---------------------------------------------------------------------------
 BOOL GPIOBUS::GetIO()
 {
-	BOOL ast;
-	ast = GetSignal(PIN_IO);
+	BOOL ast = GetSignal(PIN_IO);
 
 	if (actmode == INITIATOR) {
 		// Change the data input/output direction by IO signal
@@ -769,9 +751,7 @@ void GPIOBUS::SetREQ(BOOL ast)
 //---------------------------------------------------------------------------
 BYTE GPIOBUS::GetDAT()
 {
-	DWORD data;
-
-	data = Aquire();
+	DWORD data = Aquire();
 	data =
 		((data >> (PIN_DT0 - 0)) & (1 << 0)) |
 		((data >> (PIN_DT1 - 1)) & (1 << 1)) |
@@ -794,9 +774,7 @@ void GPIOBUS::SetDAT(BYTE dat)
 {
 	// Write to port
 #if SIGNAL_CONTROL_MODE == 0
-	DWORD fsel;
-
-	fsel = gpfsel[0];
+	DWORD fsel = gpfsel[0];
 	fsel &= tblDatMsk[0][dat];
 	fsel |= tblDatSet[0][dat];
 	if (fsel != gpfsel[0]) {
@@ -842,8 +820,6 @@ BOOL GPIOBUS::GetDP()
 //---------------------------------------------------------------------------
 int GPIOBUS::CommandHandShake(BYTE *buf)
 {
-	int i;
-	BOOL ret;
 	int count;
 
 	// Only works in TARGET mode
@@ -855,16 +831,16 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	DisableIRQ();
 
 	// Get the first command byte
-	i = 0;
+	int i = 0;
 
 	// Assert REQ signal
 	SetSignal(PIN_REQ, ON);
 
 	// Wait for ACK signal
-	ret = WaitSignal(PIN_ACK, TRUE);
+	BOOL ret = WaitSignal(PIN_ACK, TRUE);
 
 	// Wait until the signal line stabilizes
-	SysTimer::SleepNsec(GPIO_DATA_SETTLING);
+	SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 	// Get data
 	*buf = GetDAT();
@@ -885,12 +861,39 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		goto irq_enable_exit;
 	}
 
-	// Distinguise whether the command is 6 bytes or 10 bytes
-	if (*buf >= 0x20 && *buf <= 0x7D) {
-		count = 10;
-	} else {
-		count = 6;
+	// The ICD AdSCSI ST, AdSCSI Plus ST and AdSCSI Micro ST host adapters allow SCSI devices to be connected
+	// to the ACSI bus of Atari ST/TT computers and some clones. ICD-aware drivers prepend a $1F byte in front
+	// of the CDB (effectively resulting in a custom SCSI command) in order to get access to the full SCSI
+	// command set. Native ACSI is limited to the low SCSI command classes with command bytes < $20.
+	// Most other host adapters (e.g. LINK96/97 and the one by Inventronik) and also several devices (e.g.
+	// UltraSatan or GigaFile) that can directly be connected to the Atari's ACSI port also support ICD
+	// semantics. I fact, these semantics have become a standard in the Atari world.
+
+	// RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
+	if (*buf == 0x1F) {
+		SetSignal(PIN_REQ, ON);
+
+		ret = WaitSignal(PIN_ACK, TRUE);
+
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
+
+		// Get the actual SCSI command
+		*buf = GetDAT();
+
+		SetSignal(PIN_REQ, OFF);
+
+		if (!ret) {
+			goto irq_enable_exit;
+		}
+
+		WaitSignal(PIN_ACK, FALSE);
+
+		if (!ret) {
+			goto irq_enable_exit;
+		}
 	}
+
+	count = GetCommandByteCount(*buf);
 
 	// Increment buffer pointer
 	buf++;
@@ -903,7 +906,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 		ret = WaitSignal(PIN_ACK, TRUE);
 
 		// Wait until the signal line stabilizes
-		SysTimer::SleepNsec(GPIO_DATA_SETTLING);
+		SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 		// Get data
 		*buf = GetDAT();
@@ -959,7 +962,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			ret = WaitSignal(PIN_ACK, TRUE);
 
 			// Wait until the signal line stabilizes
-			SysTimer::SleepNsec(GPIO_DATA_SETTLING);
+			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 			// Get data
 			*buf = GetDAT();
@@ -1002,7 +1005,7 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 			}
 
 			// Wait until the signal line stabilizes
-			SysTimer::SleepNsec(GPIO_DATA_SETTLING);
+			SysTimer::SleepNsec(SCSI_DELAY_BUS_SETTLE_DELAY_NS);
 
 			// Get data
 			*buf = GetDAT();
@@ -1046,8 +1049,6 @@ int GPIOBUS::ReceiveHandShake(BYTE *buf, int count)
 int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 {
 	int i;
-	BOOL ret;
-	DWORD phase;
 
 	// Disable IRQs
 	DisableIRQ();
@@ -1063,7 +1064,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for ACK to clear
-			ret = WaitSignal(PIN_ACK, FALSE);
+			BOOL ret = WaitSignal(PIN_ACK, FALSE);
 
 			// Check for timeout waiting for ACK to clear
 			if (!ret) {
@@ -1094,7 +1095,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 		WaitSignal(PIN_ACK, FALSE);
 	} else {
 		// Get Phase
-		phase = Aquire() & GPIO_MCI;
+		DWORD phase = Aquire() & GPIO_MCI;
 
 		for (i = 0; i < count; i++) {
 			if(i==delay_after_bytes){
@@ -1106,7 +1107,7 @@ int GPIOBUS::SendHandShake(BYTE *buf, int count, int delay_after_bytes)
 			SetDAT(*buf);
 
 			// Wait for REQ to be asserted
-			ret = WaitSignal(PIN_REQ, TRUE);
+			BOOL ret = WaitSignal(PIN_REQ, TRUE);
 
 			// Check for timeout waiting for REQ to be asserted
 			if (!ret) {
@@ -1215,8 +1216,6 @@ void GPIOBUS::MakeTable(void)
 	int i;
 	int j;
 	BOOL tblParity[256];
-	DWORD bits;
-	DWORD parity;
 #if SIGNAL_CONTROL_MODE == 0
 	int index;
 	int shift;
@@ -1227,8 +1226,8 @@ void GPIOBUS::MakeTable(void)
 
 	// Create parity table
 	for (i = 0; i < 0x100; i++) {
-		bits = (DWORD)i;
-		parity = 0;
+		DWORD bits = (DWORD)i;
+		DWORD parity = 0;
 		for (j = 0; j < 8; j++) {
 			parity ^= bits & 1;
 			bits >>= 1;
@@ -1243,7 +1242,7 @@ void GPIOBUS::MakeTable(void)
 	memset(tblDatSet, 0x00, sizeof(tblDatSet));
 	for (i = 0; i < 0x100; i++) {
 		// Bit string for inspection
-		bits = (DWORD)i;
+		DWORD bits = (DWORD)i;
 
 		// Get parity
 		if (tblParity[i]) {
@@ -1273,7 +1272,7 @@ void GPIOBUS::MakeTable(void)
 	memset(tblDatSet, 0x00, sizeof(tblDatSet));
 	for (i = 0; i < 0x100; i++) {
 		// bit string for inspection
-		bits = (DWORD)i;
+		DWORD bits = (DWORD)i;
 
 		// get parity
 		if (tblParity[i]) {
@@ -1320,19 +1319,15 @@ void GPIOBUS::SetControl(int pin, BOOL ast)
 //---------------------------------------------------------------------------
 void GPIOBUS::SetMode(int pin, int mode)
 {
-	int index;
-	int shift;
-	DWORD data;
-
 #if SIGNAL_CONTROL_MODE == 0
 	if (mode == OUT) {
 		return;
 	}
 #endif	// SIGNAL_CONTROL_MODE
 
-	index = pin / 10;
-	shift = (pin % 10) * 3;
-	data = gpfsel[index];
+	int index = pin / 10;
+	int shift = (pin % 10) * 3;
+	DWORD data = gpfsel[index];
 	data &= ~(0x7 << shift);
 	if (mode == OUT) {
 		data |= (1 << shift);
@@ -1348,7 +1343,7 @@ void GPIOBUS::SetMode(int pin, int mode)
 //---------------------------------------------------------------------------
 BOOL GPIOBUS::GetSignal(int pin)
 {
-	return  (signals >> pin) & 1;
+	return (signals >> pin) & 1;
 }
 
 //---------------------------------------------------------------------------
@@ -1359,13 +1354,9 @@ BOOL GPIOBUS::GetSignal(int pin)
 void GPIOBUS::SetSignal(int pin, BOOL ast)
 {
 #if SIGNAL_CONTROL_MODE == 0
-	int index;
-	int shift;
-	DWORD data;
-
-	index = pin / 10;
-	shift = (pin % 10) * 3;
-	data = gpfsel[index];
+	int index = pin / 10;
+	int shift = (pin % 10) * 3;
+	DWORD data = gpfsel[index];
 	if (ast) {
 		data |= (1 << shift);
 	} else {
@@ -1395,14 +1386,11 @@ void GPIOBUS::SetSignal(int pin, BOOL ast)
 //---------------------------------------------------------------------------
 BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
 {
-	DWORD now;
-	DWORD timeout;
-
 	// Get current time
-	now = SysTimer::GetTimerLow();
+	DWORD now = SysTimer::GetTimerLow();
 
 	// Calculate timeout (3000ms)
-	timeout = 3000 * 1000;
+	DWORD timeout = 3000 * 1000;
 
 	// end immediately if the signal has changed
 	do {
@@ -1429,6 +1417,7 @@ BOOL GPIOBUS::WaitSignal(int pin, BOOL ast)
 //---------------------------------------------------------------------------
 void GPIOBUS::DisableIRQ()
 {
+#ifdef __linux__
 	if (rpitype == 4) {
 		// RPI4 is disabled by GICC
 		giccpmr = gicc[GICC_PMR];
@@ -1443,6 +1432,9 @@ void GPIOBUS::DisableIRQ()
 		irptenb = irpctl[IRPT_ENB_IRQ_1];
 		irpctl[IRPT_DIS_IRQ_1] = irptenb & 0xf;
 	}
+#else
+	(void)0;
+#endif
 }
 
 //---------------------------------------------------------------------------
@@ -1471,16 +1463,13 @@ void GPIOBUS::EnableIRQ()
 //---------------------------------------------------------------------------
 void GPIOBUS::PinConfig(int pin, int mode)
 {
-	int index;
-	DWORD mask;
-
 	// Check for invalid pin
 	if (pin < 0) {
 		return;
 	}
 
-	index = pin / 10;
-	mask = ~(0x7 << ((pin % 10) * 3));
+	int index = pin / 10;
+	DWORD mask = ~(0x7 << ((pin % 10) * 3));
 	gpio[index] = (gpio[index] & mask) | ((mode & 0x7) << ((pin % 10) * 3));
 }
 
@@ -1491,8 +1480,6 @@ void GPIOBUS::PinConfig(int pin, int mode)
 //---------------------------------------------------------------------------
 void GPIOBUS::PullConfig(int pin, int mode)
 {
-	int shift;
-	DWORD bits;
 	DWORD pull;
 
 	// Check for invalid pin
@@ -1516,8 +1503,8 @@ void GPIOBUS::PullConfig(int pin, int mode)
 		}
 
 		pin &= 0x1f;
-		shift = (pin & 0xf) << 1;
-		bits = gpio[GPIO_PUPPDN0 + (pin >> 4)];
+		int shift = (pin & 0xf) << 1;
+		DWORD bits = gpio[GPIO_PUPPDN0 + (pin >> 4)];
 		bits &= ~(3 << shift);
 		bits |= (pull << shift);
 		gpio[GPIO_PUPPDN0 + (pin >> 4)] = bits;
@@ -1558,9 +1545,7 @@ void GPIOBUS::PinSetSignal(int pin, BOOL ast)
 //---------------------------------------------------------------------------
 void GPIOBUS::DrvConfig(DWORD drive)
 {
-	DWORD data;
-
-	data = pads[PAD_0_27];
+	DWORD data = pads[PAD_0_27];
 	pads[PAD_0_27] = (0xFFFFFFF8 & data) | drive | 0x5a000000;
 }
 
@@ -1572,8 +1557,6 @@ void GPIOBUS::DrvConfig(DWORD drive)
 //---------------------------------------------------------------------------
 BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 {
-	DWORD mci;
-
 	// Selection Phase
 	if (GetPinRaw(raw_data, PIN_SEL)) 
 	{
@@ -1590,12 +1573,32 @@ BUS::phase_t GPIOBUS::GetPhaseRaw(DWORD raw_data)
 	}
 
 	// Get target phase from bus signal line
-	mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
+	DWORD mci = GetPinRaw(raw_data, PIN_MSG) ? 0x04 : 0x00;
 	mci |= GetPinRaw(raw_data, PIN_CD) ? 0x02 : 0x00;
 	mci |= GetPinRaw(raw_data, PIN_IO) ? 0x01 : 0x00;
 	return GetPhase(mci);
 }
 
+//---------------------------------------------------------------------------
+//
+//	Get the number of bytes for a command
+//
+// TODO The command length should be determined based on the bytes transferred in the COMMAND phase
+//
+//---------------------------------------------------------------------------
+int GPIOBUS::GetCommandByteCount(BYTE opcode) {
+	if (opcode == 0x88 || opcode == 0x8A || opcode == 0x8F || opcode == 0x91 || opcode == 0x9E || opcode == 0x9F) {
+		return 16;
+	}
+	else if (opcode == 0xA0) {
+		return 12;
+	}
+	else if (opcode >= 0x20 && opcode <= 0x7D) {
+		return 10;
+	} else {
+		return 6;
+	}
+}
 
 //---------------------------------------------------------------------------
 //
@@ -1637,7 +1640,6 @@ void SysTimer::Init(DWORD *syst, DWORD *armt)
 	// Clock id
 	//  0x000000004: CORE
 	DWORD maxclock[32] = { 32, 0, 0x00030004, 8, 0, 4, 0, 0 };
-	int fd;
 
 	// Save the base address
 	systaddr = syst;
@@ -1648,7 +1650,7 @@ void SysTimer::Init(DWORD *syst, DWORD *armt)
 
 	// Get the core frequency
 	corefreq = 0;
-	fd = open("/dev/vcio", O_RDONLY);
+	int fd = open("/dev/vcio", O_RDONLY);
 	if (fd >= 0) {
 		ioctl(fd, _IOWR(100, 0, char *), maxclock);
 		corefreq = maxclock[6] / 1000000;
@@ -1681,16 +1683,13 @@ DWORD SysTimer::GetTimerHigh() {
 //---------------------------------------------------------------------------
 void SysTimer::SleepNsec(DWORD nsec)
 {
-	DWORD diff;
-	DWORD start;
-
 	// If time is 0, don't do anything
 	if (nsec == 0) {
 		return;
 	}
 
 	// Calculate the timer difference
-	diff = corefreq * nsec / 1000;
+	DWORD diff = corefreq * nsec / 1000;
 
 	// Return if the difference in time is too small
 	if (diff == 0) {
@@ -1698,7 +1697,7 @@ void SysTimer::SleepNsec(DWORD nsec)
 	}
 
 	// Start
-	start = armtaddr[ARMT_FREERUN];
+	DWORD start = armtaddr[ARMT_FREERUN];
 
 	// Loop until timer has elapsed
 	while ((armtaddr[ARMT_FREERUN] - start) < diff);
@@ -1711,13 +1710,11 @@ void SysTimer::SleepNsec(DWORD nsec)
 //---------------------------------------------------------------------------
 void SysTimer::SleepUsec(DWORD usec)
 {
-	DWORD now;
-
 	// If time is 0, don't do anything
 	if (usec == 0) {
 		return;
 	}
 
-	now = GetTimerLow();
+	DWORD now = GetTimerLow();
 	while ((GetTimerLow() - now) < usec);
 }

@@ -5,13 +5,18 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/local/bin/rascsi
-# Example: If you want to automatically attach a hard disk at startup, change
-# the ExecStart line to:
-# ExecStart=/usr/local/bin/rascsi -ID1 /home/pi/images/harddisk.hda
-# This functionality isn't implmented yet: ExecStop=/usr/local/bin/rasctl -stop
-StandardOutput=syslog
-StandardError=syslog
+ExecStart=/usr/local/bin/rascsi -r 7
+# Example 1: If you want to automatically attach a hard disk at startup, 
+# say an image called harddisk.hds on SCSI ID 1, change the ExecStart line to:
+#
+# ExecStart=/usr/local/bin/rascsi -ID1 /home/pi/images/harddisk.hds
+#
+# Example 2: If you want to reserve SCSI IDs to prevent usage, add '-r' followed by
+# comma-separated SCSI ID numbers; for instance IDs 0 and 7:
+#
+# ExecStart=/usr/local/bin/rascsi -r 0,7
+#
+ExecStop=/usr/local/bin/rasctl -X
 SyslogIdentifier=RASCSI
 
 [Install]

@@ -12,6 +12,7 @@
 #if !defined(gpiobus_h)
 #define gpiobus_h
 
+#include "rascsi.h"
 #include "scsi.h"
 
 //---------------------------------------------------------------------------
@@ -188,7 +189,7 @@
 
 #ifdef CONNECT_TYPE_AIBOM
 //
-// RaSCSI Adapter Aibomu version
+// RaSCSI Adapter Aibom version
 //
 
 #define CONNECT_DESC "AIBOM PRODUCTS version"		// Startup message
@@ -233,7 +234,7 @@
 
 #ifdef CONNECT_TYPE_GAMERNIUM
 //
-// RaSCSI Adapter GAMERnium.com版
+// RaSCSI Adapter GAMERnium.com version
 //
 
 #define CONNECT_DESC "GAMERnium.com version"// Startup message
@@ -298,7 +299,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GPIO)
+//	Constant declarations (GPIO)
 //
 //---------------------------------------------------------------------------
 #define SYST_OFFSET		0x00003000
@@ -375,7 +376,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GIC)
+//	Constant declarations (GIC)
 //
 //---------------------------------------------------------------------------
 #define ARM_GICD_BASE		0xFF841000
@@ -400,7 +401,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(GIC IRQ)
+//	Constant declarations (GIC IRQ)
 //
 //---------------------------------------------------------------------------
 #define GIC_IRQLOCAL0		(16 + 14)
@@ -419,7 +420,7 @@
 
 //---------------------------------------------------------------------------
 //
-//	Constant declarations(SCSI)
+//	Constant declarations (SCSI)
 //
 //---------------------------------------------------------------------------
 #define IN		GPIO_INPUT
@@ -432,7 +433,6 @@
 //	Constant declarations (bus control timing)
 //
 //---------------------------------------------------------------------------
-#define GPIO_DATA_SETTLING 100			// Data bus stabilization time (ns)
 // SCSI Bus timings taken from:
 //     https://www.staff.uni-mainz.de/tacke/scsi/SCSI2-05.html
 #define SCSI_DELAY_ARBITRATION_DELAY_NS          2400
@@ -509,9 +509,9 @@ public:
 	void SetENB(BOOL ast);
 										// Set ENB signal
 
-	BOOL GetBSY();
+	bool GetBSY();
 										// Get BSY signal
-	void SetBSY(BOOL ast);
+	void SetBSY(bool ast);
 										// Set BSY signal
 
 	BOOL GetSEL();
@@ -575,7 +575,9 @@ public:
 	static BUS::phase_t GetPhaseRaw(DWORD raw_data);
 										// Get the phase based on raw data
 
-#ifdef USE_SEL_EVENT_ENABLE
+	static int GetCommandByteCount(BYTE opcode);
+
+	#ifdef USE_SEL_EVENT_ENABLE
 	// SEL signal interrupt
 	int PollSelectEvent();
 										// SEL signal event polling
@@ -618,8 +620,7 @@ private:
 
 	DWORD baseaddr;						// Base address
 
-	int rpitype;
-										// Type of Raspberry Pi
+	int rpitype;						// Type of Raspberry Pi
 
 	volatile DWORD *gpio;				// GPIO register
 

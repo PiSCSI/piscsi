@@ -1,99 +1,80 @@
 //---------------------------------------------------------------------------
 //
-//	SCSI Target Emulator RaSCSI (*^..^*)
-//	for Raspberry Pi
+// SCSI Target Emulator RaSCSI (*^..^*)
+// for Raspberry Pi
 //
-//	Powered by XM6 TypeG Technology.
-//	Copyright (C) 2016-2020 GIMONS
-//  Copyright (C) 2020 akuker
+// Copyright (C) 2021 Uwe Seimet
 //
 //---------------------------------------------------------------------------
 
-#include <unistd.h>
+#include <list>
 #include <sstream>
 #include "rascsi_interface.pb.h"
-#include "exceptions.h"
 #include "rasutil.h"
 
 using namespace std;
 using namespace rascsi_interface;
 
-//---------------------------------------------------------------------------
-//
-//	Serialize/Deserialize protobuf message: Length followed by the actual data
-//
-//---------------------------------------------------------------------------
-
-void SerializeMessage(int fd, const google::protobuf::MessageLite& message)
+bool ras_util::GetAsInt(const string& value, int& result)
 {
-	string data;
-	message.SerializeToString(&data);
+	if (value.find_first_not_of("0123456789") != string::npos) {
+		return false;
+	}
 
-	// Write the size of the protobuf data as a header
-    int32_t size = data.length();
-    if (write(fd, &size, sizeof(size)) != sizeof(size)) {
-    	throw ioexception("Can't write protobuf header");
-    }
+	try {
+		result = std::stoul(value);
+	}
+	catch(const invalid_argument& e) {
+		return false;
+	}
+	catch(const out_of_range& e) {
+		return false;
+	}
 
-    // Write the actual protobuf data
-    void *buf = malloc(size);
-    memcpy(buf, data.data(), size);
-    if (write(fd, buf, size) != size) {
-    	free(buf);
-
-    	throw ioexception("Can't write protobuf data");
-    }
-
-    free(buf);
+	return true;
 }
 
-void DeserializeMessage(int fd, google::protobuf::MessageLite& message)
+string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 {
-	// First read the header with the size of the protobuf data
-	int32_t size;
-	if (read(fd, &size, sizeof(size)) == sizeof(size)) {
-		// Read the actual protobuf data
-		void *buf = malloc(size);
-		if (read(fd, buf, size) != (ssize_t)size) {
-			free(buf);
+	if (pb_devices.empty()) {
+		return "No images currently attached.";
+	}
 
-			throw ioexception("Missing protobuf data");
+	ostringstream s;
+	s << "+----+-----+------+-------------------------------------" << endl
+			<< "| ID | LUN | TYPE | IMAGE FILE" << endl
+			<< "+----+-----+------+-------------------------------------" << endl;
+
+	list<PbDevice> devices = pb_devices;
+	devices.sort([](const auto& a, const auto& b) { return a.id() < b.id() && a.unit() < b.unit(); });
+
+	for (const auto& device : devices) {
+		string filename;
+		switch (device.type()) {
+			case SCBR:
+				filename = "X68000 HOST BRIDGE";
+				break;
+
+			case SCDP:
+				filename = "DaynaPort SCSI/Link";
+				break;
+
+			case SCHS:
+				filename = "Host Services";
+				break;
+
+			default:
+				filename = device.file().name();
+				break;
 		}
 
-		// Read protobuf data into a string, to be converted into a protobuf data structure by the caller
-		string data((const char *)buf, size);
-		free(buf);
-
-		message.ParseFromString(data);
-	}
-}
-
-//---------------------------------------------------------------------------
-//
-//	List devices
-//
-//---------------------------------------------------------------------------
-string ListDevices(const PbDevices& devices) {
-	ostringstream s;
-
-	if (devices.devices_size()) {
-    	s << endl
-    		<< "+----+----+------+-------------------------------------" << endl
-    		<< "| ID | UN | TYPE | DEVICE STATUS" << endl
-			<< "+----+----+------+-------------------------------------" << endl;
-	}
-	else {
-		return "No images currently attached.\n";
+		s << "|  " << device.id() << " |   " << device.unit() << " | " << PbDeviceType_Name(device.type()) << " | "
+				<< (filename.empty() ? "NO MEDIA" : filename)
+				<< (!device.status().removed() && (device.properties().read_only() || device.status().protected_()) ? " (READ-ONLY)" : "")
+				<< endl;
 	}
 
-	for (int i = 0; i < devices.devices_size() ; i++) {
-		PbDevice device = devices.devices(i);
-
-		s << "|  " << device.id() << " |  " << device.un() << " | " << device.type() << " | "
-				<< device.file() << (device.read_only() ? " (WRITEPROTECT)" : "") << endl;
-	}
-
-	s << "+----+----+------+-------------------------------------" << endl;
+	s << "+----+-----+------+-------------------------------------";
 
 	return s.str();
 }

@@ -4,7 +4,7 @@
 //
 //	Copyright (C) 2001-2005 ＰＩ．(ytanaka@ipc-tokai.or.jp)
 //	Copyright (C) 2013-2020 GIMONS
-//	[ ファイルI/O(RaSCSI用サブセット) ]
+//	[ File I/O (Subset for RaSCSI) ]
 //
 //---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@
 
 //===========================================================================
 //
-//	マクロ(Load,Save用)
+//	Macros (for Load, Save)
 //
 //===========================================================================
 #define PROP_IMPORT(f, p) \
@@ -30,57 +30,40 @@
 
 //===========================================================================
 //
-//	ファイルI/O
+//	File I/O
 //
 //===========================================================================
 class Fileio
 {
 public:
 	enum OpenMode {
-		ReadOnly,						// 読み込みのみ
-		WriteOnly,						// 書き込みのみ
-		ReadWrite,						// 読み書き両方
-		Append							// アペンド
+		ReadOnly,
+		WriteOnly,
+		ReadWrite
 	};
 
 public:
 	Fileio();
-										// コンストラクタ
 	virtual ~Fileio();
-										// デストラクタ
-	BOOL Load(const Filepath& path, void *buffer, int size);
-										// ROM,RAMロード
-	BOOL Save(const Filepath& path, void *buffer, int size);
-										// RAMセーブ
+	BOOL Load(const Filepath& path, void *buffer, int size);	// Load ROM, RAM
+	BOOL Save(const Filepath& path, void *buffer, int size);	// Save RAM
 
-	BOOL Open(LPCTSTR fname, OpenMode mode);
-										// オープン
+	BOOL Open(const char *fname, OpenMode mode);
 	BOOL Open(const Filepath& path, OpenMode mode);
-										// オープン
-	BOOL OpenDIO(LPCTSTR fname, OpenMode mode);
-										// オープン
+	BOOL OpenDIO(const char *fname, OpenMode mode);
 	BOOL OpenDIO(const Filepath& path, OpenMode mode);
-										// オープン
-	BOOL Seek(off64_t offset, BOOL relative = FALSE);
-										// シーク
+	BOOL Seek(off_t offset, BOOL relative = FALSE);
 	BOOL Read(void *buffer, int size);
-										// 読み込み
 	BOOL Write(const void *buffer, int size);
-										// 書き込み
-	off64_t GetFileSize();
-										// ファイルサイズ取得
-	off64_t GetFilePos() const;
-										// ファイル位置取得
+	off_t GetFileSize();
+	off_t GetFilePos() const;
 	void Close();
-										// クローズ
 	BOOL IsValid() const		{ return (BOOL)(handle != -1); }
-										// 有効チェック
 
 private:
-	BOOL Open(LPCTSTR fname, OpenMode mode, BOOL directIO);
-										// オープン
+	BOOL Open(const char *fname, OpenMode mode, BOOL directIO);
 
-	int handle;							// ファイルハンドル
+	int handle;							// File handle
 };
 
 #endif	// fileio_h

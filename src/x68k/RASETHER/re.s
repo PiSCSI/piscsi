@@ -3,9 +3,9 @@
 **  SCSI Target Emulator RaSCSI (*^..^*)
 **  for Raspberry Pi
 **
-**  Powered by XM6 TypeG Technorogy.
+**  Powered by XM6 TypeG Technology.
 **  Copyright (C) 2016-2017 GIMONS
-**	[ RaSCSI イーサーネット ドライバ ]
+**	[ RaSCSI Ethernet Driver ]
 **
 **  Based on
 **    Neptune-X board driver for  Human-68k(ESP-X)   version 0.03
@@ -23,21 +23,21 @@
 * Global Symbols ---------------------- *
 
 *
-* Ｃ言語用 外部宣言
+* For C language: external declarations
 *
 	.xref	_Initialize, _AddList, _SearchList, _DeleteList		;main.c  
 	.xref	_GetMacAddr, _SetMacAddr							;scsictl.c
 	.xref	_SendPacket, _SetPacketReception 					;scsictl.c
-*	.xref	_AddMulticastAddr, _DelMulticastAddr				;未実装
+*	.xref	_AddMulticastAddr, _DelMulticastAddr				;not implemented
 
 *
-* Ｃ言語用 外部変数
+* For C language: external functions
 *
-	.xref	_num_of_prt		;main.c 登録プロトコル数
-	.xref	_trap_no		;使用trapナンバー
-	.xref	_trans_counter	;scsictl.c 送信/受信バイト数
-	.xref	_intr_type		;scsictl.c 割り込み種別
-	.xref	_poll_interval	;scsictl.c ポーリング間隔
+	.xref	_num_of_prt		;main.c Number of registered protocols
+	.xref	_trap_no		;Used trap number
+	.xref	_trans_counter	;scsictl.c Number of send/receive bytes
+	.xref	_intr_type		;scsictl.c Type of interrupt
+	.xref	_poll_interval	;scsictl.c Polling interval
 
 
 * Text Section -------------------------------- *
@@ -47,21 +47,21 @@
 
 
 *
-* デバイスヘッダー
+* Device Header
 *
 device_header:
-	.dc.l	-1					;リンクポインター
+	.dc.l	-1					;link pointer
 	.dc	$8000					;device att.
-	.dc.l	strategy_entry		;stategy entry
-	.dc.l	interupt_entry		;interupt entry
+	.dc.l	strategy_entry		;strategy entry
+	.dc.l	interupt_entry		;interrupt entry
 	.dc.b	'/dev/en0'			;device name
 	.dc.b	'EthD'				;for etherlib.a
-	.dc.b	'RASC'				;driver name (この後にエントリーを置く)
+	.dc.b	'RASC'				;driver name (put in entry later)
 
-* 'RASC' から superjsr_entry の間には何も置かないこと
+* Don not put anything between 'RASC' and superjsr_entry
 
 *
-* イーサドライバ 関数 エントリー ( for  DOS _SUPERJSR )
+* Ether Driver Function Entry ( for  DOS _SUPERJSR )
 *   in: d0:	command number
 *	a0:	args
 *
@@ -79,11 +79,11 @@ superjsr_entry:
 
 	bsr	do_command
 	movem.l	(sp)+,d1-d7/a1-a7
-	rts				;普通のリターン
+	rts				;normal return
 
 
 *
-* イーサドライバ 関数 エントリー ( for  trap #n )
+* Ether Driver Function Entry ( for  trap #n )
 *   in: d0:	command number
 *	a0:	args
 *
@@ -101,51 +101,51 @@ _trap_entry::
 
 	bsr	do_command
 	movem.l	(sp)+,d1-d7/a1-a7
-	rte				;割り込みリターン
+	rte				;interrupt return
 
 
 *
-* 各処理ふりわけ
+* Assign each command
 *
 do_command:
 	moveq	#FUNC_MIN,d1
 	cmp.l	d0,d1
-	bgt	error			;d0<-2 なら未対応コマンド番号
+	bgt	error			;d0<-2 is an unsupported command number
 	moveq	#FUNC_MAX,d1
 	cmp.l	d1,d0
-	bgt	error			;9<d0 なら未対応コマンド番号
+	bgt	error			;9<d0 is an unsupported command number
 
 	add	d0,d0
 	move	(jumptable,pc,d0.w),d0
-	jmp	(jumptable,pc,d0.w)	;引数 a0 をレジスタ渡し
+	jmp	(jumptable,pc,d0.w)	;Pass parameter a0 to register
 **	rts
 error:
 	moveq	#-1,d0
 	rts
 
 *
-* ジャンプテーブル
+* Jump Table
 *
 
 FUNC_MIN:	.equ	($-jumptable)/2
-	.dc	get_cnt_addr-jumptable			;-2 ... 送受信カウンタのアドレス取得
-	.dc	driver_entry-jumptable			;-1 ... 使用trap番号の取得
+	.dc	get_cnt_addr-jumptable			;-2 ... Get transfer counter address
+	.dc	driver_entry-jumptable			;-1 ... Get used trap number
 jumptable:
-	.dc	get_driver_version-jumptable	;00 ... バージョンの取得
-	.dc	get_mac_addr-jumptable			;01 ... 現在のMACアドレス取得
-	.dc	get_prom_addr-jumptable			;02 ... PROMに書かれたMACアドレス取得
-	.dc	set_mac_addr-jumptable			;03 ... MACアドレスの設定
-	.dc	send_packet-jumptable			;04 ... パケット送信
-	.dc	set_int_addr-jumptable			;05 ... パケット受信ハンドラ設定
-	.dc	get_int_addr-jumptable			;06 ... パケット受信ハンドラのアドレス取得
-	.dc	del_int_addr-jumptable			;07 ... ハンドラ削除
-	.dc	set_multicast_addr-jumptable	;08 ... (マルチキャストの設定＜未対応＞)
-	.dc	get_statistics-jumptable		;09 ... (統計読み出し＜未対応＞)
+	.dc	get_driver_version-jumptable	;00 ... Get version
+	.dc	get_mac_addr-jumptable			;01 ... Get current MAC address
+	.dc	get_prom_addr-jumptable			;02 ... Get MAC address written in PROM
+	.dc	set_mac_addr-jumptable			;03 ... Set MAC address
+	.dc	send_packet-jumptable			;04 ... Send packet
+	.dc	set_int_addr-jumptable			;05 ... Set packet receive handler
+	.dc	get_int_addr-jumptable			;06 ... Get packet receive handler address
+	.dc	del_int_addr-jumptable			;07 ... Delete handler
+	.dc	set_multicast_addr-jumptable	;08 ... (Set multicast <unsupported>)
+	.dc	get_statistics-jumptable		;09 ... (Read out statistics <unsupported>)
 FUNC_MAX:	.equ	($-jumptable)/2-1
 
 
 *
-* コマンド -2: 送受信カウンタのアドレスを返す
+* Command -2: Return transfer counter address
 *  return: address
 *
 get_cnt_addr:
@@ -155,7 +155,7 @@ get_cnt_addr:
 
 
 *
-* コマンド -1: 使用trap番号を返す
+* Command -1: Return used trap number
 *  return: trap number to use (-1:use SUPERJSR)
 *
 driver_entry:
@@ -166,13 +166,13 @@ driver_entry:
 *mesff:	.dc.b	'DriverEntry',13,10,0
 *	.text
 
-	move.l	(_trap_no,pc),d0	;trap_no ... main.c 変数
+	move.l	(_trap_no,pc),d0	;trap_no ... main.c variable
 	rts
 
 
 *
-* コマンド 00: ドライバーのバージョンを返す
-*  return: version number (例... ver1.00 なら 100 を返す)
+* Command 00: Return driver version
+*  return: version number (Ex... for ver1.00 return 100)
 *
 get_driver_version:
 *	pea	(mes00,pc)
@@ -187,7 +187,7 @@ get_driver_version:
 
 
 *
-* コマンド 01: 現在の MAC アドレスの取得
+* Command 01: Get current MAC address
 *  return: same as *dst
 *
 get_mac_addr:
@@ -200,13 +200,13 @@ get_mac_addr:
 
 	pea	(a0)
 	pea	(a0)
-	bsr	_GetMacAddr		;scsictl.c 関数
+	bsr	_GetMacAddr		;scsictl.c function
 	addq.l	#4,sp
-	move.l	(sp)+,d0		;引数の a0 を d0 にそのまま返す
+	move.l	(sp)+,d0		;Return d0 for parameter a0
 	rts
 
 *
-* コマンド 02: EEPROM に書かれた MAC アドレスの取得
+* Command 02: Get MAC address written to EEPROM
 *  return: same as *dst
 *
 get_prom_addr:
@@ -219,13 +219,13 @@ get_prom_addr:
 
 	pea	(a0)
 	pea	(a0)
-	bsr	_GetMacAddr		;scsictl.c 関数
+	bsr	_GetMacAddr		;scsictl.c function
 	addq.l	#4,sp
-	move.l	(sp)+,d0		;引数の a0 を d0 にそのまま返す
+	move.l	(sp)+,d0		;Return d0 for parameter a0
 	rts
 
 *
-* コマンド 03: MACアドレスの設定
+* Command 03: Set MAC address
 *  return: 0 (if no errors)
 *
 set_mac_addr:
@@ -237,13 +237,13 @@ set_mac_addr:
 *	.text
 
 	pea	(a0)
-	bsr	_SetMacAddr		;scsictl.c 関数
+	bsr	_SetMacAddr		;scsictl.c function
 	addq.l	#4,sp
 	rts
 
 
 *
-* コマンド 04: パケット送信
+* Command 04: Send packet
 *   packet contents:
 *	Distination MAC: 6 bytes
 *	Source(own) MAC: 6 bytes
@@ -256,10 +256,10 @@ send_packet:
 *	DOS	_PRINT
 *	addq.l	#4,sp
 
-	move.l	(a0)+,d0		;パケットサイズ
-	move.l	(a0),-(sp)		;パケットアドレス
+	move.l	(a0)+,d0		;packet size
+	move.l	(a0),-(sp)		;packet address
 	move.l	d0,-(sp)
-	bsr	_SendPacket		;scsictl.c 関数
+	bsr	_SendPacket		;scsictl.c function
 	addq.l	#8,sp
 
 *	move.l	d0,-(sp)
@@ -269,14 +269,14 @@ send_packet:
 *	move.l	(sp)+,d0
 *	.data
 *mes04:	.dc.b	13,10,'SendPacket,13,10',0
-*mes04e:.dc.b	13,10,'SendPacketおわり',13,10,0
+*mes04e:.dc.b	13,10,'SendPacket finished',13,10,0
 *	.text
 
 	rts
 
 
 *
-* コマンド 05: 受信割り込みハンドラ追加・設定
+* Command 05: Set / add receive interrupt handler
 *   type: 0x00000800 IP packet
 *         0x00000806 ARP packet
 *  return: 0 (if no errors)
@@ -289,28 +289,28 @@ set_int_addr:
 *mes05:	.dc.b	'SetIntAddr',13,10,0
 *	.text
 
-	move.l	(a0)+,d0		;プロトコル番号
-	move.l	(a0),-(sp)		;ハンドラ関数のアドレス
+	move.l	(a0)+,d0		;protocol number
+	move.l	(a0),-(sp)		;address to handler function
 	move.l	d0,-(sp)
-	bsr	_AddList		;main.c 関数
+	bsr	_AddList		;main.c function
 	addq.l	#8,sp
 	tst.l	d0
-	bmi	set_int_addr_rts	;登録失敗
+	bmi	set_int_addr_rts	;Registration failed
 
-	cmpi.l	#1,(_num_of_prt)	;ハンドラ数が１なら割り込み許可へ
+	cmpi.l	#1,(_num_of_prt)	;Permit interrupt if number of handlers is 1
 	bne	set_int_addr_rts
 
-	pea	(1)			;1=<許可>
-	bsr	_SetPacketReception	;割り込み許可 ... scsictl.c
+	pea	(1)			;1=<Permit>
+	bsr	_SetPacketReception	;interrupt permitted ... scsictl.c
 	addq.l	#4,sp
 
-*	moveq	#0,d0			;SetPacketReception() で常に 0 が返るので省略
+*	moveq	#0,d0			;SetPacketReception() always returns 0 so bypass
 set_int_addr_rts:
 	rts
 
 
 *
-* コマンド 06: 割り込みハンドラのアドレス取得
+* Command 06: Get interrupt handler and address
 *  return: interupt address
 *
 get_int_addr:
@@ -328,7 +328,7 @@ get_int_addr:
 
 
 *
-* コマンド 07: 割り込みハンドラの削除
+* Command 07: Delete interrupt handler
 *  return: 0 (if no errors)
 *
 del_int_addr:
@@ -340,24 +340,24 @@ del_int_addr:
 *	.text
 
 	pea	(a0)
-	bsr	_DeleteList		;main.c 関数
+	bsr	_DeleteList		;main.c function
 	move.l	d0,(sp)+
-	bmi	del_int_addr_ret	;削除失敗
+	bmi	del_int_addr_ret	;Delete failed
 
-	tst.l	(_num_of_prt)		;ハンドラが一つもなくなれば割り込みを禁止する
+	tst.l	(_num_of_prt)		;Forbid interrupts if handlers are gone
 	bne	del_int_addr_ret
 
-	clr.l	-(sp)			;0=<禁止>
-	bsr	_SetPacketReception	;割り込み禁止 ... scsictl.c
+	clr.l	-(sp)			;0=<Block>
+	bsr	_SetPacketReception	;Interrupt forbitten ... scsictl.c
 	addq.l	#4,sp
 
-*	moveq	#0,d0			;SetPacketReception() で常に 0 が返るので省略
+*	moveq	#0,d0			;SetPacketReception() always returns 0 so bypass
 del_int_addr_ret:
 	rts
 
 
 *
-* コマンド 08: マルチキャストアドレスの設定
+* Command 08: Set multicast address
 *
 set_multicast_addr:
 *	pea	(mes08,pc)
@@ -372,7 +372,7 @@ set_multicast_addr:
 
 
 *
-* コマンド 09: 統計読み出し
+* Command 09: Read out statistics
 *
 get_statistics:
 *	pea	(mes09,pc)
@@ -386,7 +386,7 @@ get_statistics:
 	rts
 
 *
-* デバイスドライバエントリー
+* Device Driver Entry
 *
 strategy_entry:
 	move.l	a5,(request_buffer)
@@ -394,7 +394,7 @@ strategy_entry:
 
 
 interupt_entry:
-	move.l	sp,(stack_buff)		;自前のスタックエリアを使う
+	move.l	sp,(stack_buff)		;Use own stack area
 	lea	(def_stack),sp		;
 
 	movem.l	d1-d7/a0-a5,-(sp)
@@ -481,13 +481,13 @@ opt_i:
 	bra	opt_loop
 
 arg_end:
-	bsr	_Initialize		;main.c 関数
-				;I/Oアドレス設定
-				;MACアドレス取得
-				;プロトコルリスト初期化
-				;SCSICTL初期化
-				;割り込みハンドラ（ベクタ設定）
-				;trapサービス（ベクタ設定）
+	bsr	_Initialize		;main.c function
+				;Set I/O address
+				;Get MAC address
+				;Init protocol list
+				;Init SCSICTL
+				;Interrupt handler (set vector)
+				;trap service (set vector)
 	tst.l	d0
 	bne	errorret
 
@@ -508,7 +508,7 @@ intret:
 	move.b	d0,(3,a5)
 	movem.l	(sp)+,d1-d7/a0-a5
 
-	movea.l	(stack_buff,pc),sp	;スタックポインタを元にもどす
+	movea.l	(stack_buff,pc),sp	;Restore stack pointer
 	rts
 
 get_num:
@@ -539,7 +539,7 @@ mestitle:
 	.dc.b	'RaSCSI Ethernet Driver version 1.20 / Based on ether_ne.sys+M01L12',13,10
 	.dc.b	0
 mesparam_err:
-	.dc.b	'パラメータが異常です',13,10,0
+	.dc.b	'Invalid parameter',13,10,0
 	.even
 
 
@@ -562,7 +562,7 @@ stack_buff_i:
 	.quad
 
 *
-* スタックエリア
+* Stack area
 *
 	.ds.b	1024*8
 def_stack:

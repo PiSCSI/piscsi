@@ -15,8 +15,10 @@
 //---------------------------------------------------------------------------
 
 #include "scsimo.h"
-#include "xm6.h"
+
 #include "fileio.h"
+#include "exceptions.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -31,8 +33,6 @@
 //---------------------------------------------------------------------------
 SCSIMO::SCSIMO() : Disk("SCMO")
 {
-	// Set as removable
-	disk.removable = TRUE;
 }
 
 //---------------------------------------------------------------------------
@@ -40,59 +40,42 @@ SCSIMO::SCSIMO() : Disk("SCMO")
 //	Open
 //
 //---------------------------------------------------------------------------
-BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
+void SCSIMO::Open(const Filepath& path)
 {
-	ASSERT(!disk.ready);
+	ASSERT(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
+
 	if (!fio.Open(path, Fileio::ReadOnly)) {
-		return FALSE;
+		throw file_not_found_exception("Can't open MO file");
 	}
 
 	// Get file size
-	off64_t size = fio.GetFileSize();
+	off_t size = fio.GetFileSize();
 	fio.Close();
 
-	switch (size) {
-		// 128MB
-		case 0x797f400:
-			disk.size = 9;
-			disk.blocks = 248826;
-			break;
-
-		// 230MB
-		case 0xd9eea00:
-			disk.size = 9;
-			disk.blocks = 446325;
-			break;
-
-		// 540MB
-		case 0x1fc8b800:
-			disk.size = 9;
-			disk.blocks = 1041500;
-			break;
-
-		// 640MB
-		case 0x25e28000:
-			disk.size = 11;
-			disk.blocks = 310352;
-			break;
-
-		// Other (this is an error)
-		default:
-			return FALSE;
+	// For some priorities there are hard-coded, well-defined sector sizes and block counts
+	if (!SetGeometryForCapacity(size)) {
+		// Sector size (default 512 bytes) and number of blocks
+		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, true);
+		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
-	// Call the base class
+	// Effective size must be a multiple of the sector size
+	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
+
+	SetReadOnly(false);
+	SetProtectable(true);
+	SetProtected(false);
+
 	Disk::Open(path);
+	FileSupport::SetPath(path);
 
 	// Attention if ready
-	if (disk.ready && attn) {
-		disk.attn = TRUE;
+	if (IsReady()) {
+		SetAttn(true);
 	}
-
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------
@@ -100,19 +83,14 @@ BOOL SCSIMO::Open(const Filepath& path, BOOL attn)
 //	INQUIRY
 //
 //---------------------------------------------------------------------------
-int SCSIMO::Inquiry(
-	const DWORD *cdb, BYTE *buf, DWORD major, DWORD minor)
+int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	int size;
-	char rev[32];
-
 	ASSERT(cdb);
 	ASSERT(buf);
-	ASSERT(cdb[0] == 0x12);
 
 	// EVPD check
 	if (cdb[1] & 0x01) {
-		disk.code = DISK_INVALIDCDB;
+		SetStatusCode(STATUS_INVALIDCDB);
 		return FALSE;
 	}
 
@@ -124,53 +102,32 @@ int SCSIMO::Inquiry(
 	// buf[4] ... Inquiry additional data
 	memset(buf, 0, 8);
 	buf[0] = 0x07;
-
-	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if (((cdb[1] >> 5) & 0x07) != disk.lun) {
-		buf[0] = 0x7f;
-	}
-
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
 	buf[4] = 36 - 5;	// required
 
-	// Fill with blanks
-	memset(&buf[8], 0x20, buf[4] - 3);
-
-	// Vendor name
-	memcpy(&buf[8], BENDER_SIGNATURE, strlen(BENDER_SIGNATURE));
-
-	// Product name
-	memcpy(&buf[16], "M2513A", 6);
-
-	// Revision (XM6 version number)
-	sprintf(rev, "0%01d%01d%01d",
-				(int)major, (int)(minor >> 4), (int)(minor & 0x0f));
-	memcpy(&buf[32], rev, 4);
+	// Padded vendor, product, revision
+	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 	// Size return data
-	size = (buf[4] + 5);
+	int size = (buf[4] + 5);
 
 	// Limit the size if the buffer is too small
 	if (size > (int)cdb[4]) {
 		size = (int)cdb[4];
 	}
 
-	//  Success
-	disk.code = DISK_NOERROR;
 	return size;
 }
 
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT
-//	*Not affected by disk.code
 //
 //---------------------------------------------------------------------------
-BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
+bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int page;
 	int size;
 
 	ASSERT(buf);
@@ -181,12 +138,12 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Mode Parameter header
 		if (length >= 12) {
 			// Check the block length (in bytes)
-			size = 1 << disk.size;
+			size = 1 << GetSectorSizeShiftCount();
 			if (buf[9] != (BYTE)(size >> 16) ||
 				buf[10] != (BYTE)(size >> 8) || buf[11] != (BYTE)size) {
 				// Currently does not allow changing sector length
-				disk.code = DISK_INVALIDPRM;
-				return FALSE;
+				SetStatusCode(STATUS_INVALIDPRM);
+				return false;
 			}
 			buf += 12;
 			length -= 12;
@@ -195,18 +152,18 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 		// Parsing the page
 		while (length > 0) {
 			// Get the page
-			page = buf[0];
+			int page = buf[0];
 
 			switch (page) {
 				// format device
 				case 0x03:
 					// Check the number of bytes in the physical sector
-					size = 1 << disk.size;
+					size = 1 << GetSectorSizeShiftCount();
 					if (buf[0xc] != (BYTE)(size >> 8) ||
 						buf[0xd] != (BYTE)size) {
 						// Currently does not allow changing sector length
-						disk.code = DISK_INVALIDPRM;
-						return FALSE;
+						SetStatusCode(STATUS_INVALIDPRM);
+						return false;
 					}
 					break;
 				// vendor unique format
@@ -227,9 +184,7 @@ BOOL SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 	}
 
 	// Do not generate an error for the time being (MINIX)
-	disk.code = DISK_NOERROR;
-
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -278,50 +233,55 @@ int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 		further information: http://r2089.blog36.fc2.com/blog-entry-177.html
 	*/
 
-	if (disk.ready) {
+	if (IsReady()) {
 		unsigned spare = 0;
 		unsigned bands = 0;
+		uint64_t blocks = GetBlockCount();
 
-		if (disk.size == 9) switch (disk.blocks) {
-			// 128MB
-			case 248826:
-				spare = 1024;
-				bands = 1;
-				break;
+		if (GetSectorSizeInBytes() == 512) {
+			switch (blocks) {
+				// 128MB
+				case 248826:
+					spare = 1024;
+					bands = 1;
+					break;
 
-			// 230MB
-			case 446325:
-				spare = 1025;
-				bands = 10;
-				break;
+				// 230MB
+				case 446325:
+					spare = 1025;
+					bands = 10;
+					break;
 
-			// 540MB
-			case 1041500:
-				spare = 2250;
-				bands = 18;
-				break;
+				// 540MB
+				case 1041500:
+					spare = 2250;
+					bands = 18;
+					break;
+			}
 		}
 
-		if (disk.size == 11) switch (disk.blocks) {
-			// 640MB
-			case 310352:
-				spare = 2244;
-				bands = 11;
-				break;
+		if (GetSectorSizeInBytes() == 2048) {
+			switch (blocks) {
+				// 640MB
+				case 310352:
+					spare = 2244;
+					bands = 11;
+					break;
 
-			// 1.3GB (lpproj: not tested with real device)
-			case 605846:
-				spare = 4437;
-				bands = 18;
-				break;
+					// 1.3GB (lpproj: not tested with real device)
+				case 605846:
+					spare = 4437;
+					bands = 18;
+					break;
+			}
 		}
 
 		buf[2] = 0; // format mode
 		buf[3] = 0; // type of format
-		buf[4] = (BYTE)(disk.blocks >> 24);
-		buf[5] = (BYTE)(disk.blocks >> 16);
-		buf[6] = (BYTE)(disk.blocks >> 8);
-		buf[7] = (BYTE)disk.blocks;
+		buf[4] = (BYTE)(blocks >> 24);
+		buf[5] = (BYTE)(blocks >> 16);
+		buf[6] = (BYTE)(blocks >> 8);
+		buf[7] = (BYTE)blocks;
 		buf[8] = (BYTE)(spare >> 8);
 		buf[9] = (BYTE)spare;
 		buf[10] = (BYTE)(bands >> 8);

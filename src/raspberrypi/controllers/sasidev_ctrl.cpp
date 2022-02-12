@@ -18,7 +18,7 @@
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
-#include "exceptions.h"
+#include <sstream>
 
 //===========================================================================
 //
@@ -33,8 +33,6 @@
 //---------------------------------------------------------------------------
 SASIDEV::SASIDEV()
 {
-	int i;
-
 	// Work initialization
 	ctrl.phase = BUS::busfree;
 	ctrl.m_scsi_id = UNKNOWN_SCSI_ID;
@@ -52,9 +50,10 @@ SASIDEV::SASIDEV()
 	ctrl.next = 0;
 	ctrl.offset = 0;
 	ctrl.length = 0;
+	ctrl.lun = -1;
 
 	// Logical unit initialization
-	for (i = 0; i < UnitMax; i++) {
+	for (int i = 0; i < UnitMax; i++) {
 		ctrl.unit[i] = NULL;
 	}
 }
@@ -113,22 +112,10 @@ void SASIDEV::Connect(int id, BUS *bus)
 
 //---------------------------------------------------------------------------
 //
-//	Get the logical unit
-//
-//---------------------------------------------------------------------------
-Disk* SASIDEV::GetUnit(int no)
-{
-	ASSERT(no < UnitMax);
-
-	return ctrl.unit[no];
-}
-
-//---------------------------------------------------------------------------
-//
 //	Set the logical unit
 //
 //---------------------------------------------------------------------------
-void SASIDEV::SetUnit(int no, Disk *dev)
+void SASIDEV::SetUnit(int no, Device *dev)
 {
 	ASSERT(no < UnitMax);
 
@@ -137,43 +124,18 @@ void SASIDEV::SetUnit(int no, Disk *dev)
 
 //---------------------------------------------------------------------------
 //
-//	Check to see if this has a valid logical unit
+//	Check to see if this has a valid LUN
 //
 //---------------------------------------------------------------------------
-BOOL SASIDEV::HasUnit()
+bool SASIDEV::HasUnit()
 {
 	for (int i = 0; i < UnitMax; i++) {
 		if (ctrl.unit[i]) {
-			return TRUE;
+			return true;
 		}
 	}
 
-	return FALSE;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Get internal data
-//
-//---------------------------------------------------------------------------
-void SASIDEV::GetCTRL(ctrl_t *buffer)
-{
-	ASSERT(buffer);
-
-	// reference the internal structure
-	*buffer = ctrl;
-}
-
-//---------------------------------------------------------------------------
-//
-//	Get a busy unit
-//
-//---------------------------------------------------------------------------
-Disk* SASIDEV::GetBusyUnit()
-{
-	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-	return ctrl.unit[lun];
+	return false;
 }
 
 //---------------------------------------------------------------------------
@@ -259,7 +221,7 @@ void SASIDEV::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
-		LOGINFO("Bus free phase");
+		LOGTRACE("%s Bus free phase", __PRETTY_FUNCTION__);
 
 		// Phase Setting
 		ctrl.phase = BUS::busfree;
@@ -269,11 +231,14 @@ void SASIDEV::BusFree()
 		ctrl.bus->SetMSG(FALSE);
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
-		ctrl.bus->SetBSY(FALSE);
+		ctrl.bus->SetBSY(false);
 
 		// Initialize status and message
 		ctrl.status = 0x00;
 		ctrl.message = 0x00;
+
+		ctrl.lun = -1;
+
 		return;
 	}
 
@@ -298,7 +263,7 @@ void SASIDEV::Selection()
 			return;
 		}
 
-		// Return if there is no unit
+		// Return if there is no valid LUN
 		if (!HasUnit()) {
 			return;
 		}
@@ -309,7 +274,7 @@ void SASIDEV::Selection()
 		ctrl.phase = BUS::selection;
 
 		// Raiase BSY and respond
-		ctrl.bus->SetBSY(TRUE);
+		ctrl.bus->SetBSY(true);
 		return;
 	}
 
@@ -321,14 +286,11 @@ void SASIDEV::Selection()
 
 //---------------------------------------------------------------------------
 //
-//	Command phase
+//	Command phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::Command()
 {
-	int count;
-	int i;
-
 	// Phase change
 	if (ctrl.phase != BUS::command) {
 		LOGTRACE("%s Command Phase", __PRETTY_FUNCTION__);
@@ -346,19 +308,14 @@ void SASIDEV::Command()
 		ctrl.length = 6;
 		ctrl.blocks = 1;
 
-		// Command reception handshake (10 bytes are automatically received at the first command)
-		count = ctrl.bus->CommandHandShake(ctrl.buffer);
-
 		// If no byte can be received move to the status phase
-		if (count == 0) {
+		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
+		if (!count) {
 			Error();
 			return;
 		}
 
-		// Check 10-byte CDB
-		if (ctrl.buffer[0] >= 0x20 && ctrl.buffer[0] <= 0x7D) {
-			ctrl.length = 10;
-		}
+		ctrl.length = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 		// If not able to receive all, move to the status phase
 		if (count != (int)ctrl.length) {
@@ -367,8 +324,9 @@ void SASIDEV::Command()
 		}
 
 		// Command data transfer
-		for (i = 0; i < (int)ctrl.length; i++) {
+		for (int i = 0; i < (int)ctrl.length; i++) {
 			ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
+			LOGTRACE("%s CDB[%d]=$%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 		}
 
 		// Clear length and block
@@ -376,14 +334,7 @@ void SASIDEV::Command()
 		ctrl.blocks = 0;
 
 		// Execution Phase
-                try {
-                    Execute();
-                }
-                catch (lunexception& e) {
-                	LOGINFO("%s Invalid LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-
-                	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
-                }
+		Execute();
 	}
 }
 
@@ -405,13 +356,14 @@ void SASIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((SASIDEV::scsi_command)ctrl.cmd[0] != eCmdRequestSense) {
-		ctrl.sense_key = 0;
-		ctrl.asc = 0;
+	if ((SASIDEV::sasi_command)ctrl.cmd[0] != SASIDEV::eCmdRequestSense) {
+		ctrl.status = 0;
+		ctrl.device->SetStatusCode(0);
 	}
 
 	// Process by command
-	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
+	// TODO This code does not belong here. Each device type needs such a dispatcher, which the controller has to call.
+	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
 		// TEST UNIT READY
 		case SASIDEV::eCmdTestUnitReady:
 			CmdTestUnitReady();
@@ -427,16 +379,14 @@ void SASIDEV::Execute()
 			CmdRequestSense();
 			return;
 
-		// FORMAT UNIT
-		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
-		// leaving it here for now....
+		// FORMAT
 		case SASIDEV::eCmdFormat:
 			CmdFormat();
 			return;
 
 		// REASSIGN BLOCKS
 		case SASIDEV::eCmdReassign:
-			CmdReassign();
+			CmdReassignBlocks();
 			return;
 
 		// READ(6)
@@ -454,7 +404,7 @@ void SASIDEV::Execute()
 			CmdSeek6();
 			return;
 
-		// ASSIGN(SASIのみ)
+		// ASSIGN (SASI only)
 		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
 		case SASIDEV::eCmdSasiCmdAssign:
@@ -471,19 +421,29 @@ void SASIDEV::Execute()
 			CmdReleaseUnit();
 			return;
 
-		// SPECIFY(SASIのみ)
+		// SPECIFY (SASI only)
 		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
 		case SASIDEV::eCmdInvalid:
 			CmdSpecify();
 			return;
+
 		default:
 			break;
 	}
 
 	// Unsupported command
-	LOGWARN("%s Unsupported command $%02X", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0]);
-	CmdInvalid();
+	LOGTRACE("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
+
+	// Logical Unit
+	DWORD lun = GetEffectiveLun();
+	if (ctrl.unit[lun]) {
+		// Command processing on drive
+		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
+	}
+
+	// Failure (Error)
+	Error();
 }
 
 //---------------------------------------------------------------------------
@@ -493,15 +453,12 @@ void SASIDEV::Execute()
 //---------------------------------------------------------------------------
 void SASIDEV::Status()
 {
-	DWORD min_exec_time;
-	DWORD time;
-
 	// Phase change
 	if (ctrl.phase != BUS::status) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
-			time = SysTimer::GetTimerLow() - ctrl.execstart;
+			DWORD min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
+			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < min_exec_time) {
 				SysTimer::SleepUsec(min_exec_time - time);
 			}
@@ -509,6 +466,8 @@ void SASIDEV::Status()
 		} else {
 			SysTimer::SleepUsec(5);
 		}
+
+		LOGTRACE("%s Status phase", __PRETTY_FUNCTION__);
 
 		// Phase Setting
 		ctrl.phase = BUS::status;
@@ -535,7 +494,7 @@ void SASIDEV::Status()
 
 //---------------------------------------------------------------------------
 //
-//	Message in phase
+//	Message in phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::MsgIn()
@@ -566,22 +525,19 @@ void SASIDEV::MsgIn()
 
 //---------------------------------------------------------------------------
 //
-//	Data-in Phase
+//	Data-in Phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::DataIn()
 {
-	DWORD min_exec_time;
-	DWORD time;
-
 	ASSERT(ctrl.length >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::datain) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
-			time = SysTimer::GetTimerLow() - ctrl.execstart;
+			DWORD min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
+			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < min_exec_time) {
 				SysTimer::SleepUsec(min_exec_time - time);
 			}
@@ -617,22 +573,19 @@ void SASIDEV::DataIn()
 
 //---------------------------------------------------------------------------
 //
-//	Data out phase
+//	Data out phase (used by SASI and SCSI)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::DataOut()
 {
-	DWORD min_exec_time;
-	DWORD time;
-
 	ASSERT(ctrl.length >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
-			time = SysTimer::GetTimerLow() - ctrl.execstart;
+			DWORD min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
+			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < min_exec_time) {
 				SysTimer::SleepUsec(min_exec_time - time);
 			}
@@ -692,21 +645,11 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
-	LOGTRACE("%s Sense Key and ASC for subsequent REQUEST SENSE: $%02X, $%02X", __PRETTY_FUNCTION__, sense_key, asc);
-
-	// Set Sense Key and ASC for a subsequent REQUEST SENSE
-	ctrl.sense_key = sense_key;
-	ctrl.asc = asc;
-
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 
 	// Set status and message(CHECK CONDITION)
 	ctrl.status = (lun << 5) | 0x02;
-
-#if defined(DISK_LOG)
-	LOGWARN("Error occured (going to status phase)");
-#endif	// DISK_LOG
 
 	// status phase
 	Status();
@@ -721,18 +664,8 @@ void SASIDEV::CmdTestUnitReady()
 {
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->TestUnitReady(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	((Disk *)ctrl.device)->TestUnitReady(this);
 }
 
 //---------------------------------------------------------------------------
@@ -744,18 +677,8 @@ void SASIDEV::CmdRezero()
 {
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Rezero(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	((Disk *)ctrl.device)->Rezero(this);
 }
 
 //---------------------------------------------------------------------------
@@ -767,39 +690,8 @@ void SASIDEV::CmdRequestSense()
 {
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
-    DWORD lun;
-    try {
-     	lun = GetLun();
-    }
-    catch(const lunexception& e) {
-        LOGINFO("%s Non-existing LUN %d", __PRETTY_FUNCTION__, (int)e.getlun());
-
-        // Note: According to the SCSI specs the LUN handling for REQUEST SENSE is special.
-        // Non-existing LUNs do *not* result in CHECK CONDITION.
-        // Only the Sense Key and ASC are set in order to signal the non-existing LUN.
-
-        // LUN 0 can be assumed to be present (required to call RequestSense() below)
-        lun = 0;
-
-    	ctrl.sense_key = ERROR_CODES::sense_key::ILLEGAL_REQUEST;
-    	ctrl.asc = ERROR_CODES::asc::INVALID_LUN;
-    }
-
-	ctrl.length = ctrl.unit[lun]->RequestSense(ctrl.cmd, ctrl.buffer);
-	ASSERT(ctrl.length > 0);
-
-    LOGTRACE("%s Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl.sense_key, ctrl.asc);
-
-    // REQUEST SENSE returns the sense data set by the previous (failed) command
-    ctrl.buffer[2] = ctrl.sense_key;
-    ctrl.buffer[12] = ctrl.asc;
-
-    // The sense data are only valid once
-    ctrl.sense_key = 0;
-    ctrl.asc = 0;
-
-	// Read phase
-	DataIn();
+	// Command processing on drive
+	((Disk *)ctrl.device)->RequestSense(this);
 }
 
 //---------------------------------------------------------------------------
@@ -811,18 +703,8 @@ void SASIDEV::CmdFormat()
 {
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Format(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	((Disk *)ctrl.device)->FormatUnit(this);
 }
 
 //---------------------------------------------------------------------------
@@ -830,22 +712,12 @@ void SASIDEV::CmdFormat()
 //	REASSIGN BLOCKS
 //
 //---------------------------------------------------------------------------
-void SASIDEV::CmdReassign()
+void SASIDEV::CmdReassignBlocks()
 {
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Reassign(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	((Disk *)ctrl.device)->ReassignBlocks(this);
 }
 
 //---------------------------------------------------------------------------
@@ -891,8 +763,6 @@ void SASIDEV::CmdReleaseUnit()
 //---------------------------------------------------------------------------
 void SASIDEV::CmdRead6()
 {
-        DWORD lun = GetLun();
-
 	// Get record number and block number
 	DWORD record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
@@ -904,20 +774,11 @@ void SASIDEV::CmdRead6()
 		ctrl.blocks = 0x100;
 	}
 
-	if(ctrl.unit[lun]->IsDaynaPort()){
-		// The DaynaPort only wants one block.
-		// ctrl.cmd[4] and ctrl.cmd[5] are used to specify the maximum buffer size for the DaynaPort
-		ctrl.blocks=1;
-	}
-
-	LOGTRACE("%s READ(6) command record=%06X blocks=%d ID %s", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks, ctrl.unit[lun]->GetID().c_str());
+	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, ctrl.buffer, record);
-	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
-
-	// The DaynaPort will respond a status of 0x02 when a read of size 1 occurs.
-	if (ctrl.length <= 0 && !ctrl.unit[lun]->IsDaynaPort()) {
+	ctrl.length = ((Disk *)ctrl.device)->Read(ctrl.cmd, ctrl.buffer, record);
+	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
 		return;
@@ -932,71 +793,11 @@ void SASIDEV::CmdRead6()
 
 //---------------------------------------------------------------------------
 //
-//  This Send Message command is used by the DaynaPort SCSI/Link
-//
-//---------------------------------------------------------------------------
-void SASIDEV::DaynaPortWrite()
-{
-        DWORD lun = GetLun();
-
-	// Error if not a host bridge
-	if (!ctrl.unit[lun]->IsDaynaPort()) {
-		LOGERROR("Received DaynaPortWrite for a non-DaynaPort device");
-		Error();
-		return;
-	}
-
-	// Reallocate buffer (because it is not transfer for each block)
-	if (ctrl.bufsize < DAYNAPORT_BUFFER_SIZE) {
-		free(ctrl.buffer);
-		ctrl.bufsize = DAYNAPORT_BUFFER_SIZE;
-		ctrl.buffer = (BYTE *)malloc(ctrl.bufsize);
-	}
-
-	DWORD data_format = ctrl.cmd[5];
-
-	if(data_format == 0x00){
-		ctrl.length = (WORD)ctrl.cmd[4] + ((WORD)ctrl.cmd[3] << 8);
-	}
-	else if (data_format == 0x80){
-		ctrl.length = (WORD)ctrl.cmd[4] + ((WORD)ctrl.cmd[3] << 8) + 8;
-	}
-	else
-	{
-		LOGWARN("%s Unknown data format %02X", __PRETTY_FUNCTION__, (unsigned int)data_format);
-	}
-	LOGTRACE("%s length: %04X (%d) format: %02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.length, (int)ctrl.length, (unsigned int)data_format);
-
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.blocks = 1;
-	ctrl.next = 1;
-
-	// Light phase
-	DataOut();
-}
-
-
-//---------------------------------------------------------------------------
-//
 //	WRITE(6)
 //
 //---------------------------------------------------------------------------
 void SASIDEV::CmdWrite6()
 {
-	DWORD lun = GetLun();
-
-	// Special receive function for the DaynaPort
-	if (ctrl.unit[lun]->IsDaynaPort()){
-		DaynaPortWrite();
-		return;
-	}
-
 	// Get record number and block number
 	DWORD record = ctrl.cmd[1] & 0x1f;
 	record <<= 8;
@@ -1008,12 +809,11 @@ void SASIDEV::CmdWrite6()
 		ctrl.blocks = 0x100;
 	}
 
-	LOGTRACE("%s WRITE(6) command record=%06X blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
+	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
 
 	// Command processing on drive
-	ctrl.length = ctrl.unit[lun]->WriteCheck(record);
+	ctrl.length = ((Disk *)ctrl.device)->WriteCheck(record);
 	if (ctrl.length <= 0) {
-		LOGDEBUG("WriteCheck failed");
 		// Failure (Error)
 		Error();
 		return;
@@ -1035,18 +835,8 @@ void SASIDEV::CmdSeek6()
 {
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Seek(ctrl.cmd);
-	if (!status) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// status phase
-	Status();
+	((Disk *)ctrl.device)->Seek6(this);
 }
 
 //---------------------------------------------------------------------------
@@ -1058,10 +848,8 @@ void SASIDEV::CmdAssign()
 {
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
+	bool status = ((Disk *)ctrl.device)->CheckReady();
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1084,10 +872,8 @@ void SASIDEV::CmdSpecify()
 {
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
-        DWORD lun = GetLun();
-
 	// Command processing on drive
-	BOOL status = ctrl.unit[lun]->Assign(ctrl.cmd);
+	bool status = ((Disk *)ctrl.device)->CheckReady();
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1099,18 +885,6 @@ void SASIDEV::CmdSpecify()
 
 	// Write phase
 	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	Unsupported command
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdInvalid()
-{
-	LOGWARN("%s Command not supported", __PRETTY_FUNCTION__);
-
-	Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 //===========================================================================
@@ -1126,15 +900,12 @@ void SASIDEV::CmdInvalid()
 //---------------------------------------------------------------------------
 void SASIDEV::Send()
 {
-	int len;
-	BOOL result;
-
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
 	// Check that the length isn't 0
 	if (ctrl.length != 0) {
-		len = ctrl.bus->SendHandShake(
+		int len = ctrl.bus->SendHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
 
 		// If you can not send it all, move on to the status phase
@@ -1155,7 +926,7 @@ void SASIDEV::Send()
 
 	// Remove block and initialize the result
 	ctrl.blocks--;
-	result = TRUE;
+	bool result = true;
 
 	// Process after data collection (read/data-in only)
 	if (ctrl.phase == BUS::datain) {
@@ -1218,9 +989,6 @@ void SASIDEV::Send()
 //---------------------------------------------------------------------------
 void SASIDEV::Receive()
 {
-	int len;
-	BOOL result;
-
 	// REQ is low
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
@@ -1228,7 +996,7 @@ void SASIDEV::Receive()
 	// Length != 0 if received
 	if (ctrl.length != 0) {
 		// Receive
-		len = ctrl.bus->ReceiveHandShake(
+		int len = ctrl.bus->ReceiveHandShake(
 			&ctrl.buffer[ctrl.offset], ctrl.length);
 		LOGDEBUG("%s Received %d bytes", __PRETTY_FUNCTION__, len);
 
@@ -1250,16 +1018,16 @@ void SASIDEV::Receive()
 
 	// Remove the control block and initialize the result
 	ctrl.blocks--;
-	result = TRUE;
+	bool result = true;
 
 	// Process the data out phase
 	if (ctrl.phase == BUS::dataout) {
 		if (ctrl.blocks == 0) {
 			// End with this buffer
-			result = XferOut(FALSE);
+			result = XferOut(false);
 		} else {
 			// Continue to next buffer (set offset, length)
-			result = XferOut(TRUE);
+			result = XferOut(true);
 		}
 	}
 
@@ -1301,31 +1069,30 @@ void SASIDEV::Receive()
 //	*Reset offset and length
 //
 //---------------------------------------------------------------------------
-BOOL SASIDEV::XferIn(BYTE *buf)
+bool SASIDEV::XferIn(BYTE *buf)
 {
 	ASSERT(ctrl.phase == BUS::datain);
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		return FALSE;
+		return false;
 	}
 
 	// Limited to read commands
 	switch (ctrl.cmd[0]) {
-		// READ(6)
 		case eCmdRead6:
-		// READ(10)
 		case eCmdRead10:
+		case eCmdRead16:
 			// Read from disk
-			ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, buf, ctrl.next);
+			ctrl.length = ((Disk *)ctrl.unit[lun])->Read(ctrl.cmd, buf, ctrl.next);
 			ctrl.next++;
 
 			// If there is an error, go to the status phase
 			if (ctrl.length <= 0) {
 				// Cancel data-in
-				return FALSE;
+				return false;
 			}
 
 			// If things are normal, work setting
@@ -1335,11 +1102,11 @@ BOOL SASIDEV::XferIn(BYTE *buf)
 		// Other (impossible)
 		default:
 			ASSERT(FALSE);
-			return FALSE;
+			return false;
 	}
 
 	// Succeeded in setting the buffer
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1348,38 +1115,37 @@ BOOL SASIDEV::XferIn(BYTE *buf)
 //	*If cont=true, reset the offset and length
 //
 //---------------------------------------------------------------------------
-BOOL SASIDEV::XferOut(BOOL cont)
+bool SASIDEV::XferOut(bool cont)
 {
-	SCSIBR *bridge;
-
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		return FALSE;
+		return false;
 	}
+	Disk *device = (Disk *)ctrl.unit[lun];
 
-	switch ((SASIDEV::scsi_command) ctrl.cmd[0]) {
-		case SASIDEV::eCmdModeSelect:
+	switch (ctrl.cmd[0]) {
+		case SASIDEV::eCmdModeSelect6:
 		case SASIDEV::eCmdModeSelect10:
-			if (!ctrl.unit[lun]->ModeSelect(
-				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+			if (!device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
-				return FALSE;
+				return false;
 			}
 			break;
 
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
-		case SASIDEV::eCmdWriteAndVerify10:
-			// If we're a host bridge, use the host bridge's SendMessage10 
-			// function
-			if (ctrl.unit[lun]->IsBridge()) {
-				bridge = (SCSIBR*)ctrl.unit[lun];
-				if (!bridge->SendMessage10(ctrl.cmd, ctrl.buffer)) {
+		case SASIDEV::eCmdWrite16:
+		case SASIDEV::eCmdVerify10:
+		case SASIDEV::eCmdVerify16:
+			// If we're a host bridge, use the host bridge's SendMessage10 function
+			// TODO This class must not know about SCSIBR
+			if (device->IsBridge()) {
+				if (!((SCSIBR*)device)->SendMessage10(ctrl.cmd, ctrl.buffer)) {
 					// write failed
-					return FALSE;
+					return false;
 				}
 
 				// If normal, work setting
@@ -1388,13 +1154,12 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Special case Write function for DaynaPort
-			if (ctrl.unit[lun]->IsDaynaPort()) {
-				LOGTRACE("%s Doing special case write for DaynaPort", __PRETTY_FUNCTION__);
-				if (!(SCSIDaynaPort*)ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+			// TODO This class must not know about DaynaPort
+			if (device->IsDaynaPort()) {
+				if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
-					return FALSE;
+					return false;
 				}
-				LOGTRACE("%s Done with DaynaPort Write", __PRETTY_FUNCTION__);
 
 				// If normal, work setting
 				ctrl.offset = 0;
@@ -1402,10 +1167,9 @@ BOOL SASIDEV::XferOut(BOOL cont)
 				break;
 			}
 
-			LOGTRACE("%s eCmdWriteAndVerify10 Calling Write... cmd: %02X next: %d", __PRETTY_FUNCTION__, (WORD)ctrl.cmd[0], (int)ctrl.next);
-			if (!ctrl.unit[lun]->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
+			if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
-				return FALSE;
+				return false;
 			}
 
 			// If you do not need the next block, end here
@@ -1415,10 +1179,10 @@ BOOL SASIDEV::XferOut(BOOL cont)
 			}
 
 			// Check the next block
-			ctrl.length = ctrl.unit[lun]->WriteCheck(ctrl.next - 1);
+			ctrl.length = device->WriteCheck(ctrl.next - 1);
 			if (ctrl.length <= 0) {
 				// Cannot write
-				return FALSE;
+				return false;
 			}
 
 			// If normal, work setting
@@ -1432,14 +1196,14 @@ BOOL SASIDEV::XferOut(BOOL cont)
 		case SASIDEV::eCmdSetMcastAddr:
 			LOGTRACE("%s Done with DaynaPort Set Multicast Address", __PRETTY_FUNCTION__);
 			break;
+
 		default:
-			LOGWARN("Received an unexpected command (%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
-			ASSERT(FALSE);
+			LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
 			break;
 	}
 
 	// Buffer saved successfully
-	return TRUE;
+	return true;
 }
 
 //---------------------------------------------------------------------------
@@ -1452,24 +1216,26 @@ void SASIDEV::FlushUnit()
 	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return;
 	}
 
+	Disk *disk = (Disk *)ctrl.unit[lun];
+
 	// WRITE system only
-	switch ((SASIDEV::scsi_command)ctrl.cmd[0]) {
+	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
 		case SASIDEV::eCmdWrite6:
 		case SASIDEV::eCmdWrite10:
-		case SASIDEV::eCmdWriteAndVerify10:
-			// Flush
-			if (!ctrl.unit[lun]->IsCacheWB()) {
-				ctrl.unit[lun]->Flush();
-			}
+		case SASIDEV::eCmdWrite16:
+		case SASIDEV::eCmdWriteLong16:
+		case SASIDEV::eCmdVerify10:
+		case SASIDEV::eCmdVerify16:
 			break;
-		case SASIDEV::eCmdModeSelect:
+
+		case SASIDEV::eCmdModeSelect6:
 		case SASIDEV::eCmdModeSelect10:
-            // Debug code related to Issue #2 on github, where we get an unhandled Model select when
+            // Debug code related to Issue #2 on github, where we get an unhandled Mode Select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
             LOGWARN("Received \'Mode Select\'\n");
@@ -1483,89 +1249,26 @@ void SASIDEV::FlushUnit()
             LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
             LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
-			if (!ctrl.unit[lun]->ModeSelect(
+			if (!disk->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
 				return;
 			}
             break;
-		case SASIDEV::eCmdSetIfaceMode:
-			LOGWARN("%s Trying to flush a command set interface mode. This should be a daynaport?", __PRETTY_FUNCTION__);
-			break;
+
 		case SASIDEV::eCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...
 			break;
+
 		default:
-			LOGWARN("Received an unexpected flush command %02X!!!!!\n",(WORD)ctrl.cmd[0]);
-			// The following statement makes debugging a huge pain. You can un-comment it
-			// if you're not trying to add new devices....
-			// ASSERT(FALSE);
+			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0]);
 			break;
 	}
 }
 
-#ifdef DISK_LOG
-//---------------------------------------------------------------------------
-//
-//	Get the current phase as a string
-//
-//---------------------------------------------------------------------------
-void SASIDEV::GetPhaseStr(char *str)
+int SASIDEV::GetEffectiveLun() const
 {
-    switch(this->GetPhase())
-    {
-        case BUS::busfree:
-        strcpy(str,"busfree    ");
-        break;
-        case BUS::arbitration:
-        strcpy(str,"arbitration");
-        break;
-        case BUS::selection:
-        strcpy(str,"selection  ");
-        break;
-        case BUS::reselection:
-        strcpy(str,"reselection");
-        break;
-        case BUS::command:
-        strcpy(str,"command    ");
-        break;
-        case BUS::execute:
-        strcpy(str,"execute    ");
-        break;
-        case BUS::datain:
-        strcpy(str,"datain     ");
-        break;
-        case BUS::dataout:
-        strcpy(str,"dataout    ");
-        break;
-        case BUS::status:
-        strcpy(str,"status     ");
-        break;
-        case BUS::msgin:
-        strcpy(str,"msgin      ");
-        break;
-        case BUS::msgout:
-        strcpy(str,"msgout     ");
-        break;
-        case BUS::reserved:
-        strcpy(str,"reserved   ");
-        break;
-    }
+	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
 }
-#endif
 
-//---------------------------------------------------------------------------
-//
-//	Validate LUN
-//
-//---------------------------------------------------------------------------
-DWORD SASIDEV::GetLun()
-{
-        DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
-        if (!ctrl.unit[lun]) {
-                throw lunexception(lun);
-        }
-
-        return lun;
-}

@@ -1,14 +1,12 @@
 .DEFAULT_GOAL: all
 
 ## Optional build flags:
-##   CROSS_COMPILE=arm-linux-gnueabihf- : Specify which compiler
-##              toolchain to use. This will default to arm-linux-
-##              gnueabihf-, which is typical on a Raspberry Pi.
-##              To cross compile on a x86_64 system set these to:
-##                 ARM=x86_64 CROSS_COMPILE=x86_64-linux-gnu-cpp
-CROSS_COMPILE ?= arm-linux-gnueabihf-
+##   CROSS_COMPILE : Specify which compiler toolchain to use.
+##                   To cross compile set this accordingly, e.g. to:
+##                   arm-linux-gnueabihf-
+CROSS_COMPILE =
 
-CC  = $(CROSS_COMPILE)gcc
+CC = $(CROSS_COMPILE)gcc
 CXX = $(CROSS_COMPILE)g++
 
 ##   DEBUG=1  : A Debug build includes the debugger symbols
@@ -17,8 +15,8 @@ CXX = $(CROSS_COMPILE)g++
 DEBUG ?= 0
 ifeq ($(DEBUG), 1)
 	# Debug CFLAGS
-	CFLAGS   += -DDISK_LOG -O0 -g -Wall -DDEBUG
-	CXXFLAGS   += -DDISK_LOG -O0 -g -Wall -DDEBUG
+	CFLAGS += -O0 -g -Wall -DDEBUG
+	CXXFLAGS += -O0 -g -Wall -DDEBUG
 	BUILD_TYPE = Debug
 else
 	# Release CFLAGS
@@ -26,12 +24,27 @@ else
 	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
-CFLAGS += -iquote . -MD -MP
-CXXFLAGS += -std=c++17 -iquote . -MD -MP
+ifeq ("$(shell uname -s)","Linux")
+	# -Wno-psabi might not work on non-Linux platforms
+	CXXFLAGS += -Wno-psabi
+endif
+
+CFLAGS += -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
+CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CFLAGS += $(EXTRA_FLAGS)
 CXXFLAGS += $(EXTRA_FLAGS)
+
+# If we're using GCC version 10 or later, we need to add the FMT_HEADER_ONLY definition
+GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
+
+ifeq "$(GCCVERSION10)" "1"
+	CFLAGS += -DFMT_HEADER_ONLY
+	CXXFLAGS += -DFMT_HEADER_ONLY
+endif
+
+
 
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
 ##              that you are using. The typical options are 
@@ -42,7 +55,7 @@ CXXFLAGS += $(EXTRA_FLAGS)
 CONNECT_TYPE ?= FULLSPEC
 
 ifdef CONNECT_TYPE
-CFLAGS   += -DCONNECT_TYPE_$(CONNECT_TYPE)
+CFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 CXXFLAGS += -DCONNECT_TYPE_$(CONNECT_TYPE)
 endif
 
@@ -57,17 +70,19 @@ RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
 RSYSLOG_LOG  = /var/log/rascsi.log
 
 USR_LOCAL_BIN = /usr/local/bin
-MAN_PAGE_DIR  = /usr/share/man/man1
+MAN_PAGE_DIR  = /usr/local/man/man1
 DOC_DIR = ../../doc
 OS_FILES = ./os_integration
 
 OBJDIR := ./obj/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 BINDIR := ./bin/$(shell echo $(CONNECT_TYPE) | tr '[:upper:]' '[:lower:]')
 
-#BIN_ALL = $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
-# Temporarily remove the RASDUMP and RASDUMP tools, since they're not needed
-# for my specific use case. If you need them - add them back in!
-BIN_ALL = $(BINDIR)/$(RASCSI) $(BINDIR)/$(RASCTL) $(BINDIR)/$(SCSIMON)
+BIN_ALL = \
+	$(BINDIR)/$(RASCSI) \
+	$(BINDIR)/$(RASCTL) \
+	$(BINDIR)/$(SCSIMON) \
+	$(BINDIR)/$(RASDUMP) \
+	$(BINDIR)/$(SASIDUMP)
 
 SRC_PROTOC = \
 	rascsi_interface.proto
@@ -82,7 +97,11 @@ SRC_RASCSI = \
 	filepath.cpp \
 	fileio.cpp\
 	rascsi_version.cpp \
-	rasutil.cpp
+	rascsi_image.cpp \
+	rascsi_response.cpp \
+	rasutil.cpp \
+	protobuf_util.cpp \
+	localizer.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI += $(SRC_PROTOBUF)
@@ -91,14 +110,17 @@ SRC_SCSIMON = \
 	scsimon.cpp \
 	scsi.cpp \
 	gpiobus.cpp \
-	filepath.cpp \
-	fileio.cpp \
 	rascsi_version.cpp
+SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 
 SRC_RASCTL = \
 	rasctl.cpp\
+	rasctl_commands.cpp \
+	rasctl_display.cpp \
 	rascsi_version.cpp \
-	rasutil.cpp
+	rasutil.cpp \
+	protobuf_util.cpp \
+	localizer.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 
 SRC_RASDUMP = \
@@ -117,8 +139,8 @@ SRC_SASIDUMP = \
 	fileio.cpp\
 	rascsi_version.cpp
 
-vpath %.h ./ ./controllers ./devices
-vpath %.cpp ./ ./controllers ./devices
+vpath %.h ./ ./controllers ./devices ./monitor
+vpath %.cpp ./ ./controllers ./devices ./monitor
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -161,10 +183,10 @@ ALL: all
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap -lprotobuf-lite
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lz -lpcap -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lprotobuf-lite
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf -lstdc++fs
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
@@ -175,18 +197,21 @@ $(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
+
+# Phony rules for building individual utilities
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
+$(RASCSI)  : $(BINDIR)/$(RASCSI) 
+$(RASCTL)  : $(BINDIR)/$(RASCTL) 
+$(RASDUMP) : $(BINDIR)/$(RASDUMP) 
+$(SASIDUMP): $(BINDIR)/$(SASIDUMP) 
+$(SCSIMON) : $(BINDIR)/$(SCSIMON)
+
+
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 
 .PHONY: clean
 clean:
 	rm -rf $(OBJDIR) $(BINDIR) $(GEN_PROTOBUF)
-
-##   run      : Launches RaSCSI using some pre-defined drive 
-##              images. Useful for debugging when you're building 
-##              and re-launching over and over.
-.PHONY: run
-run:
-	sudo $(BINDIR)/$(RASCSI) -ID1 /home/pi/HARDDISK2.hda -ID6 /home/pi/marathon.iso
 
 ##   install  : Copies all of the man pages to the correct location
 ##              Copies the binaries to a global install location
@@ -201,14 +226,27 @@ run:
 ##              *   sudo systemctl enable rascsi
 ##              *   sudo systemctl start rascsi
 .PHONY: install
-install: $(MAN_PAGE_DIR)/rascsi.1 $(MAN_PAGE_DIR)/rasctl.1 $(MAN_PAGE_DIR)/scsimon.1 $(USR_LOCAL_BIN)/$(RASCTL) $(USR_LOCAL_BIN)/$(RASCSI) $(USR_LOCAL_BIN)/$(SCSIMON) $(SYSTEMD_CONF) $(RSYSLOG_CONF) $(RSYSLOG_LOG)
+install: \
+	$(MAN_PAGE_DIR)/rascsi.1 \
+	$(MAN_PAGE_DIR)/rasctl.1 \
+	$(MAN_PAGE_DIR)/scsimon.1 \
+	$(MAN_PAGE_DIR)/rasdump.1 \
+	$(MAN_PAGE_DIR)/sasidump.1 \
+	$(USR_LOCAL_BIN)/$(RASCTL) \
+	$(USR_LOCAL_BIN)/$(RASCSI) \
+	$(USR_LOCAL_BIN)/$(SCSIMON) \
+	$(USR_LOCAL_BIN)/$(RASDUMP) \
+	$(USR_LOCAL_BIN)/$(SASIDUMP) \
+	$(SYSTEMD_CONF) \
+	$(RSYSLOG_CONF) \
+	$(RSYSLOG_LOG)
 	@echo "-- Done installing!"
 
 $(USR_LOCAL_BIN)% : $(BINDIR)/%
 	@echo "-- Copying $@"
 	cp $< $@
 
-$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
+$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1 | $(MAN_PAGE_DIR)/
 	@echo "-- Copying $@"
 	cp $< $@
 
@@ -229,6 +267,10 @@ $(RSYSLOG_LOG) :
 	@echo "-- Creating $@"
 	touch /var/log/rascsi.log
 	chown root:adm /var/log/rascsi.log
+
+$(MAN_PAGE_DIR)/:
+	echo "-- Creating directory $@"
+	mkdir -p $@
 
 ##   help     : Lists information about how to use the makefile
 # The help rule is based upon the approach from:

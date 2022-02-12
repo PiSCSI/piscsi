@@ -4,7 +4,7 @@
 //	for Raspberry Pi
 //
 //	Copyright (C) 2020 akuker
-//	[ Define the version string]
+//	[ Define the version string ]
 //
 //---------------------------------------------------------------------------
 #pragma once
@@ -18,4 +18,4 @@ extern const int rascsi_patch_version; // Patch number
 //	Fetch the version string
 //
 //---------------------------------------------------------------------------
-extern char* rascsi_get_version_string();
+const char* rascsi_get_version_string();
