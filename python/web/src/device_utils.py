@@ -57,7 +57,7 @@ def extend_device_names(device_types):
     Takes a (list) of (str) device_types with the four letter device acronyms
     Returns a (dict) of device_type:device_name mappings of localized device names
     """
-    mapped_device_types = []
+    mapped_device_types = {}
     for device_type in device_types:
         if device_type is "SAHD":
             device_name = _("SASI Hard Drive")
@@ -75,6 +75,6 @@ def extend_device_names(device_types):
             device_name = _("DaynaPORT SCSI/Link")
         else:
             device_name = _("Unknown Device")
-        mapped_device_types.append({device_type: device_name})
+        mapped_device_types[device_type] = device_name
 
     return mapped_device_types
