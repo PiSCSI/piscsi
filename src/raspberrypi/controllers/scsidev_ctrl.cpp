@@ -17,6 +17,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
 #include "devices/scsi_daynaport.h"
+#include "devices/scsi_printer.h"
 
 //===========================================================================
 //
@@ -944,22 +945,13 @@ bool SCSIDEV::XferOutScsi(bool cont)
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
-	Disk *device = (Disk *)ctrl.unit[lun];
+
+	// TODO This may not be a printer
+	SCSIPrinter *device = (SCSIPrinter *)ctrl.unit[lun];
 
 	switch (ctrl.cmd[0]) {
-		case scsi_defs::eCmdModeSelect6:
-		case scsi_defs::eCmdModeSelect10:
-			if (!device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
-				// MODE SELECT failed
-				return false;
-			}
-			break;
-
 		case scsi_defs::eCmdWrite6:
-		case scsi_defs::eCmdWrite10:
-		case scsi_defs::eCmdWrite16:
-		case scsi_defs::eCmdVerify10:
-		case scsi_defs::eCmdVerify16:
+			// TODO Replace by a call that writes to the printer file
 			if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
 				return false;
@@ -1001,26 +993,9 @@ void SCSIDEV::FlushUnitScsi()
 		return;
 	}
 
-	Disk *disk = (Disk *)ctrl.unit[lun];
-
-	// WRITE system only
 	switch ((scsi_defs::scsi_command)ctrl.cmd[0]) {
 		case scsi_defs::eCmdWrite6:
-		case scsi_defs::eCmdWrite10:
-		case scsi_defs::eCmdWrite16:
-		case scsi_defs::eCmdWriteLong16:
-		case scsi_defs::eCmdVerify10:
-		case scsi_defs::eCmdVerify16:
 			break;
-
-		case scsi_defs::eCmdModeSelect6:
-		case scsi_defs::eCmdModeSelect10:
-			if (!disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
-				// MODE SELECT failed
-				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
-				return;
-			}
-            break;
 
 		default:
 			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0]);
