@@ -5,7 +5,7 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/local/bin/rascsi -r 7
+ExecStart=/usr/bin/nice -15 bash -c "/usr/local/bin/rascsi -r 7 -F /home/pi/images"
 # Example 1: If you want to automatically attach a hard disk at startup, 
 # say an image called harddisk.hds on SCSI ID 1, change the ExecStart line to:
 #
