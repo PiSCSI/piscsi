@@ -78,7 +78,7 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	lp_file = NULL;
 
 	// TODO Hard-coded filename
-	system("lp /tmp/lp.dat");
+	//system("lp -oraw /tmp/lp.dat");
 
 	controller->Status();
 }
