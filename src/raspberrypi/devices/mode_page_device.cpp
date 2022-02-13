@@ -14,36 +14,20 @@
 #include "mode_page_device.h"
 
 using namespace std;
+using namespace scsi_defs;
 
-ModePageDevice::ModePageDevice(const string id) : PrimaryDevice(id)
+ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 {
-	AddCommand(ScsiDefs::eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
-	AddCommand(ScsiDefs::eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
-	AddCommand(ScsiDefs::eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
-	AddCommand(ScsiDefs::eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
-}
-
-void ModePageDevice::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (ModePageDevice::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
+	dispatcher.AddCommand(eCmdModeSense6, "ModeSense6", &ModePageDevice::ModeSense6);
+	dispatcher.AddCommand(eCmdModeSense10, "ModeSense10", &ModePageDevice::ModeSense10);
+	dispatcher.AddCommand(eCmdModeSelect6, "ModeSelect6", &ModePageDevice::ModeSelect6);
+	dispatcher.AddCommand(eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
 }
 
 bool ModePageDevice::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	// Unknown command
-	return false;
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 void ModePageDevice::ModeSense6(SASIDEV *controller)

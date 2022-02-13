@@ -28,23 +28,25 @@
 //---------------------------------------------------------------------------
 
 #include "scsi_daynaport.h"
-#include <sstream>
+
+using namespace scsi_defs;
 
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
+// TODO Disk should not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	m_tap = NULL;
 	m_bTapEnable = false;
 
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	AddCommand(ScsiDefs::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	AddCommand(ScsiDefs::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	AddCommand(ScsiDefs::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	AddCommand(ScsiDefs::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	AddCommand(ScsiDefs::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	dispatcher.AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	dispatcher.AddCommand(eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	dispatcher.AddCommand(eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	dispatcher.AddCommand(eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	dispatcher.AddCommand(eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	dispatcher.AddCommand(eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
 SCSIDaynaPort::~SCSIDaynaPort()
@@ -54,35 +56,12 @@ SCSIDaynaPort::~SCSIDaynaPort()
 		m_tap->Cleanup();
 		delete m_tap;
 	}
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
-}
-
-void SCSIDaynaPort::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
 }
 
 bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
-
-	// The base class handles the less specific commands
-	return Disk::Dispatch(controller);
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 bool SCSIDaynaPort::Init(const map<string, string>& params)
@@ -133,36 +112,10 @@ void SCSIDaynaPort::Open(const Filepath& path)
 	m_tap->OpenDump(path);
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
 int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-	if (allocation_length > 4) {
-		if (allocation_length > 44) {
-			allocation_length = 44;
-		}
-
-		// Basic data
-		// buf[0] ... Processor Device
-		// buf[1] ... Not removable
-		// buf[2] ... SCSI-2 compliant command system
-		// buf[3] ... SCSI-2 compliant Inquiry response
-		// buf[4] ... Inquiry additional data
-		// http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
-		memset(buf, 0, allocation_length);
-		buf[0] = 0x03;
-		buf[2] = 0x01;
-		buf[4] = 0x1F;
-
-		// Padded vendor, product, revision
-		memcpy(&buf[8], GetPaddedName().c_str(), 28);
-	}
-
-	return allocation_length;
+	// Processor device, not removable
+	return PrimaryDevice::Inquiry(3, false, cdb, buf);
 }
 
 //---------------------------------------------------------------------------
@@ -200,10 +153,6 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	int rx_packet_size = 0;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
-
-	ostringstream s;
-	s << __PRETTY_FUNCTION__ << " reading DaynaPort block " << block;
-	LOGTRACE("%s", s.str().c_str());
 
 	int requested_length = cdb[4];
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length);

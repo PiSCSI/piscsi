@@ -11,11 +11,11 @@
 
 #pragma once
 
-#include "controllers/sasidev_ctrl.h"
+#include "controllers/scsidev_ctrl.h"
 #include "interfaces/scsi_primary_commands.h"
 #include "device.h"
+#include "dispatcher.h"
 #include <string>
-#include <map>
 
 using namespace std;
 
@@ -23,13 +23,15 @@ class PrimaryDevice: public Device, virtual public ScsiPrimaryCommands
 {
 public:
 
-	PrimaryDevice(const string);
+	PrimaryDevice(const string&);
 	virtual ~PrimaryDevice() {}
 
-	virtual bool Dispatch(SCSIDEV *) override;
+	virtual bool Dispatch(SCSIDEV *);
 
 	void TestUnitReady(SASIDEV *);
 	void RequestSense(SASIDEV *);
+
+	void SetCtrl(SASIDEV::ctrl_t *ctrl) { this->ctrl = ctrl; }
 
 	bool CheckReady();
 	virtual int Inquiry(const DWORD *, BYTE *) = 0;
@@ -37,19 +39,13 @@ public:
 
 protected:
 
+	int Inquiry(int, bool, const DWORD *, BYTE *);
+
 	SASIDEV::ctrl_t *ctrl;
 
 private:
 
-	typedef struct _command_t {
-		const char* name;
-		void (PrimaryDevice::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (PrimaryDevice::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
-
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (PrimaryDevice::*)(SASIDEV *));
+	Dispatcher<PrimaryDevice> dispatcher;
 
 	void Inquiry(SASIDEV *);
 	void ReportLuns(SASIDEV *);

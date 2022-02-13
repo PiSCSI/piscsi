@@ -18,7 +18,7 @@
 #pragma once
 
 #include "os.h"
-#include "disk.h"
+#include "primary_device.h"
 #include <string>
 
 //===========================================================================
@@ -29,21 +29,8 @@
 class CTapDriver;
 class CFileSys;
 
-class SCSIBR : public Disk
+class SCSIBR : public PrimaryDevice
 {
-
-private:
-	typedef struct _command_t {
-		const char* name;
-		void (SCSIBR::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (SCSIBR::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
-
-	SASIDEV::ctrl_t *ctrl;
-
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
 
 public:
 	SCSIBR();
@@ -61,6 +48,10 @@ public:
 	void SendMessage10(SASIDEV *);
 
 private:
+	typedef PrimaryDevice super;
+
+	Dispatcher<SCSIBR> dispatcher;
+
 	int GetMacAddr(BYTE *buf);					// Get MAC address
 	void SetMacAddr(BYTE *buf);					// Set MAC address
 	void ReceivePacket();						// Receive a packet

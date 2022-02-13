@@ -25,10 +25,6 @@ public:
 	virtual void Inquiry(SASIDEV *) = 0;
 	virtual void ReportLuns(SASIDEV *) = 0;
 
-	// Optional commands
+	// Implemented for all RaSCSI device types
 	virtual void RequestSense(SASIDEV *) = 0;
-	virtual void ModeSense6(SASIDEV *) = 0;
-	virtual void ModeSense10(SASIDEV *) = 0;
-	virtual void ModeSelect6(SASIDEV *) = 0;
-	virtual void ModeSelect10(SASIDEV *) = 0;
 };

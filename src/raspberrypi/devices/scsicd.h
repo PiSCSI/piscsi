@@ -71,25 +71,12 @@ private:
 //===========================================================================
 class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
-private:
-	typedef struct _command_t {
-		const char* name;
-		void (SCSICD::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (SCSICD::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
-
-	SASIDEV::ctrl_t *ctrl;
-
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
 
 public:
 	enum {
 		TrackMax = 96							// Maximum number of tracks
 	};
 
-public:
 	SCSICD();
 	~SCSICD();
 
@@ -103,6 +90,10 @@ public:
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 
 private:
+	typedef Disk super;
+
+	Dispatcher<SCSICD> dispatcher;
+
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)
 	void OpenIso(const Filepath& path);				// Open(ISO)

@@ -42,19 +42,6 @@
 class SCSIDaynaPort: public Disk
 {
 
-private:
-	typedef struct _command_t {
-		const char* name;
-		void (SCSIDaynaPort::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (SCSIDaynaPort::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
-
-	SASIDEV::ctrl_t *ctrl;
-
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (SCSIDaynaPort::*)(SASIDEV *));
-
 public:
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
@@ -103,6 +90,10 @@ public:
 	static const DWORD DAYNAPORT_READ_HEADER_SZ = 2 + 4;
 
 private:
+	typedef Disk super;
+
+	Dispatcher<SCSIDaynaPort> dispatcher;
+
 	typedef struct __attribute__((packed)) {
 		BYTE operation_code;
 		BYTE misc_cdb_information;

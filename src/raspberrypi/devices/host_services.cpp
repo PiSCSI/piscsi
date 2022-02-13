@@ -30,24 +30,20 @@
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
 //
 
+#include "controllers/scsidev_ctrl.h"
 #include "host_services.h"
+
+using namespace scsi_defs;
+
+HostServices::HostServices() : ModePageDevice("SCHS")
+{
+	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+}
 
 bool HostServices::Dispatch(SCSIDEV *controller)
 {
-	unsigned int cmd = controller->GetCtrl()->cmd[0];
-
-	// Only certain commands are supported
-	// TODO Do not inherit from Disk, mode page handling should be moved to ModePageDevice
-	if (cmd == ScsiDefs::eCmdTestUnitReady || cmd == ScsiDefs::eCmdRequestSense
-			|| cmd == ScsiDefs::eCmdInquiry || cmd == ScsiDefs::eCmdReportLuns
-			|| cmd == ScsiDefs::eCmdModeSense6 || cmd == ScsiDefs::eCmdModeSense10
-			|| cmd == ScsiDefs::eCmdStartStop) {
-		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, cmd);
-
-		return Disk::Dispatch(controller);
-	}
-
-	return false;
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 void HostServices::TestUnitReady(SASIDEV *controller)
@@ -58,28 +54,8 @@ void HostServices::TestUnitReady(SASIDEV *controller)
 
 int HostServices::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-	if (allocation_length > 4) {
-		if (allocation_length > 44) {
-			allocation_length = 44;
-		}
-
-		// Basic data
-		// buf[0] ... Processor Device
-		// buf[1] ... Not removable
-		// buf[2] ... SCSI-2 compliant command system
-		// buf[3] ... SCSI-2 compliant Inquiry response
-		// buf[4] ... Inquiry additional data
-		memset(buf, 0, allocation_length);
-		buf[0] = 0x03;
-		buf[2] = 0x01;
-		buf[4] = 0x1F;
-
-		// Padded vendor, product, revision
-		memcpy(&buf[8], GetPaddedName().c_str(), 28);
-	}
-
-	return allocation_length;
+	// Processor device, not removable
+	return PrimaryDevice::Inquiry(3, false, cdb, buf);
 }
 
 void HostServices::StartStopUnit(SASIDEV *controller)
@@ -88,10 +64,10 @@ void HostServices::StartStopUnit(SASIDEV *controller)
 	bool load = ctrl->cmd[4] & 0x02;
 
 	if (!start) {
-		// Delete all regular disk devices. This also flushes their caches.
-		for (auto disk : disks) {
-			if (disk && disk != this) {
-				delete disk;
+		// Delete all other devices. This will also flush any caches.
+		for (const Device *device : devices) {
+			if (device != this) {
+				delete device;
 			}
 		}
 
@@ -109,7 +85,91 @@ void HostServices::StartStopUnit(SASIDEV *controller)
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 }
 
-int HostServices::AddVendorPage(int page, bool, BYTE *buf)
+int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
+{
+	// Get length, clear buffer
+	int length = (int)cdb[4];
+	memset(buf, 0, length);
+
+	// Get page code (0x00 is valid from the beginning)
+	int page = cdb[2] & 0x3f;
+	bool valid = page == 0x00;
+
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
+	// Basic information
+	int size = 4;
+
+	int ret = AddRealtimeClockPage(page, &buf[size]);
+	if (ret > 0) {
+		size += ret;
+		valid = true;
+	}
+
+	if (!valid) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+
+	// Do not return more than ALLOCATION LENGTH bytes
+	if (size > length) {
+		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
+		size = length;
+	}
+
+	// Final setting of mode data length
+	buf[0] = size;
+
+	return size;
+}
+
+int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
+{
+	// Get length, clear buffer
+	int length = cdb[7];
+	length <<= 8;
+	length |= cdb[8];
+	if (length > 0x800) {
+		length = 0x800;
+	}
+	memset(buf, 0, length);
+
+	// Get page code (0x00 is valid from the beginning)
+	int page = cdb[2] & 0x3f;
+	bool valid = page == 0x00;
+
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
+	// Basic Information
+	int size = 8;
+
+	int ret = AddRealtimeClockPage(page, &buf[size]);
+	if (ret > 0) {
+		size += ret;
+		valid = true;
+	}
+
+	if (!valid) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+
+	// Do not return more than ALLOCATION LENGTH bytes
+	if (size > length) {
+		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
+		size = length;
+	}
+
+	// Final setting of mode data length
+	buf[0] = size >> 8;
+	buf[1] = size;
+
+	return size;
+}
+
+int HostServices::AddRealtimeClockPage(int page, BYTE *buf)
 {
 	if (page == 0x20) {
 		// Data structure version 1.0
@@ -131,4 +191,3 @@ int HostServices::AddVendorPage(int page, bool, BYTE *buf)
 
 	return 0;
 }
-

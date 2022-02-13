@@ -119,9 +119,6 @@ void SCSIHD::Open(const Filepath& path)
 //---------------------------------------------------------------------------
 int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		SetStatusCode(STATUS_INVALIDCDB);

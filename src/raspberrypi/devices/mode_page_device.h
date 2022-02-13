@@ -18,7 +18,7 @@ class ModePageDevice: public PrimaryDevice
 {
 public:
 
-	ModePageDevice(const string);
+	ModePageDevice(const string&);
 	virtual ~ModePageDevice() {}
 
 	virtual bool Dispatch(SCSIDEV *) override;
@@ -31,20 +31,14 @@ public:
 
 private:
 
-	typedef struct _command_t {
-		const char* name;
-		void (ModePageDevice::*execute)(SASIDEV *);
+	typedef PrimaryDevice super;
 
-		_command_t(const char* _name, void (ModePageDevice::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
+	Dispatcher<ModePageDevice> dispatcher;
 
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (ModePageDevice::*)(SASIDEV *));
-
-	void ModeSense6(SASIDEV *) override;
-	void ModeSense10(SASIDEV *) override;
-	void ModeSelect6(SASIDEV *) override;
-	void ModeSelect10(SASIDEV *) override;
+	void ModeSense6(SASIDEV *);
+	void ModeSense10(SASIDEV *);
+	void ModeSelect6(SASIDEV *);
+	void ModeSelect10(SASIDEV *);
 
 	int ModeSelectCheck(const DWORD *, int);
 	int ModeSelectCheck6(const DWORD *);

@@ -10,7 +10,6 @@
 //
 //---------------------------------------------------------------------------
 
-#include "rascsi.h"
 #include "os.h"
 #include "controllers/sasidev_ctrl.h"
 #include "devices/device_factory.h"
@@ -34,6 +33,7 @@
 #include <list>
 #include <vector>
 #include <map>
+#include "config.h"
 
 using namespace std;
 using namespace spdlog;
@@ -520,17 +520,17 @@ string SetReservedIds(const string& ids)
     reserved_ids = reserved;
 
     if (!reserved_ids.empty()) {
-    	ostringstream s;
+    	string s;
     	bool isFirst = true;
     	for (auto const& reserved_id : reserved_ids) {
     		if (!isFirst) {
-    			s << ", ";
+    			s += ", ";
     		}
     		isFirst = false;
-    		s << reserved_id;
+    		s += to_string(reserved_id);
     	}
 
-    	LOGINFO("Reserved ID(s) set to %s", s.str().c_str());
+    	LOGINFO("Reserved ID(s) set to %s", s.c_str());
     }
     else {
     	LOGINFO("Cleared reserved IDs");
@@ -580,15 +580,14 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	if (unit >= supported_luns) {
 		delete device;
 
-		ostringstream error;
-		error << "Invalid unit " << unit << " for device type " << PbDeviceType_Name(type);
+		string error = "Invalid unit " + to_string(unit) + " for device type " + PbDeviceType_Name(type);
 		if (supported_luns == 1) {
-			error << " (0)";
+			error += " (0)";
 		}
 		else {
-			error << " (0-" << (supported_luns -1) << ")";
+			error += " (0-" + to_string(supported_luns -1) + ")";
 		}
-		return ReturnStatus(context, false, error.str());
+		return ReturnStatus(context, false, error);
 	}
 
 	// If no filename was provided the medium is considered removed
@@ -709,16 +708,15 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 	// Re-map the controller
 	if (MapController(map)) {
-		ostringstream msg;
-		msg << "Attached ";
+		string msg = "Attached ";
 		if (device->IsReadOnly()) {
-			msg << "read-only ";
+			msg += "read-only ";
 		}
 		else if (device->IsProtectable() && device->IsProtected()) {
-			msg << "protected ";
+			msg += "protected ";
 		}
-		msg << device->GetType() << " device, ID " << id << ", unit " << unit;
-		LOGINFO("%s", msg.str().c_str());
+		msg += device->GetType() + " device, ID " + to_string(id) + ", unit " + to_string(unit);
+		LOGINFO("%s", msg.c_str());
 
 		return true;
 	}
@@ -840,8 +838,6 @@ void TerminationHandler(int signum)
 
 bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_device, const PbCommand& command, bool dryRun)
 {
-	ostringstream error;
-
 	const int id = pb_device.id();
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();

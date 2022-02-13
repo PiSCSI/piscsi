@@ -17,7 +17,6 @@
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
 #include "devices/scsi_daynaport.h"
-#include <sstream>
 
 //===========================================================================
 //
@@ -239,7 +238,7 @@ void SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
+	if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
 		ctrl.status = 0;
 	}
 
@@ -247,8 +246,8 @@ void SCSIDEV::Execute()
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdInquiry &&
-				(ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
+		if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdInquiry &&
+				(scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
@@ -266,7 +265,7 @@ void SCSIDEV::Execute()
 	ctrl.device = ctrl.unit[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
+	if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
 		ctrl.device->SetStatusCode(0);
 	}
 	
@@ -277,7 +276,7 @@ void SCSIDEV::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((ScsiDefs::scsi_command)ctrl.cmd[0] == ScsiDefs::eCmdInquiry && !ctrl.unit[lun]) {
+	if ((scsi_defs::scsi_command)ctrl.cmd[0] == scsi_defs::eCmdInquiry && !ctrl.unit[lun]) {
 		lun = GetEffectiveLun();
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
@@ -381,9 +380,8 @@ void SCSIDEV::Send()
 
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
-		ostringstream s;
-		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
+				+ to_string(ctrl.length)).c_str());
 
 		// TODO Get rid of Daynaport specific code in this class
 		// The Daynaport needs to have a delay after the size/flags field
@@ -420,9 +418,7 @@ void SCSIDEV::Send()
 		if (ctrl.blocks != 0) {
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			ostringstream s;
-			s << __PRETTY_FUNCTION__ << " Processing after data collection. Blocks: " << ctrl.blocks;
-			LOGTRACE("%s", s.str().c_str());
+			LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str());
 		}
 	}
 
@@ -434,9 +430,7 @@ void SCSIDEV::Send()
 
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
-		ostringstream s;
-		s << __PRETTY_FUNCTION__ << " Continuing to send. Blocks: " << ctrl.blocks;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(ctrl.blocks)).c_str());
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 		return;

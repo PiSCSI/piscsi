@@ -13,11 +13,11 @@
 //  	[ SASI hard disk ]
 //
 //---------------------------------------------------------------------------
+
 #include "sasihd.h"
 #include "fileio.h"
 #include "exceptions.h"
-#include <sstream>
-#include "../rascsi.h"
+#include "../config.h"
 
 //===========================================================================
 //

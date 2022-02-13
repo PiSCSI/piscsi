@@ -15,7 +15,7 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "../rascsi.h"
+#include "../config.h"
 #include "os.h"
 #include "scsi.h"
 #include "fileio.h"

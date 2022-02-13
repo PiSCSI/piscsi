@@ -5,21 +5,37 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// RaSCSI Host Services with realtime clock and shutdown support
+//
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "disk.h"
+#include "mode_page_device.h"
 
-class HostServices: public Disk
+using namespace std;
+
+class HostServices: public ModePageDevice
 {
+
 public:
-	HostServices() : Disk("SCHS") {};
-	~HostServices() {};
+
+	HostServices();
+	~HostServices() {}
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
 	int Inquiry(const DWORD *, BYTE *) override;
 	void TestUnitReady(SASIDEV *) override;
-	void StartStopUnit(SASIDEV *) override;
-	int AddVendorPage(int, bool, BYTE *) override;
+	void StartStopUnit(SASIDEV *);
+
+	int ModeSense6(const DWORD *, BYTE *);
+	int ModeSense10(const DWORD *, BYTE *);
+
+private:
+
+	typedef ModePageDevice super;
+
+	Dispatcher<HostServices> dispatcher;
+
+	int AddRealtimeClockPage(int, BYTE *);
 };

@@ -9,44 +9,28 @@
 
 #include "log.h"
 #include "controllers/scsidev_ctrl.h"
+#include "dispatcher.h"
 #include "primary_device.h"
 
 using namespace std;
+using namespace scsi_defs;
 
-PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id)
+PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
 	ctrl = NULL;
 
 	// Mandatory SCSI primary commands
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
-	AddCommand(ScsiDefs::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
-	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
+	dispatcher.AddCommand(eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
+	dispatcher.AddCommand(eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 
 	// Optional commands used by all RaSCSI devices
-	AddCommand(ScsiDefs::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
-}
-
-void PrimaryDevice::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (PrimaryDevice::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
+	dispatcher.AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
 }
 
 bool PrimaryDevice::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	// Unknown command
-	return false;
+	return dispatcher.Dispatch(this, controller);
 }
 
 void PrimaryDevice::TestUnitReady(SASIDEV *controller)
@@ -90,7 +74,7 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 
 	// Report if the device does not support the requested LUN
 	if (!ctrl->unit[lun]) {
-		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
 
 		ctrl->buffer[0] |= 0x7f;
 	}
@@ -181,6 +165,33 @@ bool PrimaryDevice::CheckReady()
 	LOGTRACE("%s Disk is ready", __PRETTY_FUNCTION__);
 
 	return true;
+}
+
+int PrimaryDevice::Inquiry(int type, bool is_removable, const DWORD *cdb, BYTE *buf)
+{
+	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	if (allocation_length > 4) {
+		if (allocation_length > 44) {
+			allocation_length = 44;
+		}
+
+		// Basic data
+		// buf[0] ... SCSI Device type
+		// buf[1] ... Bit 7: Removable/not removable
+		// buf[2] ... SCSI-2 compliant command system
+		// buf[3] ... SCSI-2 compliant Inquiry response
+		// buf[4] ... Inquiry additional data
+		memset(buf, 0, allocation_length);
+		buf[0] = type;
+		buf[1] = is_removable ? 0x80 : 0x00;
+		buf[2] = 0x01;
+		buf[4] = 0x1F;
+
+		// Padded vendor, product, revision
+		memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	}
+
+	return allocation_length;
 }
 
 int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
