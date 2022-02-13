@@ -363,6 +363,50 @@
 <hr/>
 <details>
     <summary class="heading">
+        {{ _("Attach Support Device") }}
+    </summary>
+    <ul>
+        <li>Attach a Support Device that provides additional functionality for the Host system, such as a Real-Time Clock (RTC) or remote Shutdown commands to the RaSCSI.
+        </li>
+        <li>Requires software to be installed on the Host system.
+        </li>
+    </ul>
+</details>
+<table style="border: none">
+    <tr style="border: none">
+        <td style="border: none; vertical-align:top;">
+            <form action="/scsi/attach_support" method="post">
+                <label for="type">{{ _("Type:") }}</label>
+                <select name="type">
+                    {% for type in SUPPORT_DEVICE_TYPES %}
+                    <option value="{{ type }}">
+                    {% for key, value in device_types.items() %}
+                    {% if key == type %}
+                    {{ value }}
+                    {% endif %}
+                    {% endfor %}
+                    </option>
+                    {% endfor %}
+                </select>
+                <label for="scsi_id">{{ _("SCSI ID:") }}</label>
+                <select name="scsi_id">
+                {% for id in scsi_ids %}
+                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                        {{ id }}
+                    </option>
+                {% endfor %}
+                </select>
+                <label for="unit">{{ _("LUN") }}</label>
+                <input name="unit" type="number" size="2" value="0" min="0" max="31">
+                <input type="submit" value="{{ _("Attach") }}">
+            </form>
+        </td>
+    </tr>
+</table>
+
+<hr/>
+<details>
+    <summary class="heading">
         {{ _("Upload File") }}
     </summary>
     <ul>

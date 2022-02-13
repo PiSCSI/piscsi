@@ -495,6 +495,34 @@ def log_level():
     return redirect(url_for("index"))
 
 
+@APP.route("/scsi/attach_support", methods=["POST"])
+@login_required
+def attach_support_device():
+    """
+    Attaches a support device
+    """
+    scsi_id = request.form.get("scsi_id")
+    unit = request.form.get("unit")
+    device_type = request.form.get("type")
+    kwargs = {"unit": int(unit), "device_type": device_type}
+    process = ractl.attach_image(scsi_id, **kwargs)
+    process = ReturnCodeMapper.add_msg(process)
+    if process["status"]:
+        flash(_(
+            (
+                "Attached support device of type %(device_type)s "
+                "to SCSI ID %(id_number)s LUN %(unit_number)s"
+            ),
+            device_type=device_type,
+            id_number=scsi_id,
+            unit_number=unit,
+            ))
+        return redirect(url_for("index"))
+
+    flash(process["msg"], "error")
+    return redirect(url_for("index"))
+
+
 @APP.route("/scsi/attach_network", methods=["POST"])
 @login_required
 def attach_network_adapter():
