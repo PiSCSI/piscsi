@@ -86,7 +86,6 @@ private:
 	void Receive() override;
 	bool XferMsg(DWORD msg);
 	bool XferOutScsi(bool);
-	void FlushUnitScsi();
 
 	scsi_t scsi;								// Internal data
 

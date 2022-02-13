@@ -924,8 +924,6 @@ void SCSIDEV::ReceiveScsi()
 
 		// Data out phase
 		case BUS::dataout:
-			FlushUnitScsi();
-
 			// status phase
 			Status();
 			break;
@@ -981,25 +979,5 @@ bool SCSIDEV::XferOutScsi(bool cont)
 
 	// Buffer saved successfully
 	return true;
-}
-
-void SCSIDEV::FlushUnitScsi()
-{
-	ASSERT(ctrl.phase == BUS::dataout);
-
-	// Logical Unit
-	DWORD lun = GetEffectiveLun();
-	if (!ctrl.unit[lun]) {
-		return;
-	}
-
-	switch ((scsi_defs::scsi_command)ctrl.cmd[0]) {
-		case scsi_defs::eCmdWrite6:
-			break;
-
-		default:
-			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0]);
-			break;
-	}
 }
 
