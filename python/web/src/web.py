@@ -120,7 +120,7 @@ def index():
 
     extended_image_files = []
     for image in image_files["files"]:
-        if image["detected_type"] is not "UNDEFINED":
+        if image["detected_type"] != "UNDEFINED":
             image["detected_type_name"] = mapped_device_types[image["detected_type"]]
         extended_image_files.append(image)
 

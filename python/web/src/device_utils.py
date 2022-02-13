@@ -59,19 +59,19 @@ def extend_device_names(device_types):
     """
     mapped_device_types = {}
     for device_type in device_types:
-        if device_type is "SAHD":
+        if device_type == "SAHD":
             device_name = _("SASI Hard Drive")
-        elif device_type is "SCHD":
+        elif device_type == "SCHD":
             device_name = _("SCSI Hard Drive")
-        elif device_type is "SCRM":
+        elif device_type == "SCRM":
             device_name = _("Removable Drive")
-        elif device_type is "SCMO":
+        elif device_type == "SCMO":
             device_name = _("Magneto-Optical Drive")
-        elif device_type is "SCCD":
+        elif device_type == "SCCD":
             device_name = _("CD-ROM Drive")
-        elif device_type is "SCBR":
+        elif device_type == "SCBR":
             device_name = _("X68000 Host Bridge")
-        elif device_type is "SCDP":
+        elif device_type == "SCDP":
             device_name = _("DaynaPORT SCSI/Link")
         else:
             device_name = _("Unknown Device")
