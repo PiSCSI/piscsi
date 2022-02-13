@@ -72,7 +72,10 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 		controller->Error();
 	}
 
+	LOGDEBUG("Closing printer file");
+
 	fclose(lp_file);
+	lp_file = NULL;
 
 	// TODO Hard-coded filename
 	system("lp /tmp/lp.dat");
@@ -89,8 +92,12 @@ void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 bool SCSIPrinter::Write(BYTE *buf, uint32_t count)
 {
 	if (!lp_file) {
+		LOGDEBUG("Opening printer file");
+
 		lp_file = fopen("/tmp/lp.dat", "wb");
 	}
+
+	LOGDEBUG("Adding %d bytes to printer file", count);
 
 	fwrite(buf, 1, count, lp_file);
 
