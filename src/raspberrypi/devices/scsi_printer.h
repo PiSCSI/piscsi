@@ -28,11 +28,13 @@ public:
 	void SynchronizeBuffer(SASIDEV *);
 	void SendDiagnostic(SASIDEV *);
 
+	bool Write(BYTE *, uint32_t);
+
 private:
 
 	typedef PrimaryDevice super;
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	FILE *current_file;
+	FILE *lp_file;
 };

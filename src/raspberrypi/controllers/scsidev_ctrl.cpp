@@ -698,7 +698,7 @@ bool SCSIDEV::XferMsg(DWORD msg)
 
 void SCSIDEV::DataOutScsi()
 {
-	ASSERT(ctrl.length >= 0);
+	ASSERT(ctrl.bytes_to_transfer >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
@@ -712,8 +712,8 @@ void SCSIDEV::DataOutScsi()
 			ctrl.execstart = 0;
 		}
 
-		// If the length is 0, go to the status phase
-		if (ctrl.length == 0) {
+		// If the transfer size is 0, go to the status phase
+		if (ctrl.bytes_to_transfer == 0) {
 			Status();
 			return;
 		}
@@ -728,9 +728,6 @@ void SCSIDEV::DataOutScsi()
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
 
-		// length, blocks are already calculated
-		ASSERT(ctrl.length > 0);
-		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 		return;
 	}
@@ -742,7 +739,7 @@ void SCSIDEV::DataOutScsi()
 // Receive() for chunks of any size
 void SCSIDEV::ReceiveScsi()
 {
-	int len;
+	uint32_t len;
 	BYTE data;
 
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
@@ -752,21 +749,21 @@ void SCSIDEV::ReceiveScsi()
 	ASSERT(!ctrl.bus->GetIO());
 
 	// Length != 0 if received
-	if (ctrl.length != 0) {
+	if (ctrl.bytes_to_transfer != 0) {
 		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 		// Receive
-		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.bytes_to_transfer);
 
 		// If not able to receive all, move to status phase
-		if (len != (int)ctrl.length) {
+		if (len != ctrl.bytes_to_transfer) {
 			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
 			Error();
 			return;
 		}
 
 		// Offset and Length
-		ctrl.offset += ctrl.length;
-		ctrl.length = 0;
+		ctrl.offset += ctrl.bytes_to_transfer;
+		ctrl.bytes_to_transfer = 0;
 		return;
 	}
 
@@ -825,7 +822,7 @@ void SCSIDEV::ReceiveScsi()
 		case BUS::command:
 			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
-			for (int i = 0; i < len; i++) {
+			for (uint32_t i = 0; i < len; i++) {
 				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
 				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
@@ -949,27 +946,10 @@ bool SCSIDEV::XferOutScsi(bool cont)
 
 	switch (ctrl.cmd[0]) {
 		case scsi_defs::eCmdWrite6:
-			// TODO Replace by a call that writes to the printer file
-	//		if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
+			if (!device->Write(ctrl.buffer, ctrl.bytes_to_transfer)) {
 				// Write failed
-	//			return false;
-	//		}
-
-			// If you do not need the next block, end here
-			ctrl.next++;
-			if (!cont) {
-				break;
+				return false;
 			}
-
-			// Check the next block
-	//		ctrl.length = device->WriteCheck(ctrl.next - 1);
-	//		if (ctrl.length <= 0) {
-	//			// Cannot write
-	//			return false;
-	//		}
-
-			// If normal, work setting
-			ctrl.offset = 0;
 			break;
 
 		default:
@@ -977,7 +957,7 @@ bool SCSIDEV::XferOutScsi(bool cont)
 			break;
 	}
 
-	// Buffer saved successfully
+	// Data saved successfully
 	return true;
 }
 
