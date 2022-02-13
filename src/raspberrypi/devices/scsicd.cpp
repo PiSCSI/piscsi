@@ -19,6 +19,7 @@
 #include "exceptions.h"
 #include <sstream>
 #include "../rascsi.h"
+#include "file_access/file_access_factory.h"
 
 //===========================================================================
 //
@@ -599,7 +600,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		track[index]->GetPath(path);
-		disk.dcache = new DiskCache(path, GetSectorSizeShiftCount(), GetBlockCount());
+		disk.dcache = FileAccessFactory::CreateFileAccess(path, GetSectorSizeShiftCount(), GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index

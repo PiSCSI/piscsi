@@ -20,43 +20,30 @@
 #include "../rascsi.h"
 #include "filepath.h"
 
-class DiskCache
+class FileAccess
 {
-
 public:
-	DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
-	~DiskCache();
+	FileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
+	virtual ~FileAccess();
 
-	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
+	void SetRawMode(bool raw) { cd_raw = raw; };		// CD-ROM raw mode setting
 
 	// Access
-	// bool Save();							// Save and release all
-	bool ReadSector(BYTE *buf, int block);				// Sector Read
-	bool WriteSector(const BYTE *buf, int block);			// Sector Write
-	// bool GetCache(int index, int& track, DWORD& serial) const;	// Get cache information
+	virtual bool Save() = 0;							// Save and release all
+	virtual bool ReadSector(BYTE *buf, int block) = 0;				// Sector Read
+	virtual bool WriteSector(const BYTE *buf, int block) = 0;			// Sector Write
+	virtual bool GetCache(int index, int& track, DWORD& serial) const = 0;	// Get cache information
 
-private:
-	// Internal Management
-	// void Clear();							// Clear all tracks
-	// DiskTrack* Assign(int track);					// Load track
-	// bool Load(int index, int track, DiskTrack *disktrk = NULL);	// Load track
-	// void UpdateSerialNumber();							// Update serial number
-
-	// Internal data
-	// cache_t cache[CacheMax];						// Cache management
+protected:
+	bool cd_raw = false;
 	DWORD serial;								// Last serial number
 	Filepath sec_path;							// Path
+
 	int sec_size;								// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 	int sec_blocks;								// Blocks per sector
-	BOOL cd_raw;								// CD-ROM RAW mode
 	off_t imgoffset;							// Offset to actual data
 
-	bool initialized;
-
-	const char *memory_block;
-    struct stat sb;
-	int fd;
-
+	
 	off_t GetTrackOffset(int block);
 	off_t GetSectorOffset(int block);
 };

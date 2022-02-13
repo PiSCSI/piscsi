@@ -104,6 +104,7 @@ SRC_RASCSI = \
 	localizer.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
+SRC_RASCSI += $(shell find ./file_access -name '*.cpp')
 SRC_RASCSI += $(SRC_PROTOBUF)
 
 SRC_SCSIMON = \
@@ -139,8 +140,8 @@ SRC_SASIDUMP = \
 	fileio.cpp\
 	rascsi_version.cpp
 
-vpath %.h ./ ./controllers ./devices ./monitor
-vpath %.cpp ./ ./controllers ./devices ./monitor
+vpath %.h ./ ./controllers ./devices ./file_access ./monitor
+vpath %.cpp ./ ./controllers ./devices ./file_access ./monitor
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 

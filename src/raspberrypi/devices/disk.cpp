@@ -22,6 +22,7 @@
 #include "disk.h"
 #include <sstream>
 #include "../rascsi.h"
+#include "file_access/file_access_factory.h"
 
 Disk::Disk(const std::string id) : Device(id), ScsiPrimaryCommands(), ScsiBlockCommands()
 {
@@ -76,7 +77,7 @@ Disk::~Disk()
 	if (IsReady()) {
 		// Only if ready...
 		if (disk.dcache) {
-			// disk.dcache->Save();
+			disk.dcache->Save();
 		}
 	}
 
@@ -128,7 +129,7 @@ void Disk::Open(const Filepath& path)
 
 	// Cache initialization
 	assert (!disk.dcache);
-	disk.dcache = new DiskCache(path, disk.size, disk.blocks, disk.image_offset);
+	disk.dcache = FileAccessFactory::CreateFileAccess(path, disk.size, disk.blocks, disk.image_offset);
 
 	// Can read/write open
 	Fileio fio;
@@ -517,8 +518,8 @@ void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 
 void Disk::SynchronizeCache10(SASIDEV *controller)
 {
-	// Flush the RaSCSI cache
-	// disk.dcache->Save();
+	//Flush the RaSCSI cache
+	disk.dcache->Save();
 
 	controller->Status();
 }
@@ -544,7 +545,7 @@ bool Disk::Eject(bool force)
 	bool status = Device::Eject(force);
 	if (status) {
 		// Remove disk cache
-		// disk.dcache->Save();
+		disk.dcache->Save();
 		delete disk.dcache;
 		disk.dcache = NULL;
 
@@ -1295,7 +1296,7 @@ bool Disk::StartStop(const DWORD *cdb)
 
 	if (!start) {
 		// Flush the cache when stopping
-		// disk.dcache->Save();
+		disk.dcache->Save();
 
 		// Look at the eject bit and eject if necessary
 		if (load) {

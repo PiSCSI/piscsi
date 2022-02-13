@@ -22,7 +22,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "device.h"
 #include "device_factory.h"
-#include "disk_track_cache.h"
+#include "file_access/file_access.h"
 #include "file_support.h"
 #include "filepath.h"
 #include <string>
@@ -51,7 +51,7 @@ private:
 		uint32_t size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
 		// TODO blocks should be a 64 bit value in order to support higher capacities
 		uint32_t blocks;						// Total number of sectors
-		DiskCache *dcache;						// Disk cache
+		FileAccess *dcache;						// Disk cache
 		off_t image_offset;						// Offset to actual data
 	} disk_t;
 
