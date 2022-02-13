@@ -952,10 +952,10 @@ bool SCSIDEV::XferOutScsi(bool cont)
 	switch (ctrl.cmd[0]) {
 		case scsi_defs::eCmdWrite6:
 			// TODO Replace by a call that writes to the printer file
-			if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
+	//		if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
 				// Write failed
-				return false;
-			}
+	//			return false;
+	//		}
 
 			// If you do not need the next block, end here
 			ctrl.next++;
@@ -964,7 +964,7 @@ bool SCSIDEV::XferOutScsi(bool cont)
 			}
 
 			// Check the next block
-			ctrl.length = device->WriteCheck(ctrl.next - 1);
+	//		ctrl.length = device->WriteCheck(ctrl.next - 1);
 			if (ctrl.length <= 0) {
 				// Cannot write
 				return false;

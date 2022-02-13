@@ -260,26 +260,18 @@
                     <input name="unit" type="number" size="2" value="0" min="0" max="31">
                     {% if file["detected_type"] != "UNDEFINED" %}
                         <input name="type" type="hidden" value="{{ file['detected_type'] }}">
-                        {% for device in device_types %}
-                        {% for key, value in device.items() %}
-                        {% if file["detected_type"] == key %}
-                        {{ value }}
-                        {% endif %}
-                        {% endfor %}
-                        {% endfor %}
+                        {{ file['detected_type_name'] }}
                     {% else %}
                         <select name="type">
-                        <option selected value="">
-                        {{ _("Type") }}
+                        <option selected disabled value="">
+                        {{ _("Select device type") }}
                         </option>
-                        {% for device in device_types %}
-                        {% for key, value in device.items() %}
-                        {% if key not in ("SCBR", "SCDP") %}
+                        {% for key, value in device_types.items() %}
+                        {% if key not in NETWORK_DEVICE_TYPES %}
                         <option value="{{ key }}">
                             {{ value }}
                         </option>
                         {% endif %}
-                        {% endfor %}
                         {% endfor %}
                         </select>
                     {% endif %}
@@ -310,7 +302,7 @@
         {{ _("Attach Network Adapter") }}
     </summary>
     <ul>
-        <li>{{ _("Emulates either a <a href=\"%(url1)s\">SCSI DaynaPORT Ethernet Adapter</a>, or an <a href=\"%(url2)s\">X68000 Host Bridge</a>.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
+        <li>{{ _("Emulates either a <a href=\"%(url1)s\">DaynaPORT SCSI/Link Ethernet Adapter</a>, or an <a href=\"%(url2)s\">X68000 Host Bridge</a>.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
         </li>
         <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the Static IP fields when attaching.") }}</li>
         <li>{{ _("Configure the network bridge by running easyinstall.sh, or follow the <a href=\"%(url)s\">manual steps in the wiki</a>.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#manual-setup") }}
@@ -337,12 +329,15 @@
                 <input name="mask" type="number" size="2" placeholder="24" min="16" max="30">
                 <label for="type">{{ _("Type:") }}</label>
                 <select name="type">
-                    <option selected value="SCDP">
-                    {{ _("DaynaPORT") }}
+                    {% for type in NETWORK_DEVICE_TYPES %}
+                    <option value="{{ type }}">
+                    {% for key, value in device_types.items() %}
+                    {% if key == type %}
+                    {{ value }}
+                    {% endif %}
+                    {% endfor %}
                     </option>
-                    <option value="SCBR">
-                    {{ _("Host Bridge") }}
-                    </option>
+                    {% endfor %}
                 </select>
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">

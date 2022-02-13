@@ -54,6 +54,7 @@ from rascsi.common_settings import (
     CONFIG_FILE_SUFFIX,
     PROPERTIES_SUFFIX,
     REMOVABLE_DEVICE_TYPES,
+    NETWORK_DEVICE_TYPES,
     RESERVATIONS,
 )
 from rascsi.ractl_cmds import RaCtlCmds
@@ -115,9 +116,16 @@ def index():
     image_files = file_cmds.list_images()
     config_files = file_cmds.list_config_files()
 
-    sorted_image_files = sorted(image_files["files"], key=lambda x: x["name"].lower())
-    sorted_config_files = sorted(config_files, key=lambda x: x.lower())
     mapped_device_types = extend_device_names(device_types["device_types"])
+
+    extended_image_files = []
+    for image in image_files["files"]:
+        if image["detected_type"] is not "UNDEFINED":
+            image["detected_type_name"] = mapped_device_types[image["detected_type"]]
+        extended_image_files.append(image)
+
+    sorted_image_files = sorted(extended_image_files, key=lambda x: x["name"].lower())
+    sorted_config_files = sorted(config_files, key=lambda x: x.lower())
 
     attached_images = []
     units = 0
@@ -181,6 +189,7 @@ def index():
         ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
+        NETWORK_DEVICE_TYPES=NETWORK_DEVICE_TYPES,
     )
 
 

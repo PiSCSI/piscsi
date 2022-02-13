@@ -7,6 +7,7 @@ from os import getcwd
 WORK_DIR = getcwd()
 
 REMOVABLE_DEVICE_TYPES = ("SCCD", "SCRM", "SCMO")
+NETWORK_DEVICE_TYPES = ("SCDP", "SCBR")
 
 # There may be a more elegant way to get the HOME dir of the user that installed RaSCSI
 HOME_DIR = "/".join(WORK_DIR.split("/")[0:3])

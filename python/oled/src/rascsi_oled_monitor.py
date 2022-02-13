@@ -43,6 +43,11 @@ from pi_cmds import get_ip_and_host
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.socket_cmds import SocketCmds
 
+from rascsi.common_settings import (
+    REMOVABLE_DEVICE_TYPES,
+    NETWORK_DEVICE_TYPES,
+)
+
 parser = argparse.ArgumentParser(description="RaSCSI OLED Monitor script")
 parser.add_argument(
     "--rotation",
@@ -174,20 +179,17 @@ def formatted_output():
         output.append("Permission denied!")
     elif rascsi_list:
         for line in rascsi_list:
-            if line["device_type"] in ("SCCD", "SCRM", "SCMO"):
+            if line["device_type"] in REMOVABLE_DEVICE_TYPES:
                 # Print image file name only when there is an image attached
                 if line["file"]:
                     output.append(f"{line['id']} {line['device_type'][2:4]} "
                                   f"{line['file']} {line['status']}")
                 else:
                     output.append(f"{line['id']} {line['device_type'][2:4]} {line['status']}")
-            # Special handling for the DaynaPort device
-            elif line["device_type"] == "SCDP":
+            # Special handling for network devices
+            elif line["device_type"] in NETWORK_DEVICE_TYPES:
                 output.append(f"{line['id']} {line['device_type'][2:4]} {line['vendor']} "
                               f"{line['product']}")
-            # Special handling for the Host Bridge device
-            elif line["device_type"] == "SCBR":
-                output.append(f"{line['id']} {line['device_type'][2:4]} {line['product']}")
             # Print only the Vendor/Product info if it's not generic RaSCSI
             elif line["vendor"] not in "RaSCSI":
                 output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} "
