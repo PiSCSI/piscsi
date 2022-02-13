@@ -30,6 +30,8 @@ enum PbDeviceType {
     SCDP = 7;
     // Host services device
     SCHS = 8;
+    // Printer device
+    SCLP = 9;
 }
 
 // rascsi remote operations, returning PbResult
