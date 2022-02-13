@@ -14,6 +14,8 @@ using namespace scsi_defs;
 
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
 {
+	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
+	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
 }
 
@@ -33,6 +35,18 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	// Printer device, not removable
 	return PrimaryDevice::Inquiry(2, false, cdb, buf);
+}
+
+void SCSIPrinter::ReserveUnit(SASIDEV *controller)
+{
+	// TODO Implement when everything else is working
+	controller->Status();
+}
+
+void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
+{
+	// TODO Implement when everything else is working
+	controller->Status();
 }
 
 void SCSIPrinter::Print(SASIDEV *controller)
