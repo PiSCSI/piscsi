@@ -242,8 +242,8 @@ SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 	dataindex = -1;
 	audioindex = -1;
 
-	AddCommand(SCSIDEV::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	AddCommand(SCSIDEV::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+	AddCommand(ScsiDefs::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	AddCommand(ScsiDefs::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
 //---------------------------------------------------------------------------
@@ -261,7 +261,7 @@ SCSICD::~SCSICD()
 	}
 }
 
-void SCSICD::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSICD::*execute)(SASIDEV *))
+void SCSICD::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSICD::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -270,8 +270,8 @@ bool SCSICD::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
 
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 

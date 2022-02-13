@@ -22,7 +22,6 @@
 #include "log.h"
 #include "filepath.h"
 #include "cfilesystem.h"
-#include "../rascsi.h"
 
 //---------------------------------------------------------------------------
 //

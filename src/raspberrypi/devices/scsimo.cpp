@@ -16,7 +16,6 @@
 
 #include "scsimo.h"
 
-#include "../rascsi.h"
 #include "fileio.h"
 #include "exceptions.h"
 #include <sstream>

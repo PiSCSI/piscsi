@@ -115,7 +115,7 @@ void SASIDEV::Connect(int id, BUS *bus)
 //	Set the logical unit
 //
 //---------------------------------------------------------------------------
-void SASIDEV::SetUnit(int no, Disk *dev)
+void SASIDEV::SetUnit(int no, Device *dev)
 {
 	ASSERT(no < UnitMax);
 
@@ -665,7 +665,7 @@ void SASIDEV::CmdTestUnitReady()
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	ctrl.device->TestUnitReady(this);
+	((Disk *)ctrl.device)->TestUnitReady(this);
 }
 
 //---------------------------------------------------------------------------
@@ -678,7 +678,7 @@ void SASIDEV::CmdRezero()
 	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	ctrl.device->Rezero(this);
+	((Disk *)ctrl.device)->Rezero(this);
 }
 
 //---------------------------------------------------------------------------
@@ -691,7 +691,7 @@ void SASIDEV::CmdRequestSense()
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-    ctrl.device->RequestSense(this);
+	((Disk *)ctrl.device)->RequestSense(this);
 }
 
 //---------------------------------------------------------------------------
@@ -704,7 +704,7 @@ void SASIDEV::CmdFormat()
 	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	ctrl.device->FormatUnit(this);
+	((Disk *)ctrl.device)->FormatUnit(this);
 }
 
 //---------------------------------------------------------------------------
@@ -717,7 +717,7 @@ void SASIDEV::CmdReassignBlocks()
 	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	ctrl.device->ReassignBlocks(this);
+	((Disk *)ctrl.device)->ReassignBlocks(this);
 }
 
 //---------------------------------------------------------------------------
@@ -777,7 +777,7 @@ void SASIDEV::CmdRead6()
 	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
 
 	// Command processing on drive
-	ctrl.length = ctrl.device->Read(ctrl.cmd, ctrl.buffer, record);
+	ctrl.length = ((Disk *)ctrl.device)->Read(ctrl.cmd, ctrl.buffer, record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
@@ -812,7 +812,7 @@ void SASIDEV::CmdWrite6()
 	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
 
 	// Command processing on drive
-	ctrl.length = ctrl.device->WriteCheck(record);
+	ctrl.length = ((Disk *)ctrl.device)->WriteCheck(record);
 	if (ctrl.length <= 0) {
 		// Failure (Error)
 		Error();
@@ -836,7 +836,7 @@ void SASIDEV::CmdSeek6()
 	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	ctrl.device->Seek6(this);
+	((Disk *)ctrl.device)->Seek6(this);
 }
 
 //---------------------------------------------------------------------------
@@ -849,7 +849,7 @@ void SASIDEV::CmdAssign()
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->CheckReady();
+	bool status = ((Disk *)ctrl.device)->CheckReady();
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -873,7 +873,7 @@ void SASIDEV::CmdSpecify()
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	bool status = ctrl.device->CheckReady();
+	bool status = ((Disk *)ctrl.device)->CheckReady();
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1086,7 +1086,7 @@ bool SASIDEV::XferIn(BYTE *buf)
 		case eCmdRead10:
 		case eCmdRead16:
 			// Read from disk
-			ctrl.length = ctrl.unit[lun]->Read(ctrl.cmd, buf, ctrl.next);
+			ctrl.length = ((Disk *)ctrl.unit[lun])->Read(ctrl.cmd, buf, ctrl.next);
 			ctrl.next++;
 
 			// If there is an error, go to the status phase
@@ -1124,7 +1124,7 @@ bool SASIDEV::XferOut(bool cont)
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
-	Disk *device = ctrl.unit[lun];
+	Disk *device = (Disk *)ctrl.unit[lun];
 
 	switch (ctrl.cmd[0]) {
 		case SASIDEV::eCmdModeSelect6:
@@ -1220,7 +1220,8 @@ void SASIDEV::FlushUnit()
 	if (!ctrl.unit[lun]) {
 		return;
 	}
-	Disk *device = ctrl.unit[lun];
+
+	Disk *disk = (Disk *)ctrl.unit[lun];
 
 	// WRITE system only
 	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
@@ -1248,7 +1249,7 @@ void SASIDEV::FlushUnit()
             LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
             LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
-			if (!device->ModeSelect(
+			if (!disk->ModeSelect(
 				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);

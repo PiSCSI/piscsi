@@ -20,7 +20,6 @@
 #include "os.h"
 #include "disk.h"
 #include <string>
-#include "../rascsi.h"
 
 //===========================================================================
 //
@@ -40,11 +39,11 @@ private:
 
 		_command_t(const char* _name, void (SCSIBR::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
 	} command_t;
-	std::map<SCSIDEV::scsi_command, command_t*> commands;
+	std::map<ScsiDefs::scsi_command, command_t*> commands;
 
 	SASIDEV::ctrl_t *ctrl;
 
-	void AddCommand(SCSIDEV::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
+	void AddCommand(ScsiDefs::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
 
 public:
 	SCSIBR();

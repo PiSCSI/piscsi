@@ -17,7 +17,6 @@
 #include "fileio.h"
 #include "exceptions.h"
 #include <sstream>
-#include "../rascsi.h"
 
 #define DEFAULT_PRODUCT "SCSI HD"
 
@@ -40,7 +39,7 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 {
     // 2TB is the current maximum
 	if (size > 2LL * 1024 * 1024 * 1024 * 1024) {
-		throw io_exception("File size must not exceed 2 TB");
+		throw io_exception("File size must not exceed 2 TiB");
 	}
 
 	// For non-removable media drives set the default product name based on the drive capacity
