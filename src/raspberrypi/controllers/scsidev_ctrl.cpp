@@ -963,10 +963,10 @@ bool SCSIDEV::XferOutScsi(bool cont)
 
 			// Check the next block
 	//		ctrl.length = device->WriteCheck(ctrl.next - 1);
-			if (ctrl.length <= 0) {
-				// Cannot write
-				return false;
-			}
+	//		if (ctrl.length <= 0) {
+	//			// Cannot write
+	//			return false;
+	//		}
 
 			// If normal, work setting
 			ctrl.offset = 0;
