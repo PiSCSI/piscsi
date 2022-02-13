@@ -17,6 +17,8 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
+	dispatcher.AddCommand(eCmdReadCapacity10, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
+	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
 }
 
 bool SCSIPrinter::Dispatch(SCSIDEV *controller)
@@ -51,5 +53,18 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 
 void SCSIPrinter::Print(SASIDEV *controller)
 {
+	// TODO Implement
+	controller->Status();
+}
+
+void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
+{
+	// TODO Implement
+	controller->Status();
+}
+
+void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
+{
+	// TODO Implement when everything else is working
 	controller->Status();
 }

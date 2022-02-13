@@ -25,6 +25,8 @@ public:
 	void ReserveUnit(SASIDEV *);
 	void ReleaseUnit(SASIDEV *);
 	void Print(SASIDEV *);
+	void SynchronizeBuffer(SASIDEV *);
+	void SendDiagnostic(SASIDEV *);
 
 private:
 
