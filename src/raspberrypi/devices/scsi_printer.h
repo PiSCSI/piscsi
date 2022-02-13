@@ -33,4 +33,6 @@ private:
 	typedef PrimaryDevice super;
 
 	Dispatcher<SCSIPrinter> dispatcher;
+
+	FILE *current_file;
 };

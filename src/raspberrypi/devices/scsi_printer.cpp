@@ -14,6 +14,8 @@ using namespace scsi_defs;
 
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
 {
+	current_file = NULL;
+
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
@@ -53,7 +55,23 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 
 void SCSIPrinter::Print(SASIDEV *controller)
 {
+	uint32_t length = ctrl->cmd[2];
+	length <<= 8;
+	length |= ctrl->cmd[3];
+	length <<= 8;
+	length |= ctrl->cmd[4];
+	if (!length) {
+		controller->Status();
+		return;
+	}
+
+	((SCSIDEV *)controller)->DataOutScsi();
+
+	// RaSCSI currently only supports transfers with multiples of 512 bytes. This has to be changed
+	// when everything else is working.
+
 	// TODO Implement
+
 	controller->Status();
 }
 

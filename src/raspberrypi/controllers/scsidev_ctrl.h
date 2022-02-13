@@ -56,6 +56,8 @@ public:
 	// External API
 	BUS::phase_t Process() override;
 
+	void DataOutScsi();
+
 	// Other
 	bool IsSASI() const override { return false; }
 	bool IsSCSI() const override { return true; }
@@ -79,9 +81,12 @@ private:
 	void CmdModeSense10();
 
 	// Data transfer
+	void ReceiveScsi();
 	void Send() override;
 	void Receive() override;
 	bool XferMsg(DWORD msg);
+	bool XferOutScsi(bool);
+	void FlushUnitScsi();
 
 	scsi_t scsi;								// Internal data
 

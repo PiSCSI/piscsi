@@ -694,3 +694,337 @@ bool SCSIDEV::XferMsg(DWORD msg)
 
 	return true;
 }
+
+void SCSIDEV::DataOutScsi()
+{
+	ASSERT(ctrl.length >= 0);
+
+	// Phase change
+	if (ctrl.phase != BUS::dataout) {
+		// Minimum execution time
+		if (ctrl.execstart > 0) {
+			DWORD min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
+			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
+			if (time < min_exec_time) {
+				SysTimer::SleepUsec(min_exec_time - time);
+			}
+			ctrl.execstart = 0;
+		}
+
+		// If the length is 0, go to the status phase
+		if (ctrl.length == 0) {
+			Status();
+			return;
+		}
+
+		LOGTRACE("%s Data out phase", __PRETTY_FUNCTION__);
+
+		// Phase Setting
+		ctrl.phase = BUS::dataout;
+
+		// Signal line operated by the target
+		ctrl.bus->SetMSG(FALSE);
+		ctrl.bus->SetCD(FALSE);
+		ctrl.bus->SetIO(FALSE);
+
+		// length, blocks are already calculated
+		ASSERT(ctrl.length > 0);
+		ASSERT(ctrl.blocks > 0);
+		ctrl.offset = 0;
+		return;
+	}
+
+	// Receive
+	ReceiveScsi();
+}
+
+// Receive() for chunks of any size
+void SCSIDEV::ReceiveScsi()
+{
+	int len;
+	BYTE data;
+
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
+
+	// REQ is low
+	ASSERT(!ctrl.bus->GetREQ());
+	ASSERT(!ctrl.bus->GetIO());
+
+	// Length != 0 if received
+	if (ctrl.length != 0) {
+		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
+		// Receive
+		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+
+		// If not able to receive all, move to status phase
+		if (len != (int)ctrl.length) {
+			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
+			Error();
+			return;
+		}
+
+		// Offset and Length
+		ctrl.offset += ctrl.length;
+		ctrl.length = 0;
+		return;
+	}
+
+	// Block subtraction, result initialization
+	ctrl.blocks--;
+	bool result = true;
+
+	// Processing after receiving data (by phase)
+	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
+	switch (ctrl.phase) {
+
+		// Data out phase
+		case BUS::dataout:
+			if (ctrl.blocks == 0) {
+				// End with this buffer
+				result = XferOutScsi(false);
+			} else {
+				// Continue to next buffer (set offset, length)
+				result = XferOutScsi(true);
+			}
+			break;
+
+		// Message out phase
+		case BUS::msgout:
+			ctrl.message = ctrl.buffer[0];
+			if (!XferMsg(ctrl.message)) {
+				// Immediately free the bus if message output fails
+				BusFree();
+				return;
+			}
+
+			// Clear message data in preparation for message-in
+			ctrl.message = 0x00;
+			break;
+
+		default:
+			break;
+	}
+
+	// If result FALSE, move to status phase
+	if (!result) {
+		Error();
+		return;
+	}
+
+	// Continue to receive if block !=0
+	if (ctrl.blocks != 0){
+		ASSERT(ctrl.length > 0);
+		ASSERT(ctrl.offset == 0);
+		return;
+	}
+
+	// Move to next phase
+	switch (ctrl.phase) {
+		// Command phase
+		case BUS::command:
+			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+
+			for (int i = 0; i < len; i++) {
+				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
+				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
+			}
+
+			// Execution Phase
+			Execute();
+			break;
+
+		// Message out phase
+		case BUS::msgout:
+			// Continue message out phase as long as ATN keeps asserting
+			if (ctrl.bus->GetATN()) {
+				// Data transfer is 1 byte x 1 block
+				ctrl.offset = 0;
+				ctrl.length = 1;
+				ctrl.blocks = 1;
+				return;
+			}
+
+			// Parsing messages sent by ATN
+			if (scsi.atnmsg) {
+				int i = 0;
+				while (i < scsi.msc) {
+					// Message type
+					data = scsi.msb[i];
+
+					// ABORT
+					if (data == 0x06) {
+						LOGTRACE("Message code ABORT $%02X", data);
+						BusFree();
+						return;
+					}
+
+					// BUS DEVICE RESET
+					if (data == 0x0C) {
+						LOGTRACE("Message code BUS DEVICE RESET $%02X", data);
+						scsi.syncoffset = 0;
+						BusFree();
+						return;
+					}
+
+					// IDENTIFY
+					if (data >= 0x80) {
+						ctrl.lun = data & 0x1F;
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, ctrl.lun);
+					}
+
+					// Extended Message
+					if (data == 0x01) {
+						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data);
+
+						// Check only when synchronous transfer is possible
+						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
+							ctrl.length = 1;
+							ctrl.blocks = 1;
+							ctrl.buffer[0] = 0x07;
+							MsgIn();
+							return;
+						}
+
+						// Transfer period factor (limited to 50 x 4 = 200ns)
+						scsi.syncperiod = scsi.msb[i + 3];
+						if (scsi.syncperiod > 50) {
+							scsi.syncoffset = 50;
+						}
+
+						// REQ/ACK offset(limited to 16)
+						scsi.syncoffset = scsi.msb[i + 4];
+						if (scsi.syncoffset > 16) {
+							scsi.syncoffset = 16;
+						}
+
+						// STDR response message generation
+						ctrl.length = 5;
+						ctrl.blocks = 1;
+						ctrl.buffer[0] = 0x01;
+						ctrl.buffer[1] = 0x03;
+						ctrl.buffer[2] = 0x01;
+						ctrl.buffer[3] = (BYTE)scsi.syncperiod;
+						ctrl.buffer[4] = (BYTE)scsi.syncoffset;
+						MsgIn();
+						return;
+					}
+
+					// next
+					i++;
+				}
+			}
+
+			// Initialize ATN message reception status
+			scsi.atnmsg = false;
+
+			// Command phase
+			Command();
+			break;
+
+		// Data out phase
+		case BUS::dataout:
+			FlushUnitScsi();
+
+			// status phase
+			Status();
+			break;
+
+		default:
+			assert(false);
+			break;
+	}
+}
+
+bool SCSIDEV::XferOutScsi(bool cont)
+{
+	ASSERT(ctrl.phase == BUS::dataout);
+
+	// Logical Unit
+	DWORD lun = GetEffectiveLun();
+	if (!ctrl.unit[lun]) {
+		return false;
+	}
+	Disk *device = (Disk *)ctrl.unit[lun];
+
+	switch (ctrl.cmd[0]) {
+		case scsi_defs::eCmdModeSelect6:
+		case scsi_defs::eCmdModeSelect10:
+			if (!device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+				// MODE SELECT failed
+				return false;
+			}
+			break;
+
+		case scsi_defs::eCmdWrite6:
+		case scsi_defs::eCmdWrite10:
+		case scsi_defs::eCmdWrite16:
+		case scsi_defs::eCmdVerify10:
+		case scsi_defs::eCmdVerify16:
+			if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.next - 1)) {
+				// Write failed
+				return false;
+			}
+
+			// If you do not need the next block, end here
+			ctrl.next++;
+			if (!cont) {
+				break;
+			}
+
+			// Check the next block
+			ctrl.length = device->WriteCheck(ctrl.next - 1);
+			if (ctrl.length <= 0) {
+				// Cannot write
+				return false;
+			}
+
+			// If normal, work setting
+			ctrl.offset = 0;
+			break;
+
+		default:
+			LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
+			break;
+	}
+
+	// Buffer saved successfully
+	return true;
+}
+
+void SCSIDEV::FlushUnitScsi()
+{
+	ASSERT(ctrl.phase == BUS::dataout);
+
+	// Logical Unit
+	DWORD lun = GetEffectiveLun();
+	if (!ctrl.unit[lun]) {
+		return;
+	}
+
+	Disk *disk = (Disk *)ctrl.unit[lun];
+
+	// WRITE system only
+	switch ((scsi_defs::scsi_command)ctrl.cmd[0]) {
+		case scsi_defs::eCmdWrite6:
+		case scsi_defs::eCmdWrite10:
+		case scsi_defs::eCmdWrite16:
+		case scsi_defs::eCmdWriteLong16:
+		case scsi_defs::eCmdVerify10:
+		case scsi_defs::eCmdVerify16:
+			break;
+
+		case scsi_defs::eCmdModeSelect6:
+		case scsi_defs::eCmdModeSelect10:
+			if (!disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+				// MODE SELECT failed
+				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
+				return;
+			}
+            break;
+
+		default:
+			LOGWARN("Received an unexpected flush command $%02X\n",(WORD)ctrl.cmd[0]);
+			break;
+	}
+}
+
