@@ -38,6 +38,7 @@ public:
 	void SendDiagnostic(SASIDEV *);
 
 	bool Write(BYTE *, uint32_t);
+	bool IsReserved(SASIDEV *);
 
 private:
 
@@ -47,4 +48,12 @@ private:
 
 	char filename[sizeof(TMP_FILE_PATTERN) + 1];
 	int fd;
+
+	// The reserved device ID
+	// -1 means that the reservation ID is unknown (see SASIDEV), e.g. with Atari ACSI and old host adapters
+	// -2 means that there is no reservation
+	int reserved_id;
+
+	// The reserved LUN
+	int reserved_lun;
 };

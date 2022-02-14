@@ -14,13 +14,25 @@
 
 //===========================================================================
 //
-//	Sense Keys and Additional Sense Codes
+//	Status byte codes, Sense Keys and Additional Sense Codes
 //  (See https://www.t10.org/lists/1spc-lst.htm)
 //
 //===========================================================================
 class ERROR_CODES
 {
 public:
+	enum status : int {
+		GOOD = 0x00,
+		CHECK_CONDITION = 0x02,
+		CONDITION_MET = 0x04,
+		BUSY = 0x08,
+		INTERMEDIATE = 0x10,
+		INTERMEDIATE_CONDITION_MET = 0x14,
+		RESERVATION_CONFLICT = 0x18,
+		COMMAND_TERMINATED = 0x22,
+		QUEUE_FULL = 0x28
+	};
+
 	enum sense_key : int {
 		NO_SENSE = 0x00,
 		RECOVERED_ERROR = 0x01,

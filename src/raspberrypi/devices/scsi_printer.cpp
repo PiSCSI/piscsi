@@ -19,6 +19,9 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
 	fd = -1;
 
+	reserved_id = -2;
+	reserved_id = 0;
+
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
@@ -42,9 +45,10 @@ bool SCSIPrinter::Dispatch(SCSIDEV *controller)
 
 void SCSIPrinter::TestUnitReady(SASIDEV *controller)
 {
-	// TODO Not ready when reserved for a different initiator ID
+	if (!IsReserved(controller)) {
+		return;
+	}
 
-	// Always successful
 	controller->Status();
 }
 
@@ -56,7 +60,9 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 
 void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
-	// TODO Implement initiator ID handling when everything else is working
+	if (!IsReserved(controller)) {
+		return;
+	}
 
 	if (fd != -1) {
 		close(fd);
@@ -68,7 +74,9 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 
 void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 {
-	// TODO Implement initiator ID handling when everything else is working
+	if (!IsReserved(controller)) {
+		return;
+	}
 
 	if (fd != -1) {
 		close(fd);
@@ -80,6 +88,10 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 
 void SCSIPrinter::Print(SASIDEV *controller)
 {
+	if (!IsReserved(controller)) {
+		return;
+	}
+
 	uint32_t length = ctrl->cmd[2];
 	length <<= 8;
 	length |= ctrl->cmd[3];
@@ -103,6 +115,10 @@ void SCSIPrinter::Print(SASIDEV *controller)
 
 void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 {
+	if (!IsReserved(controller)) {
+		return;
+	}
+
 	if (fd == -1) {
 		controller->Error();
 		return;
@@ -139,7 +155,10 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 
 void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 {
-	// TODO Implement when everything else is working
+	if (!IsReserved(controller)) {
+		return;
+	}
+
 	controller->Status();
 }
 
@@ -161,4 +180,17 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 	write(fd, buf, length);
 
 	return true;
+}
+
+bool SCSIPrinter::IsReserved(SASIDEV *controller)
+{
+	if ((reserved_id == controller->UNKNOWN_SCSI_ID || ctrl->m_scsi_id == reserved_id) &&
+			reserved_lun == controller->GetEffectiveLun()) {
+		return true;
+	}
+
+	controller->Error(ERROR_CODES::sense_key::ABORTED_COMMAND, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			ERROR_CODES::status::RESERVATION_CONFLICT);
+
+	return false;
 }

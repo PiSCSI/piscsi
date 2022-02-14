@@ -623,7 +623,7 @@ void SASIDEV::DataOut()
 //	Error
 //
 //---------------------------------------------------------------------------
-void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
+void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
 {
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
@@ -647,8 +647,8 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 	// Logical Unit
 	DWORD lun = GetEffectiveLun();
 
-	// Set status and message(CHECK CONDITION)
-	ctrl.status = (lun << 5) | 0x02;
+	// Set status and message
+	ctrl.status = (lun << 5) | status;
 
 	// status phase
 	Status();
@@ -1268,6 +1268,7 @@ void SASIDEV::FlushUnit()
 
 int SASIDEV::GetEffectiveLun() const
 {
+	// TODO Check why the LUN set by the IDENTIFY LUN message is not used here
 	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
 }
 

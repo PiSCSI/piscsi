@@ -166,7 +166,8 @@ public:
 	int GetEffectiveLun() const;
 
 	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
+			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			ERROR_CODES::status = ERROR_CODES::status::CHECK_CONDITION);	// Common error handling
 
 protected:
 	// Phase processing
