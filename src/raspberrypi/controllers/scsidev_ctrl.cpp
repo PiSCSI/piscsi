@@ -699,6 +699,7 @@ bool SCSIDEV::XferMsg(DWORD msg)
 
 void SCSIDEV::DataOut()
 {
+	// This is a regular block transfer
 	if (!ctrl.bytes_to_transfer) {
 		SASIDEV::DataOut();
 		return;
