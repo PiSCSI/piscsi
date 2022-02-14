@@ -936,12 +936,12 @@ void SCSIDEV::ReceiveBytes()
 
 bool SCSIDEV::XferOut(bool cont)
 {
-	ASSERT(ctrl.phase == BUS::dataout);
-
 	if (!ctrl.bytes_to_transfer) {
 		// This is a block-oriented transfer
 		return SASIDEV::XferOut(cont);
 	}
+
+	ASSERT(ctrl.phase == BUS::dataout);
 
 	// Logical Unit
 	DWORD lun = GetEffectiveLun();
