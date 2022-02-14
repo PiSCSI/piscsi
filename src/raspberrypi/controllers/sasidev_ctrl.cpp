@@ -608,6 +608,8 @@ void SASIDEV::DataOut()
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
 
+		// Length has already been calculated
+		ASSERT(ctrl.length > 0);
 		ctrl.offset = 0;
 		return;
 	}
