@@ -892,7 +892,6 @@ void SCSIDEV::ReceiveBytes()
 bool SCSIDEV::XferOut(bool cont)
 {
 	if (!ctrl.is_byte_transfer) {
-		// This is a block-oriented transfer
 		return SASIDEV::XferOut(cont);
 	}
 

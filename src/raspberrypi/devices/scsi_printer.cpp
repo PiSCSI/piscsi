@@ -29,6 +29,14 @@ bool SCSIPrinter::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
+void SCSIPrinter::TestUnitReady(SASIDEV *controller)
+{
+	// TODO Not ready when reserved for a different initiator ID
+
+	// Always successful
+	controller->Status();
+}
+
 int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	// Printer device, not removable
