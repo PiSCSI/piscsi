@@ -85,7 +85,7 @@ private:
 	// Data transfer
 	void Send() override;
 	bool XferMsg(DWORD msg);
-	bool XferOutScsi(bool);
+	bool XferOut(bool);
 
 	scsi_t scsi;								// Internal data
 

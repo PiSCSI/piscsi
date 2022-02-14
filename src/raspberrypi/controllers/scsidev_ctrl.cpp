@@ -782,10 +782,10 @@ void SCSIDEV::ReceiveBytes()
 		case BUS::dataout:
 			if (ctrl.blocks == 0) {
 				// End with this buffer
-				result = XferOutScsi(false);
+				result = XferOut(false);
 			} else {
 				// Continue to next buffer (set offset, length)
-				result = XferOutScsi(true);
+				result = XferOut(true);
 			}
 			break;
 
@@ -934,9 +934,14 @@ void SCSIDEV::ReceiveBytes()
 	}
 }
 
-bool SCSIDEV::XferOutScsi(bool cont)
+bool SCSIDEV::XferOut(bool cont)
 {
 	ASSERT(ctrl.phase == BUS::dataout);
+
+	if (!ctrl.bytes_to_transfer) {
+		// This is a block-oriented transfer
+		return SASIDEV::XferOut(cont);
+	}
 
 	// Logical Unit
 	DWORD lun = GetEffectiveLun();

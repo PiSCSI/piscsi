@@ -194,7 +194,7 @@ protected:
 	virtual void Receive();					// Receive data
 
 	bool XferIn(BYTE* buf);					// Data transfer IN
-	bool XferOut(bool cont);					// Data transfer OUT
+	virtual bool XferOut(bool cont);					// Data transfer OUT
 
 	// Special operations
 	void FlushUnit();						// Flush the logical unit
