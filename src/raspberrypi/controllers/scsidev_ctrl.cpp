@@ -710,7 +710,7 @@ void SCSIDEV::DataOut()
 
 void SCSIDEV::DataOutScsi()
 {
-	ASSERT(ctrl.bytes_to_transfer >= 0);
+	ASSERT(ctrl.bytes_to_transfer > 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
