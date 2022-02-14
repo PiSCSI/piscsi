@@ -22,7 +22,6 @@ public:
 	virtual bool Dispatch(SCSIDEV *) override;
 
 	int Inquiry(const DWORD *, BYTE *) override;
-	void TestUnitReady(SASIDEV *) override;
 	void ReserveUnit(SASIDEV *);
 	void ReleaseUnit(SASIDEV *);
 	void Print(SASIDEV *);

@@ -29,12 +29,6 @@ bool SCSIPrinter::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-void SCSIPrinter::TestUnitReady(SASIDEV *controller)
-{
-	// Always successful
-	controller->Status();
-}
-
 int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	// Printer device, not removable
