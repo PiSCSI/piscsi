@@ -133,6 +133,8 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	else {
 		controller->Status();
 	}
+
+	unlink(filename);
 }
 
 void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
@@ -152,8 +154,6 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 		}
 
 		LOGTRACE("Created printer output file '%s'", filename);
-
-		unlink(filename);
 	}
 
 	LOGTRACE("Appending %d byte(s) to printer output file", length);
