@@ -45,6 +45,8 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
 	// TODO Implement initiator ID handling when everything else is working
 
+	ctrl->bytes_to_transfer = 0;
+
 	if (lp_file) {
 		fclose(lp_file);
 		lp_file = NULL;
@@ -56,6 +58,8 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 {
 	// TODO Implement initiator ID handling when everything else is working
+
+	ctrl->bytes_to_transfer = 0;
 
 	if (lp_file) {
 		fclose(lp_file);
@@ -91,6 +95,8 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 
 	fclose(lp_file);
 	lp_file = NULL;
+
+	ctrl->bytes_to_transfer = 0;
 
 	// TODO Hard-coded filename
 	//system("lp -oraw /tmp/lp.dat");
