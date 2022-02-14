@@ -116,6 +116,7 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 		return;
 	}
 
+	// The file may be deleted, because lp guarantees that it is copied
 	unlink("/tmp/lp.dat");
 
 	controller->Status();
