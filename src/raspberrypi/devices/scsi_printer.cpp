@@ -121,19 +121,16 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	print_cmd += " ";
 	print_cmd += filename;
 
-	LOGTRACE("Executing %s", print_cmd.c_str());
+	LOGTRACE("%s", string("Printing file with " + to_string(st.st_size) +" byte(s)").c_str());
+
+	LOGDEBUG("Executing '%s'", print_cmd.c_str());
 
 	if (system(print_cmd.c_str())) {
 		LOGERROR("Printing failed, the printing system might not be configured");
 
-//		unlink(filename);
-
 		controller->Error();
 	}
 	else {
-		// The file may be deleted here because lp guarantees that it is copied
-//		unlink(filename);
-
 		controller->Status();
 	}
 }
@@ -150,14 +147,16 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 		strcpy(filename, TMP_FILE_PATTERN);
 		fd = mkstemp(filename);
 		if (fd == -1) {
-			LOGERROR("Can't create printer file: %s", strerror(errno));
+			LOGERROR("Can't create temporary printer output file: %s", strerror(errno));
 			return false;
 		}
 
-		LOGTRACE("Created printer file '%s'", filename);
+		LOGTRACE("Created printer output file '%s'", filename);
+
+		unlink(filename);
 	}
 
-	LOGTRACE("Appending %d byte(s) to printer file", length);
+	LOGTRACE("Appending %d byte(s) to printer output file", length);
 
 	write(fd, buf, length);
 

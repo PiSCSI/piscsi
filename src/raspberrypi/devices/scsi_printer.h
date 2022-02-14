@@ -15,7 +15,7 @@
 
 using namespace std;
 
-#define TMP_FILE_PATTERN "/tmp/rascsi_printer_file_XXXXXX"
+#define TMP_FILE_PATTERN "/tmp/rascsi_printer_file-XXXXXX"
 
 class SCSIPrinter: public PrimaryDevice, ScsiPrinterCommands
 {
@@ -45,6 +45,6 @@ private:
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	char filename[sizeof(TMP_FILE_PATTERN + 1)];
+	char filename[sizeof(TMP_FILE_PATTERN) + 1];
 	int fd;
 };
