@@ -10,12 +10,14 @@
 #include <sys/stat.h>
 #include "controllers/scsidev_ctrl.h"
 #include "scsi_printer.h"
+#include <string>
 
+using namespace std;
 using namespace scsi_defs;
 
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
-	lp_file = NULL;
+	fd = -1;
 
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
@@ -48,9 +50,8 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
 	// TODO Implement initiator ID handling when everything else is working
 
-	if (lp_file) {
-		fclose(lp_file);
-		lp_file = NULL;
+	if (fd != -1) {
+		close(fd);
 	}
 
 	controller->Status();
@@ -60,9 +61,8 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 {
 	// TODO Implement initiator ID handling when everything else is working
 
-	if (lp_file) {
-		fclose(lp_file);
-		lp_file = NULL;
+	if (fd != -1) {
+		close(fd);
 	}
 
 	controller->Status();
@@ -76,7 +76,8 @@ void SCSIPrinter::Print(SASIDEV *controller)
 	length <<= 8;
 	length |= ctrl->cmd[4];
 
-	// TODO The printer device suffers from the statically allocated buffer size
+	// TODO This device suffers from the statically allocated buffer size,
+	// see https://github.com/akuker/RASCSI/issues/669
 	if (length > (uint32_t)controller->DEFAULT_BUFFER_SIZE) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 		return;
@@ -92,32 +93,32 @@ void SCSIPrinter::Print(SASIDEV *controller)
 
 void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 {
-	if (!lp_file) {
-		// TODO More specific error handling
+	if (fd == -1) {
 		controller->Error();
 		return;
 	}
 
-	fclose(lp_file);
-	lp_file = NULL;
+	close(fd);
+	fd = -1;
 
 	struct stat st;
-	stat("/tmp/lp.dat", &st);
+	fstat(fd, &st);
 
 	LOGDEBUG("Printing printer file with %ld byte(s)", st.st_size);
 
-	// TODO Hard-coded filename
-	if (system("lp -oraw /tmp/lp.dat")) {
+	string print_cmd = "lp -oraw ";
+	print_cmd += filename;
+	if (system(print_cmd.c_str())) {
 		LOGERROR("Printing failed, the printing system might not be configured");
 
-		unlink("/tmp/lp.dat");
+		unlink(filename);
 
 		controller->Error();
 		return;
 	}
 
 	// The file may be deleted, because lp guarantees that it is copied
-	unlink("/tmp/lp.dat");
+	unlink(filename);
 
 	controller->Status();
 }
@@ -130,15 +131,20 @@ void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 
 bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 {
-	if (!lp_file) {
+	if (fd == -1) {
 		LOGDEBUG("Opening printer file");
 
-		lp_file = fopen("/tmp/lp.dat", "wb");
+		strcpy(filename, TMP_FILE_PATTERN);
+		fd = mkstemp(filename);
+		if (fd == -1) {
+			LOGERROR("Can't create printer file: %s", strerror(errno));
+			return false;
+		}
 	}
 
 	LOGDEBUG("Appending %d byte(s) to printer file", length);
 
-	fwrite(buf, 1, length, lp_file);
+	write(fd, buf, length);
 
 	return true;
 }

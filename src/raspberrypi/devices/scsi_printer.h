@@ -11,6 +11,8 @@
 #include "interfaces/scsi_printer_commands.h"
 #include "primary_device.h"
 
+#define TMP_FILE_PATTERN "rascsi_printer_file_XXXXXX"
+
 class SCSIPrinter: public PrimaryDevice, ScsiPrinterCommands
 {
 
@@ -37,5 +39,6 @@ private:
 
 	Dispatcher<SCSIPrinter> dispatcher;
 
-	FILE *lp_file;
+	char filename[sizeof(TMP_FILE_PATTERN + 1)];
+	int fd;
 };
