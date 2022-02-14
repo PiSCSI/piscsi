@@ -86,25 +86,13 @@ void SCSIPrinter::Print(SASIDEV *controller)
 	length <<= 8;
 	length |= ctrl->cmd[4];
 
+	LOGTRACE("Receiving %d bytes to be printed", length);
+
 	// TODO This device suffers from the statically allocated buffer size,
 	// see https://github.com/akuker/RASCSI/issues/669
 	if (length > (uint32_t)controller->DEFAULT_BUFFER_SIZE) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 		return;
-	}
-
-	LOGTRACE("Receiving %d bytes to be printed", length);
-
-	if (fd == -1) {
-		strcpy(filename, TMP_FILE_PATTERN);
-		fd = mkstemp(filename);
-		if (fd == -1) {
-			LOGERROR("Can't create printer file: %s", strerror(errno));
-			controller->Error();
-			return;
-		}
-
-		LOGTRACE("Created printer file '%s'", filename);
 	}
 
 	ctrl->length = length;
@@ -120,17 +108,21 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 		return;
 	}
 
+	// Make the file readable for the lp user
+	fchmod(fd, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
+
 	struct stat st;
 	fstat(fd, &st);
 
 	close(fd);
 	fd = -1;
 
-	LOGDEBUG("%s", string("Printing file with " + to_string(st.st_size) +" byte(s)").c_str());
-
 	string print_cmd = GetParam("printer");
 	print_cmd += " ";
 	print_cmd += filename;
+
+	LOGTRACE("Executing %s", print_cmd.c_str());
+
 	if (system(print_cmd.c_str())) {
 		LOGERROR("Printing failed, the printing system might not be configured");
 
@@ -154,6 +146,17 @@ void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 
 bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 {
+	if (fd == -1) {
+		strcpy(filename, TMP_FILE_PATTERN);
+		fd = mkstemp(filename);
+		if (fd == -1) {
+			LOGERROR("Can't create printer file: %s", strerror(errno));
+			return false;
+		}
+
+		LOGTRACE("Created printer file '%s'", filename);
+	}
+
 	LOGTRACE("Appending %d byte(s) to printer file", length);
 
 	write(fd, buf, length);
