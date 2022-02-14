@@ -32,7 +32,6 @@ class CtrlBoardHardware(Observable):
         self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_ENC_B, pca9554.INPUT)
         self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_1, pca9554.INPUT)
         self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_2, pca9554.INPUT)
-        self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_3, pca9554.INPUT)
         self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_ROTARY, pca9554.INPUT)
         self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_LED_1, pca9554.OUTPUT)
         self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_LED_2, pca9554.OUTPUT)
@@ -58,11 +57,6 @@ class CtrlBoardHardware(Observable):
         self.button2 = HardwareButton(self.pca_driver, CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_2)
         self.button2.state = True
         self.button2.name = CtrlBoardHardwareConstants.BUTTON_2
-
-        # configure button 3
-        self.button3 = HardwareButton(self.pca_driver, CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_3)
-        self.button3.state = True
-        self.button3.name = CtrlBoardHardwareConstants.BUTTON_3
 
         # configure rotary encoder pin a
         self.rotary_a = HardwareButton(self.pca_driver, CtrlBoardHardwareConstants.PCA9554_PIN_ENC_A)
@@ -151,9 +145,6 @@ class CtrlBoardHardware(Observable):
             if button_2 == 0:
                 self.button2.state_interrupt = bool(button_2)
 
-            if button_3 == 0:
-                self.button3.state_interrupt = bool(button_3)
-
             if button_rotary == 0:
                 self.rotary_button.state_interrupt = bool(button_rotary)
 
@@ -166,7 +157,6 @@ class CtrlBoardHardware(Observable):
             self.check_button_press(self.rotary_button)
             self.check_button_press(self.button1)
             self.check_button_press(self.button2)
-            self.check_button_press(self.button3)
             self.check_rotary_encoder(self.rotary)
 
         self.rotary.state = 0b11

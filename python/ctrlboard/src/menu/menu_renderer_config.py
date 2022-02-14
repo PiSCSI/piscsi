@@ -8,8 +8,8 @@ class MenuRendererConfig:
     }
 
     def __init__(self):
-        self.width = 128  # ignored for luma_oled due to autodetection
-        self.height = 64  # ignored for luma_oled due to autodetection
+        self.width = 128
+        self.height = 64
         self.i2c_address = 0x3c
         self.i2c_port = 1
 #        self.display_type = "sh1106"
