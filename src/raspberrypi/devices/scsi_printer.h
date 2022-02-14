@@ -54,4 +54,5 @@ private:
 	int reserving_initiator;
 
 	time_t reservation_time;
+	int timeout;
 };

@@ -9,20 +9,22 @@
 
 #include <sys/stat.h>
 #include "controllers/scsidev_ctrl.h"
+#include "../rasutil.h"
 #include "scsi_printer.h"
 #include <string>
 
 #define NOT_RESERVED -2
-#define RESERVATION_TIMEOUT_SECONDS 60
 
 using namespace std;
 using namespace scsi_defs;
+using namespace ras_util;
 
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
 	fd = -1;
 	reserving_initiator = NOT_RESERVED;
 	reservation_time = 0;
+	timeout = 0;
 
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
@@ -35,6 +37,12 @@ bool SCSIPrinter::Init(const map<string, string>& params)
 {
 	// Use default parameters if no parameters were provided
 	SetParams(params.empty() ? GetDefaultParams() : params);
+
+	int t;
+	GetAsInt(GetParam("timeout"), t);
+	if (t > 0) {
+		timeout = t;
+	}
 
 	return true;
 }
@@ -62,7 +70,7 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 
 void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
-	if (reservation_time + RESERVATION_TIMEOUT_SECONDS < time(0)) {
+	if (reservation_time + timeout < time(0)) {
 		reserving_initiator = NOT_RESERVED;
 	}
 
