@@ -57,7 +57,6 @@ public:
 	BUS::phase_t Process() override;
 
 	void Receive() override;
-	void DataOut() override;
 
 	// Other
 	bool IsSASI() const override { return false; }

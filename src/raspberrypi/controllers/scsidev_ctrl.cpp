@@ -703,43 +703,6 @@ bool SCSIDEV::XferMsg(DWORD msg)
 	return true;
 }
 
-void SCSIDEV::DataOut()
-{
-	if (!ctrl.bytes_to_transfer) {
-		// This is a block-oriented transfer
-		SASIDEV::DataOut();
-		return;
-	}
-
-	// Phase change
-	if (ctrl.phase != BUS::dataout) {
-		// Minimum execution time
-		if (ctrl.execstart > 0) {
-			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
-			if (time < min_exec_time_scsi) {
-				SysTimer::SleepUsec(min_exec_time_scsi - time);
-			}
-			ctrl.execstart = 0;
-		}
-
-		LOGTRACE("%s Data out phase", __PRETTY_FUNCTION__);
-
-		// Phase Setting
-		ctrl.phase = BUS::dataout;
-
-		// Signal line operated by the target
-		ctrl.bus->SetMSG(FALSE);
-		ctrl.bus->SetCD(FALSE);
-		ctrl.bus->SetIO(FALSE);
-
-		ctrl.offset = 0;
-		return;
-	}
-
-	// Receive
-	Receive();
-}
-
 void SCSIDEV::ReceiveBytes()
 {
 	uint32_t len;
