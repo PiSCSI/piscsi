@@ -1719,7 +1719,20 @@ int main(int argc, char* argv[])
 				continue;
 			}
 
-			initiator_id = data & (1 << i);
+			// Extract initiator ID
+			int tmp = data - (1 << i);
+			if (tmp) {
+				initiator_id = 0;
+				for (int j = 0; j < 8; j++) {
+					tmp >>= 1;
+					if (tmp) {
+						initiator_id++;
+					}
+					else {
+						break;
+					}
+				}
+			}
 
 			// Find the target that has moved to the selection phase
 			if ((*it)->Process(initiator_id) == BUS::selection) {
