@@ -57,7 +57,6 @@ public:
 	BUS::phase_t Process() override;
 
 	void Receive() override;
-	void ReceiveBytes();
 	void DataOut() override;
 
 	// Other
@@ -86,6 +85,7 @@ private:
 	void Send() override;
 	bool XferMsg(DWORD msg);
 	bool XferOut(bool);
+	void ReceiveBytes();
 
 	scsi_t scsi;								// Internal data
 

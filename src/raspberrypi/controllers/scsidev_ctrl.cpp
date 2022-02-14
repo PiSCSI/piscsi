@@ -484,6 +484,12 @@ void SCSIDEV::Send()
 //---------------------------------------------------------------------------
 void SCSIDEV::Receive()
 {
+	if (ctrl.bytes_to_transfer) {
+		// This is a byte-oriented transfer
+		ReceiveBytes();
+		return;
+	}
+
 	int len;
 	BYTE data;
 
@@ -731,17 +737,11 @@ void SCSIDEV::DataOut()
 	}
 
 	// Receive
-	ReceiveBytes();
+	Receive();
 }
 
 void SCSIDEV::ReceiveBytes()
 {
-	if (!ctrl.bytes_to_transfer) {
-		// This is a block-oriented transfer
-		Receive();
-		return;
-	}
-
 	uint32_t len;
 	BYTE data;
 
@@ -770,8 +770,7 @@ void SCSIDEV::ReceiveBytes()
 		return;
 	}
 
-	// Block subtraction, result initialization
-	ctrl.blocks--;
+	// Result initialization
 	bool result = true;
 
 	// Processing after receiving data (by phase)
@@ -780,11 +779,11 @@ void SCSIDEV::ReceiveBytes()
 
 		// Data out phase
 		case BUS::dataout:
-			if (ctrl.blocks == 0) {
+			if (!ctrl.bytes_to_transfer) {
 				// End with this buffer
 				result = XferOut(false);
 			} else {
-				// Continue to next buffer (set offset, length)
+				// Continue with next chunk
 				result = XferOut(true);
 			}
 			break;
@@ -812,9 +811,8 @@ void SCSIDEV::ReceiveBytes()
 		return;
 	}
 
-	// Continue to receive if block !=0
-	if (ctrl.blocks != 0){
-		ASSERT(ctrl.length > 0);
+	// Continue to receive if there are more data
+	if (ctrl.bytes_to_transfer){
 		ASSERT(ctrl.offset == 0);
 		return;
 	}
