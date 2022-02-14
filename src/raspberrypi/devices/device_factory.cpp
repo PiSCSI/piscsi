@@ -53,7 +53,7 @@ DeviceFactory::DeviceFactory()
 
 	default_params[SCBR]["interfaces"] = network_interfaces;
 	default_params[SCDP]["interfaces"] = network_interfaces;
-	default_params[SCLP]["printer"] = "lp";
+	default_params[SCLP]["printer"] = "lp -oraw";
 
 	extension_mapping["hdf"] = SAHD;
 	extension_mapping["hds"] = SCHD;

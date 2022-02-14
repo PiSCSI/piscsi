@@ -113,7 +113,10 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 
 	// TODO Hard-coded filename
 	if (system("lp -oraw /tmp/lp.dat")) {
+		LOGERROR("Printing failed, the printing system might not be configured");
+
 		unlink("/tmp/lp.dat");
+
 		controller->Error();
 		return;
 	}
