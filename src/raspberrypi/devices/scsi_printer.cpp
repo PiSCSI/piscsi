@@ -7,6 +7,7 @@
 //
 //---------------------------------------------------------------------------
 
+#include <sys/stat.h>
 #include "controllers/scsidev_ctrl.h"
 #include "scsi_printer.h"
 
@@ -97,10 +98,13 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 		return;
 	}
 
-	LOGDEBUG("Closing printer file");
-
 	fclose(lp_file);
 	lp_file = NULL;
+
+	struct stat st;
+	stat("/tmp/lp.dat", &st);
+
+	LOGDEBUG("Printing printer file with %ld byte(s)", st.st_size);
 
 	// TODO Hard-coded filename
 	if (system("lp -oraw /tmp/lp.dat")) {
