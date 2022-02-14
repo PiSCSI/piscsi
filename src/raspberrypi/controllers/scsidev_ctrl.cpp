@@ -54,7 +54,7 @@ void SCSIDEV::Reset()
 	SASIDEV::Reset();
 }
 
-BUS::phase_t SCSIDEV::Process(int initiator_i)
+BUS::phase_t SCSIDEV::Process(int initiator_id)
 {
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
@@ -75,6 +75,8 @@ BUS::phase_t SCSIDEV::Process(int initiator_i)
 		ctrl.bus->Reset();
 		return ctrl.phase;
 	}
+
+	ctrl.initiator_id = initiator_id;
 
 	// Phase processing
 	switch (ctrl.phase) {
