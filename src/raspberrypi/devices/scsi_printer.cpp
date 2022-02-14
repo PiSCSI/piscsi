@@ -112,12 +112,11 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	ctrl->is_byte_transfer = false;
 
 	// TODO Hard-coded filename
-	// if (system("lp -oraw /tmp/lp.dat")) {
-	// unlink("/tmp/lp.dat");
-	// TODO Error handling
-	// controller->Error();
-	// return;
-	// }
+	if (system("lp -oraw /tmp/lp.dat")) {
+		unlink("/tmp/lp.dat");
+		controller->Error();
+		return;
+	}
 
 	unlink("/tmp/lp.dat");
 
@@ -138,7 +137,7 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 		lp_file = fopen("/tmp/lp.dat", "wb");
 	}
 
-	LOGDEBUG("Adding %d byte(s) to printer file", length);
+	LOGDEBUG("Appending %d byte(s) to printer file", length);
 
 	fwrite(buf, 1, length, lp_file);
 
