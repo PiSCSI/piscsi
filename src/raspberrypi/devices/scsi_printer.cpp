@@ -12,6 +12,8 @@
 #include "scsi_printer.h"
 #include <string>
 
+#define NOT_RESERVED -2
+
 using namespace std;
 using namespace scsi_defs;
 
@@ -19,7 +21,7 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
 	fd = -1;
 
-	reserving_initiator = -2;
+	reserving_initiator = NOT_RESERVED;
 
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
@@ -44,7 +46,7 @@ bool SCSIPrinter::Dispatch(SCSIDEV *controller)
 
 void SCSIPrinter::TestUnitReady(SASIDEV *controller)
 {
-	if (!IsReserved(controller)) {
+	if (!CheckReservation(controller)) {
 		return;
 	}
 
@@ -59,11 +61,13 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 
 void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
-	if (!IsReserved(controller)) {
+	if (!CheckReservation(controller)) {
 		return;
 	}
 
 	reserving_initiator = ctrl->m_scsi_id;
+
+	LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator);
 
 	if (fd != -1) {
 		close(fd);
@@ -75,7 +79,7 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 
 void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 {
-	if (!IsReserved(controller)) {
+	if (!CheckReservation(controller)) {
 		return;
 	}
 
@@ -84,12 +88,16 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 	}
 	fd = -1;
 
+	LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator);
+
+	reserving_initiator = NOT_RESERVED;
+
 	controller->Status();
 }
 
 void SCSIPrinter::Print(SASIDEV *controller)
 {
-	if (!IsReserved(controller)) {
+	if (!CheckReservation(controller)) {
 		return;
 	}
 
@@ -116,7 +124,7 @@ void SCSIPrinter::Print(SASIDEV *controller)
 
 void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 {
-	if (!IsReserved(controller)) {
+	if (!CheckReservation(controller)) {
 		return;
 	}
 
@@ -156,7 +164,7 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 
 void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 {
-	if (!IsReserved(controller)) {
+	if (!CheckReservation(controller)) {
 		return;
 	}
 
@@ -183,13 +191,13 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 	return true;
 }
 
-bool SCSIPrinter::IsReserved(SASIDEV *controller)
+bool SCSIPrinter::CheckReservation(SASIDEV *controller)
 {
-	if (reserving_initiator == controller->UNKNOWN_SCSI_ID || reserving_initiator == ctrl->m_scsi_id) {
+	if (reserving_initiator == NOT_RESERVED || reserving_initiator == ctrl->m_scsi_id) {
 		return true;
 	}
 
-	LOGTRACE("Initiator %d tries to access device %d, LUN %d reserved by initiator %d",
+	LOGTRACE("Initiator %d tries to access device ID %d, LUN %d reserved by initiator %d",
 			ctrl->m_scsi_id, GetId(), GetLun(), reserving_initiator);
 
 	controller->Error(ERROR_CODES::sense_key::ABORTED_COMMAND, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,

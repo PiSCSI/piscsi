@@ -38,7 +38,7 @@ public:
 	void SendDiagnostic(SASIDEV *);
 
 	bool Write(BYTE *, uint32_t);
-	bool IsReserved(SASIDEV *);
+	bool CheckReservation(SASIDEV *);
 
 private:
 
