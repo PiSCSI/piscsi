@@ -112,7 +112,7 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	close(fd);
 	fd = -1;
 
-	LOGDEBUG(string("Printing printer file with " + to_string(st.st_size) +" byte(s)").c_str());
+	LOGDEBUG("%s", string("Printing printer file with " + to_string(st.st_size) +" byte(s)").c_str());
 
 	string print_cmd = GetParam("printer");
 	print_cmd += " ";
