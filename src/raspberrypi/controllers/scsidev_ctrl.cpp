@@ -155,6 +155,7 @@ void SCSIDEV::BusFree()
 
 		ctrl.lun = -1;
 		ctrl.bytes_to_transfer = 0;
+		ctrl.is_byte_transfer = false;
 
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
@@ -484,8 +485,7 @@ void SCSIDEV::Send()
 //---------------------------------------------------------------------------
 void SCSIDEV::Receive()
 {
-	if (ctrl.bytes_to_transfer) {
-		// This is a byte-oriented transfer
+	if (ctrl.is_byte_transfer) {
 		ReceiveBytes();
 		return;
 	}
@@ -715,7 +715,7 @@ void SCSIDEV::ReceiveBytes()
 	ASSERT(!ctrl.bus->GetIO());
 
 	// Length != 0 if received
-	if (ctrl.bytes_to_transfer) {
+	if (ctrl.is_byte_transfer) {
 		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, ctrl.bytes_to_transfer);
 		// Receive
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.bytes_to_transfer);
@@ -742,13 +742,7 @@ void SCSIDEV::ReceiveBytes()
 
 		// Data out phase
 		case BUS::dataout:
-			if (!ctrl.bytes_to_transfer) {
-				// End with this buffer
-				result = XferOut(false);
-			} else {
-				// Continue with next chunk
-				result = XferOut(true);
-			}
+			result = XferOut(ctrl.is_byte_transfer);
 			break;
 
 		// Message out phase
@@ -775,7 +769,7 @@ void SCSIDEV::ReceiveBytes()
 	}
 
 	// Continue to receive if there are more data
-	if (ctrl.bytes_to_transfer){
+	if (ctrl.is_byte_transfer){
 		ASSERT(ctrl.offset == 0);
 		return;
 	}
@@ -897,7 +891,7 @@ void SCSIDEV::ReceiveBytes()
 
 bool SCSIDEV::XferOut(bool cont)
 {
-	if (!ctrl.bytes_to_transfer) {
+	if (!ctrl.is_byte_transfer) {
 		// This is a block-oriented transfer
 		return SASIDEV::XferOut(cont);
 	}
