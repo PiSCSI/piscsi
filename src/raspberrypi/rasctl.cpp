@@ -87,6 +87,9 @@ PbDeviceType ParseType(const char *optarg)
 	case 'r':
 		return SCRM;
 
+	case 'l':
+		return SCLP;
+
 	case 's':
 		return SCHS;
 
@@ -384,6 +387,7 @@ int main(int argc, char* argv[])
 		// Only one of these parameters will be used, depending on the device type
 		AddParam(*device, "interfaces", param);
 		AddParam(*device, "file", param);
+		AddParam(*device, "printer", param);
 	}
 
 	RasctlCommands rasctl_commands(command, hostname, port, token, locale);

@@ -1302,6 +1302,9 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		if (device_factory.GetDefaultParams(type).count("interfaces")) {
 			AddParam(*device, "interfaces", optarg);
 		}
+		else if (device_factory.GetDefaultParams(type).count("printer")) {
+			AddParam(*device, "printer", optarg);
+		}
 		else {
 			AddParam(*device, "file", optarg);
 		}
