@@ -513,6 +513,7 @@ void SCSIDEV::Receive()
 
 		// Offset and Length
 		ctrl.offset += ctrl.length;
+		bytes_to_transfer = ctrl.length;
 		ctrl.length = 0;
 		return;
 	}
@@ -902,7 +903,7 @@ bool SCSIDEV::XferOut(bool cont)
 
 	switch (ctrl.cmd[0]) {
 		case scsi_defs::eCmdWrite6:
-			if (!device->Write(ctrl.buffer, ctrl.length)) {
+			if (!device->Write(ctrl.buffer, bytes_to_transfer)) {
 				// Write failed
 				return false;
 			}

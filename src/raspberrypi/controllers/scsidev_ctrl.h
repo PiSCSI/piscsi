@@ -88,6 +88,8 @@ private:
 
 	scsi_t scsi;								// Internal data
 
+	uint32_t bytes_to_transfer;
+
 	rascsi_shutdown_mode shutdown_mode;
 };
 
