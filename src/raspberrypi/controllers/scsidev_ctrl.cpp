@@ -27,6 +27,7 @@
 
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
+	bytes_to_transfer = 0;
 	shutdown_mode = NONE;
 
 	// Synchronous transfer work initialization
