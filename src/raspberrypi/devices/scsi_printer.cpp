@@ -61,6 +61,7 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 	if (fd != -1) {
 		close(fd);
 	}
+	fd = -1;
 
 	controller->Status();
 }
@@ -72,6 +73,7 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 	if (fd != -1) {
 		close(fd);
 	}
+	fd = -1;
 
 	controller->Status();
 }
@@ -91,10 +93,22 @@ void SCSIPrinter::Print(SASIDEV *controller)
 		return;
 	}
 
+	LOGTRACE("Receiving %d bytes to be printed", length);
+
+	if (fd == -1) {
+		strcpy(filename, TMP_FILE_PATTERN);
+		fd = mkstemp(filename);
+		if (fd == -1) {
+			LOGERROR("Can't create printer file: %s", strerror(errno));
+			controller->Error();
+			return;
+		}
+
+		LOGTRACE("Created printer file '%s'", filename);
+	}
+
 	ctrl->length = length;
 	ctrl->is_byte_transfer = true;
-
-	LOGTRACE("Receiving %d bytes to be printed", length);
 
 	controller->DataOut();
 }
@@ -112,7 +126,7 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	close(fd);
 	fd = -1;
 
-	LOGDEBUG("%s", string("Printing printer file with " + to_string(st.st_size) +" byte(s)").c_str());
+	LOGDEBUG("%s", string("Printing file with " + to_string(st.st_size) +" byte(s)").c_str());
 
 	string print_cmd = GetParam("printer");
 	print_cmd += " ";
@@ -120,13 +134,13 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	if (system(print_cmd.c_str())) {
 		LOGERROR("Printing failed, the printing system might not be configured");
 
-		unlink(filename);
+//		unlink(filename);
 
 		controller->Error();
 	}
 	else {
 		// The file may be deleted here because lp guarantees that it is copied
-		unlink(filename);
+//		unlink(filename);
 
 		controller->Status();
 	}
@@ -140,17 +154,6 @@ void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 
 bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 {
-	if (fd == -1) {
-		LOGTRACE("Opening printer file");
-
-		strcpy(filename, TMP_FILE_PATTERN);
-		fd = mkstemp(filename);
-		if (fd == -1) {
-			LOGERROR("Can't create printer file: %s", strerror(errno));
-			return false;
-		}
-	}
-
 	LOGTRACE("Appending %d byte(s) to printer file", length);
 
 	write(fd, buf, length);
