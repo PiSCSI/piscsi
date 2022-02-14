@@ -49,11 +49,7 @@ private:
 	char filename[sizeof(TMP_FILE_PATTERN) + 1];
 	int fd;
 
-	// The reserved device ID
-	// -1 means that the reservation ID is unknown (see SASIDEV), e.g. with Atari ACSI and old host adapters
-	// -2 means that there is no reservation
-	int reserved_id;
-
-	// The reserved LUN
-	int reserved_lun;
+	// The reserving initiator
+	// -1 means that the initiator ID is unknown (see SASIDEV), e.g. with Atari ACSI and old host adapters
+	int reserving_initiator;
 };

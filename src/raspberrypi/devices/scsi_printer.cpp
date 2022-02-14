@@ -19,8 +19,7 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
 	fd = -1;
 
-	reserved_id = -2;
-	reserved_id = 0;
+	reserving_initiator = -2;
 
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
@@ -63,6 +62,8 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 	if (!IsReserved(controller)) {
 		return;
 	}
+
+	reserving_initiator = ctrl->m_scsi_id;
 
 	if (fd != -1) {
 		close(fd);
@@ -184,10 +185,12 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 
 bool SCSIPrinter::IsReserved(SASIDEV *controller)
 {
-	if ((reserved_id == controller->UNKNOWN_SCSI_ID || ctrl->m_scsi_id == reserved_id) &&
-			reserved_lun == controller->GetEffectiveLun()) {
+	if (reserving_initiator == controller->UNKNOWN_SCSI_ID || reserving_initiator == ctrl->m_scsi_id) {
 		return true;
 	}
+
+	LOGTRACE("Initiator %d tries to access device %d, LUN %d reserved by initiator %d",
+			ctrl->m_scsi_id, GetId(), GetLun(), reserving_initiator);
 
 	controller->Error(ERROR_CODES::sense_key::ABORTED_COMMAND, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			ERROR_CODES::status::RESERVATION_CONFLICT);

@@ -1268,7 +1268,6 @@ void SASIDEV::FlushUnit()
 
 int SASIDEV::GetEffectiveLun() const
 {
-	// TODO Check why the LUN set by the IDENTIFY LUN message is not used here
 	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
 }
 
