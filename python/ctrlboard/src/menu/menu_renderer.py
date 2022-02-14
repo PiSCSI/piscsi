@@ -143,9 +143,10 @@ class MenuRenderer(ABC):
     def draw_mini_message(self, text: str):
         font_width, font_height = self.font.getsize(text)
         centered_width = (self.disp.width - font_width) / 2
-        centered_height = (self.disp.height - font_height) / 2
+        centered_height = (self.disp.height - self.font_height) / 2
 
-        self.draw.rectangle((0, centered_height-4, self.disp.width, centered_height+font_height+4), outline=0, fill=255)
+        self.draw.rectangle((0, centered_height-4, self.disp.width, centered_height+self.font_height+4),
+                            outline=0, fill=255)
         self.draw.text((centered_width, centered_height), text, align="center", font=self.font,
                        stroke_fill=0, fill=0, textsize=20)
 

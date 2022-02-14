@@ -27,4 +27,3 @@ class RascsiMenuController(MenuController):
                 self.refresh(name=CtrlBoardMenuBuilder.SCSI_ID_MENU)
                 if self._menu_renderer.screensaver.enabled is False:
                     self.set_active_menu(CtrlBoardMenuBuilder.SCSI_ID_MENU, display_on_device=False)
-
