@@ -197,7 +197,7 @@ bool SCSIPrinter::CheckReservation(SASIDEV *controller)
 		return true;
 	}
 
-	LOGTRACE("Initiator %d tries to access device ID %d, LUN %d reserved by initiator %d",
+	LOGTRACE("Initiator ID %d tries to access device ID %d, LUN %d reserved by initiator ID %d",
 			ctrl->initiator_id, GetId(), GetLun(), reserving_initiator);
 
 	controller->Error(ERROR_CODES::sense_key::ABORTED_COMMAND, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
