@@ -43,13 +43,25 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 
 void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
-	// TODO Implement when everything else is working
+	// TODO Implement initiator ID handling when everything else is working
+
+	if (lp_file) {
+		fclose(lp_file);
+		lp_file = NULL;
+	}
+
 	controller->Status();
 }
 
 void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 {
-	// TODO Implement when everything else is working
+	// TODO Implement initiator ID handling when everything else is working
+
+	if (lp_file) {
+		fclose(lp_file);
+		lp_file = NULL;
+	}
+
 	controller->Status();
 }
 
