@@ -76,7 +76,7 @@ void SCSIPrinter::Print(SASIDEV *controller)
 
 	LOGTRACE("Receiving %d bytes to be printed", length);
 
-	((SCSIDEV *)controller)->DataOutScsi();
+	controller->DataOut();
 }
 
 void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)

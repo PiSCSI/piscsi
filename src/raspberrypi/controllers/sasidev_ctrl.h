@@ -161,7 +161,7 @@ public:
 	void DataIn();							// Data in phase
 	void Status();							// Status phase
 	void MsgIn();							// Message in phase
-	void DataOut();						// Data out phase
+	virtual void DataOut();						// Data out phase
 
 	int GetEffectiveLun() const;
 

@@ -700,17 +700,10 @@ bool SCSIDEV::XferMsg(DWORD msg)
 void SCSIDEV::DataOut()
 {
 	if (!ctrl.bytes_to_transfer) {
-		// This is a regular block transfer
+		// This is a block-oriented transfer
 		SASIDEV::DataOut();
 		return;
 	}
-
-	DataOutScsi();
-}
-
-void SCSIDEV::DataOutScsi()
-{
-	ASSERT(ctrl.bytes_to_transfer >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
@@ -721,12 +714,6 @@ void SCSIDEV::DataOutScsi()
 				SysTimer::SleepUsec(min_exec_time_scsi - time);
 			}
 			ctrl.execstart = 0;
-		}
-
-		// If the transfer size is 0, go to the status phase
-		if (ctrl.bytes_to_transfer == 0) {
-			Status();
-			return;
 		}
 
 		LOGTRACE("%s Data out phase", __PRETTY_FUNCTION__);
@@ -744,12 +731,17 @@ void SCSIDEV::DataOutScsi()
 	}
 
 	// Receive
-	ReceiveScsi();
+	ReceiveBytes();
 }
 
-// Receive() for chunks of any size
-void SCSIDEV::ReceiveScsi()
+void SCSIDEV::ReceiveBytes()
 {
+	if (!ctrl.bytes_to_transfer) {
+		// This is a block-oriented transfer
+		Receive();
+		return;
+	}
+
 	uint32_t len;
 	BYTE data;
 
