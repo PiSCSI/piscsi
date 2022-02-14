@@ -13,6 +13,7 @@
 #include <string>
 
 #define NOT_RESERVED -2
+#define RESERVATION_TIMEOUT_SECONDS 60
 
 using namespace std;
 using namespace scsi_defs;
@@ -20,8 +21,8 @@ using namespace scsi_defs;
 SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
 	fd = -1;
-
 	reserving_initiator = NOT_RESERVED;
+	reservation_time = 0;
 
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
@@ -61,6 +62,10 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 
 void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
+	if (reservation_time + RESERVATION_TIMEOUT_SECONDS < time(0)) {
+		reserving_initiator = NOT_RESERVED;
+	}
+
 	if (!CheckReservation(controller)) {
 		return;
 	}
@@ -194,6 +199,8 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 bool SCSIPrinter::CheckReservation(SASIDEV *controller)
 {
 	if (reserving_initiator == NOT_RESERVED || reserving_initiator == ctrl->initiator_id) {
+		reservation_time = time(0);
+
 		return true;
 	}
 

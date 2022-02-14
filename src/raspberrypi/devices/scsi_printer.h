@@ -52,4 +52,6 @@ private:
 	// The reserving initiator
 	// -1 means that the initiator ID is unknown (see SASIDEV), e.g. with Atari ACSI and old host adapters
 	int reserving_initiator;
+
+	time_t reservation_time;
 };
