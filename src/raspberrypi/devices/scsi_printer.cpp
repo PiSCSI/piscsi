@@ -12,7 +12,7 @@
 
 using namespace scsi_defs;
 
-SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP")
+SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 {
 	lp_file = NULL;
 

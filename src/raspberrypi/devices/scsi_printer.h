@@ -8,9 +8,10 @@
 //---------------------------------------------------------------------------
 #pragma once
 
+#include "interfaces/scsi_printer_commands.h"
 #include "primary_device.h"
 
-class SCSIPrinter: public PrimaryDevice
+class SCSIPrinter: public PrimaryDevice, ScsiPrinterCommands
 {
 
 public:
