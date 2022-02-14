@@ -1221,7 +1221,6 @@ void SASIDEV::FlushUnit()
 		return;
 	}
 
-	// TODO This may not be a disk
 	Disk *disk = (Disk *)ctrl.unit[lun];
 
 	// WRITE system only
@@ -1250,7 +1249,8 @@ void SASIDEV::FlushUnit()
             LOGWARN("   Reserved: %02X\n",(WORD)ctrl.cmd[5]);
             LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
-			if (!disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
+			if (!disk->ModeSelect(
+				ctrl.cmd, ctrl.buffer, ctrl.offset)) {
 				// MODE SELECT failed
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
 				return;
