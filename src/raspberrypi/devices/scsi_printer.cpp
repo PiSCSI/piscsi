@@ -47,7 +47,8 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
 	// TODO Implement initiator ID handling when everything else is working
 
-	ctrl->bytes_to_transfer = 0;
+	ctrl->length = 0;
+	ctrl->is_byte_transfer = false;
 
 	if (lp_file) {
 		fclose(lp_file);
@@ -61,7 +62,8 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 {
 	// TODO Implement initiator ID handling when everything else is working
 
-	ctrl->bytes_to_transfer = 0;
+	ctrl->length = 0;
+	ctrl->is_byte_transfer = false;
 
 	if (lp_file) {
 		fclose(lp_file);
@@ -78,7 +80,8 @@ void SCSIPrinter::Print(SASIDEV *controller)
 	length |= ctrl->cmd[3];
 	length <<= 8;
 	length |= ctrl->cmd[4];
-	ctrl->bytes_to_transfer = length;
+	ctrl->length = length;
+	ctrl->is_byte_transfer = true;
 
 	LOGTRACE("Receiving %d bytes to be printed", length);
 
@@ -98,10 +101,18 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	fclose(lp_file);
 	lp_file = NULL;
 
-	ctrl->bytes_to_transfer = 0;
+	ctrl->length = 0;
+	ctrl->is_byte_transfer = false;
 
 	// TODO Hard-coded filename
-	//system("lp -oraw /tmp/lp.dat");
+	// if (system("lp -oraw /tmp/lp.dat")) {
+	// unlink("/tmp/lp.dat");
+	// TODO Error handling
+	// controller->Error();
+	// return;
+	// }
+
+	unlink("/tmp/lp.dat");
 
 	controller->Status();
 }
@@ -112,7 +123,7 @@ void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 	controller->Status();
 }
 
-bool SCSIPrinter::Write(BYTE *buf, uint32_t count)
+bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 {
 	if (!lp_file) {
 		LOGDEBUG("Opening printer file");
@@ -120,9 +131,9 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t count)
 		lp_file = fopen("/tmp/lp.dat", "wb");
 	}
 
-	LOGDEBUG("Adding %d bytes to printer file", count);
+	LOGDEBUG("Adding %d bytes to printer file", length);
 
-	fwrite(buf, 1, count, lp_file);
+	fwrite(buf, 1, length, lp_file);
 
 	return true;
 }

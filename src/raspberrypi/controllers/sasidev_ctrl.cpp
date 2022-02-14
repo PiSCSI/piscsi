@@ -578,6 +578,8 @@ void SASIDEV::DataIn()
 //---------------------------------------------------------------------------
 void SASIDEV::DataOut()
 {
+	ASSERT(ctrl.length >= 0);
+
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
 		// Minimum execution time
@@ -591,7 +593,7 @@ void SASIDEV::DataOut()
 		}
 
 		// If the length is 0, go to the status phase
-		if (!ctrl.length && !ctrl.bytes_to_transfer) {
+		if (ctrl.length == 0) {
 			Status();
 			return;
 		}

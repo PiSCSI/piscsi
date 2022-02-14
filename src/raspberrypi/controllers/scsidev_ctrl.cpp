@@ -154,7 +154,6 @@ void SCSIDEV::BusFree()
 		scsi.atnmsg = false;
 
 		ctrl.lun = -1;
-		ctrl.bytes_to_transfer = 0;
 		ctrl.is_byte_transfer = false;
 
 		// When the bus is free RaSCSI or the Pi may be shut down
@@ -715,21 +714,22 @@ void SCSIDEV::ReceiveBytes()
 	ASSERT(!ctrl.bus->GetIO());
 
 	// Length != 0 if received
-	if (ctrl.is_byte_transfer) {
-		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, ctrl.bytes_to_transfer);
-		// Receive
-		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.bytes_to_transfer);
+	if (ctrl.length != 0) {
+		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, ctrl.length);
+
+		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
-		if (len != ctrl.bytes_to_transfer) {
+		if (len != ctrl.length) {
 			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",
-					__PRETTY_FUNCTION__, ctrl.bytes_to_transfer, len);
+					__PRETTY_FUNCTION__, ctrl.length, len);
 			Error();
 			return;
 		}
 
-		ctrl.offset += ctrl.bytes_to_transfer;
-		ctrl.bytes_to_transfer = 0;
+		// Offset and Length
+		ctrl.offset += ctrl.length;
+		ctrl.length = 0;
 		return;
 	}
 
@@ -742,7 +742,7 @@ void SCSIDEV::ReceiveBytes()
 
 		// Data out phase
 		case BUS::dataout:
-			result = XferOut(ctrl.is_byte_transfer);
+			result = XferOut(false);
 			break;
 
 		// Message out phase
@@ -765,12 +765,6 @@ void SCSIDEV::ReceiveBytes()
 	// If result FALSE, move to status phase
 	if (!result) {
 		Error();
-		return;
-	}
-
-	// Continue to receive if there are more data
-	if (ctrl.is_byte_transfer){
-		ASSERT(ctrl.offset == 0);
 		return;
 	}
 
@@ -903,15 +897,16 @@ bool SCSIDEV::XferOut(bool cont)
 		return false;
 	}
 
-	// TODO This may not be a printer
+	// TODO This might not be a printer
 	SCSIPrinter *device = (SCSIPrinter *)ctrl.unit[lun];
 
 	switch (ctrl.cmd[0]) {
 		case scsi_defs::eCmdWrite6:
-			if (!device->Write(ctrl.buffer, ctrl.bytes_to_transfer)) {
+			if (!device->Write(ctrl.buffer, ctrl.length)) {
 				// Write failed
 				return false;
 			}
+
 			break;
 
 		default:
