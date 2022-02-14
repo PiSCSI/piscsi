@@ -33,6 +33,11 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
 }
 
+SCSIPrinter::~SCSIPrinter()
+{
+	DiscardReservation();
+}
+
 bool SCSIPrinter::Init(const map<string, string>& params)
 {
 	// Use default parameters if no parameters were provided
@@ -71,7 +76,7 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
 	if (reservation_time + timeout < time(0)) {
-		reserving_initiator = NOT_RESERVED;
+		DiscardReservation();
 	}
 
 	if (!CheckReservation(controller)) {
@@ -219,4 +224,16 @@ bool SCSIPrinter::CheckReservation(SASIDEV *controller)
 			ERROR_CODES::status::RESERVATION_CONFLICT);
 
 	return false;
+}
+
+void SCSIPrinter::DiscardReservation()
+{
+	if (fd != -1) {
+		close(fd);
+		fd = -1;
+
+		unlink(filename);
+	}
+
+	reserving_initiator = NOT_RESERVED;
 }

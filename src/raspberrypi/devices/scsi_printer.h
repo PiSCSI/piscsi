@@ -23,7 +23,7 @@ class SCSIPrinter: public PrimaryDevice, ScsiPrinterCommands
 public:
 
 	SCSIPrinter();
-	~SCSIPrinter() {}
+	~SCSIPrinter();
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
@@ -39,6 +39,7 @@ public:
 
 	bool Write(BYTE *, uint32_t);
 	bool CheckReservation(SASIDEV *);
+	void DiscardReservation();
 
 private:
 
