@@ -716,18 +716,18 @@ void SCSIDEV::ReceiveBytes()
 
 	// Length != 0 if received
 	if (ctrl.bytes_to_transfer) {
-		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
+		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, ctrl.bytes_to_transfer);
 		// Receive
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.bytes_to_transfer);
 
 		// If not able to receive all, move to status phase
 		if (len != ctrl.bytes_to_transfer) {
-			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
+			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",
+					__PRETTY_FUNCTION__, ctrl.bytes_to_transfer, len);
 			Error();
 			return;
 		}
 
-		// Offset and Length
 		ctrl.offset += ctrl.bytes_to_transfer;
 		ctrl.bytes_to_transfer = 0;
 		return;
