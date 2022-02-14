@@ -514,7 +514,6 @@ void SCSIDEV::Receive()
 
 		// Offset and Length
 		ctrl.offset += ctrl.length;
-		bytes_to_transfer = ctrl.length;
 		ctrl.length = 0;
 		return;
 	}
@@ -731,6 +730,7 @@ void SCSIDEV::ReceiveBytes()
 
 		// Offset and Length
 		ctrl.offset += ctrl.length;
+		bytes_to_transfer = ctrl.length;
 		ctrl.length = 0;
 		return;
 	}

@@ -80,6 +80,13 @@ void SCSIPrinter::Print(SASIDEV *controller)
 	length |= ctrl->cmd[3];
 	length <<= 8;
 	length |= ctrl->cmd[4];
+
+	// TODO The printer device suffers from the statically allocated buffer size
+	if (length > (uint32_t)controller->DEFAULT_BUFFER_SIZE) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		return;
+	}
+
 	ctrl->length = length;
 	ctrl->is_byte_transfer = true;
 
@@ -131,7 +138,7 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 		lp_file = fopen("/tmp/lp.dat", "wb");
 	}
 
-	LOGDEBUG("Adding %d bytes to printer file", length);
+	LOGDEBUG("Adding %d byte(s) to printer file", length);
 
 	fwrite(buf, 1, length, lp_file);
 
