@@ -710,16 +710,15 @@ void SCSIDEV::DataOut()
 
 void SCSIDEV::DataOutScsi()
 {
-	ASSERT(ctrl.bytes_to_transfer > 0);
+	ASSERT(ctrl.bytes_to_transfer >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			DWORD min_exec_time = IsSASI() ? min_exec_time_sasi : min_exec_time_scsi;
 			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
-			if (time < min_exec_time) {
-				SysTimer::SleepUsec(min_exec_time - time);
+			if (time < min_exec_time_scsi) {
+				SysTimer::SleepUsec(min_exec_time_scsi - time);
 			}
 			ctrl.execstart = 0;
 		}
