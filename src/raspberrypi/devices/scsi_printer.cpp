@@ -98,11 +98,11 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 		return;
 	}
 
-	close(fd);
-	fd = -1;
-
 	struct stat st;
 	fstat(fd, &st);
+
+	close(fd);
+	fd = -1;
 
 	LOGDEBUG("Printing printer file with %ld byte(s)", st.st_size);
 
@@ -114,13 +114,13 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 		unlink(filename);
 
 		controller->Error();
-		return;
 	}
+	else {
+		// The file may be deleted here because lp guarantees that it is copied
+		unlink(filename);
 
-	// The file may be deleted, because lp guarantees that it is copied
-	unlink(filename);
-
-	controller->Status();
+		controller->Status();
+	}
 }
 
 void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
@@ -132,7 +132,7 @@ void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 {
 	if (fd == -1) {
-		LOGDEBUG("Opening printer file");
+		LOGTRACE("Opening printer file");
 
 		strcpy(filename, TMP_FILE_PATTERN);
 		fd = mkstemp(filename);
@@ -142,7 +142,7 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 		}
 	}
 
-	LOGDEBUG("Appending %d byte(s) to printer file", length);
+	LOGTRACE("Appending %d byte(s) to printer file", length);
 
 	write(fd, buf, length);
 
