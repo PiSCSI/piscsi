@@ -10,6 +10,10 @@
 
 #include "interfaces/scsi_printer_commands.h"
 #include "primary_device.h"
+#include <string>
+#include <map>
+
+using namespace std;
 
 #define TMP_FILE_PATTERN "rascsi_printer_file_XXXXXX"
 
@@ -22,6 +26,8 @@ public:
 	~SCSIPrinter() {}
 
 	virtual bool Dispatch(SCSIDEV *) override;
+
+	bool Init(const map<string, string>&);
 
 	int Inquiry(const DWORD *, BYTE *) override;
 	void TestUnitReady(SASIDEV *) override;

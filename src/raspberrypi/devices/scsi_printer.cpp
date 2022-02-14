@@ -26,6 +26,14 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
 }
 
+bool SCSIPrinter::Init(const map<string, string>& params)
+{
+	// Use default parameters if no parameters were provided
+	SetParams(params.empty() ? GetDefaultParams() : params);
+
+	return true;
+}
+
 bool SCSIPrinter::Dispatch(SCSIDEV *controller)
 {
 	// The superclass class handles the less specific commands
@@ -106,7 +114,8 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 
 	LOGDEBUG("Printing printer file with %ld byte(s)", st.st_size);
 
-	string print_cmd = "lp -oraw ";
+	string print_cmd = GetParam("printer");
+	print_cmd += " ";
 	print_cmd += filename;
 	if (system(print_cmd.c_str())) {
 		LOGERROR("Printing failed, the printing system might not be configured");
