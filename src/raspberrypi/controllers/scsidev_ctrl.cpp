@@ -155,7 +155,9 @@ void SCSIDEV::BusFree()
 		scsi.atnmsg = false;
 
 		ctrl.lun = -1;
+
 		ctrl.is_byte_transfer = false;
+		bytes_to_transfer = 0;
 
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
