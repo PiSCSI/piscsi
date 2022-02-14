@@ -74,6 +74,8 @@ void SCSIPrinter::Print(SASIDEV *controller)
 	length |= ctrl->cmd[4];
 	ctrl->bytes_to_transfer = length;
 
+	LOGTRACE("Receiving %d bytes to be printed", length);
+
 	((SCSIDEV *)controller)->DataOutScsi();
 }
 
@@ -82,6 +84,7 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	if (!lp_file) {
 		// TODO More specific error handling
 		controller->Error();
+		return;
 	}
 
 	LOGDEBUG("Closing printer file");

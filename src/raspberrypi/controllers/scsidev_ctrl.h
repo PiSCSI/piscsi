@@ -56,6 +56,7 @@ public:
 	// External API
 	BUS::phase_t Process() override;
 
+	void DataOut();
 	void DataOutScsi();
 
 	// Other

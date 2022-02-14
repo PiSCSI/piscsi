@@ -154,6 +154,7 @@ void SCSIDEV::BusFree()
 		scsi.atnmsg = false;
 
 		ctrl.lun = -1;
+		ctrl.bytes_to_transfer = 0;
 
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
@@ -696,6 +697,16 @@ bool SCSIDEV::XferMsg(DWORD msg)
 	return true;
 }
 
+void SCSIDEV::DataOut()
+{
+	if (!ctrl.bytes_to_transfer) {
+		SASIDEV::DataOut();
+		return;
+	}
+
+	DataOutScsi();
+}
+
 void SCSIDEV::DataOutScsi()
 {
 	ASSERT(ctrl.bytes_to_transfer >= 0);
@@ -749,7 +760,7 @@ void SCSIDEV::ReceiveScsi()
 	ASSERT(!ctrl.bus->GetIO());
 
 	// Length != 0 if received
-	if (ctrl.bytes_to_transfer != 0) {
+	if (ctrl.bytes_to_transfer) {
 		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
 		// Receive
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.bytes_to_transfer);
