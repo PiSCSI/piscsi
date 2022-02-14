@@ -65,7 +65,7 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 		return;
 	}
 
-	reserving_initiator = ctrl->m_scsi_id;
+	reserving_initiator = ctrl->initiator_id;
 
 	LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator);
 
@@ -193,12 +193,12 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 
 bool SCSIPrinter::CheckReservation(SASIDEV *controller)
 {
-	if (reserving_initiator == NOT_RESERVED || reserving_initiator == ctrl->m_scsi_id) {
+	if (reserving_initiator == NOT_RESERVED || reserving_initiator == ctrl->initiator_id) {
 		return true;
 	}
 
 	LOGTRACE("Initiator %d tries to access device ID %d, LUN %d reserved by initiator %d",
-			ctrl->m_scsi_id, GetId(), GetLun(), reserving_initiator);
+			ctrl->initiator_id, GetId(), GetLun(), reserving_initiator);
 
 	controller->Error(ERROR_CODES::sense_key::ABORTED_COMMAND, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			ERROR_CODES::status::RESERVATION_CONFLICT);

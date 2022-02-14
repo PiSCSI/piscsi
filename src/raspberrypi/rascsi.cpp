@@ -1708,16 +1708,21 @@ int main(int argc, char* argv[])
 
 		pthread_mutex_lock(&ctrl_mutex);
 
-		// Notify all controllers
 		BYTE data = bus->GetDAT();
+
+		int initiator_id = -1;
+
+		// Notify all controllers
 		int i = 0;
 		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 			if (!*it || (data & (1 << i)) == 0) {
 				continue;
 			}
 
+			initiator_id = data & (1 << i);
+
 			// Find the target that has moved to the selection phase
-			if ((*it)->Process() == BUS::selection) {
+			if ((*it)->Process(initiator_id) == BUS::selection) {
 				// Get the target ID
 				actid = i;
 
@@ -1745,7 +1750,7 @@ int main(int argc, char* argv[])
 		// Loop until the bus is free
 		while (running) {
 			// Target drive
-			phase = controllers[actid]->Process();
+			phase = controllers[actid]->Process(initiator_id);
 
 			// End when the bus is free
 			if (phase == BUS::busfree) {

@@ -54,7 +54,7 @@ void SCSIDEV::Reset()
 	SASIDEV::Reset();
 }
 
-BUS::phase_t SCSIDEV::Process()
+BUS::phase_t SCSIDEV::Process(int initiator_i)
 {
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {

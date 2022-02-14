@@ -54,7 +54,7 @@ public:
 	void Reset() override;
 
 	// External API
-	BUS::phase_t Process() override;
+	BUS::phase_t Process(int) override;
 
 	void Receive() override;
 

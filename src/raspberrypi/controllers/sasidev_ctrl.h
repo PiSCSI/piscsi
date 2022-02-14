@@ -132,6 +132,8 @@ public:
 
 		// The LUN from the IDENTIFY message
 		int lun;
+
+		int initiator_id;
 	} ctrl_t;
 
 public:
@@ -141,7 +143,7 @@ public:
 	virtual void Reset();						// Device Reset
 
 	// External API
-	virtual BUS::phase_t Process();				// Run
+	virtual BUS::phase_t Process(int);				// Run
 
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
