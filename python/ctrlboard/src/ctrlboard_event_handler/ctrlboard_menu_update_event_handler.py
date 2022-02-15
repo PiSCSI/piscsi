@@ -5,18 +5,18 @@ from ctrlboard_event_handler.rascsi_profile_cycler import RascsiProfileCycler
 from ctrlboard_event_handler.rascsi_shutdown_cycler import RascsiShutdownCycler
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
-from menu.menu_controller import MenuController
 from ctrlboard_hw.hardware_button import HardwareButton
 from ctrlboard_hw.encoder import Encoder
 from observer import Observer
 from rascsi.file_cmds import FileCmds
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.socket_cmds import SocketCmds
+from rascsi_menu_controller import RascsiMenuController
 
 
 class CtrlBoardMenuUpdateEventHandler(Observer):
 
-    def __init__(self, menu_controller: MenuController, sock_cmd: SocketCmds, ractl_cmd: RaCtlCmds):
+    def __init__(self, menu_controller: RascsiMenuController, sock_cmd: SocketCmds, ractl_cmd: RaCtlCmds):
         self.message = None
         self._menu_controller = menu_controller
         self._menu_renderer_config = self._menu_controller.get_menu_renderer().get_config()
@@ -166,7 +166,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
     # noinspection PyUnusedLocal
     def handle_action_menu_shutdown(self, info_object):
-        result = self._menu_controller.get_rascsi_client().shutdown_pi("system")
+        result = self.ractl_cmd.shutdown_pi("system")
         # TODO: check
         print(result)
         self._menu_controller.show_message("Shutting down!", 150)
@@ -191,8 +191,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         device_type = info_object["device_type"]
         context_object = self._menu_controller.get_active_menu().context_object
         scsi_id = context_object["scsi_id"]
-        rascsi_client = self._menu_controller.get_rascsi_client()
-        result = rascsi_client.attach_image(scsi_id=scsi_id, device_type=device_type, image=image_name)
+        result = self.ractl_cmd.attach_image(scsi_id=scsi_id, device_type=device_type, image=image_name)
         if result["status"] is False:
             self._menu_controller.show_message("Attach failed!")
         else:
@@ -200,9 +199,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
     def detach_eject_scsi_id(self):
         context_object = self._menu_controller.get_active_menu().context_object
-        rascsi_client = self._menu_controller.get_rascsi_client()
         scsi_id = context_object["scsi_id"]
-        device_info = rascsi_client.list_devices(scsi_id)
+        device_info = self.ractl_cmd.list_devices(scsi_id)
 
         if len(device_info["device_list"]) == 0:
             return
@@ -210,20 +208,20 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         device_type = device_info["device_list"][0]["device_type"]
         image = device_info["device_list"][0]["image"]
         if device_type == "SAHD" or device_type == "SCHD" or device_type == "SCBR" or device_type == "SCDP":
-            result = rascsi_client.detach_by_id(scsi_id)
+            result = self.ractl_cmd.detach_by_id(scsi_id)
             if result["status"] is True:
                 self.show_id_action_message(scsi_id, "detached")
             else:
                 self._menu_controller.show_message("Detach failed!")
         elif device_type == "SCRM" or device_type == "SCMO" or device_type == "SCCD":
             if len(image) > 0:
-                result = rascsi_client.eject_by_id(scsi_id)
+                result = self.ractl_cmd.eject_by_id(scsi_id)
                 if result["status"] is True:
                     self.show_id_action_message(scsi_id, "ejected")
                 else:
                     self._menu_controller.show_message("Eject failed!")
             else:
-                result = rascsi_client.detach_by_id(scsi_id)
+                result = self.ractl_cmd.detach_by_id(scsi_id)
                 if result["status"] is True:
                     self.show_id_action_message(scsi_id, "detached")
                 else:
@@ -234,4 +232,3 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
     def show_id_action_message(self, scsi_id, action: str):
         self._menu_controller.show_message("ID " + str(scsi_id) + " " + action + "!")
-

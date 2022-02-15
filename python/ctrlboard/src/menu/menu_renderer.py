@@ -1,20 +1,23 @@
+"""Module provides the abstract menu renderer class"""
 import time
+import math
+import itertools
+
+from abc import ABC, abstractmethod
+from pydoc import locate
+
 from typing import Optional
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 from menu.menu import Menu
 from menu.menu_renderer_config import MenuRendererConfig
-import math
-import itertools
-from abc import ABC, abstractmethod
-from pydoc import locate
-
 from menu.screensaver import ScreenSaver
 
 
 class MenuRenderer(ABC):
-
+    """The abstract menu renderer class provides the base for concrete menu
+    renderer classes that implement functionality based on conrete hardware or available APIs."""
     def __init__(self, config: MenuRendererConfig):
         self.message = ""
         self.mini_message = ""
@@ -25,11 +28,13 @@ class MenuRenderer(ABC):
         self.image = Image.new('1', (self.disp.width, self.disp.height))
         self.draw = ImageDraw.Draw(self.image)
         self.font = ImageFont.truetype(config.font_path, size=config.font_size)
-        font_width, self.font_height = self.font.getsize("ABCabc")  # just a sample text to work with the font height
+        # just a sample text to work with the font height
+        _, self.font_height = self.font.getsize("ABCabc")
         self.cursor_position = 0
         self.frame_start_row = 0
         self.render_timestamp = None
-        self._perform_scrolling_stage = 0  # effectively a small state machine that deals with the scrolling
+        # effectively a small state machine that deals with the scrolling
+        self._perform_scrolling_stage = 0
         self._x_scrolling = 0
         self._current_line_horizontal_overlap = None
         self._stage_timestamp: Optional[int] = None
@@ -40,46 +45,52 @@ class MenuRenderer(ABC):
 
     @abstractmethod
     def display_init(self):
-        pass
+        """Method initializes the displays for usage."""
 
     @abstractmethod
     def display_clear(self):
-        pass
+        """Methods clears the screen. Possible hardware clear call if necessary."""
 
     @abstractmethod
     def blank_screen(self):
-        pass
+        """Method blanks the screen. Based on drawing a blank rectangle."""
 
     @abstractmethod
     def update_display_image(self, image):
-        pass
+        """Method displays an image using PIL."""
 
     @abstractmethod
     def update_display(self):
-        pass
+        """Method updates the display."""
 
     def set_config(self, config: MenuRendererConfig):
+        """Configures the menu renderer with a generic menu renderer configuration."""
         self._config = config
 
     def get_config(self):
+        """Returns the menu renderer configuration."""
         return self._config
 
     def set_menu(self, menu: Menu):
+        """Method sets the menu that the menu renderer should draw."""
         self._menu = menu
 
     def rows_per_screen(self):
+        """Calculates the number of rows per screen based on the configured font size."""
         rows = self.disp.height / self.font_height
         return math.floor(rows)
 
     def draw_row(self, row_number: int, text: str, selected: bool):
-        x = 0
-        y = row_number*self.font_height
+        """Draws a single row of the menu."""
+        x_pos = 0
+        y_pos = row_number*self.font_height
         if selected:
             selection_extension = 0
             if row_number < self.rows_per_screen():
                 selection_extension = self._config.row_selection_pixel_extension
-            self.draw.rectangle((x, y, self.disp.width, y+self._config.font_size+selection_extension), outline=0,
-                                fill=255)
+            self.draw.rectangle((x_pos, y_pos, self.disp.width,
+                                 y_pos+self._config.font_size+selection_extension),
+                                outline=0, fill=255)
 
             # in stage 1, we initialize scrolling for the currently selected line
             if self._perform_scrolling_stage == 1:
@@ -114,7 +125,9 @@ class MenuRenderer(ABC):
 
                 if self._current_line_horizontal_overlap+self._x_scrolling >= 0:
                     self._x_scrolling += 1
-                if self._current_line_horizontal_overlap+self._x_scrolling == self._current_line_horizontal_overlap:
+
+                if (self._current_line_horizontal_overlap +
+                        self._x_scrolling) == self._current_line_horizontal_overlap:
                     self._stage_timestamp = int(time.time())
                     self._perform_scrolling_stage = 5
 
@@ -127,11 +140,13 @@ class MenuRenderer(ABC):
                     self._stage_timestamp = None
                     self._perform_scrolling_stage = 2
 
-            self.draw.text((x+self._x_scrolling, y), text, font=self.font, spacing=0, stroke_fill=0, fill=0)
+            self.draw.text((x_pos+self._x_scrolling, y_pos), text, font=self.font,
+                           spacing=0, stroke_fill=0, fill=0)
         else:
-            self.draw.text((x, y), text, font=self.font, spacing=0, stroke_fill=0, fill=255)
+            self.draw.text((x_pos, y_pos), text, font=self.font, spacing=0, stroke_fill=0, fill=255)
 
     def draw_fullsceen_message(self, text: str):
+        """Draws a fullscreen message, i.e., a full-screen message."""
         font_width, font_height = self.font.getsize(text)
         centered_width = (self.disp.width - font_width) / 2
         centered_height = (self.disp.height - font_height) / 2
@@ -141,16 +156,19 @@ class MenuRenderer(ABC):
                        stroke_fill=0, fill=0, textsize=20)
 
     def draw_mini_message(self, text: str):
-        font_width, font_height = self.font.getsize(text)
+        """Draws a fullscreen message, i.e., a message covering only the center portion of
+        the screen. The remaining areas stay visible."""
+        font_width, _ = self.font.getsize(text)
         centered_width = (self.disp.width - font_width) / 2
         centered_height = (self.disp.height - self.font_height) / 2
 
-        self.draw.rectangle((0, centered_height-4, self.disp.width, centered_height+self.font_height+4),
-                            outline=0, fill=255)
+        self.draw.rectangle((0, centered_height-4, self.disp.width,
+                             centered_height+self.font_height+4), outline=0, fill=255)
         self.draw.text((centered_width, centered_height), text, align="center", font=self.font,
                        stroke_fill=0, fill=0, textsize=20)
 
     def draw_menu(self):
+        """Method draws the menu set to the class instance."""
         if self._menu.item_selection >= self.frame_start_row + self.rows_per_screen():
             if self._config.scroll_behavior == "page":
                 self.frame_start_row = self.frame_start_row + (round(self.rows_per_screen()/2)) + 1
@@ -174,20 +192,23 @@ class MenuRenderer(ABC):
         self.draw_menu_frame(self.frame_start_row, self.frame_start_row+self.rows_per_screen())
 
     def draw_menu_frame(self, frame_start_row: int, frame_end_row: int):
+        """Draws row frame_start_row to frame_end_row of the class instance menu, i.e., it
+        draws a given frame of the complete menu that fits the screen."""
         self.draw.rectangle((0, 0, self.disp.width, self.disp.height), outline=0, fill=0)
         row_on_screen = 0
         row_in_menuitems = frame_start_row
-        for menuEntry in itertools.islice(self._menu.entries, frame_start_row, frame_end_row):
+        for menu_entry in itertools.islice(self._menu.entries, frame_start_row, frame_end_row):
             if row_in_menuitems == self._menu.item_selection:
-                self.draw_row(row_on_screen, menuEntry["text"], True)
+                self.draw_row(row_on_screen, menu_entry["text"], True)
             else:
-                self.draw_row(row_on_screen, menuEntry["text"], False)
+                self.draw_row(row_on_screen, menu_entry["text"], False)
             row_in_menuitems += 1
             row_on_screen += 1
             if row_on_screen >= self.rows_per_screen():
                 break
 
     def render(self, display_on_device=True):
+        """Method renders the menu."""
         if display_on_device is True:
             self.screensaver.reset_timer()
         self._perform_scrolling_stage = 0
@@ -200,7 +221,7 @@ class MenuRenderer(ABC):
 
             if display_on_device is True:
                 self.disp.show()
-            return
+            return None
 
         self.display_clear()
 
@@ -220,10 +241,13 @@ class MenuRenderer(ABC):
         return self.image
 
     def setup_horizontal_scrolling(self, text):
-        font_width, font_height = self.font.getsize(text)
+        """Configure horizontal scrolling based on the configured screen dimensions."""
+        font_width, _ = self.font.getsize(text)
         self._current_line_horizontal_overlap = font_width - self.disp.width
 
     def update(self):
+        """Method updates the menu drawing within the main loop in a non-blocking manner.
+        Also updates the current entry scrolling if activated."""
         if self._config.scroll_line is False:
             return
 
@@ -241,6 +265,3 @@ class MenuRenderer(ABC):
                 self._perform_scrolling_stage = 1
             self.draw_menu()
             self.update_display_image(self.image)
-
-
-
