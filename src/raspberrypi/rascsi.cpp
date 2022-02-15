@@ -1719,7 +1719,7 @@ int main(int argc, char* argv[])
 				continue;
 			}
 
-			// Extract initiator ID
+			// Extract the SCSI initiator ID
 			int tmp = data - (1 << i);
 			if (tmp) {
 				initiator_id = 0;

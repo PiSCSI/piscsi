@@ -143,7 +143,7 @@ bool SASIDEV::HasUnit()
 //	Run
 //
 //---------------------------------------------------------------------------
-BUS::phase_t SASIDEV::Process(int initiator_id)
+BUS::phase_t SASIDEV::Process(int)
 {
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
@@ -165,8 +165,6 @@ BUS::phase_t SASIDEV::Process(int initiator_id)
 		ctrl.bus->Reset();
 		return ctrl.phase;
 	}
-
-	ctrl.initiator_id = initiator_id;
 
 	// Phase processing
 	switch (ctrl.phase) {
