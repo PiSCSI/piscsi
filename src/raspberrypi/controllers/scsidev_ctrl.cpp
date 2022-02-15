@@ -718,8 +718,7 @@ void SCSIDEV::ReceiveBytes()
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(!ctrl.bus->GetIO());
 
-	// Length != 0 if received
-	if (ctrl.length != 0) {
+	if (ctrl.length) {
 		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, ctrl.length);
 
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
@@ -732,7 +731,6 @@ void SCSIDEV::ReceiveBytes()
 			return;
 		}
 
-		// Offset and Length
 		ctrl.offset += ctrl.length;
 		bytes_to_transfer = ctrl.length;
 		ctrl.length = 0;
@@ -746,12 +744,10 @@ void SCSIDEV::ReceiveBytes()
 	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
 	switch (ctrl.phase) {
 
-		// Data out phase
 		case BUS::dataout:
 			result = XferOut(false);
 			break;
 
-		// Message out phase
 		case BUS::msgout:
 			ctrl.message = ctrl.buffer[0];
 			if (!XferMsg(ctrl.message)) {
@@ -776,7 +772,6 @@ void SCSIDEV::ReceiveBytes()
 
 	// Move to next phase
 	switch (ctrl.phase) {
-		// Command phase
 		case BUS::command:
 			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
@@ -785,11 +780,9 @@ void SCSIDEV::ReceiveBytes()
 				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
 
-			// Execution Phase
 			Execute();
 			break;
 
-		// Message out phase
 		case BUS::msgout:
 			// Continue message out phase as long as ATN keeps asserting
 			if (ctrl.bus->GetATN()) {
@@ -873,13 +866,10 @@ void SCSIDEV::ReceiveBytes()
 			// Initialize ATN message reception status
 			scsi.atnmsg = false;
 
-			// Command phase
 			Command();
 			break;
 
-		// Data out phase
 		case BUS::dataout:
-			// status phase
 			Status();
 			break;
 
@@ -897,7 +887,6 @@ bool SCSIDEV::XferOut(bool cont)
 
 	ASSERT(ctrl.phase == BUS::dataout);
 
-	// Logical Unit
 	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
@@ -910,7 +899,7 @@ bool SCSIDEV::XferOut(bool cont)
 		// Check for PRINT command
 		case scsi_defs::eCmdWrite6:
 			if (!device->Write(ctrl.buffer, bytes_to_transfer)) {
-				// Write failed
+				// Writing to temporary print output file failed
 				return false;
 			}
 
