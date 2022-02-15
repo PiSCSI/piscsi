@@ -19,6 +19,9 @@
 // 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for
 // a multi-initiator environment).
 //
+// A client usually does not know whether it is running in a multi-initiator environment. This is why
+// using reservation is recommended.
+//
 // The command to be used for printing can be set with the "printer" property when attaching the device.
 // By default the data to be printed are sent to the printer unmodified, using "lp -oraw".
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
