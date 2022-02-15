@@ -868,7 +868,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		bool isFirst = true;
 		for (const auto& param: pb_device.params()) {
 			if (!isFirst) {
-				s << ", ";
+				s << ":";
 			}
 			isFirst = false;
 			s << "'" << param.first << "=" << param.second << "'";
