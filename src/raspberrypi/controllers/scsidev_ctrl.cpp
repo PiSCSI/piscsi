@@ -903,7 +903,7 @@ bool SCSIDEV::XferOut(bool cont)
 		return false;
 	}
 
-	// TODO This might not be a printer
+	// TODO This might not be a printer, but currently always is
 	SCSIPrinter *device = (SCSIPrinter *)ctrl.unit[lun];
 
 	switch (ctrl.cmd[0]) {
@@ -921,7 +921,7 @@ bool SCSIDEV::XferOut(bool cont)
 			break;
 	}
 
-	// Data saved successfully
+	// Data transferred successfully
 	return true;
 }
 
