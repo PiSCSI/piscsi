@@ -19,7 +19,7 @@
 // 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for
 // a multi-initiator environment).
 //
-// Printing can be cancelled by sending a STOP PRINT command.
+// With STOP UNIT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
 // SEND DIAGNOSTIC currently returns no data.
 //
