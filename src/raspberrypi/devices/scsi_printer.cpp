@@ -12,16 +12,17 @@
 //
 // How to print:
 //
-// 1. The client reserves the printer device with RESERVER UNIT (optional step, mandatory for
+// 1. The client reserves the printer device with RESERVE UNIT (optional step, mandatory for
 // a multi-initiator environment).
 // 2. The client sends the data to be printed with one or several PRINT commands. Due to
-// https://github.com/akuker/RASCSI/issues/669 the maximum transfer size is limited to 4096 bytes.
-// 3. The client triggers printing with SYNCHRONIZE BUFFERS.
-// 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for
-// a multi-initiator environment).
+// https://github.com/akuker/RASCSI/issues/669 the maximum transfer size per PRINT command is
+// limited to 4096 bytes.
+// 3. The client triggers printing with SYNCHRONIZE BUFFER.
+// 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for a
+// multi-initiator environment).
 //
 // A client usually does not know whether it is running in a multi-initiator environment. This is why
-// using reservation is recommended.
+// always using a reservation is recommended.
 //
 // The command to be used for printing can be set with the "cmd" property when attaching the device.
 // By default the data to be printed are sent to the printer unmodified, using "lp -oraw". This either
