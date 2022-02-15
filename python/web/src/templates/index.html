@@ -267,7 +267,7 @@
                         {{ _("Select device type") }}
                         </option>
                         {% for key, value in device_types.items() %}
-                        {% if key not in NETWORK_DEVICE_TYPES %}
+                        {% if key not in (NETWORK_DEVICE_TYPES + SUPPORT_DEVICE_TYPES) %}
                         <option value="{{ key }}">
                             {{ value }}
                         </option>
@@ -359,6 +359,50 @@
 {% else %}
 <p><small>{{ _("Install <a href=\"%(url)s\">Macproxy</a> to browse the Web with any vintage browser. It's not just for Macs!", url="https://github.com/akuker/RASCSI/wiki/Vintage-Web-Proxy#macproxy") }}</small></p>
 {% endif %}
+
+<hr/>
+<details>
+    <summary class="heading">
+        {{ _("Attach Support Device (EXPERIMENTAL)") }}
+    </summary>
+    <ul>
+        <li>Attach an experimental Support Device that may provide additional functionality for the Host system.
+        </li>
+        <li>Relies on driver software on the Host side that utilizes the exposed functionality.
+        </li>
+    </ul>
+</details>
+<table style="border: none">
+    <tr style="border: none">
+        <td style="border: none; vertical-align:top;">
+            <form action="/scsi/attach_support" method="post">
+                <label for="type">{{ _("Type:") }}</label>
+                <select name="type">
+                    {% for type in SUPPORT_DEVICE_TYPES %}
+                    <option value="{{ type }}">
+                    {% for key, value in device_types.items() %}
+                    {% if key == type %}
+                    {{ value }}
+                    {% endif %}
+                    {% endfor %}
+                    </option>
+                    {% endfor %}
+                </select>
+                <label for="scsi_id">{{ _("SCSI ID:") }}</label>
+                <select name="scsi_id">
+                {% for id in scsi_ids %}
+                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                        {{ id }}
+                    </option>
+                {% endfor %}
+                </select>
+                <label for="unit">{{ _("LUN") }}</label>
+                <input name="unit" type="number" size="2" value="0" min="0" max="31">
+                <input type="submit" value="{{ _("Attach") }}">
+            </form>
+        </td>
+    </tr>
+</table>
 
 <hr/>
 <details>
