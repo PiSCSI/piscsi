@@ -19,6 +19,10 @@
 // 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for
 // a multi-initiator environment).
 //
+// The command to be used for printing can be set with the "printer" property when attaching the device.
+// By default the data to be printed are sent to the printer unmodified, using "lp -oraw".
+// By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
+//
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
 // SEND DIAGNOSTIC currently returns no data.
