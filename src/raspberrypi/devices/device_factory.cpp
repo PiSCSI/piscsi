@@ -202,7 +202,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCLP:
 				device = new SCSIPrinter();
-				device->SetProduct("SCSI Printer");
+				device->SetProduct("SCSI PRINTER");
 				device->SupportsParams(true);
 				device->SetDefaultParams(default_params[SCLP]);
 				break;
