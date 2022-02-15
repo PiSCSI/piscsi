@@ -24,7 +24,9 @@
 // using reservation is recommended.
 //
 // The command to be used for printing can be set with the "cmd" property when attaching the device.
-// By default the data to be printed are sent to the printer unmodified, using "lp -oraw".
+// By default the data to be printed are sent to the printer unmodified, using "lp -oraw". This either
+// requires that the client uses a printer driver compatible with the respective printer, or that the
+// printing service on the Pi is configured to do any necessary conversions.
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
 //
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
