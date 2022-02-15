@@ -22,7 +22,7 @@
 // A client usually does not know whether it is running in a multi-initiator environment. This is why
 // using reservation is recommended.
 //
-// The command to be used for printing can be set with the "printer" property when attaching the device.
+// The command to be used for printing can be set with the "cmd" property when attaching the device.
 // By default the data to be printed are sent to the printer unmodified, using "lp -oraw".
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
 //
@@ -186,15 +186,15 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	close(fd);
 	fd = -1;
 
-	string print_cmd = GetParam("printer");
-	print_cmd += " ";
-	print_cmd += filename;
+	string cmd = GetParam("cmd");
+	cmd += " ";
+	cmd += filename;
 
-	LOGTRACE("%s", string("Printing file with " + to_string(st.st_size) +" byte(s)").c_str());
+	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str());
 
-	LOGDEBUG("Executing '%s'", print_cmd.c_str());
+	LOGDEBUG("Executing '%s'", cmd.c_str());
 
-	if (system(print_cmd.c_str())) {
+	if (system(cmd.c_str())) {
 		LOGERROR("Printing failed, the printing system might not be configured");
 
 		controller->Error();

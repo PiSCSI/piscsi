@@ -53,7 +53,7 @@ DeviceFactory::DeviceFactory()
 
 	default_params[SCBR]["interfaces"] = network_interfaces;
 	default_params[SCDP]["interfaces"] = network_interfaces;
-	default_params[SCLP]["printer"] = "lp -oraw";
+	default_params[SCLP]["cmd"] = "lp -oraw";
 	default_params[SCLP]["timeout"] = "30";
 
 	extension_mapping["hdf"] = SAHD;

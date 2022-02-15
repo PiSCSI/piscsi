@@ -1302,14 +1302,14 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		if (device_factory.GetDefaultParams(type).count("interfaces")) {
 			AddParam(*device, "interfaces", optarg);
 		}
-		else if (device_factory.GetDefaultParams(type).count("printer")) {
+		else if (device_factory.GetDefaultParams(type).count("cmd")) {
 			string params = optarg;
 			size_t separator_pos = params.find(':');
 			if (separator_pos == string::npos) {
-				AddParam(*device, "printer", params);
+				AddParam(*device, "cmd", params);
 			}
 			else {
-				AddParam(*device, "printer", params.substr(0, separator_pos));
+				AddParam(*device, "cmd", params.substr(0, separator_pos));
 				AddParam(*device, "timeout", params.substr(separator_pos + 1));
 			}
 		}

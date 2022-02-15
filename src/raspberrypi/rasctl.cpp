@@ -392,10 +392,10 @@ int main(int argc, char* argv[])
 
 		size_t separator_pos = param.find(COMPONENT_SEPARATOR);
 		if (separator_pos == string::npos) {
-			AddParam(*device, "printer", param);
+			AddParam(*device, "cmd", param);
 		}
 		else {
-			AddParam(*device, "printer", param.substr(0, separator_pos));
+			AddParam(*device, "cmd", param.substr(0, separator_pos));
 			AddParam(*device, "timeout", param.substr(separator_pos + 1));
 		}
 	}
