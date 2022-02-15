@@ -20,7 +20,7 @@
 #include <iostream>
 #include <list>
 
-// Separator for the INQUIRY name components
+// Separator for the INQUIRY name components and for compound parameters
 #define COMPONENT_SEPARATOR ':'
 
 using namespace std;
@@ -384,10 +384,20 @@ int main(int argc, char* argv[])
 	}
 
 	if (!param.empty()) {
-		// Only one of these parameters will be used, depending on the device type
+		// Only one set of these parameters will be used by rascsi, depending on the device type
+
 		AddParam(*device, "interfaces", param);
+
 		AddParam(*device, "file", param);
-		AddParam(*device, "printer", param);
+
+		size_t separator_pos = param.find(COMPONENT_SEPARATOR);
+		if (separator_pos == string::npos) {
+			AddParam(*device, "printer", param);
+		}
+		else {
+			AddParam(*device, "printer", param.substr(0, separator_pos));
+			AddParam(*device, "timeout", param.substr(separator_pos + 1));
+		}
 	}
 
 	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
