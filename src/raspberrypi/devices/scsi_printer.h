@@ -38,6 +38,7 @@ public:
 	void Print(SASIDEV *);
 	void SynchronizeBuffer(SASIDEV *);
 	void SendDiagnostic(SASIDEV *);
+	void StopPrint(SASIDEV *);
 
 	bool Write(BYTE *, uint32_t);
 	bool CheckReservation(SASIDEV *);

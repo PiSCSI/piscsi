@@ -19,6 +19,10 @@
 // 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for
 // a multi-initiator environment).
 //
+// Printing can be cancelled by sending a STOP PRINT command.
+//
+// SEND DIAGNOSTIC currently returns no data.
+//
 
 #include <sys/stat.h>
 #include "controllers/scsidev_ctrl.h"
@@ -44,6 +48,7 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
 	dispatcher.AddCommand(eCmdReadCapacity10, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
 	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
+	dispatcher.AddCommand(eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
 }
 
 SCSIPrinter::~SCSIPrinter()
@@ -199,6 +204,24 @@ void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 	if (!CheckReservation(controller)) {
 		return;
 	}
+
+	controller->Status();
+}
+
+void SCSIPrinter::StopPrint(SASIDEV *controller)
+{
+	if (!CheckReservation(controller)) {
+		return;
+	}
+
+	if (fd != -1) {
+		close(fd);
+		fd = -1;
+
+		unlink(filename);
+	}
+
+	LOGTRACE("Printing has been cancelled");
 
 	controller->Status();
 }
