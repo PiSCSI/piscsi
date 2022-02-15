@@ -907,6 +907,7 @@ bool SCSIDEV::XferOut(bool cont)
 	SCSIPrinter *device = (SCSIPrinter *)ctrl.unit[lun];
 
 	switch (ctrl.cmd[0]) {
+		// Check for PRINT command
 		case scsi_defs::eCmdWrite6:
 			if (!device->Write(ctrl.buffer, bytes_to_transfer)) {
 				// Write failed
