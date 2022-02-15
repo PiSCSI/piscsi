@@ -111,7 +111,12 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 
 	reserving_initiator = ctrl->initiator_id;
 
-	LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator);
+	if (reserving_initiator != -1) {
+		LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator);
+	}
+	else {
+		LOGTRACE("Reserved device ID %d, LUN %d for unknown initiator", GetId(), GetLun());
+	}
 
 	if (fd != -1) {
 		close(fd);
@@ -132,7 +137,12 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 	}
 	fd = -1;
 
-	LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator);
+	if (reserving_initiator != -1) {
+		LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator);
+	}
+	else {
+		LOGTRACE("Released device ID %d, LUN %d reserved by unknown initiator", GetId(), GetLun());
+	}
 
 	reserving_initiator = NOT_RESERVED;
 
