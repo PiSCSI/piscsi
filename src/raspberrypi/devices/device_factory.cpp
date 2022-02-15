@@ -98,6 +98,9 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 	else if (filename == "daynaport") {
 		return SCDP;
 	}
+	else if (filename == "printer") {
+		return SCLP;
+	}
 	else if (filename == "services") {
 		return SCHS;
 	}
