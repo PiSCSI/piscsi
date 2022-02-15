@@ -171,7 +171,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			bool isFirst = true;
 			for (const auto& param : params) {
 				if (!isFirst) {
-					cout << ", ";
+					cout << ":";
 				}
 				cout << param.first << "=" << param.second;
 
