@@ -1,22 +1,27 @@
+"""Module is the entry point for the RaSCSI Control Board UI"""
 import argparse
 import sys
+import logging
 
 from config import CtrlboardConfig
 from ctrlboard_hw.ctrlboard_hw import CtrlBoardHardware
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
-from ctrlboard_event_handler.ctrlboard_menu_update_event_handler import CtrlBoardMenuUpdateEventHandler
+from ctrlboard_event_handler.ctrlboard_menu_update_event_handler \
+    import CtrlBoardMenuUpdateEventHandler
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
 from menu.menu_renderer_config import MenuRendererConfig
 from menu.menu_renderer_luma_oled import MenuRendererLumaOled
-from rascsi.exceptions import EmptySocketChunkException, InvalidProtobufResponse, FailedSocketConnectionException
+from rascsi.exceptions import (EmptySocketChunkException,
+                               InvalidProtobufResponse,
+                               FailedSocketConnectionException)
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.socket_cmds import SocketCmds
-import logging
 
 from rascsi_menu_controller import RascsiMenuController
 
 
 def parse_config():
+    """Parses the command line parameters and configured the RaSCSI Control Board UI accordingly"""
     config = CtrlboardConfig()
     cmdline_args_parser = argparse.ArgumentParser(description='RaSCSI ctrlboard service')
     cmdline_args_parser.add_argument(
@@ -85,12 +90,11 @@ def parse_config():
 
 
 def check_rascsi_connection(ractl_cmd):
+    """Checks whether a RaSCSI connection exists by polling the RaSCSI server info.
+    Returns true if connection works, false if connection fails."""
     try:
         info = ractl_cmd.get_server_info()
-        if info["status"] is True:
-            return True
-        else:
-            return False
+        return bool(info["status"] is True)
     except FailedSocketConnectionException:
         log = logging.getLogger(__name__)
         log.error("Could not establish connection. Stopping service")
@@ -98,6 +102,7 @@ def check_rascsi_connection(ractl_cmd):
 
 
 def main():
+    """Main function for the RaSCSI Control Board UI"""
     config = parse_config()
 
     log_format = "%(asctime)s:%(name)s:%(levelname)s - %(message)s"
@@ -151,6 +156,7 @@ def main():
     menu_controller.set_active_menu(CtrlBoardMenuBuilder.SCSI_ID_MENU)
 
     while True:
+        # pylint: disable=broad-except
         try:
             ctrlboard_hw.process_events()
             menu_update_event_handler.update_events()
@@ -158,8 +164,8 @@ def main():
         except KeyboardInterrupt:
             ctrlboard_hw.cleanup()
             break
-        except Exception as e:
-            print(e)
+        except Exception as ex:
+            print(ex)
 
 
 if __name__ == '__main__':

@@ -1,7 +1,12 @@
+"""
+Module for central RaSCSI control board configuration parameters
+"""
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 
 
+# pylint: disable=too-few-public-methods
 class CtrlboardConfig:
+    """Class for central RaSCSI control board configuration parameters"""
     ROTATION = 0
     WIDTH = 128
     HEIGHT = 64
