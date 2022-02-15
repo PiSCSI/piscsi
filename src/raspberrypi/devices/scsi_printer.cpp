@@ -271,8 +271,12 @@ bool SCSIPrinter::CheckReservation(SASIDEV *controller)
 		return true;
 	}
 
-	LOGTRACE("Initiator ID %d tries to access device ID %d, LUN %d reserved by initiator ID %d",
-			ctrl->initiator_id, GetId(), GetLun(), reserving_initiator);
+	if (ctrl->initiator_id != -1) {
+		LOGTRACE("Initiator ID %d tries to access reserved device ID %d, LUN %d", ctrl->initiator_id, GetId(), GetLun());
+	}
+	else {
+		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun());
+	}
 
 	controller->Error(ERROR_CODES::sense_key::ABORTED_COMMAND, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			ERROR_CODES::status::RESERVATION_CONFLICT);

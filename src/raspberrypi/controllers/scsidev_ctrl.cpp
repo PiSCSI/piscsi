@@ -76,6 +76,13 @@ BUS::phase_t SCSIDEV::Process(int initiator_id)
 		return ctrl.phase;
 	}
 
+	if (initiator_id != UNKNOWN_SCSI_ID) {
+		LOGTRACE("Initiator ID is %d", initiator_id);
+	}
+	else {
+		LOGTRACE("Initiator ID is unknown");
+	}
+
 	ctrl.initiator_id = initiator_id;
 
 	// Phase processing
