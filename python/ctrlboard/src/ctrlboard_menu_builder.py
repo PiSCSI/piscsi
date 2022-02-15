@@ -25,7 +25,8 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     ACTION_IMAGE_ATTACHINSERT = "image_attachinsert"
 
     def __init__(self, ractl_cmd: RaCtlCmds):
-        super().__init__(ractl_cmd)
+        super().__init__()
+        self._rascsi_client = ractl_cmd
         self.file_cmd = FileCmds(sock_cmd=ractl_cmd.sock_cmd, ractl=ractl_cmd)
 
     def build(self, name: str, context_object=None) -> Menu:
@@ -174,3 +175,6 @@ class CtrlBoardMenuBuilder(MenuBuilder):
         menu.add_entry("Imgsz: " + str(device_info["device_list"][0]["size"]))
 
         return menu
+
+    def get_rascsi_client(self):
+        return self._rascsi_client

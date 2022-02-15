@@ -1,17 +1,14 @@
+"""Module for creating menus"""
 from abc import ABC, abstractmethod
 from menu.menu import Menu
-from rascsi.ractl_cmds import RaCtlCmds
 
 
+# pylint: disable=too-few-public-methods
 class MenuBuilder(ABC):
-
-    def __init__(self, ractl: RaCtlCmds):
-        self._rascsi_client = ractl
+    """Base class for menu builders. Classes deriv"""
+    def __init__(self):
+        pass
 
     @abstractmethod
     def build(self, name: str, context_object=None) -> Menu:
-        pass
-
-    def get_rascsi_client(self):
-        return self._rascsi_client
-
+        """builds a menu and gives it a name and a context object"""
