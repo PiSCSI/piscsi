@@ -76,8 +76,9 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device)
 		cout << "  ";
 	}
 
+	map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	bool isFirst = true;
-	for (const auto& param : pb_device.params()) {
+	for (const auto& param : params) {
 		if (!isFirst) {
 			cout << ":";
 		}
