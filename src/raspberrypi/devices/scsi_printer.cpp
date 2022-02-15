@@ -73,10 +73,11 @@ bool SCSIPrinter::Init(const map<string, string>& params)
 	SetParams(params.empty() ? GetDefaultParams() : params);
 
 	int t;
-	GetAsInt(GetParam("timeout"), t);
-	if (t > 0) {
-		timeout = t;
+	if (!GetAsInt(GetParam("timeout"), t) || t <= 0) {
+		return false;
 	}
+
+	timeout = t;
 
 	return true;
 }
