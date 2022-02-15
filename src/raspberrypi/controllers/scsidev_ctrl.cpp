@@ -76,13 +76,6 @@ BUS::phase_t SCSIDEV::Process(int initiator_id)
 		return ctrl.phase;
 	}
 
-	if (initiator_id != UNKNOWN_SCSI_ID) {
-		LOGTRACE("Initiator ID is %d", initiator_id);
-	}
-	else {
-		LOGTRACE("Initiator ID is unknown");
-	}
-
 	ctrl.initiator_id = initiator_id;
 
 	// Phase processing
@@ -214,6 +207,13 @@ void SCSIDEV::Selection()
 		}
 
 		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, (int)ctrl.m_scsi_id);
+
+		if (ctrl.initiator_id != UNKNOWN_SCSI_ID) {
+			LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, ctrl.initiator_id);
+		}
+		else {
+			LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__);
+		}
 
 		// Phase setting
 		ctrl.phase = BUS::selection;
