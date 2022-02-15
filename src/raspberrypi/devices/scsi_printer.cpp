@@ -88,6 +88,7 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 
 void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 {
+	// The printer is released after a configurable time in order to prevent deadlocks caused by broken clients
 	if (reservation_time + timeout < time(0)) {
 		DiscardReservation();
 	}
