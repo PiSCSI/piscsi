@@ -1,11 +1,15 @@
+"""Module that implements a button cycling functionality"""
 from abc import abstractmethod
 from menu.timer import Timer
 from rascsi.file_cmds import FileCmds
 
 
 class Cycler:
-
-    def __init__(self, menu_controller, sock_cmd, ractl_cmd, cycle_timeout=3, return_string="Return ->",
+    """Class implementing button cycling functionality. Message is shown at the center of
+    the screen where repeated button presses cycle through the available selection
+    possibilities. Inactivity (cycle_timeout) actives cycle entry last shown on the screen."""
+    def __init__(self, menu_controller, sock_cmd, ractl_cmd,
+                 cycle_timeout=3, return_string="Return ->",
                  return_entry=True, empty_messages=True):
         self._cycle_profile_timer_flag = Timer(activation_delay=cycle_timeout)
         self._menu_controller = menu_controller
@@ -25,21 +29,20 @@ class Cycler:
     @abstractmethod
     def populate_cycle_entries(self):
         """Returns a list of entries to cycle"""
-        pass
 
     @abstractmethod
     def perform_selected_entry_action(self, selected_entry):
-        pass
+        """Performs an action on the selected cycle menu entry"""
 
     @abstractmethod
     def perform_return_action(self):
-        pass
+        """Perform the return action, i.e., when no selection is chosen"""
 
     def update(self):
         """ Returns True if object has completed its task and can be deleted """
 
         if self._cycle_profile_timer_flag is None:
-            return
+            return None
 
         self._cycle_profile_timer_flag.check_timer()
         if self.message is not None:
@@ -47,7 +50,7 @@ class Cycler:
             self._menu_controller.get_menu_renderer().render()
 
         if self._cycle_profile_timer_flag.enabled is False:  # timer is running
-            return
+            return None
 
         selected_cycle_entry = str(self.cycle_entries[self.selected_config_file_index])
 
@@ -63,10 +66,11 @@ class Cycler:
             self._menu_controller.show_timed_mini_message("")
             self._menu_controller.show_timed_message("")
             return self.perform_return_action()
-        else:
-            return self.perform_selected_entry_action(selected_cycle_entry)
+
+        return self.perform_selected_entry_action(selected_cycle_entry)
 
     def cycle(self):
+        """Cycles between entries in the cycle menu"""
         if self._cycle_profile_timer_flag is None:
             return
 
