@@ -1298,24 +1298,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_type(type);
 		device->set_block_size(block_size);
 
-		// Either interface, printer or file parameters are supported
-		if (device_factory.GetDefaultParams(type).count("interfaces")) {
-			AddParam(*device, "interfaces", optarg);
-		}
-		else if (device_factory.GetDefaultParams(type).count("cmd")) {
-			string params = optarg;
-			size_t separator_pos = params.find(':');
-			if (separator_pos == string::npos) {
-				AddParam(*device, "cmd", params);
-			}
-			else {
-				AddParam(*device, "cmd", params.substr(0, separator_pos));
-				AddParam(*device, "timeout", params.substr(separator_pos + 1));
-			}
-		}
-		else {
-			AddParam(*device, "file", optarg);
-		}
+		ParseParameters(device, optarg);
 
 		size_t separator_pos = name.find(':');
 		if (separator_pos != string::npos) {

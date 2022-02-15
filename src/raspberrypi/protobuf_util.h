@@ -23,6 +23,7 @@ using namespace rascsi_interface;
 
 namespace protobuf_util
 {
+	void ParseParameters(PbDeviceDefinition *, const string&);
 	const string GetParam(const PbCommand&, const string&);
 	const string GetParam(const PbDeviceDefinition&, const string&);
 	void AddParam(PbCommand&, const string&, const string&);

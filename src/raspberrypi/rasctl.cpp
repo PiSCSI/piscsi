@@ -383,22 +383,7 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if (!param.empty()) {
-		// Only one set of these parameters will be used by rascsi, depending on the device type
-
-		AddParam(*device, "interfaces", param);
-
-		AddParam(*device, "file", param);
-
-		size_t separator_pos = param.find(COMPONENT_SEPARATOR);
-		if (separator_pos == string::npos) {
-			AddParam(*device, "cmd", param);
-		}
-		else {
-			AddParam(*device, "cmd", param.substr(0, separator_pos));
-			AddParam(*device, "timeout", param.substr(separator_pos + 1));
-		}
-	}
+	ParseParameters(device, param);
 
 	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
 

@@ -22,6 +22,30 @@ using namespace rascsi_interface;
 
 Localizer localizer;
 
+void protobuf_util::ParseParameters(PbDeviceDefinition *device, const string& params)
+{
+	if (!params.empty()) {
+		if (params.find('=') != string::npos) {
+			stringstream ss(params);
+			string p;
+			while (getline(ss, p, ':')) {
+				if (!p.empty()) {
+					size_t separator_pos = p.find('=');
+					if (separator_pos != string::npos) {
+						AddParam(*device, p.substr(0, separator_pos), p.substr(separator_pos + 1));
+					}
+				}
+			}
+		}
+		// Old style parameters, for backwards compatibility only.
+		// Only one of these parameters will be used by rascsi, depending on the device type.
+		else {
+			AddParam(*device, "file", params);
+			AddParam(*device, "interfaces", params);
+		}
+    }
+}
+
 const string protobuf_util::GetParam(const PbCommand& command, const string& key)
 {
 	auto map = command.params();
