@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// Implementation of a SCSI printer (see SCSI-2 specification for a command description)
+//
 //---------------------------------------------------------------------------
 #pragma once
 

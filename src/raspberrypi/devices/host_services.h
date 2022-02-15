@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// RaSCSI Host Services with realtime clock and shutdown support
+// Host Services with realtime clock and shutdown support
 //
 //---------------------------------------------------------------------------
 #pragma once

@@ -5,7 +5,20 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// Implementation of a SCSI printer (see SCSI-2 specification for a command description)
+//
 //---------------------------------------------------------------------------
+
+//
+// How to print:
+//
+// 1. The client reserves the printer device with RESERVER UNIT (optional step, mandatory for
+// a multi-initiator environment).
+// 2. The client sends the data to be printed with one or several PRINT commands.
+// 3. The client triggers printing with SYNCHRONIZE BUFFERS.
+// 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for
+// a multi-initiator environment).
+//
 
 #include <sys/stat.h>
 #include "controllers/scsidev_ctrl.h"

@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// Host Services with realtime clock and shutdown support
+//
 //---------------------------------------------------------------------------
 
 //
