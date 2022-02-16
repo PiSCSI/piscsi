@@ -196,7 +196,7 @@ void SCSIDEV::Selection()
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
 		// invalid if IDs do not match
-		DWORD id = 1 << ctrl.m_scsi_id;
+		int id = 1 << ctrl.m_scsi_id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
 			return;
 		}
@@ -364,7 +364,7 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERRO
 		return;
 	}
 
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
 		lun = 0;
 	}
@@ -894,7 +894,7 @@ bool SCSIDEV::XferOut(bool cont)
 
 	ASSERT(ctrl.phase == BUS::dataout);
 
-	DWORD lun = GetEffectiveLun();
+	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
