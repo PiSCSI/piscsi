@@ -1155,7 +1155,7 @@ bool SASIDEV::XferOut(bool cont)
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
 			if (device->IsDaynaPort()) {
-				if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+				if (!((SCSIDaynaPort*)device)->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return false;
 				}
