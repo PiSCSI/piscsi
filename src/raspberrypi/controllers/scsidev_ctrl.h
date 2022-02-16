@@ -45,20 +45,19 @@ public:
 		bool atnmsg;
 		int msc;
 		BYTE msb[256];
+
+		int initiator_id;
 	} scsi_t;
 
-	// Basic Functions
 	SCSIDEV();
 	~SCSIDEV();
 
 	void Reset() override;
 
-	// External API
 	BUS::phase_t Process(int) override;
 
 	void Receive() override;
 
-	// Other
 	bool IsSASI() const override { return false; }
 	bool IsSCSI() const override { return true; }
 
@@ -67,6 +66,8 @@ public:
 			ERROR_CODES::status status = ERROR_CODES::status::CHECK_CONDITION) override;	// Common error handling
 
 	void ShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+
+	int GetInitiatorId() const { return scsi.initiator_id; }
 
 private:
 

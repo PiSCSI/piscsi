@@ -132,8 +132,6 @@ public:
 
 		// The LUN from the IDENTIFY message
 		int lun;
-
-		int initiator_id;
 	} ctrl_t;
 
 public:

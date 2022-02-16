@@ -112,7 +112,7 @@ void SCSIPrinter::ReserveUnit(SCSIDEV *controller)
 		return;
 	}
 
-	reserving_initiator = ctrl->initiator_id;
+	reserving_initiator = controller->GetInitiatorId();
 
 	if (reserving_initiator != -1) {
 		LOGTRACE("Reserved device ID %d, LUN %d for initiator ID %d", GetId(), GetLun(), reserving_initiator);
@@ -263,14 +263,14 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 
 bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
 {
-	if (reserving_initiator == NOT_RESERVED || reserving_initiator == ctrl->initiator_id) {
+	if (reserving_initiator == NOT_RESERVED || reserving_initiator == controller->GetInitiatorId()) {
 		reservation_time = time(0);
 
 		return true;
 	}
 
-	if (ctrl->initiator_id != -1) {
-		LOGTRACE("Initiator ID %d tries to access reserved device ID %d, LUN %d", ctrl->initiator_id, GetId(), GetLun());
+	if (controller->GetInitiatorId() != -1) {
+		LOGTRACE("Initiator ID %d tries to access reserved device ID %d, LUN %d", controller->GetInitiatorId(), GetId(), GetLun());
 	}
 	else {
 		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun());
