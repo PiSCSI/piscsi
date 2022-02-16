@@ -46,7 +46,9 @@ public:
 		int msc;
 		BYTE msb[256];
 
+		// -1 means that the initiator ID is unknown, e.g. with Atari ACSI and old host adapters
 		int initiator_id;
+
 		bool is_byte_transfer;
 		uint32_t bytes_to_transfer;
 	} scsi_t;
