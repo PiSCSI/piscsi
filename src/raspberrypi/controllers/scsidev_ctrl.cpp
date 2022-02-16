@@ -899,25 +899,16 @@ bool SCSIDEV::XferOut(bool cont)
 		return false;
 	}
 
-	// TODO This might not be a printer, but currently always is
-	SCSIPrinter *device = (SCSIPrinter *)ctrl.unit[lun];
-
-	switch (ctrl.cmd[0]) {
-		// Check for PRINT command
-		case scsi_defs::eCmdWrite6:
-			if (!device->Write(ctrl.buffer, scsi.bytes_to_transfer)) {
-				// Writing to temporary print output file failed
-				return false;
-			}
-
-			break;
-
-		default:
+	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[lun]);
+	if (device && ctrl.cmd[0] == scsi_defs::eCmdWrite6) {
+		if (device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer)) {
+			return true;
+		}
+		else {
 			LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
-			break;
+		}
 	}
 
-	// Data transferred successfully
-	return true;
+	return false;
 }
 

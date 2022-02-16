@@ -36,6 +36,7 @@ public:
 	bool CheckReady();
 	virtual int Inquiry(const DWORD *, BYTE *) = 0;
 	virtual int RequestSense(const DWORD *, BYTE *);
+	virtual bool WriteBytes(BYTE *, uint32_t);
 
 protected:
 

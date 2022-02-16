@@ -40,7 +40,7 @@ public:
 	void SendDiagnostic(SCSIDEV *);
 	void StopPrint(SCSIDEV *);
 
-	bool Write(BYTE *, uint32_t);
+	bool WriteBytes(BYTE *, uint32_t) override;
 	bool CheckReservation(SCSIDEV *);
 	void DiscardReservation();
 

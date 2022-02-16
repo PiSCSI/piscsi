@@ -241,7 +241,7 @@ void SCSIPrinter::StopPrint(SCSIDEV *controller)
 	controller->Status();
 }
 
-bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
+bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 {
 	if (fd == -1) {
 		strcpy(filename, TMP_FILE_PATTERN);

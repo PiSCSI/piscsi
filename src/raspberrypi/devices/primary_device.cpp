@@ -232,3 +232,9 @@ int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
+bool PrimaryDevice::WriteBytes(BYTE *buf, uint32_t length)
+{
+	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__);
+
+	return false;
+}
