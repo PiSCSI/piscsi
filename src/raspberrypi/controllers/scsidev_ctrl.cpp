@@ -585,7 +585,7 @@ void SCSIDEV::Receive()
 			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 			for (int i = 0; i < len; i++) {
-				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
+				ctrl.cmd[i] = ctrl.buffer[i];
 				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
 
@@ -783,7 +783,7 @@ void SCSIDEV::ReceiveBytes()
 			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 			for (uint32_t i = 0; i < len; i++) {
-				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
+				ctrl.cmd[i] = ctrl.buffer[i];
 				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
 
