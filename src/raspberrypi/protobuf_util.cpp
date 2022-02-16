@@ -44,7 +44,9 @@ void protobuf_util::ParseParameters(PbDeviceDefinition& device, const string& pa
 		// Only one of these parameters will be used by rascsi, depending on the device type.
 		else {
 			AddParam(device, "file", params);
-			AddParam(device, "interfaces", params);
+			if (params != "bridge" && params != "daynaport" && params != "printer" && params != "services") {
+				AddParam(device, "interfaces", params);
+			}
 		}
     }
 }
