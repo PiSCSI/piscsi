@@ -60,7 +60,7 @@ int HostServices::Inquiry(const DWORD *cdb, BYTE *buf)
 	return PrimaryDevice::Inquiry(3, false, cdb, buf);
 }
 
-void HostServices::StartStopUnit(SASIDEV *controller)
+void HostServices::StartStopUnit(SCSIDEV *controller)
 {
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;

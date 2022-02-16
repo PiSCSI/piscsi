@@ -26,7 +26,7 @@ public:
 
 	int Inquiry(const DWORD *, BYTE *) override;
 	void TestUnitReady(SASIDEV *) override;
-	void StartStopUnit(SASIDEV *);
+	void StartStopUnit(SCSIDEV *);
 
 	int ModeSense6(const DWORD *, BYTE *);
 	int ModeSense10(const DWORD *, BYTE *);
@@ -35,7 +35,7 @@ private:
 
 	typedef ModePageDevice super;
 
-	Dispatcher<HostServices, SASIDEV> dispatcher;
+	Dispatcher<HostServices, SCSIDEV> dispatcher;
 
 	int AddRealtimeClockPage(int, BYTE *);
 };
