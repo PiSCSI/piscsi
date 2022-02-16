@@ -162,6 +162,7 @@ public:
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
 
+	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
 
 	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
