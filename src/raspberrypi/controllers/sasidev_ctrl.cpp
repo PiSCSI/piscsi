@@ -1066,7 +1066,8 @@ void SASIDEV::Receive()
 //
 //	Data transfer IN
 //	*Reset offset and length
-// TODO XferIn probably needs a dispatcher, in order to avoid subclassing Disk
+// TODO XferIn probably needs a dispatcher, in order to avoid subclassing Disk, i.e.
+// just like the actual SCSI commands XferIn should be executed by the respective device
 //
 //---------------------------------------------------------------------------
 bool SASIDEV::XferIn(BYTE *buf)
@@ -1113,7 +1114,8 @@ bool SASIDEV::XferIn(BYTE *buf)
 //
 //	Data transfer OUT
 //	*If cont=true, reset the offset and length
-// TODO XferOut probably needs a dispatcher, in order to avoid subclassing Disk
+// TODO XferOut probably needs a dispatcher, in order to avoid subclassing Disk, i.e.
+// just like the actual SCSI commands XferOut should be executed by the respective device
 //
 //---------------------------------------------------------------------------
 bool SASIDEV::XferOut(bool cont)
