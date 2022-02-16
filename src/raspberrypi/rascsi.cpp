@@ -1298,7 +1298,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_type(type);
 		device->set_block_size(block_size);
 
-		ParseParameters(device, optarg);
+		ParseParameters(*device, optarg);
 
 		size_t separator_pos = name.find(':');
 		if (separator_pos != string::npos) {

@@ -383,7 +383,7 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	ParseParameters(device, param);
+	ParseParameters(*device, param);
 
 	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
 
