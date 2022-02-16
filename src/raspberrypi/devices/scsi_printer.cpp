@@ -237,7 +237,7 @@ bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 		strcpy(filename, TMP_FILE_PATTERN);
 		fd = mkstemp(filename);
 		if (fd == -1) {
-			LOGERROR("Can't create temporary printer output file: %s", strerror(errno));
+			LOGERROR("Can't create printer output file: %s", strerror(errno));
 			return false;
 		}
 
