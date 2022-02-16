@@ -39,6 +39,7 @@ using namespace scsi_defs;
 
 HostServices::HostServices() : ModePageDevice("SCHS")
 {
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
@@ -48,7 +49,7 @@ bool HostServices::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-void HostServices::TestUnitReady(SASIDEV *controller)
+void HostServices::TestUnitReady(SCSIDEV *controller)
 {
 	// Always successful
 	controller->Status();

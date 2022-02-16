@@ -25,7 +25,7 @@ public:
 	virtual bool Dispatch(SCSIDEV *) override;
 
 	int Inquiry(const DWORD *, BYTE *) override;
-	void TestUnitReady(SASIDEV *) override;
+	void TestUnitReady(SCSIDEV *);
 	void StartStopUnit(SCSIDEV *);
 
 	int ModeSense6(const DWORD *, BYTE *);
