@@ -54,6 +54,7 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	reservation_time = 0;
 	timeout = 0;
 
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
@@ -85,9 +86,9 @@ bool SCSIPrinter::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-void SCSIPrinter::TestUnitReady(SASIDEV *controller)
+void SCSIPrinter::TestUnitReady(SCSIDEV *controller)
 {
-	if (!CheckReservation(static_cast<SCSIDEV *>(controller))) {
+	if (!CheckReservation(controller)) {
 		return;
 	}
 

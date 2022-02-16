@@ -32,7 +32,7 @@ public:
 	bool Init(const map<string, string>&);
 
 	int Inquiry(const DWORD *, BYTE *) override;
-	void TestUnitReady(SASIDEV *) override;
+	void TestUnitReady(SCSIDEV *);
 	void ReserveUnit(SCSIDEV *);
 	void ReleaseUnit(SCSIDEV *);
 	void Print(SCSIDEV *);
