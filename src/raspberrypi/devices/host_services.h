@@ -35,7 +35,7 @@ private:
 
 	typedef ModePageDevice super;
 
-	Dispatcher<HostServices> dispatcher;
+	Dispatcher<HostServices, SASIDEV> dispatcher;
 
 	int AddRealtimeClockPage(int, BYTE *);
 };

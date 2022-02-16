@@ -87,7 +87,7 @@ bool SCSIPrinter::Dispatch(SCSIDEV *controller)
 
 void SCSIPrinter::TestUnitReady(SASIDEV *controller)
 {
-	if (!CheckReservation(controller)) {
+	if (!CheckReservation(static_cast<SCSIDEV *>(controller))) {
 		return;
 	}
 
@@ -100,7 +100,7 @@ int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
 	return PrimaryDevice::Inquiry(2, false, cdb, buf);
 }
 
-void SCSIPrinter::ReserveUnit(SASIDEV *controller)
+void SCSIPrinter::ReserveUnit(SCSIDEV *controller)
 {
 	// The printer is released after a configurable time in order to prevent deadlocks caused by broken clients
 	if (reservation_time + timeout < time(0)) {
@@ -128,7 +128,7 @@ void SCSIPrinter::ReserveUnit(SASIDEV *controller)
 	controller->Status();
 }
 
-void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
+void SCSIPrinter::ReleaseUnit(SCSIDEV *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -146,7 +146,7 @@ void SCSIPrinter::ReleaseUnit(SASIDEV *controller)
 	controller->Status();
 }
 
-void SCSIPrinter::Print(SASIDEV *controller)
+void SCSIPrinter::Print(SCSIDEV *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -173,7 +173,7 @@ void SCSIPrinter::Print(SASIDEV *controller)
 	controller->DataOut();
 }
 
-void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
+void SCSIPrinter::SynchronizeBuffer(SCSIDEV *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -213,7 +213,7 @@ void SCSIPrinter::SynchronizeBuffer(SASIDEV *controller)
 	unlink(filename);
 }
 
-void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
+void SCSIPrinter::SendDiagnostic(SCSIDEV *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -222,7 +222,7 @@ void SCSIPrinter::SendDiagnostic(SASIDEV *controller)
 	controller->Status();
 }
 
-void SCSIPrinter::StopPrint(SASIDEV *controller)
+void SCSIPrinter::StopPrint(SCSIDEV *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -260,7 +260,7 @@ bool SCSIPrinter::Write(BYTE *buf, uint32_t length)
 	return true;
 }
 
-bool SCSIPrinter::CheckReservation(SASIDEV *controller)
+bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
 {
 	if (reserving_initiator == NOT_RESERVED || reserving_initiator == ctrl->initiator_id) {
 		reservation_time = time(0);

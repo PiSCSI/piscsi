@@ -53,7 +53,7 @@ private:
 		off_t image_offset;						// Offset to actual data
 	} disk_t;
 
-	Dispatcher<Disk> dispatcher;
+	Dispatcher<Disk, SASIDEV> dispatcher;
 
 public:
 	Disk(const string&);

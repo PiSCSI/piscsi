@@ -45,7 +45,7 @@ protected:
 
 private:
 
-	Dispatcher<PrimaryDevice> dispatcher;
+	Dispatcher<PrimaryDevice, SASIDEV> dispatcher;
 
 	void Inquiry(SASIDEV *);
 	void ReportLuns(SASIDEV *);

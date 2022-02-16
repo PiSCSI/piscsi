@@ -33,22 +33,22 @@ public:
 
 	int Inquiry(const DWORD *, BYTE *) override;
 	void TestUnitReady(SASIDEV *) override;
-	void ReserveUnit(SASIDEV *);
-	void ReleaseUnit(SASIDEV *);
-	void Print(SASIDEV *);
-	void SynchronizeBuffer(SASIDEV *);
-	void SendDiagnostic(SASIDEV *);
-	void StopPrint(SASIDEV *);
+	void ReserveUnit(SCSIDEV *);
+	void ReleaseUnit(SCSIDEV *);
+	void Print(SCSIDEV *);
+	void SynchronizeBuffer(SCSIDEV *);
+	void SendDiagnostic(SCSIDEV *);
+	void StopPrint(SCSIDEV *);
 
 	bool Write(BYTE *, uint32_t);
-	bool CheckReservation(SASIDEV *);
+	bool CheckReservation(SCSIDEV *);
 	void DiscardReservation();
 
 private:
 
 	typedef PrimaryDevice super;
 
-	Dispatcher<SCSIPrinter> dispatcher;
+	Dispatcher<SCSIPrinter, SCSIDEV> dispatcher;
 
 	char filename[sizeof(TMP_FILE_PATTERN) + 1];
 	int fd;
