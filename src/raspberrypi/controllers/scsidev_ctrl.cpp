@@ -170,7 +170,9 @@ void SCSIDEV::BusFree()
 
 		case PI:
 			LOGINFO("Raspberry Pi shutdown requested");
-			system("init 0");
+			if (system("init 0") == -1) {
+				LOGERROR("Raspberry Pi shutdown failed: %s", strerror(errno));
+			}
 			break;
 
 		default:
