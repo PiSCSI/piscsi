@@ -1066,6 +1066,7 @@ void SASIDEV::Receive()
 //
 //	Data transfer IN
 //	*Reset offset and length
+// TODO XferIn probably needs a dispatcher, in order to avoid subclassing Disk
 //
 //---------------------------------------------------------------------------
 bool SASIDEV::XferIn(BYTE *buf)
@@ -1112,6 +1113,7 @@ bool SASIDEV::XferIn(BYTE *buf)
 //
 //	Data transfer OUT
 //	*If cont=true, reset the offset and length
+// TODO XferOut probably needs a dispatcher, in order to avoid subclassing Disk
 //
 //---------------------------------------------------------------------------
 bool SASIDEV::XferOut(bool cont)
