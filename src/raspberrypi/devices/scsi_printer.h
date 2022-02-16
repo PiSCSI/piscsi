@@ -43,6 +43,7 @@ public:
 	bool WriteBytes(BYTE *, uint32_t) override;
 	bool CheckReservation(SCSIDEV *);
 	void DiscardReservation();
+	void Cleanup();
 
 private:
 

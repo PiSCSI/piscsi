@@ -121,10 +121,7 @@ void SCSIPrinter::ReserveUnit(SCSIDEV *controller)
 		LOGTRACE("Reserved device ID %d, LUN %d for unknown initiator", GetId(), GetLun());
 	}
 
-	if (fd != -1) {
-		close(fd);
-	}
-	fd = -1;
+	Cleanup();
 
 	controller->Status();
 }
@@ -229,14 +226,7 @@ void SCSIPrinter::StopPrint(SCSIDEV *controller)
 		return;
 	}
 
-	if (fd != -1) {
-		close(fd);
-		fd = -1;
-
-		unlink(filename);
-	}
-
-	LOGTRACE("Printing has been cancelled");
+	Cleanup();
 
 	controller->Status();
 }
@@ -284,12 +274,17 @@ bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
 
 void SCSIPrinter::DiscardReservation()
 {
+	Cleanup();
+
+	reserving_initiator = NOT_RESERVED;
+}
+
+void SCSIPrinter::Cleanup()
+{
 	if (fd != -1) {
 		close(fd);
 		fd = -1;
 
 		unlink(filename);
 	}
-
-	reserving_initiator = NOT_RESERVED;
 }
