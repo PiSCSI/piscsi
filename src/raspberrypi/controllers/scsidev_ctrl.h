@@ -63,9 +63,10 @@ public:
 	bool IsSASI() const override { return false; }
 	bool IsSCSI() const override { return true; }
 
+	// Common error handling
 	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
 			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			ERROR_CODES::status status = ERROR_CODES::status::CHECK_CONDITION) override;	// Common error handling
+			ERROR_CODES::status status = ERROR_CODES::status::CHECK_CONDITION) override;
 
 	void ShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 
@@ -75,24 +76,20 @@ public:
 
 private:
 
-	// Phase
-	void BusFree() override;						// Bus free phase
-	void Selection() override;						// Selection phase
-	void Execute() override;						// Execution phase
-	void MsgOut();							// Message out phase
-
-	// commands
-	void CmdGetEventStatusNotification();
-	void CmdModeSelect10();
-	void CmdModeSense10();
+	// Phases
+	void BusFree() override;
+	void Selection() override;
+	void Execute() override;
+	void MsgOut();
 
 	// Data transfer
 	void Send() override;
-	bool XferMsg(DWORD msg);
+	bool XferMsg(int);
 	bool XferOut(bool);
 	void ReceiveBytes();
 
-	scsi_t scsi;								// Internal data
+	// Internal data
+	scsi_t scsi;
 
 	rascsi_shutdown_mode shutdown_mode;
 };

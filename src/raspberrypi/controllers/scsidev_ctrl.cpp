@@ -700,7 +700,7 @@ void SCSIDEV::Receive()
 //	Transfer MSG
 //
 //---------------------------------------------------------------------------
-bool SCSIDEV::XferMsg(DWORD msg)
+bool SCSIDEV::XferMsg(int msg)
 {
 	ASSERT(ctrl.phase == BUS::msgout);
 
