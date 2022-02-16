@@ -48,6 +48,7 @@ public:
 
 		int initiator_id;
 		bool is_byte_transfer;
+		uint32_t bytes_to_transfer;
 	} scsi_t;
 
 	SCSIDEV();
@@ -92,8 +93,6 @@ private:
 	void ReceiveBytes();
 
 	scsi_t scsi;								// Internal data
-
-	uint32_t bytes_to_transfer;
 
 	rascsi_shutdown_mode shutdown_mode;
 };

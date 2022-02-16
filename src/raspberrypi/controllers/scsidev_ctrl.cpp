@@ -27,7 +27,7 @@
 
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
-	bytes_to_transfer = 0;
+	scsi.bytes_to_transfer = 0;
 	shutdown_mode = NONE;
 
 	// Synchronous transfer work initialization
@@ -159,7 +159,7 @@ void SCSIDEV::BusFree()
 		ctrl.lun = -1;
 
 		scsi.is_byte_transfer = false;
-		bytes_to_transfer = 0;
+		scsi.bytes_to_transfer = 0;
 
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
@@ -739,7 +739,7 @@ void SCSIDEV::ReceiveBytes()
 		}
 
 		ctrl.offset += ctrl.length;
-		bytes_to_transfer = ctrl.length;
+		scsi.bytes_to_transfer = ctrl.length;
 		ctrl.length = 0;
 		return;
 	}
@@ -905,7 +905,7 @@ bool SCSIDEV::XferOut(bool cont)
 	switch (ctrl.cmd[0]) {
 		// Check for PRINT command
 		case scsi_defs::eCmdWrite6:
-			if (!device->Write(ctrl.buffer, bytes_to_transfer)) {
+			if (!device->Write(ctrl.buffer, scsi.bytes_to_transfer)) {
 				// Writing to temporary print output file failed
 				return false;
 			}
