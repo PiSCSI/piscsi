@@ -169,7 +169,7 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 	}
 
 	ctrl->length = length;
-	ctrl->is_byte_transfer = true;
+	controller->SetByteTransfer(true);
 
 	controller->DataOut();
 }

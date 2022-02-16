@@ -47,6 +47,7 @@ public:
 		BYTE msb[256];
 
 		int initiator_id;
+		bool is_byte_transfer;
 	} scsi_t;
 
 	SCSIDEV();
@@ -68,6 +69,8 @@ public:
 	void ShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 
 	int GetInitiatorId() const { return scsi.initiator_id; }
+	bool IsByteTransfer() const { return scsi.is_byte_transfer; }
+	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
 private:
 

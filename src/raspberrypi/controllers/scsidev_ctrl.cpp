@@ -158,7 +158,7 @@ void SCSIDEV::BusFree()
 
 		ctrl.lun = -1;
 
-		ctrl.is_byte_transfer = false;
+		scsi.is_byte_transfer = false;
 		bytes_to_transfer = 0;
 
 		// When the bus is free RaSCSI or the Pi may be shut down
@@ -496,7 +496,7 @@ void SCSIDEV::Send()
 //---------------------------------------------------------------------------
 void SCSIDEV::Receive()
 {
-	if (ctrl.is_byte_transfer) {
+	if (scsi.is_byte_transfer) {
 		ReceiveBytes();
 		return;
 	}
@@ -888,7 +888,7 @@ void SCSIDEV::ReceiveBytes()
 
 bool SCSIDEV::XferOut(bool cont)
 {
-	if (!ctrl.is_byte_transfer) {
+	if (!scsi.is_byte_transfer) {
 		return SASIDEV::XferOut(cont);
 	}
 
