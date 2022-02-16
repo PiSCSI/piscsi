@@ -241,8 +241,17 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 			// } else {
 			// 	response->flags = e_no_more_data;
 			// }
-			buf[0] = (BYTE)((rx_packet_size >> 8) & 0xFF);
-			buf[1] = (BYTE)(rx_packet_size & 0xFF);
+			int size = rx_packet_size;
+			if (size < 64) {
+				// A frame must have at least 64 bytes (see https://github.com/akuker/RASCSI/issues/619)
+				// Note that this work-around breaks the checksum. As currently there are no known drivers
+				// that care for the checksum, and the Daynaport driver for the Atari expects frames of
+				// 64 bytes it was decided to accept the broken checksum. If a driver should pop up that
+				// breaks because of this, the work-around has to be re-evaluated.
+				size = 64;
+			}
+			buf[0] = size >> 8;
+			buf[1] = size;
 
 			buf[2] = 0;
 			buf[3] = 0;
@@ -255,7 +264,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver
-			return rx_packet_size + DAYNAPORT_READ_HEADER_SZ;
+			return size + DAYNAPORT_READ_HEADER_SZ;
 		}
 		// If we got to this point, there are still messages in the queue, so 
 		// we should loop back and get the next one.
