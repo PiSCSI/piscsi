@@ -50,6 +50,8 @@ using namespace protobuf_util;
 #define UnitNum	SASIDEV::UnitMax	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
+#define COMPONENT_SEPARATOR ':'
+
 //---------------------------------------------------------------------------
 //
 //	Variable declarations
@@ -1084,7 +1086,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 
 bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
 {
-	size_t separator_pos = id_spec.find(':');
+	size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR);
 	if (separator_pos == string::npos) {
 		int max_id = type == SAHD ? 16 : 8;
 
@@ -1300,11 +1302,11 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 		ParseParameters(*device, optarg);
 
-		size_t separator_pos = name.find(':');
+		size_t separator_pos = name.find(COMPONENT_SEPARATOR);
 		if (separator_pos != string::npos) {
 			device->set_vendor(name.substr(0, separator_pos));
 			name = name.substr(separator_pos + 1);
-			separator_pos = name.find(':');
+			separator_pos = name.find(COMPONENT_SEPARATOR);
 			if (separator_pos != string::npos) {
 				device->set_product(name.substr(0, separator_pos));
 				device->set_revision(name.substr(separator_pos + 1));
