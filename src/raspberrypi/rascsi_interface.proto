@@ -39,9 +39,11 @@ enum PbOperation {
     NO_OPERATION = 0;
 
     // Attach devices and return the new device list (PbDevicesInfo)
-    // Parameters (mutually exclusive):
+    // Parameters (depending on the device type):
     //   "file": The filename relative to the default image folder
-    //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
+    //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for
+    //   "cmd": The command to be used for printing
+    //   "timeout": The timeout for printer reservations in seconds
     ATTACH = 1;
 
     // Detach a device and return the new device list (PbDevicesInfo)
