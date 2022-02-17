@@ -894,8 +894,6 @@ bool SCSIDEV::XferOut(bool cont)
 		return SASIDEV::XferOut(cont);
 	}
 
-	ASSERT(ctrl.phase == BUS::dataout);
-
 	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[GetEffectiveLun()]);
 	if (device && ctrl.cmd[0] == scsi_defs::eCmdWrite6) {
 		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
