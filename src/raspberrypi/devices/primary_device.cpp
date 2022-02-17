@@ -51,6 +51,7 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 	// LUN 0 is always available
 	if (!device) {
 		device = ctrl->unit[0];
+		assert(device);
 	}
 
 	ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
