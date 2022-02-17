@@ -45,20 +45,13 @@ void PrimaryDevice::TestUnitReady(SASIDEV *controller)
 
 void PrimaryDevice::Inquiry(SASIDEV *controller)
 {
-	int lun = controller->GetEffectiveLun();
-	const Device *device = ctrl->unit[lun];
-
-	// LUN 0 is always available
-	if (!device) {
-		device = ctrl->unit[0];
-		assert(device);
-	}
-
 	ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
 	}
+
+	int lun = controller->GetEffectiveLun();
 
 	// Report if the device does not support the requested LUN
 	if (!ctrl->unit[lun]) {
