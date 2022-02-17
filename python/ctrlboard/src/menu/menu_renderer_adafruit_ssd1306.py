@@ -1,3 +1,5 @@
+"""Module providing the Adafruit SSD1306 menu renderer class"""
+# pylint: disable=import-error
 from board import SCL, SDA
 import busio
 import adafruit_ssd1306
@@ -5,6 +7,7 @@ from menu.menu_renderer import MenuRenderer
 
 
 class MenuRendererAdafruitSSD1306(MenuRenderer):
+    """Class implementing a menu renderer using the Adafruit SSD1306 library"""
 
     def display_init(self):
         i2c = busio.I2C(SCL, SDA)
