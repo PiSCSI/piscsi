@@ -18,7 +18,7 @@
 #pragma once
 
 #include "os.h"
-#include "primary_device.h"
+#include "disk.h"
 #include <string>
 
 //===========================================================================
@@ -29,7 +29,7 @@
 class CTapDriver;
 class CFileSys;
 
-class SCSIBR : public PrimaryDevice
+class SCSIBR : public Disk
 {
 
 public:
@@ -48,7 +48,7 @@ public:
 	void SendMessage10(SASIDEV *);
 
 private:
-	typedef PrimaryDevice super;
+	typedef Disk super;
 
 	Dispatcher<SCSIBR, SASIDEV> dispatcher;
 

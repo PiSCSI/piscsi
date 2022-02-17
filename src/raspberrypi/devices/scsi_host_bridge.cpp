@@ -24,7 +24,7 @@
 using namespace std;
 using namespace scsi_defs;
 
-SCSIBR::SCSIBR() : PrimaryDevice("SCBR")
+SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	tap = NULL;
 	m_bTapEnable = false;
