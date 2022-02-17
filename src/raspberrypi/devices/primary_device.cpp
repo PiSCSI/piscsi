@@ -45,37 +45,19 @@ void PrimaryDevice::TestUnitReady(SASIDEV *controller)
 
 void PrimaryDevice::Inquiry(SASIDEV *controller)
 {
-	int lun = controller->GetEffectiveLun();
-	const Device *device = ctrl->unit[lun];
-
-	// Find a valid unit
-	// TODO The code below is probably wrong. It results in the same INQUIRY data being
-	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	// In addition, it supports gaps in the LUN list, which is not correct.
-	if (!device) {
-		for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
-			if (ctrl->unit[valid_lun]) {
-				device = ctrl->unit[valid_lun];
-				break;
-			}
-		}
-	}
-
-	if (device) {
-		ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
-	} else {
-		ctrl->length = 0;
-	}
-
+	ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
 	}
 
+	int lun = controller->GetEffectiveLun();
+
 	// Report if the device does not support the requested LUN
 	if (!ctrl->unit[lun]) {
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
 
+		// Signal that the requested LUN does not exist
 		ctrl->buffer[0] |= 0x7f;
 	}
 
