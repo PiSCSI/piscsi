@@ -1,0 +1,12 @@
+[Unit]
+Description=RaSCSI-Proxy service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/home/pi/RASCSI/src/proxy/start.sh
+SyslogIdentifier=RASCSIPROXY
+
+[Install]
+WantedBy=multi-user.target

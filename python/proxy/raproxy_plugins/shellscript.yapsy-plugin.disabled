@@ -1,0 +1,10 @@
+[Core]
+Name = RASCSI Proxy shell script plugin
+Module = shellscript
+
+[Documentation]
+Author = RASCSI Contributors
+Version = 0.1
+Website = https://github.com/akuker/RASCSI
+Description = RASCSI Proxy Shellscript Plugin
+

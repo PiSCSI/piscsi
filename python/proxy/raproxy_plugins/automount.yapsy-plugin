@@ -1,0 +1,10 @@
+[Core]
+Name = RASCSI proxy automount plugin
+Module = automount
+
+[Documentation]
+Author = RASCSI Contributors
+Version = 0.1
+Website = https://github.com/akuker/RASCSI
+Description = RASCSI proxy automount plugin
+

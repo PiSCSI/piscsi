@@ -1,0 +1,10 @@
+[Core]
+Name = RASCSI proxy echo plugin
+Module = echo
+
+[Documentation]
+Author = RASCSI Contributors
+Version = 0.1
+Website = https://github.com/akuker/RASCSI
+Description = RASCSI proxy echo plugin
+
