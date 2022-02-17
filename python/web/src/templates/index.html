@@ -391,7 +391,7 @@
                 <label for="cmd">{{ _("Command (Printer only):") }}</label>
                 <input name="cmd" type="text" size="20" placeholder="lp -oraw">
                 <label for="timeout">{{ _("Timeout (Printer only):") }}</label>
-                <input name="timeout" type="number" size="3" value="30" min="0">
+                <input name="timeout" type="number" size="3" value="30" min="1">
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids %}
