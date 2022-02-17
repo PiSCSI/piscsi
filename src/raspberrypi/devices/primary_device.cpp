@@ -63,6 +63,7 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 	if (!ctrl->unit[lun]) {
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
 
+		// Signal that the requested LUN does not exist
 		ctrl->buffer[0] |= 0x7f;
 	}
 
