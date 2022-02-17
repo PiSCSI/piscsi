@@ -30,6 +30,7 @@
 // printing service on the Pi is configured to do any necessary conversions, or that the print command
 // applies any conversions on the file to be printed (%f) before passing it to the printing service.
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
+// Note that the print command is not executed by root but with the permissions of the lp user.
 //
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
