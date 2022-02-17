@@ -73,7 +73,13 @@ bool SCSIPrinter::Init(const map<string, string>& params)
 	// Use default parameters if no parameters were provided
 	SetParams(params.empty() ? GetDefaultParams() : params);
 
+	if (GetParam("cmd").find("%f") == string::npos) {
+		LOGERROR("Missing filename specifier %s", "%f");
+		return false;
+	}
+
 	if (!GetAsInt(GetParam("timeout"), timeout) || timeout <= 0) {
+		LOGERROR("Reservation timeout value must be > 0");
 		return false;
 	}
 
@@ -192,8 +198,9 @@ void SCSIPrinter::SynchronizeBuffer(SCSIDEV *controller)
 	fd = -1;
 
 	string cmd = GetParam("cmd");
-	cmd += " ";
-	cmd += filename;
+	size_t file_position = cmd.find("%f");
+	assert(file_position != string::npos);
+	cmd.replace(file_position, 2, filename);
 
 	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str());
 
