@@ -193,6 +193,12 @@ class RaCtlCmds:
         if "image" in kwargs.keys():
             if kwargs["image"] not in [None, ""]:
                 devices.params["file"] = kwargs["image"]
+        if "cmd" in kwargs.keys():
+            if kwargs["cmd"] not in [None, ""]:
+                devices.params["cmd"] = kwargs["cmd"]
+        if "timeout" in kwargs.keys():
+            if kwargs["timeout"] not in [None, ""]:
+                devices.params["timeout"] = kwargs["timeout"]
 
         # Handling the inserting of media into an attached removable type device
         device_type = kwargs.get("device_type", None)

@@ -73,6 +73,8 @@ def extend_device_names(device_types):
             device_name = _("X68000 Host Bridge")
         elif device_type == "SCDP":
             device_name = _("DaynaPORT SCSI/Link")
+        elif device_type == "SCLP":
+            device_name = _("Printer")
         elif device_type == "SCHS":
             device_name = _("Host Service")
         else:

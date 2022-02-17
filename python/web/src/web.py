@@ -504,7 +504,15 @@ def attach_support_device():
     scsi_id = request.form.get("scsi_id")
     unit = request.form.get("unit")
     device_type = request.form.get("type")
-    kwargs = {"unit": int(unit), "device_type": device_type}
+    cmd = request.form.get("cmd")
+    timeout = request.form.get("timeout")
+
+    kwargs = {
+            "unit": int(unit),
+            "device_type": device_type,
+            "cmd": cmd,
+            "timeout": timeout,
+            }
     process = ractl.attach_image(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
