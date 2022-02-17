@@ -1,5 +1,10 @@
-class MenuRendererConfig:
+"""Module for configuring menu renderer instances"""
 
+
+# pylint: disable=too-many-instance-attributes, too-few-public-methods
+class MenuRendererConfig:
+    """Class for configuring menu renderer instances. Provides configuration options
+    such as width, height, i2c address, font, transitions, etc."""
     _rotation_mapper = {
         0: 0,
         90: 1,
@@ -33,6 +38,6 @@ class MenuRendererConfig:
         self.rotation = 0  # degrees. Options: 0, 180
 
     def get_mapped_rotation(self):
+        """Converts human-readable rotation value to the one expected
+        by the luma and adafruit libraries"""
         return self._rotation_mapper[self.rotation]
-
-
