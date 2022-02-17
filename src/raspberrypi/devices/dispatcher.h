@@ -21,7 +21,7 @@ class SCSIDEV;
 using namespace std;
 using namespace scsi_defs;
 
-template<class T>
+template<class T, class U>
 class Dispatcher
 {
 public:
@@ -36,18 +36,18 @@ public:
 
 	typedef struct _command_t {
 		const char* name;
-		void (T::*execute)(SASIDEV *);
+		void (T::*execute)(U *);
 
-		_command_t(const char* _name, void (T::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
+		_command_t(const char* _name, void (T::*_execute)(U *)) : name(_name), execute(_execute) { };
 	} command_t;
 	map<scsi_command, command_t*> commands;
 
-	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)(SASIDEV *))
+	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)(U *))
 	{
 		commands[opcode] = new command_t(name, execute);
 	}
 
-	bool Dispatch(T *instance, SCSIDEV *controller)
+	bool Dispatch(T *instance, U *controller)
 	{
 		SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
 		instance->SetCtrl(ctrl);

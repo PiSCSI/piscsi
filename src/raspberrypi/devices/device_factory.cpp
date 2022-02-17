@@ -12,6 +12,7 @@
 #include "scsihd_nec.h"
 #include "scsimo.h"
 #include "scsicd.h"
+#include "scsi_printer.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
 #include "exceptions.h"
@@ -52,6 +53,8 @@ DeviceFactory::DeviceFactory()
 
 	default_params[SCBR]["interfaces"] = network_interfaces;
 	default_params[SCDP]["interfaces"] = network_interfaces;
+	default_params[SCLP]["cmd"] = "lp -oraw";
+	default_params[SCLP]["timeout"] = "30";
 
 	extension_mapping["hdf"] = SAHD;
 	extension_mapping["hds"] = SCHD;
@@ -94,6 +97,9 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 	}
 	else if (filename == "daynaport") {
 		return SCDP;
+	}
+	else if (filename == "printer") {
+		return SCLP;
 	}
 	else if (filename == "services") {
 		return SCHS;
@@ -195,6 +201,13 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 				device->SetVendor("RaSCSI");
 				device->SetProduct("Host Services");
+				break;
+
+			case SCLP:
+				device = new SCSIPrinter();
+				device->SetProduct("SCSI PRINTER");
+				device->SupportsParams(true);
+				device->SetDefaultParams(default_params[SCLP]);
 				break;
 
 			default:

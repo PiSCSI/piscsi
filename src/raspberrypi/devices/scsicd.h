@@ -92,7 +92,7 @@ public:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSICD> dispatcher;
+	Dispatcher<SCSICD, SASIDEV> dispatcher;
 
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)

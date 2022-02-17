@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// Host Services with realtime clock and shutdown support
+//
 //---------------------------------------------------------------------------
 
 //
@@ -37,6 +39,7 @@ using namespace scsi_defs;
 
 HostServices::HostServices() : ModePageDevice("SCHS")
 {
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
 	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
@@ -46,7 +49,7 @@ bool HostServices::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-void HostServices::TestUnitReady(SASIDEV *controller)
+void HostServices::TestUnitReady(SCSIDEV *controller)
 {
 	// Always successful
 	controller->Status();
@@ -58,7 +61,7 @@ int HostServices::Inquiry(const DWORD *cdb, BYTE *buf)
 	return PrimaryDevice::Inquiry(3, false, cdb, buf);
 }
 
-void HostServices::StartStopUnit(SASIDEV *controller)
+void HostServices::StartStopUnit(SCSIDEV *controller)
 {
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;

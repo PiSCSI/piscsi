@@ -20,7 +20,7 @@
 #include <iostream>
 #include <list>
 
-// Separator for the INQUIRY name components
+// Separator for the INQUIRY name components and for compound parameters
 #define COMPONENT_SEPARATOR ':'
 
 using namespace std;
@@ -86,6 +86,9 @@ PbDeviceType ParseType(const char *optarg)
 
 	case 'r':
 		return SCRM;
+
+	case 'l':
+		return SCLP;
 
 	case 's':
 		return SCHS;
@@ -380,11 +383,7 @@ int main(int argc, char* argv[])
 		exit(EXIT_SUCCESS);
 	}
 
-	if (!param.empty()) {
-		// Only one of these parameters will be used, depending on the device type
-		AddParam(*device, "interfaces", param);
-		AddParam(*device, "file", param);
-	}
+	ParseParameters(*device, param);
 
 	RasctlCommands rasctl_commands(command, hostname, port, token, locale);
 

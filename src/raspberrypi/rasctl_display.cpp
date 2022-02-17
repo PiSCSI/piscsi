@@ -76,10 +76,12 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device)
 		cout << "  ";
 	}
 
+	// Creates a sorted map
+	map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	bool isFirst = true;
-	for (const auto& param : pb_device.params()) {
+	for (const auto& param : params) {
 		if (!isFirst) {
-			cout << "  ";
+			cout << ":";
 		}
 		isFirst = false;
 		cout << param.first << "=" << param.second;
@@ -171,7 +173,7 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			bool isFirst = true;
 			for (const auto& param : params) {
 				if (!isFirst) {
-					cout << ", ";
+					cout << ":";
 				}
 				cout << param.first << "=" << param.second;
 

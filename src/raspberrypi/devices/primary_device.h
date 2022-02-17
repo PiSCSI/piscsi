@@ -36,6 +36,7 @@ public:
 	bool CheckReady();
 	virtual int Inquiry(const DWORD *, BYTE *) = 0;
 	virtual int RequestSense(const DWORD *, BYTE *);
+	virtual bool WriteBytes(BYTE *, uint32_t);
 
 protected:
 
@@ -45,7 +46,7 @@ protected:
 
 private:
 
-	Dispatcher<PrimaryDevice> dispatcher;
+	Dispatcher<PrimaryDevice, SASIDEV> dispatcher;
 
 	void Inquiry(SASIDEV *);
 	void ReportLuns(SASIDEV *);

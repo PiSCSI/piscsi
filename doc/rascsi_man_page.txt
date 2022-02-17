@@ -93,9 +93,9 @@ OPTIONS
        -r RESERVED_IDS
               Comma-separated list of IDs to reserve.  -p  TYPE  The  optional
               case-insensitive  device  type  (SAHD,  SCHD,  SCRM, SCCD, SCMO,
-              SCBR, SCDP, SCHS). If no type is specified for devices that sup‐
-              port  an  image  file,  rascsi tries to derive the type from the
-              file extension.
+              SCBR, SCDP, SCLP, SCHS). If no type  is  specified  for  devices
+              that support an image file, rascsi tries to derive the type from
+              the file extension.
 
        -v     Display the rascsi version.
 
@@ -108,13 +108,18 @@ OPTIONS
               (logical unit). The default LUN is 0.
 
               FILE is the name of the image file to use for the  SCSI  device.
-              For devices that do not support an image file (SCBR, SCDP, SCHS)
-              a dummy name must be provided.
+              For devices that do not support an image file (SCBR, SCDP, SCLP,
+              SCHS) the filename may have a special meaning or  a  dummy  name
+              can  be  provided.  For SCBR and SCDP it is an optioinal priori‐
+              tized    list    of    network    interfaces,    e.g.    "inter‐
+              faces=eth0,eth1,wlan0".  For  SCLP it is the print command to be
+              used  and  a  reservation  timeout  in  seconds,  e.g.   "cmd=lp
+              -oraw:timeout=60".
 
        -HDn[:u] FILE
-              n is the SASI ID number (0-15). The effective SASI ID is  calcu‐
-              lated  as  n/2,  the effective SASI LUN is calculated is the re‐
-              mainder of n/2. Alternatively the n:u syntax can be used,  where
+              n  is the SASI ID number (0-15). The effective SASI ID is calcu‐
+              lated as n/2, the effective SASI LUN is calculated  is  the  re‐
+              mainder  of n/2. Alternatively the n:u syntax can be used, where
               ns is the SASI ID (0-7) and u the LUN (0-1).
 
               FILE is the name of the image file to use for the SASI device.
@@ -131,7 +136,7 @@ EXAMPLES
           rascsi -ID0 /path/to/harddrive.hda -ID2 /path/to/cdimage.iso
 
        Launch RaSCSI with a removable SCSI drive image as ID 0 and the raw de‐
-       vice file /dev/hdb (e.g. a USB stick) and a DaynaPort  network  adapter
+       vice  file  /dev/hdb (e.g. a USB stick) and a DaynaPort network adapter
        as ID 6:
           rascsi -ID0 -t scrm /dev/hdb -ID6 -t scdp daynaport
 

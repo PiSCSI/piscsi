@@ -184,7 +184,7 @@ int PrimaryDevice::Inquiry(int type, bool is_removable, const DWORD *cdb, BYTE *
 		memset(buf, 0, allocation_length);
 		buf[0] = type;
 		buf[1] = is_removable ? 0x80 : 0x00;
-		buf[2] = 0x01;
+		buf[2] = 0x02;
 		buf[4] = 0x1F;
 
 		// Padded vendor, product, revision
@@ -232,3 +232,9 @@ int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
+bool PrimaryDevice::WriteBytes(BYTE *buf, uint32_t length)
+{
+	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__);
+
+	return false;
+}

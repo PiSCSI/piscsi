@@ -33,7 +33,7 @@ private:
 
 	typedef PrimaryDevice super;
 
-	Dispatcher<ModePageDevice> dispatcher;
+	Dispatcher<ModePageDevice, SASIDEV> dispatcher;
 
 	void ModeSense6(SASIDEV *);
 	void ModeSense10(SASIDEV *);

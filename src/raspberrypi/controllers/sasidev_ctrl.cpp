@@ -143,7 +143,7 @@ bool SASIDEV::HasUnit()
 //	Run
 //
 //---------------------------------------------------------------------------
-BUS::phase_t SASIDEV::Process()
+BUS::phase_t SASIDEV::Process(int)
 {
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
@@ -608,9 +608,8 @@ void SASIDEV::DataOut()
 		ctrl.bus->SetCD(FALSE);
 		ctrl.bus->SetIO(FALSE);
 
-		// length, blocks are already calculated
+		// Length has already been calculated
 		ASSERT(ctrl.length > 0);
-		ASSERT(ctrl.blocks > 0);
 		ctrl.offset = 0;
 		return;
 	}
@@ -624,7 +623,7 @@ void SASIDEV::DataOut()
 //	Error
 //
 //---------------------------------------------------------------------------
-void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
+void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
 {
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
@@ -648,8 +647,8 @@ void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 	// Logical Unit
 	DWORD lun = GetEffectiveLun();
 
-	// Set status and message(CHECK CONDITION)
-	ctrl.status = (lun << 5) | 0x02;
+	// Set status and message
+	ctrl.status = (lun << 5) | status;
 
 	// status phase
 	Status();
@@ -1067,6 +1066,8 @@ void SASIDEV::Receive()
 //
 //	Data transfer IN
 //	*Reset offset and length
+// TODO XferIn probably needs a dispatcher, in order to avoid subclassing Disk, i.e.
+// just like the actual SCSI commands XferIn should be executed by the respective device
 //
 //---------------------------------------------------------------------------
 bool SASIDEV::XferIn(BYTE *buf)
@@ -1113,6 +1114,8 @@ bool SASIDEV::XferIn(BYTE *buf)
 //
 //	Data transfer OUT
 //	*If cont=true, reset the offset and length
+// TODO XferOut probably needs a dispatcher, in order to avoid subclassing Disk, i.e.
+// just like the actual SCSI commands XferOut should be executed by the respective device
 //
 //---------------------------------------------------------------------------
 bool SASIDEV::XferOut(bool cont)
@@ -1156,7 +1159,7 @@ bool SASIDEV::XferOut(bool cont)
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
 			if (device->IsDaynaPort()) {
-				if (!device->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+				if (!((SCSIDaynaPort*)device)->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return false;
 				}

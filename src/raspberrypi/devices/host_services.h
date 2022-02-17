@@ -5,7 +5,7 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
-// RaSCSI Host Services with realtime clock and shutdown support
+// Host Services with realtime clock and shutdown support
 //
 //---------------------------------------------------------------------------
 #pragma once
@@ -25,8 +25,8 @@ public:
 	virtual bool Dispatch(SCSIDEV *) override;
 
 	int Inquiry(const DWORD *, BYTE *) override;
-	void TestUnitReady(SASIDEV *) override;
-	void StartStopUnit(SASIDEV *);
+	void TestUnitReady(SCSIDEV *);
+	void StartStopUnit(SCSIDEV *);
 
 	int ModeSense6(const DWORD *, BYTE *);
 	int ModeSense10(const DWORD *, BYTE *);
@@ -35,7 +35,7 @@ private:
 
 	typedef ModePageDevice super;
 
-	Dispatcher<HostServices> dispatcher;
+	Dispatcher<HostServices, SCSIDEV> dispatcher;
 
 	int AddRealtimeClockPage(int, BYTE *);
 };

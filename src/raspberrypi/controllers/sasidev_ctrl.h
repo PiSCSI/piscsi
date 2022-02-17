@@ -140,7 +140,7 @@ public:
 	virtual void Reset();						// Device Reset
 
 	// External API
-	virtual BUS::phase_t Process();				// Run
+	virtual BUS::phase_t Process(int);				// Run
 
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
@@ -162,10 +162,12 @@ public:
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
 
+	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
 
 	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
+			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			ERROR_CODES::status = ERROR_CODES::status::CHECK_CONDITION);	// Common error handling
 
 protected:
 	// Phase processing
@@ -193,7 +195,7 @@ protected:
 	virtual void Receive();					// Receive data
 
 	bool XferIn(BYTE* buf);					// Data transfer IN
-	bool XferOut(bool cont);					// Data transfer OUT
+	virtual bool XferOut(bool cont);					// Data transfer OUT
 
 	// Special operations
 	void FlushUnit();						// Flush the logical unit

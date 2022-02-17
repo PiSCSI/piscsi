@@ -50,6 +50,8 @@ using namespace protobuf_util;
 #define UnitNum	SASIDEV::UnitMax	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
+#define COMPONENT_SEPARATOR ':'
+
 //---------------------------------------------------------------------------
 //
 //	Variable declarations
@@ -107,7 +109,7 @@ void Banner(int argc, char* argv[])
 		FPRT(stdout," FILE is disk image file.\n\n");
 		FPRT(stdout,"Usage: %s [-HDn FILE] ...\n\n", argv[0]);
 		FPRT(stdout," n is X68000 SASI HD number(0-15).\n");
-		FPRT(stdout," FILE is disk image file, \"daynaport\", \"bridge\" or \"services\".\n\n");
+		FPRT(stdout," FILE is disk image file, \"daynaport\", \"bridge\", \"printer\" or \"services\".\n\n");
 		FPRT(stdout," Image type is detected based on file extension.\n");
 		FPRT(stdout,"  hdf : SASI HD image (XM6 SASI HD image)\n");
 		FPRT(stdout,"  hds : SCSI HD image (Non-removable generic SCSI HD image)\n");
@@ -868,7 +870,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 		bool isFirst = true;
 		for (const auto& param: pb_device.params()) {
 			if (!isFirst) {
-				s << ", ";
+				s << ":";
 			}
 			isFirst = false;
 			s << "'" << param.first << "=" << param.second << "'";
@@ -1084,7 +1086,7 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 
 bool ProcessId(const string id_spec, PbDeviceType type, int& id, int& unit)
 {
-	size_t separator_pos = id_spec.find(':');
+	size_t separator_pos = id_spec.find(COMPONENT_SEPARATOR);
 	if (separator_pos == string::npos) {
 		int max_id = type == SAHD ? 16 : 8;
 
@@ -1298,19 +1300,13 @@ bool ParseArgument(int argc, char* argv[], int& port)
 		device->set_type(type);
 		device->set_block_size(block_size);
 
-		// Either interface or file parameters are supported
-		if (device_factory.GetDefaultParams(type).count("interfaces")) {
-			AddParam(*device, "interfaces", optarg);
-		}
-		else {
-			AddParam(*device, "file", optarg);
-		}
+		ParseParameters(*device, optarg);
 
-		size_t separator_pos = name.find(':');
+		size_t separator_pos = name.find(COMPONENT_SEPARATOR);
 		if (separator_pos != string::npos) {
 			device->set_vendor(name.substr(0, separator_pos));
 			name = name.substr(separator_pos + 1);
-			separator_pos = name.find(':');
+			separator_pos = name.find(COMPONENT_SEPARATOR);
 			if (separator_pos != string::npos) {
 				device->set_product(name.substr(0, separator_pos));
 				device->set_revision(name.substr(separator_pos + 1));
@@ -1705,16 +1701,34 @@ int main(int argc, char* argv[])
 
 		pthread_mutex_lock(&ctrl_mutex);
 
-		// Notify all controllers
 		BYTE data = bus->GetDAT();
+
+		int initiator_id = -1;
+
+		// Notify all controllers
 		int i = 0;
 		for (auto it = controllers.begin(); it != controllers.end(); ++i, ++it) {
 			if (!*it || (data & (1 << i)) == 0) {
 				continue;
 			}
 
+			// Extract the SCSI initiator ID
+			int tmp = data - (1 << i);
+			if (tmp) {
+				initiator_id = 0;
+				for (int j = 0; j < 8; j++) {
+					tmp >>= 1;
+					if (tmp) {
+						initiator_id++;
+					}
+					else {
+						break;
+					}
+				}
+			}
+
 			// Find the target that has moved to the selection phase
-			if ((*it)->Process() == BUS::selection) {
+			if ((*it)->Process(initiator_id) == BUS::selection) {
 				// Get the target ID
 				actid = i;
 
@@ -1742,7 +1756,7 @@ int main(int argc, char* argv[])
 		// Loop until the bus is free
 		while (running) {
 			// Target drive
-			phase = controllers[actid]->Process();
+			phase = controllers[actid]->Process(initiator_id);
 
 			// End when the bus is free
 			if (phase == BUS::busfree) {

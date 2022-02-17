@@ -50,7 +50,7 @@ public:
 private:
 	typedef PrimaryDevice super;
 
-	Dispatcher<SCSIBR> dispatcher;
+	Dispatcher<SCSIBR, SASIDEV> dispatcher;
 
 	int GetMacAddr(BYTE *buf);					// Get MAC address
 	void SetMacAddr(BYTE *buf);					// Set MAC address
