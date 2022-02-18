@@ -45,13 +45,14 @@ SCSIDEV::~SCSIDEV()
 
 void SCSIDEV::Reset()
 {
+	scsi.bytes_to_transfer = 0;
+
 	// Work initialization
 	scsi.atnmsg = false;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	// Base class
-	SASIDEV::Reset();
+	super::Reset();
 }
 
 BUS::phase_t SCSIDEV::Process(int initiator_id)
@@ -891,7 +892,7 @@ void SCSIDEV::ReceiveBytes()
 bool SCSIDEV::XferOut(bool cont)
 {
 	if (!scsi.is_byte_transfer) {
-		return SASIDEV::XferOut(cont);
+		return super::XferOut(cont);
 	}
 
 	ASSERT(ctrl.phase == BUS::dataout);

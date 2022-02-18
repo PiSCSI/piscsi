@@ -25,10 +25,12 @@
 // always using a reservation is recommended.
 //
 // The command to be used for printing can be set with the "cmd" property when attaching the device.
-// By default the data to be printed are sent to the printer unmodified, using "lp -oraw". This either
+// By default the data to be printed are sent to the printer unmodified, using "lp -oraw %f". This
 // requires that the client uses a printer driver compatible with the respective printer, or that the
-// printing service on the Pi is configured to do any necessary conversions.
+// printing service on the Pi is configured to do any necessary conversions, or that the print command
+// applies any conversions on the file to be printed (%f) before passing it to the printing service.
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
+// Note that the print command is not executed by root but with the permissions of the lp user.
 //
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
@@ -73,7 +75,13 @@ bool SCSIPrinter::Init(const map<string, string>& params)
 	// Use default parameters if no parameters were provided
 	SetParams(params.empty() ? GetDefaultParams() : params);
 
+	if (GetParam("cmd").find("%f") == string::npos) {
+		LOGERROR("Missing filename specifier %s", "%f");
+		return false;
+	}
+
 	if (!GetAsInt(GetParam("timeout"), timeout) || timeout <= 0) {
+		LOGERROR("Reservation timeout value must be > 0");
 		return false;
 	}
 
@@ -192,8 +200,10 @@ void SCSIPrinter::SynchronizeBuffer(SCSIDEV *controller)
 	fd = -1;
 
 	string cmd = GetParam("cmd");
-	cmd += " ";
-	cmd += filename;
+	size_t file_position = cmd.find("%f");
+	assert(file_position != string::npos);
+	cmd.replace(file_position, 2, filename);
+	cmd = "sudo -u lp " + cmd;
 
 	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str());
 
