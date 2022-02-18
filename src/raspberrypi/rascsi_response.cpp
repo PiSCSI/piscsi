@@ -512,6 +512,7 @@ void RascsiResponse::CreateOperation(PbOperationInfo *operation_info, PbOperatio
 	meta_data->set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
 	(*operation_info->mutable_operations())[ordinal] = *meta_data;
+	delete meta_data;
 }
 
 PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData *meta_data, const string& name,
