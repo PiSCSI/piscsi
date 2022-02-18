@@ -77,6 +77,7 @@ public:
 	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
 private:
+	typedef SASIDEV super;
 
 	// Phases
 	void BusFree() override;
