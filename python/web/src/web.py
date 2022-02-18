@@ -510,10 +510,9 @@ def attach_support_device():
     kwargs = {
             "unit": int(unit),
             "device_type": device_type,
-            "cmd": cmd,
-            "timeout": timeout,
+            "params": {"cmd": cmd, "timeout": timeout},
             }
-    process = ractl.attach_image(scsi_id, **kwargs)
+    process = ractl.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_(
@@ -533,7 +532,7 @@ def attach_support_device():
 
 @APP.route("/scsi/attach_network", methods=["POST"])
 @login_required
-def attach_network_adapter():
+def attach_network_device():
     """
     Attaches a network adapter device
     """
@@ -568,12 +567,11 @@ def attach_network_adapter():
 
     kwargs = {"unit": int(unit), "device_type": device_type}
     if interface != "":
-        arg = interface
         if "" not in (ip_addr, mask):
-            arg += (":" + ip_addr + "/" + mask)
-        kwargs["interfaces"] = arg
+            interface += (":" + ip_addr + "/" + mask)
+        kwargs["params"] = {"interfaces": interface}
 
-    process = ractl.attach_image(scsi_id, **kwargs)
+    process = ractl.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_(
@@ -593,7 +591,7 @@ def attach_network_adapter():
 
 @APP.route("/scsi/attach", methods=["POST"])
 @login_required
-def attach():
+def attach_image():
     """
     Attaches a file image as a device
     """
@@ -603,7 +601,7 @@ def attach():
     unit = request.form.get("unit")
     device_type = request.form.get("type")
 
-    kwargs = {"unit": int(unit), "image": file_name}
+    kwargs = {"unit": int(unit), "params": {"file": file_name}}
 
     # The most common block size is 512 bytes
     expected_block_size = 512
@@ -631,7 +629,7 @@ def attach():
         kwargs["block_size"] = conf["block_size"]
         expected_block_size = conf["block_size"]
 
-    process = ractl.attach_image(scsi_id, **kwargs)
+    process = ractl.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_("Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
@@ -820,7 +818,7 @@ def download_to_iso():
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
-    process_attach = ractl.attach_image(scsi_id, device_type="SCCD", image=process["file_name"])
+    process_attach = ractl.attach_device(scsi_id, device_type="SCCD", image=process["file_name"])
     process_attach = ReturnCodeMapper.add_msg(process_attach)
     if process_attach["status"]:
         flash(_("Attached to SCSI ID %(id_number)s", id_number=scsi_id))
