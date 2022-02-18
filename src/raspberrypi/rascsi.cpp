@@ -1595,7 +1595,7 @@ int main(int argc, char* argv[])
 
 	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
 	PbResult pb_operation_info_result;
-	rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
+	delete rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
 
 	int actid;
 	BUS::phase_t phase;
