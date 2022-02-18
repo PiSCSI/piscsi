@@ -818,7 +818,11 @@ def download_to_iso():
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
-    process_attach = ractl.attach_device(scsi_id, device_type="SCCD", image=process["file_name"])
+    process_attach = ractl.attach_device(
+            scsi_id,
+            device_type="SCCD",
+            params={"file": process["file_name"]},
+            )
     process_attach = ReturnCodeMapper.add_msg(process_attach)
     if process_attach["status"]:
         flash(_("Attached to SCSI ID %(id_number)s", id_number=scsi_id))
