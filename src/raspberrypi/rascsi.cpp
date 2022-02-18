@@ -545,7 +545,11 @@ void DetachAll()
 {
 	Device *map[devices.size()];
 	for (size_t i = 0; i < devices.size(); i++) {
-		map[i] = NULL;
+		Device *device = map[i];
+		if (device) {
+			delete device;
+			map[i] = NULL;
+		}
 	}
 
 	if (MapController(map)) {
