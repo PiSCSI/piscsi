@@ -501,16 +501,21 @@ def attach_support_device():
     """
     Attaches a support device
     """
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
-    device_type = request.form.get("type")
-    cmd = request.form.get("cmd")
-    timeout = request.form.get("timeout")
+    params = {}
+    for item in request.form:
+        if item == "scsi_id":
+            scsi_id = request.form.get(item)
+        elif item == "unit":
+            unit = request.form.get(item)
+        elif item == "type":
+            device_type = request.form.get(item)
+        else:
+            params.update({item: request.form.get(item)})
 
     kwargs = {
             "unit": int(unit),
             "device_type": device_type,
-            "params": {"cmd": cmd, "timeout": timeout},
+            "params": params,
             }
     process = ractl.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
