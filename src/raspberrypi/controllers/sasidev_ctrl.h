@@ -19,7 +19,6 @@
 #include "os.h"
 #include "scsi.h"
 #include "fileio.h"
-#include "log.h"
 
 class Device;
 
