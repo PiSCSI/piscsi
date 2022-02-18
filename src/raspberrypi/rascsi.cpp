@@ -829,6 +829,8 @@ void TerminationHandler(int signum)
 {
 	DetachAll();
 
+	Cleanup();
+
 	exit(signum);
 }
 
