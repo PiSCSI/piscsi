@@ -500,9 +500,6 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	meta_data = new PbOperationMetaData();
 	CreateOperation(operation_info, meta_data, OPERATION_INFO, "Get operation meta data");
 
-	// Ensure that the complete set of operations is covered
-	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
-
 	result.set_status(true);
 
 	return operation_info;

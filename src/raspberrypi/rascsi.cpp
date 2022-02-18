@@ -1593,9 +1593,12 @@ int main(int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
+#ifndef NDEBUG
 	// Get temporary operation info, in order to trigger an assertion on startup if the operation list is incomplete
 	PbResult pb_operation_info_result;
-	delete rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
+	const PbOperationInfo *operation_info = rascsi_response.GetOperationInfo(pb_operation_info_result, 0);
+	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
+#endif
 
 	int actid;
 	BUS::phase_t phase;
