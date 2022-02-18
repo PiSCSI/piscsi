@@ -177,4 +177,5 @@ class CtrlBoardMenuBuilder(MenuBuilder):
         return menu
 
     def get_rascsi_client(self):
+        """Returns an instance of the rascsi client"""
         return self._rascsi_client
