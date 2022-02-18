@@ -1,10 +1,11 @@
+"""Module for interfacing between the menu controller and the RaSCSI Control Board hardware"""
 import logging
 from typing import Optional
 
 from ctrlboard_event_handler.rascsi_profile_cycler import RascsiProfileCycler
 from ctrlboard_event_handler.rascsi_shutdown_cycler import RascsiShutdownCycler
-from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 from ctrlboard_menu_builder import CtrlBoardMenuBuilder
+from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 from ctrlboard_hw.hardware_button import HardwareButton
 from ctrlboard_hw.encoder import Encoder
 from observer import Observer
@@ -14,9 +15,12 @@ from rascsi.socket_cmds import SocketCmds
 from rascsi_menu_controller import RascsiMenuController
 
 
+# pylint: disable=too-many-instance-attributes
 class CtrlBoardMenuUpdateEventHandler(Observer):
+    """Class interfacing the menu controller the the RaSCSI Control Board hardware."""
 
-    def __init__(self, menu_controller: RascsiMenuController, sock_cmd: SocketCmds, ractl_cmd: RaCtlCmds):
+    def __init__(self, menu_controller: RascsiMenuController, sock_cmd: SocketCmds,
+                 ractl_cmd: RaCtlCmds):
         self.message = None
         self._menu_controller = menu_controller
         self._menu_renderer_config = self._menu_controller.get_menu_renderer().get_config()
@@ -37,9 +41,9 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                 self._menu_controller.get_menu_renderer().render()
             else:  # Button pressed
                 if updated_object.name == "Bt1":
-                    self.handle_button1(updated_object)
+                    self.handle_button1()
                 elif updated_object.name == "Bt2":
-                    self.handle_button2(updated_object)
+                    self.handle_button2()
         if isinstance(updated_object, Encoder):
             # print(updatedObject.direction)
             active_menu = self._menu_controller.get_active_menu()
@@ -54,6 +58,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
             self._menu_controller.get_menu_renderer().render()
 
     def update_events(self):
+        """Method handling non-blocking event handling for the cycle buttons."""
         if self.rascsi_profile_cycler is not None:
             result = self.rascsi_profile_cycler.update()
             if result is not None:
@@ -67,24 +72,24 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
             if result == "return":
                 self.rascsi_shutdown_cycler = None
 
-    def handle_button1(self, updated_object):
+    def handle_button1(self):
+        """Method for handling the first cycle button (cycle profiles)"""
         if self.rascsi_profile_cycler is None:
             self.rascsi_profile_cycler = RascsiProfileCycler(self._menu_controller, self.sock_cmd,
                                                              self.ractl_cmd, return_entry=True)
         else:
             self.rascsi_profile_cycler.cycle()
 
-    def handle_button2(self, updated_object):
+    def handle_button2(self):
+        """Method for handling the second cycle button (cycle shutdown)"""
         if self.rascsi_shutdown_cycler is None:
             self.rascsi_shutdown_cycler = RascsiShutdownCycler(self._menu_controller, self.sock_cmd,
                                                                self.ractl_cmd)
         else:
             self.rascsi_shutdown_cycler.cycle()
 
-        # self._menu_controller.show_mini_message(updated_object.name + " pressed!", True)
-        # self._menu_controller.get_menu_renderer().render()
-
     def route_rotary_button_handler(self, info_object):
+        """Method for handling the rotary button press for the menu navigation"""
         if info_object is None:
             return
 
@@ -99,59 +104,79 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
             print("handler function [" + str(handler_function_name) + "] not found. Skipping.")
 
     # noinspection PyUnusedLocal
+    # pylint: disable=unused-argument
     def handle_scsi_id_menu_openactionmenu(self, info_object):
+        """Method handles the rotary button press with the scsi list to open the action menu."""
         context_object = self._menu_controller.get_active_menu().get_current_info_object()
         self.context_stack.append(context_object)
         self._menu_controller.segue(CtrlBoardMenuBuilder.ACTION_MENU, context_object=context_object,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_left)
 
     # noinspection PyUnusedLocal
+    # pylint: disable=unused-argument
     def handle_action_menu_return(self, info_object):
+        """Method handles the rotary button press to return from the
+        action menu to the scsi list."""
         self.context_stack.pop()
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_right)
 
     # noinspection PyUnusedLocal
+    # pylint: disable=unused-argument
     def handle_action_menu_slot_attachinsert(self, info_object):
+        """Method handles the rotary button press on attach in the action menu."""
         context_object = self._menu_controller.get_active_menu().context_object
         self.context_stack.append(context_object)
-        scsi_id = context_object["scsi_id"]
         self._menu_controller.segue(CtrlBoardMenuBuilder.IMAGES_MENU, context_object=context_object,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_left)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_slot_detacheject(self, info_object):
+        """Method handles the rotary button press on detach in the action menu."""
         context_object = self._menu_controller.get_active_menu().context_object
         self.detach_eject_scsi_id()
         self.context_stack = []
-        self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU, context_object=context_object,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
+        self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
+                                    context_object=context_object,
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_right)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_slot_info(self, info_object):
+        """Method handles the rotary button press on 'Info' in the action menu."""
         context_object = self._menu_controller.get_active_menu().context_object
         self.context_stack.append(context_object)
         self._menu_controller.segue(CtrlBoardMenuBuilder.DEVICEINFO_MENU,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_left,
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_left,
                                     context_object=context_object)
 
     # noinspection PyUnusedLocal
     def handle_device_info_menu_return(self, info_object):
+        """Method handles the rotary button press on 'Return' in the info menu."""
         self.context_stack.pop()
         context_object = self._menu_controller.get_active_menu().context_object
         self._menu_controller.segue(CtrlBoardMenuBuilder.ACTION_MENU,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_right,
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_right,
                                     context_object=context_object)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_loadprofile(self, info_object):
+        """Method handles the rotary button press on 'Load Profile' in the action menu."""
         context_object = self._menu_controller.get_active_menu().context_object
         self.context_stack.append(context_object)
         self._menu_controller.segue(CtrlBoardMenuBuilder.PROFILES_MENU,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_left)
 
     # noinspection PyUnusedLocal
     def handle_profiles_menu_loadprofile(self, info_object):
+        """Method handles the rotary button press in the profile selection menu
+        for selecting a profile to load."""
         if info_object is not None and "name" in info_object:
             file_cmd = FileCmds(sock_cmd=self.sock_cmd, ractl=self.ractl_cmd)
             result = file_cmd.read_config(file_name=info_object["name"])
@@ -162,59 +187,72 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
         self.context_stack = []
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_right)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_shutdown(self, info_object):
-        result = self.ractl_cmd.shutdown_pi("system")
-        # TODO: check
-        print(result)
+        """Method handles the rotary button press on 'Shutdown' in the action menu."""
+        self.ractl_cmd.shutdown_pi("system")
         self._menu_controller.show_message("Shutting down!", 150)
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_right)
 
     # noinspection PyUnusedLocal
     def handle_images_menu_return(self, info_object):
+        """Method handles the rotary button press on 'Return' in the image selection menu
+        (through attach/insert)."""
         context_object = self.context_stack.pop()
-        self._menu_controller.segue(CtrlBoardMenuBuilder.ACTION_MENU, context_object=context_object,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
+        self._menu_controller.segue(CtrlBoardMenuBuilder.ACTION_MENU,
+                                    context_object=context_object,
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_right)
 
     def handle_images_menu_image_attachinsert(self, info_object):
+        """Method handles the rotary button press on an image in the image selection menu
+        (through attach/insert)"""
         context_object = self._menu_controller.get_active_menu().context_object
         self.attach_insert_scsi_id(info_object)
         self.context_stack = []
-        self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU, context_object=context_object,
-                                    transition_attributes=self._menu_renderer_config.transition_attributes_right)
+        self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
+                                    context_object=context_object,
+                                    transition_attributes=
+                                    self._menu_renderer_config.transition_attributes_right)
 
     def attach_insert_scsi_id(self, info_object):
+        """Helper method to attach/insert an image on a scsi id given through the menu context"""
         image_name = info_object["name"]
         device_type = info_object["device_type"]
         context_object = self._menu_controller.get_active_menu().context_object
         scsi_id = context_object["scsi_id"]
-        result = self.ractl_cmd.attach_image(scsi_id=scsi_id, device_type=device_type, image=image_name)
+        result = self.ractl_cmd.attach_image(scsi_id=scsi_id,
+                                             device_type=device_type,
+                                             image=image_name)
         if result["status"] is False:
             self._menu_controller.show_message("Attach failed!")
         else:
             self.show_id_action_message(scsi_id, "attached")
 
     def detach_eject_scsi_id(self):
+        """Helper method to detach/eject an image on a scsi id given through the menu context"""
         context_object = self._menu_controller.get_active_menu().context_object
         scsi_id = context_object["scsi_id"]
         device_info = self.ractl_cmd.list_devices(scsi_id)
 
-        if len(device_info["device_list"]) == 0:
+        if not device_info["device_list"]:
             return
 
         device_type = device_info["device_list"][0]["device_type"]
         image = device_info["device_list"][0]["image"]
-        if device_type == "SAHD" or device_type == "SCHD" or device_type == "SCBR" or device_type == "SCDP":
+        if device_type in ("SAHD", "SCHD", "SCBR", "SCDP"):
             result = self.ractl_cmd.detach_by_id(scsi_id)
             if result["status"] is True:
                 self.show_id_action_message(scsi_id, "detached")
             else:
                 self._menu_controller.show_message("Detach failed!")
-        elif device_type == "SCRM" or device_type == "SCMO" or device_type == "SCCD":
-            if len(image) > 0:
+        elif device_type in ("SCRM", "SCMO", "SCCD"):
+            if image:
                 result = self.ractl_cmd.eject_by_id(scsi_id)
                 if result["status"] is True:
                     self.show_id_action_message(scsi_id, "ejected")
@@ -228,7 +266,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                     self._menu_controller.show_message("Detach failed!")
         else:
             log = logging.getLogger(__name__)
-            log.info("Device type '" + str(device_type) + "' currently unsupported for detach/eject!")
+            log.info("Device type '%s' currently unsupported for detach/eject!", str(device_type))
 
     def show_id_action_message(self, scsi_id, action: str):
+        """Helper method for displaying an action message in the case of an exception."""
         self._menu_controller.show_message("ID " + str(scsi_id) + " " + action + "!")

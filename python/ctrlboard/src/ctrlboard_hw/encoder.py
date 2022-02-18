@@ -1,7 +1,11 @@
+"""Module containing an implementation for reading the rotary encoder directions through
+the i2c multiplexer + interrupt"""
 from ctrlboard_hw.hardware_button import HardwareButton
 
 
 class Encoder:
+    """Class implementing a detection mechanism to detect the rotary encoder directions
+    through the i2c multiplexer + interrupt"""
     def __init__(self, enc_a: HardwareButton, enc_b: HardwareButton):
         self.enc_a = enc_a
         self.enc_b = enc_b
@@ -10,10 +14,12 @@ class Encoder:
         self.direction = 0
 
     def update(self):
+        """Updates the internal attributes wrt. to the encoder position and direction."""
         self.update2()
         # self.update1()
 
     def update2(self):
+        """Primary method for detecting the direction"""
         value_enc_a = self.enc_a.state_interrupt
         value_enc_b = self.enc_b.state_interrupt
 
@@ -39,6 +45,7 @@ class Encoder:
         self.enc_b.state_interrupt = True
 
     def update1(self):
+        """Secondary, less well working method to detect the direction"""
         if self.enc_a.state_interrupt is True and self.enc_b.state_interrupt is True:
             return
 
@@ -58,4 +65,3 @@ class Encoder:
 
         self.enc_a.state_interrupt = True
         self.enc_b.state_interrupt = True
-
