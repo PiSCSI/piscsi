@@ -52,7 +52,11 @@ DeviceFactory::DeviceFactory()
 	}
 
 	default_params[SCBR]["interfaces"] = network_interfaces;
+	default_params[SCBR]["inet"] = "10.10.20.1/24";
+	default_params[SCBR]["netmask"] = "255.255.255.0";
 	default_params[SCDP]["interfaces"] = network_interfaces;
+	default_params[SCDP]["inet"] = "10.10.20.1/24";
+	default_params[SCDP]["netmask"] = "255.255.255.0";
 	default_params[SCLP]["cmd"] = "lp -oraw %f";
 	default_params[SCLP]["timeout"] = "30";
 

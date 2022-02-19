@@ -70,7 +70,20 @@ bool SCSIDaynaPort::Init(const map<string, string>& params)
 
 #ifdef __linux__
 	// TAP Driver Generation
-	m_tap = new CTapDriver(GetParam("interfaces"));
+
+	string interfaces = GetParam("interfaces");
+	const string& inet = GetParam("inet");
+	// Check whether the new syntax (interface, inet, netmask) or the old syntax (interfaces) is used
+	if (!inet.empty()) {
+		interfaces += ":" + inet;
+		const string& netmask = GetParam("netmask");
+		if (!netmask.empty()) {
+			interfaces += ":" + netmask;
+		}
+	}
+
+	// TODO change the constructor after removing support for the old syntax
+	m_tap = new CTapDriver(interfaces);
 	m_bTapEnable = m_tap->Init();
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
