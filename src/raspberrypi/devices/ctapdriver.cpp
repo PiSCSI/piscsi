@@ -236,9 +236,11 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 					return false;
 				}
 
-				long mask = pow(2, 32) - (1 << (32 - m));
+				// long long is required for compatibility with 32 bit platforms
+				long long mask = pow(2, 32) - (1 << (32 - m));
 				char buf[16];
-				sprintf(buf, "%ld.%ld.%ld.%ld", (mask >> 24) & 0xff, (mask >> 16) & 0xff, (mask >> 8) & 0xff, mask & 0xff);
+				sprintf(buf, "%lld.%lld.%lld.%lld", (mask >> 24) & 0xff, (mask >> 16) & 0xff, (mask >> 8) & 0xff,
+						mask & 0xff);
 				netmask = buf;
 			}
 
