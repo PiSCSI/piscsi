@@ -143,7 +143,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 
 	int ret = ioctl(m_hTAP, TUNSETIFF, (void *)&ifr);
 	if (ret < 0) {
-		LOGERROR("Error: can't ioctl TUNSETIFF. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't ioctl TUNSETIFF: %s", strerror(errno));
 
 		close(m_hTAP);
 		return false;
@@ -153,7 +153,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 
 	int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (ip_fd < 0) {
-		LOGERROR("Error: can't open ip socket. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't open ip socket: %s", strerror(errno));
 
 		close(m_hTAP);
 		return false;
