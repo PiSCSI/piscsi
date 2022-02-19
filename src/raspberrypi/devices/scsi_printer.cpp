@@ -29,6 +29,7 @@
 // requires that the client uses a printer driver compatible with the respective printer, or that the
 // printing service on the Pi is configured to do any necessary conversions, or that the print command
 // applies any conversions on the file to be printed (%f) before passing it to the printing service.
+// 'enscript' is an example for a conversion tool.
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
 // Note that the print command is not executed by root but with the permissions of the lp user.
 //
