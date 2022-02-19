@@ -149,7 +149,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 		return false;
 	}
 
-	LOGTRACE("return code from ioctl was %d", ret);
+	LOGTRACE("Return code from ioctl was %d", ret);
 
 	int ip_fd = socket(PF_INET, SOCK_DGRAM, 0);
 	if (ip_fd < 0) {
@@ -255,7 +255,15 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 			ifr_a.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_a.ifr_name, "rascsi_bridge", IFNAMSIZ);
 			struct sockaddr_in* addr = (struct sockaddr_in*)&ifr_a.ifr_addr;
-			inet_pton(AF_INET, address.c_str(), &addr->sin_addr);
+			if (inet_pton(AF_INET, address.c_str(), &addr->sin_addr) != 1) {
+				LOGERROR("Can't convert '%s' into a network address: %s", address.c_str(), strerror(errno));
+
+				close(m_hTAP);
+				close(ip_fd);
+				close(br_socket_fd);
+				return false;
+			}
+
 			struct ifreq ifr_n;
 			ifr_n.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_n.ifr_name, "rascsi_bridge", IFNAMSIZ);
