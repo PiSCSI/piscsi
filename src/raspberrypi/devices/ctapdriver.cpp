@@ -51,12 +51,12 @@ static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifnam
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
-		LOGERROR("Error: can't if_nametoindex. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't if_nametoindex: %s", strerror(errno));
 		return false;
 	}
 	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ);
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
-		LOGERROR("Error: can't ioctl %s. Errno: %d %s", add ? "SIOCBRADDIF" : "SIOCBRDELIF", errno, strerror(errno));
+		LOGERROR("Error: can't ioctl %s: %s", add ? "SIOCBRADDIF" : "SIOCBRDELIF", strerror(errno));
 		return false;
 	}
 	return true;
@@ -67,7 +67,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
 	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (err) {
-		LOGERROR("Error: can't ioctl SIOCGIFFLAGS. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't ioctl SIOCGIFFLAGS: %s", strerror(errno));
 		return false;
 	}
 	ifr.ifr_flags &= ~IFF_UP;
@@ -76,7 +76,7 @@ static bool ip_link(int fd, const char* ifname, bool up) {
 	}
 	err = ioctl(fd, SIOCSIFFLAGS, &ifr);
 	if (err) {
-		LOGERROR("Error: can't ioctl SIOCSIFFLAGS. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't ioctl SIOCSIFFLAGS: %s", strerror(errno));
 		return false;
 	}
 	return true;
@@ -126,7 +126,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 	LOGTRACE("Opening Tap device");
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
-		LOGERROR("Error: can't open tun. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't open tun: %s", strerror(errno));
 		return false;
 	}
 
@@ -161,7 +161,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 
 	int br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0);
 	if (br_socket_fd < 0) {
-		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't open bridge socket: %s", strerror(errno));
 
 		close(m_hTAP);
 		close(ip_fd);
