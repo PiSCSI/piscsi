@@ -117,24 +117,13 @@ export PYTHONPATH=${PWD}/src:${PWD}/../common/src
 
 echo "Starting RaSCSI control board service..."
 
-if [[ ${PI_MODEL} =~ "Raspberry Pi 4" ]]; then
-  #Model Raspberry Pi 4 Model B Rev 1.4
-  echo "Detected: Raspberry Pi 4"
-  sudo /usr/sbin/rmmod i2c_bcm2835
-  sudo /usr/sbin/modprobe i2c_bcm2835 baudrate=1000000
+if [[ ${PI_MODEL} =~ "Raspberry Pi 4" ]] || [[ ${PI_MODEL} =~ "Raspberry Pi 3" ]] ||
+  [[ ${PI_MODEL} =~ "Raspberry Pi Zero 2" ]]; then
+  echo "Detected: Raspberry Pi 4, Pi 3 or Pi Zero 2"
   python3 src/main.py "$@" --transitions 1
-elif [[ ${PI_MODEL} =~ "Raspberry Pi 3" ]] || [[ ${PI_MODEL} =~ "Raspberry Pi Zero 2" ]]; then
-  #Model Raspberry Pi Zero 2 W Rev 1.0
-  #Model Raspberry Pi 3 Model B Rev 1.2
-  echo "Detected: Raspberry Pi 3 or Zero 2"
-  sudo /usr/sbin/rmmod i2c_bcm2835
-  sudo /usr/sbin/modprobe i2c_bcm2835 baudrate=400000
-  python3 src/main.py --transitions 1
 else
-  #Model Raspberry Pi Zero W Rev 1.1
-  #Model Raspberry Pi Zero Rev 1.3
   echo "Detected: Raspberry Pi Zero, Zero W, Zero WH, ..."
   sudo /usr/sbin/rmmod i2c_bcm2835
   sudo /usr/sbin/modprobe i2c_bcm2835 baudrate=100000
-  python3 src/main.py --transitions 0
+  python3 src/main.py "$@" --transitions 0
 fi

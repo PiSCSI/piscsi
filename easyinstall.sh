@@ -993,6 +993,7 @@ function installRaScsiCtrlBoard() {
 
     sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
 
+    # enable i2c
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
         echo "NOTE: I2C support seems to have been configured already."
         REBOOT=0
@@ -1001,6 +1002,28 @@ function installRaScsiCtrlBoard() {
         echo "Modified the Raspberry Pi boot configuration to enable I2C."
         echo "A reboot will be required for the change to take effect."
         REBOOT=1
+    fi
+
+    # determine target baudrate
+    PI_MODEL=$(/usr/bin/tr -d '\0' < /proc/device-tree/model)
+    TARGET_I2C_BAUDRATE=100000
+    if [[ ${PI_MODEL} =~ "Raspberry Pi 4" ]]; then
+      echo "Detected: Raspberry Pi 4"
+      TARGET_I2C_BAUDRATE=1000000
+    elif [[ ${PI_MODEL} =~ "Raspberry Pi 3" ]] || [[ ${PI_MODEL} =~ "Raspberry Pi Zero 2" ]]; then
+      echo "Detected: Raspberry Pi 3 or Zero 2"
+      TARGET_I2C_BAUDRATE=400000
+    fi
+
+    # adjust i2c baudrate according to the raspberry pi model detection
+    GREP_PARAM="^dtparam=i2c_arm=on,i2c_arm_baudrate=${TARGET_I2C_BAUDRATE}$"
+    ADJUST_BAUDRATE=$(grep -c "${GREP_PARAM}" /boot/config.txt)
+    if [[ $ADJUST_BAUDRATE -eq 0 ]]; then
+      echo "Adjusting I2C baudrate in /boot/config.txt"
+      sudo sed -i "s/dtparam=i2c_arm=on.*/dtparam=i2c_arm=on,i2c_arm_baudrate=${TARGET_I2C_BAUDRATE}/g" /boot/config.txt
+      REBOOT=1
+    else
+      echo "I2C baudrate already correct in /boot/config.txt"
     fi
 
     echo "Installing the rascsi-ctrlboard.service configuration..."
