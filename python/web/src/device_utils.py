@@ -68,13 +68,15 @@ def extend_device_names(device_types):
         elif device_type == "SCMO":
             device_name = _("Magneto-Optical")
         elif device_type == "SCCD":
-            device_name = _("CD-ROM / DVD")
+            device_name = _("CD / DVD")
         elif device_type == "SCBR":
             device_name = _("X68000 Host Bridge")
         elif device_type == "SCDP":
             device_name = _("DaynaPORT SCSI/Link")
+        elif device_type == "SCLP":
+            device_name = _("Printer")
         elif device_type == "SCHS":
-            device_name = _("Host Service")
+            device_name = _("Host Services")
         else:
             device_name = _("Unknown Device")
         mapped_device_types[device_type] = device_name

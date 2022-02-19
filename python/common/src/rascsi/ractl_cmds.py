@@ -125,7 +125,8 @@ class RaCtlCmds:
         Sends a DEVICE_TYPES_INFO command to the server.
         Returns a dict with:
         - (bool) status
-        - (list) of (str) device_types (device types that RaSCSI supports, ex. SCHD, SCCD, etc)
+        - (dict) device_types, where keys are the four letter device type acronym,
+          and the value is a (dict) of supported parameters and their default values.
         """
         command = proto.PbCommand()
         command.operation = proto.PbOperation.DEVICE_TYPES_INFO
@@ -135,9 +136,13 @@ class RaCtlCmds:
         data = self.sock_cmd.send_pb_command(command.SerializeToString())
         result = proto.PbResult()
         result.ParseFromString(data)
-        device_types = []
-        for prop in result.device_types_info.properties:
-            device_types.append(proto.PbDeviceType.Name(prop.type))
+        device_types = {}
+        import logging
+        for device in result.device_types_info.properties:
+            params = {}
+            for key, value in device.properties.default_params.items():
+                params[key] = value
+            device_types[proto.PbDeviceType.Name(device.type)] = params
         return {"status": result.status, "device_types": device_types}
 
     def get_image_files_info(self):
@@ -167,7 +172,7 @@ class RaCtlCmds:
             "scan_depth": scan_depth,
             }
 
-    def attach_image(self, scsi_id, **kwargs):
+    def attach_device(self, scsi_id, **kwargs):
         """
         Takes (int) scsi_id and kwargs containing 0 or more device properties
 
@@ -185,14 +190,15 @@ class RaCtlCmds:
         devices.id = int(scsi_id)
 
         if "device_type" in kwargs.keys():
-            if kwargs["device_type"] not in [None, ""]:
+            if kwargs["device_type"]:
                 devices.type = proto.PbDeviceType.Value(str(kwargs["device_type"]))
         if "unit" in kwargs.keys():
-            if kwargs["unit"] not in [None, ""]:
+            if kwargs["unit"]:
                 devices.unit = kwargs["unit"]
-        if "image" in kwargs.keys():
-            if kwargs["image"] not in [None, ""]:
-                devices.params["file"] = kwargs["image"]
+        if "params" in kwargs.keys():
+            if isinstance(kwargs["params"], dict):
+                for param in kwargs["params"]:
+                    devices.params[param] = kwargs["params"][param]
 
         # Handling the inserting of media into an attached removable type device
         device_type = kwargs.get("device_type", None)
@@ -214,23 +220,21 @@ class RaCtlCmds:
                     "parameters": parameters,
                     }
             command.operation = proto.PbOperation.INSERT
+
         # Handling attaching a new device
         else:
             command.operation = proto.PbOperation.ATTACH
-            if "interfaces" in kwargs.keys():
-                if kwargs["interfaces"] not in [None, ""]:
-                    devices.params["interfaces"] = kwargs["interfaces"]
             if "vendor" in kwargs.keys():
-                if kwargs["vendor"] is not None:
+                if kwargs["vendor"]:
                     devices.vendor = kwargs["vendor"]
             if "product" in kwargs.keys():
-                if kwargs["product"] is not None:
+                if kwargs["product"]:
                     devices.product = kwargs["product"]
             if "revision" in kwargs.keys():
-                if kwargs["revision"] is not None:
+                if kwargs["revision"]:
                     devices.revision = kwargs["revision"]
             if "block_size" in kwargs.keys():
-                if kwargs["block_size"] not in [None, ""]:
+                if kwargs["block_size"]:
                     devices.block_size = int(kwargs["block_size"])
 
         command.devices.append(devices)
