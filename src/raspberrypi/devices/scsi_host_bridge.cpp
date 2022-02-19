@@ -65,8 +65,8 @@ bool SCSIBR::Init(const map<string, string>& params)
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver(GetParams());
-	m_bTapEnable = tap->Init();
+	tap = new CTapDriver();
+	m_bTapEnable = tap->Init(GetParams());
 	if (!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
 		return false;

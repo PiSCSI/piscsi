@@ -35,10 +35,10 @@ using namespace std;
 class CTapDriver
 {
 public:
-	CTapDriver(const map<string, string>&);
+	CTapDriver();
 	~CTapDriver() {}
 
-	bool Init();
+	bool Init(const map<string, string>&);
 	void OpenDump(const Filepath& path);
 										// Capture packets
 	void Cleanup();						// Cleanup

@@ -70,8 +70,8 @@ bool SCSIDaynaPort::Init(const map<string, string>& params)
 
 #ifdef __linux__
 	// TAP Driver Generation
-	m_tap = new CTapDriver(GetParams());
-	m_bTapEnable = m_tap->Init();
+	m_tap = new CTapDriver();
+	m_bTapEnable = m_tap->Init(GetParams());
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
 

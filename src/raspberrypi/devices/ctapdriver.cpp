@@ -31,30 +31,8 @@
 using namespace std;
 using namespace ras_util;
 
-CTapDriver::CTapDriver(const map<string, string>& const_params)
+CTapDriver::CTapDriver()
 {
-	map<string, string> params = const_params;
-	if (params.count("interfaces")) {
-		LOGWARN("You are using a deprecated syntax for the 'interfaces' parameter."
-				"Provide the interface list and the IP address/netmask with the 'interface' and 'inet' parameters");
-
-		// TODO Remove the deprecated syntax in a future version
-		const string& interfaces = params["interfaces"];
-		size_t separatorPos = interfaces.find(':');
-		if (separatorPos != string::npos) {
-			params["interface"] = interfaces.substr(0, separatorPos);
-			params["inet"] = interfaces.substr(separatorPos + 1);
-		}
-	}
-
-	stringstream s(params["interface"]);
-	string interface;
-	while (getline(s, interface, ',')) {
-		this->interfaces.push_back(interface);
-	}
-	this->inet = params["inet"];
-
-	// Initialization
 	m_hTAP = -1;
 	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
 	m_pcap = NULL;
@@ -121,8 +99,29 @@ static bool is_interface_up(const string& interface) {
 	return status;
 }
 
-bool CTapDriver::Init()
+bool CTapDriver::Init(const map<string, string>& const_params)
 {
+	map<string, string> params = const_params;
+	if (params.count("interfaces")) {
+		LOGWARN("You are using a deprecated syntax for the 'interfaces' parameter."
+				"Provide the interface list and the IP address/netmask with the 'interface' and 'inet' parameters");
+
+		// TODO Remove the deprecated syntax in a future version
+		const string& interfaces = params["interfaces"];
+		size_t separatorPos = interfaces.find(':');
+		if (separatorPos != string::npos) {
+			params["interface"] = interfaces.substr(0, separatorPos);
+			params["inet"] = interfaces.substr(separatorPos + 1);
+		}
+	}
+
+	stringstream s(params["interface"]);
+	string interface;
+	while (getline(s, interface, ',')) {
+		this->interfaces.push_back(interface);
+	}
+	this->inet = params["inet"];
+
 	LOGTRACE("Opening Tap device");
 	// TAP device initilization
 	if ((m_hTAP = open("/dev/net/tun", O_RDWR)) < 0) {
