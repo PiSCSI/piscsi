@@ -316,17 +316,6 @@
     <tr style="border: none">
         <td style="border: none; vertical-align:top;">
             <form action="/scsi/attach_network" method="post">
-                <label for="if">{{ _("Interface:") }}</label>
-                <select name="if">
-                {% for if in netinfo["ifs"] %}
-                    <option value="{{ if }}">
-                        {{ if }}
-                    </option>
-                {% endfor %}
-                </select>
-                <label for="ip">{{ _("Static IP (optional):") }}</label>
-                <input name="ip" type="text" size="15" placeholder="10.10.20.1" minlength="7" maxlength="15" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
-                <input name="mask" type="number" size="2" placeholder="24" min="16" max="30">
                 <label for="type">{{ _("Type:") }}</label>
                 <select name="type">
                     {% for type in NETWORK_DEVICE_TYPES %}
@@ -339,6 +328,17 @@
                     </option>
                     {% endfor %}
                 </select>
+                <label for="if">{{ _("Interface:") }}</label>
+                <select name="if">
+                {% for if in netinfo["ifs"] %}
+                    <option value="{{ if }}">
+                        {{ if }}
+                    </option>
+                {% endfor %}
+                </select>
+                <label for="ip">{{ _("Static IP (optional):") }}</label>
+                <input name="ip" type="text" size="15" placeholder="10.10.20.1" minlength="7" maxlength="15" pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$">
+                <input name="mask" type="number" size="2" placeholder="24" min="16" max="30">
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids %}
