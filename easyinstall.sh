@@ -1101,6 +1101,7 @@ function runChoice() {
               installRaScsiWebInterface
               installWebInterfaceService
               showRaScsiScreenStatus
+              showRaScsiCtrlBoardStatus
               showRaScsiStatus
               showRaScsiWebStatus
               notifyBackup
@@ -1136,6 +1137,7 @@ function runChoice() {
                   installRaScsiCtrlBoard
               fi
               showRaScsiScreenStatus
+              showRaScsiCtrlBoardStatus
               showRaScsiStatus
               notifyBackup
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
