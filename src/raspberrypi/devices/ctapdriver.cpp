@@ -68,28 +68,28 @@ CTapDriver::CTapDriver(const map<string, string>& const_params)
 //---------------------------------------------------------------------------
 #ifdef __linux__
 
-static BOOL br_setif(int br_socket_fd, const char* bridgename, const char* ifname, BOOL add) {
+static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
 	if (ifr.ifr_ifindex == 0) {
 		LOGERROR("Error: can't if_nametoindex. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
 	strncpy(ifr.ifr_name, bridgename, IFNAMSIZ);
 	if (ioctl(br_socket_fd, add ? SIOCBRADDIF : SIOCBRDELIF, &ifr) < 0) {
 		LOGERROR("Error: can't ioctl %s. Errno: %d %s", add ? "SIOCBRADDIF" : "SIOCBRDELIF", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
-static BOOL ip_link(int fd, const char* ifname, BOOL up) {
+static bool ip_link(int fd, const char* ifname, bool up) {
 	struct ifreq ifr;
 	strncpy(ifr.ifr_name, ifname, IFNAMSIZ-1); // Need to save room for null terminator
 	int err = ioctl(fd, SIOCGIFFLAGS, &ifr);
 	if (err) {
 		LOGERROR("Error: can't ioctl SIOCGIFFLAGS. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
 	ifr.ifr_flags &= ~IFF_UP;
 	if (up) {
@@ -98,9 +98,9 @@ static BOOL ip_link(int fd, const char* ifname, BOOL up) {
 	err = ioctl(fd, SIOCSIFFLAGS, &ifr);
 	if (err) {
 		LOGERROR("Error: can't ioctl SIOCSIFFLAGS. Errno: %d %s", errno, strerror(errno));
-		return FALSE;
+		return false;
 	}
-	return TRUE;
+	return true;
 }
 
 static bool is_interface_up(const string& interface) {
@@ -208,7 +208,7 @@ bool CTapDriver::Init()
 
 			LOGTRACE("brctl addif rascsi_bridge %s", bridge_interface.c_str());
 
-			if (!br_setif(br_socket_fd, "rascsi_bridge", bridge_interface.c_str(), TRUE)) {
+			if (!br_setif(br_socket_fd, "rascsi_bridge", bridge_interface.c_str(), true)) {
 				close(m_hTAP);
 				close(ip_fd);
 				close(br_socket_fd);
@@ -275,7 +275,7 @@ bool CTapDriver::Init()
 
 		LOGTRACE("ip link set dev rascsi_bridge up");
 
-		if (!ip_link(ip_fd, "rascsi_bridge", TRUE)) {
+		if (!ip_link(ip_fd, "rascsi_bridge", true)) {
 			close(m_hTAP);
 			close(ip_fd);
 			close(br_socket_fd);
@@ -289,7 +289,7 @@ bool CTapDriver::Init()
 
 	LOGTRACE("ip link set ras0 up");
 
-	if (!ip_link(ip_fd, "ras0", TRUE)) {
+	if (!ip_link(ip_fd, "ras0", true)) {
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
@@ -298,7 +298,7 @@ bool CTapDriver::Init()
 
 	LOGTRACE("brctl addif rascsi_bridge ras0");
 
-	if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", TRUE)) {
+	if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", true)) {
 		close(m_hTAP);
 		close(ip_fd);
 		close(br_socket_fd);
@@ -332,7 +332,7 @@ bool CTapDriver::Init()
 #endif // __linux__
 
 #ifdef __NetBSD__
-BOOL CTapDriver::Init()
+bool CTapDriver::Init()
 {
 	struct ifreq ifr;
 	struct ifaddrs *ifa, *a;
@@ -405,7 +405,7 @@ void CTapDriver::Cleanup()
 		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
 	} else {
 		LOGDEBUG("brctl delif rascsi_bridge ras0");
-		if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", FALSE)) {
+		if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", false)) {
 			LOGWARN("Warning: Removing ras0 from the bridge failed.");
 			LOGWARN("You may need to manually remove the ras0 tap device from the bridge");
 		}
@@ -437,7 +437,7 @@ void CTapDriver::Cleanup()
 bool CTapDriver::Enable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
-	bool result = ip_link(fd, "ras0", TRUE);
+	bool result = ip_link(fd, "ras0", true);
 	close(fd);
 	return result;
 }
@@ -450,7 +450,7 @@ bool CTapDriver::Enable(){
 bool CTapDriver::Disable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
-	bool result = ip_link(fd, "ras0", FALSE);
+	bool result = ip_link(fd, "ras0", false);
 	close(fd);
 	return result;
 }
@@ -460,12 +460,11 @@ bool CTapDriver::Disable(){
 //	Flush
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::Flush(){
+void CTapDriver::Flush(){
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	while(PendingPackets()){
 		(void)Rx(m_garbage_buffer);
 	}
-	return TRUE;
 }
 
 //---------------------------------------------------------------------------
@@ -485,7 +484,7 @@ void CTapDriver::GetMacAddr(BYTE *mac)
 //	Receive
 //
 //---------------------------------------------------------------------------
-BOOL CTapDriver::PendingPackets()
+bool CTapDriver::PendingPackets()
 {
 	struct pollfd fds;
 
@@ -498,9 +497,9 @@ BOOL CTapDriver::PendingPackets()
 	poll(&fds, 1, 0);
 	LOGTRACE("%s %u revents", __PRETTY_FUNCTION__, fds.revents);
 	if (!(fds.revents & POLLIN)) {
-		return FALSE;
+		return false;
 	}else {
-		return TRUE;
+		return true;
 	}
 }
 

@@ -45,10 +45,10 @@ public:
 	void GetMacAddr(BYTE *mac);					// Get Mac Address
 	int Rx(BYTE *buf);						// Receive
 	int Tx(const BYTE *buf, int len);					// Send
-	BOOL PendingPackets();						// Check if there are IP packets available
+	bool PendingPackets();						// Check if there are IP packets available
 	bool Enable();						// Enable the ras0 interface
 	bool Disable();				// Disable the ras0 interface
-	BOOL Flush();				// Purge all of the packets that are waiting to be processed
+	void Flush();				// Purge all of the packets that are waiting to be processed
 
 private:
 	BYTE m_MacAddr[6];							// MAC Address
