@@ -384,9 +384,9 @@
                 {% for key, value in device_params[type].items() %}
                 <label for="{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
-                <input name="{{ key }}" type="number" size="3" value="{{ value }}" min="1">
+                <input name="{{ key }}" type="number" size="{{ value|length }}" value="{{ value }}">
                 {% else %}
-                <input name="{{ key }}" type="text" size="20" value="{{ value }}">
+                <input name="{{ key }}" type="text" size="{{ value|length }}" value="{{ value }}">
                 {% endif %}
                 {% endfor %}
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
