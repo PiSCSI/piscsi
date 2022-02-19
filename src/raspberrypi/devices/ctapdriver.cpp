@@ -381,7 +381,7 @@ bool CTapDriver::Init(const map<string, string>&)
 			a->ifa_addr->sa_family == AF_LINK)
 			break;
 	if (a == NULL) {
-		LOGERROR("Can't get MAC addressErrno: %s", strerror(errno));
+		LOGERROR("Can't get MAC address: %s", strerror(errno));
 		close(m_hTAP);
 		return false;
 	}
@@ -391,7 +391,7 @@ bool CTapDriver::Init(const map<string, string>&)
 		sizeof(m_MacAddr));
 	freeifaddrs(ifa);
 
-	LOGINFO("Tap device : %s\n", ifr.ifr_name);
+	LOGINFO("Tap device: %s\n", ifr.ifr_name);
 
 	return true;
 }
