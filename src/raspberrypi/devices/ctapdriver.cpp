@@ -177,17 +177,14 @@ bool CTapDriver::Init()
 
 		string bridge_interface;
 		for (const string& interface : interfaces) {
-			ostringstream msg;
 			if (is_interface_up(interface)) {
-				msg << "Interface " << interface << " is up";
-				LOGTRACE("%s", msg.str().c_str());
+				LOGTRACE("%s", string("Interface " + interface + " is up").c_str());
 
 				bridge_interface = interface;
 				break;
 			}
 			else {
-				msg << "Interface " << interface << " is not available or is not up";
-				LOGTRACE("%s", msg.str().c_str());
+				LOGTRACE("%s", string("Interface " + interface + " is not available or is not up").c_str());
 			}
 		}
 
