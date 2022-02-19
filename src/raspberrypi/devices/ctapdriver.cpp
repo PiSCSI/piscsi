@@ -52,8 +52,6 @@ CTapDriver::CTapDriver(const map<string, string>& const_params)
 	}
 	this->inet = params["inet"];
 
-	LOGERROR("%s  %s", params["inet"].c_str(), params["interface"].c_str()); exit(0);
-
 	// Initialization
 	m_bTxValid = FALSE;
 	m_hTAP = -1;
