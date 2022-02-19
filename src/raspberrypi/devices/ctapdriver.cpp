@@ -198,7 +198,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 			LOGTRACE("brctl addbr rascsi_bridge");
 
 			if ((ret = ioctl(br_socket_fd, SIOCBRADDBR, "rascsi_bridge")) < 0) {
-				LOGERROR("Error: can't ioctl SIOCBRADDBR. Errno: %d %s", errno, strerror(errno));
+				LOGERROR("Error: can't ioctl SIOCBRADDBR: %s", strerror(errno));
 
 				close(m_hTAP);
 				close(ip_fd);
@@ -243,7 +243,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 			LOGTRACE("brctl addbr rascsi_bridge");
 
 			if ((ret = ioctl(br_socket_fd, SIOCBRADDBR, "rascsi_bridge")) < 0) {
-				LOGERROR("Error: can't ioctl SIOCBRADDBR. Errno: %d %s", errno, strerror(errno));
+				LOGERROR("Error: can't ioctl SIOCBRADDBR: %s", strerror(errno));
 
 				close(m_hTAP);
 				close(ip_fd);
@@ -264,7 +264,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 			struct sockaddr_in* mask = (struct sockaddr_in*)&ifr_n.ifr_addr;
 			inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr);
 			if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
-				LOGERROR("Error: can't ioctl SIOCSIFADDR or SIOCSIFNETMASK. Errno: %d %s", errno, strerror(errno));
+				LOGERROR("Error: can't ioctl SIOCSIFADDR or SIOCSIFNETMASK: %s", strerror(errno));
 
 				close(m_hTAP);
 				close(ip_fd);
@@ -310,7 +310,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 
 	ifr.ifr_addr.sa_family = AF_INET;
 	if ((ret = ioctl(m_hTAP, SIOCGIFHWADDR, &ifr)) < 0) {
-		LOGERROR("Error: can't ioctl SIOCGIFHWADDR. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't ioctl SIOCGIFHWADDR: %s", strerror(errno));
 
 		close(m_hTAP);
 		close(ip_fd);
@@ -339,20 +339,20 @@ bool CTapDriver::Init()
 	
 	// TAP Device Initialization
 	if ((m_hTAP = open("/dev/tap", O_RDWR)) < 0) {
-		LOGERROR("Error: can't open tap. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't open tap: %s", strerror(errno));
 		return false;
 	}
 
 	// Get device name
 	if (ioctl(m_hTAP, TAPGIFNAME, (void *)&ifr) < 0) {
-		LOGERROR("Error: can't ioctl TAPGIFNAME. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't ioctl TAPGIFNAME: %s", strerror(errno));
 		close(m_hTAP);
 		return false;
 	}
 
 	// Get MAC address
 	if (getifaddrs(&ifa) == -1) {
-		LOGERROR("Error: can't getifaddrs. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't getifaddrs: %s", strerror(errno));
 		close(m_hTAP);
 		return false;
 	}
@@ -361,7 +361,7 @@ bool CTapDriver::Init()
 			a->ifa_addr->sa_family == AF_LINK)
 			break;
 	if (a == NULL) {
-		LOGERROR("Error: can't get MAC addressErrno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't get MAC addressErrno: %s", strerror(errno));
 		close(m_hTAP);
 		return false;
 	}
@@ -397,7 +397,7 @@ void CTapDriver::Cleanup()
 {
 	int br_socket_fd = -1;
 	if ((br_socket_fd = socket(AF_LOCAL, SOCK_STREAM, 0)) < 0) {
-		LOGERROR("Error: can't open bridge socket. Errno: %d %s", errno, strerror(errno));
+		LOGERROR("Error: can't open bridge socket: %s", strerror(errno));
 	} else {
 		LOGDEBUG("brctl delif rascsi_bridge ras0");
 		if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", false)) {
