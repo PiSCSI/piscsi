@@ -415,7 +415,7 @@
                 </select>
                 {% for key, value in device_params["SCLP"].items() %}
                 <label for="{{ key }}">{{ key }}:</label>
-                {% if key == "timeout" %}
+                {% if value.isnumeric() %}
                 <input name="{{ key }}" type="number" size="3" value="{{ value }}" min="1">
                 {% else %}
                 <input name="{{ key }}" type="text" size="20" value="{{ value }}">
