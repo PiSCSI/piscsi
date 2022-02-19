@@ -230,7 +230,7 @@ bool CTapDriver::Init()
 
 				int m;
 				if (!GetAsInt(inet.substr(separatorPos + 1), m) || m < 8 || m > 32) {
-					LOGERROR("Error: Invalid CIDR netmask '/%s'", inet.substr(separatorPos + 1).c_str());
+					LOGERROR("Error: Invalid CIDR netmask notation '%s'", inet.substr(separatorPos + 1).c_str());
 
 					close(m_hTAP);
 					close(ip_fd);
