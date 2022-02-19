@@ -392,11 +392,6 @@ void CTapDriver::OpenDump(const Filepath& path) {
 	LOGTRACE("%s Opened %s for dumping", __PRETTY_FUNCTION__, path.GetPath());
 }
 
-//---------------------------------------------------------------------------
-//
-//	Cleanup
-//
-//---------------------------------------------------------------------------
 void CTapDriver::Cleanup()
 {
 	int br_socket_fd = -1;
@@ -428,11 +423,6 @@ void CTapDriver::Cleanup()
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Enable
-//
-//---------------------------------------------------------------------------
 bool CTapDriver::Enable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 up", __PRETTY_FUNCTION__);
@@ -441,11 +431,6 @@ bool CTapDriver::Enable(){
 	return result;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Disable
-//
-//---------------------------------------------------------------------------
 bool CTapDriver::Disable(){
 	int fd = socket(PF_INET, SOCK_DGRAM, 0);
 	LOGDEBUG("%s: ip link set ras0 down", __PRETTY_FUNCTION__);
@@ -454,11 +439,6 @@ bool CTapDriver::Disable(){
 	return result;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Flush
-//
-//---------------------------------------------------------------------------
 void CTapDriver::Flush(){
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 	while(PendingPackets()){
@@ -466,11 +446,6 @@ void CTapDriver::Flush(){
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	MGet MAC Address
-//
-//---------------------------------------------------------------------------
 void CTapDriver::GetMacAddr(BYTE *mac)
 {
 	ASSERT(mac);
