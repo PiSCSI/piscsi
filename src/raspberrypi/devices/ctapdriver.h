@@ -52,7 +52,6 @@ public:
 
 private:
 	BYTE m_MacAddr[6];							// MAC Address
-	BOOL m_bTxValid;							// Send Valid Flag
 	int m_hTAP;								// File handle
 
 	BYTE m_garbage_buffer[ETH_FRAME_LEN];

@@ -55,7 +55,6 @@ CTapDriver::CTapDriver(const map<string, string>& const_params)
 	this->inet = params["inet"];
 
 	// Initialization
-	m_bTxValid = FALSE;
 	m_hTAP = -1;
 	memset(&m_MacAddr, 0, sizeof(m_MacAddr));
 	m_pcap = NULL;
