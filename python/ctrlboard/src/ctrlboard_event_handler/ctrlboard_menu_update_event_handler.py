@@ -17,7 +17,7 @@ from rascsi_menu_controller import RascsiMenuController
 
 # pylint: disable=too-many-instance-attributes
 class CtrlBoardMenuUpdateEventHandler(Observer):
-    """Class interfacing the menu controller the the RaSCSI Control Board hardware."""
+    """Class interfacing the menu controller the RaSCSI Control Board hardware."""
 
     def __init__(self, menu_controller: RascsiMenuController, sock_cmd: SocketCmds,
                  ractl_cmd: RaCtlCmds):
@@ -63,7 +63,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
             result = self.rascsi_profile_cycler.update()
             if result is not None:
                 self.rascsi_profile_cycler = None
-                self.context_stack = None
+                self.context_stack = []
 #                self._menu_controller.segue(result)
                 self._menu_controller.segue(result)
         if self.rascsi_shutdown_cycler is not None:
@@ -110,8 +110,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         context_object = self._menu_controller.get_active_menu().get_current_info_object()
         self.context_stack.append(context_object)
         self._menu_controller.segue(CtrlBoardMenuBuilder.ACTION_MENU, context_object=context_object,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_left)
 
     # noinspection PyUnusedLocal
     # pylint: disable=unused-argument
@@ -120,8 +120,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         action menu to the scsi list."""
         self.context_stack.pop()
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_right)
 
     # noinspection PyUnusedLocal
     # pylint: disable=unused-argument
@@ -130,8 +130,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         context_object = self._menu_controller.get_active_menu().context_object
         self.context_stack.append(context_object)
         self._menu_controller.segue(CtrlBoardMenuBuilder.IMAGES_MENU, context_object=context_object,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_left)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_slot_detacheject(self, info_object):
@@ -141,8 +141,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self.context_stack = []
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
                                     context_object=context_object,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_right)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_slot_info(self, info_object):
@@ -150,8 +150,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         context_object = self._menu_controller.get_active_menu().context_object
         self.context_stack.append(context_object)
         self._menu_controller.segue(CtrlBoardMenuBuilder.DEVICEINFO_MENU,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_left,
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_left,
                                     context_object=context_object)
 
     # noinspection PyUnusedLocal
@@ -160,8 +160,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self.context_stack.pop()
         context_object = self._menu_controller.get_active_menu().context_object
         self._menu_controller.segue(CtrlBoardMenuBuilder.ACTION_MENU,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_right,
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_right,
                                     context_object=context_object)
 
     # noinspection PyUnusedLocal
@@ -170,8 +170,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         context_object = self._menu_controller.get_active_menu().context_object
         self.context_stack.append(context_object)
         self._menu_controller.segue(CtrlBoardMenuBuilder.PROFILES_MENU,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_left)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_left)
 
     # noinspection PyUnusedLocal
     def handle_profiles_menu_loadprofile(self, info_object):
@@ -187,8 +187,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
 
         self.context_stack = []
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_right)
 
     # noinspection PyUnusedLocal
     def handle_action_menu_shutdown(self, info_object):
@@ -196,8 +196,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self.ractl_cmd.shutdown_pi("system")
         self._menu_controller.show_message("Shutting down!", 150)
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_right)
 
     # noinspection PyUnusedLocal
     def handle_images_menu_return(self, info_object):
@@ -206,8 +206,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         context_object = self.context_stack.pop()
         self._menu_controller.segue(CtrlBoardMenuBuilder.ACTION_MENU,
                                     context_object=context_object,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_right)
 
     def handle_images_menu_image_attachinsert(self, info_object):
         """Method handles the rotary button press on an image in the image selection menu
@@ -217,8 +217,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         self.context_stack = []
         self._menu_controller.segue(CtrlBoardMenuBuilder.SCSI_ID_MENU,
                                     context_object=context_object,
-                                    transition_attributes=
-                                    self._menu_renderer_config.transition_attributes_right)
+                                    transition_attributes=self._menu_renderer_config.
+                                    transition_attributes_right)
 
     def attach_insert_scsi_id(self, info_object):
         """Helper method to attach/insert an image on a scsi id given through the menu context"""

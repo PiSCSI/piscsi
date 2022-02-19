@@ -2,6 +2,8 @@
 set -e
 # set -x # Uncomment to Debug
 
+PI_MODEL=$(/usr/bin/tr -d '\0' < /proc/device-tree/model)
+
 cd "$(dirname "$0")"
 # verify packages installed
 ERROR=0
@@ -111,39 +113,28 @@ else
 fi
 set -e
 
-# parse arguments
-#while [ "$1" != "" ]; do
-#    PARAM=$(echo "$1" | awk -F= '{print $1}')
-#    VALUE=$(echo "$1" | awk -F= '{print $2}')
-#    case $PARAM in
-#	-r | --rotation)
-#	    ROTATION="--rotation $VALUE"
-#	    ;;
-#	-h | --height)
-#	    HEIGHT="--height $VALUE"
-#	    ;;
-#	-P | --password)
-#	    PASSWORD="--password $VALUE"
-#	    ;;
-#        *)
-#            echo "ERROR: unknown parameter \"$PARAM\""
-#            exit 1
-#            ;;
-#    esac
-#    shift
-#done
+export PYTHONPATH=${PWD}/src:${PWD}/../common/src
 
 echo "Starting RaSCSI control board service..."
-#if [ -z ${ROTATION+x} ]; then
-#    echo "No screen rotation parameter given; falling back to the default."
-#else
-#    echo "Starting with parameter $ROTATION"
-#fi
-#if [ -z ${HEIGHT+x} ]; then
-#    echo "No screen height parameter given; falling back to the default."
-#else
-#    echo "Starting with parameter $HEIGHT"
-#fi
-#python3 src/main.py ${ROTATION} ${HEIGHT} ${PASSWORD}
-export PYTHONPATH=${PWD}/src:${PWD}/../common/src
-python3 src/main.py
+
+if [[ ${PI_MODEL} =~ "Raspberry Pi 4" ]]; then
+  #Model Raspberry Pi 4 Model B Rev 1.4
+  echo "Detected: Raspberry Pi 4"
+  sudo /usr/sbin/rmmod i2c_bcm2835
+  sudo /usr/sbin/modprobe i2c_bcm2835 baudrate=1000000
+  python3 src/main.py "$@" --transitions 1
+elif [[ ${PI_MODEL} =~ "Raspberry Pi 3" ]] || [[ ${PI_MODEL} =~ "Raspberry Pi Zero 2" ]]; then
+  #Model Raspberry Pi Zero 2 W Rev 1.0
+  #Model Raspberry Pi 3 Model B Rev 1.2
+  echo "Detected: Raspberry Pi 3 or Zero 2"
+  sudo /usr/sbin/rmmod i2c_bcm2835
+  sudo /usr/sbin/modprobe i2c_bcm2835 baudrate=400000
+  python3 src/main.py --transitions 1
+else
+  #Model Raspberry Pi Zero W Rev 1.1
+  #Model Raspberry Pi Zero Rev 1.3
+  echo "Detected: Raspberry Pi Zero, Zero W, Zero WH, ..."
+  sudo /usr/sbin/rmmod i2c_bcm2835
+  sudo /usr/sbin/modprobe i2c_bcm2835 baudrate=100000
+  python3 src/main.py --transitions 0
+fi

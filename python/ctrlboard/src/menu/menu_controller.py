@@ -1,8 +1,9 @@
 """Module providing the menu controller."""
 import time
 import importlib
-
 from typing import Dict, Optional
+from PIL import Image
+
 from menu.menu import Menu
 from menu.menu_builder import MenuBuilder
 from menu.menu_renderer_config import MenuRendererConfig
@@ -30,6 +31,9 @@ class MenuController:
         else:
             self._menu_renderer = menu_renderer
         self._transition: Optional[Transition] = None
+        if self._menu_renderer_config.transition is None:
+            self._transition = None
+            return
         try:
             module = importlib.import_module("menu.transition")
             try:
@@ -129,6 +133,12 @@ class MenuController:
         simply redraws the mini message on screen if necessary."""
         self.get_menu_renderer().mini_message = message
         self.get_menu_renderer().render()
+
+    def show_splash_screen(self, filename, sleep=2):
+        """Shows a splash screen for a given number of seconds."""
+        image = Image.open(filename).convert("1")
+        self.get_menu_renderer().update_display_image(image)
+        time.sleep(sleep)
 
     def update(self):
         """Updates the menu / draws the screen if necessary."""

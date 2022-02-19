@@ -13,6 +13,7 @@ class CtrlboardConfig:
     LINES = 8
     TOKEN = ""
     BORDER = 5
+    TRANSITIONS = 1
     DISPLAY_I2C_ADDRESS = CtrlBoardHardwareConstants.DISPLAY_I2C_ADDRESS
     PCA9554_I2C_ADDRESS = CtrlBoardHardwareConstants.PCA9554_I2C_ADDRESS
     MENU_REFRESH_INTERVAL = 6
@@ -29,5 +30,6 @@ class CtrlboardConfig:
         result += "border: " + str(self.BORDER) + "\n"
         result += "rascsi host: " + str(self.RASCSI_HOST) + "\n"
         result += "rascsi port: " + str(self.RASCSI_PORT) + "\n"
+        result += "transitions: " + str(self.TRANSITIONS) + "\n"
 
         return result
