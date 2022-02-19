@@ -66,24 +66,7 @@ bool SCSIBR::Init(const map<string, string>& params)
 
 #ifdef __linux__
 	// TAP Driver Generation
-
-	string interfaces = GetParam("interfaces");
-	const string& inet = GetParam("inet");
-	// Check whether the new syntax (interface, inet, netmask) or the old syntax (interfaces) is used
-	if (!inet.empty()) {
-		interfaces += ":" + inet;
-		const string& netmask = GetParam("netmask");
-		if (!netmask.empty()) {
-			interfaces += ":" + netmask;
-		}
-	}
-	else {
-		LOGWARN("You are using a deprecated syntax for the 'interfaces' parameter."
-				"Provide the IP address and netmask with the separate 'inet' and 'netmask' parameters");
-	}
-
-	// TODO change the constructor after removing support for the old syntax
-	tap = new CTapDriver(interfaces);
+	tap = new CTapDriver(GetParams());
 	m_bTapEnable = tap->Init();
 	if (!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");

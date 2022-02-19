@@ -17,12 +17,15 @@
 
 #include <pcap/pcap.h>
 #include "filepath.h"
+#include <map>
 #include <vector>
 #include <string>
 
 #ifndef ETH_FRAME_LEN
 #define ETH_FRAME_LEN 1514
 #endif
+
+using namespace std;
 
 //===========================================================================
 //
@@ -32,8 +35,8 @@
 class CTapDriver
 {
 public:
-	CTapDriver(const std::string&);
-	~CTapDriver() {};
+	CTapDriver(const map<string, string>&);
+	~CTapDriver() {}
 
 	bool Init();
 	void OpenDump(const Filepath& path);
@@ -58,6 +61,8 @@ private:
 	pcap_dumper_t *m_pcap_dumper;
 
 	// Prioritized comma-separated list of interfaces to create the bridge for
-	std::vector<std::string> interfaces;
+	vector<string> interfaces;
+
+	string inet;
 };
 

@@ -29,13 +29,27 @@
 
 using namespace std;
 
-CTapDriver::CTapDriver(const string& interfaces)
+CTapDriver::CTapDriver(const map<string, string>& const_params)
 {
-	stringstream s(interfaces);
+	map<string, string> params = const_params;
+	if (params.count("interfaces")) {
+		LOGWARN("You are using a deprecated syntax for the 'interfaces' parameter."
+				"Provide the IP address/netmask with the separate 'inet' parameter");
+
+		const string& interfaces = params["interfaces"];
+		size_t separatorPos = interfaces.find(':');
+		if (separatorPos != string::npos) {
+			params["interface"] = interfaces.substr(0, separatorPos);
+			params["inet"] = interfaces.substr(separatorPos + 1);
+		}
+	}
+
+	stringstream s(params["interface"]);
 	string interface;
 	while (getline(s, interface, ',')) {
 		this->interfaces.push_back(interface);
 	}
+	this->inet = params["inet"];
 
 	// Initialization
 	m_bTxValid = FALSE;
@@ -159,17 +173,16 @@ bool CTapDriver::Init()
 		LOGTRACE("Checking which interface is available for creating the bridge");
 
 		string bridge_interface;
-		string bridge_ip;
 		for (const string& iface : interfaces) {
 			string interface;
 			size_t separatorPos = iface.find(':');
 			if (separatorPos != string::npos) {
 				interface = iface.substr(0, separatorPos);
-				bridge_ip = iface.substr(separatorPos + 1);
+				inet = iface.substr(separatorPos + 1);
 			}
 			else {
 				interface = iface;
-				bridge_ip = "10.10.20.1/24";
+				inet = "10.10.20.1/24";
 			}
 
 			ostringstream msg;
@@ -215,15 +228,15 @@ bool CTapDriver::Init()
 			}
 		}
 		else {
-			LOGDEBUG("ip address add %s dev rascsi_bridge", bridge_ip.c_str());
+			LOGDEBUG("ip address add %s dev rascsi_bridge", inet.c_str());
 
-			string address = bridge_ip;
+			string address = inet;
 			string netmask = "255.255.255.0";
-			size_t separatorPos = bridge_ip.find('/');
+			size_t separatorPos = inet.find('/');
 			if (separatorPos != string::npos) {
-				address = bridge_ip.substr(0, separatorPos);
+				address = inet.substr(0, separatorPos);
 
-				string mask = bridge_ip.substr(separatorPos + 1);
+				string mask = inet.substr(separatorPos + 1);
 				if (mask == "8") {
 					netmask = "255.0.0.0";
 				}
@@ -234,7 +247,7 @@ bool CTapDriver::Init()
 					netmask = "255.255.255.0";
 				}
 				else {
-					LOGERROR("Error: Invalid netmask in %s", bridge_ip.c_str());
+					LOGERROR("Error: Invalid netmask in %s", inet.c_str());
 
 					close(m_hTAP);
 					close(ip_fd);
@@ -254,7 +267,7 @@ bool CTapDriver::Init()
 				return false;
 			}
 
-			LOGDEBUG("ip address add %s dev rascsi_bridge", bridge_ip.c_str());
+			LOGDEBUG("ip address add %s dev rascsi_bridge", inet.c_str());
 
 			struct ifreq ifr_a;
 			ifr_a.ifr_addr.sa_family = AF_INET;
