@@ -234,7 +234,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 
 				long mask = pow(2, 32) - (1 << (32 - m));
 				char buf[16];
-				sprintf(buf, "%ld.%ld.%ld.%ld", (mask >> 24) & 0xff, (mask >> 16) & 0xff, (mask) & 0xff, mask & 0xff);
+				sprintf(buf, "%ld.%ld.%ld.%ld", (mask >> 24) & 0xff, (mask >> 16) & 0xff, (mask >> 8) & 0xff, mask & 0xff);
 				netmask = buf;
 			}
 
@@ -248,8 +248,6 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 				close(br_socket_fd);
 				return false;
 			}
-
-			LOGTRACE("ip address add %s dev rascsi_bridge", inet.c_str());
 
 			struct ifreq ifr_a;
 			ifr_a.ifr_addr.sa_family = AF_INET;
@@ -276,6 +274,8 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 				close(br_socket_fd);
 				return false;
 			}
+
+			LOGTRACE("ip address add %s dev rascsi_bridge", inet.c_str());
 
 			if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
 				LOGERROR("Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK: %s", strerror(errno));
