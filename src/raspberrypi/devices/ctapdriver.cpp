@@ -103,7 +103,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 {
 	map<string, string> params = const_params;
 	if (params.count("interfaces")) {
-		LOGWARN("You are using a deprecated syntax for the 'interfaces' parameter."
+		LOGWARN("You are using the deprecated 'interfaces' parameter. "
 				"Provide the interface list and the IP address/netmask with the 'interface' and 'inet' parameters");
 
 		// TODO Remove the deprecated syntax in a future version
