@@ -4,7 +4,7 @@ Pca9554 driver, NXP Semiconductors
 I2C SMBus protocol
 Manual: PCA9554_9554A.pdf
 
-Forked from public domain Pca9554 driver: https://github.com/IRNAS/pca9554-python
+Forked from pca9554-python driver: https://github.com/IRNAS/pca9554-python
 """
 import logging
 import smbus

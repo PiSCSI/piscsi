@@ -70,6 +70,14 @@ def parse_config():
         help="Loglevel. Valid values: 0 (notset), 10 (debug), 30 (warning), "
              "40 (error), 50 (critical). Default: Warning",
     )
+    cmdline_args_parser.add_argument(
+        "--transitions",
+        type=int,
+        choices=[0, 1],
+        default=1,
+        action="store",
+        help="Transition animations. Valid values: 0 (disabled), 1 (enabled). Default: 1",
+    )
     args = cmdline_args_parser.parse_args()
     config.ROTATION = args.rotation
 
@@ -85,6 +93,7 @@ def parse_config():
     config.RASCSI_HOST = args.rascsi_host
     config.RASCSI_PORT = args.rascsi_port
     config.LOG_LEVEL = args.loglevel
+    config.TRANSITIONS = bool(args.transitions)
 
     return config
 
@@ -139,6 +148,10 @@ def main():
         exit(1)
 
     menu_renderer_config = MenuRendererConfig()
+
+    if config.TRANSITIONS is False:
+        menu_renderer_config.transition = None
+
     menu_renderer_config.i2c_address = CtrlBoardHardwareConstants.DISPLAY_I2C_ADDRESS
     menu_renderer_config.rotation = config.ROTATION
 
@@ -146,8 +159,11 @@ def main():
     menu_controller = RascsiMenuController(config.MENU_REFRESH_INTERVAL, menu_builder=menu_builder,
                                            menu_renderer=MenuRendererLumaOled(menu_renderer_config),
                                            menu_renderer_config=menu_renderer_config)
+
     menu_controller.add(CtrlBoardMenuBuilder.SCSI_ID_MENU)
     menu_controller.add(CtrlBoardMenuBuilder.ACTION_MENU)
+
+    menu_controller.show_splash_screen(f"resources/splash_start_64.bmp")
 
     menu_update_event_handler = CtrlBoardMenuUpdateEventHandler(menu_controller,
                                                                 sock_cmd=sock_cmd,
