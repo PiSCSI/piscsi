@@ -24,10 +24,12 @@
 #include "os.h"
 #include "ctapdriver.h"
 #include "log.h"
+#include "rasutil.h"
 #include "exceptions.h"
 #include <sstream>
 
 using namespace std;
+using namespace ras_util;
 
 CTapDriver::CTapDriver(const map<string, string>& const_params)
 {
@@ -174,18 +176,7 @@ bool CTapDriver::Init()
 		LOGTRACE("Checking which interface is available for creating the bridge");
 
 		string bridge_interface;
-		for (const string& iface : interfaces) {
-			string interface;
-			size_t separatorPos = iface.find(':');
-			if (separatorPos != string::npos) {
-				interface = iface.substr(0, separatorPos);
-				inet = iface.substr(separatorPos + 1);
-			}
-			else {
-				interface = iface;
-				inet = "10.10.20.1/24";
-			}
-
+		for (const string& interface : interfaces) {
 			ostringstream msg;
 			if (is_interface_up(interface)) {
 				msg << "Interface " << interface << " is up";
@@ -208,7 +199,7 @@ bool CTapDriver::Init()
 		LOGINFO("Creating rascsi_bridge for interface %s", bridge_interface.c_str());
 
 		if (bridge_interface == "eth0") {
-			LOGDEBUG("brctl addbr rascsi_bridge");
+			LOGTRACE("brctl addbr rascsi_bridge");
 
 			if ((ret = ioctl(br_socket_fd, SIOCBRADDBR, "rascsi_bridge")) < 0) {
 				LOGERROR("Error: can't ioctl SIOCBRADDBR. Errno: %d %s", errno, strerror(errno));
@@ -219,7 +210,7 @@ bool CTapDriver::Init()
 				return false;
 			}
 
-			LOGDEBUG("brctl addif rascsi_bridge %s", bridge_interface.c_str());
+			LOGTRACE("brctl addif rascsi_bridge %s", bridge_interface.c_str());
 
 			if (!br_setif(br_socket_fd, "rascsi_bridge", bridge_interface.c_str(), TRUE)) {
 				close(m_hTAP);
@@ -229,7 +220,7 @@ bool CTapDriver::Init()
 			}
 		}
 		else {
-			LOGDEBUG("ip address add %s dev rascsi_bridge", inet.c_str());
+			LOGTRACE("ip address add %s dev rascsi_bridge", inet.c_str());
 
 			string address = inet;
 			string netmask = "255.255.255.0";
@@ -237,27 +228,23 @@ bool CTapDriver::Init()
 			if (separatorPos != string::npos) {
 				address = inet.substr(0, separatorPos);
 
-				string mask = inet.substr(separatorPos + 1);
-				if (mask == "8") {
-					netmask = "255.0.0.0";
-				}
-				else if (mask == "16") {
-					netmask = "255.255.0.0";
-				}
-				else if (mask == "24") {
-					netmask = "255.255.255.0";
-				}
-				else {
-					LOGERROR("Error: Invalid netmask in %s", inet.c_str());
+				int m;
+				if (!GetAsInt(inet.substr(separatorPos + 1), m) || m < 8 || m > 32) {
+					LOGERROR("Error: Invalid netmask '%s'", inet.substr(separatorPos + 1).c_str());
 
 					close(m_hTAP);
 					close(ip_fd);
 					close(br_socket_fd);
 					return false;
 				}
+
+				long mask = pow(2, 32) - (1 << (32 - m));
+				char buf[16];
+				sprintf(buf, "%ld.%ld.%ld.%ld", (mask >> 24) & 0xff, (mask >> 16) & 0xff, (mask) & 0xff, mask & 0xff);
+				netmask = buf;
 			}
 
-			LOGDEBUG("brctl addbr rascsi_bridge");
+			LOGTRACE("brctl addbr rascsi_bridge");
 
 			if ((ret = ioctl(br_socket_fd, SIOCBRADDBR, "rascsi_bridge")) < 0) {
 				LOGERROR("Error: can't ioctl SIOCBRADDBR. Errno: %d %s", errno, strerror(errno));
@@ -268,7 +255,7 @@ bool CTapDriver::Init()
 				return false;
 			}
 
-			LOGDEBUG("ip address add %s dev rascsi_bridge", inet.c_str());
+			LOGTRACE("ip address add %s dev rascsi_bridge", inet.c_str());
 
 			struct ifreq ifr_a;
 			ifr_a.ifr_addr.sa_family = AF_INET;
@@ -290,7 +277,7 @@ bool CTapDriver::Init()
 			}
 		}
 
-		LOGDEBUG("ip link set dev rascsi_bridge up");
+		LOGTRACE("ip link set dev rascsi_bridge up");
 
 		if (!ip_link(ip_fd, "rascsi_bridge", TRUE)) {
 			close(m_hTAP);
@@ -304,7 +291,7 @@ bool CTapDriver::Init()
 		LOGINFO("rascsi_bridge is already available");
 	}
 
-	LOGDEBUG("ip link set ras0 up");
+	LOGTRACE("ip link set ras0 up");
 
 	if (!ip_link(ip_fd, "ras0", TRUE)) {
 		close(m_hTAP);
@@ -313,7 +300,7 @@ bool CTapDriver::Init()
 		return false;
 	}
 
-	LOGDEBUG("brctl addif rascsi_bridge ras0");
+	LOGTRACE("brctl addif rascsi_bridge ras0");
 
 	if (!br_setif(br_socket_fd, "rascsi_bridge", "ras0", TRUE)) {
 		close(m_hTAP);

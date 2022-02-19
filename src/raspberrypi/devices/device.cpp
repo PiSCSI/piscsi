@@ -125,7 +125,7 @@ void Device::SetParams(const map<string, string>& params)
 {
 	this->params = GetDefaultParams();
 
-	for (const auto& param: params) {
+	for (const auto& param : params) {
 		this->params[param.first] = param.second;
 	}
 }
