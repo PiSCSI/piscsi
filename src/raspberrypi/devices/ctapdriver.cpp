@@ -20,6 +20,7 @@
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
 #endif
+// TODO Try to get rid of zlib, there is only one operation using it
 #include <zlib.h> // For crc32()
 #include "os.h"
 #include "ctapdriver.h"
