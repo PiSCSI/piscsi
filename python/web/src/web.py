@@ -117,7 +117,7 @@ def index():
     image_files = file_cmds.list_images()
     config_files = file_cmds.list_config_files()
 
-    mapped_device_types = extend_device_names(device_types["device_types"])
+    mapped_device_types = extend_device_names(device_types["device_types"].keys())
 
     extended_image_files = []
     for image in image_files["files"]:
@@ -180,6 +180,7 @@ def index():
         current_log_level=server_info["current_log_level"],
         netinfo=ractl.get_network_info(),
         device_types=mapped_device_types,
+        device_params=device_types["device_types"],
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         cdrom_file_suffix=tuple(server_info["sccd"]),

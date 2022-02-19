@@ -379,6 +379,7 @@
                 <label for="type">{{ _("Type:") }}</label>
                 <select name="type">
                     {% for type in SUPPORT_DEVICE_TYPES %}
+                    {% if type != "SCLP" %}
                     <option value="{{ type }}">
                     {% for key, value in device_types.items() %}
                     {% if key == type %}
@@ -386,12 +387,40 @@
                     {% endif %}
                     {% endfor %}
                     </option>
+                    {% endif %}
                     {% endfor %}
                 </select>
-                <label for="cmd">{{ _("Command (Printer only):") }}</label>
-                <input name="cmd" type="text" size="20" placeholder="lp -oraw">
-                <label for="timeout">{{ _("Timeout (Printer only):") }}</label>
-                <input name="timeout" type="number" size="3" value="30" min="1">
+                <label for="scsi_id">{{ _("SCSI ID:") }}</label>
+                <select name="scsi_id">
+                {% for id in scsi_ids %}
+                    <option value="{{ id }}"{% if id == recommended_id %} selected{% endif %}>
+                        {{ id }}
+                    </option>
+                {% endfor %}
+                </select>
+                <label for="unit">{{ _("LUN") }}</label>
+                <input name="unit" type="number" size="2" value="0" min="0" max="31">
+                <input type="submit" value="{{ _("Attach") }}">
+            </form>
+        </td>
+    </tr>
+    <tr style="border: none">
+        <td style="border: none; vertical-align:top;">
+            <form action="/scsi/attach_support" method="post">
+                <label for="type">{{ _("Type:") }}</label>
+                <select name="type">
+                    <option value="SCLP">
+                    {{ device_types["SCLP"] }}
+                    </option>
+                </select>
+                {% for key, value in device_params["SCLP"].items() %}
+                <label for="{{ key }}">{{ key }}:</label>
+                {% if key == "timeout" %}
+                <input name="{{ key }}" type="number" size="3" value="{{ value }}" min="1">
+                {% else %}
+                <input name="{{ key }}" type="text" size="20" value="{{ value }}">
+                {% endif %}
+                {% endfor %}
                 <label for="scsi_id">{{ _("SCSI ID:") }}</label>
                 <select name="scsi_id">
                 {% for id in scsi_ids %}

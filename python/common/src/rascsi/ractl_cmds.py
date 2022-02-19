@@ -125,7 +125,8 @@ class RaCtlCmds:
         Sends a DEVICE_TYPES_INFO command to the server.
         Returns a dict with:
         - (bool) status
-        - (list) of (str) device_types (device types that RaSCSI supports, ex. SCHD, SCCD, etc)
+        - (dict) device_types, where keys are the four letter device type acronym,
+          and the value is a (dict) of supported parameters and their default values.
         """
         command = proto.PbCommand()
         command.operation = proto.PbOperation.DEVICE_TYPES_INFO
@@ -135,9 +136,13 @@ class RaCtlCmds:
         data = self.sock_cmd.send_pb_command(command.SerializeToString())
         result = proto.PbResult()
         result.ParseFromString(data)
-        device_types = []
-        for prop in result.device_types_info.properties:
-            device_types.append(proto.PbDeviceType.Name(prop.type))
+        device_types = {}
+        import logging
+        for device in result.device_types_info.properties:
+            params = {}
+            for key, value in device.properties.default_params.items():
+                params[key] = value
+            device_types[proto.PbDeviceType.Name(device.type)] = params
         return {"status": result.status, "device_types": device_types}
 
     def get_image_files_info(self):
