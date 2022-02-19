@@ -370,6 +370,8 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	PbOperationMetaData *meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "name", "Image file name in case of a mass storage device");
 	AddOperationParameter(meta_data, "interfaces", "Comma-separated prioritized network interface list");
+	AddOperationParameter(meta_data, "inet", "IP address of the network bridge");
+	AddOperationParameter(meta_data, "netmask", "Netmask of the network bridge");
 	AddOperationParameter(meta_data, "cmd", "print command for the printer device");
 	AddOperationParameter(meta_data, "timeout", "Reservation timeout for the printer device in seconds");
 	CreateOperation(operation_info, meta_data, ATTACH, "Attach device, device-specific parameters are required");
