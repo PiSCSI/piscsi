@@ -188,9 +188,11 @@ def formatted_output():
                 else:
                     output.append(f"{line['id']} {line['device_type'][2:4]} {line['status']}")
             # Special handling of devices that don't use image files
-            elif line["device_type"] in (NETWORK_DEVICE_TYPES + SUPPORT_DEVICE_TYPES):
+            elif line["device_type"] in (NETWORK_DEVICE_TYPES):
                 output.append(f"{line['id']} {line['device_type'][2:4]} {line['vendor']} "
                               f"{line['product']}")
+            elif line["device_type"] in (SUPPORT_DEVICE_TYPES):
+                output.append(f"{line['id']} {line['device_type'][2:4]} {line['product']}")
             # Print only the Vendor/Product info if it's not generic RaSCSI
             elif line["vendor"] not in "RaSCSI":
                 output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} "
