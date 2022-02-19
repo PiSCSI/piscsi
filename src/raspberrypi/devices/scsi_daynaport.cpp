@@ -81,6 +81,10 @@ bool SCSIDaynaPort::Init(const map<string, string>& params)
 			interfaces += ":" + netmask;
 		}
 	}
+	else {
+		LOGWARN("You are using a deprecated syntax for the 'interfaces' parameter."
+				"Provide the IP address and netmask with the separate 'inet' and 'netmask' parameters");
+	}
 
 	// TODO change the constructor after removing support for the old syntax
 	m_tap = new CTapDriver(interfaces);
