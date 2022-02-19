@@ -216,8 +216,6 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 			}
 		}
 		else {
-			LOGTRACE("ip address add %s dev rascsi_bridge", inet.c_str());
-
 			string address = inet;
 			string netmask = "255.255.255.0";
 			size_t separatorPos = inet.find('/');
