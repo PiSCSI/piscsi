@@ -376,10 +376,10 @@
     {% for type in SUPPORT_DEVICE_TYPES %}
     <tr>
         <td>
-            <form action="/scsi/attach_support" method="post">
-                <label for="type">{{ _("Type:") }} <strong>{{ device_types[type] }}</strong></label>
+            <div>{{ _("Type:") }} <strong>{{ device_types[type] }}</strong></div>
         </td>
         <td>
+            <form action="/scsi/attach_support" method="post">
                 <input name="type" type="hidden" value="{{ type }}">
                 {% for key, value in device_params[type].items() %}
                 <label for="{{ key }}">{{ key }}:</label>
