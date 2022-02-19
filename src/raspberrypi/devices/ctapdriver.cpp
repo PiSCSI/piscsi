@@ -268,7 +268,15 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 			ifr_n.ifr_addr.sa_family = AF_INET;
 			strncpy(ifr_n.ifr_name, "rascsi_bridge", IFNAMSIZ);
 			struct sockaddr_in* mask = (struct sockaddr_in*)&ifr_n.ifr_addr;
-			inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr);
+			if (inet_pton(AF_INET, netmask.c_str(), &mask->sin_addr) != 1) {
+				LOGERROR("Can't convert '%s' into a netmask: %s", netmask.c_str(), strerror(errno));
+
+				close(m_hTAP);
+				close(ip_fd);
+				close(br_socket_fd);
+				return false;
+			}
+
 			if (ioctl(ip_fd, SIOCSIFADDR, &ifr_a) < 0 || ioctl(ip_fd, SIOCSIFNETMASK, &ifr_n) < 0) {
 				LOGERROR("Can't ioctl SIOCSIFADDR or SIOCSIFNETMASK: %s", strerror(errno));
 
