@@ -352,7 +352,7 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 #endif // __linux__
 
 #ifdef __NetBSD__
-bool CTapDriver::Init()
+bool CTapDriver::Init(const map<string, string>&)
 {
 	struct ifreq ifr;
 	struct ifaddrs *ifa, *a;
