@@ -34,8 +34,9 @@ CTapDriver::CTapDriver(const map<string, string>& const_params)
 	map<string, string> params = const_params;
 	if (params.count("interfaces")) {
 		LOGWARN("You are using a deprecated syntax for the 'interfaces' parameter."
-				"Provide the IP address/netmask with the separate 'inet' parameter");
+				"Provide the interface list and the IP address/netmask with the 'interface' and 'inet' parameters");
 
+		// TODO Remove the deprecated syntax in a future version
 		const string& interfaces = params["interfaces"];
 		size_t separatorPos = interfaces.find(':');
 		if (separatorPos != string::npos) {
@@ -50,6 +51,8 @@ CTapDriver::CTapDriver(const map<string, string>& const_params)
 		this->interfaces.push_back(interface);
 	}
 	this->inet = params["inet"];
+
+	LOGERROR("%s  %s", params["inet"].c_str(), params["interface"].c_str()); exit(0);
 
 	// Initialization
 	m_bTxValid = FALSE;

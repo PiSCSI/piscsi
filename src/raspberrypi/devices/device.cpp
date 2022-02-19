@@ -121,6 +121,15 @@ const string Device::GetParam(const string& key)
 	return params.find(key) != params.end() ? params[key] : "";
 }
 
+void Device::SetParams(const map<string, string>& params)
+{
+	this->params = GetDefaultParams();
+
+	for (const auto& param: params) {
+		this->params[param.first] = param.second;
+	}
+}
+
 void Device::SetStatusCode(int status_code)
 {
 	if (status_code) {

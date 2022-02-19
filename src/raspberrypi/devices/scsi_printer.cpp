@@ -72,8 +72,7 @@ SCSIPrinter::~SCSIPrinter()
 
 bool SCSIPrinter::Init(const map<string, string>& params)
 {
-	// Use default parameters if no parameters were provided
-	SetParams(params.empty() ? GetDefaultParams() : params);
+	SetParams(params);
 
 	if (GetParam("cmd").find("%f") == string::npos) {
 		LOGERROR("Missing filename specifier %s", "%f");
