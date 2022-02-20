@@ -123,7 +123,8 @@ class CtrlBoardMenuBuilder(MenuBuilder):
         images_info = self.file_cmd.list_images()
         menu.add_entry("Return", {"context": self.IMAGES_MENU, "action": self.ACTION_RETURN})
         images = images_info["files"]
-        for image in images:
+        sorted_images = sorted(images, key=lambda d: d['name'])
+        for image in sorted_images:
             image_str = image["name"] + " [" + image["detected_type"] + "]"
             image_context = {"context": self.IMAGES_MENU, "name": str(image["name"]),
                              "device_type": str(image["detected_type"]),
