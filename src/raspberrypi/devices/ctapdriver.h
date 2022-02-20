@@ -34,11 +34,18 @@ using namespace std;
 //===========================================================================
 class CTapDriver
 {
-public:
+private:
+
+	friend class SCSIDaynaPort;
+	friend class SCSIBR;
+
 	CTapDriver();
 	~CTapDriver() {}
 
 	bool Init(const map<string, string>&);
+
+public:
+
 	void OpenDump(const Filepath& path);
 										// Capture packets
 	void Cleanup();						// Cleanup
