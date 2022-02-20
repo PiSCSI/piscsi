@@ -496,11 +496,11 @@ def log_level():
     return redirect(url_for("index"))
 
 
-@APP.route("/scsi/attach_support", methods=["POST"])
+@APP.route("/scsi/attach_device", methods=["POST"])
 @login_required
-def attach_support_device():
+def attach_device():
     """
-    Attaches a support device
+    Attaches a support device that doesn't take an image file as argument
     """
     params = {}
     for item in request.form:
@@ -511,7 +511,32 @@ def attach_support_device():
         elif item == "type":
             device_type = request.form.get(item)
         else:
-            params.update({item: request.form.get(item)})
+            param = request.form.get(item)
+            if param:
+                params.update({item: param})
+
+    error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
+    error_msg = _("Please follow the instructions at %(url)s", url=error_url)
+
+    if "interface" in params.keys():
+        if params["interface"].startswith("wlan"):
+            if not introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
+                flash(_("Configure IPv4 forwarding before using a wireless network device."), "error")
+                flash(error_msg, "error")
+                return redirect(url_for("index"))
+            if not Path("/etc/iptables/rules.v4").is_file():
+                flash(_("Configure NAT before using a wireless network device."), "error")
+                flash(error_msg, "error")
+                return redirect(url_for("index"))
+        else:
+            if not introspect_file("/etc/dhcpcd.conf", r"^denyinterfaces " + params["interface"] + r"$"):
+                flash(_("Configure the network bridge before using a wired network device."), "error")
+                flash(error_msg, "error")
+                return redirect(url_for("index"))
+            if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
+                flash(_("Configure the network bridge before using a wired network device."), "error")
+                flash(error_msg, "error")
+                return redirect(url_for("index"))
 
     kwargs = {
             "unit": int(unit),
@@ -523,66 +548,7 @@ def attach_support_device():
     if process["status"]:
         flash(_(
             (
-                "Attached support device of type %(device_type)s "
-                "to SCSI ID %(id_number)s LUN %(unit_number)s"
-            ),
-            device_type=device_type,
-            id_number=scsi_id,
-            unit_number=unit,
-            ))
-        return redirect(url_for("index"))
-
-    flash(process["msg"], "error")
-    return redirect(url_for("index"))
-
-
-@APP.route("/scsi/attach_network", methods=["POST"])
-@login_required
-def attach_network_device():
-    """
-    Attaches a network adapter device
-    """
-    scsi_id = request.form.get("scsi_id")
-    unit = request.form.get("unit")
-    device_type = request.form.get("type")
-    interface = request.form.get("if")
-    ip_addr = request.form.get("ip")
-    mask = request.form.get("mask")
-
-    error_url = "https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link"
-    error_msg = _("Please follow the instructions at %(url)s", url=error_url)
-
-    if interface.startswith("wlan"):
-        if not introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-            flash(_("Configure IPv4 forwarding before using a wireless network device."), "error")
-            flash(error_msg, "error")
-            return redirect(url_for("index"))
-        if not Path("/etc/iptables/rules.v4").is_file():
-            flash(_("Configure NAT before using a wireless network device."), "error")
-            flash(error_msg, "error")
-            return redirect(url_for("index"))
-    else:
-        if not introspect_file("/etc/dhcpcd.conf", r"^denyinterfaces " + interface + r"$"):
-            flash(_("Configure the network bridge before using a wired network device."), "error")
-            flash(error_msg, "error")
-            return redirect(url_for("index"))
-        if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-            flash(_("Configure the network bridge before using a wired network device."), "error")
-            flash(error_msg, "error")
-            return redirect(url_for("index"))
-
-    kwargs = {"unit": int(unit), "device_type": device_type}
-    if interface != "":
-        if "" not in (ip_addr, mask):
-            interface += (":" + ip_addr + "/" + mask)
-        kwargs["params"] = {"interfaces": interface}
-
-    process = ractl.attach_device(scsi_id, **kwargs)
-    process = ReturnCodeMapper.add_msg(process)
-    if process["status"]:
-        flash(_(
-            (
-                "Attached network device of type %(device_type)s "
+                "Attached device of type %(device_type)s "
                 "to SCSI ID %(id_number)s LUN %(unit_number)s"
             ),
             device_type=device_type,
