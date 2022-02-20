@@ -54,6 +54,3 @@ The model detection can be overriden by adding a --transitions parameter to star
 ### splash_start_\*.bmp, splash_stop_\*.bmp
 * Drawn by Daniel Markstedt
 * Distributed under BSD 3-Clause by permission from author (see LICENSE for full text)
-
-### pca9554.py
-* Source: https://github.com/IRNAS/pca9554-python
