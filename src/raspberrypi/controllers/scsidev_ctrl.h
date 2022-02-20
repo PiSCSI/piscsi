@@ -70,7 +70,7 @@ public:
 			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			ERROR_CODES::status status = ERROR_CODES::status::CHECK_CONDITION) override;
 
-	void ShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 
 	int GetInitiatorId() const { return scsi.initiator_id; }
 	bool IsByteTransfer() const { return scsi.is_byte_transfer; }
