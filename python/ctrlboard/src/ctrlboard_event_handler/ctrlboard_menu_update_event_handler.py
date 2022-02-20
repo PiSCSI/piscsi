@@ -102,7 +102,8 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                 handler_function(info_object)
         except AttributeError:
             log = logging.getLogger(__name__)
-            log.error("Handler function [%s] not found or returned an error. Skipping.", str(handler_function_name))
+            log.error("Handler function [%s] not found or returned an error. Skipping.",
+                      str(handler_function_name))
 
     # noinspection PyUnusedLocal
     # pylint: disable=unused-argument
