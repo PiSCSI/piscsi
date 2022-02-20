@@ -26,11 +26,6 @@
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
 }
@@ -67,11 +62,6 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 	FileSupport::SetPath(path);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Reset
-//
-//---------------------------------------------------------------------------
 void SCSIHD::Reset()
 {
 	// Unlock and release attention
@@ -83,11 +73,6 @@ void SCSIHD::Reset()
 	SetStatusCode(STATUS_NOERROR);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
 void SCSIHD::Open(const Filepath& path)
 {
 	ASSERT(!IsReady());
@@ -112,11 +97,6 @@ void SCSIHD::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
 int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	// EVPD check
@@ -157,11 +137,6 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT
-//
-//---------------------------------------------------------------------------
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	int size;
