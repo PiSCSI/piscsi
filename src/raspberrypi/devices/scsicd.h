@@ -35,7 +35,7 @@ private:
 	friend class SCSICD;
 
 	CDTrack(SCSICD *scsicd);
-	virtual ~CDTrack();
+	virtual ~CDTrack() {}
 
 public:
 
