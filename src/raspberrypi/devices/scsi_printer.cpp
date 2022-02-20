@@ -29,6 +29,7 @@
 // requires that the client uses a printer driver compatible with the respective printer, or that the
 // printing service on the Pi is configured to do any necessary conversions, or that the print command
 // applies any conversions on the file to be printed (%f) before passing it to the printing service.
+// 'enscript' is an example for a conversion tool.
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
 // Note that the print command is not executed by root but with the permissions of the lp user.
 //
@@ -60,7 +61,7 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
-	dispatcher.AddCommand(eCmdReadCapacity10, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
+	dispatcher.AddCommand(eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
 	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
 	dispatcher.AddCommand(eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
 }
@@ -72,8 +73,7 @@ SCSIPrinter::~SCSIPrinter()
 
 bool SCSIPrinter::Init(const map<string, string>& params)
 {
-	// Use default parameters if no parameters were provided
-	SetParams(params.empty() ? GetDefaultParams() : params);
+	SetParams(params);
 
 	if (GetParam("cmd").find("%f") == string::npos) {
 		LOGERROR("Missing filename specifier %s", "%f");
@@ -169,6 +169,8 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 	// TODO This device suffers from the statically allocated buffer size,
 	// see https://github.com/akuker/RASCSI/issues/669
 	if (length > (uint32_t)controller->DEFAULT_BUFFER_SIZE) {
+		LOGERROR("Transfer buffer overflow");
+
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
@@ -236,7 +238,7 @@ void SCSIPrinter::StopPrint(SCSIDEV *controller)
 		return;
 	}
 
-	Cleanup();
+	// Nothing to do, printing has not yet been started
 
 	controller->Status();
 }

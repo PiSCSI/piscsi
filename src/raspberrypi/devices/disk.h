@@ -132,6 +132,7 @@ public:
 	void SetBlockCount(uint32_t);
 	bool CheckBlockAddress(SASIDEV *, access_mode);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
+	void FlushCache();
 
 protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);

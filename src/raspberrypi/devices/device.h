@@ -171,7 +171,7 @@ public:
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
 	const map<string, string> GetParams() const { return params; }
 	const string GetParam(const string&);
-	void SetParams(const map<string, string>& params) { this->params = params; }
+	void SetParams(const map<string, string>&);
 	const map<string, string> GetDefaultParams() const { return default_params; }
 	void SetDefaultParams(const map<string, string>& default_params) { this->default_params = default_params; }
 

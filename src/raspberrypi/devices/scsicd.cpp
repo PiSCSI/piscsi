@@ -22,15 +22,10 @@ using namespace scsi_defs;
 
 //===========================================================================
 //
-//	CD Track
+//     CD Track
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 CDTrack::CDTrack(SCSICD *scsicd)
 {
 	ASSERT(scsicd);
@@ -49,20 +44,6 @@ CDTrack::CDTrack(SCSICD *scsicd)
 	raw = false;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
-CDTrack::~CDTrack()
-{
-}
-
-//---------------------------------------------------------------------------
-//
-//	Init
-//
-//---------------------------------------------------------------------------
 void CDTrack::Init(int track, DWORD first, DWORD last)
 {
 	ASSERT(!valid);
@@ -78,11 +59,6 @@ void CDTrack::Init(int track, DWORD first, DWORD last)
 	last_lba = last;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set Path
-//
-//---------------------------------------------------------------------------
 void CDTrack::SetPath(bool cdda, const Filepath& path)
 {
 	ASSERT(valid);
@@ -94,11 +70,6 @@ void CDTrack::SetPath(bool cdda, const Filepath& path)
 	imgpath = path;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get Path
-//
-//---------------------------------------------------------------------------
 void CDTrack::GetPath(Filepath& path) const
 {
 	ASSERT(valid);
@@ -107,11 +78,6 @@ void CDTrack::GetPath(Filepath& path) const
 	path = imgpath;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add Index
-//
-//---------------------------------------------------------------------------
 void CDTrack::AddIndex(int index, DWORD lba)
 {
 	ASSERT(valid);
@@ -149,11 +115,6 @@ DWORD CDTrack::GetLast() const
 	return last_lba;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get the number of blocks
-//
-//---------------------------------------------------------------------------
 DWORD CDTrack::GetBlocks() const
 {
 	ASSERT(valid);
@@ -163,11 +124,6 @@ DWORD CDTrack::GetBlocks() const
 	return (DWORD)(last_lba - first_lba + 1);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get track number
-//
-//---------------------------------------------------------------------------
 int CDTrack::GetTrackNo() const
 {
 	ASSERT(valid);
@@ -220,11 +176,6 @@ bool CDTrack::IsAudio() const
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
 	// NOT in raw format
@@ -245,11 +196,6 @@ SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 	dispatcher.AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 SCSICD::~SCSICD()
 {
 	// Clear track
@@ -262,11 +208,6 @@ bool SCSICD::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
 void SCSICD::Open(const Filepath& path)
 {
 	off_t size;
@@ -334,21 +275,11 @@ void SCSICD::Open(const Filepath& path)
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (CUE)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenCue(const Filepath& /*path*/)
 {
 	throw io_exception("Opening CUE CD-ROM files is not supported");
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (ISO)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenIso(const Filepath& path)
 {
 	// Open as read-only
@@ -419,11 +350,6 @@ void SCSICD::OpenIso(const Filepath& path)
 	dataindex = 0;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (Physical)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
@@ -469,11 +395,6 @@ void SCSICD::ReadToc(SASIDEV *controller)
 	controller->DataIn();
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
 int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 {
 	// EVPD check
@@ -535,11 +456,6 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ
-//
-//---------------------------------------------------------------------------
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
@@ -584,11 +500,6 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return Disk::Read(cdb, buf, block);
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ TOC
-//
-//---------------------------------------------------------------------------
 int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
@@ -741,11 +652,6 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 	msf[3] = (BYTE)f;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Clear Track
-//
-//---------------------------------------------------------------------------
 void SCSICD::ClearTrack()
 {
 	// delete the track object

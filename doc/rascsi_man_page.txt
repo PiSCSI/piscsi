@@ -111,10 +111,10 @@ OPTIONS
               For devices that do not support an image file (SCBR, SCDP, SCLP,
               SCHS) the filename may have a special meaning or  a  dummy  name
               can  be  provided.  For SCBR and SCDP it is an optioinal priori‐
-              tized    list    of    network    interfaces,    e.g.    "inter‐
-              faces=eth0,eth1,wlan0".  For  SCLP it is the print command to be
-              used  and  a  reservation  timeout  in  seconds,  e.g.   "cmd=lp
-              -oraw:timeout=60".
+              tized list of network interfaces, an  optional  IP  address  and
+              netmask,  e.g.  "interfaces=eth0,eth1,wlan0:inet=10.10.20.1/24".
+              For SCLP it is the print command to be used  and  a  reservation
+              timeout in seconds, e.g. "cmd=lp -oraw %f:timeout=60".
 
        -HDn[:u] FILE
               n  is the SASI ID number (0-15). The effective SASI ID is calcu‐
