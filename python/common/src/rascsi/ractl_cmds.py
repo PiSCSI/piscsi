@@ -3,7 +3,6 @@ Module for commands sent to the RaSCSI backend service.
 """
 
 import rascsi_interface_pb2 as proto
-from rascsi.common_settings import REMOVABLE_DEVICE_TYPES
 from rascsi.return_codes import ReturnCodes
 from rascsi.socket_cmds import SocketCmds
 
@@ -138,17 +137,50 @@ class RaCtlCmds:
         result.ParseFromString(data)
         device_types = {}
         for device in result.device_types_info.properties:
-            supports_file = device.properties.supports_file
             params = {}
             for key, value in device.properties.default_params.items():
                 params[key] = value
-            block_sizes = device.properties.block_sizes
             device_types[proto.PbDeviceType.Name(device.type)] = {
-                    "supports_file": supports_file,
+                    "removable": device.properties.removable,
+                    "supports_file": device.properties.supports_file,
                     "params": params,
-                    "block_sizes": block_sizes,
+                    "block_sizes": device.properties.block_sizes,
                     }
         return {"status": result.status, "device_types": device_types}
+
+    def get_removable_device_types(self):
+        """
+        Returns a (list) of (str) of four letter device acronyms that are of the removable type
+        """
+        device_types = self.get_device_types()
+        removable_device_types = []
+        for device, value in device_types["device_types"].items():
+            if value["removable"]:
+                removable_device_types.append(device)
+        return removable_device_types
+
+    def get_image_device_types(self):
+        """
+        Returns a (list) of (str) of four letter device acronyms that take image files as arguments
+        """
+        device_types = self.get_device_types()
+        image_device_types = []
+        for device, value in device_types["device_types"].items():
+            if value["supports_file"]:
+                image_device_types.append(device)
+        return image_device_types
+
+    def get_support_device_types(self):
+        """
+        Returns a (list) of (str) of four letter device acronyms
+        that don't take image files as arguments
+        """
+        device_types = self.get_device_types()
+        image_device_types = self.get_image_device_types()
+        support_device_types = [
+                x for x in device_types["device_types"] if x not in image_device_types
+                ]
+        return support_device_types
 
     def get_image_files_info(self):
         """
@@ -213,7 +245,8 @@ class RaCtlCmds:
         else:
             current_type = None
 
-        if device_type in REMOVABLE_DEVICE_TYPES and current_type in REMOVABLE_DEVICE_TYPES:
+        removable_device_types = self.get_removable_device_types()
+        if device_type in removable_device_types and current_type in removable_device_types:
             if current_type != device_type:
                 parameters = {
                     "device_type": device_type,
