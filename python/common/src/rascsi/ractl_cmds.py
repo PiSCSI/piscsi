@@ -137,12 +137,17 @@ class RaCtlCmds:
         result = proto.PbResult()
         result.ParseFromString(data)
         device_types = {}
-        import logging
         for device in result.device_types_info.properties:
+            supports_file = device.properties.supports_file
             params = {}
             for key, value in device.properties.default_params.items():
                 params[key] = value
-            device_types[proto.PbDeviceType.Name(device.type)] = params
+            block_sizes = device.properties.block_sizes
+            device_types[proto.PbDeviceType.Name(device.type)] = {
+                    "supports_file": supports_file,
+                    "params": params,
+                    "block_sizes": block_sizes,
+                    }
         return {"status": result.status, "device_types": device_types}
 
     def get_image_files_info(self):
