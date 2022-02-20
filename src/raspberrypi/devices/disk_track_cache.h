@@ -43,6 +43,9 @@ public:
 	DiskTrack();
 	~DiskTrack();
 
+private:
+	friend class DiskCache;
+
 	void Init(int track, int size, int sectors, BOOL raw = FALSE, off_t imgoff = 0);
 	bool Load(const Filepath& path);
 	bool Save(const Filepath& path);
