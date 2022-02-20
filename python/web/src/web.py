@@ -575,15 +575,10 @@ def attach_image():
 
     kwargs = {"unit": int(unit), "params": {"file": file_name}}
 
-    # The most common block size is 512 bytes
-    expected_block_size = 512
-
-    if device_type != "":
+    if device_type:
         kwargs["device_type"] = device_type
-        if device_type == "SCCD":
-            expected_block_size = 2048
-        elif device_type == "SAHD":
-            expected_block_size = 256
+        device_types = ractl.get_device_types()
+        expected_block_size = min(device_types["device_types"][device_type]["block_sizes"])
 
     # Attempt to load the device properties file:
     # same file name with PROPERTIES_SUFFIX appended
