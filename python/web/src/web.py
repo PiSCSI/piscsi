@@ -53,9 +53,6 @@ from rascsi.common_settings import (
     CFG_DIR,
     CONFIG_FILE_SUFFIX,
     PROPERTIES_SUFFIX,
-    REMOVABLE_DEVICE_TYPES,
-    NETWORK_DEVICE_TYPES,
-    SUPPORT_DEVICE_TYPES,
     RESERVATIONS,
 )
 from rascsi.ractl_cmds import RaCtlCmds
@@ -190,9 +187,9 @@ def index():
         auth_active=auth_active()["status"],
         ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
-        REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
-        NETWORK_DEVICE_TYPES=NETWORK_DEVICE_TYPES,
-        SUPPORT_DEVICE_TYPES=SUPPORT_DEVICE_TYPES,
+        REMOVABLE_DEVICE_TYPES=ractl.get_removable_device_types(),
+        IMAGE_DEVICE_TYPES=ractl.get_image_device_types(),
+        SUPPORT_DEVICE_TYPES=ractl.get_support_device_types(),
     )
 
 

@@ -267,7 +267,7 @@
                         {{ _("Select device type") }}
                         </option>
                         {% for key, value in device_types.items() %}
-                        {% if key not in (NETWORK_DEVICE_TYPES + SUPPORT_DEVICE_TYPES) %}
+                        {% if key in IMAGE_DEVICE_TYPES %}
                         <option value="{{ key }}">
                             {{ value }}
                         </option>
@@ -320,7 +320,7 @@
         <td>{{ _("Type") }}</td>
         <td>{{ _("Actions") }}</td>
     </tr>
-    {% for type in (NETWORK_DEVICE_TYPES + SUPPORT_DEVICE_TYPES) %}
+    {% for type in SUPPORT_DEVICE_TYPES %}
     <tr>
         <td>
             <div>{{ device_types[type] }}</div>
