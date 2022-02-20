@@ -27,7 +27,8 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     def __init__(self, ractl_cmd: RaCtlCmds):
         super().__init__()
         self._rascsi_client = ractl_cmd
-        self.file_cmd = FileCmds(sock_cmd=ractl_cmd.sock_cmd, ractl=ractl_cmd)
+        self.file_cmd = FileCmds(sock_cmd=ractl_cmd.sock_cmd, ractl=ractl_cmd,
+                                 token=ractl_cmd.token, locale=ractl_cmd.locale)
 
     def build(self, name: str, context_object=None) -> Menu:
         if name == CtrlBoardMenuBuilder.SCSI_ID_MENU:
@@ -115,17 +116,16 @@ class CtrlBoardMenuBuilder(MenuBuilder):
     def create_images_menu(self, context_object=None):
         """Creates a sub menu showing all the available images"""
         menu = Menu(CtrlBoardMenuBuilder.IMAGES_MENU)
-        images_info = self._rascsi_client.get_image_files_info()
+        images_info = self.file_cmd.list_images()
         menu.add_entry("Return", {"context": self.IMAGES_MENU, "action": self.ACTION_RETURN})
-        images = images_info["image_files"]
+        images = images_info["files"]
         device_types = self.get_rascsi_client().get_device_types()
         for image in images:
-            menu.add_entry(str(image.name) + " [" +
-                           str(device_types["device_types"][int(image.type)-1]) + "]",
-                           {"context": self.IMAGES_MENU, "name": str(image.name),
-                            "device_type": str(device_types["device_types"][int(image.type)-1]),
-                            "action": self.ACTION_IMAGE_ATTACHINSERT})
-
+            image_str = image["name"] + " [" + image["detected_type"] + "]"
+            image_context = {"context": self.IMAGES_MENU, "name": str(image["name"]),
+                             "device_type": str(image["detected_type"]),
+                             "action": self.ACTION_IMAGE_ATTACHINSERT}
+            menu.add_entry(image_str, image_context)
         return menu
 
     def create_profiles_menu(self, context_object=None):

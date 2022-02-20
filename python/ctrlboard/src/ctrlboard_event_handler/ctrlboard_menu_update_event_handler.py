@@ -102,7 +102,7 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                 handler_function(info_object)
         except AttributeError:
             log = logging.getLogger(__name__)
-            log.error("Handler function [%s] not found. Skipping.", str(handler_function_name))
+            log.error("Handler function [%s] not found or returned an error. Skipping.", str(handler_function_name))
 
     # noinspection PyUnusedLocal
     # pylint: disable=unused-argument
@@ -227,9 +227,11 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
         device_type = info_object["device_type"]
         context_object = self._menu_controller.get_active_menu().context_object
         scsi_id = context_object["scsi_id"]
-        result = self.ractl_cmd.attach_image(scsi_id=scsi_id,
-                                             device_type=device_type,
-                                             image=image_name)
+        params = {"file": image_name}
+        result = self.ractl_cmd.attach_device(scsi_id=scsi_id,
+                                              device_type=device_type,
+                                              params=params)
+
         if result["status"] is False:
             self._menu_controller.show_message("Attach failed!")
         else:
