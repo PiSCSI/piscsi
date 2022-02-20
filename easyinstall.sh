@@ -1027,7 +1027,7 @@ function installRaScsiCtrlBoard() {
     fi
 
     echo "Installing the rascsi-ctrlboard.service configuration..."
-    sudo cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/rascsi-oled.service" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
+    sudo cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/rascsi-ctrlboard.service" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-ctrlboard.service"
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION --password=$TOKEN" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
