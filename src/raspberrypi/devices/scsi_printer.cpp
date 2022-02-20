@@ -236,7 +236,7 @@ void SCSIPrinter::StopPrint(SCSIDEV *controller)
 		return;
 	}
 
-	Cleanup();
+	// Nothing to do, printing has not yet been started
 
 	controller->Status();
 }
