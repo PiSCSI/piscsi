@@ -10,7 +10,7 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM for Apple Macintosh ]
+//	[ SCSI CD-ROM  ]
 //
 //---------------------------------------------------------------------------
 #pragma once
@@ -21,12 +21,6 @@
 #include "interfaces/scsi_mmc_commands.h"
 #include "interfaces/scsi_primary_commands.h"
 
-
-//---------------------------------------------------------------------------
-//
-//	Class precedence definition
-//
-//---------------------------------------------------------------------------
 class SCSICD;
 
 //===========================================================================
@@ -36,9 +30,14 @@ class SCSICD;
 //===========================================================================
 class CDTrack
 {
-public:
+private:
+
+	friend class SCSICD;
+
 	CDTrack(SCSICD *scsicd);
 	virtual ~CDTrack();
+
+public:
 
 	void Init(int track, DWORD first, DWORD last);
 
