@@ -14,4 +14,4 @@ class HardwareButton:
 
     def read(self):
         """Reads the configured port of the i2c multiplexer"""
-        return self.pca_driver.read_port(self.pin)
+        return self.pca_driver.read_input_register_port(self.pin)

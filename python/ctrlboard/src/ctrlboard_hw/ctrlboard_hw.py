@@ -5,10 +5,11 @@ import RPi.GPIO as GPIO
 import numpy
 import smbus
 
-from ctrlboard_hw import pca9554
+from ctrlboard_hw import pca9554multiplexer
 from ctrlboard_hw.hardware_button import HardwareButton
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
 from ctrlboard_hw.encoder import Encoder
+from ctrlboard_hw.pca9554multiplexer import PCA9554Multiplexer
 from observable import Observable
 
 
@@ -28,23 +29,30 @@ class CtrlBoardHardware(Observable):
             return
 
         self.pos = 0
-        self.pca_driver = pca9554.Pca9554(self.pca9554_i2c_address)
+        self.pca_driver = pca9554multiplexer.PCA9554Multiplexer(self.pca9554_i2c_address)
 
         # setup pca9554
-        self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_ENC_A,
-                                          pca9554.INPUT)
-        self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_ENC_B,
-                                          pca9554.INPUT)
-        self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_1,
-                                          pca9554.INPUT)
-        self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_2,
-                                          pca9554.INPUT)
-        self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_ROTARY,
-                                          pca9554.INPUT)
-        self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_LED_1,
-                                          pca9554.OUTPUT)
-        self.pca_driver.write_config_port(CtrlBoardHardwareConstants.PCA9554_PIN_LED_2,
-                                          pca9554.OUTPUT)
+        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
+                                                          PCA9554_PIN_ENC_A,
+                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
+        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
+                                                          PCA9554_PIN_ENC_B,
+                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
+        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
+                                                          PCA9554_PIN_BUTTON_1,
+                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
+        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
+                                                          PCA9554_PIN_BUTTON_2,
+                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
+        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
+                                                          PCA9554_PIN_BUTTON_ROTARY,
+                                                          PCA9554Multiplexer.PIN_ENABLED_AS_INPUT)
+        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
+                                                          PCA9554_PIN_LED_1,
+                                                          PCA9554Multiplexer.PIN_ENABLED_AS_OUTPUT)
+        self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
+                                                          PCA9554_PIN_LED_2,
+                                                          PCA9554Multiplexer.PIN_ENABLED_AS_OUTPUT)
         self.input_register_buffer = numpy.uint32(0)
 
         # pylint: disable=no-member
