@@ -184,6 +184,7 @@ namespace scsi_defs {
 		eCmdSetMcastAddr  = 0x0D,
 		// DaynaPort specific command
 		eCmdEnableInterface = 0x0E,
+		eCmdSynchronizeBuffer = 0x10,
 		eCmdInquiry = 0x12,
 		eCmdModeSelect6 = 0x15,
 		eCmdReserve6 = 0x16,
