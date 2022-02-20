@@ -301,11 +301,16 @@
         {{ _("Attach Support Device") }}
     </summary>
     <ul>
-        <li>{{ _("The <a href=\"%(url1)s\">DaynaPORT SCSI/Link Ethernet Adapter</a> and <a href=\"%(url2)s\">X68000 Host Bridge</a> are network devices.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
+        <li>{{ _("<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> and <a href=\"%(url2)s\">X68000 Host Bridge</a> are network devices.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
         </li>
+        <ul>
         <li>{{ _("If you have a DHCP setup, choose only the interface you have configured the bridge with. You can ignore the inet field when attaching.") }}</li>
         <li>{{ _("Configure the network bridge by running easyinstall.sh, or follow the <a href=\"%(url)s\">manual steps in the wiki</a>.", url="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link#manual-setup") }}
+        {% if bridge_configured %}
+        <li>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</li>
+        {% endif %}
         </li>
+        </ul>
         <li>{{ _("The Printer and Host Services device are currently supported on compatible Atari systems, and require <a href=\"%(url)s\">driver software</a> to be installed on the host system.", url="https://www.hddriver.net/en/rascsi_tools.html") }}
         </li>
     </ul>
@@ -355,9 +360,6 @@
     </tr>
     {% endfor %}
 </table>
-{% if bridge_configured %}
-<p><small>{{ _("The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an emulated network adapter!") }}</small></p>
-{% endif %}
 {% if macproxy_configured %}
 <p><small>{{ _("Macproxy is running at %(ip_addr)s (default port 5000)", ip_addr=ip_addr) }}</small></p>
 {% else %}
