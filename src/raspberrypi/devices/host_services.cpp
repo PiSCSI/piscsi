@@ -77,12 +77,12 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 		if (load) {
 			LOGINFO("System shutdown requested");
 
-			((SCSIDEV *)controller)->ShutDown(SCSIDEV::rascsi_shutdown_mode::PI);
+			controller->ShutDown(SCSIDEV::rascsi_shutdown_mode::PI);
 		}
 		else {
 			LOGINFO("RaSCSI shutdown requested");
 
-			((SCSIDEV *)controller)->ShutDown(SCSIDEV::rascsi_shutdown_mode::RASCSI);
+			controller->ShutDown(SCSIDEV::rascsi_shutdown_mode::RASCSI);
 		}
 
 		controller->Status();
