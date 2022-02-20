@@ -33,6 +33,7 @@
 //
 
 #include "controllers/scsidev_ctrl.h"
+#include "disk.h"
 #include "host_services.h"
 
 using namespace scsi_defs;
@@ -67,10 +68,11 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 	bool load = ctrl->cmd[4] & 0x02;
 
 	if (!start) {
-		// Delete all other devices. This will also flush any caches.
-		for (const Device *device : devices) {
-			if (device != this) {
-				delete device;
+		// Flush any caches
+		for (Device *device : devices) {
+			Disk *disk = dynamic_cast<Disk *>(device);
+			if (disk) {
+				disk->FlushCache();
 			}
 		}
 
