@@ -25,7 +25,7 @@ The script supports the following optional parameters:
 
 Example
 ```
-$ python3 src/main.py --rotation 0 --transitions 0
+$ python3 src/main.py --rotation=0 --transitions=0
 ```
 
 ## Run the start.sh script standalone
@@ -33,7 +33,7 @@ $ python3 src/main.py --rotation 0 --transitions 0
 The start.sh script can also be run standalone, and will handle the venv creation/updating for you. It takes the same command line parameters in the following format:
 
 ```
-$ ./start.sh --rotation 0 --transitions 0
+$ ./start.sh --rotation=0 --transitions=0
 ```
 ### I2C baudrate and transitions
 The available bandwidth for the display through I2C is limited. The I2C baudrate is automatically adjusted in

@@ -7,4 +7,5 @@ RPi.GPIO==0.7.0
 protobuf==3.19.3
 unidecode==1.3.2
 smbus==1.1.post2
-numpy==1.21.5
+# installed via apt to avoid lengthy compilation
+#numpy==1.21.5
