@@ -579,8 +579,8 @@ def attach_image():
     if process["status"]:
         flash(_((
                 "Attached %(file_name)s as %(device_type)s to "
-                "SCSI ID %(id_number)s LUN %(unit_number)s",
-                )
+                "SCSI ID %(id_number)s LUN %(unit_number)s"
+                ),
             file_name=file_name,
             device_type=get_device_name(device_type),
             id_number=scsi_id,
