@@ -234,10 +234,12 @@ def drive_list():
     else:
         username = None
 
+    server_info = ractl.get_server_info()
+
     return render_template(
         "drives.html",
         files=file_cmds.list_images()["files"],
-        base_dir=ractl.get_server_info()["image_dir"],
+        base_dir=server_info["image_dir"],
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
