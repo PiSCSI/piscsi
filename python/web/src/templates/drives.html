@@ -15,7 +15,7 @@
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
 </tr>
-{% for hd in hd_conf %}
+{% for hd in hd_conf|sort(attribute='name') %}
 <tr>
     <td style="text-align:center">{{ hd.name }}</td>
     <td style="text-align:center">{{ hd.size_mb }}</td>
@@ -59,7 +59,7 @@
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
 </tr>
-{% for cd in cd_conf %}
+{% for cd in cd_conf|sort(attribute='name') %}
 <tr>
     <td style="text-align:center">{{ cd.name }}</td>
     <td style="text-align:center">{{ cd.size_mb }}</td>
@@ -79,9 +79,9 @@
         <input type="hidden" name="block_size" value="{{ cd.block_size }}">
         <label for="file_name">{{ _("Create for:") }}</label>
     <select type="select" name="file_name">
-        {% for f in files %}
-    {% if f["name"].lower().endswith(cdrom_file_suffix) %}
-    <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
+        {% for file in files|sort(attribute='name') %}
+    {% if file["name"].lower().endswith(cdrom_file_suffix) %}
+    <option value="{{ file["name"] }}">{{ file["name"].replace(base_dir, '') }}</option>
     {% endif %}
     {% endfor %}
     </select>
@@ -105,7 +105,7 @@
     <td><b>{{ _("Ref.") }}</b></td>
     <td><b>{{ _("Action") }}</b></td>
 </tr>
-{% for rm in rm_conf %}
+{% for rm in rm_conf|sort(attribute='name') %}
 <tr>
     <td style="text-align:center">{{ rm.name }}</td>
     <td style="text-align:center">{{ rm.size_mb }}</td>

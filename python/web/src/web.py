@@ -35,7 +35,8 @@ from pi_cmds import (
 from device_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
-    extend_device_names,
+    map_device_types_and_names,
+    get_device_name,
 )
 from return_code_mapper import ReturnCodeMapper
 
@@ -53,9 +54,6 @@ from rascsi.common_settings import (
     CFG_DIR,
     CONFIG_FILE_SUFFIX,
     PROPERTIES_SUFFIX,
-    REMOVABLE_DEVICE_TYPES,
-    NETWORK_DEVICE_TYPES,
-    SUPPORT_DEVICE_TYPES,
     RESERVATIONS,
 )
 from rascsi.ractl_cmds import RaCtlCmds
@@ -109,24 +107,17 @@ def index():
                 ),
             )
 
-    locales = get_supported_locales()
     server_info = ractl.get_server_info()
-    disk = disk_space()
     devices = ractl.list_devices()
-    device_types = ractl.get_device_types()
+    device_types = map_device_types_and_names(ractl.get_device_types()["device_types"])
     image_files = file_cmds.list_images()
     config_files = file_cmds.list_config_files()
-
-    mapped_device_types = extend_device_names(device_types["device_types"].keys())
 
     extended_image_files = []
     for image in image_files["files"]:
         if image["detected_type"] != "UNDEFINED":
-            image["detected_type_name"] = mapped_device_types[image["detected_type"]]
+            image["detected_type_name"] = device_types[image["detected_type"]]["name"]
         extended_image_files.append(image)
-
-    sorted_image_files = sorted(extended_image_files, key=lambda x: x["name"].lower())
-    sorted_config_files = sorted(config_files, key=lambda x: x.lower())
 
     attached_images = []
     units = 0
@@ -155,14 +146,14 @@ def index():
 
     return render_template(
         "index.html",
-        locales=locales,
+        locales=get_supported_locales(),
         bridge_configured=is_bridge_setup(),
         netatalk_configured=running_proc("afpd"),
         macproxy_configured=running_proc("macproxy"),
         ip_addr=get_ip_address(),
         devices=formatted_devices,
-        files=sorted_image_files,
-        config_files=sorted_config_files,
+        files=extended_image_files,
+        config_files=config_files,
         base_dir=server_info["image_dir"],
         scan_depth=server_info["scan_depth"],
         CFG_DIR=CFG_DIR,
@@ -179,9 +170,8 @@ def index():
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
         netinfo=ractl.get_network_info(),
-        device_types=mapped_device_types,
-        device_params=device_types["device_types"],
-        free_disk=int(disk["free"] / 1024 / 1024),
+        device_types=device_types,
+        free_disk=int(disk_space()["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
@@ -190,9 +180,9 @@ def index():
         auth_active=auth_active()["status"],
         ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
-        REMOVABLE_DEVICE_TYPES=REMOVABLE_DEVICE_TYPES,
-        NETWORK_DEVICE_TYPES=NETWORK_DEVICE_TYPES,
-        SUPPORT_DEVICE_TYPES=SUPPORT_DEVICE_TYPES,
+        REMOVABLE_DEVICE_TYPES=ractl.get_removable_device_types(),
+        DISK_DEVICE_TYPES=ractl.get_disk_device_types(),
+        PERIPHERAL_DEVICE_TYPES=ractl.get_peripheral_device_types(),
     )
 
 
@@ -201,9 +191,6 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    server_info = ractl.get_server_info()
-    disk = disk_space()
-
     # Reads the canonical drive properties into a dict
     # The file resides in the current dir of the web ui process
     drive_properties = Path(DRIVE_PROPERTIES_FILE)
@@ -242,27 +229,23 @@ def drive_list():
             device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
             rm_conf.append(device)
 
-    files = file_cmds.list_images()
-    sorted_image_files = sorted(files["files"], key=lambda x: x["name"].lower())
-    hd_conf = sorted(hd_conf, key=lambda x: x["name"].lower())
-    cd_conf = sorted(cd_conf, key=lambda x: x["name"].lower())
-    rm_conf = sorted(rm_conf, key=lambda x: x["name"].lower())
-
     if "username" in session:
         username = session["username"]
     else:
         username = None
 
+    server_info = ractl.get_server_info()
+
     return render_template(
         "drives.html",
-        files=sorted_image_files,
+        files=file_cmds.list_images()["files"],
         base_dir=server_info["image_dir"],
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
         running_env=running_env(),
         version=server_info["version"],
-        free_disk=int(disk["free"] / 1024 / 1024),
+        free_disk=int(disk_space()["free"] / 1024 / 1024),
         cdrom_file_suffix=tuple(server_info["sccd"]),
         username=username,
         auth_active=auth_active()["status"],
@@ -500,7 +483,7 @@ def log_level():
 @login_required
 def attach_device():
     """
-    Attaches a support device that doesn't take an image file as argument
+    Attaches a peripheral device that doesn't take an image file as argument
     """
     params = {}
     for item in request.form:
@@ -547,11 +530,8 @@ def attach_device():
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_(
-            (
-                "Attached device of type %(device_type)s "
-                "to SCSI ID %(id_number)s LUN %(unit_number)s"
-            ),
-            device_type=device_type,
+            "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+            device_type=get_device_name(device_type),
             id_number=scsi_id,
             unit_number=unit,
             ))
@@ -575,15 +555,10 @@ def attach_image():
 
     kwargs = {"unit": int(unit), "params": {"file": file_name}}
 
-    # The most common block size is 512 bytes
-    expected_block_size = 512
-
-    if device_type != "":
+    if device_type:
         kwargs["device_type"] = device_type
-        if device_type == "SCCD":
-            expected_block_size = 2048
-        elif device_type == "SAHD":
-            expected_block_size = 256
+        device_types = ractl.get_device_types()
+        expected_block_size = min(device_types["device_types"][device_type]["block_sizes"])
 
     # Attempt to load the device properties file:
     # same file name with PROPERTIES_SUFFIX appended
@@ -604,8 +579,15 @@ def attach_image():
     process = ractl.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(_("Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
-            file_name=file_name, id_number=scsi_id, unit_number=unit))
+        flash(_((
+                "Attached %(file_name)s as %(device_type)s to "
+                "SCSI ID %(id_number)s LUN %(unit_number)s"
+                ),
+            file_name=file_name,
+            device_type=get_device_name(device_type),
+            id_number=scsi_id,
+            unit_number=unit,
+            ))
         if int(file_size) % int(expected_block_size):
             flash(_("The image file size %(file_size)s bytes is not a multiple of "
                   u"%(block_size)s. RaSCSI will ignore the trailing data. "
