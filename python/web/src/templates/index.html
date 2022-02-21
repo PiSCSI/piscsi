@@ -130,9 +130,9 @@
             <td class="inactive">{{ RESERVATIONS[device.id] }}</td>
             <td class="inactive"></td>
             <td class="inactive">
-                <form action="/scsi/unreserve" method="post">
+                <form action="/scsi/release" method="post">
                     <input name="scsi_id" type="hidden" value="{{ device.id }}">
-                    <input type="submit" value="{{ _("Unreserve") }}">
+                    <input type="submit" value="{{ _("Release") }}">
                 </form>
             </td>
             {% endif %}
