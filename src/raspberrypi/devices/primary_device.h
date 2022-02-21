@@ -40,7 +40,7 @@ public:
 
 protected:
 
-	int Inquiry(int, bool, const DWORD *, BYTE *);
+	int Inquiry(int, int, bool, const DWORD *, BYTE *);
 
 	SASIDEV::ctrl_t *ctrl;
 

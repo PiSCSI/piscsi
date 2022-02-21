@@ -71,9 +71,10 @@ OPTIONS
               The rascsi port to connect to, default is 6868.
 
        -r RESERVED_IDS
-              Comma-separated list of IDs to reserve.
+              Comma-separated list of IDs to reserve. Pass an  empty  list  in
+              order to not reserve anything.
 
-       -s     Display server-side settings like available images or  supported
+       -s     Display  server-side settings like available images or supported
               device types.
 
        -T     Display all device types and their properties.
@@ -100,7 +101,7 @@ OPTIONS
                  d(etach): Detach disk
                  i(nsert): Insert media (removable media devices only)
                  e(ject): Eject media (removable media devices only)
-                 p(rotect):  Write  protect the medium (not for CD-ROMs, which
+                 p(rotect): Write protect the medium (not for  CD-ROMs,  which
               are always read-only)
                  u(nprotect): Remove write protection from the medium (not for
               CD-ROMs, which are always read-only)
@@ -110,18 +111,18 @@ OPTIONS
 
        -b BLOCK_SIZE
               The optional block size. For SCSI drives 512, 1024, 2048 or 4096
-              bytes, default size is 512 bytes. For SASI drives  256  or  1024
+              bytes,  default  size  is 512 bytes. For SASI drives 256 or 1024
               bytes, default is 256 bytes.
 
        -f FILE|PARAM
               Device-specific: Either a path to a disk image file, or a param‐
-              eter for a non-disk device. See the rascsi(1) man page for  per‐
+              eter  for a non-disk device. See the rascsi(1) man page for per‐
               mitted file types.
 
        -t TYPE
-              Specifies  the device type. This type overrides the type derived
+              Specifies the device type. This type overrides the type  derived
               from  the  file  extension  of  the  specified  image.  See  the
-              rascsi(1)  man  page  for  the  available device types. For some
+              rascsi(1) man page for the  available  device  types.  For  some
               types there are shortcuts (only the first letter is required):
                  hd: SCSI hard disk drive
                  rm: SCSI removable media drive
@@ -133,16 +134,16 @@ OPTIONS
                  services: Host services device
 
        -n VENDOR:PRODUCT:REVISION
-              The vendor, product and revision for the device, to be  returned
+              The  vendor, product and revision for the device, to be returned
               with the INQUIRY data. A complete set of name components must be
               provided. VENDOR may have up to 8, PRODUCT up to 16, REVISION up
               to 4 characters. Padding with blanks to the maxium length is au‐
-              tomatically applied. Once set the name of  a  device  cannot  be
+              tomatically  applied.  Once  set  the name of a device cannot be
               changed.
 
        -u UNIT
-              Unit  number (0-31). This will default to 0. This option is only
-              used when there are multiple SCSI devices on a shared SCSI  con‐
+              Unit number (0-31). This will default to 0. This option is  only
+              used  when there are multiple SCSI devices on a shared SCSI con‐
               troller. (This is not common)
 
 EXAMPLES

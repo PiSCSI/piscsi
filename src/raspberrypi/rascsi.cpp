@@ -822,6 +822,11 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		device->SetProtected(pb_device.protected_());
 	}
 
+	Disk *disk = dynamic_cast<Disk *>(device);
+	if (disk) {
+		disk->MediumChanged();
+	}
+
 	return true;
 }
 

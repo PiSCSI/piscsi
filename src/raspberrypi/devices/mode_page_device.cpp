@@ -92,6 +92,7 @@ void ModePageDevice::ModeSelect10(SASIDEV *controller)
 int ModePageDevice::ModeSelectCheck(const DWORD *cdb, int length)
 {
 	// Error if save parameters are set for other types than of SCHD or SCRM
+	// TODO This assumption is not correct, and this code should be located elsewhere
 	if (!IsSCSIHD() && (cdb[1] & 0x01)) {
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
