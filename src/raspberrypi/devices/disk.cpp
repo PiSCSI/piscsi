@@ -80,6 +80,7 @@ Disk::~Disk()
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
+	// Media changes must be reported on the next access, i.e. not only for TEST UNIT READY
 	if (disk.is_medium_changed) {
 		assert(IsRemovable());
 
