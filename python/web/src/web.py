@@ -712,11 +712,11 @@ def reserve_id():
     flash(process["msg"], "error")
     return redirect(url_for("index"))
 
-@APP.route("/scsi/unreserve", methods=["POST"])
+@APP.route("/scsi/release", methods=["POST"])
 @login_required
-def unreserve_id():
+def release_id():
     """
-    Removes the reservation of a SCSI ID as well as the memo for the reservation
+    Releases the reservation of a SCSI ID as well as the memo for the reservation
     """
     scsi_id = request.form.get("scsi_id")
     reserved_ids = ractl.get_reserved_ids()["ids"]
