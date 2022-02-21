@@ -36,6 +36,7 @@ from device_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
     map_device_types_and_names,
+    get_device_name,
 )
 from return_code_mapper import ReturnCodeMapper
 
@@ -527,11 +528,8 @@ def attach_device():
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
         flash(_(
-            (
-                "Attached device of type %(device_type)s "
-                "to SCSI ID %(id_number)s LUN %(unit_number)s"
-            ),
-            device_type=device_type,
+            "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s",
+            device_type=get_device_name(device_type),
             id_number=scsi_id,
             unit_number=unit,
             ))
@@ -579,8 +577,15 @@ def attach_image():
     process = ractl.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(_("Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
-            file_name=file_name, id_number=scsi_id, unit_number=unit))
+        flash(_((
+                "Attached %(file_name)s as %(device_type)s to "
+                "SCSI ID %(id_number)s LUN %(unit_number)s",
+                )
+            file_name=file_name,
+            device_type=get_device_name(device_type),
+            id_number=scsi_id,
+            unit_number=unit,
+            ))
         if int(file_size) % int(expected_block_size):
             flash(_("The image file size %(file_size)s bytes is not a multiple of "
                   u"%(block_size)s. RaSCSI will ignore the trailing data. "

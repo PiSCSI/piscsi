@@ -58,26 +58,33 @@ def map_device_types_and_names(device_types):
     Returns a (dict) of device_type:device_name mappings of localized device names
     """
     for key, value in device_types.items():
-        if key == "SAHD":
-            device_name = _("SASI Hard Disk")
-        elif key == "SCHD":
-            device_name = _("SCSI Hard Disk")
-        elif key == "SCRM":
-            device_name = _("Removable Disk")
-        elif key == "SCMO":
-            device_name = _("Magneto-Optical")
-        elif key == "SCCD":
-            device_name = _("CD / DVD")
-        elif key == "SCBR":
-            device_name = _("X68000 Host Bridge")
-        elif key == "SCDP":
-            device_name = _("DaynaPORT SCSI/Link")
-        elif key == "SCLP":
-            device_name = _("Printer")
-        elif key == "SCHS":
-            device_name = _("Host Services")
-        else:
-            device_name = key
-        device_types[key]["name"] = device_name
+        device_types[key]["name"] = get_device_name(key)
 
     return device_types
+
+
+def get_device_name(device_type):
+    """
+    Takes a four letter device acronym (str) device_type.
+    Returns the human-readable name for the device type.
+    """
+    if device_type == "SAHD":
+        return _("SASI Hard Disk")
+    elif device_type == "SCHD":
+        return _("SCSI Hard Disk")
+    elif device_type == "SCRM":
+        return _("Removable Disk")
+    elif device_type == "SCMO":
+        return _("Magneto-Optical")
+    elif device_type == "SCCD":
+        return _("CD / DVD")
+    elif device_type == "SCBR":
+        return _("X68000 Host Bridge")
+    elif device_type == "SCDP":
+        return _("DaynaPORT SCSI/Link")
+    elif device_type == "SCLP":
+        return _("Printer")
+    elif device_type == "SCHS":
+        return _("Host Services")
+    else:
+        return device_type

@@ -320,7 +320,7 @@
         <td>{{ _("Type") }}</td>
         <td>{{ _("Actions") }}</td>
     </tr>
-    {% for type in SUPPORT_DEVICE_TYPES|sort %}
+    {% for type in SUPPORT_DEVICE_TYPES %}
     <tr>
         <td>
             <div>{{ device_types[type]["name"] }}</div>
