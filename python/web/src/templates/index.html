@@ -15,7 +15,7 @@
 <p><form action="/config/load" method="post">
     <select name="name" required="" width="14">
         {% if config_files %}
-        {% for config in config_files %}
+        {% for config in config_files|sort %}
         <option value="{{ config }}">
             {{ config.replace(".json", '') }}
         </option>
@@ -166,7 +166,7 @@
             <td>{{ _("Size") }}</td>
             <td>{{ _("Actions") }}</td>
         </tr>
-        {% for file in files %}
+        {% for file in files|sort(attribute='name') %}
         <tr>
             {% if file["prop"] %}
             <td>
@@ -320,7 +320,7 @@
         <td>{{ _("Type") }}</td>
         <td>{{ _("Actions") }}</td>
     </tr>
-    {% for type in SUPPORT_DEVICE_TYPES %}
+    {% for type in SUPPORT_DEVICE_TYPES|sort %}
     <tr>
         <td>
             <div>{{ device_types[type]["name"] }}</div>

@@ -106,9 +106,7 @@ def index():
                 ),
             )
 
-    locales = get_supported_locales()
     server_info = ractl.get_server_info()
-    disk = disk_space()
     devices = ractl.list_devices()
     device_types = map_device_types_and_names(ractl.get_device_types()["device_types"])
     image_files = file_cmds.list_images()
@@ -119,9 +117,6 @@ def index():
         if image["detected_type"] != "UNDEFINED":
             image["detected_type_name"] = device_types[image["detected_type"]]["name"]
         extended_image_files.append(image)
-
-    sorted_image_files = sorted(extended_image_files, key=lambda x: x["name"].lower())
-    sorted_config_files = sorted(config_files, key=lambda x: x.lower())
 
     attached_images = []
     units = 0
@@ -150,14 +145,14 @@ def index():
 
     return render_template(
         "index.html",
-        locales=locales,
+        locales=get_supported_locales(),
         bridge_configured=is_bridge_setup(),
         netatalk_configured=running_proc("afpd"),
         macproxy_configured=running_proc("macproxy"),
         ip_addr=get_ip_address(),
         devices=formatted_devices,
-        files=sorted_image_files,
-        config_files=sorted_config_files,
+        files=extended_image_files,
+        config_files=config_files,
         base_dir=server_info["image_dir"],
         scan_depth=server_info["scan_depth"],
         CFG_DIR=CFG_DIR,
@@ -175,7 +170,7 @@ def index():
         current_log_level=server_info["current_log_level"],
         netinfo=ractl.get_network_info(),
         device_types=device_types,
-        free_disk=int(disk["free"] / 1024 / 1024),
+        free_disk=int(disk_space()["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
@@ -195,9 +190,6 @@ def drive_list():
     """
     Sets up the data structures and kicks off the rendering of the drive list page
     """
-    server_info = ractl.get_server_info()
-    disk = disk_space()
-
     # Reads the canonical drive properties into a dict
     # The file resides in the current dir of the web ui process
     drive_properties = Path(DRIVE_PROPERTIES_FILE)
@@ -236,12 +228,6 @@ def drive_list():
             device["size_mb"] = "{:,.2f}".format(device["size"] / 1024 / 1024)
             rm_conf.append(device)
 
-    files = file_cmds.list_images()
-    sorted_image_files = sorted(files["files"], key=lambda x: x["name"].lower())
-    hd_conf = sorted(hd_conf, key=lambda x: x["name"].lower())
-    cd_conf = sorted(cd_conf, key=lambda x: x["name"].lower())
-    rm_conf = sorted(rm_conf, key=lambda x: x["name"].lower())
-
     if "username" in session:
         username = session["username"]
     else:
@@ -249,14 +235,14 @@ def drive_list():
 
     return render_template(
         "drives.html",
-        files=sorted_image_files,
-        base_dir=server_info["image_dir"],
+        files=file_cmds.list_images()["files"],
+        base_dir=ractl.get_server_info()["image_dir"],
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
         running_env=running_env(),
         version=server_info["version"],
-        free_disk=int(disk["free"] / 1024 / 1024),
+        free_disk=int(disk_space()["free"] / 1024 / 1024),
         cdrom_file_suffix=tuple(server_info["sccd"]),
         username=username,
         auth_active=auth_active()["status"],
