@@ -35,7 +35,7 @@ from pi_cmds import (
 from device_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
-    extend_device_names,
+    map_device_types_and_names,
 )
 from return_code_mapper import ReturnCodeMapper
 
@@ -110,16 +110,14 @@ def index():
     server_info = ractl.get_server_info()
     disk = disk_space()
     devices = ractl.list_devices()
-    device_types = ractl.get_device_types()
+    device_types = map_device_types_and_names(ractl.get_device_types()["device_types"])
     image_files = file_cmds.list_images()
     config_files = file_cmds.list_config_files()
-
-    mapped_device_types = extend_device_names(device_types["device_types"].keys())
 
     extended_image_files = []
     for image in image_files["files"]:
         if image["detected_type"] != "UNDEFINED":
-            image["detected_type_name"] = mapped_device_types[image["detected_type"]]
+            image["detected_type_name"] = device_types[image["detected_type"]]["name"]
         extended_image_files.append(image)
 
     sorted_image_files = sorted(extended_image_files, key=lambda x: x["name"].lower())
@@ -176,8 +174,7 @@ def index():
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
         netinfo=ractl.get_network_info(),
-        device_types=mapped_device_types,
-        device_params=device_types["device_types"],
+        device_types=device_types,
         free_disk=int(disk["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         cdrom_file_suffix=tuple(server_info["sccd"]),

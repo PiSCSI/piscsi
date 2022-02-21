@@ -52,33 +52,32 @@ def sort_and_format_devices(devices):
     return formatted_devices
 
 
-def extend_device_names(device_types):
+def map_device_types_and_names(device_types):
     """
-    Takes a (list) of (str) device_types with the four letter device acronyms
+    Takes a (dict) corresponding to the data structure returned by RaCtlCmds.get_device_types()
     Returns a (dict) of device_type:device_name mappings of localized device names
     """
-    mapped_device_types = {}
-    for device_type in device_types:
-        if device_type == "SAHD":
+    for key, value in device_types.items():
+        if key == "SAHD":
             device_name = _("SASI Hard Disk")
-        elif device_type == "SCHD":
+        elif key == "SCHD":
             device_name = _("SCSI Hard Disk")
-        elif device_type == "SCRM":
+        elif key == "SCRM":
             device_name = _("Removable Disk")
-        elif device_type == "SCMO":
+        elif key == "SCMO":
             device_name = _("Magneto-Optical")
-        elif device_type == "SCCD":
+        elif key == "SCCD":
             device_name = _("CD / DVD")
-        elif device_type == "SCBR":
+        elif key == "SCBR":
             device_name = _("X68000 Host Bridge")
-        elif device_type == "SCDP":
+        elif key == "SCDP":
             device_name = _("DaynaPORT SCSI/Link")
-        elif device_type == "SCLP":
+        elif key == "SCLP":
             device_name = _("Printer")
-        elif device_type == "SCHS":
+        elif key == "SCHS":
             device_name = _("Host Services")
         else:
-            device_name = _("Unknown Device")
-        mapped_device_types[device_type] = device_name
+            device_name = key
+        device_types[key]["name"] = device_name
 
-    return mapped_device_types
+    return device_types
