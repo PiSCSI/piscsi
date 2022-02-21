@@ -31,6 +31,7 @@ Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 	disk.blocks = 0;
 	disk.dcache = NULL;
 	disk.image_offset = 0;
+	disk.is_medium_changed = false;
 
 	dispatcher.AddCommand(eCmdRezero, "Rezero", &Disk::Rezero);
 	dispatcher.AddCommand(eCmdFormat, "FormatUnit", &Disk::FormatUnit);
@@ -79,6 +80,15 @@ Disk::~Disk()
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
+	if (disk.is_medium_changed) {
+		assert(IsRemovable());
+
+		disk.is_medium_changed = false;
+
+		controller->Error(ERROR_CODES::sense_key::UNIT_ATTENTION, ERROR_CODES::asc::NOT_READY_TO_READY_CHANGE);
+		return true;
+	}
+
 	// The superclass handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
@@ -393,6 +403,15 @@ void Disk::ReadDefectData10(SASIDEV *controller)
 	}
 
 	controller->DataIn();
+}
+
+void Disk::MediumChanged()
+{
+	assert(IsRemovable());
+
+	if (IsRemovable()) {
+		disk.is_medium_changed = true;
+	}
 }
 
 bool Disk::Eject(bool force)

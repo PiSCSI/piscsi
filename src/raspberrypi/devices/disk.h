@@ -51,6 +51,7 @@ private:
 		uint32_t blocks;						// Total number of sectors
 		DiskCache *dcache;						// Disk cache
 		off_t image_offset;						// Offset to actual data
+		bool is_medium_changed;
 	} disk_t;
 
 	Dispatcher<Disk, SASIDEV> dispatcher;
@@ -61,6 +62,7 @@ public:
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
+	void MediumChanged();
 	void ReserveFile(const string&);
 
 	// Media Operations
