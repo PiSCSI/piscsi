@@ -155,7 +155,7 @@
         <li>{{ _("Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> with a scan depth of %(scan_depth)s.", directory=base_dir, scan_depth=scan_depth) }}</li>
         <li>{{ _("Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you know what you're doing, always use LUN 0.", url="https://en.wikipedia.org/wiki/Logical_unit_number") }}
         </li>
-        <li>{{ _("If RaSCSI was unable to detect the device type associated with the image, you can choose the type from the dropdown.") }}</li>
+        <li>{{ _("If RaSCSI was unable to detect the media type associated with the image, you get to choose the type from the dropdown.") }}</li>
     </ul>
 </details>
 
@@ -264,10 +264,10 @@
                     {% else %}
                         <select name="type">
                         <option selected disabled value="">
-                        {{ _("Select device type") }}
+                        {{ _("Select media type") }}
                         </option>
                         {% for key, value in device_types.items() %}
-                        {% if key in IMAGE_DEVICE_TYPES %}
+                        {% if key in DISK_DEVICE_TYPES %}
                         <option value="{{ key }}">
                             {{ value["name"] }}
                         </option>
@@ -298,7 +298,7 @@
 <hr/>
 <details>
     <summary class="heading">
-        {{ _("Attach Support Device") }}
+        {{ _("Attach Peripheral Device") }}
     </summary>
     <ul>
         <li>{{ _("<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> and <a href=\"%(url2)s\">X68000 Host Bridge</a> are network devices.", url1="https://github.com/akuker/RASCSI/wiki/Dayna-Port-SCSI-Link", url2="https://github.com/akuker/RASCSI/wiki/X68000#Host_File_System_driver") }}
@@ -317,10 +317,10 @@
 </details>
 <table border="black" cellpadding="3">
     <tr style="font-weight: bold;">
-        <td>{{ _("Type") }}</td>
-        <td>{{ _("Actions") }}</td>
+        <td>{{ _("Peripheral") }}</td>
+        <td>{{ _("Parameters and Actions") }}</td>
     </tr>
-    {% for type in SUPPORT_DEVICE_TYPES %}
+    {% for type in PERIPHERAL_DEVICE_TYPES %}
     <tr>
         <td>
             <div>{{ device_types[type]["name"] }}</div>
@@ -331,7 +331,7 @@
                 {% for key, value in device_types[type]["params"].items() %}
                 <label for="{{ key }}">{{ key }}:</label>
                 {% if value.isnumeric() %}
-                <input name="{{ key }}" type="number" size="{{ value|length }}" placeholder="{{ value }}">
+                <input name="{{ key }}" type="number" size="{{ value|length }}" value="{{ value }}">
                 {% elif key == "interface" %}
                 <select name="interface">
                 {% for if in netinfo["ifs"] %}

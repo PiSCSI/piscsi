@@ -181,8 +181,8 @@ def index():
         ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         REMOVABLE_DEVICE_TYPES=ractl.get_removable_device_types(),
-        IMAGE_DEVICE_TYPES=ractl.get_image_device_types(),
-        SUPPORT_DEVICE_TYPES=ractl.get_support_device_types(),
+        DISK_DEVICE_TYPES=ractl.get_disk_device_types(),
+        PERIPHERAL_DEVICE_TYPES=ractl.get_peripheral_device_types(),
     )
 
 
@@ -481,7 +481,7 @@ def log_level():
 @login_required
 def attach_device():
     """
-    Attaches a support device that doesn't take an image file as argument
+    Attaches a peripheral device that doesn't take an image file as argument
     """
     params = {}
     for item in request.form:

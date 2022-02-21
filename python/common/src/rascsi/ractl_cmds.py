@@ -150,7 +150,8 @@ class RaCtlCmds:
 
     def get_removable_device_types(self):
         """
-        Returns a (list) of (str) of four letter device acronyms that are of the removable type
+        Returns a (list) of (str) of four letter device acronyms
+        that are of the removable type.
         """
         device_types = self.get_device_types()
         removable_device_types = []
@@ -159,28 +160,29 @@ class RaCtlCmds:
                 removable_device_types.append(device)
         return removable_device_types
 
-    def get_image_device_types(self):
+    def get_disk_device_types(self):
         """
-        Returns a (list) of (str) of four letter device acronyms that take image files as arguments
+        Returns a (list) of (str) of four letter device acronyms 
+        that take image files as arguments.
         """
         device_types = self.get_device_types()
-        image_device_types = []
+        disk_device_types = []
         for device, value in device_types["device_types"].items():
             if value["supports_file"]:
-                image_device_types.append(device)
-        return image_device_types
+                disk_device_types.append(device)
+        return disk_device_types
 
-    def get_support_device_types(self):
+    def get_peripheral_device_types(self):
         """
         Returns a (list) of (str) of four letter device acronyms
-        that don't take image files as arguments
+        that don't take image files as arguments.
         """
         device_types = self.get_device_types()
-        image_device_types = self.get_image_device_types()
-        support_device_types = [
+        image_device_types = self.get_disk_device_types()
+        peripheral_device_types = [
                 x for x in device_types["device_types"] if x not in image_device_types
                 ]
-        return support_device_types
+        return peripheral_device_types
 
     def get_image_files_info(self):
         """
