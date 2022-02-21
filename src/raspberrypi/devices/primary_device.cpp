@@ -149,7 +149,7 @@ bool PrimaryDevice::CheckReady()
 	return true;
 }
 
-int PrimaryDevice::Inquiry(int type, bool is_removable, const DWORD *cdb, BYTE *buf)
+int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb, BYTE *buf)
 {
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 	if (allocation_length > 4) {
@@ -166,7 +166,7 @@ int PrimaryDevice::Inquiry(int type, bool is_removable, const DWORD *cdb, BYTE *
 		memset(buf, 0, allocation_length);
 		buf[0] = type;
 		buf[1] = is_removable ? 0x80 : 0x00;
-		buf[2] = 0x02;
+		buf[2] = scsi_level;
 		buf[4] = 0x1F;
 
 		// Padded vendor, product, revision
