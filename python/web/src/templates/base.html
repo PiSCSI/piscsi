@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>{{ _("RaSCSI Control Page") }}</title>
+    <title>{{ _("RaSCSI Control Page") }} [{{ host }}]</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <link rel="apple-touch-icon" sizes="57x57" href="/pwa/apple-icon-57x57.png">
@@ -59,13 +59,18 @@
         {% else %}
         <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">{{ _("Web Interface Authentication Disabled") }} &#8211; {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}</span>
         {% endif %}
-    <table width="100%">
+    <table width="100%" style="background-color: black;">
         <tbody>
-        <tr style="background-color: black;">
-            <td style="background-color: black;">
+        <tr>
+            <td>
                 <a href="http://github.com/akuker/RASCSI" target="_blank">
-                    <h1>RaSCSI - 68kmla Edition</h1>
+                    <h1>{{ _("RaSCSI - 68kmla Edition") }}</h1>
                 </a>
+            </td>
+        </tr>
+        <tr>
+            <td style="color: white;">
+                hostname: {{ host }} ip: {{ ip_addr }}
             </td>
         </tr>
         </tbody>
