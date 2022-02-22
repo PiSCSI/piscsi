@@ -4,15 +4,17 @@ Module for the Flask app rendering and endpoints
 
 import logging
 import argparse
-import bjoern
 from pathlib import Path
 from functools import wraps
-from werkzeug.utils import secure_filename
-from simplepam import authenticate
 from grp import getgrall
 from subprocess import run
 from os import path
 from ast import literal_eval
+
+import bjoern
+from werkzeug.utils import secure_filename
+from simplepam import authenticate
+from flask_babel import Babel, Locale, refresh, _
 
 from flask import (
     Flask,
@@ -27,7 +29,6 @@ from flask import (
     session,
     abort,
 )
-from flask_babel import Babel, Locale, refresh, _
 
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.file_cmds import FileCmds
@@ -40,6 +41,9 @@ from rascsi.common_settings import (
     RESERVATIONS,
 )
 
+from return_code_mapper import ReturnCodeMapper
+from socket_cmds_flask import SocketCmdsFlask
+
 from web_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
@@ -47,9 +51,6 @@ from web_utils import (
     get_device_name,
     auth_active,
 )
-from return_code_mapper import ReturnCodeMapper
-from socket_cmds_flask import SocketCmdsFlask
-
 from settings import (
     AFP_DIR,
     MAX_FILE_SIZE,
@@ -286,11 +287,11 @@ def logout():
 
 
 @APP.route("/pwa/<path:path>")
-def send_pwa_files(path):
+def send_pwa_files(pwa_path):
     """
     Sets up mobile web resources
     """
-    return send_from_directory("pwa", path)
+    return send_from_directory("pwa", pwa_path)
 
 
 def login_required(func):
