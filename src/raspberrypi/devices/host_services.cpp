@@ -27,9 +27,10 @@
 //    uint8_t second; // 0-59
 //  } mode_page_datetime;
 //
-// 2. STOP UNIT shuts down RaSCSI or the Raspberry Pi
+// 2. START/STOP UNIT shuts down RaSCSI or shuts down/reboots the Raspberry Pi
 //   a) !start && !load (STOP): Shut down RaSCSI
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
+//   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
 #include "controllers/scsidev_ctrl.h"
@@ -77,14 +78,22 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 		}
 
 		if (load) {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::PI);
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::RASCSI);
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_RASCSI);
 		}
 
 		controller->Status();
 		return;
+	}
+	else {
+		if (load) {
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::RESTART_PI);
+
+			controller->Status();
+			return;
+		}
 	}
 
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
