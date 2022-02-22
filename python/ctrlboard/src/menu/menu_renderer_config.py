@@ -17,16 +17,12 @@ class MenuRendererConfig:
         self.height = 64
         self.i2c_address = 0x3c
         self.i2c_port = 1
-#        self.display_type = "sh1106"
-        self.display_type = "ssd1306"
-        #    self.font_path = 'resources/SourceCodePro-Bold.ttf'
+        self.display_type = "ssd1306"  # luma-oled supported devices, "sh1106", "ssd1306", ...
         self.font_path = 'resources/DejaVuSansMono-Bold.ttf'
         self.font_size = 12
         self.row_selection_pixel_extension = 2
         self.scroll_behavior = "page"  # "extend" or "page"
-        #    self.scroll_behavior = "extend"  # "extend" or "page"
-        self.transition = "PushTransition"
-#        self.transition = "None"
+        self.transition = "PushTransition"  # "PushTransition" or "None
         self.transition_attributes_left = {"direction": "push_left"}
         self.transition_attributes_right = {"direction": "push_right"}
         self.transition_speed = 10
@@ -35,7 +31,7 @@ class MenuRendererConfig:
         self.scroll_line_end_delay = 2
         self.screensaver = "menu.blank_screensaver.BlankScreenSaver"
         self.screensaver_delay = 25
-        self.rotation = 0  # degrees. Options: 0, 180
+        self.rotation = 0  # 0, 180
 
     def get_mapped_rotation(self):
         """Converts human-readable rotation value to the one expected

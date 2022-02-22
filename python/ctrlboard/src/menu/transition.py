@@ -2,6 +2,7 @@
 from abc import abstractmethod
 from PIL import Image
 
+
 # pylint: disable=too-few-public-methods
 class Transition:
     """Class provides the interface for menu transitions. Must be subclassed."""

@@ -315,7 +315,7 @@ function stopRaScsiScreen() {
     fi
 }
 
-# Stops the rascsi-oled service if it is running
+# Stops the rascsi-ctrlboard service if it is running
 function stopRaScsiCtrlBoard() {
     if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
         SERVICE_RASCSI_CTRLBOARD_RUNNING=0
@@ -446,7 +446,7 @@ function startRaScsiScreen() {
     fi
 }
 
-# Starts the rascsi-oled service if installed
+# Starts the rascsi-ctrlboard service if installed
 function startRaScsiCtrlBoard() {
     if [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]] && [[ $(isRaScsiCtrlBoardRunning) -ne 1 ]]; then
         sudo systemctl start rascsi-ctrlboard.service
@@ -1015,6 +1015,9 @@ function installRaScsiCtrlBoard() {
     elif [[ ${PI_MODEL} =~ "Raspberry Pi 3" ]] || [[ ${PI_MODEL} =~ "Raspberry Pi Zero 2" ]]; then
       echo "Detected: Raspberry Pi 3 or Zero 2"
       TARGET_I2C_BAUDRATE=400000
+    else
+      echo "No Raspberry Pi 4, Pi 3 or Pi Zero 2 detected. Falling back on low i2c baudrate."
+      echo "Transition animations will be disabled."
     fi
 
     # adjust i2c baudrate according to the raspberry pi model detection
@@ -1358,7 +1361,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13)
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""

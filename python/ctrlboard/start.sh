@@ -123,7 +123,6 @@ if [[ ${PI_MODEL} =~ "Raspberry Pi 4" ]] || [[ ${PI_MODEL} =~ "Raspberry Pi 3" ]
   python3 src/main.py "$@" --transitions 1
 else
   echo "Detected: Raspberry Pi Zero, Zero W, Zero WH, ..."
-  sudo /usr/sbin/rmmod i2c_bcm2835
-  sudo /usr/sbin/modprobe i2c_bcm2835 baudrate=100000
+  echo "Transition animations will be disabled."
   python3 src/main.py "$@" --transitions 0
 fi

@@ -54,8 +54,6 @@ class Cycler:
 
         selected_cycle_entry = str(self.cycle_entries[self.selected_config_file_index])
 
-        #        print("loading: " + file_to_load)
-
         if self.return_entry is True:
             if selected_cycle_entry != self.return_string:
                 if self.empty_messages is True:
@@ -80,6 +78,5 @@ class Cycler:
             self.selected_config_file_index = 0
 
         self.message = str(self.cycle_entries[self.selected_config_file_index])
-        #        print("selected: " + str(self.config_files[self.selected_config_file_index]))
 
         self._cycle_profile_timer_flag.reset_timer()

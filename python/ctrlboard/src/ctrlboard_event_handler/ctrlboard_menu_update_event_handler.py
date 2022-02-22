@@ -39,13 +39,12 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
                 self.route_rotary_button_handler(info_object)
 
                 self._menu_controller.get_menu_renderer().render()
-            else:  # Button pressed
+            else:  # button pressed
                 if updated_object.name == "Bt1":
                     self.handle_button1()
                 elif updated_object.name == "Bt2":
                     self.handle_button2()
         if isinstance(updated_object, Encoder):
-            # print(updatedObject.direction)
             active_menu = self._menu_controller.get_active_menu()
             if updated_object.direction == 1:
                 if active_menu.item_selection + 1 < len(active_menu.entries):
@@ -64,7 +63,6 @@ class CtrlBoardMenuUpdateEventHandler(Observer):
             if result is not None:
                 self.rascsi_profile_cycler = None
                 self.context_stack = []
-#                self._menu_controller.segue(result)
                 self._menu_controller.segue(result)
         if self.rascsi_shutdown_cycler is not None:
             self.rascsi_shutdown_cycler.empty_messages = False

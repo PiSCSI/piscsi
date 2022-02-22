@@ -14,16 +14,16 @@ $ python3 src/main.py
 
 ### Parameters
 
-The script supports the following optional parameters:
-* --rotation: '0','90','180' or '270' which decides the screen rotation. Default: 0
-* --height: '64' which decides the vertical screen resolution in pixels. Default: 64
-* --rascsi-host: hostname where the RaSCSI protobuf interface is accessed. Default: localhost
-* --rascsi-port: port on which the RaSCSI protobuf interface is accessed. Default: 6868
-* --password: Token password for RaSCSI authentication. Default: none
-* --loglevel: 0 (notset), 10 (debug), 30 (warning), 40 (error), 50 (critical). Default: 30
-* --transitions: 0 (disabled), 1 (enabled). Default: 1
+The script parameters can be shown with
+```
+python src/main.py --help
+```
+or
+```
+start.sh --help
+```
 
-Example
+Example:
 ```
 $ python3 src/main.py --rotation=0 --transitions=0
 ```

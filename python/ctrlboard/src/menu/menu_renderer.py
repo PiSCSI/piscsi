@@ -94,15 +94,11 @@ class MenuRenderer(ABC):
 
             # in stage 1, we initialize scrolling for the currently selected line
             if self._perform_scrolling_stage == 1:
-                # print("stage 1")
                 self.setup_horizontal_scrolling(text)
-                # print("overlap: " + str(self._current_line_horizontal_overlap))
                 self._perform_scrolling_stage = 2  # don't repeat once the scrolling has started
 
             # in stage 2, we know the details and can thus perform the scrolling to the left
             if self._perform_scrolling_stage == 2:
-                # print("stage 2")
-                # print("sum: " + str(self._current_line_horizontal_overlap+self._x_scrolling))
                 if self._current_line_horizontal_overlap+self._x_scrolling > 0:
                     self._x_scrolling -= 1
                 if self._current_line_horizontal_overlap+self._x_scrolling == 0:
@@ -111,7 +107,6 @@ class MenuRenderer(ABC):
 
             # in stage 3, we wait for a little when we have scrolled to the end of the text
             if self._perform_scrolling_stage == 3:
-                # print("stage 3")
                 current_time = int(time.time())
                 time_diff = current_time - self._stage_timestamp
                 if time_diff >= int(self._config.scroll_line_end_delay):
@@ -120,9 +115,6 @@ class MenuRenderer(ABC):
 
             # in stage 4, we scroll back to the right
             if self._perform_scrolling_stage == 4:
-                # print("stage 4")
-                # print("sum: " + str(self._current_line_horizontal_overlap+self._x_scrolling))
-
                 if self._current_line_horizontal_overlap+self._x_scrolling >= 0:
                     self._x_scrolling += 1
 
@@ -133,7 +125,6 @@ class MenuRenderer(ABC):
 
             # in stage 5, we wait again for a little while before we start again
             if self._perform_scrolling_stage == 5:
-                # print("stage 5")
                 current_time = int(time.time())
                 time_diff = current_time - self._stage_timestamp
                 if time_diff >= int(self._config.scroll_line_end_delay):
@@ -184,10 +175,6 @@ class MenuRenderer(ABC):
                     self.frame_start_row = 0
             else:  # extend as default behavior
                 self.frame_start_row = self._menu.item_selection
-
-        # print("frame start: " + str(self.frame_start_row))
-        # print("frame end: " + str(self.frame_start_row+self.rows_per_screen()))
-        # print("position in menu: " + str(self.menu.item_selection))
 
         self.draw_menu_frame(self.frame_start_row, self.frame_start_row+self.rows_per_screen())
 

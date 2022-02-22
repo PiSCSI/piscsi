@@ -61,7 +61,7 @@ class CtrlBoardHardware(Observable):
         GPIO.add_event_detect(CtrlBoardHardwareConstants.PI_PIN_INTERRUPT, GPIO.FALLING,
                               callback=self.button_pressed_callback)
 
-        # # configure button of the rotary encoder
+        # configure button of the rotary encoder
         self.rotary_button = HardwareButton(self.pca_driver,
                                             CtrlBoardHardwareConstants.PCA9554_PIN_BUTTON_ROTARY)
         self.rotary_button.state = True
@@ -102,9 +102,7 @@ class CtrlBoardHardware(Observable):
     # pylint: disable=unused-argument
     def button_pressed_callback(self, channel):
         """Method is called when a button is pressed and reads the corresponding input register."""
-        # self.last_interrupt_time = time.perf_counter_ns()
         input_register = self.pca_driver.read_input_register()
-        # print(format(input_register, 'b'))
         self.input_register_buffer <<= 8
         self.input_register_buffer |= input_register
 
@@ -118,7 +116,6 @@ class CtrlBoardHardware(Observable):
         if value != button.state and value is False:
             button.state = False
             self.notify(button)
-            # print("button press: " + str(button))
             button.state = True
             button.state_interrupt = True
 

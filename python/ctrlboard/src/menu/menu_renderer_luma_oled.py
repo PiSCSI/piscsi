@@ -27,9 +27,6 @@ class MenuRendererLumaOled(MenuRenderer):
 
     def display_clear(self):
         pass
-        # self.disp.clear()
-        # with canvas(self.disp) as draw:
-        #     draw.rectangle((0, 0, self.disp.width-1, self.disp.height-1), outline=0, fill=0)
 
     def blank_screen(self):
         self.disp.clear()

@@ -28,9 +28,9 @@ def parse_config():
         "--rotation",
         type=int,
         choices=[0, 90, 180, 270],
-        default=0,
+        default=180,
         action="store",
-        help="The rotation of the screen buffer in degrees. Default: 0",
+        help="The rotation of the screen buffer in degrees. Default: 180",
     )
     cmdline_args_parser.add_argument(
         "--height",
@@ -102,7 +102,7 @@ def check_rascsi_connection(ractl_cmd):
     """Checks whether a RaSCSI connection exists by polling the RaSCSI server info.
     Returns true if connection works, false if connection fails."""
     try:
-        info = ractl_cmd.get_server_info()
+        info = ractl_cmd.get_reserved_ids()
         return bool(info["status"] is True)
     except FailedSocketConnectionException:
         log = logging.getLogger(__name__)

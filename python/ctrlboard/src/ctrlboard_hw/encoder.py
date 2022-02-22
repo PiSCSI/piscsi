@@ -16,7 +16,6 @@ class Encoder:
     def update(self):
         """Updates the internal attributes wrt. to the encoder position and direction."""
         self.update2()
-        # self.update1()
 
     def update2(self):
         """Primary method for detecting the direction"""
