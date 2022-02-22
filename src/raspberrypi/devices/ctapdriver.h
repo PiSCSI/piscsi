@@ -7,8 +7,6 @@
 //	Copyright (C) 2016-2020 GIMONS
 //  Copyright (C) akuker
 //
-//	Imported NetBSD support and some optimisation patch by Rin Okuyama.
-//
 //	[ TAP Driver ]
 //
 //---------------------------------------------------------------------------
