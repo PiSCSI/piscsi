@@ -28,7 +28,6 @@ from pi_cmds import (
     is_bridge_setup,
     disk_space,
     introspect_file,
-    auth_active,
 )
 
 from device_utils import (
@@ -36,6 +35,7 @@ from device_utils import (
     get_valid_scsi_ids,
     map_device_types_and_names,
     get_device_name,
+    auth_active,
 )
 from return_code_mapper import ReturnCodeMapper
 

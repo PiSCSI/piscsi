@@ -88,3 +88,21 @@ def get_device_name(device_type):
         return _("Host Services")
     else:
         return device_type
+
+
+def auth_active():
+    """
+    Inspects if the group defined in AUTH_GROUP exists on the system.
+    If it exists, tell the webapp to enable authentication.
+    Returns a (dict) with (bool) status and (str) msg
+    """
+    from grp import getgrall
+    from settings import AUTH_GROUP
+
+    groups = [g.gr_name for g in getgrall()]
+    if AUTH_GROUP in groups:
+        return {
+                "status": True,
+                "msg": _("You must log in to use this function"),
+                }
+    return {"status": False, "msg": ""}
