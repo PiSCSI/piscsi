@@ -1,8 +1,9 @@
 """
-Module for RaSCSI device management utility methods
+Module for RaSCSI Web Interface utility methods
 """
 
 from flask_babel import _
+from grp import getgrall
 
 
 def get_valid_scsi_ids(devices, reserved_ids):
@@ -90,17 +91,14 @@ def get_device_name(device_type):
         return device_type
 
 
-def auth_active():
+def auth_active(group):
     """
-    Inspects if the group defined in AUTH_GROUP exists on the system.
+    Inspects if the group defined in (str) group exists on the system.
     If it exists, tell the webapp to enable authentication.
     Returns a (dict) with (bool) status and (str) msg
     """
-    from grp import getgrall
-    from settings import AUTH_GROUP
-
     groups = [g.gr_name for g in getgrall()]
-    if AUTH_GROUP in groups:
+    if group in groups:
         return {
                 "status": True,
                 "msg": _("You must log in to use this function"),

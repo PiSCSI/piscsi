@@ -30,7 +30,7 @@ from pi_cmds import (
     introspect_file,
 )
 
-from device_utils import (
+from web_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
     map_device_types_and_names,
@@ -179,7 +179,7 @@ def index():
         removable_file_suffix=tuple(server_info["scrm"]),
         mo_file_suffix=tuple(server_info["scmo"]),
         username=username,
-        auth_active=auth_active()["status"],
+        auth_active=auth_active(AUTH_GROUP)["status"],
         ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         REMOVABLE_DEVICE_TYPES=ractl.get_removable_device_types(),
@@ -250,7 +250,7 @@ def drive_list():
         free_disk=int(disk_space()["free"] / 1024 / 1024),
         cdrom_file_suffix=tuple(server_info["sccd"]),
         username=username,
-        auth_active=auth_active()["status"],
+        auth_active=auth_active(AUTH_GROUP)["status"],
     )
 
 
@@ -303,7 +303,7 @@ def login_required(func):
     """
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        auth = auth_active()
+        auth = auth_active(AUTH_GROUP)
         if auth["status"] and "username" not in session:
             flash(auth["msg"], "error")
             return redirect(url_for("index"))
@@ -835,7 +835,7 @@ def upload_file():
     Depending on the Dropzone.js JavaScript library
     """
     # Due to the embedded javascript library, we cannot use the @login_required decorator
-    auth = auth_active()
+    auth = auth_active(AUTH_GROUP)
     if auth["status"] and "username" not in session:
         return make_response(auth["msg"], 403)
 
