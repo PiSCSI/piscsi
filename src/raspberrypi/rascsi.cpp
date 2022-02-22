@@ -25,6 +25,7 @@
 #include "rasutil.h"
 #include "rascsi_image.h"
 #include "rascsi_interface.pb.h"
+#include "file_access/file_access_factory.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <string>
@@ -1189,7 +1190,7 @@ bool ParseArgument(int argc, char* argv[], int& port)
 
 	opterr = 1;
 	int opt;
-	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:z:D:F:L:P:R:")) != -1) {
+	while ((opt = getopt(argc, argv, "-IiHhb:d:n:p:r:t:z:D:F:L:P:R:c:C")) != -1) {
 		switch (opt) {
 			// The three options below are kind of a compound option with two letters
 			case 'i':
@@ -1283,6 +1284,27 @@ bool ParseArgument(int argc, char* argv[], int& port)
 				}
 				continue;
 
+			case 'c' :
+			case 'C' :
+				{
+					string cache_mode = optarg;
+					transform(cache_mode.begin(), cache_mode.end(), cache_mode.begin(), ::toupper);
+					LOGWARN("Cache mode %s", cache_mode.c_str());
+					switch(cache_mode.at(0)){
+						case 'R':
+							FileAccessFactory::SetFileAccessMethod(FileAccessType::eRamCache);
+							break;
+						case 'P':
+							FileAccessFactory::SetFileAccessMethod(FileAccessType::ePosixFile);
+							break;
+						case 'M':
+							FileAccessFactory::SetFileAccessMethod(FileAccessType::eMmapFile);
+							break;
+						default:
+							LOGWARN("Invalid cache mode: %s Expected \"RAM, Posix or Mmmap\"", cache_mode.c_str());
+					}
+				}
+				continue;
 			default:
 				return false;
 
