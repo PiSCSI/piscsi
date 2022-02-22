@@ -8,16 +8,19 @@
 //---------------------------------------------------------------------------
 
 #include <cassert>
-#include <sstream>
 #include "rascsi_version.h"
 #include "os.h"
 #include "log.h"
 #include "exceptions.h"
 #include "device.h"
 
+set<Device *> Device::devices;
+
 Device::Device(const string& type)
 {
 	assert(type.length() == 4);
+
+	devices.insert(this);
 
 	this->type = type;
 
@@ -46,6 +49,11 @@ Device::Device(const string& type)
 	lun = 0;
 
 	status_code = STATUS_NOERROR;
+}
+
+Device::~Device()
+{
+	devices.erase(this);
 }
 
 void Device::Reset()
@@ -111,6 +119,15 @@ const string Device::GetPaddedName() const
 const string Device::GetParam(const string& key)
 {
 	return params.find(key) != params.end() ? params[key] : "";
+}
+
+void Device::SetParams(const map<string, string>& params)
+{
+	this->params = GetDefaultParams();
+
+	for (const auto& param : params) {
+		this->params[param.first] = param.second;
+	}
 }
 
 void Device::SetStatusCode(int status_code)

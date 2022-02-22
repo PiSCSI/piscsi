@@ -17,7 +17,7 @@
 #include "controllers/scsidev_ctrl.h"
 #include "gpiobus.h"
 #include "devices/scsi_daynaport.h"
-#include <sstream>
+#include "devices/scsi_printer.h"
 
 //===========================================================================
 //
@@ -27,6 +27,7 @@
 
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
+	scsi.bytes_to_transfer = 0;
 	shutdown_mode = NONE;
 
 	// Synchronous transfer work initialization
@@ -44,16 +45,17 @@ SCSIDEV::~SCSIDEV()
 
 void SCSIDEV::Reset()
 {
+	scsi.bytes_to_transfer = 0;
+
 	// Work initialization
 	scsi.atnmsg = false;
 	scsi.msc = 0;
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 
-	// Base class
-	SASIDEV::Reset();
+	super::Reset();
 }
 
-BUS::phase_t SCSIDEV::Process()
+BUS::phase_t SCSIDEV::Process(int initiator_id)
 {
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
@@ -74,6 +76,8 @@ BUS::phase_t SCSIDEV::Process()
 		ctrl.bus->Reset();
 		return ctrl.phase;
 	}
+
+	scsi.initiator_id = initiator_id;
 
 	// Phase processing
 	switch (ctrl.phase) {
@@ -155,6 +159,9 @@ void SCSIDEV::BusFree()
 
 		ctrl.lun = -1;
 
+		scsi.is_byte_transfer = false;
+		scsi.bytes_to_transfer = 0;
+
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
 		case RASCSI:
@@ -164,7 +171,9 @@ void SCSIDEV::BusFree()
 
 		case PI:
 			LOGINFO("Raspberry Pi shutdown requested");
-			system("init 0");
+			if (system("init 0") == -1) {
+				LOGERROR("Raspberry Pi shutdown failed: %s", strerror(errno));
+			}
 			break;
 
 		default:
@@ -190,7 +199,7 @@ void SCSIDEV::Selection()
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
 		// invalid if IDs do not match
-		DWORD id = 1 << ctrl.m_scsi_id;
+		int id = 1 << ctrl.m_scsi_id;
 		if ((ctrl.bus->GetDAT() & id) == 0) {
 			return;
 		}
@@ -201,6 +210,13 @@ void SCSIDEV::Selection()
 		}
 
 		LOGTRACE("%s Selection Phase ID=%d (with device)", __PRETTY_FUNCTION__, (int)ctrl.m_scsi_id);
+
+		if (scsi.initiator_id != UNKNOWN_SCSI_ID) {
+			LOGTRACE("%s Initiator ID is %d", __PRETTY_FUNCTION__, scsi.initiator_id);
+		}
+		else {
+			LOGTRACE("%s Initiator ID is unknown", __PRETTY_FUNCTION__);
+		}
 
 		// Phase setting
 		ctrl.phase = BUS::selection;
@@ -239,7 +255,7 @@ void SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
+	if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
 		ctrl.status = 0;
 	}
 
@@ -247,8 +263,8 @@ void SCSIDEV::Execute()
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdInquiry &&
-				(ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
+		if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdInquiry &&
+				(scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
 			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
@@ -266,7 +282,7 @@ void SCSIDEV::Execute()
 	ctrl.device = ctrl.unit[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((ScsiDefs::scsi_command)ctrl.cmd[0] != ScsiDefs::eCmdRequestSense) {
+	if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
 		ctrl.device->SetStatusCode(0);
 	}
 	
@@ -277,7 +293,7 @@ void SCSIDEV::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((ScsiDefs::scsi_command)ctrl.cmd[0] == ScsiDefs::eCmdInquiry && !ctrl.unit[lun]) {
+	if ((scsi_defs::scsi_command)ctrl.cmd[0] == scsi_defs::eCmdInquiry && !ctrl.unit[lun]) {
 		lun = GetEffectiveLun();
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
@@ -330,7 +346,7 @@ void SCSIDEV::MsgOut()
 //	Common Error Handling
 //
 //---------------------------------------------------------------------------
-void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
+void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
 {
 	// Get bus information
 	((GPIOBUS*)ctrl.bus)->Aquire();
@@ -351,7 +367,7 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		return;
 	}
 
-	DWORD lun = (ctrl.cmd[1] >> 5) & 0x07;
+	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
 		lun = 0;
 	}
@@ -361,7 +377,7 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc)
 		ctrl.unit[lun]->SetStatusCode((sense_key << 16) | (asc << 8));
 	}
 
-	ctrl.status = 0x02;
+	ctrl.status = status;
 	ctrl.message = 0x00;
 
 	LOGTRACE("%s Error (to status phase)", __PRETTY_FUNCTION__);
@@ -381,9 +397,8 @@ void SCSIDEV::Send()
 
 	//if Length! = 0, send
 	if (ctrl.length != 0) {
-		ostringstream s;
-		s << __PRETTY_FUNCTION__ << " sending handhake with offset " << ctrl.offset << ", length " << ctrl.length;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
+				+ to_string(ctrl.length)).c_str());
 
 		// TODO Get rid of Daynaport specific code in this class
 		// The Daynaport needs to have a delay after the size/flags field
@@ -420,9 +435,7 @@ void SCSIDEV::Send()
 		if (ctrl.blocks != 0) {
 			// set next buffer (set offset, length)
 			result = XferIn(ctrl.buffer);
-			ostringstream s;
-			s << __PRETTY_FUNCTION__ << " Processing after data collection. Blocks: " << ctrl.blocks;
-			LOGTRACE("%s", s.str().c_str());
+			LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Processing after data collection. Blocks: " + to_string(ctrl.blocks)).c_str());
 		}
 	}
 
@@ -434,9 +447,7 @@ void SCSIDEV::Send()
 
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
-		ostringstream s;
-		s << __PRETTY_FUNCTION__ << " Continuing to send. Blocks: " << ctrl.blocks;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(ctrl.blocks)).c_str());
 		ASSERT(ctrl.length > 0);
 		ASSERT(ctrl.offset == 0);
 		return;
@@ -488,6 +499,11 @@ void SCSIDEV::Send()
 //---------------------------------------------------------------------------
 void SCSIDEV::Receive()
 {
+	if (scsi.is_byte_transfer) {
+		ReceiveBytes();
+		return;
+	}
+
 	int len;
 	BYTE data;
 
@@ -572,7 +588,7 @@ void SCSIDEV::Receive()
 			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
 			for (int i = 0; i < len; i++) {
-				ctrl.cmd[i] = (DWORD)ctrl.buffer[i];
+				ctrl.cmd[i] = ctrl.buffer[i];
 				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
 
@@ -687,7 +703,7 @@ void SCSIDEV::Receive()
 //	Transfer MSG
 //
 //---------------------------------------------------------------------------
-bool SCSIDEV::XferMsg(DWORD msg)
+bool SCSIDEV::XferMsg(int msg)
 {
 	ASSERT(ctrl.phase == BUS::msgout);
 
@@ -700,3 +716,194 @@ bool SCSIDEV::XferMsg(DWORD msg)
 
 	return true;
 }
+
+void SCSIDEV::ReceiveBytes()
+{
+	uint32_t len;
+	BYTE data;
+
+	LOGTRACE("%s",__PRETTY_FUNCTION__);
+
+	// REQ is low
+	ASSERT(!ctrl.bus->GetREQ());
+	ASSERT(!ctrl.bus->GetIO());
+
+	if (ctrl.length) {
+		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, ctrl.length);
+
+		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
+
+		// If not able to receive all, move to status phase
+		if (len != ctrl.length) {
+			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",
+					__PRETTY_FUNCTION__, ctrl.length, len);
+			Error();
+			return;
+		}
+
+		ctrl.offset += ctrl.length;
+		scsi.bytes_to_transfer = ctrl.length;
+		ctrl.length = 0;
+		return;
+	}
+
+	// Result initialization
+	bool result = true;
+
+	// Processing after receiving data (by phase)
+	LOGTRACE("%s ctrl.phase: %d (%s)",__PRETTY_FUNCTION__, (int)ctrl.phase, BUS::GetPhaseStrRaw(ctrl.phase));
+	switch (ctrl.phase) {
+
+		case BUS::dataout:
+			result = XferOut(false);
+			break;
+
+		case BUS::msgout:
+			ctrl.message = ctrl.buffer[0];
+			if (!XferMsg(ctrl.message)) {
+				// Immediately free the bus if message output fails
+				BusFree();
+				return;
+			}
+
+			// Clear message data in preparation for message-in
+			ctrl.message = 0x00;
+			break;
+
+		default:
+			break;
+	}
+
+	// If result FALSE, move to status phase
+	if (!result) {
+		Error();
+		return;
+	}
+
+	// Move to next phase
+	switch (ctrl.phase) {
+		case BUS::command:
+			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
+
+			for (uint32_t i = 0; i < len; i++) {
+				ctrl.cmd[i] = ctrl.buffer[i];
+				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
+			}
+
+			Execute();
+			break;
+
+		case BUS::msgout:
+			// Continue message out phase as long as ATN keeps asserting
+			if (ctrl.bus->GetATN()) {
+				// Data transfer is 1 byte x 1 block
+				ctrl.offset = 0;
+				ctrl.length = 1;
+				ctrl.blocks = 1;
+				return;
+			}
+
+			// Parsing messages sent by ATN
+			if (scsi.atnmsg) {
+				int i = 0;
+				while (i < scsi.msc) {
+					// Message type
+					data = scsi.msb[i];
+
+					// ABORT
+					if (data == 0x06) {
+						LOGTRACE("Message code ABORT $%02X", data);
+						BusFree();
+						return;
+					}
+
+					// BUS DEVICE RESET
+					if (data == 0x0C) {
+						LOGTRACE("Message code BUS DEVICE RESET $%02X", data);
+						scsi.syncoffset = 0;
+						BusFree();
+						return;
+					}
+
+					// IDENTIFY
+					if (data >= 0x80) {
+						ctrl.lun = data & 0x1F;
+						LOGTRACE("Message code IDENTIFY $%02X, LUN %d selected", data, ctrl.lun);
+					}
+
+					// Extended Message
+					if (data == 0x01) {
+						LOGTRACE("Message code EXTENDED MESSAGE $%02X", data);
+
+						// Check only when synchronous transfer is possible
+						if (!scsi.syncenable || scsi.msb[i + 2] != 0x01) {
+							ctrl.length = 1;
+							ctrl.blocks = 1;
+							ctrl.buffer[0] = 0x07;
+							MsgIn();
+							return;
+						}
+
+						// Transfer period factor (limited to 50 x 4 = 200ns)
+						scsi.syncperiod = scsi.msb[i + 3];
+						if (scsi.syncperiod > 50) {
+							scsi.syncoffset = 50;
+						}
+
+						// REQ/ACK offset(limited to 16)
+						scsi.syncoffset = scsi.msb[i + 4];
+						if (scsi.syncoffset > 16) {
+							scsi.syncoffset = 16;
+						}
+
+						// STDR response message generation
+						ctrl.length = 5;
+						ctrl.blocks = 1;
+						ctrl.buffer[0] = 0x01;
+						ctrl.buffer[1] = 0x03;
+						ctrl.buffer[2] = 0x01;
+						ctrl.buffer[3] = (BYTE)scsi.syncperiod;
+						ctrl.buffer[4] = (BYTE)scsi.syncoffset;
+						MsgIn();
+						return;
+					}
+
+					// next
+					i++;
+				}
+			}
+
+			// Initialize ATN message reception status
+			scsi.atnmsg = false;
+
+			Command();
+			break;
+
+		case BUS::dataout:
+			Status();
+			break;
+
+		default:
+			assert(false);
+			break;
+	}
+}
+
+bool SCSIDEV::XferOut(bool cont)
+{
+	if (!scsi.is_byte_transfer) {
+		return super::XferOut(cont);
+	}
+
+	ASSERT(ctrl.phase == BUS::dataout);
+
+	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[GetEffectiveLun()]);
+	if (device && ctrl.cmd[0] == scsi_defs::eCmdWrite6) {
+		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
+	}
+
+	LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
+
+	return false;
+}
+

@@ -10,28 +10,23 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM for Apple Macintosh ]
+//	[ SCSI CD-ROM ]
 //
 //---------------------------------------------------------------------------
 
 #include "scsicd.h"
 #include "fileio.h"
 #include "exceptions.h"
-#include <sstream>
-#include "../rascsi.h"
 #include "file_access/file_access_factory.h"
 
+using namespace scsi_defs;
+
 //===========================================================================
 //
-//	CD Track
+//     CD Track
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 CDTrack::CDTrack(SCSICD *scsicd)
 {
 	ASSERT(scsicd);
@@ -50,20 +45,6 @@ CDTrack::CDTrack(SCSICD *scsicd)
 	raw = false;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
-CDTrack::~CDTrack()
-{
-}
-
-//---------------------------------------------------------------------------
-//
-//	Init
-//
-//---------------------------------------------------------------------------
 void CDTrack::Init(int track, DWORD first, DWORD last)
 {
 	ASSERT(!valid);
@@ -79,11 +60,6 @@ void CDTrack::Init(int track, DWORD first, DWORD last)
 	last_lba = last;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set Path
-//
-//---------------------------------------------------------------------------
 void CDTrack::SetPath(bool cdda, const Filepath& path)
 {
 	ASSERT(valid);
@@ -95,11 +71,6 @@ void CDTrack::SetPath(bool cdda, const Filepath& path)
 	imgpath = path;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get Path
-//
-//---------------------------------------------------------------------------
 void CDTrack::GetPath(Filepath& path) const
 {
 	ASSERT(valid);
@@ -108,11 +79,6 @@ void CDTrack::GetPath(Filepath& path) const
 	path = imgpath;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add Index
-//
-//---------------------------------------------------------------------------
 void CDTrack::AddIndex(int index, DWORD lba)
 {
 	ASSERT(valid);
@@ -150,11 +116,6 @@ DWORD CDTrack::GetLast() const
 	return last_lba;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get the number of blocks
-//
-//---------------------------------------------------------------------------
 DWORD CDTrack::GetBlocks() const
 {
 	ASSERT(valid);
@@ -164,11 +125,6 @@ DWORD CDTrack::GetBlocks() const
 	return (DWORD)(last_lba - first_lba + 1);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get track number
-//
-//---------------------------------------------------------------------------
 int CDTrack::GetTrackNo() const
 {
 	ASSERT(valid);
@@ -221,11 +177,6 @@ bool CDTrack::IsAudio() const
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
 	// NOT in raw format
@@ -242,55 +193,22 @@ SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 	dataindex = -1;
 	audioindex = -1;
 
-	AddCommand(ScsiDefs::eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
-	AddCommand(ScsiDefs::eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
+	dispatcher.AddCommand(eCmdReadToc, "ReadToc", &SCSICD::ReadToc);
+	dispatcher.AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 SCSICD::~SCSICD()
 {
 	// Clear track
 	ClearTrack();
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
-}
-
-void SCSICD::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSICD::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
 }
 
 bool SCSICD::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
-
-	// The base class handles the less specific commands
-	return Disk::Dispatch(controller);
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
 void SCSICD::Open(const Filepath& path)
 {
 	off_t size;
@@ -358,21 +276,11 @@ void SCSICD::Open(const Filepath& path)
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (CUE)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenCue(const Filepath& /*path*/)
 {
 	throw io_exception("Opening CUE CD-ROM files is not supported");
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (ISO)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenIso(const Filepath& path)
 {
 	// Open as read-only
@@ -423,9 +331,8 @@ void SCSICD::OpenIso(const Filepath& path)
 	if (rawfile) {
 		// Size must be a multiple of 2536
 		if (size % 2536) {
-			stringstream error;
-			error << "Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is " << size << " bytes";
-			throw io_exception(error.str());
+			throw io_exception("Raw ISO CD-ROM file size must be a multiple of 2536 bytes but is "
+					+ to_string(size) + " bytes");
 		}
 
 		// Set the number of blocks
@@ -444,11 +351,6 @@ void SCSICD::OpenIso(const Filepath& path)
 	dataindex = 0;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (Physical)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
@@ -494,20 +396,12 @@ void SCSICD::ReadToc(SASIDEV *controller)
 	controller->DataIn();
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
 int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+		return 0;
 	}
 
 	// Basic data
@@ -563,11 +457,6 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ
-//
-//---------------------------------------------------------------------------
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
@@ -612,11 +501,6 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return Disk::Read(cdb, buf, block);
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ TOC
-//
-//---------------------------------------------------------------------------
 int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
@@ -769,11 +653,6 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 	msf[3] = (BYTE)f;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Clear Track
-//
-//---------------------------------------------------------------------------
 void SCSICD::ClearTrack()
 {
 	// delete the track object

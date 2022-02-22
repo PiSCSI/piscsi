@@ -76,10 +76,12 @@ void RasctlDisplay::DisplayDeviceInfo(const PbDevice& pb_device)
 		cout << "  ";
 	}
 
+	// Creates a sorted map
+	map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	bool isFirst = true;
-	for (const auto& param : pb_device.params()) {
+	for (const auto& param : params) {
 		if (!isFirst) {
-			cout << "  ";
+			cout << ":";
 		}
 		isFirst = false;
 		cout << param.first << "=" << param.second;
@@ -171,13 +173,12 @@ void RasctlDisplay::DisplayDeviceTypesInfo(const PbDeviceTypesInfo& device_types
 			bool isFirst = true;
 			for (const auto& param : params) {
 				if (!isFirst) {
-					cout << ", ";
+					cout << "                            ";
 				}
-				cout << param.first << "=" << param.second;
+				cout << param.first << "=" << param.second << endl;
 
 				isFirst = false;
 			}
-			cout << endl;
 		}
 
 		if (properties.block_sizes_size()) {
@@ -302,7 +303,10 @@ void RasctlDisplay::DisplayOperationInfo(const PbOperationInfo& operation_info)
 			}
 			cout << endl;
 
-			for (const auto& parameter : operation.second.parameters()) {
+			list<PbOperationParameter> sorted_parameters = { operation.second.parameters().begin(), operation.second.parameters().end() };
+			sorted_parameters.sort([](const auto& a, const auto& b) { return a.name() < b.name(); });
+
+			for (const auto& parameter : sorted_parameters) {
 				cout << "    " << parameter.name() << ": "
 					<< (parameter.is_mandatory() ? "mandatory" : "optional");
 				if (!parameter.description().empty()) {

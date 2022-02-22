@@ -14,13 +14,25 @@
 
 //===========================================================================
 //
-//	Sense Keys and Additional Sense Codes
+//	Status byte codes, Sense Keys and Additional Sense Codes
 //  (See https://www.t10.org/lists/1spc-lst.htm)
 //
 //===========================================================================
 class ERROR_CODES
 {
 public:
+	enum status : int {
+		GOOD = 0x00,
+		CHECK_CONDITION = 0x02,
+		CONDITION_MET = 0x04,
+		BUSY = 0x08,
+		INTERMEDIATE = 0x10,
+		INTERMEDIATE_CONDITION_MET = 0x14,
+		RESERVATION_CONFLICT = 0x18,
+		COMMAND_TERMINATED = 0x22,
+		QUEUE_FULL = 0x28
+	};
+
 	enum sense_key : int {
 		NO_SENSE = 0x00,
 		RECOVERED_ERROR = 0x01,
@@ -46,6 +58,7 @@ public:
 		INVALID_FIELD_IN_CDB = 0x24,
 		INVALID_LUN = 0x25,
 		WRITE_PROTECTED = 0x27,
+		NOT_READY_TO_READY_CHANGE = 0x28,
 		MEDIUM_NOT_PRESENT = 0x3a
 	};
 };
@@ -154,8 +167,7 @@ private:
 	static const char* phase_str_table[];
 };
 
-class ScsiDefs {
-public:
+namespace scsi_defs {
 	enum scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
@@ -173,6 +185,7 @@ public:
 		eCmdSetMcastAddr  = 0x0D,
 		// DaynaPort specific command
 		eCmdEnableInterface = 0x0E,
+		eCmdSynchronizeBuffer = 0x10,
 		eCmdInquiry = 0x12,
 		eCmdModeSelect6 = 0x15,
 		eCmdReserve6 = 0x16,

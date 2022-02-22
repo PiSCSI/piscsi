@@ -10,7 +10,7 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM for Apple Macintosh ]
+//	[ SCSI CD-ROM  ]
 //
 //---------------------------------------------------------------------------
 #pragma once
@@ -21,12 +21,6 @@
 #include "interfaces/scsi_mmc_commands.h"
 #include "interfaces/scsi_primary_commands.h"
 
-
-//---------------------------------------------------------------------------
-//
-//	Class precedence definition
-//
-//---------------------------------------------------------------------------
 class SCSICD;
 
 //===========================================================================
@@ -36,9 +30,14 @@ class SCSICD;
 //===========================================================================
 class CDTrack
 {
-public:
+private:
+
+	friend class SCSICD;
+
 	CDTrack(SCSICD *scsicd);
-	virtual ~CDTrack();
+	virtual ~CDTrack() {}
+
+public:
 
 	void Init(int track, DWORD first, DWORD last);
 
@@ -71,25 +70,12 @@ private:
 //===========================================================================
 class SCSICD : public Disk, public ScsiMmcCommands, public FileSupport
 {
-private:
-	typedef struct _command_t {
-		const char* name;
-		void (SCSICD::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (SCSICD::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
-
-	SASIDEV::ctrl_t *ctrl;
-
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (SCSICD::*)(SASIDEV *));
 
 public:
 	enum {
 		TrackMax = 96							// Maximum number of tracks
 	};
 
-public:
 	SCSICD();
 	~SCSICD();
 
@@ -103,6 +89,10 @@ public:
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 
 private:
+	typedef Disk super;
+
+	Dispatcher<SCSICD, SASIDEV> dispatcher;
+
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)
 	void OpenIso(const Filepath& path);				// Open(ISO)

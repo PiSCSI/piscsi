@@ -26,11 +26,12 @@
 #include "file_support.h"
 #include "filepath.h"
 #include "interfaces/scsi_block_commands.h"
-#include "interfaces/scsi_primary_commands.h"
 #include "mode_page_device.h"
 #include <string>
 #include <set>
 #include <map>
+
+using namespace std;
 
 class Disk : public ModePageDevice, ScsiBlockCommands
 {
@@ -50,24 +51,18 @@ private:
 		uint32_t blocks;						// Total number of sectors
 		FileAccess *dcache;						// Disk cache
 		off_t image_offset;						// Offset to actual data
+		bool is_medium_changed;
 	} disk_t;
 
-	typedef struct _command_t {
-		const char* name;
-		void (Disk::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (Disk::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
-
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (Disk::*)(SASIDEV *));
+	Dispatcher<Disk, SASIDEV> dispatcher;
 
 public:
-	Disk(std::string);
+	Disk(const string&);
 	virtual ~Disk();
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
+	void MediumChanged();
 	void ReserveFile(const string&);
 
 	// Media Operations
@@ -76,13 +71,14 @@ public:
 	bool Eject(bool) override;
 
 private:
+	typedef ModePageDevice super;
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
-	void StartStopUnit(SASIDEV *) override;
-	void SendDiagnostic(SASIDEV *) override;
+	void StartStopUnit(SASIDEV *);
+	void SendDiagnostic(SASIDEV *);
 	void PreventAllowMediumRemoval(SASIDEV *);
-	void SynchronizeCache10(SASIDEV *) override;
-	void SynchronizeCache16(SASIDEV *) override;
+	void SynchronizeCache10(SASIDEV *);
+	void SynchronizeCache16(SASIDEV *);
 	void ReadDefectData10(SASIDEV *);
 	virtual void Read6(SASIDEV *);
 	void Read10(SASIDEV *) override;
@@ -90,12 +86,12 @@ private:
 	virtual void Write6(SASIDEV *);
 	void Write10(SASIDEV *) override;
 	void Write16(SASIDEV *) override;
-	void ReadLong10(SASIDEV *) override;
-	void ReadLong16(SASIDEV *) override;
-	void WriteLong10(SASIDEV *) override;
-	void WriteLong16(SASIDEV *) override;
-	void Verify10(SASIDEV *) override;
-	void Verify16(SASIDEV *) override;
+	void ReadLong10(SASIDEV *);
+	void ReadLong16(SASIDEV *);
+	void WriteLong10(SASIDEV *);
+	void WriteLong16(SASIDEV *);
+	void Verify10(SASIDEV *);
+	void Verify16(SASIDEV *);
 	void Seek(SASIDEV *);
 	void Seek10(SASIDEV *);
 	void ReadCapacity10(SASIDEV *) override;
@@ -110,7 +106,7 @@ public:
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
 	void Rezero(SASIDEV *);
 	void FormatUnit(SASIDEV *) override;
-	void ReassignBlocks(SASIDEV *) override;
+	void ReassignBlocks(SASIDEV *);
 	void Seek6(SASIDEV *);
 
 	// Command helpers
@@ -138,6 +134,7 @@ public:
 	void SetBlockCount(uint32_t);
 	bool CheckBlockAddress(SASIDEV *, access_mode);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
+	void FlushCache();
 
 protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
@@ -153,8 +150,6 @@ protected:
 
 	// Internal disk data
 	disk_t disk;
-
-	set<Disk *> disks;
 
 private:
 	void Read(SASIDEV *, uint64_t);

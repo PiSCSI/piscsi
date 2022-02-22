@@ -20,49 +20,48 @@
 #include "exceptions.h"
 #include "disk.h"
 #include "mode_page_device.h"
-#include <sstream>
-#include "../rascsi.h"
 #include "file_access/file_access_factory.h"
 
-Disk::Disk(const std::string id) : ModePageDevice(id), ScsiBlockCommands()
-{
-	disks.insert(this);
+using namespace scsi_defs;
 
+Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
+{
 	// Work initialization
 	configured_sector_size = 0;
 	disk.size = 0;
 	disk.blocks = 0;
 	disk.dcache = NULL;
 	disk.image_offset = 0;
+	disk.is_medium_changed = false;
 
-	AddCommand(ScsiDefs::eCmdRezero, "Rezero", &Disk::Rezero);
-	AddCommand(ScsiDefs::eCmdFormat, "FormatUnit", &Disk::FormatUnit);
-	AddCommand(ScsiDefs::eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
-	AddCommand(ScsiDefs::eCmdRead6, "Read6", &Disk::Read6);
-	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &Disk::Write6);
-	AddCommand(ScsiDefs::eCmdSeek6, "Seek6", &Disk::Seek6);
-	AddCommand(ScsiDefs::eCmdReserve6, "Reserve6", &Disk::Reserve6);
-	AddCommand(ScsiDefs::eCmdRelease6, "Release6", &Disk::Release6);
-	AddCommand(ScsiDefs::eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
-	AddCommand(ScsiDefs::eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
-	AddCommand(ScsiDefs::eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
-	AddCommand(ScsiDefs::eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
-	AddCommand(ScsiDefs::eCmdRead10, "Read10", &Disk::Read10);
-	AddCommand(ScsiDefs::eCmdWrite10, "Write10", &Disk::Write10);
-	AddCommand(ScsiDefs::eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
-	AddCommand(ScsiDefs::eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
-	AddCommand(ScsiDefs::eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
-	AddCommand(ScsiDefs::eCmdSeek10, "Seek10", &Disk::Seek10);
-	AddCommand(ScsiDefs::eCmdVerify10, "Verify10", &Disk::Verify10);
-	AddCommand(ScsiDefs::eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
-	AddCommand(ScsiDefs::eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
-	AddCommand(ScsiDefs::eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	AddCommand(ScsiDefs::eCmdReserve10, "Reserve10", &Disk::Reserve10);
-	AddCommand(ScsiDefs::eCmdRelease10, "Release10", &Disk::Release10);
-	AddCommand(ScsiDefs::eCmdRead16, "Read16", &Disk::Read16);
-	AddCommand(ScsiDefs::eCmdWrite16, "Write16", &Disk::Write16);
-	AddCommand(ScsiDefs::eCmdVerify16, "Verify16", &Disk::Verify16);
-	AddCommand(ScsiDefs::eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
+	dispatcher.AddCommand(eCmdRezero, "Rezero", &Disk::Rezero);
+	dispatcher.AddCommand(eCmdFormat, "FormatUnit", &Disk::FormatUnit);
+	dispatcher.AddCommand(eCmdReassign, "ReassignBlocks", &Disk::ReassignBlocks);
+	dispatcher.AddCommand(eCmdRead6, "Read6", &Disk::Read6);
+	dispatcher.AddCommand(eCmdWrite6, "Write6", &Disk::Write6);
+	dispatcher.AddCommand(eCmdSeek6, "Seek6", &Disk::Seek6);
+	dispatcher.AddCommand(eCmdReserve6, "Reserve6", &Disk::Reserve6);
+	dispatcher.AddCommand(eCmdRelease6, "Release6", &Disk::Release6);
+	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
+	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
+	dispatcher.AddCommand(eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
+	dispatcher.AddCommand(eCmdReadCapacity10, "ReadCapacity10", &Disk::ReadCapacity10);
+	dispatcher.AddCommand(eCmdRead10, "Read10", &Disk::Read10);
+	dispatcher.AddCommand(eCmdWrite10, "Write10", &Disk::Write10);
+	dispatcher.AddCommand(eCmdReadLong10, "ReadLong10", &Disk::ReadLong10);
+	dispatcher.AddCommand(eCmdWriteLong10, "WriteLong10", &Disk::WriteLong10);
+	dispatcher.AddCommand(eCmdWriteLong16, "WriteLong16", &Disk::WriteLong16);
+	dispatcher.AddCommand(eCmdSeek10, "Seek10", &Disk::Seek10);
+	dispatcher.AddCommand(eCmdVerify10, "Verify10", &Disk::Verify10);
+	dispatcher.AddCommand(eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
+	dispatcher.AddCommand(eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
+	dispatcher.AddCommand(eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
+	dispatcher.AddCommand(eCmdReserve10, "Reserve10", &Disk::Reserve10);
+	dispatcher.AddCommand(eCmdRelease10, "Release10", &Disk::Release10);
+	dispatcher.AddCommand(eCmdRead16, "Read16", &Disk::Read16);
+	dispatcher.AddCommand(eCmdWrite16, "Write16", &Disk::Write16);
+	dispatcher.AddCommand(eCmdVerify16, "Verify16", &Disk::Verify16);
+	dispatcher.AddCommand(eCmdReadCapacity16_ReadLong16, "ReadCapacity16/ReadLong16", &Disk::ReadCapacity16_ReadLong16);
 }
 
 Disk::~Disk()
@@ -70,9 +69,7 @@ Disk::~Disk()
 	// Save disk cache
 	if (IsReady()) {
 		// Only if ready...
-		if (disk.dcache) {
-			disk.dcache->Save();
-		}
+		FlushCache();
 	}
 
 	// Clear disk cache
@@ -80,37 +77,22 @@ Disk::~Disk()
 		delete disk.dcache;
 		disk.dcache = NULL;
 	}
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
-
-	disks.erase(this);
-}
-
-void Disk::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (Disk::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
 }
 
 bool Disk::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
+	// Media changes must be reported on the next access, i.e. not only for TEST UNIT READY
+	if (disk.is_medium_changed) {
+		assert(IsRemovable());
 
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
+		disk.is_medium_changed = false;
 
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
+		controller->Error(ERROR_CODES::sense_key::UNIT_ATTENTION, ERROR_CODES::asc::NOT_READY_TO_READY_CHANGE);
 		return true;
 	}
 
-	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
-
-	// The base class handles the less specific commands
-	return ModePageDevice::Dispatch(controller);
+	// The superclass handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -144,6 +126,13 @@ void Disk::Open(const Filepath& path)
 	SetStopped(false);
 	SetRemoved(false);
 	SetLocked(false);
+}
+
+void Disk::FlushCache()
+{
+	if (disk.dcache) {
+		disk.dcache->Save();
+	}
 }
 
 void Disk::Rezero(SASIDEV *controller)
@@ -397,8 +386,7 @@ void Disk::PreventAllowMediumRemoval(SASIDEV *controller)
 
 void Disk::SynchronizeCache10(SASIDEV *controller)
 {
-	//Flush the RaSCSI cache
-	disk.dcache->Save();
+	FlushCache();
 
 	controller->Status();
 }
@@ -419,12 +407,20 @@ void Disk::ReadDefectData10(SASIDEV *controller)
 	controller->DataIn();
 }
 
+void Disk::MediumChanged()
+{
+	assert(IsRemovable());
+
+	if (IsRemovable()) {
+		disk.is_medium_changed = true;
+	}
+}
+
 bool Disk::Eject(bool force)
 {
 	bool status = Device::Eject(force);
 	if (status) {
-		// Remove disk cache
-		disk.dcache->Save();
+		FlushCache();
 		delete disk.dcache;
 		disk.dcache = NULL;
 
@@ -1058,8 +1054,7 @@ bool Disk::StartStop(const DWORD *cdb)
 	}
 
 	if (!start) {
-		// Flush the cache when stopping
-		disk.dcache->Save();
+		FlushCache();
 
 		// Look at the eject bit and eject if necessary
 		if (load) {
@@ -1278,9 +1273,8 @@ bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
 
 	uint64_t capacity = GetBlockCount();
 	if (block > capacity) {
-		ostringstream s;
-		s << "Capacity of " << capacity << " blocks exceeded: " << "Trying to access block " << block;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
+				+ to_string(block)).c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
@@ -1341,10 +1335,8 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 	// Check capacity
 	uint64_t capacity = GetBlockCount();
 	if (start > capacity || start + count > capacity) {
-		ostringstream s;
-		s << "Capacity of " << capacity << " blocks exceeded: "
-				<< "Trying to read block " << start << ", block count " << ctrl->blocks;
-		LOGTRACE("%s", s.str().c_str());
+		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
+				+ to_string(start) + ", block count " + to_string(ctrl->blocks)).c_str());
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
@@ -1368,9 +1360,7 @@ void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 {
 	set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
 	if (!sector_sizes.empty() && sector_sizes.find(size) == sector_sizes.end()) {
-		stringstream error;
-		error << "Invalid block size of " << size << " bytes";
-		throw io_exception(error.str());
+		throw io_exception("Invalid block size of " + to_string(size) + " bytes");
 	}
 
 	switch (size) {

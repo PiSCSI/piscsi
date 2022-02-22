@@ -16,17 +16,19 @@
 //        work with the Sharp X68000 operating system.
 //---------------------------------------------------------------------------
 
+#include "controllers/scsidev_ctrl.h"
 #include "scsi_host_bridge.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
-#include <sstream>
 
 using namespace std;
+using namespace scsi_defs;
 
 SCSIBR::SCSIBR() : Disk("SCBR")
 {
 	tap = NULL;
 	m_bTapEnable = false;
+	packet_enable = false;
 
 	fsoptlen = 0;
 	fsoutlen = 0;
@@ -37,9 +39,9 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	fs = new CFileSys();
 	fs->Reset();
 
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	AddCommand(ScsiDefs::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	AddCommand(ScsiDefs::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	dispatcher.AddCommand(eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	dispatcher.AddCommand(eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
 SCSIBR::~SCSIBR()
@@ -55,21 +57,16 @@ SCSIBR::~SCSIBR()
 		fs->Reset();
 		delete fs;
 	}
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
 }
 
 bool SCSIBR::Init(const map<string, string>& params)
 {
-	// Use default parameters if no parameters were provided
-	SetParams(params.empty() ? GetDefaultParams() : params);
+	SetParams(params);
 
 #ifdef __linux__
 	// TAP Driver Generation
-	tap = new CTapDriver(GetParam("interfaces"));
-	m_bTapEnable = tap->Init();
+	tap = new CTapDriver();
+	m_bTapEnable = tap->Init(GetParams());
 	if (!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
 		return false;
@@ -96,29 +93,10 @@ bool SCSIBR::Init(const map<string, string>& params)
 #endif
 }
 
-void SCSIBR::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
-}
-
 bool SCSIBR::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
-
-	// The base class handles the less specific commands
-	return Disk::Dispatch(controller);
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
 //---------------------------------------------------------------------------
@@ -128,14 +106,10 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 //---------------------------------------------------------------------------
 int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-	ASSERT(cdb[0] == 0x12);
-
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+		return 0;
 	}
 
 	// Basic data
@@ -175,15 +149,9 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	TEST UNIT READY
-//
-//---------------------------------------------------------------------------
 void SCSIBR::TestUnitReady(SASIDEV *controller)
 {
-	// TEST UNIT READY Success
-
+	// Always successful
 	controller->Status();}
 
 //---------------------------------------------------------------------------

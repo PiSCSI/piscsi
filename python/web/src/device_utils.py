@@ -52,29 +52,39 @@ def sort_and_format_devices(devices):
     return formatted_devices
 
 
-def extend_device_names(device_types):
+def map_device_types_and_names(device_types):
     """
-    Takes a (list) of (str) device_types with the four letter device acronyms
+    Takes a (dict) corresponding to the data structure returned by RaCtlCmds.get_device_types()
     Returns a (dict) of device_type:device_name mappings of localized device names
     """
-    mapped_device_types = {}
-    for device_type in device_types:
-        if device_type is "SAHD":
-            device_name = _("SASI Hard Drive")
-        elif device_type is "SCHD":
-            device_name = _("SCSI Hard Drive")
-        elif device_type is "SCRM":
-            device_name = _("Removable Drive")
-        elif device_type is "SCMO":
-            device_name = _("Magneto-Optical Drive")
-        elif device_type is "SCCD":
-            device_name = _("CD-ROM Drive")
-        elif device_type is "SCBR":
-            device_name = _("X68000 Host Bridge")
-        elif device_type is "SCDP":
-            device_name = _("DaynaPORT SCSI/Link")
-        else:
-            device_name = _("Unknown Device")
-        mapped_device_types[device_type] = device_name
+    for key, value in device_types.items():
+        device_types[key]["name"] = get_device_name(key)
 
-    return mapped_device_types
+    return device_types
+
+
+def get_device_name(device_type):
+    """
+    Takes a four letter device acronym (str) device_type.
+    Returns the human-readable name for the device type.
+    """
+    if device_type == "SAHD":
+        return _("SASI Hard Disk")
+    elif device_type == "SCHD":
+        return _("SCSI Hard Disk")
+    elif device_type == "SCRM":
+        return _("Removable Disk")
+    elif device_type == "SCMO":
+        return _("Magneto-Optical")
+    elif device_type == "SCCD":
+        return _("CD / DVD")
+    elif device_type == "SCBR":
+        return _("X68000 Host Bridge")
+    elif device_type == "SCDP":
+        return _("DaynaPORT SCSI/Link")
+    elif device_type == "SCLP":
+        return _("Printer")
+    elif device_type == "SCHS":
+        return _("Host Services")
+    else:
+        return device_type

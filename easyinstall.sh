@@ -113,9 +113,17 @@ function installRaScsi() {
 }
 
 function preparePythonCommon() {
-    if [ -f "$PYTHON_COMMON_PATH/rascsi_interface_pb2.py" ]; then
-        sudo rm "$PYTHON_COMMON_PATH/rascsi_interface_pb2.py"
-        echo "Deleting old Python protobuf library rascsi_interface_pb2.py"
+    if [ -f "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py" ]; then
+        sudo rm "$WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
+        echo "Deleting old Python protobuf library $WEB_INSTALL_PATH/src/rascsi_interface_pb2.py"
+    fi
+    if [ -f "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py" ]; then
+        sudo rm "$OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
+        echo "Deleting old Python protobuf library $OLED_INSTALL_PATH/src/rascsi_interface_pb2.py"
+    fi
+    if [ -f "$PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py" ]; then
+        sudo rm "$PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
+        echo "Deleting old Python protobuf library $PYTHON_COMMON_PATH/src/rascsi_interface_pb2.py"
     fi
     echo "Compiling the Python protobuf library rascsi_interface_pb2.py..."
     protoc -I="$BASE/src/raspberrypi/" --python_out="$PYTHON_COMMON_PATH/src" rascsi_interface.proto

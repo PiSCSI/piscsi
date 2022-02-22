@@ -10,8 +10,8 @@
 
 #include "os.h"
 #include "filepath.h"
+#include "config.h"
 #include "fileio.h"
-#include "rascsi.h"
 
 //===========================================================================
 //

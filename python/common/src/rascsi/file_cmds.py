@@ -450,17 +450,16 @@ class FileCmds:
                     for row in config["devices"]:
                         kwargs = {
                             "device_type": row["device_type"],
-                            "image": row["image"],
                             "unit": int(row["unit"]),
                             "vendor": row["vendor"],
                             "product": row["product"],
                             "revision": row["revision"],
                             "block_size": row["block_size"],
+                            "params": dict(row["params"]),
                             }
-                        params = dict(row["params"])
-                        for param in params.keys():
-                            kwargs[param] = params[param]
-                        self.ractl.attach_image(row["id"], **kwargs)
+                        if row["image"]:
+                            kwargs["params"]["file"] = row["image"]
+                        self.ractl.attach_device(row["id"], **kwargs)
                 # The config file format in RaSCSI 21.10 is using a list data type at the top level.
                 # If future config file formats return to the list data type,
                 # introduce more sophisticated format detection logic here.
@@ -470,17 +469,17 @@ class FileCmds:
                         kwargs = {
                             "device_type": row["device_type"],
                             "image": row["image"],
-                            # "un" for backwards compatibility
                             "unit": int(row["un"]),
                             "vendor": row["vendor"],
                             "product": row["product"],
                             "revision": row["revision"],
                             "block_size": row["block_size"],
+                            "params": dict(row["params"]),
                             }
-                        params = dict(row["params"])
-                        for param in params.keys():
-                            kwargs[param] = params[param]
-                        self.ractl.attach_image(row["id"], **kwargs)
+                        if row["image"]:
+                            kwargs["params"]["file"] = row["image"]
+                        self.ractl.attach_device(row["id"], **kwargs)
+                    logging.warning("%s is in an obsolete config file format", file_name)
                 else:
                     return {"status": False,
                             "return_code": ReturnCodes.READCONFIG_INVALID_CONFIG_FILE_FORMAT}

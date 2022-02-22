@@ -9,44 +9,28 @@
 
 #include "log.h"
 #include "controllers/scsidev_ctrl.h"
+#include "dispatcher.h"
 #include "primary_device.h"
 
 using namespace std;
+using namespace scsi_defs;
 
-PrimaryDevice::PrimaryDevice(const string id) : ScsiPrimaryCommands(), Device(id)
+PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(id)
 {
 	ctrl = NULL;
 
 	// Mandatory SCSI primary commands
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
-	AddCommand(ScsiDefs::eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
-	AddCommand(ScsiDefs::eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &PrimaryDevice::TestUnitReady);
+	dispatcher.AddCommand(eCmdInquiry, "Inquiry", &PrimaryDevice::Inquiry);
+	dispatcher.AddCommand(eCmdReportLuns, "ReportLuns", &PrimaryDevice::ReportLuns);
 
 	// Optional commands used by all RaSCSI devices
-	AddCommand(ScsiDefs::eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
-}
-
-void PrimaryDevice::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (PrimaryDevice::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
+	dispatcher.AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
 }
 
 bool PrimaryDevice::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	// Unknown command
-	return false;
+	return dispatcher.Dispatch(this, controller);
 }
 
 void PrimaryDevice::TestUnitReady(SASIDEV *controller)
@@ -61,37 +45,19 @@ void PrimaryDevice::TestUnitReady(SASIDEV *controller)
 
 void PrimaryDevice::Inquiry(SASIDEV *controller)
 {
-	int lun = controller->GetEffectiveLun();
-	const Device *device = ctrl->unit[lun];
-
-	// Find a valid unit
-	// TODO The code below is probably wrong. It results in the same INQUIRY data being
-	// used for all LUNs, even though each LUN has its individual set of INQUIRY data.
-	// In addition, it supports gaps in the LUN list, which is not correct.
-	if (!device) {
-		for (int valid_lun = 0; valid_lun < SASIDEV::UnitMax; valid_lun++) {
-			if (ctrl->unit[valid_lun]) {
-				device = ctrl->unit[valid_lun];
-				break;
-			}
-		}
-	}
-
-	if (device) {
-		ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
-	} else {
-		ctrl->length = 0;
-	}
-
+	ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
 	}
 
+	int lun = controller->GetEffectiveLun();
+
 	// Report if the device does not support the requested LUN
 	if (!ctrl->unit[lun]) {
-		LOGDEBUG("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl->device->GetId());
 
+		// Signal that the requested LUN does not exist
 		ctrl->buffer[0] |= 0x7f;
 	}
 
@@ -183,6 +149,33 @@ bool PrimaryDevice::CheckReady()
 	return true;
 }
 
+int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb, BYTE *buf)
+{
+	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	if (allocation_length > 4) {
+		if (allocation_length > 44) {
+			allocation_length = 44;
+		}
+
+		// Basic data
+		// buf[0] ... SCSI Device type
+		// buf[1] ... Bit 7: Removable/not removable
+		// buf[2] ... SCSI-2 compliant command system
+		// buf[3] ... SCSI-2 compliant Inquiry response
+		// buf[4] ... Inquiry additional data
+		memset(buf, 0, allocation_length);
+		buf[0] = type;
+		buf[1] = is_removable ? 0x80 : 0x00;
+		buf[2] = scsi_level;
+		buf[4] = 0x1F;
+
+		// Padded vendor, product, revision
+		memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	}
+
+	return allocation_length;
+}
+
 int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
@@ -221,3 +214,9 @@ int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
+bool PrimaryDevice::WriteBytes(BYTE *buf, uint32_t length)
+{
+	LOGERROR("%s Writing bytes is not supported by this device", __PRETTY_FUNCTION__);
+
+	return false;
+}
