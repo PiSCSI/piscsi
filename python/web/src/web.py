@@ -4,8 +4,15 @@ Module for the Flask app rendering and endpoints
 
 import logging
 import argparse
+import bjoern
 from pathlib import Path
 from functools import wraps
+from werkzeug.utils import secure_filename
+from simplepam import authenticate
+from grp import getgrall
+from subprocess import run
+from os import path
+from ast import literal_eval
 
 from flask import (
     Flask,
@@ -210,7 +217,6 @@ def drive_list():
     cd_conf = []
     rm_conf = []
 
-    from werkzeug.utils import secure_filename
     for device in conf:
         if device["device_type"] == "SCHD":
             device["secure_name"] = secure_filename(device["name"])
@@ -254,9 +260,6 @@ def login():
     """
     username = request.form["username"]
     password = request.form["password"]
-
-    from simplepam import authenticate
-    from grp import getgrall
 
     groups = [g.gr_name for g in getgrall() if username in g.gr_mem]
     if AUTH_GROUP in groups:
@@ -434,7 +437,6 @@ def show_logs():
     lines = request.form.get("lines") or "200"
     scope = request.form.get("scope") or "default"
 
-    from subprocess import run
     if scope != "default":
         process = run(
                 ["journalctl", "-n", lines, "-u", scope],
@@ -844,9 +846,6 @@ def upload_file():
     if auth["status"] and "username" not in session:
         return make_response(auth["msg"], 403)
 
-    from werkzeug.utils import secure_filename
-    from os import path
-
     log = logging.getLogger("pydrop")
     file_object = request.files["file"]
     file_name = secure_filename(file_object.filename)
@@ -994,7 +993,6 @@ def unzip():
     zip_member = request.form.get("zip_member") or False
     zip_members = request.form.get("zip_members") or False
 
-    from ast import literal_eval
     if zip_members:
         zip_members = literal_eval(zip_members)
 
@@ -1088,6 +1086,5 @@ if __name__ == "__main__":
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmds.read_config(DEFAULT_CONFIG)
 
-    import bjoern
     print("Serving rascsi-web...")
     bjoern.run(APP, "0.0.0.0", arguments.port)

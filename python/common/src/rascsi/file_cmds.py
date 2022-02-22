@@ -4,8 +4,15 @@ Module for methods reading from and writing to the file system
 
 import os
 import logging
-from pathlib import PurePath
 import asyncio
+import requests
+from pathlib import PurePath
+from zipfile import ZipFile, is_zipfile
+from re import escape, findall
+from time import time
+from subprocess import run, CalledProcessError
+from json import dump, load
+
 import rascsi_interface_pb2 as proto
 from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
 from rascsi.ractl_cmds import RaCtlCmds
@@ -79,7 +86,6 @@ class FileCmds:
         prop_data = self.list_files(PROPERTIES_SUFFIX, CFG_DIR)
         prop_files = [PurePath(x[0]).stem for x in prop_data]
 
-        from zipfile import ZipFile, is_zipfile
         server_info = self.ractl.get_server_info()
         files = []
         for file in result.image_files_info.image_files:
@@ -225,12 +231,11 @@ class FileCmds:
         members contains all of the full paths to each of the zip archive members
         Returns (dict) with (boolean) status and (list of str) msg
         """
-        from asyncio import run
         server_info = self.ractl.get_server_info()
         prop_flag = False
 
         if not member:
-            unzip_proc = run(self.run_async(
+            unzip_proc = asyncio.run(self.run_async(
                 f"unzip -d {server_info['image_dir']} -n -j "
                 f"{server_info['image_dir']}/{file_name}"
                 ))
@@ -241,14 +246,13 @@ class FileCmds:
                         self.rename_file(f"{server_info['image_dir']}/{name}", f"{CFG_DIR}/{name}")
                         prop_flag = True
         else:
-            from re import escape
             member = escape(member)
-            unzip_proc = run(self.run_async(
+            unzip_proc = asyncio.run(self.run_async(
                 f"unzip -d {server_info['image_dir']} -n -j "
                 f"{server_info['image_dir']}/{file_name} {member}"
                 ))
             # Attempt to unzip a properties file in the same archive dir
-            unzip_prop = run(self.run_async(
+            unzip_prop = asyncio.run(self.run_async(
                 f"unzip -d {CFG_DIR} -n -j "
                 f"{server_info['image_dir']}/{file_name} {member}.{PROPERTIES_SUFFIX}"
                 ))
@@ -258,7 +262,6 @@ class FileCmds:
             logging.warning("Unzipping failed: %s", unzip_proc["stderr"])
             return {"status": False, "msg": unzip_proc["stderr"]}
 
-        from re import findall
         unzipped = findall(
             "(?:inflating|extracting):(.+)\n",
             unzip_proc["stdout"]
@@ -270,8 +273,6 @@ class FileCmds:
         Takes (str) url and one or more (str) *iso_args
         Returns (dict) with (bool) status and (str) msg
         """
-        from time import time
-        from subprocess import run, CalledProcessError
 
         server_info = self.ractl.get_server_info()
 
@@ -287,7 +288,6 @@ class FileCmds:
         if not req_proc["status"]:
             return {"status": False, "msg": req_proc["msg"]}
 
-        from zipfile import is_zipfile, ZipFile
         if is_zipfile(tmp_full_path):
             if "XtraStuf.mac" in str(ZipFile(tmp_full_path).namelist()):
                 logging.info("MacZip file format detected. Will not unzip to retain resource fork.")
@@ -339,7 +339,6 @@ class FileCmds:
         Takes (str) url, (str) save_dir, (str) file_name
         Returns (dict) with (bool) status and (str) msg
         """
-        import requests
         logging.info("Making a request to download %s", url)
 
         try:
@@ -371,7 +370,6 @@ class FileCmds:
         Takes (str) file_name
         Returns (dict) with (bool) status and (str) msg
         """
-        from json import dump
         file_name = f"{CFG_DIR}/{file_name}"
         try:
             with open(file_name, "w", encoding="ISO-8859-1") as json_file:
@@ -433,7 +431,6 @@ class FileCmds:
         Takes (str) file_name
         Returns (dict) with (bool) status and (str) msg
         """
-        from json import load
         file_name = f"{CFG_DIR}/{file_name}"
         try:
             with open(file_name, encoding="ISO-8859-1") as json_file:
@@ -512,7 +509,6 @@ class FileCmds:
         Takes file name base (str) and (list of dicts) conf as arguments
         Returns (dict) with (bool) status and (str) msg
         """
-        from json import dump
         file_path = f"{CFG_DIR}/{file_name}"
         try:
             with open(file_path, "w") as json_file:
@@ -548,7 +544,6 @@ class FileCmds:
         Takes (str) file_path as argument.
         Returns (dict) with (bool) status, (str) msg, (dict) conf
         """
-        from json import load
         try:
             with open(file_path) as json_file:
                 conf = load(json_file)
