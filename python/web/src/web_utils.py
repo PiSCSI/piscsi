@@ -2,8 +2,8 @@
 Module for RaSCSI Web Interface utility methods
 """
 
-from flask_babel import _
 from grp import getgrall
+from flask_babel import _
 
 
 def get_valid_scsi_ids(devices, reserved_ids):
@@ -58,12 +58,13 @@ def map_device_types_and_names(device_types):
     Takes a (dict) corresponding to the data structure returned by RaCtlCmds.get_device_types()
     Returns a (dict) of device_type:device_name mappings of localized device names
     """
-    for key, value in device_types.items():
-        device_types[key]["name"] = get_device_name(key)
+    for device in device_types.keys():
+        device_types[device]["name"] = get_device_name(device)
 
     return device_types
 
 
+# pylint: disable=too-many-return-statements
 def get_device_name(device_type):
     """
     Takes a four letter device acronym (str) device_type.
@@ -71,24 +72,23 @@ def get_device_name(device_type):
     """
     if device_type == "SAHD":
         return _("SASI Hard Disk")
-    elif device_type == "SCHD":
+    if device_type == "SCHD":
         return _("SCSI Hard Disk")
-    elif device_type == "SCRM":
+    if device_type == "SCRM":
         return _("Removable Disk")
-    elif device_type == "SCMO":
+    if device_type == "SCMO":
         return _("Magneto-Optical")
-    elif device_type == "SCCD":
+    if device_type == "SCCD":
         return _("CD / DVD")
-    elif device_type == "SCBR":
+    if device_type == "SCBR":
         return _("X68000 Host Bridge")
-    elif device_type == "SCDP":
+    if device_type == "SCDP":
         return _("DaynaPORT SCSI/Link")
-    elif device_type == "SCLP":
+    if device_type == "SCLP":
         return _("Printer")
-    elif device_type == "SCHS":
+    if device_type == "SCHS":
         return _("Host Services")
-    else:
-        return device_type
+    return device_type
 
 
 def auth_active(group):

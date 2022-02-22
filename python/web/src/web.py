@@ -22,6 +22,17 @@ from flask import (
 )
 from flask_babel import Babel, Locale, refresh, _
 
+from rascsi.ractl_cmds import RaCtlCmds
+from rascsi.file_cmds import FileCmds
+from rascsi.sys_cmds import SysCmds
+
+from rascsi.common_settings import (
+    CFG_DIR,
+    CONFIG_FILE_SUFFIX,
+    PROPERTIES_SUFFIX,
+    RESERVATIONS,
+)
+
 from web_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
@@ -30,6 +41,7 @@ from web_utils import (
     auth_active,
 )
 from return_code_mapper import ReturnCodeMapper
+from socket_cmds_flask import SocketCmdsFlask
 
 from settings import (
     AFP_DIR,
@@ -40,18 +52,6 @@ from settings import (
     AUTH_GROUP,
     LANGUAGES,
 )
-
-from rascsi.common_settings import (
-    CFG_DIR,
-    CONFIG_FILE_SUFFIX,
-    PROPERTIES_SUFFIX,
-    RESERVATIONS,
-)
-from rascsi.ractl_cmds import RaCtlCmds
-from rascsi.file_cmds import FileCmds
-from rascsi.sys_cmds import SysCmds
-
-from socket_cmds_flask import SocketCmdsFlask
 
 
 APP = Flask(__name__)
@@ -85,6 +85,7 @@ def get_supported_locales():
     return sorted_locales
 
 
+# pylint: disable=too-many-locals
 @APP.route("/")
 def index():
     """
@@ -498,7 +499,10 @@ def attach_device():
     if "interface" in params.keys():
         if params["interface"].startswith("wlan"):
             if not sys_cmds.introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-                flash(_("Configure IPv4 forwarding before using a wireless network device."), "error")
+                flash(
+                        _("Configure IPv4 forwarding before using a wireless network device."),
+                        "error",
+                        )
                 flash(error_msg, "error")
                 return redirect(url_for("index"))
             if not Path("/etc/iptables/rules.v4").is_file():
@@ -510,11 +514,17 @@ def attach_device():
                     "/etc/dhcpcd.conf",
                     r"^denyinterfaces " + params["interface"] + r"$",
                     ):
-                flash(_("Configure the network bridge before using a wired network device."), "error")
+                flash(
+                        _("Configure the network bridge before using a wired network device."),
+                        "error",
+                        )
                 flash(error_msg, "error")
                 return redirect(url_for("index"))
             if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-                flash(_("Configure the network bridge before using a wired network device."), "error")
+                flash(
+                        _("Configure the network bridge before using a wired network device."),
+                        "error",
+                        )
                 flash(error_msg, "error")
                 return redirect(url_for("index"))
 
