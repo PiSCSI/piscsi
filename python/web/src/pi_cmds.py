@@ -106,23 +106,6 @@ def disk_space():
     return {"total": total, "used": used, "free": free}
 
 
-def get_ip_address():
-    """
-    Use a mock socket connection to identify the Pi's IP address
-    """
-    from socket import socket, AF_INET, SOCK_DGRAM
-    sock = socket(AF_INET, SOCK_DGRAM)
-    try:
-        # mock ip address; doesn't have to be reachable
-        sock.connect(('10.255.255.255', 1))
-        ip_addr = sock.getsockname()[0]
-    except Exception:
-        ip_addr = '127.0.0.1'
-    finally:
-        sock.close()
-    return ip_addr
-
-
 def introspect_file(file_path, re_term):
     """
     Takes a (str) file_path and (str) re_term in regex format

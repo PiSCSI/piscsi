@@ -27,7 +27,6 @@ from pi_cmds import (
     running_proc,
     is_bridge_setup,
     disk_space,
-    get_ip_address,
     introspect_file,
     auth_active,
 )
@@ -58,6 +57,7 @@ from rascsi.common_settings import (
 )
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.file_cmds import FileCmds
+from rascsi.sys_cmds import SysCmds
 
 from socket_cmds_flask import SocketCmdsFlask
 
@@ -112,6 +112,7 @@ def index():
     device_types = map_device_types_and_names(ractl.get_device_types()["device_types"])
     image_files = file_cmds.list_images()
     config_files = file_cmds.list_config_files()
+    ip_addr, host = sys_cmds.get_ip_and_host()
 
     extended_image_files = []
     for image in image_files["files"]:
@@ -150,7 +151,8 @@ def index():
         bridge_configured=is_bridge_setup(),
         netatalk_configured=running_proc("afpd"),
         macproxy_configured=running_proc("macproxy"),
-        ip_addr=get_ip_address(),
+        ip_addr=ip_addr,
+        host=host,
         devices=formatted_devices,
         files=extended_image_files,
         config_files=config_files,
@@ -1076,6 +1078,7 @@ if __name__ == "__main__":
     sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
     ractl = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["TOKEN"])
     file_cmds = FileCmds(sock_cmd=sock_cmd, ractl=ractl, token=APP.config["TOKEN"])
+    sys_cmds = SysCmds()
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmds.read_config(DEFAULT_CONFIG)
