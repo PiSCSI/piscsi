@@ -3,9 +3,8 @@ Module with methods that interact with the Pi system
 """
 import subprocess
 import logging
-from flask_babel import _
 from shutil import disk_usage
-from re import findall
+from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
 
 
@@ -14,7 +13,8 @@ class SysCmds:
     Class for commands sent to the Pi's Linux system.
     """
 
-    def running_env(self):
+    @staticmethod
+    def running_env():
         """
         Returns (str) git and (str) env
         git contains the git hash of the checked out code
@@ -52,7 +52,8 @@ class SysCmds:
 
         return {"git": ra_git_version, "env": pi_version}
 
-    def running_proc(self, daemon):
+    @staticmethod
+    def running_proc(daemon):
         """
         Takes (str) daemon
         Returns (int) proc, which is the number of processes currently running
@@ -75,7 +76,8 @@ class SysCmds:
         matching_processes = findall(daemon, processes)
         return len(matching_processes)
 
-    def is_bridge_setup(self):
+    @staticmethod
+    def is_bridge_setup():
         """
         Returns (bool) True if the rascsi_bridge network interface exists
         """
@@ -98,7 +100,8 @@ class SysCmds:
             return True
         return False
 
-    def disk_space(self):
+    @staticmethod
+    def disk_space():
         """
         Returns a (dict) with (int) total (int) used (int) free
         This is the disk space information of the volume where this app is running
@@ -106,7 +109,8 @@ class SysCmds:
         total, used, free = disk_usage(__file__)
         return {"total": total, "used": used, "free": free}
 
-    def introspect_file(self, file_path, re_term):
+    @staticmethod
+    def introspect_file(file_path, re_term):
         """
         Takes a (str) file_path and (str) re_term in regex format
         Will introspect file_path for the existance of re_term
@@ -114,14 +118,17 @@ class SysCmds:
         """
         try:
             ifile = open(file_path, "r", encoding="ISO-8859-1")
-        except:
+        except (IOError, ValueError, EOFError, TypeError) as error:
+            logging.error(str(error))
             return False
         for line in ifile:
             if match(re_term, line):
                 return True
         return False
 
-    def get_ip_and_host(self):
+    # pylint: disable=broad-except
+    @staticmethod
+    def get_ip_and_host():
         """
         Use a mock socket connection to identify the Pi's hostname and IP address
         """
