@@ -185,7 +185,7 @@ def formatted_output():
                 else:
                     output.append(f"{line['id']} {line['device_type'][2:4]} {line['status']}")
             # Special handling of devices that don't use image files
-            elif line["device_type"] in (PERIPHERAL_DEVICE_TYPES):
+            elif line["device_type"] in PERIPHERAL_DEVICE_TYPES:
                 if line["vendor"] == "RaSCSI":
                     output.append(f"{line['id']} {line['device_type'][2:4]} {line['product']}")
                 else:
