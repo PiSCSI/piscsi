@@ -22,14 +22,6 @@ from flask import (
 )
 from flask_babel import Babel, Locale, refresh, _
 
-from pi_cmds import (
-    running_env,
-    running_proc,
-    is_bridge_setup,
-    disk_space,
-    introspect_file,
-)
-
 from web_utils import (
     sort_and_format_devices,
     get_valid_scsi_ids,
@@ -148,9 +140,9 @@ def index():
     return render_template(
         "index.html",
         locales=get_supported_locales(),
-        bridge_configured=is_bridge_setup(),
-        netatalk_configured=running_proc("afpd"),
-        macproxy_configured=running_proc("macproxy"),
+        bridge_configured=sys_cmds.is_bridge_setup(),
+        netatalk_configured=sys_cmds.running_proc("afpd"),
+        macproxy_configured=sys_cmds.running_proc("macproxy"),
         ip_addr=ip_addr,
         host=host,
         devices=formatted_devices,
@@ -167,13 +159,13 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         RESERVATIONS=RESERVATIONS,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
-        running_env=running_env(),
+        running_env=sys_cmds.running_env(),
         version=server_info["version"],
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
         netinfo=ractl.get_network_info(),
         device_types=device_types,
-        free_disk=int(disk_space()["free"] / 1024 / 1024),
+        free_disk=int(sys_cmds.disk_space()["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
@@ -245,9 +237,9 @@ def drive_list():
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
-        running_env=running_env(),
+        running_env=sys_cmds.running_env(),
         version=server_info["version"],
-        free_disk=int(disk_space()["free"] / 1024 / 1024),
+        free_disk=int(sys_cmds.disk_space()["free"] / 1024 / 1024),
         cdrom_file_suffix=tuple(server_info["sccd"]),
         username=username,
         auth_active=auth_active(AUTH_GROUP)["status"],
@@ -505,7 +497,7 @@ def attach_device():
 
     if "interface" in params.keys():
         if params["interface"].startswith("wlan"):
-            if not introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
+            if not sys_cmds.introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
                 flash(_("Configure IPv4 forwarding before using a wireless network device."), "error")
                 flash(error_msg, "error")
                 return redirect(url_for("index"))
@@ -514,7 +506,10 @@ def attach_device():
                 flash(error_msg, "error")
                 return redirect(url_for("index"))
         else:
-            if not introspect_file("/etc/dhcpcd.conf", r"^denyinterfaces " + params["interface"] + r"$"):
+            if not sys_cmds.introspect_file(
+                    "/etc/dhcpcd.conf",
+                    r"^denyinterfaces " + params["interface"] + r"$",
+                    ):
                 flash(_("Configure the network bridge before using a wired network device."), "error")
                 flash(error_msg, "error")
                 return redirect(url_for("index"))
