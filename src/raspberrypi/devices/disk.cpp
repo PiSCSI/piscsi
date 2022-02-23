@@ -663,7 +663,7 @@ void Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
 void Disk::AddErrorPage(map<int, pair<int, BYTE *>>pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(12);
-	pages.insert(make_pair(1, make_pair(12, buf)));
+	pages[1] = make_pair(12, buf);
 
 	// Set the message length
 	buf[0] = 0x01;
@@ -675,7 +675,7 @@ void Disk::AddErrorPage(map<int, pair<int, BYTE *>>pages, bool change)
 void Disk::AddFormatPage(map<int, pair<int, BYTE *>>pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(24);
-	pages.insert(make_pair(3, make_pair(24, buf)));
+	pages[3] = make_pair(24, buf);
 
 	// Set the message length
 	buf[0] = 0x80 | 0x03;
@@ -712,7 +712,7 @@ void Disk::AddFormatPage(map<int, pair<int, BYTE *>>pages, bool change)
 void Disk::AddDrivePage(map<int, pair<int, BYTE *>>pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(24);
-	pages.insert(make_pair(4, make_pair(24, buf)));
+	pages[4] = make_pair(24, buf);
 
 	// Set the message length
 	buf[0] = 0x04;
@@ -741,7 +741,7 @@ void Disk::AddDrivePage(map<int, pair<int, BYTE *>>pages, bool change)
 void Disk::AddCachePage(map<int, pair<int, BYTE *>> pages, bool)
 {
 	BYTE *buf = (BYTE *)malloc(12);
-	pages.insert(make_pair(8, make_pair(12, buf)));
+	pages[8] = make_pair(12, buf);
 
 	// Set the message length
 	buf[0] = 0x08;
