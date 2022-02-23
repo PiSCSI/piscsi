@@ -634,7 +634,7 @@ int Disk::AddModePages(int page, bool change, BYTE *buf)
 	return size;
 }
 
-void Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
+void Disk::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool change)
 {
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
@@ -660,7 +660,7 @@ void Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
 	AddVendorPage(pages, page, change);
 }
 
-void Disk::AddErrorPage(map<int, pair<int, BYTE *>>pages, bool change)
+void Disk::AddErrorPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(12);
 	pages[1] = make_pair(12, buf);
@@ -672,7 +672,7 @@ void Disk::AddErrorPage(map<int, pair<int, BYTE *>>pages, bool change)
 	// Retry count is 0, limit time uses internal default value
 }
 
-void Disk::AddFormatPage(map<int, pair<int, BYTE *>>pages, bool change)
+void Disk::AddFormatPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(24);
 	pages[3] = make_pair(24, buf);
@@ -709,7 +709,7 @@ void Disk::AddFormatPage(map<int, pair<int, BYTE *>>pages, bool change)
 	}
 }
 
-void Disk::AddDrivePage(map<int, pair<int, BYTE *>>pages, bool change)
+void Disk::AddDrivePage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(24);
 	pages[4] = make_pair(24, buf);
@@ -738,7 +738,7 @@ void Disk::AddDrivePage(map<int, pair<int, BYTE *>>pages, bool change)
 	}
 }
 
-void Disk::AddCachePage(map<int, pair<int, BYTE *>> pages, bool)
+void Disk::AddCachePage(map<int, pair<int, BYTE *>>& pages, bool)
 {
 	BYTE *buf = (BYTE *)malloc(12);
 	pages[8] = make_pair(12, buf);
@@ -750,7 +750,7 @@ void Disk::AddCachePage(map<int, pair<int, BYTE *>> pages, bool)
 	// Only read cache is valid, no prefetch
 }
 
-void Disk::AddVendorPage(map<int, pair<int, BYTE *>>, int, bool)
+void Disk::AddVendorPage(map<int, pair<int, BYTE *>>&, int, bool)
 {
 	// Nothing to add by default
 }

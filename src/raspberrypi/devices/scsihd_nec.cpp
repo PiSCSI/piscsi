@@ -146,7 +146,7 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-void SCSIHD_NEC::AddErrorPage(map<int, pair<int, BYTE *>> pages, bool change)
+void SCSIHD_NEC::AddErrorPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(8);
 	pages.insert(make_pair(1, make_pair(8, buf)));
@@ -158,7 +158,7 @@ void SCSIHD_NEC::AddErrorPage(map<int, pair<int, BYTE *>> pages, bool change)
 	// The retry count is 0, and the limit time uses the default value inside the device.
 }
 
-void SCSIHD_NEC::AddFormatPage(map<int, pair<int, BYTE *>> pages, bool change)
+void SCSIHD_NEC::AddFormatPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(24);
 	pages.insert(make_pair(3, make_pair(24, buf)));
@@ -195,7 +195,7 @@ void SCSIHD_NEC::AddFormatPage(map<int, pair<int, BYTE *>> pages, bool change)
 	}
 }
 
-void SCSIHD_NEC::AddDrivePage(map<int, pair<int, BYTE *>> pages, bool change)
+void SCSIHD_NEC::AddDrivePage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(20);
 	pages.insert(make_pair(4, make_pair(20, buf)));

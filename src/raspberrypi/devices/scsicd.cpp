@@ -456,7 +456,7 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-void SCSICD::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
+void SCSICD::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool change)
 {
 	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
@@ -471,7 +471,7 @@ void SCSICD::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool chang
 	Disk::AddModePages(pages, page, change);
 }
 
-void SCSICD::AddCDROMPage(map<int, pair<int, BYTE *>> pages, bool change)
+void SCSICD::AddCDROMPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(8);
 	pages[13] = make_pair(8, buf);
@@ -493,7 +493,7 @@ void SCSICD::AddCDROMPage(map<int, pair<int, BYTE *>> pages, bool change)
 	buf[7] = 75;
 }
 
-void SCSICD::AddCDDAPage(map<int, pair<int, BYTE *>> pages, bool change)
+void SCSICD::AddCDDAPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(18);
 	pages[14] = make_pair(18, buf);

@@ -128,7 +128,7 @@ void SCSIMO::SetDeviceParameters(BYTE *buf)
 	buf[2] = 0x03;
 }
 
-void SCSIMO::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
+void SCSIMO::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool change)
 {
 	// Page code 6
 	if (page == 0x06 || page == 0x3f) {
@@ -138,7 +138,7 @@ void SCSIMO::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool chang
 	Disk::AddModePages(pages, page, change);
 }
 
-void SCSIMO::AddOptionPage(map<int, pair<int, BYTE *>> pages, bool change)
+void SCSIMO::AddOptionPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
 	BYTE *buf = (BYTE *)malloc(4);
 	pages[6] = make_pair(4, buf);
