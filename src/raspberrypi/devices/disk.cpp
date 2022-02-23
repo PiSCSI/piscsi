@@ -622,6 +622,7 @@ bool Disk::AddModePages(int page, bool change, BYTE *buf, int& size)
 		SetStatusCode(STATUS_INVALIDCDB);
 	}
 
+	// If no mode data were added at all something must be wrong
 	return size != current_size;
 }
 
