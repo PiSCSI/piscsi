@@ -474,24 +474,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	// Mode page data mapped to the respective mode page numbers
-	map<int, pair<int, BYTE*>> pages;
-	AddModePages(pages, page, change);
-
-	// If no mode data were added at all something must be wrong
-	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	for (auto const& page : pages) {
-		for (int i = 0; i <page.second.first; i++) {
-			buf[size++] = page.second.second[i];
-		}
-
-		free(page.second.second);
-	}
+	AddModePages(page, change, buf, size);
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -580,24 +563,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// Mode page data mapped to the respective mode page numbers
-	map<int, pair<int, BYTE*>> pages;
-	AddModePages(pages, page, change);
-
-	// If no mode data were added at all something must be wrong
-	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	for (auto const& page : pages) {
-		for (int i = 0; i <page.second.first; i++) {
-			buf[size++] = page.second.second[i];
-		}
-
-		free(page.second.second);
-	}
+	AddModePages(page, change, buf, size);
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -618,6 +584,44 @@ void Disk::SetDeviceParameters(BYTE *buf)
 	if (IsProtected()) {
 		buf[3] = 0x80;
 	}
+}
+
+bool Disk::AddModePages(int page, bool change, BYTE *buf, int& size)
+{
+	// Mode page data mapped to the respective page numbers
+	map<int, pair<int, BYTE*>> pages;
+	AddModePages(pages, page, change);
+
+	// If no mode data were added at all something must be wrong
+	if (pages.empty()) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
+		return false;
+	}
+
+	pair<int, BYTE *> page0 = make_pair<int, BYTE *>(0, NULL);
+	for (auto const& page : pages) {
+		// The specification says that page 0 must be returned after all others
+		if (page.first) {
+			memcpy(&buf[size], page.second.second, page.second.first);
+			size += page.second.first;
+		}
+		else {
+			page0 = page.second;
+		}
+
+		free(page.second.second);
+	}
+
+	// Page 0 must be last
+	if (page0.first) {
+		memcpy(&buf[size], page0.second, page0.first);
+		size += page0.first;
+
+		free(page0.second);
+	}
+
+	return true;
 }
 
 void Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
