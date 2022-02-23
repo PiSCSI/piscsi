@@ -286,7 +286,7 @@ def logout():
     return redirect(url_for("index"))
 
 
-@APP.route("/pwa/<path:path>")
+@APP.route("/pwa/<path:pwa_path>")
 def send_pwa_files(pwa_path):
     """
     Sets up mobile web resources
