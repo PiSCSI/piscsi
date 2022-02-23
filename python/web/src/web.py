@@ -50,6 +50,7 @@ from web_utils import (
     map_device_types_and_names,
     get_device_name,
     auth_active,
+    is_bridge_configured,
 )
 from settings import (
     AFP_DIR,
@@ -500,36 +501,11 @@ def attach_device():
     error_msg = _("Please follow the instructions at %(url)s", url=error_url)
 
     if "interface" in params.keys():
-        if params["interface"].startswith("wlan"):
-            if not sys_cmds.introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
-                flash(
-                        _("Configure IPv4 forwarding before using a wireless network device."),
-                        "error",
-                        )
-                flash(error_msg, "error")
-                return redirect(url_for("index"))
-            if not Path("/etc/iptables/rules.v4").is_file():
-                flash(_("Configure NAT before using a wireless network device."), "error")
-                flash(error_msg, "error")
-                return redirect(url_for("index"))
-        else:
-            if not sys_cmds.introspect_file(
-                    "/etc/dhcpcd.conf",
-                    r"^denyinterfaces " + params["interface"] + r"$",
-                    ):
-                flash(
-                        _("Configure the network bridge before using a wired network device."),
-                        "error",
-                        )
-                flash(error_msg, "error")
-                return redirect(url_for("index"))
-            if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
-                flash(
-                        _("Configure the network bridge before using a wired network device."),
-                        "error",
-                        )
-                flash(error_msg, "error")
-                return redirect(url_for("index"))
+        bridge_status = is_bridge_configured(params["interface"])
+        if bridge_status:
+            flash(bridge_status, "error")
+            flash(error_msg, "error")
+            return redirect(url_for("index"))
 
     kwargs = {
             "unit": int(unit),

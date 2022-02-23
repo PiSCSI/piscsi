@@ -3,8 +3,10 @@ Module for RaSCSI Web Interface utility methods
 """
 
 from grp import getgrall
+from pathlib import Path
 from flask_babel import _
 
+from rascsi.sys_cmds import SysCmds
 
 def get_valid_scsi_ids(devices, reserved_ids):
     """
@@ -104,3 +106,26 @@ def auth_active(group):
                 "msg": _("You must log in to use this function"),
                 }
     return {"status": False, "msg": ""}
+
+
+def is_bridge_configured(interface):
+    """
+    Takes (str) interface of a network device being attached.
+    Returns (bool) False if the network bridge is configured.
+    Returns (str) with an error message if the network bridge is not configured.
+    """
+    sys_cmd = SysCmds()
+    if interface.startswith("wlan"):
+        if not sys_cmd.introspect_file("/etc/sysctl.conf", r"^net\.ipv4\.ip_forward=1$"):
+            return _("Configure IPv4 forwarding before using a wireless network device.")
+        if not Path("/etc/iptables/rules.v4").is_file():
+            return _("Configure NAT before using a wireless network device.")
+    else:
+        if not sys_cmd.introspect_file(
+                "/etc/dhcpcd.conf",
+                r"^denyinterfaces " + interface + r"$",
+                ):
+            return _("Configure the network bridge before using a wired network device.")
+        if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
+            return _("Configure the network bridge before using a wired network device.")
+    return False
