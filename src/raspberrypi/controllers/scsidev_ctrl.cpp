@@ -164,15 +164,22 @@ void SCSIDEV::BusFree()
 
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
-		case RASCSI:
+		case STOP_RASCSI:
 			LOGINFO("RaSCSI shutdown requested");
 			exit(0);
 			break;
 
-		case PI:
+		case STOP_PI:
 			LOGINFO("Raspberry Pi shutdown requested");
 			if (system("init 0") == -1) {
 				LOGERROR("Raspberry Pi shutdown failed: %s", strerror(errno));
+			}
+			break;
+
+		case RESTART_PI:
+			LOGINFO("Raspberry Pi restart requested");
+			if (system("init 6") == -1) {
+				LOGERROR("Raspberry Pi restart failed: %s", strerror(errno));
 			}
 			break;
 

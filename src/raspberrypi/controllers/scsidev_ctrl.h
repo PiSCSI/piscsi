@@ -29,8 +29,9 @@ public:
 
 	enum rascsi_shutdown_mode {
 		NONE,
-		RASCSI,
-		PI
+		STOP_RASCSI,
+		STOP_PI,
+		RESTART_PI
 	};
 
 	// Internal data definition
