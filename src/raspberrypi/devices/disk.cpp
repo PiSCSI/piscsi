@@ -451,6 +451,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int size = 4;
 
 	// MEDIUM TYPE
+	// TODO Replace this condition by an object-oriented approach
 	if (IsMo()) {
 		// Optical reversible or erasable
 		buf[1] = 0x03;
@@ -585,6 +586,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	int size = 8;
 
 	// MEDIUM TYPE
+	// TODO Replace this condition by an object-oriented approach
 	if (IsMo()) {
 		// Optical reversible or erasable
 		buf[2] = 0x03;
