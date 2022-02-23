@@ -186,6 +186,4 @@ public:
 	bool IsSCSIHD() const { return type == "SCHD" || type == "SCRM"; }
 	bool IsCdRom() const { return type == "SCCD"; }
 	bool IsMo() const { return type == "SCMO"; }
-	bool IsBridge() const { return type == "SCBR"; }
-	bool IsDaynaPort() const { return type == "SCDP"; }
 };

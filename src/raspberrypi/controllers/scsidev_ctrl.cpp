@@ -412,12 +412,12 @@ void SCSIDEV::Send()
 		// of the read response. In the MacOS driver, it looks like the
 		// driver is doing two "READ" system calls.
 		int len;
-		if (ctrl.unit[0] && ctrl.unit[0]->IsDaynaPort()) {
+		SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(ctrl.unit[0]);
+		if (daynaport) {
 			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
 					&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
 		}
-		else
-		{
+		else {
 			len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
 		}
 
