@@ -18,8 +18,6 @@
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
 #endif
-// TODO Try to get rid of zlib, there is only one operation using it
-#include <zlib.h> // For crc32()
 #include "os.h"
 #include "ctapdriver.h"
 #include "log.h"
@@ -447,6 +445,19 @@ bool CTapDriver::PendingPackets()
 	}
 }
 
+// See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
+uint32_t crc32(BYTE *buf, int length) {
+   uint32_t crc = 0xffffffff;
+   for (int i = 0; i < length; i++) {
+      crc ^= buf[i];
+      for (int j = 0; j < 8; j++) {
+         uint32_t mask = -(crc & 1);
+         crc = (crc >> 1) ^ (0xEDB88320 & mask);
+      }
+   }
+   return ~crc;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Receive
@@ -457,7 +468,7 @@ int CTapDriver::Rx(BYTE *buf)
 	ASSERT(m_hTAP != -1);
 
 	// Check if there is data that can be received
-	if(!PendingPackets()){
+	if (!PendingPackets()) {
 		return 0;
 	}
 
@@ -473,11 +484,7 @@ int CTapDriver::Rx(BYTE *buf)
 		// We need to add the Frame Check Status (FCS) CRC back onto the end of the packet.
 		// The Linux network subsystem removes it, since most software apps shouldn't ever
 		// need it.
-
-		// Initialize the CRC
-		DWORD crc = crc32(0L, Z_NULL, 0);
-		// Calculate the CRC
-		crc = crc32(crc, buf, dwReceived);
+		int crc = crc32(buf, dwReceived);
 
 		buf[dwReceived + 0] = (BYTE)((crc >> 0) & 0xFF);
 		buf[dwReceived + 1] = (BYTE)((crc >> 8) & 0xFF);
