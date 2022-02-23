@@ -474,9 +474,11 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	if (!AddModePages(page, change, buf, size)) {
+	int additional_size = AddModePages(page, change, buf);
+	if (!additional_size) {
 		return 0;
 	}
+	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -565,9 +567,11 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	if (!AddModePages(page, change, buf, size)) {
+	int additional_size = AddModePages(page, change, buf);
+	if (!additional_size) {
 		return 0;
 	}
+	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -590,7 +594,7 @@ void Disk::SetDeviceParameters(BYTE *buf)
 	}
 }
 
-bool Disk::AddModePages(int page, bool change, BYTE *buf, int& size)
+int Disk::AddModePages(int page, bool change, BYTE *buf)
 {
 	// Mode page data mapped to the respective page numbers
 	map<int, pair<int, BYTE*>> pages;
@@ -600,8 +604,10 @@ bool Disk::AddModePages(int page, bool change, BYTE *buf, int& size)
 	if (pages.empty()) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
-		return false;
+		return 0;
 	}
+
+	int size = 0;
 
 	pair<int, BYTE *> page0 = make_pair<int, BYTE *>(0, NULL);
 	for (auto const& page : pages) {
@@ -625,7 +631,7 @@ bool Disk::AddModePages(int page, bool change, BYTE *buf, int& size)
 		free(page0.second);
 	}
 
-	return true;
+	return size;
 }
 
 void Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
