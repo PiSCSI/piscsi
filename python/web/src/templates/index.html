@@ -604,14 +604,17 @@
                 <input name="lines" type="number" value="200" min="1" size="4">
                 <label for="scope">{{ _("Scope:") }}</label>
                 <select name="scope">
-                    <option value="default">
-                        default
+                    <option value="all">
+                        all
                     </option>
                     <option value="rascsi">
                         rascsi.service
                     </option>
                     <option value="rascsi-web">
                         rascsi-web.service
+                    </option>
+                    <option value="rascsi-oled">
+                        rascsi-oled.service
                     </option>
                 </select>
                 <input type="submit" value="{{ _("Show Logs") }}">
