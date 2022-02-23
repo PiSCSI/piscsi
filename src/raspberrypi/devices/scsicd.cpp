@@ -456,8 +456,10 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-bool SCSICD::AddModePages(int page, bool change, BYTE *buf, int& size)
+int SCSICD::AddModePages(int page, bool change, BYTE *buf)
 {
+	int size = 0;
+
 	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
 		size += AddCDROMPage(change, &buf[size]);
@@ -468,9 +470,7 @@ bool SCSICD::AddModePages(int page, bool change, BYTE *buf, int& size)
 		size += AddCDDAPage(change, &buf[size]);
 	}
 
-	Disk::AddModePages(page, change, buf, size);
-
-	return true;
+	return size + Disk::AddModePages(page, change, buf);
 }
 
 int SCSICD::AddCDROMPage(bool change, BYTE *buf)
