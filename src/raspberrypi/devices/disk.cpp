@@ -474,11 +474,9 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int additional_size = AddModePages(page, change, &buf[size]);
-	if (!additional_size) {
+	if (!AddModePages(page, change, buf, size)) {
 		return 0;
 	}
-	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -567,11 +565,9 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	int additional_size = AddModePages(page, change, &buf[size]);
-	if (!additional_size) {
+	if (!AddModePages(page, change, buf, size)) {
 		return 0;
 	}
-	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -586,14 +582,14 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-int Disk::AddModePages(int page, bool change, BYTE *buf)
+bool Disk::AddModePages(int page, bool change, BYTE *buf, int& size)
 {
+	int current_size = size;
+
 	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
 		buf[3] = 0x80;
 	}
-
-	int size = 0;
 
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
@@ -621,12 +617,12 @@ int Disk::AddModePages(int page, bool change, BYTE *buf)
 		size += ret;
 	}
 
-	if (!size) {
+	if (size == current_size) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 	}
 
-	return size;
+	return size != current_size;
 }
 
 int Disk::AddErrorPage(bool change, BYTE *buf)
