@@ -125,7 +125,7 @@ bool SCSIMO::AddModePages(int page, bool change, BYTE *buf, int& size)
 	// MEDIUM TYPE: Optical reversible or erasable
 	buf[2] = 0x03;
 
-	// Page code 6 (optical)
+	// Page code 6
 	if (page == 0x06 || page == 0x3f) {
 		size += AddOptionPage(change, &buf[size]);
 	}
