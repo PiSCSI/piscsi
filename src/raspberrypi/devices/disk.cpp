@@ -519,6 +519,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 13 (CD-ROM)
+	// TODO Replace this condition by an object-oriented approach
 	if (IsCdRom()) {
 		if (page == 0x0d || page == 0x3f) {
 			size += AddCDROMPage(change, &buf[size]);
@@ -527,6 +528,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 14 (CD-DA)
+	// TODO Replace this condition by an object-oriented approach
 	if (IsCdRom()) {
 		if (page == 0x0e || page == 0x3f) {
 			size += AddCDDAPage(change, &buf[size]);
@@ -679,6 +681,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 13 (CD-ROM)
+	// TODO Replace this condition by an object-oriented approach
 	if (IsCdRom()) {
 		if (page == 0x0d || page == 0x3f) {
 			size += AddCDROMPage(change, &buf[size]);
@@ -687,6 +690,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	// Page code 14 (CD-DA)
+	// TODO Replace this condition by an object-oriented approach
 	if (IsCdRom()) {
 		if (page == 0x0e || page == 0x3f) {
 			size += AddCDDAPage(change, &buf[size]);
