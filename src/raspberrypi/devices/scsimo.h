@@ -33,7 +33,7 @@ public:
 
 	// Internal processing
 	void SetDeviceParameters(BYTE *);
-	bool AddModePages(map<int, pair<int, BYTE*>>, int, bool) override;
+	void AddModePages(map<int, pair<int, BYTE*>>, int, bool) override;
 	void AddOptionPage(map<int, pair<int, BYTE*>>, bool change);
 	int AddVendor(int page, BOOL change, BYTE *buf);			// Add vendor special page
 };

@@ -474,15 +474,23 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
+	// Mode page data mapped to the respective mode page numbers
 	map<int, pair<int, BYTE*>> pages;
-	if (!AddModePages(pages, page, change)) {
+	AddModePages(pages, page, change);
+
+	// If no mode data were added at all something must be wrong
+	if (pages.empty()) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
 	for (auto const& page : pages) {
-		// TODO Add page to buf
+		for (int i = 0; i <page.second.first; i++) {
+			buf[size++] = page.second.second[i];
+		}
 
-		size += page.second.first;
+		free(page.second.second);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -572,15 +580,23 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
+	// Mode page data mapped to the respective mode page numbers
 	map<int, pair<int, BYTE*>> pages;
-	if (!AddModePages(pages, page, change)) {
+	AddModePages(pages, page, change);
+
+	// If no mode data were added at all something must be wrong
+	if (pages.empty()) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
 	for (auto const& page : pages) {
-		// TODO Add page to buf
+		for (int i = 0; i <page.second.first; i++) {
+			buf[size++] = page.second.second[i];
+		}
 
-		size += page.second.first;
+		free(page.second.second);
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -604,7 +620,7 @@ void Disk::SetDeviceParameters(BYTE *buf)
 	}
 }
 
-bool Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
+void Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
 {
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
@@ -628,14 +644,6 @@ bool Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
 
 	// Page (vendor special)
 	AddVendorPage(pages, page, change);
-
-	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
-	}
-
-	// If no mode data were added at all something must be wrong
-	return !pages.empty();
 }
 
 void Disk::AddErrorPage(map<int, pair<int, BYTE *>>pages, bool change)
