@@ -146,21 +146,22 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-int SCSIHD_NEC::AddErrorPage(bool change, BYTE *buf)
+void SCSIHD_NEC::AddErrorPage(map<int, pair<int, BYTE *>> pages, bool change)
 {
-	ASSERT(buf);
+	BYTE *buf = (BYTE *)malloc(8);
+	pages.insert(make_pair(1, make_pair(8, buf)));
 
 	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x06;
 
 	// The retry count is 0, and the limit time uses the default value inside the device.
-	return 8;
 }
 
-int SCSIHD_NEC::AddFormatPage(bool change, BYTE *buf)
+void SCSIHD_NEC::AddFormatPage(map<int, pair<int, BYTE *>> pages, bool change)
 {
-	ASSERT(buf);
+	BYTE *buf = (BYTE *)malloc(24);
+	pages.insert(make_pair(3, make_pair(24, buf)));
 
 	// Set the message length
 	buf[0] = 0x80 | 0x03;
@@ -170,7 +171,7 @@ int SCSIHD_NEC::AddFormatPage(bool change, BYTE *buf)
 	if (change) {
 		buf[0xc] = 0xff;
 		buf[0xd] = 0xff;
-		return 24;
+		return;
 	}
 
 	if (IsReady()) {
@@ -192,13 +193,12 @@ int SCSIHD_NEC::AddFormatPage(bool change, BYTE *buf)
 	if (IsRemovable()) {
 		buf[20] = 0x20;
 	}
-
-	return 24;
 }
 
-int SCSIHD_NEC::AddDrivePage(bool change, BYTE *buf)
+void SCSIHD_NEC::AddDrivePage(map<int, pair<int, BYTE *>> pages, bool change)
 {
-	ASSERT(buf);
+	BYTE *buf = (BYTE *)malloc(20);
+	pages.insert(make_pair(4, make_pair(20, buf)));
 
 	// Set the message length
 	buf[0] = 0x04;
@@ -214,6 +214,4 @@ int SCSIHD_NEC::AddDrivePage(bool change, BYTE *buf)
 		// Set the number of heads
 		buf[0x5] = (BYTE)heads;
 	}
-
-	return 20;
 }

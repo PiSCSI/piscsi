@@ -90,9 +90,9 @@ public:
 
 protected:
 
-	bool AddModePages(int, bool, BYTE *, int&) override;
-	int AddCDROMPage(bool change, BYTE *buf);
-	int AddCDDAPage(bool, BYTE *buf);
+	bool AddModePages(map<int, pair<int, BYTE*>>, int, bool) override;
+	void AddCDROMPage(map<int, pair<int, BYTE*>>, bool);
+	void AddCDDAPage(map<int, pair<int, BYTE*>>, bool);
 
 private:
 	typedef Disk super;

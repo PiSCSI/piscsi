@@ -456,32 +456,33 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-bool SCSICD::AddModePages(int page, bool change, BYTE *buf, int& size)
+bool SCSICD::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
 {
 	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
-		size += AddCDROMPage(change, &buf[size]);
+		AddCDROMPage(pages, change);
 	}
 
 	// Page code 14
 	if (page == 0x0e || page == 0x3f) {
-		size += AddCDDAPage(change, &buf[size]);
+		AddCDDAPage(pages, change);
 	}
 
-	Disk::AddModePages(page, change, buf, size);
-
-	return true;
+	return Disk::AddModePages(pages, page, change);
 }
 
-int SCSICD::AddCDROMPage(bool change, BYTE *buf)
+void SCSICD::AddCDROMPage(map<int, pair<int, BYTE *>> pages, bool change)
 {
+	BYTE *buf = (BYTE *)malloc(8);
+	pages.insert(make_pair(13, make_pair(8, buf)));
+
 	// Set the message length
 	buf[0] = 0x0d;
 	buf[1] = 0x06;
 
 	// No changeable area
 	if (change) {
-		return 8;
+		return;
 	}
 
 	// 2 seconds for inactive timer
@@ -490,19 +491,19 @@ int SCSICD::AddCDROMPage(bool change, BYTE *buf)
 	// MSF multiples are 60 and 75 respectively
 	buf[5] = 60;
 	buf[7] = 75;
-
-	return 8;
 }
 
-int SCSICD::AddCDDAPage(bool change, BYTE *buf)
+void SCSICD::AddCDDAPage(map<int, pair<int, BYTE *>> pages, bool change)
 {
+	BYTE *buf = (BYTE *)malloc(18);
+	pages.insert(make_pair(14, make_pair(18, buf)));
+
 	// Set the message length
 	buf[0] = 0x0e;
 	buf[1] = 0x0e;
 
 	// Audio waits for operation completion and allows
 	// PLAY across multiple tracks
-	return 16;
 }
 
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)

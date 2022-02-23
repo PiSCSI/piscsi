@@ -120,19 +120,34 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-bool SCSIMO::AddModePages(int page, bool change, BYTE *buf, int& size)
+void SCSIMO::SetDeviceParameters(BYTE *buf)
 {
+	Disk::SetDeviceParameters(buf);
+
 	// MEDIUM TYPE: Optical reversible or erasable
 	buf[2] = 0x03;
+}
 
+bool SCSIMO::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
+{
 	// Page code 6
 	if (page == 0x06 || page == 0x3f) {
-		size += AddOptionPage(change, &buf[size]);
+		AddOptionPage(pages, change);
 	}
 
-	Disk::AddModePages(page, change, buf, size);
+	return Disk::AddModePages(pages, page, change);
+}
 
-	return true;
+void SCSIMO::AddOptionPage(map<int, pair<int, BYTE *>> pages, bool change)
+{
+	BYTE *buf = (BYTE *)malloc(4);
+	pages.insert(make_pair(6, make_pair(4, buf)));
+
+	// Set the message length
+	buf[0] = 0x06;
+	buf[1] = 0x02;
+
+	// Do not report update blocks
 }
 
 //---------------------------------------------------------------------------

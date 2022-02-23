@@ -33,9 +33,9 @@ public:
 	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;
 
-	int AddErrorPage(bool change, BYTE *buf) override;
-	int AddFormatPage(bool change, BYTE *buf) override;
-	int AddDrivePage(bool change, BYTE *buf) override;
+	void AddErrorPage(map<int, pair<int, BYTE *>>, bool) override;
+	void AddFormatPage(map<int, pair<int, BYTE *>>, bool) override;
+	void AddDrivePage(map<int, pair<int, BYTE *>>, bool) override;
 
 private:
 	// Geometry data

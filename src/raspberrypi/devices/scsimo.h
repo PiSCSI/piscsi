@@ -32,6 +32,8 @@ public:
 	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 	// Internal processing
-	bool AddModePages(int, bool, BYTE *, int&) override;
+	void SetDeviceParameters(BYTE *);
+	bool AddModePages(map<int, pair<int, BYTE*>>, int, bool) override;
+	void AddOptionPage(map<int, pair<int, BYTE*>>, bool change);
 	int AddVendor(int page, BOOL change, BYTE *buf);			// Add vendor special page
 };

@@ -34,6 +34,5 @@ public:
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override;
 	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
-	// Add vendor special page
-	int AddVendorPage(int page, bool change, BYTE *buf) override;
+	void AddVendorPage(map<int, pair<int, BYTE*>>, int, bool) override;
 };

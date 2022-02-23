@@ -474,8 +474,15 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	if (!AddModePages(page, change, buf, size)) {
+	map<int, pair<int, BYTE*>> pages;
+	if (!AddModePages(pages, page, change)) {
 		return 0;
+	}
+
+	for (auto const& page : pages) {
+		// TODO Add page to buf
+
+		size += page.second.first;
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -565,8 +572,15 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	if (!AddModePages(page, change, buf, size)) {
+	map<int, pair<int, BYTE*>> pages;
+	if (!AddModePages(pages, page, change)) {
 		return 0;
+	}
+
+	for (auto const& page : pages) {
+		// TODO Add page to buf
+
+		size += page.second.first;
 	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
@@ -582,62 +596,65 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-bool Disk::AddModePages(int page, bool change, BYTE *buf, int& size)
+void Disk::SetDeviceParameters(BYTE *buf)
 {
-	int current_size = size;
-
 	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
 		buf[3] = 0x80;
 	}
+}
 
+bool Disk::AddModePages(map<int, pair<int, BYTE*>> pages, int page, bool change)
+{
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
-		size += AddErrorPage(change, &buf[size]);
+		AddErrorPage(pages, change);
 	}
 
 	// Page code 3 (format device)
 	if (page == 0x03 || page == 0x3f) {
-		size += AddFormatPage(change, &buf[size]);
+		AddFormatPage(pages, change);
 	}
 
 	// Page code 4 (drive parameter)
 	if (page == 0x04 || page == 0x3f) {
-		size += AddDrivePage(change, &buf[size]);
+		AddDrivePage(pages, change);
 	}
 
 	// Page code 8 (caching)
 	if (page == 0x08 || page == 0x3f) {
-		size += AddCachePage(change, &buf[size]);
+		AddCachePage(pages, change);
 	}
 
 	// Page (vendor special)
-	int ret = AddVendorPage(page, change, &buf[size]);
-	if (ret > 0) {
-		size += ret;
-	}
+	AddVendorPage(pages, page, change);
 
-	if (size == current_size) {
+	if (pages.empty()) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 	}
 
 	// If no mode data were added at all something must be wrong
-	return size != current_size;
+	return !pages.empty();
 }
 
-int Disk::AddErrorPage(bool change, BYTE *buf)
+void Disk::AddErrorPage(map<int, pair<int, BYTE *>>pages, bool change)
 {
+	BYTE *buf = (BYTE *)malloc(12);
+	pages.insert(make_pair(1, make_pair(12, buf)));
+
 	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x0a;
 
 	// Retry count is 0, limit time uses internal default value
-	return 12;
 }
 
-int Disk::AddFormatPage(bool change, BYTE *buf)
+void Disk::AddFormatPage(map<int, pair<int, BYTE *>>pages, bool change)
 {
+	BYTE *buf = (BYTE *)malloc(24);
+	pages.insert(make_pair(3, make_pair(24, buf)));
+
 	// Set the message length
 	buf[0] = 0x80 | 0x03;
 	buf[1] = 0x16;
@@ -647,7 +664,7 @@ int Disk::AddFormatPage(bool change, BYTE *buf)
 	if (change) {
 		buf[0xc] = 0xff;
 		buf[0xd] = 0xff;
-		return 24;
+		return;
 	}
 
 	if (IsReady()) {
@@ -668,19 +685,20 @@ int Disk::AddFormatPage(bool change, BYTE *buf)
 	if (IsRemovable()) {
 		buf[20] = 0x20;
 	}
-
-	return 24;
 }
 
-int Disk::AddDrivePage(bool change, BYTE *buf)
+void Disk::AddDrivePage(map<int, pair<int, BYTE *>>pages, bool change)
 {
+	BYTE *buf = (BYTE *)malloc(24);
+	pages.insert(make_pair(4, make_pair(24, buf)));
+
 	// Set the message length
 	buf[0] = 0x04;
 	buf[1] = 0x16;
 
 	// No changeable area
 	if (change) {
-		return 24;
+		return;
 	}
 
 	if (IsReady()) {
@@ -696,35 +714,23 @@ int Disk::AddDrivePage(bool change, BYTE *buf)
 		// Fix the head at 8
 		buf[0x5] = 0x8;
 	}
-
-	return 24;
 }
 
-int Disk::AddOptionPage(bool change, BYTE *buf)
+void Disk::AddCachePage(map<int, pair<int, BYTE *>> pages, bool)
 {
-	// Set the message length
-	buf[0] = 0x06;
-	buf[1] = 0x02;
+	BYTE *buf = (BYTE *)malloc(12);
+	pages.insert(make_pair(8, make_pair(12, buf)));
 
-	// Do not report update blocks
-	return 4;
-}
-
-int Disk::AddCachePage(bool change, BYTE *buf)
-{
 	// Set the message length
 	buf[0] = 0x08;
 	buf[1] = 0x0a;
 
 	// Only read cache is valid, no prefetch
-	return 12;
 }
 
-int Disk::AddVendorPage(int /*page*/, bool /*change*/, BYTE *buf)
+void Disk::AddVendorPage(map<int, pair<int, BYTE *>>, int, bool)
 {
-	ASSERT(buf);
-
-	return 0;
+	// Nothing to add by default
 }
 
 int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
