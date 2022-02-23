@@ -5,13 +5,14 @@ Module for methods reading from and writing to the file system
 import os
 import logging
 import asyncio
-import requests
 from pathlib import PurePath
 from zipfile import ZipFile, is_zipfile
 from re import escape, findall
 from time import time
 from subprocess import run, CalledProcessError
 from json import dump, load
+
+import requests
 
 import rascsi_interface_pb2 as proto
 from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
