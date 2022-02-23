@@ -2,9 +2,14 @@
 Module for RaSCSI Web Interface utility methods
 """
 
+import logging
 from grp import getgrall
+from os import path
 from pathlib import Path
+
+from flask import request, make_response
 from flask_babel import _
+from werkzeug.utils import secure_filename
 
 from rascsi.sys_cmds import SysCmds
 
@@ -129,3 +134,50 @@ def is_bridge_configured(interface):
         if not Path("/etc/network/interfaces.d/rascsi_bridge").is_file():
             return _("Configure the network bridge before using a wired network device.")
     return False
+
+
+def upload_with_dropzonejs(image_dir):
+    """
+    Takes (str) image_dir which is the path to the image dir to store files.
+    Opens a stream to transfer a file via the embedded dropzonejs library.
+    """
+    log = logging.getLogger("pydrop")
+    file_object = request.files["file"]
+    file_name = secure_filename(file_object.filename)
+
+    save_path = path.join(image_dir, file_name)
+    current_chunk = int(request.form['dzchunkindex'])
+
+    # Makes sure not to overwrite an existing file,
+    # but continues writing to a file transfer in progress
+    if path.exists(save_path) and current_chunk == 0:
+        return make_response(_("The file already exists!"), 400)
+
+    try:
+        with open(save_path, "ab") as save:
+            save.seek(int(request.form["dzchunkbyteoffset"]))
+            save.write(file_object.stream.read())
+    except OSError:
+        log.exception("Could not write to file")
+        return make_response(_("Unable to write the file to disk!"), 500)
+
+    total_chunks = int(request.form["dztotalchunkcount"])
+
+    if current_chunk + 1 == total_chunks:
+        # Validate the resulting file size after writing the last chunk
+        if path.getsize(save_path) != int(request.form["dztotalfilesize"]):
+            log.error(
+                    "Finished transferring %s, "
+                    "but it has a size mismatch with the original file. "
+                    "Got %s but we expected %s.",
+                    file_object.filename,
+                    path.getsize(save_path),
+                    request.form['dztotalfilesize'],
+                    )
+            return make_response(_("Transferred file corrupted!"), 500)
+
+        log.info("File %s has been uploaded successfully", file_object.filename)
+    log.debug("Chunk %s of %s for file %s completed.",
+              current_chunk + 1, total_chunks, file_object.filename)
+
+    return make_response(_("File upload successful!"), 200)
