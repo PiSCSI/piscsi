@@ -596,7 +596,7 @@ void Disk::SetDeviceParameters(BYTE *buf)
 
 int Disk::AddModePages(int page, bool change, BYTE *buf)
 {
-	// Mode page data mapped to the respective page numbers
+	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, pair<int, BYTE*>> pages;
 	AddModePages(pages, page, change);
 
