@@ -115,7 +115,7 @@ void SASIDEV::Connect(int id, BUS *bus)
 //	Set the logical unit
 //
 //---------------------------------------------------------------------------
-void SASIDEV::SetUnit(int no, Device *dev)
+void SASIDEV::SetUnit(int no, PrimaryDevice *dev)
 {
 	ASSERT(no < UnitMax);
 

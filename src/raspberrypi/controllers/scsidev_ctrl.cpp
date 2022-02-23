@@ -402,24 +402,11 @@ void SCSIDEV::Send()
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-	//if Length! = 0, send
 	if (ctrl.length != 0) {
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
 				+ to_string(ctrl.length)).c_str());
 
-		// TODO Get rid of Daynaport specific code in this class
-		// The Daynaport needs to have a delay after the size/flags field
-		// of the read response. In the MacOS driver, it looks like the
-		// driver is doing two "READ" system calls.
-		int len;
-		SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(ctrl.unit[0]);
-		if (daynaport) {
-			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
-					&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
-		}
-		else {
-			len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
-		}
+		int len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0]->GetSendDelay());
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
