@@ -7,7 +7,6 @@ import argparse
 from pathlib import Path
 from functools import wraps
 from grp import getgrall
-from subprocess import run
 from ast import literal_eval
 
 import bjoern
@@ -114,7 +113,7 @@ def index():
     device_types = map_device_types_and_names(ractl.get_device_types()["device_types"])
     image_files = file_cmds.list_images()
     config_files = file_cmds.list_config_files()
-    ip_addr, host = sys_cmds.get_ip_and_host()
+    ip_addr, host = sys_cmd.get_ip_and_host()
 
     extended_image_files = []
     for image in image_files["files"]:
@@ -150,9 +149,9 @@ def index():
     return render_template(
         "index.html",
         locales=get_supported_locales(),
-        bridge_configured=sys_cmds.is_bridge_setup(),
-        netatalk_configured=sys_cmds.running_proc("afpd"),
-        macproxy_configured=sys_cmds.running_proc("macproxy"),
+        bridge_configured=sys_cmd.is_bridge_setup(),
+        netatalk_configured=sys_cmd.running_proc("afpd"),
+        macproxy_configured=sys_cmd.running_proc("macproxy"),
         ip_addr=ip_addr,
         host=host,
         devices=formatted_devices,
@@ -169,13 +168,13 @@ def index():
         reserved_scsi_ids=reserved_scsi_ids,
         RESERVATIONS=RESERVATIONS,
         max_file_size=int(int(MAX_FILE_SIZE) / 1024 / 1024),
-        running_env=sys_cmds.running_env(),
+        running_env=sys_cmd.running_env(),
         version=server_info["version"],
         log_levels=server_info["log_levels"],
         current_log_level=server_info["current_log_level"],
         netinfo=ractl.get_network_info(),
         device_types=device_types,
-        free_disk=int(sys_cmds.disk_space()["free"] / 1024 / 1024),
+        free_disk=int(sys_cmd.disk_space()["free"] / 1024 / 1024),
         valid_file_suffix=valid_file_suffix,
         cdrom_file_suffix=tuple(server_info["sccd"]),
         removable_file_suffix=tuple(server_info["scrm"]),
@@ -246,9 +245,9 @@ def drive_list():
         hd_conf=hd_conf,
         cd_conf=cd_conf,
         rm_conf=rm_conf,
-        running_env=sys_cmds.running_env(),
+        running_env=sys_cmd.running_env(),
         version=server_info["version"],
-        free_disk=int(sys_cmds.disk_space()["free"] / 1024 / 1024),
+        free_disk=int(sys_cmd.disk_space()["free"] / 1024 / 1024),
         cdrom_file_suffix=tuple(server_info["sccd"]),
         username=username,
         auth_active=auth_active(AUTH_GROUP)["status"],
@@ -437,27 +436,15 @@ def show_logs():
     Displays system logs
     """
     lines = request.form.get("lines") or "200"
-    scope = request.form.get("scope") or "default"
+    scope = request.form.get("scope") or "all"
 
-    if scope != "default":
-        process = run(
-                ["journalctl", "-n", lines, "-u", scope],
-                capture_output=True,
-                check=True,
-                )
-    else:
-        process = run(
-                ["journalctl", "-n", lines],
-                capture_output=True,
-                check=True,
-                )
-
-    if process.returncode == 0:
+    returncode, logs = sys_cmd.get_logs(lines, scope)
+    if returncode == 0:
         headers = {"content-type": "text/plain"}
-        return process.stdout.decode("utf-8"), int(lines), headers
+        return logs, int(lines), headers
 
     flash(_("An error occurred when fetching logs."))
-    flash(process.stderr.decode("utf-8"), "stderr")
+    flash(logs, "stderr")
     return redirect(url_for("index"))
 
 
@@ -1018,7 +1005,7 @@ if __name__ == "__main__":
     sock_cmd = SocketCmdsFlask(host=arguments.rascsi_host, port=arguments.rascsi_port)
     ractl = RaCtlCmds(sock_cmd=sock_cmd, token=APP.config["TOKEN"])
     file_cmds = FileCmds(sock_cmd=sock_cmd, ractl=ractl, token=APP.config["TOKEN"])
-    sys_cmds = SysCmds()
+    sys_cmd = SysCmds()
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmds.read_config(DEFAULT_CONFIG)

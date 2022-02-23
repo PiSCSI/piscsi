@@ -3,6 +3,7 @@ Module with methods that interact with the Pi system
 """
 import subprocess
 import logging
+from subprocess import run
 from shutil import disk_usage
 from re import findall, match
 from socket import socket, gethostname, AF_INET, SOCK_DGRAM
@@ -143,3 +144,27 @@ class SysCmds:
         finally:
             sock.close()
         return ip_addr, host
+
+    @staticmethod
+    def get_logs(lines, scope):
+        """
+        Takes (int) lines and (str) scope.
+        Returns either the decoded log output, or the stderr output of journalctl.
+        """
+        if scope != "all":
+            process = run(
+                    ["journalctl", "-n", lines, "-u", scope],
+                    capture_output=True,
+                    check=True,
+                    )
+        else:
+            process = run(
+                    ["journalctl", "-n", lines],
+                    capture_output=True,
+                    check=True,
+                    )
+
+        if process.returncode == 0:
+            return process.returncode, process.stdout.decode("utf-8")
+
+        return process.returncode, process.stderr.decode("utf-8")
