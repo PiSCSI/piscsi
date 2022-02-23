@@ -139,7 +139,7 @@ public:
 protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);
-	bool AddModePages(int page, bool change, BYTE *buf);
+	virtual int AddModePages(int page, bool change, BYTE *buf);
 	virtual int AddErrorPage(bool change, BYTE *buf);
 	virtual int AddFormatPage(bool change, BYTE *buf);
 	virtual int AddDrivePage(bool change, BYTE *buf);

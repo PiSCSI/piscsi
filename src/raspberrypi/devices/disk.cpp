@@ -610,7 +610,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-bool Disk::AddModePages(int page, bool change, BYTE *buf)
+int Disk::AddModePages(int page, bool change, BYTE *buf)
 {
 	int size = 0;
 
