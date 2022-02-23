@@ -474,7 +474,9 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	AddModePages(page, change, buf, size);
+	if (!AddModePages(page, change, buf, size)) {
+		return 0;
+	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -563,7 +565,9 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	AddModePages(page, change, buf, size);
+	if (!AddModePages(page, change, buf, size)) {
+		return 0;
+	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -601,7 +605,7 @@ bool Disk::AddModePages(int page, bool change, BYTE *buf, int& size)
 
 	pair<int, BYTE *> page0 = make_pair<int, BYTE *>(0, NULL);
 	for (auto const& page : pages) {
-		// The specification says that page 0 must be returned after all others
+		// The specification mandates that page 0 must be returned after all others
 		if (page.first) {
 			memcpy(&buf[size], page.second.second, page.second.first);
 			size += page.second.first;
