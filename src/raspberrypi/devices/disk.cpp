@@ -441,9 +441,8 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	// Get changeable flag
 	bool change = (cdb[2] & 0xc0) == 0x40;
 
-	// Get page code (0x00 is valid from the beginning)
+	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
-	bool valid = page == 0x00;
 
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
@@ -487,68 +486,11 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	// Page code 1 (read-write error recovery)
-	if (page == 0x01 || page == 0x3f) {
-		size += AddErrorPage(change, &buf[size]);
-		valid = true;
-	}
-
-	// Page code 3 (format device)
-	if (page == 0x03 || page == 0x3f) {
-		size += AddFormatPage(change, &buf[size]);
-		valid = true;
-	}
-
-	// Page code 4 (drive parameter)
-	if (page == 0x04 || page == 0x3f) {
-		size += AddDrivePage(change, &buf[size]);
-		valid = true;
-	}
-
-	// Page code 6 (optical)
-	if (IsMo()) {
-		if (page == 0x06 || page == 0x3f) {
-			size += AddOptionPage(change, &buf[size]);
-			valid = true;
-		}
-	}
-
-	// Page code 8 (caching)
-	if (page == 0x08 || page == 0x3f) {
-		size += AddCachePage(change, &buf[size]);
-		valid = true;
-	}
-
-	// Page code 13 (CD-ROM)
-	// TODO Replace this condition by an object-oriented approach
-	if (IsCdRom()) {
-		if (page == 0x0d || page == 0x3f) {
-			size += AddCDROMPage(change, &buf[size]);
-			valid = true;
-		}
-	}
-
-	// Page code 14 (CD-DA)
-	// TODO Replace this condition by an object-oriented approach
-	if (IsCdRom()) {
-		if (page == 0x0e || page == 0x3f) {
-			size += AddCDDAPage(change, &buf[size]);
-			valid = true;
-		}
-	}
-
-	// Page (vendor special)
-	int ret = AddVendorPage(page, change, &buf[size]);
-	if (ret > 0) {
-		size += ret;
-		valid = true;
-	}
-
-	if (!valid) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
+	int additional_size = AddModePages(page, change, buf);
+	if (!additional_size) {
 		return 0;
 	}
+	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -576,9 +518,8 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	// Get changeable flag
 	bool change = (cdb[2] & 0xc0) == 0x40;
 
-	// Get page code (0x00 is valid from the beginning)
+	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
-	bool valid = page == 0x00;
 
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
@@ -650,68 +591,11 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	// Page code 1 (read-write error recovery)
-	if (page == 0x01 || page == 0x3f) {
-		size += AddErrorPage(change, &buf[size]);
-		valid = true;
-	}
-
-	// Page code 3 (format device)
-	if (page == 0x03 || page == 0x3f) {
-		size += AddFormatPage(change, &buf[size]);
-		valid = true;
-	}
-
-	// Page code 4 (drive parameter)
-	if (page == 0x04 || page == 0x3f) {
-		size += AddDrivePage(change, &buf[size]);
-		valid = true;
-	}
-
-	// Page code 6 (optical)
-	if (IsMo()) {
-		if (page == 0x06 || page == 0x3f) {
-			size += AddOptionPage(change, &buf[size]);
-			valid = true;
-		}
-	}
-
-	// Page code 8 (caching)
-	if (page == 0x08 || page == 0x3f) {
-		size += AddCachePage(change, &buf[size]);
-		valid = true;
-	}
-
-	// Page code 13 (CD-ROM)
-	// TODO Replace this condition by an object-oriented approach
-	if (IsCdRom()) {
-		if (page == 0x0d || page == 0x3f) {
-			size += AddCDROMPage(change, &buf[size]);
-			valid = true;
-		}
-	}
-
-	// Page code 14 (CD-DA)
-	// TODO Replace this condition by an object-oriented approach
-	if (IsCdRom()) {
-		if (page == 0x0e || page == 0x3f) {
-			size += AddCDDAPage(change, &buf[size]);
-			valid = true;
-		}
-	}
-
-	// Page (vendor special)
-	int ret = AddVendorPage(page, change, &buf[size]);
-	if (ret > 0) {
-		size += ret;
-		valid = true;
-	}
-
-	if (!valid) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
+	int additional_size = AddModePages(page, change, buf);
+	if (!additional_size) {
 		return 0;
 	}
+	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -722,6 +606,64 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	// Final setting of mode data length
 	buf[0] = size >> 8;
 	buf[1] = size;
+
+	return size;
+}
+
+bool Disk::AddModePages(int page, bool change, BYTE *buf)
+{
+	int size = 0;
+
+	// Page code 1 (read-write error recovery)
+	if (page == 0x01 || page == 0x3f) {
+		size += AddErrorPage(change, &buf[size]);
+	}
+
+	// Page code 3 (format device)
+	if (page == 0x03 || page == 0x3f) {
+		size += AddFormatPage(change, &buf[size]);
+	}
+
+	// Page code 4 (drive parameter)
+	if (page == 0x04 || page == 0x3f) {
+		size += AddDrivePage(change, &buf[size]);
+	}
+
+	// Page code 6 (optical)
+	if (IsMo()) {
+		if (page == 0x06 || page == 0x3f) {
+			size += AddOptionPage(change, &buf[size]);
+		}
+	}
+
+	// Page code 8 (caching)
+	if (page == 0x08 || page == 0x3f) {
+		size += AddCachePage(change, &buf[size]);
+	}
+
+	// TODO Replace this condition by an object-oriented approach
+	if (IsCdRom()) {
+		// Page code 13 (CD-ROM)
+		if (page == 0x0d || page == 0x3f) {
+			size += AddCDROMPage(change, &buf[size]);
+		}
+
+		// Page code 14 (CD-DA)
+		if (page == 0x0e || page == 0x3f) {
+			size += AddCDDAPage(change, &buf[size]);
+		}
+	}
+
+	// Page (vendor special)
+	int ret = AddVendorPage(page, change, &buf[size]);
+	if (ret > 0) {
+		size += ret;
+	}
+
+	if (!size) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
+	}
 
 	return size;
 }
