@@ -10,7 +10,6 @@
 //	Copyright (C) 2010 Y.Sugahara
 //
 //	Imported sava's Anex86/T98Next image and MO format support patch.
-//	Imported NetBSD support and some optimisation patch by Rin Okuyama.
 //  	Comments translated to english by akuker.
 //
 //---------------------------------------------------------------------------

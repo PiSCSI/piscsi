@@ -7,8 +7,6 @@
 //	Copyright (C) 2016-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Imported NetBSD support and some optimisation patches by Rin Okuyama.
-//
 //	[ TAP Driver ]
 //
 //---------------------------------------------------------------------------
@@ -47,8 +45,6 @@ CTapDriver::CTapDriver()
 //	Initialization
 //
 //---------------------------------------------------------------------------
-#ifdef __linux__
-
 static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
@@ -349,53 +345,6 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 
 	return true;
 }
-#endif // __linux__
-
-#ifdef __NetBSD__
-bool CTapDriver::Init(const map<string, string>&)
-{
-	struct ifreq ifr;
-	struct ifaddrs *ifa, *a;
-	
-	// TAP Device Initialization
-	if ((m_hTAP = open("/dev/tap", O_RDWR)) < 0) {
-		LOGERROR("Can't open tap: %s", strerror(errno));
-		return false;
-	}
-
-	// Get device name
-	if (ioctl(m_hTAP, TAPGIFNAME, (void *)&ifr) < 0) {
-		LOGERROR("Can't ioctl TAPGIFNAME: %s", strerror(errno));
-		close(m_hTAP);
-		return false;
-	}
-
-	// Get MAC address
-	if (getifaddrs(&ifa) == -1) {
-		LOGERROR("Can't getifaddrs: %s", strerror(errno));
-		close(m_hTAP);
-		return false;
-	}
-	for (a = ifa; a != NULL; a = a->ifa_next)
-		if (strcmp(ifr.ifr_name, a->ifa_name) == 0 &&
-			a->ifa_addr->sa_family == AF_LINK)
-			break;
-	if (a == NULL) {
-		LOGERROR("Can't get MAC address: %s", strerror(errno));
-		close(m_hTAP);
-		return false;
-	}
-
-	// Save MAC address
-	memcpy(m_MacAddr, LLADDR((struct sockaddr_dl *)a->ifa_addr),
-		sizeof(m_MacAddr));
-	freeifaddrs(ifa);
-
-	LOGINFO("Tap device: %s\n", ifr.ifr_name);
-
-	return true;
-}
-#endif // __NetBSD__
 
 void CTapDriver::OpenDump(const Filepath& path) {
 	if (m_pcap == NULL) {
