@@ -90,7 +90,7 @@ public:
 
 protected:
 
-	virtual bool AddModePages(int page, bool change, BYTE *buf, int& size) override;
+	bool AddModePages(int, bool, BYTE *, int&) override;
 	int AddCDROMPage(bool change, BYTE *buf);
 	int AddCDDAPage(bool, BYTE *buf);
 

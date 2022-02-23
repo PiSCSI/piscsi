@@ -468,7 +468,9 @@ bool SCSICD::AddModePages(int page, bool change, BYTE *buf, int& size)
 		size += AddCDDAPage(change, &buf[size]);
 	}
 
-	return Disk::AddModePages(page, change, buf, size);
+	Disk::AddModePages(page, change, buf, size);
+
+	return true;
 }
 
 int SCSICD::AddCDROMPage(bool change, BYTE *buf)

@@ -120,6 +120,21 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
+bool SCSIMO::AddModePages(int page, bool change, BYTE *buf, int& size)
+{
+	// MEDIUM TYPE: Optical reversible or erasable
+	buf[2] = 0x03;
+
+	// Page code 6 (optical)
+	if (page == 0x06 || page == 0x3f) {
+		size += AddOptionPage(change, &buf[size]);
+	}
+
+	Disk::AddModePages(page, change, buf, size);
+
+	return true;
+}
+
 //---------------------------------------------------------------------------
 //
 //	MODE SELECT

@@ -449,13 +449,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	// Basic information
 	int size = 4;
 
-	// MEDIUM TYPE
-	// TODO Replace this condition by an object-oriented approach
-	if (IsMo()) {
-		// Optical reversible or erasable
-		buf[1] = 0x03;
-	}
-
 	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
 		buf[2] = 0x80;
@@ -525,13 +518,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 	// Basic Information
 	int size = 8;
-
-	// MEDIUM TYPE
-	// TODO Replace this condition by an object-oriented approach
-	if (IsMo()) {
-		// Optical reversible or erasable
-		buf[2] = 0x03;
-	}
 
 	// DEVICE SPECIFIC PARAMETER
 	if (IsProtected()) {
@@ -630,14 +616,6 @@ bool Disk::AddModePages(int page, bool change, BYTE *buf, int &size)
 	if (page == 0x04 || page == 0x3f) {
 		size += AddDrivePage(change, &buf[size]);
 		valid = true;
-	}
-
-	// Page code 6 (optical)
-	if (IsMo()) {
-		if (page == 0x06 || page == 0x3f) {
-			size += AddOptionPage(change, &buf[size]);
-			valid = true;
-		}
 	}
 
 	// Page code 8 (caching)
