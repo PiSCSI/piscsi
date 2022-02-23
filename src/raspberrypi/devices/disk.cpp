@@ -480,8 +480,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 
 	if (!AddModePages(page, change, buf, size)) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
@@ -578,8 +576,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 
 	if (!AddModePages(page, change, buf, size)) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
