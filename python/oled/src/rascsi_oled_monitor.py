@@ -161,7 +161,6 @@ LINE_SPACING = 8
 FONT = ImageFont.truetype('resources/type_writer.ttf', FONT_SIZE)
 
 IP_ADDR, HOSTNAME = sys_cmd.get_ip_and_host()
-#IP_ADDR, HOSTNAME = get_ip_and_host()
 REMOVABLE_DEVICE_TYPES = ractl_cmd.get_removable_device_types()
 PERIPHERAL_DEVICE_TYPES = ractl_cmd.get_peripheral_device_types()
 
