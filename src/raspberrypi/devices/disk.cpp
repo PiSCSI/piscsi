@@ -449,11 +449,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	// Basic information
 	int size = 4;
 
-	// DEVICE SPECIFIC PARAMETER
-	if (IsProtected()) {
-		buf[2] = 0x80;
-	}
-
 	// Add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
 		// Mode parameter header, block descriptor length
@@ -516,11 +511,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 	// Basic Information
 	int size = 8;
-
-	// DEVICE SPECIFIC PARAMETER
-	if (IsProtected()) {
-		buf[3] = 0x80;
-	}
 
 	// Add block descriptor if DBD is 0
 	if ((cdb[1] & 0x08) == 0) {
@@ -594,6 +584,11 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 bool Disk::AddModePages(int page, bool change, BYTE *buf, int &size)
 {
+	// DEVICE SPECIFIC PARAMETER
+	if (IsProtected()) {
+		buf[3] = 0x80;
+	}
+
 	bool valid = false;
 
 	// Page code 1 (read-write error recovery)
