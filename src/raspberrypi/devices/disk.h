@@ -139,15 +139,13 @@ public:
 protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf);
-	virtual int AddModePages(int page, bool change, BYTE *buf);
+	virtual bool AddModePages(int page, bool change, BYTE *buf, int& size);
 	virtual int AddErrorPage(bool change, BYTE *buf);
 	virtual int AddFormatPage(bool change, BYTE *buf);
 	virtual int AddDrivePage(bool change, BYTE *buf);
 	virtual int AddVendorPage(int page, bool change, BYTE *buf);
 	int AddOptionPage(bool change, BYTE *buf);
 	int AddCachePage(bool change, BYTE *buf);
-	int AddCDROMPage(bool change, BYTE *buf);
-	int AddCDDAPage(bool, BYTE *buf);
 
 	// Internal disk data
 	disk_t disk;

@@ -184,6 +184,5 @@ public:
 
 	bool IsSASIHD() const { return type == "SAHD"; }
 	bool IsSCSIHD() const { return type == "SCHD" || type == "SCRM"; }
-	bool IsCdRom() const { return type == "SCCD"; }
 	bool IsMo() const { return type == "SCMO"; }
 };

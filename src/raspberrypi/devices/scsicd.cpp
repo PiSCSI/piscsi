@@ -456,6 +456,53 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
+bool SCSICD::AddModePages(int page, bool change, BYTE *buf, int& size)
+{
+	// Page code 13
+	if (page == 0x0d || page == 0x3f) {
+		size += AddCDROMPage(change, &buf[size]);
+	}
+
+	// Page code 14
+	if (page == 0x0e || page == 0x3f) {
+		size += AddCDDAPage(change, &buf[size]);
+	}
+
+	return Disk::AddModePages(page, change, buf, size);
+}
+
+int SCSICD::AddCDROMPage(bool change, BYTE *buf)
+{
+	// Set the message length
+	buf[0] = 0x0d;
+	buf[1] = 0x06;
+
+	// No changeable area
+	if (change) {
+		return 8;
+	}
+
+	// 2 seconds for inactive timer
+	buf[3] = 0x05;
+
+	// MSF multiples are 60 and 75 respectively
+	buf[5] = 60;
+	buf[7] = 75;
+
+	return 8;
+}
+
+int SCSICD::AddCDDAPage(bool change, BYTE *buf)
+{
+	// Set the message length
+	buf[0] = 0x0e;
+	buf[1] = 0x0e;
+
+	// Audio waits for operation completion and allows
+	// PLAY across multiple tracks
+	return 16;
+}
+
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);

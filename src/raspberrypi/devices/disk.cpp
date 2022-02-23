@@ -486,11 +486,11 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int additional_size = AddModePages(page, change, buf);
-	if (!additional_size) {
+	if (!AddModePages(page, change, buf, size)) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
-	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -591,11 +591,11 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	int additional_size = AddModePages(page, change, buf);
-	if (!additional_size) {
+	if (!AddModePages(page, change, buf, size)) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
-	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -610,62 +610,55 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-int Disk::AddModePages(int page, bool change, BYTE *buf)
+bool Disk::AddModePages(int page, bool change, BYTE *buf, int &size)
 {
-	int size = 0;
+	bool valid = false;
 
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
 		size += AddErrorPage(change, &buf[size]);
+		valid = true;
 	}
 
 	// Page code 3 (format device)
 	if (page == 0x03 || page == 0x3f) {
 		size += AddFormatPage(change, &buf[size]);
+		valid = true;
 	}
 
 	// Page code 4 (drive parameter)
 	if (page == 0x04 || page == 0x3f) {
 		size += AddDrivePage(change, &buf[size]);
+		valid = true;
 	}
 
 	// Page code 6 (optical)
 	if (IsMo()) {
 		if (page == 0x06 || page == 0x3f) {
 			size += AddOptionPage(change, &buf[size]);
+			valid = true;
 		}
 	}
 
 	// Page code 8 (caching)
 	if (page == 0x08 || page == 0x3f) {
 		size += AddCachePage(change, &buf[size]);
-	}
-
-	// TODO Replace this condition by an object-oriented approach
-	if (IsCdRom()) {
-		// Page code 13 (CD-ROM)
-		if (page == 0x0d || page == 0x3f) {
-			size += AddCDROMPage(change, &buf[size]);
-		}
-
-		// Page code 14 (CD-DA)
-		if (page == 0x0e || page == 0x3f) {
-			size += AddCDDAPage(change, &buf[size]);
-		}
+		valid = true;
 	}
 
 	// Page (vendor special)
 	int ret = AddVendorPage(page, change, &buf[size]);
 	if (ret > 0) {
 		size += ret;
+		valid = true;
 	}
 
-	if (!size) {
+	if (!valid) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 	}
 
-	return size;
+	return valid;
 }
 
 int Disk::AddErrorPage(bool change, BYTE *buf)
@@ -760,38 +753,6 @@ int Disk::AddCachePage(bool change, BYTE *buf)
 
 	// Only read cache is valid, no prefetch
 	return 12;
-}
-
-int Disk::AddCDROMPage(bool change, BYTE *buf)
-{
-	// Set the message length
-	buf[0] = 0x0d;
-	buf[1] = 0x06;
-
-	// No changeable area
-	if (change) {
-		return 8;
-	}
-
-	// 2 seconds for inactive timer
-	buf[3] = 0x05;
-
-	// MSF multiples are 60 and 75 respectively
-	buf[5] = 60;
-	buf[7] = 75;
-
-	return 8;
-}
-
-int Disk::AddCDDAPage(bool change, BYTE *buf)
-{
-	// Set the message length
-	buf[0] = 0x0e;
-	buf[1] = 0x0e;
-
-	// Audio waits for operation completion and allows
-	// PLAY across multiple tracks
-	return 16;
 }
 
 int Disk::AddVendorPage(int /*page*/, bool /*change*/, BYTE *buf)

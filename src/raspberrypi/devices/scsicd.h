@@ -88,6 +88,12 @@ public:
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 
+protected:
+
+	virtual bool AddModePages(int page, bool change, BYTE *buf, int& size) override;
+	int AddCDROMPage(bool change, BYTE *buf);
+	int AddCDDAPage(bool, BYTE *buf);
+
 private:
 	typedef Disk super;
 
