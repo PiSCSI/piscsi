@@ -475,10 +475,6 @@ void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(8);
 
-	// Set the page code and message length
-	buf[0] = 0x0d;
-	buf[1] = 0x06;
-
 	// No changeable area
 	if (!change) {
 		// 2 seconds for inactive timer
