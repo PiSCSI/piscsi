@@ -595,6 +595,7 @@ void Disk::SetDeviceParameters(BYTE *buf)
 int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 {
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
+	// TODO Try to replace byte array by vector
 	map<int, pair<int, BYTE*>> pages;
 	AddModePages(pages, page, change);
 
