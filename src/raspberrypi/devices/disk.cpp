@@ -611,6 +611,10 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 	for (auto const& page : pages) {
 		if (size + (int)page.second.size() > max_length) {
 			LOGWARN("Mode page data size exceeds reserved buffer size");
+
+			page0.clear();
+
+			break;
 		}
 		else {
 			// The specification mandates that page 0 must be returned after all others
