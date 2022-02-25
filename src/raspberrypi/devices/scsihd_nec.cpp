@@ -150,7 +150,7 @@ void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(8);
 
-	// Set the message length
+	// Set the page code and message length
 	buf[0] = 0x01;
 	buf[1] = 0x06;
 
@@ -163,7 +163,7 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(24);
 
-	// Set the message length
+	// Set the page code and message length
 	buf[0] = 0x80 | 0x03;
 	buf[1] = 0x16;
 
@@ -204,7 +204,7 @@ void SCSIHD_NEC::AddDrivePage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(20);
 
-	// Set the message length
+	// Set the page code and message length
 	buf[0] = 0x04;
 	buf[1] = 0x12;
 

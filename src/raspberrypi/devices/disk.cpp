@@ -665,7 +665,7 @@ void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(12);
 
-	// Set the message length
+	// Set the page code and message length
 	buf[0] = 0x01;
 	buf[1] = 0x0a;
 
@@ -678,7 +678,7 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(24);
 
-	// Set the message length
+	// Set the page code and message length
 	buf[0] = 0x80 | 0x03;
 	buf[1] = 0x16;
 
@@ -719,7 +719,7 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(24);
 
-	// Set the message length
+	// Set the page code and message length
 	buf[0] = 0x04;
 	buf[1] = 0x16;
 
@@ -751,7 +751,7 @@ void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool)
 {
 	vector<BYTE> buf(12);
 
-	// Set the message length
+	// Set the page code and message length
 	buf[0] = 0x08;
 	buf[1] = 0x0a;
 
