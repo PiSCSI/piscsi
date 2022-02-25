@@ -635,10 +635,12 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 	}
 
 	// Page 0 must be last
-	memcpy(&buf[size], page0.data(), page0.size());
-	// Page payload size
-	buf[1] = page0.size() - 2;
-	size += page0.size();
+	if (!page0.empty()) {
+		memcpy(&buf[size], page0.data(), page0.size());
+		// Page payload size
+		buf[size + 1] = page0.size() - 2;
+		size += page0.size();
+	}
 
 	return size;
 }
