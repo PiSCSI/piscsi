@@ -474,7 +474,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int additional_size = AddModePages(page, change, buf);
+	int additional_size = AddModePages(page, change, &buf[size]);
 	if (!additional_size) {
 		return 0;
 	}
@@ -566,7 +566,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 		}
 	}
 
-	int additional_size = AddModePages(page, change, buf);
+	int additional_size = AddModePages(page, change, &buf[size]);
 	if (!additional_size) {
 		return 0;
 	}
