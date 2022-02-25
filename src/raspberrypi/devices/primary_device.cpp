@@ -68,11 +68,6 @@ void PrimaryDevice::ReportLuns(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
 
-	if (!CheckReady()) {
-		controller->Error();
-		return;
-	}
-
 	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
 	memset(buf, 0, allocation_length);
 
