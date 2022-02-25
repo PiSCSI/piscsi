@@ -185,7 +185,7 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 int HostServices::AddRealtimeClockPage(int page, BYTE *buf)
 {
-	if (page == 0x20) {
+	if (page == 0x20 || page == 0x3f) {
 		// Data structure version 1.0
 		buf[0] = 0x01;
 		buf[1] = 0x00;
