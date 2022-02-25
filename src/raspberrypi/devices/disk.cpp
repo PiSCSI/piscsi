@@ -610,7 +610,8 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 	pair<int, BYTE *> page0 = make_pair<int, BYTE *>(0, NULL);
 	for (auto const& page : pages) {
 		if (size + page.second.first > max_length) {
-			// Mode page data size would exceed reserved buffer size
+			LOGERROR("Mode page data size would exceed reserved buffer size");
+
 			return 0;
 		}
 
