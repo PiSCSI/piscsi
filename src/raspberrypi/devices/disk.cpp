@@ -495,9 +495,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
 	// Get length, clear buffer
-	int length = cdb[7];
-	length <<= 8;
-	length |= cdb[8];
+	int length = (cdb[7] << 8) | cdb[8];
 	// TODO Use DEFAULT_BUFFER_SIZE
 	if (length > 4096) {
 		length = 4096;
@@ -762,14 +760,11 @@ int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
 	ASSERT(buf);
 
 	// Get length, clear buffer
-	DWORD length = cdb[7];
-	length <<= 8;
-	length |= cdb[8];
+	int length = (cdb[7] << 8) | cdb[8];
 	// TODO Use DEFAULT_BUFFER_SIZE
 	if (length > 4096) {
 		length = 4906;
 	}
-	ASSERT((length >= 0) && (length < 0x800));
 	memset(buf, 0, length);
 
 	// P/G/FORMAT

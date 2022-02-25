@@ -131,9 +131,7 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
-	int length = cdb[7];
-	length <<= 8;
-	length |= cdb[8];
+	int length = (cdb[7] << 8) | cdb[8];
 	// TODO Use DEFAULT_BUFFER_SIZE
 	if (length > 4096) {
 		length = 4096;
