@@ -619,7 +619,15 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 		else {
 			// The specification mandates that page 0 must be returned after all others
 			if (page.first) {
+				// Page data
 				memcpy(&buf[size], page.second.data(), page.second.size());
+				// Page code if not already set
+				if (!buf[0]) {
+					buf[0 ]= page.first;
+				}
+				// Page payload size
+				buf[1] = page.second.size() - 2;
+
 				size += page.second.size();
 			}
 			else {
@@ -665,10 +673,6 @@ void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(12);
 
-	// Set the page code and message length
-	buf[0] = 0x01;
-	buf[1] = 0x0a;
-
 	// Retry count is 0, limit time uses internal default value
 
 	pages[1] = buf;
@@ -678,9 +682,8 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(24);
 
-	// Set the page code and message length
+	// Set the page code
 	buf[0] = 0x80 | 0x03;
-	buf[1] = 0x16;
 
 	// Show the number of bytes in the physical sector as changeable
 	// (though it cannot be changed in practice)
@@ -719,10 +722,6 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(24);
 
-	// Set the page code and message length
-	buf[0] = 0x04;
-	buf[1] = 0x16;
-
 	// No changeable area
 	if (change) {
 		pages[4] = buf;
@@ -750,10 +749,6 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool change)
 void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool)
 {
 	vector<BYTE> buf(12);
-
-	// Set the page code and message length
-	buf[0] = 0x08;
-	buf[1] = 0x0a;
 
 	// Only read cache is valid, no prefetch
 

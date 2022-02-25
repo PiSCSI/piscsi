@@ -225,10 +225,6 @@ void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool change)
 
 	vector<BYTE> buf(30);
 
-	// Set the message length
-	buf[0] = 0x30;
-	buf[1] = 0x1c;
-
 	// No changeable area
 	if (!change) {
 		memcpy(&buf.data()[0xa], "APPLE COMPUTER, INC.", 20);

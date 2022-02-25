@@ -143,10 +143,6 @@ void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool change)
 	vector<BYTE> buf(4);
 	pages[6] = buf;
 
-	// Set the page code and message length
-	buf[0] = 0x06;
-	buf[1] = 0x02;
-
 	// Do not report update blocks
 }
 

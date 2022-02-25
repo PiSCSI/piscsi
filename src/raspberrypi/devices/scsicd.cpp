@@ -498,11 +498,7 @@ void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool change)
 
 void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool change)
 {
-	vector<BYTE> buf(18);
-
-	// Set the page code and message length
-	buf[0] = 0x0e;
-	buf[1] = 0x0e;
+	vector<BYTE> buf(16);
 
 	// Audio waits for operation completion and allows
 	// PLAY across multiple tracks

@@ -150,10 +150,6 @@ void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(8);
 
-	// Set the page code and message length
-	buf[0] = 0x01;
-	buf[1] = 0x06;
-
 	// The retry count is 0, and the limit time uses the default value inside the device.
 
 	pages[1] = buf;
@@ -163,9 +159,8 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(24);
 
-	// Set the page code and message length
+	// Set the page code
 	buf[0] = 0x80 | 0x03;
-	buf[1] = 0x16;
 
 	// Make the number of bytes in the physical sector appear mutable (although it cannot actually be)
 	if (change) {
@@ -203,10 +198,6 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 void SCSIHD_NEC::AddDrivePage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(20);
-
-	// Set the page code and message length
-	buf[0] = 0x04;
-	buf[1] = 0x12;
 
 	// No changeable area
 	if (!change && IsReady()) {
