@@ -159,5 +159,5 @@ private:
 	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
 
-	int AddModePages(int, bool, BYTE *);
+	int AddModePages(int, bool, BYTE *, int);
 };

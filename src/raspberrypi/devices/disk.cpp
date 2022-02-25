@@ -474,7 +474,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int additional_size = AddModePages(page, change, &buf[size]);
+	int additional_size = AddModePages(page, change, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}
@@ -565,7 +565,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		}
 	}
 
-	int additional_size = AddModePages(page, change, &buf[size]);
+	int additional_size = AddModePages(page, change, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}
@@ -592,7 +592,7 @@ void Disk::SetDeviceParameters(BYTE *buf)
 	}
 }
 
-int Disk::AddModePages(int page, bool change, BYTE *buf)
+int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 {
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, pair<int, BYTE*>> pages;
@@ -609,6 +609,11 @@ int Disk::AddModePages(int page, bool change, BYTE *buf)
 
 	pair<int, BYTE *> page0 = make_pair<int, BYTE *>(0, NULL);
 	for (auto const& page : pages) {
+		if (size + page.second.first > max_length) {
+			// Mode page data exceeds reserved buffer size
+			return 0;
+		}
+
 		// The specification mandates that page 0 must be returned after all others
 		if (page.first) {
 			memcpy(&buf[size], page.second.second, page.second.first);
