@@ -473,7 +473,7 @@ void SCSICD::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool chan
 
 void SCSICD::AddCDROMPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)malloc(8);
+	BYTE *buf = (BYTE *)calloc(8, 1);
 	pages[13] = make_pair(8, buf);
 
 	// Set the message length
@@ -495,7 +495,7 @@ void SCSICD::AddCDROMPage(map<int, pair<int, BYTE *>>& pages, bool change)
 
 void SCSICD::AddCDDAPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)malloc(18);
+	BYTE *buf = (BYTE *)calloc(18, 1);
 	pages[14] = make_pair(18, buf);
 
 	// Set the message length

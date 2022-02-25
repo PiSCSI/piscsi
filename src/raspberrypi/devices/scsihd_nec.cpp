@@ -148,7 +148,7 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 
 void SCSIHD_NEC::AddErrorPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)malloc(8);
+	BYTE *buf = (BYTE *)calloc(8, 1);
 	pages.insert(make_pair(1, make_pair(8, buf)));
 
 	// Set the message length
@@ -160,7 +160,7 @@ void SCSIHD_NEC::AddErrorPage(map<int, pair<int, BYTE *>>& pages, bool change)
 
 void SCSIHD_NEC::AddFormatPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)malloc(24);
+	BYTE *buf = (BYTE *)calloc(24, 1);
 	pages.insert(make_pair(3, make_pair(24, buf)));
 
 	// Set the message length
@@ -197,7 +197,7 @@ void SCSIHD_NEC::AddFormatPage(map<int, pair<int, BYTE *>>& pages, bool change)
 
 void SCSIHD_NEC::AddDrivePage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)malloc(20);
+	BYTE *buf = (BYTE *)calloc(20, 1);
 	pages.insert(make_pair(4, make_pair(20, buf)));
 
 	// Set the message length

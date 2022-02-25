@@ -140,7 +140,7 @@ void SCSIMO::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool chan
 
 void SCSIMO::AddOptionPage(map<int, pair<int, BYTE *>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)malloc(4);
+	BYTE *buf = (BYTE *)calloc(4, 1);
 	pages[6] = make_pair(4, buf);
 
 	// Set the message length
