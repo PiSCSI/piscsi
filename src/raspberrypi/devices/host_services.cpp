@@ -125,12 +125,11 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
+int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	int length = (cdb[7] << 8) | cdb[8];
-	// TODO Use DEFAULT_BUFFER_SIZE
-	if (length > 4096) {
-		length = 4096;
+	if (length > max_length) {
+		length = max_length;
 	}
 	memset(buf, 0, length);
 

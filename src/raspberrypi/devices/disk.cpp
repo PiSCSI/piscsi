@@ -492,13 +492,12 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-int Disk::ModeSense10(const DWORD *cdb, BYTE *buf)
+int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	// Get length, clear buffer
 	int length = (cdb[7] << 8) | cdb[8];
-	// TODO Use DEFAULT_BUFFER_SIZE
-	if (length > 4096) {
-		length = 4096;
+	if (length > max_length) {
+		length = max_length;
 	}
 	memset(buf, 0, length);
 

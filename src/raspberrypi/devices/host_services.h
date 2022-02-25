@@ -29,7 +29,7 @@ public:
 	void StartStopUnit(SCSIDEV *);
 
 	int ModeSense6(const DWORD *, BYTE *);
-	int ModeSense10(const DWORD *, BYTE *);
+	int ModeSense10(const DWORD *, BYTE *, int);
 
 private:
 

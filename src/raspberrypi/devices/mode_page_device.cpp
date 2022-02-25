@@ -43,7 +43,7 @@ void ModePageDevice::ModeSense6(SASIDEV *controller)
 
 void ModePageDevice::ModeSense10(SASIDEV *controller)
 {
-	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
+	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, controller->DEFAULT_BUFFER_SIZE);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;

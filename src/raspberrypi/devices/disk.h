@@ -138,7 +138,7 @@ public:
 
 protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
-	int ModeSense10(const DWORD *cdb, BYTE *buf);
+	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
 	virtual void SetDeviceParameters(BYTE *);
 	virtual void AddModePages(map<int, pair<int, BYTE*>>&, int, bool);
 	virtual void AddErrorPage(map<int, pair<int, BYTE*>>&, bool change);
