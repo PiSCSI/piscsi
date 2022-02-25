@@ -105,24 +105,18 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, length);
 
 	int page = cdb[2] & 0x3f;
-	bool valid = false;
 
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
-	// Basic information
-	int size = 4;
-
-	int ret = AddRealtimeClockPage(page, &buf[size]);
-	if (ret > 0) {
-		size += ret;
-		valid = true;
-	}
-
-	if (!valid) {
+	int size = AddRealtimeClockPage(page, &buf[4]);
+	if (!size) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
+
+	// Basic information
+	size += 4;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -146,24 +140,18 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 	memset(buf, 0, length);
 
 	int page = cdb[2] & 0x3f;
-	bool valid = false;
 
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
-	// Basic Information
-	int size = 8;
-
-	int ret = AddRealtimeClockPage(page, &buf[size]);
-	if (ret > 0) {
-		size += ret;
-		valid = true;
-	}
-
-	if (!valid) {
+	int size = AddRealtimeClockPage(page, &buf[8]);
+	if (!size) {
 		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
+
+	// Basic information
+	size += 8;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
