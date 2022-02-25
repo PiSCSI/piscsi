@@ -622,9 +622,9 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 				// Page data
 				memcpy(&buf[size], page.second.data(), page.second.size());
 				// Page code, PS bit may already have been set
-				buf[0] |= page.first;
+				buf[size] |= page.first;
 				// Page payload size
-				buf[1] = page.second.size() - 2;
+				buf[size + 1] = page.second.size() - 2;
 
 				size += page.second.size();
 			}
