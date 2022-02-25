@@ -621,10 +621,8 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 			if (page.first) {
 				// Page data
 				memcpy(&buf[size], page.second.data(), page.second.size());
-				// Page code if not already set
-				if (!buf[0]) {
-					buf[0 ]= page.first;
-				}
+				// Page code, PS bit may already have been set
+				buf[0] |= page.first;
 				// Page payload size
 				buf[1] = page.second.size() - 2;
 
@@ -684,8 +682,8 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(24);
 
-	// Set the page code
-	buf[0] = 0x80 | 0x03;
+	// Page can be saved
+	buf[0] = 0x80;
 
 	// Show the number of bytes in the physical sector as changeable
 	// (though it cannot be changed in practice)

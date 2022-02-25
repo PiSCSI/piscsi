@@ -159,8 +159,8 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 {
 	vector<BYTE> buf(24);
 
-	// Set the page code
-	buf[0] = 0x80 | 0x03;
+	// Page can be saved
+	buf[0] = 0x80;
 
 	// Make the number of bytes in the physical sector appear mutable (although it cannot actually be)
 	if (change) {
