@@ -729,7 +729,7 @@ void SCSIDEV::ReceiveBytes()
 
 		// If not able to receive all, move to status phase
 		if (len != ctrl.length) {
-			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d. Going to error",
 					__PRETTY_FUNCTION__, ctrl.length, len);
 			Error();
 			return;
@@ -890,6 +890,8 @@ bool SCSIDEV::XferOut(bool cont)
 	}
 
 	ASSERT(ctrl.phase == BUS::dataout);
+
+	scsi.is_byte_transfer = false;
 
 	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[GetEffectiveLun()]);
 	if (device && ctrl.cmd[0] == scsi_defs::eCmdWrite6) {
