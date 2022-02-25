@@ -625,15 +625,8 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 	}
 
 	// Page 0 must be last
-	if (!page0.empty()) {
-		if (size + (int)page0.size() > max_length) {
-			LOGWARN("Mode page data size exceeds reserved buffer size");
-		}
-		else {
-			memcpy(&buf[size], page0.data(), page0.size());
-			size += page0.size();
-		}
-	}
+	memcpy(&buf[size], page0.data(), page0.size());
+	size += page0.size();
 
 	return size;
 }
