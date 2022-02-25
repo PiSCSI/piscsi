@@ -515,7 +515,7 @@ void SCSIDEV::Receive()
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
-			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
 			Error();
 			return;
 		}
