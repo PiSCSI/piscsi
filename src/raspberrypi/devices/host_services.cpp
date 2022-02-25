@@ -110,8 +110,6 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	int size = AddRealtimeClockPage(page, &buf[4]);
 	if (!size) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
@@ -144,8 +142,6 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 	int size = AddRealtimeClockPage(page, &buf[8]);
 	if (!size) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
@@ -183,6 +179,9 @@ int HostServices::AddRealtimeClockPage(int page, BYTE *buf)
 
 		return 8;
 	}
+
+	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+	SetStatusCode(STATUS_INVALIDCDB);
 
 	return 0;
 }
