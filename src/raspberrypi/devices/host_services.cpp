@@ -106,8 +106,6 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	int page = cdb[2] & 0x3f;
 
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
-
 	int size = AddRealtimeClockPage(page, &buf[4]);
 	if (!size) {
 		return 0;
@@ -138,8 +136,6 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 	int page = cdb[2] & 0x3f;
 
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
-
 	int size = AddRealtimeClockPage(page, &buf[8]);
 	if (!size) {
 		return 0;
@@ -162,6 +158,8 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 
 int HostServices::AddRealtimeClockPage(int page, BYTE *buf)
 {
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
 	if (page == 0x20 || page == 0x3f) {
 		// Data structure version 1.0
 		buf[0] = 0x01;
