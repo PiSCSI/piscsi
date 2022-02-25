@@ -149,7 +149,7 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
 		size = length;
 	}
-	// Final setting of mode data length
+
 	buf[0] = size >> 8;
 	buf[1] = size;
 
