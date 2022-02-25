@@ -101,13 +101,11 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 
 int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
-	// Get length, clear buffer
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
 
-	// Get page code (0x00 is valid from the beginning)
 	int page = cdb[2] & 0x3f;
-	bool valid = page == 0x00;
+	bool valid = false;
 
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
@@ -132,7 +130,6 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = length;
 	}
 
-	// Final setting of mode data length
 	buf[0] = size;
 
 	return size;
@@ -140,7 +137,6 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 {
-	// Get length, clear buffer
 	int length = cdb[7];
 	length <<= 8;
 	length |= cdb[8];
@@ -149,9 +145,8 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 	}
 	memset(buf, 0, length);
 
-	// Get page code (0x00 is valid from the beginning)
 	int page = cdb[2] & 0x3f;
-	bool valid = page == 0x00;
+	bool valid = false;
 
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
@@ -175,7 +170,6 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
 		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
 		size = length;
 	}
-
 	// Final setting of mode data length
 	buf[0] = size >> 8;
 	buf[1] = size;
