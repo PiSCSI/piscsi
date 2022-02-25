@@ -101,6 +101,11 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 
 int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
+	// Block descriptors cannot be returned
+	if (!(cdb[1] & 0x08)) {
+		return 0;
+	}
+
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
 
