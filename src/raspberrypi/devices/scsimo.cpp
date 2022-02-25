@@ -128,7 +128,7 @@ void SCSIMO::SetDeviceParameters(BYTE *buf)
 	buf[2] = 0x03;
 }
 
-void SCSIMO::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool change)
+void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool change)
 {
 	Disk::AddModePages(pages, page, change);
 
@@ -138,10 +138,10 @@ void SCSIMO::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool chan
 	}
 }
 
-void SCSIMO::AddOptionPage(map<int, pair<int, BYTE *>>& pages, bool change)
+void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)calloc(4, 1);
-	pages[6] = make_pair(4, buf);
+	vector<BYTE> buf(4);
+	pages[6] = buf;
 
 	// Set the message length
 	buf[0] = 0x06;

@@ -595,8 +595,7 @@ void Disk::SetDeviceParameters(BYTE *buf)
 int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 {
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
-	// TODO Try to replace byte array by vector, in order to get automatic memory management
-	map<int, pair<int, BYTE*>> pages;
+	map<int, vector<BYTE>> pages;
 	AddModePages(pages, page, change);
 
 	// If no mode data were added at all something must be wrong
@@ -608,19 +607,17 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 
 	int size = 0;
 
-	pair<int, BYTE *> page0 = make_pair<int, BYTE *>(0, NULL);
+	vector<BYTE> page0;
 	for (auto const& page : pages) {
-		if (size + page.second.first > max_length) {
+		if (size + (int)page.second.size() > max_length) {
 			LOGWARN("Mode page data size exceeds reserved buffer size");
-
-			free(page.second.second);
 		}
 		else {
 			// The specification mandates that page 0 must be returned after all others
 			if (page.first) {
-				memcpy(&buf[size], page.second.second, page.second.first);
-				size += page.second.first;
-				free(page.second.second);
+				for (BYTE b : page.second) {
+					buf[size++] = b;
+				}
 			}
 			else {
 				page0 = page.second;
@@ -629,22 +626,21 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 	}
 
 	// Page 0 must be last
-	if (page0.first) {
-		if (size + page0.first > max_length) {
+	if (!page0.empty()) {
+		if (size + (int)page0.size() > max_length) {
 			LOGWARN("Mode page data size exceeds reserved buffer size");
 		}
 		else {
-			memcpy(&buf[size], page0.second, page0.first);
-			size += page0.first;
+			for (BYTE b : page0) {
+				buf[size++] = b;
+			}
 		}
-
-		free(page0.second);
 	}
 
 	return size;
 }
 
-void Disk::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool change)
+void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool change)
 {
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
@@ -670,22 +666,22 @@ void Disk::AddModePages(map<int, pair<int, BYTE*>>& pages, int page, bool change
 	AddVendorPage(pages, page, change);
 }
 
-void Disk::AddErrorPage(map<int, pair<int, BYTE *>>& pages, bool change)
+void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)calloc(12, 1);
-	pages[1] = make_pair(12, buf);
+	vector<BYTE> buf(12);
 
 	// Set the message length
 	buf[0] = 0x01;
 	buf[1] = 0x0a;
 
 	// Retry count is 0, limit time uses internal default value
+
+	pages[1] = buf;
 }
 
-void Disk::AddFormatPage(map<int, pair<int, BYTE *>>& pages, bool change)
+void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)calloc(24, 1);
-	pages[3] = make_pair(24, buf);
+	vector<BYTE> buf(24);
 
 	// Set the message length
 	buf[0] = 0x80 | 0x03;
@@ -696,6 +692,9 @@ void Disk::AddFormatPage(map<int, pair<int, BYTE *>>& pages, bool change)
 	if (change) {
 		buf[0xc] = 0xff;
 		buf[0xd] = 0xff;
+
+		pages[3] = buf;
+
 		return;
 	}
 
@@ -717,12 +716,13 @@ void Disk::AddFormatPage(map<int, pair<int, BYTE *>>& pages, bool change)
 	if (IsRemovable()) {
 		buf[20] = 0x20;
 	}
+
+	pages[3] = buf;
 }
 
-void Disk::AddDrivePage(map<int, pair<int, BYTE *>>& pages, bool change)
+void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool change)
 {
-	BYTE *buf = (BYTE *)calloc(24, 1);
-	pages[4] = make_pair(24, buf);
+	vector<BYTE> buf(24);
 
 	// Set the message length
 	buf[0] = 0x04;
@@ -730,6 +730,8 @@ void Disk::AddDrivePage(map<int, pair<int, BYTE *>>& pages, bool change)
 
 	// No changeable area
 	if (change) {
+		pages[4] = buf;
+
 		return;
 	}
 
@@ -746,21 +748,24 @@ void Disk::AddDrivePage(map<int, pair<int, BYTE *>>& pages, bool change)
 		// Fix the head at 8
 		buf[0x5] = 0x8;
 	}
+
+	pages[4] = buf;
 }
 
-void Disk::AddCachePage(map<int, pair<int, BYTE *>>& pages, bool)
+void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool)
 {
-	BYTE *buf = (BYTE *)calloc(12, 1);
-	pages[8] = make_pair(12, buf);
+	vector<BYTE> buf(12);
 
 	// Set the message length
 	buf[0] = 0x08;
 	buf[1] = 0x0a;
 
 	// Only read cache is valid, no prefetch
+
+	pages[8] = buf;
 }
 
-void Disk::AddVendorPage(map<int, pair<int, BYTE *>>&, int, bool)
+void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool)
 {
 	// Nothing to add by default
 }

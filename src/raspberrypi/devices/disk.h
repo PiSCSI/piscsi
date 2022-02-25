@@ -140,12 +140,12 @@ protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
 	virtual void SetDeviceParameters(BYTE *);
-	virtual void AddModePages(map<int, pair<int, BYTE*>>&, int, bool);
-	virtual void AddErrorPage(map<int, pair<int, BYTE*>>&, bool change);
-	virtual void AddFormatPage(map<int, pair<int, BYTE*>>&, bool change);
-	virtual void AddDrivePage(map<int, pair<int, BYTE*>>&, bool change);
-	void AddCachePage(map<int, pair<int, BYTE*>>&, bool change);
-	virtual void AddVendorPage(map<int, pair<int, BYTE*>>&, int page, bool change);
+	virtual void AddModePages(map<int, vector<BYTE>>&, int, bool);
+	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool change);
+	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool change);
+	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool change);
+	void AddCachePage(map<int, vector<BYTE>>&, bool change);
+	virtual void AddVendorPage(map<int, vector<BYTE>>&, int page, bool change);
 
 	// Internal disk data
 	disk_t disk;
