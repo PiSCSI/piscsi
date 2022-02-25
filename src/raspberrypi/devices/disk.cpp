@@ -396,7 +396,7 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
-	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer);
+	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer, controller->DEFAULT_BUFFER_SIZE);
 	if (ctrl->length <= 4) {
 		controller->Error();
 		return;
@@ -762,16 +762,15 @@ void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool)
 	// Nothing to add by default
 }
 
-int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf)
+int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	ASSERT(cdb);
 	ASSERT(buf);
 
 	// Get length, clear buffer
 	int length = (cdb[7] << 8) | cdb[8];
-	// TODO Use DEFAULT_BUFFER_SIZE
-	if (length > 4096) {
-		length = 4906;
+	if (length > max_length) {
+		length = max_length;
 	}
 	memset(buf, 0, length);
 
