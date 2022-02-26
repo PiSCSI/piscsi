@@ -146,6 +146,12 @@ bool PrimaryDevice::CheckReady()
 
 int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb, BYTE *buf)
 {
+	// EVPD check
+	if (cdb[1] & 0x01) {
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+
 	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
 	if (allocation_length > 4) {
 		if (allocation_length > 44) {
