@@ -40,7 +40,7 @@ public:
 	void SendDiagnostic(SCSIDEV *);
 	void StopPrint(SCSIDEV *);
 
-	bool WriteBytes(BYTE *, uint32_t) override;
+	bool WriteBytes(uint32_t) override;
 	bool CheckReservation(SCSIDEV *);
 	void DiscardReservation();
 	void Cleanup();
@@ -58,4 +58,8 @@ private:
 
 	time_t reservation_time;
 	int timeout;
+
+	// The printer device has its own dynamically allocated buffer
+	BYTE *transfer_buffer;
+	uint32_t transfer_buffer_size;
 };

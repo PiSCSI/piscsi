@@ -56,6 +56,8 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	reserving_initiator = NOT_RESERVED;
 	reservation_time = 0;
 	timeout = 0;
+	transfer_buffer = NULL;
+	transfer_buffer_size = 0;
 
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
@@ -166,13 +168,13 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 
 	LOGTRACE("Receiving %d bytes to be printed", length);
 
-	// TODO This device suffers from the statically allocated buffer size,
-	// see https://github.com/akuker/RASCSI/issues/669
-	if (length > (uint32_t)controller->DEFAULT_BUFFER_SIZE) {
-		LOGERROR("Transfer buffer overflow");
+	if (transfer_buffer_size < length) {
+		if (transfer_buffer) {
+			free(transfer_buffer);
+		}
 
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
-		return;
+		transfer_buffer = (BYTE *)malloc(length);
+		transfer_buffer_size = length;
 	}
 
 	ctrl->length = length;
@@ -243,7 +245,7 @@ void SCSIPrinter::StopPrint(SCSIDEV *controller)
 	controller->Status();
 }
 
-bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
+bool SCSIPrinter::WriteBytes(uint32_t length)
 {
 	if (fd == -1) {
 		strcpy(filename, TMP_FILE_PATTERN);
@@ -258,7 +260,7 @@ bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file", length);
 
-	write(fd, buf, length);
+	write(fd, transfer_buffer, length);
 
 	return true;
 }
@@ -298,5 +300,11 @@ void SCSIPrinter::Cleanup()
 		fd = -1;
 
 		unlink(filename);
+	}
+
+	if (transfer_buffer) {
+		free(transfer_buffer);
+		transfer_buffer= NULL;
+		transfer_buffer_size = 0;
 	}
 }
