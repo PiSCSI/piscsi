@@ -14,7 +14,9 @@
 //
 // 1. The client reserves the printer device with RESERVE UNIT (optional step, mandatory for
 // a multi-initiator environment).
-// 2. The client sends the data to be printed with one or several PRINT commands.
+// 2. The client sends the data to be printed with one or several PRINT commands. Due to
+// https://github.com/akuker/RASCSI/issues/669 the maximum transfer size per PRINT command is
+// limited to 4096 bytes.
 // 3. The client triggers printing with SYNCHRONIZE BUFFER. Each SYNCHRONIZE BUFFER results in
 // the print command for this printer (see below) to be called for the data not yet printed.
 // 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for a
@@ -55,7 +57,6 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	reserving_initiator = NOT_RESERVED;
 	reservation_time = 0;
 	timeout = 0;
-	transfer_buffer = NULL;
 
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
@@ -164,14 +165,7 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 	length <<= 8;
 	length |= ctrl->cmd[4];
 
-	if (!transfer_buffer) {
-		transfer_buffer = (BYTE *)malloc(length);
-	}
-	else {
-		transfer_buffer = (BYTE *)realloc(transfer_buffer, length);
-	}
-
-	LOGTRACE("Receiving %d bytes to be printed, buffer address is %p", length, transfer_buffer);
+	LOGTRACE("Receiving %d bytes to be printed", length);
 
 	ctrl->length = length;
 	controller->SetByteTransfer(true);
@@ -241,7 +235,7 @@ void SCSIPrinter::StopPrint(SCSIDEV *controller)
 	controller->Status();
 }
 
-bool SCSIPrinter::WriteBytes(uint32_t length)
+bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 {
 	if (fd == -1) {
 		strcpy(filename, TMP_FILE_PATTERN);
@@ -256,8 +250,7 @@ bool SCSIPrinter::WriteBytes(uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file", length);
 
-	assert(transfer_buffer);
-	write(fd, transfer_buffer, length);
+	write(fd, buf, length);
 
 	return true;
 }
@@ -292,15 +285,10 @@ void SCSIPrinter::DiscardReservation()
 
 void SCSIPrinter::Cleanup()
 {
-	LOGTRACE("Cleaning up print job");
-
 	if (fd != -1) {
 		close(fd);
 		fd = -1;
 
 		unlink(filename);
 	}
-
-	free(transfer_buffer);
-	transfer_buffer= NULL;
 }

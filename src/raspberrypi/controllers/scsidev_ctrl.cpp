@@ -897,7 +897,7 @@ bool SCSIDEV::XferOut(bool cont)
 
 	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[GetEffectiveLun()]);
 	if (device && ctrl.cmd[0] == scsi_defs::eCmdWrite6) {
-		return device->WriteBytes(scsi.bytes_to_transfer);
+		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
 	}
 
 	LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
