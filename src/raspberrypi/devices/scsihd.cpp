@@ -105,12 +105,6 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 		return 0;
 	}
 
-	// Ready check (Error if no image file)
-	if (!IsReady()) {
-		SetStatusCode(STATUS_NOTREADY);
-		return 0;
-	}
-
 	// Basic data
 	// buf[0] ... Direct Access Device
 	// buf[1] ... Bit 7 set means removable
