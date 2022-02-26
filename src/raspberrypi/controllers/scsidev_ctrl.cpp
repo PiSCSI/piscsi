@@ -27,6 +27,7 @@
 
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
+	scsi.is_byte_transfer = false;
 	scsi.bytes_to_transfer = 0;
 	shutdown_mode = NONE;
 
@@ -509,7 +510,7 @@ void SCSIDEV::Receive()
 
 	// Length != 0 if received
 	if (ctrl.length != 0) {
-		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, (int)ctrl.length);
 		// Receive
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
@@ -723,7 +724,7 @@ void SCSIDEV::ReceiveBytes()
 	ASSERT(!ctrl.bus->GetIO());
 
 	if (ctrl.length) {
-		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, ctrl.length);
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length);
 
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 

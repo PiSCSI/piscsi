@@ -164,9 +164,9 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 	length <<= 8;
 	length |= ctrl->cmd[4];
 
-	LOGTRACE("Receiving %d bytes to be printed", length);
-
 	transfer_buffer = (BYTE *)realloc(transfer_buffer, length);
+
+	LOGTRACE("Receiving %d bytes to be printed, buffer address is %p", length, transfer_buffer);
 
 	ctrl->length = length;
 	controller->SetByteTransfer(true);
@@ -287,6 +287,8 @@ void SCSIPrinter::DiscardReservation()
 
 void SCSIPrinter::Cleanup()
 {
+	LOGTRACE("Cleaning up print job");
+
 	if (fd != -1) {
 		close(fd);
 		fd = -1;
