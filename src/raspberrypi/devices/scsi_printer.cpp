@@ -14,10 +14,9 @@
 //
 // 1. The client reserves the printer device with RESERVE UNIT (optional step, mandatory for
 // a multi-initiator environment).
-// 2. The client sends the data to be printed with one or several PRINT commands. Due to
-// https://github.com/akuker/RASCSI/issues/669 the maximum transfer size per PRINT command is
-// limited to 4096 bytes.
-// 3. The client triggers printing with SYNCHRONIZE BUFFER.
+// 2. The client sends the data to be printed with one or several PRINT commands.
+// 3. The client triggers printing with SYNCHRONIZE BUFFER. Each SYNCHRONIZE BUFFER results in
+// the print command for this printer (see below) to be called for the data not yet printed.
 // 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for a
 // multi-initiator environment).
 //
