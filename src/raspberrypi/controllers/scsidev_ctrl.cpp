@@ -46,6 +46,7 @@ SCSIDEV::~SCSIDEV()
 
 void SCSIDEV::Reset()
 {
+	scsi.is_byte_transfer = false;
 	scsi.bytes_to_transfer = 0;
 
 	// Work initialization
