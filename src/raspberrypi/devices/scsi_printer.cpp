@@ -294,8 +294,6 @@ void SCSIPrinter::Cleanup()
 		unlink(filename);
 	}
 
-	if (transfer_buffer) {
-		free(transfer_buffer);
-		transfer_buffer= NULL;
-	}
+	free(transfer_buffer);
+	transfer_buffer= NULL;
 }
