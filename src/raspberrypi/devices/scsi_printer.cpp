@@ -57,7 +57,6 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	reservation_time = 0;
 	timeout = 0;
 	transfer_buffer = NULL;
-	transfer_buffer_size = 0;
 
 	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIPrinter::TestUnitReady);
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
@@ -168,14 +167,7 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 
 	LOGTRACE("Receiving %d bytes to be printed", length);
 
-	if (transfer_buffer_size < length) {
-		if (transfer_buffer) {
-			free(transfer_buffer);
-		}
-
-		transfer_buffer = (BYTE *)malloc(length);
-		transfer_buffer_size = length;
-	}
+	transfer_buffer = (BYTE *)realloc(transfer_buffer, length);
 
 	ctrl->length = length;
 	controller->SetByteTransfer(true);
@@ -305,6 +297,5 @@ void SCSIPrinter::Cleanup()
 	if (transfer_buffer) {
 		free(transfer_buffer);
 		transfer_buffer= NULL;
-		transfer_buffer_size = 0;
 	}
 }

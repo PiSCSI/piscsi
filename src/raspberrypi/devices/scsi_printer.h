@@ -61,5 +61,4 @@ private:
 
 	// The printer device has its own dynamically allocated buffer
 	BYTE *transfer_buffer;
-	uint32_t transfer_buffer_size;
 };
