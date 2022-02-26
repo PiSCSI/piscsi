@@ -146,8 +146,8 @@ bool PrimaryDevice::CheckReady()
 
 int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb, BYTE *buf)
 {
-	// EVPD check
-	if (cdb[1] & 0x01) {
+	// EVPD and page code check
+	if ((cdb[1] & 0x01) || cdb[2]) {
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
