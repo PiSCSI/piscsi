@@ -993,7 +993,7 @@ function installRaScsiCtrlBoard() {
 
     sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
     # install numpy via apt to avoid compilation
-    sudo apt-get install python3-numpy -y </dev/null
+    sudo apt-get install python3-numpy python3-cbor2 -y </dev/null
 
     # enable i2c
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
@@ -1021,6 +1021,7 @@ function installRaScsiCtrlBoard() {
     fi
 
     # adjust i2c baudrate according to the raspberry pi model detection
+    set +e
     GREP_PARAM="^dtparam=i2c_arm=on,i2c_arm_baudrate=${TARGET_I2C_BAUDRATE}$"
     ADJUST_BAUDRATE=$(grep -c "${GREP_PARAM}" /boot/config.txt)
     if [[ $ADJUST_BAUDRATE -eq 0 ]]; then
@@ -1030,6 +1031,7 @@ function installRaScsiCtrlBoard() {
     else
       echo "I2C baudrate already correct in /boot/config.txt"
     fi
+    set -e
 
     echo "Installing the rascsi-ctrlboard.service configuration..."
     sudo cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/rascsi-ctrlboard.service" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
