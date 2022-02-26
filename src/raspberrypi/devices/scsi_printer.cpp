@@ -252,6 +252,7 @@ bool SCSIPrinter::WriteBytes(uint32_t length)
 
 	LOGTRACE("Appending %d byte(s) to printer output file", length);
 
+	assert(transfer_buffer);
 	write(fd, transfer_buffer, length);
 
 	return true;
