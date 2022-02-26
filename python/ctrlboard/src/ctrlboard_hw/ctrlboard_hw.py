@@ -1,6 +1,7 @@
 """Module providing the interface to the RaSCSI Control Board hardware"""
 # noinspection PyUnresolvedReferences
 import logging
+import time
 import RPi.GPIO as GPIO
 import numpy
 import smbus
@@ -16,9 +17,10 @@ from observable import Observable
 # pylint: disable=too-many-instance-attributes
 class CtrlBoardHardware(Observable):
     """Class implements the RaSCSI Control Board hardware and provides an interface to it."""
-    def __init__(self, display_i2c_address, pca9554_i2c_address):
+    def __init__(self, display_i2c_address, pca9554_i2c_address, debounce_us=400):
         self.display_i2c_address = display_i2c_address
         self.pca9554_i2c_address = pca9554_i2c_address
+        self.debounce_us = debounce_us
         self.rascsi_controlboard_detected = self.detect_rascsi_controlboard()
         log = logging.getLogger(__name__)
         log.info("RaSCSI Control Board detected: %s", str(self.rascsi_controlboard_detected))
@@ -98,6 +100,8 @@ class CtrlBoardHardware(Observable):
         self.rotary.pos_prev = 0
         self.rotary.name = CtrlBoardHardwareConstants.ROTARY
 
+        self.last_interrupt_timestamp = None
+
     # noinspection PyUnusedLocal
     # pylint: disable=unused-argument
     def button_pressed_callback(self, channel):
@@ -105,6 +109,7 @@ class CtrlBoardHardware(Observable):
         input_register = self.pca_driver.read_input_register()
         self.input_register_buffer <<= 8
         self.input_register_buffer |= input_register
+        self.last_interrupt_timestamp = time.time_ns()
 
     def check_button_press(self, button):
         """Checks whether the button state has changed."""
@@ -150,6 +155,15 @@ class CtrlBoardHardware(Observable):
 
     def process_events(self):
         """Non-blocking event processor for hardware events (button presses etc.)"""
+        if self.last_interrupt_timestamp is None:
+            return
+
+        # debounce button presses
+        if (time.time_ns() - self.last_interrupt_timestamp)/1000 < self.debounce_us:
+            return
+
+        self.last_interrupt_timestamp = None
+
         input_register_buffer_length = int(len(format(self.input_register_buffer, 'b'))/8)
         if input_register_buffer_length <= 1:
             return
