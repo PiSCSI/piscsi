@@ -438,8 +438,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
 
-	// Get changeable flag
-	bool change = (cdb[2] & 0xc0) == 0x40;
+	bool changeable = (cdb[2] & 0xc0) == 0x40;
 
 	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
@@ -474,7 +473,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int additional_size = AddModePages(page, change, &buf[size], length - size);
+	int additional_size = AddModePages(page, changeable, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}
@@ -592,11 +591,11 @@ void Disk::SetDeviceParameters(BYTE *buf)
 	}
 }
 
-int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
+int Disk::AddModePages(int page, bool changeable, BYTE *buf, int max_length)
 {
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<BYTE>> pages;
-	AddModePages(pages, page, change);
+	AddModePages(pages, page, changeable);
 
 	// If no mode data were added at all something must be wrong
 	if (pages.empty()) {
@@ -645,33 +644,33 @@ int Disk::AddModePages(int page, bool change, BYTE *buf, int max_length)
 	return size;
 }
 
-void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool change)
+void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable)
 {
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
-		AddErrorPage(pages, change);
+		AddErrorPage(pages, changeable);
 	}
 
 	// Page code 3 (format device)
 	if (page == 0x03 || page == 0x3f) {
-		AddFormatPage(pages, change);
+		AddFormatPage(pages, changeable);
 	}
 
 	// Page code 4 (drive parameter)
 	if (page == 0x04 || page == 0x3f) {
-		AddDrivePage(pages, change);
+		AddDrivePage(pages, changeable);
 	}
 
 	// Page code 8 (caching)
 	if (page == 0x08 || page == 0x3f) {
-		AddCachePage(pages, change);
+		AddCachePage(pages, changeable);
 	}
 
 	// Page (vendor special)
-	AddVendorPage(pages, page, change);
+	AddVendorPage(pages, page, changeable);
 }
 
-void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
+void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool)
 {
 	vector<BYTE> buf(12);
 
@@ -680,7 +679,7 @@ void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
 	pages[1] = buf;
 }
 
-void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
+void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable)
 {
 	vector<BYTE> buf(24);
 
@@ -689,7 +688,7 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 
 	// Show the number of bytes in the physical sector as changeable
 	// (though it cannot be changed in practice)
-	if (change) {
+	if (changeable) {
 		buf[0xc] = 0xff;
 		buf[0xd] = 0xff;
 
@@ -720,12 +719,12 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 	pages[3] = buf;
 }
 
-void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool change)
+void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable)
 {
 	vector<BYTE> buf(24);
 
 	// No changeable area
-	if (change) {
+	if (changeable) {
 		pages[4] = buf;
 
 		return;

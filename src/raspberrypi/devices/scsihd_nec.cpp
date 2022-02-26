@@ -146,7 +146,7 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
+void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool)
 {
 	vector<BYTE> buf(8);
 
@@ -155,7 +155,7 @@ void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool change)
 	pages[1] = buf;
 }
 
-void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
+void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable)
 {
 	vector<BYTE> buf(24);
 
@@ -163,7 +163,7 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 	buf[0] = 0x80;
 
 	// Make the number of bytes in the physical sector appear mutable (although it cannot actually be)
-	if (change) {
+	if (changeable) {
 		buf[0xc] = 0xff;
 		buf[0xd] = 0xff;
 
@@ -195,12 +195,12 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool change)
 	pages[3] = buf;
 }
 
-void SCSIHD_NEC::AddDrivePage(map<int, vector<BYTE>>& pages, bool change)
+void SCSIHD_NEC::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable)
 {
 	vector<BYTE> buf(20);
 
 	// No changeable area
-	if (!change && IsReady()) {
+	if (!changeable && IsReady()) {
 		// Set the number of cylinders
 		buf[0x2] = (BYTE)(cylinders >> 16);
 		buf[0x3] = (BYTE)(cylinders >> 8);

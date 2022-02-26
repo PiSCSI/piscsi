@@ -128,17 +128,17 @@ void SCSIMO::SetDeviceParameters(BYTE *buf)
 	buf[2] = 0x03;
 }
 
-void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool change)
+void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable)
 {
-	Disk::AddModePages(pages, page, change);
+	Disk::AddModePages(pages, page, changeable);
 
 	// Page code 6
 	if (page == 0x06 || page == 0x3f) {
-		AddOptionPage(pages, change);
+		AddOptionPage(pages, changeable);
 	}
 }
 
-void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool change)
+void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool)
 {
 	vector<BYTE> buf(4);
 	pages[6] = buf;

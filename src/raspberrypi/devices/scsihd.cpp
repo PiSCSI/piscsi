@@ -216,7 +216,7 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Add Vendor special page to make drive Apple compatible
 //
 //---------------------------------------------------------------------------
-void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool change)
+void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable)
 {
 	// Page code 48
 	if (page != 0x30 && page != 0x3f) {
@@ -226,7 +226,7 @@ void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool change)
 	vector<BYTE> buf(30);
 
 	// No changeable area
-	if (!change) {
+	if (!changeable) {
 		memcpy(&buf.data()[0xa], "APPLE COMPUTER, INC.", 20);
 	}
 

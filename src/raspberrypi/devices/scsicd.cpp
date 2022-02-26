@@ -456,27 +456,27 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool change)
+void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable)
 {
-	Disk::AddModePages(pages, page, change);
+	Disk::AddModePages(pages, page, changeable);
 
 	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
-		AddCDROMPage(pages, change);
+		AddCDROMPage(pages, changeable);
 	}
 
 	// Page code 14
 	if (page == 0x0e || page == 0x3f) {
-		AddCDDAPage(pages, change);
+		AddCDDAPage(pages, changeable);
 	}
 }
 
-void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool change)
+void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool changeable)
 {
 	vector<BYTE> buf(8);
 
 	// No changeable area
-	if (!change) {
+	if (!changeable) {
 		// 2 seconds for inactive timer
 		buf[3] = 0x05;
 
@@ -488,7 +488,7 @@ void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool change)
 	pages[13] = buf;
 }
 
-void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool change)
+void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool)
 {
 	vector<BYTE> buf(16);
 
