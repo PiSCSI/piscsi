@@ -164,7 +164,12 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 	length <<= 8;
 	length |= ctrl->cmd[4];
 
-	transfer_buffer = (BYTE *)realloc(transfer_buffer, length);
+	if (!transfer_buffer) {
+		transfer_buffer = (BYTE *)malloc(length);
+	}
+	else {
+		transfer_buffer = (BYTE *)realloc(transfer_buffer, length);
+	}
 
 	LOGTRACE("Receiving %d bytes to be printed, buffer address is %p", length, transfer_buffer);
 
