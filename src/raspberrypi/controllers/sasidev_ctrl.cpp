@@ -664,7 +664,7 @@ void SASIDEV::CmdTestUnitReady()
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	((Disk *)ctrl.device)->TestUnitReady(this);
+	ctrl.device->TestUnitReady(this);
 }
 
 //---------------------------------------------------------------------------
@@ -690,7 +690,7 @@ void SASIDEV::CmdRequestSense()
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	((Disk *)ctrl.device)->RequestSense(this);
+	ctrl.device->RequestSense(this);
 }
 
 //---------------------------------------------------------------------------
