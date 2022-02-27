@@ -189,7 +189,7 @@ void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page)
 	}
 }
 
-void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages)
+void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages) const
 {
 	vector<BYTE> buf(10);
 
