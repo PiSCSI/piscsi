@@ -31,9 +31,14 @@ public:
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;
 	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
+protected:
+
 	// Internal processing
 	void SetDeviceParameters(BYTE *);
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+
+private:
+
 	void AddOptionPage(map<int, vector<BYTE>>&, bool) const;
-	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const;
 };
