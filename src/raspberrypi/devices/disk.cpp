@@ -101,7 +101,7 @@ bool Disk::Dispatch(SCSIDEV *controller)
 //---------------------------------------------------------------------------
 void Disk::Open(const Filepath& path)
 {
-	ASSERT(disk.blocks > 0);
+	assert(disk.blocks > 0);
 
 	SetReady(true);
 
@@ -725,11 +725,6 @@ bool Disk::Format(const DWORD *cdb)
 	return true;
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ
-//
-//---------------------------------------------------------------------------
 // TODO Read more than one block in a single call. Currently blocked by the SASI code (missing early range check)
 // and the track-oriented cache.
 int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
@@ -756,11 +751,6 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	return 1 << disk.size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	WRITE check
-//
-//---------------------------------------------------------------------------
 int Disk::WriteCheck(DWORD block)
 {
 	// Status check
@@ -785,11 +775,6 @@ int Disk::WriteCheck(DWORD block)
 	return 1 << disk.size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	WRITE
-//
-//---------------------------------------------------------------------------
 // TODO Write more than one block in a single call. Currently blocked by the SASI code (missing early range check)
 // and the track-oriented cache.
 bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
