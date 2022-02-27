@@ -75,7 +75,7 @@ void SCSIHD::Reset()
 
 void SCSIHD::Open(const Filepath& path)
 {
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -133,10 +133,9 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int size;
+	assert(length >= 0);
 
-	ASSERT(buf);
-	ASSERT(length >= 0);
+	int size;
 
 	// PF
 	if (cdb[1] & 0x10) {

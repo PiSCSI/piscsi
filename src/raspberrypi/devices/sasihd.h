@@ -27,8 +27,8 @@
 class SASIHD : public Disk, public FileSupport
 {
 public:
-	SASIHD();
-	~SASIHD() {};
+	SASIHD() : Disk("SAHD") {}
+	~SASIHD() {}
 
 	void Reset();
 	void Open(const Filepath& path) override;
