@@ -38,8 +38,8 @@ Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 	dispatcher.AddCommand(eCmdRead6, "Read6", &Disk::Read6);
 	dispatcher.AddCommand(eCmdWrite6, "Write6", &Disk::Write6);
 	dispatcher.AddCommand(eCmdSeek6, "Seek6", &Disk::Seek6);
-	dispatcher.AddCommand(eCmdReserve6, "Reserve6", &Disk::Reserve6);
-	dispatcher.AddCommand(eCmdRelease6, "Release6", &Disk::Release6);
+	dispatcher.AddCommand(eCmdReserve6, "Reserve6", &Disk::Reserve);
+	dispatcher.AddCommand(eCmdRelease6, "Release6", &Disk::Release);
 	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &Disk::StartStopUnit);
 	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &Disk::SendDiagnostic);
 	dispatcher.AddCommand(eCmdRemoval, "PreventAllowMediumRemoval", &Disk::PreventAllowMediumRemoval);
@@ -54,8 +54,8 @@ Disk::Disk(const string& id) : ModePageDevice(id), ScsiBlockCommands()
 	dispatcher.AddCommand(eCmdSynchronizeCache10, "SynchronizeCache10", &Disk::SynchronizeCache10);
 	dispatcher.AddCommand(eCmdSynchronizeCache16, "SynchronizeCache16", &Disk::SynchronizeCache16);
 	dispatcher.AddCommand(eCmdReadDefectData10, "ReadDefectData10", &Disk::ReadDefectData10);
-	dispatcher.AddCommand(eCmdReserve10, "Reserve10", &Disk::Reserve10);
-	dispatcher.AddCommand(eCmdRelease10, "Release10", &Disk::Release10);
+	dispatcher.AddCommand(eCmdReserve10, "Reserve10", &Disk::Reserve);
+	dispatcher.AddCommand(eCmdRelease10, "Release10", &Disk::Release);
 	dispatcher.AddCommand(eCmdRead16, "Read16", &Disk::Read16);
 	dispatcher.AddCommand(eCmdWrite16, "Write16", &Disk::Write16);
 	dispatcher.AddCommand(eCmdVerify16, "Verify16", &Disk::Verify16);
@@ -1018,7 +1018,7 @@ void Disk::ReadCapacity16_ReadLong16(SASIDEV *controller)
 
 //---------------------------------------------------------------------------
 //
-//	RESERVE(6)
+//	RESERVE/RELEASE(6/10)
 //
 //  The reserve/release commands are only used in multi-initiator
 //  environments. RaSCSI doesn't support this use case. However, some old
@@ -1026,52 +1026,12 @@ void Disk::ReadCapacity16_ReadLong16(SASIDEV *controller)
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void Disk::Reserve6(SASIDEV *controller)
+void Disk::Reserve(SASIDEV *controller)
 {
 	controller->Status();
 }
 
-//---------------------------------------------------------------------------
-//
-//	RESERVE(10)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void Disk::Reserve10(SASIDEV *controller)
-{
-	controller->Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RELEASE(6)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void Disk::Release6(SASIDEV *controller)
-{
-	controller->Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RELEASE(10)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void Disk::Release10(SASIDEV *controller)
+void Disk::Release(SASIDEV *controller)
 {
 	controller->Status();
 }

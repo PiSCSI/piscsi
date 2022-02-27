@@ -96,10 +96,8 @@ private:
 	void Seek10(SASIDEV *);
 	void ReadCapacity10(SASIDEV *) override;
 	void ReadCapacity16(SASIDEV *) override;
-	void Reserve6(SASIDEV *);
-	void Reserve10(SASIDEV *);
-	void Release6(SASIDEV *);
-	void Release10(SASIDEV *);
+	void Reserve(SASIDEV *);
+	void Release(SASIDEV *);
 
 public:
 
