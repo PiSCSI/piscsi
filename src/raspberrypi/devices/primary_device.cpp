@@ -152,7 +152,7 @@ int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DW
 		return 0;
 	}
 
-	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	int allocation_length = cdb[4] + (cdb[3] << 8);
 	if (allocation_length > 4) {
 		if (allocation_length > 44) {
 			allocation_length = 44;
