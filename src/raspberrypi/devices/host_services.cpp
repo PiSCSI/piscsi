@@ -106,28 +106,22 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 		return 0;
 	}
 
+	bool changeable = (cdb[2] & 0xc0) == 0x40;
+
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
 
+	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
-
-	map<int, vector<BYTE>> pages;
-	AddModePages(pages, page, false);
-	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	// Currently there is only one page
-	vector<BYTE> page_data = pages[32];
 
 	// Basic information
 	int size = 4;
 
-	memcpy(&buf[size], page_data.data(), page_data.size());
-
-	size += page_data.size();
+	int additional_size = super::AddModePages(page, changeable, &buf[size], length - size);
+	if (!additional_size) {
+		return 0;
+	}
+	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -147,25 +141,19 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	}
 	memset(buf, 0, length);
 
+	bool changeable = (cdb[2] & 0xc0) == 0x40;
+
+	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
-
-	map<int, vector<BYTE>> pages;
-	AddModePages(pages, page, false);
-	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	// Currently there is only one page
-	vector<BYTE> page_data = pages[32];
 
 	// Basic information
 	int size = 8;
 
-	memcpy(&buf[size], page_data.data(), page_data.size());
-
-	size += page_data.size();
+	int additional_size = super::AddModePages(page, changeable, &buf[size], length - size);
+	if (!additional_size) {
+		return 0;
+	}
+	size += additional_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -178,36 +166,32 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const
+void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
-
 	if (page == 0x20 || page == 0x3f) {
-		AddRealtimeClockPage(pages);
+		AddRealtimeClockPage(pages, changeable);
 	}
 }
 
-void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages) const
+void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
 	vector<BYTE> buf(10);
 
-	// Set the page code and message length
-	buf[0] = 0x20;
-	buf[1] = 0x08;
+	if (!changeable) {
+		// Data structure version 1.0
+		buf[2] = 0x01;
+		buf[3] = 0x00;
 
-	// Data structure version 1.0
-	buf[2] = 0x01;
-	buf[3] = 0x00;
-
-	std::time_t t = std::time(NULL);
-	std::tm tm = *std::localtime(&t);
-	buf[4] = tm.tm_year;
-	buf[5] = tm.tm_mon;
-	buf[6] = tm.tm_mday;
-	buf[7] = tm.tm_hour;
-	buf[8] = tm.tm_min;
-	// Ignore leap second for simplicity
-	buf[9] = tm.tm_sec < 60 ? tm.tm_sec : 59;
+		std::time_t t = std::time(NULL);
+		std::tm tm = *std::localtime(&t);
+		buf[4] = tm.tm_year;
+		buf[5] = tm.tm_mon;
+		buf[6] = tm.tm_mday;
+		buf[7] = tm.tm_hour;
+		buf[8] = tm.tm_min;
+		// Ignore leap second for simplicity
+		buf[9] = tm.tm_sec < 60 ? tm.tm_sec : 59;
+	}
 
 	pages[32] = buf;
 }

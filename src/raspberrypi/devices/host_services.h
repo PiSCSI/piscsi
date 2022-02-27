@@ -39,5 +39,5 @@ private:
 	Dispatcher<HostServices, SCSIDEV> dispatcher;
 
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
-	void AddRealtimeClockPage(map<int, vector<BYTE>>&) const;
+	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;
 };

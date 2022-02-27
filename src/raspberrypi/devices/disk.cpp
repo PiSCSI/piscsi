@@ -497,8 +497,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	}
 	memset(buf, 0, length);
 
-	// Get changeable flag
-	bool change = (cdb[2] & 0xc0) == 0x40;
+	bool changeable = (cdb[2] & 0xc0) == 0x40;
 
 	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
@@ -559,7 +558,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		}
 	}
 
-	int additional_size = super::AddModePages(page, change, &buf[size], length - size);
+	int additional_size = super::AddModePages(page, changeable, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}
