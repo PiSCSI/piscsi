@@ -127,7 +127,7 @@ void ModePageDevice::ModeSelect6(SASIDEV *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
-	ctrl->length = ModeSelectCheck6(ctrl->cmd);
+	ctrl->length = ModeSelectCheck6();
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -140,7 +140,7 @@ void ModePageDevice::ModeSelect10(SASIDEV *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
-	ctrl->length = ModeSelectCheck10(ctrl->cmd, ctrl->bufsize);
+	ctrl->length = ModeSelectCheck10();
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -149,11 +149,11 @@ void ModePageDevice::ModeSelect10(SASIDEV *controller)
 	controller->DataOut();
 }
 
-int ModePageDevice::ModeSelectCheck(const DWORD *cdb, int length)
+int ModePageDevice::ModeSelectCheck(int length)
 {
 	// Error if save parameters are set for other types than of SCHD or SCRM
-	// TODO This assumption is not correct, and this code should be located elsewhere
-	if (!IsSCSIHD() && (cdb[1] & 0x01)) {
+	// TODO The assumption above is not correct, and this code should be located elsewhere
+	if (!IsSCSIHD() && (ctrl->cmd[1] & 0x01)) {
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
@@ -161,21 +161,21 @@ int ModePageDevice::ModeSelectCheck(const DWORD *cdb, int length)
 	return length;
 }
 
-int ModePageDevice::ModeSelectCheck6(const DWORD *cdb)
+int ModePageDevice::ModeSelectCheck6()
 {
 	// Receive the data specified by the parameter length
-	return ModeSelectCheck(cdb, cdb[4]);
+	return ModeSelectCheck(ctrl->cmd[4]);
 }
 
-int ModePageDevice::ModeSelectCheck10(const DWORD *cdb, int max_length)
+int ModePageDevice::ModeSelectCheck10()
 {
 	// Receive the data specified by the parameter length
-	int length = cdb[7];
+	int length = ctrl->cmd[7];
 	length <<= 8;
-	length |= cdb[8];
-	if (length > max_length) {
-		length = max_length;
+	length |= ctrl->cmd[8];
+	if (length > ctrl->bufsize) {
+		length = ctrl->bufsize;
 	}
 
-	return ModeSelectCheck(cdb, length);
+	return ModeSelectCheck(length);
 }

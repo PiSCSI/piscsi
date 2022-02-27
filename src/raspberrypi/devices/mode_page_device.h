@@ -47,7 +47,7 @@ private:
 	void ModeSelect6(SASIDEV *);
 	void ModeSelect10(SASIDEV *);
 
-	int ModeSelectCheck(const DWORD *, int);
-	int ModeSelectCheck6(const DWORD *);
-	int ModeSelectCheck10(const DWORD *, int);
+	int ModeSelectCheck(int);
+	int ModeSelectCheck6();
+	int ModeSelectCheck10();
 };
