@@ -677,9 +677,6 @@ void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool) const
 
 int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf, int max_length)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// Get length, clear buffer
 	int length = (cdb[7] << 8) | cdb[8];
 	if (length > max_length) {
@@ -737,8 +734,6 @@ bool Disk::Format(const DWORD *cdb)
 // and the track-oriented cache.
 int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
-	ASSERT(buf);
-
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	if (!CheckReady()) {
@@ -758,7 +753,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 	}
 
 	//  Success
-	return (1 << disk.size);
+	return 1 << disk.size;
 }
 
 //---------------------------------------------------------------------------
@@ -787,7 +782,7 @@ int Disk::WriteCheck(DWORD block)
 	}
 
 	//  Success
-	return (1 << disk.size);
+	return 1 << disk.size;
 }
 
 //---------------------------------------------------------------------------
@@ -799,8 +794,6 @@ int Disk::WriteCheck(DWORD block)
 // and the track-oriented cache.
 bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 {
-	ASSERT(buf);
-
 	LOGTRACE("%s", __PRETTY_FUNCTION__);
 
 	// Error if not ready
