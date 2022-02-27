@@ -481,7 +481,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
-		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
 		size = length;
 	}
 
@@ -572,7 +571,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
-		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
 		size = length;
 	}
 
