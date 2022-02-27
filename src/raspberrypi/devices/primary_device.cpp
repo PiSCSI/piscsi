@@ -53,6 +53,7 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 
 	vector<BYTE> buf = Inquiry(ctrl->cmd);
 	memcpy(ctrl->buffer, buf.data(), buf.size());
+	ctrl->length = buf.size();
 
 	int lun = controller->GetEffectiveLun();
 
