@@ -310,5 +310,7 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 		buf[11] = (BYTE)bands;
 	}
 
+	pages[32] = buf;
+
 	return;
 }
