@@ -40,9 +40,9 @@ public:
 	bool Dispatch(SCSIDEV *) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
-	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	vector<BYTE> Inquiry(const DWORD *) const override;
+	int GetMessage10(const DWORD *cdb, BYTE *buf);
+	bool SendMessage10(const DWORD *cdb, BYTE *buf);
 	void TestUnitReady(SASIDEV *) override;
 	void GetMessage10(SASIDEV *);
 	void SendMessage10(SASIDEV *);

@@ -397,13 +397,17 @@ void SCSICD::ReadToc(SASIDEV *controller)
 	controller->DataIn();
 }
 
-int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSICD::Inquiry(const DWORD *cdb) const
 {
-	// EVPD check
-	if (cdb[1] & 0x01) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
+	// Size of data that can be returned
+	int size = 0x1F + 5;
+
+	// Limit if the other buffer is small
+	if (size > (int)cdb[4]) {
+		size = (int)cdb[4];
 	}
+
+	vector<BYTE> buf = vector<BYTE>(size);
 
 	// Basic data
 	// buf[0] ... CD-ROM Device
@@ -411,7 +415,6 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	// buf[2] ... SCSI-2 compliant command system
 	// buf[3] ... SCSI-2 compliant Inquiry response
 	// buf[4] ... Inquiry additional data
-	memset(buf, 0, 8);
 	buf[0] = 0x05;
 	buf[1] = 0x80;
 	buf[2] = 0x02;
@@ -419,10 +422,10 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[4] = 0x1F;
 
 	// Fill with blanks
-	memset(&buf[8], 0x20, buf[4] - 3);
+	memset(&buf.data()[8], 0x20, buf[4] - 3);
 
 	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to
@@ -447,15 +450,7 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 //	buf[36]=0x20;
 //	memcpy(&buf[37],"1999/01/01",10);
 
-	// Size of data that can be returned
-	int size = (buf[4] + 5);
-
-	// Limit if the other buffer is small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return size;
+	return buf;
 }
 
 void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const

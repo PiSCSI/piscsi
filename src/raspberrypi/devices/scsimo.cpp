@@ -63,13 +63,17 @@ void SCSIMO::Open(const Filepath& path)
 	}
 }
 
-int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSIMO::Inquiry(const DWORD *cdb) const
 {
-	// EVPD check
-	if (cdb[1] & 0x01) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
+	// Size of data that can be returned
+	int size = 0x1F + 5;
+
+	// Limit if the other buffer is small
+	if (size > (int)cdb[4]) {
+		size = (int)cdb[4];
 	}
+
+	vector<BYTE> buf = vector<BYTE>(size);
 
 	// Basic data
 	// buf[0] ... Optical Memory Device
@@ -77,7 +81,6 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 	// buf[2] ... SCSI-2 compliant command system
 	// buf[3] ... SCSI-2 compliant Inquiry response
 	// buf[4] ... Inquiry additional data
-	memset(buf, 0, 8);
 	buf[0] = 0x07;
 	buf[1] = 0x80;
 	buf[2] = 0x02;
@@ -85,17 +88,9 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
 
-	// Size return data
-	int size = (buf[4] + 5);
-
-	// Limit the size if the buffer is too small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return size;
+	return buf;
 }
 
 void SCSIMO::SetDeviceParameters(BYTE *buf)

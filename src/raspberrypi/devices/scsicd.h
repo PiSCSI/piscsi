@@ -84,9 +84,9 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;		// READ command
-	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
+	vector<BYTE> Inquiry(const DWORD *) const override;
+	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
+	int ReadToc(const DWORD *cdb, BYTE *buf);
 
 protected:
 

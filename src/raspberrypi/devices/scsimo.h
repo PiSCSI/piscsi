@@ -28,7 +28,7 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;
+	vector<BYTE> Inquiry(const DWORD *cdb) const override;
 	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 protected:

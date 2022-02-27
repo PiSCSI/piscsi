@@ -45,11 +45,15 @@ void PrimaryDevice::TestUnitReady(SASIDEV *controller)
 
 void PrimaryDevice::Inquiry(SASIDEV *controller)
 {
-	ctrl->length = Inquiry(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length <= 0) {
-		controller->Error();
+	vector<BYTE> buf = Inquiry(ctrl->cmd);
+
+	// EVPD check
+	if (ctrl->cmd[1] & 0x01) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
+
+	memcpy(ctrl->buffer, buf.data(), buf.size());
 
 	int lun = controller->GetEffectiveLun();
 
@@ -144,12 +148,13 @@ bool PrimaryDevice::CheckReady()
 	return true;
 }
 
-int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb, BYTE *buf)
+vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb) const
 {
+	vector<BYTE> buf;
+
 	// EVPD and page code check
 	if ((cdb[1] & 0x01) || cdb[2]) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
+		return buf;
 	}
 
 	int allocation_length = cdb[4] + (cdb[3] << 8);
@@ -158,13 +163,14 @@ int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DW
 			allocation_length = 44;
 		}
 
+		buf = vector<BYTE>(allocation_length);
+
 		// Basic data
 		// buf[0] ... SCSI Device type
 		// buf[1] ... Bit 7: Removable/not removable
 		// buf[2] ... SCSI-2 compliant command system
 		// buf[3] ... SCSI-2 compliant Inquiry response
 		// buf[4] ... Inquiry additional data
-		memset(buf, 0, allocation_length);
 		buf[0] = type;
 		buf[1] = is_removable ? 0x80 : 0x00;
 		buf[2] = scsi_level;
@@ -173,10 +179,12 @@ int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DW
 		buf[4] = 0x1F;
 
 		// Padded vendor, product, revision
-		memcpy(&buf[8], GetPaddedName().c_str(), 28);
+		memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
+
+		return buf;
 	}
 
-	return allocation_length;
+	return vector<BYTE>(4);
 }
 
 int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)

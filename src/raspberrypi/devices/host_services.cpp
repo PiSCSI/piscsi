@@ -57,10 +57,10 @@ void HostServices::TestUnitReady(SCSIDEV *controller)
 	controller->Status();
 }
 
-int HostServices::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> HostServices::Inquiry(const DWORD *cdb) const
 {
 	// Processor device, SPC-5, not removable
-	return PrimaryDevice::Inquiry(3, 7, false, cdb, buf);
+	return PrimaryDevice::Inquiry(3, 7, false, cdb);
 }
 
 void HostServices::StartStopUnit(SCSIDEV *controller)

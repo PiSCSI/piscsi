@@ -81,10 +81,9 @@ void SASIHD::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 }
 
-int SASIHD::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/)
+vector<BYTE> SASIHD::Inquiry(const DWORD *) const
 {
-	SetStatusCode(STATUS_INVALIDCMD);
-	return 0;
+	return vector<BYTE>(0);
 }
 
 int SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)

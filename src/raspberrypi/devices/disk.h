@@ -108,7 +108,6 @@ public:
 	void Seek6(SASIDEV *);
 
 	// Command helpers
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
 	virtual int WriteCheck(DWORD block);					// WRITE check
 	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
 	bool StartStop(const DWORD *cdb);				// START STOP UNIT command

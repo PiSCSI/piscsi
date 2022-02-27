@@ -99,32 +99,30 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSIBR::Inquiry(const DWORD *cdb) const
 {
-	// EVPD check
-	if (cdb[1] & 0x01) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
+	// Size of data that can be returned
+	int size = 0x1F + 8;
+
+	// Limit if the other buffer is small
+	if (size > (int)cdb[4]) {
+		size = (int)cdb[4];
 	}
 
+	vector<BYTE> buf = vector<BYTE>(size);
+
 	// Basic data
-	// buf[0] ... Communication Device
+	// buf[0] ... Communications Device
 	// buf[2] ... SCSI-2 compliant command system
 	// buf[3] ... SCSI-2 compliant Inquiry response
 	// buf[4] ... Inquiry additional data
-	memset(buf, 0, 8);
 	buf[0] = 0x09;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
 	buf[4] = 0x1F + 8;	// required + 8 byte extension
 
 	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
 
 	// Optional function valid flag
 	buf[36] = '0';
@@ -137,16 +135,7 @@ int SCSIBR::Inquiry(const DWORD *cdb, BYTE *buf)
 	// CFileSys Enable
 	buf[38] = '1';
 
-	// Size of data that can be returned
-	int size = (buf[4] + 5);
-
-	// Limit if the other buffer is small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	//  Success
-	return size;
+	return buf;
 }
 
 void SCSIBR::TestUnitReady(SASIDEV *controller)

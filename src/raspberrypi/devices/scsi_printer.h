@@ -31,7 +31,7 @@ public:
 
 	bool Init(const map<string, string>&);
 
-	int Inquiry(const DWORD *, BYTE *) override;
+	vector<BYTE> Inquiry(const DWORD *) const override;
 	void TestUnitReady(SCSIDEV *);
 	void ReserveUnit(SCSIDEV *);
 	void ReleaseUnit(SCSIDEV *);

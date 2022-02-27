@@ -135,15 +135,15 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSIHD_NEC::Inquiry(const DWORD *cdb) const
 {
-	int size = SCSIHD::Inquiry(cdb, buf);
+	vector<BYTE> buf = SCSIHD::Inquiry(cdb);
 
 	// This drive is a SCSI-1 SCCS drive
 	buf[2] = 0x01;
 	buf[3] = 0x01;
 
-	return size;
+	return buf;
 }
 
 void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const
