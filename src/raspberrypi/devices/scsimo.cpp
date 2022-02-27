@@ -21,7 +21,7 @@
 
 void SCSIMO::Open(const Filepath& path)
 {
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -59,9 +59,6 @@ void SCSIMO::Open(const Filepath& path)
 
 int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		SetStatusCode(STATUS_INVALIDCDB);
@@ -125,7 +122,6 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	int size;
 
-	ASSERT(buf);
 	ASSERT(length >= 0);
 
 	// PF
