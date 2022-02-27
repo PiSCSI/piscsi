@@ -104,11 +104,6 @@ vector<BYTE> SCSIBR::Inquiry(const DWORD *cdb) const
 	// Size of data that can be returned
 	int size = 0x1F + 8;
 
-	// Limit if the other buffer is small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
 	vector<BYTE> buf = vector<BYTE>(size);
 
 	// Basic data
@@ -135,7 +130,12 @@ vector<BYTE> SCSIBR::Inquiry(const DWORD *cdb) const
 	// CFileSys Enable
 	buf[38] = '1';
 
-	return buf;
+	// The resulting vector must match the allocation length
+	if (size > (int)cdb[4]) {
+		size = (int)cdb[4];
+	}
+
+	return vector<BYTE>(buf.begin(), buf.begin() + size);
 }
 
 void SCSIBR::TestUnitReady(SASIDEV *controller)
