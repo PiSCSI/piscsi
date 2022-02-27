@@ -26,8 +26,9 @@
 //
 //===========================================================================
 
-SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
+SCSIHD::SCSIHD(const set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
+	SetSectorSizes(sector_sizes);
 }
 
 void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)

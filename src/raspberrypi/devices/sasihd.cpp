@@ -19,6 +19,11 @@
 #include "exceptions.h"
 #include "../config.h"
 
+SASIHD::SASIHD(const set<uint32_t>& sector_sizes) : Disk("SAHD")
+{
+	SetSectorSizes(sector_sizes);
+}
+
 void SASIHD::Reset()
 {
 	// Unlock, clear attention

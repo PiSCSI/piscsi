@@ -176,8 +176,10 @@ bool CDTrack::IsAudio() const
 //
 //===========================================================================
 
-SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
+SCSICD::SCSICD(const set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
+	SetSectorSizes(sector_sizes);
+
 	// NOT in raw format
 	rawfile = false;
 

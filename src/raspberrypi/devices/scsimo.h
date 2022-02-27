@@ -22,7 +22,7 @@
 class SCSIMO : public Disk, public FileSupport
 {
 public:
-	SCSIMO() : Disk("SCMO") {}
+	SCSIMO(const set<uint32_t>&, const map<uint64_t, Geometry>&);
 	~SCSIMO() {}
 
 	void Open(const Filepath& path) override;

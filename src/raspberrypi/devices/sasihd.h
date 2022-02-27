@@ -27,7 +27,7 @@
 class SASIHD : public Disk, public FileSupport
 {
 public:
-	SASIHD() : Disk("SAHD") {}
+	SASIHD(const set<uint32_t>&);
 	~SASIHD() {}
 
 	void Reset();

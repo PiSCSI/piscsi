@@ -19,6 +19,12 @@
 #include "fileio.h"
 #include "exceptions.h"
 
+SCSIMO::SCSIMO(const set<uint32_t>& sector_sizes, const map<uint64_t, Geometry>& geometries) : Disk("SCMO")
+{
+	SetSectorSizes(sector_sizes);
+	SetGeometries(geometries);
+}
+
 void SCSIMO::Open(const Filepath& path)
 {
 	assert(!IsReady());
