@@ -69,7 +69,7 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 
 SCSIPrinter::~SCSIPrinter()
 {
-	DiscardReservation();
+	Cleanup();
 }
 
 bool SCSIPrinter::Init(const map<string, string>& params)

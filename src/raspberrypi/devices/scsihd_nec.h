@@ -26,7 +26,7 @@ class SCSIHD_NEC : public SCSIHD
 {
 public:
 	SCSIHD_NEC();
-	~SCSIHD_NEC() {};
+	~SCSIHD_NEC() {}
 
 	void Open(const Filepath& path) override;
 

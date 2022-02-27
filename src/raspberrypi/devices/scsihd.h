@@ -23,7 +23,7 @@ class SCSIHD : public Disk, public FileSupport
 {
 public:
 	SCSIHD(bool);
-	virtual ~SCSIHD() {};
+	virtual ~SCSIHD() {}
 
 	void FinalizeSetup(const Filepath&, off_t);
 
