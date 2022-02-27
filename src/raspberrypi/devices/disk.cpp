@@ -585,6 +585,7 @@ void Disk::SetDeviceParameters(BYTE *buf)
 	}
 }
 
+// TODO Move most of the page handling code to ModePageDevice
 int Disk::AddModePages(int page, bool changeable, BYTE *buf, int max_length)
 {
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
