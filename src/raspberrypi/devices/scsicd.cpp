@@ -262,7 +262,7 @@ void SCSICD::Open(const Filepath& path)
 	// Successful opening
 	ASSERT(GetBlockCount() > 0);
 
-	Disk::Open(path);
+	super::Open(path);
 	FileSupport::SetPath(path);
 
 	// Set RAW flag
@@ -458,7 +458,7 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 
 void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
-	Disk::AddModePages(pages, page, changeable);
+	super::AddModePages(pages, page, changeable);
 
 	// Page code 13
 	if (page == 0x0d || page == 0x3f) {
@@ -539,7 +539,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 	// Base class
 	ASSERT(dataindex >= 0);
-	return Disk::Read(cdb, buf, block);
+	return super::Read(cdb, buf, block);
 }
 
 int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
