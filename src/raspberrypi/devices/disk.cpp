@@ -466,11 +466,11 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int additional_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!additional_size) {
+	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
+	if (!pages_size) {
 		return 0;
 	}
-	size += additional_size;
+	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
@@ -548,11 +548,11 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		}
 	}
 
-	int additional_size = super::AddModePages(cdb, &buf[size], length - size);
-	if (!additional_size) {
+	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
+	if (!pages_size) {
 		return 0;
 	}
-	size += additional_size;
+	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
