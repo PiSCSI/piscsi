@@ -45,14 +45,13 @@ void PrimaryDevice::TestUnitReady(SASIDEV *controller)
 
 void PrimaryDevice::Inquiry(SASIDEV *controller)
 {
-	vector<BYTE> buf = Inquiry(ctrl->cmd);
-
-	// EVPD check
-	if (ctrl->cmd[1] & 0x01) {
+	// EVPD and page code check
+	if (ctrl->cmd[1] & 0x01 || ctrl->cmd[2]) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
+	vector<BYTE> buf = Inquiry(ctrl->cmd);
 	memcpy(ctrl->buffer, buf.data(), buf.size());
 
 	int lun = controller->GetEffectiveLun();
@@ -150,20 +149,13 @@ bool PrimaryDevice::CheckReady()
 
 vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb) const
 {
-	vector<BYTE> buf;
-
-	// EVPD and page code check
-	if ((cdb[1] & 0x01) || cdb[2]) {
-		return buf;
-	}
-
 	int allocation_length = cdb[4] + (cdb[3] << 8);
 	if (allocation_length > 4) {
 		if (allocation_length > 44) {
 			allocation_length = 44;
 		}
 
-		buf = vector<BYTE>(allocation_length);
+		vector<BYTE> buf = vector<BYTE>(allocation_length);
 
 		// Basic data
 		// buf[0] ... SCSI Device type
