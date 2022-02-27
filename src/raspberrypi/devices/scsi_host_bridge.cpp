@@ -122,7 +122,7 @@ vector<BYTE> SCSIBR::Inquiry(const DWORD *cdb) const
 	buf[4] = 0x1F + 8;	// required + 8 byte extension
 
 	// Padded vendor, product, revision
-	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
+	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 	// Optional function valid flag
 	buf[36] = '0';

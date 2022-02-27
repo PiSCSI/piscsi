@@ -88,7 +88,7 @@ vector<BYTE> SCSIMO::Inquiry(const DWORD *cdb) const
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
-	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
+	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 	return buf;
 }

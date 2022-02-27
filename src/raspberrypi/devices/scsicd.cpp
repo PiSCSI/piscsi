@@ -421,11 +421,8 @@ vector<BYTE> SCSICD::Inquiry(const DWORD *cdb) const
 	buf[3] = 0x02;
 	buf[4] = 0x1F;
 
-	// Fill with blanks
-	memset(&buf.data()[8], 0x20, buf[4] - 3);
-
 	// Padded vendor, product, revision
-	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
+	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to
