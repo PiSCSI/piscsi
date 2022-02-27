@@ -49,5 +49,5 @@ private:
 
 	int ModeSelectCheck(const DWORD *, int);
 	int ModeSelectCheck6(const DWORD *);
-	int ModeSelectCheck10(const DWORD *);
+	int ModeSelectCheck10(const DWORD *, int);
 };

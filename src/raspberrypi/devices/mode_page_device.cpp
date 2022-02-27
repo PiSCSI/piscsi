@@ -140,7 +140,7 @@ void ModePageDevice::ModeSelect10(SASIDEV *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
-	ctrl->length = ModeSelectCheck10(ctrl->cmd);
+	ctrl->length = ModeSelectCheck10(ctrl->cmd, controller->DEFAULT_BUFFER_SIZE);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -167,14 +167,14 @@ int ModePageDevice::ModeSelectCheck6(const DWORD *cdb)
 	return ModeSelectCheck(cdb, cdb[4]);
 }
 
-int ModePageDevice::ModeSelectCheck10(const DWORD *cdb)
+int ModePageDevice::ModeSelectCheck10(const DWORD *cdb, int max_length)
 {
 	// Receive the data specified by the parameter length
 	int length = cdb[7];
 	length <<= 8;
 	length |= cdb[8];
-	if (length > 0x800) {
-		length = 0x800;
+	if (length > max_length) {
+		length = max_length;
 	}
 
 	return ModeSelectCheck(cdb, length);
