@@ -925,10 +925,6 @@ bool Disk::SendDiag(const DWORD *cdb)
 
 void Disk::ReadCapacity10(SASIDEV *controller)
 {
-	BYTE *buf = ctrl->buffer;
-
-	memset(buf, 0, 8);
-
 	if (!CheckReady()) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
@@ -941,6 +937,8 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 
 		return;
 	}
+
+	BYTE *buf = ctrl->buffer;
 
 	// Create end of logical block address (disk.blocks-1)
 	uint32_t blocks = disk.blocks - 1;
@@ -964,14 +962,12 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 
 void Disk::ReadCapacity16(SASIDEV *controller)
 {
-	BYTE *buf = ctrl->buffer;
-
-	memset(buf, 0, 14);
-
 	if (!CheckReady() || disk.blocks <= 0) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
 		return;
 	}
+
+	BYTE *buf = ctrl->buffer;
 
 	// Create end of logical block address (disk.blocks-1)
 	uint64_t blocks = disk.blocks - 1;
@@ -990,6 +986,8 @@ void Disk::ReadCapacity16(SASIDEV *controller)
 	buf[9] = (BYTE)(length >> 16);
 	buf[10] = (BYTE)(length >> 8);
 	buf[11] = (BYTE)length;
+
+	buf[12] = 0;
 
 	// Logical blocks per physical block: not reported (1 or more)
 	buf[13] = 0;
