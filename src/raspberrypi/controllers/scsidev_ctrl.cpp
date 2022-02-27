@@ -65,7 +65,7 @@ BUS::phase_t SCSIDEV::Process(int initiator_id)
 	}
 
 	// Get bus information
-	((GPIOBUS*)ctrl.bus)->Aquire();
+	ctrl.bus->Aquire();
 
 	// Check to see if the reset signal was asserted
 	if (ctrl.bus->GetRST()) {
@@ -358,7 +358,7 @@ void SCSIDEV::MsgOut()
 void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
 {
 	// Get bus information
-	((GPIOBUS*)ctrl.bus)->Aquire();
+	ctrl.bus->Aquire();
 
 	// Reset check
 	if (ctrl.bus->GetRST()) {
