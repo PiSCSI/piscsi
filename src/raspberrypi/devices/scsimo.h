@@ -34,7 +34,7 @@ public:
 protected:
 
 	// Internal processing
-	void SetDeviceParameters(BYTE *);
+	void SetDeviceParameters(BYTE *) override;
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
 
