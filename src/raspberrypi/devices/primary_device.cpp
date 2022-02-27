@@ -106,7 +106,7 @@ void PrimaryDevice::RequestSense(SASIDEV *controller)
 	}
 
     ctrl->length = ((PrimaryDevice *)ctrl->unit[lun])->RequestSense(ctrl->cmd, ctrl->buffer);
-	ASSERT(ctrl->length > 0);
+	assert(ctrl->length > 0);
 
     LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
 
@@ -181,22 +181,16 @@ int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DW
 
 int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// Return not ready only if there are no errors
-	if (GetStatusCode() == STATUS_NOERROR) {
-		if (!IsReady()) {
-			SetStatusCode(STATUS_NOTREADY);
-		}
+	if (GetStatusCode() == STATUS_NOERROR && !IsReady()) {
+		SetStatusCode(STATUS_NOTREADY);
 	}
 
 	// Size determination (according to allocation length)
 	int size = (int)cdb[4];
-	ASSERT((size >= 0) && (size < 0x100));
+	assert(size >= 0 && size < 0x100);
 
 	// For SCSI-1, transfer 4 bytes when the size is 0
-    // (Deleted this specification for SCSI-2)
 	if (size == 0) {
 		size = 4;
 	}
