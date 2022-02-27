@@ -115,7 +115,7 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[1] = IsRemovable() ? 0x80 : 0x00;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 28 + 3;	// Value close to real HDD
+	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);

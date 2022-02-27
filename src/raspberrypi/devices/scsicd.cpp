@@ -414,7 +414,7 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 36 - 5;	// Required
+	buf[4] = 0x1F;
 
 	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);

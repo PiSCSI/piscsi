@@ -104,7 +104,7 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 36 - 5;	// required
+	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
