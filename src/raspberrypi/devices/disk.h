@@ -140,7 +140,7 @@ protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
 	virtual void SetDeviceParameters(BYTE *);
-	virtual void AddModePages(map<int, vector<BYTE>>&, int, bool) const;
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
 	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool) const;
 	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool) const;
@@ -158,6 +158,4 @@ private:
 	void ReadWriteLong16(SASIDEV *);
 	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
-
-	int AddModePages(int, bool, BYTE *, int);
 };

@@ -112,8 +112,10 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int page = cdb[2] & 0x3f;
 
 	map<int, vector<BYTE>> pages;
-	AddModePages(pages, page);
+	AddModePages(pages, page, false);
 	if (pages.empty()) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
@@ -148,8 +150,10 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	int page = cdb[2] & 0x3f;
 
 	map<int, vector<BYTE>> pages;
-	AddModePages(pages, page);
+	AddModePages(pages, page, false);
 	if (pages.empty()) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
 
@@ -174,18 +178,12 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page)
+void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const
 {
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
 	if (page == 0x20 || page == 0x3f) {
 		AddRealtimeClockPage(pages);
-	}
-
-	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
-		return;
 	}
 }
 

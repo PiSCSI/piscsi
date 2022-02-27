@@ -11,6 +11,8 @@
 
 #include "primary_device.h"
 #include <string>
+#include <vector>
+#include <map>
 
 using namespace std;
 
@@ -28,6 +30,11 @@ public:
 
 	// TODO This method should not be called by SASIDEV
 	virtual bool ModeSelect(const DWORD *, const BYTE *, int);
+
+protected:
+
+	int AddModePages(int, bool, BYTE *, int);
+	virtual void AddModePages(map<int, vector<BYTE>>&, int, bool) const = 0;
 
 private:
 

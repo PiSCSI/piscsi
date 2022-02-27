@@ -471,7 +471,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int additional_size = AddModePages(page, changeable, &buf[size], length - size);
+	int additional_size = super::AddModePages(page, changeable, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}
@@ -559,7 +559,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		}
 	}
 
-	int additional_size = AddModePages(page, change, &buf[size], length - size);
+	int additional_size = super::AddModePages(page, change, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}
@@ -583,62 +583,6 @@ void Disk::SetDeviceParameters(BYTE *buf)
 	if (IsProtected()) {
 		buf[3] = 0x80;
 	}
-}
-
-// TODO Move most of the page handling code to ModePageDevice
-int Disk::AddModePages(int page, bool changeable, BYTE *buf, int max_length)
-{
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
-
-	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
-	map<int, vector<BYTE>> pages;
-	AddModePages(pages, page, changeable);
-
-	// If no mode data were added at all something must be wrong
-	if (pages.empty()) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	int size = 0;
-
-	vector<BYTE> page0;
-	for (auto const& page : pages) {
-		if (size + (int)page.second.size() > max_length) {
-			LOGWARN("Mode page data size exceeds reserved buffer size");
-
-			page0.clear();
-
-			break;
-		}
-		else {
-			// The specification mandates that page 0 must be returned after all others
-			if (page.first) {
-				// Page data
-				memcpy(&buf[size], page.second.data(), page.second.size());
-				// Page code, PS bit may already have been set
-				buf[size] |= page.first;
-				// Page payload size
-				buf[size + 1] = page.second.size() - 2;
-
-				size += page.second.size();
-			}
-			else {
-				page0 = page.second;
-			}
-		}
-	}
-
-	// Page 0 must be last
-	if (!page0.empty()) {
-		memcpy(&buf[size], page0.data(), page0.size());
-		// Page payload size
-		buf[size + 1] = page0.size() - 2;
-		size += page0.size();
-	}
-
-	return size;
 }
 
 void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
