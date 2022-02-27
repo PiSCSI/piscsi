@@ -3,7 +3,10 @@ Module for sending and receiving data over a socket connection with the RaSCSI b
 """
 
 import logging
+import socket
 from time import sleep
+from struct import pack, unpack
+
 from rascsi.exceptions import (EmptySocketChunkException,
                                InvalidProtobufResponse,
                                FailedSocketConnectionException)
@@ -27,7 +30,6 @@ class SocketCmds:
         tries = 20
         error_msg = ""
 
-        import socket
         while counter < tries:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
@@ -56,7 +58,6 @@ class SocketCmds:
         Tries to extract and interpret the protobuf header to get response size.
         Reads data from socket in 2048 bytes chunks until all data is received.
         """
-        from struct import pack, unpack
 
         # Sending the magic word "RASCSI" to authenticate with the server
         sock.send(b"RASCSI")
