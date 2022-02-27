@@ -183,8 +183,6 @@ void Disk::Read6(SASIDEV *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
-		LOGDEBUG("%s READ(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
-
 		Read(controller, start);
 	}
 }
@@ -193,8 +191,6 @@ void Disk::Read10(SASIDEV *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s READ(10) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
-
 		Read(controller, start);
 	}
 }
@@ -203,8 +199,6 @@ void Disk::Read16(SASIDEV *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s READ(16) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
-
 		Read(controller, start);
 	}
 }
@@ -267,8 +261,6 @@ void Disk::Write6(SASIDEV *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
-		LOGDEBUG("%s WRITE(6) command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
-
 		Write(controller, start);
 	}
 }
@@ -277,8 +269,6 @@ void Disk::Write10(SASIDEV *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s WRITE(10) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
-
 		Write(controller, start);
 	}
 }
@@ -287,8 +277,6 @@ void Disk::Write16(SASIDEV *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s WRITE(16) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)start, ctrl->blocks);
-
 		Write(controller, start);
 	}
 }
@@ -329,8 +317,6 @@ void Disk::Verify10(SASIDEV *controller)
 	// Get record number and block number
 	uint64_t record;
 	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		LOGDEBUG("%s VERIFY(10) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
-
 		Verify(controller, record);
 	}
 }
@@ -340,8 +326,6 @@ void Disk::Verify16(SASIDEV *controller)
 	// Get record number and block number
 	uint64_t record;
 	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		LOGDEBUG("%s VERIFY(16) command record=$%08X blocks=%d",__PRETTY_FUNCTION__, (uint32_t)record, ctrl->blocks);
-
 		Verify(controller, record);
 	}
 }
@@ -1123,6 +1107,8 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 			count |= ctrl->cmd[8];
 		}
 	}
+
+	LOGTRACE("%s READ/WRITE/VERIFY command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count);
 
 	// Check capacity
 	uint64_t capacity = GetBlockCount();
