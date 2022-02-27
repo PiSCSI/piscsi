@@ -90,15 +90,15 @@ public:
 
 protected:
 
-	void AddModePages(map<int, vector<BYTE>>&, int, bool) override;
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 
 private:
 	typedef Disk super;
 
 	Dispatcher<SCSICD, SASIDEV> dispatcher;
 
-	void AddCDROMPage(map<int, vector<BYTE>>&, bool);
-	void AddCDDAPage(map<int, vector<BYTE>>&, bool);
+	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
+	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
 
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)

@@ -128,7 +128,7 @@ void SCSIMO::SetDeviceParameters(BYTE *buf)
 	buf[2] = 0x03;
 }
 
-void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable)
+void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
 	Disk::AddModePages(pages, page, changeable);
 
@@ -138,7 +138,7 @@ void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeab
 	}
 }
 
-void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool)
+void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool) const
 {
 	vector<BYTE> buf(4);
 	pages[6] = buf;
@@ -217,22 +217,18 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Vendor Unique Format Page 20h (MO)
 //
 //---------------------------------------------------------------------------
-int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
+void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
-	ASSERT(buf);
-
 	// Page code 20h
-	if ((page != 0x20) && (page != 0x3f)) {
-		return 0;
+	if (page != 0x20 && page != 0x3f) {
+		return;
 	}
 
-	// Set the message length
-	buf[0] = 0x20;
-	buf[1] = 0x0a;
+	vector<BYTE> buf(12);
 
 	// No changeable area
-	if (change) {
-		return 12;
+	if (changeable) {
+		return;
 	}
 
 	/*
@@ -313,5 +309,5 @@ int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 		buf[11] = (BYTE)bands;
 	}
 
-	return 12;
+	return;
 }

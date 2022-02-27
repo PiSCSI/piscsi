@@ -146,7 +146,7 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool)
+void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const
 {
 	vector<BYTE> buf(8);
 
@@ -155,7 +155,7 @@ void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool)
 	pages[1] = buf;
 }
 
-void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable)
+void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
 	vector<BYTE> buf(24);
 
@@ -195,7 +195,7 @@ void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable)
 	pages[3] = buf;
 }
 
-void SCSIHD_NEC::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable)
+void SCSIHD_NEC::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
 	vector<BYTE> buf(20);
 

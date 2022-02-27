@@ -642,7 +642,7 @@ int Disk::AddModePages(int page, bool changeable, BYTE *buf, int max_length)
 	return size;
 }
 
-void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable)
+void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
 	// Page code 1 (read-write error recovery)
 	if (page == 0x01 || page == 0x3f) {
@@ -668,7 +668,7 @@ void Disk::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable
 	AddVendorPage(pages, page, changeable);
 }
 
-void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool)
+void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const
 {
 	vector<BYTE> buf(12);
 
@@ -677,7 +677,7 @@ void Disk::AddErrorPage(map<int, vector<BYTE>>& pages, bool)
 	pages[1] = buf;
 }
 
-void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable)
+void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
 	vector<BYTE> buf(24);
 
@@ -717,7 +717,7 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable)
 	pages[3] = buf;
 }
 
-void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable)
+void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
 	vector<BYTE> buf(24);
 
@@ -745,7 +745,7 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable)
 	pages[4] = buf;
 }
 
-void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool)
+void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool) const
 {
 	vector<BYTE> buf(12);
 
@@ -754,7 +754,7 @@ void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool)
 	pages[8] = buf;
 }
 
-void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool)
+void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool) const
 {
 	// Nothing to add by default
 }
