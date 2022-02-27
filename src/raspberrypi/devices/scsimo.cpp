@@ -194,13 +194,14 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 		return;
 	}
 
+	vector<BYTE> buf(12);
+
 	// No changeable area
-	// TODO Doing nothing here is probably wrong, because it results in a wrong error code being returned
 	if (changeable) {
+		pages[32] = buf;
+
 		return;
 	}
-
-	vector<BYTE> buf(12);
 
 	/*
 		mode page code 20h - Vendor Unique Format Page
