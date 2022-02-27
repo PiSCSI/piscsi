@@ -168,6 +168,7 @@ int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DW
 		buf[0] = type;
 		buf[1] = is_removable ? 0x80 : 0x00;
 		buf[2] = scsi_level;
+		buf[3] = scsi_level >= 2 ? 2 : 0;
 		buf[4] = 0x1F;
 
 		// Padded vendor, product, revision
