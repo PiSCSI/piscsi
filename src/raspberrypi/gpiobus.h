@@ -488,7 +488,7 @@ public:
 	//	Bus signal acquisition
 	//
 	//---------------------------------------------------------------------------
-	inline DWORD Aquire()
+	inline DWORD Aquire() override
 	{
 	#if defined(__x86_64__) || defined(__X86__)
 		// Only used for development/debugging purposes. Isn't really applicable
@@ -509,24 +509,24 @@ public:
 	void SetENB(BOOL ast);
 										// Set ENB signal
 
-	bool GetBSY();
+	bool GetBSY() override;
 										// Get BSY signal
-	void SetBSY(bool ast);
+	void SetBSY(bool ast) override;
 										// Set BSY signal
 
-	BOOL GetSEL();
+	BOOL GetSEL() override;
 										// Get SEL signal
-	void SetSEL(BOOL ast);
+	void SetSEL(BOOL ast) override;
 										// Set SEL signal
 
-	BOOL GetATN();
+	BOOL GetATN() override;
 										// Get ATN signal
-	void SetATN(BOOL ast);
+	void SetATN(BOOL ast) override;
 										// Set ATN signal
 
-	BOOL GetACK();
+	BOOL GetACK() override;
 										// Get ACK signal
-	void SetACK(BOOL ast);
+	void SetACK(BOOL ast) override;
 										// Set ACK signal
 
 	BOOL GetACT();
@@ -534,42 +534,42 @@ public:
 	void SetACT(BOOL ast);
 										// Set ACT signal
 
-	BOOL GetRST();
+	BOOL GetRST() override;
 										// Get RST signal
-	void SetRST(BOOL ast);
+	void SetRST(BOOL ast) override;
 										// Set RST signal
 
-	BOOL GetMSG();
+	BOOL GetMSG() override;
 										// Get MSG signal
-	void SetMSG(BOOL ast);
+	void SetMSG(BOOL ast) override;
 										// Set MSG signal
 
-	BOOL GetCD();
+	BOOL GetCD() override;
 										// Get CD signal
-	void SetCD(BOOL ast);
+	void SetCD(BOOL ast) override;
 										// Set CD signal
 
-	BOOL GetIO();
+	BOOL GetIO() override;
 										// Get IO signal
-	void SetIO(BOOL ast);
+	void SetIO(BOOL ast) override;
 										// Set IO signal
 
-	BOOL GetREQ();
+	BOOL GetREQ() override;
 										// Get REQ signal
-	void SetREQ(BOOL ast);
+	void SetREQ(BOOL ast) override;
 										// Set REQ signal
 
-	BYTE GetDAT();
+	BYTE GetDAT() override;
 										// Get DAT signal
-	void SetDAT(BYTE dat);
+	void SetDAT(BYTE dat) override;
 										// Set DAT signal
-	BOOL GetDP();
+	BOOL GetDP() override;
 										// Get Data parity signal
-	int CommandHandShake(BYTE *buf);
+	int CommandHandShake(BYTE *buf) override;
 										// Command receive handshake
-	int ReceiveHandShake(BYTE *buf, int count);
+	int ReceiveHandShake(BYTE *buf, int count) override;
 										// Data receive handshake
-	int SendHandShake(BYTE *buf, int count, int delay_after_bytes);
+	int SendHandShake(BYTE *buf, int count, int delay_after_bytes) override;
 										// Data transmission handshake
 
 	static BUS::phase_t GetPhaseRaw(DWORD raw_data);

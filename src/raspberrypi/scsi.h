@@ -148,6 +148,7 @@ public:
 	virtual void SetDAT(BYTE dat) = 0;
 	virtual BOOL GetDP() = 0;			// Get parity signal
 
+	virtual DWORD Aquire() = 0;
 	virtual int CommandHandShake(BYTE *buf) = 0;
 	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
 	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;

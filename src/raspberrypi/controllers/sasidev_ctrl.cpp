@@ -626,7 +626,7 @@ void SASIDEV::DataOut()
 void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
 {
 	// Get bus information
-	((GPIOBUS*)ctrl.bus)->Aquire();
+	ctrl.bus->Aquire();
 
 	// Reset check
 	if (ctrl.bus->GetRST()) {
