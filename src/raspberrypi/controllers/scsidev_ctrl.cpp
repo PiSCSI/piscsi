@@ -647,7 +647,7 @@ void SCSIDEV::Receive()
 						// Transfer period factor (limited to 50 x 4 = 200ns)
 						scsi.syncperiod = scsi.msb[i + 3];
 						if (scsi.syncperiod > 50) {
-							scsi.syncoffset = 50;
+							scsi.syncperiod = 50;
 						}
 
 						// REQ/ACK offset(limited to 16)
