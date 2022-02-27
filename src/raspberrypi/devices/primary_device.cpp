@@ -119,7 +119,7 @@ bool PrimaryDevice::CheckReady()
 	if (IsReset()) {
 		SetStatusCode(STATUS_DEVRESET);
 		SetReset(false);
-		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device in reset", __PRETTY_FUNCTION__);
 		return false;
 	}
 
@@ -127,19 +127,19 @@ bool PrimaryDevice::CheckReady()
 	if (IsAttn()) {
 		SetStatusCode(STATUS_ATTENTION);
 		SetAttn(false);
-		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device in needs attention", __PRETTY_FUNCTION__);
 		return false;
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device not ready", __PRETTY_FUNCTION__);
 		return false;
 	}
 
 	// Initialization with no error
-	LOGTRACE("%s Disk is ready", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__);
 
 	return true;
 }
