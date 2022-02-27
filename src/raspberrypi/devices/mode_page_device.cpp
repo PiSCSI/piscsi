@@ -114,9 +114,6 @@ void ModePageDevice::ModeSense10(SASIDEV *controller)
 
 bool ModePageDevice::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
 {
-	ASSERT(buf);
-	ASSERT(length >= 0);
-
 	// cannot be set
 	SetStatusCode(STATUS_INVALIDPRM);
 
