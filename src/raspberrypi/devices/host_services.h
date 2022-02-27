@@ -11,6 +11,7 @@
 #pragma once
 
 #include "mode_page_device.h"
+#include <vector>
 
 using namespace std;
 
@@ -37,5 +38,6 @@ private:
 
 	Dispatcher<HostServices, SCSIDEV> dispatcher;
 
-	int AddRealtimeClockPage(int, BYTE *);
+	void AddModePages(map<int, vector<BYTE>>&, int);
+	void AddRealtimeClockPage(map<int, vector<BYTE>>&);
 };

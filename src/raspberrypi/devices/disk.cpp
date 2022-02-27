@@ -443,8 +443,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
 
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
-
 	// Basic information
 	int size = 4;
 
@@ -504,8 +502,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 
 	// Get page code (0x3f means all pages)
 	int page = cdb[2] & 0x3f;
-
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
 	// Basic Information
 	int size = 8;
@@ -591,6 +587,8 @@ void Disk::SetDeviceParameters(BYTE *buf)
 
 int Disk::AddModePages(int page, bool changeable, BYTE *buf, int max_length)
 {
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
 	map<int, vector<BYTE>> pages;
 	AddModePages(pages, page, changeable);
