@@ -176,8 +176,10 @@ bool CDTrack::IsAudio() const
 //
 //===========================================================================
 
-SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
+SCSICD::SCSICD(const set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
+	SetSectorSizes(sector_sizes);
+
 	// NOT in raw format
 	rawfile = false;
 
@@ -262,7 +264,7 @@ void SCSICD::Open(const Filepath& path)
 	// Successful opening
 	ASSERT(GetBlockCount() > 0);
 
-	Disk::Open(path);
+	super::Open(path);
 	FileSupport::SetPath(path);
 
 	// Set RAW flag
@@ -414,7 +416,7 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 36 - 5;	// Required
+	buf[4] = 0x1F;
 
 	// Fill with blanks
 	memset(&buf[8], 0x20, buf[4] - 3);
@@ -454,6 +456,48 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 	}
 
 	return size;
+}
+
+void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+{
+	super::AddModePages(pages, page, changeable);
+
+	// Page code 13
+	if (page == 0x0d || page == 0x3f) {
+		AddCDROMPage(pages, changeable);
+	}
+
+	// Page code 14
+	if (page == 0x0e || page == 0x3f) {
+		AddCDDAPage(pages, changeable);
+	}
+}
+
+void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool changeable) const
+{
+	vector<BYTE> buf(8);
+
+	// No changeable area
+	if (!changeable) {
+		// 2 seconds for inactive timer
+		buf[3] = 0x05;
+
+		// MSF multiples are 60 and 75 respectively
+		buf[5] = 60;
+		buf[7] = 75;
+	}
+
+	pages[13] = buf;
+}
+
+void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
+{
+	vector<BYTE> buf(16);
+
+	// Audio waits for operation completion and allows
+	// PLAY across multiple tracks
+
+	pages[14] = buf;
 }
 
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
@@ -497,7 +541,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 	// Base class
 	ASSERT(dataindex >= 0);
-	return Disk::Read(cdb, buf, block);
+	return super::Read(cdb, buf, block);
 }
 
 int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)

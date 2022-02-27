@@ -11,6 +11,8 @@
 
 #include "primary_device.h"
 #include <string>
+#include <vector>
+#include <map>
 
 using namespace std;
 
@@ -24,10 +26,15 @@ public:
 	virtual bool Dispatch(SCSIDEV *) override;
 
 	virtual int ModeSense6(const DWORD *, BYTE *) = 0;
-	virtual int ModeSense10(const DWORD *, BYTE *) = 0;
+	virtual int ModeSense10(const DWORD *, BYTE *, int) = 0;
 
 	// TODO This method should not be called by SASIDEV
 	virtual bool ModeSelect(const DWORD *, const BYTE *, int);
+
+protected:
+
+	int AddModePages(const DWORD *, BYTE *, int);
+	virtual void AddModePages(map<int, vector<BYTE>>&, int, bool) const = 0;
 
 private:
 
@@ -40,7 +47,7 @@ private:
 	void ModeSelect6(SASIDEV *);
 	void ModeSelect10(SASIDEV *);
 
-	int ModeSelectCheck(const DWORD *, int);
-	int ModeSelectCheck6(const DWORD *);
-	int ModeSelectCheck10(const DWORD *);
+	int ModeSelectCheck(int);
+	int ModeSelectCheck6();
+	int ModeSelectCheck10();
 };

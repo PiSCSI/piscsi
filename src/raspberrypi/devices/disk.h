@@ -96,10 +96,8 @@ private:
 	void Seek10(SASIDEV *);
 	void ReadCapacity10(SASIDEV *) override;
 	void ReadCapacity16(SASIDEV *) override;
-	void Reserve6(SASIDEV *);
-	void Reserve10(SASIDEV *);
-	void Release6(SASIDEV *);
-	void Release10(SASIDEV *);
+	void Reserve(SASIDEV *);
+	void Release(SASIDEV *);
 
 public:
 
@@ -117,7 +115,7 @@ public:
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
-	int ReadDefectData10(const DWORD *cdb, BYTE *buf);
+	int ReadDefectData10(const DWORD *, BYTE *, int);
 
 	uint32_t GetSectorSizeInBytes() const;
 	void SetSectorSizeInBytes(uint32_t, bool);
@@ -138,15 +136,14 @@ public:
 
 protected:
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
-	int ModeSense10(const DWORD *cdb, BYTE *buf);
-	virtual int AddErrorPage(bool change, BYTE *buf);
-	virtual int AddFormatPage(bool change, BYTE *buf);
-	virtual int AddDrivePage(bool change, BYTE *buf);
-	virtual int AddVendorPage(int page, bool change, BYTE *buf);
-	int AddOptionPage(bool change, BYTE *buf);
-	int AddCachePage(bool change, BYTE *buf);
-	int AddCDROMPage(bool change, BYTE *buf);
-	int AddCDDAPage(bool, BYTE *buf);
+	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
+	virtual void SetDeviceParameters(BYTE *);
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	virtual void AddErrorPage(map<int, vector<BYTE>>&, bool) const;
+	virtual void AddFormatPage(map<int, vector<BYTE>>&, bool) const;
+	virtual void AddDrivePage(map<int, vector<BYTE>>&, bool) const;
+	void AddCachePage(map<int, vector<BYTE>>&, bool) const;
+	virtual void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const;
 
 	// Internal disk data
 	disk_t disk;

@@ -18,7 +18,7 @@
 #include "fileio.h"
 #include "exceptions.h"
 
-SCSIHD_NEC::SCSIHD_NEC() : SCSIHD(false)
+SCSIHD_NEC::SCSIHD_NEC(const set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false)
 {
 	// Work initialization
 	cylinders = 0;
@@ -146,31 +146,30 @@ int SCSIHD_NEC::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-int SCSIHD_NEC::AddErrorPage(bool change, BYTE *buf)
+void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const
 {
-	ASSERT(buf);
-
-	// Set the message length
-	buf[0] = 0x01;
-	buf[1] = 0x06;
+	vector<BYTE> buf(8);
 
 	// The retry count is 0, and the limit time uses the default value inside the device.
-	return 8;
+
+	pages[1] = buf;
 }
 
-int SCSIHD_NEC::AddFormatPage(bool change, BYTE *buf)
+void SCSIHD_NEC::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
-	ASSERT(buf);
+	vector<BYTE> buf(24);
 
-	// Set the message length
-	buf[0] = 0x80 | 0x03;
-	buf[1] = 0x16;
+	// Page can be saved
+	buf[0] = 0x80;
 
 	// Make the number of bytes in the physical sector appear mutable (although it cannot actually be)
-	if (change) {
+	if (changeable) {
 		buf[0xc] = 0xff;
 		buf[0xd] = 0xff;
-		return 24;
+
+		pages[3] = buf;
+
+		return;
 	}
 
 	if (IsReady()) {
@@ -193,19 +192,15 @@ int SCSIHD_NEC::AddFormatPage(bool change, BYTE *buf)
 		buf[20] = 0x20;
 	}
 
-	return 24;
+	pages[3] = buf;
 }
 
-int SCSIHD_NEC::AddDrivePage(bool change, BYTE *buf)
+void SCSIHD_NEC::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
-	ASSERT(buf);
-
-	// Set the message length
-	buf[0] = 0x04;
-	buf[1] = 0x12;
+	vector<BYTE> buf(20);
 
 	// No changeable area
-	if (!change && IsReady()) {
+	if (!changeable && IsReady()) {
 		// Set the number of cylinders
 		buf[0x2] = (BYTE)(cylinders >> 16);
 		buf[0x3] = (BYTE)(cylinders >> 8);
@@ -215,5 +210,5 @@ int SCSIHD_NEC::AddDrivePage(bool change, BYTE *buf)
 		buf[0x5] = (BYTE)heads;
 	}
 
-	return 20;
+	pages[4] = buf;
 }

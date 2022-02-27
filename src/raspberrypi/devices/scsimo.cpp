@@ -19,29 +19,15 @@
 #include "fileio.h"
 #include "exceptions.h"
 
-//===========================================================================
-//
-//	SCSI magneto-optical disk
-//
-//===========================================================================
-
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
-SCSIMO::SCSIMO() : Disk("SCMO")
+SCSIMO::SCSIMO(const set<uint32_t>& sector_sizes, const map<uint64_t, Geometry>& geometries) : Disk("SCMO")
 {
+	SetSectorSizes(sector_sizes);
+	SetGeometries(geometries);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
 void SCSIMO::Open(const Filepath& path)
 {
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -77,16 +63,8 @@ void SCSIMO::Open(const Filepath& path)
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
 int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// EVPD check
 	if (cdb[1] & 0x01) {
 		SetStatusCode(STATUS_INVALIDCDB);
@@ -104,7 +82,7 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[1] = 0x80;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 36 - 5;	// required
+	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
@@ -120,16 +98,36 @@ int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
 	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT
-//
-//---------------------------------------------------------------------------
+void SCSIMO::SetDeviceParameters(BYTE *buf)
+{
+	Disk::SetDeviceParameters(buf);
+
+	// MEDIUM TYPE: Optical reversible or erasable
+	buf[2] = 0x03;
+}
+
+void SCSIMO::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+{
+	Disk::AddModePages(pages, page, changeable);
+
+	// Page code 6
+	if (page == 0x06 || page == 0x3f) {
+		AddOptionPage(pages, changeable);
+	}
+}
+
+void SCSIMO::AddOptionPage(map<int, vector<BYTE>>& pages, bool) const
+{
+	vector<BYTE> buf(4);
+	pages[6] = buf;
+
+	// Do not report update blocks
+}
+
 bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
 	int size;
 
-	ASSERT(buf);
 	ASSERT(length >= 0);
 
 	// PF
@@ -191,22 +189,20 @@ bool SCSIMO::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Vendor Unique Format Page 20h (MO)
 //
 //---------------------------------------------------------------------------
-int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
+void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
-	ASSERT(buf);
-
 	// Page code 20h
-	if ((page != 0x20) && (page != 0x3f)) {
-		return 0;
+	if (page != 0x20 && page != 0x3f) {
+		return;
 	}
 
-	// Set the message length
-	buf[0] = 0x20;
-	buf[1] = 0x0a;
+	vector<BYTE> buf(12);
 
 	// No changeable area
-	if (change) {
-		return 12;
+	if (changeable) {
+		pages[32] = buf;
+
+		return;
 	}
 
 	/*
@@ -287,5 +283,7 @@ int SCSIMO::AddVendor(int page, BOOL change, BYTE *buf)
 		buf[11] = (BYTE)bands;
 	}
 
-	return 12;
+	pages[32] = buf;
+
+	return;
 }

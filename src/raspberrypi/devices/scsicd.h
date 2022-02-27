@@ -76,7 +76,7 @@ public:
 		TrackMax = 96							// Maximum number of tracks
 	};
 
-	SCSICD();
+	SCSICD(const set<uint32_t>&);
 	~SCSICD();
 
 	bool Dispatch(SCSIDEV *) override;
@@ -88,10 +88,17 @@ public:
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;		// READ command
 	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
 
+protected:
+
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+
 private:
 	typedef Disk super;
 
 	Dispatcher<SCSICD, SASIDEV> dispatcher;
+
+	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
+	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
 
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)

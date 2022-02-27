@@ -37,6 +37,7 @@ public:
 	virtual int Inquiry(const DWORD *, BYTE *) = 0;
 	virtual int RequestSense(const DWORD *, BYTE *);
 	virtual bool WriteBytes(BYTE *, uint32_t);
+	virtual int GetSendDelay() { return BUS::SEND_NO_DELAY; }
 
 protected:
 

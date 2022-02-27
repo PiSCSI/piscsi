@@ -17,7 +17,8 @@
 // 2. The client sends the data to be printed with one or several PRINT commands. Due to
 // https://github.com/akuker/RASCSI/issues/669 the maximum transfer size per PRINT command is
 // limited to 4096 bytes.
-// 3. The client triggers printing with SYNCHRONIZE BUFFER.
+// 3. The client triggers printing with SYNCHRONIZE BUFFER. Each SYNCHRONIZE BUFFER results in
+// the print command for this printer (see below) to be called for the data not yet printed.
 // 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for a
 // multi-initiator environment).
 //
@@ -68,7 +69,7 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 
 SCSIPrinter::~SCSIPrinter()
 {
-	DiscardReservation();
+	Cleanup();
 }
 
 bool SCSIPrinter::Init(const map<string, string>& params)
@@ -168,7 +169,7 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 
 	// TODO This device suffers from the statically allocated buffer size,
 	// see https://github.com/akuker/RASCSI/issues/669
-	if (length > (uint32_t)controller->DEFAULT_BUFFER_SIZE) {
+	if (length > (uint32_t)ctrl->bufsize) {
 		LOGERROR("Transfer buffer overflow");
 
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);

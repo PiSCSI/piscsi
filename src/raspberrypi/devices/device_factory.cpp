@@ -31,7 +31,6 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
-	// Some old Sun CD-ROM drives support 512 bytes per sector
 	sector_sizes[SCCD] = { 512, 2048};
 
 	// 128 MB, 512 bytes per sector, 248826 sectors
@@ -124,20 +123,17 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 	try {
 		switch (type) {
 			case SAHD:
-				device = new SASIHD();
+				device = new SASIHD(sector_sizes[SAHD]);
 				device->SetSupportedLuns(2);
 				device->SetProduct("SASI HD");
-				((Disk *)device)->SetSectorSizes(sector_sizes[SAHD]);
 			break;
 
 			case SCHD: {
 				string ext = GetExtension(filename);
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-					device = new SCSIHD_NEC();
-					((Disk *)device)->SetSectorSizes({ 512 });
+					device = new SCSIHD_NEC({ 512 });
 				} else {
-					device = new SCSIHD(false);
-					((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);
+					device = new SCSIHD(sector_sizes[SCHD], false);
 
 					// Some Apple tools require a particular drive identification
 					if (ext == "hda") {
@@ -151,34 +147,30 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 			}
 
 			case SCRM:
-				device = new SCSIHD(true);
+				device = new SCSIHD(sector_sizes[SCRM], true);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI HD (REM.)");
-				((Disk *)device)->SetSectorSizes(sector_sizes[SCRM]);
 				break;
 
 			case SCMO:
-				device = new SCSIMO();
+				device = new SCSIMO(sector_sizes[SCMO], geometries[SCMO]);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI MO");
-				((Disk *)device)->SetSectorSizes(sector_sizes[SCRM]);
-				((Disk *)device)->SetGeometries(geometries[SCMO]);
 				break;
 
 			case SCCD:
-				device = new SCSICD();
+				device = new SCSICD(sector_sizes[SCCD]);
 				device->SetReadOnly(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI CD-ROM");
-				((Disk *)device)->SetSectorSizes(sector_sizes[SCCD]);
 				break;
 
 			case SCBR:
