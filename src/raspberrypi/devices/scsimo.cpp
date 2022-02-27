@@ -225,6 +225,7 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 	}
 
 	// No changeable area
+	// TODO Doing nothing here is probably wrong, because it results in a wrong error code being returned
 	if (changeable) {
 		return;
 	}
