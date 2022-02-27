@@ -846,6 +846,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	return true;
 }
 
+// TODO For SCSI the specification mandates that the block address is verified
 void Disk::Seek(SASIDEV *controller)
 {
 	if (!CheckReady()) {
