@@ -1108,7 +1108,7 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		}
 	}
 
-	LOGTRACE("%s READ/WRITE/VERIFY command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count);
+	LOGDEBUG("%s READ/WRITE/VERIFY command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count);
 
 	// Check capacity
 	uint64_t capacity = GetBlockCount();
