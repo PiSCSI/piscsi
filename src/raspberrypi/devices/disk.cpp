@@ -887,16 +887,8 @@ bool Disk::SendDiag(const DWORD *cdb)
 
 void Disk::ReadCapacity10(SASIDEV *controller)
 {
-	if (!CheckReady()) {
+	if (!CheckReady() || disk.blocks <= 0) {
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
-		return;
-	}
-
-	if (disk.blocks <= 0) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
-
-		LOGWARN("%s Capacity not available, medium may not be present", __PRETTY_FUNCTION__);
-
 		return;
 	}
 
