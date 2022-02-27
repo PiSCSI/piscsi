@@ -157,7 +157,7 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				break;
 
 			case SCMO:
-				device = new SCSIMO(sector_sizes[SCRM], geometries[SCMO]);
+				device = new SCSIMO(sector_sizes[SCMO], geometries[SCMO]);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
