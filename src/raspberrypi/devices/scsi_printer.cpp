@@ -169,7 +169,7 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 
 	// TODO This device suffers from the statically allocated buffer size,
 	// see https://github.com/akuker/RASCSI/issues/669
-	if (length > (uint32_t)controller->DEFAULT_BUFFER_SIZE) {
+	if (length > (uint32_t)ctrl->bufsize) {
 		LOGERROR("Transfer buffer overflow");
 
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);

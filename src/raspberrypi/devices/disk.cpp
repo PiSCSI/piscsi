@@ -396,7 +396,7 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
-	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer, controller->DEFAULT_BUFFER_SIZE);
+	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 	if (ctrl->length <= 4) {
 		controller->Error();
 		return;

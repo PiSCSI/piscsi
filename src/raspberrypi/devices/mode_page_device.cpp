@@ -103,7 +103,7 @@ void ModePageDevice::ModeSense6(SASIDEV *controller)
 
 void ModePageDevice::ModeSense10(SASIDEV *controller)
 {
-	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, controller->DEFAULT_BUFFER_SIZE);
+	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -140,7 +140,7 @@ void ModePageDevice::ModeSelect10(SASIDEV *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
-	ctrl->length = ModeSelectCheck10(ctrl->cmd, controller->DEFAULT_BUFFER_SIZE);
+	ctrl->length = ModeSelectCheck10(ctrl->cmd, ctrl->bufsize);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
