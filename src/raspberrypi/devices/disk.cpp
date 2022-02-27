@@ -438,11 +438,6 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
 
-	bool changeable = (cdb[2] & 0xc0) == 0x40;
-
-	// Get page code (0x3f means all pages)
-	int page = cdb[2] & 0x3f;
-
 	// Basic information
 	int size = 4;
 
@@ -471,7 +466,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 		size = 12;
 	}
 
-	int additional_size = super::AddModePages(page, changeable, &buf[size], length - size);
+	int additional_size = super::AddModePages(cdb, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}
@@ -496,11 +491,6 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		length = max_length;
 	}
 	memset(buf, 0, length);
-
-	bool changeable = (cdb[2] & 0xc0) == 0x40;
-
-	// Get page code (0x3f means all pages)
-	int page = cdb[2] & 0x3f;
 
 	// Basic Information
 	int size = 8;
@@ -558,7 +548,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		}
 	}
 
-	int additional_size = super::AddModePages(page, changeable, &buf[size], length - size);
+	int additional_size = super::AddModePages(cdb, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}

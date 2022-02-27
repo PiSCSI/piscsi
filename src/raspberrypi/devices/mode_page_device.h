@@ -33,7 +33,7 @@ public:
 
 protected:
 
-	int AddModePages(int, bool, BYTE *, int);
+	int AddModePages(const DWORD *, BYTE *, int);
 	virtual void AddModePages(map<int, vector<BYTE>>&, int, bool) const = 0;
 
 private:

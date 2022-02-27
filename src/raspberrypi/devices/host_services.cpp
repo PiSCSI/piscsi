@@ -106,18 +106,13 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 		return 0;
 	}
 
-	bool changeable = (cdb[2] & 0xc0) == 0x40;
-
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
-
-	// Get page code (0x3f means all pages)
-	int page = cdb[2] & 0x3f;
 
 	// Basic information
 	int size = 4;
 
-	int additional_size = super::AddModePages(page, changeable, &buf[size], length - size);
+	int additional_size = super::AddModePages(cdb, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}
@@ -135,21 +130,21 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 
 int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 {
+	// Block descriptors cannot be returned
+	if (!(cdb[1] & 0x08)) {
+		return 0;
+	}
+
 	int length = (cdb[7] << 8) | cdb[8];
 	if (length > max_length) {
 		length = max_length;
 	}
 	memset(buf, 0, length);
 
-	bool changeable = (cdb[2] & 0xc0) == 0x40;
-
-	// Get page code (0x3f means all pages)
-	int page = cdb[2] & 0x3f;
-
 	// Basic information
 	int size = 8;
 
-	int additional_size = super::AddModePages(page, changeable, &buf[size], length - size);
+	int additional_size = super::AddModePages(cdb, &buf[size], length - size);
 	if (!additional_size) {
 		return 0;
 	}

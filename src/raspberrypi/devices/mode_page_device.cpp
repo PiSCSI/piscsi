@@ -30,8 +30,13 @@ bool ModePageDevice::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-int ModePageDevice::AddModePages(int page, bool changeable, BYTE *buf, int max_length)
+int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 {
+	bool changeable = (cdb[2] & 0xc0) == 0x40;
+
+	// Get page code (0x3f means all pages)
+	int page = cdb[2] & 0x3f;
+
 	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
 	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
