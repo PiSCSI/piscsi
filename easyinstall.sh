@@ -992,8 +992,8 @@ function installRaScsiCtrlBoard() {
     updateRaScsiGit
 
     sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
-    # install numpy via apt to avoid compilation
-    sudo apt-get install python3-numpy python3-cbor2 -y </dev/null
+    # install python packages through apt that need compilation
+    sudo apt-get install python3-cbor2 -y </dev/null
 
     # enable i2c
     if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
