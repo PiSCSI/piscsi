@@ -1,6 +1,8 @@
 """Module providing the interface to the RaSCSI Control Board hardware"""
 # noinspection PyUnresolvedReferences
 import logging
+import time
+
 import RPi.GPIO as GPIO
 import smbus
 from ctrlboard_hw import pca9554multiplexer
@@ -14,9 +16,10 @@ from observable import Observable
 # pylint: disable=too-many-instance-attributes
 class CtrlBoardHardware(Observable):
     """Class implements the RaSCSI Control Board hardware and provides an interface to it."""
-    def __init__(self, display_i2c_address, pca9554_i2c_address):
+    def __init__(self, display_i2c_address, pca9554_i2c_address, debounce_ms=200):
         self.display_i2c_address = display_i2c_address
         self.pca9554_i2c_address = pca9554_i2c_address
+        self.debounce_ms = debounce_ms
         self.rascsi_controlboard_detected = self.detect_rascsi_controlboard()
         log = logging.getLogger(__name__)
         log.info("RaSCSI Control Board detected: %s", str(self.rascsi_controlboard_detected))
@@ -112,11 +115,18 @@ class CtrlBoardHardware(Observable):
 
         value = button.state_interrupt
 
+        # ignore button press if debounce time is not reached
+        if button.last_press is not None:
+            elapsed = (time.time_ns() - button.last_press)/1000000
+            if elapsed < self.debounce_ms:
+                return
+
         if value != button.state and value is False:
             button.state = False
             self.notify(button)
             button.state = True
             button.state_interrupt = True
+            button.last_press = time.time_ns()
 
     def check_rotary_encoder(self, rotary):
         """Checks whether the rotary state has changed."""

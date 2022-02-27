@@ -11,6 +11,7 @@ class HardwareButton:
         self.state = True
         self.state_interrupt = True
         self.name = "n/a"
+        self.last_press = None
 
     def read(self):
         """Reads the configured port of the i2c multiplexer"""
