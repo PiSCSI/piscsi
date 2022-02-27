@@ -112,9 +112,9 @@ void ModePageDevice::ModeSense10(SASIDEV *controller)
 	controller->DataIn();
 }
 
-bool ModePageDevice::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
+bool ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 {
-	// cannot be set
+	// Cannot be set
 	SetStatusCode(STATUS_INVALIDPRM);
 
 	return false;
