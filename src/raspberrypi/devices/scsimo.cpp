@@ -224,12 +224,12 @@ void SCSIMO::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 		return;
 	}
 
-	vector<BYTE> buf(12);
-
 	// No changeable area
 	if (changeable) {
 		return;
 	}
+
+	vector<BYTE> buf(12);
 
 	/*
 		mode page code 20h - Vendor Unique Format Page
