@@ -22,8 +22,8 @@
 class SCSIMO : public Disk, public FileSupport
 {
 public:
-	SCSIMO();
-	~SCSIMO() {};
+	SCSIMO() : Disk("SCMO") {}
+	~SCSIMO() {}
 
 	void Open(const Filepath& path) override;
 
