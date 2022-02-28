@@ -96,7 +96,7 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 		}
 	}
 
-	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)

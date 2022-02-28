@@ -165,9 +165,9 @@ public:
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
 
-	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			ERROR_CODES::status = ERROR_CODES::status::CHECK_CONDITION);	// Common error handling
+	virtual void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
+			scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			scsi_defs::status = scsi_defs::status::CHECK_CONDITION);	// Common error handling
 
 protected:
 	// Phase processing

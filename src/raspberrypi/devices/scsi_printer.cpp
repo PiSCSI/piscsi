@@ -172,7 +172,7 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 	if (length > (uint32_t)ctrl->bufsize) {
 		LOGERROR("Transfer buffer overflow");
 
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
@@ -279,8 +279,8 @@ bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
 		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun());
 	}
 
-	controller->Error(ERROR_CODES::sense_key::ABORTED_COMMAND, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			ERROR_CODES::status::RESERVATION_CONFLICT);
+	controller->Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			status::RESERVATION_CONFLICT);
 
 	return false;
 }
