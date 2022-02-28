@@ -39,7 +39,7 @@ public:
 	const set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const set<uint32_t>& GetSectorSizes(const string&);
 	const set<uint64_t> GetCapacities(PbDeviceType) const;
-	const map<string, string>& GetDefaultParams(PbDeviceType type) { return default_params[type]; }
+	const map<string, string>& GetDefaultParams(PbDeviceType type) const { return default_params.at(type); }
 	const list<string> GetNetworkInterfaces() const;
 	const map<string, PbDeviceType> GetExtensionMapping() const { return extension_mapping; }
 
