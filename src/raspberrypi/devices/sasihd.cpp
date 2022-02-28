@@ -83,6 +83,7 @@ void SASIHD::Open(const Filepath& path)
 
 vector<BYTE> SASIHD::Inquiry() const
 {
+	assert(false);
 	return vector<BYTE>(0);
 }
 
