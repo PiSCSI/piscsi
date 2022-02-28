@@ -86,12 +86,13 @@ string DeviceFactory::GetExtension(const string& filename) const
 	return ext;
 }
 
-PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
+PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
 	string ext = GetExtension(filename);
 
-	if (extension_mapping.find(ext) != extension_mapping.end()) {
-		return extension_mapping[ext];
+	const auto& it = extension_mapping.find(ext);
+	if (it != extension_mapping.end()) {
+		return it->second;
 	}
 	else if (filename == "bridge") {
 		return SCBR;

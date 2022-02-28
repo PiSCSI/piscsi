@@ -35,7 +35,7 @@ public:
 	static DeviceFactory& instance();
 
 	Device *CreateDevice(PbDeviceType, const string&);
-	PbDeviceType GetTypeForFile(const string&);
+	PbDeviceType GetTypeForFile(const string&) const;
 	const set<uint32_t>& GetSectorSizes(PbDeviceType type) { return sector_sizes[type]; }
 	const set<uint32_t>& GetSectorSizes(const string&);
 	const set<uint64_t> GetCapacities(PbDeviceType);
