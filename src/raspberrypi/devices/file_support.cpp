@@ -7,13 +7,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include <map>
-#include <string>
 #include "file_support.h"
 
 using namespace std;
 
-map<string, id_set> FileSupport::reserved_files;
+unordered_map<string, id_set> FileSupport::reserved_files;
 
 void FileSupport::ReserveFile(const Filepath& path, int id, int lun)
 {

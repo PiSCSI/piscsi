@@ -43,7 +43,6 @@
 #include "controllers/scsidev_ctrl.h"
 #include "../rasutil.h"
 #include "scsi_printer.h"
-#include <string>
 
 #define NOT_RESERVED -2
 

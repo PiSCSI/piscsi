@@ -18,8 +18,6 @@
 #include "exceptions.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
-#include <set>
-#include <map>
 #include "host_services.h"
 
 using namespace std;

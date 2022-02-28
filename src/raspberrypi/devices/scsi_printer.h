@@ -13,7 +13,7 @@
 #include "interfaces/scsi_printer_commands.h"
 #include "primary_device.h"
 #include <string>
-#include <map>
+#include <unordered_map>
 
 using namespace std;
 
