@@ -380,11 +380,15 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
-	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
-	if (ctrl->length <= 4) {
-		controller->Error();
-		return;
+	vector<BYTE> buf(4);
+
+	size_t size = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
+	if (size > buf.size()) {
+		size = buf.size();
 	}
+
+	memcpy(ctrl->buffer, buf.data(), size);
+	ctrl->length = size;
 
 	controller->DataIn();
 }
@@ -673,34 +677,6 @@ void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool) const
 void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool) const
 {
 	// Nothing to add by default
-}
-
-int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf, int max_length)
-{
-	// Get length, clear buffer
-	int length = (cdb[7] << 8) | cdb[8];
-	if (length > max_length) {
-		length = max_length;
-	}
-	memset(buf, 0, length);
-
-	// P/G/FORMAT
-	buf[1] = (cdb[1] & 0x18) | 5;
-	buf[3] = 8;
-
-	buf[4] = 0xff;
-	buf[5] = 0xff;
-	buf[6] = 0xff;
-	buf[7] = 0xff;
-
-	buf[8] = 0xff;
-	buf[9] = 0xff;
-	buf[10] = 0xff;
-	buf[11] = 0xff;
-
-	// no list
-	SetStatusCode(STATUS_NODEFECT);
-	return 4;
 }
 
 //---------------------------------------------------------------------------

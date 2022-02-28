@@ -114,7 +114,6 @@ public:
 	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
-	int ReadDefectData10(const DWORD *, BYTE *, int);
 
 	uint32_t GetSectorSizeInBytes() const;
 	void SetSectorSizeInBytes(uint32_t, bool);
