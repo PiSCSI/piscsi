@@ -138,7 +138,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 vector<BYTE> SCSIHD_NEC::Inquiry(const DWORD *cdb) const
 {
 	// Direct access device, SCSI-1-CCS
-	return PrimaryDevice::Inquiry(5, 1, IsRemovable(), cdb);
+	return PrimaryDevice::Inquiry(5, 1, false, cdb);
 }
 
 void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const
