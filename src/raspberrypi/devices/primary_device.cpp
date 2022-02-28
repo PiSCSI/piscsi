@@ -115,18 +115,16 @@ void PrimaryDevice::RequestSense(SASIDEV *controller)
 		ctrl->status = 0x00;
 	}
 
-	// Allocation length
-	size_t size = (int)ctrl->cmd[4];
-	assert(size >= 0 && size < 0x100);
+	size_t allocation_length = ctrl->cmd[4];
 
-    vector<BYTE> buf = ((PrimaryDevice *)ctrl->unit[lun])->RequestSense(size);
+    vector<BYTE> buf = ((PrimaryDevice *)ctrl->unit[lun])->RequestSense(allocation_length);
 
-    if (size > buf.size()) {
-    	size = buf.size();
+    if (allocation_length > buf.size()) {
+    	allocation_length = buf.size();
     }
 
-    memcpy(ctrl->buffer, buf.data(), size);
-    ctrl->length = size;
+    memcpy(ctrl->buffer, buf.data(), allocation_length);
+    ctrl->length = allocation_length;
 
     LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
 
