@@ -88,7 +88,8 @@ vector<BYTE> SASIHD::Inquiry() const
 
 vector<BYTE> SASIHD::RequestSense(int size)
 {
-	if (size == 0) {
+	// Transfer 4 bytes when size 0 (Shugart Associates System Interface specification)
+	if (!size) {
 		size = 4;
 	}
 
