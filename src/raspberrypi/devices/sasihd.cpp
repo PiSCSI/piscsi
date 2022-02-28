@@ -89,12 +89,8 @@ vector<BYTE> SASIHD::Inquiry() const
 
 vector<BYTE> SASIHD::RequestSense(int size)
 {
-	// Transfer 4 bytes when size 0 (Shugart Associates System Interface specification)
-	if (!size) {
-		size = 4;
-	}
-
-	vector<BYTE> buf(size);
+	// Transfer 4 bytes when size is 0 (Shugart Associates System Interface specification)
+	vector<BYTE> buf(size ? size : 4);
 
 	// SASI fixed to non-extended format
 	buf[0] = (BYTE)(GetStatusCode() >> 16);
