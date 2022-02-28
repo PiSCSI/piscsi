@@ -98,7 +98,7 @@ public:
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
 
-		// Logical unit
+		// Logical units
 		PrimaryDevice *unit[UnitMax];
 
 		// The current device

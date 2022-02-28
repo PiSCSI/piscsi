@@ -128,11 +128,10 @@ public:
 	bool SetGeometryForCapacity(uint64_t);
 	uint64_t GetBlockCount() const;
 	void SetBlockCount(uint32_t);
-	bool CheckBlockAddress(SASIDEV *, access_mode);
-	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 	void FlushCache();
 
 protected:
+
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
 	virtual void SetDeviceParameters(BYTE *);
@@ -147,6 +146,7 @@ protected:
 	disk_t disk;
 
 private:
+
 	void Read(SASIDEV *, uint64_t);
 	void Write(SASIDEV *, uint64_t);
 	void Verify(SASIDEV *, uint64_t);
@@ -154,4 +154,7 @@ private:
 	void ReadWriteLong16(SASIDEV *);
 	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
+
+	bool CheckBlockAddress(SASIDEV *, access_mode);
+	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 };

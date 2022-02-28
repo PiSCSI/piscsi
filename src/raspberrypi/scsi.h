@@ -43,8 +43,8 @@ public:
 		reserved						// Unused
 	};
 
-	BUS() { };
-	virtual ~BUS() { };
+	BUS() {}
+	virtual ~BUS() {}
 
 	// Basic Functions
 	virtual BOOL Init(mode_e mode) = 0;
@@ -57,8 +57,8 @@ public:
 		return phase_table[mci];
 	}
 
+	// Get the string phase name, based upon the raw data
 	static const char* GetPhaseStrRaw(phase_t current_phase);
-										// Get the string phase name, based upon the raw data
 
 	// Extract as specific pin field from a raw data capture
 	static inline DWORD GetPinRaw(DWORD raw_data, DWORD pin_num)

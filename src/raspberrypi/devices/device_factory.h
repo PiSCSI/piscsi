@@ -28,7 +28,7 @@ class DeviceFactory
 {
 private:
 	DeviceFactory();
-	~DeviceFactory() {};
+	~DeviceFactory() {}
 
 public:
 
