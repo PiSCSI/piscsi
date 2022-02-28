@@ -380,16 +380,14 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
-	// The defect list is empty
-	vector<BYTE> buf(4);
-
-	size_t size = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
-	if (size > buf.size()) {
-		size = buf.size();
+	size_t allocation_length = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
+	if (allocation_length > 4) {
+		allocation_length = 4;
 	}
 
-	memcpy(ctrl->buffer, buf.data(), size);
-	ctrl->length = size;
+	// The defect list is empty
+	memset(ctrl->buffer, 0, allocation_length);
+	ctrl->length = allocation_length;
 
 	controller->DataIn();
 }
