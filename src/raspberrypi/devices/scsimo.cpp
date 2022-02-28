@@ -41,6 +41,7 @@ void SCSIMO::Open(const Filepath& path)
 	fio.Close();
 
 	// For some priorities there are hard-coded, well-defined sector sizes and block counts
+	// TODO Find a more flexible solution
 	if (!SetGeometryForCapacity(size)) {
 		// Sector size (default 512 bytes) and number of blocks
 		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, true);
