@@ -108,6 +108,8 @@ vector<BYTE> SCSIBR::Inquiry() const
 	vector<BYTE> buf = vector<BYTE>(0x1F + 8 + 5);
 	memcpy(buf.data(), b.data(), b.size());
 
+	buf[4] = 0x1F + 8;
+
 	// Optional function valid flag
 	buf[36] = '0';
 

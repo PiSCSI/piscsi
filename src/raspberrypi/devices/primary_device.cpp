@@ -59,7 +59,6 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 	}
 
 	size_t allocation_length = ctrl->cmd[4] + (ctrl->cmd[3] << 8);
-
 	if (allocation_length > buf.size()) {
 		allocation_length = buf.size();
 	}
