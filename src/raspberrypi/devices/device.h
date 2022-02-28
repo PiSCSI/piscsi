@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <set>
-#include <map>
+#include <unordered_set>
+#include <unordered_map>
 #include <string>
 
 using namespace std;
@@ -107,7 +107,7 @@ private:
 
 protected:
 
-	static set<Device *> devices;
+	static unordered_set<Device *> devices;
 
 public:
 

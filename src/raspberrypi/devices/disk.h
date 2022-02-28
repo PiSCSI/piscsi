@@ -28,7 +28,7 @@
 #include "interfaces/scsi_block_commands.h"
 #include "mode_page_device.h"
 #include <string>
-#include <set>
+#include <unordered_set>
 #include <unordered_map>
 
 using namespace std;
@@ -120,7 +120,7 @@ public:
 	uint32_t GetSectorSizeShiftCount() const;
 	void SetSectorSizeShiftCount(uint32_t);
 	bool IsSectorSizeConfigurable() const;
-	set<uint32_t> GetSectorSizes() const;
+	unordered_set<uint32_t> GetSectorSizes() const;
 	void SetSectorSizes(const unordered_set<uint32_t>&);
 	uint32_t GetConfiguredSectorSize() const;
 	bool SetConfiguredSectorSize(uint32_t);

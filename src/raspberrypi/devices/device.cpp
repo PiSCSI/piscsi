@@ -14,7 +14,7 @@
 #include "exceptions.h"
 #include "device.h"
 
-set<Device *> Device::devices;
+unordered_set<Device *> Device::devices;
 
 Device::Device(const string& type)
 {
