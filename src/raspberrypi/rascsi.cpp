@@ -68,7 +68,7 @@ pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
-set<int> reserved_ids;
+unordered_set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
@@ -505,7 +505,7 @@ string SetReservedIds(const string& ids)
     	}
     }
 
-	set<int> reserved;
+    unordered_set<int> reserved;
     for (string id_to_reserve : ids_to_reserve) {
     	int id;
  		if (!GetAsInt(id_to_reserve, id) || id > 7) {
@@ -851,7 +851,6 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 	const PbOperation operation = command.operation();
-	// Use a map here in order to sort the parameter keys alphabetically
 	const map<string, string> params = { command.params().begin(), command.params().end() };
 
 	ostringstream s;

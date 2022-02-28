@@ -220,7 +220,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 	result.set_status(true);
 }
 
-PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const set<int>& ids)
+PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids)
 {
 	PbReservedIdsInfo *reserved_ids_info = new PbReservedIdsInfo();
 	for (int id : ids) {
@@ -289,8 +289,9 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const Pb
 	return device_types_info;
 }
 
-PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& current_log_level, const string& folder_pattern, const string& file_pattern, int scan_depth)
+PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices,
+		const unordered_set<int>& reserved_ids, const string& current_log_level, const string& folder_pattern,
+		const string& file_pattern, int scan_depth)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
