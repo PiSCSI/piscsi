@@ -399,24 +399,8 @@ void SCSICD::ReadToc(SASIDEV *controller)
 
 vector<BYTE> SCSICD::Inquiry(const DWORD *cdb) const
 {
-	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
-
-	// Basic data
-	// buf[0] ... CD-ROM Device
-	// buf[1] ... Removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	buf[0] = 0x05;
-	buf[1] = 0x80;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
-	buf[4] = 0x1F;
-
-	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
-
-	return buf;
+	// CD-ROM device, SCSI-2, removable
+	return PrimaryDevice::Inquiry(5, 2, true, cdb);
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to
@@ -440,8 +424,6 @@ vector<BYTE> SCSICD::Inquiry(const DWORD *cdb) const
 //	//strcpy(&buf[35],"A1.9a");
 //	buf[36]=0x20;
 //	memcpy(&buf[37],"1999/01/01",10);
-
-	return buf;
 }
 
 void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const

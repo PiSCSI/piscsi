@@ -65,24 +65,8 @@ void SCSIMO::Open(const Filepath& path)
 
 vector<BYTE> SCSIMO::Inquiry(const DWORD *cdb) const
 {
-	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
-
-	// Basic data
-	// buf[0] ... Optical Memory Device
-	// buf[1] ... Removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	buf[0] = 0x07;
-	buf[1] = 0x80;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
-	buf[4] = 0x1F;
-
-	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
-
-	return buf;
+	// Optical memory device, SCSI-2, removable
+	return PrimaryDevice::Inquiry(7, 2, true, cdb);
 }
 
 void SCSIMO::SetDeviceParameters(BYTE *buf)

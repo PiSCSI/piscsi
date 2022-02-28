@@ -100,23 +100,8 @@ void SCSIHD::Open(const Filepath& path)
 
 vector<BYTE> SCSIHD::Inquiry(const DWORD *cdb) const
 {
-	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
-
-	// Basic data
-	// buf[0] ... Direct Access Device
-	// buf[1] ... Bit 7 set means removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	buf[1] = IsRemovable() ? 0x80 : 0x00;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
-	buf[4] = 0x1F;
-
-	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
-
-	return buf;
+	// Direct access device, SCSI-2
+	return PrimaryDevice::Inquiry(5, 2, IsRemovable(), cdb);
 }
 
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
