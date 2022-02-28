@@ -199,10 +199,10 @@ vector<BYTE> PrimaryDevice::RequestSense(int)
 	// Current error
 	buf[0] = 0x70;
 
-	buf[2] = (BYTE)(GetStatusCode() >> 16);
+	buf[2] = GetStatusCode() >> 16;
 	buf[7] = 10;
-	buf[12] = (BYTE)(GetStatusCode() >> 8);
-	buf[13] = (BYTE)GetStatusCode();
+	buf[12] = GetStatusCode() >> 8;
+	buf[13] = GetStatusCode();
 
 	return buf;
 }
