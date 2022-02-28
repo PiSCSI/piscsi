@@ -163,19 +163,6 @@ class SysCmds:
                 capture_output=True,
                 check=True,
                 )
-#        if scope:
-#            process = run(
-#                    ["journalctl", "-n", lines, "-u", scope],
-#                    capture_output=True,
-#                    check=True,
-#                    )
-#        else:
-#            process = run(
-#                    ["journalctl", "-n", lines],
-#                    capture_output=True,
-#                    check=True,
-#                    )
-#
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
 
