@@ -20,7 +20,6 @@
 #include "scsi.h"
 #include "fileio.h"
 
-class Device;
 class PrimaryDevice;
 
 //===========================================================================
@@ -144,7 +143,7 @@ public:
 
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
-	Device* GetUnit(int no);							// Get logical unit
+	PrimaryDevice* GetUnit(int no);							// Get logical unit
 	void SetUnit(int no, PrimaryDevice *dev);				// Logical unit setting
 	bool HasUnit();						// Has a valid logical unit
 
