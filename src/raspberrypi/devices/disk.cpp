@@ -380,6 +380,7 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
+	// The defect list is empty
 	vector<BYTE> buf(4);
 
 	size_t size = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
