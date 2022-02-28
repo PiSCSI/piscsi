@@ -193,7 +193,7 @@ int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 	int size = (int)cdb[4];
 	assert(size >= 0 && size < 0x100);
 
-	// For SCSI-1, transfer 4 bytes when the size is 0
+	// Transfer 4 bytes when size 0 (Shugart Associates System Interface specification)
 	if (size == 0) {
 		size = 4;
 	}
