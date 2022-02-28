@@ -193,8 +193,8 @@ int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 	int size = (int)cdb[4];
 	assert(size >= 0 && size < 0x100);
 
-	// Transfer 4 bytes when size 0 (Shugart Associates System Interface specification)
-	if (size == 0) {
+	// Transfer 4 bytes when size is 0 (Shugart Associates System Interface specification)
+	if (!size && IsSASIHD()) {
 		size = 4;
 	}
 
