@@ -380,7 +380,7 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
-	size_t allocation_length = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
+	int allocation_length = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
 	if (allocation_length > 4) {
 		allocation_length = 4;
 	}
