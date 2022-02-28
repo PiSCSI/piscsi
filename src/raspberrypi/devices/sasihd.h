@@ -27,7 +27,7 @@
 class SASIHD : public Disk, public FileSupport
 {
 public:
-	SASIHD(const set<uint32_t>&);
+	SASIHD(const unordered_set<uint32_t>&);
 	~SASIHD() {}
 
 	void Reset();

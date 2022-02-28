@@ -176,7 +176,7 @@ bool CDTrack::IsAudio() const
 //
 //===========================================================================
 
-SCSICD::SCSICD(const set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
+SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
 	SetSectorSizes(sector_sizes);
 

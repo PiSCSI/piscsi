@@ -36,7 +36,7 @@ public:
 	SCSIBR();
 	~SCSIBR();
 
-	bool Init(const map<string, string>&) override;
+	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch(SCSIDEV *) override;
 
 	// Commands

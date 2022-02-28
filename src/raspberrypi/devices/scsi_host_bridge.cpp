@@ -59,7 +59,7 @@ SCSIBR::~SCSIBR()
 	}
 }
 
-bool SCSIBR::Init(const map<string, string>& params)
+bool SCSIBR::Init(const unordered_map<string, string>& params)
 {
 	SetParams(params);
 

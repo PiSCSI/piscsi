@@ -31,7 +31,6 @@
 #include "os.h"
 #include "disk.h"
 #include "ctapdriver.h"
-#include <map>
 #include <string>
 
 //===========================================================================
@@ -46,7 +45,7 @@ public:
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
 
-	bool Init(const map<string, string>&) override;
+	bool Init(const unordered_map<string, string>&) override;
 	void Open(const Filepath& path) override;
 
 	// Commands

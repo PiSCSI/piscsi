@@ -72,7 +72,7 @@ SCSIPrinter::~SCSIPrinter()
 	Cleanup();
 }
 
-bool SCSIPrinter::Init(const map<string, string>& params)
+bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 {
 	SetParams(params);
 

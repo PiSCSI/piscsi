@@ -121,7 +121,7 @@ const string Device::GetParam(const string& key)
 	return params.find(key) != params.end() ? params[key] : "";
 }
 
-void Device::SetParams(const map<string, string>& params)
+void Device::SetParams(const unordered_map<string, string>& params)
 {
 	this->params = GetDefaultParams();
 

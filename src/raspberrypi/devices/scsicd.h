@@ -76,7 +76,7 @@ public:
 		TrackMax = 96							// Maximum number of tracks
 	};
 
-	SCSICD(const set<uint32_t>&);
+	SCSICD(const unordered_set<uint32_t>&);
 	~SCSICD();
 
 	bool Dispatch(SCSIDEV *) override;

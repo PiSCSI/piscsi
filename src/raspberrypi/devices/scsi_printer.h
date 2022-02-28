@@ -29,7 +29,7 @@ public:
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
-	bool Init(const map<string, string>&);
+	bool Init(const unordered_map<string, string>&);
 
 	vector<BYTE> Inquiry() const override;
 	void TestUnitReady(SCSIDEV *);

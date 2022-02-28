@@ -19,7 +19,7 @@
 #include "exceptions.h"
 #include "../config.h"
 
-SASIHD::SASIHD(const set<uint32_t>& sector_sizes) : Disk("SAHD")
+SASIHD::SASIHD(const unordered_set<uint32_t>& sector_sizes) : Disk("SAHD")
 {
 	SetSectorSizes(sector_sizes);
 }

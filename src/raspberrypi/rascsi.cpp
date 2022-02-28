@@ -694,7 +694,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return true;
 	}
 
-	std::map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
+	unordered_map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	if (!device->SupportsFile()) {
 		params.erase("file");
 	}
@@ -851,6 +851,7 @@ bool ProcessCmd(const CommandContext& context, const PbDeviceDefinition& pb_devi
 	const int unit = pb_device.unit();
 	const PbDeviceType type = pb_device.type();
 	const PbOperation operation = command.operation();
+	// Use a map here in order to sort the parameter keys alphabetically
 	const map<string, string> params = { command.params().begin(), command.params().end() };
 
 	ostringstream s;

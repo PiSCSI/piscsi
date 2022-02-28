@@ -217,16 +217,16 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 	return device;
 }
 
-const set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
+const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 {
 	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(type, &t);
 	return sector_sizes[t];
 }
 
-const set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type) const
+const unordered_set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type) const
 {
-	set<uint64_t> keys;
+	unordered_set<uint64_t> keys;
 
 	for (auto it = geometries.begin(); it != geometries.end(); ++it) {
 		keys.insert(it->first);

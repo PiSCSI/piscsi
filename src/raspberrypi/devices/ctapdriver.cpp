@@ -96,9 +96,9 @@ static bool is_interface_up(const string& interface) {
 	return status;
 }
 
-bool CTapDriver::Init(const map<string, string>& const_params)
+bool CTapDriver::Init(const unordered_map<string, string>& const_params)
 {
-	map<string, string> params = const_params;
+	unordered_map<string, string> params = const_params;
 	if (params.count("interfaces")) {
 		LOGWARN("You are using the deprecated 'interfaces' parameter. "
 				"Provide the interface list and the IP address/netmask with the 'interface' and 'inet' parameters");

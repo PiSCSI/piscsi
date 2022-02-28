@@ -1079,7 +1079,7 @@ uint32_t Disk::GetSectorSizeInBytes() const
 
 void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 {
-	set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
+	unordered_set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
 	if (!sector_sizes.empty() && sector_sizes.find(size) == sector_sizes.end()) {
 		throw io_exception("Invalid block size of " + to_string(size) + " bytes");
 	}
@@ -1126,7 +1126,7 @@ bool Disk::IsSectorSizeConfigurable() const
 	return !sector_sizes.empty();
 }
 
-void Disk::SetSectorSizes(const set<uint32_t>& sector_sizes)
+void Disk::SetSectorSizes(const unordered_set<uint32_t>& sector_sizes)
 {
 	this->sector_sizes = sector_sizes;
 }
@@ -1140,7 +1140,7 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 {
 	DeviceFactory& device_factory = DeviceFactory::instance();
 
-	set<uint32_t> sector_sizes = device_factory.GetSectorSizes(GetType());
+	unordered_set<uint32_t> sector_sizes = device_factory.GetSectorSizes(GetType());
 	if (sector_sizes.find(configured_sector_size) == sector_sizes.end()) {
 		return false;
 	}
@@ -1150,7 +1150,7 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 	return true;
 }
 
-void Disk::SetGeometries(const map<uint64_t, Geometry>& geometries)
+void Disk::SetGeometries(const unordered_map<uint64_t, Geometry>& geometries)
 {
 	this->geometries = geometries;
 }

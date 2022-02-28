@@ -64,7 +64,7 @@ bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-bool SCSIDaynaPort::Init(const map<string, string>& params)
+bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 {
 	SetParams(params);
 

@@ -22,7 +22,7 @@
 class SCSIHD : public Disk, public FileSupport
 {
 public:
-	SCSIHD(const set<uint32_t>&, bool);
+	SCSIHD(const unordered_set<uint32_t>&, bool);
 	virtual ~SCSIHD() {}
 
 	void FinalizeSetup(const Filepath&, off_t);
