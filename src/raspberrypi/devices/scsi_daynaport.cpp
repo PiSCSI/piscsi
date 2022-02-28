@@ -584,7 +584,7 @@ void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
 	controller->Status();
 }
 
-int SCSIDaynaPort::GetSendDelay()
+int SCSIDaynaPort::GetSendDelay() const
 {
 	// The Daynaport needs to have a delay after the size/flags field
 	// of the read response. In the MacOS driver, it looks like the

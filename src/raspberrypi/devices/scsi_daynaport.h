@@ -67,7 +67,7 @@ public:
 	void SetInterfaceMode(SASIDEV *);
 	void SetMcastAddr(SASIDEV *);
 	void EnableInterface(SASIDEV *);
-	int GetSendDelay() override;
+	int GetSendDelay() const override;
 
 	bool Dispatch(SCSIDEV *) override;
 

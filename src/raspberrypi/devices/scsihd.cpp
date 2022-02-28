@@ -193,7 +193,7 @@ void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 
 	// No changeable area
 	if (!changeable) {
-		memcpy(&buf.data()[0xa], "APPLE COMPUTER, INC.", 20);
+		memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
 	}
 
 	pages[48] = buf;
