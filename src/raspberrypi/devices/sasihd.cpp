@@ -86,21 +86,17 @@ vector<BYTE> SASIHD::Inquiry() const
 	return vector<BYTE>(0);
 }
 
-int SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SASIHD::RequestSense(int size)
 {
-	// Size decision
-	int size = (int)cdb[4];
-	assert(size >= 0 && size < 0x100);
-
-	// Transfer 4 bytes when size 0 (Shugart Associates System Interface specification)
 	if (size == 0) {
 		size = 4;
 	}
 
+	vector<BYTE> buf(size);
+
 	// SASI fixed to non-extended format
-	memset(buf, 0, size);
 	buf[0] = (BYTE)(GetStatusCode() >> 16);
 	buf[1] = (BYTE)(GetLun() << 5);
 
-	return size;
+	return buf;
 }

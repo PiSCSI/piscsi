@@ -120,8 +120,18 @@ void PrimaryDevice::RequestSense(SASIDEV *controller)
 		ctrl->status = 0x00;
 	}
 
-    ctrl->length = ((PrimaryDevice *)ctrl->unit[lun])->RequestSense(ctrl->cmd, ctrl->buffer);
-	assert(ctrl->length > 0);
+	// Allocation length
+	size_t size = (int)ctrl->cmd[4];
+	assert(size >= 0 && size < 0x100);
+
+    vector<BYTE> buf = ((PrimaryDevice *)ctrl->unit[lun])->RequestSense(size);
+
+    if (size > buf.size()) {
+    	size = buf.size();
+    }
+
+    memcpy(ctrl->buffer, buf.data(), size);
+    ctrl->length = size;
 
     LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
 
@@ -182,26 +192,16 @@ vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable)
 	return buf;
 }
 
-int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
+vector<BYTE> PrimaryDevice::RequestSense(int)
 {
 	// Return not ready only if there are no errors
 	if (GetStatusCode() == STATUS_NOERROR && !IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
 	}
 
-	// Size determination (according to allocation length)
-	int size = (int)cdb[4];
-	assert(size >= 0 && size < 0x100);
-
-	// Transfer 4 bytes when size is 0 (Shugart Associates System Interface specification)
-	if (!size && IsSASIHD()) {
-		size = 4;
-	}
-
-	// Clear the buffer
-	memset(buf, 0, size);
-
 	// Set 18 bytes including extended sense data
+
+	vector<BYTE> buf(18);
 
 	// Current error
 	buf[0] = 0x70;
@@ -211,7 +211,7 @@ int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 	buf[12] = (BYTE)(GetStatusCode() >> 8);
 	buf[13] = (BYTE)GetStatusCode();
 
-	return size;
+	return buf;
 }
 
 bool PrimaryDevice::WriteBytes(BYTE *buf, uint32_t length)

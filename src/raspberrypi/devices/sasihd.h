@@ -33,7 +33,6 @@ public:
 	void Reset();
 	void Open(const Filepath&) override;
 
-	// Commands
-	int RequestSense(const DWORD *, BYTE *) override;
+	vector<BYTE> RequestSense(int) override;
 	vector<BYTE> Inquiry() const override;
 };

@@ -35,7 +35,7 @@ public:
 
 	bool CheckReady();
 	virtual vector<BYTE> Inquiry() const = 0;
-	virtual int RequestSense(const DWORD *, BYTE *);
+	virtual vector<BYTE> RequestSense(int);
 	virtual bool WriteBytes(BYTE *, uint32_t);
 	virtual int GetSendDelay() { return BUS::SEND_NO_DELAY; }
 
