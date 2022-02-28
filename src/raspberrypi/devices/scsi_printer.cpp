@@ -104,10 +104,10 @@ void SCSIPrinter::TestUnitReady(SCSIDEV *controller)
 	controller->Status();
 }
 
-vector<BYTE> SCSIPrinter::Inquiry(const DWORD *cdb) const
+vector<BYTE> SCSIPrinter::Inquiry() const
 {
 	// Printer device, SCSI-2, not removable
-	return PrimaryDevice::Inquiry(2, 2, false, cdb);
+	return PrimaryDevice::Inquiry(2, 2, false);
 }
 
 void SCSIPrinter::ReserveUnit(SCSIDEV *controller)

@@ -34,14 +34,14 @@ public:
 	void SetCtrl(SASIDEV::ctrl_t *ctrl) { this->ctrl = ctrl; }
 
 	bool CheckReady();
-	virtual vector<BYTE> Inquiry(const DWORD *) const = 0;
+	virtual vector<BYTE> Inquiry() const = 0;
 	virtual int RequestSense(const DWORD *, BYTE *);
 	virtual bool WriteBytes(BYTE *, uint32_t);
 	virtual int GetSendDelay() { return BUS::SEND_NO_DELAY; }
 
 protected:
 
-	vector<BYTE> Inquiry(int, int, bool, const DWORD *) const;
+	vector<BYTE> Inquiry(int, int, bool) const;
 
 	SASIDEV::ctrl_t *ctrl;
 

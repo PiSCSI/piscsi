@@ -50,7 +50,7 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	vector<BYTE> Inquiry(const DWORD *cdb) const override;
+	vector<BYTE> Inquiry() const override;
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
 	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
 	int WriteCheck(DWORD block) override;	// WRITE check

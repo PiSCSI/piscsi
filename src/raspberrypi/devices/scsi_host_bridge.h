@@ -40,7 +40,7 @@ public:
 	bool Dispatch(SCSIDEV *) override;
 
 	// Commands
-	vector<BYTE> Inquiry(const DWORD *) const override;
+	vector<BYTE> Inquiry() const override;
 	int GetMessage10(const DWORD *cdb, BYTE *buf);
 	bool SendMessage10(const DWORD *cdb, BYTE *buf);
 	void TestUnitReady(SASIDEV *) override;

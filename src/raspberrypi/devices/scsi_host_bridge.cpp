@@ -99,10 +99,10 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-vector<BYTE> SCSIBR::Inquiry(const DWORD *cdb) const
+vector<BYTE> SCSIBR::Inquiry() const
 {
 	// Communications device, SCSI-2, not removable
-	vector<BYTE> b = PrimaryDevice::Inquiry(9, 2, false, cdb);
+	vector<BYTE> b = PrimaryDevice::Inquiry(9, 2, false);
 
 	// The bridge returns 6 more additional bytes than the other devices
 	vector<BYTE> buf = vector<BYTE>(0x1F + 8 + 5);

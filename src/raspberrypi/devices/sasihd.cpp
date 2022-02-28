@@ -81,7 +81,7 @@ void SASIHD::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 }
 
-vector<BYTE> SASIHD::Inquiry(const DWORD *) const
+vector<BYTE> SASIHD::Inquiry() const
 {
 	return vector<BYTE>(0);
 }

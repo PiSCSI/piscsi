@@ -51,7 +51,7 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 		return;
 	}
 
-	vector<BYTE> buf = Inquiry(ctrl->cmd);
+	vector<BYTE> buf = Inquiry();
 
 	size_t allocation_length = ctrl->cmd[4] + (ctrl->cmd[3] << 8);
 
@@ -159,7 +159,7 @@ bool PrimaryDevice::CheckReady()
 	return true;
 }
 
-vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb) const
+vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable) const
 {
 	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
 

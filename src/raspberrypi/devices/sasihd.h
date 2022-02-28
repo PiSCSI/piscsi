@@ -35,5 +35,5 @@ public:
 
 	// Commands
 	int RequestSense(const DWORD *, BYTE *) override;
-	vector<BYTE> Inquiry(const DWORD *) const override;
+	vector<BYTE> Inquiry() const override;
 };

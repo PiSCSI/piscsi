@@ -397,10 +397,10 @@ void SCSICD::ReadToc(SASIDEV *controller)
 	controller->DataIn();
 }
 
-vector<BYTE> SCSICD::Inquiry(const DWORD *cdb) const
+vector<BYTE> SCSICD::Inquiry() const
 {
 	// CD-ROM device, SCSI-2, removable
-	return PrimaryDevice::Inquiry(5, 2, true, cdb);
+	return PrimaryDevice::Inquiry(5, 2, true);
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to

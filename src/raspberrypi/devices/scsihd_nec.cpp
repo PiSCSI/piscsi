@@ -135,10 +135,10 @@ void SCSIHD_NEC::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-vector<BYTE> SCSIHD_NEC::Inquiry(const DWORD *cdb) const
+vector<BYTE> SCSIHD_NEC::Inquiry() const
 {
 	// Direct access device, SCSI-1-CCS, not removable
-	return PrimaryDevice::Inquiry(5, 1, false, cdb);
+	return PrimaryDevice::Inquiry(5, 1, false);
 }
 
 void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const

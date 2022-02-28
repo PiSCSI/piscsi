@@ -31,7 +31,7 @@ public:
 	virtual void Open(const Filepath&) override;
 
 	// Commands
-	virtual vector<BYTE> Inquiry(const DWORD *cdb) const override;
+	virtual vector<BYTE> Inquiry() const override;
 	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
 	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;

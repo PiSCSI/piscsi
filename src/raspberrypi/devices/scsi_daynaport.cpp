@@ -112,10 +112,10 @@ void SCSIDaynaPort::Open(const Filepath& path)
 	m_tap->OpenDump(path);
 }
 
-vector<BYTE> SCSIDaynaPort::Inquiry(const DWORD *cdb) const
+vector<BYTE> SCSIDaynaPort::Inquiry() const
 {
 	// Processor device, SCSI-2, not removable
-	return PrimaryDevice::Inquiry(3, 2, false, cdb);
+	return PrimaryDevice::Inquiry(3, 2, false);
 }
 
 //---------------------------------------------------------------------------

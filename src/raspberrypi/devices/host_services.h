@@ -25,7 +25,7 @@ public:
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
-	vector<BYTE> Inquiry(const DWORD *) const override;
+	vector<BYTE> Inquiry() const override;
 	void TestUnitReady(SCSIDEV *);
 	void StartStopUnit(SCSIDEV *);
 

@@ -63,10 +63,10 @@ void SCSIMO::Open(const Filepath& path)
 	}
 }
 
-vector<BYTE> SCSIMO::Inquiry(const DWORD *cdb) const
+vector<BYTE> SCSIMO::Inquiry() const
 {
 	// Optical memory device, SCSI-2, removable
-	return PrimaryDevice::Inquiry(7, 2, true, cdb);
+	return PrimaryDevice::Inquiry(7, 2, true);
 }
 
 void SCSIMO::SetDeviceParameters(BYTE *buf)
