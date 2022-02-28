@@ -435,8 +435,8 @@ def show_logs():
     """
     Displays system logs
     """
-    lines = request.form.get("lines") or "200"
-    scope = request.form.get("scope") or "all"
+    lines = request.form.get("lines")
+    scope = request.form.get("scope")
 
     returncode, logs = sys_cmd.get_logs(lines, scope)
     if returncode == 0:
