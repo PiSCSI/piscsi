@@ -100,10 +100,7 @@ void SCSIHD::Open(const Filepath& path)
 
 vector<BYTE> SCSIHD::Inquiry(const DWORD *cdb) const
 {
-	// Size of data that can be returned
-	int size = 0x1F + 5;
-
-	vector<BYTE> buf = vector<BYTE>(size);
+	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
 
 	// Basic data
 	// buf[0] ... Direct Access Device
@@ -119,12 +116,7 @@ vector<BYTE> SCSIHD::Inquiry(const DWORD *cdb) const
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
-	// The resulting vector must match the allocation length
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return vector<BYTE>(buf.begin(), buf.begin() + size);
+	return buf;
 }
 
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)

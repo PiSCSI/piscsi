@@ -52,8 +52,19 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 	}
 
 	vector<BYTE> buf = Inquiry(ctrl->cmd);
-	memcpy(ctrl->buffer, buf.data(), buf.size());
-	ctrl->length = buf.size();
+
+	size_t allocation_length = ctrl->cmd[4] + (ctrl->cmd[3] << 8);
+
+	if (allocation_length <= 4) {
+		allocation_length = 4;
+	}
+
+	if (allocation_length > buf.size()) {
+		allocation_length = buf.size();
+	}
+
+	memcpy(ctrl->buffer, buf.data(), allocation_length);
+	ctrl->length = allocation_length;
 
 	int lun = controller->GetEffectiveLun();
 
@@ -150,34 +161,25 @@ bool PrimaryDevice::CheckReady()
 
 vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb) const
 {
-	int allocation_length = cdb[4] + (cdb[3] << 8);
-	if (allocation_length > 4) {
-		if (allocation_length > 44) {
-			allocation_length = 44;
-		}
+	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
 
-		vector<BYTE> buf = vector<BYTE>(allocation_length);
+	// Basic data
+	// buf[0] ... SCSI Device type
+	// buf[1] ... Bit 7: Removable/not removable
+	// buf[2] ... SCSI-2 compliant command system
+	// buf[3] ... SCSI-2 compliant Inquiry response
+	// buf[4] ... Inquiry additional data
+	buf[0] = type;
+	buf[1] = is_removable ? 0x80 : 0x00;
+	buf[2] = scsi_level;
+	// Response data format is SCSI-2 for devices supporting SCSI-2 or newer, otherwise it is SCSI-1-CCS
+	buf[3] = scsi_level >= 2 ? 2 : 0;
+	buf[4] = 0x1F;
 
-		// Basic data
-		// buf[0] ... SCSI Device type
-		// buf[1] ... Bit 7: Removable/not removable
-		// buf[2] ... SCSI-2 compliant command system
-		// buf[3] ... SCSI-2 compliant Inquiry response
-		// buf[4] ... Inquiry additional data
-		buf[0] = type;
-		buf[1] = is_removable ? 0x80 : 0x00;
-		buf[2] = scsi_level;
-		// Response data format is SCSI-2 for devices supporting SCSI-2 or newer, otherwise it is SCSI-1-CCS
-		buf[3] = scsi_level >= 2 ? 2 : 0;
-		buf[4] = 0x1F;
+	// Padded vendor, product, revision
+	memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
 
-		// Padded vendor, product, revision
-		memcpy(&buf.data()[8], GetPaddedName().c_str(), 28);
-
-		return buf;
-	}
-
-	return vector<BYTE>(4);
+	return buf;
 }
 
 int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)

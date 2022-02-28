@@ -399,10 +399,7 @@ void SCSICD::ReadToc(SASIDEV *controller)
 
 vector<BYTE> SCSICD::Inquiry(const DWORD *cdb) const
 {
-	// Size of data that can be returned
-	int size = 0x1F + 5;
-
-	vector<BYTE> buf = vector<BYTE>(size);
+	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
 
 	// Basic data
 	// buf[0] ... CD-ROM Device
@@ -419,12 +416,7 @@ vector<BYTE> SCSICD::Inquiry(const DWORD *cdb) const
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
 
-	// Limit if the other buffer is small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return vector<BYTE>(buf.begin(), buf.begin() + size);
+	return buf;
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to

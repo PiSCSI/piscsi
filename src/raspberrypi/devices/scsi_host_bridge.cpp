@@ -101,10 +101,7 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 
 vector<BYTE> SCSIBR::Inquiry(const DWORD *cdb) const
 {
-	// Size of data that can be returned
-	int size = 0x1F + 8;
-
-	vector<BYTE> buf = vector<BYTE>(size);
+	vector<BYTE> buf = vector<BYTE>(0x1F + 13);
 
 	// Basic data
 	// buf[0] ... Communications Device
@@ -130,12 +127,7 @@ vector<BYTE> SCSIBR::Inquiry(const DWORD *cdb) const
 	// CFileSys Enable
 	buf[38] = '1';
 
-	// The resulting vector must match the allocation length
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return vector<BYTE>(buf.begin(), buf.begin() + size);
+	return buf;
 }
 
 void SCSIBR::TestUnitReady(SASIDEV *controller)
