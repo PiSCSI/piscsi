@@ -45,16 +45,16 @@ void PrimaryDevice::TestUnitReady(SASIDEV *controller)
 
 void PrimaryDevice::Inquiry(SASIDEV *controller)
 {
-	// EVPD and page code check
-	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
-		return;
-	}
-
 	vector<BYTE> buf = Inquiry();
 	if (!buf.size()) {
 		// SASI does not support INQUIRY
 		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
+		return;
+	}
+
+	// EVPD and page code check
+	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
+		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
