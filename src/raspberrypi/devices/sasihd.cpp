@@ -87,10 +87,10 @@ vector<BYTE> SASIHD::Inquiry() const
 	return vector<BYTE>(0);
 }
 
-vector<BYTE> SASIHD::RequestSense(int size)
+vector<BYTE> SASIHD::RequestSense(int allocation_length)
 {
 	// Transfer 4 bytes when size is 0 (Shugart Associates System Interface specification)
-	vector<BYTE> buf(size ? size : 4);
+	vector<BYTE> buf(allocation_length ? allocation_length : 4);
 
 	// SASI fixed to non-extended format
 	buf[0] = (BYTE)(GetStatusCode() >> 16);
