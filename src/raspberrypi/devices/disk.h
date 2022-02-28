@@ -155,6 +155,6 @@ private:
 	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
 
-	bool CheckBlockAddress(SASIDEV *, access_mode);
+	bool ValidateBlockAddress(SASIDEV *, access_mode);
 	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 };

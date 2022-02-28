@@ -211,7 +211,7 @@ void Disk::ReadWriteLong10(SASIDEV *controller)
 		return;
 	}
 
-	if (CheckBlockAddress(controller, RW10)) {
+	if (ValidateBlockAddress(controller, RW10)) {
 		controller->Status();
 	}
 }
@@ -229,7 +229,7 @@ void Disk::ReadWriteLong16(SASIDEV *controller)
 		return;
 	}
 
-	if (CheckBlockAddress(controller, RW16)) {
+	if (ValidateBlockAddress(controller, RW16)) {
 		controller->Status();
 	}
 }
@@ -969,7 +969,7 @@ void Disk::Release(SASIDEV *controller)
 //
 //---------------------------------------------------------------------------
 
-bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
+bool Disk::ValidateBlockAddress(SASIDEV *controller, access_mode mode)
 {
 	uint64_t block = ctrl->cmd[2];
 	block <<= 8;
