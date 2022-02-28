@@ -30,30 +30,6 @@ class PrimaryDevice;
 class SASIDEV
 {
 protected:
-	enum scsi_message_code : BYTE {
-		eMsgCodeAbort = 0x06,
-		eMsgCodeAbortTag = 0x0D,
-		eMsgCodeBusDeviceReset = 0x0C,
-		eMsgCodeClearQueue = 0x0E,
-		eMsgCodeCommandComplete = 0x00,
-		eMsgCodeDisconnect = 0x04,
-		eMsgCodeIdentify = 0x80,
-		eMsgCodeIgnoreWideResidue = 0x23, // (Two Bytes)
-		eMsgCodeInitiateRecovery = 0x0F,
-		eMsgCodeInitiatorDetectedError = 0x05,
-		eMsgCodeLinkedCommandComplete = 0x0A,
-		eMsgCodeLinkedCommandCompleteWithFlag = 0x0B,
-		eMsgCodeMessageParityError = 0x09,
-		eMsgCodeMessageReject = 0x07,
-		eMsgCodeNoOperation = 0x08,
-		eMsgCodeHeadOfQueueTag = 0x21,
-		eMsgCodeOrderedQueueTag = 0x22,
-		eMsgCodeSimpleQueueTag = 0x20,
-		eMsgCodeReleaseRecovery = 0x10,
-		eMsgCodeRestorePointers = 0x03,
-		eMsgCodeSaveDataPointer = 0x02,
-		eMsgCodeTerminateIOProcess = 0x11
-	};
 
 private:
 	enum sasi_command : int {
