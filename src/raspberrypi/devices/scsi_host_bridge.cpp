@@ -101,20 +101,12 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 
 vector<BYTE> SCSIBR::Inquiry(const DWORD *cdb) const
 {
-	vector<BYTE> buf = vector<BYTE>(0x1F + 13);
+	// Communications device, SCSI-2, not removable
+	vector<BYTE> b = PrimaryDevice::Inquiry(9, 2, false, cdb);
 
-	// Basic data
-	// buf[0] ... Communications Device
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	buf[0] = 0x09;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
-	buf[4] = 0x1F + 8;	// required + 8 byte extension
-
-	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	// The bridge returns 6 more additional bytes than the other devices
+	vector<BYTE> buf = vector<BYTE>(0x1F + 8 + 5);
+	memcpy(buf.data(), b.data(), b.size());
 
 	// Optional function valid flag
 	buf[36] = '0';
