@@ -343,7 +343,7 @@ void Disk::StartStopUnit(SASIDEV *controller)
 void Disk::SendDiagnostic(SASIDEV *controller)
 {
 	if (!SendDiag(ctrl->cmd)) {
-		controller->Error();
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
@@ -843,17 +843,15 @@ bool Disk::StartStop(const DWORD *cdb)
 	return true;
 }
 
-bool Disk::SendDiag(const DWORD *cdb)
+bool Disk::SendDiag(const DWORD *cdb) const
 {
 	// Do not support PF bit
 	if (cdb[1] & 0x10) {
-		SetStatusCode(STATUS_INVALIDCDB);
 		return false;
 	}
 
 	// Do not support parameter list
 	if ((cdb[3] != 0) || (cdb[4] != 0)) {
-		SetStatusCode(STATUS_INVALIDCDB);
 		return false;
 	}
 

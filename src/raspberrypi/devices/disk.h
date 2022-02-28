@@ -108,10 +108,10 @@ public:
 	void Seek6(SASIDEV *);
 
 	// Command helpers
-	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
-	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
-	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
+	virtual int WriteCheck(DWORD block);
+	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);
+	bool StartStop(const DWORD *cdb);
+	bool SendDiag(const DWORD *cdb) const;
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
 
