@@ -411,45 +411,6 @@ bool ReadAccessToken(const char *filename)
 	return true;
 }
 
-string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existing_devices)
-{
-	// Mapping of available LUNs (bit vector) to devices
-	map<uint32_t, uint32_t> luns;
-
-	// Collect LUN vectors of new devices
-	for (const auto& device : command.devices()) {
-		luns[device.id()] |= 1 << device.unit();
-	}
-
-	// Collect LUN vectors of existing devices
-	for (auto const& device : existing_devices) {
-		if (device) {
-			luns[device->GetId()] |= 1 << device->GetLun();
-		}
-	}
-
-	// LUNs must be consecutive
-	for (auto const& [id, lun]: luns) {
-		bool is_consecutive = false;
-
-		uint32_t lun_vector = 0;
-		for (int i = 0; i < 32; i++) {
-			lun_vector |= 1 << i;
-
-			if (lun == lun_vector) {
-				is_consecutive = true;
-				break;
-			}
-		}
-
-		if (!is_consecutive) {
-			return "LUNs for device ID " + to_string(id) + " are not consecutive";
-		}
-	}
-
-	return "";
-}
-
 bool SetLogLevel(const string& log_level)
 {
 	if (log_level == "trace") {
@@ -1066,11 +1027,6 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 
 	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
-
-	string result = ValidateLunSetup(command, devices);
-	if (!result.empty()) {
-		return ReturnStatus(context, false, result);
-	}
 
 	for (const auto& device : command.devices()) {
 		if (!ProcessCmd(context, device, command, false)) {
