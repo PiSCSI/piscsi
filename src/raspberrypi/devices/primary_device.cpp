@@ -76,27 +76,25 @@ void PrimaryDevice::Inquiry(SASIDEV *controller)
 
 void PrimaryDevice::ReportLuns(SASIDEV *controller)
 {
-	BYTE *buf = ctrl->buffer;
-
 	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
+
+	BYTE *buf = ctrl->buffer;
 	memset(buf, 0, allocation_length);
 
-	// Count number of available LUNs for the current device
-	int luns;
-	for (luns = 0; luns < controller->GetCtrl()->device->GetSupportedLuns(); luns++) {
-		if (!controller->GetCtrl()->unit[luns]) {
-			break;
+	int size = 0;
+	for (int lun = 0; lun < controller->GetCtrl()->device->GetSupportedLuns(); lun++) {
+		if (controller->GetCtrl()->unit[lun]) {
+			size += 8;
+			buf[size + 7] = lun;
 		}
 	}
 
-	// LUN list length, 8 bytes per LUN
-	// SCSI standard: The contents of the LUN LIST LENGTH field	are not altered based on the allocation length
-	buf[0] = (luns * 8) >> 24;
-	buf[1] = (luns * 8) >> 16;
-	buf[2] = (luns * 8) >> 8;
-	buf[3] = luns * 8;
+	buf[2] = size >> 8;
+	buf[3] = size;
 
-	ctrl->length = allocation_length < 8 + luns * 8 ? allocation_length : 8 + luns * 8;
+	size += 8;
+
+	ctrl->length = allocation_length < size ? allocation_length : size;
 
 	controller->DataIn();
 }
