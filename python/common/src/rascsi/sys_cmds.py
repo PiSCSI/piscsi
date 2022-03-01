@@ -149,21 +149,20 @@ class SysCmds:
     def get_logs(lines, scope):
         """
         Takes (int) lines and (str) scope.
+        If scope is a None equivalent, all syslogs are returned.
         Returns either the decoded log output, or the stderr output of journalctl.
         """
-        if scope != "all":
-            process = run(
-                    ["journalctl", "-n", lines, "-u", scope],
-                    capture_output=True,
-                    check=True,
-                    )
-        else:
-            process = run(
-                    ["journalctl", "-n", lines],
-                    capture_output=True,
-                    check=True,
-                    )
-
+        line_param = []
+        scope_param = []
+        if lines:
+            line_param = ["-n", lines]
+        if scope:
+            scope_param = ["-u", scope]
+        process = run(
+                ["journalctl"] + line_param + scope_param,
+                capture_output=True,
+                check=True,
+                )
         if process.returncode == 0:
             return process.returncode, process.stdout.decode("utf-8")
 
