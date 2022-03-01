@@ -411,6 +411,33 @@ bool ReadAccessToken(const char *filename)
 	return true;
 }
 
+string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existing_devices)
+{
+	// Mapping of available LUNs (bit vector) to devices
+	map<uint32_t, uint32_t> luns;
+
+	// Collect LUN vectors of new devices
+	for (const auto& device : command.devices()) {
+		luns[device.id()] |= 1 << device.unit();
+	}
+
+	// Collect LUN vectors of existing devices
+	for (auto const& device : existing_devices) {
+		if (device) {
+			luns[device->GetId()] |= 1 << device->GetLun();
+		}
+	}
+
+	// LUN 0 must exist for all devices
+	for (auto const& [id, lun]: luns) {
+		if (!(lun & 0x01)) {
+			return "LUN 0 is missing for device ID " + to_string(id);
+		}
+	}
+
+	return "";
+}
+
 bool SetLogLevel(const string& log_level)
 {
 	if (log_level == "trace") {
@@ -1022,6 +1049,11 @@ bool ProcessCmd(const CommandContext& context, const PbCommand& command)
 
 	// Restore the list of reserved files before proceeding
 	FileSupport::SetReservedFiles(reserved_files);
+
+	string result = ValidateLunSetup(command, devices);
+	if (!result.empty()) {
+		return ReturnStatus(context, false, result);
+	}
 
 	for (const auto& device : command.devices()) {
 		if (!ProcessCmd(context, device, command, false)) {
