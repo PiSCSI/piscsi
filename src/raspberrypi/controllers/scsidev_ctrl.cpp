@@ -278,42 +278,22 @@ void SCSIDEV::Execute()
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
-			for (lun = 0; lun < UnitMax; lun++) {
-				if (ctrl.unit[lun]) {
-					break;
-				}
-			}
-
-			assert(ctrl.unit[lun]);
-
-			LOGTRACE("Using LUN %d for INQUIRY/REQUEST SENSE reporting", lun);
-
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 			return;
 		}
-		// Use the first available LUN for INQUIRY and REQUEST SENSE, because something has to be returned
-		// for non-existent LUNs.
+		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
 		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
 		else {
-			for (lun = 0; lun < UnitMax; lun++) {
-				if (ctrl.unit[lun]) {
-					break;
-				}
-			}
+			assert(ctrl.unit[0]);
 
-			if (lun == UnitMax) {
-				Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
-				return;
-			}
-
-			LOGTRACE("Using LUN %d for INQUIRY/REQUEST SENSE reporting", lun);
+			lun = 0;
 		}
 	}
 
 	ctrl.device = ctrl.unit[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if (ctrl.unit[GetEffectiveLun()] && (scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
+	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 		ctrl.device->SetStatusCode(0);
 	}
 	
@@ -324,8 +304,10 @@ void SCSIDEV::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.unit[GetEffectiveLun()]) {
-		LOGTRACE("Reporting LUN %d for device ID %d as not supported", GetEffectiveLun(), ctrl.device->GetId());
+	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.unit[lun]) {
+		lun = GetEffectiveLun();
+
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
 
 		ctrl.buffer[0] = 0x7f;
 	}
@@ -398,11 +380,7 @@ void SCSIDEV::Error(sense_key sense_key, asc asc, status status)
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun] || asc == INVALID_LUN) {
-		for (lun = 0; lun < UnitMax; lun++) {
-			if (ctrl.unit[lun]) {
-				break;
-			}
-		}
+		lun = 0;
 
 		assert(ctrl.unit[lun]);
 	}
