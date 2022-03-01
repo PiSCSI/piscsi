@@ -690,19 +690,14 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 bool Detach(const CommandContext& context, Device *device, Device *map[], bool dryRun)
 {
 	if (!dryRun) {
-		for (auto const& d : devices) {
-			// Detach all LUNs equal to or higher than the LUN specified
-			if (d && d->GetId() == device->GetId() && d->GetLun() >= device->GetLun()) {
-				map[d->GetId() * UnitNum + d->GetLun()] = NULL;
+		map[device->GetId() * UnitNum + device->GetLun()] = NULL;
 
-				FileSupport *file_support = dynamic_cast<FileSupport *>(d);
-				if (file_support) {
-					file_support->UnreserveFile();
-				}
-
-				LOGINFO("Detached %s device with ID %d, unit %d", d->GetType().c_str(), d->GetId(), d->GetLun());
-			}
+		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+		if (file_support) {
+			file_support->UnreserveFile();
 		}
+
+		LOGINFO("Detached %s device with ID %d, unit %d", device->GetType().c_str(), device->GetId(), device->GetLun());
 
 		// Re-map the controller
 		MapController(map);
