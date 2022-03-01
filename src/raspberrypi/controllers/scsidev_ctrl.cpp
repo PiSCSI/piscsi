@@ -278,22 +278,42 @@ void SCSIDEV::Execute()
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
+			for (lun = 0; lun < UnitMax; lun++) {
+				if (ctrl.unit[lun]) {
+					break;
+				}
+			}
+
+			assert(ctrl.unit[lun]);
+
+			LOGTRACE("Using LUN %d for INQUIRY/REQUEST SENSE reporting", lun);
+
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 			return;
 		}
-		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
+		// Use the first available LUN for INQUIRY and REQUEST SENSE, because something has to be returned
+		// for non-existent LUNs.
 		// INQUIRY and REQUEST SENSE have a special LUN handling of their own, required by the SCSI standard.
 		else {
-			assert(ctrl.unit[0]);
+			for (lun = 0; lun < UnitMax; lun++) {
+				if (ctrl.unit[lun]) {
+					break;
+				}
+			}
 
-			lun = 0;
+			if (lun == UnitMax) {
+				Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+				return;
+			}
+
+			LOGTRACE("Using LUN %d for INQUIRY/REQUEST SENSE reporting", lun);
 		}
 	}
 
 	ctrl.device = ctrl.unit[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
+	if (ctrl.unit[GetEffectiveLun()] && (scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 		ctrl.device->SetStatusCode(0);
 	}
 	
@@ -304,10 +324,8 @@ void SCSIDEV::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.unit[lun]) {
-		lun = GetEffectiveLun();
-
-		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
+	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.unit[GetEffectiveLun()]) {
+		LOGTRACE("Reporting LUN %d for device ID %d as not supported", GetEffectiveLun(), ctrl.device->GetId());
 
 		ctrl.buffer[0] = 0x7f;
 	}
@@ -380,7 +398,13 @@ void SCSIDEV::Error(sense_key sense_key, asc asc, status status)
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun] || asc == INVALID_LUN) {
-		lun = 0;
+		for (lun = 0; lun < UnitMax; lun++) {
+			if (ctrl.unit[lun]) {
+				break;
+			}
+		}
+
+		assert(ctrl.unit[lun]);
 	}
 
 	if (sense_key || asc) {
@@ -410,7 +434,9 @@ void SCSIDEV::Send()
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
 				+ to_string(ctrl.length)).c_str());
 
-		int len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0]->GetSendDelay());
+		// TODO The delay has to be taken from ctrl.unit[lun], but as there are no Daynaport drivers for
+		// LUNs other than 0 this work-around works.
+		int len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0] ? ctrl.unit[0]->GetSendDelay() : 0);
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
