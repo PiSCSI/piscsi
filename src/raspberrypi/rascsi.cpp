@@ -716,6 +716,15 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 bool Detach(const CommandContext& context, Device *device, Device *map[], bool dryRun)
 {
+	if (!device->GetLun()) {
+		for (auto const& d : devices) {
+			// LUN 0 can only be detached if there is no other lUN anymore
+			if (d && d->GetId() == device->GetId() && d->GetLun()) {
+				return ReturnStatus(context, false, "LUN 0 cannot be detached as long as there is still another LUN");
+			}
+		}
+	}
+
 	if (!dryRun) {
 		map[device->GetId() * UnitNum + device->GetLun()] = NULL;
 
