@@ -36,7 +36,7 @@ using namespace std;
 class Disk : public ModePageDevice, ScsiBlockCommands
 {
 private:
-	enum access_mode { RW6, RW10, RW16 };
+	enum access_mode { RW6, RW10, RW16, SEEK6, SEEK10 };
 
 	// The supported configurable block sizes, empty if not configurable
 	unordered_set<uint32_t> sector_sizes;
