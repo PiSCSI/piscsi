@@ -65,8 +65,7 @@ void SCSIMO::Open(const Filepath& path)
 
 vector<BYTE> SCSIMO::Inquiry() const
 {
-	// Optical memory device, SCSI-2, removable
-	return PrimaryDevice::Inquiry(7, 2, true);
+	return PrimaryDevice::Inquiry(device_type::OPTICAL_MEMORY, scsi_level::SCSI_2, true);
 }
 
 void SCSIMO::SetDeviceParameters(BYTE *buf)

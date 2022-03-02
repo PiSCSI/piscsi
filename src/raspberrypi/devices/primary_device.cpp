@@ -161,7 +161,7 @@ bool PrimaryDevice::CheckReady()
 	return true;
 }
 
-vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable) const
+vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_removable) const
 {
 	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
 
@@ -173,9 +173,9 @@ vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable)
 	// buf[4] ... Inquiry additional data
 	buf[0] = type;
 	buf[1] = is_removable ? 0x80 : 0x00;
-	buf[2] = scsi_level;
+	buf[2] = level;
 	// Response data format is SCSI-2 for devices supporting SCSI-2 or newer, otherwise it is SCSI-1-CCS
-	buf[3] = scsi_level >= 2 ? 2 : 1;
+	buf[3] = level >= 2 ? 2 : 1;
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision

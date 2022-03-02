@@ -114,8 +114,7 @@ void SCSIDaynaPort::Open(const Filepath& path)
 
 vector<BYTE> SCSIDaynaPort::Inquiry() const
 {
-	// Processor device, SCSI-2, not removable
-	return PrimaryDevice::Inquiry(3, 2, false);
+	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
 }
 
 //---------------------------------------------------------------------------

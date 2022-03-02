@@ -137,8 +137,7 @@ void SCSIHD_NEC::Open(const Filepath& path)
 
 vector<BYTE> SCSIHD_NEC::Inquiry() const
 {
-	// Direct access device, SCSI-1-CCS, not removable
-	return PrimaryDevice::Inquiry(0, 1, false);
+	return PrimaryDevice::Inquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_1_CCS, false);
 }
 
 void SCSIHD_NEC::AddErrorPage(map<int, vector<BYTE>>& pages, bool) const

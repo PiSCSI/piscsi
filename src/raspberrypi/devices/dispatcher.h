@@ -40,9 +40,9 @@ public:
 
 		_command_t(const char* _name, void (T::*_execute)(U *)) : name(_name), execute(_execute) { };
 	} command_t;
-	unordered_map<scsi_command, command_t*> commands;
+	unordered_map<command, command_t*> commands;
 
-	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)(U *))
+	void AddCommand(command opcode, const char* name, void (T::*execute)(U *))
 	{
 		commands[opcode] = new command_t(name, execute);
 	}
@@ -52,7 +52,7 @@ public:
 		SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
 		instance->SetCtrl(ctrl);
 
-		const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));
+		const auto& it = commands.find(static_cast<command>(ctrl->cmd[0]));
 		if (it != commands.end()) {
 			LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, it->second->name, (unsigned int)ctrl->cmd[0]);
 

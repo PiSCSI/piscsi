@@ -266,7 +266,7 @@ void SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
+	if ((command)ctrl.cmd[0] != command::eCmdRequestSense) {
 		ctrl.status = 0;
 	}
 
@@ -274,8 +274,8 @@ void SCSIDEV::Execute()
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		if ((scsi_command)ctrl.cmd[0] != eCmdInquiry &&
-				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
+		if ((command)ctrl.cmd[0] != eCmdInquiry &&
+				(command)ctrl.cmd[0] != command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
 			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
@@ -293,7 +293,7 @@ void SCSIDEV::Execute()
 	ctrl.device = ctrl.unit[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
+	if ((command)ctrl.cmd[0] != command::eCmdRequestSense) {
 		ctrl.device->SetStatusCode(0);
 	}
 	
@@ -304,7 +304,7 @@ void SCSIDEV::Execute()
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.unit[lun]) {
+	if ((command)ctrl.cmd[0] == command::eCmdInquiry && !ctrl.unit[lun]) {
 		lun = GetEffectiveLun();
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
@@ -902,7 +902,7 @@ bool SCSIDEV::XferOut(bool cont)
 	scsi.is_byte_transfer = false;
 
 	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[GetEffectiveLun()]);
-	if (device && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
+	if (device && ctrl.cmd[0] == command::eCmdWrite6) {
 		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
 	}
 
