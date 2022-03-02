@@ -166,10 +166,10 @@ vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_
 	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
 
 	// Basic data
-	// buf[0] ... SCSI Device type
+	// buf[0] ... SCSI device type
 	// buf[1] ... Bit 7: Removable/not removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
+	// buf[2] ... SCSI compliance level of command system
+	// buf[3] ... SCSI compliance level of Inquiry response
 	// buf[4] ... Inquiry additional data
 	buf[0] = type;
 	buf[1] = is_removable ? 0x80 : 0x00;
