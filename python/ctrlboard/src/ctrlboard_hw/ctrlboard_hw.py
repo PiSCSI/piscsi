@@ -1,10 +1,10 @@
 """Module providing the interface to the RaSCSI Control Board hardware"""
 # noinspection PyUnresolvedReferences
 import logging
-import RPi.GPIO as GPIO
-import numpy
-import smbus
+import time
 
+import RPi.GPIO as GPIO
+import smbus
 from ctrlboard_hw import pca9554multiplexer
 from ctrlboard_hw.hardware_button import HardwareButton
 from ctrlboard_hw.ctrlboard_hw_constants import CtrlBoardHardwareConstants
@@ -16,9 +16,10 @@ from observable import Observable
 # pylint: disable=too-many-instance-attributes
 class CtrlBoardHardware(Observable):
     """Class implements the RaSCSI Control Board hardware and provides an interface to it."""
-    def __init__(self, display_i2c_address, pca9554_i2c_address):
+    def __init__(self, display_i2c_address, pca9554_i2c_address, debounce_ms=200):
         self.display_i2c_address = display_i2c_address
         self.pca9554_i2c_address = pca9554_i2c_address
+        self.debounce_ms = debounce_ms
         self.rascsi_controlboard_detected = self.detect_rascsi_controlboard()
         log = logging.getLogger(__name__)
         log.info("RaSCSI Control Board detected: %s", str(self.rascsi_controlboard_detected))
@@ -53,7 +54,7 @@ class CtrlBoardHardware(Observable):
         self.pca_driver.write_configuration_register_port(CtrlBoardHardwareConstants.
                                                           PCA9554_PIN_LED_2,
                                                           PCA9554Multiplexer.PIN_ENABLED_AS_OUTPUT)
-        self.input_register_buffer = numpy.uint32(0)
+        self.input_register_buffer = 0
 
         # pylint: disable=no-member
         GPIO.setmode(GPIO.BCM)
@@ -97,6 +98,7 @@ class CtrlBoardHardware(Observable):
         self.rotary = Encoder(self.rotary_a, self.rotary_b)
         self.rotary.pos_prev = 0
         self.rotary.name = CtrlBoardHardwareConstants.ROTARY
+        self.rot_prev_state = 0b11
 
     # noinspection PyUnusedLocal
     # pylint: disable=unused-argument
@@ -113,11 +115,18 @@ class CtrlBoardHardware(Observable):
 
         value = button.state_interrupt
 
+        # ignore button press if debounce time is not reached
+        if button.last_press is not None:
+            elapsed = (time.time_ns() - button.last_press)/1000000
+            if elapsed < self.debounce_ms:
+                return
+
         if value != button.state and value is False:
             button.state = False
             self.notify(button)
             button.state = True
             button.state_interrupt = True
+            button.last_press = time.time_ns()
 
     def check_rotary_encoder(self, rotary):
         """Checks whether the rotary state has changed."""
@@ -150,12 +159,12 @@ class CtrlBoardHardware(Observable):
 
     def process_events(self):
         """Non-blocking event processor for hardware events (button presses etc.)"""
-        input_register_buffer_length = int(len(format(self.input_register_buffer, 'b'))/8)
-        if input_register_buffer_length <= 1:
-            return
-
         input_register_buffer = self.input_register_buffer
         self.input_register_buffer = 0
+
+        input_register_buffer_length = int(len(format(input_register_buffer, 'b'))/8)
+        if input_register_buffer_length < 1:
+            return
 
         for i in range(0, input_register_buffer_length):
             shiftval = (input_register_buffer_length-1-i)*8
@@ -163,6 +172,7 @@ class CtrlBoardHardware(Observable):
 
             rot_a = self.button_value(input_register, 0)
             rot_b = self.button_value(input_register, 1)
+
             button_rotary = self.button_value(input_register, 5)
             button_1 = self.button_value(input_register, 2)
             button_2 = self.button_value(input_register, 3)
@@ -176,19 +186,21 @@ class CtrlBoardHardware(Observable):
             if button_rotary == 0:
                 self.rotary_button.state_interrupt = bool(button_rotary)
 
+            rot_tmp_state = 0b11
             if rot_a == 0:
-                self.rotary.enc_a.state_interrupt = bool(rot_a)
-
+                rot_tmp_state &= 0b10
             if rot_b == 0:
+                rot_tmp_state &= 0b01
+
+            if rot_tmp_state != self.rot_prev_state:
+                self.rot_prev_state = rot_tmp_state
+                self.rotary.enc_a.state_interrupt = bool(rot_a)
                 self.rotary.enc_b.state_interrupt = bool(rot_b)
+                self.check_rotary_encoder(self.rotary)
 
             self.check_button_press(self.rotary_button)
             self.check_button_press(self.button1)
             self.check_button_press(self.button2)
-            self.check_rotary_encoder(self.rotary)
-
-        self.rotary.state = 0b11
-        self.input_register_buffer = 0
 
     @staticmethod
     def detect_i2c_devices(_bus):
