@@ -19,6 +19,8 @@
 #include "devices/scsi_daynaport.h"
 #include "devices/scsi_printer.h"
 
+using namespace scsi_defs;
+
 //===========================================================================
 //
 //	SCSI Device
@@ -264,7 +266,7 @@ void SCSIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
+	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 		ctrl.status = 0;
 	}
 
@@ -272,11 +274,11 @@ void SCSIDEV::Execute()
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdInquiry &&
-				(scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
+		if ((scsi_command)ctrl.cmd[0] != eCmdInquiry &&
+				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
-			Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_LUN);
+			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 			return;
 		}
 		// Use LUN 0 for INQUIRY and REQUEST SENSE because LUN0 is assumed to be always available.
@@ -291,18 +293,18 @@ void SCSIDEV::Execute()
 	ctrl.device = ctrl.unit[lun];
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
-	if ((scsi_defs::scsi_command)ctrl.cmd[0] != scsi_defs::eCmdRequestSense) {
+	if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 		ctrl.device->SetStatusCode(0);
 	}
 	
 	if (!ctrl.device->Dispatch(this)) {
 		LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
-		Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_COMMAND_OPERATION_CODE);
+		Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
-	if ((scsi_defs::scsi_command)ctrl.cmd[0] == scsi_defs::eCmdInquiry && !ctrl.unit[lun]) {
+	if ((scsi_command)ctrl.cmd[0] == scsi_command::eCmdInquiry && !ctrl.unit[lun]) {
 		lun = GetEffectiveLun();
 
 		LOGTRACE("Reporting LUN %d for device ID %d as not supported", lun, ctrl.device->GetId());
@@ -355,7 +357,7 @@ void SCSIDEV::MsgOut()
 //	Common Error Handling
 //
 //---------------------------------------------------------------------------
-void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
+void SCSIDEV::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
 	ctrl.bus->Aquire();
@@ -377,8 +379,10 @@ void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERRO
 	}
 
 	int lun = GetEffectiveLun();
-	if (!ctrl.unit[lun] || asc == ERROR_CODES::INVALID_LUN) {
+	if (!ctrl.unit[lun] || asc == INVALID_LUN) {
 		lun = 0;
+
+		assert(ctrl.unit[lun]);
 	}
 
 	if (sense_key || asc) {
@@ -408,7 +412,9 @@ void SCSIDEV::Send()
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
 				+ to_string(ctrl.length)).c_str());
 
-		int len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0]->GetSendDelay());
+		// TODO The delay has to be taken from ctrl.unit[lun], but as there are no Daynaport drivers for
+		// LUNs other than 0 this work-around works.
+		int len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0] ? ctrl.unit[0]->GetSendDelay() : 0);
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -896,7 +902,7 @@ bool SCSIDEV::XferOut(bool cont)
 	scsi.is_byte_transfer = false;
 
 	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[GetEffectiveLun()]);
-	if (device && ctrl.cmd[0] == scsi_defs::eCmdWrite6) {
+	if (device && ctrl.cmd[0] == scsi_command::eCmdWrite6) {
 		return device->WriteBytes(ctrl.buffer, scsi.bytes_to_transfer);
 	}
 

@@ -19,7 +19,7 @@
 #include "exceptions.h"
 #include "../config.h"
 
-SASIHD::SASIHD(const set<uint32_t>& sector_sizes) : Disk("SAHD")
+SASIHD::SASIHD(const unordered_set<uint32_t>& sector_sizes) : Disk("SAHD")
 {
 	SetSectorSizes(sector_sizes);
 }
@@ -81,27 +81,20 @@ void SASIHD::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 }
 
-int SASIHD::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/)
+vector<BYTE> SASIHD::Inquiry() const
 {
-	SetStatusCode(STATUS_INVALIDCMD);
-	return 0;
+	assert(false);
+	return vector<BYTE>(0);
 }
 
-int SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SASIHD::RequestSense(int allocation_length)
 {
-	// Size decision
-	int size = (int)cdb[4];
-	assert(size >= 0 && size < 0x100);
-
-	// Transfer 4 bytes when size 0 (Shugart Associates System Interface specification)
-	if (size == 0) {
-		size = 4;
-	}
+	// Transfer 4 bytes when size is 0 (Shugart Associates System Interface specification)
+	vector<BYTE> buf(allocation_length ? allocation_length : 4);
 
 	// SASI fixed to non-extended format
-	memset(buf, 0, size);
 	buf[0] = (BYTE)(GetStatusCode() >> 16);
 	buf[1] = (BYTE)(GetLun() << 5);
 
-	return size;
+	return buf;
 }

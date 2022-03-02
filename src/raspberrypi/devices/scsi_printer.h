@@ -13,7 +13,7 @@
 #include "interfaces/scsi_printer_commands.h"
 #include "primary_device.h"
 #include <string>
-#include <map>
+#include <unordered_map>
 
 using namespace std;
 
@@ -29,9 +29,9 @@ public:
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
-	bool Init(const map<string, string>&);
+	bool Init(const unordered_map<string, string>&);
 
-	int Inquiry(const DWORD *, BYTE *) override;
+	vector<BYTE> Inquiry() const override;
 	void TestUnitReady(SCSIDEV *);
 	void ReserveUnit(SCSIDEV *);
 	void ReleaseUnit(SCSIDEV *);

@@ -36,13 +36,13 @@ public:
 	SCSIBR();
 	~SCSIBR();
 
-	bool Init(const map<string, string>&) override;
+	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch(SCSIDEV *) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
-	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	vector<BYTE> Inquiry() const override;
+	int GetMessage10(const DWORD *cdb, BYTE *buf);
+	bool SendMessage10(const DWORD *cdb, BYTE *buf);
 	void TestUnitReady(SASIDEV *) override;
 	void GetMessage10(SASIDEV *);
 	void SendMessage10(SASIDEV *);

@@ -623,7 +623,7 @@ void SASIDEV::DataOut()
 //	Error
 //
 //---------------------------------------------------------------------------
-void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
+void SASIDEV::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
 	ctrl.bus->Aquire();

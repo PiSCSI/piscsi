@@ -68,7 +68,7 @@ pthread_mutex_t ctrl_mutex;					// Semaphore for the ctrl array
 static void *MonThread(void *param);
 string current_log_level;			// Some versions of spdlog do not support get_log_level()
 string access_token;
-set<int> reserved_ids;
+unordered_set<int> reserved_ids;
 DeviceFactory& device_factory = DeviceFactory::instance();
 RascsiImage rascsi_image;
 RascsiResponse rascsi_response(&device_factory, &rascsi_image);
@@ -428,22 +428,10 @@ string ValidateLunSetup(const PbCommand& command, const vector<Device *>& existi
 		}
 	}
 
-	// LUNs must be consecutive
+	// LUN 0 must exist for all devices
 	for (auto const& [id, lun]: luns) {
-		bool is_consecutive = false;
-
-		uint32_t lun_vector = 0;
-		for (int i = 0; i < 32; i++) {
-			lun_vector |= 1 << i;
-
-			if (lun == lun_vector) {
-				is_consecutive = true;
-				break;
-			}
-		}
-
-		if (!is_consecutive) {
-			return "LUNs for device ID " + to_string(id) + " are not consecutive";
+		if (!(lun & 0x01)) {
+			return "LUN 0 is missing for device ID " + to_string(id);
 		}
 	}
 
@@ -505,7 +493,7 @@ string SetReservedIds(const string& ids)
     	}
     }
 
-	set<int> reserved;
+    unordered_set<int> reserved;
     for (string id_to_reserve : ids_to_reserve) {
     	int id;
  		if (!GetAsInt(id_to_reserve, id) || id > 7) {
@@ -694,7 +682,7 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		return true;
 	}
 
-	std::map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
+	unordered_map<string, string> params = { pb_device.params().begin(), pb_device.params().end() };
 	if (!device->SupportsFile()) {
 		params.erase("file");
 	}
@@ -728,20 +716,24 @@ bool Attach(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 
 bool Detach(const CommandContext& context, Device *device, Device *map[], bool dryRun)
 {
-	if (!dryRun) {
+	if (!device->GetLun()) {
 		for (auto const& d : devices) {
-			// Detach all LUNs equal to or higher than the LUN specified
-			if (d && d->GetId() == device->GetId() && d->GetLun() >= device->GetLun()) {
-				map[d->GetId() * UnitNum + d->GetLun()] = NULL;
-
-				FileSupport *file_support = dynamic_cast<FileSupport *>(d);
-				if (file_support) {
-					file_support->UnreserveFile();
-				}
-
-				LOGINFO("Detached %s device with ID %d, unit %d", d->GetType().c_str(), d->GetId(), d->GetLun());
+			// LUN 0 can only be detached if there is no other lUN anymore
+			if (d && d->GetId() == device->GetId() && d->GetLun()) {
+				return ReturnStatus(context, false, "LUN 0 cannot be detached as long as there is still another LUN");
 			}
 		}
+	}
+
+	if (!dryRun) {
+		map[device->GetId() * UnitNum + device->GetLun()] = NULL;
+
+		FileSupport *file_support = dynamic_cast<FileSupport *>(device);
+		if (file_support) {
+			file_support->UnreserveFile();
+		}
+
+		LOGINFO("Detached %s device with ID %d, unit %d", device->GetType().c_str(), device->GetId(), device->GetLun());
 
 		// Re-map the controller
 		MapController(map);

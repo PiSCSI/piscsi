@@ -28,8 +28,8 @@
 #include "interfaces/scsi_block_commands.h"
 #include "mode_page_device.h"
 #include <string>
-#include <set>
-#include <map>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
@@ -39,11 +39,11 @@ private:
 	enum access_mode { RW6, RW10, RW16 };
 
 	// The supported configurable block sizes, empty if not configurable
-	set<uint32_t> sector_sizes;
+	unordered_set<uint32_t> sector_sizes;
 	uint32_t configured_sector_size;
 
 	// The mapping of supported capacities to block sizes and block counts, empty if there is no capacity restriction
-	map<uint64_t, Geometry> geometries;
+	unordered_map<uint64_t, Geometry> geometries;
 
 	typedef struct {
 		uint32_t size;							// Sector Size (8=256, 9=512, 10=1024, 11=2048, 12=4096)
@@ -108,33 +108,30 @@ public:
 	void Seek6(SASIDEV *);
 
 	// Command helpers
-	virtual int Inquiry(const DWORD *cdb, BYTE *buf) = 0;	// INQUIRY command
-	virtual int WriteCheck(DWORD block);					// WRITE check
-	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);			// WRITE command
-	bool StartStop(const DWORD *cdb);				// START STOP UNIT command
-	bool SendDiag(const DWORD *cdb);				// SEND DIAGNOSTIC command
+	virtual int WriteCheck(DWORD block);
+	virtual bool Write(const DWORD *cdb, const BYTE *buf, DWORD block);
+	bool StartStop(const DWORD *cdb);
+	bool SendDiag(const DWORD *cdb) const;
 
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
-	int ReadDefectData10(const DWORD *, BYTE *, int);
 
 	uint32_t GetSectorSizeInBytes() const;
 	void SetSectorSizeInBytes(uint32_t, bool);
 	uint32_t GetSectorSizeShiftCount() const;
 	void SetSectorSizeShiftCount(uint32_t);
 	bool IsSectorSizeConfigurable() const;
-	set<uint32_t> GetSectorSizes() const;
-	void SetSectorSizes(const set<uint32_t>&);
+	unordered_set<uint32_t> GetSectorSizes() const;
+	void SetSectorSizes(const unordered_set<uint32_t>&);
 	uint32_t GetConfiguredSectorSize() const;
 	bool SetConfiguredSectorSize(uint32_t);
-	void SetGeometries(const map<uint64_t, Geometry>&);
+	void SetGeometries(const unordered_map<uint64_t, Geometry>&);
 	bool SetGeometryForCapacity(uint64_t);
 	uint64_t GetBlockCount() const;
 	void SetBlockCount(uint32_t);
-	bool CheckBlockAddress(SASIDEV *, access_mode);
-	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 	void FlushCache();
 
 protected:
+
 	int ModeSense6(const DWORD *cdb, BYTE *buf);
 	int ModeSense10(const DWORD *cdb, BYTE *buf, int);
 	virtual void SetDeviceParameters(BYTE *);
@@ -149,6 +146,7 @@ protected:
 	disk_t disk;
 
 private:
+
 	void Read(SASIDEV *, uint64_t);
 	void Write(SASIDEV *, uint64_t);
 	void Verify(SASIDEV *, uint64_t);
@@ -156,4 +154,7 @@ private:
 	void ReadWriteLong16(SASIDEV *);
 	void ReadCapacity16_ReadLong16(SASIDEV *);
 	bool Format(const DWORD *cdb);
+
+	bool ValidateBlockAddress(SASIDEV *, access_mode);
+	bool GetStartAndCount(SASIDEV *, uint64_t&, uint32_t&, access_mode);
 };

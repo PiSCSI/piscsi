@@ -57,10 +57,10 @@ void HostServices::TestUnitReady(SCSIDEV *controller)
 	controller->Status();
 }
 
-int HostServices::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> HostServices::Inquiry() const
 {
 	// Processor device, SPC-5, not removable
-	return PrimaryDevice::Inquiry(3, 7, false, cdb, buf);
+	return PrimaryDevice::Inquiry(3, 7, false);
 }
 
 void HostServices::StartStopUnit(SCSIDEV *controller)
@@ -96,7 +96,7 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 		}
 	}
 
-	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)

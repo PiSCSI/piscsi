@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <set>
-#include <map>
+#include <unordered_set>
+#include <unordered_map>
 #include <string>
 
 using namespace std;
@@ -97,17 +97,17 @@ private:
 	string revision;
 
 	// The parameters the device was created with
-	map<string, string> params;
+	unordered_map<string, string> params;
 
 	// The default parameters
-	map<string, string> default_params;
+	unordered_map<string, string> default_params;
 
 	// Sense Key, ASC and ASCQ
 	int status_code;
 
 protected:
 
-	static set<Device *> devices;
+	static unordered_set<Device *> devices;
 
 public:
 
@@ -115,7 +115,7 @@ public:
 	virtual ~Device();
 
 	// Override for device specific initializations, to be called after all device properties have been set
-	virtual bool Init(const map<string, string>&) { return true; };
+	virtual bool Init(const unordered_map<string, string>&) { return true; };
 
 	virtual bool Dispatch(SCSIDEV *) = 0;
 
@@ -169,11 +169,11 @@ public:
 	bool SupportsParams() const { return supports_params; }
 	bool SupportsFile() const { return !supports_params; }
 	void SupportsParams(bool supports_paams) { this->supports_params = supports_paams; }
-	const map<string, string> GetParams() const { return params; }
+	const unordered_map<string, string> GetParams() const { return params; }
 	const string GetParam(const string&);
-	void SetParams(const map<string, string>&);
-	const map<string, string> GetDefaultParams() const { return default_params; }
-	void SetDefaultParams(const map<string, string>& default_params) { this->default_params = default_params; }
+	void SetParams(const unordered_map<string, string>&);
+	const unordered_map<string, string> GetDefaultParams() const { return default_params; }
+	void SetDefaultParams(const unordered_map<string, string>& default_params) { this->default_params = default_params; }
 
 	int GetStatusCode() const { return status_code; }
 	void SetStatusCode(int);

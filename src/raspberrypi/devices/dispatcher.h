@@ -13,7 +13,7 @@
 
 #include "log.h"
 #include "scsi.h"
-#include <map>
+#include <unordered_map>
 
 class SASIDEV;
 class SCSIDEV;
@@ -40,7 +40,7 @@ public:
 
 		_command_t(const char* _name, void (T::*_execute)(U *)) : name(_name), execute(_execute) { };
 	} command_t;
-	map<scsi_command, command_t*> commands;
+	unordered_map<scsi_command, command_t*> commands;
 
 	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)(U *))
 	{

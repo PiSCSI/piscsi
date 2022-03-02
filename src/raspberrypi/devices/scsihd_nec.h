@@ -25,13 +25,13 @@
 class SCSIHD_NEC : public SCSIHD
 {
 public:
-	SCSIHD_NEC(const set<uint32_t>&);
+	SCSIHD_NEC(const unordered_set<uint32_t>&);
 	~SCSIHD_NEC() {}
 
 	void Open(const Filepath& path) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;
+	vector<BYTE> Inquiry() const override;
 
 	void AddErrorPage(map<int, vector<BYTE>>&, bool) const override;
 	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;

@@ -18,8 +18,6 @@
 #include "exceptions.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
-#include <set>
-#include <map>
 #include "host_services.h"
 
 using namespace std;
@@ -86,12 +84,13 @@ string DeviceFactory::GetExtension(const string& filename) const
 	return ext;
 }
 
-PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
+PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
 	string ext = GetExtension(filename);
 
-	if (extension_mapping.find(ext) != extension_mapping.end()) {
-		return extension_mapping[ext];
+	const auto& it = extension_mapping.find(ext);
+	if (it != extension_mapping.end()) {
+		return it->second;
 	}
 	else if (filename == "bridge") {
 		return SCBR;
@@ -216,19 +215,19 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 	return device;
 }
 
-const set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
+const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 {
 	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(type, &t);
 	return sector_sizes[t];
 }
 
-const set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type)
+const unordered_set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type) const
 {
-	set<uint64_t> keys;
+	unordered_set<uint64_t> keys;
 
-	for (const auto& geometry : geometries[type]) {
-		keys.insert(geometry.first);
+	for (auto it = geometries.begin(); it != geometries.end(); ++it) {
+		keys.insert(it->first);
 	}
 
 	return keys;

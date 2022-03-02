@@ -14,12 +14,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "scsimo.h"
-
 #include "fileio.h"
 #include "exceptions.h"
+#include "scsimo.h"
 
-SCSIMO::SCSIMO(const set<uint32_t>& sector_sizes, const map<uint64_t, Geometry>& geometries) : Disk("SCMO")
+SCSIMO::SCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries) : Disk("SCMO")
 {
 	SetSectorSizes(sector_sizes);
 	SetGeometries(geometries);
@@ -41,6 +40,7 @@ void SCSIMO::Open(const Filepath& path)
 	fio.Close();
 
 	// For some priorities there are hard-coded, well-defined sector sizes and block counts
+	// TODO Find a more flexible solution
 	if (!SetGeometryForCapacity(size)) {
 		// Sector size (default 512 bytes) and number of blocks
 		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, true);
@@ -63,39 +63,10 @@ void SCSIMO::Open(const Filepath& path)
 	}
 }
 
-int SCSIMO::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSIMO::Inquiry() const
 {
-	// EVPD check
-	if (cdb[1] & 0x01) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return FALSE;
-	}
-
-	// Basic data
-	// buf[0] ... Optical Memory Device
-	// buf[1] ... Removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	memset(buf, 0, 8);
-	buf[0] = 0x07;
-	buf[1] = 0x80;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
-	buf[4] = 0x1F;
-
-	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
-
-	// Size return data
-	int size = (buf[4] + 5);
-
-	// Limit the size if the buffer is too small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return size;
+	// Optical memory device, SCSI-2, removable
+	return PrimaryDevice::Inquiry(7, 2, true);
 }
 
 void SCSIMO::SetDeviceParameters(BYTE *buf)

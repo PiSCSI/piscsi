@@ -26,7 +26,7 @@
 //
 //===========================================================================
 
-SCSIHD::SCSIHD(const set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
+SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
 	SetSectorSizes(sector_sizes);
 }
@@ -98,38 +98,10 @@ void SCSIHD::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSIHD::Inquiry() const
 {
-	// EVPD check
-	if (cdb[1] & 0x01) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	// Basic data
-	// buf[0] ... Direct Access Device
-	// buf[1] ... Bit 7 set means removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	memset(buf, 0, 8);
-	buf[1] = IsRemovable() ? 0x80 : 0x00;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
-	buf[4] = 0x1F;
-
-	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
-
-	// Size of data that can be returned
-	int size = (buf[4] + 5);
-
-	// Limit if the other buffer is small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return size;
+	// Direct access device, SCSI-2
+	return PrimaryDevice::Inquiry(0, 2, IsRemovable());
 }
 
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
@@ -221,7 +193,7 @@ void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changea
 
 	// No changeable area
 	if (!changeable) {
-		memcpy(&buf.data()[0xa], "APPLE COMPUTER, INC.", 20);
+		memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
 	}
 
 	pages[48] = buf;

@@ -14,7 +14,7 @@
 #include "exceptions.h"
 #include "device.h"
 
-set<Device *> Device::devices;
+unordered_set<Device *> Device::devices;
 
 Device::Device(const string& type)
 {
@@ -121,7 +121,7 @@ const string Device::GetParam(const string& key)
 	return params.find(key) != params.end() ? params[key] : "";
 }
 
-void Device::SetParams(const map<string, string>& params)
+void Device::SetParams(const unordered_map<string, string>& params)
 {
 	this->params = GetDefaultParams();
 

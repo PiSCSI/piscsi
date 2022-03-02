@@ -14,57 +14,6 @@
 
 //===========================================================================
 //
-//	Status byte codes, Sense Keys and Additional Sense Codes
-//  (See https://www.t10.org/lists/1spc-lst.htm)
-//
-//===========================================================================
-class ERROR_CODES
-{
-public:
-	enum status : int {
-		GOOD = 0x00,
-		CHECK_CONDITION = 0x02,
-		CONDITION_MET = 0x04,
-		BUSY = 0x08,
-		INTERMEDIATE = 0x10,
-		INTERMEDIATE_CONDITION_MET = 0x14,
-		RESERVATION_CONFLICT = 0x18,
-		COMMAND_TERMINATED = 0x22,
-		QUEUE_FULL = 0x28
-	};
-
-	enum sense_key : int {
-		NO_SENSE = 0x00,
-		RECOVERED_ERROR = 0x01,
-		NOT_READY = 0x02,
-		MEDIUM_ERROR = 0x03,
-		HARDWARE_ERROR = 0x04,
-		ILLEGAL_REQUEST = 0x05,
-		UNIT_ATTENTION = 0x06,
-		DATA_PROTECT = 0x07,
-		BLANK_CHECK = 0x08,
-		VENDOR_SPECIFIC = 0x09,
-		COPY_ABORTED = 0x0a,
-		ABORTED_COMMAND = 0x0b,
-		VOLUME_OVERFLOW = 0x0d,
-		MISCOMPARE = 0x0e,
-		COMPLETED = 0x0f
-	};
-
-	enum asc : int {
-		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
-		INVALID_COMMAND_OPERATION_CODE = 0x20,
-		LBA_OUT_OF_RANGE = 0x21,
-		INVALID_FIELD_IN_CDB = 0x24,
-		INVALID_LUN = 0x25,
-		WRITE_PROTECTED = 0x27,
-		NOT_READY_TO_READY_CHANGE = 0x28,
-		MEDIUM_NOT_PRESENT = 0x3a
-	};
-};
-
-//===========================================================================
-//
 //	SASI/SCSI Bus
 //
 //===========================================================================
@@ -94,8 +43,8 @@ public:
 		reserved						// Unused
 	};
 
-	BUS() { };
-	virtual ~BUS() { };
+	BUS() {}
+	virtual ~BUS() {}
 
 	// Basic Functions
 	virtual BOOL Init(mode_e mode) = 0;
@@ -108,8 +57,8 @@ public:
 		return phase_table[mci];
 	}
 
+	// Get the string phase name, based upon the raw data
 	static const char* GetPhaseStrRaw(phase_t current_phase);
-										// Get the string phase name, based upon the raw data
 
 	// Extract as specific pin field from a raw data capture
 	static inline DWORD GetPinRaw(DWORD raw_data, DWORD pin_num)
@@ -168,6 +117,12 @@ private:
 	static const char* phase_str_table[];
 };
 
+//===========================================================================
+//
+//	For Status byte codes, Sense Keys and Additional Sense Codes
+//  See https://www.t10.org/lists/1spc-lst.htm
+//
+//===========================================================================
 namespace scsi_defs {
 	enum scsi_command : int {
 		eCmdTestUnitReady = 0x00,
@@ -219,5 +174,46 @@ namespace scsi_defs {
 		eCmdReadCapacity16_ReadLong16 = 0x9E,
 		eCmdWriteLong16 = 0x9F,
 		eCmdReportLuns = 0xA0
+	};
+
+	enum status : int {
+		GOOD = 0x00,
+		CHECK_CONDITION = 0x02,
+		CONDITION_MET = 0x04,
+		BUSY = 0x08,
+		INTERMEDIATE = 0x10,
+		INTERMEDIATE_CONDITION_MET = 0x14,
+		RESERVATION_CONFLICT = 0x18,
+		COMMAND_TERMINATED = 0x22,
+		QUEUE_FULL = 0x28
+	};
+
+	enum sense_key : int {
+		NO_SENSE = 0x00,
+		RECOVERED_ERROR = 0x01,
+		NOT_READY = 0x02,
+		MEDIUM_ERROR = 0x03,
+		HARDWARE_ERROR = 0x04,
+		ILLEGAL_REQUEST = 0x05,
+		UNIT_ATTENTION = 0x06,
+		DATA_PROTECT = 0x07,
+		BLANK_CHECK = 0x08,
+		VENDOR_SPECIFIC = 0x09,
+		COPY_ABORTED = 0x0a,
+		ABORTED_COMMAND = 0x0b,
+		VOLUME_OVERFLOW = 0x0d,
+		MISCOMPARE = 0x0e,
+		COMPLETED = 0x0f
+	};
+
+	enum asc : int {
+		NO_ADDITIONAL_SENSE_INFORMATION = 0x00,
+		INVALID_COMMAND_OPERATION_CODE = 0x20,
+		LBA_OUT_OF_RANGE = 0x21,
+		INVALID_FIELD_IN_CDB = 0x24,
+		INVALID_LUN = 0x25,
+		WRITE_PROTECTED = 0x27,
+		NOT_READY_TO_READY_CHANGE = 0x28,
+		MEDIUM_NOT_PRESENT = 0x3a
 	};
 };

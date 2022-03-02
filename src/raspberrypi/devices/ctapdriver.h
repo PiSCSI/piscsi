@@ -15,7 +15,7 @@
 
 #include <pcap/pcap.h>
 #include "filepath.h"
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <string>
 
@@ -40,7 +40,7 @@ private:
 	CTapDriver();
 	~CTapDriver() {}
 
-	bool Init(const map<string, string>&);
+	bool Init(const unordered_map<string, string>&);
 
 public:
 

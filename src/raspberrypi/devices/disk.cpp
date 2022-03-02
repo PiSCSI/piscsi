@@ -85,7 +85,7 @@ bool Disk::Dispatch(SCSIDEV *controller)
 
 		disk.is_medium_changed = false;
 
-		controller->Error(ERROR_CODES::sense_key::UNIT_ATTENTION, ERROR_CODES::asc::NOT_READY_TO_READY_CHANGE);
+		controller->Error(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
 		return true;
 	}
 
@@ -207,11 +207,11 @@ void Disk::ReadWriteLong10(SASIDEV *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[7] || ctrl->cmd[8]) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
-	if (CheckBlockAddress(controller, RW10)) {
+	if (ValidateBlockAddress(controller, RW10)) {
 		controller->Status();
 	}
 }
@@ -225,11 +225,11 @@ void Disk::ReadWriteLong16(SASIDEV *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[12] || ctrl->cmd[13]) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
-	if (CheckBlockAddress(controller, RW16)) {
+	if (ValidateBlockAddress(controller, RW16)) {
 		controller->Status();
 	}
 }
@@ -243,11 +243,11 @@ void Disk::Write(SASIDEV *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
 	if (ctrl->length == 0) {
-		controller->Error(ERROR_CODES::sense_key::NOT_READY, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);
+		controller->Error(sense_key::NOT_READY, asc::NO_ADDITIONAL_SENSE_INFORMATION);
 		return;
 	}
 	else if (ctrl->length < 0) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::WRITE_PROTECTED);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::WRITE_PROTECTED);
 		return;
 	}
 
@@ -343,7 +343,7 @@ void Disk::StartStopUnit(SASIDEV *controller)
 void Disk::SendDiagnostic(SASIDEV *controller)
 {
 	if (!SendDiag(ctrl->cmd)) {
-		controller->Error();
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
@@ -380,11 +380,14 @@ void Disk::SynchronizeCache16(SASIDEV *controller)
 
 void Disk::ReadDefectData10(SASIDEV *controller)
 {
-	ctrl->length = ReadDefectData10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
-	if (ctrl->length <= 4) {
-		controller->Error();
-		return;
+	int allocation_length = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
+	if (allocation_length > 4) {
+		allocation_length = 4;
 	}
+
+	// The defect list is empty
+	memset(ctrl->buffer, 0, allocation_length);
+	ctrl->length = allocation_length;
 
 	controller->DataIn();
 }
@@ -675,34 +678,6 @@ void Disk::AddVendorPage(map<int, vector<BYTE>>&, int, bool) const
 	// Nothing to add by default
 }
 
-int Disk::ReadDefectData10(const DWORD *cdb, BYTE *buf, int max_length)
-{
-	// Get length, clear buffer
-	int length = (cdb[7] << 8) | cdb[8];
-	if (length > max_length) {
-		length = max_length;
-	}
-	memset(buf, 0, length);
-
-	// P/G/FORMAT
-	buf[1] = (cdb[1] & 0x18) | 5;
-	buf[3] = 8;
-
-	buf[4] = 0xff;
-	buf[5] = 0xff;
-	buf[6] = 0xff;
-	buf[7] = 0xff;
-
-	buf[8] = 0xff;
-	buf[9] = 0xff;
-	buf[10] = 0xff;
-	buf[11] = 0xff;
-
-	// no list
-	SetStatusCode(STATUS_NODEFECT);
-	return 4;
-}
-
 //---------------------------------------------------------------------------
 //
 //	FORMAT UNIT
@@ -868,17 +843,15 @@ bool Disk::StartStop(const DWORD *cdb)
 	return true;
 }
 
-bool Disk::SendDiag(const DWORD *cdb)
+bool Disk::SendDiag(const DWORD *cdb) const
 {
 	// Do not support PF bit
 	if (cdb[1] & 0x10) {
-		SetStatusCode(STATUS_INVALIDCDB);
 		return false;
 	}
 
 	// Do not support parameter list
 	if ((cdb[3] != 0) || (cdb[4] != 0)) {
-		SetStatusCode(STATUS_INVALIDCDB);
 		return false;
 	}
 
@@ -888,7 +861,7 @@ bool Disk::SendDiag(const DWORD *cdb)
 void Disk::ReadCapacity10(SASIDEV *controller)
 {
 	if (!CheckReady() || disk.blocks <= 0) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 		return;
 	}
 
@@ -917,7 +890,7 @@ void Disk::ReadCapacity10(SASIDEV *controller)
 void Disk::ReadCapacity16(SASIDEV *controller)
 {
 	if (!CheckReady() || disk.blocks <= 0) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::MEDIUM_NOT_PRESENT);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 		return;
 	}
 
@@ -965,7 +938,7 @@ void Disk::ReadCapacity16_ReadLong16(SASIDEV *controller)
 		break;
 
 	default:
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		break;
 	}
 }
@@ -996,7 +969,7 @@ void Disk::Release(SASIDEV *controller)
 //
 //---------------------------------------------------------------------------
 
-bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
+bool Disk::ValidateBlockAddress(SASIDEV *controller, access_mode mode)
 {
 	uint64_t block = ctrl->cmd[2];
 	block <<= 8;
@@ -1021,7 +994,7 @@ bool Disk::CheckBlockAddress(SASIDEV *controller, access_mode mode)
 	if (block > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
 				+ to_string(block)).c_str());
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
 
@@ -1078,14 +1051,14 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 		}
 	}
 
-	LOGDEBUG("%s READ/WRITE/VERIFY command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count);
+	LOGTRACE("%s READ/WRITE/VERIFY command record=$%08X blocks=%d", __PRETTY_FUNCTION__, (uint32_t)start, count);
 
 	// Check capacity
 	uint64_t capacity = GetBlockCount();
 	if (start > capacity || start + count > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
 				+ to_string(start) + ", block count " + to_string(ctrl->blocks)).c_str());
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::LBA_OUT_OF_RANGE);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 		return false;
 	}
 
@@ -1106,7 +1079,7 @@ uint32_t Disk::GetSectorSizeInBytes() const
 
 void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 {
-	set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
+	unordered_set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
 	if (!sector_sizes.empty() && sector_sizes.find(size) == sector_sizes.end()) {
 		throw io_exception("Invalid block size of " + to_string(size) + " bytes");
 	}
@@ -1153,7 +1126,7 @@ bool Disk::IsSectorSizeConfigurable() const
 	return !sector_sizes.empty();
 }
 
-void Disk::SetSectorSizes(const set<uint32_t>& sector_sizes)
+void Disk::SetSectorSizes(const unordered_set<uint32_t>& sector_sizes)
 {
 	this->sector_sizes = sector_sizes;
 }
@@ -1167,7 +1140,7 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 {
 	DeviceFactory& device_factory = DeviceFactory::instance();
 
-	set<uint32_t> sector_sizes = device_factory.GetSectorSizes(GetType());
+	unordered_set<uint32_t> sector_sizes = device_factory.GetSectorSizes(GetType());
 	if (sector_sizes.find(configured_sector_size) == sector_sizes.end()) {
 		return false;
 	}
@@ -1177,7 +1150,7 @@ bool Disk::SetConfiguredSectorSize(uint32_t configured_sector_size)
 	return true;
 }
 
-void Disk::SetGeometries(const map<uint64_t, Geometry>& geometries)
+void Disk::SetGeometries(const unordered_map<uint64_t, Geometry>& geometries)
 {
 	this->geometries = geometries;
 }
