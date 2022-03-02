@@ -111,7 +111,6 @@ void PrimaryDevice::RequestSense(SASIDEV *controller)
 
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 		ctrl->status = 0x00;
-		return;
 	}
 
 	size_t allocation_length = ctrl->cmd[4];
