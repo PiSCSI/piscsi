@@ -105,8 +105,7 @@ void SCSIPrinter::TestUnitReady(SCSIDEV *controller)
 
 vector<BYTE> SCSIPrinter::Inquiry() const
 {
-	// Printer device, SCSI-2, not removable
-	return PrimaryDevice::Inquiry(2, 2, false);
+	return PrimaryDevice::Inquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
 }
 
 void SCSIPrinter::ReserveUnit(SCSIDEV *controller)

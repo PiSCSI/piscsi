@@ -100,8 +100,7 @@ void SCSIHD::Open(const Filepath& path)
 
 vector<BYTE> SCSIHD::Inquiry() const
 {
-	// Direct access device, SCSI-2
-	return PrimaryDevice::Inquiry(0, 2, IsRemovable());
+	return PrimaryDevice::Inquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_2, IsRemovable());
 }
 
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)

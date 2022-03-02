@@ -111,7 +111,6 @@ void PrimaryDevice::RequestSense(SASIDEV *controller)
 
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 		ctrl->status = 0x00;
-		return;
 	}
 
 	size_t allocation_length = ctrl->cmd[4];
@@ -161,21 +160,20 @@ bool PrimaryDevice::CheckReady()
 	return true;
 }
 
-vector<BYTE> PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable) const
+vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_removable) const
 {
 	vector<BYTE> buf = vector<BYTE>(0x1F + 5);
 
 	// Basic data
-	// buf[0] ... SCSI Device type
+	// buf[0] ... SCSI device type
 	// buf[1] ... Bit 7: Removable/not removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
+	// buf[2] ... SCSI compliance level of command system
+	// buf[3] ... SCSI compliance level of Inquiry response
 	// buf[4] ... Inquiry additional data
 	buf[0] = type;
 	buf[1] = is_removable ? 0x80 : 0x00;
-	buf[2] = scsi_level;
-	// Response data format is SCSI-2 for devices supporting SCSI-2 or newer, otherwise it is SCSI-1-CCS
-	buf[3] = scsi_level >= 2 ? 2 : 1;
+	buf[2] = level;
+	buf[3] = level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS;
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision

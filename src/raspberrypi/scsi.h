@@ -124,6 +124,21 @@ private:
 //
 //===========================================================================
 namespace scsi_defs {
+	enum scsi_level : int {
+		SCSI_1_CCS = 1,
+		SCSI_2 = 2,
+		SPC_5 = 7
+	};
+
+	enum device_type : int {
+		DIRECT_ACCESS = 0,
+		PRINTER = 2,
+		PROCESSOR = 3,
+		CD_ROM = 5,
+		OPTICAL_MEMORY = 7,
+		COMMUNICATIONS = 9
+	};
+
 	enum scsi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
