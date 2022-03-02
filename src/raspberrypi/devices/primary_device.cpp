@@ -174,8 +174,7 @@ vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_
 	buf[0] = type;
 	buf[1] = is_removable ? 0x80 : 0x00;
 	buf[2] = level;
-	// Response data format is SCSI-2 for devices supporting SCSI-2 or newer, otherwise it is SCSI-1-CCS
-	buf[3] = level >= 2 ? 2 : 1;
+	buf[3] = level >= scsi_level::SCSI_2 ? scsi_level::SCSI_2 : scsi_level::SCSI_1_CCS;
 	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
