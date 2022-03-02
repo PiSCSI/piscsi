@@ -1044,10 +1044,13 @@ bool Disk::GetStartAndCount(SASIDEV *controller, uint64_t& start, uint32_t& coun
 			count <<= 8;
 			count |= ctrl->cmd[13];
 		}
-		else {
+		else if (mode != SEEK6 && mode != SEEK10) {
 			count = ctrl->cmd[7];
 			count <<= 8;
 			count |= ctrl->cmd[8];
+		}
+		else {
+			count = 0;
 		}
 	}
 
