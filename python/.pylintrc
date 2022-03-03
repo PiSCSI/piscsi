@@ -15,7 +15,7 @@ ignore-patterns=
 
 # Python code to execute, usually for sys.path manipulation such as
 # pygtk.require().
-init-hook=import sys; sys.path.append("common/src"); sys.path.append("web/src"); sys.path.append("oled/src");
+init-hook=import sys; sys.path.append("common/src"); sys.path.append("web/src"); sys.path.append("oled/src"); sys.path.append("ctrlboard/src");
 # venv hook for pylint
 # Requires pylint-venv package:
 # $ pip install pylint-venv
@@ -140,8 +140,7 @@ disable=print-statement,
         xreadlines-attribute,
         deprecated-sys-function,
         exception-escape,
-        comprehension-escape,
-        import-outside-toplevel
+        comprehension-escape
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

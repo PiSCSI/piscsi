@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <map>
+#include <unordered_map>
 #include <string>
 #include "filepath.h"
 
@@ -25,20 +25,21 @@ private:
 	Filepath diskpath;
 
 	// The list of image files in use and the IDs and LUNs using these files
-	static map<string, id_set> reserved_files;
+	static unordered_map<string, id_set> reserved_files;
 
 public:
 
-	FileSupport() {};
-	virtual ~FileSupport() {};
+	FileSupport() {}
+	virtual ~FileSupport() {}
 
 	void GetPath(Filepath& path) const { path = diskpath; }
 	void SetPath(const Filepath& path) { diskpath = path; }
-	static const map<string, id_set> GetReservedFiles(){ return reserved_files; }
-	static void SetReservedFiles(const map<string, id_set>& files_in_use) { FileSupport::reserved_files = files_in_use; }
 	void ReserveFile(const Filepath&, int, int);
 	void UnreserveFile();
 
+	static const unordered_map<string, id_set> GetReservedFiles() { return reserved_files; }
+	static void SetReservedFiles(const unordered_map<string, id_set>& files_in_use)
+		{ FileSupport::reserved_files = files_in_use; }
 	static bool GetIdsForReservedFile(const Filepath&, int&, int&);
 	static void UnreserveAll();
 

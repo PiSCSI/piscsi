@@ -28,23 +28,25 @@
 //---------------------------------------------------------------------------
 
 #include "scsi_daynaport.h"
-#include <sstream>
+
+using namespace scsi_defs;
 
 const BYTE SCSIDaynaPort::m_bcast_addr[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff };
 const BYTE SCSIDaynaPort::m_apple_talk_addr[6] = { 0x09, 0x00, 0x07, 0xff, 0xff, 0xff };
 
+// TODO Disk should not be the superclass
 SCSIDaynaPort::SCSIDaynaPort() : Disk("SCDP")
 {
 	m_tap = NULL;
 	m_bTapEnable = false;
 
-	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
-	AddCommand(ScsiDefs::eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
-	AddCommand(ScsiDefs::eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
-	AddCommand(ScsiDefs::eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
-	AddCommand(ScsiDefs::eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
-	AddCommand(ScsiDefs::eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
-	AddCommand(ScsiDefs::eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &SCSIDaynaPort::TestUnitReady);
+	dispatcher.AddCommand(eCmdRead6, "Read6", &SCSIDaynaPort::Read6);
+	dispatcher.AddCommand(eCmdWrite6, "Write6", &SCSIDaynaPort::Write6);
+	dispatcher.AddCommand(eCmdRetrieveStats, "RetrieveStats", &SCSIDaynaPort::RetrieveStatistics);
+	dispatcher.AddCommand(eCmdSetIfaceMode, "SetIfaceMode", &SCSIDaynaPort::SetInterfaceMode);
+	dispatcher.AddCommand(eCmdSetMcastAddr, "SetMcastAddr", &SCSIDaynaPort::SetMcastAddr);
+	dispatcher.AddCommand(eCmdEnableInterface, "EnableInterface", &SCSIDaynaPort::EnableInterface);
 }
 
 SCSIDaynaPort::~SCSIDaynaPort()
@@ -54,45 +56,22 @@ SCSIDaynaPort::~SCSIDaynaPort()
 		m_tap->Cleanup();
 		delete m_tap;
 	}
-
-	for (auto const& command : commands) {
-		delete command.second;
-	}
-}
-
-void SCSIDaynaPort::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSIDaynaPort::*execute)(SASIDEV *))
-{
-	commands[opcode] = new command_t(name, execute);
 }
 
 bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
-	ctrl = controller->GetCtrl();
-
-	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
-
-		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
-
-		(this->*command->execute)(controller);
-
-		return true;
-	}
-
-	LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl->cmd[0]);
-
-	// The base class handles the less specific commands
-	return Disk::Dispatch(controller);
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-bool SCSIDaynaPort::Init(const map<string, string>& params)
+bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 {
-	SetParams(params.empty() ? GetDefaultParams() : params);
+	SetParams(params);
 
 #ifdef __linux__
 	// TAP Driver Generation
-	m_tap = new CTapDriver(GetParam("interfaces"));
-	m_bTapEnable = m_tap->Init();
+	m_tap = new CTapDriver();
+	m_bTapEnable = m_tap->Init(GetParams());
 	if(!m_bTapEnable){
 		LOGERROR("Unable to open the TAP interface");
 
@@ -133,36 +112,9 @@ void SCSIDaynaPort::Open(const Filepath& path)
 	m_tap->OpenDump(path);
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-int SCSIDaynaPort::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSIDaynaPort::Inquiry() const
 {
-	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-	if (allocation_length > 4) {
-		if (allocation_length > 44) {
-			allocation_length = 44;
-		}
-
-		// Basic data
-		// buf[0] ... Processor Device
-		// buf[1] ... Not removable
-		// buf[2] ... SCSI-2 compliant command system
-		// buf[3] ... SCSI-2 compliant Inquiry response
-		// buf[4] ... Inquiry additional data
-		// http://www.bitsavers.org/pdf/apple/scsi/dayna/daynaPORT/pocket_scsiLINK/pocketscsilink_inq.png
-		memset(buf, 0, allocation_length);
-		buf[0] = 0x03;
-		buf[2] = 0x01;
-		buf[4] = 0x1F;
-
-		// Padded vendor, product, revision
-		memcpy(&buf[8], GetPaddedName().c_str(), 28);
-	}
-
-	return allocation_length;
+	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
 }
 
 //---------------------------------------------------------------------------
@@ -200,10 +152,6 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	int rx_packet_size = 0;
 	scsi_resp_read_t *response = (scsi_resp_read_t*)buf;
-
-	ostringstream s;
-	s << __PRETTY_FUNCTION__ << " reading DaynaPort block " << block;
-	LOGTRACE("%s", s.str().c_str());
 
 	int requested_length = cdb[4];
 	LOGTRACE("%s Read maximum length %d, (%04X)", __PRETTY_FUNCTION__, requested_length, requested_length);
@@ -292,8 +240,17 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 			// } else {
 			// 	response->flags = e_no_more_data;
 			// }
-			buf[0] = (BYTE)((rx_packet_size >> 8) & 0xFF);
-			buf[1] = (BYTE)(rx_packet_size & 0xFF);
+			int size = rx_packet_size;
+			if (size < 64) {
+				// A frame must have at least 64 bytes (see https://github.com/akuker/RASCSI/issues/619)
+				// Note that this work-around breaks the checksum. As currently there are no known drivers
+				// that care for the checksum, and the Daynaport driver for the Atari expects frames of
+				// 64 bytes it was decided to accept the broken checksum. If a driver should pop up that
+				// breaks because of this, the work-around has to be re-evaluated.
+				size = 64;
+			}
+			buf[0] = size >> 8;
+			buf[1] = size;
 
 			buf[2] = 0;
 			buf[3] = 0;
@@ -306,7 +263,7 @@ int SCSIDaynaPort::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 			// Return the packet size + 2 for the length + 4 for the flag field
 			// The CRC was already appended by the ctapdriver
-			return rx_packet_size + DAYNAPORT_READ_HEADER_SZ;
+			return size + DAYNAPORT_READ_HEADER_SZ;
 		}
 		// If we got to this point, there are still messages in the queue, so 
 		// we should loop back and get the next one.
@@ -486,7 +443,7 @@ void SCSIDaynaPort::Read6(SASIDEV *controller)
 	// generated by the DaynaPort driver so ignore them
 	if (ctrl->cmd[5] != 0xc0 && ctrl->cmd[5] != 0x80) {
 		LOGTRACE("%s Control value %d, (%04X), returning invalid CDB", __PRETTY_FUNCTION__, ctrl->cmd[5], ctrl->cmd[5]);
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
@@ -624,4 +581,12 @@ void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
 	}
 
 	controller->Status();
+}
+
+int SCSIDaynaPort::GetSendDelay() const
+{
+	// The Daynaport needs to have a delay after the size/flags field
+	// of the read response. In the MacOS driver, it looks like the
+	// driver is doing two "READ" system calls.
+	return DAYNAPORT_READ_HEADER_SZ;
 }

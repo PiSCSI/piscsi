@@ -5,6 +5,8 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// Host Services with realtime clock and shutdown support
+//
 //---------------------------------------------------------------------------
 
 //
@@ -25,110 +27,165 @@
 //    uint8_t second; // 0-59
 //  } mode_page_datetime;
 //
-// 2. STOP UNIT shuts down RaSCSI or the Raspberry Pi
+// 2. START/STOP UNIT shuts down RaSCSI or shuts down/reboots the Raspberry Pi
 //   a) !start && !load (STOP): Shut down RaSCSI
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
+//   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
+#include "controllers/scsidev_ctrl.h"
+#include "disk.h"
 #include "host_services.h"
+
+using namespace scsi_defs;
+
+HostServices::HostServices() : ModePageDevice("SCHS")
+{
+	dispatcher.AddCommand(eCmdTestUnitReady, "TestUnitReady", &HostServices::TestUnitReady);
+	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
+}
 
 bool HostServices::Dispatch(SCSIDEV *controller)
 {
-	unsigned int cmd = controller->GetCtrl()->cmd[0];
-
-	// Only certain commands are supported
-	// TODO Do not inherit from Disk, mode page handling should be moved to ModePageDevice
-	if (cmd == ScsiDefs::eCmdTestUnitReady || cmd == ScsiDefs::eCmdRequestSense
-			|| cmd == ScsiDefs::eCmdInquiry || cmd == ScsiDefs::eCmdReportLuns
-			|| cmd == ScsiDefs::eCmdModeSense6 || cmd == ScsiDefs::eCmdModeSense10
-			|| cmd == ScsiDefs::eCmdStartStop) {
-		LOGTRACE("%s Calling base class for dispatching $%02X", __PRETTY_FUNCTION__, cmd);
-
-		return Disk::Dispatch(controller);
-	}
-
-	return false;
+	// The superclass class handles the less specific commands
+	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-void HostServices::TestUnitReady(SASIDEV *controller)
+void HostServices::TestUnitReady(SCSIDEV *controller)
 {
 	// Always successful
 	controller->Status();
 }
 
-int HostServices::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> HostServices::Inquiry() const
 {
-	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
-	if (allocation_length > 4) {
-		if (allocation_length > 44) {
-			allocation_length = 44;
-		}
-
-		// Basic data
-		// buf[0] ... Processor Device
-		// buf[1] ... Not removable
-		// buf[2] ... SCSI-2 compliant command system
-		// buf[3] ... SCSI-2 compliant Inquiry response
-		// buf[4] ... Inquiry additional data
-		memset(buf, 0, allocation_length);
-		buf[0] = 0x03;
-		buf[2] = 0x01;
-		buf[4] = 0x1F;
-
-		// Padded vendor, product, revision
-		memcpy(&buf[8], GetPaddedName().c_str(), 28);
-	}
-
-	return allocation_length;
+	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SPC_5, false);
 }
 
-void HostServices::StartStopUnit(SASIDEV *controller)
+void HostServices::StartStopUnit(SCSIDEV *controller)
 {
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;
 
 	if (!start) {
-		// Delete all regular disk devices. This also flushes their caches.
-		for (auto disk : disks) {
-			if (disk && disk != this) {
-				delete disk;
+		// Flush any caches
+		for (Device *device : devices) {
+			Disk *disk = dynamic_cast<Disk *>(device);
+			if (disk) {
+				disk->FlushCache();
 			}
 		}
 
 		if (load) {
-			((SCSIDEV *)controller)->ShutDown(SCSIDEV::rascsi_shutdown_mode::PI);
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			((SCSIDEV *)controller)->ShutDown(SCSIDEV::rascsi_shutdown_mode::RASCSI);
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_RASCSI);
 		}
 
 		controller->Status();
 		return;
 	}
+	else {
+		if (load) {
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::RESTART_PI);
 
-	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+			controller->Status();
+			return;
+		}
+	}
+
+	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
-int HostServices::AddVendorPage(int page, bool, BYTE *buf)
+int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
-	if (page == 0x20) {
+	// Block descriptors cannot be returned
+	if (!(cdb[1] & 0x08)) {
+		return 0;
+	}
+
+	int length = (int)cdb[4];
+	memset(buf, 0, length);
+
+	// Basic information
+	int size = 4;
+
+	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
+	if (!pages_size) {
+		return 0;
+	}
+	size += pages_size;
+
+	// Do not return more than ALLOCATION LENGTH bytes
+	if (size > length) {
+		size = length;
+	}
+
+	buf[0] = size;
+
+	return size;
+}
+
+int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
+{
+	// Block descriptors cannot be returned
+	if (!(cdb[1] & 0x08)) {
+		return 0;
+	}
+
+	int length = (cdb[7] << 8) | cdb[8];
+	if (length > max_length) {
+		length = max_length;
+	}
+	memset(buf, 0, length);
+
+	// Basic information
+	int size = 8;
+
+	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
+	if (!pages_size) {
+		return 0;
+	}
+	size += pages_size;
+
+	// Do not return more than ALLOCATION LENGTH bytes
+	if (size > length) {
+		size = length;
+	}
+
+	buf[0] = size >> 8;
+	buf[1] = size;
+
+	return size;
+}
+
+void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+{
+	if (page == 0x20 || page == 0x3f) {
+		AddRealtimeClockPage(pages, changeable);
+	}
+}
+
+void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool changeable) const
+{
+	vector<BYTE> buf(10);
+
+	if (!changeable) {
 		// Data structure version 1.0
-		buf[0] = 0x01;
-		buf[1] = 0x00;
+		buf[2] = 0x01;
+		buf[3] = 0x00;
 
 		std::time_t t = std::time(NULL);
 		std::tm tm = *std::localtime(&t);
-		buf[2] = tm.tm_year;
-		buf[3] = tm.tm_mon;
-		buf[4] = tm.tm_mday;
-		buf[5] = tm.tm_hour;
-		buf[6] = tm.tm_min;
+		buf[4] = tm.tm_year;
+		buf[5] = tm.tm_mon;
+		buf[6] = tm.tm_mday;
+		buf[7] = tm.tm_hour;
+		buf[8] = tm.tm_min;
 		// Ignore leap second for simplicity
-		buf[7] = tm.tm_sec < 60 ? tm.tm_sec : 59;
-
-		return 8;
+		buf[9] = tm.tm_sec < 60 ? tm.tm_sec : 59;
 	}
 
-	return 0;
+	pages[32] = buf;
 }
-

@@ -6,8 +6,6 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //
-//	Imported NetBSD support and some optimisation patch by Rin Okuyama.
-//
 //	[ GPIO-SCSI bus ]
 //
 //---------------------------------------------------------------------------
@@ -16,8 +14,9 @@
 
 #include "os.h"
 #include "gpiobus.h"
+
+#include "config.h"
 #include "log.h"
-#include "rascsi.h"
 
 #ifdef __linux__
 //---------------------------------------------------------------------------

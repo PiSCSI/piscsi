@@ -16,7 +16,6 @@
 #pragma once
 
 #include "controllers/sasidev_ctrl.h"
-#include <map>
 
 //===========================================================================
 //
@@ -29,8 +28,9 @@ public:
 
 	enum rascsi_shutdown_mode {
 		NONE,
-		RASCSI,
-		PI
+		STOP_RASCSI,
+		STOP_PI,
+		RESTART_PI
 	};
 
 	// Internal data definition
@@ -45,45 +45,54 @@ public:
 		bool atnmsg;
 		int msc;
 		BYTE msb[256];
+
+		// -1 means that the initiator ID is unknown, e.g. with Atari ACSI and old host adapters
+		int initiator_id;
+
+		bool is_byte_transfer;
+		uint32_t bytes_to_transfer;
 	} scsi_t;
 
-	// Basic Functions
 	SCSIDEV();
 	~SCSIDEV();
 
 	void Reset() override;
 
-	// External API
-	BUS::phase_t Process() override;
+	BUS::phase_t Process(int) override;
 
-	// Other
+	void Receive() override;
+
 	bool IsSASI() const override { return false; }
 	bool IsSCSI() const override { return true; }
 
-	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION) override;	// Common error handling
+	// Common error handling
+	void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
+			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
 
-	void ShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+
+	int GetInitiatorId() const { return scsi.initiator_id; }
+	bool IsByteTransfer() const { return scsi.is_byte_transfer; }
+	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
 private:
+	typedef SASIDEV super;
 
-	// Phase
-	void BusFree() override;						// Bus free phase
-	void Selection() override;						// Selection phase
-	void Execute() override;						// Execution phase
-	void MsgOut();							// Message out phase
-
-	// commands
-	void CmdGetEventStatusNotification();
-	void CmdModeSelect10();
-	void CmdModeSense10();
+	// Phases
+	void BusFree() override;
+	void Selection() override;
+	void Execute() override;
+	void MsgOut();
 
 	// Data transfer
 	void Send() override;
-	void Receive() override;
-	bool XferMsg(DWORD msg);
+	bool XferMsg(int);
+	bool XferOut(bool);
+	void ReceiveBytes();
 
-	scsi_t scsi;								// Internal data
+	// Internal data
+	scsi_t scsi;
 
 	rascsi_shutdown_mode shutdown_mode;
 };

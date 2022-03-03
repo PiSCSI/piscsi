@@ -32,35 +32,26 @@ class CFileSys;
 class SCSIBR : public Disk
 {
 
-private:
-	typedef struct _command_t {
-		const char* name;
-		void (SCSIBR::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (SCSIBR::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
-
-	SASIDEV::ctrl_t *ctrl;
-
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (SCSIBR::*)(SASIDEV *));
-
 public:
 	SCSIBR();
 	~SCSIBR();
 
-	bool Init(const map<string, string>&) override;
+	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch(SCSIDEV *) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
-	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	vector<BYTE> Inquiry() const override;
+	int GetMessage10(const DWORD *cdb, BYTE *buf);
+	bool SendMessage10(const DWORD *cdb, BYTE *buf);
 	void TestUnitReady(SASIDEV *) override;
 	void GetMessage10(SASIDEV *);
 	void SendMessage10(SASIDEV *);
 
 private:
+	typedef Disk super;
+
+	Dispatcher<SCSIBR, SASIDEV> dispatcher;
+
 	int GetMacAddr(BYTE *buf);					// Get MAC address
 	void SetMacAddr(BYTE *buf);					// Set MAC address
 	void ReceivePacket();						// Receive a packet

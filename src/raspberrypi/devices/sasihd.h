@@ -27,13 +27,12 @@
 class SASIHD : public Disk, public FileSupport
 {
 public:
-	SASIHD();
-	~SASIHD() {};
+	SASIHD(const unordered_set<uint32_t>&);
+	~SASIHD() {}
 
 	void Reset();
-	void Open(const Filepath& path) override;
+	void Open(const Filepath&) override;
 
-	// Commands
-	int RequestSense(const DWORD *cdb, BYTE *buf) override;
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;
+	vector<BYTE> RequestSense(int) override;
+	vector<BYTE> Inquiry() const override;
 };

@@ -5,21 +5,39 @@
 //
 // Copyright (C) 2022 Uwe Seimet
 //
+// Host Services with realtime clock and shutdown support
+//
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "disk.h"
+#include "mode_page_device.h"
+#include <vector>
 
-class HostServices: public Disk
+using namespace std;
+
+class HostServices: public ModePageDevice
 {
+
 public:
-	HostServices() : Disk("SCHS") {};
-	~HostServices() {};
+
+	HostServices();
+	~HostServices() {}
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
-	int Inquiry(const DWORD *, BYTE *) override;
-	void TestUnitReady(SASIDEV *) override;
-	void StartStopUnit(SASIDEV *) override;
-	int AddVendorPage(int, bool, BYTE *) override;
+	vector<BYTE> Inquiry() const override;
+	void TestUnitReady(SCSIDEV *);
+	void StartStopUnit(SCSIDEV *);
+
+	int ModeSense6(const DWORD *, BYTE *);
+	int ModeSense10(const DWORD *, BYTE *, int);
+
+private:
+
+	typedef ModePageDevice super;
+
+	Dispatcher<HostServices, SCSIDEV> dispatcher;
+
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;
 };

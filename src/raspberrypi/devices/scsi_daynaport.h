@@ -31,7 +31,6 @@
 #include "os.h"
 #include "disk.h"
 #include "ctapdriver.h"
-#include <map>
 #include <string>
 
 //===========================================================================
@@ -42,28 +41,15 @@
 class SCSIDaynaPort: public Disk
 {
 
-private:
-	typedef struct _command_t {
-		const char* name;
-		void (SCSIDaynaPort::*execute)(SASIDEV *);
-
-		_command_t(const char* _name, void (SCSIDaynaPort::*_execute)(SASIDEV *)) : name(_name), execute(_execute) { };
-	} command_t;
-	std::map<ScsiDefs::scsi_command, command_t*> commands;
-
-	SASIDEV::ctrl_t *ctrl;
-
-	void AddCommand(ScsiDefs::scsi_command, const char*, void (SCSIDaynaPort::*)(SASIDEV *));
-
 public:
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
 
-	bool Init(const map<string, string>&) override;
+	bool Init(const unordered_map<string, string>&) override;
 	void Open(const Filepath& path) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
+	vector<BYTE> Inquiry() const override;
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
 	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
 	int WriteCheck(DWORD block) override;	// WRITE check
@@ -80,6 +66,7 @@ public:
 	void SetInterfaceMode(SASIDEV *);
 	void SetMcastAddr(SASIDEV *);
 	void EnableInterface(SASIDEV *);
+	int GetSendDelay() const override;
 
 	bool Dispatch(SCSIDEV *) override;
 
@@ -103,6 +90,10 @@ public:
 	static const DWORD DAYNAPORT_READ_HEADER_SZ = 2 + 4;
 
 private:
+	typedef Disk super;
+
+	Dispatcher<SCSIDaynaPort, SASIDEV> dispatcher;
+
 	typedef struct __attribute__((packed)) {
 		BYTE operation_code;
 		BYTE misc_cdb_information;

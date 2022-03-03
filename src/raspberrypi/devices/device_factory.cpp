@@ -12,13 +12,12 @@
 #include "scsihd_nec.h"
 #include "scsimo.h"
 #include "scsicd.h"
+#include "scsi_printer.h"
 #include "scsi_host_bridge.h"
 #include "scsi_daynaport.h"
 #include "exceptions.h"
 #include "device_factory.h"
 #include <ifaddrs.h>
-#include <set>
-#include <map>
 #include "host_services.h"
 
 using namespace std;
@@ -30,7 +29,6 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
-	// Some old Sun CD-ROM drives support 512 bytes per sector
 	sector_sizes[SCCD] = { 512, 2048};
 
 	// 128 MB, 512 bytes per sector, 248826 sectors
@@ -50,8 +48,12 @@ DeviceFactory::DeviceFactory()
 		network_interfaces += network_interface;
 	}
 
-	default_params[SCBR]["interfaces"] = network_interfaces;
-	default_params[SCDP]["interfaces"] = network_interfaces;
+	default_params[SCBR]["interface"] = network_interfaces;
+	default_params[SCBR]["inet"] = "10.10.20.1/24";
+	default_params[SCDP]["interface"] = network_interfaces;
+	default_params[SCDP]["inet"] = "10.10.20.1/24";
+	default_params[SCLP]["cmd"] = "lp -oraw %f";
+	default_params[SCLP]["timeout"] = "30";
 
 	extension_mapping["hdf"] = SAHD;
 	extension_mapping["hds"] = SCHD;
@@ -82,18 +84,22 @@ string DeviceFactory::GetExtension(const string& filename) const
 	return ext;
 }
 
-PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
+PbDeviceType DeviceFactory::GetTypeForFile(const string& filename) const
 {
 	string ext = GetExtension(filename);
 
-	if (extension_mapping.find(ext) != extension_mapping.end()) {
-		return extension_mapping[ext];
+	const auto& it = extension_mapping.find(ext);
+	if (it != extension_mapping.end()) {
+		return it->second;
 	}
 	else if (filename == "bridge") {
 		return SCBR;
 	}
 	else if (filename == "daynaport") {
 		return SCDP;
+	}
+	else if (filename == "printer") {
+		return SCLP;
 	}
 	else if (filename == "services") {
 		return SCHS;
@@ -116,20 +122,17 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 	try {
 		switch (type) {
 			case SAHD:
-				device = new SASIHD();
+				device = new SASIHD(sector_sizes[SAHD]);
 				device->SetSupportedLuns(2);
 				device->SetProduct("SASI HD");
-				((Disk *)device)->SetSectorSizes(sector_sizes[SAHD]);
 			break;
 
 			case SCHD: {
 				string ext = GetExtension(filename);
 				if (ext == "hdn" || ext == "hdi" || ext == "nhd") {
-					device = new SCSIHD_NEC();
-					((Disk *)device)->SetSectorSizes({ 512 });
+					device = new SCSIHD_NEC({ 512 });
 				} else {
-					device = new SCSIHD(false);
-					((Disk *)device)->SetSectorSizes(sector_sizes[SCHD]);
+					device = new SCSIHD(sector_sizes[SCHD], false);
 
 					// Some Apple tools require a particular drive identification
 					if (ext == "hda") {
@@ -143,34 +146,30 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 			}
 
 			case SCRM:
-				device = new SCSIHD(true);
+				device = new SCSIHD(sector_sizes[SCRM], true);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI HD (REM.)");
-				((Disk *)device)->SetSectorSizes(sector_sizes[SCRM]);
 				break;
 
 			case SCMO:
-				device = new SCSIMO();
+				device = new SCSIMO(sector_sizes[SCMO], geometries[SCMO]);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI MO");
-				((Disk *)device)->SetSectorSizes(sector_sizes[SCRM]);
-				((Disk *)device)->SetGeometries(geometries[SCMO]);
 				break;
 
 			case SCCD:
-				device = new SCSICD();
+				device = new SCSICD(sector_sizes[SCCD]);
 				device->SetReadOnly(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
 				device->SetLockable(true);
 				device->SetProduct("SCSI CD-ROM");
-				((Disk *)device)->SetSectorSizes(sector_sizes[SCCD]);
 				break;
 
 			case SCBR:
@@ -197,6 +196,13 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 				device->SetProduct("Host Services");
 				break;
 
+			case SCLP:
+				device = new SCSIPrinter();
+				device->SetProduct("SCSI PRINTER");
+				device->SupportsParams(true);
+				device->SetDefaultParams(default_params[SCLP]);
+				break;
+
 			default:
 				break;
 		}
@@ -209,19 +215,19 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 	return device;
 }
 
-const set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
+const unordered_set<uint32_t>& DeviceFactory::GetSectorSizes(const string& type)
 {
 	PbDeviceType t = UNDEFINED;
 	PbDeviceType_Parse(type, &t);
 	return sector_sizes[t];
 }
 
-const set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type)
+const unordered_set<uint64_t> DeviceFactory::GetCapacities(PbDeviceType type) const
 {
-	set<uint64_t> keys;
+	unordered_set<uint64_t> keys;
 
-	for (const auto& geometry : geometries[type]) {
-		keys.insert(geometry.first);
+	for (auto it = geometries.begin(); it != geometries.end(); ++it) {
+		keys.insert(it->first);
 	}
 
 	return keys;

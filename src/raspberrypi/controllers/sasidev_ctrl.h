@@ -15,13 +15,12 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "../rascsi.h"
+#include "../config.h"
 #include "os.h"
 #include "scsi.h"
 #include "fileio.h"
-#include "log.h"
 
-class Device;
+class PrimaryDevice;
 
 //===========================================================================
 //
@@ -31,30 +30,6 @@ class Device;
 class SASIDEV
 {
 protected:
-	enum scsi_message_code : BYTE {
-		eMsgCodeAbort = 0x06,
-		eMsgCodeAbortTag = 0x0D,
-		eMsgCodeBusDeviceReset = 0x0C,
-		eMsgCodeClearQueue = 0x0E,
-		eMsgCodeCommandComplete = 0x00,
-		eMsgCodeDisconnect = 0x04,
-		eMsgCodeIdentify = 0x80,
-		eMsgCodeIgnoreWideResidue = 0x23, // (Two Bytes)
-		eMsgCodeInitiateRecovery = 0x0F,
-		eMsgCodeInitiatorDetectedError = 0x05,
-		eMsgCodeLinkedCommandComplete = 0x0A,
-		eMsgCodeLinkedCommandCompleteWithFlag = 0x0B,
-		eMsgCodeMessageParityError = 0x09,
-		eMsgCodeMessageReject = 0x07,
-		eMsgCodeNoOperation = 0x08,
-		eMsgCodeHeadOfQueueTag = 0x21,
-		eMsgCodeOrderedQueueTag = 0x22,
-		eMsgCodeSimpleQueueTag = 0x20,
-		eMsgCodeReleaseRecovery = 0x10,
-		eMsgCodeRestorePointers = 0x03,
-		eMsgCodeSaveDataPointer = 0x02,
-		eMsgCodeTerminateIOProcess = 0x11
-	};
 
 private:
 	enum sasi_command : int {
@@ -123,11 +98,11 @@ public:
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
 
-		// Logical unit
-		Device *unit[UnitMax];
+		// Logical units
+		PrimaryDevice *unit[UnitMax];
 
 		// The current device
-		Device *device;
+		PrimaryDevice *device;
 
 		// The LUN from the IDENTIFY message
 		int lun;
@@ -140,12 +115,12 @@ public:
 	virtual void Reset();						// Device Reset
 
 	// External API
-	virtual BUS::phase_t Process();				// Run
+	virtual BUS::phase_t Process(int);				// Run
 
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
-	Device* GetUnit(int no);							// Get logical unit
-	void SetUnit(int no, Device *dev);				// Logical unit setting
+	PrimaryDevice* GetUnit(int no);							// Get logical unit
+	void SetUnit(int no, PrimaryDevice *dev);				// Logical unit setting
 	bool HasUnit();						// Has a valid logical unit
 
 	// Other
@@ -162,10 +137,12 @@ public:
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
 
+	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
 
-	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
+	virtual void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
+			scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			scsi_defs::status = scsi_defs::status::CHECK_CONDITION);	// Common error handling
 
 protected:
 	// Phase processing
@@ -193,7 +170,7 @@ protected:
 	virtual void Receive();					// Receive data
 
 	bool XferIn(BYTE* buf);					// Data transfer IN
-	bool XferOut(bool cont);					// Data transfer OUT
+	virtual bool XferOut(bool cont);					// Data transfer OUT
 
 	// Special operations
 	void FlushUnit();						// Flush the logical unit

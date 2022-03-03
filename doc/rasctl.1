@@ -94,7 +94,7 @@ Rename an image file in the default image folder.
 The rascsi port to connect to, default is 6868.
 .TP
 .BR \-r\fI " " \fIRESERVED_IDS
-Comma-separated list of IDs to reserve.
+Comma-separated list of IDs to reserve. Pass an empty list in order to not reserve anything.
 .TP
 .BR \-s\fI
 Display server-side settings like available images or supported device types.
@@ -147,6 +147,7 @@ Specifies the device type. This type overrides the type derived from the file ex
    rm: SCSI removable media drive
    cd: CD-ROM
    mo: Magneto-Optical disk
+   lp: SCSI printer
    bridge: Bridge device (Only applicable to the Sharp X68000)
    daynaport: DaynaPort network adapter
    services: Host services device
