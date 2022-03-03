@@ -366,6 +366,11 @@
       (scale (xyz 1 1 1))
       (rotate (xyz 0 0 0))
     )
+    (model "${KIPRJMOD}/mousebites.pretty/OLED_128x64.STP"
+      (offset (xyz 7.25 34.25 7))
+      (scale (xyz 1 1 1))
+      (rotate (xyz 0 0 -90))
+    )
   )
 
   (footprint "Connector_PinHeader_2.54mm:PinHeader_1x06_P2.54mm_Vertical" (layer "F.Cu")
@@ -482,10 +487,10 @@
       (net 14 "/BUTTON_4") (pinfunction "S1") (pintype "passive") (tstamp 9ce0a5f7-3a13-4b8e-8def-0070d0424087))
     (pad "S2" thru_hole circle locked (at 14.5 0 90) (size 2 2) (drill 1) (layers *.Cu *.Mask)
       (net 3 "GND") (pinfunction "S2") (pintype "passive") (tstamp cfda96e0-5edc-4bc5-be0f-1adbf6a3e542))
-    (model "${KICAD6_3DMODEL_DIR}/Rotary_Encoder.3dshapes/RotaryEncoder_Alps_EC11E-Switch_Vertical_H20mm.wrl"
-      (offset (xyz 0 0 0))
+    (model "${KIPRJMOD}/mousebites.pretty/EC11_Rotary_Encoder_Dode_Switch-15mm.STP"
+      (offset (xyz 7.5 -2.5 0))
       (scale (xyz 1 1 1))
-      (rotate (xyz 0 0 0))
+      (rotate (xyz 0 0 90))
     )
   )
 
