@@ -59,8 +59,7 @@ void HostServices::TestUnitReady(SCSIDEV *controller)
 
 vector<BYTE> HostServices::Inquiry() const
 {
-	// Processor device, SPC-5, not removable
-	return PrimaryDevice::Inquiry(3, 7, false);
+	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SPC_5, false);
 }
 
 void HostServices::StartStopUnit(SCSIDEV *controller)

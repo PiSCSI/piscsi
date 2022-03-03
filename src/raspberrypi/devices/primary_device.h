@@ -41,7 +41,7 @@ public:
 
 protected:
 
-	vector<BYTE> Inquiry(int, int, bool) const;
+	vector<BYTE> Inquiry(scsi_defs::device_type, scsi_level, bool) const;
 
 	SASIDEV::ctrl_t *ctrl;
 
