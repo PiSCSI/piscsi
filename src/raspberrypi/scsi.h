@@ -127,6 +127,10 @@ namespace scsi_defs {
 	enum scsi_level : int {
 		SCSI_1_CCS = 1,
 		SCSI_2 = 2,
+		SPC = 3,
+		SPC_2 = 4,
+		SPC_3 = 5,
+		SPC_4 = 6,
 		SPC_5 = 7
 	};
 
