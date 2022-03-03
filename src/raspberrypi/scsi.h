@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #pragma once
+#include "os.h"
 
 //===========================================================================
 //
@@ -151,4 +152,58 @@ private:
 	static const phase_t phase_table[8];
 
 	static const char* phase_str_table[];
+};
+
+class ScsiDefs {
+public:
+	enum scsi_command : int {
+		eCmdTestUnitReady = 0x00,
+		eCmdRezero =  0x01,
+		eCmdRequestSense = 0x03,
+		eCmdFormat = 0x04,
+		eCmdReassign = 0x07,
+		eCmdRead6 = 0x08,
+		// DaynaPort specific command
+		eCmdRetrieveStats = 0x09,
+		eCmdWrite6 = 0x0A,
+		eCmdSeek6 = 0x0B,
+		// DaynaPort specific command
+		eCmdSetIfaceMode = 0x0C,
+		// DaynaPort specific command
+		eCmdSetMcastAddr  = 0x0D,
+		// DaynaPort specific command
+		eCmdEnableInterface = 0x0E,
+		eCmdInquiry = 0x12,
+		eCmdModeSelect6 = 0x15,
+		eCmdReserve6 = 0x16,
+		eCmdRelease6 = 0x17,
+		eCmdModeSense6 = 0x1A,
+		eCmdStartStop = 0x1B,
+		eCmdSendDiag = 0x1D,
+		eCmdRemoval = 0x1E,
+		// ICD specific command
+		eCmdIcd = 0x1F,
+		eCmdReadCapacity10 = 0x25,
+		eCmdRead10 = 0x28,
+		eCmdWrite10 = 0x2A,
+		eCmdSeek10 = 0x2B,
+		eCmdVerify10 = 0x2F,
+		eCmdSynchronizeCache10 = 0x35,
+		eCmdReadDefectData10 = 0x37,
+		eCmdReadLong10 = 0x3E,
+		eCmdWriteLong10 = 0x3F,
+		eCmdReadToc = 0x43,
+		eCmdGetEventStatusNotification = 0x4A,
+		eCmdModeSelect10 = 0x55,
+		eCmdReserve10 = 0x56,
+		eCmdRelease10 = 0x57,
+		eCmdModeSense10 = 0x5A,
+		eCmdRead16 = 0x88,
+		eCmdWrite16 = 0x8A,
+		eCmdVerify16 = 0x8F,
+		eCmdSynchronizeCache16 = 0x91,
+		eCmdReadCapacity16_ReadLong16 = 0x9E,
+		eCmdWriteLong16 = 0x9F,
+		eCmdReportLuns = 0xA0
+	};
 };

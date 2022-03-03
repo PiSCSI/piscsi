@@ -17,8 +17,6 @@
 //---------------------------------------------------------------------------
 
 #include "scsi_host_bridge.h"
-
-#include "../rascsi.h"
 #include "ctapdriver.h"
 #include "cfilesystem.h"
 #include <sstream>
@@ -39,9 +37,9 @@ SCSIBR::SCSIBR() : Disk("SCBR")
 	fs = new CFileSys();
 	fs->Reset();
 
-	AddCommand(SCSIDEV::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
-	AddCommand(SCSIDEV::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
-	AddCommand(SCSIDEV::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
+	AddCommand(ScsiDefs::eCmdTestUnitReady, "TestUnitReady", &SCSIBR::TestUnitReady);
+	AddCommand(ScsiDefs::eCmdRead6, "GetMessage10", &SCSIBR::GetMessage10);
+	AddCommand(ScsiDefs::eCmdWrite6, "SendMessage10", &SCSIBR::SendMessage10);
 }
 
 SCSIBR::~SCSIBR()
@@ -72,6 +70,10 @@ bool SCSIBR::Init(const map<string, string>& params)
 	// TAP Driver Generation
 	tap = new CTapDriver(GetParam("interfaces"));
 	m_bTapEnable = tap->Init();
+	if (!m_bTapEnable){
+		LOGERROR("Unable to open the TAP interface");
+		return false;
+	}
 
 	// Generate MAC Address
 	memset(mac_addr, 0x00, 6);
@@ -94,7 +96,7 @@ bool SCSIBR::Init(const map<string, string>& params)
 #endif
 }
 
-void SCSIBR::AddCommand(SCSIDEV::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
+void SCSIBR::AddCommand(ScsiDefs::scsi_command opcode, const char* name, void (SCSIBR::*execute)(SASIDEV *))
 {
 	commands[opcode] = new command_t(name, execute);
 }
@@ -103,8 +105,8 @@ bool SCSIBR::Dispatch(SCSIDEV *controller)
 {
 	ctrl = controller->GetCtrl();
 
-	if (commands.count(static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0]))) {
-		command_t *command = commands[static_cast<SCSIDEV::scsi_command>(ctrl->cmd[0])];
+	if (commands.count(static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0]))) {
+		command_t *command = commands[static_cast<ScsiDefs::scsi_command>(ctrl->cmd[0])];
 
 		LOGDEBUG("%s Executing %s ($%02X)", __PRETTY_FUNCTION__, command->name, (unsigned int)ctrl->cmd[0]);
 

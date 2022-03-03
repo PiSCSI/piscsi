@@ -19,6 +19,7 @@
 #include <ifaddrs.h>
 #include <set>
 #include <map>
+#include "host_services.h"
 
 using namespace std;
 using namespace rascsi_interface;
@@ -31,8 +32,6 @@ DeviceFactory::DeviceFactory()
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
 	// Some old Sun CD-ROM drives support 512 bytes per sector
 	sector_sizes[SCCD] = { 512, 2048};
-	sector_sizes[SCBR] = {};
-	sector_sizes[SCDP] = {};
 
 	// 128 MB, 512 bytes per sector, 248826 sectors
 	geometries[SCMO][0x797f400] = make_pair(512, 248826);
@@ -42,12 +41,6 @@ DeviceFactory::DeviceFactory()
 	geometries[SCMO][0x1fc8b800] = make_pair(512, 1041500);
 	// 640 MB, 20248 bytes per sector, 310352 sectors
 	geometries[SCMO][0x25e28000] = make_pair(2048, 310352);
-	geometries[SAHD] = {};
-	geometries[SCHD] = {};
-	geometries[SCRM] = {};
-	geometries[SCCD] = {};
-	geometries[SCBR] = {};
-	geometries[SCDP] = {};
 
 	string network_interfaces;
 	for (const auto& network_interface : GetNetworkInterfaces()) {
@@ -57,11 +50,6 @@ DeviceFactory::DeviceFactory()
 		network_interfaces += network_interface;
 	}
 
-	default_params[SAHD] = {};
-	default_params[SCHD] = {};
-	default_params[SCRM] = {};
-	default_params[SCMO] = {};
-	default_params[SCCD] = {};
 	default_params[SCBR]["interfaces"] = network_interfaces;
 	default_params[SCDP]["interfaces"] = network_interfaces;
 
@@ -107,6 +95,9 @@ PbDeviceType DeviceFactory::GetTypeForFile(const string& filename)
 	else if (filename == "daynaport") {
 		return SCDP;
 	}
+	else if (filename == "services") {
+		return SCHS;
+	}
 
 	return UNDEFINED;
 }
@@ -146,7 +137,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 						device->SetProduct("FIREBALL");
 					}
 				}
-				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				break;
@@ -154,7 +144,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCRM:
 				device = new SCSIHD(true);
-				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -165,7 +154,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCMO:
 				device = new SCSIMO();
-				device->SetSupportedLuns(32);
 				device->SetProtectable(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -177,7 +165,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCCD:
 				device = new SCSICD();
-				device->SetSupportedLuns(32);
 				device->SetReadOnly(true);
 				device->SetStoppable(true);
 				device->SetRemovable(true);
@@ -188,7 +175,6 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCBR:
 				device = new SCSIBR();
-				device->SetSupportedLuns(1);
 				device->SetProduct("SCSI HOST BRIDGE");
 				device->SupportsParams(true);
 				device->SetDefaultParams(default_params[SCBR]);
@@ -196,13 +182,19 @@ Device *DeviceFactory::CreateDevice(PbDeviceType type, const string& filename)
 
 			case SCDP:
 				device = new SCSIDaynaPort();
-				device->SetSupportedLuns(1);
 				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
 				device->SetVendor("Dayna");
 				device->SetProduct("SCSI/Link");
 				device->SetRevision("1.4a");
 				device->SupportsParams(true);
 				device->SetDefaultParams(default_params[SCDP]);
+				break;
+
+			case SCHS:
+				device = new HostServices();
+				// Since this is an emulation for a specific device the full INQUIRY data have to be set accordingly
+				device->SetVendor("RaSCSI");
+				device->SetProduct("Host Services");
 				break;
 
 			default:

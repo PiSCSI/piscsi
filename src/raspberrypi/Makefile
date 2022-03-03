@@ -24,12 +24,27 @@ else
 	CXXFLAGS += -O3 -Wall -Werror -DNDEBUG
 	BUILD_TYPE = Release
 endif
+ifeq ("$(shell uname -s)","Linux")
+	# -Wno-psabi might not work on non-Linux platforms
+	CXXFLAGS += -Wno-psabi
+endif
+
 CFLAGS += -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
-CXXFLAGS += -std=c++17 -Wno-psabi -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
+CXXFLAGS += -std=c++17 -iquote . -D_FILE_OFFSET_BITS=64 -MD -MP
 
 ## EXTRA_FLAGS : Can be used to pass special purpose flags
 CFLAGS += $(EXTRA_FLAGS)
 CXXFLAGS += $(EXTRA_FLAGS)
+
+# If we're using GCC version 10 or later, we need to add the FMT_HEADER_ONLY definition
+GCCVERSION10 := $(shell expr `gcc -dumpversion` \>= 10)
+
+ifeq "$(GCCVERSION10)" "1"
+	CFLAGS += -DFMT_HEADER_ONLY
+	CXXFLAGS += -DFMT_HEADER_ONLY
+endif
+
+
 
 ##   CONNECT_TYPE=FULLSPEC : Specify the type of RaSCSI board type
 ##              that you are using. The typical options are 
@@ -85,7 +100,8 @@ SRC_RASCSI = \
 	rascsi_image.cpp \
 	rascsi_response.cpp \
 	rasutil.cpp \
-	protobuf_util.cpp
+	protobuf_util.cpp \
+	localizer.cpp
 SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
 SRC_RASCSI += $(shell find ./devices -name '*.cpp')
 SRC_RASCSI += $(SRC_PROTOBUF)
@@ -94,9 +110,8 @@ SRC_SCSIMON = \
 	scsimon.cpp \
 	scsi.cpp \
 	gpiobus.cpp \
-	filepath.cpp \
-	fileio.cpp \
 	rascsi_version.cpp
+SRC_SCSIMON += $(shell find ./monitor -name '*.cpp')
 
 SRC_RASCTL = \
 	rasctl.cpp\
@@ -104,7 +119,8 @@ SRC_RASCTL = \
 	rasctl_display.cpp \
 	rascsi_version.cpp \
 	rasutil.cpp \
-	protobuf_util.cpp
+	protobuf_util.cpp \
+	localizer.cpp
 SRC_RASCTL += $(SRC_PROTOBUF)
 
 SRC_RASDUMP = \
@@ -123,8 +139,8 @@ SRC_SASIDUMP = \
 	fileio.cpp\
 	rascsi_version.cpp
 
-vpath %.h ./ ./controllers ./devices
-vpath %.cpp ./ ./controllers ./devices
+vpath %.h ./ ./controllers ./devices ./monitor
+vpath %.cpp ./ ./controllers ./devices ./monitor
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -181,6 +197,16 @@ $(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
+
+# Phony rules for building individual utilities
+.PHONY: $(RASCSI) $(RASCTL) $(RASDUMP) $(SASIDUMP) $(SCSIMON)
+$(RASCSI)  : $(BINDIR)/$(RASCSI) 
+$(RASCTL)  : $(BINDIR)/$(RASCTL) 
+$(RASDUMP) : $(BINDIR)/$(RASDUMP) 
+$(SASIDUMP): $(BINDIR)/$(SASIDUMP) 
+$(SCSIMON) : $(BINDIR)/$(SCSIMON)
+
+
 ##   clean    : Remove all of the object files, intermediate 
 ##              compiler files and executable files 
 .PHONY: clean
@@ -220,9 +246,8 @@ $(USR_LOCAL_BIN)% : $(BINDIR)/%
 	@echo "-- Copying $@"
 	cp $< $@
 
-$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1
+$(MAN_PAGE_DIR)/%.1 : $(DOC_DIR)/%.1 | $(MAN_PAGE_DIR)/
 	@echo "-- Copying $@"
-	mkdir -p $@
 	cp $< $@
 
 $(DOC_DIR)/%_man_page.txt : $(DOC_DIR)/%.1
@@ -242,6 +267,10 @@ $(RSYSLOG_LOG) :
 	@echo "-- Creating $@"
 	touch /var/log/rascsi.log
 	chown root:adm /var/log/rascsi.log
+
+$(MAN_PAGE_DIR)/:
+	echo "-- Creating directory $@"
+	mkdir -p $@
 
 ##   help     : Lists information about how to use the makefile
 # The help rule is based upon the approach from:

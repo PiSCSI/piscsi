@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+<head>
+    <title>{{ _("RaSCSI Control Page") }}</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<link rel="apple-touch-icon" sizes="57x57" href="/pwa/apple-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/pwa/apple-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/pwa/apple-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/pwa/apple-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/pwa/apple-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/pwa/apple-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/pwa/apple-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/pwa/apple-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/pwa/apple-icon-180x180.png">
+<link rel="icon" type="image/png" sizes="192x192"  href="/pwa/android-icon-192x192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/pwa/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/pwa/favicon-96x96.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/pwa/favicon-16x16.png">
+<link rel="manifest" href="/pwa/manifest.json">
+<meta name="msapplication-TileColor" content="#ffffff">
+<meta name="msapplication-TileImage" content="/pwa/ms-icon-144x144.png">
+<meta name="theme-color" content="#ffffff">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<script type="application/javascript">
+    var processNotify = function(Notification) {
+            document.getElementById("flash").innerHTML = "<div class='message'>" + Notification + "{{ _(" This process may take a while, and will continue in the background if you navigate away from this page.") }}</div>";
+        window.scrollTo(0,0);
+    }
+
+    var shutdownNotify = function(Notification) {
+            document.getElementById("flash").innerHTML = "<div class='message'>" + Notification + "{{ _(" The Web Interface will become unresponsive momentarily. Reload this page after the Pi has started up again.") }}</div>";
+        window.scrollTo(0,0);
+    }
+</script>
+
+<script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+
+</head>
+
+<body>
+<div class="content">
+    <div class="header">
+        {% if auth_active %}
+        {% if username %}
+        <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">{{ _("Logged in as <em>%(username)s</em>", username=username) }} &#8211; <a href="/logout">{{ _("Log Out") }}</a></span>
+        {% else %}
+        <span style="display: inline-block; width: 100%; color: white; background-color: red; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">
+            <form method="POST" action="/login">
+                <div>{{ _("Log In to Use Web Interface") }}</div>
+                <input type="text" name="username" placeholder="{{ _("Username") }}">
+                <input type="password" name="password" placeholder="{{ _("Password") }}">
+            <input type="submit" value="Login">
+            </form>
+        </span>
+        {% endif %}
+        {% else %}
+        <span style="display: inline-block; width: 100%; color: white; background-color: green; text-align: center; vertical-align: center; font-family: Arial, Helvetica, sans-serif;">{{ _("Web Interface Authentication Disabled") }} &#8211; {{ _("See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information", url="https://github.com/akuker/RASCSI/wiki/Web-Interface#enable-authentication") }}</span>
+        {% endif %}
+    <table width="100%">
+        <tbody>
+        <tr style="background-color: black;">
+            <td style="background-color: black;">
+                <a href="http://github.com/akuker/RASCSI" target="_blank">
+                    <h1>RaSCSI - 68kmla Edition</h1>
+                </a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    </div>
+    <div class="flash" id="flash">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+        {% if category == "stdout" or category == "stderr" %}
+        <pre>{{ message }}</pre>
+        {% else %}
+        <div class="{{ category }}">{{ message }}</div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    <div class="content">
+        {% block content %}{% endblock content %}
+    </div>
+    <div class="footer">
+        <center><tt>{{ _("RaSCSI version: ") }}<strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}" target="_blank">{{ running_env["git"][:7] }}</a></strong></tt></center>
+        <center><tt>{{ _("Pi environment: ") }}{{ running_env["env"] }}</tt></center>
+    </div>
+</div>
+</body>

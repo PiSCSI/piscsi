@@ -29,7 +29,7 @@ Device::Device(const string& type)
 	ready = false;
 	reset = false;
 	attn = false;
-	supported_luns = 1;
+	supported_luns = 32;
 	protectable = false;
 	write_protected = false;
 	read_only = false;

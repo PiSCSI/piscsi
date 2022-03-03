@@ -2,6 +2,9 @@
 // Each rascsi message sent to the rascsi server is preceded by the magic string "RASCSI".
 // A message starts with a little endian 32 bit header which contains the protobuf message size.
 // Unless explicitly specified the order of repeated data returned is undefined.
+// All operations accept an optional access token, specified by the "token" parameter.
+// All operations also accept an optional locale, specified with the "locale" parameter. If there is
+// a localized error message rascsi returns it, with English being the fallback language.
 //
 
 syntax = "proto3";
@@ -25,15 +28,17 @@ enum PbDeviceType {
     SCBR = 6;
     // DaynaPort network adapter
     SCDP = 7;
+    // Host services device
+    SCHS = 8;
 }
 
 // rascsi remote operations, returning PbResult
 enum PbOperation {
-    NONE = 0;
+    NO_OPERATION = 0;
 
     // Attach devices and return the new device list (PbDevicesInfo)
     // Parameters (mutually exclusive):
-    //   "file": The filename relative to the default image folder. It must not contain a slash.
+    //   "file": The filename relative to the default image folder
     //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
     ATTACH = 1;
 
@@ -52,7 +57,7 @@ enum PbOperation {
 
     // Insert medium
     // Parameters:
-    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "file": The filename, relative to the default image folder
     INSERT = 6;
 
     // Eject medium
@@ -64,10 +69,13 @@ enum PbOperation {
     // Make medium writable (not possible for read-only media)
     UNPROTECT = 9;
 
-    // Gets the server information (PbServerInfo)
+    // Gets the server information (PbServerInfo). Calling this operation should be avoided because it
+    // may return a lot of data. More specific other operations should be used instead.
+    // "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
+    // "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     SERVER_INFO = 10;
 
-    // Get rascsi version information (PbVersionInfo)
+    // Get rascsi server version (PbVersionInfo)
     VERSION_INFO = 11;
 
     // Get information on attached devices (PbDevicesInfo)
@@ -78,9 +86,12 @@ enum PbOperation {
     DEVICE_TYPES_INFO = 13;
 
     // Get information on available image files in the default image folder (PbImageFilesInfo)
+    // Parameters:
+    // "folder_pattern": Optional filter, only folder names containing the case-insensitive pattern are returned
+    // "file_pattern": Optional filter, only filenames containing the case-insensitive pattern are returned
     DEFAULT_IMAGE_FILES_INFO = 14;
     
-    // Get information on an image file (not necessarily in the default image folder) based on an absolute path.
+    // Get information on an image file (not necessarily in the default image folder).
     // Parameters:
     //   "file": The filename. Either an absolute path or a path relative to the default image folder.
     IMAGE_FILE_INFO = 15;
@@ -103,7 +114,7 @@ enum PbOperation {
     //   "folder": The path of the default folder, relative to the user's home folder if relative.
     DEFAULT_FOLDER = 20;
 
-    // Set a new log level.
+    // Set the log level.
     // Parameters:
     //   "level": The new log level
     LOG_LEVEL = 21;
@@ -113,47 +124,93 @@ enum PbOperation {
     //   "ids": A comma-separated list of IDs to reserve, or an empty string in order not to reserve any ID.
     RESERVE_IDS = 22;
     
-    // Shut down the rascsi process
+    // Shut down the rascsi process or shut down/reboot the Raspberry Pi
     // Parameters:
     //   "mode": The shutdown mode, one of "rascsi", "system", "reboot"
     SHUT_DOWN = 23;
 
     // Create an image file. The image file must not yet exist.
     // Parameters:
-    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "file": The filename, relative to the default image folder
     //   "size": The file size in bytes, must be a multiple of 512
     //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     CREATE_IMAGE = 24;
 
     // Delete an image file.
     // Parameters:
-    //    "file": The filename, relative to the default image folder. It must not contain a slash.
+    //    "file": The filename, relative to the default image folder.
     DELETE_IMAGE = 25;
 
-    // Rename an image file.
+    // Rename/Move an image file.
     // Parameters:
-    //   "from": The old filename, relative to the default image folder. It must not contain a slash.
-    //   "to": The new filename, relative to the default image folder. It must not contain a slash.
+    //   "from": The old filename, relative to the default image folder
+    //   "to": The new filename, relative to the default image folder
     // The new filename must not yet exist.
     RENAME_IMAGE = 26;
 
     // Copy an image file.
     // Parameters:
-    //   "from": The source filename, relative to the default image folder. It must not contain a slash.
-    //   "to": The destination filename, relative to the default image folder. It must not contain a slash.
+    //   "from": The source filename, relative to the default image folder
+    //   "to": The destination filename, relative to the default image folder
     //   "read_only": Optional, "true" (case-insensitive) in order to create a read-only file
     // The destination filename must not yet exist.
     COPY_IMAGE = 27;
     
     // Write-protect an image file.
     // Parameters:
-    //  "file": The filename, relative to the default image folder. It must not contain a slash.
+    //  "file": The filename, relative to the default image folder
     PROTECT_IMAGE = 28;
 
     // Make an image file writable.
     // Parameters:
-    //   "file": The filename, relative to the default image folder. It must not contain a slash.
+    //   "file": The filename, relative to the default image folder
     UNPROTECT_IMAGE = 29;
+
+    // Check whether an authentication token is valid. A client can use this operation in order to
+    // find out whether rascsi authentication is enable or to use rascsi authentication for securing
+    // client-internal operations.
+    CHECK_AUTHENTICATION = 30;
+
+    // Get operation meta data (PbOperationInfo)
+    OPERATION_INFO = 31;
+}
+
+// The operation parameter meta data. The parameter data type is provided by the protobuf API.
+message PbOperationParameter {
+    string name = 1;
+    // Optional short description
+    string description = 2;
+    // There is no specific set of permitted values if empty
+    repeated string permitted_values = 3;
+    // Optional default value
+    string default_value = 4;
+    // True if this parameter is mandatory
+    bool is_mandatory = 5;
+}
+
+// The list of parameters supported by an operation
+message PbOperationMetaData {
+    // The operation name at the time the server-side protobuf code was generated.
+    string server_side_name = 1;
+    // Optional short description
+    string description = 2;
+    repeated PbOperationParameter parameters = 3;
+}
+
+// Mapping of operations to their ordinals
+message PbOperationInfo {
+    map<int32, PbOperationMetaData> operations = 1;
+}
+
+// rascsi special purpose error codes for cases where a textual error message may not be not sufficient.
+// The client may react on this code, e.g. by prompting the user for an authentication token.
+enum PbErrorCode {
+    // No error code available
+    NO_ERROR_CODE = 0;
+    // The client sent an operation code not supported by this server
+    UNKNOWN_OPERATION = 1;
+    // Authentication/Authorization error
+    UNAUTHORIZED = 2;
 }
 
 // The supported file extensions mapped to their respective device types
@@ -221,6 +278,8 @@ message PbImageFile {
 message PbImageFilesInfo {
     string default_image_folder = 1;
     repeated PbImageFile image_files = 2;
+    // The maximum nesting depth, configured with the -R option
+    int32 depth = 3;
 }
 
 // Log level information
@@ -305,6 +364,8 @@ message PbResult {
     bool status = 1;
     // An optional error or information message, depending on the status. A string without trailing CR/LF.
     string msg = 2;
+    // An optional error code. Only to be used in cases where textual information is not sufficient.
+    PbErrorCode error_code = 14;
     // Optional additional result data
     oneof result {
         // The result of a SERVER_INFO command
@@ -327,6 +388,8 @@ message PbResult {
         PbMappingInfo mapping_info = 11;
         // The result of a RESERVED_IDS_INFO command
         PbReservedIdsInfo reserved_ids_info = 12;
+        // The result of an OPERATION_INFO command
+        PbOperationInfo operation_info = 13;
     }
 }
 
@@ -348,4 +411,6 @@ message PbServerInfo {
     PbReservedIdsInfo reserved_ids_info = 7;
     // The attached devices
     PbDevicesInfo devices_info = 8;
+    // The operation meta data
+    PbOperationInfo operation_info = 9;
 }
