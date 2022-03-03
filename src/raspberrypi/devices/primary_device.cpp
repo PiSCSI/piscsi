@@ -82,15 +82,19 @@ void PrimaryDevice::ReportLuns(SASIDEV *controller)
 	memset(buf, 0, allocation_length);
 
 	int size = 0;
-	for (int lun = 0; lun < controller->GetCtrl()->device->GetSupportedLuns(); lun++) {
-		if (controller->GetCtrl()->unit[lun]) {
-			size += 8;
-			buf[size + 7] = lun;
-		}
-	}
 
-	buf[2] = size >> 8;
-	buf[3] = size;
+	// Only SELECT REPORT mode 0 is supported
+	if (!ctrl->cmd[2]) {
+		for (int lun = 0; lun < controller->GetCtrl()->device->GetSupportedLuns(); lun++) {
+			if (controller->GetCtrl()->unit[lun]) {
+				size += 8;
+				buf[size + 7] = lun;
+			}
+		}
+
+		buf[2] = size >> 8;
+		buf[3] = size;
+	}
 
 	size += 8;
 

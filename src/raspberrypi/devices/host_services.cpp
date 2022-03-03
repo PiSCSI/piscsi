@@ -59,7 +59,7 @@ void HostServices::TestUnitReady(SCSIDEV *controller)
 
 vector<BYTE> HostServices::Inquiry() const
 {
-	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SPC_5, false);
+	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }
 
 void HostServices::StartStopUnit(SCSIDEV *controller)
