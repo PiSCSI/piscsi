@@ -36,7 +36,7 @@ private:
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,
-		eCmdFormat = 0x06,
+		eCmdFormat = 0x04,
 		eCmdReassign = 0x07,
 		eCmdRead6 = 0x08,
 		eCmdWrite6 = 0x0A,
