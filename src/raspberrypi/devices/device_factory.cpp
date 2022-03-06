@@ -25,7 +25,7 @@ using namespace rascsi_interface;
 
 DeviceFactory::DeviceFactory()
 {
-	sector_sizes[SAHD] = { 256, 1024 };
+	sector_sizes[SAHD] = { 256, 512, 1024 };
 	sector_sizes[SCHD] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCRM] = { 512, 1024, 2048, 4096 };
 	sector_sizes[SCMO] = { 512, 1024, 2048, 4096 };
