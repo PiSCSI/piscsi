@@ -355,7 +355,14 @@ void SASIDEV::Execute()
 	ctrl.blocks = 1;
 	ctrl.execstart = SysTimer::GetTimerLow();
 
-	ctrl.device = ctrl.unit[GetEffectiveLun()];
+	int lun = GetEffectiveLun();
+	if (!ctrl.unit[lun]) {
+		ctrl.device->SetStatusCode(STATUS_INVALIDLUN);
+		Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+		return;
+	}
+
+	ctrl.device = ctrl.unit[lun];
 	ctrl.device->SetCtrl(&ctrl);
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
