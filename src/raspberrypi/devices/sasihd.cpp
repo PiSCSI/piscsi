@@ -96,5 +96,7 @@ vector<BYTE> SASIHD::RequestSense(int allocation_length)
 	buf[0] = (BYTE)(GetStatusCode() >> 16);
 	buf[1] = (BYTE)(GetLun() << 5);
 
+	LOGTRACE("%s Status $%02X",__PRETTY_FUNCTION__, GetStatusCode());
+
 	return buf;
 }

@@ -128,8 +128,6 @@ void PrimaryDevice::RequestSense(SASIDEV *controller)
     memcpy(ctrl->buffer, buf.data(), allocation_length);
     ctrl->length = allocation_length;
 
-    LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
-
     controller->DataIn();
 }
 
@@ -204,6 +202,8 @@ vector<BYTE> PrimaryDevice::RequestSense(int)
 	buf[7] = 10;
 	buf[12] = GetStatusCode() >> 8;
 	buf[13] = GetStatusCode();
+
+	LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
 
 	return buf;
 }
