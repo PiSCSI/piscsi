@@ -381,8 +381,9 @@ void SASIDEV::Execute()
 			CmdRequestSense();
 			return;
 
-		// FORMAT
+		// FORMAT (the old RaSCSI code used 0x06 as opcode, which is not compliant with the SASI specification)
 		case SASIDEV::eCmdFormat:
+		case SASIDEV::eCmdFormatLegacy:
 			CmdFormat();
 			return;
 
