@@ -1082,6 +1082,7 @@ void SASIDEV::FlushUnit()
 
 int SASIDEV::GetEffectiveLun() const
 {
-	return (ctrl.cmd[1] >> 5) & 0x07;
+	// RaSCSI only supports a single SASI LUN
+	return (ctrl.cmd[1] >> 5) & 0x01;
 }
 
