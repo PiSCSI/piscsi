@@ -131,7 +131,8 @@ namespace scsi_defs {
 		SPC_2 = 4,
 		SPC_3 = 5,
 		SPC_4 = 6,
-		SPC_5 = 7
+		SPC_5 = 7,
+		SPC_6 = 8
 	};
 
 	enum device_type : int {
