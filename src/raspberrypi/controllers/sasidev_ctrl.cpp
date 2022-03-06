@@ -361,7 +361,6 @@ void SASIDEV::Execute()
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((SASIDEV::sasi_command)ctrl.cmd[0] != SASIDEV::eCmdRequestSense) {
 		ctrl.status = 0;
-		ctrl.device->SetStatusCode(0);
 	}
 
 	// Process by command
@@ -436,18 +435,14 @@ void SASIDEV::Execute()
 			break;
 	}
 
-	// Unsupported command
 	LOGTRACE("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
-	// Logical Unit
 	DWORD lun = GetEffectiveLun();
 	if (ctrl.unit[lun]) {
-		// Command processing on drive
 		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
 	}
 
-	// Failure (Error)
-	Error();
+	Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 }
 
 //---------------------------------------------------------------------------
