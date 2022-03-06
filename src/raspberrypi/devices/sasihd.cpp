@@ -83,8 +83,9 @@ void SASIHD::Open(const Filepath& path)
 
 vector<BYTE> SASIHD::Inquiry() const
 {
-	assert(false);
-	return vector<BYTE>(0);
+	// Byte 0 = 0: Direct access device
+
+	return vector<BYTE>(2);
 }
 
 vector<BYTE> SASIHD::RequestSense(int allocation_length)

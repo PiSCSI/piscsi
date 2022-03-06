@@ -407,6 +407,11 @@ void SASIDEV::Execute()
 			((Disk *)ctrl.device)->Seek(this);
 			return;
 
+		case SASIDEV::eCmdInquiry:
+			LOGTRACE( "%s INQUIRY Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->Inquiry(this);
+			return;
+
 		// ASSIGN (SASI only)
 		// This doesn't exist in the SASI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....

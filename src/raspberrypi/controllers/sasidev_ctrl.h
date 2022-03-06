@@ -43,6 +43,7 @@ private:
 		eCmdWrite6 = 0x0A,
 		eCmdSeek6 = 0x0B,
 		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
+		eCmdInquiry = 0x12,
 		eCmdModeSelect6 = 0x15,
 		eCmdReserve6 = 0x16,
 		eCmdRelease6 = 0x17,
