@@ -309,7 +309,7 @@ void SASIDEV::Command()
 		ctrl.blocks = 1;
 
 		// If no byte can be received move to the status phase
-		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
+		int count = ctrl.bus->CommandHandShake(ctrl.buffer, IsSASI());
 		if (!count) {
 			Error();
 			return;
