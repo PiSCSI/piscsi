@@ -388,6 +388,7 @@ void SASIDEV::Execute()
 			return;
 
 		// FORMAT (the old RaSCSI code used 0x06 as opcode, which is not compliant with the SASI specification)
+		// The FORMAT command of RaSCSI does not do anything but just returns a GOOD status
 		case SASIDEV::eCmdFormat:
 		case SASIDEV::eCmdFormatLegacy:
 			LOGTRACE( "%s FORMAT UNIT Command", __PRETTY_FUNCTION__);
