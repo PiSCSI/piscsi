@@ -647,11 +647,8 @@ void SASIDEV::Error(sense_key sense_key, asc asc, status status)
 		return;
 	}
 
-	// Logical Unit
-	DWORD lun = GetEffectiveLun();
-
 	// Set status and message
-	ctrl.status = (lun << 5) | status;
+	ctrl.status = (GetEffectiveLun() << 5) | status;
 
 	// status phase
 	Status();
@@ -1085,6 +1082,6 @@ void SASIDEV::FlushUnit()
 
 int SASIDEV::GetEffectiveLun() const
 {
-	return (ctrl.cmd[1] >> 5) & 0x01;
+	return (ctrl.cmd[1] >> 5) & 0x07;
 }
 
