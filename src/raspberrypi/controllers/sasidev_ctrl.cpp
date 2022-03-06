@@ -1279,6 +1279,6 @@ void SASIDEV::FlushUnit()
 
 int SASIDEV::GetEffectiveLun() const
 {
-	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
+	return (ctrl.cmd[1] >> 5) & 0x01;
 }
 

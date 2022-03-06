@@ -138,8 +138,7 @@ public:
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
 
-	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
-	int GetEffectiveLun() const;
+	virtual int GetEffectiveLun() const;
 
 	virtual void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
 			scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,

@@ -62,6 +62,9 @@ public:
 
 	void Receive() override;
 
+	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
+	int GetEffectiveLun() const;
+
 	bool IsSASI() const override { return false; }
 	bool IsSCSI() const override { return true; }
 
