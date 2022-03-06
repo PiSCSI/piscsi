@@ -101,3 +101,25 @@ vector<BYTE> SASIHD::RequestSense(int allocation_length)
 
 	return buf;
 }
+
+void SASIHD::ReadCapacity10(SASIDEV *controller)
+{
+	BYTE *buf = ctrl->buffer;
+
+	// Create end of logical block address (disk.blocks-1)
+	uint32_t blocks = disk.blocks - 1;
+	buf[0] = (BYTE)(blocks >> 24);
+	buf[1] = (BYTE)(blocks >> 16);
+	buf[2] = (BYTE)(blocks >> 8);
+	buf[3] = (BYTE)blocks;
+
+	// Create block length (1 << disk.size)
+	uint32_t length = 1 << disk.size;
+	buf[4] = (BYTE)(length >> 8);
+	buf[5] = (BYTE)length;
+
+	// the size
+	ctrl->length = 6;
+
+	controller->DataIn();
+}

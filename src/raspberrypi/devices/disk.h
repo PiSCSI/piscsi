@@ -96,7 +96,7 @@ private:
 	void Verify16(SASIDEV *);
 	void Seek(SASIDEV *);
 	void Seek10(SASIDEV *);
-	void ReadCapacity10(SASIDEV *) override;
+	virtual void ReadCapacity10(SASIDEV *) override;
 	void ReadCapacity16(SASIDEV *) override;
 	void Reserve(SASIDEV *);
 	void Release(SASIDEV *);

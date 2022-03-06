@@ -394,6 +394,11 @@ void SASIDEV::Execute()
 			((Disk *)ctrl.device)->FormatUnit(this);
 			return;
 
+		case SASIDEV::eCmdReadCapacity:
+			LOGTRACE( "%s READ CAPACITY Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->ReadCapacity10(this);
+			return;
+
 		case SASIDEV::eCmdReassign:
 			LOGTRACE( "%s REASSIGN BLOCKS Command", __PRETTY_FUNCTION__);
 			((Disk *)ctrl.device)->ReassignBlocks(this);

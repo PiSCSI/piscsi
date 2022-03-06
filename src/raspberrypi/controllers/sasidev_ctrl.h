@@ -37,6 +37,7 @@ private:
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,
 		eCmdFormat = 0x04,
+		eCmdReadCapacity = 0x05,
 		eCmdFormatLegacy = 0x06,
 		eCmdReassign = 0x07,
 		eCmdRead6 = 0x08,
