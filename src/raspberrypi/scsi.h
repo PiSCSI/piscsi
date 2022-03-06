@@ -98,7 +98,7 @@ public:
 	virtual BOOL GetDP() = 0;			// Get parity signal
 
 	virtual DWORD Aquire() = 0;
-	virtual int CommandHandShake(BYTE *buf) = 0;
+	virtual int CommandHandShake(BYTE *buf, bool) = 0;
 	virtual int ReceiveHandShake(BYTE *buf, int count) = 0;
 	virtual int SendHandShake(BYTE *buf, int count, int delay_after_bytes) = 0;
 
@@ -131,7 +131,8 @@ namespace scsi_defs {
 		SPC_2 = 4,
 		SPC_3 = 5,
 		SPC_4 = 6,
-		SPC_5 = 7
+		SPC_5 = 7,
+		SPC_6 = 8
 	};
 
 	enum device_type : int {

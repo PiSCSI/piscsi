@@ -274,7 +274,7 @@ void SCSIDEV::Execute()
 
 	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
-		if ((scsi_command)ctrl.cmd[0] != eCmdInquiry &&
+		if ((scsi_command)ctrl.cmd[0] != scsi_command::eCmdInquiry &&
 				(scsi_command)ctrl.cmd[0] != scsi_command::eCmdRequestSense) {
 			LOGDEBUG("Invalid LUN %d for ID %d", lun, GetSCSIID());
 
@@ -909,5 +909,10 @@ bool SCSIDEV::XferOut(bool cont)
 	LOGWARN("Received an unexpected command ($%02X) in %s", (WORD)ctrl.cmd[0] , __PRETTY_FUNCTION__)
 
 	return false;
+}
+
+int SCSIDEV::GetEffectiveLun() const
+{
+	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
 }
 

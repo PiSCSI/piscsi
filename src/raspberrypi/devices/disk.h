@@ -71,6 +71,8 @@ public:
 	bool Eject(bool) override;
 
 private:
+	friend class SASIDEV;
+
 	typedef ModePageDevice super;
 
 	// Commands covered by the SCSI specification (see https://www.t10.org/drafts.htm)
@@ -94,7 +96,7 @@ private:
 	void Verify16(SASIDEV *);
 	void Seek(SASIDEV *);
 	void Seek10(SASIDEV *);
-	void ReadCapacity10(SASIDEV *) override;
+	virtual void ReadCapacity10(SASIDEV *) override;
 	void ReadCapacity16(SASIDEV *) override;
 	void Reserve(SASIDEV *);
 	void Release(SASIDEV *);

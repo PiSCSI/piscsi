@@ -36,12 +36,15 @@ private:
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,
-		eCmdFormat = 0x06,
+		eCmdFormat = 0x04,
+		eCmdReadCapacity = 0x05,
+		eCmdFormatLegacy = 0x06,
 		eCmdReassign = 0x07,
 		eCmdRead6 = 0x08,
 		eCmdWrite6 = 0x0A,
 		eCmdSeek6 = 0x0B,
 		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
+		eCmdInquiry = 0x12,
 		eCmdModeSelect6 = 0x15,
 		eCmdReserve6 = 0x16,
 		eCmdRelease6 = 0x17,
@@ -137,8 +140,7 @@ public:
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
 
-	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
-	int GetEffectiveLun() const;
+	virtual int GetEffectiveLun() const;
 
 	virtual void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
 			scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
@@ -152,16 +154,6 @@ protected:
 	virtual void Execute();					// Execution phase
 
 	// Commands
-	void CmdTestUnitReady();					// TEST UNIT READY command
-	void CmdRezero();						// REZERO UNIT command
-	void CmdRequestSense();					// REQUEST SENSE command
-	void CmdFormat();						// FORMAT command
-	void CmdReassignBlocks();						// REASSIGN BLOCKS command
-	void CmdReserveUnit();						// RESERVE UNIT command
-	void CmdReleaseUnit();						// RELEASE UNIT command
-	void CmdRead6();						// READ(6) command
-	void CmdWrite6();						// WRITE(6) command
-	void CmdSeek6();						// SEEK(6) command
 	void CmdAssign();						// ASSIGN command
 	void CmdSpecify();						// SPECIFY command
 

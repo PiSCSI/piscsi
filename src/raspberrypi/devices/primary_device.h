@@ -30,6 +30,7 @@ public:
 
 	void TestUnitReady(SASIDEV *);
 	void RequestSense(SASIDEV *);
+	virtual void Inquiry(SASIDEV *);
 
 	void SetCtrl(SASIDEV::ctrl_t *ctrl) { this->ctrl = ctrl; }
 
@@ -49,6 +50,5 @@ private:
 
 	Dispatcher<PrimaryDevice, SASIDEV> dispatcher;
 
-	void Inquiry(SASIDEV *);
 	void ReportLuns(SASIDEV *);
 };

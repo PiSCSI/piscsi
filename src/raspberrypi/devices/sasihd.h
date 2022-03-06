@@ -35,4 +35,5 @@ public:
 
 	vector<BYTE> RequestSense(int) override;
 	vector<BYTE> Inquiry() const override;
+	virtual void ReadCapacity10(SASIDEV *) override;
 };

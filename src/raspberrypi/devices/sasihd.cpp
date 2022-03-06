@@ -53,6 +53,11 @@ void SASIHD::Open(const Filepath& path)
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 256, true);
 	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
+	// SASI only supports READ/WRITE(6), limiting the block count to 2^21
+	if (GetBlockCount() > 2097152) {
+		throw io_exception("SASI drives are limited to 2097152 blocks");
+	}
+
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Effective size must be a multiple of the sector size
 	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
@@ -83,8 +88,9 @@ void SASIHD::Open(const Filepath& path)
 
 vector<BYTE> SASIHD::Inquiry() const
 {
-	assert(false);
-	return vector<BYTE>(0);
+	// Byte 0 = 0: Direct access device
+
+	return vector<BYTE>(2);
 }
 
 vector<BYTE> SASIHD::RequestSense(int allocation_length)
@@ -96,5 +102,29 @@ vector<BYTE> SASIHD::RequestSense(int allocation_length)
 	buf[0] = (BYTE)(GetStatusCode() >> 16);
 	buf[1] = (BYTE)(GetLun() << 5);
 
+	LOGTRACE("%s Status $%02X",__PRETTY_FUNCTION__, buf[0]);
+
 	return buf;
+}
+
+void SASIHD::ReadCapacity10(SASIDEV *controller)
+{
+	BYTE *buf = ctrl->buffer;
+
+	// Create end of logical block address (disk.blocks-1)
+	uint32_t blocks = disk.blocks - 1;
+	buf[0] = (BYTE)(blocks >> 24);
+	buf[1] = (BYTE)(blocks >> 16);
+	buf[2] = (BYTE)(blocks >> 8);
+	buf[3] = (BYTE)blocks;
+
+	// Create block length (1 << disk.size)
+	uint32_t length = 1 << disk.size;
+	buf[4] = (BYTE)(length >> 8);
+	buf[5] = (BYTE)length;
+
+	// the size
+	ctrl->length = 6;
+
+	controller->DataIn();
 }

@@ -565,7 +565,7 @@ public:
 										// Set DAT signal
 	BOOL GetDP() override;
 										// Get Data parity signal
-	int CommandHandShake(BYTE *buf) override;
+	int CommandHandShake(BYTE *buf, bool) override;
 										// Command receive handshake
 	int ReceiveHandShake(BYTE *buf, int count) override;
 										// Data receive handshake
