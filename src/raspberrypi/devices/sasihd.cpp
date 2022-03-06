@@ -53,6 +53,11 @@ void SASIHD::Open(const Filepath& path)
 	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 256, true);
 	SetBlockCount((DWORD)(size >> GetSectorSizeShiftCount()));
 
+	// SASI only supports READ/WRITE(6), limiting the block count to 2^21
+	if (GetBlockCount() > 2097152) {
+		throw io_exception("SASI drives are limited to 2097152 blocks");
+	}
+
 	#if defined(REMOVE_FIXED_SASIHD_SIZE)
 	// Effective size must be a multiple of the sector size
 	size = (size / GetSectorSizeInBytes()) * GetSectorSizeInBytes();
