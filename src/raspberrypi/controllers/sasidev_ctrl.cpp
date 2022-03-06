@@ -437,12 +437,9 @@ void SASIDEV::Execute()
 
 	LOGTRACE("%s ID %d received unsupported command: $%02X", __PRETTY_FUNCTION__, GetSCSIID(), (BYTE)ctrl.cmd[0]);
 
-	DWORD lun = GetEffectiveLun();
-	if (ctrl.unit[lun]) {
-		ctrl.unit[lun]->SetStatusCode(STATUS_INVALIDCMD);
-	}
+	ctrl.device->SetStatusCode(STATUS_INVALIDCMD);
 
-	Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
+	Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 }
 
 //---------------------------------------------------------------------------
