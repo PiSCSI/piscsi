@@ -911,7 +911,7 @@ bool SCSIDEV::XferOut(bool cont)
 	return false;
 }
 
-int SASIDEV::GetEffectiveLun() const
+int SCSIDEV::GetEffectiveLun() const
 {
 	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
 }
