@@ -152,16 +152,6 @@ protected:
 	virtual void Execute();					// Execution phase
 
 	// Commands
-	void CmdTestUnitReady();					// TEST UNIT READY command
-	void CmdRezero();						// REZERO UNIT command
-	void CmdRequestSense();					// REQUEST SENSE command
-	void CmdFormat();						// FORMAT command
-	void CmdReassignBlocks();						// REASSIGN BLOCKS command
-	void CmdReserveUnit();						// RESERVE UNIT command
-	void CmdReleaseUnit();						// RELEASE UNIT command
-	void CmdRead6();						// READ(6) command
-	void CmdWrite6();						// WRITE(6) command
-	void CmdSeek6();						// SEEK(6) command
 	void CmdAssign();						// ASSIGN command
 	void CmdSpecify();						// SPECIFY command
 

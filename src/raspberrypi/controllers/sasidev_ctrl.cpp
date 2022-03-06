@@ -365,47 +365,47 @@ void SASIDEV::Execute()
 	}
 
 	// Process by command
-	// TODO This code does not belong here. Each device type needs such a dispatcher, which the controller has to call.
 	switch ((SASIDEV::sasi_command)ctrl.cmd[0]) {
-		// TEST UNIT READY
 		case SASIDEV::eCmdTestUnitReady:
-			CmdTestUnitReady();
+			LOGTRACE( "%s TEST UNIT READY Command", __PRETTY_FUNCTION__);
+			ctrl.device->TestUnitReady(this);
 			return;
 
-		// REZERO UNIT
 		case SASIDEV::eCmdRezero:
-			CmdRezero();
+			LOGTRACE( "%s REZERO Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->Rezero(this);
 			return;
 
-		// REQUEST SENSE
 		case SASIDEV::eCmdRequestSense:
-			CmdRequestSense();
+			LOGTRACE( "%s REQUEST SENSE Command", __PRETTY_FUNCTION__);
+			ctrl.device->RequestSense(this);
 			return;
 
 		// FORMAT (the old RaSCSI code used 0x06 as opcode, which is not compliant with the SASI specification)
 		case SASIDEV::eCmdFormat:
 		case SASIDEV::eCmdFormatLegacy:
-			CmdFormat();
+			LOGTRACE( "%s FORMAT UNIT Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->FormatUnit(this);
 			return;
 
-		// REASSIGN BLOCKS
 		case SASIDEV::eCmdReassign:
-			CmdReassignBlocks();
+			LOGTRACE( "%s REASSIGN BLOCKS Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->ReassignBlocks(this);
 			return;
 
-		// READ(6)
 		case SASIDEV::eCmdRead6:
-			CmdRead6();
+			LOGTRACE( "%s READ Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->Read6(this);
 			return;
 
-		// WRITE(6)
 		case SASIDEV::eCmdWrite6:
-			CmdWrite6();
+			LOGTRACE( "%s WRITE Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->Write6(this);
 			return;
 
-		// SEEK(6)
 		case SASIDEV::eCmdSeek6:
-			CmdSeek6();
+			LOGTRACE( "%s SEEK Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->Seek(this);
 			return;
 
 		// ASSIGN (SASI only)
@@ -415,14 +415,14 @@ void SASIDEV::Execute()
 			CmdAssign();
 			return;
 
-		// RESERVE UNIT(16)
 		case SASIDEV::eCmdReserve6:
-			CmdReserveUnit();
+			LOGTRACE( "%s RESERVE Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->Reserve(this);
 			return;
 		
-		// RELEASE UNIT(17)
 		case eCmdRelease6:
-			CmdReleaseUnit();
+			LOGTRACE( "%s RELEASE Command", __PRETTY_FUNCTION__);
+			((Disk *)ctrl.device)->Release(this);
 			return;
 
 		// SPECIFY (SASI only)
@@ -622,11 +622,6 @@ void SASIDEV::DataOut()
 	Receive();
 }
 
-//---------------------------------------------------------------------------
-//
-//	Error
-//
-//---------------------------------------------------------------------------
 void SASIDEV::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
@@ -658,195 +653,6 @@ void SASIDEV::Error(sense_key sense_key, asc asc, status status)
 	Status();
 }
 
-//---------------------------------------------------------------------------
-//
-//	TEST UNIT READY
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdTestUnitReady()
-{
-	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.device->TestUnitReady(this);
-}
-
-//---------------------------------------------------------------------------
-//
-//	REZERO UNIT
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdRezero()
-{
-	LOGTRACE( "%s REZERO UNIT Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	((Disk *)ctrl.device)->Rezero(this);
-}
-
-//---------------------------------------------------------------------------
-//
-//	REQUEST SENSE
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdRequestSense()
-{
-	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	ctrl.device->RequestSense(this);
-}
-
-//---------------------------------------------------------------------------
-//
-//	FORMAT UNIT
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdFormat()
-{
-	LOGTRACE( "%s FORMAT UNIT Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	((Disk *)ctrl.device)->FormatUnit(this);
-}
-
-//---------------------------------------------------------------------------
-//
-//	REASSIGN BLOCKS
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdReassignBlocks()
-{
-	LOGTRACE("%s REASSIGN BLOCKS Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	((Disk *)ctrl.device)->ReassignBlocks(this);
-}
-
-//---------------------------------------------------------------------------
-//
-//	RESERVE UNIT(16)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdReserveUnit()
-{
-	LOGTRACE( "%s Reserve(6) Command", __PRETTY_FUNCTION__);
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	RELEASE UNIT(17)
-//
-//  The reserve/release commands are only used in multi-initiator
-//  environments. RaSCSI doesn't support this use case. However, some old
-//  versions of Solaris will issue the reserve/release commands. We will
-//  just respond with an OK status.
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdReleaseUnit()
-{
-	LOGTRACE( "%s Release(6) Command", __PRETTY_FUNCTION__);
-
-	// status phase
-	Status();
-}
-
-//---------------------------------------------------------------------------
-//
-//	READ(6)
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdRead6()
-{
-	// Get record number and block number
-	DWORD record = ctrl.cmd[1] & 0x1f;
-	record <<= 8;
-	record |= ctrl.cmd[2];
-	record <<= 8;
-	record |= ctrl.cmd[3];
-	ctrl.blocks = ctrl.cmd[4];
-	if (ctrl.blocks == 0) {
-		ctrl.blocks = 0x100;
-	}
-
-	LOGTRACE("%s READ(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (unsigned int)record, (int)ctrl.blocks);
-
-	// Command processing on drive
-	ctrl.length = ((Disk *)ctrl.device)->Read(ctrl.cmd, ctrl.buffer, record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-	
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Read phase
-	DataIn();
-}
-
-//---------------------------------------------------------------------------
-//
-//	WRITE(6)
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdWrite6()
-{
-	// Get record number and block number
-	DWORD record = ctrl.cmd[1] & 0x1f;
-	record <<= 8;
-	record |= ctrl.cmd[2];
-	record <<= 8;
-	record |= ctrl.cmd[3];
-	ctrl.blocks = ctrl.cmd[4];
-	if (ctrl.blocks == 0) {
-		ctrl.blocks = 0x100;
-	}
-
-	LOGTRACE("%s WRITE(6) command record=%d blocks=%d", __PRETTY_FUNCTION__, (WORD)record, (WORD)ctrl.blocks);
-
-	// Command processing on drive
-	ctrl.length = ((Disk *)ctrl.device)->WriteCheck(record);
-	if (ctrl.length <= 0) {
-		// Failure (Error)
-		Error();
-		return;
-	}
-
-	// Set next block
-	ctrl.next = record + 1;
-
-	// Write phase
-	DataOut();
-}
-
-//---------------------------------------------------------------------------
-//
-//	SEEK(6)
-//
-//---------------------------------------------------------------------------
-void SASIDEV::CmdSeek6()
-{
-	LOGTRACE("%s SEEK(6) Command ", __PRETTY_FUNCTION__);
-
-	// Command processing on drive
-	((Disk *)ctrl.device)->Seek6(this);
-}
-
-//---------------------------------------------------------------------------
-//
-//	ASSIGN
-//
-//---------------------------------------------------------------------------
 void SASIDEV::CmdAssign()
 {
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
@@ -866,11 +672,6 @@ void SASIDEV::CmdAssign()
 	DataOut();
 }
 
-//---------------------------------------------------------------------------
-//
-//	SPECIFY
-//
-//---------------------------------------------------------------------------
 void SASIDEV::CmdSpecify()
 {
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
