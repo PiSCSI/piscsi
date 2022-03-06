@@ -356,6 +356,7 @@ void SASIDEV::Execute()
 	ctrl.execstart = SysTimer::GetTimerLow();
 
 	ctrl.device = ctrl.unit[GetEffectiveLun()];
+	ctrl.device->SetCtrl(&ctrl);
 
 	// Discard pending sense data from the previous command if the current command is not REQUEST SENSE
 	if ((SASIDEV::sasi_command)ctrl.cmd[0] != SASIDEV::eCmdRequestSense) {
