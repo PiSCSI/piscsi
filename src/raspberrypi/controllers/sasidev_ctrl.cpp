@@ -408,7 +408,7 @@ void SASIDEV::Execute()
 			return;
 
 		// ASSIGN (SASI only)
-		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
+		// This doesn't exist in the SASI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
 		case SASIDEV::eCmdSasiCmdAssign:
 			CmdAssign();
@@ -425,7 +425,7 @@ void SASIDEV::Execute()
 			return;
 
 		// SPECIFY (SASI only)
-		// This doesn't exist in the SCSI Spec, but was in the original RaSCSI code.
+		// This doesn't exist in the SASI Spec, but was in the original RaSCSI code.
 		// leaving it here for now....
 		case SASIDEV::eCmdInvalid:
 			CmdSpecify();
