@@ -131,7 +131,7 @@ void Device::SetParams(const unordered_map<string, string>& params)
 			this->params[param.first] = param.second;
 		}
 		else {
-			LOGWARN(string("Ignored unknown parameter '" + param.first + "'").c_str());
+			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());
 		}
 	}
 }
