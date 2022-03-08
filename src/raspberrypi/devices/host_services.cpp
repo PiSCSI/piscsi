@@ -169,9 +169,9 @@ void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool ch
 
 void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
-	vector<BYTE> buf(10);
-
 	if (!changeable) {
+		vector<BYTE> buf(10);
+
 		// Data structure version 1.0
 		buf[2] = 0x01;
 		buf[3] = 0x00;
@@ -185,7 +185,7 @@ void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool chan
 		buf[8] = tm.tm_min;
 		// Ignore leap second for simplicity
 		buf[9] = tm.tm_sec < 60 ? tm.tm_sec : 59;
-	}
 
-	pages[32] = buf;
+		pages[32] = buf;
+	}
 }
