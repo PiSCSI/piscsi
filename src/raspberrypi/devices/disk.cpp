@@ -459,7 +459,7 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 	size += pages_size;
 
-	if (size > 256) {
+	if (size > 255) {
 		SetStatusCode(STATUS_INVALIDPRM);
 		return 0;
 	}
@@ -546,7 +546,7 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 	}
 	size += pages_size;
 
-	if (size > 65536) {
+	if (size > 65535) {
 		SetStatusCode(STATUS_INVALIDPRM);
 		return 0;
 	}
