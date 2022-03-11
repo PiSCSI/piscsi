@@ -459,6 +459,11 @@ int Disk::ModeSense6(const DWORD *cdb, BYTE *buf)
 	}
 	size += pages_size;
 
+	if (size > 256) {
+		SetStatusCode(STATUS_INVALIDPRM);
+		return 0;
+	}
+
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
 		size = length;
@@ -540,6 +545,11 @@ int Disk::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 		return 0;
 	}
 	size += pages_size;
+
+	if (size > 65536) {
+		SetStatusCode(STATUS_INVALIDPRM);
+		return 0;
+	}
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
