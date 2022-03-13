@@ -673,9 +673,16 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 	pages[4] = buf;
 }
 
-void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool) const
+void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
 	vector<BYTE> buf(12);
+
+	// No changeable area
+	if (changeable) {
+		pages[8] = buf;
+
+		return;
+	}
 
 	// Only read cache is valid
 
