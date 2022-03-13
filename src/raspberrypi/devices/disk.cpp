@@ -600,15 +600,8 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
 {
 	vector<BYTE> buf(24);
 
-	// Page can be saved
-	buf[0] = 0x80;
-
-	// Show the number of bytes in the physical sector as changeable
-	// (though it cannot be changed in practice)
+	// No changeable area
 	if (changeable) {
-		buf[0xc] = 0xff;
-		buf[0xd] = 0xff;
-
 		pages[3] = buf;
 
 		return;
@@ -616,22 +609,34 @@ void Disk::AddFormatPage(map<int, vector<BYTE>>& pages, bool changeable) const
 
 	if (IsReady()) {
 		// Set the number of tracks in one zone to 8 (TODO)
-		buf[0x3] = 0x08;
+		buf[0x03] = 0x08;
 
 		// Set sector/track to 25 (TODO)
-		buf[0xa] = 0x00;
-		buf[0xb] = 0x19;
+		buf[0x0a] = 0x00;
+		buf[0x0b] = 0x19;
 
 		// Set the number of bytes in the physical sector
 		int size = 1 << disk.size;
-		buf[0xc] = (BYTE)(size >> 8);
-		buf[0xd] = (BYTE)size;
+		buf[0x0c] = (BYTE)(size >> 8);
+		buf[0x0d] = (BYTE)size;
+
+		// Interleave 1
+		buf[0x0e] = 0x00;
+		buf[0x0f] = 0x01;
+
+		// Track skew factor 11
+		buf[0x10] = 0x00;
+		buf[0x11] = 0x0b;
+
+		// Cylinder skew factor 20
+		buf[0x12] = 0x00;
+		buf[0x13] = 0x14;
 	}
 
-	// Set removable attribute
-	if (IsRemovable()) {
-		buf[20] = 0x20;
-	}
+	buf[20] = IsRemovable() ? 0x20 : 0x00;
+
+	// Hard-sectored
+	buf[20] |= 0x40;
 
 	pages[3] = buf;
 }
@@ -659,6 +664,10 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 
 		// Fix the head at 8
 		buf[0x5] = 0x8;
+
+		// Medium rotation rate 7200
+		buf[0x14] = 0x1c;
+		buf[0x15] = 0x20;
 	}
 
 	pages[4] = buf;
@@ -666,7 +675,19 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 
 void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool) const
 {
-	vector<BYTE> buf(12);
+	vector<BYTE> buf(10);
+
+	// Disable pre-fetch transfer length
+	buf[0x04] = 0xff;
+	buf[0x05] = 0xff;
+
+	// Maximum pre-fetch
+	buf[0x08] = 0xff;
+	buf[0x09] = 0xff;
+
+	// Maximum pre-fetch ceiling
+	buf[0x0a] = 0xff;
+	buf[0x0b] = 0xff;
 
 	// Only read cache is valid, no prefetch
 
