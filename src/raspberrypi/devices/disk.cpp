@@ -658,12 +658,12 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 		uint32_t cylinder = disk.blocks;
 		cylinder >>= 3;
 		cylinder /= 25;
-		buf[0x2] = (BYTE)(cylinder >> 16);
-		buf[0x3] = (BYTE)(cylinder >> 8);
-		buf[0x4] = (BYTE)cylinder;
+		buf[0x02] = (BYTE)(cylinder >> 16);
+		buf[0x03] = (BYTE)(cylinder >> 8);
+		buf[0x04] = (BYTE)cylinder;
 
 		// Fix the head at 8
-		buf[0x5] = 0x8;
+		buf[0x05] = 0x8;
 
 		// Medium rotation rate 7200
 		buf[0x14] = 0x1c;
@@ -675,7 +675,9 @@ void Disk::AddDrivePage(map<int, vector<BYTE>>& pages, bool changeable) const
 
 void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool) const
 {
-	vector<BYTE> buf(10);
+	vector<BYTE> buf(12);
+
+	// Only read cache is valid
 
 	// Disable pre-fetch transfer length
 	buf[0x04] = 0xff;
@@ -688,8 +690,6 @@ void Disk::AddCachePage(map<int, vector<BYTE>>& pages, bool) const
 	// Maximum pre-fetch ceiling
 	buf[0x0a] = 0xff;
 	buf[0x0b] = 0xff;
-
-	// Only read cache is valid, no prefetch
 
 	pages[8] = buf;
 }
