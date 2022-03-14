@@ -19,7 +19,7 @@
 #include "exceptions.h"
 #include "disk.h"
 #include "mode_page_device.h"
-#include "file_access/file_access_factory.h"
+#include "disk_image/disk_image_handle_factory.h"
 
 using namespace scsi_defs;
 
@@ -108,7 +108,7 @@ void Disk::Open(const Filepath& path)
 
 	// Cache initialization
 	assert (!disk.dcache);
-	disk.dcache = FileAccessFactory::CreateFileAccess(path, disk.size, disk.blocks, disk.image_offset);
+	disk.dcache = DiskImageHandleFactory::CreateFileAccess(path, disk.size, disk.blocks, disk.image_offset);
 
 	// Can read/write open
 	Fileio fio;

@@ -1,6 +1,6 @@
-	#include "file_access.h"
+	#include "disk_image/disk_image_handle.h"
 
-FileAccess::FileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff){
+DiskImageHandle::DiskImageHandle(const Filepath& path, int size, uint32_t blocks, off_t imgoff){
 
     serial = 0;
 	sec_path = path;
@@ -8,18 +8,18 @@ FileAccess::FileAccess(const Filepath& path, int size, uint32_t blocks, off_t im
 	sec_blocks = blocks;
 	imgoffset = imgoff;
 }
-FileAccess::~FileAccess(){
+DiskImageHandle::~DiskImageHandle(){
 
 }
 
 
-off_t FileAccess::GetSectorOffset(int block){
+off_t DiskImageHandle::GetSectorOffset(int block){
 
 	int sector_num = block & 0xff;
 	return (off_t)sector_num << sec_size;
 }
 
-off_t FileAccess::GetTrackOffset(int block){
+off_t DiskImageHandle::GetTrackOffset(int block){
 
 	// Assuming that all tracks hold 256 sectors
 	int track_num = block >> 8;

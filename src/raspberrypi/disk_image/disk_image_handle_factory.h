@@ -15,22 +15,24 @@
 //
 //---------------------------------------------------------------------------
 
-#include "file_access/file_access.h"
+#pragma once
 
-enum FileAccessType {
+#include "disk_image/disk_image_handle.h"
+
+enum DiskImageHandleType {
 	eRamCache,
 	eMmapFile,
     ePosixFile,
 };
 
-class FileAccessFactory
+class DiskImageHandleFactory
 {
 public:
-	static void SetFileAccessMethod(FileAccessType method) { current_access_type = method; };
-	static FileAccessType GetFileAccessMethod() { return current_access_type; };
+	static void SetFileAccessMethod(DiskImageHandleType method) { current_access_type = method; };
+	static DiskImageHandleType GetFileAccessMethod() { return current_access_type; };
 
-    static FileAccess *CreateFileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
+    static DiskImageHandle *CreateFileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
 
 private:
-	static FileAccessType current_access_type;
+	static DiskImageHandleType current_access_type;
 };

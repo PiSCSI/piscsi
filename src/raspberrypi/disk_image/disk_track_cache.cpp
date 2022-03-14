@@ -341,7 +341,7 @@ bool DiskTrack::WriteSector(const BYTE *buf, int sec)
 //
 //===========================================================================
 
-DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff) : FileAccess(path, size, blocks, imgoff)
+DiskCache::DiskCache(const Filepath& path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
 {
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);

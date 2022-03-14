@@ -5,21 +5,21 @@
 //
 //	Copyright (C) 2021 akuker
 //
-//	[ PosixFileAccess ]
+//	[ PosixFileHandle ]
 //
 //---------------------------------------------------------------------------
 
 #pragma once
 
 #include "filepath.h"
-#include "file_access/file_access.h"
+#include "disk_image/disk_image_handle.h"
 
-class PosixFileAccess : public FileAccess
+class PosixFileHandle : public DiskImageHandle
 {
 
 public:
-	PosixFileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
-	~PosixFileAccess();
+	PosixFileHandle(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
+	~PosixFileHandle();
 
 	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
 
@@ -29,13 +29,8 @@ public:
 	bool WriteSector(const BYTE *buf, int block);			// Sector Write
 	bool GetCache(int index, int& track, DWORD& serial) const { return true; };	// Get cache information
 	
-
 private:
-
-
 	int fd;
-
 	bool initialized = false;
-
 };
 

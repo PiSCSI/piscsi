@@ -23,14 +23,14 @@
 #pragma once
 
 #include "filepath.h"
-#include "file_access/file_access.h"
+#include "disk_image/disk_image_handle.h"
 
-class MmapFileAccess : public FileAccess
+class MmapFileHandle : public DiskImageHandle
 {
 
 public:
-	MmapFileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
-	~MmapFileAccess();
+	MmapFileHandle(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
+	~MmapFileHandle();
 
 	void SetRawMode(BOOL raw);					// CD-ROM raw mode setting
 

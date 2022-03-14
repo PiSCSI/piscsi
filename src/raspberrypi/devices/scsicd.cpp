@@ -17,7 +17,7 @@
 #include "scsicd.h"
 #include "fileio.h"
 #include "exceptions.h"
-#include "file_access/file_access_factory.h"
+#include "disk_image/disk_image_handle_factory.h"
 
 using namespace scsi_defs;
 
@@ -533,7 +533,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		track[index]->GetPath(path);
-		disk.dcache = FileAccessFactory::CreateFileAccess(path, GetSectorSizeShiftCount(), GetBlockCount());
+		disk.dcache = DiskImageHandleFactory::CreateFileAccess(path, GetSectorSizeShiftCount(), GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index

@@ -17,7 +17,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "mmap_file_access.h"
+#include "mmap_file_handle.h"
 #include "log.h"
 #include <sys/mman.h>
 #include <errno.h>
@@ -28,7 +28,7 @@
 //	Direct file access that will map the file into virtual memory space
 //
 //===========================================================================
-MmapFileAccess::MmapFileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff) : FileAccess(path, size, blocks, imgoff)
+MmapFileHandle::MmapFileHandle(const Filepath& path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
 {
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
@@ -58,7 +58,7 @@ MmapFileAccess::MmapFileAccess(const Filepath& path, int size, uint32_t blocks, 
    initialized = true;
 }
 
-MmapFileAccess::~MmapFileAccess()
+MmapFileHandle::~MmapFileHandle()
 {
 	munmap((void*)memory_block, sb.st_size);
 	close(fd);
@@ -67,7 +67,7 @@ MmapFileAccess::~MmapFileAccess()
 	sync();
 }
 
-bool MmapFileAccess::ReadSector(BYTE *buf, int block)
+bool MmapFileHandle::ReadSector(BYTE *buf, int block)
 {
 	ASSERT(sec_size != 0);
 	ASSERT(buf);
@@ -85,7 +85,7 @@ bool MmapFileAccess::ReadSector(BYTE *buf, int block)
 	return true;
 }
 
-bool MmapFileAccess::WriteSector(const BYTE *buf, int block)
+bool MmapFileHandle::WriteSector(const BYTE *buf, int block)
 {
 
 	ASSERT(buf);

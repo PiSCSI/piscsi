@@ -18,7 +18,7 @@
 #pragma once
 
 #include "filepath.h"
-#include "file_access/file_access.h"
+#include "disk_image/disk_image_handle.h"
 
 // Number of tracks to cache
 #define CacheMax 16
@@ -58,7 +58,7 @@ private:
 	int GetTrack() const		{ return dt.track; }		// Get track
 };
 
-class DiskCache : public FileAccess
+class DiskCache : public DiskImageHandle
 {
 public:
 	// Internal data definition

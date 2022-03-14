@@ -24,7 +24,7 @@
 #include "rasutil.h"
 #include "rascsi_image.h"
 #include "rascsi_interface.pb.h"
-#include "file_access/file_access_factory.h"
+#include "disk_image/disk_image_handle.h"
 #include "spdlog/spdlog.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include <string>
@@ -1297,13 +1297,13 @@ bool ParseArgument(int argc, char* argv[], int& port)
 					LOGWARN("Cache mode %s", cache_mode.c_str());
 					switch(cache_mode.at(0)){
 						case 'R':
-							FileAccessFactory::SetFileAccessMethod(FileAccessType::eRamCache);
+							DiskImageHandleFactory::SetFileAccessMethod(DiskImageHandleType::eRamCache);
 							break;
 						case 'P':
-							FileAccessFactory::SetFileAccessMethod(FileAccessType::ePosixFile);
+							DiskImageHandleFactory::SetFileAccessMethod(DiskImageHandleType::ePosixFile);
 							break;
 						case 'M':
-							FileAccessFactory::SetFileAccessMethod(FileAccessType::eMmapFile);
+							DiskImageHandleFactory::SetFileAccessMethod(DiskImageHandleType::eMmapFile);
 							break;
 						default:
 							LOGWARN("Invalid cache mode: %s Expected \"RAM, Posix or Mmmap\"", cache_mode.c_str());

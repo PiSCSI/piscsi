@@ -15,29 +15,29 @@
 //
 //---------------------------------------------------------------------------
 
-#include "file_access/file_access_factory.h"
+#include "disk_image/disk_image_handle_factory.h"
 #include "log.h"
-#include "file_access/disk_track_cache.h"
-#include "file_access/mmap_file_access.h"
-#include "file_access/posix_file_access.h"
+#include "disk_image/disk_track_cache.h"
+#include "disk_image/mmap_file_handle.h"
+#include "disk_image/posix_file_handle.h"
 
-FileAccessType FileAccessFactory::current_access_type = FileAccessType::ePosixFile;
+DiskImageHandleType DiskImageHandleFactory::current_access_type = DiskImageHandleType::ePosixFile;
 
-FileAccess *FileAccessFactory::CreateFileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff){
+DiskImageHandle *DiskImageHandleFactory::CreateFileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff){
 
-    FileAccess *result = NULL;
+    DiskImageHandle *result = NULL;
 
-    if (current_access_type == FileAccessType::eMmapFile){
+    if (current_access_type == DiskImageHandleType::eMmapFile){
         LOGINFO("%s Creating MmapFileAccess %s", __PRETTY_FUNCTION__, path.GetPath())
-        result = new MmapFileAccess(path, size, blocks, imgoff);
+        result = new MmapFileHandle(path, size, blocks, imgoff);
     }
-    else if(current_access_type == FileAccessType::eRamCache) {
+    else if(current_access_type == DiskImageHandleType::eRamCache) {
         LOGINFO("%s Creating DiskCache %s", __PRETTY_FUNCTION__, path.GetPath())
         result = new DiskCache(path, size, blocks, imgoff);
     }
-    else if(current_access_type == FileAccessType::ePosixFile) {
-        LOGINFO("%s Creating PosixFileAccess %s", __PRETTY_FUNCTION__, path.GetPath())
-        result = new PosixFileAccess(path, size, blocks, imgoff);
+    else if(current_access_type == DiskImageHandleType::ePosixFile) {
+        LOGINFO("%s Creating PosixFileHandle %s", __PRETTY_FUNCTION__, path.GetPath())
+        result = new PosixFileHandle(path, size, blocks, imgoff);
     }
 
     if (result == NULL){

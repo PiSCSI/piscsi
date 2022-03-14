@@ -19,11 +19,11 @@
 
 #include "filepath.h"
 
-class FileAccess
+class DiskImageHandle
 {
 public:
-	FileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
-	virtual ~FileAccess();
+	DiskImageHandle(const Filepath& path, int size, uint32_t blocks, off_t imgoff = 0);
+	virtual ~DiskImageHandle();
 
 	void SetRawMode(bool raw) { cd_raw = raw; };		// CD-ROM raw mode setting
 

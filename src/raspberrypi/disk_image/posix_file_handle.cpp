@@ -5,11 +5,11 @@
 //
 //	Copyright (C) 2021 akuker
 //
-//	[ PosixFileAccess ]
+//	[ PosixFileHandle ]
 //
 //---------------------------------------------------------------------------
 
-#include "posix_file_access.h"
+#include "posix_file_handle.h"
 #include "log.h"
 #include <sys/mman.h>
 #include <errno.h>
@@ -20,7 +20,7 @@
 //	Direct file access that will map the file into virtual memory space
 //
 //===========================================================================
-PosixFileAccess::PosixFileAccess(const Filepath& path, int size, uint32_t blocks, off_t imgoff) : FileAccess(path, size, blocks, imgoff)
+PosixFileHandle::PosixFileHandle(const Filepath& path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
 {
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
@@ -42,7 +42,7 @@ PosixFileAccess::PosixFileAccess(const Filepath& path, int size, uint32_t blocks
 	initialized = true;
 }
 
-PosixFileAccess::~PosixFileAccess()
+PosixFileHandle::~PosixFileHandle()
 {
 	close(fd);
 
@@ -50,7 +50,7 @@ PosixFileAccess::~PosixFileAccess()
 	sync();
 }
 
-bool PosixFileAccess::ReadSector(BYTE *buf, int block)
+bool PosixFileHandle::ReadSector(BYTE *buf, int block)
 {
 	if(!initialized){
 		return false;
@@ -76,7 +76,7 @@ bool PosixFileAccess::ReadSector(BYTE *buf, int block)
 	return true;
 }
 
-bool PosixFileAccess::WriteSector(const BYTE *buf, int block)
+bool PosixFileHandle::WriteSector(const BYTE *buf, int block)
 {
 	if(!initialized){
 		return false;
