@@ -20,24 +20,25 @@
 //	Direct file access that will map the file into virtual memory space
 //
 //===========================================================================
-PosixFileHandle::PosixFileHandle(const Filepath& path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
+PosixFileHandle::PosixFileHandle(const Filepath &path, int size, uint32_t blocks, off_t imgoff) : DiskImageHandle(path, size, blocks, imgoff)
 {
 	ASSERT(blocks > 0);
 	ASSERT(imgoff >= 0);
 
-
-   fd = open(path.GetPath(), O_RDWR);
-   if(fd < 0){
-	   LOGWARN("Unable to open file %s. Errno:%d", path.GetPath(), errno)
-	   return;
-   }
+	fd = open(path.GetPath(), O_RDWR);
+	if (fd < 0)
+	{
+		LOGWARN("Unable to open file %s. Errno:%d", path.GetPath(), errno)
+		return;
+	}
 	struct stat sb;
-   if(fstat(fd, &sb) < 0){
-	   LOGWARN("Unable to run fstat. Errno:%d", errno);
-	   return;
-   }
+	if (fstat(fd, &sb) < 0)
+	{
+		LOGWARN("Unable to run fstat. Errno:%d", errno);
+		return;
+	}
 
-   LOGWARN("%s opened file of size: %llu", __PRETTY_FUNCTION__, (uint64_t)sb.st_size);
+	LOGWARN("%s opened file of size: %llu", __PRETTY_FUNCTION__, (uint64_t)sb.st_size);
 
 	initialized = true;
 }
@@ -52,7 +53,8 @@ PosixFileHandle::~PosixFileHandle()
 
 bool PosixFileHandle::ReadSector(BYTE *buf, int block)
 {
-	if(!initialized){
+	if (!initialized)
+	{
 		return false;
 	}
 
@@ -67,18 +69,20 @@ bool PosixFileHandle::ReadSector(BYTE *buf, int block)
 	off_t offset = GetTrackOffset(block);
 	offset += GetSectorOffset(block);
 
-    lseek(fd, offset, SEEK_SET);
-    size_t result = read(fd, buf,sector_size_bytes);
-    if(result != sector_size_bytes){
-        LOGWARN("%s only read %d bytes but wanted %d ", __PRETTY_FUNCTION__, result, sector_size_bytes);
-    }
+	lseek(fd, offset, SEEK_SET);
+	size_t result = read(fd, buf, sector_size_bytes);
+	if (result != sector_size_bytes)
+	{
+		LOGWARN("%s only read %d bytes but wanted %d ", __PRETTY_FUNCTION__, result, sector_size_bytes);
+	}
 
 	return true;
 }
 
 bool PosixFileHandle::WriteSector(const BYTE *buf, int block)
 {
-	if(!initialized){
+	if (!initialized)
+	{
 		return false;
 	}
 
@@ -90,17 +94,15 @@ bool PosixFileHandle::WriteSector(const BYTE *buf, int block)
 
 	size_t sector_size_bytes = (size_t)1 << sec_size;
 
-    off_t offset = GetTrackOffset(block);
-    offset += GetSectorOffset(block);
+	off_t offset = GetTrackOffset(block);
+	offset += GetSectorOffset(block);
 
-
-    lseek(fd, offset, SEEK_SET);
-    size_t result = write(fd, buf,sector_size_bytes);
-    if(result != sector_size_bytes){
-        LOGWARN("%s only wrote %d bytes but wanted %d ", __PRETTY_FUNCTION__, result, sector_size_bytes);
-    }
+	lseek(fd, offset, SEEK_SET);
+	size_t result = write(fd, buf, sector_size_bytes);
+	if (result != sector_size_bytes)
+	{
+		LOGWARN("%s only wrote %d bytes but wanted %d ", __PRETTY_FUNCTION__, result, sector_size_bytes);
+	}
 
 	return true;
 }
-
-

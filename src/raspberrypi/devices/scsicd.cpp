@@ -533,7 +533,7 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 		// Recreate the disk cache
 		Filepath path;
 		track[index]->GetPath(path);
-		disk.dcache = DiskImageHandleFactory::CreateFileAccess(path, GetSectorSizeShiftCount(), GetBlockCount());
+		disk.dcache = DiskImageHandleFactory::CreateDiskImageHandle(path, GetSectorSizeShiftCount(), GetBlockCount());
 		disk.dcache->SetRawMode(rawfile);
 
 		// Reset data index

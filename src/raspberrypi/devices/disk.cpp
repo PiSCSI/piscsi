@@ -108,7 +108,7 @@ void Disk::Open(const Filepath& path)
 
 	// Cache initialization
 	assert (!disk.dcache);
-	disk.dcache = DiskImageHandleFactory::CreateFileAccess(path, disk.size, disk.blocks, disk.image_offset);
+	disk.dcache = DiskImageHandleFactory::CreateDiskImageHandle(path, disk.size, disk.blocks, disk.image_offset);
 
 	// Can read/write open
 	Fileio fio;
