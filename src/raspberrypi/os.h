@@ -7,8 +7,6 @@
 //	Copyright (C) 2016-2020 GIMONS
 //  Copyright (C) 2020 akuker
 //
-//	Imported NetBSD support and some optimisation patch by Rin Okuyama.
-//
 //	[ OS related definitions ]
 //
 //---------------------------------------------------------------------------
@@ -58,23 +56,11 @@
 #include <pwd.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
-#if defined(__linux__)
 #include <sys/epoll.h>
-#endif
 #include <netinet/in.h>
-
-#if defined(__linux__)
 #include <linux/gpio.h>
 #include <linux/if.h>
 #include <linux/if_tun.h>
-#elif defined(__NetBSD__)
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <net/if.h>
-#include <net/if_dl.h>
-#include <net/if_tap.h>
-#include <ifaddrs.h>
-#endif
 
 //---------------------------------------------------------------------------
 //

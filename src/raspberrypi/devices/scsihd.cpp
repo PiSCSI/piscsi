@@ -26,8 +26,9 @@
 //
 //===========================================================================
 
-SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
+SCSIHD::SCSIHD(const set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
+	SetSectorSizes(sector_sizes);
 }
 
 void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
@@ -75,7 +76,7 @@ void SCSIHD::Reset()
 
 void SCSIHD::Open(const Filepath& path)
 {
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -105,12 +106,6 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 		return 0;
 	}
 
-	// Ready check (Error if no image file)
-	if (!IsReady()) {
-		SetStatusCode(STATUS_NOTREADY);
-		return 0;
-	}
-
 	// Basic data
 	// buf[0] ... Direct Access Device
 	// buf[1] ... Bit 7 set means removable
@@ -121,7 +116,7 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 	buf[1] = IsRemovable() ? 0x80 : 0x00;
 	buf[2] = 0x02;
 	buf[3] = 0x02;
-	buf[4] = 28 + 3;	// Value close to real HDD
+	buf[4] = 0x1F;
 
 	// Padded vendor, product, revision
 	memcpy(&buf[8], GetPaddedName().c_str(), 28);
@@ -139,10 +134,9 @@ int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
 
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int size;
+	assert(length >= 0);
 
-	ASSERT(buf);
-	ASSERT(length >= 0);
+	int size;
 
 	// PF
 	if (cdb[1] & 0x10) {
@@ -216,23 +210,19 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Add Vendor special page to make drive Apple compatible
 //
 //---------------------------------------------------------------------------
-int SCSIHD::AddVendorPage(int page, bool change, BYTE *buf)
+void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
-	ASSERT(buf);
-
-	// Page code 48 or 63
+	// Page code 48
 	if (page != 0x30 && page != 0x3f) {
-		return 0;
+		return;
 	}
 
-	// Set the message length
-	buf[0] = 0x30;
-	buf[1] = 0x1c;
+	vector<BYTE> buf(30);
 
 	// No changeable area
-	if (!change) {
-		memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
+	if (!changeable) {
+		memcpy(&buf.data()[0xa], "APPLE COMPUTER, INC.", 20);
 	}
 
-	return 30;
+	pages[48] = buf;
 }

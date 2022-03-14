@@ -65,7 +65,7 @@
                     <input name="type" type="hidden" value="{{ device.device_type }}">
                     <input name="file_size" type="hidden" value="{{ device.size }}">
                     <select type="select" name="file_name">
-                    {% for f in files %}
+                    {% for f in files|sort(attribute='name') %}
                     {% if device.device_type == "SCCD" %}
                     {% if f["name"].lower().endswith(cdrom_file_suffix) %}
                     <option value="{{ f["name"] }}">{{ f["name"].replace(base_dir, '') }}</option>
@@ -601,17 +601,23 @@
         <td style="border: none; vertical-align:top;">
             <form action="/logs/show" method="post">
                 <label for="lines">{{ _("Log Lines:") }}</label>
-                <input name="lines" type="number" placeholder="200" min="1" size="4">
+                <input name="lines" type="number" value="200" min="1" size="4">
                 <label for="scope">{{ _("Scope:") }}</label>
                 <select name="scope">
-                    <option value="default">
-                        default
+                    <option value="">
+                        {{ _("All logs") }}
                     </option>
                     <option value="rascsi">
-                        rascsi.service
+                        rascsi
                     </option>
                     <option value="rascsi-web">
-                        rascsi-web.service
+                        rascsi-web
+                    </option>
+                    <option value="rascsi-oled">
+                        rascsi-oled
+                    </option>
+                    <option value="rascsi-ctrlboard">
+                        rascsi-ctrlboard
                     </option>
                 </select>
                 <input type="submit" value="{{ _("Show Logs") }}">

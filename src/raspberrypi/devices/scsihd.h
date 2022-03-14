@@ -22,8 +22,8 @@
 class SCSIHD : public Disk, public FileSupport
 {
 public:
-	SCSIHD(bool);
-	virtual ~SCSIHD() {};
+	SCSIHD(const set<uint32_t>&, bool);
+	virtual ~SCSIHD() {}
 
 	void FinalizeSetup(const Filepath&, off_t);
 
@@ -34,6 +34,5 @@ public:
 	virtual int Inquiry(const DWORD *cdb, BYTE *buf) override;
 	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
-	// Add vendor special page
-	int AddVendorPage(int page, bool change, BYTE *buf) override;
+	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
 };

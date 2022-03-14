@@ -162,7 +162,7 @@ class RaCtlCmds:
 
     def get_disk_device_types(self):
         """
-        Returns a (list) of (str) of four letter device acronyms 
+        Returns a (list) of (str) of four letter device acronyms
         that take image files as arguments.
         """
         device_types = self.get_device_types()

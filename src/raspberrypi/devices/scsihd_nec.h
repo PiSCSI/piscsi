@@ -25,17 +25,17 @@
 class SCSIHD_NEC : public SCSIHD
 {
 public:
-	SCSIHD_NEC();
-	~SCSIHD_NEC() {};
+	SCSIHD_NEC(const set<uint32_t>&);
+	~SCSIHD_NEC() {}
 
 	void Open(const Filepath& path) override;
 
 	// Commands
 	int Inquiry(const DWORD *cdb, BYTE *buf) override;
 
-	int AddErrorPage(bool change, BYTE *buf) override;
-	int AddFormatPage(bool change, BYTE *buf) override;
-	int AddDrivePage(bool change, BYTE *buf) override;
+	void AddErrorPage(map<int, vector<BYTE>>&, bool) const override;
+	void AddFormatPage(map<int, vector<BYTE>>&, bool) const override;
+	void AddDrivePage(map<int, vector<BYTE>>&, bool) const override;
 
 private:
 	// Geometry data

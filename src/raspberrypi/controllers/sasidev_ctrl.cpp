@@ -115,7 +115,7 @@ void SASIDEV::Connect(int id, BUS *bus)
 //	Set the logical unit
 //
 //---------------------------------------------------------------------------
-void SASIDEV::SetUnit(int no, Device *dev)
+void SASIDEV::SetUnit(int no, PrimaryDevice *dev)
 {
 	ASSERT(no < UnitMax);
 
@@ -626,7 +626,7 @@ void SASIDEV::DataOut()
 void SASIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
 {
 	// Get bus information
-	((GPIOBUS*)ctrl.bus)->Aquire();
+	ctrl.bus->Aquire();
 
 	// Reset check
 	if (ctrl.bus->GetRST()) {
@@ -664,7 +664,7 @@ void SASIDEV::CmdTestUnitReady()
 	LOGTRACE("%s TEST UNIT READY Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	((Disk *)ctrl.device)->TestUnitReady(this);
+	ctrl.device->TestUnitReady(this);
 }
 
 //---------------------------------------------------------------------------
@@ -690,7 +690,7 @@ void SASIDEV::CmdRequestSense()
 	LOGTRACE( "%s REQUEST SENSE Command ", __PRETTY_FUNCTION__);
 
 	// Command processing on drive
-	((Disk *)ctrl.device)->RequestSense(this);
+	ctrl.device->RequestSense(this);
 }
 
 //---------------------------------------------------------------------------
@@ -847,8 +847,8 @@ void SASIDEV::CmdAssign()
 {
 	LOGTRACE("%s ASSIGN Command ", __PRETTY_FUNCTION__);
 
-	// Command processing on drive
-	bool status = ((Disk *)ctrl.device)->CheckReady();
+	// Command processing on device
+	bool status = ctrl.device->CheckReady();
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -871,8 +871,8 @@ void SASIDEV::CmdSpecify()
 {
 	LOGTRACE("%s SPECIFY Command ", __PRETTY_FUNCTION__);
 
-	// Command processing on drive
-	bool status = ((Disk *)ctrl.device)->CheckReady();
+	// Command processing on device
+	bool status =ctrl.device->CheckReady();
 	if (!status) {
 		// Failure (Error)
 		Error();
@@ -1143,10 +1143,12 @@ bool SASIDEV::XferOut(bool cont)
 		case SASIDEV::eCmdWrite16:
 		case SASIDEV::eCmdVerify10:
 		case SASIDEV::eCmdVerify16:
+		{
 			// If we're a host bridge, use the host bridge's SendMessage10 function
 			// TODO This class must not know about SCSIBR
-			if (device->IsBridge()) {
-				if (!((SCSIBR*)device)->SendMessage10(ctrl.cmd, ctrl.buffer)) {
+			SCSIBR *bridge = dynamic_cast<SCSIBR *>(device);
+			if (bridge) {
+				if (!bridge->SendMessage10(ctrl.cmd, ctrl.buffer)) {
 					// write failed
 					return false;
 				}
@@ -1158,8 +1160,9 @@ bool SASIDEV::XferOut(bool cont)
 
 			// Special case Write function for DaynaPort
 			// TODO This class must not know about DaynaPort
-			if (device->IsDaynaPort()) {
-				if (!((SCSIDaynaPort*)device)->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
+			SCSIDaynaPort *daynaport = dynamic_cast<SCSIDaynaPort *>(device);
+			if (daynaport) {
+				if (!daynaport->Write(ctrl.cmd, ctrl.buffer, ctrl.length)) {
 					// write failed
 					return false;
 				}
@@ -1191,6 +1194,7 @@ bool SASIDEV::XferOut(bool cont)
 			// If normal, work setting
 			ctrl.offset = 0;
 			break;
+		}
 
 		// SPECIFY(SASI only)
 		case SASIDEV::eCmdInvalid:

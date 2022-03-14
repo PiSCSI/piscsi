@@ -773,8 +773,9 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 	LOGINFO("Insert %sfile '%s' requested into %s ID %d, unit %d", pb_device.protected_() ? "protected " : "",
 			filename.c_str(), device->GetType().c_str(), pb_device.id(), pb_device.unit());
 
+	Disk *disk = dynamic_cast<Disk *>(device);
+
 	if (pb_device.block_size()) {
-		Disk *disk = dynamic_cast<Disk *>(device);
 		if (disk && disk->IsSectorSizeConfigurable()) {
 			if (!disk->SetConfiguredSectorSize(pb_device.block_size())) {
 				return ReturnLocalizedError(context, ERROR_BLOCK_SIZE, to_string(pb_device.block_size()));
@@ -823,7 +824,6 @@ bool Insert(const CommandContext& context, const PbDeviceDefinition& pb_device, 
 		device->SetProtected(pb_device.protected_());
 	}
 
-	Disk *disk = dynamic_cast<Disk *>(device);
 	if (disk) {
 		disk->MediumChanged();
 	}

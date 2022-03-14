@@ -7,8 +7,6 @@
 //	Copyright (C) 2016-2020 GIMONS
 //	Copyright (C) akuker
 //
-//	Imported NetBSD support and some optimisation patches by Rin Okuyama.
-//
 //	[ TAP Driver ]
 //
 //---------------------------------------------------------------------------
@@ -20,8 +18,6 @@
 #include <sys/ioctl.h>
 #include <linux/sockios.h>
 #endif
-// TODO Try to get rid of zlib, there is only one operation using it
-#include <zlib.h> // For crc32()
 #include "os.h"
 #include "ctapdriver.h"
 #include "log.h"
@@ -47,8 +43,6 @@ CTapDriver::CTapDriver()
 //	Initialization
 //
 //---------------------------------------------------------------------------
-#ifdef __linux__
-
 static bool br_setif(int br_socket_fd, const char* bridgename, const char* ifname, bool add) {
 	struct ifreq ifr;
 	ifr.ifr_ifindex = if_nametoindex(ifname);
@@ -349,53 +343,6 @@ bool CTapDriver::Init(const map<string, string>& const_params)
 
 	return true;
 }
-#endif // __linux__
-
-#ifdef __NetBSD__
-bool CTapDriver::Init(const map<string, string>&)
-{
-	struct ifreq ifr;
-	struct ifaddrs *ifa, *a;
-	
-	// TAP Device Initialization
-	if ((m_hTAP = open("/dev/tap", O_RDWR)) < 0) {
-		LOGERROR("Can't open tap: %s", strerror(errno));
-		return false;
-	}
-
-	// Get device name
-	if (ioctl(m_hTAP, TAPGIFNAME, (void *)&ifr) < 0) {
-		LOGERROR("Can't ioctl TAPGIFNAME: %s", strerror(errno));
-		close(m_hTAP);
-		return false;
-	}
-
-	// Get MAC address
-	if (getifaddrs(&ifa) == -1) {
-		LOGERROR("Can't getifaddrs: %s", strerror(errno));
-		close(m_hTAP);
-		return false;
-	}
-	for (a = ifa; a != NULL; a = a->ifa_next)
-		if (strcmp(ifr.ifr_name, a->ifa_name) == 0 &&
-			a->ifa_addr->sa_family == AF_LINK)
-			break;
-	if (a == NULL) {
-		LOGERROR("Can't get MAC address: %s", strerror(errno));
-		close(m_hTAP);
-		return false;
-	}
-
-	// Save MAC address
-	memcpy(m_MacAddr, LLADDR((struct sockaddr_dl *)a->ifa_addr),
-		sizeof(m_MacAddr));
-	freeifaddrs(ifa);
-
-	LOGINFO("Tap device: %s\n", ifr.ifr_name);
-
-	return true;
-}
-#endif // __NetBSD__
 
 void CTapDriver::OpenDump(const Filepath& path) {
 	if (m_pcap == NULL) {
@@ -498,6 +445,19 @@ bool CTapDriver::PendingPackets()
 	}
 }
 
+// See https://stackoverflow.com/questions/21001659/crc32-algorithm-implementation-in-c-without-a-look-up-table-and-with-a-public-li
+uint32_t crc32(BYTE *buf, int length) {
+   uint32_t crc = 0xffffffff;
+   for (int i = 0; i < length; i++) {
+      crc ^= buf[i];
+      for (int j = 0; j < 8; j++) {
+         uint32_t mask = -(crc & 1);
+         crc = (crc >> 1) ^ (0xEDB88320 & mask);
+      }
+   }
+   return ~crc;
+}
+
 //---------------------------------------------------------------------------
 //
 //	Receive
@@ -508,7 +468,7 @@ int CTapDriver::Rx(BYTE *buf)
 	ASSERT(m_hTAP != -1);
 
 	// Check if there is data that can be received
-	if(!PendingPackets()){
+	if (!PendingPackets()) {
 		return 0;
 	}
 
@@ -524,11 +484,7 @@ int CTapDriver::Rx(BYTE *buf)
 		// We need to add the Frame Check Status (FCS) CRC back onto the end of the packet.
 		// The Linux network subsystem removes it, since most software apps shouldn't ever
 		// need it.
-
-		// Initialize the CRC
-		DWORD crc = crc32(0L, Z_NULL, 0);
-		// Calculate the CRC
-		crc = crc32(crc, buf, dwReceived);
+		int crc = crc32(buf, dwReceived);
 
 		buf[dwReceived + 0] = (BYTE)((crc >> 0) & 0xFF);
 		buf[dwReceived + 1] = (BYTE)((crc >> 8) & 0xFF);

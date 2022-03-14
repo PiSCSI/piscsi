@@ -21,6 +21,7 @@
 #include "fileio.h"
 
 class Device;
+class PrimaryDevice;
 
 //===========================================================================
 //
@@ -123,10 +124,10 @@ public:
 		DWORD length;					// Transfer remaining length
 
 		// Logical unit
-		Device *unit[UnitMax];
+		PrimaryDevice *unit[UnitMax];
 
 		// The current device
-		Device *device;
+		PrimaryDevice *device;
 
 		// The LUN from the IDENTIFY message
 		int lun;
@@ -144,7 +145,7 @@ public:
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
 	Device* GetUnit(int no);							// Get logical unit
-	void SetUnit(int no, Device *dev);				// Logical unit setting
+	void SetUnit(int no, PrimaryDevice *dev);				// Logical unit setting
 	bool HasUnit();						// Has a valid logical unit
 
 	// Other

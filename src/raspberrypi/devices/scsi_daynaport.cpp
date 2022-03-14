@@ -583,3 +583,11 @@ void SCSIDaynaPort::EnableInterface(SASIDEV *controller)
 
 	controller->Status();
 }
+
+int SCSIDaynaPort::GetSendDelay()
+{
+	// The Daynaport needs to have a delay after the size/flags field
+	// of the read response. In the MacOS driver, it looks like the
+	// driver is doing two "READ" system calls.
+	return DAYNAPORT_READ_HEADER_SZ;
+}

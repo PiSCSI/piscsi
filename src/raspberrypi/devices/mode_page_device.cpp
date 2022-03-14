@@ -30,6 +30,66 @@ bool ModePageDevice::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
+int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
+{
+	bool changeable = (cdb[2] & 0xc0) == 0x40;
+
+	// Get page code (0x3f means all pages)
+	int page = cdb[2] & 0x3f;
+
+	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
+
+	// Mode page data mapped to the respective page numbers, C++ maps are ordered by key
+	map<int, vector<BYTE>> pages;
+	AddModePages(pages, page, changeable);
+
+	// If no mode data were added at all something must be wrong
+	if (pages.empty()) {
+		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+
+	int size = 0;
+
+	vector<BYTE> page0;
+	for (auto const& page : pages) {
+		if (size + (int)page.second.size() > max_length) {
+			LOGWARN("Mode page data size exceeds reserved buffer size");
+
+			page0.clear();
+
+			break;
+		}
+		else {
+			// The specification mandates that page 0 must be returned after all others
+			if (page.first) {
+				// Page data
+				memcpy(&buf[size], page.second.data(), page.second.size());
+				// Page code, PS bit may already have been set
+				buf[size] |= page.first;
+				// Page payload size
+				buf[size + 1] = page.second.size() - 2;
+
+				size += page.second.size();
+			}
+			else {
+				page0 = page.second;
+			}
+		}
+	}
+
+	// Page 0 must be last
+	if (!page0.empty()) {
+		memcpy(&buf[size], page0.data(), page0.size());
+		// Page payload size
+		buf[size + 1] = page0.size() - 2;
+		size += page0.size();
+	}
+
+	return size;
+}
+
 void ModePageDevice::ModeSense6(SASIDEV *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
@@ -43,7 +103,7 @@ void ModePageDevice::ModeSense6(SASIDEV *controller)
 
 void ModePageDevice::ModeSense10(SASIDEV *controller)
 {
-	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer);
+	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -52,12 +112,9 @@ void ModePageDevice::ModeSense10(SASIDEV *controller)
 	controller->DataIn();
 }
 
-bool ModePageDevice::ModeSelect(const DWORD* /*cdb*/, const BYTE *buf, int length)
+bool ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 {
-	ASSERT(buf);
-	ASSERT(length >= 0);
-
-	// cannot be set
+	// Cannot be set
 	SetStatusCode(STATUS_INVALIDPRM);
 
 	return false;
@@ -67,7 +124,7 @@ void ModePageDevice::ModeSelect6(SASIDEV *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
-	ctrl->length = ModeSelectCheck6(ctrl->cmd);
+	ctrl->length = ModeSelectCheck6();
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -80,7 +137,7 @@ void ModePageDevice::ModeSelect10(SASIDEV *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
-	ctrl->length = ModeSelectCheck10(ctrl->cmd);
+	ctrl->length = ModeSelectCheck10();
 	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
@@ -89,11 +146,11 @@ void ModePageDevice::ModeSelect10(SASIDEV *controller)
 	controller->DataOut();
 }
 
-int ModePageDevice::ModeSelectCheck(const DWORD *cdb, int length)
+int ModePageDevice::ModeSelectCheck(int length)
 {
 	// Error if save parameters are set for other types than of SCHD or SCRM
-	// TODO This assumption is not correct, and this code should be located elsewhere
-	if (!IsSCSIHD() && (cdb[1] & 0x01)) {
+	// TODO The assumption above is not correct, and this code should be located elsewhere
+	if (!IsSCSIHD() && (ctrl->cmd[1] & 0x01)) {
 		SetStatusCode(STATUS_INVALIDCDB);
 		return 0;
 	}
@@ -101,21 +158,21 @@ int ModePageDevice::ModeSelectCheck(const DWORD *cdb, int length)
 	return length;
 }
 
-int ModePageDevice::ModeSelectCheck6(const DWORD *cdb)
+int ModePageDevice::ModeSelectCheck6()
 {
 	// Receive the data specified by the parameter length
-	return ModeSelectCheck(cdb, cdb[4]);
+	return ModeSelectCheck(ctrl->cmd[4]);
 }
 
-int ModePageDevice::ModeSelectCheck10(const DWORD *cdb)
+int ModePageDevice::ModeSelectCheck10()
 {
 	// Receive the data specified by the parameter length
-	int length = cdb[7];
+	int length = ctrl->cmd[7];
 	length <<= 8;
-	length |= cdb[8];
-	if (length > 0x800) {
-		length = 0x800;
+	length |= ctrl->cmd[8];
+	if (length > ctrl->bufsize) {
+		length = ctrl->bufsize;
 	}
 
-	return ModeSelectCheck(cdb, length);
+	return ModeSelectCheck(length);
 }

@@ -27,6 +27,7 @@
 
 SCSIDEV::SCSIDEV() : SASIDEV()
 {
+	scsi.is_byte_transfer = false;
 	scsi.bytes_to_transfer = 0;
 	shutdown_mode = NONE;
 
@@ -45,6 +46,7 @@ SCSIDEV::~SCSIDEV()
 
 void SCSIDEV::Reset()
 {
+	scsi.is_byte_transfer = false;
 	scsi.bytes_to_transfer = 0;
 
 	// Work initialization
@@ -63,7 +65,7 @@ BUS::phase_t SCSIDEV::Process(int initiator_id)
 	}
 
 	// Get bus information
-	((GPIOBUS*)ctrl.bus)->Aquire();
+	ctrl.bus->Aquire();
 
 	// Check to see if the reset signal was asserted
 	if (ctrl.bus->GetRST()) {
@@ -164,15 +166,22 @@ void SCSIDEV::BusFree()
 
 		// When the bus is free RaSCSI or the Pi may be shut down
 		switch(shutdown_mode) {
-		case RASCSI:
+		case STOP_RASCSI:
 			LOGINFO("RaSCSI shutdown requested");
 			exit(0);
 			break;
 
-		case PI:
+		case STOP_PI:
 			LOGINFO("Raspberry Pi shutdown requested");
 			if (system("init 0") == -1) {
 				LOGERROR("Raspberry Pi shutdown failed: %s", strerror(errno));
+			}
+			break;
+
+		case RESTART_PI:
+			LOGINFO("Raspberry Pi restart requested");
+			if (system("init 6") == -1) {
+				LOGERROR("Raspberry Pi restart failed: %s", strerror(errno));
 			}
 			break;
 
@@ -349,7 +358,7 @@ void SCSIDEV::MsgOut()
 void SCSIDEV::Error(ERROR_CODES::sense_key sense_key, ERROR_CODES::asc asc, ERROR_CODES::status status)
 {
 	// Get bus information
-	((GPIOBUS*)ctrl.bus)->Aquire();
+	ctrl.bus->Aquire();
 
 	// Reset check
 	if (ctrl.bus->GetRST()) {
@@ -395,24 +404,11 @@ void SCSIDEV::Send()
 	ASSERT(!ctrl.bus->GetREQ());
 	ASSERT(ctrl.bus->GetIO());
 
-	//if Length! = 0, send
 	if (ctrl.length != 0) {
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
 				+ to_string(ctrl.length)).c_str());
 
-		// TODO Get rid of Daynaport specific code in this class
-		// The Daynaport needs to have a delay after the size/flags field
-		// of the read response. In the MacOS driver, it looks like the
-		// driver is doing two "READ" system calls.
-		int len;
-		if (ctrl.unit[0] && ctrl.unit[0]->IsDaynaPort()) {
-			len = ((GPIOBUS*)ctrl.bus)->SendHandShake(
-					&ctrl.buffer[ctrl.offset], ctrl.length, SCSIDaynaPort::DAYNAPORT_READ_HEADER_SZ);
-		}
-		else
-		{
-			len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, BUS::SEND_NO_DELAY);
-		}
+		int len = ctrl.bus->SendHandShake(&ctrl.buffer[ctrl.offset], ctrl.length, ctrl.unit[0]->GetSendDelay());
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
@@ -515,13 +511,13 @@ void SCSIDEV::Receive()
 
 	// Length != 0 if received
 	if (ctrl.length != 0) {
-		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, (int)ctrl.length);
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, (int)ctrl.length);
 		// Receive
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != (int)ctrl.length) {
-			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d. Going to error",__PRETTY_FUNCTION__, (int)ctrl.length, len);
 			Error();
 			return;
 		}
@@ -651,7 +647,7 @@ void SCSIDEV::Receive()
 						// Transfer period factor (limited to 50 x 4 = 200ns)
 						scsi.syncperiod = scsi.msb[i + 3];
 						if (scsi.syncperiod > 50) {
-							scsi.syncoffset = 50;
+							scsi.syncperiod = 50;
 						}
 
 						// REQ/ACK offset(limited to 16)
@@ -729,13 +725,13 @@ void SCSIDEV::ReceiveBytes()
 	ASSERT(!ctrl.bus->GetIO());
 
 	if (ctrl.length) {
-		LOGTRACE("%s length is %d", __PRETTY_FUNCTION__, ctrl.length);
+		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length);
 
 		len = ctrl.bus->ReceiveHandShake(&ctrl.buffer[ctrl.offset], ctrl.length);
 
 		// If not able to receive all, move to status phase
 		if (len != ctrl.length) {
-			LOGERROR("%s Not able to receive %d data, only received %d. Going to error",
+			LOGERROR("%s Not able to receive %d bytes of data, only received %d. Going to error",
 					__PRETTY_FUNCTION__, ctrl.length, len);
 			Error();
 			return;
@@ -896,6 +892,8 @@ bool SCSIDEV::XferOut(bool cont)
 	}
 
 	ASSERT(ctrl.phase == BUS::dataout);
+
+	scsi.is_byte_transfer = false;
 
 	PrimaryDevice *device = dynamic_cast<PrimaryDevice *>(ctrl.unit[GetEffectiveLun()]);
 	if (device && ctrl.cmd[0] == scsi_defs::eCmdWrite6) {

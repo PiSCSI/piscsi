@@ -68,11 +68,6 @@ void PrimaryDevice::ReportLuns(SASIDEV *controller)
 {
 	BYTE *buf = ctrl->buffer;
 
-	if (!CheckReady()) {
-		controller->Error();
-		return;
-	}
-
 	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
 	memset(buf, 0, allocation_length);
 
@@ -111,7 +106,7 @@ void PrimaryDevice::RequestSense(SASIDEV *controller)
 	}
 
     ctrl->length = ((PrimaryDevice *)ctrl->unit[lun])->RequestSense(ctrl->cmd, ctrl->buffer);
-	ASSERT(ctrl->length > 0);
+	assert(ctrl->length > 0);
 
     LOGTRACE("%s Status $%02X, Sense Key $%02X, ASC $%02X",__PRETTY_FUNCTION__, ctrl->status, ctrl->buffer[2], ctrl->buffer[12]);
 
@@ -124,7 +119,7 @@ bool PrimaryDevice::CheckReady()
 	if (IsReset()) {
 		SetStatusCode(STATUS_DEVRESET);
 		SetReset(false);
-		LOGTRACE("%s Disk in reset", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device in reset", __PRETTY_FUNCTION__);
 		return false;
 	}
 
@@ -132,26 +127,32 @@ bool PrimaryDevice::CheckReady()
 	if (IsAttn()) {
 		SetStatusCode(STATUS_ATTENTION);
 		SetAttn(false);
-		LOGTRACE("%s Disk in needs attention", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device in needs attention", __PRETTY_FUNCTION__);
 		return false;
 	}
 
 	// Return status if not ready
 	if (!IsReady()) {
 		SetStatusCode(STATUS_NOTREADY);
-		LOGTRACE("%s Disk not ready", __PRETTY_FUNCTION__);
+		LOGTRACE("%s Device not ready", __PRETTY_FUNCTION__);
 		return false;
 	}
 
 	// Initialization with no error
-	LOGTRACE("%s Disk is ready", __PRETTY_FUNCTION__);
+	LOGTRACE("%s Device is ready", __PRETTY_FUNCTION__);
 
 	return true;
 }
 
 int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DWORD *cdb, BYTE *buf)
 {
-	int allocation_length = cdb[4] + (((DWORD)cdb[3]) << 8);
+	// EVPD and page code check
+	if ((cdb[1] & 0x01) || cdb[2]) {
+		SetStatusCode(STATUS_INVALIDCDB);
+		return 0;
+	}
+
+	int allocation_length = cdb[4] + (cdb[3] << 8);
 	if (allocation_length > 4) {
 		if (allocation_length > 44) {
 			allocation_length = 44;
@@ -167,6 +168,8 @@ int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DW
 		buf[0] = type;
 		buf[1] = is_removable ? 0x80 : 0x00;
 		buf[2] = scsi_level;
+		// Response data format is SCSI-2 for devices supporting SCSI-2 or newer, otherwise it is SCSI-1-CCS
+		buf[3] = scsi_level >= 2 ? 2 : 0;
 		buf[4] = 0x1F;
 
 		// Padded vendor, product, revision
@@ -178,22 +181,16 @@ int PrimaryDevice::Inquiry(int type, int scsi_level, bool is_removable, const DW
 
 int PrimaryDevice::RequestSense(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// Return not ready only if there are no errors
-	if (GetStatusCode() == STATUS_NOERROR) {
-		if (!IsReady()) {
-			SetStatusCode(STATUS_NOTREADY);
-		}
+	if (GetStatusCode() == STATUS_NOERROR && !IsReady()) {
+		SetStatusCode(STATUS_NOTREADY);
 	}
 
 	// Size determination (according to allocation length)
 	int size = (int)cdb[4];
-	ASSERT((size >= 0) && (size < 0x100));
+	assert(size >= 0 && size < 0x100);
 
 	// For SCSI-1, transfer 4 bytes when the size is 0
-    // (Deleted this specification for SCSI-2)
 	if (size == 0) {
 		size = 4;
 	}

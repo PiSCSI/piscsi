@@ -19,26 +19,11 @@
 #include "exceptions.h"
 #include "../config.h"
 
-//===========================================================================
-//
-//	SASI Hard Disk
-//
-//===========================================================================
-
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
-SASIHD::SASIHD() : Disk("SAHD")
+SASIHD::SASIHD(const set<uint32_t>& sector_sizes) : Disk("SAHD")
 {
+	SetSectorSizes(sector_sizes);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Reset
-//
-//---------------------------------------------------------------------------
 void SASIHD::Reset()
 {
 	// Unlock, clear attention
@@ -50,14 +35,9 @@ void SASIHD::Reset()
 	SetStatusCode(STATUS_NOERROR);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
 void SASIHD::Open(const Filepath& path)
 {
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -101,30 +81,17 @@ void SASIHD::Open(const Filepath& path)
 	FileSupport::SetPath(path);
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
 int SASIHD::Inquiry(const DWORD* /*cdb*/, BYTE* /*buf*/)
 {
 	SetStatusCode(STATUS_INVALIDCMD);
 	return 0;
 }
 
-//---------------------------------------------------------------------------
-//
-//	REQUEST SENSE
-//
-//---------------------------------------------------------------------------
 int SASIHD::RequestSense(const DWORD *cdb, BYTE *buf)
 {
-	ASSERT(cdb);
-	ASSERT(buf);
-
 	// Size decision
 	int size = (int)cdb[4];
-	ASSERT(size >= 0 && size < 0x100);
+	assert(size >= 0 && size < 0x100);
 
 	// Transfer 4 bytes when size 0 (Shugart Associates System Interface specification)
 	if (size == 0) {

@@ -27,9 +27,10 @@
 //    uint8_t second; // 0-59
 //  } mode_page_datetime;
 //
-// 2. STOP UNIT shuts down RaSCSI or the Raspberry Pi
+// 2. START/STOP UNIT shuts down RaSCSI or shuts down/reboots the Raspberry Pi
 //   a) !start && !load (STOP): Shut down RaSCSI
 //   b) !start && load (EJECT): Shut down the Raspberry Pi
+//   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
 #include "controllers/scsidev_ctrl.h"
@@ -77,14 +78,22 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 		}
 
 		if (load) {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::PI);
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::RASCSI);
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_RASCSI);
 		}
 
 		controller->Status();
 		return;
+	}
+	else {
+		if (load) {
+			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::RESTART_PI);
+
+			controller->Status();
+			return;
+		}
 	}
 
 	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
@@ -92,107 +101,92 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 
 int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
-	// Get length, clear buffer
+	// Block descriptors cannot be returned
+	if (!(cdb[1] & 0x08)) {
+		return 0;
+	}
+
 	int length = (int)cdb[4];
 	memset(buf, 0, length);
-
-	// Get page code (0x00 is valid from the beginning)
-	int page = cdb[2] & 0x3f;
-	bool valid = page == 0x00;
-
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
 
 	// Basic information
 	int size = 4;
 
-	int ret = AddRealtimeClockPage(page, &buf[size]);
-	if (ret > 0) {
-		size += ret;
-		valid = true;
-	}
-
-	if (!valid) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
+	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
+	if (!pages_size) {
 		return 0;
 	}
+	size += pages_size;
 
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
-		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
 		size = length;
 	}
 
-	// Final setting of mode data length
 	buf[0] = size;
 
 	return size;
 }
 
-int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf)
+int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 {
-	// Get length, clear buffer
-	int length = cdb[7];
-	length <<= 8;
-	length |= cdb[8];
-	if (length > 0x800) {
-		length = 0x800;
-	}
-	memset(buf, 0, length);
-
-	// Get page code (0x00 is valid from the beginning)
-	int page = cdb[2] & 0x3f;
-	bool valid = page == 0x00;
-
-	LOGTRACE("%s Requesting mode page $%02X", __PRETTY_FUNCTION__, page);
-
-	// Basic Information
-	int size = 8;
-
-	int ret = AddRealtimeClockPage(page, &buf[size]);
-	if (ret > 0) {
-		size += ret;
-		valid = true;
-	}
-
-	if (!valid) {
-		LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, page);
-		SetStatusCode(STATUS_INVALIDCDB);
+	// Block descriptors cannot be returned
+	if (!(cdb[1] & 0x08)) {
 		return 0;
 	}
 
+	int length = (cdb[7] << 8) | cdb[8];
+	if (length > max_length) {
+		length = max_length;
+	}
+	memset(buf, 0, length);
+
+	// Basic information
+	int size = 8;
+
+	int pages_size = super::AddModePages(cdb, &buf[size], length - size);
+	if (!pages_size) {
+		return 0;
+	}
+	size += pages_size;
+
 	// Do not return more than ALLOCATION LENGTH bytes
 	if (size > length) {
-		LOGTRACE("%s %d bytes available, %d bytes requested", __PRETTY_FUNCTION__, size, length);
 		size = length;
 	}
 
-	// Final setting of mode data length
 	buf[0] = size >> 8;
 	buf[1] = size;
 
 	return size;
 }
 
-int HostServices::AddRealtimeClockPage(int page, BYTE *buf)
+void HostServices::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
-	if (page == 0x20) {
+	if (page == 0x20 || page == 0x3f) {
+		AddRealtimeClockPage(pages, changeable);
+	}
+}
+
+void HostServices::AddRealtimeClockPage(map<int, vector<BYTE>>& pages, bool changeable) const
+{
+	vector<BYTE> buf(10);
+
+	if (!changeable) {
 		// Data structure version 1.0
-		buf[0] = 0x01;
-		buf[1] = 0x00;
+		buf[2] = 0x01;
+		buf[3] = 0x00;
 
 		std::time_t t = std::time(NULL);
 		std::tm tm = *std::localtime(&t);
-		buf[2] = tm.tm_year;
-		buf[3] = tm.tm_mon;
-		buf[4] = tm.tm_mday;
-		buf[5] = tm.tm_hour;
-		buf[6] = tm.tm_min;
+		buf[4] = tm.tm_year;
+		buf[5] = tm.tm_mon;
+		buf[6] = tm.tm_mday;
+		buf[7] = tm.tm_hour;
+		buf[8] = tm.tm_min;
 		// Ignore leap second for simplicity
-		buf[7] = tm.tm_sec < 60 ? tm.tm_sec : 59;
-
-		return 8;
+		buf[9] = tm.tm_sec < 60 ? tm.tm_sec : 59;
 	}
 
-	return 0;
+	pages[32] = buf;
 }
