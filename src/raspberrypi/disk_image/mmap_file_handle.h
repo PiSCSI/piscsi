@@ -16,7 +16,7 @@
 //  caching mechanism (like in disk_track_cache.h), we just rely on the 
 //  operating system.
 //
-//	[ MmapFileAccess ]
+//	[ MmapFileHandle ]
 //
 //---------------------------------------------------------------------------
 

@@ -3,7 +3,7 @@
 //	SCSI Target Emulator RaSCSI (*^..^*)
 //	for Raspberry Pi
 //
-//	Copyright (C) 2021 akuker
+//	Copyright (C) 2022 akuker
 //
 //	[ PosixFileHandle ]
 //

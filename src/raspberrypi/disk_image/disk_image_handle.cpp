@@ -1,4 +1,17 @@
-	#include "disk_image/disk_image_handle.h"
+//---------------------------------------------------------------------------
+//
+//	SCSI Target Emulator RaSCSI (*^..^*)
+//	for Raspberry Pi
+//
+//	Copyright (C) 2022 akuker
+//
+//  	Base class for interfacing with disk images. 
+//
+//	[ DiskImageHandle ]
+//
+//---------------------------------------------------------------------------	
+	
+#include "disk_image/disk_image_handle.h"
 
 DiskImageHandle::DiskImageHandle(const Filepath& path, int size, uint32_t blocks, off_t imgoff){
 

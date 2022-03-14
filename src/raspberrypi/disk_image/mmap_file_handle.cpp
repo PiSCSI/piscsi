@@ -1,5 +1,8 @@
 //---------------------------------------------------------------------------
 //
+//	SCSI Target Emulator RaSCSI (*^..^*)
+//	for Raspberry Pi
+//
 //	Copyright (C) 2022 akuker
 //
 //  This method of file access will use the mmap() capabilities to 'map' the
