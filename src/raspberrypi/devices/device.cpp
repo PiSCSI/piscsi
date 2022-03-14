@@ -126,7 +126,13 @@ void Device::SetParams(const unordered_map<string, string>& params)
 	this->params = GetDefaultParams();
 
 	for (const auto& param : params) {
-		this->params[param.first] = param.second;
+		// It is assumed that there are default parameters for all supported parameters
+		if (this->params.find(param.first) != this->params.end()) {
+			this->params[param.first] = param.second;
+		}
+		else {
+			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());
+		}
 	}
 }
 
