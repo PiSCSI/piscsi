@@ -183,10 +183,10 @@ ALL: all
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
 $(BINDIR)/$(RASCSI): $(SRC_PROTOBUF) $(OBJ_RASCSI) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lpcap -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI) -lpthread -lpcap -lprotobuf
 
 $(BINDIR)/$(RASCTL): $(SRC_PROTOBUF) $(OBJ_RASCTL) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf -lstdc++fs
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCTL) -lpthread -lprotobuf
 
 $(BINDIR)/$(RASDUMP): $(OBJ_RASDUMP) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASDUMP)
