@@ -797,6 +797,8 @@ msgid ""
 "<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> and <a "
 "href=\"%(url2)s\">X68000 Host Bridge</a> are network devices."
 msgstr ""
+"<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> och <a "
+"href=\"%(url2)s\">X68000-värdbryggan</a> är nätverksenheter."
 
 #: src/templates/index.html:307
 msgid ""
@@ -830,6 +832,8 @@ msgid ""
 "compatible Atari systems, and require <a href=\"%(url)s\">driver "
 "software</a> to be installed on the host system."
 msgstr ""
+"Skrivaren och värdtjänsterna kräver att <a href=\"%(url)s\">drivrutiner</a>"
+" installeras först."
 
 #: src/templates/index.html:320
 msgid "Peripheral"
