@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RaSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
-"POT-Creation-Date: 2022-01-29 09:44-0800\n"
+"POT-Creation-Date: 2022-04-13 15:41-0700\n"
 "PO-Revision-Date: 2021-12-24 16:16-0800\n"
 "Last-Translator: Daniel Markstedt <markstedt@gmail.com>\n"
 "Language: sv\n"
@@ -17,10 +17,6 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Generated-By: Babel 2.9.1\n"
-
-#: src/pi_cmds.py:154
-msgid "You must log in to use this function"
-msgstr "Du måste logga in för att använda den här funktionen"
 
 #: src/return_code_mapper.py:12
 #, python-format
@@ -84,7 +80,7 @@ msgstr "Skapade egenskapsfilen %(file_path)s"
 #: src/return_code_mapper.py:26
 #, python-format
 msgid "Could not write to properties file: %(file_path)s"
-msgstr "Kunde ej spara egenskaper till filen %(file_path)s"
+msgstr "Kunde ej spara egenskapsfilen %(file_path)s"
 
 #: src/return_code_mapper.py:28
 #, python-format
@@ -132,7 +128,7 @@ msgstr ""
 "RaSCSIs webbgränssnitt fick en ogiltig respons från RaSCSI. Gå tillbaks "
 "och försök igen. Om samma fel upprepas så rapportera en bugg."
 
-#: src/web.py:104
+#: src/web.py:105
 msgid ""
 "RaSCSI is password protected. Start the Web Interface with the --password"
 " parameter."
@@ -140,60 +136,41 @@ msgstr ""
 "RaSCSI är lösenordsskyddat. Start webbgränssnittet med parametern "
 "--password ."
 
-#: src/web.py:206
+#: src/web.py:209
 #, python-format
 msgid "Could not read drive properties from %(properties_file)s"
 msgstr "Kunde ej läsa egenskaper från %(properties_file)s"
 
-#: src/web.py:276
+#: src/web.py:271
 #, python-format
 msgid "You must log in with credentials for a user in the '%(group)s' group"
 msgstr "Du måste logga in som en användare som tillhör %(group)s-gruppen"
 
-#: src/web.py:334 src/web.py:897
+#: src/web.py:329 src/web.py:830
 #, python-format
 msgid "Image file created: %(file_name)s"
 msgstr "Skapade skivbildsfil %(file_name)s"
 
-#: src/web.py:464
+#: src/web.py:446
 msgid "An error occurred when fetching logs."
 msgstr "Ett fel inträffade när vi skaffade loggar."
 
-#: src/web.py:479
+#: src/web.py:461
 #, python-format
 msgid "Log level set to %(value)s"
 msgstr "Bytte loggnivån till %(value)s"
 
-#: src/web.py:498
+#: src/web.py:488
 #, python-format
 msgid "Please follow the instructions at %(url)s"
 msgstr "Följ instruktionerna på %(url)s"
 
-#: src/web.py:502
-msgid "Configure IPv4 forwarding before using a wireless network device."
-msgstr ""
-"Ställ in IPv4-vidarebefodring innan du använder ett trådlöst "
-"nätverksgränssnitt."
-
-#: src/web.py:506
-msgid "Configure NAT before using a wireless network device."
-msgstr "Ställ in NAT innan du använder ett trådlöst nätverksgränssnitt."
-
-#: src/web.py:511 src/web.py:515
-msgid "Configure the network bridge before using a wired network device."
-msgstr "Ställ in nätverksbryggan innan du använder ett nätverksgränssnitt."
-
-#: src/web.py:529
+#: src/web.py:507
 #, python-format
-msgid "Attached DaynaPORT to SCSI ID %(id_number)s"
-msgstr "Anslöt DaynaPORT till SCSI-id %(id_number)s"
+msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
+msgstr "Anslöt %(device_type)s till SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:579
-#, python-format
-msgid "Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s"
-msgstr "Anslöt %(file_name)s till SCSI-id %(id_number)s LUN %(unit_number)s"
-
-#: src/web.py:582
+#: src/web.py:565
 #, python-format
 msgid ""
 "The image file size %(file_size)s bytes is not a multiple of "
@@ -204,7 +181,7 @@ msgstr ""
 "RaSCSI ignorerar den överflödiga datan. Skivbilden är möjligen förstörd, "
 "så var försiktig när du använder den."
 
-#: src/web.py:588
+#: src/web.py:571
 #, python-format
 msgid ""
 "Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN "
@@ -213,125 +190,125 @@ msgstr ""
 "Kunde inte ansluta %(file_name)s till SCSI-id %(id_number)s LUN "
 "%(unit_number)s"
 
-#: src/web.py:602
+#: src/web.py:585
 msgid "Detached all SCSI devices"
 msgstr "Kopplade ifrån alla SCSI-enheter"
 
-#: src/web.py:619
+#: src/web.py:602
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Kopplade ifrån SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:623
+#: src/web.py:606
 #, python-format
 msgid "Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Kunde ej koppla ifrån SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:640
+#: src/web.py:623
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Utmatade SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:644
+#: src/web.py:627
 #, python-format
 msgid "Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Kunde ej mata ut skiva från SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:667
+#: src/web.py:650
 msgid "DEVICE INFO"
-msgstr "ENHETSDATA"
+msgstr "ENHETSDETALJER"
 
-#: src/web.py:669
+#: src/web.py:652
 #, python-format
 msgid "SCSI ID: %(id_number)s"
 msgstr "SCSI-id: %(id_number)s"
 
-#: src/web.py:670
+#: src/web.py:653
 #, python-format
 msgid "LUN: %(unit_number)s"
 msgstr "LUN: %(unit_number)s"
 
-#: src/web.py:671
+#: src/web.py:654
 #, python-format
 msgid "Type: %(device_type)s"
 msgstr "Typ: %(device_type)s"
 
-#: src/web.py:672
+#: src/web.py:655
 #, python-format
 msgid "Status: %(device_status)s"
 msgstr "Status: %(device_status)s"
 
-#: src/web.py:673
+#: src/web.py:656
 #, python-format
 msgid "File: %(image_file)s"
 msgstr "Fil: %(image_file)s"
 
-#: src/web.py:674
+#: src/web.py:657
 #, python-format
 msgid "Parameters: %(value)s"
 msgstr "Parametrar: %(value)s"
 
-#: src/web.py:675
+#: src/web.py:658
 #, python-format
 msgid "Vendor: %(value)s"
 msgstr "Tillverkare: %(value)s"
 
-#: src/web.py:676
+#: src/web.py:659
 #, python-format
 msgid "Product: %(value)s"
 msgstr "Produkt: %(value)s"
 
-#: src/web.py:677
+#: src/web.py:660
 #, python-format
 msgid "Revision: %(revision_number)s"
 msgstr "Revision: %(revision_number)s"
 
-#: src/web.py:678
+#: src/web.py:661
 #, python-format
 msgid "Block Size: %(value)s bytes"
 msgstr "Blockstorlek: %(value)s byte"
 
-#: src/web.py:679
+#: src/web.py:662
 #, python-format
 msgid "Image Size: %(value)s bytes"
 msgstr "Skivbildsstorlek: %(value)s byte"
 
-#: src/web.py:698
+#: src/web.py:681
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "Reserverat SCSI-id %(id_number)s"
 
-#: src/web.py:701
+#: src/web.py:684
 #, python-format
 msgid "Failed to reserve SCSI ID %(id_number)s"
 msgstr "Kunde ej reservera SCSI-id %(id_number)s"
 
-#: src/web.py:717
+#: src/web.py:700
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "Frigjorde SCSI-id %(id_number)s"
 
-#: src/web.py:720
+#: src/web.py:703
 #, python-format
 msgid "Failed to release the reservation for SCSI ID %(id_number)s"
 msgstr "Kunde ej frigöra SCSI-id %(id_number)s"
 
-#: src/web.py:759
+#: src/web.py:742
 #, python-format
 msgid "Saved image as: %(file_name)s"
 msgstr "Sparade bildfilen som %(file_name)s"
 
-#: src/web.py:761
+#: src/web.py:744
 #, python-format
 msgid "Failed to create CD-ROM image from %(url)s"
 msgstr "Kunde ej skapa CD-ROM-bildfil från %(url)s"
 
-#: src/web.py:768
+#: src/web.py:755
 #, python-format
 msgid "Attached to SCSI ID %(id_number)s"
 msgstr "Anslöt till SCSI-id %(id_number)s"
 
-#: src/web.py:771
+#: src/web.py:758
 #, python-format
 msgid ""
 "Failed to attach image to SCSI ID %(id_number)s. Try attaching it "
@@ -340,61 +317,115 @@ msgstr ""
 "Kunde ej ansluta bildfilen till SCSI-id %(id_number)s. Försök ansluta den"
 " manuellt."
 
-#: src/web.py:791 src/web.py:821
+#: src/web.py:778 src/web.py:797
 #, python-format
 msgid "Failed to download file from %(url)s"
 msgstr "Kunde ej ladda ner filen från %(url)s"
 
-#: src/web.py:852
-msgid "The file already exists!"
-msgstr "Filen existerar redan!"
-
-#: src/web.py:860
-msgid "Unable to write the file to disk!"
-msgstr "Kunde ej skriva filen till skivan!"
-
-#: src/web.py:875
-msgid "Transferred file corrupted!"
-msgstr "Den överförda filen är skadad!"
-
-#: src/web.py:881
-msgid "File upload successful!"
-msgstr "Filen har laddas upp!"
-
-#: src/web.py:924
+#: src/web.py:857
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "Filen %(file_name)s har blivit raderad"
 
-#: src/web.py:956
+#: src/web.py:889
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "Filen har blivit omdöpt till %(file_name)s"
 
-#: src/web.py:994
+#: src/web.py:926
 msgid "Aborted unzip: File(s) with the same name already exists."
 msgstr "Uppackning stoppad: En eller flera filer med samma namn existerar redan."
 
-#: src/web.py:996
+#: src/web.py:928
 msgid "Unzipped the following files:"
 msgstr "Packade up dessa filer:"
 
-#: src/web.py:1000
+#: src/web.py:932
 #, python-format
 msgid "Properties file(s) have been moved to %(directory)s"
 msgstr "En eller flera egenskapsfiler har blivit flyttade till %(directory)s"
 
-#: src/web.py:1003
+#: src/web.py:935
 #, python-format
 msgid "Failed to unzip %(zip_file)s"
 msgstr "Kunde ej packa up %(zip_file)s"
 
-#: src/web.py:1019
+#: src/web.py:953
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Bytte webbgränssnittets språk till %(locale)s"
 
-#: src/templates/base.html:4
+#: src/web_utils.py:81
+msgid "SASI Hard Disk"
+msgstr "SASI-hårddisk"
+
+#: src/web_utils.py:83
+msgid "SCSI Hard Disk"
+msgstr "SCSI-hårddisk"
+
+#: src/web_utils.py:85
+msgid "Removable Disk"
+msgstr "Uttagbar skiva"
+
+#: src/web_utils.py:87
+msgid "Magneto-Optical"
+msgstr "Magnetoptisk skiva"
+
+#: src/web_utils.py:89
+msgid "CD / DVD"
+msgstr "Cd eller dvd"
+
+#: src/web_utils.py:91
+msgid "X68000 Host Bridge"
+msgstr "X68000-värdbrygga"
+
+#: src/web_utils.py:93
+msgid "DaynaPORT SCSI/Link"
+msgstr "DaynaPORT SCSI/Link"
+
+#: src/web_utils.py:95
+msgid "Printer"
+msgstr "Skrivare"
+
+#: src/web_utils.py:97
+msgid "Host Services"
+msgstr "Värdtjänster"
+
+#: src/web_utils.py:111
+msgid "You must log in to use this function"
+msgstr "Du måste logga in för att använda den här funktionen"
+
+#: src/web_utils.py:125
+msgid "Configure IPv4 forwarding before using a wireless network device."
+msgstr ""
+"Ställ in IPv4-vidarebefodring innan du använder ett trådlöst "
+"nätverksgränssnitt."
+
+#: src/web_utils.py:127
+msgid "Configure NAT before using a wireless network device."
+msgstr "Ställ in NAT innan du använder ett trådlöst nätverksgränssnitt."
+
+#: src/web_utils.py:133 src/web_utils.py:135
+msgid "Configure the network bridge before using a wired network device."
+msgstr "Ställ in nätverksbryggan innan du använder ett nätverksgränssnitt."
+
+#: src/web_utils.py:154
+msgid "The file already exists!"
+msgstr "Filen existerar redan!"
+
+#: src/web_utils.py:162
+msgid "Unable to write the file to disk!"
+msgstr "Kunde ej skriva filen till skivan!"
+
+#: src/web_utils.py:177
+msgid "Transferred file corrupted!"
+msgstr "Den överförda filen är skadad!"
+
+#: src/web_utils.py:183
+msgid "File upload successful!"
+msgstr "Filen har laddas upp!"
+
+#: src/templates/base.html:4 src/templates/base.html:67
 msgid "RaSCSI Control Page"
 msgstr "RaSCSI kontrollsida"
 
@@ -442,15 +473,13 @@ msgstr "Webbgränssnittets autensisering är avstängt"
 #: src/templates/base.html:60
 #, python-format
 msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
-msgstr ""
-"Referera till <a href=\"%(url)s\" target=\"_blank\">wikin</a> för vidare "
-"information"
+msgstr "Se <a href=\"%(url)s\" target=\"_blank\">wikin</a> för vidare information"
 
-#: src/templates/base.html:87
+#: src/templates/base.html:92
 msgid "RaSCSI version: "
 msgstr "RaSCSI-version: "
 
-#: src/templates/base.html:88
+#: src/templates/base.html:93
 msgid "Pi environment: "
 msgstr "Pi-miljö: "
 
@@ -517,7 +546,7 @@ msgid "Save as:"
 msgstr "Spara som:"
 
 #: src/templates/drives.html:41 src/templates/drives.html:88
-#: src/templates/drives.html:131 src/templates/index.html:549
+#: src/templates/drives.html:131 src/templates/index.html:570
 msgid "Create"
 msgstr "Skapa"
 
@@ -541,7 +570,7 @@ msgstr "Skapa för:"
 msgid "Removable Drives"
 msgstr "Uttagbara enheter"
 
-#: src/templates/drives.html:138 src/templates/index.html:295
+#: src/templates/drives.html:138 src/templates/index.html:296
 #, python-format
 msgid "%(disk_space)s MB disk space remaining on the Pi"
 msgstr "%(disk_space)s MB återstår på Pi-systemets skiva"
@@ -583,7 +612,7 @@ msgstr "Ladda"
 msgid "Detach all current device and Load configuration?"
 msgstr "Koppla ifrån alla enheter och ladda konfigurationen?"
 
-#: src/templates/index.html:30 src/templates/index.html:287
+#: src/templates/index.html:30 src/templates/index.html:288
 msgid "Delete"
 msgstr "Radera"
 
@@ -595,15 +624,16 @@ msgstr "Radera konfigurationsfilen?"
 msgid "Save"
 msgstr "Spara"
 
-#: src/templates/index.html:41 src/templates/index.html:252
+#: src/templates/index.html:41 src/templates/index.html:251
 msgid "ID"
 msgstr "Id"
 
-#: src/templates/index.html:43 src/templates/index.html:260
+#: src/templates/index.html:43 src/templates/index.html:259
+#: src/templates/index.html:355
 msgid "LUN"
 msgstr "LUN"
 
-#: src/templates/index.html:45 src/templates/index.html:268
+#: src/templates/index.html:45
 msgid "Type"
 msgstr "Typ"
 
@@ -611,7 +641,7 @@ msgstr "Typ"
 msgid "Status"
 msgstr "Status"
 
-#: src/templates/index.html:47 src/templates/index.html:166
+#: src/templates/index.html:47 src/templates/index.html:165
 msgid "File"
 msgstr "Fil"
 
@@ -619,12 +649,12 @@ msgstr "Fil"
 msgid "Product"
 msgstr "Produkt"
 
-#: src/templates/index.html:49 src/templates/index.html:168
+#: src/templates/index.html:49
 msgid "Actions"
 msgstr "Handlingar"
 
-#: src/templates/index.html:84 src/templates/index.html:277
-#: src/templates/index.html:337
+#: src/templates/index.html:84 src/templates/index.html:278
+#: src/templates/index.html:357
 msgid "Attach"
 msgstr "Anslut"
 
@@ -661,8 +691,8 @@ msgid "Reserved ID"
 msgstr "Reserverat id"
 
 #: src/templates/index.html:135
-msgid "Unreserve"
-msgstr "Frigöra"
+msgid "Release"
+msgstr "Frigör"
 
 #: src/templates/index.html:144
 msgid "Detach all SCSI Devices?"
@@ -674,7 +704,7 @@ msgstr "Koppla ifrån alla enheter"
 
 #: src/templates/index.html:152
 msgid "Image File Management"
-msgstr "Filhanterare"
+msgstr "Bildfilshanterare"
 
 #: src/templates/index.html:155
 #, python-format
@@ -696,90 +726,89 @@ msgstr ""
 
 #: src/templates/index.html:158
 msgid ""
-"If RaSCSI was unable to detect the device type associated with the image,"
-" you can choose the type from the dropdown."
+"If RaSCSI was unable to detect the media type associated with the image, "
+"you get to choose the type from the dropdown."
 msgstr ""
-"Om RaSCSI inte känner igen enhetstypen för en skivbild kan du välja en "
+"Om RaSCSI inte känner igen filbildstypen kan du välja en "
 "enhetstyp från rullgardinsmenyn."
 
-#: src/templates/index.html:159
-msgid ""
-"Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = "
-"Magneto-Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
-msgstr ""
-"Typer: SAHD = SASI-hårddisk | SCHD = SCSI-hårddisk | SCRM = utmatsbar | "
-"SCMO = magnet-optisk | SCCD = cd-rom | SCBR = Host Bridge | SCDP = "
-"DaynaPORT"
-
-#: src/templates/index.html:167
+#: src/templates/index.html:166
 msgid "Size"
 msgstr "Storlek"
 
-#: src/templates/index.html:184
+#: src/templates/index.html:167 src/templates/index.html:321
+msgid "Parameters and Actions"
+msgstr "Parametrar och handlingar"
+
+#: src/templates/index.html:183
 msgid "Properties File"
 msgstr "Egenskapsfil"
 
-#: src/templates/index.html:204 src/templates/index.html:218
+#: src/templates/index.html:203 src/templates/index.html:217
 msgid "Unzip"
 msgstr "Packa upp"
 
-#: src/templates/index.html:204 src/templates/index.html:218
+#: src/templates/index.html:203 src/templates/index.html:217
 msgid "Unzipping a single file..."
-msgstr "Packar upp endast en fil..."
+msgstr "Packar upp en fil..."
 
-#: src/templates/index.html:233 src/templates/index.html:390
-#: src/templates/index.html:548
+#: src/templates/index.html:232 src/templates/index.html:411
+#: src/templates/index.html:569
 msgid "MB"
 msgstr "MB"
 
-#: src/templates/index.html:239
+#: src/templates/index.html:238
 msgid "Attached!"
 msgstr "Ansluten!"
 
-#: src/templates/index.html:246
+#: src/templates/index.html:245
 msgid "Unzip All"
 msgstr "Packa upp allt"
 
-#: src/templates/index.html:246
+#: src/templates/index.html:245
 msgid "Unzipping all files..."
 msgstr "Packar upp alla filer..."
 
-#: src/templates/index.html:280
+#: src/templates/index.html:267
+msgid "Select media type"
+msgstr "Välj filbildstyp"
+
+#: src/templates/index.html:281
 #, python-format
 msgid "Enter new file name for: %(file_name)s"
 msgstr "Ange ett nytt filnamn åt %(file_name)s"
 
-#: src/templates/index.html:283
+#: src/templates/index.html:284
 msgid "Rename"
 msgstr "Döp om"
 
-#: src/templates/index.html:285
+#: src/templates/index.html:286
 #, python-format
 msgid "Delete file: %(file_name)s?"
 msgstr "Radera filen %(file_name)s?"
 
 #: src/templates/index.html:301
-msgid "Attach Ethernet Adapter"
-msgstr "Anslut ethernet-adapter"
+msgid "Attach Peripheral Device"
+msgstr "Anslut tillbehör"
 
 #: src/templates/index.html:304
 #, python-format
 msgid ""
-"Emulates a SCSI DaynaPORT Ethernet Adapter. <a href=\"%(url)s\">Host "
-"drivers and configuration required</a>."
+"<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> and <a "
+"href=\"%(url2)s\">X68000 Host Bridge</a> are network devices."
 msgstr ""
-"Emulerar ett SCSI DaynaPORT ethernet-gränssnitt. <a "
-"href=\"%(url)s\">Kräver drivrutiner och inställningar</a>."
-
-#: src/templates/index.html:306
-msgid ""
-"If you have a DHCP setup, choose only the interface you have configured "
-"the bridge with. You can ignore the Static IP fields when attaching."
-msgstr ""
-"Om du använder DHCP, välj bara nätverskgränssnittet som bryggan är "
-"konfigurerad med. Du kan ignorera fälten för statisk adress."
+"<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> och <a "
+"href=\"%(url2)s\">X68000-värdbryggan</a> är nätverksenheter."
 
 #: src/templates/index.html:307
+msgid ""
+"If you have a DHCP setup, choose only the interface you have configured "
+"the bridge with. You can ignore the inet field when attaching."
+msgstr ""
+"Om du använder DHCP, välj endast nätverskgränssnittet som bryggan är "
+"konfigurerad med. Du kan ignorera inet-fältet."
+
+#: src/templates/index.html:308
 #, python-format
 msgid ""
 "Configure the network bridge by running easyinstall.sh, or follow the <a "
@@ -790,43 +819,49 @@ msgstr ""
 
 #: src/templates/index.html:310
 msgid ""
-"The <tt>rascsi_bridge</tt> interface is active and ready to be used by "
-"DaynaPORT!"
+"The <tt>rascsi_bridge</tt> network bridge is active and ready to be used "
+"by an emulated network adapter!"
 msgstr ""
 "Nätverksbryggan <tt>rascsi_bridge</tt> är påslagen och kan användas av "
-"DaynaPORT!"
+"det emulerade gränssnittet!"
 
-#: src/templates/index.html:318
-msgid "Interface:"
-msgstr "Gränssnitt:"
+#: src/templates/index.html:314
+#, python-format
+msgid ""
+"The Printer and Host Services device are currently supported on "
+"compatible Atari systems, and require <a href=\"%(url)s\">driver "
+"software</a> to be installed on the host system."
+msgstr ""
+"Skrivaren och värdtjänsterna kräver att <a href=\"%(url)s\">drivrutiner</a>"
+" installeras först."
 
-#: src/templates/index.html:326
-msgid "Static IP (optional):"
-msgstr "Statisk adress (tillval):"
+#: src/templates/index.html:320
+msgid "Peripheral"
+msgstr "Tillbehör"
 
-#: src/templates/index.html:329 src/templates/index.html:473
+#: src/templates/index.html:347 src/templates/index.html:494
 msgid "SCSI ID:"
 msgstr "SCSI-id:"
 
-#: src/templates/index.html:343
+#: src/templates/index.html:364
 #, python-format
 msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy är tillgängligt på %(ip_addr)s (vanligtvis port 5000)"
 
-#: src/templates/index.html:345
+#: src/templates/index.html:366
 #, python-format
 msgid ""
 "Install <a href=\"%(url)s\">Macproxy</a> to browse the Web with any "
 "vintage browser. It's not just for Macs!"
 msgstr ""
-"Installera <a href=\"%(url)s\">Macproxy</a> och surfa på nätet med gamla "
+"Installera <a href=\"%(url)s\">Macproxy</a> för att surfa på nätet med gamla "
 "webbläsare. Den är inte bara till för Macar!"
 
-#: src/templates/index.html:351
+#: src/templates/index.html:372
 msgid "Upload File"
 msgstr "Ladda up fil"
 
-#: src/templates/index.html:354
+#: src/templates/index.html:375
 #, python-format
 msgid ""
 "Uploads file to <tt>%(directory)s</tt>. The largest file size accepted is"
@@ -835,7 +870,7 @@ msgstr ""
 "Ladda upp fil till <tt>%(directory)s</tt>. Den största tillåtna "
 "filstorleken är %(max_file_size)s MB."
 
-#: src/templates/index.html:355
+#: src/templates/index.html:376
 msgid ""
 "For unrecognized file types, try renaming hard drive images to '.hds', "
 "CD-ROM images to '.iso', and removable drive images to '.hdr' before "
@@ -845,20 +880,20 @@ msgstr ""
 "hårddiskbildfiler till '.hds', cd-bildfiler till '.iso', och utmatbara "
 "bildfiler till '.hdr' innan du laddar upp dem."
 
-#: src/templates/index.html:356
+#: src/templates/index.html:377
 #, python-format
 msgid "Recognized file types: %(valid_file_suffix)s"
 msgstr "Kända filtyper: %(valid_file_suffix)s"
 
-#: src/templates/index.html:376
+#: src/templates/index.html:397
 msgid "Drop files here to upload"
 msgstr "Släpp filer här för att ladda upp"
 
-#: src/templates/index.html:377
+#: src/templates/index.html:398
 msgid "Your browser does not support drag'n'drop file uploads."
 msgstr "Din webbläsare stöder ej filuppladdning via dra och släpp."
 
-#: src/templates/index.html:378
+#: src/templates/index.html:399
 msgid ""
 "Please use the fallback form below to upload your files like in the olden"
 " days."
@@ -866,90 +901,90 @@ msgstr ""
 "Använd reservformuläret nedan för att ladda upp dina filer på gammaldags "
 "vis."
 
-#: src/templates/index.html:379
+#: src/templates/index.html:400
 msgid "File is too big: {{filesize}}MB. Max filesize: {{maxFilesize}}MB."
 msgstr ""
 "Filen är för stor: {{filesize}}MB. Största möjliga storlek: "
 "{{maxFilesize}}MB."
 
-#: src/templates/index.html:380
+#: src/templates/index.html:401
 msgid "You can't upload files of this type."
 msgstr "Du kan ej ladda upp filer av den här typen."
 
-#: src/templates/index.html:381
+#: src/templates/index.html:402
 msgid "Server responded with code: {{statusCode}}"
 msgstr "Servern svarade med kod: {{statusCode}}"
 
-#: src/templates/index.html:382
+#: src/templates/index.html:403
 msgid "Cancel upload"
 msgstr "Avbryt uppladdning"
 
-#: src/templates/index.html:383
+#: src/templates/index.html:404
 msgid "Upload canceled."
 msgstr "Uppladdningen avbröts."
 
-#: src/templates/index.html:384
+#: src/templates/index.html:405
 msgid "Are you sure you want to cancel this upload?"
 msgstr "Är du säker på att du vill avbryta uppladdningen?"
 
-#: src/templates/index.html:385
+#: src/templates/index.html:406
 msgid "Remove file"
 msgstr "Radera fil"
 
-#: src/templates/index.html:386
+#: src/templates/index.html:407
 msgid "You can not upload any more files."
 msgstr "Du kan inte ladda upp några fler filer."
 
-#: src/templates/index.html:388
+#: src/templates/index.html:409
 msgid "TB"
 msgstr "TB"
 
-#: src/templates/index.html:389
+#: src/templates/index.html:410
 msgid "GB"
 msgstr "GB"
 
-#: src/templates/index.html:391
+#: src/templates/index.html:412
 msgid "KB"
 msgstr "KB"
 
-#: src/templates/index.html:392
+#: src/templates/index.html:413
 msgid "b"
 msgstr "b"
 
-#: src/templates/index.html:401
+#: src/templates/index.html:422
 msgid "Download File to Images"
 msgstr "Ladda ner fil till skivbildskatalogen"
 
-#: src/templates/index.html:404
+#: src/templates/index.html:425
 #, python-format
 msgid "Given a URL, download that file to the <tt>%(directory)s</tt> directory."
 msgstr ""
 "Ta en webbadress och ladda ner en fil till katalogen "
 "<tt>%(directory)s</tt>"
 
-#: src/templates/index.html:412 src/templates/index.html:438
-#: src/templates/index.html:482
+#: src/templates/index.html:433 src/templates/index.html:459
+#: src/templates/index.html:503
 msgid "URL:"
 msgstr "Webbadress:"
 
-#: src/templates/index.html:413 src/templates/index.html:439
-#: src/templates/index.html:483
+#: src/templates/index.html:434 src/templates/index.html:460
+#: src/templates/index.html:504
 msgid "URL"
 msgstr "Webbadress"
 
-#: src/templates/index.html:414 src/templates/index.html:440
+#: src/templates/index.html:435 src/templates/index.html:461
 msgid "Download"
 msgstr "Ladda ner"
 
-#: src/templates/index.html:414
+#: src/templates/index.html:435
 msgid "Downloading File to Images..."
 msgstr "Laddar ner filen till skivbildskatalogen..."
 
-#: src/templates/index.html:424
+#: src/templates/index.html:445
 msgid "Download File to AppleShare"
 msgstr "Ladda ner fil till AppleShare"
 
-#: src/templates/index.html:427
+#: src/templates/index.html:448
 #, python-format
 msgid ""
 "Given a URL, download that file to the <tt>%(directory)s</tt> directory "
@@ -958,11 +993,11 @@ msgstr ""
 "Ta en webbadress och ladda ner en fil till katalogen "
 "<tt>%(directory)s</tt> och fildela den över AFP."
 
-#: src/templates/index.html:428
+#: src/templates/index.html:449
 msgid "Manage the files you download here through AppleShare on your vintage Mac."
 msgstr "Hantera dessa filer via AppleShare på din gamla Mac."
 
-#: src/templates/index.html:429
+#: src/templates/index.html:450
 #, python-format
 msgid ""
 "Requires <a href=\"%(url)s\">Netatalk</a> to be installed and configured "
@@ -971,38 +1006,38 @@ msgstr ""
 "Kräver att <a href=\"%(url)s\">Netatalk</a> är installerat och inställt "
 "på lämpligt vis för ditt nätverk."
 
-#: src/templates/index.html:440
+#: src/templates/index.html:461
 msgid "Downloading File to AppleShare..."
 msgstr "Laddar ner fil till AppleShare..."
 
-#: src/templates/index.html:447
+#: src/templates/index.html:468
 msgid "The AppleShare server is running. No active connections."
 msgstr "AppleShare-servern är aktiv. Inga klienter är anslutna."
 
-#: src/templates/index.html:449
+#: src/templates/index.html:470
 #, python-format
 msgid "%(value)d active AFP connection"
 msgstr "%(value)d aktiv AFP-klient"
 
-#: src/templates/index.html:451
+#: src/templates/index.html:472
 #, python-format
 msgid "%(value)d active AFP connections"
 msgstr "%(value)d aktiva AFP-klienter"
 
-#: src/templates/index.html:454
+#: src/templates/index.html:475
 #, python-format
 msgid ""
 "Install <a href=\"%(url)s\">Netatalk</a> to use the AppleShare File "
 "Server."
 msgstr ""
-"Installera <a href=\"%(url)s\">Netatalk</a> för att kunna använda "
+"Installera <a href=\"%(url)s\">Netatalk</a> för att använda "
 "AppleShare-fildelning."
 
-#: src/templates/index.html:461
+#: src/templates/index.html:482
 msgid "Download File and Create CD-ROM image"
 msgstr "Ladda ner fil och skapa en cd-bildfil"
 
-#: src/templates/index.html:464
+#: src/templates/index.html:485
 msgid ""
 "Create an ISO file system CD-ROM image with the downloaded file, and "
 "mount it on the given SCSI ID."
@@ -1010,44 +1045,44 @@ msgstr ""
 "Skapar en cd-bildfil med ISO-filsystem som innehåller den nedladdade "
 "filen. Sedan ansluts den till det angivna SCSI-id:t."
 
-#: src/templates/index.html:465
+#: src/templates/index.html:486
 msgid "HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX."
 msgstr "HFS är för Mac OS, Joliet för Windows, samt Rock Ridge för POSIX."
 
-#: src/templates/index.html:466
+#: src/templates/index.html:487
 #, python-format
 msgid "On Mac OS, a <a href=\"%(url)s\">compatible CD-ROM driver</a> is required."
 msgstr "På Mac OS krävs <a href=\"%(url)s\">kompatibla cd-drivrutiner</a>."
 
-#: src/templates/index.html:467
+#: src/templates/index.html:488
 msgid ""
 "If the downloaded file is a zip archive, we will attempt to unzip it and "
 "store the resulting files."
 msgstr ""
-"Om den nedladdade filen är en zip-fil så försöker vi packa up den och "
+"Om den nedladdade filen är en zipfil så försöker vi packa up den och "
 "spara de uppackade filerna på cd-bildfilen."
 
-#: src/templates/index.html:484 src/templates/index.html:529
+#: src/templates/index.html:505 src/templates/index.html:550
 msgid "Type:"
 msgstr "Typ:"
 
-#: src/templates/index.html:505
+#: src/templates/index.html:526
 msgid "Download and Mount CD-ROM image"
 msgstr "Ladda ner och mata in cd-bildfil"
 
-#: src/templates/index.html:505
+#: src/templates/index.html:526
 msgid "Downloading File and generating CD-ROM image..."
 msgstr "Laddar ner fil och tillverkar cd-bildfil..."
 
-#: src/templates/index.html:515
+#: src/templates/index.html:536
 msgid "Create Empty Disk Image File"
 msgstr "Skapa en tom skivbilsdfil"
 
-#: src/templates/index.html:518
+#: src/templates/index.html:539
 msgid "The Generic image type is recommended for most computer platforms."
-msgstr "Bildfilsformatet 'Generic' är rekommederad för de flesta datorsystem."
+msgstr "Det allmänna formatet är rekommederad för de flesta datorsystem."
 
-#: src/templates/index.html:519
+#: src/templates/index.html:540
 msgid ""
 "APPLE GENUINE (.hda) and NEC GENUINE (.hdn) image types will make RaSCSI "
 "behave as a particular drive type that are recognized by Mac and PC98 "
@@ -1057,7 +1092,7 @@ msgstr ""
 "RaSCSI beter sig som en typ av hårddisk som Macar och PC98-datorer känner"
 " igen."
 
-#: src/templates/index.html:520
+#: src/templates/index.html:541
 msgid ""
 "SASI images should only be used on the original Sharp X68000, or other "
 "legacy systems that utilize this pre-SCSI standard."
@@ -1066,43 +1101,43 @@ msgstr ""
 "X68000-modeller, eller andra riktigt gamla system som använder denna "
 "föregångare till SCSI."
 
-#: src/templates/index.html:527
+#: src/templates/index.html:548
 msgid "File Name:"
 msgstr "Filnamn:"
 
-#: src/templates/index.html:528
+#: src/templates/index.html:549
 msgid "File Name"
 msgstr "Filnamn"
 
-#: src/templates/index.html:532
+#: src/templates/index.html:553
 msgid "SCSI Hard Disk image (Generic) [.hds]"
-msgstr "SCSI-hårddisk (Generic) [.hds]"
+msgstr "SCSI-hårddisk (allmän) [.hds]"
 
-#: src/templates/index.html:535
+#: src/templates/index.html:556
 msgid "SCSI Hard Disk image (APPLE GENUINE) [.hda]"
 msgstr "SCSI-hårddisk (APPLE GENUINE) [.hda]"
 
-#: src/templates/index.html:538
+#: src/templates/index.html:559
 msgid "SCSI Hard Disk image (NEC GENUINE) [.hdn]"
 msgstr "SCSI-hårddisk (NEC GENUINE) [.hdn]"
 
-#: src/templates/index.html:541
+#: src/templates/index.html:562
 msgid "SCSI Removable Media Disk image (Generic) [.hdr]"
-msgstr "SCSI utmatbart medium (Generic) [.hdr]"
+msgstr "SCSI utmatbar skiva (allmän) [.hdr]"
 
-#: src/templates/index.html:544
+#: src/templates/index.html:565
 msgid "SASI Hard Disk image (Legacy) [.hdf]"
-msgstr "SASI-hårddisk (föråldrat) [.hdf]"
+msgstr "SASI-hårddisk (föråldrad) [.hdf]"
 
-#: src/templates/index.html:547
+#: src/templates/index.html:568
 msgid "Size:"
 msgstr "Storlek:"
 
-#: src/templates/index.html:559
+#: src/templates/index.html:580
 msgid "Create Named Drive"
 msgstr "Skapa benämnd skiva"
 
-#: src/templates/index.html:562
+#: src/templates/index.html:583
 msgid ""
 "Create pairs of images and properties files from a list of real-life "
 "drives."
@@ -1110,7 +1145,7 @@ msgstr ""
 "Skapar ett par av skivbilds- och egenskapsfiler från en lista av verkliga"
 " enheter."
 
-#: src/templates/index.html:563
+#: src/templates/index.html:584
 msgid ""
 "This will make RaSCSI use certain vendor strings and block sizes that may"
 " improve compatibility with certain systems."
@@ -1118,75 +1153,79 @@ msgstr ""
 "På så vis kommer RaSCSI använda vissa tillverkarattribut och "
 "blockstorlekar som kan hjälpa till med kompatibilitet."
 
-#: src/templates/index.html:566
+#: src/templates/index.html:587
 msgid "Create a named disk image that mimics real-life drives"
 msgstr "Skapa en benämnd skivbildfil som låstas vara en riktig enhet"
 
-#: src/templates/index.html:572
+#: src/templates/index.html:593
 msgid "Logging"
 msgstr "Loggar"
 
-#: src/templates/index.html:575
+#: src/templates/index.html:596
 msgid "Fetch a certain number of lines of system logs with the given scope."
 msgstr "Skaffar ett visst antal loggar för en viss systemprocess."
 
-#: src/templates/index.html:582
+#: src/templates/index.html:603
 msgid "Log Lines:"
 msgstr "Antal loggar:"
 
-#: src/templates/index.html:584
+#: src/templates/index.html:605
 msgid "Scope:"
 msgstr "Process:"
 
-#: src/templates/index.html:596
+#: src/templates/index.html:608
+msgid "All logs"
+msgstr "Alla loggar"
+
+#: src/templates/index.html:623
 msgid "Show Logs"
 msgstr "Skaffa loggar"
 
-#: src/templates/index.html:606
+#: src/templates/index.html:633
 msgid "Server Log Level"
 msgstr "Serverns loggnivå"
 
-#: src/templates/index.html:609
+#: src/templates/index.html:636
 msgid "Change the log level of the RaSCSI backend process."
 msgstr "Byt loggnivån för RaSCSI-servern"
 
-#: src/templates/index.html:610
+#: src/templates/index.html:637
 msgid "The current dropdown selection indicates the active log level."
 msgstr "Det nuvarande valet i rullgardinsmenyn påvisar aktiv loggnivå."
 
-#: src/templates/index.html:617
+#: src/templates/index.html:644
 msgid "Log Level:"
 msgstr "Loggnivå:"
 
-#: src/templates/index.html:625
+#: src/templates/index.html:652
 msgid "Set Log Level"
 msgstr "Byt loggnivå"
 
-#: src/templates/index.html:635
+#: src/templates/index.html:662
 msgid "Language"
 msgstr "Språk"
 
-#: src/templates/index.html:638
+#: src/templates/index.html:665
 msgid "Change the Web Interface language."
 msgstr "Byt webbgränssnittets språk."
 
-#: src/templates/index.html:645
+#: src/templates/index.html:672
 msgid "Language:"
 msgstr "Språk:"
 
-#: src/templates/index.html:653
+#: src/templates/index.html:680
 msgid "Change Language"
 msgstr "Byt språk"
 
-#: src/templates/index.html:663
+#: src/templates/index.html:690
 msgid "Raspberry Pi Operations"
 msgstr "Raspberry Pi-kommandon"
 
-#: src/templates/index.html:666
+#: src/templates/index.html:693
 msgid "Reboot or shut down the Raspberry Pi that RaSCSI is running on."
 msgstr "Starta om eller stäng av Raspberry Pi-systemet som RaSCSI körs på."
 
-#: src/templates/index.html:667
+#: src/templates/index.html:694
 msgid ""
 "IMPORTANT: Always shut down the Pi before turning off the power. Failing "
 "to do so may lead to data loss."
@@ -1194,27 +1233,26 @@ msgstr ""
 "VIKTIGT: Stäng alltid av Pi-systemet innan du kopplar ur strömmen. På så "
 "vis undviker du risken att förlora data."
 
-#: src/templates/index.html:673
+#: src/templates/index.html:700
 msgid "Reboot the Raspberry Pi?"
 msgstr "Vill du starta om din Raspberry Pi?"
 
-#: src/templates/index.html:673
+#: src/templates/index.html:700
 msgid "Rebooting the Raspberry Pi..."
 msgstr "Startar om Raspberry Pi..."
 
-#: src/templates/index.html:674
+#: src/templates/index.html:701
 msgid "Reboot Raspberry Pi"
 msgstr "Starta om Raspberry Pi"
 
-#: src/templates/index.html:678
+#: src/templates/index.html:705
 msgid "Shut down the Raspberry Pi?"
 msgstr "Vill du stänga av din Raspberry Pi?"
 
-#: src/templates/index.html:678
+#: src/templates/index.html:705
 msgid "Shutting down the Raspberry Pi..."
 msgstr "Stänger av Raspberry Pi..."
 
-#: src/templates/index.html:679
+#: src/templates/index.html:706
 msgid "Shut Down Raspberry Pi"
 msgstr "Stäng av Raspberry Pi"
-
