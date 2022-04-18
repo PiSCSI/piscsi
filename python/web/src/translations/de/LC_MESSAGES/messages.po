@@ -1252,32 +1252,3 @@ msgstr "Raspberry Pi wird heruntergefahren…"
 #: src/templates/index.html:706
 msgid "Shut Down Raspberry Pi"
 msgstr "Raspberry Pi herunterfahren"
-
-#~ msgid "Attached DaynaPORT to SCSI ID %(id_number)s"
-#~ msgstr "DaynaPORT mit SCSI-ID %(id_number)s verbunden"
-
-#~ msgid "Unreserve"
-#~ msgstr "Freigeben"
-
-#~ msgid ""
-#~ "Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-"
-#~ "Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
-#~ msgstr ""
-#~ "Typen: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Wechselmedium | SCMO = "
-#~ "Magneto-Optisch | SCCD = CD-ROM | SCBR = Host-Bridge | SCDP = DaynaPORT"
-
-#~ msgid "Attach Ethernet Adapter"
-#~ msgstr "Verbinde Ethernet-Adapter"
-
-#~ msgid ""
-#~ "Emulates a SCSI DaynaPORT Ethernet Adapter. <a href=\"%(url)s\">Host drivers "
-#~ "and configuration required</a>."
-#~ msgstr ""
-#~ "Emuliert einen SCSI DaynaPORT Ethernet-Adapter. <a href=„%(url)s“>Host-"
-#~ "Treiber und Konfiguration notwendig</a>."
-
-#~ msgid "Interface:"
-#~ msgstr "Schnittstelle:"
-
-#~ msgid "Static IP (optional):"
-#~ msgstr "Statische IP (optional):"
