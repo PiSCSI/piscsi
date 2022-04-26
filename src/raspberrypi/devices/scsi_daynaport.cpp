@@ -122,7 +122,8 @@ vector<BYTE> SCSIDaynaPort::Inquiry() const
 {
 	vector<BYTE> buf = PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
 
-	// The Daynaport driver expects 37 bytes: Increase additional length and add a vendor specific byte
+	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
+	// add a vendor-specific byte in order to satisfy this driver.
 	buf[4]++;
 	buf.push_back(0);
 
