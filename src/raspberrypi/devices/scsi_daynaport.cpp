@@ -76,7 +76,6 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	SetParams(params);
 
 #ifdef __linux__
-	// TAP Driver Generation
 	m_tap = new CTapDriver();
 	m_bTapEnable = m_tap->Init(GetParams());
 	if(!m_bTapEnable){
