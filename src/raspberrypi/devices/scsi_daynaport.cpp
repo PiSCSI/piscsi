@@ -60,6 +60,13 @@ SCSIDaynaPort::~SCSIDaynaPort()
 
 bool SCSIDaynaPort::Dispatch(SCSIDEV *controller)
 {
+	// TODO As long as DaynaPort suffers from being a subclass of Disk at least reject MODE SENSE and MODE SELECT
+	SASIDEV::ctrl_t *ctrl = controller->GetCtrl();
+	if (ctrl->cmd[0] == eCmdModeSense6 || ctrl->cmd[0] == eCmdModeSelect6 ||
+			ctrl->cmd[0] == eCmdModeSense10 || ctrl->cmd[0] == eCmdModeSelect10) {
+		return false;
+	}
+
 	// The superclass class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
@@ -69,7 +76,6 @@ bool SCSIDaynaPort::Init(const unordered_map<string, string>& params)
 	SetParams(params);
 
 #ifdef __linux__
-	// TAP Driver Generation
 	m_tap = new CTapDriver();
 	m_bTapEnable = m_tap->Init(GetParams());
 	if(!m_bTapEnable){
@@ -114,7 +120,14 @@ void SCSIDaynaPort::Open(const Filepath& path)
 
 vector<BYTE> SCSIDaynaPort::Inquiry() const
 {
-	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
+	vector<BYTE> buf = PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SCSI_2, false);
+
+	// The Daynaport driver for the Mac expects 37 bytes: Increase additional length and
+	// add a vendor-specific byte in order to satisfy this driver.
+	buf[4]++;
+	buf.push_back(0);
+
+	return buf;
 }
 
 //---------------------------------------------------------------------------
