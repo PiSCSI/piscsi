@@ -17,7 +17,8 @@
 // 2. The client sends the data to be printed with one or several PRINT commands. Due to
 // https://github.com/akuker/RASCSI/issues/669 the maximum transfer size per PRINT command is
 // limited to 4096 bytes.
-// 3. The client triggers printing with SYNCHRONIZE BUFFER.
+// 3. The client triggers printing with SYNCHRONIZE BUFFER. Each SYNCHRONIZE BUFFER results in
+// the print command for this printer (see below) to be called for the data not yet printed.
 // 4. The client releases the printer with RELEASE UNIT (optional step, mandatory for a
 // multi-initiator environment).
 //
@@ -25,10 +26,13 @@
 // always using a reservation is recommended.
 //
 // The command to be used for printing can be set with the "cmd" property when attaching the device.
-// By default the data to be printed are sent to the printer unmodified, using "lp -oraw". This either
+// By default the data to be printed are sent to the printer unmodified, using "lp -oraw %f". This
 // requires that the client uses a printer driver compatible with the respective printer, or that the
-// printing service on the Pi is configured to do any necessary conversions.
+// printing service on the Pi is configured to do any necessary conversions, or that the print command
+// applies any conversions on the file to be printed (%f) before passing it to the printing service.
+// 'enscript' is an example for a conversion tool.
 // By attaching different devices/LUNs multiple printers (i.e. different print commands) are possible.
+// Note that the print command is not executed by root but with the permissions of the lp user.
 //
 // With STOP PRINT printing can be cancelled before SYNCHRONIZE BUFFER was sent.
 //
@@ -39,7 +43,6 @@
 #include "controllers/scsidev_ctrl.h"
 #include "../rasutil.h"
 #include "scsi_printer.h"
-#include <string>
 
 #define NOT_RESERVED -2
 
@@ -58,22 +61,27 @@ SCSIPrinter::SCSIPrinter() : PrimaryDevice("SCLP"), ScsiPrinterCommands()
 	dispatcher.AddCommand(eCmdReserve6, "ReserveUnit", &SCSIPrinter::ReserveUnit);
 	dispatcher.AddCommand(eCmdRelease6, "ReleaseUnit", &SCSIPrinter::ReleaseUnit);
 	dispatcher.AddCommand(eCmdWrite6, "Print", &SCSIPrinter::Print);
-	dispatcher.AddCommand(eCmdReadCapacity10, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
+	dispatcher.AddCommand(eCmdSynchronizeBuffer, "SynchronizeBuffer", &SCSIPrinter::SynchronizeBuffer);
 	dispatcher.AddCommand(eCmdSendDiag, "SendDiagnostic", &SCSIPrinter::SendDiagnostic);
 	dispatcher.AddCommand(eCmdStartStop, "StopPrint", &SCSIPrinter::StopPrint);
 }
 
 SCSIPrinter::~SCSIPrinter()
 {
-	DiscardReservation();
+	Cleanup();
 }
 
-bool SCSIPrinter::Init(const map<string, string>& params)
+bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 {
-	// Use default parameters if no parameters were provided
-	SetParams(params.empty() ? GetDefaultParams() : params);
+	SetParams(params);
+
+	if (GetParam("cmd").find("%f") == string::npos) {
+		LOGERROR("Missing filename specifier %s", "%f");
+		return false;
+	}
 
 	if (!GetAsInt(GetParam("timeout"), timeout) || timeout <= 0) {
+		LOGERROR("Reservation timeout value must be > 0");
 		return false;
 	}
 
@@ -95,10 +103,9 @@ void SCSIPrinter::TestUnitReady(SCSIDEV *controller)
 	controller->Status();
 }
 
-int SCSIPrinter::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSIPrinter::Inquiry() const
 {
-	// Printer device, not removable
-	return PrimaryDevice::Inquiry(2, false, cdb, buf);
+	return PrimaryDevice::Inquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
 }
 
 void SCSIPrinter::ReserveUnit(SCSIDEV *controller)
@@ -160,8 +167,10 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 
 	// TODO This device suffers from the statically allocated buffer size,
 	// see https://github.com/akuker/RASCSI/issues/669
-	if (length > (uint32_t)controller->DEFAULT_BUFFER_SIZE) {
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+	if (length > (uint32_t)ctrl->bufsize) {
+		LOGERROR("Transfer buffer overflow");
+
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
@@ -192,8 +201,10 @@ void SCSIPrinter::SynchronizeBuffer(SCSIDEV *controller)
 	fd = -1;
 
 	string cmd = GetParam("cmd");
-	cmd += " ";
-	cmd += filename;
+	size_t file_position = cmd.find("%f");
+	assert(file_position != string::npos);
+	cmd.replace(file_position, 2, filename);
+	cmd = "sudo -u lp " + cmd;
 
 	LOGTRACE("%s", string("Printing file with size of " + to_string(st.st_size) +" byte(s)").c_str());
 
@@ -226,7 +237,7 @@ void SCSIPrinter::StopPrint(SCSIDEV *controller)
 		return;
 	}
 
-	Cleanup();
+	// Nothing to do, printing has not yet been started
 
 	controller->Status();
 }
@@ -266,8 +277,8 @@ bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
 		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun());
 	}
 
-	controller->Error(ERROR_CODES::sense_key::ABORTED_COMMAND, ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			ERROR_CODES::status::RESERVATION_CONFLICT);
+	controller->Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			status::RESERVATION_CONFLICT);
 
 	return false;
 }

@@ -31,7 +31,6 @@
 #include "os.h"
 #include "disk.h"
 #include "ctapdriver.h"
-#include <map>
 #include <string>
 
 //===========================================================================
@@ -46,11 +45,11 @@ public:
 	SCSIDaynaPort();
 	~SCSIDaynaPort();
 
-	bool Init(const map<string, string>&) override;
+	bool Init(const unordered_map<string, string>&) override;
 	void Open(const Filepath& path) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buffer) override;
+	vector<BYTE> Inquiry() const override;
 	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
 	bool Write(const DWORD *cdb, const BYTE *buf, DWORD block) override;
 	int WriteCheck(DWORD block) override;	// WRITE check
@@ -67,6 +66,7 @@ public:
 	void SetInterfaceMode(SASIDEV *);
 	void SetMcastAddr(SASIDEV *);
 	void EnableInterface(SASIDEV *);
+	int GetSendDelay() const override;
 
 	bool Dispatch(SCSIDEV *) override;
 

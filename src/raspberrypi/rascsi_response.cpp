@@ -220,7 +220,7 @@ void RascsiResponse::GetAvailableImages(PbResult& result, PbServerInfo& server_i
 	result.set_status(true);
 }
 
-PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const set<int>& ids)
+PbReservedIdsInfo *RascsiResponse::GetReservedIds(PbResult& result, const unordered_set<int>& ids)
 {
 	PbReservedIdsInfo *reserved_ids_info = new PbReservedIdsInfo();
 	for (int id : ids) {
@@ -289,8 +289,9 @@ PbDeviceTypesInfo *RascsiResponse::GetDeviceTypesInfo(PbResult& result, const Pb
 	return device_types_info;
 }
 
-PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices, const set<int>& reserved_ids,
-		const string& current_log_level, const string& folder_pattern, const string& file_pattern, int scan_depth)
+PbServerInfo *RascsiResponse::GetServerInfo(PbResult& result, const vector<Device *>& devices,
+		const unordered_set<int>& reserved_ids, const string& current_log_level, const string& folder_pattern,
+		const string& file_pattern, int scan_depth)
 {
 	PbServerInfo *server_info = new PbServerInfo();
 
@@ -369,7 +370,10 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 
 	PbOperationMetaData *meta_data = new PbOperationMetaData();
 	AddOperationParameter(meta_data, "name", "Image file name in case of a mass storage device");
-	AddOperationParameter(meta_data, "interfaces", "Comma-separated prioritized network interface list");
+	AddOperationParameter(meta_data, "interface", "Comma-separated prioritized network interface list");
+	AddOperationParameter(meta_data, "inet", "IP address and netmask of the network bridge");
+	AddOperationParameter(meta_data, "cmd", "Print command for the printer device");
+	AddOperationParameter(meta_data, "timeout", "Reservation timeout for the printer device in seconds");
 	CreateOperation(operation_info, meta_data, ATTACH, "Attach device, device-specific parameters are required");
 
 	meta_data = new PbOperationMetaData();
@@ -498,9 +502,6 @@ PbOperationInfo *RascsiResponse::GetOperationInfo(PbResult& result, int depth)
 	meta_data = new PbOperationMetaData();
 	CreateOperation(operation_info, meta_data, OPERATION_INFO, "Get operation meta data");
 
-	// Ensure that the complete set of operations is covered
-	assert(operation_info->operations_size() == PbOperation_ARRAYSIZE - 1);
-
 	result.set_status(true);
 
 	return operation_info;
@@ -513,6 +514,7 @@ void RascsiResponse::CreateOperation(PbOperationInfo *operation_info, PbOperatio
 	meta_data->set_description(description);
 	int ordinal = PbOperation_descriptor()->FindValueByName(PbOperation_Name(operation))->index();
 	(*operation_info->mutable_operations())[ordinal] = *meta_data;
+	delete meta_data;
 }
 
 PbOperationParameter *RascsiResponse::AddOperationParameter(PbOperationMetaData *meta_data, const string& name,

@@ -14,7 +14,7 @@
 #include "exceptions.h"
 #include "device.h"
 
-set<Device *> Device::devices;
+unordered_set<Device *> Device::devices;
 
 Device::Device(const string& type)
 {
@@ -119,6 +119,21 @@ const string Device::GetPaddedName() const
 const string Device::GetParam(const string& key)
 {
 	return params.find(key) != params.end() ? params[key] : "";
+}
+
+void Device::SetParams(const unordered_map<string, string>& params)
+{
+	this->params = GetDefaultParams();
+
+	for (const auto& param : params) {
+		// It is assumed that there are default parameters for all supported parameters
+		if (this->params.find(param.first) != this->params.end()) {
+			this->params[param.first] = param.second;
+		}
+		else {
+			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());
+		}
+	}
 }
 
 void Device::SetStatusCode(int status_code)

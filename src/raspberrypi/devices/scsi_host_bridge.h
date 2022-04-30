@@ -18,7 +18,7 @@
 #pragma once
 
 #include "os.h"
-#include "primary_device.h"
+#include "disk.h"
 #include <string>
 
 //===========================================================================
@@ -29,26 +29,26 @@
 class CTapDriver;
 class CFileSys;
 
-class SCSIBR : public PrimaryDevice
+class SCSIBR : public Disk
 {
 
 public:
 	SCSIBR();
 	~SCSIBR();
 
-	bool Init(const map<string, string>&) override;
+	bool Init(const unordered_map<string, string>&) override;
 	bool Dispatch(SCSIDEV *) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	int GetMessage10(const DWORD *cdb, BYTE *buf);			// GET MESSAGE10 command
-	bool SendMessage10(const DWORD *cdb, BYTE *buf);		// SEND MESSAGE10 command
+	vector<BYTE> Inquiry() const override;
+	int GetMessage10(const DWORD *cdb, BYTE *buf);
+	bool SendMessage10(const DWORD *cdb, BYTE *buf);
 	void TestUnitReady(SASIDEV *) override;
 	void GetMessage10(SASIDEV *);
 	void SendMessage10(SASIDEV *);
 
 private:
-	typedef PrimaryDevice super;
+	typedef Disk super;
 
 	Dispatcher<SCSIBR, SASIDEV> dispatcher;
 

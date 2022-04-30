@@ -16,7 +16,6 @@
 #pragma once
 
 #include "controllers/sasidev_ctrl.h"
-#include <map>
 
 //===========================================================================
 //
@@ -29,8 +28,9 @@ public:
 
 	enum rascsi_shutdown_mode {
 		NONE,
-		RASCSI,
-		PI
+		STOP_RASCSI,
+		STOP_PI,
+		RESTART_PI
 	};
 
 	// Internal data definition
@@ -62,21 +62,25 @@ public:
 
 	void Receive() override;
 
+	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
+	int GetEffectiveLun() const;
+
 	bool IsSASI() const override { return false; }
 	bool IsSCSI() const override { return true; }
 
 	// Common error handling
-	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION,
-			ERROR_CODES::status status = ERROR_CODES::status::CHECK_CONDITION) override;
+	void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
+			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
 
-	void ShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
 
 	int GetInitiatorId() const { return scsi.initiator_id; }
 	bool IsByteTransfer() const { return scsi.is_byte_transfer; }
 	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
 private:
+	typedef SASIDEV super;
 
 	// Phases
 	void BusFree() override;

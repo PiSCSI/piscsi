@@ -10,7 +10,6 @@
 #include "localizer.h"
 #include <cassert>
 #include <string>
-#include <map>
 #include <algorithm>
 #include <regex>
 
@@ -146,7 +145,7 @@ string Localizer::Localize(LocalizationKey key, const string& locale, const stri
 	string locale_lower = locale;
 	transform(locale_lower.begin(), locale_lower.end(), locale_lower.begin(), ::tolower);
 
-	map<LocalizationKey, string> messages = localized_messages[locale_lower];
+	unordered_map<LocalizationKey, string> messages = localized_messages[locale_lower];
 	if (messages.empty()) {
 		// Try to fall back to country-indepedent locale (e.g. "en" instead of "en_US")
 		if (locale_lower.length() > 2) {

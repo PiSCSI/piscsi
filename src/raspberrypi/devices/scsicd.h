@@ -10,7 +10,7 @@
 //	Licensed under the BSD 3-Clause License. 
 //	See LICENSE file in the project root folder.
 //
-//	[ SCSI CD-ROM for Apple Macintosh ]
+//	[ SCSI CD-ROM  ]
 //
 //---------------------------------------------------------------------------
 #pragma once
@@ -21,12 +21,6 @@
 #include "interfaces/scsi_mmc_commands.h"
 #include "interfaces/scsi_primary_commands.h"
 
-
-//---------------------------------------------------------------------------
-//
-//	Class precedence definition
-//
-//---------------------------------------------------------------------------
 class SCSICD;
 
 //===========================================================================
@@ -36,9 +30,14 @@ class SCSICD;
 //===========================================================================
 class CDTrack
 {
-public:
+private:
+
+	friend class SCSICD;
+
 	CDTrack(SCSICD *scsicd);
-	virtual ~CDTrack();
+	virtual ~CDTrack() {}
+
+public:
 
 	void Init(int track, DWORD first, DWORD last);
 
@@ -77,7 +76,7 @@ public:
 		TrackMax = 96							// Maximum number of tracks
 	};
 
-	SCSICD();
+	SCSICD(const unordered_set<uint32_t>&);
 	~SCSICD();
 
 	bool Dispatch(SCSIDEV *) override;
@@ -85,14 +84,21 @@ public:
 	void Open(const Filepath& path) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;	// INQUIRY command
-	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;		// READ command
-	int ReadToc(const DWORD *cdb, BYTE *buf);			// READ TOC command
+	vector<BYTE> Inquiry() const override;
+	int Read(const DWORD *cdb, BYTE *buf, uint64_t block) override;
+	int ReadToc(const DWORD *cdb, BYTE *buf);
+
+protected:
+
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 
 private:
 	typedef Disk super;
 
 	Dispatcher<SCSICD, SASIDEV> dispatcher;
+
+	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
+	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
 
 	// Open
 	void OpenCue(const Filepath& path);				// Open(CUE)

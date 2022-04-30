@@ -11,6 +11,7 @@
 #pragma once
 
 #include "mode_page_device.h"
+#include <vector>
 
 using namespace std;
 
@@ -24,12 +25,12 @@ public:
 
 	virtual bool Dispatch(SCSIDEV *) override;
 
-	int Inquiry(const DWORD *, BYTE *) override;
+	vector<BYTE> Inquiry() const override;
 	void TestUnitReady(SCSIDEV *);
 	void StartStopUnit(SCSIDEV *);
 
 	int ModeSense6(const DWORD *, BYTE *);
-	int ModeSense10(const DWORD *, BYTE *);
+	int ModeSense10(const DWORD *, BYTE *, int);
 
 private:
 
@@ -37,5 +38,6 @@ private:
 
 	Dispatcher<HostServices, SCSIDEV> dispatcher;
 
-	int AddRealtimeClockPage(int, BYTE *);
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;
 };

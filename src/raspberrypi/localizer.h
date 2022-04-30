@@ -12,8 +12,8 @@
 #pragma once
 
 #include <string>
-#include <set>
-#include <map>
+#include <unordered_set>
+#include <unordered_map>
 
 using namespace std;
 
@@ -53,7 +53,7 @@ public:
 private:
 
 	void Add(LocalizationKey, const string&, const string&);
-	map<string, map<LocalizationKey, string>> localized_messages;
+	unordered_map<string, unordered_map<LocalizationKey, string>> localized_messages;
 
-	set<string> supported_languages;
+	unordered_set<string> supported_languages;
 };

@@ -26,13 +26,9 @@
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
-SCSIHD::SCSIHD(bool removable) : Disk(removable ? "SCRM" : "SCHD")
+SCSIHD::SCSIHD(const unordered_set<uint32_t>& sector_sizes, bool removable) : Disk(removable ? "SCRM" : "SCHD")
 {
+	SetSectorSizes(sector_sizes);
 }
 
 void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
@@ -67,11 +63,6 @@ void SCSIHD::FinalizeSetup(const Filepath &path, off_t size)
 	FileSupport::SetPath(path);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Reset
-//
-//---------------------------------------------------------------------------
 void SCSIHD::Reset()
 {
 	// Unlock and release attention
@@ -83,14 +74,9 @@ void SCSIHD::Reset()
 	SetStatusCode(STATUS_NOERROR);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
 void SCSIHD::Open(const Filepath& path)
 {
-	ASSERT(!IsReady());
+	assert(!IsReady());
 
 	// Open as read-only
 	Fileio fio;
@@ -112,62 +98,16 @@ void SCSIHD::Open(const Filepath& path)
 	FinalizeSetup(path, size);
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-int SCSIHD::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSIHD::Inquiry() const
 {
-	// EVPD check
-	if (cdb[1] & 0x01) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	// Ready check (Error if no image file)
-	if (!IsReady()) {
-		SetStatusCode(STATUS_NOTREADY);
-		return 0;
-	}
-
-	// Basic data
-	// buf[0] ... Direct Access Device
-	// buf[1] ... Bit 7 set means removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	memset(buf, 0, 8);
-	buf[1] = IsRemovable() ? 0x80 : 0x00;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
-	buf[4] = 28 + 3;	// Value close to real HDD
-
-	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
-
-	// Size of data that can be returned
-	int size = (buf[4] + 5);
-
-	// Limit if the other buffer is small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return size;
+	return PrimaryDevice::Inquiry(device_type::DIRECT_ACCESS, scsi_level::SCSI_2, IsRemovable());
 }
 
-//---------------------------------------------------------------------------
-//
-//	MODE SELECT
-//
-//---------------------------------------------------------------------------
 bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 {
-	int size;
+	assert(length >= 0);
 
-	ASSERT(buf);
-	ASSERT(length >= 0);
+	int size;
 
 	// PF
 	if (cdb[1] & 0x10) {
@@ -241,23 +181,19 @@ bool SCSIHD::ModeSelect(const DWORD *cdb, const BYTE *buf, int length)
 //	Add Vendor special page to make drive Apple compatible
 //
 //---------------------------------------------------------------------------
-int SCSIHD::AddVendorPage(int page, bool change, BYTE *buf)
+void SCSIHD::AddVendorPage(map<int, vector<BYTE>>& pages, int page, bool changeable) const
 {
-	ASSERT(buf);
-
-	// Page code 48 or 63
+	// Page code 48
 	if (page != 0x30 && page != 0x3f) {
-		return 0;
+		return;
 	}
 
-	// Set the message length
-	buf[0] = 0x30;
-	buf[1] = 0x1c;
+	vector<BYTE> buf(30);
 
 	// No changeable area
-	if (!change) {
+	if (!changeable) {
 		memcpy(&buf[0xa], "APPLE COMPUTER, INC.", 20);
 	}
 
-	return 30;
+	pages[48] = buf;
 }

@@ -22,15 +22,10 @@ using namespace scsi_defs;
 
 //===========================================================================
 //
-//	CD Track
+//     CD Track
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
 CDTrack::CDTrack(SCSICD *scsicd)
 {
 	ASSERT(scsicd);
@@ -49,20 +44,6 @@ CDTrack::CDTrack(SCSICD *scsicd)
 	raw = false;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
-CDTrack::~CDTrack()
-{
-}
-
-//---------------------------------------------------------------------------
-//
-//	Init
-//
-//---------------------------------------------------------------------------
 void CDTrack::Init(int track, DWORD first, DWORD last)
 {
 	ASSERT(!valid);
@@ -78,11 +59,6 @@ void CDTrack::Init(int track, DWORD first, DWORD last)
 	last_lba = last;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Set Path
-//
-//---------------------------------------------------------------------------
 void CDTrack::SetPath(bool cdda, const Filepath& path)
 {
 	ASSERT(valid);
@@ -94,11 +70,6 @@ void CDTrack::SetPath(bool cdda, const Filepath& path)
 	imgpath = path;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get Path
-//
-//---------------------------------------------------------------------------
 void CDTrack::GetPath(Filepath& path) const
 {
 	ASSERT(valid);
@@ -107,11 +78,6 @@ void CDTrack::GetPath(Filepath& path) const
 	path = imgpath;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Add Index
-//
-//---------------------------------------------------------------------------
 void CDTrack::AddIndex(int index, DWORD lba)
 {
 	ASSERT(valid);
@@ -149,11 +115,6 @@ DWORD CDTrack::GetLast() const
 	return last_lba;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get the number of blocks
-//
-//---------------------------------------------------------------------------
 DWORD CDTrack::GetBlocks() const
 {
 	ASSERT(valid);
@@ -163,11 +124,6 @@ DWORD CDTrack::GetBlocks() const
 	return (DWORD)(last_lba - first_lba + 1);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Get track number
-//
-//---------------------------------------------------------------------------
 int CDTrack::GetTrackNo() const
 {
 	ASSERT(valid);
@@ -220,13 +176,10 @@ bool CDTrack::IsAudio() const
 //
 //===========================================================================
 
-//---------------------------------------------------------------------------
-//
-//	Constructor
-//
-//---------------------------------------------------------------------------
-SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
+SCSICD::SCSICD(const unordered_set<uint32_t>& sector_sizes) : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 {
+	SetSectorSizes(sector_sizes);
+
 	// NOT in raw format
 	rawfile = false;
 
@@ -245,11 +198,6 @@ SCSICD::SCSICD() : Disk("SCCD"), ScsiMmcCommands(), FileSupport()
 	dispatcher.AddCommand(eCmdGetEventStatusNotification, "GetEventStatusNotification", &SCSICD::GetEventStatusNotification);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Destructor
-//
-//---------------------------------------------------------------------------
 SCSICD::~SCSICD()
 {
 	// Clear track
@@ -262,11 +210,6 @@ bool SCSICD::Dispatch(SCSIDEV *controller)
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open
-//
-//---------------------------------------------------------------------------
 void SCSICD::Open(const Filepath& path)
 {
 	off_t size;
@@ -321,7 +264,7 @@ void SCSICD::Open(const Filepath& path)
 	// Successful opening
 	ASSERT(GetBlockCount() > 0);
 
-	Disk::Open(path);
+	super::Open(path);
 	FileSupport::SetPath(path);
 
 	// Set RAW flag
@@ -334,21 +277,11 @@ void SCSICD::Open(const Filepath& path)
 	}
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (CUE)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenCue(const Filepath& /*path*/)
 {
 	throw io_exception("Opening CUE CD-ROM files is not supported");
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (ISO)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenIso(const Filepath& path)
 {
 	// Open as read-only
@@ -419,11 +352,6 @@ void SCSICD::OpenIso(const Filepath& path)
 	dataindex = 0;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Open (Physical)
-//
-//---------------------------------------------------------------------------
 void SCSICD::OpenPhysical(const Filepath& path)
 {
 	// Open as read-only
@@ -469,37 +397,9 @@ void SCSICD::ReadToc(SASIDEV *controller)
 	controller->DataIn();
 }
 
-//---------------------------------------------------------------------------
-//
-//	INQUIRY
-//
-//---------------------------------------------------------------------------
-int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
+vector<BYTE> SCSICD::Inquiry() const
 {
-	// EVPD check
-	if (cdb[1] & 0x01) {
-		SetStatusCode(STATUS_INVALIDCDB);
-		return 0;
-	}
-
-	// Basic data
-	// buf[0] ... CD-ROM Device
-	// buf[1] ... Removable
-	// buf[2] ... SCSI-2 compliant command system
-	// buf[3] ... SCSI-2 compliant Inquiry response
-	// buf[4] ... Inquiry additional data
-	memset(buf, 0, 8);
-	buf[0] = 0x05;
-	buf[1] = 0x80;
-	buf[2] = 0x02;
-	buf[3] = 0x02;
-	buf[4] = 36 - 5;	// Required
-
-	// Fill with blanks
-	memset(&buf[8], 0x20, buf[4] - 3);
-
-	// Padded vendor, product, revision
-	memcpy(&buf[8], GetPaddedName().c_str(), 28);
+	return PrimaryDevice::Inquiry(device_type::CD_ROM, scsi_level::SCSI_2, true);
 
 //
 // The following code worked with the modified Apple CD-ROM drivers. Need to
@@ -523,23 +423,50 @@ int SCSICD::Inquiry(const DWORD *cdb, BYTE *buf)
 //	//strcpy(&buf[35],"A1.9a");
 //	buf[36]=0x20;
 //	memcpy(&buf[37],"1999/01/01",10);
-
-	// Size of data that can be returned
-	int size = (buf[4] + 5);
-
-	// Limit if the other buffer is small
-	if (size > (int)cdb[4]) {
-		size = (int)cdb[4];
-	}
-
-	return size;
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ
-//
-//---------------------------------------------------------------------------
+void SCSICD::AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const
+{
+	super::AddModePages(pages, page, changeable);
+
+	// Page code 13
+	if (page == 0x0d || page == 0x3f) {
+		AddCDROMPage(pages, changeable);
+	}
+
+	// Page code 14
+	if (page == 0x0e || page == 0x3f) {
+		AddCDDAPage(pages, changeable);
+	}
+}
+
+void SCSICD::AddCDROMPage(map<int, vector<BYTE>>& pages, bool changeable) const
+{
+	vector<BYTE> buf(8);
+
+	// No changeable area
+	if (!changeable) {
+		// 2 seconds for inactive timer
+		buf[3] = 0x05;
+
+		// MSF multiples are 60 and 75 respectively
+		buf[5] = 60;
+		buf[7] = 75;
+	}
+
+	pages[13] = buf;
+}
+
+void SCSICD::AddCDDAPage(map<int, vector<BYTE>>& pages, bool) const
+{
+	vector<BYTE> buf(16);
+
+	// Audio waits for operation completion and allows
+	// PLAY across multiple tracks
+
+	pages[14] = buf;
+}
+
 int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 {
 	ASSERT(buf);
@@ -581,14 +508,9 @@ int SCSICD::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 	// Base class
 	ASSERT(dataindex >= 0);
-	return Disk::Read(cdb, buf, block);
+	return super::Read(cdb, buf, block);
 }
 
-//---------------------------------------------------------------------------
-//
-//	READ TOC
-//
-//---------------------------------------------------------------------------
 int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 {
 	ASSERT(cdb);
@@ -703,12 +625,12 @@ void SCSICD::GetEventStatusNotification(SASIDEV *controller)
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi
-		controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
 	LOGTRACE("Received request for event polling, which is currently not supported");
-	controller->Error(ERROR_CODES::sense_key::ILLEGAL_REQUEST, ERROR_CODES::asc::INVALID_FIELD_IN_CDB);
+	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------
@@ -741,11 +663,6 @@ void SCSICD::LBAtoMSF(DWORD lba, BYTE *msf) const
 	msf[3] = (BYTE)f;
 }
 
-//---------------------------------------------------------------------------
-//
-//	Clear Track
-//
-//---------------------------------------------------------------------------
 void SCSICD::ClearTrack()
 {
 	// delete the track object

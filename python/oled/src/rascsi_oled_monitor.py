@@ -39,15 +39,9 @@ from board import I2C
 from adafruit_ssd1306 import SSD1306_I2C
 from PIL import Image, ImageDraw, ImageFont
 from interrupt_handler import GracefulInterruptHandler
-from pi_cmds import get_ip_and_host
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.socket_cmds import SocketCmds
-
-from rascsi.common_settings import (
-    REMOVABLE_DEVICE_TYPES,
-    NETWORK_DEVICE_TYPES,
-    SUPPORT_DEVICE_TYPES,
-)
+from rascsi.sys_cmds import SysCmds
 
 parser = argparse.ArgumentParser(description="RaSCSI OLED Monitor script")
 parser.add_argument(
@@ -105,6 +99,7 @@ TOKEN = args.password
 
 sock_cmd = SocketCmds(host=args.rascsi_host, port=args.rascsi_port)
 ractl_cmd = RaCtlCmds(sock_cmd=sock_cmd, token=TOKEN)
+sys_cmd = SysCmds()
 
 WIDTH = 128
 BORDER = 5
@@ -165,8 +160,9 @@ LINE_SPACING = 8
 # Some other nice fonts to try: http://www.dafont.com/bitmap.php
 FONT = ImageFont.truetype('resources/type_writer.ttf', FONT_SIZE)
 
-IP_ADDR, HOSTNAME = get_ip_and_host()
-
+IP_ADDR, HOSTNAME = sys_cmd.get_ip_and_host()
+REMOVABLE_DEVICE_TYPES = ractl_cmd.get_removable_device_types()
+PERIPHERAL_DEVICE_TYPES = ractl_cmd.get_peripheral_device_types()
 
 def formatted_output():
     """
@@ -188,9 +184,12 @@ def formatted_output():
                 else:
                     output.append(f"{line['id']} {line['device_type'][2:4]} {line['status']}")
             # Special handling of devices that don't use image files
-            elif line["device_type"] in (NETWORK_DEVICE_TYPES + SUPPORT_DEVICE_TYPES):
-                output.append(f"{line['id']} {line['device_type'][2:4]} {line['vendor']} "
-                              f"{line['product']}")
+            elif line["device_type"] in PERIPHERAL_DEVICE_TYPES:
+                if line["vendor"] == "RaSCSI":
+                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['product']}")
+                else:
+                    output.append(f"{line['id']} {line['device_type'][2:4]} {line['vendor']} "
+                                  f"{line['product']}")
             # Print only the Vendor/Product info if it's not generic RaSCSI
             elif line["vendor"] not in "RaSCSI":
                 output.append(f"{line['id']} {line['device_type'][2:4]} {line['file']} "

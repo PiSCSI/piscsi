@@ -14,3 +14,7 @@ messages.mo
 
 # temporary user files
 s.sh
+
+# temporary kicad files
+*-backups
+

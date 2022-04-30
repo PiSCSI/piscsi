@@ -52,6 +52,7 @@ VIRTUAL_DRIVER_PATH="$HOME/images"
 CFG_PATH="$HOME/.config/rascsi"
 WEB_INSTALL_PATH="$BASE/python/web"
 OLED_INSTALL_PATH="$BASE/python/oled"
+CTRLBOARD_INSTALL_PATH="$BASE/python/ctrlboard"
 PYTHON_COMMON_PATH="$BASE/python/common"
 SYSTEMD_PATH="/etc/systemd/system"
 HFS_FORMAT=/usr/bin/hformat
@@ -314,6 +315,17 @@ function stopRaScsiScreen() {
     fi
 }
 
+# Stops the rascsi-ctrlboard service if it is running
+function stopRaScsiCtrlBoard() {
+    if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
+        SERVICE_RASCSI_CTRLBOARD_RUNNING=0
+        sudo systemctl is-active --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_RUNNING=$?
+        if  [[ SERVICE_RASCSI_CTRLBOARD_RUNNING -eq 0 ]]; then
+          sudo systemctl stop rascsi-ctrlboard.service
+        fi
+    fi
+}
+
 # disables and removes the old monitor_rascsi service
 function disableOldRaScsiMonitorService() {
     if [ -f "$SYSTEMD_PATH/monitor_rascsi.service" ]; then
@@ -332,6 +344,40 @@ function disableOldRaScsiMonitorService() {
     fi
 }
 
+# disables the rascsi-oled service
+function disableRaScsiOledService() {
+    if [ -f "$SYSTEMD_PATH/rascsi-oled.service" ]; then
+        SERVICE_RASCSI_OLED_RUNNING=0
+        sudo systemctl is-active --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_RUNNING=$?
+        if [[ $SERVICE_RASCSI_OLED_RUNNING -eq 0 ]]; then
+          sudo systemctl stop rascsi-oled.service
+        fi
+
+        SERVICE_RASCSI_OLED_ENABLED=0
+        sudo systemctl is-enabled --quiet rascsi-oled.service >/dev/null 2>&1 || SERVICE_RASCSI_OLED_ENABLED=$?
+        if [[ $SERVICE_RASCSI_OLED_ENABLED -eq 0 ]]; then
+          sudo systemctl disable rascsi-oled.service
+        fi
+    fi
+}
+
+# disables the rascsi-ctrlboard service
+function disableRaScsiCtrlBoardService() {
+    if [ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]; then
+        SERVICE_RASCSI_CTRLBOARD_RUNNING=0
+        sudo systemctl is-active --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_RUNNING=$?
+        if [[ $SERVICE_RASCSI_CTRLBOARD_RUNNING -eq 0 ]]; then
+          sudo systemctl stop rascsi-ctrlboard.service
+        fi
+
+        SERVICE_RASCSI_CTRLBOARD_ENABLED=0
+        sudo systemctl is-enabled --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_ENABLED=$?
+        if [[ $SERVICE_RASCSI_CTRLBOARD_ENABLED -eq 0 ]]; then
+          sudo systemctl disable rascsi-ctrlboard.service
+        fi
+    fi
+}
+
 # Stops the macproxy service if it is running
 function stopMacproxy() {
     if [ -f "$SYSTEMD_PATH/macproxy.service" ]; then
@@ -339,7 +385,7 @@ function stopMacproxy() {
     fi
 }
 
-# Starts the rascsi-oled service if installed
+# Checks whether the rascsi-oled service is installed
 function isRaScsiScreenInstalled() {
     SERVICE_RASCSI_OLED_ENABLED=0
     if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
@@ -353,7 +399,19 @@ function isRaScsiScreenInstalled() {
     echo $SERVICE_RASCSI_OLED_ENABLED
 }
 
-# Starts the rascsi-oled service if installed
+# Checks whether the rascsi-ctrlboard service is installed
+function isRaScsiCtrlBoardInstalled() {
+    SERVICE_RASCSI_CTRLBOARD_ENABLED=0
+    if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
+        sudo systemctl is-enabled --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_ENABLED=$?
+    else
+        SERVICE_RASCSI_CTRLBOARD_ENABLED=1
+    fi
+
+    echo $SERVICE_RASCSI_CTRLBOARD_ENABLED
+}
+
+# Checks whether the rascsi-oled service is running
 function isRaScsiScreenRunning() {
     SERVICE_RASCSI_OLED_RUNNING=0
     if [[ -f "$SYSTEMD_PATH/rascsi-oled.service" ]]; then
@@ -367,11 +425,32 @@ function isRaScsiScreenRunning() {
     echo $SERVICE_RASCSI_OLED_RUNNING
 }
 
+# Checks whether the rascsi-oled service is running
+function isRaScsiCtrlBoardRunning() {
+    SERVICE_RASCSI_CTRLBOARD_RUNNING=0
+    if [[ -f "$SYSTEMD_PATH/rascsi-ctrlboard.service" ]]; then
+        sudo systemctl is-active --quiet rascsi-ctrlboard.service >/dev/null 2>&1 || SERVICE_RASCSI_CTRLBOARD_RUNNING=$?
+    else
+        SERVICE_RASCSI_CTRLBOARD_RUNNING=1
+    fi
+
+    echo $SERVICE_RASCSI_CTRLBOARD_RUNNING
+}
+
+
 # Starts the rascsi-oled service if installed
 function startRaScsiScreen() {
     if [[ $(isRaScsiScreenInstalled) -eq 0 ]] && [[ $(isRaScsiScreenRunning) -ne 1 ]]; then
         sudo systemctl start rascsi-oled.service
         showRaScsiScreenStatus
+    fi
+}
+
+# Starts the rascsi-ctrlboard service if installed
+function startRaScsiCtrlBoard() {
+    if [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]] && [[ $(isRaScsiCtrlBoardRunning) -ne 1 ]]; then
+        sudo systemctl start rascsi-ctrlboard.service
+        showRaScsiCtrlBoardStatus
     fi
 }
 
@@ -396,6 +475,11 @@ function showRaScsiWebStatus() {
 # Shows status for the rascsi-oled service
 function showRaScsiScreenStatus() {
     systemctl status rascsi-oled | tee
+}
+
+# Shows status for the rascsi-ctrlboard service
+function showRaScsiCtrlBoardStatus() {
+    systemctl status rascsi-ctrlboard | tee
 }
 
 # Shows status for the macproxy service
@@ -828,6 +912,7 @@ function installRaScsiScreen() {
     fi
 
     stopRaScsiScreen
+    disableRaScsiCtrlBoardService
     updateRaScsiGit
 
     sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
@@ -873,6 +958,113 @@ function installRaScsiScreen() {
     fi
 
     sudo systemctl start rascsi-oled
+}
+
+# updates configuration files and installs packages needed for the CtrlBoard script
+function installRaScsiCtrlBoard() {
+    echo "IMPORTANT: This configuration requires a RaSCSI Control Board connected to your RaSCSI board."
+    echo "See wiki for more information: https://github.com/akuker/RASCSI/wiki/RaSCSI-Control-Board"
+    echo ""
+    echo "Choose screen rotation:"
+    echo "  1) 0 degrees"
+    echo "  2) 180 degrees (default)"
+    read REPLY
+
+    if [ "$REPLY" == "1" ]; then
+        echo "Proceeding with 0 degrees rotation."
+        ROTATION="0"
+    else
+        echo "Proceeding with 180 degrees rotation."
+        ROTATION="180"
+    fi
+
+    if [ -z "$TOKEN" ]; then
+        echo ""
+        echo "Did you protect your RaSCSI installation with a token password? [y/N]"
+        read -r REPLY
+        if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
+            echo -n "Enter the password that you configured with RaSCSI at the time of installation: "
+            read -r TOKEN
+        fi
+    fi
+
+    stopRaScsiCtrlBoard
+    updateRaScsiGit
+
+    sudo apt-get update && sudo apt-get install libjpeg-dev libpng-dev libopenjp2-7-dev i2c-tools raspi-config -y </dev/null
+    # install python packages through apt that need compilation
+    sudo apt-get install python3-cbor2 -y </dev/null
+
+    # enable i2c
+    if [[ $(grep -c "^dtparam=i2c_arm=on" /boot/config.txt) -ge 1 ]]; then
+        echo "NOTE: I2C support seems to have been configured already."
+        REBOOT=0
+    else
+        sudo raspi-config nonint do_i2c 0 </dev/null
+        echo "Modified the Raspberry Pi boot configuration to enable I2C."
+        echo "A reboot will be required for the change to take effect."
+        REBOOT=1
+    fi
+
+    # determine target baudrate
+    PI_MODEL=$(/usr/bin/tr -d '\0' < /proc/device-tree/model)
+    TARGET_I2C_BAUDRATE=100000
+    if [[ ${PI_MODEL} =~ "Raspberry Pi 4" ]]; then
+      echo "Detected: Raspberry Pi 4"
+      TARGET_I2C_BAUDRATE=1000000
+    elif [[ ${PI_MODEL} =~ "Raspberry Pi 3" ]] || [[ ${PI_MODEL} =~ "Raspberry Pi Zero 2" ]]; then
+      echo "Detected: Raspberry Pi 3 or Zero 2"
+      TARGET_I2C_BAUDRATE=400000
+    else
+      echo "No Raspberry Pi 4, Pi 3 or Pi Zero 2 detected. Falling back on low i2c baudrate."
+      echo "Transition animations will be disabled."
+    fi
+
+    # adjust i2c baudrate according to the raspberry pi model detection
+    set +e
+    GREP_PARAM="^dtparam=i2c_arm=on,i2c_arm_baudrate=${TARGET_I2C_BAUDRATE}$"
+    ADJUST_BAUDRATE=$(grep -c "${GREP_PARAM}" /boot/config.txt)
+    if [[ $ADJUST_BAUDRATE -eq 0 ]]; then
+      echo "Adjusting I2C baudrate in /boot/config.txt"
+      sudo sed -i "s/dtparam=i2c_arm=on.*/dtparam=i2c_arm=on,i2c_arm_baudrate=${TARGET_I2C_BAUDRATE}/g" /boot/config.txt
+      REBOOT=1
+    else
+      echo "I2C baudrate already correct in /boot/config.txt"
+    fi
+    set -e
+
+    echo "Installing the rascsi-ctrlboard.service configuration..."
+    sudo cp -f "$CTRLBOARD_INSTALL_PATH/service-infra/rascsi-ctrlboard.service" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
+    sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-ctrlboard.service"
+    if [ ! -z "$TOKEN" ]; then
+        sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION --password=$TOKEN" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
+        sudo chmod 600 "$SYSTEMD_PATH/rascsi-ctrlboard.service"
+        echo "Granted access to the RaSCSI Control Board UI with the password that you configured for RaSCSI."
+    else
+        sudo sed -i "8 i ExecStart=$CTRLBOARD_INSTALL_PATH/start.sh --rotation=$ROTATION" "$SYSTEMD_PATH/rascsi-ctrlboard.service"
+    fi
+
+    sudo systemctl daemon-reload
+
+    # ensure that the old monitor_rascsi or rascsi-oled service is disabled and removed before the new one is installed
+    disableOldRaScsiMonitorService
+    disableRaScsiOledService
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable rascsi-ctrlboard
+
+    if [ $REBOOT -eq 1 ]; then
+        echo ""
+        echo "The rascsi-ctrlboard service will start on the next Pi boot."
+        echo "Press Enter to reboot or CTRL-C to exit"
+        read
+
+        echo "Rebooting..."
+        sleep 3
+        sudo reboot
+    fi
+
+    sudo systemctl start rascsi-ctrlboard
 }
 
 # Prints a notification if the rascsi.service file was backed up
@@ -932,10 +1124,14 @@ function runChoice() {
               if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected rascsi oled service; will run the installation steps for the OLED monitor."
                   installRaScsiScreen
+              elif [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]]; then
+                  echo "Detected rascsi control board service; will run the installation steps for the control board ui."
+                  installRaScsiCtrlBoard
               fi
               installRaScsiWebInterface
               installWebInterfaceService
               showRaScsiScreenStatus
+              showRaScsiCtrlBoardStatus
               showRaScsiStatus
               showRaScsiWebStatus
               notifyBackup
@@ -966,8 +1162,12 @@ function runChoice() {
               if [[ $(isRaScsiScreenInstalled) -eq 0 ]]; then
                   echo "Detected rascsi oled service; will run the installation steps for the OLED monitor."
                   installRaScsiScreen
+              elif [[ $(isRaScsiCtrlBoardInstalled) -eq 0 ]]; then
+                  echo "Detected rascsi control board service; will run the installation steps for the control board ui."
+                  installRaScsiCtrlBoard
               fi
               showRaScsiScreenStatus
+              showRaScsiCtrlBoardStatus
               showRaScsiStatus
               notifyBackup
               echo "Installing / Updating RaSCSI Service (${CONNECT_TYPE:-FULLSPEC}) - Complete!"
@@ -1083,6 +1283,19 @@ function runChoice() {
               echo "Enabling authentication for the RaSCSI Web Interface - Complete!"
               echo "Use the credentials for user '$USER' to log in to the Web Interface."
           ;;
+          13)
+              echo "Installing / Updating RaSCSI Control Board UI"
+              echo "This script will make the following changes to your system:"
+              echo "- Install additional packages with apt-get"
+              echo "- Add and modify systemd services"
+              echo "- Stop and disable the RaSCSI OLED service if it is running"
+              echo "- Modify the Raspberry Pi boot configuration (may require a reboot)"
+              sudoCheck
+              preparePythonCommon
+              installRaScsiCtrlBoard
+              showRaScsiCtrlBoardStatus
+              echo "Installing / Updating RaSCSI Control Board UI - Complete!"
+          ;;
           -h|--help|h|help)
               showMenu
           ;;
@@ -1096,7 +1309,7 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "12" ]; do
+   until [ $choice -ge "0" ] && [ $choice -le "13" ]; do
        echo -n "Enter your choice (0-12) or CTRL-C to exit: "
        read -r choice
    done
@@ -1126,6 +1339,8 @@ function showMenu() {
     echo " 10) compile and install RaSCSI stand-alone"
     echo " 11) configure the RaSCSI Web Interface stand-alone"
     echo " 12) enable authentication for the RaSCSI Web Interface"
+    echo "EXPERIMENTAL FEATURES"
+    echo " 13) install or update RaSCSI Control Board UI (requires hardware)"
 }
 
 # parse arguments passed to the script
@@ -1148,7 +1363,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13)
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
