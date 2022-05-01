@@ -1,103 +1,100 @@
 # Spanish translations for RaSCSI.
 # Copyright (C) 2022 akuker
-# This file is distributed under the same license as the PROJECT project.
+# This file is distributed under the same license as the RaSCSI 68kmla
+# project.
 # Nemanja Lukic <nemluk@pm.me>, 2022.
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: RaSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
-"POT-Creation-Date: 2022-01-04 09:01+0100\n"
-"PO-Revision-Date: 2022-01-04 13:21+0100\n"
-"Last-Translator: Nemanja Lukic <nemluk@pm.me>\n"
-"Language-Team: es N/A\n"
+"POT-Creation-Date: 2022-05-01 09:00+0200\n"
+"PO-Revision-Date: 2022-05-01 09:06+0200\n"
+"Last-Translator: n4al <n4al@pm.me>\n"
 "Language: es\n"
+"Language-Team: es N/A\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "Generated-By: Babel 2.9.1\n"
-"X-Generator: Poedit 3.0.1\n"
+"X-Generator: Poedit 2.4.3\n"
 
-#: file_cmds.py:190
+#: src/return_code_mapper.py:12
 #, python-format
 msgid "File deleted: %(file_path)s"
 msgstr "Archivo eliminado: %(file_path)s"
 
-#: file_cmds.py:194
+#: src/return_code_mapper.py:13
 #, python-format
 msgid "File to delete not found: %(file_path)s"
 msgstr "No se ha encontrado el archivo a eliminar: %(file_path)s"
 
-#: file_cmds.py:207
+#: src/return_code_mapper.py:14
 #, python-format
 msgid "File moved to: %(target_path)s"
 msgstr "El archivo se ha trasladado a: %(target_path)s"
 
-#: file_cmds.py:211
+#: src/return_code_mapper.py:15
 #, python-format
 msgid "Unable to move file to: %(target_path)s"
 msgstr "No se puede mover el archivo a: %(target_path)s"
 
-#: file_cmds.py:327
+#: src/return_code_mapper.py:16
 #, python-format
 msgid "Created CD-ROM ISO image with arguments \"%(value)s\""
 msgstr "Creada la imagen ISO del CD-ROM con argumentos “%(value)s”"
 
-#: file_cmds.py:358
+#: src/return_code_mapper.py:18
 #, python-format
 msgid "%(file_name)s downloaded to %(save_dir)s"
 msgstr "%(file_name)s descargado en %(save_dir)s"
 
-#: file_cmds.py:403
+#: src/return_code_mapper.py:19
 #, python-format
 msgid "Saved configuration file to %(file_name)s"
 msgstr "Archivo de configuración guardado en %(file_name)s"
 
-#: file_cmds.py:414
+#: src/return_code_mapper.py:20
 #, python-format
 msgid "Could not write to file: %(file_name)s"
 msgstr "No se pudo escribir en el archivo: %(file_name)s"
 
-#: file_cmds.py:472
-msgid "Invalid configuration file format"
-msgstr "Formato de archivo de configuración no válido"
-
-#: file_cmds.py:475
+#: src/return_code_mapper.py:21
 #, python-format
 msgid "Loaded configurations from: %(file_name)s"
 msgstr "Configuraciones cargadas de: %(file_name)s"
 
-#: file_cmds.py:484
+#: src/return_code_mapper.py:22
 #, python-format
 msgid "Could not read configuration file: %(file_name)s"
 msgstr "No se ha podido leer el archivo de configuración: %(file_name)s"
 
-#: file_cmds.py:501
+#: src/return_code_mapper.py:24
+msgid "Invalid configuration file format"
+msgstr "Formato de archivo de configuración no válido"
+
+#: src/return_code_mapper.py:25
 #, python-format
 msgid "Created properties file: %(file_path)s"
 msgstr "Creado el archivo de propiedades: %(file_path)s"
 
-#: file_cmds.py:512
+#: src/return_code_mapper.py:26
 #, python-format
 msgid "Could not write to properties file: %(file_path)s"
 msgstr "No se pudo escribir en el archivo de propiedades: %(file_path)s"
 
-#: file_cmds.py:528
+#: src/return_code_mapper.py:28
 #, python-format
 msgid "Read properties from file: %(file_path)s"
 msgstr "Leer las propiedades del archivo: %(file_path)s"
 
-#: file_cmds.py:538
+#: src/return_code_mapper.py:29
 #, python-format
 msgid "Could not read properties from file: %(file_path)s"
 msgstr "No se han podido leer las propiedades del archivo: %(file_path)s"
 
-#: pi_cmds.py:179
-msgid "You must log in to use this function"
-msgstr "Debe conectarse para utilizar esta función"
-
-#: ractl_cmds.py:212
+#: src/return_code_mapper.py:31
 #, python-format
 msgid ""
 "Cannot insert an image for %(device_type)s into a %(current_device_type)s device"
@@ -105,7 +102,7 @@ msgstr ""
 "No se puede insertar una imagen para %(device_type)s en un dispositivo "
 "%(current_device_type)s"
 
-#: socket_cmds.py:39
+#: src/socket_cmds_flask.py:34
 #, python-format
 msgid ""
 "The RaSCSI Web Interface failed to connect to RaSCSI at %(host)s:%(port)s with "
@@ -115,7 +112,7 @@ msgstr ""
 "el error: %(error_msg)s. El proceso RaSCSI no se está ejecutando o puede haber "
 "fallado."
 
-#: socket_cmds.py:79
+#: src/socket_cmds_flask.py:45
 msgid ""
 "The RaSCSI Web Interface lost connection to RaSCSI. Please go back and try "
 "again. If the issue persists, please report a bug."
@@ -123,7 +120,7 @@ msgstr ""
 "La interfaz web de RaSCSI ha perdido la conexión con RaSCSI. Por favor, vuelva "
 "a intentarlo. Si el problema persiste, informe de un error."
 
-#: socket_cmds.py:95
+#: src/socket_cmds_flask.py:54
 msgid ""
 "The RaSCSI Web Interface did not get a valid response from RaSCSI. Please go "
 "back and try again. If the issue persists, please report a bug."
@@ -131,7 +128,7 @@ msgstr ""
 "La interfaz web de RaSCSI no ha obtenido una respuesta válida de RaSCSI. Por "
 "favor, vuelva a intentarlo. Si el problema persiste, informe de un error."
 
-#: web.py:122
+#: src/web.py:105
 msgid ""
 "RaSCSI is password protected. Start the Web Interface with the --password "
 "parameter."
@@ -139,62 +136,42 @@ msgstr ""
 "RaSCSI está protegido por contraseña. Inicie la Interfaz Web con el parámetro —"
 "password."
 
-#: web.py:223
+#: src/web.py:209
 #, python-format
 msgid "Could not read drive properties from %(properties_file)s"
 msgstr ""
 "No se han podido leer las propiedades de la unidad desde %(properties_file)s"
 
-#: web.py:293
+#: src/web.py:271
 #, python-format
 msgid "You must log in with credentials for a user in the '%(group)s' group"
 msgstr "Debe conectarse con las credenciales de un usuario del grupo ‘%(group)s’"
 
-#: web.py:351 web.py:890
+#: src/web.py:329 src/web.py:830
 #, python-format
 msgid "Image file created: %(file_name)s"
 msgstr "Archivo de imagen creado: %(file_name)s"
 
-#: web.py:476
+#: src/web.py:446
 msgid "An error occurred when fetching logs."
 msgstr "Se ha producido un error al obtener los registros."
 
-#: web.py:491
+#: src/web.py:461
 #, python-format
 msgid "Log level set to %(value)s"
 msgstr "Nivel de registro fijado en %(value)s"
 
-#: web.py:510
+#: src/web.py:488
 #, python-format
 msgid "Please follow the instructions at %(url)s"
 msgstr "Siga las instrucciones en %(url)s"
 
-#: web.py:514
-msgid "Configure IPv4 forwarding before using a wireless network device."
-msgstr ""
-"Configure el reenvío de IPv4 antes de utilizar un dispositivo de red "
-"inalámbrico."
-
-#: web.py:518
-msgid "Configure NAT before using a wireless network device."
-msgstr "Configure NAT antes de utilizar un dispositivo de red inalámbrico."
-
-#: web.py:523 web.py:527
-msgid "Configure the network bridge before using a wired network device."
-msgstr ""
-"Configure el puente de red antes de utilizar un dispositivo de red por cable."
-
-#: web.py:540
+#: src/web.py:507
 #, python-format
-msgid "Attached DaynaPORT to SCSI ID %(id_number)s"
-msgstr "Adjuntado DaynaPORT a SCSI ID %(id_number)s"
+msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
+msgstr "Conectado %(device_type)s a SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: web.py:588
-#, python-format
-msgid "Attached %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s"
-msgstr "Adjuntado %(file_name)s a SCSI ID %(id_number)s LUN %(unit_number)s"
-
-#: web.py:591
+#: src/web.py:565
 #, python-format
 msgid ""
 "The image file size %(file_size)s bytes is not a multiple of %(block_size)s. "
@@ -205,7 +182,7 @@ msgstr ""
 "%(block_size)s. RaSCSI ignorará los datos finales. La imagen puede estar "
 "corrupta, así que proceda con precaución."
 
-#: web.py:597
+#: src/web.py:571
 #, python-format
 msgid ""
 "Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s"
@@ -213,125 +190,125 @@ msgstr ""
 "No se ha podido conectar %(file_name)s a SCSI ID %(id_number)s LUN "
 "%(unit_number)s"
 
-#: web.py:611
+#: src/web.py:585
 msgid "Detached all SCSI devices"
 msgstr "Se han desconectado todos los dispositivos SCSI"
 
-#: web.py:628
+#: src/web.py:602
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "SCSI ID desconectado %(id_number)s LUN %(unit_number)s"
 
-#: web.py:632
+#: src/web.py:606
 #, python-format
 msgid "Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Fallo en la desconexión de SCSI ID  %(id_number)s LUN %(unit_number)s"
 
-#: web.py:649
+#: src/web.py:623
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Expulsado SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: web.py:653
+#: src/web.py:627
 #, python-format
 msgid "Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Fallo en la expulsión de SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: web.py:676
+#: src/web.py:650
 msgid "DEVICE INFO"
 msgstr "INFORMACIÓN SOBRE EL DISPOSITIVO"
 
-#: web.py:678
+#: src/web.py:652
 #, python-format
 msgid "SCSI ID: %(id_number)s"
 msgstr "SCSI ID: %(id_number)s"
 
-#: web.py:679
+#: src/web.py:653
 #, python-format
 msgid "LUN: %(unit_number)s"
 msgstr "LUN: %(unit_number)s"
 
-#: web.py:680
+#: src/web.py:654
 #, python-format
 msgid "Type: %(device_type)s"
 msgstr "Tipo: %(device_type)s"
 
-#: web.py:681
+#: src/web.py:655
 #, python-format
 msgid "Status: %(device_status)s"
 msgstr "Estado: %(device_status)s"
 
-#: web.py:682
+#: src/web.py:656
 #, python-format
 msgid "File: %(image_file)s"
 msgstr "Archivo: %(image_file)s"
 
-#: web.py:683
+#: src/web.py:657
 #, python-format
 msgid "Parameters: %(value)s"
 msgstr "Parámetros: %(value)s"
 
-#: web.py:684
+#: src/web.py:658
 #, python-format
 msgid "Vendor: %(value)s"
 msgstr "Proveedor: %(value)s"
 
-#: web.py:685
+#: src/web.py:659
 #, python-format
 msgid "Product: %(value)s"
 msgstr "Producto: %(value)s"
 
-#: web.py:686
+#: src/web.py:660
 #, python-format
 msgid "Revision: %(revision_number)s"
 msgstr "Revisión: %(revision_number)s"
 
-#: web.py:687
+#: src/web.py:661
 #, python-format
 msgid "Block Size: %(value)s bytes"
 msgstr "Tamaño del bloque: %(value)s bytes"
 
-#: web.py:688
+#: src/web.py:662
 #, python-format
 msgid "Image Size: %(value)s bytes"
 msgstr "Tamaño de la imagen: %(value)s bytes"
 
-#: web.py:707
+#: src/web.py:681
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "SCSI ID reservado %(id_number)s"
 
-#: web.py:710
+#: src/web.py:684
 #, python-format
 msgid "Failed to reserve SCSI ID %(id_number)s"
 msgstr "No se ha podido reservar el SCSI ID %(id_number)s"
 
-#: web.py:726
+#: src/web.py:700
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "Liberada la reserva para SCSI ID %(id_number)s"
 
-#: web.py:729
+#: src/web.py:703
 #, python-format
 msgid "Failed to release the reservation for SCSI ID %(id_number)s"
 msgstr "No se ha podido liberar la reserva para el SCSI ID %(id_number)s"
 
-#: web.py:767
+#: src/web.py:742
 #, python-format
 msgid "Saved image as: %(file_name)s"
 msgstr "Imagen guardada como: %(file_name)s"
 
-#: web.py:769
+#: src/web.py:744
 #, python-format
 msgid "Failed to create CD-ROM image from %(url)s"
 msgstr "No se ha podido crear la imagen del CD-ROM desde  %(url)s"
 
-#: web.py:775
+#: src/web.py:755
 #, python-format
 msgid "Attached to SCSI ID %(id_number)s"
 msgstr "Conectado a SCSI ID %(id_number)s"
 
-#: web.py:778
+#: src/web.py:758
 #, python-format
 msgid ""
 "Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually."
@@ -339,65 +316,120 @@ msgstr ""
 "No se ha podido conectar la imagen al SCSI ID %(id_number)s. Intente conectarla "
 "manualmente."
 
-#: web.py:797 web.py:814
+#: src/web.py:778 src/web.py:797
 #, python-format
 msgid "Failed to download file from %(url)s"
 msgstr "No se ha podido descargar el archivo de %(url)s"
 
-#: web.py:845
-msgid "The file already exists!"
-msgstr "¡El archivo ya existe!"
-
-#: web.py:853
-msgid "Unable to write the file to disk!"
-msgstr "¡No se puede escribir el archivo en el disco!"
-
-#: web.py:868
-msgid "Transferred file corrupted!"
-msgstr "¡Archivo transferido corrompido!"
-
-#: web.py:874
-msgid "File upload successful!"
-msgstr "¡La carga de archivos se ha realizado con éxito!"
-
-#: web.py:917
+#: src/web.py:857
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "Archivo de imagen borrado:  %(file_name)s"
 
-#: web.py:947
+#: src/web.py:889
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "Archivo de imagen renombrado a: %(file_name)s"
 
-#: web.py:984
+#: src/web.py:926
 msgid "Aborted unzip: File(s) with the same name already exists."
 msgstr "Descompresión abortada: Ya existe(n) archivo(s) con el mismo nombre."
 
-#: web.py:986
+#: src/web.py:928
 msgid "Unzipped the following files:"
 msgstr "Descomprime los siguientes archivos:"
 
-#: web.py:990
+#: src/web.py:932
 #, python-format
 msgid "Properties file(s) have been moved to %(directory)s"
 msgstr "Los archivos de propiedades se han trasladado a %(directory)s"
 
-#: web.py:993
+#: src/web.py:935
 #, python-format
 msgid "Failed to unzip %(zip_file)s"
 msgstr "No se puede descomprimir %(zip_file)s"
 
-#: web.py:1007
+#: src/web.py:953
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Se ha cambiado el lenguaje de la Interfaz Web a %(locale)s"
 
-#: templates/base.html:4
+#: src/web_utils.py:81
+msgid "SASI Hard Disk"
+msgstr "Disco duro SASI"
+
+#: src/web_utils.py:83
+msgid "SCSI Hard Disk"
+msgstr "Disco duro SCSI"
+
+#: src/web_utils.py:85
+msgid "Removable Disk"
+msgstr "Disco extraíble"
+
+#: src/web_utils.py:87
+msgid "Magneto-Optical"
+msgstr "Magneto-óptico"
+
+#: src/web_utils.py:89
+msgid "CD / DVD"
+msgstr "CD / DVD"
+
+#: src/web_utils.py:91
+msgid "X68000 Host Bridge"
+msgstr "X68000 Host Bridge"
+
+#: src/web_utils.py:93
+msgid "DaynaPORT SCSI/Link"
+msgstr "X68000 Host Bridge"
+
+#: src/web_utils.py:95
+msgid "Printer"
+msgstr "Impresora"
+
+#: src/web_utils.py:97
+msgid "Host Services"
+msgstr "Servicios de Host"
+
+#: src/web_utils.py:111
+msgid "You must log in to use this function"
+msgstr "Debe conectarse para utilizar esta función"
+
+#: src/web_utils.py:125
+msgid "Configure IPv4 forwarding before using a wireless network device."
+msgstr ""
+"Configure el reenvío de IPv4 antes de utilizar un dispositivo de red "
+"inalámbrico."
+
+#: src/web_utils.py:127
+msgid "Configure NAT before using a wireless network device."
+msgstr "Configure NAT antes de utilizar un dispositivo de red inalámbrico."
+
+#: src/web_utils.py:133 src/web_utils.py:135
+msgid "Configure the network bridge before using a wired network device."
+msgstr ""
+"Configure el puente de red antes de utilizar un dispositivo de red por cable."
+
+#: src/web_utils.py:154
+msgid "The file already exists!"
+msgstr "¡El archivo ya existe!"
+
+#: src/web_utils.py:162
+msgid "Unable to write the file to disk!"
+msgstr "¡No se puede escribir el archivo en el disco!"
+
+#: src/web_utils.py:177
+msgid "Transferred file corrupted!"
+msgstr "¡Archivo transferido corrompido!"
+
+#: src/web_utils.py:183
+msgid "File upload successful!"
+msgstr "¡La carga de archivos se ha realizado con éxito!"
+
+#: src/templates/base.html:4 src/templates/base.html:67
 msgid "RaSCSI Control Page"
 msgstr "Página de control de RaSCSI"
 
-#: templates/base.html:29
+#: src/templates/base.html:29
 msgid ""
 " This process may take a while, and will continue in the background if you "
 "navigate away from this page."
@@ -405,7 +437,7 @@ msgstr ""
 " Este proceso puede tardar un poco, y continuará en segundo plano si navega "
 "fuera de esta página."
 
-#: templates/base.html:34
+#: src/templates/base.html:34
 msgid ""
 " The Web Interface will become unresponsive momentarily. Reload this page after "
 "the Pi has started up again."
@@ -413,54 +445,54 @@ msgstr ""
 " La interfaz web dejará de responder momentáneamente. Vuelva a cargar esta "
 "página después de que la Pi haya arrancado de nuevo."
 
-#: templates/base.html:48
+#: src/templates/base.html:48
 #, python-format
 msgid "Logged in as <em>%(username)s</em>"
 msgstr "Conectado como <em>%(username)s</em>"
 
-#: templates/base.html:48
+#: src/templates/base.html:48
 msgid "Log Out"
 msgstr "Cerrar la sesión"
 
-#: templates/base.html:52
+#: src/templates/base.html:52
 msgid "Log In to Use Web Interface"
 msgstr "Iniciar sesión para utilizar la interfaz web"
 
-#: templates/base.html:53
+#: src/templates/base.html:53
 msgid "Username"
 msgstr "Nombre de usuario"
 
-#: templates/base.html:54
+#: src/templates/base.html:54
 msgid "Password"
 msgstr "Contraseña"
 
-#: templates/base.html:60
+#: src/templates/base.html:60
 msgid "Web Interface Authentication Disabled"
 msgstr "Autenticación de la interfaz web deshabilitada"
 
-#: templates/base.html:60
+#: src/templates/base.html:60
 #, python-format
 msgid "See <a href=\"%(url)s\" target=\"_blank\">Wiki</a> for more information"
 msgstr ""
 "Consulte <a href=“%(url)s” target=“_blank”>Wiki</a> para obtener más información"
 
-#: templates/base.html:87
+#: src/templates/base.html:92
 msgid "RaSCSI version: "
 msgstr "Versión de RaSCSI: "
 
-#: templates/base.html:88
+#: src/templates/base.html:93
 msgid "Pi environment: "
 msgstr "Entorno Pi: "
 
-#: templates/drives.html:4 templates/drives.html:139
+#: src/templates/drives.html:4 src/templates/drives.html:139
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: templates/drives.html:5
+#: src/templates/drives.html:5
 msgid "Disclaimer"
 msgstr "Aviso legal"
 
-#: templates/drives.html:6
+#: src/templates/drives.html:6
 #, python-format
 msgid ""
 "These device profiles are provided as-is with no guarantee to work equally to "
@@ -476,48 +508,54 @@ msgstr ""
 "modifiquen los datos, o si tiene otros dispositivos que añadir a la lista, cree "
 "un ticket de incidencia en <a href=“%(url)s”>GitHub</a>."
 
-#: templates/drives.html:7
+#: src/templates/drives.html:7
 msgid "Hard Drives"
 msgstr "Discos duros"
 
-#: templates/drives.html:12 templates/drives.html:56 templates/drives.html:102
+#: src/templates/drives.html:12 src/templates/drives.html:56
+#: src/templates/drives.html:102
 msgid "Name"
 msgstr "Nombre"
 
-#: templates/drives.html:13 templates/drives.html:57 templates/drives.html:103
+#: src/templates/drives.html:13 src/templates/drives.html:57
+#: src/templates/drives.html:103
 msgid "Size (MB)"
 msgstr "Tamaño (MB)"
 
-#: templates/drives.html:14 templates/drives.html:58 templates/drives.html:104
+#: src/templates/drives.html:14 src/templates/drives.html:58
+#: src/templates/drives.html:104
 msgid "Description"
 msgstr "Descripción"
 
-#: templates/drives.html:15 templates/drives.html:59 templates/drives.html:105
+#: src/templates/drives.html:15 src/templates/drives.html:59
+#: src/templates/drives.html:105
 msgid "Ref."
 msgstr "Ref."
 
-#: templates/drives.html:16 templates/drives.html:60 templates/drives.html:106
+#: src/templates/drives.html:16 src/templates/drives.html:60
+#: src/templates/drives.html:106
 msgid "Action"
 msgstr "Acción"
 
-#: templates/drives.html:25 templates/drives.html:69 templates/drives.html:115
+#: src/templates/drives.html:25 src/templates/drives.html:69
+#: src/templates/drives.html:115
 msgid "Link"
 msgstr "Enlace"
 
-#: templates/drives.html:39 templates/drives.html:129
+#: src/templates/drives.html:39 src/templates/drives.html:129
 msgid "Save as:"
 msgstr "Guardado como:"
 
-#: templates/drives.html:41 templates/drives.html:88 templates/drives.html:131
-#: templates/index.html:549
+#: src/templates/drives.html:41 src/templates/drives.html:88
+#: src/templates/drives.html:131 src/templates/index.html:570
 msgid "Create"
 msgstr "Crear"
 
-#: templates/drives.html:51
+#: src/templates/drives.html:51
 msgid "CD-ROM Drives"
 msgstr "Unidades de CD-ROM"
 
-#: templates/drives.html:52
+#: src/templates/drives.html:52
 msgid ""
 "This will create a properties file for the given CD-ROM image. No new image "
 "file will be created."
@@ -525,29 +563,29 @@ msgstr ""
 "Esto creará un archivo de propiedades para la imagen de CD-ROM dada. No se "
 "creará ningún archivo de imagen nuevo."
 
-#: templates/drives.html:80
+#: src/templates/drives.html:80
 msgid "Create for:"
 msgstr "Crear para:"
 
-#: templates/drives.html:98
+#: src/templates/drives.html:98
 msgid "Removable Drives"
 msgstr "Unidades extraíbles"
 
-#: templates/drives.html:138 templates/index.html:295
+#: src/templates/drives.html:138 src/templates/index.html:296
 #, python-format
 msgid "%(disk_space)s MB disk space remaining on the Pi"
 msgstr "%(disk_space)s MB de espacio en disco restante en la Pi"
 
-#: templates/index.html:6
+#: src/templates/index.html:6
 msgid "Current RaSCSI Configuration"
 msgstr "Configuración actual de RaSCSI"
 
-#: templates/index.html:9
+#: src/templates/index.html:9
 msgid "Displays the currently attached devices for each available SCSI ID."
 msgstr ""
 "Muestra los dispositivos actualmente conectados para cada SCSI ID disponible."
 
-#: templates/index.html:10
+#: src/templates/index.html:10
 #, python-format
 msgid ""
 "Save and load device configurations, stored as json files in <tt>"
@@ -556,7 +594,7 @@ msgstr ""
 "Guardar y cargar las configuraciones de los dispositivos, almacenadas como "
 "archivos json en <tt>%(config_dir)s</tt>"
 
-#: templates/index.html:11
+#: src/templates/index.html:11
 msgid ""
 "To have a particular device configuration load when RaSCSI starts, save it as "
 "<em>default</em>."
@@ -564,112 +602,114 @@ msgstr ""
 "Para que se cargue una configuración de dispositivo concreta cuando se inicie "
 "RaSCSI, guárdela como <em>default</em>."
 
-#: templates/index.html:25
+#: src/templates/index.html:25
 msgid "No saved configurations"
 msgstr "No hay configuraciones guardadas"
 
-#: templates/index.html:29
+#: src/templates/index.html:29
 msgid "Load"
 msgstr "Cargar"
 
-#: templates/index.html:29
+#: src/templates/index.html:29
 msgid "Detach all current device and Load configuration?"
 msgstr "¿Desconectar todo el dispositivo actual y cargar la configuración?"
 
-#: templates/index.html:30 templates/index.html:287
+#: src/templates/index.html:30 src/templates/index.html:288
 msgid "Delete"
 msgstr "Borrar"
 
-#: templates/index.html:30
+#: src/templates/index.html:30
 msgid "Delete configuration file?"
 msgstr "¿Borrar el archivo de configuración?"
 
-#: templates/index.html:35
+#: src/templates/index.html:35
 msgid "Save"
 msgstr "Guardar"
 
-#: templates/index.html:41 templates/index.html:252
+#: src/templates/index.html:41 src/templates/index.html:251
 msgid "ID"
 msgstr "ID"
 
-#: templates/index.html:43 templates/index.html:260
+#: src/templates/index.html:43 src/templates/index.html:259
+#: src/templates/index.html:355
 msgid "LUN"
 msgstr "LUN"
 
-#: templates/index.html:45 templates/index.html:268
+#: src/templates/index.html:45
 msgid "Type"
 msgstr "Tipo"
 
-#: templates/index.html:46
+#: src/templates/index.html:46
 msgid "Status"
 msgstr "Estado"
 
-#: templates/index.html:47 templates/index.html:166
+#: src/templates/index.html:47 src/templates/index.html:165
 msgid "File"
 msgstr "Archivo"
 
-#: templates/index.html:48
+#: src/templates/index.html:48
 msgid "Product"
 msgstr "Producto"
 
-#: templates/index.html:49 templates/index.html:168
+#: src/templates/index.html:49
 msgid "Actions"
 msgstr "Acciones"
 
-#: templates/index.html:84 templates/index.html:277 templates/index.html:337
+#: src/templates/index.html:84 src/templates/index.html:278
+#: src/templates/index.html:357
 msgid "Attach"
 msgstr "Conectar"
 
-#: templates/index.html:98
+#: src/templates/index.html:98
 msgid "Eject Disk?  WARNING: On Mac OS, eject the Disk in the Finder instead!"
 msgstr ""
 "¿Expulsar el disco?  ADVERTENCIA: ¡En Mac OS, expulse el disco en el Finder!"
 
-#: templates/index.html:101
+#: src/templates/index.html:101
 msgid "Eject"
 msgstr "Expulsar"
 
-#: templates/index.html:104
+#: src/templates/index.html:104
 msgid "Detach Device?"
 msgstr "¿Desconectar el dispositivo?"
 
-#: templates/index.html:107
+#: src/templates/index.html:107
 msgid "Detach"
 msgstr "Desconectar"
 
-#: templates/index.html:113
+#: src/templates/index.html:113
 msgid "Info"
 msgstr "Info"
 
-#: templates/index.html:116
+#: src/templates/index.html:116
 msgid "Enter a memo for this reservation"
 msgstr "Introduzca una nota para esta reserva"
 
-#: templates/index.html:119
+#: src/templates/index.html:119
 msgid "Reserve"
 msgstr "Reserva"
 
-#: templates/index.html:129
+#: src/templates/index.html:129
 msgid "Reserved ID"
 msgstr "ID reservado"
 
-#: templates/index.html:135
-msgid "Unreserve"
-msgstr "Liberar la reserva"
+#: src/templates/index.html:135
+msgid "Release"
+msgstr "Liberar"
 
-#: templates/index.html:144
+#: src/templates/index.html:144
 msgid "Detach all SCSI Devices?"
 msgstr "¿Desconectar todos los dispositivos SCSI?"
 
-#: templates/index.html:145
+#: src/templates/index.html:145
 msgid "Detach All Devices"
 msgstr "Desconectar todos los dispositivos"
 
-#: templates/index.html:152
+#: src/templates/index.html:152
 msgid "Image File Management"
 msgstr "Gestión de archivos de imagen"
 
-#: templates/index.html:155
+#: src/templates/index.html:155
 #, python-format
 msgid ""
 "Manage image files in the active RaSCSI image directory: <tt>%(directory)s</tt> "
@@ -678,7 +718,7 @@ msgstr ""
 "Gestionar los archivos de imagen en el directorio activo de las imágenes de "
 "RaSCSI:  <tt>%(directory)s</tt> con la profundidad de escaneo de %(scan_depth)s."
 
-#: templates/index.html:156
+#: src/templates/index.html:156
 #, python-format
 msgid ""
 "Select a valid SCSI ID and <a href=\"%(url)s\">LUN</a> to attach to. Unless you "
@@ -687,90 +727,91 @@ msgstr ""
 "Seleccione un SCSI ID válido y <a href=“%(url)s”>LUN</a> al que conectar. A "
 "menos que sepa lo que está haciendo, utilice siempre el LUN 0."
 
-#: templates/index.html:158
+#: src/templates/index.html:158
 msgid ""
-"If RaSCSI was unable to detect the device type associated with the image, you "
-"can choose the type from the dropdown."
+"If RaSCSI was unable to detect the media type associated with the image, you "
+"get to choose the type from the dropdown."
 msgstr ""
-"Si RaSCSI no pudo detectar el tipo de dispositivo asociado a la imagen, puede "
-"elegir el tipo en el menú desplegable."
+"Si RaSCSI no pudo detectar el tipo de medio asociado a la imagen, podrá elegir "
+"el tipo en el menú desplegable."
 
-#: templates/index.html:159
-msgid ""
-"Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-"
-"Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
-msgstr ""
-"Tipos: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = extraíble | SCMO = magneto-"
-"optico | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
-
-#: templates/index.html:167
+#: src/templates/index.html:166
 msgid "Size"
 msgstr "Tamaño"
 
-#: templates/index.html:184
+#: src/templates/index.html:167 src/templates/index.html:321
+msgid "Parameters and Actions"
+msgstr "Parámetros y acciones"
+
+#: src/templates/index.html:183
 msgid "Properties File"
 msgstr "Archivo de propiedades"
 
-#: templates/index.html:204 templates/index.html:218
+#: src/templates/index.html:203 src/templates/index.html:217
 msgid "Unzip"
 msgstr "Descomprimir"
 
-#: templates/index.html:204 templates/index.html:218
+#: src/templates/index.html:203 src/templates/index.html:217
 msgid "Unzipping a single file..."
 msgstr "Descomprimiendo un solo archivo…"
 
-#: templates/index.html:233 templates/index.html:390 templates/index.html:548
+#: src/templates/index.html:232 src/templates/index.html:411
+#: src/templates/index.html:569
 msgid "MB"
 msgstr "MB"
 
-#: templates/index.html:239
+#: src/templates/index.html:238
 msgid "Attached!"
 msgstr "¡Conectado!"
 
-#: templates/index.html:246
+#: src/templates/index.html:245
 msgid "Unzip All"
 msgstr "Descomprimir todo"
 
-#: templates/index.html:246
+#: src/templates/index.html:245
 msgid "Unzipping all files..."
 msgstr "Descomprimiendo todos los archivos…"
 
-#: templates/index.html:280
+#: src/templates/index.html:267
+msgid "Select media type"
+msgstr "Seleccione el tipo de medio"
+
+#: src/templates/index.html:281
 #, python-format
 msgid "Enter new file name for: %(file_name)s"
 msgstr "Introduzca un nuevo nombre de archivo para: %(file_name)s"
 
-#: templates/index.html:283
+#: src/templates/index.html:284
 msgid "Rename"
 msgstr "Renombrar"
 
-#: templates/index.html:285
+#: src/templates/index.html:286
 #, python-format
 msgid "Delete file: %(file_name)s?"
 msgstr "¿Borrar el archivo: %(file_name)s?"
 
-#: templates/index.html:301
-msgid "Attach Ethernet Adapter"
-msgstr "Conectar el adaptador Ethernet"
+#: src/templates/index.html:301
+msgid "Attach Peripheral Device"
+msgstr "Conectar dispositivo periférico"
 
-#: templates/index.html:304
+#: src/templates/index.html:304
 #, python-format
 msgid ""
-"Emulates a SCSI DaynaPORT Ethernet Adapter. <a href=\"%(url)s\">Host drivers "
-"and configuration required</a>."
+"<a href=\"%(url1)s\">DaynaPORT SCSI/Link</a> and <a href=\"%(url2)s\">X68000 "
+"Host Bridge</a> are network devices."
 msgstr ""
-"Emula el adaptador ethernet SCSI DynaPORT. <a href=“%(url)s”>Controladores de "
-"host y configuración necesaria</a>."
+"<a href=“%(url1)s”>DaynaPORT SCSI/Link</a> y <a href=“%(url2)s”>X68000 Host "
+"Bridge</a> son dispositivos de red."
 
-#: templates/index.html:306
+#: src/templates/index.html:307
 msgid ""
 "If you have a DHCP setup, choose only the interface you have configured the "
-"bridge with. You can ignore the Static IP fields when attaching."
+"bridge with. You can ignore the inet field when attaching."
 msgstr ""
 "Si tiene una configuración DHCP, elija sólo la interfaz con la que ha "
-"configurado el puente. Puede ignorar los campos de IP estática al conectarla."
+"configurado el puente. Puedes ignorar el campo inet al adjuntar."
 
-#: templates/index.html:307
+#: src/templates/index.html:308
 #, python-format
 msgid ""
 "Configure the network bridge by running easyinstall.sh, or follow the <a href="
@@ -779,32 +820,39 @@ msgstr ""
 "Configure el puente de red ejecutando easyinstall.sh, o siga los <a "
 "href=“%(url)s”>pasos manuales en la wiki</a>."
 
-#: templates/index.html:310
+#: src/templates/index.html:310
 msgid ""
-"The <tt>rascsi_bridge</tt> interface is active and ready to be used by "
-"DaynaPORT!"
+"The <tt>rascsi_bridge</tt> network bridge is active and ready to be used by an "
+"emulated network adapter!"
 msgstr ""
-"¡La interfaz <tt>rascsi_bridge</tt> está activa y lista para ser utilizada por "
-"DaynaPORT!"
+"¡El puente de red <tt>rascsi_bridge</tt> está activo y listo para ser utilizado "
+"por un adaptador de red emulado!"
 
-#: templates/index.html:318
-msgid "Interface:"
-msgstr "Interfaz:"
+#: src/templates/index.html:314
+#, python-format
+msgid ""
+"The Printer and Host Services device are currently supported on compatible "
+"Atari systems, and require <a href=\"%(url)s\">driver software</a> to be "
+"installed on the host system."
+msgstr ""
+"El dispositivo de la impresora y los servicios de host son actualmente "
+"compatibles con los sistemas Atari, y requieren que se instale <a "
+"href=“%(url)s”>el software del controlador</a> en el sistema host."
 
-#: templates/index.html:326
-msgid "Static IP (optional):"
-msgstr "IP estática (opcional):"
+#: src/templates/index.html:320
+msgid "Peripheral"
+msgstr "Periférico"
 
-#: templates/index.html:329 templates/index.html:473
+#: src/templates/index.html:347 src/templates/index.html:494
 msgid "SCSI ID:"
 msgstr "SCSI ID:"
 
-#: templates/index.html:343
+#: src/templates/index.html:364
 #, python-format
 msgid "Macproxy is running at %(ip_addr)s (default port 5000)"
 msgstr "Macproxy se está ejecutando en %(ip_addr)s (puerto por defecto: 5000)"
 
-#: templates/index.html:345
+#: src/templates/index.html:366
 #, python-format
 msgid ""
 "Install <a href=\"%(url)s\">Macproxy</a> to browse the Web with any vintage "
@@ -813,11 +861,11 @@ msgstr ""
 "Instala <a href=“%(url)s”>Macproxy</a> para navegar por la web con cualquier "
 "navegador de época. ¡No es sólo para Macs!"
 
-#: templates/index.html:351
+#: src/templates/index.html:372
 msgid "Upload File"
 msgstr "Subir archivo"
 
-#: templates/index.html:354
+#: src/templates/index.html:375
 #, python-format
 msgid ""
 "Uploads file to <tt>%(directory)s</tt>. The largest file size accepted is "
@@ -826,7 +874,7 @@ msgstr ""
 "Sube un archivo a <tt>%(directory)s</tt>. El mayor tamaño de archivo aceptado "
 "es %(max_file_size)s MB."
 
-#: templates/index.html:355
+#: src/templates/index.html:376
 msgid ""
 "For unrecognized file types, try renaming hard drive images to '.hds', CD-ROM "
 "images to '.iso', and removable drive images to '.hdr' before uploading."
@@ -835,109 +883,111 @@ msgstr ""
 "las imágenes del disco duro a ‘.hds’, de las imágenes del CD-ROM a ‘.iso’ y de "
 "las imágenes de las unidades extraíbles a ‘.hdr’ antes de cargarlas."
 
-#: templates/index.html:356
+#: src/templates/index.html:377
 #, python-format
 msgid "Recognized file types: %(valid_file_suffix)s"
 msgstr "Tipos de archivo reconocidos: %(valid_file_suffix)s"
 
-#: templates/index.html:376
+#: src/templates/index.html:397
 msgid "Drop files here to upload"
 msgstr "Suelte los archivos aquí para cargarlos"
 
-#: templates/index.html:377
+#: src/templates/index.html:398
 msgid "Your browser does not support drag'n'drop file uploads."
 msgstr ""
 "Su navegador no admite la carga de archivos mediante la función de arrastrar y "
 "soltar."
 
-#: templates/index.html:378
+#: src/templates/index.html:399
 msgid ""
 "Please use the fallback form below to upload your files like in the olden days."
 msgstr ""
 "Por favor, utilice el siguiente formulario para subir sus archivos como en los "
 "viejos tiempos."
 
-#: templates/index.html:379
+#: src/templates/index.html:400
 msgid "File is too big: {{filesize}}MB. Max filesize: {{maxFilesize}}MB."
 msgstr ""
 "El archivo es demasiado grande: {{filesize}}MB. Tamaño máximo del archivo: "
 "{{maxFilesize}}MB."
 
-#: templates/index.html:380
+#: src/templates/index.html:401
 msgid "You can't upload files of this type."
 msgstr "No se pueden subir archivos de este tipo."
 
-#: templates/index.html:381
+#: src/templates/index.html:402
 msgid "Server responded with code: {{statusCode}}"
 msgstr "El servidor ha respondido con un código: {{statusCode}}"
 
-#: templates/index.html:382
+#: src/templates/index.html:403
 msgid "Cancel upload"
 msgstr "Cancelar la subida"
 
-#: templates/index.html:383
+#: src/templates/index.html:404
 msgid "Upload canceled."
 msgstr "Subida cancelada."
 
-#: templates/index.html:384
+#: src/templates/index.html:405
 msgid "Are you sure you want to cancel this upload?"
 msgstr "¿Estás seguro de que quieres cancelar esta subida?"
 
-#: templates/index.html:385
+#: src/templates/index.html:406
 msgid "Remove file"
 msgstr "Eliminar el archivo"
 
-#: templates/index.html:386
+#: src/templates/index.html:407
 msgid "You can not upload any more files."
 msgstr "No puedes subir más archivos."
 
-#: templates/index.html:388
+#: src/templates/index.html:409
 msgid "TB"
 msgstr "TB"
 
-#: templates/index.html:389
+#: src/templates/index.html:410
 msgid "GB"
 msgstr "GB"
 
-#: templates/index.html:391
+#: src/templates/index.html:412
 msgid "KB"
 msgstr "KB"
 
-#: templates/index.html:392
+#: src/templates/index.html:413
 msgid "b"
 msgstr "b"
 
-#: templates/index.html:401
+#: src/templates/index.html:422
 msgid "Download File to Images"
 msgstr "Descarga de archivos a imágenes"
 
-#: templates/index.html:404
+#: src/templates/index.html:425
 #, python-format
 msgid "Given a URL, download that file to the <tt>%(directory)s</tt> directory."
 msgstr ""
 "Dada una URL, descarga ese archivo en el directorio de <tt>%(directory)s</tt>."
 
-#: templates/index.html:412 templates/index.html:438 templates/index.html:482
+#: src/templates/index.html:433 src/templates/index.html:459
+#: src/templates/index.html:503
 msgid "URL:"
 msgstr "URL:"
 
-#: templates/index.html:413 templates/index.html:439 templates/index.html:483
+#: src/templates/index.html:434 src/templates/index.html:460
+#: src/templates/index.html:504
 msgid "URL"
 msgstr "URL"
 
-#: templates/index.html:414 templates/index.html:440
+#: src/templates/index.html:435 src/templates/index.html:461
 msgid "Download"
 msgstr "Descargar"
 
-#: templates/index.html:414
+#: src/templates/index.html:435
 msgid "Downloading File to Images..."
 msgstr "Descargando archivos a imágenes…"
 
-#: templates/index.html:424
+#: src/templates/index.html:445
 msgid "Download File to AppleShare"
 msgstr "Descargar archivo a AppleShare"
 
-#: templates/index.html:427
+#: src/templates/index.html:448
 #, python-format
 msgid ""
 "Given a URL, download that file to the <tt>%(directory)s</tt> directory and "
@@ -946,13 +996,13 @@ msgstr ""
 "Dada una URL, descarga ese archivo al directorio de <tt>%(directory)s</tt> y lo "
 "comparte a través de AFP."
 
-#: templates/index.html:428
+#: src/templates/index.html:449
 msgid "Manage the files you download here through AppleShare on your vintage Mac."
 msgstr ""
 "Gestiona los archivos que descargues aquí a través de AppleShare en tu Mac "
 "vintage."
 
-#: templates/index.html:429
+#: src/templates/index.html:450
 #, python-format
 msgid ""
 "Requires <a href=\"%(url)s\">Netatalk</a> to be installed and configured "
@@ -961,25 +1011,25 @@ msgstr ""
 "Requiere que <a href=“%(url)s”>Netatalk</a> esté instalado y configurado "
 "correctamente para su red."
 
-#: templates/index.html:440
+#: src/templates/index.html:461
 msgid "Downloading File to AppleShare..."
 msgstr "Descargando archivos s AppleShare…"
 
-#: templates/index.html:447
+#: src/templates/index.html:468
 msgid "The AppleShare server is running. No active connections."
 msgstr "El servidor AppleShare está funcionando. No hay conexiones activas."
 
-#: templates/index.html:449
+#: src/templates/index.html:470
 #, python-format
 msgid "%(value)d active AFP connection"
 msgstr "%(value)d conexión AFP activa"
 
-#: templates/index.html:451
+#: src/templates/index.html:472
 #, python-format
 msgid "%(value)d active AFP connections"
 msgstr "%(value)d conexiones AFP activas"
 
-#: templates/index.html:454
+#: src/templates/index.html:475
 #, python-format
 msgid ""
 "Install <a href=\"%(url)s\">Netatalk</a> to use the AppleShare File Server."
@@ -987,11 +1037,11 @@ msgstr ""
 "Instale <a href=“%(url)s”>Netatalk</a> para utilizar el servidor de archivos "
 "AppleShare."
 
-#: templates/index.html:461
+#: src/templates/index.html:482
 msgid "Download File and Create CD-ROM image"
 msgstr "Descargar archivo y crear imagen de CD-ROM"
 
-#: templates/index.html:464
+#: src/templates/index.html:485
 msgid ""
 "Create an ISO file system CD-ROM image with the downloaded file, and mount it "
 "on the given SCSI ID."
@@ -999,18 +1049,18 @@ msgstr ""
 "Cree una imagen de CD-ROM del sistema de archivos ISO con el archivo descargado "
 "y móntelo en la SCSI ID indicada."
 
-#: templates/index.html:465
+#: src/templates/index.html:486
 msgid "HFS is for Mac OS, Joliet for Windows, and Rock Ridge for POSIX."
 msgstr "HFS es para Mac OS, Joliet para Windows y Rock Ridge para POSIX."
 
-#: templates/index.html:466
+#: src/templates/index.html:487
 #, python-format
 msgid "On Mac OS, a <a href=\"%(url)s\">compatible CD-ROM driver</a> is required."
 msgstr ""
 "En Mac OS, se necesita un <a href=“%(url)s”>controlador de CD-ROM compatible</"
 "a>."
 
-#: templates/index.html:467
+#: src/templates/index.html:488
 msgid ""
 "If the downloaded file is a zip archive, we will attempt to unzip it and store "
 "the resulting files."
@@ -1018,29 +1068,29 @@ msgstr ""
 "Si el fichero descargado es un archivo zip, intentaremos descomprimirlo y "
 "almacenar los ficheros resultantes."
 
-#: templates/index.html:484 templates/index.html:529
+#: src/templates/index.html:505 src/templates/index.html:550
 msgid "Type:"
 msgstr "Tipo:"
 
-#: templates/index.html:505
+#: src/templates/index.html:526
 msgid "Download and Mount CD-ROM image"
 msgstr "Descargar y montar la imagen del CD-ROM"
 
-#: templates/index.html:505
+#: src/templates/index.html:526
 msgid "Downloading File and generating CD-ROM image..."
 msgstr "Descargando el archivo y generando la imagen del CD-ROM…"
 
-#: templates/index.html:515
+#: src/templates/index.html:536
 msgid "Create Empty Disk Image File"
 msgstr "Crear un archivo de imagen de disco vacío"
 
-#: templates/index.html:518
+#: src/templates/index.html:539
 msgid "The Generic image type is recommended for most computer platforms."
 msgstr ""
 "El tipo de imagen Genérico se recomienda para la mayoría de las plataformas "
 "informáticas."
 
-#: templates/index.html:519
+#: src/templates/index.html:540
 msgid ""
 "APPLE GENUINE (.hda) and NEC GENUINE (.hdn) image types will make RaSCSI behave "
 "as a particular drive type that are recognized by Mac and PC98 systems, "
@@ -1050,7 +1100,7 @@ msgstr ""
 "se comporte como un tipo de unidad particular reconocido por los sistemas Mac y "
 "PC98, respectivamente."
 
-#: templates/index.html:520
+#: src/templates/index.html:541
 msgid ""
 "SASI images should only be used on the original Sharp X68000, or other legacy "
 "systems that utilize this pre-SCSI standard."
@@ -1058,50 +1108,50 @@ msgstr ""
 "Las imágenes SASI sólo deben utilizarse en el Sharp X68000 original, o en otros "
 "sistemas heredados que utilicen este estándar pre-SCSI."
 
-#: templates/index.html:527
+#: src/templates/index.html:548
 msgid "File Name:"
 msgstr "Nombre del archivo:"
 
-#: templates/index.html:528
+#: src/templates/index.html:549
 msgid "File Name"
 msgstr "Nombre del archivo"
 
-#: templates/index.html:532
+#: src/templates/index.html:553
 msgid "SCSI Hard Disk image (Generic) [.hds]"
 msgstr "Imagen de disco duro SCSI (genérico) [.hds]"
 
-#: templates/index.html:535
+#: src/templates/index.html:556
 msgid "SCSI Hard Disk image (APPLE GENUINE) [.hda]"
 msgstr "Imagen de disco duro SCSI (APPLE GENUINE) [.hda]"
 
-#: templates/index.html:538
+#: src/templates/index.html:559
 msgid "SCSI Hard Disk image (NEC GENUINE) [.hdn]"
 msgstr "Imagen del disco duro SCSI (NEC GENUINE) [.hdn]"
 
-#: templates/index.html:541
+#: src/templates/index.html:562
 msgid "SCSI Removable Media Disk image (Generic) [.hdr]"
 msgstr "Imagen de disco extraíble SCSI (genérico) [.hdr]"
 
-#: templates/index.html:544
+#: src/templates/index.html:565
 msgid "SASI Hard Disk image (Legacy) [.hdf]"
 msgstr "Imagen de disco duro SASI (Legacy) [.hdf]"
 
-#: templates/index.html:547
+#: src/templates/index.html:568
 msgid "Size:"
 msgstr "Tamaño:"
 
-#: templates/index.html:559
+#: src/templates/index.html:580
 msgid "Create Named Drive"
 msgstr "Crear unidad con nombre"
 
-#: templates/index.html:562
+#: src/templates/index.html:583
 msgid ""
 "Create pairs of images and properties files from a list of real-life drives."
 msgstr ""
 "Crear pares de imágenes y archivos de propiedades a partir de una lista de "
 "unidades reales."
 
-#: templates/index.html:563
+#: src/templates/index.html:584
 msgid ""
 "This will make RaSCSI use certain vendor strings and block sizes that may "
 "improve compatibility with certain systems."
@@ -1109,78 +1159,82 @@ msgstr ""
 "Esto hará que RaSCSI utilice ciertas cadenas de proveedor y tamaños de bloque "
 "que pueden mejorar la compatibilidad con ciertos sistemas."
 
-#: templates/index.html:566
+#: src/templates/index.html:587
 msgid "Create a named disk image that mimics real-life drives"
 msgstr ""
 "Crear una imagen de disco con nombre que imite las unidades de la vida real"
 
-#: templates/index.html:572
+#: src/templates/index.html:593
 msgid "Logging"
 msgstr "Registro"
 
-#: templates/index.html:575
+#: src/templates/index.html:596
 msgid "Fetch a certain number of lines of system logs with the given scope."
 msgstr ""
 "Obtiene un número determinado de líneas de registros del sistema con el rango "
 "dado."
 
-#: templates/index.html:582
+#: src/templates/index.html:603
 msgid "Log Lines:"
 msgstr "Líneas de registro:"
 
-#: templates/index.html:584
+#: src/templates/index.html:605
 msgid "Scope:"
 msgstr "Rango:"
 
-#: templates/index.html:596
+#: src/templates/index.html:608
+msgid "All logs"
+msgstr "Todos los registros"
+
+#: src/templates/index.html:623
 msgid "Show Logs"
 msgstr "Mostrar registros"
 
-#: templates/index.html:606
+#: src/templates/index.html:633
 msgid "Server Log Level"
 msgstr "Nivel de registro del servidor"
 
-#: templates/index.html:609
+#: src/templates/index.html:636
 msgid "Change the log level of the RaSCSI backend process."
 msgstr "Cambiar el nivel de registro del proceso RaSCSI backend."
 
-#: templates/index.html:610
+#: src/templates/index.html:637
 msgid "The current dropdown selection indicates the active log level."
 msgstr "La selección desplegable actual indica el nivel de registro activo."
 
-#: templates/index.html:617
+#: src/templates/index.html:644
 msgid "Log Level:"
 msgstr "Nivel de registro:"
 
-#: templates/index.html:625
+#: src/templates/index.html:652
 msgid "Set Log Level"
 msgstr "Establecer el nivel de registro"
 
-#: templates/index.html:635
+#: src/templates/index.html:662
 msgid "Language"
 msgstr "Idioma"
 
-#: templates/index.html:638
+#: src/templates/index.html:665
 msgid "Change the Web Interface language."
 msgstr "Cambiar el idioma de la Interfaz Web."
 
-#: templates/index.html:645
+#: src/templates/index.html:672
 msgid "Language:"
 msgstr "Idioma:"
 
-#: templates/index.html:653
+#: src/templates/index.html:680
 msgid "Change Language"
 msgstr "Cambiar el idioma"
 
-#: templates/index.html:663
+#: src/templates/index.html:690
 msgid "Raspberry Pi Operations"
 msgstr "Operaciones de Raspberry Pi"
 
-#: templates/index.html:666
+#: src/templates/index.html:693
 msgid "Reboot or shut down the Raspberry Pi that RaSCSI is running on."
 msgstr "Reinicie o apague la Raspberry Pi en la que se está ejecutando RaSCSI."
 
-#: templates/index.html:667
+#: src/templates/index.html:694
 msgid ""
 "IMPORTANT: Always shut down the Pi before turning off the power. Failing to do "
 "so may lead to data loss."
@@ -1188,26 +1242,55 @@ msgstr ""
 "IMPORTANTE: Apague siempre la Pi antes de quitarle la corriente. No hacerlo "
 "puede provocar la pérdida de datos."
 
-#: templates/index.html:673
+#: src/templates/index.html:700
 msgid "Reboot the Raspberry Pi?"
 msgstr "¿Reiniciar la Raspberry Pi?"
 
-#: templates/index.html:673
+#: src/templates/index.html:700
 msgid "Rebooting the Raspberry Pi..."
 msgstr "Reiniciando la Raspberry Pi…"
 
-#: templates/index.html:674
+#: src/templates/index.html:701
 msgid "Reboot Raspberry Pi"
 msgstr "Reiniciar la Raspberry Pi"
 
-#: templates/index.html:678
+#: src/templates/index.html:705
 msgid "Shut down the Raspberry Pi?"
 msgstr "¿Apagar la Raspberry Pi?"
 
-#: templates/index.html:678
+#: src/templates/index.html:705
 msgid "Shutting down the Raspberry Pi..."
 msgstr "Apagando la Raspberry Pi…"
 
-#: templates/index.html:679
+#: src/templates/index.html:706
 msgid "Shut Down Raspberry Pi"
 msgstr "Apagar la Raspberry Pi"
+
+#~ msgid "Attached DaynaPORT to SCSI ID %(id_number)s"
+#~ msgstr "Adjuntado DaynaPORT a SCSI ID %(id_number)s"
+
+#~ msgid "Unreserve"
+#~ msgstr "Liberar la reserva"
+
+#~ msgid ""
+#~ "Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-"
+#~ "Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
+#~ msgstr ""
+#~ "Tipos: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = extraíble | SCMO = magneto-"
+#~ "optico | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
+
+#~ msgid "Attach Ethernet Adapter"
+#~ msgstr "Conectar el adaptador Ethernet"
+
+#~ msgid ""
+#~ "Emulates a SCSI DaynaPORT Ethernet Adapter. <a href=\"%(url)s\">Host drivers "
+#~ "and configuration required</a>."
+#~ msgstr ""
+#~ "Emula el adaptador ethernet SCSI DynaPORT. <a href=“%(url)s”>Controladores "
+#~ "de host y configuración necesaria</a>."
+
+#~ msgid "Interface:"
+#~ msgstr "Interfaz:"
+
+#~ msgid "Static IP (optional):"
+#~ msgstr "IP estática (opcional):"
