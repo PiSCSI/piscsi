@@ -9,7 +9,7 @@ msgstr ""
 "Project-Id-Version: RaSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
 "POT-Creation-Date: 2022-05-01 09:00+0200\n"
-"PO-Revision-Date: 2022-05-01 09:06+0200\n"
+"PO-Revision-Date: 2022-05-01 18:40+0200\n"
 "Last-Translator: n4al <n4al@pm.me>\n"
 "Language: es\n"
 "Language-Team: es N/A\n"
@@ -380,7 +380,7 @@ msgstr "X68000 Host Bridge"
 
 #: src/web_utils.py:93
 msgid "DaynaPORT SCSI/Link"
-msgstr "X68000 Host Bridge"
+msgstr "DaynaPORT SCSI/Link"
 
 #: src/web_utils.py:95
 msgid "Printer"
