@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RaSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
-"POT-Creation-Date: 2022-04-30 18:27+0200\n"
-"PO-Revision-Date: 2022-04-30 20:03+0200\n"
+"POT-Creation-Date: 2022-05-01 09:00+0200\n"
+"PO-Revision-Date: 2022-05-01 09:06+0200\n"
 "Last-Translator: n4al <n4al@pm.me>\n"
 "Language: es\n"
 "Language-Team: es N/A\n"
@@ -101,10 +101,6 @@ msgid ""
 msgstr ""
 "No se puede insertar una imagen para %(device_type)s en un dispositivo "
 "%(current_device_type)s"
-
-#: src/return_code_mapper.py:44
-msgid "return_code"
-msgstr "return_code"
 
 #: src/socket_cmds_flask.py:34
 #, python-format
@@ -384,7 +380,7 @@ msgstr "X68000 Host Bridge"
 
 #: src/web_utils.py:93
 msgid "DaynaPORT SCSI/Link"
-msgstr "DaynaPORT SCSI/Link"
+msgstr "X68000 Host Bridge"
 
 #: src/web_utils.py:95
 msgid "Printer"
@@ -392,7 +388,7 @@ msgstr "Impresora"
 
 #: src/web_utils.py:97
 msgid "Host Services"
-msgstr "Servicios Host"
+msgstr "Servicios de Host"
 
 #: src/web_utils.py:111
 msgid "You must log in to use this function"
@@ -840,8 +836,8 @@ msgid ""
 "installed on the host system."
 msgstr ""
 "El dispositivo de la impresora y los servicios de host son actualmente "
-"compatibles con los sistemas Atari, y requieren <a href=“%(url)s”>un software "
-"de controlador</a> instalado en el sistema host."
+"compatibles con los sistemas Atari, y requieren que se instale <a "
+"href=“%(url)s”>el software del controlador</a> en el sistema host."
 
 #: src/templates/index.html:320
 msgid "Peripheral"
