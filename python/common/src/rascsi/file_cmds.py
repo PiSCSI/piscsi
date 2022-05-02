@@ -180,6 +180,25 @@ class FileCmds:
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
 
+    def copy_image(self, file_name, new_file_name):
+        """
+        Takes (str) file_name, (str) new_file_name
+        Sends a COPY_IMAGE command to the server
+        Returns (dict) with (bool) status and (str) msg
+        """
+        command = proto.PbCommand()
+        command.operation = proto.PbOperation.COPY_IMAGE
+        command.params["token"] = self.ractl.token
+        command.params["locale"] = self.ractl.locale
+
+        command.params["from"] = file_name
+        command.params["to"] = new_file_name
+
+        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        result = proto.PbResult()
+        result.ParseFromString(data)
+        return {"status": result.status, "msg": result.msg}
+
     # noinspection PyMethodMayBeStatic
     def delete_file(self, file_path):
         """
