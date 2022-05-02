@@ -237,6 +237,7 @@ def drive_list():
         username = None
 
     server_info = ractl_cmd.get_server_info()
+    ip_addr, host = sys_cmd.get_ip_and_host()
 
     return render_template(
         "drives.html",
@@ -251,6 +252,8 @@ def drive_list():
         cdrom_file_suffix=tuple(server_info["sccd"]),
         username=username,
         auth_active=auth_active(AUTH_GROUP)["status"],
+        ip_addr=ip_addr,
+        host=host,
     )
 
 
