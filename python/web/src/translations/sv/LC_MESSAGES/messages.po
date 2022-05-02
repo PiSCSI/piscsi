@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RaSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
-"POT-Creation-Date: 2022-04-13 15:41-0700\n"
+"POT-Creation-Date: 2022-05-01 21:44-0700\n"
 "PO-Revision-Date: 2021-12-24 16:16-0800\n"
 "Last-Translator: Daniel Markstedt <markstedt@gmail.com>\n"
 "Language: sv\n"
@@ -146,7 +146,7 @@ msgstr "Kunde ej läsa egenskaper från %(properties_file)s"
 msgid "You must log in with credentials for a user in the '%(group)s' group"
 msgstr "Du måste logga in som en användare som tillhör %(group)s-gruppen"
 
-#: src/web.py:329 src/web.py:830
+#: src/web.py:329 src/web.py:832
 #, python-format
 msgid "Image file created: %(file_name)s"
 msgstr "Skapade skivbildsfil %(file_name)s"
@@ -170,7 +170,16 @@ msgstr "Följ instruktionerna på %(url)s"
 msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Anslöt %(device_type)s till SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:565
+#: src/web.py:559
+#, python-format
+msgid ""
+"Attached %(file_name)s as %(device_type)s to SCSI ID %(id_number)s LUN "
+"%(unit_number)s"
+msgstr ""
+"Anslöt %(file_name)s som %(device_type)s till "
+"SCSI-id %(id_number)s LUN %(unit_number)s"
+
+#: src/web.py:564
 #, python-format
 msgid ""
 "The image file size %(file_size)s bytes is not a multiple of "
@@ -181,7 +190,7 @@ msgstr ""
 "RaSCSI ignorerar den överflödiga datan. Skivbilden är möjligen förstörd, "
 "så var försiktig när du använder den."
 
-#: src/web.py:571
+#: src/web.py:573
 #, python-format
 msgid ""
 "Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN "
@@ -190,125 +199,125 @@ msgstr ""
 "Kunde inte ansluta %(file_name)s till SCSI-id %(id_number)s LUN "
 "%(unit_number)s"
 
-#: src/web.py:585
+#: src/web.py:587
 msgid "Detached all SCSI devices"
 msgstr "Kopplade ifrån alla SCSI-enheter"
 
-#: src/web.py:602
+#: src/web.py:604
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Kopplade ifrån SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:606
+#: src/web.py:608
 #, python-format
 msgid "Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Kunde ej koppla ifrån SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:623
+#: src/web.py:625
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Utmatade SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:627
+#: src/web.py:629
 #, python-format
 msgid "Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Kunde ej mata ut skiva från SCSI-id %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:650
+#: src/web.py:652
 msgid "DEVICE INFO"
 msgstr "ENHETSDETALJER"
 
-#: src/web.py:652
+#: src/web.py:654
 #, python-format
 msgid "SCSI ID: %(id_number)s"
 msgstr "SCSI-id: %(id_number)s"
 
-#: src/web.py:653
+#: src/web.py:655
 #, python-format
 msgid "LUN: %(unit_number)s"
 msgstr "LUN: %(unit_number)s"
 
-#: src/web.py:654
+#: src/web.py:656
 #, python-format
 msgid "Type: %(device_type)s"
 msgstr "Typ: %(device_type)s"
 
-#: src/web.py:655
+#: src/web.py:657
 #, python-format
 msgid "Status: %(device_status)s"
 msgstr "Status: %(device_status)s"
 
-#: src/web.py:656
+#: src/web.py:658
 #, python-format
 msgid "File: %(image_file)s"
 msgstr "Fil: %(image_file)s"
 
-#: src/web.py:657
+#: src/web.py:659
 #, python-format
 msgid "Parameters: %(value)s"
 msgstr "Parametrar: %(value)s"
 
-#: src/web.py:658
+#: src/web.py:660
 #, python-format
 msgid "Vendor: %(value)s"
 msgstr "Tillverkare: %(value)s"
 
-#: src/web.py:659
+#: src/web.py:661
 #, python-format
 msgid "Product: %(value)s"
 msgstr "Produkt: %(value)s"
 
-#: src/web.py:660
+#: src/web.py:662
 #, python-format
 msgid "Revision: %(revision_number)s"
 msgstr "Revision: %(revision_number)s"
 
-#: src/web.py:661
+#: src/web.py:663
 #, python-format
 msgid "Block Size: %(value)s bytes"
 msgstr "Blockstorlek: %(value)s byte"
 
-#: src/web.py:662
+#: src/web.py:664
 #, python-format
 msgid "Image Size: %(value)s bytes"
 msgstr "Skivbildsstorlek: %(value)s byte"
 
-#: src/web.py:681
+#: src/web.py:683
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "Reserverat SCSI-id %(id_number)s"
 
-#: src/web.py:684
+#: src/web.py:686
 #, python-format
 msgid "Failed to reserve SCSI ID %(id_number)s"
 msgstr "Kunde ej reservera SCSI-id %(id_number)s"
 
-#: src/web.py:700
+#: src/web.py:702
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "Frigjorde SCSI-id %(id_number)s"
 
-#: src/web.py:703
+#: src/web.py:705
 #, python-format
 msgid "Failed to release the reservation for SCSI ID %(id_number)s"
 msgstr "Kunde ej frigöra SCSI-id %(id_number)s"
 
-#: src/web.py:742
+#: src/web.py:744
 #, python-format
 msgid "Saved image as: %(file_name)s"
 msgstr "Sparade bildfilen som %(file_name)s"
 
-#: src/web.py:744
+#: src/web.py:746
 #, python-format
 msgid "Failed to create CD-ROM image from %(url)s"
 msgstr "Kunde ej skapa CD-ROM-bildfil från %(url)s"
 
-#: src/web.py:755
+#: src/web.py:757
 #, python-format
 msgid "Attached to SCSI ID %(id_number)s"
 msgstr "Anslöt till SCSI-id %(id_number)s"
 
-#: src/web.py:758
+#: src/web.py:760
 #, python-format
 msgid ""
 "Failed to attach image to SCSI ID %(id_number)s. Try attaching it "
@@ -317,40 +326,40 @@ msgstr ""
 "Kunde ej ansluta bildfilen till SCSI-id %(id_number)s. Försök ansluta den"
 " manuellt."
 
-#: src/web.py:778 src/web.py:797
+#: src/web.py:780 src/web.py:799
 #, python-format
 msgid "Failed to download file from %(url)s"
 msgstr "Kunde ej ladda ner filen från %(url)s"
 
-#: src/web.py:857
+#: src/web.py:859
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "Filen %(file_name)s har blivit raderad"
 
-#: src/web.py:889
+#: src/web.py:891
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "Filen har blivit omdöpt till %(file_name)s"
 
-#: src/web.py:926
+#: src/web.py:928
 msgid "Aborted unzip: File(s) with the same name already exists."
 msgstr "Uppackning stoppad: En eller flera filer med samma namn existerar redan."
 
-#: src/web.py:928
+#: src/web.py:930
 msgid "Unzipped the following files:"
 msgstr "Packade up dessa filer:"
 
-#: src/web.py:932
+#: src/web.py:934
 #, python-format
 msgid "Properties file(s) have been moved to %(directory)s"
 msgstr "En eller flera egenskapsfiler har blivit flyttade till %(directory)s"
 
-#: src/web.py:935
+#: src/web.py:937
 #, python-format
 msgid "Failed to unzip %(zip_file)s"
 msgstr "Kunde ej packa up %(zip_file)s"
 
-#: src/web.py:953
+#: src/web.py:955
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Bytte webbgränssnittets språk till %(locale)s"
@@ -729,8 +738,8 @@ msgid ""
 "If RaSCSI was unable to detect the media type associated with the image, "
 "you get to choose the type from the dropdown."
 msgstr ""
-"Om RaSCSI inte känner igen filbildstypen kan du välja en "
-"enhetstyp från rullgardinsmenyn."
+"Om RaSCSI inte känner igen filbildstypen kan du välja en enhetstyp från "
+"rullgardinsmenyn."
 
 #: src/templates/index.html:166
 msgid "Size"
@@ -832,8 +841,8 @@ msgid ""
 "compatible Atari systems, and require <a href=\"%(url)s\">driver "
 "software</a> to be installed on the host system."
 msgstr ""
-"Skrivaren och värdtjänsterna kräver att <a href=\"%(url)s\">drivrutiner</a>"
-" installeras först."
+"Skrivaren och värdtjänsterna kräver att <a "
+"href=\"%(url)s\">drivrutiner</a> installeras först."
 
 #: src/templates/index.html:320
 msgid "Peripheral"
@@ -854,8 +863,8 @@ msgid ""
 "Install <a href=\"%(url)s\">Macproxy</a> to browse the Web with any "
 "vintage browser. It's not just for Macs!"
 msgstr ""
-"Installera <a href=\"%(url)s\">Macproxy</a> för att surfa på nätet med gamla "
-"webbläsare. Den är inte bara till för Macar!"
+"Installera <a href=\"%(url)s\">Macproxy</a> för att surfa på nätet med "
+"gamla webbläsare. Den är inte bara till för Macar!"
 
 #: src/templates/index.html:372
 msgid "Upload File"
@@ -1030,8 +1039,8 @@ msgid ""
 "Install <a href=\"%(url)s\">Netatalk</a> to use the AppleShare File "
 "Server."
 msgstr ""
-"Installera <a href=\"%(url)s\">Netatalk</a> för att använda "
-"AppleShare-fildelning."
+"Installera <a href=\"%(url)s\">Netatalk</a> för att använda AppleShare-"
+"fildelning."
 
 #: src/templates/index.html:482
 msgid "Download File and Create CD-ROM image"
@@ -1256,3 +1265,4 @@ msgstr "Stänger av Raspberry Pi..."
 #: src/templates/index.html:706
 msgid "Shut Down Raspberry Pi"
 msgstr "Stäng av Raspberry Pi"
+
