@@ -552,20 +552,22 @@ def attach_image():
     process = ractl_cmd.attach_device(scsi_id, **kwargs)
     process = ReturnCodeMapper.add_msg(process)
     if process["status"]:
-        flash(_((
-                "Attached %(file_name)s as %(device_type)s to "
-                "SCSI ID %(id_number)s LUN %(unit_number)s"
-                ),
+        flash(_(
+            "Attached %(file_name)s as %(device_type)s to "
+            "SCSI ID %(id_number)s LUN %(unit_number)s",
             file_name=file_name,
             device_type=get_device_name(device_type),
             id_number=scsi_id,
             unit_number=unit,
             ))
         if int(file_size) % int(expected_block_size):
-            flash(_("The image file size %(file_size)s bytes is not a multiple of "
-                  u"%(block_size)s. RaSCSI will ignore the trailing data. "
-                  u"The image may be corrupted, so proceed with caution.",
-                  file_size=file_size, block_size=expected_block_size), "error")
+            flash(_(
+                "The image file size %(file_size)s bytes is not a multiple of "
+                "%(block_size)s. RaSCSI will ignore the trailing data. "
+                "The image may be corrupted, so proceed with caution.",
+                file_size=file_size,
+                block_size=expected_block_size,
+                ), "error")
         return redirect(url_for("index"))
 
     flash(_("Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s",
