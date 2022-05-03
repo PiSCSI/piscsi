@@ -11,6 +11,7 @@ from re import escape, findall
 from time import time
 from subprocess import run, CalledProcessError
 from json import dump, load
+from shutil import copyfile
 
 import requests
 
@@ -243,6 +244,28 @@ class FileCmds:
             "parameters": parameters,
             }
 
+    # noinspection PyMethodMayBeStatic
+    def copy_file(self, file_path, target_path):
+        """
+        Takes (str) file_path and (str) target_path
+        Returns (dict) with (bool) status and (str) msg
+        """
+        parameters = {
+            "target_path": target_path
+        }
+        if os.path.exists(PurePath(target_path).parent):
+            copyfile(file_path, target_path)
+            return {
+                "status": True,
+                "return_code": ReturnCodes.WRITEFILE_SUCCESS,
+                "parameters": parameters,
+                }
+        return {
+            "status": False,
+            "return_code": ReturnCodes.WRITEFILE_UNABLE_TO_WRITE,
+            "parameters": parameters,
+            }
+
     def unzip_file(self, file_name, member=False, members=False):
         """
         Takes (str) file_name, optional (str) member, optional (list) of (str) members
@@ -423,11 +446,11 @@ class FileCmds:
                     indent=4
                     )
             parameters = {
-                "file_name": file_name
+                "target_path": file_name
             }
             return {
                 "status": True,
-                "return_code": ReturnCodes.WRITECONFIG_SUCCESS,
+                "return_code": ReturnCodes.WRITEFILE_SUCCESS,
                 "parameters": parameters,
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
@@ -442,7 +465,7 @@ class FileCmds:
             }
             return {
                 "status": False,
-                "return_code": ReturnCodes.WRITECONFIG_COULD_NOT_WRITE,
+                "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
                 "parameters": parameters,
                 }
 
@@ -534,11 +557,11 @@ class FileCmds:
             with open(file_path, "w") as json_file:
                 dump(conf, json_file, indent=4)
             parameters = {
-                "file_path": file_path
+                "target_path": file_path
             }
             return {
                 "status": True,
-                "return_code": ReturnCodes.WRITEDRIVEPROPS_SUCCESS,
+                "return_code": ReturnCodes.WRITEFILE_SUCCESS,
                 "parameters": parameters,
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
@@ -549,11 +572,11 @@ class FileCmds:
             logging.error("Could not write to file: %s", file_path)
             self.delete_file(file_path)
             parameters = {
-                "file_path": file_path
+                "target_path": file_path
             }
             return {
                 "status": False,
-                "return_code": ReturnCodes.WRITEDRIVEPROPS_COULD_NOT_WRITE,
+                "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
                 "parameters": parameters,
                 }
 

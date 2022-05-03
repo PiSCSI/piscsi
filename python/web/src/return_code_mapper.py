@@ -16,15 +16,12 @@ class ReturnCodeMapper:
         ReturnCodes.DOWNLOADFILETOISO_SUCCESS: _("Created CD-ROM ISO image with "
                                                  "arguments \"%(value)s\""),
         ReturnCodes.DOWNLOADTODIR_SUCCESS: _("%(file_name)s downloaded to %(save_dir)s"),
-        ReturnCodes.WRITECONFIG_SUCCESS: _("Saved configuration file to %(file_name)s"),
-        ReturnCodes.WRITECONFIG_COULD_NOT_WRITE: _("Could not write to file: %(file_name)s"),
+        ReturnCodes.WRITEFILE_SUCCESS: _("File created: %(target_path)s"),
+        ReturnCodes.WRITEFILE_COULD_NOT_WRITE: _("Could not create file: %(target_path)s"),
         ReturnCodes.READCONFIG_SUCCESS: _("Loaded configurations from: %(file_name)s"),
         ReturnCodes.READCONFIG_COULD_NOT_READ: _("Could not read configuration "
                                                  "file: %(file_name)s"),
         ReturnCodes.READCONFIG_INVALID_CONFIG_FILE_FORMAT: _("Invalid configuration file format"),
-        ReturnCodes.WRITEDRIVEPROPS_SUCCESS: _("Created properties file: %(file_path)s"),
-        ReturnCodes.WRITEDRIVEPROPS_COULD_NOT_WRITE: _("Could not write to properties "
-                                                       "file: %(file_path)s"),
         ReturnCodes.READDRIVEPROPS_SUCCESS: _("Read properties from file: %(file_path)s"),
         ReturnCodes.READDRIVEPROPS_COULD_NOT_READ: _("Could not read properties from "
                                                      "file: %(file_path)s"),
