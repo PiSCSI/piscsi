@@ -928,7 +928,7 @@ def copy():
         flash(process["msg"], "error")
         return redirect(url_for("index"))
 
-    # Create the drive properties file, if it exists
+    # Create a copy of the drive properties file, if it exists
     prop_file_path = f"{CFG_DIR}/{file_name}.{PROPERTIES_SUFFIX}"
     new_prop_file_path = f"{CFG_DIR}/{new_file_name}.{PROPERTIES_SUFFIX}"
     if Path(prop_file_path).is_file():
