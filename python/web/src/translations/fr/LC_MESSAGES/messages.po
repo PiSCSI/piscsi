@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: RaSCSI 68kmla Edition\n"
 "Report-Msgid-Bugs-To: https://github.com/akuker/RASCSI/issues\n"
-"POT-Creation-Date: 2022-04-26 17:25+0200\n"
-"PO-Revision-Date: 2022-04-26 17:35+0200\n"
+"POT-Creation-Date: 2022-05-07 17:26+0200\n"
+"PO-Revision-Date: 2022-05-07 17:28+0200\n"
 "Last-Translator: Kamel Makhloufi <melkalehun@gmail.com>\n"
 "Language-Team: N/A\n"
 "Language: fr\n"
@@ -16,7 +16,8 @@ msgstr ""
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"Generated-By: Babel 2.10.1\n"
+"Generated-By: Babel 2.9.1\n"
+"X-Generator: Poedit 3.0.1\n"
 
 #: src/return_code_mapper.py:12
 #, python-format
@@ -143,39 +144,48 @@ msgstr ""
 msgid "Could not read drive properties from %(properties_file)s"
 msgstr "Echec de lecture des propriétés du disque depuis %(properties_file)s"
 
-#: src/web.py:271
+#: src/web.py:274
 #, python-format
 msgid "You must log in with credentials for a user in the '%(group)s' group"
 msgstr ""
 "Vous devez vous connecter avec les identifiants d’un utilisateur appartenant au "
 "groupe '%(group)s'"
 
-#: src/web.py:329 src/web.py:830
+#: src/web.py:332 src/web.py:835
 #, python-format
 msgid "Image file created: %(file_name)s"
 msgstr "Fichier image créé : %(file_name)s"
 
-#: src/web.py:446
+#: src/web.py:449
 msgid "An error occurred when fetching logs."
 msgstr ""
 "Une erreur s’est produite lors du chargement des fichiers de journalisation."
 
-#: src/web.py:461
+#: src/web.py:464
 #, python-format
 msgid "Log level set to %(value)s"
 msgstr "Niveau de journalisation défini sur %(value)s"
 
-#: src/web.py:488
+#: src/web.py:491
 #, python-format
 msgid "Please follow the instructions at %(url)s"
 msgstr "Merci de suivre les instructions à %(url)s"
 
-#: src/web.py:507
+#: src/web.py:510
 #, python-format
 msgid "Attached %(device_type)s to SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "%(device_type)s attaché au SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:565
+#: src/web.py:562
+#, python-format
+msgid ""
+"Attached %(file_name)s as %(device_type)s to SCSI ID %(id_number)s LUN "
+"%(unit_number)s"
+msgstr ""
+"%(file_name)s attaché(s) en tant que %(device_type)s au SCSI ID %(id_number)s "
+"LUN %(unit_number)s"
+
+#: src/web.py:567
 #, python-format
 msgid ""
 "The image file size %(file_size)s bytes is not a multiple of %(block_size)s. "
@@ -186,7 +196,7 @@ msgstr ""
 "%(block_size)s. RaSCSI va ignorer les données de fin. L’image peut être "
 "corrompue, merci de continuer avec précaution."
 
-#: src/web.py:571
+#: src/web.py:576
 #, python-format
 msgid ""
 "Failed to attach %(file_name)s to SCSI ID %(id_number)s LUN %(unit_number)s"
@@ -194,125 +204,125 @@ msgstr ""
 "Echec d'attachement de %(file_name)s au périphérique SCSI ID %(id_number)s LUN "
 "%(unit_number)s"
 
-#: src/web.py:585
+#: src/web.py:590
 msgid "Detached all SCSI devices"
 msgstr "Tout les périphériques SCSI ont été détachés"
 
-#: src/web.py:602
+#: src/web.py:607
 #, python-format
 msgid "Detached SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Périphérique SCSI ID %(id_number)s LUN %(unit_number)s détaché"
 
-#: src/web.py:606
+#: src/web.py:611
 #, python-format
 msgid "Failed to detach SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Echec lors du détachement du SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:623
+#: src/web.py:628
 #, python-format
 msgid "Ejected SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "SCSI ID %(id_number)s LUN %(unit_number)s éjecté"
 
-#: src/web.py:627
+#: src/web.py:632
 #, python-format
 msgid "Failed to eject SCSI ID %(id_number)s LUN %(unit_number)s"
 msgstr "Echec lors de l’éjection de SCSI ID %(id_number)s LUN %(unit_number)s"
 
-#: src/web.py:650
+#: src/web.py:655
 msgid "DEVICE INFO"
 msgstr "INFO PÉRIPHÉRIQUE"
 
-#: src/web.py:652
+#: src/web.py:657
 #, python-format
 msgid "SCSI ID: %(id_number)s"
 msgstr "SCSI ID : %(id_number)s"
 
-#: src/web.py:653
+#: src/web.py:658
 #, python-format
 msgid "LUN: %(unit_number)s"
 msgstr "LUN : %(unit_number)s"
 
-#: src/web.py:654
+#: src/web.py:659
 #, python-format
 msgid "Type: %(device_type)s"
 msgstr "Type : %(device_type)s"
 
-#: src/web.py:655
+#: src/web.py:660
 #, python-format
 msgid "Status: %(device_status)s"
 msgstr "Statut : %(device_status)s"
 
-#: src/web.py:656
+#: src/web.py:661
 #, python-format
 msgid "File: %(image_file)s"
 msgstr "Fichier : %(image_file)s"
 
-#: src/web.py:657
+#: src/web.py:662
 #, python-format
 msgid "Parameters: %(value)s"
 msgstr "Paramètres : %(value)s"
 
-#: src/web.py:658
+#: src/web.py:663
 #, python-format
 msgid "Vendor: %(value)s"
 msgstr "Vendeur : %(value)s"
 
-#: src/web.py:659
+#: src/web.py:664
 #, python-format
 msgid "Product: %(value)s"
 msgstr "Produit : %(value)s"
 
-#: src/web.py:660
+#: src/web.py:665
 #, python-format
 msgid "Revision: %(revision_number)s"
 msgstr "Révision : %(revision_number)s"
 
-#: src/web.py:661
+#: src/web.py:666
 #, python-format
 msgid "Block Size: %(value)s bytes"
 msgstr "Taille de bloc : %(value)s octets"
 
-#: src/web.py:662
+#: src/web.py:667
 #, python-format
 msgid "Image Size: %(value)s bytes"
 msgstr "Taille de l’image : %(value)s octets"
 
-#: src/web.py:681
+#: src/web.py:686
 #, python-format
 msgid "Reserved SCSI ID %(id_number)s"
 msgstr "ID SCSI réservés %(id_number)s"
 
-#: src/web.py:684
+#: src/web.py:689
 #, python-format
 msgid "Failed to reserve SCSI ID %(id_number)s"
 msgstr "Echec de réservation du SCSI ID %(id_number)s"
 
-#: src/web.py:700
+#: src/web.py:705
 #, python-format
 msgid "Released the reservation for SCSI ID %(id_number)s"
 msgstr "Réservation libérée pour SCSI ID %(id_number)s"
 
-#: src/web.py:703
+#: src/web.py:708
 #, python-format
 msgid "Failed to release the reservation for SCSI ID %(id_number)s"
 msgstr "Echec de libération de la réservation pour SCSI ID %(id_number)s"
 
-#: src/web.py:742
+#: src/web.py:747
 #, python-format
 msgid "Saved image as: %(file_name)s"
 msgstr "Image sauvegardée en : %(file_name)s"
 
-#: src/web.py:744
+#: src/web.py:749
 #, python-format
 msgid "Failed to create CD-ROM image from %(url)s"
 msgstr "Echec de création de l’image CD-ROM depuis %(url)s"
 
-#: src/web.py:755
+#: src/web.py:760
 #, python-format
 msgid "Attached to SCSI ID %(id_number)s"
 msgstr "Attaché au SCSI ID %(id_number)s"
 
-#: src/web.py:758
+#: src/web.py:763
 #, python-format
 msgid ""
 "Failed to attach image to SCSI ID %(id_number)s. Try attaching it manually."
@@ -320,40 +330,40 @@ msgstr ""
 "Echec lors de l'attachement de l’image au SCSI ID %(id_number)s. Essayez de "
 "l’attacher manuellement."
 
-#: src/web.py:778 src/web.py:797
+#: src/web.py:783 src/web.py:802
 #, python-format
 msgid "Failed to download file from %(url)s"
 msgstr "Echec de téléchargement du fichier depuis l’url %(url)s"
 
-#: src/web.py:857
+#: src/web.py:862
 #, python-format
 msgid "Image file deleted: %(file_name)s"
 msgstr "Fichier image supprimé : %(file_name)s"
 
-#: src/web.py:889
+#: src/web.py:894
 #, python-format
 msgid "Image file renamed to: %(file_name)s"
 msgstr "Fichier image renommé en : %(file_name)s"
 
-#: src/web.py:926
+#: src/web.py:931
 msgid "Aborted unzip: File(s) with the same name already exists."
 msgstr "Décompression avortée : Fichier(s) avec le même nom déjà existants."
 
-#: src/web.py:928
+#: src/web.py:933
 msgid "Unzipped the following files:"
 msgstr "Décompression des fichiers suivants terminée :"
 
-#: src/web.py:932
+#: src/web.py:937
 #, python-format
 msgid "Properties file(s) have been moved to %(directory)s"
 msgstr "Fichier(s) de propriétés déplacés vers %(directory)s"
 
-#: src/web.py:935
+#: src/web.py:940
 #, python-format
 msgid "Failed to unzip %(zip_file)s"
 msgstr "Echec lors de la décompression de %(zip_file)s"
 
-#: src/web.py:953
+#: src/web.py:958
 #, python-format
 msgid "Changed Web Interface language to %(locale)s"
 msgstr "Langue de l’interface web changée pour %(locale)s"
@@ -1265,33 +1275,3 @@ msgstr "Raspberry Pi en cours d’extinction..."
 #: src/templates/index.html:706
 msgid "Shut Down Raspberry Pi"
 msgstr "Éteindre le Raspberry Pi"
-
-#~ msgid "Attached DaynaPORT to SCSI ID %(id_number)s"
-#~ msgstr "DaynaPORT attaché au SCSI ID %(id_number)s"
-
-#~ msgid "Unreserve"
-#~ msgstr "Libérer"
-
-#~ msgid ""
-#~ "Types: SAHD = SASI HDD | SCHD = SCSI HDD | SCRM = Removable | SCMO = Magneto-"
-#~ "Optical | SCCD = CD-ROM | SCBR = Host Bridge | SCDP = DaynaPORT"
-#~ msgstr ""
-#~ "Types : SAHD = Disque dur SASI | SCHD = Disque dur SCSI | SCRM = Amovible | "
-#~ "SCMO = Magneto-Optique | SCCD = CD-ROM | SCBR = Pont d'hôte | SCDP = "
-#~ "DaynaPORT"
-
-#~ msgid "Attach Ethernet Adapter"
-#~ msgstr "Attacher l'adaptateur Ethernet"
-
-#~ msgid ""
-#~ "Emulates a SCSI DaynaPORT Ethernet Adapter. <a href=\"%(url)s\">Host drivers "
-#~ "and configuration required</a>."
-#~ msgstr ""
-#~ "Emules un adaptateur Ethernet SCSI DaynaPORT. <a href=\"%(url)s\">Pilotes et "
-#~ "configuration requis pour l'hôte</a>."
-
-#~ msgid "Interface:"
-#~ msgstr "Interface :"
-
-#~ msgid "Static IP (optional):"
-#~ msgstr "IP statique (optionnel) :"
