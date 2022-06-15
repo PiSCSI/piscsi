@@ -11,6 +11,7 @@ from re import escape, findall
 from time import time
 from subprocess import run, CalledProcessError
 from json import dump, load
+from shutil import copyfile
 
 import requests
 
@@ -180,6 +181,25 @@ class FileCmds:
         result.ParseFromString(data)
         return {"status": result.status, "msg": result.msg}
 
+    def copy_image(self, file_name, new_file_name):
+        """
+        Takes (str) file_name, (str) new_file_name
+        Sends a COPY_IMAGE command to the server
+        Returns (dict) with (bool) status and (str) msg
+        """
+        command = proto.PbCommand()
+        command.operation = proto.PbOperation.COPY_IMAGE
+        command.params["token"] = self.ractl.token
+        command.params["locale"] = self.ractl.locale
+
+        command.params["from"] = file_name
+        command.params["to"] = new_file_name
+
+        data = self.sock_cmd.send_pb_command(command.SerializeToString())
+        result = proto.PbResult()
+        result.ParseFromString(data)
+        return {"status": result.status, "msg": result.msg}
+
     # noinspection PyMethodMayBeStatic
     def delete_file(self, file_path):
         """
@@ -221,6 +241,28 @@ class FileCmds:
         return {
             "status": False,
             "return_code": ReturnCodes.RENAMEFILE_UNABLE_TO_MOVE,
+            "parameters": parameters,
+            }
+
+    # noinspection PyMethodMayBeStatic
+    def copy_file(self, file_path, target_path):
+        """
+        Takes (str) file_path and (str) target_path
+        Returns (dict) with (bool) status and (str) msg
+        """
+        parameters = {
+            "target_path": target_path
+        }
+        if os.path.exists(PurePath(target_path).parent):
+            copyfile(file_path, target_path)
+            return {
+                "status": True,
+                "return_code": ReturnCodes.WRITEFILE_SUCCESS,
+                "parameters": parameters,
+                }
+        return {
+            "status": False,
+            "return_code": ReturnCodes.WRITEFILE_UNABLE_TO_WRITE,
             "parameters": parameters,
             }
 
@@ -404,11 +446,11 @@ class FileCmds:
                     indent=4
                     )
             parameters = {
-                "file_name": file_name
+                "target_path": file_name
             }
             return {
                 "status": True,
-                "return_code": ReturnCodes.WRITECONFIG_SUCCESS,
+                "return_code": ReturnCodes.WRITEFILE_SUCCESS,
                 "parameters": parameters,
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
@@ -423,7 +465,7 @@ class FileCmds:
             }
             return {
                 "status": False,
-                "return_code": ReturnCodes.WRITECONFIG_COULD_NOT_WRITE,
+                "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
                 "parameters": parameters,
                 }
 
@@ -515,11 +557,11 @@ class FileCmds:
             with open(file_path, "w") as json_file:
                 dump(conf, json_file, indent=4)
             parameters = {
-                "file_path": file_path
+                "target_path": file_path
             }
             return {
                 "status": True,
-                "return_code": ReturnCodes.WRITEDRIVEPROPS_SUCCESS,
+                "return_code": ReturnCodes.WRITEFILE_SUCCESS,
                 "parameters": parameters,
                 }
         except (IOError, ValueError, EOFError, TypeError) as error:
@@ -530,11 +572,11 @@ class FileCmds:
             logging.error("Could not write to file: %s", file_path)
             self.delete_file(file_path)
             parameters = {
-                "file_path": file_path
+                "target_path": file_path
             }
             return {
                 "status": False,
-                "return_code": ReturnCodes.WRITEDRIVEPROPS_COULD_NOT_WRITE,
+                "return_code": ReturnCodes.WRITEFILE_COULD_NOT_WRITE,
                 "parameters": parameters,
                 }
 

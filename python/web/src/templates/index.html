@@ -283,6 +283,11 @@
                     <input name="new_file_name" id="new_file_name_{{ loop.index }}" type="hidden" value="">
                     <input type="submit" value="{{ _("Rename") }}">
                 </form>
+                <form action="/files/copy" method="post" onsubmit="var copy_file_name = prompt('{{ _("Save copy of %(file_name)s as:", file_name=file["name"]) }}', '{{ file['name'] }}'); if (copy_file_name === null) event.preventDefault(); document.getElementById('copy_file_name_{{ loop.index }}').value = copy_file_name;">
+                    <input name="file_name" type="hidden" value="{{ file['name'] }}">
+                    <input name="copy_file_name" id="copy_file_name_{{ loop.index }}" type="hidden" value="">
+                    <input type="submit" value="{{ _("Copy") }}">
+                </form>
                 <form action="/files/delete" method="post" onsubmit="return confirm('{{ _("Delete file: %(file_name)s?", file_name=file["name"]) }}')">
                     <input name="file_name" type="hidden" value="{{ file['name'] }}">
                     <input type="submit" value="{{ _("Delete") }}">
