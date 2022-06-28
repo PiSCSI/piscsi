@@ -8,16 +8,19 @@
 //---------------------------------------------------------------------------
 
 #include <cassert>
-#include <sstream>
 #include "rascsi_version.h"
 #include "os.h"
 #include "log.h"
 #include "exceptions.h"
 #include "device.h"
 
+unordered_set<Device *> Device::devices;
+
 Device::Device(const string& type)
 {
 	assert(type.length() == 4);
+
+	devices.insert(this);
 
 	this->type = type;
 
@@ -29,7 +32,7 @@ Device::Device(const string& type)
 	ready = false;
 	reset = false;
 	attn = false;
-	supported_luns = 1;
+	supported_luns = 32;
 	protectable = false;
 	write_protected = false;
 	read_only = false;
@@ -46,6 +49,11 @@ Device::Device(const string& type)
 	lun = 0;
 
 	status_code = STATUS_NOERROR;
+}
+
+Device::~Device()
+{
+	devices.erase(this);
 }
 
 void Device::Reset()
@@ -111,6 +119,21 @@ const string Device::GetPaddedName() const
 const string Device::GetParam(const string& key)
 {
 	return params.find(key) != params.end() ? params[key] : "";
+}
+
+void Device::SetParams(const unordered_map<string, string>& params)
+{
+	this->params = GetDefaultParams();
+
+	for (const auto& param : params) {
+		// It is assumed that there are default parameters for all supported parameters
+		if (this->params.find(param.first) != this->params.end()) {
+			this->params[param.first] = param.second;
+		}
+		else {
+			LOGWARN("%s", string("Ignored unknown parameter '" + param.first + "'").c_str());
+		}
+	}
 }
 
 void Device::SetStatusCode(int status_code)

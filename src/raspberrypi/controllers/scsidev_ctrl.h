@@ -16,7 +16,6 @@
 #pragma once
 
 #include "controllers/sasidev_ctrl.h"
-#include <map>
 
 //===========================================================================
 //
@@ -25,51 +24,13 @@
 //===========================================================================
 class SCSIDEV : public SASIDEV
 {
-
 public:
-	enum scsi_command : int {
-		eCmdTestUnitReady = 0x00,
-		eCmdRezero =  0x01,
-		eCmdRequestSense = 0x03,
-		eCmdFormat = 0x04,
-		eCmdReassign = 0x07,
-		eCmdRead6 = 0x08,
-		eCmdRetrieveStats = 0x09,    // DaynaPort specific command
-		eCmdWrite6 = 0x0A,
-		eCmdSeek6 = 0x0B,
-		eCmdSetIfaceMode = 0x0C,     // DaynaPort specific command
-		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
-		eCmdEnableInterface = 0x0E,  // DaynaPort specific command
-		eCmdInquiry = 0x12,
-		eCmdModeSelect6 = 0x15,
-		eCmdReserve6 = 0x16,
-		eCmdRelease6 = 0x17,
-		eCmdModeSense6 = 0x1A,
-		eCmdStartStop = 0x1B,
-		eCmdSendDiag = 0x1D,
-		eCmdRemoval = 0x1E,
-		eCmdReadCapacity10 = 0x25,
-		eCmdRead10 = 0x28,
-		eCmdWrite10 = 0x2A,
-		eCmdSeek10 = 0x2B,
-		eCmdVerify10 = 0x2F,
-		eCmdSynchronizeCache10 = 0x35,
-		eCmdReadDefectData10 = 0x37,
-		eCmdReadLong10 = 0x3E,
-		eCmdWriteLong10 = 0x3F,
-		eCmdReadToc = 0x43,
-		eCmdGetEventStatusNotification = 0x4A,
-		eCmdModeSelect10 = 0x55,
-		eCmdReserve10 = 0x56,
-		eCmdRelease10 = 0x57,
-		eCmdModeSense10 = 0x5A,
-		eCmdRead16 = 0x88,
-		eCmdWrite16 = 0x8A,
-		eCmdVerify16 = 0x8F,
-		eCmdSynchronizeCache16 = 0x91,
-		eCmdReadCapacity16_ReadLong16 = 0x9E,
-		eCmdWriteLong16 = 0x9F,
-		eCmdReportLuns = 0xA0
+
+	enum rascsi_shutdown_mode {
+		NONE,
+		STOP_RASCSI,
+		STOP_PI,
+		RESTART_PI
 	};
 
 	// Internal data definition
@@ -84,43 +45,58 @@ public:
 		bool atnmsg;
 		int msc;
 		BYTE msb[256];
+
+		// -1 means that the initiator ID is unknown, e.g. with Atari ACSI and old host adapters
+		int initiator_id;
+
+		bool is_byte_transfer;
+		uint32_t bytes_to_transfer;
 	} scsi_t;
 
-public:
-	// Basic Functions
 	SCSIDEV();
 	~SCSIDEV();
 
 	void Reset() override;
 
-	// External API
-	BUS::phase_t Process() override;
+	BUS::phase_t Process(int) override;
 
-	// Other
+	void Receive() override;
+
+	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
+	int GetEffectiveLun() const;
+
 	bool IsSASI() const override { return false; }
 	bool IsSCSI() const override { return true; }
 
-	void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION) override;	// Common error handling
+	// Common error handling
+	void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
+			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) override;
+
+	void ScheduleShutDown(rascsi_shutdown_mode shutdown_mode) { this->shutdown_mode = shutdown_mode; }
+
+	int GetInitiatorId() const { return scsi.initiator_id; }
+	bool IsByteTransfer() const { return scsi.is_byte_transfer; }
+	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
 private:
+	typedef SASIDEV super;
 
-	// Phase
-	void BusFree() override;						// Bus free phase
-	void Selection() override;						// Selection phase
-	void Execute() override;						// Execution phase
-	void MsgOut();							// Message out phase
-
-	// commands
-	void CmdGetEventStatusNotification();
-	void CmdModeSelect10();
-	void CmdModeSense10();
+	// Phases
+	void BusFree() override;
+	void Selection() override;
+	void Execute() override;
+	void MsgOut();
 
 	// Data transfer
 	void Send() override;
-	void Receive() override;
-	bool XferMsg(DWORD msg);
+	bool XferMsg(int);
+	bool XferOut(bool);
+	void ReceiveBytes();
 
-	scsi_t scsi;								// Internal data
+	// Internal data
+	scsi_t scsi;
+
+	rascsi_shutdown_mode shutdown_mode;
 };
 

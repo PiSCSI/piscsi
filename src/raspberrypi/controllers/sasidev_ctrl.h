@@ -15,12 +15,12 @@
 //---------------------------------------------------------------------------
 #pragma once
 
-#include "../rascsi.h"
+#include "../config.h"
 #include "os.h"
 #include "scsi.h"
 #include "fileio.h"
-#include "log.h"
 
+class PrimaryDevice;
 
 //===========================================================================
 //
@@ -30,42 +30,21 @@
 class SASIDEV
 {
 protected:
-	enum scsi_message_code : BYTE {
-		eMsgCodeAbort = 0x06,
-		eMsgCodeAbortTag = 0x0D,
-		eMsgCodeBusDeviceReset = 0x0C,
-		eMsgCodeClearQueue = 0x0E,
-		eMsgCodeCommandComplete = 0x00,
-		eMsgCodeDisconnect = 0x04,
-		eMsgCodeIdentify = 0x80,
-		eMsgCodeIgnoreWideResidue = 0x23, // (Two Bytes)
-		eMsgCodeInitiateRecovery = 0x0F,
-		eMsgCodeInitiatorDetectedError = 0x05,
-		eMsgCodeLinkedCommandComplete = 0x0A,
-		eMsgCodeLinkedCommandCompleteWithFlag = 0x0B,
-		eMsgCodeMessageParityError = 0x09,
-		eMsgCodeMessageReject = 0x07,
-		eMsgCodeNoOperation = 0x08,
-		eMsgCodeHeadOfQueueTag = 0x21,
-		eMsgCodeOrderedQueueTag = 0x22,
-		eMsgCodeSimpleQueueTag = 0x20,
-		eMsgCodeReleaseRecovery = 0x10,
-		eMsgCodeRestorePointers = 0x03,
-		eMsgCodeSaveDataPointer = 0x02,
-		eMsgCodeTerminateIOProcess = 0x11
-	};
 
 private:
 	enum sasi_command : int {
 		eCmdTestUnitReady = 0x00,
 		eCmdRezero =  0x01,
 		eCmdRequestSense = 0x03,
-		eCmdFormat = 0x06,
+		eCmdFormat = 0x04,
+		eCmdReadCapacity = 0x05,
+		eCmdFormatLegacy = 0x06,
 		eCmdReassign = 0x07,
 		eCmdRead6 = 0x08,
 		eCmdWrite6 = 0x0A,
 		eCmdSeek6 = 0x0B,
 		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
+		eCmdInquiry = 0x12,
 		eCmdModeSelect6 = 0x15,
 		eCmdReserve6 = 0x16,
 		eCmdRelease6 = 0x17,
@@ -122,11 +101,11 @@ public:
 		DWORD offset;					// Transfer offset
 		DWORD length;					// Transfer remaining length
 
-		// Logical unit
-		Disk *unit[UnitMax];
+		// Logical units
+		PrimaryDevice *unit[UnitMax];
 
 		// The current device
-		Disk *device;
+		PrimaryDevice *device;
 
 		// The LUN from the IDENTIFY message
 		int lun;
@@ -139,12 +118,12 @@ public:
 	virtual void Reset();						// Device Reset
 
 	// External API
-	virtual BUS::phase_t Process();				// Run
+	virtual BUS::phase_t Process(int);				// Run
 
 	// Connect
 	void Connect(int id, BUS *sbus);				// Controller connection
-	Disk* GetUnit(int no);							// Get logical unit
-	void SetUnit(int no, Disk *dev);				// Logical unit setting
+	PrimaryDevice* GetUnit(int no);							// Get logical unit
+	void SetUnit(int no, PrimaryDevice *dev);				// Logical unit setting
 	bool HasUnit();						// Has a valid logical unit
 
 	// Other
@@ -161,10 +140,11 @@ public:
 	void MsgIn();							// Message in phase
 	void DataOut();						// Data out phase
 
-	int GetEffectiveLun() const;
+	virtual int GetEffectiveLun() const;
 
-	virtual void Error(ERROR_CODES::sense_key sense_key = ERROR_CODES::sense_key::NO_SENSE,
-			ERROR_CODES::asc = ERROR_CODES::asc::NO_ADDITIONAL_SENSE_INFORMATION);	// Common error handling
+	virtual void Error(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
+			scsi_defs::asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
+			scsi_defs::status = scsi_defs::status::CHECK_CONDITION);	// Common error handling
 
 protected:
 	// Phase processing
@@ -174,16 +154,6 @@ protected:
 	virtual void Execute();					// Execution phase
 
 	// Commands
-	void CmdTestUnitReady();					// TEST UNIT READY command
-	void CmdRezero();						// REZERO UNIT command
-	void CmdRequestSense();					// REQUEST SENSE command
-	void CmdFormat();						// FORMAT command
-	void CmdReassignBlocks();						// REASSIGN BLOCKS command
-	void CmdReserveUnit();						// RESERVE UNIT command
-	void CmdReleaseUnit();						// RELEASE UNIT command
-	void CmdRead6();						// READ(6) command
-	void CmdWrite6();						// WRITE(6) command
-	void CmdSeek6();						// SEEK(6) command
 	void CmdAssign();						// ASSIGN command
 	void CmdSpecify();						// SPECIFY command
 
@@ -192,7 +162,7 @@ protected:
 	virtual void Receive();					// Receive data
 
 	bool XferIn(BYTE* buf);					// Data transfer IN
-	bool XferOut(bool cont);					// Data transfer OUT
+	virtual bool XferOut(bool cont);					// Data transfer OUT
 
 	// Special operations
 	void FlushUnit();						// Flush the logical unit

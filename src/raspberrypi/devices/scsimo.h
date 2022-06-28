@@ -22,15 +22,23 @@
 class SCSIMO : public Disk, public FileSupport
 {
 public:
-	SCSIMO();
-	~SCSIMO() {};
+	SCSIMO(const unordered_set<uint32_t>&, const unordered_map<uint64_t, Geometry>&);
+	~SCSIMO() {}
 
 	void Open(const Filepath& path) override;
 
 	// Commands
-	int Inquiry(const DWORD *cdb, BYTE *buf) override;
+	vector<BYTE> Inquiry() const override;
 	bool ModeSelect(const DWORD *cdb, const BYTE *buf, int length) override;
 
+protected:
+
 	// Internal processing
-	int AddVendor(int page, BOOL change, BYTE *buf);			// Add vendor special page
+	void SetDeviceParameters(BYTE *) override;
+	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
+	void AddVendorPage(map<int, vector<BYTE>>&, int, bool) const override;
+
+private:
+
+	void AddOptionPage(map<int, vector<BYTE>>&, bool) const;
 };

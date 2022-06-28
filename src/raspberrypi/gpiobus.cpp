@@ -6,8 +6,6 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //
-//	Imported NetBSD support and some optimisation patch by Rin Okuyama.
-//
 //	[ GPIO-SCSI bus ]
 //
 //---------------------------------------------------------------------------
@@ -16,8 +14,9 @@
 
 #include "os.h"
 #include "gpiobus.h"
+
+#include "config.h"
 #include "log.h"
-#include "rascsi.h"
 
 #ifdef __linux__
 //---------------------------------------------------------------------------
@@ -818,7 +817,7 @@ BOOL GPIOBUS::GetDP()
 //	Receive command handshake
 //
 //---------------------------------------------------------------------------
-int GPIOBUS::CommandHandShake(BYTE *buf)
+int GPIOBUS::CommandHandShake(BYTE *buf, bool is_sasi)
 {
 	int count;
 
@@ -870,7 +869,7 @@ int GPIOBUS::CommandHandShake(BYTE *buf)
 	// semantics. I fact, these semantics have become a standard in the Atari world.
 
 	// RaSCSI becomes ICD compatible by ignoring the prepended $1F byte before processing the CDB.
-	if (*buf == 0x1F) {
+	if (!is_sasi && *buf == 0x1F) {
 		SetSignal(PIN_REQ, ON);
 
 		ret = WaitSignal(PIN_ACK, TRUE);
@@ -1593,7 +1592,7 @@ int GPIOBUS::GetCommandByteCount(BYTE opcode) {
 	else if (opcode == 0xA0) {
 		return 12;
 	}
-	else if (opcode >= 0x20 && opcode <= 0x7D) {
+	else if (opcode == 0x05 || (opcode >= 0x20 && opcode <= 0x7D)) {
 		return 10;
 	} else {
 		return 6;

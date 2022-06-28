@@ -59,6 +59,14 @@ string ras_util::ListDevices(const list<PbDevice>& pb_devices)
 				filename = "DaynaPort SCSI/Link";
 				break;
 
+			case SCHS:
+				filename = "Host Services";
+				break;
+
+			case SCLP:
+				filename = "SCSI Printer";
+				break;
+
 			default:
 				filename = device.file().name();
 				break;

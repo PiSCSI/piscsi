@@ -6,7 +6,6 @@
 //	Powered by XM6 TypeG Technology.
 //	Copyright (C) 2016-2020 GIMONS
 //
-//	Imported NetBSD support and some optimisation patch by Rin Okuyama.
 //	Imported sava's bugfix patch(in RASDRV DOS edition).
 //
 //  [ Host File System for the X68000 ]
@@ -22,7 +21,6 @@
 #include "log.h"
 #include "filepath.h"
 #include "cfilesystem.h"
-#include "../rascsi.h"
 
 //---------------------------------------------------------------------------
 //
@@ -31,21 +29,11 @@
 //---------------------------------------------------------------------------
 #define IC_BUF_SIZE 1024
 static char convert_buf[IC_BUF_SIZE];
-#ifndef __NetBSD__
-// Using POSIX.1 compliant iconv(3)
 #define CONVERT(src, dest, inbuf, outbuf, outsize) \
 	convert(src, dest, (char *)inbuf, outbuf, outsize)
 static void convert(char const *src, char const *dest,
 	char *inbuf, char *outbuf, size_t outsize)
-#else
-// Using NetBSD version of iconv(3): The second argument is 'const char **'
-#define CONVERT(src, dest, inbuf, outbuf, outsize) \
-	convert(src, dest, inbuf, outbuf, outsize)
-static void convert(char const *src, char const *dest,
-	const char *inbuf, char *outbuf, size_t outsize)
-#endif
 {
-#ifndef __APPLE__
 	*outbuf = '\0';
 	size_t in = strlen(inbuf);
 	size_t out = outsize - 1;
@@ -62,7 +50,6 @@ static void convert(char const *src, char const *dest,
 
 	iconv_close(cd);
 	*outbuf = '\0';
-#endif //ifndef __APPLE__
 }
 
 //---------------------------------------------------------------------------

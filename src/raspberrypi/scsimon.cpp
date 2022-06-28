@@ -18,7 +18,6 @@
 #include <sstream>
 #include <iostream>
 #include <getopt.h>
-#include "rascsi.h"
 #include <sched.h>
 #include "monitor/sm_reports.h"
 #include "monitor/data_sample.h"

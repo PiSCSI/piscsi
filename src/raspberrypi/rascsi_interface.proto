@@ -28,6 +28,10 @@ enum PbDeviceType {
     SCBR = 6;
     // DaynaPort network adapter
     SCDP = 7;
+    // Host services device
+    SCHS = 8;
+    // Printer device
+    SCLP = 9;
 }
 
 // rascsi remote operations, returning PbResult
@@ -35,9 +39,12 @@ enum PbOperation {
     NO_OPERATION = 0;
 
     // Attach devices and return the new device list (PbDevicesInfo)
-    // Parameters (mutually exclusive):
+    // Parameters (depending on the device type):
     //   "file": The filename relative to the default image folder
-    //   "interfaces": A prioritized comma-separated list of interfaces to create a network bridge for.
+    //   "interface": A prioritized comma-separated list of interfaces to create a network bridge for
+    //   "inet": The IP address and netmask for the network bridge
+    //   "cmd": The command to be used for printing, with "%f" as file placeholder
+    //   "timeout": The timeout for printer reservations in seconds
     ATTACH = 1;
 
     // Detach a device and return the new device list (PbDevicesInfo)

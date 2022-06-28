@@ -42,7 +42,8 @@ $ git push pi master
 
 We use the Flask-Babel library and Flask/Jinja2 extension for i18n.
 
-It uses the 'pybabel' command line tool for extracting and compiling localizations.
+It uses the 'pybabel' command line tool for extracting and compiling localizations. The Web Interface start script will automatically compile localizations upon launch.
+
 Activate the Python venv in src/web/ to use it:
 ```
 $ cd python/web
@@ -54,10 +55,31 @@ To create a new localization, it needs to be added to the LANGAUGES constant in
 web/settings.py. To localize messages coming from the RaSCSI backend, update also code in
 raspberrypi/localizer.cpp in the RaSCSI C++ code.
 
-Once this is done, follow the steps in the [Flask-Babel documentation](https://flask-babel.tkte.ch/#translating-applications)
-to generate the messages.po for the new language.
+Once this is done, it is time to localize the Python code. The below steps are derived from the [Flask-Babel documentation](https://flask-babel.tkte.ch/#translating-applications).
 
-Updating the strings in an existing messages.po is also covered above.
+First, generate the raw messages.pot file containing extracted strings.
+
+```
+$ pybabel extract -F babel.cfg -o messages.pot .
+```
+
+### Initialize a new localization
+
+When adding a localization for a new language, initialize the directory structure. Replace 'xx' with the two character code for the language.
+
+```
+$ pybabel init -i messages.pot -d translations -l xx
+```
+
+### Update an existing loclization
+
+After strings have been added or changed in the code, update the existing localizations.
+
+```
+pybabel update -i messages.pot -d src/translations
+```
+
+Then edit the updated messages.po file for your language. Make sure to update fuzzy strings and translate new ones.
 
 When you are ready to contribute new or updated localizations, use the same Gitflow Workflow as used for any code contributions to submit PRs against the develop branch.
 

@@ -11,7 +11,8 @@
 #include "os.h"
 #include "filepath.h"
 #include "fileio.h"
-#include "rascsi.h"
+
+#include "config.h"
 
 //===========================================================================
 //

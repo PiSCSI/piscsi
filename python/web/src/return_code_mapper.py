@@ -41,5 +41,8 @@ class ReturnCodeMapper:
 
         parameters = payload["parameters"]
 
-        payload["msg"] = lazy_gettext(ReturnCodeMapper.MESSAGES[payload["return_code"]], **parameters)
+        payload["msg"] = lazy_gettext(
+                ReturnCodeMapper.MESSAGES[payload["return_code"]],
+                **parameters,
+                )
         return payload
