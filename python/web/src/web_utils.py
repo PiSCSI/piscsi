@@ -32,7 +32,10 @@ def get_valid_scsi_ids(devices, reserved_ids):
     if unoccupied_ids:
         recommended_id = unoccupied_ids[-1]
     else:
-        recommended_id = occupied_ids.pop(0)
+        if occupied_ids:
+            recommended_id = occupied_ids.pop(0)
+        else:
+            recommended_id = 0
 
     return valid_ids, recommended_id
 
