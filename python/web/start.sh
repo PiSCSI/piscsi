@@ -90,16 +90,22 @@ while [ "$1" != "" ]; do
     PARAM=$(echo "$1" | awk -F= '{print $1}')
     VALUE=$(echo "$1" | awk -F= '{print $2}')
     case $PARAM in
-	-p | --port)
-	    PORT="--port $VALUE"
-	    ;;
-	-P | --password)
-	    PASSWORD="--password $VALUE"
-	    ;;
-        *)
-            echo "ERROR: unknown parameter \"$PARAM\""
-            exit 1
-            ;;
+    -p | --port)
+        ARG_PORT="--port $VALUE"
+        ;;
+    -P | --password)
+        ARG_PASSWORD="--password $VALUE"
+        ;;
+    --rascsi-host)
+        ARG_RASCSI_HOST="--rascsi-host $VALUE"
+        ;;
+    --rascsi-port)
+        ARG_RASCSI_PORT="--rascsi-port $VALUE"
+        ;;
+    *)
+        echo "ERROR: unknown parameter \"$PARAM\""
+        exit 1
+        ;;
     esac
     shift
 done
@@ -108,4 +114,4 @@ PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
 echo "Starting web server for RaSCSI Web Interface..."
 export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
 cd src
-python3 web.py ${PORT} ${PASSWORD}
+python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT}
