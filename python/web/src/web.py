@@ -1031,7 +1031,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--rascsi-port",
-        type=str,
+        type=int,
         default=6868,
         action="store",
         help="RaSCSI port. Default: 6868",
