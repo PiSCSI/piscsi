@@ -1,10 +1,10 @@
-# What is RaSCSI?
-RaSCSI is a virtual SCSI device emulator that runs on a Raspberry Pi. It runs in userspace, and can emulate several SCSI devices at one time. There is a control interface to attach / detach drives during runtime, as well as insert and eject removable media. This project is aimed at users of vintage Macintosh and Atari computers and more (see [compatibility list](https://github.com/akuker/RASCSI/wiki/Compatibility)) from the 1980's and 1990's.
+# What is RaSCSI Reloaded?
+RaSCSI Reloaded is a virtual SCSI device emulator that runs on a Raspberry Pi. It runs in userspace, and can emulate several SCSI devices at one time. There is a control interface to attach / detach drives during runtime, as well as insert and eject removable media. This project is aimed at users of vintage Macintosh and Atari computers and more (see [compatibility list](https://github.com/akuker/RASCSI/wiki/Compatibility)) from the 1980's and 1990's.
 
 Please check out the full story with much more detail on the [wiki](https://github.com/akuker/RASCSI/wiki)!
 
 # How do I contribute?
-RaSCSI is using the <a href="https://datasift.github.io/gitflow/IntroducingGitFlow.html">Gitflow Workflow</a>. A quick overview:
+RaSCSI Reloaded is using the <a href="https://datasift.github.io/gitflow/IntroducingGitFlow.html">Gitflow Workflow</a>. A quick overview:
 
 - The *master* branch should always reflect the contents of the last stable release
 - The *develop* branch should contain the latest tested & approved updates. Pull requests should be used to merge changes into develop.

@@ -91,14 +91,14 @@ void KillHandler(int sig)
 //---------------------------------------------------------------------------
 void Banner(int argc, char* argv[])
 {
-	FPRT(stdout,"SCSI Target Emulator RaSCSI(*^..^*) ");
+	FPRT(stdout,"SCSI Target Emulator RaSCSI Reloaded ");
 	FPRT(stdout,"version %s (%s, %s)\n",
 		rascsi_get_version_string(),
 		__DATE__,
 		__TIME__);
 	FPRT(stdout,"Powered by XM6 TypeG Technology / ");
 	FPRT(stdout,"Copyright (C) 2016-2020 GIMONS\n");
-	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI project\n");
+	FPRT(stdout,"Copyright (C) 2020-2022 Contributors to the RaSCSI Reloaded project\n");
 	FPRT(stdout,"Connect type : %s\n", CONNECT_DESC);
 
 	if ((argc > 1 && strcmp(argv[1], "-h") == 0) ||

@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-    <title>{{ _("RaSCSI Control Page") }} [{{ host }}]</title>
+    <title>{{ _("RaSCSI Reloaded Control Page") }} [{{ host }}]</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
 <link rel="apple-touch-icon" sizes="57x57" href="/pwa/apple-icon-57x57.png">
@@ -64,7 +64,7 @@
         <tr align="center">
             <td>
                 <a href="http://github.com/akuker/RASCSI" target="_blank">
-                    <h1>{{ _("RaSCSI Control Page") }}</h1>
+                    <h1>{{ _("RaSCSI Reloaded Control Page") }}</h1>
                 </a>
             </td>
         </tr>
@@ -89,7 +89,7 @@
         {% block content %}{% endblock content %}
     </div>
     <div class="footer">
-        <center><tt>{{ _("RaSCSI version: ") }}<strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}" target="_blank">{{ running_env["git"][:7] }}</a></strong></tt></center>
+        <center><tt>{{ _("RaSCSI Reloaded version: ") }}<strong>{{ version }} <a href="https://github.com/akuker/RASCSI/commit/{{ running_env['git'] }}" target="_blank">{{ running_env["git"][:7] }}</a></strong></tt></center>
         <center><tt>{{ _("Pi environment: ") }}{{ running_env["env"] }}</tt></center>
     </div>
 </div>
