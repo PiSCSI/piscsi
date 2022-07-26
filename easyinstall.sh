@@ -1272,7 +1272,7 @@ function runChoice() {
               preparePythonCommon
               installRaScsiWebInterface
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
-              echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --port=8081"
+              echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
           12)
               echo "Enabling authentication for the RaSCSI Web Interface"

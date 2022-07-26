@@ -90,16 +90,16 @@ while [ "$1" != "" ]; do
     PARAM=$(echo "$1" | awk -F= '{print $1}')
     VALUE=$(echo "$1" | awk -F= '{print $2}')
     case $PARAM in
-    -p | --port)
+    -p | --web-port)
         ARG_PORT="--port $VALUE"
         ;;
     -P | --password)
         ARG_PASSWORD="--password $VALUE"
         ;;
-    --rascsi-host)
+    -h | --rascsi-host)
         ARG_RASCSI_HOST="--rascsi-host $VALUE"
         ;;
-    --rascsi-port)
+    -o | --rascsi-port)
         ARG_RASCSI_PORT="--rascsi-port $VALUE"
         ;;
     *)
