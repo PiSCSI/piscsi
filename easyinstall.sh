@@ -89,9 +89,10 @@ function compileRaScsi() {
 
     echo "Compiling with ${CORES:-1} simultaneous cores..."
     make clean </dev/null
+
+    # Refresh the sudo authentication, which shouldn't trigger another password prompt
     sudo -v
     make -j "${CORES:-1}" all CONNECT_TYPE="${CONNECT_TYPE:-FULLSPEC}" </dev/null
-    sudo -v
 }
 
 function cleanupOutdatedManPage() {
@@ -223,6 +224,8 @@ function configureTokenAuth() {
     echo "Do you want to protect your RaSCSI installation with a password? [y/N]"
     read REPLY
 
+    SECRET_FILE="$HOME/.config/rascsi/rascsi_secret"
+
     if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
         echo -n "Enter the password that you want to use: "
         read -r TOKEN
@@ -230,11 +233,17 @@ function configureTokenAuth() {
             sudo rm "$HOME/.rascsi_secret"
             echo "Removed old RaSCSI token file"
         fi
-        echo "$TOKEN" > "$HOME/.rascsi_secret"
-        sudo chown root:root "$HOME/.rascsi_secret"
-        sudo chmod 600 "$HOME/.rascsi_secret"
+        if [ -f "$SECRET_FILE" ]; then
+            sudo rm "$SECRET_FILE"
+            echo "Removed old RaSCSI token file"
+        fi
+        echo "$TOKEN" > "$SECRET_FILE"
+
+	# Make the secret file owned and only readable by root
+        sudo chown root:root "$SECRET_FILE"
+        sudo chmod 600 "$SECRET_FILE"
         echo ""
-        echo "Configured RaSCSI to use $HOME/.rascsi_secret for authentication. This file is readable by root only."
+        echo "Configured RaSCSI to use $SECRET_FILE for authentication. This file is readable by root only."
         echo "Make note of your password: you will need it to use rasctl and other RaSCSI clients."
     fi
 }
@@ -242,8 +251,7 @@ function configureTokenAuth() {
 # Modifies and installs the rascsi service
 function enableRaScsiService() {
     if [ ! -z "$TOKEN" ]; then
-        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH -P $HOME/.rascsi_secret@" "$SYSTEMD_PATH/rascsi.service"
-        sudo chmod 600 "$SYSTEMD_PATH/rascsi.service"
+        sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH -P $SECRET_FILE@" "$SYSTEMD_PATH/rascsi.service"
     else
         sudo sed -i "s@^ExecStart.*@& -F $VIRTUAL_DRIVER_PATH@" "$SYSTEMD_PATH/rascsi.service"
     fi
@@ -264,6 +272,7 @@ function installWebInterfaceService() {
     echo "$TOKEN"
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$WEB_INSTALL_PATH/start.sh --password=$TOKEN" "$SYSTEMD_PATH/rascsi-web.service"
+	# Make the service file readable by root only, to protect the token string
         sudo chmod 600 "$SYSTEMD_PATH/rascsi-web.service"
         echo "Granted access to the Web Interface with the token password that you configured for RaSCSI."
     else
@@ -932,6 +941,7 @@ function installRaScsiScreen() {
     sudo sed -i /^ExecStart=/d "$SYSTEMD_PATH/rascsi-oled.service"
     if [ ! -z "$TOKEN" ]; then
         sudo sed -i "8 i ExecStart=$OLED_INSTALL_PATH/start.sh --rotation=$ROTATION --height=$SCREEN_HEIGHT --password=$TOKEN" "$SYSTEMD_PATH/rascsi-oled.service"
+	# Make the service file readable by root only, to protect the token string
         sudo chmod 600 "$SYSTEMD_PATH/rascsi-oled.service"
         echo "Granted access to the OLED Monitor with the password that you configured for RaSCSI."
     else
