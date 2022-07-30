@@ -278,10 +278,13 @@ class FileCmds:
         prop_flag = False
 
         if not member:
-            unzip_proc = asyncio.run(self.run_async(
-                f"unzip -d {server_info['image_dir']} -n -j "
-                f"{server_info['image_dir']}/{file_name}"
-                ))
+            unzip_proc = asyncio.run(self.run_async("unzip", [
+                "-d",
+                server_info['image_dir'],
+                "-n",
+                "-j",
+                f"{server_info['image_dir']}/{file_name}",
+                ]))
             if members:
                 for path in members:
                     if path.endswith(PROPERTIES_SUFFIX):
@@ -290,15 +293,24 @@ class FileCmds:
                         prop_flag = True
         else:
             member = escape(member)
-            unzip_proc = asyncio.run(self.run_async(
-                f"unzip -d {server_info['image_dir']} -n -j "
-                f"{server_info['image_dir']}/{file_name} {member}"
-                ))
+            unzip_proc = asyncio.run(self.run_async("unzip", [
+                "-d",
+                server_info['image_dir'],
+                "-n",
+                "-j",
+                f"{server_info['image_dir']}/{file_name}",
+                member,
+                ]))
             # Attempt to unzip a properties file in the same archive dir
-            unzip_prop = asyncio.run(self.run_async(
-                f"unzip -d {CFG_DIR} -n -j "
-                f"{server_info['image_dir']}/{file_name} {member}.{PROPERTIES_SUFFIX}"
-                ))
+            unzip_prop = asyncio.run(self.run_async("unzip", [
+                "-d",
+                CFG_DIR,
+                "-n",
+                "-j",
+                f"{server_info['image_dir']}/{file_name}",
+                f"{member}.{PROPERTIES_SUFFIX}",
+                ]))
+
             if unzip_prop["returncode"] == 0:
                 prop_flag = True
         if unzip_proc["returncode"] != 0:
@@ -339,9 +351,12 @@ class FileCmds:
                     "%s is a zipfile! Will attempt to unzip and store the resulting files.",
                     tmp_full_path,
                     )
-                unzip_proc = asyncio.run(self.run_async(
-                    f"unzip -d {tmp_dir} -n {tmp_full_path}"
-                    ))
+                unzip_proc = asyncio.run(self.run_async("unzip", [
+                    "-d",
+                    tmp_dir,
+                    "-n",
+                    tmp_full_path,
+                    ]))
                 if not unzip_proc["returncode"]:
                     logging.info(
                         "%s was successfully unzipped. Deleting the zipfile.",
@@ -614,20 +629,21 @@ class FileCmds:
                 }
 
     # noinspection PyMethodMayBeStatic
-    async def run_async(self, cmd):
+    async def run_async(self, program, args):
         """
         Takes (str) cmd with the shell command to execute
         Executes shell command and captures output
         Returns (dict) with (int) returncode, (str) stdout, (str) stderr
         """
-        proc = await asyncio.create_subprocess_shell(
-            cmd,
+        proc = await asyncio.create_subprocess_exec(
+            program,
+            *args,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE)
 
         stdout, stderr = await proc.communicate()
 
-        logging.info("Executed command \"%s\" with status code %d", cmd, proc.returncode)
+        logging.info("Executed command \"%s %s\" with status code %d", program, " ".join(args), proc.returncode)
         if stdout:
             stdout = stdout.decode()
             logging.info("stdout: %s", stdout)
