@@ -744,95 +744,17 @@ function setupWirelessNetworking() {
 
 # Downloads, compiles, and installs Netatalk (AppleShare server)
 function installNetatalk() {
-    NETATALK_VERSION="2-220101"
+    NETATALK_VERSION="2-220702"
     AFP_SHARE_PATH="$HOME/afpshare"
-    SYSCONFDIR="/etc"
-
-    sudo systemctl stop atalkd afpd || true
-
-    if [ -f /etc/init.d/netatalk ]; then
-        echo ""
-        echo "WARNING: An old version of Netatalk was detected. It is recommended to back up you configuration files and shared files before proceeding. Press CTRL-C to exit, or any other key to proceed."
-        read
-        sudo /etc/init.d/netatalk stop || true
-    fi
-
-    if [ -f /var/log/afpd.log ]; then
-        echo "Removing /var/log/afpd.log created by an old version of Netatalk..."
-        sudo rm /var/log/afpd.log
-    fi
-
-    if [[ `grep -c netatalk /etc/rc.local` -eq 1 ]]; then
-        sudo sed -i "/netatalk/d" /etc/rc.local
-        echo "Removed Netatalk from /etc/rc.local -- use systemctl to control Netatalk from now on."
-    fi
-
-    if [ -d "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION" ]; then
-        echo "Deleting existing copy of $HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION."
-        sudo rm -rf "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION"
-    fi
+    AFP_SHARE_NAME="Pi File Server"
 
     echo "Downloading netatalk-$NETATALK_VERSION to $HOME"
     cd $HOME || exit 1
     wget -O "netatalk-$NETATALK_VERSION.tar.gz" "https://github.com/rdmark/Netatalk-2.x/archive/refs/tags/netatalk-$NETATALK_VERSION.tar.gz" </dev/null
     tar -xzvf netatalk-$NETATALK_VERSION.tar.gz
 
-    cd "Netatalk-2.x-netatalk-$NETATALK_VERSION" || exit 1
-    sed -i /^~/d ./config/AppleVolumes.default.tmpl
-    echo "$AFP_SHARE_PATH \"Pi File Server\"" >> ./config/AppleVolumes.default.tmpl
-
-    echo "- -transall -uamlist uams_guest.so,uams_clrtxt.so,uams_dhx2.so -nosavepassword -noicon" >> ./config/afpd.conf.tmpl
-    echo "cupsautoadd:op=root:" >> ./config/papd.conf
-
-    ( sudo apt-get update && sudo apt-get install libssl-dev libdb-dev libcups2-dev cups libavahi-client-dev autotools-dev automake libtool libgcrypt20-dev --assume-yes ) </dev/null
-
-    echo "Compiling and installing Netatalk..."
-    ./bootstrap </dev/null
-    ./configure --enable-systemd --enable-ddp --enable-cups --enable-timelord --enable-zeroconf --disable-quota --enable-overwrite --sysconfdir="$SYSCONFDIR" --with-uams-path=/usr/lib/netatalk </dev/null
-
-    echo "Compiling with ${CORES:-1} simultaneous cores..."
-    ( make all -j "${CORES:-1}" && sudo make install ) </dev/null
-
-    if [ -d "$AFP_SHARE_PATH" ]; then
-        echo "Will use the existing $AFP_SHARE_PATH directory for file sharing."
-    else
-        echo "The $AFP_SHARE_PATH directory does not exist; creating..."
-        mkdir -p "$AFP_SHARE_PATH"
-        chmod -R 2775 "$AFP_SHARE_PATH"
-    fi
-
-    echo "Starting Netatalk services. This may take a minute..."
-    sudo systemctl start atalkd afpd papd timelord
-    systemctl status afpd atalkd papd timelord
-
-    if [[ `lsmod | grep -c appletalk` -eq 0 ]]; then
-        echo ""
-        echo "Your system may not have support for AppleTalk networking."
-        echo "Use TCP to connect to your AppleShare server via the IP address of the network interface that is connected to the rest of your network:"
-        echo `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}'`
-        echo "See wiki for information on how to compile support for AppleTalk into your Linux kernel."
-    fi
-
-    sudo usermod -a -G lpadmin $USER
-    sudo cupsctl --remote-admin WebInterface=yes
-    if [[ `sudo grep "PreserveJobHistory No" /etc/cups/cupsd.conf` -eq 0 ]]; then
-        sudo sed -i "/MaxLogSize/a PreserveJobHistory No" /etc/cups/cupsd.conf
-    fi
-
-    echo ""
-    echo "Netatalk daemons are now installed and enabled as systemd services."
-    echo "Log in to the server using the current username ("$USER") and password."
-    echo ""
-    echo "IMPORTANT: "$USER" needs to have a password of 8 chars or less."
-    echo "Do you want to change your password now? [y/N]"
-    read -r REPLY
-    if [ "$REPLY" == "y" ] || [ "$REPLY" == "Y" ]; then
-        passwd
-    fi
-    echo ""
-    echo "For more information on how to use the various Netatalk features, see the wiki:"
-    echo "https://github.com/akuker/RASCSI/wiki/AFP-File-Sharing"
-    echo ""
+    cd "$HOME/Netatalk-2.x-netatalk-$NETATALK_VERSION/contrib/shell_utils" || exit 1
+    ./debian_install.sh -j="${CORES:-1}" -n="$AFP_SHARE_NAME" -p="$AFP_SHARE_PATH" || exit 1
 }
 
 # Downloads, compiles, and installs Macproxy (web proxy)
@@ -1226,18 +1148,6 @@ function runChoice() {
               echo "Configuring wifi network bridge - Complete!"
           ;;
           8)
-              echo "Installing AppleShare File Server"
-              echo "This script will make the following changes to your system:"
-              echo "- Install the CUPS printing system and configure its web interface"
-              echo "- Modify user groups and permissions"
-              echo "- Install additional packages with apt-get"
-              echo "- Add and modify systemd services"
-              echo "- Create directories and change permissions"
-              echo "- Install binaries to /usr/local/sbin"
-              echo "- Install manpages to /usr/local/share/man/"
-              echo "- Install configuration files to /etc"
-              echo ""
-              sudoCheck
               installNetatalk
               echo "Installing AppleShare File Server - Complete!"
           ;;
