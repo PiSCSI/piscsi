@@ -83,6 +83,15 @@ function installPackages() {
     sudo apt-get update && sudo apt-get install git libspdlog-dev libpcap-dev genisoimage python3 python3-venv python3-dev python3-pip nginx libpcap-dev protobuf-compiler bridge-utils libev-dev libevdev2 -y </dev/null
 }
 
+# cache the pip packages
+function cachePipPackages(){
+    pushd $WEB_INSTALL_PATH
+    # Refresh the sudo authentication, which shouldn't trigger another password prompt
+    sudo -v
+    sudo pip install -r ./requirements.txt
+    popd
+}
+
 # compile the RaSCSI binaries
 function compileRaScsi() {
     cd "$BASE/src/raspberrypi" || exit 1
@@ -1138,6 +1147,7 @@ function runChoice() {
                   echo "Detected rascsi control board service; will run the installation steps for the control board ui."
                   installRaScsiCtrlBoard
               fi
+              cachePipPackages
               installRaScsiWebInterface
               installWebInterfaceService
               showRaScsiScreenStatus
@@ -1280,6 +1290,7 @@ function runChoice() {
               createCfgDir
               installPackages
               preparePythonCommon
+              cachePipPackages
               installRaScsiWebInterface
               echo "Configuring RaSCSI Web Interface stand-alone - Complete!"
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
