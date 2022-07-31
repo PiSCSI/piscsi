@@ -102,6 +102,9 @@ while [ "$1" != "" ]; do
     -o | --rascsi-port)
         ARG_RASCSI_PORT="--rascsi-port $VALUE"
         ;;
+    -l | --log-level)
+        ARG_LOG_LEVEL="--log-level $VALUE"
+        ;;
     *)
         echo "ERROR: unknown parameter \"$PARAM\""
         exit 1
@@ -114,4 +117,4 @@ PYTHON_COMMON_PATH=$(dirname $PWD)/common/src
 echo "Starting web server for RaSCSI Web Interface..."
 export PYTHONPATH=$PWD/src:${PYTHON_COMMON_PATH}
 cd src
-python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT}
+python3 web.py ${ARG_PORT} ${ARG_PASSWORD} ${ARG_RASCSI_HOST} ${ARG_RASCSI_PORT} ${ARG_LOG_LEVEL}
