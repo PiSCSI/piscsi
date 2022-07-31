@@ -56,7 +56,7 @@ msgstr "Skapade filen %(target_path)s"
 #: src/return_code_mapper.py:20
 #, python-format
 msgid "Could not create file: %(target_path)s"
-msgstr "Kunde ej skapa filen %(file_path)s"
+msgstr "Kunde ej skapa filen %(target_path)s"
 
 #: src/return_code_mapper.py:21
 #, python-format
