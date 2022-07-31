@@ -1072,6 +1072,7 @@ function runChoice() {
               cachePipPackages
               installRaScsiWebInterface
               installWebInterfaceService
+              enableWebInterfaceAuth
               showRaScsiScreenStatus
               showRaScsiCtrlBoardStatus
               showRaScsiStatus
@@ -1206,15 +1207,6 @@ function runChoice() {
               echo "Launch the Web Interface with the 'start.sh' script. To use a custom port for the web server: 'start.sh --web-port=8081"
           ;;
           12)
-              echo "Enabling authentication for the RaSCSI Web Interface"
-              echo "This script will make the following changes to your system:"
-              echo "- Modify users and user groups"
-              sudoCheck
-              enableWebInterfaceAuth
-              echo "Enabling authentication for the RaSCSI Web Interface - Complete!"
-              echo "Use the credentials for user '$USER' to log in to the Web Interface."
-          ;;
-          13)
               echo "Installing / Updating RaSCSI Control Board UI"
               echo "This script will make the following changes to your system:"
               echo "- Install additional packages with apt-get"
@@ -1240,7 +1232,7 @@ function runChoice() {
 function readChoice() {
    choice=-1
 
-   until [ $choice -ge "0" ] && [ $choice -le "13" ]; do
+   until [ $choice -ge "0" ] && [ $choice -le "12" ]; do
        echo -n "Enter your choice (0-12) or CTRL-C to exit: "
        read -r choice
    done
@@ -1269,9 +1261,8 @@ function showMenu() {
     echo "ADVANCED OPTIONS"
     echo " 10) compile and install RaSCSI stand-alone"
     echo " 11) configure the RaSCSI Web Interface stand-alone"
-    echo " 12) enable authentication for the RaSCSI Web Interface"
     echo "EXPERIMENTAL FEATURES"
-    echo " 13) install or update RaSCSI Control Board UI (requires hardware)"
+    echo " 12) install or update RaSCSI Control Board UI (requires hardware)"
 }
 
 # parse arguments passed to the script
@@ -1294,7 +1285,7 @@ while [ "$1" != "" ]; do
             ;;
     esac
     case $VALUE in
-        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13)
+        FULLSPEC | STANDARD | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12)
             ;;
         *)
             echo "ERROR: unknown option \"$VALUE\""
