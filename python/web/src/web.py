@@ -2,6 +2,7 @@
 Module for the Flask app rendering and endpoints
 """
 
+import sys
 import logging
 import argparse
 from pathlib import Path
@@ -1028,14 +1029,23 @@ if __name__ == "__main__":
         default="localhost",
         action="store",
         help="RaSCSI host. Default: localhost",
-    )
+        )
     parser.add_argument(
         "--rascsi-port",
         type=int,
         default=6868,
         action="store",
         help="RaSCSI port. Default: 6868",
-    )
+        )
+    parser.add_argument(
+        "--log-level",
+        type=str,
+        default="warning",
+        action="store",
+        help="Log level for Web UI. Default: warning",
+        choices=["debug", "info", "warning", "error", "critical"],
+        )
+
     arguments = parser.parse_args()
     APP.config["TOKEN"] = arguments.password
 
@@ -1046,6 +1056,10 @@ if __name__ == "__main__":
 
     if Path(f"{CFG_DIR}/{DEFAULT_CONFIG}").is_file():
         file_cmd.read_config(DEFAULT_CONFIG)
+
+    logging.basicConfig(stream=sys.stdout,
+                        format="%(asctime)s %(levelname)s %(filename)s:%(lineno)s %(message)s",
+                        level=arguments.log_level.upper())
 
     print("Serving rascsi-web...")
     bjoern.run(APP, "0.0.0.0", arguments.port)
