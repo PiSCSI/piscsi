@@ -55,6 +55,8 @@ OLED_INSTALL_PATH="$BASE/python/oled"
 CTRLBOARD_INSTALL_PATH="$BASE/python/ctrlboard"
 PYTHON_COMMON_PATH="$BASE/python/common"
 SYSTEMD_PATH="/etc/systemd/system"
+SSL_CERTS_PATH="/etc/ssl/certs"
+SSL_KEYS_PATH="/etc/ssl/private"
 HFS_FORMAT=/usr/bin/hformat
 HFDISK_BIN=/usr/bin/hfdisk
 LIDO_DRIVER=$BASE/lido-driver.img
@@ -146,6 +148,21 @@ function installRaScsiWebInterface() {
     sudo cp -f "$WEB_INSTALL_PATH/service-infra/502.html" /var/www/html/502.html
 
     sudo usermod -a -G $USER www-data
+
+    if [ -f "$SSL_CERTS_PATH/rascsi-web.crt" ]; then
+        echo "SSL certificate $SSL_CERTS_PATH/rascsi-web.crt already exists."
+    else
+        echo "SSL certificate $SSL_CERTS_PATH/rascsi-web.crt does not exist; creating self-signed certificate..."
+        sudo mkdir -p "$SSL_CERTS_PATH" || true
+        sudo mkdir -p "$SSL_KEYS_PATH" || true
+        sudo openssl req -x509 -nodes -sha256 -days 3650 \
+            -newkey rsa:4096 \
+            -keyout "$SSL_KEYS_PATH/rascsi-web.key" \
+            -out "$SSL_CERTS_PATH/rascsi-web.crt" \
+            -subj '/CN=rascsi' \
+            -addext 'subjectAltName=DNS:rascsi' \
+            -addext 'extendedKeyUsage=serverAuth'
+    fi
 
     sudo systemctl reload nginx || true
 }
