@@ -1065,6 +1065,7 @@ function runChoice() {
               echo "- Modify user groups and permissions"
               echo "- Install binaries to /usr/local/bin"
               echo "- Install manpages to /usr/local/man"
+              echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               configureTokenAuth
               stopOldWebInterface
@@ -1213,6 +1214,7 @@ function runChoice() {
               echo "- Modify and enable Apache2 and Nginx web service"
               echo "- Create directories and change permissions"
               echo "- Modify user groups and permissions"
+              echo "- Create a self-signed certificate in /etc/ssl"
               sudoCheck
               updateRaScsiGit
               createCfgDir
