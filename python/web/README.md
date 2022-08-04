@@ -55,7 +55,7 @@ To create a new localization, it needs to be added to the LANGAUGES constant in
 web/settings.py. To localize messages coming from the RaSCSI backend, update also code in
 raspberrypi/localizer.cpp in the RaSCSI C++ code.
 
-Once this is done, it is time to localize the Python code. The below steps are derived from the [Flask-Babel documentation](https://flask-babel.tkte.ch/#translating-applications).
+Once this is done, it is time to localize the Python code. The below steps are derived from the [Flask-Babel documentation](https://python-babel.github.io/flask-babel/index.html#translating-applications).
 
 First, generate the raw messages.pot file containing extracted strings.
 
@@ -68,7 +68,7 @@ $ pybabel extract -F babel.cfg -o messages.pot .
 When adding a localization for a new language, initialize the directory structure. Replace 'xx' with the two character code for the language.
 
 ```
-$ pybabel init -i messages.pot -d translations -l xx
+$ pybabel init -i messages.pot -d src/translations -l xx
 ```
 
 ### Update an existing loclization
