@@ -9,7 +9,7 @@ RaSCSI Reloaded is using the <a href="https://datasift.github.io/gitflow/Introdu
 - The *master* branch should always reflect the contents of the last stable release
 - The *develop* branch should contain the latest tested & approved updates. Pull requests should be used to merge changes into develop.
 - The rest of the feature branches are for developing new features
-- A tag will be created for each "release". The releases will be named <year>.<month> (for the first release of the month). Hot fixes, if necessary, will be released as <year>.<month>.<release number>. For example, the first release in January 2021 will be release "21.01". If a hot-fix is needed for this release, the first hotfix will be "21.01.1".
+- A tag will be created for each "release". The releases will be named <year>.<month>.<release number> where the release number is incremented for each subsequent release tagged in the same calendar month. The first release of the month of January 2021 is called "21.01.01", the second one in the same month "21.01.02 and so on.
   
 Typically, releases will only be planned every few months.
 
