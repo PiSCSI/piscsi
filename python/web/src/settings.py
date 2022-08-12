@@ -12,8 +12,6 @@ AFP_DIR = f"{HOME_DIR}/afpshare"
 
 MAX_FILE_SIZE = getenv("MAX_FILE_SIZE", str(1024 * 1024 * 1024 * 4))  # 4gb
 
-ARCHIVE_FILE_SUFFIX = "zip"
-
 # The file name of the default config file that loads when rascsi-web starts
 DEFAULT_CONFIG = f"default.{rascsi.common_settings.CONFIG_FILE_SUFFIX}"
 # File containing canonical drive properties

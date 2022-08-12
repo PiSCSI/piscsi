@@ -25,6 +25,11 @@ if ! command -v unzip &> /dev/null ; then
     echo "Run 'sudo apt install unzip' to fix."
     ERROR=1
 fi
+if ! command -v unar &> /dev/null ; then
+    echo "unar could not be found"
+    echo "Run 'sudo apt install unar' to fix."
+    ERROR=1
+fi
 if [ $ERROR = 1 ] ; then
     echo
     echo "Fix errors and re-run ./start.sh"

@@ -37,6 +37,14 @@ class ReturnCodeMapper:
             _("Could not read properties from file: %(file_path)s"),
         ReturnCodes.ATTACHIMAGE_COULD_NOT_ATTACH:
             _("Cannot insert an image for %(device_type)s into a %(current_device_type)s device"),
+        ReturnCodes.EXTRACTIMAGE_SUCCESS:
+            _("Extracted %(count)s file(s)"),
+        ReturnCodes.EXTRACTIMAGE_NO_FILES_SPECIFIED:
+            _("Unable to extract archive: No files were specified"),
+        ReturnCodes.EXTRACTIMAGE_NO_FILES_EXTRACTED:
+            _("No files were extracted (existing files are skipped)"),
+        ReturnCodes.EXTRACTIMAGE_COMMAND_ERROR:
+            _("Unable to extract archive: %(error)s"),
         }
 
     @staticmethod

@@ -12,6 +12,15 @@ CONFIG_FILE_SUFFIX = "json"
 # File ending used for drive properties files
 PROPERTIES_SUFFIX = "properties"
 
+# Supported archive file suffixes
+ARCHIVE_FILE_SUFFIXES = [
+    "zip",
+    "sit",
+    "tar",
+    "gz",
+    "7z"
+    ]
+
 # The RESERVATIONS list is used to keep track of the reserved ID memos.
 # Initialize with a list of 8 empty strings.
 RESERVATIONS = ["" for x in range(0, 8)]

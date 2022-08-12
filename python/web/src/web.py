@@ -8,9 +8,9 @@ import argparse
 from pathlib import Path
 from functools import wraps
 from grp import getgrall
-from ast import literal_eval
 
 import bjoern
+from rascsi.return_codes import ReturnCodes
 from werkzeug.utils import secure_filename
 from simplepam import authenticate
 from flask_babel import Babel, Locale, refresh, _
@@ -37,6 +37,7 @@ from rascsi.common_settings import (
     CFG_DIR,
     CONFIG_FILE_SUFFIX,
     PROPERTIES_SUFFIX,
+    ARCHIVE_FILE_SUFFIXES,
     RESERVATIONS,
 )
 
@@ -55,7 +56,6 @@ from web_utils import (
 from settings import (
     AFP_DIR,
     MAX_FILE_SIZE,
-    ARCHIVE_FILE_SUFFIX,
     DEFAULT_CONFIG,
     DRIVE_PROPERTIES_FILE,
     AUTH_GROUP,
@@ -133,14 +133,13 @@ def index():
     scsi_ids, recommended_id = get_valid_scsi_ids(devices["device_list"], reserved_scsi_ids)
     formatted_devices = sort_and_format_devices(devices["device_list"])
 
-    valid_file_suffix = "."+", .".join(
+    valid_file_suffix = "." + ", .".join(
         server_info["sahd"] +
         server_info["schd"] +
         server_info["scrm"] +
         server_info["scmo"] +
         server_info["sccd"] +
-        [ARCHIVE_FILE_SUFFIX]
-        )
+        ARCHIVE_FILE_SUFFIXES)
 
     if "username" in session:
         username = session["username"]
@@ -182,7 +181,6 @@ def index():
         mo_file_suffix=tuple(server_info["scmo"]),
         username=username,
         auth_active=auth_active(AUTH_GROUP)["status"],
-        ARCHIVE_FILE_SUFFIX=ARCHIVE_FILE_SUFFIX,
         PROPERTIES_SUFFIX=PROPERTIES_SUFFIX,
         REMOVABLE_DEVICE_TYPES=ractl_cmd.get_removable_device_types(),
         DISK_DEVICE_TYPES=ractl_cmd.get_disk_device_types(),
@@ -945,33 +943,38 @@ def copy():
     return redirect(url_for("index"))
 
 
-@APP.route("/files/unzip", methods=["POST"])
+@APP.route("/files/extract_image", methods=["POST"])
 @login_required
-def unzip():
+def extract_image():
     """
-    Unzips all files in a specified zip archive, or a single file in the zip archive
+    Extracts all or a subset of files in the specified archive
     """
-    zip_file = request.form.get("zip_file")
-    zip_member = request.form.get("zip_member") or False
-    zip_members = request.form.get("zip_members") or False
+    archive_file = request.form.get("archive_file")
+    archive_members_raw = request.form.get("archive_members") or None
+    archive_members = archive_members_raw.split("|") if archive_members_raw else None
 
-    if zip_members:
-        zip_members = literal_eval(zip_members)
+    extract_result = file_cmd.extract_image(
+        archive_file,
+        archive_members
+        )
 
-    process = file_cmd.unzip_file(zip_file, zip_member, zip_members)
-    if process["status"]:
-        if not process["msg"]:
-            flash(_("Aborted unzip: File(s) with the same name already exists."), "error")
-            return redirect(url_for("index"))
-        flash(_("Unzipped the following files:"))
-        for msg in process["msg"]:
-            flash(msg)
-        if process["prop_flag"]:
-            flash(_("Properties file(s) have been moved to %(directory)s", directory=CFG_DIR))
-        return redirect(url_for("index"))
+    if extract_result["return_code"] == ReturnCodes.EXTRACTIMAGE_SUCCESS:
+        flash(ReturnCodeMapper.add_msg(extract_result).get("msg"))
 
-    flash(_("Failed to unzip %(zip_file)s", zip_file=zip_file), "error")
-    flash(process["msg"], "error")
+        for properties_file in extract_result["properties_files_moved"]:
+            if properties_file["status"]:
+                flash(_("Properties file %(file)s moved to %(directory)s",
+                        file=properties_file['name'],
+                        directory=CFG_DIR
+                        ))
+            else:
+                flash(_("Failed to move properties file %(file)s to %(directory)s",
+                        file=properties_file['name'],
+                        directory=CFG_DIR
+                        ), "error")
+    else:
+        flash(ReturnCodeMapper.add_msg(extract_result).get("msg"), "error")
+
     return redirect(url_for("index"))
 
 

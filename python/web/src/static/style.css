@@ -35,12 +35,14 @@ table, tr, td {
   color: white;
   font-size:20px;
   background-color:red;
+  white-space: pre-line;
 }
 
 .message {
   color: white;
   font-size:20px;
   background-color:green;
+  white-space: pre-line;
 }
 
 td.inactive {

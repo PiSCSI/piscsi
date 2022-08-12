@@ -5,9 +5,9 @@ Module for methods reading from and writing to the file system
 import os
 import logging
 import asyncio
+from functools import lru_cache
 from pathlib import PurePath
 from zipfile import ZipFile, is_zipfile
-from re import escape, findall
 from time import time
 from subprocess import run, CalledProcessError
 from json import dump, load
@@ -16,10 +16,11 @@ from shutil import copyfile
 import requests
 
 import rascsi_interface_pb2 as proto
-from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, RESERVATIONS
+from rascsi.common_settings import CFG_DIR, CONFIG_FILE_SUFFIX, PROPERTIES_SUFFIX, ARCHIVE_FILE_SUFFIXES, RESERVATIONS
 from rascsi.ractl_cmds import RaCtlCmds
 from rascsi.return_codes import ReturnCodes
 from rascsi.socket_cmds import SocketCmds
+from util import unarchiver
 
 
 class FileCmds:
@@ -97,19 +98,31 @@ class FileCmds:
                 prop = process["conf"]
             else:
                 prop = False
-            if file.name.lower().endswith(".zip"):
-                zip_path = f"{server_info['image_dir']}/{file.name}"
-                if is_zipfile(zip_path):
-                    zipfile = ZipFile(zip_path)
-                    # Get a list of (str) containing all zipfile members
-                    zip_members = zipfile.namelist()
-                    # Strip out directories from the list
-                    zip_members = [x for x in zip_members if not x.endswith("/")]
-                else:
-                    logging.warning("%s is an invalid zip file", zip_path)
-                    zip_members = False
-            else:
-                zip_members = False
+
+            archive_contents = []
+            if PurePath(file.name).suffix.lower()[1:] in ARCHIVE_FILE_SUFFIXES:
+                try:
+                    archive_info = self._get_archive_info(
+                        f"{server_info['image_dir']}/{file.name}",
+                        _cache_extra_key=file.size
+                        )
+
+                    properties_files = [x["path"]
+                                        for x in archive_info["members"]
+                                        if x["path"].endswith(PROPERTIES_SUFFIX)]
+
+                    for member in archive_info["members"]:
+                        if member["is_dir"] or member["is_resource_fork"]:
+                            continue
+
+                        if PurePath(member["path"]).suffix.lower()[1:] == PROPERTIES_SUFFIX:
+                            member["is_properties_file"] = True
+                        elif f"{member['path']}.{PROPERTIES_SUFFIX}" in properties_files:
+                            member["related_properties_file"] = f"{member['path']}.{PROPERTIES_SUFFIX}"
+
+                        archive_contents.append(member)
+                except (unarchiver.LsarCommandError, unarchiver.LsarOutputError):
+                    pass
 
             size_mb = "{:,.1f}".format(file.size / 1024 / 1024)
             dtype = proto.PbDeviceType.Name(file.type)
@@ -119,7 +132,7 @@ class FileCmds:
                 "size_mb": size_mb,
                 "detected_type": dtype,
                 "prop": prop,
-                "zip_members": zip_members,
+                "archive_contents": archive_contents,
                 })
 
         return {"status": result.status, "msg": result.msg, "files": files}
@@ -266,62 +279,73 @@ class FileCmds:
             "parameters": parameters,
             }
 
-    def unzip_file(self, file_name, member=False, members=False):
+    def extract_image(self, file_path, members=None, move_properties_files_to_config=True):
         """
-        Takes (str) file_name, optional (str) member, optional (list) of (str) members
-        file_name is the name of the zip file to unzip
-        member is the full path to the particular file in the zip file to unzip
-        members contains all of the full paths to each of the zip archive members
-        Returns (dict) with (boolean) status and (list of str) msg
+        Takes (str) file_path, (list) members, optional (bool) move_properties_files_to_config
+        file_name is the path of the archive file to extract, relative to the images directory
+        members is a list of file paths in the archive file to extract
+        move_properties_files_to_config controls if .properties files are auto-moved to CFG_DIR
+        Returns (dict) result
         """
         server_info = self.ractl.get_server_info()
-        prop_flag = False
 
-        if not member:
-            unzip_proc = asyncio.run(self.run_async("unzip", [
-                "-d",
-                server_info['image_dir'],
-                "-n",
-                "-j",
-                f"{server_info['image_dir']}/{file_name}",
-                ]))
-            if members:
-                for path in members:
-                    if path.endswith(PROPERTIES_SUFFIX):
-                        name = PurePath(path).name
-                        self.rename_file(f"{server_info['image_dir']}/{name}", f"{CFG_DIR}/{name}")
-                        prop_flag = True
-        else:
-            member = escape(member)
-            unzip_proc = asyncio.run(self.run_async("unzip", [
-                "-d",
-                server_info['image_dir'],
-                "-n",
-                "-j",
-                f"{server_info['image_dir']}/{file_name}",
-                member,
-                ]))
-            # Attempt to unzip a properties file in the same archive dir
-            unzip_prop = asyncio.run(self.run_async("unzip", [
-                "-d",
-                CFG_DIR,
-                "-n",
-                "-j",
-                f"{server_info['image_dir']}/{file_name}",
-                f"{member}.{PROPERTIES_SUFFIX}",
-                ]))
+        if not members:
+            return {
+                "status": False,
+                "return_code": ReturnCodes.EXTRACTIMAGE_NO_FILES_SPECIFIED,
+                }
 
-            if unzip_prop["returncode"] == 0:
-                prop_flag = True
-        if unzip_proc["returncode"] != 0:
-            logging.warning("Unzipping failed: %s", unzip_proc["stderr"])
-            return {"status": False, "msg": unzip_proc["stderr"]}
+        try:
+            extract_result = unarchiver.extract_archive(
+                f"{server_info['image_dir']}/{file_path}",
+                members=members,
+                output_dir=server_info["image_dir"],
+                )
 
-        unzipped = findall(
-            "(?:inflating|extracting):(.+)\n",
-            unzip_proc["stdout"]
-            )
-        return {"status": True, "msg": unzipped, "prop_flag": prop_flag}
+            properties_files_moved = []
+            if move_properties_files_to_config:
+                for file in extract_result["extracted"]:
+                    if file.get("name").endswith(".properties"):
+                        if (self.rename_file(
+                                file["absolute_path"],
+                                f"{CFG_DIR}/{file['name']}"
+                                )):
+                            properties_files_moved.append({
+                                "status": True,
+                                "name": file["path"],
+                                "path": f"{CFG_DIR}/{file['name']}",
+                                })
+                        else:
+                            properties_files_moved.append({
+                                "status": False,
+                                "name": file["path"],
+                                "path": f"{CFG_DIR}/{file['name']}",
+                                })
+
+            return {
+                "status": True,
+                "return_code": ReturnCodes.EXTRACTIMAGE_SUCCESS,
+                "parameters": {
+                    "count": len(extract_result["extracted"]),
+                    },
+                "extracted": extract_result["extracted"],
+                "skipped": extract_result["skipped"],
+                "properties_files_moved": properties_files_moved,
+                }
+        except unarchiver.UnarNoFilesExtractedError:
+            return {
+                "status": False,
+                "return_code": ReturnCodes.EXTRACTIMAGE_NO_FILES_EXTRACTED,
+                }
+        except (unarchiver.UnarCommandError, unarchiver.UnarUnexpectedOutputError) as error:
+            return {
+                "status": False,
+                "return_code": ReturnCodes.EXTRACTIMAGE_COMMAND_ERROR,
+                "parameters": {
+                    "error": error,
+                    }
+                }
+
 
     def download_file_to_iso(self, url, *iso_args):
         """
@@ -652,3 +676,14 @@ class FileCmds:
             logging.info("stderr: %s", stderr)
 
         return {"returncode": proc.returncode, "stdout": stdout, "stderr": stderr}
+
+    # noinspection PyMethodMayBeStatic
+    @lru_cache(maxsize=32)
+    def _get_archive_info(self, file_path, **kwargs):
+        """
+        Cached wrapper method to improve performance, e.g. on index screen
+        """
+        try:
+            return unarchiver.inspect_archive(file_path)
+        except (unarchiver.LsarCommandError, unarchiver.LsarOutputError):
+            raise
