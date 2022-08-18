@@ -140,8 +140,22 @@ SRC_SASIDUMP = \
 	fileio.cpp \
 	rascsi_version.cpp
 
+
 SRC_RASCSI_TEST = \
-	rascsi_test.cpp
+	rascsi_test.cpp \
+	scsi.cpp \
+	gpiobus.cpp \
+	filepath.cpp \
+	fileio.cpp \
+	rascsi_version.cpp \
+	rascsi_image.cpp \
+	rascsi_response.cpp \
+	rasutil.cpp \
+	protobuf_util.cpp \
+	localizer.cpp
+SRC_RASCSI_TEST += $(shell find ./controllers -name '*.cpp')
+SRC_RASCSI_TEST += $(shell find ./devices -name '*.cpp')
+SRC_RASCSI_TEST += $(SRC_PROTOBUF)
 
 vpath %.h ./ ./controllers ./devices ./monitor
 vpath %.cpp ./ ./controllers ./devices ./monitor ./test
@@ -205,7 +219,7 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
 $(BINDIR)/$(RASCSI_TEST): $(OBJ_RASCSI_TEST) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lgtest_main -lgtest
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgtest_main -lgtest
 
 
 # Phony rules for building individual utilities
