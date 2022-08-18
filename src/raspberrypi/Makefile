@@ -64,6 +64,7 @@ RASCTL = rasctl
 RASDUMP = rasdump
 SASIDUMP = sasidump
 SCSIMON = scsimon
+RASCSI_TEST = rascsi_test
 
 SYSTEMD_CONF = /etc/systemd/system/rascsi.service
 RSYSLOG_CONF = /etc/rsyslog.d/rascsi.conf
@@ -95,7 +96,7 @@ SRC_RASCSI = \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp\
+	fileio.cpp \
 	rascsi_version.cpp \
 	rascsi_image.cpp \
 	rascsi_response.cpp \
@@ -128,7 +129,7 @@ SRC_RASDUMP = \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp\
+	fileio.cpp \
 	rascsi_version.cpp
 
 SRC_SASIDUMP = \
@@ -136,11 +137,14 @@ SRC_SASIDUMP = \
 	scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
-	fileio.cpp\
+	fileio.cpp \
 	rascsi_version.cpp
 
+SRC_RASCSI_TEST = \
+	rascsi_test.cpp
+
 vpath %.h ./ ./controllers ./devices ./monitor
-vpath %.cpp ./ ./controllers ./devices ./monitor
+vpath %.cpp ./ ./controllers ./devices ./monitor ./test
 vpath %.o ./$(OBJDIR)
 vpath ./$(BINDIR)
 
@@ -150,13 +154,14 @@ OBJ_RASCTL := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCTL:%.cpp=%.o)))
 OBJ_RASDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASDUMP:%.cpp=%.o)))
 OBJ_SASIDUMP := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SASIDUMP:%.cpp=%.o)))
 OBJ_SCSIMON := $(addprefix $(OBJDIR)/,$(notdir $(SRC_SCSIMON:%.cpp=%.o)))
+OBJ_RASCSI_TEST := $(addprefix $(OBJDIR)/,$(notdir $(SRC_RASCSI_TEST:%.cpp=%.o)))
 
 GEN_PROTOBUF := $(SRC_PROTOBUF) rascsi_interface.pb.h
 
 
 # The following will include all of the auto-generated dependency files (*.d)
 # if they exist. This will trigger a rebuild of a source file if a header changes
-ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON))
+ALL_DEPS := $(patsubst %.o,%.d,$(OBJ_RASCSI) $(OBJ_RASCTL) $(OBJ_SCSIMON) $(OBJ_RASCSI_TEST))
 -include $(ALL_DEPS)
 
 $(OBJDIR) $(BINDIR):
@@ -177,8 +182,10 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 ##   docs     : Re-generate the text versions of the man pages
 .DEFAULT_GOAL := all
 .PHONY: all ALL docs
-all: $(BIN_ALL) docs
+all: $(BIN_ALL) test docs
 ALL: all
+
+test: $(BINDIR)/$(RASCSI_TEST)
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
@@ -196,6 +203,9 @@ $(BINDIR)/$(SASIDUMP): $(OBJ_SASIDUMP) | $(BINDIR)
 
 $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
+
+$(BINDIR)/$(RASCSI_TEST): $(OBJ_RASCSI_TEST) | $(BINDIR)
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lgtest_main -lgtest
 
 
 # Phony rules for building individual utilities
