@@ -91,9 +91,7 @@ SRC_PROTOC = \
 SRC_PROTOBUF = \
 	rascsi_interface.pb.cpp
 
-SRC_RASCSI = \
-	rascsi.cpp \
-	scsi.cpp \
+SRC_RASCSI_CORE = scsi.cpp \
 	gpiobus.cpp \
 	filepath.cpp \
 	fileio.cpp \
@@ -103,9 +101,12 @@ SRC_RASCSI = \
 	rasutil.cpp \
 	protobuf_util.cpp \
 	localizer.cpp
-SRC_RASCSI += $(shell find ./controllers -name '*.cpp')
-SRC_RASCSI += $(shell find ./devices -name '*.cpp')
-SRC_RASCSI += $(SRC_PROTOBUF)
+SRC_RASCSI_CORE += $(shell find ./controllers -name '*.cpp')
+SRC_RASCSI_CORE += $(shell find ./devices -name '*.cpp')
+SRC_RASCSI_CORE += $(SRC_PROTOBUF)
+
+SRC_RASCSI = rascsi.cpp
+SRC_RASCSI += $(SRC_RASCSI_CORE)
 
 SRC_SCSIMON = \
 	scsimon.cpp \
@@ -141,21 +142,9 @@ SRC_SASIDUMP = \
 	rascsi_version.cpp
 
 
-SRC_RASCSI_TEST = \
-	rascsi_test.cpp \
-	scsi.cpp \
-	gpiobus.cpp \
-	filepath.cpp \
-	fileio.cpp \
-	rascsi_version.cpp \
-	rascsi_image.cpp \
-	rascsi_response.cpp \
-	rasutil.cpp \
-	protobuf_util.cpp \
-	localizer.cpp
-SRC_RASCSI_TEST += $(shell find ./controllers -name '*.cpp')
-SRC_RASCSI_TEST += $(shell find ./devices -name '*.cpp')
-SRC_RASCSI_TEST += $(SRC_PROTOBUF)
+SRC_RASCSI_TEST = rascsi_test.cpp
+SRC_RASCSI_TEST += $(SRC_RASCSI_CORE)
+
 
 vpath %.h ./ ./controllers ./devices ./monitor
 vpath %.cpp ./ ./controllers ./devices ./monitor ./test
@@ -196,7 +185,7 @@ $(SRC_PROTOBUF): $(SRC_PROTOC)
 ##   docs     : Re-generate the text versions of the man pages
 .DEFAULT_GOAL := all
 .PHONY: all ALL docs
-all: $(BIN_ALL) test docs
+all: $(BIN_ALL) docs
 ALL: all
 
 test: $(BINDIR)/$(RASCSI_TEST)
@@ -219,7 +208,7 @@ $(BINDIR)/$(SCSIMON): $(OBJ_SCSIMON) | $(BINDIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_SCSIMON) -lpthread
 
 $(BINDIR)/$(RASCSI_TEST): $(OBJ_RASCSI_TEST) | $(BINDIR)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgtest_main -lgtest
+	$(CXX) $(CXXFLAGS) -o $@ $(OBJ_RASCSI_TEST) -lpcap -lprotobuf -lgtest -lgtest_main
 
 
 # Phony rules for building individual utilities
