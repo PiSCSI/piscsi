@@ -189,7 +189,7 @@ all: $(BIN_ALL) docs
 ALL: all
 
 test: $(BINDIR)/$(RASCSI_TEST)
-	$(BINDIR)/rascsi_test
+	$(BINDIR)/$(RASCSI_TEST)
 
 docs: $(DOC_DIR)/rascsi_man_page.txt $(DOC_DIR)/rasctl_man_page.txt $(DOC_DIR)/scsimon_man_page.txt
 
