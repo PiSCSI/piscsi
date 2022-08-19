@@ -4,6 +4,7 @@
 
 using namespace std;
 
+// TODO Maybe GoogleMock can be used instead
 class SCSIHDMock : public SCSIHD
 {
 public:
