@@ -91,7 +91,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 void ModePageDevice::ModeSense6(SASIDEV *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
-	if (ctrl->length < 0) {
+	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
 	}
@@ -102,7 +102,7 @@ void ModePageDevice::ModeSense6(SASIDEV *controller)
 void ModePageDevice::ModeSense10(SASIDEV *controller)
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
-	if (ctrl->length < 0) {
+	if (ctrl->length <= 0) {
 		controller->Error();
 		return;
 	}
