@@ -46,4 +46,8 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 	EXPECT_EQ(hd_device.AddModePages(cdb, buf, 512), 102);
 	// Allocation length is limited
 	EXPECT_EQ(hd_device.AddModePages(cdb, buf, 1), 1);
+
+	// Non-existing mode page 0
+	cdb[2] = 0x00;
+	EXPECT_EQ(hd_device.AddModePages(cdb, buf, 12), 0);
 }
