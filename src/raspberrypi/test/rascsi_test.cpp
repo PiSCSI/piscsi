@@ -37,8 +37,6 @@ public:
 	}
 };
 
-// TODO Maybe GoogleMock can be used
-
 class MockSCSIHD : public SCSIHD
 {
 	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
