@@ -42,7 +42,7 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 
 	SCSIHDMock hd_device(sector_sizes);
 	cdb[2] = 0x3f;
-	// Buffer can hold all mode page data
+	// Buffer can hold all mode page data, with currently 102 bytes
 	EXPECT_EQ(hd_device.AddModePages(cdb, buf, 512), 102);
 	// Allocation length is limited
 	EXPECT_EQ(hd_device.AddModePages(cdb, buf, 1), 1);
