@@ -1,10 +1,21 @@
+//---------------------------------------------------------------------------
+//
+// SCSI Target Emulator RaSCSI (*^..^*)
+// for Raspberry Pi
+//
+// Copyright (C) 2022 Uwe Seimet
+//
+// Unit tests based on GoogleTest and GoogleMock
+//
+//---------------------------------------------------------------------------
+
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
+
 #include "../devices/mode_page_device.h"
 #include "../devices/scsihd.h"
 #include "../devices/scsicd.h"
 #include "../devices/scsimo.h"
-
-#include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 using namespace std;
 
@@ -70,10 +81,10 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 	MockModePageDevice device;
 	cdb[2] = 0x3f;
 
-	EXPECT_EQ(device.AddModePages(cdb, buf, 1), 1)  << "Allocation length is limited";
+	EXPECT_EQ(device.AddModePages(cdb, buf, 1), 1)  << "Allocation length was not limited";
 
 	cdb[2] = 0x00;
-	EXPECT_EQ(device.AddModePages(cdb, buf, 12), 0) << "Data for non-existing code page 0 are returned";
+	EXPECT_EQ(device.AddModePages(cdb, buf, 12), 0) << "Data for non-existing code page 0 were returned";
 }
 
 TEST(ModePagesTest, SCSIHD_AddModePages)
