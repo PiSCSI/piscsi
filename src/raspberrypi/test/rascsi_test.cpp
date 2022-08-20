@@ -41,45 +41,27 @@ public:
 
 class MockSCSIHD : public SCSIHD
 {
-public:
+	FRIEND_TEST(ModePagesTest, SCSIHD_AddModePages);
 
 	MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
 	~MockSCSIHD() { };
-
-	// Make protected methods visible for testing
-
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override {
-		SCSIHD::AddModePages(pages, page, changeable);
-	}
 };
 
 class MockSCSICD : public SCSICD
 {
-public:
+	FRIEND_TEST(ModePagesTest, SCSICD_AddModePages);
 
 	MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) { };
 	~MockSCSICD() { };
-
-	// Make protected methods visible for testing
-
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override {
-		SCSICD::AddModePages(pages, page, changeable);
-	}
 };
 
 class MockSCSIMO : public SCSIMO
 {
-public:
+	FRIEND_TEST(ModePagesTest, SCSIMO_AddModePages);
 
 	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
 		: SCSIMO(sector_sizes, geometries) { };
 	~MockSCSIMO() { };
-
-	// Make protected methods visible for testing
-
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override {
-		SCSIMO::AddModePages(pages, page, changeable);
-	}
 };
 
 TEST(ModePagesTest, ModePageDevice_AddModePages)
