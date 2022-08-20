@@ -12,8 +12,8 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "../devices/mode_page_device.h"
 #include "../devices/scsihd.h"
+#include "../devices/scsihd_nec.h"
 #include "../devices/scsicd.h"
 #include "../devices/scsimo.h"
 
@@ -55,6 +55,14 @@ class MockSCSIHD : public SCSIHD
 
 	MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
 	~MockSCSIHD() { };
+};
+
+class MockSCSIHD_NEC : public SCSIHD_NEC
+{
+	FRIEND_TEST(ModePagesTest, SCSIHD_NEC_AddModePages);
+
+	MockSCSIHD_NEC(const unordered_set<uint32_t>& sector_sizes) : SCSIHD_NEC(sector_sizes) { };
+	~MockSCSIHD_NEC() { };
 };
 
 class MockSCSICD : public SCSICD
@@ -99,6 +107,21 @@ TEST(ModePagesTest, SCSIHD_AddModePages)
 	EXPECT_EQ(mode_pages[1].size(), 12);
 	EXPECT_EQ(mode_pages[3].size(), 24);
 	EXPECT_EQ(mode_pages[4].size(), 24);
+	EXPECT_EQ(mode_pages[8].size(), 12);
+	EXPECT_EQ(mode_pages[48].size(), 30);
+}
+
+TEST(ModePagesTest, SCSIHD_NEC_AddModePages)
+{
+	mode_pages.clear();
+
+	MockSCSIHD_NEC device(sector_sizes);
+	device.AddModePages(mode_pages, 0x3f, false);
+
+	EXPECT_EQ(mode_pages.size(), 5) << "Unexpected number of code pages";
+	EXPECT_EQ(mode_pages[1].size(), 8);
+	EXPECT_EQ(mode_pages[3].size(), 24);
+	EXPECT_EQ(mode_pages[4].size(), 20);
 	EXPECT_EQ(mode_pages[8].size(), 12);
 	EXPECT_EQ(mode_pages[48].size(), 30);
 }
