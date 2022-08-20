@@ -48,8 +48,7 @@ public:
 
 	// Make protected methods visible for testing
 
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override
-	{
+	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override {
 		SCSIHD::AddModePages(pages, page, changeable);
 	}
 };
@@ -63,8 +62,7 @@ public:
 
 	// Make protected methods visible for testing
 
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override
-	{
+	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override {
 		SCSICD::AddModePages(pages, page, changeable);
 	}
 };
@@ -79,8 +77,7 @@ public:
 
 	// Make protected methods visible for testing
 
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override
-	{
+	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override {
 		SCSIMO::AddModePages(pages, page, changeable);
 	}
 };
