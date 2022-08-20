@@ -42,6 +42,7 @@ public:
 	}
 
 	// Make protected methods visible for testing
+	// TODO Why does FRIEND_TEST not work for this method?
 
 	int AddModePages(const DWORD *cdb, BYTE *buf, int max_length) {
 		return ModePageDevice::AddModePages(cdb, buf, max_length);
