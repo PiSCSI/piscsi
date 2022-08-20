@@ -142,7 +142,7 @@ SRC_SASIDUMP = \
 	rascsi_version.cpp
 
 
-SRC_RASCSI_TEST = rascsi_test.cpp
+SRC_RASCSI_TEST = $(shell find ./test -name '*.cpp')
 SRC_RASCSI_TEST += $(SRC_RASCSI_CORE)
 
 
