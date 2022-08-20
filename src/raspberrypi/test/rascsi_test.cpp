@@ -48,10 +48,6 @@ public:
 
 	// Make protected methods visible for testing
 
-	int AddModePages(const DWORD *cdb, BYTE *buf, int max_length) {
-		return ModePageDevice::AddModePages(cdb, buf, max_length);
-	}
-
 	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool changeable) const override
 	{
 		SCSIHD::AddModePages(pages, page, changeable);
