@@ -1,21 +1,49 @@
+#include "../devices/mode_page_device.h"
 #include "../devices/scsihd.h"
 #include "../devices/scsicd.h"
 #include "../devices/scsimo.h"
 
 #include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 using namespace std;
 
 unordered_set<uint32_t> sector_sizes;
 map<int, vector<BYTE>> mode_pages;
 
-// TODO Maybe GoogleMock can be used instead
-class SCSIHDMock : public SCSIHD
+class MockModePageDevice : public ModePageDevice
 {
 public:
 
-	SCSIHDMock(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
-	~SCSIHDMock() { };
+	MockModePageDevice() : ModePageDevice("test") { }
+	~MockModePageDevice() { }
+
+	MOCK_METHOD(vector<BYTE>, Inquiry, (), (const, override));
+	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *), (override));
+	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), (override));
+
+	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const {
+		if (page) {
+			vector<BYTE> buf(255);
+			pages[page] = buf;
+		}
+	}
+
+	// Make protected methods visible for testing
+
+	int AddModePages(const DWORD *cdb, BYTE *buf, int max_length) {
+		return ModePageDevice::AddModePages(cdb, buf, max_length);
+	}
+};
+
+// TODO Maybe GoogleMock can be used
+
+class MockSCSIHD : public SCSIHD
+{
+public:
+
+	MockSCSIHD(const unordered_set<uint32_t>& sector_sizes) : SCSIHD(sector_sizes, false) { };
+	~MockSCSIHD() { };
 
 	// Make protected methods visible for testing
 
@@ -29,12 +57,12 @@ public:
 	}
 };
 
-class SCSICDMock : public SCSICD
+class MockSCSICD : public SCSICD
 {
 public:
 
-	SCSICDMock(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) { };
-	~SCSICDMock() { };
+	MockSCSICD(const unordered_set<uint32_t>& sector_sizes) : SCSICD(sector_sizes) { };
+	~MockSCSICD() { };
 
 	// Make protected methods visible for testing
 
@@ -44,13 +72,13 @@ public:
 	}
 };
 
-class SCSIMOMock : public SCSIMO
+class MockSCSIMO : public SCSIMO
 {
 public:
 
-	SCSIMOMock(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
+	MockSCSIMO(const unordered_set<uint32_t>& sector_sizes, const unordered_map<uint64_t, Geometry>& geometries)
 		: SCSIMO(sector_sizes, geometries) { };
-	~SCSIMOMock() { };
+	~MockSCSIMO() { };
 
 	// Make protected methods visible for testing
 
@@ -65,7 +93,7 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 	DWORD cdb[6];
 	BYTE buf[512];
 
-	SCSIHDMock device(sector_sizes);
+	MockModePageDevice device;
 	cdb[2] = 0x3f;
 
 	// Allocation length is limited
@@ -80,7 +108,7 @@ TEST(ModePagesTest, SCSIHD_AddModePages)
 {
 	mode_pages.clear();
 
-	SCSIHDMock device(sector_sizes);
+	MockSCSIHD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(mode_pages.size(), 5);
@@ -95,7 +123,7 @@ TEST(ModePagesTest, SCSICD_AddModePages)
 {
 	mode_pages.clear();
 
-	SCSICDMock device(sector_sizes);
+	MockSCSICD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(mode_pages.size(), 6);
@@ -112,7 +140,7 @@ TEST(ModePagesTest, SCSIMO_AddModePages)
 	unordered_map<uint64_t, Geometry> geometries;
 	mode_pages.clear();
 
-	SCSIMOMock device(sector_sizes, geometries);
+	MockSCSIMO device(sector_sizes, geometries);
 	device.AddModePages(mode_pages, 0x3f, false);
 
 	EXPECT_EQ(mode_pages.size(), 6);
