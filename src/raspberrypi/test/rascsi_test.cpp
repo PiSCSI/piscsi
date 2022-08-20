@@ -16,11 +16,11 @@
 #include "../devices/scsihd_nec.h"
 #include "../devices/scsicd.h"
 #include "../devices/scsimo.h"
+#include "../devices/host_services.h"
 
 using namespace std;
 
 unordered_set<uint32_t> sector_sizes;
-map<int, vector<BYTE>> mode_pages;
 
 class MockModePageDevice : public ModePageDevice
 {
@@ -82,6 +82,14 @@ class MockSCSIMO : public SCSIMO
 	~MockSCSIMO() { };
 };
 
+class MockHostServices : public HostServices
+{
+	FRIEND_TEST(ModePagesTest, HostServices_AddModePages);
+
+	MockHostServices() { };
+	~MockHostServices() { };
+};
+
 TEST(ModePagesTest, ModePageDevice_AddModePages)
 {
 	DWORD cdb[6];
@@ -98,7 +106,7 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 
 TEST(ModePagesTest, SCSIHD_AddModePages)
 {
-	mode_pages.clear();
+	map<int, vector<BYTE>> mode_pages;
 
 	MockSCSIHD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -113,7 +121,7 @@ TEST(ModePagesTest, SCSIHD_AddModePages)
 
 TEST(ModePagesTest, SCSIHD_NEC_AddModePages)
 {
-	mode_pages.clear();
+	map<int, vector<BYTE>> mode_pages;
 
 	MockSCSIHD_NEC device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -128,7 +136,7 @@ TEST(ModePagesTest, SCSIHD_NEC_AddModePages)
 
 TEST(ModePagesTest, SCSICD_AddModePages)
 {
-	mode_pages.clear();
+	map<int, vector<BYTE>> mode_pages;
 
 	MockSCSICD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -144,8 +152,8 @@ TEST(ModePagesTest, SCSICD_AddModePages)
 
 TEST(ModePagesTest, SCSIMO_AddModePages)
 {
+	map<int, vector<BYTE>> mode_pages;
 	unordered_map<uint64_t, Geometry> geometries;
-	mode_pages.clear();
 
 	MockSCSIMO device(sector_sizes, geometries);
 	device.AddModePages(mode_pages, 0x3f, false);
@@ -157,4 +165,15 @@ TEST(ModePagesTest, SCSIMO_AddModePages)
 	EXPECT_EQ(mode_pages[6].size(), 4);
 	EXPECT_EQ(mode_pages[8].size(), 12);
 	EXPECT_EQ(mode_pages[32].size(), 12);
+}
+
+TEST(ModePagesTest, HostServices_AddModePages)
+{
+	map<int, vector<BYTE>> mode_pages;
+
+	MockHostServices device;
+	device.AddModePages(mode_pages, 0x3f, false);
+
+	EXPECT_EQ(mode_pages.size(), 1) << "Unexpected number of code pages";
+	EXPECT_EQ(mode_pages[32].size(), 10);
 }
