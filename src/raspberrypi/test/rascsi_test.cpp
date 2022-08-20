@@ -6,6 +6,9 @@
 
 using namespace std;
 
+unordered_set<uint32_t> sector_sizes;
+map<int, vector<BYTE>> mode_pages;
+
 // TODO Maybe GoogleMock can be used instead
 class SCSIHDMock : public SCSIHD
 {
@@ -59,12 +62,12 @@ public:
 
 TEST(ModePagesTest, ModePageDevice_AddModePages)
 {
-	unordered_set<uint32_t> sector_sizes;
 	DWORD cdb[6];
 	BYTE buf[512];
 
 	SCSIHDMock device(sector_sizes);
 	cdb[2] = 0x3f;
+
 	// Allocation length is limited
 	EXPECT_EQ(device.AddModePages(cdb, buf, 1), 1);
 
@@ -75,11 +78,11 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 
 TEST(ModePagesTest, SCSIHD_AddModePages)
 {
-	unordered_set<uint32_t> sector_sizes;
-	map<int, vector<BYTE>> mode_pages;
+	mode_pages.clear();
 
 	SCSIHDMock device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
+
 	EXPECT_EQ(mode_pages.size(), 5);
 	EXPECT_EQ(mode_pages[1].size(), 12);
 	EXPECT_EQ(mode_pages[3].size(), 24);
@@ -90,11 +93,11 @@ TEST(ModePagesTest, SCSIHD_AddModePages)
 
 TEST(ModePagesTest, SCSICD_AddModePages)
 {
-	unordered_set<uint32_t> sector_sizes;
-	map<int, vector<BYTE>> mode_pages;
+	mode_pages.clear();
 
 	SCSICDMock device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
+
 	EXPECT_EQ(mode_pages.size(), 6);
 	EXPECT_EQ(mode_pages[1].size(), 12);
 	EXPECT_EQ(mode_pages[3].size(), 24);
@@ -106,12 +109,12 @@ TEST(ModePagesTest, SCSICD_AddModePages)
 
 TEST(ModePagesTest, SCSIMO_AddModePages)
 {
-	unordered_set<uint32_t> sector_sizes;
-	map<int, vector<BYTE>> mode_pages;
 	unordered_map<uint64_t, Geometry> geometries;
+	mode_pages.clear();
 
 	SCSIMOMock device(sector_sizes, geometries);
 	device.AddModePages(mode_pages, 0x3f, false);
+
 	EXPECT_EQ(mode_pages.size(), 6);
 	EXPECT_EQ(mode_pages[1].size(), 12);
 	EXPECT_EQ(mode_pages[3].size(), 24);
