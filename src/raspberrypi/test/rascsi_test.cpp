@@ -24,16 +24,6 @@ public:
 	}
 };
 
-TEST(ModePagesTest, SCSIHD_AddModePages)
-{
-	unordered_set<uint32_t> sector_sizes;
-	map<int, vector<BYTE>> mode_pages;
-
-	SCSIHDMock hd_device(sector_sizes);
-	hd_device.AddModePages(mode_pages, 0x3f, false);
-	EXPECT_EQ(mode_pages.size(), 5);
-}
-
 TEST(ModePagesTest, ModePageDevice_AddModePages)
 {
 	unordered_set<uint32_t> sector_sizes;
@@ -42,12 +32,25 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 
 	SCSIHDMock hd_device(sector_sizes);
 	cdb[2] = 0x3f;
-	// Buffer can hold all mode page data, with currently 102 bytes
-	EXPECT_EQ(hd_device.AddModePages(cdb, buf, 512), 102);
 	// Allocation length is limited
 	EXPECT_EQ(hd_device.AddModePages(cdb, buf, 1), 1);
 
 	// Non-existing mode page 0
 	cdb[2] = 0x00;
 	EXPECT_EQ(hd_device.AddModePages(cdb, buf, 12), 0);
+}
+
+TEST(ModePagesTest, SCSIHD_AddModePages)
+{
+	unordered_set<uint32_t> sector_sizes;
+	map<int, vector<BYTE>> mode_pages;
+
+	SCSIHDMock hd_device(sector_sizes);
+	hd_device.AddModePages(mode_pages, 0x3f, false);
+	EXPECT_EQ(mode_pages.size(), 5);
+	EXPECT_EQ(mode_pages[1].size(), 12);
+	EXPECT_EQ(mode_pages[3].size(), 24);
+	EXPECT_EQ(mode_pages[4].size(), 24);
+	EXPECT_EQ(mode_pages[8].size(), 12);
+	EXPECT_EQ(mode_pages[48].size(), 30);
 }
