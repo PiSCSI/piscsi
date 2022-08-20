@@ -10,11 +10,9 @@
 //---------------------------------------------------------------------------
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 
 #include "../devices/device_factory.h"
 
-using namespace std;
 using namespace rascsi_interface;
 
 DeviceFactory& device_factory = DeviceFactory::instance();
