@@ -185,41 +185,41 @@
                     </ul>
                 </details>
             </td>
-            {% elif file["zip_members"] %}
+            {% elif file["archive_contents"] %}
             <td>
                 <details>
                     <summary>
                         {{ file["name"] }}
                     </summary>
                     <ul style="list-style: none;">
-                    {% for member in file["zip_members"] %}
-                    {% if not member.lower().endswith(PROPERTIES_SUFFIX) %}
-                        <li>
-                            {% if member + "." + PROPERTIES_SUFFIX in file["zip_members"] %}
-                            <details><summary>{{ member }}
-                            <form action="/files/unzip" method="post">
-                                <input name="zip_file" type="hidden" value="{{ file['name'] }}">
-                                <input name="zip_member" type="hidden" value="{{ member }}">
-                                <input type="submit" value="{{ _("Unzip") }}" onclick="processNotify('{{ _("Unzipping a single file...") }}')">
-                            </form>
-                            </summary>
-                            <ul style="list-style: none;">
+                        {% for member in file["archive_contents"] %}
+                            {% if not member["is_properties_file"] %}
                                 <li>
-                                {{ member + "." + PROPERTIES_SUFFIX }}
+                                    {% if member["related_properties_file"] %}
+                                        <details>
+                                            <summary>
+                                                <label>{{ member["path"] }}</label>
+                                                <form action="/files/extract_image" method="post">
+                                                    <input name="archive_file" type="hidden" value="{{ file['name'] }}">
+                                                    <input name="archive_members" type="hidden" value="{{ member["path"] }}|{{ member["related_properties_file"] }}">
+                                                    <input type="submit" value="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
+                                                </form>
+                                            </summary>
+                                            <ul style="list-style: none;">
+                                                <li>{{ member["related_properties_file"] }}</li>
+                                            </ul>
+                                        </details>
+                                    {% else %}
+                                        <label>{{ member["path"] }}</label>
+                                        <form action="/files/extract_image" method="post">
+                                            <input name="archive_file" type="hidden" value="{{ file["name"] }}">
+                                            <input name="archive_members" type="hidden" value="{{ member["path"] }}">
+                                            <input type="submit" value="{{ _("Extract") }}" onclick="processNotify('{{ _("Extracting a single file...") }}')">
+                                        </form>
+                                    {% endif %}
                                 </li>
-                            </ul>
-                            </details>
-                            {% else %}
-                            <label for="zip_member">{{ member }}</label>
-                            <form action="/files/unzip" method="post">
-                                <input name="zip_file" type="hidden" value="{{ file['name'] }}">
-                                <input name="zip_member" type="hidden" value="{{ member }}">
-                                <input type="submit" value="{{ _("Unzip") }}" onclick="processNotify('{{ _("Unzipping a single file...") }}')">
-                            </form>
                             {% endif %}
-                        </li>
-                    {% endif %}
-                    {% endfor %}
+                        {% endfor %}
                     </ul>
                 </details>
             </td>
@@ -238,11 +238,12 @@
                     {{ _("Attached!") }}
                 </center>
                 {% else %}
-                {% if file["name"].lower().endswith(ARCHIVE_FILE_SUFFIX) %}
-                <form action="/files/unzip" method="post">
-                    <input name="zip_file" type="hidden" value="{{ file['name'] }}">
-                    <input name="zip_members" type="hidden" value="{{ file['zip_members'] }}">
-                    <input type="submit" value="{{ _("Unzip All") }}" onclick="processNotify('{{ _("Unzipping all files...") }}')">
+                {% if file["archive_contents"] %}
+                <form action="/files/extract_image" method="post">
+                    <input name="archive_file" type="hidden" value="{{ file['name'] }}">
+                    {% set pipe = joiner("|") %}
+                    <input name="archive_members" type="hidden" value="{% for member in file["archive_contents"] %}{{ pipe() }}{{ member["path"] }}{% endfor %}">
+                    <input type="submit" value="{{ _("Extract All") }}" onclick="processNotify('{{ _("Extracting all files...") }}')">
                 </form>
                 {% else %}
                 <form action="/scsi/attach" method="post">
