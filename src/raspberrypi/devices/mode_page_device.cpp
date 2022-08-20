@@ -50,42 +50,40 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 		return 0;
 	}
 
-	int size = 0;
+	// Holds all mode page data
+	vector<BYTE> result;
 
 	vector<BYTE> page0;
 	for (auto const& page : pages) {
-		if (size + (int)page.second.size() > max_length) {
-			LOGWARN("Mode page data size exceeds reserved buffer size");
+		// The specification mandates that page 0 must be returned after all others
+		if (page.first) {
+			size_t offset = result.size();
 
-			page0.clear();
-
-			break;
+			// Page data
+			result.insert(result.end(), page.second.begin(), page.second.end());
+			// Page code, PS bit may already have been set
+			result[offset] |= page.first;
+			// Page payload size
+			result[offset + 1] = page.second.size() - 2;
 		}
 		else {
-			// The specification mandates that page 0 must be returned after all others
-			if (page.first) {
-				// Page data
-				memcpy(&buf[size], page.second.data(), page.second.size());
-				// Page code, PS bit may already have been set
-				buf[size] |= page.first;
-				// Page payload size
-				buf[size + 1] = page.second.size() - 2;
-
-				size += page.second.size();
-			}
-			else {
-				page0 = page.second;
-			}
+			page0 = page.second;
 		}
 	}
 
 	// Page 0 must be last
 	if (!page0.empty()) {
-		memcpy(&buf[size], page0.data(), page0.size());
+		size_t offset = result.size();
+
+		// Page data
+		result.insert(result.end(), page0.begin(), page0.end());
 		// Page payload size
-		buf[size + 1] = page0.size() - 2;
-		size += page0.size();
+		result[offset + 1] = page0.size() - 2;
 	}
+
+	// Do not return more than the requested number of bytes
+	size_t size = (size_t)max_length < result.size() ? max_length : result.size();
+	memcpy(buf, result.data(), size);
 
 	return size;
 }
