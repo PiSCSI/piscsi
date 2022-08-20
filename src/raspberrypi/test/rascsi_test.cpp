@@ -22,7 +22,7 @@ public:
 	MOCK_METHOD(int, ModeSense6, (const DWORD *, BYTE *), (override));
 	MOCK_METHOD(int, ModeSense10, (const DWORD *, BYTE *, int), (override));
 
-	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const {
+	void AddModePages(map<int, vector<BYTE>>& pages, int page, bool) const override {
 		// Return dummy data for other pages than page 0
 		if (page) {
 			vector<BYTE> buf(255);
