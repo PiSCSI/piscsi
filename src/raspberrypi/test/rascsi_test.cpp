@@ -70,12 +70,10 @@ TEST(ModePagesTest, ModePageDevice_AddModePages)
 	MockModePageDevice device;
 	cdb[2] = 0x3f;
 
-	// Allocation length is limited
-	EXPECT_EQ(device.AddModePages(cdb, buf, 1), 1);
+	EXPECT_EQ(device.AddModePages(cdb, buf, 1), 1)  << "Allocation length is limited";
 
-	// Non-existing mode page 0
 	cdb[2] = 0x00;
-	EXPECT_EQ(device.AddModePages(cdb, buf, 12), 0);
+	EXPECT_EQ(device.AddModePages(cdb, buf, 12), 0) << "Data for non-existing code page 0 are returned";
 }
 
 TEST(ModePagesTest, SCSIHD_AddModePages)
@@ -85,7 +83,7 @@ TEST(ModePagesTest, SCSIHD_AddModePages)
 	MockSCSIHD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
 
-	EXPECT_EQ(mode_pages.size(), 5);
+	EXPECT_EQ(mode_pages.size(), 5) << "Unexpected number of code pages";
 	EXPECT_EQ(mode_pages[1].size(), 12);
 	EXPECT_EQ(mode_pages[3].size(), 24);
 	EXPECT_EQ(mode_pages[4].size(), 24);
@@ -100,7 +98,7 @@ TEST(ModePagesTest, SCSICD_AddModePages)
 	MockSCSICD device(sector_sizes);
 	device.AddModePages(mode_pages, 0x3f, false);
 
-	EXPECT_EQ(mode_pages.size(), 6);
+	EXPECT_EQ(mode_pages.size(), 6) << "Unexpected number of code pages";
 	EXPECT_EQ(mode_pages[1].size(), 12);
 	EXPECT_EQ(mode_pages[3].size(), 24);
 	EXPECT_EQ(mode_pages[4].size(), 24);
@@ -117,7 +115,7 @@ TEST(ModePagesTest, SCSIMO_AddModePages)
 	MockSCSIMO device(sector_sizes, geometries);
 	device.AddModePages(mode_pages, 0x3f, false);
 
-	EXPECT_EQ(mode_pages.size(), 6);
+	EXPECT_EQ(mode_pages.size(), 6) << "Unexpected number of code pages";
 	EXPECT_EQ(mode_pages[1].size(), 12);
 	EXPECT_EQ(mode_pages[3].size(), 24);
 	EXPECT_EQ(mode_pages[4].size(), 24);
