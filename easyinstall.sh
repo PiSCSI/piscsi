@@ -13,7 +13,7 @@ logo="""
  ~ (║|_____|║) ~\n
 ( : ║ .  __ ║ : )\n
  ~ .╚╦═════╦╝. ~\n
-  (  ¯¯¯¯¯¯¯  ) RaSCSI Assistant\n
+  (  ¯¯¯¯¯¯¯  ) RaSCSI Reloaded Assistant\n
    '~ .~~~. ~'\n
        '~'\n
 """
