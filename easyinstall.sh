@@ -90,7 +90,7 @@ function cachePipPackages(){
     pushd $WEB_INSTALL_PATH
     # Refresh the sudo authentication, which shouldn't trigger another password prompt
     sudo -v
-    sudo pip install -r ./requirements.txt
+    sudo pip3 install -r ./requirements.txt
     popd
 }
 
