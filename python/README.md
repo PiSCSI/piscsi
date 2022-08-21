@@ -1,12 +1,21 @@
-# RaSCSI Python Apps 
+# RaSCSI Reloaded Python Apps 
 
-This directory contains Python-based clients for RaSCSI as well as common 
+This directory contains Python-based clients for RaSCSI Reloaded as well as common 
 packages that are shared among the clients. 
 
 The following paragraphs in this README contain instructions that are shared 
 among all Python apps.
 
-### Static analysis with pylint
+## Supported Python interpreter
+
+The policy in this project is to support the Python 3 interpreter that comes 
+standard with the current stable, as well as previous stable release of Debian.
+
+At the time of writing they are:
+- Python 3.9.2 in [Debian Bullseye](https://packages.debian.org/bullseye/python3)
+- Python 3.7.3 in [Debian Buster](https://packages.debian.org/buster/python3)
+
+## Static analysis with pylint
 
 It is recommended to run pylint against new code to protect against bugs
 and keep the code readable and maintainable.
