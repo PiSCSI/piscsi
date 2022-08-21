@@ -357,7 +357,7 @@ msgstr "Kopierade filen och sparade den som %(file_name)s"
 #: src/web.py:966
 #, python-format
 msgid "Properties file %(file)s moved to %(directory)s"
-msgstr "Egenskapsfil %(file) flyttades till %(directory)s"
+msgstr "Egenskapsfil %(file)s flyttades till %(directory)s"
 
 #: src/web.py:971
 #, python-format
