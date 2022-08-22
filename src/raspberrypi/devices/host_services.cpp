@@ -103,7 +103,7 @@ int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	int length = (int)cdb[4];
@@ -131,7 +131,7 @@ int HostServices::ModeSense10(const DWORD *cdb, BYTE *buf, int max_length)
 {
 	// Block descriptors cannot be returned
 	if (!(cdb[1] & 0x08)) {
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	int length = (cdb[7] << 8) | cdb[8];
