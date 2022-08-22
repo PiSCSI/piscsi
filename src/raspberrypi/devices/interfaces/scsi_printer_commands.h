@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI (*^..^*)
 // for Raspberry Pi
 //
-// Copyright (C) 2022 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 // Interface for SCSI printer commands (see SCSI-2 specification)
 //

@@ -3,7 +3,7 @@
 // SCSI Target Emulator RaSCSI (*^..^*)
 // for Raspberry Pi
 //
-// Copyright (C) 2021 Uwe Seimet
+// Copyright (C) 2021-2022 Uwe Seimet
 //
 // The DeviceFactory singleton creates devices based on their type and the image file extension
 //
