@@ -60,7 +60,7 @@ public:
 
 	BUS::phase_t Process(int) override;
 
-	void Receive() override;
+	void Receive();
 
 	// Get LUN based on IDENTIFY message, with LUN from the CDB as fallback
 	int GetEffectiveLun() const;
@@ -85,16 +85,16 @@ private:
 	typedef SASIDEV super;
 
 	// Phases
-	void BusFree() override;
-	void Selection() override;
-	void Command() override;
-	void Execute() override;
+	void BusFree();
+	void Selection();
+	void Command();
+	void Execute();
 	void DataIn() override;
-	void MsgIn() override;
+	void MsgIn();
 	void MsgOut();
 
 	// Data transfer
-	void Send() override;
+	void Send();
 	bool XferMsg(int);
 	bool XferIn(BYTE* buf);
 	bool XferOut(bool);

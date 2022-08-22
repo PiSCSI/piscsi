@@ -121,7 +121,6 @@ public:
 public:
 	virtual void DataIn();							// Data in phase
 	virtual void Status();							// Status phase
-	virtual void MsgIn();							// Message in phase
 	virtual void DataOut();						// Data out phase
 
 	virtual int GetEffectiveLun() const;
@@ -131,15 +130,5 @@ public:
 			scsi_defs::status = scsi_defs::status::CHECK_CONDITION);	// Common error handling
 
 protected:
-	// Phase processing
-	virtual void BusFree();					// Bus free phase
-	virtual void Selection();					// Selection phase
-	virtual void Command();					// Command phase
-	virtual void Execute();					// Execution phase
-
-	// Data transfer
-	virtual void Send();						// Send data
-	virtual void Receive();					// Receive data
-
 	ctrl_t ctrl;								// Internal data
 };
