@@ -29,14 +29,7 @@ class SCSIDEV
 
 	const int UNKNOWN_SCSI_ID = -1;
 
-public:
-
-	// Maximum number of logical units
-	static const int UNIT_MAX = 32;
-
-	const int DEFAULT_BUFFER_SIZE = 0x1000;
-
-	enum sasi_command : int {
+	enum rw_command : int {
 		eCmdRead6 = 0x08,
 		eCmdWrite6 = 0x0A,
 		eCmdSetMcastAddr  = 0x0D,    // DaynaPort specific command
@@ -52,6 +45,13 @@ public:
 		eCmdWriteLong10 = 0x3F,
 		eCmdWriteLong16 = 0x9F
 	};
+
+public:
+
+	// Maximum number of logical units
+	static const int UNIT_MAX = 32;
+
+	const int DEFAULT_BUFFER_SIZE = 0x1000;
 
 	enum rascsi_shutdown_mode {
 		NONE,
@@ -151,6 +151,7 @@ public:
 	ctrl_t* GetCtrl() { return &ctrl; }
 
 private:
+
 	// Phases
 	void BusFree();
 	void Selection();
@@ -164,7 +165,7 @@ private:
 	bool XferMsg(int);
 	bool XferIn(BYTE* buf);
 	bool XferOut(bool);
-	bool XferOut2(bool);
+	bool XferOutBlockOriented(bool);
 	void ReceiveBytes();
 
 	ctrl_t ctrl;

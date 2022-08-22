@@ -1189,7 +1189,7 @@ void SCSIDEV::ReceiveBytes()
 bool SCSIDEV::XferOut(bool cont)
 {
 	if (!scsi.is_byte_transfer) {
-		return XferOut2(cont);
+		return XferOutBlockOriented(cont);
 	}
 
 	ASSERT(ctrl.phase == BUS::dataout);
@@ -1219,7 +1219,7 @@ void SCSIDEV::FlushUnit()
 	Disk *disk = (Disk *)ctrl.unit[lun];
 
 	// WRITE system only
-	switch ((SCSIDEV::sasi_command)ctrl.cmd[0]) {
+	switch ((SCSIDEV::rw_command)ctrl.cmd[0]) {
 		case SCSIDEV::eCmdWrite6:
 		case SCSIDEV::eCmdWrite10:
 		case SCSIDEV::eCmdWrite16:
@@ -1319,7 +1319,7 @@ bool SCSIDEV::XferIn(BYTE *buf)
 // just like the actual SCSI commands XferOut should be executed by the respective device
 //
 //---------------------------------------------------------------------------
-bool SCSIDEV::XferOut2(bool cont)
+bool SCSIDEV::XferOutBlockOriented(bool cont)
 {
 	ASSERT(ctrl.phase == BUS::dataout);
 
