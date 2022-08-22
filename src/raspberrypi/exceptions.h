@@ -51,7 +51,7 @@ private:
 	scsi_defs::status status;
 
 public:
-	scsi_dispatch_error_exception(scsi_defs::sense_key = scsi_defs::sense_key::NO_SENSE,
+	scsi_dispatch_error_exception(scsi_defs::sense_key sense_key = scsi_defs::sense_key::NO_SENSE,
 			scsi_defs::asc asc = scsi_defs::asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			scsi_defs::status status = scsi_defs::status::CHECK_CONDITION) {
 		this->sense_key = sense_key;
