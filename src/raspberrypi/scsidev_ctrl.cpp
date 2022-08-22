@@ -97,12 +97,12 @@ void SCSIDEV::Reset()
 
 void SCSIDEV::SetUnit(int no, PrimaryDevice *dev)
 {
-	ASSERT(no < UNIT_MAX);
+	assert(no < UNIT_MAX);
 
 	ctrl.unit[no] = dev;
 }
 
-bool SCSIDEV::HasUnit()
+bool SCSIDEV::HasUnit() const
 {
 	for (int i = 0; i < UNIT_MAX; i++) {
 		if (ctrl.unit[i]) {
@@ -342,7 +342,6 @@ void SCSIDEV::Command()
 		ctrl.length = 0;
 		ctrl.blocks = 0;
 
-		// Execution Phase
 		Execute();
 	}
 }
@@ -443,7 +442,6 @@ void SCSIDEV::Status()
 		return;
 	}
 
-	// Send
 	Send();
 }
 
@@ -462,13 +460,12 @@ void SCSIDEV::MsgIn()
 		ctrl.bus->SetIO(TRUE);
 
 		// length, blocks are already set
-		ASSERT(ctrl.length > 0);
-		ASSERT(ctrl.blocks > 0);
+		assert(ctrl.length > 0);
+		assert(ctrl.blocks > 0);
 		ctrl.offset = 0;
 		return;
 	}
 
-	//Send
 	LOGTRACE("%s Transitioning to Send()", __PRETTY_FUNCTION__);
 	Send();
 }
@@ -509,7 +506,7 @@ void SCSIDEV::MsgOut()
 
 void SCSIDEV::DataIn()
 {
-	ASSERT(ctrl.length >= 0);
+	assert(ctrl.length >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::datain) {
@@ -538,20 +535,19 @@ void SCSIDEV::DataIn()
 		ctrl.bus->SetIO(TRUE);
 
 		// length, blocks are already set
-		ASSERT(ctrl.length > 0);
-		ASSERT(ctrl.blocks > 0);
+		assert(ctrl.length > 0);
+		assert(ctrl.blocks > 0);
 		ctrl.offset = 0;
 
 		return;
 	}
 
-	// Send
 	Send();
 }
 
 void SCSIDEV::DataOut()
 {
-	ASSERT(ctrl.length >= 0);
+	assert(ctrl.length >= 0);
 
 	// Phase change
 	if (ctrl.phase != BUS::dataout) {
@@ -581,12 +577,11 @@ void SCSIDEV::DataOut()
 		ctrl.bus->SetIO(FALSE);
 
 		// Length has already been calculated
-		ASSERT(ctrl.length > 0);
+		assert(ctrl.length > 0);
 		ctrl.offset = 0;
 		return;
 	}
 
-	// Receive
 	Receive();
 }
 
@@ -633,8 +628,8 @@ void SCSIDEV::Error(sense_key sense_key, asc asc, status status)
 
 void SCSIDEV::Send()
 {
-	ASSERT(!ctrl.bus->GetREQ());
-	ASSERT(ctrl.bus->GetIO());
+	assert(!ctrl.bus->GetREQ());
+	assert(ctrl.bus->GetIO());
 
 	if (ctrl.length != 0) {
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Sending handhake with offset " + to_string(ctrl.offset) + ", length "
@@ -678,8 +673,8 @@ void SCSIDEV::Send()
 	// Continue sending if block !=0
 	if (ctrl.blocks != 0){
 		LOGTRACE("%s%s", __PRETTY_FUNCTION__, (" Continuing to send. Blocks: " + to_string(ctrl.blocks)).c_str());
-		ASSERT(ctrl.length > 0);
-		ASSERT(ctrl.offset == 0);
+		assert(ctrl.length > 0);
+		assert(ctrl.offset == 0);
 		return;
 	}
 
@@ -735,8 +730,8 @@ void SCSIDEV::Receive()
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	// REQ is low
-	ASSERT(!ctrl.bus->GetREQ());
-	ASSERT(!ctrl.bus->GetIO());
+	assert(!ctrl.bus->GetREQ());
+	assert(!ctrl.bus->GetIO());
 
 	// Length != 0 if received
 	if (ctrl.length != 0) {
@@ -801,14 +796,13 @@ void SCSIDEV::Receive()
 
 	// Continue to receive if block !=0
 	if (ctrl.blocks != 0){
-		ASSERT(ctrl.length > 0);
-		ASSERT(ctrl.offset == 0);
+		assert(ctrl.length > 0);
+		assert(ctrl.offset == 0);
 		return;
 	}
 
 	// Move to next phase
 	switch (ctrl.phase) {
-		// Command phase
 		case BUS::command:
 			len = GPIOBUS::GetCommandByteCount(ctrl.buffer[0]);
 
@@ -817,11 +811,9 @@ void SCSIDEV::Receive()
 				LOGTRACE("%s Command Byte %d: $%02X",__PRETTY_FUNCTION__, i, ctrl.cmd[i]);
 			}
 
-			// Execution Phase
 			Execute();
 			break;
 
-		// Message out phase
 		case BUS::msgout:
 			// Continue message out phase as long as ATN keeps asserting
 			if (ctrl.bus->GetATN()) {
@@ -905,15 +897,12 @@ void SCSIDEV::Receive()
 			// Initialize ATN message reception status
 			scsi.atnmsg = false;
 
-			// Command phase
 			Command();
 			break;
 
-		// Data out phase
 		case BUS::dataout:
 			FlushUnit();
 
-			// status phase
 			Status();
 			break;
 
@@ -925,7 +914,7 @@ void SCSIDEV::Receive()
 
 bool SCSIDEV::XferMsg(int msg)
 {
-	ASSERT(ctrl.phase == BUS::msgout);
+	assert(ctrl.phase == BUS::msgout);
 
 	// Save message out data
 	if (scsi.atnmsg) {
@@ -945,8 +934,8 @@ void SCSIDEV::ReceiveBytes()
 	LOGTRACE("%s",__PRETTY_FUNCTION__);
 
 	// REQ is low
-	ASSERT(!ctrl.bus->GetREQ());
-	ASSERT(!ctrl.bus->GetIO());
+	assert(!ctrl.bus->GetREQ());
+	assert(!ctrl.bus->GetIO());
 
 	if (ctrl.length) {
 		LOGTRACE("%s Length is %d bytes", __PRETTY_FUNCTION__, ctrl.length);
@@ -1115,7 +1104,7 @@ bool SCSIDEV::XferOut(bool cont)
 		return XferOutBlockOriented(cont);
 	}
 
-	ASSERT(ctrl.phase == BUS::dataout);
+	assert(ctrl.phase == BUS::dataout);
 
 	scsi.is_byte_transfer = false;
 
@@ -1133,7 +1122,6 @@ void SCSIDEV::FlushUnit()
 {
 	assert(ctrl.phase == BUS::dataout);
 
-	// Logical Unit
 	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return;
@@ -1196,10 +1184,9 @@ void SCSIDEV::FlushUnit()
 //---------------------------------------------------------------------------
 bool SCSIDEV::XferIn(BYTE *buf)
 {
-	ASSERT(ctrl.phase == BUS::datain);
+	assert(ctrl.phase == BUS::datain);
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
-	// Logical Unit
 	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
@@ -1226,7 +1213,7 @@ bool SCSIDEV::XferIn(BYTE *buf)
 
 		// Other (impossible)
 		default:
-			ASSERT(FALSE);
+			assert(false);
 			return false;
 	}
 
@@ -1244,15 +1231,16 @@ bool SCSIDEV::XferIn(BYTE *buf)
 //---------------------------------------------------------------------------
 bool SCSIDEV::XferOutBlockOriented(bool cont)
 {
-	ASSERT(ctrl.phase == BUS::dataout);
+	assert(ctrl.phase == BUS::dataout);
 
-	// Logical Unit
 	DWORD lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
+
 	Disk *device = (Disk *)ctrl.unit[lun];
 
+	// Limited to write commands
 	switch (ctrl.cmd[0]) {
 		case eCmdModeSelect6:
 		case eCmdModeSelect10:
@@ -1329,7 +1317,6 @@ bool SCSIDEV::XferOutBlockOriented(bool cont)
 			break;
 	}
 
-	// Buffer saved successfully
 	return true;
 }
 

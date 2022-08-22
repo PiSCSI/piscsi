@@ -137,7 +137,7 @@ public:
 	void SetByteTransfer(bool is_byte_transfer) { scsi.is_byte_transfer = is_byte_transfer; }
 
 	void SetUnit(int, PrimaryDevice *);
-	bool HasUnit();
+	bool HasUnit() const;
 
 	void FlushUnit();
 
