@@ -43,7 +43,7 @@ public:
 	~file_not_found_exception() {}
 };
 
-// Results in an SCSI error to be reported. It may currently only be raised within the command dispatcher call hierarchy.
+// Results in an SCSI error to be reported. It should currently only be raised within the command dispatcher call hierarchy.
 class scsi_dispatch_error_exception : public exception {
 private:
 	scsi_defs::sense_key sense_key;
