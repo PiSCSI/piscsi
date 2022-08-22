@@ -18,7 +18,6 @@
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
-#include "devices/scsi_printer.h"
 
 using namespace scsi_defs;
 
