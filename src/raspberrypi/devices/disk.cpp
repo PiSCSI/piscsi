@@ -723,7 +723,7 @@ int Disk::WriteCheck(DWORD block)
 {
 	// Status check
 	if (!CheckReady()) {
-		throw scsi_dispatch_error_exception(sense_key::NOT_READY);
+		throw scsi_dispatch_error_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
 	}
 
 	// Error if the total number of blocks is exceeded
