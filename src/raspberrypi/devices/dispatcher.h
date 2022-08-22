@@ -17,7 +17,6 @@
 #include <unordered_map>
 
 class Controller;
-class Controller;
 
 using namespace std;
 using namespace scsi_defs;
@@ -37,13 +36,13 @@ public:
 
 	typedef struct _command_t {
 		const char* name;
-		void (T::*execute)(U *);
+		void (T::*execute)(Controller *);
 
-		_command_t(const char* _name, void (T::*_execute)(U *)) : name(_name), execute(_execute) { };
+		_command_t(const char* _name, void (T::*_execute)(Controller *)) : name(_name), execute(_execute) { };
 	} command_t;
 	unordered_map<scsi_command, command_t*> commands;
 
-	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)(U *))
+	void AddCommand(scsi_command opcode, const char* name, void (T::*execute)(Controller *))
 	{
 		commands[opcode] = new command_t(name, execute);
 	}
