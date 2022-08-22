@@ -33,7 +33,7 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
-#include "scsidev_ctrl.h"
+#include "controller.h"
 #include "disk.h"
 #include "host_services.h"
 

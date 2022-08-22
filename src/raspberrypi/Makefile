@@ -94,7 +94,7 @@ SRC_RASCSI = \
 	rascsi.cpp \
 	scsi.cpp \
 	gpiobus.cpp \
-	scsidev_ctrl.cpp \
+	controller.cpp \
 	filepath.cpp \
 	fileio.cpp\
 	rascsi_version.cpp \

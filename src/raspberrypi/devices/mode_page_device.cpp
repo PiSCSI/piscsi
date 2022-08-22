@@ -10,7 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
-#include "scsidev_ctrl.h"
+#include "controller.h"
 #include "mode_page_device.h"
 
 using namespace std;

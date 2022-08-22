@@ -11,7 +11,7 @@
 //---------------------------------------------------------------------------
 
 #include "os.h"
-#include "scsidev_ctrl.h"
+#include "controller.h"
 #include "devices/device_factory.h"
 #include "devices/device.h"
 #include "devices/disk.h"

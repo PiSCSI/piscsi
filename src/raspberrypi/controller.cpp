@@ -14,7 +14,7 @@
 //
 //---------------------------------------------------------------------------
 #include "log.h"
-#include "scsidev_ctrl.h"
+#include "controller.h"
 #include "gpiobus.h"
 #include "devices/scsi_host_bridge.h"
 #include "devices/scsi_daynaport.h"
