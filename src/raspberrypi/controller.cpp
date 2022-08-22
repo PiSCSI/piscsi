@@ -321,6 +321,7 @@ void Controller::Command()
 		// If no byte can be received move to the status phase
 		int count = ctrl.bus->CommandHandShake(ctrl.buffer);
 		if (!count) {
+			LOGERROR("%s No byte received. Going to error",__PRETTY_FUNCTION__);
 			Error();
 			return;
 		}
@@ -395,11 +396,13 @@ void Controller::Execute()
 		if (!ctrl.device->Dispatch(this)) {
 			LOGTRACE("ID %d LUN %d received unsupported command: $%02X", GetSCSIID(), lun, (BYTE)ctrl.cmd[0]);
 
-			Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
+			throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 		}
 	}
-	catch(const scsi_error_exception& e) {
+	catch(const scsi_dispatch_error_exception& e) {
 		Error(e.get_sense_key(), e.get_asc(), e.get_status());
+
+		// Fall through
 	}
 
 	// SCSI-2 p.104 4.4.3 Incorrect logical unit handling
@@ -647,6 +650,7 @@ void Controller::Send()
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
+			LOGERROR("%s Couldn't send all bytes. Going to error",__PRETTY_FUNCTION__);
 			Error();
 			return;
 		}

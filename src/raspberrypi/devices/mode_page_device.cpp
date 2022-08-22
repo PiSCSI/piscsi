@@ -10,6 +10,7 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
+#include "exceptions.h"
 #include "controller.h"
 #include "mode_page_device.h"
 
@@ -92,8 +93,7 @@ void ModePageDevice::ModeSense6(Controller *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->DataIn();
@@ -103,8 +103,7 @@ void ModePageDevice::ModeSense10(Controller *controller)
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->DataIn();
@@ -124,8 +123,7 @@ void ModePageDevice::ModeSelect6(Controller *controller)
 
 	ctrl->length = ModeSelectCheck6();
 	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->DataOut();
@@ -137,8 +135,7 @@ void ModePageDevice::ModeSelect10(Controller *controller)
 
 	ctrl->length = ModeSelectCheck10();
 	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->DataOut();

@@ -389,9 +389,7 @@ void SCSICD::ReadToc(Controller *controller)
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->DataIn();
@@ -625,12 +623,11 @@ void SCSICD::GetEventStatusNotification(Controller *controller)
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	LOGTRACE("Received request for event polling, which is currently not supported");
-	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 //---------------------------------------------------------------------------

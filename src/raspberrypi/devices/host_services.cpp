@@ -33,6 +33,7 @@
 //   c) start && load (LOAD): Reboot the Raspberry Pi
 //
 
+#include "exceptions.h"
 #include "controller.h"
 #include "disk.h"
 #include "host_services.h"
@@ -95,7 +96,7 @@ void HostServices::StartStopUnit(Controller *controller)
 		}
 	}
 
-	controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+	throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 }
 
 int HostServices::ModeSense6(const DWORD *cdb, BYTE *buf)

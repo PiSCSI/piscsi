@@ -157,6 +157,6 @@ private:
 	void ReadCapacity16_ReadLong16(Controller *);
 	bool Format(const DWORD *cdb);
 
-	bool ValidateBlockAddress(Controller *, access_mode);
+	void ValidateBlockAddress(Controller *, access_mode);
 	bool GetStartAndCount(Controller *, uint64_t&, uint32_t&, access_mode);
 };

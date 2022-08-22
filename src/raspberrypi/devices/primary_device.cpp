@@ -8,6 +8,7 @@
 //---------------------------------------------------------------------------
 
 #include "log.h"
+#include "exceptions.h"
 #include "dispatcher.h"
 #include "primary_device.h"
 
@@ -35,8 +36,7 @@ bool PrimaryDevice::Dispatch(Controller *controller)
 void PrimaryDevice::TestUnitReady(Controller *controller)
 {
 	if (!CheckReady()) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->Status();
@@ -46,8 +46,7 @@ void PrimaryDevice::Inquiry(Controller *controller)
 {
 	// EVPD and page code check
 	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	vector<BYTE> buf = Inquiry();
@@ -112,6 +111,7 @@ void PrimaryDevice::RequestSense(Controller *controller)
         // LUN 0 can be assumed to be present (required to call RequestSense() below)
 		lun = 0;
 
+		// Do not raise an exception here because the status has to be reset below
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_LUN);
 		ctrl->status = 0x00;
 	}

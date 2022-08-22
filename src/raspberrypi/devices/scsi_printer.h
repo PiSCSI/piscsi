@@ -41,7 +41,7 @@ public:
 	void StopPrint(Controller *);
 
 	bool WriteBytes(BYTE *, uint32_t) override;
-	bool CheckReservation(Controller *);
+	void CheckReservation(Controller *);
 	void DiscardReservation();
 	void Cleanup();
 

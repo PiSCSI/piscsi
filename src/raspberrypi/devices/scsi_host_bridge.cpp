@@ -16,6 +16,7 @@
 //        work with the Sharp X68000 operating system.
 //---------------------------------------------------------------------------
 
+#include "exceptions.h"
 #include "controller.h"
 #include "scsi_host_bridge.h"
 #include "ctapdriver.h"
@@ -274,9 +275,7 @@ void SCSIBR::GetMessage10(Controller *controller)
 
 	ctrl->length = GetMessage10(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	// Set next block
@@ -310,9 +309,7 @@ void SCSIBR::SendMessage10(Controller *controller)
 	ctrl->length |= ctrl->cmd[8];
 
 	if (ctrl->length <= 0) {
-		// Failure (Error)
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	// Set next block

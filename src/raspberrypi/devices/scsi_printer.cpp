@@ -40,6 +40,7 @@
 //
 
 #include <sys/stat.h>
+#include "exceptions.h"
 #include "controller.h"
 #include "../rasutil.h"
 #include "scsi_printer.h"
@@ -96,9 +97,7 @@ bool SCSIPrinter::Dispatch(Controller *controller)
 
 void SCSIPrinter::TestUnitReady(Controller *controller)
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation(controller);
 
 	controller->Status();
 }
@@ -115,9 +114,7 @@ void SCSIPrinter::ReserveUnit(Controller *controller)
 		DiscardReservation();
 	}
 
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation(controller);
 
 	reserving_initiator = controller->GetInitiatorId();
 
@@ -135,9 +132,7 @@ void SCSIPrinter::ReserveUnit(Controller *controller)
 
 void SCSIPrinter::ReleaseUnit(Controller *controller)
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation(controller);
 
 	if (reserving_initiator != -1) {
 		LOGTRACE("Released device ID %d, LUN %d reserved by initiator ID %d", GetId(), GetLun(), reserving_initiator);
@@ -153,9 +148,7 @@ void SCSIPrinter::ReleaseUnit(Controller *controller)
 
 void SCSIPrinter::Print(Controller *controller)
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation(controller);
 
 	uint32_t length = ctrl->cmd[2];
 	length <<= 8;
@@ -170,8 +163,7 @@ void SCSIPrinter::Print(Controller *controller)
 	if (length > (uint32_t)ctrl->bufsize) {
 		LOGERROR("Transfer buffer overflow");
 
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	ctrl->length = length;
@@ -182,13 +174,10 @@ void SCSIPrinter::Print(Controller *controller)
 
 void SCSIPrinter::SynchronizeBuffer(Controller *controller)
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation(controller);
 
 	if (fd == -1) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	// Make the file readable for the lp user
@@ -213,29 +202,26 @@ void SCSIPrinter::SynchronizeBuffer(Controller *controller)
 	if (system(cmd.c_str())) {
 		LOGERROR("Printing failed, the printing system might not be configured");
 
-		controller->Error();
-	}
-	else {
-		controller->Status();
+		unlink(filename);
+
+		throw scsi_dispatch_error_exception();
 	}
 
 	unlink(filename);
+
+	controller->Status();
 }
 
 void SCSIPrinter::SendDiagnostic(Controller *controller)
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation(controller);
 
 	controller->Status();
 }
 
 void SCSIPrinter::StopPrint(Controller *controller)
 {
-	if (!CheckReservation(controller)) {
-		return;
-	}
+	CheckReservation(controller);
 
 	// Nothing to do, printing has not yet been started
 
@@ -262,12 +248,11 @@ bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 	return true;
 }
 
-bool SCSIPrinter::CheckReservation(Controller *controller)
+void SCSIPrinter::CheckReservation(Controller *controller)
 {
 	if (reserving_initiator == NOT_RESERVED || reserving_initiator == controller->GetInitiatorId()) {
 		reservation_time = time(0);
-
-		return true;
+		return;
 	}
 
 	if (controller->GetInitiatorId() != -1) {
@@ -277,10 +262,8 @@ bool SCSIPrinter::CheckReservation(Controller *controller)
 		LOGTRACE("Unknown initiator tries to access reserved device ID %d, LUN %d", GetId(), GetLun());
 	}
 
-	controller->Error(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
+	throw scsi_dispatch_error_exception(sense_key::ABORTED_COMMAND, asc::NO_ADDITIONAL_SENSE_INFORMATION,
 			status::RESERVATION_CONFLICT);
-
-	return false;
 }
 
 void SCSIPrinter::DiscardReservation()

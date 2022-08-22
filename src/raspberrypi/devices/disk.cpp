@@ -86,8 +86,7 @@ bool Disk::Dispatch(Controller *controller)
 
 		disk.is_medium_changed = false;
 
-		controller->Error(sense_key::UNIT_ATTENTION, asc::NOT_READY_TO_READY_CHANGE);
-		return true;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_COMMAND_OPERATION_CODE);
 	}
 
 	// The superclass handles the less specific commands
@@ -137,8 +136,7 @@ void Disk::FlushCache()
 void Disk::Rezero(Controller *controller)
 {
 	if (!CheckReady()) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->Status();
@@ -147,8 +145,7 @@ void Disk::Rezero(Controller *controller)
 void Disk::FormatUnit(Controller *controller)
 {
 	if (!Format(ctrl->cmd)) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->Status();
@@ -157,8 +154,7 @@ void Disk::FormatUnit(Controller *controller)
 void Disk::ReassignBlocks(Controller *controller)
 {
 	if (!CheckReady()) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->Status();
@@ -170,8 +166,7 @@ void Disk::Read(Controller *controller, uint64_t record)
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
 	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	// Set next block
@@ -183,38 +178,34 @@ void Disk::Read(Controller *controller, uint64_t record)
 void Disk::Read6(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
-		Read(controller, start);
-	}
+	GetStartAndCount(controller, start, ctrl->blocks, RW6);
+	Read(controller, start);
 }
 
 void Disk::Read10(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
-		Read(controller, start);
-	}
+	GetStartAndCount(controller, start, ctrl->blocks, RW10);
+	Read(controller, start);
 }
 
 void Disk::Read16(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
-		Read(controller, start);
-	}
+	GetStartAndCount(controller, start, ctrl->blocks, RW16);
+	Read(controller, start);
 }
 
 void Disk::ReadWriteLong10(Controller *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[7] || ctrl->cmd[8]) {
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
-	if (ValidateBlockAddress(controller, RW10)) {
-		controller->Status();
-	}
+	ValidateBlockAddress(controller, RW10);
+
+	controller->Status();
 }
 
 void Disk::ReadLong10(Controller *controller)
@@ -226,13 +217,13 @@ void Disk::ReadWriteLong16(Controller *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[12] || ctrl->cmd[13]) {
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		return;
 	}
 
-	if (ValidateBlockAddress(controller, RW16)) {
-		controller->Status();
-	}
+	ValidateBlockAddress(controller, RW16);
+
+	controller->Status();
 }
 
 void Disk::ReadLong16(Controller *controller)
@@ -244,12 +235,10 @@ void Disk::Write(Controller *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
 	if (ctrl->length == 0) {
-		controller->Error(sense_key::NOT_READY, asc::NO_ADDITIONAL_SENSE_INFORMATION);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY, asc::NO_ADDITIONAL_SENSE_INFORMATION);
 	}
 	else if (ctrl->length < 0) {
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::WRITE_PROTECTED);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::WRITE_PROTECTED);
 	}
 
 	// Set next block
@@ -261,25 +250,22 @@ void Disk::Write(Controller *controller, uint64_t record)
 void Disk::Write6(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
-		Write(controller, start);
-	}
+	GetStartAndCount(controller, start, ctrl->blocks, RW6);
+	Write(controller, start);
 }
 
 void Disk::Write10(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
-		Write(controller, start);
-	}
+	GetStartAndCount(controller, start, ctrl->blocks, RW10);
+	Write(controller, start);
 }
 
 void Disk::Write16(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
-		Write(controller, start);
-	}
+	GetStartAndCount(controller, start, ctrl->blocks, RW16);
+	Write(controller, start);
 }
 
 void Disk::WriteLong10(Controller *controller)
@@ -303,8 +289,7 @@ void Disk::Verify(Controller *controller, uint64_t record)
 	// Test loading
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
 	if (ctrl->length <= 0) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	// Set next block
@@ -317,25 +302,22 @@ void Disk::Verify10(Controller *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW10)) {
-		Verify(controller, record);
-	}
+	GetStartAndCount(controller, record, ctrl->blocks, RW10);
+	Verify(controller, record);
 }
 
 void Disk::Verify16(Controller *controller)
 {
 	// Get record number and block number
 	uint64_t record;
-	if (GetStartAndCount(controller, record, ctrl->blocks, RW16)) {
-		Verify(controller, record);
-	}
+	GetStartAndCount(controller, record, ctrl->blocks, RW16);
+	Verify(controller, record);
 }
 
 void Disk::StartStopUnit(Controller *controller)
 {
 	if (!StartStop(ctrl->cmd)) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->Status();
@@ -344,8 +326,7 @@ void Disk::StartStopUnit(Controller *controller)
 void Disk::SendDiagnostic(Controller *controller)
 {
 	if (!SendDiag(ctrl->cmd)) {
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 	}
 
 	controller->Status();
@@ -354,8 +335,7 @@ void Disk::SendDiagnostic(Controller *controller)
 void Disk::PreventAllowMediumRemoval(Controller *controller)
 {
 	if (!CheckReady()) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	bool lock = ctrl->cmd[4] & 0x01;
@@ -822,8 +802,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 void Disk::Seek(Controller *controller)
 {
 	if (!CheckReady()) {
-		controller->Error();
-		return;
+		throw scsi_dispatch_error_exception();
 	}
 
 	controller->Status();
@@ -832,17 +811,15 @@ void Disk::Seek(Controller *controller)
 void Disk::Seek6(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, SEEK6)) {
-		Seek(controller);
-	}
+	GetStartAndCount(controller, start, ctrl->blocks, SEEK6);
+	Seek(controller);
 }
 
 void Disk::Seek10(Controller *controller)
 {
 	uint64_t start;
-	if (GetStartAndCount(controller, start, ctrl->blocks, SEEK10)) {
-		Seek(controller);
-	}
+	GetStartAndCount(controller, start, ctrl->blocks, SEEK10);
+	Seek(controller);
 }
 
 bool Disk::StartStop(const DWORD *cdb)
@@ -896,8 +873,7 @@ bool Disk::SendDiag(const DWORD *cdb) const
 void Disk::ReadCapacity10(Controller *controller)
 {
 	if (!CheckReady() || disk.blocks <= 0) {
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	BYTE *buf = ctrl->buffer;
@@ -925,8 +901,7 @@ void Disk::ReadCapacity10(Controller *controller)
 void Disk::ReadCapacity16(Controller *controller)
 {
 	if (!CheckReady() || disk.blocks <= 0) {
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
-		return;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	BYTE *buf = ctrl->buffer;
@@ -973,7 +948,7 @@ void Disk::ReadCapacity16_ReadLong16(Controller *controller)
 		break;
 
 	default:
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 		break;
 	}
 }
@@ -1004,7 +979,7 @@ void Disk::Release(Controller *controller)
 //
 //---------------------------------------------------------------------------
 
-bool Disk::ValidateBlockAddress(Controller *controller, access_mode mode)
+void Disk::ValidateBlockAddress(Controller *controller, access_mode mode)
 {
 	uint64_t block = ctrl->cmd[2];
 	block <<= 8;
@@ -1029,11 +1004,8 @@ bool Disk::ValidateBlockAddress(Controller *controller, access_mode mode)
 	if (block > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
 				+ to_string(block)).c_str());
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
-		return false;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
-
-	return true;
 }
 
 bool Disk::GetStartAndCount(Controller *controller, uint64_t& start, uint32_t& count, access_mode mode)
@@ -1096,8 +1068,7 @@ bool Disk::GetStartAndCount(Controller *controller, uint64_t& start, uint32_t& c
 	if (start > capacity || start + count > capacity) {
 		LOGTRACE("%s", ("Capacity of " + to_string(capacity) + " blocks exceeded: Trying to access block "
 				+ to_string(start) + ", block count " + to_string(count)).c_str());
-		controller->Error(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
-		return false;
+		throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::LBA_OUT_OF_RANGE);
 	}
 
 	// Do not process 0 blocks
