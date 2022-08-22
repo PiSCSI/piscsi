@@ -75,14 +75,6 @@
 #endif	// NDEBUG
 #endif	// ASSERT
 
-#if !defined(ASSERT_DIAG)
-#if !defined(NDEBUG)
-#define ASSERT_DIAG()	AssertDiag()
-#else
-#define ASSERT_DIAG()	((void)0)
-#endif	// NDEBUG
-#endif	// ASSERT_DIAG
-
 #define ARRAY_SIZE(x) (sizeof(x)/(sizeof(x[0])))
 
 //---------------------------------------------------------------------------
