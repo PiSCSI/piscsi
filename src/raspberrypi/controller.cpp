@@ -650,7 +650,6 @@ void Controller::Send()
 
 		// If you cannot send all, move to status phase
 		if (len != (int)ctrl.length) {
-			LOGERROR("%s Couldn't send all bytes. Going to error",__PRETTY_FUNCTION__);
 			Error();
 			return;
 		}
