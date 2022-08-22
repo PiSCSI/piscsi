@@ -1114,7 +1114,7 @@ uint32_t Disk::GetSectorSizeInBytes() const
 	return disk.size ? 1 << disk.size : 0;
 }
 
-void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
+void Disk::SetSectorSizeInBytes(uint32_t size)
 {
 	unordered_set<uint32_t> sector_sizes = DeviceFactory::instance().GetSectorSizes(GetType());
 	if (!sector_sizes.empty() && sector_sizes.find(size) == sector_sizes.end()) {
@@ -1122,10 +1122,6 @@ void Disk::SetSectorSizeInBytes(uint32_t size, bool sasi)
 	}
 
 	switch (size) {
-		case 256:
-			disk.size = 8;
-			break;
-
 		case 512:
 			disk.size = 9;
 			break;
@@ -1195,7 +1191,7 @@ void Disk::SetGeometries(const unordered_map<uint64_t, Geometry>& geometries)
 bool Disk::SetGeometryForCapacity(uint64_t capacity) {
 	const auto& geometry = geometries.find(capacity);
 	if (geometry != geometries.end()) {
-		SetSectorSizeInBytes(geometry->second.first, false);
+		SetSectorSizeInBytes(geometry->second.first);
 		SetBlockCount(geometry->second.second);
 
 		return true;

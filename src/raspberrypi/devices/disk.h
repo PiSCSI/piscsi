@@ -118,7 +118,7 @@ public:
 	virtual int Read(const DWORD *cdb, BYTE *buf, uint64_t block);
 
 	uint32_t GetSectorSizeInBytes() const;
-	void SetSectorSizeInBytes(uint32_t, bool);
+	void SetSectorSizeInBytes(uint32_t);
 	uint32_t GetSectorSizeShiftCount() const;
 	void SetSectorSizeShiftCount(uint32_t);
 	bool IsSectorSizeConfigurable() const;

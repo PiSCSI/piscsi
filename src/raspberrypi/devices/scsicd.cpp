@@ -228,7 +228,7 @@ void SCSICD::Open(const Filepath& path)
 	}
 
 	// Default sector size is 2048 bytes
-	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048, false);
+	SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 2048);
 
 	// Close and transfer for physical CD access
 	if (path.GetPath()[0] == _T('\\')) {

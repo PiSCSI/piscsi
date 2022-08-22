@@ -43,7 +43,7 @@ void SCSIMO::Open(const Filepath& path)
 	// TODO Find a more flexible solution
 	if (!SetGeometryForCapacity(size)) {
 		// Sector size (default 512 bytes) and number of blocks
-		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512, true);
+		SetSectorSizeInBytes(GetConfiguredSectorSize() ? GetConfiguredSectorSize() : 512);
 		SetBlockCount(size >> GetSectorSizeShiftCount());
 	}
 
