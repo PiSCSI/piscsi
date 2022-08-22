@@ -20,6 +20,7 @@ using namespace std;
 //---------------------------------------------------------------------------
 //
 //	Legacy error definition (sense code returned by REQUEST SENSE)
+//  TODO Get rid of these constants
 //
 //	MSB		Reserved (0x00)
 //			Sense Key
