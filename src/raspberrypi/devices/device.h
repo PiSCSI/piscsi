@@ -72,6 +72,10 @@ private:
 	unordered_map<string, string> default_params;
 
 	// Sense Key, ASC and ASCQ
+	//	MSB		Reserved (0x00)
+	//			Sense Key
+	//			Additional Sense Code (ASC)
+	//	LSB		Additional Sense Code Qualifier(ASCQ)
 	int status_code;
 
 protected:
