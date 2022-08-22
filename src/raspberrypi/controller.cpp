@@ -411,7 +411,7 @@ void Controller::Status()
 	if (ctrl.phase != BUS::status) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
+			uint32_t time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < MIN_EXEC_TIME) {
 				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 			}
@@ -511,7 +511,7 @@ void Controller::DataIn()
 	if (ctrl.phase != BUS::datain) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
+			uint32_t time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < MIN_EXEC_TIME) {
 				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 			}
@@ -552,7 +552,7 @@ void Controller::DataOut()
 	if (ctrl.phase != BUS::dataout) {
 		// Minimum execution time
 		if (ctrl.execstart > 0) {
-			DWORD time = SysTimer::GetTimerLow() - ctrl.execstart;
+			uint32_t time = SysTimer::GetTimerLow() - ctrl.execstart;
 			if (time < MIN_EXEC_TIME) {
 				SysTimer::SleepUsec(MIN_EXEC_TIME - time);
 			}
