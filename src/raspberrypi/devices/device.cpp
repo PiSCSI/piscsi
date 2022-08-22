@@ -48,7 +48,7 @@ Device::Device(const string& type)
 	id = 0;
 	lun = 0;
 
-	status_code = STATUS_NOERROR;
+	status_code = 0;
 }
 
 Device::~Device()

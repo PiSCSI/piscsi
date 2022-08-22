@@ -179,8 +179,8 @@ vector<BYTE> PrimaryDevice::Inquiry(device_type type, scsi_level level, bool is_
 vector<BYTE> PrimaryDevice::RequestSense(int)
 {
 	// Return not ready only if there are no errors
-	if (GetStatusCode() == STATUS_NOERROR && !IsReady()) {
-		SetStatusCode(STATUS_NOTREADY);
+	if (!GetStatusCode() && !IsReady()) {
+		throw scsi_dispatch_error_exception(sense_key::NOT_READY, asc::MEDIUM_NOT_PRESENT);
 	}
 
 	// Set 18 bytes including extended sense data

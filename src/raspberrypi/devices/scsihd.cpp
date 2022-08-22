@@ -71,7 +71,7 @@ void SCSIHD::Reset()
 
 	// No reset, clear code
 	SetReset(false);
-	SetStatusCode(STATUS_NOERROR);
+	SetStatusCode(0);
 }
 
 void SCSIHD::Open(const Filepath& path)

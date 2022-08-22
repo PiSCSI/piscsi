@@ -28,8 +28,6 @@ using namespace std;
 //	LSB		Additional Sense Code Qualifier(ASCQ)
 //
 //---------------------------------------------------------------------------
-#define STATUS_NOERROR		0x00000000	// NO ADDITIONAL SENSE INFO.
-#define STATUS_NOTREADY		0x00023a00	// MEDIUM NOT PRESENT
 #define STATUS_PREVENT		0x00045302	// MEDIUM REMOVAL PREVENTED
 #define STATUS_INVALIDCMD	0x00052000	// INVALID COMMAND OPERATION CODE
 #define STATUS_INVALIDLBA	0x00052100	// LOGICAL BLOCK ADDR. OUT OF RANGE
