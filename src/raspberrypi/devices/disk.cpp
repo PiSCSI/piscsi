@@ -168,10 +168,6 @@ void Disk::Read(Controller *controller, access_mode mode)
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, start);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
 
-	if (ctrl->length <= 0) {
-		throw scsi_dispatch_error_exception();
-	}
-
 	// Set next block
 	ctrl->next = start + 1;
 
@@ -226,12 +222,6 @@ void Disk::Write(Controller *controller, access_mode mode)
 	}
 
 	ctrl->length = WriteCheck(start);
-	if (ctrl->length == 0) {
-		throw scsi_dispatch_error_exception(sense_key::NOT_READY, asc::NO_ADDITIONAL_SENSE_INFORMATION);
-	}
-	else if (ctrl->length < 0) {
-		throw scsi_dispatch_error_exception(sense_key::DATA_PROTECT, asc::WRITE_PROTECTED);
-	}
 
 	// Set next block
 	ctrl->next = start + 1;

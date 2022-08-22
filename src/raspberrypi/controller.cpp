@@ -1306,8 +1306,10 @@ bool Controller::XferOutBlockOriented(bool cont)
 			}
 
 			// Check the next block
-			ctrl.length = device->WriteCheck(ctrl.next - 1);
-			if (ctrl.length <= 0) {
+			try {
+				ctrl.length = device->WriteCheck(ctrl.next - 1);
+			}
+			catch(const scsi_dispatch_error_exception& e) {
 				// Cannot write
 				return false;
 			}
