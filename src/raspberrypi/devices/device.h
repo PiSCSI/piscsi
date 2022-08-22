@@ -17,19 +17,6 @@ using namespace std;
 
 #define DEFAULT_VENDOR "RaSCSI"
 
-//---------------------------------------------------------------------------
-//
-//	Legacy error definition (sense code returned by REQUEST SENSE)
-//  TODO Get rid of these constants
-//
-//	MSB		Reserved (0x00)
-//			Sense Key
-//			Additional Sense Code (ASC)
-//	LSB		Additional Sense Code Qualifier(ASCQ)
-//
-//---------------------------------------------------------------------------
-#define STATUS_PREVENT		0x00045302	// MEDIUM REMOVAL PREVENTED
-
 class Controller;
 
 class Device

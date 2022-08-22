@@ -766,8 +766,7 @@ bool Disk::StartStop(const DWORD *cdb)
 		if (load) {
 			if (IsLocked()) {
 				// Cannot be ejected because it is locked
-				SetStatusCode(STATUS_PREVENT);
-				return false;
+				throw scsi_dispatch_error_exception(sense_key::ILLEGAL_REQUEST, asc::LOAD_OR_EJECT_FAILED);
 			}
 
 			// Eject
