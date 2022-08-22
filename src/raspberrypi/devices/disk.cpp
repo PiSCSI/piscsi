@@ -286,9 +286,6 @@ void Disk::Verify(Controller *controller, uint64_t record)
 
 	// Test loading
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
-	if (ctrl->length <= 0) {
-		throw scsi_dispatch_error_exception();
-	}
 
 	// Set next block
 	ctrl->next = record + 1;
@@ -711,8 +708,7 @@ int Disk::Read(const DWORD *cdb, BYTE *buf, uint64_t block)
 
 	// leave it to the cache
 	if (!disk.dcache->ReadSector(buf, block)) {
-		SetStatusCode(STATUS_READFAULT);
-		return 0;
+		throw scsi_dispatch_error_exception(sense_key::MEDIUM_ERROR, asc::READ_FAULT);
 	}
 
 	//  Success

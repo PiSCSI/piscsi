@@ -1167,8 +1167,8 @@ void Controller::FlushUnit()
             LOGWARN("   Ctrl Len: %08X\n",(WORD)ctrl.length);
 
 			if (!disk->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
-				// MODE SELECT failed
 				LOGWARN("Error occured while processing Mode Select command %02X\n", (unsigned char)ctrl.cmd[0]);
+				Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 				return;
 			}
             break;
@@ -1254,7 +1254,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 		case eCmdModeSelect6:
 		case eCmdModeSelect10:
 			if (!device->ModeSelect(ctrl.cmd, ctrl.buffer, ctrl.offset)) {
-				// MODE SELECT failed
+				Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
 				return false;
 			}
 			break;

@@ -108,9 +108,6 @@ void ModePageDevice::ModeSense10(Controller *controller)
 
 bool ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 {
-	// Cannot be set
-	SetStatusCode(STATUS_INVALIDPRM);
-
 	return false;
 }
 
