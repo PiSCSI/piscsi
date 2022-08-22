@@ -1121,7 +1121,7 @@ void Controller::FlushUnit()
 {
 	assert(ctrl.phase == BUS::dataout);
 
-	DWORD lun = GetEffectiveLun();
+	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return;
 	}
@@ -1186,7 +1186,7 @@ bool Controller::XferIn(BYTE *buf)
 	assert(ctrl.phase == BUS::datain);
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
-	DWORD lun = GetEffectiveLun();
+	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
@@ -1232,7 +1232,7 @@ bool Controller::XferOutBlockOriented(bool cont)
 {
 	assert(ctrl.phase == BUS::dataout);
 
-	DWORD lun = GetEffectiveLun();
+	int lun = GetEffectiveLun();
 	if (!ctrl.unit[lun]) {
 		return false;
 	}
