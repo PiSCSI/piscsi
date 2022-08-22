@@ -23,11 +23,11 @@ public:
 	HostServices();
 	~HostServices() {}
 
-	virtual bool Dispatch(SCSIDEV *) override;
+	virtual bool Dispatch(Controller *) override;
 
 	vector<BYTE> Inquiry() const override;
-	void TestUnitReady(SCSIDEV *);
-	void StartStopUnit(SCSIDEV *);
+	void TestUnitReady(Controller *);
+	void StartStopUnit(Controller *);
 
 	int ModeSense6(const DWORD *, BYTE *);
 	int ModeSense10(const DWORD *, BYTE *, int);
@@ -36,7 +36,7 @@ private:
 
 	typedef ModePageDevice super;
 
-	Dispatcher<HostServices, SCSIDEV> dispatcher;
+	Dispatcher<HostServices, Controller> dispatcher;
 
 	void AddModePages(map<int, vector<BYTE>>&, int, bool) const override;
 	void AddRealtimeClockPage(map<int, vector<BYTE>>&, bool) const;

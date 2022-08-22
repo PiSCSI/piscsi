@@ -27,21 +27,21 @@ public:
 	SCSIPrinter();
 	~SCSIPrinter();
 
-	virtual bool Dispatch(SCSIDEV *) override;
+	virtual bool Dispatch(Controller *) override;
 
 	bool Init(const unordered_map<string, string>&);
 
 	vector<BYTE> Inquiry() const override;
-	void TestUnitReady(SCSIDEV *);
-	void ReserveUnit(SCSIDEV *);
-	void ReleaseUnit(SCSIDEV *);
-	void Print(SCSIDEV *);
-	void SynchronizeBuffer(SCSIDEV *);
-	void SendDiagnostic(SCSIDEV *);
-	void StopPrint(SCSIDEV *);
+	void TestUnitReady(Controller *);
+	void ReserveUnit(Controller *);
+	void ReleaseUnit(Controller *);
+	void Print(Controller *);
+	void SynchronizeBuffer(Controller *);
+	void SendDiagnostic(Controller *);
+	void StopPrint(Controller *);
 
 	bool WriteBytes(BYTE *, uint32_t) override;
-	bool CheckReservation(SCSIDEV *);
+	bool CheckReservation(Controller *);
 	void DiscardReservation();
 	void Cleanup();
 
@@ -49,7 +49,7 @@ private:
 
 	typedef PrimaryDevice super;
 
-	Dispatcher<SCSIPrinter, SCSIDEV> dispatcher;
+	Dispatcher<SCSIPrinter, Controller> dispatcher;
 
 	char filename[sizeof(TMP_FILE_PATTERN) + 1];
 	int fd;

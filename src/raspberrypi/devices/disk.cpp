@@ -77,7 +77,7 @@ Disk::~Disk()
 	}
 }
 
-bool Disk::Dispatch(SCSIDEV *controller)
+bool Disk::Dispatch(Controller *controller)
 {
 	// Media changes must be reported on the next access, i.e. not only for TEST UNIT READY
 	if (disk.is_medium_changed) {
@@ -133,7 +133,7 @@ void Disk::FlushCache()
 	}
 }
 
-void Disk::Rezero(SCSIDEV *controller)
+void Disk::Rezero(Controller *controller)
 {
 	if (!CheckReady()) {
 		controller->Error();
@@ -143,7 +143,7 @@ void Disk::Rezero(SCSIDEV *controller)
 	controller->Status();
 }
 
-void Disk::FormatUnit(SCSIDEV *controller)
+void Disk::FormatUnit(Controller *controller)
 {
 	if (!Format(ctrl->cmd)) {
 		controller->Error();
@@ -153,7 +153,7 @@ void Disk::FormatUnit(SCSIDEV *controller)
 	controller->Status();
 }
 
-void Disk::ReassignBlocks(SCSIDEV *controller)
+void Disk::ReassignBlocks(Controller *controller)
 {
 	if (!CheckReady()) {
 		controller->Error();
@@ -163,7 +163,7 @@ void Disk::ReassignBlocks(SCSIDEV *controller)
 	controller->Status();
 }
 
-void Disk::Read(SCSIDEV *controller, uint64_t record)
+void Disk::Read(Controller *controller, uint64_t record)
 {
 	ctrl->length = Read(ctrl->cmd, ctrl->buffer, record);
 	LOGTRACE("%s ctrl.length is %d", __PRETTY_FUNCTION__, (int)ctrl->length);
@@ -179,7 +179,7 @@ void Disk::Read(SCSIDEV *controller, uint64_t record)
 	controller->DataIn();
 }
 
-void Disk::Read6(SCSIDEV *controller)
+void Disk::Read6(Controller *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
@@ -187,7 +187,7 @@ void Disk::Read6(SCSIDEV *controller)
 	}
 }
 
-void Disk::Read10(SCSIDEV *controller)
+void Disk::Read10(Controller *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
@@ -195,7 +195,7 @@ void Disk::Read10(SCSIDEV *controller)
 	}
 }
 
-void Disk::Read16(SCSIDEV *controller)
+void Disk::Read16(Controller *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
@@ -203,7 +203,7 @@ void Disk::Read16(SCSIDEV *controller)
 	}
 }
 
-void Disk::ReadWriteLong10(SCSIDEV *controller)
+void Disk::ReadWriteLong10(Controller *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[7] || ctrl->cmd[8]) {
@@ -216,12 +216,12 @@ void Disk::ReadWriteLong10(SCSIDEV *controller)
 	}
 }
 
-void Disk::ReadLong10(SCSIDEV *controller)
+void Disk::ReadLong10(Controller *controller)
 {
 	ReadWriteLong10(controller);
 }
 
-void Disk::ReadWriteLong16(SCSIDEV *controller)
+void Disk::ReadWriteLong16(Controller *controller)
 {
 	// Transfer lengths other than 0 are not supported, which is compliant with the SCSI standard
 	if (ctrl->cmd[12] || ctrl->cmd[13]) {
@@ -234,12 +234,12 @@ void Disk::ReadWriteLong16(SCSIDEV *controller)
 	}
 }
 
-void Disk::ReadLong16(SCSIDEV *controller)
+void Disk::ReadLong16(Controller *controller)
 {
 	ReadWriteLong16(controller);
 }
 
-void Disk::Write(SCSIDEV *controller, uint64_t record)
+void Disk::Write(Controller *controller, uint64_t record)
 {
 	ctrl->length = WriteCheck(record);
 	if (ctrl->length == 0) {
@@ -257,7 +257,7 @@ void Disk::Write(SCSIDEV *controller, uint64_t record)
 	controller->DataOut();
 }
 
-void Disk::Write6(SCSIDEV *controller)
+void Disk::Write6(Controller *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW6)) {
@@ -265,7 +265,7 @@ void Disk::Write6(SCSIDEV *controller)
 	}
 }
 
-void Disk::Write10(SCSIDEV *controller)
+void Disk::Write10(Controller *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW10)) {
@@ -273,7 +273,7 @@ void Disk::Write10(SCSIDEV *controller)
 	}
 }
 
-void Disk::Write16(SCSIDEV *controller)
+void Disk::Write16(Controller *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, RW16)) {
@@ -281,17 +281,17 @@ void Disk::Write16(SCSIDEV *controller)
 	}
 }
 
-void Disk::WriteLong10(SCSIDEV *controller)
+void Disk::WriteLong10(Controller *controller)
 {
 	ReadWriteLong10(controller);
 }
 
-void Disk::WriteLong16(SCSIDEV *controller)
+void Disk::WriteLong16(Controller *controller)
 {
 	ReadWriteLong16(controller);
 }
 
-void Disk::Verify(SCSIDEV *controller, uint64_t record)
+void Disk::Verify(Controller *controller, uint64_t record)
 {
 	// if BytChk=0
 	if ((ctrl->cmd[1] & 0x02) == 0) {
@@ -312,7 +312,7 @@ void Disk::Verify(SCSIDEV *controller, uint64_t record)
 	controller->DataOut();
 }
 
-void Disk::Verify10(SCSIDEV *controller)
+void Disk::Verify10(Controller *controller)
 {
 	// Get record number and block number
 	uint64_t record;
@@ -321,7 +321,7 @@ void Disk::Verify10(SCSIDEV *controller)
 	}
 }
 
-void Disk::Verify16(SCSIDEV *controller)
+void Disk::Verify16(Controller *controller)
 {
 	// Get record number and block number
 	uint64_t record;
@@ -330,7 +330,7 @@ void Disk::Verify16(SCSIDEV *controller)
 	}
 }
 
-void Disk::StartStopUnit(SCSIDEV *controller)
+void Disk::StartStopUnit(Controller *controller)
 {
 	if (!StartStop(ctrl->cmd)) {
 		controller->Error();
@@ -340,7 +340,7 @@ void Disk::StartStopUnit(SCSIDEV *controller)
 	controller->Status();
 }
 
-void Disk::SendDiagnostic(SCSIDEV *controller)
+void Disk::SendDiagnostic(Controller *controller)
 {
 	if (!SendDiag(ctrl->cmd)) {
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::INVALID_FIELD_IN_CDB);
@@ -350,7 +350,7 @@ void Disk::SendDiagnostic(SCSIDEV *controller)
 	controller->Status();
 }
 
-void Disk::PreventAllowMediumRemoval(SCSIDEV *controller)
+void Disk::PreventAllowMediumRemoval(Controller *controller)
 {
 	if (!CheckReady()) {
 		controller->Error();
@@ -366,19 +366,19 @@ void Disk::PreventAllowMediumRemoval(SCSIDEV *controller)
 	controller->Status();
 }
 
-void Disk::SynchronizeCache10(SCSIDEV *controller)
+void Disk::SynchronizeCache10(Controller *controller)
 {
 	FlushCache();
 
 	controller->Status();
 }
 
-void Disk::SynchronizeCache16(SCSIDEV *controller)
+void Disk::SynchronizeCache16(Controller *controller)
 {
 	return SynchronizeCache10(controller);
 }
 
-void Disk::ReadDefectData10(SCSIDEV *controller)
+void Disk::ReadDefectData10(Controller *controller)
 {
 	int allocation_length = (ctrl->cmd[7] << 8) | ctrl->cmd[8];
 	if (allocation_length > 4) {
@@ -818,7 +818,7 @@ bool Disk::Write(const DWORD *cdb, const BYTE *buf, DWORD block)
 	return true;
 }
 
-void Disk::Seek(SCSIDEV *controller)
+void Disk::Seek(Controller *controller)
 {
 	if (!CheckReady()) {
 		controller->Error();
@@ -828,7 +828,7 @@ void Disk::Seek(SCSIDEV *controller)
 	controller->Status();
 }
 
-void Disk::Seek6(SCSIDEV *controller)
+void Disk::Seek6(Controller *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, SEEK6)) {
@@ -836,7 +836,7 @@ void Disk::Seek6(SCSIDEV *controller)
 	}
 }
 
-void Disk::Seek10(SCSIDEV *controller)
+void Disk::Seek10(Controller *controller)
 {
 	uint64_t start;
 	if (GetStartAndCount(controller, start, ctrl->blocks, SEEK10)) {
@@ -892,7 +892,7 @@ bool Disk::SendDiag(const DWORD *cdb) const
 	return true;
 }
 
-void Disk::ReadCapacity10(SCSIDEV *controller)
+void Disk::ReadCapacity10(Controller *controller)
 {
 	if (!CheckReady() || disk.blocks <= 0) {
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
@@ -921,7 +921,7 @@ void Disk::ReadCapacity10(SCSIDEV *controller)
 	controller->DataIn();
 }
 
-void Disk::ReadCapacity16(SCSIDEV *controller)
+void Disk::ReadCapacity16(Controller *controller)
 {
 	if (!CheckReady() || disk.blocks <= 0) {
 		controller->Error(sense_key::ILLEGAL_REQUEST, asc::MEDIUM_NOT_PRESENT);
@@ -959,7 +959,7 @@ void Disk::ReadCapacity16(SCSIDEV *controller)
 	controller->DataIn();
 }
 
-void Disk::ReadCapacity16_ReadLong16(SCSIDEV *controller)
+void Disk::ReadCapacity16_ReadLong16(Controller *controller)
 {
 	// The service action determines the actual command
 	switch (ctrl->cmd[1] & 0x1f) {
@@ -987,12 +987,12 @@ void Disk::ReadCapacity16_ReadLong16(SCSIDEV *controller)
 //  just respond with an OK status.
 //
 //---------------------------------------------------------------------------
-void Disk::Reserve(SCSIDEV *controller)
+void Disk::Reserve(Controller *controller)
 {
 	controller->Status();
 }
 
-void Disk::Release(SCSIDEV *controller)
+void Disk::Release(Controller *controller)
 {
 	controller->Status();
 }
@@ -1003,7 +1003,7 @@ void Disk::Release(SCSIDEV *controller)
 //
 //---------------------------------------------------------------------------
 
-bool Disk::ValidateBlockAddress(SCSIDEV *controller, access_mode mode)
+bool Disk::ValidateBlockAddress(Controller *controller, access_mode mode)
 {
 	uint64_t block = ctrl->cmd[2];
 	block <<= 8;
@@ -1035,7 +1035,7 @@ bool Disk::ValidateBlockAddress(SCSIDEV *controller, access_mode mode)
 	return true;
 }
 
-bool Disk::GetStartAndCount(SCSIDEV *controller, uint64_t& start, uint32_t& count, access_mode mode)
+bool Disk::GetStartAndCount(Controller *controller, uint64_t& start, uint32_t& count, access_mode mode)
 {
 	if (mode == RW6 || mode == SEEK6) {
 		start = ctrl->cmd[1] & 0x1f;

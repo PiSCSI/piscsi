@@ -47,7 +47,7 @@ using namespace protobuf_util;
 //
 //---------------------------------------------------------------------------
 #define CtrlMax	8					// Maximum number of SCSI controllers
-#define UnitNum	SCSIDEV::UNIT_MAX	// Number of units around controller
+#define UnitNum	Controller::UNIT_MAX	// Number of units around controller
 #define FPRT(fp, ...) fprintf(fp, __VA_ARGS__ )
 
 #define COMPONENT_SEPARATOR ':'
@@ -59,7 +59,7 @@ using namespace protobuf_util;
 //---------------------------------------------------------------------------
 static volatile bool running;		// Running flag
 static volatile bool active;		// Processing flag
-vector<SCSIDEV *> controllers(CtrlMax);	// Controllers
+vector<Controller *> controllers(CtrlMax);	// Controllers
 vector<Device *> devices(CtrlMax * UnitNum);	// Disks
 GPIOBUS *bus;						// GPIO Bus
 int monsocket;						// Monitor Socket
@@ -313,7 +313,7 @@ void MapController(Device **map)
 
 		// Create a new SCSI controller
 		if (!*it) {
-			*it = new SCSIDEV();
+			*it = new Controller();
 			(*it)->Connect(i, bus);
 		}
 

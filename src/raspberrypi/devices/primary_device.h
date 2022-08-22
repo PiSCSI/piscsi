@@ -26,13 +26,13 @@ public:
 	PrimaryDevice(const string&);
 	virtual ~PrimaryDevice() {}
 
-	virtual bool Dispatch(SCSIDEV *);
+	virtual bool Dispatch(Controller *);
 
-	void TestUnitReady(SCSIDEV *);
-	void RequestSense(SCSIDEV *);
-	virtual void Inquiry(SCSIDEV *);
+	void TestUnitReady(Controller *);
+	void RequestSense(Controller *);
+	virtual void Inquiry(Controller *);
 
-	void SetCtrl(SCSIDEV::ctrl_t *ctrl) { this->ctrl = ctrl; }
+	void SetCtrl(Controller::ctrl_t *ctrl) { this->ctrl = ctrl; }
 
 	bool CheckReady();
 	virtual vector<BYTE> Inquiry() const = 0;
@@ -44,11 +44,11 @@ protected:
 
 	vector<BYTE> Inquiry(scsi_defs::device_type, scsi_level, bool) const;
 
-	SCSIDEV::ctrl_t *ctrl;
+	Controller::ctrl_t *ctrl;
 
 private:
 
-	Dispatcher<PrimaryDevice, SCSIDEV> dispatcher;
+	Dispatcher<PrimaryDevice, Controller> dispatcher;
 
-	void ReportLuns(SCSIDEV *);
+	void ReportLuns(Controller *);
 };

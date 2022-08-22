@@ -88,13 +88,13 @@ bool SCSIPrinter::Init(const unordered_map<string, string>& params)
 	return true;
 }
 
-bool SCSIPrinter::Dispatch(SCSIDEV *controller)
+bool SCSIPrinter::Dispatch(Controller *controller)
 {
 	// The superclass class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-void SCSIPrinter::TestUnitReady(SCSIDEV *controller)
+void SCSIPrinter::TestUnitReady(Controller *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -108,7 +108,7 @@ vector<BYTE> SCSIPrinter::Inquiry() const
 	return PrimaryDevice::Inquiry(device_type::PRINTER, scsi_level::SCSI_2, false);
 }
 
-void SCSIPrinter::ReserveUnit(SCSIDEV *controller)
+void SCSIPrinter::ReserveUnit(Controller *controller)
 {
 	// The printer is released after a configurable time in order to prevent deadlocks caused by broken clients
 	if (reservation_time + timeout < time(0)) {
@@ -133,7 +133,7 @@ void SCSIPrinter::ReserveUnit(SCSIDEV *controller)
 	controller->Status();
 }
 
-void SCSIPrinter::ReleaseUnit(SCSIDEV *controller)
+void SCSIPrinter::ReleaseUnit(Controller *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -151,7 +151,7 @@ void SCSIPrinter::ReleaseUnit(SCSIDEV *controller)
 	controller->Status();
 }
 
-void SCSIPrinter::Print(SCSIDEV *controller)
+void SCSIPrinter::Print(Controller *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -180,7 +180,7 @@ void SCSIPrinter::Print(SCSIDEV *controller)
 	controller->DataOut();
 }
 
-void SCSIPrinter::SynchronizeBuffer(SCSIDEV *controller)
+void SCSIPrinter::SynchronizeBuffer(Controller *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -222,7 +222,7 @@ void SCSIPrinter::SynchronizeBuffer(SCSIDEV *controller)
 	unlink(filename);
 }
 
-void SCSIPrinter::SendDiagnostic(SCSIDEV *controller)
+void SCSIPrinter::SendDiagnostic(Controller *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -231,7 +231,7 @@ void SCSIPrinter::SendDiagnostic(SCSIDEV *controller)
 	controller->Status();
 }
 
-void SCSIPrinter::StopPrint(SCSIDEV *controller)
+void SCSIPrinter::StopPrint(Controller *controller)
 {
 	if (!CheckReservation(controller)) {
 		return;
@@ -262,7 +262,7 @@ bool SCSIPrinter::WriteBytes(BYTE *buf, uint32_t length)
 	return true;
 }
 
-bool SCSIPrinter::CheckReservation(SCSIDEV *controller)
+bool SCSIPrinter::CheckReservation(Controller *controller)
 {
 	if (reserving_initiator == NOT_RESERVED || reserving_initiator == controller->GetInitiatorId()) {
 		reservation_time = time(0);

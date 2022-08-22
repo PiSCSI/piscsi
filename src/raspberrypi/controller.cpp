@@ -22,7 +22,7 @@
 
 using namespace scsi_defs;
 
-SCSIDEV::SCSIDEV()
+Controller::Controller()
 {
 	// Work initialization
 	ctrl.phase = BUS::busfree;
@@ -61,7 +61,7 @@ SCSIDEV::SCSIDEV()
 	memset(scsi.msb, 0x00, sizeof(scsi.msb));
 }
 
-SCSIDEV::~SCSIDEV()
+Controller::~Controller()
 {
 	if (ctrl.buffer) {
 		free(ctrl.buffer);
@@ -69,7 +69,7 @@ SCSIDEV::~SCSIDEV()
 	}
 }
 
-void SCSIDEV::Reset()
+void Controller::Reset()
 {
 	memset(ctrl.cmd, 0x00, sizeof(ctrl.cmd));
 	ctrl.phase = BUS::busfree;
@@ -95,14 +95,14 @@ void SCSIDEV::Reset()
 	}
 }
 
-void SCSIDEV::SetUnit(int no, PrimaryDevice *dev)
+void Controller::SetUnit(int no, PrimaryDevice *dev)
 {
 	assert(no < UNIT_MAX);
 
 	ctrl.unit[no] = dev;
 }
 
-bool SCSIDEV::HasUnit() const
+bool Controller::HasUnit() const
 {
 	for (int i = 0; i < UNIT_MAX; i++) {
 		if (ctrl.unit[i]) {
@@ -113,13 +113,13 @@ bool SCSIDEV::HasUnit() const
 	return false;
 }
 
-void SCSIDEV::Connect(int id, BUS *bus)
+void Controller::Connect(int id, BUS *bus)
 {
 	ctrl.m_scsi_id = id;
 	ctrl.bus = bus;
 }
 
-BUS::phase_t SCSIDEV::Process(int initiator_id)
+BUS::phase_t Controller::Process(int initiator_id)
 {
 	// Do nothing if not connected
 	if (ctrl.m_scsi_id < 0 || ctrl.bus == NULL) {
@@ -193,7 +193,7 @@ BUS::phase_t SCSIDEV::Process(int initiator_id)
 	return ctrl.phase;
 }
 
-void SCSIDEV::BusFree()
+void Controller::BusFree()
 {
 	// Phase change
 	if (ctrl.phase != BUS::busfree) {
@@ -255,7 +255,7 @@ void SCSIDEV::BusFree()
 	}
 }
 
-void SCSIDEV::Selection()
+void Controller::Selection()
 {
 	// Phase change
 	if (ctrl.phase != BUS::selection) {
@@ -298,7 +298,7 @@ void SCSIDEV::Selection()
 	}
 }
 
-void SCSIDEV::Command()
+void Controller::Command()
 {
 	// Phase change
 	if (ctrl.phase != BUS::command) {
@@ -346,7 +346,7 @@ void SCSIDEV::Command()
 	}
 }
 
-void SCSIDEV::Execute()
+void Controller::Execute()
 {
 	LOGTRACE("%s Execution phase command $%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
 
@@ -406,7 +406,7 @@ void SCSIDEV::Execute()
 	}
 }
 
-void SCSIDEV::Status()
+void Controller::Status()
 {
 	// Phase change
 	if (ctrl.phase != BUS::status) {
@@ -445,7 +445,7 @@ void SCSIDEV::Status()
 	Send();
 }
 
-void SCSIDEV::MsgIn()
+void Controller::MsgIn()
 {
 	// Phase change
 	if (ctrl.phase != BUS::msgin) {
@@ -470,7 +470,7 @@ void SCSIDEV::MsgIn()
 	Send();
 }
 
-void SCSIDEV::MsgOut()
+void Controller::MsgOut()
 {
 	LOGTRACE("%s ID %d",__PRETTY_FUNCTION__, GetSCSIID());
 
@@ -504,7 +504,7 @@ void SCSIDEV::MsgOut()
 	Receive();
 }
 
-void SCSIDEV::DataIn()
+void Controller::DataIn()
 {
 	assert(ctrl.length >= 0);
 
@@ -545,7 +545,7 @@ void SCSIDEV::DataIn()
 	Send();
 }
 
-void SCSIDEV::DataOut()
+void Controller::DataOut()
 {
 	assert(ctrl.length >= 0);
 
@@ -585,7 +585,7 @@ void SCSIDEV::DataOut()
 	Receive();
 }
 
-void SCSIDEV::Error(sense_key sense_key, asc asc, status status)
+void Controller::Error(sense_key sense_key, asc asc, status status)
 {
 	// Get bus information
 	ctrl.bus->Aquire();
@@ -626,7 +626,7 @@ void SCSIDEV::Error(sense_key sense_key, asc asc, status status)
 	Status();
 }
 
-void SCSIDEV::Send()
+void Controller::Send()
 {
 	assert(!ctrl.bus->GetREQ());
 	assert(ctrl.bus->GetIO());
@@ -717,7 +717,7 @@ void SCSIDEV::Send()
 	}
 }
 
-void SCSIDEV::Receive()
+void Controller::Receive()
 {
 	if (scsi.is_byte_transfer) {
 		ReceiveBytes();
@@ -912,7 +912,7 @@ void SCSIDEV::Receive()
 	}
 }
 
-bool SCSIDEV::XferMsg(int msg)
+bool Controller::XferMsg(int msg)
 {
 	assert(ctrl.phase == BUS::msgout);
 
@@ -926,7 +926,7 @@ bool SCSIDEV::XferMsg(int msg)
 	return true;
 }
 
-void SCSIDEV::ReceiveBytes()
+void Controller::ReceiveBytes()
 {
 	uint32_t len;
 	BYTE data;
@@ -1098,7 +1098,7 @@ void SCSIDEV::ReceiveBytes()
 	}
 }
 
-bool SCSIDEV::XferOut(bool cont)
+bool Controller::XferOut(bool cont)
 {
 	if (!scsi.is_byte_transfer) {
 		return XferOutBlockOriented(cont);
@@ -1118,7 +1118,7 @@ bool SCSIDEV::XferOut(bool cont)
 	return false;
 }
 
-void SCSIDEV::FlushUnit()
+void Controller::FlushUnit()
 {
 	assert(ctrl.phase == BUS::dataout);
 
@@ -1130,18 +1130,18 @@ void SCSIDEV::FlushUnit()
 	Disk *disk = (Disk *)ctrl.unit[lun];
 
 	// WRITE system only
-	switch ((SCSIDEV::rw_command)ctrl.cmd[0]) {
-		case SCSIDEV::eCmdWrite6:
-		case SCSIDEV::eCmdWrite10:
-		case SCSIDEV::eCmdWrite16:
-		case SCSIDEV::eCmdWriteLong10:
-		case SCSIDEV::eCmdWriteLong16:
-		case SCSIDEV::eCmdVerify10:
-		case SCSIDEV::eCmdVerify16:
+	switch ((Controller::rw_command)ctrl.cmd[0]) {
+		case Controller::eCmdWrite6:
+		case Controller::eCmdWrite10:
+		case Controller::eCmdWrite16:
+		case Controller::eCmdWriteLong10:
+		case Controller::eCmdWriteLong16:
+		case Controller::eCmdVerify10:
+		case Controller::eCmdVerify16:
 			break;
 
-		case SCSIDEV::eCmdModeSelect6:
-		case SCSIDEV::eCmdModeSelect10:
+		case Controller::eCmdModeSelect6:
+		case Controller::eCmdModeSelect10:
             // Debug code related to Issue #2 on github, where we get an unhandled Mode Select when
             // the mac is rebooted
             // https://github.com/akuker/RASCSI/issues/2
@@ -1164,7 +1164,7 @@ void SCSIDEV::FlushUnit()
 			}
             break;
 
-		case SCSIDEV::eCmdSetMcastAddr:
+		case Controller::eCmdSetMcastAddr:
 			// TODO: Eventually, we should store off the multicast address configuration data here...
 			break;
 
@@ -1182,7 +1182,7 @@ void SCSIDEV::FlushUnit()
 // just like the actual SCSI commands XferIn should be executed by the respective device
 //
 //---------------------------------------------------------------------------
-bool SCSIDEV::XferIn(BYTE *buf)
+bool Controller::XferIn(BYTE *buf)
 {
 	assert(ctrl.phase == BUS::datain);
 	LOGTRACE("%s ctrl.cmd[0]=%02X", __PRETTY_FUNCTION__, (unsigned int)ctrl.cmd[0]);
@@ -1229,7 +1229,7 @@ bool SCSIDEV::XferIn(BYTE *buf)
 // just like the actual SCSI commands XferOut should be executed by the respective device
 //
 //---------------------------------------------------------------------------
-bool SCSIDEV::XferOutBlockOriented(bool cont)
+bool Controller::XferOutBlockOriented(bool cont)
 {
 	assert(ctrl.phase == BUS::dataout);
 
@@ -1320,7 +1320,7 @@ bool SCSIDEV::XferOutBlockOriented(bool cont)
 	return true;
 }
 
-int SCSIDEV::GetEffectiveLun() const
+int Controller::GetEffectiveLun() const
 {
 	return ctrl.lun != -1 ? ctrl.lun : (ctrl.cmd[1] >> 5) & 0x07;
 }

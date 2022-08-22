@@ -79,7 +79,7 @@ public:
 	SCSICD(const unordered_set<uint32_t>&);
 	~SCSICD();
 
-	bool Dispatch(SCSIDEV *) override;
+	bool Dispatch(Controller *) override;
 
 	void Open(const Filepath& path) override;
 
@@ -95,7 +95,7 @@ protected:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSICD, SCSIDEV> dispatcher;
+	Dispatcher<SCSICD, Controller> dispatcher;
 
 	void AddCDROMPage(map<int, vector<BYTE>>&, bool) const;
 	void AddCDDAPage(map<int, vector<BYTE>>&, bool) const;
@@ -105,8 +105,8 @@ private:
 	void OpenIso(const Filepath& path);				// Open(ISO)
 	void OpenPhysical(const Filepath& path);			// Open(Physical)
 
-	void ReadToc(SCSIDEV *) override;
-	void GetEventStatusNotification(SCSIDEV *) override;
+	void ReadToc(Controller *) override;
+	void GetEventStatusNotification(Controller *) override;
 
 	void LBAtoMSF(DWORD lba, BYTE *msf) const;			// LBA→MSF conversion
 

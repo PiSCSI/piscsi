@@ -13,7 +13,7 @@
 
 #include "scsi_primary_commands.h"
 
-class SCSIDEV;
+class Controller;
 
 class ScsiPrinterCommands : virtual public ScsiPrimaryCommands
 {
@@ -23,8 +23,8 @@ public:
 	virtual ~ScsiPrinterCommands() {}
 
 	// Mandatory commands
-	virtual void Print(SCSIDEV *) = 0;
-	virtual void ReleaseUnit(SCSIDEV *) = 0;
-	virtual void ReserveUnit(SCSIDEV *) = 0;
-	virtual void SendDiagnostic(SCSIDEV *) = 0;
+	virtual void Print(Controller *) = 0;
+	virtual void ReleaseUnit(Controller *) = 0;
+	virtual void ReserveUnit(Controller *) = 0;
+	virtual void SendDiagnostic(Controller *) = 0;
 };

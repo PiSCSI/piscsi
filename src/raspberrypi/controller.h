@@ -22,7 +22,7 @@
 
 class PrimaryDevice;
 
-class SCSIDEV
+class Controller
 {
 	// For timing adjustments
 	const unsigned int MIN_EXEC_TIME = 50;
@@ -113,8 +113,8 @@ public:
 		int lun;
 	} ctrl_t;
 
-	SCSIDEV();
-	~SCSIDEV();
+	Controller();
+	~Controller();
 
 	void Reset();
 

@@ -45,13 +45,13 @@ HostServices::HostServices() : ModePageDevice("SCHS")
 	dispatcher.AddCommand(eCmdStartStop, "StartStopUnit", &HostServices::StartStopUnit);
 }
 
-bool HostServices::Dispatch(SCSIDEV *controller)
+bool HostServices::Dispatch(Controller *controller)
 {
 	// The superclass class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
 }
 
-void HostServices::TestUnitReady(SCSIDEV *controller)
+void HostServices::TestUnitReady(Controller *controller)
 {
 	// Always successful
 	controller->Status();
@@ -62,7 +62,7 @@ vector<BYTE> HostServices::Inquiry() const
 	return PrimaryDevice::Inquiry(device_type::PROCESSOR, scsi_level::SPC_3, false);
 }
 
-void HostServices::StartStopUnit(SCSIDEV *controller)
+void HostServices::StartStopUnit(Controller *controller)
 {
 	bool start = ctrl->cmd[4] & 0x01;
 	bool load = ctrl->cmd[4] & 0x02;
@@ -77,10 +77,10 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 		}
 
 		if (load) {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_PI);
+			controller->ScheduleShutDown(Controller::rascsi_shutdown_mode::STOP_PI);
 		}
 		else {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::STOP_RASCSI);
+			controller->ScheduleShutDown(Controller::rascsi_shutdown_mode::STOP_RASCSI);
 		}
 
 		controller->Status();
@@ -88,7 +88,7 @@ void HostServices::StartStopUnit(SCSIDEV *controller)
 	}
 	else {
 		if (load) {
-			controller->ScheduleShutDown(SCSIDEV::rascsi_shutdown_mode::RESTART_PI);
+			controller->ScheduleShutDown(Controller::rascsi_shutdown_mode::RESTART_PI);
 
 			controller->Status();
 			return;

@@ -93,7 +93,7 @@ bool SCSIBR::Init(const unordered_map<string, string>& params)
 #endif
 }
 
-bool SCSIBR::Dispatch(SCSIDEV *controller)
+bool SCSIBR::Dispatch(Controller *controller)
 {
 	// The superclass class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
@@ -123,7 +123,7 @@ vector<BYTE> SCSIBR::Inquiry() const
 	return buf;
 }
 
-void SCSIBR::TestUnitReady(SCSIDEV *controller)
+void SCSIBR::TestUnitReady(Controller *controller)
 {
 	// Always successful
 	controller->Status();
@@ -263,7 +263,7 @@ bool SCSIBR::SendMessage10(const DWORD *cdb, BYTE *buf)
 	return false;
 }
 
-void SCSIBR::GetMessage10(SCSIDEV *controller)
+void SCSIBR::GetMessage10(Controller *controller)
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {
@@ -293,7 +293,7 @@ void SCSIBR::GetMessage10(SCSIDEV *controller)
 //  This Send Message command is used by the X68000 host driver
 //
 //---------------------------------------------------------------------------
-void SCSIBR::SendMessage10(SCSIDEV *controller)
+void SCSIBR::SendMessage10(Controller *controller)
 {
 	// Reallocate buffer (because it is not transfer for each block)
 	if (ctrl->bufsize < 0x1000000) {

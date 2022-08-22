@@ -16,8 +16,8 @@
 #include "controller.h"
 #include <unordered_map>
 
-class SCSIDEV;
-class SCSIDEV;
+class Controller;
+class Controller;
 
 using namespace std;
 using namespace scsi_defs;
@@ -50,7 +50,7 @@ public:
 
 	bool Dispatch(T *instance, U *controller)
 	{
-		SCSIDEV::ctrl_t *ctrl = controller->GetCtrl();
+		Controller::ctrl_t *ctrl = controller->GetCtrl();
 		instance->SetCtrl(ctrl);
 
 		const auto& it = commands.find(static_cast<scsi_command>(ctrl->cmd[0]));

@@ -48,7 +48,7 @@ using namespace std;
 #define STATUS_PARAMSAVE	0x00053900	// SAVING PARAMETERS NOT SUPPORTED
 #define STATUS_NODEFECT		0x00010000	// DEFECT LIST NOT FOUND
 
-class SCSIDEV;
+class Controller;
 
 class Device
 {
@@ -117,7 +117,7 @@ public:
 	// Override for device specific initializations, to be called after all device properties have been set
 	virtual bool Init(const unordered_map<string, string>&) { return true; };
 
-	virtual bool Dispatch(SCSIDEV *) = 0;
+	virtual bool Dispatch(Controller *) = 0;
 
 	const string& GetType() const { return type; }
 

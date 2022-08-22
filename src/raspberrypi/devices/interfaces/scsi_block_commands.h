@@ -13,7 +13,7 @@
 
 #include "scsi_primary_commands.h"
 
-class SCSIDEV;
+class Controller;
 
 class ScsiBlockCommands : virtual public ScsiPrimaryCommands
 {
@@ -23,11 +23,11 @@ public:
 	virtual ~ScsiBlockCommands() {}
 
 	// Mandatory commands
-	virtual void FormatUnit(SCSIDEV *) = 0;
-	virtual void ReadCapacity10(SCSIDEV *) = 0;
-	virtual void ReadCapacity16(SCSIDEV *) = 0;
-	virtual void Read10(SCSIDEV *) = 0;
-	virtual void Read16(SCSIDEV *) = 0;
-	virtual void Write10(SCSIDEV *) = 0;
-	virtual void Write16(SCSIDEV *) = 0;
+	virtual void FormatUnit(Controller *) = 0;
+	virtual void ReadCapacity10(Controller *) = 0;
+	virtual void ReadCapacity16(Controller *) = 0;
+	virtual void Read10(Controller *) = 0;
+	virtual void Read16(Controller *) = 0;
+	virtual void Write10(Controller *) = 0;
+	virtual void Write16(Controller *) = 0;
 };

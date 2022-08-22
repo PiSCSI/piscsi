@@ -24,7 +24,7 @@ ModePageDevice::ModePageDevice(const string& id) : PrimaryDevice(id)
 	dispatcher.AddCommand(eCmdModeSelect10, "ModeSelect10", &ModePageDevice::ModeSelect10);
 }
 
-bool ModePageDevice::Dispatch(SCSIDEV *controller)
+bool ModePageDevice::Dispatch(Controller *controller)
 {
 	// The superclass class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
@@ -88,7 +88,7 @@ int ModePageDevice::AddModePages(const DWORD *cdb, BYTE *buf, int max_length)
 	return size;
 }
 
-void ModePageDevice::ModeSense6(SCSIDEV *controller)
+void ModePageDevice::ModeSense6(Controller *controller)
 {
 	ctrl->length = ModeSense6(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
@@ -99,7 +99,7 @@ void ModePageDevice::ModeSense6(SCSIDEV *controller)
 	controller->DataIn();
 }
 
-void ModePageDevice::ModeSense10(SCSIDEV *controller)
+void ModePageDevice::ModeSense10(Controller *controller)
 {
 	ctrl->length = ModeSense10(ctrl->cmd, ctrl->buffer, ctrl->bufsize);
 	if (ctrl->length <= 0) {
@@ -118,7 +118,7 @@ bool ModePageDevice::ModeSelect(const DWORD*, const BYTE *, int)
 	return false;
 }
 
-void ModePageDevice::ModeSelect6(SCSIDEV *controller)
+void ModePageDevice::ModeSelect6(Controller *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 
@@ -131,7 +131,7 @@ void ModePageDevice::ModeSelect6(SCSIDEV *controller)
 	controller->DataOut();
 }
 
-void ModePageDevice::ModeSelect10(SCSIDEV *controller)
+void ModePageDevice::ModeSelect10(Controller *controller)
 {
 	LOGTRACE("%s Unsupported mode page $%02X", __PRETTY_FUNCTION__, ctrl->buffer[0]);
 

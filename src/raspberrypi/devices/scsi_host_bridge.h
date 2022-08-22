@@ -37,20 +37,20 @@ public:
 	~SCSIBR();
 
 	bool Init(const unordered_map<string, string>&) override;
-	bool Dispatch(SCSIDEV *) override;
+	bool Dispatch(Controller *) override;
 
 	// Commands
 	vector<BYTE> Inquiry() const override;
 	int GetMessage10(const DWORD *cdb, BYTE *buf);
 	bool SendMessage10(const DWORD *cdb, BYTE *buf);
-	void TestUnitReady(SCSIDEV *) override;
-	void GetMessage10(SCSIDEV *);
-	void SendMessage10(SCSIDEV *);
+	void TestUnitReady(Controller *) override;
+	void GetMessage10(Controller *);
+	void SendMessage10(Controller *);
 
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSIBR, SCSIDEV> dispatcher;
+	Dispatcher<SCSIBR, Controller> dispatcher;
 
 	int GetMacAddr(BYTE *buf);					// Get MAC address
 	void SetMacAddr(BYTE *buf);					// Set MAC address

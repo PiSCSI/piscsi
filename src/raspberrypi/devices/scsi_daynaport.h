@@ -59,16 +59,16 @@ public:
 
 	void SetMacAddr(const DWORD *cdb, BYTE *buffer);	// Set MAC address
 
-	void TestUnitReady(SCSIDEV *) override;
-	void Read6(SCSIDEV *) override;
-	void Write6(SCSIDEV *) override;
-	void RetrieveStatistics(SCSIDEV *);
-	void SetInterfaceMode(SCSIDEV *);
-	void SetMcastAddr(SCSIDEV *);
-	void EnableInterface(SCSIDEV *);
+	void TestUnitReady(Controller *) override;
+	void Read6(Controller *) override;
+	void Write6(Controller *) override;
+	void RetrieveStatistics(Controller *);
+	void SetInterfaceMode(Controller *);
+	void SetMcastAddr(Controller *);
+	void EnableInterface(Controller *);
 	int GetSendDelay() const override;
 
-	bool Dispatch(SCSIDEV *) override;
+	bool Dispatch(Controller *) override;
 
 	const int DAYNAPORT_BUFFER_SIZE = 0x1000000;
 
@@ -92,7 +92,7 @@ public:
 private:
 	typedef Disk super;
 
-	Dispatcher<SCSIDaynaPort, SCSIDEV> dispatcher;
+	Dispatcher<SCSIDaynaPort, Controller> dispatcher;
 
 	typedef struct __attribute__((packed)) {
 		BYTE operation_code;

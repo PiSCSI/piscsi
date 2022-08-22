@@ -27,12 +27,12 @@ PrimaryDevice::PrimaryDevice(const string& id) : ScsiPrimaryCommands(), Device(i
 	dispatcher.AddCommand(eCmdRequestSense, "RequestSense", &PrimaryDevice::RequestSense);
 }
 
-bool PrimaryDevice::Dispatch(SCSIDEV *controller)
+bool PrimaryDevice::Dispatch(Controller *controller)
 {
 	return dispatcher.Dispatch(this, controller);
 }
 
-void PrimaryDevice::TestUnitReady(SCSIDEV *controller)
+void PrimaryDevice::TestUnitReady(Controller *controller)
 {
 	if (!CheckReady()) {
 		controller->Error();
@@ -42,7 +42,7 @@ void PrimaryDevice::TestUnitReady(SCSIDEV *controller)
 	controller->Status();
 }
 
-void PrimaryDevice::Inquiry(SCSIDEV *controller)
+void PrimaryDevice::Inquiry(Controller *controller)
 {
 	// EVPD and page code check
 	if ((ctrl->cmd[1] & 0x01) || ctrl->cmd[2]) {
@@ -73,7 +73,7 @@ void PrimaryDevice::Inquiry(SCSIDEV *controller)
 	controller->DataIn();
 }
 
-void PrimaryDevice::ReportLuns(SCSIDEV *controller)
+void PrimaryDevice::ReportLuns(Controller *controller)
 {
 	int allocation_length = (ctrl->cmd[6] << 24) + (ctrl->cmd[7] << 16) + (ctrl->cmd[8] << 8) + ctrl->cmd[9];
 
@@ -102,7 +102,7 @@ void PrimaryDevice::ReportLuns(SCSIDEV *controller)
 	controller->DataIn();
 }
 
-void PrimaryDevice::RequestSense(SCSIDEV *controller)
+void PrimaryDevice::RequestSense(Controller *controller)
 {
 	int lun = controller->GetEffectiveLun();
 

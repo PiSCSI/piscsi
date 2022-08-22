@@ -204,7 +204,7 @@ SCSICD::~SCSICD()
 	ClearTrack();
 }
 
-bool SCSICD::Dispatch(SCSIDEV *controller)
+bool SCSICD::Dispatch(Controller *controller)
 {
 	// The superclass class handles the less specific commands
 	return dispatcher.Dispatch(this, controller) ? true : super::Dispatch(controller);
@@ -385,7 +385,7 @@ void SCSICD::OpenPhysical(const Filepath& path)
 	dataindex = 0;
 }
 
-void SCSICD::ReadToc(SCSIDEV *controller)
+void SCSICD::ReadToc(Controller *controller)
 {
 	ctrl->length = ReadToc(ctrl->cmd, ctrl->buffer);
 	if (ctrl->length <= 0) {
@@ -621,7 +621,7 @@ int SCSICD::ReadToc(const DWORD *cdb, BYTE *buf)
 	return length;
 }
 
-void SCSICD::GetEventStatusNotification(SCSIDEV *controller)
+void SCSICD::GetEventStatusNotification(Controller *controller)
 {
 	if (!(ctrl->cmd[1] & 0x01)) {
 		// Asynchronous notification is optional and not supported by rascsi
